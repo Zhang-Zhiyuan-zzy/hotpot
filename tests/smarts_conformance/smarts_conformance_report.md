@@ -8,8 +8,15 @@ Supplement validation revision: `4d847f4`
 
 Audited production revision: `7b262a9663d930d86186f5473fab60af2d70931a`
 
-Active implementation: `hotpot/cheminfo/search/{smarts.py,_smarts_syntax.py,
+Original audited implementation: `hotpot/cheminfo/search/{smarts.py,_smarts_syntax.py,
 semantics.py,errors.py,search.py}`
+
+Native-executor supplement date: 2026-10-21
+
+Native-executor revision: `60288d2fd15e84d5adfb8dc88a0c44e69549ec67`
+
+Current execution implementation:
+`hotpot/cheminfo/search/{_predicate_ir.py,query_ir.py,native.py,search.py,_native/*}`
 
 ## Executive result
 
@@ -28,12 +35,29 @@ bond-metadata, and coordination-semantics changes.
 - The inference compatibility matrix passed on every Python version from 3.9
   through 3.14: **190 focused tests** plus **252 strict SMARTS tests** per
   interpreter (Python 3.9 reports the same subtests as ordinary tests).
-- Strict-suite coverage of the active search modules: **903/945 statements**
+- Strict-suite coverage of the originally audited search modules: **903/945 statements**
   and **362/402 branches**, reported as **94% total** by Coverage.py.
 
 The former failing-conformance and corpus-mismatch figures described the
 pre-repair implementation and are no longer current. No repository-wide test
 result is claimed here.
+
+### Native-executor supplement
+
+Stage 16 retained the parser and semantic contract audited above while
+replacing the NetworkX topology executor with Hotpot's single deterministic
+C++17 RI-style matcher. At exact revision `60288d2`, the current conformance
+suite reports 282 passed on CPython 3.11, and the targeted downstream closure
+suite covering search/SMARTS/MCA/molecule consumers reports 740 passed plus 49
+subtests. Typed
+SMARTS predicates execute natively; an opaque Python callable remains a
+predicate-only callback inside native traversal. The complete semantic,
+supported-Python, packaging and performance evidence is recorded in the
+[Stage 16 implementation report](../../plan/16_native_search/implementation_report.md).
+
+The original commands, timings, Python coverage and revision-specific counts
+below remain historical evidence for revision `7b262a9`; they are not relabeled
+as native-executor measurements.
 
 ## Frozen contract and preprocessing
 
@@ -42,8 +66,10 @@ The dialect is the documented Daylight-like subset plus Hotpot's `M`, `Ln`,
 `SmartsSyntaxError` (`ValueError`); recognized unsupported syntax raises
 `UnsupportedSmartsError` (`NotImplementedError`).
 
-Targets are Hotpot molecular graphs. Open Babel performs input perception, but
-matching uses Hotpot objects and NetworkX, not RDKit. `BondKind` records
+Targets are Hotpot molecular graphs. Open Babel performs input perception, and
+matching consumes Hotpot-owned facts rather than RDKit search semantics. The
+original audit used the NetworkX executor; the Stage 16 supplement uses the
+native RI-style executor without changing this contract. `BondKind` records
 `SINGLE`, `DOUBLE`, `TRIPLE`, `AROMATIC`, `ZERO`, `DATIVE`, or `UNKNOWN`
 separately from numeric order.
 
@@ -219,12 +245,14 @@ xfails or exclusions.
 The fixed-seed (`20260915`) fuzz run evaluated **400/400** cases with zero
 failures: 100 valid, 100 invalid mutations, 100 robustness strings, and 100
 structured-stress inputs. The quick benchmark remained deterministic, and its
-threaded and serial checksums agreed. The principal retained worst case is raw
-automorphism enumeration: seven disconnected wildcards produce 5,040 mappings
-in a median **886.56 ms** with **5.42 MB** peak traced Python memory on this
-machine. `has_match` and bounded enumeration let callers avoid that work when
-they only need existence or a limit; they do not provide a fingerprint index or
-make arbitrary graph-isomorphism workloads constant-time.
+threaded and serial checksums agreed. At the original revision, the principal
+worst case was raw automorphism enumeration: seven disconnected wildcards
+produced 5,040 mappings in a median **886.56 ms** with **5.42 MB** peak traced
+Python memory on that machine. Current native performance is reported in the
+Stage 16 supplement. `has_match` and bounded enumeration let callers avoid
+complete enumeration when they only need existence or a limit; they do not
+provide a fingerprint index or make arbitrary graph-isomorphism workloads
+constant-time.
 
 ## Disputed and unsupported areas
 
@@ -256,9 +284,11 @@ Reference-engine disagreement is evidence, not sufficient reason to change the
 Hotpot contract. Golden changes require review and must never be generated as
 an unconditional fallback from current output.
 
-## Remaining limitations
+## Remaining limitations of the original audit
 
 - This report does not claim a repository-wide pytest pass.
-- Mutation testing and native-memory sanitizers were not run.
+- Mutation testing and native-memory sanitizers were not run in the original
+  audit; Stage 16 adds the native diagnostics described in its implementation
+  report.
 - No large external licensed SMARTS corpus is included.
 - Performance measurements are local and not CI thresholds.

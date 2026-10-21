@@ -363,13 +363,14 @@ print(len(hits))  # == 0
 ```
 Hotpot features a built-in SMARTS parser ([API](https://raw.githubusercontent.com/Zhang-Zhiyuan-zzy/hotpot/main/hotpot/cheminfo/smarts.md))
 that compiles atom, bond, logical and anchored recursive expressions into the
-NetworkX-backed `Searcher` objects. Unsupported stereochemical, directional-bond
-and isotope constraints fail explicitly instead of being treated as unconstrained.
+native RI-style executor behind `Searcher`. Unsupported stereochemical,
+directional-bond and isotope constraints fail explicitly instead of being
+treated as unconstrained.
 
 Topology-sensitive SMARTS can select one of two named semantics profiles. The
 default preserves the complete molecular graph; the ligand profile removes
 metal--nonmetal edges only when calculating ligand-local descriptors and never
-mutates the molecule or replaces the NetworkX search backend:
+mutates the molecule or changes the native topology-search algorithm:
 
 ```pycon
 from hotpot import SmartsSemantics

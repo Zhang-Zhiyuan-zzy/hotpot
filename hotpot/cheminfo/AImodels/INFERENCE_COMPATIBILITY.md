@@ -3,11 +3,11 @@
 The MCA and CBond ONNX packages and their required Hotpot integration are
 tested on CPython 3.9--3.14. The matrix covers CPU inference, model loading,
 input featurization, dynamic dimensions, shared molecule conversion,
-calculator attachment, NetworkX substructure search, SMARTS parsing and MCA
-site selection. It does not claim that unrelated Hotpot plugins or optional
-scientific packages support every interpreter in the matrix.
+calculator attachment, native RI-style substructure search, SMARTS parsing
+and MCA site selection. It does not claim that unrelated Hotpot plugins or
+optional scientific packages support every interpreter in the matrix.
 
-Validated on 2026-09-14:
+Inference baseline validated on 2026-09-14:
 
 | Python | NumPy | ONNX Runtime | RDKit | Tests |
 | --- | --- | --- | --- | --- |
@@ -21,6 +21,12 @@ Validated on 2026-09-14:
 The piperidine MCA reference was exactly `503.25 kJ/mol` in every environment.
 The largest cross-version difference in the fixed CBond reference output was
 `5.96e-7`, below the test tolerance of `1e-6`.
+
+The native RI search extension and its public search behavior were separately
+revalidated on 2026-10-21 with clean CPython 3.9--3.14 builds and isolated
+wheel installs. See the
+[Stage 16 implementation report](../../../plan/16_native_search/implementation_report.md)
+for the exact source-test, packaging and semantic matrix.
 
 Run the complete matrix with [uv](https://docs.astral.sh/uv/):
 
@@ -38,8 +44,9 @@ The lower ONNX Runtime bound is intentionally 1.19. Python 3.9 resolves to
 1.19.2, while newer Python versions resolve to newer compatible releases.
 
 CI also builds a wheel, installs it without the source checkout on `sys.path`,
-and runs a real MCA prediction. This verifies that the ONNX graph and its
-external weight files are present in the distributable package.
+and runs a real MCA prediction plus public native-search smoke. This verifies
+that the ONNX graph, its external weight files and the compiled search
+extension are present in the distributable package.
 
 As an additional forward-compatibility check, `python -m compileall hotpot`
 completed under all six interpreters. Warnings emitted by third-party packages

@@ -19,6 +19,6 @@ This directory preserves Hotpot design, audit, implementation, and validation re
 | 13 | [Bundle-centered dataset governance](13_dataset_bundle_governance/) | Interactive Cases, evidence/quality gates, owner-controlled benchmark admission, and lossless certificates |
 | 14 | [Geometry reconstruction](14_geometry_reconstruction/) | Deferred post-processing of topology-free xTB/ORCA coordinates into auditable graph candidates |
 | 15 | [MCA GPU pipeline](15_mca_gpu_pipeline/) | Explicit CPU/GPU inference, bounded multi-GPU execution, rolling admission, and scale-aware routing |
-| 16 | [Native substructure search](16_native_search/) | Proposed deterministic native monomorphism executor with predicate-only Python callables |
+| 16 | [Native substructure search](16_native_search/) | Implemented deterministic native RI monomorphism executor with predicate-only Python callables |
 
 Each topic README records the Git commits associated with that stage. Files under `artifacts/` are diagram sources, rendered HTML, or visual-review evidence. A `visual-check.json` whose status is `pending` is retained as provenance and is not evidence of a successful visual review.

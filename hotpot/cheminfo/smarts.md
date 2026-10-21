@@ -12,6 +12,20 @@ The parser implements a **subset** of the standard SMARTS syntax, defined by the
 *   **Explicit Bond Inference**: Bond inference between aromatic and non-aromatic atoms follows defined rules rather than probabilistic estimation.
 *   **Stream Processing**: The parsing process consists of two stages: a Tokenizer that converts the string into a stream of tokens (atoms, bonds, branches, ring markers), followed by the construction of the graph structure.
 
+### Search execution
+
+`Searcher` executes compiled queries with Hotpot's single deterministic C++17
+RI-style subgraph-monomorphism engine. Identical inputs and deterministic
+predicates produce the same mapping sequence for a given implementation; the
+historical NetworkX enumeration order is not a public contract. A target is
+snapshotted for each public search call, so molecule or query mutations are
+visible on the next call and no persistent per-molecule cache is used.
+
+Typed SMARTS predicates execute natively. An arbitrary Python callable remains
+supported as an individual predicate leaf and is invoked under the GIL, while
+candidate generation, topology traversal and backtracking stay in the native
+engine. There is no backend selector or whole-search Python fallback.
+
 ## 2. Supported Syntax
 
 ### 2.1 Basic Atoms and Bonds

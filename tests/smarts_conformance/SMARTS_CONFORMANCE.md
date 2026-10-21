@@ -1,7 +1,7 @@
 # Hotpot SMARTS conformance contract
 
-This document defines the supported behavior of the active NetworkX-backed
-SMARTS implementation. Observations from RDKit or Open Babel are evidence, not
+This document defines the supported behavior of the active SMARTS compiler and
+deterministic native RI-style matcher. Observations from RDKit or Open Babel are evidence, not
 automatic changes to this contract.
 
 ## Scope and entry points
@@ -30,8 +30,8 @@ current API. Bounded raw-embedding enumeration is available through
 
 SMILES and structure files are read through Hotpot's normal readers. Open
 Babel supplies atom identity, charge, aromaticity, numeric bond order, and
-implicit hydrogen perception; the matcher then operates only on Hotpot
-`Molecule`, `Atom`, and `Bond` objects with NetworkX.
+implicit hydrogen perception; Hotpot packs those authoritative values into a
+private target snapshot consumed by the native matcher.
 
 `Bond.bond_kind` preserves semantic categories separately from numeric order:
 `SINGLE`, `DOUBLE`, `TRIPLE`, `AROMATIC`, `ZERO`, `DATIVE`, and `UNKNOWN`.
@@ -175,7 +175,7 @@ atom as a reliable site.
 - invalid target input: target-reader error, currently normally `OSError`;
 - unknown exceptions: propagated, never converted to a successful match.
 
-## Current conformance status
+## Versioned conformance status
 
 At revision `7b262a9`, the original strict `smarts_core` suite passed on Python
 3.9 and 3.14: **252 passed** on each interpreter. On 2026-09-20, the
@@ -185,6 +185,11 @@ gate at revision `4d847f4` is **255 passed** on both Python 3.9 and 3.14. The
 deterministic corpus contains **1,332/1,332 passing cases** and
 `corpus/known_mismatches.json` is empty. These numbers describe the scoped
 SMARTS suite, not all repository tests.
+
+At native-executor revision `60288d2`, the expanded conformance suite reports
+**282 passed** on Python 3.11. The complete CPython 3.9--3.14 validation and
+native semantic evidence is recorded in the
+[Stage 16 implementation report](../../plan/16_native_search/implementation_report.md).
 
 Polycyclic ring-family behavior, Open Babel aromaticity/hydrogen perception,
 MOL2 coordination-token loss, unsupported SMARTS features, and the deliberate

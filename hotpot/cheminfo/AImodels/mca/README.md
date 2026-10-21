@@ -10,8 +10,9 @@ The package has two outputs:
 - `atom_predictions`: an MCA estimate for every heavy atom supported by the
   model.
 - `sites`: the important nucleophilic sites selected by the 24 ordered ESNUEL
-  rules. These rules are evaluated by Hotpot's NetworkX-based SMARTS search,
-  not by RDKit substructure matching.
+  rules. These rules are evaluated by Hotpot's deterministic native RI-style
+  SMARTS search, not by RDKit substructure matching. Their compiled queries
+  share one target snapshot per molecule.
 
 ## Installation
 

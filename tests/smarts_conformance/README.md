@@ -2,8 +2,8 @@
 
 This directory implements the test layers required by
 `plan/01_search_smarts/test_search_and_SMARTS.md`. It exercises only the active
-NetworkX-backed
-parser and matcher, including the `FULL_GRAPH` and `LIGAND_SKELETON`
+parser and deterministic native RI-style matcher, including the `FULL_GRAPH`
+and `LIGAND_SKELETON`
 coordination semantics profiles.
 
 ## Profiles
@@ -70,9 +70,13 @@ freeze the observed difference for the same coordinated-amine topology:
 Open Babel 3.1 supplies zero donor implicit H from MOL2 and one from SDF, so
 `LIGAND_SKELETON` yields `X3/v3` and `X4/v4`, respectively.
 
-At revision `7b262a9`, the strict command above reports **252 passed** on both
-Python 3.9 and 3.14. The corpus audit reports **1,332 passed, 0 failed**. These
-are scoped SMARTS results and do not imply a repository-wide test pass.
+The historical revision `7b262a9` reports **252 passed** on both Python 3.9
+and 3.14 for the strict command above; its corpus audit reports **1,332 passed,
+0 failed**. At native-executor revision `60288d2`, the expanded current
+conformance suite reports **282 passed** on Python 3.11. See the
+[Stage 16 implementation report](../../plan/16_native_search/implementation_report.md)
+for the complete current matrix. These are scoped SMARTS results and do not
+imply a repository-wide test pass.
 
 The differential and benchmark programs are evidence collectors, not ordinary
 CI dependencies. They never rewrite golden expectations. Run the fuzz command

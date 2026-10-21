@@ -1157,19 +1157,19 @@ Derived consequences requiring review with this plan:
 - [x] the production topology executor is the Section 6.2 in-tree C++17
   deterministic RI-style kernel, with pybind11 as its binding layer and no
   third-party graph-matcher dependency;
-- [ ] bounded `max_matches=N` may return a different valid N-prefix than the
+- [x] bounded `max_matches=N` may return a different valid N-prefix than the
   NetworkX implementation because the approved order changes;
-- [ ] callable result/exception semantics remain supported, but invocation
+- [x] callable result/exception semantics remain supported, but invocation
   order, invocation count, and side effects are not contracts;
-- [ ] each search uses a method-entry query/target snapshot; mutation during an
+- [x] each search uses a method-entry query/target snapshot; mutation during an
   active search is unsupported and mutation between calls remains visible;
-- [ ] `Hits.graph_matcher` remains present as a native mapping-source adapter,
+- [x] `Hits.graph_matcher` remains present as a native mapping-source adapter,
   not as a NetworkX `GraphMatcher` instance;
-- [ ] deterministic built-in-query sequences are required across supported
+- [x] deterministic built-in-query sequences are required across supported
   platforms for one native implementation version;
-- [ ] the native extension is mandatory at runtime and has no NetworkX
+- [x] the native extension is mandatory at runtime and has no NetworkX
   fallback; and
-- [ ] MCA symmetry representative selection remains MCA-owned rather than
+- [x] MCA symmetry representative selection remains MCA-owned rather than
   becoming generic `Searcher` behavior.
 
 The owner explicitly authorized implementation after approving the single

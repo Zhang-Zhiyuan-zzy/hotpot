@@ -407,8 +407,9 @@ print(phenol | reordered_phenol)
 
 ### Search and SMARTS
 
-Hotpot provides a NetworkX-based SMARTS and substructure search system while
-preserving metal-aware matching. See the
+Hotpot provides a deterministic native RI-style SMARTS and substructure
+search engine while preserving metal-aware matching and the existing Python
+API. See the
 [SMARTS guide](hotpot/cheminfo/smarts.md) for its public syntax and examples.
 
 ### Molecular assembly

@@ -46,6 +46,14 @@ test_targets=(
   tests/test_cheminfo/test_topology_determinism.py
   tests/test_cheminfo/test_search.py
   tests/test_cheminfo/test_search_mapping.py
+  tests/test_cheminfo/test_search_native_contract.py
+  tests/test_cheminfo/test_search_native_kernel.py
+  tests/test_cheminfo/test_search_native_compiler.py
+  tests/test_cheminfo/test_search_native_production_kernel.py
+  tests/test_cheminfo/test_search_native_predicate_parity.py
+  tests/test_cheminfo/test_search_native_cutover.py
+  tests/test_cheminfo/test_search_native_prepared.py
+  tests/test_ds/test_stage13_query.py
   tests/test_cheminfo/test_smarts.py
   tests/test_cheminfo/test_import_safety.py
   tests/test_smart_parser.py

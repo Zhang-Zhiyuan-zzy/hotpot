@@ -1,4 +1,4 @@
-"""SMARTS parsing for Hotpot's NetworkX substructure search.
+"""SMARTS parsing for Hotpot's native substructure search.
 
 The parser intentionally targets the graph and query objects implemented by
 ``hotpot.cheminfo.search``. It does not translate through another chemistry
@@ -146,7 +146,7 @@ def substructure_from_smarts(
     *,
     semantics: SmartsSemantics = SmartsSemantics.FULL_GRAPH,
 ) -> Substructure:
-    """Build a :class:`Substructure` without leaving Hotpot's graph backend."""
+    """Build a :class:`Substructure` for Hotpot's native graph executor."""
     semantics = resolve_smarts_semantics(semantics)
     tokens = tokenize(smarts)
     if not tokens:

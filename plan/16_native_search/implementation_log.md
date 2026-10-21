@@ -409,8 +409,10 @@ prove first-result termination, mutation visibility between calls, the native
 `Hits.graph_matcher` adapter, and read-only mappings. Source inspection finds
 no `GraphMatcher` or isomorphism import under `hotpot.cheminfo.search`.
 
-Unexpected finding: none. The retained NetworkX dependency is now limited to
-the public compatibility graph and unrelated graph facilities, as planned.
+Unexpected finding: none. Within generic search, retained NetworkX use is
+limited to the public compatibility graph. MCA separately retains its existing
+post-match rooted-isomorphism step for symmetry-representative selection; that
+MCA-owned operation is not a substructure-search executor.
 
 Git checkpoint: `414ccd3` (`feat(search): cut over public search to native RI`).
 
@@ -501,7 +503,7 @@ and the production `NativeTarget`/`NativeProblem` path.
 
 ### Step 8 - Close packaging, performance, and final validation
 
-Status: in progress
+Status: complete
 
 Planned:
 
@@ -513,7 +515,7 @@ Planned:
   consumers, and MCA CPU/GPU scientific parity; and
 - update public documentation and write the final implementation report.
 
-Performed so far:
+Performed:
 
 - added the committed gate runner in `ab18152`; it covers public existence,
   bounded `0`/`1`/`64`/unbounded search, 5,040 complete embeddings, recursive
@@ -543,19 +545,19 @@ Performance requalification:
 
 | Workload | NetworkX baseline median | Final native median | Speedup |
 | --- | ---: | ---: | ---: |
-| existence hit | 0.196333 ms | 0.133673 ms | 1.469x |
-| existence miss | 0.169952 ms | 0.163490 ms | 1.040x |
-| bounded zero | 0.197355 ms | 0.144014 ms | 1.370x |
-| bounded one | 0.238252 ms | 0.164793 ms | 1.446x |
-| bounded 64 | 2.872069 ms | 0.493045 ms | 5.825x |
-| complete 5,040 mappings | 215.118008 ms | 27.440589 ms | 7.839x |
-| recursive complete | 1.381150 ms | 0.451948 ms | 3.056x |
-| repeated bounded 64 | 2.863868 ms | 0.495280 ms | 5.782x |
+| existence hit | 0.196333 ms | 0.131299 ms | 1.495x |
+| existence miss | 0.169952 ms | 0.163019 ms | 1.043x |
+| bounded zero | 0.197355 ms | 0.143101 ms | 1.379x |
+| bounded one | 0.238252 ms | 0.161817 ms | 1.472x |
+| bounded 64 | 2.872069 ms | 0.485992 ms | 5.910x |
+| complete 5,040 mappings | 215.118008 ms | 27.430439 ms | 7.842x |
+| recursive complete | 1.381150 ms | 0.449192 ms | 3.075x |
+| repeated bounded 64 | 2.863868 ms | 0.489629 ms | 5.849x |
 
-The final native ten-workload geometric mean is 2.747x; the five required
-categories weighted equally produce 3.018x. No native-only representative is
+The final native ten-workload geometric mean is 2.774x; the five required
+categories weighted equally produce 3.047x. No native-only representative is
 more than 5% slower than baseline. Mixed-callable complete enumeration is
-1.409x faster; mixed-callable existence is 15.4% slower and is reported
+1.413x faster; mixed-callable existence is 11.8% slower and is reported
 separately as required. It remains the same RI traversal with only individual
 callable leaves entering Python.
 
@@ -566,31 +568,62 @@ The historical JSON/rusage SHA-256 values are
 `5835f0e331d399fb8e96a6fce8055691ba0af27563147afcc868e0ba4bbd5383`
 and `69f4d09bbff24c1d8a10c4acfa89a510ae4fb48c8056f505751e5db15bf75a0f`;
 the final candidate values are
-`6b556e8df046f8aca16ccc59fdf5b80d79ba894e487624278aa41fc98103870d`
-and `3312bc4cdf831034e698d533611f4439f896a29062f3e04c2332e0d1eda3a037`.
-Fifty repeated composite cycles retained 4,308 traced bytes versus 12,263 at
-baseline, showed zero current/max RSS growth, and were 3.007x faster.
+`e9e5bce38f3ded612a2f473b0e28753a5792a1d0e09f27d38b8a906678b6358e`
+and `29137a4a56797843139e485545b3cfed477ae7fc43bc1cc52a6038b8a6b171b0`.
+Fifty repeated composite cycles retained 4,237 traced bytes versus 12,263 at
+baseline, showed zero current/max RSS growth, and were 2.978x faster.
 
 Validation already completed:
 
 - focused post-correction native/compiler/predicate/cutover/prepared/contract
   suite: 171 passed in 4.62 s;
-- broad native search, SMARTS/conformance, MCA, molecule assembly and
-  conversion suite: 736 passed plus 49 subtests in 24.84 s before the final
-  sparse-record correction; the same broad suite will be repeated at the
-  final checkpoint;
-- exact-production UBSAN build: 182 passed in 4.70 s with no diagnostic;
+- targeted downstream closure suite covering native search,
+  SMARTS/conformance, MCA, molecule assembly and conversion at exact commit
+  `60288d2`: 740 passed plus 49 subtests in 24.67 s;
+- the full dataset-consumer gate: 437 passed and one optional local-evidence
+  test skipped in 182.38 s. Its `SmartsSearcher("O")` case exercises the
+  native `Searcher.has_match()` path and also passed independently;
+- the maintained coverage entry point, run from an isolated worktree at
+  validation-harness head `e8f72eb` with the production source unchanged from
+  `60288d2`: 2,437 passed, 12 skipped and 49 subtests passed in 295.80 s. It
+  exited zero, reported 40% repository-wide branch coverage, and covered the
+  native-search Python execution modules at 94--100%;
+- exact-production UBSAN build: 186 passed in 4.59 s with no diagnostic;
 - exact-production ASAN build: a fixed-count RI/predicate/recursive/callable/
   lifetime harness passed with no diagnostic. Full ASAN pytest cannot be
   claimed because ASAN plus this pybind11/toolchain combination stalls while
   translating the exhausted cursor's C++ `py::stop_iteration`; normal and
   UBSAN builds exhaust the same cursor correctly;
-- clean CPython 3.11 wheel and sdist, isolated install, native import and real
-  `[C]-[O]` public search passed. Wheel linkage contains only standard runtime
-  libraries and no third-party graph matcher;
-- ai-14 CPU routing at 255 sites retained exact MCA/site/joint hashes and did
-  not start GPU resources; the 256-site four-A800 path retained exact
-  MCA/site/joint hashes. The joint digest covers `is_Nuc_site` and site type.
+- clean CPython 3.11 wheel and sdist, isolated install, native import, real
+  `[C]-[O]` public search, bool existence and zero-limit behavior passed. The
+  wheel SHA-256 is
+  `8cd7bfa1580031eecaa0514da24a227cfb0d1f6d20501ba2c74e1a1eba786773`
+  and the sdist SHA-256 is
+  `fc3a0aef02d5386fa69edee74ef7735c920e571bfe8d484d9070ca2179583045`.
+  Wheel linkage contains only standard runtime libraries and no third-party
+  graph matcher;
+- clean CPython 3.9--3.14 wheels from exact production commit `60288d2` all
+  built and imported from isolated `site-packages` with the correct ABI-tagged
+  extension. Positive/negative existence and hit/miss zero-limit behavior
+  passed on every version. The final native/SMARTS suite passed 468 tests on
+  3.9, 3.10 and 3.14; the maintained inference-compatibility suite passed
+  2,141 tests plus 49 subtests on 3.11, 3.12 and 3.13;
+- final clean-commit 24-molecule MCA site detection: 0.039032 s median,
+  614.87 molecules/s and 204,284 KiB process peak RSS. The ordered site/type
+  SHA-256 remained
+  `0dfc9fb2cb048d53dd1aa6cc05535d9147155bb4433775930608e56b63f9b866`,
+  and performance remained 6.001x faster than the post-cutover/pre-reuse
+  baseline;
+- exact commit `60288d2fd15e84d5adfb8dc88a0c44e69549ec67` was compiled
+  and exercised on ai-14. At 255 sites, GPU-preferred routing remained on CPU,
+  started no GPU resource, matched explicit CPU and retained exact
+  MCA/site/joint hashes. At 256 sites, four free A800 GPUs (indices 2--5) plus
+  64 CPUs produced 29.64 molecules/s and the expected hashes. The
+  4,096-molecule workload crossed the 8,192-atom admission capacity in 13
+  cycles, produced 47.55 molecules/s and retained the expected MCA/site/joint
+  hashes. The joint digests cover `is_Nuc_site` and site type, and every run
+  restored process affinity. Evidence is under
+  `~/mca_test/results/native_search_60288d2`.
 
 Unexpected findings and adjustments:
 
@@ -601,14 +634,31 @@ Unexpected findings and adjustments:
 - the first Python 3.9 matrix build compiled the extension but failed import
   on `dataclass(slots=True)`, which is unavailable before Python 3.10. The
   private predicate records do not require slots, so the unsupported option
-  was removed rather than adding a compatibility branch; and
+  was removed rather than adding a compatibility branch;
+- Python 3.14 rendered existing `typing.Union[A, B]` annotations as `A | B`,
+  so seven raw-string signature assertions failed even though the annotation
+  objects and callable signatures were unchanged. Commits `c7144cf` and
+  `e8f72eb` make the contract test compare one canonical structural rendering,
+  including resolved forward annotations, across supported interpreters;
+- the first final-source ai-14 GPU invocation omitted the NVIDIA wheel library
+  paths and failed before inference because ONNX Runtime could not load
+  `libcudnn.so.9`. The failure log was retained, the library paths were passed
+  explicitly, and the 256/4,096 GPU reruns passed without changing the remote
+  environment;
+- the first maintained-coverage attempt reached all tests but reported nine
+  CBond setup errors and two CBond README failures because the sandbox could
+  not write the default model cache. All 11 passed when rerun with a temporary
+  writable `HOTPOT_MODEL_HOME`; an additional CLI-output check exposed the
+  same issue for Xet logging and passed with a temporary writable `HF_HOME`.
+  The complete coverage entry point was then rerun once with both variables
+  and passed cleanly; and
 - ASAN's exhausted-cursor exception-translation limitation is recorded as a
   sanitizer coverage deviation. UBSAN, ordinary pytest exhaustion tests,
   weak-reference lifetime tests, repeated resource measurements, and the
   bounded ASAN harness remain independent evidence, but are not mislabeled as
   a complete leak-sanitizer pass.
 
-Remaining before closure: repeat the broad suite on the final sparse-record
-implementation, finish CPython 3.9--3.14 clean builds/tests, rerun sanitizer
-checks on the final source, finish the 4,096-molecule ai-14 workload, complete
-source/docs/package audits, and record the final Git checkpoints.
+Closure: the maintained coverage run, source/docs/package audits, supported
+Python matrix, full dataset-consumer gate, local performance qualification,
+and ai-14 scientific/routing validation are complete. The final implementation
+report records the accepted result and explicit residual limitations.

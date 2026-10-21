@@ -1,12 +1,12 @@
 # Stage 16: Native substructure search
 
-Status: approved; implementation in progress.
+Status: implemented and validated.
 
 Planning branch: `perf/native-search`
 
 Planning baseline: `2cf0893`
 
-This stage proposes replacing the NetworkX-backed execution path of
+This stage replaces the NetworkX-backed execution path of
 `hotpot.cheminfo.search` with one in-tree C++17 deterministic RI-style
 subgraph-monomorphism engine bound through pybind11. No third-party graph
 matcher becomes the production executor. The public query, SMARTS, search,
@@ -28,7 +28,8 @@ runtime backend flag, profile, or whole-search Python fallback is introduced.
 
 - [Normative implementation plan](native_search_implementation.md)
 - [Implementation log](implementation_log.md)
+- [Implementation report](implementation_report.md)
 
-Native implementation is authorized and recorded incrementally in the
-implementation log. The final implementation report is added only after all
-correctness, packaging, and performance gates have completed.
+The implementation log records each incremental checkpoint. The final report
+summarizes correctness, packaging, performance, compatibility, and the
+explicitly retained validation limitations.

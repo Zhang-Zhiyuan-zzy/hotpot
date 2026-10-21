@@ -182,10 +182,16 @@ jobs:
         working-directory: /tmp
         run: |
           python - <<'PY'
+          import hotpot
+
           from hotpot.cheminfo.graph import GraphSpectrum, relevant_cycles
+          from hotpot.cheminfo.search import _search_native
 
           assert GraphSpectrum is not None
+          assert _search_native.NativeProblem is not None
           assert relevant_cycles([(4, 7), (7, 9), (9, 4)]) == ((4, 7, 9),)
+          hits = hotpot.read_mol("CCO", "smi").search_substructure("[C]-[O]")
+          assert tuple(hit.atom_indices for hit in hits) == (frozenset({1, 2}),)
           PY
 
   package-smoke:
@@ -220,6 +226,15 @@ jobs:
               "hotpot/cheminfo/forcefields/ff.py",
               "hotpot/cheminfo/calculator/execution_selection.py",
               "hotpot/cheminfo/calculator/state_rules/data/profiles/coordination_screening_v1.json",
+              "hotpot/cheminfo/search/_search_native.pyi",
+              "hotpot/cheminfo/search/_native/bindings.cpp",
+              "hotpot/cheminfo/search/_native/compatibility.hpp",
+              "hotpot/cheminfo/search/_native/graph_data.cpp",
+              "hotpot/cheminfo/search/_native/graph_data.hpp",
+              "hotpot/cheminfo/search/_native/matcher.cpp",
+              "hotpot/cheminfo/search/_native/matcher.hpp",
+              "hotpot/cheminfo/search/_native/production.cpp",
+              "hotpot/cheminfo/search/_native/production.hpp",
               "hotpot/plugins/xtb/cli.py",
               "hotpot/plugins/xtb/cli_doc.md",
               "hotpot/plugins/xtb/README.md",
@@ -272,8 +287,14 @@ jobs:
           from hotpot.cheminfo.calculator.contracts import ScientificQuantity
           from hotpot.cheminfo.calculator.state_selection import StateDecisionAction
           from hotpot.cheminfo.graph import relevant_cycles
+          from hotpot.cheminfo.search import _search_native
 
+          assert _search_native.NativeProblem is not None
           assert relevant_cycles([(4, 7), (7, 9), (9, 4)]) == ((4, 7, 9),)
+          search_hits = hotpot.read_mol("CCO", "smi").search_substructure("[C]-[O]")
+          assert tuple(hit.atom_indices for hit in search_hits) == (
+              frozenset({1, 2}),
+          )
 
           facts = extract_molecular_facts(hotpot.read_mol("C", "smi"))
           state = resolve_scientific_state(

@@ -210,6 +210,112 @@ def test_conveyor_submits_partial_features_without_waiting_for_sites(monkeypatch
     assert site_pool.completed
 
 
+def test_rolling_admission_refills_released_atom_credit(monkeypatch):
+    from mca import gpu_backend as module
+
+    molecules = {
+        index: SimpleNamespace(
+            atom_count=2,
+            atom_symbols=("C", "N"),
+            smiles=f"CN-{index}",
+            formal_charge=0,
+        )
+        for index in range(3)
+    }
+    monkeypatch.setattr(module, "normalize_molecule", molecules.__getitem__)
+    monkeypatch.setattr(module, "validate_dto", lambda *args: None)
+    monkeypatch.setattr(module, "gpu_window_atom_budget", lambda *args: 4)
+
+    class Process:
+        pid = 123
+        exitcode = None
+
+    events = []
+
+    class SitePool:
+        _pool = [Process()]
+
+        def __init__(self):
+            self.deferred = None
+
+        def apply_async(self, function, args, callback, error_callback):
+            task = args[0]
+            events.append(("site-submitted", task.molecule_index))
+            result = SimpleNamespace(molecule_index=task.molecule_index, sites=())
+            if task.molecule_index == 1:
+                self.deferred = (callback, result)
+            else:
+                callback(result)
+            if task.molecule_index == 2:
+                deferred_callback, deferred_result = self.deferred
+                events.append(("site-released", deferred_result.molecule_index))
+                deferred_callback(deferred_result)
+
+    class FeaturePool:
+        _pool = [Process()]
+
+        @staticmethod
+        def apply_async(function, args, callback, error_callback):
+            task = args[0]
+            callback(
+                SimpleNamespace(
+                    molecule_index=task.molecule_index,
+                    feature={"index": np.asarray([task.molecule_index])},
+                )
+            )
+
+    submitted = []
+    result_queue = queue.Queue()
+
+    class ImmediateGpuQueue:
+        @staticmethod
+        def put(request):
+            submitted.append(request)
+            result_queue.put(
+                GpuBatchResult(
+                    request_id=request.request_id,
+                    batch_ordinal=request.batch_ordinal,
+                    gpu_index=0,
+                    molecule_indices=request.molecule_indices,
+                    pad_width=request.pad_width,
+                    predictions=tuple(
+                        np.asarray([10.0 * index, 10.0 * index + 1.0])
+                        for index in request.molecule_indices
+                    ),
+                )
+            )
+
+    predictor = object.__new__(MCAGpuPredictor)
+    predictor.gpu_batch_size = 2
+    predictor.max_atoms = 512
+    predictor.conformer_seed = 42
+    predictor.allow_charged = False
+    predictor.variant = "fp16"
+    predictor.gpu_indices = (0,)
+    predictor.resource_plan = SimpleNamespace(
+        site_worker_assignments=(object(),),
+        infer_worker_assignments=(object(),),
+    )
+    predictor._site_pool = SitePool()
+    predictor._feature_pool = FeaturePool()
+    predictor._next_request_id = 0
+    predictor._next_gpu_position = 0
+    predictor._request_queues = [ImmediateGpuQueue()]
+    predictor._result_queue = result_queue
+    predictor._gpu_processes = []
+
+    results = list(predictor._iter_predict(range(3)))
+
+    assert events.index(("site-submitted", 2)) < events.index(("site-released", 1))
+    assert [request.batch_ordinal for request in submitted] == [0, 1, 2]
+    assert [result.smiles for result in results] == ["CN-0", "CN-1", "CN-2"]
+    assert [
+        atom.mca_kj_mol
+        for result in results
+        for atom in result.atom_predictions
+    ] == [0.0, 1.0, 10.0, 11.0, 20.0, 21.0]
+
+
 def test_local_cpu_worker_exception_type_is_preserved(monkeypatch):
     from mca import gpu_backend as module
 
@@ -458,7 +564,7 @@ def test_gpu_predictor_rejects_use_after_close():
         next(predictor.iter_predict(["C"]))
 
 
-def test_gpu_predictor_fails_before_resource_queries_without_cuda(monkeypatch):
+def test_gpu_predictor_defers_cuda_check_and_resource_queries(monkeypatch):
     from mca import gpu_backend as module
 
     monkeypatch.setattr(module, "cuda_provider_available", lambda: False)
@@ -468,8 +574,12 @@ def test_gpu_predictor_fails_before_resource_queries_without_cuda(monkeypatch):
         lambda indices: pytest.fail("GPU memory must not be queried"),
     )
 
+    predictor = MCAGpuPredictor(site_cpu_per_gpu=1, infer_cpu_per_gpu=1)
+
+    assert predictor.resource_plan is None
     with pytest.raises(RuntimeError, match="CUDAExecutionProvider"):
-        MCAGpuPredictor(site_cpu_per_gpu=1, infer_cpu_per_gpu=1)
+        predictor._ensure_gpu_started()
+    predictor.close()
 
 
 def test_close_restores_the_calling_thread_affinity(monkeypatch):
@@ -527,8 +637,9 @@ def test_startup_failure_restores_affinity_before_propagating(monkeypatch):
         lambda process, cpus: calls.append((process, cpus)),
     )
 
+    predictor = MCAGpuPredictor()
     with pytest.raises(RuntimeError, match="query failed"):
-        MCAGpuPredictor()
+        predictor._ensure_gpu_started()
 
     assert calls[0] == (0, {2, 3})
     assert calls[1][1] == {2, 3, 4, 5}

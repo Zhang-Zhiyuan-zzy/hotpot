@@ -7,6 +7,7 @@ from mca.cpu_backend import MCACpuPredictor
 from rdkit import Chem
 
 from mca.conformer import ensure_3d_conformer
+from mca.pipeline import PreparedMolecule, prepare_molecule
 
 
 @pytest.fixture(scope="module")
@@ -94,3 +95,21 @@ def test_cpu_iter_predict_consumes_a_bounded_prefix(cpu_backend):
 
     assert next(predictions).smiles == "C"
     assert consumed == [0, 1]
+
+
+def test_cpu_backend_reuses_prepared_molecule(cpu_backend, monkeypatch):
+    prepared = prepare_molecule("C1CCCCN1", 0, False)
+    assert isinstance(prepared, PreparedMolecule)
+    monkeypatch.setattr(
+        cpu_backend_module,
+        "prepare_molecule",
+        lambda *args: pytest.fail("prepared input was normalized again"),
+    )
+
+    backend = copy(cpu_backend)
+    prediction = list(backend.iter_predict((prepared,)))[0]
+
+    assert prediction.smiles == prepared.molecule.smiles
+    assert [(site.atom_index, site.site_type) for site in prediction.sites] == list(
+        prepared.sites
+    )

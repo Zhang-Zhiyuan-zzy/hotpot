@@ -185,6 +185,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         raw_args = raw_args[:separator_index]
     parser = build_parser(selected_command=command)
     args = parser.parse_args(raw_args)
+    setup_logging(debug=args.debug, to_stdout=False)
     if pipeline_tail:
         args.pipeline_tokens.extend(pipeline_tail)
     return_code = run(args)

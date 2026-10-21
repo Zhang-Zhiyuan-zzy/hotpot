@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import threading
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 
 import numpy as np
 
@@ -11,18 +11,15 @@ from .batching import LogicalBatchPlanner, scatter_batch_predictions
 from .featurizer import collate_molecule_rows
 from .pipeline import (
     DEFAULT_CONFORMER_SEED,
+    PreparedMolecule,
     build_features,
     build_prediction,
-    detect_sites,
     is_single_molecule_input,
+    prepare_molecule,
 )
 from .result_types import MoleculePrediction
 from .runtime import create_cpu_runtime
-from .serialization import (
-    MoleculeDTO,
-    normalize_molecule,
-    validate_dto,
-)
+from .serialization import MoleculeDTO
 
 
 class MCACpuPredictor:
@@ -67,6 +64,18 @@ class MCACpuPredictor:
             self._predict_lock.release()
 
     def _iter_predict(self, molecules) -> Iterator[MoleculePrediction]:
+        prepared = (
+            value
+            if isinstance(value, PreparedMolecule)
+            else prepare_molecule(value, position, self.allow_charged)
+            for position, value in enumerate(molecules)
+        )
+        yield from self._iter_predict_prepared(prepared)
+
+    def _iter_predict_prepared(
+        self,
+        prepared_molecules: Iterable[PreparedMolecule],
+    ) -> Iterator[MoleculePrediction]:
         planner = LogicalBatchPlanner(self.batch_size)
         states: dict[int, dict[str, object]] = {}
         features: dict[int, dict[str, np.ndarray]] = {}
@@ -74,12 +83,10 @@ class MCACpuPredictor:
         next_input_index = 0
         next_output_index = 0
 
-        for value in molecules:
+        for prepared in prepared_molecules:
             molecule_index = next_input_index
             next_input_index += 1
-            molecule = normalize_molecule(value)
-            validate_dto(molecule, molecule_index, self.allow_charged)
-            sites = detect_sites(molecule)
+            molecule = prepared.molecule
             features[molecule_index] = build_features(
                 molecule,
                 self.max_atoms,
@@ -87,7 +94,7 @@ class MCACpuPredictor:
             )
             states[molecule_index] = {
                 "molecule": molecule,
-                "sites": sites,
+                "sites": prepared.sites,
                 "values": np.empty(molecule.atom_count, dtype=np.float64),
                 "filled": np.zeros(molecule.atom_count, dtype=bool),
             }

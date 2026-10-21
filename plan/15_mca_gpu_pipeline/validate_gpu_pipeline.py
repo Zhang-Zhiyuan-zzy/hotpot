@@ -27,7 +27,7 @@ def parse_args():
     parser.add_argument("--expected-mca-sha256")
     parser.add_argument("--expected-sites-sha256")
     parser.add_argument("--expected-joint-sha256")
-    parser.add_argument("--require-cross-window", action="store_true")
+    parser.add_argument("--require-cross-capacity", action="store_true")
     parser.add_argument("--repeats", type=int, default=1)
     return parser.parse_args()
 
@@ -103,15 +103,15 @@ def build_validation_hashes(predictions):
     }
 
 
-def input_window_count(atom_counts, window_atom_budget):
-    windows = 0
-    window_atoms = 0
+def admission_capacity_cycle_count(atom_counts, atom_capacity):
+    cycles = 0
+    resident_atoms = 0
     for atom_count in atom_counts:
-        if window_atoms >= window_atom_budget:
-            windows += 1
-            window_atoms = 0
-        window_atoms += atom_count
-    return windows + bool(window_atoms)
+        if resident_atoms >= atom_capacity:
+            cycles += 1
+            resident_atoms = 0
+        resident_atoms += atom_count
+    return cycles + bool(resident_atoms)
 
 
 def main() -> None:
@@ -122,7 +122,7 @@ def main() -> None:
         if line.strip()
     ]
     initial_cpu_affinity = tuple(sorted(os.sched_getaffinity(0)))
-    startup_started = time.perf_counter()
+    constructor_started = time.perf_counter()
     predictor = MCAGpuPredictor(
         gpu_indices=tuple(int(value) for value in args.gpu_indices.split(",")),
         site_cpu_per_gpu=args.site_cpu_per_gpu,
@@ -130,7 +130,7 @@ def main() -> None:
         gpu_batch_size=args.gpu_batch_size,
         allow_charged=args.allow_charged,
     )
-    startup_seconds = time.perf_counter() - startup_started
+    constructor_seconds = time.perf_counter() - constructor_started
     runs = []
     with predictor:
         for repeat in range(args.repeats):
@@ -172,27 +172,31 @@ def main() -> None:
                     "joint_sha256": hashes["joint_sha256"],
                 }
             )
+    if predictor.resource_plan is None:
+        raise RuntimeError(
+            "Validation sample stayed below the 256-site GPU threshold"
+        )
     worker_count = (
         len(predictor.resource_plan.site_worker_assignments)
         + len(predictor.resource_plan.infer_worker_assignments)
     )
-    window_atom_budget = gpu_window_atom_budget(
+    admission_atom_capacity = gpu_window_atom_budget(
         predictor.gpu_batch_size,
         worker_count,
     )
-    window_count = input_window_count(
+    capacity_cycle_count = admission_capacity_cycle_count(
         (
             len(prediction.atom_predictions)
             for prediction in predictions
         ),
-        window_atom_budget,
+        admission_atom_capacity,
     )
-    crosses_window = window_count > 1
-    if args.require_cross_window and not crosses_window:
+    crosses_capacity = capacity_cycle_count > 1
+    if args.require_cross_capacity and not crosses_capacity:
         raise RuntimeError(
-            "Sample does not cross the MCA pipeline window: "
-            f"{hashes['atom_count']} atoms fit in one admitted window with "
-            f"a {window_atom_budget}-atom budget"
+            "Sample does not cross the MCA rolling admission capacity: "
+            f"{hashes['atom_count']} atoms fit in one credit cycle with "
+            f"a {admission_atom_capacity}-atom capacity"
         )
     restored_cpu_affinity = tuple(sorted(os.sched_getaffinity(0)))
     if restored_cpu_affinity != initial_cpu_affinity:
@@ -205,10 +209,10 @@ def main() -> None:
                 "site_count": hashes["site_count"],
                 "gpu_indices": args.gpu_indices,
                 "gpu_batch_size": predictor.gpu_batch_size,
-                "window_atom_budget": window_atom_budget,
-                "input_window_count": window_count,
-                "crosses_window_atom_budget": crosses_window,
-                "startup_seconds": startup_seconds,
+                "admission_atom_capacity": admission_atom_capacity,
+                "admission_capacity_cycles": capacity_cycle_count,
+                "crosses_admission_capacity": crosses_capacity,
+                "constructor_seconds": constructor_seconds,
                 "cpu_affinity_count": len(initial_cpu_affinity),
                 "cpu_affinity_restored": True,
                 "runs": runs,

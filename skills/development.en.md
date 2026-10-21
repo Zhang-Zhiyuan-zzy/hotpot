@@ -255,6 +255,11 @@ by default.
   applicability-domain documentation, and quantitative parity evidence.
 - An explicitly requested compute backend MUST fail when unavailable. Only an
   explicit `auto` mode MAY select another backend automatically.
+- MCA is the narrow documented exception: `backend="gpu"` is GPU-preferred and
+  routes a complete invocation with fewer than 256 predicted sites to CPU
+  before CUDA resources are initialized. This is deterministic workload-size
+  routing, not recovery from an unavailable or failed backend; once 256 sites
+  are reached, CUDA startup and runtime failures MUST fail without CPU fallback.
 - Compression, quantization, pruning, or a new model MUST receive quantitative
   parity validation before release.
 - A CLI is a thin wrapper over the Python API. Stdout contains only stable,

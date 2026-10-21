@@ -118,8 +118,20 @@ $ hotpot mca molecules.smi --backend gpu --plot mca-grid.png
 
 ## Backend, GPU resources and batching
 
-`--backend` defaults to `cpu`. CPU and GPU are separate current
-implementations; request GPU explicitly. A GPU request never falls back to CPU.
+`--backend` defaults to `cpu`. Request GPU-preferred execution explicitly with
+`--backend gpu`. Hotpot first uses the normal CPU site-detection stage to decide
+whether the complete call is large enough for GPU startup. A call with fewer
+than 256 predicted nucleophilic sites uses CPU inference without starting
+CUDA; this decision is silent by default. Use the top-level debug flag to show
+the routing decision:
+
+```bash
+$ hotpot -d mca molecules.smi --backend gpu
+```
+
+As soon as the call reaches 256 sites, Hotpot starts the requested GPU
+pipeline. CUDA/provider startup errors and CUDA OOM after that point are not
+retried on CPU.
 
 ```bash
 $ hotpot mca molecules.smi --batch-size 64
@@ -132,6 +144,12 @@ card. These are direct defaults, not a named profile. Override them with
 `--site-cpu-per-gpu` and `--infer-cpu-per-gpu`. Hotpot calculates the required
 CPU count from the selected GPUs and these values, then fails before startup if
 the process affinity contains too few CPUs.
+
+GPU preprocessing uses a fixed-credit rolling admission window. As capacity is
+released, the coordinator admits more work without waiting for every task in a
+discrete window to finish. It does not increase configured workers, maximum
+in-flight GPU requests or peak admission credit. Logical atom-row batches,
+result order, MCA values and `is_Nuc_site` semantics are unchanged.
 
 GPU atom-row batch defaults come from total card memory: less than 8 GiB uses
 64; 8/16/24/40/80 GiB boundaries select 128/256/512/1024/2048. Heterogeneous

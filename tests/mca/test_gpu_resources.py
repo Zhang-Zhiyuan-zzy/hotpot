@@ -8,6 +8,7 @@ from hotpot.cheminfo.AImodels.mca.resources import (
     pin_current_process,
     pin_worker_from_queue,
     resolve_gpu_indices,
+    validate_gpu_resource_request,
 )
 
 
@@ -77,6 +78,19 @@ def test_custom_worker_counts_directly_determine_required_cpu_count():
 
     assert plan.required_cpu_count == 9
     assert plan.assigned_cpu_ids == tuple(range(10, 19))
+
+
+def test_resource_request_validation_does_not_read_cpu_affinity(monkeypatch):
+    monkeypatch.setattr(
+        "hotpot.cheminfo.AImodels.mca.resources.current_cpu_affinity",
+        lambda: pytest.fail("host affinity must remain lazy"),
+    )
+
+    assert validate_gpu_resource_request(
+        gpu_indices=(3, 1),
+        site_cpu_per_gpu=2,
+        infer_cpu_per_gpu=4,
+    ) == ((3, 1), 2, 4)
 
 
 def test_pin_current_process_uses_exact_resolved_affinity(monkeypatch):

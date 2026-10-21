@@ -294,3 +294,47 @@ ai-14 最终验收（A800、自动 batch=2048、`hp-gpu`）：
 - 完整 MCA 测试：`172 passed in 13.31s`；
 - `git diff --check` 通过。
 
+### 阶段 8 — 固定 credit 滚动准入与 GPU 启动阈值
+
+状态：本地完成，ai-14 验收进行中。
+
+根据 2026-10-21 补充批复，本阶段不增加硬件或并发资源，实施两项优化：
+
+1. 保留既有 atom-row window budget，但去除“整窗完成才继续读取”的 barrier。
+   coordinator 在有序结果完成后归还 atom credit 并立即准入后续输入；9/7 worker、
+   每卡 CUDA session、request queue、`2 × GPU 数` 的最大 in-flight 和峰值 credit
+   均不增加。
+2. `backend="gpu"` 改为 GPU-preferred。每次调用先规范化并检测位点；累计少于
+   256 个位点且输入结束时，复用已准备的 DTO/site 直接进行 CPU 推理，不初始化
+   CUDA，默认不输出警告；debug 日志记录 requested/effective backend、实际位点数
+   和阈值。累计达到 256 后才建立 CPU pool/CUDA consumer；启动错误和 OOM 直接
+   失败，不回退 CPU。
+
+实际工作：
+
+- `MCAGpuPredictor` 构造阶段只校验 GPU index、worker 数和显式 batch 参数，CUDA
+  provider、CPU affinity、显存查询、模型解析及 worker/session 均推迟到阈值；
+- 增加 `PreparedMolecule` 单一中间表示，CPU 与 GPU 路径直接复用阈值判断期间已
+  完成的规范化与 site detection，不重复业务计算；
+- 阈值前缀以 `SpooledTemporaryFile` 保存，内存上限 8 MiB，超过后转临时文件，
+  避免低位点长输入无界占用内存；达到阈值后不额外预读生成器；
+- 滚动 coordinator 维持全局 planner、completion queue 与 pending batch deque，
+  feature 在覆盖其最后 atom row 的 logical batch 提交后释放，atom credit 在结果
+  按输入顺序输出后归还；
+- 顶层 `-d/--debug` 现在把日志等级真实配置为 DEBUG，使默认静默的 CPU 路由可在
+  高信息模式下观察；普通 stdout 与 MCA 表格不受影响；
+- 根 README、MCA README/CLI 文档、usage/development skill 和 Plan 15 文档同步
+  GPU-preferred 的窄例外及启动后零回退边界。
+
+本地验证：
+
+- 滚动准入聚焦测试确认上一批慢 site 任务尚未完成时，已释放 credit 可接纳后续
+  分子，同时保持 batch ordinal、输出顺序和值：`18 passed`；
+- 阈值测试覆盖 `<256` CPU、`=256` GPU、CUDA 惰性启动、前缀复用、生成器不预吞、
+  默认静默/debug 日志和启动错误不回退；
+- `python -m pytest tests/mca -q`：`182 passed`；
+- `git diff --check`：通过；当前环境没有 Ruff，未执行该可选检查。
+
+待完成：在 ai-14 上验证 `<256` CPU 路由、`>=256` GPU 路径、联合结果/
+`is_Nuc_site` 与滚动窗口性能，并记录提交。
+

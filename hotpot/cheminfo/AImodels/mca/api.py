@@ -16,7 +16,7 @@ def predict_mca_cpu(molecules, **kwargs):
 
 
 def predict_mca_gpu(molecules, **kwargs):
-    """Run one GPU pipeline and close all worker processes afterward."""
+    """Run GPU-preferred inference and close any resources afterward."""
 
     with MCAGpuPredictor(**kwargs) as predictor:
         return predictor.predict(molecules)
@@ -28,7 +28,7 @@ def predict_mca(
     backend: Literal["cpu", "gpu"],
     **kwargs,
 ):
-    """Predict MCA with one explicitly selected backend."""
+    """Predict MCA with one explicitly selected backend policy."""
 
     if backend == "cpu":
         return predict_mca_cpu(molecules, **kwargs)

@@ -95,6 +95,11 @@ No.  Atom  MCA(kJ/mol)  is_Nuc_site
 MCA is reported for every heavy atom. `is_Nuc_site` marks the sites selected
 by the supported nucleophilic-site definition. Printed MCA values can differ
 by 0.25 kJ/mol at numerical rounding boundaries across supported platforms.
+The CLI defaults to CPU. Explicit `--backend gpu` is GPU-preferred: a complete
+call with fewer than 256 predicted sites stays on CPU without starting CUDA or
+printing a warning; `hotpot -d mca ...` reports that decision. At 256 sites the
+GPU pipeline starts, and any later CUDA startup or OOM error is reported rather
+than retried on CPU.
 
 ### Coordination-bond construction
 
@@ -271,8 +276,9 @@ environment if PyMOL is required.
 GPU ONNX inference requires an `onnxruntime-gpu` build compatible with the
 machine's CUDA and cuDNN libraries; the newest runtime is not necessarily
 compatible with every installed CUDA version. The MCA CLI defaults to CPU;
-select `--backend gpu` explicitly to use CUDA. A GPU request fails without
-retrying on CPU.
+select `--backend gpu` explicitly for GPU-preferred execution. Calls below the
+256-site startup threshold stay on CPU silently (or report the decision under
+`hotpot -d`); after GPU startup, failures are not retried on CPU.
 
 The xTB integration requires a separately installed official `xtb`
 executable. Select it with `--xtb-executable`, `HOTPOT_XTB_EXECUTABLE`, or

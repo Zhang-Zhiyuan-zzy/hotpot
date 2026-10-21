@@ -244,3 +244,56 @@ GPU 进程阶段总等待最坏约 15 秒，而不是每卡约 15 秒。
 回退旧实现应通过 Git 选择历史提交完成，不在产品代码中维护双路径。当前分支可以在
 审核通过后再按仓库流程合并或嫁接；本轮没有对主分支执行该操作。
 
+## 11. 追加优化：滚动准入与 GPU 启动阈值
+
+本节记录原 Plan 15 分支合入后的追加实施；前 1–10 节保留原分支交付时的事实与
+性能基线，不用新结果覆写历史数据。
+
+### 11.1 最终语义
+
+- CLI 继续默认 CPU；只有显式 `--backend gpu` 才进入 GPU-preferred 路径。
+- 阈值按每次 `predict()` / `iter_predict()` 调用累计：输入结束后仍少于 256 个
+  预测位点则使用 CPU；恰好 256 个位点即启动 GPU。
+- 小规模路由发生在 CUDA 初始化前，默认静默，顶层 `hotpot -d mca ...` 才记录
+  requested/effective backend、位点数和阈值。这是固定规模路由，不是 GPU 错误
+  后的 fallback。
+- 达到阈值后才检查 CUDA provider、CPU affinity 与显存并启动 GPU。此后的启动、
+  provider 和 OOM 错误全部直接失败；OOM 仍报告当前 batch 与下一低档。
+- 已经 warm 的长生命周期 predictor 对后续小调用不提交 GPU 推理，但保留现有
+  worker/session，供下一次大调用复用。
+
+### 11.2 实现与资源边界
+
+`MCAGpuPredictor` 构造器只执行不接触宿主资源的参数校验。调用开始后，统一的
+`PreparedMolecule` 完成输入规范化、适用域校验和 site detection。阈值前缀先放在
+8 MiB 内存 spool，超过后写临时文件；CPU 路径和达到阈值后的 GPU 路径都直接复用
+这些 DTO/site，不二次执行位点识别。大输入一旦达到阈值便停止前瞻，剩余生成器
+仍按需消费。
+
+GPU pipeline 的 window atom budget 仍是固定的
+`max(4 × gpu_batch_size, 100 × total_cpu_workers)`。变更只把离散 barrier 改成滚动
+credit：结果按序输出后归还对应 atom rows 并继续准入。以下资源上限全部不变：
+
+- 每卡 9 个 site worker 与 7 个 feature worker 的默认值；
+- 每卡一个 CUDA process/session；
+- request queue 容量与 `2 × GPU 数` 的最大 in-flight request；
+- window atom budget 和峰值 atom credit。
+
+logical atom-row batch、padding/cache key、batch ordinal、输入/输出顺序和唯一的
+`build_prediction()` join 均未改变。因此滚动调度不改变 MCA 数值、site 顺序或
+`is_Nuc_site` 语义；小规模 GPU-preferred 调用则明确采用现有 CPU provider 的
+结果语义。
+
+### 11.3 本地验证
+
+- `python -m pytest tests/mca -q`：`182 passed`；
+- 新增阈值边界、惰性启动、CPU 路由、debug、生成器不预吞和错误不回退测试；
+- 新增滚动 credit 回填测试，在旧窗口仍有慢 site 任务时验证后续输入可准入，且
+  batch ordinal、输出顺序和值保持一致；
+- `git diff --check` 通过；当前环境未安装 Ruff。
+
+### 11.4 ai-14 验收
+
+待记录本次提交在 ai-14 上的 CPU 阈值路由、GPU 联合结果与吞吐验证；原报告第 6–7
+节的历史 hash 和性能表不代表本追加实现的验收结果。
+

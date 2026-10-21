@@ -21,9 +21,14 @@ RDKit and ONNX Runtime. The inference compatibility dependencies used by CI are
 listed in `tests/requirements-inference.txt`.
 
 For GPU inference, install the `onnxruntime-gpu` build matching the machine's
-CUDA runtime in place of `onnxruntime`. CPU and GPU selection is always
-explicit; Hotpot does not silently move a GPU request to CPU. Model hashes are
-checked when the ONNX session is created.
+CUDA runtime in place of `onnxruntime`. The CLI defaults to CPU. An explicit
+GPU request is GPU-preferred: if the complete prediction call contains fewer
+than 256 detected nucleophilic sites, Hotpot uses CPU inference without
+starting CUDA on a cold predictor. This small-workload decision is silent by
+default and is reported at debug logging level. Once the call reaches 256
+sites and starts the GPU pipeline, CUDA initialization and OOM failures are
+reported and never fall back to CPU. Model hashes are checked when the ONNX
+session is created.
 
 On first use, Hotpot derives an equivalent all-atom ONNX graph from the pinned
 release graph. The derived graph reuses the verified model weights and computes
@@ -53,7 +58,7 @@ for site in one.sites:
 ```
 
 For bulk GPU work, retain one predictor so its spawn workers and CUDA sessions
-stay warm:
+stay warm after the 256-site threshold is reached:
 
 ```python
 from hotpot.cheminfo.AImodels.mca import MCAGpuPredictor
@@ -63,11 +68,20 @@ with MCAGpuPredictor(gpu_indices=(0, 1)) as predictor:
         consume(prediction)
 ```
 
+The 256-site decision is made separately for each `predict()` or
+`iter_predict()` call. A below-threshold call on an already warm predictor
+submits no GPU inference, but leaves its existing persistent workers available
+for a later bulk call.
+
 The GPU default is 9 site workers plus 7 conformer/feature workers per card.
 There is no named configuration profile: change `site_cpu_per_gpu` and
 `infer_cpu_per_gpu` directly when a job needs different allocation. The
 predictor checks the process CPU affinity before starting and requires exactly
-the configured number of distinct worker CPUs.
+the configured number of distinct worker CPUs. Its fixed resource budget is
+used as a rolling admission window: capacity released by completed CPU/GPU
+work is reused immediately instead of waiting for an entire window barrier.
+This does not add workers, in-flight GPU requests or peak admission credit, and
+does not change logical batches, MCA values, output order or `is_Nuc_site`.
 
 Hotpot object integration:
 
@@ -144,13 +158,19 @@ molecule file may contain multiple records. By default a plot labels and
 colours only detected nucleophilic sites; `--all-site` includes every predicted
 atom. The same interface remains available as
 `python -m hotpot.cheminfo.AImodels.mca.cli`.
-The CLI uses CPU when `--backend` is omitted; GPU use is always explicit.
+The CLI uses CPU when `--backend` is omitted; GPU-preferred mode must be
+requested explicitly with `--backend gpu`. If the complete call has fewer than
+256 predicted sites, it runs on CPU and does not start CUDA. This routing is
+silent by default; use the top-level debug flag (`hotpot -d mca ...`) to report
+it. Calls that reach 256 sites start the requested GPU pipeline.
 
 On GPU, `--gpu-count N` selects logical indices `0..N-1`, while
 `--gpu-indices 0,2` selects exact logical indices. If `--gpu-batch-size` is
 omitted, Hotpot selects `64/128/256/512/1024/2048` from each card's total VRAM
 and uses the smallest selected-card tier. A CUDA OOM does not retry or fall
-back; the error reports the active batch and the next lower explicit tier.
+back after GPU startup; the error reports the active batch and the next lower
+explicit tier. CUDA/provider startup errors likewise do not trigger a CPU
+fallback.
 
 The release graph is FP16 (about half the FP32 size). Its largest observed
 deviation from the PyTorch checkpoint was 0.2331 kJ/mol on the 16-molecule

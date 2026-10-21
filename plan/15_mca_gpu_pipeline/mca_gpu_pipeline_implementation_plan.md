@@ -16,8 +16,9 @@
 3. worker 完成顺序不得改变全局输入顺序或 logical batch 边界。
 4. CPU 与 GPU、不同 batch size 可以有各自的固定 golden；不得把一个 provider
    或 batch 的 hash 当成另一运行条件的通用 golden。
-5. GPU OOM 不自动重试、不切换 CPU；错误必须报告当前 batch，并明确建议下一
-   个较低 batch 档位。
+5. 少于 256 个预测位点的整次 GPU-preferred 调用在 CUDA 启动前改走 CPU；达到
+   阈值并启动 GPU 后，OOM 不自动重试、不切换 CPU，错误必须报告当前 batch，
+   并明确建议下一个较低 batch 档位。
 6. 旧 GPU 后端、feature flag、`MCAPredictor(device=...)` 和旧
    `predict_mca(device=...)` 不保留。Git 负责历史回退，产品代码只有一套当前实现。
 
@@ -80,7 +81,7 @@ CPU backend 不公开 `cpu_limit`。ONNX Runtime 使用显式线程配置和顺�
 ## 3. 单一执行架构
 
 ```text
-有界输入窗口（带全局 index）
+固定 credit 的滚动准入窗口（带全局 index）
     -> P1 全局 site worker pool：GPU 数 * site_cpu_per_gpu
     -> P2 全局 conformer/feature worker pool：GPU 数 * infer_cpu_per_gpu
     -> coordinator 按输入顺序冻结全局 atom-row logical batches
@@ -95,6 +96,12 @@ CPU backend 不公开 `cpu_limit`。ONNX Runtime 使用显式线程配置和顺�
 
 P1、P2 是全局池而非每卡嵌套池。队列与重排缓冲区有界。`iter_predict()` 是
 真正的流式 API；`predict()` 只是将其 materialize 为列表的便捷入口。
+
+窗口不再采用“整窗完成后再准入下一窗”的 barrier。coordinator 在结果按序完成
+并释放 atom-row credit 后立即读取后续输入，同时保持原有 window atom budget、
+worker 数、GPU request 最大 in-flight 数和峰值准入 credit 不变。因此该优化不以
+增加 CPU、GPU session 或内存上限换取吞吐，也不改变 logical batch、padding、
+缓存 key、输出顺序、MCA 数值或 `is_Nuc_site`。
 
 ### 3.1 序列化边界
 
@@ -147,9 +154,14 @@ def predict_mca(molecules, *, backend: Literal["cpu", "gpu"], **kwargs): ...
 `iter_predict/predict` 不可重入；运行异常必须清理子进程和队列。一次性函数用
 `try/finally` 关闭资源。
 
-CLI 删除 `--device`，使用 `--backend {cpu,gpu}` 且默认 CPU；GPU 必须显式指定。
-GPU 参数与上述构造器一一对应；CPU 只接受 `--batch-size`。CLI 消费
-`iter_predict()`，不预先读取全部输入。
+CLI 删除 `--device`，使用 `--backend {cpu,gpu}` 且默认 CPU；GPU-preferred 必须
+显式指定。GPU 参数与上述构造器一一对应；CPU 只接受 `--batch-size`。显式 GPU
+调用先累计位点数：若整次调用结束时仍少于 256 个预测位点，则不启动 CUDA，
+直接使用 CPU 推理且默认静默；顶层 `-d/--debug` 报告该路由决定。一旦累计达到
+256，才初始化 GPU 资源；此后的 provider/CUDA 启动错误与 OOM 均直接失败，不
+回退 CPU。阈值判定期间已规范化的 DTO 与 site 结果直接复用；缓冲先使用 8 MiB
+内存，超过后转入临时文件，避免低位点长输入无界占用内存。CLI 仍增量消费输入；
+大调用无需预先读取全部输入。
 
 calculator 采用显式 backend，不用 LRU 缓存持有重型 GPU pool。批量使用者应
 显式持有 predictor 生命周期。
@@ -225,6 +237,15 @@ calculator 采用显式 backend，不用 LRU 缓存持有重型 GPU pool。批�
 已确认的外部性能数据不重复跑来证明方案合理性；实现完成后的 A800 运行仅用于
 当前代码的功能、数值和吞吐验收。
 
+### 阶段 8 — 滚动准入与 GPU 启动阈值
+
+- 把离散窗口 barrier 改为固定 credit 的滚动准入，不增加 worker、GPU in-flight
+  或峰值 credit；
+- 为 GPU-preferred 调用增加 256 个预测位点的启动阈值，阈值以下走 CPU 且默认
+  静默，debug 模式报告；
+- 达到阈值才建立 GPU 资源，保持启动/OOM 错误严格且不回退；
+- 联合校验 MCA、site、顺序和 `is_Nuc_site`，并在 ai-14 上执行功能与性能验收。
+
 ## 7. 完成定义
 
 只有同时满足以下条件才完成：
@@ -235,4 +256,6 @@ calculator 采用显式 backend，不用 LRU 缓存持有重型 GPU pool。批�
 4. CLI 对大输入不全量 materialize；
 5. 实施 log 记录每一阶段的实际变更、证据与偏差；
 6. 最终实施报告列出提交、文件、测试、性能结果和剩余边界。
+7. GPU-preferred 的 `<256` CPU 路由与 `>=256` GPU 启动边界可验证，且默认输出
+   不新增警告；滚动准入不突破既有资源上限。
 

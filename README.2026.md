@@ -65,13 +65,22 @@ Hotpot is built on a modular architecture designed to hide complexity. It consis
 + **Site-resolved methyl cation affinity**:
   - **`MCACpuPredictor` / `MCAGpuPredictor`**: Predict MCA values in kJ/mol for every heavy atom and
     separately identifies important nucleophilic sites from a SMILES string, an RDKit molecule, a hotpot
-    `Molecule`, or a lightweight molecular graph. Backend selection is explicit;
-    the GPU predictor owns persistent CPU pools and one CUDA session per card.
+    `Molecule`, or a lightweight molecular graph. The CLI defaults to CPU;
+    explicit GPU selection is GPU-preferred. A complete call with fewer than
+    256 detected sites uses CPU inference without starting CUDA on a cold
+    predictor and is silent unless debug logging is enabled. At 256 sites the
+    GPU predictor starts its persistent CPU pools and one CUDA session per
+    card. The threshold is evaluated independently for each prediction call;
+    a warm predictor retains its workers between calls but submits no GPU work
+    for a below-threshold call.
     It defaults to 9 site workers and 7 feature/inference workers per GPU.
     When no GPU batch is supplied, total card memory selects an atom-row batch
     tier (`64/128/256/512/1024/2048`); heterogeneous cards use the smallest
     selected-card tier. CUDA OOM reports the active and next lower batch tier
-    without retrying or falling back to CPU.
+    without retrying or falling back to CPU after GPU startup. The pipeline
+    reuses fixed admission credit as work completes; rolling admission adds no
+    workers, in-flight requests or peak credit and preserves result order,
+    values and `is_Nuc_site`.
   - Predictions can be attached directly to atoms through the calculator API:
     ```python
     from hotpot import read_mol
@@ -92,7 +101,9 @@ Hotpot is built on a modular architecture designed to hide complexity. It consis
     hotpot mca 'c1ccccc1CN' --plot mca.png
     hotpot mca 'c1ccccc1CN' --backend gpu --plot mca-all.png --all-site
     ```
-    CPU is the CLI default; GPU use must be requested with `--backend gpu`.
+    CPU is the CLI default; GPU-preferred execution must be requested with
+    `--backend gpu`. Workloads below 256 predicted sites remain on CPU silently;
+    `hotpot -d mca ...` reports that routing decision.
 + **Coordination-bond CLI**:
   - Build a metal-ligand coordination graph from a ligand SMILES or molecule
     file and print its canonical SMILES:
@@ -245,8 +256,10 @@ python -m pip uninstall -y onnxruntime
 python -m pip install onnxruntime-gpu
 ```
 
-MCA still requires an explicit CPU or GPU backend after the GPU runtime is
-installed; installing it does not enable automatic GPU selection.
+The MCA CLI still defaults to CPU after the GPU runtime is installed; installing
+it does not enable automatic GPU selection. Explicit `--backend gpu` starts GPU
+execution only after the call reaches 256 predicted sites; smaller calls use
+CPU inference silently unless debug logging is enabled.
 ---
 ## 📌 Usage examples
 ### 1.Building a metal-ligand pair

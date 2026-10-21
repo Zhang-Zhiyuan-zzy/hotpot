@@ -91,11 +91,11 @@ def test_joint_hash_rejects_duplicate_and_out_of_range_sites(sites, message):
         _joint_hash(invalid)
 
 
-def test_cross_window_requires_atom_count_strictly_above_budget():
+def test_cross_capacity_requires_atom_count_strictly_above_budget():
     budget = gpu_window_atom_budget(2048, 16)
 
     assert budget == 8192
-    assert validation.input_window_count((6486,), budget) == 1
-    assert validation.input_window_count((8192,), budget) == 1
-    assert validation.input_window_count((8192, 1), budget) == 2
-    assert validation.input_window_count((4096, 4096, 1), budget) == 2
+    assert validation.admission_capacity_cycle_count((6486,), budget) == 1
+    assert validation.admission_capacity_cycle_count((8192,), budget) == 1
+    assert validation.admission_capacity_cycle_count((8192, 1), budget) == 2
+    assert validation.admission_capacity_cycle_count((4096, 4096, 1), budget) == 2

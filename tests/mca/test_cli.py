@@ -61,6 +61,21 @@ def test_top_level_mca_defaults_to_cpu_and_prints_to_stdout(monkeypatch, capsys)
     assert "Done !!!" not in output
 
 
+def test_top_level_debug_reconfigures_logging_at_debug_level(monkeypatch, capsys):
+    monkeypatch.setattr(cli, "MCACpuPredictor", _Predictor)
+    configured = []
+
+    def record_logging(debug=False, to_stdout=True):
+        configured.append((debug, to_stdout))
+
+    monkeypatch.setattr(hotpot_main, "setup_logging", record_logging)
+
+    assert hotpot_main.main(["--debug", "mca", "CN"]) == 0
+
+    assert configured == [(False, False), (True, False)]
+    assert "MCA(kJ/mol)" in capsys.readouterr().out
+
+
 def test_top_level_mca_doc_prints_packaged_markdown_without_input(capsys):
     with pytest.raises(SystemExit) as exit_info:
         hotpot_main.main(["mca", "--doc"])

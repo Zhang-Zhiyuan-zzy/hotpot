@@ -99,11 +99,16 @@ Observe these rules:
   MCA prediction.
 - Charged molecules are outside the validated release domain and are rejected unless the user explicitly requests
   `--allow-charged`. Report such results as out-of-domain estimates.
-- `--backend` defaults to `cpu`. GPU must be requested explicitly and must fail if CUDA cannot be initialized; there
-  is no automatic GPU-to-CPU fallback.
+- `--backend` defaults to `cpu`. Explicit `--backend gpu` is GPU-preferred: if the complete call contains fewer than
+  256 predicted sites, Hotpot performs inference on CPU without starting CUDA. The decision is silent by default and
+  is visible with the top-level debug flag (`hotpot -d mca ...`). At 256 sites the GPU pipeline starts; CUDA startup
+  and OOM failures then fail the call instead of falling back to CPU.
 - GPU defaults to 9 site workers and 7 feature/inference workers per card. Without an explicit GPU atom-row batch,
   total VRAM selects `64/128/256/512/1024/2048`, and heterogeneous cards use the smallest selected-card tier. CUDA
   OOM reports the current and next lower tier without retrying or falling back to CPU.
+- GPU work uses a fixed-credit rolling admission window. It reuses released capacity without increasing configured
+  workers, maximum in-flight requests or peak credit, and it preserves logical batches, output order, MCA values and
+  `is_Nuc_site`.
 - Existing usable coordinates are retained; otherwise conformer generation uses `--conformer-seed`.
 
 Do not remove units, convert values, redefine site membership, or generalize a prediction beyond the documented model

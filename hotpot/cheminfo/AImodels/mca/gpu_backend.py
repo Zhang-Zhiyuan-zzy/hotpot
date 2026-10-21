@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import itertools
+import logging
 import multiprocessing as mp
 import os
+import pickle
 import queue
+import tempfile
 import threading
 import time
+from collections import deque
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from functools import partial
@@ -14,6 +19,7 @@ from functools import partial
 import numpy as np
 
 from .batching import LogicalBatch, LogicalBatchPlanner, scatter_batch_predictions
+from .cpu_backend import MCACpuPredictor
 from .gpu_consumer import (
     GpuBatchRequest,
     GpuBatchResult,
@@ -28,11 +34,14 @@ from .gpu_memory import (
     gpu_total_memories_bytes,
     is_cuda_out_of_memory,
     resolve_gpu_batch_size,
+    validate_gpu_batch_size,
 )
 from .pipeline import (
     DEFAULT_CONFORMER_SEED,
+    PreparedMolecule,
     build_prediction,
     is_single_molecule_input,
+    prepare_molecule,
 )
 from .resources import (
     DEFAULT_INFER_CPU_PER_GPU,
@@ -41,6 +50,7 @@ from .resources import (
     gpu_window_atom_budget,
     pin_current_process,
     pin_worker_from_queue,
+    validate_gpu_resource_request,
 )
 from .result_types import MoleculePrediction
 from .runtime import cuda_provider_available, resolved_model_artifact
@@ -57,6 +67,11 @@ _IPC_POLL_SECONDS = 0.25
 _STARTUP_TIMEOUT_SECONDS = 300.0
 _TASK_TIMEOUT_SECONDS = 900.0
 _SHUTDOWN_TIMEOUT_SECONDS = 5.0
+_PREPARED_SPOOL_MEMORY_BYTES = 8 * 1024**2
+MIN_GPU_SITE_COUNT = 256
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -80,6 +95,36 @@ class _PendingRequest:
     batch_ordinal: int
 
 
+class _PreparedMoleculeSpool:
+    def __init__(self):
+        self._file = tempfile.SpooledTemporaryFile(
+            max_size=_PREPARED_SPOOL_MEMORY_BYTES,
+            mode="w+b",
+        )
+        self._count = 0
+
+    def append(self, prepared: PreparedMolecule) -> None:
+        pickle.dump(prepared, self._file, protocol=pickle.HIGHEST_PROTOCOL)
+        self._count += 1
+
+    def __len__(self) -> int:
+        return self._count
+
+    def __iter__(self):
+        self._file.seek(0)
+        for _ in range(self._count):
+            yield pickle.load(self._file)
+
+    def close(self) -> None:
+        self._file.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+
 def _enqueue_pool_result(completion_queue, stage, result) -> None:
     completion_queue.put((stage, True, result))
 
@@ -89,7 +134,7 @@ def _enqueue_pool_error(completion_queue, stage, error) -> None:
 
 
 class MCAGpuPredictor:
-    """Persistent MCA pools with one CUDA owner process per selected GPU."""
+    """GPU-preferred MCA predictor with lazy, persistent CUDA workers."""
 
     def __init__(
         self,
@@ -106,18 +151,34 @@ class MCAGpuPredictor:
         allow_charged: bool = False,
         model_source=None,
     ):
-        if not cuda_provider_available():
-            raise RuntimeError("CUDAExecutionProvider is not available")
-        self.resource_plan = build_gpu_resource_plan(
+        indices, site_count, infer_count = validate_gpu_resource_request(
             gpu_count=gpu_count,
             gpu_indices=gpu_indices,
             site_cpu_per_gpu=site_cpu_per_gpu,
             infer_cpu_per_gpu=infer_cpu_per_gpu,
         )
-        self.gpu_indices = self.resource_plan.gpu_indices
+        if gpu_batch_size is not None:
+            validate_gpu_batch_size(gpu_batch_size)
+        self.gpu_indices = indices
+        self.resource_plan = None
+        self.gpu_memory_totals = ()
+        self.gpu_batch_size = gpu_batch_size
         self.conformer_seed = conformer_seed
         self.allow_charged = allow_charged
+        self._model_options = {
+            "model_dir": model_dir,
+            "variant": variant,
+            "verify_model": verify_model,
+            "model_source": model_source,
+        }
+        self._resource_options = {
+            "gpu_indices": indices,
+            "site_cpu_per_gpu": site_count,
+            "infer_cpu_per_gpu": infer_count,
+        }
+        self._requested_gpu_batch_size = gpu_batch_size
         self._closed = False
+        self._gpu_started = False
         self._predict_lock = threading.Lock()
         self._next_request_id = 0
         self._next_gpu_position = 0
@@ -129,28 +190,34 @@ class MCAGpuPredictor:
         self._result_queue = None
         self._request_queues = []
         self._gpu_processes = []
-        self._owner_native_id = threading.get_native_id()
-        self._owner_cpu_affinity = self.resource_plan.available_cpu_ids
+        self._owner_native_id = None
+        self._owner_cpu_affinity = ()
         self._owner_affinity_restricted = False
 
+    def _ensure_gpu_started(self) -> None:
+        if self._gpu_started:
+            return
+        if not cuda_provider_available():
+            raise RuntimeError("CUDAExecutionProvider is not available")
+        self.resource_plan = build_gpu_resource_plan(**self._resource_options)
+        self._owner_native_id = threading.get_native_id()
+        self._owner_cpu_affinity = self.resource_plan.available_cpu_ids
         try:
             pin_current_process(self.resource_plan.assigned_cpu_ids)
             self._owner_affinity_restricted = True
             self.gpu_memory_totals = gpu_total_memories_bytes(self.gpu_indices)
             self.gpu_batch_size = resolve_gpu_batch_size(
                 self.gpu_memory_totals,
-                gpu_batch_size,
+                self._requested_gpu_batch_size,
             )
             self._start_cpu_pools()
             with resolved_model_artifact(
-                model_dir=model_dir,
-                variant=variant,
-                verify_model=verify_model,
-                model_source=model_source,
+                **self._model_options,
             ) as artifact:
                 self.variant = artifact.variant
                 self.max_atoms = int(artifact.manifest["max_atoms"])
                 self._start_gpu_consumers(str(artifact.session_path))
+            self._gpu_started = True
         except BaseException:
             self.close()
             raise
@@ -243,12 +310,51 @@ class MCAGpuPredictor:
             )
         completed = False
         try:
-            yield from self._iter_predict(molecules)
+            yield from self._iter_predict_routed(molecules)
             completed = True
         finally:
             self._predict_lock.release()
             if not completed:
                 self.close()
+
+    def _iter_predict_routed(self, molecules) -> Iterator[MoleculePrediction]:
+        molecule_iterator = iter(molecules)
+        site_count = 0
+        with _PreparedMoleculeSpool() as prepared_molecules:
+            while site_count < MIN_GPU_SITE_COUNT:
+                try:
+                    value = next(molecule_iterator)
+                except StopIteration:
+                    break
+                prepared = prepare_molecule(
+                    value,
+                    len(prepared_molecules),
+                    self.allow_charged,
+                )
+                prepared_molecules.append(prepared)
+                site_count += len(prepared.sites)
+
+            if not prepared_molecules:
+                return
+            if site_count < MIN_GPU_SITE_COUNT:
+                logger.debug(
+                    "MCA backend routing: requested=gpu effective=cpu "
+                    "site_count=%d threshold=%d",
+                    site_count,
+                    MIN_GPU_SITE_COUNT,
+                )
+                with MCACpuPredictor(
+                    conformer_seed=self.conformer_seed,
+                    allow_charged=self.allow_charged,
+                    **self._model_options,
+                ) as predictor:
+                    yield from predictor._iter_predict_prepared(prepared_molecules)
+                return
+
+            self._ensure_gpu_started()
+            yield from self._iter_predict(
+                itertools.chain(prepared_molecules, molecule_iterator)
+            )
 
     def _iter_predict(self, molecules) -> Iterator[MoleculePrediction]:
         planner = LogicalBatchPlanner(self.gpu_batch_size)
@@ -259,8 +365,15 @@ class MCAGpuPredictor:
         pending_chunks: dict[int, _PendingChunk] = {}
         waiting_chunks: dict[tuple[int, int], set[int]] = {}
         pending_requests: dict[int, _PendingRequest] = {}
+        pending_batches = deque()
+        completion_queue = queue.Queue()
+        pending_cpu = {"site": 0, "feature": 0}
+        pending_cpu_started = {"site": {}, "feature": {}}
         next_input_index = 0
         next_output_index = 0
+        admitted_atom_count = 0
+        input_exhausted = False
+        planner_finished = False
         max_inflight = max(1, 2 * len(self.gpu_indices))
         worker_count = (
             len(self.resource_plan.site_worker_assignments)
@@ -271,61 +384,65 @@ class MCAGpuPredictor:
             worker_count,
         )
         molecule_iterator = iter(molecules)
+        pool_state = {
+            "site": (
+                self._site_pool,
+                self._pool_process_ids(self._site_pool),
+                "site detection",
+            ),
+            "feature": (
+                self._feature_pool,
+                self._pool_process_ids(self._feature_pool),
+                "feature construction",
+            ),
+        }
 
-        while True:
-            indexed_molecules = []
-            window_atom_count = 0
-            while window_atom_count < window_atom_budget:
+        while next_output_index < next_input_index or not input_exhausted:
+            while not input_exhausted and admitted_atom_count < window_atom_budget:
                 try:
                     value = next(molecule_iterator)
                 except StopIteration:
+                    input_exhausted = True
                     break
                 molecule_index = next_input_index
                 next_input_index += 1
-                molecule = normalize_molecule(value)
-                validate_dto(molecule, molecule_index, self.allow_charged)
+                if isinstance(value, PreparedMolecule):
+                    molecule = value.molecule
+                    sites = value.sites
+                else:
+                    molecule = normalize_molecule(value)
+                    validate_dto(molecule, molecule_index, self.allow_charged)
+                    sites = None
                 states[molecule_index] = _MoleculeState(
                     molecule=molecule,
                     values=np.empty(molecule.atom_count, dtype=np.float64),
                     filled=np.zeros(molecule.atom_count, dtype=bool),
+                    sites=sites,
                 )
-                indexed_molecules.append((molecule_index, molecule))
-                window_atom_count += molecule.atom_count
-            if not indexed_molecules:
-                break
-
-            batches = planner.push(
-                (molecule_index, molecule.atom_count)
-                for molecule_index, molecule in indexed_molecules
-            )
-            completion_queue = queue.Queue()
-            pending_cpu = {
-                "site": len(indexed_molecules),
-                "feature": len(indexed_molecules),
-            }
-            pool_state = {
-                "site": (
-                    self._site_pool,
-                    self._pool_process_ids(self._site_pool),
-                    "site detection",
-                ),
-                "feature": (
-                    self._feature_pool,
-                    self._pool_process_ids(self._feature_pool),
-                    "feature construction",
-                ),
-            }
-            for molecule_index, molecule in indexed_molecules:
-                self._site_pool.apply_async(
-                    detect_sites_worker,
-                    (SiteDetectionTask(molecule_index, molecule),),
-                    callback=partial(_enqueue_pool_result, completion_queue, "site"),
-                    error_callback=partial(
-                        _enqueue_pool_error,
-                        completion_queue,
-                        "site",
-                    ),
+                admitted_atom_count += molecule.atom_count
+                pending_batches.extend(
+                    planner.push(((molecule_index, molecule.atom_count),))
                 )
+                submitted_at = time.monotonic()
+                pending_cpu["feature"] += 1
+                pending_cpu_started["feature"][molecule_index] = submitted_at
+                if sites is None:
+                    pending_cpu["site"] += 1
+                    pending_cpu_started["site"][molecule_index] = submitted_at
+                    self._site_pool.apply_async(
+                        detect_sites_worker,
+                        (SiteDetectionTask(molecule_index, molecule),),
+                        callback=partial(
+                            _enqueue_pool_result,
+                            completion_queue,
+                            "site",
+                        ),
+                        error_callback=partial(
+                            _enqueue_pool_error,
+                            completion_queue,
+                            "site",
+                        ),
+                    )
                 self._feature_pool.apply_async(
                     build_features_worker,
                     (
@@ -348,11 +465,15 @@ class MCAGpuPredictor:
                     ),
                 )
 
-            next_batch = 0
-            deadline = time.monotonic() + _TASK_TIMEOUT_SECONDS
-            while any(pending_cpu.values()) or next_batch < len(batches):
-                while next_batch < len(batches):
-                    batch = batches[next_batch]
+            if input_exhausted and not planner_finished:
+                pending_batches.extend(planner.finish())
+                planner_finished = True
+
+            made_progress = True
+            while made_progress:
+                made_progress = False
+                while pending_batches:
+                    batch = pending_batches[0]
                     if any(
                         molecule_index not in features
                         for molecule_index in batch.unique_molecule_indices
@@ -367,8 +488,10 @@ class MCAGpuPredictor:
                             waiting_chunks,
                             pending_requests,
                         ):
+                            made_progress = True
                             continue
                         break
+                    pending_batches.popleft()
                     self._submit_batch(
                         batch,
                         states,
@@ -379,19 +502,54 @@ class MCAGpuPredictor:
                         waiting_chunks,
                         pending_requests,
                     )
-                    next_batch += 1
+                    self._release_submitted_features(batch, states, features)
+                    made_progress = True
 
-                if not any(pending_cpu.values()):
-                    self._drain_gpu_result(
-                        states,
-                        encoding_cache,
-                        pending_encoding_keys,
-                        pending_chunks,
-                        waiting_chunks,
-                        pending_requests,
+                while pending_requests and self._try_drain_gpu_result(
+                    states,
+                    encoding_cache,
+                    pending_encoding_keys,
+                    pending_chunks,
+                    waiting_chunks,
+                    pending_requests,
+                ):
+                    made_progress = True
+
+                ready, new_output_index = self._pop_ready_results(
+                    states,
+                    encoding_cache,
+                    next_output_index,
+                )
+                if ready:
+                    admitted_atom_count -= sum(
+                        len(result.atom_predictions) for result in ready
                     )
-                    continue
-                remaining = deadline - time.monotonic()
+                    next_output_index = new_output_index
+                    made_progress = True
+                    yield from ready
+
+            if next_output_index == next_input_index and input_exhausted:
+                break
+
+            try:
+                stage, succeeded, result = completion_queue.get_nowait()
+            except queue.Empty:
+                stage = None
+            if stage is not None:
+                self._handle_cpu_completion(
+                    stage,
+                    succeeded,
+                    result,
+                    states,
+                    features,
+                    pending_cpu,
+                    pending_cpu_started,
+                    pool_state,
+                )
+                continue
+
+            if any(pending_cpu.values()):
+                remaining = self._remaining_cpu_timeout(pending_cpu_started)
                 if remaining <= 0:
                     operations = ", ".join(
                         pool_state[stage][2]
@@ -409,38 +567,21 @@ class MCAGpuPredictor:
                     for stage, count in pending_cpu.items():
                         if count:
                             pool, expected_pids, operation = pool_state[stage]
-                            self._check_pool_health(
-                                pool,
-                                expected_pids,
-                                operation,
-                            )
+                            self._check_pool_health(pool, expected_pids, operation)
                     continue
+                self._handle_cpu_completion(
+                    stage,
+                    succeeded,
+                    result,
+                    states,
+                    features,
+                    pending_cpu,
+                    pending_cpu_started,
+                    pool_state,
+                )
+                continue
 
-                for pool, expected_pids, operation in pool_state.values():
-                    self._check_pool_health(pool, expected_pids, operation)
-                pending_cpu[stage] -= 1
-                if not succeeded:
-                    raise result
-                if stage == "feature":
-                    features[result.molecule_index] = result.feature
-                else:
-                    states[result.molecule_index].sites = result.sites
-
-            for batch in batches:
-                for row in batch.rows:
-                    state = states[row.molecule_index]
-                    if row.atom_index == state.molecule.atom_count - 1:
-                        features.pop(row.molecule_index, None)
-
-            ready, next_output_index = self._pop_ready_results(
-                states,
-                encoding_cache,
-                next_output_index,
-            )
-            yield from ready
-
-        for batch in planner.finish():
-            while len(pending_requests) >= max_inflight:
+            if pending_requests:
                 self._drain_gpu_result(
                     states,
                     encoding_cache,
@@ -449,48 +590,52 @@ class MCAGpuPredictor:
                     waiting_chunks,
                     pending_requests,
                 )
-            self._submit_batch(
-                batch,
-                states,
-                features,
-                encoding_cache,
-                pending_encoding_keys,
-                pending_chunks,
-                waiting_chunks,
-                pending_requests,
-            )
+                continue
 
-        while pending_requests:
-            self._drain_gpu_result(
-                states,
-                encoding_cache,
-                pending_encoding_keys,
-                pending_chunks,
-                waiting_chunks,
-                pending_requests,
-            )
-            ready, next_output_index = self._pop_ready_results(
-                states,
-                encoding_cache,
-                next_output_index,
-            )
-            yield from ready
+            raise RuntimeError("MCA GPU pipeline stopped making progress")
 
-        self._resolve_cached_chunks(
-            states,
-            encoding_cache,
-            pending_chunks,
-        )
-        ready, next_output_index = self._pop_ready_results(
-            states,
-            encoding_cache,
-            next_output_index,
-        )
-        yield from ready
         if next_output_index != next_input_index:
             raise RuntimeError(
                 "MCA GPU pipeline finished without producing every input molecule"
             )
+
+    @staticmethod
+    def _release_submitted_features(batch, states, features) -> None:
+        for row in batch.rows:
+            state = states[row.molecule_index]
+            if row.atom_index == state.molecule.atom_count - 1:
+                features.pop(row.molecule_index, None)
+
+    @staticmethod
+    def _remaining_cpu_timeout(pending_cpu_started) -> float:
+        oldest = min(
+            started_at
+            for stage_tasks in pending_cpu_started.values()
+            for started_at in stage_tasks.values()
+        )
+        return oldest + _TASK_TIMEOUT_SECONDS - time.monotonic()
+
+    def _handle_cpu_completion(
+        self,
+        stage,
+        succeeded,
+        result,
+        states,
+        features,
+        pending_cpu,
+        pending_cpu_started,
+        pool_state,
+    ) -> None:
+        for pool, expected_pids, operation in pool_state.values():
+            self._check_pool_health(pool, expected_pids, operation)
+        pending_cpu[stage] -= 1
+        if not succeeded:
+            raise result
+        pending_cpu_started[stage].pop(result.molecule_index)
+        if stage == "feature":
+            features[result.molecule_index] = result.feature
+        else:
+            states[result.molecule_index].sites = result.sites
 
     def _submit_batch(
         self,

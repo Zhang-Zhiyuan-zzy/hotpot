@@ -127,6 +127,21 @@ def current_cpu_affinity() -> tuple[int, ...]:
     return tuple(sorted(os.sched_getaffinity(0)))
 
 
+def validate_gpu_resource_request(
+    *,
+    gpu_count: int | None = None,
+    gpu_indices: Sequence[int] | None = None,
+    site_cpu_per_gpu: int = DEFAULT_SITE_CPU_PER_GPU,
+    infer_cpu_per_gpu: int = DEFAULT_INFER_CPU_PER_GPU,
+) -> tuple[tuple[int, ...], int, int]:
+    """Validate GPU resource options without inspecting host CPU resources."""
+
+    indices = resolve_gpu_indices(gpu_count=gpu_count, gpu_indices=gpu_indices)
+    site_count = _positive_integer(site_cpu_per_gpu, "site_cpu_per_gpu")
+    infer_count = _positive_integer(infer_cpu_per_gpu, "infer_cpu_per_gpu")
+    return indices, site_count, infer_count
+
+
 def build_gpu_resource_plan(
     *,
     gpu_count: int | None = None,
@@ -137,9 +152,12 @@ def build_gpu_resource_plan(
 ) -> GPUResourcePlan:
     """Allocate stable, non-overlapping CPU blocks for the selected GPUs."""
 
-    indices = resolve_gpu_indices(gpu_count=gpu_count, gpu_indices=gpu_indices)
-    site_count = _positive_integer(site_cpu_per_gpu, "site_cpu_per_gpu")
-    infer_count = _positive_integer(infer_cpu_per_gpu, "infer_cpu_per_gpu")
+    indices, site_count, infer_count = validate_gpu_resource_request(
+        gpu_count=gpu_count,
+        gpu_indices=gpu_indices,
+        site_cpu_per_gpu=site_cpu_per_gpu,
+        infer_cpu_per_gpu=infer_cpu_per_gpu,
+    )
     affinity = (
         current_cpu_affinity()
         if cpu_affinity is None

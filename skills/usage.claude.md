@@ -34,8 +34,9 @@
 6. **`build3d` / 复合物构建会派生子进程**。可执行脚本 MUST 使用 `if __name__ == "__main__":` 保护。
 7. **Shell 中给 SMILES 加引号**（含 `()=#` 等元字符）。
 8. **不要混装 Open Babel**：PyPI `openbabel`、`openbabel-wheel`、Conda `openbabel` 互斥，三选一。
-9. **区分 MCA 与 CBond 的设备接口**：MCA CLI 默认使用 CPU；GPU 必须显式传 `--backend gpu`，不可用即失败，
-   不会自动选卡或静默回退到 CPU。`--device` / `auto` 是 CBond 的接口，不适用于 MCA。
+9. **区分 MCA 与 CBond 的设备接口**：MCA CLI 默认使用 CPU；显式 `--backend gpu` 表示 GPU 优先。整次调用
+   少于 256 个预测位点时，不启动 CUDA 并静默改用 CPU 推理（`hotpot -d mca ...` 才报告）；达到 256 位点
+   后启动 GPU，此后的 CUDA 启动/OOM 错误直接失败而不回退。`--device` / `auto` 是 CBond 的接口，不适用于 MCA。
 
 ---
 
@@ -336,7 +337,8 @@ for atom, value in mol.mca_sites.items():
     print(atom, value)                      # 经适用域规则筛出的可靠亲核位点
 ```
 
-`mca(mol, *, backend, **predictor_options)`：`backend` 必须显式为 `"cpu"` 或 `"gpu"`；不自动切换后端。
+`mca(mol, *, backend, **predictor_options)`：`backend` 必须显式为 `"cpu"` 或 `"gpu"`。`"gpu"` 为 GPU 优先；
+整次调用少于 256 个预测位点时自动使用 CPU，达到阈值才启动 GPU，启动后的错误不回退。
 **适用域**：模型在中性分子上验证；带电分子默认拒绝，`allow_charged=True` 得到的是显式域外估计，须
 谨慎。显式氢不是有效预测目标；单分子最多 512 个原子。**全原子输出**与**可靠位点选择**是两件事——
 后者刻意排除金属及直接连金属的原子。
@@ -431,7 +433,8 @@ hotpot optimize --help          # 权威参数以此为准
 
 - **stdout 只放承诺的结果数据**；日志、警告、进度、ONNX telemetry 一律走 stderr。
 - `-o/--output FILE` 写入的 payload 与默认 stdout 相同，且用 `-o` 时 stdout 为空；文本输出 UTF-8。
-- 退出码：成功 0，失败非零。MCA 的 `--backend gpu` 严格且不回退；CBond 的 `--device cuda` 不可用即失败。
+- 退出码：成功 0，失败非零。MCA 的 `--backend gpu` 在少于 256 个预测位点时静默使用 CPU；达到阈值并
+  启动 GPU 后严格且不回退。CBond 的 `--device cuda` 不可用即失败。
 - `--help` 简明、随包可得；`mca` / `cbond` 另有 `--doc` 展示详细 Markdown 文档，且缺业务参数时仍可退出。
 
 ### 12.2 `hotpot mca` — 原子级 MCA 预测
@@ -451,7 +454,10 @@ hotpot mca '[NH4+]' --allow-charged                         # 显式请求域外
 CPU `--batch-size 64`；GPU 可用 `--gpu-count` 或 `--gpu-indices`、每卡默认 9/7 worker，
 并按总显存选择 `64/128/256/512/1024/2048` 的 `--gpu-batch-size` 原子行档位；异构卡取所选卡的
 最小档位。CUDA OOM 会报告当前档位及建议的下一低档，不重试或回退 CPU。另有
-`--conformer-seed 42`、`--model-dir`、`--allow-charged`。
+`--conformer-seed 42`、`--model-dir`、`--allow-charged`。GPU pipeline 使用固定 credit 的滚动窗口：释放
+容量后立即准入后续任务，但不增加 worker、最大 in-flight 请求或峰值 credit；logical batch、顺序、MCA 值和
+`is_Nuc_site` 不变。显式 GPU 调用的累计预测位点少于 256 时不启动 CUDA、默认静默使用 CPU；用顶层
+`hotpot -d mca ...` 查看该路由决定。
 
 ### 12.3 `hotpot cbond` — 金属-配体配位键构建
 
@@ -522,5 +528,6 @@ CLI 选项、默认值、单位与退出语义可能随版本演进。**面向�
 - ❌ 在无 `if __name__ == "__main__":` 的脚本里跑 `build3d` / 复合物构建。
 - ❌ 对带电分子直接跑 MCA 而不提适用域，或把 `--allow-charged` 结果当可靠值。
 - ❌ 在 shell 里不加引号传含 `()=#` 的 SMILES。
-- ❌ 给 MCA 传 CBond 专用的 `--device` / `auto`，或假设 MCA 的 `--backend gpu` 会在无 GPU 时回退到 CPU。
+- ❌ 给 MCA 传 CBond 专用的 `--device` / `auto`，或假设已达到 256 位点并启动的 MCA GPU pipeline 会在
+  CUDA 错误时回退到 CPU；只有整次调用少于阈值时会在 GPU 启动前自动选择 CPU。
 - ❌ 需要具体数字时凭记忆编造，而不实际调用 API / 命令。

@@ -7,7 +7,11 @@ from dataclasses import dataclass
 import networkx as nx
 
 from hotpot.cheminfo.core import Atom, Molecule
-from hotpot.cheminfo.search import Searcher, SmartsSemantics, Substructure
+from hotpot.cheminfo.search import SmartsSemantics, Substructure
+from hotpot.cheminfo.search.native import (
+    _iter_mapping_sources,
+    _prepare_query,
+)
 
 
 @dataclass(frozen=True)
@@ -53,10 +57,10 @@ def _compile_rule(name: str, smarts: str):
     anchors = [atom.idx for atom in substructure.query_atoms if atom.map_number == 1]
     if len(anchors) != 1:
         raise ValueError(f"MCA rule {name!r} must contain exactly one :1 anchor")
-    return name, Searcher(substructure), anchors[0]
+    return name, _prepare_query(substructure), anchors[0]
 
 
-# SMARTS parsing and Searcher construction are invariant across predictions.
+# SMARTS parsing and native query compilation are invariant across predictions.
 _COMPILED_RULES = tuple(_compile_rule(*rule) for rule in NUCLEOPHILE_RULES)
 
 
@@ -161,14 +165,18 @@ def _remove_automorphic_sites(
 
 
 def find_nucleophilic_sites(mol: Molecule) -> tuple[DetectedSite, ...]:
-    """Return symmetry-unique MCA sites found by Hotpot's NetworkX search."""
+    """Return symmetry-unique MCA sites found by Hotpot's native search."""
 
     assigned = set()
     sites = []
-    for name, searcher, anchor_query_index in _COMPILED_RULES:
-        rule_sites = set()
-        for hit in searcher.search(mol):
-            rule_sites.update(hit.mapped_atom_indices(anchor_query_index))
+    rule_sources = _iter_mapping_sources(
+        (query for _, query, _ in _COMPILED_RULES),
+        mol,
+    )
+    for (name, _, anchor_query_index), source in zip(
+        _COMPILED_RULES, rule_sources
+    ):
+        rule_sites = set(source.mapped_target_indices(anchor_query_index))
         for atom_index in sorted(rule_sites):
             if _is_eligible_site(mol.atoms[atom_index]) and atom_index not in assigned:
                 assigned.add(atom_index)

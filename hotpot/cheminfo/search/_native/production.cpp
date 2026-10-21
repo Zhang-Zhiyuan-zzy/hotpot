@@ -79,6 +79,15 @@ struct TargetBond {
     py::object object;
 };
 
+}  // namespace
+
+struct NativeTarget::Data {
+    std::vector<TargetAtom> atoms;
+    std::vector<TargetBond> bonds;
+};
+
+namespace {
+
 struct RecursiveProgram {
     std::shared_ptr<NativeProblem> problem;
     mutable std::mutex cache_mutex;
@@ -370,7 +379,7 @@ std::vector<NativeValue> parse_native_values(const py::handle sequence) {
 
 AtomExpression parse_atom_expression(
     const py::dict& specification,
-    const py::dict& target_spec,
+    const std::shared_ptr<NativeTarget>& target,
     const std::size_t target_node_count
 ) {
     AtomExpression expression;
@@ -384,7 +393,7 @@ AtomExpression parse_atom_expression(
         auto recursive = std::make_shared<RecursiveProgram>();
         recursive->problem = std::make_shared<NativeProblem>(
             py::reinterpret_borrow<py::dict>(value),
-            target_spec
+            target
         );
         recursive->cache.assign(target_node_count, -1);
         expression.recursive = std::move(recursive);
@@ -403,7 +412,7 @@ AtomExpression parse_atom_expression(
     for (const py::handle child : get_item(specification, "children")) {
         expression.children.push_back(parse_atom_expression(
             py::reinterpret_borrow<py::dict>(child),
-            target_spec,
+            target,
             target_node_count
         ));
     }
@@ -431,7 +440,7 @@ std::vector<std::string> parse_preflight(const py::dict& program) {
 
 Leaf parse_leaf(
     const py::handle leaf_handle,
-    const py::dict& target_spec,
+    const std::shared_ptr<NativeTarget>& target,
     const std::size_t target_node_count
 ) {
     const py::tuple specification = py::reinterpret_borrow<py::tuple>(leaf_handle);
@@ -452,7 +461,7 @@ Leaf parse_leaf(
         leaf.kind = LeafKind::AtomExpression;
         leaf.atom_expression = parse_atom_expression(
             py::reinterpret_borrow<py::dict>(specification[1]),
-            target_spec,
+            target,
             target_node_count
         );
     } else if (kind == "bond_expr") {
@@ -468,7 +477,7 @@ Leaf parse_leaf(
 
 std::vector<NodeProgram> parse_node_programs(
     const py::dict& query_spec,
-    const py::dict& target_spec,
+    const std::shared_ptr<NativeTarget>& target,
     const std::size_t target_node_count
 ) {
     std::vector<NodeProgram> programs;
@@ -478,7 +487,7 @@ std::vector<NodeProgram> parse_node_programs(
         program.preflight = parse_preflight(specification);
         for (const py::handle leaf : get_item(specification, "leaves")) {
             program.leaves.push_back(
-                parse_leaf(leaf, target_spec, target_node_count)
+                parse_leaf(leaf, target, target_node_count)
             );
         }
         programs.push_back(std::move(program));
@@ -488,7 +497,7 @@ std::vector<NodeProgram> parse_node_programs(
 
 std::vector<BondProgram> parse_bond_programs(
     const py::dict& query_spec,
-    const py::dict& target_spec,
+    const std::shared_ptr<NativeTarget>& target,
     const std::size_t target_node_count
 ) {
     std::vector<BondProgram> programs;
@@ -505,7 +514,7 @@ std::vector<BondProgram> parse_bond_programs(
         }
         for (const py::handle leaf : get_item(specification, "leaves")) {
             program.leaves.push_back(
-                parse_leaf(leaf, target_spec, target_node_count)
+                parse_leaf(leaf, target, target_node_count)
             );
         }
         programs.push_back(std::move(program));
@@ -769,20 +778,23 @@ class NativeCompatibility final : public Compatibility {
 public:
     NativeCompatibility(
         const py::dict& query_spec,
-        const py::dict& target_spec,
+        std::shared_ptr<NativeTarget> target,
         const std::size_t query_node_count,
-        const std::size_t query_edge_count,
-        const std::size_t target_node_count,
-        const std::size_t target_edge_count
-    ) : nodes_(parse_node_programs(query_spec, target_spec, target_node_count)),
-        bonds_(parse_bond_programs(query_spec, target_spec, target_node_count)),
-        atoms_(parse_target_atoms(target_spec)),
-        target_bonds_(parse_target_bonds(target_spec)) {
+        const std::size_t query_edge_count
+    ) : target_(std::move(target)),
+        nodes_(parse_node_programs(
+            query_spec,
+            target_,
+            target_->graph().node_count()
+        )),
+        bonds_(parse_bond_programs(
+            query_spec,
+            target_,
+            target_->graph().node_count()
+        )) {
         if (
             nodes_.size() != query_node_count
             || bonds_.size() != query_edge_count
-            || atoms_.size() != target_node_count
-            || target_bonds_.size() != target_edge_count
         ) {
             throw std::invalid_argument(
                 "native search records must align with graph topology"
@@ -792,7 +804,7 @@ public:
 
     bool accept_node(const Position query, const Position target) const override {
         const NodeProgram& program = nodes_[query];
-        const TargetAtom& atom = atoms_[target];
+        const TargetAtom& atom = target_->data().atoms[target];
         if (!accept_preflight_matches(program.preflight, atom)) {
             return false;
         }
@@ -827,7 +839,7 @@ public:
 
     bool accept_edge(const EdgeIndex query, const EdgeIndex target) const override {
         const BondProgram& program = bonds_[query];
-        const TargetBond& bond = target_bonds_[target];
+        const TargetBond& bond = target_->data().bonds[target];
         if (program.exclude_aromatic && bond.is_aromatic) {
             return false;
         }
@@ -871,7 +883,7 @@ public:
         const Position target
     ) const override {
         const NodeProgram& program = nodes_[query];
-        const TargetAtom& atom = atoms_[target];
+        const TargetAtom& atom = target_->data().atoms[target];
         if (!may_preflight_match(program.preflight, atom)) {
             return false;
         }
@@ -903,7 +915,7 @@ public:
         const EdgeIndex target
     ) const override {
         const BondProgram& program = bonds_[query];
-        const TargetBond& bond = target_bonds_[target];
+        const TargetBond& bond = target_->data().bonds[target];
         if (program.exclude_aromatic && bond.is_aromatic) {
             return false;
         }
@@ -936,37 +948,56 @@ public:
     }
 
 private:
+    std::shared_ptr<NativeTarget> target_;
     std::vector<NodeProgram> nodes_;
     std::vector<BondProgram> bonds_;
-    std::vector<TargetAtom> atoms_;
-    std::vector<TargetBond> target_bonds_;
 };
 
 }  // namespace
 
+NativeTarget::NativeTarget(const py::dict& target_spec) :
+    graph_(graph_keys(target_spec), graph_edges(target_spec)),
+    data_(std::make_unique<Data>()) {
+    data_->atoms = parse_target_atoms(target_spec);
+    data_->bonds = parse_target_bonds(target_spec);
+    if (
+        data_->atoms.size() != graph_.node_count()
+        || data_->bonds.size() != graph_.edge_count()
+    ) {
+        throw std::invalid_argument(
+            "native search records must align with graph topology"
+        );
+    }
+}
+
+NativeTarget::~NativeTarget() = default;
+
 NativeProblem::NativeProblem(
     const py::dict& query_spec,
-    const py::dict& target_spec
+    std::shared_ptr<NativeTarget> target
 ) : query_(graph_keys(query_spec), graph_edges(query_spec)),
-    target_(graph_keys(target_spec), graph_edges(target_spec)),
+    target_(std::move(target)),
     plan_(build_query_plan(query_)),
     compatibility_(std::make_unique<NativeCompatibility>(
         query_spec,
-        target_spec,
+        target_,
         query_.node_count(),
-        query_.edge_count(),
-        target_.node_count(),
-        target_.edge_count()
+        query_.edge_count()
     )) {
-    const std::size_t word_count = (target_.node_count() + 63) / 64;
+    const GraphData& target_graph = target_->graph();
+    const std::size_t word_count = (target_graph.node_count() + 63) / 64;
     domains_.assign(
         query_.node_count(),
         std::vector<std::uint64_t>(word_count, 0)
     );
     for (Position query_node = 0; query_node < query_.node_count(); ++query_node) {
-        for (Position target_node = 0; target_node < target_.node_count(); ++target_node) {
+        for (
+            Position target_node = 0;
+            target_node < target_graph.node_count();
+            ++target_node
+        ) {
             if (
-                query_.degrees()[query_node] <= target_.degrees()[target_node]
+                query_.degrees()[query_node] <= target_graph.degrees()[target_node]
                 && compatibility_->may_accept_node(query_node, target_node)
             ) {
                 domains_[query_node][target_node / 64] |= (

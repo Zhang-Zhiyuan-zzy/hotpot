@@ -278,12 +278,18 @@ def test_compile_problem_passes_fresh_specs_and_required_handles(monkeypatch):
     mol = hp.read_mol("C", "smi")
     captured = {}
     sentinel = object()
+    target_sentinel = object()
 
     class FakeNativeModule:
         @staticmethod
-        def NativeProblem(query_spec, target_spec):
-            captured["query"] = query_spec
+        def NativeTarget(target_spec):
             captured["target"] = target_spec
+            return target_sentinel
+
+        @staticmethod
+        def NativeProblem(query_spec, target):
+            captured["query"] = query_spec
+            assert target is target_sentinel
             return sentinel
 
     monkeypatch.setattr(

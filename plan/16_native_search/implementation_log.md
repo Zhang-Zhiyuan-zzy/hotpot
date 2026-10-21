@@ -412,12 +412,89 @@ no `GraphMatcher` or isomorphism import under `hotpot.cheminfo.search`.
 Unexpected finding: none. The retained NetworkX dependency is now limited to
 the public compatibility graph and unrelated graph facilities, as planned.
 
-Git checkpoint: recorded in the public-cutover commit immediately following
-this log entry.
+Git checkpoint: `414ccd3` (`feat(search): cut over public search to native RI`).
 
 ### Step 7 - Add generic target reuse and verify MCA integration
 
-Status: pending
+Status: complete
+
+Planned:
+
+- prepare one target snapshot for an ordered group of generic compiled queries;
+- reuse that snapshot across outer and recursive native problems;
+- let MCA reuse the generic operation without moving rule names, precedence,
+  site eligibility, symmetry selection, or prediction assembly into C++; and
+- prove exact site identity while meeting the one-worker P1 performance gate.
+
+Performed:
+
+- added a private frozen prepared-query record containing compiled query IR,
+  Python-object requirements, and derived-target requirements;
+- added ordered multi-query execution that unions those requirements, packs the
+  Hotpot target once, constructs one native `NativeTarget`, and lazily creates
+  each `NativeProblem` against the shared target;
+- moved target graph construction and parsed atom/bond records into that
+  immutable `NativeTarget`; recursive queries receive the same shared object;
+- removed the old dict-target `NativeProblem` overload so there remains one
+  native construction path;
+- cached the 24 invariant MCA query programs at module import and projected
+  each rule's anchor directly from raw native mappings, while leaving rule
+  order, first-rule assignment, metal eligibility, atom-index ordering, exact
+  labeled-graph symmetry representatives, and `is_Nuc_site` ownership in the
+  existing Python/MCA layers; and
+- added a reproducible 24-molecule one-worker benchmark runner and structural
+  tests for one target pack, one native target, ordered duplicate queries,
+  requirement union, no recompile, direct anchor projection, and empty groups.
+
+Unexpected finding and correction:
+
+- pybind11 converts Python `None` to an empty `std::shared_ptr<NativeTarget>` by
+  default. A direct isolated probe of `NativeProblem(query, None)` therefore
+  exited with signal 11 before target dereference. The sole binding now rejects
+  `None` at its typed boundary with `TypeError`; no fallback constructor or
+  runtime backend was added.
+
+Verification:
+
+```text
+PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:cacheprovider \
+  --import-mode=importlib \
+  tests/test_cheminfo/test_search_native_compiler.py \
+  tests/test_cheminfo/test_search_native_production_kernel.py \
+  tests/test_cheminfo/test_search_native_predicate_parity.py \
+  tests/test_cheminfo/test_search_native_cutover.py \
+  tests/test_cheminfo/test_search_native_prepared.py \
+  tests/mca/test_site_detection.py \
+  tests/mca/test_site_detection_coordination.py \
+  tests/mca/test_pipeline_workers.py \
+  tests/mca/test_cpu_backend.py \
+  tests/mca/test_gpu_routing.py \
+  tests/test_cheminfo/test_mca_calculator.py
+```
+
+Result: 159 passed in 11.69 s. The complete MCA plus calculator follow-up was
+186 passed in 19.42 s.
+
+The frozen 24-molecule P1 corpus retained the exact ordered site/type payload
+(`jq -cS .sites` SHA-256
+`0dfc9fb2cb048d53dd1aa6cc05535d9147155bb4433775930608e56b63f9b866`).
+Its median fell from 0.234229852 s at the post-cutover/pre-reuse baseline to
+0.033436576 s with shared native targets, a 7.005x speedup. The final run used
+three warmups and nine measured rounds, produced 717.78 molecules/s, and had
+204,996 KiB process peak RSS. Evidence files:
+
+- `/tmp/plan16-mca-site-shared-target.json`, SHA-256
+  `1815563a186f3744e3443e6e602e974f79d2fa7c63bc08110175c8592c2516f2`;
+- `/tmp/plan16-mca-site-shared-target.rusage.txt`, SHA-256
+  `801c2587a952e4f95495154494a9892b4d85b95eb8fc59544217c67e56da2eca`.
+
+No persistent molecule cache was introduced: every public search or MCA
+molecule call still takes a fresh target snapshot, so mutations are visible on
+the next call. The native extension contains no MCA name, rule, site type,
+eligibility policy, or result type.
+
+Git checkpoint: recorded in the generic-reuse commit immediately following
+this log entry.
 
 ### Step 8 - Close packaging, performance, and final validation
 

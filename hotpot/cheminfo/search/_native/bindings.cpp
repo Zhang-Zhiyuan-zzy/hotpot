@@ -50,14 +50,23 @@ PYBIND11_MODULE(_search_native, module) {
             }
         );
 
+    py::class_<NativeTarget, std::shared_ptr<NativeTarget>>(
+        module,
+        "NativeTarget"
+    )
+        .def(
+            py::init<const py::dict&>(),
+            py::arg("target_spec")
+        );
+
     py::class_<NativeProblem, std::shared_ptr<NativeProblem>>(
         module,
         "NativeProblem"
     )
         .def(
-            py::init<const py::dict&, const py::dict&>(),
+            py::init<const py::dict&, std::shared_ptr<NativeTarget>>(),
             py::arg("query_spec"),
-            py::arg("target_spec")
+            py::arg("target").none(false)
         )
         .def_property_readonly(
             "query_keys",

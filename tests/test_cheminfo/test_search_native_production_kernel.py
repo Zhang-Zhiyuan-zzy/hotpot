@@ -4,7 +4,7 @@ import weakref
 
 import pytest
 
-from hotpot.cheminfo.search._search_native import NativeProblem
+from hotpot.cheminfo.search._search_native import NativeProblem, NativeTarget
 
 
 def _semantic(*, degree=0, connectivity=0, valence=0, ring_sizes=()):
@@ -55,6 +55,10 @@ def _target(keys, edges, atoms, bonds=()):
         "atoms": tuple(atoms),
         "bonds": tuple(bonds),
     }
+
+
+def _problem(query, target):
+    return NativeProblem(query, NativeTarget(target))
 
 
 def _atom_expr(op, *, field=None, value=None, semantics=None, children=()):
@@ -117,7 +121,7 @@ def test_native_sets_and_typed_atom_expressions_run_in_the_production_cursor():
         ),
     )
 
-    assert list(NativeProblem(query, target).cursor()) == [(10,)]
+    assert list(_problem(query, target).cursor()) == [(10,)]
 
 
 def test_preflight_and_native_short_circuit_happen_before_python_callbacks():
@@ -147,7 +151,7 @@ def test_preflight_and_native_short_circuit_happen_before_python_callbacks():
         ),
     )
 
-    problem = NativeProblem(query, target)
+    problem = _problem(query, target)
     assert calls == []
     assert list(problem.cursor()) == []
     assert calls == []
@@ -182,7 +186,7 @@ def test_host_set_and_callable_receive_the_original_whole_object_lazily():
         ),
     )
 
-    assert list(NativeProblem(query, target).cursor()) == [(4,)]
+    assert list(_problem(query, target).cursor()) == [(4,)]
     assert calls == [first, second]
 
 
@@ -195,7 +199,7 @@ def test_host_membership_accepts_the_original_general_python_container():
     )
     target = _target((0,), (), (_atom({}, target_object),))
 
-    assert list(NativeProblem(query, target).cursor()) == [(0,)]
+    assert list(_problem(query, target).cursor()) == [(0,)]
 
 
 def test_out_of_int64_target_value_stays_available_to_lazy_host_membership():
@@ -227,8 +231,31 @@ def test_out_of_int64_target_value_stays_available_to_lazy_host_membership():
         ),
     )
 
-    assert list(NativeProblem(native_query, target).cursor()) == []
-    assert list(NativeProblem(host_query, target).cursor()) == [(0,)]
+    native_target = NativeTarget(target)
+    assert list(NativeProblem(native_query, native_target).cursor()) == []
+    assert list(NativeProblem(host_query, native_target).cursor()) == [(0,)]
+
+
+def test_native_problems_share_one_prepared_target():
+    query = _query((0,), (), (_node(),))
+    target_spec = _target((5, 6), (), (_atom({}), _atom({})))
+    target = NativeTarget(target_spec)
+
+    first = NativeProblem(query, target)
+    second = NativeProblem(query, target)
+
+    assert list(first.cursor()) == [(5,), (6,)]
+    assert list(second.cursor()) == [(5,), (6,)]
+
+
+def test_native_problem_does_not_accept_an_unprepared_target_spec():
+    query = _query((0,), (), (_node(),))
+    target = _target((0,), (), (_atom({}),))
+
+    with pytest.raises(TypeError):
+        NativeProblem(query, target)
+    with pytest.raises(TypeError):
+        NativeProblem(query, None)
 
 
 def test_original_callback_exception_propagates_from_cursor():
@@ -241,7 +268,7 @@ def test_original_callback_exception_propagates_from_cursor():
     target = _target((0,), (), (_atom({}, object()),))
 
     with pytest.raises(RuntimeError, match="predicate failed") as caught:
-        next(NativeProblem(query, target).cursor())
+        next(_problem(query, target).cursor())
 
     assert caught.value is marker
 
@@ -281,7 +308,7 @@ def test_bond_guards_and_typed_bond_expression_are_exact():
         ),
     )
 
-    assert set(NativeProblem(query, target).cursor()) == {(0, 1), (1, 0)}
+    assert set(_problem(query, target).cursor()) == {(0, 1), (1, 0)}
 
 
 def test_recursive_expression_uses_the_same_native_ri_cursor_with_anchor_zero():
@@ -324,7 +351,8 @@ def test_recursive_expression_uses_the_same_native_ri_cursor_with_anchor_zero():
         (_bond({}), _bond({})),
     )
 
-    problem = NativeProblem(outer, target)
+    native_target = NativeTarget(target)
+    problem = NativeProblem(outer, native_target)
     assert list(problem.cursor()) == [(0,)]
     assert list(problem.cursor()) == [(0,)]
 
@@ -337,10 +365,11 @@ def test_production_cursor_owns_problem_and_python_target_lifetimes():
     target_reference = weakref.ref(target_object)
     query = _query((0,), (), (_node(("callable", lambda _obj: True)),))
     target = _target((7,), (), (_atom({}, target_object),))
-    problem = NativeProblem(query, target)
+    native_target = NativeTarget(target)
+    problem = NativeProblem(query, native_target)
     cursor = problem.cursor()
 
-    del problem, target, target_object
+    del native_target, problem, target, target_object
     gc.collect()
     assert target_reference() is not None
     assert list(cursor) == [(7,)]

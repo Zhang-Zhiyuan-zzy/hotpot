@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from importlib import import_module
 from types import ModuleType
 from typing import Iterable, Sequence
@@ -15,6 +16,16 @@ from .semantics import SmartsSemantics
 
 
 __all__ = ()
+
+
+@dataclass(frozen=True)
+class _PreparedQuery:
+    """Immutable ownership record for one compiled native query snapshot."""
+
+    query_spec: dict
+    needs_atom_objects: bool
+    needs_bond_objects: bool
+    derived_requirements: dict
 
 
 def _native_module() -> ModuleType:
@@ -46,15 +57,60 @@ def _synthetic_problem(
 
 
 def _compile_problem(substructure, mol):
+    source = next(_iter_mapping_sources((_prepare_query(substructure),), mol))
+    return source._problem
+
+
+def _prepare_query(substructure) -> _PreparedQuery:
+    """Snapshot one mutable ``Substructure`` as reusable private query IR."""
     query_spec = _compile_query(substructure)
     atom_objects, bond_objects = _query_object_requirements(query_spec)
-    target_spec = _pack_target_snapshot(
-        mol,
+    return _PreparedQuery(
+        query_spec=query_spec,
         needs_atom_objects=atom_objects,
         needs_bond_objects=bond_objects,
         derived_requirements=_query_derived_requirements(query_spec),
     )
-    return _native_module().NativeProblem(query_spec, target_spec)
+
+
+def _iter_mapping_sources(queries, mol):
+    """Run ordered prepared queries against one shared target snapshot."""
+    queries = tuple(queries)
+    if not queries:
+        return
+
+    target_spec = _pack_target_snapshot(
+        mol,
+        needs_atom_objects=any(query.needs_atom_objects for query in queries),
+        needs_bond_objects=any(query.needs_bond_objects for query in queries),
+        derived_requirements=_merge_derived_requirements(
+            tuple(query.derived_requirements for query in queries)
+        ),
+    )
+    native_module = _native_module()
+    target = native_module.NativeTarget(target_spec)
+    for query in queries:
+        yield _NativeMappingSource(
+            native_module.NativeProblem(query.query_spec, target)
+        )
+
+
+def _merge_derived_requirements(requirements):
+    return {
+        name: tuple(
+            dict.fromkeys(
+                value
+                for requirement in requirements
+                for value in requirement[name]
+            )
+        )
+        for name in ("full", "ligand", "atom_fields")
+    } | {
+        "bond_aromatic": any(
+            requirement["bond_aromatic"] for requirement in requirements
+        ),
+        "total_h": any(requirement["total_h"] for requirement in requirements),
+    }
 
 
 def _pack_target(mol, *, needs_atom_objects, needs_bond_objects):
@@ -285,3 +341,9 @@ class _NativeMappingSource:
                 target: query
                 for query, target in zip(query_keys, target_values)
             }
+
+    def mapped_target_indices(self, query_key: int) -> Iterable[int]:
+        """Project one query key directly from each raw native embedding."""
+        position = self._problem.query_keys.index(query_key)
+        for target_values in self._problem.cursor():
+            yield target_values[position]

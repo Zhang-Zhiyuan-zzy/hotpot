@@ -592,6 +592,9 @@ class MCAGpuPredictor:
                 )
                 continue
 
+            if not input_exhausted and admitted_atom_count < window_atom_budget:
+                continue
+
             raise RuntimeError("MCA GPU pipeline stopped making progress")
 
         if next_output_index != next_input_index:

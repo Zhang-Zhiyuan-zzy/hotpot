@@ -210,7 +210,11 @@ def test_conveyor_submits_partial_features_without_waiting_for_sites(monkeypatch
     assert site_pool.completed
 
 
-def test_rolling_admission_refills_released_atom_credit(monkeypatch):
+@pytest.mark.parametrize("defer_second_site", (False, True))
+def test_rolling_admission_refills_released_atom_credit(
+    monkeypatch,
+    defer_second_site,
+):
     from mca import gpu_backend as module
 
     molecules = {
@@ -242,11 +246,11 @@ def test_rolling_admission_refills_released_atom_credit(monkeypatch):
             task = args[0]
             events.append(("site-submitted", task.molecule_index))
             result = SimpleNamespace(molecule_index=task.molecule_index, sites=())
-            if task.molecule_index == 1:
+            if defer_second_site and task.molecule_index == 1:
                 self.deferred = (callback, result)
             else:
                 callback(result)
-            if task.molecule_index == 2:
+            if defer_second_site and task.molecule_index == 2:
                 deferred_callback, deferred_result = self.deferred
                 events.append(("site-released", deferred_result.molecule_index))
                 deferred_callback(deferred_result)
@@ -306,7 +310,10 @@ def test_rolling_admission_refills_released_atom_credit(monkeypatch):
 
     results = list(predictor._iter_predict(range(3)))
 
-    assert events.index(("site-submitted", 2)) < events.index(("site-released", 1))
+    if defer_second_site:
+        assert events.index(("site-submitted", 2)) < events.index(
+            ("site-released", 1)
+        )
     assert [request.batch_ordinal for request in submitted] == [0, 1, 2]
     assert [result.smiles for result in results] == ["CN-0", "CN-1", "CN-2"]
     assert [

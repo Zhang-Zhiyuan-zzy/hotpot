@@ -1,4 +1,4 @@
-from typing import Iterator, Sequence
+from typing import Any, Iterator, Sequence
 
 
 class MappingCursor(Iterator[tuple[int, ...]]):
@@ -15,6 +15,17 @@ class SyntheticProblem:
         target_edges: Sequence[tuple[int, int]],
         node_compatible: Sequence[Sequence[bool]],
         edge_compatible: Sequence[Sequence[bool]],
+    ) -> None: ...
+    @property
+    def query_keys(self) -> tuple[int, ...]: ...
+    def cursor(self) -> MappingCursor: ...
+
+
+class NativeProblem:
+    def __init__(
+        self,
+        query_spec: dict[str, Any],
+        target_spec: dict[str, Any],
     ) -> None: ...
     @property
     def query_keys(self) -> tuple[int, ...]: ...

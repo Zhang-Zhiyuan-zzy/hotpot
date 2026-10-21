@@ -1,5 +1,6 @@
 #pragma once
 
+#include "compatibility.hpp"
 #include "graph_data.hpp"
 #include "synthetic_compatibility.hpp"
 
@@ -25,7 +26,17 @@ struct QueryPlan {
     std::vector<std::vector<EarlierEdge>> earlier_edges;
 };
 
-class SyntheticProblem {
+class SearchProblem {
+public:
+    virtual ~SearchProblem() = default;
+    virtual const GraphData& query() const noexcept = 0;
+    virtual const GraphData& target() const noexcept = 0;
+    virtual const QueryPlan& plan() const noexcept = 0;
+    virtual const Compatibility& compatibility() const noexcept = 0;
+    virtual const std::vector<std::vector<std::uint64_t>>& domains() const noexcept = 0;
+};
+
+class SyntheticProblem final : public SearchProblem {
 public:
     SyntheticProblem(
         std::vector<std::int64_t> query_keys,
@@ -36,13 +47,13 @@ public:
         const std::vector<std::vector<std::uint8_t>>& edge_compatible
     );
 
-    const GraphData& query() const noexcept { return query_; }
-    const GraphData& target() const noexcept { return target_; }
-    const QueryPlan& plan() const noexcept { return plan_; }
-    const SyntheticCompatibility& compatibility() const noexcept {
+    const GraphData& query() const noexcept override { return query_; }
+    const GraphData& target() const noexcept override { return target_; }
+    const QueryPlan& plan() const noexcept override { return plan_; }
+    const SyntheticCompatibility& compatibility() const noexcept override {
         return compatibility_;
     }
-    const std::vector<std::vector<std::uint64_t>>& domains() const noexcept {
+    const std::vector<std::vector<std::uint64_t>>& domains() const noexcept override {
         return domains_;
     }
 
@@ -56,7 +67,10 @@ private:
 
 class MappingCursor {
 public:
-    explicit MappingCursor(std::shared_ptr<const SyntheticProblem> problem);
+    explicit MappingCursor(
+        std::shared_ptr<const SearchProblem> problem,
+        std::optional<std::pair<Position, Position>> anchor = std::nullopt
+    );
     MappingCursor(const MappingCursor&) = delete;
     MappingCursor& operator=(const MappingCursor&) = delete;
 
@@ -70,6 +84,9 @@ private:
     };
 
     bool domain_contains(Position query, Position target) const noexcept;
+    const QueryPlan& plan() const noexcept {
+        return anchored_plan_.has_value() ? *anchored_plan_ : problem_->plan();
+    }
     void initialize_frame(std::size_t depth);
     std::optional<Position> next_candidate(std::size_t depth);
     bool candidate_matches(Position query, Position target) const;
@@ -80,7 +97,9 @@ private:
     void backtrack_after_yield() noexcept;
     std::vector<std::int64_t> output_mapping() const;
 
-    std::shared_ptr<const SyntheticProblem> problem_;
+    std::shared_ptr<const SearchProblem> problem_;
+    std::optional<std::pair<Position, Position>> anchor_;
+    std::optional<QueryPlan> anchored_plan_;
     std::vector<std::int32_t> query_to_target_;
     std::vector<std::int32_t> target_to_query_;
     std::vector<Frame> frames_;
@@ -91,6 +110,9 @@ private:
     std::atomic_flag advancing_ = ATOMIC_FLAG_INIT;
 };
 
-QueryPlan build_query_plan(const GraphData& query);
+QueryPlan build_query_plan(
+    const GraphData& query,
+    std::optional<Position> preferred_root = std::nullopt
+);
 
 }  // namespace hotpot::search

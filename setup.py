@@ -39,6 +39,7 @@ ext_modules = [
             "hotpot/cheminfo/search/_native/bindings.cpp",
             "hotpot/cheminfo/search/_native/graph_data.cpp",
             "hotpot/cheminfo/search/_native/matcher.cpp",
+            "hotpot/cheminfo/search/_native/production.cpp",
             "hotpot/cheminfo/search/_native/synthetic_compatibility.cpp",
         ],
         cxx_std=17,

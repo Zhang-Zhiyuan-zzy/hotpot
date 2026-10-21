@@ -64,15 +64,15 @@ SyntheticCompatibility::SyntheticCompatibility(
 }
 
 bool SyntheticCompatibility::accept_node(
-    const std::size_t query,
-    const std::size_t target
+    const Position query,
+    const Position target
 ) const noexcept {
     return node_compatible_[query * target_node_count_ + target] != 0;
 }
 
 bool SyntheticCompatibility::accept_edge(
-    const std::size_t query,
-    const std::size_t target
+    const EdgeIndex query,
+    const EdgeIndex target
 ) const noexcept {
     return edge_compatible_[query * target_edge_count_ + target] != 0;
 }

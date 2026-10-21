@@ -252,16 +252,103 @@ Adjustment: keep the synthetic compatibility boundary private and temporary;
 the next step replaces it with the production predicate program without
 switching public `Searcher` prematurely.
 
-Git checkpoint: recorded in the native-kernel commit immediately following
-this log entry.
+Git checkpoint: `b1aa3cd` (`feat(search): add deterministic native RI kernel`).
 
 ### Step 4 - Add native predicates and leaf-only Python callbacks
 
-Status: pending
+Status: complete
+
+Planned:
+
+- compile normalized programmatic queries and typed SMARTS IR into a private
+  immutable native schema;
+- pack only the target facts required by the compiled query;
+- evaluate typed atom, bond, topology, ring, and semantics predicates in C++;
+  and
+- preserve arbitrary named constraints and callables as lazy Python leaves
+  inside the same RI traversal.
+
+Performed:
+
+- added a private query compiler that reproduces simple-graph normalization,
+  sparse duplicate-atom keys, last-duplicate-edge matching, self-loops,
+  insertion-ordered constraints, private typed-IR recognition, and recursive
+  programs;
+- added query-selective target packing for native scalar fields, full-graph and
+  ligand-skeleton degree/connectivity/valence, relevant-ring counts and sizes,
+  total hydrogen, bond kind, and authoritative bond aromaticity;
+- introduced one production `NativeProblem` over the existing RI cursor rather
+  than a second topology executor;
+- implemented conservative native domains and tri-state Boolean pruning that
+  never invokes an opaque predicate or recursion speculatively;
+- retained the exact global non-callable attribute preflight, then evaluated
+  constraints in insertion order with bond guards first;
+- reacquired the GIL only for lazy `hasattr`/`getattr`, Python membership, or
+  opaque-callable leaves, passed the complete `Atom`/`Bond`, ignored the
+  callable keyword name, and propagated the original exception; and
+- retained owning Python references through the cursor lifetime while native
+  scalar-only traversal remains GIL-free.
+
+Boundary findings and fixes:
+
+- Python membership is implemented with the general containment protocol, not
+  a set-only API, because the public mutable `kwargs` mapping can be replaced
+  with another container;
+- signed-int64 overflow is classified as a host-evaluated value instead of
+  failing native compilation;
+- unused derived fields are not evaluated, preventing a wildcard query over a
+  dummy atomic-number-zero atom from touching its undefined periodic group;
+  and
+- complete relevant-ring families are materialized at most once per required
+  target view rather than once per atom.
 
 ### Step 5 - Complete recursive and Hotpot SMARTS semantics
 
-Status: pending
+Status: complete
+
+Performed:
+
+- compiled recursive SMARTS into nested native query programs rather than an
+  opaque callable;
+- added query-key-zero anchored existence search using the same RI cursor with
+  an anchored root plan and shared injectivity across disconnected nested
+  components;
+- memoized recursive existence only by nested program and target position
+  within one immutable target snapshot; and
+- covered full-graph/ligand-skeleton values, Relevant Cycle semantics,
+  coordination bonds, explicit SMARTS bond guards, Boolean order, and
+  recursion inherited semantics in native-versus-legacy mapping-set tests.
+
+Verification:
+
+```text
+PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:cacheprovider \
+  tests/smarts_conformance \
+  tests/test_cheminfo/test_search.py \
+  tests/test_cheminfo/test_search_mapping.py \
+  tests/test_cheminfo/test_smarts.py \
+  tests/test_cheminfo/test_search_native_contract.py \
+  tests/test_cheminfo/test_search_native_kernel.py \
+  tests/test_cheminfo/test_search_native_compiler.py \
+  tests/test_cheminfo/test_search_native_production_kernel.py \
+  tests/test_cheminfo/test_search_native_predicate_parity.py
+```
+
+Result: 499 passed, 49 subtests passed in 2.61 s. The new production-focused
+subset contains 128 tests, and the native-versus-NetworkX parity module alone
+contains 66 cases. It compares complete mapping sets while separately requiring
+repeatable native order; it does not freeze legacy order.
+
+The final incremental isolated build linked the current production source and
+all focused tests imported that rebuilt extension. Linkage still contains only
+the platform C/C++ runtime libraries.
+
+Adjustment: keep public `Searcher` on its historical executor until this full
+predicate/SMARTS checkpoint is committed. The next step performs the three
+public method changes atomically and removes production `GraphMatcher` use.
+
+Git checkpoint: recorded in the native-predicate commit immediately following
+this log entry.
 
 ### Step 6 - Perform the atomic public cutover
 

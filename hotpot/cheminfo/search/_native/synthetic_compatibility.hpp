@@ -1,5 +1,7 @@
 #pragma once
 
+#include "compatibility.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <vector>
@@ -7,7 +9,7 @@
 
 namespace hotpot::search {
 
-class SyntheticCompatibility {
+class SyntheticCompatibility final : public Compatibility {
 public:
     SyntheticCompatibility(
         std::size_t query_node_count,
@@ -18,12 +20,12 @@ public:
         const std::vector<std::vector<std::uint8_t>>& edge_compatible
     );
 
-    bool accept_node(std::size_t query, std::size_t target) const noexcept;
-    bool accept_edge(std::size_t query, std::size_t target) const noexcept;
-    bool may_accept_node(std::size_t query, std::size_t target) const noexcept {
+    bool accept_node(Position query, Position target) const noexcept override;
+    bool accept_edge(EdgeIndex query, EdgeIndex target) const noexcept override;
+    bool may_accept_node(Position query, Position target) const noexcept override {
         return accept_node(query, target);
     }
-    bool may_accept_edge(std::size_t query, std::size_t target) const noexcept {
+    bool may_accept_edge(EdgeIndex query, EdgeIndex target) const noexcept override {
         return accept_edge(query, target);
     }
 

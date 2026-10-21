@@ -32,7 +32,10 @@ bool bit_is_set(
 
 }  // namespace
 
-QueryPlan build_query_plan(const GraphData& query) {
+QueryPlan build_query_plan(
+    const GraphData& query,
+    const std::optional<Position> preferred_root
+) {
     const std::size_t node_count = query.node_count();
     QueryPlan plan;
     plan.order_position.assign(node_count, 0);
@@ -69,18 +72,49 @@ QueryPlan build_query_plan(const GraphData& query) {
         components.push_back(std::move(component));
     }
 
+    if (preferred_root.has_value()) {
+        const auto preferred_component = std::find_if(
+            components.begin(),
+            components.end(),
+            [&](const std::vector<Position>& component) {
+                return std::binary_search(
+                    component.begin(),
+                    component.end(),
+                    *preferred_root
+                );
+            }
+        );
+        if (preferred_component != components.end()) {
+            std::rotate(
+                components.begin(),
+                preferred_component,
+                preferred_component + 1
+            );
+        }
+    }
+
     std::vector<bool> ordered(node_count, false);
     for (const auto& component : components) {
         Position root = component.front();
-        for (const Position candidate : component) {
-            if (
-                query.degrees()[candidate] > query.degrees()[root]
-                || (
-                    query.degrees()[candidate] == query.degrees()[root]
-                    && query.keys()[candidate] < query.keys()[root]
-                )
-            ) {
-                root = candidate;
+        const bool is_preferred_component = preferred_root.has_value()
+            && std::binary_search(
+                component.begin(),
+                component.end(),
+                *preferred_root
+            );
+        if (is_preferred_component) {
+            root = *preferred_root;
+        } else {
+            for (const Position candidate : component) {
+                if (
+                    query.degrees()[candidate] > query.degrees()[root]
+                    || (
+                        query.degrees()[candidate] == query.degrees()[root]
+                        && query.keys()[candidate] < query.keys()[root]
+                    )
+                ) {
+                    root = candidate;
+                }
             }
         }
         plan.order.push_back(root);
@@ -205,8 +239,19 @@ SyntheticProblem::SyntheticProblem(
     }
 }
 
-MappingCursor::MappingCursor(std::shared_ptr<const SyntheticProblem> problem)
+MappingCursor::MappingCursor(
+    std::shared_ptr<const SearchProblem> problem,
+    std::optional<std::pair<Position, Position>> anchor
+)
     : problem_(std::move(problem)),
+      anchor_(anchor),
+      anchored_plan_(
+          anchor.has_value()
+              ? std::optional<QueryPlan>(
+                    build_query_plan(problem_->query(), anchor->first)
+                )
+              : std::nullopt
+      ),
       query_to_target_(problem_->query().node_count(), -1),
       target_to_query_(problem_->target().node_count(), -1),
       frames_(problem_->query().node_count()) {}
@@ -215,15 +260,23 @@ bool MappingCursor::domain_contains(
     const Position query,
     const Position target
 ) const noexcept {
+    if (anchor_.has_value() && query == anchor_->first) {
+        return target == anchor_->second;
+    }
     return bit_is_set(problem_->domains()[query], target);
 }
 
 void MappingCursor::initialize_frame(const std::size_t depth) {
     Frame& frame = frames_[depth];
-    const Position query_node = problem_->plan().order[depth];
-    const std::int32_t parent = problem_->plan().parent[query_node];
+    const Position query_node = plan().order[depth];
+    const std::int32_t parent = plan().parent[query_node];
     frame.initialized = true;
     if (parent < 0) {
+        if (anchor_.has_value() && query_node == anchor_->first) {
+            frame.cursor = anchor_->second;
+            frame.end = static_cast<std::size_t>(anchor_->second) + 1;
+            return;
+        }
         frame.cursor = 0;
         frame.end = problem_->target().node_count();
         return;
@@ -240,8 +293,8 @@ std::optional<Position> MappingCursor::next_candidate(const std::size_t depth) {
     if (!frame.initialized) {
         initialize_frame(depth);
     }
-    const Position query_node = problem_->plan().order[depth];
-    const bool is_root = problem_->plan().parent[query_node] < 0;
+    const Position query_node = plan().order[depth];
+    const bool is_root = plan().parent[query_node] < 0;
     while (frame.cursor < frame.end) {
         const std::size_t cursor = frame.cursor++;
         const Position target_node = is_root
@@ -279,7 +332,7 @@ bool MappingCursor::candidate_matches(
         }
     }
 
-    for (const EarlierEdge& query_edge : problem_->plan().earlier_edges[query_node]) {
+    for (const EarlierEdge& query_edge : plan().earlier_edges[query_node]) {
         const Position mapped_neighbor = static_cast<Position>(
             query_to_target_[query_edge.neighbor]
         );
@@ -417,7 +470,7 @@ void MappingCursor::unassign(
 void MappingCursor::backtrack_after_yield() noexcept {
     resume_after_yield_ = false;
     --depth_;
-    const Position query_node = problem_->plan().order[depth_];
+    const Position query_node = plan().order[depth_];
     const Position target_node = static_cast<Position>(query_to_target_[query_node]);
     unassign(query_node, target_node);
 }
@@ -456,7 +509,7 @@ std::optional<std::vector<std::int64_t>> MappingCursor::next_mapping() {
             return output_mapping();
         }
 
-        const Position query_node = problem_->plan().order[depth_];
+        const Position query_node = plan().order[depth_];
         const std::optional<Position> candidate = next_candidate(depth_);
         if (!candidate.has_value()) {
             frames_[depth_] = Frame{};
@@ -465,7 +518,7 @@ std::optional<std::vector<std::int64_t>> MappingCursor::next_mapping() {
                 return std::nullopt;
             }
             --depth_;
-            const Position previous_query = problem_->plan().order[depth_];
+            const Position previous_query = plan().order[depth_];
             const Position previous_target = static_cast<Position>(
                 query_to_target_[previous_query]
             );

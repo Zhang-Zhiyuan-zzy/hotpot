@@ -1,4 +1,5 @@
 #include "matcher.hpp"
+#include "production.hpp"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -43,7 +44,33 @@ PYBIND11_MODULE(_search_native, module) {
         .def(
             "cursor",
             [](const std::shared_ptr<SyntheticProblem>& problem) {
-                return std::make_unique<MappingCursor>(problem);
+                return std::make_unique<MappingCursor>(
+                    std::static_pointer_cast<const SearchProblem>(problem)
+                );
+            }
+        );
+
+    py::class_<NativeProblem, std::shared_ptr<NativeProblem>>(
+        module,
+        "NativeProblem"
+    )
+        .def(
+            py::init<const py::dict&, const py::dict&>(),
+            py::arg("query_spec"),
+            py::arg("target_spec")
+        )
+        .def_property_readonly(
+            "query_keys",
+            [](const NativeProblem& problem) {
+                return py::tuple(py::cast(problem.query().keys()));
+            }
+        )
+        .def(
+            "cursor",
+            [](const std::shared_ptr<NativeProblem>& problem) {
+                return std::make_unique<MappingCursor>(
+                    std::static_pointer_cast<const SearchProblem>(problem)
+                );
             }
         );
 

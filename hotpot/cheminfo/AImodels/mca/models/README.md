@@ -7,7 +7,7 @@ first use and caches it outside the Python package.
 
 Resolution order:
 
-1. `MCAPredictor(model_dir=...)`
+1. `MCACpuPredictor(model_dir=...)` or `MCAGpuPredictor(model_dir=...)`
 2. `HOTPOT_MCA_MODEL_DIR`
 3. a complete development bundle in this directory
 4. the verified local cache

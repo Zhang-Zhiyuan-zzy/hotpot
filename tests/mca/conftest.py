@@ -12,6 +12,7 @@ sys.path.insert(
 
 @pytest.fixture(scope="session")
 def predictor():
-    from mca import MCAPredictor
+    from mca import MCACpuPredictor
 
-    return MCAPredictor(device="cpu")
+    with MCACpuPredictor() as predictor:
+        yield predictor

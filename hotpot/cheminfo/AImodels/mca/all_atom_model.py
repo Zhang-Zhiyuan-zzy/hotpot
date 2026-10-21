@@ -289,18 +289,6 @@ def _all_atom_graph(model):
     return model
 
 
-def convert_legacy_model(source: Path, destination: Path) -> tuple[str, ...]:
-    """Write the equivalent all-atom graph and return its external file names."""
-
-    model = onnx.load(str(source), load_external_data=False)
-    transformed = _all_atom_graph(model)
-    if transformed is None:
-        raise ValueError("The MCA model already has an all-atom input contract")
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    onnx.save_model(transformed, str(destination), save_as_external_data=False)
-    return _external_locations(transformed)
-
-
 def _derived_root() -> Path:
     configured = os.environ.get("HOTPOT_DERIVED_MODEL_HOME")
     if configured:
@@ -518,11 +506,7 @@ def materialize_all_atom_model(
             return
 
     model = onnx.load(str(source), load_external_data=False)
-    try:
-        transformed = _all_atom_graph(model)
-    except UnsupportedAllAtomOptimization:
-        yield source
-        return
+    transformed = _all_atom_graph(model)
     if transformed is None:
         yield source
         return

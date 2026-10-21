@@ -1,11 +1,12 @@
 from copy import copy
+import hashlib
 
 import numpy as np
 import pytest
-from mca import MoleculeGraph, MoleculePrediction
-from mca import api as api_module
+from mca import MoleculeGraph, MoleculePrediction, predict_mca
+from mca import cpu_backend as cpu_backend_module
+from mca import pipeline as pipeline_module
 from mca.conformer import ensure_3d_conformer
-from mca.runtime import MCARuntime
 from openbabel import openbabel as ob
 from openbabel import pybel
 from rdkit import Chem
@@ -20,12 +21,23 @@ def test_existing_result_constructor_remains_compatible():
     assert prediction.to_dict()["atom_predictions"] == []
 
 
+def test_total_entry_requires_an_explicit_backend():
+    with pytest.raises(TypeError, match="backend"):
+        predict_mca("C")
+
+
+def test_total_entry_dispatches_to_the_cpu_backend():
+    prediction = predict_mca("C", backend="cpu")
+
+    assert prediction.atom_predictions[0].element == "C"
+
+
 def test_cpu_smiles_and_batch_prediction(predictor):
     single = predictor.predict("C1CCCCN1")
     batch = predictor.predict(["C1CCCCN1", "c1ccncc1"])
 
-    assert predictor.runtime.device == "cpu"
-    assert predictor.runtime.prediction_layout == "all_atoms"
+    assert predictor.runtime.session.get_providers() == ["CPUExecutionProvider"]
+    assert "atom_index" not in predictor.runtime.input_dtypes
     assert len(single.atom_predictions) == 6
     assert [atom.atom_index for atom in single.atom_predictions] == list(range(6))
     assert len(single.sites) == 1
@@ -41,23 +53,21 @@ def test_cpu_smiles_and_batch_prediction(predictor):
 def test_repeated_molecule_rows_are_collapsed_within_each_batch(
     predictor, monkeypatch
 ):
-    original = api_module.collate_molecule_rows
+    original = cpu_backend_module.collate_molecule_rows
     row_counts = []
 
     def record_rows(features, molecule_indices, max_atoms=None):
         row_counts.append(len(molecule_indices))
         return original(features, molecule_indices, max_atoms)
 
-    monkeypatch.setattr(api_module, "collate_molecule_rows", record_rows)
+    monkeypatch.setattr(cpu_backend_module, "collate_molecule_rows", record_rows)
     monkeypatch.setattr(predictor, "batch_size", 3)
     predictor.predict(["C1CCCCN1", "c1ccncc1"])
 
     assert row_counts == [1, 1]
 
 
-def test_optimized_runtime_is_bitwise_equal_across_legacy_batch_boundaries(
-    predictor,
-):
+def test_cpu_provider_has_batch_specific_goldens_and_exact_site_join(predictor):
     molecules = [
         ensure_3d_conformer(Chem.MolFromSmiles(smiles))
         for smiles in (
@@ -68,28 +78,28 @@ def test_optimized_runtime_is_bitwise_equal_across_legacy_batch_boundaries(
             "CCCCCCCCCC",
         )
     ]
-    optimized_predictor = copy(predictor)
-    legacy_predictor = copy(predictor)
-    legacy_predictor.runtime = MCARuntime(device="cpu", optimize_all_atoms=False)
+    expected_hashes = {
+        5: "1b39a16d8c84f718184d89ed623ba56ec69aa5ffeacd6eb84138ed5949538a7f",
+        8: "ddeb4f8635c47a7f40aa8fff8576a5dbf94c8c2bb525381752d952d0a44c4f11",
+        64: "6e60a9f38359c05702f503f76bbbd710476469eac0d3837377a7044b5d73ec92",
+    }
 
     for batch_size in (5, 8, 64):
-        legacy_predictor.batch_size = batch_size
-        optimized_predictor.batch_size = batch_size
-        legacy_results = legacy_predictor.predict(molecules)
-        optimized_results = optimized_predictor.predict(molecules)
-
-        for legacy, optimized in zip(legacy_results, optimized_results):
-            assert np.array_equal(
-                [atom.mca_kj_mol for atom in legacy.atom_predictions],
-                [atom.mca_kj_mol for atom in optimized.atom_predictions],
-            )
-            assert [
-                (site.atom_index, site.element, site.site_type, site.mca_kj_mol)
-                for site in legacy.sites
-            ] == [
-                (site.atom_index, site.element, site.site_type, site.mca_kj_mol)
-                for site in optimized.sites
-            ]
+        current = copy(predictor)
+        current.batch_size = batch_size
+        results = current.predict(molecules)
+        atom_values = np.asarray(
+            [
+                atom.mca_kj_mol
+                for result in results
+                for atom in result.atom_predictions
+            ],
+            dtype=np.float64,
+        )
+        assert hashlib.sha256(atom_values.tobytes()).hexdigest() == expected_hashes[batch_size]
+        for result in results:
+            for site in result.sites:
+                assert site.mca_kj_mol == result.atom_predictions[site.atom_index].mca_kj_mol
 
 
 def test_supported_inputs_keep_atom_and_site_indices_aligned(predictor):
@@ -231,7 +241,7 @@ def test_string_file_path_is_parsed_by_its_extension(predictor, tmp_path):
 
 
 def test_rdkit_stereochemistry_reaches_the_featurizer(predictor, monkeypatch):
-    original = api_module.mol_to_unimolv2
+    original = pipeline_module.mol_to_unimolv2
     observed = []
 
     def record_stereochemistry(mol, max_atoms):
@@ -243,7 +253,7 @@ def test_rdkit_stereochemistry_reaches_the_featurizer(predictor, monkeypatch):
         )
         return original(mol, max_atoms)
 
-    monkeypatch.setattr(api_module, "mol_to_unimolv2", record_stereochemistry)
+    monkeypatch.setattr(pipeline_module, "mol_to_unimolv2", record_stereochemistry)
     predictor.predict(
         [
             Chem.MolFromSmiles("C[C@H](O)F"),

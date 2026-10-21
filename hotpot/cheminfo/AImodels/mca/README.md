@@ -21,9 +21,9 @@ RDKit and ONNX Runtime. The inference compatibility dependencies used by CI are
 listed in `tests/requirements-inference.txt`.
 
 For GPU inference, install the `onnxruntime-gpu` build matching the machine's
-CUDA runtime in place of `onnxruntime`. `device="auto"` selects an initialized
-CUDA provider when available and otherwise uses CPU. Model hashes are checked
-when the ONNX session is created.
+CUDA runtime in place of `onnxruntime`. CPU and GPU selection is always
+explicit; Hotpot does not silently move a GPU request to CPU. Model hashes are
+checked when the ONNX session is created.
 
 On first use, Hotpot derives an equivalent all-atom ONNX graph from the pinned
 release graph. The derived graph reuses the verified model weights and computes
@@ -36,20 +36,38 @@ MCA values remain unchanged.
 
 ## Python API
 
-Direct SMILES and batch inference:
+Use the CPU predictor for serial MCA stages with an explicitly threaded ONNX
+session:
 
 ```python
-from hotpot.cheminfo.AImodels.mca import MCAPredictor
+from hotpot.cheminfo.AImodels.mca import MCACpuPredictor
 
-predictor = MCAPredictor(device="auto")
-one = predictor.predict("C1CCCCN1")
-many = predictor.predict(["C1CCCCN1", "c1ccncc1"])
+with MCACpuPredictor() as predictor:
+    one = predictor.predict("C1CCCCN1")
+    many = predictor.predict(["C1CCCCN1", "c1ccncc1"])
 
 for atom in one.atom_predictions:
     print(atom.atom_index, atom.element, atom.mca_kj_mol)
 for site in one.sites:
     print(site.atom_index, site.site_type, site.mca_kj_mol)
 ```
+
+For bulk GPU work, retain one predictor so its spawn workers and CUDA sessions
+stay warm:
+
+```python
+from hotpot.cheminfo.AImodels.mca import MCAGpuPredictor
+
+with MCAGpuPredictor(gpu_indices=(0, 1)) as predictor:
+    for prediction in predictor.iter_predict(smiles_stream):
+        consume(prediction)
+```
+
+The GPU default is 9 site workers plus 7 conformer/feature workers per card.
+There is no named configuration profile: change `site_cpu_per_gpu` and
+`infer_cpu_per_gpu` directly when a job needs different allocation. The
+predictor checks the process CPU affinity before starting and requires exactly
+the configured number of distinct worker CPUs.
 
 Hotpot object integration:
 
@@ -58,7 +76,7 @@ from hotpot import read_mol
 from hotpot.cheminfo.calculator import mca
 
 mol = read_mol("c1ccccc1CN")
-mca(mol)
+mca(mol, backend="cpu")
 
 for atom in mol.atoms:
     print(atom.mca)
@@ -92,7 +110,8 @@ Existing usable 3D coordinates are retained. Otherwise deterministic ETKDG
 plus MMFF/UFF geometry generation is used. Explicit graph hydrogen atoms are
 rejected because the exported model predicts heavy-atom rows. Charged molecules
 are outside the validated training domain and are rejected by default; use
-`MCAPredictor(allow_charged=True)` only for an explicitly out-of-domain estimate.
+`MCACpuPredictor(allow_charged=True)` or the corresponding GPU option only for
+an explicitly out-of-domain estimate.
 The molecule-level charge must agree with the sum of atom formal charges; an
 inconsistent graph is rejected rather than assigning the missing charge
 implicitly.
@@ -114,10 +133,9 @@ directory or pass `model_dir`.
 
 ```bash
 hotpot mca 'C1CCCCN1'
-hotpot mca molecules.sdf -o result.txt
-hotpot mca 'C1CCCCN1' > result.txt
+hotpot mca molecules.sdf --backend gpu -o result.txt
 hotpot mca 'C1CCCCN1' --plot mca.png
-hotpot mca 'C1CCCCN1' --plot mca-all.png --all-site
+hotpot mca 'C1CCCCN1' --backend gpu --plot mca-all.png --all-site
 ```
 
 The text output contains the one-based atom number, element, predicted MCA in
@@ -126,6 +144,13 @@ molecule file may contain multiple records. By default a plot labels and
 colours only detected nucleophilic sites; `--all-site` includes every predicted
 atom. The same interface remains available as
 `python -m hotpot.cheminfo.AImodels.mca.cli`.
+The CLI uses CPU when `--backend` is omitted; GPU use is always explicit.
+
+On GPU, `--gpu-count N` selects logical indices `0..N-1`, while
+`--gpu-indices 0,2` selects exact logical indices. If `--gpu-batch-size` is
+omitted, Hotpot selects `64/128/256/512/1024/2048` from each card's total VRAM
+and uses the smallest selected-card tier. A CUDA OOM does not retry or fall
+back; the error reports the active batch and the next lower explicit tier.
 
 The release graph is FP16 (about half the FP32 size). Its largest observed
 deviation from the PyTorch checkpoint was 0.2331 kJ/mol on the 16-molecule

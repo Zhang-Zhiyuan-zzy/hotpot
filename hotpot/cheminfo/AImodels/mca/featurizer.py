@@ -160,9 +160,3 @@ def collate_molecule_rows(features, molecule_indices, max_atoms=None):
         arrays["src_tokens"][row, :atom_count] = feature["src_tokens"]
         arrays["src_coord"][row, :atom_count] = feature["src_coord"]
     return arrays
-
-
-def collate_site_rows(features, molecule_indices, atom_indices):
-    arrays = collate_molecule_rows(features, molecule_indices)
-    arrays["atom_index"] = np.asarray(atom_indices, dtype=np.int64)
-    return arrays

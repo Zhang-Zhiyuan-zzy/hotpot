@@ -2,12 +2,16 @@ import json
 from pathlib import Path
 
 import onnx
-from mca.all_atom_model import materialize_all_atom_model
+import pytest
+from mca.all_atom_model import (
+    UnsupportedAllAtomOptimization,
+    materialize_all_atom_model,
+)
 from mca.model_store import ModelStore
 from onnx import TensorProto, helper
 
 
-def test_unsupported_graph_keeps_the_legacy_contract(tmp_path, monkeypatch):
+def test_unsupported_selected_atom_graph_fails_at_transformation(tmp_path, monkeypatch):
     source = tmp_path / "unsupported.onnx"
     graph = helper.make_graph(
         [helper.make_node("Identity", ["atom_index"], ["prediction"])],
@@ -18,13 +22,14 @@ def test_unsupported_graph_keeps_the_legacy_contract(tmp_path, monkeypatch):
     onnx.save_model(helper.make_model(graph), source)
     monkeypatch.setenv("HOTPOT_DERIVED_MODEL_HOME", str(tmp_path / "cache"))
 
-    with materialize_all_atom_model(source) as materialized:
-        assert materialized == source
+    with pytest.raises(UnsupportedAllAtomOptimization):
+        with materialize_all_atom_model(source):
+            pass
 
 
 def test_corrupt_external_cache_is_rebuilt(tmp_path, monkeypatch):
     store = ModelStore()
-    source, variant, _, _ = store.resolve("cpu", None)
+    source, variant = store.resolve()
     external_digest = store.manifest["models"][variant]["external_data"]["sha256"]
     monkeypatch.setenv("HOTPOT_DERIVED_MODEL_HOME", str(tmp_path / "cache"))
 

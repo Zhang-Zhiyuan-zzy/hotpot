@@ -10,15 +10,17 @@ in offline mode:
 hotpot/cheminfo/rdWrappers/build_locked.sh \
   /path/to/populated/source-cache \
   /path/to/new-empty-work-directory \
-  /path/to/pinned-toolchain \
   /path/to/python
 ```
 
-The first three arguments are required. Python is required unless
-`HOTPOT_RDWRAPPERS_BUILD_PYTHON=OFF`; it must be CPython 3.10-3.14 with
-pybind11 3 installed. The pinned local proof toolchain is documented in
-`third_party/rdkit/README.md`. Release wheels additionally require the
-separately pinned manylinux toolchain and audit described by Plan 17.
+The source cache and new empty work directory are required. Python is required
+unless `HOTPOT_RDWRAPPERS_BUILD_PYTHON=OFF`; it must be CPython 3.10-3.14 with
+pybind11 3 installed. The driver never resolves Python for an SDK-only build.
+The strict local probe selects its pinned toolchain through
+`HOTPOT_RDWRAPPERS_BUILD_PROFILE=probe` and
+`HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX`; the exact invocation is documented in
+`third_party/rdkit/README.md`. Release wheels use the separately pinned
+`manylinux_2_28_x86_64` profile and audit described there and by Plan 17.
 
 The Phase-1 Conda compiler uses a newer private `libstdc++` and attempts to
 write its temporary prefix into every ELF RPATH. The wrapper build removes

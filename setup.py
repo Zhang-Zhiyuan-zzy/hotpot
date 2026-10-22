@@ -5,10 +5,97 @@ Project metadata and dependency declarations live exclusively in
 """
 
 from importlib.util import find_spec
+import os
 from pathlib import Path
+import shutil
+import subprocess
+import sys
 
-from setuptools import setup
+from setuptools import Extension, setup
 from pybind11.setup_helpers import Pybind11Extension, build_ext
+
+
+REPOSITORY_ROOT = Path(__file__).resolve().parent
+
+
+class LockedCMakeExtension(Extension):
+    """Extension built only through the pinned native-RDKit driver."""
+
+    def __init__(self, name: str):
+        super().__init__(name, sources=[])
+
+
+class HotpotBuildExt(build_ext):
+    """Build pybind11 modules and the locked rdWrapper CMake module."""
+
+    def build_extension(self, ext):
+        if isinstance(ext, LockedCMakeExtension):
+            self._build_locked_cmake_extension(ext)
+            return
+        super().build_extension(ext)
+
+    def _build_locked_cmake_extension(self, ext: LockedCMakeExtension) -> None:
+        wrapper_root = REPOSITORY_ROOT / "hotpot/cheminfo/rdWrappers"
+        lock_root = REPOSITORY_ROOT / "third_party/rdkit"
+        source_cache = (
+            Path(
+                os.environ.get(
+                    "HOTPOT_RDKIT_SOURCE_CACHE",
+                    str(Path(self.build_temp).resolve() / "rdkit-source-cache"),
+                )
+            )
+            .expanduser()
+            .resolve()
+        )
+        work_dir = (
+            Path(self.build_temp).resolve()
+            / f"rdwrapper-{sys.implementation.cache_tag}"
+        )
+        extension_path = Path(self.get_ext_fullpath(ext.name)).resolve()
+        install_root = Path(self.build_lib).resolve()
+
+        fetch_environment = os.environ.copy()
+        subprocess.run(
+            [
+                "bash",
+                str(lock_root / "fetch_locked_sources.sh"),
+                str(source_cache),
+            ],
+            check=True,
+            cwd=REPOSITORY_ROOT,
+            env=fetch_environment,
+        )
+
+        if work_dir.exists():
+            shutil.rmtree(work_dir)
+
+        build_environment = os.environ.copy()
+        build_environment.update(
+            {
+                "HOTPOT_RDKIT_OFFLINE": "1",
+                "HOTPOT_RDWRAPPERS_BUILD_SDK": "OFF",
+                "HOTPOT_RDWRAPPERS_BUILD_PYTHON": "ON",
+                "HOTPOT_RDWRAPPERS_PYTHON_OUTPUT_DIR": str(extension_path.parent),
+                "HOTPOT_RDWRAPPERS_INSTALL_PREFIX": str(install_root),
+                "HOTPOT_RDWRAPPERS_INSTALL_COMPONENT": "rdwrappers_python",
+            }
+        )
+        subprocess.run(
+            [
+                "bash",
+                str(wrapper_root / "build_locked.sh"),
+                str(source_cache),
+                str(work_dir),
+                sys.executable,
+            ],
+            check=True,
+            cwd=REPOSITORY_ROOT,
+            env=build_environment,
+        )
+        if not extension_path.is_file():
+            raise RuntimeError(
+                f"the locked rdWrapper build did not create {extension_path}"
+            )
 
 
 def _openbabel_build_paths() -> tuple[str, str]:
@@ -33,6 +120,7 @@ openbabel_include_dir, openbabel_library_dir = _openbabel_build_paths()
 
 
 ext_modules = [
+    LockedCMakeExtension("hotpot.cheminfo.rdWrappers._rd_native"),
     Pybind11Extension(
         "hotpot.cheminfo.search._search_native",
         [
@@ -126,6 +214,6 @@ ext_modules = [
 if __name__ == "__main__":
     setup(
         ext_modules=ext_modules,
-        cmdclass={"build_ext": build_ext},
+        cmdclass={"build_ext": HotpotBuildExt},
         zip_safe=False,
     )

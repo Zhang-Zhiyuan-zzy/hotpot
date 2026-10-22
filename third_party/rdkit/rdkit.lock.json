@@ -154,13 +154,54 @@
     }
   },
   "release_toolchain": {
-    "status": "not-selected-by-phase-1-probe",
+    "status": "selected",
     "relationship": "separate from the reproducible local probe toolchain",
-    "requirements": [
-      "pin the exact manylinux image digest for every wheel architecture",
-      "preserve the declared platform ABI and CPU baseline",
-      "rerun the closure probe, wheel audit, and import-coexistence matrix",
-      "never encode a temporary local Conda prefix as a release contract"
+    "profile": "manylinux_2_28_x86_64",
+    "platform": "manylinux_2_28_x86_64",
+    "architecture": "x86_64",
+    "container": {
+      "image": "quay.io/pypa/manylinux_2_28_x86_64",
+      "digest": "sha256:39df0042d5cc900b085aa25a0659368b42a0006c54c474299b785b44c1b4ff82",
+      "created": "2026-10-03",
+      "reference": "quay.io/pypa/manylinux_2_28_x86_64@sha256:39df0042d5cc900b085aa25a0659368b42a0006c54c474299b785b44c1b4ff82"
+    },
+    "compiler": {
+      "family": "GNU",
+      "c_version": "14.2.1",
+      "cxx_version": "14.2.1",
+      "gcc_rpm": "gcc-toolset-14-gcc-14.2.1-11.el8_10",
+      "gxx_rpm": "gcc-toolset-14-gcc-c++-14.2.1-11.el8_10"
+    },
+    "binutils": {
+      "version": "2.41",
+      "rpm": "gcc-toolset-14-binutils-2.41-4.el8_10.1"
+    },
+    "glibc_baseline": "2.28",
+    "cmake": {
+      "version": "4.4.3"
+    },
+    "ninja": {
+      "version": "1.13.2",
+      "cli_version": "1.13.2.git.kitware.jobserver-pipe-1",
+      "source": "PEP-517 build-system requirement"
+    },
+    "python_abis": [
+      "cp310",
+      "cp311",
+      "cp312",
+      "cp313",
+      "cp314"
+    ],
+    "cpu_baseline": {
+      "architecture": "x86_64",
+      "c_flags": "-O3 -DNDEBUG -march=x86-64 -mtune=generic",
+      "cxx_flags": "-O3 -DNDEBUG -march=x86-64 -mtune=generic",
+      "rdkit_optimize_popcnt": false
+    },
+    "verification_boundary": [
+      "the CI workflow pins the image identity by digest",
+      "the in-container driver validates architecture, glibc, compiler, binutils, CMake, and Ninja",
+      "the release profile does not inherit paths or binaries from the Conda probe"
     ]
   },
   "cmake_configuration": {

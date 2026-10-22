@@ -31,6 +31,11 @@ jobs:
         env:
           CIBW_BUILD: ${{ matrix.python-tag }}-manylinux_x86_64
           CIBW_ARCHS_LINUX: x86_64
+          CIBW_MANYLINUX_X86_64_IMAGE: >-
+            quay.io/pypa/manylinux_2_28_x86_64@sha256:39df0042d5cc900b085aa25a0659368b42a0006c54c474299b785b44c1b4ff82
+          CIBW_ENVIRONMENT_LINUX: >-
+            HOTPOT_RDWRAPPERS_BUILD_PROFILE=manylinux_2_28_x86_64
+            HOTPOT_RDKIT_SOURCE_CACHE=/tmp/hotpot-rdkit-source-cache
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: >-
             auditwheel repair
             --exclude libopenbabel.so.7
@@ -42,9 +47,17 @@ jobs:
             from hotpot.cheminfo.graph import _relevant_cycles, relevant_cycles;
             from hotpot.cheminfo.search import _search_native;
             from hotpot.cheminfo.obWrappers import _ob_native;
+            from hotpot.cheminfo import rdWrappers;
+            from rdkit import Chem;
             assert _search_native.NativeProblem is not None;
+            assert Chem.MolFromSmiles('CCO').GetNumAtoms() == 3;
             assert tuple(h.atom_indices for h in hotpot.read_mol('CCO', 'smi').search_substructure('[C]-[O]')) == (frozenset((1, 2)),);
-            assert relevant_cycles([(4, 7), (7, 9), (9, 4)]) == ((4, 7, 9),)"
+            assert relevant_cycles([(4, 7), (7, 9), (9, 4)]) == ((4, 7, 9),);
+            info = rdWrappers.runtime_info();
+            assert info.native and info.rdkit_version == '2026.09.1';
+            sample = rdWrappers.generate_conformers(hotpot.read_mol('CCO', 'smi'), options=rdWrappers.ETKDGOptions(seed=123));
+            assert sample.status is rdWrappers.GenerationStatus.SUCCESS;
+            assert sample.coordinates.shape == (1, 3, 3)"
       - name: Upload wheel
         uses: actions/upload-artifact@v7
         with:

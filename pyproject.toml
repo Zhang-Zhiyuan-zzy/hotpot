@@ -3,6 +3,7 @@ requires = [
     "setuptools>=77,<82",
     "wheel>=0.43",
     "pybind11>=3,<4",
+    "ninja==1.13.2",
     "openbabel>=3.2.1,<3.3",
 ]
 build-backend = "setuptools.build_meta"

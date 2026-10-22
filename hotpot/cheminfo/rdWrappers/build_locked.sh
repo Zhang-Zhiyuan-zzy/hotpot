@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -lt 3 || $# -gt 4 ]]; then
-    echo "usage: $0 SOURCE_CACHE EMPTY_WORK_DIR TOOLCHAIN_PREFIX [PYTHON]" >&2
+if [[ $# -lt 2 || $# -gt 3 ]]; then
+    echo "usage: $0 SOURCE_CACHE EMPTY_WORK_DIR [PYTHON]" >&2
     exit 2
 fi
 
 source_cache=$(realpath -m "$1")
 work_dir=$(realpath -m "$2")
-toolchain=$(realpath "$3")
-python_command=${4:-python3}
+python_command=${3:-python3}
+build_profile=${HOTPOT_RDWRAPPERS_BUILD_PROFILE:-probe}
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repository_root=$(realpath "$script_dir/../../..")
 lock_dir="$repository_root/third_party/rdkit"
@@ -21,16 +21,105 @@ if [[ -e "$work_dir" ]] &&
 fi
 mkdir -p "$work_dir/source" "$work_dir/build"
 
-cmake="$toolchain/bin/cmake"
-ninja="$toolchain/bin/ninja"
-cc="$toolchain/bin/x86_64-conda-linux-gnu-gcc"
-cxx="$toolchain/bin/x86_64-conda-linux-gnu-g++"
+require_equal() {
+    local label=$1
+    local actual=$2
+    local expected=$3
+    if [[ "$actual" != "$expected" ]]; then
+        printf '%s mismatch: expected %s, got %s\n' \
+            "$label" "$expected" "$actual" >&2
+        exit 1
+    fi
+}
 
-[[ $($cmake --version | head -1) == "cmake version 3.31.8" ]]
-[[ $($ninja --version) == "1.12.1" ]]
-[[ $($cc -dumpfullversion -dumpversion) == "14.3.0" ]]
-[[ $($cxx -dumpfullversion -dumpversion) == "14.3.0" ]]
-[[ $(uname -m) == "x86_64" ]]
+require_command() {
+    local name=$1
+    local resolved
+    resolved=$(command -v "$name" || true)
+    if [[ -z "$resolved" ]]; then
+        echo "required command is unavailable: $name" >&2
+        exit 1
+    fi
+    realpath "$resolved"
+}
+
+case "$build_profile" in
+    probe)
+        if [[ -z ${HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX:-} ]]; then
+            echo \
+                "probe profile requires HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX" \
+                >&2
+            exit 1
+        fi
+        toolchain=$(realpath "$HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX")
+        cmake="$toolchain/bin/cmake"
+        ninja="$toolchain/bin/ninja"
+        cc="$toolchain/bin/x86_64-conda-linux-gnu-gcc"
+        cxx="$toolchain/bin/x86_64-conda-linux-gnu-g++"
+        require_equal \
+            "CMake version" \
+            "$($cmake --version | head -1)" \
+            "cmake version 3.31.8"
+        require_equal "Ninja version" "$($ninja --version)" "1.12.1"
+        require_equal \
+            "C compiler version" \
+            "$($cc -dumpfullversion -dumpversion)" \
+            "14.3.0"
+        require_equal \
+            "C++ compiler version" \
+            "$($cxx -dumpfullversion -dumpversion)" \
+            "14.3.0"
+        sanitized_path="$toolchain/bin:/usr/bin:/bin"
+        ;;
+    manylinux_2_28_x86_64)
+        cmake=$(require_command cmake)
+        ninja=$(require_command ninja)
+        cc=$(require_command gcc)
+        cxx=$(require_command g++)
+        linker=$(require_command ld)
+        require_equal \
+            "CMake version" \
+            "$($cmake --version | head -1)" \
+            "cmake version 4.4.3"
+        require_equal \
+            "Ninja version" \
+            "$($ninja --version)" \
+            "1.13.2.git.kitware.jobserver-pipe-1"
+        require_equal \
+            "C compiler version" \
+            "$($cc -dumpfullversion -dumpversion)" \
+            "14.2.1"
+        require_equal \
+            "C++ compiler version" \
+            "$($cxx -dumpfullversion -dumpversion)" \
+            "14.2.1"
+        require_equal \
+            "GNU binutils package" \
+            "$(rpm -q --qf '%{VERSION}-%{RELEASE}' gcc-toolset-14-binutils)" \
+            "2.41-4.el8_10.1"
+        require_equal \
+            "GCC package" \
+            "$(rpm -q --qf '%{VERSION}-%{RELEASE}' gcc-toolset-14-gcc)" \
+            "14.2.1-11.el8_10"
+        require_equal \
+            "G++ package" \
+            "$(rpm -q --qf '%{VERSION}-%{RELEASE}' gcc-toolset-14-gcc-c++)" \
+            "14.2.1-11.el8_10"
+        require_equal \
+            "glibc baseline" \
+            "$(getconf GNU_LIBC_VERSION)" \
+            "glibc 2.28"
+        sanitized_path="$(dirname "$cmake"):$(dirname "$ninja"):$(dirname "$cc"):$(dirname "$linker"):/usr/bin:/bin"
+        ;;
+    *)
+        echo \
+            "unsupported rdWrappers build profile: $build_profile " \
+            "(expected probe or manylinux_2_28_x86_64)" >&2
+        exit 1
+        ;;
+esac
+
+require_equal "machine architecture" "$(uname -m)" "x86_64"
 
 HOTPOT_RDKIT_OFFLINE=1 "$lock_dir/fetch_locked_sources.sh" "$source_cache"
 
@@ -71,6 +160,7 @@ build_sdk=${HOTPOT_RDWRAPPERS_BUILD_SDK:-ON}
 build_python=${HOTPOT_RDWRAPPERS_BUILD_PYTHON:-ON}
 python_output=${HOTPOT_RDWRAPPERS_PYTHON_OUTPUT_DIR:-}
 install_prefix=${HOTPOT_RDWRAPPERS_INSTALL_PREFIX:-$work_dir/install}
+install_component=${HOTPOT_RDWRAPPERS_INSTALL_COMPONENT:-}
 
 configure_args=(
     -S "$work_dir/source/rdkit"
@@ -175,7 +265,7 @@ else
     configure_args+=(-DCMAKE_DISABLE_FIND_PACKAGE_Python=ON)
 fi
 
-export PATH="$toolchain/bin:/usr/bin:/bin"
+export PATH="$sanitized_path"
 unset CONDA_PREFIX CONDA_DEFAULT_ENV PYTHONPATH CMAKE_PREFIX_PATH LD_LIBRARY_PATH
 
 "$cmake" "${configure_args[@]}" 2>&1 | tee "$work_dir/build/configure-output.txt"
@@ -196,5 +286,12 @@ if [[ ${#targets[@]} -eq 0 ]]; then
     exit 1
 fi
 "$cmake" --build "$work_dir/build" --target "${targets[@]}" --parallel
+
+if [[ -n "$install_component" ]]; then
+    "$cmake" \
+        --install "$work_dir/build" \
+        --prefix "$install_prefix" \
+        --component "$install_component"
+fi
 
 printf 'rdWrappers build passed; artifacts: %s\n' "$work_dir/build"

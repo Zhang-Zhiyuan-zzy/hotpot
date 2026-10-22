@@ -746,3 +746,54 @@ Adjustment:
   tests.
 
 Git checkpoint: `ffb2924 build(rdwrappers): lock native RDKit source closure`.
+
+### Step 11 - Reuse common C++ molecule ownership in Open Babel
+
+Status: complete
+
+Planned:
+
+- remove the remaining duplicate owning field declaration from the private
+  Open Babel molecule DTO;
+- retain the existing 11-argument native construction surface and all
+  Open Babel policy/error behavior; and
+- keep the common view zero-copy and live if legacy public vectors are
+  modified before an operation.
+
+Performed:
+
+- made private `obwrappers::MoleculeData` derive from the toolkit-neutral
+  `native::OwnedMoleculeData`;
+- added an explicit compatibility constructor with the exact former argument
+  order and types, moving each vector once into common ownership;
+- captured dimensions before the moves to avoid dependence on C++17 argument
+  or move evaluation order; and
+- forwarded the common owning view while recomputing live dimensions and the
+  Open Babel field mask from the compatibility object's current vectors.
+
+Verification:
+
+- compile-time fences prove common-base reuse, non-aggregate construction,
+  the complete former 11-argument constructibility, and unchanged method
+  return types;
+- a C++ policy test mutates the legacy vectors, then proves updated counts,
+  zero-copy pointer identity, generic validation, and unchanged OBMol
+  construction;
+- a clean forced rebuild of all native extensions succeeds; and
+- the Open Babel/common-view/force-field source-fence selection reports
+  57 passed and 1 existing managed-dataset skip, with `git diff --check`
+  passing.
+
+Unexpected findings:
+
+- inheriting stored `atom_count`/`bond_count` fields while retaining the
+  former methods of the same names is legal but deliberately exercised by the
+  source fence; no overload ambiguity or pybind construction change occurred.
+
+Adjustment:
+
+- this is an internal ownership refactor only. Open Babel required fields,
+  compatibility validation, dative rejection, error order, and engine call
+  sites are unchanged.
+
+Git checkpoint: `26f2d41 refactor(obwrappers): reuse common owned molecule data`.

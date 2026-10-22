@@ -432,4 +432,48 @@ Adjustment:
   to create a deterministic semantic cohort v2 with a new digest and without
   volatile path/time/runtime identity fields.
 
+Git checkpoint: `9400224 docs(plan17): record formal cohort recovery audit`.
+
+### Step 6 - Freeze the standalone C and C++ SDK surface
+
+Status: complete
+
+Planned:
+
+- define a versioned C ABI containing only fixed-width scalars, opaque
+  handles, and borrowed pointer/count views; and
+- provide the reviewed header-only C++17 facade without exporting STL or
+  toolkit types from a shared library.
+
+Performed:
+
+- added C ABI v1 options, molecule/constraint/stereo views, opaque sampler and
+  result lifetimes, result/runtime accessors, and explicit status codes;
+- reserved complete Level-1 stereo carrier, anchor, group, atom-fact, and
+  bond-fact transport in the v1 input contract before native implementation;
+- added the C++17 `ETKDGSampler`, free generation function, value contracts,
+  RAII lifetime handling, and runtime identity facade; and
+- kept all C++ container/string construction inside the consumer translation
+  unit.
+
+Verification:
+
+- the C header compiles as strict C11;
+- the same header-only C++17 facade compiles and executes with both
+  `_GLIBCXX_USE_CXX11_ABI=0` and `=1` against one mocked C ABI;
+- the combined common-view and SDK source fences: 4 passed.
+
+Unexpected findings:
+
+- the first mock runtime fence encoded the nine-character string
+  `2026.09.1` with length ten, correctly exposing the C API's explicit-length
+  behavior. The test fixture now derives the length without the terminating
+  NUL; no API signature or runtime rule changed.
+
+Adjustment:
+
+- this checkpoint supplies headers and executable contract tests only. The
+  private RDKit core and exported shared-library symbols remain Phase 3 work;
+- the Python wheel remains separate from the installed C++ SDK artifact.
+
 Git checkpoint: pending.

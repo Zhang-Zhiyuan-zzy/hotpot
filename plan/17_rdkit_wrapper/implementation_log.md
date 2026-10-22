@@ -2065,3 +2065,77 @@ Adjustment:
   discovery.
 
 Git checkpoint: `1079b40 docs(plan17): revise advanced stereo semantics`.
+
+### Step 32 - Add ordered AXIS transport across Level 1 and native boundaries
+
+Status: complete
+
+Planned:
+
+- add the approved ordered axis-path value without changing existing enum
+  numbers, C ABI layout/version, or public function signatures;
+- prove exact Level-1 lifecycle behavior before assigning any AX chemistry;
+  and
+- make the RDKit adapter reject interpreted Hotpot AXIS input explicitly until
+  its pinned toolkit mapping is separately frozen.
+
+Performed:
+
+- appended Python `StereoAnchorKind.AXIS`, common-native
+  `StereoAnchorKind::AXIS=3`, and public C
+  `HOTPOT_RD_STEREO_ANCHOR_AXIS=3`, retaining ATOM=1 and BOND=2;
+- preserved every ordered axis row during copy/remap/component assembly and
+  removed a record as a whole when an axis atom or consecutive constituent
+  edge is absent;
+- made permanent removal/clear of any constituent active or hidden bond drop
+  the record, while hide/recover and unrelated chord deletion remain exact
+  non-events;
+- reused the flat anchor offset/count/index columns for variable-length paths
+  and required `AXIS` count at least three in the common C++ view and public C
+  ABI validators without adding chemical checks there;
+- converted the RDKit graph builder from an implicit ATOM/else-BOND branch to
+  an exhaustive ATOM/BOND/AXIS switch and returned stable `UNSUPPORTED` for
+  AXIS before materialization; and
+- retained Python Level-1's structural-storage behavior for malformed opaque
+  paths, while the native structural boundary rejects AXIS counts 0, 1, or 2.
+
+Verification:
+
+- the final stereo/common-native/C-API selection reports 181 passed;
+- rebuilt-extension native binding, C++ facade, and packing selection reports
+  23 passed with the locked RDKit library path;
+- independent audit reported 30 focused AXIS passes, 140 broader
+  stereo/native passes, and 30 native-binding/coordination passes;
+- the locked-toolchain C11 compile/link/run smoke passes and asserts the exact
+  AXIS unsupported diagnostic, invalid lengths 0-2, unknown code, and null
+  result ownership on invalid input;
+- tests cover ordered path remap, missing atom/edge, copy, component split,
+  target-first assembly order, atom deletion, hide/recover, both permanent
+  hidden-clear APIs, chord deletion, flat buffer offsets, range checks, and
+  additive numeric codes; and
+- Python compilation and `git diff --check` pass.
+
+Unexpected findings:
+
+- the RDKit builder's previous binary branch treated every non-ATOM value as
+  BOND. Adding only an enum would therefore have silently truncated AXIS to
+  its first two rows; the switch had to be made exhaustive in the same
+  checkpoint;
+- a development attempt to add the native assertion to the old standalone
+  `core_graph_transfer.cpp` executable did not reach AXIS because its existing
+  tetrahedral-carrier fixture now fails an earlier established validation.
+  AXIS coverage was retained in the passing public C-API smoke instead of
+  weakening that unrelated validation;
+- a system-compiler diagnostic link used the host libstdc++ and was
+  incompatible with the locked library. The release-identity GCC/G++ link and
+  run passed; only that pinned result is counted.
+
+Adjustment:
+
+- Level 1 remains lossless transport, not a path-chemistry validator;
+- Gate 5 may now consume AXIS only after checking simple/maximal odd-length
+  cumulative-double-bond paths and endpoint carriers;
+- native ETKDG continues to report AXIS unsupported rather than claiming
+  stereochemical preservation through an unreviewed `CHI_ALLENE` conversion.
+
+Git checkpoint: `7817fab feat(stereo): add ordered AXIS transport`.

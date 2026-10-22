@@ -1,0 +1,23 @@
+hotpot_distgeom_probe [EXECUTABLE] -> DistGeomHelpers_static
+DistGeomHelpers_static [STATIC_LIBRARY] -> MolAlign_static,ForceFieldHelpers_static,SubstructMatch_static,GraphMol_static,DistGeometry_static,Alignment_static,rdkit_base
+MolAlign_static [STATIC_LIBRARY] -> MolTransforms_static,SmilesParse_static,SubstructMatch_static,Alignment_static,GraphMol_static,RDGeneral_static,rdkit_base
+MolTransforms_static [STATIC_LIBRARY] -> GraphMol_static,EigenSolvers_static,RDGeneral_static,rdkit_base
+GraphMol_static [STATIC_LIBRARY] -> RDGeometryLib_static,RDGeneral_static,rdkit_base,RingDecomposerLib_static
+RDGeometryLib_static [STATIC_LIBRARY] -> DataStructs_static,RDGeneral_static,rdkit_base
+DataStructs_static [STATIC_LIBRARY] -> RDGeneral_static,rdkit_base
+RDGeneral_static [STATIC_LIBRARY] -> rdkit_base
+rdkit_base [INTERFACE_LIBRARY] -> Eigen3::Eigen,Threads::Threads,Boost::boost
+Eigen3::Eigen [INTERFACE_LIBRARY] -> 
+Threads::Threads [INTERFACE_LIBRARY] -> -lpthread
+Boost::boost [INTERFACE_LIBRARY] -> 
+RingDecomposerLib_static [STATIC_LIBRARY] -> rdkit_base
+EigenSolvers_static [STATIC_LIBRARY] -> RDGeneral_static,rdkit_base
+SmilesParse_static [STATIC_LIBRARY] -> GraphMol_static,RDGeneral_static,rdkit_base
+SubstructMatch_static [STATIC_LIBRARY] -> GenericGroups_static,GraphMol_static,RDGeneral_static,rdkit_base
+GenericGroups_static [STATIC_LIBRARY] -> GraphMol_static,RDGeneral_static,rdkit_base
+Alignment_static [STATIC_LIBRARY] -> RDGeometryLib_static,rdkit_base
+ForceFieldHelpers_static [STATIC_LIBRARY] -> SmilesParse_static,SubstructMatch_static,ForceField_static,rdkit_base
+ForceField_static [STATIC_LIBRARY] -> Optimizer_static,Trajectory_static,rdkit_base
+Optimizer_static [STATIC_LIBRARY] -> RDGeometryLib_static,Trajectory_static,RDGeneral_static,rdkit_base
+Trajectory_static [STATIC_LIBRARY] -> GraphMol_static,RDGeneral_static,rdkit_base
+DistGeometry_static [STATIC_LIBRARY] -> EigenSolvers_static,ForceField_static,ForceFieldHelpers_static,rdkit_base

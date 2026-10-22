@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "upgrade_policy": {
+    "mode": "explicit-owner-instruction-only",
+    "automatic_version_discovery": false,
+    "version_ranges_allowed": false
+  },
+  "sources": {
+    "rdkit": {
+      "version": "2026.09.1",
+      "python_distribution_version": "2026.9.1",
+      "tag": "Release_2026_09_1",
+      "commit": "fece8caa860bdf6c9c82bdb9253f22a0cf87150c",
+      "archive": {
+        "filename": "rdkit-Release_2026_09_1.tar.gz",
+        "url": "https://codeload.github.com/rdkit/rdkit/tar.gz/refs/tags/Release_2026_09_1",
+        "sha256": "86711e340759a3a0678a2e62f54f26f7ff564c3a02de0460f60b1ce89ac1bfe9",
+        "size_bytes": 84507361,
+        "root": "rdkit-Release_2026_09_1"
+      },
+      "license": {
+        "spdx": "BSD-3-Clause",
+        "path": "license.txt",
+        "sha256": "daeb8d194502cbcf34c05c39541a0d02be65bc9bada5b891c1974cd24e9fca30"
+      }
+    },
+    "boost": {
+      "version": "1.86.0",
+      "commit": "65c1319bb92fe7a9a4abd588eff5818d9c2bccf9",
+      "role": "header-only Boost::boost interface in the minimal closure",
+      "linked": false,
+      "archive": {
+        "filename": "boost_1_86_0.tar.bz2",
+        "url": "https://archives.boost.io/release/1.86.0/source/boost_1_86_0.tar.bz2",
+        "sha256": "1bed88e40401b2cb7a1f76d4bab499e352fa4d0c5f31c0dbae64e24d34d7513b",
+        "size_bytes": 126220652,
+        "root": "boost_1_86_0"
+      },
+      "license": {
+        "spdx": "BSL-1.0",
+        "path": "LICENSE_1_0.txt",
+        "sha256": "c9bff75738922193e67fa726fa225535870d2aa1059f91452c411736284ad566"
+      }
+    },
+    "catch2": {
+      "version": "3.4.0",
+      "tag": "v3.4.0",
+      "commit": "6e79e682b726f524310d55dec8ddac4e9c52fb5f",
+      "role": "configure-only source required by unconditional upstream FetchContent",
+      "linked": false,
+      "archive": {
+        "filename": "Catch2-v3.4.0.tar.gz",
+        "url": "https://codeload.github.com/catchorg/Catch2/tar.gz/refs/tags/v3.4.0",
+        "sha256": "122928b814b75717316c71af69bd2b43387643ba076a6ec16e7882bfb2dfacbb",
+        "size_bytes": 1112790,
+        "root": "Catch2-3.4.0"
+      },
+      "license": {
+        "spdx": "BSL-1.0",
+        "path": "LICENSE.txt",
+        "sha256": "c9bff75738922193e67fa726fa225535870d2aa1059f91452c411736284ad566"
+      }
+    },
+    "better_enums": {
+      "version": "0.11.3",
+      "commit": "c35576bed0295689540b39873126129adfa0b4c8",
+      "role": "RDGeneral compile-time header dependency",
+      "linked": false,
+      "archive": {
+        "filename": "better-enums-c35576bed0295689540b39873126129adfa0b4c8.tar.gz",
+        "url": "https://codeload.github.com/aantron/better-enums/tar.gz/c35576bed0295689540b39873126129adfa0b4c8",
+        "sha256": "9b78dcef7f88d1345b6f25335bfbcba5f024b08990c7d6dc605b833f4128b8dd",
+        "size_bytes": 137228,
+        "root": "better-enums-c35576bed0295689540b39873126129adfa0b4c8"
+      },
+      "license": {
+        "spdx": "BSD-2-Clause",
+        "path": "LICENSE.md",
+        "sha256": "e35e8f6bc2f8fa1e7956e9ec808fe7cbae60d97a0a9718135ad5aa5d02d06c49"
+      }
+    },
+    "eigen": {
+      "version": "3.4.0",
+      "tag": "3.4.0",
+      "commit": "3147391d946bb4b6c68edd901f2add6ac1f31f8c",
+      "role": "header-only Eigen3::Eigen interface in the minimal closure",
+      "linked": false,
+      "archive": {
+        "filename": "eigen-3.4.0.tar.gz",
+        "url": "https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz",
+        "sha256": "8586084f71f9bde545ee7fa6d00288b264a2b7ac3607b974e54d13e7162c1c72",
+        "size_bytes": 2705005,
+        "root": "eigen-3.4.0"
+      },
+      "license": {
+        "spdx": "MPL-2.0 AND LicenseRef-Eigen-Component-Licenses",
+        "path": "COPYING.MPL2",
+        "sha256": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85"
+      }
+    },
+    "ring_decomposer_lib": {
+      "version": "1.1.3_rdkit",
+      "tag": "v1.1.3_rdkit",
+      "commit": "7b1629781cfb7fda29716d1af14a6110bb553892",
+      "role": "GraphMol ring-family implementation in the linked static closure",
+      "linked": true,
+      "archive": {
+        "filename": "RingDecomposerLib-v1.1.3_rdkit.tar.gz",
+        "url": "https://codeload.github.com/rareylab/RingDecomposerLib/tar.gz/refs/tags/v1.1.3_rdkit",
+        "sha256": "944b5816712a48bbf88aa25d4300ce11871ddf6e971218eac08f90ed2192f715",
+        "size_bytes": 137931,
+        "root": "RingDecomposerLib-1.1.3_rdkit"
+      },
+      "license": {
+        "spdx": "BSD-3-Clause",
+        "path": "LICENSE",
+        "sha256": "510d2b0c6b68597ac15f227b3aa22ebe7041dbaf0d5a703efa33069e8bb35762"
+      }
+    }
+  },
+  "probe_toolchain": {
+    "scope": "reproducible Phase-1 Linux x86_64 dependency-closure probe only",
+    "prefix_is_contract": false,
+    "conda_explicit_lock": "probe-toolchain-linux-64.explicit.txt",
+    "platform": "linux-64",
+    "compiler": {
+      "family": "GNU",
+      "c_version": "14.3.0",
+      "cxx_version": "14.3.0",
+      "gcc_impl_build": "h054831b_20",
+      "gxx_impl_build": "h99ea42b_20"
+    },
+    "binutils": {
+      "version": "2.46.1",
+      "build": "default_hfdba357_103"
+    },
+    "sysroot": {
+      "glibc_baseline": "2.28",
+      "package_build": "h4ee821c_9"
+    },
+    "cmake": {
+      "version": "3.31.8",
+      "build": "hc85cc9f_0"
+    },
+    "ninja": {
+      "version": "1.12.1",
+      "build": "hff21bea_1"
+    },
+    "cpu_baseline": {
+      "architecture": "x86_64",
+      "c_flags": "-O3 -DNDEBUG -march=x86-64 -mtune=generic",
+      "cxx_flags": "-O3 -DNDEBUG -march=x86-64 -mtune=generic",
+      "rdkit_optimize_popcnt": false
+    }
+  },
+  "release_toolchain": {
+    "status": "not-selected-by-phase-1-probe",
+    "relationship": "separate from the reproducible local probe toolchain",
+    "requirements": [
+      "pin the exact manylinux image digest for every wheel architecture",
+      "preserve the declared platform ABI and CPU baseline",
+      "rerun the closure probe, wheel audit, and import-coexistence matrix",
+      "never encode a temporary local Conda prefix as a release contract"
+    ]
+  },
+  "cmake_configuration": {
+    "driver": "run_distgeom_probe.sh",
+    "generator": "Ninja",
+    "target": "hotpot_distgeom_probe",
+    "language": {
+      "c": "C99 without extensions",
+      "cxx": "C++20 without extensions",
+      "position_independent_code": true,
+      "hidden_visibility": true,
+      "lto": false
+    },
+    "flags": [
+      "-DCMAKE_MAKE_PROGRAM=$TOOLCHAIN/bin/ninja",
+      "-DCMAKE_C_COMPILER=$TOOLCHAIN/bin/x86_64-conda-linux-gnu-gcc",
+      "-DCMAKE_CXX_COMPILER=$TOOLCHAIN/bin/x86_64-conda-linux-gnu-g++",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DCMAKE_C_STANDARD=99",
+      "-DCMAKE_C_STANDARD_REQUIRED=ON",
+      "-DCMAKE_C_EXTENSIONS=OFF",
+      "-DCMAKE_CXX_STANDARD=20",
+      "-DCMAKE_CXX_STANDARD_REQUIRED=ON",
+      "-DCMAKE_CXX_EXTENSIONS=OFF",
+      "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
+      "-DCMAKE_C_VISIBILITY_PRESET=hidden",
+      "-DCMAKE_CXX_VISIBILITY_PRESET=hidden",
+      "-DCMAKE_VISIBILITY_INLINES_HIDDEN=ON",
+      "-DCMAKE_C_FLAGS_RELEASE=-O3 -DNDEBUG -march=x86-64 -mtune=generic",
+      "-DCMAKE_CXX_FLAGS_RELEASE=-O3 -DNDEBUG -march=x86-64 -mtune=generic",
+      "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF",
+      "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+      "-DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF",
+      "-DCMAKE_DISABLE_FIND_PACKAGE_Catch2=ON",
+      "-DCMAKE_DISABLE_FIND_PACKAGE_Python=ON",
+      "-DCMAKE_DISABLE_FIND_PACKAGE_TBB=ON",
+      "-DCMAKE_DISABLE_FIND_PACKAGE_ZLIB=ON",
+      "-DFETCHCONTENT_FULLY_DISCONNECTED=ON",
+      "-DFETCHCONTENT_SOURCE_DIR_CATCH2=$WORK/source/catch2",
+      "-DFETCHCONTENT_SOURCE_DIR_BETTER_ENUMS=$WORK/source/better-enums",
+      "-DBoost_DIR=$LOCK/probe/cmake",
+      "-DHOTPOT_RDKIT_BOOST_SOURCE=$WORK/source/boost",
+      "-DEigen3_DIR=$LOCK/probe/cmake",
+      "-DHOTPOT_RDKIT_EIGEN_SOURCE=$WORK/source/eigen",
+      "-DCMAKE_PROJECT_INCLUDE=$LOCK/probe/attach_probe.cmake",
+      "-DBUILD_TESTING=OFF",
+      "-DRDK_BUILD_PYTHON_WRAPPERS=OFF",
+      "-DRDK_BUILD_BOOST_PYTHON_WRAPPERS=OFF",
+      "-DRDK_BUILD_NANOBIND_WRAPPERS=OFF",
+      "-DRDK_BUILD_SWIG_WRAPPERS=OFF",
+      "-DRDK_BUILD_CPP_TESTS=OFF",
+      "-DRDK_BUILD_LONG_RUNNING_TESTS=OFF",
+      "-DRDK_BUILD_CONTRIB=OFF",
+      "-DRDK_BUILD_COMPRESSED_SUPPLIERS=OFF",
+      "-DRDK_BUILD_INCHI_SUPPORT=OFF",
+      "-DRDK_BUILD_AVALON_SUPPORT=OFF",
+      "-DRDK_BUILD_PGSQL=OFF",
+      "-DRDK_BUILD_COORDGEN_SUPPORT=OFF",
+      "-DRDK_BUILD_MAEPARSER_SUPPORT=OFF",
+      "-DRDK_BUILD_MOLINTERCHANGE_SUPPORT=OFF",
+      "-DRDK_BUILD_CHEMDRAW_SUPPORT=OFF",
+      "-DRDK_BUILD_FREESASA_SUPPORT=OFF",
+      "-DRDK_BUILD_YAEHMOP_SUPPORT=OFF",
+      "-DRDK_BUILD_XYZ2MOL_SUPPORT=OFF",
+      "-DRDK_BUILD_STRUCTCHECKER_SUPPORT=OFF",
+      "-DRDK_BUILD_PUBCHEMSHAPE_SUPPORT=OFF",
+      "-DRDK_BUILD_DESCRIPTORS3D=OFF",
+      "-DRDK_BUILD_FREETYPE_SUPPORT=OFF",
+      "-DRDK_INSTALL_COMIC_FONTS=OFF",
+      "-DRDK_BUILD_SLN_SUPPORT=OFF",
+      "-DRDK_BUILD_MINIMAL_LIB=OFF",
+      "-DRDK_BUILD_CFFI_LIB=OFF",
+      "-DRDK_BUILD_FUZZ_TARGETS=OFF",
+      "-DRDK_BUILD_RPATH_SUPPORT=OFF",
+      "-DRDK_INSTALL_INTREE=OFF",
+      "-DRDK_INSTALL_STATIC_LIBS=ON",
+      "-DRDK_INSTALL_DEV_COMPONENT=OFF",
+      "-DRDK_BUILD_THREADSAFE_SSS=ON",
+      "-DRDK_TEST_MULTITHREADED=OFF",
+      "-DRDK_USE_BOOST_SERIALIZATION=OFF",
+      "-DRDK_USE_BOOST_IOSTREAMS=OFF",
+      "-DRDK_USE_BOOST_STACKTRACE=OFF",
+      "-DRDK_OPTIMIZE_POPCNT=OFF",
+      "-DRDK_USE_FLEXBISON=OFF",
+      "-DRDK_USE_UNITY_BUILDS=OFF",
+      "-DRDK_LTO_MODE=OFF"
+    ]
+  },
+  "distgeom_link_map": {
+    "source": "probe/expected-target-link-map.txt",
+    "static_archive_manifest": "probe/expected-static-archives.txt",
+    "official_direct_interface": [
+      "MolAlign_static",
+      "ForceFieldHelpers_static",
+      "SubstructMatch_static",
+      "GraphMol_static",
+      "DistGeometry_static",
+      "Alignment_static",
+      "rdkit_base"
+    ],
+    "transitive_static_targets": [
+      "Alignment_static",
+      "DataStructs_static",
+      "DistGeomHelpers_static",
+      "DistGeometry_static",
+      "EigenSolvers_static",
+      "ForceFieldHelpers_static",
+      "ForceField_static",
+      "GenericGroups_static",
+      "GraphMol_static",
+      "MolAlign_static",
+      "MolTransforms_static",
+      "Optimizer_static",
+      "RDGeneral_static",
+      "RDGeometryLib_static",
+      "RingDecomposerLib_static",
+      "SmilesParse_static",
+      "SubstructMatch_static",
+      "Trajectory_static"
+    ],
+    "interface_targets": [
+      "rdkit_base",
+      "Boost::boost",
+      "Eigen3::Eigen",
+      "Threads::Threads"
+    ],
+    "force_field_helpers_compiled_only_as_etkdg_dependency": true,
+    "rdkit_uff_mmff_business_optimizer_enabled": false
+  }
+}

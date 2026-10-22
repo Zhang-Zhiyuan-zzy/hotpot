@@ -476,4 +476,44 @@ Adjustment:
   private RDKit core and exported shared-library symbols remain Phase 3 work;
 - the Python wheel remains separate from the installed C++ SDK artifact.
 
+Git checkpoint: `356fda8 feat(rdwrappers): freeze C and C++ SDK APIs`.
+
+### Step 7 - Migrate the Python Open Babel packer through the common schema
+
+Status: complete
+
+Planned:
+
+- preserve every existing Open Babel packing name and value while replacing
+  its duplicate array construction with the common field-selective packer;
+  and
+- avoid changing the public `obWrappers` API or any C++ consumer in this step.
+
+Performed:
+
+- forwarded `_MoleculeBuffers` to `NativeMoleculeBuffers`;
+- retained the existing `_BOND_KIND_CODES`, schema-version, empty-matrix, and
+  `_pack_molecule` compatibility names;
+- retained `BondKindCode` instances at the Open Babel compatibility surface;
+  and
+- made the Open Babel adapter request the complete common field set.
+
+Verification:
+
+- independent common/packing/native-engine rerun: 25 passed;
+- worker full `obWrappers` suite: 46 passed, 1 skipped;
+- worker native force-field/session regression selection: 60 passed;
+- `git diff --check` passes.
+
+Unexpected findings:
+
+- the common DTO adds read-only `atom_count` and `bond_count` fields. No
+  repository consumer constructs the former private DTO directly, and all
+  former fields retain their names, dtypes, shapes, order, and values.
+
+Adjustment:
+
+- no pybind constructor, C++ molecule type, Open Babel compatibility policy,
+  or force-field control flow changed in this checkpoint.
+
 Git checkpoint: pending.

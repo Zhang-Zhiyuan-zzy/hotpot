@@ -5,8 +5,40 @@ from __future__ import annotations
 import numpy as np
 
 from hotpot import read_mol
+from hotpot.cheminfo._native.buffers import (
+    MOLECULE_BUFFER_SCHEMA_VERSION,
+    NativeMoleculeBuffers,
+    NativeMoleculeField,
+)
 from hotpot.cheminfo.obWrappers.contracts import BondKindCode
-from hotpot.cheminfo.obWrappers.packing import _pack_molecule
+from hotpot.cheminfo.obWrappers.packing import (
+    _BOND_KIND_CODES,
+    _MOLECULE_BUFFER_SCHEMA_VERSION,
+    _MoleculeBuffers,
+    _empty_matrix,
+    _pack_molecule,
+)
+
+
+def test_openbabel_compatibility_names_forward_to_common_buffers():
+    mol = read_mol("CCO")
+
+    buffers = _pack_molecule(mol)
+
+    assert _MoleculeBuffers is NativeMoleculeBuffers
+    assert isinstance(buffers, _MoleculeBuffers)
+    assert buffers.atom_count == len(mol.atoms)
+    assert buffers.bond_count == len(mol.bonds)
+    assert all(
+        getattr(buffers, field.value) is not None
+        for field in NativeMoleculeField
+        if field is not NativeMoleculeField.UNIT_CELL
+    )
+    assert _MOLECULE_BUFFER_SCHEMA_VERSION == MOLECULE_BUFFER_SCHEMA_VERSION
+    assert all(
+        isinstance(code, BondKindCode) for code in _BOND_KIND_CODES.values()
+    )
+    assert _empty_matrix(2, np.dtype(np.int32)).shape == (0, 2)
 
 
 def test_pack_molecule_preserves_order_semantics_and_exact_dtypes():

@@ -79,6 +79,18 @@ them:
 15. Existing Hotpot/Open Babel native modules remain C++17. The public
     `rdWrappers` C/C++ boundary is C++17-consumable, while only the private
     pinned RDKit implementation and its dependency closure compile as C++20.
+16. Enhanced-stereo group identity includes an explicit persistent lineage
+    scope. Copying or splitting a molecule preserves that scope; independently
+    imported molecules receive distinct scopes so coincident toolkit group
+    numbers cannot merge accidentally during component assembly.
+17. Hydrogen transport separates the immutable source-representation ledger
+    from the current graph state used for native construction. Materializing
+    explicit hydrogen atoms updates only current state and must never cause
+    native RDKit to count the source implicit/bracket hydrogen values again.
+18. The exact offline native-source closure is locked, not only RDKit and
+    Boost. Any upstream archive fetched by the pinned minimal CMake graph is
+    identified and SHA-verified before configuration; network fallback and
+    moving Git references are forbidden.
 
 ## 2. Confirmed current-state audit
 
@@ -188,6 +200,22 @@ That post hoc observation is timed separately and cannot reject, repair,
 select, or perturb the returned conformers. Any future proposal to delete an
 existing force-field geometry stage requires a separate plan and owner
 decision after this component-substitution evidence exists.
+
+### 2.5 Molecule lifecycle prerequisites discovered during implementation
+
+Level-1 stereo cannot be correct if the underlying structural lifecycle loses
+or aliases graph state. The implementation audit found that current
+`Molecule.copy()` and `add_component()` omit hidden bonds, atom removal can
+leave incident bonds in hidden-bond lists, and `components` can share the
+source atom NumPy attribute arrays. Those are existing structural defects, not
+stereo semantics.
+
+Phase 2 repairs and tests those behaviors in isolated checkpoints before
+stereo remapping is connected. Copy/component extraction must own independent
+atom arrays; active and hidden bonds must be cloned/merged with stable endpoint
+mapping; deleting an atom must remove every active or hidden incident bond.
+Hide/recover itself does not change Level-1 payload bytes. Permanently clearing
+or deleting a bond filters only records and bond facts owned by that bond.
 
 ## 3. Scientific hypotheses and routes under test
 
@@ -468,7 +496,8 @@ const double *hotpot_rd_result_coordinates(
     uint64_t *conformer_count,
     uint64_t *atom_count);
 
-const char *hotpot_rd_result_diagnostic(const hotpot_rd_result *result);
+hotpot_rd_string_view_v1 hotpot_rd_result_diagnostic(
+    const hotpot_rd_result *result);
 void hotpot_rd_result_destroy(hotpot_rd_result *result);
 ```
 
@@ -476,6 +505,14 @@ The C structs contain only fixed-width scalars and pointer/length pairs. No
 STL container, exception, RDKit type, or Boost type crosses the shared-library
 boundary. Every returned pointer is borrowed from its opaque result and
 remains valid only until `hotpot_rd_result_destroy()`.
+
+C ABI v1 also contains flattened Level-1 stereo record/carrier arrays,
+enhanced-group lineage scopes, atom transport facts with separate source and
+current hydrogen states, and bond display-direction facts. The v1 headers are
+still implementation-local until Phase 3 release closure, so audit-driven
+field corrections occur before—not after—the ABI is published. Runtime
+accessors report the C API version, Hotpot version, canonical RDKit version,
+and exact pinned RDKit commit.
 
 The public C++17 facade retains the reviewed class/function shape:
 
@@ -572,6 +609,9 @@ class NativeMoleculeBuffers:
     coordinates: NDArray[np.float64] | None = None
     bond_indices: NDArray[np.int32] | None = None
     bond_kinds: NDArray[np.uint8] | None = None
+    stereo_records: ... | None = None
+    atom_transport: ... | None = None
+    bond_transport: ... | None = None
     ...
 
 def pack_molecule(
@@ -583,6 +623,13 @@ def pack_molecule(
 Field sets are private constants owned by consumers, for example
 `RDKIT_ETKDG_FIELDS`, `OPENBABEL_BUILD_FIELDS`, and
 `OPENBABEL_OPTIMIZATION_FIELDS`. They are not user profiles.
+
+The stereo fields use flat record/carrier/index/string tables at the native
+boundary. They preserve record and carrier enumeration order, group scope,
+source codes, and the distinction between absent values and explicit zero or
+`UNSPECIFIED`. They are requested by RDKit but are not forced into an Open
+Babel operation that cannot consume them. Python dataclasses remain the
+authoritative readable representation; the arrays are only a transport form.
 
 ### 5.2 Topology and conformer coordinates are separate
 
@@ -641,6 +688,37 @@ compatibility validation; in particular, the existing lossy-dative rejection
 must still occur before `OBMol` construction rather than polluting the common
 schema.
 
+The migration preserves existing Open Babel error timing as well as error
+text. Its adapter validator retains the former per-bond validation order
+(index, self-bond, order, then dative) even though the consumer-neutral
+validator checks columns by structural category. A mixed-invalid input must
+therefore produce the same first Open Babel error as before the refactor.
+
+### 5.5 Level-1 storage and structural remapping
+
+`Molecule._stereo_payload` stores the immutable versioned payload outside the
+Atom/Bond numeric attribute layouts and outside user-mutable `properties`.
+Level-1 remapping is implemented once as a pure helper over stable atom rows:
+
+- records are never sorted; carrier, record, atom-fact, and bond-fact order is
+  retained;
+- a record is removed when its anchor or any atom carrier is not mapped;
+- non-atom carriers remain unchanged;
+- bond existence is checked with an undirected endpoint key while the stored
+  ordered endpoints are preserved;
+- partial enhanced groups are not collapsed, renumbered, or chemically
+  reinterpreted; and
+- descriptors, source namespace/code, source ledger, and group lineage are
+  copied byte-for-byte except for the required atom-row remapping.
+
+Copy and component extraction retain group scopes. Independently imported
+molecules receive distinct opaque scopes; therefore `add_component()` can
+concatenate payloads without guessing whether equal toolkit group numbers are
+related. Copying a molecule deliberately preserves lineage, so recombining a
+copy with its source retains their shared group identity. Treating a copy as a
+new independent provenance domain would require a future explicit detach/
+rebase operation, not implicit behavior in assembly.
+
 ## 6. Native RDKit subset and compatibility boundary
 
 ### 6.1 Build source
@@ -658,30 +736,47 @@ it does not ship the complete public headers and its bundled shared-library
 names and ABI are wheel-specific.
 
 The initial private build enables only the real dependency closure needed by
-the official `DistGeomHelpers` target. That closure includes RDGeneral,
-GraphMol, DistGeometry, DistGeomHelpers, MolAlign, SubstructMatch, Alignment,
-ForceField, and ForceFieldHelpers. **ForceFieldHelpers is compiled only because
-ETKDG depends on it; Stage 17 never exposes or invokes RDKit UFF/MMFF as the
-business optimizer.** Python wrappers, drawing, descriptors, reactions,
-database integration, general file I/O, and unrelated targets remain disabled.
+the official `DistGeomHelpers` target. The source-configuration audit found
+that the complete offline closure includes exact archives for RDKit, Boost,
+Eigen, better-enums, Catch2, and `RingDecomposerLib`; upstream CMake would
+otherwise fetch several of them by a moving Git/download path, and its
+`RingDecomposerLib` path verifies only MD5. Hotpot pre-populates every source
+from its SHA-256 lock and permits no configure-time download. Catch2 remains a
+build/configuration dependency only when the pinned upstream graph requires
+it; it is not linked into the production sampler. Unrelated FreeType/font and
+other optional downloads are disabled.
+
+The compiled target graph includes the actual transitive targets rather than
+only the first-level names: at minimum RDGeneral, DataStructs, Optimizer,
+EigenSolvers, RDGeometryLib, Alignment, GraphMol, SmilesParse, DistGeometry,
+DistGeomHelpers, MolAlign, SubstructMatch, ForceField, ForceFieldHelpers, and
+RingDecomposerLib. The generated link map is the authority if it reveals a
+deeper required target. **ForceFieldHelpers is compiled only because ETKDG
+depends on it; Stage 17 never exposes or invokes RDKit UFF/MMFF as the business
+optimizer.** Python wrappers, drawing, descriptors, reactions, database
+integration, general file I/O, and unrelated targets remain disabled.
 
 The dependency closure is determined from the pinned release's CMake targets
 and a link map, not from a manually guessed list of copied headers.
 
-The native build also freezes Boost (minimum supported upstream version is
-1.81), CMake, Ninja, compiler identity, CMake flags, and CPU baseline. RDKit
-2026.09.1 builds as C++20/PIC; the existing Hotpot extensions remain C++17.
-The current host's CMake 3.16.3 and GCC 9.4.0 are probe inputs, not accepted
-release identities. A project-local modern toolchain is used when the pinned
-source probe requires it; wheel builds use a fixed manylinux toolchain.
+The native build freezes Boost 1.86.0 (upstream minimum is 1.81), CMake,
+Ninja, compiler identity, CMake flags, and CPU baseline. The
+implementation probe uses GCC 14.3.0, CMake 3.31.8, Ninja 1.12.1,
+`-march=x86-64 -mtune=generic`, and disables POPCNT-specific optimization.
+RDKit 2026.09.1 builds as C++20/PIC; the existing Hotpot extensions remain
+C++17. The current host's CMake 3.16.3 and GCC 9.4.0 are rejected probe inputs,
+not accepted release identities. Wheel builds use a separately recorded fixed
+manylinux toolchain rather than treating a temporary local Conda prefix as a
+release contract.
 
 ### 6.2 Extension isolation
 
 `hotpot.cheminfo.rdWrappers._rd_native` remains separate from `_ob_native`.
-The private `hotpot_rdkit_core` and pinned RDKit/Boost subset are built as
-position-independent static libraries with hidden visibility. A version-script
-controlled SDK shared library exports only `hotpot_rd_*` C symbols. No RDKit,
-Boost, STL, or C++ exception crosses the C or pybind surface.
+The private `hotpot_rdkit_core` and pinned native dependency closure are built
+as position-independent static libraries with hidden visibility. A
+version-script controlled SDK shared library exports only `hotpot_rd_*` C
+symbols. No RDKit, Boost, STL, or C++ exception crosses the C or pybind
+surface.
 
 This isolation is required because Open Babel and RDKit have independent ABI
 and build requirements and because a user may also import Python RDKit in the
@@ -762,6 +857,10 @@ hotpot.cheminfo.stereo
 |- enum StereoAnchorKind             # ATOM, BOND
 |- enum StereoCarrierKind            # ATOM, IMPLICIT_H, LONE_PAIR, VACANCY
 |- enum StereoGroupKind              # ABS, AND, OR
+|- class StereoGroupRef
+|  |- scope: str
+|  |- kind: StereoGroupKind
+|  `- id: int
 |- class StereoCarrier
 |  |- kind: StereoCarrierKind
 |  `- atom: int | None
@@ -772,17 +871,20 @@ hotpot.cheminfo.stereo
 |  |- anchor: StereoAnchor
 |  |- carriers: tuple[StereoCarrier, ...]
 |  |- descriptor: str
-|  |- group_kind: StereoGroupKind | None
-|  |- group_id: int | None
+|  |- group: StereoGroupRef | None
 |  |- source_namespace: str
 |  `- source_code: str
+|- class HydrogenTransportState
+|  |- implicit_hydrogens: int | None
+|  |- bracket_explicit_hydrogens: int | None
+|  `- no_implicit: bool | None
 |- class AtomTransportRecord
 |  |- atom: int
 |  |- isotope: int | None
 |  |- radical_electrons: int | None
-|  |- implicit_hydrogens: int | None
-|  |- bracket_explicit_hydrogens: int | None
-|  `- no_implicit: bool | None
+|  |- current_hydrogens: HydrogenTransportState | None
+|  |- source_hydrogens: HydrogenTransportState | None
+|  `- source_namespace: str | None
 |- class BondTransportRecord
 |  |- atom_indices: tuple[int, int]
 |  `- display_direction: str | None
@@ -820,6 +922,13 @@ implicit H, lone pairs, and vacancies. Double-bond anchors use stable ordered
 endpoint pairs, never mutable bond-list indices. `source_namespace/source_code`
 preserve unsupported future values instead of flattening them.
 
+Enhanced groups use `StereoGroupRef(scope, kind, id)`. `id` remains the source
+group number and `scope` is an opaque persistent provenance domain, not a
+toolkit name. Independent toolkit imports allocate different scopes; copy and
+component extraction retain the original scope. This prevents accidental
+group merging without breaking a real group that spans components of one
+source molecule.
+
 Copying, components, component assembly, atom/bond removal, hide/recover,
 working-copy commit, field-selective Python/C++ packing, native return, and
 toolkit adapters preserve the payload and reference order exactly. The
@@ -828,11 +937,40 @@ and generic molecule/native DTO. SMILES, SDF, and MOL2 are tested only for the
 subset each format/adapter can represent; an unsupported value is reported
 explicitly and never silently erased.
 
-Atom transport facts distinguish isotope, radical electrons, RDKit-style
-implicit H, bracket explicit H, and `no_implicit` without changing the legacy
-`Atom.implicit_hydrogens` business meaning used by search/MCA. Bond transport
-facts preserve display direction independently of chemical bond kind. For all
-optional facts, absence remains distinct from an explicit `UNSPECIFIED` value.
+Atom transport facts distinguish isotope and radical electrons without
+changing the legacy `Atom` numeric layout used by search/MCA. Hydrogen facts
+are split into `source_hydrogens`, an immutable ledger of how the importing
+representation encoded H, and `current_hydrogens`, the only state consumed by
+native graph construction. Toolkit import initializes both from the source;
+explicit-H materialization changes only current state, and working-copy commit
+or rollback transfers it transactionally. Bond transport facts preserve
+display direction independently of chemical bond kind. For all optional facts,
+absence remains distinct from an explicit zero or `UNSPECIFIED` value.
+
+Level 1 does not decide whether the current and source hydrogen encodings are
+chemically valid. The update caused by materializing or deleting explicit H is
+a mechanical representation transform. Newly explicit H atoms receive current
+transport state but no fabricated source ledger. Native RDKit must never read
+`source_hydrogens` when constructing the current graph.
+
+Lifecycle behavior is fixed before toolkit mapping:
+
+- `Molecule.copy()` preserves the payload and clones active and hidden bonds;
+- `components` and `AtomSeq.to_mol()` filter/remap by selected atom and bond
+  identity while owning independent atom arrays;
+- `add_component()` offsets incoming atom rows, keeps target records first,
+  and relies on group scope rather than renumbering source group IDs;
+- atom deletion removes every record/fact containing the deleted atom and
+  remaps later rows; bond deletion removes only bond-anchored records and bond
+  facts for that endpoint pair;
+- hide/recover does not alter the payload, whereas permanently clearing a
+  hidden bond applies the bond-deletion rule; and
+- force-field working-copy success commits current transport state atomically,
+  while any failed commit restores the exact original payload reference.
+
+These operations do not inspect coordinates, call CIP/stereo assignment, or
+repair a descriptor. A record with one unmapped atom carrier is removed as a
+whole; its ordered carrier sequence is never shortened or rewritten.
 
 ### 7.2 Level 2: complete chemical and spatial semantics
 
@@ -950,12 +1088,19 @@ new favorable cohort for an ETKDG route.
 Implementation audit found that the published 182-case manifest itself is not
 present: only its recorded file SHA-256
 `4416bb8558ef420fad3176a82845d02bd1e83d9b271347c97d65174f799a0377`
-survives. Phase 0 must first recover and verify that exact artifact. A separate
-182-case Eu smoke manifest found under `/tmp` may support development but is
-not accepted as the formal cohort and is never reported as such. If the exact
-artifact cannot be recovered, creating a normalized semantic cohort v2
-requires an explicit owner decision; Stage 17 must not silently regenerate a
-favorable replacement.
+survives. Exhaustive recovery searched Git reachable/unreachable objects,
+history, home/Trash, and the known local archives. The original generation
+commands and identities were recovered, but the canonical file, reference
+manifest, reports, and trajectories were not. The original byte digest cannot
+be recreated because those artifacts contained volatile timestamps, paths,
+runtimes, and lost validation/trajectory payloads.
+
+A separate 182-case Eu smoke manifest found under `/tmp` may support
+development but is not accepted as the formal cohort and is never reported as
+such. Formal closure now requires either an external backup of the original
+artifact/evidence or an explicit owner decision to create a normalized
+semantic cohort v2 with a new identity. Stage 17 must not silently regenerate
+a favorable replacement.
 
 ### 8.2 Required route matrix
 
@@ -1050,8 +1195,9 @@ plan.
 - record repository/environment/toolkit identities;
 - build the unchanged native sources in the dedicated worktree and run focused
   baselines;
-- recover and hash-check the published 182 manifest before claiming a formal
-  187/182 baseline, while keeping any smoke manifest explicitly separate;
+- use the recovered provenance to request the published 182 artifact from an
+  external backup, or obtain explicit owner approval for semantic cohort v2,
+  before claiming a formal 187/182 baseline; keep smoke data separate;
 - rerun the unchanged formal production benchmark when that artifact is
   available; and
 - freeze per-stage baseline artifacts before refactoring the boundary.
@@ -1062,8 +1208,9 @@ plan.
   native behavior;
 - pin Python metadata to `rdkit==2026.9.1`;
 - update the supported Python matrix coherently to 3.10-3.14;
-- lock the canonical RDKit 2026.09.1 source archive, Boost archive, modern
-  compiler, CMake/Ninja versions, SHA-256 values, licenses, configuration, and
+- lock the canonical RDKit 2026.09.1, Boost 1.86.0, Eigen, better-enums,
+  Catch2, and RingDecomposerLib source archives plus the modern compiler,
+  CMake/Ninja versions, SHA-256 values, licenses, configuration, and generated
   link map;
 - run a minimal C++20/PIC `DistGeomHelpers` dependency-closure build probe
   before writing production bindings;
@@ -1078,8 +1225,13 @@ plan.
   preserve the public `obWrappers` API;
 - migrate Open Babel structural validation and compatibility policy in a
   separate parity checkpoint;
-- implement Level-1 stereo storage, copying, serialization, packing, and exact
-  round-trip tests;
+- repair and separately test hidden-bond copy/assembly/removal and component
+  atom-array ownership before attaching stereo lifecycle logic;
+- revise/freeze Level-1 group lineage and dual source/current hydrogen DTOs;
+- implement Level-1 storage and pure ordered remapping before toolkit/native
+  packing;
+- implement copying, component extraction/assembly, removal, hide/recover,
+  working-copy transactions, serialization, packing, and exact round trips;
 - separate static topology from conformer coordinate batches;
 - add zero-copy common-view accessors to flat `ComplexSessionInput` without
   changing its aggregate layout;
@@ -1172,7 +1324,7 @@ No `C1`/`C2` path enters `hotpot.ff` in this stage.
 - no full-schema packing when a consumer requests a subset;
 - no topology repetition for a conformer batch;
 - generic acceptance of dative bonds and adapter-specific rejection/handling;
-  and
+- unchanged Open Babel mixed-invalid first-error order and text; and
 - unchanged Open Babel results and diagnostics.
 
 ### 10.2 Standalone `rdWrappers`
@@ -1221,6 +1373,15 @@ No `C1`/`C2` path enters `hotpot.ff` in this stage.
 - Level-1 exact versioned-payload/DTO round trips through copy, components,
   assembly, removal, hide/recover, working-copy commit, Python/C++ packing,
   `obWrappers`, and `rdWrappers`;
+- independent atom-array ownership and active/hidden-bond lifecycle integrity
+  under copy, components, assembly, removal, clear, and recovery;
+- enhanced-group scope isolation for independent molecules and scope retention
+  when one source molecule is split and reassembled;
+- exact source-hydrogen ledger retention, mechanical current-H updates during
+  explicit-H materialization, and proof that native construction does not
+  double-count source hydrogens;
+- atomic rollback of Level-1 payload and current-H state on a failed
+  force-field working-copy commit;
 - explicit format-capability outcomes for SMILES/SDF/MOL2 rather than a false
   universal serialization guarantee;
 - proof that Level 1 performs no validity, CIP, coordinate, or alignment work;
@@ -1264,12 +1425,13 @@ RDKit-native packaging across supported Python and wheel targets.
 
 Required controls are:
 
-- exact RDKit 2026.09.1 upstream source and digest;
-- exact Boost/toolchain identities, frozen build options, and dependency
-  closure;
+- exact RDKit 2026.09.1, Boost, Eigen, better-enums, Catch2, and
+  RingDecomposerLib upstream sources and digests;
+- exact compiler/CMake/Ninja identities, frozen build options, generated link
+  map, and a configure log proving no network download;
 - license/notice inclusion;
-- hidden RDKit/Boost/C++ symbols with only versioned `hotpot_rd_*` C symbols
-  exported;
+- hidden RDKit/Boost/Eigen/other private C++ symbols with only versioned
+  `hotpot_rd_*` C symbols exported;
 - no dependence on a user's Conda RDKit ABI;
 - no dependence on hashed libraries inside a Python RDKit wheel;
 - auditwheel/native dependency inspection;
@@ -1284,10 +1446,12 @@ wheel statically absorbs the same private core into `_rd_native`; it is not
 advertised as the C++ SDK. This avoids wheel RUNPATH/auditwheel renaming from
 becoming the external C++ installation contract.
 
-Wheel installation is offline. A source build either consumes locally cached,
-SHA-verified RDKit and Boost archives or downloads those exact archives once;
-it never uses `latest` or an unverified system/Conda SDK. A completely offline
-source build requires the documented archive cache to be pre-populated.
+Wheel installation is offline. A source build either consumes the complete
+locally cached, SHA-verified six-archive source closure or downloads those
+exact archives once before configuration; it never uses `latest`, an
+unverified system/Conda SDK, or an upstream configure-time fetch. A completely
+offline source build requires the documented archive cache to be
+pre-populated.
 
 ## 13. Explicit non-goals
 
@@ -1341,8 +1505,18 @@ govern the work:
     do not maintain an independent RDKit Python 3.9 distribution.
 12. Keep public consumers C++17-compatible through a C ABI/header-only facade,
     while isolating RDKit's private C++20 build.
-13. Recover and verify the published 182 manifest before formal cohort claims;
-    development smoke data must remain explicitly labeled.
+13. Require either the externally recovered published 182 manifest or an
+    owner-approved semantic cohort v2 before formal cohort claims; development
+    smoke data remains explicitly labeled.
+14. Give enhanced stereo groups a persistent lineage scope so independent
+    component assembly cannot merge equal source group numbers accidentally.
+15. Separate immutable source hydrogen encoding from current graph hydrogen
+    state; only current state enters native RDKit construction.
+16. Repair molecule copy/component/hidden-bond ownership as explicit Level-1
+    prerequisites rather than compensating inside stereo adapters.
+17. Lock every archive in the actual offline CMake dependency graph, including
+    Eigen, better-enums, Catch2, and RingDecomposerLib, and reject any
+    configure-time download.
 
 Every implementation-driven revision is recorded in `implementation_log.md`
 before dependent production work continues.

@@ -516,4 +516,68 @@ Adjustment:
 - no pybind constructor, C++ molecule type, Open Babel compatibility policy,
   or force-field control flow changed in this checkpoint.
 
+Git checkpoint: `3b3a2b0 refactor(obwrappers): reuse common molecule packing`.
+
+### Plan revision 2 - Close stereo lifecycle and native-source identities
+
+Status: complete
+
+Planned:
+
+- resolve implementation findings that made the first Level-1 DTO ambiguous
+  under component assembly and explicit-hydrogen materialization;
+- repair the plan as one system rather than patching only the stereo section;
+  and
+- incorporate the complete offline CMake source graph and recovered formal
+  benchmark evidence.
+
+Performed:
+
+- reread all 1,348 lines of plan revision 1 in five contiguous sections before
+  making any revision;
+- replaced nullable enhanced-group kind/id fields with a single persistent
+  `StereoGroupRef(scope, kind, id)` contract;
+- split hydrogen transport into immutable source representation and current
+  graph state, with only current state admitted to native construction;
+- specified one ordered pure remapping policy and every affected molecule/
+  working-copy lifecycle operation;
+- made hidden-bond ownership, incident-bond cleanup, and component atom-array
+  independence explicit Phase-2 prerequisites;
+- expanded the C ABI/common transport and test obligations consistently with
+  the revised Level-1 DTO;
+- updated the source-build design from a guessed RDKit/Boost list to the exact
+  six-archive offline closure and generated target map; and
+- replaced the no-longer-possible original-manifest recovery step with the two
+  owner-visible formal closure paths.
+
+Verification:
+
+- the revised normative plan contains 1,522 lines;
+- SHA-256 is
+  `8955113b0e2846f1e4934d12866b4c75e7c776af8f9d5013354fb28a91681286`;
+- `git diff --check` passes; and
+- public API, common/native transport, lifecycle, phase order, test duties,
+  packaging, benchmark provenance, and approved decisions were revised
+  together.
+
+Unexpected findings:
+
+- equal enhanced-group IDs from independent molecules were indistinguishable
+  from a true group split across components;
+- copying/assembling hidden bonds and component attribute-array ownership were
+  already incorrect before stereo storage;
+- one hydrogen field could not serve both source fidelity and current native
+  graph construction without double-counting after explicit-H materialization;
+- the pinned minimal RDKit configuration also requires Eigen, better-enums,
+  Catch2, and RingDecomposerLib source identities; upstream RingDecomposerLib
+  used only MD5 and therefore required a Hotpot SHA-256 lock.
+
+Adjustment:
+
+- Level-1 implementation resumes only from this complete revision;
+- the already-created unpublished C ABI and Python contract tests will be
+  updated before native behavior, so no released ABI is changed retroactively;
+- Level-2 semantic gates, force-field workflow order, standalone sampler
+  boundaries, and owner-controlled RDKit pin remain unchanged.
+
 Git checkpoint: pending.

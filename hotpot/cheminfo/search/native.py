@@ -324,3 +324,22 @@ class _NativeMappingSource:
         position = self._problem.query_keys.index(query_key)
         for target_values in self._problem.cursor():
             yield target_values[position]
+
+
+class _NativeSpecTarget:
+    """Reuse one native target for queries already expressed as native IR."""
+
+    def __init__(self, target_spec: dict) -> None:
+        self._native_module = _native_module()
+        self._target = self._native_module.NativeTarget(target_spec)
+
+    def iter_mappings(
+        self,
+        query_spec: dict,
+    ) -> Iterable[dict[int, int]]:
+        problem = self._native_module.NativeProblem(query_spec, self._target)
+        query_keys = problem.query_keys
+        return (
+            dict(zip(query_keys, target_values))
+            for target_values in problem.cursor()
+        )

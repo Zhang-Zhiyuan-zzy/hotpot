@@ -2356,3 +2356,76 @@ Adjustment:
   independent of graph-row identity.
 
 Git checkpoint: `0a82896 feat(search): add reusable native spec target`.
+
+### Step 36 - Project the complete represented graph for Gate 6
+
+Status: complete
+
+Planned:
+
+- build one exact augmented graph over active, hidden-metal, and
+  hidden-covalent bonds without mutating the molecule;
+- represent each non-graph implicit protium as an ordinary hydrogen node so
+  graph automorphisms can exchange explicit and implicit protium; and
+- encode exact chemical labels and optional stable row pins for the reusable
+  native RI target while retaining dative direction for a later semantic
+  postfilter.
+
+Performed:
+
+- added the private `_Gate6Graph`, `_gate6_projection()`, and
+  `_gate6_query_spec()` implementation in `hotpot.cheminfo.stereo`;
+- projected atomic number, normalized isotope, formal charge, radical count,
+  aromatic atom state, exact normalized bond order/kind/aromatic state, and
+  all three represented bond stores into a deterministic native target;
+- added chemically ordinary virtual protium nodes for
+  `Atom.implicit_hydrogens`, with a private nonchemical row field used only
+  when a query node is explicitly pinned;
+- normalized explicit aromatic bonds and cyclic Kekule single/double bonds
+  between aromatic atoms while retaining the single biaryl bridge identity;
+- retained directed dative edges outside the undirected native labels for
+  exact mapping postfiltering in the next step; and
+- rejected duplicate/out-of-range atom facts, parallel edges, self-loops,
+  non-finite bond orders, negative implicit-H counts, and unknown dative
+  directions as deterministic unsupported projection states.
+
+Verification:
+
+- the complete previously tracked stereo selection reports 238 passed;
+- projection, reusable-spec-target, and native production-kernel coverage
+  reports 33 passed;
+- real-reader regressions prove `[H]C` projects one explicit plus three
+  virtual hydrogens and fully explicit methane projects no virtual hydrogen;
+- a real native RI query proves that an explicit protium can be pinned to and
+  exchanged with a virtual protium;
+- independent review exercised 500 randomized valid graphs through
+  projection, `NativeTarget`, and RI self-automorphism without failure;
+- both independent chemistry and implementation audits found no remaining
+  blocker; and
+- Python compilation and `git diff --check` pass.
+
+Unexpected findings:
+
+- an initial review inferred from `Molecule.add_hydrogens()` that
+  `implicit_hydrogens` was a total target count and proposed subtracting graph
+  hydrogen neighbours. Real OB reader inputs and the search semantics proved
+  that the field is normally the remaining non-graph count: subtraction turns
+  `[H]C` into CH3 and rejects fully explicit methane;
+- `Molecule.add_hydrogens()` itself leaves the old implicit count after
+  materializing graph hydrogens, so that operation can create a stale core
+  state inconsistent with normal reader semantics; and
+- native graph data requires edge/record pairs in lexicographic edge order,
+  including when a low-row virtual-H edge follows higher-row real edges.
+
+Adjustment:
+
+- Gate 6 consumes `Atom.implicit_hydrogens` directly and freezes that contract
+  with real-reader tests; it does not use an ambiguous subtraction heuristic
+  to hide the independent `add_hydrogens()` lifecycle defect;
+- virtual hydrogens carry no chemical virtual-node flag, but every represented
+  node carries a private target row value so source carriers can be pinned to
+  either real or virtual target nodes; and
+- edge records are sorted together after all real and virtual edges are
+  assembled, preserving native graph alignment.
+
+Git checkpoint: `3328f53 feat(stereo): add Gate-6 graph projection`.

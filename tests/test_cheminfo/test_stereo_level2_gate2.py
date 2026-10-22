@@ -9,10 +9,21 @@ from hotpot.cheminfo import stereo
 from hotpot.cheminfo.core import Molecule
 
 
-def _molecule(atom_count, bonds):
+def _molecule(atomic_numbers, bonds, *, implicit_hydrogens=None):
     molecule = Molecule()
-    for _ in range(atom_count):
-        molecule.create_atom(atomic_number=6)
+    hydrogen_counts = (
+        (0,) * len(atomic_numbers)
+        if implicit_hydrogens is None
+        else implicit_hydrogens
+    )
+    for atomic_number, hydrogen_count in zip(
+        atomic_numbers,
+        hydrogen_counts,
+    ):
+        molecule.create_atom(
+            atomic_number=atomic_number,
+            implicit_hydrogens=hydrogen_count,
+        )
     for begin, end, order in bonds:
         molecule.add_bond(begin, end, order)
     return molecule
@@ -61,8 +72,9 @@ def _set_records(molecule, *records):
 @pytest.mark.parametrize("value", ("even", "odd"))
 def test_manual_tetrahedral_descriptor_validates_against_graph(value):
     molecule = _molecule(
-        4,
+        (14, 6, 7, 8),
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0)),
+        implicit_hydrogens=(1, 0, 0, 0),
     )
     _set_records(
         molecule,
@@ -77,8 +89,9 @@ def test_manual_tetrahedral_descriptor_validates_against_graph(value):
 @pytest.mark.parametrize("value", ("together", "opposite"))
 def test_manual_double_bond_scopes_virtual_hydrogen_per_endpoint(value):
     molecule = _molecule(
-        4,
+        (6, 6, 9, 17),
         ((0, 1, 2.0), (0, 2, 1.0), (1, 3, 1.0)),
+        implicit_hydrogens=(1, 1, 0, 0),
     )
     _set_records(
         molecule,
@@ -90,8 +103,9 @@ def test_manual_double_bond_scopes_virtual_hydrogen_per_endpoint(value):
 
 def test_double_bond_scopes_shared_ring_atom_per_endpoint():
     molecule = _molecule(
-        3,
+        (6, 6, 7),
         ((0, 1, 2.0), (0, 2, 1.0), (1, 2, 1.0)),
+        implicit_hydrogens=(1, 1, 0),
     )
     _set_records(
         molecule,
@@ -103,7 +117,7 @@ def test_double_bond_scopes_shared_ring_atom_per_endpoint():
 
 def test_tetrahedral_carriers_must_exactly_cover_graph_neighbours():
     molecule = _molecule(
-        5,
+        (14, 6, 7, 8, 9),
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (0, 4, 1.0)),
     )
     _set_records(
@@ -124,7 +138,7 @@ def test_tetrahedral_carriers_must_exactly_cover_graph_neighbours():
 
 def test_tetrahedral_rejects_non_neighbour_and_non_hydrogen_virtual_carrier():
     molecule = _molecule(
-        5,
+        (14, 6, 7, 8, 9),
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0)),
     )
     vacancy = stereo.StereoCarrier(stereo.StereoCarrierKind.VACANCY)
@@ -147,7 +161,7 @@ def test_tetrahedral_rejects_non_neighbour_and_non_hydrogen_virtual_carrier():
 
 def test_double_bond_requires_real_double_bond_and_endpoint_local_groups():
     molecule = _molecule(
-        6,
+        (6, 6, 7, 8, 9, 17),
         (
             (0, 1, 1.0),
             (0, 2, 1.0),
@@ -192,7 +206,7 @@ def test_invalid_or_unsupported_descriptors_are_never_silently_accepted(
     code,
 ):
     molecule = _molecule(
-        5,
+        (14, 6, 7, 8, 9),
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (0, 4, 1.0)),
     )
     _set_records(
@@ -214,7 +228,7 @@ def test_invalid_or_unsupported_descriptors_are_never_silently_accepted(
 
 def test_ax_descriptor_rejects_an_atom_anchor():
     molecule = _molecule(
-        5,
+        (14, 6, 7, 8, 9),
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (0, 4, 1.0)),
     )
     _set_records(
@@ -240,7 +254,7 @@ def test_ax_descriptor_rejects_an_atom_anchor():
 
 
 def test_out_of_range_anchor_and_carrier_have_stable_context():
-    molecule = _molecule(2, ((0, 1, 1.0),))
+    molecule = _molecule((6, 7), ((0, 1, 1.0),))
     _set_records(
         molecule,
         _tetrahedral(3, (_atom(0), _atom(1), _atom(2), _H)),
@@ -266,7 +280,7 @@ def test_out_of_range_anchor_and_carrier_have_stable_context():
 
 def test_duplicate_semantic_anchor_is_reported_on_later_record():
     molecule = _molecule(
-        5,
+        (14, 6, 7, 8, 9),
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (0, 4, 1.0)),
     )
     carriers = (_atom(1), _atom(2), _atom(3), _atom(4))
@@ -290,7 +304,7 @@ def test_duplicate_semantic_anchor_is_reported_on_later_record():
 
 def test_tetrahedral_enhanced_group_is_supported_after_gate5():
     molecule = _molecule(
-        5,
+        (14, 6, 7, 8, 9),
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (0, 4, 1.0)),
     )
     record = _tetrahedral(0, (_atom(1), _atom(2), _atom(3), _atom(4)))
@@ -313,8 +327,9 @@ def test_tetrahedral_enhanced_group_is_supported_after_gate5():
 
 def test_assignment_preserves_valid_manual_payload_and_does_not_infer():
     molecule = _molecule(
-        4,
+        (14, 6, 7, 8),
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0)),
+        implicit_hydrogens=(1, 0, 0, 0),
     )
     payload = _set_records(
         molecule,
@@ -330,8 +345,9 @@ def test_assignment_preserves_valid_manual_payload_and_does_not_infer():
 
 def test_degenerate_coordinates_are_reported_after_gate4():
     molecule = _molecule(
-        4,
+        (14, 6, 7, 8),
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0)),
+        implicit_hydrogens=(1, 0, 0, 0),
     )
     payload = _set_records(
         molecule,

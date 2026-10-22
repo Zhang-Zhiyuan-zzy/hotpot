@@ -7,10 +7,11 @@ from hotpot.cheminfo import stereo
 from hotpot.cheminfo.core import Molecule
 
 
-def _molecule(atom_count, bonds):
+def _molecule(atom_count, bonds, *, atomic_numbers=None):
     molecule = Molecule()
-    for _ in range(atom_count):
-        molecule.create_atom(atomic_number=6)
+    atomic_numbers = atomic_numbers or (6,) * atom_count
+    for atomic_number in atomic_numbers:
+        molecule.create_atom(atomic_number=atomic_number)
     for begin, end, order in bonds:
         molecule.add_bond(begin, end, order)
     return molecule
@@ -75,7 +76,11 @@ def _multi_tetrahedral(count):
         for block in range(count)
         for carrier in range(1, 5)
     )
-    return _molecule(5 * count, bonds)
+    return _molecule(
+        5 * count,
+        bonds,
+        atomic_numbers=(6, 9, 17, 35, 53) * count,
+    )
 
 
 def _multi_tetrahedral_coordinates(count):
@@ -107,7 +112,11 @@ def _multi_axis(count):
             (2, 6, 1.0),
         )
     )
-    return _molecule(7 * count, bonds)
+    return _molecule(
+        7 * count,
+        bonds,
+        atomic_numbers=(6, 6, 6, 9, 17, 35, 53) * count,
+    )
 
 
 def _multi_axis_coordinates(count):
@@ -143,6 +152,7 @@ def _tetrahedral_and_axis_molecule():
             (7, 10, 1.0),
             (7, 11, 1.0),
         ),
+        atomic_numbers=(6, 9, 17, 35, 53, 6, 6, 6, 9, 17, 35, 53),
     )
 
 

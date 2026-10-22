@@ -9,10 +9,24 @@ from hotpot.cheminfo import stereo
 from hotpot.cheminfo.core import Molecule
 
 
-def _molecule(atom_count, bonds):
+def _molecule(
+    atom_count,
+    bonds,
+    *,
+    atomic_numbers=None,
+    implicit_hydrogens=None,
+):
     molecule = Molecule()
-    for _ in range(atom_count):
-        molecule.create_atom(atomic_number=6)
+    atomic_numbers = atomic_numbers or (6,) * atom_count
+    implicit_hydrogens = implicit_hydrogens or (0,) * atom_count
+    for atomic_number, hydrogen_count in zip(
+        atomic_numbers,
+        implicit_hydrogens,
+    ):
+        molecule.create_atom(
+            atomic_number=atomic_number,
+            implicit_hydrogens=hydrogen_count,
+        )
     for bond in bonds:
         molecule.add_bond(*bond)
     return molecule
@@ -45,7 +59,12 @@ def _set_records(molecule, *records):
 
 def _allene(*, implicit_h=False):
     if implicit_h:
-        molecule = _molecule(5, ((0, 1, 2.0), (1, 2, 2.0), (0, 3, 1.0), (2, 4, 1.0)))
+        molecule = _molecule(
+            5,
+            ((0, 1, 2.0), (1, 2, 2.0), (0, 3, 1.0), (2, 4, 1.0)),
+            atomic_numbers=(6, 6, 6, 9, 17),
+            implicit_hydrogens=(1, 0, 1, 0, 0),
+        )
         carriers = (_atom(3), _H, _atom(4), _H)
     else:
         molecule = _molecule(
@@ -58,6 +77,7 @@ def _allene(*, implicit_h=False):
                 (2, 5, 1.0),
                 (2, 6, 1.0),
             ),
+            atomic_numbers=(6, 6, 6, 9, 17, 35, 53),
         )
         carriers = tuple(_atom(atom) for atom in (3, 4, 5, 6))
     return molecule, carriers
@@ -105,6 +125,7 @@ def test_even_bond_cumulene_requires_full_maximal_odd_atom_path():
             (4, 7, 1.0),
             (4, 8, 1.0),
         ),
+        atomic_numbers=(6, 6, 6, 6, 6, 9, 17, 35, 53),
     )
     carriers = tuple(_atom(atom) for atom in (5, 6, 7, 8))
     _set_records(
@@ -203,6 +224,7 @@ def test_formal_atrop_accepts_real_single_axis_without_barrier_claim():
     molecule = _molecule(
         6,
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (1, 4, 1.0), (1, 5, 1.0)),
+        atomic_numbers=(6, 6, 9, 17, 35, 53),
     )
     _set_records(
         molecule,
@@ -217,7 +239,12 @@ def test_formal_atrop_accepts_real_single_axis_without_barrier_claim():
 
 
 def test_formal_atrop_accepts_endpoint_local_implicit_hydrogens():
-    molecule = _molecule(4, ((0, 1, 1.0), (0, 2, 1.0), (1, 3, 1.0)))
+    molecule = _molecule(
+        4,
+        ((0, 1, 1.0), (0, 2, 1.0), (1, 3, 1.0)),
+        atomic_numbers=(6, 6, 9, 17),
+        implicit_hydrogens=(1, 1, 0, 0),
+    )
     _set_records(
         molecule,
         _axial(
@@ -234,6 +261,7 @@ def test_formal_atrop_uses_same_coordinate_and_reversal_contract():
     reference = _molecule(
         6,
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (1, 4, 1.0), (1, 5, 1.0)),
+        atomic_numbers=(6, 6, 9, 17, 35, 53),
     )
     target = reference.copy()
     carriers = tuple(_atom(atom) for atom in (2, 3, 4, 5))

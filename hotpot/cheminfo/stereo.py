@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Collection, Sequence
 from dataclasses import dataclass, replace
 from enum import Enum
-from itertools import permutations, product
+from itertools import combinations, permutations, product
 from math import factorial, isfinite
 from typing import TYPE_CHECKING, Mapping
 
@@ -947,6 +947,7 @@ def set_stereo_payload(mol: Molecule, payload: StereoPayload) -> None:
 
 
 _GATE6_ROW_FIELD = "_hotpot_stereo_row"
+_GATE6_H_SLOT_FIELD = "_hotpot_stereo_h_slot"
 _GATE6_ATOM_FIELDS = (
     "atomic_number",
     "isotope",
@@ -964,6 +965,26 @@ class _Gate6Graph:
     directed_dative_edges: frozenset[tuple[int, int]]
     real_atom_count: int
     virtual_hydrogens: tuple[tuple[int, ...], ...]
+
+
+class _Gate6Equivalence(Enum):
+    """Tri-state result for one represented carrier-pair comparison."""
+
+    EQUIVALENT = "equivalent"
+    DISTINCT = "distinct"
+    UNKNOWN = "unknown"
+
+
+@dataclass(frozen=True)
+class _Gate6SemanticContext:
+    """Stereo facts retained while testing one record's carrier pair."""
+
+    payload: StereoPayload
+    descriptors: tuple[_Level2Descriptor, ...]
+    targets: dict
+    opaque_records: tuple[StereoRecord, ...]
+    pointwise_keys: frozenset[int]
+    hydrogen_slot_exemptions: frozenset[int]
 
 
 def _gate6_issue(
@@ -1224,6 +1245,40 @@ def _gate6_projection(
     edges = [edge for edge, _ in edge_records]
     bond_records = [record for _, record in edge_records]
     keys = tuple(range(next_key))
+    neighbours = [[] for _ in keys]
+    incident_bonds = [[] for _ in keys]
+    for (first, second), bond_record in zip(edges, bond_records):
+        neighbours[first].append(second)
+        neighbours[second].append(first)
+        incident_bonds[first].append((second, bond_record))
+        incident_bonds[second].append((first, bond_record))
+    hydrogen_groups = {}
+    for key, fields in zip(keys, node_fields):
+        if fields["atomic_number"] != 1 or len(neighbours[key]) != 1:
+            continue
+        parent = neighbours[key][0]
+        _, bond_record = incident_bonds[key][0]
+        direction = (
+            "out"
+            if (key, parent) in directed_dative_edges
+            else (
+                "in"
+                if (parent, key) in directed_dative_edges
+                else None
+            )
+        )
+        signature = (
+            *(fields[field] for field in _GATE6_ATOM_FIELDS),
+            bond_record["bond_kind"],
+            bond_record["fields"]["bond_order"],
+            bond_record["fields"]["is_aromatic"],
+            direction,
+        )
+        hydrogen_groups.setdefault((parent, signature), []).append(key)
+    for hydrogen_keys in hydrogen_groups.values():
+        for slot, key in enumerate(sorted(hydrogen_keys)):
+            node_fields[key][_GATE6_H_SLOT_FIELD] = slot
+
     degrees = [0] * next_key
     valences = [0.0] * next_key
     for edge, bond_record in zip(edges, bond_records):
@@ -1261,8 +1316,15 @@ def _gate6_projection(
 def _gate6_query_spec(
     graph: _Gate6Graph,
     pins: Mapping[int, int],
+    *,
+    hydrogen_slot_exemptions: Collection[int] | None = None,
 ) -> dict:
-    """Build an exact whole-graph native query with optional row pins."""
+    """Build an exact whole-graph native query with optional symmetry pins.
+
+    ``hydrogen_slot_exemptions=None`` omits every nonchemical H-slot
+    constraint.  An explicit collection enables slots for all eligible
+    hydrogens except the listed represented keys.
+    """
 
     target = graph.target_spec
     nodes = []
@@ -1274,6 +1336,18 @@ def _gate6_query_spec(
         if key in pins:
             leaves.append(
                 ("native_set", _GATE6_ROW_FIELD, (int(pins[key]),))
+            )
+        if (
+            hydrogen_slot_exemptions is not None
+            and key not in hydrogen_slot_exemptions
+            and _GATE6_H_SLOT_FIELD in atom["fields"]
+        ):
+            leaves.append(
+                (
+                    "native_set",
+                    _GATE6_H_SLOT_FIELD,
+                    (atom["fields"][_GATE6_H_SLOT_FIELD],),
+                )
             )
         nodes.append(
             {
@@ -1300,6 +1374,456 @@ def _gate6_query_spec(
         "nodes": tuple(nodes),
         "bonds": bonds,
     }
+
+
+def _gate6_carrier_keys(
+    record: StereoRecord,
+    descriptor: _Level2Descriptor,
+    graph: _Gate6Graph,
+) -> tuple[int, ...] | None:
+    """Resolve one record's carriers into augmented represented-graph keys."""
+
+    if descriptor.family is _Level2DescriptorFamily.TETRAHEDRAL:
+        endpoints = (record.anchor.atom_indices[0],) * len(record.carriers)
+    else:
+        endpoints = (
+            (record.anchor.atom_indices[0],) * 2
+            + (record.anchor.atom_indices[-1],) * 2
+        )
+
+    keys = []
+    for carrier, endpoint in zip(record.carriers, endpoints):
+        if carrier.kind is StereoCarrierKind.ATOM:
+            keys.append(carrier.atom)
+            continue
+        if carrier.kind is not StereoCarrierKind.IMPLICIT_H:
+            return None
+        virtual = graph.virtual_hydrogens[endpoint]
+        if len(virtual) != 1:
+            return None
+        keys.append(virtual[0])
+    return tuple(keys)
+
+
+def _gate6_materialize_record(
+    record: StereoRecord,
+    descriptor: _Level2Descriptor,
+    graph: _Gate6Graph,
+) -> StereoRecord | None:
+    """Replace supported implicit-H carriers with represented atom tokens."""
+
+    carrier_keys = _gate6_carrier_keys(record, descriptor, graph)
+    if carrier_keys is None:
+        return None
+    return replace(
+        record,
+        carriers=tuple(
+            StereoCarrier(StereoCarrierKind.ATOM, key)
+            for key in carrier_keys
+        ),
+    )
+
+
+def _gate6_semantic_context(
+    payload: StereoPayload,
+    graph: _Gate6Graph,
+    *,
+    excluded_record_index: int,
+    valid_record_indices: Collection[int],
+    unsupported_record_indices: Collection[int],
+) -> _Gate6SemanticContext:
+    """Prepare all descendant stereo semantics except the record under test."""
+
+    valid_record_indices = set(valid_record_indices)
+    unsupported_record_indices = set(unsupported_record_indices)
+    records = []
+    descriptors = []
+    opaque_records = []
+    for record_index, record in enumerate(payload.records):
+        if record_index == excluded_record_index:
+            continue
+        parsed = _parse_level2_descriptor(record.descriptor)
+        descriptor = parsed.descriptor
+        if (
+            record_index in valid_record_indices
+            and descriptor is not None
+            and descriptor.family in (
+                _Level2DescriptorFamily.TETRAHEDRAL,
+                _Level2DescriptorFamily.DOUBLE_BOND,
+                _Level2DescriptorFamily.AXIAL,
+            )
+        ):
+            materialized = _gate6_materialize_record(
+                record,
+                descriptor,
+                graph,
+            )
+            if materialized is not None:
+                records.append(materialized)
+                descriptors.append(descriptor)
+                continue
+            opaque_records.append(record)
+            continue
+        if (
+            record_index in unsupported_record_indices
+            and record.descriptor.startswith(
+                f"{_LEVEL2_DESCRIPTOR_PREFIX}/"
+            )
+        ):
+            opaque_records.append(record)
+
+    reduced_payload = replace(payload, records=tuple(records))
+    targets = {}
+    for record_index, (record, descriptor) in enumerate(
+        zip(reduced_payload.records, descriptors)
+    ):
+        identity = _alignment_record_identity(descriptor.family, record.anchor)
+        targets.setdefault(identity, []).append(
+            (record_index, record, descriptor)
+        )
+    semantic_records = (
+        payload.records[excluded_record_index],
+        *reduced_payload.records,
+        *opaque_records,
+    )
+    semantic_keys = {
+        atom
+        for record in semantic_records
+        for atom in _record_atom_indices(record)
+        if 0 <= atom < len(graph.target_spec["keys"])
+    }
+    adjacency = {
+        key: set() for key in graph.target_spec["keys"]
+    }
+    for first, second in graph.target_spec["edges"]:
+        adjacency[first].add(second)
+        adjacency[second].add(first)
+    pointwise_keys = set()
+    unseen = set(adjacency)
+    while unseen:
+        seed = min(unseen)
+        component = set()
+        pending = [seed]
+        while pending:
+            key = pending.pop()
+            if key in component:
+                continue
+            component.add(key)
+            pending.extend(adjacency[key] - component)
+        unseen.difference_update(component)
+        if component.isdisjoint(semantic_keys):
+            pointwise_keys.update(component)
+    hydrogen_slot_exemptions = {
+        carrier.atom
+        for record in reduced_payload.records
+        for carrier in record.carriers
+        if (
+            carrier.kind is StereoCarrierKind.ATOM
+            and graph.target_spec["atoms"][carrier.atom]["fields"][
+                "atomic_number"
+            ]
+            == 1
+        )
+    }
+    for record in opaque_records:
+        hydrogen_slot_exemptions.update(
+            atom
+            for atom in _record_atom_indices(record)
+            if (
+                0 <= atom < len(graph.target_spec["keys"])
+                and graph.target_spec["atoms"][atom]["fields"][
+                    "atomic_number"
+                ]
+                == 1
+            )
+        )
+        if any(
+            carrier.kind is not StereoCarrierKind.ATOM
+            for carrier in record.carriers
+        ):
+            hydrogen_slot_exemptions.update(
+                hydrogen
+                for atom in record.anchor.atom_indices
+                if (
+                    isinstance(atom, int)
+                    and not isinstance(atom, bool)
+                    and 0 <= atom < graph.real_atom_count
+                )
+                for hydrogen in graph.virtual_hydrogens[atom]
+            )
+    return _Gate6SemanticContext(
+        payload=reduced_payload,
+        descriptors=tuple(descriptors),
+        targets=targets,
+        opaque_records=tuple(opaque_records),
+        pointwise_keys=frozenset(pointwise_keys),
+        hydrogen_slot_exemptions=frozenset(hydrogen_slot_exemptions),
+    )
+
+
+def _gate6_dative_direction_is_preserved(
+    graph: _Gate6Graph,
+    mapping: Mapping[int, int],
+) -> bool:
+    """Compare the complete directed-dative edge set under one mapping."""
+
+    return frozenset(
+        (mapping[begin], mapping[end])
+        for begin, end in graph.directed_dative_edges
+    ) == graph.directed_dative_edges
+
+
+def _gate6_opaque_record_is_fixed(
+    record: StereoRecord,
+    graph: _Gate6Graph,
+    mapping: Mapping[int, int],
+) -> bool:
+    """Accept an uninterpreted Hotpot record only when it remains pointwise fixed."""
+
+    if any(
+        mapping.get(atom) != atom
+        for atom in _record_atom_indices(record)
+    ):
+        return False
+    if any(
+        carrier.kind is not StereoCarrierKind.ATOM
+        for carrier in record.carriers
+    ):
+        return all(
+            mapping[hydrogen] == hydrogen
+            for atom in record.anchor.atom_indices
+            if (
+                isinstance(atom, int)
+                and not isinstance(atom, bool)
+                and 0 <= atom < graph.real_atom_count
+            )
+            for hydrogen in graph.virtual_hydrogens[atom]
+        ) and all(
+            isinstance(atom, int)
+            and not isinstance(atom, bool)
+            and 0 <= atom < graph.real_atom_count
+            for atom in record.anchor.atom_indices
+        )
+    return True
+
+
+def _transform_supported_record(
+    descriptor: _Level2Descriptor,
+    mapped: StereoRecord,
+    target: StereoRecord,
+) -> _Level2AlgebraResult:
+    """Apply the frozen family-specific descriptor transformation."""
+
+    if descriptor.family is _Level2DescriptorFamily.TETRAHEDRAL:
+        return _transform_level2_descriptor(
+            descriptor,
+            mapped.carriers,
+            target.carriers,
+            source_anchor=mapped.anchor,
+            reordered_anchor=target.anchor,
+        )
+    if descriptor.family is _Level2DescriptorFamily.DOUBLE_BOND:
+        return _transform_gate3_double_bond(descriptor, mapped, target)
+    return _transform_gate5_axial(descriptor, mapped, target)
+
+
+def _gate6_mapping_preserves_stereo(
+    graph: _Gate6Graph,
+    context: _Gate6SemanticContext,
+    mapping: Mapping[int, int],
+) -> _Gate6Equivalence:
+    """Classify one topology automorphism after exact stereo postfilters."""
+
+    if not _gate6_dative_direction_is_preserved(graph, mapping):
+        return _Gate6Equivalence.DISTINCT
+
+    matches = []
+    matched_target_indices = set()
+    for reference_index, (record, descriptor) in enumerate(
+        zip(context.payload.records, context.descriptors)
+    ):
+        mapped = _mapped_alignment_record(record, mapping)
+        identity = _alignment_record_identity(descriptor.family, mapped.anchor)
+        targets = context.targets.get(identity, ())
+        if len(targets) != 1:
+            return _Gate6Equivalence.DISTINCT
+        target_index, target, _ = targets[0]
+        transformed = _transform_supported_record(descriptor, mapped, target)
+        if transformed.descriptor is None or transformed.issues:
+            return _Gate6Equivalence.DISTINCT
+        matched_target_indices.add(target_index)
+        matches.append(
+            _AlignmentMatch(
+                reference_index=reference_index,
+                target_index=target_index,
+                mapped=mapped,
+                target=target,
+                transformed=transformed.descriptor,
+            )
+        )
+
+    if matched_target_indices != set(range(len(context.payload.records))):
+        return _Gate6Equivalence.DISTINCT
+    if _alignment_group_issues(context.payload, context.payload, matches):
+        return _Gate6Equivalence.DISTINCT
+    if any(
+        not _gate6_opaque_record_is_fixed(record, graph, mapping)
+        for record in context.opaque_records
+    ):
+        return _Gate6Equivalence.UNKNOWN
+    return _Gate6Equivalence.EQUIVALENT
+
+
+def _gate6_carrier_pair_equivalence(
+    native_target,
+    graph: _Gate6Graph,
+    context: _Gate6SemanticContext,
+    record: StereoRecord,
+    carrier_keys: tuple[int, ...],
+    pair: tuple[int, int],
+) -> _Gate6Equivalence:
+    """Test one carrier pair by pinned whole-graph RI automorphisms."""
+
+    pins = {key: key for key in context.pointwise_keys}
+    pins.update((atom, atom) for atom in record.anchor.atom_indices)
+    pins[carrier_keys[pair[0]]] = carrier_keys[pair[1]]
+    saw_unknown = False
+    for mapping in native_target.iter_mappings(
+        _gate6_query_spec(
+            graph,
+            pins,
+            hydrogen_slot_exemptions=(
+                context.hydrogen_slot_exemptions
+                | {
+                    carrier_keys[pair[0]],
+                    carrier_keys[pair[1]],
+                }
+            ),
+        )
+    ):
+        result = _gate6_mapping_preserves_stereo(graph, context, mapping)
+        if result is _Gate6Equivalence.EQUIVALENT:
+            return result
+        if result is _Gate6Equivalence.UNKNOWN:
+            saw_unknown = True
+    return (
+        _Gate6Equivalence.UNKNOWN
+        if saw_unknown
+        else _Gate6Equivalence.DISTINCT
+    )
+
+
+def _gate6_stereogenicity_issues(
+    mol: Molecule,
+    graph_report: StereoValidationReport,
+) -> tuple[StereoValidationIssue, ...]:
+    """Prove supported carrier distinction on the exact represented graph."""
+
+    payload = get_stereo_payload(mol)
+    invalid_record_indices = {
+        issue.record_index
+        for issue in graph_report.issues
+        if issue.record_index is not None
+    }
+    unsupported_record_indices = {
+        issue.record_index
+        for issue in graph_report.issues
+        if (
+            issue.record_index is not None
+            and issue.code is StereoIssueCode.UNSUPPORTED
+        )
+    }
+    candidates = []
+    valid_record_indices = set()
+    for record_index, record in enumerate(payload.records):
+        parsed = _parse_level2_descriptor(record.descriptor)
+        descriptor = parsed.descriptor
+        if (
+            record_index not in invalid_record_indices
+            and descriptor is not None
+            and not parsed.issues
+            and descriptor.family in (
+                _Level2DescriptorFamily.TETRAHEDRAL,
+                _Level2DescriptorFamily.DOUBLE_BOND,
+                _Level2DescriptorFamily.AXIAL,
+            )
+        ):
+            candidates.append((record_index, record, descriptor))
+            valid_record_indices.add(record_index)
+    if not candidates:
+        return ()
+
+    graph, projection_issues = _gate6_projection(mol)
+    if graph is None:
+        return projection_issues
+
+    from .search.native import _NativeSpecTarget
+
+    native_target = _NativeSpecTarget(graph.target_spec)
+    issues = []
+    for record_index, record, descriptor in candidates:
+        carrier_keys = _gate6_carrier_keys(record, descriptor, graph)
+        if carrier_keys is None:
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.UNSUPPORTED,
+                    "Gate-6 represented carrier identity is unresolved",
+                    record_index=record_index,
+                    atom_indices=_record_atom_indices(record),
+                )
+            )
+            continue
+
+        context = _gate6_semantic_context(
+            payload,
+            graph,
+            excluded_record_index=record_index,
+            valid_record_indices=valid_record_indices,
+            unsupported_record_indices=unsupported_record_indices,
+        )
+        pairs = (
+            tuple(combinations(range(4), 2))
+            if descriptor.family is _Level2DescriptorFamily.TETRAHEDRAL
+            else ((0, 1), (2, 3))
+        )
+        saw_unknown = False
+        equivalent_pair = None
+        for pair in pairs:
+            result = _gate6_carrier_pair_equivalence(
+                native_target,
+                graph,
+                context,
+                record,
+                carrier_keys,
+                pair,
+            )
+            if result is _Gate6Equivalence.EQUIVALENT:
+                equivalent_pair = pair
+                break
+            if result is _Gate6Equivalence.UNKNOWN:
+                saw_unknown = True
+
+        if equivalent_pair is not None:
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.NON_STEREOGENIC,
+                    "represented graph makes carrier positions "
+                    f"{equivalent_pair[0]} and {equivalent_pair[1]} equivalent",
+                    record_index=record_index,
+                    atom_indices=_record_atom_indices(record),
+                )
+            )
+        elif saw_unknown:
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.UNSUPPORTED,
+                    "represented-graph carrier equivalence depends on moved "
+                    "unsupported stereochemistry",
+                    record_index=record_index,
+                    atom_indices=_record_atom_indices(record),
+                )
+            )
+    return tuple(issues)
 
 
 def _record_atom_indices(record: StereoRecord) -> tuple[int, ...]:
@@ -2516,14 +3040,27 @@ def _coordinate_group_consistency_issues(
     return tuple(issues)
 
 
+def _validate_graph_stereochemistry(mol: Molecule) -> StereoValidationReport:
+    """Combine structural Gates 2/5 with exact Gate-6 stereogenicity."""
+
+    report = _validate_gate2_stereochemistry(mol)
+    issues = _gate6_stereogenicity_issues(mol, report)
+    if not issues:
+        return report
+    return StereoValidationReport(
+        is_valid=False,
+        issues=(*report.issues, *issues),
+    )
+
+
 def validate_stereochemistry(
     mol: Molecule,
     *,
     coordinates: NDArray[np.float64] | None = None,
 ) -> StereoValidationReport:
-    """Validate Gate-2 graph and optional Gate-4 coordinate semantics."""
+    """Validate graph stereogenicity and optional coordinate semantics."""
 
-    graph_report = _validate_gate2_stereochemistry(mol)
+    graph_report = _validate_graph_stereochemistry(mol)
     if coordinates is None:
         return graph_report
     _, coordinate_issues = _gate4_coordinate_assignments(
@@ -2543,7 +3080,7 @@ def assign_stereochemistry(
     """Assign supported descriptors from explicit coordinates without mutation."""
 
     payload = get_stereo_payload(mol)
-    graph_report = _validate_gate2_stereochemistry(mol)
+    graph_report = _validate_graph_stereochemistry(mol)
     if coordinates is None:
         return StereoAssignmentReport(
             payload=payload,
@@ -3137,26 +3674,11 @@ def align_stereochemistry(
 
         target_index, target_record, _ = matches[0]
         matched_target_indices.add(target_index)
-        if parsed.family is _Level2DescriptorFamily.TETRAHEDRAL:
-            transformed = _transform_level2_descriptor(
-                parsed,
-                mapped.carriers,
-                target_record.carriers,
-                source_anchor=mapped.anchor,
-                reordered_anchor=target_record.anchor,
-            )
-        elif parsed.family is _Level2DescriptorFamily.DOUBLE_BOND:
-            transformed = _transform_gate3_double_bond(
-                parsed,
-                mapped,
-                target_record,
-            )
-        else:
-            transformed = _transform_gate5_axial(
-                parsed,
-                mapped,
-                target_record,
-            )
+        transformed = _transform_supported_record(
+            parsed,
+            mapped,
+            target_record,
+        )
         if transformed.issues:
             issues.extend(
                 _record_issues(

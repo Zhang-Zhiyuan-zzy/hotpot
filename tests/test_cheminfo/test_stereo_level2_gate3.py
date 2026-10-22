@@ -4,10 +4,21 @@ from hotpot.cheminfo import stereo
 from hotpot.cheminfo.core import Molecule
 
 
-def _molecule(atom_count, bonds):
+def _molecule(atomic_numbers, bonds, *, implicit_hydrogens=None):
     molecule = Molecule()
-    for _ in range(atom_count):
-        molecule.create_atom(atomic_number=6)
+    hydrogen_counts = (
+        (0,) * len(atomic_numbers)
+        if implicit_hydrogens is None
+        else implicit_hydrogens
+    )
+    for atomic_number, hydrogen_count in zip(
+        atomic_numbers,
+        hydrogen_counts,
+    ):
+        molecule.create_atom(
+            atomic_number=atomic_number,
+            implicit_hydrogens=hydrogen_count,
+        )
     for begin, end, order in bonds:
         molecule.add_bond(begin, end, order)
     return molecule
@@ -55,14 +66,15 @@ def _set_records(molecule, *records):
 
 def _tetrahedral_molecule():
     return _molecule(
-        4,
+        (14, 6, 7, 8),
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0)),
+        implicit_hydrogens=(1, 0, 0, 0),
     )
 
 
 def _alkene_molecule():
     return _molecule(
-        6,
+        (6, 6, 9, 17, 7, 8),
         (
             (0, 1, 2.0),
             (0, 2, 1.0),
@@ -123,8 +135,9 @@ def test_tetrahedral_odd_carrier_permutation_transforms_parity():
 def test_nonidentity_atom_mapping_relabels_anchor_and_carriers():
     reference = _tetrahedral_molecule()
     target = _molecule(
-        4,
+        (8, 7, 6, 14),
         ((3, 0, 1.0), (3, 1, 1.0), (3, 2, 1.0)),
+        implicit_hydrogens=(0, 0, 0, 1),
     )
     _set_records(
         reference,
@@ -195,12 +208,14 @@ def test_double_bond_anchor_reversal_requires_and_accepts_pair_reversal():
 
 def test_double_bond_endpoint_scope_allows_virtual_h_and_shared_ring_atom():
     reference = _molecule(
-        3,
+        (6, 6, 7),
         ((0, 1, 2.0), (0, 2, 1.0), (1, 2, 1.0)),
+        implicit_hydrogens=(1, 1, 0),
     )
     target = _molecule(
-        3,
+        (6, 6, 7),
         ((0, 1, 2.0), (0, 2, 1.0), (1, 2, 1.0)),
+        implicit_hydrogens=(1, 1, 0),
     )
     carriers = (_atom(2), _H, _atom(2), _H)
     _set_records(reference, _double_bond(0, 1, carriers))
@@ -308,7 +323,7 @@ def test_duplicate_target_record_and_invalid_target_graph_are_identified():
     )
 
     invalid_target = _molecule(
-        5,
+        (14, 6, 7, 8, 9),
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0)),
     )
     _set_records(

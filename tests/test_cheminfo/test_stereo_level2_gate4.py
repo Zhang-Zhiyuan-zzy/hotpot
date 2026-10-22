@@ -9,10 +9,18 @@ from hotpot.cheminfo import stereo
 from hotpot.cheminfo.core import Molecule
 
 
-def _molecule(atom_count, bonds):
+def _molecule(atomic_numbers, bonds, *, implicit_hydrogens=None):
     molecule = Molecule()
-    for _ in range(atom_count):
-        molecule.create_atom(atomic_number=6)
+    hydrogen_counts = (
+        (0,) * len(atomic_numbers)
+        if implicit_hydrogens is None
+        else implicit_hydrogens
+    )
+    for atomic_number, hydrogen_count in zip(atomic_numbers, hydrogen_counts):
+        molecule.create_atom(
+            atomic_number=atomic_number,
+            implicit_hydrogens=hydrogen_count,
+        )
     for begin, end, order in bonds:
         molecule.add_bond(begin, end, order)
     return molecule
@@ -59,10 +67,11 @@ def _set_records(molecule, *records):
 
 
 def _tetrahedral_molecule(*, implicit_h=False):
-    atom_count = 4 if implicit_h else 5
+    atomic_numbers = (6, 7, 8, 9) if implicit_h else (6, 7, 8, 9, 17)
     molecule = _molecule(
-        atom_count,
-        tuple((0, atom, 1.0) for atom in range(1, atom_count)),
+        atomic_numbers,
+        tuple((0, atom, 1.0) for atom in range(1, len(atomic_numbers))),
+        implicit_hydrogens=(1, 0, 0, 0) if implicit_h else None,
     )
     carriers = (
         (_atom(1), _atom(2), _atom(3), _H)
@@ -89,11 +98,12 @@ def _tetrahedral_coordinates(*, implicit_h=False):
 def _alkene_molecule(*, implicit_h=False):
     if implicit_h:
         return _molecule(
-            4,
+            (6, 6, 9, 17),
             ((0, 1, 2.0), (0, 2, 1.0), (1, 3, 1.0)),
+            implicit_hydrogens=(1, 1, 0, 0),
         ), (_atom(2), _H, _atom(3), _H)
     return _molecule(
-        6,
+        (6, 6, 7, 8, 9, 17),
         (
             (0, 1, 2.0),
             (0, 2, 1.0),

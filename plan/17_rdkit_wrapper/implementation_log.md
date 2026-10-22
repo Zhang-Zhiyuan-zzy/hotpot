@@ -2064,4 +2064,4 @@ Adjustment:
   coordinate, mapping, and chelate semantics without automatic center
   discovery.
 
-Git checkpoint: pending documentation commit.
+Git checkpoint: `1079b40 docs(plan17): revise advanced stereo semantics`.

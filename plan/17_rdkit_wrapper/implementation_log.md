@@ -3324,3 +3324,102 @@ Adjustment:
 
 Git checkpoint:
 `c79d02c test(stereo): cross-check Gate-7 toolkit observations`.
+
+### Step 47 - Execute the local Phase-8 release regression
+
+Status: complete for local source/native validation; external release gates
+remain open
+
+Planned:
+
+- rerun force-field, native geometry, trajectory, working-copy, search,
+  inference, pipeline, stereo, `rdWrappers`, packaging, and public-API tests;
+- prove both supported Hotpot/Python-RDKit import orders in clean processes;
+- rebuild the Python extension and standalone SDK from the locked offline
+  closure in new directories, then rerun C11/C++17 ABI consumers; and
+- audit current-build symbols, dynamic dependencies, RPATH, installed headers,
+  and licenses without treating a probe artifact as a release wheel.
+
+Performed:
+
+- added subprocess regressions for Hotpot-then-RDKit and
+  RDKit-then-Hotpot, each exercising real Hotpot and RDKit molecule operations;
+- intentionally did not run OpenBabel-first followed by Python RDKit because
+  that unmodified third-party-wheel order is the known isolated segfault
+  diagnostic, not a supported order;
+- ran the repository's curated functional-regression target set directly
+  after the coverage wrapper reported that the local environment lacks the
+  optional `coverage` module;
+- redirected model and Hugging Face caches to writable `/tmp` roots and reran
+  every model-backed failure caused by the sandbox's read-only default cache;
+- verified all six source archives offline and rebuilt both artifacts in 164
+  Ninja steps with the pinned GCC 14.3/CMake 3.31.8/Ninja 1.12.1 probe
+  toolchain;
+- installed the fresh SDK and its CMake package, public headers, notices, and
+  licenses under `/tmp/hotpot-plan17-phase8-sdk-02`; and
+- exercised the new extension and SDK rather than reusing the earlier
+  development artifacts.
+
+Verification:
+
+- the curated functional selection initially reported 2,435 passed, 12
+  skipped, 49 subtests passed, 2 failed, and 9 setup errors; all 11 nonpassing
+  cases had the same read-only default model-cache cause rather than an
+  assertion or implementation mismatch;
+- the redirected model-cache rerun reported 55 passed before one additional
+  MCA stdout assertion exposed a Hugging Face Xet logging fallback to the same
+  read-only cache; redirecting `HF_HOME` and `XDG_CACHE_HOME` made that final
+  case pass;
+- the complete stereo and `rdWrappers` selection reports 601 passed and 2
+  skipped;
+- the fresh-extension/fresh-SDK `rdWrappers`, C/C++ consumer, public API, and
+  packaging selection reports 71 passed;
+- C11 and C++17 consumers compiled, linked, and ran, including both
+  `_GLIBCXX_USE_CXX11_ABI=0` and `=1` through the installed CMake package;
+- the SDK exports exactly 15 `hotpot_rd_*` functions and its version node; the
+  extension exports only `PyInit__rd_native` and its version node;
+- neither artifact has RPATH/RUNPATH or a dynamic RDKit/Boost dependency, and
+  SDK `ldd -r` is clean with the recorded probe-toolchain runtime;
+- installation contains four public headers and eight license/notice files;
+- fresh runtime identity is Hotpot `0.5.4.0`, native RDKit `2026.09.1`; and
+- the run-specific extension and SDK SHA-256 values are
+  `0763fe8fad5464e858e745097950179d9062a4ab26c107a2d44749eddf7f2248`
+  and `dc8d1a7a53cc6dfa4f47995eef29a48ad8af557ba458654aebadf859152d86a4`.
+
+Unexpected findings:
+
+- `tests/run_coverage.sh` cannot produce coverage artifacts in the current
+  environment because `coverage` is absent; the identical functional targets
+  were executed directly with pytest instead;
+- model-backed tests first failed because their default cache is outside the
+  writable sandbox, and Hugging Face Xet subsequently wrote its cache error to
+  captured stdout; explicit writable model, Hugging Face, and XDG cache roots
+  closed both environmental failures;
+- the first fresh native build verified and extracted every source archive
+  but stopped before CMake because the active Python lacks `pybind11`; using
+  the already isolated build-dependency directory on temporary `PYTHONPATH`
+  allowed the second new-directory build to complete without installing or
+  changing the environment; and
+- the probe SDK requires GLIBCXX/CXXABI versions newer than the host system
+  GCC 9 runtime. It loads and passes with the recorded GCC 14.3 toolchain
+  runtime, but ABI-0/ABI-1 facade compatibility does not mean arbitrary old
+  libstdc++ runtime compatibility.
+
+Adjustment:
+
+- report the curated regression as staged closure with explicit environmental
+  reruns, not as one initially green coverage invocation;
+- keep the OpenBabel-first crash as a documented isolated diagnostic and test
+  only supported clean-process import orders in normal CI;
+- scope SDK compatibility claims to the tested ABI modes and toolchain runtime;
+  and
+- leave the CPython 3.10-3.14 manylinux wheel matrix, auditwheel output, and
+  formal 182-case O0/F1/C1/C2 matrices open rather than replacing them with a
+  CPython 3.11 probe build or development smoke cohort.
+
+The local Phase-8 checkpoint is closed. Stage-17 release validation remains
+blocked by the unavailable frozen 182-case manifest/native sidecars, the
+missing dedicated O0/F1 benchmark runner, and the unexecuted five-interpreter
+manylinux wheel workflow.
+
+Git checkpoint: `10bc417 test(rdwrapper): cover supported import orders`.

@@ -2212,3 +2212,88 @@ Adjustment:
   algebra and public Gate-5 graph validation.
 
 Git checkpoint: `b471052 feat(stereo): implement Level-2 Gate-5 axial semantics`.
+
+### Step 34 - Complete Gate 5 enhanced-stereo group semantics
+
+Status: complete
+
+Planned:
+
+- support `ABS`, `AND`, and `OR` only for the implemented tetrahedral and
+  axial parity families while keeping grouped double-bond records explicit
+  unsupported outcomes;
+- compare relative groups by mapped member partition and group kind rather
+  than transport provenance scope/ID; and
+- evaluate coordinate consistency and alignment with one group-wide inversion
+  bit instead of treating inverted members as unrelated contradictions.
+
+Performed:
+
+- retained ungrouped and `ABS` records as individually fixed facts and allowed
+  them to align with one another only when each transformed descriptor agrees;
+- aggregated local `AND`/`OR` membership by its complete `StereoGroupRef`, but
+  compared different molecules only by the mapped member partition and kind;
+- accepted either no inversion or a uniform inversion across every member of
+  an `AND` or `OR` group, while keeping the two kinds chemically distinct;
+- separated raw coordinate assignment from consistency checking so assignment
+  always returns every realized TH/AX descriptor and group validation emits at
+  most one deterministic issue for a partial inversion;
+- skipped group consistency when any member lacks a coordinate assignment,
+  preserving the member's graph/geometry issue without inferring a partial
+  group state from incomplete evidence;
+- split alignment transformation from group comparison, retained the
+  transformed source descriptor, and adopted the matched target's group
+  lineage in the aligned payload; and
+- aggregated crossed split/merge partitions by connected component so each
+  independent mismatch has one stable issue at its lowest reference record
+  with the sorted target-space atom union.
+
+Verification:
+
+- the final dedicated enhanced-group file reports 30 passed and the complete
+  `test_*stereo*.py` selection reports 238 passed;
+- fixtures cover TH and AX groups, mixed TH+AX membership, `ABS`/ungrouped
+  equivalence, AND/OR distinction, scope/ID independence, uniform and partial
+  inversion, crossed partitions, target-record reordering, non-identity atom
+  mappings, target group-ref adoption, coordinate non-mutation, and grouped DB
+  rejection for all three group kinds;
+- the incomplete-evidence regressions cover both a three-member coordinate
+  group with two different assigned deltas plus one degenerate member and an
+  incomplete alignment component beside an independent fixed mismatch;
+- independent review reports 112 focused passes, 237 pre-final-fixture stereo
+  passes, and 1,000 randomized partition/kind/parity/non-identity-mapping oracle
+  passes with no blocker or correctness nonblocker;
+- Python compilation and `git diff --check` pass; `ruff` remains unavailable
+  in the active environment and is not claimed; and
+- a wider `test_cheminfo` diagnostic reached 56 percent with no failure before
+  it was deliberately interrupted after two minutes without output; it is not
+  counted as a completed regression run.
+
+Unexpected findings:
+
+- comparing raw `StereoGroupRef` values across molecules would incorrectly
+  reject chemically equivalent groups imported with different lineage scope
+  or source ID;
+- reporting each descriptor difference immediately would incorrectly reject a
+  legal uniform group inversion and could produce one contradiction per
+  member;
+- an initial raw-assignment aggregation considered only members that assigned
+  successfully. In a group of three, one fixed and one inverted assignment
+  beside a degenerate member could therefore be mislabeled as a partial group
+  inversion despite incomplete evidence; and
+- globally suppressing group comparison after any failed record match would
+  hide valid diagnostics from unrelated complete groups or fixed records.
+
+Adjustment:
+
+- group identity is local to one payload; cross-payload equivalence uses only
+  mapped membership and `AND`/`OR` kind;
+- coordinate consistency now runs only when all local group members have raw
+  assignments;
+- alignment skips only the incomplete connected component and continues to
+  evaluate every independent complete component and fixed record; and
+- `aligned_payload` uses target group refs but deliberately preserves the
+  transformed source descriptor, making an accepted uniform inversion visible
+  rather than cloning the target record.
+
+Git checkpoint: `631ff90 feat(stereo): implement Gate-5 enhanced groups`.

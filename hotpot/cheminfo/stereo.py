@@ -1354,11 +1354,340 @@ def assign_stereochemistry(
     )
 
 
+def _alignment_validation_issues(
+    side: str,
+    report: StereoValidationReport,
+) -> tuple[StereoValidationIssue, ...]:
+    """Identify the molecule owning each pre-alignment validation issue."""
+
+    return tuple(
+        replace(issue, message=f"{side}: {issue.message}")
+        for issue in report.issues
+    )
+
+
+def _alignment_mapping_issues(
+    reference: Molecule,
+    target: Molecule,
+    atom_mapping: Mapping[int, int],
+) -> tuple[tuple[StereoValidationIssue, ...], dict[int, int]]:
+    """Validate a one-to-one mapping over all stereo-relevant atom rows."""
+
+    reference_count = len(reference.atoms)
+    target_count = len(target.atoms)
+    issues = []
+    valid_mapping = {}
+    for source, destination in sorted(
+        atom_mapping.items(),
+        key=lambda item: (repr(item[0]), repr(item[1])),
+    ):
+        if (
+            not isinstance(source, int)
+            or isinstance(source, bool)
+            or not 0 <= source < reference_count
+        ):
+            issues.append(
+                StereoValidationIssue(
+                    StereoIssueCode.INCOMPLETE_MAPPING,
+                    f"reference atom row {source!r} is outside molecule range "
+                    f"0..{reference_count - 1}",
+                )
+            )
+            continue
+        if (
+            not isinstance(destination, int)
+            or isinstance(destination, bool)
+            or not 0 <= destination < target_count
+        ):
+            issues.append(
+                StereoValidationIssue(
+                    StereoIssueCode.INCOMPLETE_MAPPING,
+                    f"target atom row {destination!r} is outside molecule range "
+                    f"0..{target_count - 1}",
+                    atom_indices=(source,),
+                )
+            )
+            continue
+        valid_mapping[source] = destination
+
+    destinations = {}
+    for source, destination in sorted(valid_mapping.items()):
+        destinations.setdefault(destination, []).append(source)
+    for destination, sources in destinations.items():
+        if len(sources) > 1:
+            issues.append(
+                StereoValidationIssue(
+                    StereoIssueCode.INCOMPLETE_MAPPING,
+                    f"atom mapping is many-to-one at target row {destination}: "
+                    f"reference rows {tuple(sources)}",
+                    atom_indices=tuple(sources),
+                )
+            )
+
+    reference_atoms = sorted(
+        {
+            atom
+            for record in get_stereo_payload(reference).records
+            for atom in _record_atom_indices(record)
+        }
+    )
+    target_atoms = sorted(
+        {
+            atom
+            for record in get_stereo_payload(target).records
+            for atom in _record_atom_indices(record)
+        }
+    )
+    missing_reference = tuple(
+        atom for atom in reference_atoms if atom not in valid_mapping
+    )
+    if missing_reference:
+        issues.append(
+            StereoValidationIssue(
+                StereoIssueCode.INCOMPLETE_MAPPING,
+                "atom mapping does not cover reference stereo rows "
+                f"{missing_reference}",
+                atom_indices=missing_reference,
+            )
+        )
+    mapped_destinations = set(valid_mapping.values())
+    missing_target = tuple(
+        atom for atom in target_atoms if atom not in mapped_destinations
+    )
+    if missing_target:
+        issues.append(
+            StereoValidationIssue(
+                StereoIssueCode.INCOMPLETE_MAPPING,
+                f"atom mapping does not cover target stereo rows {missing_target}",
+                atom_indices=missing_target,
+            )
+        )
+    return tuple(issues), valid_mapping
+
+
+def _mapped_alignment_record(
+    record: StereoRecord,
+    atom_mapping: Mapping[int, int],
+) -> StereoRecord:
+    """Map atom rows without changing carrier order or descriptor meaning."""
+
+    return replace(
+        record,
+        anchor=replace(
+            record.anchor,
+            atom_indices=tuple(
+                atom_mapping[atom] for atom in record.anchor.atom_indices
+            ),
+        ),
+        carriers=tuple(
+            replace(carrier, atom=atom_mapping[carrier.atom])
+            if carrier.kind is StereoCarrierKind.ATOM
+            else carrier
+            for carrier in record.carriers
+        ),
+    )
+
+
+def _alignment_record_identity(
+    family: _Level2DescriptorFamily,
+    anchor: StereoAnchor,
+) -> tuple[_Level2DescriptorFamily, int | frozenset[int]]:
+    """Return the orientation-independent identity of a Gate-3 element."""
+
+    if family is _Level2DescriptorFamily.TETRAHEDRAL:
+        return family, anchor.atom_indices[0]
+    return family, frozenset(anchor.atom_indices)
+
+
+def _transform_gate3_double_bond(
+    descriptor: _Level2Descriptor,
+    source: StereoRecord,
+    target: StereoRecord,
+) -> _Level2AlgebraResult:
+    """Transform DB identity with carrier identity scoped to each endpoint.
+
+    Gate 1's DB rule is descriptor XOR permutation parity. Gate 3 applies the
+    same rule after matching each two-carrier group to its bond endpoint. This
+    endpoint scope permits the same virtual-H identity or ring atom at both
+    ends without conflating the two occurrences.
+    """
+
+    anchor_reversed = source.anchor.atom_indices == target.anchor.atom_indices[::-1]
+    reordering = []
+    for target_group in range(2):
+        source_group = 1 - target_group if anchor_reversed else target_group
+        source_start = 2 * source_group
+        source_carriers = source.carriers[source_start : source_start + 2]
+        for carrier in target.carriers[2 * target_group : 2 * target_group + 2]:
+            identity = carrier.kind, carrier.atom
+            positions = tuple(
+                source_start + offset
+                for offset, candidate in enumerate(source_carriers)
+                if (candidate.kind, candidate.atom) == identity
+            )
+            if len(positions) != 1:
+                return _Level2AlgebraResult(
+                    None,
+                    (
+                        _algebra_issue(
+                            StereoIssueCode.INVALID_CARRIER,
+                            "mapped DB carriers do not match target endpoint groups",
+                        ),
+                    ),
+                )
+            reordering.append(positions[0])
+
+    if sorted(reordering) != list(range(4)):
+        return _Level2AlgebraResult(
+            None,
+            (
+                _algebra_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    "mapped DB carriers do not match target endpoint groups",
+                ),
+            ),
+        )
+    pairs_reversed = frozenset(reordering[:2]) == frozenset((2, 3))
+    if anchor_reversed != pairs_reversed:
+        return _Level2AlgebraResult(
+            None,
+            (
+                _algebra_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    "bond-anchor reversal and endpoint carrier-pair order disagree",
+                ),
+            ),
+        )
+
+    relation = _ALKENE_VALUES.index(descriptor.value)
+    value = _ALKENE_VALUES[relation ^ _permutation_parity(reordering)]
+    return _Level2AlgebraResult(
+        _Level2Descriptor(_Level2DescriptorFamily.DOUBLE_BOND, value),
+        (),
+    )
+
+
 def align_stereochemistry(
     reference: Molecule,
     target: Molecule,
     atom_mapping: Mapping[int, int],
 ) -> StereoAlignmentReport:
-    """Compare two stereo payloads under an explicit atom mapping."""
+    """Compare manual TH and DB descriptors under an explicit atom mapping."""
 
-    raise NotImplementedError("Level-2 stereo semantics are implemented in Phase 7")
+    reference_payload = get_stereo_payload(reference)
+    target_payload = get_stereo_payload(target)
+    mapping_issues, valid_mapping = _alignment_mapping_issues(
+        reference,
+        target,
+        atom_mapping,
+    )
+    reference_validation = validate_stereochemistry(reference)
+    target_validation = validate_stereochemistry(target)
+    issues = [*mapping_issues]
+    issues.extend(_alignment_validation_issues("reference", reference_validation))
+    issues.extend(_alignment_validation_issues("target", target_validation))
+
+    target_bonds = tuple(
+        tuple(bond)
+        for bond in _molecule_stereo_topology(target)[2]
+    )
+    partially_aligned = _remap_stereo_payload(
+        reference_payload,
+        valid_mapping,
+        allowed_bonds=target_bonds,
+    )
+    if issues:
+        return StereoAlignmentReport(False, partially_aligned, tuple(issues))
+
+    target_records = {}
+    for target_index, record in enumerate(target_payload.records):
+        parsed = _parse_level2_descriptor(record.descriptor).descriptor
+        identity = _alignment_record_identity(parsed.family, record.anchor)
+        target_records.setdefault(identity, []).append((target_index, record, parsed))
+
+    aligned_records = []
+    matched_target_indices = set()
+    for reference_index, record in enumerate(reference_payload.records):
+        parsed = _parse_level2_descriptor(record.descriptor).descriptor
+        mapped = _mapped_alignment_record(record, valid_mapping)
+        identity = _alignment_record_identity(parsed.family, mapped.anchor)
+        matches = target_records.get(identity, ())
+        if not matches:
+            issues.append(
+                StereoValidationIssue(
+                    StereoIssueCode.INVALID_ANCHOR,
+                    "mapped reference stereo record has no target record",
+                    record_index=reference_index,
+                    atom_indices=mapped.anchor.atom_indices,
+                )
+            )
+            aligned_records.append(mapped)
+            continue
+        if len(matches) > 1:
+            issues.append(
+                StereoValidationIssue(
+                    StereoIssueCode.INVALID_ANCHOR,
+                    "mapped reference stereo record has duplicate target records",
+                    record_index=reference_index,
+                    atom_indices=mapped.anchor.atom_indices,
+                )
+            )
+            aligned_records.append(mapped)
+            continue
+
+        target_index, target_record, _ = matches[0]
+        matched_target_indices.add(target_index)
+        transformed = (
+            _transform_level2_descriptor(
+                parsed,
+                mapped.carriers,
+                target_record.carriers,
+                source_anchor=mapped.anchor,
+                reordered_anchor=target_record.anchor,
+            )
+            if parsed.family is _Level2DescriptorFamily.TETRAHEDRAL
+            else _transform_gate3_double_bond(parsed, mapped, target_record)
+        )
+        if transformed.issues:
+            issues.extend(
+                _record_issues(
+                    transformed.issues,
+                    record_index=reference_index,
+                    atom_indices=_record_atom_indices(mapped),
+                )
+            )
+            aligned_records.append(mapped)
+            continue
+
+        descriptor = _render_level2_descriptor(transformed.descriptor)
+        aligned = replace(
+            mapped,
+            anchor=target_record.anchor,
+            carriers=target_record.carriers,
+            descriptor=descriptor,
+        )
+        aligned_records.append(aligned)
+        if descriptor != target_record.descriptor:
+            issues.append(
+                StereoValidationIssue(
+                    StereoIssueCode.INVALID_DESCRIPTOR,
+                    f"mapped descriptor {descriptor} does not match target "
+                    f"descriptor {target_record.descriptor}",
+                    record_index=reference_index,
+                    atom_indices=_record_atom_indices(aligned),
+                )
+            )
+
+    for target_index, record in enumerate(target_payload.records):
+        if target_index not in matched_target_indices:
+            issues.append(
+                StereoValidationIssue(
+                    StereoIssueCode.INVALID_ANCHOR,
+                    "target stereo record has no mapped reference record",
+                    record_index=target_index,
+                    atom_indices=_record_atom_indices(record),
+                )
+            )
+
+    aligned_payload = replace(partially_aligned, records=tuple(aligned_records))
+    return StereoAlignmentReport(not issues, aligned_payload, tuple(issues))

@@ -1,0 +1,101 @@
+{
+  "schema": "hotpot.stereo.level2-algebra-golden/1",
+  "descriptor_ranges": {
+    "SP": [1, 2, 3],
+    "TBP": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+    "OH": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+  },
+  "coordination_swap_01": {
+    "SP": [2, 1, 3],
+    "TBP": [2, 1, 9, 10, 11, 12, 13, 14, 3, 4, 5, 6, 7, 8, 16, 15, 18, 17, 20, 19],
+    "OH": [2, 1, 4, 3, 6, 5, 14, 13, 20, 19, 26, 25, 8, 7, 22, 21, 28, 27, 10, 9, 16, 15, 30, 29, 12, 11, 18, 17, 24, 23]
+  },
+  "permutations": [
+    {"items": [0, 1, 2, 3], "parity": 0, "rank": 0},
+    {"items": [1, 0, 2, 3], "parity": 1, "rank": 6},
+    {"items": [1, 2, 0, 3], "parity": 0, "rank": 8},
+    {"items": [3, 2, 1, 0], "parity": 0, "rank": 23},
+    {"items": [0, 1, 2, 4, 3], "parity": 1, "rank": 1},
+    {"items": [4, 3, 2, 1, 0], "parity": 0, "rank": 119}
+  ],
+  "transforms": [
+    {
+      "name": "tetrahedral identity with non-atom carriers",
+      "descriptor": "hotpot.stereo/2/TH/even",
+      "source": ["a:7", "a:11", "implicit_h", "lone_pair"],
+      "reordered": ["a:7", "a:11", "implicit_h", "lone_pair"],
+      "expected": "hotpot.stereo/2/TH/even"
+    },
+    {
+      "name": "tetrahedral odd exchange",
+      "descriptor": "hotpot.stereo/2/TH/even",
+      "source": ["a:7", "a:11", "implicit_h", "lone_pair"],
+      "reordered": ["a:11", "a:7", "implicit_h", "lone_pair"],
+      "expected": "hotpot.stereo/2/TH/odd"
+    },
+    {
+      "name": "tetrahedral even three-cycle",
+      "descriptor": "hotpot.stereo/2/TH/odd",
+      "source": ["a:7", "a:11", "implicit_h", "lone_pair"],
+      "reordered": ["a:11", "implicit_h", "a:7", "lone_pair"],
+      "expected": "hotpot.stereo/2/TH/odd"
+    },
+    {
+      "name": "alkene reverse bond anchor",
+      "descriptor": "hotpot.stereo/2/DB/together",
+      "source_anchor": "b:10,20",
+      "reordered_anchor": "b:20,10",
+      "source": ["a:1", "implicit_h", "a:4", "a:5"],
+      "reordered": ["a:4", "a:5", "a:1", "implicit_h"],
+      "expected": "hotpot.stereo/2/DB/together"
+    },
+    {
+      "name": "alkene reverse anchor and change one endpoint reference",
+      "descriptor": "hotpot.stereo/2/DB/together",
+      "source_anchor": "b:10,20",
+      "reordered_anchor": "b:20,10",
+      "source": ["a:1", "implicit_h", "a:4", "a:5"],
+      "reordered": ["a:5", "a:4", "a:1", "implicit_h"],
+      "expected": "hotpot.stereo/2/DB/opposite"
+    },
+    {
+      "name": "alkene change both endpoint references",
+      "descriptor": "hotpot.stereo/2/DB/opposite",
+      "source_anchor": "b:10,20",
+      "reordered_anchor": "b:10,20",
+      "source": ["a:1", "implicit_h", "a:4", "a:5"],
+      "reordered": ["implicit_h", "a:1", "a:5", "a:4"],
+      "expected": "hotpot.stereo/2/DB/opposite"
+    },
+    {
+      "name": "axial odd terminal exchange",
+      "descriptor": "hotpot.stereo/2/AX/even",
+      "source_anchor": "b:10,20",
+      "reordered_anchor": "b:10,20",
+      "source": ["a:1", "a:2", "a:8", "vacancy"],
+      "reordered": ["a:2", "a:1", "a:8", "vacancy"],
+      "expected": "hotpot.stereo/2/AX/odd"
+    },
+    {
+      "name": "square-planar reference exchange",
+      "descriptor": "hotpot.stereo/2/SP/1",
+      "source": ["a:0", "a:1", "a:2", "a:3"],
+      "reordered": ["a:1", "a:0", "a:2", "a:3"],
+      "expected": "hotpot.stereo/2/SP/2"
+    },
+    {
+      "name": "trigonal-bipyramidal reference exchange",
+      "descriptor": "hotpot.stereo/2/TBP/7",
+      "source": ["a:0", "a:1", "a:2", "a:3", "a:4"],
+      "reordered": ["a:1", "a:0", "a:2", "a:3", "a:4"],
+      "expected": "hotpot.stereo/2/TBP/13"
+    },
+    {
+      "name": "octahedral reference exchange",
+      "descriptor": "hotpot.stereo/2/OH/15",
+      "source": ["a:0", "a:1", "a:2", "a:3", "a:4", "a:5"],
+      "reordered": ["a:1", "a:0", "a:2", "a:3", "a:4", "a:5"],
+      "expected": "hotpot.stereo/2/OH/22"
+    }
+  ]
+}

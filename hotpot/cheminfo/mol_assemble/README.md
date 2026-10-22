@@ -11,8 +11,8 @@ from hotpot import AssembleFactoryfrom hotpot import AssembleFactoryfrom hotpot 
 ### Requirements
 
 ````
-python >= 3.9
-openbabel >= 3.1.1
+python >= 3.10
+openbabel >= 3.2.1
 cclib
 lammps
 ````
@@ -20,7 +20,7 @@ lammps
 ### Install requirement
 Before installing the `Hotpot`, you should install the requirements at the first. It is
 recommended to create a new conda environment to run the package.
-> conda create -n hp python==3.9 openbabel cclib lammps -c conda-forge
+> conda create -n hp python==3.10 openbabel cclib lammps -c conda-forge
 
 ### Install
 After the requirements are installed, now the ''Hotpot'' could be installed by pip

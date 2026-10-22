@@ -1,7 +1,7 @@
 # Hotpot Docker 测试环境
 
 这里的配置用于在独立的 Conda 环境中安装和测试 Hotpot，支持 Python
-3.9、3.10、3.11、3.12、3.13 和 3.14，默认版本为 Python 3.13。
+3.10、3.11、3.12、3.13 和 3.14，默认版本为 Python 3.13。
 
 Docker 构建过程会自动完成以下工作：
 
@@ -37,9 +37,9 @@ Docker 构建过程会自动完成以下工作：
 ./docker/build-hotpot-test-images.sh 3.11
 
 # 多个版本
-./docker/build-hotpot-test-images.sh 3.9 3.13 3.14
+./docker/build-hotpot-test-images.sh 3.10 3.13 3.14
 
-# 全部 3.9-3.14
+# 全部 3.10-3.14
 ./docker/build-hotpot-test-images.sh all
 ```
 

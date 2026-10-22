@@ -177,10 +177,9 @@ Hotpot is built on a modular architecture designed to hide complexity. It consis
 
 ## 📥 Installation
 
-Python 3.9–3.14 is supported by the chemical kernel, search layer and ONNX
-inference path. Python 3.10–3.14 use Open Babel 3.2.x; Python 3.9 remains a
-compatibility target and uses `openbabel-wheel` 3.1.1.23 because Open Babel
-3.2.x does not publish a Python 3.9 package.
+Python 3.10–3.14 is supported by the chemical kernel, search layer and ONNX
+inference path. All supported versions use Open Babel 3.2.x and exactly RDKit
+2026.09.1 (`rdkit==2026.9.1`).
 
 ### PyPI installation
 
@@ -192,10 +191,9 @@ python -m pip install hotpot-zzy
 ```
 
 The PyPI installation includes the chemical kernel, MCA/CBond ONNX inference
-and molecular plotting. On Python 3.10 or newer it installs the official
-`openbabel` 3.2.x package; Python 3.9 installs `openbabel-wheel` 3.1.1.23.
-Do not mix PyPI `openbabel`, `openbabel-wheel`, and Conda `openbabel` in one
-environment because they provide the same Python modules and native libraries.
+and molecular plotting. It installs the official `openbabel` 3.2.x package.
+Do not mix PyPI `openbabel` and Conda `openbabel` in one environment because
+they provide the same Python modules and native libraries.
 
 ### Editable source installation
 

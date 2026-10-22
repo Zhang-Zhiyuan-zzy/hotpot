@@ -17,7 +17,7 @@ ZeoppRunner is a comprehensive Python wrapper for the Zeo++ `network` binary tha
 
 ### Requirements
 
-* Python ≥ 3.9
+* Python ≥ 3.10
 * Zeo++ software installed with `network` binary accessible
 * Python packages:
   ```bash

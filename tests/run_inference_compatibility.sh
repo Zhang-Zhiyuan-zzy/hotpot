@@ -6,7 +6,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 if (( $# )); then
     versions=("$@")
 else
-    versions=(3.9 3.10 3.11 3.12 3.13 3.14)
+    versions=(3.10 3.11 3.12 3.13 3.14)
 fi
 
 for version in "${versions[@]}"; do
@@ -22,11 +22,10 @@ for version in "${versions[@]}"; do
         uv run --no-project --python "$version" \
             --with-requirements tests/requirements-inference.txt \
             python -c '
-import sys
 from openbabel import openbabel as ob
 
 actual = tuple(map(int, ob.OBReleaseVersion().split(".")[:2]))
-expected = (3, 1) if sys.version_info[:2] == (3, 9) else (3, 2)
+expected = (3, 2)
 print(f"Open Babel {ob.OBReleaseVersion()} (expected {expected[0]}.{expected[1]}.x)")
 assert actual == expected
 '

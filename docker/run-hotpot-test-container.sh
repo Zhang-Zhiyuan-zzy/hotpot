@@ -35,10 +35,10 @@ if [[ "${1:-}" == "--python" ]]; then
 fi
 
 case "$python_version" in
-    3.9|3.10|3.11|3.12|3.13|3.14) ;;
+    3.10|3.11|3.12|3.13|3.14) ;;
     *)
         echo "Unsupported Python version: $python_version" >&2
-        echo "Supported versions: 3.9 3.10 3.11 3.12 3.13 3.14" >&2
+        echo "Supported versions: 3.10 3.11 3.12 3.13 3.14" >&2
         exit 2
         ;;
 esac

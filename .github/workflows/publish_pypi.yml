@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-tag: [cp39, cp310, cp311, cp312, cp313, cp314]
+        python-tag: [cp310, cp311, cp312, cp313, cp314]
 
     steps:
       - uses: actions/checkout@v7

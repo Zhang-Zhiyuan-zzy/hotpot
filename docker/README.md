@@ -1,7 +1,7 @@
 # Hotpot Docker Test Environment
 
 This configuration installs and tests Hotpot in an isolated Conda environment.
-It supports Python 3.9, 3.10, 3.11, 3.12, 3.13, and 3.14, with Python 3.13
+It supports Python 3.10, 3.11, 3.12, 3.13, and 3.14, with Python 3.13
 as the default.
 
 The Docker build process automatically performs the following tasks:
@@ -38,9 +38,9 @@ Select one, multiple, or all supported Python versions:
 ./docker/build-hotpot-test-images.sh 3.11
 
 # Multiple versions
-./docker/build-hotpot-test-images.sh 3.9 3.13 3.14
+./docker/build-hotpot-test-images.sh 3.10 3.13 3.14
 
-# All versions from 3.9 through 3.14
+# All versions from 3.10 through 3.14
 ./docker/build-hotpot-test-images.sh all
 ```
 

@@ -145,7 +145,7 @@ Adjustment:
 - changed import-order closure to the supported RDKit/Hotpot-first order while
   retaining the reverse-order crash as an isolated diagnostic.
 
-Git checkpoint: pending.
+Git checkpoint: `066e6b2 docs(plan17): begin rdWrapper implementation`.
 
 ### Plan revision 1 - Align the reviewed design with executable repository facts
 
@@ -180,3 +180,53 @@ pure prospective design. The approved scientific and product semantics are
 unchanged.
 
 Git checkpoint: pending with Step 0 documentation.
+
+### Step 1 - Pin the Python release contract
+
+Status: complete
+
+Planned:
+
+- replace the moving RDKit range with the exact owner-controlled package;
+- update the supported Python range coherently across metadata, CI, wheel,
+  Docker, Conda, compatibility scripts, tests, and maintained documentation;
+  and
+- add an executable packaging contract that prevents either identity from
+  drifting.
+
+Performed:
+
+- pinned the Python dependency to `rdkit==2026.9.1`;
+- changed the maintained Python range from 3.9-3.14 to 3.10-3.14 across the
+  release surfaces listed above;
+- removed the obsolete Python-3.9-only Open Babel 3.1 dependency branch so all
+  supported interpreters use Open Babel 3.2.x; and
+- added metadata tests for the exact interpreter classifiers and RDKit pin.
+
+Verification:
+
+- `tests/test_packaging_metadata.py`: 9 passed;
+- both modified shell entry points pass `bash -n`;
+- TOML and YAML parsing pass;
+- both Docker entry points reject Python 3.9 with exit code 2; and
+- `git diff --check` passes for this change set.
+
+Unexpected findings:
+
+- `requirements.txt` omitted the already-declared project dependency
+  `cryptography>=44,<47`, causing the existing requirements/metadata parity
+  test to fail. The missing declaration was restored in the same metadata
+  checkpoint; it does not change the authoritative dependency range; and
+- the unqualified `pytest` executable resolves to a user-level system-Python
+  installation without RDKit, while `python` resolves to the project Conda
+  environment. Verification therefore uses `python -m pytest`, matching the
+  interpreter used for the source baseline.
+
+Adjustment:
+
+- historical Stage reports and archived compatibility evidence that mention
+  Python 3.9 remain unchanged and are explicitly described as historical;
+- no compatibility branch was added for Python 3.9 or for another RDKit
+  version.
+
+Git checkpoint: pending.

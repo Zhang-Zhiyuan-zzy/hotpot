@@ -3060,3 +3060,111 @@ No production performance claim is made: no public or force-field path calls
 the private coordinate classifier yet.
 
 Git checkpoint: `035e2c2 feat(stereo): add Gate-7 coordinate classifier`.
+
+### Step 44 - Cut over Gate 7 coordination semantics atomically
+
+Status: complete for the public Gate-7 semantic checkpoint
+
+Planned:
+
+- remove the public SP/TBP/SPY/OH unsupported fence only after graph
+  validation, coordinate assignment, generic transforms, explicit alignment,
+  and Gate-6 descendant semantics are connected together;
+- preserve exact atom identities and the frozen carrier-permutation algebra
+  without introducing a chemical-symmetry quotient for equivalent ligands;
+- compare mapped source chelate relations with target relations under explicit
+  mappings and retain the same relation as a Gate-6 automorphism postfilter;
+- keep coordination records out of pairwise stereogenicity and direct-priority
+  CIP assignment; and
+- reuse one represented-graph projection snapshot per public operation.
+
+Performed:
+
+- parsed every Level-2 payload once for graph validation, applied symmetric
+  all-record TH/SP/TBP/SPY/OH same-center rejection first, retained the prior
+  DB/AX duplicate-anchor rule, and skipped all further family semantics for
+  blocked atom-centered records;
+- connected the private Gate-7 base validator and coupled-multicenter detector
+  to public validation over the complete Gate-6 current-state projection;
+- made a syntactically valid `hotpot.stereo/2` head with a recognized
+  SP/TBP/SPY/OH family trigger that projection even when its numeric value is
+  invalid, while preserving the record-scoped `INVALID_DESCRIPTOR` result;
+- routed accepted coordination records through the private no-centroid
+  coordinate classifier, replacing only the numeric value in the declared
+  family and leaving strong TBP/SPY family contradictions unresolved rather
+  than migrating families;
+- routed TH/SP/TBP/SPY/OH through the single generic carrier-permutation
+  transform and gave every coordination record the explicit `(family,
+  center-row)` alignment identity;
+- computed source and target chelate relations on their own graph snapshots,
+  mapped source atom-pair identities through the caller's explicit mapping,
+  and rejected split or merged partitions with the frozen diagnostic;
+- admitted valid coordination records into Gate-6 descendant semantic
+  contexts, precomputed their chelate pairs in the reduced-payload index
+  domain, and required both transformed descriptor and mapped chelate
+  equality for every RI automorphism;
+- kept coordination records out of Gate-6 carrier-pair candidates, so
+  graph-equivalent ligands remain allowed and no coordination
+  `NON_STEREOGENIC` or derived CIP result is produced; and
+- reused each reference/target projection in validation and alignment, with a
+  regression that proves validate and assign project once and alignment
+  projects each side once.
+
+Verification:
+
+- the dedicated public Gate-7 file reports 108 passed, covering all 83 frozen
+  descriptors, all four families, assignment agreement/contradiction,
+  no-family-migration policy, generic transforms, explicit alignment,
+  nonidentity chelate preservation, split/merge rejection, symmetric
+  same-center failure, current/source-H behavior, coordination-only projection
+  failures, independent/coupled centers, unsupported group/non-atom
+  boundaries, and the atomic public-route sentinel;
+- the complete stereo selection reports 487 passed;
+- stereo plus reusable native-spec and production-kernel regressions report
+  501 passed;
+- the complete native RI search selection reports 195 passed plus 49
+  subtests;
+- the original Gate-1, SPY algebra, and coordination-geometry goldens retain
+  SHA-256 values
+  `8d7856e0b593ff7af510e885b6f3fe2ef0ca047cd34a3563bde086af9afbcf4b`,
+  `fbda20439136c68ac50a2d508acc9970003e3721d73524c1c721ffff022a473d`,
+  and `a565dafee783d2fe9ffb0575b757ebb6869cb2634bcdfa5c1f9c2ca3055e8dc5`;
+- Python compilation, whitespace, and line-length checks pass; and
+- independent architecture, cheminformatics, redundancy, and test audits
+  found no remaining checkpoint blocker.
+
+Unexpected findings:
+
+- the existing generic transform dispatcher sent every non-TH/non-DB record
+  through AX, so coordination support required an explicit atom-geometry
+  branch rather than only removing validation's unsupported fence;
+- the original Gate-6 carrier resolver grouped every non-TH family as two
+  endpoint pairs and would silently truncate five- and six-coordinate carrier
+  lists; the coordination branch now requires all-ATOM carriers and returns
+  their complete ordered rows;
+- computing chelation from mapped carriers on the target graph would compare
+  the target partition with itself and miss a genuine source split/merge;
+- independently validating and then aligning initially projected each
+  coordination molecule twice; the projection result is now reused and its
+  exact call count is tested; and
+- a family-recognizable descriptor such as `SP/999` is still a declared
+  coordination record for global represented-graph validity. Restricting the
+  trigger to numerically valid descriptors would let malformed values bypass
+  projection and create a weaker coordination-only graph contract.
+
+Adjustment:
+
+- keep family-head recognition separate from numeric-value validation so
+  declared coordination cannot bypass global projection;
+- retain separate Gate-6 and cross-molecule chelate caches because their
+  reduced-payload and original-payload index domains differ, while both reuse
+  the single `_gate7_chelate_pairs` and `_gate7_mapped_chelate_pairs`
+  algorithms; and
+- preserve exact explicit-mapping semantics for equivalent ligands without
+  adding a symmetry quotient or a second matcher.
+
+No production R0/F1 or 187/182 benchmark claim is made at this checkpoint;
+the formal cohort artifact remains unavailable and the public semantic
+cutover changes no force-field provider.
+
+Git checkpoint: `a948279 feat(stereo): cut over Gate-7 coordination semantics`.

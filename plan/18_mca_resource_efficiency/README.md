@@ -1,4 +1,4 @@
-# Plan 17: MCA resource-efficient workflow
+# Plan 18: MCA resource-efficient workflow
 
 - [Implementation plan](mca_resource_efficiency_implementation.md)
 - [Implementation log](implementation_log.md)

@@ -901,3 +901,58 @@ Adjustment:
 - Level-1 payload hooks are still a following isolated checkpoint.
 
 Git checkpoint: `9c0433d fix(molecule): preserve hidden structural lifecycle`.
+
+### Step 14 - Borrow the common ligand view in force-field sessions
+
+Status: complete
+
+Planned:
+
+- retain the public flat aggregate and Python/C++ construction layout of
+  `ComplexSessionInput`;
+- remove the internal full ligand DTO copy at session construction; and
+- preserve generic-versus-Open-Babel policy boundaries, validation timing,
+  and legacy first-error order.
+
+Performed:
+
+- replaced the copying `ligand_molecule_data()` helper with the `noexcept`
+  zero-copy `ligand_molecule_view()` accessor;
+- borrowed all flat atom/bond arrays and optional unit-cell memory directly
+  from the owning session input;
+- kept `ComplexSessionInput::validate()` consumer-neutral; and
+- made the Open Babel session boundary run the compatibility adapter before
+  complex-field validation and OBMol construction, retaining the adapter's
+  legacy per-bond ordering while the adapter still finishes with generic
+  structural validation.
+
+Verification:
+
+- compile-time fences prove `ComplexSessionInput` remains an aggregate and the
+  new accessor has the fixed return type and `noexcept` contract;
+- source tests prove pointer identity for every array, live element borrowing,
+  generic dative acceptance, Open Babel dative rejection, intended
+  coordination behavior, and mixed-invalid first-error parity;
+- complete native extension rebuild succeeds with only existing Open Babel
+  deprecation warnings;
+- independent recursive force-field suite, including all nine native C++
+  source fences and 87 Python tests: 96 passed in 156.86 s;
+- `git diff --check` passes.
+
+Unexpected findings:
+
+- calling generic validation at the session boundary before the Open Babel
+  adapter made a later invalid bond index outrank an earlier dative bond. The
+  adapter must own the entry ordering because it preserves the historic
+  index/self/order/dative scan per bond. A dedicated mixed-invalid assertion
+  now fixes this behavior.
+
+Adjustment:
+
+- the input remains one flat owning aggregate; no physical nesting or source
+  API migration was introduced;
+- intended coordination bonds remain separate session data and retain their
+  existing supported dative workflow;
+- force-field stage order and optimization behavior are unchanged.
+
+Git checkpoint: `d167b00 refactor(forcefields): borrow common ligand molecule view`.

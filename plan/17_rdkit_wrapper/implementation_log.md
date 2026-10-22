@@ -3423,3 +3423,62 @@ missing dedicated O0/F1 benchmark runner, and the unexecuted five-interpreter
 manylinux wheel workflow.
 
 Git checkpoint: `10bc417 test(rdwrapper): cover supported import orders`.
+
+### Step 48 - Reconfirm C1/C2 smoke without widening its claim
+
+Status: complete as current-build development evidence; formal 182 evidence
+remains unavailable
+
+Planned:
+
+- rerun the existing one-case C1/C2 smoke with the freshly rebuilt native
+  extension at conformer counts `1/8/32`;
+- preserve its permanent `development-smoke` and
+  `formal_claim_allowed=false` labels; and
+- search the authorized ai-14 study/test roots for the exact frozen formal
+  manifest before retaining the external blocker.
+
+Performed:
+
+- preloaded the fresh source-tree development extension and ran the unchanged
+  detached C1/C2 benchmark runner against the one-case native-graph fixture;
+- kept force fields, Open Babel, `hotpot.ff`, geometry gates, perturbation,
+  repair, and selection outside both routes; and
+- searched `ai-14:~/mca_test` and `ai-14:~/mca_study` by relevant file names,
+  recorded digest text, and the exact formal-manifest SHA-256.
+
+Verification:
+
+- all six route/count cells returned `SUCCESS` with the full requested count;
+- every coordinate batch was finite and exact-shape, every fixed-seed rerun
+  was byte-deterministic, and every input graph was preserved;
+- C2 maximum detached bound violation was `0.001949029236` Angstrom at all
+  three counts, with strict satisfaction counts `0/1`, `7/8`, and `29/32`;
+- C1 maximum detached bound violations were `0.359520734434`,
+  `0.438428833325`, and `0.642839307960` Angstrom, with strict satisfaction
+  counts `0/1`, `2/8`, and `7/32`; and
+- `/tmp/plan17-c1c2-smoke-phase8-c79d02c/report.json` has SHA-256
+  `3c05f6b3862a1c19baddd1e3ad1776ea94992d5c6c00e96e7dbfae01d439070e`.
+
+Unexpected findings:
+
+- unlike the R0 runner, the C1/C2 development CLI has no explicit path for
+  injecting an out-of-tree extension. Its first source-tree invocation stopped
+  before generation because `_rd_native` was not installed in the package;
+  preloading the exact fresh extension into its package-qualified module name
+  allowed the unchanged runner to execute; and
+- no file under either authorized ai-14 root matched formal manifest SHA-256
+  `4416bb8558ef420fad3176a82845d02bd1e83d9b271347c97d65174f799a0377`.
+  An unrelated 256-case MCA manifest was not treated as a substitute.
+
+Adjustment:
+
+- retain the one-case result only as a route/runtime smoke and do not infer
+  whole-cohort chemical performance from it;
+- do not add a production loader or public option solely for development
+  extension injection; and
+- keep formal C1/C2, O0/F1, and provider-selection decisions blocked until the
+  exact 182 manifest and native graph sidecars are restored or the owner
+  explicitly approves a newly frozen cohort.
+
+No production-code checkpoint is associated with this evidence-only rerun.

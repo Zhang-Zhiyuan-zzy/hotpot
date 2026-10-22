@@ -3,6 +3,7 @@ from __future__ import annotations
 import builtins
 import hashlib
 import importlib.util
+import json
 import sys
 from enum import IntEnum
 from pathlib import Path
@@ -152,6 +153,7 @@ def test_summary_reports_stage_statistics_status_and_throughput(runner):
             "generate_seconds": 2.0,
             "determinism_rerun_seconds": 2.1,
             "observation_seconds": 0.5,
+            "level2_observation_seconds": 100.0,
             "total_seconds": 5.6,
         },
         {
@@ -163,6 +165,7 @@ def test_summary_reports_stage_statistics_status_and_throughput(runner):
             "generate_seconds": 2.0,
             "determinism_rerun_seconds": 2.2,
             "observation_seconds": 1.5,
+            "level2_observation_seconds": 100.0,
             "total_seconds": 8.7,
         },
     )
@@ -180,6 +183,14 @@ def test_summary_reports_stage_statistics_status_and_throughput(runner):
     assert summary["timings"]["parse"]["aggregate_seconds"] == 4.0
     assert summary["throughput"]["ligands_per_second"] == 0.5
     assert summary["throughput"]["conformers_per_second"] == 0.25
+    assert summary["timings"]["level2_observation"][
+        "aggregate_seconds"
+    ] == 200.0
+    assert summary["schema"] == "hotpot.plan17.r0/2"
+    assert summary["level2_stereo"]["trial_applicability_counts"] == {
+        "UNAVAILABLE": 2
+    }
+    assert summary["level2_stereo"]["valid_conformer_count"] == 0
     assert summary["verification_counts"] == {
         "full_return_count": 0,
         "nonfinite_count": 0,
@@ -196,7 +207,7 @@ class _Status(IntEnum):
     SUCCESS = 0
 
 
-def test_route_calls_only_parse_native_generation_and_detached_observation(
+def test_route_calls_native_generation_and_detached_semantic_observation(
     runner, monkeypatch
 ):
     calls = []
@@ -209,6 +220,11 @@ def test_route_calls_only_parse_native_generation_and_detached_observation(
         "aromaticity_sha256": "aromatic",
         "topology_sha256": "topology",
         "level1_sha256": "level1",
+        "stereo_record_count": 0,
+        "atom_transport_count": 0,
+        "bond_transport_count": 0,
+        "stereo_payload_nonempty": False,
+        "level2_declared_record_count": 0,
         "coordinates_sha256": "coordinates",
         "conformer_count": 0,
     }
@@ -240,6 +256,21 @@ def test_route_calls_only_parse_native_generation_and_detached_observation(
             received, atom_count=atom_count
         )
 
+    def observe_level2(received, returned_coordinates):
+        calls.append(("observe_level2", returned_coordinates.shape[0]))
+        assert returned_coordinates.dtype == np.float64
+        assert returned_coordinates.flags.c_contiguous
+        assert not np.shares_memory(returned_coordinates, coordinates)
+        returned_coordinates.fill(7.0)
+        return {
+            "applicability": "NOT_APPLICABLE",
+            "reason": "test fixture",
+            "declared_record_count": 0,
+            "conformer_count": returned_coordinates.shape[0],
+            "input_payload_preserved": True,
+            "conformers": [],
+        }
+
     original_import = builtins.__import__
 
     def forbid_route_imports(name, *args, **kwargs):
@@ -262,6 +293,7 @@ def test_route_calls_only_parse_native_generation_and_detached_observation(
         generate=generate,
         snapshot_molecule=take_snapshot,
         observe=observe,
+        observe_level2=observe_level2,
     )
 
     assert [call[0] for call in calls] == [
@@ -271,11 +303,184 @@ def test_route_calls_only_parse_native_generation_and_detached_observation(
         "generate",
         "snapshot",
         "observe",
+        "observe_level2",
     ]
     assert record["same_seed_deterministic"] is True
     assert record["input_nonmutating"] is True
     assert record["seed"] == 20260928
     assert record["returned_conformer_count"] == 1
+    assert np.array_equal(coordinates, np.zeros((1, 2, 3)))
+
+
+def _square_planar_molecule():
+    from hotpot.cheminfo import stereo
+    from hotpot.cheminfo.core import Molecule
+
+    molecule = Molecule()
+    for atomic_number in (26, 7, 8, 9, 17):
+        molecule._create_atom(atomic_number=atomic_number)
+    for carrier in range(1, 5):
+        molecule._add_bond(0, carrier, bond_order=1.0)
+    molecule._update_graph(clear_conformers=False)
+    record = stereo.StereoRecord(
+        anchor=stereo.StereoAnchor(stereo.StereoAnchorKind.ATOM, (0,)),
+        carriers=tuple(
+            stereo.StereoCarrier(stereo.StereoCarrierKind.ATOM, carrier)
+            for carrier in range(1, 5)
+        ),
+        descriptor="hotpot.stereo/2/SP/1",
+        group=None,
+        source_namespace="r0-level2-test",
+        source_code="SP1",
+    )
+    payload = stereo.StereoPayload(1, (record,), (), ())
+    stereo.set_stereo_payload(molecule, payload)
+    return molecule, payload
+
+
+def _square_planar_coordinates(value):
+    from hotpot.cheminfo import stereo
+
+    descriptor = stereo._Level2Descriptor(
+        stereo._Level2DescriptorFamily.SQUARE_PLANAR,
+        value,
+    )
+    directions = stereo._gate7_ideal_carrier_directions(descriptor)
+    return np.asarray(((0.0, 0.0, 0.0), *directions), dtype=np.float64)
+
+
+def test_level2_observer_marks_empty_payload_not_applicable(runner):
+    from hotpot.cheminfo.core import Molecule
+
+    molecule = Molecule()
+    molecule._create_atom(atomic_number=6)
+    coordinates = np.zeros((2, 1, 3), dtype=np.float64)
+
+    observed = runner._observe_level2_stereochemistry(molecule, coordinates)
+
+    assert observed["applicability"] == "NOT_APPLICABLE"
+    assert observed["declared_record_count"] == 0
+    assert observed["conformer_count"] == 2
+    assert observed["conformers"] == []
+    assert observed["input_payload_preserved"] is True
+    json.dumps(observed, allow_nan=False)
+
+
+def test_level2_observer_assesses_malformed_level2_declaration(runner):
+    from dataclasses import replace
+
+    from hotpot.cheminfo import stereo
+
+    molecule, payload = _square_planar_molecule()
+    malformed = replace(payload.records[0], descriptor="hotpot.stereo/2")
+    stereo.set_stereo_payload(
+        molecule,
+        stereo.StereoPayload(1, (malformed,), (), ()),
+    )
+
+    observed = runner._observe_level2_stereochemistry(
+        molecule,
+        _square_planar_coordinates(1)[None, :, :],
+    )
+
+    assert observed["applicability"] == "APPLICABLE"
+    assert observed["declared_record_count"] == 1
+    assert observed["conformers"][0]["is_valid"] is False
+    assert observed["conformers"][0]["validation_issues"][0]["code"] == (
+        "invalid_descriptor"
+    )
+
+
+def test_level2_observer_reports_valid_assignment_and_identity_alignment(runner):
+    from hotpot.cheminfo import stereo
+
+    molecule, payload = _square_planar_molecule()
+    coordinates = _square_planar_coordinates(1)[None, :, :]
+
+    observed = runner._observe_level2_stereochemistry(molecule, coordinates)
+
+    assert observed["applicability"] == "APPLICABLE"
+    assert observed["input_payload_preserved"] is True
+    assert stereo.get_stereo_payload(molecule) is payload
+    conformer = observed["conformers"][0]
+    assert conformer["is_valid"] is True
+    assert conformer["validation_issues"] == []
+    assert conformer["assignment_unresolved"] == []
+    assert conformer["derived"] == []
+    assert conformer["is_equivalent"] is True
+    assert conformer["alignment_issues"] == []
+    json.dumps(observed, allow_nan=False)
+
+
+def test_level2_observer_separates_coordinate_and_alignment_failures(runner):
+    molecule, payload = _square_planar_molecule()
+    coordinates = _square_planar_coordinates(3)[None, :, :]
+
+    observed = runner._observe_level2_stereochemistry(molecule, coordinates)
+
+    assert observed["input_payload_preserved"] is True
+    assert runner._digest(payload) == observed["source_payload_sha256"]
+    conformer = observed["conformers"][0]
+    assert conformer["is_valid"] is False
+    assert [issue["code"] for issue in conformer["validation_issues"]] == [
+        "coordinate_contradiction"
+    ]
+    assert [issue["code"] for issue in conformer["assignment_unresolved"]] == [
+        "coordinate_contradiction"
+    ]
+    assert conformer["is_equivalent"] is False
+    assert [issue["code"] for issue in conformer["alignment_issues"]] == [
+        "invalid_descriptor"
+    ]
+    assert conformer["assigned_payload_sha256"] != observed[
+        "source_payload_sha256"
+    ]
+
+
+def test_level2_aggregate_never_counts_not_applicable_as_a_pass(runner):
+    records = (
+        {
+            "level2_stereo": {
+                "applicability": "NOT_APPLICABLE",
+                "conformer_count": 3,
+                "conformers": [],
+                "input_payload_preserved": True,
+            }
+        },
+        {
+            "level2_stereo": {
+                "applicability": "APPLICABLE",
+                "conformers": [
+                    {
+                        "is_valid": False,
+                        "is_equivalent": False,
+                        "validation_issues": [{"code": "degenerate_geometry"}],
+                        "assignment_unresolved": [
+                            {"code": "degenerate_geometry"}
+                        ],
+                        "alignment_issues": [{"code": "invalid_descriptor"}],
+                    }
+                ],
+                "input_payload_preserved": True,
+            }
+        },
+    )
+
+    summary = runner._level2_aggregate(records)
+
+    assert summary["trial_applicability_counts"] == {
+        "APPLICABLE": 1,
+        "NOT_APPLICABLE": 1,
+    }
+    assert summary["assessed_conformer_count"] == 1
+    assert summary["not_applicable_returned_conformer_count"] == 3
+    assert summary["valid_conformer_count"] == 0
+    assert summary["invalid_conformer_count"] == 1
+    assert summary["equivalent_conformer_count"] == 0
+    assert summary["non_equivalent_conformer_count"] == 1
+    assert summary["validation_issue_code_counts"] == {
+        "degenerate_geometry": 1
+    }
 
 
 def test_explicit_development_extension_loader(runner, tmp_path):

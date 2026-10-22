@@ -37,6 +37,14 @@ BASE_SEED = 20260921
 UNIQUENESS_RMSD_ANGSTROM = 1.0e-3
 
 
+def _declares_level2(descriptor: str) -> bool:
+    """Return whether a descriptor declares the Level-2 namespace."""
+
+    return descriptor == "hotpot.stereo/2" or descriptor.startswith(
+        "hotpot.stereo/2/"
+    )
+
+
 def _sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -145,8 +153,10 @@ def _snapshot_molecule(molecule) -> dict[str, object]:
 
     from hotpot.cheminfo._native.buffers import pack_molecule
     from hotpot.cheminfo.rdWrappers.native import _RDKIT_ETKDG_FIELDS
+    from hotpot.cheminfo.stereo import get_stereo_payload
 
     packed = pack_molecule(molecule, _RDKIT_ETKDG_FIELDS)
+    payload = get_stereo_payload(molecule)
     coordinates = np.ascontiguousarray(molecule.coordinates, dtype=np.float64)
     return {
         "atom_count": packed.atom_count,
@@ -164,8 +174,126 @@ def _snapshot_molecule(molecule) -> dict[str, object]:
             packed.atom_transport,
             packed.bond_transport,
         ),
+        "stereo_record_count": len(payload.records),
+        "atom_transport_count": len(payload.atom_facts),
+        "bond_transport_count": len(payload.bond_facts),
+        "stereo_payload_nonempty": bool(
+            payload.records or payload.atom_facts or payload.bond_facts
+        ),
+        "level2_declared_record_count": sum(
+            _declares_level2(record.descriptor) for record in payload.records
+        ),
         "coordinates_sha256": _coordinate_hash(coordinates),
         "conformer_count": len(molecule.conformers),
+    }
+
+
+def _issue_record(issue) -> dict[str, object]:
+    """Serialize one public stereo issue without leaking Enum objects."""
+
+    return {
+        "code": issue.code.value,
+        "message": issue.message,
+        "record_index": issue.record_index,
+        "atom_indices": list(issue.atom_indices),
+    }
+
+
+def _derived_record(descriptor) -> dict[str, object]:
+    """Serialize one public derived descriptor for benchmark evidence."""
+
+    return {
+        "record_index": descriptor.record_index,
+        "stereo_type": descriptor.stereo_type.value,
+        "label": descriptor.label,
+        "system": descriptor.system,
+        "is_absolute": descriptor.is_absolute,
+    }
+
+
+def _observe_level2_stereochemistry(
+    molecule,
+    coordinates: np.ndarray,
+) -> dict[str, object]:
+    """Assess declared Level-2 facts without changing the R0 native route."""
+
+    from hotpot.cheminfo.stereo import (
+        align_stereochemistry,
+        assign_stereochemistry,
+        get_stereo_payload,
+        set_stereo_payload,
+        validate_stereochemistry,
+    )
+
+    payload = get_stereo_payload(molecule)
+    declared_record_count = sum(
+        _declares_level2(record.descriptor) for record in payload.records
+    )
+    source_payload_sha256 = _digest(payload)
+    if declared_record_count == 0:
+        return {
+            "applicability": "NOT_APPLICABLE",
+            "reason": "input carries no hotpot.stereo/2 record",
+            "declared_record_count": 0,
+            "conformer_count": int(coordinates.shape[0]),
+            "source_payload_sha256": source_payload_sha256,
+            "input_payload_preserved": (
+                _digest(get_stereo_payload(molecule)) == source_payload_sha256
+            ),
+            "conformers": [],
+        }
+
+    identity_mapping = dict(enumerate(range(len(molecule.atoms))))
+    conformer_reports = []
+    for conformer_index, conformer in enumerate(coordinates):
+        validation = validate_stereochemistry(
+            molecule,
+            coordinates=conformer,
+        )
+        assignment = assign_stereochemistry(
+            molecule,
+            coordinates=conformer,
+        )
+        assigned = molecule.copy()
+        set_stereo_payload(assigned, assignment.payload)
+        alignment = align_stereochemistry(
+            molecule,
+            assigned,
+            identity_mapping,
+        )
+        conformer_reports.append(
+            {
+                "conformer_index": conformer_index,
+                "is_valid": validation.is_valid,
+                "validation_issues": [
+                    _issue_record(issue) for issue in validation.issues
+                ],
+                "assignment_unresolved": [
+                    _issue_record(issue) for issue in assignment.unresolved
+                ],
+                "assigned_payload_sha256": _digest(assignment.payload),
+                "derived": [
+                    _derived_record(descriptor)
+                    for descriptor in assignment.derived
+                ],
+                "is_equivalent": alignment.is_equivalent,
+                "alignment_issues": [
+                    _issue_record(issue) for issue in alignment.issues
+                ],
+                "aligned_payload_sha256": _digest(alignment.aligned_payload),
+            }
+        )
+
+    return {
+        "applicability": "APPLICABLE",
+        "reason": None,
+        "declared_record_count": declared_record_count,
+        "conformer_count": len(conformer_reports),
+        "source_payload_sha256": source_payload_sha256,
+        "input_payload_preserved": (
+            _digest(get_stereo_payload(molecule)) == source_payload_sha256
+        ),
+        "conformers": conformer_reports,
     }
 
 
@@ -283,6 +411,9 @@ def _run_trial(
     generate: Callable[..., object] = _generate_conformers,
     snapshot_molecule: Callable[[object], dict[str, object]] = _snapshot_molecule,
     observe: Callable[..., dict[str, object]] = _detached_coordinate_observation,
+    observe_level2: Callable[..., dict[str, object]] = (
+        _observe_level2_stereochemistry
+    ),
     clock_ns: Callable[[], int] = time.perf_counter_ns,
 ) -> dict[str, object]:
     """Run one matrix cell; generation completes before observation starts."""
@@ -314,12 +445,18 @@ def _run_trial(
                 "generate_seconds": 0.0,
                 "determinism_rerun_seconds": 0.0,
                 "observation_seconds": 0.0,
+                "level2_observation_seconds": 0.0,
                 "total_seconds": (clock_ns() - trial_started) / 1.0e9,
                 "returned_conformer_count": 0,
                 "finite": False,
                 "atom_row_shape_exact": False,
                 "input_nonmutating": None,
                 "same_seed_deterministic": None,
+                "level2_stereo": {
+                    "applicability": "UNAVAILABLE",
+                    "reason": "molecule parse failed",
+                    "conformers": [],
+                },
             }
         )
         return record
@@ -339,18 +476,37 @@ def _run_trial(
                 "generate_seconds": 0.0,
                 "determinism_rerun_seconds": 0.0,
                 "observation_seconds": 0.0,
+                "level2_observation_seconds": 0.0,
                 "total_seconds": (clock_ns() - trial_started) / 1.0e9,
                 "returned_conformer_count": 0,
                 "finite": False,
                 "atom_row_shape_exact": False,
                 "input_nonmutating": None,
                 "same_seed_deterministic": None,
+                "level2_stereo": {
+                    "applicability": "UNAVAILABLE",
+                    "reason": "input snapshot failed",
+                    "conformers": [],
+                },
             }
         )
         return record
     record["input_snapshot_seconds"] = (
         clock_ns() - snapshot_started
     ) / 1.0e9
+    record.update(
+        {
+            "input_stereo_record_count": before["stereo_record_count"],
+            "input_atom_transport_count": before["atom_transport_count"],
+            "input_bond_transport_count": before["bond_transport_count"],
+            "input_stereo_payload_nonempty": before[
+                "stereo_payload_nonempty"
+            ],
+            "input_level2_declared_record_count": before[
+                "level2_declared_record_count"
+            ],
+        }
+    )
 
     generate_started = clock_ns()
     try:
@@ -366,10 +522,19 @@ def _run_trial(
                 "diagnostic": f"{type(error).__name__}: {error}",
                 "generate_seconds": (clock_ns() - generate_started) / 1.0e9,
                 "determinism_rerun_seconds": 0.0,
+                "level2_observation_seconds": 0.0,
                 "returned_conformer_count": 0,
                 "finite": False,
                 "atom_row_shape_exact": False,
                 "same_seed_deterministic": None,
+                "level2_stereo": {
+                    "applicability": "UNAVAILABLE",
+                    "reason": "native generation failed",
+                    "declared_record_count": before[
+                        "level2_declared_record_count"
+                    ],
+                    "conformers": [],
+                },
             }
         )
         observation_started = clock_ns()
@@ -442,6 +607,20 @@ def _run_trial(
     record["observation_seconds"] = (
         clock_ns() - observation_started
     ) / 1.0e9
+    level2_started = clock_ns()
+    level2_coordinates = np.array(
+        coordinates,
+        dtype=np.float64,
+        order="C",
+        copy=True,
+    )
+    record["level2_stereo"] = observe_level2(
+        molecule,
+        level2_coordinates,
+    )
+    record["level2_observation_seconds"] = (
+        clock_ns() - level2_started
+    ) / 1.0e9
     record["total_seconds"] = (clock_ns() - trial_started) / 1.0e9
     return record
 
@@ -499,6 +678,81 @@ def _timing_summary(values: Iterable[float]) -> dict[str, float | None]:
     }
 
 
+def _level2_aggregate(
+    records: Sequence[Mapping[str, object]],
+) -> dict[str, object]:
+    """Aggregate semantic observations without counting N/A as a pass."""
+
+    observations = tuple(
+        record.get(
+            "level2_stereo",
+            {
+                "applicability": "UNAVAILABLE",
+                "reason": "record predates Level-2 observation",
+                "conformers": [],
+            },
+        )
+        for record in records
+    )
+    conformers = tuple(
+        conformer
+        for observation in observations
+        for conformer in observation.get("conformers", ())
+    )
+    validation_issue_codes = Counter(
+        issue["code"]
+        for conformer in conformers
+        for issue in conformer["validation_issues"]
+    )
+    assignment_issue_codes = Counter(
+        issue["code"]
+        for conformer in conformers
+        for issue in conformer["assignment_unresolved"]
+    )
+    alignment_issue_codes = Counter(
+        issue["code"]
+        for conformer in conformers
+        for issue in conformer["alignment_issues"]
+    )
+    applicability_counts = Counter(
+        str(observation["applicability"]) for observation in observations
+    )
+    return {
+        "trial_applicability_counts": dict(sorted(applicability_counts.items())),
+        "not_applicable_returned_conformer_count": sum(
+            int(observation.get("conformer_count", 0))
+            for observation in observations
+            if observation["applicability"] == "NOT_APPLICABLE"
+        ),
+        "assessed_conformer_count": len(conformers),
+        "valid_conformer_count": sum(
+            conformer["is_valid"] is True for conformer in conformers
+        ),
+        "invalid_conformer_count": sum(
+            conformer["is_valid"] is False for conformer in conformers
+        ),
+        "equivalent_conformer_count": sum(
+            conformer["is_equivalent"] is True for conformer in conformers
+        ),
+        "non_equivalent_conformer_count": sum(
+            conformer["is_equivalent"] is False for conformer in conformers
+        ),
+        "validation_issue_code_counts": dict(
+            sorted(validation_issue_codes.items())
+        ),
+        "assignment_issue_code_counts": dict(
+            sorted(assignment_issue_codes.items())
+        ),
+        "alignment_issue_code_counts": dict(
+            sorted(alignment_issue_codes.items())
+        ),
+        "input_payload_preservation_failure_count": sum(
+            observation.get("input_payload_preserved") is False
+            for observation in observations
+        ),
+    }
+
+
 def _aggregate_records(
     records: Sequence[Mapping[str, object]],
 ) -> dict[str, object]:
@@ -508,6 +762,7 @@ def _aggregate_records(
         "generate_seconds",
         "determinism_rerun_seconds",
         "observation_seconds",
+        "level2_observation_seconds",
         "total_seconds",
     )
     timings = {
@@ -569,6 +824,29 @@ def _aggregate_records(
             "returned_primary_conformer_count": returned,
         },
         "verification_counts": counters,
+        "stereo_payload_coverage": {
+            "nonempty_input_trial_count": sum(
+                record.get("input_stereo_payload_nonempty") is True
+                for record in records
+            ),
+            "level2_declared_input_trial_count": sum(
+                int(record.get("input_level2_declared_record_count", 0)) > 0
+                for record in records
+            ),
+            "input_stereo_record_count": sum(
+                int(record.get("input_stereo_record_count", 0))
+                for record in records
+            ),
+            "input_atom_transport_count": sum(
+                int(record.get("input_atom_transport_count", 0))
+                for record in records
+            ),
+            "input_bond_transport_count": sum(
+                int(record.get("input_bond_transport_count", 0))
+                for record in records
+            ),
+        },
+        "level2_stereo": _level2_aggregate(records),
     }
 
 
@@ -584,7 +862,7 @@ def _summarize(
         {int(record["requested_conformer_count"]) for record in records}
     )
     return {
-        "schema": "hotpot.plan17.r0/1",
+        "schema": "hotpot.plan17.r0/2",
         "route": "R0",
         "corpus": dict(corpus),
         "matrix": {
@@ -605,6 +883,10 @@ def _summarize(
             "rdkit_force_field": False,
             "conformer_selection": False,
             "observation_is_detached_and_post_generation": True,
+            "level2_observation_is_post_generation": True,
+            "level2_observation_is_detached": True,
+            "level2_observation_is_non_gating": True,
+            "level2_not_applicable_is_not_counted_as_pass": True,
             "primary_generate_timing_includes_hotpot_native_buffer_packing": True,
         },
         "runtime": dict(runtime),

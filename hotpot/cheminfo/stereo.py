@@ -6,7 +6,7 @@ from collections.abc import Collection, Sequence
 from dataclasses import dataclass, replace
 from enum import Enum
 from itertools import permutations, product
-from math import factorial
+from math import factorial, isfinite
 from typing import TYPE_CHECKING, Mapping
 
 import numpy as np
@@ -944,6 +944,362 @@ def set_stereo_payload(mol: Molecule, payload: StereoPayload) -> None:
     """Store Level-1 facts without chemical interpretation."""
 
     mol._stereo_payload = payload
+
+
+_GATE6_ROW_FIELD = "_hotpot_stereo_row"
+_GATE6_ATOM_FIELDS = (
+    "atomic_number",
+    "isotope",
+    "formal_charge",
+    "radical_electrons",
+    "is_aromatic",
+)
+
+
+@dataclass(frozen=True)
+class _Gate6Graph:
+    """One immutable augmented represented-graph snapshot for Gate 6."""
+
+    target_spec: dict
+    directed_dative_edges: frozenset[tuple[int, int]]
+    real_atom_count: int
+    virtual_hydrogens: tuple[tuple[int, ...], ...]
+
+
+def _gate6_issue(
+    message: str,
+    *,
+    atom_indices: tuple[int, ...] = (),
+) -> StereoValidationIssue:
+    return StereoValidationIssue(
+        code=StereoIssueCode.UNSUPPORTED,
+        message=message,
+        atom_indices=atom_indices,
+    )
+
+
+def _gate6_semantics(
+    degree: int,
+    valence: float,
+) -> dict:
+    """Provide the scalar target shape required by ``NativeTarget``."""
+
+    return {
+        "degree": degree,
+        "connectivity": degree,
+        "valence": valence,
+        "ring_count": 0,
+        "ring_sizes": (),
+    }
+
+
+def _gate6_edge_is_cyclic(
+    edge: tuple[int, int],
+    adjacency: tuple[tuple[int, ...], ...],
+) -> bool:
+    """Return whether an edge lies on a cycle in the represented union graph."""
+
+    start, finish = edge
+    pending = [start]
+    visited = {start}
+    while pending:
+        current = pending.pop()
+        for neighbour in adjacency[current]:
+            if frozenset((current, neighbour)) == frozenset(edge):
+                continue
+            if neighbour == finish:
+                return True
+            if neighbour not in visited:
+                visited.add(neighbour)
+                pending.append(neighbour)
+    return False
+
+
+def _gate6_projection(
+    mol: Molecule,
+) -> tuple[_Gate6Graph | None, tuple[StereoValidationIssue, ...]]:
+    """Project all represented structure into one exact native-search graph.
+
+    Active and both hidden bond classes participate. Implicit hydrogens become
+    stable virtual protium nodes without a virtual-node identity label, so an
+    ordinary explicit protium can remain graph-isomorphic to one.
+    """
+
+    atoms = tuple(mol.atoms)
+    atom_count = len(atoms)
+    payload = get_stereo_payload(mol)
+    atom_facts: dict[int, AtomTransportRecord] = {}
+    issues = []
+    for fact in payload.atom_facts:
+        row = fact.atom
+        if (
+            not isinstance(row, int)
+            or isinstance(row, bool)
+            or not 0 <= row < atom_count
+        ):
+            issues.append(
+                _gate6_issue(
+                    f"atom transport fact references out-of-range row {row!r}",
+                )
+            )
+            continue
+        if row in atom_facts:
+            issues.append(
+                _gate6_issue(
+                    f"duplicate atom transport facts for row {row}",
+                    atom_indices=(row,),
+                )
+            )
+            continue
+        atom_facts[row] = fact
+
+    represented_bonds = tuple(
+        mol.bonds + mol._hided_metal_bonds + mol._hided_covalent_bonds
+    )
+    atom_rows = {id(atom): row for row, atom in enumerate(atoms)}
+    bonds_by_edge = {}
+    raw_bonds = []
+    for bond in represented_bonds:
+        first = atom_rows.get(id(bond.atom1))
+        second = atom_rows.get(id(bond.atom2))
+        if first is None or second is None:
+            issues.append(
+                _gate6_issue(
+                    "represented bond endpoint is outside the molecule atom table",
+                )
+            )
+            continue
+        if first == second:
+            issues.append(
+                _gate6_issue(
+                    f"represented graph contains self-loop at row {first}",
+                    atom_indices=(first,),
+                )
+            )
+            continue
+        edge = tuple(sorted((first, second)))
+        if edge in bonds_by_edge:
+            issues.append(
+                _gate6_issue(
+                    f"parallel represented bonds share edge {edge}",
+                    atom_indices=edge,
+                )
+            )
+            continue
+        bonds_by_edge[edge] = bond
+        order = float(bond.bond_order)
+        if not isfinite(order):
+            issues.append(
+                _gate6_issue(
+                    f"represented bond {edge} has non-finite order",
+                    atom_indices=edge,
+                )
+            )
+            continue
+        kind = bond.bond_kind.value
+        directed = None
+        if kind == "dative":
+            if bond.bond_direction == "atom1_to_atom2":
+                directed = (first, second)
+            elif bond.bond_direction == "atom2_to_atom1":
+                directed = (second, first)
+            else:
+                issues.append(
+                    _gate6_issue(
+                        f"dative bond {edge} has unknown direction "
+                        f"{bond.bond_direction!r}",
+                        atom_indices=edge,
+                    )
+                )
+                continue
+        raw_bonds.append((edge, order, kind, directed))
+
+    if issues:
+        return None, tuple(issues)
+
+    adjacency_lists = [[] for _ in atoms]
+    for (first, second), _, _, _ in raw_bonds:
+        adjacency_lists[first].append(second)
+        adjacency_lists[second].append(first)
+    adjacency = tuple(tuple(sorted(neighbours)) for neighbours in adjacency_lists)
+
+    node_fields = []
+    implicit_counts = []
+    for row, atom in enumerate(atoms):
+        fact = atom_facts.get(row)
+        isotope = 0 if fact is None or fact.isotope is None else int(fact.isotope)
+        if atom.atomic_number == 1 and isotope in (0, 1):
+            isotope = 0
+        radical = (
+            0
+            if fact is None or fact.radical_electrons is None
+            else int(fact.radical_electrons)
+        )
+        node_fields.append(
+            {
+                "atomic_number": int(atom.atomic_number),
+                "isotope": isotope,
+                "formal_charge": int(atom.formal_charge),
+                "radical_electrons": radical,
+                "is_aromatic": bool(atom.is_aromatic),
+                _GATE6_ROW_FIELD: row,
+            }
+        )
+        implicit_count = int(atom.implicit_hydrogens)
+        if implicit_count < 0:
+            issues.append(
+                _gate6_issue(
+                    f"atom row {row} has negative implicit-hydrogen count",
+                    atom_indices=(row,),
+                )
+            )
+        implicit_counts.append(implicit_count)
+
+    if issues:
+        return None, tuple(issues)
+
+    edges = []
+    bond_records = []
+    directed_dative_edges = set()
+    for edge, order, kind, directed in sorted(raw_bonds):
+        first, second = edge
+        aromatic = (
+            kind == "aromatic"
+            or order == 1.5
+            or (
+                kind in ("single", "double")
+                and atoms[first].is_aromatic
+                and atoms[second].is_aromatic
+                and _gate6_edge_is_cyclic(edge, adjacency)
+            )
+        )
+        normalized_kind = "aromatic" if aromatic else kind
+        normalized_order = 1.5 if aromatic else order
+        edges.append(edge)
+        bond_records.append(
+            {
+                "fields": {
+                    "bond_order": normalized_order,
+                    "is_aromatic": aromatic,
+                },
+                "bond_kind": normalized_kind,
+                "is_aromatic": aromatic,
+                "object": None,
+            }
+        )
+        if directed is not None:
+            directed_dative_edges.add(directed)
+
+    next_key = atom_count
+    virtual_hydrogens = [[] for _ in atoms]
+    for row, hydrogen_count in enumerate(implicit_counts):
+        for _ in range(hydrogen_count):
+            hydrogen_key = next_key
+            next_key += 1
+            virtual_hydrogens[row].append(hydrogen_key)
+            node_fields.append(
+                {
+                    "atomic_number": 1,
+                    "isotope": 0,
+                    "formal_charge": 0,
+                    "radical_electrons": 0,
+                    "is_aromatic": False,
+                    _GATE6_ROW_FIELD: hydrogen_key,
+                }
+            )
+            edges.append((row, hydrogen_key))
+            bond_records.append(
+                {
+                    "fields": {
+                        "bond_order": 1.0,
+                        "is_aromatic": False,
+                    },
+                    "bond_kind": "single",
+                    "is_aromatic": False,
+                    "object": None,
+                }
+            )
+
+    edge_records = sorted(zip(edges, bond_records), key=lambda item: item[0])
+    edges = [edge for edge, _ in edge_records]
+    bond_records = [record for _, record in edge_records]
+    keys = tuple(range(next_key))
+    degrees = [0] * next_key
+    valences = [0.0] * next_key
+    for edge, bond_record in zip(edges, bond_records):
+        order = float(bond_record["fields"]["bond_order"])
+        for row in edge:
+            degrees[row] += 1
+            valences[row] += order
+    atoms_spec = tuple(
+        {
+            "fields": fields,
+            "full": _gate6_semantics(degrees[key], valences[key]),
+            "ligand": _gate6_semantics(degrees[key], valences[key]),
+            "object": None,
+        }
+        for key, fields in zip(keys, node_fields)
+    )
+    return (
+        _Gate6Graph(
+            target_spec={
+                "keys": keys,
+                "edges": tuple(edges),
+                "atoms": atoms_spec,
+                "bonds": tuple(bond_records),
+            },
+            directed_dative_edges=frozenset(directed_dative_edges),
+            real_atom_count=atom_count,
+            virtual_hydrogens=tuple(
+                tuple(keys) for keys in virtual_hydrogens
+            ),
+        ),
+        (),
+    )
+
+
+def _gate6_query_spec(
+    graph: _Gate6Graph,
+    pins: Mapping[int, int],
+) -> dict:
+    """Build an exact whole-graph native query with optional row pins."""
+
+    target = graph.target_spec
+    nodes = []
+    for key, atom in zip(target["keys"], target["atoms"]):
+        leaves = [
+            ("native_set", field, (atom["fields"][field],))
+            for field in _GATE6_ATOM_FIELDS
+        ]
+        if key in pins:
+            leaves.append(
+                ("native_set", _GATE6_ROW_FIELD, (int(pins[key]),))
+            )
+        nodes.append(
+            {
+                "preflight": (),
+                "leaves": tuple(leaves),
+            }
+        )
+
+    bonds = tuple(
+        {
+            "preflight": (),
+            "leaves": tuple(
+                ("native_set", field, (value,))
+                for field, value in bond["fields"].items()
+            ),
+            "exclude_aromatic": not bond["is_aromatic"],
+            "bond_kind": bond["bond_kind"],
+        }
+        for bond in target["bonds"]
+    )
+    return {
+        "keys": target["keys"],
+        "edges": target["edges"],
+        "nodes": tuple(nodes),
+        "bonds": bonds,
+    }
 
 
 def _record_atom_indices(record: StereoRecord) -> tuple[int, ...]:

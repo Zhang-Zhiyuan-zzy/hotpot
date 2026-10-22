@@ -675,3 +675,74 @@ Adjustment:
   no partial storage or chemistry behavior was introduced.
 
 Git checkpoint: `2801e79 feat(stereo): scope groups and split hydrogen state`.
+
+### Step 10 - Lock and prove the native RDKit source closure
+
+Status: complete
+
+Planned:
+
+- pin the exact source identity for RDKit 2026.09.1 and every source fetched
+  by its minimal ETKDG build;
+- prove the private C++20/PIC closure without using the system, Conda, or
+  Python-wheel RDKit SDK; and
+- keep the local proof toolchain distinct from the future release-wheel
+  toolchain and public SDK contract.
+
+Performed:
+
+- locked RDKit, Boost, Catch2, better-enums, Eigen, and RingDecomposerLib by
+  literal URL, revision, byte size, SHA-256, license identity, and license-file
+  digest;
+- added verified online/offline cache acquisition and a fully disconnected
+  CMake/Ninja closure probe;
+- pinned the Linux x86-64 probe compiler/sysroot/CMake/Ninja environment with
+  a complete Conda explicit specification;
+- disabled unrelated upstream components and network discovery, injected the
+  preverified dependencies, and generated the exact transitive target map and
+  static-archive manifest; and
+- documented the owner-only upgrade rule and the separate manylinux release
+  toolchain obligation.
+
+Verification:
+
+- the offline probe completed 158 compile/link steps with GCC 14.3.0, CMake
+  3.31.8, Ninja 1.12.1, C++20, PIC, hidden visibility, a glibc-2.28 sysroot,
+  generic x86-64 tuning, and POPCNT optimization disabled;
+- the deterministic native executable reported
+  `rdkit=2026.09.1 boost=1_86 conformers=1`;
+- all six cached archives passed size and SHA-256 checks, and configure emitted
+  no download action;
+- the generated target map and all 18 static archive names exactly match the
+  checked-in manifests;
+- `ldd` reports no shared RDKit or Boost dependency; and
+- JSON parsing, shell syntax, Conda explicit-lock parity/dry-run, and
+  `git diff --check` pass.
+
+Unexpected findings:
+
+- the pinned RDKit source does not vendor its complete configuration closure:
+  Catch2, better-enums, Eigen, and RingDecomposerLib also require explicit
+  source identities;
+- upstream RingDecomposerLib acquisition used only MD5, so Hotpot now pins its
+  exact RDKit tag/commit and SHA-256 before injection;
+- the true ETKDG closure contains 18 RDKit/RingDecomposerLib static archives,
+  including the coarse `ForceField` and `ForceFieldHelpers` targets; these are
+  compile-time ETKDG dependencies and do not enable RDKit UFF/MMFF as a Hotpot
+  business optimizer;
+- the first Boost download resumed across mirrors into a CRC-invalid archive;
+  it was isolated and replaced by a complete single-source download verified
+  against the locked official metadata hash; and
+- an early shared-library check matched the word `rdkit` in a toolchain path;
+  the check was narrowed to actual `libRDKit`/`libboost` names and the complete
+  probe was rerun successfully.
+
+Adjustment:
+
+- the measured target graph replaces the prospective partial library list;
+- the local probe prefix is disposable and is not a path or ABI contract; and
+- release wheels remain gated on separately pinned manylinux image digests,
+  architecture-specific closure reruns, wheel auditing, and import-coexistence
+  tests.
+
+Git checkpoint: `ffb2924 build(rdwrappers): lock native RDKit source closure`.

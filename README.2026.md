@@ -73,7 +73,9 @@ Hotpot is built on a modular architecture designed to hide complexity. It consis
     card. The threshold is evaluated independently for each prediction call;
     a warm predictor retains its workers between calls but submits no GPU work
     for a below-threshold call.
-    It defaults to 9 site workers and 7 feature/inference workers per GPU.
+    CPU inference defaults to one shared budget of at most 8 CPUs; preprocessing
+    and ONNX reuse those CPUs in separate phases. GPU inference defaults to 1
+    site worker and 2 feature/inference workers per GPU.
     When no GPU batch is supplied, total card memory selects an atom-row batch
     tier (`64/128/256/512/1024/2048`); heterogeneous cards use the smallest
     selected-card tier. CUDA OOM reports the active and next lower batch tier

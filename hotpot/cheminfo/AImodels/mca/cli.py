@@ -79,6 +79,11 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         type=int,
         help="CPU atom-row batch size (default: 64)",
     )
+    parser.add_argument(
+        "--cpu-count",
+        type=int,
+        help="total CPUs shared by CPU preprocessing and ONNX (default: up to 8)",
+    )
     gpu_selection = parser.add_mutually_exclusive_group()
     gpu_selection.add_argument(
         "--gpu-count",
@@ -250,13 +255,21 @@ def run(args: argparse.Namespace) -> int:
                 )
             ):
                 raise ValueError("GPU options require --backend gpu")
-            cpu_options = (
-                {} if args.batch_size is None else {"batch_size": args.batch_size}
-            )
+            cpu_options = {
+                name: value
+                for name, value in (
+                    ("batch_size", args.batch_size),
+                    ("cpu_count", args.cpu_count),
+                )
+                if value is not None
+            }
             predictor = MCACpuPredictor(**cpu_options, **predictor_options)
         else:
-            if args.batch_size is not None:
-                raise ValueError("--batch-size is CPU-only; use --gpu-batch-size")
+            if args.batch_size is not None or args.cpu_count is not None:
+                raise ValueError(
+                    "--batch-size and --cpu-count are CPU-only; "
+                    "use --gpu-batch-size for GPU inference"
+                )
             gpu_options = {
                 name: value
                 for name, value in (

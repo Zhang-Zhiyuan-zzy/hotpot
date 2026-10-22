@@ -134,12 +134,17 @@ pipeline. CUDA/provider startup errors and CUDA OOM after that point are not
 retried on CPU.
 
 ```bash
-$ hotpot mca molecules.smi --batch-size 64
+$ hotpot mca molecules.smi --batch-size 64 --cpu-count 8
 $ hotpot mca molecules.smi --backend gpu --gpu-count 2
 $ hotpot mca molecules.smi --backend gpu --gpu-indices 0,2
 ```
 
-The GPU backend defaults to 9 site workers and 7 conformer/feature workers per
+The CPU backend defaults to at most 8 CPUs from the process affinity. Use
+`--cpu-count` to set another total. Fused site/conformer/feature preprocessing
+and ONNX inference reuse that same CPU set in separate phases rather than
+competing for separate allocations.
+
+The GPU backend defaults to 1 site worker and 2 conformer/feature workers per
 card. These are direct defaults, not a named profile. Override them with
 `--site-cpu-per-gpu` and `--infer-cpu-per-gpu`. Hotpot calculates the required
 CPU count from the selected GPUs and these values, then fails before startup if

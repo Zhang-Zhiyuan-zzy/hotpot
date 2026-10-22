@@ -195,6 +195,31 @@ def test_cpu_backend_rejects_gpu_worker_options():
         cli.run(args)
 
 
+def test_cpu_count_is_forwarded_only_to_cpu_backend(monkeypatch, capsys):
+    predictors = []
+
+    class RecordingPredictor(_Predictor):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            predictors.append(self)
+
+    monkeypatch.setattr(cli, "MCACpuPredictor", RecordingPredictor)
+
+    assert hotpot_main.main(["mca", "CN", "--cpu-count", "3"]) == 0
+
+    assert predictors[0].options["cpu_count"] == 3
+    assert "MCA(kJ/mol)" in capsys.readouterr().out
+
+
+def test_gpu_backend_rejects_cpu_count():
+    args = cli.build_parser().parse_args(
+        ["CN", "--backend", "gpu", "--cpu-count", "3"]
+    )
+
+    with pytest.raises(ValueError, match="--cpu-count"):
+        cli.run(args)
+
+
 def test_output_open_failure_closes_constructed_predictor(monkeypatch, tmp_path):
     predictors = []
 

@@ -7,8 +7,9 @@ from dataclasses import dataclass
 from typing import Literal, Sequence
 
 
-DEFAULT_SITE_CPU_PER_GPU = 9
-DEFAULT_INFER_CPU_PER_GPU = 7
+DEFAULT_CPU_COUNT = 8
+DEFAULT_SITE_CPU_PER_GPU = 1
+DEFAULT_INFER_CPU_PER_GPU = 2
 
 
 class InsufficientCPUAffinityError(RuntimeError):
@@ -33,6 +34,19 @@ class InsufficientCPUAffinityError(RuntimeError):
             f"{required_cpu_count} CPUs for {gpu_count} GPU(s) "
             f"({site_cpu_per_gpu} site + {infer_cpu_per_gpu} inference CPUs "
             f"per GPU), but the current process affinity exposes only "
+            f"{available_cpu_count} CPUs"
+        )
+
+
+class InsufficientCPUCountError(RuntimeError):
+    """The current affinity cannot supply the requested CPU workflow."""
+
+    def __init__(self, *, cpu_count: int, available_cpu_count: int):
+        self.cpu_count = cpu_count
+        self.available_cpu_count = available_cpu_count
+        super().__init__(
+            "MCA CPU inference requires "
+            f"{cpu_count} CPUs, but the current process affinity exposes only "
             f"{available_cpu_count} CPUs"
         )
 
@@ -125,6 +139,31 @@ def current_cpu_affinity() -> tuple[int, ...]:
     """Return the CPUs made available by the enclosing cpuset/cgroup."""
 
     return tuple(sorted(os.sched_getaffinity(0)))
+
+
+def resolve_cpu_ids(
+    cpu_count: int | None = None,
+    *,
+    cpu_affinity: Sequence[int] | None = None,
+) -> tuple[int, ...]:
+    """Resolve one bounded CPU workflow to stable affinity-visible IDs."""
+
+    affinity = (
+        current_cpu_affinity()
+        if cpu_affinity is None
+        else tuple(sorted(cpu_affinity))
+    )
+    count = (
+        min(DEFAULT_CPU_COUNT, len(affinity))
+        if cpu_count is None
+        else _positive_integer(cpu_count, "cpu_count")
+    )
+    if count > len(affinity):
+        raise InsufficientCPUCountError(
+            cpu_count=count,
+            available_cpu_count=len(affinity),
+        )
+    return affinity[:count]
 
 
 def validate_gpu_resource_request(

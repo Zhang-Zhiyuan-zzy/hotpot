@@ -1,4 +1,4 @@
-from copy import copy
+import os
 
 import numpy as np
 import pytest
@@ -30,18 +30,17 @@ def test_cpu_backend_preserves_atom_site_join_and_golden(cpu_backend):
     )
 
 
-def test_cpu_backend_iterates_one_global_flattened_batch_plan(cpu_backend):
+def test_cpu_backend_iterates_one_global_flattened_batch_plan(
+    cpu_backend, monkeypatch
+):
     molecules = [
         ensure_3d_conformer(Chem.MolFromSmiles(smiles))
         for smiles in ("C", "C1CCCCN1", "CC(=O)C", "c1ccncc1")
     ]
-    direct = copy(cpu_backend)
-    iterated = copy(cpu_backend)
-    direct.batch_size = 5
-    iterated.batch_size = 5
+    monkeypatch.setattr(cpu_backend, "batch_size", 5)
 
-    direct_results = direct.predict(molecules)
-    iterated_results = list(iterated.iter_predict(iter(molecules)))
+    direct_results = cpu_backend.predict(molecules)
+    iterated_results = list(cpu_backend.iter_predict(iter(molecules)))
 
     for expected, actual in zip(direct_results, iterated_results):
         assert np.array_equal(
@@ -62,9 +61,8 @@ def test_cpu_backend_cache_key_includes_logical_chunk_padding(
         return original(features, molecule_indices, max_atoms)
 
     monkeypatch.setattr(cpu_backend_module, "collate_molecule_rows", record_rows)
-    backend = copy(cpu_backend)
-    backend.batch_size = 7
-    backend.predict(["CCCCCCCCCC", "C1CCCCN1"])
+    monkeypatch.setattr(cpu_backend, "batch_size", 7)
+    cpu_backend.predict(["CCCCCCCCCC", "C1CCCCN1"])
 
     assert calls == [((0,), 10), ((1,), 10), ((1,), 6)]
 
@@ -81,7 +79,22 @@ def test_cpu_backend_close_is_idempotent(monkeypatch):
     assert calls == [True]
 
 
-def test_cpu_iter_predict_consumes_a_bounded_prefix(cpu_backend):
+def test_cpu_backend_reuses_pinned_pool_and_restores_owner_affinity(cpu_backend):
+    owner_affinity = os.sched_getaffinity(0)
+
+    cpu_backend.predict(["C", "CC"])
+    pool = cpu_backend._pool
+    worker_affinities = {
+        tuple(os.sched_getaffinity(worker.pid)) for worker in pool._pool
+    }
+    cpu_backend.predict(["CCC", "CCCC"])
+
+    assert cpu_backend._pool is pool
+    assert worker_affinities == {(cpu_id,) for cpu_id in cpu_backend.cpu_ids}
+    assert os.sched_getaffinity(0) == owner_affinity
+
+
+def test_cpu_iter_predict_consumes_a_bounded_prefix(cpu_backend, monkeypatch):
     consumed = []
 
     def molecules():
@@ -89,9 +102,8 @@ def test_cpu_iter_predict_consumes_a_bounded_prefix(cpu_backend):
             consumed.append(index)
             yield "C"
 
-    backend = copy(cpu_backend)
-    backend.batch_size = 2
-    predictions = backend.iter_predict(molecules())
+    monkeypatch.setattr(cpu_backend, "batch_size", 2)
+    predictions = cpu_backend.iter_predict(molecules())
 
     assert next(predictions).smiles == "C"
     assert consumed == [0, 1]
@@ -102,12 +114,11 @@ def test_cpu_backend_reuses_prepared_molecule(cpu_backend, monkeypatch):
     assert isinstance(prepared, PreparedMolecule)
     monkeypatch.setattr(
         cpu_backend_module,
-        "prepare_molecule",
+        "normalize_molecule",
         lambda *args: pytest.fail("prepared input was normalized again"),
     )
 
-    backend = copy(cpu_backend)
-    prediction = list(backend.iter_predict((prepared,)))[0]
+    prediction = list(cpu_backend.iter_predict((prepared,)))[0]
 
     assert prediction.smiles == prepared.molecule.smiles
     assert [(site.atom_index, site.site_type) for site in prediction.sites] == list(

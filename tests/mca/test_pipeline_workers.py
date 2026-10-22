@@ -9,9 +9,11 @@ from mca.featurizer import mol_to_unimolv2
 from mca.pipeline import build_prediction
 from mca.serialization import normalize_molecule, rdmol_from_dto
 from mca.workers import (
+    CPUPreprocessTask,
     FeatureTask,
     SiteDetectionTask,
     build_features_worker,
+    cpu_preprocess_worker,
     detect_sites_worker,
 )
 
@@ -71,6 +73,42 @@ def test_worker_entry_points_execute_under_spawn():
     assert site_result.sites == ((2, "Amine"),)
     assert feature_result.molecule_index == 31
     assert feature_result.feature["atom_feat"].shape == (3, 8)
+
+
+def test_fused_cpu_worker_preserves_site_order_and_feature_path():
+    dto = normalize_molecule("CC(=O)C")
+    result = cpu_preprocess_worker(
+        CPUPreprocessTask(
+            molecule_index=41,
+            molecule=dto,
+            sites=None,
+            max_atoms=512,
+            conformer_seed=42,
+        )
+    )
+
+    assert result.molecule_index == 41
+    assert result.molecule is dto
+    assert result.sites == ((2, "Ketone"), (1, "double_bond"))
+    assert result.feature["atom_feat"].shape == (4, 8)
+
+
+def test_fused_cpu_worker_reuses_precomputed_sites_under_spawn():
+    dto = normalize_molecule("CCN")
+    task = CPUPreprocessTask(
+        molecule_index=43,
+        molecule=dto,
+        sites=((0, "preserved"),),
+        max_atoms=512,
+        conformer_seed=42,
+    )
+    context = multiprocessing.get_context("spawn")
+
+    with ProcessPoolExecutor(max_workers=1, mp_context=context) as executor:
+        result = executor.submit(cpu_preprocess_worker, task).result()
+
+    assert result.sites == ((0, "preserved"),)
+    assert result.feature["atom_feat"].shape == (3, 8)
 
 
 def test_shared_result_builder_joins_sites_to_the_same_atom_values():

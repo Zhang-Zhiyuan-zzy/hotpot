@@ -254,12 +254,8 @@ def test_rdkit_stereochemistry_reaches_the_featurizer(predictor, monkeypatch):
         return original(mol, max_atoms)
 
     monkeypatch.setattr(pipeline_module, "mol_to_unimolv2", record_stereochemistry)
-    predictor.predict(
-        [
-            Chem.MolFromSmiles("C[C@H](O)F"),
-            Chem.MolFromSmiles("F/C=C/F"),
-        ]
-    )
+    predictor.predict(Chem.MolFromSmiles("C[C@H](O)F"))
+    predictor.predict(Chem.MolFromSmiles("F/C=C/F"))
 
     assert "CHI_TETRAHEDRAL_CCW" in observed[0][0]
     assert "STEREOE" in observed[1][1]

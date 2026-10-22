@@ -83,13 +83,21 @@ def test_cpu_session_has_explicit_bounded_sequential_threads(monkeypatch):
     runtime = runtime_module.create_cpu_runtime()
 
     assert captured["providers"] == ["CPUExecutionProvider"]
-    assert captured["options"].intra_op_num_threads == 16
+    assert captured["options"].intra_op_num_threads == 8
     assert captured["options"].inter_op_num_threads == 1
     assert (
         captured["options"].execution_mode
         == captured["ort"].ExecutionMode.ORT_SEQUENTIAL
     )
     assert "atom_index" not in runtime.input_dtypes
+
+
+def test_cpu_session_accepts_explicit_total_thread_budget(monkeypatch):
+    captured = _install_fake_model(monkeypatch)
+
+    runtime_module.create_cpu_runtime(cpu_threads=3)
+
+    assert captured["options"].intra_op_num_threads == 3
 
 
 def test_cuda_session_owns_explicit_device_and_single_ort_thread(monkeypatch):

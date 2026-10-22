@@ -34,6 +34,23 @@ class FeatureResult:
     feature: FeatureDict
 
 
+@dataclass(frozen=True, slots=True)
+class CPUPreprocessTask:
+    molecule_index: int
+    molecule: MoleculeDTO
+    sites: tuple[tuple[int, str], ...] | None
+    max_atoms: int
+    conformer_seed: int
+
+
+@dataclass(frozen=True, slots=True)
+class CPUPreprocessResult:
+    molecule_index: int
+    molecule: MoleculeDTO
+    sites: tuple[tuple[int, str], ...]
+    feature: FeatureDict
+
+
 def detect_sites_worker(task: SiteDetectionTask) -> SiteDetectionResult:
     """Run ordered MCA site rules for one normalized molecule."""
 
@@ -56,12 +73,31 @@ def build_features_worker(task: FeatureTask) -> FeatureResult:
     )
 
 
+def cpu_preprocess_worker(task: CPUPreprocessTask) -> CPUPreprocessResult:
+    """Run one molecule's ordered site, conformer, and feature stages."""
+
+    sites = detect_sites(task.molecule) if task.sites is None else task.sites
+    return CPUPreprocessResult(
+        molecule_index=task.molecule_index,
+        molecule=task.molecule,
+        sites=sites,
+        feature=build_features(
+            task.molecule,
+            task.max_atoms,
+            task.conformer_seed,
+        ),
+    )
+
+
 __all__ = [
+    "CPUPreprocessResult",
+    "CPUPreprocessTask",
     "FeatureDict",
     "FeatureResult",
     "FeatureTask",
     "SiteDetectionResult",
     "SiteDetectionTask",
     "build_features_worker",
+    "cpu_preprocess_worker",
     "detect_sites_worker",
 ]

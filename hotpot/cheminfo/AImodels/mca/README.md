@@ -42,13 +42,13 @@ MCA values remain unchanged.
 
 ## Python API
 
-Use the CPU predictor for serial MCA stages with an explicitly threaded ONNX
-session:
+Use the CPU predictor for a bounded workflow in which a persistent molecule
+preprocessing pool and ONNX Runtime reuse the same CPU set in separate phases:
 
 ```python
 from hotpot.cheminfo.AImodels.mca import MCACpuPredictor
 
-with MCACpuPredictor() as predictor:
+with MCACpuPredictor(cpu_count=8) as predictor:
     one = predictor.predict("C1CCCCN1")
     many = predictor.predict(["C1CCCCN1", "c1ccncc1"])
 
@@ -74,7 +74,12 @@ The 256-site decision is made separately for each `predict()` or
 submits no GPU inference, but leaves its existing persistent workers available
 for a later bulk call.
 
-The GPU default is 9 site workers plus 7 conformer/feature workers per card.
+`cpu_count=None` uses at most 8 CPUs from the process affinity. The same total
+is used first by the fused site/conformer/feature pool and then by ONNX, so the
+two stages never claim separate CPU budgets. Set `cpu_count` explicitly for a
+different host allocation.
+
+The GPU default is 1 site worker plus 2 conformer/feature workers per card.
 There is no named configuration profile: change `site_cpu_per_gpu` and
 `infer_cpu_per_gpu` directly when a job needs different allocation. The
 predictor checks the process CPU affinity before starting and requires exactly

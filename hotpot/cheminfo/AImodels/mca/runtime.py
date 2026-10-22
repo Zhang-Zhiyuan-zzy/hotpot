@@ -39,7 +39,7 @@ def _default_cpu_threads() -> int:
         available = len(os.sched_getaffinity(0))
     else:
         available = os.cpu_count() or 1
-    return min(16, available)
+    return min(8, available)
 
 
 def _session_options(intra_op_threads: int):
@@ -61,11 +61,14 @@ class MCARuntime:
         variant: str,
         manifest: Mapping[str, object],
         cuda_device_id: int | None = None,
+        cpu_threads: int | None = None,
     ):
         self.variant = variant
         self.manifest = manifest
         if backend == "cpu":
-            options = _session_options(_default_cpu_threads())
+            options = _session_options(
+                _default_cpu_threads() if cpu_threads is None else cpu_threads
+            )
             providers = ["CPUExecutionProvider"]
         elif backend == "cuda":
             if not cuda_provider_available():
@@ -156,6 +159,7 @@ def create_cpu_runtime(
     variant: str | None = None,
     verify_model: bool = True,
     model_source=None,
+    cpu_threads: int | None = None,
 ) -> MCARuntime:
     with resolved_model_artifact(
         model_dir=model_dir,
@@ -168,6 +172,7 @@ def create_cpu_runtime(
             backend="cpu",
             variant=artifact.variant,
             manifest=artifact.manifest,
+            cpu_threads=cpu_threads,
         )
 
 

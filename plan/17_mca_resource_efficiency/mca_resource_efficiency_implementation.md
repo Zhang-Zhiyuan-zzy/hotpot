@@ -7,12 +7,13 @@ identity and type, output order, and `is_Nuc_site` semantics.
 
 ## 2. Validated decisions
 
-- One A800 GPU requires two conformer/feature workers: one worker supplied
-  12.75 molecules/s, while two supplied 27.07 molecules/s against a measured
-  14.6--15.0 molecules/s GPU consumption rate.
+- Standalone feature supply reached 27.07 molecules/s with two workers, but the
+  production end-to-end comparison reached only 14.27 molecules/s with two and
+  14.99 with three. Three workers are therefore the smallest allocation that
+  reaches the measured 14.6--15.0 molecules/s A800 ceiling.
 - One native-search site worker supplied 123.81 molecules/s on the 4,096
   molecule workload and does not constrain one GPU.
-- The production GPU default is therefore one site worker plus two
+- The production GPU default is therefore one site worker plus three
   conformer/feature workers per GPU.
 - CPU preprocessing uses one fused per-molecule task in the scientific order
   site detection, conformer generation, then feature extraction.
@@ -46,7 +47,7 @@ GPU defaults become:
 
 ```python
 site_cpu_per_gpu = 1
-infer_cpu_per_gpu = 2
+infer_cpu_per_gpu = 3
 ```
 
 ## 4. CPU execution model
@@ -85,6 +86,6 @@ directly and does not start the process pool.
    stratified workloads.
 4. Record wall time, throughput, CPU allocation, and exact MCA/site/joint
    digests. The joint digest must include `is_Nuc_site` and site type.
-5. Exercise the one-GPU path with the new 1/2 default only during an idle GPU
+5. Exercise the one-GPU path with the final 1/3 default only during an idle GPU
    window; do not use measurements contaminated by unrelated GPU work.
 

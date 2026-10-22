@@ -22,7 +22,7 @@
 
 ## 2026-10-22: resource API and execution core
 
-- Changed the measured GPU defaults from 9/7 to 1 site worker and 2
+- Initially changed the GPU defaults from 9/7 to 1 site worker and 2
   conformer/feature workers per card.
 - Added the single CPU resource control `cpu_count`, resolving by default to at
   most eight affinity-visible CPUs and failing before startup on an explicit
@@ -54,4 +54,17 @@
 - Added a production-API benchmark runner for both backends. It records wall
   throughput, process-tree CPU time, resolved resources, caller-affinity
   restoration, and exact MCA/site/joint hashes including `is_Nuc_site`.
+
+## 2026-10-22: GPU default corrected by production-path measurement
+
+- Per-process GPU2 monitoring showed zero SM activity from the resident
+  external process during both comparisons.
+- On the same 256-molecule stratified workload, two feature workers reached
+  14.273 molecules/s while three reached 14.994 molecules/s. All three exact
+  semantic hashes matched.
+- The three-worker result reaches the independently measured 14.6--15.0
+  molecules/s A800 ceiling; two workers leave 5.1% throughput unused once
+  complete pipeline overhead is included.
+- Corrected the final GPU default to 1 site + 3 conformer/feature workers per
+  card: four CPUs per GPU is the measured minimum that does not throttle it.
 

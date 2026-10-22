@@ -9,7 +9,7 @@ from typing import Literal, Sequence
 
 DEFAULT_CPU_COUNT = 8
 DEFAULT_SITE_CPU_PER_GPU = 1
-DEFAULT_INFER_CPU_PER_GPU = 2
+DEFAULT_INFER_CPU_PER_GPU = 3
 
 
 class InsufficientCPUAffinityError(RuntimeError):

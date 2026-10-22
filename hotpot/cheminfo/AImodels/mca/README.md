@@ -79,7 +79,7 @@ is used first by the fused site/conformer/feature pool and then by ONNX, so the
 two stages never claim separate CPU budgets. Set `cpu_count` explicitly for a
 different host allocation.
 
-The GPU default is 1 site worker plus 2 conformer/feature workers per card.
+The GPU default is 1 site worker plus 3 conformer/feature workers per card.
 There is no named configuration profile: change `site_cpu_per_gpu` and
 `infer_cpu_per_gpu` directly when a job needs different allocation. The
 predictor checks the process CPU affinity before starting and requires exactly

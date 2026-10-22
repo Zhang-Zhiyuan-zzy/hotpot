@@ -44,31 +44,31 @@ def test_resource_plan_uses_approved_defaults_and_stable_per_gpu_blocks():
     )
 
     assert plan.site_cpu_per_gpu == DEFAULT_SITE_CPU_PER_GPU == 1
-    assert plan.infer_cpu_per_gpu == DEFAULT_INFER_CPU_PER_GPU == 2
-    assert plan.required_cpu_count == 6
-    assert plan.assigned_cpu_ids == affinity[:6]
+    assert plan.infer_cpu_per_gpu == DEFAULT_INFER_CPU_PER_GPU == 3
+    assert plan.required_cpu_count == 8
+    assert plan.assigned_cpu_ids == affinity[:8]
     assert plan.gpu_cpu_assignments[0].gpu_index == 4
     assert plan.gpu_cpu_assignments[0].site_cpu_ids == affinity[:1]
-    assert plan.gpu_cpu_assignments[0].infer_cpu_ids == affinity[1:3]
+    assert plan.gpu_cpu_assignments[0].infer_cpu_ids == affinity[1:4]
     assert plan.gpu_cpu_assignments[1].gpu_index == 2
-    assert plan.gpu_cpu_assignments[1].cpu_ids == affinity[3:6]
+    assert plan.gpu_cpu_assignments[1].cpu_ids == affinity[4:8]
     assert tuple(item.cpu_id for item in plan.site_worker_assignments) == (
-        affinity[:1] + affinity[3:4]
+        affinity[:1] + affinity[4:5]
     )
     assert tuple(item.cpu_id for item in plan.infer_worker_assignments) == (
-        affinity[1:3] + affinity[4:6]
+        affinity[1:4] + affinity[5:8]
     )
 
 
 def test_resource_plan_reports_cpu_affinity_shortfall_before_startup():
     with pytest.raises(InsufficientCPUAffinityError) as caught:
-        build_gpu_resource_plan(gpu_count=2, cpu_affinity=range(5))
+        build_gpu_resource_plan(gpu_count=2, cpu_affinity=range(7))
 
     error = caught.value
     assert error.gpu_count == 2
-    assert error.required_cpu_count == 6
-    assert error.available_cpu_count == 5
-    assert "1 site + 2 inference CPUs per GPU" in str(error)
+    assert error.required_cpu_count == 8
+    assert error.available_cpu_count == 7
+    assert "1 site + 3 inference CPUs per GPU" in str(error)
 
 
 def test_cpu_selection_defaults_to_eight_and_preserves_affinity_order():

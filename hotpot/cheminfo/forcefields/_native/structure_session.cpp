@@ -67,8 +67,10 @@ int openbabel_coordination_bond_order(double order) {
 
 
 OpenBabel::OBMol make_session_obmol(const ComplexSessionInput& input) {
+    const auto ligand = ligand_molecule_view(input);
+    hotpot::obwrappers::validate_openbabel_compatibility(ligand);
     input.validate();
-    return hotpot::obwrappers::make_obmol(ligand_molecule_data(input));
+    return hotpot::obwrappers::make_obmol(ligand);
 }
 
 

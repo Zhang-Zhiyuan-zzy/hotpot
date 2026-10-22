@@ -31,6 +31,23 @@ current server and from 29.277 to 25.050 seconds on ai-14.
 The eight instances produced one identical prediction digest within each run,
 and each digest remained stable across all three repeats.
 
+## Matched 8-CPU to 64-CPU scaling
+
+The earlier single-instance result of 39.18 molecules/s used 256 copies of
+simple piperidine and is not comparable with the stratified complex workload
+above. A matched comparison using the same 64 complex molecules gives:
+
+| Server | 1 x 8 CPUs | 8 x 8 CPUs | Speedup | Parallel efficiency |
+|---|---:|---:|---:|---:|
+| Current server | 3.556 mol/s | 19.210 mol/s | 5.40 x | 67.5% |
+| ai-14 | 3.392 mol/s | 20.439 mol/s | 6.03 x | 75.3% |
+
+Thus the 64-CPU configuration is materially faster, but not linearly eight
+times faster. Eight independent model sessions contend for shared memory
+bandwidth and cache, and preprocessing and ONNX execute in phases rather than
+using every core continuously. The 8 x 8 layout improves aggregate throughput;
+it does not reduce one instance's latency by a factor of eight.
+
 ## Prediction error against the old backend
 
 | Server | Compared atom outputs | Maximum absolute error | MAE | RMSE | Exact values | Site semantics |

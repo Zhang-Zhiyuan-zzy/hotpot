@@ -101,4 +101,7 @@
   and `is_Nuc_site` were identical.
 - Documented the separate cross-host numerical difference observed under the
   unpinned host environments; it is not an old/new workflow regression.
+- Added a matched 1 x 8 versus 8 x 8 comparison on the same complex workload:
+  5.40x scaling on the current server and 6.03x on ai-14. This resolves the
+  misleading comparison against the earlier simple-piperidine workload.
 

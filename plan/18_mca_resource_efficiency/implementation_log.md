@@ -88,3 +88,17 @@
 - Wrote `implementation_report.md`; raw ai-14 output remains under
   `~/mca_test/results/resource_workflow_bc927fe`.
 
+## 2026-10-22: 64-CPU 8 x 8 validation
+
+- Added a synchronized runner for eight persistent predictors with eight
+  disjoint CPUs each, including per-atom reference comparison.
+- On the current server, aggregate throughput improved from 17.035 to 19.210
+  molecules/s (+12.8%).
+- On ai-14, aggregate throughput improved from 17.488 to 20.439 molecules/s
+  (+16.9%).
+- Each host compared 12,120 atom outputs against the old backend. Maximum
+  absolute error, MAE, and RMSE were all zero; output order, ordered site type,
+  and `is_Nuc_site` were identical.
+- Documented the separate cross-host numerical difference observed under the
+  unpinned host environments; it is not an old/new workflow regression.
+

@@ -20,5 +20,6 @@ This directory preserves Hotpot design, audit, implementation, and validation re
 | 14 | [Geometry reconstruction](14_geometry_reconstruction/) | Deferred post-processing of topology-free xTB/ORCA coordinates into auditable graph candidates |
 | 15 | [MCA GPU pipeline](15_mca_gpu_pipeline/) | Explicit CPU/GPU inference, bounded multi-GPU execution, rolling admission, and scale-aware routing |
 | 16 | [Native substructure search](16_native_search/) | Implemented deterministic native RI monomorphism executor with predicate-only Python callables |
+| 17 | [Native RDKit wrapper and conformer sampling](17_rdkit_wrapper/) | In-progress standalone Python/C++ wrapper pinned to RDKit 2026.09.1, unchanged-force-field component testing, field-selective native transport, and two-level stereo semantics |
 
 Each topic README records the Git commits associated with that stage. Files under `artifacts/` are diagram sources, rendered HTML, or visual-review evidence. A `visual-check.json` whose status is `pending` is retained as provenance and is not evidence of a successful visual review.

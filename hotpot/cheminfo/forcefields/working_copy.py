@@ -10,6 +10,7 @@ import networkx as nx
 import numpy as np
 from openbabel import openbabel as ob
 
+from ..stereo import get_stereo_payload
 from .coordination import _iter_metal_donor_pairs
 from .topology import (
     _atom_identity,
@@ -21,6 +22,7 @@ from .topology import (
 
 if TYPE_CHECKING:
     from ..core import Angle, Atom, AtomPair, Bond, BondKind, Molecule, Ring, Torsion
+    from ..stereo import StereoPayload
 
 
 __all__ = ()
@@ -46,6 +48,7 @@ class _WorkingCopyCommit:
     added_bonds: Tuple[Tuple[int, int, _BondAttributePayload], ...]
     conformer_state: Mapping[str, object]
     conformer_index: int
+    stereo_payload: "StereoPayload"
 
 
 @dataclass(frozen=True)
@@ -79,6 +82,7 @@ class _MoleculeCommitSnapshot:
     atom_pair_items: Tuple[Tuple[frozenset["Atom"], "AtomPair"], ...]
     conformer_state: Mapping[str, object]
     conformer_index: int
+    stereo_payload: "StereoPayload"
 
 
 def _copy_molecule_metadata(source_mol: "Molecule", target_mol: "Molecule") -> None:
@@ -213,6 +217,7 @@ def _prepare_working_copy_commit(
         added_bonds=tuple(added_bonds),
         conformer_state=deepcopy(working_mol._conformers.__dict__),
         conformer_index=working_mol._conformers_index,
+        stereo_payload=get_stereo_payload(working_mol),
     )
 
 
@@ -238,6 +243,7 @@ def _snapshot_molecule_for_commit(mol: "Molecule") -> _MoleculeCommitSnapshot:
         atom_pair_items=tuple(mol._atom_pairs.items()),
         conformer_state=dict(mol._conformers.__dict__),
         conformer_index=mol._conformers_index,
+        stereo_payload=get_stereo_payload(mol),
     )
 
 
@@ -267,6 +273,7 @@ def _restore_failed_commit(
     mol._conformers.__dict__.clear()
     mol._conformers.__dict__.update(snapshot.conformer_state)
     mol._conformers_index = snapshot.conformer_index
+    mol._stereo_payload = snapshot.stereo_payload
 
 
 def _commit_working_copy(
@@ -286,6 +293,7 @@ def _commit_working_copy(
 
         original_mol._update_graph(clear_conformers=False)
         original_mol._row2idx = None
+        original_mol._stereo_payload = payload.stereo_payload
         original_mol._atom_pairs.update_pairs()
         original_mol._conformers.__dict__.clear()
         original_mol._conformers.__dict__.update(payload.conformer_state)

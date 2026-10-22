@@ -842,3 +842,62 @@ Adjustment:
   defects inside the stereo remapper.
 
 Git checkpoint: `19c7555 feat(stereo): implement ordered Level-1 payload remapping`.
+
+### Step 13 - Repair molecule structural ownership prerequisites
+
+Status: complete
+
+Planned:
+
+- repair existing hidden-bond loss in copy and component assembly;
+- make extracted component atom arrays independently owned; and
+- remove all active and hidden incident bonds when deleting atoms before
+  attaching Level-1 payload lifecycle behavior.
+
+Performed:
+
+- made `Molecule.copy()` clone active, hidden-metal, and hidden-covalent bonds
+  in stable per-container order through an explicit source-to-clone atom map;
+- made `add_component()` merge all three bond classes from its already
+  independent component copy;
+- made `components` copy each NumPy atom attribute row and clone each hidden
+  bond whose two endpoints both belong to the selected active component;
+- deliberately left cross-component hidden bonds out of both child molecules,
+  because neither child owns both endpoints, while leaving the source molecule
+  unchanged; and
+- made single and batch atom removal clear both hidden-bond lists of every
+  incident bond and clear removed-atom adjacency caches after successful
+  structural removal.
+
+Verification:
+
+- six new lifecycle tests cover independent atom buffers, stable active/hidden
+  bond order, endpoint rebinding, component merge, internal/cross-component
+  hidden-bond handling, source immutability, and single/batch atom deletion;
+- independent focused structural regression: 98 passed;
+- worker native/force-field structural selection: 71 passed, 1 existing
+  managed-dataset skip, and 1 existing geometry-quality warning;
+- worker complex-build/ligand-ring/force-field integration selection:
+  82 passed with 2 existing complex-build warnings;
+- Python compilation and `git diff --check` pass.
+
+Unexpected findings:
+
+- `Atom.bonds` is rebuilt from active molecule bonds only; a hidden bond's own
+  internal `AtomSeq._bonds` field does not register it in either endpoint.
+  Removal therefore retains the existing active-bond error sequence and then
+  filters hidden containers explicitly;
+- the legacy broad `test_core::test_molecule` fixture constructs a 223-atom
+  structure and enters `build3d` for several minutes without progress output.
+  It was interrupted in the worker diagnostic run and is not counted as a
+  pass; focused core tests plus the larger structural/integration selections
+  above completed normally. The final suite will report this slow case
+  separately if it remains non-terminating.
+
+Adjustment:
+
+- no metadata, property, crystal, or conformer-copy behavior was broadened;
+- public exception ordering and `_update_graph()` timing remain unchanged;
+- Level-1 payload hooks are still a following isolated checkpoint.
+
+Git checkpoint: `9c0433d fix(molecule): preserve hidden structural lifecycle`.

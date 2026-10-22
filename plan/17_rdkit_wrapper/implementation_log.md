@@ -2866,3 +2866,92 @@ Adjustment:
   atom rows only.
 
 Git checkpoint: `019acc7 docs(plan17): include current H in Gate-7 shell`.
+
+### Step 42 - Add the private Gate 7 coordination graph primitives
+
+Status: complete for the private graph checkpoint; every public coordination
+family remains behind the existing unsupported fence
+
+Planned:
+
+- implement the represented-shell, all-record same-center, base-valid site,
+  chelate-pair, and coupled-multicenter primitives specified by Gate 7;
+- prove those private helpers directly before connecting any public validation,
+  assignment, alignment, transform, or Gate-6 semantic path; and
+- preserve the existing SP/TBP/OH and Gate-7 SPY algebra goldens byte-for-byte.
+
+Performed:
+
+- added explicit private coordination and atom-geometry family sets plus the
+  minimal immutable `_Gate7CoordinationSite` record-index/descriptor/center/
+  carrier-row DTO;
+- derived one complete undirected adjacency from the existing Gate-6
+  current-state projection, retaining active bonds, both hidden-bond classes,
+  and current implicit-H virtual edges rather than creating a second graph;
+- implemented deterministic all-record TH/SP/TBP/SPY/OH same-center rejection
+  for successfully parsed, in-range atom anchors, so record order never picks
+  a survivor;
+- implemented the private SP/TBP/SPY/OH base validator for exact anchor,
+  cardinality, atom-point, distinctness, range, center exclusion, ungrouped,
+  and complete represented-shell requirements with the frozen diagnostics;
+- kept virtual graph keys in shell equality while filtering them out of
+  `StereoValidationIssue.atom_indices`, which remains a real molecule-row
+  field;
+- defined chelation only as the unordered carrier-pair same-component relation
+  after removing the current site's center-carrier spokes;
+- implemented coupled-multicenter detection through that single component-
+  reachability implementation, covering shared carriers, centers used as
+  carriers, and components reaching another declared center without redundant
+  special-case scans; and
+- left graph-equivalent ligand branches valid and deferred descriptor symmetry
+  to the later RI-automorphism/descriptor-stabilizer semantic cutover.
+
+Verification:
+
+- the dedicated private Gate-7 graph file reports 31 passed across every
+  coordination family, active/hidden/current-H shell coverage, source-ledger-
+  only H exclusion, carrier/group/range failures, all-record same-center
+  conflicts, chelate order independence, independent and coupled centers,
+  a three-center coupling chain, graph-equivalent ligands, and the public
+  no-cutover fence;
+- the complete shell-expanded stereo selection reports 369 passed;
+- stereo plus reusable native-spec and production-kernel regressions report
+  383 passed;
+- the complete native RI search selection reports 195 passed plus 49 subtests;
+- the original Gate-1 golden remains SHA-256
+  `8d7856e0b593ff7af510e885b6f3fe2ef0ca047cd34a3563bde086af9afbcf4b`,
+  and the Gate-7 SPY golden remains SHA-256
+  `fbda20439136c68ac50a2d508acc9970003e3721d73524c1c721ffff022a473d`;
+- Python compilation, whitespace checks, and line-length checks pass; and
+- independent architecture, cheminformatics, redundancy, and test audits
+  found no remaining checkpoint blocker.
+
+Unexpected findings:
+
+- the first current-implicit-H diagnostic included the synthetic Gate-6 node
+  key in `atom_indices`; shell semantics were correct, but that public
+  diagnostic field must remain indexable against the real molecule table;
+- direct shared-carrier and center-as-carrier scans duplicated the already
+  sufficient component-reachability rule under exact-shell validity;
+- a carrier path back to its own center is unreachable for a normal base-valid
+  exact-shell site because all center incident spokes have been removed; the
+  private branch is retained and tested with a synthetic helper input rather
+  than misrepresented as a normal chemical fixture; and
+- malformed/opaque exclusion can only be proved at the private parsed-site
+  boundary in this checkpoint; automatic orchestration exclusion remains an
+  integration obligation for the atomic public cutover.
+
+Adjustment:
+
+- compare the augmented shell exactly but expose only real atom rows in
+  diagnostics;
+- keep one component-reachability implementation for all multicenter coupling
+  forms; and
+- retain explicit-mapping, RI automorphism, and coordinate-assignment semantics
+  as separate later concerns instead of prematurely quotienting duplicate
+  ligands in the graph helper.
+
+No performance benchmark is claimed for this private semantic checkpoint; no
+public path invokes the new helpers yet.
+
+Git checkpoint: `e099a3d feat(stereo): add Gate-7 coordination graph primitives`.

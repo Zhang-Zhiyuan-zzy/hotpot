@@ -741,7 +741,7 @@ def test_real_ideal_tbp_spy_geometries_contradict_the_other_family(
     )
 
 
-def test_private_coordinate_checkpoint_does_not_cut_over_public_gate7_semantics():
+def test_public_gate7_coordinate_assignment_uses_private_classifier():
     family = stereo._Level2DescriptorFamily.SQUARE_PLANAR
     coordinates = _coordinates(_independent_directions(family, 1))
     molecule, payload = _coordination_molecule(family, coordinates)
@@ -755,20 +755,9 @@ def test_private_coordinate_checkpoint_does_not_cut_over_public_gate7_semantics(
         coordinates=coordinates,
     )
 
-    assert not validation.is_valid
-    assert tuple(issue.code for issue in validation.issues) == (
-        stereo.StereoIssueCode.UNSUPPORTED,
-    )
+    assert validation == stereo.StereoValidationReport(True, ())
     assert assignment.payload == payload
-    assert assignment.unresolved == validation.issues
+    assert assignment.unresolved == ()
     assert assignment.derived == ()
     assert assignment.payload.records[0].descriptor == "hotpot.stereo/2/SP/1"
-    assert all(
-        issue.code
-        not in (
-            stereo.StereoIssueCode.DEGENERATE_GEOMETRY,
-            stereo.StereoIssueCode.COORDINATE_CONTRADICTION,
-        )
-        for issue in (*validation.issues, *assignment.unresolved)
-    )
     assert stereo.get_stereo_payload(molecule) is payload

@@ -195,10 +195,9 @@ def test_double_bond_requires_real_double_bond_and_endpoint_local_groups():
     (
         ("hotpot.stereo/2/TH/R", stereo.StereoIssueCode.INVALID_DESCRIPTOR),
         ("hotpot.stereo/2/NEW/value", stereo.StereoIssueCode.UNSUPPORTED),
-        ("hotpot.stereo/2/SP/1", stereo.StereoIssueCode.UNSUPPORTED),
-        ("hotpot.stereo/2/TBP/1", stereo.StereoIssueCode.UNSUPPORTED),
-        ("hotpot.stereo/2/SPY/1", stereo.StereoIssueCode.UNSUPPORTED),
-        ("hotpot.stereo/2/OH/1", stereo.StereoIssueCode.UNSUPPORTED),
+        ("hotpot.stereo/2/TBP/1", stereo.StereoIssueCode.INVALID_CARRIER),
+        ("hotpot.stereo/2/SPY/1", stereo.StereoIssueCode.INVALID_CARRIER),
+        ("hotpot.stereo/2/OH/1", stereo.StereoIssueCode.INVALID_CARRIER),
     ),
 )
 def test_invalid_or_unsupported_descriptors_are_never_silently_accepted(
@@ -278,7 +277,7 @@ def test_out_of_range_anchor_and_carrier_have_stable_context():
     )
 
 
-def test_duplicate_semantic_anchor_is_reported_on_later_record():
+def test_duplicate_atom_geometry_anchor_rejects_every_record():
     molecule = _molecule(
         (14, 6, 7, 8, 9),
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (0, 4, 1.0)),
@@ -292,13 +291,14 @@ def test_duplicate_semantic_anchor_is_reported_on_later_record():
 
     report = stereo.validate_stereochemistry(molecule)
 
-    assert report.issues == (
+    assert report.issues == tuple(
         stereo.StereoValidationIssue(
             stereo.StereoIssueCode.INVALID_ANCHOR,
-            "duplicate Level-2 stereo anchor",
-            record_index=1,
+            "atom center row 0 has multiple Level-2 geometry records",
+            record_index=record_index,
             atom_indices=(0,),
-        ),
+        )
+        for record_index in (0, 1)
     )
 
 

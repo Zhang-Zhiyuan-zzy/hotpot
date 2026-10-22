@@ -337,7 +337,7 @@ def test_duplicate_target_record_and_invalid_target_graph_are_identified():
     )
 
     assert any(
-        "duplicate Level-2 stereo anchor" in issue.message
+        "multiple Level-2 geometry records" in issue.message
         for issue in duplicate.issues
     )
     assert any(

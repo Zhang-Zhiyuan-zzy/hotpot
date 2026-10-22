@@ -241,7 +241,7 @@ def test_yz_reflection_pairs_all_spy_descriptors_without_collapsing_them():
     assert reflection not in stereo._SQUARE_PYRAMIDAL_ROTATIONS
 
 
-def test_spy_algebra_does_not_cut_over_public_graph_semantics():
+def test_spy_algebra_is_connected_to_public_graph_semantics():
     molecule, payload = _spy_molecule()
     target = molecule.copy()
 
@@ -253,16 +253,11 @@ def test_spy_algebra_does_not_cut_over_public_graph_semantics():
         dict(enumerate(range(len(molecule.atoms)))),
     )
 
-    assert tuple(issue.code for issue in validation.issues) == (
-        stereo.StereoIssueCode.UNSUPPORTED,
-    )
+    assert validation == stereo.StereoValidationReport(True, ())
     assert assignment.payload is payload
-    assert assignment.unresolved == validation.issues
+    assert assignment.unresolved == ()
     assert assignment.derived == ()
-    assert not alignment.is_equivalent
+    assert alignment.is_equivalent
     assert alignment.aligned_payload == payload
-    assert tuple(issue.code for issue in alignment.issues) == (
-        stereo.StereoIssueCode.UNSUPPORTED,
-        stereo.StereoIssueCode.UNSUPPORTED,
-    )
+    assert alignment.issues == ()
     assert stereo.get_stereo_payload(molecule) is payload

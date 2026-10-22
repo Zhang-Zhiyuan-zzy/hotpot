@@ -378,12 +378,19 @@ def _algebra_issue(
     )
 
 
-def _parse_level2_descriptor(text: str) -> _Level2AlgebraResult:
-    """Parse the strict, versioned Hotpot Level-2 descriptor grammar."""
+def _parse_level2_descriptor_head(
+    text: str,
+) -> tuple[
+    _Level2DescriptorFamily | None,
+    str | None,
+    tuple[StereoValidationIssue, ...],
+]:
+    """Parse the namespace, version, family, and raw value token once."""
 
     parts = text.split("/")
     if len(parts) != 4 or "/".join(parts[:2]) != _LEVEL2_DESCRIPTOR_PREFIX:
-        return _Level2AlgebraResult(
+        return (
+            None,
             None,
             (
                 _algebra_issue(
@@ -392,12 +399,12 @@ def _parse_level2_descriptor(text: str) -> _Level2AlgebraResult:
                 ),
             ),
         )
-
     try:
         family = _Level2DescriptorFamily(parts[2])
     except ValueError:
-        return _Level2AlgebraResult(
+        return (
             None,
+            parts[3],
             (
                 _algebra_issue(
                     StereoIssueCode.UNSUPPORTED,
@@ -405,8 +412,15 @@ def _parse_level2_descriptor(text: str) -> _Level2AlgebraResult:
                 ),
             ),
         )
+    return family, parts[3], ()
 
-    value_token = parts[3]
+
+def _parse_level2_descriptor(text: str) -> _Level2AlgebraResult:
+    """Parse the strict, versioned Hotpot Level-2 descriptor grammar."""
+
+    family, value_token, head_issues = _parse_level2_descriptor_head(text)
+    if head_issues:
+        return _Level2AlgebraResult(None, head_issues)
     if family in (
         _Level2DescriptorFamily.TETRAHEDRAL,
         _Level2DescriptorFamily.AXIAL,
@@ -459,6 +473,13 @@ def _render_level2_descriptor(descriptor: _Level2Descriptor) -> str:
 
     value = "unsupported" if descriptor.value is None else str(descriptor.value)
     return f"{_LEVEL2_DESCRIPTOR_PREFIX}/{descriptor.family.value}/{value}"
+
+
+def _declares_gate7_coordination(text: str) -> bool:
+    """Return whether a valid Level-2 head declares a coordination family."""
+
+    family, _, _ = _parse_level2_descriptor_head(text)
+    return family in _COORDINATION_FAMILIES
 
 
 def _validate_stereo_carriers(
@@ -1048,6 +1069,9 @@ class _Gate6SemanticContext:
     payload: StereoPayload
     descriptors: tuple[_Level2Descriptor, ...]
     targets: dict
+    coordination_chelate_pairs: tuple[
+        frozenset[tuple[int, int]] | None, ...
+    ]
     opaque_records: tuple[StereoRecord, ...]
     pointwise_keys: frozenset[int]
     hydrogen_slot_exemptions: frozenset[int]
@@ -1449,6 +1473,13 @@ def _gate6_carrier_keys(
 ) -> tuple[int, ...] | None:
     """Resolve one record's carriers into augmented represented-graph keys."""
 
+    if descriptor.family in _COORDINATION_FAMILIES:
+        if any(
+            carrier.kind is not StereoCarrierKind.ATOM
+            for carrier in record.carriers
+        ):
+            return None
+        return tuple(carrier.atom for carrier in record.carriers)
     if descriptor.family is _Level2DescriptorFamily.TETRAHEDRAL:
         endpoints = (record.anchor.atom_indices[0],) * len(record.carriers)
     else:
@@ -1517,6 +1548,7 @@ def _gate6_semantic_context(
                 _Level2DescriptorFamily.TETRAHEDRAL,
                 _Level2DescriptorFamily.DOUBLE_BOND,
                 _Level2DescriptorFamily.AXIAL,
+                *_COORDINATION_FAMILIES,
             )
         ):
             materialized = _gate6_materialize_record(
@@ -1547,6 +1579,18 @@ def _gate6_semantic_context(
         targets.setdefault(identity, []).append(
             (record_index, record, descriptor)
         )
+    represented_adjacency = _gate7_represented_adjacency(graph)
+    coordination_chelate_pairs = tuple(
+        _gate7_chelate_pairs(
+            _gate7_site_from_record(record_index, record, descriptor),
+            represented_adjacency,
+        )
+        if descriptor.family in _COORDINATION_FAMILIES
+        else None
+        for record_index, (record, descriptor) in enumerate(
+            zip(reduced_payload.records, descriptors)
+        )
+    )
     semantic_records = (
         payload.records[excluded_record_index],
         *reduced_payload.records,
@@ -1621,6 +1665,7 @@ def _gate6_semantic_context(
         payload=reduced_payload,
         descriptors=tuple(descriptors),
         targets=targets,
+        coordination_chelate_pairs=coordination_chelate_pairs,
         opaque_records=tuple(opaque_records),
         pointwise_keys=frozenset(pointwise_keys),
         hydrogen_slot_exemptions=frozenset(hydrogen_slot_exemptions),
@@ -1680,7 +1725,7 @@ def _transform_supported_record(
 ) -> _Level2AlgebraResult:
     """Apply the frozen family-specific descriptor transformation."""
 
-    if descriptor.family is _Level2DescriptorFamily.TETRAHEDRAL:
+    if descriptor.family in _ATOM_GEOMETRY_FAMILIES:
         return _transform_level2_descriptor(
             descriptor,
             mapped.carriers,
@@ -1717,6 +1762,11 @@ def _gate6_mapping_preserves_stereo(
         transformed = _transform_supported_record(descriptor, mapped, target)
         if transformed.descriptor is None or transformed.issues:
             return _Gate6Equivalence.DISTINCT
+        if descriptor.family in _COORDINATION_FAMILIES:
+            source_pairs = context.coordination_chelate_pairs[reference_index]
+            mapped_pairs = _gate7_mapped_chelate_pairs(source_pairs, mapping)
+            if mapped_pairs != context.coordination_chelate_pairs[target_index]:
+                return _Gate6Equivalence.DISTINCT
         matched_target_indices.add(target_index)
         matches.append(
             _AlignmentMatch(
@@ -1782,6 +1832,11 @@ def _gate6_carrier_pair_equivalence(
 def _gate6_stereogenicity_issues(
     mol: Molecule,
     graph_report: StereoValidationReport,
+    *,
+    projection_result: tuple[
+        _Gate6Graph | None, tuple[StereoValidationIssue, ...]
+    ]
+    | None = None,
 ) -> tuple[StereoValidationIssue, ...]:
     """Prove supported carrier distinction on the exact represented graph."""
 
@@ -1812,16 +1867,22 @@ def _gate6_stereogenicity_issues(
                 _Level2DescriptorFamily.TETRAHEDRAL,
                 _Level2DescriptorFamily.DOUBLE_BOND,
                 _Level2DescriptorFamily.AXIAL,
+                *_COORDINATION_FAMILIES,
             )
         ):
-            candidates.append((record_index, record, descriptor))
             valid_record_indices.add(record_index)
+            if descriptor.family not in _COORDINATION_FAMILIES:
+                candidates.append((record_index, record, descriptor))
     if not candidates:
         return ()
 
-    graph, projection_issues = _gate6_projection(mol)
+    graph, projection_issues = (
+        _gate6_projection(mol)
+        if projection_result is None
+        else projection_result
+    )
     if graph is None:
-        return projection_issues
+        return projection_issues if projection_result is None else ()
 
     from .search.native import _NativeSpecTarget
 
@@ -2680,15 +2741,7 @@ def _validate_gate7_coordination_record(
 
     if issues:
         return None, tuple(issues)
-    return (
-        _Gate7CoordinationSite(
-            record_index=record_index,
-            descriptor=descriptor,
-            center=center,
-            carrier_rows=tuple(carrier_rows),
-        ),
-        (),
-    )
+    return _gate7_site_from_record(record_index, record, descriptor), ()
 
 
 def _gate7_carrier_components(
@@ -2775,16 +2828,123 @@ def _gate7_coupled_multicenter_issues(
     )
 
 
-def _validate_gate2_stereochemistry(mol: Molecule) -> StereoValidationReport:
-    """Validate supported manual graph semantics through Level-2 Gate 5."""
+def _gate7_site_from_record(
+    record_index: int,
+    record: StereoRecord,
+    descriptor: _Level2Descriptor,
+) -> _Gate7CoordinationSite:
+    """Build a coordination site from a record accepted by Gate 7."""
+
+    return _Gate7CoordinationSite(
+        record_index=record_index,
+        descriptor=descriptor,
+        center=record.anchor.atom_indices[0],
+        carrier_rows=tuple(carrier.atom for carrier in record.carriers),
+    )
+
+
+def _gate7_mapped_chelate_pairs(
+    pairs: Collection[tuple[int, int]],
+    atom_mapping: Mapping[int, int],
+) -> frozenset[tuple[int, int]]:
+    """Map an atom-identity chelate relation into target row space."""
+
+    return frozenset(
+        tuple(sorted((atom_mapping[first], atom_mapping[second])))
+        for first, second in pairs
+    )
+
+
+def _validate_gate7_coordination_semantics(
+    mol: Molecule,
+    payload: StereoPayload,
+    descriptors: Mapping[int, _Level2Descriptor],
+    blocked_record_indices: Collection[int],
+    *,
+    projection_result: tuple[
+        _Gate6Graph | None, tuple[StereoValidationIssue, ...]
+    ]
+    | None = None,
+) -> tuple[StereoValidationIssue, ...]:
+    """Validate declared coordination sites on one represented-graph snapshot."""
+
+    if not any(
+        _declares_gate7_coordination(record.descriptor)
+        for record in payload.records
+    ):
+        return ()
+
+    coordination_indices = tuple(
+        record_index
+        for record_index, descriptor in descriptors.items()
+        if descriptor.family in _COORDINATION_FAMILIES
+    )
+    graph, projection_issues = (
+        _gate6_projection(mol)
+        if projection_result is None
+        else projection_result
+    )
+    issues = list(projection_issues)
+    if graph is None:
+        return tuple(issues)
+
+    atom_count = len(mol.atoms)
+    adjacency = _gate7_represented_adjacency(graph)
+    sites = []
+    blocked_record_indices = set(blocked_record_indices)
+    for record_index in coordination_indices:
+        if record_index in blocked_record_indices:
+            continue
+        site, record_issues = _validate_gate7_coordination_record(
+            payload.records[record_index],
+            descriptors[record_index],
+            record_index=record_index,
+            atom_count=atom_count,
+            adjacency=adjacency,
+        )
+        issues.extend(record_issues)
+        if site is not None:
+            sites.append(site)
+    issues.extend(_gate7_coupled_multicenter_issues(sites, adjacency))
+    return tuple(issues)
+
+
+def _validate_gate2_stereochemistry(
+    mol: Molecule,
+    *,
+    projection_result: tuple[
+        _Gate6Graph | None, tuple[StereoValidationIssue, ...]
+    ]
+    | None = None,
+) -> StereoValidationReport:
+    """Validate supported manual graph semantics through Level-2 Gate 7."""
 
     atom_count, adjacency, bond_orders = _molecule_stereo_topology(mol)
     bond_kinds = _molecule_stereo_bond_kinds(mol)
-    issues = []
+    payload = get_stereo_payload(mol)
+    parsed_records = tuple(
+        _parse_level2_descriptor(record.descriptor)
+        for record in payload.records
+    )
+    descriptors = {
+        record_index: parsed.descriptor
+        for record_index, parsed in enumerate(parsed_records)
+        if parsed.descriptor is not None and not parsed.issues
+    }
+    same_center_issues = _gate7_same_center_issues(
+        payload,
+        descriptors,
+        atom_count=atom_count,
+    )
+    blocked_record_indices = {
+        issue.record_index for issue in same_center_issues
+    }
+    issues = list(same_center_issues)
     seen_anchors = set()
-    for record_index, record in enumerate(get_stereo_payload(mol).records):
+    for record_index, (record, parsed) in enumerate(
+        zip(payload.records, parsed_records)
+    ):
         record_atoms = _record_atom_indices(record)
-        parsed = _parse_level2_descriptor(record.descriptor)
         if parsed.issues:
             issues.extend(
                 _record_issues(
@@ -2795,8 +2955,12 @@ def _validate_gate2_stereochemistry(mol: Molecule) -> StereoValidationReport:
             )
         if parsed.descriptor is None or parsed.issues:
             continue
+        if record_index in blocked_record_indices:
+            continue
 
         family = parsed.descriptor.family
+        if family in _COORDINATION_FAMILIES:
+            continue
         if family not in (
             _Level2DescriptorFamily.TETRAHEDRAL,
             _Level2DescriptorFamily.DOUBLE_BOND,
@@ -2860,29 +3024,29 @@ def _validate_gate2_stereochemistry(mol: Molecule) -> StereoValidationReport:
             issue.code is StereoIssueCode.INVALID_ANCHOR
             for issue in range_issues
         ):
-            anchor_identity = (
-                family,
-                record.anchor.atom_indices[0]
-                if family is _Level2DescriptorFamily.TETRAHEDRAL
-                else (
+            if family in (
+                _Level2DescriptorFamily.DOUBLE_BOND,
+                _Level2DescriptorFamily.AXIAL,
+            ):
+                anchor_identity = (
+                    family,
                     frozenset(record.anchor.atom_indices)
                     if record.anchor.kind is StereoAnchorKind.BOND
                     else min(
                         record.anchor.atom_indices,
                         record.anchor.atom_indices[::-1],
                     )
-                ),
-            )
-            if anchor_identity in seen_anchors:
-                issues.append(
-                    _gate2_issue(
-                        StereoIssueCode.INVALID_ANCHOR,
-                        "duplicate Level-2 stereo anchor",
-                        record_index=record_index,
-                        atom_indices=record.anchor.atom_indices,
-                    )
                 )
-            seen_anchors.add(anchor_identity)
+                if anchor_identity in seen_anchors:
+                    issues.append(
+                        _gate2_issue(
+                            StereoIssueCode.INVALID_ANCHOR,
+                            "duplicate Level-2 stereo anchor",
+                            record_index=record_index,
+                            atom_indices=record.anchor.atom_indices,
+                        )
+                    )
+                seen_anchors.add(anchor_identity)
 
             if family is _Level2DescriptorFamily.TETRAHEDRAL:
                 issues.extend(
@@ -2914,6 +3078,16 @@ def _validate_gate2_stereochemistry(mol: Molecule) -> StereoValidationReport:
                         bond_kinds=bond_kinds,
                     )
                 )
+
+    issues.extend(
+        _validate_gate7_coordination_semantics(
+            mol,
+            payload,
+            descriptors,
+            blocked_record_indices,
+            projection_result=projection_result,
+        )
+    )
 
     return StereoValidationReport(is_valid=not issues, issues=tuple(issues))
 
@@ -3478,6 +3652,8 @@ def _gate4_coordinate_assignments(
 ) -> tuple[dict[int, _Level2Descriptor], tuple[StereoValidationIssue, ...]]:
     """Assign coordinates only for records accepted by the earlier gates."""
 
+    if any(issue.record_index is None for issue in graph_report.issues):
+        return {}, ()
     array, array_issue = _finite_coordinate_array(mol, coordinates)
     if array_issue is not None:
         return {}, (array_issue,)
@@ -3497,6 +3673,7 @@ def _gate4_coordinate_assignments(
             _Level2DescriptorFamily.TETRAHEDRAL,
             _Level2DescriptorFamily.DOUBLE_BOND,
             _Level2DescriptorFamily.AXIAL,
+            *_COORDINATION_FAMILIES,
         ):
             continue
         if parsed.family is _Level2DescriptorFamily.TETRAHEDRAL:
@@ -3511,11 +3688,16 @@ def _gate4_coordinate_assignments(
                 array,
                 record_index=record_index,
             )
-        else:
+        elif parsed.family is _Level2DescriptorFamily.AXIAL:
             assigned, geometry_issue = _axial_coordinate_descriptor(
                 record,
                 array,
                 record_index=record_index,
+            )
+        else:
+            assigned, geometry_issue = _gate7_coordination_coordinate_descriptor(
+                _gate7_site_from_record(record_index, record, parsed),
+                array,
             )
         if geometry_issue is not None:
             issues.append(geometry_issue)
@@ -3613,11 +3795,39 @@ def _coordinate_group_consistency_issues(
     return tuple(issues)
 
 
-def _validate_graph_stereochemistry(mol: Molecule) -> StereoValidationReport:
+def _gate7_projection_result(
+    mol: Molecule,
+) -> tuple[_Gate6Graph | None, tuple[StereoValidationIssue, ...]] | None:
+    """Project once when a parsed coordination declaration requires Gate 7."""
+
+    has_coordination = any(
+        _declares_gate7_coordination(record.descriptor)
+        for record in get_stereo_payload(mol).records
+    )
+    return _gate6_projection(mol) if has_coordination else None
+
+
+def _validate_graph_stereochemistry(
+    mol: Molecule,
+    *,
+    projection_result: tuple[
+        _Gate6Graph | None, tuple[StereoValidationIssue, ...]
+    ]
+    | None = None,
+) -> StereoValidationReport:
     """Combine structural Gates 2/5 with exact Gate-6 stereogenicity."""
 
-    report = _validate_gate2_stereochemistry(mol)
-    issues = _gate6_stereogenicity_issues(mol, report)
+    if projection_result is None:
+        projection_result = _gate7_projection_result(mol)
+    report = _validate_gate2_stereochemistry(
+        mol,
+        projection_result=projection_result,
+    )
+    issues = _gate6_stereogenicity_issues(
+        mol,
+        report,
+        projection_result=projection_result,
+    )
     if not issues:
         return report
     return StereoValidationReport(
@@ -4000,7 +4210,7 @@ def _alignment_record_identity(
 ) -> tuple[object, ...]:
     """Return the orientation-independent identity of a Gate-3 element."""
 
-    if family is _Level2DescriptorFamily.TETRAHEDRAL:
+    if family in _ATOM_GEOMETRY_FAMILIES:
         return family, anchor.atom_indices[0]
     if family is _Level2DescriptorFamily.AXIAL:
         oriented_identity = (
@@ -4374,8 +4584,16 @@ def align_stereochemistry(
         target,
         atom_mapping,
     )
-    reference_validation = validate_stereochemistry(reference)
-    target_validation = validate_stereochemistry(target)
+    reference_projection = _gate7_projection_result(reference)
+    target_projection = _gate7_projection_result(target)
+    reference_validation = _validate_graph_stereochemistry(
+        reference,
+        projection_result=reference_projection,
+    )
+    target_validation = _validate_graph_stereochemistry(
+        target,
+        projection_result=target_projection,
+    )
     issues = [*mapping_issues]
     issues.extend(_alignment_validation_issues("reference", reference_validation))
     issues.extend(_alignment_validation_issues("target", target_validation))
@@ -4391,6 +4609,29 @@ def align_stereochemistry(
     )
     if issues:
         return StereoAlignmentReport(False, partially_aligned, tuple(issues))
+
+    reference_coordination_pairs = {}
+    target_coordination_pairs = {}
+    for payload, projection, pairs_by_index in (
+        (
+            reference_payload,
+            reference_projection,
+            reference_coordination_pairs,
+        ),
+        (target_payload, target_projection, target_coordination_pairs),
+    ):
+        if projection is None:
+            continue
+        graph, _ = projection
+        adjacency = _gate7_represented_adjacency(graph)
+        for record_index, record in enumerate(payload.records):
+            descriptor = _parse_level2_descriptor(record.descriptor).descriptor
+            if descriptor.family not in _COORDINATION_FAMILIES:
+                continue
+            pairs_by_index[record_index] = _gate7_chelate_pairs(
+                _gate7_site_from_record(record_index, record, descriptor),
+                adjacency,
+            )
 
     target_records = {}
     for target_index, record in enumerate(target_payload.records):
@@ -4431,6 +4672,24 @@ def align_stereochemistry(
 
         target_index, target_record, _ = matches[0]
         matched_target_indices.add(target_index)
+        if parsed.family in _COORDINATION_FAMILIES and (
+            _gate7_mapped_chelate_pairs(
+                reference_coordination_pairs[reference_index],
+                valid_mapping,
+            )
+            != target_coordination_pairs[target_index]
+        ):
+            issues.append(
+                StereoValidationIssue(
+                    StereoIssueCode.INVALID_DESCRIPTOR,
+                    "mapped coordination chelate partition does not match "
+                    "target partition",
+                    record_index=reference_index,
+                    atom_indices=_record_atom_indices(mapped),
+                )
+            )
+            aligned_records.append(mapped)
+            continue
         transformed = _transform_supported_record(
             parsed,
             mapped,

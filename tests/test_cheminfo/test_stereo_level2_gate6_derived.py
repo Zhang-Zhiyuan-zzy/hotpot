@@ -599,17 +599,21 @@ def test_derived_descriptors_follow_stable_payload_record_order():
     assert tuple(item.record_index for item in report.derived) == (0, 1)
 
 
-def test_record_local_graph_issue_does_not_suppress_an_unaffected_derivation():
+def test_same_center_graph_issue_suppresses_every_participating_derivation():
     molecule, carriers = _direct_th_molecule()
     valid = _tetrahedral(0, carriers)
     _set_payload(molecule, (valid, valid))
 
     report = stereo.assign_stereochemistry(molecule)
 
-    assert tuple(item.record_index for item in report.derived) == (0,)
-    assert report.unresolved
-    assert all(issue.record_index == 1 for issue in report.unresolved)
-    assert _priority_issue_for(report, 0) == ()
+    assert report.derived == ()
+    assert tuple(issue.record_index for issue in report.unresolved) == (0, 1)
+    assert all(
+        issue.code is stereo.StereoIssueCode.INVALID_ANCHOR
+        and issue.message
+        == "atom center row 0 has multiple Level-2 geometry records"
+        for issue in report.unresolved
+    )
 
 
 def test_global_gate6_projection_issue_suppresses_all_priority_output():

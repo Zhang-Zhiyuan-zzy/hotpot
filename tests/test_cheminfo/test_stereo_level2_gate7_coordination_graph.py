@@ -816,7 +816,7 @@ def test_graph_equivalent_coordination_ligands_are_allowed():
     assert stereo._gate7_coupled_multicenter_issues((site,), adjacency) == ()
 
 
-def test_private_graph_checkpoint_does_not_cut_over_public_gate7_semantics():
+def test_public_gate7_graph_semantics_allow_graph_equivalent_ligands():
     molecule = _molecule(
         (26, 7, 7, 7, 7),
         ((0, 1), (0, 2), (0, 3), (0, 4)),
@@ -834,19 +834,13 @@ def test_private_graph_checkpoint_does_not_cut_over_public_gate7_semantics():
         dict(enumerate(range(len(molecule.atoms)))),
     )
 
-    assert not validation.is_valid
-    assert tuple(issue.code for issue in validation.issues) == (
-        stereo.StereoIssueCode.UNSUPPORTED,
-    )
+    assert validation == stereo.StereoValidationReport(True, ())
     assert assignment.payload is payload
-    assert assignment.unresolved == validation.issues
+    assert assignment.unresolved == ()
     assert assignment.derived == ()
-    assert not alignment.is_equivalent
+    assert alignment.is_equivalent
     assert alignment.aligned_payload == payload
-    assert tuple(issue.code for issue in alignment.issues) == (
-        stereo.StereoIssueCode.UNSUPPORTED,
-        stereo.StereoIssueCode.UNSUPPORTED,
-    )
+    assert alignment.issues == ()
     assert all(
         issue.code is not stereo.StereoIssueCode.NON_STEREOGENIC
         for issue in (

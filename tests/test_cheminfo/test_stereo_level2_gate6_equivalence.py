@@ -84,9 +84,24 @@ def _unsupported_sp(center):
     return _record(
         stereo.StereoAnchorKind.ATOM,
         (center,),
-        (),
+        (
+            stereo.StereoCarrier(stereo.StereoCarrierKind.IMPLICIT_H),
+            stereo.StereoCarrier(stereo.StereoCarrierKind.LONE_PAIR),
+            stereo.StereoCarrier(stereo.StereoCarrierKind.VACANCY),
+            stereo.StereoCarrier(stereo.StereoCarrierKind.IMPLICIT_H),
+        ),
         "SP",
         "1",
+    )
+
+
+def _square_planar(center, carriers, value=1):
+    return _record(
+        stereo.StereoAnchorKind.ATOM,
+        (center,),
+        tuple(_atom(row) for row in carriers),
+        "SP",
+        value,
     )
 
 
@@ -730,6 +745,73 @@ def test_pointwise_fixed_unrelated_unsupported_stereo_does_not_block_result():
         1,
         stereo.StereoIssueCode.UNSUPPORTED,
     )
+
+
+def _coordination_descendant_molecule(*, declared):
+    molecule = _molecule(
+        (14, 26, 26, 9, 17, 7, 8, 16, 7, 8, 16),
+        (
+            (0, 1, 1.0),
+            (0, 2, 1.0),
+            (0, 3, 1.0),
+            (0, 4, 1.0),
+            (1, 5, 1.0),
+            (1, 6, 1.0),
+            (1, 7, 1.0),
+            (2, 8, 1.0),
+            (2, 9, 1.0),
+            (2, 10, 1.0),
+        ),
+    )
+    records = [
+        _tetrahedral(0, tuple(_atom(row) for row in range(1, 5))),
+    ]
+    if declared:
+        records.append(_square_planar(1, (0, 5, 6, 7)))
+    _set_payload(molecule, records)
+    return molecule
+
+
+def test_valid_coordination_descendant_constrains_gate6_automorphisms():
+    without_declaration = _coordination_descendant_molecule(declared=False)
+    with_declaration = _coordination_descendant_molecule(declared=True)
+
+    _assert_non_stereogenic(without_declaration, record_index=0)
+    report = stereo.validate_stereochemistry(with_declaration)
+
+    assert report == stereo.StereoValidationReport(True, ())
+    assert not _issues_for(
+        report,
+        1,
+        stereo.StereoIssueCode.NON_STEREOGENIC,
+    )
+
+
+def test_gate6_semantic_context_interprets_valid_coordination_descendant():
+    molecule = _coordination_descendant_molecule(declared=True)
+    payload = stereo.get_stereo_payload(molecule)
+    graph, projection_issues = stereo._gate6_projection(molecule)
+
+    assert projection_issues == ()
+    assert graph is not None
+    context = stereo._gate6_semantic_context(
+        payload,
+        graph,
+        excluded_record_index=0,
+        valid_record_indices={0, 1},
+        unsupported_record_indices=set(),
+    )
+
+    assert context.payload.records == (payload.records[1],)
+    assert tuple(descriptor.family for descriptor in context.descriptors) == (
+        stereo._Level2DescriptorFamily.SQUARE_PLANAR,
+    )
+    assert context.opaque_records == ()
+    identity = stereo._alignment_record_identity(
+        context.descriptors[0].family,
+        context.payload.records[0].anchor,
+    )
+    assert tuple(context.targets) == (identity,)
 
 
 def test_repeated_public_validation_is_deterministic_and_nonmutating():

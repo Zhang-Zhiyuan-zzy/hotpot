@@ -883,7 +883,8 @@ def _transform_level2_descriptor(
                 (
                     _algebra_issue(
                         StereoIssueCode.INVALID_CARRIER,
-                        "ordered-anchor reversal and endpoint carrier-pair order disagree",
+                        "ordered-anchor reversal and endpoint carrier-pair "
+                        "order disagree",
                     ),
                 ),
             )
@@ -1572,12 +1573,14 @@ def _validate_gate2_stereochemistry(mol: Molecule) -> StereoValidationReport:
             )
             continue
 
-        if record.group is not None:
+        if (
+            record.group is not None
+            and family is _Level2DescriptorFamily.DOUBLE_BOND
+        ):
             issues.append(
                 _gate2_issue(
                     StereoIssueCode.UNSUPPORTED,
-                    "enhanced-stereo group semantics are deferred to "
-                    "Level-2 Gate 5",
+                    "DB enhanced-stereo group semantics are unsupported",
                     record_index=record_index,
                     atom_indices=record_atoms,
                 )
@@ -2065,6 +2068,53 @@ def _gate4_coordinate_assignments(
             issues.append(geometry_issue)
             continue
         assignments[record_index] = assigned
+
+    issues.extend(
+        _coordinate_group_consistency_issues(
+            get_stereo_payload(mol),
+            assignments,
+        )
+    )
+    return assignments, tuple(issues)
+
+
+def _records_atom_union(
+    records: Sequence[StereoRecord],
+    indices: Collection[int],
+) -> tuple[int, ...]:
+    """Return stable atom context for one enhanced-stereo relation."""
+
+    return tuple(
+        sorted(
+            {
+                atom
+                for index in indices
+                for atom in _record_atom_indices(records[index])
+            }
+        )
+    )
+
+
+def _coordinate_group_consistency_issues(
+    payload: StereoPayload,
+    assignments: Mapping[int, _Level2Descriptor],
+) -> tuple[StereoValidationIssue, ...]:
+    """Compare raw coordinate assignments with fixed and relative records."""
+
+    issues = []
+    relative_groups = {}
+    for record_index, record in enumerate(payload.records):
+        group = record.group
+        if group is not None and group.kind in (
+            StereoGroupKind.AND,
+            StereoGroupKind.OR,
+        ):
+            relative_groups.setdefault(group, []).append(record_index)
+            continue
+        if record_index not in assignments:
+            continue
+        parsed = _parse_level2_descriptor(record.descriptor).descriptor
+        assigned = assignments[record_index]
         if assigned != parsed:
             issues.append(
                 StereoValidationIssue(
@@ -2078,7 +2128,36 @@ def _gate4_coordinate_assignments(
                     atom_indices=_record_atom_indices(record),
                 )
             )
-    return assignments, tuple(issues)
+
+    for group, member_indices in relative_groups.items():
+        assigned_members = tuple(
+            index for index in member_indices if index in assignments
+        )
+        if len(assigned_members) != len(member_indices):
+            continue
+        inversions = {
+            assignments[index]
+            != _parse_level2_descriptor(payload.records[index].descriptor).descriptor
+            for index in assigned_members
+        }
+        if len(inversions) <= 1:
+            continue
+        reference_index = min(member_indices)
+        issues.append(
+            StereoValidationIssue(
+                code=StereoIssueCode.COORDINATE_CONTRADICTION,
+                message=(
+                    f"{group.kind.value} enhanced-stereo group has a partial "
+                    "coordinate inversion"
+                ),
+                record_index=reference_index,
+                atom_indices=_records_atom_union(
+                    payload.records,
+                    member_indices,
+                ),
+            )
+        )
+    return tuple(issues)
 
 
 def validate_stereochemistry(
@@ -2405,6 +2484,232 @@ def _transform_gate5_axial(
     )
 
 
+@dataclass(frozen=True)
+class _AlignmentMatch:
+    """One successfully transformed source/target stereo-record pair."""
+
+    reference_index: int
+    target_index: int
+    mapped: StereoRecord
+    target: StereoRecord
+    transformed: _Level2Descriptor
+
+
+def _relative_group(record: StereoRecord) -> StereoGroupRef | None:
+    group = record.group
+    if group is not None and group.kind in (
+        StereoGroupKind.AND,
+        StereoGroupKind.OR,
+    ):
+        return group
+    return None
+
+
+def _alignment_group_issues(
+    reference_payload: StereoPayload,
+    target_payload: StereoPayload,
+    matches: Sequence[_AlignmentMatch],
+) -> tuple[StereoValidationIssue, ...]:
+    """Compare fixed descriptors and mapped enhanced-group partitions."""
+
+    issues = []
+    matched_by_reference = {
+        match.reference_index: match for match in matches
+    }
+    matched_target_indices = {match.target_index for match in matches}
+    source_members = {}
+    target_members = {}
+    for index, record in enumerate(reference_payload.records):
+        group = _relative_group(record)
+        if group is not None:
+            source_members.setdefault(group, set()).add(index)
+    for index, record in enumerate(target_payload.records):
+        group = _relative_group(record)
+        if group is not None:
+            target_members.setdefault(group, set()).add(index)
+
+    adjacency = {}
+    match_nodes = []
+    for match in matches:
+        source_group = _relative_group(
+            reference_payload.records[match.reference_index]
+        )
+        target_group = _relative_group(match.target)
+        if source_group is None and target_group is None:
+            target_descriptor = _parse_level2_descriptor(
+                match.target.descriptor
+            ).descriptor
+            if match.transformed != target_descriptor:
+                issues.append(
+                    StereoValidationIssue(
+                        StereoIssueCode.INVALID_DESCRIPTOR,
+                        "mapped descriptor "
+                        f"{_render_level2_descriptor(match.transformed)} does "
+                        "not match target descriptor "
+                        f"{match.target.descriptor}",
+                        record_index=match.reference_index,
+                        atom_indices=_record_atom_indices(match.mapped),
+                    )
+                )
+            continue
+
+        source_node = (
+            ("source_group", source_group)
+            if source_group is not None
+            else ("source_fixed", match.reference_index)
+        )
+        target_node = (
+            ("target_group", target_group)
+            if target_group is not None
+            else ("target_fixed", match.target_index)
+        )
+        adjacency.setdefault(source_node, set()).add(target_node)
+        adjacency.setdefault(target_node, set()).add(source_node)
+        match_nodes.append((match, source_node, target_node))
+
+    components = []
+    unseen = set(adjacency)
+    while unseen:
+        seed = min(unseen, key=repr)
+        component = set()
+        pending = [seed]
+        while pending:
+            node = pending.pop()
+            if node in component:
+                continue
+            component.add(node)
+            pending.extend(adjacency[node] - component)
+        unseen.difference_update(component)
+        component_matches = tuple(
+            match
+            for match, source_node, target_node in match_nodes
+            if source_node in component or target_node in component
+        )
+        components.append((component, component_matches))
+
+    components.sort(
+        key=lambda item: min(
+            match.reference_index for match in item[1]
+        )
+    )
+    for component, component_matches in components:
+        source_groups = tuple(
+            node[1] for node in component if node[0] == "source_group"
+        )
+        target_groups = tuple(
+            node[1] for node in component if node[0] == "target_group"
+        )
+        reference_indices = set()
+        target_indices = set()
+        for node_kind, value in component:
+            if node_kind == "source_group":
+                reference_indices.update(source_members[value])
+            elif node_kind == "source_fixed":
+                reference_indices.add(value)
+            elif node_kind == "target_group":
+                target_indices.update(target_members[value])
+            else:
+                target_indices.add(value)
+
+        if (
+            not reference_indices <= matched_by_reference.keys()
+            or not target_indices <= matched_target_indices
+        ):
+            continue
+        atom_indices = tuple(
+            sorted(
+                {
+                    atom
+                    for reference_index in reference_indices
+                    for atom in _record_atom_indices(
+                        matched_by_reference[reference_index].mapped
+                    )
+                }
+                | {
+                    atom
+                    for target_index in target_indices
+                    for atom in _record_atom_indices(
+                        target_payload.records[target_index]
+                    )
+                }
+            )
+        )
+        reference_index = min(reference_indices)
+
+        if (
+            len(source_groups) != 1
+            or len(target_groups) != 1
+        ):
+            issues.append(
+                StereoValidationIssue(
+                    StereoIssueCode.INVALID_DESCRIPTOR,
+                    "mapped enhanced-stereo group partition does not match "
+                    "the target partition",
+                    record_index=reference_index,
+                    atom_indices=atom_indices,
+                )
+            )
+            continue
+
+        source_group = source_groups[0]
+        target_group = target_groups[0]
+        if source_group.kind is not target_group.kind:
+            issues.append(
+                StereoValidationIssue(
+                    StereoIssueCode.INVALID_DESCRIPTOR,
+                    "mapped enhanced-stereo group kind does not match target "
+                    "group kind",
+                    record_index=reference_index,
+                    atom_indices=atom_indices,
+                )
+            )
+            continue
+
+        source_partition = source_members[source_group]
+        target_partition = target_members[target_group]
+        mapped_target_partition = {
+            match.target_index
+            for match in matches
+            if match.reference_index in source_partition
+        }
+        mapped_source_partition = {
+            match.reference_index
+            for match in matches
+            if match.target_index in target_partition
+        }
+        if (
+            mapped_target_partition != target_partition
+            or mapped_source_partition != source_partition
+        ):
+            issues.append(
+                StereoValidationIssue(
+                    StereoIssueCode.INVALID_DESCRIPTOR,
+                    "mapped enhanced-stereo group partition does not match "
+                    "the target partition",
+                    record_index=reference_index,
+                    atom_indices=atom_indices,
+                )
+            )
+            continue
+
+        inversions = {
+            match.transformed
+            != _parse_level2_descriptor(match.target.descriptor).descriptor
+            for match in component_matches
+        }
+        if len(inversions) > 1:
+            issues.append(
+                StereoValidationIssue(
+                    StereoIssueCode.INVALID_DESCRIPTOR,
+                    f"{source_group.kind.value} enhanced-stereo group has a "
+                    "partial mapped inversion",
+                    record_index=reference_index,
+                    atom_indices=atom_indices,
+                )
+            )
+    return tuple(issues)
+
+
 def align_stereochemistry(
     reference: Molecule,
     target: Molecule,
@@ -2444,6 +2749,7 @@ def align_stereochemistry(
         target_records.setdefault(identity, []).append((target_index, record, parsed))
 
     aligned_records = []
+    alignment_matches = []
     matched_target_indices = set()
     for reference_index, record in enumerate(reference_payload.records):
         parsed = _parse_level2_descriptor(record.descriptor).descriptor
@@ -2512,18 +2818,18 @@ def align_stereochemistry(
             anchor=target_record.anchor,
             carriers=target_record.carriers,
             descriptor=descriptor,
+            group=target_record.group,
         )
         aligned_records.append(aligned)
-        if descriptor != target_record.descriptor:
-            issues.append(
-                StereoValidationIssue(
-                    StereoIssueCode.INVALID_DESCRIPTOR,
-                    f"mapped descriptor {descriptor} does not match target "
-                    f"descriptor {target_record.descriptor}",
-                    record_index=reference_index,
-                    atom_indices=_record_atom_indices(aligned),
-                )
+        alignment_matches.append(
+            _AlignmentMatch(
+                reference_index=reference_index,
+                target_index=target_index,
+                mapped=aligned,
+                target=target_record,
+                transformed=transformed.descriptor,
             )
+        )
 
     for target_index, record in enumerate(target_payload.records):
         if target_index not in matched_target_indices:
@@ -2535,6 +2841,14 @@ def align_stereochemistry(
                     atom_indices=_record_atom_indices(record),
                 )
             )
+
+    issues.extend(
+        _alignment_group_issues(
+            reference_payload,
+            target_payload,
+            alignment_matches,
+        )
+    )
 
     aligned_payload = replace(partially_aligned, records=tuple(aligned_records))
     return StereoAlignmentReport(not issues, aligned_payload, tuple(issues))

@@ -288,7 +288,7 @@ def test_duplicate_semantic_anchor_is_reported_on_later_record():
     )
 
 
-def test_enhanced_group_is_explicitly_deferred_to_gate5():
+def test_tetrahedral_enhanced_group_is_supported_after_gate5():
     molecule = _molecule(
         5,
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (0, 4, 1.0)),
@@ -308,14 +308,7 @@ def test_enhanced_group_is_explicitly_deferred_to_gate5():
 
     report = stereo.validate_stereochemistry(molecule)
 
-    assert report.issues == (
-        stereo.StereoValidationIssue(
-            stereo.StereoIssueCode.UNSUPPORTED,
-            "enhanced-stereo group semantics are deferred to Level-2 Gate 5",
-            record_index=0,
-            atom_indices=(0, 1, 2, 3, 4),
-        ),
-    )
+    assert report == stereo.StereoValidationReport(True, ())
 
 
 def test_assignment_preserves_valid_manual_payload_and_does_not_infer():

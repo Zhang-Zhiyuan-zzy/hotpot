@@ -591,7 +591,7 @@ def test_partial_axis_reordering_and_bond_axis_cross_match_are_rejected():
     assert cross_kind.issues[0].code is stereo.StereoIssueCode.INVALID_ANCHOR
 
 
-def test_enhanced_group_remains_explicitly_unsupported_at_ax_checkpoint():
+def test_ax_enhanced_group_is_supported_after_group_checkpoint():
     molecule, carriers = _allene()
     group = stereo.StereoGroupRef("fixture", stereo.StereoGroupKind.AND, 1)
     _set_records(
@@ -601,6 +601,5 @@ def test_enhanced_group_remains_explicitly_unsupported_at_ax_checkpoint():
 
     report = stereo.validate_stereochemistry(molecule)
 
-    assert not report.is_valid
-    assert report.issues[0].code is stereo.StereoIssueCode.UNSUPPORTED
+    assert report == stereo.StereoValidationReport(True, ())
 

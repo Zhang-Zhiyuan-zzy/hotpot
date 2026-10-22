@@ -674,4 +674,4 @@ Adjustment:
 - Level-1 functions still raise their phase-specific `NotImplementedError`;
   no partial storage or chemistry behavior was introduced.
 
-Git checkpoint: pending.
+Git checkpoint: `2801e79 feat(stereo): scope groups and split hydrogen state`.

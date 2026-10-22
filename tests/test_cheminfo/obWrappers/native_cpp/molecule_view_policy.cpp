@@ -4,14 +4,46 @@
 #include <openbabel/atom.h>
 #include <openbabel/bond.h>
 
+#include <array>
 #include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+#include <utility>
+#include <vector>
 
 
 namespace native = hotpot::native;
 namespace obw = hotpot::obwrappers;
+
+
+static_assert(std::is_base_of_v<native::OwnedMoleculeData, obw::MoleculeData>);
+static_assert(!std::is_aggregate_v<obw::MoleculeData>);
+static_assert(std::is_constructible_v<
+    obw::MoleculeData,
+    std::int32_t,
+    std::vector<std::int32_t>,
+    std::vector<std::int32_t>,
+    std::vector<double>,
+    std::vector<obw::Coordinate>,
+    std::vector<std::uint8_t>,
+    std::vector<std::array<std::int32_t, 2>>,
+    std::vector<double>,
+    std::vector<obw::BondKind>,
+    std::vector<std::uint8_t>,
+    std::optional<std::array<double, 6>>
+>);
+static_assert(std::is_same_v<
+    decltype(std::declval<const obw::MoleculeData&>().atom_count()),
+    std::size_t
+>);
+static_assert(std::is_same_v<
+    decltype(std::declval<const obw::MoleculeData&>().view()),
+    native::MoleculeBufferView
+>);
 
 
 obw::MoleculeData molecule_data() {
@@ -94,8 +126,39 @@ void test_non_dative_adapter_result_is_unchanged() {
 }
 
 
+void test_compatibility_view_tracks_legacy_vector_mutation() {
+    auto molecule = molecule_data();
+    molecule.bond_kinds[0] = obw::BondKind::SINGLE;
+    molecule.atomic_numbers.push_back(8);
+    molecule.formal_charges.push_back(0);
+    molecule.partial_charges.push_back(0.0);
+    molecule.coordinates.push_back({{2.8, 0.0, 0.0}});
+    molecule.atom_aromatic.push_back(0);
+    molecule.bond_indices.push_back({{1, 2}});
+    molecule.bond_orders.push_back(2.0);
+    molecule.bond_kinds.push_back(obw::BondKind::DOUBLE);
+    molecule.bond_aromatic.push_back(0);
+
+    const auto view = molecule.view();
+    assert(molecule.atom_count() == 3);
+    assert(molecule.bond_count() == 2);
+    assert(view.atom_count == 3);
+    assert(view.bond_count == 2);
+    assert(view.atomic_numbers.data() == molecule.atomic_numbers.data());
+    assert(view.bond_indices.data() == molecule.bond_indices.data());
+    molecule.validate();
+
+    auto converted = obw::make_obmol(view);
+    assert(converted.NumAtoms() == 3);
+    assert(converted.NumBonds() == 2);
+    assert(converted.GetAtom(3)->GetAtomicNum() == 8);
+    assert(converted.GetBond(1)->GetBondOrder() == 2);
+}
+
+
 int main() {
     test_zero_copy_view_and_consumer_policy_split();
     test_openbabel_keeps_legacy_per_bond_error_priority();
     test_non_dative_adapter_result_is_unchanged();
+    test_compatibility_view_tracks_legacy_vector_mutation();
 }

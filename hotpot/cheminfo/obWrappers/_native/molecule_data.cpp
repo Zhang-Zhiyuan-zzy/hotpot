@@ -1,5 +1,7 @@
 #include "molecule_data.hpp"
 
+#include <utility>
+
 
 namespace hotpot::obwrappers {
 
@@ -40,6 +42,45 @@ constexpr std::uint64_t REQUIRED_FIELDS =
 }  // namespace
 
 
+MoleculeData::MoleculeData(
+    std::int32_t schema_version_value,
+    std::vector<std::int32_t> atomic_numbers_value,
+    std::vector<std::int32_t> formal_charges_value,
+    std::vector<double> partial_charges_value,
+    std::vector<Coordinate> coordinates_value,
+    std::vector<std::uint8_t> atom_aromatic_value,
+    std::vector<std::array<std::int32_t, 2>> bond_indices_value,
+    std::vector<double> bond_orders_value,
+    std::vector<BondKind> bond_kinds_value,
+    std::vector<std::uint8_t> bond_aromatic_value,
+    std::optional<std::array<double, 6>> unit_cell_value
+) : hotpot::native::OwnedMoleculeData{} {
+    const auto atoms = atomic_numbers_value.size();
+    const auto bonds = bond_indices_value.size();
+    const auto field_mask = REQUIRED_FIELDS
+        | (unit_cell_value.has_value()
+            ? hotpot::native::molecule_field_mask(
+                hotpot::native::MoleculeField::UNIT_CELL
+            )
+            : 0);
+
+    hotpot::native::OwnedMoleculeData::schema_version = schema_version_value;
+    hotpot::native::OwnedMoleculeData::atom_count = atoms;
+    hotpot::native::OwnedMoleculeData::bond_count = bonds;
+    hotpot::native::OwnedMoleculeData::fields = field_mask;
+    atomic_numbers = std::move(atomic_numbers_value);
+    formal_charges = std::move(formal_charges_value);
+    partial_charges = std::move(partial_charges_value);
+    coordinates = std::move(coordinates_value);
+    atom_aromatic = std::move(atom_aromatic_value);
+    bond_indices = std::move(bond_indices_value);
+    bond_orders = std::move(bond_orders_value);
+    bond_kinds = std::move(bond_kinds_value);
+    bond_aromatic = std::move(bond_aromatic_value);
+    unit_cell = std::move(unit_cell_value);
+}
+
+
 std::size_t MoleculeData::atom_count() const noexcept {
     return atomic_numbers.size();
 }
@@ -51,31 +92,16 @@ std::size_t MoleculeData::bond_count() const noexcept {
 
 
 hotpot::native::MoleculeBufferView MoleculeData::view() const noexcept {
-    return hotpot::native::MoleculeBufferView{
-        schema_version,
-        atom_count(),
-        bond_count(),
-        REQUIRED_FIELDS
-            | (unit_cell.has_value()
-                ? hotpot::native::molecule_field_mask(
-                    hotpot::native::MoleculeField::UNIT_CELL
-                )
-                : 0),
-        hotpot::native::ArrayView<std::int32_t>(atomic_numbers),
-        hotpot::native::ArrayView<std::int32_t>(formal_charges),
-        hotpot::native::ArrayView<double>(partial_charges),
-        hotpot::native::ArrayView<hotpot::native::Coordinate>(coordinates),
-        hotpot::native::ArrayView<std::uint8_t>(atom_aromatic),
-        hotpot::native::ArrayView<hotpot::native::BondIndex>(bond_indices),
-        hotpot::native::ArrayView<double>(bond_orders),
-        hotpot::native::ArrayView<hotpot::native::BondKind>(bond_kinds),
-        hotpot::native::ArrayView<std::uint8_t>(bond_aromatic),
-        unit_cell.has_value()
-            ? hotpot::native::ArrayView<double>(
-                unit_cell->data(), unit_cell->size()
+    auto molecule = hotpot::native::OwnedMoleculeData::view();
+    molecule.atom_count = atom_count();
+    molecule.bond_count = bond_count();
+    molecule.fields = REQUIRED_FIELDS
+        | (unit_cell.has_value()
+            ? hotpot::native::molecule_field_mask(
+                hotpot::native::MoleculeField::UNIT_CELL
             )
-            : hotpot::native::ArrayView<double>{},
-    };
+            : 0);
+    return molecule;
 }
 
 

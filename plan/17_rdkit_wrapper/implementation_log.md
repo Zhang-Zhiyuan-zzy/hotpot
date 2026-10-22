@@ -1559,3 +1559,168 @@ Adjustment:
   change was introduced.
 
 Git checkpoint: `42d7c4c feat(rdwrapper): add native Python binding and SDK build`.
+
+### Step 24 - Freeze and execute the detached R0 benchmark
+
+Status: in progress
+
+Planned:
+
+- freeze the exact 187-ligand source and the `1 / 8 / 32` ETKDG matrix before
+  measuring the native component;
+- separate primary generation time from the deliberately repeated
+  determinism and detached observation work; and
+- make topology, atom-row, Level-1, nonmutation, finite-coordinate, and
+  same-seed checks machine-readable per case.
+
+Performed:
+
+- added `run_r0_benchmark.py` with the canonical Git-blob byte digest,
+  one-based physical-line case identity, fixed `20260921 + case_index` seed,
+  one outer worker, and one native RDKit thread;
+- fixed pruning and random-coordinate policy explicitly and recorded the
+  complete runtime identity and execution policy in JSONL/JSON artifacts;
+- kept geometry gates, Hotpot perturbation, RDKit/Open-Babel force fields,
+  optimization, and conformer selection outside R0;
+- reran every successful/partial trial with the same seed and performed all
+  structural observations on detached coordinate rows after the primary
+  timer; and
+- executed the first clean 561-trial matrix at Git checkpoint `b61e98a`.
+
+First-matrix evidence:
+
+- 532 trials returned `SUCCESS`, two returned `PARTIAL`, and 27 returned
+  `UNSUPPORTED`;
+- all 7,280 returned primary conformers were finite, row-aligned,
+  deterministic, topology/atom-order/Level-1 preserving, and nonmutating;
+- primary generation took 75.4888 seconds: 96.4381 conformers/s and 7.4316
+  trials/s overall;
+- counts `1`, `8`, and `32` returned 178, 1,420, and 5,682 conformers at
+  61.4018, 93.9200, and 98.8679 conformers/s respectively; and
+- case 10 returned 4/8 and 18/32 conformers with RDKit's stable partial-result
+  diagnostic. This is valid ETKDG duplicate/pruning behavior, not a failed
+  invariant.
+
+Unexpected findings:
+
+- the 27 unsupported trials were exactly nine aromatic `[nH]` ligands at all
+  three requested counts. Open Babel supplied the correct logical Hotpot
+  implicit-H count, but those payload-free atoms had no adapter transport
+  record, so the native graph received an ordinary aromatic nitrogen;
+- merely reproducing the established Python `to_rdmol()` explicit-H fallback
+  allowed initial graph construction but was insufficient. The deliberately
+  restricted native sanitize mask omitted RDKit `SANITIZE_ADJUSTHS`; its first
+  Kekule pass removed the bracket H, and ETKDG's later internal Kekule pass
+  then rejected the ring;
+- adding the pinned RDKit `ADJUSTHS` phase preserves `[nH]` through the later
+  embedding path without disabling Kekulization or weakening graph checks.
+
+Adjustment:
+
+- the RDKit adapter now appends an exact `hotpot-legacy/1` hydrogen record only
+  for atoms not already covered by the Level-1 ledger. The native side accepts
+  only its logical implicit-H field and maps it to the already established
+  Hotpot-to-RDKit explicit-H fallback;
+- exact `rdkit-2026.09.1` records retain their previous lossless handling and
+  unknown namespaces remain unsupported;
+- focused compiled/native/Level-1 selections report 63 passed, and the nine
+  formerly unsupported canonical cases all return `SUCCESS` at count 1;
+- the complete clean 561-trial rerun is still required before this step can be
+  closed.
+
+Git checkpoints:
+
+- `7f4c60d test(rdwrapper): add detached R0 benchmark runner`;
+- `8e8d2f8 fix(rdwrapper): bridge legacy hydrogen transport`.
+
+### Step 25 - Add the private conformer-provider seam
+
+Status: complete
+
+Planned:
+
+- make only the existing initial ligand-conformer stage replaceable;
+- retain Open Babel as the default and leave the public force-field API and
+  the remainder of the complex workflow unchanged; and
+- make RDKit failure explicit, without a hidden Open-Babel fallback.
+
+Performed:
+
+- added backend-neutral private request/result/protocol contracts and Open
+  Babel/RDKit adapter implementations;
+- threaded an optional private sampler through the existing worker-process
+  spawn boundary;
+- replaced only the initial `OBBuilder` conformer call in the ligand stage;
+- retained one derived worker seed, one conformer, the stable minimum ordinal,
+  and lazy RDKit-wrapper import; and
+- kept every downstream force-field, assembly, geometry, optimization, and
+  reporting stage on its established route.
+
+Verification:
+
+- the independent conformer seam and force-field/complex selection reports
+  177 passed in 166.75 seconds;
+- default Open Babel behavior and seed propagation are unchanged;
+- the RDKit adapter consumes the native result without mutating the input and
+  raises its explicit failure instead of silently changing engines.
+
+Unexpected findings:
+
+- the provider must cross a spawned worker boundary, so its contract must be
+  data-oriented and picklable rather than closing over a live toolkit object;
+- reseeding each component would have changed the existing workflow. The seam
+  therefore transports the single already-derived worker seed unchanged.
+
+Adjustment:
+
+- this is a private replaceable seam, not a new public force-field mode;
+- Open Babel remains the default provider and no component has been removed.
+
+Git checkpoint: `097749a feat(forcefields): add private conformer provider seam`.
+
+### Step 26 - Implement Level-2 Gate 2 graph semantics
+
+Status: complete
+
+Planned:
+
+- validate and assign only manually specified tetrahedral and double-bond
+  descriptors whose graph meaning is frozen by Gate 1;
+- reject unsupported advanced families explicitly; and
+- keep all logic toolkit-neutral and independent of coordinates or CIP.
+
+Performed:
+
+- added public graph validation and assignment for strict
+  `hotpot.stereo/2/TH/{even,odd}` and
+  `hotpot.stereo/2/DB/{together,opposite}` descriptors;
+- validated anchors, carrier cardinality, atom references, graph adjacency,
+  endpoint grouping, and duplicate identities before assignment;
+- made double-bond carrier identities endpoint-scoped so the two endpoint
+  implicit-H sentinels and a ring atom shared across both endpoint groups do
+  not collide; and
+- returned stable issue records without changing the source molecule.
+
+Verification:
+
+- the relevant stereo, Level-1, and Gate-2 selection reports 139 passed;
+- fixtures cover valid/invalid tetrahedral and double-bond records, endpoint
+  reversal, virtual H, shared-ring carriers, missing edges, duplicates, and
+  unsupported families;
+- no RDKit assignment, CIP ranking, coordinate inference, or geometry
+  alignment is called.
+
+Unexpected findings:
+
+- raw atom identity alone is insufficient for double-bond carriers: one ring
+  atom can be a valid carrier at both endpoints, and both endpoints may each
+  own an `IMPLICIT_H` sentinel. Endpoint group is therefore part of the
+  identity used for validation.
+
+Adjustment:
+
+- enumeration order remains outside the permanent contract, while the
+  validation and issue order is deterministic for an identical input;
+- Gate 3 explicit mapping and parity alignment remains a separate checkpoint.
+
+Git checkpoint: `b61e98a feat(stereo): implement Level-2 Gate-2 semantics`.

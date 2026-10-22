@@ -853,14 +853,491 @@ def set_stereo_payload(mol: Molecule, payload: StereoPayload) -> None:
     mol._stereo_payload = payload
 
 
+def _record_atom_indices(record: StereoRecord) -> tuple[int, ...]:
+    """Return record atom rows once, in their stored reference order."""
+
+    rows = []
+    for atom in record.anchor.atom_indices:
+        if isinstance(atom, int) and not isinstance(atom, bool) and atom not in rows:
+            rows.append(atom)
+    for carrier in record.carriers:
+        if (
+            carrier.kind is StereoCarrierKind.ATOM
+            and isinstance(carrier.atom, int)
+            and not isinstance(carrier.atom, bool)
+            and carrier.atom not in rows
+        ):
+            rows.append(carrier.atom)
+    return tuple(rows)
+
+
+def _record_issues(
+    issues: Sequence[StereoValidationIssue],
+    *,
+    record_index: int,
+    atom_indices: tuple[int, ...],
+) -> tuple[StereoValidationIssue, ...]:
+    """Attach stable record context to chemistry-independent diagnostics."""
+
+    return tuple(
+        replace(
+            issue,
+            record_index=record_index,
+            atom_indices=issue.atom_indices or atom_indices,
+        )
+        for issue in issues
+    )
+
+
+def _gate2_issue(
+    code: StereoIssueCode,
+    message: str,
+    *,
+    record_index: int,
+    atom_indices: tuple[int, ...] = (),
+) -> StereoValidationIssue:
+    return StereoValidationIssue(
+        code=code,
+        message=message,
+        record_index=record_index,
+        atom_indices=atom_indices,
+    )
+
+
+def _validate_gate2_double_bond_carriers(
+    carriers: Sequence[StereoCarrier],
+) -> tuple[StereoValidationIssue, ...]:
+    """Validate DB carrier shape with virtual-H identity scoped per endpoint."""
+
+    issues = []
+    if len(carriers) != 4:
+        issues.append(
+            _algebra_issue(
+                StereoIssueCode.INVALID_CARRIER,
+                f"expected 4 ordered carriers, got {len(carriers)}",
+            )
+        )
+
+    for position, carrier in enumerate(carriers):
+        if carrier.kind is StereoCarrierKind.ATOM:
+            if (
+                not isinstance(carrier.atom, int)
+                or isinstance(carrier.atom, bool)
+                or carrier.atom < 0
+            ):
+                issues.append(
+                    _algebra_issue(
+                        StereoIssueCode.INVALID_CARRIER,
+                        f"atom carrier at position {position} requires a "
+                        "non-negative atom row",
+                    )
+                )
+        elif carrier.atom is not None:
+            issues.append(
+                _algebra_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    f"non-atom carrier at position {position} cannot carry an atom row",
+                )
+            )
+
+    for endpoint, start in enumerate((0, 2)):
+        identities = [
+            (carrier.kind, carrier.atom)
+            for carrier in carriers[start : start + 2]
+        ]
+        if len(set(identities)) != len(identities):
+            issues.append(
+                _algebra_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    f"duplicate carrier identity in endpoint group {endpoint}",
+                )
+            )
+    return tuple(issues)
+
+
+def _molecule_stereo_topology(
+    mol: Molecule,
+) -> tuple[int, tuple[frozenset[int], ...], dict[frozenset[int], float]]:
+    """Return atom count, adjacency, and structural bond orders by atom row."""
+
+    atom_count = len(mol.atoms)
+    adjacency = [set() for _ in range(atom_count)]
+    bond_orders = {}
+    atom_rows = {id(atom): row for row, atom in enumerate(mol._atoms)}
+    for bond in mol._bonds + mol._hided_bonds:
+        begin = atom_rows[id(bond.atom1)]
+        end = atom_rows[id(bond.atom2)]
+        adjacency[begin].add(end)
+        adjacency[end].add(begin)
+        bond_orders[frozenset((begin, end))] = float(bond.bond_order)
+    return (
+        atom_count,
+        tuple(frozenset(neighbours) for neighbours in adjacency),
+        bond_orders,
+    )
+
+
+def _validate_gate2_atom_ranges(
+    record: StereoRecord,
+    *,
+    record_index: int,
+    atom_count: int,
+) -> tuple[StereoValidationIssue, ...]:
+    """Validate well-formed anchor and carrier rows against the molecule."""
+
+    issues = []
+    for atom in record.anchor.atom_indices:
+        if (
+            isinstance(atom, int)
+            and not isinstance(atom, bool)
+            and atom >= 0
+            and atom >= atom_count
+        ):
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.INVALID_ANCHOR,
+                    f"anchor atom row {atom} is outside molecule range "
+                    f"0..{atom_count - 1}",
+                    record_index=record_index,
+                    atom_indices=(atom,),
+                )
+            )
+    for carrier in record.carriers:
+        atom = carrier.atom
+        if (
+            carrier.kind is StereoCarrierKind.ATOM
+            and isinstance(atom, int)
+            and not isinstance(atom, bool)
+            and atom >= 0
+            and atom >= atom_count
+        ):
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    f"carrier atom row {atom} is outside molecule range "
+                    f"0..{atom_count - 1}",
+                    record_index=record_index,
+                    atom_indices=(atom,),
+                )
+            )
+    return tuple(issues)
+
+
+def _validate_gate2_tetrahedral_graph(
+    record: StereoRecord,
+    *,
+    record_index: int,
+    atom_count: int,
+    adjacency: Sequence[frozenset[int]],
+) -> tuple[StereoValidationIssue, ...]:
+    issues = []
+    if (
+        record.anchor.kind is not StereoAnchorKind.ATOM
+        or len(record.anchor.atom_indices) != 1
+    ):
+        return ()
+
+    center = record.anchor.atom_indices[0]
+    if not 0 <= center < atom_count:
+        return ()
+
+    atom_carriers = set()
+    virtual_hydrogens = 0
+    for position, carrier in enumerate(record.carriers):
+        if carrier.kind is StereoCarrierKind.ATOM:
+            atom = carrier.atom
+            if not isinstance(atom, int) or isinstance(atom, bool) or atom < 0:
+                continue
+            if atom >= atom_count:
+                continue
+            elif atom not in adjacency[center]:
+                issues.append(
+                    _gate2_issue(
+                        StereoIssueCode.INVALID_CARRIER,
+                        f"carrier atom row {atom} is not adjacent to "
+                        f"TH center {center}",
+                        record_index=record_index,
+                        atom_indices=(center, atom),
+                    )
+                )
+            atom_carriers.add(atom)
+        elif carrier.kind is StereoCarrierKind.IMPLICIT_H:
+            virtual_hydrogens += 1
+        else:
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    "TH permits only atom and implicit-H carriers",
+                    record_index=record_index,
+                    atom_indices=(center,),
+                )
+            )
+
+    if virtual_hydrogens > 1:
+        issues.append(
+            _gate2_issue(
+                StereoIssueCode.INVALID_CARRIER,
+                "TH permits at most one implicit-H carrier",
+                record_index=record_index,
+                atom_indices=(center,),
+            )
+        )
+    if atom_carriers != set(adjacency[center]):
+        issues.append(
+            _gate2_issue(
+                StereoIssueCode.INVALID_CARRIER,
+                "TH atom carriers must exactly cover the center's graph neighbours",
+                record_index=record_index,
+                atom_indices=(center, *sorted(atom_carriers | set(adjacency[center]))),
+            )
+        )
+    if len(adjacency[center]) + virtual_hydrogens != 4:
+        issues.append(
+            _gate2_issue(
+                StereoIssueCode.INVALID_CARRIER,
+                "TH requires exactly four graph or implicit-H carriers",
+                record_index=record_index,
+                atom_indices=(center,),
+            )
+        )
+    return tuple(issues)
+
+
+def _validate_gate2_double_bond_graph(
+    record: StereoRecord,
+    *,
+    record_index: int,
+    atom_count: int,
+    adjacency: Sequence[frozenset[int]],
+    bond_orders: Mapping[frozenset[int], float],
+) -> tuple[StereoValidationIssue, ...]:
+    issues = []
+    if (
+        record.anchor.kind is not StereoAnchorKind.BOND
+        or len(record.anchor.atom_indices) != 2
+    ):
+        return ()
+
+    begin, end = record.anchor.atom_indices
+    invalid_endpoints = tuple(
+        atom for atom in (begin, end) if not 0 <= atom < atom_count
+    )
+    if invalid_endpoints:
+        return ()
+
+    bond_key = frozenset((begin, end))
+    if bond_key not in bond_orders:
+        issues.append(
+            _gate2_issue(
+                StereoIssueCode.INVALID_ANCHOR,
+                "DB anchor endpoints are not bonded in the molecule",
+                record_index=record_index,
+                atom_indices=(begin, end),
+            )
+        )
+    elif bond_orders[bond_key] != 2.0:
+        issues.append(
+            _gate2_issue(
+                StereoIssueCode.INVALID_ANCHOR,
+                "DB anchor must identify a double bond",
+                record_index=record_index,
+                atom_indices=(begin, end),
+            )
+        )
+
+    for endpoint_index, (endpoint, other) in enumerate(((begin, end), (end, begin))):
+        group = record.carriers[2 * endpoint_index : 2 * endpoint_index + 2]
+        atom_carriers = set()
+        virtual_hydrogens = 0
+        for carrier in group:
+            if carrier.kind is StereoCarrierKind.ATOM:
+                atom = carrier.atom
+                if not isinstance(atom, int) or isinstance(atom, bool) or atom < 0:
+                    continue
+                if atom >= atom_count:
+                    continue
+                elif atom == other or atom not in adjacency[endpoint]:
+                    issues.append(
+                        _gate2_issue(
+                            StereoIssueCode.INVALID_CARRIER,
+                            f"carrier atom row {atom} is not a substituent "
+                            f"of DB endpoint {endpoint}",
+                            record_index=record_index,
+                            atom_indices=(endpoint, atom),
+                        )
+                    )
+                atom_carriers.add(atom)
+            elif carrier.kind is StereoCarrierKind.IMPLICIT_H:
+                virtual_hydrogens += 1
+            else:
+                issues.append(
+                    _gate2_issue(
+                        StereoIssueCode.INVALID_CARRIER,
+                        "DB permits only atom and implicit-H carriers",
+                        record_index=record_index,
+                        atom_indices=(endpoint,),
+                    )
+                )
+
+        neighbours = set(adjacency[endpoint]) - {other}
+        if atom_carriers != neighbours:
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    "DB endpoint atom carriers must exactly cover its graph "
+                    "substituents",
+                    record_index=record_index,
+                    atom_indices=(endpoint, *sorted(atom_carriers | neighbours)),
+                )
+            )
+        if virtual_hydrogens > 1:
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    "each DB endpoint permits at most one implicit-H carrier",
+                    record_index=record_index,
+                    atom_indices=(endpoint,),
+                )
+            )
+        if len(neighbours) + virtual_hydrogens != 2:
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    "each DB endpoint requires exactly two graph or "
+                    "implicit-H carriers",
+                    record_index=record_index,
+                    atom_indices=(endpoint,),
+                )
+            )
+    return tuple(issues)
+
+
 def validate_stereochemistry(
     mol: Molecule,
     *,
     coordinates: NDArray[np.float64] | None = None,
 ) -> StereoValidationReport:
-    """Validate representation and optional coordinate consistency."""
+    """Validate manually specified Gate-2 TH and DB semantics."""
 
-    raise NotImplementedError("Level-2 stereo semantics are implemented in Phase 7")
+    atom_count, adjacency, bond_orders = _molecule_stereo_topology(mol)
+    issues = []
+    seen_anchors = set()
+    for record_index, record in enumerate(get_stereo_payload(mol).records):
+        record_atoms = _record_atom_indices(record)
+        parsed = _parse_level2_descriptor(record.descriptor)
+        if parsed.issues:
+            issues.extend(
+                _record_issues(
+                    parsed.issues,
+                    record_index=record_index,
+                    atom_indices=record_atoms,
+                )
+            )
+        if parsed.descriptor is None or parsed.issues:
+            continue
+
+        family = parsed.descriptor.family
+        if family not in (
+            _Level2DescriptorFamily.TETRAHEDRAL,
+            _Level2DescriptorFamily.DOUBLE_BOND,
+        ):
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.UNSUPPORTED,
+                    f"{family.value} semantics are not implemented in Level-2 Gate 2",
+                    record_index=record_index,
+                    atom_indices=record_atoms,
+                )
+            )
+            continue
+
+        if record.group is not None:
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.UNSUPPORTED,
+                    "enhanced-stereo group semantics are deferred to "
+                    "Level-2 Gate 5",
+                    record_index=record_index,
+                    atom_indices=record_atoms,
+                )
+            )
+
+        anchor_issues = _validate_stereo_anchor(record.anchor, family=family)
+        issues.extend(
+            _record_issues(
+                anchor_issues,
+                record_index=record_index,
+                atom_indices=record.anchor.atom_indices,
+            )
+        )
+        carrier_issues = (
+            _validate_stereo_carriers(record.carriers, expected_count=4)
+            if family is _Level2DescriptorFamily.TETRAHEDRAL
+            else _validate_gate2_double_bond_carriers(record.carriers)
+        )
+        issues.extend(
+            _record_issues(
+                carrier_issues,
+                record_index=record_index,
+                atom_indices=record_atoms,
+            )
+        )
+        range_issues = _validate_gate2_atom_ranges(
+            record,
+            record_index=record_index,
+            atom_count=atom_count,
+        )
+        issues.extend(range_issues)
+
+        if not anchor_issues and not any(
+            issue.code is StereoIssueCode.INVALID_ANCHOR
+            for issue in range_issues
+        ):
+            anchor_identity = (
+                family,
+                record.anchor.atom_indices[0]
+                if family is _Level2DescriptorFamily.TETRAHEDRAL
+                else frozenset(record.anchor.atom_indices),
+            )
+            if anchor_identity in seen_anchors:
+                issues.append(
+                    _gate2_issue(
+                        StereoIssueCode.INVALID_ANCHOR,
+                        "duplicate Level-2 stereo anchor",
+                        record_index=record_index,
+                        atom_indices=record.anchor.atom_indices,
+                    )
+                )
+            seen_anchors.add(anchor_identity)
+
+            if family is _Level2DescriptorFamily.TETRAHEDRAL:
+                issues.extend(
+                    _validate_gate2_tetrahedral_graph(
+                        record,
+                        record_index=record_index,
+                        atom_count=atom_count,
+                        adjacency=adjacency,
+                    )
+                )
+            else:
+                issues.extend(
+                    _validate_gate2_double_bond_graph(
+                        record,
+                        record_index=record_index,
+                        atom_count=atom_count,
+                        adjacency=adjacency,
+                        bond_orders=bond_orders,
+                    )
+                )
+
+    if coordinates is not None:
+        issues.append(
+            StereoValidationIssue(
+                code=StereoIssueCode.UNSUPPORTED,
+                message="coordinate stereo validation is deferred to Level-2 Gate 4",
+            )
+        )
+    return StereoValidationReport(is_valid=not issues, issues=tuple(issues))
 
 
 def assign_stereochemistry(
@@ -868,9 +1345,13 @@ def assign_stereochemistry(
     *,
     coordinates: NDArray[np.float64] | None = None,
 ) -> StereoAssignmentReport:
-    """Assign Hotpot stereo descriptors from topology and coordinates."""
+    """Preserve valid manual descriptors without inventing Gate-4 assignments."""
 
-    raise NotImplementedError("Level-2 stereo semantics are implemented in Phase 7")
+    report = validate_stereochemistry(mol, coordinates=coordinates)
+    return StereoAssignmentReport(
+        payload=get_stereo_payload(mol),
+        unresolved=report.issues,
+    )
 
 
 def align_stereochemistry(

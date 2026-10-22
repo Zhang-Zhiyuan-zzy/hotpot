@@ -6,7 +6,9 @@ Branch: `feature/rdWrapper`
 
 Implementation baseline: `9640d906a9d13e969152d0f3a4d92a3a16b9e0ce`
 
-Evidence checkpoint: `1bac0a8`
+Final wheel source checkpoint: `37a08b3`
+
+Evidence-log checkpoint before this report revision: `24cee99`
 
 Normative sources: `rdkit_wrapper_implementation_plan.md` and
 `implementation_log.md`
@@ -19,15 +21,16 @@ private force-field provider seam, coordination-aware research embedding, and
 the complete seven-gate Hotpot stereochemistry implementation. The canonical
 187-ligand standalone `R0` matrix is complete and reproducible. A fresh local
 native rebuild, SDK install, ABI audit, and broad functional regression are
-also complete.
+also complete. The pinned local CPython 3.10-3.14 workflow-equivalent wheel
+matrix is complete under the declared cross-wheel Open Babel dependency
+model.
 
 **Stage 17 is not release-complete.** The following release decisions still
 have no formal evidence:
 
 - `O0`/`F1` comparison on the frozen 182-complex cohort;
 - formal `C1`/`C2` results on that same cohort;
-- selection of RDKit as the default force-field coordinate provider; and
-- the CPython 3.10-3.14 manylinux wheel build/install/audit matrix.
+- selection of RDKit as the default force-field coordinate provider.
 
 The frozen 182-case manifest and matching native graph sidecars are absent,
 and there is no dedicated formal `O0`/`F1` runner. Consequently Open Babel
@@ -225,9 +228,13 @@ Two packaging products are intentionally separate:
 
 The release profile is pinned to
 `manylinux_2_28_x86_64@sha256:39df0042...b4ff82`, GCC/G++ 14.2.1,
-binutils 2.41, CMake 4.4.3, and Ninja 1.13.2. The profile and workflow exist,
-and its native target graph built in the pinned container, but the full
-CPython 3.10-3.14 PEP-517 wheel/install/audit matrix has not run to completion.
+binutils 2.41, CMake 4.4.3, and Ninja 1.13.2. A clean detached tree at
+`37a08b3` completed the local workflow-equivalent CPython 3.10-3.14 PEP-517
+build, repair, isolated install, coexistence smoke, payload, and ELF matrix in
+that exact image. All five wheels passed. This is local pinned reproduction,
+not GitHub-hosted Actions provenance. Whole-wheel `auditwheel show` also
+retains the declared Open Babel exception described in Section 11.3; the
+artifacts are not claimed as strict standalone manylinux wheels.
 
 ## 6. Force-field component substitution status
 
@@ -401,7 +408,9 @@ detail remains in `implementation_log.md`.
 | 46 | Bounded external-toolkit observations | `c79d02c`, `6673be2` |
 | 47 | Supported import-order tests and local release regression | `10bc417`, `6343713` |
 | 48 | Current-native C1/C2 smoke and remote artifact search | `1bac0a8` |
-| 49 | Final implementation report and release-gate handoff | reporting-only |
+| 49 | Initial implementation report and release-gate handoff | `0719e2a` |
+| 50 | Release-wheel payload isolation and pre-upload gate | `37a08b3`, `da31c7b` |
+| 51 | Local five-interpreter release-wheel matrix | `24cee99` (source `37a08b3`) |
 
 ## 11. Validation results
 
@@ -417,6 +426,7 @@ detail remains in `implementation_log.md`.
 | Final complete stereo + `rdWrappers` selection | 601 passed, 2 skipped |
 | Fresh extension/SDK, C/C++ consumer, public API, packaging selection | 71 passed |
 | Installed C11/C++17 consumers | Passed, including C++ ABI 0 and ABI 1 |
+| Release-wheel payload auditor selection | 19 passed |
 
 ### 11.2 Fresh local Phase-8 build and audit
 
@@ -438,6 +448,43 @@ detail remains in `implementation_log.md`.
 pytest. The environmental cache failures were rerun successfully, but this is
 reported as staged closure rather than one initially green coverage command.
 
+### 11.3 Local CPython 3.10-3.14 release-wheel matrix
+
+The final wheels were built from clean source commit
+`37a08b30f785bf54149436ae2ce5d852ac7cbd22` with cibuildwheel 4.3.0 and exact
+manylinux image digest
+`sha256:39df0042d5cc900b085aa25a0659368b42a0006c54c474299b785b44c1b4ff82`.
+Every isolated install asserted Python `rdkit==2026.9.1`, native RDKit
+`2026.09.1`, both supported Hotpot/RDKit import orders, native search and cycle
+operations, `_ob_native`/`_rd_native` coexistence, and ETKDG output shape and
+status.
+
+| ABI | Size (bytes) | SHA-256 |
+| --- | ---: | --- |
+| cp310 | 5,632,596 | `c381bfdc10746b60791ab30a699ac57240a748ad5e515a96ae993008fc75d34f` |
+| cp311 | 5,637,406 | `fc1cecff6ac43b050cd6f57c1241e355c746eb5874a090b12cedeb9946c78eba` |
+| cp312 | 5,659,599 | `4fa3f7141e8990bf38c54fdb426952f293f98f7e95c7e41e08842e5cc7839527` |
+| cp313 | 5,659,946 | `717ce94bc6a8c36b519da474ae240dfb8737eab8fa12c5b381dcd1eacccdb446` |
+| cp314 | 5,662,757 | `9c0fa5382727d8f7d9fc3ad51a9fe897679efaf6f4ef8de2264b0297355e7003` |
+
+Each filename and WHEEL record carries the matching CPython ABI plus both
+`manylinux_2_27_x86_64` and `manylinux_2_28_x86_64` tags. Every archive has
+869 ZIP entries, 761 files, and 14 rdWrapper runtime files. ZIP integrity,
+duplicate-member, and strict payload audits pass with no native source,
+header, CMake, common-view header, locked-source, or SDK leakage.
+
+Every `_rd_native` binary is stripped x86-64 ELF, has no RPATH/RUNPATH or
+dynamic RDKit/Boost/Conda dependency, and exports only
+`PyInit__rd_native@@HOTPOT_RDWRAPPERS_PYTHON_1.0`. Its dependencies are only
+the six expected system runtime libraries. Whole-wheel `auditwheel show`
+identifies versioned system-symbol compatibility at manylinux 2.27 but does
+not grant strict standalone policy compliance because repair deliberately
+excludes `_ob_native`'s `libopenbabel.so.8`. The pinned `openbabel`
+distribution supplies that library and every isolated coexistence test passes.
+The matrix therefore closes the project-defined wheel gate under the existing
+cross-wheel Open Babel model; it does not establish a standalone-auditwheel or
+GitHub-hosted-CI claim.
+
 ## 12. Known limitations and open release gates
 
 Release blockers:
@@ -450,13 +497,16 @@ Release blockers:
   downstream trace equality, and execute both routes on the formal cohort.
 - Formal `F1` evidence and the default-provider decision are absent. Open Babel
   must remain the default until the owner reviews correctness and resources.
-- CPython 3.10-3.14 wheel CI/audit has not run. Build, install, audit, and
-  coexistence-test all five pinned manylinux wheels.
 
 Evidence and compatibility boundaries:
 
 - The formal 182-case `C1`/`C2` matrix is absent. The Eu result remains smoke
   evidence only.
+- The five-version wheel matrix is a pinned local workflow-equivalent run, not
+  GitHub-hosted Actions provenance.
+- The existing wheel deliberately resolves `libopenbabel.so.8` from the
+  pinned `openbabel` distribution. Do not claim strict standalone auditwheel
+  manylinux compliance unless that packaging model changes.
 - OpenBabel-first then Python RDKit exits with SIGSEGV 139 in the unmodified
   third-party wheels. Keep it as an isolated unsupported diagnostic; normal
   tests cover the supported Hotpot/RDKit-first orders.
@@ -485,6 +535,9 @@ Evidence and compatibility boundaries:
   are implemented and directly tested.
 - A fresh local extension and SDK passed C11/C++17 API, symbol, dependency,
   RPATH, license, and supported import-order checks.
+- Clean CPython 3.10-3.14 wheels passed the pinned local workflow-equivalent
+  build, repair, isolated-install, coexistence, archive, and `_rd_native` ELF
+  matrix under the declared Open Babel cross-wheel dependency model.
 
 ### Explicit non-claims
 
@@ -495,7 +548,9 @@ Evidence and compatibility boundaries:
 - ETKDG is not claimed to be a metal-complex force field.
 - R0 does not prove source-SMILES chirality preservation because the imported
   stereo payload is empty.
-- The CPython 3.10-3.14 manylinux wheel matrix has not passed.
+- No GitHub-hosted Actions execution is claimed for the five-version matrix.
+- The dual-tagged wheels are not claimed to satisfy strict standalone
+  auditwheel manylinux policy while `libopenbabel.so.8` remains external.
 - ABI-0/ABI-1 facade success does not promise compatibility with arbitrary old
   `libstdc++` runtimes.
 - Open Babel is not a complete semantic oracle, and RDKit does not validate
@@ -509,8 +564,8 @@ Plan and log:
   `1c502f8ed8a48589d7fc67f9d0dd0bf8b882f8ab017a4ef4fdc4617ed2fc4604`
 - Current implementation-grounded plan:
   `9a3be507e47cad7f2e13a45bb22931368a80bf39d7f53b906025696fe4945dce`
-- Implementation log at report preparation:
-  `90a00b9ba69b2fbc76a4c58c4b342b0389c27bb1b7e9ce709338be87a8f387af`
+- Implementation log at report revision:
+  `1db8ed4793e875357c30481aae85f570bb7e00f9a3cc3fae3d2a327c3d90ca9c`
 
 Native source closure:
 
@@ -549,6 +604,17 @@ Benchmarks, goldens, and fresh binaries:
 - Step-47 fresh SDK library:
   `dc8d1a7a53cc6dfa4f47995eef29a48ad8af557ba458654aebadf859152d86a4`
 
+Final local release-wheel matrix, source checkpoint
+`37a08b30f785bf54149436ae2ce5d852ac7cbd22`:
+
+| ABI | Wheel SHA-256 |
+| --- | --- |
+| cp310 | `c381bfdc10746b60791ab30a699ac57240a748ad5e515a96ae993008fc75d34f` |
+| cp311 | `fc1cecff6ac43b050cd6f57c1241e355c746eb5874a090b12cedeb9946c78eba` |
+| cp312 | `4fa3f7141e8990bf38c54fdb426952f293f98f7e95c7e41e08842e5cc7839527` |
+| cp313 | `717ce94bc6a8c36b519da474ae240dfb8737eab8fa12c5b381dcd1eacccdb446` |
+| cp314 | `9c0fa5382727d8f7d9fc3ad51a9fe897679efaf6f4ef8de2264b0297355e7003` |
+
 ## 15. Release recommendation
 
 Accept the native component, common communication layer, stereo system, and
@@ -559,6 +625,10 @@ critical path is:
 1. recover or explicitly replace the frozen 182-case artifact identity;
 2. implement and freeze the missing formal `O0`/`F1` runner;
 3. execute `O0/F1/C1/C2` and obtain the owner decision on the default provider;
-4. run the five-version manylinux wheel/install/audit matrix; and
-5. issue the final release sign-off from those artifacts without reusing the
+4. issue the final release sign-off from those artifacts without reusing the
    development Eu smoke result or the GCC 14.3 probe binary as substitutes.
+
+The local five-version wheel gate is closed under the declared Open Babel
+packaging model. Run the same workflow on GitHub-hosted Actions if hosted-CI
+provenance is required for publication; that does not replace the remaining
+formal 182-case business evidence.

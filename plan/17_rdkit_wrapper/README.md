@@ -2,8 +2,9 @@
 
 Status: component implementation and local validation are complete; release
 closure is blocked by the unavailable frozen 182-case artifacts, the missing
-formal O0/F1 runner and provider-decision evidence, and the unexecuted CPython
-3.10-3.14 manylinux wheel matrix.
+formal O0/F1 runner, and provider-decision evidence. The pinned local CPython
+3.10-3.14 workflow-equivalent wheel matrix is complete under the declared Open
+Babel cross-wheel dependency model.
 
 Planning branch: `feature/rdWrapper`
 
@@ -31,5 +32,7 @@ The implementation, validation, benchmark, and remaining-gate report is:
 
 - [implementation_report.md](implementation_report.md)
 
-The report distinguishes completed source/local-native evidence from formal
-182-case workflow validation and release-wheel claims that have not run.
+The report distinguishes completed source/local-native and local release-wheel
+evidence from the missing formal 182-case workflow evidence. It also separates
+the local matrix from GitHub-hosted CI provenance and from strict standalone
+auditwheel manylinux compliance, neither of which is claimed.

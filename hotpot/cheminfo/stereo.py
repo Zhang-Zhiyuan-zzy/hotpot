@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Collection
+from dataclasses import dataclass, replace
 from enum import Enum
 from typing import TYPE_CHECKING, Mapping
 
@@ -166,6 +167,100 @@ class StereoPayload:
     bond_facts: tuple[BondTransportRecord, ...]
 
 
+_EMPTY_STEREO_PAYLOAD = StereoPayload(
+    schema_version=1,
+    records=(),
+    atom_facts=(),
+    bond_facts=(),
+)
+
+
+def _bond_key(atom_indices: Collection[int]) -> frozenset[int]:
+    """Return the representation-independent key for a bond's endpoints."""
+
+    return frozenset(atom_indices)
+
+
+def _remap_stereo_payload(
+    payload: StereoPayload,
+    atom_mapping: Mapping[int, int],
+    *,
+    allowed_bonds: Collection[tuple[int, int]] | None = None,
+) -> StereoPayload:
+    """Remap Level-1 facts without interpreting or reordering them.
+
+    ``atom_mapping`` maps source atom rows to destination atom rows.
+    ``allowed_bonds`` contains destination endpoint pairs; their orientation is
+    ignored only for the existence check. Stored bond endpoint order is kept.
+    """
+
+    allowed_bond_keys = (
+        None
+        if allowed_bonds is None
+        else {_bond_key(atom_indices) for atom_indices in allowed_bonds}
+    )
+
+    records = []
+    for record in payload.records:
+        if any(atom not in atom_mapping for atom in record.anchor.atom_indices):
+            continue
+
+        anchor_indices = tuple(
+            atom_mapping[atom] for atom in record.anchor.atom_indices
+        )
+        if (
+            record.anchor.kind is StereoAnchorKind.BOND
+            and allowed_bond_keys is not None
+            and _bond_key(anchor_indices) not in allowed_bond_keys
+        ):
+            continue
+
+        carriers = []
+        keep_record = True
+        for carrier in record.carriers:
+            if carrier.kind is StereoCarrierKind.ATOM:
+                if carrier.atom not in atom_mapping:
+                    keep_record = False
+                    break
+                carriers.append(replace(carrier, atom=atom_mapping[carrier.atom]))
+            else:
+                carriers.append(carrier)
+
+        if keep_record:
+            records.append(
+                replace(
+                    record,
+                    anchor=replace(record.anchor, atom_indices=anchor_indices),
+                    carriers=tuple(carriers),
+                )
+            )
+
+    atom_facts = tuple(
+        replace(fact, atom=atom_mapping[fact.atom])
+        for fact in payload.atom_facts
+        if fact.atom in atom_mapping
+    )
+
+    bond_facts = []
+    for fact in payload.bond_facts:
+        if any(atom not in atom_mapping for atom in fact.atom_indices):
+            continue
+        atom_indices = tuple(atom_mapping[atom] for atom in fact.atom_indices)
+        if (
+            allowed_bond_keys is not None
+            and _bond_key(atom_indices) not in allowed_bond_keys
+        ):
+            continue
+        bond_facts.append(replace(fact, atom_indices=atom_indices))
+
+    return StereoPayload(
+        schema_version=payload.schema_version,
+        records=tuple(records),
+        atom_facts=atom_facts,
+        bond_facts=tuple(bond_facts),
+    )
+
+
 @dataclass(frozen=True)
 class StereoValidationIssue:
     """One deterministic Level-2 diagnostic."""
@@ -204,13 +299,13 @@ class StereoAlignmentReport:
 def get_stereo_payload(mol: Molecule) -> StereoPayload:
     """Return the exact Level-1 payload stored by a molecule."""
 
-    raise NotImplementedError("Level-1 stereo storage is implemented in Phase 2")
+    return getattr(mol, "_stereo_payload", _EMPTY_STEREO_PAYLOAD)
 
 
 def set_stereo_payload(mol: Molecule, payload: StereoPayload) -> None:
     """Store Level-1 facts without chemical interpretation."""
 
-    raise NotImplementedError("Level-1 stereo storage is implemented in Phase 2")
+    mol._stereo_payload = payload
 
 
 def validate_stereochemistry(

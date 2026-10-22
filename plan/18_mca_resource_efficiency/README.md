@@ -3,4 +3,5 @@
 - [Implementation plan](mca_resource_efficiency_implementation.md)
 - [Implementation log](implementation_log.md)
 - [Production benchmark runner](benchmark_resource_workflow.py)
+- [8 x 8 CPU benchmark runner](benchmark_cpu_8x8.py)
 - [Implementation report](implementation_report.md)

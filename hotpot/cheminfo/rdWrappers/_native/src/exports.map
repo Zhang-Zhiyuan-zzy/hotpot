@@ -1,0 +1,6 @@
+HOTPOT_RDWRAPPERS_1.0 {
+    global:
+        hotpot_rd_*;
+    local:
+        *;
+};

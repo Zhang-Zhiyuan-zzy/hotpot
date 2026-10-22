@@ -352,6 +352,17 @@ _FAMILY_CARRIER_COUNTS = {
     _Level2DescriptorFamily.SQUARE_PYRAMIDAL: 5,
     _Level2DescriptorFamily.OCTAHEDRAL: 6,
 }
+_COORDINATION_FAMILIES = frozenset(
+    (
+        _Level2DescriptorFamily.SQUARE_PLANAR,
+        _Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL,
+        _Level2DescriptorFamily.SQUARE_PYRAMIDAL,
+        _Level2DescriptorFamily.OCTAHEDRAL,
+    )
+)
+_ATOM_GEOMETRY_FAMILIES = frozenset(
+    (_Level2DescriptorFamily.TETRAHEDRAL, *_COORDINATION_FAMILIES)
+)
 
 
 def _algebra_issue(
@@ -964,6 +975,16 @@ class _Gate6Graph:
     directed_dative_edges: frozenset[tuple[int, int]]
     real_atom_count: int
     virtual_hydrogens: tuple[tuple[int, ...], ...]
+
+
+@dataclass(frozen=True)
+class _Gate7CoordinationSite:
+    """One base-valid declared coordination site behind the Gate-7 fence."""
+
+    record_index: int
+    descriptor: _Level2Descriptor
+    center: int
+    carrier_rows: tuple[int, ...]
 
 
 class _Gate6Equivalence(Enum):
@@ -2413,6 +2434,299 @@ def _validate_gate5_axial_graph(
                 )
             )
     return tuple(issues)
+
+
+def _gate7_represented_adjacency(
+    graph: _Gate6Graph,
+) -> tuple[frozenset[int], ...]:
+    """Return the complete undirected Gate-6 current-state adjacency."""
+
+    adjacency = [set() for _ in graph.target_spec["keys"]]
+    for first, second in graph.target_spec["edges"]:
+        adjacency[first].add(second)
+        adjacency[second].add(first)
+    return tuple(frozenset(neighbours) for neighbours in adjacency)
+
+
+def _gate7_same_center_issues(
+    payload: StereoPayload,
+    descriptors: Mapping[int, _Level2Descriptor],
+    *,
+    atom_count: int,
+) -> tuple[StereoValidationIssue, ...]:
+    """Reject every parsed atom-geometry declaration sharing one center."""
+
+    records_by_center: dict[int, list[int]] = {}
+    for record_index, record in enumerate(payload.records):
+        descriptor = descriptors.get(record_index)
+        if descriptor is None or descriptor.family not in _ATOM_GEOMETRY_FAMILIES:
+            continue
+        anchor = record.anchor
+        if anchor.kind is not StereoAnchorKind.ATOM or len(anchor.atom_indices) != 1:
+            continue
+        center = anchor.atom_indices[0]
+        if (
+            not isinstance(center, int)
+            or isinstance(center, bool)
+            or not 0 <= center < atom_count
+        ):
+            continue
+        records_by_center.setdefault(center, []).append(record_index)
+
+    issues = []
+    for center, record_indices in records_by_center.items():
+        if len(record_indices) < 2:
+            continue
+        for record_index in record_indices:
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.INVALID_ANCHOR,
+                    f"atom center row {center} has multiple Level-2 geometry records",
+                    record_index=record_index,
+                    atom_indices=(center,),
+                )
+            )
+    return tuple(sorted(issues, key=lambda issue: issue.record_index))
+
+
+def _validate_gate7_coordination_record(
+    record: StereoRecord,
+    descriptor: _Level2Descriptor,
+    *,
+    record_index: int,
+    atom_count: int,
+    adjacency: Sequence[frozenset[int]],
+) -> tuple[_Gate7CoordinationSite | None, tuple[StereoValidationIssue, ...]]:
+    """Validate one declared coordination site without enabling public Gate 7."""
+
+    family = descriptor.family
+    family_name = family.value
+    record_atoms = _record_atom_indices(record)
+    issues = list(
+        _record_issues(
+            _validate_stereo_anchor(record.anchor, family=family),
+            record_index=record_index,
+            atom_indices=record.anchor.atom_indices,
+        )
+    )
+
+    expected_count = _FAMILY_CARRIER_COUNTS[family]
+    if len(record.carriers) != expected_count:
+        issues.append(
+            _gate2_issue(
+                StereoIssueCode.INVALID_CARRIER,
+                f"expected {expected_count} ordered carriers, got "
+                f"{len(record.carriers)}",
+                record_index=record_index,
+                atom_indices=record_atoms,
+            )
+        )
+
+    carrier_rows = []
+    seen_rows = set()
+    carrier_shape_valid = len(record.carriers) == expected_count
+    for position, carrier in enumerate(record.carriers):
+        if carrier.kind is not StereoCarrierKind.ATOM:
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.UNSUPPORTED,
+                    f"{family_name} carrier position {position} uses unsupported "
+                    f"{carrier.kind.value}; Gate 7 supports atom-point carriers only",
+                    record_index=record_index,
+                    atom_indices=record_atoms,
+                )
+            )
+            carrier_shape_valid = False
+            continue
+
+        atom = carrier.atom
+        if (
+            not isinstance(atom, int)
+            or isinstance(atom, bool)
+            or atom < 0
+        ):
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    f"atom carrier at position {position} requires a "
+                    "non-negative atom row",
+                    record_index=record_index,
+                    atom_indices=record_atoms,
+                )
+            )
+            carrier_shape_valid = False
+            continue
+
+        carrier_rows.append(atom)
+        if atom in seen_rows:
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    f"duplicate carrier identity at position {position}",
+                    record_index=record_index,
+                    atom_indices=record_atoms,
+                )
+            )
+            carrier_shape_valid = False
+        seen_rows.add(atom)
+        if atom >= atom_count:
+            carrier_shape_valid = False
+
+    range_issues = _validate_gate2_atom_ranges(
+        record,
+        record_index=record_index,
+        atom_count=atom_count,
+    )
+    issues.extend(range_issues)
+
+    center = None
+    anchor = record.anchor
+    if anchor.kind is StereoAnchorKind.ATOM and len(anchor.atom_indices) == 1:
+        candidate = anchor.atom_indices[0]
+        if (
+            isinstance(candidate, int)
+            and not isinstance(candidate, bool)
+            and 0 <= candidate < atom_count
+        ):
+            center = candidate
+
+    if center is not None and center in seen_rows:
+        issues.append(
+            _gate2_issue(
+                StereoIssueCode.INVALID_CARRIER,
+                "coordination center cannot be a carrier",
+                record_index=record_index,
+                atom_indices=(center,),
+            )
+        )
+        carrier_shape_valid = False
+
+    if record.group is not None:
+        issues.append(
+            _gate2_issue(
+                StereoIssueCode.UNSUPPORTED,
+                f"{family_name} enhanced-stereo groups are unsupported for "
+                "coordination records",
+                record_index=record_index,
+                atom_indices=record_atoms,
+            )
+        )
+
+    if center is not None and carrier_shape_valid:
+        represented_shell = set(adjacency[center])
+        declared_shell = set(carrier_rows)
+        if declared_shell != represented_shell:
+            represented_atom_rows = {
+                row for row in represented_shell if row < atom_count
+            }
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    f"{family_name} carriers must exactly cover the represented "
+                    f"first shell at center row {center}",
+                    record_index=record_index,
+                    atom_indices=(
+                        center,
+                        *sorted(declared_shell | represented_atom_rows),
+                    ),
+                )
+            )
+
+    if issues:
+        return None, tuple(issues)
+    return (
+        _Gate7CoordinationSite(
+            record_index=record_index,
+            descriptor=descriptor,
+            center=center,
+            carrier_rows=tuple(carrier_rows),
+        ),
+        (),
+    )
+
+
+def _gate7_carrier_components(
+    site: _Gate7CoordinationSite,
+    adjacency: Sequence[frozenset[int]],
+) -> tuple[frozenset[int], ...]:
+    """Return carrier-containing components after removing this site's spokes."""
+
+    removed_edges = {
+        frozenset((site.center, carrier)) for carrier in site.carrier_rows
+    }
+    visited = set()
+    components = []
+    for carrier in sorted(site.carrier_rows):
+        if carrier in visited:
+            continue
+        component = set()
+        pending = [carrier]
+        visited.add(carrier)
+        while pending:
+            current = pending.pop()
+            component.add(current)
+            for neighbour in adjacency[current]:
+                if frozenset((current, neighbour)) in removed_edges:
+                    continue
+                if neighbour not in visited:
+                    visited.add(neighbour)
+                    pending.append(neighbour)
+        components.append(frozenset(component))
+    return tuple(components)
+
+
+def _gate7_chelate_pairs(
+    site: _Gate7CoordinationSite,
+    adjacency: Sequence[frozenset[int]],
+) -> frozenset[tuple[int, int]]:
+    """Return the traversal-independent carrier-pair chelate relation."""
+
+    components = _gate7_carrier_components(site, adjacency)
+    component_by_carrier = {
+        carrier: component_index
+        for component_index, component in enumerate(components)
+        for carrier in site.carrier_rows
+        if carrier in component
+    }
+    return frozenset(
+        (first, second)
+        for first, second in combinations(sorted(site.carrier_rows), 2)
+        if component_by_carrier[first] == component_by_carrier[second]
+    )
+
+
+def _gate7_coupled_multicenter_issues(
+    sites: Sequence[_Gate7CoordinationSite],
+    adjacency: Sequence[frozenset[int]],
+) -> tuple[StereoValidationIssue, ...]:
+    """Diagnose coupled base-valid sites after same-center conflict filtering."""
+
+    coupled = set()
+    centers = {site.center: position for position, site in enumerate(sites)}
+    for position, site in enumerate(sites):
+        for component in _gate7_carrier_components(site, adjacency):
+            if site.center in component:
+                coupled.add(position)
+            for center in component & centers.keys():
+                other_position = centers[center]
+                if other_position != position:
+                    coupled.update((position, other_position))
+
+    return tuple(
+        _gate2_issue(
+            StereoIssueCode.UNSUPPORTED,
+            f"{site.descriptor.family.value} chelate partition at center row "
+            f"{site.center} participates in coupled multicenter coordination, "
+            "which is unsupported",
+            record_index=site.record_index,
+            atom_indices=(site.center, *sorted(site.carrier_rows)),
+        )
+        for position, site in sorted(
+            enumerate(sites),
+            key=lambda item: item[1].record_index,
+        )
+        if position in coupled
+    )
 
 
 def _validate_gate2_stereochemistry(mol: Molecule) -> StereoValidationReport:

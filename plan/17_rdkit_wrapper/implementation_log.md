@@ -3261,3 +3261,66 @@ F1/C1/C2 or 182-complex claim; the frozen 182-case manifest and graph sidecars
 remain unavailable.
 
 Git checkpoint: `90dd092 test(rdwrapper): separate R0 Level-2 evidence`.
+
+### Step 46 - Add bounded external-toolkit stereo observations
+
+Status: complete for the Gate-7 toolkit-observation checkpoint
+
+Planned:
+
+- use pinned RDKit only where it independently perceives SP, TBP, and OH
+  configurations from three-dimensional coordinates;
+- keep Hotpot descriptor numbers distinct from RDKit's private permutation
+  numbers through an explicit version-frozen lookup;
+- use Open Babel only within the narrower stereo families it can parse and
+  inspect, in an isolated process; and
+- state every non-covered semantic boundary explicitly rather than extending
+  either toolkit beyond its real model.
+
+Performed:
+
+- added a frozen Hotpot-to-RDKit `2026.09.1` lookup for all 3 SP, 20 TBP, and
+  30 OH descriptors and rebuilt independent RDKit graphs from each Hotpot
+  ideal-coordinate template;
+- required RDKit's perceived chiral tag and `_chiralPermutation` to match all
+  53 lookup entries, with one proper-rotation, x-reflection, and first-carrier
+  exchange witness for every family;
+- saved, enabled, and restored RDKit's process-global non-tetrahedral
+  chirality switch in a module fixture so results do not depend on prior test
+  state and the suite leaves no global-state leak;
+- added an Open Babel 3.2.x subprocess capability witness showing that
+  selected TH, DB, and SP strings are specified and distinguishable while
+  retaining the same carrier-reference multiset; and
+- explicitly excluded SPY, AXIS, chelate partitions, enhanced groups, and
+  Hotpot's 12/2/3-degree acceptance policy from external-toolkit claims.
+
+Verification:
+
+- the dedicated toolkit-observation selection reports 65 passed;
+- the combined stereo and `rdWrappers` selection, including the two supported
+  import-order subprocesses, reports 601 passed and 2 skipped;
+- Python compilation, whitespace, and line-length checks pass; and
+- an independent cheminformatics review found no remaining blocker in the
+  RDKit mapping, transform witnesses, Open Babel scope, or stated exclusions.
+
+Unexpected findings:
+
+- RDKit's non-tetrahedral perception is controlled by mutable process-global
+  state, so relying on its ambient default would make the test order-sensitive;
+- Open Babel stereo configuration semantics include more than raw carrier
+  references; comparing only `refs` cannot establish Hotpot descriptor
+  equivalence; and
+- exact Open Babel `3.2.1` would be narrower than the declared project range
+  `>=3.2.1,<3.3`, whereas the capability witness is valid for 3.2.x.
+
+Adjustment:
+
+- describe RDKit as an independent toolkit observer of Hotpot's templates,
+  not as an independent source of those coordinates;
+- describe Open Babel strictly as a parsing-and-distinction capability
+  witness, not as a Hotpot semantic oracle; and
+- keep `_chiralPermutation` evidence pinned to the exact RDKit release while
+  accepting the declared Open Babel 3.2.x compatibility range.
+
+Git checkpoint:
+`c79d02c test(stereo): cross-check Gate-7 toolkit observations`.

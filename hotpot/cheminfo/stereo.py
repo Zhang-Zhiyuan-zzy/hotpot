@@ -316,6 +316,7 @@ class _Level2AlgebraResult:
 _LEVEL2_DESCRIPTOR_PREFIX = "hotpot.stereo/2"
 _PARITY_VALUES = ("even", "odd")
 _ALKENE_VALUES = ("together", "opposite")
+_GEOMETRY_RELATIVE_TOLERANCE = 1.0e-8
 _COORDINATION_CARDINALITIES = {
     _Level2DescriptorFamily.SQUARE_PLANAR: 3,
     _Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL: 20,
@@ -1212,12 +1213,8 @@ def _validate_gate2_double_bond_graph(
     return tuple(issues)
 
 
-def validate_stereochemistry(
-    mol: Molecule,
-    *,
-    coordinates: NDArray[np.float64] | None = None,
-) -> StereoValidationReport:
-    """Validate manually specified Gate-2 TH and DB semantics."""
+def _validate_gate2_stereochemistry(mol: Molecule) -> StereoValidationReport:
+    """Validate manually specified Gate-2 TH and DB graph semantics."""
 
     atom_count, adjacency, bond_orders = _molecule_stereo_topology(mol)
     issues = []
@@ -1330,14 +1327,314 @@ def validate_stereochemistry(
                     )
                 )
 
-    if coordinates is not None:
-        issues.append(
-            StereoValidationIssue(
-                code=StereoIssueCode.UNSUPPORTED,
-                message="coordinate stereo validation is deferred to Level-2 Gate 4",
+    return StereoValidationReport(is_valid=not issues, issues=tuple(issues))
+
+
+def _geometry_issue(
+    message: str,
+    *,
+    record_index: int | None = None,
+    atom_indices: tuple[int, ...] = (),
+) -> StereoValidationIssue:
+    return StereoValidationIssue(
+        code=StereoIssueCode.DEGENERATE_GEOMETRY,
+        message=message,
+        record_index=record_index,
+        atom_indices=atom_indices,
+    )
+
+
+def _finite_coordinate_array(
+    mol: Molecule,
+    coordinates: NDArray[np.float64],
+) -> tuple[NDArray[np.float64] | None, StereoValidationIssue | None]:
+    """Return a validated coordinate view with the frozen molecule row shape."""
+
+    array = np.asarray(coordinates, dtype=np.float64)
+    expected_shape = (len(mol.atoms), 3)
+    if array.shape != expected_shape:
+        return None, _geometry_issue(
+            f"coordinate array must have shape {expected_shape}, got {array.shape}"
+        )
+    if not np.all(np.isfinite(array)):
+        nonfinite_rows = tuple(
+            int(row) for row in np.flatnonzero(~np.all(np.isfinite(array), axis=1))
+        )
+        return None, _geometry_issue(
+            "coordinate array contains non-finite values",
+            atom_indices=nonfinite_rows,
+        )
+    return array, None
+
+
+def _normalized_geometry_sign(
+    value: float,
+    scale: float,
+) -> int:
+    """Classify a signed measure using a scale-free deterministic tolerance."""
+
+    if scale == 0.0:
+        return 0
+    normalized = value / scale
+    if abs(normalized) <= _GEOMETRY_RELATIVE_TOLERANCE:
+        return 0
+    return 1 if normalized > 0.0 else -1
+
+
+def _is_relatively_degenerate(length: float, local_scale: float) -> bool:
+    """Return whether a local length vanishes at the geometry tolerance."""
+
+    return local_scale == 0.0 or length / local_scale <= _GEOMETRY_RELATIVE_TOLERANCE
+
+
+def _tetrahedral_coordinate_descriptor(
+    record: StereoRecord,
+    coordinates: NDArray[np.float64],
+    *,
+    record_index: int,
+) -> tuple[_Level2Descriptor | None, StereoValidationIssue | None]:
+    """Assign TH parity from the ordered-carrier signed tetrahedral volume.
+
+    Positive normalized volume is ``even`` and negative volume is ``odd``.
+    An implicit carrier uses the anchor as an orientation-only zero-vector
+    proxy.  This preserves ordered-carrier parity without inventing a bond
+    length or direction; three explicit bonds coplanar with the anchor remain
+    correctly unresolved.
+    """
+
+    center = record.anchor.atom_indices[0]
+    center_coordinate = coordinates[center]
+    vectors = []
+    explicit_vectors = []
+    for carrier in record.carriers:
+        if carrier.kind is StereoCarrierKind.ATOM:
+            vector = coordinates[carrier.atom] - center_coordinate
+            vectors.append(vector)
+            explicit_vectors.append(vector)
+        else:
+            vectors.append(np.zeros(3, dtype=np.float64))
+
+    explicit_norms = tuple(float(np.linalg.norm(vector)) for vector in explicit_vectors)
+    local_scale = max(explicit_norms, default=0.0)
+    if any(_is_relatively_degenerate(norm, local_scale) for norm in explicit_norms):
+        return None, _geometry_issue(
+            "TH coordinate geometry has a carrier coincident with its center "
+            "within relative tolerance "
+            f"{_GEOMETRY_RELATIVE_TOLERANCE:g}",
+            record_index=record_index,
+            atom_indices=_record_atom_indices(record),
+        )
+
+    carrier_coordinates = tuple(center_coordinate + vector for vector in vectors)
+    characteristic_length = max(
+        float(np.linalg.norm(carrier_coordinates[left] - carrier_coordinates[right]))
+        for left in range(4)
+        for right in range(left)
+    )
+    if characteristic_length == 0.0:
+        sign = 0
+    else:
+        first = (
+            carrier_coordinates[0] - carrier_coordinates[3]
+        ) / characteristic_length
+        second = (
+            carrier_coordinates[1] - carrier_coordinates[3]
+        ) / characteristic_length
+        third = (
+            carrier_coordinates[2] - carrier_coordinates[3]
+        ) / characteristic_length
+        signed_volume = float(np.dot(first, np.cross(second, third)))
+        sign = _normalized_geometry_sign(signed_volume, 1.0)
+    if sign == 0:
+        return None, _geometry_issue(
+            "TH signed volume is degenerate within relative tolerance "
+            f"{_GEOMETRY_RELATIVE_TOLERANCE:g}",
+            record_index=record_index,
+            atom_indices=_record_atom_indices(record),
+        )
+    return (
+        _Level2Descriptor(
+            _Level2DescriptorFamily.TETRAHEDRAL,
+            "even" if sign > 0 else "odd",
+        ),
+        None,
+    )
+
+
+def _double_bond_coordinate_descriptor(
+    record: StereoRecord,
+    coordinates: NDArray[np.float64],
+    *,
+    record_index: int,
+) -> tuple[_Level2Descriptor | None, StereoValidationIssue | None]:
+    """Assign DB relation from endpoint-scoped ordered transverse vectors."""
+
+    begin, end = record.anchor.atom_indices
+    axis = coordinates[end] - coordinates[begin]
+    axis_norm = float(np.linalg.norm(axis))
+    endpoint_vectors = tuple(
+        tuple(
+            coordinates[carrier.atom] - coordinates[endpoint]
+            for carrier in record.carriers[2 * endpoint_index : 2 * endpoint_index + 2]
+            if carrier.kind is StereoCarrierKind.ATOM
+        )
+        for endpoint_index, endpoint in enumerate((begin, end))
+    )
+    explicit_norms = tuple(
+        float(np.linalg.norm(vector))
+        for vectors in endpoint_vectors
+        for vector in vectors
+    )
+    local_scale = max((axis_norm, *explicit_norms))
+    if _is_relatively_degenerate(axis_norm, local_scale):
+        return None, _geometry_issue(
+            "DB coordinate geometry has coincident bond endpoints within "
+            f"relative tolerance {_GEOMETRY_RELATIVE_TOLERANCE:g}",
+            record_index=record_index,
+            atom_indices=_record_atom_indices(record),
+        )
+    if any(_is_relatively_degenerate(norm, local_scale) for norm in explicit_norms):
+        return None, _geometry_issue(
+            "DB coordinate geometry has a carrier coincident with its endpoint "
+            "within relative tolerance "
+            f"{_GEOMETRY_RELATIVE_TOLERANCE:g}",
+            record_index=record_index,
+            atom_indices=_record_atom_indices(record),
+        )
+    axis_unit = axis / axis_norm
+
+    endpoint_directions = []
+    for endpoint_index, endpoint in enumerate((begin, end)):
+        transverse = []
+        group = record.carriers[2 * endpoint_index : 2 * endpoint_index + 2]
+        for carrier in group:
+            if carrier.kind is StereoCarrierKind.ATOM:
+                vector = coordinates[carrier.atom] - coordinates[endpoint]
+                transverse.append(vector - np.dot(vector, axis_unit) * axis_unit)
+            else:
+                transverse.append(np.zeros(3, dtype=np.float64))
+
+        direction = transverse[0] - transverse[1]
+        direction_norm = float(np.linalg.norm(direction))
+        endpoint_scale = max(
+            (
+                axis_norm,
+                *(
+                    float(np.linalg.norm(vector))
+                    for vector in endpoint_vectors[endpoint_index]
+                ),
             )
         )
-    return StereoValidationReport(is_valid=not issues, issues=tuple(issues))
+        if _is_relatively_degenerate(direction_norm, endpoint_scale):
+            return None, _geometry_issue(
+                f"DB endpoint {endpoint} has degenerate transverse carriers "
+                "within relative tolerance "
+                f"{_GEOMETRY_RELATIVE_TOLERANCE:g}",
+                record_index=record_index,
+                atom_indices=_record_atom_indices(record),
+            )
+        endpoint_directions.append(direction)
+
+    relation = float(
+        np.dot(
+            endpoint_directions[0] / np.linalg.norm(endpoint_directions[0]),
+            endpoint_directions[1] / np.linalg.norm(endpoint_directions[1]),
+        )
+    )
+    sign = _normalized_geometry_sign(relation, 1.0)
+    if sign == 0:
+        return None, _geometry_issue(
+            "DB transverse relation is degenerate within relative tolerance "
+            f"{_GEOMETRY_RELATIVE_TOLERANCE:g}",
+            record_index=record_index,
+            atom_indices=_record_atom_indices(record),
+        )
+    return (
+        _Level2Descriptor(
+            _Level2DescriptorFamily.DOUBLE_BOND,
+            "together" if sign > 0 else "opposite",
+        ),
+        None,
+    )
+
+
+def _gate4_coordinate_assignments(
+    mol: Molecule,
+    coordinates: NDArray[np.float64],
+    graph_report: StereoValidationReport,
+) -> tuple[dict[int, _Level2Descriptor], tuple[StereoValidationIssue, ...]]:
+    """Assign coordinates only for records accepted by the earlier gates."""
+
+    array, array_issue = _finite_coordinate_array(mol, coordinates)
+    if array_issue is not None:
+        return {}, (array_issue,)
+
+    invalid_records = {
+        issue.record_index
+        for issue in graph_report.issues
+        if issue.record_index is not None
+    }
+    assignments = {}
+    issues = []
+    for record_index, record in enumerate(get_stereo_payload(mol).records):
+        if record_index in invalid_records:
+            continue
+        parsed = _parse_level2_descriptor(record.descriptor).descriptor
+        if parsed is None or parsed.family not in (
+            _Level2DescriptorFamily.TETRAHEDRAL,
+            _Level2DescriptorFamily.DOUBLE_BOND,
+        ):
+            continue
+        assigned, geometry_issue = (
+            _tetrahedral_coordinate_descriptor(
+                record,
+                array,
+                record_index=record_index,
+            )
+            if parsed.family is _Level2DescriptorFamily.TETRAHEDRAL
+            else _double_bond_coordinate_descriptor(
+                record,
+                array,
+                record_index=record_index,
+            )
+        )
+        if geometry_issue is not None:
+            issues.append(geometry_issue)
+            continue
+        assignments[record_index] = assigned
+        if assigned != parsed:
+            issues.append(
+                StereoValidationIssue(
+                    code=StereoIssueCode.COORDINATE_CONTRADICTION,
+                    message=(
+                        f"stored descriptor {record.descriptor} contradicts "
+                        "coordinate descriptor "
+                        f"{_render_level2_descriptor(assigned)}"
+                    ),
+                    record_index=record_index,
+                    atom_indices=_record_atom_indices(record),
+                )
+            )
+    return assignments, tuple(issues)
+
+
+def validate_stereochemistry(
+    mol: Molecule,
+    *,
+    coordinates: NDArray[np.float64] | None = None,
+) -> StereoValidationReport:
+    """Validate Gate-2 graph and optional Gate-4 coordinate semantics."""
+
+    graph_report = _validate_gate2_stereochemistry(mol)
+    if coordinates is None:
+        return graph_report
+    _, coordinate_issues = _gate4_coordinate_assignments(
+        mol,
+        coordinates,
+        graph_report,
+    )
+    issues = (*graph_report.issues, *coordinate_issues)
+    return StereoValidationReport(is_valid=not issues, issues=issues)
 
 
 def assign_stereochemistry(
@@ -1345,12 +1642,29 @@ def assign_stereochemistry(
     *,
     coordinates: NDArray[np.float64] | None = None,
 ) -> StereoAssignmentReport:
-    """Preserve valid manual descriptors without inventing Gate-4 assignments."""
+    """Assign supported descriptors from explicit coordinates without mutation."""
 
-    report = validate_stereochemistry(mol, coordinates=coordinates)
+    payload = get_stereo_payload(mol)
+    graph_report = _validate_gate2_stereochemistry(mol)
+    if coordinates is None:
+        return StereoAssignmentReport(
+            payload=payload,
+            unresolved=graph_report.issues,
+        )
+    assignments, coordinate_issues = _gate4_coordinate_assignments(
+        mol,
+        coordinates,
+        graph_report,
+    )
+    records = tuple(
+        replace(record, descriptor=_render_level2_descriptor(assignments[index]))
+        if index in assignments
+        else record
+        for index, record in enumerate(payload.records)
+    )
     return StereoAssignmentReport(
-        payload=get_stereo_payload(mol),
-        unresolved=report.issues,
+        payload=replace(payload, records=records),
+        unresolved=(*graph_report.issues, *coordinate_issues),
     )
 
 

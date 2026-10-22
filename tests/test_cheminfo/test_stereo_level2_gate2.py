@@ -306,7 +306,7 @@ def test_assignment_preserves_valid_manual_payload_and_does_not_infer():
     assert stereo.get_stereo_payload(molecule) is payload
 
 
-def test_coordinate_validation_and_assignment_remain_explicitly_unresolved():
+def test_degenerate_coordinates_are_reported_after_gate4():
     molecule = _molecule(
         4,
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0)),
@@ -327,9 +327,12 @@ def test_coordinate_validation_and_assignment_remain_explicitly_unresolved():
     )
 
     assert validation.issues[-1] == stereo.StereoValidationIssue(
-        stereo.StereoIssueCode.UNSUPPORTED,
-        "coordinate stereo validation is deferred to Level-2 Gate 4",
+        stereo.StereoIssueCode.DEGENERATE_GEOMETRY,
+        "TH coordinate geometry has a carrier coincident with its center "
+        "within relative tolerance 1e-08",
+        record_index=0,
+        atom_indices=(0, 1, 2, 3),
     )
-    assert assignment.payload is payload
+    assert assignment.payload == payload
     assert assignment.unresolved == validation.issues
     assert stereo.get_stereo_payload(molecule) is payload

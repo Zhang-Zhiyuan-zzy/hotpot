@@ -11,8 +11,25 @@ from .contracts import (
     RuntimeInfo,
 )
 
+from .._native.buffers import NativeMoleculeField, pack_molecule
+
 if TYPE_CHECKING:
     from hotpot.cheminfo.core import Molecule
+
+
+_RDKIT_ETKDG_FIELDS = frozenset(
+    {
+        NativeMoleculeField.ATOMIC_NUMBERS,
+        NativeMoleculeField.FORMAL_CHARGES,
+        NativeMoleculeField.ATOM_AROMATIC,
+        NativeMoleculeField.BOND_INDICES,
+        NativeMoleculeField.BOND_KINDS,
+        NativeMoleculeField.BOND_AROMATIC,
+        NativeMoleculeField.STEREO_RECORDS,
+        NativeMoleculeField.ATOM_TRANSPORT,
+        NativeMoleculeField.BOND_TRANSPORT,
+    }
+)
 
 
 def _backend():
@@ -30,7 +47,8 @@ def generate(
 ) -> ConformerBatch:
     """Dispatch one generation request to the compiled component."""
 
-    return _backend().generate(mol, options, constraints)
+    buffers = pack_molecule(mol, _RDKIT_ETKDG_FIELDS)
+    return _backend().generate(buffers, options, constraints)
 
 
 def runtime_info() -> RuntimeInfo:

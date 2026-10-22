@@ -1,0 +1,6 @@
+HOTPOT_RDWRAPPERS_PYTHON_1.0 {
+    global:
+        PyInit__rd_native;
+    local:
+        *;
+};

@@ -70,6 +70,17 @@ def _set_records(molecule, *records):
     return payload
 
 
+def _assert_only_ax_priority_issues(report, *record_indices):
+    assert report.derived == ()
+    assert tuple(issue.record_index for issue in report.unresolved) == record_indices
+    assert all(
+        issue.code is stereo.StereoIssueCode.UNSUPPORTED
+        and issue.message
+        == "AX axial CIP assignment is outside the Stage-17 direct-priority subset"
+        for issue in report.unresolved
+    )
+
+
 def _multi_tetrahedral(count):
     bonds = tuple(
         (5 * block, 5 * block + carrier, 1.0)
@@ -706,7 +717,7 @@ def test_coordinate_validation_accepts_uniform_ax_group_inversion_and_assigns_it
     assignment = stereo.assign_stereochemistry(molecule, coordinates=coordinates)
 
     assert validation == stereo.StereoValidationReport(True, ())
-    assert assignment.unresolved == ()
+    _assert_only_ax_priority_issues(assignment, 0, 1)
     assert tuple(record.descriptor for record in assignment.payload.records) == (
         "hotpot.stereo/2/AX/odd",
         "hotpot.stereo/2/AX/odd",

@@ -57,6 +57,17 @@ def _set_records(molecule, *records):
     return payload
 
 
+def _assert_only_ax_priority_issues(report, *record_indices):
+    assert report.derived == ()
+    assert tuple(issue.record_index for issue in report.unresolved) == record_indices
+    assert all(
+        issue.code is stereo.StereoIssueCode.UNSUPPORTED
+        and issue.message
+        == "AX axial CIP assignment is outside the Stage-17 direct-priority subset"
+        for issue in report.unresolved
+    )
+
+
 def _allene(*, implicit_h=False):
     if implicit_h:
         molecule = _molecule(
@@ -295,7 +306,7 @@ def test_formal_atrop_uses_same_coordinate_and_reversal_contract():
         dict(enumerate(range(6))),
     )
 
-    assert assignment.unresolved == ()
+    _assert_only_ax_priority_issues(assignment, 0)
     assert assignment.payload.records[0].descriptor.endswith("/even")
     assert alignment.is_equivalent
 
@@ -413,7 +424,9 @@ def test_axial_coordinates_are_rigid_motion_scale_and_path_reversal_invariant():
     assert baseline.payload.records[0].descriptor.endswith("/even")
     assert rigid.payload.records[0].descriptor.endswith("/even")
     assert reversed_path.payload.records[0].descriptor.endswith("/even")
-    assert baseline.unresolved == rigid.unresolved == reversed_path.unresolved == ()
+    _assert_only_ax_priority_issues(baseline, 0)
+    _assert_only_ax_priority_issues(rigid, 0)
+    _assert_only_ax_priority_issues(reversed_path, 0)
 
 
 def test_reflection_or_one_terminal_swap_inverts_axial_parity():
@@ -440,7 +453,8 @@ def test_reflection_or_one_terminal_swap_inverts_axial_parity():
 
     assert reflection.payload.records[0].descriptor.endswith("/odd")
     assert swap.payload.records[0].descriptor.endswith("/odd")
-    assert reflection.unresolved == swap.unresolved == ()
+    _assert_only_ax_priority_issues(reflection, 0)
+    _assert_only_ax_priority_issues(swap, 0)
 
 
 def test_axial_degeneracy_uses_relative_tolerance_without_linearity_cutoff():
@@ -451,10 +465,8 @@ def test_axial_degeneracy_uses_relative_tolerance_without_linearity_cutoff():
         molecule,
         _axial(stereo.StereoAnchorKind.AXIS, (0, 1, 2), carriers),
     )
-    assert (
-        stereo.assign_stereochemistry(molecule, coordinates=coordinates).unresolved
-        == ()
-    )
+    assignment = stereo.assign_stereochemistry(molecule, coordinates=coordinates)
+    _assert_only_ax_priority_issues(assignment, 0)
 
     degenerate = coordinates.copy()
     degenerate[5:7] = ((2.0, 1.0, 1.0e-10), (2.0, -1.0, -1.0e-10))
@@ -483,7 +495,7 @@ def test_axial_degeneracy_normalizes_projected_terminal_directions():
 
     report = stereo.assign_stereochemistry(molecule, coordinates=coordinates)
 
-    assert report.unresolved == ()
+    _assert_only_ax_priority_issues(report, 0)
     assert report.payload.records[0].descriptor.endswith("/even")
 
 

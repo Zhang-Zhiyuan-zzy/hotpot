@@ -23,6 +23,7 @@ def test_level_two_report_contracts_are_frozen():
     for contract in (
         stereo.StereoValidationIssue,
         stereo.StereoValidationReport,
+        stereo.StereoDerivedDescriptor,
         stereo.StereoAssignmentReport,
         stereo.StereoAlignmentReport,
     ):

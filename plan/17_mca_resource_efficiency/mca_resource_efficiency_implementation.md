@@ -8,13 +8,14 @@ identity and type, output order, and `is_Nuc_site` semantics.
 ## 2. Validated decisions
 
 - Standalone feature supply reached 27.07 molecules/s with two workers, but the
-  production end-to-end comparison reached only 14.27 molecules/s with two and
-  14.99 with three. Three workers are therefore the smallest allocation that
-  reaches the measured 14.6--15.0 molecules/s A800 ceiling.
+  prepared-input GPU path reached only 14.27 molecules/s with two and 14.99
+  with three. Three workers are therefore the smallest allocation that reaches
+  the measured 14.6--15.0 molecules/s A800 inference ceiling.
 - One native-search site worker supplied 123.81 molecules/s on the 4,096
   molecule workload and does not constrain one GPU.
 - The production GPU default is therefore one site worker plus three
-  conformer/feature workers per GPU.
+  conformer/feature workers per GPU. One site worker is an explicitly accepted
+  resource/complete-workflow throughput trade-off.
 - CPU preprocessing uses one fused per-molecule task in the scientific order
   site detection, conformer generation, then feature extraction.
 - CPU preprocessing and ONNX inference reuse the same bounded CPU set in

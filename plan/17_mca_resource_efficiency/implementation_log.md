@@ -66,5 +66,25 @@
   molecules/s A800 ceiling; two workers leave 5.1% throughput unused once
   complete pipeline overhead is included.
 - Corrected the final GPU default to 1 site + 3 conformer/feature workers per
-  card: four CPUs per GPU is the measured minimum that does not throttle it.
+  card: three feature workers are the measured minimum that does not throttle
+  the inference branch; the single-site-worker trade-off was evaluated and
+  explicitly accepted.
+
+## 2026-10-22: final ai-14 benchmark and closure
+
+- Paired CPU tests on cores 120--127 improved the 256-molecule simple workload
+  from 31.500 to 39.177 molecules/s (+24.4%) and the 32-molecule complex
+  workload from 1.963 to 2.222 molecules/s (+13.2%).
+- All CPU MCA/site/joint digests matched the previous workflow exactly across
+  three repeats.
+- Per-process GPU monitoring confirmed that the resident external GPU2 process
+  used no SM or memory-engine capacity during the comparisons.
+- The final 1+3 production workflow used four rather than sixteen reserved
+  CPUs per GPU and delivered 13.520 molecules/s versus the old default's
+  14.712 on the full 256-molecule stratified path. The user accepted this 8.1%
+  throughput trade-off for a 75% reduction in reserved CPUs.
+- The isolated inference path with 1+3 reached 14.994 molecules/s. GPU
+  MCA/site/joint digests matched the historical exact values in every run.
+- Wrote `implementation_report.md`; raw ai-14 output remains under
+  `~/mca_test/results/resource_workflow_bc927fe`.
 

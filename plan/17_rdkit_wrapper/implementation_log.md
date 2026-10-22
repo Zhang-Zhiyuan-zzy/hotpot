@@ -797,3 +797,48 @@ Adjustment:
   sites are unchanged.
 
 Git checkpoint: `26f2d41 refactor(obwrappers): reuse common owned molecule data`.
+
+### Step 12 - Implement the pure ordered Level-1 payload core
+
+Status: complete
+
+Planned:
+
+- implement exact immutable Level-1 storage independently of molecule
+  lifecycle hooks and toolkit conversion;
+- implement one pure stable-row remapper with the ordering/filtering semantics
+  fixed in plan revision 2; and
+- keep Level-2 chemical interpretation and RDKit conversion out of this
+  checkpoint.
+
+Performed:
+
+- added the immutable schema-v1 empty payload singleton and exact molecule
+  get/set storage without copying or chemical interpretation;
+- added `_remap_stereo_payload()` over an explicit old-row to new-row mapping
+  and an optional target-bond set;
+- preserved record, carrier, atom-fact, and bond-fact enumeration order;
+- dropped a complete record when its anchor or any atom carrier is not mapped,
+  while retaining non-atom carriers unchanged;
+- checked target bond existence with an undirected endpoint key while
+  preserving the stored ordered endpoint tuple; and
+- retained group scope/kind/id, descriptors, source namespace/code, isotope,
+  radical, display direction, and source/current hydrogen objects exactly.
+
+Verification:
+
+- focused API/storage/remapping suite: 11 passed;
+- tests cover record and carrier order, whole-record removal, bond-anchor and
+  bond-fact filtering, directed endpoint preservation, enhanced-group lineage,
+  opaque future source values, and distinct source/current hydrogen states;
+- Python compilation and `git diff --check` pass.
+
+Unexpected findings: none.
+
+Adjustment:
+
+- lifecycle integration intentionally waits for the independent molecule
+  hidden-bond/array-ownership repair, avoiding compensation for structural
+  defects inside the stereo remapper.
+
+Git checkpoint: `19c7555 feat(stereo): implement ordered Level-1 payload remapping`.

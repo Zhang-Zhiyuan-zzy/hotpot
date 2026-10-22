@@ -2955,3 +2955,108 @@ No performance benchmark is claimed for this private semantic checkpoint; no
 public path invokes the new helpers yet.
 
 Git checkpoint: `e099a3d feat(stereo): add Gate-7 coordination graph primitives`.
+
+### Step 43 - Add the private Gate 7 coordinate classifier
+
+Status: complete for the private coordinate checkpoint; public Gate-7
+validation, assignment, alignment, transforms, and Gate-6 semantics remain
+behind the existing unsupported fence
+
+Planned:
+
+- freeze an independent coordination-geometry golden before public use;
+- implement one center-rooted, no-centroid, determinant-positive coordinate
+  fitter for SP/TBP/SPY/OH;
+- separate geometric scoring from the exact raw-radian 12/2/3-degree policy so
+  threshold equality can be proved without fitting rounded boundary fixtures;
+- test all frozen descriptors, mirrors, invariances, degeneracy, five-
+  coordinate family discrimination, and the public no-cutover fence; and
+- leave every public coordinate dispatcher untouched in this checkpoint.
+
+Performed:
+
+- added immutable ideal site directions for SP, TBP, SPY, and OH in their
+  frozen order, then mapped each algebra representative using
+  `representative[site] == carrier_position` into stored carrier order;
+- added a single row-vector proper-Procrustes fitter using
+  `H = ideal.T @ observed` and `R = U @ D @ Vt`, with `det(R)=+1`, no
+  translation, no donor-centroid subtraction, no reflection, and equal unit-
+  direction weights;
+- documented the important objective boundary: Kabsch minimizes squared
+  Euclidean chord lengths, while Hotpot computes the frozen angular RMS only
+  after that rotation; no angular re-optimization occurs;
+- computed each residual with `atan2(norm(cross), clipped_dot)`, ranked every
+  candidate by raw `(score_radians, descriptor_index)`, and kept the complete
+  unfiltered runner-up list;
+- implemented the exact policy order for five-coordinate records: both-family
+  12-degree failure, 3-degree TBP/SPY ambiguity, strong alternate-family
+  contradiction without migration, then declared-family 2-degree numeric-
+  index ambiguity;
+- normalized center-to-carrier directions through two stable scaling stages:
+  one site-wide coordinate scale prevents finite subtraction overflow, and
+  one per-vector component scale prevents norm underflow while preserving the
+  relative `1e-8` coincidence test;
+- added the independent
+  `level2_gate7_coordination_geometry_golden.json` with prior-golden SHA
+  fences, raw-radian policy values, ideal templates, complete proper rotation
+  groups, literal-y reflection maps, nearest-wrong scores/tie counts, the
+  closest TBP/SPY score, and a no-centroid SPY probe; and
+- kept the new helpers private and unreferenced by the existing public
+  coordinate assignment dispatcher.
+
+Verification:
+
+- the dedicated coordinate file reports 46 passed, including all 83 ideal
+  descriptors, every family rotation and mirror map, all global nearest-wrong
+  ties, the 60 closest TBP/SPY ties, arbitrary translation/proper rotation/
+  scale/independent-radius invariance, no-centroid SPY, exact inside/equal/
+  outside 12/2/3-degree policies, real cross-family contradictions, and the
+  public no-cutover fence;
+- the combined Gate-7 algebra, graph, and coordinate selection reports
+  90 passed;
+- the complete shell-expanded stereo selection reports 415 passed;
+- stereo plus reusable native-spec and production-kernel regressions report
+  429 passed;
+- the complete native RI search selection reports 195 passed plus 49 subtests;
+- the original Gate-1 and SPY algebra goldens retain SHA-256
+  `8d7856e0b593ff7af510e885b6f3fe2ef0ca047cd34a3563bde086af9afbcf4b`
+  and `fbda20439136c68ac50a2d508acc9970003e3721d73524c1c721ffff022a473d`;
+- the new coordination-geometry golden has SHA-256
+  `a565dafee783d2fe9ffb0575b757ebb6869cb2634bcdfa5c1f9c2ca3055e8dc5`;
+- Python compilation, whitespace, and line-length checks pass; and
+- independent architecture, computational-chemistry, and test audits found no
+  remaining checkpoint blocker.
+
+Unexpected findings:
+
+- constrained Kabsch and angular-RMS minimization are different objectives;
+  describing the former as directly optimizing the latter would permit a
+  future algorithm change that silently changes frozen descriptor scores;
+- the 2-degree same-family boundary is not cleanly reachable inside the
+  accepted region along the nearest ideal interpolation paths, so exact policy
+  equality belongs in a pure raw-score test rather than a numerically forced
+  coordinate fixture;
+- square-planar reflection can preserve the descriptor because an in-plane
+  reflection of its two-dimensional site set is realizable by a proper
+  three-dimensional rotation; a universal "mirror must change index" test
+  would therefore be chemically wrong;
+- reconstructing large vector norms after per-vector scaling could overflow
+  for finite coordinates, while a single site-wide pre-scale could make small
+  local vectors underflow under a huge common translation; and
+- the closest TBP/SPY distance has 60 symmetry-related ordered witnesses, so
+  one descriptor pair alone is not a unique chemical boundary.
+
+Adjustment:
+
+- keep the chordal Kabsch rotation and angular score as two explicit stages;
+- test policy boundaries from synthetic raw radians and test the fitter from
+  physical coordinate fixtures;
+- use the two-stage scale-free direction normalization before SVD; and
+- preserve all descriptor/family decisions as private results until the graph,
+  alignment, transformation, Gate-6 context, and coordinate paths can cut over
+  atomically.
+
+No production performance claim is made: no public or force-field path calls
+the private coordinate classifier yet.
+
+Git checkpoint: `035e2c2 feat(stereo): add Gate-7 coordinate classifier`.

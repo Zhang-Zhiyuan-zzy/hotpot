@@ -1353,3 +1353,72 @@ Adjustment:
 - public Level-2 validation, assignment, and alignment remain separate gates.
 
 Git checkpoint: `56c0b42 feat(stereo): preserve RDKit Level-1 transport`.
+
+### Step 21 - Carry Level-1 views through the common C++ facade
+
+Status: complete
+
+Planned:
+
+- extend the common C++17 non-owning/owning DTOs to mirror the three already
+  frozen Python Level-1 SoA tables;
+- pass optional stereo, atom-transport, and bond-transport fields through the
+  standalone C++ facade without copying molecule bulk arrays or strings; and
+- correct directed dative endpoints before admitting the common payload to
+  RDKit.
+
+Performed:
+
+- added C++17 views and owning data for UTF-8 tables, ordered stereo records
+  and carriers, dual-hydrogen atom facts, and ordered bond facts;
+- retained field-selective absence: an unrequested transport owns/carries no
+  data, while a requested empty table remains a present schema-v1 field;
+- validated schema, column sizes, slice bounds, string presence, anchor and
+  carrier structure, enhanced-group identity, atom ranges, and transport
+  dimensions in the common view;
+- kept every NumPy/basic array, flattened anchor table, and UTF-8 byte blob as
+  a zero-copy borrowed view;
+- added a synchronous facade owner that assembles only the small stereo,
+  atom-fact, and bond-fact AoS metadata required by the frozen C ABI; it lives
+  through the complete C call and never copies molecule bulk arrays, anchor
+  arrays, or string bytes;
+- validated C++ constraint pair/bounds row-count equality before producing the
+  pointer/count C view, closing information that the C ABI itself cannot infer;
+  and
+- changed common Python bond-index packing so reverse dative bonds are always
+  encoded donor-to-acceptor. Ordinary bonds and forward dative bonds retain
+  their existing endpoint order.
+
+Verification:
+
+- the worker's common/native/Open-Babel selection reports 48 passed and 1
+  existing managed-data skip;
+- an independent Python/C++ common-buffer, Level-1 packing, C++ facade, and
+  Open-Babel packing selection reports 20 passed;
+- the C++ tests prove zero-copy pointer identity, absent versus present-empty
+  strings/tables, complete Level-1 C-ABI values, synchronous owner lifetime,
+  mismatched constraint rejection, and unchanged ABI-0/ABI-1 facade behavior;
+- dative tests cover ordinary, forward, and reverse endpoint cases; and
+- `git diff --check` passes.
+
+Unexpected findings:
+
+- the frozen Python/common transport is SoA for contiguous NumPy columns,
+  while the already frozen C ABI uses AoS record structs. A small per-call
+  metadata assembly is therefore necessary at the header-only facade unless
+  one of the public boundaries is changed. The selected bridge preserves both
+  contracts and does not duplicate molecular numeric/string storage;
+- the C++ constraints facade previously carried pair counts but did not prove
+  that the corresponding bounds views had the same row count. The check must
+  occur before flattening because that length is intentionally absent from the
+  C ABI.
+
+Adjustment:
+
+- `MoleculeBufferView` remains a synchronous non-owning DTO and
+  `OwnedMoleculeData` remains the explicit long-lived owner;
+- Open Babel continues to request only its original ten basic fields and does
+  not pay for Level-1 packing;
+- no public dynamic field profile or second communication buffer was added.
+
+Git checkpoint: `32a6064 feat(native): carry Level-1 views into rdWrapper`.

@@ -189,10 +189,14 @@ typedef struct hotpot_rd_constraints_view_v1 {
     uint32_t struct_size;
     uint32_t abi_version;
     uint64_t coordination_pair_count;
+    /* Directed zero-based (donor, metal) rows naming existing dative bonds. */
     const int32_t *coordination_pairs;
+    /* Per-row (lower, upper) distances in Angstrom. */
     const double *metal_donor_bounds;
     uint64_t donor_pair_count;
+    /* Unordered donor atom pairs. */
     const int32_t *donor_pair_indices;
+    /* Per-row (lower, upper) distances in Angstrom. */
     const double *donor_pair_bounds;
 } hotpot_rd_constraints_view_v1;
 

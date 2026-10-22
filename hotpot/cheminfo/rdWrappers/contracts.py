@@ -40,7 +40,12 @@ class ETKDGOptions:
 
 @dataclass(frozen=True)
 class CoordinationEmbeddingConstraints:
-    """Optional bounds used by coordination-aware embedding experiments."""
+    """Optional Angstrom bounds for coordination-aware embedding experiments.
+
+    ``coordination_pairs`` rows are directed, zero-based ``(donor, metal)``
+    atom indices and must name donor-to-metal dative bonds already present in
+    the molecule. ``donor_pair_indices`` rows are unordered distance pairs.
+    """
 
     coordination_pairs: NDArray[np.int32]
     metal_donor_bounds: NDArray[np.float64]

@@ -47,6 +47,35 @@ static hotpot_rd_molecule_view_v1 methane(void) {
 }
 
 
+static hotpot_rd_molecule_view_v1 coordination_complex(void) {
+    static const int32_t atomic_numbers[] = {7, 30};
+    static const int32_t formal_charges[] = {0, 0};
+    static const uint8_t atom_aromatic[] = {0, 0};
+    static const int32_t bond_indices[] = {0, 1};
+    static const uint8_t bond_kinds[] = {HOTPOT_RD_BOND_DATIVE};
+    static const uint8_t bond_aromatic[] = {0};
+    hotpot_rd_molecule_view_v1 value = {0};
+    value.struct_size = sizeof(value);
+    value.abi_version = HOTPOT_RD_C_API_VERSION;
+    value.schema_version = 1;
+    value.atom_count = 2;
+    value.bond_count = 1;
+    value.field_mask = HOTPOT_RD_FIELD_ATOMIC_NUMBERS
+        | HOTPOT_RD_FIELD_FORMAL_CHARGES
+        | HOTPOT_RD_FIELD_ATOM_AROMATIC
+        | HOTPOT_RD_FIELD_BOND_INDICES
+        | HOTPOT_RD_FIELD_BOND_KINDS
+        | HOTPOT_RD_FIELD_BOND_AROMATIC;
+    value.atomic_numbers = atomic_numbers;
+    value.formal_charges = formal_charges;
+    value.atom_aromatic = atom_aromatic;
+    value.bond_indices = bond_indices;
+    value.bond_kinds = bond_kinds;
+    value.bond_aromatic = bond_aromatic;
+    return value;
+}
+
+
 int main(void) {
     assert(hotpot_rd_runtime_abi_version() == HOTPOT_RD_C_API_VERSION);
     hotpot_rd_string_view_v1 version = hotpot_rd_runtime_rdkit_version();
@@ -138,7 +167,7 @@ int main(void) {
     assert(diagnostic.data != NULL && diagnostic.size != 0);
 
     static const int32_t coordination_pair[] = {0, 1};
-    static const double coordination_bound[] = {1.08, 1.10};
+    static const double coordination_bound[] = {1.90, 2.10};
     hotpot_rd_constraints_view_v1 constraints = {0};
     constraints.struct_size = sizeof(constraints);
     constraints.abi_version = HOTPOT_RD_C_API_VERSION;
@@ -146,8 +175,9 @@ int main(void) {
     constraints.coordination_pairs = coordination_pair;
     constraints.metal_donor_bounds = coordination_bound;
     hotpot_rd_result* constrained_result = NULL;
+    hotpot_rd_molecule_view_v1 complex = coordination_complex();
     assert(hotpot_rd_generate(
-        sampler, &molecule, &constraints, &constrained_result
+        sampler, &complex, &constraints, &constrained_result
     ) == HOTPOT_RD_STATUS_OK);
     assert(hotpot_rd_result_status(constrained_result)
            <= HOTPOT_RD_GENERATION_PARTIAL);

@@ -1,6 +1,7 @@
 #include "core.hpp"
 
 #include <DistGeom/BoundsMatrix.h>
+#include <DistGeom/TriangleSmooth.h>
 #include <GraphMol/Conformer.h>
 #include <GraphMol/DistGeomHelpers/BoundsMatrixBuilder.h>
 #include <GraphMol/DistGeomHelpers/Embedder.h>
@@ -36,11 +37,37 @@ void apply_bounds(
 }
 
 
+void validate_coordination_edges(
+    const RDKit::RWMol& molecule,
+    const hotpot_rd_constraints_view_v1& constraints
+) {
+    for (std::uint64_t index = 0;
+         index < constraints.coordination_pair_count;
+         ++index) {
+        const auto donor = static_cast<unsigned int>(
+            constraints.coordination_pairs[2 * index]
+        );
+        const auto metal = static_cast<unsigned int>(
+            constraints.coordination_pairs[2 * index + 1]
+        );
+        const auto* bond = molecule.getBondBetweenAtoms(donor, metal);
+        if (bond == nullptr || bond->getBondType() != RDKit::Bond::DATIVE
+            || bond->getBeginAtomIdx() != donor
+            || bond->getEndAtomIdx() != metal) {
+            throw std::invalid_argument(
+                "coordination pair is not a donor-to-metal dative bond"
+            );
+        }
+    }
+}
+
+
 boost::shared_ptr<const DistGeom::BoundsMatrix> make_bounds_matrix(
     const RDKit::RWMol& molecule,
     const hotpot_rd_constraints_view_v1& constraints,
     const RDKit::DGeomHelpers::EmbedParameters& parameters
 ) {
+    validate_coordination_edges(molecule, constraints);
     auto bounds = boost::shared_ptr<DistGeom::BoundsMatrix>(
         new DistGeom::BoundsMatrix(molecule.getNumAtoms())
     );
@@ -60,6 +87,11 @@ boost::shared_ptr<const DistGeom::BoundsMatrix> make_bounds_matrix(
     );
     if (!bounds->checkValid()) {
         throw std::invalid_argument("coordination bounds matrix is inconsistent");
+    }
+    if (!DistGeom::triangleSmoothBounds(bounds)) {
+        throw std::invalid_argument(
+            "coordination bounds matrix failed triangle smoothing"
+        );
     }
     return bounds;
 }

@@ -11,7 +11,7 @@ packages under `hotpot/` must not contain test modules or test data.
 - `smarts_conformance/`: strict parser, matcher, coordination and target-perception contracts
 - `test_main/`, `test_plugin/`: legacy integration tests
 
-Run the Python 3.9--3.14 inference matrix with:
+Run the Python 3.10--3.14 inference matrix with:
 
 ```bash
 bash tests/run_inference_compatibility.sh

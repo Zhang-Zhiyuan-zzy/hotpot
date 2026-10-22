@@ -7,6 +7,7 @@ import warnings
 from dataclasses import dataclass, replace
 from typing import Optional, Sequence, Tuple, TYPE_CHECKING, cast
 
+from ..conformers import ConformerSampler, OpenBabelConformerAdapter
 from ..obWrappers.native import _native_module
 from .acceptance import (
     _format_geometry_checks,
@@ -183,6 +184,7 @@ def _prepare_complex_working_mol(
     trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
     trajectory_path: Optional[TrajectoryPath] = None,
     coordination_geometry: Optional[str],
+    sampler: Optional[ConformerSampler] = None,
 ) -> _PreparedComplex:
     """Run Stage 1 and return built ligand coordinates without restoring bonds."""
     if max_attempts < 1:
@@ -211,6 +213,9 @@ def _prepare_complex_working_mol(
     worker_mol = _make_worker_mol(working_mol)
     context = mp.get_context("spawn")
     receive_connection, send_connection = context.Pipe(duplex=False)
+    selected_sampler = (
+        sampler if sampler is not None else OpenBabelConformerAdapter()
+    )
     process = context.Process(
         target=_build_ligand_proxies_worker,
         args=(
@@ -225,6 +230,7 @@ def _prepare_complex_working_mol(
             ligand_untangling_attempts,
             perturb_sigma,
             trajectory_start is TrajectoryStart.LIGAND_BUILD,
+            selected_sampler,
         ),
     )
     ligand_build_attempts: Tuple[ForceFieldTrajectory, ...] = ()
@@ -501,6 +507,7 @@ def _complexes_build_workflow(
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
     coordination_geometry: Optional[str] = None,
+    sampler: Optional[ConformerSampler] = None,
 ) -> ComplexBuildReport:
     """Build, optimize, validate, and atomically commit a complete complex."""
     _require_explicit_complex(mol)
@@ -524,6 +531,7 @@ def _complexes_build_workflow(
         trajectory_start=trajectory_start,
         trajectory_path=trajectory_path,
         coordination_geometry=coordination_geometry,
+        sampler=sampler,
     )
     session_input = pack_complex_session_input(prepared.mol)
     coordination_options = _coordination_options(
@@ -809,6 +817,7 @@ def _build_complex3d_workflow(
     trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
     trajectory_path: Optional[TrajectoryPath] = None,
     coordination_geometry: Optional[str] = None,
+    sampler: Optional[ConformerSampler] = None,
 ) -> ComplexBuildReport:
     """Build ligand proxies and restore the complete complex topology."""
     _require_explicit_complex(mol)
@@ -832,6 +841,7 @@ def _build_complex3d_workflow(
         trajectory_start=trajectory_start,
         trajectory_path=trajectory_path,
         coordination_geometry=coordination_geometry,
+        sampler=sampler,
     )
     session_input = pack_complex_session_input(prepared.mol)
     session = create_coordination_session(session_input)
@@ -1108,6 +1118,7 @@ def _build_and_optimize_workflow(
     coordination_relaxation_steps: int = 100,
     complex_untangling_attempts: int = 30,
     coordination_geometry: Optional[str] = None,
+    sampler: Optional[ConformerSampler] = None,
 ) -> ForceFieldWorkflowReport:
     """Build and optimize through the organic or complex workflow."""
     if mol.has_metal:
@@ -1145,6 +1156,7 @@ def _build_and_optimize_workflow(
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
             coordination_geometry=coordination_geometry,
+            sampler=sampler,
         )
 
     working_mol = _hydrogenated_working_copy(mol, add_hydrogens=False)

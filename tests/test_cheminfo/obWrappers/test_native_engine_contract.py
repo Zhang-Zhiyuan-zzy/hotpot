@@ -63,6 +63,50 @@ def _optimize(molecule, **overrides):
     return native.optimize(molecule, **options)
 
 
+def _raw_native_molecule(
+    *,
+    schema_version: int = 1,
+    bond_indices: np.ndarray,
+    bond_kinds: np.ndarray,
+):
+    return native.MoleculeData(
+        schema_version=schema_version,
+        atomic_numbers=np.asarray((6, 7, 8), dtype=np.int32),
+        formal_charges=np.zeros(3, dtype=np.int32),
+        partial_charges=np.zeros(3, dtype=np.float64),
+        coordinates=np.zeros((3, 3), dtype=np.float64),
+        atom_aromatic=np.zeros(3, dtype=np.uint8),
+        bond_indices=bond_indices,
+        bond_orders=np.ones(2, dtype=np.float64),
+        bond_kinds=bond_kinds,
+        bond_aromatic=np.zeros(2, dtype=np.uint8),
+    )
+
+
+def test_molecule_constructor_keeps_openbabel_dative_error_priority():
+    bond_indices = np.asarray(((0, 1), (1, 7)), dtype=np.int32)
+    bond_kinds = np.asarray(
+        (native.BondKind.DATIVE.value, native.BondKind.SINGLE.value),
+        dtype=np.uint8,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Open Babel cannot represent dative bonds losslessly",
+    ):
+        _raw_native_molecule(
+            bond_indices=bond_indices,
+            bond_kinds=bond_kinds,
+        )
+
+    with pytest.raises(ValueError, match="unsupported molecule buffer schema"):
+        _raw_native_molecule(
+            schema_version=2,
+            bond_indices=bond_indices,
+            bond_kinds=bond_kinds,
+        )
+
+
 @pytest.mark.parametrize(
     ("operation", "message"),
     (

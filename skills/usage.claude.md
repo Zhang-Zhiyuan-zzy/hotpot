@@ -59,7 +59,7 @@ conda activate hp
 python -m pip install hotpot-zzy      # 或源码目录内 pip install -e .
 ```
 
-- 支持 Python 3.9–3.14（3.10+ 用 Open Babel 3.2.x，3.9 用 `openbabel-wheel` 3.1.1.23）。
+- 支持 Python 3.10–3.14，统一使用 Open Babel 3.2.x，并固定使用 RDKit 2026.09.1。
 - 可选依赖组：`optimize`、`datasets`、`complexformer`、`onnx-export`、`legacy-search`、`dev`、`all`
   （如 `pip install 'hotpot-zzy[optimize]'`）。
 - GPU 推理：安装后 `pip uninstall onnxruntime && pip install onnxruntime-gpu`。

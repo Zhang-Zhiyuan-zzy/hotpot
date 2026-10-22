@@ -6,11 +6,26 @@
 #include <cassert>
 #include <cstdint>
 #include <stdexcept>
+#include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 
 namespace ff = hotpot::forcefields;
+namespace native = hotpot::native;
+
+
+static_assert(std::is_aggregate_v<ff::ComplexSessionInput>);
+static_assert(std::is_same_v<
+    decltype(ff::ligand_molecule_view(
+        std::declval<const ff::ComplexSessionInput&>()
+    )),
+    native::MoleculeBufferView
+>);
+static_assert(noexcept(ff::ligand_molecule_view(
+    std::declval<const ff::ComplexSessionInput&>()
+)));
 
 
 namespace {
@@ -34,6 +49,53 @@ ff::ComplexSessionInput complex_input() {
         {ff::BondKind::DATIVE},
         std::nullopt,
     };
+}
+
+
+void test_ligand_molecule_view_and_openbabel_policy_boundary() {
+    auto input = complex_input();
+    const auto view = ff::ligand_molecule_view(input);
+
+    assert(view.atom_count == input.atom_count());
+    assert(view.bond_count == input.ligand_bond_count());
+    assert(view.atomic_numbers.data() == input.atomic_numbers.data());
+    assert(view.formal_charges.data() == input.formal_charges.data());
+    assert(view.partial_charges.data() == input.partial_charges.data());
+    assert(view.coordinates.data() == input.coordinates.data());
+    assert(view.atom_aromatic.data() == input.atom_aromatic.data());
+    assert(view.bond_indices.data() == input.ligand_bond_indices.data());
+    assert(view.bond_orders.data() == input.ligand_bond_orders.data());
+    assert(view.bond_kinds.data() == input.ligand_bond_kinds.data());
+    assert(view.bond_aromatic.data() == input.ligand_bond_aromatic.data());
+
+    input.atomic_numbers[1] = 8;
+    input.ligand_bond_orders[0] = 2.0;
+    assert(view.atomic_numbers[1] == 8);
+    assert(view.bond_orders[0] == 2.0);
+
+    input.ligand_bond_kinds[0] = ff::BondKind::DATIVE;
+    native::validate_molecule_view(ff::ligand_molecule_view(input));
+    input.validate();
+
+    std::string error;
+    try {
+        static_cast<void>(ff::create_coordination_session(input));
+    } catch (const std::invalid_argument& exception) {
+        error = exception.what();
+    }
+    assert(error == "Open Babel cannot represent dative bonds losslessly");
+
+    input.ligand_bond_indices.push_back({1, 99});
+    input.ligand_bond_orders.push_back(1.0);
+    input.ligand_bond_kinds.push_back(ff::BondKind::SINGLE);
+    input.ligand_bond_aromatic.push_back(0);
+    error.clear();
+    try {
+        static_cast<void>(ff::create_coordination_session(input));
+    } catch (const std::invalid_argument& exception) {
+        error = exception.what();
+    }
+    assert(error == "Open Babel cannot represent dative bonds losslessly");
 }
 
 
@@ -200,6 +262,7 @@ void test_contract_validation_and_trajectory() {
 
 
 int main() {
+    test_ligand_molecule_view_and_openbabel_policy_boundary();
     test_session_factories_and_state();
     test_contract_validation_and_trajectory();
 }

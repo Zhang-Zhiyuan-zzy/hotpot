@@ -37,3 +37,14 @@ include hotpot/cheminfo/obWrappers/_ob_native.pyi
 include hotpot/cheminfo/obWrappers/README.md
 include hotpot/cheminfo/obWrappers/README.zh.md
 recursive-include hotpot/cheminfo/obWrappers/_native *.cpp *.hpp
+include hotpot/cheminfo/rdWrappers/CMakeLists.txt
+include hotpot/cheminfo/rdWrappers/build_locked.sh
+include hotpot/cheminfo/rdWrappers/_rd_native.pyi
+recursive-include hotpot/cheminfo/rdWrappers/cmake *.cmake *.in
+recursive-include hotpot/cheminfo/rdWrappers/_native *.cpp *.h *.hpp *.md *.map
+recursive-include hotpot/cheminfo/_native/include *.h *.hpp
+include third_party/rdkit/README.md
+include third_party/rdkit/rdkit.lock.json
+include third_party/rdkit/fetch_locked_sources.sh
+include third_party/rdkit/probe-toolchain-linux-64.explicit.txt
+recursive-include third_party/rdkit/probe *.cmake *.cpp *.txt

@@ -4,7 +4,7 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 image_dir="${HOTPOT_DOCKER_IMAGE_DIR:-${HOME:?}/docker/image}"
 image_name="${HOTPOT_TEST_IMAGE_NAME:-hotpot-test}"
-supported_versions=(3.9 3.10 3.11 3.12 3.13 3.14)
+supported_versions=(3.10 3.11 3.12 3.13 3.14)
 
 usage() {
     cat <<'EOF'
@@ -16,7 +16,7 @@ With no VERSION, Python 3.13 is built.
 Examples:
   docker/build-hotpot-test-images.sh
   docker/build-hotpot-test-images.sh 3.11
-  docker/build-hotpot-test-images.sh 3.9 3.13 3.14
+  docker/build-hotpot-test-images.sh 3.10 3.13 3.14
   docker/build-hotpot-test-images.sh all
 EOF
 }
@@ -47,11 +47,11 @@ mkdir -p "$image_dir"
 
 for python_version in "${versions[@]}"; do
     case "$python_version" in
-        3.9|3.10|3.11|3.12|3.13|3.14) ;;
+        3.10|3.11|3.12|3.13|3.14) ;;
         *)
             echo "Unsupported Python version: $python_version" >&2
             echo "Use 'all' by itself to build every supported version." >&2
-            echo "Supported versions: 3.9 3.10 3.11 3.12 3.13 3.14" >&2
+            echo "Supported versions: 3.10 3.11 3.12 3.13 3.14" >&2
             exit 2
             ;;
     esac

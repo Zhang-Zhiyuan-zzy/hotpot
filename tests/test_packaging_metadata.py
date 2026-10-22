@@ -68,13 +68,48 @@ def test_openbabel_dependency_tracks_supported_python_versions():
         for requirement in map(Requirement, dependencies)
     }
 
-    legacy = requirements["openbabel-wheel"]
-    assert str(legacy.specifier) == "<3.2,>=3.1.1.23"
-    assert str(legacy.marker) == 'python_version < "3.10"'
-
     current = requirements["openbabel"]
     assert str(current.specifier) == "<3.3,>=3.2.1"
-    assert str(current.marker) == 'python_version >= "3.10"'
+    assert current.marker is None
+    assert "openbabel-wheel" not in requirements
+
+
+def test_python_and_rdkit_release_contract_is_exact():
+    with (ROOT / "pyproject.toml").open("rb") as stream:
+        metadata = tomllib.load(stream)
+
+    project = metadata["project"]
+    assert project["requires-python"] == ">=3.10,<3.15"
+    assert {
+        classifier.rsplit("::", 1)[-1].strip()
+        for classifier in project["classifiers"]
+        if classifier.startswith("Programming Language :: Python :: 3.")
+    } == {"3.10", "3.11", "3.12", "3.13", "3.14"}
+
+    dependencies = {
+        canonicalize_name(requirement.name): requirement
+        for requirement in map(Requirement, project["dependencies"])
+    }
+    rdkit = dependencies["rdkit"]
+    assert str(rdkit.specifier) == "==2026.9.1"
+    assert rdkit.marker is None
+
+    inference_requirements = {
+        canonicalize_name(requirement.name): requirement
+        for requirement in map(
+            Requirement,
+            (
+                line.strip()
+                for line in (ROOT / "tests" / "requirements-inference.txt")
+                .read_text(encoding="utf-8")
+                .splitlines()
+                if line.strip() and not line.startswith("#")
+            ),
+        )
+    }
+    inference_rdkit = inference_requirements["rdkit"]
+    assert str(inference_rdkit.specifier) == "==2026.9.1"
+    assert inference_rdkit.marker is None
 
 
 def test_expected_optional_dependency_groups_are_published():

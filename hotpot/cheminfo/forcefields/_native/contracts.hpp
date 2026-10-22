@@ -50,9 +50,9 @@ struct PerturbationOffsetBatch {
 };
 
 
-hotpot::obwrappers::MoleculeData ligand_molecule_data(
+hotpot::native::MoleculeBufferView ligand_molecule_view(
     const ComplexSessionInput& input
-);
+) noexcept;
 
 
 struct StructureSnapshot {

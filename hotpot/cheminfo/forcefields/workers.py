@@ -10,6 +10,7 @@ from typing import Optional, Union, TYPE_CHECKING
 
 import numpy as np
 
+from ..conformers import ConformerSampler
 from . import backend as _backend
 from .backend import _ob_build
 from .contracts import (
@@ -43,6 +44,7 @@ def _build_ligand_proxies_worker(
     ligand_untangling_attempts: int = 20,
     perturb_sigma: float = 0.5,
     record_ligand_trajectories: bool = False,
+    sampler: Optional[ConformerSampler] = None,
 ) -> None:
     """Child-process boundary that always sends one structured envelope."""
     trajectory_attempts: Optional[list[ForceFieldTrajectory]] = (
@@ -62,6 +64,7 @@ def _build_ligand_proxies_worker(
             ligand_untangling_attempts=ligand_untangling_attempts,
             perturb_sigma=perturb_sigma,
             trajectory_attempts=trajectory_attempts,
+            sampler=sampler,
         )
         result = BuildWorkerResult(
             status="ok",

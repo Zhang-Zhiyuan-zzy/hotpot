@@ -14,6 +14,36 @@ namespace hotpot::forcefields {
 namespace {
 
 
+constexpr std::uint64_t LIGAND_FIELDS =
+    hotpot::native::molecule_field_mask(
+        hotpot::native::MoleculeField::ATOMIC_NUMBERS
+    )
+    | hotpot::native::molecule_field_mask(
+        hotpot::native::MoleculeField::FORMAL_CHARGES
+    )
+    | hotpot::native::molecule_field_mask(
+        hotpot::native::MoleculeField::PARTIAL_CHARGES
+    )
+    | hotpot::native::molecule_field_mask(
+        hotpot::native::MoleculeField::COORDINATES
+    )
+    | hotpot::native::molecule_field_mask(
+        hotpot::native::MoleculeField::ATOM_AROMATIC
+    )
+    | hotpot::native::molecule_field_mask(
+        hotpot::native::MoleculeField::BOND_INDICES
+    )
+    | hotpot::native::molecule_field_mask(
+        hotpot::native::MoleculeField::BOND_ORDERS
+    )
+    | hotpot::native::molecule_field_mask(
+        hotpot::native::MoleculeField::BOND_KINDS
+    )
+    | hotpot::native::molecule_field_mask(
+        hotpot::native::MoleculeField::BOND_AROMATIC
+    );
+
+
 bool known_bond_kind(BondKind kind) {
     const auto value = static_cast<std::uint8_t>(kind);
     return value >= static_cast<std::uint8_t>(BondKind::SINGLE)
@@ -74,28 +104,47 @@ void PerturbationOffsetBatch::validate() const {
 }
 
 
-hotpot::obwrappers::MoleculeData ligand_molecule_data(
+hotpot::native::MoleculeBufferView ligand_molecule_view(
     const ComplexSessionInput& input
-) {
-    return hotpot::obwrappers::MoleculeData{
+) noexcept {
+    return hotpot::native::MoleculeBufferView{
         input.schema_version,
-        input.atomic_numbers,
-        input.formal_charges,
-        input.partial_charges,
-        input.coordinates,
-        input.atom_aromatic,
-        input.ligand_bond_indices,
-        input.ligand_bond_orders,
-        input.ligand_bond_kinds,
-        input.ligand_bond_aromatic,
-        input.unit_cell,
+        input.atom_count(),
+        input.ligand_bond_count(),
+        LIGAND_FIELDS
+            | (input.unit_cell.has_value()
+                ? hotpot::native::molecule_field_mask(
+                    hotpot::native::MoleculeField::UNIT_CELL
+                )
+                : 0),
+        hotpot::native::ArrayView<std::int32_t>(input.atomic_numbers),
+        hotpot::native::ArrayView<std::int32_t>(input.formal_charges),
+        hotpot::native::ArrayView<double>(input.partial_charges),
+        hotpot::native::ArrayView<hotpot::native::Coordinate>(
+            input.coordinates
+        ),
+        hotpot::native::ArrayView<std::uint8_t>(input.atom_aromatic),
+        hotpot::native::ArrayView<hotpot::native::BondIndex>(
+            input.ligand_bond_indices
+        ),
+        hotpot::native::ArrayView<double>(input.ligand_bond_orders),
+        hotpot::native::ArrayView<hotpot::native::BondKind>(
+            input.ligand_bond_kinds
+        ),
+        hotpot::native::ArrayView<std::uint8_t>(
+            input.ligand_bond_aromatic
+        ),
+        input.unit_cell.has_value()
+            ? hotpot::native::ArrayView<double>(
+                input.unit_cell->data(), input.unit_cell->size()
+            )
+            : hotpot::native::ArrayView<double>{},
     };
 }
 
 
 void ComplexSessionInput::validate() const {
-    const auto ligand = ligand_molecule_data(*this);
-    ligand.validate();
+    hotpot::native::validate_molecule_view(ligand_molecule_view(*this));
 
     if (metal_indices.empty()) {
         throw std::invalid_argument(

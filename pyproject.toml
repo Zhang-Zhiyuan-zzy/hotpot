@@ -3,15 +3,15 @@ requires = [
     "setuptools>=77,<82",
     "wheel>=0.43",
     "pybind11>=3,<4",
-    "openbabel-wheel>=3.1.1.23,<3.2; python_version < '3.10'",
-    "openbabel>=3.2.1,<3.3; python_version >= '3.10'",
+    "ninja==1.13.2",
+    "openbabel>=3.2.1,<3.3",
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "hotpot-zzy"
 version = "0.5.4.0"
-requires-python = ">=3.9,<3.15"
+requires-python = ">=3.10,<3.15"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -22,7 +22,6 @@ authors = [
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -33,8 +32,7 @@ classifiers = [
 dependencies = [
     "numpy>=1.24,<3",
     "networkx>=3,<4",
-    "openbabel-wheel>=3.1.1.23,<3.2; python_version < '3.10'",
-    "openbabel>=3.2.1,<3.3; python_version >= '3.10'",
+    "openbabel>=3.2.1,<3.3",
     "Cython>=3,<4",
     "cryptography>=44,<47",
     "onnx>=1.18,<2",
@@ -47,7 +45,7 @@ dependencies = [
     "rich>=13,<16",
     "PubChemPy>=1,<2",
     "tqdm>=4.65,<5",
-    "rdkit>=2025.9,<2027",
+    "rdkit==2026.9.1",
     "matplotlib>=3.8,<4",
     "cairosvg>=2.7,<3",
     "Pillow>=10,<13",
@@ -138,6 +136,12 @@ all = [
 include-package-data = true
 
 [tool.setuptools.package-data]
+"hotpot.cheminfo.rdWrappers" = [
+    "_rd_native.pyi",
+]
+"hotpot.cheminfo.rdWrappers._native" = [
+    "THIRD_PARTY_NOTICES.md",
+]
 "hotpot.ds" = [
     "*.md",
     "*.json",
@@ -151,6 +155,27 @@ include-package-data = true
 "hotpot.cheminfo.calculator.state_rules" = [
     "data/profiles/*.json",
     "data/rules/*.json",
+]
+
+[tool.setuptools.exclude-package-data]
+"hotpot.cheminfo._native.include.hotpot.native" = [
+    "*",
+]
+"hotpot.cheminfo.rdWrappers" = [
+    "CMakeLists.txt",
+    "build_locked.sh",
+]
+"hotpot.cheminfo.rdWrappers.cmake" = [
+    "*",
+]
+"hotpot.cheminfo.rdWrappers._native" = [
+    "BUILDING.md",
+]
+"hotpot.cheminfo.rdWrappers._native.include.hotpot.rdWrappers" = [
+    "*",
+]
+"hotpot.cheminfo.rdWrappers._native.src" = [
+    "*",
 ]
 
 [tool.setuptools.packages.find]

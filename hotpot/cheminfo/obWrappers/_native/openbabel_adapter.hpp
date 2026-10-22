@@ -10,6 +10,16 @@
 namespace hotpot::obwrappers {
 
 
+void validate_openbabel_compatibility(
+    const hotpot::native::MoleculeBufferView& molecule
+);
+
+void validate_openbabel_compatibility(const MoleculeData& molecule);
+
+OpenBabel::OBMol make_obmol(
+    const hotpot::native::MoleculeBufferView& molecule
+);
+
 OpenBabel::OBMol make_obmol(const MoleculeData& molecule);
 
 MoleculeSnapshot snapshot_obmol(

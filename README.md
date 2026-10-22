@@ -202,8 +202,9 @@ artifact ownership, failure semantics, and scientific limits.
 
 ## Installation
 
-Hotpot supports Python 3.9–3.14 for its chemical kernel, search layer, and
-ONNX inference path. Python 3.10 or newer is recommended.
+Hotpot supports Python 3.10–3.14 for its chemical kernel, search layer, and
+ONNX inference path. This Hotpot release pins RDKit exactly to 2026.09.1
+(`rdkit==2026.9.1`).
 PyPI provides native manylinux x86-64 wheels for every supported CPython
 version; other platforms build the native extensions from the source
 distribution.
@@ -255,7 +256,7 @@ coverage suite:
 $ docker run --rm hotpot-test:py313-conda
 ```
 
-Python 3.9 through 3.14 images and host-source test containers can also be
+Python 3.10 through 3.14 images and host-source test containers can also be
 managed with the repository scripts. See the [Docker guide](docker/README.md)
 for version selection, interactive use, and image export.
 

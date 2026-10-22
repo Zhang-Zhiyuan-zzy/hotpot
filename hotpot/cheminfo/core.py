@@ -189,11 +189,31 @@ class Molecule:
 
     def copy(self):
         clone = Molecule()
+        atom_map = {}
         for atom in self._atoms:
-            # clone._create_atom_from_array(atom.attrs)
-            clone._create_atom(**atom.attr_dict)
+            cloned_atom = clone._create_atom(**atom.attr_dict)
+            atom_map[id(atom)] = cloned_atom
+
         for bond in self._bonds:
-            clone._add_bond(bond.a1idx, bond.a2idx, **bond.attr_dict)
+            clone._add_bond(
+                atom_map[id(bond.atom1)],
+                atom_map[id(bond.atom2)],
+                **bond.attr_dict,
+            )
+
+        for bond in self._hided_metal_bonds:
+            clone._hided_metal_bonds.append(Bond(
+                atom_map[id(bond.atom1)],
+                atom_map[id(bond.atom2)],
+                **bond.attr_dict,
+            ))
+
+        for bond in self._hided_covalent_bonds:
+            clone._hided_covalent_bonds.append(Bond(
+                atom_map[id(bond.atom1)],
+                atom_map[id(bond.atom2)],
+                **bond.attr_dict,
+            ))
 
         clone._update_graph()
 
@@ -662,6 +682,8 @@ class Molecule:
         for atom in component.atoms:
             self._add_atom(atom)
         self._bonds.extend(component.bonds)
+        self._hided_metal_bonds.extend(component._hided_metal_bonds)
+        self._hided_covalent_bonds.extend(component._hided_covalent_bonds)
         del component
         self._update_graph()
 
@@ -1266,20 +1288,48 @@ class Molecule:
         components = []
         for c_node_idx in nx.connected_components(graph):
             c_node_idx = tuple(sorted(c_node_idx))
+            component_index = {
+                source_index: target_index
+                for target_index, source_index in enumerate(c_node_idx)
+            }
             subgraph = graph.subgraph(c_node_idx)
 
             component = Molecule()
 
             for node_idx in c_node_idx:
-                component._create_atom(**graph.nodes[node_idx])
+                component._create_atom_from_array(
+                    self._atoms[node_idx].attrs.copy(),
+                )
 
             for edge_begin_idx, edge_end_index in subgraph.edges:
                 source_bond = subgraph.edges[edge_begin_idx, edge_end_index]['bond']
                 component._add_bond(
-                    c_node_idx.index(source_bond.a1idx),
-                    c_node_idx.index(source_bond.a2idx),
+                    component_index[source_bond.a1idx],
+                    component_index[source_bond.a2idx],
                     **source_bond.attr_dict
                 )
+
+            for source_bond in self._hided_metal_bonds:
+                if (
+                    source_bond.a1idx in component_index
+                    and source_bond.a2idx in component_index
+                ):
+                    component._hided_metal_bonds.append(Bond(
+                        component._atoms[component_index[source_bond.a1idx]],
+                        component._atoms[component_index[source_bond.a2idx]],
+                        **source_bond.attr_dict,
+                    ))
+
+            for source_bond in self._hided_covalent_bonds:
+                if (
+                    source_bond.a1idx in component_index
+                    and source_bond.a2idx in component_index
+                ):
+                    component._hided_covalent_bonds.append(Bond(
+                        component._atoms[component_index[source_bond.a1idx]],
+                        component._atoms[component_index[source_bond.a2idx]],
+                        **source_bond.attr_dict,
+                    ))
 
             component._update_graph()
             components.append(component)
@@ -1922,6 +1972,17 @@ class Molecule:
             self._bonds.remove(rmb)
         self._atoms.remove(atom)
 
+        self._hided_metal_bonds = [
+            bond for bond in self._hided_metal_bonds
+            if atom not in bond.atoms
+        ]
+        self._hided_covalent_bonds = [
+            bond for bond in self._hided_covalent_bonds
+            if atom not in bond.atoms
+        ]
+        atom._bonds = []
+        atom._neighbours = []
+
     def _rm_atoms(self, atoms: Iterable[Union["Atom", int]]):
         """
         Removes specified atoms and their associated bonds from the structure.
@@ -1947,6 +2008,19 @@ class Molecule:
             self._bonds.remove(rmb)
         for rma in atoms:
             self._atoms.remove(rma)
+
+        removed_atom_ids = {id(atom) for atom in atoms}
+        self._hided_metal_bonds = [
+            bond for bond in self._hided_metal_bonds
+            if all(id(atom) not in removed_atom_ids for atom in bond.atoms)
+        ]
+        self._hided_covalent_bonds = [
+            bond for bond in self._hided_covalent_bonds
+            if all(id(atom) not in removed_atom_ids for atom in bond.atoms)
+        ]
+        for atom in atoms:
+            atom._bonds = []
+            atom._neighbours = []
 
     def remove_atom(self, atom: Union[int, "Atom"]) -> None:
         """

@@ -30,19 +30,10 @@ def ensure_3d_conformer(mol: Chem.Mol, seed: int = 42) -> Chem.Mol:
     with_hydrogens = Chem.AddHs(clean)
     params = AllChem.ETKDGv3()
     params.randomSeed = int(seed)
-    # Very large, highly flexible molecules can exhaust ETKDG's initial-coordinate
-    # attempts.  Keep this established path unchanged.  A possible recovery is to
-    # retry only after failure, using a freshly rebuilt hydrogenated molecule, the
-    # same seed, and ``useRandomCoords=True``, followed by the same MMFF/UFF step.
-    # This is not prediction-neutral: an ai-14 A/B run on 256 stratified complex
-    # molecules (6,486 atoms; 1,915 sites) measured warm throughput of 13.518 vs
-    # 13.574 mol/s, while site MCA changed by MAE 2.654, RMSE 4.072, P95 8.25,
-    # and maximum 37.625 kJ/mol.  Global site-rank Spearman was 0.999115,
-    # within-molecule mean Spearman was 0.98623, top-site retention was 95.63%,
-    # and the maximum global rank displacement was 171.5 of 1,915 positions.
-    # Site MCA spans were 528.0 vs 527.25 kJ/mol; the paired-difference span was
-    # 62.5 kJ/mol.  Site identities and ``is_Nuc_site`` were unchanged.  Therefore
-    # RandomCoords should be considered only as a failure fallback, not a default.
+    # Large, highly flexible molecules can exhaust ETKDG initial-coordinate attempts.
+    # A failure-only recovery can retry a fresh H-added molecule with the same seed
+    # and useRandomCoords=True; 256-complex A/B: site MAE 2.654, RMSE 4.072,
+    # maximum 37.625 kJ/mol, rank Spearman 0.999115; is_Nuc_site unchanged.
     status = AllChem.EmbedMolecule(with_hydrogens, params)
     if status != 0:
         raise RuntimeError("RDKit ETKDG failed to generate a 3D conformer")

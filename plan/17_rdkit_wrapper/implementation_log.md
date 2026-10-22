@@ -2702,3 +2702,111 @@ Adjustment:
   center policy. The full plan must be reread before that normative revision.
 
 Git checkpoint: `0eb3536 feat(stereo): freeze Gate-7 SPY algebra`.
+
+### Step 40 - Freeze the complete Gate 7 coordination contract
+
+Status: complete for the normative revision; dependent implementation has not
+started
+
+Planned:
+
+- stop after the algebra checkpoint because coordinate and chelate behavior
+  could change descriptor identity, validity, and alignment semantics;
+- reread the complete implementation plan before revising it, as required by
+  the owner; and
+- replace underspecified coordination statements coherently across governing
+  decisions, Level 2, Phase 7, test obligations, non-goals, and approved
+  implementation refinements.
+
+Performed:
+
+- reread all 1,625 pre-revision lines and traced every Gate-7 consequence
+  through the public API, graph/stereo gates, benchmarks, phases, tests,
+  packaging boundary, non-goals, and approved decisions;
+- froze ideal site order as SP `+x,+y,-x,-y`, TBP
+  `+z,-z,+x,(-1/2,+sqrt(3)/2,0),(-1/2,-sqrt(3)/2,0)`, SPY
+  `+z,+x,+y,-x,-y`, and OH `+x,-x,+y,-y,+z,-z`, with
+  `representative[site] == carrier_position`;
+- limited coordination public graph semantics to one ungrouped atom-point
+  SP/TBP/SPY/OH record per center, exact active-plus-hidden first-shell
+  coverage, no element inference, and no requirement that coordination ligands
+  be graph-distinct;
+- made TH/SP/TBP/SPY/OH declarations mutually exclusive at one center without
+  removing the already supported TH enhanced-group contract at other centers;
+- froze all-record same-center rejection, stable group/non-atom/shell/coupled
+  diagnostics, base-valid-only coupling analysis, opaque haptic/centroid
+  preservation, and full represented-graph projection parity for a
+  coordination-only payload;
+- defined chelation as the carrier-pair same-component relation after removing
+  only the current record's center-carrier edges, with coupled multicenter
+  participation explicitly unsupported and independent centers retained;
+- froze center-rooted unit directions, no donor-centroid subtraction, equal
+  radial weight, determinant-positive orthogonal Procrustes/Kabsch fitting,
+  and numerically stable `atan2(norm(cross), clipped_dot)` angular residuals;
+- set the accepted angular-RMS score cutoff to 12 degrees with no separate
+  per-carrier cutoff, the raw same-family uniqueness margin to 2 degrees, and
+  the TBP/SPY cross-family margin to 3 degrees;
+- required a strong alternate TBP/SPY fit to report
+  `COORDINATE_CONTRADICTION` without changing family, while a boundary tie is
+  `DEGENERATE_GEOMETRY` and only a unique declared-family fit can change its
+  numeric index;
+- retained coordination outside derived CIP, pairwise Gate-6 stereogenicity,
+  automatic center discovery, enhanced groups, hapticity, and coupled-
+  multicenter interpretation; and
+- required private graph/chelate and coordinate helpers to be proved behind
+  the existing unsupported fence, followed by one atomic public cutover across
+  validation, assignment, alignment, record transforms, and Gate-6 context.
+
+Verification:
+
+- independent proper-rotation calculations reproduced the frozen nearest-
+  wrong-descriptor angular RMS values: SP 63.639610 degrees, TBP 26.832816,
+  SPY 32.970886, and OH 48.189685;
+- the closest ideal TBP/SPY cross-family fit is 18.973666 degrees, and the
+  12-degree boundary remains below half of the smallest same-family
+  separation, TBP 26.832816 degrees;
+- computational-chemistry review confirmed that 12 degrees is an RMS cutoff,
+  `atan2` is equivalent to `acos` for normalized directions but numerically
+  stronger, and an unfiltered raw second-best score must participate in the
+  2-degree margin even when it lies just above 12 degrees;
+- cheminformatics review confirmed the active-plus-both-hidden represented
+  graph, base-valid coupling set, pairwise chelate partition, duplicate-ligand
+  allowance, opaque haptic boundary, Gate-6 descendant semantics, and no-CIP
+  scope;
+- architecture review found the governing decision, detailed Gate-7 contract,
+  Phase-7 sequence, tests, non-goals, and approved decision mutually
+  consistent; and
+- the documentation diff passes whitespace checks. No production or public
+  behavior changed in this step, so the Step-39 unsupported no-cutover fence
+  remains authoritative.
+
+Unexpected findings:
+
+- conventional point-cloud centering is chemically wrong for SPY: its ideal
+  carrier-vector centroid is nonzero, so subtracting the donor centroid would
+  change apex/equatorial weighting and descriptor meaning;
+- the closest distinct TBP descriptor is only 26.832816 degrees away and the
+  closest TBP/SPY shapes are 18.973666 degrees apart, so an unqualified
+  `Kabsch + tolerance` statement could not define a deterministic assignment;
+- the existing enhanced-group inversion machinery is binary and cannot be
+  applied to 3/20/30-state coordination families without new chemistry;
+- a coordination-only payload did not necessarily trigger Gate-6 projection,
+  which could otherwise create two validity definitions for the same active
+  plus hidden represented graph; and
+- haptic and centroid carriers do not exist in the Level-1 enum, so claiming a
+  dedicated Gate-7 haptic validator would require fabricating a representation
+  rather than preserving the opaque adapter fact.
+
+Adjustment:
+
+- treat 12/2/3 degrees as transparent, versioned Hotpot engineering policy,
+  not universal experimental chemistry constants;
+- compare chelation through carrier-pair relations rather than component IDs,
+  traversal order, metal heuristics, or fit weights;
+- allow graph-equivalent coordination ligands while using exact descriptor and
+  chelate semantics to constrain mappings; and
+- implement Gate 7 through private golden/helper checkpoints before removing
+  the public fence atomically, with no validate-only or coordinate-only
+  intermediate public state.
+
+Git checkpoint: `d2655b9 docs(plan17): freeze Gate-7 coordination semantics`.

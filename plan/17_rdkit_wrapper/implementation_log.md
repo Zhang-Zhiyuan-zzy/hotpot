@@ -1183,3 +1183,94 @@ Adjustment:
 - SPY must be resolved before the final complete-spatial-semantics claim.
 
 Git checkpoint: `7d2debf feat(stereo): freeze Level-2 permutation algebra`.
+
+### Step 19 - Implement the pinned standalone RDKit core and C ABI
+
+Status: complete for the private core/C ABI checkpoint; the Python binding and
+installed SDK remain following checkpoints
+
+Planned:
+
+- construct the RDKit graph directly from the frozen field-selective C view;
+- implement one private ETKDGv3 sampler behind the already frozen C ABI;
+- preserve stable atom rows, supported Level-1 source facts, deterministic
+  fixed-seed behavior, and explicit unsupported outcomes; and
+- prove that the shared library boundary exports no RDKit, Boost, STL, or C++
+  exception surface.
+
+Performed:
+
+- implemented strict C-ABI option, molecule, stereo-transport, atom/bond
+  transport, and coordination-bound validation;
+- constructed single, double, triple, aromatic, zero-order, and directed
+  dative RDKit bonds without a Python RDKit translation;
+- applied current isotope, radical, bracket-explicit-H, no-implicit-H,
+  implicit-H verification, raw stereo records, display directions, and
+  enhanced stereo groups while retaining source ledgers as transport-only
+  provenance;
+- fixed the raw stereo namespace to the exact pinned
+  `rdkit-2026.09.1`, including the native fixtures;
+- defined raw tetrahedral carrier parity relative to RDKit bond-storage order,
+  with a true implicit-H sentinel last, and invert `CW`/`CCW` only for an odd
+  transported-to-native permutation;
+- reject duplicate stereo anchors, inconsistent groups, unsupported raw
+  permutation-property tags, invalid carriers, unknown bonds, and
+  unrepresentable hydrogen state as explicit unsupported generation results;
+- corrected enhanced absolute stereo groups to accept RDKit's valid read ID
+  zero rather than imposing the positive-ID rule used by numbered AND/OR
+  syntax;
+- used selective sanitization that does not recompute transported radicals,
+  hydrogen state, or raw chiral tags;
+- implemented one-thread ETKDGv3 multi-conformer generation, fixed-seed
+  determinism, pruning, random-coordinate mode, optional custom bounds, stable
+  coordinate/record ordering, and partial/failure diagnostics; and
+- implemented opaque result ownership, runtime identity accessors, hidden
+  visibility, and the `hotpot_rd_*` version-script export set. No RDKit force
+  field is called by this component.
+
+Verification:
+
+- all four C++20 production units compile with the pinned GCC 14.3 toolchain,
+  `-Wall -Wextra -Werror`, hidden visibility, and the exact source-built RDKit
+  2026.09.1 headers;
+- the direct graph-transfer executable passes aromatic, zero-order, dative,
+  raw atom/bond stereo, odd tetrahedral carrier parity, isotope, radical,
+  hydrogen, display-direction, enhanced-group, duplicate-anchor, and explicit
+  unsupported cases;
+- the namespace/ABS-zero corrections were independently recompiled and the
+  direct executable reran successfully against the pinned static closure;
+- standalone C11, C++17 ABI-0, and C++17 ABI-1 consumers compile, link, and
+  run; the C++ consumer also reuses one sampler concurrently in four threads;
+- repeated fixed-seed coordinate bytes are identical, optional bounds run,
+  and the input arrays remain unchanged;
+- the maintained compile-only API selection reports 3 passed;
+- `ldd -r` reports no unresolved symbol and no Python/Conda RDKit dependency;
+  and the linked export table contains only the approved `hotpot_rd_*`
+  surface; and
+- `git diff --check` passes.
+
+Unexpected findings:
+
+- the first native implementation accepted the generic namespace `rdkit`
+  while the Python adapter correctly used the exact pinned namespace. The
+  native boundary was narrowed before publication;
+- RDKit absolute enhanced groups legitimately use read ID zero, so a blanket
+  positive group-ID validation would have rejected an exact Python-to-native
+  transfer;
+- raw atom stereo carriers were initially copied but not interpreted by the
+  native builder. The core now proves the tetrahedral carrier permutation and
+  rejects every unproved carrier/tag combination rather than silently applying
+  a source-relative tag to a different neighbor order; and
+- bracket-explicit virtual hydrogen and reversed display-direction semantics
+  require one further audited adapter/core checkpoint. They are not claimed
+  as closed by this step.
+
+Adjustment:
+
+- unsupported molecular representation returns a normal owned result with
+  `HOTPOT_RD_GENERATION_UNSUPPORTED`; malformed ABI/data remains a C status;
+- the C ABI header is still implementation-local until the binding, common
+  Level-1 view, SDK install, and the remaining direction/H conventions close;
+- no public Python fallback, force-field seam, or workflow default was added.
+
+Git checkpoint: `1c60a70 feat(rdwrapper): implement pinned native ETKDG core`.

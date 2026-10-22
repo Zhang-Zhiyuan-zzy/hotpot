@@ -166,6 +166,59 @@ int main(void) {
         hotpot_rd_result_diagnostic(unsupported_result);
     assert(diagnostic.data != NULL && diagnostic.size != 0);
 
+    static const uint64_t axis_anchors[] = {1, 0, 2};
+    static const char axis_descriptor[] = "axial";
+    static const char rdkit_namespace[] = "rdkit-2026.09.1";
+    hotpot_rd_stereo_record_v1 axis_record = {0};
+    axis_record.anchor_kind = HOTPOT_RD_STEREO_ANCHOR_AXIS;
+    axis_record.anchor_count = 3;
+    axis_record.descriptor.data = axis_descriptor;
+    axis_record.descriptor.size = sizeof(axis_descriptor) - 1;
+    axis_record.source_namespace.data = rdkit_namespace;
+    axis_record.source_namespace.size = sizeof(rdkit_namespace) - 1;
+    hotpot_rd_molecule_view_v1 axis = methane();
+    axis.field_mask |= HOTPOT_RD_FIELD_STEREO_RECORDS;
+    axis.stereo_records = &axis_record;
+    axis.stereo_record_count = 1;
+    axis.stereo_anchor_indices = axis_anchors;
+    axis.stereo_anchor_index_count = 3;
+    hotpot_rd_result* axis_result = NULL;
+    assert(hotpot_rd_generate(sampler, &axis, NULL, &axis_result)
+           == HOTPOT_RD_STATUS_OK);
+    assert(hotpot_rd_result_status(axis_result)
+           == HOTPOT_RD_GENERATION_UNSUPPORTED);
+    static const char axis_diagnostic[] =
+        "RDKit adapter does not materialize AXIS stereo anchors";
+    const hotpot_rd_string_view_v1 actual_axis_diagnostic =
+        hotpot_rd_result_diagnostic(axis_result);
+    assert(actual_axis_diagnostic.size == sizeof(axis_diagnostic) - 1);
+    assert(memcmp(
+        actual_axis_diagnostic.data,
+        axis_diagnostic,
+        actual_axis_diagnostic.size
+    ) == 0);
+
+    hotpot_rd_stereo_record_v1 short_axis_record = axis_record;
+    hotpot_rd_result* invalid_axis_result = NULL;
+    for (uint64_t invalid_count = 0; invalid_count < 3; ++invalid_count) {
+        short_axis_record.anchor_count = invalid_count;
+        axis.stereo_records = &short_axis_record;
+        invalid_axis_result = (hotpot_rd_result*)(uintptr_t)1;
+        assert(hotpot_rd_generate(
+            sampler, &axis, NULL, &invalid_axis_result
+        ) == HOTPOT_RD_STATUS_INVALID_ARGUMENT);
+        assert(invalid_axis_result == NULL);
+    }
+
+    hotpot_rd_stereo_record_v1 unknown_anchor_record = axis_record;
+    unknown_anchor_record.anchor_kind = 4;
+    axis.stereo_records = &unknown_anchor_record;
+    invalid_axis_result = (hotpot_rd_result*)(uintptr_t)1;
+    assert(hotpot_rd_generate(
+        sampler, &axis, NULL, &invalid_axis_result
+    ) == HOTPOT_RD_STATUS_INVALID_ARGUMENT);
+    assert(invalid_axis_result == NULL);
+
     static const int32_t coordination_pair[] = {0, 1};
     static const double coordination_bound[] = {1.90, 2.10};
     hotpot_rd_constraints_view_v1 constraints = {0};
@@ -185,6 +238,7 @@ int main(void) {
     hotpot_rd_result_destroy(first);
     hotpot_rd_result_destroy(second);
     hotpot_rd_result_destroy(unsupported_result);
+    hotpot_rd_result_destroy(axis_result);
     hotpot_rd_result_destroy(constrained_result);
     hotpot_rd_sampler_destroy(sampler);
     return 0;

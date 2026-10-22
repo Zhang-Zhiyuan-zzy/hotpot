@@ -1,5 +1,7 @@
 #include <hotpot/rdWrappers/c_api.h>
 
+_Static_assert(HOTPOT_RD_STEREO_ANCHOR_AXIS == 3, "AXIS code is additive");
+
 
 int consume_contract(void) {
     hotpot_rd_options_v1 options = {0};

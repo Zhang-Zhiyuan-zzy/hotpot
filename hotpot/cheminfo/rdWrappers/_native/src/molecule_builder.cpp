@@ -474,7 +474,8 @@ void apply_stereo(
         const auto source_code = copy_string(record.source_code);
         RDKit::Atom* anchor_atom = nullptr;
         RDKit::Bond* anchor_bond = nullptr;
-        if (record.anchor_kind == HOTPOT_RD_STEREO_ANCHOR_ATOM) {
+        switch (record.anchor_kind) {
+        case HOTPOT_RD_STEREO_ANCHOR_ATOM: {
             const auto atom_index =
                 source.stereo_anchor_indices[record.anchor_offset];
             if (!anchors.emplace(record.anchor_kind, atom_index, atom_index).second) {
@@ -490,7 +491,9 @@ void apply_stereo(
                 record,
                 source_code
             );
-        } else {
+            break;
+        }
+        case HOTPOT_RD_STEREO_ANCHOR_BOND: {
             const auto first = source.stereo_anchor_indices[record.anchor_offset];
             const auto second =
                 source.stereo_anchor_indices[record.anchor_offset + 1];
@@ -556,6 +559,16 @@ void apply_stereo(
                     std::string("RDKit rejected bond stereo: ") + error.what()
                 );
             }
+            break;
+        }
+        case HOTPOT_RD_STEREO_ANCHOR_AXIS:
+            throw UnsupportedInput(
+                "RDKit adapter does not materialize AXIS stereo anchors"
+            );
+        default:
+            throw std::invalid_argument(
+                "stereo record has an invalid anchor kind"
+            );
         }
 
         if (!record.has_group) {

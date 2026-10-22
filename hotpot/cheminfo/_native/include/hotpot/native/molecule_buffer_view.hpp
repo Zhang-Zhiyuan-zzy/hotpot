@@ -57,6 +57,7 @@ constexpr std::uint64_t molecule_field_mask(MoleculeField field) noexcept {
 enum class StereoAnchorKind : std::uint32_t {
     ATOM = 1,
     BOND = 2,
+    AXIS = 3,
 };
 
 
@@ -505,13 +506,18 @@ inline void validate_stereo_buffers(
         const auto group_present = stereo.group_present[index];
         if ((anchor_kind != static_cast<std::uint32_t>(StereoAnchorKind::ATOM)
              && anchor_kind
-                != static_cast<std::uint32_t>(StereoAnchorKind::BOND))
+                != static_cast<std::uint32_t>(StereoAnchorKind::BOND)
+             && anchor_kind
+                != static_cast<std::uint32_t>(StereoAnchorKind::AXIS))
             || (anchor_kind
                     == static_cast<std::uint32_t>(StereoAnchorKind::ATOM)
                 && anchor_count != 1)
             || (anchor_kind
                     == static_cast<std::uint32_t>(StereoAnchorKind::BOND)
                 && anchor_count != 2)
+            || (anchor_kind
+                    == static_cast<std::uint32_t>(StereoAnchorKind::AXIS)
+                && anchor_count < 3)
             || !range_fits(
                 stereo.anchor_offsets[index],
                 anchor_count,

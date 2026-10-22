@@ -38,6 +38,20 @@ def _bond_record(first, second, descriptor, *, group=None):
     )
 
 
+def _axis_record(*atoms, descriptor, carriers=(), group=None):
+    return stereo.StereoRecord(
+        anchor=stereo.StereoAnchor(stereo.StereoAnchorKind.AXIS, tuple(atoms)),
+        carriers=tuple(
+            stereo.StereoCarrier(stereo.StereoCarrierKind.ATOM, carrier)
+            for carrier in carriers
+        ),
+        descriptor=descriptor,
+        group=group,
+        source_namespace="lifecycle-test",
+        source_code=descriptor,
+    )
+
+
 def _molecule(atomic_numbers):
     molecule = Molecule()
     for atomic_number in atomic_numbers:
@@ -384,6 +398,119 @@ def test_bond_hide_recover_is_exact_and_permanent_deletion_is_targeted():
     assert tuple(
         fact.display_direction for fact in after_hidden_clear.bond_facts
     ) == ("preexisting-missing",)
+
+
+def test_axis_lifecycle_tracks_constituent_edges_but_not_chords():
+    molecule = _molecule((6, 6, 6, 6))
+    first = molecule._add_bond(0, 1, bond_order=2.0)
+    second = molecule._add_bond(1, 2, bond_order=1.0)
+    molecule._add_bond(2, 3, bond_order=2.0)
+    chord = molecule._add_bond(0, 2, bond_order=1.0)
+    molecule._update_graph(clear_conformers=False)
+    payload = stereo.StereoPayload(
+        1,
+        (_axis_record(0, 1, 2, 3, descriptor="axis", carriers=(3,)),),
+        (),
+        (),
+    )
+    stereo.set_stereo_payload(molecule, payload)
+
+    clone = copy(molecule)
+    assert stereo.get_stereo_payload(clone) == payload
+
+    molecule.hide_bonds(second, clear_conformers=False)
+    assert stereo.get_stereo_payload(molecule) is payload
+    molecule.recover_hided_covalent_bonds(clear_conformers=False)
+    assert stereo.get_stereo_payload(molecule) is payload
+
+    molecule.remove_bond(chord)
+    assert _record_descriptors(molecule) == ("axis",)
+
+    molecule.remove_bond(first)
+    assert _record_descriptors(molecule) == ()
+
+    stereo.set_stereo_payload(clone, payload)
+    clone.remove_bond(clone.bonds[2])
+    assert _record_descriptors(clone) == ()
+
+
+def test_permanently_clearing_hidden_axis_edges_drops_the_record():
+    for clear_method in (
+        "clear_hided_covalent_bonds",
+        "clear_hided_bonds",
+    ):
+        molecule = _molecule((6, 6, 6))
+        molecule._add_bond(0, 1, bond_order=2.0)
+        hidden = molecule._add_bond(1, 2, bond_order=2.0)
+        molecule._update_graph(clear_conformers=False)
+        stereo.set_stereo_payload(
+            molecule,
+            stereo.StereoPayload(
+                1,
+                (_axis_record(0, 1, 2, descriptor=clear_method),),
+                (),
+                (),
+            ),
+        )
+
+        molecule.hide_bonds(hidden, clear_conformers=False)
+        assert _record_descriptors(molecule) == (clear_method,)
+        getattr(molecule, clear_method)()
+
+        assert _record_descriptors(molecule) == ()
+
+
+def test_axis_atom_component_and_add_component_lifecycle_is_exact():
+    molecule = _molecule((6, 6, 6, 8, 7))
+    molecule._add_bond(0, 1, bond_order=2.0)
+    molecule._add_bond(1, 2, bond_order=1.0)
+    molecule._add_bond(2, 3, bond_order=1.0)
+    molecule._update_graph(clear_conformers=False)
+    stereo.set_stereo_payload(
+        molecule,
+        stereo.StereoPayload(
+            1,
+            (
+                _axis_record(0, 1, 2, descriptor="kept", carriers=(2,)),
+                _axis_record(1, 2, 3, descriptor="removed", carriers=(0,)),
+            ),
+            (),
+            (),
+        ),
+    )
+
+    molecule.remove_atom(molecule.atoms[3])
+    assert _record_descriptors(molecule) == ("kept",)
+    assert stereo.get_stereo_payload(molecule).records[0].anchor.atom_indices == (
+        0,
+        1,
+        2,
+    )
+
+    axis_component = molecule.components[0]
+    isolated_component = molecule.components[1]
+    assert _record_descriptors(axis_component) == ("kept",)
+    assert _record_descriptors(isolated_component) == ()
+
+    target = _molecule((8, 6, 6))
+    target._add_bond(0, 1, bond_order=1.0)
+    target._add_bond(1, 2, bond_order=1.0)
+    target._update_graph(clear_conformers=False)
+    stereo.set_stereo_payload(
+        target,
+        stereo.StereoPayload(
+            1,
+            (_axis_record(0, 1, 2, descriptor="target-first"),),
+            (),
+            (),
+        ),
+    )
+    target.add_component(axis_component)
+    target_record, added = stereo.get_stereo_payload(target).records
+    assert target_record.descriptor == "target-first"
+    assert target_record.anchor.atom_indices == (0, 1, 2)
+    assert added.anchor.atom_indices == (3, 4, 5)
+    assert added.carriers[0].atom == 5
 
 
 def test_atom_sequence_to_mol_filters_and_remaps_payload():

@@ -34,6 +34,15 @@ std::uint64_t fields(std::initializer_list<native::MoleculeField> values) {
 
 void test_array_view() {
     static_assert(std::is_trivially_copyable_v<native::ArrayView<int>>);
+    static_assert(
+        static_cast<std::uint32_t>(native::StereoAnchorKind::ATOM) == 1
+    );
+    static_assert(
+        static_cast<std::uint32_t>(native::StereoAnchorKind::BOND) == 2
+    );
+    static_assert(
+        static_cast<std::uint32_t>(native::StereoAnchorKind::AXIS) == 3
+    );
     const std::array<int, 3> values = {{2, 4, 8}};
     const native::ArrayView<int> view(values);
     assert(view.data() == values.data());
@@ -199,6 +208,27 @@ void test_level1_views_are_optional_and_zero_copy() {
     assert(view.atom_transport.atoms.data() == atoms.atoms.data());
     assert(view.bond_transport.atom_indices.data()
            == bonds.atom_indices.data());
+
+    stereo.anchor_kinds[0] =
+        static_cast<std::uint32_t>(native::StereoAnchorKind::AXIS);
+    stereo.anchor_counts[0] = 3;
+    stereo.anchor_indices = {0, 1, 0};
+    molecule.validate();
+
+    for (const std::uint64_t invalid_count : {0u, 1u, 2u}) {
+        stereo.anchor_counts[0] = invalid_count;
+        assert_invalid([&]() { molecule.validate(); });
+    }
+    stereo.anchor_counts[0] = 3;
+
+    stereo.anchor_indices[2] = 2;
+    assert_invalid([&]() { molecule.validate(); });
+    stereo.anchor_indices[2] = 0;
+
+    stereo.anchor_kinds[0] = 4;
+    assert_invalid([&]() { molecule.validate(); });
+    stereo.anchor_kinds[0] =
+        static_cast<std::uint32_t>(native::StereoAnchorKind::AXIS);
 
     molecule.fields &= ~native::molecule_field_mask(
         native::MoleculeField::ATOM_TRANSPORT

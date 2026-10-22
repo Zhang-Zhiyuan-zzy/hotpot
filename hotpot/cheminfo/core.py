@@ -243,6 +243,7 @@ class Molecule:
             removed_bond_rows: Iterable[tuple[int, int]],
     ) -> None:
         from .stereo import (
+            StereoAnchorKind,
             _remap_stereo_payload,
             get_stereo_payload,
             set_stereo_payload,
@@ -253,11 +254,20 @@ class Molecule:
             frozenset(atom_indices) for atom_indices in removed_bond_rows
         }
         allowed_bonds = list(self._structural_bond_rows())
-        allowed_bonds.extend(
-            record.anchor.atom_indices
-            for record in payload.records
-            if frozenset(record.anchor.atom_indices) not in removed_keys
-        )
+        for record in payload.records:
+            if record.anchor.kind is StereoAnchorKind.BOND:
+                if frozenset(record.anchor.atom_indices) not in removed_keys:
+                    allowed_bonds.append(record.anchor.atom_indices)
+            elif record.anchor.kind is StereoAnchorKind.AXIS:
+                constituent_bonds = tuple(zip(
+                    record.anchor.atom_indices,
+                    record.anchor.atom_indices[1:],
+                ))
+                if not any(
+                    frozenset(atom_indices) in removed_keys
+                    for atom_indices in constituent_bonds
+                ):
+                    allowed_bonds.extend(constituent_bonds)
         allowed_bonds.extend(
             fact.atom_indices
             for fact in payload.bond_facts

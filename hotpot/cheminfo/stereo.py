@@ -47,6 +47,7 @@ class StereoAnchorKind(Enum):
 
     ATOM = "atom"
     BOND = "bond"
+    AXIS = "axis"
 
 
 class StereoCarrierKind(Enum):
@@ -128,7 +129,7 @@ class StereoCarrier:
 
 @dataclass(frozen=True)
 class StereoAnchor:
-    """Stable atom or ordered bond endpoint anchor."""
+    """Stable atom, ordered bond, or complete ordered axis-path anchor."""
 
     kind: StereoAnchorKind
     atom_indices: tuple[int, ...]
@@ -199,6 +200,16 @@ def _bond_key(atom_indices: Collection[int]) -> frozenset[int]:
     return frozenset(atom_indices)
 
 
+def _axis_bond_keys(atom_indices: Collection[int]) -> tuple[frozenset[int], ...]:
+    """Return consecutive constituent-bond keys for an ordered axis path."""
+
+    atom_indices = tuple(atom_indices)
+    return tuple(
+        _bond_key(atom_indices[index:index + 2])
+        for index in range(len(atom_indices) - 1)
+    )
+
+
 def _remap_stereo_payload(
     payload: StereoPayload,
     atom_mapping: Mapping[int, int],
@@ -226,12 +237,20 @@ def _remap_stereo_payload(
         anchor_indices = tuple(
             atom_mapping[atom] for atom in record.anchor.atom_indices
         )
-        if (
-            record.anchor.kind is StereoAnchorKind.BOND
-            and allowed_bond_keys is not None
-            and _bond_key(anchor_indices) not in allowed_bond_keys
-        ):
-            continue
+        if allowed_bond_keys is not None:
+            if (
+                record.anchor.kind is StereoAnchorKind.BOND
+                and _bond_key(anchor_indices) not in allowed_bond_keys
+            ):
+                continue
+            if (
+                record.anchor.kind is StereoAnchorKind.AXIS
+                and any(
+                    bond_key not in allowed_bond_keys
+                    for bond_key in _axis_bond_keys(anchor_indices)
+                )
+            ):
+                continue
 
         carriers = []
         keep_record = True

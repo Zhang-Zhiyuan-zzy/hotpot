@@ -62,8 +62,11 @@ typedef enum hotpot_rd_molecule_field {
 } hotpot_rd_molecule_field;
 
 typedef enum hotpot_rd_stereo_anchor_kind {
+    /* ATOM carries exactly one atom index; BOND carries exactly two. */
     HOTPOT_RD_STEREO_ANCHOR_ATOM = 1,
-    HOTPOT_RD_STEREO_ANCHOR_BOND = 2
+    HOTPOT_RD_STEREO_ANCHOR_BOND = 2,
+    /* AXIS carries an ordered axis path of at least three atom indices. */
+    HOTPOT_RD_STEREO_ANCHOR_AXIS = 3
 } hotpot_rd_stereo_anchor_kind;
 
 typedef enum hotpot_rd_stereo_carrier_kind {

@@ -191,6 +191,46 @@ def test_stereo_record_packing_preserves_order_endpoints_groups_and_utf8():
     _assert_all_arrays_are_contiguous(records)
 
 
+def test_axis_anchor_packing_preserves_variable_length_atom_sequence():
+    assert NativeStereoAnchorKindCode.ATOM == 1
+    assert NativeStereoAnchorKindCode.BOND == 2
+    assert NativeStereoAnchorKindCode.AXIS == 3
+
+    mol = read_mol("CCCCC")
+    set_stereo_payload(
+        mol,
+        StereoPayload(
+            schema_version=1,
+            records=(
+                StereoRecord(
+                    anchor=StereoAnchor(
+                        StereoAnchorKind.AXIS,
+                        (4, 2, 1, 3),
+                    ),
+                    carriers=(),
+                    descriptor="hotpot.stereo/2/AX/even",
+                    group=None,
+                    source_namespace="hotpot",
+                    source_code="AX",
+                ),
+            ),
+            atom_facts=(),
+            bond_facts=(),
+        ),
+    )
+
+    records = pack_molecule(
+        mol, frozenset({NativeMoleculeField.STEREO_RECORDS})
+    ).stereo_records
+
+    assert records.anchor_kinds.tolist() == [
+        NativeStereoAnchorKindCode.AXIS
+    ]
+    assert records.anchor_offsets.tolist() == [0]
+    assert records.anchor_counts.tolist() == [4]
+    assert records.anchor_indices.tolist() == [4, 2, 1, 3]
+
+
 def test_atom_transport_packing_preserves_explicit_zero_and_dual_hydrogen_state():
     mol = read_mol("CCCC")
     set_stereo_payload(mol, _payload())

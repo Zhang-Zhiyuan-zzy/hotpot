@@ -230,9 +230,7 @@ void validate_molecule_view(const hotpot_rd_molecule_view_v1& molecule) {
         require_pointer(molecule.stereo_carriers, molecule.stereo_carrier_count, "stereo_carriers");
         for (std::uint64_t index = 0; index < molecule.stereo_record_count; ++index) {
             const auto& record = molecule.stereo_records[index];
-            if (record.anchor_kind < HOTPOT_RD_STEREO_ANCHOR_ATOM
-                || record.anchor_kind > HOTPOT_RD_STEREO_ANCHOR_BOND
-                || record.group_kind > HOTPOT_RD_STEREO_GROUP_OR
+            if (record.group_kind > HOTPOT_RD_STEREO_GROUP_OR
                 || record.has_group > 1 || record.reserved != 0
                 || record.anchor_offset > molecule.stereo_anchor_index_count
                 || record.anchor_count > molecule.stereo_anchor_index_count - record.anchor_offset
@@ -254,9 +252,23 @@ void validate_molecule_view(const hotpot_rd_molecule_view_v1& molecule) {
                     "stereo record has an inconsistent group identity"
                 );
             }
-            const auto expected_anchor_count =
-                record.anchor_kind == HOTPOT_RD_STEREO_ANCHOR_ATOM ? 1u : 2u;
-            if (record.anchor_count != expected_anchor_count) {
+            bool valid_anchor_length = false;
+            switch (record.anchor_kind) {
+                case HOTPOT_RD_STEREO_ANCHOR_ATOM:
+                    valid_anchor_length = record.anchor_count == 1;
+                    break;
+                case HOTPOT_RD_STEREO_ANCHOR_BOND:
+                    valid_anchor_length = record.anchor_count == 2;
+                    break;
+                case HOTPOT_RD_STEREO_ANCHOR_AXIS:
+                    valid_anchor_length = record.anchor_count >= 3;
+                    break;
+                default:
+                    throw std::invalid_argument(
+                        "stereo record has an invalid anchor kind"
+                    );
+            }
+            if (!valid_anchor_length) {
                 throw std::invalid_argument("stereo record has an invalid anchor length");
             }
             for (std::uint64_t offset = 0; offset < record.anchor_count; ++offset) {

@@ -116,6 +116,69 @@ def test_remap_drops_whole_records_for_missing_atoms_or_missing_bonds():
     assert remapped.records[0].carriers == (_atom_carrier(11),)
 
 
+def test_axis_remap_preserves_full_order_and_requires_consecutive_edges():
+    axis = stereo.StereoRecord(
+        anchor=stereo.StereoAnchor(
+            stereo.StereoAnchorKind.AXIS,
+            (4, 8, 2, 6),
+        ),
+        carriers=(_atom_carrier(1),),
+        descriptor="opaque-axis",
+        group=None,
+        source_namespace="test",
+        source_code="axis",
+    )
+    payload = stereo.StereoPayload(1, (axis,), (), ())
+    mapping = {1: 11, 2: 12, 4: 14, 6: 16, 8: 18}
+
+    remapped = stereo._remap_stereo_payload(
+        payload,
+        mapping,
+        allowed_bonds=((14, 18), (18, 12), (12, 16)),
+    )
+    assert remapped.records[0].anchor.atom_indices == (14, 18, 12, 16)
+    assert remapped.records[0].carriers == (_atom_carrier(11),)
+
+    missing_atom = stereo._remap_stereo_payload(
+        payload,
+        {1: 11, 2: 12, 4: 14, 8: 18},
+    )
+    assert missing_atom.records == ()
+
+    missing_constituent = stereo._remap_stereo_payload(
+        payload,
+        mapping,
+        allowed_bonds=((14, 18), (12, 16), (14, 12)),
+    )
+    assert missing_constituent.records == ()
+
+
+def test_axis_level_one_does_not_interpret_path_length():
+    records = tuple(
+        stereo.StereoRecord(
+            anchor=stereo.StereoAnchor(stereo.StereoAnchorKind.AXIS, path),
+            carriers=(),
+            descriptor=f"axis-path-{len(path)}",
+            group=None,
+            source_namespace="test",
+            source_code=str(len(path)),
+        )
+        for path in ((), (4,))
+    )
+    payload = stereo.StereoPayload(1, records, (), ())
+
+    remapped = stereo._remap_stereo_payload(
+        payload,
+        {4: 14},
+        allowed_bonds=(),
+    )
+
+    assert tuple(record.anchor.atom_indices for record in remapped.records) == (
+        (),
+        (14,),
+    )
+
+
 def test_remap_filters_facts_in_order_and_preserves_bond_endpoint_direction():
     source_hydrogens = stereo.HydrogenTransportState(1, 2, False)
     current_hydrogens = stereo.HydrogenTransportState(0, 0, True)

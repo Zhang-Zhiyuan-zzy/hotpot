@@ -30,7 +30,11 @@ def test_level_two_report_contracts_are_frozen():
 
 
 def test_transport_enums_cover_non_atom_and_coordination_facts():
-    assert tuple(stereo.StereoAnchorKind.__members__) == ("ATOM", "BOND")
+    assert tuple(stereo.StereoAnchorKind.__members__) == (
+        "ATOM",
+        "BOND",
+        "AXIS",
+    )
     assert tuple(stereo.StereoCarrierKind.__members__) == (
         "ATOM",
         "IMPLICIT_H",

@@ -48,6 +48,7 @@ class NativeStereoAnchorKindCode(IntEnum):
 
     ATOM = 1
     BOND = 2
+    AXIS = 3
 
 
 class NativeStereoCarrierKindCode(IntEnum):
@@ -227,6 +228,7 @@ def _pack_stereo_records(payload) -> NativeStereoRecordBuffers:
     anchor_kind_codes = {
         StereoAnchorKind.ATOM: NativeStereoAnchorKindCode.ATOM,
         StereoAnchorKind.BOND: NativeStereoAnchorKindCode.BOND,
+        StereoAnchorKind.AXIS: NativeStereoAnchorKindCode.AXIS,
     }
     carrier_kind_codes = {
         StereoCarrierKind.ATOM: NativeStereoCarrierKindCode.ATOM,

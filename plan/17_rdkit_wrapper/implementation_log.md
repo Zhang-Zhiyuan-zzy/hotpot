@@ -1002,3 +1002,61 @@ Adjustment:
   state is structural private storage, not mutable user metadata.
 
 Git checkpoint: `1dacca3 feat(stereo): make working-copy payload transactional`.
+
+### Step 16 - Pack Level-1 stereo into field-selective native buffers
+
+Status: complete
+
+Planned:
+
+- add independently selectable stereo-record, atom-transport, and
+  bond-transport fields to the common Python/native communication DTO;
+- preserve optional-value presence, opaque UTF-8 data, source/current
+  hydrogen separation, ordering, and directed bond endpoints; and
+- prevent the Open Babel consumer from acquiring fields it does not use.
+
+Performed:
+
+- added fixed-width frozen transport DTOs whose NumPy dtypes match the frozen
+  C ABI scalar widths;
+- flattened stereo anchors/carriers, enhanced-group lineage, atom facts,
+  dual hydrogen states, and bond display facts without sorting or chemical
+  interpretation;
+- encoded each string column as an owned contiguous UTF-8 byte blob plus
+  contiguous offset, length, and presence arrays;
+- retained a one-byte blob sentinel so absent, present-empty, and non-empty
+  values remain distinct and later C string views never depend on a Python or
+  RDKit object lifetime; and
+- replaced Open Babel's all-enum field selection with an explicit ten-field
+  basic set, leaving all three stereo transports absent for that consumer.
+
+Verification:
+
+- tests cover independent selection, present-empty versus absent, non-ASCII
+  UTF-8, exact dtypes/shapes/contiguity, stable record/carrier/fact order,
+  enhanced groups, ordered endpoints, explicit zero versus missing isotope/
+  radical values, and dual hydrogen presence masks;
+- independent common/stereo/Open-Babel regression: 56 passed and 1 existing
+  managed-dataset skip;
+- a dynamic old-versus-new packer comparison over three representative
+  molecules found identical dtype, shape, and raw bytes for every legacy
+  Open Babel field (3/3 cases);
+- Python compilation and `git diff --check` pass.
+
+Unexpected findings:
+
+- the first external parity harness loaded the historical dataclass module
+  without registering it in `sys.modules`, causing a harness-only dataclass
+  resolution error. Registering the dynamically loaded module corrected the
+  harness; no product-code change was required.
+
+Adjustment:
+
+- the DTO retains its Level-1 schema version. The current C ABI v1 consumer
+  supports the current schema-v1 contract; a later schema migration must add
+  an explicit compatibility decision rather than silently reinterpret these
+  tables;
+- existing basic buffer field names, types, and packing algorithms are
+  unchanged.
+
+Git checkpoint: `9eb8684 feat(native): pack Level-1 stereo transport fields`.

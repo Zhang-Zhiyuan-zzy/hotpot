@@ -2139,3 +2139,76 @@ Adjustment:
   stereochemical preservation through an unreviewed `CHI_ALLENE` conversion.
 
 Git checkpoint: `7817fab feat(stereo): add ordered AXIS transport`.
+
+### Step 33 - Implement Level-2 Gate 5 axial semantics
+
+Status: complete for AXIS and formal-atrop records; enhanced groups remain the
+next separate Gate-5 checkpoint
+
+Planned:
+
+- consume the ordered Level-1 `AXIS` path only after validating its chemical
+  graph meaning, while retaining a real ordered `BOND` for formal
+  atropisomerism;
+- freeze endpoint-scoped carrier, reversal, parity, coordinate-assignment,
+  mapping, and diagnostic behavior without claiming a rotational barrier; and
+- keep enhanced-group inversion semantics out of this checkpoint so their
+  group-wide alternatives can be reviewed independently.
+
+Performed:
+
+- accepted simple, maximal odd atom paths of length 3, 5, ... only when every
+  constituent edge has numeric order 2 and semantic kind `double`, and rejected
+  internal off-axis neighbours;
+- accepted formal atrop records only on a real numeric-order-1 semantic
+  `single` bond, without inferring experimental isolability;
+- required exactly two endpoint-local carriers at each end, limited public
+  Gate-5 graph semantics to atoms and at most one implicit hydrogen per end,
+  and retained the wider frozen Gate-1 algebra carrier contract unchanged;
+- implemented deterministic parity under either endpoint swap, full ordered
+  path/bond reversal, identity and non-identity atom mappings, and AXIS/BOND
+  anchor-kind isolation;
+- assigned `AX/even|odd` from the frozen axis triple product after projecting
+  both ordered endpoint directions into the plane normal to the axis; and
+- returned realized assignments and coordinate contradictions without
+  mutating the molecule, its payload, or the caller coordinate array.
+
+Verification:
+
+- the complete `test_*stereo*.py` selection reports 208 passed;
+- the focused Gate-1-through-Gate-5 selection reports 140 passed;
+- fixtures cover all eight endpoint-swap/path-reversal combinations, allene,
+  longer even-bond cumulene, formal atrop, explicit and implicit hydrogen,
+  invalid paths and semantic bond kinds, rigid transforms, reflection,
+  positive scale, degeneracy, contradiction, non-identity mapping, and input
+  immutability;
+- an independent review ran 500 randomized projection, terminal-swap, and
+  path-reversal property cases and reported no failure after correction;
+- Python compilation and `git diff --check` pass; `ruff` was not installed in
+  the active development environment and is not claimed as executed; and
+- neither RDKit nor Open Babel is used as the runtime AX semantic oracle.
+
+Unexpected findings:
+
+- the first coordinate implementation used the unprojected endpoint-direction
+  norms. Its triple-product sign was correct, but longitudinal components
+  could incorrectly change a resolved geometry into `DEGENERATE_GEOMETRY`;
+- the first graph check required numeric order 2/1 and excluded only aromatic
+  and dative kinds. Hotpot stores numeric order and semantic `BondKind`
+  separately, so inconsistent `2 + single/unknown` and `1 + double/unknown`
+  records were incorrectly admitted; and
+- the frozen Gate-1 golden corpus deliberately contains an AX vacancy. The
+  generic permutation algebra therefore cannot be narrowed to Gate-5's
+  chemically supported atom/implicit-H subset.
+
+Adjustment:
+
+- endpoint directions are now projected first, checked against endpoint-local
+  scales, normalized in the transverse plane, and only then used in the
+  normalized triple product;
+- cumulative path edges now require both order 2 and kind `double`, while the
+  formal atrop axis requires both order 1 and kind `single`; and
+- regression fixtures preserve the distinction between generic Gate-1
+  algebra and public Gate-5 graph validation.
+
+Git checkpoint: `b471052 feat(stereo): implement Level-2 Gate-5 axial semantics`.

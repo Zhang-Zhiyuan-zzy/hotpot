@@ -1060,3 +1060,67 @@ Adjustment:
   unchanged.
 
 Git checkpoint: `9eb8684 feat(native): pack Level-1 stereo transport fields`.
+
+### Step 17 - Integrate Level-1 payloads with molecule structure lifecycle
+
+Status: complete, with explicit-hydrogen state isolated to a following step
+
+Planned:
+
+- connect the single pure remapper to molecule initialization, copy,
+  extraction/assembly, removal, and hidden-bond lifecycle operations;
+- retain group lineage, source/current facts, ordering, and targeted-deletion
+  semantics without chemical interpretation; and
+- avoid duplicating the remapping algorithm in core methods.
+
+Performed:
+
+- initialized every molecule with the exact immutable empty payload;
+- wired copy, connected components, and `AtomSeq.to_mol()` through explicit
+  stable-row maps and target structural-bond sets;
+- made component assembly offset incoming rows, concatenate target records and
+  facts first, and preserve equal group IDs under their distinct lineage
+  scopes without sorting or renumbering;
+- remapped later rows and removed whole dependent records/facts after atom
+  deletion;
+- removed only the selected endpoint key after active bond deletion or
+  permanent hidden-bond clearing, while preserving unrelated historical
+  dangling payloads exactly; and
+- kept hide and recover operations byte-for-byte payload no-ops.
+
+Verification:
+
+- new lifecycle coverage fixes initialization, exact copy, active/internal-
+  hidden component filtering, `AtomSeq` extraction, ordered component merge,
+  atom remapping, targeted active/hidden bond deletion, dangling-payload
+  retention, lineage scopes, and source/current hydrogen object retention;
+- worker combined lifecycle regression: 69 passed with 1 existing
+  geometry-quality warning; directed core selection: 2 passed and 1 existing
+  managed-data skip;
+- independent Level-1/structure/hidden-bond/bond-metadata selection:
+  47 passed;
+- Python compilation and `git diff --check` pass.
+
+Unexpected findings:
+
+- the legacy RDKit import collapses toolkit implicit and bracket-explicit
+  hydrogens into one `Atom.implicit_hydrogens` value, while Hotpot hydrogen
+  mutation exposes only net explicit-node additions/removals. Core alone
+  therefore cannot prove a reversible per-field update for bracket-explicit
+  and `no_implicit` state;
+- `add_component()` currently operates in the closed current-release schema-v1
+  domain. It retains the target schema when concatenating. Cross-schema
+  assembly requires an explicit future migration rule and must not guess by
+  choosing a maximum or silently upgrading.
+
+Adjustment:
+
+- explicit-hydrogen current-state transformation is isolated until the RDKit
+  Level-1 import mapping provides separate source fields. This checkpoint
+  still remaps/removes explicit-H rows and their own facts without modifying
+  the immutable source ledger;
+- the historical monolithic `test_core::test_molecule` again entered a
+  long-running 223-atom `build3d` path and was not counted; focused and broader
+  related regressions completed normally.
+
+Git checkpoint: `570d756 feat(stereo): integrate Level-1 molecule lifecycle`.

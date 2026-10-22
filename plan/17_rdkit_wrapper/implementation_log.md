@@ -2297,3 +2297,62 @@ Adjustment:
   rather than cloning the target record.
 
 Git checkpoint: `631ff90 feat(stereo): implement Gate-5 enhanced groups`.
+
+### Step 35 - Add the reusable native-spec RI target for Gate 6
+
+Status: complete
+
+Planned:
+
+- reuse the single native RI implementation for exact represented-graph
+  automorphisms without adding VF2, NetworkX matching, or another C++ path;
+- keep the adapter private and chemistry-neutral so Gate 6 owns graph labels,
+  pin constraints, and semantic postfilters; and
+- cache native target preparation while retaining independent lazy query
+  cursors.
+
+Performed:
+
+- added private `_NativeSpecTarget(target_spec: dict)` in
+  `hotpot.cheminfo.search.native`;
+- constructed and retained one `NativeTarget` snapshot per adapter instance;
+- created a new `NativeProblem` for every `iter_mappings(query_spec: dict)`
+  call and returned lazy `query_key -> target_key` mappings aligned to native
+  `problem.query_keys`; and
+- preserved all native target, query, and cursor exceptions without wrapping
+  them or adding a duplicate schema validator.
+
+Verification:
+
+- 49 native-spec, prepared-query, compiler, kernel, and production-kernel tests
+  pass;
+- a fake native module proves one target construction, one independent problem
+  per query, shared target identity, and the mapping direction;
+- the real extension returns the two deterministic automorphisms of a
+  symmetric three-node path, and a private row-field pin selects only the path
+  reversal on repeated calls;
+- malformed target input preserves the direct native exception type and
+  message; and
+- independent review found no blocker and confirmed laziness, sparse external
+  key handling, cursor/problem/target lifetime, cache scope, and absence of
+  public or C++ API changes.
+
+Unexpected findings:
+
+- the existing `_NativeMappingSource` intentionally reverses mapping direction
+  to satisfy a legacy NetworkX-style contract, so it cannot be reused directly
+  for Gate-6 `query -> target` automorphisms; and
+- an empty native-set constraint is a wildcard, not an impossible or unpinned
+  sentinel. Point pins must therefore be omitted when absent and encoded with
+  a concrete stable row value when present.
+
+Adjustment:
+
+- the new adapter reads cursor values directly instead of routing them through
+  `_NativeMappingSource`;
+- pin construction remains in `stereo.py`, while the adapter accepts only an
+  already packed native query spec; and
+- each pin uses a private native scalar row field, leaving unpinned node labels
+  independent of graph-row identity.
+
+Git checkpoint: `0a82896 feat(search): add reusable native spec target`.

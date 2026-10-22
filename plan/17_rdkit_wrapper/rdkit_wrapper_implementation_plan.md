@@ -101,10 +101,20 @@ them:
     tie requiring recursive duplicate-node, ring, pseudoasymmetric, or
     descendant-stereo rules remains explicitly unresolved; graph canonical
     ranks must never be presented as CIP priority.
-21. **Square-pyramidal identity is a 30-configuration proper-rotation
-    family.** Its stable ideal-site order is `+z, +x, +y, -x, -y`, its C4
-    proper rotation group has order 4, and mirrors are not collapsed. The
-    already frozen SP/TBP/OH numbering remains byte-for-byte unchanged.
+21. **Gate 7 uses one Hotpot-owned declared coordination-stereo contract.**
+    Square-pyramidal identity is a 30-configuration proper-C4 family with
+    stable ideal-site order `+z, +x, +y, -x, -y`; mirrors are not collapsed,
+    and the already frozen SP/TBP/OH numbering remains byte-for-byte
+    unchanged. Interpretation is limited to ungrouped, atom-centered records
+    whose distinct atom carriers exactly cover the represented first shell.
+    Coordinates are classified by center-rooted unit directions and a
+    determinant-positive, no-centroid Procrustes fit. The accepted candidate-
+    score cutoff is 12 degrees angular RMS; there is no separate per-carrier
+    angular cutoff. The same-family uniqueness margin is 2 degrees and the
+    TBP/SPY family margin is 3 degrees. Chelation is a represented-graph
+    carrier partition used only by equivalence/alignment. Public validation,
+    assignment, alignment, and Gate-6 semantic context admit this contract in
+    one atomic cutover rather than exposing a partially interpreted family.
 
 ## 2. Confirmed current-state audit
 
@@ -1128,16 +1138,142 @@ recursive Sequence Rules, duplicate nodes, rings, pseudoasymmetry, and axial
 `R_a/S_a` require their own IUPAC-derived golden corpus and remain explicit
 unresolved outcomes rather than false labels.
 
-Gate 7 appends `SPY/1..30` from the proper C4 orbit while retaining the frozen
-SP/TBP/OH indices. It validates only declared atom-centered records whose
-distinct `ATOM` carriers exactly cover the first coordination shell. Coordinate
-assignment uses fixed ideal templates and determinant-positive Kabsch fitting;
-ties, large angular residuals, and ambiguous TBP/SPY boundary geometries are
-degenerate rather than arbitrarily numbered. Chelate membership is derived by
-removing center-donor edges and comparing the remaining ligand-component
-partition under the explicit atom mapping. It constrains equivalence/alignment,
-not the geometry fit. Haptic/centroid, vacancy, lone-pair, coupled multicenter,
-and undeclared-center discovery remain explicit unsupported boundaries.
+Gate 7 appends `SPY/1..30` from the proper C4 orbit while retaining every
+frozen SP/TBP/OH index, rotation, representative, and transform. Its ideal
+unit-vector site orders are:
+
+- SP: `+x, +y, -x, -y`;
+- TBP: `+z, -z, +x, (-1/2,+sqrt(3)/2,0),
+  (-1/2,-sqrt(3)/2,0)`;
+- SPY: `+z, +x, +y, -x, -y`; and
+- OH: `+x, -x, +y, -y, +z, -z`.
+
+For every finite coordination family, a frozen representative is a
+site-to-reference map: `representative[site] == carrier_position`. This
+definition, the ideal templates, and their proper-rotation groups determine
+numbering. Toolkit tags, carrier atom rows, graph canonical ranks, and
+coordinate enumeration order do not.
+
+The supported graph domain contains only explicitly declared SP/TBP/SPY/OH
+records with one `ATOM` anchor and respectively 4/5/5/6 distinct, in-range
+`ATOM` carriers. The carrier set must equal the anchor's complete first shell
+in the represented undirected graph made from active bonds plus both hidden-
+bond collections. The anchor cannot be a carrier. Bond order, bond kind,
+dative orientation, and atom element do not change shell membership. Gate 7
+does not infer metals, donors, oxidation state, preferred geometry, undeclared
+stereo centers, or chemical isolability, and it does not require ligand graphs
+to be mutually distinct.
+
+A declared coordination record triggers the same complete Gate-6 represented-
+graph projection used by TH/DB/AX, even when no TH/DB/AX record is present.
+Parallel represented edges, self-loops, non-finite bond orders, unknown dative
+directions, and malformed atom transport facts consumed by that projection
+therefore remain global issues with `record_index=None`; Gate 7 does not create
+a weaker second notion of represented-graph validity merely because shell
+connectivity is undirected.
+
+One atom row may own at most one interpreted atom-centered geometry record
+among TH/SP/TBP/SPY/OH. Same-family duplicates or cross-family declarations
+make every participating TH/SP/TBP/SPY/OH record anchored at that atom
+`INVALID_ANCHOR`; record order never selects a winner. Each receives the
+record-scoped message `atom center row {center} has multiple Level-2 geometry
+records` and undergoes no further Gate-7 group, shell, or coupling
+interpretation. A coordination record with any ABS/AND/OR group is
+`UNSUPPORTED` with `{family} enhanced-stereo groups are unsupported for
+coordination records`, without changing Gate-5 enhanced-group semantics for
+the families already supported there. IMPLICIT_H, LONE_PAIR, and VACANCY
+carriers are `UNSUPPORTED` with `{family} carrier position {position} uses
+unsupported {kind}; Gate 7 supports atom-point carriers only`, rather than
+being coerced to atom carriers. A shell-set mismatch is `INVALID_CARRIER` with
+`{family} carriers must exactly cover the represented first shell at center
+row {center}`.
+
+The DTO has no HAPTIC or CENTROID carrier kind. An adapter encountering those
+models preserves the exact opaque source record and its explicit unsupported
+or invalid-descriptor outcome; it does not fabricate SP/TBP/SPY/OH atom
+carriers. Tests prove preservation, non-interpretation, and non-erasure rather
+than inventing a connectivity heuristic or a carrier kind in this stage.
+
+Coupled multicenter coordination is also outside Gate 7. All affected records
+are `UNSUPPORTED` when a carrier belongs to declared shells at more than one
+center, a declared coordination center is a carrier of another, or a carrier
+component reaches the same or another declared coordination center after the
+current center-shell edges are removed. Independent declared centers in one
+molecule remain supported when their carriers and chelate components do not
+couple in those ways. Hapticity is never guessed merely from adjacent ligand
+atoms. Coupling is evaluated only among coordination records that have already
+passed descriptor, anchor, carrier, range, exact-shell, ungrouped, and same-
+center checks; malformed or opaque records cannot contaminate an otherwise
+valid independent center. Every coupled record receives `{family} chelate
+partition at center row {center} participates in coupled multicenter
+coordination, which is unsupported`. The affected set contains every valid
+record connected by shared carriers or by reachability to a declared center;
+all its record indices are diagnosed rather than selecting one survivor.
+
+Coordinate assignment first subtracts only the anchor-center coordinate and
+normalizes every center-to-carrier vector independently. Carrier distances
+receive equal weight and do not influence stereo. A center-coincident carrier
+is degenerate under the existing `1e-8` relative numerical tolerance. The
+ideal unit directions are aligned to the observed directions by a
+determinant-positive orthogonal Procrustes/Kabsch rotation with no translation,
+reflection, scale, donor-centroid subtraction, or radial weighting. This is
+especially mandatory for SPY because its ideal carrier-vector centroid is not
+zero.
+
+For one fitted candidate, each angular residual is
+`atan2(norm(cross(fitted, observed)), clipped_dot(fitted, observed))`; the
+candidate score is the root mean square of those angles. Calculations and
+comparisons use raw double-precision radians. Candidate order is
+`(score, descriptor_index)`. An assignment is unresolved with
+`DEGENERATE_GEOMETRY` when the best angular RMS exceeds 12 degrees or the
+second-best same-family score minus the best is at most 2 degrees. The
+uniqueness comparison uses the raw second-best score even when that score lies
+just outside the 12-degree acceptance boundary.
+
+The frozen ideal nearest-wrong-descriptor angular RMS values are 63.639610
+degrees for SP, 26.832816 for TBP, 32.970886 for SPY, and 48.189685 for OH.
+The closest ideal TBP/SPY cross-family fit is 18.973666 degrees. The 12-degree
+acceptance boundary is deliberately below half of the smallest same-family
+separation; the 12/2/3-degree values are versioned Hotpot engineering policy,
+not universal experimental chemistry constants.
+
+Every five-coordinate record is scored against both TBP and SPY. If neither
+family has a best score at most 12 degrees, geometry is degenerate. If at least
+one is accepted and the two best scores differ by at most 3 degrees, the
+TBP/SPY boundary is degenerate. If the alternate family is better than the
+declared family by more than 3 degrees, coordinates contradict the declaration
+with `COORDINATE_CONTRADICTION`; assignment never changes the descriptor
+family. Only a uniquely preferred declared family proceeds to its numeric
+index. Gate 7 does not add a competing TH/SP classifier or retroactively alter
+Gate-4 tetrahedral geometry semantics.
+
+For one otherwise supported record, its chelate partition is the pairwise
+same-component relation among carrier atoms after removing only that record's
+center-to-carrier edges from the complete represented undirected graph.
+Singleton blocks are monodentate; component identifiers and traversal order
+have no meaning. An explicit atom mapping must preserve this relation for
+every carrier pair. Partition mismatch is `INVALID_DESCRIPTOR` with message
+`mapped coordination chelate partition does not match target partition`.
+Chelation constrains descriptor equivalence/alignment and Gate-6 semantic
+context only; it never changes an ideal template, fit weight, score, or index.
+A coordination alignment match requires both the mapped center and descriptor
+family to equal the target; cross-family records never match or coerce.
+
+Valid coordination records participate as supported descendant semantics in
+Gate-6 automorphism postfilters, including exact family/index transformation,
+dative direction, and chelate partition. They do not become Gate-6 pairwise
+stereogenicity candidates: equivalent ligand graphs are allowed, no
+coordination CIP name is derived, and direct-priority output remains R/S and
+E/Z only. Unsupported coordination records retain the opaque semantic
+boundary; malformed records remain validation failures.
+
+Assignment may replace only the numeric descriptor within the declared family
+and returns no `StereoDerivedDescriptor` for coordination. Public
+`validate_stereochemistry()`, `assign_stereochemistry()`,
+`align_stereochemistry()`, the record-level semantic dispatcher, and Gate-6
+semantic context switch from the explicit unsupported fence in one checkpoint.
+Private graph/chelate and coordinate helpers may be proved beforehand, but no
+public function may accept partially connected Gate-7 semantics.
 
 ### 7.3 Relationship to `rdWrappers`
 
@@ -1383,8 +1519,22 @@ No `C1`/`C2` path enters `hotpot.ff` in this stage.
 - implement representation validation, deterministic reference order,
   mapping-aware parity, coordinate assignment, and degeneracy reporting before
   advanced stereo families;
-- add organic, axial/atropisomeric, enhanced-group, and coordination-stereo
-  fixtures only at their declared gate;
+- add organic, axial/atropisomeric, and enhanced-group fixtures only at their
+  declared gate;
+- retain the Gate-1 algebra golden and Gate-7 SPY algebra golden byte-for-byte,
+  then add an independent coordination golden for ideal templates, proper
+  rotations, mirrors, ideal separations, and the 12/2/3-degree boundaries;
+- implement and directly test private represented-shell, same-center,
+  multicenter, and chelate-partition helpers while the public Gate-7
+  unsupported fence remains active;
+- implement and directly test the private no-centroid proper-rotation fitter,
+  same-family uniqueness, and TBP/SPY cross-family policy while that fence
+  remains active;
+- connect coordination descriptor transformation, chelate-aware alignment,
+  Gate-6 semantic context, graph validation, and coordinate assignment in one
+  atomic public cutover, removing the fence only when all paths are present;
+- add full declared coordination fixtures only at that cutover and never
+  expose a validate-only or coordinate-only intermediate public state;
 - cross-check against pinned RDKit/Open Babel where each toolkit supports the
   case; and
 - rerun `R0`/`F1` with chemical validity and alignment reports separated from
@@ -1480,10 +1630,29 @@ No `C1`/`C2` path enters `hotpot.ff` in this stage.
 - missing, explicit-H, isotope, radical, aromatic/Kekule, and degenerate cases;
 - coordinate/descriptor agreement and contradiction reports;
 - complete ordered cumulene-axis lifecycle under every constituent atom/bond
-  removal, plus axial, atropisomeric, and declared coordination geometries;
+  removal, plus axial and atropisomeric geometries;
 - exact represented-graph substituent equivalence and non-stereogenic cases;
 - direct-priority `R/S` and `E/Z` derived outputs plus explicit unresolved
   recursive/ring/pseudoasymmetric/axial CIP cases;
+- exact SP/TBP/SPY/OH ideal templates and every numeric descriptor, preserving
+  earlier algebra-golden byte hashes and all pre-Gate-7 indices;
+- center-rooted translation/proper-rotation/scale and independent-radius
+  invariance, determinant-negative reflections, and no donor-centroid fit;
+- exact inside/equal/outside tests for the 12-degree RMS, 2-degree
+  same-family, and 3-degree TBP/SPY boundaries, including strong alternate-
+  family coordinate contradictions without family migration;
+- active plus both hidden-bond first-shell coverage, all-ATOM/ungrouped-only
+  boundaries, same-center duplicate/cross-family rejection, and independent
+  versus coupled multicenter records;
+- complete represented-graph projection parity for coordination-only payloads,
+  including global malformed-edge, dative-direction, and projected atom-
+  transport-fact failures;
+- chelate pair-partition preservation and split/merge failures under explicit
+  mappings, with no fit or descriptor-number influence;
+- unsupported non-atom carriers, exact opaque haptic/centroid preservation,
+  and proof that undeclared centers are never discovered;
+- one atomic public-support test spanning validation, assignment, alignment,
+  generic transforms, and Gate-6 descendant semantic constraints;
 - explicit unsupported-type reports with no silent stereo erasure.
 
 ## 11. Performance and resource policy
@@ -1565,7 +1734,10 @@ This stage does not:
 - replace Hotpot metal/coordination topology semantics;
 - remove all Python RDKit use from drawing, ML, or conversion features; or
 - claim experimental conformers are chemically definitive without reference
-  structures.
+  structures;
+- infer coordination stereo, hapticity, ligand identity, metal chemistry, or
+  coordination CIP beyond explicit supported Gate-7 records; or
+- interpret grouped or coupled-multicenter coordination stereo in Gate 7.
 
 ## 14. Approved decisions and implementation refinements
 
@@ -1617,9 +1789,15 @@ govern the work:
 19. Extend assignment reports with backward-compatible derived descriptors,
     emit only the directly decidable Stage-17 CIP subset, and leave the full
     recursive IUPAC Sequence Rules to a separately specified golden corpus.
-20. Define square-pyramidal stereo as 30 proper-C4 orbits with fixed
-    `+z,+x,+y,-x,-y` ideal-site order, without changing frozen SP/TBP/OH
-    numbering or treating mirrors as rotations.
+20. Define Gate-7 coordination stereo as the single declared-record contract
+    in Section 7.2: preserve frozen SP/TBP/OH numbering; add SPY as 30
+    proper-C4 orbits at `+z,+x,+y,-x,-y`; require at most one supported atom-
+    centered record per center, with every supported record ungrouped and
+    exactly covering the represented shell; classify center-rooted unit
+    directions by no-centroid determinant-positive fitting with frozen
+    12/2/3-degree policies; preserve the represented-graph chelate partition
+    under mappings; reject grouped, non-atom, inferred, and coupled-multicenter
+    cases explicitly; and cut over every public semantic path atomically.
 
 Every implementation-driven revision is recorded in `implementation_log.md`
 before dependent production work continues.

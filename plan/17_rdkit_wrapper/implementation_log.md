@@ -378,4 +378,58 @@ Adjustment:
 - consumer field sets have not yet been moved. Existing Open Babel and
   force-field paths still use their original packer in this checkpoint.
 
+Git checkpoint: `8f269cb feat(native): add field-selective molecule buffers`.
+
+### Benchmark evidence audit 1 - Recover the formal 182-case provenance
+
+Status: blocked on artifact recovery or owner approval for a new identity
+
+Planned:
+
+- recover and hash-check the published Am 182-case canonical manifest with
+  SHA-256
+  `4416bb8558ef420fad3176a82845d02bd1e83d9b271347c97d65174f799a0377`;
+  and
+- never substitute the development Eu smoke cohort for formal evidence.
+
+Performed:
+
+- recovered the original generation chain from the archived Codex thread
+  `01a0eb4a-247e-72b0-989a-59df5f4d4da0`;
+- identified reference commit `11c0e3d0086957645053023d692723ffd4ef7fae`,
+  RDKit generator-fix commit `b8e085d`, and publication-record commit
+  `1d87d7436dd84995d2b6b0e33a3418b77fd809f2`;
+- recovered the formal input digest, seed, thresholds, optimization settings,
+  worker count, and exact generator/reference commands; and
+- searched all reachable and unreachable Git blobs by content, Git history,
+  the home directory and Trash, and three known repository backup archives.
+
+Verification:
+
+- the formal artifact was generated at
+  `movie/benchmarks/extractants_am_187_four_workflows_20261009/rdkit_am/`
+  `canonical_cases.json`; the sibling `rdkit` directory was the failed run
+  before the Am mapping fix;
+- the formal reference produced 182 successes from 187 inputs and excluded
+  cases 139, 182, 185, 186, and 187; and
+- no searched file, archive member, or Git blob matches the published digest.
+
+Unexpected findings:
+
+- the formal artifact was never committed and its file, reference manifest,
+  per-case reports, and trajectories are no longer present;
+- the same byte identity cannot be recreated by rerunning the recovered
+  command because the artifact includes a microsecond `created_at`, absolute
+  reference identity, per-case runtime, validation payloads, convergence, and
+  trajectory-derived topology digests.
+
+Adjustment:
+
+- engineering development may use the explicitly labelled Eu smoke cohort;
+- no formal benchmark claim will be made from that smoke artifact;
+- formal closure requires either an external backup of the old canonical
+  artifact (or its complete reference evidence), or explicit owner approval
+  to create a deterministic semantic cohort v2 with a new digest and without
+  volatile path/time/runtime identity fields.
+
 Git checkpoint: pending.

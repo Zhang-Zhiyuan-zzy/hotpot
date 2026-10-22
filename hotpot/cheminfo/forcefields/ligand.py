@@ -10,6 +10,12 @@ from typing import Optional, Tuple, TYPE_CHECKING
 import numpy as np
 
 from .. import geometry as geo
+from ..conformers import (
+    ConformerSampler,
+    ConformerSamplingError,
+    ConformerSamplingRequest,
+    OpenBabelConformerAdapter,
+)
 from .acceptance import (
     _format_geometry_checks,
     _has_unreturnable_frame_failure,
@@ -115,6 +121,7 @@ def _build_ligand_proxies(
     perturb_sigma: float = 0.5,
     seed: Optional[int] = None,
     trajectory_attempts: Optional[list[ForceFieldTrajectory]] = None,
+    sampler: Optional[ConformerSampler] = None,
 ) -> Tuple[np.ndarray, ComplexBuildDiagnostics]:
     """Build each ligand once, then explore bounded perturbative proposals."""
     started = time.monotonic()
@@ -127,6 +134,20 @@ def _build_ligand_proxies(
     rejections: list[CandidateRejection] = []
     warning_messages: list[str] = []
     selected_untangling_reports: list[RingUntanglingReport] = []
+    selected_sampler = (
+        sampler
+        if sampler is not None
+        else OpenBabelConformerAdapter(_builder=_ob_build)
+    )
+    sampling_request = ConformerSamplingRequest(
+        conformer_count=1,
+        seed=seed,
+    )
+    provider_name = (
+        "OBBuilder"
+        if isinstance(selected_sampler, OpenBabelConformerAdapter)
+        else "conformer provider"
+    )
 
     for component_index, component_mol in enumerate(clone_mol.components):
         if component_mol.has_metal:
@@ -162,8 +183,9 @@ def _build_ligand_proxies(
         total_attempts += 1
         first_trajectory = start_attempt_trajectory(component_attempts)
         try:
-            _ob_build(component_mol)
-        except ForceFieldError as exc:
+            sampled = selected_sampler.sample(component_mol, sampling_request)
+            component_mol.coordinates = sampled.coordinates[0]
+        except (ConformerSamplingError, ForceFieldError) as exc:
             if first_trajectory is not None:
                 terminal_frame = first_trajectory.record_molecule(
                     component_mol,
@@ -187,7 +209,8 @@ def _build_ligand_proxies(
                 ligand_build_elapsed_seconds=elapsed_seconds,
             )
             raise ComplexBuildError(
-                f"Component {component_index} failed its single OBBuilder call",
+                f"Component {component_index} failed its single "
+                f"{provider_name} call",
                 diagnostics,
             ) from exc
 

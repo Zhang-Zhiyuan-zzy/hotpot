@@ -181,14 +181,16 @@ def test_double_bond_requires_real_double_bond_and_endpoint_local_groups():
     (
         ("hotpot.stereo/2/TH/R", stereo.StereoIssueCode.INVALID_DESCRIPTOR),
         ("hotpot.stereo/2/NEW/value", stereo.StereoIssueCode.UNSUPPORTED),
-        ("hotpot.stereo/2/AX/even", stereo.StereoIssueCode.UNSUPPORTED),
         ("hotpot.stereo/2/SP/1", stereo.StereoIssueCode.UNSUPPORTED),
         ("hotpot.stereo/2/TBP/1", stereo.StereoIssueCode.UNSUPPORTED),
         ("hotpot.stereo/2/SPY/unsupported", stereo.StereoIssueCode.UNSUPPORTED),
         ("hotpot.stereo/2/OH/1", stereo.StereoIssueCode.UNSUPPORTED),
     ),
 )
-def test_non_gate2_descriptors_are_never_silently_accepted(descriptor, code):
+def test_invalid_or_unsupported_descriptors_are_never_silently_accepted(
+    descriptor,
+    code,
+):
     molecule = _molecule(
         5,
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (0, 4, 1.0)),
@@ -208,6 +210,33 @@ def test_non_gate2_descriptors_are_never_silently_accepted(descriptor, code):
     assert tuple(issue.code for issue in report.issues) == (code,)
     assert report.issues[0].record_index == 0
     assert report.issues[0].atom_indices == (0, 1, 2, 3, 4)
+
+
+def test_ax_descriptor_rejects_an_atom_anchor():
+    molecule = _molecule(
+        5,
+        ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (0, 4, 1.0)),
+    )
+    _set_records(
+        molecule,
+        _record(
+            stereo.StereoAnchor(stereo.StereoAnchorKind.ATOM, (0,)),
+            (_atom(1), _atom(2), _atom(3), _atom(4)),
+            "hotpot.stereo/2/AX/even",
+        ),
+    )
+
+    report = stereo.validate_stereochemistry(molecule)
+
+    assert report.issues == (
+        stereo.StereoValidationIssue(
+            stereo.StereoIssueCode.INVALID_ANCHOR,
+            "AX requires a bond anchor with 2 atom rows or an odd axis path "
+            "of at least 3 rows",
+            record_index=0,
+            atom_indices=(0,),
+        ),
+    )
 
 
 def test_out_of_range_anchor_and_carrier_have_stable_context():

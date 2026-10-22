@@ -519,21 +519,37 @@ def _validate_stereo_anchor(
 ) -> tuple[StereoValidationIssue, ...]:
     """Validate the graph identity and orientation carried by an anchor."""
 
-    bond_family = family in (
-        _Level2DescriptorFamily.DOUBLE_BOND,
-        _Level2DescriptorFamily.AXIAL,
-    )
-    expected_kind = (
-        StereoAnchorKind.BOND if bond_family else StereoAnchorKind.ATOM
-    )
-    expected_count = 2 if bond_family else 1
     issues = []
-    if anchor.kind is not expected_kind or len(anchor.atom_indices) != expected_count:
+    if family is _Level2DescriptorFamily.AXIAL:
+        valid_shape = (
+            anchor.kind is StereoAnchorKind.BOND
+            and len(anchor.atom_indices) == 2
+        ) or (
+            anchor.kind is StereoAnchorKind.AXIS
+            and len(anchor.atom_indices) >= 3
+            and len(anchor.atom_indices) % 2 == 1
+        )
+        requirement = (
+            "a bond anchor with 2 atom rows or an odd axis path of at least 3 rows"
+        )
+    else:
+        bond_family = family is _Level2DescriptorFamily.DOUBLE_BOND
+        expected_kind = (
+            StereoAnchorKind.BOND if bond_family else StereoAnchorKind.ATOM
+        )
+        expected_count = 2 if bond_family else 1
+        valid_shape = (
+            anchor.kind is expected_kind
+            and len(anchor.atom_indices) == expected_count
+        )
+        requirement = (
+            f"a {expected_kind.value} anchor with {expected_count} atom row(s)"
+        )
+    if not valid_shape:
         issues.append(
             _algebra_issue(
                 StereoIssueCode.INVALID_ANCHOR,
-                f"{family.value} requires a {expected_kind.value} anchor with "
-                f"{expected_count} atom row(s)",
+                f"{family.value} requires {requirement}",
             )
         )
     if any(
@@ -546,11 +562,14 @@ def _validate_stereo_anchor(
                 "anchor atom rows must be non-negative integers",
             )
         )
-    if bond_family and len(set(anchor.atom_indices)) != len(anchor.atom_indices):
+    if (
+        anchor.kind in (StereoAnchorKind.BOND, StereoAnchorKind.AXIS)
+        and len(set(anchor.atom_indices)) != len(anchor.atom_indices)
+    ):
         issues.append(
             _algebra_issue(
                 StereoIssueCode.INVALID_ANCHOR,
-                "bond anchor endpoints must be distinct",
+                "bond or axis anchor atom rows must be distinct",
             )
         )
     return tuple(issues)
@@ -711,6 +730,36 @@ def _is_endpoint_pair_reordering(permutation: Sequence[int]) -> bool:
     )
 
 
+def _endpoint_pair_reordering(
+    source: Sequence[StereoCarrier],
+    reordered: Sequence[StereoCarrier],
+    *,
+    endpoint_groups_reversed: bool,
+) -> tuple[int, ...] | None:
+    """Match carrier identities within endpoint scope, including virtual H."""
+
+    if len(source) != 4 or len(reordered) != 4:
+        return None
+    reordering = []
+    for reordered_group in range(2):
+        source_group = (
+            1 - reordered_group if endpoint_groups_reversed else reordered_group
+        )
+        source_start = 2 * source_group
+        source_carriers = source[source_start : source_start + 2]
+        for carrier in reordered[2 * reordered_group : 2 * reordered_group + 2]:
+            identity = carrier.kind, carrier.atom
+            positions = tuple(
+                source_start + offset
+                for offset, candidate in enumerate(source_carriers)
+                if (candidate.kind, candidate.atom) == identity
+            )
+            if len(positions) != 1:
+                return None
+            reordering.append(positions[0])
+    return tuple(reordering)
+
+
 def _transform_level2_descriptor(
     descriptor: _Level2Descriptor,
     source_carriers: Sequence[StereoCarrier],
@@ -745,8 +794,15 @@ def _transform_level2_descriptor(
     if source_anchor is not None and reordered_anchor is not None:
         issues.extend(_validate_stereo_anchor(source_anchor, family=family))
         issues.extend(_validate_stereo_anchor(reordered_anchor, family=family))
-        if source_anchor.kind is StereoAnchorKind.ATOM:
+        if source_anchor.kind is not reordered_anchor.kind:
+            same_identity = False
+        elif source_anchor.kind is StereoAnchorKind.ATOM:
             same_identity = source_anchor.atom_indices == reordered_anchor.atom_indices
+        elif source_anchor.kind is StereoAnchorKind.AXIS:
+            same_identity = reordered_anchor.atom_indices in (
+                source_anchor.atom_indices,
+                source_anchor.atom_indices[::-1],
+            )
         else:
             same_identity = set(source_anchor.atom_indices) == set(
                 reordered_anchor.atom_indices
@@ -758,14 +814,33 @@ def _transform_level2_descriptor(
                     "reordered anchor must identify the same graph object",
                 )
             )
-    issues.extend(_validate_stereo_carriers(source_carriers, expected_count=count))
-    issues.extend(
-        _validate_stereo_carriers(reordered_carriers, expected_count=count)
+    carrier_validator = (
+        _validate_gate2_double_bond_carriers
+        if family is _Level2DescriptorFamily.AXIAL
+        else lambda carriers: _validate_stereo_carriers(
+            carriers,
+            expected_count=count,
+        )
     )
+    issues.extend(carrier_validator(source_carriers))
+    issues.extend(carrier_validator(reordered_carriers))
     if issues:
         return _Level2AlgebraResult(None, tuple(issues))
 
-    reordering = _carrier_reordering(source_carriers, reordered_carriers)
+    anchor_reversed = (
+        source_anchor is not None
+        and reordered_anchor is not None
+        and source_anchor.atom_indices == reordered_anchor.atom_indices[::-1]
+    )
+    reordering = (
+        _endpoint_pair_reordering(
+            source_carriers,
+            reordered_carriers,
+            endpoint_groups_reversed=anchor_reversed,
+        )
+        if family is _Level2DescriptorFamily.AXIAL
+        else _carrier_reordering(source_carriers, reordered_carriers)
+    )
     if reordering is None:
         return _Level2AlgebraResult(
             None,
@@ -801,9 +876,6 @@ def _transform_level2_descriptor(
         and source_anchor is not None
         and reordered_anchor is not None
     ):
-        anchor_reversed = (
-            source_anchor.atom_indices == reordered_anchor.atom_indices[::-1]
-        )
         carrier_pairs_reversed = frozenset(reordering[:2]) == frozenset((2, 3))
         if anchor_reversed != carrier_pairs_reversed:
             return _Level2AlgebraResult(
@@ -811,7 +883,7 @@ def _transform_level2_descriptor(
                 (
                     _algebra_issue(
                         StereoIssueCode.INVALID_CARRIER,
-                        "bond-anchor reversal and endpoint carrier-pair order disagree",
+                        "ordered-anchor reversal and endpoint carrier-pair order disagree",
                     ),
                 ),
             )
@@ -975,6 +1047,71 @@ def _validate_gate2_double_bond_carriers(
     return tuple(issues)
 
 
+def _validate_gate5_axial_carriers(
+    carriers: Sequence[StereoCarrier],
+) -> tuple[StereoValidationIssue, ...]:
+    """Validate endpoint-scoped AX carrier identity and virtual hydrogens."""
+
+    issues = []
+    if len(carriers) != 4:
+        issues.append(
+            _algebra_issue(
+                StereoIssueCode.INVALID_CARRIER,
+                f"expected 4 ordered carriers, got {len(carriers)}",
+            )
+        )
+    for position, carrier in enumerate(carriers):
+        if carrier.kind is StereoCarrierKind.ATOM:
+            if (
+                not isinstance(carrier.atom, int)
+                or isinstance(carrier.atom, bool)
+                or carrier.atom < 0
+            ):
+                issues.append(
+                    _algebra_issue(
+                        StereoIssueCode.INVALID_CARRIER,
+                        f"atom carrier at position {position} requires a "
+                        "non-negative atom row",
+                    )
+                )
+        elif carrier.kind is not StereoCarrierKind.IMPLICIT_H:
+            issues.append(
+                _algebra_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    "AX permits only atom and implicit-H carriers",
+                )
+            )
+        if carrier.kind is not StereoCarrierKind.ATOM and carrier.atom is not None:
+            issues.append(
+                _algebra_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    f"non-atom carrier at position {position} cannot carry an atom row",
+                )
+            )
+
+    for endpoint, start in enumerate((0, 2)):
+        group = carriers[start : start + 2]
+        identities = tuple((carrier.kind, carrier.atom) for carrier in group)
+        if len(set(identities)) != len(identities):
+            issues.append(
+                _algebra_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    f"duplicate carrier identity in AX endpoint group {endpoint}",
+                )
+            )
+        if sum(
+            carrier.kind is StereoCarrierKind.IMPLICIT_H for carrier in group
+        ) > 1:
+            issues.append(
+                _algebra_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    f"AX endpoint group {endpoint} permits at most one "
+                    "implicit-H carrier",
+                )
+            )
+    return tuple(issues)
+
+
 def _molecule_stereo_topology(
     mol: Molecule,
 ) -> tuple[int, tuple[frozenset[int], ...], dict[frozenset[int], float]]:
@@ -995,6 +1132,17 @@ def _molecule_stereo_topology(
         tuple(frozenset(neighbours) for neighbours in adjacency),
         bond_orders,
     )
+
+
+def _molecule_stereo_bond_kinds(mol: Molecule) -> dict[frozenset[int], str]:
+    """Return semantic bond kinds without invoking toolkit perception."""
+
+    atom_rows = {id(atom): row for row, atom in enumerate(mol._atoms)}
+    return {
+        frozenset((atom_rows[id(bond.atom1)], atom_rows[id(bond.atom2)])):
+        bond.bond_kind.value
+        for bond in mol._bonds + mol._hided_bonds
+    }
 
 
 def _validate_gate2_atom_ranges(
@@ -1232,10 +1380,166 @@ def _validate_gate2_double_bond_graph(
     return tuple(issues)
 
 
+def _validate_gate5_axial_graph(
+    record: StereoRecord,
+    *,
+    record_index: int,
+    atom_count: int,
+    adjacency: Sequence[frozenset[int]],
+    bond_orders: Mapping[frozenset[int], float],
+    bond_kinds: Mapping[frozenset[int], str],
+) -> tuple[StereoValidationIssue, ...]:
+    """Validate explicit allene/cumulene and formal atrop AX graph identity."""
+
+    anchor = record.anchor
+    path = anchor.atom_indices
+    if any(not 0 <= atom < atom_count for atom in path):
+        return ()
+
+    issues = []
+    if anchor.kind is StereoAnchorKind.AXIS:
+        path_edges = tuple(
+            frozenset((begin, end)) for begin, end in zip(path, path[1:])
+        )
+        for edge in path_edges:
+            if edge not in bond_orders:
+                issues.append(
+                    _gate2_issue(
+                        StereoIssueCode.INVALID_ANCHOR,
+                        "AX axis path contains atoms that are not bonded",
+                        record_index=record_index,
+                        atom_indices=path,
+                    )
+                )
+            elif bond_orders[edge] != 2.0 or bond_kinds[edge] != "double":
+                issues.append(
+                    _gate2_issue(
+                        StereoIssueCode.INVALID_ANCHOR,
+                        "AX axis path edges must be non-aromatic double bonds",
+                        record_index=record_index,
+                        atom_indices=path,
+                    )
+                )
+
+        for position, atom in enumerate(path[1:-1], start=1):
+            off_axis = set(adjacency[atom]) - {path[position - 1], path[position + 1]}
+            if off_axis:
+                issues.append(
+                    _gate2_issue(
+                        StereoIssueCode.INVALID_ANCHOR,
+                        "AX axis path internal atoms cannot have off-axis neighbours",
+                        record_index=record_index,
+                        atom_indices=(atom, *sorted(off_axis)),
+                    )
+                )
+
+        for endpoint, next_atom in ((path[0], path[1]), (path[-1], path[-2])):
+            extends_axis = any(
+                bond_orders.get(frozenset((endpoint, neighbour))) == 2.0
+                and bond_kinds.get(frozenset((endpoint, neighbour))) == "double"
+                for neighbour in adjacency[endpoint] - {next_atom}
+            )
+            if extends_axis:
+                issues.append(
+                    _gate2_issue(
+                        StereoIssueCode.INVALID_ANCHOR,
+                        "AX axis path must be maximal across non-aromatic double bonds",
+                        record_index=record_index,
+                        atom_indices=path,
+                    )
+                )
+    else:
+        begin, end = path
+        edge = frozenset((begin, end))
+        if edge not in bond_orders:
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.INVALID_ANCHOR,
+                    "formal atrop AX anchor endpoints are not bonded",
+                    record_index=record_index,
+                    atom_indices=path,
+                )
+            )
+        elif bond_orders[edge] != 1.0 or bond_kinds[edge] != "single":
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.INVALID_ANCHOR,
+                    "formal atrop AX anchor must identify a non-aromatic, "
+                    "non-dative single bond",
+                    record_index=record_index,
+                    atom_indices=path,
+                )
+            )
+
+    begin, end = path[0], path[-1]
+    adjacent_axis_atoms = path[1], path[-2]
+    for endpoint_index, (endpoint, axis_neighbour) in enumerate(
+        zip((begin, end), adjacent_axis_atoms)
+    ):
+        group = record.carriers[2 * endpoint_index : 2 * endpoint_index + 2]
+        atom_carriers = set()
+        virtual_hydrogens = 0
+        for carrier in group:
+            if carrier.kind is StereoCarrierKind.ATOM:
+                atom = carrier.atom
+                if (
+                    not isinstance(atom, int)
+                    or isinstance(atom, bool)
+                    or not 0 <= atom < atom_count
+                ):
+                    continue
+                if atom == axis_neighbour or atom not in adjacency[endpoint]:
+                    issues.append(
+                        _gate2_issue(
+                            StereoIssueCode.INVALID_CARRIER,
+                            f"carrier atom row {atom} is not an off-axis neighbour "
+                            f"of AX endpoint {endpoint}",
+                            record_index=record_index,
+                            atom_indices=(endpoint, atom),
+                        )
+                    )
+                atom_carriers.add(atom)
+            elif carrier.kind is StereoCarrierKind.IMPLICIT_H:
+                virtual_hydrogens += 1
+
+        neighbours = set(adjacency[endpoint]) - {axis_neighbour}
+        if atom_carriers != neighbours:
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    "AX endpoint atom carriers must exactly cover its off-axis "
+                    "graph neighbours",
+                    record_index=record_index,
+                    atom_indices=(endpoint, *sorted(atom_carriers | neighbours)),
+                )
+            )
+        if virtual_hydrogens > 1:
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    "each AX endpoint permits at most one implicit-H carrier",
+                    record_index=record_index,
+                    atom_indices=(endpoint,),
+                )
+            )
+        if len(neighbours) + virtual_hydrogens != 2:
+            issues.append(
+                _gate2_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    "each AX endpoint requires exactly two graph or implicit-H "
+                    "carriers",
+                    record_index=record_index,
+                    atom_indices=(endpoint,),
+                )
+            )
+    return tuple(issues)
+
+
 def _validate_gate2_stereochemistry(mol: Molecule) -> StereoValidationReport:
-    """Validate manually specified Gate-2 TH and DB graph semantics."""
+    """Validate supported manual graph semantics through Level-2 Gate 5."""
 
     atom_count, adjacency, bond_orders = _molecule_stereo_topology(mol)
+    bond_kinds = _molecule_stereo_bond_kinds(mol)
     issues = []
     seen_anchors = set()
     for record_index, record in enumerate(get_stereo_payload(mol).records):
@@ -1256,6 +1560,7 @@ def _validate_gate2_stereochemistry(mol: Molecule) -> StereoValidationReport:
         if family not in (
             _Level2DescriptorFamily.TETRAHEDRAL,
             _Level2DescriptorFamily.DOUBLE_BOND,
+            _Level2DescriptorFamily.AXIAL,
         ):
             issues.append(
                 _gate2_issue(
@@ -1289,7 +1594,11 @@ def _validate_gate2_stereochemistry(mol: Molecule) -> StereoValidationReport:
         carrier_issues = (
             _validate_stereo_carriers(record.carriers, expected_count=4)
             if family is _Level2DescriptorFamily.TETRAHEDRAL
-            else _validate_gate2_double_bond_carriers(record.carriers)
+            else (
+                _validate_gate2_double_bond_carriers(record.carriers)
+                if family is _Level2DescriptorFamily.DOUBLE_BOND
+                else _validate_gate5_axial_carriers(record.carriers)
+            )
         )
         issues.extend(
             _record_issues(
@@ -1313,7 +1622,14 @@ def _validate_gate2_stereochemistry(mol: Molecule) -> StereoValidationReport:
                 family,
                 record.anchor.atom_indices[0]
                 if family is _Level2DescriptorFamily.TETRAHEDRAL
-                else frozenset(record.anchor.atom_indices),
+                else (
+                    frozenset(record.anchor.atom_indices)
+                    if record.anchor.kind is StereoAnchorKind.BOND
+                    else min(
+                        record.anchor.atom_indices,
+                        record.anchor.atom_indices[::-1],
+                    )
+                ),
             )
             if anchor_identity in seen_anchors:
                 issues.append(
@@ -1335,7 +1651,7 @@ def _validate_gate2_stereochemistry(mol: Molecule) -> StereoValidationReport:
                         adjacency=adjacency,
                     )
                 )
-            else:
+            elif family is _Level2DescriptorFamily.DOUBLE_BOND:
                 issues.extend(
                     _validate_gate2_double_bond_graph(
                         record,
@@ -1343,6 +1659,17 @@ def _validate_gate2_stereochemistry(mol: Molecule) -> StereoValidationReport:
                         atom_count=atom_count,
                         adjacency=adjacency,
                         bond_orders=bond_orders,
+                    )
+                )
+            else:
+                issues.extend(
+                    _validate_gate5_axial_graph(
+                        record,
+                        record_index=record_index,
+                        atom_count=atom_count,
+                        adjacency=adjacency,
+                        bond_orders=bond_orders,
+                        bond_kinds=bond_kinds,
                     )
                 )
 
@@ -1577,6 +1904,117 @@ def _double_bond_coordinate_descriptor(
     )
 
 
+def _axial_coordinate_descriptor(
+    record: StereoRecord,
+    coordinates: NDArray[np.float64],
+    *,
+    record_index: int,
+) -> tuple[_Level2Descriptor | None, StereoValidationIssue | None]:
+    """Assign AX parity from its ordered endpoint carrier-pair triple product."""
+
+    begin = record.anchor.atom_indices[0]
+    end = record.anchor.atom_indices[-1]
+    axis = coordinates[end] - coordinates[begin]
+    axis_norm = float(np.linalg.norm(axis))
+    endpoint_vectors = tuple(
+        tuple(
+            coordinates[carrier.atom] - coordinates[endpoint]
+            for carrier in record.carriers[
+                2 * endpoint_index : 2 * endpoint_index + 2
+            ]
+            if carrier.kind is StereoCarrierKind.ATOM
+        )
+        for endpoint_index, endpoint in enumerate((begin, end))
+    )
+    explicit_norms = tuple(
+        float(np.linalg.norm(vector))
+        for vectors in endpoint_vectors
+        for vector in vectors
+    )
+    local_scale = max((axis_norm, *explicit_norms))
+    if _is_relatively_degenerate(axis_norm, local_scale):
+        return None, _geometry_issue(
+            "AX coordinate geometry has coincident axis endpoints within "
+            f"relative tolerance {_GEOMETRY_RELATIVE_TOLERANCE:g}",
+            record_index=record_index,
+            atom_indices=_record_atom_indices(record),
+        )
+    axis_unit = axis / axis_norm
+
+    endpoint_directions = []
+    for endpoint_index, endpoint in enumerate((begin, end)):
+        explicit_at_endpoint = endpoint_vectors[endpoint_index]
+        endpoint_scale = max(
+            (
+                axis_norm,
+                *(
+                    float(np.linalg.norm(vector))
+                    for vector in explicit_at_endpoint
+                ),
+            )
+        )
+        if any(
+            _is_relatively_degenerate(
+                float(np.linalg.norm(vector)),
+                endpoint_scale,
+            )
+            for vector in explicit_at_endpoint
+        ):
+            return None, _geometry_issue(
+                "AX coordinate geometry has a carrier coincident with its endpoint "
+                "within relative tolerance "
+                f"{_GEOMETRY_RELATIVE_TOLERANCE:g}",
+                record_index=record_index,
+                atom_indices=_record_atom_indices(record),
+            )
+
+        transverse = []
+        group = record.carriers[2 * endpoint_index : 2 * endpoint_index + 2]
+        for carrier in group:
+            if carrier.kind is StereoCarrierKind.ATOM:
+                vector = coordinates[carrier.atom] - coordinates[endpoint]
+                transverse.append(vector - np.dot(vector, axis_unit) * axis_unit)
+            else:
+                transverse.append(np.zeros(3, dtype=np.float64))
+
+        direction = transverse[0] - transverse[1]
+        direction_norm = float(np.linalg.norm(direction))
+        if _is_relatively_degenerate(direction_norm, endpoint_scale):
+            return None, _geometry_issue(
+                f"AX endpoint {endpoint} has degenerate projected carriers "
+                "within relative tolerance "
+                f"{_GEOMETRY_RELATIVE_TOLERANCE:g}",
+                record_index=record_index,
+                atom_indices=_record_atom_indices(record),
+            )
+        endpoint_directions.append(direction)
+
+    handedness = float(
+        np.dot(
+            axis_unit,
+            np.cross(
+                endpoint_directions[0] / np.linalg.norm(endpoint_directions[0]),
+                endpoint_directions[1] / np.linalg.norm(endpoint_directions[1]),
+            ),
+        )
+    )
+    sign = _normalized_geometry_sign(handedness, 1.0)
+    if sign == 0:
+        return None, _geometry_issue(
+            "AX endpoint carrier triple product is degenerate within relative "
+            f"tolerance {_GEOMETRY_RELATIVE_TOLERANCE:g}",
+            record_index=record_index,
+            atom_indices=_record_atom_indices(record),
+        )
+    return (
+        _Level2Descriptor(
+            _Level2DescriptorFamily.AXIAL,
+            "even" if sign > 0 else "odd",
+        ),
+        None,
+    )
+
+
 def _gate4_coordinate_assignments(
     mol: Molecule,
     coordinates: NDArray[np.float64],
@@ -1602,21 +2040,27 @@ def _gate4_coordinate_assignments(
         if parsed is None or parsed.family not in (
             _Level2DescriptorFamily.TETRAHEDRAL,
             _Level2DescriptorFamily.DOUBLE_BOND,
+            _Level2DescriptorFamily.AXIAL,
         ):
             continue
-        assigned, geometry_issue = (
-            _tetrahedral_coordinate_descriptor(
+        if parsed.family is _Level2DescriptorFamily.TETRAHEDRAL:
+            assigned, geometry_issue = _tetrahedral_coordinate_descriptor(
                 record,
                 array,
                 record_index=record_index,
             )
-            if parsed.family is _Level2DescriptorFamily.TETRAHEDRAL
-            else _double_bond_coordinate_descriptor(
+        elif parsed.family is _Level2DescriptorFamily.DOUBLE_BOND:
+            assigned, geometry_issue = _double_bond_coordinate_descriptor(
                 record,
                 array,
                 record_index=record_index,
             )
-        )
+        else:
+            assigned, geometry_issue = _axial_coordinate_descriptor(
+                record,
+                array,
+                record_index=record_index,
+            )
         if geometry_issue is not None:
             issues.append(geometry_issue)
             continue
@@ -1824,11 +2268,18 @@ def _mapped_alignment_record(
 def _alignment_record_identity(
     family: _Level2DescriptorFamily,
     anchor: StereoAnchor,
-) -> tuple[_Level2DescriptorFamily, int | frozenset[int]]:
+) -> tuple[object, ...]:
     """Return the orientation-independent identity of a Gate-3 element."""
 
     if family is _Level2DescriptorFamily.TETRAHEDRAL:
         return family, anchor.atom_indices[0]
+    if family is _Level2DescriptorFamily.AXIAL:
+        oriented_identity = (
+            frozenset(anchor.atom_indices)
+            if anchor.kind is StereoAnchorKind.BOND
+            else min(anchor.atom_indices, anchor.atom_indices[::-1])
+        )
+        return family, anchor.kind, oriented_identity
     return family, frozenset(anchor.atom_indices)
 
 
@@ -1900,12 +2351,66 @@ def _transform_gate3_double_bond(
     )
 
 
+def _transform_gate5_axial(
+    descriptor: _Level2Descriptor,
+    source: StereoRecord,
+    target: StereoRecord,
+) -> _Level2AlgebraResult:
+    """Transform AX parity using endpoint-scoped carrier identity."""
+
+    if source.anchor.kind is not target.anchor.kind:
+        return _Level2AlgebraResult(
+            None,
+            (
+                _algebra_issue(
+                    StereoIssueCode.INVALID_ANCHOR,
+                    "AXIS and BOND axial anchors cannot cross-match",
+                ),
+            ),
+        )
+    anchor_reversed = source.anchor.atom_indices == target.anchor.atom_indices[::-1]
+    if target.anchor.atom_indices not in (
+        source.anchor.atom_indices,
+        source.anchor.atom_indices[::-1],
+    ):
+        return _Level2AlgebraResult(
+            None,
+            (
+                _algebra_issue(
+                    StereoIssueCode.INVALID_ANCHOR,
+                    "AX anchor must preserve identity or fully reverse",
+                ),
+            ),
+        )
+    reordering = _endpoint_pair_reordering(
+        source.carriers,
+        target.carriers,
+        endpoint_groups_reversed=anchor_reversed,
+    )
+    if reordering is None:
+        return _Level2AlgebraResult(
+            None,
+            (
+                _algebra_issue(
+                    StereoIssueCode.INVALID_CARRIER,
+                    "mapped AX carriers do not match target endpoint groups",
+                ),
+            ),
+        )
+    parity = _PARITY_VALUES.index(descriptor.value)
+    value = _PARITY_VALUES[parity ^ _permutation_parity(reordering)]
+    return _Level2AlgebraResult(
+        _Level2Descriptor(_Level2DescriptorFamily.AXIAL, value),
+        (),
+    )
+
+
 def align_stereochemistry(
     reference: Molecule,
     target: Molecule,
     atom_mapping: Mapping[int, int],
 ) -> StereoAlignmentReport:
-    """Compare manual TH and DB descriptors under an explicit atom mapping."""
+    """Compare supported descriptors under an explicit atom mapping."""
 
     reference_payload = get_stereo_payload(reference)
     target_payload = get_stereo_payload(target)
@@ -1970,17 +2475,26 @@ def align_stereochemistry(
 
         target_index, target_record, _ = matches[0]
         matched_target_indices.add(target_index)
-        transformed = (
-            _transform_level2_descriptor(
+        if parsed.family is _Level2DescriptorFamily.TETRAHEDRAL:
+            transformed = _transform_level2_descriptor(
                 parsed,
                 mapped.carriers,
                 target_record.carriers,
                 source_anchor=mapped.anchor,
                 reordered_anchor=target_record.anchor,
             )
-            if parsed.family is _Level2DescriptorFamily.TETRAHEDRAL
-            else _transform_gate3_double_bond(parsed, mapped, target_record)
-        )
+        elif parsed.family is _Level2DescriptorFamily.DOUBLE_BOND:
+            transformed = _transform_gate3_double_bond(
+                parsed,
+                mapped,
+                target_record,
+            )
+        else:
+            transformed = _transform_gate5_axial(
+                parsed,
+                mapped,
+                target_record,
+            )
         if transformed.issues:
             issues.extend(
                 _record_issues(

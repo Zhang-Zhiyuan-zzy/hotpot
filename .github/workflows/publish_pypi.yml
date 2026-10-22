@@ -33,6 +33,8 @@ jobs:
           CIBW_ARCHS_LINUX: x86_64
           CIBW_MANYLINUX_X86_64_IMAGE: >-
             quay.io/pypa/manylinux_2_28_x86_64@sha256:39df0042d5cc900b085aa25a0659368b42a0006c54c474299b785b44c1b4ff82
+          CIBW_CONTAINER_ENGINE: >-
+            docker; disable_host_mount: true
           CIBW_ENVIRONMENT_LINUX: >-
             HOTPOT_RDWRAPPERS_BUILD_PROFILE=manylinux_2_28_x86_64
             HOTPOT_RDKIT_SOURCE_CACHE=/tmp/hotpot-rdkit-source-cache
@@ -58,6 +60,18 @@ jobs:
             sample = rdWrappers.generate_conformers(hotpot.read_mol('CCO', 'smi'), options=rdWrappers.ETKDGOptions(seed=123));
             assert sample.status is rdWrappers.GenerationStatus.SUCCESS;
             assert sample.coordinates.shape == (1, 3, 3)"
+            && python -c "from rdkit import Chem, rdBase;
+            import importlib.metadata;
+            import hotpot;
+            molecule = hotpot.Molecule();
+            atom = molecule.create_atom(atomic_number=6);
+            probe = Chem.MolFromSmiles('C[C@H](O)F');
+            assert atom.atomic_number == 6;
+            assert Chem.MolToSmiles(probe, isomericSmiles=True) == 'C[C@H](O)F';
+            assert rdBase.rdkitVersion == '2026.09.1';
+            assert importlib.metadata.version('rdkit') == '2026.9.1'"
+      - name: Audit wheel contents
+        run: python tests/test_packaging/audit_rdwrapper_wheel.py wheelhouse/*.whl
       - name: Upload wheel
         uses: actions/upload-artifact@v7
         with:

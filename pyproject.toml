@@ -136,6 +136,12 @@ all = [
 include-package-data = true
 
 [tool.setuptools.package-data]
+"hotpot.cheminfo.rdWrappers" = [
+    "_rd_native.pyi",
+]
+"hotpot.cheminfo.rdWrappers._native" = [
+    "THIRD_PARTY_NOTICES.md",
+]
 "hotpot.ds" = [
     "*.md",
     "*.json",
@@ -149,6 +155,27 @@ include-package-data = true
 "hotpot.cheminfo.calculator.state_rules" = [
     "data/profiles/*.json",
     "data/rules/*.json",
+]
+
+[tool.setuptools.exclude-package-data]
+"hotpot.cheminfo._native.include.hotpot.native" = [
+    "*",
+]
+"hotpot.cheminfo.rdWrappers" = [
+    "CMakeLists.txt",
+    "build_locked.sh",
+]
+"hotpot.cheminfo.rdWrappers.cmake" = [
+    "*",
+]
+"hotpot.cheminfo.rdWrappers._native" = [
+    "BUILDING.md",
+]
+"hotpot.cheminfo.rdWrappers._native.include.hotpot.rdWrappers" = [
+    "*",
+]
+"hotpot.cheminfo.rdWrappers._native.src" = [
+    "*",
 ]
 
 [tool.setuptools.packages.find]

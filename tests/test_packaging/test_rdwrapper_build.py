@@ -1,9 +1,14 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python 3.10
+    import tomli as tomllib
 
 
 ROOT = Path(__file__).parents[2]
@@ -44,6 +49,7 @@ def test_locked_driver_rejects_unknown_profile_before_configure(tmp_path: Path):
         text=True,
         capture_output=True,
         env=environment,
+        check=False,
     )
 
     assert result.returncode != 0
@@ -103,6 +109,30 @@ def test_sdist_manifest_contains_locked_native_build_inputs():
         assert rule in manifest
 
 
+def test_wheel_excludes_rdwrapper_sdk_and_build_inputs():
+    with (ROOT / "pyproject.toml").open("rb") as stream:
+        setuptools = tomllib.load(stream)["tool"]["setuptools"]
+
+    package_data = setuptools["package-data"]
+    assert package_data["hotpot.cheminfo.rdWrappers"] == ["_rd_native.pyi"]
+    assert package_data["hotpot.cheminfo.rdWrappers._native"] == [
+        "THIRD_PARTY_NOTICES.md"
+    ]
+
+    excluded = setuptools["exclude-package-data"]
+    assert excluded["hotpot.cheminfo._native.include.hotpot.native"] == ["*"]
+    assert excluded["hotpot.cheminfo.rdWrappers"] == [
+        "CMakeLists.txt",
+        "build_locked.sh",
+    ]
+    assert excluded["hotpot.cheminfo.rdWrappers.cmake"] == ["*"]
+    assert excluded["hotpot.cheminfo.rdWrappers._native"] == ["BUILDING.md"]
+    assert excluded["hotpot.cheminfo.rdWrappers._native.include.hotpot.rdWrappers"] == [
+        "*"
+    ]
+    assert excluded["hotpot.cheminfo.rdWrappers._native.src"] == ["*"]
+
+
 def test_build_requirements_and_wheel_workflow_pin_release_profile():
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     workflow = (ROOT / ".github/workflows/publish_pypi.yml").read_text(encoding="utf-8")
@@ -113,6 +143,13 @@ def test_build_requirements_and_wheel_workflow_pin_release_profile():
         "39df0042d5cc900b085aa25a0659368b42a0006c54c474299b785b44c1b4ff82" in workflow
     )
     assert "HOTPOT_RDWRAPPERS_BUILD_PROFILE=manylinux_2_28_x86_64" in workflow
+    assert "docker; disable_host_mount: true" in workflow
     assert "auditwheel repair" in workflow
     assert "rdWrappers.runtime_info()" in workflow
     assert "rdWrappers.generate_conformers" in workflow
+    assert "from rdkit import Chem, rdBase" in workflow
+    assert "importlib.metadata.version('rdkit') == '2026.9.1'" in workflow
+    assert (
+        "python tests/test_packaging/audit_rdwrapper_wheel.py wheelhouse/*.whl"
+        in workflow
+    )

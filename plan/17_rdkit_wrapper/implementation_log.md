@@ -341,4 +341,41 @@ Adjustment:
   Open Babel's dative incompatibility remains in its existing implementation
   until the dedicated adapter migration.
 
+Git checkpoint: `1707bbf feat(native): add generic molecule buffer views`.
+
+### Step 5 - Add field-selective Python molecule buffers
+
+Status: complete
+
+Planned:
+
+- add the typed Python counterpart of the common native view without changing
+  an existing consumer; and
+- prove that selected fields, absent fields, and empty molecular dimensions
+  remain distinct.
+
+Performed:
+
+- added `NativeMoleculeField`, toolkit-neutral bond codes,
+  `NativeMoleculeBuffers`, and `pack_molecule()` under the private common
+  native package;
+- made atom/bond counts unconditional while every data field is independently
+  optional; and
+- materialized only requested arrays as exact contiguous NumPy dtypes.
+
+Verification:
+
+- combined Python-buffer and C++17-view suite: 5 passed;
+- the tests cover an empty field selection, selective packing, contiguous
+  dtype/shape contracts, present-empty versus absent bond tables, and generic
+  zero/dative/unknown codes;
+- Python byte-code compilation and `git diff --check` pass.
+
+Unexpected findings: none.
+
+Adjustment:
+
+- consumer field sets have not yet been moved. Existing Open Babel and
+  force-field paths still use their original packer in this checkpoint.
+
 Git checkpoint: pending.

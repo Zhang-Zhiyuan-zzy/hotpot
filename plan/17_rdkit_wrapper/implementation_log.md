@@ -3168,3 +3168,96 @@ the formal cohort artifact remains unavailable and the public semantic
 cutover changes no force-field provider.
 
 Git checkpoint: `a948279 feat(stereo): cut over Gate-7 coordination semantics`.
+
+### Step 45 - Separate and rerun R0 Level-2 evidence
+
+Status: complete for the canonical 187-ligand R0 rerun
+
+Planned:
+
+- retain the byte-frozen 187-ligand corpus, `1/8/32` matrix, physical-line
+  case identities, seeds, native ETKDG options, determinism rerun, and primary
+  generation-throughput denominator unchanged;
+- report stereo-payload coverage before interpreting any stereo parity result;
+- run public Level-2 validation, assignment, and identity alignment only as a
+  detached post-generation observation, with its own timing and without
+  changing native status, coordinates, or throughput; and
+- classify inputs without a declared `hotpot.stereo/2` record as
+  `NOT_APPLICABLE`, never as a valid or equivalent stereo result.
+
+Performed:
+
+- extended the R0 input snapshot with record, atom-transport,
+  bond-transport, nonempty-payload, and declared-Level-2 counts;
+- added primitive-only serializers for public validation issues and derived
+  descriptors, then recorded validation, assignment, and identity-alignment
+  evidence independently for each applicable returned conformer;
+- assigned onto a molecule clone before alignment so the source payload
+  remains immutable and alignment is not a vacuous source-to-source call;
+- gave the Level-2 observer a fresh C-contiguous `float64` coordinate copy,
+  included that copy cost only in `level2_observation_seconds`, and added a
+  mutation witness proving that the observer cannot alter the native result;
+- treated both a complete `hotpot.stereo/2/...` descriptor and the malformed
+  bare `hotpot.stereo/2` namespace declaration as applicable, allowing the
+  public validator to report the latter as `INVALID_DESCRIPTOR`; and
+- bumped the benchmark schema to `hotpot.plan17.r0/2`, added separate
+  applicability and issue aggregates, and exposed the returned-conformer
+  count covered by `NOT_APPLICABLE` without counting it as a pass.
+
+Verification:
+
+- the focused R0 runner selection reports 12 passed;
+- the combined stereo and `rdWrappers` selection reports 534 passed and 2
+  skipped;
+- Python compilation, whitespace, line-length, JSON `allow_nan=False`, and an
+  independent read-only R0 audit report no blocker;
+- the clean-tree formal rerun used commit
+  `90dd0923199c57b083cb8f8d1f952a86ba090b85`, RDKit `2026.09.1`, Python
+  `3.11.16`, one outer worker, and one ETKDG internal thread;
+- all 561 matrix trials were emitted: 559 `SUCCESS` and 2 deterministic
+  `PARTIAL` results, both for physical case 10, returning 4 of 8 and 18 of 32
+  requested conformers respectively;
+- all 7,649 returned conformers were finite and atom-row exact; atom-order,
+  topology, Level-1 transport, input-nonmutation, and same-seed mismatch
+  failure counts were all zero;
+- aggregate primary-generation time was 78.004250637 seconds, giving
+  7.191915766 ligands/second and 98.058758818 conformers/second; detached
+  Level-2 observation added 0.017287096 seconds outside that denominator;
+- all 561 input trials had zero stereo records, atom transport, and bond
+  transport, so all 7,649 returned conformers are explicitly
+  `NOT_APPLICABLE`; assessed, valid, invalid, equivalent, and non-equivalent
+  Level-2 conformer counts are all zero; and
+- run-specific artifacts are
+  `/tmp/hotpot-plan17-r0-gate7-90dd092/r0_cases.jsonl` with SHA-256
+  `2b630f6d492955a31467daaa8525c7c811d9f3954391da0be17ce14b428dc39a`
+  and `r0_summary.json` with SHA-256
+  `63ac2945abb8c5b82236f6303951873ec31bfdcedae1f90611077514953640f7`.
+
+Unexpected findings:
+
+- the canonical SMILES corpus contains no Level-2 sidecar, and the current
+  public Open Babel import path produces an empty stereo payload for every
+  case, including the source row containing SMILES `@` markers;
+- therefore the prior zero `level1_parity_failure_count` proves only that an
+  empty transported payload remains empty, not that source chirality was
+  imported and preserved; and
+- the two partial results and 7,649 total returned conformers exactly match
+  the prior R0 run, while the new primary conformer throughput differs by only
+  about -0.21%, consistent with ordinary run-to-run timing variation because
+  Level-2 observation is excluded from the denominator.
+
+Adjustment:
+
+- keep the current canonical R0 report honest by using
+  `NOT_APPLICABLE` rather than deriving a stereo pass from absent facts;
+- require any future Level-2 sidecar to be an independently hash-governed
+  artifact attached only to a post-generation observation clone, never to the
+  native ETKDG input; and
+- retain Level-1 nonmutation as transport evidence only until an importer or
+  explicit sidecar supplies nonempty source stereo facts.
+
+This rerun closes the standalone R0 generation matrix, but it makes no formal
+F1/C1/C2 or 182-complex claim; the frozen 182-case manifest and graph sidecars
+remain unavailable.
+
+Git checkpoint: `90dd092 test(rdwrapper): separate R0 Level-2 evidence`.

@@ -3611,3 +3611,117 @@ Adjustment:
   wheel-matrix release status.
 
 Git checkpoint: `37a08b3 build(rdwrapper): harden release wheel payload`.
+
+### Step 51 - Execute the five-interpreter release-wheel matrix
+
+Status: complete for the pinned local workflow-equivalent matrix; a
+GitHub-hosted Actions run is not claimed
+
+Planned:
+
+- build CPython 3.10-3.14 wheels from the clean packaging checkpoint rather
+  than reuse the contaminated CPython 3.11 diagnostic artifact;
+- reproduce the release workflow's pinned manylinux image, cibuildwheel,
+  locked native sources, repair policy, installed-wheel tests, and upload
+  content gate locally; and
+- inspect the final archives and `_rd_native` ELF closure independently while
+  preserving the declared cross-wheel Open Babel dependency exception.
+
+Performed:
+
+- created a clean detached source tree at exact commit
+  `37a08b30f785bf54149436ae2ce5d852ac7cbd22` and verified that it remained
+  clean throughout the builds;
+- used cibuildwheel 4.3.0 with the exact
+  `quay.io/pypa/manylinux_2_28_x86_64` image digest
+  `sha256:39df0042d5cc900b085aa25a0659368b42a0006c54c474299b785b44c1b4ff82`,
+  the six hash-verified locked native source archives, and offline native
+  source mode;
+- built and repaired one wheel for each of CPython 3.10, 3.11, 3.12, 3.13,
+  and 3.14, then installed each wheel into cibuildwheel's isolated test
+  environment;
+- ran the installed-wheel Hotpot-to-RDKit and fresh-process RDKit-to-Hotpot
+  import-order smokes, search and relevant-cycle checks, `_ob_native` and
+  `_rd_native` imports, and an ETKDG sample shape/status check for every ABI;
+- asserted Python distribution identity `rdkit==2026.9.1` and native runtime
+  identity `2026.09.1` in every installed-wheel test; and
+- ran the strict archive-content auditor, ZIP-integrity and duplicate-member
+  checks, embedded-tag inspection, and a direct ELF dynamic/export audit on
+  every final artifact.
+
+Verification:
+
+| ABI | Wheel size (bytes) | SHA-256 |
+| --- | ---: | --- |
+| cp310 | 5,632,596 | `c381bfdc10746b60791ab30a699ac57240a748ad5e515a96ae993008fc75d34f` |
+| cp311 | 5,637,406 | `fc1cecff6ac43b050cd6f57c1241e355c746eb5874a090b12cedeb9946c78eba` |
+| cp312 | 5,659,599 | `4fa3f7141e8990bf38c54fdb426952f293f98f7e95c7e41e08842e5cc7839527` |
+| cp313 | 5,659,946 | `717ce94bc6a8c36b519da474ae240dfb8737eab8fa12c5b381dcd1eacccdb446` |
+| cp314 | 5,662,757 | `9c0fa5382727d8f7d9fc3ad51a9fe897679efaf6f4ef8de2264b0297355e7003` |
+
+- every artifact is named
+  `hotpot_zzy-0.5.4.0-<abi>-<abi>-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl`
+  and embeds exactly the matching `manylinux_2_27_x86_64` and
+  `manylinux_2_28_x86_64` tags;
+- all five strict content audits pass. Each archive has 869 ZIP entries, 761
+  files, and 14 rdWrapper runtime files, with no duplicate member and no
+  wrapper source, header, CMake, common-native-header, locked-source, or SDK
+  contamination;
+- every `_rd_native` extension is a stripped 64-bit x86-64 ELF with no RPATH
+  or RUNPATH and no dynamic RDKit, Boost, or Conda reference. Its `NEEDED`
+  set is exactly `libpthread.so.0`, `libstdc++.so.6`, `libm.so.6`,
+  `libgcc_s.so.1`, `libc.so.6`, and `ld-linux-x86-64.so.2`;
+- every `_rd_native` extension exposes exactly one globally defined function,
+  `PyInit__rd_native@@HOTPOT_RDWRAPPERS_PYTHON_1.0`; and
+- the respective `_rd_native` build IDs are
+  `855d8edef80a3d34c7b8689bc18c945578794d61`,
+  `102e41a9157ec500702abf70a37a3d7ddbe590da`,
+  `c4948122fc1f7545d84ae22ab21a776b2a564f68`,
+  `36d867ec2b7aab9258f2dd82cd6801e484d76ac8`, and
+  `6dff41cd32fcfd9659953526b883657421cacf96` for cp310 through cp314.
+
+Whole-wheel `auditwheel show` reports all five artifacts as compatible with
+`linux_x86_64`, with versioned system symbols constraining them to
+`manylinux_2_27_x86_64`. It does not grant strict standalone manylinux policy
+compliance because the pre-existing `_ob_native` packaging model deliberately
+excludes `libopenbabel.so.7` and `libopenbabel.so.8` from repair. The pinned
+Python `openbabel` distribution supplies `libopenbabel.so.8`, and all five
+isolated coexistence tests pass. This is a controlled cross-wheel dependency,
+not a strict standalone-auditwheel claim.
+
+Unexpected findings:
+
+- the first temporary launcher omitted cibuildwheel's private `PYTHONPATH` and
+  stopped before Docker or any build; the corrected launcher used the pinned
+  tool installation;
+- the private download cache initially contained only the CPython 3.11 RDKit
+  wheel. `PIP_FIND_LINKS` alone did not force the local candidate, so exact
+  ABI-specific direct-reference constraints were added for the PyPI-hash-
+  verified RDKit 2026.9.1 wheels;
+- the first CPython 3.10 container was intentionally stopped after source and
+  dependency identity verification while its unconstrained test-dependency
+  installation remained slow. It copied no artifact; the constrained rerun
+  completed and passed;
+- the first CPython 3.14 container was likewise intentionally stopped after
+  verification while PEP 517 attempted to resolve an Open Babel build
+  dependency. Adding the locally verified OpenBabel 3.2.1 wheel to the exact
+  constraint set made the clean rerun complete and pass; and
+- only task-owned containers were stopped. No unrelated process or container
+  was modified, and every reported artifact comes from a complete successful
+  run.
+
+Adjustment:
+
+- retain ABI-specific, hash-verified dependency constraints as local
+  reproducibility support without changing the release workflow's dependency
+  identities;
+- close the local five-interpreter wheel-matrix gate under the declared Open
+  Babel packaging model;
+- do not represent this local pinned reproduction as GitHub-hosted CI
+  provenance or as strict standalone auditwheel manylinux compliance; and
+- keep Stage-17 release completion open for the unavailable frozen 182-case
+  O0/F1/C1/C2 evidence and the unresolved default-provider decision.
+
+No new production-code checkpoint is associated with this evidence step. The
+matrix source checkpoint is
+`37a08b30f785bf54149436ae2ce5d852ac7cbd22`.

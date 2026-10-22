@@ -111,16 +111,14 @@ std::vector<AtomCarrierToken> native_atom_carrier_order(
             bond->getOtherAtomIdx(atom.getIdx())
         );
     }
-    if (atom.getNumExplicitHs() != 0) {
-        throw UnsupportedInput(
-            "RDKit atom stereo with bracket-explicit virtual hydrogen "
-            "has no frozen Hotpot carrier convention"
-        );
-    }
+    const auto bracket_explicit_hydrogens = atom.getNumExplicitHs();
     const auto implicit_hydrogens = atom.getNumImplicitHs();
-    if (implicit_hydrogens > 1) {
+    if (bracket_explicit_hydrogens > 1
+        || implicit_hydrogens > 1
+        || bracket_explicit_hydrogens + implicit_hydrogens > 1) {
         throw UnsupportedInput(
-            "RDKit atom stereo cannot represent multiple implicit-H carriers"
+            "RDKit tetrahedral atom stereo cannot represent multiple "
+            "non-graph hydrogen carriers"
         );
     }
     if (implicit_hydrogens == 1) {
@@ -214,9 +212,19 @@ void apply_atom_stereo(
 
     const auto transported = transported_atom_carrier_order(source, record);
     const auto native = native_atom_carrier_order(molecule, atom);
-    if (native.size() < 3 || native.size() > 4) {
+    const auto virtual_hydrogens =
+        atom.getNumExplicitHs() + atom.getNumImplicitHs();
+    const auto total_carriers = atom.getDegree() + virtual_hydrogens;
+    const bool valid_three_carrier_virtual_h =
+        native.size() == 3 && atom.getNumExplicitHs() == 1
+        && virtual_hydrogens == 1;
+    if (total_carriers != 4
+        || (!valid_three_carrier_virtual_h && native.size() != 4)
+        || transported.size() != native.size()) {
         throw UnsupportedInput(
-            "RDKit tetrahedral atom stereo requires three or four carriers"
+            "RDKit tetrahedral atom stereo requires four represented "
+            "carriers or three atom carriers plus one bracket-explicit "
+            "virtual hydrogen"
         );
     }
     if (odd_permutation(transported, native)) {
@@ -321,6 +329,12 @@ void apply_atom_transport(
 ) {
     for (std::uint64_t index = 0; index < source.atom_transport_count; ++index) {
         const auto& record = source.atom_transport[index];
+        if (copy_string(record.source_namespace) != "rdkit-2026.09.1") {
+            throw UnsupportedInput(
+                "atom transport source_namespace is not representable by "
+                "the pinned RDKit adapter"
+            );
+        }
         auto* atom = molecule.getAtomWithIdx(static_cast<unsigned int>(record.atom));
         if ((record.presence_mask & HOTPOT_RD_ATOM_TRANSPORT_ISOTOPE) != 0) {
             if (record.isotope < 0) {
@@ -394,7 +408,26 @@ void apply_bond_transport(
             record.second_atom,
             "bond transport"
         );
-        bond->setBondDir(bond_direction(copy_string(record.display_direction)));
+        auto direction = bond_direction(copy_string(record.display_direction));
+        if (bond->getBeginAtomIdx() != record.first_atom) {
+            switch (direction) {
+                case RDKit::Bond::NONE:
+                case RDKit::Bond::EITHERDOUBLE:
+                    break;
+                case RDKit::Bond::ENDDOWNRIGHT:
+                    direction = RDKit::Bond::ENDUPRIGHT;
+                    break;
+                case RDKit::Bond::ENDUPRIGHT:
+                    direction = RDKit::Bond::ENDDOWNRIGHT;
+                    break;
+                default:
+                    throw UnsupportedInput(
+                        "reversed RDKit bond display direction has no frozen "
+                        "lossless representation"
+                    );
+            }
+        }
+        bond->setBondDir(direction);
     }
 }
 
@@ -445,6 +478,14 @@ void apply_stereo(
                 throw UnsupportedInput("duplicate bond stereo anchor");
             }
             anchor_bond = find_bond(molecule, first, second, "stereo record");
+            if (anchor_bond->getBeginAtomIdx() != first
+                && (source_code == "STEREOATROPCW"
+                    || source_code == "STEREOATROPCCW")) {
+                throw UnsupportedInput(
+                    "RDKit atropisomer stereo has no frozen reversed-anchor "
+                    "transformation"
+                );
+            }
 
             std::vector<unsigned int> carrier_atoms;
             for (std::uint64_t carrier_index = 0;

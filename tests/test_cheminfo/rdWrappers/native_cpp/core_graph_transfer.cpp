@@ -259,6 +259,113 @@ int main() {
     assert(odd_chiral->getAtomWithIdx(0)->getChiralTag()
            == RDKit::Atom::CHI_TETRAHEDRAL_CCW);
 
+    hotpot_rd_stereo_carrier_v1 explicit_h_carriers[] = {
+        odd_carriers[0],
+        odd_carriers[1],
+        odd_carriers[2],
+    };
+    hotpot_rd_stereo_record_v1 explicit_h_record = chiral_record[0];
+    explicit_h_record.carrier_count = 3;
+    const hotpot_rd_atom_transport_v1 explicit_h_transport[] = {
+        {
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            {
+                HOTPOT_RD_HYDROGEN_TRANSPORT_IMPLICIT
+                    | HOTPOT_RD_HYDROGEN_TRANSPORT_BRACKET_EXPLICIT
+                    | HOTPOT_RD_HYDROGEN_TRANSPORT_NO_IMPLICIT,
+                0,
+                1,
+                1,
+            },
+            {
+                HOTPOT_RD_HYDROGEN_TRANSPORT_IMPLICIT
+                    | HOTPOT_RD_HYDROGEN_TRANSPORT_BRACKET_EXPLICIT
+                    | HOTPOT_RD_HYDROGEN_TRANSPORT_NO_IMPLICIT,
+                0,
+                1,
+                1,
+            },
+            text("rdkit-2026.09.1"),
+        },
+    };
+    hotpot_rd_molecule_view_v1 explicit_h_chiral = chiral;
+    explicit_h_chiral.field_mask |= HOTPOT_RD_FIELD_ATOM_TRANSPORT;
+    explicit_h_chiral.stereo_records = &explicit_h_record;
+    explicit_h_chiral.stereo_carriers = explicit_h_carriers;
+    explicit_h_chiral.stereo_carrier_count = 3;
+    explicit_h_chiral.atom_transport = explicit_h_transport;
+    explicit_h_chiral.atom_transport_count = 1;
+    hotpot::rdwrappers::core::validate_molecule_view(explicit_h_chiral);
+    auto bracket_h_chiral =
+        hotpot::rdwrappers::core::build_molecule(explicit_h_chiral);
+    assert(bracket_h_chiral->getAtomWithIdx(0)->getNumExplicitHs() == 1);
+    assert(bracket_h_chiral->getAtomWithIdx(0)->getChiralTag()
+           == RDKit::Atom::CHI_TETRAHEDRAL_CCW);
+
+    const hotpot_rd_bond_transport_v1 reversed_end_direction[] = {
+        {1, 0, text("ENDDOWNRIGHT")},
+    };
+    hotpot_rd_molecule_view_v1 reversed_direction = source;
+    reversed_direction.bond_transport = reversed_end_direction;
+    reversed_direction.bond_transport_count = 1;
+    auto reversed_direction_molecule =
+        hotpot::rdwrappers::core::build_molecule(reversed_direction);
+    assert(reversed_direction_molecule->getBondBetweenAtoms(0, 1)->getBondDir()
+           == RDKit::Bond::ENDUPRIGHT);
+
+    const hotpot_rd_bond_transport_v1 reversed_either_double[] = {
+        {2, 1, text("EITHERDOUBLE")},
+    };
+    reversed_direction.bond_transport = reversed_either_double;
+    auto reversed_either_molecule =
+        hotpot::rdwrappers::core::build_molecule(reversed_direction);
+    assert(reversed_either_molecule->getBondBetweenAtoms(1, 2)->getBondDir()
+           == RDKit::Bond::EITHERDOUBLE);
+
+    const hotpot_rd_bond_transport_v1 reversed_wedge[] = {
+        {1, 0, text("BEGINWEDGE")},
+    };
+    reversed_direction.bond_transport = reversed_wedge;
+    bool reversed_wedge_rejected = false;
+    try {
+        (void)hotpot::rdwrappers::core::build_molecule(reversed_direction);
+    } catch (const hotpot::rdwrappers::core::UnsupportedInput&) {
+        reversed_wedge_rejected = true;
+    }
+    assert(reversed_wedge_rejected);
+
+    hotpot_rd_stereo_record_v1 reversed_atrop_records[] = {
+        stereo[0],
+        stereo[1],
+    };
+    reversed_atrop_records[1].source_code = text("STEREOATROPCW");
+    hotpot_rd_molecule_view_v1 reversed_atrop = source;
+    reversed_atrop.stereo_records = reversed_atrop_records;
+    bool reversed_atrop_rejected = false;
+    try {
+        (void)hotpot::rdwrappers::core::build_molecule(reversed_atrop);
+    } catch (const hotpot::rdwrappers::core::UnsupportedInput&) {
+        reversed_atrop_rejected = true;
+    }
+    assert(reversed_atrop_rejected);
+
+    hotpot_rd_atom_transport_v1 unknown_atom_transport = atom_transport[0];
+    unknown_atom_transport.source_namespace = text("future-toolkit");
+    hotpot_rd_molecule_view_v1 unknown_atom_namespace = source;
+    unknown_atom_namespace.atom_transport = &unknown_atom_transport;
+    bool unknown_atom_namespace_rejected = false;
+    try {
+        (void)hotpot::rdwrappers::core::build_molecule(unknown_atom_namespace);
+    } catch (const hotpot::rdwrappers::core::UnsupportedInput&) {
+        unknown_atom_namespace_rejected = true;
+    }
+    assert(unknown_atom_namespace_rejected);
+
     hotpot_rd_stereo_carrier_v1 unsupported_carriers[] = {
         odd_carriers[0],
         {HOTPOT_RD_STEREO_CARRIER_LONE_PAIR, 0, 0},

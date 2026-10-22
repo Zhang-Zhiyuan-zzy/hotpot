@@ -1988,3 +1988,80 @@ Adjustment:
   remains outside this gate.
 
 Git checkpoint: `31fe1a4 feat(stereo): implement Level-2 Gate-4 geometry`.
+
+### Step 31 - Revise the cross-gate stereo model before Gate 5
+
+Status: complete for the normative revision; dependent implementation has not
+started
+
+Planned:
+
+- reread the complete implementation plan before changing it, as required by
+  the owner;
+- resolve representation questions exposed by the Gate 5/6 and Gate 7 design
+  reviews across Level 1, the common/native boundary, public reports, and all
+  later semantic gates; and
+- remove conflicting or underspecified claims instead of compensating inside
+  one local algorithm.
+
+Performed:
+
+- reread the complete 1,522-line normative plan and checked every affected
+  Level-1 lifecycle, API-tree, native-boundary, Level-2 gate, test-obligation,
+  and approved-decision section before editing;
+- appended `StereoAnchorKind.AXIS` as stable native code 3 for a complete
+  ordered allene/cumulene path while retaining real `BOND` anchors for formal
+  atropisomerism;
+- fixed constituent-edge deletion and native explicit-unsupported behavior as
+  cross-layer requirements so an axis can neither survive a broken path nor
+  fall through an `else == BOND` conversion;
+- added the backward-compatible `StereoDerivedDescriptor` contract and
+  `StereoAssignmentReport.derived=()` field, keeping CIP names outside stored
+  descriptor/source identity;
+- bounded Stage-17 CIP output to priorities fully decided by direct atomic
+  number or isotope mass and explicitly deferred recursive duplicate-node,
+  ring, pseudoasymmetric, descendant-stereo, and axial naming;
+- froze square-pyramidal stereo as 30 proper-C4 configurations with ideal-site
+  order `+z,+x,+y,-x,-y`, without changing the existing SP/TBP/OH indices; and
+- specified enhanced-group inversion, exact represented-graph equivalence,
+  proper-rotation coordinate fitting, TBP/SPY ambiguity, chelate partition,
+  and explicit unsupported coordination boundaries.
+
+Verification:
+
+- independent organic/cheminformatics review identified the missing complete
+  cumulene-axis identity and distinguished graph canonical rank from CIP;
+- independent architecture review traced the additive enum through Python
+  lifecycle, flat common buffers, C++ view validation, public C ABI, RDKit
+  construction, adapters, and required tests;
+- independent coordination review derived SPY's order-4 proper rotation group
+  and 30 orbits and confirmed that chelation constrains equivalence/alignment,
+  not the coordinate-fit score;
+- the public validation/assignment/alignment function signatures remain
+  unchanged, existing native enum values and ABI layouts remain unchanged,
+  and the two-argument assignment-report construction remains valid.
+
+Unexpected findings:
+
+- a two-endpoint `BOND` cannot represent a long cumulene axis: deleting an
+  internal double bond would leave a stale record, and endpoint rows alone do
+  not recover an unambiguous ordered path;
+- the approved plan required CIP as derived output but neither specified a
+  return location nor froze the recursive IUPAC Sequence Rules. A canonical
+  graph rank is not a chemically valid replacement;
+- Gate 1 correctly left SPY unsupported because its ideal-site order and
+  proper symmetry group had not yet been frozen.
+
+Adjustment:
+
+- Gate 5 now starts with the additive AXIS Level-1/common/C-ABI checkpoint
+  before consuming that representation chemically;
+- native RDKit materialization explicitly rejects interpreted Hotpot AXIS
+  records until a separate pinned `CHI_ALLENE` mapping fixture is reviewed;
+- Gate 6 delivers exact graph stereogenicity plus the strictly decidable CIP
+  subset and reports all wider cases as unresolved instead of overclaiming;
+- Gate 7 first freezes SPY algebra/goldens, then adds declared-record graph,
+  coordinate, mapping, and chelate semantics without automatic center
+  discovery.
+
+Git checkpoint: pending documentation commit.

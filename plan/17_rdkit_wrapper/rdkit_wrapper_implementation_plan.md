@@ -91,6 +91,20 @@ them:
     Boost. Any upstream archive fetched by the pinned minimal CMake graph is
     identified and SHA-verified before configuration; network fallback and
     moving Git references are forbidden.
+19. **Allene/cumulene axes use a complete ordered `AXIS` atom path; they are
+    never disguised as a two-row `BOND` anchor.** The existing numeric native
+    anchor codes remain stable and `AXIS` is appended as code 3. A formally
+    declared atropisomeric axis remains a real ordered `BOND` anchor.
+20. **CIP names are derived report output, never stored stereo identity.**
+    Stage 17 emits a CIP label only for the explicitly tested subset whose
+    priority is completely decided by direct atomic-number/isotope rules. A
+    tie requiring recursive duplicate-node, ring, pseudoasymmetric, or
+    descendant-stereo rules remains explicitly unresolved; graph canonical
+    ranks must never be presented as CIP priority.
+21. **Square-pyramidal identity is a 30-configuration proper-rotation
+    family.** Its stable ideal-site order is `+z, +x, +y, -x, -y`, its C4
+    proper rotation group has order 4, and mirrors are not collapsed. The
+    already frozen SP/TBP/OH numbering remains byte-for-byte unchanged.
 
 ## 2. Confirmed current-state audit
 
@@ -854,7 +868,7 @@ chemically valid or geometrically consistent. Its public Python API tree is:
 
 ```text
 hotpot.cheminfo.stereo
-|- enum StereoAnchorKind             # ATOM, BOND
+|- enum StereoAnchorKind             # ATOM, BOND, AXIS
 |- enum StereoCarrierKind            # ATOM, IMPLICIT_H, LONE_PAIR, VACANCY
 |- enum StereoGroupKind              # ABS, AND, OR
 |- class StereoGroupRef
@@ -866,7 +880,7 @@ hotpot.cheminfo.stereo
 |  `- atom: int | None
 |- class StereoAnchor
 |  |- kind: StereoAnchorKind
-|  `- atom_indices: tuple[int, ...]   # one atom or ordered bond endpoints
+|  `- atom_indices: tuple[int, ...]   # atom, ordered bond, or ordered axis path
 |- class StereoRecord
 |  |- anchor: StereoAnchor
 |  |- carriers: tuple[StereoCarrier, ...]
@@ -919,8 +933,12 @@ tetrahedral, alkene, allene/cumulene, atropisomeric, square-planar,
 trigonal-bipyramidal, square-pyramidal, octahedral, enhanced-group, and unknown
 toolkit records without interpreting them. Non-atom carriers explicitly cover
 implicit H, lone pairs, and vacancies. Double-bond anchors use stable ordered
-endpoint pairs, never mutable bond-list indices. `source_namespace/source_code`
-preserve unsupported future values instead of flattening them.
+endpoint pairs, never mutable bond-list indices. An allene/cumulene `AXIS`
+anchor stores every atom in the complete ordered cumulative-double-bond path;
+an atropisomeric `BOND` stores the real ordered rotation axis. Removing any
+axis-path atom or constituent bond removes the complete record, while
+hide/recover remains non-destructive. `source_namespace/source_code` preserve
+unsupported future values instead of flattening them.
 
 Enhanced groups use `StereoGroupRef(scope, kind, id)`. `id` remains the source
 group number and `scope` is an opaque persistent provenance domain, not a
@@ -961,8 +979,9 @@ Lifecycle behavior is fixed before toolkit mapping:
 - `add_component()` offsets incoming atom rows, keeps target records first,
   and relies on group scope rather than renumbering source group IDs;
 - atom deletion removes every record/fact containing the deleted atom and
-  remaps later rows; bond deletion removes only bond-anchored records and bond
-  facts for that endpoint pair;
+  remaps later rows; bond deletion removes a matching `BOND` record, every
+  `AXIS` record containing that consecutive path edge, and bond facts for the
+  endpoint pair;
 - hide/recover does not alter the payload, whereas permanently clearing a
   hidden bond applies the bond-deletion rule; and
 - force-field working-copy success commits current transport state atomically,
@@ -972,7 +991,7 @@ These operations do not inspect coordinates, call CIP/stereo assignment, or
 repair a descriptor. A record with one unmapped atom carrier is removed as a
 whole; its ordered carrier sequence is never shortened or rewritten.
 
-### 7.2 Level 2: complete chemical and spatial semantics
+### 7.2 Level 2: declared chemical and spatial semantics
 
 Level 2 validates representation, assigns descriptors from topology and/or
 coordinates, and aligns stereo under an explicit atom mapping. Its public API
@@ -986,9 +1005,16 @@ hotpot.cheminfo.stereo
 |- class StereoValidationReport
 |  |- is_valid: bool
 |  `- issues: tuple[StereoValidationIssue, ...]
+|- class StereoDerivedDescriptor
+|  |- record_index: int
+|  |- stereo_type: StereoType
+|  |- label: str
+|  |- system: str
+|  `- is_absolute: bool
 |- class StereoAssignmentReport
 |  |- payload: StereoPayload
-|  `- unresolved: tuple[StereoValidationIssue, ...]
+|  |- unresolved: tuple[StereoValidationIssue, ...]
+|  `- derived: tuple[StereoDerivedDescriptor, ...] = ()
 |- class StereoAlignmentReport
 |  |- is_equivalent: bool
 |  |- aligned_payload: StereoPayload
@@ -1004,6 +1030,20 @@ hotpot.cheminfo.stereo
 The signatures to freeze are:
 
 ```python
+@dataclass(frozen=True)
+class StereoDerivedDescriptor:
+    record_index: int
+    stereo_type: StereoType
+    label: str
+    system: str
+    is_absolute: bool
+
+@dataclass(frozen=True)
+class StereoAssignmentReport:
+    payload: StereoPayload
+    unresolved: tuple[StereoValidationIssue, ...]
+    derived: tuple[StereoDerivedDescriptor, ...] = ()
+
 def validate_stereochemistry(
     mol: Molecule,
     *,
@@ -1024,7 +1064,9 @@ def align_stereochemistry(
 ```
 
 Level 2 owns these semantics rather than inheriting toolkit-specific enum
-values:
+values. The `derived` report-field addition is backward compatible with the
+already frozen public functions and two-argument report construction; it is
+the only location in this stage where supported CIP names are returned:
 
 - reference-order and permutation rules for tetrahedral centers;
 - E/Z double-bond reference selection and equivalence;
@@ -1047,8 +1089,9 @@ Implementation delivers this high-risk scope in ordered gates:
 4. implement 3D assignment, degeneracy tolerance, and descriptor/coordinate
    contradiction reporting;
 5. implement allene/cumulene, atropisomeric, and enhanced-group semantics;
-6. implement substituent equivalence, stereogenicity, and CIP as derived
-   output; and
+6. implement exact represented-graph substituent equivalence and
+   stereogenicity, then emit CIP as derived output only where direct
+   atomic-number/isotope priority completely decides the ordering; and
 7. implement square-planar, trigonal-bipyramidal, square-pyramidal,
    octahedral, and chelate-aware coordination semantics.
 
@@ -1058,6 +1101,43 @@ reported explicitly and never silently flattened to `UNSPECIFIED`.
 RDKit/Open Babel mappings are adapters and test oracles to this Hotpot-owned
 model. Wrapping RDKit `AssignStereochemistry()` is not accepted as a Hotpot
 Level-2 implementation.
+
+Gate 5 uses `AX/even|odd` for two distinct, structurally explicit axes:
+
+- allene/cumulene records have an `AXIS` anchor containing a simple, maximal,
+  ordered path of 3, 5, ... atoms joined by non-aromatic double bonds; and
+- formal atropisomeric records have a `BOND` anchor naming one real ordered
+  non-dative single bond. A valid record does not claim a measured rotational
+  barrier or experimental isolability.
+
+Both have two endpoint-scoped carriers at each end. Axis reversal reverses the
+terminal carrier pairs; one terminal swap toggles parity. Enhanced `AND` and
+`OR` groups each own one group-wide inversion bit, remain chemically distinct
+from one another, and are compared by mapped member partition and kind rather
+than raw provenance scope/ID. `ABS` or ungrouped records remain individually
+fixed. Coordinate validation evaluates group-wide alternatives rather than
+incorrectly reporting every inverted member as an independent contradiction.
+
+Gate 6 uses exact labeled graph automorphism for represented substituent
+equivalence, preserving element, isotope, formal charge, radical state,
+aromatic-normalized bond identity, dative direction, and supported existing
+stereo. It does not substitute a graph hash or canonical rank for chemical
+equivalence or CIP. The Stage-17 CIP subset reports `R/S` and `E/Z` only when
+direct atomic number or isotope mass resolves every required priority. Full
+recursive Sequence Rules, duplicate nodes, rings, pseudoasymmetry, and axial
+`R_a/S_a` require their own IUPAC-derived golden corpus and remain explicit
+unresolved outcomes rather than false labels.
+
+Gate 7 appends `SPY/1..30` from the proper C4 orbit while retaining the frozen
+SP/TBP/OH indices. It validates only declared atom-centered records whose
+distinct `ATOM` carriers exactly cover the first coordination shell. Coordinate
+assignment uses fixed ideal templates and determinant-positive Kabsch fitting;
+ties, large angular residuals, and ambiguous TBP/SPY boundary geometries are
+degenerate rather than arbitrarily numbered. Chelate membership is derived by
+removing center-donor edges and comparing the remaining ligand-component
+partition under the explicit atom mapping. It constrains equivalence/alignment,
+not the geometry fit. Haptic/centroid, vacancy, lone-pair, coupled multicenter,
+and undeclared-center discovery remain explicit unsupported boundaries.
 
 ### 7.3 Relationship to `rdWrappers`
 
@@ -1071,6 +1151,14 @@ Sanitization must not reorder atoms or silently rewrite Hotpot topology.
 Native construction uses stable input rows, updates only the minimum RDKit
 property cache required for embedding, and returns unsupported or rejected
 molecular state as an explicit generation result.
+
+The additive Level-1 `AXIS` transport value is accepted by the generic DTO and
+C ABI validator, but the RDKit graph builder explicitly returns unsupported
+until a separate pinned fixture freezes Hotpot AX parity against RDKit's
+`CHI_ALLENE` center/tag convention. It must never fall through the old binary
+`ATOM`/`BOND` branch or truncate an axis path. Conversely, an uninterpreted raw
+RDKit `CHI_ALLENE` import remains its exact Level-1 source record; Level 1 does
+not fabricate a Hotpot `AXIS` interpretation.
 
 ## 8. Benchmark protocol
 
@@ -1289,6 +1377,8 @@ No `C1`/`C2` path enters `hotpot.ff` in this stage.
 ### Phase 7 — Level-2 Hotpot stereochemistry
 
 - execute the seven separately gated semantic increments in Section 7.2;
+- append the ordered `AXIS` transport kind and prove its complete Level-1
+  lifecycle/native round trip before consuming it in Gate 5;
 - freeze the carrier/permutation algebra and golden corpus before algorithms;
 - implement representation validation, deterministic reference order,
   mapping-aware parity, coordinate assignment, and degeneracy reporting before
@@ -1389,7 +1479,11 @@ No `C1`/`C2` path enters `hotpot.ff` in this stage.
 - E/Z reference selection and equivalent/non-equivalent mappings;
 - missing, explicit-H, isotope, radical, aromatic/Kekule, and degenerate cases;
 - coordinate/descriptor agreement and contradiction reports;
-- cumulene, axial, atropisomeric, and declared coordination geometries; and
+- complete ordered cumulene-axis lifecycle under every constituent atom/bond
+  removal, plus axial, atropisomeric, and declared coordination geometries;
+- exact represented-graph substituent equivalence and non-stereogenic cases;
+- direct-priority `R/S` and `E/Z` derived outputs plus explicit unresolved
+  recursive/ring/pseudoasymmetric/axial CIP cases;
 - explicit unsupported-type reports with no silent stereo erasure.
 
 ## 11. Performance and resource policy
@@ -1517,6 +1611,15 @@ govern the work:
 17. Lock every archive in the actual offline CMake dependency graph, including
     Eigen, better-enums, Catch2, and RingDecomposerLib, and reject any
     configure-time download.
+18. Represent allene/cumulene identity with a complete ordered `AXIS` path,
+    appended as native anchor code 3 without changing the existing atom/bond
+    values; retain a real `BOND` anchor for formal atropisomerism.
+19. Extend assignment reports with backward-compatible derived descriptors,
+    emit only the directly decidable Stage-17 CIP subset, and leave the full
+    recursive IUPAC Sequence Rules to a separately specified golden corpus.
+20. Define square-pyramidal stereo as 30 proper-C4 orbits with fixed
+    `+z,+x,+y,-x,-y` ideal-site order, without changing frozen SP/TBP/OH
+    numbering or treating mirrors as rotations.
 
 Every implementation-driven revision is recorded in `implementation_log.md`
 before dependent production work continues.

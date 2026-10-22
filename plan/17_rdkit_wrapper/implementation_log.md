@@ -580,4 +580,60 @@ Adjustment:
 - Level-2 semantic gates, force-field workflow order, standalone sampler
   boundaries, and owner-controlled RDKit pin remain unchanged.
 
+Git checkpoint: `7f19061 docs(plan17): revise stereo lifecycle and source closure`.
+
+### Step 8 - Move Open Babel policy behind the common C++ view
+
+Status: complete
+
+Planned:
+
+- add a zero-copy common view to the existing owning `MoleculeData` without
+  changing its fields, aggregate layout, pybind constructor, or public
+  `obWrappers` behavior;
+- move dative and required-field policy into an Open Babel adapter validator;
+  and
+- preserve the former failure timing, text, and mixed-invalid first-error
+  order.
+
+Performed:
+
+- forwarded `BondKind` to the toolkit-neutral common enum and added
+  `MoleculeData::view()` over the existing vectors;
+- made `MoleculeData::validate()` consumer-neutral so a structurally valid
+  dative bond is accepted by the common layer;
+- added `validate_openbabel_compatibility()` and `make_obmol(view)`, retaining
+  the former owning overload as a forwarding adapter;
+- called Open Babel compatibility validation at every former native-engine
+  early-validation point and at the pybind construction boundary; and
+- retained the former per-bond index/self/order/dative validation order rather
+  than inheriting the generic validator's column order.
+
+Verification:
+
+- clean rebuild of all four native extensions succeeded after the enum type
+  identity changed;
+- standalone C++ policy fence proves zero-copy pointers, generic dative
+  acceptance, Open Babel dative rejection text/order, and unchanged ordinary
+  OBMol construction;
+- final common-view plus full `obWrappers` regression: 49 passed, 1 skipped in
+  6.83 s; the skip is the existing absent managed extractant dataset;
+- `git diff --check` and Python compilation pass.
+
+Unexpected findings:
+
+- naively running the generic validator first changed the first error for a
+  payload containing an early dative bond and a later invalid index. The
+  adapter now owns the complete legacy order, followed by generic validation,
+  so behavior is unchanged;
+- an attempted unqualified `pytest` again selected the user-level system
+  interpreter without RDKit. No new dependency was installed; verification
+  used the project interpreter through `python -m pytest`.
+
+Adjustment:
+
+- common `OwnedMoleculeData` ownership and flat force-field zero-copy views
+  remain later, separate checkpoints. This commit changes adapter policy
+  placement only and does not change force-field data flow.
+
 Git checkpoint: pending.

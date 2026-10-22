@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../_native/include/hotpot/native/molecule_buffer_view.hpp"
 #include "rules.hpp"
 
 #include <array>
@@ -12,15 +13,7 @@
 namespace hotpot::obwrappers {
 
 
-enum class BondKind : std::uint8_t {
-    SINGLE = 1,
-    DOUBLE = 2,
-    TRIPLE = 3,
-    AROMATIC = 4,
-    ZERO = 5,
-    DATIVE = 6,
-    UNKNOWN = 7,
-};
+using BondKind = hotpot::native::BondKind;
 
 
 struct MoleculeData {
@@ -38,6 +31,7 @@ struct MoleculeData {
 
     std::size_t atom_count() const noexcept;
     std::size_t bond_count() const noexcept;
+    hotpot::native::MoleculeBufferView view() const noexcept;
     void validate() const;
 };
 

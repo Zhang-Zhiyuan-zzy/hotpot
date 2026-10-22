@@ -1,5 +1,6 @@
 #include "molecule_data.hpp"
 #include "native_engine.hpp"
+#include "openbabel_adapter.hpp"
 #include "python_errors.hpp"
 #include "registry.hpp"
 #include "defaults.hpp"
@@ -330,7 +331,7 @@ PYBIND11_MODULE(_ob_native, module) {
                     ),
                     read_unit_cell(unit_cell),
                 };
-                molecule.validate();
+                validate_openbabel_compatibility(molecule);
                 return molecule;
             }),
             py::arg("schema_version"),

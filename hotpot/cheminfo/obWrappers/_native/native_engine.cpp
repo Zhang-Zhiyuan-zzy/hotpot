@@ -253,7 +253,7 @@ RulePlan inspect_rules(
     double repair_angle_radians
 ) {
     std::lock_guard<std::recursive_mutex> lock(openbabel_runtime_mutex());
-    molecule.validate();
+    validate_openbabel_compatibility(molecule);
     validate_rule_parameters(
         singularity_threshold,
         repair_angle_radians
@@ -284,7 +284,7 @@ BuildResult build(
     std::optional<bool> stereo_warnings
 ) {
     std::lock_guard<std::recursive_mutex> lock(openbabel_runtime_mutex());
-    molecule.validate();
+    validate_openbabel_compatibility(molecule);
     ensure_openbabel_runtime();
     auto obmol = make_obmol(molecule);
     auto plan = rule_registry().execute(
@@ -309,7 +309,7 @@ SingleOptimizationResult single_optimize(
     double repair_angle_radians
 ) {
     std::lock_guard<std::recursive_mutex> lock(openbabel_runtime_mutex());
-    molecule.validate();
+    validate_openbabel_compatibility(molecule);
     auto obmol = make_obmol(molecule);
     return single_optimize_in_place(
         obmol,
@@ -385,7 +385,7 @@ OptimizationCheckResult check_optimization_state(
     double repair_angle_radians
 ) {
     std::lock_guard<std::recursive_mutex> lock(openbabel_runtime_mutex());
-    molecule.validate();
+    validate_openbabel_compatibility(molecule);
     validate_rule_parameters(
         singularity_threshold,
         repair_angle_radians
@@ -438,7 +438,7 @@ OptimizationResult optimize(
     double singularity_threshold,
     double repair_angle_radians
 ) {
-    molecule.validate();
+    validate_openbabel_compatibility(molecule);
     std::lock_guard<std::recursive_mutex> lock(openbabel_runtime_mutex());
     auto obmol = make_obmol(molecule);
     return optimize_in_place(

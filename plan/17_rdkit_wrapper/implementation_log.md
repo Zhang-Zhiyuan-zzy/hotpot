@@ -956,3 +956,49 @@ Adjustment:
 - force-field stage order and optimization behavior are unchanged.
 
 Git checkpoint: `d167b00 refactor(forcefields): borrow common ligand molecule view`.
+
+### Step 15 - Make Level-1 payloads atomic in working-copy commits
+
+Status: complete
+
+Planned:
+
+- carry the immutable Level-1 payload through the existing force-field
+  working-copy transaction;
+- transfer the exact working reference on success and restore the exact
+  original reference on any failed commit; and
+- leave public transaction APIs, structural validation, and user properties
+  unchanged.
+
+Performed:
+
+- extended the private prepared-commit DTO with the working molecule's exact
+  payload reference;
+- extended the private rollback snapshot with the original molecule's exact
+  payload reference;
+- assigned the working payload inside the existing commit try/rollback region;
+  and
+- restored the original payload together with topology, atom arrays, graph,
+  atom pairs, conformers, and metadata on failure.
+
+Verification:
+
+- a successful-commit test proves exact payload-reference transfer and
+  unchanged user-property ownership;
+- an injected failure after payload assignment proves the transient new value
+  was reached and then the exact old payload, atom/bond objects, atom-array
+  references, graph object, coordinates, and properties were restored;
+- focused working-copy/complex-hydrogen/force-field regression: 104 passed
+  with 1 existing geometry-quality warning;
+- Python compilation and `git diff --check` pass.
+
+Unexpected findings: none.
+
+Adjustment:
+
+- payloads are immutable and are intentionally neither copied nor chemically
+  validated by the transaction layer;
+- a decoy `properties["stereo_payload"]` test fixes the contract that Level-1
+  state is structural private storage, not mutable user metadata.
+
+Git checkpoint: `1dacca3 feat(stereo): make working-copy payload transactional`.

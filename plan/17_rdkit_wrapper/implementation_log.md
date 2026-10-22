@@ -1475,3 +1475,87 @@ Adjustment:
   consumed by this RDKit adapter until an exact transform exists.
 
 Git checkpoint: `36069ed fix(rdwrapper): preserve virtual-H and bond direction stereo`.
+
+### Step 23 - Publish the Python binding and standalone native SDK build
+
+Status: complete
+
+Planned:
+
+- bind the frozen C ABI to the public Python contracts without constructing a
+  Python RDKit molecule;
+- produce an independently installable C/C++17 SDK and a separately staged
+  Python extension from the same private RDKit core; and
+- prove the exact offline source closure, ownership, GIL, exported-symbol, and
+  runtime-dependency boundaries before packaging integration.
+
+Performed:
+
+- added a pybind11 boundary that accepts the field-selective common molecule
+  buffers, assembles only the small C-ABI metadata records, retains every
+  borrowed NumPy owner through the native call, and releases the GIL only
+  while `hotpot_rd_generate()` executes;
+- validated exact native-endian dtypes, ranks, shapes, C contiguity, alignment,
+  UTF-8 presence/offset tables, molecule dimensions, and paired constraint
+  rows before any typed native dereference;
+- copied the owned native result into the frozen Python `ConformerBatch`
+  contract after reacquiring the GIL and exposed the compiled Hotpot, RDKit,
+  C-ABI, and source-commit identities;
+- added the locked offline CMake driver, SDK/Python build components, CMake
+  package config, public headers, exact third-party notices/licenses, hidden
+  visibility, version scripts, and post-link RPATH/dependency audit;
+- installed a C++17 SDK whose shared library contains the private C++20 RDKit
+  core but exposes only the stable C ABI and header-only facade;
+- kept the Python extension independent of the SDK shared library by absorbing
+  the same private static core and exporting only `PyInit__rd_native`;
+- made SDK-only builds avoid resolving or requiring Python; and
+- removed optional `BOND_ORDERS` from the RDKit field request. Hotpot/Open
+  Babel legitimately retains aromatic bond kinds with Kekule 1/2 orders, so
+  the nonredundant `BOND_KINDS`/aromatic fields are the authoritative graph
+  input for this adapter.
+
+Verification:
+
+- a fresh locked-source build completed all 164 Ninja steps from the six
+  SHA-verified archives with FetchContent disconnected and no configure-time
+  download;
+- the compiled Python/API/installed-SDK selection reports 22 passed, including
+  deterministic nonmutating generation, the aromatic-Kekule public path,
+  malformed and unaligned array rejection, SDK-only Python independence, and
+  C++17 consumers built with both `_GLIBCXX_USE_CXX11_ABI=0` and `1`;
+- the broader rdWrappers, common-buffer, RDKit Level-1 adapter, storage,
+  remapping, lifecycle, native-packing, and working-copy selection reports
+  86 passed;
+- the extension exports only its ELF version node and `PyInit__rd_native`; the
+  SDK exports only its version node and the 15 approved `hotpot_rd_*` symbols;
+- both artifacts have no RPATH/RUNPATH and no dynamic RDKit or Boost
+  dependency; SDK `ldd -r` is clean, while the extension's Python symbols are
+  correctly resolved by the importing interpreter and its import/generation
+  tests pass; and
+- shell syntax and `git diff --check` pass.
+
+Unexpected findings:
+
+- a C-contiguous NumPy view can still be unaligned. Typed C++ dereference would
+  then be undefined behavior, so alignment is now an explicit binding
+  precondition with a real offset-buffer regression test;
+- the first SDK-only driver revision resolved `python3` before reading the
+  Python-build option. That contradicted the standalone C++ component contract
+  and was moved inside the Python-only branch;
+- the canonical 187-ligand smoke probe initially returned `UNSUPPORTED` for
+  aromatic molecules because the optional numeric bond-order column supplied
+  Kekule 1/2 values beside an aromatic bond kind. The C ABI does not require
+  that redundant column; omitting it preserves the actual graph semantics and
+  makes the sampled corpus cases succeed without weakening validation.
+
+Adjustment:
+
+- the current GCC 14.3 Conda proof artifact intentionally contains no
+  temporary RPATH and therefore needs its disposable toolchain `libstdc++` via
+  an explicit development `LD_LIBRARY_PATH`; it is not a release artifact;
+- the root Hotpot wheel build and the pinned manylinux/Python 3.10-3.14 release
+  matrix remain separate later checkpoints and are not claimed here;
+- no system/Conda/Python-wheel RDKit SDK lookup or public force-field routing
+  change was introduced.
+
+Git checkpoint: `42d7c4c feat(rdwrapper): add native Python binding and SDK build`.

@@ -267,4 +267,41 @@ Adjustment:
 - no native behavior, Python-RDKit molecule translation, geometry gate,
   perturbation, or force-field optimization was added in this checkpoint.
 
+Git checkpoint: `c232d1d feat(rdwrappers): freeze Python sampler API`.
+
+### Step 3 - Freeze the two-level stereochemistry API
+
+Status: complete
+
+Planned:
+
+- replace the placeholder module with the reviewed Level-1 transport types
+  and Level-2 semantic reports/functions; and
+- keep storage/remapping and chemical interpretation unimplemented until their
+  separate phases.
+
+Performed:
+
+- added atom/bond anchors, atom/non-atom carriers, enhanced-group identity,
+  extensible source descriptor records, and atom/bond transport facts;
+- added Level-2 stereo families, issue codes, validation/assignment/alignment
+  report contracts, and the reviewed public function signatures; and
+- made the intermediate function bodies raise phase-specific
+  `NotImplementedError` instead of performing partial or toolkit-defined
+  chemistry.
+
+Verification:
+
+- the combined rdWrappers/stereo API suite: 10 passed;
+- Python byte-code compilation passes; and
+- `git diff --check` passes for the module and contract test.
+
+Unexpected findings: none.
+
+Adjustment:
+
+- Level-1 and Level-2 contracts are frozen together, but their implementations
+  remain deliberately separated. No RDKit or Open Babel enum is used as a
+  Hotpot semantic identity.
+
 Git checkpoint: pending.

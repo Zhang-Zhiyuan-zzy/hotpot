@@ -1124,3 +1124,62 @@ Adjustment:
   related regressions completed normally.
 
 Git checkpoint: `570d756 feat(stereo): integrate Level-1 molecule lifecycle`.
+
+### Step 18 - Freeze Level-2 descriptor and permutation algebra
+
+Status: complete for Gate 1, with square-pyramidal semantics explicitly open
+
+Planned:
+
+- define a Hotpot-owned, toolkit-independent descriptor grammar;
+- freeze reference-relative carrier/permutation transformations before
+  topology, geometry, CIP, or toolkit adapter work; and
+- back the algebra with a static reviewed golden corpus rather than a runtime
+  toolkit oracle.
+
+Performed:
+
+- defined the private versioned grammar
+  `hotpot.stereo/2/<TH|DB|AX|SP|TBP|SPY|OH>/<value>`;
+- represented tetrahedral and axial identity as even/odd reference parity,
+  double-bond identity as together/opposite reference relation, and supported
+  coordination families by finite permutation-orbit indices;
+- kept CIP labels explicitly outside stored semantic identity;
+- implemented strict descriptor parse/render, anchor/carrier identity checks,
+  permutation parity, exact Lehmer rank/unrank, bond-endpoint reference rules,
+  and descriptor transforms under carrier reordering;
+- derived SP, TBP, and OH equivalence orbits from their orientation-preserving
+  ideal-geometry rotation groups, yielding 3, 20, and 30 configurations; and
+- fixed square-pyramidal parsing/transformation as an explicit `UNSUPPORTED`
+  boundary rather than inventing a numbering table without a separately
+  audited convention.
+
+Verification:
+
+- the static golden corpus fixes identity/even/odd permutations, non-atom
+  carriers, bond-anchor reversal, one/both endpoint reference changes, every
+  SP/TBP/OH index, and the complete swap-01 mapping for each finite family;
+- focused Gate-1 suite: 57 passed;
+- independent complete stereo selection: 82 passed;
+- production algebra and golden tests import neither RDKit nor Open Babel;
+- `git diff --check` passes.
+
+Unexpected findings:
+
+- the approved plan names square-pyramidal support but does not define a
+  reviewable reference geometry, symmetry group, or stable configuration
+  numbering. Gate 1 therefore cannot honestly freeze SPY meaning yet. This is
+  an explicit remaining Level-2 design obligation, not a silent fallback;
+- one diagnostic invocation initially named a nonexistent test file and
+  collected no tests. It was corrected to the actual stereo test set; no code
+  failure was involved.
+
+Adjustment:
+
+- public `validate_stereochemistry`, `assign_stereochemistry`, and
+  `align_stereochemistry` remain unimplemented in this algebra-only gate;
+- later gates may consume these helpers but cannot redefine the meaning of
+  already supported TH/DB/AX/SP/TBP/OH descriptors;
+- SPY must be resolved before the final complete-spatial-semantics claim.
+
+Git checkpoint: `7d2debf feat(stereo): freeze Level-2 permutation algebra`.

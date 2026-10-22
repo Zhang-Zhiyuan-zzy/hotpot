@@ -172,6 +172,9 @@ int main() {
 
     static_assert(std::is_standard_layout_v<hotpot_rd_options_v1>);
     static_assert(std::is_standard_layout_v<hotpot_rd_molecule_view_v1>);
+    static_assert(std::is_standard_layout_v<hotpot_rd_stereo_record_v1>);
+    static_assert(std::is_standard_layout_v<hotpot_rd_hydrogen_state_v1>);
+    static_assert(std::is_standard_layout_v<hotpot_rd_atom_transport_v1>);
     static_assert(!std::is_copy_constructible_v<rd::ETKDGSampler>);
     static_assert(std::is_move_constructible_v<rd::ETKDGSampler>);
     static_assert(

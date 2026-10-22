@@ -636,4 +636,42 @@ Adjustment:
   remain later, separate checkpoints. This commit changes adapter policy
   placement only and does not change force-field data flow.
 
+Git checkpoint: `2625072 refactor(obwrappers): isolate native compatibility policy`.
+
+### Step 9 - Refreeze Level-1 group and hydrogen transport contracts
+
+Status: complete
+
+Planned:
+
+- apply plan revision 2 to the unpublished Python and C ABI contracts before
+  implementing storage, packing, or RDKit graph behavior.
+
+Performed:
+
+- added frozen `StereoGroupRef(scope, kind, id)` and replaced the ambiguous
+  nullable group-kind/group-id pair with one optional group reference;
+- added frozen `HydrogenTransportState` and split atom transport into current
+  hydrogen state, immutable source hydrogen state, and source namespace;
+- mirrored group scope and both hydrogen states in fixed-width C ABI v1
+  structs and presence masks; and
+- retained isotope/radical atom facts and bond display-direction facts as
+  independent transport values.
+
+Verification:
+
+- combined Python rdWrappers/stereo API suite: 11 passed;
+- strict C11 plus ABI0/ABI1 C++17 SDK facade suite: 3 passed;
+- the C++ fence asserts standard-layout stereo/group/hydrogen C structs;
+- Python compilation and `git diff --check` pass.
+
+Unexpected findings: none beyond those recorded in plan revision 2.
+
+Adjustment:
+
+- C ABI v1 has not been released or implemented by a shared library, so this
+  is a pre-publication contract correction rather than an ABI break;
+- Level-1 functions still raise their phase-specific `NotImplementedError`;
+  no partial storage or chemistry behavior was introduced.
+
 Git checkpoint: pending.

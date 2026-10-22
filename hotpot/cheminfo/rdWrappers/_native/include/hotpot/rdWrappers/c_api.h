@@ -82,11 +82,14 @@ typedef enum hotpot_rd_stereo_group_kind {
 
 typedef enum hotpot_rd_atom_transport_field {
     HOTPOT_RD_ATOM_TRANSPORT_ISOTOPE = 1u << 0,
-    HOTPOT_RD_ATOM_TRANSPORT_RADICAL_ELECTRONS = 1u << 1,
-    HOTPOT_RD_ATOM_TRANSPORT_IMPLICIT_HYDROGENS = 1u << 2,
-    HOTPOT_RD_ATOM_TRANSPORT_BRACKET_EXPLICIT_HYDROGENS = 1u << 3,
-    HOTPOT_RD_ATOM_TRANSPORT_NO_IMPLICIT = 1u << 4
+    HOTPOT_RD_ATOM_TRANSPORT_RADICAL_ELECTRONS = 1u << 1
 } hotpot_rd_atom_transport_field;
+
+typedef enum hotpot_rd_hydrogen_transport_field {
+    HOTPOT_RD_HYDROGEN_TRANSPORT_IMPLICIT = 1u << 0,
+    HOTPOT_RD_HYDROGEN_TRANSPORT_BRACKET_EXPLICIT = 1u << 1,
+    HOTPOT_RD_HYDROGEN_TRANSPORT_NO_IMPLICIT = 1u << 2
+} hotpot_rd_hydrogen_transport_field;
 
 typedef struct hotpot_rd_string_view_v1 {
     const char *data;
@@ -107,21 +110,31 @@ typedef struct hotpot_rd_stereo_record_v1 {
     uint64_t carrier_offset;
     uint64_t carrier_count;
     int64_t group_id;
-    uint32_t has_group_id;
+    uint32_t has_group;
     uint32_t reserved;
+    hotpot_rd_string_view_v1 group_scope;
     hotpot_rd_string_view_v1 descriptor;
     hotpot_rd_string_view_v1 source_namespace;
     hotpot_rd_string_view_v1 source_code;
 } hotpot_rd_stereo_record_v1;
+
+typedef struct hotpot_rd_hydrogen_state_v1 {
+    uint32_t presence_mask;
+    int32_t implicit_hydrogens;
+    int32_t bracket_explicit_hydrogens;
+    uint32_t no_implicit;
+} hotpot_rd_hydrogen_state_v1;
 
 typedef struct hotpot_rd_atom_transport_v1 {
     uint64_t atom;
     uint32_t presence_mask;
     int32_t isotope;
     int32_t radical_electrons;
-    int32_t implicit_hydrogens;
-    int32_t bracket_explicit_hydrogens;
-    uint32_t no_implicit;
+    uint32_t has_current_hydrogens;
+    uint32_t has_source_hydrogens;
+    hotpot_rd_hydrogen_state_v1 current_hydrogens;
+    hotpot_rd_hydrogen_state_v1 source_hydrogens;
+    hotpot_rd_string_view_v1 source_namespace;
 } hotpot_rd_atom_transport_v1;
 
 typedef struct hotpot_rd_bond_transport_v1 {

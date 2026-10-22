@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 __all__ = (
     "AtomTransportRecord",
     "BondTransportRecord",
+    "HydrogenTransportState",
     "StereoAlignmentReport",
     "StereoAnchor",
     "StereoAnchorKind",
@@ -23,6 +24,7 @@ __all__ = (
     "StereoCarrier",
     "StereoCarrierKind",
     "StereoGroupKind",
+    "StereoGroupRef",
     "StereoIssueCode",
     "StereoPayload",
     "StereoRecord",
@@ -59,6 +61,15 @@ class StereoGroupKind(Enum):
     ABS = "abs"
     AND = "and"
     OR = "or"
+
+
+@dataclass(frozen=True)
+class StereoGroupRef:
+    """Persistent lineage and source identity for an enhanced-stereo group."""
+
+    scope: str
+    kind: StereoGroupKind
+    id: int
 
 
 class StereoType(Enum):
@@ -111,22 +122,30 @@ class StereoRecord:
     anchor: StereoAnchor
     carriers: tuple[StereoCarrier, ...]
     descriptor: str
-    group_kind: StereoGroupKind | None
-    group_id: int | None
+    group: StereoGroupRef | None
     source_namespace: str
     source_code: str
 
 
 @dataclass(frozen=True)
+class HydrogenTransportState:
+    """One source or current representation of atom-local hydrogen facts."""
+
+    implicit_hydrogens: int | None
+    bracket_explicit_hydrogens: int | None
+    no_implicit: bool | None
+
+
+@dataclass(frozen=True)
 class AtomTransportRecord:
-    """Atom facts whose absence must remain distinguishable from zero."""
+    """Current atom facts plus an immutable source hydrogen ledger."""
 
     atom: int
     isotope: int | None
     radical_electrons: int | None
-    implicit_hydrogens: int | None
-    bracket_explicit_hydrogens: int | None
-    no_implicit: bool | None
+    current_hydrogens: HydrogenTransportState | None
+    source_hydrogens: HydrogenTransportState | None
+    source_namespace: str | None
 
 
 @dataclass(frozen=True)

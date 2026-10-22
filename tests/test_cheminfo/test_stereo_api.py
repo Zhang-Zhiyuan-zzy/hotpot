@@ -9,7 +9,9 @@ def test_level_one_value_contracts_are_frozen():
     for contract in (
         stereo.StereoCarrier,
         stereo.StereoAnchor,
+        stereo.StereoGroupRef,
         stereo.StereoRecord,
+        stereo.HydrogenTransportState,
         stereo.AtomTransportRecord,
         stereo.BondTransportRecord,
         stereo.StereoPayload,
@@ -47,6 +49,37 @@ def test_transport_enums_cover_non_atom_and_coordination_facts():
         "OCTAHEDRAL",
         "UNKNOWN",
     } == set(stereo.StereoType.__members__)
+
+
+def test_group_and_hydrogen_contracts_separate_lineage_and_current_state():
+    group = stereo.StereoGroupRef(
+        scope="source-molecule-a",
+        kind=stereo.StereoGroupKind.OR,
+        id=1,
+    )
+    source_hydrogens = stereo.HydrogenTransportState(
+        implicit_hydrogens=1,
+        bracket_explicit_hydrogens=0,
+        no_implicit=False,
+    )
+    current_hydrogens = stereo.HydrogenTransportState(
+        implicit_hydrogens=0,
+        bracket_explicit_hydrogens=0,
+        no_implicit=True,
+    )
+    record = stereo.AtomTransportRecord(
+        atom=0,
+        isotope=None,
+        radical_electrons=None,
+        current_hydrogens=current_hydrogens,
+        source_hydrogens=source_hydrogens,
+        source_namespace="rdkit",
+    )
+
+    assert group.scope == "source-molecule-a"
+    assert group.kind is stereo.StereoGroupKind.OR
+    assert record.source_hydrogens.implicit_hydrogens == 1
+    assert record.current_hydrogens.no_implicit is True
 
 
 def test_level_one_function_signatures_are_stable():

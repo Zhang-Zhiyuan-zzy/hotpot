@@ -49,3 +49,9 @@
   Python byte-compilation passed and changed lines were checked for the
   repository's formatting limits.
 
+## 2026-10-22: reproducible benchmark harness
+
+- Added a production-API benchmark runner for both backends. It records wall
+  throughput, process-tree CPU time, resolved resources, caller-affinity
+  restoration, and exact MCA/site/joint hashes including `is_Nuc_site`.
+

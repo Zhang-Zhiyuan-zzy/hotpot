@@ -107,6 +107,10 @@ them:
     and the already frozen SP/TBP/OH numbering remains byte-for-byte
     unchanged. Interpretation is limited to ungrouped, atom-centered records
     whose distinct atom carriers exactly cover the represented first shell.
+    That shell comes from the complete Gate-6 current-state projection,
+    including its virtual nodes for current implicit hydrogens; source-ledger
+    hydrogen facts do not enter it. A center with such a virtual neighbour
+    therefore cannot silently pass atom-point shell coverage.
     Coordinates are classified by center-rooted unit directions and a
     determinant-positive, no-centroid Procrustes fit. The accepted candidate-
     score cutoff is 12 degrees angular RMS; there is no separate per-carrier
@@ -1157,12 +1161,18 @@ coordinate enumeration order do not.
 The supported graph domain contains only explicitly declared SP/TBP/SPY/OH
 records with one `ATOM` anchor and respectively 4/5/5/6 distinct, in-range
 `ATOM` carriers. The carrier set must equal the anchor's complete first shell
-in the represented undirected graph made from active bonds plus both hidden-
-bond collections. The anchor cannot be a carrier. Bond order, bond kind,
-dative orientation, and atom element do not change shell membership. Gate 7
-does not infer metals, donors, oxidation state, preferred geometry, undeclared
-stereo centers, or chemical isolability, and it does not require ligand graphs
-to be mutually distinct.
+in the represented undirected graph made from active bonds, both hidden-bond
+collections, and the current implicit-hydrogen virtual edges created by the
+Gate-6 projection. Only `current_hydrogens`/the current atom state contributes;
+the immutable source-hydrogen ledger does not. Because a virtual hydrogen has
+no in-range atom row and Gate 7 does not coerce an `IMPLICIT_H` carrier, a
+coordination center with a current implicit hydrogen fails the same stable
+shell-set check unless that hydrogen is first materialized as an explicit
+atom. The anchor cannot be a carrier. Bond order, bond kind, dative
+orientation, and atom element do not change shell membership. Gate 7 does not
+infer metals, donors, oxidation state, preferred geometry, undeclared stereo
+centers, or chemical isolability, and it does not require ligand graphs to be
+mutually distinct.
 
 A declared coordination record triggers the same complete Gate-6 represented-
 graph projection used by TH/DB/AX, even when no TH/DB/AX record is present.
@@ -1641,9 +1651,11 @@ No `C1`/`C2` path enters `hotpot.ff` in this stage.
 - exact inside/equal/outside tests for the 12-degree RMS, 2-degree
   same-family, and 3-degree TBP/SPY boundaries, including strong alternate-
   family coordinate contradictions without family migration;
-- active plus both hidden-bond first-shell coverage, all-ATOM/ungrouped-only
-  boundaries, same-center duplicate/cross-family rejection, and independent
-  versus coupled multicenter records;
+- active plus both hidden-bond and current implicit-H virtual-edge first-shell
+  coverage, including rejection of an unmaterialized current implicit H but
+  no effect from source-ledger H alone; all-ATOM/ungrouped-only boundaries,
+  same-center duplicate/cross-family rejection, and independent versus
+  coupled multicenter records;
 - complete represented-graph projection parity for coordination-only payloads,
   including global malformed-edge, dative-direction, and projected atom-
   transport-fact failures;
@@ -1793,7 +1805,9 @@ govern the work:
     in Section 7.2: preserve frozen SP/TBP/OH numbering; add SPY as 30
     proper-C4 orbits at `+z,+x,+y,-x,-y`; require at most one supported atom-
     centered record per center, with every supported record ungrouped and
-    exactly covering the represented shell; classify center-rooted unit
+    exactly covering the complete Gate-6 current-state represented shell,
+    including current implicit-H virtual neighbours but never source-ledger H;
+    classify center-rooted unit
     directions by no-centroid determinant-positive fitting with frozen
     12/2/3-degree policies; preserve the represented-graph chelate partition
     under mappings; reject grouped, non-atom, inferred, and coupled-multicenter

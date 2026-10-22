@@ -1,6 +1,9 @@
 # Stage 17: standalone native RDKit wrapper and conformer sampling
 
-Status: owner-approved; implementation in progress.
+Status: component implementation and local validation are complete; release
+closure is blocked by the unavailable frozen 182-case artifacts, the missing
+formal O0/F1 runner and provider-decision evidence, and the unexecuted CPython
+3.10-3.14 manylinux wheel matrix.
 
 Planning branch: `feature/rdWrapper`
 
@@ -24,5 +27,9 @@ Implementation proceeds in small verified checkpoints. The live record is:
 
 - [implementation_log.md](implementation_log.md)
 
-The final implementation and benchmark report will be added after every
-required phase and closure gate completes.
+The implementation, validation, benchmark, and remaining-gate report is:
+
+- [implementation_report.md](implementation_report.md)
+
+The report distinguishes completed source/local-native evidence from formal
+182-case workflow validation and release-wheel claims that have not run.

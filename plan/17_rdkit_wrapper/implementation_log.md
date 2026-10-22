@@ -3482,3 +3482,52 @@ Adjustment:
   explicitly approves a newly frozen cohort.
 
 No production-code checkpoint is associated with this evidence-only rerun.
+
+### Step 49 - Publish the implementation and validation report
+
+Status: complete for the implementation handoff; release gates remain open
+
+Planned:
+
+- consolidate the final architecture, public APIs, implementation route,
+  validation evidence, benchmarks, artifact identities, and remaining gates;
+- distinguish component/local completion from formal workflow and wheel
+  release completion; and
+- update the Stage-17 index without hiding any unavailable evidence.
+
+Performed:
+
+- added `implementation_report.md` with the Python, C ABI, C++17, common-view,
+  force-field seam, R0, C1/C2, Level-1, Level-2, build, packaging, and release
+  outcomes;
+- included exact R0 and development-smoke benchmark tables, test selections,
+  source/golden/binary/report hashes, checkpoint chronology, supported claims,
+  and explicit non-claims; and
+- updated `README.md` to link the report and state that component
+  implementation/local validation are complete while release closure is not.
+
+Verification:
+
+- an independent final audit checked every R0/C1/C2 number, accessible artifact
+  hash, stereo golden, source lock, API summary, native export count, installed
+  header/license count, test statistic, chronology entry, and non-claim;
+- the audit found no remaining blocker after the README status was aligned with
+  the report; and
+- Markdown whitespace, line-length review, link targets, Python compilation of
+  both benchmark runners, and `git diff --check` pass.
+
+Unexpected finding:
+
+- the first README status listed the missing 182 artifacts and wheel matrix but
+  omitted the separately missing formal O0/F1 runner and provider-decision
+  evidence. The final status now names all three release-blocker classes.
+
+Adjustment:
+
+- call the delivered code and local validation complete, but do not call Stage
+  17 release-complete;
+- keep Open Babel as the default force-field coordinate provider; and
+- require the formal 182 artifact/runner evidence and five-version wheel audit
+  before a release sign-off or default-provider change.
+
+No production-code checkpoint is associated with this reporting-only step.

@@ -1922,3 +1922,69 @@ Adjustment:
   wheel-matrix success.
 
 Git checkpoint: `531130c build(rdwrapper): integrate locked manylinux wheels`.
+
+### Step 30 - Implement Level-2 Gate 4 coordinate semantics
+
+Status: complete
+
+Planned:
+
+- assign the already declared tetrahedral and double-bond records from an
+  explicit coordinate array without discovering new stereoelements;
+- use Hotpot-owned, reference-relative geometry rather than toolkit stereo
+  assignment; and
+- report scale-aware degeneracy and stored-descriptor contradictions without
+  mutating the molecule, source payload, or caller coordinate array.
+
+Performed:
+
+- added strict finite `(atom_count, 3)` coordinate handling and record-scoped
+  geometry diagnostics;
+- assigned tetrahedral even/odd identity from the ordered-carrier signed
+  volume, using the center as the projective proxy for an implicit hydrogen;
+- assigned double-bond together/opposite identity from endpoint-scoped
+  transverse carrier directions, including one implicit hydrogen at either
+  endpoint;
+- made both assignments invariant to translation, proper rotation, positive
+  scale, anchor reversal, and the parity rules frozen by Gates 1-3;
+- returned newly assigned payload values while leaving the stored Level-1
+  payload untouched; and
+- changed the stale Gate-2 coordinate placeholder assertion from deferred
+  `UNSUPPORTED` to the now implemented `DEGENERATE_GEOMETRY` result.
+
+Verification:
+
+- the final complete `test_*stereo*.py` selection reports 171 passed;
+- fixtures cover all tetrahedral carrier permutations, every double-bond
+  endpoint-swap/anchor-order combination, explicit and implicit hydrogen,
+  rigid transforms, reflection, scale, invalid coordinate arrays,
+  degeneracy, contradiction ordering, and non-mutation;
+- an independent scientific review reproduced the permutation and tolerance
+  counterexamples described below, then confirmed all 24 permutations and
+  all local near-zero cases after correction;
+- Python compilation and `git diff --check` pass; and
+- neither RDKit nor Open Babel is used as the runtime semantic oracle.
+
+Unexpected findings:
+
+- the first implementation normalized tetrahedral volume by the three edges
+  from whichever carrier occupied the fourth reference slot. Although the
+  signed volume transformed correctly, the degeneracy threshold therefore
+  depended on carrier order: one fixed near-planar geometry could be
+  unresolved in one order and assigned in another;
+- exact-zero checks for center-carrier distance, double-bond axis length, and
+  endpoint transverse direction admitted nonzero values far below the
+  declared relative tolerance.
+
+Adjustment:
+
+- tetrahedral degeneracy now uses the maximum of all carrier-pair distances as
+  a permutation-invariant characteristic length and evaluates normalized
+  signed volume;
+- center-carrier, double-bond-axis, explicit endpoint-carrier, and transverse
+  magnitudes now use deterministic local relative scales before assignment;
+- practical molecular coordinate ranges are the supported numerical domain;
+  special policy for finite values near floating-point overflow or underflow
+  remains outside this gate.
+
+Git checkpoint: `31fe1a4 feat(stereo): implement Level-2 Gate-4 geometry`.

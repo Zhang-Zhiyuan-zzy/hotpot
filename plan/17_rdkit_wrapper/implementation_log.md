@@ -1422,3 +1422,56 @@ Adjustment:
 - no public dynamic field profile or second communication buffer was added.
 
 Git checkpoint: `32a6064 feat(native): carry Level-1 views into rdWrapper`.
+
+### Step 22 - Close virtual-hydrogen and directed-display semantics in native RDKit
+
+Status: complete
+
+Planned:
+
+- apply the pinned-source evidence from the Python adapter audit to the native
+  builder; and
+- make every endpoint-order transformation either exact or explicit
+  unsupported.
+
+Performed:
+
+- admitted a tetrahedral center with three graph carriers and exactly one
+  bracket-explicit virtual H, without encoding that H as an implicit carrier;
+- retained a true implicit H as the final explicit `IMPLICIT_H` transport
+  token and required graph plus virtual carrier count to equal four;
+- applied the same odd-permutation `CW`/`CCW` transform to both conventions;
+- transformed reversed `ENDUPRIGHT`/`ENDDOWNRIGHT`, retained reversed `NONE`
+  and endpoint-independent `EITHERDOUBLE`, and rejected reversed wedge, dash,
+  unknown, or otherwise unproved display directions;
+- rejected reversed raw atropisomer `CW`/`CCW` until its convention is frozen;
+  and
+- required native atom-transport provenance to match the exact pinned RDKit
+  namespace, matching the Python adapter rather than silently interpreting a
+  future toolkit representation.
+
+Verification:
+
+- both changed C++20 units compile with GCC 14.3, `-Wall -Wextra -Werror`;
+- the direct graph-transfer executable links against the exact static source
+  closure and passes bracket-H, odd parity, implicit-H distinction,
+  EITHERDOUBLE, slash inversion, reversed-wedge rejection, reversed-atrop
+  rejection, and unknown atom-namespace rejection;
+- `git diff --check` passes.
+
+Unexpected findings:
+
+- RDKit's crossed-double display code is endpoint-independent and can remain
+  unchanged under endpoint reversal; it must not be grouped with endpoint-
+  anchored wedge/dash codes;
+- raw atropisomer code reversal is not specified by the audited pinned APIs,
+  so treating it like ordinary E/Z would create a false semantic guarantee.
+
+Adjustment:
+
+- no new carrier kind was introduced: bracket-explicit and implicit H remain
+  distinguishable through the hydrogen ledger and the existing sentinel rule;
+- unsupported raw direction cases remain Level-1 data in Hotpot but cannot be
+  consumed by this RDKit adapter until an exact transform exists.
+
+Git checkpoint: `36069ed fix(rdwrapper): preserve virtual-H and bond direction stereo`.

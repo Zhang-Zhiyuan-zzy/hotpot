@@ -329,13 +329,32 @@ void apply_atom_transport(
 ) {
     for (std::uint64_t index = 0; index < source.atom_transport_count; ++index) {
         const auto& record = source.atom_transport[index];
-        if (copy_string(record.source_namespace) != "rdkit-2026.09.1") {
+        const auto source_namespace = copy_string(record.source_namespace);
+        const bool is_rdkit_transport = source_namespace == "rdkit-2026.09.1";
+        const bool is_hotpot_legacy = source_namespace == "hotpot-legacy/1";
+        if (!is_rdkit_transport && !is_hotpot_legacy) {
             throw UnsupportedInput(
                 "atom transport source_namespace is not representable by "
                 "the pinned RDKit adapter"
             );
         }
         auto* atom = molecule.getAtomWithIdx(static_cast<unsigned int>(record.atom));
+        if (is_hotpot_legacy) {
+            if (record.presence_mask != 0
+                || !record.has_current_hydrogens
+                || record.has_source_hydrogens
+                || record.current_hydrogens.presence_mask
+                    != HOTPOT_RD_HYDROGEN_TRANSPORT_IMPLICIT) {
+                throw UnsupportedInput(
+                    "hotpot-legacy/1 atom transport must contain only the "
+                    "logical implicit-hydrogen count"
+                );
+            }
+            atom->setNumExplicitHs(static_cast<unsigned int>(
+                record.current_hydrogens.implicit_hydrogens
+            ));
+            continue;
+        }
         if ((record.presence_mask & HOTPOT_RD_ATOM_TRANSPORT_ISOTOPE) != 0) {
             if (record.isotope < 0) {
                 throw UnsupportedInput("RDKit isotope cannot be negative");
@@ -373,6 +392,9 @@ void validate_implicit_hydrogens(
 ) {
     for (std::uint64_t index = 0; index < source.atom_transport_count; ++index) {
         const auto& record = source.atom_transport[index];
+        if (copy_string(record.source_namespace) == "hotpot-legacy/1") {
+            continue;
+        }
         if (!record.has_current_hydrogens
             || (record.current_hydrogens.presence_mask
                 & HOTPOT_RD_HYDROGEN_TRANSPORT_IMPLICIT) == 0) {
@@ -640,7 +662,8 @@ std::unique_ptr<RDKit::RWMol> build_molecule(
             | RDKit::MolOps::SANITIZE_KEKULIZE
             | RDKit::MolOps::SANITIZE_SETAROMATICITY
             | RDKit::MolOps::SANITIZE_SETCONJUGATION
-            | RDKit::MolOps::SANITIZE_SETHYBRIDIZATION;
+            | RDKit::MolOps::SANITIZE_SETHYBRIDIZATION
+            | RDKit::MolOps::SANITIZE_ADJUSTHS;
         unsigned int failed_operation = RDKit::MolOps::SANITIZE_NONE;
         RDKit::MolOps::sanitizeMol(
             *molecule,

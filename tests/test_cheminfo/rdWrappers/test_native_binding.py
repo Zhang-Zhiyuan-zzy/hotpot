@@ -57,6 +57,11 @@ def test_loader_packs_only_the_rdkit_field_set(monkeypatch):
             return "result"
 
     monkeypatch.setattr(native, "pack_molecule", fake_pack)
+    monkeypatch.setattr(
+        native,
+        "_add_legacy_hydrogen_transport",
+        lambda received_molecule, buffers: buffers,
+    )
     monkeypatch.setattr(native, "_backend", lambda: Backend)
 
     assert native.generate(molecule, options, None) == "result"
@@ -109,10 +114,14 @@ def test_compiled_generation_is_deterministic_and_nonmutating():
     assert first.coordinates.flags.c_contiguous
     assert np.isfinite(first.coordinates).all()
     np.testing.assert_array_equal(first.coordinates, second.coordinates)
-    assert first.records == second.records == (
-        rdWrappers.ConformerRecord(ordinal=0, engine_conformer_id=0),
-        rdWrappers.ConformerRecord(ordinal=1, engine_conformer_id=1),
-        rdWrappers.ConformerRecord(ordinal=2, engine_conformer_id=2),
+    assert (
+        first.records
+        == second.records
+        == (
+            rdWrappers.ConformerRecord(ordinal=0, engine_conformer_id=0),
+            rdWrappers.ConformerRecord(ordinal=1, engine_conformer_id=1),
+            rdWrappers.ConformerRecord(ordinal=2, engine_conformer_id=2),
+        )
     )
     assert first.engine == "RDKit ETKDGv3"
     assert first.engine_version == "2026.09.1"
@@ -135,6 +144,41 @@ def test_compiled_public_path_accepts_kekule_ordered_aromatic_bonds():
 
     assert result.status is rdWrappers.GenerationStatus.SUCCESS
     assert result.coordinates.shape == (1, 6, 3)
+
+
+def test_compiled_public_path_preserves_payload_free_aromatic_nh():
+    _load_test_extension()
+    molecule = hotpot.read_mol("c1cc(-c2nnn[nH]2)nc(-c2nnn[nH]2)c1", fmt="smi")
+    coordinates_before = molecule.coordinates.copy()
+    options = rdWrappers.ETKDGOptions(conformer_count=2, seed=123)
+
+    first = rdWrappers.generate_conformers(molecule, options=options)
+    second = rdWrappers.generate_conformers(molecule, options=options)
+
+    assert first.status is rdWrappers.GenerationStatus.SUCCESS
+    assert first.coordinates.shape == (2, len(molecule.atoms), 3)
+    assert np.isfinite(first.coordinates).all()
+    np.testing.assert_array_equal(first.coordinates, second.coordinates)
+    np.testing.assert_array_equal(molecule.coordinates, coordinates_before)
+
+
+def test_legacy_hydrogen_adapter_fills_only_payload_free_atoms():
+    molecule = hotpot.read_mol("[13CH3]CO", fmt="smi")
+    buffers = native.pack_molecule(molecule, native._RDKIT_ETKDG_FIELDS)
+
+    adapted = native._add_legacy_hydrogen_transport(molecule, buffers)
+    transport = adapted.atom_transport
+
+    assert transport is not None
+    assert tuple(transport.atoms) == tuple(range(len(molecule.atoms)))
+    assert tuple(transport.current_implicit_hydrogens) == tuple(
+        atom.implicit_hydrogens for atom in molecule.atoms
+    )
+    assert native._utf8_values(transport.source_namespaces) == (
+        "hotpot-legacy/1",
+        "hotpot-legacy/1",
+        "hotpot-legacy/1",
+    )
 
 
 def test_compiled_binding_rejects_mismatched_constraint_rows():
@@ -224,9 +268,7 @@ def test_compiled_binding_rejects_unaligned_numpy_storage():
 
     extension = _load_test_extension()
     storage = np.zeros(2 * np.dtype(np.int32).itemsize + 1, dtype=np.uint8)
-    atomic_numbers = np.ndarray(
-        shape=(2,), dtype=np.int32, buffer=storage, offset=1
-    )
+    atomic_numbers = np.ndarray(shape=(2,), dtype=np.int32, buffer=storage, offset=1)
     assert atomic_numbers.flags.c_contiguous
     assert not atomic_numbers.flags.aligned
     buffers = replace(_minimal_native_buffers(), atomic_numbers=atomic_numbers)
@@ -276,9 +318,7 @@ def test_compiled_binding_validates_utf8_presence_and_offsets(
         source_no_implicit=np.zeros(1, dtype=np.uint32),
         source_namespaces=strings,
     )
-    buffers = replace(
-        _minimal_native_buffers(), atom_transport=atom_transport
-    )
+    buffers = replace(_minimal_native_buffers(), atom_transport=atom_transport)
 
     with pytest.raises(ValueError, match=message):
         extension.generate(buffers, rdWrappers.ETKDGOptions(), None)

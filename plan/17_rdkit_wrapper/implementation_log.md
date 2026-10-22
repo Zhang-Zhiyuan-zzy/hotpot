@@ -1562,7 +1562,7 @@ Git checkpoint: `42d7c4c feat(rdwrapper): add native Python binding and SDK buil
 
 ### Step 24 - Freeze and execute the detached R0 benchmark
 
-Status: in progress
+Status: complete
 
 Planned:
 
@@ -1625,8 +1625,18 @@ Adjustment:
   unknown namespaces remain unsupported;
 - focused compiled/native/Level-1 selections report 63 passed, and the nine
   formerly unsupported canonical cases all return `SUCCESS` at count 1;
-- the complete clean 561-trial rerun is still required before this step can be
-  closed.
+- the final clean 561-trial rerun at `531130c` reports 559 `SUCCESS`, two
+  expected `PARTIAL`, and zero `UNSUPPORTED`/`FAILED` outcomes;
+- count 1 returns 187/187 full successes; counts 8 and 32 each return 186 full
+  successes plus case 10's stable 4/8 and 18/32 partial batches;
+- all 7,649 returned conformers pass finite-coordinate, atom-row, topology,
+  Level-1, input-nonmutation, and same-seed checks with zero failures;
+- primary generation takes 77.8418 seconds overall at 98.2634 conformers/s;
+  counts 1/8/32 run at 62.1682 / 95.6409 / 100.7870 conformers/s; and
+- the clean runtime records branch `feature/rdWrapper`, commit
+  `531130c71de6fc32cd23946ebc55d4290c164ff4`, Python 3.11.16, native and
+  Python RDKit 2026.09.1, one native thread, one outer worker, and a clean Git
+  tree.
 
 Git checkpoints:
 
@@ -1844,3 +1854,71 @@ Adjustment:
   182-case result is claimed.
 
 Git checkpoint: `edc15be feat(rdwrapper): add coordination-aware ETKDG bounds`.
+
+### Step 29 - Integrate the locked native core into release wheels
+
+Status: implementation complete; full CPython wheel matrix delegated to CI
+
+Planned:
+
+- build the Python extension through the same locked offline source/CMake
+  route as the standalone SDK;
+- freeze a real manylinux release image and toolchain independently of the
+  disposable Conda probe; and
+- install only the Python component into wheels while retaining the SDK as a
+  separate versioned developer artifact.
+
+Performed:
+
+- added a setuptools CMake extension that verifies/fetches the exact six
+  locked archives, disables SDK output, builds `_rd_native`, and installs only
+  the `rdwrappers_python` component into the wheel staging tree;
+- added the complete native/common-header/CMake/lock input closure to the
+  source distribution manifest;
+- selected and recorded the exact
+  `manylinux_2_28_x86_64@sha256:39df...ff82` image, glibc 2.28, GCC/G++
+  14.2.1 RPMs, binutils 2.41 RPM, CMake 4.4.3, and PyPI Ninja 1.13.2/CLI
+  identity;
+- made the build driver reject any release-profile identity mismatch while
+  preserving a separate exact Conda probe profile;
+- pinned the wheel workflow to that digest/profile for CPython 3.10-3.14 and
+  added installed-wheel Python-RDKit coexistence, runtime identity, and native
+  ETKDG smoke checks; and
+- kept the public C++ SDK library/headers outside the Python wheel.
+
+Verification:
+
+- packaging/profile tests plus the pre-existing SDK-only Python-resolution
+  checks report 8 passed;
+- a locally generated source archive contains the wrapper CMake/source/header
+  closure, common headers, locked fetcher/manifest, and exact probe CMake
+  inputs;
+- the pinned container completed the offline 162-target native build;
+- the staged extension exports only `PyInit__rd_native`, has no
+  RPATH/RUNPATH, and requires at most `GLIBCXX_3.4.22`;
+- the staged Python component contains the extension, stub, and licenses but
+  no SDK library or public SDK installation tree;
+- shell syntax, lock JSON parsing, and `git diff --check` pass.
+
+Unexpected findings:
+
+- the verified image ships gcc-toolset-14 binutils RPM release
+  `2.41-4.el8_10.1`, not the initially assumed spelling;
+- PyPI `ninja==1.13.2` reports the exact CLI string
+  `1.13.2.git.kitware.jobserver-pipe-1`; both real identities are now locked;
+- the first profile refactor resolved the optional Python executable before
+  reading `HOTPOT_RDWRAPPERS_BUILD_PYTHON`, which would have regressed the
+  standalone SDK contract. Resolution was moved back inside the Python-only
+  branch and the SDK-only ordering test retained.
+
+Adjustment:
+
+- a complete PEP-517 wheel build reached isolated build-dependency
+  installation but produced no output for four minutes in the local network
+  environment; the disposable container was stopped rather than presenting a
+  hung build as evidence;
+- the actual CPython 3.10-3.14 build/install/audit matrix remains an explicit
+  release-CI gate. Native container success is not reported as completed
+  wheel-matrix success.
+
+Git checkpoint: `531130c build(rdwrapper): integrate locked manylinux wheels`.

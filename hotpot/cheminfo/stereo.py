@@ -6,7 +6,7 @@ from collections.abc import Collection, Sequence
 from dataclasses import dataclass, replace
 from enum import Enum
 from itertools import combinations, permutations, product
-from math import factorial, isfinite
+from math import factorial, isfinite, radians, sqrt
 from typing import TYPE_CHECKING, Mapping
 
 import numpy as np
@@ -716,6 +716,44 @@ _COORDINATION_REPRESENTATIVES = {
     for family, rotations in _COORDINATION_ROTATIONS.items()
 }
 
+_COORDINATION_IDEAL_DIRECTIONS = {
+    _Level2DescriptorFamily.SQUARE_PLANAR: (
+        (1.0, 0.0, 0.0),
+        (0.0, 1.0, 0.0),
+        (-1.0, 0.0, 0.0),
+        (0.0, -1.0, 0.0),
+    ),
+    _Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL: (
+        (0.0, 0.0, 1.0),
+        (0.0, 0.0, -1.0),
+        (1.0, 0.0, 0.0),
+        (-0.5, sqrt(3.0) / 2.0, 0.0),
+        (-0.5, -sqrt(3.0) / 2.0, 0.0),
+    ),
+    _Level2DescriptorFamily.SQUARE_PYRAMIDAL: (
+        (0.0, 0.0, 1.0),
+        (1.0, 0.0, 0.0),
+        (0.0, 1.0, 0.0),
+        (-1.0, 0.0, 0.0),
+        (0.0, -1.0, 0.0),
+    ),
+    _Level2DescriptorFamily.OCTAHEDRAL: (
+        (1.0, 0.0, 0.0),
+        (-1.0, 0.0, 0.0),
+        (0.0, 1.0, 0.0),
+        (0.0, -1.0, 0.0),
+        (0.0, 0.0, 1.0),
+        (0.0, 0.0, -1.0),
+    ),
+}
+_GATE7_ACCEPTANCE_RADIANS = radians(12.0)
+_GATE7_SAME_FAMILY_MARGIN_RADIANS = radians(2.0)
+_GATE7_FIVE_COORDINATE_MARGIN_RADIANS = radians(3.0)
+_GATE7_FIVE_COORDINATE_FAMILIES = (
+    _Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL,
+    _Level2DescriptorFamily.SQUARE_PYRAMIDAL,
+)
+
 
 def _carrier_reordering(
     source: Sequence[StereoCarrier],
@@ -985,6 +1023,14 @@ class _Gate7CoordinationSite:
     descriptor: _Level2Descriptor
     center: int
     carrier_rows: tuple[int, ...]
+
+
+@dataclass(frozen=True)
+class _Gate7CoordinateCandidate:
+    """One descriptor fit ranked by raw angular RMS in radians."""
+
+    descriptor: _Level2Descriptor
+    score_radians: float
 
 
 class _Gate6Equivalence(Enum):
@@ -2927,6 +2973,220 @@ def _is_relatively_degenerate(length: float, local_scale: float) -> bool:
     """Return whether a local length vanishes at the geometry tolerance."""
 
     return local_scale == 0.0 or length / local_scale <= _GEOMETRY_RELATIVE_TOLERANCE
+
+
+def _gate7_ideal_carrier_directions(
+    descriptor: _Level2Descriptor,
+) -> NDArray[np.float64]:
+    """Return one ideal configuration in stored carrier order."""
+
+    ideal_sites = _COORDINATION_IDEAL_DIRECTIONS[descriptor.family]
+    representative = _COORDINATION_REPRESENTATIVES[descriptor.family][
+        int(descriptor.value) - 1
+    ]
+    directions = np.empty((len(representative), 3), dtype=np.float64)
+    for site, carrier_position in enumerate(representative):
+        directions[carrier_position] = ideal_sites[site]
+    return directions
+
+
+def _gate7_proper_rotation_fit(
+    ideal: NDArray[np.float64],
+    observed: NDArray[np.float64],
+) -> tuple[NDArray[np.float64], float]:
+    """Fit equal-weight unit directions by no-centroid proper Procrustes.
+
+    Kabsch minimizes squared Euclidean chord lengths. The returned score is
+    computed afterwards as angular RMS; it is not the optimized objective.
+    """
+
+    left, _, right_transpose = np.linalg.svd(ideal.T @ observed)
+    correction = np.eye(3, dtype=np.float64)
+    correction[-1, -1] = (
+        1.0
+        if np.linalg.det(left @ right_transpose) >= 0.0
+        else -1.0
+    )
+    rotation = left @ correction @ right_transpose
+    fitted = ideal @ rotation
+    dots = np.clip(np.sum(fitted * observed, axis=1), -1.0, 1.0)
+    cross_norms = np.linalg.norm(np.cross(fitted, observed), axis=1)
+    angles = np.arctan2(cross_norms, dots)
+    score = float(np.sqrt(np.mean(np.square(angles))))
+    return rotation, score
+
+
+def _gate7_coordination_candidates(
+    family: _Level2DescriptorFamily,
+    observed: NDArray[np.float64],
+) -> tuple[_Gate7CoordinateCandidate, ...]:
+    """Rank every descriptor in one coordination family deterministically."""
+
+    candidates = []
+    for value in range(1, _COORDINATION_CARDINALITIES[family] + 1):
+        descriptor = _Level2Descriptor(family, value)
+        ideal = _gate7_ideal_carrier_directions(descriptor)
+        _, score = _gate7_proper_rotation_fit(ideal, observed)
+        candidates.append(_Gate7CoordinateCandidate(descriptor, score))
+    return tuple(
+        sorted(
+            candidates,
+            key=lambda candidate: (
+                candidate.score_radians,
+                int(candidate.descriptor.value),
+            ),
+        )
+    )
+
+
+def _select_gate7_coordination_descriptor(
+    declared_family: _Level2DescriptorFamily,
+    candidates_by_family: Mapping[
+        _Level2DescriptorFamily,
+        Sequence[_Gate7CoordinateCandidate],
+    ],
+    *,
+    record_index: int,
+    atom_indices: tuple[int, ...],
+) -> tuple[_Level2Descriptor | None, StereoValidationIssue | None]:
+    """Apply the raw-radian 12/2/3-degree policy to ranked candidates."""
+
+    declared = candidates_by_family[declared_family]
+    declared_best = declared[0]
+
+    if declared_family in _GATE7_FIVE_COORDINATE_FAMILIES:
+        alternate_family = next(
+            family
+            for family in _GATE7_FIVE_COORDINATE_FAMILIES
+            if family is not declared_family
+        )
+        alternate_best = candidates_by_family[alternate_family][0]
+        if (
+            declared_best.score_radians > _GATE7_ACCEPTANCE_RADIANS
+            and alternate_best.score_radians > _GATE7_ACCEPTANCE_RADIANS
+        ):
+            return None, _geometry_issue(
+                "TBP/SPY coordinate geometry exceeds the 12-degree angular "
+                "RMS acceptance cutoff in both families",
+                record_index=record_index,
+                atom_indices=atom_indices,
+            )
+        family_gap = abs(
+            declared_best.score_radians - alternate_best.score_radians
+        )
+        if family_gap <= _GATE7_FIVE_COORDINATE_MARGIN_RADIANS:
+            return None, _geometry_issue(
+                "TBP/SPY coordinate geometry is ambiguous within the "
+                "3-degree family margin",
+                record_index=record_index,
+                atom_indices=atom_indices,
+            )
+        if alternate_best.score_radians < declared_best.score_radians:
+            return None, StereoValidationIssue(
+                code=StereoIssueCode.COORDINATE_CONTRADICTION,
+                message=(
+                    f"declared {declared_family.value} family contradicts "
+                    f"coordinate-preferred {alternate_family.value} family"
+                ),
+                record_index=record_index,
+                atom_indices=atom_indices,
+            )
+    elif declared_best.score_radians > _GATE7_ACCEPTANCE_RADIANS:
+        return None, _geometry_issue(
+            f"{declared_family.value} coordinate geometry exceeds the "
+            "12-degree angular RMS acceptance cutoff",
+            record_index=record_index,
+            atom_indices=atom_indices,
+        )
+
+    if (
+        declared[1].score_radians - declared_best.score_radians
+        <= _GATE7_SAME_FAMILY_MARGIN_RADIANS
+    ):
+        return None, _geometry_issue(
+            f"{declared_family.value} coordinate geometry is ambiguous within "
+            "the 2-degree same-family margin",
+            record_index=record_index,
+            atom_indices=atom_indices,
+        )
+    return declared_best.descriptor, None
+
+
+def _gate7_center_rooted_directions(
+    site: _Gate7CoordinationSite,
+    coordinates: NDArray[np.float64],
+) -> tuple[NDArray[np.float64] | None, StereoValidationIssue | None]:
+    """Normalize each center-to-carrier vector without donor centering."""
+
+    rows = (site.center, *site.carrier_rows)
+    site_coordinates = coordinates[np.asarray(rows)]
+    coordinate_scale = float(np.max(np.abs(site_coordinates)))
+    scaled_coordinates = np.zeros_like(site_coordinates, dtype=np.float64)
+    if coordinate_scale != 0.0:
+        scaled_coordinates = site_coordinates / coordinate_scale
+    vectors = scaled_coordinates[1:] - scaled_coordinates[0]
+    component_scales = np.max(np.abs(vectors), axis=1)
+    scaled_vectors = np.zeros_like(vectors, dtype=np.float64)
+    np.divide(
+        vectors,
+        component_scales[:, np.newaxis],
+        out=scaled_vectors,
+        where=component_scales[:, np.newaxis] != 0.0,
+    )
+    scaled_norms = np.linalg.norm(scaled_vectors, axis=1)
+    max_component_scale = float(np.max(component_scales))
+    relative_norms = np.zeros_like(component_scales, dtype=np.float64)
+    if max_component_scale != 0.0:
+        relative_norms = (
+            component_scales / max_component_scale
+        ) * scaled_norms
+    local_scale = float(np.max(relative_norms))
+    if any(
+        _is_relatively_degenerate(float(norm), local_scale)
+        for norm in relative_norms
+    ):
+        return None, _geometry_issue(
+            f"{site.descriptor.family.value} coordinate geometry has a carrier "
+            "coincident with its center within relative tolerance "
+            f"{_GEOMETRY_RELATIVE_TOLERANCE:g}",
+            record_index=site.record_index,
+            atom_indices=(site.center, *site.carrier_rows),
+        )
+    directions = scaled_vectors / scaled_norms[:, np.newaxis]
+    return directions, None
+
+
+def _gate7_coordination_coordinate_descriptor(
+    site: _Gate7CoordinationSite,
+    coordinates: NDArray[np.float64],
+) -> tuple[_Level2Descriptor | None, StereoValidationIssue | None]:
+    """Assign one private Gate-7 descriptor without public cutover."""
+
+    directions, issue = _gate7_center_rooted_directions(site, coordinates)
+    if issue is not None:
+        return None, issue
+
+    family = site.descriptor.family
+    families = [family]
+    if family in _GATE7_FIVE_COORDINATE_FAMILIES:
+        families.extend(
+            candidate_family
+            for candidate_family in _GATE7_FIVE_COORDINATE_FAMILIES
+            if candidate_family is not family
+        )
+    candidates = {
+        candidate_family: _gate7_coordination_candidates(
+            candidate_family,
+            directions,
+        )
+        for candidate_family in families
+    }
+    return _select_gate7_coordination_descriptor(
+        family,
+        candidates,
+        record_index=site.record_index,
+        atom_indices=(site.center, *site.carrier_rows),
+    )
 
 
 def _tetrahedral_coordinate_descriptor(

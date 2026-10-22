@@ -3531,3 +3531,83 @@ Adjustment:
   before a release sign-off or default-provider change.
 
 No production-code checkpoint is associated with this reporting-only step.
+
+### Step 50 - Isolate and harden the release-wheel payload
+
+Status: packaging fix complete; final CPython 3.10-3.14 matrix pending
+
+Planned:
+
+- execute a CPython 3.11 diagnostic build from a clean committed source tree
+  before spending the full five-interpreter matrix;
+- audit installed behavior, import order, native linkage, exports, licenses,
+  and archive membership rather than accepting a repaired filename alone; and
+- preserve the sdist native-build closure while keeping the Python wheel a
+  runtime artifact rather than an undeclared C++ SDK.
+
+Performed:
+
+- pinned the local diagnostic to the release workflow's exact
+  `manylinux_2_28_x86_64` image digest, cibuildwheel 4.3.0, the six verified
+  locked source archives, and the `manylinux_2_28_x86_64` build profile;
+- disabled cibuildwheel's host-source mount and moved the build to a clean
+  detached worktree so ignored host-built extensions could not enter the
+  container source tree;
+- added a fresh-process `RDKit -> Hotpot` installed-wheel smoke alongside the
+  existing `Hotpot -> RDKit` route and asserted both the Python distribution
+  identity `2026.9.1` and native runtime identity `2026.09.1`;
+- separated setuptools package data from sdist build inputs with exact
+  namespace-package exclusions, retaining only the rdWrapper stub and runtime
+  notice before CMake installs the extension and seven dependency licenses;
+  and
+- added a stdlib-only pre-upload wheel-content gate with focused tests. The
+  gate strictly admits the runtime rdWrapper payload, requires one ABI
+  extension and the project license, and rejects wrapper sources, headers,
+  CMake inputs, common native headers, locked RDKit sources, and SDK artifacts.
+
+Verification:
+
+- the diagnostic CPython 3.11 wheel built, repaired, installed, and passed both
+  import-order smokes at source commit `0719e2a`; its size was `5,678,830`
+  bytes and SHA-256 was
+  `523a5c5d70eef22152c14f6fee87ab07a732a4a1d2dfb98e3bcf018fe27ca36a`;
+- `_rd_native` had no RPATH/RUNPATH, no dynamic RDKit, Boost, or Conda
+  dependency, only system runtime dependencies, and only
+  `PyInit__rd_native` as a function export;
+- a fresh setuptools `build_py` staging tree contains only
+  `__init__.py`, `contracts.py`, `native.py`, `sampler.py`, `_rd_native.pyi`,
+  and `_native/THIRD_PARTY_NOTICES.md` under rdWrappers, while common `_native`
+  contains only its two Python runtime modules;
+- a fresh sdist still contains the wrapper CMake files, build driver, native
+  source and headers, common view headers, source lock/fetcher, and probe
+  closure; and
+- the focused packaging suite reports `19 passed`; Ruff, workflow YAML
+  parsing, formatting, and `git diff --check` pass. The new auditor rejects the
+  diagnostic wheel and enumerates all leaked build/SDK members.
+
+Unexpected findings:
+
+- the first attempted audit used a source tree containing ignored host-built
+  extensions and therefore was not valid release evidence. A clean detached
+  worktree eliminated that contamination;
+- the otherwise functional diagnostic wheel contained 16 rdWrapper
+  source/header/CMake/build members plus two common native headers because
+  `include-package-data = true` allowed `MANIFEST.in`'s sdist closure into the
+  wheel through separately discovered namespace packages; and
+- `auditwheel show` classifies the whole Hotpot wheel as `linux_x86_64`, not as
+  strict standalone manylinux, because `_ob_native` intentionally retains the
+  declared external `libopenbabel.so.8` dependency and its package-relative
+  RUNPATH. This does not affect `_rd_native`'s self-contained native closure,
+  but repaired dual tags must not be described as strict auditwheel closure.
+
+Adjustment:
+
+- use exact setuptools namespace keys instead of parent-package globs;
+- keep `MANIFEST.in` unchanged so source builds remain reproducible;
+- retain the declared Open Babel packaging exception and report it explicitly;
+  and
+- treat the CPython 3.11 artifact only as diagnostic evidence. Rebuild and
+  audit all five interpreters from checkpoint `37a08b3` before changing the
+  wheel-matrix release status.
+
+Git checkpoint: `37a08b3 build(rdwrapper): harden release wheel payload`.

@@ -2429,3 +2429,101 @@ Adjustment:
   assembled, preserving native graph alignment.
 
 Git checkpoint: `3328f53 feat(stereo): add Gate-6 graph projection`.
+
+### Step 37 - Prove Gate 6 carrier equivalence with native RI
+
+Status: complete
+
+Planned:
+
+- classify TH carrier pairs and each DB/AX endpoint pair by exact labeled
+  represented-graph automorphism rather than graph hashes or canonical ranks;
+- preserve dative direction, every other supported stereo record, and
+  enhanced-group semantics while completely excluding the record whose
+  stereogenicity is under test; and
+- retain unsupported Hotpot semantic records as a local tri-state boundary:
+  fixed records do not block a result, while an otherwise viable mapping that
+  moves one remains explicitly unresolved.
+
+Performed:
+
+- reused one `_NativeSpecTarget` per projected molecule and issued pinned
+  whole-graph RI queries for all six TH pairs or the two endpoint-local DB/AX
+  pairs;
+- fixed every anchor/path row pointwise, converted supported explicit and
+  implicit H carriers into the same augmented atom-token domain, and admitted
+  a carrier equivalence only when at least one complete automorphism survives
+  every semantic postfilter;
+- compared the complete mapped directed-dative edge set and reused the frozen
+  TH/DB/AX descriptor transformations plus enhanced-group partition/uniform-
+  inversion logic for all descendant records;
+- returned `NON_STEREOGENIC` for a proved equivalent pair, `UNSUPPORTED` only
+  when all otherwise viable mappings move uninterpreted semantic stereo, and
+  no issue when every topology mapping is disproved by exact supported facts;
+- integrated Gate 6 into both public validation and assignment without
+  changing public signatures or exports, and reused the same generic
+  family-transform helper in public cross-molecule alignment;
+- pointwise-pinned disconnected components containing no stereo semantic
+  reference and added parent-local, exact atom/bond/dative H slots to remove
+  irrelevant factorial hydrogen permutations; and
+- exempted the current compared pair, every supported descendant H carrier,
+  and the H references of opaque records from those nonchemical slots so
+  symmetry breaking cannot alter stereo parity semantics.
+
+Verification:
+
+- the complete stereo selection reports 294 passed; adding the reusable-spec
+  and production-kernel selections reports 308 passed;
+- the dedicated Gate-6 equivalence file reports 37 passed and covers every TH
+  pair, both DB/AX endpoints, exact atom labels, ordinary explicit/implicit
+  protium equivalence, D/T distinction, hidden bonds, aromatic normalization,
+  dative direction, descendant TH/DB/AX, AND/OR uniform and partial inversion,
+  unsupported tri-state behavior, deterministic non-mutation, and bounded
+  symmetry enumeration;
+- a rejected descendant-stereo branch swap plus an unrelated implicit-H4
+  component yields at most two mappings, while two equivalent methyl carriers
+  yield exactly one mapping instead of the unlabelled H factorial;
+- an independently supplied Si-C/C counterexample with explicit plus implicit
+  H at both descendant centers reports the parent and both descendants as
+  non-stereogenic, proving H-slot symmetry breaking cannot hide a required
+  parity-compensating H exchange;
+- an independent randomized oracle compared 500 labeled-tree TH cases with
+  NetworkX automorphism orbits without disagreement, and independent enhanced
+  TH/AX and dative/hidden/H/unsupported probes found no blocker;
+- both chemistry and code/performance re-reviews found no remaining blocker;
+  Python compilation and `git diff --check` pass; and
+- `ruff` is unavailable in the active environment and is not claimed.
+
+Unexpected findings:
+
+- the first exact implementation was chemically correct but could enumerate
+  every irrelevant automorphism after a topology swap was rejected by
+  descendant stereo; one disconnected implicit-H4 component alone multiplied
+  that path by 4!;
+- the first H-slot optimization was too strong: applying an arbitrary slot to
+  descendant explicit/implicit H carriers could prevent the odd H exchange
+  needed to preserve the descendant descriptor, so a symmetric parent was
+  falsely retained as stereogenic; and
+- the earlier Gate-2 through Gate-5 fixtures intentionally used identical
+  carbon leaves and sometimes stored an `IMPLICIT_H` carrier while the
+  molecule declared zero implicit H. Those abstractions were valid before
+  exact graph equivalence but correctly became non-stereogenic or unresolved
+  under Gate 6.
+
+Adjustment:
+
+- record-free disconnected components use the pointwise identity because
+  their automorphisms compose independently; components containing any
+  current, supported, opaque, or cross-component enhanced-group record remain
+  free to map;
+- H slots are scoped by parent plus exact H atom identity, incident bond
+  identity, and relative dative direction, and every H participating in
+  interpreted or uninterpreted stereo algebra is exempt;
+- the Si-C/C parity counterexample and both bounded-enumeration cases are
+  permanent regressions; and
+- legacy Gate-2 through Gate-5 tests now use chemically distinct carriers and
+  exactly one declared implicit H wherever their original valid-case intent
+  requires one. Their graph, coordinate, alignment, and enhanced-group
+  assertions are otherwise unchanged.
+
+Git checkpoint: `ca401d5 feat(stereo): prove Gate-6 carrier equivalence`.

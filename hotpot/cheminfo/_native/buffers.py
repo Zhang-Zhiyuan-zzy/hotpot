@@ -477,12 +477,19 @@ def pack_molecule(
 
     bond_indices = None
     if NativeMoleculeField.BOND_INDICES in fields:
+        def directed_endpoints(bond):
+            atom1 = atom_rows[id(bond.atom1)]
+            atom2 = atom_rows[id(bond.atom2)]
+            if (
+                bond.bond_kind.value == "dative"
+                and bond.bond_direction == "atom2_to_atom1"
+            ):
+                return atom2, atom1
+            return atom1, atom2
+
         bond_indices = (
             np.ascontiguousarray(
-                [
-                    (atom_rows[id(bond.atom1)], atom_rows[id(bond.atom2)])
-                    for bond in bonds
-                ],
+                [directed_endpoints(bond) for bond in bonds],
                 dtype=np.int32,
             )
             if bonds

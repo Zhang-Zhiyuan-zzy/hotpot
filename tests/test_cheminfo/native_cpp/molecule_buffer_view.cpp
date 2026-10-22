@@ -111,9 +111,106 @@ void test_conformer_batch_is_separate() {
 }
 
 
+void test_level1_views_are_optional_and_zero_copy() {
+    native::OwnedMoleculeData molecule;
+    molecule.atom_count = 2;
+    molecule.fields = fields({
+        native::MoleculeField::STEREO_RECORDS,
+        native::MoleculeField::ATOM_TRANSPORT,
+        native::MoleculeField::BOND_TRANSPORT,
+    });
+
+    auto& stereo = molecule.stereo_records;
+    stereo.anchor_kinds = {
+        static_cast<std::uint32_t>(native::StereoAnchorKind::ATOM),
+    };
+    stereo.anchor_offsets = {0};
+    stereo.anchor_counts = {1};
+    stereo.anchor_indices = {0};
+    stereo.carrier_offsets = {0};
+    stereo.carrier_counts = {2};
+    stereo.carrier_kinds = {
+        static_cast<std::uint32_t>(native::StereoCarrierKind::ATOM),
+        static_cast<std::uint32_t>(native::StereoCarrierKind::IMPLICIT_H),
+    };
+    stereo.carrier_has_atoms = {1, 0};
+    stereo.carrier_atoms = {1, 0};
+    stereo.group_kinds = {
+        static_cast<std::uint32_t>(native::StereoGroupKind::NONE),
+    };
+    stereo.group_ids = {0};
+    stereo.group_present = {0};
+    stereo.group_scopes.data = {0};
+    stereo.group_scopes.offsets = {0};
+    stereo.group_scopes.lengths = {0};
+    stereo.group_scopes.present = {0};
+    stereo.descriptors.data = {'T', 'H'};
+    stereo.descriptors.offsets = {0};
+    stereo.descriptors.lengths = {2};
+    stereo.descriptors.present = {1};
+    stereo.source_namespaces.data = {'r', 'd', 'k', 'i', 't'};
+    stereo.source_namespaces.offsets = {0};
+    stereo.source_namespaces.lengths = {5};
+    stereo.source_namespaces.present = {1};
+    stereo.source_codes.data = {'C', 'W'};
+    stereo.source_codes.offsets = {0};
+    stereo.source_codes.lengths = {2};
+    stereo.source_codes.present = {1};
+
+    auto& atoms = molecule.atom_transport;
+    atoms.atoms = {0};
+    atoms.presence_masks = {
+        static_cast<std::uint32_t>(native::AtomTransportField::ISOTOPE),
+    };
+    atoms.isotopes = {13};
+    atoms.radical_electrons = {0};
+    atoms.has_current_hydrogens = {1};
+    atoms.current_hydrogen_presence_masks = {
+        static_cast<std::uint32_t>(
+            native::HydrogenTransportField::NO_IMPLICIT
+        ),
+    };
+    atoms.current_implicit_hydrogens = {0};
+    atoms.current_bracket_explicit_hydrogens = {0};
+    atoms.current_no_implicit = {1};
+    atoms.has_source_hydrogens = {0};
+    atoms.source_hydrogen_presence_masks = {0};
+    atoms.source_implicit_hydrogens = {0};
+    atoms.source_bracket_explicit_hydrogens = {0};
+    atoms.source_no_implicit = {0};
+    atoms.source_namespaces.data = {0};
+    atoms.source_namespaces.offsets = {0};
+    atoms.source_namespaces.lengths = {0};
+    atoms.source_namespaces.present = {0};
+
+    auto& bonds = molecule.bond_transport;
+    bonds.atom_indices = {{{0, 1}}};
+    bonds.display_directions.data = {0};
+    bonds.display_directions.offsets = {0};
+    bonds.display_directions.lengths = {0};
+    bonds.display_directions.present = {1};
+
+    molecule.validate();
+    const auto view = molecule.view();
+    assert(view.stereo_records.anchor_kinds.data()
+           == stereo.anchor_kinds.data());
+    assert(view.stereo_records.source_codes.data.data()
+           == stereo.source_codes.data.data());
+    assert(view.atom_transport.atoms.data() == atoms.atoms.data());
+    assert(view.bond_transport.atom_indices.data()
+           == bonds.atom_indices.data());
+
+    molecule.fields &= ~native::molecule_field_mask(
+        native::MoleculeField::ATOM_TRANSPORT
+    );
+    assert_invalid([&]() { molecule.validate(); });
+}
+
+
 int main() {
     test_array_view();
     test_field_presence_and_generic_validation();
     test_empty_present_field_differs_from_absence();
     test_conformer_batch_is_separate();
+    test_level1_views_are_optional_and_zero_copy();
 }

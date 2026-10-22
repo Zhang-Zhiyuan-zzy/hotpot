@@ -106,41 +106,151 @@ inline hotpot_rd_options_v1 to_c_options(const ETKDGOptions& options) {
 }
 
 
-inline hotpot_rd_molecule_view_v1 to_c_molecule_view(
+inline hotpot_rd_string_view_v1 to_c_string_view(
+    const native::Utf8TableView& table,
+    std::size_t index
+) {
+    if (table.present[index] == 0) {
+        return hotpot_rd_string_view_v1{nullptr, 0};
+    }
+    static constexpr char empty[] = "";
+    const auto offset = static_cast<std::size_t>(table.offsets[index]);
+    const auto length = static_cast<std::size_t>(table.lengths[index]);
+    const auto* data = length == 0 && table.data.empty()
+        ? empty
+        : reinterpret_cast<const char*>(table.data.data() + offset);
+    return hotpot_rd_string_view_v1{
+        data,
+        static_cast<std::uint64_t>(length),
+    };
+}
+
+
+template <typename Value>
+inline const Value* nullable_data(const std::vector<Value>& values) noexcept {
+    return values.empty() ? nullptr : values.data();
+}
+
+
+class CMoleculeView final {
+public:
+    explicit CMoleculeView(native::MoleculeBufferView molecule)
+        : molecule_(molecule) {
+        const auto& stereo = molecule_.stereo_records;
+        stereo_records_.reserve(stereo.size());
+        stereo_carriers_.reserve(stereo.carrier_kinds.size());
+        for (std::size_t index = 0; index < stereo.carrier_kinds.size(); ++index) {
+            stereo_carriers_.push_back(hotpot_rd_stereo_carrier_v1{
+                stereo.carrier_kinds[index],
+                stereo.carrier_has_atoms[index],
+                stereo.carrier_atoms[index],
+            });
+        }
+        for (std::size_t index = 0; index < stereo.size(); ++index) {
+            stereo_records_.push_back(hotpot_rd_stereo_record_v1{
+                stereo.anchor_kinds[index],
+                stereo.group_kinds[index],
+                stereo.anchor_offsets[index],
+                stereo.anchor_counts[index],
+                stereo.carrier_offsets[index],
+                stereo.carrier_counts[index],
+                stereo.group_ids[index],
+                stereo.group_present[index],
+                0u,
+                to_c_string_view(stereo.group_scopes, index),
+                to_c_string_view(stereo.descriptors, index),
+                to_c_string_view(stereo.source_namespaces, index),
+                to_c_string_view(stereo.source_codes, index),
+            });
+        }
+
+        const auto& atoms = molecule_.atom_transport;
+        atom_transport_.reserve(atoms.size());
+        for (std::size_t index = 0; index < atoms.size(); ++index) {
+            atom_transport_.push_back(hotpot_rd_atom_transport_v1{
+                atoms.atoms[index],
+                atoms.presence_masks[index],
+                atoms.isotopes[index],
+                atoms.radical_electrons[index],
+                atoms.has_current_hydrogens[index],
+                atoms.has_source_hydrogens[index],
+                hotpot_rd_hydrogen_state_v1{
+                    atoms.current_hydrogen_presence_masks[index],
+                    atoms.current_implicit_hydrogens[index],
+                    atoms.current_bracket_explicit_hydrogens[index],
+                    atoms.current_no_implicit[index],
+                },
+                hotpot_rd_hydrogen_state_v1{
+                    atoms.source_hydrogen_presence_masks[index],
+                    atoms.source_implicit_hydrogens[index],
+                    atoms.source_bracket_explicit_hydrogens[index],
+                    atoms.source_no_implicit[index],
+                },
+                to_c_string_view(atoms.source_namespaces, index),
+            });
+        }
+
+        const auto& bonds = molecule_.bond_transport;
+        bond_transport_.reserve(bonds.size());
+        for (std::size_t index = 0; index < bonds.size(); ++index) {
+            bond_transport_.push_back(hotpot_rd_bond_transport_v1{
+                bonds.atom_indices[index][0],
+                bonds.atom_indices[index][1],
+                to_c_string_view(bonds.display_directions, index),
+            });
+        }
+    }
+
+    hotpot_rd_molecule_view_v1 view() const noexcept {
+        static_assert(sizeof(native::Coordinate) == 3 * sizeof(double));
+        static_assert(sizeof(native::BondIndex) == 2 * sizeof(std::int32_t));
+        static_assert(sizeof(native::BondKind) == sizeof(std::uint8_t));
+        return hotpot_rd_molecule_view_v1{
+            sizeof(hotpot_rd_molecule_view_v1),
+            HOTPOT_RD_C_API_VERSION,
+            molecule_.schema_version,
+            0u,
+            static_cast<std::uint64_t>(molecule_.atom_count),
+            static_cast<std::uint64_t>(molecule_.bond_count),
+            molecule_.fields,
+            molecule_.atomic_numbers.data(),
+            molecule_.formal_charges.data(),
+            molecule_.partial_charges.data(),
+            reinterpret_cast<const double*>(molecule_.coordinates.data()),
+            molecule_.atom_aromatic.data(),
+            reinterpret_cast<const std::int32_t*>(molecule_.bond_indices.data()),
+            molecule_.bond_orders.data(),
+            reinterpret_cast<const std::uint8_t*>(molecule_.bond_kinds.data()),
+            molecule_.bond_aromatic.data(),
+            molecule_.unit_cell.data(),
+            nullable_data(stereo_records_),
+            static_cast<std::uint64_t>(stereo_records_.size()),
+            molecule_.stereo_records.anchor_indices.data(),
+            static_cast<std::uint64_t>(
+                molecule_.stereo_records.anchor_indices.size()
+            ),
+            nullable_data(stereo_carriers_),
+            static_cast<std::uint64_t>(stereo_carriers_.size()),
+            nullable_data(atom_transport_),
+            static_cast<std::uint64_t>(atom_transport_.size()),
+            nullable_data(bond_transport_),
+            static_cast<std::uint64_t>(bond_transport_.size()),
+        };
+    }
+
+private:
+    native::MoleculeBufferView molecule_;
+    std::vector<hotpot_rd_stereo_record_v1> stereo_records_;
+    std::vector<hotpot_rd_stereo_carrier_v1> stereo_carriers_;
+    std::vector<hotpot_rd_atom_transport_v1> atom_transport_;
+    std::vector<hotpot_rd_bond_transport_v1> bond_transport_;
+};
+
+
+inline CMoleculeView to_c_molecule_view(
     native::MoleculeBufferView molecule
 ) {
-    static_assert(sizeof(native::Coordinate) == 3 * sizeof(double));
-    static_assert(sizeof(native::BondIndex) == 2 * sizeof(std::int32_t));
-    static_assert(sizeof(native::BondKind) == sizeof(std::uint8_t));
-    return hotpot_rd_molecule_view_v1{
-        sizeof(hotpot_rd_molecule_view_v1),
-        HOTPOT_RD_C_API_VERSION,
-        molecule.schema_version,
-        0u,
-        static_cast<std::uint64_t>(molecule.atom_count),
-        static_cast<std::uint64_t>(molecule.bond_count),
-        molecule.fields,
-        molecule.atomic_numbers.data(),
-        molecule.formal_charges.data(),
-        molecule.partial_charges.data(),
-        reinterpret_cast<const double*>(molecule.coordinates.data()),
-        molecule.atom_aromatic.data(),
-        reinterpret_cast<const std::int32_t*>(molecule.bond_indices.data()),
-        molecule.bond_orders.data(),
-        reinterpret_cast<const std::uint8_t*>(molecule.bond_kinds.data()),
-        molecule.bond_aromatic.data(),
-        molecule.unit_cell.data(),
-        nullptr,
-        0,
-        nullptr,
-        0,
-        nullptr,
-        0,
-        nullptr,
-        0,
-        nullptr,
-        0,
-    };
+    return CMoleculeView(molecule);
 }
 
 
@@ -148,6 +258,14 @@ inline hotpot_rd_constraints_view_v1 to_c_constraints_view(
     CoordinationEmbeddingConstraintsView constraints
 ) {
     static_assert(sizeof(DistanceBounds) == 2 * sizeof(double));
+    if (constraints.coordination_pairs.size()
+            != constraints.metal_donor_bounds.size()
+        || constraints.donor_pair_indices.size()
+            != constraints.donor_pair_bounds.size()) {
+        throw std::invalid_argument(
+            "constraint pair and bound counts must match"
+        );
+    }
     return hotpot_rd_constraints_view_v1{
         sizeof(hotpot_rd_constraints_view_v1),
         HOTPOT_RD_C_API_VERSION,
@@ -270,6 +388,7 @@ public:
     ) const {
         native::validate_molecule_view(molecule);
         const auto native_molecule = detail::to_c_molecule_view(molecule);
+        const auto native_molecule_view = native_molecule.view();
         const auto native_constraints = constraints.has_value()
             ? std::optional<hotpot_rd_constraints_view_v1>(
                 detail::to_c_constraints_view(*constraints)
@@ -278,7 +397,7 @@ public:
         hotpot_rd_result* raw_result = nullptr;
         const auto status = hotpot_rd_generate(
             sampler_,
-            &native_molecule,
+            &native_molecule_view,
             native_constraints.has_value() ? &*native_constraints : nullptr,
             &raw_result
         );

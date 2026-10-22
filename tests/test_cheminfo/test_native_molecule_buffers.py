@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from hotpot import read_mol
+from hotpot.cheminfo.core import BondKind, Molecule
 from hotpot.cheminfo._native.buffers import (
     NativeBondKindCode,
     NativeMoleculeBuffers,
@@ -75,3 +77,45 @@ def test_common_bond_codes_retain_dative_semantics():
     assert NativeBondKindCode.ZERO == 5
     assert NativeBondKindCode.DATIVE == 6
     assert NativeBondKindCode.UNKNOWN == 7
+
+
+@pytest.mark.parametrize(
+    ("bond_kind", "bond_direction", "expected_endpoints"),
+    (
+        (BondKind.SINGLE, None, [[0, 1]]),
+        (BondKind.DATIVE, "atom1_to_atom2", [[0, 1]]),
+        (BondKind.DATIVE, "atom2_to_atom1", [[1, 0]]),
+    ),
+)
+def test_common_bond_indices_encode_dative_donor_to_acceptor_direction(
+    bond_kind,
+    bond_direction,
+    expected_endpoints,
+):
+    mol = Molecule()
+    mol.create_atom(atomic_number=7)
+    mol.create_atom(atomic_number=29)
+    mol.add_bond(
+        0,
+        1,
+        bond_order=1.0,
+        bond_kind=bond_kind,
+        bond_direction=bond_direction,
+    )
+
+    buffers = pack_molecule(
+        mol,
+        frozenset(
+            {
+                NativeMoleculeField.BOND_INDICES,
+                NativeMoleculeField.BOND_KINDS,
+            }
+        ),
+    )
+
+    assert buffers.bond_indices.tolist() == expected_endpoints
+    assert buffers.bond_kinds.tolist() == [
+        NativeBondKindCode.DATIVE
+        if bond_kind is BondKind.DATIVE
+        else NativeBondKindCode.SINGLE
+    ]

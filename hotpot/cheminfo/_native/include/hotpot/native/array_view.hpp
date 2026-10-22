@@ -21,7 +21,8 @@ public:
         : data_(values.data()), size_(values.size()) {}
 
     explicit ArrayView(const std::vector<Value>& values) noexcept
-        : data_(values.data()), size_(values.size()) {}
+        : data_(values.empty() ? nullptr : values.data()),
+          size_(values.size()) {}
 
     constexpr const Value* data() const noexcept { return data_; }
     constexpr const Value* begin() const noexcept { return data_; }

@@ -105,3 +105,17 @@
   5.40x scaling on the current server and 6.03x on ai-14. This resolves the
   misleading comparison against the earlier simple-piperidine workload.
 
+## 2026-10-22: complex-molecule single-GPU comparison
+
+- Compared the current 1+3 native-search path, the current 64-CPU 8x8 path,
+  and pre-native-search commit `13b836f` with its 9+7 GPU default on the same
+  64 complex molecules.
+- Current GPU reached 12.329 molecules/s versus 3.222 for the old GPU (3.83x)
+  while reducing assigned CPUs from 16 to 4.
+- Current 64-CPU aggregate throughput was 20.439 molecules/s, 1.66x the
+  current single GPU on this workload.
+- Per-process monitoring found no external GPU2 compute activity. Benchmark
+  GPU-active sample fraction rose from 29.8% to 81.5% after native search.
+- MCA, site, and joint `is_Nuc_site` digests were exactly identical between
+  old and current GPU runs.
+

@@ -15,6 +15,7 @@ from hotpot.cheminfo.obWrappers.packing import (
     _BOND_KIND_CODES,
     _MOLECULE_BUFFER_SCHEMA_VERSION,
     _MoleculeBuffers,
+    _OPENBABEL_FIELDS,
     _empty_matrix,
     _pack_molecule,
 )
@@ -29,11 +30,28 @@ def test_openbabel_compatibility_names_forward_to_common_buffers():
     assert isinstance(buffers, _MoleculeBuffers)
     assert buffers.atom_count == len(mol.atoms)
     assert buffers.bond_count == len(mol.bonds)
+    assert _OPENBABEL_FIELDS == frozenset(
+        {
+            NativeMoleculeField.ATOMIC_NUMBERS,
+            NativeMoleculeField.FORMAL_CHARGES,
+            NativeMoleculeField.PARTIAL_CHARGES,
+            NativeMoleculeField.COORDINATES,
+            NativeMoleculeField.ATOM_AROMATIC,
+            NativeMoleculeField.BOND_INDICES,
+            NativeMoleculeField.BOND_ORDERS,
+            NativeMoleculeField.BOND_KINDS,
+            NativeMoleculeField.BOND_AROMATIC,
+            NativeMoleculeField.UNIT_CELL,
+        }
+    )
     assert all(
         getattr(buffers, field.value) is not None
-        for field in NativeMoleculeField
+        for field in _OPENBABEL_FIELDS
         if field is not NativeMoleculeField.UNIT_CELL
     )
+    assert buffers.stereo_records is None
+    assert buffers.atom_transport is None
+    assert buffers.bond_transport is None
     assert _MOLECULE_BUFFER_SCHEMA_VERSION == MOLECULE_BUFFER_SCHEMA_VERSION
     assert all(
         isinstance(code, BondKindCode) for code in _BOND_KIND_CODES.values()

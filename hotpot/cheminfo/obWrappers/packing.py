@@ -28,7 +28,20 @@ _BOND_KIND_CODES = {
 }
 _MOLECULE_BUFFER_SCHEMA_VERSION = MOLECULE_BUFFER_SCHEMA_VERSION
 _MoleculeBuffers = NativeMoleculeBuffers
-_OPENBABEL_FIELDS = frozenset(NativeMoleculeField)
+_OPENBABEL_FIELDS = frozenset(
+    {
+        NativeMoleculeField.ATOMIC_NUMBERS,
+        NativeMoleculeField.FORMAL_CHARGES,
+        NativeMoleculeField.PARTIAL_CHARGES,
+        NativeMoleculeField.COORDINATES,
+        NativeMoleculeField.ATOM_AROMATIC,
+        NativeMoleculeField.BOND_INDICES,
+        NativeMoleculeField.BOND_ORDERS,
+        NativeMoleculeField.BOND_KINDS,
+        NativeMoleculeField.BOND_AROMATIC,
+        NativeMoleculeField.UNIT_CELL,
+    }
+)
 
 
 def _pack_molecule(mol: "Molecule") -> _MoleculeBuffers:

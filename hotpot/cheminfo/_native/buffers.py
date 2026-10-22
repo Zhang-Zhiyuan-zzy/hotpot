@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum, IntEnum
+from enum import Enum, IntEnum, IntFlag
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -38,6 +38,113 @@ class NativeMoleculeField(Enum):
     BOND_KINDS = "bond_kinds"
     BOND_AROMATIC = "bond_aromatic"
     UNIT_CELL = "unit_cell"
+    STEREO_RECORDS = "stereo_records"
+    ATOM_TRANSPORT = "atom_transport"
+    BOND_TRANSPORT = "bond_transport"
+
+
+class NativeStereoAnchorKindCode(IntEnum):
+    """Fixed-width stereo-anchor codes shared with the native ABI."""
+
+    ATOM = 1
+    BOND = 2
+
+
+class NativeStereoCarrierKindCode(IntEnum):
+    """Fixed-width stereo-carrier codes shared with the native ABI."""
+
+    ATOM = 1
+    IMPLICIT_H = 2
+    LONE_PAIR = 3
+    VACANCY = 4
+
+
+class NativeStereoGroupKindCode(IntEnum):
+    """Fixed-width enhanced-stereo group codes shared with the native ABI."""
+
+    NONE = 0
+    ABS = 1
+    AND = 2
+    OR = 3
+
+
+class NativeAtomTransportFieldCode(IntFlag):
+    """Presence bits for atom-local optional transport facts."""
+
+    ISOTOPE = 1 << 0
+    RADICAL_ELECTRONS = 1 << 1
+
+
+class NativeHydrogenTransportFieldCode(IntFlag):
+    """Presence bits for one optional hydrogen transport state."""
+
+    IMPLICIT = 1 << 0
+    BRACKET_EXPLICIT = 1 << 1
+    NO_IMPLICIT = 1 << 2
+
+
+@dataclass(frozen=True)
+class NativeUtf8Table:
+    """Owned UTF-8 bytes and stable views for one ordered string column."""
+
+    data: NDArray[np.uint8]
+    offsets: NDArray[np.uint64]
+    lengths: NDArray[np.uint64]
+    present: NDArray[np.uint8]
+
+
+@dataclass(frozen=True)
+class NativeStereoRecordBuffers:
+    """Flat, order-preserving native transport for Level-1 stereo records."""
+
+    schema_version: int
+    anchor_kinds: NDArray[np.uint32]
+    anchor_offsets: NDArray[np.uint64]
+    anchor_counts: NDArray[np.uint64]
+    anchor_indices: NDArray[np.uint64]
+    carrier_offsets: NDArray[np.uint64]
+    carrier_counts: NDArray[np.uint64]
+    carrier_kinds: NDArray[np.uint32]
+    carrier_has_atoms: NDArray[np.uint32]
+    carrier_atoms: NDArray[np.uint64]
+    group_kinds: NDArray[np.uint32]
+    group_ids: NDArray[np.int64]
+    group_present: NDArray[np.uint32]
+    group_scopes: NativeUtf8Table
+    descriptors: NativeUtf8Table
+    source_namespaces: NativeUtf8Table
+    source_codes: NativeUtf8Table
+
+
+@dataclass(frozen=True)
+class NativeAtomTransportBuffers:
+    """Flat, presence-preserving native transport for atom facts."""
+
+    schema_version: int
+    atoms: NDArray[np.uint64]
+    presence_masks: NDArray[np.uint32]
+    isotopes: NDArray[np.int32]
+    radical_electrons: NDArray[np.int32]
+    has_current_hydrogens: NDArray[np.uint32]
+    current_hydrogen_presence_masks: NDArray[np.uint32]
+    current_implicit_hydrogens: NDArray[np.int32]
+    current_bracket_explicit_hydrogens: NDArray[np.int32]
+    current_no_implicit: NDArray[np.uint32]
+    has_source_hydrogens: NDArray[np.uint32]
+    source_hydrogen_presence_masks: NDArray[np.uint32]
+    source_implicit_hydrogens: NDArray[np.int32]
+    source_bracket_explicit_hydrogens: NDArray[np.int32]
+    source_no_implicit: NDArray[np.uint32]
+    source_namespaces: NativeUtf8Table
+
+
+@dataclass(frozen=True)
+class NativeBondTransportBuffers:
+    """Flat native transport for ordered bond-local display facts."""
+
+    schema_version: int
+    atom_indices: NDArray[np.uint64]
+    display_directions: NativeUtf8Table
 
 
 @dataclass(frozen=True)
@@ -57,6 +164,9 @@ class NativeMoleculeBuffers:
     bond_kinds: NDArray[np.uint8] | None = None
     bond_aromatic: NDArray[np.uint8] | None = None
     unit_cell: NDArray[np.float64] | None = None
+    stereo_records: NativeStereoRecordBuffers | None = None
+    atom_transport: NativeAtomTransportBuffers | None = None
+    bond_transport: NativeBondTransportBuffers | None = None
 
 
 _BOND_KIND_CODES = {
@@ -74,6 +184,236 @@ MOLECULE_BUFFER_SCHEMA_VERSION = 1
 
 def _empty_matrix(columns: int, dtype: np.dtype) -> np.ndarray:
     return np.empty((0, columns), dtype=dtype)
+
+
+def _array(values, dtype) -> np.ndarray:
+    return np.ascontiguousarray(tuple(values), dtype=dtype)
+
+
+def _pack_utf8(values: tuple[str | None, ...]) -> NativeUtf8Table:
+    encoded = tuple(
+        None if value is None else value.encode("utf-8") for value in values
+    )
+    data = bytearray(b"\0")
+    offsets = []
+    lengths = []
+    present = []
+    for value in encoded:
+        if value is None:
+            offsets.append(0)
+            lengths.append(0)
+            present.append(0)
+        else:
+            offsets.append(len(data))
+            lengths.append(len(value))
+            present.append(1)
+            data.extend(value)
+
+    return NativeUtf8Table(
+        data=np.frombuffer(bytes(data), dtype=np.uint8).copy(),
+        offsets=_array(offsets, np.uint64),
+        lengths=_array(lengths, np.uint64),
+        present=_array(present, np.uint8),
+    )
+
+
+def _pack_stereo_records(payload) -> NativeStereoRecordBuffers:
+    from ..stereo import (
+        StereoAnchorKind,
+        StereoCarrierKind,
+        StereoGroupKind,
+    )
+
+    anchor_kind_codes = {
+        StereoAnchorKind.ATOM: NativeStereoAnchorKindCode.ATOM,
+        StereoAnchorKind.BOND: NativeStereoAnchorKindCode.BOND,
+    }
+    carrier_kind_codes = {
+        StereoCarrierKind.ATOM: NativeStereoCarrierKindCode.ATOM,
+        StereoCarrierKind.IMPLICIT_H: NativeStereoCarrierKindCode.IMPLICIT_H,
+        StereoCarrierKind.LONE_PAIR: NativeStereoCarrierKindCode.LONE_PAIR,
+        StereoCarrierKind.VACANCY: NativeStereoCarrierKindCode.VACANCY,
+    }
+    group_kind_codes = {
+        StereoGroupKind.ABS: NativeStereoGroupKindCode.ABS,
+        StereoGroupKind.AND: NativeStereoGroupKindCode.AND,
+        StereoGroupKind.OR: NativeStereoGroupKindCode.OR,
+    }
+
+    anchor_indices = []
+    carrier_kinds = []
+    carrier_has_atoms = []
+    carrier_atoms = []
+    anchor_offsets = []
+    carrier_offsets = []
+    for record in payload.records:
+        anchor_offsets.append(len(anchor_indices))
+        carrier_offsets.append(len(carrier_kinds))
+        anchor_indices.extend(record.anchor.atom_indices)
+        for carrier in record.carriers:
+            carrier_kinds.append(carrier_kind_codes[carrier.kind])
+            carrier_has_atoms.append(carrier.atom is not None)
+            carrier_atoms.append(0 if carrier.atom is None else carrier.atom)
+
+    groups = tuple(record.group for record in payload.records)
+    return NativeStereoRecordBuffers(
+        schema_version=payload.schema_version,
+        anchor_kinds=_array(
+            (anchor_kind_codes[record.anchor.kind] for record in payload.records),
+            np.uint32,
+        ),
+        anchor_offsets=_array(anchor_offsets, np.uint64),
+        anchor_counts=_array(
+            (len(record.anchor.atom_indices) for record in payload.records),
+            np.uint64,
+        ),
+        anchor_indices=_array(anchor_indices, np.uint64),
+        carrier_offsets=_array(carrier_offsets, np.uint64),
+        carrier_counts=_array(
+            (len(record.carriers) for record in payload.records), np.uint64
+        ),
+        carrier_kinds=_array(carrier_kinds, np.uint32),
+        carrier_has_atoms=_array(carrier_has_atoms, np.uint32),
+        carrier_atoms=_array(carrier_atoms, np.uint64),
+        group_kinds=_array(
+            (
+                NativeStereoGroupKindCode.NONE
+                if group is None
+                else group_kind_codes[group.kind]
+                for group in groups
+            ),
+            np.uint32,
+        ),
+        group_ids=_array(
+            (0 if group is None else group.id for group in groups), np.int64
+        ),
+        group_present=_array((group is not None for group in groups), np.uint32),
+        group_scopes=_pack_utf8(
+            tuple(None if group is None else group.scope for group in groups)
+        ),
+        descriptors=_pack_utf8(
+            tuple(record.descriptor for record in payload.records)
+        ),
+        source_namespaces=_pack_utf8(
+            tuple(record.source_namespace for record in payload.records)
+        ),
+        source_codes=_pack_utf8(
+            tuple(record.source_code for record in payload.records)
+        ),
+    )
+
+
+def _pack_hydrogen_state(state):
+    if state is None:
+        return 0, 0, 0, 0
+
+    presence_mask = 0
+    if state.implicit_hydrogens is not None:
+        presence_mask |= NativeHydrogenTransportFieldCode.IMPLICIT
+    if state.bracket_explicit_hydrogens is not None:
+        presence_mask |= NativeHydrogenTransportFieldCode.BRACKET_EXPLICIT
+    if state.no_implicit is not None:
+        presence_mask |= NativeHydrogenTransportFieldCode.NO_IMPLICIT
+    return (
+        presence_mask,
+        0 if state.implicit_hydrogens is None else state.implicit_hydrogens,
+        0
+        if state.bracket_explicit_hydrogens is None
+        else state.bracket_explicit_hydrogens,
+        0 if state.no_implicit is None else state.no_implicit,
+    )
+
+
+def _pack_atom_transport(payload) -> NativeAtomTransportBuffers:
+    current_hydrogens = tuple(
+        _pack_hydrogen_state(fact.current_hydrogens)
+        for fact in payload.atom_facts
+    )
+    source_hydrogens = tuple(
+        _pack_hydrogen_state(fact.source_hydrogens)
+        for fact in payload.atom_facts
+    )
+    return NativeAtomTransportBuffers(
+        schema_version=payload.schema_version,
+        atoms=_array((fact.atom for fact in payload.atom_facts), np.uint64),
+        presence_masks=_array(
+            (
+                (
+                    NativeAtomTransportFieldCode.ISOTOPE
+                    if fact.isotope is not None
+                    else 0
+                )
+                | (
+                    NativeAtomTransportFieldCode.RADICAL_ELECTRONS
+                    if fact.radical_electrons is not None
+                    else 0
+                )
+                for fact in payload.atom_facts
+            ),
+            np.uint32,
+        ),
+        isotopes=_array(
+            (
+                0 if fact.isotope is None else fact.isotope
+                for fact in payload.atom_facts
+            ),
+            np.int32,
+        ),
+        radical_electrons=_array(
+            (
+                0 if fact.radical_electrons is None else fact.radical_electrons
+                for fact in payload.atom_facts
+            ),
+            np.int32,
+        ),
+        has_current_hydrogens=_array(
+            (fact.current_hydrogens is not None for fact in payload.atom_facts),
+            np.uint32,
+        ),
+        current_hydrogen_presence_masks=_array(
+            (state[0] for state in current_hydrogens), np.uint32
+        ),
+        current_implicit_hydrogens=_array(
+            (state[1] for state in current_hydrogens), np.int32
+        ),
+        current_bracket_explicit_hydrogens=_array(
+            (state[2] for state in current_hydrogens), np.int32
+        ),
+        current_no_implicit=_array(
+            (state[3] for state in current_hydrogens), np.uint32
+        ),
+        has_source_hydrogens=_array(
+            (fact.source_hydrogens is not None for fact in payload.atom_facts),
+            np.uint32,
+        ),
+        source_hydrogen_presence_masks=_array(
+            (state[0] for state in source_hydrogens), np.uint32
+        ),
+        source_implicit_hydrogens=_array(
+            (state[1] for state in source_hydrogens), np.int32
+        ),
+        source_bracket_explicit_hydrogens=_array(
+            (state[2] for state in source_hydrogens), np.int32
+        ),
+        source_no_implicit=_array(
+            (state[3] for state in source_hydrogens), np.uint32
+        ),
+        source_namespaces=_pack_utf8(
+            tuple(fact.source_namespace for fact in payload.atom_facts)
+        ),
+    )
+
+
+def _pack_bond_transport(payload) -> NativeBondTransportBuffers:
+    return NativeBondTransportBuffers(
+        schema_version=payload.schema_version,
+        atom_indices=_array(
+            (fact.atom_indices for fact in payload.bond_facts), np.uint64
+        ).reshape((-1, 2)),
+        display_directions=_pack_utf8(
+            tuple(fact.display_direction for fact in payload.bond_facts)
+        ),
+    )
 
 
 def pack_molecule(
@@ -182,6 +522,27 @@ def pack_molecule(
             dtype=np.float64,
         )
 
+    stereo_records = None
+    atom_transport = None
+    bond_transport = None
+    stereo_fields = fields & frozenset(
+        {
+            NativeMoleculeField.STEREO_RECORDS,
+            NativeMoleculeField.ATOM_TRANSPORT,
+            NativeMoleculeField.BOND_TRANSPORT,
+        }
+    )
+    if stereo_fields:
+        from ..stereo import get_stereo_payload
+
+        payload = get_stereo_payload(mol)
+        if NativeMoleculeField.STEREO_RECORDS in fields:
+            stereo_records = _pack_stereo_records(payload)
+        if NativeMoleculeField.ATOM_TRANSPORT in fields:
+            atom_transport = _pack_atom_transport(payload)
+        if NativeMoleculeField.BOND_TRANSPORT in fields:
+            bond_transport = _pack_bond_transport(payload)
+
     return NativeMoleculeBuffers(
         schema_version=MOLECULE_BUFFER_SCHEMA_VERSION,
         atom_count=len(atoms),
@@ -196,4 +557,7 @@ def pack_molecule(
         bond_kinds=bond_kinds,
         bond_aromatic=bond_aromatic,
         unit_cell=unit_cell,
+        stereo_records=stereo_records,
+        atom_transport=atom_transport,
+        bond_transport=bond_transport,
     )

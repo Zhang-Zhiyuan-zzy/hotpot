@@ -1274,3 +1274,82 @@ Adjustment:
 - no public Python fallback, force-field seam, or workflow default was added.
 
 Git checkpoint: `1c60a70 feat(rdwrapper): implement pinned native ETKDG core`.
+
+### Step 20 - Implement the exact Python RDKit Level-1 adapter
+
+Status: complete
+
+Planned:
+
+- capture raw RDKit stereochemistry and atom/bond transport facts before any
+  Kekulize, sanitization, or assignment operation;
+- restore those facts without calling stereochemistry assignment or silently
+  changing neighbor-relative raw tags; and
+- keep Level-1 transport separate from Level-2 validity and descriptor work.
+
+Performed:
+
+- pinned every RDKit raw record and atom fact to the exact
+  `rdkit-2026.09.1` namespace and allocated a distinct opaque enhanced-group
+  scope for each independent import;
+- captured atom chiral tags, ordered atom carriers, bond stereo/control atoms,
+  display directions, enhanced groups, isotope, radical, true implicit H,
+  bracket-explicit virtual H, and `noImplicit` from an untouched source clone;
+- used a separate property-cache clone only to read derived implicit H, so the
+  raw source object and raw tags are not rewritten;
+- preserved stable RDKit-index/Hotpot-row mappings, aromatic/dative behavior,
+  source/current hydrogen ledgers, and the existing fallback for molecules
+  without a Level-1 payload;
+- reconstructed tetrahedral tags relative to target RDKit bond-storage order,
+  inverting `CW`/`CCW` for odd carrier permutations;
+- froze true implicit H as a final `IMPLICIT_H` carrier while representing a
+  bracket-explicit virtual H by exactly three atom carriers plus its separate
+  hydrogen ledger; both require exactly four total graph/virtual neighbors;
+- swapped E/Z carrier sides when a bond anchor is reversed, inverted
+  `ENDUPRIGHT`/`ENDDOWNRIGHT`, retained endpoint-independent `NONE` and
+  `EITHERDOUBLE`, and explicitly rejected reversed wedge/dash/unknown and
+  unfrozen atropisomer direction semantics;
+- rejected unknown namespaces/codes, duplicate atom facts, duplicate stereo
+  anchors, duplicate bond facts, conflicting enhanced groups, missing or
+  duplicate carriers, non-neighbor carriers, unsupported non-atom carriers,
+  unrepresentable implicit-H state, and non-tetrahedral permutation tags whose
+  raw reordering rule is not yet frozen; and
+- did not call `AssignStereochemistry`, CIP assignment, coordinate validation,
+  Hotpot geometry gates, or perturbation.
+
+Verification:
+
+- the worker's adapter/conversion/lifecycle selection reports 85 passed;
+- an independent Level-1 adapter, bond-metadata, storage, remapping, lifecycle,
+  native-packing, and working-copy selection reports 78 passed;
+- fixtures cover implicit-H and `[C@@H]` tetrahedra, odd bond/carrier order,
+  E/Z and display directions, enhanced ABS/AND/OR groups, isotope/radical/H,
+  distinct lineage scopes, unsupported values, source immutability, and the
+  absence of stereochemistry assignment;
+- Python compilation and `git diff --check` pass.
+
+Unexpected findings:
+
+- `GetNumImplicitHs()` fails on some unsanitized RDKit inputs until the
+  property cache is updated. Updating a detached clone provided the value
+  without violating raw-source capture;
+- RDKit exposes no public `SetNumImplicitHs()`. The adapter therefore derives
+  it from the reconstructed graph/current explicit state and rejects a ledger
+  value that the pinned toolkit cannot reproduce;
+- the initial conservative audit rejected bracket-explicit virtual H. Pinned
+  `Atom.h`, `Chirality.cpp`, and `AddHs.cpp` prove that degree-three tetrahedral
+  atoms use their one virtual H as a fixed fourth reference, so common
+  `[C@@H]` ligands are now supported without mislabelling that H as implicit;
+  and
+- RDKit has no proved raw reversed-anchor transform for atropisomer
+  `CW`/`CCW`; that narrow case remains explicit unsupported pending Level 2.
+
+Adjustment:
+
+- Level 1 preserves raw toolkit state but makes no claim that a transported
+  record is chemically valid;
+- the exact versioned source namespace is part of the adapter contract, not a
+  multi-version compatibility profile;
+- public Level-2 validation, assignment, and alignment remain separate gates.
+
+Git checkpoint: `56c0b42 feat(stereo): preserve RDKit Level-1 transport`.

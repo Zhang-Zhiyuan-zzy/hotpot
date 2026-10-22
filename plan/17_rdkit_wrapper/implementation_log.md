@@ -1724,3 +1724,123 @@ Adjustment:
 - Gate 3 explicit mapping and parity alignment remains a separate checkpoint.
 
 Git checkpoint: `b61e98a feat(stereo): implement Level-2 Gate-2 semantics`.
+
+### Step 27 - Implement Level-2 Gate 3 explicit-mapping alignment
+
+Status: complete
+
+Planned:
+
+- align two already validated tetrahedral or double-bond assignments under an
+  explicit atom mapping;
+- reuse the frozen Gate-1 parity algebra and Gate-2 endpoint-scoped carrier
+  identity; and
+- keep coordinate assignment, CIP, toolkit perception, and advanced stereo
+  families outside this gate.
+
+Performed:
+
+- validated mapping range, injectivity, and complete two-sided coverage of all
+  stereo-relevant atoms before comparing assignments;
+- transformed tetrahedral descriptors with the Gate-1 permutation parity;
+- aligned double-bond endpoint pairs under anchor reversal and applied the
+  equivalent endpoint-carrier XOR parity transform;
+- retained endpoint scope for double-bond carriers, including two independent
+  implicit-H sentinels and one ring atom shared across endpoint groups; and
+- returned deterministic missing, extra, duplicate, incomplete, invalid-graph,
+  and descriptor-mismatch issue records without modifying either molecule.
+
+Verification:
+
+- the implementation author's complete stereo and RDKit Level-1 selection
+  reports 150 passed;
+- an independent review selection spanning Gate 1-3, public API, remapping,
+  and lifecycle reports 105 passed;
+- the reviewer found no blocking mapping, parity, endpoint-scope, signature,
+  mutation, or deterministic-order defect; and
+- Python compilation and `git diff --check` pass.
+
+Unexpected findings:
+
+- a double-bond carrier cannot be keyed by global atom identity alone. The
+  same ring atom may participate once at each endpoint, and each endpoint may
+  independently own an implicit-H sentinel. Gate 3 must carry forward Gate
+  2's endpoint-scoped identity through mapping and anchor reversal.
+
+Adjustment:
+
+- enumeration order remains outside the permanent search/stereo contract, but
+  identical mapping and record inputs produce a fixed issue order;
+- exhaustive all-permutation property tests and broader multi-record order
+  stress tests remain useful nonblocking hardening, not evidence of an
+  observed semantic defect;
+- Gate 4 coordinate assignment remains a separate later decision.
+
+Git checkpoint: `b086577 feat(stereo): implement Level-2 Gate-3 alignment`.
+
+### Step 28 - Implement and measure standalone coordination-aware ETKDG
+
+Status: complete for implementation and development evidence; formal cohort
+benchmark remains blocked on the recorded external artifact
+
+Planned:
+
+- keep `C1` as stock complete-complex ETKDG and add `C2` only through RDKit's
+  supported custom distance-bounds extension;
+- require explicit directed donor-to-metal dative graph edges and Angstrom
+  bounds; and
+- report coordinate generation separately from post hoc bound observation.
+
+Performed:
+
+- required every zero-based coordination row to name an existing directed
+  donor-to-metal `DATIVE` edge in the complete native graph;
+- overlaid metal-donor and optional unordered donor-pair lower/upper bounds on
+  RDKit's topological bounds matrix;
+- explicitly triangle-smoothed the overlaid matrix and returned a stable
+  failed result when the constraints are inconsistent;
+- documented direction and Angstrom units in the Python and C contracts;
+- added mono-dentate, bi-dentate, multiple-ligand, direction, symmetry,
+  inconsistent-triangle, whole-complex, unsupported-state, and prohibited
+  force-field-entry tests; and
+- added a detached C1/C2 runner with fixed `1 / 8 / 32` counts, manifest and
+  native-structure hashes, fixed seeds, runtime/RDKit commit identity,
+  deterministic hashes, topology nonmutation, actual distance observations,
+  and a permanent non-formal label for `--smoke` cohorts.
+
+Verification:
+
+- the author reports 35 joint Python/native/API tests and 15 coordination-only
+  tests passed; the independent post-format selection reports 33 passed;
+- a strict C11 C-API smoke compiles and runs against the current SDK library;
+- the one-case development smoke returned full `SUCCESS` counts for both C1
+  and C2 at 1, 8, and 32, with fixed-seed equality and preserved input graphs;
+- C2's maximum post hoc bound violation was 0.001949 Angstrom, while exact
+  zero-violation counts were 0/1, 7/8, and 29/32.
+
+Unexpected findings:
+
+- pinned RDKit copies a supplied custom bounds matrix into the embedding path
+  but does not triangle-smooth that caller-provided matrix. The first native
+  implementation checked only pairwise lower/upper consistency, so correlated
+  impossible bounds could survive until embedding;
+- RDKit's multi-fragment path does not use the custom bounds matrix as the
+  complete-complex experiment requires. C2 must therefore retain the explicit
+  donor-to-metal dative edges and embed one connected native graph;
+- an ETKDG `SUCCESS` status does not mean every returned coordinate is exactly
+  inside each input interval. Bounds guide distance geometry; strict
+  conformance is a separate detached observation and cannot be used to rewrite
+  the status.
+
+Adjustment:
+
+- C1/C2 remain coordinates-only research routes: no Open Babel, `hotpot.ff`,
+  UFF/MMFF optimization, Hotpot geometry gate, repair, selection, or
+  perturbation is called;
+- the standalone result is not described as a validated metal-complex force
+  field or as production replacement evidence;
+- the recorded formal 182-case manifest and matching native-graph sidecars are
+  still absent. The Eu `/tmp` smoke cohort was not substituted and no formal
+  182-case result is claimed.
+
+Git checkpoint: `edc15be feat(rdwrapper): add coordination-aware ETKDG bounds`.

@@ -2810,3 +2810,59 @@ Adjustment:
   intermediate public state.
 
 Git checkpoint: `d2655b9 docs(plan17): freeze Gate-7 coordination semantics`.
+
+### Step 41 - Clarify current implicit hydrogen in the Gate 7 shell
+
+Status: complete for the normative clarification; private graph helpers remain
+behind the public unsupported fence
+
+Planned:
+
+- pause the private adjacency test before it hard-codes whether Gate-6 virtual
+  hydrogens participate in a coordination center's represented first shell;
+- reread the complete implementation plan before revising it, as required by
+  the owner; and
+- resolve the ambiguity consistently in the governing decision, detailed
+  Level-2 contract, test obligations, and approved implementation refinement.
+
+Performed:
+
+- reread all 1,803 pre-revision plan lines, including the current/source
+  hydrogen lifecycle, Gate-6 represented graph, Gate-7 shell, implementation
+  phases, tests, and non-goals;
+- distinguished explicit atom-point carrier rows from Gate-6 virtual nodes
+  created from the current implicit-hydrogen state;
+- defined the Gate-7 first shell from the complete Gate-6 current-state
+  projection: active bonds, both hidden-bond collections, and current
+  implicit-H virtual edges all participate;
+- kept the immutable source-hydrogen ledger outside shell construction, in
+  agreement with the already frozen Level-1 lifecycle; and
+- specified that an unmaterialized current implicit H cannot be silently
+  ignored or coerced into an atom carrier: it produces the existing stable
+  shell-set mismatch until represented as an explicit atom row.
+
+Verification:
+
+- the clarification preserves the all-ATOM-only Gate-7 domain and introduces
+  no new public carrier kind, message, API, or fallback;
+- explicit-hydrogen materialization remains the only mechanical route from a
+  virtual current-state neighbour to a valid atom-point carrier;
+- source-ledger-only hydrogen facts still cannot affect current native graph
+  construction; and
+- documentation whitespace checks pass. No production or public behavior
+  changed, so the Gate-7 unsupported no-cutover fence remains authoritative.
+
+Unexpected finding:
+
+- excluding virtual hydrogens from an otherwise complete Gate-6 shell would
+  allow a center with four explicit neighbours plus one current implicit H to
+  pass an SP declaration as four-coordinate, even though the represented
+  current graph contains five neighbours.
+
+Adjustment:
+
+- the private adjacency helper will retain Gate-6 virtual nodes for shell
+  equality and reachability, while range-valid Gate-7 carriers remain real
+  atom rows only.
+
+Git checkpoint: `019acc7 docs(plan17): include current H in Gate-7 shell`.

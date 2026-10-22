@@ -304,4 +304,41 @@ Adjustment:
   remain deliberately separated. No RDKit or Open Babel enum is used as a
   Hotpot semantic identity.
 
+Git checkpoint: `18d26ca feat(stereo): freeze transport and semantic APIs`.
+
+### Step 4 - Add the consumer-neutral C++17 molecule view
+
+Status: complete
+
+Planned:
+
+- introduce `ArrayView`, `MoleculeBufferView`, `OwnedMoleculeData`, and
+  `ConformerBatchView` without connecting a production consumer; and
+- separate generic structural validation from toolkit compatibility policy.
+
+Performed:
+
+- added header-only C++17 pointer/length views and explicit atom/bond counts;
+- added a presence mask so a present zero-length field remains distinct from
+  an absent field;
+- added generic bond-kind codes including zero-order and dative bonds;
+- added field-size, index, finiteness, and structural validation; and
+- kept topology storage separate from K x N x 3 conformer coordinates.
+
+Verification:
+
+- the standalone C++17 source/API fence compiles with `-Wall -Wextra -Werror`
+  and executes successfully: 1 passed;
+- the fence proves borrowed array identity, present-empty versus absent field
+  semantics, independent conformer batches, and acceptance of a structurally
+  valid dative bond by the generic layer.
+
+Unexpected findings: none.
+
+Adjustment:
+
+- this checkpoint has no Open Babel, force-field, pybind, or RDKit consumer;
+  Open Babel's dative incompatibility remains in its existing implementation
+  until the dedicated adapter migration.
+
 Git checkpoint: pending.

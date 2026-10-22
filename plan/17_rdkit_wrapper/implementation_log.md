@@ -2620,3 +2620,85 @@ Adjustment:
   scientific work.
 
 Git checkpoint: `9c8f4b8 feat(stereo): derive direct Gate-6 stereo names`.
+
+### Step 39 - Freeze the Gate 7 square-pyramidal algebra
+
+Status: complete for algebra; public coordination semantics remain unsupported
+
+Planned:
+
+- replace the temporary SPY sentinel with the approved numeric `SPY/1..30`
+  grammar and proper-C4 permutation orbit;
+- preserve every existing SP/TBP/OH index and transform while adding no new
+  public class, function, or signature; and
+- prove the finite algebra independently before graph, coordinate, alignment,
+  or chelate semantics consume it.
+
+Performed:
+
+- fixed square-pyramidal ideal-site order as `+z,+x,+y,-x,-y` and added the
+  four determinant-positive rotations that hold the apex fixed and cycle the
+  square base;
+- added `SQUARE_PYRAMIDAL: 30` to the finite coordination cardinalities and
+  reused the existing single orbit-representative and carrier-reordering
+  implementation rather than creating a SPY-specific transform algorithm;
+- removed the two temporary SPY-unsupported branches from descriptor parsing
+  and transformation, so only canonical decimal indices `1..30` are accepted;
+- retained the original Gate-1 golden file byte-for-byte and created a
+  separately versioned Gate-7 golden that freezes the site order, four proper
+  rotations, all 30 lexicographic orbit representatives, all 30 results for a
+  carrier 0/1 swap, and all 15 determinant-negative mirror pairs; and
+- retained an explicit public no-cutover fence: valid `SPY/1` algebra still
+  produces record-scoped `UNSUPPORTED` from validation, assignment, and both
+  sides of alignment, with exact payload preservation and no derived output.
+
+Verification:
+
+- a test-first run produced the expected six failures for the missing SPY
+  parser, transform, range, and rotation table before the production change;
+- the independent oracle partitions all 120 permutations into 30 disjoint
+  size-four C4 orbits, checks all 30 descriptors, and compares all 3,600
+  descriptor/reordering combinations plus their inverse transformations;
+- that oracle resolves reordered positions through deliberately non-contiguous
+  carrier atom identities rather than reproducing the production inverse-
+  permutation implementation;
+- integer proper-rotation matrices independently induce the frozen C4 orbit,
+  while a determinant-negative yz reflection independently induces the frozen
+  mirror permutation and proves that no mirror pair is collapsed;
+- the focused Gate-7/algebra/Gate-2 selection reports 89 passed, the dedicated
+  SPY file reports 13 passed, and the complete stereo selection reports
+  338 passed;
+- the original Gate-1 golden equals its committed bytes and retains SHA-256
+  `8d7856e0b593ff7af510e885b6f3fe2ef0ca047cd34a3563bde086af9afbcf4b`;
+  and
+- independent chemistry, architecture, and test reviews found no remaining
+  checkpoint blocker; Python compilation, whitespace, and line-length checks
+  pass.
+
+Unexpected findings:
+
+- appending SPY data to the existing Gate-1 `/1` golden would have weakened
+  the evidence that the already frozen SP/TBP/OH numbering remained exactly
+  unchanged, so the first local test draft was replaced rather than extended;
+- the first 3,600-case oracle explicitly built the same inverse permutation as
+  production and therefore could have repeated a direction bug; identity-
+  semantic lookup was required for an independent proof;
+- active rotation and site pullback permutations use inverse conventions, but
+  the complete C4 group is inverse-closed; the tests now state and prove this
+  instead of relying on an accidental tuple ordering; and
+- pinned RDKit 2026.09.1 and OpenSMILES expose SP/TB/OH but no native SPY
+  family. Hotpot SPY numbering therefore cannot be equated to RDKit's
+  missing-ligand octahedral convention or delegated to a toolkit tag.
+
+Adjustment:
+
+- keep the Gate-1 corpus immutable and place all SPY facts behind the distinct
+  `hotpot.stereo.level2-gate7-spy-algebra-golden/1` schema;
+- keep graph validation, coordinate assignment, alignment, Gate-6 semantic
+  context, and chelate comparison explicitly closed at this checkpoint; and
+- stop before those semantics because the current plan does not yet freeze
+  SP/TBP/OH ideal-site order, direction normalization and residual scoring,
+  geometry/tie/ambiguity thresholds, chelate graph scope, or duplicate-family
+  center policy. The full plan must be reread before that normative revision.
+
+Git checkpoint: `0eb3536 feat(stereo): freeze Gate-7 SPY algebra`.

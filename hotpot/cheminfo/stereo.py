@@ -340,6 +340,7 @@ _GEOMETRY_RELATIVE_TOLERANCE = 1.0e-8
 _COORDINATION_CARDINALITIES = {
     _Level2DescriptorFamily.SQUARE_PLANAR: 3,
     _Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL: 20,
+    _Level2DescriptorFamily.SQUARE_PYRAMIDAL: 30,
     _Level2DescriptorFamily.OCTAHEDRAL: 30,
 }
 _FAMILY_CARRIER_COUNTS = {
@@ -423,17 +424,6 @@ def _parse_level2_descriptor(text: str) -> _Level2AlgebraResult:
                 ),
             )
         return _Level2AlgebraResult(_Level2Descriptor(family, value_token), ())
-
-    if family is _Level2DescriptorFamily.SQUARE_PYRAMIDAL:
-        return _Level2AlgebraResult(
-            _Level2Descriptor(family, None),
-            (
-                _algebra_issue(
-                    StereoIssueCode.UNSUPPORTED,
-                    "SPY permutation semantics are not frozen in Level-2 Gate 1",
-                ),
-            ),
-        )
 
     try:
         index = int(value_token)
@@ -639,6 +629,12 @@ _TRIGONAL_BIPYRAMIDAL_ROTATIONS = (
     (1, 0, 3, 2, 4),
     (1, 0, 4, 3, 2),
 )
+_SQUARE_PYRAMIDAL_ROTATIONS = (
+    (0, 1, 2, 3, 4),
+    (0, 2, 3, 4, 1),
+    (0, 3, 4, 1, 2),
+    (0, 4, 1, 2, 3),
+)
 
 
 def _permutation_sign(permutation: Sequence[int]) -> int:
@@ -678,6 +674,7 @@ _COORDINATION_ROTATIONS = {
     _Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL: (
         _TRIGONAL_BIPYRAMIDAL_ROTATIONS
     ),
+    _Level2DescriptorFamily.SQUARE_PYRAMIDAL: _SQUARE_PYRAMIDAL_ROTATIONS,
     _Level2DescriptorFamily.OCTAHEDRAL: _OCTAHEDRAL_ROTATIONS,
 }
 
@@ -772,17 +769,6 @@ def _transform_level2_descriptor(
     """Transform a descriptor under an explicit carrier reordering."""
 
     family = descriptor.family
-    if family is _Level2DescriptorFamily.SQUARE_PYRAMIDAL:
-        return _Level2AlgebraResult(
-            descriptor,
-            (
-                _algebra_issue(
-                    StereoIssueCode.UNSUPPORTED,
-                    "SPY permutation semantics are not frozen in Level-2 Gate 1",
-                ),
-            ),
-        )
-
     count = _FAMILY_CARRIER_COUNTS[family]
     issues = []
     if (source_anchor is None) != (reordered_anchor is None):

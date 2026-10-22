@@ -197,7 +197,7 @@ def test_double_bond_requires_real_double_bond_and_endpoint_local_groups():
         ("hotpot.stereo/2/NEW/value", stereo.StereoIssueCode.UNSUPPORTED),
         ("hotpot.stereo/2/SP/1", stereo.StereoIssueCode.UNSUPPORTED),
         ("hotpot.stereo/2/TBP/1", stereo.StereoIssueCode.UNSUPPORTED),
-        ("hotpot.stereo/2/SPY/unsupported", stereo.StereoIssueCode.UNSUPPORTED),
+        ("hotpot.stereo/2/SPY/1", stereo.StereoIssueCode.UNSUPPORTED),
         ("hotpot.stereo/2/OH/1", stereo.StereoIssueCode.UNSUPPORTED),
     ),
 )

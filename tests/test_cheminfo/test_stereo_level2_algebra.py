@@ -150,31 +150,6 @@ def test_invalid_or_unknown_descriptor_has_stable_issue(text, code):
     assert tuple(issue.code for issue in result.issues) == (code,)
 
 
-def test_square_pyramidal_is_an_explicit_unsupported_boundary():
-    result = stereo._parse_level2_descriptor("hotpot.stereo/2/SPY/unsupported")
-    assert result.descriptor == stereo._Level2Descriptor(
-        stereo._Level2DescriptorFamily.SQUARE_PYRAMIDAL,
-        None,
-    )
-    assert tuple(issue.code for issue in result.issues) == (
-        stereo.StereoIssueCode.UNSUPPORTED,
-    )
-
-    carriers = tuple(
-        stereo.StereoCarrier(stereo.StereoCarrierKind.ATOM, atom)
-        for atom in range(5)
-    )
-    transformed = stereo._transform_level2_descriptor(
-        result.descriptor,
-        carriers,
-        carriers,
-    )
-    assert transformed.descriptor == result.descriptor
-    assert tuple(issue.code for issue in transformed.issues) == (
-        stereo.StereoIssueCode.UNSUPPORTED,
-    )
-
-
 def test_duplicate_and_malformed_carriers_are_rejected():
     carriers = (
         stereo.StereoCarrier(stereo.StereoCarrierKind.ATOM, 1),

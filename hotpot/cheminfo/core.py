@@ -157,6 +157,9 @@ class Molecule:
         self._hided_covalent_bonds = []
         self.properties = {}  # To store any mol properties
 
+        from .stereo import get_stereo_payload, set_stereo_payload
+        set_stereo_payload(self, get_stereo_payload(self))
+
         self.charge = 0
 
     def __dir__(self):
@@ -187,6 +190,88 @@ class Molecule:
     def _hided_bonds(self):
         return self._hided_metal_bonds + self._hided_covalent_bonds
 
+    def _structural_bond_rows(self) -> tuple[tuple[int, int], ...]:
+        atom_rows = {id(atom): row for row, atom in enumerate(self._atoms)}
+        return tuple(
+            (atom_rows[id(bond.atom1)], atom_rows[id(bond.atom2)])
+            for bond in self._bonds + self._hided_bonds
+        )
+
+    def _set_remapped_stereo_payload(
+            self,
+            source: "Molecule",
+            atom_mapping: Mapping[int, int],
+            *,
+            filter_bonds: bool,
+    ) -> None:
+        from .stereo import (
+            _remap_stereo_payload,
+            get_stereo_payload,
+            set_stereo_payload,
+        )
+
+        allowed_bonds = self._structural_bond_rows() if filter_bonds else None
+        set_stereo_payload(
+            self,
+            _remap_stereo_payload(
+                get_stereo_payload(source),
+                atom_mapping,
+                allowed_bonds=allowed_bonds,
+            ),
+        )
+
+    def _remap_stereo_after_atom_removal(
+            self,
+            source_atoms: tuple["Atom", ...],
+    ) -> None:
+        destination_rows = {
+            id(atom): row for row, atom in enumerate(self._atoms)
+        }
+        atom_mapping = {
+            source_row: destination_rows[id(atom)]
+            for source_row, atom in enumerate(source_atoms)
+            if id(atom) in destination_rows
+        }
+        self._set_remapped_stereo_payload(
+            self,
+            atom_mapping,
+            filter_bonds=False,
+        )
+
+    def _remove_stereo_bond_rows(
+            self,
+            removed_bond_rows: Iterable[tuple[int, int]],
+    ) -> None:
+        from .stereo import (
+            _remap_stereo_payload,
+            get_stereo_payload,
+            set_stereo_payload,
+        )
+
+        payload = get_stereo_payload(self)
+        removed_keys = {
+            frozenset(atom_indices) for atom_indices in removed_bond_rows
+        }
+        allowed_bonds = list(self._structural_bond_rows())
+        allowed_bonds.extend(
+            record.anchor.atom_indices
+            for record in payload.records
+            if frozenset(record.anchor.atom_indices) not in removed_keys
+        )
+        allowed_bonds.extend(
+            fact.atom_indices
+            for fact in payload.bond_facts
+            if frozenset(fact.atom_indices) not in removed_keys
+        )
+        set_stereo_payload(
+            self,
+            _remap_stereo_payload(
+                payload,
+                {row: row for row in range(len(self._atoms))},
+                allowed_bonds=allowed_bonds,
+            ),
+        )
+
     def copy(self):
         clone = Molecule()
         atom_map = {}
@@ -216,6 +301,11 @@ class Molecule:
             ))
 
         clone._update_graph()
+        clone._set_remapped_stereo_payload(
+            self,
+            {row: row for row in range(len(self._atoms))},
+            filter_bonds=False,
+        )
 
         return clone
 
@@ -678,7 +768,22 @@ class Molecule:
         structure is updated after the addition.
 
         """
+        from .stereo import (
+            _remap_stereo_payload,
+            get_stereo_payload,
+            set_stereo_payload,
+        )
+
         component = copy(component)
+        atom_offset = len(self._atoms)
+        target_payload = get_stereo_payload(self)
+        component_payload = _remap_stereo_payload(
+            get_stereo_payload(component),
+            {
+                source_row: atom_offset + source_row
+                for source_row in range(len(component._atoms))
+            },
+        )
         for atom in component.atoms:
             self._add_atom(atom)
         self._bonds.extend(component.bonds)
@@ -686,6 +791,19 @@ class Molecule:
         self._hided_covalent_bonds.extend(component._hided_covalent_bonds)
         del component
         self._update_graph()
+        set_stereo_payload(
+            self,
+            type(target_payload)(
+                schema_version=target_payload.schema_version,
+                records=target_payload.records + component_payload.records,
+                atom_facts=(
+                    target_payload.atom_facts + component_payload.atom_facts
+                ),
+                bond_facts=(
+                    target_payload.bond_facts + component_payload.bond_facts
+                ),
+            ),
+        )
 
     def add_hydrogens(
             self,
@@ -764,14 +882,31 @@ class Molecule:
             Called to hide the visual representation of the metal-ligand bonds.
         """
         self.hide_metal_ligand_bonds()
-        self._hided_metal_bonds = []
+        if self._hided_metal_bonds:
+            removed_bond_rows = tuple(
+                (bond.a1idx, bond.a2idx)
+                for bond in self._hided_metal_bonds
+            )
+            self._hided_metal_bonds = []
+            self._remove_stereo_bond_rows(removed_bond_rows)
 
     def clear_hided_covalent_bonds(self) -> None:
-        self._hided_covalent_bonds = []
+        if self._hided_covalent_bonds:
+            removed_bond_rows = tuple(
+                (bond.a1idx, bond.a2idx)
+                for bond in self._hided_covalent_bonds
+            )
+            self._hided_covalent_bonds = []
+            self._remove_stereo_bond_rows(removed_bond_rows)
 
     def clear_hided_bonds(self) -> None:
-        self._hided_metal_bonds = []
-        self._hided_covalent_bonds = []
+        if self._hided_bonds:
+            removed_bond_rows = tuple(
+                (bond.a1idx, bond.a2idx) for bond in self._hided_bonds
+            )
+            self._hided_metal_bonds = []
+            self._hided_covalent_bonds = []
+            self._remove_stereo_bond_rows(removed_bond_rows)
 
     def restore_bonds(
             self,
@@ -1332,6 +1467,11 @@ class Molecule:
                     ))
 
             component._update_graph()
+            component._set_remapped_stereo_payload(
+                self,
+                component_index,
+                filter_bonds=True,
+            )
             components.append(component)
 
         return components
@@ -1964,6 +2104,7 @@ class Molecule:
         Returns:
             None
         """
+        source_atoms = tuple(self._atoms)
         if isinstance(atom, int):
             atom = self._atoms[atom]
 
@@ -1982,6 +2123,7 @@ class Molecule:
         ]
         atom._bonds = []
         atom._neighbours = []
+        self._remap_stereo_after_atom_removal(source_atoms)
 
     def _rm_atoms(self, atoms: Iterable[Union["Atom", int]]):
         """
@@ -2001,6 +2143,7 @@ class Molecule:
                             or indices.
 
         """
+        source_atoms = tuple(self._atoms)
         atoms = [a if isinstance(a, Atom) else self._atoms[a] for a in atoms]
 
         rm_bonds = {b for a in atoms for b in a.bonds}
@@ -2021,6 +2164,7 @@ class Molecule:
         for atom in atoms:
             atom._bonds = []
             atom._neighbours = []
+        self._remap_stereo_after_atom_removal(source_atoms)
 
     def remove_atom(self, atom: Union[int, "Atom"]) -> None:
         """
@@ -2072,7 +2216,9 @@ class Molecule:
             bond (Bond): The bond instance to be removed.
 
         """
+        removed_bond_rows = ((bond.a1idx, bond.a2idx),)
         self._bonds.remove(bond)
+        self._remove_stereo_bond_rows(removed_bond_rows)
 
     def _rm_bonds(self, bonds: Iterable["Bond"]):
         """
@@ -2087,7 +2233,7 @@ class Molecule:
 
         """
         for bond in bonds:
-            self._bonds.remove(bond)
+            self._rm_bond(bond)
 
     def remove_bond(self, bond: "Bond") -> None:
         """
@@ -2099,7 +2245,7 @@ class Molecule:
         Returns:
             None
         """
-        self._bonds.remove(bond)
+        self._rm_bond(bond)
         self._update_graph()
 
     def remove_bonds(self, bonds: Iterable["Bond"]) -> None:
@@ -4416,6 +4562,15 @@ class AtomSeq:
             a1 = mol_atoms[self._atoms.index(bond.atom1)]
             a2 = mol_atoms[self._atoms.index(bond.atom2)]
             mol.add_bond(a1, a2, **bond.attr_dict)
+
+        mol._set_remapped_stereo_payload(
+            self.mol,
+            {
+                atom.idx: target_row
+                for target_row, atom in enumerate(self._atoms)
+            },
+            filter_bonds=True,
+        )
 
         return mol
 

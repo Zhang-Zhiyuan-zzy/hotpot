@@ -229,4 +229,42 @@ Adjustment:
 - no compatibility branch was added for Python 3.9 or for another RDKit
   version.
 
+Git checkpoint: `39978fb build: pin RDKit and Python release matrix`.
+
+### Step 2 - Freeze the standalone Python rdWrappers API
+
+Status: complete
+
+Planned:
+
+- define the reviewed public value contracts and callable signatures before
+  native sampler behavior; and
+- make the absence of a built native backend explicit during this intermediate
+  checkpoint.
+
+Performed:
+
+- added frozen contracts for ETKDG options, coordination constraints,
+  conformer records/batches, runtime identity, and generation status;
+- added `ETKDGSampler`, `generate_conformers()`, and `runtime_info()` with the
+  reviewed signatures; and
+- added an internal lazy native dispatcher. It raises a direct runtime error
+  while `_rd_native` is not yet built rather than silently using Python RDKit
+  or another sampler.
+
+Verification:
+
+- `tests/test_cheminfo/test_rdwrapper_api.py`: 5 passed;
+- Python byte-code compilation passes; and
+- `git diff --check` passes for the new package and test.
+
+Unexpected findings: none.
+
+Adjustment:
+
+- `ETKDGOptions` is explicitly keyword-only, matching the approved public
+  constructor rather than relying on the default positional dataclass form;
+- no native behavior, Python-RDKit molecule translation, geometry gate,
+  perturbation, or force-field optimization was added in this checkpoint.
+
 Git checkpoint: pending.

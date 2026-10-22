@@ -2527,3 +2527,96 @@ Adjustment:
   assertions are otherwise unchanged.
 
 Git checkpoint: `ca401d5 feat(stereo): prove Gate-6 carrier equivalence`.
+
+### Step 38 - Derive the direct-priority Gate 6 stereo names
+
+Status: complete
+
+Planned:
+
+- add the frozen derived-output contract without changing stored stereo
+  identity, existing public function signatures, or two-argument assignment
+  report construction;
+- emit `R/S` and `E/Z` only when direct atomic number and explicitly available
+  isotope mass completely order every required carrier group; and
+- keep recursive, duplicate-node, ring, pseudoasymmetric, descendant-stereo,
+  and axial CIP cases explicit unresolved outcomes rather than substituting a
+  toolkit rank or graph order.
+
+Performed:
+
+- added the public frozen `StereoDerivedDescriptor` value and the backward-
+  compatible `StereoAssignmentReport.derived=()` field;
+- implemented a direct carrier-priority pass that treats implicit H,
+  unlabelled explicit H, and explicit 1H as protium, orders D and T by mass,
+  resolves repeated non-H elements only when every competing mass is explicit
+  and unique, and never uses natural mass, atom row, canonical rank, or RDKit
+  `_CIPRank` as a tiebreak;
+- reused the frozen Gate-2 algebra after high-to-low carrier ordering, yielding
+  TH `even -> S`, TH `odd -> R`, DB `together -> Z`, and DB `opposite -> E`
+  independently at the two double-bond endpoints;
+- derived names from the final coordinate-assigned return payload without
+  mutating stored payload or input coordinates, marked ungrouped/ABS results
+  absolute and AND/OR results non-absolute, and retained stable source-record
+  indices and order;
+- reused one complete Gate-6 validation result for graph, coordinate, and
+  priority processing: a record-local graph issue suppresses only that record,
+  while a global projection issue suppresses all derived names and additional
+  priority diagnostics;
+- returned one record-scoped `UNSUPPORTED` priority issue for an unresolved TH
+  or DB direct order and for every otherwise valid AX record, whose axial CIP
+  name remains outside the Stage-17 subset; and
+- migrated the six pre-existing valid-AX assignment assertions to retain their
+  coordinate/parity/group checks while also requiring the newly explicit AX
+  priority boundary.
+
+Verification:
+
+- the dedicated derived-output file reports 32 passed, including all 24 TH
+  carrier permutations, both DB endpoint and anchor directions, explicit and
+  implicit H, T/D/H and 13C/12C ordering, conservative unlabelled-carbon ties,
+  recursive/ring/descendant boundaries, enhanced groups, stable multi-record
+  order, final-coordinate payload behavior, and negative-H-isotope rejection;
+- the API plus dedicated derived selection reports 38 passed, the complete
+  shell-expanded stereo selection reports 326 passed, and the complete native
+  search selection reports 189 passed;
+- the combined stereo plus reusable-spec and production-kernel selection
+  reports 340 passed, of which 14 are the reusable native-target and production
+  kernel regressions used by Gate 6;
+- an explicit call-count regression proves assignment invokes complete graph
+  validation once, and global versus record-local issue regressions prove the
+  intended suppression boundary;
+- independent chemistry review confirmed the direct-priority subset and the
+  TH/DB mappings, including a pinned RDKit 2026.09.1 geometry oracle for the
+  Hotpot `even -> S` convention; independent architecture, redundancy, and
+  test reviews found no checkpoint blocker; and
+- Python compilation, tracked and new-file whitespace checks, and line-length
+  checks pass. The active environment still has no `ruff`, so no `ruff` result
+  is claimed.
+
+Unexpected findings:
+
+- the first draft allowed a negative explicit H isotope to enter the sortable
+  mass tuple; it could distinguish the Gate-6 graph but is not a chemical mass
+  priority and must make a competing same-Z direct order unresolved;
+- valid AX records previously expected an empty assignment issue list because
+  Stage 17 had not yet attempted derived names; implementing the approved
+  derived-output contract correctly exposes the frozen axial-CIP boundary;
+  and
+- a quoted `tests/test_cheminfo/test_*stereo*.py` argument is not expanded by
+  this pytest installation and runs no tests. The initially reported wildcard
+  aggregate was discarded and every recorded aggregate above was reproduced
+  with shell-expanded paths.
+
+Adjustment:
+
+- normalize only valid H mass values for the direct-priority domain: ordinary
+  protium is mass 1, positive D/T values are retained, and a non-positive
+  explicit value cannot resolve a same-Z comparison;
+- keep AX coordinate assignment intact but require the exact Stage-17
+  `UNSUPPORTED` priority diagnostic and no derived AX descriptor; and
+- use explicit paths or shell-expanded globs in subsequent verification logs,
+  while preserving full recursive and axial CIP as intentionally deferred
+  scientific work.
+
+Git checkpoint: `9c8f4b8 feat(stereo): derive direct Gate-6 stereo names`.

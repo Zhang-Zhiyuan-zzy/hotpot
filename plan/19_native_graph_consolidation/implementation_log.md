@@ -208,11 +208,34 @@ single-source and complexity contract without a forbidden second pair or
 neighbor index.  Whole force-field and MCA focused gates show no material
 workflow regression.
 
-Git checkpoint: pending Stage 1 commit.
+Git checkpoint: `0a7fcdc` (`refactor(core): establish single-source topology
+index`).
 
 ### Stage 2 - introduce the private base Graph
 
-Status: in progress.
+Status: complete.
+
+Performed:
+
+- moved the proven search topology design into
+  `hotpot/cheminfo/graph/_native/graph.hpp/.cpp` as the sole private
+  `hotpot::graph::Graph` definition;
+- retained sorted sparse external keys, canonical unique edges, CSR offsets,
+  ordered neighbors, incident-edge IDs, degrees, self-loop lookup, and binary
+  edge lookup;
+- added iterator-range access for a node's neighbors and incident edges; and
+- exposed no Python Graph binding, handle, capsule, class, or type stub.
+
+Verification:
+
+- the standalone C++17 source contract compiled with `-Wall -Wextra -Werror`
+  and covered sparse signed keys, isolates, self-loops, degree semantics,
+  neighbor/incident ranges, edge lookup, unsorted/duplicate keys, missing
+  endpoints, noncanonical edges, duplicate edges, and edge ordering;
+- the exact CPython 3.11 extension build succeeded; and
+- source audits found one native base Graph definition and no public binding.
+
+Git checkpoint: pending Stage 2 commit.
 
 ### Stage 3 - cut native search over to the base Graph
 

@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from copy import copy
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from pathlib import Path
 from time import perf_counter
 from typing import Callable, Literal, Mapping, Optional, TYPE_CHECKING
 
@@ -24,11 +25,12 @@ from hotpot.cheminfo.forcefields.working_copy import (
 from .configuration import BenchmarkSettings
 from .pipeline import _forcefield_options
 from .validation_providers import (
-    FrozenCoordinateReplayAdapter,
     component_sha256,
     coordinate_sha256,
     freeze_rdkit_proposals,
     frozen_proposal_manifest,
+    write_mapped_coordinate_proposal,
+    write_frozen_proposals,
 )
 
 
@@ -84,6 +86,7 @@ class RouteExecution:
     proposal_seconds: float
     forcefield_seconds: float
     elapsed_seconds: float
+    proposal_artifact: Optional[Mapping[str, object]] = None
 
 
 def _provider_sampler(
@@ -115,6 +118,7 @@ def execute_provider_route(
     *,
     workflow: Optional[Callable[..., object]] = None,
     freeze_sampler: Optional[ConformerSampler] = None,
+    proposal_artifact_path: Optional[Path] = None,
 ) -> RouteExecution:
     """Run O0/F1/F2 through the same private complete-complex workflow."""
     from hotpot.cheminfo import forcefields as ff
@@ -133,6 +137,12 @@ def execute_provider_route(
         add_hydrogens=True,
         freeze_sampler=freeze_sampler,
     )
+    proposal_artifact = None
+    if route == "F2" and proposal_artifact_path is not None:
+        proposal_artifact = write_frozen_proposals(
+            proposal_artifact_path,
+            sampler,
+        )
     proposal_seconds = perf_counter() - proposal_started
     forcefield_started = perf_counter()
     report = selected_workflow(
@@ -152,6 +162,7 @@ def execute_provider_route(
         proposal_seconds=proposal_seconds,
         forcefield_seconds=completed - forcefield_started,
         elapsed_seconds=completed - started,
+        proposal_artifact=proposal_artifact,
     )
 
 
@@ -161,9 +172,7 @@ def _dative_generation_graph(molecule: "Molecule") -> "Molecule":
     for bond in generation_graph.bonds:
         if not bond.is_metal_ligand_bond:
             continue
-        direction = (
-            "atom2_to_atom1" if bond.atom1.is_metal else "atom1_to_atom2"
-        )
+        direction = "atom2_to_atom1" if bond.atom1.is_metal else "atom1_to_atom2"
         bond._set_bond_metadata(
             bond_kind=BondKind.DATIVE,
             bond_direction=direction,
@@ -190,9 +199,7 @@ def _coordination_constraints(
     bounds = []
     for metal, donor in _iter_metal_donor_pairs(generation_graph):
         pairs.append((int(donor.idx), int(metal.idx)))
-        target = radius(int(metal.atomic_number)) + radius(
-            int(donor.atomic_number)
-        )
+        target = radius(int(metal.atomic_number)) + radius(int(donor.atomic_number))
         bounds.append((0.70 * target, 1.50 * target))
     return rdWrappers.CoordinationEmbeddingConstraints(
         coordination_pairs=np.asarray(pairs, dtype=np.int32).reshape((-1, 2)),
@@ -252,9 +259,7 @@ def _generate_whole_complex(
             "coordination_distance_ratio_minimum": 0.70,
             "coordination_distance_ratio_maximum": 1.50,
             "coordination_pairs": constraints.coordination_pairs.tolist(),
-            "metal_donor_bounds_angstrom": (
-                constraints.metal_donor_bounds.tolist()
-            ),
+            "metal_donor_bounds_angstrom": (constraints.metal_donor_bounds.tolist()),
         }
     return ProposalRecord(
         status=batch.status.name,
@@ -278,6 +283,7 @@ def execute_whole_complex_route(
     optimize: Optional[Callable[..., object]] = None,
     radius: Callable[[int], float] = _native_covalent_radius,
     add_hydrogens: bool = True,
+    proposal_artifact_path: Optional[Path] = None,
 ) -> RouteExecution:
     """Generate C1/C2 coordinates, then enter the established Stage-3 flow."""
     from hotpot.cheminfo import forcefields as ff
@@ -296,6 +302,14 @@ def execute_whole_complex_route(
         generate=generate,
         radius=radius,
     )
+    proposal_artifact = None
+    if proposal_artifact_path is not None:
+        proposal_artifact = write_mapped_coordinate_proposal(
+            proposal_artifact_path,
+            route=route,
+            proposal=asdict(proposal),
+            coordinates=working.coordinates,
+        )
     proposal_seconds = perf_counter() - started
     selected_optimize = optimize or ff.optimize_complex
     proposal_rows = np.ascontiguousarray(working.coordinates, dtype=np.float64)
@@ -317,9 +331,7 @@ def execute_whole_complex_route(
     )
     completed = perf_counter()
     if coordinate_sha256(proposal_rows) != proposal.coordinate_sha256:
-        raise RuntimeError(
-            f"{route} proposal changed before force-field entry"
-        )
+        raise RuntimeError(f"{route} proposal changed before force-field entry")
     return RouteExecution(
         route=route,
         molecule=working,
@@ -330,6 +342,7 @@ def execute_whole_complex_route(
         proposal_seconds=proposal_seconds,
         forcefield_seconds=completed - forcefield_started,
         elapsed_seconds=completed - started,
+        proposal_artifact=proposal_artifact,
     )
 
 

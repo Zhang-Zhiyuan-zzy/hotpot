@@ -194,9 +194,7 @@ def collect_process_resource_identity() -> dict[str, object]:
     """Record the host/process/thread controls without estimating usage."""
 
     affinity = (
-        sorted(os.sched_getaffinity(0))
-        if hasattr(os, "sched_getaffinity")
-        else None
+        sorted(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else None
     )
     thread_variables = (
         "OMP_NUM_THREADS",
@@ -210,9 +208,7 @@ def collect_process_resource_identity() -> dict[str, object]:
         "process_id": os.getpid(),
         "logical_cpu_count": os.cpu_count(),
         "cpu_affinity": affinity,
-        "thread_environment": {
-            name: os.environ.get(name) for name in thread_variables
-        },
+        "thread_environment": {name: os.environ.get(name) for name in thread_variables},
     }
 
 
@@ -444,9 +440,7 @@ def _verify_proposal_artifact(
     if not isinstance(declared, Mapping):
         raise RuntimeError(f"{route} execution omitted proposal artifact identity")
     route_fields = (
-        ("proposal_count",)
-        if route == "F2"
-        else ("atom_count", "coordinate_sha256")
+        ("proposal_count",) if route == "F2" else ("atom_count", "coordinate_sha256")
     )
     for field in ("sha256", "canonical_sha256", *route_fields):
         if declared.get(field) != archived.get(field):
@@ -667,9 +661,7 @@ def _resume_record(
     }
     actual = {key: record.get(key) for key in expected}
     if actual != expected:
-        raise ValueError(
-            f"resume identity differs from existing result {result_path}"
-        )
+        raise ValueError(f"resume identity differs from existing result {result_path}")
     return record
 
 
@@ -834,9 +826,7 @@ def run_case(
 
     completed = perf_counter()
     resource_completed = _resource_usage_snapshot()
-    proposal_seconds = (
-        None if execution is None else float(execution.proposal_seconds)
-    )
+    proposal_seconds = None if execution is None else float(execution.proposal_seconds)
     forcefield_seconds = (
         None if execution is None else float(execution.forcefield_seconds)
     )
@@ -1163,11 +1153,7 @@ def _stage_timing_summary(
         values = [
             float(value)
             for record in records
-            if (
-                value := record.get("timing", {})
-                .get("stages", {})
-                .get(field)
-            )
+            if (value := record.get("timing", {}).get("stages", {}).get(field))
             is not None
         ]
         result[field] = _timing_values_summary(
@@ -1289,9 +1275,7 @@ def summarize_results(output_root: Path) -> dict[str, object]:
     }
     unexpected_results = [
         {"run_id": run_id, "route": route, "case_index": case_index}
-        for run_id, route, case_index in sorted(
-            actual_identities - expected_identities
-        )
+        for run_id, route, case_index in sorted(actual_identities - expected_identities)
     ]
     for spec in run_specs:
         run_id = str(spec["run_id"])
@@ -1308,8 +1292,7 @@ def summarize_results(output_root: Path) -> dict[str, object]:
             if index not in by_case or by_case[index].get("route") != route
         ]
         missing_results.extend(
-            {"run_id": run_id, "route": route, "case_index": index}
-            for index in missing
+            {"run_id": run_id, "route": route, "case_index": index} for index in missing
         )
         gate_counts = {
             gate_id: {

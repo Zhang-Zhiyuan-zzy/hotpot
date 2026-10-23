@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import tempfile
 from copy import copy
 from dataclasses import asdict, dataclass, is_dataclass
 from enum import Enum
-from typing import Mapping, Sequence, TYPE_CHECKING
+from pathlib import Path
+from typing import Mapping, TYPE_CHECKING
 
 import numpy as np
 
@@ -28,6 +31,10 @@ from hotpot.cheminfo.stereo import get_stereo_payload
 
 if TYPE_CHECKING:
     from hotpot.cheminfo.core import Molecule
+
+
+FROZEN_PROPOSAL_SCHEMA_VERSION = 1
+MAPPED_PROPOSAL_SCHEMA_VERSION = 1
 
 
 def _json_value(value: object) -> object:
@@ -62,9 +69,7 @@ def coordinate_sha256(coordinates: np.ndarray) -> str:
 
 def component_sha256(molecule: "Molecule") -> str:
     """Identify the exact worker component addressed by a frozen proposal."""
-    atom_rows = {
-        id(atom): row for row, atom in enumerate(molecule.atoms)
-    }
+    atom_rows = {id(atom): row for row, atom in enumerate(molecule.atoms)}
     payload = {
         "atoms": [
             {
@@ -148,9 +153,7 @@ class FrozenCoordinateReplayAdapter:
         del request
         key = component_sha256(molecule)
         matches = tuple(
-            proposal
-            for proposal in self.proposals
-            if proposal.component_sha256 == key
+            proposal for proposal in self.proposals if proposal.component_sha256 == key
         )
         if len(matches) != 1:
             raise ConformerSamplingError(
@@ -180,9 +183,7 @@ def _worker_components(
     _copy_molecule_metadata(worker, detached)
     detached.hide_metal_ligand_bonds(clear_conformers=False)
     return tuple(
-        component
-        for component in detached.components
-        if not component.has_metal
+        component for component in detached.components if not component.has_metal
     )
 
 
@@ -225,11 +226,167 @@ def frozen_proposal_manifest(
     return tuple(proposal.to_manifest() for proposal in adapter.proposals)
 
 
+def _frozen_proposal_content(
+    adapter: FrozenCoordinateReplayAdapter,
+) -> dict[str, object]:
+    return {
+        "schema_version": FROZEN_PROPOSAL_SCHEMA_VERSION,
+        "artifact_kind": "f2_frozen_ligand_proposals",
+        "coordinate_encoding": "json-number/little-endian-f64-sha256",
+        "proposal_count": len(adapter.proposals),
+        "proposals": [
+            {
+                **proposal.to_manifest(),
+                "coordinates": [list(row) for row in proposal.coordinates],
+            }
+            for proposal in adapter.proposals
+        ],
+    }
+
+
+def _write_json_artifact(
+    path: Path, content: Mapping[str, object]
+) -> dict[str, object]:
+    path = Path(path).resolve()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    document = {
+        **content,
+        "canonical_sha256": hashlib.sha256(_canonical_bytes(content)).hexdigest(),
+    }
+    payload = (
+        json.dumps(
+            document,
+            allow_nan=False,
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n"
+    ).encode("utf-8")
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+        dir=path.parent,
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
+    return {
+        "path": str(path),
+        "sha256": hashlib.sha256(payload).hexdigest(),
+        "canonical_sha256": document["canonical_sha256"],
+    }
+
+
+def _load_json_artifact(path: Path) -> dict[str, object]:
+    document = json.loads(Path(path).read_text(encoding="utf-8"))
+    content = dict(document)
+    expected_digest = str(content.pop("canonical_sha256"))
+    if hashlib.sha256(_canonical_bytes(content)).hexdigest() != expected_digest:
+        raise ValueError("coordinate artifact canonical SHA-256 differs")
+    return content
+
+
+def write_frozen_proposals(
+    path: Path,
+    adapter: FrozenCoordinateReplayAdapter,
+) -> dict[str, object]:
+    """Persist complete F2 rows atomically before force-field execution."""
+    identity = _write_json_artifact(path, _frozen_proposal_content(adapter))
+    return {**identity, "proposal_count": len(adapter.proposals)}
+
+
+def load_frozen_proposals(path: Path) -> FrozenCoordinateReplayAdapter:
+    """Load and verify one complete pre-forcefield F2 artifact."""
+    content = _load_json_artifact(path)
+    if (
+        content.get("artifact_kind") != "f2_frozen_ligand_proposals"
+        or int(content["schema_version"]) != FROZEN_PROPOSAL_SCHEMA_VERSION
+    ):
+        raise ValueError("unsupported frozen-proposal schema")
+    proposals = []
+    for item in content["proposals"]:
+        coordinates = np.asarray(item["coordinates"], dtype=np.float64)
+        proposal = FrozenCoordinateProposal(
+            component_sha256=str(item["component_sha256"]),
+            coordinate_sha256=str(item["coordinate_sha256"]),
+            coordinates=tuple(
+                tuple(float(value) for value in row) for row in coordinates
+            ),
+            ordinal=int(item["ordinal"]),
+        )
+        if coordinates.shape != (int(item["atom_count"]), 3):
+            raise ValueError("frozen-proposal atom count differs")
+        if coordinate_sha256(coordinates) != proposal.coordinate_sha256:
+            raise ValueError("frozen-proposal coordinate SHA-256 differs")
+        proposals.append(proposal)
+    if len(proposals) != int(content["proposal_count"]):
+        raise ValueError("frozen-proposal count differs")
+    return FrozenCoordinateReplayAdapter(tuple(proposals))
+
+
+def write_mapped_coordinate_proposal(
+    path: Path,
+    *,
+    route: str,
+    proposal: Mapping[str, object],
+    coordinates: np.ndarray,
+) -> dict[str, object]:
+    """Persist one complete mapped C1/C2 proposal before optimization."""
+    rows = np.ascontiguousarray(coordinates, dtype=np.float64)
+    content = {
+        "schema_version": MAPPED_PROPOSAL_SCHEMA_VERSION,
+        "artifact_kind": "whole_complex_etkdg_proposal",
+        "route": route,
+        "coordinate_encoding": "json-number/little-endian-f64-sha256",
+        "atom_count": len(rows),
+        "coordinate_sha256": coordinate_sha256(rows),
+        "proposal": dict(proposal),
+        "coordinates": rows.tolist(),
+    }
+    identity = _write_json_artifact(path, content)
+    return {
+        **identity,
+        "atom_count": len(rows),
+        "coordinate_sha256": content["coordinate_sha256"],
+    }
+
+
+def load_mapped_coordinate_proposal(path: Path) -> dict[str, object]:
+    """Load and verify one complete pre-optimization C1/C2 artifact."""
+    content = _load_json_artifact(path)
+    if (
+        content.get("artifact_kind") != "whole_complex_etkdg_proposal"
+        or int(content["schema_version"]) != MAPPED_PROPOSAL_SCHEMA_VERSION
+    ):
+        raise ValueError("unsupported mapped-proposal schema")
+    rows = np.asarray(content["coordinates"], dtype=np.float64)
+    if rows.shape != (int(content["atom_count"]), 3):
+        raise ValueError("mapped-proposal atom count differs")
+    if coordinate_sha256(rows) != content["coordinate_sha256"]:
+        raise ValueError("mapped-proposal coordinate SHA-256 differs")
+    if content["proposal"]["coordinate_sha256"] != content["coordinate_sha256"]:
+        raise ValueError("mapped-proposal identity differs from its coordinates")
+    return content
+
+
 __all__ = (
+    "FROZEN_PROPOSAL_SCHEMA_VERSION",
+    "MAPPED_PROPOSAL_SCHEMA_VERSION",
     "FrozenCoordinateProposal",
     "FrozenCoordinateReplayAdapter",
     "component_sha256",
     "coordinate_sha256",
     "freeze_rdkit_proposals",
     "frozen_proposal_manifest",
+    "load_frozen_proposals",
+    "load_mapped_coordinate_proposal",
+    "write_mapped_coordinate_proposal",
+    "write_frozen_proposals",
 )

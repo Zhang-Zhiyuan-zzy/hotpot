@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from types import SimpleNamespace
-
 import numpy as np
 import pytest
 
@@ -10,7 +8,11 @@ from hotpot.cheminfo.conformers import ConformerBatch
 from hotpot.cheminfo.core import Molecule
 
 from .configuration import SMOKE_SETTINGS
-from .validation_providers import FrozenCoordinateReplayAdapter
+from .validation_providers import (
+    FrozenCoordinateReplayAdapter,
+    load_frozen_proposals,
+    load_mapped_coordinate_proposal,
+)
 from .validation_routes import (
     PROVIDER_STAGE_SEQUENCE,
     WHOLE_COMPLEX_STAGE_SEQUENCE,
@@ -67,6 +69,27 @@ def test_provider_routes_use_one_identical_complete_workflow(route: str) -> None
     else:
         assert not isinstance(sampler, FrozenCoordinateReplayAdapter)
         assert execution.proposal_manifest == ()
+
+
+def test_f2_artifact_exists_before_forcefield_failure(tmp_path) -> None:
+    path = tmp_path / "frozen-proposal.json"
+
+    def failing_workflow(molecule, forcefield, **options):
+        assert path.is_file()
+        raise RuntimeError("force-field fixture failed")
+
+    with pytest.raises(RuntimeError, match="force-field fixture failed"):
+        execute_provider_route(
+            _complex(),
+            "F2",
+            SMOKE_SETTINGS,
+            4,
+            workflow=failing_workflow,
+            freeze_sampler=_Sampler(),
+            proposal_artifact_path=path,
+        )
+
+    assert len(load_frozen_proposals(path).proposals) == 1
 
 
 @pytest.mark.parametrize("route", ("C1", "C2"))
@@ -158,3 +181,42 @@ def test_whole_complex_route_does_not_commit_generated_dative_metadata() -> None
     )
 
     assert source.c_bonds[0].bond_kind is original_kind
+
+
+def test_c2_artifact_exists_before_forcefield_failure(tmp_path) -> None:
+    path = tmp_path / "whole-complex-proposal.json"
+
+    def generate(molecule, *, options, constraints):
+        coordinates = np.arange(
+            len(molecule.atoms) * 3,
+            dtype=float,
+        ).reshape((1, len(molecule.atoms), 3))
+        return rdWrappers.ConformerBatch(
+            status=rdWrappers.GenerationStatus.SUCCESS,
+            coordinates=coordinates,
+            records=(rdWrappers.ConformerRecord(0, 0),),
+            engine="fixture",
+            engine_version="1",
+            diagnostic=None,
+        )
+
+    def failing_optimize(molecule, forcefield, **options):
+        assert path.is_file()
+        raise RuntimeError("force-field fixture failed")
+
+    with pytest.raises(RuntimeError, match="force-field fixture failed"):
+        execute_whole_complex_route(
+            _complex(),
+            "C2",
+            SMOKE_SETTINGS,
+            1,
+            generate=generate,
+            optimize=failing_optimize,
+            radius=lambda atomic_number: 1.0,
+            add_hydrogens=False,
+            proposal_artifact_path=path,
+        )
+
+    artifact = load_mapped_coordinate_proposal(path)
+    assert artifact["route"] == "C2"
+    assert artifact["proposal"]["coordinate_sha256"] == (artifact["coordinate_sha256"])

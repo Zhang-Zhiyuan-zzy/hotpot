@@ -18,6 +18,10 @@ from .validation_providers import (
     coordinate_sha256,
     freeze_rdkit_proposals,
     frozen_proposal_manifest,
+    load_frozen_proposals,
+    load_mapped_coordinate_proposal,
+    write_mapped_coordinate_proposal,
+    write_frozen_proposals,
     _worker_components,
 )
 
@@ -125,3 +129,43 @@ def test_replay_rejects_tampered_frozen_bytes() -> None:
 
     with pytest.raises(ConformerSamplingError, match="bytes changed"):
         replay.sample(component, ConformerSamplingRequest(seed=5))
+
+
+def test_complete_frozen_artifact_round_trips_exact_rows(tmp_path) -> None:
+    adapter = freeze_rdkit_proposals(
+        _complex(),
+        seed=5,
+        add_hydrogens=False,
+        sampler=_DeterministicSampler(),
+    )
+    path = tmp_path / "frozen-proposal.json"
+
+    identity = write_frozen_proposals(path, adapter)
+    restored = load_frozen_proposals(path)
+
+    assert restored == adapter
+    assert identity["path"] == str(path.resolve())
+    assert identity["proposal_count"] == 1
+    assert len(identity["sha256"]) == 64
+
+
+def test_mapped_whole_complex_artifact_round_trips_exact_rows(tmp_path) -> None:
+    coordinates = np.arange(9, dtype=np.float64).reshape((3, 3))
+    proposal = {
+        "coordinate_sha256": coordinate_sha256(coordinates),
+        "generation_graph_sha256": "generation",
+        "source_graph_sha256": "source",
+    }
+    path = tmp_path / "whole-complex-proposal.json"
+
+    identity = write_mapped_coordinate_proposal(
+        path,
+        route="C2",
+        proposal=proposal,
+        coordinates=coordinates,
+    )
+    restored = load_mapped_coordinate_proposal(path)
+
+    assert identity["coordinate_sha256"] == coordinate_sha256(coordinates)
+    assert restored["route"] == "C2"
+    np.testing.assert_array_equal(restored["coordinates"], coordinates)

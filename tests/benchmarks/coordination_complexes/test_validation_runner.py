@@ -257,9 +257,7 @@ def test_failure_preserves_traceback_has_all_gates_and_is_resumable(
     assert record["selected_structure"] is None
     assert record["error"]["type"] == "RuntimeError"
     assert "fixture route failed" in record["error"]["traceback"]
-    assert [gate["gate_id"] for gate in record["acceptance"]["gates"]] == list(
-        GATE_IDS
-    )
+    assert [gate["gate_id"] for gate in record["acceptance"]["gates"]] == list(GATE_IDS)
     assert not list(tmp_path.glob("**/selected.sdf"))
 
     arguments["resume"] = True

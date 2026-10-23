@@ -228,6 +228,7 @@ class AcceptanceEvidence(_JsonRecord):
     stage_trace: StageTraceEvidence
     terminal_reason: str
     converged: bool
+    selected_frame_consistent: bool = True
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "frames", tuple(self.frames))
@@ -372,8 +373,11 @@ def _evaluate_a10(evidence: AcceptanceEvidence) -> GateDecision:
         diagnostics.append("expected_stages_missing")
     elif observed_stages != trace.expected_stages:
         diagnostics.append("stage_sequence_mismatch")
-    if any(not record.status for record in trace.records):
-        diagnostics.append("stage_status_missing")
+    for record in trace.records:
+        if not record.status:
+            diagnostics.append(f"stage_status_missing:{record.name}")
+        elif record.status not in {"completed", "recovered", "succeeded"}:
+            diagnostics.append(f"stage_not_completed:{record.name}:{record.status}")
     if trace.provider_fallback_used or trace.fallback_provider is not None:
         diagnostics.append("provider_fallback_used")
 
@@ -419,6 +423,8 @@ def evaluate_acceptance(evidence: AcceptanceEvidence) -> AcceptanceResult:
         a03_diagnostics.append("selected_coordinates_nonfinite")
     if not evidence.committed_coordinates_finite:
         a03_diagnostics.append("committed_coordinates_nonfinite")
+    if not evidence.selected_frame_consistent:
+        a03_diagnostics.append("selected_frame_committed_coordinates_mismatch")
 
     a04_diagnostics = list(selected_diagnostics)
     if selected is not None and not selected.energy.finite:

@@ -4329,7 +4329,8 @@ Planned:
 Performed:
 
 - required five distinct primary run IDs plus one distinct F1-repeat ID;
-- rejected any F1 primary/repeat pass or A01-A10 gate disagreement;
+- compared every F1 primary/repeat pass and A01-A10 gate decision and encoded
+  any disagreement in the conversion manifest;
 - bound every selected structure to the exact `selected.sdf` beside its own
   case `result.json` and rejected path escape or cross-case substitution;
 - revalidated F2 and C1/C2 proposal contents, hashes, canonical identities,

@@ -501,7 +501,7 @@ def test_bridge_rejects_incomplete_matrix_and_changed_selected_asset(
         )
 
 
-def test_bridge_rejects_duplicate_runs_repeat_drift_and_foreign_selection(
+def test_bridge_rejects_duplicate_runs_and_foreign_selection_but_records_repeat_drift(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -530,14 +530,18 @@ def test_bridge_rejects_duplicate_runs_repeat_drift_and_foreign_selection(
     for gate in repeated["acceptance"]["gates"]:
         gate["passed"] = False
     _write_json(repeated_path, repeated)
-    with pytest.raises(ValueError, match="repeat control differs"):
-        publication.build_publication_conversion(
-            fixture["run_root"],
-            fixture["gallery_manifest"],
-            fixture["manual_review"],
-            cohort_path=fixture["cohort_path"],
-            source_path=fixture["source"],
-        )
+    conversion = publication.build_publication_conversion(
+        fixture["run_root"],
+        fixture["gallery_manifest"],
+        fixture["manual_review"],
+        cohort_path=fixture["cohort_path"],
+        source_path=fixture["source"],
+    )
+    repeat_control = conversion.manifest["f1_repeat_control"]
+    assert repeat_control["acceptance_classification_consistent"] is False
+    assert repeat_control["acceptance_mismatch_case_indices"] == [1]
+    assert repeat_control["gate_classification_consistent"] is False
+    assert repeat_control["gate_mismatch_case_indices"] == [1]
 
     fixture = _fixture(tmp_path / "foreign", monkeypatch)
     result_path = fixture["result_paths"][("formal-test-f1", 1)]

@@ -605,6 +605,13 @@ O0 structure, a rejected frame, or another route's structure merely to fill
 the matrix. Consequently, any shortfall from 910 admitted coordinate assets
 must be visible in both the dataset inventory and final validation report.
 
+F1 repeat classification is control evidence for the provider decision, not a
+filter on the primary 910-record publication matrix. Any primary/repeat pass or
+gate mismatch must be preserved explicitly in the conversion manifest and
+final report. It denies a stability claim and strengthens the decision to keep
+F1 non-default, but it must not erase otherwise valid primary route results or
+block the owner-authorized failed-result-aware dataset publication.
+
 The coordinate payloads and generated Bundle/store artifacts follow the
 existing `hotpot/dataset/data/**` local-data policy and therefore are not
 Git-tracked. The dataset definition, attribution/authorization statement,

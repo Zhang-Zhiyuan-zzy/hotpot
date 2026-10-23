@@ -262,9 +262,24 @@ production graph mutation; the in-memory/trajectory topology is authoritative.
 
 ### 3.3 Manual physical-plausibility review
 
-The 182 final structures from every completed O0/F1/F2/C1/C2 route are rendered
-in exhaustive, consistently styled contact-sheet/gallery sets. Manual review
-is a veto check, not an attempt to identify a unique correct conformer.
+Every O0/F1/F2/C1/C2 route-case is represented in exhaustive, consistently
+styled contact-sheet/gallery evidence. An admitted result displays its selected
+structure. A failed result remains a failed result, but failure evidence must
+still be visible and analyzable:
+
+- a nondegenerate rejected selected/terminal frame is rendered and labeled as
+  rejected diagnostic evidence;
+- a recorded but degenerate attempt is rendered beside the input graph and
+  labeled as non-structural failure evidence; and
+- a route that terminates before any coordinate frame displays the input graph
+  with an explicit `no route 3D frame` label.
+
+The acceptance gallery may retain placeholders to prevent a rejected frame
+from being mistaken for an admitted coordinate. In that case a separate,
+hash-bound failure-diagnostic gallery is mandatory. A rejected or input-graph
+image never becomes a selected dataset asset merely because it is rendered.
+Manual review is a veto check, not an attempt to identify a unique correct
+conformer.
 
 The reviewer reports only structures that are visibly nonphysical, including
 obvious interpenetration, disconnection, extreme bond distortion, collapsed
@@ -272,7 +287,7 @@ ligands, or implausible placement that escaped the automated gate. The review
 artifact records:
 
 - validation revision and route/run identity;
-- gallery/render hashes;
+- accepted-structure and failure-diagnostic gallery/render hashes;
 - reviewer and completion date; and
 - zero or more flagged case indices with reasons.
 
@@ -347,7 +362,7 @@ Status vocabulary:
 | G24 | Satisfy strict standalone auditwheel manylinux policy | Not an original product requirement; explicit non-claim | Not validated | Open Babel remains a controlled cross-wheel dependency | No | Different Open Babel packaging design would be required |
 | G25 | Recover byte-identical historical 182 manifest/graph sidecars | Obsolete prerequisite | Not required | Historical coordinates/reports are not scientific truth and volatile bytes cannot be reconstructed | Remove as blocker | None; create current semantic evidence instead |
 | G26 | Build a normalized current semantic 187/182 cohort | Not implemented | Not validated | Existing cohort loader still expects historical/reference artifacts | Yes | New coordinate-free cohort builder and tests |
-| G27 | Perform exhaustive manual review of O0/F1/F2/C1/C2 structures | Gallery infrastructure exists; new-route galleries absent | Not validated | Existing gallery covers old workflow only | Yes | Completed route runs, renderer, reviewer |
+| G27 | Perform exhaustive manual review of O0/F1/F2/C1/C2 structures and expose every failed route-case diagnostically | Gallery infrastructure exists; new-route galleries absent | Not validated | Existing gallery covers old workflow only | Yes | Completed route runs, accepted/rejected evidence renderer, reviewer |
 | G28 | Enforce the corrected selected-structure and optimization-continuation contract | Partially implemented | Not validated on full routes | Reports contain best energy/gradients and frame evidence; no evaluator proves recovery and continuation | Yes | Benchmark acceptance evaluator and focused recovery tests |
 | G29 | Add F2 as precomputed ETKDG replay through the O0 downstream flow | Not implemented | Not validated | Current F1 generates inside the worker; no frozen-coordinate replay provider/runner exists | Yes, required | Data-only replay provider, artifact identity, paired runner |
 
@@ -369,7 +384,7 @@ Status vocabulary:
 | V12 | Recovered intermediate numerical-excursion classification | Not validated | Energy/gradient excursions are stage-resolved; successful standard recovery continues, unrecovered interruption fails | Yes | Evaluator tests covering recovery and continuation |
 | V13 | Standard terminal geometry acceptance | Old O0 reference passed; new routes absent | Every route is evaluated over all 182 cases | Yes | Complete route runs |
 | V14 | Semantic topology/stereo parity | R0/unit partial validation | Zero O0/F1/F2/C1/C2 graph-semantic mutations | Yes | Coordinate-free snapshots and comparator |
-| V15 | Complete O0/F1/F2/C1/C2 manual gallery review | Not validated | Each route review completed; zero visibly nonphysical accepted outputs | Yes | Route SDF/trajectory artifacts, renderer, reviewer |
+| V15 | Complete O0/F1/F2/C1/C2 manual gallery review | Not validated | Each accepted route output is reviewed; every failure is separately visualized from its rejected frame, degenerate attempt, or labeled input graph | Yes | Route SDF/trajectory artifacts, renderer, reviewer |
 | V16 | O0/F1/F2/C1/C2 timing and resource comparison | Not validated | Stage p50/p95/max/aggregate plus worker/thread/host identity reported | Yes | Recorded execution policy and monitoring fields |
 | V17 | F1 repeated-run outcome consistency | Not validated | All 182 F1 cases are repeated; business pass/failure classification is stable, coordinates need not match | Yes | A second complete 182-case F1 run |
 | V18 | Full 182-case C1 generation plus force-field matrix | One-case coordinate-only smoke | All 182 generated structures enter force-field optimization and are judged by A01-A10 | Yes, required | Semantic graph exporter, C1 force-field bridge, runner update |
@@ -473,14 +488,20 @@ entry differs from the current ligand-provider substitution.
 
 ### 6.5 Gallery and report
 
-Reuse the existing gallery infrastructure for the selected structures from all
-five 182-case routes.
+Reuse the existing gallery infrastructure for admitted selected structures
+from all five 182-case routes. Add a separate failure-diagnostic view whenever
+the acceptance gallery deliberately uses placeholders. The diagnostic view
+selects only the failed route's own archived frame; if none exists, it shows
+the input graph and says that no route 3D frame was produced. It must never
+substitute O0, a repeat run, or another route's coordinates.
 The final validation report contains:
 
 - cohort identity and 182/5 partition;
 - per-goal and per-experiment final status matrices;
 - per-route and per-stage result counts;
 - all named failures and recoveries;
+- every failed route-case's failure stage, direct reason, frame availability,
+  and diagnostic image;
 - selected energy/gradient and geometry-gate summaries;
 - manual-review result and flagged cases;
 - O0/F1/F2/C1/C2 timing/resource tables; and
@@ -499,7 +520,8 @@ The final validation report contains:
 8. Repeat all 182 F1 cases for outcome-consistency evidence.
 9. Audit all automated A01-A10 results and rerun only explicitly invalid or
    interrupted infrastructure cases; never discard scientific failures.
-10. Render and complete the manual gallery review for every route.
+10. Render the admitted-structure gallery and all failed-route diagnostics,
+    then complete the manual gallery review for every route.
 11. Report performance/resources without inventing a cutover threshold.
 12. Rerun affected regressions and any conditionally affected packaging tests.
 13. Write the final validation report and request the owner decision on the

@@ -4600,3 +4600,108 @@ Adjustment:
   explicit non-claims; and
 - keep final Plan17 closure blocked only on attributable human gallery review
   and the subsequent governed 910-record dataset publication.
+
+### Step 69 - Add per-failure diagnostics and qualify route efficiency
+
+Status: complete; formal matrix and accepted-asset decisions unchanged
+
+Planned:
+
+- re-read the complete owner-approved force-field validation plan before
+  revising its gallery/report contract;
+- classify every failed primary route-case by the exact stage and evidence
+  recorded in the immutable schema-v2 matrix;
+- distinguish a rejected complex 3D frame, a degenerate recorded attempt, and
+  a route that produced no coordinate frame;
+- render failed evidence without promoting it to an accepted structure; and
+- report route efficiency with the execution, child-CPU, memory-high-water,
+  and early-termination boundaries stated explicitly.
+
+Performed:
+
+- added `validation_failure_analysis.py` plus a thin Plan-17 entry point;
+- derived the analysis from the existing 910 primary results and exact cohort
+  without rerunning CBond, ETKDG, or force-field optimization;
+- verified every declared trajectory tree before extracting a diagnostic
+  frame;
+- rendered rejected frames only from the failed route's own trajectory and
+  used a labeled input-ligand graph when no frame existed;
+- generated five route-specific failure sheets, one combined 41-case sheet,
+  a machine-readable failure inventory, and a Markdown report below
+  `ai-14:~/mca_study/plan17-b0aa6c5/failure-analysis`; and
+- added the full 41-row analysis and qualified performance interpretation to
+  the tracked Plan-17 documentation.
+
+Failure result:
+
+| Category | Count | Route-cases |
+| --- | ---: | --- |
+| A08 geometry rejection | 8 | O0 24/96; F1/F2 29; C1 21; C2 21/54/63 |
+| Unrecovered unavailable gradient | 2 | C1/C2 70 |
+| ETKDG returned no conformer | 15 | F1/F2 10; C1 eight cases; C2 five cases |
+| C2 bounds triangle-smoothing failure | 16 | 22, 25, 64, 66, 67, 71, 72, 74, 75, 79, 80, 81, 103, 104, 105, 109 |
+
+Frame result:
+
+- 10 failures have a nondegenerate rejected complex 3D frame;
+- F1 case 10 has two archived ligand-build events sharing one 174-atom
+  all-zero coordinate revision with zero coordinate extent, so it is a
+  degenerate failure record rather than a valid 3D proposal; and
+- 30 failures have no recorded route coordinate frame and display only the
+  explicitly labeled input ligand graph.
+
+Efficiency result:
+
+| Route | Passed | Mean s/case | p50 s | p95 s | Elapsed sum s | O0 ratio |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| O0 | 180/182 | 9.644 | 8.027 | 19.810 | 1,755.171 | 1.000 |
+| F1 | 180/182 | 8.516 | 7.474 | 19.213 | 1,549.921 | 0.883 |
+| F2 | 180/182 | 8.519 | 7.458 | 19.295 | 1,550.421 | 0.883 |
+| C1 | 172/182 | 3.797 | 2.486 | 9.919 | 691.132 | 0.394 |
+| C2 | 157/182 | 3.354 | 2.239 | 8.927 | 610.513 | 0.348 |
+
+- F1's complete-route elapsed sum is 11.694 percent below O0 and F2 is
+  11.666 percent below O0;
+- 163.146 seconds of the O0-to-F1 named-stage difference is optimization and
+  38.265 seconds is ligand build, so the result cannot be attributed to
+  isolated ETKDG sampling speed;
+- C1/C2 are not production-throughput comparisons because they enter later
+  and terminate 10/25 cases early; and
+- `RUSAGE_SELF` excludes O0/F1/F2 spawned ligand-worker CPU, while RSS is a
+  cumulative process high-water mark. Neither field supports a total-CPU or
+  per-route allocation ranking.
+
+Verification:
+
+- focused failure-analysis tests: 5 passed;
+- combined failure-analysis, gallery, and publication regression: 18 passed;
+- primary matrix coverage: 910/910 with 41/41 failures classified;
+- failure diagnostic images: 41/41 present with matching recorded hashes;
+- route failure sheets: O0 2, F1 2, F2 2, C1 10, and C2 25;
+- analysis JSON SHA-256:
+  `feb795712f715ad3ecd8147a73fae845582caf6ba2ba69bacd40113498b2b224`;
+- combined failure-sheet SHA-256:
+  `492efa16a9d044ba744ad7b6879e7255fac09e8296360453b0e88e894b798dc5`;
+  and
+- `git diff --check`: passed.
+
+Unexpected findings:
+
+- the first diagnostic render attempt reached PyMOL before creating its target
+  subdirectory. It failed before writing the first PNG and did not affect the
+  formal matrix or extracted evidence. The tool now creates the directory
+  before rendering;
+- F1 case 10 initially appeared as one overlapped sphere. Direct trajectory
+  inspection proved that all 174 atoms occupy the origin. The final diagnostic
+  deliberately shows that collapsed frame beside the input ligand graph; and
+- the native wrapper does not preserve RDKit's internal embedding failure
+  counters, so zero-conformer failures cannot be subdivided further without a
+  native instrumentation change and new run.
+
+Adjustment:
+
+- keep the original acceptance gallery and its 869 selected-asset boundary;
+- retain the supplementary failure gallery as diagnostic evidence only;
+- do not add rejected or collapsed coordinates to the governed dataset; and
+- require future performance reports to label parent-only CPU and process
+  high-water RSS rather than presenting them as route-total resources.

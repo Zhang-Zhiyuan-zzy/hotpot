@@ -41,9 +41,13 @@ is 182/182. Native rdWrappers, the injectable RDKit adapter, and the private
 provider seam are retained, but Open Babel remains the composed complex
 default. No public backend/profile selector was added.
 
-The five primary-route galleries are also complete: 869 admitted selected
-structures were rendered, 41 failed route-cases received explicit scientific
-placeholders, and there were no renderer failures. The generated manual-review
+The five primary-route acceptance galleries are also complete: 869 admitted
+selected structures were rendered, 41 failed route-cases received explicit
+scientific placeholders, and there were no renderer failures. A supplementary
+failure-diagnostic gallery now covers all 41 failures without changing their
+status: 10 have nondegenerate rejected complex frames, F1 case 10 has only a
+174-atom all-zero collapsed attempt, and 30 have no route-generated coordinate
+frame and therefore show a labeled input graph. The generated manual-review
 artifact remains pending. It must not be converted into a completed,
 attributable human review by automation. Consequently the owner-authorized
 910-record dataset conversion and Bundle publication have not yet run.
@@ -520,6 +524,32 @@ The triangle-smoothing failures reject this fixed-bounds C2 hypothesis. They do
 not prove that the chemical complexes cannot exist, and they must not be hidden
 by a fallback to C1.
 
+### 9.4 Complete failure-frame audit
+
+The 41 primary failed route-cases have now been audited individually:
+
+| Failure evidence class | Count |
+| --- | ---: |
+| Nondegenerate rejected complex 3D frame | 10 |
+| Recorded but degenerate attempt only | 1 |
+| No recorded route coordinate frame | 30 |
+
+The ten rejected complex frames are O0 cases 24 and 96; F1/F2 case 29; C1
+cases 21 and 70; and C2 cases 21, 54, 63, and 70. F1 case 10 archived two
+ligand-build events, but both reference one 174-atom all-zero coordinate
+revision with zero coordinate extent. It is a recorded failure state, not a
+valid 3D conformer. The remaining 30 failures occurred before a coordinate
+frame existed.
+
+The complete 41-row inventory, selected numerical values, diagnostic-image
+roles, and route efficiency analysis are recorded in
+`formal_failure_analysis.md`. The 15 generic zero-conformer results cannot be
+assigned a more specific RDKit distance-geometry subtype from the frozen
+evidence because the native wrapper did not transport RDKit's internal
+embedding-failure counters. The exact supported reason is therefore
+fixed-seed ligand or whole-complex ETKDG returning zero conformers; no chemical
+root cause is inferred from visual appearance.
+
 ## 10. Numerical acceptance audit
 
 The primary matrix admits 869 selected structures. Including the F1 repeat,
@@ -564,7 +594,7 @@ The formal matrix wall interval from manifest creation to summary generation
 was 506.107 seconds. Per-case elapsed sums are not wall time; they include work
 executed concurrently by 16 spawned workers.
 
-| Run | p50 s | p95 s | max s | elapsed sum s | user CPU s | Max observed RSS KiB |
+| Run | p50 s | p95 s | max s | elapsed sum s | parent-worker user CPU s | Max observed process high-water RSS KiB |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | O0 | 8.027 | 19.810 | 44.125 | 1,755.171 | 925.531 | 227,148 |
 | F1 | 7.474 | 19.213 | 36.617 | 1,549.921 | 760.927 | 227,148 |
@@ -576,8 +606,8 @@ executed concurrently by 16 spawned workers.
 Overall:
 
 - per-case elapsed sum: 7,703.722 seconds;
-- user CPU sum: 4,527.066 seconds;
-- system CPU sum: 2.579 seconds; and
+- parent-worker user CPU sum: 4,527.066 seconds;
+- parent-worker system CPU sum: 2.579 seconds; and
 - maximum observed process high-water mark: 241,032 KiB.
 
 F1's elapsed sum is approximately 11.7 percent below O0 in this run. That
@@ -588,6 +618,36 @@ records its frozen proposal separately.
 
 C1/C2 timing is not a production throughput comparison. Those routes enter at
 a different stage and several cases terminate before force-field optimization.
+
+The attempt-denominator efficiency view is:
+
+| Route | Passed | Mean s/case | s/accepted | Elapsed/O0 | Observed completion span s | Attempted cases/s |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| O0 | 180/182 | 9.644 | 9.751 | 1.000 | 121.898 | 1.493 |
+| F1 | 180/182 | 8.516 | 8.611 | 0.883 | 112.151 | 1.623 |
+| F2 | 180/182 | 8.519 | 8.613 | 0.883 | 114.142 | 1.595 |
+| C1 | 172/182 | 3.797 | 4.018 | 0.394 | 64.023 | 2.843 |
+| C2 | 157/182 | 3.354 | 3.889 | 0.348 | 55.625 | 3.272 |
+
+F1's elapsed sum and mean are 11.694 percent below O0; F2 is 11.666 percent
+below O0. The O0-to-F1 reduction is 205.250 seconds, of which 163.146 seconds
+is in optimization and 38.265 seconds in ligand build. F1 sampling itself is
+inside the ligand worker and has no separate clock, so this is a complete-route
+result rather than an isolated ETKDG speed claim.
+
+The reconstructed completion spans overlap at route boundaries in the shared
+16-worker pool and are not additive. The exact complete-matrix result remains
+1,092 results in 506.107 wall seconds, or 2.157 attempted route-cases/s. Its
+1,049 admitted structures correspond to 2.073 admitted structures/s.
+
+The recorded CPU column is `RUSAGE_SELF` for each matrix worker. It excludes
+the spawned ligand-worker CPU used by O0/F1/F2 and therefore is not total route
+CPU consumption. The RSS column is likewise a process high-water observation,
+not a per-case memory delta; later cases inherit earlier worker high-water
+state. Neither field supports a route-level CPU or allocation-efficiency
+ranking without child/cgroup accounting. C1/C2's lower elapsed values also
+include their different entry stage and 10/25 early failures and must not be
+reported as production speedups.
 
 ## 12. Gallery and human-review status
 
@@ -603,9 +663,16 @@ without modifying the existing hp environment.
 | C2 | 157 | 25 | 0 |
 | Total | 869 | 41 | 0 |
 
-Failed route-cases deliberately expose no rejected or substitute structure.
-Each receives a labeled placeholder. The renderer never searches trajectory
-frames or another route to fill a failed cell.
+The acceptance gallery deliberately exposes no rejected or substitute
+structure. Each failed result receives a labeled placeholder, and the renderer
+never searches trajectory frames or another route to fill an accepted cell.
+That protects the 869-asset admission boundary.
+
+The supplementary failure-diagnostic gallery separately renders every failed
+route-case. It uses the failed route's own rejected frame when one exists,
+shows the collapsed F1 case-10 attempt beside its input graph, and otherwise
+shows an input-graph panel labeled `NO ROUTE 3D FRAME`. These images are
+diagnostic evidence only and cannot become selected dataset assets.
 
 Gallery identities:
 
@@ -618,6 +685,19 @@ Gallery identities:
 | C1 contact sheet | 105342409aac2445be579f51772ab6bfcb8578078df45acd5ffd7052f29733aa |
 | C2 contact sheet | 2b2793a54270abf024b9d1431d9aab33c16071e0adb88c87b3defad4904fe66a |
 | Pending review template | cac4741f2c0e2dc2533b46a2c2dfed90e392c8bbea9191f0ef1717ccd7b64bff |
+
+Failure-diagnostic identities:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| failure-analysis.json | feb795712f715ad3ecd8147a73fae845582caf6ba2ba69bacd40113498b2b224 |
+| failure-analysis.md | cfc3189ad074635af71feb6b66a97f6e8ef08010c7588a95983e063271e58cfe |
+| O0 failure sheet | 75a823b70986247c52f9284fd73186534b09eb67045791fe0b0e924f9f430c8d |
+| F1 failure sheet | c8c66769941455994802c83bf9e322610975504eefea0a736be29eb5cd50000b |
+| F2 failure sheet | 7855b6330131be415486a070678aefb51f5eba00feb08bd4dcc95e436407575d |
+| C1 failure sheet | 517e814139bb5bf96f53fe68026ab00d505f58a639f6be38a87e2ea21213719a |
+| C2 failure sheet | 23936b762486372284a21d25d838efe84e3e684e624b5c581f795b84f8ab01be |
+| Combined failure sheet | 492efa16a9d044ba744ad7b6879e7255fac09e8296360453b0e88e894b798dc5 |
 
 A non-authoritative technical contact-sheet scan did not add a visible
 nonphysical flag. That scan is not an attributable human review. The template
@@ -690,7 +770,7 @@ inventory/certificate identities.
 | G24 | Strict standalone auditwheel policy | Explicit non-requirement | Not claimed | Open Babel remains a controlled cross-wheel dependency |
 | G25 | Recover byte-identical historical cohort | Obsolete | Not required | Current semantic cohort replaces the false prerequisite |
 | G26 | Normalized current 187/182 cohort | Implemented | Validated | Schema v2 exact 182/5 partition and round trip |
-| G27 | Exhaustive route gallery review | Gallery implemented | Partially validated | 910 cells rendered; attributable human review pending |
+| G27 | Exhaustive route gallery review | Accepted and failed diagnostics implemented | Partially validated | 910 acceptance cells plus 41 explicit failure diagnostics rendered; attributable human review pending |
 | G28 | Selected-state/recovery acceptance contract | Implemented | Validated | Formal matrix and case 70 exercise hard-failure semantics |
 | G29 | Frozen F2 replay control | Implemented | Validated | Complete 182-case primary route |
 
@@ -712,7 +792,7 @@ inventory/certificate identities.
 | V12 | Intermediate numerical-excursion classification | Validated | Focused evaluator tests and formal evidence |
 | V13 | Standard terminal acceptance | Complete | All five routes evaluated over 182 cases |
 | V14 | Semantic graph/stereo parity | Validated for evaluated results | No A09 mutation in a completed execution |
-| V15 | Five-route manual gallery review | Pending human review | Gallery 910/910 and zero render errors; review 0/910 |
+| V15 | Five-route manual gallery review | Pending human review | Acceptance gallery 910/910 plus 41/41 failure diagnostics; review 0/910 |
 | V16 | Timing/resource comparison | Complete | Per-route/stage and aggregate evidence recorded |
 | V17 | F1 repeated-run consistency | Complete | 182/182 classifications and gates agree |
 | V18 | C1 generation plus force field | Complete | 172 pass, 10 explicit failures |
@@ -738,6 +818,9 @@ The schema-v2 correction and final formal path were verified by:
 | Formal schema-v2 matrix | 1092/1092 complete |
 | F1 repeat comparison | 182/182 consistent |
 | Gallery asset validation | 910 cells, zero render errors |
+| Failure analysis unit selection | 5 passed |
+| Failure/gallery/publication regression | 18 passed |
+| Failure diagnostic audit | 41/41 classified and rendered; 10 rejected 3D, one degenerate attempt, 30 input-graph-only |
 | Validation-publication/dataset fixture selection | 13 passed |
 | Current-checkpoint wheel matrix | CPython 3.10-3.14 all passed |
 | Wheel content/integrity audit | Five passed; zero duplicate members |
@@ -778,6 +861,7 @@ dependency checkpoints are:
 | 66 | Schema-v2 current implicit-H preservation | b0aa6c5 |
 | 67 | Authoritative schema-v2 matrix and exhaustive gallery | source b0aa6c5 |
 | 68 | Current-checkpoint CPython 3.10-3.14 wheel rerun | source b0aa6c5 |
+| 69 | Per-failure diagnostics, failure gallery, and efficiency qualification | source b0aa6c5; documentation/tooling only |
 
 The first schema-v1 formal execution occurred after Step 64 and exposed the
 cohort omission. Step 66 invalidated that cohort identity before final
@@ -803,6 +887,9 @@ in this report.
 - F1 has stable 180/182 behavior and is not eligible to replace O0.
 - Every admitted selected structure satisfies the Plan-17 finite numerical and
   standard geometry contract.
+- Every failed primary route-case now has a named failure stage/reason and a
+  diagnostic view that distinguishes rejected 3D, degenerate attempt, and no
+  route-generated coordinate frame.
 - Level-1 structural transport and all seven declared Level-2 semantic gates
   are implemented and directly tested.
 
@@ -828,8 +915,9 @@ in this report.
 
 The remaining actions are narrow and must preserve the evidence boundaries:
 
-1. an attributable human reviewer completes all 910 gallery rows, recording
-   any visible nonphysical accepted structures;
+1. an attributable human reviewer completes all 910 acceptance-gallery rows,
+   recording any visible nonphysical accepted structures, with the separate
+   41-case failure-diagnostic sheets available for failed-case inspection;
 2. validate that completed review against the immutable gallery manifest;
 3. build the 910-record conversion, prepare/freeze the governed Bundle,
    synchronize, certify, and ingest it with the owner authorization;

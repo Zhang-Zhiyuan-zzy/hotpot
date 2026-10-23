@@ -7,11 +7,15 @@ the current semantic 187/182 cohort and produces 1,092 O0/F1/F2/C1/C2 plus F1
 repeat results. F1 passes 180/182 cases, below the fixed 182/182 replacement
 threshold, so Open Babel remains the default complex conformer provider.
 
-The exhaustive 910-cell gallery is complete with 869 selected structures, 41
-scientific-failure placeholders, and zero render errors. Attributable human
-review is still pending. The owner-authorized benchmark records must not be
-published into `hotpot/dataset` until that review is completed; failed
-route-cases will remain explicit records without substituted coordinates.
+The exhaustive 910-cell acceptance gallery is complete with 869 selected
+structures, 41 scientific-failure placeholders, and zero render errors. A
+separate 41-case failure-diagnostic gallery now exposes 10 nondegenerate
+rejected complex frames, the collapsed all-zero F1 case-10 attempt, and 30
+labeled input graphs for routes that produced no coordinate frame. These
+diagnostics do not become admitted coordinate assets. Attributable human review
+is still pending. The owner-authorized benchmark records must not be published
+into `hotpot/dataset` until that review is completed; failed route-cases will
+remain explicit records without substituted coordinates.
 
 The conditional local CPython 3.10-3.14 workflow-equivalent wheel matrix has
 also passed at `b0aa6c5`, including installed-wheel smokes, archive-content and
@@ -53,6 +57,10 @@ The consolidated implementation, validation, benchmark, decision, and
 remaining-gate report is:
 
 - [implementation_report.md](implementation_report.md)
+
+The complete per-failure inventory and qualified route-efficiency report is:
+
+- [formal_failure_analysis.md](formal_failure_analysis.md)
 
 Local evidence is kept distinct from GitHub-hosted CI provenance and strict
 standalone auditwheel manylinux compliance, neither of which is claimed.

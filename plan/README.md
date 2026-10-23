@@ -20,5 +20,7 @@ This directory preserves Hotpot design, audit, implementation, and validation re
 | 14 | [Geometry reconstruction](14_geometry_reconstruction/) | Deferred post-processing of topology-free xTB/ORCA coordinates into auditable graph candidates |
 | 15 | [MCA GPU pipeline](15_mca_gpu_pipeline/) | Explicit CPU/GPU inference, bounded multi-GPU execution, rolling admission, and scale-aware routing |
 | 16 | [Native substructure search](16_native_search/) | Implemented deterministic native RI monomorphism executor with predicate-only Python callables |
+| 18 | [MCA resource efficiency](18_mca_resource_efficiency/) | Bounded CPU workflow, measured CPU sharing, and resource-efficient GPU worker defaults |
+| 19 | [Single-source topology and private native graph consolidation](19_native_graph_consolidation/) | Establish one authoritative Python topology, remove production NetworkX, consolidate private ephemeral native graph computation, and eliminate public Graph surfaces |
 
 Each topic README records the Git commits associated with that stage. Files under `artifacts/` are diagram sources, rendered HTML, or visual-review evidence. A `visual-check.json` whose status is `pending` is retained as provenance and is not evidence of a successful visual review.

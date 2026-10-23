@@ -1,10 +1,12 @@
 # Stage 17: standalone native RDKit wrapper and conformer sampling
 
 Status: component implementation and local validation are complete; release
-closure is blocked by the unavailable frozen 182-case artifacts, the missing
-formal O0/F1 runner, and provider-decision evidence. The pinned local CPython
-3.10-3.14 workflow-equivalent wheel matrix is complete under the declared Open
-Babel cross-wheel dependency model.
+closure validation is now owner-approved and in progress. It covers a current
+semantic 187/182 cohort, O0/F1/F2/C1/C2 execution, F1 business evidence, and
+the provider decision. Recovering the old frozen manifest or graph sidecars is
+no longer a prerequisite. The pinned local CPython 3.10-3.14 workflow-
+equivalent wheel matrix is complete under the declared Open Babel cross-wheel
+dependency model.
 
 Planning branch: `feature/rdWrapper`
 
@@ -32,7 +34,13 @@ The implementation, validation, benchmark, and remaining-gate report is:
 
 - [implementation_report.md](implementation_report.md)
 
-The report distinguishes completed source/local-native and local release-wheel
-evidence from the missing formal 182-case workflow evidence. It also separates
-the local matrix from GitHub-hosted CI provenance and from strict standalone
-auditwheel manylinux compliance, neither of which is claimed.
+The corrected force-field business-validation proposal, including the full
+objective/experiment status matrices, is:
+
+- [forcefield_component_validation_plan.md](forcefield_component_validation_plan.md)
+
+The implementation report preserves the evidence and assumptions that existed
+at handoff time. The corrected validation plan supersedes its historical-
+artifact blocker after owner approval. It also separates local evidence from
+GitHub-hosted CI provenance and strict standalone auditwheel manylinux
+compliance, neither of which is claimed.

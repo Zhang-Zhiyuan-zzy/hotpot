@@ -3725,3 +3725,49 @@ Adjustment:
 No new production-code checkpoint is associated with this evidence step. The
 matrix source checkpoint is
 `37a08b30f785bf54149436ae2ce5d852ac7cbd22`.
+
+### Step 52 - Freeze the corrected force-field validation contract
+
+Status: complete; implementation authorized and active
+
+Planned:
+
+- replace the obsolete byte-identical historical-artifact prerequisite with a
+  current semantic 187/182 cohort;
+- freeze the owner-corrected force-field acceptance semantics, route matrix,
+  experiments, and ancillary data deliverables before changing code; and
+- keep the default-provider cutover separate from authorization to execute the
+  validation.
+
+Performed:
+
+- reread the complete validation plan after the final owner corrections;
+- froze O0/F1/F2/C1/C2 route semantics, the A01-A10 acceptance contract, the
+  full-182 F1/default threshold, mandatory C1/C2 continuation, and F1 repeat;
+- recorded that an intermediate non-finite gradient fails only when it prevents
+  continued optimization and the established standard workflow cannot recover;
+- added the owner-authorized restoration of the tracked 187-SMILES source and
+  publication of selected route structures through the governed `hotpot.ds`
+  dataset workflow; and
+- changed the plan and Stage-17 index from review-pending to implementation in
+  progress without changing the current Open Babel default.
+
+Verification:
+
+- the canonical source is fixed to Git commit `11c0e3d`, 187 physical lines,
+  and SHA-256
+  `e67ae3167a1a96d3c6a4c6df3ce12b70abfaf479bdd89bb156bfaefa771795a7`;
+- the complete expected route-result matrix is 182 cases by five routes, while
+  failed route-cases remain explicit failures rather than receiving substituted
+  structures; and
+- Markdown table consistency and `git diff --check` pass.
+
+Unexpected findings: none in the contract-freeze step.
+
+Adjustment:
+
+- execute the remaining work in small checkpoints and revise the plan only
+  after another complete reread if implementation evidence exposes a genuine
+  cross-document conflict.
+
+Git checkpoint: pending.

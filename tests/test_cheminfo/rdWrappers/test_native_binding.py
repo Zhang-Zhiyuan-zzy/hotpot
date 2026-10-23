@@ -182,6 +182,68 @@ def test_compiled_path_accepts_forcefield_materialized_graph_hydrogens():
     assert tuple(atom.implicit_hydrogens for atom in molecule.atoms[:2]) == (3, 1)
 
 
+def test_compiled_path_accepts_cohort_reconstructed_pyrrolic_hydrogens():
+    from tests.benchmarks.coordination_complexes.validation_cohort import (
+        _graph_document,
+        canonical_digest,
+        semantic_case_molecule,
+    )
+    from tests.benchmarks.coordination_complexes.validation_providers import (
+        _worker_components,
+    )
+
+    _load_test_extension()
+    molecule = hotpot.read_mol(
+        "c1cc(-c2nnn[nH]2)nc(-c2nnn[nH]2)c1",
+        fmt="smi",
+    )
+    molecule.add_hydrogens()
+    molecule.force_remove_polar_hydrogens()
+    metal = molecule.create_atom(atomic_number=95)
+    molecule.add_bond(8, metal.idx)
+    molecule.refresh_atom_id()
+    graph = _graph_document(molecule)
+    coordination = {
+        "metal": {
+            "row": metal.idx,
+            "atom_id": metal.id,
+            "atomic_number": 95,
+            "symbol": "Am",
+        },
+        "donor_rows": [8],
+    }
+    case = {
+        "status": "cbond",
+        "graph": graph,
+        "coordination": coordination,
+        "semantic_graph_sha256": canonical_digest(
+            {"graph": graph, "coordination": coordination}
+        ),
+    }
+
+    rebuilt = semantic_case_molecule(case)
+    (component,) = _worker_components(rebuilt, add_hydrogens=True, seed=123)
+    projected = _materialized_hydrogen_projection(component)
+    result = rdWrappers.generate_conformers(
+        projected,
+        options=rdWrappers.ETKDGOptions(seed=123),
+    )
+
+    assert [
+        atom.implicit_hydrogens
+        for atom in rebuilt.atoms
+        if atom.atomic_number == 7
+    ].count(1) == 2
+    pyrrolic_nitrogen_hydrogens = [
+        sum(neighbour.atomic_number == 1 for neighbour in atom.neighbours)
+        for atom in component.atoms
+        if atom.atomic_number == 7
+    ]
+    assert pyrrolic_nitrogen_hydrogens.count(1) == 2
+    assert result.status is rdWrappers.GenerationStatus.SUCCESS
+    assert result.coordinates.shape == (1, len(component.atoms), 3)
+
+
 def test_legacy_hydrogen_adapter_fills_only_payload_free_atoms():
     molecule = hotpot.read_mol("[13CH3]CO", fmt="smi")
     buffers = native.pack_molecule(molecule, native._RDKIT_ETKDG_FIELDS)

@@ -17,8 +17,8 @@ from typing import Callable, Mapping
 
 from .configuration import STANDARD_SETTINGS, BenchmarkSettings
 
-SCHEMA_VERSION = 1
-NATIVE_GRAPH_SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+NATIVE_GRAPH_SCHEMA_VERSION = 2
 EXPECTED_SOURCE_COUNT = 187
 EXPECTED_COMPLEX_COUNT = 182
 EXPECTED_NO_CBOND_INDICES = (139, 182, 185, 186, 187)
@@ -154,6 +154,7 @@ def _graph_document(
             "atomic_number": int(atom.atomic_number),
             "formal_charge": int(atom.formal_charge),
             "is_aromatic": bool(atom.is_aromatic),
+            "implicit_hydrogens": int(atom.implicit_hydrogens),
         }
         for row, atom in enumerate(atoms)
     ]
@@ -429,6 +430,14 @@ def validate_validation_cohort(cohort: Mapping[str, object]) -> None:
         atom_ids = [int(atom["atom_id"]) for atom in atoms]
         if len(set(atom_ids)) != len(atom_ids):
             raise ValueError(f"case {index} atom IDs are not unique")
+        if any(
+            type(atom.get("implicit_hydrogens")) is not int
+            or atom["implicit_hydrogens"] < 0
+            for atom in atoms
+        ):
+            raise ValueError(
+                f"case {index} atom implicit-hydrogen counts are invalid"
+            )
         if [int(bond["row"]) for bond in bonds] != list(range(len(bonds))):
             raise ValueError(f"case {index} bond rows are not contiguous")
         bond_keys = []
@@ -635,6 +644,7 @@ def semantic_case_molecule(case: Mapping[str, object]):
             atomic_number=int(atom["atomic_number"]),
             formal_charge=int(atom["formal_charge"]),
             is_aromatic=bool(atom["is_aromatic"]),
+            implicit_hydrogens=int(atom["implicit_hydrogens"]),
         )
     for bond in graph["bonds"]:
         molecule._add_bond(

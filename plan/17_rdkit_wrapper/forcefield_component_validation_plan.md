@@ -159,7 +159,8 @@ case the validator records coordinate-free semantics:
 
 - case index and source SMILES;
 - metal and donor indices;
-- atom identity, formal charge, and stable row order;
+- atom identity, formal charge, stable row order, and the current per-atom
+  implicit-hydrogen count;
 - bond endpoints, order, kind, aromaticity, and dative direction;
 - represented stereo payload;
 - seed and scientific settings; and
@@ -391,8 +392,9 @@ Add a coordinate-free builder that:
 1. verifies the 187-source SHA-256;
 2. runs current CBond once per case with the recorded Am settings;
 3. records the complete 182/5 partition without filtering unfavorable cases;
-4. serializes normalized graph semantics without timestamps, absolute paths,
-   runtime, coordinates, or old validation payloads; and
+4. serializes normalized graph semantics, including each atom's current
+   implicit-hydrogen count, without timestamps, absolute paths, runtime,
+   coordinates, or old validation payloads; and
 5. can produce C1/C2 native graph JSON as a derived artifact when requested.
 
 The new identity is a digest of canonical scientific content. It intentionally

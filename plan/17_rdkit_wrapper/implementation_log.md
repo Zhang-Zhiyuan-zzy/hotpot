@@ -4213,7 +4213,8 @@ Git checkpoint: `fa828b5 test(validation): bind formal runtime identity`.
 
 ### Step 63 - Normalize invalid source atom identifiers at cohort freeze
 
-Status: complete
+Status: implementation complete; the schema-v1 formal artifact was later
+superseded by Step 66
 
 Planned:
 
@@ -4369,3 +4370,67 @@ Adjustment:
   and still requires owner-authorized confirmation.
 
 Git checkpoint: `8986654 fix(validation): seal publication evidence chain`.
+
+### Step 66 - Preserve current implicit-hydrogen semantics in the cohort
+
+Status: local correction and affected regression complete; clean ai-14 cohort
+reconstruction and full formal rerun pending
+
+Planned:
+
+- investigate the seven common F1/F2 native generation failures labelled as
+  aromatic kekulization errors in the first formal matrix;
+- determine whether they are route-science failures or an evidence-transport
+  defect before interpreting route coverage; and
+- keep any superseded formal evidence rather than overwrite or selectively
+  splice it into a corrected result matrix.
+
+Performed:
+
+- traced a representative failing `[nH]` source through fresh current CBond,
+  schema-v1 serialization, reconstruction, force-field hydrogen materialization,
+  and the compiled native RDKit boundary;
+- proved that current CBond retained `implicit_hydrogens=1` on the two
+  pyrrolic nitrogens after its polar-hydrogen removal policy, while the
+  schema-v1 cohort omitted that current atom state and reconstructed both as
+  zero;
+- audited the source corpus and found 29/187 inputs with logical polar
+  O-H/aromatic-N-H state before CBond, including no-CBond case 139. Therefore
+  as many as 28/182 positive cases are potentially affected, although actual
+  loss depends on donor working-copy recomputation; the seven kekulization
+  failures are only the visible subset, not a safe rerun boundary;
+- added `implicit_hydrogens` to every serialized atom and restored it when
+  reconstructing the Hotpot graph;
+- incremented both the semantic cohort and derived C1/C2 native-graph schemas
+  from 1 to 2, so a schema-v1 artifact cannot be accepted accidentally;
+- made the current implicit-hydrogen count part of both the per-case semantic
+  graph digest and the aggregate cohort digest; and
+- added compiled-native regression coverage proving that a cohort round trip
+  retains two pyrrolic N-H sites, force-field materialization creates their
+  graph H atoms, and native ETKDG succeeds.
+
+Verification:
+
+- 29 focused cohort and compiled-native tests pass;
+- the full affected selection reports 181 passed;
+- invalid missing, boolean, negative, floating-point, and string hydrogen
+  counts are rejected;
+- schema v1 is rejected, and changing only an implicit-hydrogen count changes
+  both the semantic graph and cohort identities;
+- focused Ruff E/F/I checks pass; and
+- `git diff --check` passes.
+
+Unexpected finding:
+
+- the first complete formal matrix at `6071464` used cohort schema v1. Its
+  routes all consumed the same serialized graph, but that graph was not a
+  faithful current-CBond chemical state. Consequently the matrix is retained
+  only as diagnostic execution evidence and cannot support final scientific
+  route conclusions.
+
+Adjustment:
+
+- rebuild the entire 187/182 cohort under schema v2 in a new ai-14 study
+  directory, then rerun all 182 O0/F1/F2/C1/C2 cases and all 182 F1-repeat
+  cases. Do not overwrite the schema-v1 matrix, rerun only the seven visible
+  failures, or combine schema-v1 and schema-v2 outcomes.

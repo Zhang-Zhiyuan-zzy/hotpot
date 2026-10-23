@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import subprocess
+from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from types import SimpleNamespace
+
+import pytest
 
 from hotpot.cheminfo.stereo import (
     AtomTransportRecord,
@@ -50,6 +53,7 @@ class _Atom:
     formal_charge: int
     is_aromatic: bool
     symbol: str
+    implicit_hydrogens: int
 
 
 @dataclass(frozen=True)
@@ -119,6 +123,7 @@ def _positive_result(atom_ids: tuple[int, int] = (17, 93)) -> object:
         formal_charge=0,
         is_aromatic=True,
         symbol="N",
+        implicit_hydrogens=1,
     )
     metal = _Atom(
         id=atom_ids[1],
@@ -126,6 +131,7 @@ def _positive_result(atom_ids: tuple[int, int] = (17, 93)) -> object:
         formal_charge=3,
         is_aromatic=False,
         symbol="Am",
+        implicit_hydrogens=0,
     )
     molecule = SimpleNamespace(
         atoms=(donor, metal),
@@ -156,6 +162,16 @@ def _fixture_builder(calls: list[tuple[int, str, str, object]]):
 
 def _positive_cases(cohort: dict[str, object]) -> list[dict[str, object]]:
     return [case for case in cohort["cases"] if case["status"] == "cbond"]
+
+
+def _reseal(cohort: dict[str, object]) -> None:
+    for case in _positive_cases(cohort):
+        case["semantic_graph_sha256"] = cohort_module.canonical_digest(
+            {"graph": case["graph"], "coordination": case["coordination"]}
+        )
+    content = dict(cohort)
+    content.pop("canonical_sha256", None)
+    cohort["canonical_sha256"] = cohort_module.canonical_digest(content)
 
 
 def _walk_keys(value: object):
@@ -208,6 +224,7 @@ def test_builder_calls_cbond_once_per_case_and_freezes_current_semantics() -> No
             "atomic_number": 7,
             "formal_charge": 0,
             "is_aromatic": True,
+            "implicit_hydrogens": 1,
         },
         {
             "row": 1,
@@ -215,6 +232,7 @@ def test_builder_calls_cbond_once_per_case_and_freezes_current_semantics() -> No
             "atomic_number": 95,
             "formal_charge": 3,
             "is_aromatic": False,
+            "implicit_hydrogens": 0,
         },
     ]
     assert first["graph"]["bonds"] == [
@@ -276,6 +294,44 @@ def test_builder_is_deterministic_and_json_round_trips(tmp_path: Path) -> None:
     assert loaded["canonical_sha256"] == first["canonical_sha256"]
 
 
+def test_schema_one_cohort_is_rejected() -> None:
+    cohort = build_validation_cohort(cbond_builder=_fixture_builder([]))
+    cohort["schema_version"] = 1
+    _reseal(cohort)
+
+    with pytest.raises(ValueError, match="unsupported validation cohort schema 1"):
+        cohort_module.validate_validation_cohort(cohort)
+
+
+@pytest.mark.parametrize("value", [None, True, -1, 1.0, "1"])
+def test_invalid_implicit_hydrogen_state_is_rejected(value: object) -> None:
+    cohort = build_validation_cohort(cbond_builder=_fixture_builder([]))
+    atom = _positive_cases(cohort)[0]["graph"]["atoms"][0]
+    if value is None:
+        atom.pop("implicit_hydrogens")
+    else:
+        atom["implicit_hydrogens"] = value
+    _reseal(cohort)
+
+    with pytest.raises(ValueError, match="implicit-hydrogen counts are invalid"):
+        cohort_module.validate_validation_cohort(cohort)
+
+
+def test_implicit_hydrogen_state_changes_semantic_identity() -> None:
+    original = build_validation_cohort(cbond_builder=_fixture_builder([]))
+    changed = deepcopy(original)
+    original_case = _positive_cases(original)[0]
+    changed_case = _positive_cases(changed)[0]
+    changed_case["graph"]["atoms"][0]["implicit_hydrogens"] += 1
+    _reseal(changed)
+
+    cohort_module.validate_validation_cohort(changed)
+    assert changed_case["semantic_graph_sha256"] != original_case[
+        "semantic_graph_sha256"
+    ]
+    assert changed["canonical_sha256"] != original["canonical_sha256"]
+
+
 def test_builder_normalizes_non_unique_default_atom_ids_to_rows() -> None:
     def build(index, smiles, metal, settings):
         del smiles, metal, settings
@@ -321,3 +377,4 @@ def test_native_projection_and_hotpot_reconstruction_reuse_the_same_graph() -> N
     assert native["coordination"] == case["coordination"]
     assert cohort_module._graph_document(rebuilt) == case["graph"]
     assert [atom.idx for atom in rebuilt.metals] == [1]
+    assert rebuilt.atoms[0].implicit_hydrogens == 1

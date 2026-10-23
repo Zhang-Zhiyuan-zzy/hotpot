@@ -22,6 +22,7 @@ from hotpot.cheminfo.stereo import (
     StereoRecord,
 )
 
+from . import validation_cohort as cohort_module
 from .configuration import STANDARD_SETTINGS
 from .validation_cohort import (
     CANONICAL_SOURCE_PATH,
@@ -35,7 +36,6 @@ from .validation_cohort import (
     semantic_case_molecule,
     write_validation_cohort,
 )
-from . import validation_cohort as cohort_module
 
 
 class _BondKind(str, Enum):
@@ -112,16 +112,16 @@ def _stereo_payload() -> StereoPayload:
     )
 
 
-def _positive_result() -> object:
+def _positive_result(atom_ids: tuple[int, int] = (17, 93)) -> object:
     donor = _Atom(
-        id=17,
+        id=atom_ids[0],
         atomic_number=7,
         formal_charge=0,
         is_aromatic=True,
         symbol="N",
     )
     metal = _Atom(
-        id=93,
+        id=atom_ids[1],
         atomic_number=95,
         formal_charge=3,
         is_aromatic=False,
@@ -169,9 +169,7 @@ def _walk_keys(value: object):
 
 
 def test_canonical_source_is_the_tracked_default() -> None:
-    relative_path = CANONICAL_SOURCE_PATH.relative_to(
-        cohort_module.REPOSITORY_ROOT
-    )
+    relative_path = CANONICAL_SOURCE_PATH.relative_to(cohort_module.REPOSITORY_ROOT)
     completed = subprocess.run(
         ["git", "ls-files", "--error-unmatch", relative_path.as_posix()],
         cwd=cohort_module.REPOSITORY_ROOT,
@@ -189,9 +187,7 @@ def test_builder_calls_cbond_once_per_case_and_freezes_current_semantics() -> No
     cohort = build_validation_cohort(cbond_builder=_fixture_builder(calls))
 
     assert len(calls) == EXPECTED_SOURCE_COUNT
-    assert [call[0] for call in calls] == list(
-        range(1, EXPECTED_SOURCE_COUNT + 1)
-    )
+    assert [call[0] for call in calls] == list(range(1, EXPECTED_SOURCE_COUNT + 1))
     assert all(call[2] == "Am" for call in calls)
     assert all(call[3] is STANDARD_SETTINGS for call in calls)
     assert cohort["source"] == {
@@ -199,9 +195,7 @@ def test_builder_calls_cbond_once_per_case_and_freezes_current_semantics() -> No
         "physical_line_count": EXPECTED_SOURCE_COUNT,
     }
     assert cohort["partition"]["cbond_count"] == EXPECTED_COMPLEX_COUNT
-    assert cohort["partition"]["no_cbond_indices"] == list(
-        EXPECTED_NO_CBOND_INDICES
-    )
+    assert cohort["partition"]["no_cbond_indices"] == list(EXPECTED_NO_CBOND_INDICES)
 
     first = _positive_cases(cohort)[0]
     assert first["seed"] == STANDARD_SETTINGS.seed + 1
@@ -282,6 +276,23 @@ def test_builder_is_deterministic_and_json_round_trips(tmp_path: Path) -> None:
     assert loaded["canonical_sha256"] == first["canonical_sha256"]
 
 
+def test_builder_normalizes_non_unique_default_atom_ids_to_rows() -> None:
+    def build(index, smiles, metal, settings):
+        del smiles, metal, settings
+        if index in EXPECTED_NO_CBOND_INDICES:
+            return None
+        return _positive_result((0, 0))
+
+    cohort = build_validation_cohort(cbond_builder=build)
+    first = _positive_cases(cohort)[0]
+    source_graph = cohort_module._graph_document(_positive_result((0, 0)).molecule)
+
+    assert [atom["atom_id"] for atom in source_graph["atoms"]] == [0, 0]
+    assert [atom["atom_id"] for atom in first["graph"]["atoms"]] == [0, 1]
+    assert first["coordination"]["metal"]["atom_id"] == 1
+    assert [atom.id for atom in semantic_case_molecule(first).atoms] == [0, 1]
+
+
 def test_native_projection_and_hotpot_reconstruction_reuse_the_same_graph() -> None:
     cohort = build_validation_cohort(cbond_builder=_fixture_builder([]))
     case = _positive_cases(cohort)[0]
@@ -310,4 +321,3 @@ def test_native_projection_and_hotpot_reconstruction_reuse_the_same_graph() -> N
     assert native["coordination"] == case["coordination"]
     assert cohort_module._graph_document(rebuilt) == case["graph"]
     assert [atom.idx for atom in rebuilt.metals] == [1]
-

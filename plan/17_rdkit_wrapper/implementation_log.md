@@ -4208,3 +4208,45 @@ Adjustment:
 - assemble the validation runtime under the permitted `~/mca_test` tree with
   the pinned Python RDKit wheel and keep the existing Conda environment
   unmodified.
+
+Git checkpoint: `fa828b5 test(validation): bind formal runtime identity`.
+
+### Step 63 - Normalize invalid source atom identifiers at cohort freeze
+
+Status: implementation and focused tests complete; ai-14 cohort rerun pending
+
+Planned:
+
+- freeze one deterministic, reconstructable graph identity for each CBond
+  result without changing its chemical graph.
+
+Performed:
+
+- retained existing atom IDs when they are unique and non-negative; and
+- mapped invalid/default identifiers to contiguous atom-table rows before
+  serializing both the graph and its coordination metadata, matching Hotpot's
+  established chemical-boundary identity policy; and
+- kept the general graph serializer literal, so a later force-field identity
+  collision remains visible to A09 instead of being silently normalized.
+
+Verification:
+
+- 40 focused cohort, evidence, runner, gallery, publication, and dataset tests
+  pass;
+- a new negative fixture proves duplicate default IDs are normalized
+  consistently in graph atoms, the metal record, and reconstruction;
+- focused Ruff import, syntax, and formatting checks pass; and
+- `git diff --check` passes.
+
+Unexpected finding:
+
+- the first formal ai-14 cohort build reached all 187 CBond inferences, then
+  correctly refused to write the artifact because current `read_mol -> CBond`
+  objects carried the Atom constructor's default ID `0` on every atom; the
+  failed attempt produced no cohort file.
+
+Adjustment:
+
+- normalize only the technical atom-identity field at the serialization
+  boundary. Atom order, elements, charges, bonds, donor rows, stereo, and CBond
+  partition remain unchanged.

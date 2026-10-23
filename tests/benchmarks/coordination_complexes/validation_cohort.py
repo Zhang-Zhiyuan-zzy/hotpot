@@ -15,8 +15,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Callable, Mapping
 
-from .configuration import BenchmarkSettings, STANDARD_SETTINGS
-
+from .configuration import STANDARD_SETTINGS, BenchmarkSettings
 
 SCHEMA_VERSION = 1
 NATIVE_GRAPH_SCHEMA_VERSION = 1
@@ -27,9 +26,7 @@ CANONICAL_SOURCE_SHA256 = (
     "e67ae3167a1a96d3c6a4c6df3ce12b70abfaf479bdd89bb156bfaefa771795a7"
 )
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
-CANONICAL_SOURCE_PATH = (
-    REPOSITORY_ROOT / "molecules" / "extractant" / "extractants.smi"
-)
+CANONICAL_SOURCE_PATH = REPOSITORY_ROOT / "molecules" / "extractant" / "extractants.smi"
 
 CBondBuilder = Callable[[int, str, str, BenchmarkSettings], object | None]
 
@@ -113,12 +110,8 @@ def _stereo_document(molecule: object) -> dict[str, object]:
             "atom_row": int(fact.atom),
             "isotope": fact.isotope,
             "radical_electrons": fact.radical_electrons,
-            "current_hydrogens": _hydrogen_state_document(
-                fact.current_hydrogens
-            ),
-            "source_hydrogens": _hydrogen_state_document(
-                fact.source_hydrogens
-            ),
+            "current_hydrogens": _hydrogen_state_document(fact.current_hydrogens),
+            "source_hydrogens": _hydrogen_state_document(fact.source_hydrogens),
             "source_namespace": fact.source_namespace,
         }
         for fact in payload.atom_facts
@@ -138,13 +131,26 @@ def _stereo_document(molecule: object) -> dict[str, object]:
     }
 
 
-def _graph_document(molecule: object) -> dict[str, object]:
+def _cohort_atom_ids(molecule: object) -> tuple[int, ...]:
+    atom_ids = tuple(int(atom.id) for atom in molecule.atoms)
+    if len(set(atom_ids)) == len(atom_ids) and all(
+        atom_id >= 0 for atom_id in atom_ids
+    ):
+        return atom_ids
+    return tuple(range(len(atom_ids)))
+
+
+def _graph_document(
+    molecule: object,
+    atom_ids: tuple[int, ...] | None = None,
+) -> dict[str, object]:
     atoms = tuple(molecule.atoms)
+    atom_ids = tuple(int(atom.id) for atom in atoms) if atom_ids is None else atom_ids
     atom_rows = {id(atom): row for row, atom in enumerate(atoms)}
     atom_documents = [
         {
             "row": row,
-            "atom_id": int(atom.id),
+            "atom_id": atom_ids[row],
             "atomic_number": int(atom.atomic_number),
             "formal_charge": int(atom.formal_charge),
             "is_aromatic": bool(atom.is_aromatic),
@@ -161,9 +167,7 @@ def _graph_document(molecule: object) -> dict[str, object]:
                 "end": atom_rows[id(bond.atom2)],
                 "bond_order": float(bond.bond_order),
                 "bond_kind": bond_kind,
-                "is_aromatic": bool(
-                    bond_kind == "aromatic" or bond.is_aromatic
-                ),
+                "is_aromatic": bool(bond_kind == "aromatic" or bond.is_aromatic),
                 "bond_direction": bond.bond_direction,
             }
         )
@@ -178,11 +182,11 @@ def _coordination_document(
     molecule: object,
     donor_indices: object,
     metal: str,
+    atom_ids: tuple[int, ...] | None = None,
 ) -> dict[str, object]:
     atoms = tuple(molecule.atoms)
-    metal_rows = [
-        row for row, atom in enumerate(atoms) if str(atom.symbol) == metal
-    ]
+    atom_ids = tuple(int(atom.id) for atom in atoms) if atom_ids is None else atom_ids
+    metal_rows = [row for row, atom in enumerate(atoms) if str(atom.symbol) == metal]
     if len(metal_rows) != 1:
         raise ValueError(
             f"CBond result must contain exactly one {metal} atom; "
@@ -194,7 +198,7 @@ def _coordination_document(
     return {
         "metal": {
             "row": metal_row,
-            "atom_id": int(metal_atom.id),
+            "atom_id": atom_ids[metal_row],
             "atomic_number": int(metal_atom.atomic_number),
             "symbol": metal,
         },
@@ -217,8 +221,7 @@ def _source_cases(path: Path) -> tuple[str, tuple[tuple[int, str], ...]]:
             f"found {len(physical_lines)}"
         )
     if any(
-        not line.strip() or line.lstrip().startswith("#")
-        for line in physical_lines
+        not line.strip() or line.lstrip().startswith("#") for line in physical_lines
     ):
         raise ValueError("canonical extractant source contains a blank/comment line")
     return source_sha256, tuple(
@@ -303,11 +306,13 @@ def build_validation_cohort(
             )
             continue
 
-        graph = _graph_document(result.molecule)
+        atom_ids = _cohort_atom_ids(result.molecule)
+        graph = _graph_document(result.molecule, atom_ids)
         coordination = _coordination_document(
             result.molecule,
             result.donor_indices,
             metal,
+            atom_ids,
         )
         semantic_graph_sha256 = canonical_digest(
             {"graph": graph, "coordination": coordination}
@@ -412,9 +417,7 @@ def validate_validation_cohort(cohort: Mapping[str, object]) -> None:
             raise ValueError(f"case {index} settings differ")
         if case["status"] != "cbond":
             if index not in EXPECTED_NO_CBOND_INDICES:
-                raise ValueError(
-                    f"case {index} is unexpectedly classified as no-CBond"
-                )
+                raise ValueError(f"case {index} is unexpectedly classified as no-CBond")
             continue
         if index in EXPECTED_NO_CBOND_INDICES:
             raise ValueError(f"case {index} is unexpectedly CBond-positive")
@@ -447,14 +450,10 @@ def validate_validation_cohort(cohort: Mapping[str, object]) -> None:
         if int(atoms[metal_row]["atomic_number"]) != 95:
             raise ValueError(f"case {index} metal row is not Am")
         if len(set(donor_rows)) != len(donor_rows) or any(
-            row == metal_row or not 0 <= row < len(atoms)
-            for row in donor_rows
+            row == metal_row or not 0 <= row < len(atoms) for row in donor_rows
         ):
             raise ValueError(f"case {index} donor rows are invalid")
-        if any(
-            tuple(sorted((row, metal_row))) not in bond_keys
-            for row in donor_rows
-        ):
+        if any(tuple(sorted((row, metal_row))) not in bond_keys for row in donor_rows):
             raise ValueError(f"case {index} donor bond is absent")
         semantic_digest = canonical_digest(
             {
@@ -463,9 +462,7 @@ def validate_validation_cohort(cohort: Mapping[str, object]) -> None:
             }
         )
         if semantic_digest != case["semantic_graph_sha256"]:
-            raise ValueError(
-                f"case {index} semantic graph SHA-256 differs"
-            )
+            raise ValueError(f"case {index} semantic graph SHA-256 differs")
 
 
 def write_validation_cohort(path: Path, cohort: Mapping[str, object]) -> None:
@@ -509,9 +506,7 @@ def derive_c1_c2_native_graph(
         raise ValueError("C1/C2 native graphs require a CBond-positive case")
     source_bonds = deepcopy(case["graph"]["bonds"])
     metal_row = int(case["coordination"]["metal"]["row"])
-    donor_rows = frozenset(
-        int(row) for row in case["coordination"]["donor_rows"]
-    )
+    donor_rows = frozenset(int(row) for row in case["coordination"]["donor_rows"])
     generation_bonds = []
     for source_bond in source_bonds:
         bond = deepcopy(source_bond)

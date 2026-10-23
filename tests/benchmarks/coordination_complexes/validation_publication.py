@@ -30,7 +30,6 @@ from .validation_dataset import (
 )
 from .validation_gallery import validate_manual_review_artifact
 
-
 RUN_MANIFEST_SCHEMA = "hotpot-plan17-validation-run/v1"
 RUN_RESULT_SCHEMA = "hotpot-plan17-automated-route-result/v1"
 CONVERSION_SCHEMA = "hotpot-plan17-publication-conversion/v1"

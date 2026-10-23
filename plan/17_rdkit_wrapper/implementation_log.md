@@ -3885,4 +3885,139 @@ Adjustment:
 - keep this provider in benchmark infrastructure. It does not add a public
   force-field backend/profile switch or a second ETKDG implementation.
 
+Git checkpoint: `21c0035 test(validation): add frozen F2 replay provider`.
+
+### Step 56 - Implement the corrected A01-A10 acceptance evaluator
+
+Status: complete for the pure evidence contract
+
+Planned:
+
+- judge the selected structure independently from exploratory frames;
+- fail unavailable gradients only when established recovery and continued
+  optimization cannot be proved; and
+- preserve non-finite observations in strict JSON without emitting NaN or
+  infinity.
+
+Performed:
+
+- added immutable proposal, numerical-frame, recovery, quality, semantic, and
+  stage-trace evidence records;
+- added a pure evaluator returning one explicit decision for every A01-A10
+  gate;
+- required each unavailable-gradient event to identify an established named
+  recovery, a later finite-gradient frame, and a later frame proving resumed
+  optimization; and
+- normalized non-finite numerical values to `null` plus finite/diagnostic facts.
+
+Verification:
+
+- 15 synthetic tests cover all nine required plan scenarios, masked terminal
+  labels, unlisted recovery, hidden provider fallback, graph mutation, gate
+  completeness, and strict JSON serialization; and
+- the focused selection reports `15 passed`.
+
+Unexpected finding:
+
+- a terminal reason alone cannot establish or refute recovery; the evaluator
+  must consume ordered frame and recovery evidence.
+
+Adjustment:
+
+- keep this evaluator pure and translate mutable Hotpot reports only in the
+  route evidence writer.
+
+Git checkpoint:
+`6194214 test(validation): enforce forcefield acceptance contract`.
+
+### Step 57 - Prepare governed benchmark-dataset publication
+
+Status: implementation complete; formal publication awaits route evidence and
+manual review
+
+Planned:
+
+- model all 182 by five route results without substituting structures into
+  failed cells; and
+- publish through the existing Bundle, assessment, certificate, and ingestion
+  lifecycle rather than a parallel benchmark store.
+
+Performed:
+
+- added a strict 910-result mapper with stable case-major/route order;
+- copied only each passing route's own selected structure and retained failed
+  results without a coordinate asset;
+- added owner-`User` authorization, result/source/schema/summary control assets,
+  non-finite JSON normalization, and an inventory-candidate generator;
+- added separate prepare and confirmed publish operations; and
+- documented the dataset and added its tracked result schema.
+
+Verification:
+
+- the dataset/documentation selection reports `15 passed` in the configured
+  environment;
+- temporary-store integration proves synchronize, certificate, and
+  `ingest(include_incomplete=True)` behavior; and
+- no formal store, final inventory manifest, or scientific payload was written.
+
+Unexpected finding:
+
+- failed route-cases would be silently omitted by default ingestion; preserving
+  the complete matrix requires explicit incomplete-case ingestion and reason.
+
+Adjustment:
+
+- defer certification and ingestion until the complete manual review is part of
+  the certificate-bound evidence.
+
+Git checkpoint: `115ef2c feat(dataset): prepare Plan 17 benchmark publication`.
+
+### Step 58 - Implement the current semantic 187/182 cohort
+
+Status: complete for implementation and focused fixtures; formal CBond
+materialization pending
+
+Planned:
+
+- execute current CBond exactly once per tracked source line;
+- serialize a deterministic, coordinate-free graph and represented stereo
+  identity; and
+- reconstruct every route from that identity without re-running CBond.
+
+Performed:
+
+- added a canonical-source/hash check and fixed Am/standard-settings cohort
+  builder with an injectable CBond seam;
+- retained atom rows/IDs/elements/charges/aromaticity, complete bond semantics,
+  dative direction, Level-1 stereo/transport, metal/donor rows, seeds, and
+  settings;
+- enforced the exact 182-positive/five-negative partition and semantic graph
+  digests;
+- added deterministic JSON read/write validation and direct Hotpot molecule
+  reconstruction; and
+- derived a C1/C2 generation projection that explicitly converts only
+  coordination edges to donor-to-metal dative form while retaining the source
+  bonds and canonical business-graph digest.
+
+Verification:
+
+- four focused tests prove Git-tracked source identity, exactly one CBond call
+  per case, deterministic path-free bytes, JSON round-trip, stereo transport,
+  Hotpot graph reconstruction, and the generation-only dative transform;
+- the combined cohort/provider/route/evaluator selection reports `29 passed`;
+  and
+- Python compilation and `git diff --check` pass.
+
+Unexpected finding:
+
+- current CBond emits ordinary metal-ligand bonds, whereas native whole-complex
+  ETKDG requires explicit directed dative bonds. Passing the unmodified native
+  projection would therefore reject valid cohort graphs.
+
+Adjustment:
+
+- keep the dative conversion confined to the C1/C2 generation projection and
+  copy only generated coordinate rows onto the untouched canonical Hotpot graph
+  before force-field optimization.
+
 Git checkpoint: pending.

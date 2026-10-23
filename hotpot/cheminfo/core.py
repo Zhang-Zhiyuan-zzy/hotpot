@@ -136,6 +136,7 @@ class Molecule:
 
         self._atoms = []
         self._bonds = []
+        self._topology_index = {}
         self._conformers = Conformers()
         self._conformers_index = 0
 
@@ -195,7 +196,7 @@ class Molecule:
         for bond in self._bonds:
             clone._add_bond(bond.a1idx, bond.a2idx, **bond.attr_dict)
 
-        clone._update_graph()
+        clone._update_topology()
 
         return clone
 
@@ -393,37 +394,63 @@ class Molecule:
         for atom, coord in zip(self._atoms, coords):
             atom.coordinates = coord
 
-    def _update_atom_neighbours_bonds(self):
-        for atom in self.atoms:
-            atom._neighbours = []
-            atom._bonds = []
+    def _update_topology(self, clear_conformers: bool = True) -> None:
+        """Rebuild deterministic derived topology from atoms and Bond endpoints."""
+        atom_rows = {}
+        incident_bonds = {}
+        for row, atom in enumerate(self._atoms):
+            atom_id = id(atom)
+            if atom_id in atom_rows:
+                raise ValueError("a Molecule cannot contain the same Atom twice")
+            if atom.mol is not self:
+                raise ValueError("every Atom member must belong to its Molecule")
+            atom_rows[atom_id] = row
+            incident_bonds[atom_id] = []
 
-        for bond in self.bonds:
-            bond.atom1._neighbours.append(bond.atom2)
-            bond.atom2._neighbours.append(bond.atom1)
-            bond.atom1._bonds.append(bond)
-            bond.atom2._bonds.append(bond)
+        hidden_ids = [id(bond) for bond in self._hided_bonds]
+        if len(hidden_ids) != len(set(hidden_ids)):
+            raise ValueError("a hidden Bond may occur in only one hidden collection")
+        if {id(bond) for bond in self._bonds}.intersection(hidden_ids):
+            raise ValueError("a Bond cannot be both active and hidden")
 
-    def _update_graph(self, clear_conformers=True):
-        """
-        Updates the molecular graph representation along with clearing conformers and 
-        related atom sequences if specified. The method initializes a new networkx 
-        Graph for the molecule, attaches updated nodes and edges with their respective 
-        attributes, and resets properties such as angles, torsions, and rings.
+        endpoint_pairs = set()
+        for bond in self._bonds:
+            first_id = id(bond.atom1)
+            second_id = id(bond.atom2)
+            if first_id not in atom_rows or second_id not in atom_rows:
+                raise ValueError("every active Bond endpoint must belong to its Molecule")
+            first_row = atom_rows[first_id]
+            second_row = atom_rows[second_id]
+            if first_row == second_row:
+                raise ValueError("a Molecule Bond cannot join an Atom to itself")
+            endpoint_pair = tuple(sorted((first_row, second_row)))
+            if endpoint_pair in endpoint_pairs:
+                raise ValueError("a Molecule cannot contain parallel active Bonds")
+            endpoint_pairs.add(endpoint_pair)
+            incident_bonds[first_id].append(bond)
+            incident_bonds[second_id].append(bond)
 
-        Parameters:
-        clear_conformers: bool
-            If True, clears all existing molecular conformers.
+        topology_index = {}
+        for atom in self._atoms:
+            atom_id = id(atom)
+            row = atom_rows[atom_id]
+            ordered_bonds = tuple(sorted(
+                incident_bonds[atom_id],
+                key=lambda bond: (
+                    atom_rows[id(
+                        bond.atom2 if bond.atom1 is atom else bond.atom1
+                    )],
+                    min(atom_rows[id(bond.atom1)], atom_rows[id(bond.atom2)]),
+                    max(atom_rows[id(bond.atom1)], atom_rows[id(bond.atom2)]),
+                ),
+            ))
+            topology_index[atom_id] = (row, ordered_bonds)
+        self._topology_index = topology_index
 
-        Raises:
-        None
-        """
+        # Transitional projection for algorithms migrated in later Plan 19 stages.
         self._graph = nx.Graph()
         self._graph.add_edges_from(self._edge_with_attrs())
         self._graph.add_nodes_from(self._node_with_attrs())
-
-        # update neighbours and bonds of atoms
-        self._update_atom_neighbours_bonds()
 
         # clear the older AtomSeq
         self._angles = []
@@ -435,6 +462,7 @@ class Molecule:
         self._ligand_cycle_basis_rings = None
         self._ligand_rings_signature = None
         self._obmol = None
+        self._row2idx = None
 
         if clear_conformers:
             self.conformers.clear()
@@ -458,6 +486,7 @@ class Molecule:
         """
         self._atoms.append(atom)
         atom.mol = self
+        self._topology_index[id(atom)] = (len(self._atoms) - 1, ())
 
         return atom
 
@@ -494,12 +523,35 @@ class Molecule:
         if atom1.mol is not self or atom2.mol is not self:
             raise ValueError("at least one of atom1 and atom2 not on the molecule!")
 
-        if (atom1.idx, atom2.idx) in self.graph.edges:
+        if atom1 is atom2:
+            raise ValueError("a Molecule Bond cannot join an Atom to itself")
+
+        first_record = self._topology_index[id(atom1)]
+        second_record = self._topology_index[id(atom2)]
+        incident = (
+            first_record[1]
+            if len(first_record[1]) <= len(second_record[1])
+            else second_record[1]
+        )
+        if any(
+            (bond.atom1 is atom1 and bond.atom2 is atom2)
+            or (bond.atom1 is atom2 and bond.atom2 is atom1)
+            for bond in incident
+        ):
             raise ValueError(f"the bond between {atom1.idx} and {atom2.idx} is already exist!!")
 
         kwargs['bond_order'] = bond_order
         bond = Bond(atom1, atom2, **kwargs)
         self._bonds.append(bond)
+
+        for atom, record in ((atom1, first_record), (atom2, second_record)):
+            bonds = tuple(sorted(
+                record[1] + (bond,),
+                key=lambda member: self._topology_index[
+                    id(member.atom2 if member.atom1 is atom else member.atom1)
+                ][0],
+            ))
+            self._topology_index[id(atom)] = (record[0], bonds)
 
         return bond
 
@@ -519,7 +571,7 @@ class Molecule:
             The atom object added to the graph.
         """
         atom = self._add_atom(atom)
-        self._update_graph()
+        self._update_topology()
         return atom
 
     def _replace_atom(
@@ -596,7 +648,7 @@ class Molecule:
     ):
         """ Replaces an atom in the molecule to the other external, while inherit the environment of original one."""
         ori_atom = self._replace_atom(original_atom_idx, new_atom)
-        self._update_graph()
+        self._update_topology()
         self.calc_implicit_hydrogens()
         return ori_atom
 
@@ -623,7 +675,7 @@ class Molecule:
             The Bond object representing the created bond.
         """
         bond = self._add_bond(atom1, atom2, bond_order, **kwargs)
-        self._update_graph()
+        self._update_topology()
         return bond
 
     def add_bonds(self, idx_order: Iterable[tuple[int, int, float]], list_kw: Optional[list[dict]] = None) -> list["Bond"]:
@@ -637,6 +689,7 @@ class Molecule:
         for ido, kw in zip(idx_order, list_kw):
             bonds.append(self._add_bond(*ido, **kw))
 
+        self._update_topology()
         return bonds
 
     def add_component(self, component: "Molecule"):
@@ -663,7 +716,7 @@ class Molecule:
             self._add_atom(atom)
         self._bonds.extend(component.bonds)
         del component
-        self._update_graph()
+        self._update_topology()
 
     def add_hydrogens(
             self,
@@ -702,7 +755,7 @@ class Molecule:
                     modified = True
 
         if modified:
-            self._update_graph()
+            self._update_topology()
 
     @property
     def cid(self) -> Optional[int]:
@@ -779,7 +832,7 @@ class Molecule:
             if id(bond) not in restored_bond_ids
         ]
         self._bonds.extend(bonds)
-        self._update_graph(clear_conformers)
+        self._update_topology(clear_conformers)
 
     def recover_hided_metal_ligand_bonds(self, clear_conformers: bool = False) -> None:
         """
@@ -922,25 +975,23 @@ class Molecule:
         return copy(self._bonds)
 
     def bond(self, a1idx: int, a2idx: int):
-        """
-        Gets the bond information between two atoms in the graph.
-
-        This method retrieves the bond data from the graph structure given
-        the indices of the two atoms. The user must supply the indices of
-        the atoms as integers, and the bond data will be returned as
-        stored in the graph's edge attributes.
-
-        Parameters:
-        a1idx : int
-            The index of the first atom.
-        a2idx : int
-            The index of the second atom.
-
-        Returns:
-        The bond information stored in the graph's edge attributes between
-        the two atoms.
-        """
-        return self.graph.edges[a1idx, a2idx]['bond']
+        """Return the active Bond joining two Atom indices."""
+        first = self._atoms[a1idx]
+        second = self._atoms[a2idx]
+        first_bonds = self._topology_index[id(first)][1]
+        second_bonds = self._topology_index[id(second)][1]
+        incident = (
+            first_bonds
+            if len(first_bonds) <= len(second_bonds)
+            else second_bonds
+        )
+        for bond in incident:
+            if (
+                (bond.atom1 is first and bond.atom2 is second)
+                or (bond.atom1 is second and bond.atom2 is first)
+            ):
+                return bond
+        raise KeyError((a1idx, a2idx))
 
     def build3d(
             self,
@@ -1281,7 +1332,7 @@ class Molecule:
                     **source_bond.attr_dict
                 )
 
-            component._update_graph()
+            component._update_topology()
             components.append(component)
 
         return components
@@ -1399,7 +1450,7 @@ class Molecule:
             Atom: The newly created Atom object.
         """
         atom = self._create_atom(**kwargs)
-        self._update_graph()
+        self._update_topology()
         return atom
 
     @property
@@ -1622,7 +1673,7 @@ class Molecule:
     def hide_bonds(self, *bond: "Bond", clear_conformers: bool = False):
         for b in bond:
             self._hide_bond(b)
-        self._update_graph(clear_conformers)
+        self._update_topology(clear_conformers)
 
     def hide_metal_ligand_bonds(self, clear_conformers: bool = False) -> None:
         """ break all bonds link with metals """
@@ -1632,7 +1683,7 @@ class Molecule:
         for b in metal_bonds:
             self._bonds.remove(b)
 
-        self._update_graph(clear_conformers)
+        self._update_topology(clear_conformers)
 
     @property
     def graph(self):
@@ -1823,7 +1874,7 @@ class Molecule:
         obc.link_atoms(self)
         # conformers = copy(self._conformers)
 
-        self._update_graph(clear_conformers=False)
+        self._update_topology(clear_conformers=False)
 
         if assign_bond_order:
             self.assign_bond_order()
@@ -1966,7 +2017,7 @@ class Molecule:
             None
         """
         self._rm_atom(atom)
-        self._update_graph()
+        self._update_topology()
 
     def remove_atoms(self, atoms: Iterable["Atom"]) -> None:
         """
@@ -1985,7 +2036,7 @@ class Molecule:
             None
         """
         self._rm_atoms(atoms)
-        self._update_graph()
+        self._update_topology()
 
     def _rm_bond(self, bond: "Bond"):
         """
@@ -2026,7 +2077,7 @@ class Molecule:
             None
         """
         self._bonds.remove(bond)
-        self._update_graph()
+        self._update_topology()
 
     def remove_bonds(self, bonds: Iterable["Bond"]) -> None:
         """
@@ -2042,7 +2093,7 @@ class Molecule:
             None
         """
         self._rm_bonds(bonds)
-        self._update_graph()
+        self._update_topology()
 
     def force_remove_polar_hydrogens(self):
         self.remove_atoms([a for a in self._atoms if a.is_polar_hydrogen])
@@ -3030,9 +3081,11 @@ class Atom(MolBlock):
          behaviors/ Rules ;proper Error Inflect 
                ** detail ensure behaviors s """
         self.mol = mol or Molecule()
-        self._bonds = []
-        self._neighbours = []
         getattr(self.mol, '_atoms').append(self)
+        self.mol._topology_index[id(self)] = (
+            len(getattr(self.mol, '_atoms')) - 1,
+            (),
+        )
 
         if isinstance(attrs_array, np.ndarray):
             assert attrs_array.ndim == 1
@@ -3173,7 +3226,7 @@ class Atom(MolBlock):
                 The newly created and added atom object linked to the molecular graph.
         """
         atom = self._add_atom(atom, bond_order, atom_attrs, bond_attrs)
-        getattr(self.mol, '_update_graph')()
+        getattr(self.mol, '_update_topology')()
         return atom
 
     @staticmethod
@@ -3308,32 +3361,13 @@ class Atom(MolBlock):
             list["Atom"]: A list of the hydrogen atoms added to the molecule.
         """
         add_or_rm, hydrogens = self._add_hydrogens(num)
-        getattr(self.mol, '_update_graph')()
+        getattr(self.mol, '_update_topology')()
         return hydrogens
 
     @property
     def bonds(self) -> list["Bond"]:
-        """
-        Returns the bonds associated with the current atomic structure. It utilizes the
-        molecular graph's edge viewer to retrieve bond details for the specified atom based
-        on its index. If the atom is isolated, an empty list is returned.
-
-        Returns:
-            list[Bond]: A list of Bond objects associated with the atom's index. If no
-            bonds are associated or the atom is isolated, an empty list is returned.
-
-        Raises:
-            NetworkXError: If accessing the molecular graph edges fails for the
-            specified atom index (handled internally).
-        """
-        # # return [self.mol.bonds[i] for i in self.bonds_idx]
-        # edge_viewer = self.mol.graph.edges
-        #
-        # try:
-        #     return [edge_viewer[u, v]['bond'] for u, v in edge_viewer(self.idx)]
-        # except nx.NetworkXError:
-        #     return []  # if the atom is an isolate atom
-        return copy(self._bonds)
+        """Return active incident Bonds in adjacent-Atom index order."""
+        return list(self.mol._topology_index[id(self)][1])
 
     def _calc_implicit_hydrogens(self) -> int:
         # TODO: Implement by C++
@@ -3563,14 +3597,8 @@ class Atom(MolBlock):
 
     @property
     def idx(self) -> int:
-        """
-        Property that calculates and returns the index of the current atom 
-        within the molecule's atoms list. It leverages the `atoms.index` 
-        method from the `mol` object to determine the atom's position.
-
-        @return int: Index of the current atom in the molecule's atoms list
-        """
-        return self.mol.atoms.index(self)
+        """Return this Atom's current row in its Molecule."""
+        return self.mol._topology_index[id(self)][0]
 
     @property
     def mca(self) -> float:
@@ -3754,31 +3782,13 @@ class Atom(MolBlock):
 
     @property
     def neigh_idx(self) -> np.ndarray:
-        """
-        Provides the functionality to fetch the neighboring indices of a node 
-        in a molecular graph, represented as a NetworkX graph. The method 
-        ensures that the neighbors are returned as a NumPy array of integer 
-        type. If the node is invalid or an error in the graph structure occurs, 
-        an empty NumPy array is returned instead.
-
-        Returns
-        -------
-        np.ndarray
-            A NumPy array of integers representing the indices of neighboring 
-            nodes in the graph. If an error occurs, an empty NumPy array is 
-            returned.
-
-        Raises
-        ------
-        nx.NetworkXError
-            Raised if an error occurs in accessing the neighbors of the 
-            specified node index due to the graph structure.
-        """
-        # try:
-        #     return np.array(list(self.mol.graph.neighbors(self.idx)), dtype=int)
-        # except nx.NetworkXError:
-        #     return np.array([])
-        return np.array([a.idx for a in self._neighbours])
+        """Return adjacent Atom indices in deterministic order."""
+        return np.array([
+            self.mol._topology_index[id(
+                bond.atom2 if bond.atom1 is self else bond.atom1
+            )][0]
+            for bond in self.mol._topology_index[id(self)][1]
+        ])
 
     @property
     def hydrogens(self):
@@ -3800,21 +3810,15 @@ class Atom(MolBlock):
 
     @property
     def connectivity(self):
-        return len(self.neighbours)
+        return len(self.mol._topology_index[id(self)][1])
 
     @property
     def neighbours(self) -> list['Atom']:
-        """
-        Access the list of neighboring atoms for the current atom in a molecule.
-
-        @return: A list of neighboring Atom objects. If the operation encounters an
-            issue, such as an invalid network structure, an empty list is returned.
-        """
-        return copy(self._neighbours)
-        # try:
-        #     return np.take(self.mol.atoms, self.neigh_idx).tolist()
-        # except nx.NetworkXError:
-        #     return []
+        """Return adjacent Atoms in deterministic index order."""
+        return [
+            bond.atom2 if bond.atom1 is self else bond.atom1
+            for bond in self.mol._topology_index[id(self)][1]
+        ]
 
     @property
     def heavy_neighbours(self) -> list['Atom']:

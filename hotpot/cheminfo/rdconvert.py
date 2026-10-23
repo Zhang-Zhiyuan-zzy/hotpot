@@ -185,6 +185,6 @@ def from_rdmol(rdmol, mol):
             bond_source_metadata=source_bond_metadata[bond.GetIdx()],
         )
 
-    mol._update_graph()
+    mol._update_topology()
     mol.charge = Chem.GetFormalCharge(rdmol)
     return mol

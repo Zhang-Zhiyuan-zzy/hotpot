@@ -23,7 +23,7 @@ def _molecule_from_edges(
         mol._create_atom(atomic_number=6)
     for first, second in edges:
         mol._add_bond(first, second, bond_order=1.0)
-    mol._update_graph(clear_conformers=False)
+    mol._update_topology(clear_conformers=False)
     return mol
 
 
@@ -116,7 +116,7 @@ def test_forcefield_ring_opening_ignores_the_legacy_cycle_basis(
         )
     for first, second in edges:
         mol._add_bond(first, second, bond_order=1.0)
-    mol._update_graph(clear_conformers=False)
+    mol._update_topology(clear_conformers=False)
 
     small_ring = next(ring for ring in mol.rings if len(ring) == 4)
     shared_edge = mol.bond(0, 1)

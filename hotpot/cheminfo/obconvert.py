@@ -102,7 +102,7 @@ def obmol2mol(obmol, mol):
             )
 
     _add_mol_bonds_from_obmol(mol, obmol, idx_to_row)
-    mol._update_graph()
+    mol._update_topology()
     mol.charge = obmol.GetTotalCharge()
 
     # add Crystal

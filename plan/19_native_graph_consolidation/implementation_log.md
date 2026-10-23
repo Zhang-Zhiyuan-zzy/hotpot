@@ -133,19 +133,90 @@ Adjustment:
 - keep NetworkX only in test-oracle and historical evidence after production
   cutover.
 
-Git checkpoint: pending commit for Stage 0 evidence.
+Git checkpoint: `089fed8` (`plan(graph): freeze networkx removal baselines`).
 
 ### Stage 1 - establish single-source Python topology
 
-Status: not started.
+Status: complete.
+
+Performed:
+
+- added the sole authorized `_topology_index` dictionary and replaced both old
+  refresh methods with `_update_topology(clear_conformers=True)`;
+- made `_atoms`, `_bonds`, and Bond endpoints the authority while validating
+  duplicate Atom membership, missing endpoints, self-bonds, parallel active
+  edges, duplicate hidden membership, and active/hidden identity overlap;
+- removed Atom-specific `_neighbours` and `_bonds` state while retaining the
+  unrelated `AtomSeq._bonds` constituent state;
+- implemented O(1) Atom-row and incidence-record location, O(1)
+  `connectivity`, degree-linear neighbor/Bond materialization, and
+  smaller-incidence-range `Molecule.bond()` lookup;
+- made direct `Atom(mol)` and private atom append install an isolated index
+  entry immediately, and made public `add_bonds()` commit once;
+- migrated every production old-updater call in Core, RDKit/Open Babel/CCDC
+  converters, MCA DTO conversion, and force-field commit/rollback;
+- changed rollback to restore authoritative atoms/Bonds/Atom attributes, then
+  reconstruct topology rather than restoring graph/list/cache identities;
+- invalidated `_row2idx` together with `_obmol`; and
+- rebuilt the identity-keyed derived index at force-field spawn task entry,
+  because deserialization creates new Atom identities.  This avoids a new
+  Core pickle method or lazy/dirty fallback.
+
+Core change-budget result:
+
+```text
+new Core classes: 0
+new Core public methods/properties: 0
+new Core private attributes: _topology_index only
+new/replacement Core private methods: _update_topology only
+removed Atom fields: _neighbours and Atom-specific _bonds
+removed methods: _update_graph and _update_atom_neighbours_bonds
+```
+
+Verification:
+
+```text
+topology/rollback/ring/converter/MCA focused group:
+  169 passed, 3 xfailed, 1 existing warning in 1.89 s
+real force-field multiprocessing integration:
+  11 passed in 23.68 s
+direct initial topology group:
+  43 passed in 1.17 s
+```
+
+The new tests cover direct Atom construction, index reconstruction, shuffled
+Bond insertion, no Atom adjacency fields, O(1)-path Atom indexing, one-commit
+bulk bond addition, direct Bond lookup, invalid authority states, removal
+reindexing, hidden restoration, and failed working-copy rollback.
+
+Performance evidence on the same 512-Atom chain:
+
+| Operation | Legacy median (us) | Index median (us) |
+| --- | ---: | ---: |
+| `Atom.idx` | 9.359429 | 3.177599 |
+| `Atom.connectivity` | 3.315981 | 3.191546 |
+| `Atom.neighbours` | 3.240479 | 8.222773 |
+| `Molecule.bond` | 0.454011 | 5.007222 |
+| topology refresh | 15,720.257 | 12,783.047 |
+| Molecule copy | 61,901.120 | 52,559.716 |
+
+The targeted retained derived-topology size fell from 653,181 bytes to
+135,176 bytes (79.3%).  Degree-linear Python materialization and direct Bond
+lookup have small absolute microbenchmark costs relative to the former
+NetworkX hash lookup/cached neighbor list; they implement the owner-approved
+single-source and complexity contract without a forbidden second pair or
+neighbor index.  Whole force-field and MCA focused gates show no material
+workflow regression.
+
+Git checkpoint: pending Stage 1 commit.
 
 ### Stage 2 - introduce the private base Graph
 
-Status: not started.
+Status: in progress.
 
 ### Stage 3 - cut native search over to the base Graph
 
-Status: not started.
+Status: in progress.
 
 ### Stage 4 - native MCA automorphism
 

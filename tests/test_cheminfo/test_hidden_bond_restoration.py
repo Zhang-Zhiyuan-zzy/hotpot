@@ -23,7 +23,7 @@ def _complex_with_a_ligand_ring():
     molecule._add_bond(2, 3, bond_order=1.0)
     molecule._add_bond(3, 4, bond_order=1.0)
     molecule._add_bond(4, 1, bond_order=1.0)
-    molecule._update_graph(clear_conformers=False)
+    molecule._update_topology(clear_conformers=False)
     return molecule, metal_bond, ring_bond
 
 
@@ -36,13 +36,13 @@ def test_restore_bonds_reuses_objects_and_updates_topology_once(monkeypatch):
     assert molecule.rings == []
 
     update_calls = []
-    update_graph = molecule._update_graph
+    update_topology = molecule._update_topology
 
     def record_update(clear_conformers=True):
         update_calls.append(clear_conformers)
-        update_graph(clear_conformers)
+        update_topology(clear_conformers)
 
-    monkeypatch.setattr(molecule, "_update_graph", record_update)
+    monkeypatch.setattr(molecule, "_update_topology", record_update)
     molecule.restore_bonds(
         metal_bond,
         ring_bond,
@@ -69,7 +69,7 @@ def test_restore_bonds_can_restore_one_hidden_metal_bond_at_a_time():
         molecule.create_atom(atomic_number=atomic_number)
     first_bond = molecule._add_bond(0, 1, bond_order=1.0)
     second_bond = molecule._add_bond(0, 2, bond_order=1.0)
-    molecule._update_graph(clear_conformers=False)
+    molecule._update_topology(clear_conformers=False)
 
     molecule.hide_metal_ligand_bonds(clear_conformers=False)
     molecule.restore_bonds(first_bond, clear_conformers=False)
@@ -100,7 +100,7 @@ def test_restore_bonds_validates_the_whole_selection_before_mutating(
     update_calls = []
     monkeypatch.setattr(
         molecule,
-        "_update_graph",
+        "_update_topology",
         lambda clear_conformers=True: update_calls.append(clear_conformers),
     )
 

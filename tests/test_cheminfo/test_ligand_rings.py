@@ -17,7 +17,7 @@ def _chelating_molecule():
             (2, 4, 1.0),
         )
     )
-    molecule._update_graph(clear_conformers=False)
+    molecule._update_topology(clear_conformers=False)
     molecule.conformer_add(np.arange(15, dtype=float).reshape(5, 3))
     molecule.conformer_add(np.arange(15, 30, dtype=float).reshape(5, 3))
     return molecule

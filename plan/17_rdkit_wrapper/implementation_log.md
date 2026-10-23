@@ -4530,3 +4530,73 @@ Adjustment:
   automated matrix can contribute at most 869 selected coordinate assets;
   all 41 failed route-cases remain explicit records without substituted
   coordinates.
+
+### Step 68 - Rerun the local five-interpreter wheel gate at the formal checkpoint
+
+Status: complete for the pinned local workflow-equivalent matrix; no hosted-CI
+or strict standalone-auditwheel claim
+
+Planned:
+
+- treat the earlier `37a08b3` CPython matrix as historical evidence because
+  packaged production adapter code changed afterward;
+- build CPython 3.10-3.14 wheels from a clean detached copy of the authoritative
+  `b0aa6c5` source checkpoint; and
+- repeat installed-wheel, archive, tag, and rdWrapper ELF checks before closing
+  conditional validation experiment V21.
+
+Performed:
+
+- reused cibuildwheel 4.3.0, the pinned
+  `manylinux_2_28_x86_64` image digest, six hash-locked native source archives,
+  offline RDKit source mode, ABI-specific RDKit 2026.9.1 constraints, and the
+  declared external Open Babel repair policy from the release workflow;
+- built, repaired, and installed one wheel for each of CPython 3.10, 3.11,
+  3.12, 3.13, and 3.14;
+- ran both import orders, native search and relevant-cycle checks, `_ob_native`
+  and `_rd_native` imports, exact Python/native RDKit identity checks, and an
+  ETKDG coordinate/status smoke inside every isolated wheel test environment;
+- ran the strict rdWrapper content auditor, ZIP CRC and duplicate-member
+  checks, embedded-tag inspection, and direct `_rd_native` ELF dependency,
+  RPATH, build-ID, and export audits for all five artifacts; and
+- verified that the detached source remained clean at exact revision
+  `b0aa6c5224a97469359c53448ba48d24d8a46112`.
+
+Verification:
+
+| ABI | Wheel size (bytes) | SHA-256 |
+| --- | ---: | --- |
+| cp310 | 5,638,695 | `4f35c10ed1b9134cfc013398942afab645d0abf669c962b55d62df37f894859d` |
+| cp311 | 5,643,505 | `f87d03e47e7059195ff06d3a94cece7a45179548a58e6a52a77bba0d55c3e4c2` |
+| cp312 | 5,665,701 | `50099f8d7e6b3f56f7fdaa4a9e31b484e0579b4ac21395303a5d75b7d915af1e` |
+| cp313 | 5,666,048 | `18f1eb3ea95f87f3062a340420018d5d8e3d8c7bd67483fade4d2d946c61d5d4` |
+| cp314 | 5,668,859 | `1d6d21f913a1d07087ed0dbd3ceeabc828e01aca131143d0756ddfa5864f7d80` |
+
+- all five installed-wheel tests and strict content audits pass;
+- every archive has 871 entries, 763 files, zero duplicate members, exact
+  matching CPython tags, and both `manylinux_2_27_x86_64` and
+  `manylinux_2_28_x86_64` platform tags;
+- every `_rd_native` is a stripped x86-64 ELF with no RPATH/RUNPATH, no dynamic
+  RDKit, Boost, or Conda reference, the same six system `NEEDED` libraries, and
+  exactly one globally defined function, `PyInit__rd_native`; and
+- build IDs remain `855d8e...`, `102e41...`, `c49481...`, `36d867...`, and
+  `6dff41...` for cp310 through cp314, matching the previous native matrix as
+  expected because only packaged Python adapter code triggered this rerun.
+
+Unexpected finding:
+
+- the first cp310 attempt completed build, repair, isolated installation, and
+  all smokes, but `/tmp` filled while Docker copied the approximately 5.6 MB
+  artifact to the host, leaving a zero-byte output. Five exact, exited,
+  Plan17-owned cibuildwheel containers were removed, freeing approximately
+  5.2 GB. The zero-byte artifact was deleted and cp310 was then rebuilt from
+  the same clean source and completed normally. No running or unrelated
+  container was modified, and the failed export is not counted as evidence.
+
+Adjustment:
+
+- mark V21 and G22 locally validated for the authoritative source checkpoint;
+- retain GitHub-hosted CI and strict standalone auditwheel compliance as
+  explicit non-claims; and
+- keep final Plan17 closure blocked only on attributable human gallery review
+  and the subsequent governed 910-record dataset publication.

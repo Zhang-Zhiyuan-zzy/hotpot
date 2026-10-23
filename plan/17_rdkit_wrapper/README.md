@@ -1,18 +1,30 @@
 # Stage 17: standalone native RDKit wrapper and conformer sampling
 
-Status: component implementation and local validation are complete; release
-closure validation is now owner-approved and in progress. It covers a current
-semantic 187/182 cohort, O0/F1/F2/C1/C2 execution, F1 business evidence, and
-the provider decision. Recovering the old frozen manifest or graph sidecars is
-no longer a prerequisite. The pinned local CPython 3.10-3.14 workflow-
-equivalent wheel matrix is complete under the declared Open Babel cross-wheel
-dependency model.
+Status: component implementation and automated force-field validation are
+complete at authoritative checkpoint
+`b0aa6c5224a97469359c53448ba48d24d8a46112`. The schema-v2 formal run covers
+the current semantic 187/182 cohort and produces 1,092 O0/F1/F2/C1/C2 plus F1
+repeat results. F1 passes 180/182 cases, below the fixed 182/182 replacement
+threshold, so Open Babel remains the default complex conformer provider.
+
+The exhaustive 910-cell gallery is complete with 869 selected structures, 41
+scientific-failure placeholders, and zero render errors. Attributable human
+review is still pending. The owner-authorized benchmark records must not be
+published into `hotpot/dataset` until that review is completed; failed
+route-cases will remain explicit records without substituted coordinates.
+
+The conditional local CPython 3.10-3.14 workflow-equivalent wheel matrix has
+also passed at `b0aa6c5`, including installed-wheel smokes, archive-content and
+integrity checks, and direct `_rd_native` ELF audits. This remains local
+evidence rather than GitHub-hosted CI provenance.
+
+Current branch: `perf/mca-resource-efficient-workflow`
 
 Planning branch: `feature/rdWrapper`
 
 Planning baseline: `9640d906a9d13e969152d0f3a4d92a3a16b9e0ce`
 
-The owner referred to this work as `plan16`. Stage 16 is already occupied by
+The owner referred to this work as `plan16`. Stage 16 was already occupied by
 the completed native-search implementation, so this directory uses the next
 unambiguous archive number without replacing or duplicating Stage 16.
 
@@ -20,27 +32,27 @@ The normative implementation proposal is:
 
 - [rdkit_wrapper_implementation_plan.md](rdkit_wrapper_implementation_plan.md)
 
-The proposal fixes Hotpot to RDKit 2026.09.1, defines independently runnable
-Python and C++ `rdWrappers` APIs, retains `obWrappers`, preserves the complete
-current force-field workflow during component-substitution testing, and adds a
-two-level Hotpot stereochemistry design (transport first, chemical
-validation/assignment/alignment second).
+It pins Hotpot to RDKit 2026.09.1, defines independently runnable Python and
+C++ `rdWrappers` APIs, retains `obWrappers`, preserves the established
+force-field workflow during component-substitution testing, and specifies the
+two-level Hotpot stereochemistry model.
 
-Implementation proceeds in small verified checkpoints. The live record is:
-
-- [implementation_log.md](implementation_log.md)
-
-The implementation, validation, benchmark, and remaining-gate report is:
-
-- [implementation_report.md](implementation_report.md)
-
-The corrected force-field business-validation proposal, including the full
-objective/experiment status matrices, is:
+The corrected and owner-approved business-validation contract is:
 
 - [forcefield_component_validation_plan.md](forcefield_component_validation_plan.md)
 
-The implementation report preserves the evidence and assumptions that existed
-at handoff time. The corrected validation plan supersedes its historical-
-artifact blocker after owner approval. It also separates local evidence from
-GitHub-hosted CI provenance and strict standalone auditwheel manylinux
-compliance, neither of which is claimed.
+Recovering a byte-identical historical manifest or graph sidecars is not an
+acceptance prerequisite. The current schema-v2 cohort preserves literal
+Hotpot graph semantics, including per-atom current implicit-hydrogen counts.
+
+The small-step execution record is:
+
+- [implementation_log.md](implementation_log.md)
+
+The consolidated implementation, validation, benchmark, decision, and
+remaining-gate report is:
+
+- [implementation_report.md](implementation_report.md)
+
+Local evidence is kept distinct from GitHub-hosted CI provenance and strict
+standalone auditwheel manylinux compliance, neither of which is claimed.

@@ -1,79 +1,122 @@
 # Plan 17 native RDKit wrapper implementation and validation report
 
-Report date: 2026-10-22
+Report date: 2026-10-23
 
-Branch: `feature/rdWrapper`
+Current branch: perf/mca-resource-efficient-workflow
 
-Implementation baseline: `9640d906a9d13e969152d0f3a4d92a3a16b9e0ce`
+Original implementation baseline:
+9640d906a9d13e969152d0f3a4d92a3a16b9e0ce
 
-Final wheel source checkpoint: `37a08b3`
+Authoritative automated-validation source checkpoint:
+b0aa6c5224a97469359c53448ba48d24d8a46112
 
-Evidence-log checkpoint before this report revision: `24cee99`
+Normative sources:
 
-Normative sources: `rdkit_wrapper_implementation_plan.md` and
-`implementation_log.md`
+- rdkit_wrapper_implementation_plan.md;
+- forcefield_component_validation_plan.md; and
+- implementation_log.md.
 
 ## 1. Executive status
 
 Plan 17 has delivered the standalone native RDKit conformer component, its
 Python and C/C++ interfaces, the consumer-neutral molecule transport, the
-private force-field provider seam, coordination-aware research embedding, and
-the complete seven-gate Hotpot stereochemistry implementation. The canonical
-187-ligand standalone `R0` matrix is complete and reproducible. A fresh local
-native rebuild, SDK install, ABI audit, and broad functional regression are
-also complete. The pinned local CPython 3.10-3.14 workflow-equivalent wheel
-matrix is complete under the declared cross-wheel Open Babel dependency
-model.
+private force-field conformer-provider seam, the seven-gate Hotpot
+stereochemistry implementation, and the validation-only O0/F1/F2/C1/C2 route
+matrix.
 
-**Stage 17 is not release-complete.** The following release decisions still
-have no formal evidence:
+The corrected schema-v2 formal validation is complete:
 
-- `O0`/`F1` comparison on the frozen 182-complex cohort;
-- formal `C1`/`C2` results on that same cohort;
-- selection of RDKit as the default force-field coordinate provider.
+- the canonical source contains 187 physical ligand records;
+- current CBond produces 182 positive complexes and the five expected
+  no-CBond cases;
+- O0, F1, F2, C1, C2, and the complete F1 repeat produced 1092/1092 result
+  records;
+- every admitted selected structure has finite coordinates, energy, RMS
+  gradient, and maximum gradient and passes the standard terminal geometry
+  gate; and
+- the F1 primary and repeat classifications agree for all 182 cases.
 
-The frozen 182-case manifest and matching native graph sidecars are absent,
-and there is no dedicated formal `O0`/`F1` runner. Consequently Open Babel
-remains the composed force-field default. No public backend/profile selector
-was added, and no existing force-field stage was removed, reordered, or
-weakened.
+F1 passed 180/182 cases. The fixed owner-approved threshold for replacing O0
+is 182/182. Native rdWrappers, the injectable RDKit adapter, and the private
+provider seam are retained, but Open Babel remains the composed complex
+default. No public backend/profile selector was added.
+
+The five primary-route galleries are also complete: 869 admitted selected
+structures were rendered, 41 failed route-cases received explicit scientific
+placeholders, and there were no renderer failures. The generated manual-review
+artifact remains pending. It must not be converted into a completed,
+attributable human review by automation. Consequently the owner-authorized
+910-record dataset conversion and Bundle publication have not yet run.
+
+This checkpoint is not the final release checkpoint because the exhaustive
+attributable human gallery review, followed by formal-data dataset conversion
+and publication, remains outstanding. The conditional CPython 3.10-3.14 wheel
+rerun required by the later adapter change has now passed at the authoritative
+source checkpoint.
 
 ## 2. Final architecture and implementation route
 
-```text
-Hotpot Molecule
-  -> field-selective NativeMoleculeBuffers
-  -> Python _rd_native binding
-  -> versioned C ABI v1
-  -> one private C++20 RDKit 2026.09.1 ETKDG core
-  -> owned status + (K, N, 3) coordinates
+The standalone component is:
 
-External C/C++ caller
-  -> C ABI v1 or header-only C++17 facade
-  -> the same C ABI and private ETKDG core
+    Hotpot Molecule
+      -> field-selective NativeMoleculeBuffers
+      -> Python _rd_native binding
+      -> versioned C ABI v1
+      -> one private C++20 RDKit 2026.09.1 ETKDG core
+      -> owned status and (K, N, 3) coordinates
 
-Existing force-field workflow
-  -> private ConformerSampler seam
-     -> OpenBabelConformerAdapter (current default)
-     -> RDKitConformerAdapter (implemented, injectable)
-  -> unchanged ligand checks/recovery/refinement
-  -> unchanged placement/restoration/complex optimization/acceptance
-```
+    External C/C++ caller
+      -> C ABI v1 or header-only C++17 facade
+      -> the same C ABI and private ETKDG core
 
-There is one sampler implementation. The Python binding and installed C++ SDK
-reuse the same private core and C API; no Python `rdkit.Chem.Mol` is constructed
-in the native sampling or force-field path. The standalone sampler returns
-coordinates only and performs no Hotpot geometry gate, perturbation, candidate
-selection, RDKit UFF/MMFF optimization, or Open Babel optimization.
+The ligand-provider validation routes are:
 
-Open Babel was retained as an independent component. Its Python packer and C++
-adapter now consume the common field-selective representation, while Open
-Babel-specific compatibility policy remains behind the adapter. The legacy
-Open Babel public behavior and mixed-invalid first-error order are preserved.
+    one schema-v2 semantic Hotpot graph
+      -> O0: OpenBabelConformerAdapter
+      -> F1: RDKitConformerAdapter
+      -> F2: frozen ETKDG coordinate replay
+      -> identical ligand gate, topology/recovery, placement,
+         coordination restoration, complex optimization, and acceptance
 
-## 3. Public APIs
+The whole-complex research routes are:
 
-### 3.1 Python `hotpot.cheminfo.rdWrappers`
+    one schema-v2 semantic Hotpot graph
+      -> C1: stock whole-complex ETKDG
+      -> C2: fixed coordination-bounded whole-complex ETKDG
+      -> generated rows copied onto the untouched canonical Hotpot graph
+      -> existing complete-complex entry gate, topology/recovery,
+         Open Babel optimization, and terminal acceptance
+
+C1 and C2 originally stopped after standalone coordinate generation in the
+owner-approved implementation plan. The later owner-approved force-field
+validation plan explicitly required both routes to continue into force-field
+optimization on all 182 cases. That continuation is benchmark infrastructure,
+not a production workflow cutover.
+
+There remains one ETKDG sampler implementation. The Python binding and installed
+C++ SDK reuse the same private core and C API. Native sampling and force-field
+use do not construct or translate through a Python rdkit.Chem.Mol.
+
+The force-field hydrogen projection is deliberately narrow:
+
+- default standalone RDKitConformerAdapter behavior remains unchanged;
+- F1/F2 and C1/C2 explicitly opt into a fully-materialized-H working-copy
+  projection;
+- only a private copy is normalized for native construction;
+- current implicit/bracket hydrogen counts are cleared only after graph
+  hydrogens have been materialized;
+- the source hydrogen ledger remains unchanged; and
+- transported implicit-H stereo carriers are mapped to their exact graph-H
+  rows or rejected as ambiguous.
+
+This prevents native double counting without treating the mere presence of one
+explicit H atom as proof that the whole molecule is fully materialized.
+
+## 3. Public and private API result
+
+### 3.1 Public Python rdWrappers
+
+The public component contract is:
 
 ```text
 GenerationStatus
@@ -105,14 +148,16 @@ generate_conformers(mol, *, options=None, constraints=None) -> ConformerBatch
 runtime_info() -> RuntimeInfo
 ```
 
-Generation is nonmutating: it does not change topology, current coordinates,
-or `mol.conformers`. Public values contain only Hotpot/NumPy types.
+Generation is coordinate-only and nonmutating. It does not change topology,
+input coordinates, or mol.conformers and does not run a Hotpot geometry gate,
+perturbation, Open Babel minimization, or RDKit UFF/MMFF optimization.
 
-### 3.2 Stable C ABI v1
+### 3.2 Stable C ABI v1 and C++17 facade
 
-The ABI publishes fixed-width scalars and pointer/length views only. No STL,
-Boost, RDKit type, exception, or Python object crosses the shared-library
-boundary.
+The C ABI exposes fixed-width scalar and pointer/length DTOs, opaque sampler
+and result ownership, generation/result accessors, and exact Hotpot/RDKit
+runtime identity. No STL, Boost, RDKit type, C++ exception, or Python object
+crosses the shared-library boundary.
 
 ```text
 hotpot_rd_sampler_create(...)
@@ -135,11 +180,14 @@ hotpot_rd_runtime_rdkit_commit()
 The principal versioned DTOs are `hotpot_rd_options_v1`,
 `hotpot_rd_molecule_view_v1`, `hotpot_rd_constraints_view_v1`,
 `hotpot_rd_stereo_record_v1`, `hotpot_rd_atom_transport_v1`,
-`hotpot_rd_bond_transport_v1`, and `hotpot_rd_conformer_record_v1`.
-Result pointers are borrowed from an opaque `hotpot_rd_result` and remain valid
-until `hotpot_rd_result_destroy()`.
+`hotpot_rd_bond_transport_v1`, and `hotpot_rd_conformer_record_v1`. Result
+pointers are borrowed from an opaque `hotpot_rd_result` and remain valid until
+`hotpot_rd_result_destroy()`.
 
-### 3.3 Header-only C++17 facade
+The installed header-only C++17 facade exposes ETKDGOptions,
+CoordinationEmbeddingConstraintsView, ConformerGenerationResult, RuntimeInfo,
+ETKDGSampler, generate_conformers(), and runtime_info(). ABI-0 and ABI-1
+consumer builds passed against the same SDK library.
 
 ```text
 hotpot::rdwrappers
@@ -156,14 +204,43 @@ hotpot::rdwrappers
   - runtime_info()
 ```
 
-The facade copies result-owned values into consumer-side STL objects. Both
-`_GLIBCXX_USE_CXX11_ABI=0` and `=1` consumers passed against the same installed
-SDK library. This proves facade/DSO boundary compatibility, not compatibility
+The facade copies result-owned values into consumer-side STL objects. The dual
+ABI result establishes facade/DSO boundary compatibility, not compatibility
 with arbitrary old `libstdc++` runtimes.
 
-### 3.4 Hotpot stereochemistry API
+### 3.3 Common molecule transport
 
-Level 1 is exact structural transport:
+NativeMoleculeBuffers and MoleculeBufferView are consumer-neutral and
+field-selective. Static graph data is transported once and conformer
+coordinates separately. Generic validation admits toolkit-neutral bond
+semantics; Open Babel and RDKit compatibility policy remains local to each
+adapter.
+
+Python exposes `pack_molecule(mol, fields)` with independently selectable
+topology, coordinate, Level-1 stereo, atom-transport, and bond-transport
+fields. C++ exposes `ArrayView<T>`, `MoleculeBufferView`, `OwnedMoleculeData`,
+the three stereo/atom/bond transport view-owner pairs, and
+`ConformerBatchView`. Missing fields remain distinguishable from present but
+empty fields.
+
+This is the single Hotpot contiguous transport implementation. No second
+RDKit-specific buffer system was introduced.
+
+### 3.4 Private force-field seam
+
+The force-field workflow depends on one private ConformerSampler contract with
+Open Babel and RDKit adapters. The seam is injectable in tests and worker-safe,
+but it is not a public registry or complete-workflow selector.
+
+Open Babel remains the composition-root default. RDKit failure is explicit;
+there is no hidden Open Babel fallback inside F1.
+
+## 4. Stereochemistry result
+
+Level 1 preserves ordered anchors/carriers, opaque source values, enhanced
+group lineage, isotope/radical facts, separate current and source hydrogen
+states, and ordered bond display direction through molecule lifecycle,
+working-copy transactions, generic packing, and native generation.
 
 ```text
 StereoAnchorKind, StereoCarrierKind, StereoGroupKind
@@ -174,7 +251,7 @@ get_stereo_payload(mol) -> StereoPayload
 set_stereo_payload(mol, payload) -> None
 ```
 
-Level 2 is Hotpot-owned semantic interpretation:
+Level 2 implements the seven planned gates:
 
 ```text
 StereoType, StereoIssueCode
@@ -185,450 +262,581 @@ assign_stereochemistry(mol, *, coordinates=None)
 align_stereochemistry(reference, target, atom_mapping)
 ```
 
-## 4. Common native molecule view
+| Gate | Implemented result |
+| --- | --- |
+| 1 | Frozen TH/DB/AX/SP/TBP/SPY/OH descriptor and permutation algebra |
+| 2 | Deterministic graph validation for declared TH/DB semantics |
+| 3 | Explicit-mapping alignment and parity transformation |
+| 4 | Coordinate assignment, degeneracy, and contradiction reporting |
+| 5 | Ordered axial/atropisomeric and enhanced ABS/AND/OR semantics |
+| 6 | Complete represented-graph projection, native RI equivalence, directly decidable derived names |
+| 7 | Atomic SP/TBP/SPY/OH public cutover, represented shells, multicenter boundaries, and chelates |
 
-The former Open-Babel-local transport was generalized without introducing a
-second RDKit-specific contiguous-buffer system.
+The canonical 187 source importer still produces an empty represented stereo
+payload for this corpus. Therefore dedicated fixture/golden suites validate
+Level 1 and Level 2, while R0 does not establish source-SMILES chirality
+preservation.
 
-Python provides `NativeMoleculeBuffers` and `pack_molecule(mol, fields)` with
-independently selectable topology, coordinate, Level-1 stereo, atom-transport,
-and bond-transport fields. Missing fields remain distinguishable from present
-but empty fields. Static topology is packed once; conformer coordinates travel
-separately as a batch.
+## 5. Pinned dependency and packaging result
 
-C++ provides `ArrayView<T>`, `MoleculeBufferView`, `OwnedMoleculeData`, the
-three stereo/atom/bond transport views and owners, and `ConformerBatchView`.
-Synchronous operations borrow data; long-lived sessions own it explicitly.
-The force-field `ComplexSessionInput` remains a flat aggregate and exposes a
-zero-copy ligand view, avoiding broad source/API churn.
+One Hotpot release supports exactly native RDKit 2026.09.1 and Python package
+rdkit 2026.9.1. Upgrades are owner-controlled and deliberately lazy. The
+native offline closure locks RDKit, Boost, Eigen, better-enums, Catch2, and
+RingDecomposerLib by exact source identity and SHA-256.
 
-Generic validation accepts toolkit-neutral structure, including dative and
-zero-order bonds. Consumer policy remains local: Open Babel performs its own
-lossless-representation checks, while RDKit performs its pinned graph,
-sanitization, hydrogen, display-direction, and stereo checks.
+The private native implementation uses C++20. The installed public C/C++ API
+and existing native modules remain C++17-consumable.
 
-## 5. Pinned dependency, build, and packaging result
+Two packaging products remain distinct:
 
-One Hotpot release supports exactly RDKit `2026.09.1` / Python package
-`rdkit==2026.9.1`. Upgrades are owner-directed and deliberately lazy. The
-supported Python metadata range is 3.10-3.14 because the pinned distribution
-does not provide the required CPython 3.9 artifact.
+- Python wheels absorb the private core into _rd_native and do not publish the
+  C++ SDK; and
+- the developer SDK installs the C ABI library, public headers, CMake package,
+  notices, and licenses without private RDKit headers.
 
-The complete offline source closure is SHA-locked: RDKit, Boost, Eigen,
-better-enums, Catch2, and RingDecomposerLib. The private core is C++20; the
-public C/C++ boundary and existing native modules remain C++17-compatible.
-Configuration forbids upstream network fallback and moving revisions.
+A prior clean local CPython 3.10-3.14 matrix from source checkpoint 37a08b3
+passed build, repair, isolated installation, coexistence, payload, and ELF
+audits. Because the packaged conformer adapter later changed, the complete
+workflow-equivalent matrix was rerun from a clean detached b0aa6c5 checkout.
 
-Two packaging products are intentionally separate:
+All five current-checkpoint wheels passed build, repair, isolated installation,
+both import orders, native search/relevant-cycle imports, Open Babel and RDKit
+coexistence, exact Python/native RDKit identities, and an ETKDG generation
+smoke. The archive-content auditor, CRC scan, duplicate-member check, embedded
+tag audit, and direct `_rd_native` ELF audit also passed.
 
-- the Python wheel absorbs the private static core into `_rd_native` and does
-  not install the C++ SDK; and
-- the versioned developer SDK installs the C ABI library, C/C++ headers, CMake
-  package metadata, notices, and licenses, without private RDKit headers.
+| ABI | Wheel size (bytes) | SHA-256 |
+| --- | ---: | --- |
+| cp310 | 5,638,695 | 4f35c10ed1b9134cfc013398942afab645d0abf669c962b55d62df37f894859d |
+| cp311 | 5,643,505 | f87d03e47e7059195ff06d3a94cece7a45179548a58e6a52a77bba0d55c3e4c2 |
+| cp312 | 5,665,701 | 50099f8d7e6b3f56f7fdaa4a9e31b484e0579b4ac21395303a5d75b7d915af1e |
+| cp313 | 5,666,048 | 18f1eb3ea95f87f3062a340420018d5d8e3d8c7bd67483fade4d2d946c61d5d4 |
+| cp314 | 5,668,859 | 1d6d21f913a1d07087ed0dbd3ceeabc828e01aca131143d0756ddfa5864f7d80 |
 
-The release profile is pinned to
-`manylinux_2_28_x86_64@sha256:39df0042...b4ff82`, GCC/G++ 14.2.1,
-binutils 2.41, CMake 4.4.3, and Ninja 1.13.2. A clean detached tree at
-`37a08b3` completed the local workflow-equivalent CPython 3.10-3.14 PEP-517
-build, repair, isolated install, coexistence smoke, payload, and ELF matrix in
-that exact image. All five wheels passed. This is local pinned reproduction,
-not GitHub-hosted Actions provenance. Whole-wheel `auditwheel show` also
-retains the declared Open Babel exception described in Section 11.3; the
-artifacts are not claimed as strict standalone manylinux wheels.
+Every archive contains 871 entries and 763 files with zero duplicate members,
+exactly one `_rd_native` extension, and no wrapper source, header, CMake, SDK,
+or locked-source contamination. Each extension is stripped x86-64 ELF, has no
+RPATH/RUNPATH or dynamic RDKit/Boost/Conda dependency, exposes only the
+`PyInit__rd_native` function, and needs only the same six system runtimes as
+the earlier matrix. Its per-ABI build ID is unchanged from the earlier native
+build, as expected because the conditional rerun was triggered by packaged
+Python adapter code rather than an rdWrapper-native change.
 
-## 6. Force-field component substitution status
+The project continues to make no strict standalone auditwheel claim while the
+pinned Open Babel wheel supplies libopenbabel.so.8.
 
-The private backend-neutral provider seam and both Open Babel/RDKit adapters
-are implemented. Only the initial ligand coordinate-provider call is
-replaceable. Worker seed propagation, conformer count, deterministic minimum
-ordinal selection, and every downstream ligand/complex stage remain unchanged.
-RDKit failure is explicit; there is no hidden Open Babel fallback.
+## 6. Standalone R0 result
 
-Focused seam and complex/force-field regression reported 177 passes. This is
-implementation evidence, not the required formal `F1` business result.
+The canonical 187-ligand R0 result remains valid component evidence because
+the schema-v2 correction affects the later CBond semantic-cohort
+serialization, not standalone native generation.
 
-Current production decision:
-
-- Open Babel remains the default provider;
-- `candidate_count` remains reserved;
-- no public `backend=`, `sampler=`, profile, or complete-workflow switch was
-  added;
-- no existing geometry review, recovery, placement, optimization, or final
-  acceptance stage was removed; and
-- no default-provider cutover is authorized until formal `O0`/`F1` evidence
-  is available and reviewed.
-
-## 7. Standalone canonical R0 result
-
-The canonical input contains 187 physical SMILES lines with SHA-256
-`e67ae3167a1a96d3c6a4c6df3ce12b70abfaf479bdd89bb156bfaefa771795a7`.
-The clean-tree rerun used commit
-`90dd0923199c57b083cb8f8d1f952a86ba090b85`, Python 3.11.16, RDKit
-2026.09.1, one outer worker, one ETKDG internal thread, fixed seeds, and
-requested conformer counts `1 / 8 / 32`.
-
-| Requested count | Trials | Success | Partial | Returned conformers |
+| Requested conformers | Trials | Success | Partial | Returned conformers |
 | ---: | ---: | ---: | ---: | ---: |
 | 1 | 187 | 187 | 0 | 187 |
 | 8 | 187 | 186 | 1 | 1,492 |
 | 32 | 187 | 186 | 1 | 5,970 |
-| **Total** | **561** | **559** | **2** | **7,649** |
+| Total | 561 | 559 | 2 | 7,649 |
 
-Both partial results are deterministic physical case 10 outcomes: 4/8 and
-18/32 conformers. There were no unsupported or failed trials.
+Both partial results are deterministic case-10 outcomes: 4/8 and 18/32
+conformers. There were no unsupported or failed trials.
 
-| Metric | Exact Step 45 result |
+| R0 metric | Result |
 | --- | ---: |
 | Primary generation time | 78.004250637 s |
 | Matrix trials per second | 7.191915766 |
 | Returned conformers per second | 98.058758818 |
-| Detached Level-2 observation time | 0.017287096 s |
-| Finite/atom-row-exact returned conformers | 7,649 / 7,649 |
+| Finite and atom-row-exact conformers | 7,649 / 7,649 |
 | Atom-order failures | 0 |
 | Topology failures | 0 |
 | Level-1 transport failures | 0 |
 | Input-mutation failures | 0 |
 | Same-seed mismatch failures | 0 |
 
-Stereo interpretation is explicitly non-vacuous in the report schema. All
-561 input trials had zero stereo records, atom transport, and bond transport,
-including the source row containing SMILES `@` markers. Therefore all 7,649
-returned conformers are `NOT_APPLICABLE` for Level 2; assessed, valid, invalid,
-equivalent, and non-equivalent Level-2 counts are all zero. The zero Level-1
-failure count proves empty-payload nonmutation only; it does **not** prove that
-source SMILES chirality was imported and preserved.
+The Level-1 payload was empty for every R0 trial. The zero transport-failure
+count is therefore an empty-payload nonmutation result, not evidence that the
+source-SMILES stereo notation was imported.
 
-## 8. Coordination-aware C1/C2 research status
+## 7. Formal cohort correction
 
-`C1` (stock connected whole-complex coordinate-only ETKDG) and `C2` (the same
-route with explicit directed donor-to-metal and optional donor-pair bounds)
-are implemented as standalone research routes. `C2` validates existing
-donor-to-metal dative edges, applies Angstrom bounds, and triangle-smooths the
-custom matrix before embedding. Neither route calls Hotpot force fields,
-Open Babel, RDKit UFF/MMFF, geometry gates, repair, selection, or perturbation.
+### 7.1 Why schema v1 was rejected
 
-The fresh current-native one-case Eu smoke rerun labels itself
-`evidence_class=development-smoke` and `formal_claim_allowed=false`. All six
-C1/C2 cells at requested counts `1 / 8 / 32` returned full `SUCCESS` batches
-with deterministic coordinates and input nonmutation.
+The first formal cohort and matrix used schema v1. That schema serialized
+elements, charges, aromaticity, bonds, stereo payload, and coordination data
+but omitted each atom's current implicit_hydrogens value.
 
-| Route | Count 1 max / strict | Count 8 max / strict | Count 32 max / strict |
+Fresh CBond investigation proved the omission was chemically material:
+
+- CBond can remove polar graph H while preserving the parent atom's current
+  implicit-H count;
+- schema-v1 reconstruction defaulted that count to zero;
+- force-field hydrogen materialization therefore could not restore some
+  current chemical states; and
+- the most visible symptom was seven aromatic [nH] failures before ETKDG.
+
+All 182 positive schema-v2 graphs contain at least one nonzero current
+implicit-H value. The direct downstream effect is case-dependent because some
+hydrogens already exist as graph atoms and donor working copies may recompute
+state, but schema v1 did not faithfully preserve the current CBond atom state
+for any of the 182 positive cases. Selectively rerunning seven visible failures
+would therefore have been invalid.
+
+The schema-v1 cohort canonical SHA-256 was
+c35638bbe2b4c71a9fee536c529522ad3e5f2d92b5e336e09ced87a7ce1f8642.
+The complete matrix at 6071464 is retained as diagnostic execution evidence
+only. It is not combined with schema-v2 outcomes and supports no final
+scientific route conclusion.
+
+### 7.2 Schema-v2 contract and verification
+
+Schema v2:
+
+- serializes exact nonnegative integer implicit_hydrogens on every atom;
+- restores it during Hotpot graph reconstruction;
+- includes it in the semantic graph and aggregate cohort identities;
+- increments both semantic-cohort and derived C1/C2 native-graph versions;
+- rejects schema v1 rather than filling or inferring the missing state; and
+- rejects missing, Boolean, negative, floating-point, and string counts.
+
+The corrected cohort identities are:
+
+| Artifact | Identity |
+| --- | --- |
+| Canonical 187 source SHA-256 | e67ae3167a1a96d3c6a4c6df3ce12b70abfaf479bdd89bb156bfaefa771795a7 |
+| Cohort schema | 2 |
+| Cohort canonical SHA-256 | 8f68e8b74d51eac07f28846cb901e92b94e5697aa0495733dbc44e03ae198102 |
+| cohort.json file SHA-256 | 2e6702e59e57b2b8a56653cf5442f99df07f58c97a18b59afbc01cfba1ca58be |
+| CBond-positive count | 182 |
+| no-CBond indices | 139, 182, 185, 186, 187 |
+
+Every one of the 182 positive graphs round-tripped through
+semantic_case_molecule() with no graph-field difference. Every C1/C2 native
+atom projection also matched its source semantic atom table.
+
+Case 26 then passed O0, F1, F2, C1, and C2 with all A01-A10 gates true. The
+previously visible schema-v1 [nH] failures at cases 26, 35, 36, 98, 153, 154,
+and 180 all passed every primary schema-v2 route. The 1092-result matrix
+contains no kekulization, aromatic-representation, or hydrogen-transport
+error.
+
+## 8. Formal runtime and execution identity
+
+The ai-14 formal start gate recorded:
+
+| Identity | Value |
+| --- | --- |
+| Hotpot commit | b0aa6c5224a97469359c53448ba48d24d8a46112 |
+| Git worktree | clean |
+| Hotpot version | 0.5.4.0 |
+| Python | CPython 3.13.15 |
+| Native RDKit | 2026.09.1 |
+| Python RDKit | 2026.09.1 |
+| Python distribution | 2026.9.1 |
+| RDKit source commit | fece8caa860bdf6c9c82bdb9253f22a0cf87150c |
+| rdWrapper C API | 1 |
+| Open Babel | 3.2.1 |
+| Workers | 16, spawn |
+
+The formal run produced:
+
+- 1092 expected results;
+- 1092 observed results;
+- zero missing, duplicate, or unexpected results;
+- manifest SHA-256
+  51931b8928d5d27a40035bc8ad17ea3383b3a8e8692f401554c4363ecb97a1e8;
+  and
+- summary SHA-256
+  1b90d1ec7519ea2e590d623a58fc69b2fe422b8e60543520964df8c657475490.
+
+The schema-v1 directory was not overwritten. The authoritative schema-v2
+study resides separately below ai-14:~/mca_study/plan17-b0aa6c5.
+
+## 9. Formal business results
+
+| Route | Automated pass | Automated failure | Execution failure | Selected structures |
+| --- | ---: | ---: | ---: | ---: |
+| O0 | 180 | 2 | 0 | 180 |
+| F1 | 180 | 1 | 1 | 180 |
+| F2 | 180 | 1 | 1 | 180 |
+| C1 | 172 | 2 | 8 | 172 |
+| C2 | 157 | 4 | 21 | 157 |
+| F1 repeat | 180 | 1 | 1 | 180 |
+
+### 9.1 O0, F1, and F2
+
+O0 failures:
+
+- case 24: finite selected state rejected by A08 for atom proximity and
+  bond-geometry failures; and
+- case 96: finite selected state rejected by A08 for short-bond and
+  bond-length-ratio failures.
+
+F1 and F2 have the same two failed cases:
+
+- case 10: fixed-seed, single-proposal ETKDG returned no conformer; and
+- case 29: downstream optimization returned a finite state that failed A08 for
+  atom proximity, short-bond, and bond-length-ratio checks.
+
+F2 independently generated and froze the ETKDG coordinates before replaying
+them through the O0 downstream path. Its identical failed-case set strongly
+localizes the remaining F1 outcomes to proposal/downstream compatibility
+rather than the in-worker adapter seam.
+
+The F1 repeat is complete:
+
+- comparable cases: 182/182;
+- primary/repeat business classification mismatches: 0; and
+- primary/repeat A01-A10 signature mismatches: 0.
+
+F1 therefore has stable 180/182 behavior under the recorded configuration,
+but stability does not satisfy the 182/182 correctness threshold.
+
+### 9.2 C1
+
+C1 whole-complex ETKDG returned no conformer for:
+
+    10, 22, 25, 28, 96, 101, 115, 117
+
+Case 21 reached a finite selected state but failed A08 geometry. Case 70
+encountered an unavailable gradient after topology blocking, had no successful
+established recovery, and could not continue optimization. It correctly failed
+A02, A04, A05, A06, A08, and A10.
+
+### 9.3 C2
+
+C2 whole-complex ETKDG returned no conformer for:
+
+    10, 28, 96, 101, 115
+
+The fixed coordination-bounds matrix failed triangle smoothing for:
+
+    22, 25, 64, 66, 67, 71, 72, 74,
+    75, 79, 80, 81, 103, 104, 105, 109
+
+Cases 21, 54, and 63 returned finite selected states but failed A08 geometry.
+Case 70 had the same unrecovered unavailable-gradient outcome as C1.
+
+The triangle-smoothing failures reject this fixed-bounds C2 hypothesis. They do
+not prove that the chemical complexes cannot exist, and they must not be hidden
+by a fallback to C1.
+
+## 10. Numerical acceptance audit
+
+The primary matrix admits 869 selected structures. Including the F1 repeat,
+1049 selected structures were written.
+
+All 1049 selected structures have:
+
+- finite coordinates;
+- finite selected best_energy;
+- finite selected RMS and maximum gradients;
+- no selected-frame explosion;
+- a passing standard geometry report;
+- selected-frame/report consistency; and
+- an exact selected-structure asset.
+
+There is no unavailable-gradient event in an admitted structure. The only
+unavailable-gradient evidence occurs in C1/C2 case 70. Neither route contains
+a successful standard recovery followed by resumed optimization, so both
+results correctly remain hard failures.
+
+The admitted-value ranges are evidence of numerical availability, not
+convergence or quantitative force-field accuracy:
+
+| Run | Selected count | Energy min | Energy max | Max RMS gradient | Max gradient |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| O0 | 180 | 62.853 | 14,610.968 | 28,024.798 | 171,047.964 |
+| F1 | 180 | 39.150 | 17,955.045 | 384.315 | 2,340.265 |
+| F2 | 180 | 39.150 | 19,541.058 | 513.692 | 3,149.060 |
+| C1 | 172 | 31.921 | 9,084.880 | 50.022 | 319.331 |
+| C2 | 157 | 31.665 | 9,084.115 | 26.375 | 173.074 |
+| F1 repeat | 180 | 39.150 | 16,945.409 | 393.076 | 2,435.799 |
+
+The owner contract deliberately does not impose an absolute energy or gradient
+ceiling once values are finite and the standard geometry gate passes. Some
+selected structures exhausted their budgets and are not demonstrated local
+minima. The supported description is therefore “Plan-17 accepted initial
+structures,” not “converged physical ground states.”
+
+## 11. Timing and resource report
+
+The formal matrix wall interval from manifest creation to summary generation
+was 506.107 seconds. Per-case elapsed sums are not wall time; they include work
+executed concurrently by 16 spawned workers.
+
+| Run | p50 s | p95 s | max s | elapsed sum s | user CPU s | Max observed RSS KiB |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| O0 | 8.027 | 19.810 | 44.125 | 1,755.171 | 925.531 | 227,148 |
+| F1 | 7.474 | 19.213 | 36.617 | 1,549.921 | 760.927 | 227,148 |
+| F2 | 7.458 | 19.295 | 36.828 | 1,550.421 | 781.470 | 231,164 |
+| C1 | 2.486 | 9.919 | 36.097 | 691.132 | 690.533 | 236,616 |
+| C2 | 2.239 | 8.927 | 36.680 | 610.513 | 609.867 | 236,616 |
+| F1 repeat | 7.403 | 18.451 | 36.813 | 1,546.564 | 758.739 | 241,032 |
+
+Overall:
+
+- per-case elapsed sum: 7,703.722 seconds;
+- user CPU sum: 4,527.066 seconds;
+- system CPU sum: 2.579 seconds; and
+- maximum observed process high-water mark: 241,032 KiB.
+
+F1's elapsed sum is approximately 11.7 percent below O0 in this run. That
+observation does not override the case-10 and case-29 correctness failures.
+It also must not be presented as an isolated ETKDG speedup: F1 sampling occurs
+inside the ligand worker and is included in ligand-build timing, whereas F2
+records its frozen proposal separately.
+
+C1/C2 timing is not a production throughput comparison. Those routes enter at
+a different stage and several cases terminate before force-field optimization.
+
+## 12. Gallery and human-review status
+
+The isolated ai-14 gallery environment rendered five exhaustive route sheets
+without modifying the existing hp environment.
+
+| Route | Rendered selected | Scientific placeholder | Render error |
+| --- | ---: | ---: | ---: |
+| O0 | 180 | 2 | 0 |
+| F1 | 180 | 2 | 0 |
+| F2 | 180 | 2 | 0 |
+| C1 | 172 | 10 | 0 |
+| C2 | 157 | 25 | 0 |
+| Total | 869 | 41 | 0 |
+
+Failed route-cases deliberately expose no rejected or substitute structure.
+Each receives a labeled placeholder. The renderer never searches trajectory
+frames or another route to fill a failed cell.
+
+Gallery identities:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| gallery.json | 1eebd77a35849da2bb65502d85f30c94a1eb668290857e4ec1cafd032451055a |
+| O0 contact sheet | d636dcdbdc7055092117fa0af56203e59cb26d775c002bfda8cdb5c210c7842b |
+| F1 contact sheet | 4c63b7251fa75339aea6e1327b20c84d4b03f3947e32085bf6121da1b0838608 |
+| F2 contact sheet | 46b452dc14aa5ae5dfe3dc3b9f39e01450bb5024323d456744274842cd027f73 |
+| C1 contact sheet | 105342409aac2445be579f51772ab6bfcb8578078df45acd5ffd7052f29733aa |
+| C2 contact sheet | 2b2793a54270abf024b9d1431d9aab33c16071e0adb88c87b3defad4904fe66a |
+| Pending review template | cac4741f2c0e2dc2533b46a2c2dfed90e392c8bbea9191f0ef1717ccd7b64bff |
+
+A non-authoritative technical contact-sheet scan did not add a visible
+nonphysical flag. That scan is not an attributable human review. The template
+correctly remains:
+
+- status: pending_human_review;
+- expected rows: 910;
+- reviewed rows: 0; and
+- reviewer/completion time: unset.
+
+The final report must not interpret “no automated flag” or a technical scan as
+human completion.
+
+## 13. Dataset publication status
+
+The owner authorized publication of the five primary route-case results as a
+governed Hotpot CBond-to-force-field benchmark.
+
+The publication matrix is fixed at:
+
+- 182 cases by five primary routes;
+- 910 result records;
+- currently 869 admitted selected-coordinate assets; and
+- 41 explicit failed results without a coordinate asset.
+
+The F1 repeat is control evidence and cannot become a sixth publication route
+or a coordinate source. If the human reviewer flags an otherwise admitted
+structure, that result becomes a manual-review failure and the admitted asset
+count decreases explicitly.
+
+The validation-to-publication bridge already verifies run identity, cohort and
+source identities, exact selected.sdf siblings, proposal artifacts, trajectory
+tree hashes, F1 repeat controls, gallery/review hashes, and Bundle evidence
+before atomic publication.
+
+No formal-data conversion or Bundle has yet been created because the bridge
+requires a completed attributable human review. That review is the only known
+prerequisite blocker for the dataset path. After it exists, the remaining
+work is to execute conversion, prepare and revalidate the Bundle, synchronize,
+certify, ingest with the owner authorization, and record the resulting
+inventory/certificate identities.
+
+## 14. Original-goal final status
+
+| ID | Objective | Implementation | Validation | Final conclusion |
+| --- | --- | --- | --- | --- |
+| G01 | Pin one Hotpot release to RDKit 2026.09.1 | Implemented | Validated | Native, Python metadata, lock, and runtime agree |
+| G02 | Lock exact offline native closure | Implemented | Validated | Six archives and native build identity are locked |
+| G03 | Public standalone Python rdWrappers | Implemented | Validated | API, native fixture, R0, and prior wheel tests pass |
+| G04 | Independent C ABI and C++17 facade | Implemented | Validated | C11 plus ABI-0/ABI-1 C++17 consumers pass |
+| G05 | Avoid Python RDKit translation in native use | Implemented | Validated | Native graph path and source fences pass |
+| G06 | Generic field-selective molecule transport | Implemented | Validated | Python/C++ common views and consumer policies pass |
+| G07 | Preserve public Open Babel component | Implemented | Validated | API retained; O0 supplies new population evidence |
+| G08 | Coordinate-only nonmutating standalone sampling | Implemented | Validated | R0 and focused tests prove the boundary |
+| G09 | Run canonical R0 at 1/8/32 | Implemented | Validated | 559 success, two partial, no failed/unsupported |
+| G10 | Private backend-neutral provider seam | Implemented | Validated | Worker crossing and full routes exercise it |
+| G11 | Replace only initial ligand provider | Implemented | Validated | O0/F1/F2 share downstream policy and evidence |
+| G12 | Run complete 182-case F1 | Implemented | Validated | 180 pass, one A08 failure, one no-conformer failure |
+| G13 | Owner-visible default decision | No cutover by design | Resolved | F1 is below 182/182; Open Babel remains default |
+| G14 | Whole-complex C1 experiment | Implemented | Validated | 182 cases continued through force-field policy |
+| G15 | Coordination-bounded C2 experiment | Implemented | Validated | 182 cases; fixed-bounds hypothesis rejected for 16 |
+| G16 | Level-1 transport/lifecycle | Implemented | Fixture/golden validated | R0 corpus has empty represented payload |
+| G17 | Level-2 Hotpot stereo semantics | Implemented | Fixture/golden validated | Seven gates complete; source importer remains separate |
+| G18 | Preserve order/topology/charge/direction/stereo | Implemented | Validated for generated/executed results | All evaluated results pass A09; pre-generation failures are explicit |
+| G19 | Retain obWrappers and rdWrappers | Implemented | Validated | Both public components remain |
+| G20 | One public force-field interface | Implemented | Validated | No backend/profile; candidate_count remains reserved |
+| G21 | Stage/resource reporting | Implemented | Validated | Formal route and stage metrics are complete |
+| G22 | CPython 3.10-3.14 wheels | Implemented | Validated locally at current checkpoint | Five b0aa6c5 workflow-equivalent builds and audits pass |
+| G23 | GitHub-hosted CI provenance | Not implemented | Not validated | Separate release task |
+| G24 | Strict standalone auditwheel policy | Explicit non-requirement | Not claimed | Open Babel remains a controlled cross-wheel dependency |
+| G25 | Recover byte-identical historical cohort | Obsolete | Not required | Current semantic cohort replaces the false prerequisite |
+| G26 | Normalized current 187/182 cohort | Implemented | Validated | Schema v2 exact 182/5 partition and round trip |
+| G27 | Exhaustive route gallery review | Gallery implemented | Partially validated | 910 cells rendered; attributable human review pending |
+| G28 | Selected-state/recovery acceptance contract | Implemented | Validated | Formal matrix and case 70 exercise hard-failure semantics |
+| G29 | Frozen F2 replay control | Implemented | Validated | Complete 182-case primary route |
+
+## 15. Validation-experiment final status
+
+| ID | Experiment | Final status | Evidence or remaining action |
 | --- | --- | --- | --- |
-| C1 | 0.3595 A / 0 of 1 | 0.4384 A / 2 of 8 | 0.6428 A / 7 of 32 |
-| C2 | 0.001949029236 A / 0 of 1 | 0.001949029236 A / 7 of 8 | 0.001949029236 A / 29 of 32 |
+| V01 | Affected force-field regressions | Validated | Current affected selection: 181 passed |
+| V02 | Exact runtime/source identity | Validated | Formal ai-14 gate passed at b0aa6c5 |
+| V03 | Python/C/C++ standalone API/SDK | Validated | Existing native/SDK consumers remain green |
+| V04 | Common-buffer/Open Babel parity | Validated | Existing parity and mixed-invalid tests retained |
+| V05 | Canonical R0 187 x 1/8/32 | Validated | 559 success and two deterministic partial results |
+| V06 | Current semantic cohort reconstruction | Validated | Schema v2, exact source hash and 182/5 partition |
+| V07 | Fresh O0 complete workflow | Complete | 180/182 automated passes |
+| V08 | F1 complete workflow | Complete, cutover failed | 180/182 is below the fixed threshold |
+| V09 | O0/F1/F2 post-provider policy parity | Validated | Shared route implementation and evidence schema |
+| V10 | Selected energy/gradient audit | Validated | Every admitted selected state is finite |
+| V11 | Unavailable-gradient continuation audit | Validated | Only C1/C2 case 70; no recovery, correct hard failure |
+| V12 | Intermediate numerical-excursion classification | Validated | Focused evaluator tests and formal evidence |
+| V13 | Standard terminal acceptance | Complete | All five routes evaluated over 182 cases |
+| V14 | Semantic graph/stereo parity | Validated for evaluated results | No A09 mutation in a completed execution |
+| V15 | Five-route manual gallery review | Pending human review | Gallery 910/910 and zero render errors; review 0/910 |
+| V16 | Timing/resource comparison | Complete | Per-route/stage and aggregate evidence recorded |
+| V17 | F1 repeated-run consistency | Complete | 182/182 classifications and gates agree |
+| V18 | C1 generation plus force field | Complete | 172 pass, 10 explicit failures |
+| V19 | C2 generation plus force field | Complete | 157 pass, 25 explicit failures |
+| V20 | Source-SMILES stereo preservation | Not run | Separate governed importer/sidecar scope |
+| V21 | CPython 3.10-3.14 wheel matrix | Complete locally | Five b0aa6c5 builds, installed-wheel smokes, content and ELF audits pass |
+| V22 | GitHub-hosted CI provenance | Not run | Separate release task |
+| V23 | xTB/DFT/QM handoff | Excluded | Explicit owner scope exclusion |
+| V24 | F2 precomputed replay | Complete | Full 182-case frozen-proposal route |
 
-Here "max" is the largest detached bound violation and "strict" is the
-number of returned conformers with exactly zero violation. This confirms that
-the C2 bounds strongly guide embedding but do not promise exact interval
-satisfaction.
+## 16. Test and verification summary
 
-These numbers are **not** formal 182-case evidence. The smoke manifest is
-permanently labelled non-formal, and no `C1`/`C2` route enters `hotpot.ff` in
-this stage. A read-only search of `ai-14:~/mca_test` and `~/mca_study` by the
-exact expected formal-manifest SHA found no matching artifact.
+The schema-v2 correction and final formal path were verified by:
 
-## 9. Stereochemistry completion
-
-### 9.1 Level 1
-
-Level 1 now preserves ordered anchors/carriers, opaque source values, enhanced
-group lineage, isotope/radical facts, current versus source hydrogen ledgers,
-and ordered bond display direction through molecule copy, components,
-assembly, removal, hide/recover, working-copy commit/rollback, Python/native
-packing, RDKit conversion, and native generation. `AXIS` stores the complete
-ordered cumulene path. Structural lifecycle repairs also preserve hidden bonds
-and independent atom-array ownership.
-
-Level 1 remains transport only: it does not assert validity, stereogenicity,
-coordinate consistency, equivalence, or CIP identity.
-
-### 9.2 Level 2 seven-gate result
-
-| Gate | Implemented result |
+| Scope | Result |
 | --- | --- |
-| 1 | Frozen TH/DB/AX/SP/TBP/SPY/OH descriptor and permutation algebra |
-| 2 | Deterministic graph validation for declared TH/DB semantics |
-| 3 | Explicit-mapping alignment and parity transformation |
-| 4 | Hotpot-owned coordinate assignment, degeneracy, and contradiction reports |
-| 5 | Ordered axial/atropisomeric and enhanced ABS/AND/OR group semantics |
-| 6 | Complete represented-graph projection, native RI equivalence, direct-priority derived names |
-| 7 | Atomic SP/TBP/SPY/OH public semantic cutover, including chelates |
+| Focused cohort plus compiled-native tests | 29 passed |
+| Full affected coordination/force-field/native selection | 181 passed |
+| Focused Ruff E/F/I | Passed |
+| git diff --check | Passed |
+| ai-14 exact formal runtime gate | Passed |
+| Schema-v2 case-26 five-route smoke | O0/F1/F2/C1/C2 all A01-A10 pass |
+| Formal schema-v2 matrix | 1092/1092 complete |
+| F1 repeat comparison | 182/182 consistent |
+| Gallery asset validation | 910 cells, zero render errors |
+| Validation-publication/dataset fixture selection | 13 passed |
+| Current-checkpoint wheel matrix | CPython 3.10-3.14 all passed |
+| Wheel content/integrity audit | Five passed; zero duplicate members |
+| `_rd_native` wheel ELF audit | Five passed; no RPATH/RUNPATH or dynamic RDKit/Boost/Conda dependency |
 
-Gate 7 uses the frozen Hotpot ideal-site conventions, determinant-positive
-center-rooted fitting, 12-degree angular-RMS acceptance, a 2-degree same-family
-uniqueness margin, and a 3-degree TBP/SPY margin. It validates exact
-represented first-shell coverage, current implicit-H virtual edges,
-same-center conflicts, multicenter coupling, and chelate partition preservation.
-It neither infers undeclared centers nor changes descriptor family to fit
-coordinates.
+The affected local selection used the real compiled native rdWrapper extension.
+The formal ai-14 matrix exercised the exact Python 3.13/native runtime rather
+than mutating the existing hp environment to add pytest.
 
-Gate 6 derives `R/S` or `E/Z` only when direct atomic-number/isotope priority
-fully resolves ordering. Recursive sequence rules, rings, pseudoasymmetry, and
-axial CIP remain explicit unresolved cases rather than false labels.
+Historical broader evidence remains recorded in the implementation log,
+including the standalone component, stereo, SDK, native-build, import-order,
+and prior wheel selections. It is not restated as current wheel closure where
+the source checkpoint differs.
 
-Pinned RDKit independently observed all 53 SP/TBP/OH ideal configurations
-through a frozen Hotpot-to-RDKit permutation lookup. Open Babel 3.2.x was used
-only as an isolated TH/DB/SP parsing-and-distinction witness. Neither toolkit
-is claimed as the Hotpot semantic oracle; SPY, AXIS, chelate partitions,
-enhanced groups, and Hotpot's 12/2/3-degree policy are outside those external
-cross-check claims.
+Outstanding verification is explicit:
 
-## 10. Implementation checkpoint chronology
+- no attributable human review has been completed;
+- no formal-data dataset conversion/ingest has run;
+- GitHub-hosted CI and xTB/QM remain separate non-executed scopes.
 
-The implementation used small production and documentation checkpoints. This
-table records the primary dependency order; the complete one-commit-per-step
-detail remains in `implementation_log.md`.
+## 17. Implementation checkpoint chronology
 
-| Step(s) | Result | Primary checkpoint(s) |
+The complete per-step record remains in implementation_log.md. The major
+dependency checkpoints are:
+
+| Steps | Result | Representative checkpoint |
 | --- | --- | --- |
-| 0-1 | Live log, corrected executable plan, exact RDKit/Python metadata | `066e6b2`, `39978fb` |
-| 2-3 | Python sampler API and two-level stereo API frozen | `c232d1d`, `18d26ca` |
-| 4-5 | Generic C++ view and field-selective Python buffers | `1707bbf`, `8f269cb` |
-| 6 | Standalone C ABI/C++17 SDK surface | `356fda8` |
-| 7-8 | Open Babel migrated; native policy isolated | `3b3a2b0`, `2625072` |
-| 9-10 | Group/H contracts and exact offline native closure | `2801e79`, `ffb2924` |
-| 11-13 | Ownership, Level-1 remapping, structure | `26f2d41`, `19c7555`, `9c0433d` |
-| 14-15 | Force-field view and Level-1 transaction | `d167b00`, `1dacca3` |
-| 16-17 | Level-1 packing and lifecycle | `9eb8684`, `570d756` |
-| 18 | Level-2 Gate-1 algebra | `7d2debf` |
-| 19-21 | Native ETKDG core, RDKit adapter, common C++ views | `1c60a70`, `56c0b42`, `32a6064` |
-| 22-23 | Direction/H closure, Python binding, and SDK | `36069ed`, `42d7c4c` |
-| 24 | Detached R0 runner and legacy-H closure | `7f4c60d`, `8e8d2f8` |
-| 25 | Private force-field provider seam | `097749a` |
-| 26-27 | Level-2 graph validation and explicit-mapping alignment | `b61e98a`, `b086577` |
-| 28 | Standalone C1/C2 constrained ETKDG | `edc15be` |
-| 29 | Locked manylinux wheel integration | `531130c` |
-| 30 | Gate-4 coordinate semantics | `31fe1a4` |
-| 31-34 | Model revision, AXIS, axial/enhanced Gate 5 | `1079b40`, `7817fab`, `b471052`, `631ff90` |
-| 35-36 | Native RI and represented graph | `0a82896`, `3328f53` |
-| 37-38 | Graph equivalence and direct names | `ca401d5`, `9c8f4b8` |
-| 39-41 | SPY algebra and complete Gate-7 contract | `0eb3536`, `d2655b9`, `019acc7` |
-| 42-44 | Gate-7 graph, coordinates, atomic public cutover | `e099a3d`, `035e2c2`, `a948279` |
-| 45 | Honest Level-2 R0 reporting and canonical rerun | `90dd092`, `c1e16e7` |
-| 46 | Bounded external-toolkit observations | `c79d02c`, `6673be2` |
-| 47 | Supported import-order tests and local release regression | `10bc417`, `6343713` |
-| 48 | Current-native C1/C2 smoke and remote artifact search | `1bac0a8` |
-| 49 | Initial implementation report and release-gate handoff | `0719e2a` |
-| 50 | Release-wheel payload isolation and pre-upload gate | `37a08b3`, `da31c7b` |
-| 51 | Local five-interpreter release-wheel matrix | `24cee99` (source `37a08b3`) |
+| 0-23 | API, common transport, Level 1, native core, Python/C/C++ SDK | 42d7c4c |
+| 24-29 | R0, private provider seam, C1/C2 generator, wheel integration | 531130c |
+| 30-44 | Level-2 Gates 4-7 and atomic public cutover | a948279 |
+| 45-51 | R0 closure, toolkit observations, local native/SDK and prior wheel matrix | 24cee99 |
+| 52-58 | Corrected validation contract, source restoration, evaluator, F2, publisher, gallery, cohort | ecaff12 |
+| 59-61 | Five routes, semantic dataset identity, artifact-grounded A01-A10 evidence | 537784b |
+| 62 | Exact formal Python/native runtime binding | fa828b5 |
+| 63 | Deterministic cohort atom-ID normalization | 682e801 |
+| 64 | Force-field-only fully materialized-H projection | 9b31908 |
+| 65 | Validation-to-dataset evidence-chain sealing | 8986654 |
+| 66 | Schema-v2 current implicit-H preservation | b0aa6c5 |
+| 67 | Authoritative schema-v2 matrix and exhaustive gallery | source b0aa6c5 |
+| 68 | Current-checkpoint CPython 3.10-3.14 wheel rerun | source b0aa6c5 |
 
-## 11. Validation results
+The first schema-v1 formal execution occurred after Step 64 and exposed the
+cohort omission. Step 66 invalidated that cohort identity before final
+interpretation and required the complete schema-v2 rebuild and rerun described
+in this report.
 
-### 11.1 Focused and cumulative test evidence
+## 18. Supported claims and explicit non-claims
 
-| Checkpoint/scope | Result |
-| --- | --- |
-| Unchanged focused baseline after required output directory | 298 passed, 5 skipped |
-| Private provider seam plus force-field/complex selection | 177 passed |
-| R0 runner selection after Level-2 separation | 12 passed |
-| Stereo + `rdWrappers` at Step 45 | 534 passed, 2 skipped |
-| Toolkit-observation selection | 65 passed |
-| Final complete stereo + `rdWrappers` selection | 601 passed, 2 skipped |
-| Fresh extension/SDK, C/C++ consumer, public API, packaging selection | 71 passed |
-| Installed C11/C++17 consumers | Passed, including C++ ABI 0 and ABI 1 |
-| Release-wheel payload auditor selection | 19 passed |
-
-### 11.2 Fresh local Phase-8 build and audit
-
-| Item | Exact Step 47 result |
-| --- | --- |
-| Curated functional first pass | 2,435 passed; 12 skipped; 49 subtests; 2 failed; 9 errors |
-| Cause of all 11 nonpassing cases | Read-only default model/cache paths, not product assertions |
-| Writable-cache rerun | 55 passed |
-| Final MCA stdout case after `HF_HOME`/`XDG_CACHE_HOME` redirection | Passed |
-| Fresh offline native build | 164 Ninja steps; all 6 archives SHA-verified |
-| Fresh extension/SDK focused selection | 71 passed |
-| Export audit | SDK: exactly 15 `hotpot_rd_*` functions; extension: only `PyInit__rd_native` |
-| Dependency audit | No RPATH/RUNPATH or dynamic RDKit/Boost; SDK `ldd -r` clean |
-| Installed SDK content | 4 public headers; 8 license/notice files |
-| Fresh runtime identity | Hotpot 0.5.4.0; native RDKit 2026.09.1 |
-
-`tests/run_coverage.sh` could not emit coverage data because the optional
-`coverage` module is absent. Its functional targets were run directly with
-pytest. The environmental cache failures were rerun successfully, but this is
-reported as staged closure rather than one initially green coverage command.
-
-### 11.3 Local CPython 3.10-3.14 release-wheel matrix
-
-The final wheels were built from clean source commit
-`37a08b30f785bf54149436ae2ce5d852ac7cbd22` with cibuildwheel 4.3.0 and exact
-manylinux image digest
-`sha256:39df0042d5cc900b085aa25a0659368b42a0006c54c474299b785b44c1b4ff82`.
-Every isolated install asserted Python `rdkit==2026.9.1`, native RDKit
-`2026.09.1`, both supported Hotpot/RDKit import orders, native search and cycle
-operations, `_ob_native`/`_rd_native` coexistence, and ETKDG output shape and
-status.
-
-| ABI | Size (bytes) | SHA-256 |
-| --- | ---: | --- |
-| cp310 | 5,632,596 | `c381bfdc10746b60791ab30a699ac57240a748ad5e515a96ae993008fc75d34f` |
-| cp311 | 5,637,406 | `fc1cecff6ac43b050cd6f57c1241e355c746eb5874a090b12cedeb9946c78eba` |
-| cp312 | 5,659,599 | `4fa3f7141e8990bf38c54fdb426952f293f98f7e95c7e41e08842e5cc7839527` |
-| cp313 | 5,659,946 | `717ce94bc6a8c36b519da474ae240dfb8737eab8fa12c5b381dcd1eacccdb446` |
-| cp314 | 5,662,757 | `9c0fa5382727d8f7d9fc3ad51a9fe897679efaf6f4ef8de2264b0297355e7003` |
-
-Each filename and WHEEL record carries the matching CPython ABI plus both
-`manylinux_2_27_x86_64` and `manylinux_2_28_x86_64` tags. Every archive has
-869 ZIP entries, 761 files, and 14 rdWrapper runtime files. ZIP integrity,
-duplicate-member, and strict payload audits pass with no native source,
-header, CMake, common-view header, locked-source, or SDK leakage.
-
-Every `_rd_native` binary is stripped x86-64 ELF, has no RPATH/RUNPATH or
-dynamic RDKit/Boost/Conda dependency, and exports only
-`PyInit__rd_native@@HOTPOT_RDWRAPPERS_PYTHON_1.0`. Its dependencies are only
-the six expected system runtime libraries. Whole-wheel `auditwheel show`
-identifies versioned system-symbol compatibility at manylinux 2.27 but does
-not grant strict standalone policy compliance because repair deliberately
-excludes `_ob_native`'s `libopenbabel.so.8`. The pinned `openbabel`
-distribution supplies that library and every isolated coexistence test passes.
-The matrix therefore closes the project-defined wheel gate under the existing
-cross-wheel Open Babel model; it does not establish a standalone-auditwheel or
-GitHub-hosted-CI claim.
-
-## 12. Known limitations and open release gates
-
-Release blockers:
-
-- The frozen 182-case manifest and graph sidecars are unavailable. The expected
-  manifest SHA-256 is
-  `4416bb8558ef420fad3176a82845d02bd1e83d9b271347c97d65174f799a0377`.
-  Recover it or obtain owner approval for a new cohort identity.
-- There is no dedicated formal `O0`/`F1` runner. Implement and freeze it, prove
-  downstream trace equality, and execute both routes on the formal cohort.
-- Formal `F1` evidence and the default-provider decision are absent. Open Babel
-  must remain the default until the owner reviews correctness and resources.
-
-Evidence and compatibility boundaries:
-
-- The formal 182-case `C1`/`C2` matrix is absent. The Eu result remains smoke
-  evidence only.
-- The five-version wheel matrix is a pinned local workflow-equivalent run, not
-  GitHub-hosted Actions provenance.
-- The existing wheel deliberately resolves `libopenbabel.so.8` from the
-  pinned `openbabel` distribution. Do not claim strict standalone auditwheel
-  manylinux compliance unless that packaging model changes.
-- OpenBabel-first then Python RDKit exits with SIGSEGV 139 in the unmodified
-  third-party wheels. Keep it as an isolated unsupported diagnostic; normal
-  tests cover the supported Hotpot/RDKit-first orders.
-- The local GCC 14.3 probe SDK requires GLIBCXX/CXXABI versions newer than the
-  host GCC 9 runtime. Use the recorded probe `libstdc++`; do not distribute the
-  probe binary as a generally compatible SDK.
-- The canonical 187 importer produces empty Level-1/Level-2 payloads. Do not
-  claim source chirality preservation. Future semantic R0 evidence needs a
-  separately hash-governed sidecar or importer route.
-- The optional `coverage` module is absent locally. Release CI must generate
-  coverage; the local functional assertions were run directly.
-
-## 13. Claims and non-claims
-
-### Supported claims
+### 18.1 Supported claims
 
 - Native ETKDG is available through independently usable Python and C/C++
-  interfaces without Python RDKit graph translation.
-- The exact RDKit/native source identity is locked, offline-rebuildable, and
-  runtime-reportable.
-- The canonical standalone 187-ligand `R0` matrix completed with 559 successes,
-  two deterministic partial batches, and zero failed/unsupported trials.
-- Open Babel and the existing force-field route remain available and default.
-- The private provider seam changes only initial coordinates.
+  interfaces without a Python RDKit graph translation.
+- One pinned native RDKit 2026.09.1 core serves both interfaces.
+- The canonical R0 matrix returned 7,649 finite atom-row-exact conformers with
+  559 successful and two partial trials.
+- Open Babel and rdWrappers remain independent public components.
+- The private force-field seam changes only the coordinate provider for
+  O0/F1/F2 and introduces no public workflow selector.
+- The schema-v2 current semantic cohort is exact, deterministic, and
+  reconstructable across 182 positive cases.
+- The formal O0/F1/F2/C1/C2 plus F1-repeat matrix is complete and
+  artifact-grounded.
+- F1 has stable 180/182 behavior and is not eligible to replace O0.
+- Every admitted selected structure satisfies the Plan-17 finite numerical and
+  standard geometry contract.
 - Level-1 structural transport and all seven declared Level-2 semantic gates
   are implemented and directly tested.
-- A fresh local extension and SDK passed C11/C++17 API, symbol, dependency,
-  RPATH, license, and supported import-order checks.
-- Clean CPython 3.10-3.14 wheels passed the pinned local workflow-equivalent
-  build, repair, isolated-install, coexistence, archive, and `_rd_native` ELF
-  matrix under the declared Open Babel cross-wheel dependency model.
 
-### Explicit non-claims
+### 18.2 Explicit non-claims
 
-- Stage 17 is not release-complete.
-- RDKit is not yet approved as the default force-field coordinate provider.
-- No formal 182-complex `O0`, `F1`, `C1`, or `C2` outcome is claimed.
-- The Eu smoke cohort is not a substitute for the frozen 182 cohort.
-- ETKDG is not claimed to be a metal-complex force field.
-- R0 does not prove source-SMILES chirality preservation because the imported
-  stereo payload is empty.
-- No GitHub-hosted Actions execution is claimed for the five-version matrix.
-- The dual-tagged wheels are not claimed to satisfy strict standalone
-  auditwheel manylinux policy while `libopenbabel.so.8` remains external.
-- ABI-0/ABI-1 facade success does not promise compatibility with arbitrary old
-  `libstdc++` runtimes.
-- Open Babel is not a complete semantic oracle, and RDKit does not validate
-  Hotpot-specific SPY/chelate/enhanced-group/tolerance policy.
+- RDKit is not approved as the default complex coordinate provider.
+- F1 is not 182/182 and its two failed cases are not hidden by fallback.
+- ETKDG is not claimed to be an Am-complex force field.
+- C1/C2 results do not establish universal whole-complex embedding accuracy.
+- C2 fixed bounds are not generally feasible for this cohort.
+- A finite accepted force-field state is not necessarily a converged local
+  minimum, ground state, experimental conformer, or quantitatively accurate
+  energy.
+- The schema-v1 matrix is not formal scientific evidence.
+- R0 does not prove source-SMILES stereo preservation.
+- The manual physical-plausibility review is not complete.
+- The owner-authorized dataset has not yet been converted or published.
+- The local wheel matrix does not establish GitHub-hosted CI provenance or
+  strict standalone auditwheel-manylinux compliance.
+- xTB, DFT, and QM handoff are outside this validation.
 
-## 14. Artifact identities
+## 19. Remaining closure sequence
 
-Plan and log:
+The remaining actions are narrow and must preserve the evidence boundaries:
 
-- Owner-approved original plan:
-  `1c502f8ed8a48589d7fc67f9d0dd0bf8b882f8ab017a4ef4fdc4617ed2fc4604`
-- Current implementation-grounded plan:
-  `9a3be507e47cad7f2e13a45bb22931368a80bf39d7f53b906025696fe4945dce`
-- Implementation log at report revision:
-  `1db8ed4793e875357c30481aae85f570bb7e00f9a3cc3fae3d2a327c3d90ca9c`
+1. an attributable human reviewer completes all 910 gallery rows, recording
+   any visible nonphysical accepted structures;
+2. validate that completed review against the immutable gallery manifest;
+3. build the 910-record conversion, prepare/freeze the governed Bundle,
+   synchronize, certify, and ingest it with the owner authorization;
+4. record the resulting dataset inventory, selected-asset count, evidence
+   index, and certificate identities;
+5. issue the final Plan-17 release closure without changing the Open Babel
+   default.
 
-Native source closure:
-
-- RDKit: tag `Release_2026_09_1`, commit
-  `fece8caa860bdf6c9c82bdb9253f22a0cf87150c`, archive
-  `86711e340759a3a0678a2e62f54f26f7ff564c3a02de0460f60b1ce89ac1bfe9`
-- Boost 1.86.0:
-  `1bed88e40401b2cb7a1f76d4bab499e352fa4d0c5f31c0dbae64e24d34d7513b`
-- Catch2 3.4.0:
-  `122928b814b75717316c71af69bd2b43387643ba076a6ec16e7882bfb2dfacbb`
-- better-enums 0.11.3:
-  `9b78dcef7f88d1345b6f25335bfbcba5f024b08990c7d6dc605b833f4128b8dd`
-- Eigen 3.4.0:
-  `8586084f71f9bde545ee7fa6d00288b264a2b7ac3607b974e54d13e7162c1c72`
-- RingDecomposerLib:
-  `944b5816712a48bbf88aa25d4300ce11871ddf6e971218eac08f90ed2192f715`
-
-Benchmarks, goldens, and fresh binaries:
-
-- Canonical 187-ligand corpus:
-  `e67ae3167a1a96d3c6a4c6df3ce12b70abfaf479bdd89bb156bfaefa771795a7`
-- R0 `r0_cases.jsonl`:
-  `2b630f6d492955a31467daaa8525c7c811d9f3954391da0be17ce14b428dc39a`
-- R0 `r0_summary.json`:
-  `63ac2945abb8c5b82236f6303951873ec31bfdcedae1f90611077514953640f7`
-- Fresh C1/C2 development-smoke `report.json`:
-  `3c05f6b3862a1c19baddd1e3ad1776ea94992d5c6c00e96e7dbfae01d439070e`
-- Gate-1 algebra golden:
-  `8d7856e0b593ff7af510e885b6f3fe2ef0ca047cd34a3563bde086af9afbcf4b`
-- Gate-7 SPY golden:
-  `fbda20439136c68ac50a2d508acc9970003e3721d73524c1c721ffff022a473d`
-- Gate-7 coordination golden:
-  `a565dafee783d2fe9ffb0575b757ebb6869cb2634bcdfa5c1f9c2ca3055e8dc5`
-- Step-47 fresh extension:
-  `0763fe8fad5464e858e745097950179d9062a4ab26c107a2d44749eddf7f2248`
-- Step-47 fresh SDK library:
-  `dc8d1a7a53cc6dfa4f47995eef29a48ad8af557ba458654aebadf859152d86a4`
-
-Final local release-wheel matrix, source checkpoint
-`37a08b30f785bf54149436ae2ce5d852ac7cbd22`:
-
-| ABI | Wheel SHA-256 |
-| --- | --- |
-| cp310 | `c381bfdc10746b60791ab30a699ac57240a748ad5e515a96ae993008fc75d34f` |
-| cp311 | `fc1cecff6ac43b050cd6f57c1241e355c746eb5874a090b12cedeb9946c78eba` |
-| cp312 | `4fa3f7141e8990bf38c54fdb426952f293f98f7e95c7e41e08842e5cc7839527` |
-| cp313 | `717ce94bc6a8c36b519da474ae240dfb8737eab8fa12c5b381dcd1eacccdb446` |
-| cp314 | `9c0fa5382727d8f7d9fc3ad51a9fe897679efaf6f4ef8de2264b0297355e7003` |
-
-## 15. Release recommendation
-
-Accept the native component, common communication layer, stereo system, and
-private provider seam as implemented checkpoints. Do not declare Stage 17
-released and do not change the force-field default yet. The shortest remaining
-critical path is:
-
-1. recover or explicitly replace the frozen 182-case artifact identity;
-2. implement and freeze the missing formal `O0`/`F1` runner;
-3. execute `O0/F1/C1/C2` and obtain the owner decision on the default provider;
-4. issue the final release sign-off from those artifacts without reusing the
-   development Eu smoke result or the GCC 14.3 probe binary as substitutes.
-
-The local five-version wheel gate is closed under the declared Open Babel
-packaging model. Run the same workflow on GitHub-hosted Actions if hosted-CI
-provenance is required for publication; that does not replace the remaining
-formal 182-case business evidence.
+No recovery of a byte-identical historical manifest, no coordinate match to
+9640d906, and no new xTB/QM experiment is required.

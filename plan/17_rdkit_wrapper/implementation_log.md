@@ -4020,4 +4020,52 @@ Adjustment:
   copy only generated coordinate rows onto the untouched canonical Hotpot graph
   before force-field optimization.
 
+Git checkpoint: `ecaff12 test(validation): build semantic 187 cohort`.
+
+### Step 59 - Wire the five validation routes to shared force-field policy
+
+Status: complete for route execution primitives
+
+Planned:
+
+- run O0/F1/F2 through one private complete-complex workflow with only the
+  coordinate provider changed;
+- pass C1/C2 whole-complex ETKDG coordinates directly into the existing
+  complex-entry optimization policy; and
+- retain proposal and stage timing/identity evidence.
+
+Performed:
+
+- added O0/F1/F2 dispatch using `OpenBabelConformerAdapter`,
+  `RDKitConformerAdapter`, or the frozen replay adapter at the existing sampler
+  seam;
+- made all provider routes share the same force field, budgets, hydrogen policy,
+  trajectory detail, seed policy, and stage sequence;
+- added C1 stock and C2 placement-policy-bounded whole-complex generation;
+- derived C2 metal-donor bounds from the current native covalent-radius target
+  and fixed 0.70/1.50 placement ratios;
+- copied generated rows onto the untouched Hotpot graph and invoked
+  `optimize_complex(add_hydrogens=False)` from `COMPLEX_UNTANGLING`; and
+- recorded proposal, force-field, and total route durations separately.
+
+Verification:
+
+- ten focused provider/route tests pass;
+- O0/F1/F2 tests prove one shared workflow/options set and the F2 replay type;
+- C1/C2 tests prove dative generation input, exact rows at force-field entry,
+  no second hydrogen/ligand build, correct bounds, and no source topology
+  mutation; and
+- Python compilation and `git diff --check` pass.
+
+Unexpected finding:
+
+- the C1 stock embedding graph also needs the explicit dative representation to
+  keep pinned RDKit's multi-fragment path from bypassing the complete-complex
+  experiment, even though C1 applies no custom distance bounds.
+
+Adjustment:
+
+- treat F2 and C1/C2 as validation controls only; no public backend/profile or
+  alternate production workflow is introduced.
+
 Git checkpoint: pending.

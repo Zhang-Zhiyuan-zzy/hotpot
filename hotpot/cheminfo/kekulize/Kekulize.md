@@ -80,14 +80,14 @@ The primary Core ring APIs now use Relevant Cycles:
 | `mol.rings` | Full-graph Relevant Cycles |
 | `mol.ligand_rings` | Ligand-skeleton Relevant Cycles |
 | `mol.rings_for_scope(...)` | Relevant Cycles for the requested scope |
-| `mol.cycle_basis_rings` | Legacy NetworkX cycle basis |
-| `mol.ligand_cycle_basis_rings` | Legacy ligand-skeleton cycle basis |
+| `mol.cycle_basis` / `mol.basis_rings` | Deterministic native Paton basis, as indices / Ring objects |
+| `mol.all_cycle_basis` / `mol.all_basis_rings` | Every complete simple-cycle basis, as indices / Ring objects |
 
-Existing trained ML feature extractors explicitly use
-`ligand_cycle_basis_rings`; this prevents the ring tensor count, order, and
-shape from silently changing. This guarantee is limited to the ring tensor:
-aromatic atom features can still change because perception intentionally
-follows the new Relevant Cycle APIs during this transitional phase.
+Existing trained ML feature extractors use the same native Paton algorithm
+over a coordination-filtered ligand-skeleton edge range. This keeps one basis
+implementation and preserves the trained ring tensor's count, order, and
+shape. This guarantee is limited to the ring tensor: aromatic atom features
+follow the Relevant Cycle APIs.
 
 Relevant Cycles make the selected ring family unique for a fixed unweighted
 graph and restore symmetry-equivalent rings.  They do not by themselves make

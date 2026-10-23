@@ -62,9 +62,11 @@ ext_modules = [
         cxx_std=17,
     ),
     Pybind11Extension(
-        "hotpot.cheminfo.graph._relevant_cycles",
+        "hotpot.cheminfo.graph._graph_native",
         [
             "hotpot/cheminfo/graph/_native/bindings.cpp",
+            "hotpot/cheminfo/graph/_native/cycle_basis.cpp",
+            "hotpot/cheminfo/graph/_native/graph.cpp",
             "hotpot/cheminfo/graph/_native/relevant_cycles.cpp",
         ],
         cxx_std=17,

@@ -38,7 +38,7 @@ struct AdjacentEdge {
 };
 
 struct LocalGraph {
-    std::vector<Edge> edges;
+    std::vector<RelevantEdge> edges;
     std::vector<std::size_t> original_edge_ids;
     std::vector<std::vector<AdjacentEdge>> adjacency;
 };
@@ -155,9 +155,9 @@ private:
     std::vector<BitVector> rows_;
 };
 
-std::size_t inferred_vertex_count(const std::vector<Edge>& edges) {
+std::size_t inferred_vertex_count(const std::vector<RelevantEdge>& edges) {
     VertexId greatest = 0;
-    for (const Edge& edge : edges) {
+    for (const RelevantEdge& edge : edges) {
         greatest = std::max(greatest, std::max(edge[0], edge[1]));
     }
     return edges.empty() ? 0 : static_cast<std::size_t>(greatest) + 1;
@@ -165,7 +165,7 @@ std::size_t inferred_vertex_count(const std::vector<Edge>& edges) {
 
 std::vector<std::vector<AdjacentEdge>> make_adjacency(
     const std::size_t vertex_count,
-    const std::vector<Edge>& edges
+    const std::vector<RelevantEdge>& edges
 ) {
     std::vector<std::vector<AdjacentEdge>> adjacency(vertex_count);
     for (std::size_t edge_id = 0; edge_id < edges.size(); ++edge_id) {
@@ -183,7 +183,7 @@ std::vector<std::vector<AdjacentEdge>> make_adjacency(
 }
 
 std::vector<std::vector<LocalEdge>> biconnected_components(
-    const std::vector<Edge>& edges
+    const std::vector<RelevantEdge>& edges
 ) {
     struct DfsFrame {
         LocalVertex vertex;
@@ -264,7 +264,7 @@ std::vector<std::vector<LocalEdge>> biconnected_components(
 }
 
 LocalGraph make_local_graph(
-    const std::vector<Edge>& input_edges,
+    const std::vector<RelevantEdge>& input_edges,
     std::vector<LocalEdge> component_edge_ids
 ) {
     std::sort(component_edge_ids.begin(), component_edge_ids.end());
@@ -759,7 +759,7 @@ void add_expanded_family(
 }  // namespace
 
 std::vector<CycleEdges> relevant_cycles(
-    const std::vector<Edge>& edges,
+    const std::vector<RelevantEdge>& edges,
     const RelevantCycleLimits& limits
 ) {
     if (edges.empty()) {

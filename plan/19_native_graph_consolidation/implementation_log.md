@@ -302,11 +302,83 @@ The added contracts cover shared target identity, exact node and edge labels,
 disconnected symmetric components, isotope/asymmetric rejection, and absence
 of a production NetworkX reference in MCA site detection.
 
-Git checkpoint: pending Stage 4 commit.
+Git checkpoint: `6eac3fa` (`refactor(mca): replace networkx automorphism`).
 
 ### Stage 5 - cycle algorithms and ordering
 
-Status: not started.
+Status: complete.
+
+Performed:
+
+- unified Relevant Cycles, the private base Graph, deterministic Paton, and
+  complete simple-cycle-basis enumeration behind `_graph_native`, with no
+  Python Graph binding;
+- renamed Relevant Cycle's local edge type to avoid a second conflicting
+  `hotpot::graph::Edge` definition and migrated its native force-field
+  consumer;
+- implemented maximum-index component roots, ascending neighbors, the Paton
+  LIFO/predecessor/used events, and exact discovery-order output;
+- implemented rotation/reversal-invariant simple-cycle enumeration, dynamic
+  GF(2) masks, rank-pruned basis backtracking, default-first ordering, and the
+  atomic fixed 10,000-basis ceiling;
+- added exactly `cycle_basis`, `all_cycle_basis`, `basis_rings`, and
+  `all_basis_rings` to Molecule, with no result cache or Graph exposure;
+- moved full and ligand Relevant Cycle inputs to direct active Bond ranges;
+- moved both NumPy and optional PyG trained-model consumers to the same native
+  default-basis implementation over coordination-filtered edges; and
+- deleted both old Molecule basis-ring properties, the Atom view, both private
+  caches, their docs/tests, and the old private extension/type-stub name with
+  no alias.
+
+Ordering evidence:
+
+The owner-approved topology-relative ordering intentionally replaces bond
+insertion history.  Cubane therefore changed from the frozen legacy tensor
+
+```text
+4 7 6 5 | 2 1 7 6 | 3 0 1 7 6 5 | 4 0 1 7 | 3 2 6 5
+```
+
+to the stable native tensor
+
+```text
+4 5 6 7 | 2 3 5 6 | 1 0 3 5 6 7 | 4 0 3 5 | 1 2 6 7
+```
+
+Both contain five cycles with sizes `(4, 4, 6, 4, 4)`.  This is recorded as
+the explicit unified-ordering change rather than hidden as implementation
+parity.  The maintained CBond runtime/prediction suite passed with this tensor,
+and all three accepted MCA prediction hashes remain exact because MCA model
+inputs are independent of this ring-basis tensor.
+
+Verification:
+
+```text
+native basis/oracle, Relevant Cycle, Core ring/cache, force-field link,
+and MCA prediction-digest group:
+  190 passed, 4 skipped, 1 existing warning in 25.56 s
+
+CBond runtime and prediction group with writable isolated model cache:
+  42 passed in 6.15 s
+
+private cycle-basis C++ source contract:
+  passed with -Wall -Wextra -Werror
+```
+
+The exhaustive differential set covers acyclic, triangle, diagonal-square,
+K4, disconnected, sparse-key, shuffled-edge, and bounded graph-atlas cases.
+K5 triggers the real fixed 10,000-basis `OverflowError`; the source contract
+also proves exact-limit success and next-result failure on a smaller injected
+limit.  PyG is not installed in the validation environment, so its migrated
+consumer is statically identical at the cycle source boundary; the NumPy
+tensor and installed CBond runtime are covered dynamically.
+
+On the same local cubane checkout, uncached `Molecule.cycle_basis` measured
+46.36 us median versus the frozen legacy Ring-materializing operation's
+60.79 us.  These values have different return layers and are recorded only as
+a regression guard, not as a claimed like-for-like speedup.
+
+Git checkpoint: pending Stage 5 commit.
 
 ### Stage 6 - remove Core graph state
 

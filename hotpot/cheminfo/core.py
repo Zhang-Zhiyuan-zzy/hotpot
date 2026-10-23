@@ -144,10 +144,8 @@ class Molecule:
         self._angles = []
         self._torsions = []
         self._rings = []
-        self._cycle_basis_rings = []
         self._ring_indices_cache = {}
         self._ligand_rings = None
-        self._ligand_cycle_basis_rings = None
         self._ligand_rings_signature = None
         self._graph = nx.Graph()
         self._obmol = None
@@ -456,10 +454,8 @@ class Molecule:
         self._angles = []
         self._torsions = []
         self._rings = []
-        self._cycle_basis_rings = []
         self._ring_indices_cache = {}
         self._ligand_rings = None
-        self._ligand_cycle_basis_rings = None
         self._ligand_rings_signature = None
         self._obmol = None
         self._row2idx = None
@@ -2413,23 +2409,48 @@ class Molecule:
         return copy(self._rings)
 
     @property
-    def cycle_basis_rings(self) -> list["Ring"]:
-        """Return the legacy NetworkX cycle-basis ring family."""
-        if not self._cycle_basis_rings:
-            self._cycle_basis_rings = self._uncached_cycle_basis_rings()
-        return copy(self._cycle_basis_rings)
+    def cycle_basis(self) -> list[tuple[int, ...]]:
+        """Return the deterministic Paton basis of the active topology."""
+        return list(graph_algorithms._cycle_basis(
+            range(len(self._atoms)),
+            (
+                (
+                    self._topology_index[id(bond.atom1)][0],
+                    self._topology_index[id(bond.atom2)][0],
+                )
+                for bond in self._bonds
+            ),
+        ))
 
-    def _ring_graph(self, *, ligand_skeleton: bool = False) -> nx.Graph:
-        """Return the molecular graph view used for ring perception."""
-        scope_graph = self.graph
-        if ligand_skeleton:
-            scope_graph = scope_graph.copy()
-            scope_graph.remove_edges_from(
-                (bond.a1idx, bond.a2idx)
-                for bond in self.bonds
-                if bond.is_metal_ligand_bond
+    @property
+    def all_cycle_basis(self) -> list[list[tuple[int, ...]]]:
+        """Return every complete simple-cycle basis, with the default first."""
+        return [
+            list(basis)
+            for basis in graph_algorithms._all_cycle_basis(
+                range(len(self._atoms)),
+                (
+                    (
+                        self._topology_index[id(bond.atom1)][0],
+                        self._topology_index[id(bond.atom2)][0],
+                    )
+                    for bond in self._bonds
+                ),
             )
-        return scope_graph
+        ]
+
+    @property
+    def basis_rings(self) -> list["Ring"]:
+        """Materialize Ring objects corresponding exactly to ``cycle_basis``."""
+        return self._rings_from_cycles(self.cycle_basis)
+
+    @property
+    def all_basis_rings(self) -> list[list["Ring"]]:
+        """Materialize Ring objects for every entry of ``all_cycle_basis``."""
+        return [
+            self._rings_from_cycles(basis)
+            for basis in self.all_cycle_basis
+        ]
 
     def _rings_from_cycles(self, cycles: Iterable[Iterable[int]]) -> list["Ring"]:
         """Materialize ordered ring objects from atom-index cycles."""
@@ -2459,23 +2480,17 @@ class Molecule:
         )
         cycles = self._ring_indices_cache.get(cache_key)
         if cycles is None:
-            scope_graph = self._ring_graph(ligand_skeleton=ligand_skeleton)
             cycles = graph_algorithms.relevant_cycles(
-                scope_graph.edges,
+                (
+                    (bond.a1idx, bond.a2idx)
+                    for bond in self._bonds
+                    if not ligand_skeleton or not bond.is_metal_ligand_bond
+                ),
                 max_size=max_size,
                 max_cycles=max_cycles,
             )
             self._ring_indices_cache[cache_key] = cycles
         return self._rings_from_cycles(cycles)
-
-    def _uncached_cycle_basis_rings(
-            self,
-            *,
-            ligand_skeleton: bool = False,
-    ) -> list["Ring"]:
-        """Materialize one NetworkX cycle basis without changing a cache."""
-        scope_graph = self._ring_graph(ligand_skeleton=ligand_skeleton)
-        return self._rings_from_cycles(nx.cycle_basis(scope_graph))
 
     def rings_for_scope(
             self,
@@ -2563,22 +2578,11 @@ class Molecule:
             )
         return copy(self._ligand_rings)
 
-    @property
-    def ligand_cycle_basis_rings(self) -> list["Ring"]:
-        """Return the ligand-skeleton legacy cycle-basis ring family."""
-        self._refresh_ligand_ring_cache_signature()
-        if self._ligand_cycle_basis_rings is None:
-            self._ligand_cycle_basis_rings = self._uncached_cycle_basis_rings(
-                ligand_skeleton=True,
-            )
-        return copy(self._ligand_cycle_basis_rings)
-
     def _refresh_ligand_ring_cache_signature(self) -> None:
         """Invalidate ligand ring caches after graph or element changes."""
         signature = self._current_ligand_ring_signature()
         if signature != self._ligand_rings_signature:
             self._ligand_rings = None
-            self._ligand_cycle_basis_rings = None
             for cache_key in tuple(self._ring_indices_cache):
                 if cache_key[0]:
                     del self._ring_indices_cache[cache_key]
@@ -2588,7 +2592,10 @@ class Molecule:
         """Return the element-and-edge signature defining the ligand view."""
         return (
             tuple(atom.atomic_number for atom in self._atoms),
-            tuple(sorted(tuple(sorted(edge)) for edge in self.graph.edges)),
+            tuple(sorted(
+                (min(bond.a1idx, bond.a2idx), max(bond.a1idx, bond.a2idx))
+                for bond in self._bonds
+            )),
         )
 
     def to_pyg_data(self, prefix: str = "", with_batch: bool = True):
@@ -2892,11 +2899,6 @@ class MolBlock:
         @return: A list of rings containing the invoking instance
         """
         return [r for r in self.mol.rings if self in r]
-
-    @property
-    def cycle_basis_rings(self) -> list["Ring"]:
-        """Return legacy cycle-basis rings containing this object."""
-        return [ring for ring in self.mol.cycle_basis_rings if self in ring]
 
     def setattr(self, *, add_defaults=False, **kwargs):
         """

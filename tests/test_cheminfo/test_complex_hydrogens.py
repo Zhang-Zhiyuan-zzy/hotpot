@@ -501,9 +501,11 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
     molecule.conformer_add(molecule.coordinates.copy(), -1.0)
     molecule.atom_pairs.update_pairs()
     _ = molecule.rings
-    _ = molecule.cycle_basis_rings
+    _ = molecule.cycle_basis
+    _ = molecule.all_cycle_basis
+    _ = molecule.basis_rings
+    _ = molecule.all_basis_rings
     _ = molecule.ligand_rings
-    _ = molecule.ligand_cycle_basis_rings
     working = working_copy._hydrogenated_working_copy(
         molecule,
         add_hydrogens=True,
@@ -577,9 +579,7 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
     assert molecule._angles == []
     assert molecule._torsions == []
     assert molecule._rings == []
-    assert molecule._cycle_basis_rings == []
     assert molecule._ring_indices_cache == {}
     assert molecule._ligand_rings is None
-    assert molecule._ligand_cycle_basis_rings is None
     assert molecule._ligand_rings_signature is None
     assert molecule._obmol is None

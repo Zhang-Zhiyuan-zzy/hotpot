@@ -10,6 +10,7 @@ import torch
 from torch_geometric.data import Data
 
 from hotpot.cheminfo.core import Molecule, Atom, AtomPair
+from hotpot.cheminfo.graph.cycles import _cycle_basis
 from .consts import *
 
 __all__ = [
@@ -160,7 +161,17 @@ def extract_potentials_cbonds(
 
 def extract_ring_attrs(mol: Molecule, ring_attr_names: Iterable[str]):
     # Preserve the ring-tensor family used to train the existing models.
-    rings = mol.ligand_cycle_basis_rings
+    rings = mol._rings_from_cycles(_cycle_basis(
+        range(len(mol.atoms)),
+        (
+            (
+                mol._topology_index[id(bond.atom1)][0],
+                mol._topology_index[id(bond.atom2)][0],
+            )
+            for bond in mol.bonds
+            if not bond.is_metal_ligand_bond
+        ),
+    ))
 
     if rings:
         rings_node_index = [r.atoms_indices for r in rings]

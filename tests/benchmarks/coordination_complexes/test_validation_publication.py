@@ -7,14 +7,23 @@ import hashlib
 import json
 from pathlib import Path
 
+import numpy as np
 import pytest
 from PIL import Image
 
 from . import validation_publication as publication
+from .validation_dataset import publish_bundle
 from .validation_gallery import (
     ValidationGalleryParameters,
     create_manual_review_template,
     render_validation_gallery,
+)
+from .validation_providers import (
+    FrozenCoordinateProposal,
+    FrozenCoordinateReplayAdapter,
+    coordinate_sha256,
+    write_frozen_proposals,
+    write_mapped_coordinate_proposal,
 )
 
 
@@ -36,6 +45,19 @@ def _complete_review(gallery_manifest: Path) -> dict[str, object]:
         row["reviewed"] = True
     review["summary"]["reviewed_case_count"] = len(review["reviews"])
     return review
+
+
+def _authorization() -> dict[str, object]:
+    return {
+        "authorization_id": "owner-plan17-v1",
+        "authority": "User",
+        "actor": "owner@example.test",
+        "approved": True,
+        "reason": "Owner-authorized Plan-17 benchmark publication",
+        "authorized_at": "2026-10-23T00:00:00Z",
+        "license": "CC-BY-4.0",
+        "access_policy": "open",
+    }
 
 
 def _fixture(
@@ -203,10 +225,56 @@ def _fixture(
                 # from the independently validated review artifact.
                 "manual_review": {"status": "passed", "flags": []},
             }
+            result_path = publication._result_path(run_root, spec, case_index)
+            if route in {"F2", "C1", "C2"}:
+                coordinates = np.arange(9, dtype=np.float64).reshape((3, 3))
+                if route == "F2":
+                    proposal_path = result_path.parent / "frozen-proposals.json"
+                    proposal_identity = write_frozen_proposals(
+                        proposal_path,
+                        FrozenCoordinateReplayAdapter(
+                            (
+                                FrozenCoordinateProposal(
+                                    component_sha256="f" * 64,
+                                    coordinate_sha256=coordinate_sha256(coordinates),
+                                    coordinates=tuple(
+                                        tuple(float(value) for value in row)
+                                        for row in coordinates
+                                    ),
+                                    ordinal=0,
+                                ),
+                            )
+                        ),
+                    )
+                else:
+                    proposal_path = (
+                        result_path.parent / "whole-complex-proposal.json"
+                    )
+                    proposal_identity = write_mapped_coordinate_proposal(
+                        proposal_path,
+                        route=route,
+                        proposal={
+                            "coordinate_sha256": coordinate_sha256(coordinates)
+                        },
+                        coordinates=coordinates,
+                    )
+                record["proposal"] = {
+                    "record": {"status": "SUCCESS"},
+                    "frozen_manifest": [],
+                    "declared_artifact": proposal_identity,
+                    "archived_artifact": publication._proposal_artifact_identity(
+                        proposal_path
+                    ),
+                }
+            trajectory = result_path.parent / "trajectory"
+            trajectory.mkdir(parents=True, exist_ok=True)
+            _write_json(trajectory / "frames.json", {"frames": []})
+            record["trajectory_artifact"] = {
+                **publication._tree_identity(trajectory),
+                "includes_sdf": False,
+            }
             if passed:
-                selected = (
-                    tmp_path / "selected" / spec["run_id"] / f"{case_index:04d}.sdf"
-                )
+                selected = result_path.parent / "selected.sdf"
                 selected.parent.mkdir(parents=True, exist_ok=True)
                 selected.write_text(
                     f"{spec['run_id']} case {case_index}\n",
@@ -219,7 +287,6 @@ def _fixture(
                     "atom_row_mapping": [0, 1, 2],
                 }
                 selected_paths[(spec["run_id"], case_index)] = selected
-            result_path = publication._result_path(run_root, spec, case_index)
             _write_json(result_path, record)
             result_paths[(spec["run_id"], case_index)] = result_path
             if not is_repeat:
@@ -432,3 +499,208 @@ def test_bridge_rejects_incomplete_matrix_and_changed_selected_asset(
             cohort_path=fixture["cohort_path"],
             source_path=fixture["source"],
         )
+
+
+def test_bridge_rejects_duplicate_runs_repeat_drift_and_foreign_selection(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fixture = _fixture(tmp_path / "duplicate", monkeypatch)
+    manifest_path = fixture["run_root"] / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["scientific_configuration"]["run_specs"][4]["run_id"] = "formal-test-o0"
+    _write_json(manifest_path, manifest)
+    with pytest.raises(ValueError, match="globally unique"):
+        publication.build_publication_conversion(
+            fixture["run_root"],
+            fixture["gallery_manifest"],
+            fixture["manual_review"],
+            cohort_path=fixture["cohort_path"],
+            source_path=fixture["source"],
+        )
+
+    fixture = _fixture(tmp_path / "repeat", monkeypatch)
+    repeated_path = fixture["result_paths"][("formal-test-f1-repeat", 1)]
+    repeated = json.loads(repeated_path.read_text(encoding="utf-8"))
+    repeated["passed"] = False
+    repeated["status"] = "execution_failed"
+    repeated["evidence"] = None
+    repeated.pop("selected_structure")
+    repeated["acceptance"]["passed"] = False
+    for gate in repeated["acceptance"]["gates"]:
+        gate["passed"] = False
+    _write_json(repeated_path, repeated)
+    with pytest.raises(ValueError, match="repeat control differs"):
+        publication.build_publication_conversion(
+            fixture["run_root"],
+            fixture["gallery_manifest"],
+            fixture["manual_review"],
+            cohort_path=fixture["cohort_path"],
+            source_path=fixture["source"],
+        )
+
+    fixture = _fixture(tmp_path / "foreign", monkeypatch)
+    result_path = fixture["result_paths"][("formal-test-f1", 1)]
+    record = json.loads(result_path.read_text(encoding="utf-8"))
+    foreign = tmp_path / "foreign.sdf"
+    foreign.write_text("foreign selection\n", encoding="utf-8")
+    record["selected_structure"]["path"] = str(foreign)
+    record["selected_structure"]["sha256"] = _sha256(foreign)
+    _write_json(result_path, record)
+    with pytest.raises(ValueError, match="selected.sdf beside"):
+        publication.build_publication_conversion(
+            fixture["run_root"],
+            fixture["gallery_manifest"],
+            fixture["manual_review"],
+            cohort_path=fixture["cohort_path"],
+            source_path=fixture["source"],
+        )
+
+
+def test_bridge_rejects_mutated_proposal_and_trajectory_artifacts(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fixture = _fixture(tmp_path / "proposal", monkeypatch)
+    result = json.loads(
+        fixture["result_paths"][("formal-test-f2", 1)].read_text(encoding="utf-8")
+    )
+    proposal = Path(result["proposal"]["archived_artifact"]["path"])
+    proposal.write_text(
+        proposal.read_text(encoding="utf-8") + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="proposal artifact sha256 differs"):
+        publication.build_publication_conversion(
+            fixture["run_root"],
+            fixture["gallery_manifest"],
+            fixture["manual_review"],
+            cohort_path=fixture["cohort_path"],
+            source_path=fixture["source"],
+        )
+
+    fixture = _fixture(tmp_path / "trajectory", monkeypatch)
+    result_path = fixture["result_paths"][("formal-test-o0", 1)]
+    (result_path.parent / "trajectory" / "frames.json").write_text(
+        '{"frames":["mutated"]}\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="trajectory artifact sha256 differs"):
+        publication.build_publication_conversion(
+            fixture["run_root"],
+            fixture["gallery_manifest"],
+            fixture["manual_review"],
+            cohort_path=fixture["cohort_path"],
+            source_path=fixture["source"],
+        )
+
+
+def test_bundle_preparation_rejects_copy_time_evidence_drift(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fixture = _fixture(tmp_path / "input", monkeypatch)
+    original_copy = publication._copy_evidence_tree
+    selected = fixture["selected_paths"][("formal-test-f1", 1)]
+    mutated = False
+
+    def mutate_then_copy(source, destination):
+        nonlocal mutated
+        if source.resolve() == fixture["run_root"].resolve() and not mutated:
+            selected.write_text("copy-time mutation\n", encoding="utf-8")
+            mutated = True
+        original_copy(source, destination)
+
+    monkeypatch.setattr(publication, "_copy_evidence_tree", mutate_then_copy)
+
+    with pytest.raises(ValueError, match="selected structure SHA-256 mismatch"):
+        publication.prepare_bundle_from_validation_run(
+            fixture["run_root"],
+            fixture["gallery_manifest"],
+            fixture["manual_review"],
+            tmp_path / "bundle",
+            authorization=_authorization(),
+            cohort_path=fixture["cohort_path"],
+            source_path=fixture["source"],
+        )
+    assert not (tmp_path / "bundle").exists()
+
+
+def test_prepare_bundle_freezes_and_certifies_complete_validation_evidence(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fixture = _fixture(tmp_path / "input", monkeypatch)
+    bundle_root = tmp_path / "bundle"
+    summary = publication.prepare_bundle_from_validation_run(
+        fixture["run_root"],
+        fixture["gallery_manifest"],
+        fixture["manual_review"],
+        bundle_root,
+        authorization=_authorization(),
+        cohort_path=fixture["cohort_path"],
+        source_path=fixture["source"],
+    )
+
+    index_path = bundle_root / publication.EVIDENCE_INDEX
+    evidence = json.loads(index_path.read_text(encoding="utf-8"))
+    assert evidence["schema"] == publication.EVIDENCE_SCHEMA
+    assert evidence["asset_count"] == len(evidence["assets"])
+    assert {
+        "evidence/publication/cohort.json",
+        "evidence/publication/extractants.smi",
+        "evidence/publication/manual-review.json",
+        "evidence/publication/conversion-manifest.json",
+        "evidence/publication/conversion-route-results.jsonl",
+        "evidence/publication/validation-run/manifest.json",
+        "evidence/publication/validation-gallery/gallery.json",
+    } <= {asset["path"] for asset in evidence["assets"]}
+    for asset in evidence["assets"]:
+        frozen = bundle_root / asset["path"]
+        assert frozen.stat().st_size == asset["size"]
+        assert _sha256(frozen) == asset["sha256"]
+
+    bundle = json.loads((bundle_root / "bundle.json").read_text(encoding="utf-8"))
+    control = next(
+        asset
+        for asset in bundle["control_assets"]
+        if asset["name"] == "plan17-publication-evidence-index"
+    )
+    assert control["path"] == publication.EVIDENCE_INDEX
+    assert control["sha256"] == _sha256(index_path)
+    assert summary["publication_evidence_sha256"] == control["sha256"]
+    bundled_records = [
+        json.loads(line)
+        for line in (bundle_root / "evidence/control/route-results.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    ]
+    for record in bundled_records:
+        for provenance_control in record["provenance"]["controls"]:
+            locator = provenance_control["locator"]
+            assert not Path(locator).is_absolute()
+            assert (bundle_root / locator).is_file()
+            assert _sha256(bundle_root / locator) == provenance_control["sha256"]
+
+    original = fixture["selected_paths"][("formal-test-f1", 1)]
+    frozen = (
+        bundle_root
+        / "evidence/publication/validation-run/runs/formal-test-f1/F1"
+        / "cases/0001/selected.sdf"
+    )
+    original.write_text("mutated after Bundle preparation\n", encoding="utf-8")
+    frozen_asset = next(
+        asset
+        for asset in evidence["assets"]
+        if asset["path"] == frozen.relative_to(bundle_root).as_posix()
+    )
+    assert _sha256(frozen) == frozen_asset["sha256"]
+
+    published = publish_bundle(
+        bundle_root,
+        database=tmp_path / "store" / "datasets.sqlite3",
+        reason="End-to-end publication evidence test",
+        confirm_ingest=True,
+    )
+    assert published["receipt"]["included_count"] == 10
+    assert published["inventory"]["benchmark_matrix"]["route_case_count"] == 10

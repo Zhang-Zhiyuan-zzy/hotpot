@@ -3840,4 +3840,49 @@ Adjustment:
 - retain generated coordinate payloads under ignored `hotpot/dataset/data`,
   but use the tracked proposal source for all new cohort construction.
 
+Git checkpoint: `4e6782d test(validation): use tracked extractant corpus`.
+
+### Step 55 - Add the frozen-coordinate F2 replay provider
+
+Status: complete
+
+Planned:
+
+- generate ETKDG coordinates before the complete force-field workflow;
+- address the exact hydrogenated worker components without a graph-only
+  collision between repeated ligands; and
+- prove that F2 supplies unchanged rows rather than invoking RDKit inside the
+  ligand-build worker.
+
+Performed:
+
+- added a validation-only, pickle-safe `FrozenCoordinateReplayAdapter`;
+- froze proposals on the same hydrogenated, positional-ID worker graph used by
+  the existing private provider seam;
+- keyed each proposal by stable atom IDs, atom/bond semantics, dative direction,
+  and the represented stereo payload;
+- stored and rechecked an exact little-endian float64 coordinate SHA-256 before
+  replay; and
+- exposed a coordinate-free proposal manifest for per-case evidence.
+
+Verification:
+
+- four focused tests prove exact row replay, no input mutation, spawn-safe
+  pickling, component mismatch rejection, and tampered-byte rejection;
+- the focused test selection reports `4 passed`; and
+- Python whitespace and `git diff --check` pass. Ruff is not installed in the
+  active local environment, so the later configured regression environment
+  must run the maintained lint selection.
+
+Unexpected findings:
+
+- repeated isomorphic ligand components cannot safely use a graph-only lookup;
+  the worker's refreshed global atom IDs are needed to make proposal addressing
+  unambiguous.
+
+Adjustment:
+
+- keep this provider in benchmark infrastructure. It does not add a public
+  force-field backend/profile switch or a second ETKDG implementation.
+
 Git checkpoint: pending.

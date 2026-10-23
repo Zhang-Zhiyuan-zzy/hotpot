@@ -3770,4 +3770,39 @@ Adjustment:
   after another complete reread if implementation evidence exposes a genuine
   cross-document conflict.
 
+Git checkpoint: `abd1023 docs(plan17): freeze force-field validation contract`.
+
+### Step 53 - Restore the tracked canonical extractant source
+
+Status: complete
+
+Planned:
+
+- restore the exact 187-line proposal source without deriving it from a local
+  dataset payload; and
+- prevent silent canonicalization, reordering, or future content drift.
+
+Performed:
+
+- restored `molecules/extractant/extractants.smi` byte-for-byte from Git commit
+  `11c0e3d`;
+- retained all physical lines in their historical order without rewriting any
+  SMILES; and
+- added a source regression that reads the tracked bytes directly.
+
+Verification:
+
+- the file has exactly 187 physical lines;
+- its SHA-256 is
+  `e67ae3167a1a96d3c6a4c6df3ce12b70abfaf479bdd89bb156bfaefa771795a7`;
+- the focused source regression passes; and
+- `git diff --check` passes.
+
+Unexpected findings: none.
+
+Adjustment:
+
+- use this tracked file as the semantic cohort builder's canonical default;
+  the ignored historical dataset copy is no longer required for validation.
+
 Git checkpoint: pending.

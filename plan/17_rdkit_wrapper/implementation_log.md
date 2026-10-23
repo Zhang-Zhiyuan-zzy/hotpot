@@ -4165,3 +4165,46 @@ Adjustment:
   hard evidence boundaries before starting the formal route matrix.
 
 Git checkpoint: `537784b test(validation): bind forcefield evidence to artifacts`.
+
+### Step 62 - Bind the formal native and Python runtimes
+
+Status: complete for the formal-start gate; ai-14 execution pending
+
+Planned:
+
+- prevent a formal matrix from combining the pinned native wrapper with a
+  different Python RDKit distribution;
+- bind the native wrapper to the approved RDKit source commit, C API, and lock;
+  and
+- preserve RDKit, Open Babel, extension, and lock identities in every formal
+  run manifest.
+
+Performed:
+
+- added both the imported RDKit core version and installed distribution version
+  to the collected runtime identity;
+- bound the native wrapper to the approved RDKit commit, C API version, and
+  exact dependency-lock contents;
+- recorded SHA-256 identities for both native extension binaries; and
+- required the compiled, loaded-native, and Python-reported Open Babel versions
+  to agree before formal execution.
+
+Verification:
+
+- nine focused validation-runner tests pass, including independent version,
+  source-commit, C-API, lock, and Open Babel mismatch failures;
+- focused Ruff import, syntax, and formatting checks pass; and
+- `git diff --check` passes.
+
+Unexpected finding:
+
+- ai-14's existing `hp` environment contains Python RDKit `2026.03.6`, while
+  the verified Hotpot native wheel embeds RDKit `2026.09.1`; the former runtime
+  would therefore have mixed two RDKit releases despite satisfying the old
+  native-only gate.
+
+Adjustment:
+
+- assemble the validation runtime under the permitted `~/mca_test` tree with
+  the pinned Python RDKit wheel and keep the existing Conda environment
+  unmodified.

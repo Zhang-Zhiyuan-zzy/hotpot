@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
+from . import validation_runner as runner
 from .configuration import STANDARD_SETTINGS
 from .validation_acceptance import GATE_IDS
-from . import validation_runner as runner
 
 
 def _runtime(**updates: object) -> dict[str, object]:
@@ -19,8 +19,35 @@ def _runtime(**updates: object) -> dict[str, object]:
         "hotpot_version": "0.5.4.0",
         "imported_hotpot_version": "0.5.4.0",
         "rdkit_version": runner.PINNED_RDKIT_VERSION,
+        "python_rdkit_version": runner.PINNED_RDKIT_VERSION,
+        "python_rdkit_distribution_version": (runner.PINNED_RDKIT_DISTRIBUTION_VERSION),
+        "native_rdkit_commit": runner.PINNED_RDKIT_COMMIT,
+        "rdwrapper_c_api_version": runner.PINNED_RDWRAPPER_C_API_VERSION,
+        "rdkit_lock": {
+            "path": "/fixture/rdkit.lock.json",
+            "sha256": runner.PINNED_RDKIT_LOCK_SHA256,
+            "version": runner.PINNED_RDKIT_VERSION,
+            "python_distribution_version": (runner.PINNED_RDKIT_DISTRIBUTION_VERSION),
+            "tag": runner.PINNED_RDKIT_TAG,
+            "commit": runner.PINNED_RDKIT_COMMIT,
+            "archive_sha256": runner.PINNED_RDKIT_ARCHIVE_SHA256,
+        },
+        "rdwrapper_extension": {
+            "path": "/fixture/_rd_native.so",
+            "sha256": "a" * 64,
+        },
         "native": True,
         "openbabel_version": "3.2.1",
+        "openbabel_native": {
+            "compiled_version": "3.2.1",
+            "runtime_version": "3.2.1",
+            "cxx11_abi": 1,
+            "library_path": "/fixture/libopenbabel.so",
+            "babel_libdir": "",
+            "babel_datadir": "",
+            "extension_path": "/fixture/_ob_native.so",
+            "extension_sha256": "b" * 64,
+        },
         "python_version": "3.13.0",
         "python_implementation": "CPython",
         "platform": "fixture",
@@ -110,6 +137,31 @@ def test_formal_start_requires_pinned_native_clean_runtime() -> None:
 
     with pytest.raises(RuntimeError, match="native RDKit 2026.09.1"):
         runner.validate_formal_start(_runtime(rdkit_version="2025.09.3"), _git())
+    with pytest.raises(RuntimeError, match="Python RDKit 2026.09.1"):
+        runner.validate_formal_start(
+            _runtime(python_rdkit_version="2025.09.3"),
+            _git(),
+        )
+    with pytest.raises(RuntimeError, match="Python RDKit distribution 2026.9.1"):
+        runner.validate_formal_start(
+            _runtime(python_rdkit_distribution_version="2025.9.3"),
+            _git(),
+        )
+    with pytest.raises(RuntimeError, match="pinned native RDKit commit"):
+        runner.validate_formal_start(_runtime(native_rdkit_commit="bad"), _git())
+    with pytest.raises(RuntimeError, match="pinned rdWrapper C API"):
+        runner.validate_formal_start(_runtime(rdwrapper_c_api_version=2), _git())
+    with pytest.raises(RuntimeError, match="pinned RDKit lock"):
+        value = _runtime()
+        value["rdkit_lock"] = {**value["rdkit_lock"], "sha256": "0" * 64}
+        runner.validate_formal_start(value, _git())
+    with pytest.raises(RuntimeError, match="one Open Babel runtime version"):
+        value = _runtime()
+        value["openbabel_native"] = {
+            **value["openbabel_native"],
+            "runtime_version": "3.1.1",
+        }
+        runner.validate_formal_start(value, _git())
     with pytest.raises(RuntimeError, match="native RDKit backend"):
         runner.validate_formal_start(_runtime(native=False), _git())
     with pytest.raises(RuntimeError, match="clean Git worktree"):

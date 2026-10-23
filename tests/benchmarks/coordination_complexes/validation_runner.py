@@ -25,13 +25,14 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import asdict, fields, is_dataclass
 from datetime import datetime, timezone
 from enum import Enum
+from importlib.metadata import version as distribution_version
 from pathlib import Path
 from time import perf_counter
 from typing import Callable, Mapping, Optional, Sequence
 
 import numpy as np
 
-from .configuration import REPOSITORY_ROOT, BenchmarkSettings, STANDARD_SETTINGS
+from .configuration import REPOSITORY_ROOT, STANDARD_SETTINGS, BenchmarkSettings
 from .validation_acceptance import GATE_IDS
 from .validation_cohort import (
     CANONICAL_SOURCE_PATH,
@@ -48,11 +49,21 @@ from .validation_routes import (
     execute_whole_complex_route,
 )
 
-
 RESULT_SCHEMA = "hotpot-plan17-automated-route-result/v1"
 RUN_MANIFEST_SCHEMA = "hotpot-plan17-validation-run/v1"
 SUMMARY_SCHEMA = "hotpot-plan17-validation-summary/v1"
 PINNED_RDKIT_VERSION = "2026.09.1"
+PINNED_RDKIT_DISTRIBUTION_VERSION = "2026.9.1"
+PINNED_RDKIT_COMMIT = "fece8caa860bdf6c9c82bdb9253f22a0cf87150c"
+PINNED_RDKIT_TAG = "Release_2026_09_1"
+PINNED_RDKIT_ARCHIVE_SHA256 = (
+    "86711e340759a3a0678a2e62f54f26f7ff564c3a02de0460f60b1ce89ac1bfe9"
+)
+PINNED_RDKIT_LOCK_SHA256 = (
+    "4f5481e1f30d064e4ef7359db82b8cc61227efe3f44b3fa7227e6a1e251169cc"
+)
+PINNED_RDWRAPPER_C_API_VERSION = 1
+RDKIT_LOCK_PATH = REPOSITORY_ROOT / "third_party" / "rdkit" / "rdkit.lock.json"
 ROUTES: tuple[ValidationRoute, ...] = ("O0", "F1", "F2", "C1", "C2")
 STAGE_TIMING_FIELDS = (
     "semantic_reconstruction_seconds",
@@ -168,10 +179,17 @@ def collect_git_identity() -> dict[str, object]:
 def collect_runtime_identity() -> dict[str, object]:
     """Read installed Hotpot, native RDKit, Open Babel, and Python identities."""
 
+    from rdkit import rdBase
+
     import hotpot
     from hotpot.cheminfo import rdWrappers
+    from hotpot.cheminfo.obWrappers import _ob_native
+    from hotpot.cheminfo.rdWrappers import _rd_native
 
     native = rdWrappers.runtime_info()
+    ob_native = _ob_native.runtime_info()
+    lock = json.loads(RDKIT_LOCK_PATH.read_text(encoding="utf-8"))
+    rdkit_lock = lock["sources"]["rdkit"]
     try:
         from openbabel import openbabel
 
@@ -182,8 +200,37 @@ def collect_runtime_identity() -> dict[str, object]:
         "hotpot_version": str(native.hotpot_version),
         "imported_hotpot_version": str(hotpot.version()),
         "rdkit_version": str(native.rdkit_version),
+        "python_rdkit_version": str(rdBase.rdkitVersion),
+        "python_rdkit_distribution_version": distribution_version("rdkit"),
+        "native_rdkit_commit": str(_rd_native.RDKIT_COMMIT),
+        "rdwrapper_c_api_version": int(_rd_native.C_API_VERSION),
+        "rdkit_lock": {
+            "path": str(RDKIT_LOCK_PATH.resolve()),
+            "sha256": _sha256(RDKIT_LOCK_PATH),
+            "version": str(rdkit_lock["version"]),
+            "python_distribution_version": str(
+                rdkit_lock["python_distribution_version"]
+            ),
+            "tag": str(rdkit_lock["tag"]),
+            "commit": str(rdkit_lock["commit"]),
+            "archive_sha256": str(rdkit_lock["archive"]["sha256"]),
+        },
+        "rdwrapper_extension": {
+            "path": str(Path(_rd_native.__file__).resolve()),
+            "sha256": _sha256(Path(_rd_native.__file__)),
+        },
         "native": bool(native.native),
         "openbabel_version": openbabel_version,
+        "openbabel_native": {
+            "compiled_version": str(ob_native.compiled_openbabel_version),
+            "runtime_version": str(ob_native.runtime_openbabel_version),
+            "cxx11_abi": int(ob_native.cxx11_abi),
+            "library_path": str(ob_native.openbabel_library_path),
+            "babel_libdir": str(ob_native.babel_libdir),
+            "babel_datadir": str(ob_native.babel_datadir),
+            "extension_path": str(Path(_ob_native.__file__).resolve()),
+            "extension_sha256": _sha256(Path(_ob_native.__file__)),
+        },
         "python_version": platform.python_version(),
         "python_implementation": platform.python_implementation(),
         "platform": platform.platform(),
@@ -240,6 +287,60 @@ def validate_formal_start(
             "formal validation requires native RDKit "
             f"{PINNED_RDKIT_VERSION}; found {runtime.get('rdkit_version')!r}"
         )
+    if runtime.get("python_rdkit_version") != PINNED_RDKIT_VERSION:
+        raise RuntimeError(
+            "formal validation requires Python RDKit "
+            f"{PINNED_RDKIT_VERSION}; found "
+            f"{runtime.get('python_rdkit_version')!r}"
+        )
+    if (
+        runtime.get("python_rdkit_distribution_version")
+        != PINNED_RDKIT_DISTRIBUTION_VERSION
+    ):
+        raise RuntimeError(
+            "formal validation requires Python RDKit distribution "
+            f"{PINNED_RDKIT_DISTRIBUTION_VERSION}; found "
+            f"{runtime.get('python_rdkit_distribution_version')!r}"
+        )
+    if runtime.get("native_rdkit_commit") != PINNED_RDKIT_COMMIT:
+        raise RuntimeError("formal validation requires the pinned native RDKit commit")
+    if runtime.get("rdwrapper_c_api_version") != PINNED_RDWRAPPER_C_API_VERSION:
+        raise RuntimeError("formal validation requires the pinned rdWrapper C API")
+    expected_lock = {
+        "sha256": PINNED_RDKIT_LOCK_SHA256,
+        "version": PINNED_RDKIT_VERSION,
+        "python_distribution_version": PINNED_RDKIT_DISTRIBUTION_VERSION,
+        "tag": PINNED_RDKIT_TAG,
+        "commit": PINNED_RDKIT_COMMIT,
+        "archive_sha256": PINNED_RDKIT_ARCHIVE_SHA256,
+    }
+    lock = runtime.get("rdkit_lock")
+    if not isinstance(lock, Mapping) or any(
+        lock.get(key) != value for key, value in expected_lock.items()
+    ):
+        raise RuntimeError("formal validation requires the pinned RDKit lock")
+    for key in ("rdwrapper_extension",):
+        artifact = runtime.get(key)
+        if (
+            not isinstance(artifact, Mapping)
+            or re.fullmatch(r"[0-9a-f]{64}", str(artifact.get("sha256", ""))) is None
+        ):
+            raise RuntimeError(f"formal validation requires {key} identity")
+    openbabel_native = runtime.get("openbabel_native")
+    if not isinstance(openbabel_native, Mapping):
+        raise RuntimeError("formal validation requires native Open Babel identity")
+    if openbabel_native.get("compiled_version") != openbabel_native.get(
+        "runtime_version"
+    ) or openbabel_native.get("runtime_version") != runtime.get("openbabel_version"):
+        raise RuntimeError("formal validation requires one Open Babel runtime version")
+    if (
+        re.fullmatch(
+            r"[0-9a-f]{64}",
+            str(openbabel_native.get("extension_sha256", "")),
+        )
+        is None
+    ):
+        raise RuntimeError("formal validation requires Open Babel extension identity")
     if runtime.get("native") is not True:
         raise RuntimeError("formal validation requires the native RDKit backend")
     if runtime.get("hotpot_version") != runtime.get("imported_hotpot_version"):

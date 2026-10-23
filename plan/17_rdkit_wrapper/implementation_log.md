@@ -4213,7 +4213,7 @@ Git checkpoint: `fa828b5 test(validation): bind formal runtime identity`.
 
 ### Step 63 - Normalize invalid source atom identifiers at cohort freeze
 
-Status: implementation and focused tests complete; ai-14 cohort rerun pending
+Status: complete
 
 Planned:
 
@@ -4235,6 +4235,10 @@ Verification:
   pass;
 - a new negative fixture proves duplicate default IDs are normalized
   consistently in graph atoms, the metal record, and reconstruction;
+- the clean ai-14 reconstruction froze all 187 source records into the required
+  182 CBond-positive and five negative cases (139, 182, 185, 186, and 187),
+  with canonical SHA-256
+  `c35638bbe2b4c71a9fee536c529522ad3e5f2d92b5e336e09ced87a7ce1f8642`;
 - focused Ruff import, syntax, and formatting checks pass; and
 - `git diff --check` passes.
 
@@ -4250,3 +4254,117 @@ Adjustment:
 - normalize only the technical atom-identity field at the serialization
   boundary. Atom order, elements, charges, bonds, donor rows, stereo, and CBond
   partition remain unchanged.
+
+Git checkpoint: `682e801 fix(validation): normalize cohort atom identities`.
+
+### Step 64 - Project fully materialized force-field hydrogens at the RDKit seam
+
+Status: implementation, native integration, and diversified ai-14 pilot
+complete; formal matrix pending
+
+Planned:
+
+- remove the common RDKit input failure without changing standalone rdWrapper
+  semantics or the O0 workflow;
+- preserve exact atom/bond row mapping and the Level-1 source ledger; and
+- prove that ordinary partially explicit molecules retain their remaining
+  implicit hydrogens outside the force-field seam.
+
+Performed:
+
+- added an explicit opt-in mode to the single `RDKitConformerAdapter`
+  implementation for working copies whose hydrogens have already been fully
+  materialized as graph atoms;
+- projected only a private copy, set current logical/transport hydrogens to
+  `(0, 0, true)`, and retained source hydrogen provenance unchanged;
+- mechanically replaced transported `IMPLICIT_H` stereo carriers with their
+  unrepresented graph-hydrogen rows and rejected missing or ambiguous mappings;
+- enabled that mode only for the F1/F2 force-field providers and C1/C2
+  hydrogenated whole-complex inputs; and
+- left O0, the standalone native wrapper, the default adapter mode, and
+  `add_hydrogens=False` inputs unchanged.
+
+Verification:
+
+- 43 focused tests pass, including the real compiled native extension;
+- fully materialized methanol now embeds successfully with its exact six graph
+  rows, while `[H][CH2]` in default mode retains two remaining implicit
+  hydrogens;
+- the ai-14 case-1 standard-parameter run passes A01-A10 for O0, F1, F2, C1,
+  and C2;
+- a diversified 12-case, five-route ai-14 pilot completed all 60 route-cases:
+  O0/F1/F2/C1 each passed 12/12 and C2 passed 11/12; and
+- C2 case 81 failed explicitly before force-field entry because its fixed
+  coordination bounds could not pass RDKit triangle smoothing. This is a
+  route-hypothesis outcome, not a fallback or a materialized-hydrogen failure.
+
+Unexpected findings:
+
+- the initial tempting rule, “if a graph contains H then clear implicit H,” is
+  chemically invalid: partially explicit inputs such as `[H][CH2]` legitimately
+  contain both a graph H and remaining non-graph hydrogens; and
+- C2's fixed pairwise coordination bounds are not feasible for every complex,
+  even when stock C1 generation and all ligand-provider routes succeed.
+
+Adjustment:
+
+- encode full hydrogen materialization as an explicit force-field-seam
+  precondition rather than inferring it from graph contents; and
+- retain the C2 failure as required negative evidence in the formal 182-case
+  experiment instead of introducing an unapproved fallback.
+
+Git checkpoint: `9b31908 fix(validation): project materialized hydrogens at RDKit seam`.
+
+### Step 65 - Seal the validation-to-dataset evidence chain
+
+Status: complete
+
+Planned:
+
+- prevent a logically different run or selected structure from entering the
+  governed dataset under a valid primary-route label; and
+- make the publication Bundle self-contained and immutable with respect to all
+  source validation evidence.
+
+Performed:
+
+- required five distinct primary run IDs plus one distinct F1-repeat ID;
+- rejected any F1 primary/repeat pass or A01-A10 gate disagreement;
+- bound every selected structure to the exact `selected.sdf` beside its own
+  case `result.json` and rejected path escape or cross-case substitution;
+- revalidated F2 and C1/C2 proposal contents, hashes, canonical identities,
+  routes, and fixed sibling paths;
+- revalidated trajectory tree hashes, file counts, byte counts, SDF policy,
+  containment, and absence of symlinks;
+- froze the complete run, cohort, source, gallery, manual-review, conversion,
+  proposal, trajectory, and selected-structure evidence into the Bundle;
+- emitted one aggregate evidence index as a certified Bundle control asset;
+  and
+- revalidated the copied evidence and prepared dataset structures before the
+  atomic Bundle rename, closing the validation-to-copy race boundary.
+
+Verification:
+
+- 13 focused publication/dataset tests pass, including negative proposal,
+  trajectory, cross-case selection, repeat-drift, and copy-time mutation cases;
+- the real prepare -> synchronize -> certify -> ingest lifecycle passes on the
+  complete fixture matrix;
+- the combined Plan-17 validation, force-field seam, and compiled native test
+  selection reports 173 passed; and
+- focused Ruff E/F/I and `git diff --check` pass.
+
+Unexpected findings:
+
+- merely indexing the bytes copied at publication time could certify evidence
+  that no longer matched the already validated runner declarations if source
+  files changed between validation and copying; and
+- proposal and trajectory artifacts were previously carried as evidence but
+  not independently rehashed at the publication boundary.
+
+Adjustment:
+
+- treat Bundle preparation as a second complete evidence-verification boundary,
+  not as a trusted file-copy step. Dataset ingest remains explicitly separate
+  and still requires owner-authorized confirmation.
+
+Git checkpoint: `8986654 fix(validation): seal publication evidence chain`.

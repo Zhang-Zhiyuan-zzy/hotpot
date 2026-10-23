@@ -4100,4 +4100,68 @@ Adjustment:
 - retain source line, route, and semantic graph digest as the complete sample
   identity tuple; use coordinate hashes only for immutable asset identity.
 
-Git checkpoint: pending.
+Git checkpoint: `75049ca fix(dataset): bind benchmark semantic identity`.
+
+### Step 61 - Translate production route facts into A01-A10 evidence
+
+Status: complete for implementation and focused fixtures; formal 182-case
+evidence pending
+
+Planned:
+
+- evaluate the selected force-field structure rather than treating every
+  exploratory numerical excursion as a failure;
+- require explicit proof that any unavailable-gradient event was recovered and
+  optimization continued; and
+- retain every ETKDG coordinate proposal before force-field work can mutate or
+  fail.
+
+Performed:
+
+- added a report/trajectory translator that binds the real selected main
+  trajectory frame to the committed molecule and final energy/gradient report;
+- made finite-energy and finite-gradient flags authoritative and rejected
+  mismatches between the selected archive frame and final report;
+- derived unavailable-gradient recovery only from a same-branch, same-stage
+  production perturbation/rollback event followed by finite gradients and
+  resumed optimization, rather than accepting caller assertions;
+- derived A10 stage outcomes from observed proposal, build, trajectory,
+  optimization, and acceptance facts instead of copying the expected stage
+  list into successful records;
+- matched O0/F1/F2 proposal rows to the complete expected ligand-component set,
+  and bound F2 rows to each component SHA-256 rather than an unordered digest
+  collection;
+- normalized graph comparison so ordinary bond row/order/orientation is not a
+  false semantic change while atom order, dative direction, formal charge, and
+  represented stereo remain protected; and
+- added failure-atomic, full-coordinate F2 and C1/C2 proposal artifacts written
+  before downstream force-field execution, including canonical and file hashes.
+
+Verification:
+
+- 66 focused cohort, provider, route, evidence, runner, gallery, dataset, and
+  pure-acceptance tests pass;
+- negative fixtures prove that a missing/mismatched selected frame, missing
+  provider component, absent coordination stage, unproved gradient recovery,
+  semantic mutation, and changed F2 coordinate all fail their intended gates;
+- failure fixtures prove F2 and C2 proposal bytes remain available when the
+  force-field call raises; and
+- a real spawned-worker O0 smoke route passes all A01-A10 gates, including the
+  worker atom-ID renumbering boundary; and
+- Python compilation, Ruff checks/format, and `git diff --check` pass for the
+  affected files.
+
+Unexpected findings:
+
+- the first evidence draft could synthesize a selected frame, mark expected
+  stages complete without observations, and accept an asserted recovery with
+  no archived action; and
+- retaining only proposal hashes was insufficient when a force-field failure
+  occurred before a successful route result existed.
+
+Adjustment:
+
+- make trajectory/report consistency and pre-forcefield proposal persistence
+  hard evidence boundaries before starting the formal route matrix.
+
+Git checkpoint: `537784b test(validation): bind forcefield evidence to artifacts`.

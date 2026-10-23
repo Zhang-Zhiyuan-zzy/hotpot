@@ -4434,3 +4434,99 @@ Adjustment:
   directory, then rerun all 182 O0/F1/F2/C1/C2 cases and all 182 F1-repeat
   cases. Do not overwrite the schema-v1 matrix, rerun only the seven visible
   failures, or combine schema-v1 and schema-v2 outcomes.
+
+Git checkpoint: `b0aa6c5 fix(validation): preserve cohort implicit hydrogens`.
+
+### Step 67 - Execute the authoritative schema-v2 formal matrix and gallery
+
+Status: automated validation and exhaustive gallery generation complete;
+attributable human review and governed dataset publication pending
+
+Planned:
+
+- build a clean exact-revision schema-v2 cohort rather than repairing the
+  schema-v1 artifact in place;
+- require one complete O0/F1/F2/C1/C2 matrix plus an independent complete F1
+  repeat under the formal runtime gate; and
+- render every primary route-case without substituting a rejected frame or a
+  different route's structure for a failed result.
+
+Performed:
+
+- installed the exact clean `b0aa6c5` checkout at
+  `ai-14:~/mca_test/hotpot-plan17-b0aa6c5` and passed the formal identity gate
+  against Hotpot 0.5.4.0, native/Python RDKit 2026.09.1, Open Babel 3.2.1,
+  native RDKit commit `fece8caa...`, C API v1, and the locked extension hashes;
+- rebuilt all 187 current-CBond cases into
+  `~/mca_study/plan17-b0aa6c5/cohort.json`, retaining the exact 182-positive
+  and five-negative partition and producing canonical scientific digest
+  `8f68e8b74d51eac07f28846cb901e92b94e5697aa0495733dbc44e03ae198102`;
+- round-tripped every positive graph through Hotpot reconstruction and checked
+  every derived C1/C2 atom document with zero mismatches;
+- ran case 26 through O0/F1/F2/C1/C2 first; all five routes passed A01-A10,
+  proving that the repaired pyrrolic N-H state reached the real native path;
+- executed the full 1,092-result formal matrix with 16 spawned workers in
+  506.107 wall seconds; and
+- created five exhaustive PyMOL contact sheets plus all 910 route-case cells:
+  869 selected structures, 41 scientific-failure placeholders, and zero render
+  errors. The generated review template remains correctly marked
+  `pending_human_review` with 0/910 rows reviewed.
+
+Automated result matrix:
+
+| Route | Passed | Automated failed | Execution failed | Principal failures |
+| --- | ---: | ---: | ---: | --- |
+| O0 | 180/182 | 2 | 0 | A08: 24, 96 |
+| F1 | 180/182 | 1 | 1 | no conformer: 10; A08: 29 |
+| F2 | 180/182 | 1 | 1 | no conformer: 10; A08: 29 |
+| C1 | 172/182 | 2 | 8 | eight no-conformer cases; A08: 21; unrecovered case 70 |
+| C2 | 157/182 | 4 | 21 | five no-conformer; 16 inconsistent-bound; A08: 21, 54, 63; unrecovered case 70 |
+| F1 repeat | 180/182 | 1 | 1 | exactly the same case/gate classifications as F1 |
+
+Verification:
+
+- the formal summary is complete with 1,092 observed of 1,092 expected,
+  no missing, duplicate, or unexpected results;
+- the F1 primary/repeat acceptance and complete A01-A10 signatures agree for
+  all 182 cases;
+- all 1,049 admitted structures across the six runs have finite selected
+  coordinates, energy, RMS gradient, and maximum gradient, a matching selected
+  archive frame, a passing standard gate, and a selected-structure asset;
+- the only unavailable-gradient evidence is C1/C2 case 70. No established
+  recovery restored a finite direction, so both routes correctly fail it;
+- the seven former schema-v1 `[nH]` failures (26, 35, 36, 98, 153, 154, and
+  180) pass all five primary routes, and no matrix result reports a
+  kekulization, aromaticity, or hydrogen-representation error;
+- gallery manifest SHA-256 is
+  `1eebd77a35849da2bb65502d85f30c94a1eb668290857e4ec1cafd032451055a`;
+  every declared image/contact-sheet digest validates; and
+- a technical contact-sheet pre-screen found no immediately obvious failed
+  rendering or grossly disconnected accepted structure, but it is not the
+  attributable human review required by the publication contract.
+
+Unexpected findings:
+
+- every one of the 182 fresh positive CBond graphs contains at least one
+  nonzero current implicit-hydrogen count. Nonpolar graph hydrogens often
+  coexist with those source/current counts and are not necessarily missing
+  downstream, but schema v1 failed to preserve the literal atom state for the
+  entire cohort, reinforcing the full-rerun decision;
+- after fixing that evidence defect, F1 and F2 converge on the same two real
+  failures and F1 repeat is classification-stable; and
+- current C2 fixed bounds are triangle-inconsistent for 16 cases. This is a
+  negative result for that versioned hypothesis, not authority to add a
+  fallback or loosen bounds inside the frozen experiment.
+
+Adjustment:
+
+- retain Open Babel as the default complex provider because F1 achieved
+  180/182 rather than the owner-required 182/182; retain `rdWrappers`, the
+  provider seam, and the F1/F2 experimental components;
+- retain C1/C2 as measured research components without promoting either
+  whole-complex hypothesis; and
+- do not complete the review artifact or publish the owner-authorized 910
+  dataset records until a human reviewer has examined the five galleries and
+  supplied attributable completion evidence. On completion, the current
+  automated matrix can contribute at most 869 selected coordinate assets;
+  all 41 failed route-cases remain explicit records without substituted
+  coordinates.

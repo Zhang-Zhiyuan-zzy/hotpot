@@ -268,11 +268,41 @@ NetworkX reference under search.  The frozen performance/semantic gate retained
 deterministic results with SHA-256
 `a2c1f6c232b1b69f87599eb9bfa843a62846f726dbbe7fc8077fdd2f414c43f4`.
 
-Git checkpoint: pending Stage 3 commit.
+Git checkpoint: `cb17165` (`refactor(search): compose shared native graph`).
 
 ### Stage 4 - native MCA automorphism
 
-Status: not started.
+Status: complete.
+
+Performed:
+
+- added a private fixed-root exact automorphism problem that reuses the same
+  `NativeTarget` and private Graph as all ordered MCA rules for one molecule;
+- retained RI planning, domains, cursor state, and candidate order while
+  requiring equal degree, exact node labels, and exact edge labels;
+- encoded the full MCA atom label
+  `(atomic_number, formal_charge, is_aromatic, implicit_hydrogens, isotope)`
+  and the pre-existing aromatic/bond-order/bond-kind edge semantics without
+  lossy hashing;
+- replaced NetworkX copies and `nx.is_isomorphic()` with the anchored native
+  Yes/No check;
+- retained one-WL as a rejection-only Python prepartition over direct packed
+  adjacency; and
+- preserved ordered rules, representative selection, site types, and
+  `is_Nuc_site` ownership.
+
+Verification:
+
+```text
+native search and complete MCA focused group:
+  377 passed in 23.70 s
+```
+
+The added contracts cover shared target identity, exact node and edge labels,
+disconnected symmetric components, isotope/asymmetric rejection, and absence
+of a production NetworkX reference in MCA site detection.
+
+Git checkpoint: pending Stage 4 commit.
 
 ### Stage 5 - cycle algorithms and ordering
 

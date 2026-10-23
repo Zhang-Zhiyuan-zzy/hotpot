@@ -85,6 +85,38 @@ def _iter_mapping_sources(queries, mol):
         )
 
 
+def _mapping_sources_with_automorphism(queries, mol):
+    """Build ordered query sources and exact symmetry checks on one target."""
+    queries = tuple(queries)
+    target_spec = _pack_target_snapshot(
+        mol,
+        needs_atom_objects=any(query.needs_atom_objects for query in queries),
+        needs_bond_objects=any(query.needs_bond_objects for query in queries),
+        derived_requirements=_merge_derived_requirements(
+            tuple(query.derived_requirements for query in queries)
+        ),
+    )
+    node_labels, edge_labels = _exact_topology_labels(
+        mol,
+        target_spec["keys"],
+        target_spec["edges"],
+    )
+    native_module = _native_module()
+    target = native_module.NativeTarget(target_spec)
+    sources = tuple(
+        _NativeMappingSource(native_module.NativeProblem(query.query_spec, target))
+        for query in queries
+    )
+    automorphism = _NativeAutomorphismTask(
+        native_module._NativeAutomorphism(target, node_labels, edge_labels),
+        target_spec["keys"],
+        target_spec["edges"],
+        node_labels,
+        edge_labels,
+    )
+    return sources, automorphism
+
+
 def _merge_derived_requirements(requirements):
     return {
         name: tuple(
@@ -299,6 +331,58 @@ def _pack_aromatic_edges(rings):
         if ring.is_aromatic
         for bond in ring.bonds
     }
+
+
+def _exact_topology_labels(mol, keys, edges):
+    atoms = {atom.idx: atom for atom in mol.atoms}
+    bonds = {
+        tuple(sorted((bond.a1idx, bond.a2idx))): bond
+        for bond in mol.bonds
+    }
+    node_values = tuple(
+        (
+            int(atoms[key].atomic_number),
+            int(atoms[key].formal_charge),
+            bool(atoms[key].is_aromatic),
+            int(atoms[key].implicit_hydrogens),
+            int(getattr(atoms[key], "isotope", 0)),
+        )
+        for key in keys
+    )
+    edge_values = tuple(
+        (
+            "aromatic",
+            bonds[edge].bond_kind.value,
+        )
+        if bonds[edge].is_aromatic
+        else (
+            "bond_order",
+            float(bonds[edge].bond_order),
+            bonds[edge].bond_kind.value,
+        )
+        for edge in edges
+    )
+    return _integer_labels(node_values), _integer_labels(edge_values)
+
+
+def _integer_labels(values):
+    labels = {
+        value: label
+        for label, value in enumerate(sorted(set(values), key=repr))
+    }
+    return tuple(labels[value] for value in values)
+
+
+@dataclass(frozen=True)
+class _NativeAutomorphismTask:
+    _native: object
+    keys: tuple[int, ...]
+    edges: tuple[tuple[int, int], ...]
+    node_labels: tuple[int, ...]
+    edge_labels: tuple[int, ...]
+
+    def equivalent(self, first: int, second: int) -> bool:
+        return self._native.equivalent(first, second)
 
 
 class _NativeMappingSource:

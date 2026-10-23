@@ -61,6 +61,28 @@ PYBIND11_MODULE(_search_native, module) {
             }
         );
 
+    py::class_<NativeAutomorphism, std::shared_ptr<NativeAutomorphism>>(
+        module,
+        "_NativeAutomorphism"
+    )
+        .def(
+            py::init<
+                std::shared_ptr<NativeTarget>,
+                std::vector<std::int64_t>,
+                std::vector<std::int64_t>
+            >(),
+            py::arg("target").none(false),
+            py::arg("node_labels"),
+            py::arg("edge_labels")
+        )
+        .def(
+            "equivalent",
+            &NativeAutomorphism::equivalent,
+            py::arg("first"),
+            py::arg("second"),
+            py::call_guard<py::gil_scoped_release>()
+        );
+
     py::class_<MappingCursor>(module, "MappingCursor")
         .def(
             "__iter__",

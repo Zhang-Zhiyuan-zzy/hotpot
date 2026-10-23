@@ -4,12 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-import networkx as nx
-
 from hotpot.cheminfo.core import Atom, Molecule
 from hotpot.cheminfo.search import SmartsSemantics, Substructure
 from hotpot.cheminfo.search.native import (
-    _iter_mapping_sources,
+    _mapping_sources_with_automorphism,
     _prepare_query,
 )
 
@@ -70,41 +68,18 @@ def _is_eligible_site(atom: Atom) -> bool:
     )
 
 
-def _atom_label(atom) -> tuple:
-    return (
-        atom.atomic_number,
-        atom.formal_charge,
-        bool(atom.is_aromatic),
-        atom.implicit_hydrogens,
-        getattr(atom, "isotope", 0),
-    )
-
-
-def _bond_label(bond) -> tuple:
-    if bond.is_aromatic:
-        return ("aromatic", bond.bond_kind)
-    return ("bond_order", float(bond.bond_order), bond.bond_kind)
-
-
-def _labeled_graph(mol: Molecule) -> nx.Graph:
-    graph = nx.Graph()
-    graph.add_nodes_from(
-        (atom.idx, {"label": _atom_label(atom), "root": False})
-        for atom in mol.atoms
-    )
-    graph.add_edges_from(
-        (bond.a1idx, bond.a2idx, {"label": _bond_label(bond)})
-        for bond in mol.bonds
-    )
-    return graph
-
-
-def _refined_node_colors(graph: nx.Graph) -> dict[int, int]:
+def _refined_node_colors(automorphism) -> dict[int, int]:
     """Return a 1-WL partition used only to avoid impossible isomorphism checks."""
 
-    labels = {node: graph.nodes[node]["label"] for node in graph}
-    unique_labels = {label: index for index, label in enumerate(sorted(set(labels.values())))}
-    colors = {node: unique_labels[label] for node, label in labels.items()}
+    colors = dict(zip(automorphism.keys, automorphism.node_labels))
+    adjacency = {node: [] for node in automorphism.keys}
+    for (first, second), edge_label in zip(
+        automorphism.edges,
+        automorphism.edge_labels,
+    ):
+        adjacency[first].append((edge_label, second))
+        if first != second:
+            adjacency[second].append((edge_label, first))
 
     while True:
         signatures = {
@@ -112,12 +87,12 @@ def _refined_node_colors(graph: nx.Graph) -> dict[int, int]:
                 colors[node],
                 tuple(
                     sorted(
-                        (graph.edges[node, neighbour]["label"], colors[neighbour])
-                        for neighbour in graph.neighbors(node)
+                        (edge_label, colors[neighbour])
+                        for edge_label, neighbour in adjacency[node]
                     )
                 ),
             )
-            for node in graph
+            for node in automorphism.keys
         }
         unique_signatures = {
             signature: index
@@ -129,33 +104,15 @@ def _refined_node_colors(graph: nx.Graph) -> dict[int, int]:
         colors = refined
 
 
-def _rooted_isomorphic(graph: nx.Graph, first: int, second: int) -> bool:
-    """Test whether an exact labeled graph automorphism maps ``first`` to ``second``."""
-
-    first_rooted = graph.copy()
-    second_rooted = graph.copy()
-    first_rooted.nodes[first]["root"] = True
-    second_rooted.nodes[second]["root"] = True
-    return nx.is_isomorphic(
-        first_rooted,
-        second_rooted,
-        node_match=lambda left, right: (
-            left["label"] == right["label"] and left["root"] == right["root"]
-        ),
-        edge_match=lambda left, right: left["label"] == right["label"],
-    )
-
-
 def _remove_automorphic_sites(
-    mol: Molecule, sites: list[DetectedSite]
+    automorphism, sites: list[DetectedSite]
 ) -> tuple[DetectedSite, ...]:
-    graph = _labeled_graph(mol)
-    colors = _refined_node_colors(graph)
+    colors = _refined_node_colors(automorphism)
     representatives: dict[int, list[int]] = {}
     result = []
     for site in sites:
         equivalent = any(
-            _rooted_isomorphic(graph, site.atom_index, representative)
+            automorphism.equivalent(site.atom_index, representative)
             for representative in representatives.get(colors[site.atom_index], ())
         )
         if not equivalent:
@@ -169,7 +126,7 @@ def find_nucleophilic_sites(mol: Molecule) -> tuple[DetectedSite, ...]:
 
     assigned = set()
     sites = []
-    rule_sources = _iter_mapping_sources(
+    rule_sources, automorphism = _mapping_sources_with_automorphism(
         (query for _, query, _ in _COMPILED_RULES),
         mol,
     )
@@ -181,4 +138,4 @@ def find_nucleophilic_sites(mol: Molecule) -> tuple[DetectedSite, ...]:
             if _is_eligible_site(mol.atoms[atom_index]) and atom_index not in assigned:
                 assigned.add(atom_index)
                 sites.append(DetectedSite(atom_index, name))
-    return _remove_automorphic_sites(mol, sites)
+    return _remove_automorphic_sites(automorphism, sites)

@@ -4,7 +4,11 @@ import weakref
 
 import pytest
 
-from hotpot.cheminfo.search._search_native import NativeProblem, NativeTarget
+from hotpot.cheminfo.search._search_native import (
+    NativeProblem,
+    NativeTarget,
+    _NativeAutomorphism,
+)
 
 
 def _semantic(*, degree=0, connectivity=0, valence=0, ring_sizes=()):
@@ -59,6 +63,50 @@ def _target(keys, edges, atoms, bonds=()):
 
 def _problem(query, target):
     return NativeProblem(query, NativeTarget(target))
+
+
+def _automorphism(keys, edges, node_labels, edge_labels):
+    target = NativeTarget(
+        _target(
+            keys,
+            edges,
+            tuple(_atom({}) for _ in keys),
+            tuple(_bond({}) for _ in edges),
+        )
+    )
+    return _NativeAutomorphism(target, node_labels, edge_labels)
+
+
+def test_native_fixed_root_automorphism_uses_exact_integer_labels():
+    symmetric = _automorphism((0, 1, 2), ((0, 1), (1, 2)), (0, 1, 0), (4, 4))
+    edge_asymmetric = _automorphism(
+        (0, 1, 2),
+        ((0, 1), (1, 2)),
+        (0, 1, 0),
+        (4, 5),
+    )
+    node_asymmetric = _automorphism(
+        (0, 1, 2),
+        ((0, 1), (1, 2)),
+        (0, 1, 2),
+        (4, 4),
+    )
+
+    assert symmetric.equivalent(0, 2)
+    assert not edge_asymmetric.equivalent(0, 2)
+    assert not node_asymmetric.equivalent(0, 2)
+
+
+def test_native_fixed_root_automorphism_maps_disconnected_components():
+    automorphism = _automorphism(
+        (0, 1, 2, 3),
+        ((0, 1), (2, 3)),
+        (0, 1, 0, 1),
+        (8, 8),
+    )
+
+    assert automorphism.equivalent(0, 2)
+    assert not automorphism.equivalent(0, 1)
 
 
 def _atom_expr(op, *, field=None, value=None, semantics=None, children=()):

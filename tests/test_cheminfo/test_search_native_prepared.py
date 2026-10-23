@@ -240,3 +240,34 @@ def test_mca_rules_reuse_compiled_queries_and_one_generic_target(monkeypatch):
         (3, "atom_with_lone_pair"),
     )
     assert pack_calls == 1
+
+
+def test_mca_rules_and_automorphism_share_one_native_target(monkeypatch):
+    native_module = native._native_module()
+    problem_targets = []
+    automorphism_targets = []
+
+    class CapturingNativeModule:
+        NativeTarget = native_module.NativeTarget
+
+        @staticmethod
+        def NativeProblem(query_spec, target):
+            problem_targets.append(target)
+            return native_module.NativeProblem(query_spec, target)
+
+        @staticmethod
+        def _NativeAutomorphism(target, node_labels, edge_labels):
+            automorphism_targets.append(target)
+            return native_module._NativeAutomorphism(
+                target,
+                node_labels,
+                edge_labels,
+            )
+
+    monkeypatch.setattr(native, "_native_module", CapturingNativeModule)
+
+    site_detection.find_nucleophilic_sites(hp.read_mol("NCCN", "smi"))
+
+    assert len(problem_targets) == len(site_detection._COMPILED_RULES)
+    assert len(automorphism_targets) == 1
+    assert len({id(target) for target in problem_targets + automorphism_targets}) == 1

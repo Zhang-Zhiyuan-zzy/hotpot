@@ -4068,4 +4068,36 @@ Adjustment:
 - treat F2 and C1/C2 as validation controls only; no public backend/profile or
   alternate production workflow is introduced.
 
+Git checkpoint: `0d170d8 test(validation): wire five forcefield routes`.
+
+### Step 60 - Bind benchmark sample identity to semantic graph identity
+
+Status: complete
+
+Planned:
+
+- prevent two route records with the same source-line/route label but different
+  reconstructed chemical graphs from being treated as the same scientific
+  sample.
+
+Performed:
+
+- added the canonical semantic graph SHA-256 to Bundle `core_info` and the
+  persisted identity schema; and
+- documented explicitly that coordinates and energies remain outside sample
+  identity.
+
+Verification:
+
+- the dataset publisher and documentation selection reports `15 passed`;
+- the temporary Bundle synchronize/certify/ingest lifecycle remains green; and
+- Python compilation and `git diff --check` pass.
+
+Unexpected findings: none.
+
+Adjustment:
+
+- retain source line, route, and semantic graph digest as the complete sample
+  identity tuple; use coordinate hashes only for immutable asset identity.
+
 Git checkpoint: pending.

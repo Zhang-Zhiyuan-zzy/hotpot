@@ -423,6 +423,7 @@ def _result_case(
             "source_line_index": case_index,
             "source_smiles": record["source_smiles"],
             "route": route,
+            "semantic_graph_sha256": record["semantic_graph_sha256"],
             "terminal_status": record["status"],
         },
         "metadata": {
@@ -441,7 +442,10 @@ def _result_case(
         "structures": [] if structure is None else [dict(structure)],
         "attestations": [
             {
-                "attestation_id": f"attestation-{case_id}-{authorization['authorization_id']}",
+                "attestation_id": (
+                    f"attestation-{case_id}-"
+                    f"{authorization['authorization_id']}"
+                ),
                 "authority": "User",
                 "actor": authorization["actor"],
                 "approved": True,
@@ -621,6 +625,7 @@ def prepare_bundle(
                 "source_line_index",
                 "source_smiles",
                 "route",
+                "semantic_graph_sha256",
                 "terminal_status",
             ],
             "intake": {"format": "jsonl", "path": "evidence/intake/cases.jsonl"},
@@ -635,6 +640,12 @@ def prepare_bundle(
                     {
                         "key": "route",
                         "path": "core_info.route",
+                        "required": True,
+                        "normalizer": "text",
+                    },
+                    {
+                        "key": "semantic-graph-sha256",
+                        "path": "core_info.semantic_graph_sha256",
                         "required": True,
                         "normalizer": "text",
                     },

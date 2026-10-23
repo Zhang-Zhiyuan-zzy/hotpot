@@ -24,6 +24,8 @@ scientific settings, A01-A10 decisions, recovery diagnostics, selected-frame
 numerics, and manual-review result. IEEE NaN and infinities are never emitted
 as nonstandard JSON tokens: they are represented as
 `{"nonfinite_float":"nan"}`, `+inf`, or `-inf` diagnostic objects.
+The persisted sample identity is the source-line index, route, and semantic
+graph digest; coordinate bytes and energies never participate in identity.
 
 ## Structure and failure semantics
 

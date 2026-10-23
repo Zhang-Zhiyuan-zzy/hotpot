@@ -22,12 +22,8 @@ from hotpot.cheminfo.obWrappers import (
 
 EXTRACTANT_FILE = (
     Path(__file__).resolve().parents[3]
-    / "hotpot"
-    / "dataset"
-    / "data"
-    / "sources"
-    / "formal-charge"
-    / "structures"
+    / "molecules"
+    / "extractant"
     / "extractants.smi"
 )
 PHOSPHORUS_CASES = frozenset(

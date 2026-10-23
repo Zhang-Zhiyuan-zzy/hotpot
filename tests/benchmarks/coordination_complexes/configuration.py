@@ -8,6 +8,9 @@ from pathlib import Path
 from typing import Mapping
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+CANONICAL_EXTRACTANT_SOURCE = (
+    REPOSITORY_ROOT / "molecules" / "extractant" / "extractants.smi"
+)
 
 
 class RunProfile(str, Enum):
@@ -95,12 +98,12 @@ SMOKE_SETTINGS = BenchmarkSettings(
 BUILTIN_SUITES = {
     "extractants-eu-187": BenchmarkSuite(
         name="extractants-eu-187",
-        input_path=REPOSITORY_ROOT / "hotpot/dataset/data/sources/formal-charge/structures/extractants.smi",
+        input_path=CANONICAL_EXTRACTANT_SOURCE,
         expected_count=187,
     ),
     "extractants-am-187": BenchmarkSuite(
         name="extractants-am-187",
-        input_path=REPOSITORY_ROOT / "hotpot/dataset/data/sources/formal-charge/structures/extractants.smi",
+        input_path=CANONICAL_EXTRACTANT_SOURCE,
         expected_count=187,
         metal="Am",
         title="Am coordination complexes from extractant ligands",

@@ -53,7 +53,9 @@ def test_builtin_extractant_suite_metadata_is_hermetic() -> None:
     am_suite = BUILTIN_SUITES["extractants-am-187"]
     expected_path = (
         Path(__file__).resolve().parents[3]
-        / "hotpot/dataset/data/sources/formal-charge/structures/extractants.smi"
+        / "molecules"
+        / "extractant"
+        / "extractants.smi"
     )
 
     assert eu_suite.input_path == am_suite.input_path == expected_path

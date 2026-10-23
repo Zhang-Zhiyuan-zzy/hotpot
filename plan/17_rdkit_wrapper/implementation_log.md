@@ -3805,4 +3805,39 @@ Adjustment:
 - use this tracked file as the semantic cohort builder's canonical default;
   the ignored historical dataset copy is no longer required for validation.
 
+Git checkpoint: `c6d884d data(validation): restore canonical extractant source`.
+
+### Step 54 - Make the tracked corpus the benchmark source of truth
+
+Status: complete
+
+Planned:
+
+- remove the remaining benchmark dependency on an ignored local copy of the
+  extractant SMILES while preserving the exact scientific bytes.
+
+Performed:
+
+- pointed both built-in Eu and Am extractant suites at the tracked
+  `molecules/extractant/extractants.smi` asset;
+- updated the benchmark contract test and maintained command examples; and
+- updated the Open Babel extractant bridge fixture to use the same source.
+
+Verification:
+
+- the built-in suite metadata, 187-record loader, Am source reuse, and
+  counterion-free case-134 checks report `4 passed`;
+- the canonical source digest remains unchanged; and
+- `git diff --check` passes.
+
+Unexpected findings:
+
+- legacy benchmark consumers still named the ignored governed-data copy even
+  though the newly restored tracked asset has identical canonical content.
+
+Adjustment:
+
+- retain generated coordinate payloads under ignored `hotpot/dataset/data`,
+  but use the tracked proposal source for all new cohort construction.
+
 Git checkpoint: pending.

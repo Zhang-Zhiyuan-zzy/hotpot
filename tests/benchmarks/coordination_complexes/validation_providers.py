@@ -10,7 +10,7 @@ from copy import copy
 from dataclasses import asdict, dataclass, is_dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Mapping, TYPE_CHECKING
+from typing import TYPE_CHECKING, Mapping
 
 import numpy as np
 
@@ -27,7 +27,6 @@ from hotpot.cheminfo.forcefields.working_copy import (
     _make_worker_mol,
 )
 from hotpot.cheminfo.stereo import get_stereo_payload
-
 
 if TYPE_CHECKING:
     from hotpot.cheminfo.core import Molecule
@@ -195,7 +194,11 @@ def freeze_rdkit_proposals(
     sampler: ConformerSampler | None = None,
 ) -> FrozenCoordinateReplayAdapter:
     """Precompute F2 on the exact component graph used at worker entry."""
-    selected_sampler = sampler if sampler is not None else RDKitConformerAdapter()
+    selected_sampler = (
+        sampler
+        if sampler is not None
+        else RDKitConformerAdapter(materialized_hydrogens=add_hydrogens)
+    )
     request = ConformerSamplingRequest(conformer_count=1, seed=seed)
     proposals = []
     for component in _worker_components(

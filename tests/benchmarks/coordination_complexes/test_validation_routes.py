@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from hotpot.cheminfo import rdWrappers
-from hotpot.cheminfo.conformers import ConformerBatch
+from hotpot.cheminfo.conformers import ConformerBatch, RDKitConformerAdapter
 from hotpot.cheminfo.core import Molecule
 
 from .configuration import SMOKE_SETTINGS
@@ -66,6 +66,10 @@ def test_provider_routes_use_one_identical_complete_workflow(route: str) -> None
     if route == "F2":
         assert isinstance(sampler, FrozenCoordinateReplayAdapter)
         assert len(execution.proposal_manifest) == 1
+    elif route == "F1":
+        assert isinstance(sampler, RDKitConformerAdapter)
+        assert sampler.materialized_hydrogens is True
+        assert execution.proposal_manifest == ()
     else:
         assert not isinstance(sampler, FrozenCoordinateReplayAdapter)
         assert execution.proposal_manifest == ()
@@ -181,6 +185,41 @@ def test_whole_complex_route_does_not_commit_generated_dative_metadata() -> None
     )
 
     assert source.c_bonds[0].bond_kind is original_kind
+
+
+def test_whole_complex_route_projects_only_its_materialized_working_copy() -> None:
+    source = _complex()
+    source.atoms[1].implicit_hydrogens = 2
+    observed = {}
+
+    def generate(molecule, *, options, constraints):
+        observed["atom_count"] = len(molecule.atoms)
+        observed["implicit"] = tuple(
+            atom.implicit_hydrogens for atom in molecule.atoms
+        )
+        return rdWrappers.ConformerBatch(
+            status=rdWrappers.GenerationStatus.SUCCESS,
+            coordinates=np.zeros((1, len(molecule.atoms), 3)),
+            records=(rdWrappers.ConformerRecord(0, 0),),
+            engine="fixture",
+            engine_version="1",
+            diagnostic=None,
+        )
+
+    execute_whole_complex_route(
+        source,
+        "C1",
+        SMOKE_SETTINGS,
+        1,
+        generate=generate,
+        optimize=lambda molecule, forcefield, **options: "optimized",
+        radius=lambda atomic_number: 1.0,
+        add_hydrogens=True,
+    )
+
+    assert observed["atom_count"] > len(source.atoms)
+    assert set(observed["implicit"]) == {0}
+    assert source.atoms[1].implicit_hydrogens == 2
 
 
 def test_c2_artifact_exists_before_forcefield_failure(tmp_path) -> None:

@@ -6,7 +6,7 @@ from copy import copy
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from time import perf_counter
-from typing import Callable, Literal, Mapping, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Literal, Mapping, Optional
 
 import numpy as np
 
@@ -14,6 +14,9 @@ from hotpot.cheminfo.conformers import (
     ConformerSampler,
     OpenBabelConformerAdapter,
     RDKitConformerAdapter,
+)
+from hotpot.cheminfo.conformers.adapters import (
+    _materialized_hydrogen_projection,
 )
 from hotpot.cheminfo.core import BondKind
 from hotpot.cheminfo.forcefields.coordination import _iter_metal_donor_pairs
@@ -29,10 +32,9 @@ from .validation_providers import (
     coordinate_sha256,
     freeze_rdkit_proposals,
     frozen_proposal_manifest,
-    write_mapped_coordinate_proposal,
     write_frozen_proposals,
+    write_mapped_coordinate_proposal,
 )
-
 
 if TYPE_CHECKING:
     from hotpot.cheminfo.core import Molecule
@@ -100,7 +102,7 @@ def _provider_sampler(
     if route == "O0":
         return OpenBabelConformerAdapter(), ()
     if route == "F1":
-        return RDKitConformerAdapter(), ()
+        return RDKitConformerAdapter(materialized_hydrogens=add_hydrogens), ()
     replay = freeze_rdkit_proposals(
         molecule,
         seed=seed,
@@ -214,6 +216,7 @@ def _generate_whole_complex(
     seed: int,
     generate: Optional[Callable[..., object]],
     radius: Callable[[int], float],
+    materialized_hydrogens: bool,
 ) -> ProposalRecord:
     from hotpot.cheminfo import rdWrappers
 
@@ -226,8 +229,13 @@ def _generate_whole_complex(
         else _coordination_constraints(generation_graph, radius=radius)
     )
     selected_generate = generate or rdWrappers.generate_conformers
+    rdkit_input = (
+        _materialized_hydrogen_projection(generation_graph)
+        if materialized_hydrogens
+        else generation_graph
+    )
     batch = selected_generate(
-        generation_graph,
+        rdkit_input,
         options=rdWrappers.ETKDGOptions(conformer_count=1, seed=seed),
         constraints=constraints,
     )
@@ -301,6 +309,7 @@ def execute_whole_complex_route(
         seed=seed,
         generate=generate,
         radius=radius,
+        materialized_hydrogens=add_hydrogens,
     )
     proposal_artifact = None
     if proposal_artifact_path is not None:

@@ -12,17 +12,18 @@ from hotpot.cheminfo.conformers import (
 )
 from hotpot.cheminfo.core import BondKind, Molecule
 
+from . import validation_providers
 from .validation_providers import (
     FrozenCoordinateReplayAdapter,
+    _worker_components,
     component_sha256,
     coordinate_sha256,
     freeze_rdkit_proposals,
     frozen_proposal_manifest,
     load_frozen_proposals,
     load_mapped_coordinate_proposal,
-    write_mapped_coordinate_proposal,
     write_frozen_proposals,
-    _worker_components,
+    write_mapped_coordinate_proposal,
 )
 
 
@@ -76,6 +77,32 @@ def test_freeze_and_replay_use_exact_worker_component_rows() -> None:
     )
     assert component_sha256(component) == adapter.proposals[0].component_sha256
     np.testing.assert_array_equal(molecule.coordinates, before)
+
+
+@pytest.mark.parametrize("add_hydrogens", (False, True))
+def test_default_freezer_declares_its_materialized_hydrogen_state(
+    monkeypatch,
+    add_hydrogens,
+) -> None:
+    observed = []
+    sampler = _DeterministicSampler()
+
+    def adapter_factory(*, materialized_hydrogens):
+        observed.append(materialized_hydrogens)
+        return sampler
+
+    monkeypatch.setattr(
+        validation_providers,
+        "RDKitConformerAdapter",
+        adapter_factory,
+    )
+    freeze_rdkit_proposals(
+        _complex(),
+        seed=31,
+        add_hydrogens=add_hydrogens,
+    )
+
+    assert observed == [add_hydrogens]
 
 
 def test_replay_adapter_is_pickle_safe() -> None:

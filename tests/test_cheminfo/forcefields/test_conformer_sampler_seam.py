@@ -15,7 +15,11 @@ from hotpot.cheminfo.conformers import (
     OpenBabelConformerAdapter,
     RDKitConformerAdapter,
 )
-from hotpot.cheminfo.forcefields import backend, ligand, workflows, workers
+from hotpot.cheminfo.conformers.adapters import (
+    _materialized_hydrogen_projection,
+)
+from hotpot.cheminfo.core_utils import read_mol
+from hotpot.cheminfo.forcefields import backend, ligand, workers, workflows
 from hotpot.cheminfo.forcefields.contracts import (
     BuildWorkerResult,
     ComplexBuildDiagnostics,
@@ -24,10 +28,23 @@ from hotpot.cheminfo.forcefields.contracts import (
 )
 from hotpot.cheminfo.rdWrappers import (
     ConformerBatch as RDKitConformerBatch,
+)
+from hotpot.cheminfo.rdWrappers import (
     ConformerRecord,
     GenerationStatus,
 )
-from hotpot.cheminfo.core_utils import read_mol
+from hotpot.cheminfo.stereo import (
+    AtomTransportRecord,
+    HydrogenTransportState,
+    StereoAnchor,
+    StereoAnchorKind,
+    StereoCarrier,
+    StereoCarrierKind,
+    StereoPayload,
+    StereoRecord,
+    get_stereo_payload,
+    set_stereo_payload,
+)
 
 
 @dataclass
@@ -344,6 +361,146 @@ def test_rdkit_adapter_requests_one_and_selects_the_lowest_stable_ordinal(
     assert sampled.ordinals == (2,)
     np.testing.assert_array_equal(sampled.coordinates, coordinates[1:2])
     np.testing.assert_array_equal(molecule.coordinates, original)
+
+
+def test_rdkit_materialized_hydrogen_mode_projects_a_copy(monkeypatch):
+    from hotpot.cheminfo import rdWrappers
+
+    molecule = read_mol("CO", "smi")
+    molecule.add_hydrogens(rm_polar_hs=False, rng=np.random.default_rng(31))
+    original_implicit = tuple(atom.implicit_hydrogens for atom in molecule.atoms)
+    original_bonds = tuple(
+        (bond.atom1.idx, bond.atom2.idx, bond.bond_order)
+        for bond in molecule.bonds
+    )
+    calls = []
+
+    def generate(current, *, options, constraints=None):
+        calls.append(current)
+        return RDKitConformerBatch(
+            GenerationStatus.SUCCESS,
+            np.zeros((1, len(current.atoms), 3)),
+            (ConformerRecord(0, 0),),
+            "rdkit-etkdg",
+            "2026.09.1",
+            None,
+        )
+
+    monkeypatch.setattr(rdWrappers, "generate_conformers", generate)
+    RDKitConformerAdapter(materialized_hydrogens=True).sample(
+        molecule,
+        ConformerSamplingRequest(conformer_count=1, seed=31),
+    )
+
+    assert len(calls) == 1
+    projected = calls[0]
+    assert projected is not molecule
+    assert tuple(atom.atomic_number for atom in projected.atoms) == tuple(
+        atom.atomic_number for atom in molecule.atoms
+    )
+    assert tuple(
+        (bond.atom1.idx, bond.atom2.idx, bond.bond_order)
+        for bond in projected.bonds
+    ) == original_bonds
+    assert all(atom.implicit_hydrogens == 0 for atom in projected.atoms)
+    assert tuple(atom.implicit_hydrogens for atom in molecule.atoms) == (
+        original_implicit
+    )
+
+
+def _implicit_h_stereo_molecule():
+    molecule = read_mol("F[C@H](Cl)Br", "smi")
+    molecule.add_hydrogens(rm_polar_hs=False, rng=np.random.default_rng(37))
+    state = HydrogenTransportState(1, 0, False)
+    set_stereo_payload(
+        molecule,
+        StereoPayload(
+            schema_version=1,
+            records=(
+                StereoRecord(
+                    anchor=StereoAnchor(StereoAnchorKind.ATOM, (1,)),
+                    carriers=(
+                        StereoCarrier(StereoCarrierKind.ATOM, 0),
+                        StereoCarrier(StereoCarrierKind.ATOM, 2),
+                        StereoCarrier(StereoCarrierKind.ATOM, 3),
+                        StereoCarrier(StereoCarrierKind.IMPLICIT_H),
+                    ),
+                    descriptor="CHI_TETRAHEDRAL_CW",
+                    group=None,
+                    source_namespace="rdkit-2026.09.1",
+                    source_code="CHI_TETRAHEDRAL_CW",
+                ),
+            ),
+            atom_facts=(
+                AtomTransportRecord(
+                    atom=1,
+                    isotope=0,
+                    radical_electrons=0,
+                    current_hydrogens=state,
+                    source_hydrogens=state,
+                    source_namespace="rdkit-2026.09.1",
+                ),
+            ),
+            bond_facts=(),
+        ),
+    )
+    return molecule
+
+
+def test_materialized_hydrogen_projection_updates_current_not_source_stereo():
+    molecule = _implicit_h_stereo_molecule()
+    source_payload = get_stereo_payload(molecule)
+
+    projected = _materialized_hydrogen_projection(molecule)
+    payload = get_stereo_payload(projected)
+
+    assert payload.atom_facts[0].current_hydrogens == HydrogenTransportState(
+        0, 0, True
+    )
+    assert payload.atom_facts[0].source_hydrogens == (
+        source_payload.atom_facts[0].source_hydrogens
+    )
+    assert payload.records[0].carriers[-1] == StereoCarrier(
+        StereoCarrierKind.ATOM,
+        4,
+    )
+    assert get_stereo_payload(molecule) == source_payload
+    assert molecule.atoms[1].implicit_hydrogens == 1
+
+
+def test_materialized_hydrogen_projection_rejects_ambiguous_stereo_hydrogen():
+    molecule = _implicit_h_stereo_molecule()
+    molecule.atoms[1].add_hydrogen(1)
+
+    with pytest.raises(ConformerSamplingError, match="one unrepresented"):
+        _materialized_hydrogen_projection(molecule)
+
+
+def test_default_rdkit_adapter_preserves_partially_explicit_hydrogens(monkeypatch):
+    from hotpot.cheminfo import rdWrappers
+
+    molecule = read_mol("[H][CH2]", "smi")
+    calls = []
+
+    def generate(current, *, options, constraints=None):
+        calls.append(current)
+        return RDKitConformerBatch(
+            GenerationStatus.SUCCESS,
+            np.zeros((1, len(current.atoms), 3)),
+            (ConformerRecord(0, 0),),
+            "rdkit-etkdg",
+            "2026.09.1",
+            None,
+        )
+
+    monkeypatch.setattr(rdWrappers, "generate_conformers", generate)
+    RDKitConformerAdapter().sample(
+        molecule,
+        ConformerSamplingRequest(conformer_count=1, seed=41),
+    )
+
+    assert calls == [molecule]
+    assert molecule.atoms[1].implicit_hydrogens == 2
 
 
 def test_rdkit_failure_is_explicit_and_never_falls_back_to_openbabel(monkeypatch):

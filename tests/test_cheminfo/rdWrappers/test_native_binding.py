@@ -16,6 +16,9 @@ from hotpot.cheminfo._native.buffers import (
     NativeMoleculeField,
     NativeUtf8Table,
 )
+from hotpot.cheminfo.conformers.adapters import (
+    _materialized_hydrogen_projection,
+)
 from hotpot.cheminfo.rdWrappers import native
 
 
@@ -160,6 +163,23 @@ def test_compiled_public_path_preserves_payload_free_aromatic_nh():
     assert np.isfinite(first.coordinates).all()
     np.testing.assert_array_equal(first.coordinates, second.coordinates)
     np.testing.assert_array_equal(molecule.coordinates, coordinates_before)
+
+
+def test_compiled_path_accepts_forcefield_materialized_graph_hydrogens():
+    _load_test_extension()
+    molecule = hotpot.read_mol("CO", fmt="smi")
+    molecule.add_hydrogens(rm_polar_hs=False, rng=np.random.default_rng(123))
+
+    projected = _materialized_hydrogen_projection(molecule)
+    result = rdWrappers.generate_conformers(
+        projected,
+        options=rdWrappers.ETKDGOptions(seed=123),
+    )
+
+    assert result.status is rdWrappers.GenerationStatus.SUCCESS
+    assert result.coordinates.shape == (1, len(molecule.atoms), 3)
+    assert np.isfinite(result.coordinates).all()
+    assert tuple(atom.implicit_hydrogens for atom in molecule.atoms[:2]) == (3, 1)
 
 
 def test_legacy_hydrogen_adapter_fills_only_payload_free_atoms():

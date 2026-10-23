@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Callable, TYPE_CHECKING
+from copy import copy
+from dataclasses import dataclass, field, replace
+from typing import TYPE_CHECKING, Callable
 
 import numpy as np
 
@@ -13,12 +14,99 @@ from .contracts import (
     ConformerSamplingRequest,
 )
 
-
 if TYPE_CHECKING:
     from ..core import Molecule
 
 
 __all__ = ("OpenBabelConformerAdapter", "RDKitConformerAdapter")
+
+
+def _materialized_hydrogen_projection(molecule: "Molecule") -> "Molecule":
+    """Project a fully explicit-H working copy into RDKit's graph-H model."""
+    from ..stereo import (
+        HydrogenTransportState,
+        StereoAnchorKind,
+        StereoCarrierKind,
+        get_stereo_payload,
+        set_stereo_payload,
+    )
+
+    projected = copy(molecule)
+    for atom in projected.atoms:
+        atom.implicit_hydrogens = 0
+
+    payload = get_stereo_payload(projected)
+    records = []
+    for record in payload.records:
+        if not any(
+            carrier.kind is StereoCarrierKind.IMPLICIT_H
+            for carrier in record.carriers
+        ):
+            records.append(record)
+            continue
+        if (
+            record.anchor.kind is not StereoAnchorKind.ATOM
+            or len(record.anchor.atom_indices) != 1
+        ):
+            raise ConformerSamplingError(
+                "A materialized implicit-H stereo carrier requires one atom anchor"
+            )
+        anchor = projected.atoms[record.anchor.atom_indices[0]]
+        represented_rows = {
+            carrier.atom
+            for carrier in record.carriers
+            if carrier.kind is StereoCarrierKind.ATOM
+        }
+        implicit_count = sum(
+            carrier.kind is StereoCarrierKind.IMPLICIT_H
+            for carrier in record.carriers
+        )
+        hydrogen_rows = tuple(
+            sorted(
+                neighbour.idx
+                for neighbour in anchor.neighbours
+                if neighbour.is_hydrogen and neighbour.idx not in represented_rows
+            )
+        )
+        if len(hydrogen_rows) != implicit_count:
+            raise ConformerSamplingError(
+                "Materialized implicit-H stereo carriers require one unrepresented "
+                "graph-hydrogen neighbour each"
+            )
+        replacements = iter(hydrogen_rows)
+        records.append(
+            replace(
+                record,
+                carriers=tuple(
+                    replace(
+                        carrier,
+                        kind=StereoCarrierKind.ATOM,
+                        atom=next(replacements),
+                    )
+                    if carrier.kind is StereoCarrierKind.IMPLICIT_H
+                    else carrier
+                    for carrier in record.carriers
+                ),
+            )
+        )
+
+    current_hydrogens = HydrogenTransportState(
+        implicit_hydrogens=0,
+        bracket_explicit_hydrogens=0,
+        no_implicit=True,
+    )
+    set_stereo_payload(
+        projected,
+        replace(
+            payload,
+            records=tuple(records),
+            atom_facts=tuple(
+                replace(fact, current_hydrogens=current_hydrogens)
+                for fact in payload.atom_facts
+            ),
+        ),
+    )
+    return projected
 
 
 @dataclass(frozen=True)
@@ -51,6 +139,8 @@ class OpenBabelConformerAdapter:
 class RDKitConformerAdapter:
     """Adapt pinned native ETKDG to one deterministic workflow conformer."""
 
+    materialized_hydrogens: bool = False
+
     def sample(
         self,
         molecule: "Molecule",
@@ -59,8 +149,13 @@ class RDKitConformerAdapter:
         from .. import rdWrappers
 
         try:
+            input_molecule = (
+                _materialized_hydrogen_projection(molecule)
+                if self.materialized_hydrogens
+                else molecule
+            )
             batch = rdWrappers.generate_conformers(
-                molecule,
+                input_molecule,
                 options=rdWrappers.ETKDGOptions(
                     conformer_count=1,
                     seed=request.seed,

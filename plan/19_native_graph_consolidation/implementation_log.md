@@ -235,11 +235,40 @@ Verification:
 - the exact CPython 3.11 extension build succeeded; and
 - source audits found one native base Graph definition and no public binding.
 
-Git checkpoint: pending Stage 2 commit.
+Git checkpoint: `51cc4b6` (`feat(graph): add private native topology graph`).
 
 ### Stage 3 - cut native search over to the base Graph
 
-Status: in progress.
+Status: complete.
+
+Performed:
+
+- changed the RI matcher, compatibility boundary, production target, and
+  production problem to compose `hotpot::graph::Graph`;
+- compiled `graph.cpp` into the private search extension and deleted the
+  search-owned `GraphData` source and definition;
+- retained the Plan 16 query plan, compatibility domains, lazy cursor,
+  callable-leaf behavior, result facade, and deterministic candidate order;
+- deleted `Substructure.construct_graph()`, `query_graph`, cache signatures,
+  invalidation state, and the production NetworkX import with no alias; and
+- changed SMARTS adapters and test oracles to construct any independent
+  NetworkX test graph from `query_atoms` and `query_bonds` only.
+
+Verification:
+
+```text
+517 passed, 49 subtests passed in 7.38 s
+```
+
+This set includes the complete SMARTS conformance and Plan 16 native contract,
+kernel, production, prepared-query, callable, mapping, cutover, predicate
+parity, and C++ Graph source tests.  Static audits report no exact `GraphData`,
+old source filename, production `construct_graph`/`query_graph`, or production
+NetworkX reference under search.  The frozen performance/semantic gate retained
+deterministic results with SHA-256
+`a2c1f6c232b1b69f87599eb9bfa843a62846f726dbbe7fc8077fdd2f414c43f4`.
+
+Git checkpoint: pending Stage 3 commit.
 
 ### Stage 4 - native MCA automorphism
 

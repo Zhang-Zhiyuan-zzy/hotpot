@@ -37,7 +37,7 @@ ext_modules = [
         "hotpot.cheminfo.search._search_native",
         [
             "hotpot/cheminfo/search/_native/bindings.cpp",
-            "hotpot/cheminfo/search/_native/graph_data.cpp",
+            "hotpot/cheminfo/graph/_native/graph.cpp",
             "hotpot/cheminfo/search/_native/matcher.cpp",
             "hotpot/cheminfo/search/_native/production.cpp",
         ],

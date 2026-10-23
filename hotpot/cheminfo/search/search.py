@@ -9,7 +9,6 @@ python v3.9.0
 from abc import abstractmethod
 from types import MappingProxyType
 from typing import Union, Sequence, Literal, Container, Any, Iterable, Callable, Iterator
-import networkx as nx
 
 from hotpot.cheminfo.core import Molecule, Atom, Bond
 from ..core_utils import atom_idx_pair_to_bond_idx, read_mol
@@ -272,24 +271,21 @@ class QueryBond(Query):
 
 class Substructure:
     """
-    Establishes and manages a chemical substructure composed of atoms, bonds,
-    and their topological representation as a graph.
+    Establishes and manages a chemical substructure composed of query atoms
+    and query bonds.
 
     The Substructure class serves to define a chemical substructure containing atoms and bonds,
     with methods to build and interact with its components. It facilitates the creation of
-    substructure queries, enabling operations such as adding atoms and bonds, importing from
-    SMARTS format, and constructing a graph representation of the substructure.
+    substructure queries, enabling operations such as adding atoms and bonds and importing from
+    SMARTS format.
 
     Attributes:
     query_atoms: List of query atoms belonging to this substructure.
     query_bonds: List of query bonds that define connections between atoms.
-    query_graph: Graph representation of the substructure for topological analysis.
     """
     def __init__(self):
         self.query_atoms = []
         self.query_bonds = []
-        self.query_graph = None
-        self._query_graph_signature = None
 
     def __repr__(self):
         return f"Substructure({len(self.query_atoms)} Atoms, {len(self.query_bonds)} Bonds)"
@@ -355,7 +351,6 @@ class Substructure:
 
         self.query_atoms.append(atom_query)
         atom_query.sub = self
-        self._invalidate_query_graph()
 
         return atom_query
 
@@ -388,68 +383,8 @@ class Substructure:
 
         bond = QueryBond(atom1, atom2, **bond_attrs)
         self.query_bonds.append(bond)
-        self._invalidate_query_graph()
 
         return bond
-
-    def _invalidate_query_graph(self):
-        self.query_graph = None
-        self._query_graph_signature = None
-
-    def _graph_signature(self):
-        return (
-            tuple((id(atom), id(atom.sub)) for atom in self.query_atoms),
-            tuple(
-                (id(bond), id(bond.atom1), id(bond.atom2))
-                for bond in self.query_bonds
-            ),
-        )
-
-    def _cached_graph_is_current(self, signature):
-        if self.query_graph is None or signature != self._query_graph_signature:
-            return False
-        if set(self.query_graph) != set(range(len(self.query_atoms))):
-            return False
-        if self.query_graph.number_of_edges() != len(self.query_bonds):
-            return False
-        if any(
-            self.query_graph.nodes[index].get("qa") is not atom
-            for index, atom in enumerate(self.query_atoms)
-        ):
-            return False
-        return all(
-            self.query_graph.has_edge(bond.a1idx, bond.a2idx)
-            and self.query_graph.edges[bond.a1idx, bond.a2idx].get("qb") is bond
-            for bond in self.query_bonds
-        )
-
-    def construct_graph(self):
-        """
-        Constructs and returns a graph representation of the query atoms and bonds.
-
-        The graph is created using the NetworkX library. Nodes in the graph
-        represent query atoms, while edges in the graph represent query bonds.
-        Each node is associated with its corresponding query atom, and each
-        edge is associated with its corresponding query bond.
-
-        Returns:
-            Graph: A NetworkX Graph object representing the query atoms and
-            bonds.
-        """
-        signature = self._graph_signature()
-        if self._cached_graph_is_current(signature):
-            return self.query_graph
-
-        self.query_graph = nx.Graph()
-        self.query_graph.add_nodes_from(
-            (atom.idx, {"qa": atom}) for atom in self.query_atoms
-        )
-        self.query_graph.add_edges_from(
-            (bond.a1idx, bond.a2idx, {"qb": bond})
-            for bond in self.query_bonds
-        )
-        self._query_graph_signature = signature
-        return self.query_graph
 
 
 class _MappingIterator(Iterator):

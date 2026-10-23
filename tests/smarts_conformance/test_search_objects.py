@@ -73,24 +73,16 @@ def test_hits_membership_node_set_helper_and_mapped_atoms():
     )
 
 
-def test_substructure_construct_graph_is_cached_and_mutations_invalidate_it():
+def test_substructure_retains_only_query_domain_objects():
     query = Substructure()
     first = query.add_atom(QueryAtom(atomic_number={6}))
-
-    one_atom_graph = query.construct_graph()
-    assert query.construct_graph() is one_atom_graph
-
     second = query.add_atom(QueryAtom(atomic_number={6}))
-    two_atom_graph = query.construct_graph()
-    assert two_atom_graph is not one_atom_graph
-    assert set(two_atom_graph) == {0, 1}
-    assert query.construct_graph() is two_atom_graph
+    bond = query.add_bond(first, second, bond_order={1})
 
-    query.add_bond(first, second, bond_order={1})
-    bonded_graph = query.construct_graph()
-    assert bonded_graph is not two_atom_graph
-    assert set(bonded_graph.edges) == {(0, 1)}
-    assert query.construct_graph() is bonded_graph
+    assert query.query_atoms == [first, second]
+    assert query.query_bonds == [bond]
+    assert not hasattr(query, "query_graph")
+    assert not hasattr(query, "construct_graph")
 
 
 def test_searcher_has_match_and_bounded_mapping_iterator_contract():

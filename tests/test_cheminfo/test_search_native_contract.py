@@ -179,7 +179,6 @@ SIGNATURES = (
         "(self, atom1: Union[int, QueryAtom], atom2: Union[int, QueryAtom], "
         "**bond_attrs)",
     ),
-    (Substructure.construct_graph, "(self)"),
     (Substructure.__repr__, "(self)"),
     (Searcher, "(substructure: 'Substructure')"),
     (Searcher.has_match, "(self, mol: Molecule) -> bool"),
@@ -335,7 +334,6 @@ def test_duplicate_query_atom_retains_sparse_query_mapping_keys():
     query.add_bond(duplicate, tail, bond_order={1})
 
     assert [atom.idx for atom in query.query_atoms] == [0, 0, 2]
-    assert set(query.construct_graph()) == {0, 2}
 
     mappings = tuple(Searcher(query).iter_mappings(hp.read_mol("CC", "smi")))
     assert {tuple(mapping) for mapping in mappings} == {(0, 2)}
@@ -351,12 +349,8 @@ def test_duplicate_query_edge_uses_last_predicate_but_hit_maps_all_edges():
     query = Substructure()
     first_atom = query.add_atom(QueryAtom(atomic_number={6}))
     second_atom = query.add_atom(QueryAtom(atomic_number={6}))
-    ignored_edge = query.add_bond(first_atom, second_atom, bond_order={2})
-    effective_edge = query.add_bond(first_atom, second_atom, bond_order={1})
-
-    graph = query.construct_graph()
-    assert graph.edges[0, 1]["qb"] is effective_edge
-    assert graph.edges[0, 1]["qb"] is not ignored_edge
+    query.add_bond(first_atom, second_atom, bond_order={2})
+    query.add_bond(first_atom, second_atom, bond_order={1})
 
     single_bond_molecule = hp.read_mol("CC", "smi")
     hit = Searcher(query).search(single_bond_molecule)[0]
@@ -366,26 +360,18 @@ def test_duplicate_query_edge_uses_last_predicate_but_hit_maps_all_edges():
     assert not Searcher(query).has_match(hp.read_mol("C=C", "smi"))
 
 
-def test_programmatic_self_loop_requires_a_target_self_loop():
+def test_molecule_rejects_self_loop_before_native_target_packing():
     target = hp.Molecule()
     target.create_atom(atomic_number=6, implicit_hydrogens=0)
-    target_loop = target.add_bond(0, 0, 1.0)
+    with pytest.raises(ValueError, match="cannot join an Atom to itself"):
+        target.add_bond(0, 0, 1.0)
 
     query = Substructure()
     query_atom = query.add_atom(QueryAtom(atomic_number={6}))
     query.add_bond(query_atom, query_atom, bond_order={1.0})
     searcher = Searcher(query)
 
-    assert set(query.construct_graph().edges) == {(0, 0)}
-    assert searcher.has_match(target)
-    assert {tuple(mapping.items()) for mapping in searcher.iter_mappings(target)} == {
-        ((0, 0),)
-    }
-    assert searcher.search(target)[0].mapped_bonds() == [target_loop]
-
-    target_without_loop = hp.Molecule()
-    target_without_loop.create_atom(atomic_number=6, implicit_hydrogens=0)
-    assert not searcher.has_match(target_without_loop)
+    assert not searcher.has_match(target)
 
 
 def test_max_matches_bounds_and_iterator_state_without_order_contract():

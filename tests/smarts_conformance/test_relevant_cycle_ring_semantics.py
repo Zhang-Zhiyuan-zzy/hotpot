@@ -22,7 +22,7 @@ def _cubane(edge_seed: int) -> hp.Molecule:
         mol._create_atom(atomic_number=6)
     for first, second in edges:
         mol._add_bond(first, second, bond_order=1.0)
-    mol._update_graph(clear_conformers=False)
+    mol._update_topology(clear_conformers=False)
     return mol
 
 

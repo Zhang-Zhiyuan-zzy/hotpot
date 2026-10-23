@@ -20,7 +20,7 @@ A compact, *self-contained* module that:
        of *acyclic* sub-graphs (fragments).
     4. Stores an explicit *link-table* describing how fragments are
        connected by the removed ring bonds.
-    5. Converts every fragment into NetworkX cells (nodes/edges with
+    5. Converts every fragment into query cells (nodes/edges with
        attribute dictionaries).
 
 This is *not* a feature-complete SMARTS implementation (that would run

@@ -23,11 +23,11 @@ public:
     NativeTarget(const NativeTarget&) = delete;
     NativeTarget& operator=(const NativeTarget&) = delete;
 
-    const GraphData& graph() const noexcept { return graph_; }
+    const Graph& graph() const noexcept { return graph_; }
     const Data& data() const noexcept { return *data_; }
 
 private:
-    GraphData graph_;
+    Graph graph_;
     std::unique_ptr<Data> data_;
 };
 
@@ -44,8 +44,8 @@ public:
     NativeProblem(const NativeProblem&) = delete;
     NativeProblem& operator=(const NativeProblem&) = delete;
 
-    const GraphData& query() const noexcept override { return query_; }
-    const GraphData& target() const noexcept override { return target_->graph(); }
+    const Graph& query() const noexcept override { return query_; }
+    const Graph& target() const noexcept override { return target_->graph(); }
     const QueryPlan& plan() const noexcept override { return plan_; }
     const Compatibility& compatibility() const noexcept override {
         return *compatibility_;
@@ -57,7 +57,7 @@ public:
     bool has_anchored_match(Position target_node) const;
 
 private:
-    GraphData query_;
+    Graph query_;
     std::shared_ptr<NativeTarget> target_;
     QueryPlan plan_;
     std::unique_ptr<Compatibility> compatibility_;

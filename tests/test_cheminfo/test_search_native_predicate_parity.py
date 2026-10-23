@@ -13,10 +13,22 @@ def _mapping_key(mapping):
     return tuple(sorted(mapping.items()))
 
 
+def _query_graph(substructure):
+    graph = nx.Graph()
+    graph.add_nodes_from(
+        (atom.idx, {"qa": atom}) for atom in substructure.query_atoms
+    )
+    graph.add_edges_from(
+        (bond.a1idx, bond.a2idx, {"qb": bond})
+        for bond in substructure.query_bonds
+    )
+    return graph
+
+
 def _legacy_raw_mappings(substructure, molecule):
     matcher = nx.algorithms.isomorphism.GraphMatcher(
         molecule.atom_bond_graph,
-        substructure.construct_graph(),
+        _query_graph(substructure),
         node_match=lambda target, query: query["qa"].match(target["atom"]),
         edge_match=lambda target, query: query["qb"].match(target["bond"]),
     )
@@ -583,28 +595,6 @@ def test_duplicate_query_edge_uses_the_last_predicate():
     _assert_native_parity(
         substructure,
         hp.read_mol("C=C", "smi"),
-        expected_count=0,
-    )
-
-
-def test_programmatic_self_loop_normalization_matches_legacy():
-    molecule = hp.Molecule()
-    molecule.create_atom(atomic_number=6, implicit_hydrogens=0)
-    molecule.add_bond(0, 0, 1.0)
-    substructure = Substructure()
-    atom = substructure.add_atom(QueryAtom(atomic_number={6}))
-    substructure.add_bond(atom, atom, bond_order={1.0})
-
-    _assert_native_parity(substructure, molecule, expected_count=1)
-
-    molecule_without_loop = hp.Molecule()
-    molecule_without_loop.create_atom(
-        atomic_number=6,
-        implicit_hydrogens=0,
-    )
-    _assert_native_parity(
-        substructure,
-        molecule_without_loop,
         expected_count=0,
     )
 

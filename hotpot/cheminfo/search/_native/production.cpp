@@ -1004,7 +1004,7 @@ NativeProblem::NativeProblem(
         query_.node_count(),
         query_.edge_count()
     )) {
-    const GraphData& target_graph = target_->graph();
+    const Graph& target_graph = target_->graph();
     const std::size_t word_count = (target_graph.node_count() + 63) / 64;
     domains_.assign(
         query_.node_count(),

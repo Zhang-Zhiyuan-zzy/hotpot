@@ -64,12 +64,13 @@ def test_public_parser_errors_keep_legacy_base_classes():
     assert issubclass(hp.UnsupportedSmartsError, NotImplementedError)
 
 
-def test_branch_query_graph_has_expected_topology_and_bond_constraints():
+def test_branch_query_facts_have_expected_topology_and_bond_constraints():
     query = hp.Substructure.from_smarts("[C:1](=[O:2])[N:3]")
-    graph = query.construct_graph()
 
-    assert list(graph.nodes) == [0, 1, 2]
-    assert {frozenset(edge) for edge in graph.edges} == {
+    assert [atom.idx for atom in query.query_atoms] == [0, 1, 2]
+    assert {
+        frozenset((bond.a1idx, bond.a2idx)) for bond in query.query_bonds
+    } == {
         frozenset((0, 1)),
         frozenset((0, 2)),
     }
@@ -78,19 +79,22 @@ def test_branch_query_graph_has_expected_topology_and_bond_constraints():
     assert repr(query.query_bonds[1].kwargs["predicate"]) == "single-or-aromatic"
 
 
-def test_aromatic_ring_query_graph_retains_aromatic_nodes_and_edges():
+def test_aromatic_ring_query_facts_retain_aromatic_atoms_and_bonds():
     query = hp.Substructure.from_smarts("c1ccccc1")
-    graph = query.construct_graph()
 
-    assert graph.number_of_nodes() == 6
-    assert graph.number_of_edges() == 6
+    assert len(query.query_atoms) == 6
+    assert len(query.query_bonds) == 6
     assert all(atom.kwargs["is_aromatic"] == {True} for atom in query.query_atoms)
     assert all(bond.kwargs["is_aromatic"] == {True} for bond in query.query_bonds)
 
 
-def test_disconnected_query_graph_has_two_components_and_no_synthetic_edge():
+def test_disconnected_query_facts_have_two_components_and_no_synthetic_edge():
     query = hp.Substructure.from_smarts("[Na+].[O-]C=O")
-    graph = query.construct_graph()
+    graph = nx.Graph()
+    graph.add_nodes_from(range(len(query.query_atoms)))
+    graph.add_edges_from(
+        (bond.a1idx, bond.a2idx) for bond in query.query_bonds
+    )
 
     assert graph.number_of_nodes() == 4
     assert graph.number_of_edges() == 2

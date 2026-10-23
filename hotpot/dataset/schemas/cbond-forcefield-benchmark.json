@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:hotpot:schema:cbond-forcefield-benchmark:current",
+  "title": "Hotpot CBond to force-field route result",
+  "description": "One normalized O0/F1/F2/C1/C2 result. The complete governed release contains one record for every route and each of the 182 CBond-positive source cases.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "case_index",
+    "source_smiles",
+    "source_sha256",
+    "semantic_graph_sha256",
+    "route",
+    "run_id",
+    "seed",
+    "status",
+    "passed",
+    "acceptance",
+    "optimization",
+    "provenance",
+    "settings",
+    "manual_review"
+  ],
+  "properties": {
+    "case_index": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 187
+    },
+    "source_smiles": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "semantic_graph_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "route": {
+      "enum": ["O0", "F1", "F2", "C1", "C2"]
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "status": {
+      "type": "string",
+      "minLength": 1
+    },
+    "passed": {
+      "type": "boolean"
+    },
+    "selected_structure": {
+      "$ref": "#/$defs/selectedStructure"
+    },
+    "acceptance": {
+      "$ref": "#/$defs/acceptance"
+    },
+    "optimization": {
+      "$ref": "#/$defs/optimization"
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    },
+    "settings": {
+      "type": "object",
+      "required": ["cbond"],
+      "properties": {
+        "cbond": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["metal_index", "donor_indices"],
+          "properties": {
+            "metal_index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "donor_indices": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "manual_review": {
+      "type": "object",
+      "required": ["status", "flags"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "flags": {
+          "type": "array",
+          "items": {}
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "passed": {
+            "const": true
+          }
+        },
+        "required": ["passed"]
+      },
+      "then": {
+        "required": ["selected_structure"],
+        "properties": {
+          "status": {
+            "const": "passed"
+          }
+        }
+      },
+      "else": {
+        "not": {
+          "required": ["selected_structure"]
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nonfiniteFloat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nonfinite_float"],
+      "properties": {
+        "nonfinite_float": {
+          "enum": ["nan", "+inf", "-inf"]
+        }
+      }
+    },
+    "numericDiagnostic": {
+      "oneOf": [
+        {
+          "type": ["number", "null"]
+        },
+        {
+          "$ref": "#/$defs/nonfiniteFloat"
+        }
+      ]
+    },
+    "selectedStructure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "format", "atom_row_mapping"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "format": {
+          "enum": ["mol", "mol2", "sdf", "smi", "smiles", "xyz"]
+        },
+        "atom_row_mapping": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "acceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "diagnostics",
+        "recovery_actions"
+      ],
+      "properties": {
+        "A01": {"type": "boolean"},
+        "A02": {"type": "boolean"},
+        "A03": {"type": "boolean"},
+        "A04": {"type": "boolean"},
+        "A05": {"type": "boolean"},
+        "A06": {"type": "boolean"},
+        "A07": {"type": "boolean"},
+        "A08": {"type": "boolean"},
+        "A09": {"type": "boolean"},
+        "A10": {"type": "boolean"},
+        "diagnostics": {
+          "type": "array",
+          "items": {}
+        },
+        "recovery_actions": {
+          "type": "array",
+          "items": {}
+        }
+      }
+    },
+    "optimization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["best_energy", "rms_gradient", "max_gradient"],
+      "properties": {
+        "best_energy": {"$ref": "#/$defs/numericDiagnostic"},
+        "rms_gradient": {"$ref": "#/$defs/numericDiagnostic"},
+        "max_gradient": {"$ref": "#/$defs/numericDiagnostic"}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "validation_round",
+        "hotpot_commit",
+        "dependency_versions",
+        "controls"
+      ],
+      "properties": {
+        "validation_round": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hotpot_commit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dependency_versions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "controls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "sha256", "locator"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "sha256": {"$ref": "#/$defs/sha256"},
+              "locator": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    }
+  }
+}

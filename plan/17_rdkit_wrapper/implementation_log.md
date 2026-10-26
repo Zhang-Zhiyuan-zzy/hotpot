@@ -4705,3 +4705,47 @@ Adjustment:
 - do not add rejected or collapsed coordinates to the governed dataset; and
 - require future performance reports to label parent-only CPU and process
   high-water RSS rather than presenting them as route-total resources.
+
+### Plan revision 3 - Absorb the O0/MCA conformer follow-up and plan native organic optimization
+
+Status: documentation and benchmark organization complete; production
+implementation awaiting owner review
+
+Reason:
+
+- the O0/MCA conformer-engine study perturbs and measures the same native
+  RDKit wrapper, embedding boundary, and force-field substitution objective as
+  Stage 17;
+- it did not introduce an independent project objective and therefore did not
+  justify a separate Plan 19; and
+- its seed-diversity evidence directly defines the acceptance boundary for the
+  next native UFF/MMFF extension.
+
+Performed:
+
+- moved the paired MCA benchmark, O0 seed-diversity benchmark, organic
+  seed-diversity benchmark, and assessment report into Stage 17;
+- removed the standalone Plan-19 index entry;
+- audited the current ordinary-organic and complete-complex ensemble surfaces;
+- confirmed that only raw native organic ETKDG batches currently exist, while
+  complete optimized/clustered organic and complex ensemble workflows do not;
+  and
+- added `organic_native_conformer_implementation_plan.md` with the proposed
+  API, one-core native design, workflow cutover, tests, benchmarks, gates, and
+  stopping conditions.
+
+Evidence retained:
+
+- the 256-molecule MCA paired measurements and seed study;
+- the three-seed 182-case complete-O0 study;
+- the current native closure fact that force-field helper targets are already
+  part of the pinned RDKit 2026.09.1 ETKDG link graph; and
+- the existing R0 187 x 1/8/32 component baseline.
+
+Decision boundary:
+
+- no production source, default workflow, native ABI, or installed artifact is
+  changed by this revision;
+- complexes remain on O0; and
+- native UFF/MMFF implementation and organic/MCA cutover begin only after
+  owner approval of the extension plan.

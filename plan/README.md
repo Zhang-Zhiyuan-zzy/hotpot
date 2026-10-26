@@ -20,6 +20,8 @@ This directory preserves Hotpot design, audit, implementation, and validation re
 | 14 | [Geometry reconstruction](14_geometry_reconstruction/) | Deferred post-processing of topology-free xTB/ORCA coordinates into auditable graph candidates |
 | 15 | [MCA GPU pipeline](15_mca_gpu_pipeline/) | Explicit CPU/GPU inference, bounded multi-GPU execution, rolling admission, and scale-aware routing |
 | 16 | [Native substructure search](16_native_search/) | Implemented deterministic native RI monomorphism executor with predicate-only Python callables |
-| 17 | [Native RDKit wrapper and conformer sampling](17_rdkit_wrapper/) | In-progress standalone Python/C++ wrapper pinned to RDKit 2026.09.1, unchanged-force-field component testing, field-selective native transport, and two-level stereo semantics |
+| 17 | [Native RDKit wrapper and conformer sampling](17_rdkit_wrapper/) | Standalone Python/C++ wrapper, force-field validation, O0/MCA conformer-engine evidence, and planned fully native organic conformer proposal |
+| 18 | [MCA resource efficiency](18_mca_resource_efficiency/) | Bounded CPU execution and resource-efficient CPU/GPU scheduling |
+| M_17-19 | [Native graph + RDKit/stereo integration](M_17-19_native_graph_rdkit_integration/) | Merge Plan 19 topology/native Graph ownership with Plan 17 stereochemistry, rdWrapper, and force-field semantics under one interface and implementation |
 
 Each topic README records the Git commits associated with that stage. Files under `artifacts/` are diagram sources, rendered HTML, or visual-review evidence. A `visual-check.json` whose status is `pending` is retained as provenance and is not evidence of a successful visual review.

@@ -62,5 +62,23 @@ The complete per-failure inventory and qualified route-efficiency report is:
 
 - [formal_failure_analysis.md](formal_failure_analysis.md)
 
+The former Plan-19 O0/MCA study belongs to this same native-RDKit objective and
+has therefore been absorbed here. Its paired prediction, seed-diversity,
+performance, and native-force-field assessment is:
+
+- [mca_conformer_engine_assessment.md](mca_conformer_engine_assessment.md)
+
+Its reproducible drivers are:
+
+- [benchmark_mca_conformer_engines.py](benchmark_mca_conformer_engines.py)
+- [benchmark_o0_seed_diversity.py](benchmark_o0_seed_diversity.py)
+- [benchmark_rdwrapper_seed_diversity.py](benchmark_rdwrapper_seed_diversity.py)
+
+The proposed continuation that adds native UFF/MMFF, native optimized
+conformer clustering, ordinary-organic workflow integration, and the MCA
+proposal cutover is awaiting owner review:
+
+- [organic_native_conformer_implementation_plan.md](organic_native_conformer_implementation_plan.md)
+
 Local evidence is kept distinct from GitHub-hosted CI provenance and strict
 standalone auditwheel manylinux compliance, neither of which is claimed.

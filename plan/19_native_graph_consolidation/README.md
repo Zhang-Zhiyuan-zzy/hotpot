@@ -1,6 +1,6 @@
 # Plan 19: Single-source topology and private native graph consolidation
 
-Status: implementation authorized on 2026-10-23; execution in progress.
+Status: implementation complete on 2026-10-26.
 
 Planning branch: `clean/networkx`
 
@@ -19,6 +19,6 @@ complete bounded `all_cycle_basis`/`all_basis_rings` properties.
 
 - [Normative implementation plan](native_graph_consolidation_implementation.md)
 - [Implementation log](implementation_log.md) records incremental execution.
-- `implementation_report.md` will record final correctness, performance,
-  packaging, compatibility, and residual-risk evidence.
+- [Implementation report](implementation_report.md) records final correctness,
+  performance, packaging, compatibility, and residual-risk evidence.
 

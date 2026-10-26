@@ -382,7 +382,7 @@ Git checkpoint: `2848fb4` (`feat(graph): implement deterministic cycle bases`).
 
 ### Stage 6 - remove Core graph state
 
-Status: complete; checkpoint pending.
+Status: complete.
 
 Performed:
 
@@ -467,7 +467,7 @@ Git checkpoint: `fd86063` (`refactor(core): remove persistent graph state`).
 
 ### Stage 7 - remove remaining public Graph-like surfaces
 
-Status: complete; checkpoint pending.
+Status: complete.
 
 Performed:
 
@@ -506,7 +506,7 @@ Git checkpoint: `c355088` (`refactor(api): remove public graph-like surfaces`).
 
 ### Stage 8 - direct-target consolidation and optional performance work
 
-Status: complete; checkpoint pending.
+Status: complete.
 
 Performed:
 
@@ -517,7 +517,7 @@ Performed:
   against SciPy CSR shortest paths on exact deterministic inputs;
 - adopted one fixed, non-profiled 256-atom cutover with a lazy SciPy import;
   smaller inputs keep the original dense implementation and pay no import or
-  branch-specific conversion cost; and
+  branch-specific conversion cost;
 - retained directed weighted semantics, `int32` output, the value `510` for
   disconnection/clipping, batch shapes, and downstream feature values exactly;
   and
@@ -548,7 +548,7 @@ Git checkpoint: `310921a` (`perf(mca): accelerate large shortest-path features`)
 
 ### Stage 9 - dependency and packaging cutover
 
-Status: complete; checkpoint pending.
+Status: complete.
 
 Performed:
 
@@ -557,7 +557,7 @@ Performed:
 - retained NetworkX only in `tests/requirements-inference.txt` for independent
   oracles, fixtures, graph generators, and test layouts;
 - synchronized the pre-existing `cryptography` project dependency into base
-  requirements so the declared identical-list contract is green; and
+  requirements so the declared identical-list contract is green;
 - added a packaging fence that proves NetworkX is test-only.
 
 Verification:
@@ -586,8 +586,52 @@ Supported Python 3.9-3.14 wheel/inference jobs remain encoded in the repository
 CI matrix; the local native artifact gate used CPython 3.11. Final closure will
 record the pushed-branch CI result separately from this local gate.
 
-Git checkpoint: pending Stage 9 commit.
+Git checkpoint: `57a0418` (`build: remove networkx runtime dependency`).
 
 ### Stage 10 - final closure
 
-Status: not started.
+Status: complete.
+
+Performed:
+
+- ran final production-source, removed-API, native-Graph-definition, Core
+  change-budget, dependency, and runtime-surface audits;
+- re-ran the complete maintained MCA, graph, SMARTS-conformance, CBond,
+  packaging/runtime-identity, and broad cheminformatics gates after the final
+  implementation changes;
+- completed the implementation report with architecture, authority, API
+  disposition, scientific parity, ordering, performance attribution,
+  packaging evidence, and explicit non-claims;
+- migrated the cibuildwheel smoke import from the deleted
+  `_relevant_cycles` extension to `_graph_native`, added a cycle-basis symbol
+  assertion, and executed the final smoke command successfully; and
+- removed generated local build residue after validating the clean wheel.
+
+Verification:
+
+```text
+production .py/.pyi NetworkX references: 0
+production deleted Graph/cycle API references: 0
+private native Graph definitions: 1
+new Core classes: 0
+new Core public properties: the four approved cycle-basis properties only
+complete MCA suite: 194 passed in 18.69 s
+graph directory: 118 passed, 4 skipped in 6.03 s
+SMARTS conformance: 282 passed in 2.06 s
+CBond: 42 passed in 1.49 s
+packaging/runtime identity: 16 passed in 2.73 s
+independent final semantic/packaging audit: 126 passed in 6.27 s
+native-extension absence checks: 2/2 raised explicit ImportError
+broad cheminformatics suite: 1,783 passed, 6 skipped, 3 xfailed,
+  49 subtests in 245.33 s
+git diff whitespace check: passed
+```
+
+The broad run excludes `test_core.py`, whose large `test_atompair` path is
+not a bounded graph regression, and `test_elements.py`, which could not be
+collected without Numba. Focused topology and consumer suites cover the
+changed behavior. Local closure used CPython 3.11; Python 3.9-3.14, live GPU,
+and dynamic PyG validation remain explicit pushed-branch CI or environment
+work rather than local claims.
+
+Git checkpoint: the final closure commit containing this record.

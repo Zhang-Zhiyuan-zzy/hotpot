@@ -59,4 +59,4 @@ def mol_from_ccdc_to_hp(c_mol: CMol):
             )
 
     _add_mol_bonds_from_ccdc_mol(mol, c_mol, label_to_idx)
-    mol._update_graph()
+    mol._update_topology()

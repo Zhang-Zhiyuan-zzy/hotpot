@@ -6,7 +6,6 @@ These tests intentionally record the observable behaviour of the former
 
 import importlib
 
-import networkx as nx
 import numpy as np
 
 
@@ -24,7 +23,6 @@ def test_module_and_direct_imports_expose_the_legacy_api():
         calc_electron_config,
         calc_spectrum,
         graph_dfs_path,
-        graph_dfs_paths,
         linkmat2adj,
     )
 
@@ -35,7 +33,6 @@ def test_module_and_direct_imports_expose_the_legacy_api():
         "calc_electron_config": calc_electron_config,
         "calc_spectrum": calc_spectrum,
         "graph_dfs_path": graph_dfs_path,
-        "graph_dfs_paths": graph_dfs_paths,
         "linkmat2adj": linkmat2adj,
     }
     assert {name: getattr(graph, name) for name in expected} == expected
@@ -151,16 +148,8 @@ def test_spectrum_and_graph_spectrum_behaviour_is_unchanged():
 
 def test_depth_first_path_preserves_scope_and_depth_semantics():
     graph_api = _graph_api()
-    graph = nx.Graph([(0, 1), (1, 2), (1, 3)])
+    edges = ((0, 1), (1, 2), (1, 3))
 
-    assert graph_api.graph_dfs_path(graph, start_node=0, scope_nodes={1, 2, 3}, max_deep=3) == [0, 1, 2]
-    assert graph_api.graph_dfs_path(graph, start_node=0, scope_nodes=None) is None
-    assert graph_api.graph_dfs_path(graph, start_node=0, scope_nodes=set(), min_deep=1) == [0]
-
-
-def test_depth_first_paths_preserves_current_empty_result():
-    """The legacy function defines a DFS closure but never invokes it."""
-    graph_api = _graph_api()
-    graph = nx.path_graph(4)
-
-    assert graph_api.graph_dfs_paths(graph, start_node=0, scope_nodes={1, 2, 3}, min_deep=2) == []
+    assert graph_api.graph_dfs_path(4, edges, start_node=0, scope_nodes={1, 2, 3}, max_deep=3) == [0, 1, 2]
+    assert graph_api.graph_dfs_path(4, edges, start_node=0, scope_nodes=None) is None
+    assert graph_api.graph_dfs_path(4, edges, start_node=0, scope_nodes=set(), min_deep=1) == [0]

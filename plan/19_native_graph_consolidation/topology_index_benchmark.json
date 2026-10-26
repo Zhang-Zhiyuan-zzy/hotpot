@@ -1,0 +1,18 @@
+{
+  "median_us": {
+    "atom_idx_512": 3.1775990000000003,
+    "bond_lookup_512": 5.007222,
+    "connectivity_512": 3.1915459999999998,
+    "copy_chain_512": 52559.716,
+    "neighbors_512": 8.222773,
+    "refresh_chain_512": 12783.047
+  },
+  "metadata": {
+    "platform": "Linux-5.15.0-139-generic-x86_64-with-glibc2.31",
+    "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "revision": "089fed8c7799e4c7c1c2e48a89a57cf478880f42",
+    "samples": 21,
+    "worktree_dirty": true
+  },
+  "retained_topology_index_bytes_chain_512": 135176
+}

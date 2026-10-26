@@ -5,7 +5,7 @@ import pytest
 from hotpot.cheminfo import MolReader
 from hotpot.cheminfo.core import Bond, Molecule
 from hotpot.cheminfo.search._search_native import NativeTarget
-from hotpot.cheminfo.search.native import _NativeSpecTarget
+from hotpot.cheminfo.search.native import _NativeTarget
 from hotpot.cheminfo.stereo import (
     AtomTransportRecord,
     StereoIssueCode,
@@ -30,7 +30,7 @@ def _molecule(atomic_numbers, edges=(), *, implicit_hydrogens=()):
         )
     for first, second, order in edges:
         molecule._add_bond(first, second, bond_order=order)
-    molecule._update_graph(clear_conformers=False)
+    molecule._update_topology(clear_conformers=False)
     return molecule
 
 
@@ -112,7 +112,7 @@ def test_query_can_pin_an_explicit_hydrogen_to_a_virtual_hydrogen():
     assert issues == ()
 
     mappings = tuple(
-        _NativeSpecTarget(graph.target_spec).iter_mappings(
+        _NativeTarget(graph.target_spec).iter_mappings(
             _gate6_query_spec(graph, {0: 0, 1: 2})
         )
     )
@@ -316,7 +316,7 @@ def test_query_copies_exact_labels_and_pins_rows_for_real_native_target():
 
     NativeTarget(graph.target_spec)
     mappings = tuple(
-        _NativeSpecTarget(graph.target_spec).iter_mappings(query)
+        _NativeTarget(graph.target_spec).iter_mappings(query)
     )
 
     assert mappings == ({0: 1, 1: 0},)

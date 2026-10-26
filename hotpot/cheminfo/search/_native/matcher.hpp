@@ -1,7 +1,7 @@
 #pragma once
 
 #include "compatibility.hpp"
-#include "graph_data.hpp"
+#include "../../graph/_native/graph.hpp"
 
 #include <atomic>
 #include <cstddef>
@@ -12,6 +12,10 @@
 
 
 namespace hotpot::search {
+
+using hotpot::graph::EdgeIndex;
+using hotpot::graph::Graph;
+using hotpot::graph::Position;
 
 struct EarlierEdge {
     Position neighbor;
@@ -28,8 +32,8 @@ struct QueryPlan {
 class SearchProblem {
 public:
     virtual ~SearchProblem() = default;
-    virtual const GraphData& query() const noexcept = 0;
-    virtual const GraphData& target() const noexcept = 0;
+    virtual const Graph& query() const noexcept = 0;
+    virtual const Graph& target() const noexcept = 0;
     virtual const QueryPlan& plan() const noexcept = 0;
     virtual const Compatibility& compatibility() const noexcept = 0;
     virtual const std::vector<std::vector<std::uint64_t>>& domains() const noexcept = 0;
@@ -81,7 +85,7 @@ private:
 };
 
 QueryPlan build_query_plan(
-    const GraphData& query,
+    const Graph& query,
     std::optional<Position> preferred_root = std::nullopt
 );
 

@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Iterator, Optional, Tuple
 
-import networkx as nx
-
+from ..graph.components import connected_components
 from .contracts import (
     CoordinationEnvironment,
     CoordinationGeometryResult,
@@ -50,12 +49,16 @@ def collect_coordination_environments(
 ) -> Tuple[CoordinationEnvironment, ...]:
     """Describe explicit metal--donor connectivity without assigning geometry."""
     metal_donor_pairs = tuple(_iter_metal_donor_pairs(mol))
-    ligand_graph = mol.graph.copy()
-    ligand_graph.remove_edges_from(
-        (metal.idx, donor.idx) for metal, donor in metal_donor_pairs
+    ligand_components = connected_components(
+        len(mol.atoms),
+        (
+            (bond.a1idx, bond.a2idx)
+            for bond in mol.bonds
+            if not bond.is_metal_ligand_bond
+        ),
     )
     component_by_atom = {}
-    for component_index, nodes in enumerate(nx.connected_components(ligand_graph)):
+    for component_index, nodes in enumerate(ligand_components):
         for atom_idx in nodes:
             component_by_atom[atom_idx] = component_index
 

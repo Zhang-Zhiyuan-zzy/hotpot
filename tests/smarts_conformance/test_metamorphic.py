@@ -67,7 +67,7 @@ def test_atom_renumbering_preserves_embeddings_after_stable_identity_mapping():
         atom.id = stable_id
     renumbered = original.copy()
     renumbered._atoms = list(reversed(renumbered._atoms))
-    renumbered._update_graph()
+    renumbered._update_topology()
 
     assert [atom.id for atom in original.atoms] != [
         atom.id for atom in renumbered.atoms

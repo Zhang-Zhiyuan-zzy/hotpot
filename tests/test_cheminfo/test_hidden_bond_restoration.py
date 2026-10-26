@@ -23,7 +23,7 @@ def _complex_with_a_ligand_ring():
     molecule._add_bond(2, 3, bond_order=1.0)
     molecule._add_bond(3, 4, bond_order=1.0)
     molecule._add_bond(4, 1, bond_order=1.0)
-    molecule._update_graph(clear_conformers=False)
+    molecule._update_topology(clear_conformers=False)
     return molecule, metal_bond, ring_bond
 
 
@@ -36,13 +36,13 @@ def test_restore_bonds_reuses_objects_and_updates_topology_once(monkeypatch):
     assert molecule.rings == []
 
     update_calls = []
-    update_graph = molecule._update_graph
+    update_topology = molecule._update_topology
 
     def record_update(clear_conformers=True):
         update_calls.append(clear_conformers)
-        update_graph(clear_conformers)
+        update_topology(clear_conformers)
 
-    monkeypatch.setattr(molecule, "_update_graph", record_update)
+    monkeypatch.setattr(molecule, "_update_topology", record_update)
     molecule.restore_bonds(
         metal_bond,
         ring_bond,
@@ -54,8 +54,8 @@ def test_restore_bonds_reuses_objects_and_updates_topology_once(monkeypatch):
     assert any(bond is ring_bond for bond in molecule.bonds)
     assert metal_bond.attr_dict == metal_attrs
     assert ring_bond.attr_dict == ring_attrs
-    assert molecule.graph.edges[0, 1]["bond"] is metal_bond
-    assert molecule.graph.edges[1, 2]["bond"] is ring_bond
+    assert molecule.bond(0, 1) is metal_bond
+    assert molecule.bond(1, 2) is ring_bond
     assert molecule.atoms[1] in molecule.atoms[0].neighbours
     assert molecule.atoms[2] in molecule.atoms[1].neighbours
     assert len(molecule.rings) == 1
@@ -69,21 +69,25 @@ def test_restore_bonds_can_restore_one_hidden_metal_bond_at_a_time():
         molecule.create_atom(atomic_number=atomic_number)
     first_bond = molecule._add_bond(0, 1, bond_order=1.0)
     second_bond = molecule._add_bond(0, 2, bond_order=1.0)
-    molecule._update_graph(clear_conformers=False)
+    molecule._update_topology(clear_conformers=False)
 
     molecule.hide_metal_ligand_bonds(clear_conformers=False)
     molecule.restore_bonds(first_bond, clear_conformers=False)
 
     assert tuple(molecule.bonds) == (first_bond,)
     assert molecule._hided_metal_bonds == [second_bond]
-    assert set(molecule.graph.edges) == {(0, 1)}
+    assert {
+        frozenset((bond.a1idx, bond.a2idx)) for bond in molecule.bonds
+    } == {frozenset((0, 1))}
     assert molecule.atoms[0].neighbours == [molecule.atoms[1]]
 
     molecule.recover_hided_metal_ligand_bonds(clear_conformers=False)
 
     assert tuple(molecule.bonds) == (first_bond, second_bond)
     assert molecule._hided_metal_bonds == []
-    assert set(molecule.graph.edges) == {(0, 1), (0, 2)}
+    assert {
+        frozenset((bond.a1idx, bond.a2idx)) for bond in molecule.bonds
+    } == {frozenset((0, 1)), frozenset((0, 2))}
 
 
 @pytest.mark.parametrize("invalid_selection", ["active", "duplicate"])
@@ -100,7 +104,7 @@ def test_restore_bonds_validates_the_whole_selection_before_mutating(
     update_calls = []
     monkeypatch.setattr(
         molecule,
-        "_update_graph",
+        "_update_topology",
         lambda clear_conformers=True: update_calls.append(clear_conformers),
     )
 

@@ -307,7 +307,7 @@ def test_default_openbabel_path_matches_explicit_adapter_and_seeds_worker_once(
         ),
     )
     workers._build_ligand_proxies_worker(
-        object(),
+        molecule,
         connection,
         1,
         1,

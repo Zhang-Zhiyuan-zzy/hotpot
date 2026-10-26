@@ -14,15 +14,15 @@ def carbon_pair_substructure():
     return sub
 
 
-class SingleUseMatcher:
+class SingleUseMappingSource:
     def __init__(self, mappings):
         self.mappings = mappings
         self.calls = 0
 
-    def subgraph_monomorphisms_iter(self):
+    def iter_mappings(self):
         self.calls += 1
         if self.calls > 1:
-            raise AssertionError("GraphMatcher iterator was consumed more than once")
+            raise AssertionError("mapping source was consumed more than once")
         yield from self.mappings
 
 
@@ -55,20 +55,20 @@ def test_hits_preserve_all_automorphisms_and_mapped_anchors():
         hits[0].mappings[0][0] = 2
 
 
-def test_hits_materialize_matcher_once_and_keep_legacy_node_sets():
+def test_hits_materialize_mapping_source_once_and_keep_node_sets():
     mol = hp.read_mol("CCC")
     sub = carbon_pair_substructure()
-    matcher = SingleUseMatcher([
-        {2: 0, 1: 1},
-        {1: 0, 2: 1},
-        {1: 0, 2: 1},
-        {1: 0, 0: 1},
+    source = SingleUseMappingSource([
+        {0: 2, 1: 1},
+        {0: 1, 1: 2},
+        {0: 1, 1: 2},
+        {0: 1, 1: 0},
         {0: 0, 1: 1},
     ])
-    hits = Hits(sub, mol, matcher, get_hit=False)
+    hits = Hits(sub, mol, source, get_hit=False)
 
     expected = [frozenset({0, 1}), frozenset({1, 2})]
-    assert matcher.calls == 1
+    assert source.calls == 1
     assert list(hits) == expected
     assert len(hits) == 2
     assert bool(hits)
@@ -76,7 +76,7 @@ def test_hits_materialize_matcher_once_and_keep_legacy_node_sets():
     assert expected[1] in hits
 
     materialized_hits = hits.hits
-    assert matcher.calls == 1
+    assert source.calls == 1
     assert [hit.atom_indices for hit in materialized_hits] == expected
     assert tuple(tuple(dict(mapping).items()) for mapping in materialized_hits[1].mappings) == (
         ((0, 1), (1, 2)),
@@ -84,12 +84,12 @@ def test_hits_materialize_matcher_once_and_keep_legacy_node_sets():
     )
 
 
-def test_empty_hits_are_deterministic_and_do_not_reconsume_matcher():
+def test_empty_hits_are_deterministic_and_do_not_reconsume_mapping_source():
     mol = hp.read_mol("O")
-    matcher = SingleUseMatcher([])
-    hits = Hits(carbon_pair_substructure(), mol, matcher)
+    source = SingleUseMappingSource([])
+    hits = Hits(carbon_pair_substructure(), mol, source)
 
     assert not hits
     assert list(hits) == []
     assert hits.hits == []
-    assert matcher.calls == 1
+    assert source.calls == 1

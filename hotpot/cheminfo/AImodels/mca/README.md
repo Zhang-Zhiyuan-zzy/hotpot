@@ -17,8 +17,9 @@ The package has two outputs:
 ## Installation
 
 The package is an integrated Hotpot component rather than a standalone Python
-package. Install Hotpot and its dependencies, including Open Babel, NetworkX,
-RDKit and ONNX Runtime. The inference compatibility dependencies used by CI are
+package. Install Hotpot and its dependencies, including Open Babel, RDKit and
+ONNX Runtime. NetworkX is used only by independent test oracles and is not a
+runtime dependency. The inference compatibility dependencies used by CI are
 listed in `tests/requirements-inference.txt`.
 
 For GPU inference, install the `onnxruntime-gpu` build matching the machine's

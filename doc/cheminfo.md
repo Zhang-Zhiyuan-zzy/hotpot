@@ -35,8 +35,7 @@
 | `_retrieve_torsions`               | Internal torsion retrieval                    |  
 | `simple_paths`                     | Calculate simple paths                        |  
 | `_set_coordinates`                 | Set coordinates (internal)                    |  
-| `_update_atom_neighbours_bonds`    | Update atom neighbors and bonds               |  
-| `_update_graph`                    | Update graph representation                   |  
+| `_update_topology`                 | Rebuild the private topology index from atoms and bonds |
 | `_add_atom`                        | Internal atom addition                        |  
 | `_add_bond`                        | Internal bond addition                        |  
 | `add_atom`                         | Add atom                                      |  
@@ -95,14 +94,9 @@
 | `pair_dist`                        | Pairwise distances                            |  
 | `dist_matrix`                      | Distance matrix                               |  
 | `element_counts`                   | Count elements                                |  
-| `simple_graph`                     | Simple graph representation                   |  
-| `_node_with_attrs`                 | Internal: Node with attributes                |  
-| `_edge_with_attrs`                 | Internal: Edge with attributes                |  
 | `_hide_bond`                       | Internal: Hide bond                           |  
 | `hide_bonds`                       | Hide bonds                                    |  
 | `hide_metal_ligand_bonds`          | Hide metal-ligand bonds                       |  
-| `graph`                            | Graph object                                  |  
-| `atom_bond_graph`                  | Atom-bond graph                               |  
 | `graph_spectral`                   | Graph spectral analysis                       |  
 | `formula`                          | Molecular formula                             |  
 | `is_disorder`                      | Check disorder                                |  
@@ -119,12 +113,9 @@
 | `refresh_atom_id`                  | Refresh atom ID                               |  
 | `atom_id_dict`                     | Atom ID dictionary                            |  
 | `bond_id_dict`                     | Bond ID dictionary                            |  
-| `_rm_atom`                         | Internal: remove atom                         |  
-| `_rm_atoms`                        | Internal: remove multiple atoms               |  
+| `_remove_atoms_from_topology`      | Internal: remove atoms before one topology refresh |
 | `remove_atom`                      | Remove atom                                   |  
 | `remove_atoms`                     | Remove atoms                                  |  
-| `_rm_bond`                         | Internal: remove bond                         |  
-| `_rm_bonds`                        | Internal: remove multiple bonds               |  
 | `remove_bond`                      | Remove bond                                   |  
 | `remove_bonds`                     | Remove bonds                                  |  
 | `force_remove_polar_hydrogens`     | Force remove polar hydrogens                  |  
@@ -135,7 +126,6 @@
 | `_longest_path`                    | Internal: longest path                        |  
 | `longest_path`                     | Longest path                                  |  
 | `canonical_tree`                   | Canonical tree                                |  
-| `super_acyclic_graph`              | Super acyclic graph                           |  
 | `InChi`                            | InChI string                                  |  
 | `shortest_path_index`              | Shortest path index                           |  
 | `shortest_path`                    | Shortest path                                 |  
@@ -143,12 +133,14 @@
 | `smiles`                           | SMILES string                                 |  
 | `kekulize_smiles`                  | Kekulize SMILES                               |  
 | `rings`                            | Full-graph Relevant Cycles                    |
-| `cycle_basis_rings`                | Legacy NetworkX cycle-basis rings             |
+| `cycle_basis`                      | Deterministic default cycle basis as atom-index tuples |
+| `all_cycle_basis`                  | Complete family of simple-cycle bases         |
+| `basis_rings`                      | Ring objects for the default cycle basis      |
+| `all_basis_rings`                  | Ring objects for every complete cycle basis   |
 | `rings_for_scope`                  | Relevant Cycles for a selected graph scope    |
 | `aromatic_joint_rings`             | Joint aromatic rings                          |  
 | `rings_small`                      | Small rings                                   |  
 | `ligand_rings`                     | Ligand-skeleton Relevant Cycles               |
-| `ligand_cycle_basis_rings`         | Legacy ligand-skeleton cycle-basis rings      |
 | `to_obmol`                         | Convert to OBMol                              |  
 | `to_rdmol`                         | Convert to RDMol                              |  
 | `to_pybel_mol`                     | Convert to Pybel mol                          |  

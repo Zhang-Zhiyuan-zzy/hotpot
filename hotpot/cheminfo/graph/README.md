@@ -18,12 +18,11 @@ its result.
 | `GraphSpectrum` | Store and compare graph spectra. |
 | `calc_electron_config` | Calculate the existing electron-configuration feature. |
 | `atoms_electron_configurations` | Calculate electron-configuration features for atoms. |
-| `graph_dfs_path` | Return one depth-first path under the existing traversal contract. |
-| `graph_dfs_paths` | Preserve the existing multi-path traversal API. |
+| `graph_dfs_path` | Return one depth-first path from explicit node/edge inputs. |
 
-The package migration preserves the behavior of the former
-`hotpot.cheminfo.graph` module. Relevant Cycle perception is the only new
-capability.
+The package contains numerical public APIs and direct topology algorithms; it
+does not expose a Graph data object. Native algorithms construct one private,
+task-local topology only when repeated adjacency work benefits from it.
 
 ## Relevant Cycles
 
@@ -82,7 +81,9 @@ included under `_native/`; the test-only oracle is pinned to commit
 `3a7ff93de0d9c4f6a5661508549c6063573f39c7`.
 
 `Molecule.rings` and `Molecule.ligand_rings` use this Relevant Cycle family.
-The former NetworkX behavior remains explicit as `cycle_basis_rings` and
-`ligand_cycle_basis_rings` for consumers, such as already-trained models, whose
-ring-tensor contract depends on one cycle basis. Aromaticity perception itself
-uses Relevant Cycles.
+`Molecule.cycle_basis` exposes one deterministic native Paton basis, while
+`all_cycle_basis` exposes every complete simple-cycle basis up to its fixed
+complete-result limit. `basis_rings` and `all_basis_rings` are exact Ring
+projections of those index-valued results. Existing trained-model extractors
+use the same native default-basis algorithm over their ligand-skeleton edge
+scope. Aromaticity perception itself uses Relevant Cycles.

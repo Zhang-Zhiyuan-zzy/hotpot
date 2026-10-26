@@ -326,52 +326,67 @@ def _pack_hydrogen_state(state):
     )
 
 
-def _pack_atom_transport(payload) -> NativeAtomTransportBuffers:
+def _pack_atom_transport(payload, atoms) -> NativeAtomTransportBuffers:
+    facts = tuple(payload.atom_facts)
+    transported_atoms = {fact.atom for fact in facts}
+    missing_atoms = tuple(
+        (row, atom)
+        for row, atom in enumerate(atoms)
+        if row not in transported_atoms
+    )
+    missing_count = len(missing_atoms)
+    atom_rows = tuple(fact.atom for fact in facts) + tuple(
+        row for row, _ in missing_atoms
+    )
+    presence_masks = tuple(
+        (
+            NativeAtomTransportFieldCode.ISOTOPE
+            if fact.isotope is not None
+            else 0
+        )
+        | (
+            NativeAtomTransportFieldCode.RADICAL_ELECTRONS
+            if fact.radical_electrons is not None
+            else 0
+        )
+        for fact in facts
+    ) + (0,) * missing_count
+    isotopes = tuple(
+        0 if fact.isotope is None else fact.isotope for fact in facts
+    ) + (0,) * missing_count
+    radical_electrons = tuple(
+        0 if fact.radical_electrons is None else fact.radical_electrons
+        for fact in facts
+    ) + (0,) * missing_count
+    has_current_hydrogens = tuple(
+        fact.current_hydrogens is not None for fact in facts
+    ) + (True,) * missing_count
+    has_source_hydrogens = tuple(
+        fact.source_hydrogens is not None for fact in facts
+    ) + (False,) * missing_count
     current_hydrogens = tuple(
         _pack_hydrogen_state(fact.current_hydrogens)
-        for fact in payload.atom_facts
+        for fact in facts
+    ) + tuple(
+        (
+            NativeHydrogenTransportFieldCode.IMPLICIT,
+            atom.implicit_hydrogens,
+            0,
+            0,
+        )
+        for _, atom in missing_atoms
     )
     source_hydrogens = tuple(
         _pack_hydrogen_state(fact.source_hydrogens)
-        for fact in payload.atom_facts
-    )
+        for fact in facts
+    ) + ((0, 0, 0, 0),) * missing_count
     return NativeAtomTransportBuffers(
         schema_version=payload.schema_version,
-        atoms=_array((fact.atom for fact in payload.atom_facts), np.uint64),
-        presence_masks=_array(
-            (
-                (
-                    NativeAtomTransportFieldCode.ISOTOPE
-                    if fact.isotope is not None
-                    else 0
-                )
-                | (
-                    NativeAtomTransportFieldCode.RADICAL_ELECTRONS
-                    if fact.radical_electrons is not None
-                    else 0
-                )
-                for fact in payload.atom_facts
-            ),
-            np.uint32,
-        ),
-        isotopes=_array(
-            (
-                0 if fact.isotope is None else fact.isotope
-                for fact in payload.atom_facts
-            ),
-            np.int32,
-        ),
-        radical_electrons=_array(
-            (
-                0 if fact.radical_electrons is None else fact.radical_electrons
-                for fact in payload.atom_facts
-            ),
-            np.int32,
-        ),
-        has_current_hydrogens=_array(
-            (fact.current_hydrogens is not None for fact in payload.atom_facts),
-            np.uint32,
-        ),
+        atoms=_array(atom_rows, np.uint64),
+        presence_masks=_array(presence_masks, np.uint32),
+        isotopes=_array(isotopes, np.int32),
+        radical_electrons=_array(radical_electrons, np.int32),
+        has_current_hydrogens=_array(has_current_hydrogens, np.uint32),
         current_hydrogen_presence_masks=_array(
             (state[0] for state in current_hydrogens), np.uint32
         ),
@@ -384,10 +399,7 @@ def _pack_atom_transport(payload) -> NativeAtomTransportBuffers:
         current_no_implicit=_array(
             (state[3] for state in current_hydrogens), np.uint32
         ),
-        has_source_hydrogens=_array(
-            (fact.source_hydrogens is not None for fact in payload.atom_facts),
-            np.uint32,
-        ),
+        has_source_hydrogens=_array(has_source_hydrogens, np.uint32),
         source_hydrogen_presence_masks=_array(
             (state[0] for state in source_hydrogens), np.uint32
         ),
@@ -401,7 +413,8 @@ def _pack_atom_transport(payload) -> NativeAtomTransportBuffers:
             (state[3] for state in source_hydrogens), np.uint32
         ),
         source_namespaces=_pack_utf8(
-            tuple(fact.source_namespace for fact in payload.atom_facts)
+            tuple(fact.source_namespace for fact in facts)
+            + (None,) * missing_count
         ),
     )
 
@@ -548,7 +561,7 @@ def pack_molecule(
         if NativeMoleculeField.STEREO_RECORDS in fields:
             stereo_records = _pack_stereo_records(payload)
         if NativeMoleculeField.ATOM_TRANSPORT in fields:
-            atom_transport = _pack_atom_transport(payload)
+            atom_transport = _pack_atom_transport(payload, atoms)
         if NativeMoleculeField.BOND_TRANSPORT in fields:
             bond_transport = _pack_bond_transport(payload)
 

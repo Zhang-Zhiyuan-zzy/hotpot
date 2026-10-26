@@ -55,42 +55,30 @@ def test_substructure_from_molecule_accepts_index_and_atom_pair_overrides():
     assert len(Searcher(query).search(molecule)) == 1
 
 
-def test_searcher_rejects_graph_nodes_or_edges_without_hotpot_payloads():
-    with pytest.raises(AttributeError, match="QueryAtom"):
-        Searcher._node_match({}, {})
-    with pytest.raises(AttributeError, match="QueryBond"):
-        Searcher._edge_match({}, {})
-
-
-def test_hits_membership_node_set_helper_and_mapped_atoms():
+def test_hits_membership_and_mapped_atoms():
     molecule = hp.read_mol("CCC", "smi")
     hits = Searcher(Substructure.from_smarts("CC")).search(molecule)
 
-    assert hits._get_nodes_set() == {frozenset((0, 1)), frozenset((1, 2))}
+    assert set(hit.atom_indices for hit in hits) == {
+        frozenset((0, 1)),
+        frozenset((1, 2)),
+    }
     assert hits[0] in hits
     assert hits[0].mapped_atoms(0) == tuple(
         molecule.atoms[index] for index in hits[0].mapped_atom_indices(0)
     )
 
 
-def test_substructure_construct_graph_is_cached_and_mutations_invalidate_it():
+def test_substructure_retains_only_query_domain_objects():
     query = Substructure()
     first = query.add_atom(QueryAtom(atomic_number={6}))
-
-    one_atom_graph = query.construct_graph()
-    assert query.construct_graph() is one_atom_graph
-
     second = query.add_atom(QueryAtom(atomic_number={6}))
-    two_atom_graph = query.construct_graph()
-    assert two_atom_graph is not one_atom_graph
-    assert set(two_atom_graph) == {0, 1}
-    assert query.construct_graph() is two_atom_graph
+    bond = query.add_bond(first, second, bond_order={1})
 
-    query.add_bond(first, second, bond_order={1})
-    bonded_graph = query.construct_graph()
-    assert bonded_graph is not two_atom_graph
-    assert set(bonded_graph.edges) == {(0, 1)}
-    assert query.construct_graph() is bonded_graph
+    assert query.query_atoms == [first, second]
+    assert query.query_bonds == [bond]
+    assert not hasattr(query, "query_graph")
+    assert not hasattr(query, "construct_graph")
 
 
 def test_searcher_has_match_and_bounded_mapping_iterator_contract():

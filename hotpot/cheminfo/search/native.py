@@ -46,9 +46,7 @@ def _compile_problem(substructure, mol):
         needs_bond_objects=query.needs_bond_objects,
         derived_requirements=query.derived_requirements,
     )
-    native_module = _native_module()
-    target = native_module.NativeTarget(target_spec)
-    return native_module.NativeProblem(query.query_spec, target)
+    return _NativeTarget(target_spec).problem(query.query_spec)
 
 
 def _prepare_query(substructure) -> _PreparedQuery:
@@ -77,12 +75,40 @@ def _iter_mapping_sources(queries, mol):
             tuple(query.derived_requirements for query in queries)
         ),
     )
-    native_module = _native_module()
-    target = native_module.NativeTarget(target_spec)
+    target = _NativeTarget(target_spec)
     for query in queries:
-        yield _NativeMappingSource(
-            native_module.NativeProblem(query.query_spec, target)
-        )
+        yield target.mapping_source(query.query_spec)
+
+
+def _mapping_sources_with_automorphism(queries, mol):
+    """Build ordered query sources and exact symmetry checks on one target."""
+    queries = tuple(queries)
+    target_spec = _pack_target_snapshot(
+        mol,
+        needs_atom_objects=any(query.needs_atom_objects for query in queries),
+        needs_bond_objects=any(query.needs_bond_objects for query in queries),
+        derived_requirements=_merge_derived_requirements(
+            tuple(query.derived_requirements for query in queries)
+        ),
+    )
+    node_labels, edge_labels = _exact_topology_labels(
+        mol,
+        target_spec["keys"],
+        target_spec["edges"],
+    )
+    target = _NativeTarget(target_spec)
+    sources = tuple(
+        target.mapping_source(query.query_spec)
+        for query in queries
+    )
+    automorphism = _NativeAutomorphismTask(
+        target.automorphism(node_labels, edge_labels),
+        target_spec["keys"],
+        target_spec["edges"],
+        node_labels,
+        edge_labels,
+    )
+    return sources, automorphism
 
 
 def _merge_derived_requirements(requirements):
@@ -301,19 +327,68 @@ def _pack_aromatic_edges(rings):
     }
 
 
+def _exact_topology_labels(mol, keys, edges):
+    atoms = {atom.idx: atom for atom in mol.atoms}
+    bonds = {
+        tuple(sorted((bond.a1idx, bond.a2idx))): bond
+        for bond in mol.bonds
+    }
+    node_values = tuple(
+        (
+            int(atoms[key].atomic_number),
+            int(atoms[key].formal_charge),
+            bool(atoms[key].is_aromatic),
+            int(atoms[key].implicit_hydrogens),
+            int(getattr(atoms[key], "isotope", 0)),
+        )
+        for key in keys
+    )
+    edge_values = tuple(
+        (
+            "aromatic",
+            bonds[edge].bond_kind.value,
+        )
+        if bonds[edge].is_aromatic
+        else (
+            "bond_order",
+            float(bonds[edge].bond_order),
+            bonds[edge].bond_kind.value,
+        )
+        for edge in edges
+    )
+    return _integer_labels(node_values), _integer_labels(edge_values)
+
+
+def _integer_labels(values):
+    labels = {
+        value: label
+        for label, value in enumerate(sorted(set(values), key=repr))
+    }
+    return tuple(labels[value] for value in values)
+
+
+@dataclass(frozen=True)
+class _NativeAutomorphismTask:
+    _native: object
+    keys: tuple[int, ...]
+    edges: tuple[tuple[int, int], ...]
+    node_labels: tuple[int, ...]
+    edge_labels: tuple[int, ...]
+
+    def equivalent(self, first: int, second: int) -> bool:
+        return self._native.equivalent(first, second)
+
+
 class _NativeMappingSource:
-    """Adapt query-aligned native tuples to the legacy matcher direction."""
+    """Expose native embeddings as query-to-molecule mappings."""
 
     def __init__(self, problem):
         self._problem = problem
 
-    def subgraph_monomorphisms_iter(self) -> Iterable[dict[int, int]]:
+    def iter_mappings(self) -> Iterable[dict[int, int]]:
         query_keys = self._problem.query_keys
         for target_values in self._problem.cursor():
-            yield {
-                target: query
-                for query, target in zip(query_keys, target_values)
-            }
+            yield dict(zip(query_keys, target_values))
 
     def has_match(self) -> bool:
         """Probe one native embedding without materializing a mapping."""
@@ -326,20 +401,25 @@ class _NativeMappingSource:
             yield target_values[position]
 
 
-class _NativeSpecTarget:
-    """Reuse one native target for queries already expressed as native IR."""
+class _NativeTarget:
+    """Own one packed native target shared by all task-specific queries."""
 
     def __init__(self, target_spec: dict) -> None:
         self._native_module = _native_module()
         self._target = self._native_module.NativeTarget(target_spec)
 
-    def iter_mappings(
-        self,
-        query_spec: dict,
-    ) -> Iterable[dict[int, int]]:
-        problem = self._native_module.NativeProblem(query_spec, self._target)
-        query_keys = problem.query_keys
-        return (
-            dict(zip(query_keys, target_values))
-            for target_values in problem.cursor()
+    def problem(self, query_spec: dict):
+        return self._native_module.NativeProblem(query_spec, self._target)
+
+    def mapping_source(self, query_spec: dict) -> _NativeMappingSource:
+        return _NativeMappingSource(self.problem(query_spec))
+
+    def iter_mappings(self, query_spec: dict) -> Iterable[dict[int, int]]:
+        return self.mapping_source(query_spec).iter_mappings()
+
+    def automorphism(self, node_labels, edge_labels):
+        return self._native_module._NativeAutomorphism(
+            self._target,
+            node_labels,
+            edge_labels,
         )

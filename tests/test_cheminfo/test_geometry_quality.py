@@ -493,26 +493,20 @@ def test_acceptance_evaluation_does_not_change_structure_or_conformers():
     molecule.conformer_add(molecule.coordinates.copy())
     coordinates = molecule.coordinates.copy()
     bonds = tuple(molecule.bonds)
-    graph = molecule.graph
-    graph_edges = tuple(molecule.graph.edges)
+    link_matrix = molecule.link_matrix.copy()
     conformers = molecule.conformers._coordinates.copy()
     rings_cache = molecule._rings
-    cycle_basis_rings_cache = molecule._cycle_basis_rings
     ring_indices_cache = molecule._ring_indices_cache
     ligand_rings_cache = molecule._ligand_rings
-    ligand_cycle_basis_rings_cache = molecule._ligand_cycle_basis_rings
     ligand_rings_signature = molecule._ligand_rings_signature
 
     ff.evaluate_structure_acceptance(molecule, level="standard")
 
     np.testing.assert_array_equal(molecule.coordinates, coordinates)
     assert tuple(molecule.bonds) == bonds
-    assert molecule.graph is graph
-    assert tuple(molecule.graph.edges) == graph_edges
+    np.testing.assert_array_equal(molecule.link_matrix, link_matrix)
     np.testing.assert_array_equal(molecule.conformers._coordinates, conformers)
     assert molecule._rings is rings_cache
-    assert molecule._cycle_basis_rings is cycle_basis_rings_cache
     assert molecule._ring_indices_cache is ring_indices_cache
     assert molecule._ligand_rings is ligand_rings_cache
-    assert molecule._ligand_cycle_basis_rings is ligand_cycle_basis_rings_cache
     assert molecule._ligand_rings_signature is ligand_rings_signature

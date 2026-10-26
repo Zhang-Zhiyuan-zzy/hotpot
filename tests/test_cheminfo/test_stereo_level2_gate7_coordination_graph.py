@@ -27,7 +27,7 @@ def _molecule(atomic_numbers, edges=(), *, implicit_hydrogens=None):
         )
     for first, second in edges:
         molecule._add_bond(first, second, bond_order=1.0)
-    molecule._update_graph(clear_conformers=False)
+    molecule._update_topology(clear_conformers=False)
     return molecule
 
 

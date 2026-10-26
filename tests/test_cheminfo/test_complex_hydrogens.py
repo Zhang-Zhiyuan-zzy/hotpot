@@ -501,9 +501,11 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
     molecule.conformer_add(molecule.coordinates.copy(), -1.0)
     molecule.atom_pairs.update_pairs()
     _ = molecule.rings
-    _ = molecule.cycle_basis_rings
+    _ = molecule.cycle_basis
+    _ = molecule.all_cycle_basis
+    _ = molecule.basis_rings
+    _ = molecule.all_basis_rings
     _ = molecule.ligand_rings
-    _ = molecule.ligand_cycle_basis_rings
     working = working_copy._hydrogenated_working_copy(
         molecule,
         add_hydrogens=True,
@@ -516,27 +518,25 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
     original_atoms = tuple(molecule.atoms)
     original_bonds = tuple(molecule.bonds)
     original_atom_attrs = tuple(atom.attrs for atom in original_atoms)
-    original_neighbours = tuple(atom._neighbours for atom in original_atoms)
-    original_atom_bonds = tuple(atom._bonds for atom in original_atoms)
-    original_graph = molecule._graph
+    original_neighbours = tuple(
+        tuple(atom.neighbours) for atom in original_atoms
+    )
+    original_atom_bonds = tuple(tuple(atom.bonds) for atom in original_atoms)
+    original_topology = {
+        id(atom): (
+            row,
+            tuple(id(bond) for bond in bonds),
+        )
+        for atom, (row, bonds) in (
+            (atom, molecule._topology_index[id(atom)])
+            for atom in original_atoms
+        )
+    }
     original_pairs = molecule.atom_pairs
     original_pair_items = tuple(original_pairs.items())
     original_conformers = molecule.conformers
     original_conformer_state = dict(original_conformers.__dict__)
     original_conformer_index = molecule._conformers_index
-    original_caches = (
-        molecule._row2idx,
-        molecule._angles,
-        molecule._torsions,
-        molecule._rings,
-        molecule._cycle_basis_rings,
-        molecule._ring_indices_cache,
-        molecule._ligand_rings,
-        molecule._ligand_cycle_basis_rings,
-        molecule._ligand_rings_signature,
-        molecule._obmol,
-    )
-
     def fail_after_partial_update(atom_pairs):
         dict.clear(atom_pairs)
         raise RuntimeError("injected commit failure")
@@ -552,15 +552,21 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
         atom.attrs is attrs
         for atom, attrs in zip(original_atoms, original_atom_attrs)
     )
-    assert all(
-        atom._neighbours is neighbours
-        for atom, neighbours in zip(original_atoms, original_neighbours)
-    )
-    assert all(
-        atom._bonds is bonds
-        for atom, bonds in zip(original_atoms, original_atom_bonds)
-    )
-    assert molecule._graph is original_graph
+    assert tuple(
+        tuple(atom.neighbours) for atom in original_atoms
+    ) == original_neighbours
+    assert tuple(
+        tuple(atom.bonds) for atom in original_atoms
+    ) == original_atom_bonds
+    assert all("_neighbours" not in atom.__dict__ for atom in original_atoms)
+    assert all("_bonds" not in atom.__dict__ for atom in original_atoms)
+    assert {
+        id(atom): (row, tuple(id(bond) for bond in bonds))
+        for atom, (row, bonds) in (
+            (atom, molecule._topology_index[id(atom)])
+            for atom in original_atoms
+        )
+    } == original_topology
     assert molecule.atom_pairs is original_pairs
     assert tuple(molecule.atom_pairs.items()) == original_pair_items
     assert molecule.conformers is original_conformers
@@ -569,15 +575,11 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
         for name, value in original_conformer_state.items()
     )
     assert molecule._conformers_index == original_conformer_index
-    assert (
-        molecule._row2idx,
-        molecule._angles,
-        molecule._torsions,
-        molecule._rings,
-        molecule._cycle_basis_rings,
-        molecule._ring_indices_cache,
-        molecule._ligand_rings,
-        molecule._ligand_cycle_basis_rings,
-        molecule._ligand_rings_signature,
-        molecule._obmol,
-    ) == original_caches
+    assert molecule._row2idx is None
+    assert molecule._angles == []
+    assert molecule._torsions == []
+    assert molecule._rings == []
+    assert molecule._ring_indices_cache == {}
+    assert molecule._ligand_rings is None
+    assert molecule._ligand_rings_signature is None
+    assert molecule._obmol is None

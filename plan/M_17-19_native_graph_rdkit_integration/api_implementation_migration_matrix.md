@@ -18,7 +18,8 @@ surfaces.
 | Core graph helpers | `_edge_with_attrs`, `_node_with_attrs`, `_ring_graph`, `_uncached_cycle_basis_rings` | Legacy | Delete | explicit facts/native algorithms | scientific outputs | No | Pending deletion | zero-reference scan |
 | Core graph state | `Molecule._graph` | Legacy | Delete | no persistent computational Graph | algorithms preserve outputs | No | Pending deletion | source/runtime scan |
 | Core adjacency | `Atom._neighbours`, Atom-specific stored `_bonds` | Legacy | Delete | `_topology_index` queries | return types/order | No | Pending deletion | state-budget tests |
-| Core cache | `_row2idx` | Legacy | Delete | `_topology_index` | atom index meanings | No | Pending deletion | source scan |
+| Core adjacency lifecycle | removed `Atom.bonds`/`neighbours` empty-list behavior | P17 | Preserve without duplicate state | membership-aware queries over `_topology_index` | detached references remain inspectable | No | Pending integration | structural lifecycle tests |
+| OpenBabel adapter cache | `_obmol` / `_row2idx` | Active | Retain and invalidate together | one OpenBabel conversion cache | row-to-OB index mapping | No | Pending integration | converter/cache tests |
 | Core cache | cached `adjacency_matrix` instance state/property | Legacy | Delete | task-local numerical construction | graph spectrum parity | No | Pending deletion | spectrum tests |
 | Core public graph | `Molecule.graph` | Legacy | Delete | domain APIs/direct algorithms | no Graph return | No | Pending deletion | API/static tests |
 | Core public graph | `Molecule.simple_graph` | Legacy | Delete | domain APIs/direct algorithms | scientific callers migrated | No | Pending deletion | API/static tests |
@@ -36,6 +37,7 @@ surfaces.
 | Bond mutation | `remove_bond()` | Both | Retain; delegate to bulk path | public Molecule API | signature and semantics | No | Pending integration | mutation tests |
 | Bond mutation | `remove_bonds()` | Both | Retain as unique implementation | public Molecule API | single refresh and stereo prune | No | Pending integration | mutation tests |
 | Atom mutation | `_rm_atom()`/`_rm_atoms()` | P17/legacy | Consolidate without compatibility duplicate | current internal atom-removal path | stereo index remap | No | Pending integration | stereo lifecycle tests |
+| OpenBabel helper | unused `obconvert.add_hydrogens()` | Legacy | Delete with its `_rm_atoms()` dependency | Molecule/force-field hydrogen workflows | no active caller | No | Pending deletion | zero-reference scan |
 | Hidden Bonds | hide/recover APIs | Both | Retain | existing Molecule APIs | payload identity on temporary hide | No | Pending integration | hidden-Bond tests |
 | Hidden Bonds | permanent hidden-Bond clear | P17 | Retain | clear methods + stereo helper | affected stereo pruning | No | Pending integration | lifecycle tests |
 | Clone | `Molecule.copy()`/`__copy__` | Both | Integrate | Molecule clone path | raw attributes and exact payload remap | No | Pending conflict | clone tests |
@@ -68,6 +70,11 @@ surfaces.
 | Search graph API | `Substructure.construct_graph`, `query_graph`, cache/signature | Legacy | Delete | `query_atoms`/`query_bonds` + native IR | independent oracle migration | No | Pending deletion | API/static tests |
 | Graph traversal | `graph_dfs_paths()` constant-empty compatibility function | P19/legacy | Delete | none | no production behavior exists | No | Pending deletion | export/static tests |
 | Graph traversal | `graph_dfs_path()` | Active/P19 | Retain as sole explicit-edge DFS API | `hotpot.cheminfo.graph` | InternalCoordinates outputs | No | Pending integration | traversal/Z-matrix tests |
+| Graph traversal signature | `graph_dfs_path(graph, ...)` | Legacy | Replace, no duck-typed compatibility | `graph_dfs_path(node_count, edges, start_node=None, scope_nodes=None, min_deep=None, max_deep=None)` | deterministic one-branch event | No | Pending integration | traversal/Z-matrix tests |
+| Internal coordinates | `calc_zmat_idx(graph_or_link)` | Legacy | Replace, no Graph input branch | `InternalCoordinates.calc_zmat_idx(link_matrix, node_count=None)` | connected/isolate semantics | No | Pending integration | direct-algorithm tests |
+| Internal coordinates | `calc_zmat(graph_or_link, coords)` | Legacy | Replace, no Graph input branch | `InternalCoordinates.calc_zmat(link_matrix, coords)` | Z-matrix values | No | Pending integration | Core/direct-algorithm tests |
+| Direct graph algorithms | duplicated components/path/traversal implementations | P19 | Consolidate | `graph.components.connected_components`; `graph.paths.{shortest_path,all_simple_paths,longest_simple_path,depth_first_path}` | deterministic explicit-edge behavior | No | Pending integration | direct-algorithm tests |
+| Molecule shortest path | private in-method BFS | P19 merge residue | Delete duplicate implementation | `graph.paths.shortest_path()` called by `Molecule.shortest_path_index()` | disconnected and ordering semantics | No | Pending deletion | direct/Core tests |
 | Archived search | `_logic.py`, `logic.py`, `logic2.py`, `_logic_tuple.py`, `fields.py`, `match_func.py`, `_smarts.py`, `smarts_parser/` | Legacy | Delete module island | Plan 16 query IR + current SMARTS parser | current public search semantics | No | Pending deletion | import/conformance/static tests |
 | Archived search dependency | `legacy-search` optional extra / SymPy | Legacy | Delete | none | active extras remain unchanged | No | Pending deletion | metadata tests |
 | Native search graph | `search/_native/graph_data.*` | P16 | Delete old location/implementation | shared `graph/_native/graph.*` | RI target semantics | No | Pending rename | build/search tests |
@@ -88,7 +95,15 @@ surfaces.
 | Build | `MANIFEST.in` | Both | Integrate | one source manifest | all required sources, no obsolete stub | No | Pending auto-merge review | sdist/wheel audit |
 | Build | `publish_pypi.yml` smoke | Both | Integrate | one release workflow | all current native imports | No | Pending conflict | workflow/static audit |
 | Dependencies | `pyproject.toml`/`requirements.txt` | Both | Integrate | identical runtime lists | P17 pins, P19 no NetworkX | No | Pending conflict | metadata tests |
+| Force-field components | NetworkX component traversal | P19 | Replace | `graph.components.connected_components()` | component labels/order | No | Pending migration | coordination component tests |
+| Process boundaries | stale identity-keyed topology after deserialization | P19 | Rebuild at each process boundary | `_update_topology(clear_conformers=False)` in CLI/workers | child-process topology correctness | No | Pending migration | worker/CLI tests |
+| Conversion/serialization | `_update_graph()` calls in RDKit, MCA, CCDC paths | Both | Migrate, no alias | `_update_topology()` | conversion/round-trip semantics | No | Pending migration | conversion/MCA tests |
+| Cycle consumers | legacy ligand-cycle APIs in PyG, MCA extraction, examples | P19 | Migrate | current native basis/direct consumer algorithms | tensor/ring meaning | No | Pending migration | model/cycle tests |
+| Dataset search | `atom_bond_graph` duck typing | Legacy | Delete | current search capability/API | dataset search behavior | No | Pending deletion | dataset/search tests |
+| OpenBabel conversion | NetworkX construction/import | Legacy | Delete | authoritative Atom/Bond facts | conversion semantics | No | Pending deletion | conversion/static tests |
 | Plan index | Plan 17/18/19/M_17-19 rows | Both | Retain all historical plans plus merge plan | `plan/README.md` | unique numbering/context | No | Pending conflict | link scan |
 | Tests/helpers | current-only `_update_graph` calls | P17 | Migrate; no alias | `_update_topology()` or public seam | test intent unchanged | No | Pending migration | zero-reference scan/tests |
 | Tests/helpers | working-copy assertions on `_graph` identity | P17 | Rewrite | normalized `_topology_index` + exact payload identity | rollback intent | No | Pending migration | working-copy tests |
 | Documentation | current API docs using deleted symbols | Both | Rewrite | final API tree | history remains clearly historical | No | Pending audit | documentation scan |
+| Future Plan 17 extension | additive/old-call compatibility wording | P17 draft | Rewrite | one replacement API and exact ABI | no future parallel interface promise | No | Pending correction | plan review/static scan |
+| Release source audit | old `search/_native/graph_data.*` workflow expectations | P16 CI residue | Replace and mark obsolete | `graph/_native/graph.*` + cycle sources | sdist completeness | No | Pending correction | workflow/wheel audit |

@@ -44,7 +44,10 @@ def _molecule_graph_state(molecule):
             (id(bond), bond.a1idx, bond.a2idx, bond.bond_order, bond.bond_kind)
             for bond in molecule.bonds
         ),
-        frozenset(frozenset(edge) for edge in molecule.graph.edges),
+        frozenset(
+            frozenset((bond.a1idx, bond.a2idx))
+            for bond in molecule.bonds
+        ),
         frozenset(
             frozenset(atom.idx for atom in ring.atoms)
             for ring in molecule.rings

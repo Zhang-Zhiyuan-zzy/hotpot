@@ -23,7 +23,7 @@ def _molecule_from_edges(
         mol._create_atom(atomic_number=6)
     for first, second in edges:
         mol._add_bond(first, second, bond_order=1.0)
-    mol._update_graph(clear_conformers=False)
+    mol._update_topology(clear_conformers=False)
     return mol
 
 
@@ -39,12 +39,34 @@ def _cubane_edges() -> list[tuple[int, int]]:
     return list(nx.cubical_graph().edges)
 
 
-def test_primary_and_legacy_ring_families_are_explicit() -> None:
+def test_relevant_and_default_basis_ring_families_are_explicit() -> None:
     mol = _molecule_from_edges(_cubane_edges(), atom_count=8)
 
     assert len(mol.rings) == 6
     assert {len(ring) for ring in mol.rings} == {4}
-    assert len(mol.cycle_basis_rings) == 5
+    assert len(mol.basis_rings) == 5
+    assert [tuple(ring.atoms_indices) for ring in mol.basis_rings] == mol.cycle_basis
+
+
+def test_complete_basis_ring_projection_is_exact_and_uncached() -> None:
+    mol = _molecule_from_edges(
+        [(0, 1), (1, 2), (2, 3), (3, 0), (0, 2)],
+        atom_count=4,
+    )
+
+    assert [
+        [tuple(ring.atoms_indices) for ring in basis]
+        for basis in mol.all_basis_rings
+    ] == mol.all_cycle_basis
+    assert mol.all_cycle_basis[0] == mol.cycle_basis
+    assert mol.cycle_basis is not mol.cycle_basis
+    assert mol.all_cycle_basis is not mol.all_cycle_basis
+    assert not {
+        "_cycle_basis",
+        "_all_cycle_basis",
+        "_basis_rings",
+        "_all_basis_rings",
+    }.intersection(mol.__dict__)
 
 
 def test_relevant_rings_are_invariant_to_edge_insertion_order() -> None:
@@ -79,7 +101,7 @@ def test_relevant_ring_cache_is_invalidated_by_topology_update() -> None:
     assert len(mol.rings_for_scope("full_graph")) == 1
 
 
-def test_existing_ml_ring_features_keep_the_legacy_cycle_basis() -> None:
+def test_existing_ml_ring_features_keep_the_default_cycle_basis() -> None:
     mol = _molecule_from_edges(_cubane_edges(), atom_count=8)
 
     data = extract_ring_attrs(mol)
@@ -87,9 +109,16 @@ def test_existing_ml_ring_features_keep_the_legacy_cycle_basis() -> None:
     assert len(mol.rings) == 6
     assert data["mol_rings_nums"].tolist() == [5]
     assert data["rings_node_nums"].tolist() == [4, 4, 6, 4, 4]
+    assert data["rings_node_index"].tolist() == [
+        4, 5, 6, 7,
+        2, 3, 5, 6,
+        1, 0, 3, 5, 6, 7,
+        4, 0, 3, 5,
+        1, 2, 6, 7,
+    ]
 
 
-def test_forcefield_ring_opening_ignores_the_legacy_cycle_basis(
+def test_forcefield_ring_opening_ignores_the_default_cycle_basis(
         monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     edges = [
@@ -116,18 +145,18 @@ def test_forcefield_ring_opening_ignores_the_legacy_cycle_basis(
         )
     for first, second in edges:
         mol._add_bond(first, second, bond_order=1.0)
-    mol._update_graph(clear_conformers=False)
+    mol._update_topology(clear_conformers=False)
 
     small_ring = next(ring for ring in mol.rings if len(ring) == 4)
     shared_edge = mol.bond(0, 1)
 
-    def reject_legacy_cycle_basis_property(_mol: Molecule) -> None:
-        raise AssertionError("force-field ring opening read the legacy cycle basis")
+    def reject_default_cycle_basis_property(_mol: Molecule) -> None:
+        raise AssertionError("force-field ring opening read the default cycle basis")
 
     monkeypatch.setattr(
         Molecule,
-        "cycle_basis_rings",
-        property(reject_legacy_cycle_basis_property),
+        "basis_rings",
+        property(reject_default_cycle_basis_property),
     )
 
     target_bond = mol.bond(11, 12)

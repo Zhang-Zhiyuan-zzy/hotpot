@@ -40,7 +40,7 @@ def _molecule(
         )
     for first, second in edges:
         molecule._add_bond(first, second, bond_order=1.0)
-    molecule._update_graph(clear_conformers=False)
+    molecule._update_topology(clear_conformers=False)
     return molecule
 
 
@@ -555,7 +555,7 @@ def test_coordination_only_payload_triggers_complete_gate6_projection(
             bond_kind="dative",
             bond_direction="sideways",
         )
-        molecule._update_graph(clear_conformers=False)
+        molecule._update_topology(clear_conformers=False)
         _set_record(molecule, record)
     else:
         hydrogen = stereo.HydrogenTransportState(0, 0, True)

@@ -10,7 +10,7 @@ import hotpot as hp
 from hotpot.cheminfo.search.native import _NativeMappingSource
 
 
-def _reject_graph_matcher(*args, **kwargs):
+def _reject_networkx_matcher(*args, **kwargs):
     raise AssertionError("production search constructed NetworkX GraphMatcher")
 
 
@@ -18,7 +18,7 @@ def test_every_public_search_method_uses_the_native_mapping_source(monkeypatch):
     monkeypatch.setattr(
         nx.algorithms.isomorphism,
         "GraphMatcher",
-        _reject_graph_matcher,
+        _reject_networkx_matcher,
     )
     searcher = hp.Searcher(hp.Substructure.from_smarts("CO"))
     molecule = hp.read_mol("CCO", "smi")
@@ -27,14 +27,14 @@ def test_every_public_search_method_uses_the_native_mapping_source(monkeypatch):
     assert len(tuple(searcher.iter_mappings(molecule))) == 1
     hits = searcher.search(molecule)
     assert len(hits) == 1
-    assert isinstance(hits.graph_matcher, _NativeMappingSource)
+    assert isinstance(hits.mapping_source, _NativeMappingSource)
 
 
 def test_direct_recursive_predicate_evaluation_uses_native_search(monkeypatch):
     monkeypatch.setattr(
         nx.algorithms.isomorphism,
         "GraphMatcher",
-        _reject_graph_matcher,
+        _reject_networkx_matcher,
     )
     query_atom = hp.Substructure.from_smarts(
         "[#6;$([#6]=[#8])]"
@@ -63,7 +63,7 @@ def test_native_has_match_stops_after_the_first_accepted_embedding():
     assert calls == [0]
 
 
-def test_native_has_match_does_not_materialize_legacy_direction_mappings(
+def test_native_has_match_does_not_materialize_mappings(
     monkeypatch,
 ):
     def reject_mapping_materialization(_source):
@@ -72,7 +72,7 @@ def test_native_has_match_does_not_materialize_legacy_direction_mappings(
 
     monkeypatch.setattr(
         _NativeMappingSource,
-        "subgraph_monomorphisms_iter",
+        "iter_mappings",
         reject_mapping_materialization,
     )
 
@@ -90,7 +90,7 @@ def test_zero_limit_uses_existence_probe_without_materializing_a_mapping(
 
     monkeypatch.setattr(
         _NativeMappingSource,
-        "subgraph_monomorphisms_iter",
+        "iter_mappings",
         reject_mapping_materialization,
     )
     searcher = hp.Searcher(hp.Substructure.from_smarts("C"))

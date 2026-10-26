@@ -1,4 +1,4 @@
-#include "graph_data.hpp"
+#include "graph.hpp"
 
 #include <algorithm>
 #include <limits>
@@ -6,7 +6,7 @@
 #include <tuple>
 
 
-namespace hotpot::search {
+namespace hotpot::graph {
 
 namespace {
 
@@ -14,10 +14,10 @@ using AdjacencyEntry = std::pair<Position, EdgeIndex>;
 
 }  // namespace
 
-GraphData::GraphData(
-    std::vector<std::int64_t> keys,
-    const std::vector<std::pair<std::int64_t, std::int64_t>>& input_edges
-) : keys_(std::move(keys)) {
+Graph::Graph(
+    std::vector<NodeKey> ordered_keys,
+    const std::vector<std::pair<NodeKey, NodeKey>>& ordered_edges
+) : keys_(std::move(ordered_keys)) {
     if (keys_.size() > std::numeric_limits<Position>::max()) {
         throw std::invalid_argument("graph contains too many nodes");
     }
@@ -27,14 +27,14 @@ GraphData::GraphData(
     if (std::adjacent_find(keys_.begin(), keys_.end()) != keys_.end()) {
         throw std::invalid_argument("node keys must be unique");
     }
-    if (input_edges.size() > std::numeric_limits<EdgeIndex>::max()) {
+    if (ordered_edges.size() > std::numeric_limits<EdgeIndex>::max()) {
         throw std::invalid_argument("graph contains too many edges");
     }
 
-    std::pair<std::int64_t, std::int64_t> previous_edge{};
+    std::pair<NodeKey, NodeKey> previous_edge{};
     bool has_previous_edge = false;
-    edges_.reserve(input_edges.size());
-    for (const auto& edge : input_edges) {
+    edges_.reserve(ordered_edges.size());
+    for (const auto& edge : ordered_edges) {
         if (edge.first > edge.second) {
             throw std::invalid_argument(
                 "edge endpoints must use ascending undirected key order"
@@ -81,7 +81,7 @@ GraphData::GraphData(
     }
 }
 
-Position GraphData::position_for_key(const std::int64_t key) const {
+Position Graph::position_for_key(const NodeKey key) const {
     const auto found = std::lower_bound(keys_.begin(), keys_.end(), key);
     if (found == keys_.end() || *found != key) {
         throw std::invalid_argument("edge endpoint is not a graph node key");
@@ -89,11 +89,28 @@ Position GraphData::position_for_key(const std::int64_t key) const {
     return static_cast<Position>(found - keys_.begin());
 }
 
-std::int32_t GraphData::self_loop_edge(const Position node) const noexcept {
+std::pair<Graph::NeighborIterator, Graph::NeighborIterator> Graph::neighbors(
+    const Position node
+) const noexcept {
+    return {
+        neighbors_.begin() + offsets_[node],
+        neighbors_.begin() + offsets_[node + 1],
+    };
+}
+
+std::pair<Graph::IncidentEdgeIterator, Graph::IncidentEdgeIterator>
+Graph::incident_edges(const Position node) const noexcept {
+    return {
+        adjacency_edges_.begin() + offsets_[node],
+        adjacency_edges_.begin() + offsets_[node + 1],
+    };
+}
+
+std::int32_t Graph::self_loop_edge(const Position node) const noexcept {
     return self_loop_edges_[node];
 }
 
-std::int32_t GraphData::edge_between(
+std::int32_t Graph::edge_between(
     const Position first,
     const Position second
 ) const noexcept {
@@ -113,4 +130,4 @@ std::int32_t GraphData::edge_between(
     return static_cast<std::int32_t>(adjacency_edges_[adjacency_index]);
 }
 
-}  // namespace hotpot::search
+}  // namespace hotpot::graph

@@ -31,12 +31,78 @@ class RelevantCycleLimitExceeded(RuntimeError):
 
 def _native_module() -> ModuleType:
     try:
-        return import_module("hotpot.cheminfo.graph._relevant_cycles")
+        return import_module("hotpot.cheminfo.graph._graph_native")
     except ImportError as exc:
         raise ImportError(
             "the hotpot.cheminfo.graph native extension is unavailable; "
             "install a compatible Hotpot wheel or rebuild Hotpot from source"
         ) from exc
+
+
+def _normalize_cycle_graph(
+    nodes: Iterable[int],
+    edges: Iterable[EdgeInput],
+) -> tuple[tuple[NodeIndex, ...], tuple[DenseEdge, ...]]:
+    normalized_nodes = []
+    for node in nodes:
+        if isinstance(node, bool):
+            raise TypeError("node indices must be integers")
+        try:
+            normalized_nodes.append(index(node))
+        except TypeError as exc:
+            raise TypeError("node indices must be integers") from exc
+    ordered_nodes = tuple(sorted(normalized_nodes))
+    if len(set(ordered_nodes)) != len(ordered_nodes):
+        raise ValueError("node indices must be unique")
+
+    node_set = set(ordered_nodes)
+    normalized_edges = []
+    for edge in edges:
+        if len(edge) != 2:
+            raise ValueError("each edge must contain exactly two node indices")
+        first, second = edge
+        if isinstance(first, bool) or isinstance(second, bool):
+            raise TypeError("node indices must be integers")
+        try:
+            first_index = index(first)
+            second_index = index(second)
+        except TypeError as exc:
+            raise TypeError("node indices must be integers") from exc
+        if first_index not in node_set or second_index not in node_set:
+            raise ValueError("edge endpoint is not present in nodes")
+        normalized_edges.append(
+            (min(first_index, second_index), max(first_index, second_index))
+        )
+
+    ordered_edges = tuple(sorted(normalized_edges))
+    if len(set(ordered_edges)) != len(ordered_edges):
+        raise ValueError("edges must be unique")
+    return ordered_nodes, ordered_edges
+
+
+def _cycle_basis(
+    nodes: Iterable[int],
+    edges: Iterable[EdgeInput],
+) -> tuple[NodeCycle, ...]:
+    ordered_nodes, ordered_edges = _normalize_cycle_graph(nodes, edges)
+    return tuple(
+        tuple(cycle)
+        for cycle in _native_module().cycle_basis(ordered_nodes, ordered_edges)
+    )
+
+
+def _all_cycle_basis(
+    nodes: Iterable[int],
+    edges: Iterable[EdgeInput],
+) -> tuple[tuple[NodeCycle, ...], ...]:
+    ordered_nodes, ordered_edges = _normalize_cycle_graph(nodes, edges)
+    return tuple(
+        tuple(tuple(cycle) for cycle in basis)
+        for basis in _native_module().all_cycle_basis(
+            ordered_nodes,
+            ordered_edges,
+        )
+    )
 
 
 def _optional_nonnegative_integer(value: Optional[int], name: str) -> Optional[int]:

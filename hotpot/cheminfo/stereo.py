@@ -187,14 +187,6 @@ class StereoPayload:
     bond_facts: tuple[BondTransportRecord, ...]
 
 
-_EMPTY_STEREO_PAYLOAD = StereoPayload(
-    schema_version=1,
-    records=(),
-    atom_facts=(),
-    bond_facts=(),
-)
-
-
 def _bond_key(atom_indices: Collection[int]) -> frozenset[int]:
     """Return the representation-independent key for a bond's endpoints."""
 
@@ -1006,7 +998,7 @@ class StereoAlignmentReport:
 def get_stereo_payload(mol: Molecule) -> StereoPayload:
     """Return the exact Level-1 payload stored by a molecule."""
 
-    return getattr(mol, "_stereo_payload", _EMPTY_STEREO_PAYLOAD)
+    return mol._stereo_payload
 
 
 def set_stereo_payload(mol: Molecule, payload: StereoPayload) -> None:
@@ -1884,9 +1876,9 @@ def _gate6_stereogenicity_issues(
     if graph is None:
         return projection_issues if projection_result is None else ()
 
-    from .search.native import _NativeSpecTarget
+    from .search.native import _NativeTarget
 
-    native_target = _NativeSpecTarget(graph.target_spec)
+    native_target = _NativeTarget(graph.target_spec)
     issues = []
     for record_index, record, descriptor in candidates:
         carrier_keys = _gate6_carrier_keys(record, descriptor, graph)

@@ -654,7 +654,7 @@ def semantic_case_molecule(case: Mapping[str, object]):
             bond_kind=str(bond["bond_kind"]),
             bond_direction=bond["bond_direction"],
         )
-    molecule._update_graph()
+    molecule._update_topology()
     molecule.charge = molecule.sum_atoms_charge
     set_stereo_payload(molecule, _stereo_from_document(graph["stereo"]))
     return molecule

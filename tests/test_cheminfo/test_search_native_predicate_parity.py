@@ -13,15 +13,39 @@ def _mapping_key(mapping):
     return tuple(sorted(mapping.items()))
 
 
+def _query_graph(substructure):
+    graph = nx.Graph()
+    graph.add_nodes_from(
+        (atom.idx, {"qa": atom}) for atom in substructure.query_atoms
+    )
+    graph.add_edges_from(
+        (bond.a1idx, bond.a2idx, {"qb": bond})
+        for bond in substructure.query_bonds
+    )
+    return graph
+
+
+def _target_graph(molecule):
+    graph = nx.Graph()
+    graph.add_nodes_from(
+        (atom.idx, {"atom": atom}) for atom in molecule.atoms
+    )
+    graph.add_edges_from(
+        (bond.a1idx, bond.a2idx, {"bond": bond})
+        for bond in molecule.bonds
+    )
+    return graph
+
+
 def _legacy_raw_mappings(substructure, molecule):
     matcher = nx.algorithms.isomorphism.GraphMatcher(
-        molecule.atom_bond_graph,
-        substructure.construct_graph(),
+        _target_graph(molecule),
+        _query_graph(substructure),
         node_match=lambda target, query: query["qa"].match(target["atom"]),
         edge_match=lambda target, query: query["qb"].match(target["bond"]),
     )
     return tuple(
-        _mapping_key(mapping)
+        _mapping_key({query: target for target, query in mapping.items()})
         for mapping in matcher.subgraph_monomorphisms_iter()
     )
 
@@ -31,7 +55,7 @@ def _native_raw_mappings(problem):
         _mapping_key(mapping)
         for mapping in native._NativeMappingSource(
             problem
-        ).subgraph_monomorphisms_iter()
+        ).iter_mappings()
     )
 
 
@@ -520,7 +544,7 @@ def test_opaque_callable_exception_propagates_from_the_reached_leaf(leaf_kind):
     problem = native._compile_problem(substructure, molecule)
     mappings = native._NativeMappingSource(
         problem
-    ).subgraph_monomorphisms_iter()
+    ).iter_mappings()
 
     with pytest.raises(
         _ExpectedPredicateError,
@@ -535,13 +559,13 @@ def test_opaque_callable_stays_inside_native_topology_traversal(monkeypatch):
         QueryAtom(opaque_leaf=lambda atom: atom.atomic_number == 6)
     )
 
-    def reject_graph_matcher(*args, **kwargs):
+    def reject_networkx_matcher(*args, **kwargs):
         raise AssertionError("native predicate search constructed GraphMatcher")
 
     monkeypatch.setattr(
         nx.algorithms.isomorphism,
         "GraphMatcher",
-        reject_graph_matcher,
+        reject_networkx_matcher,
     )
     problem = native._compile_problem(
         substructure,
@@ -583,28 +607,6 @@ def test_duplicate_query_edge_uses_the_last_predicate():
     _assert_native_parity(
         substructure,
         hp.read_mol("C=C", "smi"),
-        expected_count=0,
-    )
-
-
-def test_programmatic_self_loop_normalization_matches_legacy():
-    molecule = hp.Molecule()
-    molecule.create_atom(atomic_number=6, implicit_hydrogens=0)
-    molecule.add_bond(0, 0, 1.0)
-    substructure = Substructure()
-    atom = substructure.add_atom(QueryAtom(atomic_number={6}))
-    substructure.add_bond(atom, atom, bond_order={1.0})
-
-    _assert_native_parity(substructure, molecule, expected_count=1)
-
-    molecule_without_loop = hp.Molecule()
-    molecule_without_loop.create_atom(
-        atomic_number=6,
-        implicit_hydrogens=0,
-    )
-    _assert_native_parity(
-        substructure,
-        molecule_without_loop,
         expected_count=0,
     )
 

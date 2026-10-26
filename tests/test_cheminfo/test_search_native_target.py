@@ -81,7 +81,7 @@ def _path_query(*, pin_left_to_right=False):
     }
 
 
-def test_native_spec_target_reuses_target_and_creates_each_problem(monkeypatch):
+def test_native_target_reuses_target_and_creates_each_problem(monkeypatch):
     target_calls = []
     problem_calls = []
 
@@ -110,7 +110,7 @@ def test_native_spec_target_reuses_target_and_creates_each_problem(monkeypatch):
     target_spec = {"target": "spec"}
     first_query = {"query": 1}
     second_query = {"query": 2}
-    reusable = native._NativeSpecTarget(target_spec)
+    reusable = native._NativeTarget(target_spec)
 
     first = reusable.iter_mappings(first_query)
     second = reusable.iter_mappings(second_query)
@@ -122,8 +122,8 @@ def test_native_spec_target_reuses_target_and_creates_each_problem(monkeypatch):
     assert tuple(second) == ({7: 40, 9: 50},)
 
 
-def test_native_spec_target_real_path_is_deterministic_and_can_pin_endpoint():
-    reusable = native._NativeSpecTarget(_path_target())
+def test_native_target_real_path_is_deterministic_and_can_pin_endpoint():
+    reusable = native._NativeTarget(_path_target())
 
     first = tuple(reusable.iter_mappings(_path_query()))
     second = tuple(reusable.iter_mappings(_path_query()))
@@ -139,10 +139,10 @@ def test_native_spec_target_real_path_is_deterministic_and_can_pin_endpoint():
     assert pinned == ({1: 30, 2: 20, 3: 10},)
 
 
-def test_native_spec_target_preserves_native_target_validation_error():
+def test_native_target_preserves_native_target_validation_error():
     malformed = _path_target() | {"atoms": (_atom(6, 10),)}
 
     with pytest.raises(Exception) as direct:
         NativeTarget(malformed)
     with pytest.raises(type(direct.value), match=str(direct.value)):
-        native._NativeSpecTarget(malformed)
+        native._NativeTarget(malformed)

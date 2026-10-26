@@ -60,7 +60,7 @@ python -m pip install hotpot-zzy      # 或源码目录内 pip install -e .
 ```
 
 - 支持 Python 3.10–3.14，统一使用 Open Babel 3.2.x，并固定使用 RDKit 2026.09.1。
-- 可选依赖组：`optimize`、`datasets`、`complexformer`、`onnx-export`、`legacy-search`、`dev`、`all`
+- 可选依赖组：`optimize`、`datasets`、`complexformer`、`onnx-export`、`dev`、`all`
   （如 `pip install 'hotpot-zzy[optimize]'`）。
 - GPU 推理：安装后 `pip uninstall onnxruntime && pip install onnxruntime-gpu`。
 - 相关环境变量：`HOTPOT_MCA_MODEL_DIR`、`HOTPOT_CBOND_MODEL_DIR`。
@@ -170,7 +170,10 @@ mol.formula          # 属性 → 分子式
 # 环族：三种语义各有含义
 mol.rings                 # 属性 → 全图 Relevant Cycles
 mol.ligand_rings          # 属性 → 去金属-配体边后的配体骨架 Relevant Cycles
-mol.cycle_basis_rings     # 属性 → 传统 NetworkX cycle-basis（遗留 ring 特征模型仍用它）
+mol.cycle_basis           # 属性 → 确定性的默认 cycle basis（原子索引元组）
+mol.basis_rings           # 属性 → 默认 cycle basis 对应的 Ring 对象
+mol.all_cycle_basis       # 属性 → 全部 simple-cycle basis（受固定安全上限约束）
+mol.all_basis_rings       # 属性 → 全部 basis 对应的 Ring 对象
 mol.rings_for_scope(      # 方法
     "full_graph",         # 或 "ligand_skeleton"
     max_cycles=None,      # 仅当确需无界枚举时；默认有 1 万环安全上限

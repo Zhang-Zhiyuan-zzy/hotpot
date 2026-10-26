@@ -60,11 +60,6 @@ def test_loader_packs_only_the_rdkit_field_set(monkeypatch):
             return "result"
 
     monkeypatch.setattr(native, "pack_molecule", fake_pack)
-    monkeypatch.setattr(
-        native,
-        "_add_legacy_hydrogen_transport",
-        lambda received_molecule, buffers: buffers,
-    )
     monkeypatch.setattr(native, "_backend", lambda: Backend)
 
     assert native.generate(molecule, options, None) == "result"
@@ -244,23 +239,18 @@ def test_compiled_path_accepts_cohort_reconstructed_pyrrolic_hydrogens():
     assert result.coordinates.shape == (1, len(component.atoms), 3)
 
 
-def test_legacy_hydrogen_adapter_fills_only_payload_free_atoms():
+def test_canonical_packer_fills_current_hydrogens_for_payload_free_atoms():
     molecule = hotpot.read_mol("[13CH3]CO", fmt="smi")
     buffers = native.pack_molecule(molecule, native._RDKIT_ETKDG_FIELDS)
 
-    adapted = native._add_legacy_hydrogen_transport(molecule, buffers)
-    transport = adapted.atom_transport
+    transport = buffers.atom_transport
 
     assert transport is not None
     assert tuple(transport.atoms) == tuple(range(len(molecule.atoms)))
     assert tuple(transport.current_implicit_hydrogens) == tuple(
         atom.implicit_hydrogens for atom in molecule.atoms
     )
-    assert native._utf8_values(transport.source_namespaces) == (
-        "hotpot-legacy/1",
-        "hotpot-legacy/1",
-        "hotpot-legacy/1",
-    )
+    assert transport.source_namespaces.present.tolist() == [0, 0, 0]
 
 
 def test_compiled_binding_rejects_mismatched_constraint_rows():

@@ -163,7 +163,6 @@ _RUNTIME_DISTRIBUTIONS = (
     "cryptography",
     "Cython",
     "hotpot-zzy",
-    "networkx",
     "numpy",
     "openbabel",
     "openbabel-wheel",

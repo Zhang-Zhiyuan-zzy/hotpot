@@ -174,7 +174,9 @@ def statistics_rings_size():
 
         for i, smi in enumerate(tqdm(lines), 1):
             mol = hp.read_mol(smi.strip())
-            rings = mol.ligand_cycle_basis_rings
+            ligand = copy(mol)
+            ligand.hide_metal_ligand_bonds()
+            rings = ligand.basis_rings
             max_rings_nums = max(max_rings_nums, len(rings))
             max_rings_size = max(max_rings_size, max([len(r) for r in rings]))
 

@@ -39,6 +39,17 @@ def _payload(descriptor):
     )
 
 
+def _topology_index_state(molecule):
+    return tuple(
+        (
+            row,
+            tuple(id(bond) for bond in incident_bonds),
+        )
+        for atom in molecule._atoms
+        for row, incident_bonds in (molecule._topology_index[id(atom)],)
+    )
+
+
 def test_successful_commit_transfers_the_exact_working_payload_reference():
     molecule = read_mol("CO")
     working = molecule.copy()
@@ -75,7 +86,7 @@ def test_failed_commit_restores_exact_payload_reference_with_structure(monkeypat
     original_atoms = tuple(molecule.atoms)
     original_bonds = tuple(molecule.bonds)
     original_atom_attrs = tuple(atom.attrs for atom in molecule.atoms)
-    original_graph = molecule._graph
+    original_topology_index = _topology_index_state(molecule)
     original_coordinates = molecule.coordinates.copy()
     failure_observed_working_payload = False
 
@@ -103,7 +114,7 @@ def test_failed_commit_restores_exact_payload_reference_with_structure(monkeypat
         atom.attrs is attrs
         for atom, attrs in zip(molecule.atoms, original_atom_attrs)
     )
-    assert molecule._graph is original_graph
+    assert _topology_index_state(molecule) == original_topology_index
     assert molecule.properties is properties
     assert molecule.properties == {"stereo_payload": "user-owned-decoy"}
     np.testing.assert_array_equal(molecule.coordinates, original_coordinates)

@@ -227,10 +227,13 @@ jobs:
               "hotpot/cheminfo/calculator/execution_selection.py",
               "hotpot/cheminfo/calculator/state_rules/data/profiles/coordination_screening_v1.json",
               "hotpot/cheminfo/search/_search_native.pyi",
+              "hotpot/cheminfo/graph/_graph_native.pyi",
+              "hotpot/cheminfo/graph/_native/graph.cpp",
+              "hotpot/cheminfo/graph/_native/graph.hpp",
+              "hotpot/cheminfo/graph/_native/cycle_basis.cpp",
+              "hotpot/cheminfo/graph/_native/cycle_basis.hpp",
               "hotpot/cheminfo/search/_native/bindings.cpp",
               "hotpot/cheminfo/search/_native/compatibility.hpp",
-              "hotpot/cheminfo/search/_native/graph_data.cpp",
-              "hotpot/cheminfo/search/_native/graph_data.hpp",
               "hotpot/cheminfo/search/_native/matcher.cpp",
               "hotpot/cheminfo/search/_native/matcher.hpp",
               "hotpot/cheminfo/search/_native/production.cpp",
@@ -250,6 +253,8 @@ jobs:
               "hotpot/cheminfo/_io/xtb.py",
               "hotpot/plugins/xtb/core.py",
               "hotpot/plugins/xtb/xtb_doc.md",
+              "hotpot/cheminfo/search/_native/graph_data.cpp",
+              "hotpot/cheminfo/search/_native/graph_data.hpp",
           }
           (sdist,) = Path("dist").glob("*.tar.gz")
           with tarfile.open(sdist) as archive:

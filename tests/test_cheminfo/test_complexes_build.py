@@ -1609,10 +1609,14 @@ def test_worker_boundary_serializes_an_exception(monkeypatch):
         def close(self):
             self.closed = True
 
+    class MoleculeDouble:
+        def _update_topology(self, clear_conformers=True):
+            assert clear_conformers is False
+
     connection = Connection()
     monkeypatch.setattr(workers, "_build_ligand_proxies", fail)
     workers._build_ligand_proxies_worker(
-        object(),
+        MoleculeDouble(),
         connection,
         1,
         1,

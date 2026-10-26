@@ -88,11 +88,15 @@ def _error_position(diagnostic: str) -> Optional[int]:
 
 
 def _query_summary(query: Any) -> QuerySummary:
-    graph = query.construct_graph()
+    import networkx as nx
+
+    graph = nx.Graph()
+    graph.add_nodes_from(range(len(query.query_atoms)))
+    graph.add_edges_from(
+        (bond.a1idx, bond.a2idx) for bond in query.query_bonds
+    )
     component_count = 0
     if graph.number_of_nodes():
-        import networkx as nx
-
         component_count = nx.number_connected_components(graph)
     return QuerySummary(
         atom_count=len(query.query_atoms),

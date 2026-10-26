@@ -162,7 +162,7 @@ def hotpot_mol_from_dto(molecule: MoleculeDTO) -> HotpotMolecule:
             bond_kind=bond.bond_kind,
             bond_direction=bond.bond_direction,
         )
-    native_mol._update_graph()
+    native_mol._update_topology()
     native_mol.charge = molecule.formal_charge
     return native_mol
 

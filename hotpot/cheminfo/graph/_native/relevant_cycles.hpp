@@ -11,7 +11,7 @@
 namespace hotpot::graph {
 
 using VertexId = std::uint32_t;
-using Edge = std::array<VertexId, 2>;
+using RelevantEdge = std::array<VertexId, 2>;
 using CycleEdges = std::vector<std::size_t>;
 
 struct RelevantCycleLimits {
@@ -25,7 +25,7 @@ public:
 };
 
 std::vector<CycleEdges> relevant_cycles(
-    const std::vector<Edge>& edges,
+    const std::vector<RelevantEdge>& edges,
     const RelevantCycleLimits& limits
 );
 

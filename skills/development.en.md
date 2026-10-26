@@ -199,7 +199,8 @@ For new or substantially refactored modules:
   through `UNKNOWN`, an exception, a fixture, or documentation.
 
 Search retains the `Query*`, `Substructure`, `Searcher`, and `Hit/Hits` public
-abstractions. Production SMARTS matching uses NetworkX-backed Hotpot search.
+abstractions. Production SMARTS matching uses Hotpot's single deterministic
+C++ RI-style engine.
 RDKit MAY support features, conformers, format bridges, and drawing, but MUST
 NOT silently replace that source of truth.
 

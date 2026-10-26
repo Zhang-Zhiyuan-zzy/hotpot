@@ -24,7 +24,7 @@ def _molecule_with_hidden_bonds():
     hidden_covalent = molecule._add_bond(1, 2, bond_order=1.0, id=12)
     molecule._add_bond(2, 3, bond_order=2.0, id=13)
     molecule._add_bond(4, 5, bond_order=1.0, id=14)
-    molecule._update_graph(clear_conformers=False)
+    molecule._update_topology(clear_conformers=False)
     molecule.hide_bonds(
         hidden_metal,
         hidden_covalent,
@@ -81,7 +81,7 @@ def test_add_component_clones_all_bond_classes_and_rebinds_endpoints():
     target._create_atom(atomic_number=6)
     target._create_atom(atomic_number=8)
     target._add_bond(0, 1, bond_order=1.0, id=10)
-    target._update_graph(clear_conformers=False)
+    target._update_topology(clear_conformers=False)
     component = _molecule_with_hidden_bonds()
     component_atoms = tuple(component.atoms)
     component_bonds = tuple(_all_structural_bonds(component))
@@ -121,7 +121,7 @@ def test_components_own_independent_atom_attribute_arrays():
     molecule._create_atom(atomic_number=8, id=22)
     molecule._create_atom(atomic_number=7, formal_charge=1, id=23)
     molecule._add_bond(0, 1, bond_order=1.0)
-    molecule._update_graph(clear_conformers=False)
+    molecule._update_topology(clear_conformers=False)
 
     first, second = molecule.components
 
@@ -156,7 +156,7 @@ def test_components_clone_only_hidden_bonds_with_both_endpoints_selected():
         bond_order=1.0,
         id=37,
     )
-    molecule._update_graph(clear_conformers=False)
+    molecule._update_topology(clear_conformers=False)
     molecule.hide_bonds(
         hidden_metal_internal,
         hidden_covalent_internal,
@@ -191,7 +191,7 @@ def _molecule_for_atom_removal():
     hidden_covalent_incident = molecule._add_bond(1, 3, bond_order=1.0, id=24)
     hidden_metal_safe = molecule._add_bond(0, 3, bond_order=1.0, id=25)
     hidden_covalent_safe = molecule._add_bond(2, 4, bond_order=1.0, id=26)
-    molecule._update_graph(clear_conformers=False)
+    molecule._update_topology(clear_conformers=False)
     molecule.hide_bonds(
         hidden_metal_incident,
         hidden_covalent_incident,

@@ -39,7 +39,7 @@ bool declared_metal(
 
 
 std::vector<std::size_t> ordered_cycle_vertices(
-    const std::vector<hotpot::graph::Edge>& edges,
+    const std::vector<hotpot::graph::RelevantEdge>& edges,
     const hotpot::graph::CycleEdges& cycle_edges
 ) {
     std::map<std::size_t, std::vector<std::size_t>> adjacency;
@@ -209,7 +209,7 @@ RingTopologyWorkspace prepare_ring_topology(
         options.scope
     );
 
-    std::vector<hotpot::graph::Edge> graph_edges;
+    std::vector<hotpot::graph::RelevantEdge> graph_edges;
     graph_edges.reserve(active_edges.size());
     for (const auto& endpoints : active_edges) {
         graph_edges.push_back({

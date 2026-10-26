@@ -5,6 +5,7 @@ from operator import attrgetter
 import numpy as np
 
 from ..core import Molecule, Atom, AtomPair
+from ..graph.cycles import _cycle_basis
 
 
 def direct_edge_to_indirect(attr_or_index: np.ndarray) -> np.ndarray:
@@ -107,7 +108,17 @@ def extract_atom_pairs(mol: Molecule, data: dict[str, Any] = None) -> dict:
 
 def extract_ring_attrs(mol: Molecule, rings_attr_names: Iterable[str] = None, data: dict[str, Any] = None) -> dict:
     # Preserve the ring-tensor family used to train the existing models.
-    rings = mol.ligand_cycle_basis_rings
+    rings = mol._rings_from_cycles(_cycle_basis(
+        range(len(mol.atoms)),
+        (
+            (
+                mol._topology_index[id(bond.atom1)][0],
+                mol._topology_index[id(bond.atom2)][0],
+            )
+            for bond in mol.bonds
+            if not bond.is_metal_ligand_bond
+        ),
+    ))
 
     if rings:
         rings_node_index = [r.atoms_indices for r in rings]

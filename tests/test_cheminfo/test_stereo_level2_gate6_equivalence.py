@@ -8,7 +8,7 @@ import pytest
 
 from hotpot.cheminfo import stereo
 from hotpot.cheminfo.core import Molecule
-from hotpot.cheminfo.search.native import _NativeSpecTarget
+from hotpot.cheminfo.search.native import _NativeTarget
 
 
 def _molecule(
@@ -33,7 +33,7 @@ def _molecule(
         )
     for begin, end, order in bonds:
         molecule._add_bond(begin, end, bond_order=order)
-    molecule._update_graph(clear_conformers=False)
+    molecule._update_topology(clear_conformers=False)
     return molecule
 
 
@@ -427,7 +427,7 @@ def _dative_direction_molecule(*, unknown_direction=False):
         bond_kind="dative",
         bond_direction="atom2_to_atom1",
     )
-    molecule._update_graph(clear_conformers=False)
+    molecule._update_topology(clear_conformers=False)
     _set_payload(
         molecule,
         (_tetrahedral(0, tuple(_atom(row) for row in range(1, 5))),),
@@ -848,7 +848,7 @@ def test_rejected_swap_does_not_enumerate_unrelated_hydrogen_symmetry(
     molecule = _descendant_stereo_molecule("TH", right_value="odd")
     molecule.create_atom(atomic_number=6, implicit_hydrogens=4)
     yielded = 0
-    original = _NativeSpecTarget.iter_mappings
+    original = _NativeTarget.iter_mappings
 
     def counted(self, query_spec):
         nonlocal yielded
@@ -856,7 +856,7 @@ def test_rejected_swap_does_not_enumerate_unrelated_hydrogen_symmetry(
             yielded += 1
             yield mapping
 
-    monkeypatch.setattr(_NativeSpecTarget, "iter_mappings", counted)
+    monkeypatch.setattr(_NativeTarget, "iter_mappings", counted)
 
     assert stereo.validate_stereochemistry(molecule) == (
         stereo.StereoValidationReport(True, ())
@@ -875,7 +875,7 @@ def test_equivalent_methyl_carriers_use_one_hydrogen_slot_mapping(monkeypatch):
         (_tetrahedral(0, tuple(_atom(row) for row in range(1, 5))),),
     )
     yielded = 0
-    original = _NativeSpecTarget.iter_mappings
+    original = _NativeTarget.iter_mappings
 
     def counted(self, query_spec):
         nonlocal yielded
@@ -883,7 +883,7 @@ def test_equivalent_methyl_carriers_use_one_hydrogen_slot_mapping(monkeypatch):
             yielded += 1
             yield mapping
 
-    monkeypatch.setattr(_NativeSpecTarget, "iter_mappings", counted)
+    monkeypatch.setattr(_NativeTarget, "iter_mappings", counted)
 
     _assert_non_stereogenic(molecule)
     assert yielded == 1

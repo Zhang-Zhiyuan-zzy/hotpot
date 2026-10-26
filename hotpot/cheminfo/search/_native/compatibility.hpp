@@ -1,9 +1,12 @@
 #pragma once
 
-#include "graph_data.hpp"
+#include "../../graph/_native/graph.hpp"
 
 
 namespace hotpot::search {
+
+using hotpot::graph::EdgeIndex;
+using hotpot::graph::Position;
 
 class Compatibility {
 public:

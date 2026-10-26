@@ -1,0 +1,39 @@
+{
+  "dense_over_final_speedup": {
+    "128": 1.0100273888497162,
+    "255": 0.9696144407064742,
+    "256": 2.240562628352461,
+    "512": 3.9485450581468857,
+    "64": 1.013994569662076
+  },
+  "exact_parity": {
+    "128": true,
+    "255": true,
+    "256": true,
+    "512": true,
+    "64": true
+  },
+  "median_us": {
+    "dense_reference_128": 1263.417,
+    "dense_reference_255": 8259.744,
+    "dense_reference_256": 7616.414,
+    "dense_reference_512": 55432.325,
+    "dense_reference_64": 309.968,
+    "final_128": 1250.874,
+    "final_255": 8518.586,
+    "final_256": 3399.331,
+    "final_512": 14038.671,
+    "final_64": 305.69
+  },
+  "metadata": {
+    "graph": "deterministic sparse binary tree with periodic chords",
+    "numpy": "2.4.6",
+    "platform": "Linux-5.15.0-139-generic-x86_64-with-glibc2.31",
+    "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "revision": "2848fb43be646a34295718513a419aadc3585614",
+    "samples": 21,
+    "scipy": "1.17.1",
+    "sparse_threshold": 256,
+    "worktree_dirty": true
+  }
+}

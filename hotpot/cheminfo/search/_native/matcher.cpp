@@ -32,7 +32,7 @@ bool bit_is_set(
 }  // namespace
 
 QueryPlan build_query_plan(
-    const GraphData& query,
+    const Graph& query,
     const std::optional<Position> preferred_root
 ) {
     const std::size_t node_count = query.node_count();

@@ -465,6 +465,11 @@ def _process_work_item(item: _WorkItem) -> _Outcome:
     )
 
 
+def _process_parallel_work_item(item: _WorkItem) -> _Outcome:
+    item.record.mol._update_topology(clear_conformers=False)
+    return _process_work_item(item)
+
+
 def _process_work_items(
     items: Sequence[_WorkItem],
     jobs: int,
@@ -475,7 +480,9 @@ def _process_work_items(
         max_workers=jobs,
         mp_context=get_context("spawn"),
     ) as executor:
-        return tuple(executor.map(_process_work_item, items, chunksize=1))
+        return tuple(
+            executor.map(_process_parallel_work_item, items, chunksize=1)
+        )
 
 
 def _json_value(value: object) -> object:

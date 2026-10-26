@@ -89,3 +89,4 @@ def test_site_detection_has_no_rdkit_dependency():
     ).read_text()
 
     assert "rdkit" not in source.lower()
+    assert "networkx" not in source.lower()

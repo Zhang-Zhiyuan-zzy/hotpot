@@ -136,7 +136,12 @@ def test_level1_tables_are_independently_selected_and_present_empty_is_distinct(
 
     assert _decode(stereo_only.stereo_records.descriptors) == ("顺时针", "")
     assert _decode(stereo_only.stereo_records.group_scopes) == ("范围α", None)
-    assert _decode(atom_only.atom_transport.source_namespaces) == ("", None)
+    assert _decode(atom_only.atom_transport.source_namespaces) == (
+        "",
+        None,
+        None,
+        None,
+    )
     assert _decode(bond_only.bond_transport.display_directions) == (
         "",
         None,
@@ -243,29 +248,35 @@ def test_atom_transport_packing_preserves_explicit_zero_and_dual_hydrogen_state(
     assert atoms.presence_masks.dtype == np.uint32
     assert atoms.isotopes.dtype == np.int32
     assert atoms.radical_electrons.dtype == np.int32
-    assert atoms.atoms.tolist() == [3, 0]
+    assert atoms.atoms.tolist() == [3, 0, 1, 2]
     assert atoms.presence_masks.tolist() == [
         NativeAtomTransportFieldCode.ISOTOPE,
         NativeAtomTransportFieldCode.RADICAL_ELECTRONS,
+        0,
+        0,
     ]
-    assert atoms.isotopes.tolist() == [0, 0]
-    assert atoms.radical_electrons.tolist() == [0, 0]
-    assert atoms.has_current_hydrogens.tolist() == [1, 0]
+    assert atoms.isotopes.tolist() == [0, 0, 0, 0]
+    assert atoms.radical_electrons.tolist() == [0, 0, 0, 0]
+    assert atoms.has_current_hydrogens.tolist() == [1, 0, 1, 1]
     assert atoms.current_hydrogen_presence_masks.tolist() == [
         NativeHydrogenTransportFieldCode.IMPLICIT
         | NativeHydrogenTransportFieldCode.NO_IMPLICIT,
         0,
+        NativeHydrogenTransportFieldCode.IMPLICIT,
+        NativeHydrogenTransportFieldCode.IMPLICIT,
     ]
-    assert atoms.current_implicit_hydrogens.tolist() == [0, 0]
-    assert atoms.current_no_implicit.tolist() == [0, 0]
-    assert atoms.has_source_hydrogens.tolist() == [0, 1]
+    assert atoms.current_implicit_hydrogens.tolist() == [0, 0, 2, 2]
+    assert atoms.current_no_implicit.tolist() == [0, 0, 0, 0]
+    assert atoms.has_source_hydrogens.tolist() == [0, 1, 0, 0]
     assert atoms.source_hydrogen_presence_masks.tolist() == [
         0,
         NativeHydrogenTransportFieldCode.BRACKET_EXPLICIT
         | NativeHydrogenTransportFieldCode.NO_IMPLICIT,
+        0,
+        0,
     ]
-    assert atoms.source_bracket_explicit_hydrogens.tolist() == [0, 0]
-    assert atoms.source_no_implicit.tolist() == [0, 1]
+    assert atoms.source_bracket_explicit_hydrogens.tolist() == [0, 0, 0, 0]
+    assert atoms.source_no_implicit.tolist() == [0, 1, 0, 0]
     _assert_all_arrays_are_contiguous(atoms)
 
 
@@ -294,7 +305,9 @@ def test_bond_transport_preserves_ordered_endpoints_and_empty_tables_have_shapes
     )
     assert empty.stereo_records.anchor_kinds.shape == (0,)
     assert empty.stereo_records.anchor_indices.shape == (0,)
-    assert empty.atom_transport.atoms.shape == (0,)
+    assert empty.atom_transport.atoms.tolist() == [0]
+    assert empty.atom_transport.current_implicit_hydrogens.tolist() == [4]
+    assert empty.atom_transport.source_namespaces.present.tolist() == [0]
     assert empty.bond_transport.atom_indices.shape == (0, 2)
     assert empty.stereo_records.descriptors.data.shape == (1,)
     assert empty.stereo_records.descriptors.offsets.shape == (0,)

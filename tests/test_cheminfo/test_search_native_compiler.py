@@ -1,6 +1,5 @@
 import hotpot as hp
 
-from hotpot.cheminfo.core import Bond
 from hotpot.cheminfo.search._predicate_ir import (
     _AtomExpression,
     _AtomOp,
@@ -215,26 +214,6 @@ def _expected_semantics(atom, semantics):
         "ring_count": len(rings),
         "ring_sizes": tuple(len(ring) for ring in rings),
     }
-
-
-def test_target_packer_reproduces_sparse_nodes_and_last_simple_edge():
-    mol = hp.read_mol("CC", "smi")
-    first, second = mol.atoms
-    mol._atoms.insert(1, first)
-    replacement = Bond(first, second, bond_order=2)
-    mol._bonds.append(replacement)
-    mol._update_graph()
-
-    packed = _pack_target(
-        mol,
-        needs_atom_objects=True,
-        needs_bond_objects=True,
-    )
-
-    assert packed["keys"] == (0, 2)
-    assert packed["edges"] == ((0, 2),)
-    assert packed["bonds"][0]["fields"]["bond_order"] == 2
-    assert packed["bonds"][0]["object"] is replacement
 
 
 def test_target_and_query_are_resnapshotted_on_every_invocation():

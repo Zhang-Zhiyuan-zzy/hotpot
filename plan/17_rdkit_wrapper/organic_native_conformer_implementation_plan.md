@@ -489,11 +489,10 @@ changes the plan, the complete plan is reread before revision.
 - rerun only lightweight contract tests needed to confirm the local baseline;
 - record current wheel size, extension size, exported symbols, and link map.
 
-### Step 1 — Freeze the additive API contracts
+### Step 1 — Freeze the replacement API contract
 
 - add the Python enums and immutable option/evidence records;
-- extend `ETKDGOptions` and `ConformerRecord` without breaking old Python
-  construction calls;
+- replace `ETKDGOptions` and `ConformerRecord` at their existing public names;
 - add C and C++ declarations;
 - replace the C option structure and keep exact-size validation;
 - add API-shape and wrong-size rejection tests before implementation.

@@ -14,7 +14,6 @@ from os import PathLike
 from pathlib import Path
 from typing import *
 
-import networkx as nx
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
 

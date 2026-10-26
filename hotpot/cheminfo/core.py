@@ -17,12 +17,10 @@ from enum import Enum
 from typing import Union, Literal, Iterable, Optional, Callable, Mapping, Tuple
 from copy import copy, deepcopy
 from collections import Counter
-from functools import cached_property
 from itertools import combinations, product
 
 import cython
 import numpy as np
-import networkx as nx
 from openbabel import pybel as pb, openbabel as ob
 from scipy.spatial.distance import pdist, squareform
 
@@ -31,6 +29,13 @@ from hotpot.utils import types, chem as hpchem
 import hotpot.cheminfo.obconvert as obc
 from .rdconvert import to_rdmol
 from . import graph as graph_algorithms, forcefields as ff, kekulize as kekulization
+from .graph.components import connected_components
+from .graph.paths import (
+    all_simple_paths,
+    depth_first_path,
+    longest_simple_path,
+    shortest_path as graph_shortest_path,
+)
 from . import geometry, crystal as cryst
 from .pubchem import pubchem_service
 from .call_thermo import Thermo
@@ -136,6 +141,7 @@ class Molecule:
 
         self._atoms = []
         self._bonds = []
+        self._topology_index = {}
         self._conformers = Conformers()
         self._conformers_index = 0
 
@@ -143,12 +149,9 @@ class Molecule:
         self._angles = []
         self._torsions = []
         self._rings = []
-        self._cycle_basis_rings = []
         self._ring_indices_cache = {}
         self._ligand_rings = None
-        self._ligand_cycle_basis_rings = None
         self._ligand_rings_signature = None
-        self._graph = nx.Graph()
         self._obmol = None
         self._row2idx = None
         self._crystal = None
@@ -157,8 +160,8 @@ class Molecule:
         self._hided_covalent_bonds = []
         self.properties = {}  # To store any mol properties
 
-        from .stereo import get_stereo_payload, set_stereo_payload
-        set_stereo_payload(self, get_stereo_payload(self))
+        from .stereo import StereoPayload
+        self._stereo_payload = StereoPayload(1, (), (), ())
 
         self.charge = 0
 
@@ -310,7 +313,7 @@ class Molecule:
                 **bond.attr_dict,
             ))
 
-        clone._update_graph()
+        clone._update_topology()
         clone._set_remapped_stereo_payload(
             self,
             {row: row for row in range(len(self._atoms))},
@@ -494,16 +497,34 @@ class Molecule:
             list: A list of all simple paths in the graph, where each path is represented
                   as a sequence of nodes.
         """
+        nodes = range(len(self._atoms))
+        edges = tuple(
+            (
+                self._topology_index[id(bond.atom1)][0],
+                self._topology_index[id(bond.atom2)][0],
+            )
+            for bond in self._bonds
+        )
         if source is None and target is None:
-            st = combinations(self.graph.nodes, 2)
+            st = combinations(nodes, 2)
         elif isinstance(source, int) and isinstance(target, int):
             st = [(source, target)]
         elif isinstance(source, int):
-            st = [(source, t) for t in self.graph.nodes if t!=source]
+            st = [(source, t) for t in nodes if t != source]
         else:
-            st = [(s, target) for s in self.graph.nodes if s!=target]
+            st = [(s, target) for s in nodes if s != target]
 
-        return [p for s, t in st for p in nx.all_simple_paths(self.graph, s, t, cutoff=cutoff)]
+        return [
+            path
+            for start, end in st
+            for path in all_simple_paths(
+                len(self._atoms),
+                edges,
+                start,
+                end,
+                cutoff,
+            )
+        ]
 
     def _set_coordinates(self, coords: types.ArrayLike):
         coords = np.array(coords)
@@ -513,48 +534,68 @@ class Molecule:
         for atom, coord in zip(self._atoms, coords):
             atom.coordinates = coord
 
-    def _update_atom_neighbours_bonds(self):
-        for atom in self.atoms:
-            atom._neighbours = []
-            atom._bonds = []
+    def _update_topology(self, clear_conformers: bool = True) -> None:
+        """Rebuild deterministic derived topology from atoms and Bond endpoints."""
+        atom_rows = {}
+        incident_bonds = {}
+        for row, atom in enumerate(self._atoms):
+            atom_id = id(atom)
+            if atom_id in atom_rows:
+                raise ValueError("a Molecule cannot contain the same Atom twice")
+            if atom.mol is not self:
+                raise ValueError("every Atom member must belong to its Molecule")
+            atom_rows[atom_id] = row
+            incident_bonds[atom_id] = []
 
-        for bond in self.bonds:
-            bond.atom1._neighbours.append(bond.atom2)
-            bond.atom2._neighbours.append(bond.atom1)
-            bond.atom1._bonds.append(bond)
-            bond.atom2._bonds.append(bond)
+        hidden_ids = [id(bond) for bond in self._hided_bonds]
+        if len(hidden_ids) != len(set(hidden_ids)):
+            raise ValueError("a hidden Bond may occur in only one hidden collection")
+        if {id(bond) for bond in self._bonds}.intersection(hidden_ids):
+            raise ValueError("a Bond cannot be both active and hidden")
 
-    def _update_graph(self, clear_conformers=True):
-        """
-        Updates the molecular graph representation along with clearing conformers and 
-        related atom sequences if specified. The method initializes a new networkx 
-        Graph for the molecule, attaches updated nodes and edges with their respective 
-        attributes, and resets properties such as angles, torsions, and rings.
+        endpoint_pairs = set()
+        for bond in self._bonds:
+            first_id = id(bond.atom1)
+            second_id = id(bond.atom2)
+            if first_id not in atom_rows or second_id not in atom_rows:
+                raise ValueError("every active Bond endpoint must belong to its Molecule")
+            first_row = atom_rows[first_id]
+            second_row = atom_rows[second_id]
+            if first_row == second_row:
+                raise ValueError("a Molecule Bond cannot join an Atom to itself")
+            endpoint_pair = tuple(sorted((first_row, second_row)))
+            if endpoint_pair in endpoint_pairs:
+                raise ValueError("a Molecule cannot contain parallel active Bonds")
+            endpoint_pairs.add(endpoint_pair)
+            incident_bonds[first_id].append(bond)
+            incident_bonds[second_id].append(bond)
 
-        Parameters:
-        clear_conformers: bool
-            If True, clears all existing molecular conformers.
-
-        Raises:
-        None
-        """
-        self._graph = nx.Graph()
-        self._graph.add_edges_from(self._edge_with_attrs())
-        self._graph.add_nodes_from(self._node_with_attrs())
-
-        # update neighbours and bonds of atoms
-        self._update_atom_neighbours_bonds()
+        topology_index = {}
+        for atom in self._atoms:
+            atom_id = id(atom)
+            row = atom_rows[atom_id]
+            ordered_bonds = tuple(sorted(
+                incident_bonds[atom_id],
+                key=lambda bond: (
+                    atom_rows[id(
+                        bond.atom2 if bond.atom1 is atom else bond.atom1
+                    )],
+                    min(atom_rows[id(bond.atom1)], atom_rows[id(bond.atom2)]),
+                    max(atom_rows[id(bond.atom1)], atom_rows[id(bond.atom2)]),
+                ),
+            ))
+            topology_index[atom_id] = (row, ordered_bonds)
+        self._topology_index = topology_index
 
         # clear the older AtomSeq
         self._angles = []
         self._torsions = []
         self._rings = []
-        self._cycle_basis_rings = []
         self._ring_indices_cache = {}
         self._ligand_rings = None
-        self._ligand_cycle_basis_rings = None
         self._ligand_rings_signature = None
         self._obmol = None
+        self._row2idx = None
 
         if clear_conformers:
             self.conformers.clear()
@@ -578,6 +619,7 @@ class Molecule:
         """
         self._atoms.append(atom)
         atom.mol = self
+        self._topology_index[id(atom)] = (len(self._atoms) - 1, ())
 
         return atom
 
@@ -614,12 +656,35 @@ class Molecule:
         if atom1.mol is not self or atom2.mol is not self:
             raise ValueError("at least one of atom1 and atom2 not on the molecule!")
 
-        if (atom1.idx, atom2.idx) in self.graph.edges:
+        if atom1 is atom2:
+            raise ValueError("a Molecule Bond cannot join an Atom to itself")
+
+        first_record = self._topology_index[id(atom1)]
+        second_record = self._topology_index[id(atom2)]
+        incident = (
+            first_record[1]
+            if len(first_record[1]) <= len(second_record[1])
+            else second_record[1]
+        )
+        if any(
+            (bond.atom1 is atom1 and bond.atom2 is atom2)
+            or (bond.atom1 is atom2 and bond.atom2 is atom1)
+            for bond in incident
+        ):
             raise ValueError(f"the bond between {atom1.idx} and {atom2.idx} is already exist!!")
 
         kwargs['bond_order'] = bond_order
         bond = Bond(atom1, atom2, **kwargs)
         self._bonds.append(bond)
+
+        for atom, record in ((atom1, first_record), (atom2, second_record)):
+            bonds = tuple(sorted(
+                record[1] + (bond,),
+                key=lambda member: self._topology_index[
+                    id(member.atom2 if member.atom1 is atom else member.atom1)
+                ][0],
+            ))
+            self._topology_index[id(atom)] = (record[0], bonds)
 
         return bond
 
@@ -639,7 +704,7 @@ class Molecule:
             The atom object added to the graph.
         """
         atom = self._add_atom(atom)
-        self._update_graph()
+        self._update_topology()
         return atom
 
     def _replace_atom(
@@ -716,7 +781,7 @@ class Molecule:
     ):
         """ Replaces an atom in the molecule to the other external, while inherit the environment of original one."""
         ori_atom = self._replace_atom(original_atom_idx, new_atom)
-        self._update_graph()
+        self._update_topology()
         self.calc_implicit_hydrogens()
         return ori_atom
 
@@ -743,7 +808,7 @@ class Molecule:
             The Bond object representing the created bond.
         """
         bond = self._add_bond(atom1, atom2, bond_order, **kwargs)
-        self._update_graph()
+        self._update_topology()
         return bond
 
     def add_bonds(self, idx_order: Iterable[tuple[int, int, float]], list_kw: Optional[list[dict]] = None) -> list["Bond"]:
@@ -757,6 +822,7 @@ class Molecule:
         for ido, kw in zip(idx_order, list_kw):
             bonds.append(self._add_bond(*ido, **kw))
 
+        self._update_topology()
         return bonds
 
     def add_component(self, component: "Molecule"):
@@ -800,7 +866,7 @@ class Molecule:
         self._hided_metal_bonds.extend(component._hided_metal_bonds)
         self._hided_covalent_bonds.extend(component._hided_covalent_bonds)
         del component
-        self._update_graph()
+        self._update_topology()
         set_stereo_payload(
             self,
             type(target_payload)(
@@ -852,7 +918,7 @@ class Molecule:
                     modified = True
 
         if modified:
-            self._update_graph()
+            self._update_topology()
 
     @property
     def cid(self) -> Optional[int]:
@@ -946,7 +1012,7 @@ class Molecule:
             if id(bond) not in restored_bond_ids
         ]
         self._bonds.extend(bonds)
-        self._update_graph(clear_conformers)
+        self._update_topology(clear_conformers)
 
     def recover_hided_metal_ligand_bonds(self, clear_conformers: bool = False) -> None:
         """
@@ -1089,25 +1155,23 @@ class Molecule:
         return copy(self._bonds)
 
     def bond(self, a1idx: int, a2idx: int):
-        """
-        Gets the bond information between two atoms in the graph.
-
-        This method retrieves the bond data from the graph structure given
-        the indices of the two atoms. The user must supply the indices of
-        the atoms as integers, and the bond data will be returned as
-        stored in the graph's edge attributes.
-
-        Parameters:
-        a1idx : int
-            The index of the first atom.
-        a2idx : int
-            The index of the second atom.
-
-        Returns:
-        The bond information stored in the graph's edge attributes between
-        the two atoms.
-        """
-        return self.graph.edges[a1idx, a2idx]['bond']
+        """Return the active Bond joining two Atom indices."""
+        first = self._atoms[a1idx]
+        second = self._atoms[a2idx]
+        first_bonds = self._topology_index[id(first)][1]
+        second_bonds = self._topology_index[id(second)][1]
+        incident = (
+            first_bonds
+            if len(first_bonds) <= len(second_bonds)
+            else second_bonds
+        )
+        for bond in incident:
+            if (
+                (bond.atom1 is first and bond.atom2 is second)
+                or (bond.atom1 is second and bond.atom2 is first)
+            ):
+                return bond
+        raise KeyError((a1idx, a2idx))
 
     def build3d(
             self,
@@ -1428,29 +1492,33 @@ class Molecule:
         Raises:
             None
         """
-        graph = self.graph
-
         components = []
-        for c_node_idx in nx.connected_components(graph):
-            c_node_idx = tuple(sorted(c_node_idx))
+        edges = tuple(
+            (
+                self._topology_index[id(bond.atom1)][0],
+                self._topology_index[id(bond.atom2)][0],
+            )
+            for bond in self._bonds
+        )
+        for c_node_idx in connected_components(len(self._atoms), edges):
+            component = Molecule()
             component_index = {
                 source_index: target_index
                 for target_index, source_index in enumerate(c_node_idx)
             }
-            subgraph = graph.subgraph(c_node_idx)
-
-            component = Molecule()
-
             for node_idx in c_node_idx:
                 component._create_atom_from_array(
                     self._atoms[node_idx].attrs.copy(),
                 )
 
-            for edge_begin_idx, edge_end_index in subgraph.edges:
-                source_bond = subgraph.edges[edge_begin_idx, edge_end_index]['bond']
+            for source_bond in self._bonds:
+                first = self._topology_index[id(source_bond.atom1)][0]
+                second = self._topology_index[id(source_bond.atom2)][0]
+                if first not in component_index:
+                    continue
                 component._add_bond(
-                    component_index[source_bond.a1idx],
-                    component_index[source_bond.a2idx],
+                    component_index[first],
+                    component_index[second],
                     **source_bond.attr_dict
                 )
 
@@ -1476,7 +1544,7 @@ class Molecule:
                         **source_bond.attr_dict,
                     ))
 
-            component._update_graph()
+            component._update_topology()
             component._set_remapped_stereo_payload(
                 self,
                 component_index,
@@ -1599,7 +1667,7 @@ class Molecule:
             Atom: The newly created Atom object.
         """
         atom = self._create_atom(**kwargs)
-        self._update_graph()
+        self._update_topology()
         return atom
 
     @property
@@ -1761,53 +1829,6 @@ class Molecule:
         """
         return Counter([a.symbol for a in self.atoms])
 
-    @property
-    def simple_graph(self) -> nx.Graph:
-        """
-        Return a networkx Graph without nodes and edges attrs
-
-        This property generates an undirected graph using the networkx library based on 
-        the link matrix attribute of the object. The resulting graph consists of nodes 
-        and edges defined by the link matrix, where each entry implies a connection between 
-        nodes.
-
-        @return: An undirected graph object built from the link matrix.
-        """
-        graph = nx.Graph()
-        graph.add_edges_from(self.link_matrix)
-        return graph
-
-    def _node_with_attrs(self):
-        """
-        Returns a list of tuples representing nodes with their attributes.
-
-        Each tuple contains the index of the node and a dictionary of its attributes.
-        This is useful for constructing graph representations where nodes 
-        have associated attributes.
-
-        Returns:
-            list[tuple[int, dict]]: A list of tuples, where each tuple consists of an
-            integer representing the node index and a dictionary holding the node's 
-            attributes.
-        """
-        # return [(a.idx, {n:getattr(a, n) for n in a.attrs_enumerator}) for a in self._atoms]
-        return [(a.idx, {'attrs': a.attrs}) for a in self._atoms]
-
-    def _edge_with_attrs(self):
-        """
-        Generates a list of tuples representing edges with attributes from the bonds.
-
-        This method processes the list of bonds available in the object and constructs
-        a list of tuples where each tuple represents an edge. Each edge contains its
-        two endpoint indices and a dictionary of attributes associated with the bond.
-
-        Returns:
-            list: A list of tuples where each tuple is of the form 
-            (a1idx, a2idx, {'bond': bond_object}).
-        """
-        # attrs = ('idx',) + Bond._attrs_enumerator
-        return [(b.a1idx, b.a2idx, {'bond': b}) for b in self._bonds]
-
     def _hide_bond(self, bond: "Bond"):
         if bond not in self.bonds:
             raise ObjNotInMolecule(bond, self)
@@ -1822,7 +1843,7 @@ class Molecule:
     def hide_bonds(self, *bond: "Bond", clear_conformers: bool = False):
         for b in bond:
             self._hide_bond(b)
-        self._update_graph(clear_conformers)
+        self._update_topology(clear_conformers)
 
     def hide_metal_ligand_bonds(self, clear_conformers: bool = False) -> None:
         """ break all bonds link with metals """
@@ -1832,25 +1853,7 @@ class Molecule:
         for b in metal_bonds:
             self._bonds.remove(b)
 
-        self._update_graph(clear_conformers)
-
-    @property
-    def graph(self):
-        """ Return networkx graph with nodes and edges attrs """
-        return self._graph
-
-    @property
-    def atom_bond_graph(self):
-        _graph = nx.Graph()
-        _graph.add_nodes_from([(a.idx, {'atom': a}) for a in self._atoms])
-        _graph.add_edges_from([(b.a1idx, b.a2idx, {'bond': b}) for b in self._bonds])
-        return _graph
-
-    @cached_property
-    def adjacency_matrix(self):
-        clone = copy(self)
-        clone.add_hydrogens()
-        return graph_algorithms.linkmat2adj(len(clone.atoms), clone.link_matrix)
+        self._update_topology(clear_conformers)
 
     def graph_spectral(self, norm: Literal['infinite', 'min', 'l1', 'l2'] = 'l2'):
         """ Return graph spectral matrix """
@@ -2023,7 +2026,7 @@ class Molecule:
         obc.link_atoms(self)
         # conformers = copy(self._conformers)
 
-        self._update_graph(clear_conformers=False)
+        self._update_topology(clear_conformers=False)
 
         if assign_bond_order:
             self.assign_bond_order()
@@ -2099,70 +2102,26 @@ class Molecule:
         """
         return {b.id: b for b in self.bonds}
 
-    def _rm_atom(self, atom: "Atom"):
-        """
-        Removes a specified atom and its associated bonds from the structure.
-
-        This method removes an atom, specified either by its index or as
-        an Atom object, from the internal structure. All bonds connected
-        to the specified atom are also removed. The atom and its bonds
-        are deleted from the structure's internal atom and bond lists.
-
-        Parameters:
-            atom (Atom or int): The atom to remove, identified either by its
-
-        Returns:
-            None
-        """
+    def _remove_atoms_from_topology(
+            self,
+            atoms: Iterable[Union["Atom", int]],
+    ) -> None:
+        """Remove atom members and remap stereo before one topology refresh."""
         source_atoms = tuple(self._atoms)
-        if isinstance(atom, int):
-            atom = self._atoms[atom]
-
-        rm_bonds = atom.bonds
-        for rmb in rm_bonds:
-            self._bonds.remove(rmb)
-        self._atoms.remove(atom)
-
-        self._hided_metal_bonds = [
-            bond for bond in self._hided_metal_bonds
-            if atom not in bond.atoms
-        ]
-        self._hided_covalent_bonds = [
-            bond for bond in self._hided_covalent_bonds
-            if atom not in bond.atoms
-        ]
-        atom._bonds = []
-        atom._neighbours = []
-        self._remap_stereo_after_atom_removal(source_atoms)
-
-    def _rm_atoms(self, atoms: Iterable[Union["Atom", int]]):
-        """
-        Removes specified atoms and their associated bonds from the structure.
-
-        The method takes an iterable of atoms or their indices, identifies all related
-        bonds connected to those atoms, and removes both the bonds and the specified
-        atoms from the internal structure. This is particularly useful for modifying the
-        structural representation by cleaning up unwanted atoms and their bonds.
-
-        Args:
-            atoms: An iterable containing Atom objects or indices of Atom objects to 
-                   be removed from the structure.
-
-        Raises:
-            AttributeError: Raised if elements in the iterable are not valid Atom objects 
-                            or indices.
-
-        """
-        source_atoms = tuple(self._atoms)
-        atoms = [a if isinstance(a, Atom) else self._atoms[a] for a in atoms]
-
-        rm_bonds = {b for a in atoms for b in a.bonds}
-        for rmb in rm_bonds:
-            self._bonds.remove(rmb)
-        for rma in atoms:
-            self._atoms.remove(rma)
-
+        atoms = tuple(
+            atom if isinstance(atom, Atom) else self._atoms[atom]
+            for atom in atoms
+        )
         removed_atom_ids = {id(atom) for atom in atoms}
+        removed_bonds = {
+            bond
+            for atom in atoms
+            for bond in atom.bonds
+        }
+        for bond in removed_bonds:
+            self._bonds.remove(bond)
+        for atom in atoms:
+            self._atoms.remove(atom)
         self._hided_metal_bonds = [
             bond for bond in self._hided_metal_bonds
             if all(id(atom) not in removed_atom_ids for atom in bond.atoms)
@@ -2171,9 +2130,6 @@ class Molecule:
             bond for bond in self._hided_covalent_bonds
             if all(id(atom) not in removed_atom_ids for atom in bond.atoms)
         ]
-        for atom in atoms:
-            atom._bonds = []
-            atom._neighbours = []
         self._remap_stereo_after_atom_removal(source_atoms)
 
     def remove_atom(self, atom: Union[int, "Atom"]) -> None:
@@ -2193,8 +2149,7 @@ class Molecule:
         Returns:
             None
         """
-        self._rm_atom(atom)
-        self._update_graph()
+        self.remove_atoms((atom,))
 
     def remove_atoms(self, atoms: Iterable["Atom"]) -> None:
         """
@@ -2212,38 +2167,8 @@ class Molecule:
         Returns:
             None
         """
-        self._rm_atoms(atoms)
-        self._update_graph()
-
-    def _rm_bond(self, bond: "Bond"):
-        """
-        Removes a specific bond from the list of bonds associated with the object.
-
-        This method is used to delete a bond instance from the internal collection
-        of bonds.
-
-        Parameters:
-            bond (Bond): The bond instance to be removed.
-
-        """
-        removed_bond_rows = ((bond.a1idx, bond.a2idx),)
-        self._bonds.remove(bond)
-        self._remove_stereo_bond_rows(removed_bond_rows)
-
-    def _rm_bonds(self, bonds: Iterable["Bond"]):
-        """
-        Removes the specified bonds from the internal bonds list.
-
-        This method iterates through the given iterable of `Bond` objects
-        and removes each bond from the '_bonds' list of the current instance.
-
-        Args:
-            bonds (Iterable["Bond"]): An iterable containing Bond objects
-            to be removed.
-
-        """
-        for bond in bonds:
-            self._rm_bond(bond)
+        self._remove_atoms_from_topology(atoms)
+        self._update_topology()
 
     def remove_bond(self, bond: "Bond") -> None:
         """
@@ -2255,8 +2180,7 @@ class Molecule:
         Returns:
             None
         """
-        self._rm_bond(bond)
-        self._update_graph()
+        self.remove_bonds((bond,))
 
     def remove_bonds(self, bonds: Iterable["Bond"]) -> None:
         """
@@ -2271,8 +2195,15 @@ class Molecule:
         Returns:
             None
         """
-        self._rm_bonds(bonds)
-        self._update_graph()
+        bonds = tuple(bonds)
+        removed_bond_rows = tuple(
+            (bond.a1idx, bond.a2idx)
+            for bond in bonds
+        )
+        for bond in bonds:
+            self._bonds.remove(bond)
+        self._remove_stereo_bond_rows(removed_bond_rows)
+        self._update_topology()
 
     def force_remove_polar_hydrogens(self):
         self.remove_atoms([a for a in self._atoms if a.is_polar_hydrogen])
@@ -2353,65 +2284,32 @@ class Molecule:
             raise NotImplementedError
 
     @staticmethod
-    def _longest_path(graph: nx.Graph, _start_node: int = None, _end_node: int = None):
-        """
-            Finds the longest simple path in a graph.
-
-            This method calculates the longest simple path in a given graph by 
-            considering various start and end node configurations. A simple
-            path is a path in which no node repeats. The implementation uses
-            NetworkX to explore all simple paths between nodes, and selects 
-            the longest path based on its length. If no valid path is found 
-            under certain configurations, a default fallback path is returned.
-
-            Parameters:
-            graph: nx.Graph
-                The graph on which the longest path calculation will be performed.
-            _start_node: int or None, optional
-                The starting node of the path. If None, considers all possible 
-                nodes as start nodes. Default is None.
-            _end_node: int or None, optional
-                The ending node of the path. If None, considers all possible 
-                nodes as end nodes. Default is None.
-
-            Returns:
-            list
-                A list of nodes representing the longest path found in the graph. 
-                If no valid path exists, an empty or fallback path is returned.
-        """
-        longest_path = []
-        try:
-            if isinstance(_start_node, int) and isinstance(_end_node, int):
-                return max(nx.all_simple_paths(graph, _start_node, _end_node), key=len)
-
-            elif isinstance(_start_node, int) and _end_node is None:
-                for end_node in graph.nodes:
-                    if end_node == _start_node:
-                        longest_path.append([end_node])
-                    else:
-                        longest_path.append(max(nx.all_simple_paths(graph, _start_node, end_node), key=len))
-
-            elif _start_node is None and isinstance(_end_node, int):
-                for start_node in graph.nodes:
-                    if start_node == _end_node:
-                        longest_path.append([_end_node])
-                    else:
-                        longest_path.append(max(nx.all_simple_paths(graph, start_node, _end_node), key=len))
-
-            else:
-                for start_node, end_node in combinations(graph.nodes, 2):
-                    longest_path.append(max(nx.all_simple_paths(graph, start_node, end_node), key=len))
-
-        except ValueError as e:
-            if e.args[0] == "max() arg is an empty sequence":
-                path = []
-                if isinstance(_start_node, int):
-                    path.append(_start_node)
-                if isinstance(_end_node, int):
-                    path.append(_end_node)
-                longest_path.append(path)
-
-        return max(longest_path, key=len)
+    def _longest_path(
+            node_count: int,
+            edges: Iterable[tuple[int, int]],
+            _start_node: int = None,
+            _end_node: int = None,
+            _scope_nodes: Iterable[int] = None,
+    ):
+        """Return one deterministic longest simple path over explicit topology."""
+        scope = tuple(sorted(
+            range(node_count) if _scope_nodes is None else _scope_nodes
+        ))
+        if not scope:
+            return []
+        local_rows = {node: row for row, node in enumerate(scope)}
+        local_edges = tuple(
+            (local_rows[first], local_rows[second])
+            for first, second in edges
+            if first in local_rows and second in local_rows
+        )
+        path = longest_simple_path(
+            len(scope),
+            local_edges,
+            None if _start_node is None else local_rows[_start_node],
+            None if _end_node is None else local_rows[_end_node],
+        )
+        return [scope[row] for row in path]
 
     def longest_path(self):
         """
@@ -2429,7 +2327,16 @@ class Molecule:
             dependent on the graph data structure used and the path
             representation format.
         """
-        return self._longest_path(self.graph)
+        return self._longest_path(
+            len(self._atoms),
+            (
+                (
+                    self._topology_index[id(bond.atom1)][0],
+                    self._topology_index[id(bond.atom2)][0],
+                )
+                for bond in self._bonds
+            ),
+        )
 
     def canonical_tree(self):
         """
@@ -2447,43 +2354,86 @@ class Molecule:
             tuple: A tuple containing the longest path of the entire graph and a 
             nested dictionary representing the hierarchical tree structure.
         """
+        node_count = len(self._atoms)
+        edges = tuple(
+            (
+                self._topology_index[id(bond.atom1)][0],
+                self._topology_index[id(bond.atom2)][0],
+            )
+            for bond in self._bonds
+        )
+
         def _dfs(
-                _graph: nx.Graph,
-                _longest_path: tuple[int],
-                _nested: dict
+                scope_nodes: tuple[int, ...],
+                scope_edges: tuple[tuple[int, int], ...],
+                _longest_path: tuple[int, ...],
+                _nested: dict,
         ):
-            branch_start = [(n, p) for p in _longest_path for n in _graph.neighbors(p) if n not in _longest_path]
+            adjacency = {node: [] for node in scope_nodes}
+            for first, second in scope_edges:
+                adjacency[first].append(second)
+                adjacency[second].append(first)
+            branch_start = [
+                (neighbor, parent)
+                for parent in _longest_path
+                for neighbor in sorted(adjacency[parent])
+                if neighbor not in _longest_path
+            ]
             if branch_start:
-                clone = _graph.copy()
-                clone.remove_edges_from(branch_start)
+                removed = {
+                    (min(first, second), max(first, second))
+                    for first, second in branch_start
+                }
+                retained_edges = tuple(
+                    (first, second)
+                    for first, second in scope_edges
+                    if (min(first, second), max(first, second)) not in removed
+                )
             else:
                 return
 
-            for connected_nodes in nx.connected_components(clone):
-
-                # Exclude the trunk path (parent longest path)
-                if not connected_nodes - set(_longest_path):
+            local_rows = {
+                node: row for row, node in enumerate(scope_nodes)
+            }
+            local_components = connected_components(
+                len(scope_nodes),
+                (
+                    (local_rows[first], local_rows[second])
+                    for first, second in retained_edges
+                ),
+            )
+            for local_component in local_components:
+                connected_nodes = tuple(scope_nodes[row] for row in local_component)
+                if not set(connected_nodes).difference(_longest_path):
                     continue
 
-                sub_graph = clone.subgraph(connected_nodes)
-                start_node, parent_node = next((n, p) for n, p in branch_start if n in connected_nodes)
-
-                longest_path = self._longest_path(sub_graph, start_node)
+                start_node, parent_node = next(
+                    (node, parent)
+                    for node, parent in branch_start
+                    if node in connected_nodes
+                )
+                sub_edges = tuple(
+                    (first, second)
+                    for first, second in retained_edges
+                    if first in connected_nodes and second in connected_nodes
+                )
+                longest_path = self._longest_path(
+                    node_count,
+                    sub_edges,
+                    start_node,
+                    _scope_nodes=connected_nodes,
+                )
 
                 list_nested = _nested.setdefault(parent_node, [])
                 _sub_nested = {}
                 list_nested.append((longest_path, _sub_nested))
 
-                _dfs(sub_graph, longest_path, _sub_nested)
+                _dfs(connected_nodes, sub_edges, longest_path, _sub_nested)
 
-        graph = self.graph
-        nested_tree = (self._longest_path(graph), {})
-        _dfs(graph, nested_tree[0], nested_tree[1])
+        nested_tree = (self._longest_path(node_count, edges), {})
+        _dfs(tuple(range(node_count)), edges, nested_tree[0], nested_tree[1])
 
         return nested_tree
-
-    def super_acyclic_graph(self):
-        raise NotImplementedError
 
     @property
     def InChi(self) -> str:
@@ -2517,10 +2467,16 @@ class Molecule:
             A list containing the indices of the shortest path between the two atoms.
             Returns an empty list if no path exists.
         """
-        try:
-            return nx.shortest_path(self.graph, self._atoms.index(atom1), self._atoms.index(atom2))
-        except nx.NetworkXNoPath:
-            return []
+        source = self._topology_index[id(atom1)][0]
+        target = self._topology_index[id(atom2)][0]
+        edges = (
+            (
+                self._topology_index[id(bond.atom1)][0],
+                self._topology_index[id(bond.atom2)][0],
+            )
+            for bond in self._bonds
+        )
+        return graph_shortest_path(len(self._atoms), edges, source, target)
 
     def shortest_path(self, atom1, atom2) -> list['Atom']:
         """
@@ -2544,12 +2500,7 @@ class Molecule:
 
     def shortest_paths_indices(self, atom1, atom2):
         """
-        Finds the shortest paths indices between two atoms in a graph.
-
-        This method calculates the shortest path between two specified atoms in a molecular
-        graph, represented internally by a NetworkX graph object. It identifies the path
-        indices by locating the position of the given atoms in the list of atoms and computing
-        the shortest route based on the internal graph structure.
+        Find the deterministic shortest-path indices between two atoms.
 
         Parameters:
         atom1: The first atom for which the shortest path is to be calculated.
@@ -2557,10 +2508,10 @@ class Molecule:
 
         Returns:
         list:
-            A list of integers representing the indices of the shortest path between
-            the given atoms in the graph, as determined by NetworkX.
+            A list of integers representing the path, or an empty list when the
+            atoms are disconnected.
         """
-        return nx.shortest_path(self.graph, self._atoms.index(atom1), self._atoms.index(atom2))
+        return self.shortest_path_index(atom1, atom2)
 
     @property
     def smiles(self) -> str:
@@ -2592,23 +2543,48 @@ class Molecule:
         return copy(self._rings)
 
     @property
-    def cycle_basis_rings(self) -> list["Ring"]:
-        """Return the legacy NetworkX cycle-basis ring family."""
-        if not self._cycle_basis_rings:
-            self._cycle_basis_rings = self._uncached_cycle_basis_rings()
-        return copy(self._cycle_basis_rings)
+    def cycle_basis(self) -> list[tuple[int, ...]]:
+        """Return the deterministic Paton basis of the active topology."""
+        return list(graph_algorithms._cycle_basis(
+            range(len(self._atoms)),
+            (
+                (
+                    self._topology_index[id(bond.atom1)][0],
+                    self._topology_index[id(bond.atom2)][0],
+                )
+                for bond in self._bonds
+            ),
+        ))
 
-    def _ring_graph(self, *, ligand_skeleton: bool = False) -> nx.Graph:
-        """Return the molecular graph view used for ring perception."""
-        scope_graph = self.graph
-        if ligand_skeleton:
-            scope_graph = scope_graph.copy()
-            scope_graph.remove_edges_from(
-                (bond.a1idx, bond.a2idx)
-                for bond in self.bonds
-                if bond.is_metal_ligand_bond
+    @property
+    def all_cycle_basis(self) -> list[list[tuple[int, ...]]]:
+        """Return every complete simple-cycle basis, with the default first."""
+        return [
+            list(basis)
+            for basis in graph_algorithms._all_cycle_basis(
+                range(len(self._atoms)),
+                (
+                    (
+                        self._topology_index[id(bond.atom1)][0],
+                        self._topology_index[id(bond.atom2)][0],
+                    )
+                    for bond in self._bonds
+                ),
             )
-        return scope_graph
+        ]
+
+    @property
+    def basis_rings(self) -> list["Ring"]:
+        """Materialize Ring objects corresponding exactly to ``cycle_basis``."""
+        return self._rings_from_cycles(self.cycle_basis)
+
+    @property
+    def all_basis_rings(self) -> list[list["Ring"]]:
+        """Materialize Ring objects for every entry of ``all_cycle_basis``."""
+        return [
+            self._rings_from_cycles(basis)
+            for basis in self.all_cycle_basis
+        ]
 
     def _rings_from_cycles(self, cycles: Iterable[Iterable[int]]) -> list["Ring"]:
         """Materialize ordered ring objects from atom-index cycles."""
@@ -2638,23 +2614,17 @@ class Molecule:
         )
         cycles = self._ring_indices_cache.get(cache_key)
         if cycles is None:
-            scope_graph = self._ring_graph(ligand_skeleton=ligand_skeleton)
             cycles = graph_algorithms.relevant_cycles(
-                scope_graph.edges,
+                (
+                    (bond.a1idx, bond.a2idx)
+                    for bond in self._bonds
+                    if not ligand_skeleton or not bond.is_metal_ligand_bond
+                ),
                 max_size=max_size,
                 max_cycles=max_cycles,
             )
             self._ring_indices_cache[cache_key] = cycles
         return self._rings_from_cycles(cycles)
-
-    def _uncached_cycle_basis_rings(
-            self,
-            *,
-            ligand_skeleton: bool = False,
-    ) -> list["Ring"]:
-        """Materialize one NetworkX cycle basis without changing a cache."""
-        scope_graph = self._ring_graph(ligand_skeleton=ligand_skeleton)
-        return self._rings_from_cycles(nx.cycle_basis(scope_graph))
 
     def rings_for_scope(
             self,
@@ -2742,22 +2712,11 @@ class Molecule:
             )
         return copy(self._ligand_rings)
 
-    @property
-    def ligand_cycle_basis_rings(self) -> list["Ring"]:
-        """Return the ligand-skeleton legacy cycle-basis ring family."""
-        self._refresh_ligand_ring_cache_signature()
-        if self._ligand_cycle_basis_rings is None:
-            self._ligand_cycle_basis_rings = self._uncached_cycle_basis_rings(
-                ligand_skeleton=True,
-            )
-        return copy(self._ligand_cycle_basis_rings)
-
     def _refresh_ligand_ring_cache_signature(self) -> None:
         """Invalidate ligand ring caches after graph or element changes."""
         signature = self._current_ligand_ring_signature()
         if signature != self._ligand_rings_signature:
             self._ligand_rings = None
-            self._ligand_cycle_basis_rings = None
             for cache_key in tuple(self._ring_indices_cache):
                 if cache_key[0]:
                     del self._ring_indices_cache[cache_key]
@@ -2767,7 +2726,10 @@ class Molecule:
         """Return the element-and-edge signature defining the ligand view."""
         return (
             tuple(atom.atomic_number for atom in self._atoms),
-            tuple(sorted(tuple(sorted(edge)) for edge in self.graph.edges)),
+            tuple(sorted(
+                (min(bond.a1idx, bond.a2idx), max(bond.a1idx, bond.a2idx))
+                for bond in self._bonds
+            )),
         )
 
     def to_pyg_data(self, prefix: str = "", with_batch: bool = True):
@@ -3072,11 +3034,6 @@ class MolBlock:
         """
         return [r for r in self.mol.rings if self in r]
 
-    @property
-    def cycle_basis_rings(self) -> list["Ring"]:
-        """Return legacy cycle-basis rings containing this object."""
-        return [ring for ring in self.mol.cycle_basis_rings if self in ring]
-
     def setattr(self, *, add_defaults=False, **kwargs):
         """
         Sets attributes of the current object based on the passed keyword arguments. 
@@ -3260,9 +3217,11 @@ class Atom(MolBlock):
          behaviors/ Rules ;proper Error Inflect 
                ** detail ensure behaviors s """
         self.mol = mol or Molecule()
-        self._bonds = []
-        self._neighbours = []
         getattr(self.mol, '_atoms').append(self)
+        self.mol._topology_index[id(self)] = (
+            len(getattr(self.mol, '_atoms')) - 1,
+            (),
+        )
 
         if isinstance(attrs_array, np.ndarray):
             assert attrs_array.ndim == 1
@@ -3403,7 +3362,7 @@ class Atom(MolBlock):
                 The newly created and added atom object linked to the molecular graph.
         """
         atom = self._add_atom(atom, bond_order, atom_attrs, bond_attrs)
-        getattr(self.mol, '_update_graph')()
+        getattr(self.mol, '_update_topology')()
         return atom
 
     @staticmethod
@@ -3516,7 +3475,7 @@ class Atom(MolBlock):
             ]
 
         elif num < 0 and self.polar_hydrogen_site and hydrogens and rm_polar_hs:
-            self.mol._rm_atoms(hydrogens[:abs(num)])
+            self.mol._remove_atoms_from_topology(hydrogens[:abs(num)])
             return -1, hydrogens[:abs(num)]
 
         else:
@@ -3538,32 +3497,14 @@ class Atom(MolBlock):
             list["Atom"]: A list of the hydrogen atoms added to the molecule.
         """
         add_or_rm, hydrogens = self._add_hydrogens(num)
-        getattr(self.mol, '_update_graph')()
+        getattr(self.mol, '_update_topology')()
         return hydrogens
 
     @property
     def bonds(self) -> list["Bond"]:
-        """
-        Returns the bonds associated with the current atomic structure. It utilizes the
-        molecular graph's edge viewer to retrieve bond details for the specified atom based
-        on its index. If the atom is isolated, an empty list is returned.
-
-        Returns:
-            list[Bond]: A list of Bond objects associated with the atom's index. If no
-            bonds are associated or the atom is isolated, an empty list is returned.
-
-        Raises:
-            NetworkXError: If accessing the molecular graph edges fails for the
-            specified atom index (handled internally).
-        """
-        # # return [self.mol.bonds[i] for i in self.bonds_idx]
-        # edge_viewer = self.mol.graph.edges
-        #
-        # try:
-        #     return [edge_viewer[u, v]['bond'] for u, v in edge_viewer(self.idx)]
-        # except nx.NetworkXError:
-        #     return []  # if the atom is an isolate atom
-        return copy(self._bonds)
+        """Return active incident Bonds in adjacent-Atom index order."""
+        record = self.mol._topology_index.get(id(self))
+        return [] if record is None else list(record[1])
 
     def _calc_implicit_hydrogens(self) -> int:
         # TODO: Implement by C++
@@ -3793,14 +3734,8 @@ class Atom(MolBlock):
 
     @property
     def idx(self) -> int:
-        """
-        Property that calculates and returns the index of the current atom 
-        within the molecule's atoms list. It leverages the `atoms.index` 
-        method from the `mol` object to determine the atom's position.
-
-        @return int: Index of the current atom in the molecule's atoms list
-        """
-        return self.mol.atoms.index(self)
+        """Return this Atom's current row in its Molecule."""
+        return self.mol._topology_index[id(self)][0]
 
     @property
     def mca(self) -> float:
@@ -3984,31 +3919,13 @@ class Atom(MolBlock):
 
     @property
     def neigh_idx(self) -> np.ndarray:
-        """
-        Provides the functionality to fetch the neighboring indices of a node 
-        in a molecular graph, represented as a NetworkX graph. The method 
-        ensures that the neighbors are returned as a NumPy array of integer 
-        type. If the node is invalid or an error in the graph structure occurs, 
-        an empty NumPy array is returned instead.
-
-        Returns
-        -------
-        np.ndarray
-            A NumPy array of integers representing the indices of neighboring 
-            nodes in the graph. If an error occurs, an empty NumPy array is 
-            returned.
-
-        Raises
-        ------
-        nx.NetworkXError
-            Raised if an error occurs in accessing the neighbors of the 
-            specified node index due to the graph structure.
-        """
-        # try:
-        #     return np.array(list(self.mol.graph.neighbors(self.idx)), dtype=int)
-        # except nx.NetworkXError:
-        #     return np.array([])
-        return np.array([a.idx for a in self._neighbours])
+        """Return adjacent Atom indices in deterministic order."""
+        return np.array([
+            self.mol._topology_index[id(
+                bond.atom2 if bond.atom1 is self else bond.atom1
+            )][0]
+            for bond in self.bonds
+        ])
 
     @property
     def hydrogens(self):
@@ -4030,21 +3947,15 @@ class Atom(MolBlock):
 
     @property
     def connectivity(self):
-        return len(self.neighbours)
+        return len(self.bonds)
 
     @property
     def neighbours(self) -> list['Atom']:
-        """
-        Access the list of neighboring atoms for the current atom in a molecule.
-
-        @return: A list of neighboring Atom objects. If the operation encounters an
-            issue, such as an invalid network structure, an empty list is returned.
-        """
-        return copy(self._neighbours)
-        # try:
-        #     return np.take(self.mol.atoms, self.neigh_idx).tolist()
-        # except nx.NetworkXError:
-        #     return []
+        """Return adjacent Atoms in deterministic index order."""
+        return [
+            bond.atom2 if bond.atom1 is self else bond.atom1
+            for bond in self.bonds
+        ]
 
     @property
     def heavy_neighbours(self) -> list['Atom']:
@@ -5842,79 +5753,73 @@ class InternalCoordinates:
     def __init__(self, coordinates: np.ndarray, link_matrix: np.ndarray):
         self.coordinates = coordinates
         self.link_matrix = link_matrix
-        self._graph = nx.Graph()
-        self._graph.add_edges_from(link_matrix)
 
     @staticmethod
-    def calc_zmat_idx(graph_or_link: Union[nx.Graph, np.ndarray]) -> np.ndarray:
+    def calc_zmat_idx(
+            link_matrix: np.ndarray,
+            node_count: Optional[int] = None,
+    ) -> np.ndarray:
         """
-            Calculates the Z-Matrix index for a given graph representation. This function constructs
-            the Z-Matrix index for a molecular structure represented either as a NetworkX graph or as
-            an adjacency list (numpy ndarray). The Z-Matrix index is used to uniquely represent the
-            topology of molecules through connectivity information.
+            Calculate a Z-Matrix index from an explicit integer edge array.
 
             Parameters:
-            graph_or_link (Union[nx.Graph, np.ndarray]): The input graph representation. It can either be a
-                NetworkX Graph object or a numpy ndarray of shape (n_edges, 2) representing edges.
+            link_matrix: A numpy array of shape ``(n_edges, 2)``.
+            node_count: Optional total node count when isolated nodes are present.
 
             Returns:
             np.ndarray: A numpy array of shape (n_nodes, 4) where each node's connectivity pattern is
                 described by its corresponding index path in the graph.
 
             Raises:
-            TypeError: If the input parameter 'graph_or_link' is neither a NetworkX graph
-                nor a numpy ndarray.
             RuntimeError: If an incorrect Z-Matrix is constructed due to issues in graph traversal.
         """
-        if isinstance(graph_or_link, np.ndarray):
-            assert graph_or_link.shape[1] == 2
-            _graph = nx.Graph()
-            _graph.add_edges_from(graph_or_link)
-        elif isinstance(graph_or_link, nx.Graph):
-            _graph = graph_or_link
-        else:
-            raise TypeError(f"The graph_or_link argument should be a nx.Graph or np.ndarray")
+        edges = tuple(tuple(map(int, edge)) for edge in link_matrix)
+        if node_count is None:
+            node_count = 1 + max(
+                (node for edge in edges for node in edge),
+                default=-1,
+            )
+        adjacency = [set() for _ in range(node_count)]
+        for first, second in edges:
+            adjacency[first].add(second)
+            adjacency[second].add(first)
 
-        # TODO: check the nodes id, the nodes key should from 0 to n-1
-
-        # Create z-matrix index
-        zmat_idx = -1 * np.ones((_graph.number_of_nodes(), 4), dtype=int)
+        zmat_idx = -1 * np.ones((node_count, 4), dtype=int)
         visited_nodes = set()
-        num_nodes = len(_graph)
         node = 0
-        while len(visited_nodes) < num_nodes:
+        while len(visited_nodes) < node_count:
             row = len(visited_nodes)
             visited_nodes.add(node)
 
-            path = graph_algorithms.graph_dfs_path(
-                _graph,
-                node,
+            path = depth_first_path(
+                node_count,
+                edges,
+                start_node=node,
                 scope_nodes=visited_nodes,
-                max_deep=min(row + 1, 4),
+                max_depth=min(row + 1, 4),
             )
             zmat_idx[row, :row+1] = path
 
             try:
-                node = min(n for vn in visited_nodes for n in _graph.neighbors(vn) if n not in visited_nodes)
+                node = min(
+                    neighbor
+                    for visited in visited_nodes
+                    for neighbor in adjacency[visited]
+                    if neighbor not in visited_nodes
+                )
             except ValueError:
-                if not len(visited_nodes) == num_nodes:
+                if len(visited_nodes) != node_count:
                     raise RuntimeError("Get an incorrect Z-Matirx !!")
 
         return zmat_idx
 
     @staticmethod
-    def calc_zmat(graph_or_link: Union[nx.Graph, np.ndarray], coords: np.ndarray) -> np.ndarray:
+    def calc_zmat(link_matrix: np.ndarray, coords: np.ndarray) -> np.ndarray:
         """
-        Computes the Z-matrix representation of molecular coordinates.
-
-        This method computes the Z-matrix representation for a given molecular graph or connectivity
-        matrix and a corresponding set of atomic coordinates. The Z-matrix is represented as a 
-        NumPy array where each row contains the bond length, bond angle, and dihedral angle for 
-        atoms in the molecule.
+        Compute the Z-matrix from an explicit edge array and coordinates.
 
         Args:
-            graph_or_link (Union[nx.Graph, np.ndarray]): The molecular representation either as 
-                a networkx.Graph object or an adjacency matrix represented using NumPy.
+            link_matrix: A numpy array of shape ``(n_edges, 2)``.
             coords (np.ndarray): A 2D NumPy array of atomic coordinates with shape (N, 3), 
                 where N is the number of atoms.
 
@@ -5923,7 +5828,10 @@ class InternalCoordinates:
                 atom in the molecule, and the columns contain the bond length, bond angle, 
                 and dihedral angle, respectively, calculated for that atom using its connectivity.
         """
-        zmat_idx = InternalCoordinates.calc_zmat_idx(graph_or_link)
+        zmat_idx = InternalCoordinates.calc_zmat_idx(
+            link_matrix,
+            node_count=len(coords),
+        )
         zmat = -1 * np.ones((zmat_idx.shape[0], 3))
 
         for i, index in enumerate(zmat_idx):

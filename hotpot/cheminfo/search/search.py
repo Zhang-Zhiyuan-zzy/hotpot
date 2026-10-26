@@ -9,7 +9,6 @@ python v3.9.0
 from abc import abstractmethod
 from types import MappingProxyType
 from typing import Union, Sequence, Literal, Container, Any, Iterable, Callable, Iterator
-import networkx as nx
 
 from hotpot.cheminfo.core import Molecule, Atom, Bond
 from ..core_utils import atom_idx_pair_to_bond_idx, read_mol
@@ -272,24 +271,21 @@ class QueryBond(Query):
 
 class Substructure:
     """
-    Establishes and manages a chemical substructure composed of atoms, bonds,
-    and their topological representation as a graph.
+    Establishes and manages a chemical substructure composed of query atoms
+    and query bonds.
 
     The Substructure class serves to define a chemical substructure containing atoms and bonds,
     with methods to build and interact with its components. It facilitates the creation of
-    substructure queries, enabling operations such as adding atoms and bonds, importing from
-    SMARTS format, and constructing a graph representation of the substructure.
+    substructure queries, enabling operations such as adding atoms and bonds and importing from
+    SMARTS format.
 
     Attributes:
     query_atoms: List of query atoms belonging to this substructure.
     query_bonds: List of query bonds that define connections between atoms.
-    query_graph: Graph representation of the substructure for topological analysis.
     """
     def __init__(self):
         self.query_atoms = []
         self.query_bonds = []
-        self.query_graph = None
-        self._query_graph_signature = None
 
     def __repr__(self):
         return f"Substructure({len(self.query_atoms)} Atoms, {len(self.query_bonds)} Bonds)"
@@ -355,7 +351,6 @@ class Substructure:
 
         self.query_atoms.append(atom_query)
         atom_query.sub = self
-        self._invalidate_query_graph()
 
         return atom_query
 
@@ -388,68 +383,8 @@ class Substructure:
 
         bond = QueryBond(atom1, atom2, **bond_attrs)
         self.query_bonds.append(bond)
-        self._invalidate_query_graph()
 
         return bond
-
-    def _invalidate_query_graph(self):
-        self.query_graph = None
-        self._query_graph_signature = None
-
-    def _graph_signature(self):
-        return (
-            tuple((id(atom), id(atom.sub)) for atom in self.query_atoms),
-            tuple(
-                (id(bond), id(bond.atom1), id(bond.atom2))
-                for bond in self.query_bonds
-            ),
-        )
-
-    def _cached_graph_is_current(self, signature):
-        if self.query_graph is None or signature != self._query_graph_signature:
-            return False
-        if set(self.query_graph) != set(range(len(self.query_atoms))):
-            return False
-        if self.query_graph.number_of_edges() != len(self.query_bonds):
-            return False
-        if any(
-            self.query_graph.nodes[index].get("qa") is not atom
-            for index, atom in enumerate(self.query_atoms)
-        ):
-            return False
-        return all(
-            self.query_graph.has_edge(bond.a1idx, bond.a2idx)
-            and self.query_graph.edges[bond.a1idx, bond.a2idx].get("qb") is bond
-            for bond in self.query_bonds
-        )
-
-    def construct_graph(self):
-        """
-        Constructs and returns a graph representation of the query atoms and bonds.
-
-        The graph is created using the NetworkX library. Nodes in the graph
-        represent query atoms, while edges in the graph represent query bonds.
-        Each node is associated with its corresponding query atom, and each
-        edge is associated with its corresponding query bond.
-
-        Returns:
-            Graph: A NetworkX Graph object representing the query atoms and
-            bonds.
-        """
-        signature = self._graph_signature()
-        if self._cached_graph_is_current(signature):
-            return self.query_graph
-
-        self.query_graph = nx.Graph()
-        self.query_graph.add_nodes_from(
-            (atom.idx, {"qa": atom}) for atom in self.query_atoms
-        )
-        self.query_graph.add_edges_from(
-            (bond.a1idx, bond.a2idx, {"qb": bond})
-            for bond in self.query_bonds
-        )
-        self._query_graph_signature = signature
-        return self.query_graph
 
 
 class _MappingIterator(Iterator):
@@ -475,10 +410,8 @@ class _MappingIterator(Iterator):
         self._empty_limit_probe = empty_limit_probe
 
     @staticmethod
-    def _query_to_molecule(mol_to_query: dict[int, int]):
-        return MappingProxyType(
-            dict(sorted((query_idx, mol_idx) for mol_idx, query_idx in mol_to_query.items()))
-        )
+    def _readonly_mapping(query_to_molecule: dict[int, int]):
+        return MappingProxyType(dict(sorted(query_to_molecule.items())))
 
     def _check_limit(self):
         if not self._limit_checked:
@@ -498,7 +431,7 @@ class _MappingIterator(Iterator):
             raise StopIteration
 
         try:
-            mol_to_query = next(self._mappings)
+            query_to_molecule = next(self._mappings)
         except StopIteration:
             self.truncated = False
             raise
@@ -507,7 +440,7 @@ class _MappingIterator(Iterator):
         if self.max_matches is not None and self.yielded == self.max_matches:
             self._check_limit()
 
-        return self._query_to_molecule(mol_to_query)
+        return self._readonly_mapping(query_to_molecule)
 
 
 class Searcher:
@@ -545,7 +478,7 @@ class Searcher:
         The returned iterator exposes ``truncated`` after it reaches the bound.
         """
         source = self._mapping_source(mol)
-        mappings = source.subgraph_monomorphisms_iter()
+        mappings = source.iter_mappings()
         return _MappingIterator(
             mappings,
             max_matches=max_matches,
@@ -577,42 +510,19 @@ class Searcher:
             max_matches=max_matches,
         )
 
-    @staticmethod
-    def _node_match(mol_node: dict, query_node: dict) -> bool:
-        query_atom: QueryAtom = query_node.get('qa')  # QueryAtom in substructure.
-        atom: Atom = mol_node.get('atom')   # Atom in Molecule.
-
-        # 防止 sub_atom 或 mol_atom 为空
-        if not query_atom or not atom:
-            raise AttributeError('Not get QueryAtom in substructure or Atom in molecule!')
-
-        return query_atom.match(atom)
-
-    @staticmethod
-    def _edge_match(mol_edge: dict, query_edge: dict) -> bool:
-        query_bond = query_edge.get('qb')  # 子结构中的 QueryBond
-        bond = mol_edge.get('bond')
-
-        if not query_bond or bond is None:
-            raise AttributeError('Not get QueryBond in substructure or Bond in molecule!')
-
-        return query_bond.match(bond)
-
-
 class Hits:
     """
     Represents a collection of matching substructures (hits) found in a molecular graph.
 
     This class provides a way to store and interact with matches of a substructure
-    (sub) within a molecular graph (mol) based on a specified graph matcher. It uses
-    the subgraph monomorphisms provided by the graph matcher to identify and store
+    (sub) within a molecular graph (mol) based on a native mapping source. It uses
+    query-to-molecule mappings provided by that source to identify and store
     hits, which are represented by `Hit` objects.
 
     Attributes:
         sub: The substructure being searched for in the molecular graph.
         mol: The molecular graph being analyzed for substructure matches.
-        graph_matcher: A graph matcher object responsible for finding subgraph
-            isomorphisms.
+        mapping_source: A native source of query-to-molecule mappings.
         hits: A list of `Hit` objects representing all subgraph matches found.
 
     Raises:
@@ -622,24 +532,21 @@ class Hits:
         self,
         sub,
         mol,
-        graph_matcher,
+        mapping_source,
         get_hit: bool = True,
         max_matches: int = None,
     ):
         self.sub = sub
         self.mol = mol
-        self.graph_matcher = graph_matcher
+        self.mapping_source = mapping_source
         self.get_hit = get_hit
         self.max_matches = max_matches
 
         mappings = _MappingIterator(
-            self.graph_matcher.subgraph_monomorphisms_iter(),
+            self.mapping_source.iter_mappings(),
             max_matches=max_matches,
             empty_limit_probe=(
-                self.graph_matcher.has_match
-                if max_matches == 0
-                and isinstance(self.graph_matcher, _NativeMappingSource)
-                else None
+                self.mapping_source.has_match if max_matches == 0 else None
             ),
         )
         self._mapping_groups = self._materialize_mapping_groups(mappings)
@@ -674,9 +581,6 @@ class Hits:
             )
             for atom_indices in sorted(grouped_mappings, key=lambda indices: tuple(sorted(indices)))
         )
-
-    def _get_nodes_set(self):
-        return set(self._nodes_indices)
 
     def __iter__(self):
         return iter(self.hits) if self.get_hit else iter(self._nodes_indices)
@@ -717,7 +621,7 @@ class Hit:
         bonds: Target bonds corresponding to query edges in the canonical mapping.
         induced_bonds: All target bonds whose endpoints belong to the hit atom set.
     """
-    def __init__(self, mol, sub, atom_indices, mappings=()):
+    def __init__(self, mol, sub, atom_indices, mappings):
         self.mol = mol
         self.sub = sub
         self.atom_indices = frozenset(atom_indices)

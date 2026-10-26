@@ -6,9 +6,7 @@ from copy import copy, deepcopy
 from dataclasses import dataclass
 from typing import Mapping, Optional, Tuple, TYPE_CHECKING, TypedDict, cast
 
-import networkx as nx
 import numpy as np
-from openbabel import openbabel as ob
 
 from ..stereo import get_stereo_payload
 from .coordination import _iter_metal_donor_pairs
@@ -21,7 +19,7 @@ from .topology import (
 
 
 if TYPE_CHECKING:
-    from ..core import Angle, Atom, AtomPair, Bond, BondKind, Molecule, Ring, Torsion
+    from ..core import Atom, AtomPair, Bond, BondKind, Molecule
     from ..stereo import StereoPayload
 
 
@@ -55,30 +53,7 @@ class _WorkingCopyCommit:
 class _MoleculeCommitSnapshot:
     atoms: Tuple["Atom", ...]
     bonds: Tuple["Bond", ...]
-    atom_state: Tuple[
-        Tuple["Atom", np.ndarray, list["Atom"], list["Bond"]], ...
-    ]
-    graph: nx.Graph
-    row_to_index: Optional[dict[int, int]]
-    angles: list["Angle"]
-    torsions: list["Torsion"]
-    rings: list["Ring"]
-    cycle_basis_rings: list["Ring"]
-    ring_indices_cache: dict[
-        Tuple[
-            bool,
-            Optional[int],
-            Optional[int],
-            Optional[Tuple[Tuple[int, ...], Tuple[Tuple[int, int], ...]]],
-        ],
-        Tuple[Tuple[int, ...], ...],
-    ]
-    ligand_rings: Optional[list["Ring"]]
-    ligand_cycle_basis_rings: Optional[list["Ring"]]
-    ligand_rings_signature: Optional[
-        Tuple[Tuple[int, ...], Tuple[Tuple[int, int], ...]]
-    ]
-    obmol: Optional[ob.OBMol]
+    atom_state: Tuple[Tuple["Atom", np.ndarray], ...]
     atom_pair_items: Tuple[Tuple[frozenset["Atom"], "AtomPair"], ...]
     conformer_state: Mapping[str, object]
     conformer_index: int
@@ -226,20 +201,9 @@ def _snapshot_molecule_for_commit(mol: "Molecule") -> _MoleculeCommitSnapshot:
         atoms=tuple(mol._atoms),
         bonds=tuple(mol._bonds),
         atom_state=tuple(
-            (atom, atom.attrs, atom._neighbours, atom._bonds)
+            (atom, atom.attrs)
             for atom in mol._atoms
         ),
-        graph=mol._graph,
-        row_to_index=mol._row2idx,
-        angles=mol._angles,
-        torsions=mol._torsions,
-        rings=mol._rings,
-        cycle_basis_rings=mol._cycle_basis_rings,
-        ring_indices_cache=mol._ring_indices_cache,
-        ligand_rings=mol._ligand_rings,
-        ligand_cycle_basis_rings=mol._ligand_cycle_basis_rings,
-        ligand_rings_signature=mol._ligand_rings_signature,
-        obmol=mol._obmol,
         atom_pair_items=tuple(mol._atom_pairs.items()),
         conformer_state=dict(mol._conformers.__dict__),
         conformer_index=mol._conformers_index,
@@ -253,21 +217,9 @@ def _restore_failed_commit(
 ) -> None:
     mol._atoms[:] = snapshot.atoms
     mol._bonds[:] = snapshot.bonds
-    for atom, attrs, neighbours, bonds in snapshot.atom_state:
+    for atom, attrs in snapshot.atom_state:
         object.__setattr__(atom, "attrs", attrs)
-        object.__setattr__(atom, "_neighbours", neighbours)
-        object.__setattr__(atom, "_bonds", bonds)
-    mol._graph = snapshot.graph
-    mol._row2idx = snapshot.row_to_index
-    mol._angles = snapshot.angles
-    mol._torsions = snapshot.torsions
-    mol._rings = snapshot.rings
-    mol._cycle_basis_rings = snapshot.cycle_basis_rings
-    mol._ring_indices_cache = snapshot.ring_indices_cache
-    mol._ligand_rings = snapshot.ligand_rings
-    mol._ligand_cycle_basis_rings = snapshot.ligand_cycle_basis_rings
-    mol._ligand_rings_signature = snapshot.ligand_rings_signature
-    mol._obmol = snapshot.obmol
+    mol._update_topology(clear_conformers=False)
     dict.clear(mol._atom_pairs)
     dict.update(mol._atom_pairs, snapshot.atom_pair_items)
     mol._conformers.__dict__.clear()
@@ -291,8 +243,7 @@ def _commit_working_copy(
         for first, second, attributes in payload.added_bonds:
             original_mol._add_bond(first, second, **attributes)
 
-        original_mol._update_graph(clear_conformers=False)
-        original_mol._row2idx = None
+        original_mol._update_topology(clear_conformers=False)
         original_mol._stereo_payload = payload.stereo_payload
         original_mol._atom_pairs.update_pairs()
         original_mol._conformers.__dict__.clear()

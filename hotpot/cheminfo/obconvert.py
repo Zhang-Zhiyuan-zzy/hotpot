@@ -102,7 +102,7 @@ def obmol2mol(obmol, mol):
             )
 
     _add_mol_bonds_from_obmol(mol, obmol, idx_to_row)
-    mol._update_graph()
+    mol._update_topology()
     mol.charge = obmol.GetTotalCharge()
 
     # add Crystal
@@ -184,37 +184,6 @@ def assign_bond_order(mol):
             key: value for key, value in attrs.items()
             if key != 'bond_order'
         })
-
-
-def add_hydrogens(mol):
-    obmol, row_to_idx = mol2obmol(mol)
-    obmol.AddHydrogens(False, False, 1.0)
-
-    modified = False
-    for a in mol.atoms:
-        if not (a.is_hydrogen or a.is_metal):
-            oba = obmol.GetAtom(row_to_idx[a.idx])
-            assert oba.GetAtomicNum() == a.atomic_number
-            assert (oba.GetX(), oba.GetY(), oba.GetZ()) == a.coordinates
-
-            neigh_hydrogens = [na for na in a.neighbours if na.is_hydrogen]
-            a_hnum = len(neigh_hydrogens)
-
-            oba_hnum = len([neigh_oba for neigh_oba in ob.OBAtomAtomIter(oba) if neigh_oba.GetAtomicNum() == 1])
-            delta = oba_hnum - a_hnum
-
-            if delta > 0:
-                for i in range(delta):
-                    a._add_atom()
-
-                modified = True
-
-            elif delta < 0:
-                mol._rm_atoms(neigh_hydrogens[:abs(delta)])
-
-                modified = True
-
-        return modified
 
 
 def extract_obatom_coordinate(obatom: ob.OBMol):

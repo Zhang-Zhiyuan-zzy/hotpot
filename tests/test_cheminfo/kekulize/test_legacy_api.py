@@ -8,9 +8,16 @@ import hotpot as hp
 from hotpot.cheminfo import kekulize
 
 
+def _layout(mol: hp.Molecule):
+    graph = nx.Graph()
+    graph.add_nodes_from(range(len(mol.atoms)))
+    graph.add_edges_from((bond.a1idx, bond.a2idx) for bond in mol.bonds)
+    return nx.planar_layout(graph)
+
+
 def _planar_benzene() -> hp.Molecule:
     mol = hp.read_mol("c1ccccc1", "smi")
-    coordinates = nx.planar_layout(mol.graph)
+    coordinates = _layout(mol)
     for atom in mol.atoms:
         atom.coordinates = (*coordinates[atom.idx], 0.0)
         atom.is_aromatic = False
@@ -25,7 +32,7 @@ def _bond_orders(mol: hp.Molecule) -> tuple[float, ...]:
 
 def _planar_molecule(smiles: str) -> hp.Molecule:
     mol = hp.read_mol(smiles, "smi")
-    coordinates = nx.planar_layout(mol.graph)
+    coordinates = _layout(mol)
     for atom in mol.atoms:
         atom.coordinates = (*coordinates[atom.idx], 0.0)
         atom.is_aromatic = False

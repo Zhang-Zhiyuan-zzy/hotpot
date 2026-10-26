@@ -130,7 +130,7 @@ def test_empty_query_emits_one_empty_mapping():
     assert list(problem.cursor()) == [()]
 
 
-def test_sparse_query_keys_survive_the_legacy_mapping_adapter():
+def test_sparse_query_keys_survive_the_native_mapping_source():
     problem = _all_compatible_problem(
         (0, 2),
         ((0, 2),),
@@ -138,7 +138,7 @@ def test_sparse_query_keys_survive_the_legacy_mapping_adapter():
         ((10, 11),),
     )
     mappings = tuple(
-        _MappingIterator(_NativeMappingSource(problem).subgraph_monomorphisms_iter())
+        _MappingIterator(_NativeMappingSource(problem).iter_mappings())
     )
 
     assert {tuple(mapping.items()) for mapping in mappings} == {
@@ -233,7 +233,7 @@ def test_python_facade_is_the_only_bounded_iteration_owner(
 ):
     problem = _all_compatible_problem((0,), (), (0, 1, 2), ())
     mappings = _MappingIterator(
-        _NativeMappingSource(problem).subgraph_monomorphisms_iter(),
+        _NativeMappingSource(problem).iter_mappings(),
         max_matches=limit,
     )
 

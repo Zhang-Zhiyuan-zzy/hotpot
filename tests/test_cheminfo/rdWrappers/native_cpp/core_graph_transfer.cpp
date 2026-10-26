@@ -307,7 +307,7 @@ int main() {
     assert(bracket_h_chiral->getAtomWithIdx(0)->getChiralTag()
            == RDKit::Atom::CHI_TETRAHEDRAL_CCW);
 
-    const hotpot_rd_atom_transport_v1 legacy_h_transport[] = {
+    const hotpot_rd_atom_transport_v1 hotpot_current_h_transport[] = {
         {
             0,
             0,
@@ -317,18 +317,18 @@ int main() {
             0,
             {HOTPOT_RD_HYDROGEN_TRANSPORT_IMPLICIT, 1, 0, 0},
             {0, 0, 0, 0},
-            text("hotpot-legacy/1"),
+            {nullptr, 0},
         },
     };
-    hotpot_rd_molecule_view_v1 legacy_h_chiral = chiral;
-    legacy_h_chiral.field_mask |= HOTPOT_RD_FIELD_ATOM_TRANSPORT;
-    legacy_h_chiral.atom_transport = legacy_h_transport;
-    legacy_h_chiral.atom_transport_count = 1;
-    hotpot::rdwrappers::core::validate_molecule_view(legacy_h_chiral);
-    auto legacy_h_molecule =
-        hotpot::rdwrappers::core::build_molecule(legacy_h_chiral);
-    assert(legacy_h_molecule->getAtomWithIdx(0)->getNumExplicitHs() == 1);
-    assert(legacy_h_molecule->getAtomWithIdx(0)->getChiralTag()
+    hotpot_rd_molecule_view_v1 hotpot_current_h_chiral = chiral;
+    hotpot_current_h_chiral.field_mask |= HOTPOT_RD_FIELD_ATOM_TRANSPORT;
+    hotpot_current_h_chiral.atom_transport = hotpot_current_h_transport;
+    hotpot_current_h_chiral.atom_transport_count = 1;
+    hotpot::rdwrappers::core::validate_molecule_view(hotpot_current_h_chiral);
+    auto hotpot_current_h_molecule =
+        hotpot::rdwrappers::core::build_molecule(hotpot_current_h_chiral);
+    assert(hotpot_current_h_molecule->getAtomWithIdx(0)->getNumExplicitHs() == 1);
+    assert(hotpot_current_h_molecule->getAtomWithIdx(0)->getChiralTag()
            == RDKit::Atom::CHI_TETRAHEDRAL_CCW);
 
     const hotpot_rd_bond_transport_v1 reversed_end_direction[] = {

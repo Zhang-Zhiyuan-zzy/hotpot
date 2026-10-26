@@ -225,7 +225,6 @@ Available optional dependency groups are:
 | `datasets` | `pip install 'hotpot-zzy[datasets]'` | downloads, HDF5 and PyG datasets |
 | `complexformer` | `pip install 'hotpot-zzy[complexformer]'` | ComplexFormer training and LoRA support |
 | `onnx-export` | `pip install 'hotpot-zzy[onnx-export]'` | ONNX export and inspection tools |
-| `legacy-search` | `pip install 'hotpot-zzy[legacy-search]'` | archived SymPy-based search modules |
 | `dev` | `pip install -e '.[dev]'` | tests, linting and package builds |
 | `all` | `pip install -e '.[all,dev]'` | all pip-installable optional components |
 
@@ -325,7 +324,8 @@ print(pair.atoms)
 print(pair.bonds)
 print(pair.rings)                       # full-graph Relevant Cycles
 print(pair.ligand_rings)                # ligand-skeleton Relevant Cycles
-print(pair.cycle_basis_rings)           # explicit legacy cycle basis
+print(pair.cycle_basis)                 # deterministic atom-index cycle basis
+print(pair.basis_rings)                 # Ring projection of that basis
 
 assert len(pair.components) == 1
 pair.hide_metal_ligand_bonds()          # Hide the coordination bonds temporarily

@@ -199,7 +199,7 @@ def test_bracket_explicit_h_odd_bond_reordering_preserves_configuration():
             bond.atom2.idx,
             **bond.attr_dict,
         )
-    reordered._update_graph()
+    reordered._update_topology()
     set_stereo_payload(reordered, get_stereo_payload(imported))
 
     exported = to_rdmol(reordered, kekulize=False)
@@ -348,7 +348,7 @@ def test_bond_stereo_remains_equivalent_when_target_anchor_is_reversed(smiles):
         if bond.bond_order == 2:
             first, second = second, first
         reversed_molecule._add_bond(first, second, **bond.attr_dict)
-    reversed_molecule._update_graph()
+    reversed_molecule._update_topology()
     set_stereo_payload(
         reversed_molecule,
         get_stereo_payload(imported),
@@ -391,7 +391,7 @@ def test_reversed_atropisomer_anchor_is_explicitly_rejected():
         if frozenset((first, second)) == frozenset((1, 2)):
             first, second = second, first
         reversed_molecule._add_bond(first, second, **bond.attr_dict)
-    reversed_molecule._update_graph()
+    reversed_molecule._update_topology()
     set_stereo_payload(
         reversed_molecule,
         get_stereo_payload(imported),
@@ -417,7 +417,7 @@ def test_slash_display_direction_flips_when_its_bond_endpoint_order_reverses():
         if bond.idx == directed_source.GetIdx():
             first, second = second, first
         reversed_molecule._add_bond(first, second, **bond.attr_dict)
-    reversed_molecule._update_graph()
+    reversed_molecule._update_topology()
     set_stereo_payload(
         reversed_molecule,
         get_stereo_payload(imported),
@@ -444,7 +444,7 @@ def test_crossed_double_display_is_endpoint_order_invariant():
     for atom in imported.atoms:
         reversed_molecule._create_atom(**atom.attr_dict)
     reversed_molecule._add_bond(1, 0, **imported.bonds[0].attr_dict)
-    reversed_molecule._update_graph()
+    reversed_molecule._update_topology()
     set_stereo_payload(
         reversed_molecule,
         get_stereo_payload(imported),
@@ -473,7 +473,7 @@ def test_reversed_endpoint_anchored_display_direction_is_rejected(direction):
     for atom in imported.atoms:
         reversed_molecule._create_atom(**atom.attr_dict)
     reversed_molecule._add_bond(1, 0, **imported.bonds[0].attr_dict)
-    reversed_molecule._update_graph()
+    reversed_molecule._update_topology()
     set_stereo_payload(
         reversed_molecule,
         get_stereo_payload(imported),

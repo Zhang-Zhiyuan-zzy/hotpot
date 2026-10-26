@@ -35,6 +35,19 @@ def test_runtime_requirements_match_project_metadata():
     )
 
 
+def test_networkx_is_test_only():
+    with (ROOT / "pyproject.toml").open("rb") as stream:
+        project_dependencies = tomllib.load(stream)["project"]["dependencies"]
+    runtime_requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8")
+    inference_requirements = (
+        ROOT / "tests" / "requirements-inference.txt"
+    ).read_text(encoding="utf-8")
+
+    assert "networkx" not in _requirement_map(project_dependencies)
+    assert "networkx" not in runtime_requirements.lower()
+    assert "networkx" in inference_requirements.lower()
+
+
 def test_package_version_matches_project_metadata():
     with (ROOT / "pyproject.toml").open("rb") as stream:
         project_version = tomllib.load(stream)["project"]["version"]
@@ -121,11 +134,16 @@ def test_expected_optional_dependency_groups_are_published():
         "complexformer",
         "datasets",
         "dev",
-        "legacy-search",
         "onnx-export",
         "optimize",
         "pymol",
     } <= extras.keys()
+
+    assert "legacy-search" not in extras
+    assert all(
+        canonicalize_name(Requirement(requirement).name) != "sympy"
+        for requirement in extras["all"]
+    )
 
 
 def test_pymol_compatibility_extra_selects_numpy_1x():

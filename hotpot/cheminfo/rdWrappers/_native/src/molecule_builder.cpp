@@ -331,22 +331,22 @@ void apply_atom_transport(
         const auto& record = source.atom_transport[index];
         const auto source_namespace = copy_string(record.source_namespace);
         const bool is_rdkit_transport = source_namespace == "rdkit-2026.09.1";
-        const bool is_hotpot_legacy = source_namespace == "hotpot-legacy/1";
-        if (!is_rdkit_transport && !is_hotpot_legacy) {
+        const bool is_hotpot_current = record.source_namespace.data == nullptr;
+        if (!is_rdkit_transport && !is_hotpot_current) {
             throw UnsupportedInput(
                 "atom transport source_namespace is not representable by "
                 "the pinned RDKit adapter"
             );
         }
         auto* atom = molecule.getAtomWithIdx(static_cast<unsigned int>(record.atom));
-        if (is_hotpot_legacy) {
+        if (is_hotpot_current) {
             if (record.presence_mask != 0
                 || !record.has_current_hydrogens
                 || record.has_source_hydrogens
                 || record.current_hydrogens.presence_mask
                     != HOTPOT_RD_HYDROGEN_TRANSPORT_IMPLICIT) {
                 throw UnsupportedInput(
-                    "hotpot-legacy/1 atom transport must contain only the "
+                    "Hotpot current atom transport must contain only the "
                     "logical implicit-hydrogen count"
                 );
             }
@@ -392,7 +392,7 @@ void validate_implicit_hydrogens(
 ) {
     for (std::uint64_t index = 0; index < source.atom_transport_count; ++index) {
         const auto& record = source.atom_transport[index];
-        if (copy_string(record.source_namespace) == "hotpot-legacy/1") {
+        if (record.source_namespace.data == nullptr) {
             continue;
         }
         if (!record.has_current_hydrogens

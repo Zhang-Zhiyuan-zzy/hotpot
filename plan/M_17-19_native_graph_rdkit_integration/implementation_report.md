@@ -51,7 +51,8 @@ Removed Atom objects retain the established empty `bonds`/`neighbours`
 inspection behavior by detecting non-membership in the sole topology index.
 No Atom-local adjacency cache was reintroduced.
 
-The exact final public/private class and function API trees are frozen in
+The complete branch-to-merge public/private Python/C/C++ evolution tree is
+frozen in `overview_tree.md`. The normative target design remains in
 `native_graph_rdkit_integration_implementation.md`. The exhaustive 97-row
 adjustment/deletion inventory is
 `api_implementation_migration_matrix.md`; all rows are `Implemented` and
@@ -166,7 +167,8 @@ model cache, and the rebuilt native rdWrapper. Its four warnings are existing
 tests that deliberately retain rejected geometry for inspection.
 
 MCA validation includes exact historical prediction digests and the Boolean
-`is_Nuc_site` contract. It does not claim a live GPU run.
+`is_Nuc_site` contract. The original merge closure did not claim a live GPU
+run; the post-merge qualification in Section 10 now supplies that evidence.
 
 ## 7. 182-case O0 result and efficiency
 
@@ -229,12 +231,11 @@ identity (`2026.09.1`).
 The separately installed `Hotpot::rdwrappers` SDK passed C11/header and C++17
 consumer tests under both libstdc++ ABI macro values.
 
-## 9. Deviations and non-claims
+## 9. Deviations at the original merge closure
 
-- Live GPU execution was unavailable; no GPU throughput/parity result is
-  claimed by this merge.
-- Local execution covered CPython 3.11, not the complete 3.9-3.14 release
-  matrix.
+- Live GPU execution and the CPython release matrix were still open when
+  `ca0289e` was first recorded. Both are closed by Section 10 for Python
+  3.10-3.14 and the available ai-14 GPU environment.
 - Dynamic PyG coverage was unavailable where its optional dependency was not
   installed; shared cycle-source behavior was covered by static and other
   model consumers.
@@ -245,3 +246,94 @@ consumer tests under both libstdc++ ABI macro values.
 These limitations do not require a compatibility implementation or parallel
 API. They remain environment/review gates for release qualification if the
 owner requests those broader claims.
+
+## 10. Post-merge release qualification
+
+### 10.1 CPython 3.10-3.14 matrix
+
+The maintained inference/cheminformatics compatibility command was executed
+for every requested interpreter in one matrix run:
+
+```text
+tests/run_inference_compatibility.sh 3.10 3.11 3.12 3.13 3.14
+```
+
+Each cell created an isolated dependency environment, force-rebuilt all five
+native extensions, verified OpenBabel 3.2.x, installed both model artifacts,
+ran the maintained main suite with importlib isolation, and then ran the
+strict SMARTS corpus.
+
+| Python | Main suite | Main time | SMARTS suite | SMARTS time | ONNX Runtime |
+|---|---:|---:|---:|---:|---:|
+| 3.10 | 2246 passed, 12 skipped, 3 xfailed, 49 subtests | 391.42 s | 281 passed | 4.61 s | 1.23.2 |
+| 3.11 | 2246 passed, 12 skipped, 3 xfailed, 49 subtests | 378.50 s | 281 passed | 4.08 s | 1.31.0 |
+| 3.12 | 2246 passed, 12 skipped, 3 xfailed, 49 subtests | 400.31 s | 281 passed | 4.47 s | 1.31.0 |
+| 3.13 | 2246 passed, 12 skipped, 3 xfailed, 49 subtests | 401.42 s | 281 passed | 4.38 s | 1.31.0 |
+| 3.14 | 2246 passed, 12 skipped, 3 xfailed, 49 subtests | 422.80 s | 281 passed | 4.70 s | 1.31.0 |
+
+Python 3.10 resolves ONNX Runtime 1.23 whereas 3.11-3.14 resolve 1.31. Their
+CPU prediction bytes differ at the runtime's floating-point output level.
+The MCA golden test now keeps strict, runtime-specific SHA-256 values for
+both supported matrix resolutions while continuing to require the exact
+site-to-atom join. This is not a tolerance-based weakening.
+
+Python 3.12-3.14 report 40 standard-library deprecation warnings when the
+complex builder forks from a multi-threaded process. They do not fail this
+matrix, but they are a future process-start compatibility item. The remaining
+warnings are the intentional geometry/complex inspection cases already
+described by the original report.
+
+### 10.2 ai-14 live GPU qualification
+
+The `ca0289e` production source was deployed independently under
+`~/mca_test/m17-19-ca0289e`; no remote repository checkout was used. The
+deployed source aggregate SHA-256 is
+`7b98e369996493d0029b060951a6df7adfcd4dee05b8985817cebd7a445722d6`,
+the CPython 3.13 native aggregate is
+`c37ccccfbab00114f5afce42fbc6dd0aead55c2c3c92ca5c028f103ce69a4d11`,
+and both match the local artifacts. The validator SHA-256 is
+`a26031549d3b00fad59052248461a2fb819711098580d962cfb5899c23ff3702`.
+The 256-row input SHA-256 is
+`e577cfe11867f9be7a6e379b5a7d847c9e2701d20ada570fb55fc737ccd82103`;
+the 4096-row input SHA-256 is
+`1bb96bd9b069f3761442abefe7bea2274888b5168841d1606655a361e707bf69`.
+
+The runtime was Python 3.13.17, NumPy 2.5.4, ONNX Runtime 1.31.0 with CUDA and
+CPU providers, native RDKit 2026.09.1, OpenBabel 3.2.1, driver 525.105.17,
+and 8 A800 80 GB GPUs. Other users already occupied about 20 GB per device;
+no external process was stopped. Throughput is therefore a shared-node
+functional observation, not a clean-node performance regression baseline.
+
+| Gate | Result |
+|---|---|
+| 255-site threshold | 1,530 atoms / 255 sites; GPU not started, no GPU resource plan or process, affinity restored; 8.9742 s, 28.4148 mol/s; automatic route and explicit CPU hashes identical |
+| 255 explicit CPU | 5.5436 s, 45.9990 mol/s |
+| 256-site route | GPU resource plan and one CUDA consumer started; affinity restored; 8.0111 s, 31.9555 mol/s |
+| 256 explicit CPU | 6.0042 s, 42.6368 mol/s |
+| 256 observed CUDA load | GPU 2 peaked at 92%; memory 20,403 -> 21,933 MiB; repeated GPU hash stable |
+| 4096 / 4 GPU / 64 CPU | 103,776 atoms, 30,640 sites, batch 512, capacity 6,400 atoms, 17 admission cycles, cross-capacity true, affinity restored; 82.4810 s, 49.6599 mol/s |
+| simulated CUDA OOM | batch 512 reports the retained remote cause and explicitly recommends 256; no automatic retry or CPU fallback |
+
+For the same 256 inputs, CPU and CUDA produced exactly the same site identity,
+site type, order, and Boolean `is_Nuc_site` relation. The site hash is exactly
+equal, every site prediction still exactly joins its corresponding atom
+prediction within that backend, and Spearman correlation is 1.0. The fp16
+CPU/CUDA prediction bytes are not bit-identical: maximum absolute difference
+is 0.25 kJ/mol, MAE 0.0833333 kJ/mol, RMSE 0.144338 kJ/mol, and Pearson
+correlation 0.999999241779. Consequently, MCA and joint byte hashes must not
+be presented as CPU/CUDA equality; the validated contract is exact business
+semantics plus the measured numerical backend variation.
+
+The complete output digests are:
+
+| Run | MCA SHA-256 | Site SHA-256 | Joint SHA-256 |
+|---|---|---|---|
+| 255 fallback and explicit CPU | `9ea4732c71129a32d4a69796995b4bfbdf6d79f2946855ab352d02b1f950dc61` | `3a7e755ce3f0dcf891ec304f6201a7a034a82ddcc56ab2d33f5facbb3b69bdd2` | `7c98dd0623eca67d004d0d561da0d9b197366f8d5eb9ff064c386f0d7e9cce0b` |
+| 256 CUDA | `303feecc52c58b75c1187aa932e2fe405d02515dbe0b6625675f9b5f8a5055ba` | `33519e36432b580e6c3e79500c4e906279c3f74536fe44232d3bab266c621813` | `3211b1e5d68043374cae7f1473b9e4bbe16efd0fb79b5454638cdb8188cc04b0` |
+| 256 explicit CPU | `d97246e145940ef154a526b2a1cbac5a1d5be96b056f5e15afc4451a5110528d` | `33519e36432b580e6c3e79500c4e906279c3f74536fe44232d3bab266c621813` | `b10aa40f06195fbf5b4eaca9466af54d6fcf46cd4f4a96159717e61e20535ba4` |
+| 4096 / 4 CUDA | `3fa90f5199b1c6301f88f6678f7b383b38de5f08c5dbeca34cd2c9ab817d2e52` | `a7339ccdce12c9f53ac13ddebe650868d82332ae748f27202eeee063232482e2` | `acbd9b684c182d8c79831ca7322f123f6c05b18b5db781f8f740370092d62b4f` |
+
+All commands exited zero. Evidence is retained in
+`ai-14:~/mca_test/m17-19-ca0289e/results/`. Every validation process exited,
+GPU memory returned to the pre-existing shared baseline, and no unrelated
+process was modified.

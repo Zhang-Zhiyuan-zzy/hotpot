@@ -1,6 +1,7 @@
 # M_17-19: Native graph, stereochemistry, and RDKit integration
 
-Status: implementation and local validation complete.
+Status: implementation, CPython 3.10-3.14 matrix, and live GPU qualification
+complete.
 
 Integration branch: `merge/m17-19-native-graph-rdwrapper`
 
@@ -33,6 +34,7 @@ The integration has three non-negotiable properties:
 Documents:
 
 - [Normative implementation plan](native_graph_rdkit_integration_implementation.md)
+- [Complete API evolution tree](overview_tree.md)
 - [API and implementation migration matrix](api_implementation_migration_matrix.md)
 - [Implementation log](implementation_log.md)
 - [Implementation report](implementation_report.md)

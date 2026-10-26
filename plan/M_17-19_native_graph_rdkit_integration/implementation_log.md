@@ -305,3 +305,55 @@ _rm_atom(s)/_rm_bond(s) helper definitions: 0
 native Graph definitions: 1
 topology refresh definitions: 1
 ```
+
+## Stage 9 — CPython matrix, complete API tree, and live GPU qualification
+
+Status: complete
+
+Performed:
+
+- force-built and tested the merged native implementation under CPython
+  3.10, 3.11, 3.12, 3.13, and 3.14 using
+  `tests/run_inference_compatibility.sh`;
+- ran both the maintained main suite and strict SMARTS corpus in every matrix
+  cell;
+- recorded strict MCA CPU goldens for the ONNX Runtime 1.23 resolution used by
+  Python 3.10 while retaining the existing 1.31 goldens used by Python
+  3.11-3.14 and the exact site-to-atom join assertion;
+- added `overview_tree.md`, covering the complete public/private Python/C/C++
+  API evolution from `2704f3c` through both branches to `ca0289e`;
+- deployed the exact production source and CPython 3.13 native artifacts to
+  `ai-14:~/mca_test/m17-19-ca0289e` without using or changing the remote
+  repository checkout;
+- verified the 255-site CPU threshold, 256-site real CUDA route and CPU/CUDA
+  parity, 4096-molecule four-GPU dynamic window, CPU-affinity restoration, and
+  simulated CUDA OOM contract; and
+- removed the completed local CPython 3.13/3.14 intermediate object trees,
+  isolated matrix dependency cache, and disposable local model cache,
+  recovering about 6.7 GB while retaining source, results, and deployed
+  evidence.
+
+Results:
+
+| Gate | Result |
+|---|---|
+| Python 3.10 | 2246 passed, 12 skipped, 3 xfailed, 49 subtests; SMARTS 281 passed |
+| Python 3.11 | 2246 passed, 12 skipped, 3 xfailed, 49 subtests; SMARTS 281 passed |
+| Python 3.12 | 2246 passed, 12 skipped, 3 xfailed, 49 subtests; SMARTS 281 passed |
+| Python 3.13 | 2246 passed, 12 skipped, 3 xfailed, 49 subtests; SMARTS 281 passed |
+| Python 3.14 | 2246 passed, 12 skipped, 3 xfailed, 49 subtests; SMARTS 281 passed |
+| 255 threshold | CPU fallback; no GPU process/resource plan; exact CPU hashes |
+| 256 CUDA | real GPU route; site/type/order/`is_Nuc_site` exact; Spearman 1.0, Pearson 0.999999241779, max absolute MCA delta 0.25 kJ/mol |
+| 4096 CUDA | 4 A800 + 64 CPU; 17 cross-capacity cycles; 49.6599 mol/s |
+| OOM contract | batch 512 reports cause and recommends 256; no retry/fallback |
+
+Deviation found and disposition:
+
+- CPU and CUDA MCA/joint byte hashes are not identical because the fp16
+  backend produces small device-specific numerical differences. Site hashes
+  are identical, `is_Nuc_site` and joins are exact, rank is identical, and the
+  measured maximum difference is 0.25 kJ/mol. The report states this directly
+  and does not misrepresent byte identity as the business contract.
+- Python 3.12-3.14 emit the standard-library warning about `fork()` from a
+  multi-threaded process. It is recorded as a future process-start concern;
+  no matrix cell failed.

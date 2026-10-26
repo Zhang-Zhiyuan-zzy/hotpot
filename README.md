@@ -47,8 +47,8 @@ the description of the current checkout.
 ## Command-line interface
 
 The CLI is the preferred interface for shell workflows, language-model tool
-use, and reproducible pipelines. Each command accepts `--help`; the chemistry
-commands also provide extended examples through `--doc`.
+use, and reproducible pipelines. Every primary chemistry command accepts
+`--help`; commands with longer usage guides also accept `--doc`.
 
 | Command | Purpose | Typical output | Detailed guide |
 |---|---|---|---|
@@ -58,6 +58,12 @@ commands also provide extended examples through `--doc`.
 | `hotpot xtb` | Run an independent GFN-FF or GFN-xTB calculation with an official xTB backend | 3D molecular records (SDF by default) and optional reports/logs | [xTB CLI](hotpot/plugins/xtb/cli_doc.md) |
 | `hotpot run` | Execute registered molecular stages with an ordered evidence tree | Result directory, manifest, stage artifacts, and final SDF | [Pipeline CLI](hotpot/pipeline/cli_doc.md) |
 | `hotpot ds` | Assess, store, audit, and query scientific datasets | Certified bundles and a normalized SQLite store | [CLI](hotpot/ds/cli_doc.md) · [Python API](hotpot/ds/README.md) · [dataset organization](hotpot/dataset/README.md) |
+| `hotpot models` | Install, inspect, and verify pinned inference models | Model status and integrity reports | `hotpot models --help` |
+
+Top-level help also lists `convert`, `optimize`, and `ml_train`. `convert` is a
+low-level format utility. The latter two are optional research workflows and
+require the `optimize` extra; they are not part of the stable chemistry
+pipeline surface described below.
 
 ### Dataset management
 
@@ -202,12 +208,15 @@ artifact ownership, failure semantics, and scientific limits.
 
 ## Installation
 
-Hotpot supports Python 3.10–3.14 for its chemical kernel, search layer, and
-ONNX inference path. This Hotpot release pins RDKit exactly to 2026.09.1
-(`rdkit==2026.9.1`).
-PyPI provides native manylinux x86-64 wheels for every supported CPython
-version; other platforms build the native extensions from the source
-distribution.
+The current source checkout supports CPython 3.10–3.14 and pins its Python and
+native RDKit surfaces to exactly 2026.09.1 (`rdkit==2026.9.1`). Release wheels
+are currently provided only for manylinux x86-64.
+
+The latest published PyPI distribution may lag behind this checkout. In
+particular, PyPI `0.5.4.0` predates the current native graph and rdWrapper
+integration and retains its original Python and RDKit dependency metadata.
+Use Python 3.10–3.14 for both installations; do not infer the current source
+contract from an older wheel that pip happens to accept.
 
 ### Install from PyPI
 
@@ -220,16 +229,29 @@ $ python -m pip install hotpot-zzy
 
 ### Install the current source
 
+The current source build compiles all native extensions, including a locked
+RDKit ETKDG closure. It is a Linux x86-64 developer workflow rather than a
+portable fallback for platforms without wheels. Create the pinned build
+toolchain before running the editable install:
+
 ```bash
 $ git clone https://github.com/Zhang-Zhiyuan-zzy/hotpot.git
 $ cd hotpot
 $ conda create -n hp python=3.11 pip -y
 $ conda activate hp
 $ python -m pip install --upgrade pip
-$ python -m pip install -e .
+$ conda create --prefix /tmp/hotpot-rdkit-toolchain \
+    --file third_party/rdkit/probe-toolchain-linux-64.explicit.txt
+$ HOTPOT_RDWRAPPERS_BUILD_PROFILE=probe \
+    HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX=/tmp/hotpot-rdkit-toolchain \
+    python -m pip install -e .
 ```
 
-The source tree can contain interfaces newer than the latest PyPI release.
+The build downloads six checksum-locked source archives unless
+`HOTPOT_RDKIT_SOURCE_CACHE` names an already populated cache. For a fully
+offline build, cache preparation, the standalone C/C++ SDK, and exact
+toolchain constraints, see the
+[native rdWrapper build guide](hotpot/cheminfo/rdWrappers/_native/BUILDING.md).
 
 ### Install with Docker
 
@@ -260,18 +282,18 @@ Python 3.10 through 3.14 images and host-source test containers can also be
 managed with the repository scripts. See the [Docker guide](docker/README.md)
 for version selection, interactive use, and image export.
 
-### Optional dependency profiles
+### Optional extras
 
 | Extra | Installation | Scope |
 |---|---|---|
-| `pymol` | `python -m pip install 'hotpot-zzy[pymol]'` | NumPy profile compatible with PyMOL 3.1; PyMOL itself is not installed |
+| `pymol` | `python -m pip install 'hotpot-zzy[pymol]'` | NumPy constraints compatible with PyMOL 3.1; PyMOL itself is not installed |
 | `optimize` | `python -m pip install 'hotpot-zzy[optimize]'` | Classical optimization and machine-learning workflows |
 | `datasets` | `python -m pip install 'hotpot-zzy[datasets]'` | Dataset download, HDF5, and PyG support |
 | `complexformer` | `python -m pip install 'hotpot-zzy[complexformer]'` | ComplexFormer training and LoRA dependencies |
 | `onnx-export` | `python -m pip install 'hotpot-zzy[onnx-export]'` | ONNX export and inspection tools |
 | `dev` | `python -m pip install -e '.[dev]'` | Tests, linting, coverage, and package builds |
 
-PyMOL 3.1 requires `numpy>=1.26.4,<2`. Use the `pymol` profile in an isolated
+PyMOL 3.1 requires `numpy>=1.26.4,<2`. Use the `pymol` extra in an isolated
 environment if PyMOL is required.
 
 GPU ONNX inference requires an `onnxruntime-gpu` build compatible with the
@@ -413,6 +435,42 @@ search engine while preserving metal-aware matching and the existing Python
 API. See the
 [SMARTS guide](hotpot/cheminfo/smarts.md) for its public syntax and examples.
 
+The production matcher and cycle algorithms do not depend on NetworkX.
+Python remains responsible for chemical object ownership, field-selective
+packing, and callable predicates; callable predicates cross into Python only
+for the predicate itself rather than replacing the native search traversal.
+
+### Native RDKit conformer component
+
+`hotpot.cheminfo.rdWrappers` is a standalone native ETKDGv3 component. Its
+public Python surface provides `ETKDGSampler`, `ETKDGOptions`,
+`CoordinationEmbeddingConstraints`, `generate_conformers`, and
+`runtime_info`. The same component also exposes a versioned C ABI and a C++17
+SDK; the SDK is installed separately and is not presented as part of the
+Python wheel.
+
+<!-- Verified by tests/readme/test_readme_examples.py::test_readme_native_rdwrapper_output -->
+
+```python
+import hotpot as hp
+from hotpot.cheminfo import rdWrappers
+
+mol = hp.read_mol("CCO")
+batch = rdWrappers.generate_conformers(
+    mol,
+    options=rdWrappers.ETKDGOptions(conformer_count=8, seed=42),
+)
+print(batch.coordinates.shape)
+```
+
+The native component currently proposes conformers with ETKDGv3; it does not
+provide native RDKit UFF or MMFF optimization. Its presence also does not
+imply a global backend switch: the established complex force-field workflow
+is unchanged, and MCA currently retains its Python RDKit
+ETKDGv3-plus-MMFF/UFF conformer path. The private conformer-provider seam
+allows controlled backend experiments without creating a second public
+force-field workflow.
+
 ### Molecular assembly
 
 The assembly API supports fragment joining and ring-based construction.
@@ -472,90 +530,17 @@ optimization results comparable under the same public geometry-quality gate.
 
 ## Validation evidence
 
-### Ligand and Am–ligand benchmark
+The current validation corpus covers 187 isolated extractants and 182
+CBond-positive coordination complexes. Hotpot's complete complex workflow
+produced geometry-gate-passing structures for all 182 complexes; this is a
+workflow acceptance result, not a claim that every coordination environment
+is chemically definitive. Independent xTB 6.7.1 parity checks cover energies,
+optimized coordinates, charged species, radicals, and controlled coordination
+pipelines.
 
-Four independently launched workflows were evaluated on the same 187 isolated
-ligands and the same 182 CBond-eligible Am–ligand complexes. Hotpot uses its
-default `FAST` convergence policy. Times are median construction-plus-optimize
-durations among completed workflows in a 16-worker run; CBond inference,
-serialization, rendering, and any external post-validation are excluded.
-Hotpot `optimize_complex` uses internal acceptance checks to select its route;
-their cost therefore remains inside its reported duration.
-
-| Workflow | Ligand geometry pass | Ligand median time | Am–ligand geometry pass | Am–ligand median time |
-|---|---:|---:|---:|---:|
-| RDKit | 186/187 (99.5%) | 0.314 s | 30/182 (16.5%) | 0.457 s |
-| Open Babel | 181/187 (96.8%) | 1.159 s | 162/182 (89.0%) | 2.134 s |
-| Hotpot `obWrappers` (`FAST`) | 183/187 (97.9%) | 1.759 s | 164/182 (90.1%) | 2.919 s |
-| Hotpot `optimize_complex` | 182/187 (97.3%) | 3.372 s | 182/182 (100.0%) | 3.732 s |
-
-![Ligand and Am coordination-complex geometry and efficiency comparison](assets/readme/coordination_complex_backend_comparison.png)
-
-The independent launch commands and evidence files are documented with the
-benchmark:
-
-- [benchmark commands](tests/benchmarks/coordination_complexes/README.md)
-- [aggregate CSV](assets/readme/coordination_complex_backend_comparison.csv)
-- [protocol and aggregate JSON](assets/readme/coordination_complex_backend_comparison.json)
-- [per-case CSV](assets/readme/coordination_complex_backend_comparison_cases.csv)
-
-For Am–ligand complexes, Hotpot `optimize_complex` accepted 164 native `FAST`
-results directly and sent 18 rejected candidates through the complete complex
-workflow. All four convergence policies remain selectable through the Python
-API and `hotpot ff --convergence-level`; automatic fallback does not silently
-upgrade the caller's selected policy to `STRICT`.
-
-### Am–ligand construction gallery
-
-The same 187 extractant ligands were submitted to Hotpot's automatic complex
-workflow with Am: native `FAST` optimization first, followed by the complete
-complex workflow only when the preliminary structure was rejected. Hotpot
-inferred at least one Am–donor coordination bond for **182/187** inputs;
-**5/187** inputs produced no Am CBond. All **182/182** optimized outputs
-passed the current generic geometry gate; this does not establish that every
-coordination environment is chemically definitive.
-
-The galleries use explicit hydrogens and a white-background, orthographic,
-Materials Studio-inspired ball-and-stick style. Each structure is viewed along
-the maximum principal moment axis of its mass-weighted inertia tensor.
-
-![Am coordination complexes constructed from CBond-positive extractants](assets/readme/am_extractant_cbond_complexes.png)
-
-*CBond-positive inputs. Each panel shows the workflow-selected final
-structure.*
-
-![Extractant ligands without an inferred Am coordination bond](assets/readme/am_extractant_no_cbond_ligands.png)
-
-*Inputs for which no Am CBond was inferred. These are visualization-only 3D
-ligand structures, not Am complexes.*
-
-The path-free [gallery evidence](assets/readme/am_extractant_gallery_evidence.json)
-records the exhaustive case partition, structure and report hashes, explicit-H
-and Am counts, rendering status, principal moments, and image hashes.
-
-### xTB workflow validation
-
-The wrapper passed five direct-parity checks against official xTB 6.7.1:
-neutral GFN2 and GFN-FF energies, GFN2 optimized energy and coordinates, a
-chloride anion, and a hydrogen radical. Absolute tolerances were `1e-12 Eh`
-for energy and `1e-8 Å` for optimized coordinates. Three controlled
-coordination pipelines also passed: two Zn/NCCO routes and the exact
-Eu/acetate workflow shown above.
-
-The four-route benchmark used the same 187 ligands and the 182 Eu complexes
-for which CBond supplied an input structure. Times are all-record medians from
-a 16-worker run with four xTB threads per case.
-
-| xTB route | Ligand geometry pass | Ligand median time | Eu–ligand geometry pass | Eu–ligand median time |
-|---|---:|---:|---:|---:|
-| Direct GFN2 | 182/187 (97.3%) | 5.637 s | 151/182 (83.0%) | 7.561 s |
-| GFN-FF → GFN2 | 182/187 (97.3%) | 3.936 s | 132/182 (72.5%) | 6.647 s |
-
-For this Eu corpus, direct GFN2 was the more reliable complex route. The lower
-all-record median of the GFN-FF chain is confounded by more early failures and
-does not demonstrate faster successful paths; GFN-FF therefore remains an
-optional node. See the [complete validation report](plan/12_xtb_workflow/xtb_workflow_validation_report.md)
-and its path-free [benchmark evidence](assets/readme/xtb_coordination_benchmark.json).
+The [complete validation evidence](doc/validation_evidence.md) contains the
+backend comparison tables, timing definitions, construction galleries,
+per-case evidence, and xTB route analysis.
 
 ## Scientific boundaries
 

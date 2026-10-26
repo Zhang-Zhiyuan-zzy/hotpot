@@ -1,4 +1,4 @@
-"""Regression tests for force-field evidence published in README.md."""
+"""Regression tests for published force-field validation evidence."""
 
 import csv
 import hashlib
@@ -11,6 +11,7 @@ from tests.readme.benchmark_forcefield_validation import run_benchmark
 
 
 ROOT = Path(__file__).resolve().parents[2]
+VALIDATION_DOCUMENT = ROOT / "doc" / "validation_evidence.md"
 
 
 def test_forcefield_validation_benchmark_smoke() -> None:
@@ -26,7 +27,7 @@ def test_forcefield_validation_benchmark_smoke() -> None:
     assert all(result.quality_passes == 1 for result in results)
 
 
-def test_coordination_backend_comparison_evidence_matches_readme() -> None:
+def test_coordination_backend_comparison_evidence_matches_document() -> None:
     asset_root = ROOT / "assets" / "readme"
     json_path = asset_root / "coordination_complex_backend_comparison.json"
     csv_path = asset_root / "coordination_complex_backend_comparison.csv"
@@ -34,7 +35,7 @@ def test_coordination_backend_comparison_evidence_matches_readme() -> None:
         asset_root / "coordination_complex_backend_comparison_cases.csv"
     )
     png_path = asset_root / "coordination_complex_backend_comparison.png"
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    validation_document = VALIDATION_DOCUMENT.read_text(encoding="utf-8")
 
     evidence = json.loads(json_path.read_text(encoding="utf-8"))
     results = {
@@ -108,27 +109,24 @@ def test_coordination_backend_comparison_evidence_matches_readme() -> None:
             f"({100.0 * complex_result['quality_pass_rate']:.1f}%) | "
             f"{complex_result['median_compute_seconds']:.3f} s |"
         )
-        assert expected_row in readme
+        assert expected_row in validation_document
 
     assert png_path.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
     assert png_path.stat().st_size > 10_000
-    assert "coordination_complex_backend_comparison.png" in readme
-    benchmark_section = readme.split("## Validation evidence", maxsplit=1)[1].split(
-        "## Scientific boundaries", maxsplit=1
-    )[0]
-    assert "3D build" not in benchmark_section
-    assert "partial UFF" not in benchmark_section
-    assert "Case 61" not in benchmark_section
+    assert "coordination_complex_backend_comparison.png" in validation_document
+    assert "3D build" not in validation_document
+    assert "partial UFF" not in validation_document
+    assert "Case 61" not in validation_document
 
 
-def test_am_gallery_evidence_matches_readme() -> None:
+def test_am_gallery_evidence_matches_document() -> None:
     asset_root = ROOT / "assets" / "readme"
     evidence_path = asset_root / "am_extractant_gallery_evidence.json"
     image_paths = {
         "cbond": asset_root / "am_extractant_cbond_complexes.png",
         "failed_cbond": asset_root / "am_extractant_no_cbond_ligands.png",
     }
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    validation_document = VALIDATION_DOCUMENT.read_text(encoding="utf-8")
     evidence_text = evidence_path.read_text(encoding="utf-8")
     evidence = json.loads(evidence_text)
     cases = evidence["cases"]
@@ -182,15 +180,15 @@ def test_am_gallery_evidence_matches_readme() -> None:
                 image_evidence["height"],
             ]
 
-    assert "**182/187** inputs" in readme
-    assert "**5/187** inputs" in readme
-    assert "**182/182** optimized outputs" in readme
-    assert "current generic geometry gate" in readme
-    assert "Materials Studio-inspired" in readme
-    assert "maximum principal moment axis" in readme
-    assert "visualization-only 3D" in readme
-    assert "not Am complexes" in readme
-    assert "assets/readme/am_extractant_cbond_complexes.png" in readme
-    assert "assets/readme/am_extractant_no_cbond_ligands.png" in readme
+    assert "**182/187** inputs" in validation_document
+    assert "**5/187** inputs" in validation_document
+    assert "**182/182** optimized outputs" in validation_document
+    assert "current generic geometry gate" in validation_document
+    assert "Materials Studio-inspired" in validation_document
+    assert "maximum principal moment axis" in validation_document
+    assert "visualization-only 3D" in validation_document
+    assert "not Am complexes" in validation_document
+    assert "assets/readme/am_extractant_cbond_complexes.png" in validation_document
+    assert "assets/readme/am_extractant_no_cbond_ligands.png" in validation_document
     assert "/home/" not in evidence_text
     assert "zhangzhiyuan" not in evidence_text.lower()

@@ -1,16 +1,17 @@
-"""Regression tests for xTB evidence published in README.md."""
+"""Regression tests for published xTB validation evidence."""
 
 import json
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+VALIDATION_DOCUMENT = ROOT / "doc" / "validation_evidence.md"
 
 
-def test_xtb_coordination_evidence_matches_readme_and_report() -> None:
+def test_xtb_coordination_evidence_matches_document_and_report() -> None:
     evidence_path = ROOT / "assets" / "readme" / "xtb_coordination_benchmark.json"
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    normalized_readme = " ".join(readme.split())
+    validation_document = VALIDATION_DOCUMENT.read_text(encoding="utf-8")
+    normalized_document = " ".join(validation_document.split())
     report = (
         ROOT
         / "plan"
@@ -79,7 +80,7 @@ def test_xtb_coordination_evidence_matches_readme_and_report() -> None:
             f"({100.0 * complex_result['quality_pass_rate']:.1f}%) | "
             f"{complex_result['median_seconds']:.3f} s |"
         )
-        assert expected_row in readme
+        assert expected_row in validation_document
 
         report_label = (
             "Ligand, direct GFN2"
@@ -109,8 +110,8 @@ def test_xtb_coordination_evidence_matches_readme_and_report() -> None:
             f"{complex_result['median_seconds']:.3f} s |"
         ) in report
 
-    assert "five direct-parity checks" in normalized_readme
-    assert "three controlled coordination pipelines" in normalized_readme.lower()
-    assert "xtb_coordination_benchmark.json" in readme
+    assert "five direct-parity checks" in normalized_document
+    assert "three controlled coordination pipelines" in normalized_document.lower()
+    assert "xtb_coordination_benchmark.json" in validation_document
     assert "/home/" not in evidence_text
     assert "zhangzhiyuan" not in evidence_text.lower()

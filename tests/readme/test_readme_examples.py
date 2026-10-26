@@ -11,6 +11,7 @@ import pytest
 import hotpot as hp
 from hotpot.cheminfo.calculator import mca
 from hotpot.cheminfo import forcefields as ff
+from hotpot.cheminfo import rdWrappers
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -227,6 +228,17 @@ def test_readme_conversion_output() -> None:
     assert hp.to_hotpot_mol(molecule) is molecule
     assert len(hp.to_hotpot_mol(molecule.to_rdmol()).atoms) == 3
     assert len(hp.to_hotpot_mol(molecule.to_obmol()).atoms) == 3
+
+
+def test_readme_native_rdwrapper_output() -> None:
+    molecule = hp.read_mol("CCO")
+    batch = rdWrappers.generate_conformers(
+        molecule,
+        options=rdWrappers.ETKDGOptions(conformer_count=8, seed=42),
+    )
+
+    assert batch.coordinates.shape[0] > 0
+    assert batch.coordinates.shape[1:] == (len(molecule.atoms), 3)
 
 
 def test_readme_graph_spectrum_output() -> None:

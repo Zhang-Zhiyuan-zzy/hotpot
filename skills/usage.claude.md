@@ -170,7 +170,10 @@ mol.formula          # 属性 → 分子式
 # 环族：三种语义各有含义
 mol.rings                 # 属性 → 全图 Relevant Cycles
 mol.ligand_rings          # 属性 → 去金属-配体边后的配体骨架 Relevant Cycles
-mol.cycle_basis_rings     # 属性 → 传统 NetworkX cycle-basis（遗留 ring 特征模型仍用它）
+mol.cycle_basis           # 属性 → 确定性的默认 cycle basis（原子索引元组）
+mol.basis_rings           # 属性 → 默认 cycle basis 对应的 Ring 对象
+mol.all_cycle_basis       # 属性 → 全部 simple-cycle basis（受固定安全上限约束）
+mol.all_basis_rings       # 属性 → 全部 basis 对应的 Ring 对象
 mol.rings_for_scope(      # 方法
     "full_graph",         # 或 "ligand_skeleton"
     max_cycles=None,      # 仅当确需无界枚举时；默认有 1 万环安全上限

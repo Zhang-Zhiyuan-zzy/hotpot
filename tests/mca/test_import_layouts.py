@@ -4,4 +4,4 @@ def test_public_symbols():
     assert mca.MCACpuPredictor
     assert mca.MCAGpuPredictor
     assert not hasattr(mca, "MCAPredictor")
-    assert mca.MoleculeGraph
+    assert not hasattr(mca, "MoleculeGraph")

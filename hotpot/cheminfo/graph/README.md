@@ -18,12 +18,12 @@ its result.
 | `GraphSpectrum` | Store and compare graph spectra. |
 | `calc_electron_config` | Calculate the existing electron-configuration feature. |
 | `atoms_electron_configurations` | Calculate electron-configuration features for atoms. |
-| `graph_dfs_path` | Return one depth-first path under the existing traversal contract. |
-| `graph_dfs_paths` | Preserve the existing multi-path traversal API. |
+| `graph_dfs_path` | Return one depth-first path from explicit node/edge inputs. |
+| `graph_dfs_paths` | Preserve the existing multi-path result contract over explicit topology. |
 
-The package migration preserves the behavior of the former
-`hotpot.cheminfo.graph` module. Relevant Cycle perception is the only new
-capability.
+The package contains numerical public APIs and direct topology algorithms; it
+does not expose a Graph data object. Native algorithms construct one private,
+task-local topology only when repeated adjacency work benefits from it.
 
 ## Relevant Cycles
 

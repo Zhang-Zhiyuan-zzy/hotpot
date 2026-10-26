@@ -1,4 +1,4 @@
-"""Graph algorithms and representations used by Hotpot cheminformatics."""
+"""Topology and numerical graph algorithms used by Hotpot cheminformatics."""
 
 from .matrix import adj2laplacian, linkmat2adj
 from .cycles import (

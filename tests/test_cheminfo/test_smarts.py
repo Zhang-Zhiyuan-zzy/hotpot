@@ -1,4 +1,4 @@
-"""Focused tests for the NetworkX-backed SMARTS implementation."""
+"""Focused tests for the native RI-style SMARTS implementation."""
 
 import pytest
 

@@ -463,11 +463,46 @@ the focused graph gate for the reason frozen at Stage 0: it performs 3D
 construction on a very large molecule and is not a bounded graph regression
 test. The maintained targeted tests cover the affected topology semantics.
 
-Git checkpoint: pending Stage 6 commit.
+Git checkpoint: `fd86063` (`refactor(core): remove persistent graph state`).
 
 ### Stage 7 - remove remaining public Graph-like surfaces
 
-Status: not started.
+Status: complete; checkpoint pending.
+
+Performed:
+
+- changed the retained depth-first traversal helpers to explicit
+  `node_count`/edge inputs and removed their public NetworkX-typed boundary;
+- deleted the public MCA `MoleculeGraph` dataclass, module, lazy export, and
+  import path with no alias;
+- migrated MCA API and serialization coverage to the already-supported
+  generic `to_rdmol()` adapter protocol;
+- migrated the final repository example from the removed ligand-basis
+  property to a task-local copy with hidden coordination Bonds and
+  `basis_rings`;
+- updated current API tables, README examples, MCA installation guidance,
+  graph-package documentation, and development guidance to the native RI and
+  non-Graph topology contracts; and
+- confirmed that GraphSpectrum and neural-network/ONNX `.graph` values remain
+  numerical/model objects, not exposed molecular topology holders.
+
+Verification:
+
+```text
+MCA public input, serialization, and import layout:
+  41 passed
+explicit-edge traversal contract:
+  7 passed
+Python compilation and repository removed-symbol audit:
+  passed
+```
+
+The only `MoleculeGraph` reference outside historical Plan prose is the
+negative import-layout assertion proving that it is absent. Test-only
+NetworkX use remains limited to independent scientific oracles, generators,
+and layouts.
+
+Git checkpoint: pending Stage 7 commit.
 
 ### Stage 8 - direct-target consolidation and optional performance work
 

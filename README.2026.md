@@ -327,7 +327,8 @@ print(pair.atoms)
 print(pair.bonds)
 print(pair.rings)                       # full-graph Relevant Cycles
 print(pair.ligand_rings)                # ligand-skeleton Relevant Cycles
-print(pair.cycle_basis_rings)           # explicit legacy cycle basis
+print(pair.cycle_basis)                 # deterministic atom-index cycle basis
+print(pair.basis_rings)                 # Ring projection of that basis
 
 assert len(pair.components) == 1
 pair.hide_metal_ligand_bonds()          # Hide the coordination bonds temporarily

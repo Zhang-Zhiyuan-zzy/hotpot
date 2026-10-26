@@ -115,7 +115,7 @@ Hotpot 的核心目标是提供统一、可检查、适合配位化学的化学�
 - 单位必须在 API、字段、表头和图例中明确。后端数值在边界层一次性转换为内部单位。
 - 语义 profile 不得暗中重新计算 implicit hydrogen、芳香性或键类型。后端信息损失 MUST 以 `UNKNOWN`、异常、fixture 或文档显式表达。
 
-Search 保持 `Query*`、`Substructure`、`Searcher`、`Hit/Hits` 公共抽象，生产 SMARTS 匹配使用 NetworkX-backed Hotpot search。
+Search 保持 `Query*`、`Substructure`、`Searcher`、`Hit/Hits` 公共抽象，生产 SMARTS 匹配使用 Hotpot 唯一的确定性 C++ RI-style 引擎。
 RDKit 可用于特征、构象、格式桥接和绘图，但不得隐式替代该事实源。
 
 ## 6. 失败、诊断与控制流 `[DEV-ERR-001]`

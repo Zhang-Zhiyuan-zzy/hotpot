@@ -8,7 +8,6 @@ from rdkit import Chem
 
 from hotpot import read_mol
 from hotpot.cheminfo.core import BondKind, Molecule
-from mca.graph_adapter import MoleculeGraph
 from mca.serialization import (
     MCA_MOLECULE_DTO_VERSION,
     hotpot_mol_from_dto,
@@ -29,6 +28,11 @@ def _site_records(molecule):
         (site.atom_index, site.site_type)
         for site in find_nucleophilic_sites(molecule)
     )
+
+
+class _MoleculeAdapter:
+    def to_rdmol(self):
+        return Chem.MolFromSmiles("CCN")
 
 
 def test_dto_is_versioned_immutable_and_pickleable():
@@ -53,14 +57,11 @@ def test_dto_is_versioned_immutable_and_pickleable():
         Chem.MolFromSmiles("CCN"),
         pybel.readstring("smi", "CCN"),
         pybel.readstring("smi", "CCN").OBMol,
-        MoleculeGraph(
-            atomic_numbers=(6, 6, 7),
-            bonds=((0, 1, 1.0), (1, 2, 1.0)),
-        ),
+        _MoleculeAdapter(),
     ],
-    ids=("smiles", "hotpot", "rdkit", "pybel", "obmol", "graph"),
+    ids=("smiles", "hotpot", "rdkit", "pybel", "obmol", "adapter"),
 )
-def test_supported_inputs_share_the_same_dto_graph_semantics(value):
+def test_supported_inputs_share_the_same_dto_semantics(value):
     dto = normalize_molecule(value)
     native_mol = hotpot_mol_from_dto(dto)
     feature_mol = rdmol_from_dto(dto)

@@ -8,7 +8,6 @@ __all__ = [
     "MCACpuPredictor",
     "MCAGpuOutOfMemoryError",
     "MCAGpuPredictor",
-    "MoleculeGraph",
     "MoleculePrediction",
     "SitePrediction",
     "predict_mca",
@@ -32,10 +31,6 @@ def __getattr__(name):
         from .gpu_memory import MCAGpuOutOfMemoryError
 
         return MCAGpuOutOfMemoryError
-    if name == "MoleculeGraph":
-        from .graph_adapter import MoleculeGraph
-
-        return MoleculeGraph
     if name in {"AtomPrediction", "MoleculePrediction", "SitePrediction"}:
         from . import result_types
 

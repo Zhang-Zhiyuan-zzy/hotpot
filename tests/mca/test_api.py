@@ -3,7 +3,7 @@ import hashlib
 
 import numpy as np
 import pytest
-from mca import MoleculeGraph, MoleculePrediction, predict_mca
+from mca import MoleculePrediction, predict_mca
 from mca import cpu_backend as cpu_backend_module
 from mca import pipeline as pipeline_module
 from mca.conformer import ensure_3d_conformer
@@ -103,17 +103,17 @@ def test_cpu_provider_has_batch_specific_goldens_and_exact_site_join(predictor):
 
 
 def test_supported_inputs_keep_atom_and_site_indices_aligned(predictor):
-    graph = MoleculeGraph(
-        atomic_numbers=[6, 6, 7],
-        bonds=[(0, 1, 1.0), (1, 2, 1.0)],
-    )
+    class Adapter:
+        def to_rdmol(self):
+            return Chem.MolFromSmiles("CCN")
+
     hotpot_mol = read_mol("CCN")
     inputs = [
         "CCN",
         hotpot_mol,
         Chem.MolFromSmiles("CCN"),
         pybel.readstring("smi", "CCN").OBMol,
-        graph,
+        Adapter(),
     ]
 
     predictions = predictor.predict(inputs)

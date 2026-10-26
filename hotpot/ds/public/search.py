@@ -264,7 +264,7 @@ class SmartsSearcher(BaseSearcher):
         try:
             molecule = (
                 data
-                if hasattr(data, "atom_bond_graph")
+                if hasattr(data, "atoms") and hasattr(data, "bonds")
                 else getattr(data, "molecule")
             )
             if molecule is None:

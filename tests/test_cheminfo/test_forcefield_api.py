@@ -658,7 +658,12 @@ def test_seed_worker_uses_canonical_backend_and_sends_result(monkeypatch):
         def close(self):
             calls.append(("close",))
 
-    molecule = SimpleNamespace(coordinates=np.ones((2, 3)))
+    molecule = SimpleNamespace(
+        coordinates=np.ones((2, 3)),
+        _update_topology=lambda clear_conformers: calls.append(
+            ("topology", clear_conformers)
+        ),
+    )
     monkeypatch.setattr(
         ob_backend,
         "_seed_openbabel_random",
@@ -672,12 +677,13 @@ def test_seed_worker_uses_canonical_backend_and_sends_result(monkeypatch):
 
     workers._seeded_ob_build_worker(molecule, Connection(), 37)
 
-    assert calls[0] == ("seed", 37)
-    assert calls[1] == ("build", molecule)
-    assert calls[2][0] == "send"
-    assert calls[2][1].status == "ok"
-    np.testing.assert_array_equal(calls[2][1].coordinates, molecule.coordinates)
-    assert calls[3] == ("close",)
+    assert calls[0] == ("topology", False)
+    assert calls[1] == ("seed", 37)
+    assert calls[2] == ("build", molecule)
+    assert calls[3][0] == "send"
+    assert calls[3][1].status == "ok"
+    np.testing.assert_array_equal(calls[3][1].coordinates, molecule.coordinates)
+    assert calls[4] == ("close",)
 
 
 def test_seeded_build3d_failure_does_not_mutate_caller(monkeypatch):

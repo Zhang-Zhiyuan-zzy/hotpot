@@ -16,13 +16,11 @@ import os.path as osp
 from enum import Enum
 from typing import Union, Literal, Iterable, Optional, Callable, Mapping, Tuple
 from copy import copy, deepcopy
-from collections import Counter
-from functools import cached_property
+from collections import Counter, deque
 from itertools import combinations, product
 
 import cython
 import numpy as np
-import networkx as nx
 from openbabel import pybel as pb, openbabel as ob
 from scipy.spatial.distance import pdist, squareform
 
@@ -31,6 +29,12 @@ from hotpot.utils import types, chem as hpchem
 import hotpot.cheminfo.obconvert as obc
 from .rdconvert import to_rdmol
 from . import graph as graph_algorithms, forcefields as ff, kekulize as kekulization
+from .graph.components import connected_components
+from .graph.paths import (
+    all_simple_paths,
+    depth_first_path,
+    longest_simple_path,
+)
 from . import geometry, crystal as cryst
 from .pubchem import pubchem_service
 from .call_thermo import Thermo
@@ -147,7 +151,6 @@ class Molecule:
         self._ring_indices_cache = {}
         self._ligand_rings = None
         self._ligand_rings_signature = None
-        self._graph = nx.Graph()
         self._obmol = None
         self._row2idx = None
         self._crystal = None
@@ -373,16 +376,34 @@ class Molecule:
             list: A list of all simple paths in the graph, where each path is represented
                   as a sequence of nodes.
         """
+        nodes = range(len(self._atoms))
+        edges = tuple(
+            (
+                self._topology_index[id(bond.atom1)][0],
+                self._topology_index[id(bond.atom2)][0],
+            )
+            for bond in self._bonds
+        )
         if source is None and target is None:
-            st = combinations(self.graph.nodes, 2)
+            st = combinations(nodes, 2)
         elif isinstance(source, int) and isinstance(target, int):
             st = [(source, target)]
         elif isinstance(source, int):
-            st = [(source, t) for t in self.graph.nodes if t!=source]
+            st = [(source, t) for t in nodes if t != source]
         else:
-            st = [(s, target) for s in self.graph.nodes if s!=target]
+            st = [(s, target) for s in nodes if s != target]
 
-        return [p for s, t in st for p in nx.all_simple_paths(self.graph, s, t, cutoff=cutoff)]
+        return [
+            path
+            for start, end in st
+            for path in all_simple_paths(
+                len(self._atoms),
+                edges,
+                start,
+                end,
+                cutoff,
+            )
+        ]
 
     def _set_coordinates(self, coords: types.ArrayLike):
         coords = np.array(coords)
@@ -444,11 +465,6 @@ class Molecule:
             ))
             topology_index[atom_id] = (row, ordered_bonds)
         self._topology_index = topology_index
-
-        # Transitional projection for algorithms migrated in later Plan 19 stages.
-        self._graph = nx.Graph()
-        self._graph.add_edges_from(self._edge_with_attrs())
-        self._graph.add_nodes_from(self._node_with_attrs())
 
         # clear the older AtomSeq
         self._angles = []
@@ -1308,23 +1324,31 @@ class Molecule:
         Raises:
             None
         """
-        graph = self.graph
-
         components = []
-        for c_node_idx in nx.connected_components(graph):
-            c_node_idx = tuple(sorted(c_node_idx))
-            subgraph = graph.subgraph(c_node_idx)
-
+        edges = tuple(
+            (
+                self._topology_index[id(bond.atom1)][0],
+                self._topology_index[id(bond.atom2)][0],
+            )
+            for bond in self._bonds
+        )
+        for c_node_idx in connected_components(len(self._atoms), edges):
             component = Molecule()
-
             for node_idx in c_node_idx:
-                component._create_atom(**graph.nodes[node_idx])
+                component._create_atom(**self._atoms[node_idx].attr_dict)
 
-            for edge_begin_idx, edge_end_index in subgraph.edges:
-                source_bond = subgraph.edges[edge_begin_idx, edge_end_index]['bond']
+            local_rows = {
+                source_row: component_row
+                for component_row, source_row in enumerate(c_node_idx)
+            }
+            for source_bond in self._bonds:
+                first = self._topology_index[id(source_bond.atom1)][0]
+                second = self._topology_index[id(source_bond.atom2)][0]
+                if first not in local_rows:
+                    continue
                 component._add_bond(
-                    c_node_idx.index(source_bond.a1idx),
-                    c_node_idx.index(source_bond.a2idx),
+                    local_rows[first],
+                    local_rows[second],
                     **source_bond.attr_dict
                 )
 
@@ -1608,53 +1632,6 @@ class Molecule:
         """
         return Counter([a.symbol for a in self.atoms])
 
-    @property
-    def simple_graph(self) -> nx.Graph:
-        """
-        Return a networkx Graph without nodes and edges attrs
-
-        This property generates an undirected graph using the networkx library based on 
-        the link matrix attribute of the object. The resulting graph consists of nodes 
-        and edges defined by the link matrix, where each entry implies a connection between 
-        nodes.
-
-        @return: An undirected graph object built from the link matrix.
-        """
-        graph = nx.Graph()
-        graph.add_edges_from(self.link_matrix)
-        return graph
-
-    def _node_with_attrs(self):
-        """
-        Returns a list of tuples representing nodes with their attributes.
-
-        Each tuple contains the index of the node and a dictionary of its attributes.
-        This is useful for constructing graph representations where nodes 
-        have associated attributes.
-
-        Returns:
-            list[tuple[int, dict]]: A list of tuples, where each tuple consists of an
-            integer representing the node index and a dictionary holding the node's 
-            attributes.
-        """
-        # return [(a.idx, {n:getattr(a, n) for n in a.attrs_enumerator}) for a in self._atoms]
-        return [(a.idx, {'attrs': a.attrs}) for a in self._atoms]
-
-    def _edge_with_attrs(self):
-        """
-        Generates a list of tuples representing edges with attributes from the bonds.
-
-        This method processes the list of bonds available in the object and constructs
-        a list of tuples where each tuple represents an edge. Each edge contains its
-        two endpoint indices and a dictionary of attributes associated with the bond.
-
-        Returns:
-            list: A list of tuples where each tuple is of the form 
-            (a1idx, a2idx, {'bond': bond_object}).
-        """
-        # attrs = ('idx',) + Bond._attrs_enumerator
-        return [(b.a1idx, b.a2idx, {'bond': b}) for b in self._bonds]
-
     def _hide_bond(self, bond: "Bond"):
         if bond not in self.bonds:
             raise ObjNotInMolecule(bond, self)
@@ -1680,24 +1657,6 @@ class Molecule:
             self._bonds.remove(b)
 
         self._update_topology(clear_conformers)
-
-    @property
-    def graph(self):
-        """ Return networkx graph with nodes and edges attrs """
-        return self._graph
-
-    @property
-    def atom_bond_graph(self):
-        _graph = nx.Graph()
-        _graph.add_nodes_from([(a.idx, {'atom': a}) for a in self._atoms])
-        _graph.add_edges_from([(b.a1idx, b.a2idx, {'bond': b}) for b in self._bonds])
-        return _graph
-
-    @cached_property
-    def adjacency_matrix(self):
-        clone = copy(self)
-        clone.add_hydrogens()
-        return graph_algorithms.linkmat2adj(len(clone.atoms), clone.link_matrix)
 
     def graph_spectral(self, norm: Literal['infinite', 'min', 'l1', 'l2'] = 'l2'):
         """ Return graph spectral matrix """
@@ -2170,65 +2129,32 @@ class Molecule:
             raise NotImplementedError
 
     @staticmethod
-    def _longest_path(graph: nx.Graph, _start_node: int = None, _end_node: int = None):
-        """
-            Finds the longest simple path in a graph.
-
-            This method calculates the longest simple path in a given graph by 
-            considering various start and end node configurations. A simple
-            path is a path in which no node repeats. The implementation uses
-            NetworkX to explore all simple paths between nodes, and selects 
-            the longest path based on its length. If no valid path is found 
-            under certain configurations, a default fallback path is returned.
-
-            Parameters:
-            graph: nx.Graph
-                The graph on which the longest path calculation will be performed.
-            _start_node: int or None, optional
-                The starting node of the path. If None, considers all possible 
-                nodes as start nodes. Default is None.
-            _end_node: int or None, optional
-                The ending node of the path. If None, considers all possible 
-                nodes as end nodes. Default is None.
-
-            Returns:
-            list
-                A list of nodes representing the longest path found in the graph. 
-                If no valid path exists, an empty or fallback path is returned.
-        """
-        longest_path = []
-        try:
-            if isinstance(_start_node, int) and isinstance(_end_node, int):
-                return max(nx.all_simple_paths(graph, _start_node, _end_node), key=len)
-
-            elif isinstance(_start_node, int) and _end_node is None:
-                for end_node in graph.nodes:
-                    if end_node == _start_node:
-                        longest_path.append([end_node])
-                    else:
-                        longest_path.append(max(nx.all_simple_paths(graph, _start_node, end_node), key=len))
-
-            elif _start_node is None and isinstance(_end_node, int):
-                for start_node in graph.nodes:
-                    if start_node == _end_node:
-                        longest_path.append([_end_node])
-                    else:
-                        longest_path.append(max(nx.all_simple_paths(graph, start_node, _end_node), key=len))
-
-            else:
-                for start_node, end_node in combinations(graph.nodes, 2):
-                    longest_path.append(max(nx.all_simple_paths(graph, start_node, end_node), key=len))
-
-        except ValueError as e:
-            if e.args[0] == "max() arg is an empty sequence":
-                path = []
-                if isinstance(_start_node, int):
-                    path.append(_start_node)
-                if isinstance(_end_node, int):
-                    path.append(_end_node)
-                longest_path.append(path)
-
-        return max(longest_path, key=len)
+    def _longest_path(
+            node_count: int,
+            edges: Iterable[tuple[int, int]],
+            _start_node: int = None,
+            _end_node: int = None,
+            _scope_nodes: Iterable[int] = None,
+    ):
+        """Return one deterministic longest simple path over explicit topology."""
+        scope = tuple(sorted(
+            range(node_count) if _scope_nodes is None else _scope_nodes
+        ))
+        if not scope:
+            return []
+        local_rows = {node: row for row, node in enumerate(scope)}
+        local_edges = tuple(
+            (local_rows[first], local_rows[second])
+            for first, second in edges
+            if first in local_rows and second in local_rows
+        )
+        path = longest_simple_path(
+            len(scope),
+            local_edges,
+            None if _start_node is None else local_rows[_start_node],
+            None if _end_node is None else local_rows[_end_node],
+        )
+        return [scope[row] for row in path]
 
     def longest_path(self):
         """
@@ -2246,7 +2172,16 @@ class Molecule:
             dependent on the graph data structure used and the path
             representation format.
         """
-        return self._longest_path(self.graph)
+        return self._longest_path(
+            len(self._atoms),
+            (
+                (
+                    self._topology_index[id(bond.atom1)][0],
+                    self._topology_index[id(bond.atom2)][0],
+                )
+                for bond in self._bonds
+            ),
+        )
 
     def canonical_tree(self):
         """
@@ -2264,43 +2199,86 @@ class Molecule:
             tuple: A tuple containing the longest path of the entire graph and a 
             nested dictionary representing the hierarchical tree structure.
         """
+        node_count = len(self._atoms)
+        edges = tuple(
+            (
+                self._topology_index[id(bond.atom1)][0],
+                self._topology_index[id(bond.atom2)][0],
+            )
+            for bond in self._bonds
+        )
+
         def _dfs(
-                _graph: nx.Graph,
-                _longest_path: tuple[int],
-                _nested: dict
+                scope_nodes: tuple[int, ...],
+                scope_edges: tuple[tuple[int, int], ...],
+                _longest_path: tuple[int, ...],
+                _nested: dict,
         ):
-            branch_start = [(n, p) for p in _longest_path for n in _graph.neighbors(p) if n not in _longest_path]
+            adjacency = {node: [] for node in scope_nodes}
+            for first, second in scope_edges:
+                adjacency[first].append(second)
+                adjacency[second].append(first)
+            branch_start = [
+                (neighbor, parent)
+                for parent in _longest_path
+                for neighbor in sorted(adjacency[parent])
+                if neighbor not in _longest_path
+            ]
             if branch_start:
-                clone = _graph.copy()
-                clone.remove_edges_from(branch_start)
+                removed = {
+                    (min(first, second), max(first, second))
+                    for first, second in branch_start
+                }
+                retained_edges = tuple(
+                    (first, second)
+                    for first, second in scope_edges
+                    if (min(first, second), max(first, second)) not in removed
+                )
             else:
                 return
 
-            for connected_nodes in nx.connected_components(clone):
-
-                # Exclude the trunk path (parent longest path)
-                if not connected_nodes - set(_longest_path):
+            local_rows = {
+                node: row for row, node in enumerate(scope_nodes)
+            }
+            local_components = connected_components(
+                len(scope_nodes),
+                (
+                    (local_rows[first], local_rows[second])
+                    for first, second in retained_edges
+                ),
+            )
+            for local_component in local_components:
+                connected_nodes = tuple(scope_nodes[row] for row in local_component)
+                if not set(connected_nodes).difference(_longest_path):
                     continue
 
-                sub_graph = clone.subgraph(connected_nodes)
-                start_node, parent_node = next((n, p) for n, p in branch_start if n in connected_nodes)
-
-                longest_path = self._longest_path(sub_graph, start_node)
+                start_node, parent_node = next(
+                    (node, parent)
+                    for node, parent in branch_start
+                    if node in connected_nodes
+                )
+                sub_edges = tuple(
+                    (first, second)
+                    for first, second in retained_edges
+                    if first in connected_nodes and second in connected_nodes
+                )
+                longest_path = self._longest_path(
+                    node_count,
+                    sub_edges,
+                    start_node,
+                    _scope_nodes=connected_nodes,
+                )
 
                 list_nested = _nested.setdefault(parent_node, [])
                 _sub_nested = {}
                 list_nested.append((longest_path, _sub_nested))
 
-                _dfs(sub_graph, longest_path, _sub_nested)
+                _dfs(connected_nodes, sub_edges, longest_path, _sub_nested)
 
-        graph = self.graph
-        nested_tree = (self._longest_path(graph), {})
-        _dfs(graph, nested_tree[0], nested_tree[1])
+        nested_tree = (self._longest_path(node_count, edges), {})
+        _dfs(tuple(range(node_count)), edges, nested_tree[0], nested_tree[1])
 
         return nested_tree
-
-    def super_acyclic_graph(self):
-        raise NotImplementedError
 
     @property
     def InChi(self) -> str:
@@ -2334,10 +2312,31 @@ class Molecule:
             A list containing the indices of the shortest path between the two atoms.
             Returns an empty list if no path exists.
         """
-        try:
-            return nx.shortest_path(self.graph, self._atoms.index(atom1), self._atoms.index(atom2))
-        except nx.NetworkXNoPath:
-            return []
+        source = self._topology_index[id(atom1)][0]
+        target = self._topology_index[id(atom2)][0]
+        if source == target:
+            return [source]
+
+        predecessors = {source: -1}
+        pending = deque([atom1])
+        while pending:
+            current = pending.popleft()
+            current_idx, incident = self._topology_index[id(current)]
+            for bond in incident:
+                first, second = bond._atoms
+                neighbor = second if first is current else first
+                neighbor_idx = self._topology_index[id(neighbor)][0]
+                if neighbor_idx in predecessors:
+                    continue
+                predecessors[neighbor_idx] = current_idx
+                if neighbor_idx == target:
+                    path = [target]
+                    while path[-1] != source:
+                        path.append(predecessors[path[-1]])
+                    path.reverse()
+                    return path
+                pending.append(neighbor)
+        return []
 
     def shortest_path(self, atom1, atom2) -> list['Atom']:
         """
@@ -2361,12 +2360,7 @@ class Molecule:
 
     def shortest_paths_indices(self, atom1, atom2):
         """
-        Finds the shortest paths indices between two atoms in a graph.
-
-        This method calculates the shortest path between two specified atoms in a molecular
-        graph, represented internally by a NetworkX graph object. It identifies the path
-        indices by locating the position of the given atoms in the list of atoms and computing
-        the shortest route based on the internal graph structure.
+        Find the deterministic shortest-path indices between two atoms.
 
         Parameters:
         atom1: The first atom for which the shortest path is to be calculated.
@@ -2374,10 +2368,10 @@ class Molecule:
 
         Returns:
         list:
-            A list of integers representing the indices of the shortest path between
-            the given atoms in the graph, as determined by NetworkX.
+            A list of integers representing the path, or an empty list when the
+            atoms are disconnected.
         """
-        return nx.shortest_path(self.graph, self._atoms.index(atom1), self._atoms.index(atom2))
+        return self.shortest_path_index(atom1, atom2)
 
     @property
     def smiles(self) -> str:
@@ -5609,79 +5603,73 @@ class InternalCoordinates:
     def __init__(self, coordinates: np.ndarray, link_matrix: np.ndarray):
         self.coordinates = coordinates
         self.link_matrix = link_matrix
-        self._graph = nx.Graph()
-        self._graph.add_edges_from(link_matrix)
 
     @staticmethod
-    def calc_zmat_idx(graph_or_link: Union[nx.Graph, np.ndarray]) -> np.ndarray:
+    def calc_zmat_idx(
+            link_matrix: np.ndarray,
+            node_count: Optional[int] = None,
+    ) -> np.ndarray:
         """
-            Calculates the Z-Matrix index for a given graph representation. This function constructs
-            the Z-Matrix index for a molecular structure represented either as a NetworkX graph or as
-            an adjacency list (numpy ndarray). The Z-Matrix index is used to uniquely represent the
-            topology of molecules through connectivity information.
+            Calculate a Z-Matrix index from an explicit integer edge array.
 
             Parameters:
-            graph_or_link (Union[nx.Graph, np.ndarray]): The input graph representation. It can either be a
-                NetworkX Graph object or a numpy ndarray of shape (n_edges, 2) representing edges.
+            link_matrix: A numpy array of shape ``(n_edges, 2)``.
+            node_count: Optional total node count when isolated nodes are present.
 
             Returns:
             np.ndarray: A numpy array of shape (n_nodes, 4) where each node's connectivity pattern is
                 described by its corresponding index path in the graph.
 
             Raises:
-            TypeError: If the input parameter 'graph_or_link' is neither a NetworkX graph
-                nor a numpy ndarray.
             RuntimeError: If an incorrect Z-Matrix is constructed due to issues in graph traversal.
         """
-        if isinstance(graph_or_link, np.ndarray):
-            assert graph_or_link.shape[1] == 2
-            _graph = nx.Graph()
-            _graph.add_edges_from(graph_or_link)
-        elif isinstance(graph_or_link, nx.Graph):
-            _graph = graph_or_link
-        else:
-            raise TypeError(f"The graph_or_link argument should be a nx.Graph or np.ndarray")
+        edges = tuple(tuple(map(int, edge)) for edge in link_matrix)
+        if node_count is None:
+            node_count = 1 + max(
+                (node for edge in edges for node in edge),
+                default=-1,
+            )
+        adjacency = [set() for _ in range(node_count)]
+        for first, second in edges:
+            adjacency[first].add(second)
+            adjacency[second].add(first)
 
-        # TODO: check the nodes id, the nodes key should from 0 to n-1
-
-        # Create z-matrix index
-        zmat_idx = -1 * np.ones((_graph.number_of_nodes(), 4), dtype=int)
+        zmat_idx = -1 * np.ones((node_count, 4), dtype=int)
         visited_nodes = set()
-        num_nodes = len(_graph)
         node = 0
-        while len(visited_nodes) < num_nodes:
+        while len(visited_nodes) < node_count:
             row = len(visited_nodes)
             visited_nodes.add(node)
 
-            path = graph_algorithms.graph_dfs_path(
-                _graph,
-                node,
+            path = depth_first_path(
+                node_count,
+                edges,
+                start_node=node,
                 scope_nodes=visited_nodes,
-                max_deep=min(row + 1, 4),
+                max_depth=min(row + 1, 4),
             )
             zmat_idx[row, :row+1] = path
 
             try:
-                node = min(n for vn in visited_nodes for n in _graph.neighbors(vn) if n not in visited_nodes)
+                node = min(
+                    neighbor
+                    for visited in visited_nodes
+                    for neighbor in adjacency[visited]
+                    if neighbor not in visited_nodes
+                )
             except ValueError:
-                if not len(visited_nodes) == num_nodes:
+                if len(visited_nodes) != node_count:
                     raise RuntimeError("Get an incorrect Z-Matirx !!")
 
         return zmat_idx
 
     @staticmethod
-    def calc_zmat(graph_or_link: Union[nx.Graph, np.ndarray], coords: np.ndarray) -> np.ndarray:
+    def calc_zmat(link_matrix: np.ndarray, coords: np.ndarray) -> np.ndarray:
         """
-        Computes the Z-matrix representation of molecular coordinates.
-
-        This method computes the Z-matrix representation for a given molecular graph or connectivity
-        matrix and a corresponding set of atomic coordinates. The Z-matrix is represented as a 
-        NumPy array where each row contains the bond length, bond angle, and dihedral angle for 
-        atoms in the molecule.
+        Compute the Z-matrix from an explicit edge array and coordinates.
 
         Args:
-            graph_or_link (Union[nx.Graph, np.ndarray]): The molecular representation either as 
-                a networkx.Graph object or an adjacency matrix represented using NumPy.
+            link_matrix: A numpy array of shape ``(n_edges, 2)``.
             coords (np.ndarray): A 2D NumPy array of atomic coordinates with shape (N, 3), 
                 where N is the number of atoms.
 
@@ -5690,7 +5678,10 @@ class InternalCoordinates:
                 atom in the molecule, and the columns contain the bond length, bond angle, 
                 and dihedral angle, respectively, calculated for that atom using its connectivity.
         """
-        zmat_idx = InternalCoordinates.calc_zmat_idx(graph_or_link)
+        zmat_idx = InternalCoordinates.calc_zmat_idx(
+            link_matrix,
+            node_count=len(coords),
+        )
         zmat = -1 * np.ones((zmat_idx.shape[0], 3))
 
         for i, index in enumerate(zmat_idx):

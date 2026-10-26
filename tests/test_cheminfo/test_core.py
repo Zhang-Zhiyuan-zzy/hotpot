@@ -147,8 +147,8 @@ class TestChemInfo(ut.TestCase):
 
         print('Add hydrogens')
         t1 = time.time()
-        print(c1.graph)
-        print(c1.graph)
+        print(c1.link_matrix)
+        print(c2.link_matrix)
         print(c1.link_matrix)
         c1.add_hydrogens()
         print(c1.link_matrix)

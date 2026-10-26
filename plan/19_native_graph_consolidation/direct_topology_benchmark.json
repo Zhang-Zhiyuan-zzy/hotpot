@@ -1,0 +1,50 @@
+{
+  "correctness": {
+    "components_equal": true,
+    "longest_path_equal": true,
+    "shortest_path_equal": true
+  },
+  "median_us": {
+    "connected_components_direct_512_sparse": 290.82976,
+    "connected_components_networkx_512_sparse": 159.16637,
+    "connected_components_task_local_networkx_512_sparse": 713.46029,
+    "longest_simple_path_materializing_reference_k10_pair": 78308.589,
+    "longest_simple_path_streaming_k10_pair": 79536.118,
+    "molecule_shortest_path_index_512_chain": 322.20359,
+    "networkx_shortest_path_512_chain_reused_graph": 308.80286
+  },
+  "metadata": {
+    "complete_graph_fixed_pair": [
+      10,
+      0,
+      1
+    ],
+    "networkx": "3.6.1",
+    "platform": "Linux-5.15.0-139-generic-x86_64-with-glibc2.31",
+    "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "revision": "2848fb43be646a34295718513a419aadc3585614",
+    "samples": 21,
+    "shortest_path_chain_query": [
+      512,
+      7,
+      503
+    ],
+    "sparse_component_graph": {
+      "components": 8,
+      "edges": 576,
+      "nodes": 512
+    },
+    "worktree_dirty": true
+  },
+  "peak_tracemalloc_bytes": {
+    "longest_simple_path_materializing_reference_k10_pair": 14933160,
+    "longest_simple_path_streaming_k10_pair": 9312
+  },
+  "ratios": {
+    "components_direct_over_networkx_time": 1.8272060863108206,
+    "components_direct_over_task_local_networkx_time": 0.4076327219276633,
+    "longest_streaming_over_materializing_peak_memory": 0.0006235786665380938,
+    "longest_streaming_over_materializing_time": 1.0156755346466528,
+    "shortest_direct_over_networkx_time": 1.0433957444565118
+  }
+}

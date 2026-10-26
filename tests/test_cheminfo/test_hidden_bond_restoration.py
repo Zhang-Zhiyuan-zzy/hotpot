@@ -54,8 +54,8 @@ def test_restore_bonds_reuses_objects_and_updates_topology_once(monkeypatch):
     assert any(bond is ring_bond for bond in molecule.bonds)
     assert metal_bond.attr_dict == metal_attrs
     assert ring_bond.attr_dict == ring_attrs
-    assert molecule.graph.edges[0, 1]["bond"] is metal_bond
-    assert molecule.graph.edges[1, 2]["bond"] is ring_bond
+    assert molecule.bond(0, 1) is metal_bond
+    assert molecule.bond(1, 2) is ring_bond
     assert molecule.atoms[1] in molecule.atoms[0].neighbours
     assert molecule.atoms[2] in molecule.atoms[1].neighbours
     assert len(molecule.rings) == 1
@@ -76,14 +76,18 @@ def test_restore_bonds_can_restore_one_hidden_metal_bond_at_a_time():
 
     assert tuple(molecule.bonds) == (first_bond,)
     assert molecule._hided_metal_bonds == [second_bond]
-    assert set(molecule.graph.edges) == {(0, 1)}
+    assert {
+        frozenset((bond.a1idx, bond.a2idx)) for bond in molecule.bonds
+    } == {frozenset((0, 1))}
     assert molecule.atoms[0].neighbours == [molecule.atoms[1]]
 
     molecule.recover_hided_metal_ligand_bonds(clear_conformers=False)
 
     assert tuple(molecule.bonds) == (first_bond, second_bond)
     assert molecule._hided_metal_bonds == []
-    assert set(molecule.graph.edges) == {(0, 1), (0, 2)}
+    assert {
+        frozenset((bond.a1idx, bond.a2idx)) for bond in molecule.bonds
+    } == {frozenset((0, 1)), frozenset((0, 2))}
 
 
 @pytest.mark.parametrize("invalid_selection", ["active", "duplicate"])

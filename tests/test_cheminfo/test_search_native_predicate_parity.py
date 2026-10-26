@@ -25,9 +25,21 @@ def _query_graph(substructure):
     return graph
 
 
+def _target_graph(molecule):
+    graph = nx.Graph()
+    graph.add_nodes_from(
+        (atom.idx, {"atom": atom}) for atom in molecule.atoms
+    )
+    graph.add_edges_from(
+        (bond.a1idx, bond.a2idx, {"bond": bond})
+        for bond in molecule.bonds
+    )
+    return graph
+
+
 def _legacy_raw_mappings(substructure, molecule):
     matcher = nx.algorithms.isomorphism.GraphMatcher(
-        molecule.atom_bond_graph,
+        _target_graph(molecule),
         _query_graph(substructure),
         node_match=lambda target, query: query["qa"].match(target["atom"]),
         edge_match=lambda target, query: query["qb"].match(target["bond"]),

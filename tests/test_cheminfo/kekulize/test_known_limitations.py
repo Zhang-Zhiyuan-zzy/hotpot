@@ -54,7 +54,10 @@ def test_aromaticity_is_independent_of_relevant_cycle_order() -> None:
 )
 def test_azulene_is_perceived_without_imported_aromatic_flags() -> None:
     mol = hp.read_mol("C1=CC=C2C=CC=C2C=C1", "smi")
-    coordinates = nx.planar_layout(mol.graph)
+    graph = nx.Graph()
+    graph.add_nodes_from(range(len(mol.atoms)))
+    graph.add_edges_from((bond.a1idx, bond.a2idx) for bond in mol.bonds)
+    coordinates = nx.planar_layout(graph)
     for atom in mol.atoms:
         atom.coordinates = (*coordinates[atom.idx], 0.0)
         atom.is_aromatic = False

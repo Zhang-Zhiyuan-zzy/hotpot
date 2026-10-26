@@ -378,11 +378,92 @@ On the same local cubane checkout, uncached `Molecule.cycle_basis` measured
 60.79 us.  These values have different return layers and are recorded only as
 a regression guard, not as a claimed like-for-like speedup.
 
-Git checkpoint: pending Stage 5 commit.
+Git checkpoint: `2848fb4` (`feat(graph): implement deterministic cycle bases`).
 
 ### Stage 6 - remove Core graph state
 
-Status: not started.
+Status: complete; checkpoint pending.
+
+Performed:
+
+- added deterministic direct-edge component, shortest-path, simple-path,
+  longest-path, and one-branch DFS algorithms under the graph sublibrary;
+- routed Molecule component extraction, path access, canonical-tree work,
+  coordination component labeling, and Z-matrix traversal through explicit
+  Atom/Bond facts or task-local edge ranges;
+- made one-shot Molecule shortest paths traverse the ordered incident-Bond
+  range directly, and made longest-path enumeration streaming so it retains
+  only the current path and best result;
+- rebuilt the identity-keyed topology index only at the force-field CLI
+  ProcessPool deserialization boundary, leaving serial execution unchanged;
+- migrated dataset SMARTS capability detection and every active test oracle
+  away from Graph-returning Molecule properties;
+- deleted the transitional `_graph` initialization/rebuild and the public
+  `graph`, `simple_graph`, and `atom_bond_graph` properties;
+- deleted the unused cached `adjacency_matrix`, unimplemented
+  `super_acyclic_graph()`, and private NetworkX node/edge packing helpers;
+- removed the final Core, coordination, and Open Babel NetworkX imports; and
+- migrated hidden-bond, ring, geometry, kekulization, SMARTS, and coordination
+  tests to authoritative Atom/Bond/link-matrix facts or independent test-only
+  NetworkX oracles.
+
+Core change-budget result:
+
+```text
+new Core classes/methods/properties/attributes in Stage 6: 0
+remaining Core NetworkX references: 0
+remaining Molecule Graph properties/caches: 0
+sole persistent derived topology index: _topology_index
+```
+
+Verification:
+
+```text
+direct algorithms and migrated scientific consumers:
+  131 passed, 3 xfailed in 1.34 s
+topology, mutation, hidden-bond, ligand-ring, coordination, and rollback group:
+  96 passed, 2 existing warnings in 1.04 s
+shortest-path and InternalCoordinates integration:
+  2 passed, 1 existing warning
+force-field CLI and worker-boundary regression group:
+  53 passed in 4.21 s
+broad cheminformatics suite excluding the two documented legacy smoke modules:
+  1,783 passed, 6 skipped, 3 xfailed, 49 subtests passed in 245.33 s
+```
+
+Direct-topology benchmark evidence on fixed inputs is recorded in
+`direct_topology_benchmark.json`:
+
+| Operation | Final direct (us) | Reused legacy NetworkX (us) | Task-local NetworkX (us) |
+| --- | ---: | ---: | ---: |
+| 512-node, 576-edge components | 290.83 | 159.17 | 713.46 |
+| 512-chain shortest path 7 -> 503 | 322.20 | 308.80 | n/a |
+
+Component labeling is 1.83x slower than querying the removed persistent
+NetworkX cache, but 2.45x faster than constructing a task-local NetworkX Graph.
+The absolute 0.13 ms query delta is paired with the Stage 1 topology-refresh,
+copy, and 79.3% retained-state improvements. The direct shortest path is 4.3%
+slower than a reused NetworkX Graph and constructs no replacement cache.
+
+The first longest-path implementation materialized all paths. On the fixed K10
+pair it peaked at 14,933,160 bytes. Streaming retains identical deterministic
+output and similar wall time while peaking at 9,312 bytes, a 1,604x reduction.
+
+The direct algorithms intentionally make three previously backend-accidental
+edge cases explicit and test them: disconnected longest-path selection returns
+the deterministic longest component path instead of aborting on the first
+unreachable pair; both public shortest-path-index spellings return `[]` for a
+disconnected pair instead of exposing one NetworkX-specific exception; and
+Z-matrix construction includes a declared single isolate but rejects a
+multi-component topology instead of silently omitting nodes absent from the
+edge array.
+
+The broad legacy `test_core.py::test_atompair` remains intentionally outside
+the focused graph gate for the reason frozen at Stage 0: it performs 3D
+construction on a very large molecule and is not a bounded graph regression
+test. The maintained targeted tests cover the affected topology semantics.
+
+Git checkpoint: pending Stage 6 commit.
 
 ### Stage 7 - remove remaining public Graph-like surfaces
 

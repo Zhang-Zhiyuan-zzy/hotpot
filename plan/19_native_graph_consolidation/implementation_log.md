@@ -544,11 +544,49 @@ the dense reference), is 2.24x faster at 256 atoms, and 3.95x faster at 512
 atoms. This is an improvement from the measured sparse algorithm cutover, not
 from constructing Hotpot's private Graph.
 
-Git checkpoint: pending Stage 8 commit.
+Git checkpoint: `310921a` (`perf(mca): accelerate large shortest-path features`).
 
 ### Stage 9 - dependency and packaging cutover
 
-Status: not started.
+Status: complete; checkpoint pending.
+
+Performed:
+
+- removed NetworkX from `project.dependencies`, base requirements, and the
+  production runtime-distribution identity;
+- retained NetworkX only in `tests/requirements-inference.txt` for independent
+  oracles, fixtures, graph generators, and test layouts;
+- synchronized the pre-existing `cryptography` project dependency into base
+  requirements so the declared identical-list contract is green; and
+- added a packaging fence that proves NetworkX is test-only.
+
+Verification:
+
+```text
+packaging metadata and runtime-distribution identity:
+  16 passed in 2.73 s
+fresh CPython 3.11 wheel build with uv/PEP 517:
+  passed
+wheel METADATA Requires-Dist: networkx:
+  absent
+wheel native graph/search extension imports from extracted artifact:
+  passed
+obsolete _relevant_cycles extension and graph_adapter module in fresh wheel:
+  absent
+```
+
+The first local wheel attempt exposed an ignored stale `_relevant_cycles`
+binary in the pre-existing `build/` directory. That generated directory was
+deleted, the wheel was rebuilt from a clean build tree, and the final artifact
+contains only `_graph_native` and `_search_native`. This was a local incremental
+build residue, not a tracked source or extension declaration, but the clean
+artifact check prevents it from being mistaken for a retained backend.
+
+Supported Python 3.9-3.14 wheel/inference jobs remain encoded in the repository
+CI matrix; the local native artifact gate used CPython 3.11. Final closure will
+record the pushed-branch CI result separately from this local gate.
+
+Git checkpoint: pending Stage 9 commit.
 
 ### Stage 10 - final closure
 

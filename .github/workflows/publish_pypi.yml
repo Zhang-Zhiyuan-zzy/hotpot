@@ -39,9 +39,10 @@ jobs:
           CIBW_TEST_COMMAND: >-
             python -c "import hotpot;
             from hotpot.cheminfo.geometry import _geometry_native;
-            from hotpot.cheminfo.graph import _relevant_cycles, relevant_cycles;
+            from hotpot.cheminfo.graph import _graph_native, relevant_cycles;
             from hotpot.cheminfo.search import _search_native;
             from hotpot.cheminfo.obWrappers import _ob_native;
+            assert _graph_native.cycle_basis is not None;
             assert _search_native.NativeProblem is not None;
             assert tuple(h.atom_indices for h in hotpot.read_mol('CCO', 'smi').search_substructure('[C]-[O]')) == (frozenset((1, 2)),);
             assert relevant_cycles([(4, 7), (7, 9), (9, 4)]) == ((4, 7, 9),)"

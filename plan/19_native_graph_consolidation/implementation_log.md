@@ -502,11 +502,49 @@ negative import-layout assertion proving that it is absent. Test-only
 NetworkX use remains limited to independent scientific oracles, generators,
 and layouts.
 
-Git checkpoint: pending Stage 7 commit.
+Git checkpoint: `c355088` (`refactor(api): remove public graph-like surfaces`).
 
 ### Stage 8 - direct-target consolidation and optional performance work
 
-Status: not started.
+Status: complete; checkpoint pending.
+
+Performed:
+
+- retained union-find components, topology-index one-shot shortest paths, and
+  direct Z-matrix traversal instead of forcing construction of the private
+  native Graph;
+- benchmarked the MCA dense NumPy all-pairs shortest-path implementation
+  against SciPy CSR shortest paths on exact deterministic inputs;
+- adopted one fixed, non-profiled 256-atom cutover with a lazy SciPy import;
+  smaller inputs keep the original dense implementation and pay no import or
+  branch-specific conversion cost; and
+- retained directed weighted semantics, `int32` output, the value `510` for
+  disconnection/clipping, batch shapes, and downstream feature values exactly;
+  and
+- audited native force-field adjacency ownership and rejected additional
+  consolidation without a measured win: ring workspaces already reuse
+  topology/geometry revisions within each coarse stage, while the remaining
+  placement/session constructions have distinct scopes and would require a
+  new cache/API and invalidation lifecycle.
+
+Verification:
+
+```text
+complete MCA suite:
+  194 passed in 18.69 s
+threshold, disconnected, weighted, clipping, and dense-reference parity:
+  passed exactly
+benchmark runner JSON parity for 64/128/255/256/512 atoms:
+  exact at every size
+```
+
+The reproducible artifact `mca_shortest_paths_benchmark.json` records 21-sample
+medians. The final path remains within noise below the threshold (0.97-1.01x
+the dense reference), is 2.24x faster at 256 atoms, and 3.95x faster at 512
+atoms. This is an improvement from the measured sparse algorithm cutover, not
+from constructing Hotpot's private Graph.
+
+Git checkpoint: pending Stage 8 commit.
 
 ### Stage 9 - dependency and packaging cutover
 

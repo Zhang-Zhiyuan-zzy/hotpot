@@ -27,6 +27,8 @@ ALLOWABLE = {
     "conjugated": [False, True],
 }
 
+_SPARSE_SHORTEST_PATH_THRESHOLD = 256
+
 
 def _safe_index(values, value):
     return values.index(value) if value in values else len(values) - 1
@@ -66,6 +68,15 @@ def _single_embedding(values, sizes):
 
 
 def _shortest_paths(adjacency):
+    if adjacency.shape[0] >= _SPARSE_SHORTEST_PATH_THRESHOLD:
+        from scipy.sparse import csr_array
+        from scipy.sparse.csgraph import shortest_path
+
+        distances = shortest_path(csr_array(adjacency), directed=True)
+        distances[~np.isfinite(distances)] = 510
+        distances[distances >= 510] = 510
+        return distances.astype(np.int32)
+
     distances = np.where(adjacency == 0, 510, adjacency).astype(np.int32)
     np.fill_diagonal(distances, 0)
     for intermediate in range(distances.shape[0]):

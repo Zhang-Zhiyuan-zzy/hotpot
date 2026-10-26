@@ -215,3 +215,93 @@ Remaining closure work:
 - clean wheel/sdist audit;
 - 182-case O0 integration validation from the tracked extractant source;
 - final zero-reference gates, migration-matrix closure, and report.
+
+Git checkpoint: `b5e04d6 merge(M_17-19): integrate native graph and RDKit stereo`.
+
+## Stage 7 — Validate the integrated O0 complex route on all 182 cases
+
+Status: complete
+
+Performed:
+
+- rebuilt the cohort from the tracked 187-entry
+  `molecules/extractant/extractants.smi` source and the current CBond model;
+- obtained 182 connected coordination cases with canonical cohort SHA-256
+  `8f68e8b74d51eac07f28846cb901e92b94e5697aa0495733dbc44e03ae198102`;
+- ran all 182 cases through the unchanged O0
+  `cbond -> build -> optimize -> acceptance` route with 16 workers; and
+- retained every failed intermediate proposal/diagnostic as evidence while
+  judging the selected optimum under A01-A10.
+
+Result:
+
+- 182 planned, 182 observed, 0 missing, 0 duplicate, 0 unexpected;
+- 182 automated passes, 0 automated rejects;
+- A01 through A10 each passed 182/182;
+- cohort/route/runner/working-copy contracts: 32 passed;
+- per-case total: p50 7.448 s, p95 18.499 s, max 41.559 s, summed
+  case time 1598.237 s;
+- selected outputs are under `/tmp/hotpot-m17-19-o0/formal` and are not
+  repository assets.
+
+Scope statement:
+
+- the runner's `formal` flag requires the complete O0/F1/F2/C1/C2 plus F1
+  repeat matrix (1092 results). This merge-specific run intentionally used
+  the O0-only non-formal invocation because O0 remains the decided complex
+  default. It nevertheless evaluates all 182 O0 cases with the full A01-A10
+  contract; it is not reported as a rerun of the full five-route matrix.
+- no new human visual review was performed.
+
+## Stage 8 — Clean artifacts, standalone SDK, and final closure
+
+Status: complete
+
+Performed:
+
+- created a clean detached worktree at merge commit `b5e04d6`;
+- built an sdist, then built the CPython 3.11 wheel from that sdist with the
+  locked offline RDKit source closure;
+- installed the wheel outside the checkout and smoke-tested graph, search,
+  geometry, OpenBabel, rdWrapper, substructure search, and cycle imports;
+- built and installed the standalone rdWrapper C/C++ SDK and tested both
+  `_GLIBCXX_USE_CXX11_ABI` consumer modes;
+- closed every row of the API/implementation migration matrix; and
+- reran active-code uniqueness/deletion scans and whitespace checks.
+
+Results:
+
+| Gate | Result |
+|---|---|
+| sdist | `hotpot_zzy-0.5.4.0.tar.gz`, 1.4 MiB |
+| wheel | `hotpot_zzy-0.5.4.0-cp311-cp311-linux_x86_64.whl`, 5.2 MiB |
+| native modules | all five current modules present and importable |
+| obsolete modules | none of graph adapter, old Relevant-Cycles extension, or archived search island present |
+| dependencies | no runtime NetworkX; exact RDKit/OpenBabel requirements present |
+| installed-wheel smoke | passed outside checkout; native RDKit reports 2026.09.1 |
+| standalone SDK | 7 passed |
+| packaging metadata | 10 passed |
+| final focused regression | 79 passed |
+
+Local non-claims:
+
+- no live GPU execution;
+- no Python 3.9-3.14 cross-version matrix beyond local CPython 3.11;
+- no dynamic PyG run where its optional dependency was unavailable; and
+- no repeated five-route Plan 17 formal matrix or new human visual review.
+
+Final static closure:
+
+```text
+production NetworkX imports/runtime requirements: 0
+old topology updater references: 0
+legacy Graph surface definitions: 0
+old MCA adapter files: 0
+archived search modules: 0
+legacy RDKit hydrogen transport references: 0
+_NativeSpecTarget references: 0
+production GraphMatcher references: 0
+_rm_atom(s)/_rm_bond(s) helper definitions: 0
+native Graph definitions: 1
+topology refresh definitions: 1
+```

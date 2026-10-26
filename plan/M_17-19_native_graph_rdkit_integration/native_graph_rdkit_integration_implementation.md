@@ -127,7 +127,7 @@ hotpot.cheminfo.graph
 |- calc_spectrum(...)
 |- calc_electron_config(...)
 |- atoms_electron_configurations(...)
-|- graph_dfs_path(nodes, edges, ...)
+|- graph_dfs_path(node_count, edges, ...)
 |- relevant_cycles(...)
 |- GraphSpectrum
 |- RelevantCycleLimitExceeded

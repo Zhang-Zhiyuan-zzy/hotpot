@@ -1,16 +1,18 @@
 # M_17-19: Native graph, stereochemistry, and RDKit integration
 
-Status: implementation authorized; integration in progress.
+Status: implementation and local validation complete.
 
 Integration branch: `merge/m17-19-native-graph-rdwrapper`
 
 Integration worktree: `/tmp/hotpot-m17-19`
 
-Current parent: `6639754`
+Initial parent: `6639754`
 
 Graph parent: `clean/networkx@b912c8a`
 
 Common ancestor: `2704f3c`
+
+Semantic merge commit: `b5e04d6`
 
 This merge stage integrates the completed Plan 19 single-source native graph
 architecture with the completed and proposed Plan 17 stereochemistry,
@@ -33,8 +35,7 @@ Documents:
 - [Normative implementation plan](native_graph_rdkit_integration_implementation.md)
 - [API and implementation migration matrix](api_implementation_migration_matrix.md)
 - [Implementation log](implementation_log.md)
-- `implementation_report.md` will be added after all implementation and
-  validation gates close.
+- [Implementation report](implementation_report.md)
 
 This directory records integration evidence. It does not replace the original
 Plan 17 or Plan 19 plans, logs, reports, benchmarks, and scientific evidence.

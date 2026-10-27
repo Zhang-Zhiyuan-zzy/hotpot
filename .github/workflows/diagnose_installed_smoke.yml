@@ -49,7 +49,7 @@ jobs:
           HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
           HOTPOT_MODEL_SOURCE: local
         run: |
-          sites=$(python -c 'import hotpot; from hotpot.cheminfo.AImodels.mca import MCAPredictor; prediction = MCAPredictor(device="cpu").predict(hotpot.to_hotpot_mol("C1CCCCN1")); print(";".join(f"{site.atom_index}:{site.mca_kj_mol:.12f}" for site in prediction.sites))' 2>&1 || true)
+          sites=$(python -c 'from hotpot.cheminfo.AImodels.mca import predict_mca_cpu; prediction = predict_mca_cpu("C1CCCCN1"); print(";".join(f"{site.atom_index}:{site.mca_kj_mol:.12f}" for site in prediction.sites))' 2>&1 || true)
           sites=$(printf '%s\n' "$sites" | tail -1 | tr -d '\r')
           echo "sites=$sites" >> "$GITHUB_OUTPUT"
       - name: CBond smoke

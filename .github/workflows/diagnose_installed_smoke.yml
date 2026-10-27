@@ -12,6 +12,8 @@ permissions:
 jobs:
   diagnose:
     runs-on: ubuntu-latest
+    outputs:
+      mca_sites: ${{ steps.mca.outputs.sites }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -40,15 +42,15 @@ jobs:
         env:
           HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
         run: hotpot models install --all
-      - name: MCA smoke
+      - name: Read MCA prediction
+        id: mca
         working-directory: /tmp
         env:
           HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
           HOTPOT_MODEL_SOURCE: local
-        run: >-
-          python
-          "${{ github.workspace }}/tests/test_packaging/installed_package_smoke.py"
-          mca
+        run: |
+          sites=$(python -c 'import hotpot; from hotpot.cheminfo.AImodels.mca import MCAPredictor; prediction = MCAPredictor(device="cpu").predict(hotpot.to_hotpot_mol("C1CCCCN1")); print(";".join(f"{site.atom_index}:{site.mca_kj_mol:.12f}" for site in prediction.sites))')
+          echo "sites=$sites" >> "$GITHUB_OUTPUT"
       - name: CBond smoke
         working-directory: /tmp
         env:
@@ -58,3 +60,10 @@ jobs:
           python
           "${{ github.workspace }}/tests/test_packaging/installed_package_smoke.py"
           cbond
+
+  report:
+    needs: diagnose
+    name: MCA ${{ needs.diagnose.outputs.mca_sites }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: "true"

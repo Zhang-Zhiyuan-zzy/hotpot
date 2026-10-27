@@ -321,7 +321,7 @@ jobs:
           python
           "${{ github.workspace }}/tests/test_packaging/installed_package_smoke.py"
           core
-      - name: Smoke-test installed inference
+      - name: Smoke-test installed MCA inference
         working-directory: /tmp
         env:
           HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
@@ -329,7 +329,16 @@ jobs:
         run: >-
           python
           "${{ github.workspace }}/tests/test_packaging/installed_package_smoke.py"
-          inference
+          mca
+      - name: Smoke-test installed CBond inference
+        working-directory: /tmp
+        env:
+          HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
+          HOTPOT_MODEL_SOURCE: local
+        run: >-
+          python
+          "${{ github.workspace }}/tests/test_packaging/installed_package_smoke.py"
+          cbond
       - name: Smoke-test installed force-field workflows
         working-directory: /tmp
         env:

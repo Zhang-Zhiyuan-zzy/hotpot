@@ -1,0 +1,60 @@
+name: Diagnose installed inference smoke
+
+on:
+  push:
+    branches:
+      - fix/github-workflows
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Download the previously validated CPython 3.11 wheel
+        uses: actions/download-artifact@v8
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 40445318302
+          name: wheel-cp311
+          path: wheelhouse
+      - name: Install wheel and inference dependencies
+        run: |
+          python -m pip install -r tests/requirements-inference.txt
+          python -m pip install --no-deps --force-reinstall wheelhouse/*.whl
+      - name: Cache inference models
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/hotpot-models
+          key: ${{ runner.os }}-hotpot-models-v2-${{ hashFiles('hotpot/cheminfo/AImodels/mca/models/manifest.json', 'hotpot/cheminfo/AImodels/cbond/onnx/manifest.json') }}
+      - name: Install inference models
+        working-directory: /tmp
+        env:
+          HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
+        run: hotpot models install --all
+      - name: MCA smoke
+        working-directory: /tmp
+        env:
+          HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
+          HOTPOT_MODEL_SOURCE: local
+        run: >-
+          python
+          "${{ github.workspace }}/tests/test_packaging/installed_package_smoke.py"
+          mca
+      - name: CBond smoke
+        working-directory: /tmp
+        env:
+          HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
+          HOTPOT_MODEL_SOURCE: local
+        run: >-
+          python
+          "${{ github.workspace }}/tests/test_packaging/installed_package_smoke.py"
+          cbond

@@ -87,7 +87,7 @@ def core() -> None:
     assert "Results and failure semantics" in run_documentation
 
 
-def inference() -> None:
+def mca() -> None:
     import hotpot
     from hotpot.cheminfo.AImodels.mca import MCAPredictor
 
@@ -96,6 +96,8 @@ def inference() -> None:
     assert len(prediction.atom_predictions) == 6
     assert abs(prediction.sites[0].mca_kj_mol - 503.25) < 1e-6
 
+
+def cbond() -> None:
     cbond_result = _stdout(
         "hotpot", "cbond", "Eu", "CN", "--device", "cpu"
     ).strip()
@@ -122,6 +124,11 @@ def inference() -> None:
     assert "Rank 1: Prob:" in cbond_ranked
     assert "Cbond Detail:" in cbond_ranked
     assert cbond_ranked.rstrip().endswith("-- End --")
+
+
+def inference() -> None:
+    mca()
+    cbond()
 
 
 def forcefield() -> None:
@@ -175,4 +182,10 @@ def forcefield() -> None:
 
 
 if __name__ == "__main__":
-    {"core": core, "inference": inference, "forcefield": forcefield}[sys.argv[1]]()
+    {
+        "core": core,
+        "mca": mca,
+        "cbond": cbond,
+        "inference": inference,
+        "forcefield": forcefield,
+    }[sys.argv[1]]()

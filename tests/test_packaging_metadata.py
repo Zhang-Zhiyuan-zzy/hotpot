@@ -48,6 +48,22 @@ def test_networkx_is_test_only():
     assert "networkx" in inference_requirements.lower()
 
 
+def test_inference_requirements_cover_runtime_dependencies():
+    with (ROOT / "pyproject.toml").open("rb") as stream:
+        project_dependencies = tomllib.load(stream)["project"]["dependencies"]
+    inference_dependencies = [
+        line.strip()
+        for line in (ROOT / "tests" / "requirements-inference.txt")
+        .read_text(encoding="utf-8")
+        .splitlines()
+        if line.strip() and not line.startswith("#")
+    ]
+
+    assert _requirement_map(project_dependencies).items() <= _requirement_map(
+        inference_dependencies
+    ).items()
+
+
 def test_package_version_matches_project_metadata():
     with (ROOT / "pyproject.toml").open("rb") as stream:
         project_version = tomllib.load(stream)["project"]["version"]

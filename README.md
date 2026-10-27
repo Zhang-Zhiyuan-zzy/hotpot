@@ -22,7 +22,8 @@ Hotpot is designed around four layers:
    reliably;
 3. a silent cheminformatics layer that applies domain rules without burdening
    the caller with implementation details; and
-4. AI backends exposed as chemistry operations rather than training code.
+4. AI backends exposed as chemistry operations with training details kept
+   behind the backend boundary.
 
 The public documentation therefore focuses on observable behavior, scientific
 scope, and stable interfaces. Internal chemical decision policies and model
@@ -62,8 +63,8 @@ use, and reproducible pipelines. Every primary chemistry command accepts
 
 Top-level help also lists `convert`, `optimize`, and `ml_train`. `convert` is a
 low-level format utility. The latter two are optional research workflows and
-require the `optimize` extra; they are not part of the stable chemistry
-pipeline surface described below.
+are available through the `optimize` extra. The table above defines the stable
+chemistry pipeline surface.
 
 ### Dataset management
 
@@ -74,9 +75,9 @@ licensed structures and generated databases therefore remain local while their o
 and validation rules remain reviewable.
 
 A benchmark is a governed quality state of data or a subset, expressed through
-`quality_level` together with its evidence and policy metadata. It is not a parallel storage
-tree or a separate kind of dataset. Hotpot implements only the dataset schema and CLI
-protocol in the current Git revision; superseded implementations are not retained.
+`quality_level` together with its evidence and policy metadata. Benchmarks
+share the dataset storage tree and schema. The current revision provides one
+dataset schema and one CLI protocol.
 
 ### MCA prediction
 
@@ -129,8 +130,8 @@ AtomIdx  Atom  Score
 ```
 
 This is the `(CyMe4)Pyz-PrMe-DIPhen` extractant used in Hotpot's coordination
-chemistry examples. The result is not a decorative single-bond demonstration:
-the model selects four donor atoms across a chemically complex ligand,
+chemistry examples. The result demonstrates multi-donor coordination: the
+model selects four donor atoms across a chemically complex ligand,
 constructs the Eu coordination graph, and reports the score associated with
 each selected metal–donor bond. The ligand may also be supplied as a molecular
 file. Use `--all-structures` when ranked alternative coordination structures
@@ -166,12 +167,12 @@ $ hotpot cbond Eu \
 ### xTB and controlled workflows
 
 `hotpot xtb` accepts complete explicit-atom structures with finite 3D
-coordinates. It wraps an independently installed official xTB executable; it
-does not build a bare SMILES or silently replace an unsupported method.
-GFN-FF and GFN-xTB remain independent nodes and can be composed as a pure SDF
-stream. Explicit electronic-state values take precedence; otherwise Hotpot
-records its charge and spin inference provenance. GFN-FF consumes total
-charge, while GFN0/1/2-xTB consume total charge and unpaired-electron count.
+coordinates and launches a separately installed official xTB executable.
+GFN-FF and GFN-xTB are explicit, independently composable nodes connected by
+a pure SDF stream. Explicit electronic-state values take precedence;
+otherwise Hotpot records its charge and spin inference provenance. GFN-FF
+consumes total charge, while GFN0/1/2-xTB consume total charge and
+unpaired-electron count.
 
 <!-- Verified by tests/test_plugin/test_xtb/test_pipeline_integration.py::test_standalone_shell_composes_gfnff_then_gfn2_as_pure_sdf -->
 
@@ -183,7 +184,8 @@ $ hotpot xtb input.sdf --method gfnff --task optimize \
 
 For multi-stage automation, `hotpot run` transfers molecular objects in memory
 and creates an ordered, content-addressed evidence tree. The exact `::` token
-separates stages; no stage argument is evaluated by a shell:
+separates stages, and stage arguments pass directly to their registered
+commands:
 
 <!-- Verified by
 tests/test_cli/test_run_cli.py::test_inline_and_json_workflows_normalize_to_identical_stage_specs,
@@ -198,9 +200,8 @@ $ hotpot run --results-dir results/eu-001 -- \
     :: xtb --method gfn2 --task optimize
 ```
 
-`--rebuild` is explicit here because CBond defines the coordination topology
-but its retained 2D coordinates are not a force-field-built 3D starting
-structure.
+CBond supplies the coordination topology; `--rebuild` asks the force-field
+stage to generate its 3D starting structure.
 
 The xTB [Python API and plugin guide](hotpot/plugins/xtb/README.md) and the
 [controlled-pipeline API](hotpot/pipeline/README.md) define state propagation,
@@ -215,8 +216,8 @@ are currently provided only for manylinux x86-64.
 The latest published PyPI distribution may lag behind this checkout. In
 particular, PyPI `0.5.4.0` predates the current native graph and rdWrapper
 integration and retains its original Python and RDKit dependency metadata.
-Use Python 3.10–3.14 for both installations; do not infer the current source
-contract from an older wheel that pip happens to accept.
+Use Python 3.10–3.14 for both installations. Published package metadata defines
+the wheel contract, while this repository defines the current source contract.
 
 ### Install from PyPI
 
@@ -230,9 +231,8 @@ $ python -m pip install hotpot-zzy
 ### Install the current source
 
 The current source build compiles all native extensions, including a locked
-RDKit ETKDG closure. It is a Linux x86-64 developer workflow rather than a
-portable fallback for platforms without wheels. Create the pinned build
-toolchain before running the editable install:
+RDKit ETKDG closure. The supported developer build target is Linux x86-64 with
+the pinned toolchain below:
 
 ```bash
 $ git clone https://github.com/Zhang-Zhiyuan-zzy/hotpot.git
@@ -286,7 +286,7 @@ for version selection, interactive use, and image export.
 
 | Extra | Installation | Scope |
 |---|---|---|
-| `pymol` | `python -m pip install 'hotpot-zzy[pymol]'` | NumPy constraints compatible with PyMOL 3.1; PyMOL itself is not installed |
+| `pymol` | `python -m pip install 'hotpot-zzy[pymol]'` | NumPy constraints for use with a separate PyMOL 3.1 installation |
 | `optimize` | `python -m pip install 'hotpot-zzy[optimize]'` | Classical optimization and machine-learning workflows |
 | `datasets` | `python -m pip install 'hotpot-zzy[datasets]'` | Dataset download, HDF5, and PyG support |
 | `complexformer` | `python -m pip install 'hotpot-zzy[complexformer]'` | ComplexFormer training and LoRA dependencies |
@@ -296,18 +296,15 @@ for version selection, interactive use, and image export.
 PyMOL 3.1 requires `numpy>=1.26.4,<2`. Use the `pymol` extra in an isolated
 environment if PyMOL is required.
 
-GPU ONNX inference requires an `onnxruntime-gpu` build compatible with the
-machine's CUDA and cuDNN libraries; the newest runtime is not necessarily
-compatible with every installed CUDA version. The MCA CLI defaults to CPU;
-select `--backend gpu` explicitly for GPU-preferred execution. Calls below the
-256-site startup threshold stay on CPU silently (or report the decision under
-`hotpot -d`); after GPU startup, failures are not retried on CPU.
+GPU ONNX inference uses an `onnxruntime-gpu` build matched to the machine's
+CUDA and cuDNN libraries. The MCA CLI defaults to CPU; select `--backend gpu`
+explicitly for GPU-preferred execution. Calls below the 256-site startup
+threshold stay on CPU silently (or report the decision under `hotpot -d`);
+after GPU startup, CUDA and OOM failures are reported directly.
 
 The xTB integration requires a separately installed official `xtb`
 executable. Select it with `--xtb-executable`, `HOTPOT_XTB_EXECUTABLE`, or
-`PATH`, in that order. Hotpot does not bundle or replace the numerical backend.
-The official validation reported below used xTB 6.7.1; neither the Python
-package nor the Docker images bundle that executable.
+`PATH`, in that order. The official validation reported below used xTB 6.7.1.
 
 ## Python interface
 
@@ -435,10 +432,10 @@ search engine while preserving metal-aware matching and the existing Python
 API. See the
 [SMARTS guide](hotpot/cheminfo/smarts.md) for its public syntax and examples.
 
-The production matcher and cycle algorithms do not depend on NetworkX.
-Python remains responsible for chemical object ownership, field-selective
-packing, and callable predicates; callable predicates cross into Python only
-for the predicate itself rather than replacing the native search traversal.
+Native RI traversal and cycle algorithms operate directly on Hotpot topology
+buffers. Python chemical objects provide field-selective data and callable
+predicates; predicate callbacks compose with the native traversal at the
+predicate boundary.
 
 ### Native RDKit conformer component
 
@@ -446,8 +443,8 @@ for the predicate itself rather than replacing the native search traversal.
 public Python surface provides `ETKDGSampler`, `ETKDGOptions`,
 `CoordinationEmbeddingConstraints`, `generate_conformers`, and
 `runtime_info`. The same component also exposes a versioned C ABI and a C++17
-SDK; the SDK is installed separately and is not presented as part of the
-Python wheel.
+SDK. Hotpot's Python wheel build packages the native Python component, while
+the separately installed SDK serves C and C++ consumers.
 
 <!-- Verified by tests/readme/test_readme_examples.py::test_readme_native_rdwrapper_output -->
 
@@ -463,13 +460,11 @@ batch = rdWrappers.generate_conformers(
 print(batch.coordinates.shape)
 ```
 
-The native component currently proposes conformers with ETKDGv3; it does not
-provide native RDKit UFF or MMFF optimization. Its presence also does not
-imply a global backend switch: the established complex force-field workflow
-is unchanged, and MCA currently retains its Python RDKit
-ETKDGv3-plus-MMFF/UFF conformer path. The private conformer-provider seam
-allows controlled backend experiments without creating a second public
-force-field workflow.
+The current native scope is deterministic ETKDGv3 conformer proposal. The
+established complex force-field workflow continues to use its validated
+optimizer, and MCA uses its established Python RDKit ETKDGv3-plus-MMFF/UFF
+path. A private conformer-provider seam supports controlled backend experiments
+through the same public force-field workflow.
 
 ### Molecular assembly
 
@@ -490,8 +485,8 @@ SHA-256. They can also be installed before an offline run:
 $ hotpot models install --all
 ```
 
-Users do not need the training implementation to call the stable
-chemistry-facing interfaces.
+The stable chemistry-facing interfaces operate independently from the training
+implementation.
 
 ## Geometry and force-field validation
 
@@ -532,11 +527,29 @@ optimization results comparable under the same public geometry-quality gate.
 
 The current validation corpus covers 187 isolated extractants and 182
 CBond-positive coordination complexes. Hotpot's complete complex workflow
-produced geometry-gate-passing structures for all 182 complexes; this is a
-workflow acceptance result, not a claim that every coordination environment
-is chemically definitive. Independent xTB 6.7.1 parity checks cover energies,
-optimized coordinates, charged species, radicals, and controlled coordination
-pipelines.
+produced geometry-gate-passing structures for all 182 complexes. The gate
+certifies the configured structural checks; coordination-chemistry
+interpretation remains a separate scientific assessment. Independent xTB
+6.7.1 parity checks cover energies, optimized coordinates, charged species,
+radicals, and controlled coordination pipelines.
+
+### Backend comparison
+
+![Ligand and Am coordination-complex geometry and efficiency comparison](assets/readme/coordination_complex_backend_comparison.png)
+
+*Geometry acceptance and construction-plus-optimization efficiency for 187
+isolated ligands and 182 CBond-positive Am–ligand complexes.*
+
+### Coordination-complex gallery
+
+![Am coordination complexes constructed from CBond-positive extractants](assets/readme/am_extractant_cbond_complexes.png)
+
+*Workflow-selected structures for the 182 CBond-positive extractants.*
+
+![Extractant ligands without an inferred Am coordination bond](assets/readme/am_extractant_no_cbond_ligands.png)
+
+*The five extractants outside the CBond-positive complex cohort, shown as 3D
+ligand structures.*
 
 The [complete validation evidence](doc/validation_evidence.md) contains the
 backend comparison tables, timing definitions, construction galleries,
@@ -544,23 +557,21 @@ per-case evidence, and xTB route analysis.
 
 ## Scientific boundaries
 
-- MCA values are model predictions in kJ/mol and are not Mayr nucleophilicity
-  parameters.
-- Ranked CBond path probabilities are model-relative weights, not calibrated
-  experimental probabilities.
-- A force-field quality pass means that the configured structural checks
-  passed; it does not prove that the global minimum, oxidation state, ligand
-  field, or experimentally dominant conformer is correct.
-- Macroscopic observables generally describe ensembles and environments. A
-  single optimized molecular structure should not be treated as a complete
-  thermodynamic or experimental model.
+- MCA values report model-predicted methyl cation affinity in kJ/mol; Mayr
+  nucleophilicity is a separate molecular property.
+- Ranked CBond path probabilities express model-relative weights. Experimental
+  probability calibration is a separate analysis.
+- A force-field quality pass certifies the configured structural checks.
+  Global-minimum assignment, oxidation state, ligand field, and dominant
+  conformer assignment require their corresponding scientific analyses.
+- A single optimized molecular structure represents one candidate geometry;
+  macroscopic observables describe ensembles and environments.
 - Automatic xTB charge/spin preparation records its assumptions. The default
-  spin rule is electron-parity based and is not a prediction of oxidation
-  state, ligand field, or physical ground-state multiplicity.
-- Hotpot's declared applicability domain for stable official xTB 6.7.1 stops
-  at Rn (`Z <= 86`) for bundled GFN-FF and GFN0/1/2-xTB parameters. It rejects
-  Am before launch; the Am force-field benchmark and gallery above do not
-  imply xTB support for Am.
+  spin rule uses electron parity; oxidation state, ligand field, and physical
+  ground-state multiplicity remain explicit scientific inputs.
+- Hotpot's declared applicability domain for stable official xTB 6.7.1 reaches
+  Rn (`Z <= 86`) for bundled GFN-FF and GFN0/1/2-xTB parameters. The Am
+  benchmark and gallery above use the force-field workflow.
 - Native convergence and a Hotpot post-geometry pass are separate facts. An
   xTB benchmark pass requires both successful native execution and the
   requested Hotpot geometry gate.
@@ -587,7 +598,8 @@ relevant to the workflow:
 - AI-assisted molecular generation and conditional design.
 - Oxidation-state perception for coordination systems.
 
-Roadmap entries are design intentions rather than currently supported APIs.
+The roadmap lists future design intentions; the sections above define the
+current supported APIs.
 
 ## Development
 

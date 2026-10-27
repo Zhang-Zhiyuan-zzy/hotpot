@@ -66,6 +66,8 @@ on:
       - "MANIFEST.in"
       - ".github/workflows/inference_compatibility.yml"
   push:
+    branches:
+      - "**"
     paths:
       - "README.md"
       - "hotpot/cheminfo/AImodels/artifacts/**"
@@ -131,6 +133,9 @@ on:
       - ".github/workflows/inference_compatibility.yml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   cpu-inference:
     needs: package-smoke
@@ -138,7 +143,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        include:
+          - python-version: "3.10"
+            python-tag: cp310
+          - python-version: "3.11"
+            python-tag: cp311
+          - python-version: "3.12"
+            python-tag: cp312
+          - python-version: "3.13"
+            python-tag: cp313
+          - python-version: "3.14"
+            python-tag: cp314
 
     steps:
       - uses: actions/checkout@v7
@@ -151,50 +166,74 @@ jobs:
         with:
           path: ${{ runner.temp }}/hotpot-models
           key: ${{ runner.os }}-hotpot-models-v2-${{ hashFiles('hotpot/cheminfo/AImodels/mca/models/manifest.json', 'hotpot/cheminfo/AImodels/cbond/onnx/manifest.json') }}
+      - name: Download the wheel built for this Python
+        uses: actions/download-artifact@v8
+        with:
+          name: wheel-${{ matrix.python-tag }}
+          path: wheelhouse
       - name: Install compatibility runner
         run: python -m pip install uv
       - name: Test maintained inference and graph-search matrix
         env:
           HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
-        run: ./tests/run_inference_compatibility.sh "${{ matrix.python-version }}"
+          HOTPOT_TEST_WORKDIR: ${{ runner.temp }}/hotpot-tests
+        run: |
+          HOTPOT_TEST_WHEEL=$(find wheelhouse -name '*.whl' -print -quit)
+          export HOTPOT_TEST_WHEEL
+          mkdir -p "$HOTPOT_TEST_WORKDIR"
+          ./tests/run_inference_compatibility.sh "${{ matrix.python-version }}"
 
   native-wheel:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-tag: [cp310, cp311, cp312, cp313, cp314]
 
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - name: Build and smoke-test the native wheel
+        uses: pypa/cibuildwheel@v4.3.0
+        env:
+          CIBW_BUILD: ${{ matrix.python-tag }}-manylinux_x86_64
+          CIBW_ARCHS_LINUX: x86_64
+          CIBW_MANYLINUX_X86_64_IMAGE: >-
+            quay.io/pypa/manylinux_2_28_x86_64@sha256:39df0042d5cc900b085aa25a0659368b42a0006c54c474299b785b44c1b4ff82
+          CIBW_CONTAINER_ENGINE: >-
+            docker; disable_host_mount: true
+          CIBW_ENVIRONMENT_LINUX: >-
+            HOTPOT_RDWRAPPERS_BUILD_PROFILE=manylinux_2_28_x86_64
+            HOTPOT_RDKIT_SOURCE_CACHE=/tmp/hotpot-rdkit-source-cache
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: >-
+            auditwheel repair
+            --exclude libopenbabel.so.7
+            --exclude libopenbabel.so.8
+            -w {dest_dir} {wheel}
+          CIBW_TEST_COMMAND: >-
+            python -c "import hotpot;
+            from hotpot.cheminfo.geometry import _geometry_native;
+            from hotpot.cheminfo.graph import GraphSpectrum, relevant_cycles;
+            from hotpot.cheminfo.search import _search_native;
+            from hotpot.cheminfo.obWrappers import _ob_native;
+            from hotpot.cheminfo import rdWrappers;
+            assert GraphSpectrum is not None;
+            assert _geometry_native is not None and _ob_native is not None;
+            assert _search_native.NativeProblem is not None;
+            assert tuple(h.atom_indices for h in hotpot.read_mol('CCO', 'smi').search_substructure('[C]-[O]')) == (frozenset((1, 2)),);
+            assert relevant_cycles([(4, 7), (7, 9), (9, 4)]) == ((4, 7, 9),);
+            info = rdWrappers.runtime_info();
+            assert info.native and info.rdkit_version == '2026.09.1'"
+      - name: Audit wheel contents
+        run: python tests/test_packaging/audit_rdwrapper_wheel.py wheelhouse/*.whl
+      - name: Upload wheel
+        uses: actions/upload-artifact@v7
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: pip
-      - name: Install build and runtime dependencies
-        run: python -m pip install build -r tests/requirements-inference.txt
-      - name: Build and install the native wheel
-        run: |
-          python -m build --wheel --outdir /tmp/hotpot-native-wheel
-          python -m pip install /tmp/hotpot-native-wheel/*.whl
-          python -m pip check
-      - name: Smoke-test the installed native graph API
-        working-directory: /tmp
-        run: |
-          python - <<'PY'
-          import hotpot
-
-          from hotpot.cheminfo.graph import GraphSpectrum, relevant_cycles
-          from hotpot.cheminfo.search import _search_native
-
-          assert GraphSpectrum is not None
-          assert _search_native.NativeProblem is not None
-          assert relevant_cycles([(4, 7), (7, 9), (9, 4)]) == ((4, 7, 9),)
-          hits = hotpot.read_mol("CCO", "smi").search_substructure("[C]-[O]")
-          assert tuple(hit.atom_indices for hit in hits) == (frozenset({1, 2}),)
-          PY
+          name: wheel-${{ matrix.python-tag }}
+          path: wheelhouse/*.whl
+          if-no-files-found: error
 
   package-smoke:
+    needs: native-wheel
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -207,11 +246,16 @@ jobs:
         with:
           path: ${{ runner.temp }}/hotpot-models
           key: ${{ runner.os }}-hotpot-models-v2-${{ hashFiles('hotpot/cheminfo/AImodels/mca/models/manifest.json', 'hotpot/cheminfo/AImodels/cbond/onnx/manifest.json') }}
+      - name: Download the CPython 3.11 wheel
+        uses: actions/download-artifact@v8
+        with:
+          name: wheel-cp311
+          path: wheelhouse
       - name: Install build and inference dependencies
         run: python -m pip install build -r tests/requirements-inference.txt
       - name: Build distributions and install wheel
         run: |
-          python -m build
+          python -m build --sdist
           python - <<'PY'
           from pathlib import Path
           import tarfile
@@ -265,7 +309,7 @@ jobs:
           assert expected <= members
           assert obsolete.isdisjoint(members)
           PY
-          python -m pip install --no-deps --force-reinstall dist/*.whl
+          python -m pip install --no-deps --force-reinstall wheelhouse/*.whl
       - name: Install and verify inference models
         working-directory: /tmp
         env:
@@ -458,3 +502,53 @@ jobs:
           assert "Cbond Detail:" in cbond_ranked
           assert cbond_ranked.rstrip().endswith("-- End --")
           PY
+
+  coverage:
+    needs: package-smoke
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Cache inference models
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/hotpot-models
+          key: ${{ runner.os }}-hotpot-models-v2-${{ hashFiles('hotpot/cheminfo/AImodels/mca/models/manifest.json', 'hotpot/cheminfo/AImodels/cbond/onnx/manifest.json') }}
+      - name: Download the CPython 3.11 wheel
+        uses: actions/download-artifact@v8
+        with:
+          name: wheel-cp311
+          path: wheelhouse
+      - name: Install the tested wheel and coverage dependencies
+        run: |
+          python -m pip install 'coverage>=7,<8' -r tests/requirements-inference.txt
+          python -m pip install --no-deps --force-reinstall wheelhouse/*.whl
+          python -m pip check
+      - name: Install and verify inference models
+        working-directory: /tmp
+        env:
+          HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
+        run: hotpot models install --all
+      - name: Run maintained tests with coverage
+        env:
+          HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
+          HOTPOT_MODEL_SOURCE: local
+          HOTPOT_TEST_WORKDIR: ${{ runner.temp }}/hotpot-tests
+        run: ./tests/run_coverage.sh
+      - name: Annotate test failures
+        if: ${{ failure() && hashFiles('tests/coverage/junit.xml') != '' }}
+        run: python tests/annotate_junit.py tests/coverage/junit.xml
+      - name: Upload coverage reports to Codecov
+        if: ${{ always() && hashFiles('tests/coverage/coverage.xml') != '' }}
+        uses: codecov/codecov-action@v5
+        with:
+          disable_search: true
+          fail_ci_if_error: true
+          files: ./tests/coverage/coverage.xml
+          use_oidc: true

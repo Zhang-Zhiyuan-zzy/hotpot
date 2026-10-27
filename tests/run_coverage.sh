@@ -9,7 +9,9 @@ export COVERAGE_FILE="$coverage_dir/.coverage"
 export MPLCONFIGDIR="${MPLCONFIGDIR:-/tmp/hotpot-coverage-matplotlib}"
 mkdir -p "$MPLCONFIGDIR"
 
-cd "$repo_root"
+work_dir=${HOTPOT_TEST_WORKDIR:-$repo_root}
+mkdir -p "$work_dir"
+cd "$work_dir"
 python -m coverage erase
 
 test_targets=(
@@ -70,6 +72,10 @@ test_targets=(
   tests/test_plugin/test_harness
   tests/test_plugin/test_xtb
 )
+
+for index in "${!test_targets[@]}"; do
+  test_targets[$index]="$repo_root/${test_targets[$index]}"
+done
 
 set +e
 python -m coverage run --branch --source=hotpot -m pytest \

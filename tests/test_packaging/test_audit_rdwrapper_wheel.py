@@ -24,7 +24,7 @@ VALID_MEMBERS = {
     f"{WRAPPER_ROOT}_native/licenses/LICENSE_1_0.txt",
     f"{WRAPPER_ROOT}_native/licenses/THIRD_PARTY_NOTICES.md",
     f"{WRAPPER_ROOT}_native/licenses/license.txt",
-    "hotpot_zzy-0.5.4.0.dist-info/licenses/LICENSE",
+    "hotpot_zzy-0.5.4.5.dist-info/licenses/LICENSE",
 }
 
 

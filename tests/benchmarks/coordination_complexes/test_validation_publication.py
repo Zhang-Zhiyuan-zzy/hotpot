@@ -112,7 +112,7 @@ def _fixture(
         },
         "git": {"commit": "a" * 40, "dirty": False},
         "runtime": {
-            "imported_hotpot_version": "0.5.4.0",
+            "imported_hotpot_version": "0.5.4.5",
             "rdkit_version": "2026.09.1",
             "python_rdkit_version": "2026.09.1",
             "python_rdkit_distribution_version": "2026.9.1",

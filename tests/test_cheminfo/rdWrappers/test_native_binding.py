@@ -90,7 +90,7 @@ def test_compiled_runtime_identity_and_exports():
     assert extension.C_API_VERSION == 1
     assert extension.RDKIT_COMMIT == "fece8caa860bdf6c9c82bdb9253f22a0cf87150c"
     assert extension.runtime_info() == rdWrappers.RuntimeInfo(
-        hotpot_version="0.5.4.0",
+        hotpot_version="0.5.4.5",
         rdkit_version="2026.09.1",
         native=True,
     )

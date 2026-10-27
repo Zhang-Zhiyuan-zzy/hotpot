@@ -83,8 +83,8 @@ int main(void) {
     assert(memcmp(version.data, "2026.09.1", version.size) == 0);
     hotpot_rd_string_view_v1 hotpot_version =
         hotpot_rd_runtime_hotpot_version();
-    assert(hotpot_version.size == strlen("0.5.4.0"));
-    assert(memcmp(hotpot_version.data, "0.5.4.0", hotpot_version.size) == 0);
+    assert(hotpot_version.size == strlen("0.5.4.5"));
+    assert(memcmp(hotpot_version.data, "0.5.4.5", hotpot_version.size) == 0);
     hotpot_rd_string_view_v1 commit = hotpot_rd_runtime_rdkit_commit();
     assert(commit.size == strlen("fece8caa860bdf6c9c82bdb9253f22a0cf87150c"));
     assert(memcmp(

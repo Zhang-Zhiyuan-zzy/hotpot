@@ -18,7 +18,7 @@ if(NOT TARGET DistGeomHelpers_static)
     message(FATAL_ERROR "the pinned RDKit static ETKDG closure is unavailable")
 endif()
 
-set(HOTPOT_RDWRAPPERS_VERSION "0.5.4.0")
+set(HOTPOT_RDWRAPPERS_VERSION "0.5.4.5")
 set(HOTPOT_RDWRAPPERS_SOVERSION "0")
 set(HOTPOT_RDWRAPPERS_ROOT "${CMAKE_CURRENT_LIST_DIR}")
 set(HOTPOT_RDWRAPPERS_BINARY_DIR "${CMAKE_BINARY_DIR}/hotpot-rdwrappers")

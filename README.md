@@ -209,15 +209,10 @@ artifact ownership, failure semantics, and scientific limits.
 
 ## Installation
 
-The current source checkout supports CPython 3.10–3.14 and pins its Python and
-native RDKit surfaces to exactly 2026.09.1 (`rdkit==2026.9.1`). Release wheels
-are currently provided only for manylinux x86-64.
-
-The latest published PyPI distribution may lag behind this checkout. In
-particular, PyPI `0.5.4.0` predates the current native graph and rdWrapper
-integration and retains its original Python and RDKit dependency metadata.
-Use Python 3.10–3.14 for both installations. Published package metadata defines
-the wheel contract, while this repository defines the current source contract.
+Hotpot 0.5.4.5 supports CPython 3.10–3.14 and pins its Python and native RDKit
+surfaces to exactly 2026.09.1 (`rdkit==2026.9.1`). PyPI wheels and the current
+source checkout share this contract. Release wheels are provided for manylinux
+x86-64.
 
 ### Install from PyPI
 

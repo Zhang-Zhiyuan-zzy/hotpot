@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(hotpot_rdwrappers_sdk_consumer LANGUAGES CXX)
 
-find_package(HotpotRDWrappers 0.5.4.0 EXACT CONFIG REQUIRED)
+find_package(HotpotRDWrappers 0.5.4.5 EXACT CONFIG REQUIRED)
 
 add_executable(hotpot_rdwrappers_sdk_consumer main.cpp)
 target_compile_features(hotpot_rdwrappers_sdk_consumer PRIVATE cxx_std_17)

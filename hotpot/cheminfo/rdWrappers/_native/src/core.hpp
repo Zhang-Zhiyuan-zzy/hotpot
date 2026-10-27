@@ -16,7 +16,7 @@
 namespace hotpot::rdwrappers::core {
 
 
-inline constexpr const char* kHotpotVersion = "0.5.4.0";
+inline constexpr const char* kHotpotVersion = "0.5.4.5";
 inline constexpr const char* kRDKitVersion = "2026.09.1";
 inline constexpr const char* kRDKitCommit =
     "fece8caa860bdf6c9c82bdb9253f22a0cf87150c";

@@ -45,7 +45,7 @@ int main() {
 
     const auto runtime = rdw::runtime_info();
     assert(runtime.native);
-    assert(runtime.hotpot_version == "0.5.4.0");
+    assert(runtime.hotpot_version == "0.5.4.5");
     assert(runtime.rdkit_version == "2026.09.1");
     return 0;
 }

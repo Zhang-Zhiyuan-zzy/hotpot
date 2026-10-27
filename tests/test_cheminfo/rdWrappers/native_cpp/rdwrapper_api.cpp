@@ -187,7 +187,7 @@ std::uint32_t hotpot_rd_runtime_abi_version(void) {
 
 
 hotpot_rd_string_view_v1 hotpot_rd_runtime_hotpot_version(void) {
-    return string_view("0.5.4.0", 7);
+    return string_view("0.5.4.5", 7);
 }
 
 
@@ -370,7 +370,7 @@ int main() {
     assert(!result.diagnostic.has_value());
 
     const auto runtime = rd::runtime_info();
-    assert(runtime.hotpot_version == "0.5.4.0");
+    assert(runtime.hotpot_version == "0.5.4.5");
     assert(runtime.rdkit_version == "2026.09.1");
     assert(runtime.native);
 }

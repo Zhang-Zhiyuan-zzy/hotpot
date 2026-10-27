@@ -16,8 +16,8 @@ from .validation_acceptance import GATE_IDS
 
 def _runtime(**updates: object) -> dict[str, object]:
     value: dict[str, object] = {
-        "hotpot_version": "0.5.4.0",
-        "imported_hotpot_version": "0.5.4.0",
+        "hotpot_version": "0.5.4.5",
+        "imported_hotpot_version": "0.5.4.5",
         "rdkit_version": runner.PINNED_RDKIT_VERSION,
         "python_rdkit_version": runner.PINNED_RDKIT_VERSION,
         "python_rdkit_distribution_version": (runner.PINNED_RDKIT_DISTRIBUTION_VERSION),

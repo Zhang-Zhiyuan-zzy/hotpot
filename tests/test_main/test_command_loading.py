@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 
-_PROJECT_ROOT = Path(__file__).parents[2]
+_PROJECT_ROOT = Path(
+    os.environ.get("HOTPOT_TEST_WORKDIR", Path(__file__).parents[2])
+)
 _COMMAND_MODULES = (
     "hotpot.cheminfo.AImodels.cbond.cli",
     "hotpot.cheminfo.AImodels.mca.cli",

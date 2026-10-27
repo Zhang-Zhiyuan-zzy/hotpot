@@ -315,193 +315,30 @@ jobs:
         env:
           HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
         run: hotpot models install --all
-      - name: Smoke-test installed package outside the checkout
+      - name: Smoke-test installed core and documentation
+        working-directory: /tmp
+        run: >-
+          python
+          "${{ github.workspace }}/tests/test_packaging/installed_package_smoke.py"
+          core
+      - name: Smoke-test installed inference
         working-directory: /tmp
         env:
           HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
           HOTPOT_MODEL_SOURCE: local
-        run: |
-          python - <<'PY'
-          from importlib.resources import files
-          import subprocess
-
-          import hotpot
-          from hotpot.cheminfo.AImodels.mca import MCAPredictor
-          from hotpot.cheminfo.calculator import (
-              ScientificOperationRequirements,
-              StateRequest,
-              extract_molecular_facts,
-              resolve_scientific_state,
-          )
-          from hotpot.cheminfo.calculator.contracts import ScientificQuantity
-          from hotpot.cheminfo.calculator.state_selection import StateDecisionAction
-          from hotpot.cheminfo.graph import relevant_cycles
-          from hotpot.cheminfo.search import _search_native
-
-          assert _search_native.NativeProblem is not None
-          assert relevant_cycles([(4, 7), (7, 9), (9, 4)]) == ((4, 7, 9),)
-          search_hits = hotpot.read_mol("CCO", "smi").search_substructure("[C]-[O]")
-          assert tuple(hit.atom_indices for hit in search_hits) == (
-              frozenset({1, 2}),
-          )
-
-          facts = extract_molecular_facts(hotpot.read_mol("C", "smi"))
-          state = resolve_scientific_state(
-              facts,
-              StateRequest(net_charge=0, two_s=0),
-              requirements=ScientificOperationRequirements(
-                  "installed-wheel-smoke",
-                  frozenset(
-                      {
-                          ScientificQuantity.NET_CHARGE,
-                          ScientificQuantity.ELECTRONIC_STATE,
-                      }
-                  ),
-                  frozenset(),
-              ),
-          )
-          assert state.execution_decision.action is StateDecisionAction.SELECT_STATE
-
-          forcefield_package = files("hotpot.cheminfo.forcefields")
-          assert forcefield_package.joinpath("ff.py").is_file()
-          for obsolete_module in ("ff39.py", "utils.py", "utils39.py"):
-              assert not forcefield_package.joinpath(obsolete_module).is_file()
-
-          xtb_package = files("hotpot.plugins.xtb")
-          assert xtb_package.joinpath("cli_doc.md").is_file()
-          xtb_api_documentation = xtb_package.joinpath("README.md").read_text(
-              encoding="utf-8"
-          )
-          assert xtb_api_documentation.startswith("# Hotpot xTB plugin")
-          for obsolete_module in ("core.py", "xtb_doc.md", ".cache.json"):
-              assert not xtb_package.joinpath(obsolete_module).is_file()
-
-          pipeline_documentation = files("hotpot.pipeline").joinpath(
-              "cli_doc.md"
-          ).read_text(encoding="utf-8")
-          assert pipeline_documentation.startswith("# `hotpot run`")
-          pipeline_api_documentation = files("hotpot.pipeline").joinpath(
-              "README.md"
-          ).read_text(encoding="utf-8")
-          assert pipeline_api_documentation.startswith(
-              "# Hotpot controlled molecular pipeline"
-          )
-
-          geometry_documentation = files("hotpot.cheminfo.geometry").joinpath(
-              "README.md"
-          ).read_text(encoding="utf-8")
-          assert geometry_documentation.startswith(
-              "# `hotpot.cheminfo.geometry` API Reference"
-          )
-          chinese_geometry_documentation = files(
-              "hotpot.cheminfo.geometry"
-          ).joinpath("README.zh.md").read_text(encoding="utf-8")
-          assert chinese_geometry_documentation.startswith(
-              "# `hotpot.cheminfo.geometry` API 参考（中文版）"
-          )
-
-          documentation = subprocess.run(
-              ["hotpot", "mca", "--doc"],
-              check=True,
-              capture_output=True,
-              text=True,
-          ).stdout
-          assert "hotpot mca" in documentation
-          assert "Command synopsis" in documentation
-
-          xtb_documentation = subprocess.run(
-              ["hotpot", "xtb", "--doc"],
-              check=True,
-              capture_output=True,
-              text=True,
-          ).stdout
-          assert "hotpot xtb" in xtb_documentation
-          assert "Independent methods" in xtb_documentation
-
-          run_documentation = subprocess.run(
-              ["hotpot", "run", "--doc"],
-              check=True,
-              capture_output=True,
-              text=True,
-          ).stdout
-          assert "hotpot run" in run_documentation
-          assert "Results and failure semantics" in run_documentation
-
-          molecule = hotpot.to_hotpot_mol("C1CCCCN1")
-          prediction = MCAPredictor(device="cpu").predict(molecule)
-          assert len(prediction.atom_predictions) == 6
-          assert abs(prediction.sites[0].mca_kj_mol - 503.25) < 1e-6
-
-          cbond_result = subprocess.run(
-              ["hotpot", "cbond", "Eu", "CN", "--device", "cpu"],
-              check=True,
-              capture_output=True,
-              text=True,
-          ).stdout.strip()
-          assert "[Eu" in cbond_result
-          assert len(cbond_result.splitlines()) == 1
-
-          pipeline_result = subprocess.run(
-              [
-                  "hotpot", "ff", "-", "--input-format", "smi",
-                  "--epochs", "1", "--steps-per-epoch", "5",
-                  "--quality", "off", "--seed", "1", "--timeout", "30",
-              ],
-              input=f"{cbond_result}\n",
-              check=True,
-              capture_output=True,
-              text=True,
-          )
-          assert pipeline_result.stdout.startswith("@<TRIPOS>MOLECULE\n")
-          assert "@<TRIPOS>ATOM\n" in pipeline_result.stdout
-          assert "@<TRIPOS>BOND\n" in pipeline_result.stdout
-
-          cbond_documentation = subprocess.run(
-              ["hotpot", "cbond", "--doc"],
-              check=True,
-              capture_output=True,
-              text=True,
-          ).stdout
-          assert "hotpot cbond" in cbond_documentation
-          assert "Enumerate terminal coordination structures" in cbond_documentation
-          assert "default mode must not be interpreted as an alias for Rank 1" in cbond_documentation
-
-          forcefield_documentation = subprocess.run(
-              ["hotpot", "ff", "--doc"],
-              check=True,
-              capture_output=True,
-              text=True,
-          ).stdout
-          assert "hotpot ff" in forcefield_documentation
-          assert "Standard input and pipelines" in forcefield_documentation
-
-          forcefield_result = subprocess.run(
-              [
-                  "hotpot", "ff", "CC", "--epochs", "1",
-                  "--steps-per-epoch", "5", "--quality", "off",
-                  "--seed", "1", "--timeout", "30",
-              ],
-              check=True,
-              capture_output=True,
-              text=True,
-          )
-          assert forcefield_result.stdout.startswith("@<TRIPOS>MOLECULE\n")
-          assert "@<TRIPOS>ATOM\n" in forcefield_result.stdout
-          assert "@<TRIPOS>BOND\n" in forcefield_result.stdout
-
-          cbond_ranked = subprocess.run(
-              [
-                  "hotpot", "cbond", "Eu", "CN", "--device", "cpu",
-                  "--all-structures", "--bond-detail",
-              ],
-              check=True,
-              capture_output=True,
-              text=True,
-          ).stdout
-          assert "Rank 1: Prob:" in cbond_ranked
-          assert "Cbond Detail:" in cbond_ranked
-          assert cbond_ranked.rstrip().endswith("-- End --")
-          PY
+        run: >-
+          python
+          "${{ github.workspace }}/tests/test_packaging/installed_package_smoke.py"
+          inference
+      - name: Smoke-test installed force-field workflows
+        working-directory: /tmp
+        env:
+          HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
+          HOTPOT_MODEL_SOURCE: local
+        run: >-
+          python
+          "${{ github.workspace }}/tests/test_packaging/installed_package_smoke.py"
+          forcefield
 
   coverage:
     needs: package-smoke

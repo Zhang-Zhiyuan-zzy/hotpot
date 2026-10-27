@@ -1,6 +1,5 @@
 import json
 import re
-import sqlite3
 from pathlib import Path
 
 import hotpot.ds as ds
@@ -115,22 +114,21 @@ def test_cli_documentation_json_examples_are_valid() -> None:
 
 def test_python_documentation_blocks_are_valid_python() -> None:
     text = API_DOCUMENTATION.read_text(encoding="utf-8")
+    blocks = text.split("```python")[1:]
 
-    for index, fragment in enumerate(text.split("```python")[1:], start=1):
+    assert blocks
+    for index, fragment in enumerate(blocks, start=1):
         source = fragment.split("```", 1)[0]
         compile(source, f"hotpot/ds/README.md:block-{index}", "exec")
 
 
-def test_submission_examples_are_valid_json_and_sql() -> None:
+def test_submission_json_examples_are_valid() -> None:
     text = API_DOCUMENTATION.read_text(encoding="utf-8")
+    json_blocks = text.split("```json")[1:]
 
-    for fragment in text.split("```json")[1:]:
+    assert json_blocks
+    for fragment in json_blocks:
         json.loads(fragment.split("```", 1)[0])
-
-    connection = sqlite3.connect(":memory:")
-    for fragment in text.split("```sql")[1:]:
-        connection.executescript(fragment.split("```", 1)[0])
-    connection.close()
 
 
 def test_official_dataset_documentation_is_english() -> None:

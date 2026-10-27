@@ -26,7 +26,8 @@ run the live differential tests:
 
 ```bash
 $ export HOTPOT_RDL_ORACLE_LIBRARY=/tmp/hotpot-rdl-build/src/RingDecomposerLib/libRingDecomposerLib.so
-$ pytest tests/test_cheminfo/graph/test_rdl_differential.py --run-slow
+$ pytest tests/test_cheminfo/graph/test_rdl_differential.py \
+    --run-external --run-high-compute
 ```
 
 Without `HOTPOT_RDL_ORACLE_LIBRARY`, live RDL comparisons are skipped. This is

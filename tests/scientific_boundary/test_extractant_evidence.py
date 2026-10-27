@@ -6,8 +6,12 @@ import json
 from pathlib import Path
 
 from PIL import Image
+import pytest
 
 from tests.readme.benchmark_forcefield_validation import run_benchmark
+
+
+pytestmark = pytest.mark.scientific_boundary
 
 
 ROOT = Path(__file__).resolve().parents[2]

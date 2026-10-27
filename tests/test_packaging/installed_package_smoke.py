@@ -85,6 +85,13 @@ def core() -> None:
     ):
         assert fonts.joinpath(filename).is_file()
 
+    gaussian_package = files("hotpot.plugins.qm.gaussian")
+    assert gaussian_package.joinpath("settings.json").is_file()
+    assert gaussian_package.joinpath("goptions.json").is_file()
+    from hotpot.plugins.qm.gaussian import GaussOut
+
+    assert GaussOut is not None
+
     mca_documentation = _stdout("hotpot", "mca", "--doc")
     assert "hotpot mca" in mca_documentation
     assert "Command synopsis" in mca_documentation

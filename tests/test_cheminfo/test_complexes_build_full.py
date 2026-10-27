@@ -1,3 +1,5 @@
+"""Opt-in higher-depth validation for complex construction."""
+
 import time
 
 import numpy as np
@@ -12,7 +14,7 @@ README_LIGAND_SMILES = (
 )
 
 
-@pytest.mark.slow
+@pytest.mark.high_compute
 def test_readme_europium_complex_full_standard_workflow(record_testsuite_property):
     ligand = hp.read_mol(README_LIGAND_SMILES)
     pair = ligand.auto_pair_metal("Eu")

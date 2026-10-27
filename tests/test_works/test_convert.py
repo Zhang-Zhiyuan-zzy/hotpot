@@ -204,12 +204,14 @@ def test_conversion_forwards_timeout_and_joins_natural_exit(monkeypatch, tmp_pat
     monkeypatch.setattr(convert.hp, "MolReader", lambda *_: iter([molecule]))
     _use_process_double(monkeypatch, _FinishedProcess)
 
-    convert.convert_smiles_to_3dmol(
+    result = convert.convert_smiles_to_3dmol(
         ["CC"],
         str(tmp_path),
         nproc=1,
         timeout=2.5,
     )
+
+    assert result is None
 
     process = _FinishedProcess.instances[0]
     assert process.kwargs["timeout"] == 2.5
@@ -225,12 +227,14 @@ def test_conversion_real_spawn_success_is_received_before_join(monkeypatch, tmp_
         lambda *_: iter([_RecordingMolecule()]),
     )
 
-    convert.convert_smiles_to_3dmol(
+    result = convert.convert_smiles_to_3dmol(
         ["CC"],
         str(tmp_path),
         nproc=1,
         timeout=2.5,
     )
+
+    assert result is None
 
 
 def test_received_result_takes_precedence_over_timeout(monkeypatch, tmp_path):

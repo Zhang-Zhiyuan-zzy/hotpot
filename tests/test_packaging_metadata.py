@@ -187,3 +187,19 @@ def test_production_model_weights_are_external():
         for path in directory.iterdir()
         if path.suffix in binary_suffixes
     ]
+
+
+def test_gaussian_runtime_configuration_is_packaged():
+    with (ROOT / "pyproject.toml").open("rb") as stream:
+        package_data = tomllib.load(stream)["tool"]["setuptools"]["package-data"]
+    manifest = (ROOT / "MANIFEST.in").read_text(encoding="utf-8")
+
+    assert package_data["hotpot.plugins.qm.gaussian"] == ["*.json"]
+    assert "recursive-include hotpot/plugins/qm/gaussian *.json" in manifest
+
+
+def test_draw_fonts_are_owned_by_the_discovered_font_package():
+    with (ROOT / "pyproject.toml").open("rb") as stream:
+        package_data = tomllib.load(stream)["tool"]["setuptools"]["package-data"]
+
+    assert package_data["hotpot.cheminfo.fonts.Arial"] == ["*.ttf"]

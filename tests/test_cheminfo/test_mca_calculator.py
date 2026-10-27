@@ -5,6 +5,9 @@ from hotpot.cheminfo.AImodels.mca import predict_mca_cpu
 from hotpot.cheminfo.calculator import mca
 
 
+pytestmark = pytest.mark.model_artifact
+
+
 def test_mca_is_attached_to_atoms_as_a_read_only_property():
     mol = read_mol("C1CCCCN1")
 

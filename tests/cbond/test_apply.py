@@ -465,6 +465,7 @@ def test_public_backend_defaults_are_synchronized():
     )
 
 
+@pytest.mark.model_artifact
 def test_auto_build_cbond_real_runtime_smoke(runtime):
     result, probability = apply.auto_build_cbond(
         read_mol("CN"),
@@ -478,6 +479,7 @@ def test_auto_build_cbond_real_runtime_smoke(runtime):
     assert 0.0 < probability <= 1.0
 
 
+@pytest.mark.model_artifact
 def test_documented_aminodiol_reference_matches_packaged_model(runtime):
     results = apply.build_all_possible_cbond(
         read_mol("NCC(O)CO"),

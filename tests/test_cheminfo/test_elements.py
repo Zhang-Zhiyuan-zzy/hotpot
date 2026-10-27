@@ -1,54 +1,78 @@
-# -*- coding: utf-8 -*-
-"""
-===========================================================
- Project   : hotpot
- File      : test_elements
- Created   : 2025/5/21 16:35
- Author    : zhang
- Python    : 
------------------------------------------------------------
- Description
- ----------------------------------------------------------
- 
-===========================================================
-"""
-import unittest as ut
+"""Scientific-data invariants for the periodic-element table."""
 
-from numba.cuda import shared
+from math import isfinite
 
-import hotpot.cheminfo.elements as ele
+from hotpot.cheminfo import elements as element_module
 
 
-class TestElements(ut.TestCase):
-    def test_get_elements_properties_dict(self):
-        ele_prop = ele.element_properties
-        self.assertEqual(len(ele_prop.keys()), 118)
+def test_element_property_table_covers_the_periodic_table_uniformly() -> None:
+    properties = element_module.element_properties
+    symbols = element_module.elements.symbols[1:]
+    shared_fields = set.intersection(*(set(record) for record in properties.values()))
 
-        for key in ele_prop.keys():
-            self.assertIn(key, ele.elements.symbols)
+    assert len(properties) == 118
+    assert tuple(properties) == symbols
+    assert len(shared_fields) == 83
+    assert {
+        "atomic_number",
+        "symbol",
+        "atomic_weight",
+        "electron_configuration",
+        "ionization_energies",
+    } <= shared_fields
 
-        shared_props = set(ele_prop['H'].keys())
-        for key, value in ele_prop.items():
-            shared_props &= set(value.keys())
-        print(f"Shared properties({len(shared_props)}): {shared_props}")
 
-        unique_props = {key: set(value.keys())-shared_props for key, value in ele_prop.items()}
-        print(f"Unique properties: {unique_props}")
+def test_complete_properties_are_non_null_for_every_element() -> None:
+    complete = element_module.PropertiesSheet().complete_values()._sheet
 
-    def test_elements_properties_has_value(self):
-        ele_prop = ele.element_properties
-        shared_props = set(key for key, values in ele_prop['H'].items() if isinstance(values, list) and values[0] is not None)
+    assert set(complete.columns) == {
+        "name",
+        "symbol",
+        "atomic_number",
+        "atomic_weight",
+        "alternate_names",
+        "names_of_allotropes",
+        "block",
+        "period",
+        "series",
+        "electron_configuration",
+        "discovery",
+        "cas_number",
+        "half_life",
+        "lifetime",
+        "quantum_numbers",
+        "known_isotopes",
+    }
+    assert not complete.isna().any(axis=None)
 
-        for key, value in ele_prop.items():
-            shared_props &= set(k for k, v in value.items() if isinstance(v, list) and v[0] is not None)
 
-        print(f"Shared properties({len(shared_props)}) with values: {shared_props}")
+def test_first_ionization_energy_missingness_is_explicit_and_bounded() -> None:
+    symbols = element_module.elements.symbols[1:]
+    energies = element_module.elements.ionization_energies
+    missing = {
+        symbol
+        for symbol, values in zip(symbols, energies)
+        if not values or values[0] is None
+    }
 
-    def test_check_null_elements(self):
-        attr_name = "ionization_energies"
-        ele_prop = getattr(ele.elements, attr_name)
-
-        for e, value in ele_prop.items():
-            if not isinstance(value, list) or v[0] is None:
-                print(e)
-
+    assert missing == {
+        "Db",
+        "Sg",
+        "Bh",
+        "Hs",
+        "Mt",
+        "Ds",
+        "Rg",
+        "Cn",
+        "Nh",
+        "Fl",
+        "Mc",
+        "Lv",
+        "Ts",
+        "Og",
+    }
+    assert all(
+        isfinite(values[0]) and values[0] > 0.0
+        for symbol, values in zip(symbols, energies)
+        if symbol not in missing
+    )

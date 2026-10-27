@@ -37,12 +37,14 @@ def _water():
 
 def _python_environment() -> dict[str, str]:
     environment = dict(os.environ)
-    if environment.get("HOTPOT_TEST_INSTALLED_PACKAGE"):
+    project_root = Path(__file__).resolve().parents[3]
+    if not Path(hotpot.__file__).resolve().is_relative_to(project_root):
         return environment
-    project_root = str(Path(__file__).resolve().parents[3])
     current_path = environment.get("PYTHONPATH")
     environment["PYTHONPATH"] = (
-        project_root if not current_path else f"{project_root}{os.pathsep}{current_path}"
+        str(project_root)
+        if not current_path
+        else f"{project_root}{os.pathsep}{current_path}"
     )
     return environment
 

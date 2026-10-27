@@ -114,7 +114,7 @@ def test_wheel_excludes_rdwrapper_sdk_and_build_inputs():
         setuptools = tomllib.load(stream)["tool"]["setuptools"]
 
     package_data = setuptools["package-data"]
-    assert package_data["hotpot.cheminfo"] == ["fonts/*/*.ttf"]
+    assert package_data["hotpot.cheminfo.fonts.Arial"] == ["*.ttf"]
     assert package_data["hotpot.cheminfo.rdWrappers"] == ["_rd_native.pyi"]
     assert package_data["hotpot.cheminfo.rdWrappers._native"] == [
         "THIRD_PARTY_NOTICES.md"

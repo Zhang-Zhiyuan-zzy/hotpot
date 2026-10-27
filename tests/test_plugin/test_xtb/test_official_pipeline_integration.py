@@ -16,6 +16,9 @@ from hotpot.pipeline.runner import run_pipeline
 from hotpot.plugins.xtb.stream import read_sdf_records
 
 
+pytestmark = pytest.mark.external
+
+
 _LIGAND = "NCCO"
 _METAL = "Zn"
 

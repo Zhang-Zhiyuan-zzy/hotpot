@@ -8,6 +8,7 @@ import pytest
 
 
 @pytest.mark.parametrize("glibcxx_abi", (0, 1))
+@pytest.mark.external
 def test_installed_sdk_find_package_link_and_run(
     tmp_path: Path,
     glibcxx_abi: int,

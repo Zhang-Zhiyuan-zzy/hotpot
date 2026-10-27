@@ -131,9 +131,7 @@ all = [
 include-package-data = true
 
 [tool.setuptools.package-data]
-"hotpot.cheminfo" = [
-    "fonts/*/*.ttf",
-]
+"hotpot.cheminfo.fonts.Arial" = ["*.ttf"]
 "hotpot.cheminfo.rdWrappers" = [
     "_rd_native.pyi",
 ]
@@ -154,6 +152,7 @@ include-package-data = true
     "data/profiles/*.json",
     "data/rules/*.json",
 ]
+"hotpot.plugins.qm.gaussian" = ["*.json"]
 
 [tool.setuptools.exclude-package-data]
 "hotpot.cheminfo._native.include.hotpot.native" = [

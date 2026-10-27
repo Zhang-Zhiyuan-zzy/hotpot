@@ -19,6 +19,8 @@ from hotpot.ds.gates._checker import (
     OSIsolatedCheckerRunner,
 )
 
+pytestmark = pytest.mark.external
+
 
 @pytest.fixture(scope="module")
 def runner() -> OSIsolatedCheckerRunner:

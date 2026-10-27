@@ -123,6 +123,7 @@ def test_existing_dataset_mode_cannot_unlock_when_target_disappears(
         successor.use_gate(BenchmarkGate())
 
 
+@pytest.mark.external
 def test_existing_dataset_successor_materializes_persisted_custom_checker(
     tmp_path: Path,
 ) -> None:

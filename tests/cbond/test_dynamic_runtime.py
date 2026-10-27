@@ -4,6 +4,7 @@ import pytest
 from cbond.runtime import padding_rings
 
 
+@pytest.mark.model_artifact
 def test_runtime_executes_graph_and_dynamic_ring_head(runtime):
     atoms = np.array([6, 7, 8, 26], dtype=np.int32)
     edges = np.array(
@@ -24,6 +25,7 @@ def test_runtime_executes_graph_and_dynamic_ring_head(runtime):
 
 
 @pytest.mark.parametrize("rings,size", [(1, 1), (3, 7), (12, 6), (16, 64), (32, 64)])
+@pytest.mark.model_artifact
 def test_dynamic_ring_dimensions(runtime, rings, size):
     rng = np.random.default_rng(rings * 100 + size)
     xg = rng.normal(size=(41, 128)).astype(np.float32)
@@ -49,6 +51,7 @@ def test_padding_uses_exact_dimensions():
     assert mask.tolist() == [[False, False, True], [False, False, False]]
 
 
+@pytest.mark.model_artifact
 def test_zero_ring_input_remains_finite(runtime):
     atoms = np.array([6, 7, 26], dtype=np.int32)
     edges = np.array([[0, 1], [1, 0]], dtype=np.int64)

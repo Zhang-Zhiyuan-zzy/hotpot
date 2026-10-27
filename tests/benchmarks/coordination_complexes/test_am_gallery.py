@@ -107,6 +107,7 @@ def test_maximum_moment_axis_is_the_display_view_axis() -> None:
     assert result.moments[2] >= result.moments[1] >= result.moments[0]
 
 
+@pytest.mark.optional_dependency
 def test_pymol_render_preserves_mol2_atom_identity_after_orientation(
     tmp_path: Path,
 ) -> None:

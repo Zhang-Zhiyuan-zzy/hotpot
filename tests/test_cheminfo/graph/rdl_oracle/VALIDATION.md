@@ -95,7 +95,8 @@ $ python tests/test_cheminfo/graph/rdl_oracle/build.py \
     --build /tmp/hotpot-rdl-build
 $ python setup.py build_ext --inplace
 $ export HOTPOT_RDL_ORACLE_LIBRARY=/tmp/hotpot-rdl-build/src/RingDecomposerLib/libRingDecomposerLib.so
-$ python -m pytest tests/test_cheminfo/graph --run-slow
+$ python -m pytest tests/test_cheminfo/graph \
+    --run-external --run-high-compute
 $ python tests/test_cheminfo/graph/rdl_oracle/benchmark.py \
     --library "$HOTPOT_RDL_ORACLE_LIBRARY" \
     --include-atlas \

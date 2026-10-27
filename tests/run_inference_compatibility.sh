@@ -37,12 +37,16 @@ for version in "${versions[@]}"; do
         work_dir=${HOTPOT_TEST_WORKDIR:-$repo_root}
         mkdir -p "$work_dir"
         cd "$work_dir"
+        test_support="$work_dir/python-test-support"
+        mkdir -p "$test_support"
+        ln -sfn "$repo_root/tests" "$test_support/tests"
         if [[ -n "$wheel" ]]; then
-            test_support="$work_dir/python-test-support"
-            mkdir -p "$test_support"
-            ln -sfn "$repo_root/tests" "$test_support/tests"
             export PYTHONPATH="$test_support"
+        else
+            export PYTHONPATH="$repo_root:$test_support"
         fi
+        export MPLCONFIGDIR="${MPLCONFIGDIR:-$work_dir/matplotlib}"
+        mkdir -p "$MPLCONFIGDIR"
 
         uv "${uv_options[@]}" \
             python -c '
@@ -73,6 +77,8 @@ assert actual == expected
             "$repo_root/tests/test_cheminfo/test_hidden_bond_restoration.py"
             "$repo_root/tests/test_cheminfo/kekulize"
             "$repo_root/tests/test_cheminfo/obWrappers"
+            "$repo_root/tests/test_cheminfo/rdWrappers"
+            "$repo_root/tests/test_cheminfo/native_cpp"
             "$repo_root/tests/test_cheminfo/forcefields"
             "$repo_root/tests/test_cheminfo/geometry"
             "$repo_root/tests/test_cheminfo/test_geometry.py"
@@ -91,6 +97,13 @@ assert actual == expected
             "$repo_root/tests/test_cheminfo/test_complex_hydrogens.py"
             "$repo_root/tests/test_cheminfo/test_complex_untangling_workflow.py"
             "$repo_root/tests/test_cheminfo/test_topology_determinism.py"
+            "$repo_root/tests/test_cheminfo/test_native_molecule_buffers.py"
+            "$repo_root/tests/test_cheminfo/test_rdwrapper_api.py"
+            "$repo_root/tests/test_cheminfo/test_stereo_api.py"
+            "$repo_root/tests/test_cheminfo/test_stereo_level1_lifecycle.py"
+            "$repo_root/tests/test_cheminfo/test_stereo_level1_native_packing.py"
+            "$repo_root/tests/test_cheminfo/test_stereo_level1_storage.py"
+            "$repo_root/tests/test_cheminfo/test_stereo_level2_algebra.py"
             "$repo_root/tests/test_cheminfo/test_search.py"
             "$repo_root/tests/test_cheminfo/test_search_mapping.py"
             "$repo_root/tests/test_cheminfo/test_search_native_contract.py"
@@ -118,6 +131,7 @@ assert actual == expected
             python -m pytest -q -p no:cacheprovider \
             --exclude-warning-annotations \
             --import-mode=importlib \
+            --run-model-artifacts \
             "${test_targets[@]}"
 
         uv "${uv_options[@]}" \

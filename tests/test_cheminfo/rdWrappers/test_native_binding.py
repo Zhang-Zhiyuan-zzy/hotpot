@@ -25,7 +25,9 @@ from hotpot.cheminfo.rdWrappers import native
 def _load_test_extension():
     path_value = os.environ.get("HOTPOT_RDWRAPPERS_TEST_EXTENSION")
     if path_value is None:
-        pytest.skip("HOTPOT_RDWRAPPERS_TEST_EXTENSION is not set")
+        from hotpot.cheminfo.rdWrappers import _rd_native
+
+        return _rd_native
     path = Path(path_value)
     name = "hotpot.cheminfo.rdWrappers._rd_native"
     existing = sys.modules.get(name)

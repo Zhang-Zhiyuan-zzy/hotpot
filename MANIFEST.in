@@ -18,6 +18,7 @@ include hotpot/cheminfo/AImodels/mca/cli_doc.md
 include hotpot/cheminfo/forcefields/cli_doc.md
 include hotpot/plugins/xtb/cli_doc.md
 include hotpot/plugins/xtb/README.md
+recursive-include hotpot/plugins/qm/gaussian *.json
 include hotpot/pipeline/cli_doc.md
 include hotpot/pipeline/README.md
 recursive-include hotpot/cheminfo/forcefields/_native *.cpp *.hpp

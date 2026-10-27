@@ -52,7 +52,8 @@ def test_relevant_cycles_match_pinned_rdl_golden_corpus():
         assert relevant_cycles(edges, max_cycles=None) == expected, record["name"]
 
 
-@pytest.mark.slow
+@pytest.mark.external
+@pytest.mark.high_compute
 def test_live_rdl_matches_named_and_pubchem_graphs():
     oracle = _live_oracle()
     cases = handcrafted_graph_cases() + named_graph_cases() + pubchem_graph_cases()
@@ -61,7 +62,8 @@ def test_live_rdl_matches_named_and_pubchem_graphs():
         assert relevant_cycles(edges, max_cycles=None) == expected, name
 
 
-@pytest.mark.slow
+@pytest.mark.external
+@pytest.mark.high_compute
 def test_live_rdl_matches_size_bounded_results():
     oracle = _live_oracle()
     cases = handcrafted_graph_cases() + named_graph_cases() + pubchem_graph_cases()
@@ -80,7 +82,8 @@ def test_live_rdl_matches_size_bounded_results():
             assert actual == expected, (name, max_size)
 
 
-@pytest.mark.slow
+@pytest.mark.external
+@pytest.mark.high_compute
 def test_live_rdl_matches_every_cyclic_networkx_graph_atlas_graph():
     oracle = _live_oracle()
     compared = 0
@@ -91,7 +94,8 @@ def test_live_rdl_matches_every_cyclic_networkx_graph_atlas_graph():
     assert compared == 1_173
 
 
-@pytest.mark.slow
+@pytest.mark.external
+@pytest.mark.high_compute
 def test_live_rdl_matches_deterministic_random_graph_stress_corpus():
     oracle = _live_oracle()
     cases = tuple(deterministic_random_graph_cases())

@@ -14,13 +14,12 @@
 ===========================================================
 """
 # test_zeoxx.py
-import os.path as osp
 import re
+import shutil
 import tempfile
 from textwrap import dedent
 import warnings
 import unittest as ut
-import logging
 from pathlib import Path
 from glob import glob
 from typing import List
@@ -28,8 +27,9 @@ from unittest.mock import patch
 
 import pandas as pd
 import numpy as np
+import pytest
 
-from hotpot.plugins import zeoxx
+from hotpot.plugins.zeoxx import core as zeoxx
 from hotpot.utils.configs import setup_logging
 
 # config the logging stdout format
@@ -362,85 +362,26 @@ class TestUtilities(ut.TestCase):
 
 
 class TestZeoXX(ut.TestCase):
-    def test_zeoXX(self):
-        # Example usage:
-        runner = zeoxx.ZeoppRunner(
-            network_bin="network",  # or "/path/to/network"
-            # out_dir="zeopp_outputs",
-            ha=True,
-            nor=False,
-            radii_file=None,
-            mass_file=None,
-            strip_atom_names=False,
-            extra_args=[],
-            timeout=600,
-            # enabled_tasks=["res", "sa", "vol"],  # default tasks for summarize
-            units_as_rows=True,  # show variable/unit as first two rows
-            # cleanup_outputs=True,  # delete Zeo++ outputs after parsing
-        )
+    @pytest.mark.external
+    def test_official_zeopp_res_result(self):
+        executable = shutil.which("network")
+        if executable is None:
+            self.skipTest("Zeo++ network executable is not available")
+        structure = Path(__file__).parents[1] / "input" / "AFOQUI_clean.cif"
+        self.assertTrue(structure.is_file())
 
-        logging.info(f"runner out_dir: {runner.out_dir}")
+        with tempfile.TemporaryDirectory() as directory:
+            runner = zeoxx.ZeoppRunner(
+                network_bin=executable,
+                out_dir=Path(directory) / "zeopp",
+                timeout=120,
+            )
+            result = runner.run_res(structure)
 
-        inputs_dir = osp.abspath(osp.join(osp.dirname(__file__), '..', 'input'))
-        structs = glob(osp.join(inputs_dir, '*.cif'))
-        probe = 1.2
-
-        # # Direct calls (units rows applied per DataFrame)
-        # df_res = runner.run_res(struct1)
-        # print("RES:\n", df_res, "\n")
-
-        # Batch/summarize calls (units rows applied once after concat)
-        results = runner.summarize(
-            structures=structs,
-            probe_radii=[probe, 1.5],
-            sa_samples_per_atom=2000,
-            vol_samples_per_uc=50000,
-            nproc=12,
-            # tasks=["res", "sa", "vol"],
-        )
-        for k, v in results.items():
-            print(f"{k.upper()}:\n", v.head(6), "\n")
-
-        cres = zeoxx.concat_results(results)
-
-        print(cres)
+        self.assertEqual(result.shape[0], 1)
+        self.assertTrue({"GCD", "PLD", "LCD"} <= set(result.columns))
+        self.assertTrue(np.isfinite(result[["GCD", "PLD", "LCD"]]).all().all())
 
 
 if __name__ == '__main__':
-    # Example usage:
-    runner = zeoxx.ZeoppRunner(
-        network_bin="network",  # or "/path/to/network"
-        # out_dir="zeopp_outputs",
-        ha=True,
-        nor=False,
-        radii_file=None,
-        mass_file=None,
-        strip_atom_names=False,
-        extra_args=[],
-        timeout=600,
-        # enabled_tasks=["res", "sa", "vol"],  # default tasks for summarize
-        units_as_rows=True,  # show variable/unit as first two rows
-        # cleanup_outputs=True,  # delete Zeo++ outputs after parsing
-    )
-
-    inputs_dir = osp.abspath(osp.join(osp.dirname(__file__), '..', 'input'))
-    structs = glob(osp.join(inputs_dir, '*.cif'))
-    probe = 1.2
-
-    # # Direct calls (units rows applied per DataFrame)
-    # df_res = runner.run_res(struct1)
-    # print("RES:\n", df_res, "\n")
-
-    # Batch/summarize calls (units rows applied once after concat)
-    results = runner.summarize(
-        structures=structs,
-        probe_radii=[probe, 1.5],
-        sa_samples_per_atom=2000,
-        vol_samples_per_uc=50000,
-        nproc=12,
-        # tasks=["res", "sa", "vol"],
-    )
-    for k, v in results.items():
-        print(f"{k.upper()}:\n", v.head(6), "\n")
-
-    cres = zeoxx.concat_results(results)
+    ut.main()

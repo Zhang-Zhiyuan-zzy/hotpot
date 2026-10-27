@@ -3,6 +3,11 @@
 import json
 from pathlib import Path
 
+import pytest
+
+
+pytestmark = pytest.mark.scientific_boundary
+
 
 ROOT = Path(__file__).resolve().parents[2]
 VALIDATION_DOCUMENT = ROOT / "doc" / "validation_evidence.md"

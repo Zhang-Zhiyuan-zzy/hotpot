@@ -53,6 +53,8 @@ In the following, we give a brief example for the implementation of the EA. The 
 optimal machine learning(ML) algorithm and its optimal hyperparameters(HPs). We will carry out an
 optimization across several ML algorithm with distinct
 
+<!-- Verified by tests/documentation/test_legacy_examples.py::test_evolution_algorithm_tutorial -->
+
 ```python
 from sklearn.linear_model import Ridge
 from sklearn.kernel_ridge import KernelRidge

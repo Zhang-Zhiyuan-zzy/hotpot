@@ -35,10 +35,13 @@ def test_stable_671_backend_accepts_elements_through_radon(
         environment=dict(os.environ),
     )
 
-    validate_element_support(
-        backend_info,
-        getattr(XTBMethod, method_name),
-        (1, 6, 86),
+    assert (
+        validate_element_support(
+            backend_info,
+            getattr(XTBMethod, method_name),
+            (1, 6, 86),
+        )
+        is None
     )
 
 

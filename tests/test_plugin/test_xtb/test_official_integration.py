@@ -36,6 +36,9 @@ from hotpot.plugins.xtb.state_projection import XTBBackendContext
 from hotpot.plugins.xtb.workflow import run_gfn_xtb, run_gfnff
 
 
+pytestmark = pytest.mark.external
+
+
 _GFNFF_ENERGY = re.compile(
     r'"total energy"\s*:\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[EeDd][-+]?\d+)?)'
 )

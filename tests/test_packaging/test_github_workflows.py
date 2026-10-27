@@ -37,6 +37,9 @@ def test_coverage_has_one_maintained_workflow_implementation():
     assert "./tests/run_coverage.sh" in workflow
     assert 'HOTPOT_TEST_INSTALLED_PACKAGE: "1"' in workflow
     assert "codecov/codecov-action@v5" in workflow
+    runner = (ROOT / "tests" / "run_coverage.sh").read_text(encoding="utf-8")
+    assert '"$repo_root/tests"' in runner
+    assert "--run-scientific-boundary" not in runner
 
 
 def test_tag_builds_do_not_publish_without_an_explicit_release_request():
@@ -46,3 +49,4 @@ def test_tag_builds_do_not_publish_without_an_explicit_release_request():
     assert "github.event_name == 'workflow_dispatch' && inputs.publish" in workflow
     assert "pypa/gh-action-pypi-publish@v1.14.2" in workflow
     assert "Match a release tag to the project version" in workflow
+    assert "branches:" not in workflow

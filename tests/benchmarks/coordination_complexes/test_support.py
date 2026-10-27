@@ -623,17 +623,13 @@ def test_existing_output_requires_explicit_resume(tmp_path: Path) -> None:
         resume=False,
     )
 
-    try:
+    with pytest.raises(FileExistsError, match="resume"):
         _write_or_check_manifest(
             tmp_path,
             configuration,
             workers=1,
             resume=False,
         )
-    except FileExistsError:
-        pass
-    else:
-        raise AssertionError("an existing run must require --resume")
 
 
 def test_starting_point_fingerprint_includes_coordinates() -> None:

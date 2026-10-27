@@ -1,9 +1,4 @@
-"""Benchmark the geometry work performed by force-field frame checks.
-
-This module intentionally contains no pytest tests.  Run it explicitly to
-record timing and tri-state distribution evidence without creating a brittle
-wall-clock CI threshold.
-"""
+"""Manual geometry benchmark; intentionally outside pytest discovery."""
 
 from __future__ import annotations
 

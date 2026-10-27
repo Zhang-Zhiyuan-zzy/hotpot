@@ -215,6 +215,7 @@ def test_custom_checker_requires_isolation_and_errors_fail_closed(tmp_path: Path
     assert check["reason"] == "checker_error"
 
 
+@pytest.mark.external
 def test_runtime_timeout_is_recorded_as_checker_error_by_assessment(
     tmp_path: Path,
 ) -> None:

@@ -1,49 +1,101 @@
-"""Regression tests for every executable example shown in README.md."""
+"""Execute the examples directly from the root README Markdown source."""
 
 from __future__ import annotations
 
+import contextlib
+import io
+import os
+import re
+import shlex
 import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 import hotpot as hp
-from hotpot.cheminfo.calculator import mca
 from hotpot.cheminfo import forcefields as ff
-from hotpot.cheminfo import rdWrappers
 
 
 ROOT = Path(__file__).resolve().parents[2]
-COMPLEX_EXTRACTANT_SMILES = (
-    "O=C(N(C)CCC)C(C=C1)=NC2=C1C=CC3=C2N=C("
-    "C4=NC(C(C)(C)CCC5(C)C)=C5N=N4)C=C3"
-)
+README = ROOT / "README.md"
+FENCE = re.compile(r"```(?P<language>\w+)\n(?P<body>.*?)\n```", re.DOTALL)
 
 
-def _run_hotpot(*arguments: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        [sys.executable, "-m", "hotpot", *arguments],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
+def _blocks(test_name: str) -> tuple[tuple[str, str], ...]:
+    text = README.read_text(encoding="utf-8")
+    reference = f"tests/readme/test_readme_examples.py::{test_name}"
+    start = text.index(reference) + len(reference)
+    next_reference = text.find("<!-- Verified by", start)
+    section = text[start:] if next_reference < 0 else text[start:next_reference]
+    return tuple(
+        (match.group("language"), match.group("body"))
+        for match in FENCE.finditer(section)
     )
 
 
-def test_readme_primary_cli_surface() -> None:
-    output = _run_hotpot("--help").stdout
+def _command(test_name: str) -> tuple[str, ...]:
+    language, source = _blocks(test_name)[0]
+    assert language == "bash"
+    logical = source.replace("\\\n", " ")
+    logical = " ".join(
+        line[2:] if line.startswith("$ ") else line.strip()
+        for line in logical.splitlines()
+    )
+    arguments = tuple(shlex.split(logical))
+    assert arguments[0] == "hotpot"
+    return arguments[1:]
 
-    assert "mca" in output
-    assert "cbond" in output
-    assert "ff" in output
-    assert "xtb" in output
-    assert "run" in output
-    assert "ds" in output
+
+def _run_hotpot(
+    arguments: tuple[str, ...],
+    *,
+    cwd: Path = ROOT,
+    input_text: str | None = None,
+) -> subprocess.CompletedProcess[str]:
+    environment = os.environ.copy()
+    if not environment.get("HOTPOT_TEST_INSTALLED_PACKAGE"):
+        pythonpath = environment.get("PYTHONPATH")
+        environment["PYTHONPATH"] = (
+            str(ROOT) if not pythonpath else f"{ROOT}{os.pathsep}{pythonpath}"
+        )
+    return subprocess.run(
+        [sys.executable, "-m", "hotpot", *arguments],
+        cwd=cwd,
+        env=environment,
+        check=True,
+        capture_output=True,
+        text=True,
+        input=input_text,
+    )
+
+
+def _run_python(test_name: str) -> tuple[str, dict[str, object]]:
+    language, source = _blocks(test_name)[0]
+    assert language == "python"
+    namespace: dict[str, object] = {"__name__": "__readme_example__"}
+    output = io.StringIO()
+    with contextlib.redirect_stdout(output):
+        exec(compile(source, f"README.md::{test_name}", "exec"), namespace)
+    return output.getvalue().strip(), namespace
+
+
+def _documented_output(test_name: str) -> str:
+    language, body = _blocks(test_name)[1]
+    assert language == "text"
+    return body.strip()
+
+
+def test_readme_primary_cli_surface() -> None:
+    output = _run_hotpot(("--help",)).stdout
+
+    for command in ("mca", "cbond", "ff", "xtb", "run", "ds"):
+        assert command in output
 
 
 def test_readme_xtb_documentation_surface() -> None:
-    output = _run_hotpot("xtb", "--doc").stdout
+    output = _run_hotpot(("xtb", "--doc")).stdout
 
     assert "hotpot xtb" in output
     assert "explicit-atom 3D" in output
@@ -52,212 +104,130 @@ def test_readme_xtb_documentation_surface() -> None:
 
 
 def test_readme_pipeline_documentation_surface() -> None:
-    output = _run_hotpot("run", "--doc").stdout
+    output = _run_hotpot(("run", "--doc")).stdout
 
     assert "hotpot run" in output
     assert "::" in output
     assert "results" in output.lower()
 
 
+@pytest.mark.model_artifact
 def test_readme_mca_cli_output() -> None:
-    output = _run_hotpot("mca", "c1ccccc1CN").stdout.strip()
-    lines = output.splitlines()
-    expected = (
-        (1, "C", 319.00, False),
-        (2, "C", 304.00, False),
-        (3, "C", 329.25, False),
-        (4, "C", 303.50, False),
-        (5, "C", 318.75, False),
-        (6, "C", 324.00, False),
-        (7, "C", 314.50, False),
-        (8, "N", 489.50, True),
-    )
+    lines = _run_hotpot(_command("test_readme_mca_cli_output")).stdout.splitlines()
+    expected = _documented_output("test_readme_mca_cli_output").splitlines()
 
-    assert lines[0] == "No.  Atom  MCA(kJ/mol)  is_Nuc_site"
-    assert len(lines[1:]) == len(expected)
-    for line, (number, element, mca_kj_mol, is_site) in zip(lines[1:], expected):
-        fields = line.split()
-        assert len(fields) == 4
-        assert fields[:2] == [str(number), element]
-        assert abs(float(fields[2]) - mca_kj_mol) <= 0.25
-        assert fields[3] == str(is_site)
+    assert lines[0] == expected[0]
+    assert len(lines) == len(expected)
+    for actual_line, expected_line in zip(lines[1:], expected[1:]):
+        actual = actual_line.split()
+        documented = expected_line.split()
+        assert actual[:2] == documented[:2]
+        assert float(actual[2]) == pytest.approx(float(documented[2]), abs=0.25)
+        assert actual[3] == documented[3]
 
 
+@pytest.mark.model_artifact
 def test_readme_cbond_cli_output() -> None:
-    output = _run_hotpot(
-        "cbond",
-        "Eu",
-        COMPLEX_EXTRACTANT_SMILES,
-        "--device",
-        "cpu",
-        "--bond-detail",
-    ).stdout.strip()
+    lines = _run_hotpot(_command("test_readme_cbond_cli_output")).stdout.splitlines()
+    expected = _documented_output("test_readme_cbond_cli_output").splitlines()
 
-    lines = output.splitlines()
-    assert lines[:3] == [
-        "CCCN(C1=[O][Eu@]23n4c1ccc1c4c4n3c("
-        "-[c]3n2nc2c(n3)C(C)(C)CCC2(C)C)ccc4cc1)C",
-        "Cbond Detail:",
-        "AtomIdx  Atom  Score",
-    ]
-    assert lines[-1] == "-- End --"
-    expected_bonds = (
-        (10, "N", 4.04834),
-        (17, "N", 7.02889),
-        (0, "O", 6.10205),
-        (32, "N", 4.98739),
-    )
-    assert len(lines[3:-1]) == len(expected_bonds)
-    for line, (atom_index, element, score) in zip(
-        lines[3:-1],
-        expected_bonds,
-    ):
-        fields = line.split()
-        assert fields[:2] == [str(atom_index), element]
-        assert float(fields[2]) == pytest.approx(score, abs=1.0e-4)
+    assert lines[:3] == expected[:3]
+    assert lines[-1] == expected[-1]
+    assert len(lines) == len(expected)
+    for actual_line, expected_line in zip(lines[3:-1], expected[3:-1]):
+        actual = actual_line.split()
+        documented = expected_line.split()
+        assert actual[:2] == documented[:2]
+        assert float(actual[2]) == pytest.approx(float(documented[2]), abs=1.0e-4)
 
 
 def test_readme_forcefield_cli_output(tmp_path: Path) -> None:
-    output_path = tmp_path / "ethane.mol2"
-    report_path = tmp_path / "ethane.json"
-
     result = _run_hotpot(
-        "ff",
-        "CC",
-        "--epochs",
-        "1",
-        "--steps-per-epoch",
-        "20",
-        "--quality",
-        "standard",
-        "--seed",
-        "2026",
-        "--report",
-        str(report_path),
-        "-o",
-        str(output_path),
+        _command("test_readme_forcefield_cli_output"),
+        cwd=tmp_path,
     )
 
     assert result.stdout == ""
-    molecule = hp.read_mol(output_path)
+    molecule = hp.read_mol(tmp_path / "ethane.mol2")
     assert len(molecule.atoms) == 8
     assert ff.evaluate_structure_acceptance(molecule, level="standard").passed
-    assert '"status": "ok"' in report_path.read_text(encoding="utf-8")
+    assert '"status": "ok"' in (tmp_path / "ethane.json").read_text()
 
 
-def test_readme_forcefield_validation_python_output() -> None:
-    molecule = hp.read_mol("CC")
-    molecule.build3d(
-        forcefield="UFF",
-        epochs=1,
-        steps_per_epoch=20,
-        quality_level="standard",
-        seed=2026,
-    )
-
-    report = ff.evaluate_structure_acceptance(molecule, level="standard")
-
-    assert report.passed
-
-
+@pytest.mark.model_artifact
 def test_readme_cbond_forcefield_pipeline(tmp_path: Path) -> None:
-    cbond = _run_hotpot(
-        "cbond",
-        "Eu",
-        COMPLEX_EXTRACTANT_SMILES,
-        "--device",
-        "cpu",
-    )
-    output_path = tmp_path / "eu-extractant.mol2"
-    forcefield = subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "hotpot",
-            "ff",
-            "-",
-            "--input-format",
-            "smi",
-            "--epochs",
-            "1",
-            "--steps-per-epoch",
-            "20",
-            "--quality",
-            "off",
-            "--seed",
-            "2026",
-            "-o",
-            str(output_path),
-        ],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-        input=cbond.stdout,
+    arguments = _command("test_readme_cbond_forcefield_pipeline")
+    separator = arguments.index("|")
+    cbond = _run_hotpot(arguments[:separator], cwd=tmp_path)
+    forcefield = _run_hotpot(
+        arguments[separator + 2 :],
+        cwd=tmp_path,
+        input_text=cbond.stdout,
     )
 
     assert forcefield.stdout == ""
-    molecule = hp.read_mol(output_path)
+    molecule = hp.read_mol(tmp_path / "eu-extractant.mol2")
     assert [atom.symbol for atom in molecule.metals] == ["Eu"]
     assert len(molecule.c_bonds) == 4
 
 
+@pytest.mark.model_artifact
 def test_readme_mca_python_api_output() -> None:
-    molecule = hp.read_mol("c1ccccc1CN")
-
-    mca(molecule, backend="cpu")
-
-    assert molecule.atoms[7].mca == pytest.approx(489.5)
-    assert molecule.atoms[7].label == "N7"
-    assert tuple(
-        (atom.symbol, value) for atom, value in molecule.mca_sites.items()
-    ) == (("N", pytest.approx(489.5)),)
+    output, _ = _run_python("test_readme_mca_python_api_output")
+    assert output == _documented_output("test_readme_mca_python_api_output")
 
 
 def test_readme_core_ring_and_aromaticity_output() -> None:
-    molecule = hp.read_mol("c1ccccc1O")
-
-    assert len(molecule.atoms) == 7
-    assert [len(ring.atoms) for ring in molecule.rings] == [6]
-    assert [ring.is_aromatic for ring in molecule.rings] == [True]
+    output, _ = _run_python("test_readme_core_ring_and_aromaticity_output")
+    assert output == _documented_output("test_readme_core_ring_and_aromaticity_output")
 
 
 def test_readme_conversion_output() -> None:
-    molecule = hp.read_mol("CCN")
-
-    assert hp.to_hotpot_mol(molecule) is molecule
-    assert len(hp.to_hotpot_mol(molecule.to_rdmol()).atoms) == 3
-    assert len(hp.to_hotpot_mol(molecule.to_obmol()).atoms) == 3
-
-
-def test_readme_native_rdwrapper_output() -> None:
-    molecule = hp.read_mol("CCO")
-    batch = rdWrappers.generate_conformers(
-        molecule,
-        options=rdWrappers.ETKDGOptions(conformer_count=8, seed=42),
-    )
-
-    assert batch.coordinates.shape[0] > 0
-    assert batch.coordinates.shape[1:] == (len(molecule.atoms), 3)
-
-
-def test_readme_graph_spectrum_output() -> None:
-    phenol = hp.read_mol("c1ccc(O)cc1", "smi").graph_spectral()
-    benzoic_acid = hp.read_mol("c1ccccc1C(=O)O", "smi").graph_spectral()
-    reordered_phenol = hp.read_mol("c1ccccc1O", "smi").graph_spectral()
-
-    assert phenol.vectors.shape == (6, 13)
-    assert benzoic_acid.vectors.shape == (6, 15)
-    assert phenol | benzoic_acid == pytest.approx(0.907590226292854)
-    assert phenol | reordered_phenol == pytest.approx(1.0)
+    output, _ = _run_python("test_readme_conversion_output")
+    assert output == _documented_output("test_readme_conversion_output")
 
 
 def test_readme_thermo_output() -> None:
-    molecule = hp.read_mol("c1ccc(O)cc1", "smi")
-    thermo = molecule.get_thermo(temp=298.15, pressure=101325)
+    output, _ = _run_python("test_readme_thermo_output")
+    actual = tuple(map(float, output.splitlines()))
+    documented = tuple(
+        map(float, _documented_output("test_readme_thermo_output").splitlines())
+    )
 
-    assert thermo.Tc == pytest.approx(694.2)
-    assert thermo.Psat == pytest.approx(80.20201686360379)
+    assert actual == pytest.approx(documented, rel=1.0e-8, abs=1.0e-8)
+
+
+def test_readme_graph_spectrum_output() -> None:
+    output, _ = _run_python("test_readme_graph_spectrum_output")
+    actual = output.splitlines()
+    documented = _documented_output("test_readme_graph_spectrum_output").splitlines()
+
+    assert actual[:2] == documented[:2]
+    assert tuple(map(float, actual[2:])) == pytest.approx(
+        tuple(map(float, documented[2:])),
+        abs=1.0e-12,
+    )
+
+
+def test_readme_native_rdwrapper_output() -> None:
+    output, namespace = _run_python("test_readme_native_rdwrapper_output")
+    batch = namespace["batch"]
+
+    assert output == str(batch.coordinates.shape)
+    assert batch.coordinates.shape[0] > 0
+    assert batch.coordinates.shape[1:] == (3, 3)
+    assert np.isfinite(batch.coordinates).all()
+
+
+def test_readme_forcefield_validation_python_output() -> None:
+    output, namespace = _run_python(
+        "test_readme_forcefield_validation_python_output"
+    )
+
+    assert output == _documented_output(
+        "test_readme_forcefield_validation_python_output"
+    )
+    assert namespace["report"].passed
 
 
 def test_readme_ring_wedge_public_interface() -> None:

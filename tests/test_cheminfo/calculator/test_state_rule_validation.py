@@ -82,7 +82,10 @@ def _outcome() -> RuleOutcome:
 
 
 def test_valid_rule_outcome_matches_specification_and_budget() -> None:
-    _validate_rule_outcome(_specification(), _outcome(), _BUDGET)
+    assert (
+        _validate_rule_outcome(_specification(), _outcome(), _BUDGET)
+        is None
+    )
 
 
 @pytest.mark.parametrize(

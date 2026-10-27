@@ -118,6 +118,8 @@ def test_phosphorus_build_rule_preserves_topology_and_removes_linear_geometry():
     not EXTRACTANT_FILE.is_file(),
     reason="the governed extractant dataset is not installed locally",
 )
+@pytest.mark.scientific_boundary
+@pytest.mark.high_compute
 def test_all_extractant_phosphorus_centers_build_and_optimize_finitely():
     smiles_by_case = {
         index: smiles

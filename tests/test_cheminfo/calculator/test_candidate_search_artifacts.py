@@ -97,6 +97,9 @@ def test_candidate_space_rejects_mismatched_frontier_schema() -> None:
 
 
 def test_candidate_space_accepts_matching_artifacts() -> None:
-    _validate_candidate_space_artifacts(
-        _space(CandidateBudget(8, 16, 4))
+    assert (
+        _validate_candidate_space_artifacts(
+            _space(CandidateBudget(8, 16, 4))
+        )
+        is None
     )

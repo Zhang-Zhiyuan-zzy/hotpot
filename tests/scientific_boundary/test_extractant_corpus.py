@@ -1,8 +1,13 @@
 from hashlib import sha256
 from pathlib import Path
 
+import pytest
 
-REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+
+pytestmark = pytest.mark.scientific_boundary
+
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 EXTRACTANT_SOURCE = (
     REPOSITORY_ROOT / "molecules" / "extractant" / "extractants.smi"
 )

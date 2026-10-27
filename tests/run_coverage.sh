@@ -21,76 +21,20 @@ if [[ -n "${HOTPOT_TEST_INSTALLED_PACKAGE:-}" ]]; then
 fi
 python -m coverage erase
 
-test_targets=(
-  tests/model_artifacts
-  tests/mca
-  tests/cbond
-  tests/test_cheminfo/calculator
-  tests/test_cheminfo/test_calculator.py
-  tests/test_cheminfo/test_mca_calculator.py
-  tests/test_cheminfo/test_molecule_conversion.py
-  tests/test_cheminfo/test_ob2chem_compat.py
-  tests/test_cheminfo/test_bond_metadata.py
-  tests/test_cheminfo/test_ligand_rings.py
-  tests/test_cheminfo/test_relevant_ring_integration.py
-  tests/test_cheminfo/test_hidden_bond_restoration.py
-  tests/test_cheminfo/obWrappers
-  tests/test_cheminfo/geometry
-  tests/test_cheminfo/test_geometry.py
-  tests/test_cheminfo/test_geometry_core_integration.py
-  tests/test_cheminfo/test_geometry_quality.py
-  tests/test_cheminfo/test_forcefield_acceptance.py
-  tests/test_cheminfo/test_forcefield_api.py
-  tests/test_cheminfo/test_forcefield_checkpoint_acceptance.py
-  tests/test_cheminfo/test_forcefield_cli.py
-  tests/test_cheminfo/forcefields
-  tests/test_cheminfo/test_forcefield_package.py
-  tests/test_cheminfo/test_forcefield_optimizer.py
-  tests/test_cheminfo/test_forcefield_stage_scan_boundaries.py
-  tests/test_cheminfo/test_forcefield_trajectory.py
-  tests/test_cheminfo/test_forcefield_integration.py
-  tests/test_cheminfo/test_complexes_build.py
-  tests/test_cheminfo/test_complex_hydrogens.py
-  tests/test_cheminfo/test_complex_untangling_workflow.py
-  tests/test_cheminfo/test_topology_determinism.py
-  tests/test_cheminfo/test_search.py
-  tests/test_cheminfo/test_search_mapping.py
-  tests/test_cheminfo/test_search_native_contract.py
-  tests/test_cheminfo/test_search_native_kernel.py
-  tests/test_cheminfo/test_search_native_compiler.py
-  tests/test_cheminfo/test_search_native_production_kernel.py
-  tests/test_cheminfo/test_search_native_predicate_parity.py
-  tests/test_cheminfo/test_search_native_cutover.py
-  tests/test_cheminfo/test_search_native_prepared.py
-  tests/test_ds/test_stage13_query.py
-  tests/test_cheminfo/test_smarts.py
-  tests/test_cheminfo/test_import_safety.py
-  tests/test_smart_parser.py
-  tests/smarts_conformance
-  tests/benchmarks/coordination_complexes/test_support.py
-  tests/benchmarks/coordination_complexes/test_backend_comparison.py
-  tests/benchmarks/coordination_complexes/test_xtb_benchmark.py
-  tests/readme
-  tests/test_works/test_convert.py
-  tests/test_cli/test_run_cli.py
-  tests/test_cli/test_xtb_cli.py
-  tests/test_main/test_command_loading.py
-  tests/test_pipeline
-  tests/test_plugin/test_harness
-  tests/test_plugin/test_xtb
+pytest_options=(
+  -q
+  --import-mode=importlib
+  -p no:cacheprovider
+  --junitxml="$coverage_dir/junit.xml"
 )
-
-for index in "${!test_targets[@]}"; do
-  test_targets[$index]="$repo_root/${test_targets[$index]}"
-done
+if [[ "${HOTPOT_RUN_MODEL_ARTIFACT_TESTS:-}" == "1" ]]; then
+  pytest_options+=(--run-model-artifacts)
+fi
 
 set +e
 python -m coverage run --branch --source=hotpot -m pytest \
-  -q \
-  --import-mode=importlib \
-  -p no:cacheprovider \
-  --junitxml="$coverage_dir/junit.xml" \
-  "${test_targets[@]}"
+  "${pytest_options[@]}" \
+  "$repo_root/tests"
 test_status=$?
 set -e
 

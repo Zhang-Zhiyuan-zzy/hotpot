@@ -10,6 +10,8 @@ import pytest
 
 from hotpot.ds._paths import SOURCES_ROOT
 
+pytestmark = pytest.mark.scientific_boundary
+
 
 def test_csd_oxidation_disagreement_sentinels_remain_visible() -> None:
     source = SOURCES_ROOT / "csd-electronic-state" / "electronic_states.sqlite3"

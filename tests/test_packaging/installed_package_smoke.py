@@ -93,6 +93,10 @@ def mca() -> None:
 
     molecule = hotpot.to_hotpot_mol("C1CCCCN1")
     prediction = MCAPredictor(device="cpu").predict(molecule)
+    print(
+        "::notice title=MCA installed-wheel prediction::"
+        f"{[(site.atom_index, site.mca_kj_mol) for site in prediction.sites]}"
+    )
     assert len(prediction.atom_predictions) == 6
     assert abs(prediction.sites[0].mca_kj_mol - 503.25) < 1e-6
 

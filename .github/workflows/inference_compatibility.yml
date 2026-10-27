@@ -385,6 +385,7 @@ jobs:
         env:
           HOTPOT_MODEL_HOME: ${{ runner.temp }}/hotpot-models
           HOTPOT_MODEL_SOURCE: local
+          HOTPOT_TEST_INSTALLED_PACKAGE: "1"
           HOTPOT_TEST_WORKDIR: ${{ runner.temp }}/hotpot-tests
         run: ./tests/run_coverage.sh
       - name: Annotate test failures

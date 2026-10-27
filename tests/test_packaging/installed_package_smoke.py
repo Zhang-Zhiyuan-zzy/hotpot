@@ -75,6 +75,15 @@ def core() -> None:
     assert files("hotpot.cheminfo.geometry").joinpath("README.zh.md").read_text(
         encoding="utf-8"
     ).startswith("# `hotpot.cheminfo.geometry` API 参考（中文版）")
+    fonts = files("hotpot.cheminfo").joinpath("fonts", "Arial")
+    for filename in (
+        "Arial.ttf",
+        "Arial_Black.ttf",
+        "Arial_Bold.ttf",
+        "Arial_Bold_Italic.ttf",
+        "Arial_Italic.ttf",
+    ):
+        assert fonts.joinpath(filename).is_file()
 
     mca_documentation = _stdout("hotpot", "mca", "--doc")
     assert "hotpot mca" in mca_documentation

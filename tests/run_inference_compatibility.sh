@@ -22,6 +22,9 @@ for version in "${versions[@]}"; do
         if [[ -n "$wheel" ]]; then
             wheel=$(realpath "$wheel")
             uv_options+=(--with "$wheel")
+            export HOTPOT_TEST_INSTALLED_PACKAGE=1
+            export PYTHONSAFEPATH=1
+            unset PYTHONPATH
         else
             cd "$repo_root"
             uv run --no-project --python "$version" \
@@ -34,6 +37,12 @@ for version in "${versions[@]}"; do
         work_dir=${HOTPOT_TEST_WORKDIR:-$repo_root}
         mkdir -p "$work_dir"
         cd "$work_dir"
+        if [[ -n "$wheel" ]]; then
+            test_support="$work_dir/python-test-support"
+            mkdir -p "$test_support"
+            ln -sfn "$repo_root/tests" "$test_support/tests"
+            export PYTHONPATH="$test_support"
+        fi
 
         uv "${uv_options[@]}" \
             python -c '

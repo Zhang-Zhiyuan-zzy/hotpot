@@ -131,6 +131,9 @@ all = [
 include-package-data = true
 
 [tool.setuptools.package-data]
+"hotpot.cheminfo" = [
+    "fonts/*/*.ttf",
+]
 "hotpot.cheminfo.rdWrappers" = [
     "_rd_native.pyi",
 ]

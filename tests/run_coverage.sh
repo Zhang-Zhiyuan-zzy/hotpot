@@ -12,6 +12,13 @@ mkdir -p "$MPLCONFIGDIR"
 work_dir=${HOTPOT_TEST_WORKDIR:-$repo_root}
 mkdir -p "$work_dir"
 cd "$work_dir"
+if [[ -n "${HOTPOT_TEST_INSTALLED_PACKAGE:-}" ]]; then
+  test_support="$work_dir/python-test-support"
+  mkdir -p "$test_support"
+  ln -sfn "$repo_root/tests" "$test_support/tests"
+  export PYTHONSAFEPATH=1
+  export PYTHONPATH="$test_support"
+fi
 python -m coverage erase
 
 test_targets=(

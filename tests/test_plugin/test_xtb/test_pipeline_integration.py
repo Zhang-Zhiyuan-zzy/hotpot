@@ -37,6 +37,8 @@ def _water():
 
 def _python_environment() -> dict[str, str]:
     environment = dict(os.environ)
+    if environment.get("HOTPOT_TEST_INSTALLED_PACKAGE"):
+        return environment
     project_root = str(Path(__file__).resolve().parents[3])
     current_path = environment.get("PYTHONPATH")
     environment["PYTHONPATH"] = (

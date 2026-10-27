@@ -19,6 +19,13 @@ def test_inference_workflow_builds_the_exact_wheels_it_tests():
     assert "HOTPOT_TEST_WHEEL" in workflow
     assert "HOTPOT_TEST_WORKDIR" in workflow
 
+    runner = (ROOT / "tests" / "run_inference_compatibility.sh").read_text(
+        encoding="utf-8"
+    )
+    assert "HOTPOT_TEST_INSTALLED_PACKAGE=1" in runner
+    assert "PYTHONSAFEPATH=1" in runner
+    assert 'export PYTHONPATH="$test_support"' in runner
+
 
 def test_coverage_has_one_maintained_workflow_implementation():
     workflow = (WORKFLOWS / "inference_compatibility.yml").read_text(
@@ -28,6 +35,7 @@ def test_coverage_has_one_maintained_workflow_implementation():
     assert not (WORKFLOWS / "test_push.yml").exists()
     assert "coverage:" in workflow
     assert "./tests/run_coverage.sh" in workflow
+    assert 'HOTPOT_TEST_INSTALLED_PACKAGE: "1"' in workflow
     assert "codecov/codecov-action@v5" in workflow
 
 

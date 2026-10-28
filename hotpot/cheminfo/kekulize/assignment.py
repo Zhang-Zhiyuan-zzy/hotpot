@@ -8,7 +8,6 @@ from .aromaticity import determine_ring_aromaticity
 
 __all__ = (
     "check_joint_ring_kekulization",
-    "kekulize_joint_ring",
     "kekulize_ring",
 )
 
@@ -28,11 +27,6 @@ def check_joint_ring_kekulization(joint_ring: JointRingLike) -> bool:
             if atom.sum_heavy_cov_orders == 2:
                 return False
     return True
-
-
-def kekulize_joint_ring(joint_ring: JointRingLike) -> None:
-    """Preserve the currently unimplemented joint-ring operation."""
-    raise NotImplementedError
 
 
 def kekulize_ring(ring: RingLike) -> None:

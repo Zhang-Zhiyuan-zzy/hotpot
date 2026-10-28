@@ -9,7 +9,6 @@ import hotpot.cheminfo.calculator as calculator
 
 
 PUBLIC_CALCULATOR_NAMES = (
-    "Calculator",
     "mca",
     "extract_molecular_facts",
     "resolve_scientific_state",

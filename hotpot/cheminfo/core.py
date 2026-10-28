@@ -1088,9 +1088,6 @@ class Molecule:
             self._torsions = self._retrieve_torsions()
         return copy(self._torsions)
 
-    def assign_aromatic(self):
-        pass
-
     def assign_bond_order(self):
         """
         Assigns bond orders to the molecule and updates its structure accordingly.
@@ -3841,7 +3838,6 @@ class Atom(MolBlock):
         Returns:
             bool: True if the element is a metal, otherwise False.
         """
-        # return _clib.is_metal(self.atomic_number)
         return self.atomic_number in self.elements.metal
 
     @property
@@ -4178,10 +4174,6 @@ class Atom(MolBlock):
             AttributeError: If required attributes are missing from the object.
             KeyError: If the atomic number is not present in the default valence lookup.
         """
-        # C Implementation
-        # neigh_atomic_number = [a.atomic_number for a in self.neighbours]
-        # _clib.get_valence(self.atomic_number, neigh_atomic_number, len(neigh_atomic_number))
-
         if self.atomic_number in [6, 14]:  # C, Si
             return 4
         elif self.atomic_number == 8:  # O
@@ -4494,27 +4486,6 @@ class AtomSeq:
         )
 
         return mol
-
-
-class AtomPairKey:
-    def __init__(self, atom1: Atom, atom2: Atom):
-        assert isinstance(atom1, Atom) and isinstance(atom2, Atom)
-        self.atom1, self.atom2 = (atom1, atom2) if atom1.idx <= atom2.idx else (atom2, atom1)
-
-    def __hash__(self):
-        return hash((self.atom1, self.atom2)) + hash((self.atom2, self.atom1))
-
-    def __repr__(self):
-        return f"AtomPairKey({self.atom1}, {self.atom2})"
-
-    def __lt__(self, other):
-        return (self.atom1.idx, self.atom2.idx) < (other.atom1.idx, other.atom2.idx)
-
-    def __eq__(self, other):
-        return (other.atom1 == self.atom1 and other.atom2 == self.atom2) or (other.atom1 == self.atom2 and other.atom2 == self.atom1)
-
-    def __contains__(self, check_atom):
-        return check_atom is self.atom1 or check_atom is self.atom2
 
 
 class AtomPair:
@@ -5315,10 +5286,6 @@ class JointRing:
             bool: True if the structure conforms to Kekulé rules, otherwise False.
         """
         return kekulization.check_joint_ring_kekulization(self)
-
-
-    def kekulize(self):
-        return kekulization.kekulize_joint_ring(self)
 
 
 class Ring(AtomSeq):

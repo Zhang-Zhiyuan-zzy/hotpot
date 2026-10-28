@@ -227,7 +227,7 @@
       "additional_requirements": [
         "source/build/consumer zero-reference audit for every deletion; replace tests of deleted compatibility entry with equivalent supported-entry assertions"
       ],
-      "execution_status": "not_executed_by_inventory_capture"
+      "execution_status": "completed; default suite, focused conversions/imports, fresh-process smoke and source/build audit are bound in stage2_execution_evidence.json"
     },
     "Stage3": {
       "predecessor": "Stage2",

@@ -1,0 +1,862 @@
+{
+  "schema_version": 1,
+  "stage": "Stage2",
+  "assessment": "ready_for_scoped_cleanup_after_this_entry; deletion-specific audit and execution gates remain pending",
+  "recorded_at_utc": "2026-10-28T09:30:34.755983+00:00",
+  "reviewer": "/root/stage1_matrix_cp312",
+  "authorization": "Continue implementation under the latest reviewed Plan20; every stage and independently gated sub-stage starts with a new full-document reread and current-state assessment.",
+  "review_scope": "New complete reread and read-only predecessor/source assessment. This task creates only this entry record; it runs no tests, benchmarks, builds, production edits or Git commit.",
+  "source": {
+    "repository": "/home/zhangzhiyuan/hotpot",
+    "branch": "implement/plan20-fact-rule-architecture",
+    "stage1_commit": "2aca9f1df18d7821f8a7ccefc873d949317d6c9f",
+    "stage1_commit_subject": "test(plan20): freeze supported Python baselines and reviewed contracts",
+    "stage1_commit_time": "2026-10-28T17:21:59+08:00",
+    "repository_tree": "ee81ff9a8b482cd806cb34755bc7001f07788c39",
+    "production_tree": "4a2086e717327c99056ef8cda200b0786e688219",
+    "baseline_commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+    "baseline_production_tree": "4a2086e717327c99056ef8cda200b0786e688219",
+    "tracked_production_tree_matches_baseline": true,
+    "worktree_status_before_entry_creation": "",
+    "worktree_note": "Clean Git status was observed before this record; ignored/untracked native artifacts are assessed separately and are not certified by the tracked tree."
+  },
+  "full_reread": {
+    "stage_specific": true,
+    "main_plan_chapters": "1-17, including the full Section17 experiment requirements",
+    "data_audit_appendix_included": true,
+    "documents": [
+      {
+        "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+        "line_count": 2434,
+        "sha256": "8a5086206910f457f8824c37366b22521938f7b5fa33de8f42cfeb5e45dd6acd",
+        "read_ranges": [
+          [
+            1,
+            300
+          ],
+          [
+            301,
+            600
+          ],
+          [
+            601,
+            900
+          ],
+          [
+            901,
+            1200
+          ],
+          [
+            1201,
+            1450
+          ],
+          [
+            1451,
+            1750
+          ],
+          [
+            1751,
+            2050
+          ],
+          [
+            2051,
+            2250
+          ],
+          [
+            2251,
+            2434
+          ]
+        ],
+        "full_current_stage_reread": true,
+        "unchanged_at_record_creation": true
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+        "line_count": 280,
+        "sha256": "b05896d18aa252153c56d625fc587471ee2711cda683dfc7fae1cd6ad66853d5",
+        "read_ranges": [
+          [
+            1,
+            280
+          ]
+        ],
+        "full_current_stage_reread": true,
+        "unchanged_at_record_creation": true
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+        "line_count": 519,
+        "sha256": "481d5195ece9e1a8707187574b3df73663456b77453f5bf89f76e4bcbad51f5c",
+        "read_ranges": [
+          [
+            1,
+            260
+          ],
+          [
+            261,
+            519
+          ]
+        ],
+        "full_current_stage_reread": true,
+        "unchanged_at_record_creation": true
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+        "line_count": 177,
+        "sha256": "e5549116f1409fb46b5fd2bdc82c0b20a34297989475eb66a119ac221a9d4a0b",
+        "read_ranges": [
+          [
+            1,
+            177
+          ]
+        ],
+        "full_current_stage_reread": true,
+        "unchanged_at_record_creation": true
+      },
+      {
+        "path": "plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+        "line_count": 68,
+        "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+        "read_ranges": [
+          [
+            1,
+            68
+          ]
+        ],
+        "full_current_stage_reread": true,
+        "unchanged_at_record_creation": true
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/stage1_contract_decisions.md",
+        "line_count": 182,
+        "sha256": "406a6e42f00e3bc3042487db7deb204b7233f07d23bf52041a3783e8063627ca",
+        "read_ranges": [
+          [
+            1,
+            182
+          ]
+        ],
+        "full_current_stage_reread": true,
+        "unchanged_at_record_creation": true
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/stage1_interface_contract_review.md",
+        "line_count": 202,
+        "sha256": "3dd1749b581f37bad299682253dd0c1c9671f77e5c59d9dc22c0be9d96eb91ce",
+        "read_ranges": [
+          [
+            1,
+            202
+          ]
+        ],
+        "full_current_stage_reread": true,
+        "unchanged_at_record_creation": true
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/implementation_log.md",
+        "line_count": 487,
+        "sha256": "4d838953b23e6a453d527d56bdc1c186d3bf5d052af1a0edc021dc69e8681f52",
+        "read_ranges": [
+          [
+            1,
+            190
+          ],
+          [
+            191,
+            370
+          ],
+          [
+            371,
+            487
+          ]
+        ],
+        "full_current_stage_reread": true,
+        "unchanged_at_record_creation": true
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/README.md",
+        "line_count": 57,
+        "sha256": "0a5f98161a0d23715ac399192a71170e89691dceb1b36936ee3e1b7a12b59049",
+        "read_ranges": [
+          [
+            1,
+            57
+          ]
+        ],
+        "full_current_stage_reread": true,
+        "unchanged_at_record_creation": true
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/stage1_api_review.md",
+        "line_count": 152,
+        "sha256": "9c3148425fcbb84fffb9841944c685de8fcaa32b08887b57eaa45de1813a28bb",
+        "read_ranges": [
+          [
+            1,
+            152
+          ]
+        ],
+        "full_current_stage_reread": true,
+        "unchanged_at_record_creation": true
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/stage1_execution_evidence.json",
+        "line_count": 380,
+        "sha256": "978372e5e713ef071fa4d6829ee3f568b5a32a44070ba9d90b4b04dae9dc4fa4",
+        "read_ranges": [
+          [
+            1,
+            380
+          ]
+        ],
+        "full_current_stage_reread": true,
+        "unchanged_at_record_creation": true
+      }
+    ],
+    "method": "Complete text outputs in the recorded nontruncated ranges, followed by current SHA256 and line-count checks; this is a new Stage2 read, not reused Stage0/Stage1 evidence."
+  },
+  "additional_read_scope": [
+    {
+      "path": "plan/20_fact_rule_architecture/stage_verification_map.json",
+      "sha256": "0c1f268ea1706ecb7968233b6fb2bf0a4c11b0bde52ae7e8c99cea89ea79569c",
+      "read_scope": [
+        "baseline_environment",
+        "common_commands",
+        "invocation_rules",
+        "stages.Stage2"
+      ],
+      "full_document_read_claimed": false
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/baseline_inventory/migration_inventory.json",
+      "sha256": "58885f2d8d8fcc8a0189618f1ab3c7e72eaa81d1ab406fb8393a45ce9acf598b",
+      "read_scope": "all rows assigned Stage2, obtained by JSON filtering",
+      "full_document_read_claimed": false
+    },
+    {
+      "path": "hotpot/cheminfo/crystal.py",
+      "sha256": "e863a75cd402ff09650db58bdebc3f4ced64e2f60707b94b3c3954f35ac9bdf6",
+      "read_scope": "entire file",
+      "full_document_read_claimed": true
+    },
+    {
+      "path": "hotpot/cheminfo/calculator/base.py",
+      "sha256": "30a484afdfbf2bdf04ad8a65048e65544f886c61e73dc17dd54a6d2126c0536f",
+      "read_scope": "entire file",
+      "full_document_read_claimed": true
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "sha256": "75c1be7e5bde13a5e67bb30c731388505438495964a4adad7f64a9a060f52532",
+      "read_scope": "targeted references to assign_aromatic, AtomPairKey, and JointRing.kekulize; no fresh full core read claimed",
+      "full_document_read_claimed": false
+    }
+  ],
+  "predecessor_evidence": {
+    "stage1_record": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_execution_evidence.json",
+      "sha256": "978372e5e713ef071fa4d6829ee3f568b5a32a44070ba9d90b4b04dae9dc4fa4",
+      "bytes": 16195
+    },
+    "bound_absolute_file_count": 39,
+    "all_bound_absolute_file_hashes_match": true,
+    "bound_files": [
+      {
+        "path": "/tmp/hotpot-plan20-20261028/baseline/default-source.log",
+        "sha256": "dda4355715269009edb6f86600da634f5b7b38024a1e29e4491cebc76ff51e68"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/baseline/default-source.xml",
+        "sha256": "21027cfa7cf829ff0bff61958bd710db807fafb6778f80348a7dd6a7a3bac955"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/baseline/model-tier.log",
+        "sha256": "2527252f6872ac767f2b1c31a9b2dfca635b8c7d1e71f8863d1a2946aa76aa1e"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/baseline/native-standalone.log",
+        "sha256": "b2fa049a01872ef142cfcbba4d1d1d3c8562761625a9715cb1b5b163dbdff3c9"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/baseline/native-sdk-correct-toolchain.log",
+        "sha256": "789dbaf8f34018ffabd7ed72caea953caa8b9cad0b189dc49b5bcf043b72ca05"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/baseline/native-stage1-map.log",
+        "sha256": "c490f211d7c8da8d90e66479522b57fee1a7552d0072ea9f460b284ae92689f4"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/report-tools-complete.log",
+        "sha256": "a702cb189a34b4c5449a9f79e1dfcbc55650361f0c8ef05c57da6572a298b439"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/matrix-comparison-subtests.log",
+        "sha256": "9002a7944cc5cce0a16bcd347a9b2d58d360887017ec74ddbc94762737c0ece7"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/science-b20-standard/report.json",
+        "sha256": "ed2e5fa6bd6b8a902b02577ff60911b8f400c7f4ae3c8ba4fce59b998e859e4c"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/science-b20-selfcheck/comparison.json",
+        "sha256": "621364b6adc725a248561464940e8ae335e1824c5db439d95e2c80603517eb07"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+        "sha256": "ed5bba12ac6ae0305f6c85f7af3aa8fa824a3278fe12aad537a2f0c13768571b"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_sampling_plan.json",
+        "sha256": "be75408f19e3e860c4493e12b217095f9f757c7ec66d933df12811c6d75689f4"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/performance-b20-local/report.json",
+        "sha256": "ad460fe264a6418379893f69fb918becd0ae5428b20494e9c8ebab1458906cf5"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/performance-b20-local-selfcheck/comparison.json",
+        "sha256": "d2aaac94cf2080abde2092db3b9d99b1df7f6ae43adce176dab62a513d8ae473"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/remote-build/performance-evidence/performance-b20-remote/report.json",
+        "sha256": "692034b778c5c88c909ffa3b8ad9d6934a94f0a5f9d4d6510829cab2d17aa49b"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/remote-build/performance-evidence/performance-b20-remote-selfcompare/comparison.json",
+        "sha256": "803087b368682166e1090441a993c77ab5d382c58898dab493eaacecd7ee4e9d"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/inference-b20-local/report.json",
+        "sha256": "d4dfa4e1cdd446c5a3855d908ae270bd587980e12e1236bd10726486ae167691"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/remote-build/inference-evidence/inference-b20-remote/report.json",
+        "sha256": "522173ba898885f952f4e7742c957dd9f2af7a66c53455db93f78b8e4f2b4eaa"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/remote-build/numerical-analysis-evidence/inference-b20-numerical-analysis.json",
+        "sha256": "0f7a33058fe26fb821bad2c7cf1470f1878ea2a3cc495a4bff3eaad28b437e42"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/python_matrix_manifest.json",
+        "sha256": "7c6ed13718cfa1563f65c99c8f3ac8ff94b77eddf43aaf5e0ff27ac54de3a107"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/python-matrix-b20-verified/report.json",
+        "sha256": "57fbffba85343a3022811f16d6a6775ff187f52bdda91cd2bc8e4302b3e1f0a9"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/python-matrix-b20-selfcheck-subtests/comparison.json",
+        "sha256": "761e8373ec9b4b68bf506364272b6463f12f6862297011af709a85e4c1774ca6"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/matrix/cp310/source/dist/hotpot_zzy-0.5.4.5-cp310-cp310-linux_x86_64.whl",
+        "sha256": "258a6d7a98bcb89ef06d6157e3a89cee2041f14c9da1a9612af6e8e968e372dd"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/build/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+        "sha256": "a7a4c1580881be42a3651a92660efdc934164a4d47a386ffe584b4ef0d4c9a97"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/matrix/cp312/wheels/hotpot_zzy-0.5.4.5-cp312-cp312-linux_x86_64.whl",
+        "sha256": "91ccf7dddc0dbf3b956c5a02a9e93fee8c911efb6a75a0f1aaee8a46131fd8f7"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/remote-build/source/dist/hotpot_zzy-0.5.4.5-cp313-cp313-linux_x86_64.whl",
+        "sha256": "5e9d55297dd4d15814e7814dd3055b88ee84d2d8656312677c9a663792546672"
+      },
+      {
+        "path": "/tmp/hotpot-plan20-20261028/matrix/cp314/source/dist/hotpot_zzy-0.5.4.5-cp314-cp314-linux_x86_64.whl",
+        "sha256": "009a839f88ccdaa1ecd792358d6fc5d64e0680cafeee57e2acef89df12160014"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/python-matrix-b20/report.json",
+        "sha256": "5036b838a480b1701d4e99fd362956d361ce1c6498f86d7a81544ff13c21c2e0"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/python-matrix-b20-legacy-ids/interruption.json",
+        "sha256": "a45693a98e96cefa390ab10e710eefccf3392f0ca61aff2e3bf26aea0d9b2b5e"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/python-matrix-b20-selfcheck/comparison.json",
+        "sha256": "4a63cf4e02e4d0830720d44e2a8ba45d939ee5c3354cca4d9e862631870eebc4"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/baseline_inventory/manifest.json",
+        "sha256": "1cfdc979c05b10818aa99ac6b95cd56b18bbb38d4709f17340de9e6d7c583a5a"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_contract_decisions.md",
+        "sha256": "406a6e42f00e3bc3042487db7deb204b7233f07d23bf52041a3783e8063627ca"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_api_review.md",
+        "sha256": "9c3148425fcbb84fffb9841944c685de8fcaa32b08887b57eaa45de1813a28bb"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/reviewed_interface_contracts.json",
+        "sha256": "d16d1cf6e08fdf3112d736bcf8f0dce285b98294007b87307bcf10e9d426ed0d"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_interface_contract_review.md",
+        "sha256": "3dd1749b581f37bad299682253dd0c1c9671f77e5c59d9dc22c0be9d96eb91ce"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_asset_review.md",
+        "sha256": "fdd77c56e65f7c50e4be63ba5ce6ae503a48e6103848a5d376e5a91658f0902e"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/data_object_budget.json",
+        "sha256": "9d5fb507d704050c2697feec8b527c3b24a24dff2e73511090b52eb949048946"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage_verification_map.json",
+        "sha256": "0c1f268ea1706ecb7968233b6fb2bf0a4c11b0bde52ae7e8c99cea89ea79569c"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/b20-archive/archive-index.json",
+        "sha256": "ceb4150a7eff68b1c1f519990d169b593ae71db7bf5ad65900d639bc50977103"
+      }
+    ],
+    "verification_limit": "39 principal absolute-path bindings were recomputed. The archive index was bound, but this entry did not rehash all 7946 archived payloads, rebuild wheels, rerun self-comparators or repeat measurements.",
+    "technical_observed_from_saved_logs": {
+      "default_suite": {
+        "passed": 3822,
+        "skipped": 123,
+        "xfailed": 3,
+        "subtests_passed": 49
+      },
+      "model_tier": {
+        "passed": 42,
+        "skipped": 1,
+        "deselected": 3905
+      },
+      "native_standalone": {
+        "initial_passed": 100,
+        "initial_skipped": 1,
+        "initial_failures": 2,
+        "sdk_failures_resolved_with_pinned_toolchain": 2,
+        "additional_stage1_map_passed": 26
+      },
+      "report_tools": {
+        "combined_passed": 59,
+        "later_comparator_passed": 14,
+        "count_note": "14 later tests overlap 13 prior tests and add one regression; these counts are not summed."
+      },
+      "wheel_and_installed_smoke": "Wheel content audit success was reread; installed-smoke completion is taken from the bound Stage1 log/record, not inferred from silent log files."
+    },
+    "scientific": {
+      "report": {
+        "path": "/tmp/hotpot-plan20-20261028/science-b20-standard/report.json",
+        "bytes": 57921707,
+        "sha256": "ed2e5fa6bd6b8a902b02577ff60911b8f400c7f4ae3c8ba4fce59b998e859e4c"
+      },
+      "summary": {
+        "attempted_trials": 546,
+        "case_count": 187,
+        "eligibility_counts": {
+          "eligible": 182,
+          "ineligible": 5
+        },
+        "execution_error_count": 0,
+        "trial_count": 561,
+        "trial_elapsed_seconds_sum": 4861.7257459480315,
+        "trial_elapsed_unavailable_count": 0,
+        "trial_outcomes": {
+          "completed": 546,
+          "not_run_ineligible": 15
+        },
+        "unresolved_trials": 15
+      },
+      "selfcheck_technical_execution_errors": 0,
+      "monitor_false_observations_as_recorded": 1,
+      "meaning": "546 completed versioned observations and 15 ineligible non-runs across 187 sources and 561 seed records. The rule-derived count 182 is not a permanent pass target. The one false monitor flag is retained and is not an execution failure."
+    },
+    "performance": [
+      {
+        "report": {
+          "path": "/tmp/hotpot-plan20-20261028/performance-b20-local/report.json",
+          "bytes": 8771470,
+          "sha256": "ad460fe264a6418379893f69fb918becd0ae5428b20494e9c8ebab1458906cf5"
+        },
+        "source_commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+        "production_tree": "4a2086e717327c99056ef8cda200b0786e688219",
+        "executed_workloads": 64,
+        "attempts": 783,
+        "measured": 605,
+        "warmups": 178,
+        "outcomes": {
+          "completed": 783
+        },
+        "self_comparable_workloads": 64,
+        "self_environment_mismatches": []
+      },
+      {
+        "report": {
+          "path": "/tmp/hotpot-plan20-20261028/remote-build/performance-evidence/performance-b20-remote/report.json",
+          "bytes": 713713,
+          "sha256": "692034b778c5c88c909ffa3b8ad9d6934a94f0a5f9d4d6510829cab2d17aa49b"
+        },
+        "source_commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+        "production_tree": "4a2086e717327c99056ef8cda200b0786e688219",
+        "executed_workloads": 7,
+        "attempts": 34,
+        "measured": 27,
+        "warmups": 7,
+        "outcomes": {
+          "completed": 34
+        },
+        "self_comparable_workloads": 7,
+        "self_environment_mismatches": []
+      }
+    ],
+    "performance_limits": [
+      "Count the 64 local workloads plus four remote GPU workloads once each: 68 existing entries; three new-only entries have no B20 counterpart. Three remote CPU entries are supplemental host observations.",
+      "Self-comparison establishes internal consistency only. Neither formal F20 comparison nor global performance acceptance has occurred. Shared GPU load and actual package/binary identities remain future comparison conditions."
+    ],
+    "python_matrix": {
+      "report": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/python-matrix-b20-verified/report.json",
+        "bytes": 17169116,
+        "sha256": "57fbffba85343a3022811f16d6a6775ff187f52bdda91cd2bc8e4302b3e1f0a9"
+      },
+      "selfcheck": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/python-matrix-b20-selfcheck-subtests/comparison.json",
+        "bytes": 65605,
+        "sha256": "761e8373ec9b4b68bf506364272b6463f12f6862297011af709a85e4c1774ca6"
+      },
+      "source": {
+        "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+        "production_tree": "4a2086e717327c99056ef8cda200b0786e688219",
+        "status": "?? plan/20_fact_rule_architecture/_scientific_report.py\n?? plan/20_fact_rule_architecture/compare_scientific_reports.py\n?? plan/20_fact_rule_architecture/run_scientific_report.py"
+      },
+      "versions": [
+        {
+          "version": "3.10",
+          "preflight": "completed",
+          "attempts": 6,
+          "measured": 5,
+          "warmups": 1,
+          "outcomes": {
+            "completed": 6
+          },
+          "summary": {
+            "requested_samples": 5,
+            "completed": 5,
+            "errors": 0,
+            "not_run": 0,
+            "all_attempt_seconds": 992.77017673105,
+            "elapsed_unavailable": 0,
+            "median_seconds": 198.60112279094756,
+            "mad_seconds": 0.11864011734724045,
+            "p95_seconds": 198.7791798580438,
+            "peak_rss_bytes": 1958907904
+          },
+          "all_group_return_codes_zero": true,
+          "all_group_package_bindings_verified": true,
+          "missing_extra_unexecuted_nodes": 0
+        },
+        {
+          "version": "3.11",
+          "preflight": "completed",
+          "attempts": 6,
+          "measured": 5,
+          "warmups": 1,
+          "outcomes": {
+            "completed": 6
+          },
+          "summary": {
+            "requested_samples": 5,
+            "completed": 5,
+            "errors": 0,
+            "not_run": 0,
+            "all_attempt_seconds": 472.20122892037034,
+            "elapsed_unavailable": 0,
+            "median_seconds": 94.45942400209606,
+            "mad_seconds": 0.22853365167975426,
+            "p95_seconds": 94.80772792696953,
+            "peak_rss_bytes": 1460056064
+          },
+          "all_group_return_codes_zero": true,
+          "all_group_package_bindings_verified": true,
+          "missing_extra_unexecuted_nodes": 0
+        },
+        {
+          "version": "3.12",
+          "preflight": "completed",
+          "attempts": 6,
+          "measured": 5,
+          "warmups": 1,
+          "outcomes": {
+            "completed": 6
+          },
+          "summary": {
+            "requested_samples": 5,
+            "completed": 5,
+            "errors": 0,
+            "not_run": 0,
+            "all_attempt_seconds": 1033.0364837385714,
+            "elapsed_unavailable": 0,
+            "median_seconds": 206.60714266076684,
+            "mad_seconds": 0.32215575128793716,
+            "p95_seconds": 206.98748484775425,
+            "peak_rss_bytes": 1452859392
+          },
+          "all_group_return_codes_zero": true,
+          "all_group_package_bindings_verified": true,
+          "missing_extra_unexecuted_nodes": 0
+        },
+        {
+          "version": "3.13",
+          "preflight": "completed",
+          "attempts": 6,
+          "measured": 5,
+          "warmups": 1,
+          "outcomes": {
+            "completed": 6
+          },
+          "summary": {
+            "requested_samples": 5,
+            "completed": 5,
+            "errors": 0,
+            "not_run": 0,
+            "all_attempt_seconds": 1077.3869570177048,
+            "elapsed_unavailable": 0,
+            "median_seconds": 215.48442400619388,
+            "mad_seconds": 0.17548448778688908,
+            "p95_seconds": 215.80539431720973,
+            "peak_rss_bytes": 1486376960
+          },
+          "all_group_return_codes_zero": true,
+          "all_group_package_bindings_verified": true,
+          "missing_extra_unexecuted_nodes": 0
+        },
+        {
+          "version": "3.14",
+          "preflight": "completed",
+          "attempts": 6,
+          "measured": 5,
+          "warmups": 1,
+          "outcomes": {
+            "completed": 6
+          },
+          "summary": {
+            "requested_samples": 5,
+            "completed": 5,
+            "errors": 0,
+            "not_run": 0,
+            "all_attempt_seconds": 1150.7110968902707,
+            "elapsed_unavailable": 0,
+            "median_seconds": 230.213604927063,
+            "mad_seconds": 0.2227067407220602,
+            "p95_seconds": 230.43082108944654,
+            "peak_rss_bytes": 1478070272
+          },
+          "all_group_return_codes_zero": true,
+          "all_group_package_bindings_verified": true,
+          "missing_extra_unexecuted_nodes": 0
+        }
+      ],
+      "all_versions_comparable": true,
+      "selfcheck_conclusion": "internally_consistent",
+      "baseline_audit_verified": true,
+      "candidate_audit_verified": true,
+      "all_measured_pairs_per_version": true,
+      "requested_nodes_per_attempt": 2689,
+      "outcomes_per_attempt_as_recorded": {
+        "passed": 2647,
+        "skipped": 39,
+        "xfailed": 3,
+        "passed_subtests": 49
+      },
+      "count_policy": "JUnit counts include subtest reports and xfails among skip outcomes; the retained event-aware comparator supplies the consistent interpretation. This entry checked all 60 group completion/binding/missing-node fields and read the saved terminal summaries for all 30 attempts; it reran no tests.",
+      "retained_failures": "Initial shortened-node-ID preflight failure, interrupted warmup and first strict subtest comparator failure remain bound in Stage1 evidence.",
+      "outcomes_per_attempt_read_from_all_saved_stdout_logs": {
+        "attempts": 30,
+        "all_outcomes_equal": true,
+        "passed": 2647,
+        "skipped": 39,
+        "xfailed": 3,
+        "subtests_passed": 49
+      }
+    },
+    "inference": {
+      "local_execution_errors": 0,
+      "remote_execution_errors": 0,
+      "interpretation": "Untimed observations; all MCA DTOs label model_variant fp16, which does not establish per-operator arithmetic or a CPU/GPU precision cause."
+    }
+  },
+  "stage2_allowed_cleanup": [
+    {
+      "target": "hotpot/cheminfo/parse_smarts.py",
+      "migration_ids": [
+        "9.2-073"
+      ],
+      "action": "Delete the damaged duplicate parser. Any newly found actual consumer must migrate to the supported search parser in the same change."
+    },
+    {
+      "target": "hotpot/cheminfo/calculator/base.py::Calculator",
+      "migration_ids": [
+        "9.2-039"
+      ],
+      "action": "Delete the empty class and its real re-export/test expectations after documenting this named public removal; retain implemented calculator contracts and rules."
+    },
+    {
+      "target": "hotpot/cheminfo/core_func.pyx and hotpot/cheminfo/_clib/",
+      "migration_ids": [
+        "9.2-023",
+        "9.2-045",
+        "9.6-048"
+      ],
+      "action": "Delete only after source/build/ABI-consumer zero-use checks; cover generated/SWIG/native tracked content and stale importable directory artifacts."
+    },
+    {
+      "target": "hotpot/cheminfo/ob2chem.py",
+      "migration_ids": [
+        "9.2-069"
+      ],
+      "action": "Migrate all consumers to the single existing obconvert implementation, then remove this layer. Do not add compatibility aliases or change the canonical adapter schema."
+    },
+    {
+      "target": "hotpot/cheminfo/org_compounds.py and hotpot/cheminfo/solvents.py",
+      "migration_ids": [
+        "9.2-072",
+        "9.2-083"
+      ],
+      "action": "Remove or isolate the broken APIs under the plan. Preserve real molecule/solvent assets; governed data movement remains Stage11/Decision13."
+    },
+    {
+      "target": "Molecule.assign_aromatic()",
+      "migration_ids": [
+        "9.6-014"
+      ],
+      "action": "Remove the empty entry with exact public/consumer disposition. Keep determine_rings_aromatic() as the implemented Molecule aromatic operation."
+    },
+    {
+      "target": "Crystal.space_group, Crystal.lattice_group and LatticeGroup",
+      "migration_ids": [
+        "9.6-020"
+      ],
+      "action": "Remove the named placeholder chain together after consumer/public-surface closure. Keep current mol/obcell and full Crystal ownership migration until Stage7A; do not add a matrix property."
+    },
+    {
+      "target": "kekulize_joint_ring() and its connected placeholder facade/export/documentation surface",
+      "migration_ids": [
+        "9.6-020"
+      ],
+      "action": "Delete kekulize_joint_ring, JointRing.kekulize and their package imports/__all__/documentation placeholder promise together. Parent source/consumer review found no test consumers of these empty entries. Preserve check_joint_ring_kekulization and every implemented molecule/ring algorithm."
+    },
+    {
+      "target": "AtomPairKey",
+      "migration_ids": [
+        "9.1-007"
+      ],
+      "action": "Delete the exact class named by main-plan Section9.1 / migration9.1-007 after the parent final public/consumer review below. No new alias or replacement schema is added.",
+      "stage2_disposition": "D07 named public/consumer/history disposition completed by parent before deletion"
+    }
+  ],
+  "fresh_source_findings": {
+    "directly_read": [
+      "Crystal.space_group returns the NotImplementedError class; LatticeGroup.operators raises NotImplementedError; Crystal.lattice_group creates LatticeGroup, so these placeholders form one connected deletion surface.",
+      "Calculator is an empty class exported through its module __all__.",
+      "core.py:5321 calls kekulization.kekulize_joint_ring(self); package exports and Kekulize.md still name that placeholder.",
+      "core.py defines AtomPairKey; the direct core-module symbol requires an explicit public disposition; exposure through higher facades is checked separately."
+    ],
+    "parent_read_only_audit_received": [
+      "No production/build consumers found for parse_smarts, core_func, _clib, org_compounds or solvents; two old _clib comments remain in core.py.",
+      "Calculator consumers are package __init__ export and test_calculator public-surface expectation, with no inheritance/business caller found.",
+      "ob2chem has one real test consumer, test_ob2chem_compat.py. Canonical obconvert arrays have nine atom and three bond columns, whereas duplicate ob2chem uses nine/four with an extra aromatic bond column. Migrate the test to canonical metadata for aromaticity; preserve the test path used by the compatibility script.",
+      "The _clib directory contains eight tracked members and ignored/untracked __pycache__; preserve task artifacts before removing stale importable leftovers.",
+      "Both referenced spreadsheets are absent; real ChemData/solvent assets are retained for Stage11 governance."
+    ],
+    "audit_status": "Entry findings, including explicitly attributed parent searches, are not the final post-deletion zero-reference/build gate.",
+    "parent_linked_surface_closure_received": {
+      "Crystal": "Delete LatticeGroup, space_group and lattice_group together. Keep Crystal(mol=...), obcell and its remaining ownership/buffer behavior for Stage7A.",
+      "JointRing": "Delete JointRing.kekulize with kekulize_joint_ring, package export/import entries and the Kekulize.md placeholder promise. Preserve actual Ring algorithms and check_joint_ring_kekulization.",
+      "consumer_result": "Parent read-only review found no tests using these placeholder entries.",
+      "AtomPairKey": "Parent final review resolves the initial conservative hold: perform the explicitly planned deletion, with direct-core removal recorded and no alias."
+    }
+  },
+  "runtime_environment_caveat": {
+    "source": "Parent read-only native comparison reported during this entry task.",
+    "finding": "Four of five root CPython3.11 wheel modules match B20 bytes; root _rd_native differs, and root still has obsolete _relevant_cycles.cp311.so that B20 isolated.",
+    "planned_parent_action": "After this entry, retain both stale task binaries in the Stage2 artifact area and install the verified B20 _rd_native into the root test environment; record exact before/after hashes. Do not rebuild C++ or touch unrelated ABI files.",
+    "status_at_this_entry": "Not performed by this reviewer. Matching tracked production trees do not establish matching native runtime binaries."
+  },
+  "forbidden_stage2_expansion": [
+    "No sole fact-table, UID/identity, builder, shared _fields/_dependencies/_commit or reference-loading extraction: Stage3.",
+    "The user accepted A2 on 2026-10-28, but Stage3 isolation/builder, Stage5 constructor/import cutover, and Stage7C selected partial-charge ownership/NaN absence remain separate gates. Do not delete attrs_array/update_electron_config in Stage2 or discard imported result values.",
+    "No mathematics/geometry/path/pair view or angle/torsion constraint extraction: Stage4; preserve supplied Wiberg/frac_valence and existing model pair order on later extraction.",
+    "No chemistry ownership/lazy dependency, electron/valence, active aromatic/Kekule, Ring writer/cache change: Stage5, except specifically reviewed empty Stage2 placeholders.",
+    "No stereo schema/ABI reorganization: Stage6. Protected Level1/2 and standalone wrapper paths/fields remain unchanged.",
+    "No toolkit-retention cleanup/full Crystal move (7A), remaining hidden-bond/pair/constraint migration (7B), MCA/partial-charge result owner (7C), or conformer transaction/bug fixes (7D).",
+    "No D01-D03 scientific result/finding/activation schema publication before Stage8A review; no D04/D05 forcefield consolidation before Stage8B. D06 and cosmetic D08/D09 changes are not implicit authorization.",
+    "No search/native query relocation (8C), MCA/CBond runtime/controller relocation (8D), statistics/assembly asset migration (8E), core hard-cut (9), native physical/build migration (10), broad commands/data move (11), or final import/export/matrix hardening (12).",
+    "Do not delete RingEdgeDistance, historical CoordinationGeometryCandidate/Result, Triangle, actual MCA IPC messages or standalone wrapper DTOs merely for low construction counts or name similarity.",
+    "Keep the sole B20/F20 Python-RDKit MCA ETKDG-plus-MMFF/UFF route. The native 17-MCA replacement remains after F20.",
+    "Plan21 MetalCluster is design registration only: no production class, template, registry, matching or superatom runtime.",
+    "No experimental generic protocol or registry now. Complete and validate Stage0-12, scientific/performance/final reports and Git checkpoint B_exp first; then create experiment/plan20-kekulize-aromatic-protocol, define/test/commit D_exp in Stage13A, integrate only kekulize/aromatic/test/compare/report/commit I_exp in Stage13B. Existing Decision12/13 exceptions remain governed by their specific rules."
+  ],
+  "pending_stage2_execution_gates": [
+    {
+      "gate": "Complete per-deletion public/export/consumer disposition",
+      "status": "pending",
+      "scope": "Use the concrete already-authorized plan removals; specify coupled placeholder calls and D07 history before deletion. New unspecified interfaces still require owning-stage review."
+    },
+    {
+      "gate": "Source/build/ABI zero-use audit before deletion and zero-reference audit after migration",
+      "status": "pending",
+      "scope": "Production, real tests, supported docs/stubs, imports/exports, build/setup/CMake, messages/pickle and package artifacts. Classify preserved historical plan/inventory evidence separately; do not erase history to manufacture zero text matches."
+    },
+    {
+      "gate": "Baseline-bound CPython3.11 native test environment",
+      "status": "pending",
+      "scope": "Parent records retained stale binaries and verified B20 replacement identity before running tests."
+    },
+    {
+      "gate": "Stage2 targeted import/parser/adapter checks",
+      "status": "pending",
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_cheminfo/test_ob2chem_compat.py",
+        "tests/test_main/test_command_loading.py",
+        "tests/test_smart_parser.py"
+      ],
+      "scope": "Migrate obsolete compatibility assertions to equivalent supported-entry behavior; preserve aromatic metadata and molecule read/write semantics."
+    },
+    {
+      "gate": "Default suite and import smoke",
+      "status": "pending",
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests"
+      ],
+      "scope": "Record actual interpreter, native/package identities, complete outcomes and any baseline/deletion-related count changes. The entry assessment supplies no new pass result."
+    },
+    {
+      "gate": "Stage2 evidence/log and focused Git checkpoint",
+      "status": "pending",
+      "scope": "Record deletion/migration inventory, actual test and build-audit outcomes, remaining cases and source/tree identities. Stage3 starts only after this close and its own new complete reread."
+    }
+  ],
+  "conclusion": "Stage1 is committed with unchanged B20 production tree and complete bound baseline/review evidence. Stage2 may proceed within its finite cleanup scope after this entry. Per-deletion closure, runtime preparation and stage verification remain to execute; later-stage public/schema decisions do not block unrelated confirmed dead-code cleanup.",
+  "parent_final_public_disposition": {
+    "AtomPairKey": {
+      "authorization": "The user requested implementation of the latest concrete plan; Section9.1 explicitly names deletion of AtomPairKey. Section16.4 requires an exact record, not a second approval of an already listed removal. D07 consumer/public review is completed here; this is not inferred from construction count alone.",
+      "exact_surface": "hotpot.cheminfo.core.AtomPairKey(atom1: Atom, atom2: Atom) and its hash/repr/order/equality/membership methods are removed.",
+      "export_evidence": "Baseline runtime_surface.json lists root and cheminfo facade names and contains no AtomPairKey. Current facade imports from core are explicit. Direct core access is nevertheless an observable removal, not relabeled private.",
+      "consumer_evidence": "Repository production/tests/examples/doc searches find only its class definition and repr string; no live import, construction, subtype, serialized-message field or documented usage. Historical plan/inventory mentions remain evidence. This does not claim absence of unknown external users.",
+      "schema_and_history": "Ordinary two-Atom key wrapper, no dataclass, Protocol, native ABI, declared codec or reserved wrapper/stereo schema. Existing Decision10 cross-version pickle disposition remains; no compatibility alias is added.",
+      "protected_scope": "AtomPair/AtomPairs/Wiberg observations and other D07 reserved or documented records remain. Stable UIDs and immutable pair implementation remain later-stage work."
+    }
+  }
+}

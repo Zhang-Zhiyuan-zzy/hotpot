@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "stage": "Stage2",
+  "predecessor_commit": "2aca9f1df18d7821f8a7ccefc873d949317d6c9f",
+  "recorded_at_utc": "2026-10-28T09:48:52.382605+00:00",
+  "scope": "Confirmed dead, broken and placeholder implementations only; existing behavior assertions migrated to supported APIs.",
+  "entry_review": {
+    "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage2_entry_review.json",
+    "bytes": 39969,
+    "sha256": "f4e976ed05ce7e70fd7194e360aa5faf47864d454aee52bb30405a28f11802b4"
+  },
+  "artifact_root": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage2",
+  "environment": {
+    "python": "/tmp/hotpot-plan20-env/bin/python",
+    "source_checkout": "/home/zhangzhiyuan/hotpot",
+    "native": "B20 CPython3.11 bytes; see import-smoke and retirement records",
+    "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONNOUSERSITE": "1",
+    "thread_limits": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1"
+    }
+  },
+  "technical": {
+    "default_suite": {
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests",
+        "--junitxml=/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage2/default-suite.xml"
+      ],
+      "exit_code": 0,
+      "passed": 3882,
+      "skipped": 123,
+      "xfailed": 3,
+      "passed_subtests": 49,
+      "warnings": 4,
+      "seconds": 234.1,
+      "log": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage2/default-suite.log",
+        "bytes": 7031,
+        "sha256": "6c55f4dfa9404bda37d963e576dd7d48500506105a76349b3b048860ebebeda3"
+      },
+      "junit": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage2/default-suite.xml",
+        "bytes": 661039,
+        "sha256": "91d08b708a1fb4585b4cb467c0c6ca27681e34e5826b785511933b5aff6f2ea8"
+      },
+      "comparison_note": "Initial B20 default suite had3822 passed;60 additional reporting tests landed during Stage1. No Stage2 tests added."
+    },
+    "focused": {
+      "files": [
+        "tests/test_cheminfo/test_calculator.py",
+        "tests/test_cheminfo/test_ob2chem_compat.py",
+        "tests/test_cheminfo/test_bond_metadata.py",
+        "tests/test_cheminfo/test_import_safety.py"
+      ],
+      "exit_code": 0,
+      "passed": 27,
+      "seconds": 3.69,
+      "log": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage2/focused-tests.log",
+        "bytes": 99,
+        "sha256": "e3b14288c1193d68f703e5fc3d15ffcaac961ecd7b141fd70df62fce0f9173d6"
+      }
+    }
+  },
+  "source_and_environment": {
+    "import-smoke.json": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage2/import-smoke.json",
+      "bytes": 2375,
+      "sha256": "763a91089ff1127b3716b0cd428568d415711d63d4e26c73049ea7b5b129d769"
+    },
+    "source-and-native-retirement.json": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage2/source-and-native-retirement.json",
+      "bytes": 3385,
+      "sha256": "cab3f4a6db0b2851948d317cbe650410d7a377ed6453fbe5ee1caae2e6dfbcc9"
+    },
+    "production-and-test.patch": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage2/production-and-test.patch",
+      "bytes": 195495,
+      "sha256": "e07ddf9c667f94d7011b7f487c1032330cc7d8e88445ef62cb18cb755d2508ec"
+    },
+    "production-and-test-state.json": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage2/production-and-test-state.json",
+      "bytes": 2691,
+      "sha256": "11f21bc2dca6ad5700e92075a14518e02bd69988343cce17224408f825f5c56c"
+    },
+    "stage1-evidence-recheck.json": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage2/stage1-evidence-recheck.json",
+      "bytes": 6864,
+      "sha256": "5c80858f418d304776f40926bfc38b4995872037a613c06413223334a26748b2"
+    },
+    "source-build-audit.json": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage2/source-build-audit.json",
+      "bytes": 32339,
+      "sha256": "0cb4c710af1465a49a5f70dda11479644540aff96392594a28a74bd4eb469fbe"
+    }
+  },
+  "counts": {
+    "tracked_production_python_files": [
+      403,
+      396
+    ],
+    "python_classes": [
+      782,
+      773
+    ],
+    "dataclasses": [
+      347,
+      347
+    ],
+    "protocols": [
+      13,
+      13
+    ],
+    "typed_dicts": [
+      3,
+      3
+    ]
+  },
+  "baseline_evidence": {
+    "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_execution_evidence.json",
+    "bytes": 18289,
+    "sha256": "d33fcf4ac7697b2cfc83e09c15a9f77f07e10851695c931560592dc7f7b7b99c"
+  },
+  "unexecuted_tiers": [
+    "No Stage2 scientific, performance, installed-wheel rebuild or optional high-compute rerun; no algorithm/build change. Stage1 evidence retained."
+  ],
+  "next": "Stage3 requires a new full-document read, predecessor assessment, layout/reuse budget, storage prototype benchmark and exact public-interface decisions for its dependent additions.",
+  "status": "completed; all Stage2 named gates passed"
+}

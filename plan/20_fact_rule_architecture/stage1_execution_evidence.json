@@ -101,14 +101,16 @@
   },
   "performance": {
     "manifest": {
-      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage1-records/plan/20_fact_rule_architecture/performance_manifest.json",
       "bytes": 34761,
-      "sha256": "ed5bba12ac6ae0305f6c85f7af3aa8fa824a3278fe12aad537a2f0c13768571b"
+      "sha256": "ed5bba12ac6ae0305f6c85f7af3aa8fa824a3278fe12aad537a2f0c13768571b",
+      "original_path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json"
     },
     "sampling": {
-      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_sampling_plan.json",
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage1-records/plan/20_fact_rule_architecture/stage1_sampling_plan.json",
       "bytes": 5470,
-      "sha256": "be75408f19e3e860c4493e12b217095f9f757c7ec66d933df12811c6d75689f4"
+      "sha256": "be75408f19e3e860c4493e12b217095f9f757c7ec66d933df12811c6d75689f4",
+      "original_path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_sampling_plan.json"
     },
     "primary_existing_workloads": 68,
     "new_only_workloads": 3,
@@ -163,9 +165,10 @@
   },
   "python_matrix": {
     "manifest": {
-      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/python_matrix_manifest.json",
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage1-records/plan/20_fact_rule_architecture/python_matrix_manifest.json",
       "bytes": 355269,
-      "sha256": "7c6ed13718cfa1563f65c99c8f3ac8ff94b77eddf43aaf5e0ff27ac54de3a107"
+      "sha256": "7c6ed13718cfa1563f65c99c8f3ac8ff94b77eddf43aaf5e0ff27ac54de3a107",
+      "original_path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/python_matrix_manifest.json"
     },
     "report": {
       "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/python-matrix-b20-verified/report.json",
@@ -326,44 +329,52 @@
   },
   "review_records": {
     "baseline_inventory/manifest.json": {
-      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/baseline_inventory/manifest.json",
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage1-records/plan/20_fact_rule_architecture/baseline_inventory/manifest.json",
       "bytes": 135702,
-      "sha256": "1cfdc979c05b10818aa99ac6b95cd56b18bbb38d4709f17340de9e6d7c583a5a"
+      "sha256": "1cfdc979c05b10818aa99ac6b95cd56b18bbb38d4709f17340de9e6d7c583a5a",
+      "original_path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/baseline_inventory/manifest.json"
     },
     "stage1_contract_decisions.md": {
-      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_contract_decisions.md",
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage1-records/plan/20_fact_rule_architecture/stage1_contract_decisions.md",
       "bytes": 13274,
-      "sha256": "406a6e42f00e3bc3042487db7deb204b7233f07d23bf52041a3783e8063627ca"
+      "sha256": "406a6e42f00e3bc3042487db7deb204b7233f07d23bf52041a3783e8063627ca",
+      "original_path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_contract_decisions.md"
     },
     "stage1_api_review.md": {
-      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_api_review.md",
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage1-records/plan/20_fact_rule_architecture/stage1_api_review.md",
       "bytes": 17484,
-      "sha256": "9c3148425fcbb84fffb9841944c685de8fcaa32b08887b57eaa45de1813a28bb"
+      "sha256": "9c3148425fcbb84fffb9841944c685de8fcaa32b08887b57eaa45de1813a28bb",
+      "original_path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_api_review.md"
     },
     "reviewed_interface_contracts.json": {
-      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/reviewed_interface_contracts.json",
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage1-records/plan/20_fact_rule_architecture/reviewed_interface_contracts.json",
       "bytes": 205159,
-      "sha256": "d16d1cf6e08fdf3112d736bcf8f0dce285b98294007b87307bcf10e9d426ed0d"
+      "sha256": "d16d1cf6e08fdf3112d736bcf8f0dce285b98294007b87307bcf10e9d426ed0d",
+      "original_path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/reviewed_interface_contracts.json"
     },
     "stage1_interface_contract_review.md": {
-      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_interface_contract_review.md",
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage1-records/plan/20_fact_rule_architecture/stage1_interface_contract_review.md",
       "bytes": 15448,
-      "sha256": "3dd1749b581f37bad299682253dd0c1c9671f77e5c59d9dc22c0be9d96eb91ce"
+      "sha256": "3dd1749b581f37bad299682253dd0c1c9671f77e5c59d9dc22c0be9d96eb91ce",
+      "original_path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_interface_contract_review.md"
     },
     "stage1_asset_review.md": {
-      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_asset_review.md",
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage1-records/plan/20_fact_rule_architecture/stage1_asset_review.md",
       "bytes": 9040,
-      "sha256": "fdd77c56e65f7c50e4be63ba5ce6ae503a48e6103848a5d376e5a91658f0902e"
+      "sha256": "fdd77c56e65f7c50e4be63ba5ce6ae503a48e6103848a5d376e5a91658f0902e",
+      "original_path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_asset_review.md"
     },
     "data_object_budget.json": {
-      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/data_object_budget.json",
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage1-records/plan/20_fact_rule_architecture/data_object_budget.json",
       "bytes": 13007,
-      "sha256": "9d5fb507d704050c2697feec8b527c3b24a24dff2e73511090b52eb949048946"
+      "sha256": "9d5fb507d704050c2697feec8b527c3b24a24dff2e73511090b52eb949048946",
+      "original_path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/data_object_budget.json"
     },
     "stage_verification_map.json": {
-      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage_verification_map.json",
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage1-records/plan/20_fact_rule_architecture/stage_verification_map.json",
       "bytes": 73341,
-      "sha256": "0c1f268ea1706ecb7968233b6fb2bf0a4c11b0bde52ae7e8c99cea89ea79569c"
+      "sha256": "0c1f268ea1706ecb7968233b6fb2bf0a4c11b0bde52ae7e8c99cea89ea79569c",
+      "original_path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage_verification_map.json"
     }
   },
   "archive": {
@@ -376,5 +387,11 @@
     "The retained plain mca/cbond source imports in old test conftests are recorded exceptions to wheel-only execution.",
     "Shared GPU load and actual dependency/loader binaries require review in the future B20/F20 comparison.",
     "Known baseline defects and undecided new schemas retain their named owning-stage gates; no Stage2 implementation has started."
-  ]
+  ],
+  "immutable_review_snapshot": {
+    "commit": "2aca9f1df18d7821f8a7ccefc873d949317d6c9f",
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage1-records/manifest.json",
+    "sha256": "a9dd92446b23db6e6d2f616b7448eacc3f31b37d2b95800b6c44d08e3ff96dc3",
+    "note": "Frozen Stage1 records resolve to committed-byte copies; ongoing budget/map/source edits cannot alter historical evidence."
+  }
 }

@@ -485,3 +485,86 @@ review records and retained failed attempts by SHA256.
   current-project/predecessor assessment and its own zero-reference/build audit
   after the Stage1 Git checkpoint. No production deletion or extraction is
   bundled into this commit.
+
+## 2026-10-28T09:34:42.351595+00:00 — Stage2 entry: confirmed dead/placeholder cleanup
+
+- Predecessor Stage1 commit: `2aca9f1df18d7821f8a7ccefc873d949317d6c9f`.
+  The worktree was clean before the entry review. Production subtree remains
+  `4a2086e717327c99056ef8cda200b0786e688219`.
+- A fresh full read covered all17 main-plan chapters/all2434 lines, the four
+  normative companions including the full data-object appendix, and the latest
+  A2 decisions, API/semantic reviews, log, README and execution evidence.
+  `stage2_entry_review.json` records each file/range/hash, predecessor verification
+  and attributed source findings; entry SHA256 `f4e976ed05ce7e70fd7194e360aa5faf47864d454aee52bb30405a28f11802b4`.
+  This was a new read, not a reused Stage1 reading or diff-only check.
+- The parent completed exact source/export/consumer/build review. Remove the
+  named unused parser, empty Calculator, old Cython/SWIG implementation,
+  duplicate ob2chem layer and broken spreadsheet-driven APIs. Migrate the two
+  actual test consumers through existing interfaces. Canonical obconvert
+  keeps its nine-atom/three-bond-column arrays; aromatic transport assertions
+  move to its existing full molecule conversion, not a new array schema.
+- Remove the connected Crystal space/lattice placeholders together, retaining
+  its mol/obcell and six-parameter mathematics for their later stages. Remove
+  the empty Molecule.assign_aromatic and joint-ring assignment/facade/export
+  chain, retaining every implemented aromatic/Kekule algorithm and check.
+- The initial conservative hold on AtomPairKey was resolved by a separate
+  explicit public/consumer/history review in the entry record. Section9.1
+  already names its deletion under the user-authorized concrete plan. It is a
+  directly visible core symbol but absent from the captured root/cheminfo
+  surfaces, with no repository consumer, documented usage, codec or native ABI.
+  Remove that exact wrapper; preserve AtomPair/AtomPairs and their Wiberg values,
+  and every other D07 reserved/documented contract. No absence of unknown
+  external users or approval of an unlisted new schema is inferred.
+- Existing solvent/other molecule assets stay unchanged for Stage11 governance.
+  Production extraction, fact storage, chemistry algorithms, MCA route,
+  wrapper/ABI source and Stage13 protocol work remain their assigned stages.
+- Test environment: use the Stage1 CPython3.11 interpreter and B20 native bytes.
+  Archive the different existing RD extension and retired cp311 relevant-cycle
+  binary before installing the verified B20 RD extension; no C++ rebuild or
+  alteration of other ABI files. Record original hashes and paths.
+- Gates: complete default suite, explicit fresh-process removed-module/import
+  smoke, supported conversion/aromatic/Crystal behavior, and final source/build
+  zero-reference checks. Record old-to-new test assertions and all outcomes
+  before the focused Stage2 commit.
+
+## 2026-10-28 — Stage2 validation and cleanup close
+
+- Removed the six named legacy Python/Cython modules and the eight tracked
+  `_clib` files. Removed Calculator, AtomPairKey, LatticeGroup and their named
+  placeholder facades/exports. Kept actual solvent assets, Crystal's existing
+  mol/obcell/math behavior, AtomPair/AtomPairs scientific values, and every
+  implemented aromatic/Kekule operation. No scientific algorithm changed.
+- Migrated two existing tests, without adding Stage2 tests: the Calculator
+  export expectation no longer names the empty class; the historical
+  `test_ob2chem_compatibility_contracts` node now checks canonical obconvert,
+  read_mol and Molecule.to_obmol. Its old four-column duplicate bond array
+  assertion becomes the canonical three-column array plus aromatic-source
+  metadata on the complete imported molecule. The atom shape, mappings,
+  round-trip and delegation evidence remain. Test node identity is retained
+  for the frozen Python matrix.
+- Focused calculator/conversion/bond-metadata/import-safety selection:
+  **27 passed**,3.69s. Complete default suite: **3882 passed,123 skipped,
+  3 xfailed,49 subtests passed**,4 warnings,234.10s; process exit0.
+  The 60 additional passed nodes compared with the initial B20 default suite
+  are the Stage1 reporting tests, not new Stage2 chemistry coverage.
+- Fresh-process smoke verified seven absent module paths, eight absent
+  members, nine retained members, Crystal matrix/obcell behavior and all five
+  loaded cp311 native hashes against B20. The previous RD binary and obsolete
+  relevant-cycle extension were archived before binding the B20 environment;
+  no modern C++ source/build/ABI change or rebuild occurred. The retired
+  `_clib` directory, including ignored caches, is preserved in stage artifacts.
+- Bound mutable Stage1 review/budget/manifest references to committed-byte
+  copies from `2aca9f1`, preserving original_path and original SHA256. All43
+  Stage1 Plan20 files are retained in stage1-records with their snapshot index.
+  Rechecking all45 indexed path/digest references, resolving wheel bindings
+  relative to their matrix report, found zero mismatches. Later stage edits
+  therefore cannot silently alter historical baseline records.
+- Final tracked-production AST count:403→396 Python files,782→773 classes;
+  the nine removals are ordinary classes. Dataclasses remain347, Protocols13
+  and TypedDicts3. No data-record reduction or addition is claimed. Retained
+  function ASTs and modern native/wrapper sources are unchanged.
+- Stage2 execution evidence is indexed in `stage2_execution_evidence.json`.
+  The final source/build audit and counts are bound there before commit.
+  Scientific/performance tiers were not rerun for this deletion-only stage;
+  their Stage1 baselines remain intact. Stage3 requires its own new full read,
+  predecessor assessment, contract/layout review and storage measurements.

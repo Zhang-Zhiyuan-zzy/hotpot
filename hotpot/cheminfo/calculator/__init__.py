@@ -1,6 +1,5 @@
 """Public calculator entry points."""
 
-from .base import Calculator
 from .contracts import (
     MolecularFacts,
     ScientificOperationRequirements,
@@ -22,7 +21,6 @@ from .state_resolver import (
 )
 
 __all__ = [
-    "Calculator",
     "mca",
     "extract_molecular_facts",
     "resolve_scientific_state",

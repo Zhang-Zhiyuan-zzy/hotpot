@@ -2,16 +2,6 @@ import numpy as np
 from openbabel import openbabel as ob
 
 
-class LatticeGroup:
-    """ an abject to represent the space group of crystal """
-    def __init__(self, name: str):
-        self.name = name
-
-    @property
-    def operators(self):
-        raise NotImplementedError('The operators is not defined.')
-
-
 class Crystal:
     def __init__(self, a, b, c, alpha, beta, gamma, *, mol=None):
         self.a = a
@@ -46,11 +36,3 @@ class Crystal:
         obcell = ob.OBUnitCell()
         obcell.SetData(self.a, self.b, self.c, self.alpha, self.beta, self.gamma)
         return obcell
-
-    @property
-    def space_group(self):
-        return NotImplementedError
-
-    @property
-    def lattice_group(self):
-        return LatticeGroup(self.obcell.GetSpaceGroup())

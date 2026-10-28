@@ -35,9 +35,7 @@ Molecule.calc_atom_valence(assign_aromatic=...)
 
 The RDKit conversion option `Chem.Kekulize`, Open Babel bond-order perception,
 and `Molecule.kekulize_smiles` are external conversion concerns and are not
-implemented by this package. The empty legacy `Molecule.assign_aromatic()`
-placeholder contains no implementation to relocate and remains outside the
-subpackage pending public-API cleanup.
+implemented by this package.
 
 ## 2. Current package structure
 
@@ -69,7 +67,6 @@ Current public functions:
 | `kekulize_ring(ring)` | Apply the legacy greedy bond-order assignment to one ring |
 | `kekulize_molecule_rings(mol)` | Hide metal--ligand bonds, process the molecule's Relevant Cycles, then restore the bonds |
 | `check_joint_ring_kekulization(joint_ring)` | Apply the legacy atom-level validity check to a joined ring system |
-| `kekulize_joint_ring(joint_ring)` | Explicitly retained unimplemented entry point; raises `NotImplementedError` |
 
 ## 3. Ring-family contract
 
@@ -112,7 +109,6 @@ The following behavior is frozen during the extraction:
 7. For a given ring sequence, the molecule workflow retains its
    hide/process/recover ordering and does not
    add fallback behavior.
-8. `JointRing.kekulize()` remains explicitly unimplemented.
 
 These are compatibility observations, not target behavior.
 

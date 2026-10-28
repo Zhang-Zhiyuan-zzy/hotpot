@@ -641,3 +641,24 @@ review records and retained failed attempts by SHA256.
   The verification map explicitly retains those gates as uncompleted. The
   frozen five-column float32 private benchmark awaits the actual projector;
   it is not substituted by the public complete19-column float64 property.
+
+### Correction — Stage3 architecture scan must include package roots
+
+- Reviewing the complete source/class census exposed a Git pathspec error in
+  the foundation scanner: `hotpot/**/*.py` and `tests/**/*.py` omitted Python
+  files directly under those roots. The Stage1 frozen inventory included them.
+  The scanner now enumerates both directories and filters Python filenames;
+  a regression fixture covers package roots, test roots and nested modules.
+- The earlier **282** remaining-debt count was incomplete. Three original
+  `hotpot/__init__.py` records (eager RDKit import, wildcard export, sys.path
+  mutation) were never retired. Its bytes still equal the last pushed
+  `c6bfcd4` checkpoint. Restoring those original records gives **285** actual
+  remaining entries out of the frozen287; no new production violation is added.
+- This explicit coverage repair is checked against `c6bfcd4` and the original
+  inventory, then ordinary HEAD/merge-base ratcheting resumes on the corrected
+  list. No permanent exception or growth override is introduced. Existing
+  tests continue to reject new debt and reintroduced retired entries.
+- Exact correction evidence is in
+  `stage3_architecture_coverage_correction.json`. Historical foundation evidence
+  remains retained; this record supersedes its scan-coverage/count conclusion.
+  Reference results, technical outcomes and measured storage data are intact.

@@ -3,6 +3,7 @@
 import importlib.util
 import os
 from pathlib import Path
+import subprocess
 
 import pytest
 
@@ -18,6 +19,17 @@ spec.loader.exec_module(audit)
 def test_repository_architecture_ratchet():
     report = audit.audit(base_ref=os.environ.get("HOTPOT_ARCHITECTURE_BASE_REF", "HEAD"))
     assert report["status"] == "passed", report
+
+
+def test_source_scan_includes_package_and_test_roots(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    sources = {"hotpot/__init__.py", "hotpot/_cli.py", "hotpot/cheminfo/leaf.py",
+               "tests/test_root.py", "tests/cheminfo/test_leaf.py"}
+    for name in sources | {"hotpot/reference.json", "README.md"}:
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("")
+    assert set(audit.source_paths(tmp_path)) == sources
 
 
 def test_retirement_cannot_be_hidden_by_editing_line_numbers_or_allowlist():

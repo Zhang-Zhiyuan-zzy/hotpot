@@ -5,6 +5,32 @@
   "policy": "Entries only shrink. Compare to the actual pre-change Git ref; retired entries must be removed. New ownership packages are strict.",
   "entries": [
     {
+      "line": 16,
+      "local": "_rdkit_chem",
+      "path": "hotpot/__init__.py",
+      "rule": "carrier_or_root_eager_toolkit_import",
+      "scope": "",
+      "stage": "Stage12",
+      "target": "rdkit.Chem"
+    },
+    {
+      "line": 30,
+      "path": "hotpot/__init__.py",
+      "rule": "sys_path_mutation",
+      "scope": "",
+      "stage": "Stage12",
+      "target": "sys.path.append(package_root)"
+    },
+    {
+      "line": 32,
+      "local": "*",
+      "path": "hotpot/__init__.py",
+      "rule": "wildcard_package_export",
+      "scope": "",
+      "stage": "Stage12",
+      "target": "hotpot.cheminfo.*"
+    },
+    {
       "path": "hotpot/cheminfo/AImodels/cbond/apply.py",
       "line": 13,
       "scope": "",
@@ -2538,5 +2564,6 @@
       "rule": "legacy_core_import",
       "stage": "Stage9"
     }
-  ]
+  ],
+  "coverage_correction": "stage3_architecture_coverage_correction.json: restore three frozen, never-retired root-module entries omitted by the first scanner; no new production debt or gate exception"
 }

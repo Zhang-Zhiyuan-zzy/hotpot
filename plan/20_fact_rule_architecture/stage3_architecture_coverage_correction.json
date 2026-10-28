@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "stage": "Stage3",
+  "kind": "Correction to foundation architecture scan coverage",
+  "recorded_at_utc": "2026-10-28T10:56:46.036847+00:00",
+  "supersedes_only": "The282 remaining-debt count and complete-scan implication in f9f87da foundation evidence; other test/reference/prototype results remain unchanged.",
+  "cause": "Git hotpot/**/*.py and tests/**/*.py pathspecs omitted package/test-root Python files. The frozen Stage1 inventory included them.",
+  "actual_counts": {
+    "initial_frozen_debt": 287,
+    "incorrect_partial_scan": 282,
+    "restored_never_retired_root_entries": 3,
+    "remaining_debt": 285
+  },
+  "restored": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/architecture-coverage-correction/restored-original-records.json",
+    "bytes": 580,
+    "sha256": "e886aef71d75069850fd94065bf2923c8f7e9c2e54ec0f5336555f43200cdf27"
+  },
+  "unchanged_root_module": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/architecture-coverage-correction/unchanged-root-module.py",
+    "bytes": 763,
+    "sha256": "9dcdef2c8846d569030a41137fa41c2349556678e27a322e704ee156b02fa028"
+  },
+  "source_comparison": "hotpot/__init__.py bytes equal last pushed c6bfcd4; all three entries are original frozen debt, not new violations.",
+  "gate_policy": "No runtime exception or growth override. Validate this one coverage restoration against c6bfcd4/original frozen inventory; after the repair commit, HEAD comparisons use the corrected285-entry allowlist. Standard new-debt/allowlist-growth rejection remains tested.",
+  "predecessor_commit": "f9f87da0143d7fef1de1633e4af1807d0c61f28b",
+  "validation_baseline": "c6bfcd4906254ee113c14103009f071e91f60368",
+  "scope_note": "The inspected worktree also contains the uncommitted private table/schema checkpoint; the repair commit changes only the scanner, regression test, allowlist and correction records.",
+  "tests": {
+    "passed": 47,
+    "warnings": 6,
+    "seconds": 5.9,
+    "exit_code": 0,
+    "command": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/architecture-coverage-correction/command.json",
+      "bytes": 647,
+      "sha256": "d4e4f06eb9521b5ca6406055d9acae1383fe2534eea65ec4d0130cf4b31f8b20"
+    },
+    "log": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/architecture-coverage-correction/tests.log",
+      "bytes": 1710,
+      "sha256": "de1c303c1d8cbe05350b91351ecf07824e250f1963934a8288550d4f5913394a"
+    },
+    "junit": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/architecture-coverage-correction/tests.xml",
+      "bytes": 9348,
+      "sha256": "193014d61d3f33e263ff60583b18ec58451f9f1f7b7edf102464b460c03a7bbb"
+    }
+  },
+  "corrected_audit": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/architecture-coverage-correction/audit.json",
+    "bytes": 532,
+    "sha256": "b335975d129318b9c05ea39c43fd2b80b2b1f66822a165cf83e01eda37e38f02"
+  }
+}

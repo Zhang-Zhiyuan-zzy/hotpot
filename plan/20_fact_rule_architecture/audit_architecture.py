@@ -159,8 +159,8 @@ def layer_findings(path, source):
 def source_paths(root):
     return sorted(path for path in subprocess.check_output(
         ["git", "ls-files", "--cached", "--others", "--exclude-standard", "--",
-         "hotpot/**/*.py", "tests/**/*.py"], cwd=root, text=True,
-    ).splitlines() if (root / path).is_file())
+         "hotpot", "tests"], cwd=root, text=True,
+    ).splitlines() if path.endswith(".py") and (root / path).is_file())
 
 
 def audit(root=ROOT, *, base_ref="HEAD"):

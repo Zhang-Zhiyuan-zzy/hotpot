@@ -1,0 +1,384 @@
+{
+  "schema_version": 1,
+  "status": "Stage1 planning budget; zero production changes measured",
+  "baseline": {
+    "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+    "inventory": "baseline_inventory/manifest.json",
+    "dataclasses": 347,
+    "typed_dicts": 3,
+    "protocols": 13,
+    "all_python_classes": 782,
+    "native_struct_candidates": 164,
+    "explicit_type_alias_syntax": 0,
+    "alias_caveat": "Zero explicit TypeAlias syntax does not establish zero implicit aliases."
+  },
+  "measured_delta": {
+    "new_dataclasses": 0,
+    "retired_dataclasses": 0,
+    "new_protocols": 0,
+    "new_typed_dicts": 0,
+    "commits": []
+  },
+  "consolidation_budget": [
+    {
+      "id": "D01",
+      "stage": "Stage8A",
+      "old_definitions": 5,
+      "retired_old": 5,
+      "retained_old": 0,
+      "new_replacements": 1,
+      "net": -4,
+      "scope": "Five state inference results; exact public/schema review remains required"
+    },
+    {
+      "id": "D02",
+      "stage": "Stage8A",
+      "old_definitions": 4,
+      "retired_old": 4,
+      "retained_old": 0,
+      "new_replacements": 1,
+      "net": -3,
+      "scope": "Four finding/reason records with explicit historical codecs"
+    },
+    {
+      "id": "D03",
+      "stage": "Stage8A",
+      "old_definitions": 2,
+      "retired_old": 2,
+      "retained_old": 0,
+      "new_replacements": 1,
+      "net": -1,
+      "scope": "Provider/rule activation with separate namespaces"
+    },
+    {
+      "id": "D04",
+      "stage": "Stage8B",
+      "old_definitions": 2,
+      "retired_old": 1,
+      "retained_old": 1,
+      "new_replacements": 0,
+      "net": -1,
+      "scope": "Retain OptimizationStoppingCriteria; preserve real native ABI type"
+    },
+    {
+      "id": "D05",
+      "stage": "Stage8B",
+      "old_definitions": 2,
+      "retired_old": 1,
+      "retained_old": 1,
+      "new_replacements": 0,
+      "net": -1,
+      "scope": "Retain one BondTopology for references and historical trajectories"
+    },
+    {
+      "id": "FF-CLI",
+      "stage": "Stage8B",
+      "old_definitions": 1,
+      "retired_old": 1,
+      "retained_old": 0,
+      "new_replacements": 0,
+      "net": -1,
+      "scope": "Reuse existing ForceFieldRouteOptions and existing _WorkItem; no new options wrapper"
+    }
+  ],
+  "new_mechanism_reservations": [
+    {
+      "id": "N01",
+      "proposed_definition": "_SourceIdentity",
+      "stage": "Stage3",
+      "dataclass_upper_bound": 1,
+      "responsibility": "One owner binding plus domain-tagged dependency identities",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N02",
+      "proposed_definition": "MoleculeRecord",
+      "stage": "Stage3",
+      "dataclass_upper_bound": 1,
+      "responsibility": "One complete factual import record; compose existing stereo/cell contracts, no per-Atom import wrapper",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N03",
+      "proposed_definition": "MolecularSnapshot",
+      "stage": "Stage3",
+      "dataclass_upper_bound": 1,
+      "responsibility": "Requested readonly fields and stable row/source identities",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N04",
+      "proposed_definition": "TopologySelection",
+      "stage": "Stage3",
+      "dataclass_upper_bound": 1,
+      "responsibility": "Non-owning UID/mask selection; no retained graph",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N05",
+      "proposed_definition": "AtomFactUpdate",
+      "stage": "Stage3",
+      "dataclass_upper_bound": 1,
+      "responsibility": "One reviewed scalar/batch candidate commit",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N06",
+      "proposed_definition": "TopologyChange",
+      "stage": "Stage3",
+      "dataclass_upper_bound": 1,
+      "responsibility": "Explicit membership/endpoints/remap; compose MoleculeRecord",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N07",
+      "proposed_definition": "CoordinateUpdate",
+      "stage": "Stage3",
+      "dataclass_upper_bound": 1,
+      "responsibility": "Complete selected-row coordinate commit",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N08",
+      "proposed_definition": "ConstraintUpdate",
+      "stage": "Stage3",
+      "dataclass_upper_bound": 1,
+      "responsibility": "One closed update for the four constraint domains",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N09",
+      "proposed_definition": "StereoUpdate",
+      "stage": "Stage3",
+      "dataclass_upper_bound": 1,
+      "responsibility": "Source binding plus existing protected StereoPayload",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N10",
+      "proposed_definition": "BondOrderAssignment",
+      "stage": "Stage5",
+      "dataclass_upper_bound": 1,
+      "responsibility": "Complete kind/order assignment",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N11",
+      "proposed_definition": "AromaticAssignment",
+      "stage": "Stage5",
+      "dataclass_upper_bound": 1,
+      "responsibility": "Coupled Atom/Bond aromatic assignment; compose bond-order values",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N12",
+      "proposed_definition": "HydrogenRepresentationAssignment",
+      "stage": "Stage5",
+      "dataclass_upper_bound": 1,
+      "responsibility": "Complete H representation; reuse HydrogenTransportState",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N13",
+      "proposed_definition": "FormalChargeAssignment",
+      "stage": "Stage5",
+      "dataclass_upper_bound": 1,
+      "responsibility": "Covered formal-charge assignment and existing evidence",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N14",
+      "proposed_definition": "PartialChargeSet",
+      "stage": "Stage7C",
+      "dataclass_upper_bound": 1,
+      "responsibility": "Sole values/presence/units/method/row identity owner",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N15",
+      "proposed_definition": "_ResultAttachment[T]",
+      "stage": "Stage7C",
+      "dataclass_upper_bound": 1,
+      "responsibility": "Shared attachment currentness only; retain domain-specific historical payloads",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N16",
+      "proposed_definition": "CoordinateFrame",
+      "stage": "Stage7D",
+      "dataclass_upper_bound": 1,
+      "responsibility": "Explicit source frame; current coordinates remain in Atom table",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N17",
+      "proposed_definition": "ConformerEnsembleResult",
+      "stage": "Stage7D",
+      "dataclass_upper_bound": 1,
+      "responsibility": "Generated ensemble; compose existing ConformerBatch",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    },
+    {
+      "id": "N18",
+      "proposed_definition": "EnergyForceResult",
+      "stage": "Stage7D/8B",
+      "dataclass_upper_bound": 1,
+      "responsibility": "One geometry-execution energy/force result, reused by ensemble projections",
+      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "actual_symbol": null,
+      "commit": null,
+      "verification": null
+    }
+  ],
+  "forecast": {
+    "retired_old_dataclasses": 14,
+    "replacement_dataclasses": 3,
+    "new_mechanism_upper_bound": 18,
+    "final_upper_bound_if_all_consolidations_land": 354,
+    "net_change_upper_bound": 7,
+    "without_D01_D02_D03_approval": 362,
+    "meaning": "The audited family consolidation is -11; necessary new records may make the whole project +7. Neither is a measured reduction or a requirement to create all reserved classes."
+  },
+  "separate_budgets": {
+    "new_typed_dicts": 0,
+    "new_protocols": 0,
+    "new_native_abi_mirrors": 0,
+    "new_owner_implementation_classes": [
+      "_AtomFactTable",
+      "ConstraintSet"
+    ],
+    "optional_readonly_snapshot_row_implementations_upper_bound": 3,
+    "private_validity_or_group_enums_upper_bound": 2,
+    "explicit_alias_upper_bound": 12,
+    "identity_aliases": [
+      "TopologyIdentity",
+      "RepresentationIdentity",
+      "GeometryIdentity",
+      "CellIdentity",
+      "ConstraintIdentity",
+      "SourceFramesIdentity"
+    ],
+    "stage13": "separate experimental branch/budget; no definitions created early"
+  },
+  "retained_reuse": [
+    "Existing MolecularFacts and scientific-state identities/candidates/selection records",
+    "Existing MCA MoleculePrediction/AtomPrediction/SitePrediction payloads, attached once",
+    "Existing NativeMoleculeBuffers and protected standalone wrapper/stereo schemas",
+    "Existing Conformers implementation becomes a projection",
+    "Existing rollback records remain rollback records; they are not readonly rule snapshots",
+    "External Thermo remains a caller-owned adapter task value; no unused ThermoResult is created",
+    "Pure P4 vector outputs do not each need a new assignment class"
+  ],
+  "other_removal_candidates": {
+    "ordinary_classes_not_in_dataclass_count": {
+      "Stage2": [
+        "Calculator",
+        "SmartAtom",
+        "SmartBond",
+        "SmartsParser",
+        "SolventsRepo",
+        "Solvent"
+      ],
+      "Stage7A": [
+        "LatticeGroup"
+      ],
+      "Stage8E": [
+        "ComplexStatistics"
+      ],
+      "Stage9": [
+        "MolBlock"
+      ]
+    },
+    "native_generated_swigs": {
+      "stage": "Stage2",
+      "names": [
+        "swig_type_info",
+        "swig_cast_info",
+        "swig_module_info",
+        "swig_const_info",
+        "swig_globalvar",
+        "swig_varlinkobject"
+      ],
+      "candidate_count_after_verified_removal": 158,
+      "condition": "source/build zero-reference gates; these are not retained wrapper ABI consolidation gains"
+    },
+    "not_precredited": [
+      "AtomPairKey",
+      "D07 dormant/public/reserved dataclasses",
+      "D06 optional atom-record consolidation",
+      "Unrelated plugin/xTB records"
+    ]
+  },
+  "stage3_gate": [
+    "Freeze exact fields, reuse targets and consumers of N01-N09 before their implementation; at most nine new dataclasses within this reservation.",
+    "Record aliases, ordinary implementation classes and enums separately.",
+    "Do not create N10-N18 placeholders early.",
+    "Use one source/fact owner; no generic FactPatch or universal scientific result payload."
+  ],
+  "ledger_fields": [
+    "old_symbol",
+    "final_owner",
+    "kind",
+    "action",
+    "retired",
+    "new",
+    "net",
+    "consumers",
+    "schema_effect",
+    "stage",
+    "commit",
+    "verification"
+  ],
+  "change_policy": "Update a reservation with concrete responsibility/consumer evidence before exceeding it; new public schemas retain their own review gate. Never offset extra records by deleting unrelated reserved types or replace records with untyped dicts solely to improve counts."
+}

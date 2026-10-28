@@ -272,3 +272,216 @@ entries still need closure. No production refactor or Stage2 work has started.
 Formal efficiency evidence is still pending. A further performance-tool audit
 found that GPU UUID/model/driver were not checked for comparability; its fix
 and installed-package/wheel identity binding precede formal measurements.
+
+## 2026-10-28T08:49:26Z — Stage1 performance and inference checkpoint; Python matrix open
+
+Earlier pending statements remain as dated history. This checkpoint records
+completed evidence from frozen source `e6082f5` and production subtree
+`4a2086e717327c99056ef8cda200b0786e688219`; no production refactor has started.
+
+### Completed formal performance and identity checks
+
+- Local source-mode execution completed all **64 workloads: 605 measured
+  samples and 178 warmups**, all 783 attempts completed without execution
+  errors. Affinity was CPU0–63 with helper threads fixed at one; no concurrent
+  local task build/science/test work ran during these measurements. The five
+  common-suite measurements had median **242.979444s**, MAD **0.353841s** and
+  p95 **243.277620s**. Test collection median was **9.408003s**.
+- ai-14 installed-mode execution completed **7 workloads: 27 measured samples
+  and 7 warmups**, all 34 attempts completed, with no errors/no-output attempts
+  or discarded reruns. Total run wall time was **82.433329s**. CPU affinity
+  was 0–63; GPU visibility was 0,1,2,3 with `CUDA_DEVICE_ORDER=PCI_BUS_ID`.
+- The actual union is **68 existing workloads**. Follow
+  `stage1_sampling_plan.json`: use the 64 local entries plus the four remote
+  GPU entries once each; remote `mca_cpu_8`, `mca_cpu_64` and `cbond_cpu` are
+  supplemental host observations. The three new-only entries retain no B20
+  counterpart. The original manifest and weights are unchanged.
+- GPU comparability now checks selected UUID, model, driver, total memory and
+  actual allocation. ai-14 used shared A800-SXM4-80GB devices and driver
+  525.105.17; per-attempt load/memory snapshots are retained. Dynamic load and
+  unrelated GPUs do not supply device identity, and shared-load review remains
+  necessary for a later paired candidate comparison.
+- Installed-wheel verification bound all **761 files** to the supplied cp313
+  wheel and its RECORD; all seven timing-worker loaded-package checks passed.
+  Wheel SHA256: `5e9d55297dd4d15814e7814dd3055b88ee84d2d8656312677c9a663792546672`.
+  Installed RECORD SHA256:
+  `3a4c6a654613e0bc375a304ee9403619f9022695c92dd39f0cfac7dd8989a892`;
+  wheel RECORD SHA256:
+  `69dd61c01f9651d1ac9c368f34a6d3b5ff16b427e6506be070ec16d9477f31fb`.
+  Local formal timing deliberately remains source-mode evidence with its
+  separately recorded cp311 wheel/native provenance.
+- Self-comparisons found **64/64 local** and **7/7 remote** executed entries
+  comparable, with no environment mismatch. These establish report consistency;
+  neither is a candidate comparison or completed whole-project acceptance.
+
+### Untimed inference observations and saved-output comparison
+
+- Separate local capture retained **72 MCA molecules, 306 ordered atom
+  predictions/flags, 108 sites and 20 CBond calls**, with zero execution errors.
+  It ran after formal local timing; its elapsed values are excluded from
+  performance evidence. It retains 156 artifact references and their hashes.
+- Separate remote capture retained **1104 MCA molecules, 4692 ordered atom
+  predictions/flags, 1656 sites and 40 CBond calls**, with zero execution errors.
+  All 1272 saved artifacts matched recorded hashes; no nonfinite observations
+  were reported. The 120 CBond output arrays and 8 input arrays remain saved.
+  Reporting-process wheel bindings passed; spawned MCA worker modules/sessions
+  were explicitly not directly introspected by this capture.
+- Read-only analysis of the saved remote output found CPU8/fallback8 and
+  CPU8/CPU64-first8 identical; 1GPU/4GPU agreed across all 512 molecules
+  (2176 atom values and 768 site values). Comparing CPU64 with either GPU's
+  first64 gave atom MAE **0.04825367647**, RMSE **0.10298425110** (272 pairs),
+  and site MAE **0.07421875**, RMSE **0.13049447725** (96 pairs), in kJ/mol.
+  Both p95 and maximum absolute differences were **0.25kJ/mol**. Pairing had
+  no identity/nonfinite exclusions and `is_Nuc_site` flags were unchanged.
+- All captured MCA DTOs record `model_variant="fp16"`. This label does not
+  measure individual operators' arithmetic precision; cohort size/execution
+  mode also differ. No CPU-fp32/GPU-fp16 cause or scientific pass threshold is
+  inferred. This numerical analysis did not rerun inference.
+
+### Object budget and remaining Python matrix gate
+
+- `data_object_budget.json`, SHA256 `9d5fb507d704050c2697feec8b527c3b24a24dff2e73511090b52eb949048946`,
+  records **347 current dataclasses** and zero measured production changes.
+  The audited consolidation is 16 old definitions to five retained/replacement
+  definitions: retire14, retain2, add3, net−11. Reservations allow at most18
+  further mechanism records, giving **347−14+3+18 = 354 (net+7)** if all
+  consolidations land. This is a conditional planning ceiling; without the
+  still-required D01–D03 public/schema approval the ceiling is362. No whole
+  project record-count reduction or early placeholder creation is claimed.
+  Stage3 must freeze N01–N09 fields/reuse before implementation; Protocol,
+  TypedDict and native-ABI-mirror additions have separate zero budgets.
+- Review identified the still-missing Python3.10–3.14 baseline required by
+  Sections10/12. The supplemental manifest selects **2689 common nodes**
+  (2408 inference-contract plus281 smarts-core), one warmup plus five measured
+  rounds per version, with disjoint eight-CPU allocations and fixed helper
+  threads. This mandatory matrix remains separate from the 71-workload
+  aggregate; build/install/model setup is excluded from its timed work.
+- Matching B20 wheels/environments are prepared and matrix execution is in
+  progress. The first preflight retained its collection failures under
+  `/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/python-matrix-b20`;
+  pytest9.2 shortened long parameter IDs, so no measured rounds ran there.
+  Explicit `parametrize_long_str_id_strategy=legacy` preserves the original
+  frozen node IDs without changing test scope or weights. The current manifest
+  SHA256 is `7c6ed13718cfa1563f65c99c8f3ac8ff94b77eddf43aaf5e0ff27ac54de3a107`. The follow-up run uses
+  `.plan20-artifacts/20261028/python-matrix-b20-legacy-ids`; its result is not
+  asserted in this checkpoint.
+
+Stage1 remains open until this matrix and the remaining Stage1 records are
+validated and committed. Stage2 must begin with its own full-document reread
+and state assessment after that gate.
+
+### Exact evidence bindings at this checkpoint
+
+| Report path | SHA256 |
+|---|---|
+| `/tmp/hotpot-plan20-20261028/performance-b20-local/report.json` | `ad460fe264a6418379893f69fb918becd0ae5428b20494e9c8ebab1458906cf5` |
+| `/tmp/hotpot-plan20-20261028/performance-b20-local-selfcheck/comparison.json` | `d2aaac94cf2080abde2092db3b9d99b1df7f6ae43adce176dab62a513d8ae473` |
+| `/tmp/hotpot-plan20-20261028/remote-build/performance-evidence/performance-b20-remote/report.json` | `692034b778c5c88c909ffa3b8ad9d6934a94f0a5f9d4d6510829cab2d17aa49b` |
+| `/tmp/hotpot-plan20-20261028/remote-build/performance-evidence/performance-b20-remote-selfcompare/comparison.json` | `803087b368682166e1090441a993c77ab5d382c58898dab493eaacecd7ee4e9d` |
+| `/tmp/hotpot-plan20-20261028/inference-b20-local/report.json` | `d4dfa4e1cdd446c5a3855d908ae270bd587980e12e1236bd10726486ae167691` |
+| `/tmp/hotpot-plan20-20261028/remote-build/inference-evidence/inference-b20-remote/report.json` | `522173ba898885f952f4e7742c957dd9f2af7a66c53455db93f78b8e4f2b4eaa` |
+| `/tmp/hotpot-plan20-20261028/remote-build/numerical-analysis-evidence/inference-b20-numerical-analysis.json` | `0f7a33058fe26fb821bad2c7cf1470f1878ea2a3cc495a4bff3eaad28b437e42` |
+| `/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/python-matrix-b20/report.json` | `5036b838a480b1701d4e99fd362956d361ce1c6498f86d7a81544ff13c21c2e0` |
+
+## 2026-10-28T09:21:24.010085+00:00 — Stage1 complete: supported-Python matrix and semantic closure
+
+The full Stage1 deliverable is now verified. This checkpoint contains reporting,
+review and baseline records only; the production subtree remains
+`4a2086e717327c99056ef8cda200b0786e688219`. The focused Git commit containing
+this entry is the Stage1 close; its exact SHA belongs in the Stage2 entry.
+`stage1_execution_evidence.json` binds all principal reports, policies, logs,
+review records and retained failed attempts by SHA256.
+
+### Python matrix and reporting verification
+
+- All five matching B20 wheels passed preparation and installed-byte preflight.
+  The successful matrix used separate eight-CPU allocations, helper threads1,
+  2689 frozen nodes, one warmup and five measured rounds per version. All
+  **30 attempts (25 measured +5 warmups)** completed, with zero execution errors
+  or missing rounds. Each attempt reports **2647 passed, 39 skipped, 3 xfailed,
+  and 49 passed subtests** across its two pytest invocations. The skip/xfail
+  identities and actual execution events are retained, not inferred from only
+  collection totals. This matrix is independent of the original71 weights.
+- Per-version measured medians/MADs in seconds:
+
+| Python | Median | MAD |
+|---|---:|---:|
+| 3.10 | 198.601123 | 0.118640 |
+| 3.11 | 94.459424 | 0.228534 |
+| 3.12 | 206.607143 | 0.322156 |
+| 3.13 | 215.484424 | 0.175484 |
+| 3.14 | 230.213605 | 0.222707 |
+
+- Raw matrix: `.plan20-artifacts/20261028/python-matrix-b20-verified/report.json`
+  under the project root. Its paired selfcheck is
+  `python-matrix-b20-selfcheck-subtests/comparison.json` under that artifact root:
+  all five versions verified with all five measured pairs. This establishes
+  internal consistency and retained artifact integrity, not F20 improvement.
+  Different versions' package environments remain independently frozen.
+- The initial preflight failed because pytest9.2 shortened long generated IDs;
+  the frozen legacy ID option restored the identical selection. The next run
+  was interrupted during warmup (exit130) after review found the missing
+  outside-source subprocess workdir. The final runner fixes
+  `HOTPOT_TEST_WORKDIR` and `PYTEST_ADDOPTS`, records actual execution events,
+  rejects reduced JUnit work, and propagates worker-exit errors. Original
+  reports, partial artifacts and interruption reason remain intact.
+- The first comparator selfcheck correctly withheld a conclusion, but its
+  one-testcase-per-summary-count assumption was too strict for pytest subtests.
+  Actual B20 evidence has2408 XML cases and2457 summary outcomes, including49
+  extra passed call reports. Comparison now verifies the terminal-event count
+  and preserves per-node/phase/outcome and XML-case identities. No timing sample,
+  test selection or source assertion changed, and no matrix rerun was needed.
+- Reporting regressions: **59 passed**,5.49s, in
+  `report-tools-complete.log/.xml`; after the subtest correction the complete
+  comparator selection passed **14 tests**,3.93s, in
+  `matrix-comparison-subtests.log`. The latter overlaps13 prior tests and adds
+  one regression.
+
+### Finite interface and asset review
+
+- The reviewed semantic table dispositions all485 chemistry classes and1837
+  captured entries. It includes204 exact carrier/member overrides,15 ordinary
+  or dynamic supplements,62 enum domains and source/schema bindings. Public
+  contracts, support types, retirement candidates and private implementations
+  remain distinct. Original raw inventory observations are preserved.
+- Parent review corrected erroneous experiment-stage references in the draft
+  table: **Stage0–12 → committed B_exp → new experimental branch → Stage13A
+  D_exp → Stage13B I_exp**. It also corrected active-versus-deleted aromatic
+  entry points, reference/view stages and D04/D05 ownership. The new review
+  reread the implementation/acceptance/decision/experiment chapters and the
+  normative companions; the main route itself did not change.
+- A2 remains explicitly accepted. N01–N09/A4–A5 layouts/new public interfaces,
+  D01–D03 schemas and pair-result details retain their later-stage gates.
+  New findings include tmQM Wiberg/frac_valence writers and model pair-column
+  order, shallow frozen wrapper/native/message buffers, and additional baseline
+  conformer/presence defects. Earlier table/cache extraction must preserve
+  those scientific values before the later ownership cutover.
+- The assembly audit compared all four files in the three named locations.
+  They are not one interchangeable template schema. The sole active default
+  is absent from the existing wheels; Stage8E/10 must close its packaging gap.
+  Legacy fragment definitions and the independent36-entry framework collection
+  retain their explicit Stage11/Decision13 disposition. No asset was deleted.
+- The measured production record delta remains zero. The same-method budget's
+  conditional ceiling is354 (net+7) only if all reviewed consolidations land;
+  without D01–D03 approval the conservative ceiling is362. No net whole-project
+  reduction or early record creation is claimed.
+
+### Evidence retention and next-stage boundary
+
+- Copied **7946 files /478398549 bytes** of completed raw scientific, technical,
+  inference, performance, wheel and preparation evidence into
+  `.plan20-artifacts/20261028/b20-archive`. Every copied file matched its original
+  SHA256. `archive-index.json` maps original paths to the durable copies;
+  original files remain in place and historical paths inside reports are not
+  rewritten. The matrix already resides in the same project artifact area.
+- All ten Stage1 responsibilities now have recorded deliverables: explicit
+  surface/consumer inventories; type-role/alias and semantic tables; ratcheted
+  debt/migration-stage maps; frozen deterministic technical fixtures and actual
+  test outcomes; O0 roster/report/comparison; source/native/installed validation;
+  complete existing performance families plus the Python matrix; frozen
+  sampling/work policies; concrete interface review; and the net-object budget.
+- README/main-plan status and the verification map now reflect this close.
+  Stage2 has not begun. It requires a fresh full plan/companion/decision read,
+  current-project/predecessor assessment and its own zero-reference/build audit
+  after the Stage1 Git checkpoint. No production deletion or extraction is
+  bundled into this commit.

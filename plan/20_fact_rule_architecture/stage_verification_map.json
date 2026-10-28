@@ -13,7 +13,8 @@
       "3.12",
       "3.13",
       "3.14"
-    ]
+    ],
+    "durable_artifact_root": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028"
   },
   "common_commands": {
     "default_suite": [
@@ -45,7 +46,7 @@
     "installed_smoke": [
       "python",
       "/home/zhangzhiyuan/hotpot/tests/test_packaging/installed_package_smoke.py",
-      "<core|mca|cbond|forcefield>"
+      "<core|inference|mca|cbond|forcefield>"
     ],
     "scientific_report": [
       "python",
@@ -58,6 +59,30 @@
       "44",
       "--output",
       "<artifact-directory>"
+    ],
+    "python_matrix_baseline": [
+      "python",
+      "plan/20_fact_rule_architecture/run_python_matrix_baseline.py",
+      "--repository",
+      "<frozen-source-checkout>",
+      "--environments",
+      "<five-version-environment-descriptor.json>",
+      "--output",
+      "<outside-source-artifact-directory>",
+      "--phase",
+      "<baseline|candidate>",
+      "--shared-load-note",
+      "<actual-task-and-host-load-assessment>"
+    ],
+    "python_matrix_comparison": [
+      "python",
+      "plan/20_fact_rule_architecture/compare_python_matrix_baselines.py",
+      "--baseline",
+      "<baseline-report.json>",
+      "--candidate",
+      "<candidate-report.json>",
+      "--output",
+      "<new-output-directory>"
     ]
   },
   "invocation_rules": [
@@ -65,7 +90,8 @@
     "Installed-wheel checks run outside checkout with the matching Python/wheel; set HOTPOT_TEST_WHEEL and HOTPOT_TEST_INSTALLED_PACKAGE as required by the existing harness.",
     "Native SDK tests additionally require --run-external and HOTPOT_RDWRAPPERS_TEST_SDK_PREFIX; skipped SDK calls are not passed ABI checks.",
     "Performance workloads/repetitions/outcome accounting belong to the separately frozen Section12 manifest; this file does not substitute a benchmark policy.",
-    "Stage13 contract-test exact path is intentionally deferred until B_exp exists; no speculative protocol implementation is authorized here."
+    "Stage13 contract-test exact path is intentionally deferred until B_exp exists; no speculative protocol implementation is authorized here.",
+    "The supplementary Python baseline uses python_matrix_manifest.json: 2689 frozen nodes per version, all-five preflight, one warmup and five synchronized measured rounds. Installed wheels, outside-source child cwd and actual node execution are verified. This does not replace the owning-stage additional-contract matrix or alter the original 71-workload weights."
   ],
   "stages": {
     "Stage0": {
@@ -171,9 +197,10 @@
       ],
       "planned_contract_test_files": [],
       "additional_requirements": [
-        "full default suite, original baseline scientific/technical selection, full Section12 workload measurements"
+        "full default suite, original baseline scientific/technical selection, full Section12 workload measurements",
+        "Supplementary installed-wheel Python3.10–3.14 baseline: common_commands.python_matrix_baseline, with all five matching wheels and verified models prepared before timing."
       ],
-      "execution_status": "not_executed_by_inventory_capture"
+      "execution_status": "completed; exact commands, outcomes and digests are in stage1_execution_evidence.json and implementation_log.md"
     },
     "Stage2": {
       "predecessor": "Stage1",
@@ -1464,6 +1491,7 @@
   "artifact_schemas": {
     "inventory": "baseline_inventory/manifest.json schema_version=1; JSONL record schemas documented by capture tool",
     "scientific": "run_scientific_report.py schema selected by reporter; all execution/absence and per-seed observations retained",
-    "performance": "separate Section12 manifest/report; raw samples and full outcome/workload accounting required"
+    "performance": "separate Section12 manifest/report; raw samples and full outcome/workload accounting required",
+    "python_matrix": "python_matrix_manifest.json and hotpot-plan20-python-matrix-report/v1; original and failed attempts retained, per-version comparison independent of 71-workload aggregate"
   }
 }

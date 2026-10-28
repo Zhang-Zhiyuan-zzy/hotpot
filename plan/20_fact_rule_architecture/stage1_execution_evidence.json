@@ -1,0 +1,380 @@
+{
+  "schema_version": 1,
+  "stage": "Stage1",
+  "status": "verified_complete; resulting Git checkpoint is recorded at Stage2 entry",
+  "recorded_at_utc": "2026-10-28T09:20:17.354608+00:00",
+  "source": {
+    "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+    "production_tree": "4a2086e717327c99056ef8cda200b0786e688219",
+    "production_changes": 0
+  },
+  "technical": {
+    "default_suite": {
+      "passed": 3822,
+      "skipped": 123,
+      "xfailed": 3,
+      "subtests_passed": 49,
+      "log": {
+        "path": "/tmp/hotpot-plan20-20261028/baseline/default-source.log",
+        "bytes": 6990,
+        "sha256": "dda4355715269009edb6f86600da634f5b7b38024a1e29e4491cebc76ff51e68"
+      },
+      "junit": {
+        "path": "/tmp/hotpot-plan20-20261028/baseline/default-source.xml",
+        "bytes": 653061,
+        "sha256": "21027cfa7cf829ff0bff61958bd710db807fafb6778f80348a7dd6a7a3bac955"
+      }
+    },
+    "model_tier": {
+      "passed": 42,
+      "skipped": 1,
+      "deselected": 3905,
+      "log": {
+        "path": "/tmp/hotpot-plan20-20261028/baseline/model-tier.log",
+        "bytes": 128,
+        "sha256": "2527252f6872ac767f2b1c31a9b2dfca635b8c7d1e71f8863d1a2946aa76aa1e"
+      }
+    },
+    "native_standalone": {
+      "initial_passed": 100,
+      "initial_skipped": 1,
+      "initial_failures": 2,
+      "initial_log": {
+        "path": "/tmp/hotpot-plan20-20261028/baseline/native-standalone.log",
+        "bytes": 16238,
+        "sha256": "b2fa049a01872ef142cfcbba4d1d1d3c8562761625a9715cb1b5b163dbdff3c9"
+      },
+      "resolved_sdk_failures": 2,
+      "corrected_sdk_log": {
+        "path": "/tmp/hotpot-plan20-20261028/baseline/native-sdk-correct-toolchain.log",
+        "bytes": 112,
+        "sha256": "789dbaf8f34018ffabd7ed72caea953caa8b9cad0b189dc49b5bcf043b72ca05"
+      },
+      "stage1_native_map_passed": 26,
+      "stage1_native_map_log": {
+        "path": "/tmp/hotpot-plan20-20261028/baseline/native-stage1-map.log",
+        "bytes": 111,
+        "sha256": "c490f211d7c8da8d90e66479522b57fee1a7552d0072ea9f460b284ae92689f4"
+      }
+    },
+    "report_tools": {
+      "combined_passed": 59,
+      "combined_log": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/report-tools-complete.log",
+        "bytes": 99,
+        "sha256": "a702cb189a34b4c5449a9f79e1dfcbc55650361f0c8ef05c57da6572a298b439"
+      },
+      "later_comparator_passed": 14,
+      "later_comparator_log": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/matrix-comparison-subtests.log",
+        "bytes": 99,
+        "sha256": "9002a7944cc5cce0a16bcd347a9b2d58d360887017ec74ddbc94762737c0ece7"
+      },
+      "note": "The 14-test comparator rerun includes 13 earlier tests plus the new successful-subtest JUnit case; counts are not added as independent tests."
+    }
+  },
+  "scientific": {
+    "report": {
+      "path": "/tmp/hotpot-plan20-20261028/science-b20-standard/report.json",
+      "bytes": 57921707,
+      "sha256": "ed2e5fa6bd6b8a902b02577ff60911b8f400c7f4ae3c8ba4fce59b998e859e4c"
+    },
+    "selfcheck": {
+      "path": "/tmp/hotpot-plan20-20261028/science-b20-selfcheck/comparison.json",
+      "bytes": 12281107,
+      "sha256": "621364b6adc725a248561464940e8ae335e1824c5db439d95e2c80603517eb07"
+    },
+    "source_cases": 187,
+    "root_seeds": [
+      42,
+      43,
+      44
+    ],
+    "eligible_cases": 182,
+    "ineligible_cases": 5,
+    "trial_records": 561,
+    "completed_observations": 546,
+    "not_run_ineligible": 15,
+    "execution_errors": 0,
+    "monitor_false_observations": 1,
+    "interpretation": "Rule-derived roster and versioned observations, not a fixed 182-success criterion."
+  },
+  "performance": {
+    "manifest": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+      "bytes": 34761,
+      "sha256": "ed5bba12ac6ae0305f6c85f7af3aa8fa824a3278fe12aad537a2f0c13768571b"
+    },
+    "sampling": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_sampling_plan.json",
+      "bytes": 5470,
+      "sha256": "be75408f19e3e860c4493e12b217095f9f757c7ec66d933df12811c6d75689f4"
+    },
+    "primary_existing_workloads": 68,
+    "new_only_workloads": 3,
+    "local_report": {
+      "path": "/tmp/hotpot-plan20-20261028/performance-b20-local/report.json",
+      "bytes": 8771470,
+      "sha256": "ad460fe264a6418379893f69fb918becd0ae5428b20494e9c8ebab1458906cf5"
+    },
+    "local_selfcheck": {
+      "path": "/tmp/hotpot-plan20-20261028/performance-b20-local-selfcheck/comparison.json",
+      "bytes": 163849,
+      "sha256": "d2aaac94cf2080abde2092db3b9d99b1df7f6ae43adce176dab62a513d8ae473"
+    },
+    "remote_report": {
+      "path": "/tmp/hotpot-plan20-20261028/remote-build/performance-evidence/performance-b20-remote/report.json",
+      "bytes": 713713,
+      "sha256": "692034b778c5c88c909ffa3b8ad9d6934a94f0a5f9d4d6510829cab2d17aa49b"
+    },
+    "remote_selfcheck": {
+      "path": "/tmp/hotpot-plan20-20261028/remote-build/performance-evidence/performance-b20-remote-selfcompare/comparison.json",
+      "bytes": 648120,
+      "sha256": "803087b368682166e1090441a993c77ab5d382c58898dab493eaacecd7ee4e9d"
+    },
+    "local_measured_warmups": [
+      605,
+      178
+    ],
+    "remote_measured_warmups": [
+      27,
+      7
+    ],
+    "remote_cpu_duplicates": 3,
+    "interpretation": "Each of 64 local and 4 remote GPU entries is counted once. Remote CPU duplicates are supplementary. No F20 acceptance is claimed."
+  },
+  "inference": {
+    "local_report": {
+      "path": "/tmp/hotpot-plan20-20261028/inference-b20-local/report.json",
+      "bytes": 271408,
+      "sha256": "d4dfa4e1cdd446c5a3855d908ae270bd587980e12e1236bd10726486ae167691"
+    },
+    "remote_report": {
+      "path": "/tmp/hotpot-plan20-20261028/remote-build/inference-evidence/inference-b20-remote/report.json",
+      "bytes": 3072172,
+      "sha256": "522173ba898885f952f4e7742c957dd9f2af7a66c53455db93f78b8e4f2b4eaa"
+    },
+    "saved_output_analysis": {
+      "path": "/tmp/hotpot-plan20-20261028/remote-build/numerical-analysis-evidence/inference-b20-numerical-analysis.json",
+      "bytes": 369690,
+      "sha256": "0f7a33058fe26fb821bad2c7cf1470f1878ea2a3cc495a4bff3eaad28b437e42"
+    },
+    "interpretation": "Untimed observations; all MCA DTOs label model_variant fp16, which does not establish per-operator arithmetic or a CPU/GPU precision cause."
+  },
+  "python_matrix": {
+    "manifest": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/python_matrix_manifest.json",
+      "bytes": 355269,
+      "sha256": "7c6ed13718cfa1563f65c99c8f3ac8ff94b77eddf43aaf5e0ff27ac54de3a107"
+    },
+    "report": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/python-matrix-b20-verified/report.json",
+      "bytes": 17169116,
+      "sha256": "57fbffba85343a3022811f16d6a6775ff187f52bdda91cd2bc8e4302b3e1f0a9"
+    },
+    "selfcheck": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/python-matrix-b20-selfcheck-subtests/comparison.json",
+      "bytes": 65605,
+      "sha256": "761e8373ec9b4b68bf506364272b6463f12f6862297011af709a85e4c1774ca6"
+    },
+    "requested_nodes_per_attempt": 2689,
+    "warmups_per_version": 1,
+    "measured_samples_per_version": 5,
+    "versions": [
+      {
+        "version": "3.10",
+        "summary": {
+          "requested_samples": 5,
+          "completed": 5,
+          "errors": 0,
+          "not_run": 0,
+          "all_attempt_seconds": 992.77017673105,
+          "elapsed_unavailable": 0,
+          "median_seconds": 198.60112279094756,
+          "mad_seconds": 0.11864011734724045,
+          "p95_seconds": 198.7791798580438,
+          "peak_rss_bytes": 1958907904
+        },
+        "wheel": {
+          "path": "/tmp/hotpot-plan20-20261028/matrix/cp310/source/dist/hotpot_zzy-0.5.4.5-cp310-cp310-linux_x86_64.whl",
+          "sha256": "258a6d7a98bcb89ef06d6157e3a89cee2041f14c9da1a9612af6e8e968e372dd",
+          "binding": {
+            "path": "3.10/preflight/installed-wheel.json",
+            "sha256": "1ef928ae268ea00d28df782fa0d34fd112f028ce0e5964cd252d63140fcdb880"
+          }
+        },
+        "python": "3.10.20 (main, Aug  7 2026, 02:25:15) [Clang 22.1.3 ]",
+        "dependency_lock_sha256": "ae8e9d904b5609db67198e82be6f08ec99c3a1ac9f67cde987503390d8e6b2d0"
+      },
+      {
+        "version": "3.11",
+        "summary": {
+          "requested_samples": 5,
+          "completed": 5,
+          "errors": 0,
+          "not_run": 0,
+          "all_attempt_seconds": 472.20122892037034,
+          "elapsed_unavailable": 0,
+          "median_seconds": 94.45942400209606,
+          "mad_seconds": 0.22853365167975426,
+          "p95_seconds": 94.80772792696953,
+          "peak_rss_bytes": 1460056064
+        },
+        "wheel": {
+          "path": "/tmp/hotpot-plan20-20261028/build/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+          "sha256": "a7a4c1580881be42a3651a92660efdc934164a4d47a386ffe584b4ef0d4c9a97",
+          "binding": {
+            "path": "3.11/preflight/installed-wheel.json",
+            "sha256": "89ebbdb20ad0ddfb9d6af56962d6abe06af1bc584305045df675204088536920"
+          }
+        },
+        "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+        "dependency_lock_sha256": "e4d49c2e60b6b6c7f3285e08f77d2c528aceb8e82249771c078271333275a90a"
+      },
+      {
+        "version": "3.12",
+        "summary": {
+          "requested_samples": 5,
+          "completed": 5,
+          "errors": 0,
+          "not_run": 0,
+          "all_attempt_seconds": 1033.0364837385714,
+          "elapsed_unavailable": 0,
+          "median_seconds": 206.60714266076684,
+          "mad_seconds": 0.32215575128793716,
+          "p95_seconds": 206.98748484775425,
+          "peak_rss_bytes": 1452859392
+        },
+        "wheel": {
+          "path": "/tmp/hotpot-plan20-20261028/matrix/cp312/wheels/hotpot_zzy-0.5.4.5-cp312-cp312-linux_x86_64.whl",
+          "sha256": "91ccf7dddc0dbf3b956c5a02a9e93fee8c911efb6a75a0f1aaee8a46131fd8f7",
+          "binding": {
+            "path": "3.12/preflight/installed-wheel.json",
+            "sha256": "4dee802c829dc7c773d4986bfa5ea618909f5be6a88b6e43705006b72aed0bd5"
+          }
+        },
+        "python": "3.12.13 (main, Aug  7 2026, 02:25:39) [Clang 22.1.3 ]",
+        "dependency_lock_sha256": "00ab4f032fec7c67d0e3149d9653a532dee103573febe710b5e811c299e48a4c"
+      },
+      {
+        "version": "3.13",
+        "summary": {
+          "requested_samples": 5,
+          "completed": 5,
+          "errors": 0,
+          "not_run": 0,
+          "all_attempt_seconds": 1077.3869570177048,
+          "elapsed_unavailable": 0,
+          "median_seconds": 215.48442400619388,
+          "mad_seconds": 0.17548448778688908,
+          "p95_seconds": 215.80539431720973,
+          "peak_rss_bytes": 1486376960
+        },
+        "wheel": {
+          "path": "/tmp/hotpot-plan20-20261028/remote-build/source/dist/hotpot_zzy-0.5.4.5-cp313-cp313-linux_x86_64.whl",
+          "sha256": "5e9d55297dd4d15814e7814dd3055b88ee84d2d8656312677c9a663792546672",
+          "binding": {
+            "path": "3.13/preflight/installed-wheel.json",
+            "sha256": "0a4ce88dc1d329bfe0e42b52c5bb810962d21595b26ddc93d83b950f0e51f4cc"
+          }
+        },
+        "python": "3.13.15 (main, Aug  7 2026, 02:25:50) [Clang 22.1.3 ]",
+        "dependency_lock_sha256": "25e5ed6c811f602484444bc0fc1c7bdc4bda9663d310a525b4159779682e0763"
+      },
+      {
+        "version": "3.14",
+        "summary": {
+          "requested_samples": 5,
+          "completed": 5,
+          "errors": 0,
+          "not_run": 0,
+          "all_attempt_seconds": 1150.7110968902707,
+          "elapsed_unavailable": 0,
+          "median_seconds": 230.213604927063,
+          "mad_seconds": 0.2227067407220602,
+          "p95_seconds": 230.43082108944654,
+          "peak_rss_bytes": 1478070272
+        },
+        "wheel": {
+          "path": "/tmp/hotpot-plan20-20261028/matrix/cp314/source/dist/hotpot_zzy-0.5.4.5-cp314-cp314-linux_x86_64.whl",
+          "sha256": "009a839f88ccdaa1ecd792358d6fc5d64e0680cafeee57e2acef89df12160014",
+          "binding": {
+            "path": "3.14/preflight/installed-wheel.json",
+            "sha256": "0230355991e74266bd3a057a85148e0d0440e271702727cfa880cd62caa00b73"
+          }
+        },
+        "python": "3.14.7 (main, Aug  7 2026, 02:26:00) [Clang 22.1.3 ]",
+        "dependency_lock_sha256": "8e1985ef17960d675c3bc144818ec9ff3b9651cc23577f2942997f116510774d"
+      }
+    ],
+    "initial_preflight_failure": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/python-matrix-b20/report.json",
+      "bytes": 4211839,
+      "sha256": "5036b838a480b1701d4e99fd362956d361ce1c6498f86d7a81544ff13c21c2e0"
+    },
+    "interrupted_warmup": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/python-matrix-b20-legacy-ids/interruption.json",
+      "bytes": 392,
+      "sha256": "a45693a98e96cefa390ab10e710eefccf3392f0ca61aff2e3bf26aea0d9b2b5e"
+    },
+    "first_comparator_failure": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/python-matrix-b20-selfcheck/comparison.json",
+      "bytes": 60859,
+      "sha256": "4a63cf4e02e4d0830720d44e2a8ba45d939ee5c3354cca4d9e862631870eebc4"
+    },
+    "interpretation": "Five independent version gates. Selfcheck confirms historical artifact/RECORD/import/execution integrity only; same dependency versions alone do not certify equal binary builds."
+  },
+  "review_records": {
+    "baseline_inventory/manifest.json": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/baseline_inventory/manifest.json",
+      "bytes": 135702,
+      "sha256": "1cfdc979c05b10818aa99ac6b95cd56b18bbb38d4709f17340de9e6d7c583a5a"
+    },
+    "stage1_contract_decisions.md": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_contract_decisions.md",
+      "bytes": 13274,
+      "sha256": "406a6e42f00e3bc3042487db7deb204b7233f07d23bf52041a3783e8063627ca"
+    },
+    "stage1_api_review.md": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_api_review.md",
+      "bytes": 17484,
+      "sha256": "9c3148425fcbb84fffb9841944c685de8fcaa32b08887b57eaa45de1813a28bb"
+    },
+    "reviewed_interface_contracts.json": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/reviewed_interface_contracts.json",
+      "bytes": 205159,
+      "sha256": "d16d1cf6e08fdf3112d736bcf8f0dce285b98294007b87307bcf10e9d426ed0d"
+    },
+    "stage1_interface_contract_review.md": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_interface_contract_review.md",
+      "bytes": 15448,
+      "sha256": "3dd1749b581f37bad299682253dd0c1c9671f77e5c59d9dc22c0be9d96eb91ce"
+    },
+    "stage1_asset_review.md": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage1_asset_review.md",
+      "bytes": 9040,
+      "sha256": "fdd77c56e65f7c50e4be63ba5ce6ae503a48e6103848a5d376e5a91658f0902e"
+    },
+    "data_object_budget.json": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/data_object_budget.json",
+      "bytes": 13007,
+      "sha256": "9d5fb507d704050c2697feec8b527c3b24a24dff2e73511090b52eb949048946"
+    },
+    "stage_verification_map.json": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage_verification_map.json",
+      "bytes": 73341,
+      "sha256": "0c1f268ea1706ecb7968233b6fb2bf0a4c11b0bde52ae7e8c99cea89ea79569c"
+    }
+  },
+  "archive": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/b20-archive/archive-index.json",
+    "bytes": 2651246,
+    "sha256": "ceb4150a7eff68b1c1f519990d169b593ae71db7bf5ad65900d639bc50977103"
+  },
+  "limits": [
+    "Probe-profile Linux wheels, not manylinux release certification.",
+    "The retained plain mca/cbond source imports in old test conftests are recorded exceptions to wheel-only execution.",
+    "Shared GPU load and actual dependency/loader binaries require review in the future B20/F20 comparison.",
+    "Known baseline defects and undecided new schemas retain their named owning-stage gates; no Stage2 implementation has started."
+  ]
+}

@@ -1,7 +1,7 @@
 # Stage 20 — Fact-Carrier and Rule Architecture
 
-Status: implementation authorized on 2026-10-28; Stage0 planning freeze in
-progress. All public chemical
+Status: implementation authorized on 2026-10-28; Stage0 and Stage1 complete;
+Stage2 entry review pending. All public chemical
 types follow a common protocol for fact ownership, interface mapping,
 permissions, dependencies, buffer ownership and lifecycle. Atom's unified
 fact table is one concrete implementation. Production implementation has not
@@ -20,6 +20,10 @@ Plan17/Plan20 boundary before production refactoring.
 
 - [Architecture audit and implementation plan](fact_rule_architecture_implementation_plan.md)
 - [Implementation log and stage-entry assessments](implementation_log.md)
+- [Stage1 API and consumer review](stage1_api_review.md)
+- [Stage1 concrete interface decisions](stage1_contract_decisions.md)
+- [Stage1 common interface semantic review](stage1_interface_contract_review.md)
+- [Stage1 assembly asset review](stage1_asset_review.md)
 - [Chemical-type public-interface protocol and fact storage](chemical_type_interface_contract.md)
 - [Plan17/Plan20 execution alignment](plan17_plan20_execution_alignment.md)
 - [Data-object classification and consolidation audit](data_object_scope_audit.md)
@@ -44,3 +48,10 @@ Every stage and independently gated sub-stage begins with a full reread of the
 plan and normative companions plus a recorded project-state assessment.
 Executed work has an append-only implementation log and a final report.
 Planning records and proposed commands are not execution or benchmark evidence.
+
+Stage1 measurement policies live in `performance_manifest.json`,
+`stage1_sampling_plan.json` and `python_matrix_manifest.json`. The supported
+Python matrix uses `run_python_matrix_baseline.py` and
+`compare_python_matrix_baselines.py`; its per-version comparisons remain
+separate from the original performance-family weights. The implementation log
+binds executed reports and records incomplete or failed attempts explicitly.

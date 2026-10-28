@@ -292,7 +292,9 @@ MetalCluster 以未来注册聚合类型纳入该关系图；Plan20 只登记类
 Atom 的具体实现是 Molecule-owned typed columnar `_AtomFactTable`；Atom 通过已审
 映射读取或修改唯一数值事实。已批准 schema 字段可联动存储、属性、快照和依赖，
 内部增列不会自动发布同名公开属性。科学快照按字段取值，ABI 按请求打包，神经
-网络矩阵按 dtype/字段顺序显式导出；三者共享声明与来源，各自保留用途和寿命。
+网络矩阵按 dtype/字段顺序在内部显式导出；公开 `atom_matrix` 是完整19列
+float64 property，与 Atom.attrs 共用唯一投影。三者共享声明与来源，
+各自保留用途和寿命，不把公开完整矩阵的工作量替代内部字段选择基准。
 
 依赖状态归权威事实或选定结果 owner。变更仅标 `NEEDS_RECALC`；需求读取先展开
 相关上游的未处理 dirty 种子，再检查目标当前性。昂贵推断不在赋值时运行，读取也

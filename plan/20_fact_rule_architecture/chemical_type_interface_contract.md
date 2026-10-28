@@ -226,7 +226,10 @@ is_aromatic 的单原子写入建议改由完整芳香操作，具体权限仍�
 presence/source/status。脱离 Atom 的行转移至同 schema 只读单行表，活动表
 移除该行，保留检查语义且不留下两个可变权威。句柄不因压缩改指另一原子。
 
-矩阵导出明确字段顺序、dtype、单位和未知值策略，不保存持久 one-hot 或
+公开 `Molecule.atom_matrix` 为完整19列 float64 独立数组的只读 property，
+不接收 fields/dtype 参数。它与 Atom.attrs 共用唯一事实投影；既有
+atom_attr_matrix 的改名/别名去向单独记录，不能增加第二份矩阵或生成实现。
+内部矩阵导出仍明确字段顺序、dtype、单位和未知值策略，不保存持久 one-hot 或
 归一化特征，不把 UID 转成有损浮点。字段选择式 native transport 可在有效
 寿命和只读保证内借用缓冲区，否则显式打包，不另造通用运输系统。
 
@@ -260,8 +263,8 @@ N×F 导出、原生打包和逐原子结果投影，确保高效批量访问与
 | A1 | `Atom.atomic_number`, `Atom.symbol` | 保留现有名字与读写；同一 atomic_number 事实，移除立即重算副作用 | 保留签名；副作用变更待审 |
 | A2 | `Atom.attrs`, `Atom(attrs_array=..., update_electron_config=...)` | 移除长期可写事实数组暴露；完整导入使用私有builder，Stage5删除两个旧构造参数；保留独立19列快照，Stage7C缺失结果用NaN且保持模型输入编码，详见[具体决定](stage1_contract_decisions.md) | 2026-10-28用户已确认；按Stage3/5/7C分步验证 |
 | A3 | `Atom.coordinates`, x/y/z, `Molecule.coordinates` | 保留现有赋值入口、共享唯一坐标事实；返回数组副本/不可变行为按基线明确 | 返回别名行为变更待审 |
-| A4 | `Molecule.update_atom_facts(*, atoms=None, **columns) -> None` | 唯一候选新增公开批量写方法；现有 Atom 句柄序列选行，None为全部当前行；不公开私有 UID；只接受已声明可写事实/别名，列可广播；坐标为 N×3；重叠别名必须一致；一次校验/提交 | 新方法，待审，不设立 |
-| A5 | `Molecule.atom_feature_matrix(fields, *, dtype="float32") -> numpy.ndarray` | 唯一候选新增公开矩阵导出；字段顺序显式、单位沿schema；未知输入拒绝导出，未来presence/mask返回如需改变须再审；返回独立任务数组 | 新方法，待审，不设立 |
+| A4 | `Molecule.updata_atoms(*, atoms=None, **columns) -> None` | 按用户指定拼写；Atom句柄选行，None为全部；只接受已审事实/别名，广播、重叠一致、一次校验/提交；不公开UID | 2026-10-28用户确认能力与改名；Stage3实施验证 |
+| A5 | `Molecule.atom_matrix` property | 无fields/dtype参数，返回完整19列float64独立数组；沿既有schema/单位，缺失可选结果按A2在Stage7C编码NaN；不自动增加MCA或新私有字段 | 2026-10-28用户确认；复用既有atom_attr_matrix投影，其旧名去向单独确认 |
 | A6 | 例子 `Atom.new_attrs` | 仅说明schema联动；具体名字、dtype、权限、依赖另列审阅 | 不添加示例属性 |
 | A7 | 现有 `Atom.valence`、`n/s/p/d/f/g`、`electron_configuration`、`implicit_hydrogens`、`is_aromatic` 的赋值权限 | valence/电子组态和芳香投影改只读；隐式H setter保留为明确计数声明，完整推断走既有method；不新增hybridization property | 确切签名/消费者影响在Stage1提交审批，权限改变待审 |
 | A8 | `Atom.partial_charge` | 只读 Optional[float]，None为无选定值；全量assignment是唯一写入口（原Decision22提案） | 返回类型/setter变化待审 |
@@ -271,10 +274,10 @@ N×F 导出、原生打包和逐原子结果投影，确保高效批量访问与
 | A12 | 新异常类、领域结果/DTO合并改名 | 与主规划及数据对象审计逐项列明；不能因私有设计需要自动导出 | 待审；不新增公开异常 |
 | A13 | `Atom.isotope: Optional[int]` | 若公开：读写同位素质量数，None表示未指定；唯一映射私有isotope值/presence；当前先沿既有stereo transport访问 | 新属性候选，待审，不设立；不附带radical/hybridization新属性 |
 
-A4/A5 是现阶段具体审阅候选，不为其他类型自动生成对应方法，也不另建
-atom_table/fact_store/edit_attrs 等平行公开入口。拒绝候选后明确采用哪个
-现有批量入口，不能退化为必须逐个 setter 才能写入。
+A4/A5 已按用户指定的名字和完整矩阵语义确认，不为其他类型自动生成对应方法，也不另建
+atom_table/fact_store/edit_attrs 等平行公开入口。保留高效批量提交，
+不能退化为必须逐个 setter 才能写入。
 
 A4 只接受已批准可写字段，按 Atom 句柄选行，规范化为私有列更新合约，
-不接受任意 setattr/FactPatch。A5 只导出现有数值事实/获批派生读值；未知值
-策略和完整返回结构先审阅，不借导出接口引入新科学特征或外部模型。
+不接受任意 setattr/FactPatch。A5复用既有19列顺序，空分子为(0,19)，
+不借完整导出引入新科学特征或外部模型；按需选择字段保留为内部任务能力。

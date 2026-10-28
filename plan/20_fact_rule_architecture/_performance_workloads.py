@@ -60,7 +60,7 @@ def prepare(entry, phase):
                     for atom in atoms:
                         atom.formal_charge = 0
                 else:
-                    mol.update_atom_facts(formal_charge=0)
+                    mol.updata_atoms(formal_charge=0)
                 return size
             return repeat(update), lambda: None
         if name == "coordinates":
@@ -79,7 +79,10 @@ def prepare(entry, phase):
                 if phase == "baseline":
                     matrix = np.asarray([(a.atomic_number, a.formal_charge, *a.coordinates) for a in atoms], dtype=np.float32)
                 else:
-                    matrix = mol.atom_feature_matrix(("atomic_number", "formal_charge", "x", "y", "z"), dtype="float32")
+                    raise NotImplementedError(
+                        "Bind the frozen five-column float32 task to the Stage3 private projector; "
+                        "the public atom_matrix property exports all19 float64 columns"
+                    )
                 return {"shape": list(matrix.shape), "returned_bytes": matrix.nbytes, "dtype": str(matrix.dtype)}
             return repeat(export), lambda: None
         if name == "native":

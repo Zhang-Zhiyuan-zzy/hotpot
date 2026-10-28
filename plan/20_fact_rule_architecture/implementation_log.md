@@ -568,3 +568,76 @@ review records and retained failed attempts by SHA256.
   Scientific/performance tiers were not rerun for this deletion-only stage;
   their Stage1 baselines remain intact. Stage3 requires its own new full read,
   predecessor assessment, contract/layout review and storage measurements.
+
+## 2026-10-28 — Stage3 entry: contracts, declarations and storage assessment
+
+- Predecessor Stage2 commit: `c6bfcd4906254ee113c14103009f071e91f60368`;
+  clean tracked worktree. Production subtree:
+  `85f86bbf8a3b83b1322f20181c2f9996bb3c41d3`.
+- Newly read all2434 lines/all17 main-plan chapters and all four normative
+  companions, including the complete data-object definition appendix. An
+  oversized migration-table output was reread in a smaller range. Exact hashes
+  and immutable read copies are recorded in `stage3_entry_review.json`.
+- Rechecked Stage1/2 indexed evidence; previous technical/import/source gates
+  passed. Stage2 source cleanup did not change scientific algorithms. Current
+  class definitions, topology index, mutable arrays and legacy setter behavior
+  still reside in Core; there is no `_topology.py` implementation yet.
+- Entry permits bounded private layout/reuse review and equivalent-work storage
+  measurements before production choice. N01–N09 reservations are upper
+  bounds; retain existing scientific/stereo/native schemas. No new wrapper for
+  each field, no universal patch or early experimental rule protocol.
+- A2 is accepted and remains staged: private ownership/import preparation now,
+  constructor cutover in Stage5, selected-result/NaN policy in Stage7C. Keep
+  still-needed Wiberg, partial-charge, constraint and model-input values during
+  each earlier migration. A4/A5 new methods retain their specific decision gate.
+- Required Stage3 evidence includes builder one-shot topology/no chemistry,
+  UID non-reuse/owner checks, buffer isolation, atomic writes, role/permission
+  declarations, positive/negative dependency propagation and scalar/batch
+  scaling, ratchet/import contracts, appropriate Python coverage and default
+  suite. None of those new gates is yet claimed complete.
+
+### Stage3 owner updates and GitHub cadence
+
+- The owner approves the two proposed capabilities with revised public names:
+  `Molecule.updata_atoms(*, atoms=None, **columns) -> None` (exact spelling), and
+  `Molecule.atom_matrix` as a property returning the complete float64 array,
+  without public field selection. These supersede the proposed
+  update_atom_facts/atom_feature_matrix names. Existing atom_attr_matrix already
+  implements the19-column projection; its precise rename/alias disposition is
+  being clarified against the earlier A2 preservation decision. No second
+  fact table or independent matrix-generation implementation is authorized.
+- New instruction: push GitHub after every three commits. Initial catch-up push
+  succeeded for implementation branch through
+  `c6bfcd4906254ee113c14103009f071e91f60368`, now tracking
+  `origin/implement/plan20-fact-rule-architecture`. Count subsequent commits
+  from this pushed SHA; uncommitted Stage3 work was not included.
+
+### Stage3 foundation checkpoint — verified, stage still in progress
+
+- Created the six empty-export ownership packages, without moving carriers.
+  Element and ideal-bond JSON assets now have unique, deeply immutable cached
+  loaders. The existing public element dict/list is an independent snapshot.
+- Added the architecture ratchet against the frozen inventory: 287 initial
+  entries, 282 remaining, no new debt. Review repaired checks for the approved
+  `updata_atoms` name, imported module aliases, and direct numeric fact writes.
+  Source checks complement, rather than replace, runtime ownership tests.
+- Full default suite: **3917 passed, 123 skipped, 3 xfailed, 49 subtests**, in
+  242.15 seconds. Production code did not change afterward. Final focused run,
+  including the 15 additional ratchet cases: **74 passed** in 9.10 seconds
+  (46 architecture, 4 reference, 24 performance-report tests). The six focused
+  warnings concern existing unrelated invalid escape sequences in source ASTs.
+- Two retained storage experiments cover 936 and 1248 attempts, with zero
+  execution failures and 33/36 validation checks. Typed columns improve larger
+  exports but regress small-molecule matrix export/remap. Grouped float64
+  blocks improve complete matrix export while showing scalar/remap overhead.
+  Neither experiment includes production handle, presence, status or commit
+  costs; neither selects or validates the production layout. Wide existing
+  charge/H/id and raw numeric slot values remain required.
+- The revised interface review included another fresh complete read of the
+  main plan and four normative companions. Its exact retained manifest and
+  checkpoint evidence are indexed by `stage3_foundation_evidence.json`.
+- Table/schema integration, UID lifecycle, builder, atomic commits, dependency
+  propagation, production scaling and candidate Python coverage remain open.
+  The verification map explicitly retains those gates as uncompleted. The
+  frozen five-column float32 private benchmark awaits the actual projector;
+  it is not substituted by the public complete19-column float64 property.

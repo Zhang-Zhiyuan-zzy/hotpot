@@ -4327,8 +4327,8 @@
       "z_constraint"
     ],
     "dtype": "float64",
-    "alias": "Atom.attrs and Molecule.atom_attr_matrix are independent numerical snapshots after A2 cutover, not a second persistent table.",
-    "absence": "Absent optional selected result -> NaN; explicit zero remains zero. Explicit atom_feature_matrix proposal rejects unavailable selected values; task model input encoding must remain unchanged.",
+    "alias": "Atom.attrs and the owner-approved Molecule.atom_matrix are independent numeric projections of one table; old atom_attr_matrix rename/alias disposition is separately pending.",
+    "absence": "Full19-column float64 projection: absent optional selected result -> NaN at Stage7C; explicit zero remains zero. No public field selector or MCA twentieth column; model input encoding remains unchanged.",
     "stage": "Stage3 sole table/isolation; Stage5 migrated constructor removal/derived ownership; Stage7C selected partial-charge owner and missing encoding."
   },
   "decision19_lifecycle": {
@@ -4367,14 +4367,14 @@
   "future_public_interfaces": [
     {
       "id": "A4",
-      "signature": "Molecule.update_atom_facts(*, atoms=None, **columns) -> None",
-      "status": "concrete proposal; review before Stage3 publication",
+      "signature": "Molecule.updata_atoms(*, atoms=None, **columns) -> None",
+      "status": "owner-approved exact spelling and capability on2026-10-28; Stage3 implementation/gates pending",
       "reference": "stage1_contract_decisions.md"
     },
     {
       "id": "A5",
-      "signature": "Molecule.atom_feature_matrix(fields, *, dtype=\"float32\") -> numpy.ndarray",
-      "status": "concrete proposal; review before Stage3 publication",
+      "signature": "Molecule.atom_matrix: numpy.ndarray (read-only property, independent float64 (N,19))",
+      "status": "owner-approved complete-matrix property on2026-10-28; no fields/dtype parameters; old atom_attr_matrix disposition separately pending",
       "reference": "stage1_contract_decisions.md"
     },
     {
@@ -4400,7 +4400,7 @@
     {
       "id": "A4-A5",
       "stage": "Stage3",
-      "required": "Concrete signatures/permissions/encoding recorded in stage1_contract_decisions; complete public review before publishing new batch/export methods. A2 approval does not independently approve every new API.",
+      "required": "Owner accepted updata_atoms and complete19-column float64 atom_matrix property. Reuse one fact/projection implementation; finalize existing atom_attr_matrix disposition and complete Stage3 technical/performance gates.",
       "blocks_stage2": false
     },
     {
@@ -4631,5 +4631,15 @@
       "view": 50
     },
     "validation": "Static set partition, unique override keys, existing override members, hash bindings, enum source AST and JSON parse checked; no production tests or benchmarks rerun for this documentation index."
+  },
+  "stage3_owner_update": {
+    "date": "2026-10-28",
+    "names": [
+      "Molecule.updata_atoms",
+      "Molecule.atom_matrix"
+    ],
+    "matrix": "property, complete existing19-column float64 independent array, no fields/dtype parameters",
+    "duplicate_audit": "Existing atom_attr_matrix matches this semantic projection; preserve one implementation, exact old-name disposition pending",
+    "full_reread_evidence": ".plan20-artifacts/20261028/stage3/interface-review-read/read_manifest.json"
   }
 }

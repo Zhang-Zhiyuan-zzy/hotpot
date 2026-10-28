@@ -1,12 +1,12 @@
 import itertools
-import os
-import json
 from typing import Union
 
 import numpy as np
 import periodictable
 import pandas as pd
 import openbabel.openbabel as ob
+
+from .reference.properties import _element_properties_snapshot
 
 
 __all__ = [
@@ -16,10 +16,7 @@ __all__ = [
 ]
 
 # TODO: Lacking ionic coordination radii, refer to https://www.matbd.cn/sjjs/userInfo/checkDataSet?dataset_id=5b60fc21-db0b-48d2-8c3a-8d993910d535&template_id=57&type=home
-cheminfo_dir = os.path.dirname(os.path.abspath(__file__))
-path_element_properties = os.path.join(cheminfo_dir, 'ChemData', 'ElementProperties.json')
-with open(path_element_properties, 'r') as f:
-    element_properties = json.load(f)['data']
+element_properties = _element_properties_snapshot()
 _shared_prop = {
     'cid_number', 'volume_magnetic_susceptibility', 'lattice_constant_c', 'electrical_type', 'critical_temperature',
     'speed_of_sound', 'electronegativity', 'electron_affinity', 'valence', 'space_group_number', 'alternate_names',

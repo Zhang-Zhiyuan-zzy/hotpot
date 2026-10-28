@@ -1,0 +1,2542 @@
+{
+  "schema_version": 1,
+  "origin": "Stage1 frozen exact debt inventory",
+  "source_checkpoint": "c6bfcd4906254ee113c14103009f071e91f60368",
+  "policy": "Entries only shrink. Compare to the actual pre-change Git ref; retired entries must be removed. New ownership packages are strict.",
+  "entries": [
+    {
+      "path": "hotpot/cheminfo/AImodels/cbond/apply.py",
+      "line": 13,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/AImodels/cbond/apply.py",
+      "line": 13,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/AImodels/data_extract.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/AImodels/data_extract.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/AImodels/data_extract.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.AtomPair",
+      "local": "AtomPair",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/AImodels/mca/serialization.py",
+      "line": 17,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "HotpotMolecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/AImodels/mca/site_detection.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/AImodels/mca/site_detection.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/MolProps/__init__.py",
+      "line": 8,
+      "scope": "",
+      "target": "hotpot.cheminfo.MolProps.sol_med_prop.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/cheminfo/__init__.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/__init__.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/__init__.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/__init__.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/__init__.py",
+      "line": 14,
+      "scope": "",
+      "target": "hotpot.cheminfo.mol_assemble.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/cheminfo/_io/__init__.py",
+      "line": 9,
+      "scope": "",
+      "target": "hotpot.cheminfo._io.g16.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/cheminfo/_io/__init__.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo._io._io.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/cheminfo/_io/_io.py",
+      "line": 31,
+      "scope": "",
+      "target": "hotpot.cheminfo.core",
+      "local": "core",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/_io/_io.py",
+      "line": 30,
+      "scope": "",
+      "rule": "import_cycle_workaround",
+      "stage": "Stage7A",
+      "target": "sys.modules"
+    },
+    {
+      "path": "hotpot/cheminfo/_io/g16.py",
+      "line": 48,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/_native/buffers.py",
+      "line": 13,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/bundle.py",
+      "line": 13,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/calculator/mca_inference.py",
+      "line": 5,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/calculator/state_resolver.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/calculator/state_resolver.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/calculator/state_resolver.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/conformers/adapters.py",
+      "line": 18,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/conformers/sampler.py",
+      "line": 11,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/convert.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 23,
+      "scope": "",
+      "target": "openbabel.pybel",
+      "local": "pb",
+      "rule": "carrier_or_root_eager_toolkit_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 23,
+      "scope": "",
+      "target": "openbabel.openbabel",
+      "local": "ob",
+      "rule": "carrier_or_root_eager_toolkit_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 24,
+      "scope": "",
+      "target": "scipy.spatial.distance.pdist",
+      "local": "pdist",
+      "rule": "carrier_or_root_eager_toolkit_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 24,
+      "scope": "",
+      "target": "scipy.spatial.distance.squareform",
+      "local": "squareform",
+      "rule": "carrier_or_root_eager_toolkit_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 69,
+      "scope": "",
+      "rule": "import_cycle_workaround",
+      "stage": "Stage7A",
+      "target": "sys.modules"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 138,
+      "scope": "Molecule.__init__",
+      "target": "self._model",
+      "attribute": "_model",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage8D"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 139,
+      "scope": "Molecule.__init__",
+      "target": "self._environ",
+      "attribute": "_environ",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage8D"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 147,
+      "scope": "Molecule.__init__",
+      "target": "self._atom_pairs",
+      "attribute": "_atom_pairs",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 148,
+      "scope": "Molecule.__init__",
+      "target": "self._angles",
+      "attribute": "_angles",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 149,
+      "scope": "Molecule.__init__",
+      "target": "self._torsions",
+      "attribute": "_torsions",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 150,
+      "scope": "Molecule.__init__",
+      "target": "self._rings",
+      "attribute": "_rings",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage5"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 151,
+      "scope": "Molecule.__init__",
+      "target": "self._ring_indices_cache",
+      "attribute": "_ring_indices_cache",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage5"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 152,
+      "scope": "Molecule.__init__",
+      "target": "self._ligand_rings",
+      "attribute": "_ligand_rings",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage5"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 153,
+      "scope": "Molecule.__init__",
+      "target": "self._ligand_rings_signature",
+      "attribute": "_ligand_rings_signature",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage5"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 154,
+      "scope": "Molecule.__init__",
+      "target": "self._obmol",
+      "attribute": "_obmol",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7A"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 155,
+      "scope": "Molecule.__init__",
+      "target": "self._row2idx",
+      "attribute": "_row2idx",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7A"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 158,
+      "scope": "Molecule.__init__",
+      "target": "self._hided_metal_bonds",
+      "attribute": "_hided_metal_bonds",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7B"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 159,
+      "scope": "Molecule.__init__",
+      "target": "self._hided_covalent_bonds",
+      "attribute": "_hided_covalent_bonds",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7B"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 590,
+      "scope": "Molecule._update_topology",
+      "target": "self._angles",
+      "attribute": "_angles",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 591,
+      "scope": "Molecule._update_topology",
+      "target": "self._torsions",
+      "attribute": "_torsions",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 592,
+      "scope": "Molecule._update_topology",
+      "target": "self._rings",
+      "attribute": "_rings",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage5"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 593,
+      "scope": "Molecule._update_topology",
+      "target": "self._ring_indices_cache",
+      "attribute": "_ring_indices_cache",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage5"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 594,
+      "scope": "Molecule._update_topology",
+      "target": "self._ligand_rings",
+      "attribute": "_ligand_rings",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage5"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 595,
+      "scope": "Molecule._update_topology",
+      "target": "self._ligand_rings_signature",
+      "attribute": "_ligand_rings_signature",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage5"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 596,
+      "scope": "Molecule._update_topology",
+      "target": "self._obmol",
+      "attribute": "_obmol",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7A"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 597,
+      "scope": "Molecule._update_topology",
+      "target": "self._row2idx",
+      "attribute": "_row2idx",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7A"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 1005,
+      "scope": "Molecule.restore_bonds",
+      "target": "self._hided_metal_bonds",
+      "attribute": "_hided_metal_bonds",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7B"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 1009,
+      "scope": "Molecule.restore_bonds",
+      "target": "self._hided_covalent_bonds",
+      "attribute": "_hided_covalent_bonds",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7B"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 2121,
+      "scope": "Molecule._remove_atoms_from_topology",
+      "target": "self._hided_metal_bonds",
+      "attribute": "_hided_metal_bonds",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7B"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 2125,
+      "scope": "Molecule._remove_atoms_from_topology",
+      "target": "self._hided_covalent_bonds",
+      "attribute": "_hided_covalent_bonds",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7B"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 2851,
+      "scope": "Molecule.update_angles",
+      "target": "self._angles",
+      "attribute": "_angles",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 2864,
+      "scope": "Molecule.update_torsions",
+      "target": "self._torsions",
+      "attribute": "_torsions",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 66,
+      "scope": "",
+      "rule": "import_cycle_workaround",
+      "stage": "Stage7A",
+      "target": "sys.modules"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 965,
+      "scope": "Molecule.clear_metal_ligand_bonds",
+      "target": "self._hided_metal_bonds",
+      "attribute": "_hided_metal_bonds",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7B"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 974,
+      "scope": "Molecule.clear_hided_covalent_bonds",
+      "target": "self._hided_covalent_bonds",
+      "attribute": "_hided_covalent_bonds",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7B"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 982,
+      "scope": "Molecule.clear_hided_bonds",
+      "target": "self._hided_metal_bonds",
+      "attribute": "_hided_metal_bonds",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7B"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 983,
+      "scope": "Molecule.clear_hided_bonds",
+      "target": "self._hided_covalent_bonds",
+      "attribute": "_hided_covalent_bonds",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7B"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 1072,
+      "scope": "Molecule.angles",
+      "target": "self._angles",
+      "attribute": "_angles",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 1087,
+      "scope": "Molecule.torsions",
+      "target": "self._torsions",
+      "attribute": "_torsions",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 2537,
+      "scope": "Molecule.rings",
+      "target": "self._rings",
+      "attribute": "_rings",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage5"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 2706,
+      "scope": "Molecule.ligand_rings",
+      "target": "self._ligand_rings",
+      "attribute": "_ligand_rings",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage5"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 2715,
+      "scope": "Molecule._refresh_ligand_ring_cache_signature",
+      "target": "self._ligand_rings",
+      "attribute": "_ligand_rings",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage5"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 2719,
+      "scope": "Molecule._refresh_ligand_ring_cache_signature",
+      "target": "self._ligand_rings_signature",
+      "attribute": "_ligand_rings_signature",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage5"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 2747,
+      "scope": "Molecule.to_obmol",
+      "target": "self._obmol",
+      "attribute": "_obmol",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7A"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 2747,
+      "scope": "Molecule.to_obmol",
+      "target": "self._row2idx",
+      "attribute": "_row2idx",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7A"
+    },
+    {
+      "path": "hotpot/cheminfo/core_utils.py",
+      "line": 17,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/crystal.py",
+      "line": 2,
+      "scope": "",
+      "target": "openbabel.openbabel",
+      "local": "ob",
+      "rule": "carrier_or_root_eager_toolkit_import",
+      "stage": "Stage7A"
+    },
+    {
+      "path": "hotpot/cheminfo/crystal.py",
+      "line": 14,
+      "scope": "Crystal.__init__",
+      "target": "self._obcell",
+      "attribute": "_obcell",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7A"
+    },
+    {
+      "path": "hotpot/cheminfo/draw.py",
+      "line": 37,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/__init__.py",
+      "line": 3,
+      "scope": "",
+      "target": "hotpot.cheminfo.forcefields.ff.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/acceptance.py",
+      "line": 47,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/acceptance.py",
+      "line": 47,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/acceptance.py",
+      "line": 47,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/acceptance.py",
+      "line": 47,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Ring",
+      "local": "Ring",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/attempts.py",
+      "line": 25,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/auto.py",
+      "line": 44,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/backend.py",
+      "line": 21,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/cli.py",
+      "line": 46,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/coordinates.py",
+      "line": 11,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/coordination.py",
+      "line": 14,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/coordination.py",
+      "line": 14,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/ligand.py",
+      "line": 52,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/native.py",
+      "line": 39,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/native_adapters.py",
+      "line": 43,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/native_adapters.py",
+      "line": 43,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/native_packing.py",
+      "line": 20,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/native_packing.py",
+      "line": 20,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/optimizer.py",
+      "line": 29,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/repair.py",
+      "line": 24,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/repair.py",
+      "line": 24,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/repair.py",
+      "line": 24,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Ring",
+      "local": "Ring",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/stage.py",
+      "line": 62,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/topology.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/topology.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/topology.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/trajectory.py",
+      "line": 35,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/trajectory.py",
+      "line": 35,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/trajectory.py",
+      "line": 35,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/workers.py",
+      "line": 29,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/workflows.py",
+      "line": 96,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/working_copy.py",
+      "line": 22,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/working_copy.py",
+      "line": 22,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.AtomPair",
+      "local": "AtomPair",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/working_copy.py",
+      "line": 22,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/working_copy.py",
+      "line": 22,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/working_copy.py",
+      "line": 22,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/working_copy.py",
+      "line": 66,
+      "scope": "_copy_molecule_metadata",
+      "target": "target_mol._model",
+      "attribute": "_model",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage8D"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/working_copy.py",
+      "line": 67,
+      "scope": "_copy_molecule_metadata",
+      "target": "target_mol._environ",
+      "attribute": "_environ",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage8D"
+    },
+    {
+      "path": "hotpot/cheminfo/mol_assemble/__init__.py",
+      "line": 16,
+      "scope": "",
+      "target": "hotpot.cheminfo.mol_assemble.fragment.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage8E"
+    },
+    {
+      "path": "hotpot/cheminfo/mol_assemble/__init__.py",
+      "line": 17,
+      "scope": "",
+      "target": "hotpot.cheminfo.mol_assemble.assembler.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage8E"
+    },
+    {
+      "path": "hotpot/cheminfo/mol_assemble/__init__.py",
+      "line": 18,
+      "scope": "",
+      "target": "hotpot.cheminfo.mol_assemble.action_func.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage8E"
+    },
+    {
+      "path": "hotpot/cheminfo/mol_assemble/action_func.py",
+      "line": 18,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/mol_assemble/assembler.py",
+      "line": 30,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/mol_assemble/assembler.py",
+      "line": 30,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/mol_assemble/fragment.py",
+      "line": 62,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/obWrappers/builder.py",
+      "line": 13,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/obWrappers/checks.py",
+      "line": 20,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/obWrappers/forcefield.py",
+      "line": 25,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/obWrappers/native.py",
+      "line": 13,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/obWrappers/operation.py",
+      "line": 19,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/obWrappers/packing.py",
+      "line": 19,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/obWrappers/registry.py",
+      "line": 17,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/rdWrappers/native.py",
+      "line": 20,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/rdWrappers/sampler.py",
+      "line": 15,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/search/__init__.py",
+      "line": 16,
+      "scope": "",
+      "target": "hotpot.cheminfo.search.search.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/cheminfo/search/_predicate_ir.py",
+      "line": 9,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/search/query_ir.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/search/search.py",
+      "line": 13,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/search/search.py",
+      "line": 13,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/search/search.py",
+      "line": 13,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/search/semantics.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/search/smarts.py",
+      "line": 17,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/search/smarts.py",
+      "line": 70,
+      "scope": "_RecursiveEvaluator.__init__",
+      "rule": "molecule_keyed_search_cache",
+      "stage": "Stage8C",
+      "target": "WeakKeyDictionary"
+    },
+    {
+      "path": "hotpot/cheminfo/stereo.py",
+      "line": 16,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/pipeline/artifacts.py",
+      "line": 20,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/pipeline/artifacts.py",
+      "line": 20,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/pipeline/contracts.py",
+      "line": 20,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/plugins/ComplexFormer/data_process/sc_logk/__init__.py",
+      "line": 15,
+      "scope": "",
+      "target": "hotpot.plugins.ComplexFormer.data_process.sc_logk.core.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/ComplexFormer/data_process/sc_logk/__init__.py",
+      "line": 16,
+      "scope": "",
+      "target": "hotpot.plugins.ComplexFormer.data_process.sc_logk.data.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/ComplexFormer/models/__init__.py",
+      "line": 2,
+      "scope": "",
+      "target": "hotpot.plugins.ComplexFormer.models.core.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/ComplexFormer/models/__init__.py",
+      "line": 3,
+      "scope": "",
+      "target": "hotpot.plugins.ComplexFormer.models.loss.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/ComplexFormer/models/__init__.py",
+      "line": 4,
+      "scope": "",
+      "target": "hotpot.plugins.ComplexFormer.models.metrics.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/ComplexFormer/models/__init__.py",
+      "line": 5,
+      "scope": "",
+      "target": "hotpot.plugins.ComplexFormer.models.predictor.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/ComplexFormer/models/__init__.py",
+      "line": 6,
+      "scope": "",
+      "target": "hotpot.plugins.ComplexFormer.models.plot_makers.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/ComplexFormer/models/__init__.py",
+      "line": 8,
+      "scope": "",
+      "target": "hotpot.plugins.ComplexFormer.models.utils.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/ComplexFormer/models/core/__init__.py",
+      "line": 19,
+      "scope": "",
+      "target": "hotpot.plugins.ComplexFormer.models.core._utils.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/ComplexFormer/run/__init__.py",
+      "line": 18,
+      "scope": "",
+      "target": "hotpot.plugins.ComplexFormer.run.datacls.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/ComplexFormer/tasks/__init__.py",
+      "line": 1,
+      "scope": "",
+      "target": "hotpot.plugins.ComplexFormer.tasks.tasks.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/PyG/data/ccdc.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/plugins/PyG/data/consts.py",
+      "line": 15,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.AtomPair",
+      "local": "AtomPair",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/plugins/PyG/data/tmqm.py",
+      "line": 12,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/plugins/PyG/data/utils.py",
+      "line": 12,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/plugins/PyG/data/utils.py",
+      "line": 12,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/plugins/PyG/data/utils.py",
+      "line": 12,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.AtomPair",
+      "local": "AtomPair",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/plugins/plots/__init__.py",
+      "line": 15,
+      "scope": "",
+      "target": "hotpot.plugins.plots.plots.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/plots/__init__.py",
+      "line": 16,
+      "scope": "",
+      "target": "hotpot.plugins.plots.colors.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/plots/plots/__init__.py",
+      "line": 9,
+      "scope": "",
+      "target": "hotpot.plugins.plots.plots.general.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/plots/plots/__init__.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.plugins.plots.plots.beyes.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/plots/plots/__init__.py",
+      "line": 11,
+      "scope": "",
+      "target": "hotpot.plugins.plots.plots.ml.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/plots/plots/__init__.py",
+      "line": 12,
+      "scope": "",
+      "target": "hotpot.plugins.plots.plots.base.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/plugins/qm/gaussian/_works.py",
+      "line": 24,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/plugins/xtb/adapter.py",
+      "line": 13,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/plugins/xtb/adapter.py",
+      "line": 13,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/plugins/xtb/adapter.py",
+      "line": 408,
+      "scope": "commit_xtb_coordinates",
+      "target": "mol._obmol",
+      "attribute": "_obmol",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7A"
+    },
+    {
+      "path": "hotpot/plugins/xtb/adapter.py",
+      "line": 409,
+      "scope": "commit_xtb_coordinates",
+      "target": "mol._row2idx",
+      "attribute": "_row2idx",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage7A"
+    },
+    {
+      "path": "hotpot/plugins/xtb/cli.py",
+      "line": 21,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/plugins/xtb/stage.py",
+      "line": 20,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/plugins/xtb/state_resolution.py",
+      "line": 27,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/plugins/xtb/stream.py",
+      "line": 17,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/plugins/xtb/workflow.py",
+      "line": 15,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/plugins/zeoxx/__init__.py",
+      "line": 16,
+      "scope": "",
+      "target": "hotpot.plugins.zeoxx.core.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/utils/chem/__init__.py",
+      "line": 1,
+      "scope": "",
+      "target": "hotpot.utils.chem.atom.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "hotpot/utils/configs/__init__.py",
+      "line": 16,
+      "scope": "",
+      "target": "hotpot.utils.configs.logging_config.*",
+      "local": "*",
+      "rule": "wildcard_package_export",
+      "stage": "Stage12"
+    },
+    {
+      "path": "tests/benchmarks/coordination_complexes/test_validation_evidence.py",
+      "line": 9,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/benchmarks/coordination_complexes/test_validation_providers.py",
+      "line": 13,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/benchmarks/coordination_complexes/test_validation_providers.py",
+      "line": 13,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/benchmarks/coordination_complexes/test_validation_routes.py",
+      "line": 8,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/benchmarks/coordination_complexes/validation_cohort.py",
+      "line": 634,
+      "scope": "semantic_case_molecule",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/benchmarks/coordination_complexes/validation_providers.py",
+      "line": 32,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/benchmarks/coordination_complexes/validation_routes.py",
+      "line": 21,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/benchmarks/coordination_complexes/validation_routes.py",
+      "line": 40,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/benchmarks/coordination_complexes/xtb_benchmark.py",
+      "line": 64,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/benchmarks/coordination_complexes/xtb_benchmark.py",
+      "line": 207,
+      "scope": "_read_single_molecule",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/benchmarks/scientific_state/runner.py",
+      "line": 29,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/benchmarks/scientific_state/runner.py",
+      "line": 29,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/benchmarks/scientific_state/test_runner.py",
+      "line": 13,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/cbond/test_apply.py",
+      "line": 12,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/cbond/test_apply.py",
+      "line": 12,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/mca/test_serialization.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/mca/test_serialization.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/smarts_conformance/coordination_cases.py",
+      "line": 8,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/smarts_conformance/test_coordination_perception.py",
+      "line": 6,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/smarts_conformance/test_coordination_profiles.py",
+      "line": 6,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/smarts_conformance/test_coordination_profiles.py",
+      "line": 6,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/calculator/test_americium_curium_iii_rule.py",
+      "line": 29,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/calculator/test_anionic_x_ligand_rule.py",
+      "line": 23,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/calculator/test_derived_charge_composition.py",
+      "line": 41,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/calculator/test_lanthanide_iii_rule.py",
+      "line": 27,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/calculator/test_main_group_closed_shell_rule.py",
+      "line": 36,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/calculator/test_main_group_lewis_provider.py",
+      "line": 16,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/calculator/test_monoatomic_ion_rule.py",
+      "line": 32,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/calculator/test_neutral_l_donor_rule.py",
+      "line": 22,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/calculator/test_oxidation_prior_framework.py",
+      "line": 30,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/calculator/test_scientific_state_defaults.py",
+      "line": 68,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/calculator/test_scientific_state_facts.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/calculator/test_scientific_state_facts.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/calculator/test_state_identity_invalidation.py",
+      "line": 18,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/calculator/test_state_profile_manifest.py",
+      "line": 20,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/calculator/test_thorium_iv_rule.py",
+      "line": 27,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/forcefields/test_forcefield_native_checkpoint_acceptance.py",
+      "line": 4,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/geometry/test_convert.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/geometry/test_convert.py",
+      "line": 58,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/geometry/test_convert.py",
+      "line": 58,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/geometry/test_convert.py",
+      "line": 58,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Ring",
+      "local": "Ring",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/graph/test_direct_algorithms.py",
+      "line": 6,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.InternalCoordinates",
+      "local": "InternalCoordinates",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/graph/test_direct_algorithms.py",
+      "line": 6,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/obWrappers/test_bridge.py",
+      "line": 12,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/obWrappers/test_native_rules.py",
+      "line": 12,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py",
+      "line": 18,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py",
+      "line": 18,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/rdWrappers/test_r0_benchmark_runner.py",
+      "line": 317,
+      "scope": "_square_planar_molecule",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/rdWrappers/test_r0_benchmark_runner.py",
+      "line": 353,
+      "scope": "test_level2_observer_marks_empty_payload_not_applicable",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_bond_metadata.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_bond_metadata.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_bond_metadata.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_complex_hydrogens.py",
+      "line": 11,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_complex_untangling_workflow.py",
+      "line": 8,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_forcefield_acceptance.py",
+      "line": 12,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_forcefield_api.py",
+      "line": 20,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_forcefield_checkpoint_acceptance.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_forcefield_trajectory.py",
+      "line": 11,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_geometry.py",
+      "line": 8,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_geometry_core_integration.py",
+      "line": 8,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_geometry_core_integration.py",
+      "line": 8,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.NotInSameMolecule",
+      "local": "NotInSameMolecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_geometry_quality.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_hidden_bond_restoration.py",
+      "line": 3,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_hidden_bond_restoration.py",
+      "line": 3,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_hidden_bond_restoration.py",
+      "line": 3,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.ObjNotInMolecule",
+      "local": "ObjNotInMolecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_ligand_rings.py",
+      "line": 3,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+      "line": 6,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+      "line": 6,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_native_molecule_buffers.py",
+      "line": 9,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_native_molecule_buffers.py",
+      "line": 9,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_rdconvert_stereo_level1.py",
+      "line": 6,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_relevant_ring_integration.py",
+      "line": 12,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_search_native_predicate_parity.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_search_native_predicate_parity.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_search_native_predicate_parity.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.BondKind",
+      "local": "BondKind",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
+      "line": 4,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level1_storage.py",
+      "line": 3,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate2.py",
+      "line": 9,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate3.py",
+      "line": 4,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate4.py",
+      "line": 9,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate5_axis.py",
+      "line": 9,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate5_groups.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate6_derived.py",
+      "line": 9,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate6_equivalence.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate6_projection.py",
+      "line": 6,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate6_projection.py",
+      "line": 6,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate7_coordinates.py",
+      "line": 11,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate7_coordination_graph.py",
+      "line": 6,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate7_coordination_graph.py",
+      "line": 6,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate7_public.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate7_public.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate7_spy_algebra.py",
+      "line": 10,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_topology_index.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Atom",
+      "local": "Atom",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_topology_index.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Bond",
+      "local": "Bond",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_topology_index.py",
+      "line": 7,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_pipeline/test_contracts.py",
+      "line": 21,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_plugin/test_xtb/conftest.py",
+      "line": 22,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_plugin/test_xtb/test_adapter.py",
+      "line": 14,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_plugin/test_xtb/test_official_integration.py",
+      "line": 27,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_plugin/test_xtb/test_stream.py",
+      "line": 14,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_plugin/test_xtb/test_workflow_contract.py",
+      "line": 12,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_plugin/test_xtb/test_workflow_state.py",
+      "line": 13,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    }
+  ]
+}

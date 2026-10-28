@@ -163,13 +163,13 @@ def function_record(node):
             "written_attribute_names": sorted({n.attr for n in ast.walk(node) if isinstance(n, ast.Attribute) and isinstance(n.ctx, (ast.Store, ast.Del))})}
 
 
-def static_capture(paths):
+def static_capture(paths, *, root=ROOT):
     classes, functions, imports, writes, debt, aliases = [], [], [], [], [], []
     exports, cli_arguments, property_writes = [], [], []
     bindings = defaultdict(dict)
     calls = []
     for path in paths:
-        tree = ast.parse((ROOT / path).read_text(), filename=path)
+        tree = ast.parse((root / path).read_text(), filename=path)
         module = module_name(path)
         for node in tree.body:
             if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):

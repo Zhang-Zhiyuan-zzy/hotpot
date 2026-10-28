@@ -1,0 +1,224 @@
+{
+  "schema_version": 1,
+  "stage": "Stage3",
+  "checkpoint": "architecture/reference/storage-prototype foundation",
+  "status": "foundation verified; whole Stage3 remains in progress",
+  "predecessor_commit": "c6bfcd4906254ee113c14103009f071e91f60368",
+  "recorded_at_utc": "2026-10-28T10:32:57.006400+00:00",
+  "entry_review": {
+    "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage3_entry_review.json",
+    "bytes": 6472,
+    "sha256": "7eb8c7232be2aab2d614370707213f20acec827d40e1094bb31f7ea9aef22b3a"
+  },
+  "revised_interface_full_reread": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/interface-review-read/read_manifest.json",
+    "bytes": 3712,
+    "sha256": "a7a8e4c948aa0332b1ea701136d4a5f9a616200f251e6bef56c6a128eee68c71"
+  },
+  "scope": [
+    "Six empty-export ownership package skeletons; no carrier move.",
+    "One deeply immutable cached source for each existing reference asset; existing element dict/list remains independent.",
+    "Shrinking source/import/write ratchet; 287 initial entries, 282 remain; new layers strict.",
+    "Two equivalent-work private storage experiments including unfavorable small-molecule timings; no production layout selected.",
+    "A4/A5 docs follow approved updata_atoms and full19 float64 atom_matrix property; old entry disposition pending."
+  ],
+  "tests": {
+    "default": {
+      "passed": 3917,
+      "skipped": 123,
+      "xfailed": 3,
+      "passed_subtests": 49,
+      "warnings": 10,
+      "seconds": 242.15,
+      "exit_code": 0,
+      "note": "Production source is unchanged since this full run. The subsequent ratchet corrections and reporting bindings received the final focused run; no claim that the added15 ratchet cases were in this full run.",
+      "command": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/foundation-default-command.json",
+        "bytes": 1290,
+        "sha256": "233e6c64232d215ad4816b1fd3d530f40ed19504aad87aef63bfefa494ba4024"
+      },
+      "log": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/foundation-default.log",
+        "bytes": 8486,
+        "sha256": "8088bbb54d40b59b580fb5455987bdcff2c900faaddceee66f649d4889357f26"
+      },
+      "junit": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/foundation-default.xml",
+        "bytes": 667588,
+        "sha256": "f77fe334f6a04e2adbc0a155ce23e5d3dd19c25d914222b29e296eca6d12f376"
+      }
+    },
+    "final_focused": {
+      "passed": 74,
+      "warnings": 6,
+      "seconds": 9.1,
+      "exit_code": 0,
+      "coverage": "46 architecture +4 reference +24 performance-report tests",
+      "command": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/foundation-final-focused-command.json",
+        "bytes": 1156,
+        "sha256": "450a4737f1b684492ee4bf399b38562d68e379308502fd1543759e831507f86d"
+      },
+      "log": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/foundation-final-focused.log",
+        "bytes": 1790,
+        "sha256": "fda606b6539a731a1571574de99bcf24ae8b1779e39397f05d877a46d0a6226a"
+      },
+      "junit": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/foundation-final-focused.xml",
+        "bytes": 13705,
+        "sha256": "0095f6dd650496ee5855c28de245721aff9c463ff0da66f2edf86c6d07a7ce09"
+      }
+    },
+    "prior_focused": {
+      "passed": 38,
+      "seconds": 7.31,
+      "log": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/foundation-focused.log",
+        "bytes": 1710,
+        "sha256": "857b2903af29b63643440c36511c7054da9bdadcce93609ec526b4604849c6b3"
+      }
+    },
+    "performance_binding": {
+      "passed": 24,
+      "seconds": 1.47,
+      "log": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/performance-binding-tests.log",
+        "bytes": 99,
+        "sha256": "00df58b6591991ab88a047cac6ac84b216c17cf8205a76386963a8563abe3cdb"
+      }
+    }
+  },
+  "architecture": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/architecture-foundation-final.json",
+    "bytes": 532,
+    "sha256": "7fb7392e61bfe09f03893ace591fa47b52dcd050760f94d213f69ca572ce383a"
+  },
+  "prototype_runs": [
+    {
+      "directory": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-prototypes",
+      "raw_attempts": 936,
+      "summary_rows": 72,
+      "validation_checks": 33,
+      "failed": 0,
+      "artifacts": {
+        "manifest.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-prototypes/manifest.json",
+          "bytes": 4878,
+          "sha256": "1788fc8cc5e3f51c2abc79a0ad755f6acf3abb4e5838ad13442d64834a3ebc70"
+        },
+        "raw_samples.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-prototypes/raw_samples.json",
+          "bytes": 221965,
+          "sha256": "5b7cd4b262b239d49adf205b1295ef2c02d0078143565773c146118f2df342e2"
+        },
+        "summary.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-prototypes/summary.json",
+          "bytes": 26833,
+          "sha256": "4a2cdad7dacc68e8c86d5fc1e00851bc9df56158bbb1a42a25852e72d14a3f97"
+        },
+        "validation.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-prototypes/validation.json",
+          "bytes": 3519,
+          "sha256": "5aad773741025056543e465780b5a48932c1f1ed6cdfd33ac61bf7776c15c59d"
+        },
+        "report.md": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-prototypes/report.md",
+          "bytes": 7334,
+          "sha256": "60804de1afba7cd55cb38b154357bfea0a1106c6f7c9711fc3a8d2c13c6d0b70"
+        },
+        "benchmark_atom_storage.py": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-prototypes/benchmark_atom_storage.py",
+          "bytes": 20621,
+          "sha256": "0bb9ff153a63b31e9664fd0e2d31f876f52693e1925e5ce7d5ff71d5226ba49f"
+        }
+      }
+    },
+    {
+      "directory": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-prototypes-blocks",
+      "raw_attempts": 1248,
+      "summary_rows": 96,
+      "validation_checks": 36,
+      "failed": 0,
+      "artifacts": {
+        "manifest.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-prototypes-blocks/manifest.json",
+          "bytes": 5123,
+          "sha256": "a7bc80e6f4c0232f6d038c996f53abb73fbe5163709f480b3db6d1f9304e8b97"
+        },
+        "raw_samples.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-prototypes-blocks/raw_samples.json",
+          "bytes": 331697,
+          "sha256": "c9cc75bcb7c894477989109549a057d621ed85d49ed237fa596c091681c0d4c1"
+        },
+        "summary.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-prototypes-blocks/summary.json",
+          "bytes": 36167,
+          "sha256": "30dcb0d63aa13baf05482eddc0db5260cf4beb517876da16c24e1578f0cd425c"
+        },
+        "validation.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-prototypes-blocks/validation.json",
+          "bytes": 3861,
+          "sha256": "f0ce1135995cdf04c2e6948097cf8734415f5ce561ce5e32af8964ed5c968afa"
+        },
+        "report.md": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-prototypes-blocks/report.md",
+          "bytes": 9669,
+          "sha256": "bef1945da9e3d773a9dc2c1b77832fff8f6a12ad131a1de105bf97d91eab47fb"
+        },
+        "benchmark_atom_storage.py": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-prototypes-blocks/benchmark_atom_storage.py",
+          "bytes": 24095,
+          "sha256": "8b31dc5620a22bc22fe96f88b2145f41687ad5b3c3f566c6104aaab02638af51"
+        }
+      }
+    }
+  ],
+  "new_production_records": 0,
+  "uncompleted": [
+    "Actual sole Atom table and shared type declarations",
+    "UID/owner lifecycle and composable source identities",
+    "Complete import record/builder, one-shot topology and consumer migration",
+    "Closed atomic commits, dirty propagation and lazy-read contracts",
+    "Public updata_atoms and atom_matrix integration; old matrix disposition pending",
+    "Real facade/scalar/batch scaling and supported-Python candidate verification",
+    "Remaining Stage3 default/technical gates after production integration"
+  ],
+  "github": {
+    "last_pushed_commit": "c6bfcd4906254ee113c14103009f071e91f60368",
+    "instruction": "Push after every three subsequent commits; this checkpoint will be commit1."
+  },
+  "prototype_findings": {
+    "typed_columns": {
+      "full_matrix_ratio_N16_N256_N4096": [
+        4.148,
+        0.398,
+        0.183
+      ],
+      "remap_ratio": [
+        7.38,
+        1.277,
+        0.428
+      ]
+    },
+    "blocked_columns": {
+      "full_matrix_ratio_N16_N256_N4096": [
+        0.709,
+        0.203,
+        0.16
+      ],
+      "remap_ratio": [
+        1.964,
+        0.595,
+        0.432
+      ],
+      "scalar_ratio_approx": 1.35
+    },
+    "limitations": "Only storage microbenchmarks: exclude handle/UID/presence/status/commit/facade costs; no production parity conclusion. Charge/H/id preserve wide float64; no narrower domain approved."
+  },
+  "checkpoint_source": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/foundation-source/manifest.json",
+    "bytes": 8605,
+    "sha256": "c57dc9b9b4ade55145bcdd4834408c951d1c804e97288c8689a7733b605d993d"
+  }
+}

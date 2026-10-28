@@ -1,7 +1,7 @@
 # Fact-Carrier and Rule Architecture Refactor
 
 Status: **implementation authorized on 2026-10-28; Stage0–2 complete;
-Stage3 entry review pending**. The architecture, lazy invalidation, scientific-reporting, and
+Stage3 in progress**. The architecture, lazy invalidation, scientific-reporting, and
 performance requirements are incorporated. The owner's implementation request
 authorizes the concrete documented route; Stage1 records exact API differences
 and consumer evidence. Unspecified public signatures, return semantics and
@@ -475,9 +475,9 @@ needed read -> operation ensures declared upstream inputs -> one snapshot
 Rules/adapters do not write authoritative fact tables, membership, coordinates,
 stereo, constraints, or result records. All private scalar/batch writes use the
 same field schema and named commit boundary. Bulk numeric operations work on
-operation-owned candidate columns/blocks, then install and mark once; public
-batch access is a concrete pending API proposal, not unrestricted ndarray
-aliasing. Input/output buffers must have explicit ownership.
+operation-owned candidate columns/blocks, then install and mark once. The
+owner-approved `updata_atoms` method accepts only declared fields; it does not
+expose writable storage. Input/output buffers must have explicit ownership.
 
 | Changed fact | Immediate bookkeeping | Deferred work / retained evidence |
 |---|---|---|
@@ -833,6 +833,7 @@ owner-specified future targets; their implementation remains in Plan21.
 Molecule
 ├── facts and membership [carrier]
 │   ├── atoms / bonds / coordinates / charge
+│   ├── updata_atoms(*, atoms=None, **columns) / atom_matrix (complete float64 snapshot)
 │   ├── crystal / create_crystal
 │   ├── conformers / conformer_add/get/load/clear (source/result projection)
 │   ├── typed constraints projected through clear/constraint helpers
@@ -1418,6 +1419,7 @@ or excluding public/wrapper contracts from the denominator.
 |---|---|---|
 | `hotpot.version()` | keep | reads the one runtime/package version source; no eager chemistry backend import |
 | `hotpot.Molecule`, `Atom`, `Bond`, `BondKind` | move | exact same class identities at `hotpot.cheminfo.structure`; top-level exports remain the ordinary user entry points |
+| `Molecule.updata_atoms`, `Molecule.atom_matrix` | add reviewed entries | owner-approved transactional batch method and complete19-column float64 snapshot property; reuse the existing fact/projection implementation, with the old atom_attr_matrix name disposition recorded separately |
 | `hotpot.Crystal` | add export/refactor | six-parameter value carrier described in Sections 5 and 7; no Molecule back-reference/toolkit object |
 | future `MetalCluster`, `Molecule.metal_clusters -> list[MetalCluster]` | reserve for Plan21 | owner-specified names/relationship; concrete registration, construction, return semantics and export path deferred; no Plan20 runtime addition |
 | `MolReader`, `MolWriter`, `read_mol` | move/merge | one `adapters.io` implementation; public call signatures and supported formats are frozen in Stage 1 |
@@ -2053,6 +2055,11 @@ copy the whole table, and per-Atom reads cannot repeatedly hash the whole
 molecule. Storage prototypes are measured before choosing final layout, then
 only one production implementation remains.
 
+The public `atom_matrix` property exports the complete19-column float64
+projection. Field-selective snapshots/native/model tasks remain private. Keep
+their frozen selected-column workloads separate from full-matrix export;
+different field counts/dtypes are not interchangeable performance evidence.
+
 ### 12.2 Global standard: at least parity, expected improvement
 
 Define runtime ratio r = candidate/baseline for identical work (convert
@@ -2290,15 +2297,21 @@ registration methods and public paths await later review. The domain-specific
 cluster registration policy does not create a public generic rule/schema
 registry. Shared declaration machinery approves no additional interfaces.
 
-The companion's A1–A13 are the concrete Atom-storage candidates within this
-review process. They include two proposed new batch/matrix methods:
+The companion's A1–A13 are the concrete Atom-storage entries within this
+review process. During Stage3 the owner approved these exact public names:
 
 ```python
-Molecule.update_atom_facts(*, atoms=None, **columns) -> None
-Molecule.atom_feature_matrix(fields, *, dtype="float32") -> numpy.ndarray
+Molecule.updata_atoms(*, atoms=None, **columns) -> None
+Molecule.atom_matrix  # read-only property: independent float64 array, shape (N, 19)
 ```
 
-These signatures remain pending. No public fact-table class, schema registry,
+Keep the owner's exact `updata_atoms` spelling. `atom_matrix` takes no fields
+or dtype argument; it reuses the existing complete19-column projection and
+never stores a second matrix. Optional result absence follows A2's NaN policy
+at Stage7C; it does not start a model or add MCA as a twentieth column.
+The existing `atom_attr_matrix` name is being resolved against A2's earlier
+preservation decision before its removal or alias publication. Implementation
+remains subject to the Stage3 gates. No public fact-table class, schema registry,
 dirty-state method, `new_attrs` example property, universal base or parallel
 batch API is added. Existing attrs/constructor arguments, coordinate aliases,
 inferred-property setters, partial-charge return behavior and stale reads

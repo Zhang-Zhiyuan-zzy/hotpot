@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage1 planning budget; zero production changes measured",
+  "status": "Stage3 in progress; Stage2 ordinary-class/SWIG removals verified, no new runtime record definition yet",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -17,7 +17,11 @@
     "retired_dataclasses": 0,
     "new_protocols": 0,
     "new_typed_dicts": 0,
-    "commits": []
+    "commits": [],
+    "ordinary_classes_retired": 9,
+    "retired_native_struct_candidates": 6,
+    "ordinary_removal_commit": "c6bfcd4906254ee113c14103009f071e91f60368",
+    "ordinary_removal_evidence": "stage2_execution_evidence.json"
   },
   "consolidation_budget": [
     {
@@ -323,14 +327,14 @@
   "other_removal_candidates": {
     "ordinary_classes_not_in_dataclass_count": {
       "Stage2": [
+        "_SwigNonDynamicMeta",
         "Calculator",
         "SmartAtom",
         "SmartBond",
         "SmartsParser",
         "SolventsRepo",
-        "Solvent"
-      ],
-      "Stage7A": [
+        "Solvent",
+        "AtomPairKey",
         "LatticeGroup"
       ],
       "Stage8E": [
@@ -354,7 +358,6 @@
       "condition": "source/build zero-reference gates; these are not retained wrapper ABI consolidation gains"
     },
     "not_precredited": [
-      "AtomPairKey",
       "D07 dormant/public/reserved dataclasses",
       "D06 optional atom-record consolidation",
       "Unrelated plugin/xTB records"

@@ -31,7 +31,7 @@ derived/result inputs `n`, `s`, `p`, `d`, `f`, `g`,
 `setattr`. Public `isotope` is not added. The private builder continues to
 transport supplied isotope/stereo facts through the existing contracts.
 
-Keep the existing read names `Atom.attrs` and `Molecule.atom_attr_matrix` as
+Keep `Atom.attrs` and expose the owner-approved `Molecule.atom_matrix` as
 properties returning independent float64 snapshots in the existing 19-column
 order. They have no assignment or write-back path; writing a returned array
 does not change the molecule. Do not store a second 19-column table. Optional
@@ -39,11 +39,13 @@ result slots without a current selected value encode `NaN`; an explicitly
 present zero stays zero. This missing-value encoding is an explicit observable
 change accompanying A8's `Atom.partial_charge -> Optional[float]` contract.
 
-The old fixed projection and the planned explicit `atom_feature_matrix` use
-the same schema and field-value implementation. Their export policies differ:
-the fixed projection encodes absence; `atom_feature_matrix` rejects an unknown
-selected value as already specified by A5. Neither export invents a fact or
-adds its own validity/recalculation path.
+The original A2 decision retained `Molecule.atom_attr_matrix`. Stage3's later
+owner instruction names the full-matrix property `atom_matrix`; the old name's
+direct rename versus same-source alias is under explicit clarification. Until
+that disposition is recorded, do not remove the existing entry or add an alias.
+Both row and complete-matrix access use one schema/projection implementation.
+Field-selective native/model snapshots remain private; no second public export
+method, persistent matrix, validity path or calculated fact is introduced.
 
 ### Why an exact constructor decision is needed
 
@@ -103,7 +105,7 @@ or schema proposal remains explicitly identified below.
 
 ### A4/A5 and current versus historical reads
 
-- `Molecule.update_atom_facts(*, atoms=None, **columns) -> None` accepts
+- `Molecule.updata_atoms(*, atoms=None, **columns) -> None` accepts
   `atomic_number`, `symbol`, `formal_charge`, `implicit_hydrogens`,
   `coordinates`, `x`, `y`, `z`, `id`. Constraints retain their existing
   Molecule-owned operations. `None` selects all current atoms in order;
@@ -113,14 +115,13 @@ or schema proposal remains explicitly identified below.
   return None. Unknown fields raise TypeError, read-only fields AttributeError,
   shape/alias conflicts ValueError; member failures reuse the applicable
   existing membership exceptions. The complete write is one transaction.
-- `Molecule.atom_feature_matrix(fields, *, dtype="float32") -> numpy.ndarray`
-  uses current Atom order and explicit selected column order. Supported
-  fields are the existing 19 scalar numeric projections plus `mca`.
-  Coordinates use `x,y,z`; symbol strings, private UIDs and methods are not
-  features. Duplicate requested columns remain duplicated; empty selection
-  gives `(N,0)`. Unknown fields or unavailable selected values raise
-  ValueError; nonnumeric dtypes raise TypeError. Pure dependencies are prepared
-  once for the whole batch; no implicit model/external execution or zero fill.
+- `Molecule.atom_matrix` is a read-only property returning an independent
+  float64 ndarray in current Atom order and the existing19-column order.
+  It accepts no fields/dtype parameters; an empty molecule gives `(0,19)`.
+  Optional selected-result absence uses the A2 NaN policy at Stage7C; explicit
+  zero remains zero. It adds no MCA column, private UID or unreviewed feature.
+  Pure dependencies are prepared once for the batch; no implicit model or
+  external execution occurs. `Atom.attrs` uses the same field projection.
 - Keep the existing AttributeError for absent MCA predictions; absent selected
   partial charge returns None as specified by A8. A source-dependent selected
   result that has become stale raises RuntimeError on its direct current-value
@@ -131,6 +132,12 @@ or schema proposal remains explicitly identified below.
   RuntimeError; their immutable member identities remain inspectable.
   No new `StaleStructureViewError` class or `AtomPairTable` alias is introduced.
   Scientific uncertainty alone is not a stale-view exception.
+
+Owner decision on2026-10-28: the two capabilities are accepted with the exact
+names `updata_atoms` and `atom_matrix`; the latter is a full-array float64
+property. The earlier update_atom_facts/atom_feature_matrix proposals are
+superseded, not additional aliases. The requested duplication audit found the
+existing full atom_attr_matrix projection, so only one implementation remains.
 
 ### Crystal, external thermo results and conformer projections
 

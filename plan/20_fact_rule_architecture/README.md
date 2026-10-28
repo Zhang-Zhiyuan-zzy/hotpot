@@ -1,7 +1,7 @@
 # Stage 20 — Fact-Carrier and Rule Architecture
 
 Status: implementation authorized on 2026-10-28; Stage0–2 complete;
-Stage3 entry review pending. All public chemical
+Stage3 in progress. All public chemical
 types follow a common protocol for fact ownership, interface mapping,
 permissions, dependencies, buffer ownership and lifecycle. Atom's unified
 fact table is one concrete implementation. Stage2 completed the approved dead/placeholder implementation cleanup;
@@ -21,6 +21,7 @@ Plan17/Plan20 boundary before production refactoring.
 - [Architecture audit and implementation plan](fact_rule_architecture_implementation_plan.md)
 - [Implementation log and stage-entry assessments](implementation_log.md)
 - [Stage2 execution evidence](stage2_execution_evidence.json)
+- [Stage3 entry assessment](stage3_entry_review.json)
 - [Stage1 API and consumer review](stage1_api_review.md)
 - [Stage1 concrete interface decisions](stage1_contract_decisions.md)
 - [Stage1 common interface semantic review](stage1_interface_contract_review.md)

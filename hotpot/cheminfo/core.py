@@ -10,9 +10,7 @@ import logging
 import re
 import sys
 import time
-import json
 import operator
-import os.path as osp
 from enum import Enum
 from typing import Union, Literal, Iterable, Optional, Callable, Mapping, Tuple
 from copy import copy, deepcopy
@@ -4739,18 +4737,6 @@ class AtomPairs(dict):
 
 
 ######################################################################################
-def _load_ibl():
-    """ Load ideal bond length data sheet, the sheet statistic from CSD database """
-    data_path = osp.join(osp.dirname(__file__), 'ChemData', 'ideal_bond_length.json')
-    with open(data_path) as file:
-        raw_data =  json.load(file)
-    ibl_data = {}
-    for k, v in raw_data.items():
-        list_k = json.loads(k)
-        bond_order_dict = ibl_data.setdefault(frozenset(list_k[:2]), {})
-        bond_order_dict[list_k[2]] = v
-    return ibl_data
-
 def _bond_order_setter(self: "Bond", key, bond_order):
     assert key == 'bond_order'
     self._default_attr_setter(self, key, bond_order)
@@ -4776,8 +4762,6 @@ class Bond(AtomSeq, MolBlock):
     such as bond order, length, aromaticity, and covalency. It supports operations for determining bond characteristics, 
     accessing bond-related geometric information, and interacting with associated atoms and molecular structures.
     """
-    _ideal_bond_length = _load_ibl()
-
     _attrs_setter = {
         'bond_order': _bond_order_setter
     }
@@ -4920,7 +4904,9 @@ class Bond(AtomSeq, MolBlock):
 
     @property
     def ideal_bond_length(self) -> float:
-        ibl_bond_order_dict = Bond._ideal_bond_length[frozenset([self.atom1.atomic_number, self.atom2.atomic_number])]
+        from .reference.properties import _ideal_bond_lengths
+
+        ibl_bond_order_dict = _ideal_bond_lengths()[frozenset([self.atom1.atomic_number, self.atom2.atomic_number])]
         return ibl_bond_order_dict[self.bond_order]
 
     @property

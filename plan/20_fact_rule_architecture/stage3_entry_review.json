@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "stage": "Stage3",
+  "reviewer": "/root",
+  "recorded_at_utc": "2026-10-28T09:55:41.305403+00:00",
+  "assessment": "Ready for scoped contract/layout review and storage prototype measurements; production choice depends on those findings. Stage3 not complete.",
+  "source": {
+    "commit": "c6bfcd4906254ee113c14103009f071e91f60368",
+    "production_tree": "85f86bbf8a3b83b1322f20181c2f9996bb3c41d3",
+    "branch": "implement/plan20-fact-rule-architecture",
+    "worktree_status_before_entry": ""
+  },
+  "full_reread": {
+    "documents": [
+      {
+        "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+        "sha256": "f326462156232c5b76849e250058ec1fb05cc3c0a527e678baa9230fa11f1948",
+        "line_count": 2434,
+        "full_stage_specific_reread": true,
+        "immutable_read_copy": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/entry_documents/fact_rule_architecture_implementation_plan.md"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+        "sha256": "b05896d18aa252153c56d625fc587471ee2711cda683dfc7fae1cd6ad66853d5",
+        "line_count": 280,
+        "full_stage_specific_reread": true,
+        "immutable_read_copy": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/entry_documents/chemical_type_interface_contract.md"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+        "sha256": "481d5195ece9e1a8707187574b3df73663456b77453f5bf89f76e4bcbad51f5c",
+        "line_count": 519,
+        "full_stage_specific_reread": true,
+        "immutable_read_copy": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/entry_documents/data_object_scope_audit.md"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+        "sha256": "e5549116f1409fb46b5fd2bdc82c0b20a34297989475eb66a119ac221a9d4a0b",
+        "line_count": 177,
+        "full_stage_specific_reread": true,
+        "immutable_read_copy": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/entry_documents/plan17_plan20_execution_alignment.md"
+      },
+      {
+        "path": "plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+        "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+        "line_count": 68,
+        "full_stage_specific_reread": true,
+        "immutable_read_copy": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/entry_documents/metal_cluster_implementation_plan.md"
+      }
+    ],
+    "method": "Fresh complete tool outputs for main chapters1–17 and all four normative companions, including full data-audit appendix. Main1250–1340 reread separately after an oversized output truncated the migration table.",
+    "main_read_ranges": [
+      [
+        1,
+        500
+      ],
+      [
+        501,
+        1000
+      ],
+      [
+        1001,
+        1500
+      ],
+      [
+        1250,
+        1340
+      ],
+      [
+        1501,
+        1993
+      ],
+      [
+        1994,
+        2230
+      ],
+      [
+        2231,
+        2434
+      ]
+    ]
+  },
+  "predecessors": {
+    "Stage1": "2aca9f1df18d7821f8a7ccefc873d949317d6c9f",
+    "Stage2": "c6bfcd4906254ee113c14103009f071e91f60368",
+    "Stage2_default": {
+      "passed": 3882,
+      "skipped": 123,
+      "xfailed": 3,
+      "passed_subtests": 49
+    },
+    "Stage2_focused_passed": 27,
+    "source_build_import_gates": "passed",
+    "verified_evidence_references": 56,
+    "recheck_path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/predecessor-evidence-recheck.json"
+  },
+  "current_project_assessment": [
+    "Stage2 removed14 tracked production files and9 ordinary classes. Existing scientific function ASTs and153 modern build/native/wrapper source identities are unchanged.",
+    "Molecule/Atom/Bond and the only _topology_index implementation still live in core.py; there is not yet a production _topology.py module.",
+    "Atom19-column arrays still mix source facts, derived values, coordinates, constraints and partial charges. Stage3 must preserve all values for later owning-stage cutovers.",
+    "Stage1 inventories enumerate real external/private writers, Wiberg pair/model input contracts and shallow frozen-buffer defects. No zero-use inference may discard them.",
+    "Existing source runtime uses the Stage1 interpreter and five verified B20 cp311 binaries. Installed B20 wheels and supported Python3.10–3.14 baseline remain historical, not current candidate evidence."
+  ],
+  "decisions": [
+    "A2 explicitly accepted; no repeated permission request. Constructor parameters remain until Stage5 consumers migrate; missing selected result NaN arrives Stage7C with unchanged model encoding.",
+    "A4/A5 are concrete new-public-method proposals and require their own decision; dependent publication waits, independent private work proceeds.",
+    "N01–N09 exact fields/reuse/consumers and measured storage layout must be reviewed before production definitions. Reserved class counts are ceilings, not required additions.",
+    "Keep existing stereo/wrapper public schemas and one NativeMoleculeBuffers transport; no generic FactPatch, new scientific algorithm, rule registry or Stage13 runtime preparation.",
+    "Plan20-first B20/F20 retains Python-RDKit MCA. MetalCluster remains Plan21. Experimental protocol starts after Stage0–12 completion/verification/report/commit on its new branch."
+  ],
+  "bounded_tasks": [
+    "Audit minimal table/builder/UID integration points and exact private contract reuse.",
+    "Benchmark current per-Atom arrays, typed columns and a structured AoS candidate under equivalent work and record complete attempts/memory.",
+    "Create six package skeletons; establish ratcheted gates and immutable reference loading without moving carriers.",
+    "Implement reviewed shared declarations, UID/source lifecycle, complete builder and single table/commit paths; migrate every touched writer in the same change.",
+    "Run meaningful targeted contracts and appropriate Python coverage plus default suite and scalar/batch scaling before Stage3 completion."
+  ],
+  "still_missing": [
+    "All Stage3 implementation and contract/performance verification",
+    "Exact A4/A5 public-method decision",
+    "F20 final verification and performance acceptance",
+    "D01–D03 and other owning-stage public review gates remain later work"
+  ]
+}

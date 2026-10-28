@@ -198,7 +198,7 @@
       "planned_contract_test_files": [],
       "additional_requirements": [
         "full default suite, original baseline scientific/technical selection, full Section12 workload measurements",
-        "Supplementary installed-wheel Python3.10–3.14 baseline: common_commands.python_matrix_baseline, with all five matching wheels and verified models prepared before timing."
+        "Supplementary installed-wheel Python3.10\u20133.14 baseline: common_commands.python_matrix_baseline, with all five matching wheels and verified models prepared before timing."
       ],
       "execution_status": "completed; exact commands, outcomes and digests are in stage1_execution_evidence.json and implementation_log.md"
     },
@@ -283,13 +283,17 @@
         },
         {
           "path": "tests/test_cheminfo/structure/test_architecture.py",
-          "status": "planned_not_created"
+          "status": "implemented_and_focused_passed_46; latest15 added after foundation default run"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_reference.py",
+          "status": "implemented;4 passed in full default and final focused runs"
         }
       ],
       "additional_requirements": [
         "builder one topology build/no implicit chemistry; UID non-reuse; finite dirty propagation; field schema; scalar/batch alias isolation and performance"
       ],
-      "execution_status": "not_executed_by_inventory_capture"
+      "execution_status": "in_progress; verified foundation in stage3_foundation_evidence.json; table/builder/UID/dirty/commit gates remain open"
     },
     "Stage4": {
       "predecessor": "Stage3",

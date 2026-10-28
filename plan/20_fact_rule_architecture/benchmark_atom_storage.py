@@ -1,4 +1,4 @@
-"""Measure storage-only Atom layout candidates; never import production Hotpot.
+"""Measure Atom storage candidates without importing the Hotpot facade.
 
 The common workload retains all 19 current numeric columns to isolate layout
 cost. It does not decide their final fact/result ownership or measure the new
@@ -11,6 +11,7 @@ import argparse
 from datetime import datetime, timezone
 import gc
 import hashlib
+import importlib
 import json
 import os
 from pathlib import Path
@@ -19,6 +20,7 @@ import random
 import subprocess
 import sys
 import time
+from types import ModuleType
 
 THREAD_VARIABLES = (
     "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
@@ -250,6 +252,64 @@ LAYOUTS = {
 }
 
 
+class _CapacityTable:
+    """Exercise the actual private table through the common storage workload."""
+
+    def __init__(self, matrix):
+        self.table = _FACT_TABLE(matrix)
+
+    def get(self, row, field):
+        return self.table.read(row, field)
+
+    def set(self, row, field, value):
+        self.table.update(row, {field: value})
+
+    def column(self, field):
+        return self.table.column(field).astype(DTYPES[field], copy=False)
+
+    def set_column(self, field, values):
+        self.table.update(None, {field: values})
+
+    def coordinates(self):
+        return self.table.coordinates()
+
+    def set_coordinates(self, values):
+        self.table.update(None, dict(zip(COORDINATES, values.T)))
+
+    def export(self, fields):
+        return self.table.select(fields)
+
+    def matrix(self):
+        return self.table.matrix()
+
+    def remap(self, keep, added, order):
+        self.table.remap(keep)
+        self.table.append(added)
+        self.table.remap(order)
+
+
+def _load_private_table(repository, output):
+    """Load only the two numeric leaf modules and retain their measured bytes."""
+    global _FACT_TABLE
+    source = repository / "hotpot" / "cheminfo" / "structure"
+    package = ModuleType("_plan20_atom_storage")
+    package.__path__ = [str(source)]
+    sys.modules[package.__name__] = package
+    fields = importlib.import_module(f"{package.__name__}._fields")
+    table = importlib.import_module(f"{package.__name__}._atom_table")
+    assert fields.ATOM_FIELDS == FIELDS
+    _FACT_TABLE = table._AtomFactTable
+    LAYOUTS["capacity_fact_table"] = _CapacityTable
+    files = []
+    for name in ("_fields.py", "_atom_table.py"):
+        data = (source / name).read_bytes()
+        destination = output / name
+        destination.write_bytes(data)
+        files.append({"source": str(source / name), "copy": str(destination),
+                      "sha256": hashlib.sha256(data).hexdigest()})
+    return files
+
+
 def _fixture(count):
     rng = np.random.default_rng(SEED + count)
     matrix = rng.integers(0, 8, size=(count, len(FIELDS))).astype(np.float64)
@@ -361,6 +421,8 @@ def _owned_memory(store):
             size += sum(visit(item) for item in value)
         elif hasattr(value, "__dict__"):
             size += visit(value.__dict__)
+        elif hasattr(type(value), "__slots__"):
+            size += sum(visit(getattr(value, name)) for name in type(value).__slots__)
         return size
 
     retained = visit(store)
@@ -457,6 +519,7 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--cpu", type=int, required=True)
     parser.add_argument("--validate-only", action="store_true")
+    parser.add_argument("--include-private-table", action="store_true")
     parser.add_argument("--shared-load-note", default="Shared-host activity was not controlled.")
     args = parser.parse_args()
     available_cpus = sorted(os.sched_getaffinity(0))
@@ -464,6 +527,10 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
     if any(args.output.iterdir()):
         raise FileExistsError("Choose an empty output directory; preserve earlier evidence.")
+    repository = Path(__file__).resolve().parents[2]
+    private_sources = (_load_private_table(repository, args.output)
+                       if args.include_private_table else [])
+    (args.output / Path(__file__).name).write_bytes(Path(__file__).read_bytes())
     fixtures = {count: _fixture(count) for count in SIZES}
     validation = _validate(fixtures)
     _write_json(args.output / "validation.json", validation)
@@ -471,7 +538,6 @@ def main():
         print(json.dumps({"validation": "passed", "checks": len(validation),
                           "output": str(args.output)}))
         return
-    repository = Path(__file__).resolve().parents[2]
     manifest = {
         "kind": "storage-only prototype, not production performance acceptance",
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
@@ -479,6 +545,7 @@ def main():
         "numpy": np.__version__, "platform": platform.platform(), "host": platform.node(),
         "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repository, text=True).strip(),
         "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "private_source_files": private_sources,
         "available_cpu_affinity": available_cpus, "measured_cpu_affinity": sorted(os.sched_getaffinity(0)),
         "threads": {name: os.environ[name] for name in THREAD_VARIABLES},
         "shared_load_note": args.shared_load_note, "load_average_before": os.getloadavg(),
@@ -490,6 +557,7 @@ def main():
         "dtypes": {field: str(dtype) for field, dtype in DTYPES.items()},
         "layout_dtype_override": {
             "blocked_float_columns": "two float64 blocks; scalar/column export uses the same logical codecs",
+            "capacity_fact_table": "actual private two-block float64 table; precomputed column views, validated writes and capacity growth",
         },
         "aos_aligned_record_bytes": ROW_DTYPE.itemsize,
         "input_sha256": {str(count): hashlib.sha256(fixture["matrix"].tobytes()).hexdigest()

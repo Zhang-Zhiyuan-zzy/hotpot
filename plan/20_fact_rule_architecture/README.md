@@ -10,6 +10,12 @@ Plan21 design targets; other proposed public changes and unspecified cluster
 interface details remain subject to individual review.
 
 Implementation branch: `implement/plan20-fact-rule-architecture`
+
+Stage3 checkpoints: [foundation evidence](stage3_foundation_evidence.json),
+[architecture coverage correction](stage3_architecture_coverage_correction.json),
+and [private storage review](stage3_storage_review.md) with
+[verification evidence](stage3_storage_evidence.json). The corrected remaining
+architecture debt is285; Atom storage has not yet switched to the private table.
 Original planning branch: `refactor/fact-rule-architecture`
 
 Original planning baseline: `0a4b0ee`; reviewed documentation: `d9eb80e`.

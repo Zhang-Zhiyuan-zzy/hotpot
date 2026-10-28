@@ -1,0 +1,488 @@
+{
+  "schema_version": 1,
+  "stage": "Stage3",
+  "checkpoint": "shared Atom schema and private numeric table",
+  "status": "private primitive verified; molecular storage cutover and whole Stage3 incomplete",
+  "recorded_at_utc": "2026-10-28T11:02:30.888630+00:00",
+  "predecessor_commit": "8a7c6a6298287b0a26b001c32690b50bd80f56eb",
+  "entry_review": {
+    "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage3_entry_review.json",
+    "bytes": 6472,
+    "sha256": "7eb8c7232be2aab2d614370707213f20acec827d40e1094bb31f7ea9aef22b3a"
+  },
+  "foundation": {
+    "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage3_foundation_evidence.json",
+    "bytes": 9742,
+    "sha256": "263282a649cd6cbed3fa932f18b3163bd8ad19c601f28d8aef987b2ddd91c3ca"
+  },
+  "coverage_correction": {
+    "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage3_architecture_coverage_correction.json",
+    "bytes": 3017,
+    "sha256": "a004f6d9c17c089fd6daa1401b4039533ca0ad08e642c19b4902b2e176f01ec8"
+  },
+  "scope": [
+    "Existing Atom field dict derives from one schema; current storage and every existing Core function body unchanged.",
+    "Private two-block float64 candidate with independent projections, updates, capacity/remap/copy; not attached to any production Molecule.",
+    "38 private table tests include wide/raw values, isolation, failed conversions, interrupted-current-column rollback and capacity lifecycle."
+  ],
+  "source_audits": {
+    "core-schema-only-audit.json": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-validation/core-schema-only-audit.json",
+      "bytes": 1323,
+      "sha256": "ecfbf534b4c194ae8ff741e3959959b8296ddb9f6f8b6c15200d230216a698e9"
+    },
+    "production-class-count.json": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-validation/production-class-count.json",
+      "bytes": 357,
+      "sha256": "aacdc8d7f8fd9ee9dcef77a89f0cb37b49109526299bb9abf56d19d76e1e2ee8"
+    }
+  },
+  "architecture": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/architecture.json",
+    "bytes": 496,
+    "sha256": "5d07664ab2efb8346c913f66b6bfba13dc927165fae1c7029d45f7b93f3e5840"
+  },
+  "tests": {
+    "default": {
+      "passed": 3970,
+      "skipped": 123,
+      "xfailed": 3,
+      "passed_subtests": 49,
+      "warnings": 10,
+      "seconds": 236.22,
+      "exit_code": 0,
+      "command": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-validation/default-command.json",
+        "bytes": 1472,
+        "sha256": "1b5c8e8e8446f34fb9b3ffbaae1ad157fef7836ecc11670396bbddb48b175fc2"
+      },
+      "log": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-validation/default.log",
+        "bytes": 8558,
+        "sha256": "ef893d9ab24485ad5e53a9b617cee0eb3cdd1ff3d7be9a0f1142047cf036ba6f"
+      },
+      "junit": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-validation/default.xml",
+        "bytes": 677116,
+        "sha256": "753f53036c0b63f9383c1166b8299311773f7a7b02678162add7c2c1471a8e48"
+      },
+      "runner": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-validation/runner.py",
+        "bytes": 4360,
+        "sha256": "b98f8bf2e2f3e607d3a623ff3841184ca7fc35e6c6fac00d1e4278f1c8fa74cc"
+      },
+      "scope_note": "Production source unchanged since run; subsequent coverage-only scanner fix and its additional root regression received all-five-version focused validation below."
+    },
+    "focused_python_matrix": {
+      "scope": "Current source only; 38 table +47 architecture +4 reference, not wheel or native ABI equivalence",
+      "versions": [
+        {
+          "version": "3.10",
+          "passed": 89,
+          "warnings": 6,
+          "seconds": 9.05,
+          "exit_code": 0,
+          "runtime_and_source_origins": {
+            "python": "3.10.20 (main, Aug  7 2026, 02:25:15) [Clang 22.1.3 ]",
+            "executable": "/tmp/hotpot-plan20-20261028/matrix/cp310/env/bin/python",
+            "numpy": "2.2.6",
+            "source_modules": {
+              "core": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core.py",
+              "_fields": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fields.py",
+              "_atom_table": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_atom_table.py"
+            }
+          },
+          "artifacts": {
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/3.10/focused.log",
+              "bytes": 2192,
+              "sha256": "c4a2aa6e1eee53e8a368453f306ec7aae2908b24ae3d71df2ff9c9b8bfa94c61"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/3.10/focused.xml",
+              "bytes": 16467,
+              "sha256": "6437f44e8d95f32e599f1c2bef9536495385c526c8ffbc3eff78e7a6968d8afe"
+            },
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/3.10/command.json",
+              "bytes": 2850,
+              "sha256": "c35e2ba2b8785143d889433307dc909df7b1c06e2620bf00e4fbdd0353c8b05d"
+            }
+          }
+        },
+        {
+          "version": "3.11",
+          "passed": 89,
+          "warnings": 6,
+          "seconds": 6.87,
+          "exit_code": 0,
+          "runtime_and_source_origins": {
+            "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+            "executable": "/tmp/hotpot-plan20-env/bin/python",
+            "numpy": "2.4.6",
+            "source_modules": {
+              "core": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core.py",
+              "_fields": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fields.py",
+              "_atom_table": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_atom_table.py"
+            }
+          },
+          "artifacts": {
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/3.11/focused.log",
+              "bytes": 2167,
+              "sha256": "a2ff6a27eea27b1a52d93cc79c118808dc9e1be62d0d6ddde998e629a9d44502"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/3.11/focused.xml",
+              "bytes": 16467,
+              "sha256": "0ba8571acb4f1a601e0f1b7b340844af5bdebdd4a13b06e9dec7d1141b773a2b"
+            },
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/3.11/command.json",
+              "bytes": 2672,
+              "sha256": "7f9c22f0d374cf213a13a6fd3078ea51aec9510761187bcd97cfe67d8821ea8a"
+            }
+          }
+        },
+        {
+          "version": "3.12",
+          "passed": 89,
+          "warnings": 6,
+          "seconds": 6.73,
+          "exit_code": 0,
+          "runtime_and_source_origins": {
+            "python": "3.12.13 (main, Aug  7 2026, 02:25:39) [Clang 22.1.3 ]",
+            "executable": "/tmp/hotpot-plan20-20261028/matrix/cp312/env/bin/python",
+            "numpy": "2.5.4",
+            "source_modules": {
+              "core": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core.py",
+              "_fields": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fields.py",
+              "_atom_table": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_atom_table.py"
+            }
+          },
+          "artifacts": {
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/3.12/focused.log",
+              "bytes": 2167,
+              "sha256": "a2f01266c726e9a5edc232d67dfa18ddd74bdf4d114de0f0019203809b3d1eca"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/3.12/focused.xml",
+              "bytes": 16467,
+              "sha256": "a678f96226d0268a3d3f72d5e868151bd26f82c1422b616302c388bb86e334c0"
+            },
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/3.12/command.json",
+              "bytes": 3102,
+              "sha256": "a22312315e84e21ea6bc24d957ce0b20754582b2a0c28c9184b886e37abc4689"
+            }
+          }
+        },
+        {
+          "version": "3.13",
+          "passed": 89,
+          "warnings": 6,
+          "seconds": 6.33,
+          "exit_code": 0,
+          "runtime_and_source_origins": {
+            "python": "3.13.15 (main, Aug  7 2026, 02:25:50) [Clang 22.1.3 ]",
+            "executable": "/tmp/hotpot-plan20-20261028/matrix/cp313/env/bin/python",
+            "numpy": "2.5.4",
+            "source_modules": {
+              "core": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core.py",
+              "_fields": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fields.py",
+              "_atom_table": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_atom_table.py"
+            }
+          },
+          "artifacts": {
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/3.13/focused.log",
+              "bytes": 2167,
+              "sha256": "bb9097f7175b479c7bf990908f10238ca1e12c869f63c29464d7258b61997347"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/3.13/focused.xml",
+              "bytes": 16467,
+              "sha256": "d53cd0b84ef2293c1b6504118b3c673e918117e284cd8a1f0b7dfd8a846b6e74"
+            },
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/3.13/command.json",
+              "bytes": 2901,
+              "sha256": "4ee19a1a68728b21760076a602ffd79891e8b29a2fafa5077af4de0319c013c6"
+            }
+          }
+        },
+        {
+          "version": "3.14",
+          "passed": 89,
+          "warnings": 6,
+          "seconds": 6.04,
+          "exit_code": 0,
+          "runtime_and_source_origins": {
+            "python": "3.14.7 (main, Aug  7 2026, 02:26:00) [Clang 22.1.3 ]",
+            "executable": "/tmp/hotpot-plan20-20261028/matrix/cp314/env/bin/python",
+            "numpy": "2.5.4",
+            "source_modules": {
+              "core": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core.py",
+              "_fields": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fields.py",
+              "_atom_table": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_atom_table.py"
+            }
+          },
+          "artifacts": {
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/3.14/focused.log",
+              "bytes": 2681,
+              "sha256": "0768e7574171269b272cf6cc82c7c55fc399d0ade2c986b23075376bc58da240"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/3.14/focused.xml",
+              "bytes": 16467,
+              "sha256": "e7fd8386fcb9a5c46778efa622daab59a4f8eb10c6c8fbbf78ee8c3403262458"
+            },
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/3.14/command.json",
+              "bytes": 2844,
+              "sha256": "4ec161cfe7d772cdc215cb8e9dbe7c482608687de073eb7c4fe965c4bc74d944"
+            }
+          }
+        }
+      ],
+      "commands": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/matrix-commands.json",
+        "bytes": 14839,
+        "sha256": "ce33408aebb73b8944ff7ea8c79ebae5abf4add53edc9746860733cd8ce53c0d"
+      },
+      "runner": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-final-focused/runner.py",
+        "bytes": 4496,
+        "sha256": "081df768c8047c12e9cdbdccd500a538b1be2af67420d7e1ae82835aee997f74"
+      }
+    }
+  },
+  "storage_experiments": [
+    {
+      "name": "storage-private-table",
+      "attempts": {
+        "requested": 1560,
+        "completed": 1560,
+        "failed": 0,
+        "not_run": 0
+      },
+      "validation_checks": 39,
+      "rows": 120,
+      "private_table_ratios": {
+        "scalar_read": [
+          1.991094,
+          2.006349,
+          2.014203
+        ],
+        "scalar_write": [
+          8.011195,
+          8.099705,
+          8.233703
+        ],
+        "column_read": [
+          0.271527,
+          0.044356,
+          0.019186
+        ],
+        "column_write": [
+          1.378549,
+          0.135909,
+          0.043796
+        ],
+        "coordinate_transform": [
+          0.698547,
+          0.08871,
+          0.029575
+        ],
+        "selected_export": [
+          0.25276,
+          0.022167,
+          0.010896
+        ],
+        "full_atom_matrix_export": [
+          0.769158,
+          0.209282,
+          0.159025
+        ],
+        "insert_delete_remap": [
+          16.476427,
+          3.411095,
+          2.297143
+        ]
+      },
+      "sizes": [
+        16,
+        256,
+        4096
+      ],
+      "artifacts": {
+        "manifest.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-private-table/manifest.json",
+          "bytes": 5812,
+          "sha256": "c3b3295f30542ce96946ad52de3c011634ee557b9ea9609d3b55530799fbf32c"
+        },
+        "raw_samples.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-private-table/raw_samples.json",
+          "bytes": 415980,
+          "sha256": "62a3e5db2dd87dafed0547a77a1a7552bb1a00890a7017eef9d8ccf8243d6adc"
+        },
+        "summary.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-private-table/summary.json",
+          "bytes": 45645,
+          "sha256": "133ab51c2e528e90b21462768e9d64a4d5c46bb2118ce464440cc60fafbf706d"
+        },
+        "validation.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-private-table/validation.json",
+          "bytes": 4197,
+          "sha256": "1fc01c56b8366766b4d028b28d8a7feceb5e3180db8b4a3acfd0a18f9f9ded07"
+        },
+        "report.md": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-private-table/report.md",
+          "bytes": 11940,
+          "sha256": "515e7b37ceeeef7bc9b21a1d098dd744f3da3d6c1d9442618b93428cd29fb9f9"
+        },
+        "benchmark_atom_storage.py": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-private-table/benchmark_atom_storage.py",
+          "bytes": 26677,
+          "sha256": "c3fc0821a8487745219f73ac2c9d45f839c9946f380fb73db6338c7e68cfce2a"
+        },
+        "_fields.py": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-private-table/_fields.py",
+          "bytes": 1642,
+          "sha256": "4ab8cca38e7cde218f20afa8266b919d3f8d0da45cd2fbce2c24af597d13cd6f"
+        },
+        "_atom_table.py": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-private-table/_atom_table.py",
+          "bytes": 7933,
+          "sha256": "ff3240402e9df611587662ea1998ef72bb2706f1f423f1ef91fee4762d2ed7f3"
+        }
+      }
+    },
+    {
+      "name": "storage-private-table-refined",
+      "attempts": {
+        "requested": 1560,
+        "completed": 1560,
+        "failed": 0,
+        "not_run": 0
+      },
+      "validation_checks": 39,
+      "rows": 120,
+      "private_table_ratios": {
+        "scalar_read": [
+          1.477775,
+          1.488413,
+          1.490101
+        ],
+        "scalar_write": [
+          4.781599,
+          4.737105,
+          4.825602
+        ],
+        "column_read": [
+          0.272404,
+          0.045319,
+          0.019087
+        ],
+        "column_write": [
+          1.572104,
+          0.15427,
+          0.043326
+        ],
+        "coordinate_transform": [
+          0.739183,
+          0.092009,
+          0.029555
+        ],
+        "selected_export": [
+          0.253138,
+          0.022485,
+          0.011206
+        ],
+        "full_atom_matrix_export": [
+          0.762243,
+          0.209182,
+          0.159314
+        ],
+        "insert_delete_remap": [
+          8.587694,
+          2.359884,
+          1.827362
+        ]
+      },
+      "sizes": [
+        16,
+        256,
+        4096
+      ],
+      "artifacts": {
+        "manifest.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-private-table-refined/manifest.json",
+          "bytes": 5837,
+          "sha256": "0e932f1f9322d10b038c1041cb0f1e8ac95cf85fa0c72528a2e051dca30df6bf"
+        },
+        "raw_samples.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-private-table-refined/raw_samples.json",
+          "bytes": 415978,
+          "sha256": "c1d2d60225e6d024ed08867a2d148291bfff60a762b9c046bc4472bca43d1098"
+        },
+        "summary.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-private-table-refined/summary.json",
+          "bytes": 45632,
+          "sha256": "5c7768b40298196dd05284a9756f82d8c414c621c1f2f5b9be0b69721cec20b5"
+        },
+        "validation.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-private-table-refined/validation.json",
+          "bytes": 4197,
+          "sha256": "1fc01c56b8366766b4d028b28d8a7feceb5e3180db8b4a3acfd0a18f9f9ded07"
+        },
+        "report.md": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-private-table-refined/report.md",
+          "bytes": 11936,
+          "sha256": "16dd1f321fb0f401b17f2dd813c40914b06fefd599ab95bc8707e612512a7052"
+        },
+        "benchmark_atom_storage.py": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-private-table-refined/benchmark_atom_storage.py",
+          "bytes": 26677,
+          "sha256": "c3fc0821a8487745219f73ac2c9d45f839c9946f380fb73db6338c7e68cfce2a"
+        },
+        "_fields.py": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-private-table-refined/_fields.py",
+          "bytes": 1642,
+          "sha256": "4ab8cca38e7cde218f20afa8266b919d3f8d0da45cd2fbce2c24af597d13cd6f"
+        },
+        "_atom_table.py": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-private-table-refined/_atom_table.py",
+          "bytes": 10020,
+          "sha256": "ab98106a9e0e9a9861947b625d775a875d0fb1189496fc976fe2bec9b8c4299e"
+        }
+      }
+    }
+  ],
+  "public_interfaces": "updata_atoms and full19-float64 atom_matrix approved, not published; existing old-name clarification still pending.",
+  "uncompleted": [
+    "Molecular owner/UID high-water marks and lifecycle",
+    "Presence/provenance and finite dependency state",
+    "Complete factual import record/builder with one topology build",
+    "Closed atomic molecular commits and connected writer migration",
+    "Current Atom storage replacement and public API publication",
+    "Actual scalar/batch/facade scaling and candidate installed-wheel/native verification",
+    "Other Stage3 gates and all subsequent stages"
+  ],
+  "github_cadence": {
+    "previous_pushed_commit": "c6bfcd4906254ee113c14103009f071e91f60368",
+    "earlier_commits_since_push": [
+      "f9f87da",
+      "8a7c6a6"
+    ],
+    "this_checkpoint": "Third commit; push branch immediately afterward."
+  },
+  "performance_conclusion": "Mixed storage-only results; no production parity or final layout acceptance. Small remap and scalar overhead remain concerns for integrated design. Memory is fresh retained storage, not mutation peak.",
+  "checkpoint_source": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/stage3/storage-checkpoint-source/manifest.json",
+    "bytes": 3235,
+    "sha256": "c837253f3b74e3b4cd2e1954979b33a878f46802802389343e421371b9e98763"
+  }
+}

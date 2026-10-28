@@ -662,3 +662,39 @@ review records and retained failed attempts by SHA256.
   `stage3_architecture_coverage_correction.json`. Historical foundation evidence
   remains retained; this record supersedes its scan-coverage/count conclusion.
   Reference results, technical outcomes and measured storage data are intact.
+
+### Stage3 shared Atom schema and private numeric table checkpoint
+
+- Current Atom's 19-field dict now derives from `_fields.py`; order, scalar
+  codecs and dict semantics are identical. A source audit confirms all330
+  existing Core function ASTs are unchanged. No chemical algorithm or current
+  Molecule storage changed. `_AtomFactTable` is one private implementation
+  class; the full production census is774, with no new dataclass, Protocol,
+  TypedDict or native mirror.
+- Implemented two owned float64 blocks, scalar/raw projections, independent
+  exports, selected-row updates, capacity growth, remap and independent copies.
+  Tests preserve fractional raw Boolean slots and IDs beyond int64. Scalar
+  and batch fault injection verifies restoration of the interrupted column
+  as well as earlier writes. Exact private scope and complete future writer
+  cutover are recorded in `stage3_storage_review.md`.
+- Initial and refined real-table experiments each completed1560 attempts and
+  39 equivalence/ownership checks. All unfavorable results are retained. The
+  refined table improves bulk exports, but still has roughly4.8x scalar-write
+  and8.6x N16 remap overhead against bare arrays. Full facade/commit performance
+  is not measured and production parity is not claimed.
+- Complete default suite: **3970 passed, 123 skipped, 3 xfailed, 49 subtests**,
+  in236.22 seconds. Production modules have not changed afterward. The separate
+  scanner-coverage correction then received final focused checks on Python
+  **3.10–3.14:89 passed per version** (38 table, 47 architecture, 4 reference).
+  These are current-source checks, not a new installed-wheel/native matrix.
+- Corrected architecture scan includes roots, leaves285 original debt entries,
+  and passes ordinary HEAD ratcheting after the dedicated `8a7c6a6` repair.
+  `stage3_storage_evidence.json` binds commands, versions, source identities,
+  raw experiments and the distinction between primitive and molecular gates.
+- Stage3 remains in progress. Owner/UID/presence/source, complete import
+  builder, closed molecular commits, lifecycle migration and real integration
+  scaling remain open. The approved public methods are not yet published;
+  old `atom_attr_matrix` disposition remains under the existing clarification.
+- This checkpoint is the third commit after the last push through `c6bfcd4`,
+  following `f9f87da` and `8a7c6a6`; push the implementation branch immediately
+  after committing it, then restart the three-commit counter.

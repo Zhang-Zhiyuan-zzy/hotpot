@@ -37,6 +37,7 @@ from .graph.paths import (
 from . import geometry, crystal as cryst
 from .pubchem import pubchem_service
 from .call_thermo import Thermo
+from .structure._fields import FIELD_CODECS as _ATOM_FIELD_CODECS
 
 
 PartialChargeModel = Literal[
@@ -3133,29 +3134,7 @@ class Atom(MolBlock):
 
     _coord_getter = operator.attrgetter('x', 'y', 'z')
 
-    _attrs_dict = {
-        # Name: datatype
-        'atomic_number': int,
-        'n': int,
-        's': int,
-        'p': int,
-        'd': int,
-        'f': int,
-        'g': int,
-        'formal_charge': int,
-        'partial_charge': float,
-        'is_aromatic': bool,
-        'x': float,
-        'y': float,
-        'z': float,
-        'valence': int,
-        'implicit_hydrogens': int,
-        'id': int,
-        'x_constraint': bool,
-        'y_constraint': bool,
-        'z_constraint': bool,
-        # 'explicit_hydrogens'
-    }
+    _attrs_dict = dict(_ATOM_FIELD_CODECS)
 
     _attrs_setter = {
         'atomic_number': _atomic_number_setter

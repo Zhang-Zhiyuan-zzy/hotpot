@@ -259,7 +259,7 @@
         },
         {
           "path": "tests/test_cheminfo/structure/test_atom_fact_table.py",
-          "status": "planned_not_created"
+          "status": "private_numeric_primitive_only;38 cases passed; Molecule storage/UID/presence/commit integration remains unimplemented"
         },
         {
           "path": "tests/test_cheminfo/structure/test_dependencies.py",
@@ -283,7 +283,7 @@
         },
         {
           "path": "tests/test_cheminfo/structure/test_architecture.py",
-          "status": "implemented_and_focused_passed_46; latest15 added after foundation default run"
+          "status": "implemented;47 cases, package roots included; full five-version focused evidence in stage3_storage_evidence.json"
         },
         {
           "path": "tests/test_cheminfo/structure/test_reference.py",
@@ -293,7 +293,7 @@
       "additional_requirements": [
         "builder one topology build/no implicit chemistry; UID non-reuse; finite dirty propagation; field schema; scalar/batch alias isolation and performance"
       ],
-      "execution_status": "in_progress; verified foundation in stage3_foundation_evidence.json; table/builder/UID/dirty/commit gates remain open"
+      "execution_status": "in_progress; foundation and private numeric table verified (stage3_storage_evidence.json); authoritative table/builder/UID/metadata/closed commits remain open; architecture coverage correction restores actual debt285"
     },
     "Stage4": {
       "predecessor": "Stage3",

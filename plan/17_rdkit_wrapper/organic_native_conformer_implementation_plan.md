@@ -1,14 +1,27 @@
 # Stage 17 extension — fully native RDKit organic conformer proposal plan
 
-Status: proposed for owner review; implementation is not authorized by this
-document alone.
+Status: implementation plan revised on 2026-10-28 following owner direction.
+This revision aligns execution with Plan20; production implementation and all
+new or changed public interfaces still require their explicit review. No new
+API, ABI, or default workflow is established by this document revision.
 
 This is a continuation of Stage 17, not a new work objective. The former
 Plan-19 O0/MCA conformer-engine study is retained in this directory because it
 measures the native RDKit component, its integration boundary, and the exact
 organic conformer behavior required by this extension.
 
-## 1. Objective and fixed decisions
+The current execution order and shared scientific/performance policy are
+defined in [Plan17 / Plan20 execution alignment](../20_fact_rule_architecture/plan17_plan20_execution_alignment.md).
+Plan20 Stage0 selected Plan20-first after confirming that the native MMFF/UFF
+and MCA semantic closure is not implemented. The `17-MCA` batch is deferred
+until after `F20`; `B20/F20` retain the existing sole Python-RDKit MCA proposal
+algorithm while Plan20 relocates its ownership. Plan17 then records its own
+fresh `B17/F17`. Multi-conformer clustering and ordinary-organic default
+cutovers remain independent later batches. Historical implementation reports
+retain their original observations; their fixed success counts are not current
+scientific criteria.
+
+## 1. Objective and execution boundaries
 
 The objective is to make the complete organic conformer-proposal operation run
 inside the pinned native RDKit component:
@@ -23,14 +36,15 @@ Hotpot graph/stereo buffers
   -> mapped Hotpot atom-row coordinates and per-conformer evidence
 ```
 
-The following decisions govern the implementation:
+The following scientific and component boundaries govern the proposed
+implementation; additions to the public surface remain subject to Section 4:
 
 1. RDKit remains pinned to exactly 2026.09.1. No version profile, dynamic
    compatibility branch, or automatic upgrade is introduced.
 2. There is one native execution implementation and one public proposal
    function, `rdWrappers.generate_conformers()`. Python and C++ are facades over
    the same C/native core.
-3. No Python RDKit call may perform embedding, hydrogen expansion, force-field
+3. After the separately reviewed cutover, no Python RDKit call may perform embedding, hydrogen expansion, force-field
    parameter selection, force-field optimization, or conformer clustering in
    the production proposal path.
 4. The existing field-selective `NativeMoleculeBuffers` transport is reused.
@@ -56,6 +70,14 @@ The following decisions govern the implementation:
 12. The current Python-RDKit Uni-Mol feature builder is outside the conformer-
     proposal boundary. It may remain temporarily after the proposal cutover;
     removing it requires a separate native feature-builder decision.
+13. Scientific geometry/energy gates produce observations and diagnostics.
+    They do not decide scientific truth or impose a fixed historical success
+    count. Technical execution status, ownership and row-mapping contracts
+    remain testable independently of those observations.
+14. Record actual efficiency baselines before the first change in each batch.
+    Overall operation and test efficiency must at least match baseline, with
+    improvement expected, noise around x1 and very few explained small
+    slowdowns allowed under the shared Plan20 policy.
 
 ## 2. Terminology and current-state answer
 
@@ -91,7 +113,7 @@ over the complete Python force-field workflows.
 Therefore Hotpot currently exposes a low-level ordinary-organic proposal-batch
 interface, but it does not expose a complete ordinary-organic or complex
 conformer-cluster workflow. Repeating the complete O0 workflow externally is a
-valid way to obtain several accepted complex structures, but it is not a
+valid way to obtain several independently reported complex structures, but it is not a
 current public ensemble operation.
 
 ## 3. Scope and non-goals
@@ -123,11 +145,41 @@ current public ensemble operation.
 - nativeizing the Uni-Mol feature builder in this change; or
 - changing native substructure search or MCA site-recognition semantics.
 
-## 4. Public API tree and signatures
+## 4. Public API review list and proposed signatures
 
 The existing `generate_conformers()` function remains the sole public organic
-proposal interface. Force-field work is an option of that operation, not a new
-parallel API.
+proposal interface. Force-field work is an option of that operation. Its
+options, batches, records and Hotpot projections follow the
+[common chemical-type interface protocol](../20_fact_rule_architecture/chemical_type_interface_contract.md):
+explicit roles, fact/result ownership, units, permissions, buffer lifetime and
+reviewed input/output semantics. The standalone component keeps its approved
+direct-call API and ABI; no Molecule parent, dirty state, common base or Atom
+storage layout is imposed on its independent values.
+
+The additions and changes below remain proposals. The owner reviews exact
+names, fields, access, return guarantees and signatures before implementation;
+unreviewed fields are not exposed automatically.
+
+| Surface | Proposed addition/change requiring review | Delivery batch |
+|---|---|---|
+| Python `ForceFieldKind` | new enum with AUTO/MMFF94/MMFF94S/UFF values | 17-MCA |
+| Python `OptimizationState` | new CONVERGED/MAX_ITERATIONS enum | 17-MCA |
+| Python `ForceFieldOptions` | new type and `forcefield`, `max_iterations`, `add_hydrogens` fields | 17-MCA |
+| Python `OptimizationRecord` | new type and `forcefield`, `state`, `rdkit_status`, `final_energy_kcal_mol` fields | 17-MCA |
+| Python `ETKDGOptions` | new `optimization` field on existing type | 17-MCA |
+| Python `ConformerRecord` | new `optimization` field on existing type | 17-MCA |
+| Python `ETKDGOptions` | new `post_optimization_rms_threshold` field | later clustering batch |
+| Python existing batch/status API | optimization diagnostics and partial-result meaning; no new entry point | 17-MCA; clustering semantics later |
+| C | new force-field enum, optimization option fields/record and `hotpot_rd_result_optimization_records()`; exact-size ABI replacement | 17-MCA |
+| C | post-optimization RMS option fields | later clustering batch, with its own ABI review |
+| C++ | ForceFieldKind/OptimizationState/ForceFieldOptions/OptimizationRecord; optional optimization fields in existing options/records | 17-MCA |
+| C++ | post-optimization RMS field | later clustering batch |
+
+The full extension sketches below show both batches for review. The 17-MCA
+release includes only its reviewed subset; it does not reserve or publish
+clustering fields in advance. `generate_conformers`, `ETKDGSampler.generate`
+and `runtime_info` retain their existing public entry points. Section 6.1 does
+not authorize a new public backend-selector or request field.
 
 ### 4.1 Python API
 
@@ -174,7 +226,7 @@ hotpot.cheminfo.rdWrappers
 `- runtime_info() -> RuntimeInfo
 ```
 
-The signatures to freeze are:
+The proposed signatures for explicit review are:
 
 ```python
 class ForceFieldKind(str, Enum):
@@ -236,13 +288,15 @@ The native implementation performs these operations in order:
 
 1. embed candidate conformers in RDKit engine-conformer order;
 2. optimize each candidate serially with RDKit internal thread count one;
-3. discard a candidate only when embedding failed, force-field setup failed,
-   optimization returned a negative status, coordinates became non-finite, or
-   final energy became non-finite;
+3. record every attempt, including setup/optimization execution failure,
+   non-finite observations and the last usable frame; return transferable
+   coordinate rows only when a finite coordinate payload exists, while
+   retaining diagnostics for attempts without such a payload;
 4. if clustering is disabled, return surviving conformers in original ordinal
    order;
-5. if clustering is enabled, sort candidates by
-   `(final_energy_kcal_mol, original_ordinal)`;
+5. if clustering is enabled, sort finite-energy candidates by
+   `(final_energy_kcal_mol, original_ordinal)` and record non-finite-energy
+   attempts separately without silently assigning them an invented energy;
 6. greedily retain a candidate only when its symmetry-aware heavy-atom RMSD to
    every retained representative is at least the configured threshold; and
 7. return representatives in that same deterministic energy/ordinal order.
@@ -256,7 +310,11 @@ a batch partial. A batch is `PARTIAL` only when embedding or optimization
 failed for at least one requested candidate and at least one candidate still
 survived. If none survive, the status is `FAILED`. The diagnostic separately
 reports requested, embedded, optimized, failed, clustered, and returned counts
-without inventing replacement coordinates.
+without inventing replacement coordinates. These are execution and transport
+statuses, not scientific acceptance classes. Energy/geometry observations do
+not alone change an otherwise completed execution into a scientific failure.
+The treatment of non-finite-energy members in the later clustering algorithm
+must be included in that batch's reviewed rule contract.
 
 ### 4.3 C ABI evolution
 
@@ -329,7 +387,7 @@ The installed C++ facade continues to copy C result data into containers owned
 by the consumer translation unit. RDKit, Boost, STL containers, and exceptions
 do not cross the shared-library boundary.
 
-The corresponding signatures are frozen as:
+The corresponding C++ signatures are proposed for explicit review as:
 
 ```cpp
 struct ForceFieldOptions {
@@ -428,6 +486,9 @@ automatic fallback from RDKit to Open Babel is added to an organic request.
 
 ### 6.2 Ordinary Hotpot organic workflows
 
+This is an independent later batch. Its default changes and full scientific
+matrix are not prerequisites for 17-MCA or Plan20.
+
 The cutover is deliberately limited by operation:
 
 | Operation | Planned behavior |
@@ -476,22 +537,52 @@ builder can remove `MoleculeDTO.rdkit_binary`; this plan makes no such claim.
 Site detection remains on the same Hotpot DTO and native search path. Conformer
 replacement cannot alter site records or `is_Nuc_site`.
 
+Characterize and preserve the existing reuse of supplied usable 3D geometry
+before changing this route. The native request above applies when generation
+is needed; it must not silently regenerate every input or discard its supplied
+coordinate frame. Record both pre-existing-geometry and generated-geometry
+cases in the MCA report.
+
 ## 7. Small-step implementation sequence
 
 Every completed step is appended to `implementation_log.md` with changed
 files, commands, results, unexpected findings, and the next gate. If a finding
 changes the plan, the complete plan is reread before revision.
 
+The numbered steps describe the full extension, not one indivisible release.
+Execute the selected dependency batches as follows:
+
+| Batch | Included steps | Completion evidence |
+|---|---|---|
+| Plan20 production migration (selected first) | current Plan20 stages; existing sole Python-RDKit MCA algorithm retained | actual B20 before production refactor and F20 using that same algorithm |
+| 17-MCA (deferred until after F20) | 0; reviewed MCA subset of 1; 2, 3, 4; MCA subset of 6; 9; applicable 10 and 11 | independent fresh B17/F17, installed native component, MCA execution/scientific/performance reports, reviewed API and cutover record |
+| optimized ensembles/clustering | remaining reviewed fields in 1, step 5, remaining 6 and 7, applicable 10/11 | separate API/ABI review and scientific/cost report |
+| ordinary-organic default cutover | step 8 and its applicable 10/11 | separate reviewed default decision and reports |
+
+Steps 5, 7 and 8 do not block 17-MCA. Later batches update file paths to the
+then-current Plan20 ownership tree instead of restoring old package paths.
+The MCA deferral is frozen in both plans and their alignment record: Plan20
+keeps the existing single MCA proposal algorithm and only relocates it to the
+adapter layer. It does not substitute today's ETKDG-only rdWrapper. The
+alternative Plan17-first ordering remains documented in the alignment record
+for a separately selected future execution, not the current B20/F20 interval.
+
 ### Step 0 — Freeze extension baselines
 
 - record the current branch and source identities;
-- bind the existing R0, 182-case O0, 256-molecule MCA, CPU, and GPU artifacts;
-- rerun only lightweight contract tests needed to confirm the local baseline;
+- preserve the existing R0, historical 187/182 O0 and 256-molecule MCA artifacts
+  as observations with their original identities;
+- derive current eligibility from the versioned source/rule snapshot and
+  record a current per-case scientific report without a fixed success count;
+- run the batch's technical checks and actual controlled efficiency baseline
+  before its first production change; historical throughput is context only;
 - record current wheel size, extension size, exported symbols, and link map.
 
 ### Step 1 — Freeze the replacement API contract
 
-- add the Python enums and immutable option/evidence records;
+- obtain explicit owner review of Section 4's exact batch-specific public
+  API/ABI changes before introducing them;
+- add only the approved Python enums and immutable option/evidence records;
 - replace `ETKDGOptions` and `ConformerRecord` at their existing public names;
 - add C and C++ declarations;
 - replace the C option structure and keep exact-size validation;
@@ -516,11 +607,11 @@ changes the plan, the complete plan is reread before revision.
 
 - implement AUTO/MMFF94/MMFF94s/UFF routing;
 - optimize each conformer serially;
-- capture raw status, convergence state, effective force field, and finite final
-  energy;
+- capture raw status, convergence state, effective force field, final energy
+  including non-finite observations, and recovery diagnostics;
 - implement partial/failed batch status without substitute coordinates.
 
-### Step 5 — Implement native post-optimization clustering
+### Step 5 — Implement native post-optimization clustering (later batch)
 
 - use symmetry-aware heavy-atom RMSD;
 - freeze energy/ordinal representative selection and output order;
@@ -534,7 +625,7 @@ changes the plan, the complete plan is reread before revision.
 - retain the no-optimization output contract;
 - prove Python/C/C++ coordinate and metadata equality on shared fixtures.
 
-### Step 7 — Execute the optimized R0 matrix
+### Step 7 — Execute the optimized R0 matrix (later ensemble batch)
 
 - run all 187 extractants at requested counts 1, 8, and 32;
 - execute AUTO, explicit MMFF94/MMFF94s coverage fixtures, and UFF fallback
@@ -542,7 +633,7 @@ changes the plan, the complete plan is reread before revision.
 - record completion, partial results, finite energy/coordinates, diversity,
   clustering, determinism, and timing.
 
-### Step 8 — Cut over ordinary organic workflows
+### Step 8 — Cut over ordinary organic workflows (independent later batch)
 
 - route organic `build3d()` through native ETKDG;
 - route supported organic build-and-optimize requests through the fused path;
@@ -555,12 +646,15 @@ changes the plan, the complete plan is reread before revision.
 - add shared native buffers to the DTO;
 - pass seed 42 and AUTO/200 explicitly;
 - remove Python embedding and force-field calls from production MCA proposal;
-- remove superseded proposal glue only after parity tests pass;
+- remove superseded proposal execution only after technical checks, scientific
+  difference reporting, controlled performance comparison and cutover review;
 - retain the current Python feature builder in this step.
 
 ### Step 10 — Run integration, scientific, and performance gates
 
-- execute all matrices in Sections 8 and 9;
+- execute the applicable batch matrices in Sections 8 and 9; 17-MCA includes
+  component/transport, MCA, representative unchanged O0 and release checks,
+  not the deferred cluster or ordinary-organic default matrices;
 - diagnose every failed molecule individually;
 - do not average away missing or failed cases;
 - compare resource usage and installed artifacts.
@@ -572,6 +666,9 @@ changes the plan, the complete plan is reread before revision.
   scientific results, performance tables, package audit, and remaining limits;
 - do not claim the Python-RDKit MCA dependency is gone while the feature builder
   still imports RDKit.
+- freeze the exact completed MCA commit as F17 against this batch's own B17;
+  under the selected order these follow F20 and do not replace Plan20's
+  completed B20/F20 records.
 
 ## 8. Test plan
 
@@ -590,7 +687,7 @@ changes the plan, the complete plan is reread before revision.
 | C09 | AUTO without complete MMFF coverage | records UFF |
 | C10 | Explicit MMFF94/MMFF94s/UFF | no silent backend substitution |
 | C11 | RDKit status 0 / positive / negative | converged / accepted-limit / failed semantics |
-| C12 | Non-finite coordinate or energy fixture | rejected, never returned as successful |
+| C12 | Non-finite coordinate or energy fixture | execution status and raw observations retained; no fabricated finite coordinates/energy or scientific verdict |
 | C13 | Multi-conformer partial failure | surviving conformers returned as `PARTIAL` |
 | C14 | Symmetry-aware cluster fixture | deterministic chemically equivalent collapse |
 | C15 | Stereo and enhanced-group fixtures | represented semantics unchanged |
@@ -630,12 +727,15 @@ changes the plan, the complete plan is reread before revision.
 | Corpus | Purpose |
 |---|---|
 | canonical 187 extractants | standalone organic generation, FF coverage, 1/8/32 ensemble behavior |
-| fixed 182 CBond-positive cases | prove all complete-complex behavior remains O0 and unchanged |
-| stratified 256 MCA molecules | paired predictions, seed-42 parity, CPU/GPU throughput |
+| historical 187-source / 182 CBond-positive cohort | retained historical comparison; derive current eligibility and report every source case under the current versioned rules |
+| stratified 256 MCA molecules | paired scientific report, seed-42 comparison, CPU/GPU throughput |
 | focused stereo/H/symmetry fixtures | semantic transport and clustering correctness |
 
-The existing corpus hashes and case order remain authoritative. A changed
-corpus requires a new benchmark identity, not an overwritten result.
+Freeze the source content hashes and case order for each paired run. A changed
+source requires a new benchmark identity, not an overwritten result. The
+eligible subset and execution/scientific outcome counts are recomputed under
+the recorded rule version and may change; neither 182 successes nor agreement
+with historical reports is a scientific acceptance condition.
 
 ### 9.2 Standalone R0-native-FF matrix
 
@@ -644,16 +744,19 @@ same per-case seed convention used by R0. Record:
 
 - requested, embedded, optimized, failed, clustered, and returned counts;
 - effective force field per conformer;
-- RDKit status and finite final energy;
+- raw RDKit status and final energy, including non-finite observations;
 - input atom-row and topology preservation;
 - fixed-seed repeat equality;
 - symmetry-aware pairwise RMSD and cluster membership;
 - wall time per phase and peak RSS; and
 - every failure diagnostic and retained visualizable frame.
 
-The component passes only if every returned conformer has finite coordinates,
-finite final energy, exact original-row mapping, and a recorded effective force
-field. Partial results are reported rather than promoted to full success.
+Technical component checks require exact original-row mapping, valid shape,
+recorded execution status and effective force field, and honest presence or
+absence of transferable coordinates. Every attempt's energy/geometry values,
+including non-finite observations, are reported. Scientific monitoring does
+not promote partial execution to complete execution or impose a fixed success
+count; it also does not declare physical correctness from a finite energy.
 
 ### 9.3 Ordinary-organic workflow validation
 
@@ -661,23 +764,23 @@ Run the public single-structure `build3d()` and `build_and_optimize()` workflows
 over all 187 extractants. The former uses native coordinate-only ETKDG; the
 latter is tested with the public default UFF plus the supported MMFF routes.
 
-The old Open Babel structure is a paired reference, not a coordinate answer.
-The native route is accepted per molecule only when:
+The old Open Babel structure is a paired observation. Report per molecule:
 
-- the workflow returns a final structure with exact source heavy-atom identity
-  and topology;
-- all committed coordinates are finite;
-- the selected force-field energy is finite;
-- optimization can obtain a direction or recover through an already
-  established recovery action;
-- the existing ordinary-organic geometry acceptance gate passes; and
+- whether the workflow returns a final structure with exact source heavy-atom
+  identity/topology, or a stage-specific execution failure;
+- coordinate finiteness and the last usable frame;
+- selected force-field energy, forces/gradients and non-finite observations;
+- direction/recovery history under the existing recovery actions;
+- geometry monitor readings, thresholds, versions and uncertainties; and
 - no new geometry inspection or perturbation stage has been added solely to
   favor the native route.
 
-Every failed case retains its final or last useful frame for diagnosis. A
-gallery is generated for paired human inspection, but a missing active report
-of nonphysical appearance is the only manual condition; the Open Babel
-coordinates are not treated as ground truth.
+Every case retains its final or last useful frame when one exists, or an
+explicit no-frame reason. Generate a gallery for human inspection. Geometry
+and energy monitors supply evidence rather than automatic scientific
+admission/rejection; absence of a human objection is not evidence of physical
+validity. Default selection uses the full report and a separate review, with
+no mandatory historical success count or historical coordinate equality.
 
 ### 9.4 MCA paired numerical validation
 
@@ -694,20 +797,26 @@ batching, and backend. Required comparisons are:
   P95 absolute error, and maximum absolute error; and
 - per-failure molecule analysis.
 
-Because both routes use the same pinned RDKit implementation and call policy,
-bit-identical coordinates and predictions are the target. Correlation alone is
-not sufficient to authorize default cutover. Any non-bit-identical result is
-classified and brought back to the owner with atom-level evidence before the
-default changes.
+Both routes use the same pinned RDKit implementation and call policy, so
+coordinate/prediction differences are useful diagnostics of transport,
+hydrogen or invocation differences. Report them at atom and case level;
+correlation alone cannot summarize a large local drift. Scientific reporting
+does not require bit identity with historical output, nor classify a numeric
+change automatically as a regression. The owner reviews the complete report
+before default cutover. Technical fixtures still assert the chosen route,
+row mapping and unchanged site-search implementation; a scientific rule
+update is recorded separately from this backend implementation change.
 
 ### 9.5 Performance configurations
 
-Measure after one warm-up and report at least three timed repetitions:
+Record B17 before the first change and F17 after it using the shared sampling,
+uncertainty and global efficiency policy in Plan20 Section 12. Do not compare
+only an old historical timing with the new implementation:
 
 | Layer | Baseline | Candidate | Resources |
 |---|---|---|---|
 | proposal microbenchmark | Python RDKit ETKDG+MMFF/UFF | fused native rdWrapper | 1 CPU and 8 CPUs |
-| R0 187 x 1/8/32 | native ETKDG only plus observation | native ETKDG+FF+cluster | same fixed CPUs |
+| R0 187 x 1/8/32 (later batch) | same requested scientific work where available | native ETKDG+FF+cluster; new FF/cluster work separately costed | same fixed CPUs |
 | MCA CPU | current Python RDKit | native fused proposal | 8 CPUs, batch 64 |
 | MCA GPU | current Python RDKit | native fused proposal | one A800, 1 site CPU + 3 feature CPUs, batch 2048 |
 | ordinary organic build | OBBuilder/current optimizer | native proposal/fused supported FF | same 187 corpus and CPU set |
@@ -716,32 +825,49 @@ Report median wall time, molecules/s, conformers/s, phase timing, CPU
 utilization, peak RSS, worker count, extension size, and wheel size. No result
 from concurrently loaded CPUs or GPUs is used as formal throughput evidence.
 
-The provisional non-regression gate is candidate median end-to-end wall time no
-more than 2% above the paired baseline on both MCA configurations. A larger
-regression keeps the component interface but blocks the default workflow
-cutover pending owner review. Speedup is reported only when it exceeds run-to-
-run noise; native implementation alone is not described as a performance win.
+Overall operation and test efficiency must at least match baseline, and an
+overall improvement is expected. Noise near x1 and very few measured,
+explained small slowdowns are handled by the single global policy in Plan20
+Section 12; there is no separate blanket allowance that every route may slow
+by 2%. Report every constituent result and the frozen-workload aggregate.
+Additional clustering/optimization work has its own cost table rather than a
+misleading comparison to ETKDG-only generation. An unexplained material MCA
+slowdown prevents default cutover. Speedup requires evidence beyond noise.
+Under the selected order, B20/F20 are completed before this batch begins;
+record its independent B17/F17 afterward. This batch's speedup cannot offset
+or be claimed as a gain from Plan20's architecture refactor.
 
 ### 9.6 Default-cutover gates
 
-The native organic proposal becomes the default only when all applicable gates
-pass:
+Technical readiness and review prerequisites for the relevant default batch
+are listed below. Scientific metrics are delivered as observations, not
+collapsed into an automatic pass/fail gate:
 
 1. one native implementation serves Python and C++;
 2. exact input atom-row, topology, hydrogen, and represented-stereo semantics;
 3. correct force-field route and optimization-status semantics;
-4. finite coordinates and final energy for every returned conformer;
+4. truthful coordinate presence/finiteness, energy/geometry monitoring and
+   per-attempt diagnostics, without fabricated replacement values;
 5. same-seed deterministic output;
 6. exact MCA ordered sites and `is_Nuc_site`;
-7. native-versus-reference MCA numerical differences resolved and owner
-   accepted;
-8. no change to the 182-case O0 complex path;
-9. CPU and GPU non-regression gate met; and
+7. native-versus-reference scientific changes fully reported and default
+   selection reviewed, without requiring equality to historical predictions;
+8. unchanged O0 routing and a current versioned-cohort scientific report,
+   without a fixed 182-case success requirement;
+9. CPU/GPU and aggregate efficiency satisfy the shared performance policy; and
 10. wheel, SDK, binary, license, and interpreter matrices pass.
+
+Items 2, 5 and 6 are technical fixture/implementation contracts under the same
+chosen rules and inputs, not assertions that historical corpus labels or
+scientific outcomes are permanently correct. Current cohort reports retain
+all observed changes and missing cases for review.
 
 ## 10. Expected file ownership
 
-Implementation is expected to remain within these existing boundaries:
+The following current paths identify the extension's existing responsibilities.
+Because this batch starts after F20, resolve migrated transport and workflow
+paths through Plan20's final ownership tree; standalone rdWrapper paths retain
+their component identity:
 
 ```text
 hotpot/cheminfo/_native/buffers.py
@@ -772,13 +898,13 @@ preserved.
 
 | Risk | Required response |
 |---|---|
-| Native graph differs from current MCA RDKit graph | stop cutover; fix transport rather than loosen numerical gates |
+| Native graph differs from current MCA RDKit graph | stop cutover; fix technical transport/identity mapping and report scientific differences separately |
 | `EmbedMolecule` and one-count multi-embed differ | use the exact one-conformer call for MCA |
 | MMFF/UFF status differs from Python helper behavior | reproduce helper semantics before workflow integration |
 | Post-FF clustering collapses stereoisomers | block clustering and fix symmetry/stereo mapping |
 | Static closure or wheel gains an unplanned dependency | reject build and update no lock until owner review |
 | MCA throughput regresses beyond the gate | retain component, do not make it the default |
-| O0 complex behavior changes | revert the integration step; complex path is out of scope |
+| O0 routing or implementation changes | isolate and undo the unrelated integration change; report current scientific observations without forcing historical outcome equality |
 | Python RDKit is still imported by featurization | report truthfully; do not claim full MCA RDKit-Python removal |
 
 Git history is the rollback mechanism. No duplicate legacy production backend,

@@ -1,7 +1,18 @@
 # Plan 17 force-field component validation plan
 
-Status: owner-approved for implementation and validation execution; provider
-cutover remains subject to the completed evidence and a separate owner decision
+Status: historical owner-approved contract for the completed component
+validation checkpoint documented in implementation_report.md. The recorded
+F1/default decision remains evidence of that round; this file is not the
+forward scientific acceptance policy for the continuation or Plan20.
+
+Forward-work applicability (2026-10-28): current execution follows the
+[Plan17/Plan20 alignment](../20_fact_rule_architecture/plan17_plan20_execution_alignment.md)
+and [continuation plan](organic_native_conformer_implementation_plan.md).
+Geometry/energy gates are reported monitors, current eligibility is rule-derived,
+and neither a fixed 182/182 count nor historical equality decides the new
+scientific report. Hard-gate/threshold wording below records the old experiment
+and must not be copied as current acceptance criteria. Technical mapping,
+execution integrity and separately reviewed provider choices still apply.
 
 Document date: 2026-10-23
 

@@ -1,15 +1,46 @@
 # Stage 20 — Fact-Carrier and Rule Architecture
 
-Status: draft plan awaiting owner review. Production implementation has not
-started.
+Status: implementation authorized on 2026-10-28; Stage0 planning freeze in
+progress. All public chemical
+types follow a common protocol for fact ownership, interface mapping,
+permissions, dependencies, buffer ownership and lifecycle. Atom's unified
+fact table is one concrete implementation. Production implementation has not
+started. MetalCluster and its future Molecule association are registered as
+Plan21 design targets; other proposed public changes and unspecified cluster
+interface details remain subject to individual review.
 
-Branch: `refactor/fact-rule-architecture`
+Implementation branch: `implement/plan20-fact-rule-architecture`
+Original planning branch: `refactor/fact-rule-architecture`
 
-Baseline: `0a4b0ee`
+Original planning baseline: `0a4b0ee`; reviewed documentation: `d9eb80e`.
+Stage1 must record a fresh executable/performance baseline at the selected
+Plan17/Plan20 boundary before production refactoring.
 
 ## Records
 
 - [Architecture audit and implementation plan](fact_rule_architecture_implementation_plan.md)
+- [Implementation log and stage-entry assessments](implementation_log.md)
+- [Chemical-type public-interface protocol and fact storage](chemical_type_interface_contract.md)
+- [Plan17/Plan20 execution alignment](plan17_plan20_execution_alignment.md)
+- [Data-object classification and consolidation audit](data_object_scope_audit.md)
+- [Plan21 MetalCluster and multi-attachment superatom draft](../21_metal_cluster/metal_cluster_implementation_plan.md)
 
-After approval, this directory will also contain the append-only implementation
-log and the final implementation/validation report required by the plan.
+The protocol covers carriers, independent values, collections, views,
+scientific results and transport contracts. Roles determine mutability and
+lifecycle; no common base class or physical storage layout is required.
+MetalCluster is recorded as a registered aggregate related to Molecule,
+Atom and Bond, with `Molecule.metal_clusters -> list[MetalCluster]` planned.
+Plan20 registers that structure only; Plan21 defines concrete cluster kinds,
+matching and superatom execution after the owner supplies their forms.
+
+Stage0 selects Plan20 first: the minimum Plan17 MCA native closure is not yet
+implemented, so B20/F20 use the current sole Python-RDKit MCA algorithm. The
+17-MCA batch follows F20 with separate B17/F17 evidence. Scientific outcomes
+are versioned monitoring reports; 187/182
+does not impose a fixed success count. Global efficiency must be at least
+comparable to the pre-refactor baseline, with improvement expected.
+
+Every stage and independently gated sub-stage begins with a full reread of the
+plan and normative companions plus a recorded project-state assessment.
+Executed work has an append-only implementation log and a final report.
+Planning records and proposed commands are not execution or benchmark evidence.

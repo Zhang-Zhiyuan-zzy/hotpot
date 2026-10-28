@@ -3,9 +3,22 @@
 Status: component implementation and automated force-field validation are
 complete at authoritative checkpoint
 `b0aa6c5224a97469359c53448ba48d24d8a46112`. The schema-v2 formal run covers
-the current semantic 187/182 cohort and produces 1,092 O0/F1/F2/C1/C2 plus F1
-repeat results. F1 passes 180/182 cases, below the fixed 182/182 replacement
-threshold, so Open Babel remains the default complex conformer provider.
+the recorded semantic 187/182 cohort and produces 1,092 O0/F1/F2/C1/C2 plus F1
+repeat results. F1 passed 180/182 cases, below the then-used 182/182 replacement
+threshold; that historical decision retained Open Babel as the default complex
+conformer provider. Those counts and thresholds describe that checkpoint,
+not the current scientific reporting policy.
+
+Stage0 execution decision (2026-10-28): the native MMFF/UFF and MCA semantic
+closure is not implemented, so Plan20 proceeds first using the existing sole
+Python-RDKit MCA algorithm for B20/F20. The `17-MCA` batch is deferred until
+after F20 and then records its own fresh B17/F17. Multi-conformer clustering
+and ordinary-organic default cutovers remain separate later batches. Scientific
+geometry/energy gates are monitors; current runs deliver versioned per-case
+reports and do not require a fixed 187/182 success count or historical output
+equality. Public API/ABI additions remain pending explicit owner review.
+
+- [Plan17 / Plan20 execution order, baselines and shared reporting policy](../20_fact_rule_architecture/plan17_plan20_execution_alignment.md)
 
 The exhaustive 910-cell acceptance gallery is complete with 869 selected
 structures, 41 scientific-failure placeholders, and zero render errors. A
@@ -22,7 +35,7 @@ also passed at `b0aa6c5`, including installed-wheel smokes, archive-content and
 integrity checks, and direct `_rd_native` ELF audits. This remains local
 evidence rather than GitHub-hosted CI provenance.
 
-Current branch: `perf/mca-resource-efficient-workflow`
+Historical implementation branch: `perf/mca-resource-efficient-workflow`
 
 Planning branch: `feature/rdWrapper`
 
@@ -32,7 +45,7 @@ The owner referred to this work as `plan16`. Stage 16 was already occupied by
 the completed native-search implementation, so this directory uses the next
 unambiguous archive number without replacing or duplicating Stage 16.
 
-The normative implementation proposal is:
+The original completed-stage implementation proposal is:
 
 - [rdkit_wrapper_implementation_plan.md](rdkit_wrapper_implementation_plan.md)
 
@@ -41,7 +54,7 @@ C++ `rdWrappers` APIs, retains `obWrappers`, preserves the established
 force-field workflow during component-substitution testing, and specifies the
 two-level Hotpot stereochemistry model.
 
-The corrected and owner-approved business-validation contract is:
+The historical corrected business-validation contract for that checkpoint is:
 
 - [forcefield_component_validation_plan.md](forcefield_component_validation_plan.md)
 
@@ -74,9 +87,10 @@ Its reproducible drivers are:
 - [benchmark_o0_seed_diversity.py](benchmark_o0_seed_diversity.py)
 - [benchmark_rdwrapper_seed_diversity.py](benchmark_rdwrapper_seed_diversity.py)
 
-The proposed continuation that adds native UFF/MMFF, native optimized
-conformer clustering, ordinary-organic workflow integration, and the MCA
-proposal cutover is awaiting owner review:
+The continuation plan separates the minimal native UFF/MMFF + MCA batch,
+deferred until after Plan20 F20, from later clustering and ordinary-organic
+workflow batches. Its exact new or changed public interfaces and default
+cutovers remain awaiting owner review:
 
 - [organic_native_conformer_implementation_plan.md](organic_native_conformer_implementation_plan.md)
 

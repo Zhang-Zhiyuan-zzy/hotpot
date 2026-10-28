@@ -1,6 +1,17 @@
 # Native RDKit wrapper and pluggable conformer-sampling implementation plan
 
-Status: owner-approved on 2026-10-22; implementation is in progress.
+Status: original plan approved on 2026-10-22; the original component and
+validation checkpoint is complete as recorded in implementation_report.md.
+This document preserves that implementation's scope and historical contracts.
+
+Forward-work applicability (2026-10-28): the
+[native organic continuation](organic_native_conformer_implementation_plan.md)
+and [Plan17/Plan20 alignment](../20_fact_rule_architecture/plan17_plan20_execution_alignment.md)
+govern subsequent MCA optimization/cutover work. Their public API review,
+dynamic-cohort scientific monitoring, and pre-change/global performance policy
+supersede conflicting prospective fixed-count or coordinate-only restrictions
+in this original-stage record. Historical measurements and decisions are not
+rewritten; no new API/default is approved by this applicability update.
 
 Planning branch: `feature/rdWrapper`
 

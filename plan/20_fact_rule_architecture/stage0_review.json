@@ -1,0 +1,52 @@
+{
+  "stage": "Stage0",
+  "recorded_at_utc": "2026-10-28T07:03:24.367702+00:00",
+  "source_commit": "c4eeac97b0ad983f2b00949b77d32d2235e6d333",
+  "source_production_tree": "4a2086e717327c99056ef8cda200b0786e688219",
+  "implementation_branch": "implement/plan20-fact-rule-architecture",
+  "full_read_completed": true,
+  "full_read_scope": "All main-plan chapters and complete normative companions, including appendices; final Stage0 route/entry edits reviewed.",
+  "documents": [
+    {
+      "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+      "sha256": "3b91027c55c770585a4a476a236d1ad39fddce7265fb4913eb9a034df1c7892e",
+      "lines": 2434
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+      "sha256": "a66c006996ab432f90c70da9904d9323dff7dccd6ebc64920b7f72f9ddf043d5",
+      "lines": 280
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+      "sha256": "481d5195ece9e1a8707187574b3df73663456b77453f5bf89f76e4bcbad51f5c",
+      "lines": 519
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+      "sha256": "e5549116f1409fb46b5fd2bdc82c0b20a34297989475eb66a119ac221a9d4a0b",
+      "lines": 177
+    },
+    {
+      "path": "plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+      "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+      "lines": 68
+    }
+  ],
+  "route": "Plan20-first; existing sole Python-RDKit MCA algorithm in B20/F20; 17-MCA deferred until after F20",
+  "source_corpus": {
+    "path": "molecules/extractant/extractants.smi",
+    "sha256": "e67ae3167a1a96d3c6a4c6df3ce12b70abfaf479bdd89bb156bfaefa771795a7"
+  },
+  "environment": {
+    "python": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+    "version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "platform": "Linux-5.15.0-139-generic-x86_64-with-glibc2.31"
+  },
+  "production_changes": false,
+  "baseline_measurements": "pending Stage1",
+  "technical_test_results": "not run in Stage0; pending Stage1",
+  "scientific_reports": "not run in Stage0; pending Stage1",
+  "state_assessment": "Legacy implementation unchanged; required corpus and model candidates available; isolated build tooling and installed local/remote wheels still needed.",
+  "next_stage": "Stage1: full reread/state assessment, exact inventories, report tools, technical/scientific/performance baselines before production changes"
+}

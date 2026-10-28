@@ -258,7 +258,7 @@ N×F 导出、原生打包和逐原子结果投影，确保高效批量访问与
 | 编号 | 公开接口或行为 | 提案 | 当前状态 |
 |---|---|---|---|
 | A1 | `Atom.atomic_number`, `Atom.symbol` | 保留现有名字与读写；同一 atomic_number 事实，移除立即重算副作用 | 保留签名；副作用变更待审 |
-| A2 | `Atom.attrs`, `Atom(attrs_array=..., update_electron_config=...)` | 移除长期可写事实数组暴露；构造输入导入表且隔离别名；旧参数精确去留按签名基线列明 | 破坏性变更待审 |
+| A2 | `Atom.attrs`, `Atom(attrs_array=..., update_electron_config=...)` | 移除长期可写事实数组暴露；完整导入使用私有builder，Stage5删除两个旧构造参数；保留独立19列快照，Stage7C缺失结果用NaN且保持模型输入编码，详见[具体决定](stage1_contract_decisions.md) | 2026-10-28用户已确认；按Stage3/5/7C分步验证 |
 | A3 | `Atom.coordinates`, x/y/z, `Molecule.coordinates` | 保留现有赋值入口、共享唯一坐标事实；返回数组副本/不可变行为按基线明确 | 返回别名行为变更待审 |
 | A4 | `Molecule.update_atom_facts(*, atoms=None, **columns) -> None` | 唯一候选新增公开批量写方法；现有 Atom 句柄序列选行，None为全部当前行；不公开私有 UID；只接受已声明可写事实/别名，列可广播；坐标为 N×3；重叠别名必须一致；一次校验/提交 | 新方法，待审，不设立 |
 | A5 | `Molecule.atom_feature_matrix(fields, *, dtype="float32") -> numpy.ndarray` | 唯一候选新增公开矩阵导出；字段顺序显式、单位沿schema；未知输入拒绝导出，未来presence/mask返回如需改变须再审；返回独立任务数组 | 新方法，待审，不设立 |

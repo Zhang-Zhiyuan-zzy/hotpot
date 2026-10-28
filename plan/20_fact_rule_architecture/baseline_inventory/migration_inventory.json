@@ -1,0 +1,4004 @@
+[
+  {
+    "completion_stage": "Stage9",
+    "current": "`Molecule`",
+    "disposition": [
+      "`structure/molecule.py`",
+      "retain one class and public facade; keep facts/invariants only; make scientific methods thin delegates"
+    ],
+    "id": "9.1-001",
+    "plan_line": 1218,
+    "responsibilities": [
+      {
+        "stage": "Stage3",
+        "work": "fact declarations and controlled storage"
+      },
+      {
+        "stage": "Stage9",
+        "work": "sole Molecule class relocation after semantic extraction"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage9",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage3",
+      "Stage9"
+    ]
+  },
+  {
+    "completion_stage": "Stage9",
+    "current": "`Atom`",
+    "disposition": [
+      "`structure/atom.py`",
+      "retain one identity/row-handle facade; core facts live only in `_AtomFactTable`; schema projections remove toolkit construction and immediate setter chemistry"
+    ],
+    "id": "9.1-002",
+    "plan_line": 1219,
+    "responsibilities": [
+      {
+        "stage": "Stage3",
+        "work": "sole Atom fact table and projections"
+      },
+      {
+        "stage": "Stage5",
+        "work": "lazy chemistry"
+      },
+      {
+        "stage": "Stage9",
+        "work": "sole Atom class relocation"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage9",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage3",
+      "Stage5",
+      "Stage9"
+    ]
+  },
+  {
+    "completion_stage": "Stage9",
+    "current": "`Bond`, `BondKind`",
+    "disposition": [
+      "`structure/bond.py`",
+      "retain one class/enum; enforce the approved kind/order contract in atomic mutations"
+    ],
+    "id": "9.1-003",
+    "plan_line": 1220,
+    "responsibilities": [
+      {
+        "stage": "Stage5",
+        "work": "coupled bond representation"
+      },
+      {
+        "stage": "Stage7B",
+        "work": "constraint projections"
+      },
+      {
+        "stage": "Stage9",
+        "work": "sole Bond and BondKind definitions"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage9",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage5",
+      "Stage7B",
+      "Stage9"
+    ]
+  },
+  {
+    "completion_stage": "Stage9",
+    "current": "`NotInSameMolecule`, `ObjNotInMolecule`",
+    "disposition": [
+      "`structure/errors.py` or none",
+      "preserve their exact names if active/public; otherwise delete after zero-reference audit; do not rename them as part of this refactor"
+    ],
+    "id": "9.1-004",
+    "plan_line": 1221,
+    "responsibilities": [
+      {
+        "stage": "Stage9",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage9",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage9"
+    ]
+  },
+  {
+    "completion_stage": "Stage9",
+    "current": "`MolBlock` dynamic attribute machinery",
+    "disposition": [
+      "`structure/_fields.py`, `_atom_table.py`, `_dependencies.py`",
+      "replace magic offsets with one fact schema, reviewed descriptors and typed storage; preserve efficient scalar/batch paths with no untracked alias"
+    ],
+    "id": "9.1-005",
+    "plan_line": 1222,
+    "responsibilities": [
+      {
+        "stage": "Stage3",
+        "work": "fact declarations and one table access path"
+      },
+      {
+        "stage": "Stage5",
+        "work": "remove eager chemistry from dynamic writers"
+      },
+      {
+        "stage": "Stage9",
+        "work": "remove superseded MolBlock implementation"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage3",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage3",
+      "Stage5",
+      "Stage9"
+    ]
+  },
+  {
+    "completion_stage": "Stage5",
+    "current": "`AtomSeq`, `Angle`, `Torsion`, `Ring`, `JointRing`, `AtomPair`, `AtomPairs`",
+    "disposition": [
+      "`views/`",
+      "make membership immutable/identity-bound; rename `AtomPairs` to `AtomPairTable` only if owner approves; project constraints from Molecule; remove carrier cache ownership"
+    ],
+    "id": "9.1-006",
+    "plan_line": 1223,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "angles/torsions/paths/pairs and constraint preservation"
+      },
+      {
+        "stage": "Stage5",
+        "work": "Ring/JointRing read-only transition with writer migration"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage4",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage4",
+      "Stage5"
+    ]
+  },
+  {
+    "completion_stage": "Stage2",
+    "current": "zero-reference `AtomPairKey`",
+    "disposition": [
+      "none",
+      "delete; stable internal UIDs and immutable pair membership replace this unused identity wrapper"
+    ],
+    "id": "9.1-007",
+    "plan_line": 1224,
+    "responsibilities": [
+      {
+        "stage": "Stage2",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage2",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage2"
+    ]
+  },
+  {
+    "completion_stage": "Stage7D",
+    "current": "`Conformers`",
+    "disposition": [
+      "`structure/conformer.py` plus `structure/results.py`",
+      "split current/source `CoordinateFrame` facts from generated/optimized `ConformerEnsembleResult`; preserve the public array access as a projection without storing the same frame in both owners"
+    ],
+    "id": "9.1-008",
+    "plan_line": 1225,
+    "responsibilities": [
+      {
+        "stage": "Stage7D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage7D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7D"
+    ]
+  },
+  {
+    "completion_stage": "Stage3",
+    "current": "Atom/Bond identity, UID high-water marks, `id`, and `idx`",
+    "disposition": [
+      "`structure/_state.py` and `_topology.py`",
+      "introduce immutable private `_uid` plus non-reusing Molecule allocators; retain `id` as source/display fact and `idx` as derived current row; never use one as the other"
+    ],
+    "id": "9.1-009",
+    "plan_line": 1226,
+    "responsibilities": [
+      {
+        "stage": "Stage3",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage3",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage3"
+    ]
+  },
+  {
+    "completion_stage": "Stage7B",
+    "current": "Atom/Bond/Angle/Torsion constraints",
+    "disposition": [
+      "`structure/constraints.py`",
+      "migrate to one Molecule-owned `ConstraintSet` keyed by internal identities; views only project membership"
+    ],
+    "id": "9.1-010",
+    "plan_line": 1227,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "angle/torsion constraints before cache deletion"
+      },
+      {
+        "stage": "Stage7B",
+        "work": "remaining coordinate/bond constraints and full audit"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage4",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage4",
+      "Stage7B"
+    ]
+  },
+  {
+    "completion_stage": "Stage4",
+    "current": "`InternalCoordinates`",
+    "disposition": [
+      "`rules/mathematics/internal_coordinates.py`",
+      "pure calculation from explicit coordinates/topology; no Molecule mutation"
+    ],
+    "id": "9.1-011",
+    "plan_line": 1228,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage4",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage4"
+    ]
+  },
+  {
+    "completion_stage": "Stage5",
+    "current": "`_metal_valence`, formal charge, valence, electron configuration, implicit-H logic",
+    "disposition": [
+      "`rules/chemistry/`",
+      "return assignments/findings; delete carrier copies; explicit/source facts and lazy inferred values follow grouped validity policy"
+    ],
+    "id": "9.1-012",
+    "plan_line": 1229,
+    "responsibilities": [
+      {
+        "stage": "Stage5",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage5",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage5"
+    ]
+  },
+  {
+    "completion_stage": "Stage4",
+    "current": "ring/cycle/path/component/tree/spectrum algorithms",
+    "disposition": [
+      "`rules/mathematics/graph` and `rules/chemistry/descriptors`",
+      "retain deterministic Plan 19 semantics; return views/results only"
+    ],
+    "id": "9.1-013",
+    "plan_line": 1230,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage4",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage4"
+    ]
+  },
+  {
+    "completion_stage": "Stage5",
+    "current": "aromaticity/Kekule/bond-order perception",
+    "disposition": [
+      "`rules/chemistry/bonding`",
+      "one pure assignment implementation; private operation commits the patch"
+    ],
+    "id": "9.1-014",
+    "plan_line": 1231,
+    "responsibilities": [
+      {
+        "stage": "Stage5",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage5",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage5"
+    ]
+  },
+  {
+    "completion_stage": "Stage4",
+    "current": "distances, angles, torsions, translation, bond/ring relation",
+    "disposition": [
+      "mathematics rules plus `operations/geometry.py` for coordinate mutation",
+      "query calculations remain pure; translation is an atomic coordinate commit"
+    ],
+    "id": "9.1-015",
+    "plan_line": 1232,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage4",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage4"
+    ]
+  },
+  {
+    "completion_stage": "Stage8A",
+    "current": "charge, spin, partial-charge workflows",
+    "disposition": [
+      "chemistry rules plus calculation operation/adapters",
+      "distinguish formal/net/partial charge fact types explicitly"
+    ],
+    "id": "9.1-016",
+    "plan_line": 1233,
+    "responsibilities": [
+      {
+        "stage": "Stage5",
+        "work": "elemental/formal-charge/H calculation"
+      },
+      {
+        "stage": "Stage7C",
+        "work": "partial-charge attachment"
+      },
+      {
+        "stage": "Stage8A",
+        "work": "net-charge/spin scientific-state workflow"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage5",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage5",
+      "Stage7C",
+      "Stage8A"
+    ]
+  },
+  {
+    "completion_stage": "Stage8B",
+    "current": "`build3d`, `optimize`",
+    "disposition": [
+      "`operations/forcefields`",
+      "retain public signatures as thin Molecule methods"
+    ],
+    "id": "9.1-017",
+    "plan_line": 1234,
+    "responsibilities": [
+      {
+        "stage": "Stage8B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage8B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8B"
+    ]
+  },
+  {
+    "completion_stage": "Stage8C",
+    "current": "`search_substructure` and SMARTS packing",
+    "disposition": [
+      "`operations/search`, chemistry semantics, structure adapter",
+      "reuse one RI matcher; no carrier cache"
+    ],
+    "id": "9.1-018",
+    "plan_line": 1235,
+    "responsibilities": [
+      {
+        "stage": "Stage8C",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage8C",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8C"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`get_thermo`",
+    "disposition": [
+      "physics contract + external thermo adapter",
+      "return a typed result; no RDKit/thermo import in carrier"
+    ],
+    "id": "9.1-019",
+    "plan_line": 1236,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`to_obmol`, `to_rdmol`, `to_pybel_mol`, `to_pyg_data`",
+    "disposition": [
+      "adapters",
+      "each call builds a fresh external value; no persisted external object"
+    ],
+    "id": "9.1-020",
+    "plan_line": 1237,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`read_one`, `write`, SMILES/InChI serialization",
+    "disposition": [
+      "adapters/I/O",
+      "object methods remain thin entry points if their public contract is retained"
+    ],
+    "id": "9.1-021",
+    "plan_line": 1238,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage7C",
+    "current": "MCA result access",
+    "disposition": [
+      "`structure/results.py` plus inference operation",
+      "typed explicit result replaces `properties[\"mca\"]`; `Atom.mca`/`mca_sites` remain projections"
+    ],
+    "id": "9.1-022",
+    "plan_line": 1239,
+    "responsibilities": [
+      {
+        "stage": "Stage7C",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage7C",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7C"
+    ]
+  },
+  {
+    "completion_stage": "Stage9",
+    "current": "`_topology_index`, `_update_topology`",
+    "disposition": [
+      "`structure/_topology.py` and Molecule primitive",
+      "retain the exact Plan 19 conceptual contract; no native Graph or second index"
+    ],
+    "id": "9.1-023",
+    "plan_line": 1240,
+    "responsibilities": [
+      {
+        "stage": "Stage9",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage9",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage9"
+    ]
+  },
+  {
+    "completion_stage": "Stage7B",
+    "current": "hidden Bond lists",
+    "disposition": [
+      "operation-local `TopologyView`/mask",
+      "remove from Molecule after all internal consumers migrate"
+    ],
+    "id": "9.1-024",
+    "plan_line": 1241,
+    "responsibilities": [
+      {
+        "stage": "Stage7B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage7B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7B"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "`_model`, `_environ`",
+    "disposition": [
+      "operation inputs",
+      "remove from Molecule and from working-copy metadata"
+    ],
+    "id": "9.1-025",
+    "plan_line": 1242,
+    "responsibilities": [
+      {
+        "stage": "Stage8D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`_obmol`, `_row2idx`, ring/angle/torsion/pair caches",
+    "disposition": [
+      "none",
+      "delete, with no replacement persistent cache"
+    ],
+    "id": "9.1-026",
+    "plan_line": 1243,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "angle/torsion/pair caches"
+      },
+      {
+        "stage": "Stage5",
+        "work": "ring caches"
+      },
+      {
+        "stage": "Stage7A",
+        "work": "external-object caches"
+      }
+    ],
+    "section": "9.1",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage4",
+      "Stage5",
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage12",
+    "current": "`cheminfo/__init__.py`",
+    "disposition": [
+      "explicit reviewed chemistry facade",
+      "replace wildcard assembly/core imports with the approved `__all__`; import each public class/function from its sole owner"
+    ],
+    "id": "9.2-001",
+    "plan_line": 1252,
+    "responsibilities": [
+      {
+        "stage": "Stage12",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage12",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage12"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "`AImodels/artifacts/manifest.py`, MCA/CBond manifests, model-store metadata",
+    "disposition": [
+      "`operations/inference/artifacts/` plus `adapters/inference/artifacts.py`",
+      "current manifest functions return dictionaries, not an existing `ArtifactManifest` class; retain one schema/resolver and isolate filesystem/hash I/O; any new public DTO needs explicit review"
+    ],
+    "id": "9.2-002",
+    "plan_line": 1253,
+    "responsibilities": [
+      {
+        "stage": "Stage8D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "`AImodels/artifacts/registry.py`, `resolver.py`",
+    "disposition": [
+      "`operations/inference/artifacts/`",
+      "retain one artifact discovery/install/resolve workflow; no carrier or rule owns a model cache"
+    ],
+    "id": "9.2-003",
+    "plan_line": 1254,
+    "responsibilities": [
+      {
+        "stage": "Stage8D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage11",
+    "current": "`AImodels/artifacts/cli.py`, CBond/MCA CLI modules",
+    "disposition": [
+      "`commands/models.py`, `commands/cbond.py`, `commands/mca.py`",
+      "preserve CLI names/arguments while removing command logic from scientific packages"
+    ],
+    "id": "9.2-004",
+    "plan_line": 1255,
+    "responsibilities": [
+      {
+        "stage": "Stage11",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage11",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage11"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "`AImodels/cbond/apply.py`, `stage.py`, constants",
+    "disposition": [
+      "`operations/inference/cbond/`",
+      "retain CBond composition/commit semantics and the `is_Nuc_site` distinction"
+    ],
+    "id": "9.2-005",
+    "plan_line": 1256,
+    "responsibilities": [
+      {
+        "stage": "Stage8D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "`AImodels/cbond/runtime.py`; MCA `runtime.py`, model/session/tensor code",
+    "disposition": [
+      "`adapters/inference/runtime.py`",
+      "own ONNX/PyTorch/device sessions, tensor conversion, and external runtime errors; operations select and invoke them"
+    ],
+    "id": "9.2-006",
+    "plan_line": 1257,
+    "responsibilities": [
+      {
+        "stage": "Stage8D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "`AImodels/cbond/deploy/` model export/inspection scripts",
+    "disposition": [
+      "repository `tools/model_deployment/cbond/`",
+      "keep non-runtime deployment tooling out of the importable package; no second copy remains under operations"
+    ],
+    "id": "9.2-007",
+    "plan_line": 1258,
+    "responsibilities": [
+      {
+        "stage": "Stage8D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "MCA `api`, `batching`, `pipeline`, `resources`, `workers`, CPU/GPU predictors and GPU consumer",
+    "disposition": [
+      "`operations/inference/mca/`",
+      "retain current CPU default, bounded CPU/GPU execution, GPU threshold/resource policy, rolling admission, and public workflow API; predictors invoke the runtime adapter"
+    ],
+    "id": "9.2-008",
+    "plan_line": 1259,
+    "responsibilities": [
+      {
+        "stage": "Stage8D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "MCA `gpu_memory.py`",
+    "disposition": [
+      "system/device probe in `adapters/inference/runtime.py`; resource decision in `operations/inference/mca/`",
+      "split external GPU-memory observation from batch/window/device policy"
+    ],
+    "id": "9.2-009",
+    "plan_line": 1260,
+    "responsibilities": [
+      {
+        "stage": "Stage8D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "MCA `site_detection.py`",
+    "disposition": [
+      "`rules/chemistry/mca_sites/`",
+      "retain ordered SMARTS priority, first-match naming, site eligibility, `is_Nuc_site`, and symmetry/dedup semantics as deterministic chemical rules"
+    ],
+    "id": "9.2-010",
+    "plan_line": 1261,
+    "responsibilities": [
+      {
+        "stage": "Stage8D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "MCA `conformer.py` direct RDKit backend",
+    "disposition": [
+      "`adapters/rdkit` owns the selected sole route",
+      "after Plan17 minimum MCA closure, adapt its native route without algorithm changes; if deferred, relocate the existing ETKDG+MMFF/UFF implementation intact. No ETKDG-only substitution, duplicate production route, or fabricated parity"
+    ],
+    "id": "9.2-011",
+    "plan_line": 1262,
+    "responsibilities": [
+      {
+        "stage": "Stage8D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "MCA `featurizer`, graph input bridges, `data_extract.py`",
+    "disposition": [
+      "`adapters/structure/inference.py` plus `adapters/inference/`",
+      "separate fact extraction/native packing from model tensor/session translation; never write carriers"
+    ],
+    "id": "9.2-012",
+    "plan_line": 1263,
+    "responsibilities": [
+      {
+        "stage": "Stage8D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "MCA `MoleculePrediction` and public inference DTOs",
+    "disposition": [
+      "`operations/inference/mca/results.py`",
+      "preserve the public return DTOs independently of whether a result is attached to a Molecule"
+    ],
+    "id": "9.2-013",
+    "plan_line": 1264,
+    "responsibilities": [
+      {
+        "stage": "Stage8D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage7C",
+    "current": "attached MCA record",
+    "disposition": [
+      "`structure/results.py`",
+      "one identity/status-bound attachment composes the existing immutable prediction payload; no copied per-Atom value arrays or second prediction schema. `MCAResultRecord` is a conceptual candidate, counted if a new class is actually required"
+    ],
+    "id": "9.2-014",
+    "plan_line": 1265,
+    "responsibilities": [
+      {
+        "stage": "Stage7C",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage7C",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7C"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "MCA serialization/validation",
+    "disposition": [
+      "DTO in `operations/inference/mca/results.py`; encoding in `adapters/inference/serialization.py`; structure/RDKit translation in their adapters; domain validation in `rules/chemistry/mca_sites/`",
+      "split each responsibility and delete the mixed serializer implementation"
+    ],
+    "id": "9.2-015",
+    "plan_line": 1266,
+    "responsibilities": [
+      {
+        "stage": "Stage8D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage3",
+    "current": "`ChemData/ElementProperties.json`",
+    "disposition": [
+      "`reference/data/element_properties.json`",
+      "move and load through one immutable reference module"
+    ],
+    "id": "9.2-016",
+    "plan_line": 1267,
+    "responsibilities": [
+      {
+        "stage": "Stage3",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage3",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage3"
+    ]
+  },
+  {
+    "completion_stage": "Stage3",
+    "current": "`ChemData/ideal_bond_length.json`",
+    "disposition": [
+      "`reference/data/ideal_bond_lengths.json`",
+      "move and remove Bond class-level file-loading logic"
+    ],
+    "id": "9.2-017",
+    "plan_line": 1268,
+    "responsibilities": [
+      {
+        "stage": "Stage3",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage3",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage3"
+    ]
+  },
+  {
+    "completion_stage": "Stage11",
+    "current": "active `mol_assemble/FragTemplete.json`",
+    "disposition": [
+      "`operations/assembly/data/fragment_template.json`",
+      "this code-referenced file is the provisional canonical default assembly asset; rename and package/test it with the operation"
+    ],
+    "id": "9.2-018",
+    "plan_line": 1269,
+    "responsibilities": [
+      {
+        "stage": "Stage8E",
+        "work": "single assembly consumer/schema"
+      },
+      {
+        "stage": "Stage11",
+        "work": "Decision13 governed asset relocation or explicit deferral"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8E",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage11",
+      "Stage8E"
+    ]
+  },
+  {
+    "completion_stage": "Stage11",
+    "current": "zero-reference `ChemData/MolFragTemplate`, `MolFrameTemplate` candidates",
+    "disposition": [
+      "merge into the canonical assembly schema or delete",
+      "compare schema/content during Stage 1; never move two apparent template sources forward as parallel defaults"
+    ],
+    "id": "9.2-019",
+    "plan_line": 1270,
+    "responsibilities": [
+      {
+        "stage": "Stage11",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage11",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage11"
+    ]
+  },
+  {
+    "completion_stage": "Stage11",
+    "current": "`ChemData/StructQueryTemplate`",
+    "disposition": [
+      "`rules/chemistry/substructure/data/`",
+      "move only if still used; otherwise delete after zero-reference audit"
+    ],
+    "id": "9.2-020",
+    "plan_line": 1271,
+    "responsibilities": [
+      {
+        "stage": "Stage11",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage11",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage11"
+    ]
+  },
+  {
+    "completion_stage": "Stage11",
+    "current": "`ChemData/coformers`, `ChemData/solvent`",
+    "disposition": [
+      "governed `hotpot/dataset/data/` assets",
+      "move molecule collections out of the code package with manifest/schema updates; do not instantiate all solvents at import time"
+    ],
+    "id": "9.2-021",
+    "plan_line": 1272,
+    "responsibilities": [
+      {
+        "stage": "Stage11",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage11",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage11"
+    ]
+  },
+  {
+    "completion_stage": "Stage11",
+    "current": "`MolProps/`",
+    "disposition": [
+      "governed dataset assets plus a tested query operation if required",
+      "split spreadsheets/docs from code; delete empty or uncalled API rather than preserve a second property system"
+    ],
+    "id": "9.2-022",
+    "plan_line": 1273,
+    "responsibilities": [
+      {
+        "stage": "Stage11",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage11",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage11"
+    ]
+  },
+  {
+    "completion_stage": "Stage2",
+    "current": "`_clib/`",
+    "disposition": [
+      "none",
+      "delete generated objects, SWIG wrapper, C/H/I files after build and reference audit; it has no active implementation caller"
+    ],
+    "id": "9.2-023",
+    "plan_line": 1274,
+    "responsibilities": [
+      {
+        "stage": "Stage2",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage2",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage2"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`_io/`",
+    "disposition": [
+      "`adapters/io/`",
+      "split reader, writer, and format handlers; remove `sys.modules` cycle workaround"
+    ],
+    "id": "9.2-024",
+    "plan_line": 1275,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage10",
+    "current": "`_native/`",
+    "disposition": [
+      "`adapters/native/`",
+      "retain one generic field-selective molecule transport and shared C++ headers"
+    ],
+    "id": "9.2-025",
+    "plan_line": 1276,
+    "responsibilities": [
+      {
+        "stage": "Stage3",
+        "work": "single transport/schema reuse boundary"
+      },
+      {
+        "stage": "Stage10",
+        "work": "physical Python/C++ transport relocation"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage10",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage10",
+      "Stage3"
+    ]
+  },
+  {
+    "completion_stage": "Stage9",
+    "current": "`bundle.py`",
+    "disposition": [
+      "`structure/bundle.py`",
+      "retain MolBundle as a carrier collection; move PyG conversion to adapter"
+    ],
+    "id": "9.2-026",
+    "plan_line": 1277,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "PyG translation boundary"
+      },
+      {
+        "stage": "Stage9",
+        "work": "MolBundle collection owner"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage9",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A",
+      "Stage9"
+    ]
+  },
+  {
+    "completion_stage": "Stage8A",
+    "current": "`MolecularFacts`, `MolecularFactsIdentity`, `ComponentIdentity`, `HydrogenInventory`, `SemanticBond`",
+    "disposition": [
+      "one scientific-state snapshot contract with necessary composed values",
+      "preserve the useful MolecularFacts semantic projection and component/H/semantic-bond constituents; align source dependencies with shared identities and merge only audit-confirmed synonyms. A `ScientificStateSnapshot` rename is a public proposal, not proof these five types are duplicates"
+    ],
+    "id": "9.2-027",
+    "plan_line": 1278,
+    "responsibilities": [
+      {
+        "stage": "Stage8A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8A"
+    ]
+  },
+  {
+    "completion_stage": "Stage8A",
+    "current": "scientific quantity/admissibility/authority/confidence enums, findings and provider values/evidence",
+    "disposition": [
+      "`rules/chemistry/scientific_state/contracts.py`",
+      "immutable rule vocabulary and findings have this one owner"
+    ],
+    "id": "9.2-028",
+    "plan_line": 1279,
+    "responsibilities": [
+      {
+        "stage": "Stage8A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8A"
+    ]
+  },
+  {
+    "completion_stage": "Stage8A",
+    "current": "policy/toggle/provider-set/budget/requirements/selection contracts",
+    "disposition": [
+      "`operations/calculation/scientific_state/contracts.py`",
+      "execution choice and orchestration configuration are operation contracts, not facts or rules"
+    ],
+    "id": "9.2-029",
+    "plan_line": 1280,
+    "responsibilities": [
+      {
+        "stage": "Stage8A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8A"
+    ]
+  },
+  {
+    "completion_stage": "Stage8A",
+    "current": "`BackendIdentity`/`BackendContext` protocols",
+    "disposition": [
+      "`adapters/calculation/contracts.py`",
+      "define generic scientific backend/projection identity once at the external boundary; inference and force-field wrapper-specific contracts remain with their named standalone/adapters and do not redeclare it"
+    ],
+    "id": "9.2-030",
+    "plan_line": 1281,
+    "responsibilities": [
+      {
+        "stage": "Stage8A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8A"
+    ]
+  },
+  {
+    "completion_stage": "Stage8A",
+    "current": "state-composition candidates/decisions/resolution reports",
+    "disposition": [
+      "`operations/calculation/scientific_state/composition/contracts.py`",
+      "retain operational search/result DTOs without declaring a second Molecule snapshot or representation identity"
+    ],
+    "id": "9.2-031",
+    "plan_line": 1282,
+    "responsibilities": [
+      {
+        "stage": "Stage8A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8A"
+    ]
+  },
+  {
+    "completion_stage": "Stage8A",
+    "current": "`calculator/formal_charges.py`, `molecular_charge.py`, `charge/`, `oxidation_state/`, `electronic_state/`, `legality.py`",
+    "disposition": [
+      "`rules/chemistry/scientific_state/`",
+      "retain deterministic conservation, legality, charge, oxidation, electronic-state, coordination-counting, and spin rules as snapshot-to-finding functions"
+    ],
+    "id": "9.2-032",
+    "plan_line": 1283,
+    "responsibilities": [
+      {
+        "stage": "Stage8A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8A"
+    ]
+  },
+  {
+    "completion_stage": "Stage8A",
+    "current": "concrete `state_rules` provider modules, provider base/contracts",
+    "disposition": [
+      "`rules/chemistry/scientific_state/providers/`",
+      "preserve named deterministic providers and evidence without controller or registry state"
+    ],
+    "id": "9.2-033",
+    "plan_line": 1284,
+    "responsibilities": [
+      {
+        "stage": "Stage8A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8A"
+    ]
+  },
+  {
+    "completion_stage": "Stage8A",
+    "current": "`state_rules/manifest.py`, immutable rule tables, neutral-atom/oxidation-state JSON",
+    "disposition": [
+      "`rules/chemistry/scientific_state/data/`",
+      "keep these rule-specific scientific sources immutable and explicitly loaded; universal element facts alone belong in `reference/data`"
+    ],
+    "id": "9.2-034",
+    "plan_line": 1285,
+    "responsibilities": [
+      {
+        "stage": "Stage8A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8A"
+    ]
+  },
+  {
+    "completion_stage": "Stage8A",
+    "current": "`state_rules/controller.py`, profile decision/sets, registry, defaults, execution/state selection, eligibility, requirements, resolver",
+    "disposition": [
+      "`operations/calculation/scientific_state/`",
+      "own provider selection, policy choice, registry construction, conflict resolution, and sequencing; these are not chemistry laws"
+    ],
+    "id": "9.2-035",
+    "plan_line": 1286,
+    "responsibilities": [
+      {
+        "stage": "Stage8A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8A"
+    ]
+  },
+  {
+    "completion_stage": "Stage8A",
+    "current": "`calculator/state_composition/`",
+    "disposition": [
+      "`operations/calculation/scientific_state/composition/`",
+      "preserve candidate expansion/search/coupling/resolution, serialization, and decision artifacts as one operation workflow; do not duplicate formula/composition rules"
+    ],
+    "id": "9.2-036",
+    "plan_line": 1287,
+    "responsibilities": [
+      {
+        "stage": "Stage8A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8A"
+    ]
+  },
+  {
+    "completion_stage": "Stage8A",
+    "current": "Molecule extraction embedded in resolvers/calculators",
+    "disposition": [
+      "`adapters/structure/scientific_state.py`",
+      "construct the one immutable scientific-state snapshot and contain all carrier awareness"
+    ],
+    "id": "9.2-037",
+    "plan_line": 1288,
+    "responsibilities": [
+      {
+        "stage": "Stage8A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8A"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "`calculator/mca_inference.py`",
+    "disposition": [
+      "`operations/inference/mca/`",
+      "move out of general scientific-state calculation; replace arbitrary result storage"
+    ],
+    "id": "9.2-038",
+    "plan_line": 1289,
+    "responsibilities": [
+      {
+        "stage": "Stage7C",
+        "work": "remove duplicated attached MCA values"
+      },
+      {
+        "stage": "Stage8D",
+        "work": "relocate the remaining inference operation"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7C",
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage2",
+    "current": "`calculator/base.py`",
+    "disposition": [
+      "none",
+      "delete the empty `Calculator` class"
+    ],
+    "id": "9.2-039",
+    "plan_line": 1290,
+    "responsibilities": [
+      {
+        "stage": "Stage2",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage2",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage2"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`call_thermo.py`",
+    "disposition": [
+      "`adapters/thermo/chemical.py` plus physics result contract",
+      "current module is an external `thermo`/RDKit bridge, not a native Hotpot rule"
+    ],
+    "id": "9.2-040",
+    "plan_line": 1291,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "`conformers/contracts.py`, `sampler.py`",
+    "disposition": [
+      "`operations/conformers/`",
+      "preserve backend-neutral seam and deterministic seed semantics"
+    ],
+    "id": "9.2-041",
+    "plan_line": 1292,
+    "responsibilities": [
+      {
+        "stage": "Stage8D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "`conformers/adapters.py`",
+    "disposition": [
+      "RDKit/Open Babel adapter subpackages",
+      "split backend-specific code; no mixed toolkit adapter module"
+    ],
+    "id": "9.2-042",
+    "plan_line": 1293,
+    "responsibilities": [
+      {
+        "stage": "Stage8D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`convert.py`",
+    "disposition": [
+      "`adapters/conversion.py`",
+      "preserve supported-object dispatch with lazy external imports"
+    ],
+    "id": "9.2-043",
+    "plan_line": 1294,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage9",
+    "current": "`core.py`",
+    "disposition": [
+      "split per Section 9.1, then delete",
+      "no compatibility re-export module in the recommended plan"
+    ],
+    "id": "9.2-044",
+    "plan_line": 1295,
+    "responsibilities": [
+      {
+        "stage": "Stage9",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage9",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage9"
+    ]
+  },
+  {
+    "completion_stage": "Stage2",
+    "current": "`core_func.pyx`",
+    "disposition": [
+      "none",
+      "delete after zero-reference and build audit"
+    ],
+    "id": "9.2-045",
+    "plan_line": 1296,
+    "responsibilities": [
+      {
+        "stage": "Stage2",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage2",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage2"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`core_utils.py`",
+    "disposition": [
+      "`adapters/io` and named topology utilities",
+      "move `read_mol`; relocate or remove `atom_idx_pair_to_bond_idx` according to consumers"
+    ],
+    "id": "9.2-046",
+    "plan_line": 1297,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`crystal.py`",
+    "disposition": [
+      "`structure/crystal.py`, mathematics cell conversion, Open Babel adapter",
+      "keep one canonical six-parameter `Crystal` record; remove Molecule back-reference, Open Babel object, `LatticeGroup`/space-group placeholders; preserve approved matrix convention"
+    ],
+    "id": "9.2-047",
+    "plan_line": 1298,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "characterized cell matrix mathematics"
+      },
+      {
+        "stage": "Stage7A",
+        "work": "six-parameter carrier and fresh toolkit adapter"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage4",
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`draw.py`, `fonts/`, `draw.md`",
+    "disposition": [
+      "`adapters/visualization/` and docs",
+      "retain presentation capability outside domain carriers/rules"
+    ],
+    "id": "9.2-048",
+    "plan_line": 1299,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage5",
+    "current": "`elements.py`",
+    "disposition": [
+      "`reference/elements.py`, `reference/properties.py`, and `rules/chemistry/elements.py`",
+      "split immutable source values from classification/electron/valence calculations; remove Open Babel dependency"
+    ],
+    "id": "9.2-049",
+    "plan_line": 1300,
+    "responsibilities": [
+      {
+        "stage": "Stage5",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage5",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage5"
+    ]
+  },
+  {
+    "completion_stage": "Stage8B",
+    "current": "`forcefields/coordinates.py` pure coordinate proposal helpers and pure acceptance/placement criteria",
+    "disposition": [
+      "`rules/physics/forcefields/`",
+      "move `_perturbed_coordinates(...)`-style snapshot-to-value/evidence kernels only; no backend call or carrier write"
+    ],
+    "id": "9.2-050",
+    "plan_line": 1301,
+    "responsibilities": [
+      {
+        "stage": "Stage8B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8B"
+    ]
+  },
+  {
+    "completion_stage": "Stage8B",
+    "current": "`forcefields.coordinates.perturb(mol, ...)` and other coordinate write facades",
+    "disposition": [
+      "`operations/forcefields/`",
+      "retain the user/workflow operation while routing its generated coordinates through one atomic coordinate commit"
+    ],
+    "id": "9.2-051",
+    "plan_line": 1302,
+    "responsibilities": [
+      {
+        "stage": "Stage8B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8B"
+    ]
+  },
+  {
+    "completion_stage": "Stage8B",
+    "current": "carrier extraction in `coordination.py` and `topology.py`",
+    "disposition": [
+      "`adapters/structure/forcefields.py`",
+      "construct force-field/topology snapshots and operation-local `TopologySelection`; no second graph representation"
+    ],
+    "id": "9.2-052",
+    "plan_line": 1303,
+    "responsibilities": [
+      {
+        "stage": "Stage8B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8B"
+    ]
+  },
+  {
+    "completion_stage": "Stage8B",
+    "current": "placement/coordination sequencing in `coordination.py`; `ligand.py`; `repair.py`",
+    "disposition": [
+      "`operations/forcefields/`",
+      "these choose targets, mutate working structures, retry, or repair and therefore are operations, not pure rules; delete any unimplemented placement hook"
+    ],
+    "id": "9.2-053",
+    "plan_line": 1304,
+    "responsibilities": [
+      {
+        "stage": "Stage8B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8B"
+    ]
+  },
+  {
+    "completion_stage": "Stage8B",
+    "current": "`forcefields/auto.py`, `attempts.py`, `ff.py`, `optimizer.py`, `stage.py`, `trajectory.py`, `workers.py`, `workflows.py`, `working_copy.py`",
+    "disposition": [
+      "`operations/forcefields/`",
+      "retain workflow, transaction, trajectory, and atomic commit behavior; replace hidden-bond mutation with task-local topology masks"
+    ],
+    "id": "9.2-054",
+    "plan_line": 1305,
+    "responsibilities": [
+      {
+        "stage": "Stage8B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8B"
+    ]
+  },
+  {
+    "completion_stage": "Stage8B",
+    "current": "`forcefields/contracts.py`, settings, reports, and errors",
+    "disposition": [
+      "rule findings in `rules/physics/forcefields/`; operation reports/errors in `operations/forcefields/`; backend protocols in `adapters/openbabel/`",
+      "split the mixed contract file by semantic owner without duplicating dataclasses; import wrapper-owned types such as `obWrappers.contracts.ConvergenceLevel` rather than redeclaring them"
+    ],
+    "id": "9.2-055",
+    "plan_line": 1306,
+    "responsibilities": [
+      {
+        "stage": "Stage8B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8B"
+    ]
+  },
+  {
+    "completion_stage": "Stage8B",
+    "current": "`forcefields/backend.py`",
+    "disposition": [
+      "thin `adapters/openbabel/forcefields.py` facade",
+      "invoke the retained standalone `obWrapper` only; migrate/delete direct Open Babel force-field bodies so Hotpot has no second backend implementation"
+    ],
+    "id": "9.2-056",
+    "plan_line": 1307,
+    "responsibilities": [
+      {
+        "stage": "Stage8B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8B"
+    ]
+  },
+  {
+    "completion_stage": "Stage8B",
+    "current": "`native_packing.py`, `native_adapters.py`, binding/translation C++",
+    "disposition": [
+      "`adapters/structure/forcefields.py`, `adapters/native/`",
+      "own field-selective packing, Python/C++ conversion, and binding code only"
+    ],
+    "id": "9.2-057",
+    "plan_line": 1308,
+    "responsibilities": [
+      {
+        "stage": "Stage8B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8B"
+    ]
+  },
+  {
+    "completion_stage": "Stage8B",
+    "current": "native pure placement/radii/target-selection kernels",
+    "disposition": [
+      "`rules/physics/forcefields/_native/`",
+      "classify by pure rule semantics even when compiled; preserve one implementation and ABI tests"
+    ],
+    "id": "9.2-058",
+    "plan_line": 1309,
+    "responsibilities": [
+      {
+        "stage": "Stage8B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8B"
+    ]
+  },
+  {
+    "completion_stage": "Stage8B",
+    "current": "native structure session, optimization/untangling/workflow/trajectory controllers",
+    "disposition": [
+      "`operations/forcefields/_native/`",
+      "classify by orchestration semantics; build may link them into one extension but source ownership remains explicit"
+    ],
+    "id": "9.2-059",
+    "plan_line": 1310,
+    "responsibilities": [
+      {
+        "stage": "Stage8B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8B"
+    ]
+  },
+  {
+    "completion_stage": "Stage11",
+    "current": "`forcefields/cli.py`, `cli_doc.md`",
+    "disposition": [
+      "`commands/ff.py` and command documentation",
+      "preserve command name/arguments while removing CLI code from the operation package"
+    ],
+    "id": "9.2-060",
+    "plan_line": 1311,
+    "responsibilities": [
+      {
+        "stage": "Stage11",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage11",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage11"
+    ]
+  },
+  {
+    "completion_stage": "Stage4",
+    "current": "`geometry/object.py`, `relation.py`, `settings.py`, native kernels",
+    "disposition": [
+      "`rules/mathematics/geometry/`",
+      "move unchanged first; preserve conventions and native ABI behavior"
+    ],
+    "id": "9.2-061",
+    "plan_line": 1312,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage4",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage4"
+    ]
+  },
+  {
+    "completion_stage": "Stage4",
+    "current": "`geometry/convert.py`",
+    "disposition": [
+      "`adapters/structure/geometry.py`",
+      "it understands Molecule/Bond/Ring and therefore is not pure mathematics"
+    ],
+    "id": "9.2-062",
+    "plan_line": 1313,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage4",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage4"
+    ]
+  },
+  {
+    "completion_stage": "Stage4",
+    "current": "`graph/components.py`, `cycles.py`, `matrix.py`, `paths.py`, `traversal.py`, native kernels",
+    "disposition": [
+      "`rules/mathematics/graph/`",
+      "move with deterministic semantics unchanged"
+    ],
+    "id": "9.2-063",
+    "plan_line": 1314,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage4",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage4"
+    ]
+  },
+  {
+    "completion_stage": "Stage4",
+    "current": "`graph/spectrum.py`",
+    "disposition": [
+      "`rules/chemistry/descriptors/graph_spectrum.py` plus reusable matrix math",
+      "separate graph linear algebra from chemical descriptor policy and reuse `rules/chemistry/elements.py` rather than duplicate electron configuration logic"
+    ],
+    "id": "9.2-064",
+    "plan_line": 1315,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage4",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage4"
+    ]
+  },
+  {
+    "completion_stage": "Stage5",
+    "current": "`kekulize/_protocols.py`, `aromaticity.py`, `assignment.py`, scientific settings",
+    "disposition": [
+      "`rules/chemistry/bonding/`",
+      "retain pure protocol/snapshot tests and deterministic aromatic/Kekule assignment proposal code"
+    ],
+    "id": "9.2-065",
+    "plan_line": 1316,
+    "responsibilities": [
+      {
+        "stage": "Stage5",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage5",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage5"
+    ]
+  },
+  {
+    "completion_stage": "Stage5",
+    "current": "`kekulize/workflow.py` and write-back paths",
+    "disposition": [
+      "`operations/chemistry.py`",
+      "validate and atomically commit the one coupled Atom/Bond representation proposal; no Ring-level write path"
+    ],
+    "id": "9.2-066",
+    "plan_line": 1317,
+    "responsibilities": [
+      {
+        "stage": "Stage5",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage5",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage5"
+    ]
+  },
+  {
+    "completion_stage": "Stage8E",
+    "current": "`mol_assemble/`",
+    "disposition": [
+      "`operations/assembly/`",
+      "retain composition workflow; replace wildcard exports with explicit surface"
+    ],
+    "id": "9.2-067",
+    "plan_line": 1318,
+    "responsibilities": [
+      {
+        "stage": "Stage8E",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8E",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8E"
+    ]
+  },
+  {
+    "completion_stage": "Stage8E",
+    "current": "`mol_statistics.py`",
+    "disposition": [
+      "none under the recommended Decision 20 outcome",
+      "delete incomplete `ComplexStatistics`; if the owner rejects that recommendation, complete/test it under a separately added operation node before migration"
+    ],
+    "id": "9.2-068",
+    "plan_line": 1319,
+    "responsibilities": [
+      {
+        "stage": "Stage8E",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8E",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8E"
+    ]
+  },
+  {
+    "completion_stage": "Stage2",
+    "current": "`ob2chem.py`",
+    "disposition": [
+      "none",
+      "delete duplicate compatibility layer after migration to the one Open Babel adapter"
+    ],
+    "id": "9.2-069",
+    "plan_line": 1320,
+    "responsibilities": [
+      {
+        "stage": "Stage2",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage2",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage2"
+    ]
+  },
+  {
+    "completion_stage": "Stage7B",
+    "current": "`obconvert.py`",
+    "disposition": [
+      "`adapters/openbabel/conversion.py` and a named bond-perception operation",
+      "split lossless translation from `ConnectTheDots`/bond-order behavior"
+    ],
+    "id": "9.2-070",
+    "plan_line": 1321,
+    "responsibilities": [
+      {
+        "stage": "Stage5",
+        "work": "named bond-perception assignment"
+      },
+      {
+        "stage": "Stage7A",
+        "work": "lossless Open Babel translation"
+      },
+      {
+        "stage": "Stage7B",
+        "work": "task-local topology selections"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage5",
+      "Stage7A",
+      "Stage7B"
+    ]
+  },
+  {
+    "completion_stage": "Stage10",
+    "current": "`obWrappers/`",
+    "disposition": [
+      "retain as standalone `cheminfo/obWrappers/`; call it through `adapters/openbabel`",
+      "preserve Python/C++ standalone contracts, implementation, and direct component use; do not duplicate wrapper code inside the adapter"
+    ],
+    "id": "9.2-071",
+    "plan_line": 1322,
+    "responsibilities": [
+      {
+        "stage": "Stage10",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage10",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage10"
+    ]
+  },
+  {
+    "completion_stage": "Stage2",
+    "current": "`org_compounds.py`",
+    "disposition": [
+      "none",
+      "delete the broken code path; any future real molecule collection enters through governed dataset admission rather than reviving this module"
+    ],
+    "id": "9.2-072",
+    "plan_line": 1323,
+    "responsibilities": [
+      {
+        "stage": "Stage2",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage2",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage2"
+    ]
+  },
+  {
+    "completion_stage": "Stage2",
+    "current": "`parse_smarts.py`",
+    "disposition": [
+      "none",
+      "delete explicitly damaged, unused duplicate parser"
+    ],
+    "id": "9.2-073",
+    "plan_line": 1324,
+    "responsibilities": [
+      {
+        "stage": "Stage2",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage2",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage2"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`pubchem.py`, `pubchem.md`",
+    "disposition": [
+      "`adapters/pubchem.py` and docs",
+      "consolidate duplicated module-level and service methods into one implementation while retaining approved convenience functions"
+    ],
+    "id": "9.2-074",
+    "plan_line": 1325,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage10",
+    "current": "`rdWrappers/`",
+    "disposition": [
+      "retain as standalone `cheminfo/rdWrappers/`; call it through `adapters/rdkit`",
+      "preserve fixed RDKit version, Python/C/C++ contracts, CMake attach support, and standalone tests; do not duplicate wrapper code inside the adapter"
+    ],
+    "id": "9.2-075",
+    "plan_line": 1326,
+    "responsibilities": [
+      {
+        "stage": "Stage10",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage10",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage10"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`rdconvert.py`",
+    "disposition": [
+      "`adapters/rdkit/conversion.py` and `adapters/rdkit/stereo.py`",
+      "separate molecule conversion from stereo transport translation"
+    ],
+    "id": "9.2-076",
+    "plan_line": 1327,
+    "responsibilities": [
+      {
+        "stage": "Stage6",
+        "work": "stereo transport translation"
+      },
+      {
+        "stage": "Stage7A",
+        "work": "remaining RDKit conversion boundary"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage6",
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`rdworks.py`, `rdwork.md`",
+    "disposition": [
+      "`adapters/rdkit/fingerprints.py` and docs",
+      "retain called/tested fingerprint functions; delete zero-use utilities after audit"
+    ],
+    "id": "9.2-077",
+    "plan_line": 1328,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage8C",
+    "current": "`search/` public composition",
+    "disposition": [
+      "`operations/search/`",
+      "retain Searcher/Substructure/Query/Hit API and fixed enumeration semantics"
+    ],
+    "id": "9.2-078",
+    "plan_line": 1329,
+    "responsibilities": [
+      {
+        "stage": "Stage8C",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8C",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8C"
+    ]
+  },
+  {
+    "completion_stage": "Stage8C",
+    "current": "`search/smarts.py`, syntax, predicate IR, semantics",
+    "disposition": [
+      "`rules/chemistry/substructure/`",
+      "retain one SMARTS parser and chemical predicate implementation"
+    ],
+    "id": "9.2-079",
+    "plan_line": 1330,
+    "responsibilities": [
+      {
+        "stage": "Stage8C",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8C",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8C"
+    ]
+  },
+  {
+    "completion_stage": "Stage8C",
+    "current": "`search/_native` reusable RI matcher",
+    "disposition": [
+      "`rules/mathematics/graph_matching/`",
+      "keep one RI-style native algorithm over the sole shared native CSR Graph; no VF2/backend selector and no search-private graph representation"
+    ],
+    "id": "9.2-080",
+    "plan_line": 1331,
+    "responsibilities": [
+      {
+        "stage": "Stage8C",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8C",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8C"
+    ]
+  },
+  {
+    "completion_stage": "Stage8C",
+    "current": "`search/native.py` Molecule packing",
+    "disposition": [
+      "`adapters/structure/substructure.py`",
+      "pack current facts into task-local native input; callable predicates alone return to Python"
+    ],
+    "id": "9.2-081",
+    "plan_line": 1332,
+    "responsibilities": [
+      {
+        "stage": "Stage8C",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8C",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8C"
+    ]
+  },
+  {
+    "completion_stage": "Stage8C",
+    "current": "`smarts.md`",
+    "disposition": [
+      "substructure operation/rule docs",
+      "update paths and test examples verbatim"
+    ],
+    "id": "9.2-082",
+    "plan_line": 1333,
+    "responsibilities": [
+      {
+        "stage": "Stage8C",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage8C",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8C"
+    ]
+  },
+  {
+    "completion_stage": "Stage2",
+    "current": "`solvents.py`",
+    "disposition": [
+      "none",
+      "delete the broken import-time singleton, missing-sheet dependency, empty methods, and semantically empty Molecule subclass; real solvent assets, if admitted, use the governed dataset/query layer"
+    ],
+    "id": "9.2-083",
+    "plan_line": 1334,
+    "responsibilities": [
+      {
+        "stage": "Stage2",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage2",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage2"
+    ]
+  },
+  {
+    "completion_stage": "Stage6",
+    "current": "`stereo.py` payload schema and fact dataclasses",
+    "disposition": [
+      "`structure/stereo.py`",
+      "retain the public transport schema; split stored stereo records/source ledger from current Atom/Bond facts"
+    ],
+    "id": "9.2-084",
+    "plan_line": 1335,
+    "responsibilities": [
+      {
+        "stage": "Stage6",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage6",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage6"
+    ]
+  },
+  {
+    "completion_stage": "Stage6",
+    "current": "`stereo.py` public functions/schema exports",
+    "disposition": [
+      "maintained thin `cheminfo/stereo.py` facade",
+      "preserve the five Plan 17 public signatures and complete public schema class identities exactly; facade delegates to one operation/rule implementation"
+    ],
+    "id": "9.2-085",
+    "plan_line": 1336,
+    "responsibilities": [
+      {
+        "stage": "Stage6",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage6",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage6"
+    ]
+  },
+  {
+    "completion_stage": "Stage6",
+    "current": "`stereo.py` pure remap proposals, validation, assignment, alignment, Gate 2-7",
+    "disposition": [
+      "`rules/chemistry/stereochemistry/`",
+      "split by algebra, topology, coordinate classification, validation, assignment, and alignment; preserve all gates"
+    ],
+    "id": "9.2-086",
+    "plan_line": 1337,
+    "responsibilities": [
+      {
+        "stage": "Stage6",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage6",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage6"
+    ]
+  },
+  {
+    "completion_stage": "Stage6",
+    "current": "`stereo.py` payload decomposition/remap commit",
+    "disposition": [
+      "`adapters/structure/stereo.py` plus `operations/chemistry.py`",
+      "build immutable updates, validate once, and commit; rules never write Molecule"
+    ],
+    "id": "9.2-087",
+    "plan_line": 1338,
+    "responsibilities": [
+      {
+        "stage": "Stage6",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.2",
+    "stage": "Stage6",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage6"
+    ]
+  },
+  {
+    "completion_stage": "Stage11",
+    "current": "`hotpot/main/conversion.py` and `hotpot/works/convert.py`",
+    "disposition": [
+      "consolidate into one tested `hotpot/commands/convert.py`; delete duplicate/partial implementation"
+    ],
+    "id": "9.3-001",
+    "plan_line": 1344,
+    "responsibilities": [
+      {
+        "stage": "Stage11",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.3",
+    "stage": "Stage11",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage11"
+    ]
+  },
+  {
+    "completion_stage": "Stage11",
+    "current": "`hotpot/main/optimize.py`, `ml_train.py`",
+    "disposition": [
+      "move command handlers to `hotpot/commands/`; scientific implementation remains in plugins/operations"
+    ],
+    "id": "9.3-002",
+    "plan_line": 1345,
+    "responsibilities": [
+      {
+        "stage": "Stage11",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.3",
+    "stage": "Stage11",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage11"
+    ]
+  },
+  {
+    "completion_stage": "Stage11",
+    "current": "`hotpot/works/gauss.py`",
+    "disposition": [
+      "move the specialized report operation beside the Gaussian plugin or delete if unreferenced"
+    ],
+    "id": "9.3-003",
+    "plan_line": 1346,
+    "responsibilities": [
+      {
+        "stage": "Stage11",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.3",
+    "stage": "Stage11",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage11"
+    ]
+  },
+  {
+    "completion_stage": "Stage11",
+    "current": "`hotpot/main`, `hotpot/works`",
+    "disposition": [
+      "delete after command registry and tests point to the one handler tree"
+    ],
+    "id": "9.3-004",
+    "plan_line": 1347,
+    "responsibilities": [
+      {
+        "stage": "Stage11",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.3",
+    "stage": "Stage11",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage11"
+    ]
+  },
+  {
+    "completion_stage": "Stage12",
+    "current": "`hotpot/__init__.py` RDKit preload",
+    "disposition": [
+      "remove after adapter import-order and installed-wheel tests prove RDKit/Open Babel coexist correctly under lazy loading"
+    ],
+    "id": "9.3-005",
+    "plan_line": 1348,
+    "responsibilities": [
+      {
+        "stage": "Stage12",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.3",
+    "stage": "Stage12",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage12"
+    ]
+  },
+  {
+    "completion_stage": "Stage12",
+    "current": "`hotpot.__init__.py` `sys.path` mutation and global `tempdir`",
+    "disposition": [
+      "remove; use normal package imports and operation-local temporary directories"
+    ],
+    "id": "9.3-006",
+    "plan_line": 1349,
+    "responsibilities": [
+      {
+        "stage": "Stage12",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.3",
+    "stage": "Stage12",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage12"
+    ]
+  },
+  {
+    "completion_stage": "Stage12",
+    "current": "public `hotpot.package_root`",
+    "disposition": [
+      "replace the one plugin consumer with `importlib.resources`; remove from the public surface after repository-wide reference audit"
+    ],
+    "id": "9.3-007",
+    "plan_line": 1350,
+    "responsibilities": [
+      {
+        "stage": "Stage12",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.3",
+    "stage": "Stage12",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage12"
+    ]
+  },
+  {
+    "completion_stage": "Stage12",
+    "current": "`hotpot.__version__.py` and `version()`",
+    "disposition": [
+      "retain one package-version source and the documented `hotpot.version()` callable; package metadata and runtime value must agree"
+    ],
+    "id": "9.3-008",
+    "plan_line": 1351,
+    "responsibilities": [
+      {
+        "stage": "Stage12",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.3",
+    "stage": "Stage12",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage12"
+    ]
+  },
+  {
+    "completion_stage": "Stage9",
+    "current": "`hotpot/pipeline`, `hotpot/ds`, `hotpot/dataset`",
+    "disposition": [
+      "keep their architectural roles; update chemistry imports only"
+    ],
+    "id": "9.3-009",
+    "plan_line": 1352,
+    "responsibilities": [
+      {
+        "stage": "Stage9",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.3",
+    "stage": "Stage9",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage9"
+    ]
+  },
+  {
+    "completion_stage": "Stage9",
+    "current": "`hotpot/plugins`",
+    "disposition": [
+      "retain as external/optional consumers; update all 72 production direct-core import sites and forbid private carrier writes"
+    ],
+    "id": "9.3-010",
+    "plan_line": 1353,
+    "responsibilities": [
+      {
+        "stage": "Stage9",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.3",
+    "stage": "Stage9",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage9"
+    ]
+  },
+  {
+    "completion_stage": "Stage10",
+    "current": "`setup.py`, `pyproject.toml`, package data, stubs, CMake, shell build scripts",
+    "disposition": [
+      "migrate atomically with each native package; test wheel and sdist before old paths disappear"
+    ],
+    "id": "9.3-011",
+    "plan_line": 1354,
+    "responsibilities": [
+      {
+        "stage": "Stage10",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.3",
+    "stage": "Stage10",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage10"
+    ]
+  },
+  {
+    "completion_stage": "Stage12",
+    "current": "README/docs/examples",
+    "disposition": [
+      "update only after approved API paths are fixed; test displayed examples verbatim"
+    ],
+    "id": "9.3-012",
+    "plan_line": 1355,
+    "responsibilities": [
+      {
+        "stage": "Stage12",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.3",
+    "stage": "Stage12",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage12"
+    ]
+  },
+  {
+    "completion_stage": "Stage12",
+    "current": "`hotpot.version()`",
+    "disposition": [
+      "keep",
+      "reads the one runtime/package version source; no eager chemistry backend import"
+    ],
+    "id": "9.6-001",
+    "plan_line": 1419,
+    "responsibilities": [
+      {
+        "stage": "Stage12",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage12",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage12"
+    ]
+  },
+  {
+    "completion_stage": "Stage9",
+    "current": "`hotpot.Molecule`, `Atom`, `Bond`, `BondKind`",
+    "disposition": [
+      "move",
+      "exact same class identities at `hotpot.cheminfo.structure`; top-level exports remain the ordinary user entry points"
+    ],
+    "id": "9.6-002",
+    "plan_line": 1420,
+    "responsibilities": [
+      {
+        "stage": "Stage9",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage9",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage9"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`hotpot.Crystal`",
+    "disposition": [
+      "add export/refactor",
+      "six-parameter value carrier described in Sections 5 and 7; no Molecule back-reference/toolkit object"
+    ],
+    "id": "9.6-003",
+    "plan_line": 1421,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Plan21",
+    "current": "future `MetalCluster`, `Molecule.metal_clusters -> list[MetalCluster]`",
+    "disposition": [
+      "reserve for Plan21",
+      "owner-specified names/relationship; concrete registration, construction, return semantics and export path deferred; no Plan20 runtime addition"
+    ],
+    "id": "9.6-004",
+    "plan_line": 1422,
+    "responsibilities": [
+      {
+        "stage": "Plan21",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Plan21",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": []
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`MolReader`, `MolWriter`, `read_mol`",
+    "disposition": [
+      "move/merge",
+      "one `adapters.io` implementation; public call signatures and supported formats are frozen in Stage 1"
+    ],
+    "id": "9.6-005",
+    "plan_line": 1423,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage9",
+    "current": "`MolBundle`, `to_pyg_dataset`, `is_molecule_input`, `to_hotpot_mol`",
+    "disposition": [
+      "move/refactor",
+      "bundle remains a carrier collection; PyG/external conversion moves to adapters; convenience signatures remain"
+    ],
+    "id": "9.6-006",
+    "plan_line": 1424,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "conversion/PyG adapters"
+      },
+      {
+        "stage": "Stage9",
+        "work": "MolBundle class relocation"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage9",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A",
+      "Stage9"
+    ]
+  },
+  {
+    "completion_stage": "Stage8C",
+    "current": "`Searcher(substructure)`, `has_match(mol)`, `iter_mappings(mol, max_matches=None)`, `search(mol, max_matches=None)`",
+    "disposition": [
+      "move",
+      "`operations.search`; RI semantics, callable-leaf Python behavior, truncation, and deterministic order remain exact"
+    ],
+    "id": "9.6-007",
+    "plan_line": 1425,
+    "responsibilities": [
+      {
+        "stage": "Stage8C",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage8C",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8C"
+    ]
+  },
+  {
+    "completion_stage": "Stage8C",
+    "current": "`Substructure`, `Query`, `QueryAtom`, `QueryBond`, `Hit`, `Hits`, SMARTS errors/semantics",
+    "disposition": [
+      "move",
+      "public composition remains; chemistry predicates and RI execution each have one lower-level owner"
+    ],
+    "id": "9.6-008",
+    "plan_line": 1426,
+    "responsibilities": [
+      {
+        "stage": "Stage8C",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage8C",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8C"
+    ]
+  },
+  {
+    "completion_stage": "Stage6",
+    "current": "five `hotpot.cheminfo.stereo` functions in Section 3.2",
+    "disposition": [
+      "refactor",
+      "signatures stay exact; thin maintained facade invokes extracted rule/operation code"
+    ],
+    "id": "9.6-009",
+    "plan_line": 1427,
+    "responsibilities": [
+      {
+        "stage": "Stage6",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage6",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage6"
+    ]
+  },
+  {
+    "completion_stage": "Stage8C",
+    "current": "`Molecule.build3d(...)`, `optimize(...)`, `search_substructure(...)`, `get_thermo(...)`",
+    "disposition": [
+      "refactor",
+      "signatures remain frozen; bodies become thin operation delegates"
+    ],
+    "id": "9.6-010",
+    "plan_line": 1428,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "thermo adapter"
+      },
+      {
+        "stage": "Stage8B",
+        "work": "build/optimize workflow"
+      },
+      {
+        "stage": "Stage8C",
+        "work": "search operation"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A",
+      "Stage8B",
+      "Stage8C"
+    ]
+  },
+  {
+    "completion_stage": "Stage9",
+    "current": "Molecule graph/geometry/chemistry query properties and methods in Section 7.2",
+    "disposition": [
+      "refactor",
+      "observable return type/order remains unless this matrix or a Section 16 decision explicitly changes it; no cached second implementation"
+    ],
+    "id": "9.6-011",
+    "plan_line": 1429,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "mathematical queries"
+      },
+      {
+        "stage": "Stage5",
+        "work": "chemical queries"
+      },
+      {
+        "stage": "Stage9",
+        "work": "thin carrier facades"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage4",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage4",
+      "Stage5",
+      "Stage9"
+    ]
+  },
+  {
+    "completion_stage": "Stage7C",
+    "current": "`Atom.partial_charge`",
+    "disposition": [
+      "refactor",
+      "read-only optional-float projection of the selected typed partial-charge result; creation/replacement occurs only through the named full-set assignment operation, subject to Decision 22"
+    ],
+    "id": "9.6-012",
+    "plan_line": 1430,
+    "responsibilities": [
+      {
+        "stage": "Stage7C",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage7C",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7C"
+    ]
+  },
+  {
+    "completion_stage": "Stage7C",
+    "current": "`Molecule.properties`",
+    "disposition": [
+      "refactor",
+      "user annotations only; calculated results move to typed result records subject to Decision 7"
+    ],
+    "id": "9.6-013",
+    "plan_line": 1431,
+    "responsibilities": [
+      {
+        "stage": "Stage7C",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage7C",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7C"
+    ]
+  },
+  {
+    "completion_stage": "Stage2",
+    "current": "`Molecule.assign_aromatic()` (empty)",
+    "disposition": [
+      "delete",
+      "`determine_rings_aromatic()` remains the single Molecule-level operation unless separately renamed"
+    ],
+    "id": "9.6-014",
+    "plan_line": 1432,
+    "responsibilities": [
+      {
+        "stage": "Stage2",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage2",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage2"
+    ]
+  },
+  {
+    "completion_stage": "Stage3",
+    "current": "generic `Molecule.setattr`/`Atom.setattr` and broad attribute dictionaries",
+    "disposition": [
+      "delete/refactor",
+      "no public generic mutation; private bulk import uses `_build_molecule(MoleculeRecord)`"
+    ],
+    "id": "9.6-015",
+    "plan_line": 1433,
+    "responsibilities": [
+      {
+        "stage": "Stage3",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage3",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage3"
+    ]
+  },
+  {
+    "completion_stage": "Stage7B",
+    "current": "hide/recover/clear-hidden-Bond family",
+    "disposition": [
+      "delete after migration",
+      "supersedes Plan 19 only with Decision 6 approval; internal callers use private task-local `TopologySelection`"
+    ],
+    "id": "9.6-016",
+    "plan_line": 1434,
+    "responsibilities": [
+      {
+        "stage": "Stage7B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage7B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7B"
+    ]
+  },
+  {
+    "completion_stage": "Stage5",
+    "current": "`update_angles()`, `update_torsions()`, Ring/JointRing mutating Kekule methods, `determine_aromatic(inplace=True)`",
+    "disposition": [
+      "delete",
+      "calculated views are read-only; one Molecule operation owns each write"
+    ],
+    "id": "9.6-017",
+    "plan_line": 1435,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "remove angle/torsion cache update APIs after preserving constraints"
+      },
+      {
+        "stage": "Stage5",
+        "work": "remove mutating Ring APIs atomically with assignment migration"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage5",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage4",
+      "Stage5"
+    ]
+  },
+  {
+    "completion_stage": "Stage4",
+    "current": "`AtomPairs`/mutable `Molecule.atom_pairs`",
+    "disposition": [
+      "refactor, optional rename",
+      "immutable task-produced pair table; public name is resolved by Decision 17, with no parallel alias"
+    ],
+    "id": "9.6-018",
+    "plan_line": 1436,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage4",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage4"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`Crystal.obcell`",
+    "disposition": [
+      "move",
+      "Open Babel adapter function returns a fresh object"
+    ],
+    "id": "9.6-019",
+    "plan_line": 1437,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage2",
+    "current": "placeholder `Crystal.space_group`, `LatticeGroup`, `kekulize_joint_ring()`",
+    "disposition": [
+      "delete until implemented",
+      "no placeholder compatibility surface"
+    ],
+    "id": "9.6-020",
+    "plan_line": 1438,
+    "responsibilities": [
+      {
+        "stage": "Stage2",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage2",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage2"
+    ]
+  },
+  {
+    "completion_stage": "Stage8E",
+    "current": "`ComplexStatistics`",
+    "disposition": [
+      "complete-and-keep or delete",
+      "Decision 20; no incomplete top-level export"
+    ],
+    "id": "9.6-021",
+    "plan_line": 1439,
+    "responsibilities": [
+      {
+        "stage": "Stage8E",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage8E",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8E"
+    ]
+  },
+  {
+    "completion_stage": "Stage8E",
+    "current": "assembly wildcard surface",
+    "disposition": [
+      "replace with explicit exports",
+      "top-level classes and the separately documented advanced generator/action functions are fixed in Decision 20; internal registration/batch helpers remain private"
+    ],
+    "id": "9.6-022",
+    "plan_line": 1440,
+    "responsibilities": [
+      {
+        "stage": "Stage8E",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage8E",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8E"
+    ]
+  },
+  {
+    "completion_stage": "Stage10",
+    "current": "direct `cheminfo.geometry`, `graph`, `forcefields`, `search`, `AImodels.mca`, `calculator`, and `mol_assemble` imports",
+    "disposition": [
+      "hard move or retain path",
+      "Decision 3; whichever choice is approved has one implementation and no compatibility alias tree"
+    ],
+    "id": "9.6-023",
+    "plan_line": 1441,
+    "responsibilities": [
+      {
+        "stage": "Stage10",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage10",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage10"
+    ]
+  },
+  {
+    "completion_stage": "Stage10",
+    "current": "`hotpot.cheminfo.obWrappers` and `rdWrappers` Python APIs",
+    "disposition": [
+      "keep",
+      "standalone components remain directly usable and are invoked by adapters rather than copied"
+    ],
+    "id": "9.6-024",
+    "plan_line": 1442,
+    "responsibilities": [
+      {
+        "stage": "Stage10",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage10",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage10"
+    ]
+  },
+  {
+    "completion_stage": "Stage12",
+    "current": "`hotpot.package_root`, `hotpot.tempdir`",
+    "disposition": [
+      "delete",
+      "resources use `importlib.resources`; temporary paths are operation-local; subject to Decision 21"
+    ],
+    "id": "9.6-025",
+    "plan_line": 1443,
+    "responsibilities": [
+      {
+        "stage": "Stage12",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage12",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage12"
+    ]
+  },
+  {
+    "completion_stage": "Stage9",
+    "current": "`_topology_index` and `_update_topology` concept",
+    "disposition": [
+      "keep/move",
+      "sole synchronous acceleration index in `structure/_topology.py`; no public Graph object"
+    ],
+    "id": "9.6-026",
+    "plan_line": 1449,
+    "responsibilities": [
+      {
+        "stage": "Stage9",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage9",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage9"
+    ]
+  },
+  {
+    "completion_stage": "Stage3",
+    "current": "internal Atom/Bond object identity derived from rows/Python `id()`",
+    "disposition": [
+      "refactor",
+      "immutable Molecule-local `_uid`; public/source `id` and derived `idx` remain distinct"
+    ],
+    "id": "9.6-027",
+    "plan_line": 1450,
+    "responsibilities": [
+      {
+        "stage": "Stage3",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage3",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage3"
+    ]
+  },
+  {
+    "completion_stage": "Stage9",
+    "current": "`_atoms`, `_bonds`, Atom/Bond storage",
+    "disposition": [
+      "refactor/move",
+      "membership remains unique; Atom facts move into `_AtomFactTable` with `_fields.py` projections and `_dependencies.py`; Bond layout changes only where required by canonical semantics"
+    ],
+    "id": "9.6-028",
+    "plan_line": 1451,
+    "responsibilities": [
+      {
+        "stage": "Stage3",
+        "work": "Atom fact table"
+      },
+      {
+        "stage": "Stage9",
+        "work": "remaining carrier membership/class relocation"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage9",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage3",
+      "Stage9"
+    ]
+  },
+  {
+    "completion_stage": "Stage7B",
+    "current": "`_hided_metal_bonds`, `_hided_covalent_bonds`",
+    "disposition": [
+      "delete",
+      "complete Bond collection plus operation-local mask, subject to Decision 6"
+    ],
+    "id": "9.6-029",
+    "plan_line": 1452,
+    "responsibilities": [
+      {
+        "stage": "Stage7B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage7B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7B"
+    ]
+  },
+  {
+    "completion_stage": "Stage5",
+    "current": "`_angles`, `_torsions`, `_rings`, `_ring_indices_cache`, `_ligand_rings`, `_atom_pairs`",
+    "disposition": [
+      "delete",
+      "identity-bound views are produced on request and never carrier-owned"
+    ],
+    "id": "9.6-030",
+    "plan_line": 1453,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "angle/torsion/pair caches"
+      },
+      {
+        "stage": "Stage5",
+        "work": "ring caches"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage4",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage4",
+      "Stage5"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`_obmol`, `_row2idx`",
+    "disposition": [
+      "delete",
+      "fresh conversion objects and direct topology lookup; no persistent external cache"
+    ],
+    "id": "9.6-031",
+    "plan_line": 1454,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage8D",
+    "current": "`_model`, `_environ`",
+    "disposition": [
+      "delete",
+      "explicit operation/runtime inputs"
+    ],
+    "id": "9.6-032",
+    "plan_line": 1455,
+    "responsibilities": [
+      {
+        "stage": "Stage8D",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage8D",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage6",
+    "current": "stored whole `_stereo_payload`",
+    "disposition": [
+      "refactor",
+      "stereo records/source ledger plus canonical Atom/Bond facts; payload assembled/decomposed losslessly"
+    ],
+    "id": "9.6-033",
+    "plan_line": 1456,
+    "responsibilities": [
+      {
+        "stage": "Stage6",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage6",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage6"
+    ]
+  },
+  {
+    "completion_stage": "Stage4",
+    "current": "Angle/Torsion-local mutable constraints",
+    "disposition": [
+      "merge/refactor",
+      "one Molecule-owned `ConstraintSet`; views only project entries"
+    ],
+    "id": "9.6-034",
+    "plan_line": 1457,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage4",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage4"
+    ]
+  },
+  {
+    "completion_stage": "Stage7C",
+    "current": "arbitrary `properties[\"mca\"]` and partial-charge storage",
+    "disposition": [
+      "refactor",
+      "dependency-bound typed records in `structure/results.py`"
+    ],
+    "id": "9.6-035",
+    "plan_line": 1458,
+    "responsibilities": [
+      {
+        "stage": "Stage7C",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage7C",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7C"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "`_io`/`core` `sys.modules` cycle workaround",
+    "disposition": [
+      "delete",
+      "one-way dependency and local facade imports"
+    ],
+    "id": "9.6-036",
+    "plan_line": 1459,
+    "responsibilities": [
+      {
+        "stage": "Stage7A",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage7A",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage7A",
+    "current": "parser/converter field-by-field setter construction",
+    "disposition": [
+      "refactor/add",
+      "`_build_molecule(record: MoleculeRecord) -> Molecule` validates and installs one factual batch"
+    ],
+    "id": "9.6-037",
+    "plan_line": 1460,
+    "responsibilities": [
+      {
+        "stage": "Stage3",
+        "work": "one-shot factual builder contract"
+      },
+      {
+        "stage": "Stage7A",
+        "work": "route I/O and toolkit conversion construction through builder"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage3",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage3",
+      "Stage7A"
+    ]
+  },
+  {
+    "completion_stage": "Stage12",
+    "current": "ad hoc writes from rules/backends",
+    "disposition": [
+      "delete/add",
+      "closed named commits, including schema-checked `_commit_atom_facts`; complete cross-domain result/coordinate transactions validate source ownership and input dependencies"
+    ],
+    "id": "9.6-038",
+    "plan_line": 1461,
+    "responsibilities": [
+      {
+        "stage": "Stage3",
+        "work": "closed commits and ratcheted writer gate"
+      },
+      {
+        "stage": "Stage5",
+        "work": "chemical writers"
+      },
+      {
+        "stage": "Stage6",
+        "work": "stereo writers"
+      },
+      {
+        "stage": "Stage7C",
+        "work": "result attachment writers"
+      },
+      {
+        "stage": "Stage8B",
+        "work": "force-field writers"
+      },
+      {
+        "stage": "Stage8D",
+        "work": "inference writers"
+      },
+      {
+        "stage": "Stage12",
+        "work": "final empty writer allowlist"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage3",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage12",
+      "Stage3",
+      "Stage5",
+      "Stage6",
+      "Stage7C",
+      "Stage8B",
+      "Stage8D"
+    ]
+  },
+  {
+    "completion_stage": "Stage8C",
+    "current": "recursive SMARTS Molecule-keyed cache",
+    "disposition": [
+      "delete",
+      "operation-local compiled query/snapshot state only"
+    ],
+    "id": "9.6-039",
+    "plan_line": 1462,
+    "responsibilities": [
+      {
+        "stage": "Stage8C",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage8C",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8C"
+    ]
+  },
+  {
+    "completion_stage": "Stage10",
+    "current": "native packing structs copied per subsystem",
+    "disposition": [
+      "merge",
+      "one field-selective transport module; each adapter requests only required fields; typed fact columns are persistent owners, not another transport schema"
+    ],
+    "id": "9.6-040",
+    "plan_line": 1463,
+    "responsibilities": [
+      {
+        "stage": "Stage3",
+        "work": "shared field declarations and existing transport reuse"
+      },
+      {
+        "stage": "Stage7C",
+        "work": "selected-result packing"
+      },
+      {
+        "stage": "Stage8B",
+        "work": "remove subsystem packing duplication"
+      },
+      {
+        "stage": "Stage10",
+        "work": "physical shared transport/header migration"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage3",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage10",
+      "Stage3",
+      "Stage7C",
+      "Stage8B"
+    ]
+  },
+  {
+    "completion_stage": "Stage10",
+    "current": "`hotpot.cheminfo.rdWrappers._rd_native` and CMake `Hotpot::rdwrappers`",
+    "disposition": [
+      "keep",
+      "pinned-RDKit standalone Python/C/C++ component and signatures remain unchanged"
+    ],
+    "id": "9.6-041",
+    "plan_line": 1469,
+    "responsibilities": [
+      {
+        "stage": "Stage10",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage10",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage10"
+    ]
+  },
+  {
+    "completion_stage": "Stage10",
+    "current": "`hotpot.cheminfo.obWrappers._ob_native`",
+    "disposition": [
+      "keep",
+      "standalone Open Babel/native force-field component; adapters call it as the sole backend implementation"
+    ],
+    "id": "9.6-042",
+    "plan_line": 1470,
+    "responsibilities": [
+      {
+        "stage": "Stage10",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage10",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage10"
+    ]
+  },
+  {
+    "completion_stage": "Stage10",
+    "current": "`_graph_native` CSR Graph/cycle kernels and `_search_native` RI matcher",
+    "disposition": [
+      "move/merge ownership",
+      "one shared private CSR Graph definition; graph and RI bindings may remain separate extension entry points, but neither owns a second graph model"
+    ],
+    "id": "9.6-043",
+    "plan_line": 1471,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "shared graph/cycle ownership"
+      },
+      {
+        "stage": "Stage8C",
+        "work": "RI consumer ownership"
+      },
+      {
+        "stage": "Stage10",
+        "work": "extension build relocation"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage8C",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage10",
+      "Stage4",
+      "Stage8C"
+    ]
+  },
+  {
+    "completion_stage": "Stage10",
+    "current": "`_geometry_native`",
+    "disposition": [
+      "move",
+      "pure geometry kernel ownership under mathematics; ABI/result conventions and tests remain"
+    ],
+    "id": "9.6-044",
+    "plan_line": 1472,
+    "responsibilities": [
+      {
+        "stage": "Stage4",
+        "work": "pure geometry ownership"
+      },
+      {
+        "stage": "Stage10",
+        "work": "extension build relocation"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage4",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage10",
+      "Stage4"
+    ]
+  },
+  {
+    "completion_stage": "Stage8B",
+    "current": "force-field C++ bindings/packing",
+    "disposition": [
+      "refactor",
+      "translation belongs to adapters; no chemical decision code in bindings"
+    ],
+    "id": "9.6-045",
+    "plan_line": 1473,
+    "responsibilities": [
+      {
+        "stage": "Stage8B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage8B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8B"
+    ]
+  },
+  {
+    "completion_stage": "Stage8B",
+    "current": "force-field C++ placement/radii/target kernels",
+    "disposition": [
+      "move",
+      "pure physics-rule source ownership, linked once into the retained native component"
+    ],
+    "id": "9.6-046",
+    "plan_line": 1474,
+    "responsibilities": [
+      {
+        "stage": "Stage8B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage8B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8B"
+    ]
+  },
+  {
+    "completion_stage": "Stage8B",
+    "current": "force-field C++ session/workflow/trajectory/optimization controllers",
+    "disposition": [
+      "move",
+      "operation source ownership, linked once; no Python/C++ duplicate workflow"
+    ],
+    "id": "9.6-047",
+    "plan_line": 1475,
+    "responsibilities": [
+      {
+        "stage": "Stage8B",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage8B",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage8B"
+    ]
+  },
+  {
+    "completion_stage": "Stage2",
+    "current": "obsolete `_clib`/`core_func.pyx`",
+    "disposition": [
+      "delete",
+      "only after build/reference zero-use gate proves no active ABI consumer"
+    ],
+    "id": "9.6-048",
+    "plan_line": 1476,
+    "responsibilities": [
+      {
+        "stage": "Stage2",
+        "work": "complete the documented row disposition"
+      }
+    ],
+    "section": "9.6",
+    "stage": "Stage2",
+    "verification_map": "../stage_verification_map.json",
+    "verification_stage_keys": [
+      "Stage2"
+    ]
+  }
+]

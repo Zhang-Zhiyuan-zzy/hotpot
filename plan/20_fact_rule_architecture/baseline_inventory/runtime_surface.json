@@ -1,0 +1,1383 @@
+{
+  "cli_commands": {
+    "cbond": {
+      "help": "Build metal-ligand coordination bonds with the CBond model",
+      "module": "hotpot.cheminfo.AImodels.cbond.cli"
+    },
+    "convert": {
+      "help": "Convert molecule file from one format to another",
+      "module": null
+    },
+    "ds": {
+      "help": "Assess, store, and query governed scientific datasets",
+      "module": "hotpot.ds.cli"
+    },
+    "ff": {
+      "help": "Build and optimize molecular geometries with force fields",
+      "module": "hotpot.cheminfo.forcefields.cli"
+    },
+    "mca": {
+      "help": "Predict atom-resolved methyl cation affinity (MCA)",
+      "module": "hotpot.cheminfo.AImodels.mca.cli"
+    },
+    "ml_train": {
+      "help": "A standard workflow to train Machine learning models",
+      "module": "hotpot.main.ml_train"
+    },
+    "models": {
+      "help": "Install and verify external inference models",
+      "module": "hotpot.cheminfo.AImodels.artifacts.cli"
+    },
+    "optimize": {
+      "help": "Perform parameters optimization",
+      "module": "hotpot.main.optimize"
+    },
+    "run": {
+      "help": "Run a controlled sequence of molecular calculation stages",
+      "module": "hotpot.pipeline.cli"
+    },
+    "xtb": {
+      "help": "Run an independent GFN-FF or GFN-xTB calculation",
+      "module": "hotpot.plugins.xtb.cli"
+    }
+  },
+  "dynamic_fields": {
+    "Atom": [
+      {
+        "cast": "int",
+        "custom_setter": "_atomic_number_setter",
+        "name": "atomic_number",
+        "offset": 0,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "int",
+        "custom_setter": null,
+        "name": "n",
+        "offset": 1,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "int",
+        "custom_setter": null,
+        "name": "s",
+        "offset": 2,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "int",
+        "custom_setter": null,
+        "name": "p",
+        "offset": 3,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "int",
+        "custom_setter": null,
+        "name": "d",
+        "offset": 4,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "int",
+        "custom_setter": null,
+        "name": "f",
+        "offset": 5,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "int",
+        "custom_setter": null,
+        "name": "g",
+        "offset": 6,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "int",
+        "custom_setter": null,
+        "name": "formal_charge",
+        "offset": 7,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "float",
+        "custom_setter": null,
+        "name": "partial_charge",
+        "offset": 8,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "bool",
+        "custom_setter": null,
+        "name": "is_aromatic",
+        "offset": 9,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "float",
+        "custom_setter": null,
+        "name": "x",
+        "offset": 10,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "float",
+        "custom_setter": null,
+        "name": "y",
+        "offset": 11,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "float",
+        "custom_setter": null,
+        "name": "z",
+        "offset": 12,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "int",
+        "custom_setter": null,
+        "name": "valence",
+        "offset": 13,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "int",
+        "custom_setter": null,
+        "name": "implicit_hydrogens",
+        "offset": 14,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "int",
+        "custom_setter": null,
+        "name": "id",
+        "offset": 15,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "bool",
+        "custom_setter": null,
+        "name": "x_constraint",
+        "offset": 16,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "bool",
+        "custom_setter": null,
+        "name": "y_constraint",
+        "offset": 17,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "bool",
+        "custom_setter": null,
+        "name": "z_constraint",
+        "offset": 18,
+        "read": true,
+        "write": true
+      }
+    ],
+    "Bond": [
+      {
+        "cast": "float",
+        "custom_setter": "_bond_order_setter",
+        "name": "bond_order",
+        "offset": 0,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "bool",
+        "custom_setter": null,
+        "name": "constraint",
+        "offset": 1,
+        "read": true,
+        "write": true
+      },
+      {
+        "cast": "int",
+        "custom_setter": null,
+        "name": "id",
+        "offset": 2,
+        "read": true,
+        "write": true
+      }
+    ]
+  },
+  "exports": {
+    "hotpot": {
+      "declared_all": null,
+      "visible_names": [
+        {
+          "definition": "typing.Union",
+          "kind": "value",
+          "name": "ActionFuncTemplate",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.assembler.AlkylGraft",
+          "kind": "class",
+          "name": "AlkylGraft",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule)"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.assembler.AssembleFactory",
+          "kind": "class",
+          "name": "AssembleFactory",
+          "signature": "(assembler: Iterable[hotpot.cheminfo.mol_assemble.fragment.Fragment], iter_step: int = 5, mode: Literal['random', 'permutations'] = 'random', seed: Optional[int] = None, sample_weights: Optional[Iterable[float]] = None, max_running: Optional[int] = 3000000, save_per_step: Optional[int] = 100000, catch_path: Union[str, os.PathLike, NoneType] = None)"
+        },
+        {
+          "definition": "hotpot.cheminfo.core.Atom",
+          "kind": "class",
+          "name": "Atom",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule = None, *, attrs_array: numpy.ndarray = None, update_electron_config: bool = True, **kwargs)"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.assembler.AtomLink",
+          "kind": "class",
+          "name": "AtomLink",
+          "signature": "(mol, action_points: tuple[int])"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.assembler.AtomReplace",
+          "kind": "class",
+          "name": "AtomReplace",
+          "signature": "(element: str)"
+        },
+        {
+          "definition": "hotpot.cheminfo.core.Bond",
+          "kind": "class",
+          "name": "Bond",
+          "signature": "(atom1: hotpot.cheminfo.core.Atom, atom2: hotpot.cheminfo.core.Atom, **kwargs)"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.assembler.BondAdding",
+          "kind": "class",
+          "name": "BondAdding",
+          "signature": "()"
+        },
+        {
+          "definition": "hotpot.cheminfo.core.BondKind",
+          "kind": "class",
+          "name": "BondKind",
+          "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)"
+        },
+        {
+          "definition": "typing.Callable",
+          "kind": "value",
+          "name": "Callable",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_statistics.ComplexStatistics",
+          "kind": "class",
+          "name": "ComplexStatistics",
+          "signature": "(complex_dir, *skips)"
+        },
+        {
+          "definition": "typing.Literal",
+          "kind": "value",
+          "name": "DefaultAction",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.assembler.EdgeShoulder",
+          "kind": "class",
+          "name": "EdgeShoulder",
+          "signature": "(mol, action_points: tuple[int, int])"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.fragment.Fragment",
+          "kind": "class",
+          "name": "Fragment",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule, searcher: hotpot.cheminfo.search.search.Searcher, action_points: Iterable[int], action_func: Union[Callable[[hotpot.cheminfo.core.Molecule, list[int], hotpot.cheminfo.core.Molecule, list[int]], hotpot.cheminfo.core.Molecule], Literal['atom_link', 'bond_shoulder'], NoneType], exclude_searcher: Optional[hotpot.cheminfo.search.search.Searcher] = None)"
+        },
+        {
+          "definition": "hotpot.cheminfo.search.search.Hit",
+          "kind": "class",
+          "name": "Hit",
+          "signature": "(mol, sub, atom_indices, mappings)"
+        },
+        {
+          "definition": "hotpot.cheminfo.search.search.Hits",
+          "kind": "class",
+          "name": "Hits",
+          "signature": "(sub, mol, mapping_source, get_hit: bool = True, max_matches: int = None)"
+        },
+        {
+          "definition": "typing.Iterable",
+          "kind": "value",
+          "name": "Iterable",
+          "signature": null
+        },
+        {
+          "definition": "typing.Literal",
+          "kind": "value",
+          "name": "Literal",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.bundle.MolBundle",
+          "kind": "class",
+          "name": "MolBundle",
+          "signature": "(list_mol: Iterable[hotpot.cheminfo.core.Molecule])"
+        },
+        {
+          "definition": "hotpot.cheminfo._io._io.MolReader",
+          "kind": "class",
+          "name": "MolReader",
+          "signature": "(src, fmt=None, **kwargs)"
+        },
+        {
+          "definition": "hotpot.cheminfo._io._io.MolWriter",
+          "kind": "class",
+          "name": "MolWriter",
+          "signature": "(fp: Union[str, pathlib.Path], fmt: str = None, overwrite: bool = False, **kwargs) -> None"
+        },
+        {
+          "definition": "hotpot.cheminfo.core.Molecule",
+          "kind": "class",
+          "name": "Molecule",
+          "signature": "()"
+        },
+        {
+          "definition": "typing.Optional",
+          "kind": "value",
+          "name": "Optional",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.search.search.Query",
+          "kind": "class",
+          "name": "Query",
+          "signature": "(**kwargs: Union[Container, Any])"
+        },
+        {
+          "definition": "hotpot.cheminfo.search.search.QueryAtom",
+          "kind": "class",
+          "name": "QueryAtom",
+          "signature": "(sub: 'Substructure' = None, map_number: int = None, **attrs)"
+        },
+        {
+          "definition": "hotpot.cheminfo.search.search.QueryBond",
+          "kind": "class",
+          "name": "QueryBond",
+          "signature": "(atom1: hotpot.cheminfo.search.search.QueryAtom, atom2: hotpot.cheminfo.search.search.QueryAtom, **attrs)"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.assembler.RingWedge",
+          "kind": "class",
+          "name": "RingWedge",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule, action_points: tuple[int])"
+        },
+        {
+          "definition": "hotpot.cheminfo.search.search.Searcher",
+          "kind": "class",
+          "name": "Searcher",
+          "signature": "(substructure: 'Substructure')"
+        },
+        {
+          "definition": "hotpot.cheminfo.search.semantics.SmartsSemantics",
+          "kind": "class",
+          "name": "SmartsSemantics",
+          "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)"
+        },
+        {
+          "definition": "hotpot.cheminfo.search.errors.SmartsSyntaxError",
+          "kind": "class",
+          "name": "SmartsSyntaxError",
+          "signature": "not introspectable"
+        },
+        {
+          "definition": "hotpot.cheminfo.search.search.Substructure",
+          "kind": "class",
+          "name": "Substructure",
+          "signature": "()"
+        },
+        {
+          "definition": "typing.Union",
+          "kind": "value",
+          "name": "Union",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.search.errors.UnsupportedSmartsError",
+          "kind": "class",
+          "name": "UnsupportedSmartsError",
+          "signature": "not introspectable"
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "action_func",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.action_func.actions_register",
+          "kind": "function",
+          "name": "actions_register",
+          "signature": "(register_key: str)"
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "assembler",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.action_func.atom_link_atom_action",
+          "kind": "function",
+          "name": "atom_link_atom_action",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule, hit: list[int], frag: hotpot.cheminfo.core.Molecule, action_points: list[int])"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.action_func.atom_replace",
+          "kind": "function",
+          "name": "atom_replace",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule, hit: list[int], frag: hotpot.cheminfo.core.Molecule, action_points: list[int])"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.action_func.bond_order_add",
+          "kind": "function",
+          "name": "bond_order_add",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule, hit: list[int], frag: hotpot.cheminfo.core.Molecule, action_points: list[int])"
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "bundle",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "call_thermo",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "cheminfo",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "conformers",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "convert",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "core",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "core_utils",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "crystal",
+          "signature": null
+        },
+        {
+          "definition": "posixpath.dirname",
+          "kind": "function",
+          "name": "dirname",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "elements",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "forcefields",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "fragment",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "geometry",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "graph",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.convert.is_molecule_input",
+          "kind": "function",
+          "name": "is_molecule_input",
+          "signature": "(value) -> 'bool'"
+        },
+        {
+          "definition": "posixpath.join",
+          "kind": "function",
+          "name": "join",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "kekulize",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "mol_assemble",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "mol_statistics",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "obWrappers",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "obconvert",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "os",
+          "signature": null
+        },
+        {
+          "definition": "builtins.str",
+          "kind": "value",
+          "name": "package_root",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "pubchem",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "rdconvert",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.core_utils.read_mol",
+          "kind": "function",
+          "name": "read_mol",
+          "signature": "(src, fmt=None, **kwargs)"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.action_func.ring_wedge",
+          "kind": "function",
+          "name": "ring_wedge",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule, hit: list[int], frag: hotpot.cheminfo.core.Molecule, action_points: list[int])"
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "search",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.action_func.shoulder_bond_action",
+          "kind": "function",
+          "name": "shoulder_bond_action",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule, hit: list[int], frag: hotpot.cheminfo.core.Molecule, action_points: list[int])"
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "stereo",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "sys",
+          "signature": null
+        },
+        {
+          "definition": "builtins.str",
+          "kind": "value",
+          "name": "tempdir",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.convert.to_hotpot_mol",
+          "kind": "function",
+          "name": "to_hotpot_mol",
+          "signature": "(value, *, fmt=None, **kwargs) -> 'Molecule'"
+        },
+        {
+          "definition": "hotpot.cheminfo.bundle.to_pyg_dataset",
+          "kind": "function",
+          "name": "to_pyg_dataset",
+          "signature": "(list_mol: Iterable[hotpot.cheminfo.core.Molecule], dataset_root: os.PathLike, prefix: str = '')"
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "utils",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.version",
+          "kind": "function",
+          "name": "version",
+          "signature": "()"
+        }
+      ]
+    },
+    "hotpot.cheminfo": {
+      "declared_all": null,
+      "visible_names": [
+        {
+          "definition": "typing.Union",
+          "kind": "value",
+          "name": "ActionFuncTemplate",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.assembler.AlkylGraft",
+          "kind": "class",
+          "name": "AlkylGraft",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule)"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.assembler.AssembleFactory",
+          "kind": "class",
+          "name": "AssembleFactory",
+          "signature": "(assembler: Iterable[hotpot.cheminfo.mol_assemble.fragment.Fragment], iter_step: int = 5, mode: Literal['random', 'permutations'] = 'random', seed: Optional[int] = None, sample_weights: Optional[Iterable[float]] = None, max_running: Optional[int] = 3000000, save_per_step: Optional[int] = 100000, catch_path: Union[str, os.PathLike, NoneType] = None)"
+        },
+        {
+          "definition": "hotpot.cheminfo.core.Atom",
+          "kind": "class",
+          "name": "Atom",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule = None, *, attrs_array: numpy.ndarray = None, update_electron_config: bool = True, **kwargs)"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.assembler.AtomLink",
+          "kind": "class",
+          "name": "AtomLink",
+          "signature": "(mol, action_points: tuple[int])"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.assembler.AtomReplace",
+          "kind": "class",
+          "name": "AtomReplace",
+          "signature": "(element: str)"
+        },
+        {
+          "definition": "hotpot.cheminfo.core.Bond",
+          "kind": "class",
+          "name": "Bond",
+          "signature": "(atom1: hotpot.cheminfo.core.Atom, atom2: hotpot.cheminfo.core.Atom, **kwargs)"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.assembler.BondAdding",
+          "kind": "class",
+          "name": "BondAdding",
+          "signature": "()"
+        },
+        {
+          "definition": "hotpot.cheminfo.core.BondKind",
+          "kind": "class",
+          "name": "BondKind",
+          "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)"
+        },
+        {
+          "definition": "typing.Callable",
+          "kind": "value",
+          "name": "Callable",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_statistics.ComplexStatistics",
+          "kind": "class",
+          "name": "ComplexStatistics",
+          "signature": "(complex_dir, *skips)"
+        },
+        {
+          "definition": "typing.Literal",
+          "kind": "value",
+          "name": "DefaultAction",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.assembler.EdgeShoulder",
+          "kind": "class",
+          "name": "EdgeShoulder",
+          "signature": "(mol, action_points: tuple[int, int])"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.fragment.Fragment",
+          "kind": "class",
+          "name": "Fragment",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule, searcher: hotpot.cheminfo.search.search.Searcher, action_points: Iterable[int], action_func: Union[Callable[[hotpot.cheminfo.core.Molecule, list[int], hotpot.cheminfo.core.Molecule, list[int]], hotpot.cheminfo.core.Molecule], Literal['atom_link', 'bond_shoulder'], NoneType], exclude_searcher: Optional[hotpot.cheminfo.search.search.Searcher] = None)"
+        },
+        {
+          "definition": "hotpot.cheminfo.search.search.Hit",
+          "kind": "class",
+          "name": "Hit",
+          "signature": "(mol, sub, atom_indices, mappings)"
+        },
+        {
+          "definition": "hotpot.cheminfo.search.search.Hits",
+          "kind": "class",
+          "name": "Hits",
+          "signature": "(sub, mol, mapping_source, get_hit: bool = True, max_matches: int = None)"
+        },
+        {
+          "definition": "typing.Iterable",
+          "kind": "value",
+          "name": "Iterable",
+          "signature": null
+        },
+        {
+          "definition": "typing.Literal",
+          "kind": "value",
+          "name": "Literal",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.bundle.MolBundle",
+          "kind": "class",
+          "name": "MolBundle",
+          "signature": "(list_mol: Iterable[hotpot.cheminfo.core.Molecule])"
+        },
+        {
+          "definition": "hotpot.cheminfo._io._io.MolReader",
+          "kind": "class",
+          "name": "MolReader",
+          "signature": "(src, fmt=None, **kwargs)"
+        },
+        {
+          "definition": "hotpot.cheminfo._io._io.MolWriter",
+          "kind": "class",
+          "name": "MolWriter",
+          "signature": "(fp: Union[str, pathlib.Path], fmt: str = None, overwrite: bool = False, **kwargs) -> None"
+        },
+        {
+          "definition": "hotpot.cheminfo.core.Molecule",
+          "kind": "class",
+          "name": "Molecule",
+          "signature": "()"
+        },
+        {
+          "definition": "typing.Optional",
+          "kind": "value",
+          "name": "Optional",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.search.search.Query",
+          "kind": "class",
+          "name": "Query",
+          "signature": "(**kwargs: Union[Container, Any])"
+        },
+        {
+          "definition": "hotpot.cheminfo.search.search.QueryAtom",
+          "kind": "class",
+          "name": "QueryAtom",
+          "signature": "(sub: 'Substructure' = None, map_number: int = None, **attrs)"
+        },
+        {
+          "definition": "hotpot.cheminfo.search.search.QueryBond",
+          "kind": "class",
+          "name": "QueryBond",
+          "signature": "(atom1: hotpot.cheminfo.search.search.QueryAtom, atom2: hotpot.cheminfo.search.search.QueryAtom, **attrs)"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.assembler.RingWedge",
+          "kind": "class",
+          "name": "RingWedge",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule, action_points: tuple[int])"
+        },
+        {
+          "definition": "hotpot.cheminfo.search.search.Searcher",
+          "kind": "class",
+          "name": "Searcher",
+          "signature": "(substructure: 'Substructure')"
+        },
+        {
+          "definition": "hotpot.cheminfo.search.semantics.SmartsSemantics",
+          "kind": "class",
+          "name": "SmartsSemantics",
+          "signature": "(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)"
+        },
+        {
+          "definition": "hotpot.cheminfo.search.errors.SmartsSyntaxError",
+          "kind": "class",
+          "name": "SmartsSyntaxError",
+          "signature": "not introspectable"
+        },
+        {
+          "definition": "hotpot.cheminfo.search.search.Substructure",
+          "kind": "class",
+          "name": "Substructure",
+          "signature": "()"
+        },
+        {
+          "definition": "typing.Union",
+          "kind": "value",
+          "name": "Union",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.search.errors.UnsupportedSmartsError",
+          "kind": "class",
+          "name": "UnsupportedSmartsError",
+          "signature": "not introspectable"
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "action_func",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.action_func.actions_register",
+          "kind": "function",
+          "name": "actions_register",
+          "signature": "(register_key: str)"
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "assembler",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.action_func.atom_link_atom_action",
+          "kind": "function",
+          "name": "atom_link_atom_action",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule, hit: list[int], frag: hotpot.cheminfo.core.Molecule, action_points: list[int])"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.action_func.atom_replace",
+          "kind": "function",
+          "name": "atom_replace",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule, hit: list[int], frag: hotpot.cheminfo.core.Molecule, action_points: list[int])"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.action_func.bond_order_add",
+          "kind": "function",
+          "name": "bond_order_add",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule, hit: list[int], frag: hotpot.cheminfo.core.Molecule, action_points: list[int])"
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "bundle",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "call_thermo",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "conformers",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "convert",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "core",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "core_utils",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "crystal",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "elements",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "forcefields",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "fragment",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "geometry",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "graph",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.convert.is_molecule_input",
+          "kind": "function",
+          "name": "is_molecule_input",
+          "signature": "(value) -> 'bool'"
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "kekulize",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "mol_assemble",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "mol_statistics",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "obWrappers",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "obconvert",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "pubchem",
+          "signature": null
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "rdconvert",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.core_utils.read_mol",
+          "kind": "function",
+          "name": "read_mol",
+          "signature": "(src, fmt=None, **kwargs)"
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.action_func.ring_wedge",
+          "kind": "function",
+          "name": "ring_wedge",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule, hit: list[int], frag: hotpot.cheminfo.core.Molecule, action_points: list[int])"
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "search",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.mol_assemble.action_func.shoulder_bond_action",
+          "kind": "function",
+          "name": "shoulder_bond_action",
+          "signature": "(mol: hotpot.cheminfo.core.Molecule, hit: list[int], frag: hotpot.cheminfo.core.Molecule, action_points: list[int])"
+        },
+        {
+          "definition": "builtins.module",
+          "kind": "module",
+          "name": "stereo",
+          "signature": null
+        },
+        {
+          "definition": "hotpot.cheminfo.convert.to_hotpot_mol",
+          "kind": "function",
+          "name": "to_hotpot_mol",
+          "signature": "(value, *, fmt=None, **kwargs) -> 'Molecule'"
+        },
+        {
+          "definition": "hotpot.cheminfo.bundle.to_pyg_dataset",
+          "kind": "function",
+          "name": "to_pyg_dataset",
+          "signature": "(list_mol: Iterable[hotpot.cheminfo.core.Molecule], dataset_root: os.PathLike, prefix: str = '')"
+        }
+      ]
+    }
+  },
+  "identity_checks": {
+    "hotpot.Atom is core.Atom": true,
+    "hotpot.Bond is core.Bond": true,
+    "hotpot.BondKind is core.BondKind": true,
+    "hotpot.Molecule is core.Molecule": true
+  },
+  "loaded_external_modules": [
+    "openbabel",
+    "openbabel._openbabel",
+    "openbabel.openbabel",
+    "openbabel.pybel",
+    "pubchempy",
+    "rdkit",
+    "rdkit.Chem",
+    "rdkit.Chem.inchi",
+    "rdkit.Chem.rdCIPLabeler",
+    "rdkit.Chem.rdCoordGen",
+    "rdkit.Chem.rdMolInterchange",
+    "rdkit.Chem.rdchem",
+    "rdkit.Chem.rdinchi",
+    "rdkit.Chem.rdmolfiles",
+    "rdkit.Chem.rdmolops",
+    "rdkit.DataStructs",
+    "rdkit.DataStructs.cDataStructs",
+    "rdkit.Geometry",
+    "rdkit.Geometry.rdGeometry",
+    "rdkit.RDConfig",
+    "rdkit.RDLogger",
+    "rdkit.RDPaths",
+    "rdkit.rdBase",
+    "scipy",
+    "scipy.__config__",
+    "scipy._cyutility",
+    "scipy._distributor_init",
+    "scipy._lib",
+    "scipy._lib._array_api",
+    "scipy._lib._array_api_compat_vendor",
+    "scipy._lib._array_api_override",
+    "scipy._lib._ccallback",
+    "scipy._lib._ccallback_c",
+    "scipy._lib._docscrape",
+    "scipy._lib._pep440",
+    "scipy._lib._sparse",
+    "scipy._lib._testutils",
+    "scipy._lib._util",
+    "scipy._lib.array_api_compat",
+    "scipy._lib.array_api_compat._internal",
+    "scipy._lib.array_api_compat.common",
+    "scipy._lib.array_api_compat.common._aliases",
+    "scipy._lib.array_api_compat.common._fft",
+    "scipy._lib.array_api_compat.common._helpers",
+    "scipy._lib.array_api_compat.common._linalg",
+    "scipy._lib.array_api_compat.common._typing",
+    "scipy._lib.array_api_compat.numpy",
+    "scipy._lib.array_api_compat.numpy._aliases",
+    "scipy._lib.array_api_compat.numpy._info",
+    "scipy._lib.array_api_compat.numpy._typing",
+    "scipy._lib.array_api_compat.numpy.fft",
+    "scipy._lib.array_api_compat.numpy.linalg",
+    "scipy._lib.array_api_extra",
+    "scipy._lib.array_api_extra._delegation",
+    "scipy._lib.array_api_extra._lib",
+    "scipy._lib.array_api_extra._lib._at",
+    "scipy._lib.array_api_extra._lib._funcs",
+    "scipy._lib.array_api_extra._lib._lazy",
+    "scipy._lib.array_api_extra._lib._utils",
+    "scipy._lib.array_api_extra._lib._utils._compat",
+    "scipy._lib.array_api_extra._lib._utils._helpers",
+    "scipy._lib.array_api_extra._lib._utils._typing",
+    "scipy._lib.array_api_extra.testing",
+    "scipy._lib.deprecation",
+    "scipy._lib.messagestream",
+    "scipy.constants",
+    "scipy.constants._codata",
+    "scipy.constants._constants",
+    "scipy.constants.codata",
+    "scipy.constants.constants",
+    "scipy.linalg",
+    "scipy.linalg._basic",
+    "scipy.linalg._batched_linalg",
+    "scipy.linalg._cythonized_array_utils",
+    "scipy.linalg._decomp",
+    "scipy.linalg._decomp_cholesky",
+    "scipy.linalg._decomp_cossin",
+    "scipy.linalg._decomp_ldl",
+    "scipy.linalg._decomp_lu",
+    "scipy.linalg._decomp_lu_cython",
+    "scipy.linalg._decomp_polar",
+    "scipy.linalg._decomp_qr",
+    "scipy.linalg._decomp_qz",
+    "scipy.linalg._decomp_schur",
+    "scipy.linalg._decomp_svd",
+    "scipy.linalg._decomp_update",
+    "scipy.linalg._expm_frechet",
+    "scipy.linalg._fblas",
+    "scipy.linalg._flapack",
+    "scipy.linalg._linalg_pythran",
+    "scipy.linalg._matfuncs",
+    "scipy.linalg._matfuncs_expm",
+    "scipy.linalg._matfuncs_schur_sqrtm",
+    "scipy.linalg._misc",
+    "scipy.linalg._procrustes",
+    "scipy.linalg._sketches",
+    "scipy.linalg._solve_toeplitz",
+    "scipy.linalg._solvers",
+    "scipy.linalg._special_matrices",
+    "scipy.linalg.basic",
+    "scipy.linalg.blas",
+    "scipy.linalg.cython_blas",
+    "scipy.linalg.cython_lapack",
+    "scipy.linalg.decomp",
+    "scipy.linalg.decomp_cholesky",
+    "scipy.linalg.decomp_lu",
+    "scipy.linalg.decomp_qr",
+    "scipy.linalg.decomp_schur",
+    "scipy.linalg.decomp_svd",
+    "scipy.linalg.lapack",
+    "scipy.linalg.matfuncs",
+    "scipy.linalg.misc",
+    "scipy.linalg.special_matrices",
+    "scipy.sparse",
+    "scipy.sparse._base",
+    "scipy.sparse._bsr",
+    "scipy.sparse._compressed",
+    "scipy.sparse._construct",
+    "scipy.sparse._coo",
+    "scipy.sparse._csc",
+    "scipy.sparse._csparsetools",
+    "scipy.sparse._csr",
+    "scipy.sparse._data",
+    "scipy.sparse._dia",
+    "scipy.sparse._dok",
+    "scipy.sparse._extract",
+    "scipy.sparse._index",
+    "scipy.sparse._lil",
+    "scipy.sparse._matrix",
+    "scipy.sparse._matrix_io",
+    "scipy.sparse._sparsetools",
+    "scipy.sparse._sputils",
+    "scipy.sparse.base",
+    "scipy.sparse.bsr",
+    "scipy.sparse.compressed",
+    "scipy.sparse.construct",
+    "scipy.sparse.coo",
+    "scipy.sparse.csc",
+    "scipy.sparse.csr",
+    "scipy.sparse.data",
+    "scipy.sparse.dia",
+    "scipy.sparse.dok",
+    "scipy.sparse.extract",
+    "scipy.sparse.lil",
+    "scipy.sparse.sparsetools",
+    "scipy.sparse.sputils",
+    "scipy.spatial",
+    "scipy.spatial._ckdtree",
+    "scipy.spatial._distance_pybind",
+    "scipy.spatial._distance_wrap",
+    "scipy.spatial._geometric_slerp",
+    "scipy.spatial._hausdorff",
+    "scipy.spatial._kdtree",
+    "scipy.spatial._plotutils",
+    "scipy.spatial._procrustes",
+    "scipy.spatial._qhull",
+    "scipy.spatial._spherical_voronoi",
+    "scipy.spatial._voronoi",
+    "scipy.spatial.ckdtree",
+    "scipy.spatial.distance",
+    "scipy.spatial.kdtree",
+    "scipy.spatial.qhull",
+    "scipy.spatial.transform",
+    "scipy.spatial.transform._rigid_transform",
+    "scipy.spatial.transform._rigid_transform_cy",
+    "scipy.spatial.transform._rigid_transform_xp",
+    "scipy.spatial.transform._rotation",
+    "scipy.spatial.transform._rotation_cy",
+    "scipy.spatial.transform._rotation_groups",
+    "scipy.spatial.transform._rotation_spline",
+    "scipy.spatial.transform._rotation_xp",
+    "scipy.spatial.transform.rotation",
+    "scipy.special",
+    "scipy.special._basic",
+    "scipy.special._comb",
+    "scipy.special._ellip_harm",
+    "scipy.special._ellip_harm_2",
+    "scipy.special._gufuncs",
+    "scipy.special._input_validation",
+    "scipy.special._lambertw",
+    "scipy.special._logsumexp",
+    "scipy.special._multiufuncs",
+    "scipy.special._orthogonal",
+    "scipy.special._sf_error",
+    "scipy.special._specfun",
+    "scipy.special._special_ufuncs",
+    "scipy.special._spfun_stats",
+    "scipy.special._spherical_bessel",
+    "scipy.special._support_alternative_backends",
+    "scipy.special._ufuncs",
+    "scipy.special._ufuncs_cxx",
+    "scipy.special.add_newdocs",
+    "scipy.special.basic",
+    "scipy.special.orthogonal",
+    "scipy.special.sf_error",
+    "scipy.special.specfun",
+    "scipy.special.spfun_stats",
+    "scipy.version",
+    "thermo",
+    "thermo.activity",
+    "thermo.base",
+    "thermo.bulk",
+    "thermo.chemical",
+    "thermo.chemical_package",
+    "thermo.chemical_utils",
+    "thermo.coolprop",
+    "thermo.datasheet",
+    "thermo.electrochem",
+    "thermo.eos",
+    "thermo.eos_alpha_functions",
+    "thermo.eos_mix",
+    "thermo.eos_mix_methods",
+    "thermo.eos_volume",
+    "thermo.equilibrium",
+    "thermo.fitting",
+    "thermo.flash",
+    "thermo.flash.flash_base",
+    "thermo.flash.flash_pure_vls",
+    "thermo.flash.flash_utils",
+    "thermo.flash.flash_vl",
+    "thermo.flash.flash_vln",
+    "thermo.functional_groups",
+    "thermo.group_contribution",
+    "thermo.group_contribution.bondi",
+    "thermo.group_contribution.fedors",
+    "thermo.group_contribution.group_contribution_base",
+    "thermo.group_contribution.joback",
+    "thermo.group_contribution.ppr78",
+    "thermo.group_contribution.wilson_jasperson",
+    "thermo.heat_capacity",
+    "thermo.interaction_parameters",
+    "thermo.interface",
+    "thermo.law",
+    "thermo.mixture",
+    "thermo.nrtl",
+    "thermo.permittivity",
+    "thermo.phase_change",
+    "thermo.phase_identification",
+    "thermo.phases",
+    "thermo.phases.air_phase",
+    "thermo.phases.ceos",
+    "thermo.phases.combined",
+    "thermo.phases.coolprop_phase",
+    "thermo.phases.gibbs_eos",
+    "thermo.phases.gibbs_excess",
+    "thermo.phases.helmholtz_eos",
+    "thermo.phases.iapws_phase",
+    "thermo.phases.ideal_gas",
+    "thermo.phases.petroleum",
+    "thermo.phases.phase",
+    "thermo.phases.phase_utils",
+    "thermo.phases.virial_phase",
+    "thermo.property_package",
+    "thermo.redlich_kister",
+    "thermo.regular_solution",
+    "thermo.serialize",
+    "thermo.stream",
+    "thermo.thermal_conductivity",
+    "thermo.unifac",
+    "thermo.uniquac",
+    "thermo.utils",
+    "thermo.utils.functional",
+    "thermo.utils.mixture_property",
+    "thermo.utils.names",
+    "thermo.utils.t_dependent_property",
+    "thermo.utils.tp_dependent_property",
+    "thermo.vapor_pressure",
+    "thermo.viscosity",
+    "thermo.volume",
+    "thermo.wilson"
+  ],
+  "native_modules": {
+    "hotpot.cheminfo.geometry._geometry_native": {
+      "path": "/tmp/hotpot-plan20-20261028/source-b20/hotpot/cheminfo/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so",
+      "sha256": "97acdb9652fa491cd3e2634a176519dd7dd87a5951fd99dda8ae6e72491a0c68"
+    }
+  },
+  "observed_behavior": {
+    "Atom.attrs_aliases_constructor_array": true,
+    "Atom.coordinates_aliases_attrs": false,
+    "Atom.mca_without_result": {
+      "exception": "builtins.AttributeError",
+      "message": "MCA has not been calculated for this atom; call hotpot.cheminfo.calculator.mca(atom.mol) first"
+    },
+    "Atom.partial_charge_without_result": 0.0,
+    "Crystal_constructor": "(a, b, c, alpha, beta, gamma, *, mol=None)",
+    "Molecule.coordinates_aliases_attrs": false,
+    "Molecule.mca_sites_without_result": {
+      "exception": "builtins.AttributeError",
+      "message": "MCA sites have not been calculated for this molecule; call hotpot.cheminfo.calculator.mca(mol) first"
+    }
+  }
+}

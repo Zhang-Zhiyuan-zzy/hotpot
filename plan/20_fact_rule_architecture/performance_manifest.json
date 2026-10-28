@@ -1,0 +1,1182 @@
+{
+  "schema_version": 1,
+  "name": "Plan20 B20/F20 semantic workloads",
+  "baseline_source_commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+  "route": "Plan20-first; existing sole Python-RDKit MCA algorithm; 17-MCA follows F20",
+  "policies": {
+    "micro": {
+      "warmups": 3,
+      "samples": 10
+    },
+    "cpu_workflow": {
+      "warmups": 1,
+      "samples": 5
+    },
+    "gpu_workflow": {
+      "warmups": 1,
+      "samples": 3
+    },
+    "neutral_band": [
+      0.97,
+      1.03
+    ],
+    "bootstrap_samples": 10000,
+    "bootstrap_seed": 20261028,
+    "confidence_level": 0.95,
+    "local_slowdown_exception_fraction": 0.05,
+    "local_slowdown_exception_max_median": 1.05,
+    "small_suite_exception_count": 1,
+    "weights": "Equal within each family/hardware mode and equal family weights in overall summaries; report end-to-end separately.",
+    "acceptance": "At least measured parity per family and end-to-end, memory separate; exceptions require explicit review, never automatic.",
+    "work_accounting": "Retain every warmup and measured attempt, failure and no-output. Pair only completed samples with equal actual work counters; report all excluded attempts and denominators.",
+    "candidate_binding": "Keep each semantic task and public reader fixed. Update private fixture/import bindings at their owning stage; include runner digests. No fallback to baseline implementation."
+  },
+  "entry_points": {
+    "source": "_performance_workloads.prepare(entry, phase)",
+    "cold_import": "fresh python -c import hotpot",
+    "tests": "python -m pytest --import-mode=importlib against a frozen node-ID file"
+  },
+  "measurement": {
+    "thread_env": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1"
+    },
+    "process_model": "One fresh process per workload; setup outside timing, warmups and samples inside it. Cold import and test tasks use a fresh process per sample.",
+    "memory": "Linux RSS high-water and current RSS; separate untimed tracemalloc probe reports Python-tracked peak/retained bytes and blocks, not all native allocations.",
+    "inputs": "All cheap/model fixtures and sizes are literal parameters below. Test selection is a separate B20-frozen node-ID artifact whose SHA256 is recorded."
+  },
+  "workloads": [
+    {
+      "id": "cold_import",
+      "family": "import",
+      "operation": "cold_import",
+      "parameters": {},
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Fresh Python process imports hotpot and records loaded toolkit/native modules; elapsed includes interpreter startup."
+    },
+    {
+      "id": "empty_molecule",
+      "family": "import",
+      "operation": "empty",
+      "parameters": {
+        "loops": 1000
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Construct 1000 empty Molecules."
+    },
+    {
+      "id": "construct_8",
+      "family": "construction",
+      "operation": "construct",
+      "parameters": {
+        "atoms": 8,
+        "loops": 5
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Construct N isolated carbon atoms with explicit atomic number6, formal charge0 and fixed coordinates through the existing Molecule creation interface."
+    },
+    {
+      "id": "scalar_read_8",
+      "family": "atom_storage",
+      "operation": "scalar_read",
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Read atomic number and formal charge for every Atom."
+    },
+    {
+      "id": "scalar_write_8",
+      "family": "atom_storage",
+      "operation": "scalar_write",
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Set every Atom formal charge to explicit zero."
+    },
+    {
+      "id": "batch_facts_8",
+      "family": "atom_storage",
+      "operation": "batch_facts",
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Install the same complete formal-charge column; baseline scalar interface, candidate approved batch interface."
+    },
+    {
+      "id": "coordinates_8",
+      "family": "atom_storage",
+      "operation": "coordinates",
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Write and read the complete transformed N by 3 current coordinate frame."
+    },
+    {
+      "id": "insert_delete_8",
+      "family": "atom_storage",
+      "operation": "insert_delete",
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Insert and remove one oxygen Atom, retaining all existing rows."
+    },
+    {
+      "id": "matrix_8",
+      "family": "native_export",
+      "operation": "matrix",
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Export atomic number, formal charge and Cartesian x/y/z in an independent float32 N by 5 matrix."
+    },
+    {
+      "id": "native_8",
+      "family": "native_export",
+      "operation": "native",
+      "parameters": {
+        "atoms": 8,
+        "loops": 20,
+        "fields": [
+          "ATOMIC_NUMBERS",
+          "FORMAL_CHARGES",
+          "COORDINATES"
+        ]
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Pack only atomic number, formal charge and Cartesian coordinates into the common native transport."
+    },
+    {
+      "id": "partial_projection_8",
+      "family": "result_projection",
+      "operation": "partial_projection",
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Read all Atom partial charges from a prepared synthetic result containing index/N values; fixture installation is untimed."
+    },
+    {
+      "id": "mca_projection_8",
+      "family": "result_projection",
+      "operation": "mca_projection",
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Read all Atom MCA and molecule site projections from a prepared synthetic result containing float(index); no model inference is timed."
+    },
+    {
+      "id": "write_read_8",
+      "family": "lazy_dependencies",
+      "operation": "write_read",
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Coalesce actual atomic-number changes for all atoms, alternating carbon6 and nitrogen7, then obtain required implicit-H values; include both write and derived read cost."
+    },
+    {
+      "id": "clean_read_8",
+      "family": "lazy_dependencies",
+      "operation": "clean_read",
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Repeatedly obtain already prepared implicit-H values."
+    },
+    {
+      "id": "unrelated_read_8",
+      "family": "lazy_dependencies",
+      "operation": "unrelated_read",
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Alternate all atomic numbers between6 and7, then read unrelated explicit coordinates."
+    },
+    {
+      "id": "construct_64",
+      "family": "construction",
+      "operation": "construct",
+      "parameters": {
+        "atoms": 64,
+        "loops": 5
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Construct N isolated carbon atoms with explicit atomic number6, formal charge0 and fixed coordinates through the existing Molecule creation interface."
+    },
+    {
+      "id": "scalar_read_64",
+      "family": "atom_storage",
+      "operation": "scalar_read",
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Read atomic number and formal charge for every Atom."
+    },
+    {
+      "id": "scalar_write_64",
+      "family": "atom_storage",
+      "operation": "scalar_write",
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Set every Atom formal charge to explicit zero."
+    },
+    {
+      "id": "batch_facts_64",
+      "family": "atom_storage",
+      "operation": "batch_facts",
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Install the same complete formal-charge column; baseline scalar interface, candidate approved batch interface."
+    },
+    {
+      "id": "coordinates_64",
+      "family": "atom_storage",
+      "operation": "coordinates",
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Write and read the complete transformed N by 3 current coordinate frame."
+    },
+    {
+      "id": "insert_delete_64",
+      "family": "atom_storage",
+      "operation": "insert_delete",
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Insert and remove one oxygen Atom, retaining all existing rows."
+    },
+    {
+      "id": "matrix_64",
+      "family": "native_export",
+      "operation": "matrix",
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Export atomic number, formal charge and Cartesian x/y/z in an independent float32 N by 5 matrix."
+    },
+    {
+      "id": "native_64",
+      "family": "native_export",
+      "operation": "native",
+      "parameters": {
+        "atoms": 64,
+        "loops": 20,
+        "fields": [
+          "ATOMIC_NUMBERS",
+          "FORMAL_CHARGES",
+          "COORDINATES"
+        ]
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Pack only atomic number, formal charge and Cartesian coordinates into the common native transport."
+    },
+    {
+      "id": "partial_projection_64",
+      "family": "result_projection",
+      "operation": "partial_projection",
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Read all Atom partial charges from a prepared synthetic result containing index/N values; fixture installation is untimed."
+    },
+    {
+      "id": "mca_projection_64",
+      "family": "result_projection",
+      "operation": "mca_projection",
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Read all Atom MCA and molecule site projections from a prepared synthetic result containing float(index); no model inference is timed."
+    },
+    {
+      "id": "write_read_64",
+      "family": "lazy_dependencies",
+      "operation": "write_read",
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Coalesce actual atomic-number changes for all atoms, alternating carbon6 and nitrogen7, then obtain required implicit-H values; include both write and derived read cost."
+    },
+    {
+      "id": "clean_read_64",
+      "family": "lazy_dependencies",
+      "operation": "clean_read",
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Repeatedly obtain already prepared implicit-H values."
+    },
+    {
+      "id": "unrelated_read_64",
+      "family": "lazy_dependencies",
+      "operation": "unrelated_read",
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Alternate all atomic numbers between6 and7, then read unrelated explicit coordinates."
+    },
+    {
+      "id": "construct_256",
+      "family": "construction",
+      "operation": "construct",
+      "parameters": {
+        "atoms": 256,
+        "loops": 5
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Construct N isolated carbon atoms with explicit atomic number6, formal charge0 and fixed coordinates through the existing Molecule creation interface."
+    },
+    {
+      "id": "scalar_read_256",
+      "family": "atom_storage",
+      "operation": "scalar_read",
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Read atomic number and formal charge for every Atom."
+    },
+    {
+      "id": "scalar_write_256",
+      "family": "atom_storage",
+      "operation": "scalar_write",
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Set every Atom formal charge to explicit zero."
+    },
+    {
+      "id": "batch_facts_256",
+      "family": "atom_storage",
+      "operation": "batch_facts",
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Install the same complete formal-charge column; baseline scalar interface, candidate approved batch interface."
+    },
+    {
+      "id": "coordinates_256",
+      "family": "atom_storage",
+      "operation": "coordinates",
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Write and read the complete transformed N by 3 current coordinate frame."
+    },
+    {
+      "id": "insert_delete_256",
+      "family": "atom_storage",
+      "operation": "insert_delete",
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Insert and remove one oxygen Atom, retaining all existing rows."
+    },
+    {
+      "id": "matrix_256",
+      "family": "native_export",
+      "operation": "matrix",
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Export atomic number, formal charge and Cartesian x/y/z in an independent float32 N by 5 matrix."
+    },
+    {
+      "id": "native_256",
+      "family": "native_export",
+      "operation": "native",
+      "parameters": {
+        "atoms": 256,
+        "loops": 20,
+        "fields": [
+          "ATOMIC_NUMBERS",
+          "FORMAL_CHARGES",
+          "COORDINATES"
+        ]
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Pack only atomic number, formal charge and Cartesian coordinates into the common native transport."
+    },
+    {
+      "id": "partial_projection_256",
+      "family": "result_projection",
+      "operation": "partial_projection",
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Read all Atom partial charges from a prepared synthetic result containing index/N values; fixture installation is untimed."
+    },
+    {
+      "id": "mca_projection_256",
+      "family": "result_projection",
+      "operation": "mca_projection",
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Read all Atom MCA and molecule site projections from a prepared synthetic result containing float(index); no model inference is timed."
+    },
+    {
+      "id": "write_read_256",
+      "family": "lazy_dependencies",
+      "operation": "write_read",
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Coalesce actual atomic-number changes for all atoms, alternating carbon6 and nitrogen7, then obtain required implicit-H values; include both write and derived read cost."
+    },
+    {
+      "id": "clean_read_256",
+      "family": "lazy_dependencies",
+      "operation": "clean_read",
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Repeatedly obtain already prepared implicit-H values."
+    },
+    {
+      "id": "unrelated_read_256",
+      "family": "lazy_dependencies",
+      "operation": "unrelated_read",
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Alternate all atomic numbers between6 and7, then read unrelated explicit coordinates."
+    },
+    {
+      "id": "io_smi_small",
+      "family": "construction",
+      "operation": "io",
+      "parameters": {
+        "smiles": "CCO",
+        "format": "smi",
+        "loops": 5
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Parse the fixed record with all represented facts; prepare MOL2/SDF input from the named SMILES outside timing."
+    },
+    {
+      "id": "io_mol2_small",
+      "family": "construction",
+      "operation": "io",
+      "parameters": {
+        "smiles": "CCO",
+        "format": "mol2",
+        "loops": 5
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Parse the fixed record with all represented facts; prepare MOL2/SDF input from the named SMILES outside timing."
+    },
+    {
+      "id": "io_sdf_small",
+      "family": "construction",
+      "operation": "io",
+      "parameters": {
+        "smiles": "CCO",
+        "format": "sdf",
+        "loops": 5
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Parse the fixed record with all represented facts; prepare MOL2/SDF input from the named SMILES outside timing."
+    },
+    {
+      "id": "io_smi_typical",
+      "family": "construction",
+      "operation": "io",
+      "parameters": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "format": "smi",
+        "loops": 5
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Parse the fixed record with all represented facts; prepare MOL2/SDF input from the named SMILES outside timing."
+    },
+    {
+      "id": "io_mol2_typical",
+      "family": "construction",
+      "operation": "io",
+      "parameters": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "format": "mol2",
+        "loops": 5
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Parse the fixed record with all represented facts; prepare MOL2/SDF input from the named SMILES outside timing."
+    },
+    {
+      "id": "io_sdf_typical",
+      "family": "construction",
+      "operation": "io",
+      "parameters": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "format": "sdf",
+        "loops": 5
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Parse the fixed record with all represented facts; prepare MOL2/SDF input from the named SMILES outside timing."
+    },
+    {
+      "id": "io_smi_large",
+      "family": "construction",
+      "operation": "io",
+      "parameters": {
+        "smiles": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+        "format": "smi",
+        "loops": 5
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Parse the fixed record with all represented facts; prepare MOL2/SDF input from the named SMILES outside timing."
+    },
+    {
+      "id": "io_mol2_large",
+      "family": "construction",
+      "operation": "io",
+      "parameters": {
+        "smiles": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+        "format": "mol2",
+        "loops": 5
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Parse the fixed record with all represented facts; prepare MOL2/SDF input from the named SMILES outside timing."
+    },
+    {
+      "id": "io_sdf_large",
+      "family": "construction",
+      "operation": "io",
+      "parameters": {
+        "smiles": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+        "format": "sdf",
+        "loops": 5
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Parse the fixed record with all represented facts; prepare MOL2/SDF input from the named SMILES outside timing."
+    },
+    {
+      "id": "graph_search_geometry",
+      "family": "graph_search_geometry",
+      "operation": "graph_geometry",
+      "parameters": {
+        "smiles": "c1ccc2ccccc2c1CCN",
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Read ring/path/angle/torsion/pair-distance outputs and RI SMARTS carbon-carbon hits from one fixed molecule."
+    },
+    {
+      "id": "geometry_screen",
+      "family": "graph_search_geometry",
+      "operation": "geometry_screen",
+      "parameters": {
+        "loops": 100
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Screen one crossing and one disjoint segment against the same regular six-member cycle through the existing mathematical geometry API."
+    },
+    {
+      "id": "crystal_matrix",
+      "family": "values_collections",
+      "operation": "crystal",
+      "parameters": {
+        "matrix": [
+          [
+            8,
+            0,
+            0
+          ],
+          [
+            1,
+            9,
+            0
+          ],
+          [
+            2,
+            3,
+            10
+          ]
+        ],
+        "loops": 200
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Convert the characterized non-orthogonal cell matrix into the six canonical Crystal parameters."
+    },
+    {
+      "id": "molecule_bundle",
+      "family": "values_collections",
+      "operation": "bundle",
+      "parameters": {
+        "molecules": 128,
+        "loops": 100
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Construct a MolBundle over the same 128 prepared Molecule references and read membership length."
+    },
+    {
+      "id": "source_conformers",
+      "family": "values_collections",
+      "operation": "conformers",
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Add/get/load/clear two explicit 64-Atom source frames with the same coordinates."
+    },
+    {
+      "id": "toolkit_conversions",
+      "family": "conversions",
+      "operation": "convert",
+      "parameters": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "semantic_task": "Request one OB and one RDKit conversion per coarse iteration; baseline retains its characterized cache behavior."
+    },
+    {
+      "id": "mca_conformer_algorithm",
+      "family": "conformers_forcefields",
+      "operation": "conformer",
+      "parameters": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "seed": 42
+      },
+      "hardware_mode": "cpu",
+      "tier": "cpu_workflow",
+      "end_to_end": true,
+      "weight": 1.0,
+      "semantic_task": "Run the selected existing single-ETKDG plus MMFF/UFF MCA conformer algorithm with seed42."
+    },
+    {
+      "id": "organic_forcefield",
+      "family": "conformers_forcefields",
+      "operation": "forcefield",
+      "parameters": {
+        "smiles": "CCO",
+        "seed": 42,
+        "epochs": 1,
+        "steps_per_epoch": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "cpu_workflow",
+      "end_to_end": true,
+      "weight": 1.0,
+      "semantic_task": "Run the existing organic UFF build/optimization operation with fixed seed42 and 1x20 budget; retain actual execution/monitor report."
+    },
+    {
+      "id": "retained_molecules",
+      "family": "memory",
+      "operation": "memory",
+      "parameters": {
+        "atoms": 64,
+        "molecules": 16,
+        "loops": 1
+      },
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "aggregate_runtime": false,
+      "semantic_task": "Construct and retain sixteen 64-Atom carriers; measure RSS and separately measured Python-tracked allocations."
+    },
+    {
+      "id": "mca_cpu_8",
+      "family": "inference",
+      "operation": "mca",
+      "parameters": {
+        "backend": "cpu",
+        "molecules": 8,
+        "smiles": [
+          "CCO",
+          "CCN",
+          "CC(=O)O",
+          "c1ccncc1",
+          "CCOC",
+          "CCS",
+          "CC(=O)N",
+          "c1ccccc1O"
+        ],
+        "cpu_count": 8,
+        "seed": 42
+      },
+      "hardware_mode": "cpu",
+      "tier": "cpu_workflow",
+      "end_to_end": true,
+      "weight": 1.0,
+      "requires": [
+        "mca_model"
+      ],
+      "semantic_task": "Run the selected MCA algorithm and all-Atom/site prediction for the fixed ordered inline SMILES cohort using one persistent predictor per workload."
+    },
+    {
+      "id": "mca_cpu_64",
+      "family": "inference",
+      "operation": "mca",
+      "parameters": {
+        "backend": "cpu",
+        "molecules": 64,
+        "smiles": [
+          "CCO",
+          "CCN",
+          "CC(=O)O",
+          "c1ccncc1",
+          "CCOC",
+          "CCS",
+          "CC(=O)N",
+          "c1ccccc1O"
+        ],
+        "cpu_count": 8,
+        "seed": 42
+      },
+      "hardware_mode": "cpu",
+      "tier": "cpu_workflow",
+      "end_to_end": true,
+      "weight": 1.0,
+      "requires": [
+        "mca_model"
+      ],
+      "semantic_task": "Run the selected MCA algorithm and all-Atom/site prediction for the fixed ordered inline SMILES cohort using one persistent predictor per workload."
+    },
+    {
+      "id": "mca_fallback",
+      "family": "inference",
+      "operation": "mca",
+      "parameters": {
+        "backend": "gpu",
+        "molecules": 8,
+        "smiles": [
+          "CCO",
+          "CCN",
+          "CC(=O)O",
+          "c1ccncc1",
+          "CCOC",
+          "CCS",
+          "CC(=O)N",
+          "c1ccccc1O"
+        ],
+        "gpu_indices": [
+          0
+        ],
+        "site_cpu_per_gpu": 1,
+        "infer_cpu_per_gpu": 3,
+        "seed": 42
+      },
+      "hardware_mode": "1gpu_fallback",
+      "tier": "gpu_workflow",
+      "end_to_end": true,
+      "weight": 1.0,
+      "requires": [
+        "mca_model",
+        "gpu"
+      ],
+      "semantic_task": "Use explicit GPU indices and fixed CPU allocation; retain whether CUDA actually started, including the below-256-site CPU fallback."
+    },
+    {
+      "id": "mca_1gpu",
+      "family": "inference",
+      "operation": "mca",
+      "parameters": {
+        "backend": "gpu",
+        "molecules": 512,
+        "smiles": [
+          "CCO",
+          "CCN",
+          "CC(=O)O",
+          "c1ccncc1",
+          "CCOC",
+          "CCS",
+          "CC(=O)N",
+          "c1ccccc1O"
+        ],
+        "gpu_indices": [
+          0
+        ],
+        "site_cpu_per_gpu": 1,
+        "infer_cpu_per_gpu": 15,
+        "seed": 42
+      },
+      "hardware_mode": "1gpu",
+      "tier": "gpu_workflow",
+      "end_to_end": true,
+      "weight": 1.0,
+      "requires": [
+        "mca_model",
+        "gpu"
+      ],
+      "semantic_task": "Use explicit GPU indices and fixed CPU allocation; retain whether CUDA actually started, including the below-256-site CPU fallback."
+    },
+    {
+      "id": "mca_4gpu",
+      "family": "inference",
+      "operation": "mca",
+      "parameters": {
+        "backend": "gpu",
+        "molecules": 512,
+        "smiles": [
+          "CCO",
+          "CCN",
+          "CC(=O)O",
+          "c1ccncc1",
+          "CCOC",
+          "CCS",
+          "CC(=O)N",
+          "c1ccccc1O"
+        ],
+        "gpu_indices": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "site_cpu_per_gpu": 1,
+        "infer_cpu_per_gpu": 15,
+        "seed": 42
+      },
+      "hardware_mode": "4gpu",
+      "tier": "gpu_workflow",
+      "end_to_end": true,
+      "weight": 1.0,
+      "requires": [
+        "mca_model",
+        "gpu"
+      ],
+      "semantic_task": "Use explicit GPU indices and fixed CPU allocation; retain whether CUDA actually started, including the below-256-site CPU fallback."
+    },
+    {
+      "id": "cbond_cpu",
+      "family": "inference",
+      "operation": "cbond",
+      "parameters": {
+        "device": "cpu",
+        "loops": 20
+      },
+      "hardware_mode": "cpu",
+      "tier": "cpu_workflow",
+      "end_to_end": true,
+      "weight": 1.0,
+      "requires": [
+        "cbond_model"
+      ],
+      "semantic_task": "Execute existing CBond graph embedding and ring head on the fixed 4-Atom/one-ring/two-candidate technical fixture; report actual predictions without scientific threshold acceptance."
+    },
+    {
+      "id": "cbond_cuda",
+      "family": "inference",
+      "operation": "cbond",
+      "parameters": {
+        "device": "cuda",
+        "loops": 20
+      },
+      "hardware_mode": "1gpu",
+      "tier": "gpu_workflow",
+      "end_to_end": true,
+      "weight": 1.0,
+      "requires": [
+        "cbond_model",
+        "gpu"
+      ],
+      "semantic_task": "Execute existing CBond graph embedding and ring head on the fixed 4-Atom/one-ring/two-candidate technical fixture; report actual predictions without scientific threshold acceptance."
+    },
+    {
+      "id": "test_collection",
+      "family": "test_execution",
+      "operation": "test_collection",
+      "parameters": {},
+      "hardware_mode": "cpu",
+      "tier": "cpu_workflow",
+      "end_to_end": false,
+      "weight": 1.0,
+      "requires": [
+        "tests"
+      ],
+      "semantic_task": "Run the exact common test node IDs frozen from B20; report pass/fail/skip and keep added candidate tests separate."
+    },
+    {
+      "id": "test_execution",
+      "family": "test_execution",
+      "operation": "test_execution",
+      "parameters": {},
+      "hardware_mode": "cpu",
+      "tier": "cpu_workflow",
+      "end_to_end": true,
+      "weight": 1.0,
+      "requires": [
+        "tests"
+      ],
+      "semantic_task": "Run the exact common test node IDs frozen from B20; report pass/fail/skip and keep added candidate tests separate."
+    },
+    {
+      "id": "marking_only",
+      "family": "new_mechanisms",
+      "operation": "new_only",
+      "parameters": {},
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "new_only": true,
+      "aggregate_runtime": false,
+      "semantic_task": "Candidate-only mechanism cost; no baseline counterpart and never included in old/new speedup aggregates."
+    },
+    {
+      "id": "schema_projection_internal",
+      "family": "new_mechanisms",
+      "operation": "new_only",
+      "parameters": {},
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "new_only": true,
+      "aggregate_runtime": false,
+      "semantic_task": "Candidate-only mechanism cost; no baseline counterpart and never included in old/new speedup aggregates."
+    },
+    {
+      "id": "added_tests",
+      "family": "new_mechanisms",
+      "operation": "new_only",
+      "parameters": {},
+      "hardware_mode": "cpu",
+      "tier": "micro",
+      "end_to_end": false,
+      "weight": 1.0,
+      "new_only": true,
+      "aggregate_runtime": false,
+      "semantic_task": "Candidate-only mechanism cost; no baseline counterpart and never included in old/new speedup aggregates."
+    }
+  ]
+}

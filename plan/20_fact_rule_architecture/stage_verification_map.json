@@ -1,0 +1,1469 @@
+{
+  "schema_version": 1,
+  "source_commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+  "stage_entry": "Full current main plan and normative companions reread and project-state assessment before every stage/sub-stage",
+  "scope": "Existing exact technical target selections plus explicitly planned targets. Tests added by owning stages join the complete affected Python matrix before their gates pass.",
+  "baseline_environment": {
+    "local_python": "/tmp/hotpot-plan20-env/bin/python",
+    "frozen_source_worktree": "/tmp/hotpot-plan20-20261028/source-b20",
+    "raw_artifact_root": "/tmp/hotpot-plan20-20261028",
+    "supported_python": [
+      "3.10",
+      "3.11",
+      "3.12",
+      "3.13",
+      "3.14"
+    ]
+  },
+  "common_commands": {
+    "default_suite": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "--import-mode=importlib",
+      "tests"
+    ],
+    "coverage": [
+      "bash",
+      "tests/run_coverage.sh"
+    ],
+    "python_matrix": [
+      "bash",
+      "tests/run_inference_compatibility.sh",
+      "3.10",
+      "3.11",
+      "3.12",
+      "3.13",
+      "3.14"
+    ],
+    "wheel_audit": [
+      "python",
+      "tests/test_packaging/audit_rdwrapper_wheel.py",
+      "<wheel>"
+    ],
+    "installed_smoke": [
+      "python",
+      "/home/zhangzhiyuan/hotpot/tests/test_packaging/installed_package_smoke.py",
+      "<core|mca|cbond|forcefield>"
+    ],
+    "scientific_report": [
+      "python",
+      "plan/20_fact_rule_architecture/run_scientific_report.py",
+      "--backend",
+      "o0",
+      "--seeds",
+      "42",
+      "43",
+      "44",
+      "--output",
+      "<artifact-directory>"
+    ]
+  },
+  "invocation_rules": [
+    "Use the selected environment interpreter; record resolved executable and exact argv for each execution.",
+    "Installed-wheel checks run outside checkout with the matching Python/wheel; set HOTPOT_TEST_WHEEL and HOTPOT_TEST_INSTALLED_PACKAGE as required by the existing harness.",
+    "Native SDK tests additionally require --run-external and HOTPOT_RDWRAPPERS_TEST_SDK_PREFIX; skipped SDK calls are not passed ABI checks.",
+    "Performance workloads/repetitions/outcome accounting belong to the separately frozen Section12 manifest; this file does not substitute a benchmark policy.",
+    "Stage13 contract-test exact path is intentionally deferred until B_exp exists; no speculative protocol implementation is authorized here."
+  ],
+  "stages": {
+    "Stage0": {
+      "predecessor": null,
+      "existing_test_files": [],
+      "native_high_compute_test_files": [],
+      "technical_command": null,
+      "native_command": null,
+      "planned_contract_test_files": [],
+      "additional_requirements": [],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage1": {
+      "predecessor": "Stage0",
+      "existing_test_files": [
+        "tests/test_cheminfo/obWrappers/test_bridge.py",
+        "tests/test_cheminfo/obWrappers/test_native_engine_contract.py",
+        "tests/test_cheminfo/obWrappers/test_native_rules.py",
+        "tests/test_cheminfo/obWrappers/test_packing.py",
+        "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py",
+        "tests/test_cheminfo/rdWrappers/test_import_order.py",
+        "tests/test_cheminfo/rdWrappers/test_native_binding.py",
+        "tests/test_cheminfo/rdWrappers/test_r0_benchmark_runner.py",
+        "tests/test_cheminfo/test_core.py",
+        "tests/test_cheminfo/test_molecule_conversion.py",
+        "tests/test_cheminfo/test_stereo_api.py",
+        "tests/test_cheminfo/test_topology_determinism.py",
+        "tests/test_cheminfo/test_topology_index.py",
+        "tests/test_packaging_metadata.py"
+      ],
+      "native_high_compute_test_files": [
+        "tests/test_cheminfo/forcefields/native_cpp/test_coordination_stage_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_optimization_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_optimization_stage_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_placement_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_session_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_stage3_contracts_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_topology_workspace_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_untangling_engine_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_workflow_stage_header_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_batch_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_native_source_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_nonplanar_segment_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_nonplanar_surface_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_prepared_cycle_api.py",
+        "tests/test_cheminfo/graph/native_cpp/test_cycle_basis_source_api.py",
+        "tests/test_cheminfo/graph/native_cpp/test_graph_source_api.py",
+        "tests/test_cheminfo/native_cpp/test_molecule_buffer_view.py",
+        "tests/test_cheminfo/obWrappers/native_cpp/test_molecule_view_policy.py",
+        "tests/test_cheminfo/obWrappers/native_cpp/test_optimization_checks.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_rdwrapper_api.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py"
+      ],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/obWrappers/test_bridge.py",
+        "tests/test_cheminfo/obWrappers/test_native_engine_contract.py",
+        "tests/test_cheminfo/obWrappers/test_native_rules.py",
+        "tests/test_cheminfo/obWrappers/test_packing.py",
+        "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py",
+        "tests/test_cheminfo/rdWrappers/test_import_order.py",
+        "tests/test_cheminfo/rdWrappers/test_native_binding.py",
+        "tests/test_cheminfo/rdWrappers/test_r0_benchmark_runner.py",
+        "tests/test_cheminfo/test_core.py",
+        "tests/test_cheminfo/test_molecule_conversion.py",
+        "tests/test_cheminfo/test_stereo_api.py",
+        "tests/test_cheminfo/test_topology_determinism.py",
+        "tests/test_cheminfo/test_topology_index.py",
+        "tests/test_packaging_metadata.py"
+      ],
+      "native_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-high-compute",
+        "tests/test_cheminfo/forcefields/native_cpp/test_coordination_stage_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_optimization_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_optimization_stage_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_placement_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_session_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_stage3_contracts_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_topology_workspace_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_untangling_engine_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_workflow_stage_header_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_batch_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_native_source_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_nonplanar_segment_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_nonplanar_surface_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_prepared_cycle_api.py",
+        "tests/test_cheminfo/graph/native_cpp/test_cycle_basis_source_api.py",
+        "tests/test_cheminfo/graph/native_cpp/test_graph_source_api.py",
+        "tests/test_cheminfo/native_cpp/test_molecule_buffer_view.py",
+        "tests/test_cheminfo/obWrappers/native_cpp/test_molecule_view_policy.py",
+        "tests/test_cheminfo/obWrappers/native_cpp/test_optimization_checks.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_rdwrapper_api.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py"
+      ],
+      "planned_contract_test_files": [],
+      "additional_requirements": [
+        "full default suite, original baseline scientific/technical selection, full Section12 workload measurements"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage2": {
+      "predecessor": "Stage1",
+      "existing_test_files": [
+        "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_cheminfo/test_ob2chem_compat.py",
+        "tests/test_main/test_command_loading.py",
+        "tests/test_smart_parser.py"
+      ],
+      "native_high_compute_test_files": [],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_cheminfo/test_ob2chem_compat.py",
+        "tests/test_main/test_command_loading.py",
+        "tests/test_smart_parser.py"
+      ],
+      "native_command": null,
+      "planned_contract_test_files": [],
+      "additional_requirements": [
+        "source/build/consumer zero-reference audit for every deletion; replace tests of deleted compatibility entry with equivalent supported-entry assertions"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage3": {
+      "predecessor": "Stage2",
+      "existing_test_files": [
+        "tests/test_cheminfo/test_core.py",
+        "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+        "tests/test_cheminfo/test_native_molecule_buffers.py",
+        "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
+        "tests/test_cheminfo/test_topology_index.py"
+      ],
+      "native_high_compute_test_files": [],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/test_core.py",
+        "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+        "tests/test_cheminfo/test_native_molecule_buffers.py",
+        "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
+        "tests/test_cheminfo/test_topology_index.py"
+      ],
+      "native_command": null,
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/structure/test_builder.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_atom_fact_table.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_dependencies.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_commit_atomicity.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_buffer_ownership.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_interface_permissions.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_architecture.py",
+          "status": "planned_not_created"
+        }
+      ],
+      "additional_requirements": [
+        "builder one topology build/no implicit chemistry; UID non-reuse; finite dirty propagation; field schema; scalar/batch alias isolation and performance"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage4": {
+      "predecessor": "Stage3",
+      "existing_test_files": [
+        "tests/test_cheminfo/geometry/test_convert.py",
+        "tests/test_cheminfo/geometry/test_documentation.py",
+        "tests/test_cheminfo/geometry/test_metamorphic.py",
+        "tests/test_cheminfo/geometry/test_native_cycle_batch.py",
+        "tests/test_cheminfo/geometry/test_native_cycle_dispatch.py",
+        "tests/test_cheminfo/geometry/test_native_default_parity.py",
+        "tests/test_cheminfo/geometry/test_native_migration_characterization.py",
+        "tests/test_cheminfo/geometry/test_native_nonplanar_fence.py",
+        "tests/test_cheminfo/geometry/test_native_nonplanar_relation.py",
+        "tests/test_cheminfo/geometry/test_native_nonplanar_surface.py",
+        "tests/test_cheminfo/geometry/test_native_planar_differential.py",
+        "tests/test_cheminfo/geometry/test_native_planar_fence.py",
+        "tests/test_cheminfo/geometry/test_native_prepared_invariants.py",
+        "tests/test_cheminfo/geometry/test_native_primitives.py",
+        "tests/test_cheminfo/geometry/test_object.py",
+        "tests/test_cheminfo/geometry/test_prepared_cycle.py",
+        "tests/test_cheminfo/geometry/test_readme_examples.py",
+        "tests/test_cheminfo/geometry/test_relation_primitives.py",
+        "tests/test_cheminfo/geometry/test_segment_cycle_relation.py",
+        "tests/test_cheminfo/geometry/test_settings.py",
+        "tests/test_cheminfo/graph/test_cycle_basis_oracle.py",
+        "tests/test_cheminfo/graph/test_direct_algorithms.py",
+        "tests/test_cheminfo/graph/test_graph_atlas.py",
+        "tests/test_cheminfo/graph/test_legacy_graph_api.py",
+        "tests/test_cheminfo/graph/test_native_cycle_basis.py",
+        "tests/test_cheminfo/graph/test_native_interface.py",
+        "tests/test_cheminfo/graph/test_rdl_differential.py",
+        "tests/test_cheminfo/graph/test_relevant_cycles.py",
+        "tests/test_cheminfo/test_geometry.py",
+        "tests/test_cheminfo/test_geometry_core_integration.py",
+        "tests/test_cheminfo/test_geometry_imports.py",
+        "tests/test_cheminfo/test_geometry_quality.py",
+        "tests/test_cheminfo/test_ligand_rings.py",
+        "tests/test_cheminfo/test_relevant_ring_integration.py",
+        "tests/test_cheminfo/test_topology_determinism.py",
+        "tests/test_cheminfo/test_topology_index.py"
+      ],
+      "native_high_compute_test_files": [
+        "tests/test_cheminfo/geometry/native_cpp/test_batch_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_native_source_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_nonplanar_segment_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_nonplanar_surface_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_prepared_cycle_api.py",
+        "tests/test_cheminfo/graph/native_cpp/test_cycle_basis_source_api.py",
+        "tests/test_cheminfo/graph/native_cpp/test_graph_source_api.py"
+      ],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/geometry/test_convert.py",
+        "tests/test_cheminfo/geometry/test_documentation.py",
+        "tests/test_cheminfo/geometry/test_metamorphic.py",
+        "tests/test_cheminfo/geometry/test_native_cycle_batch.py",
+        "tests/test_cheminfo/geometry/test_native_cycle_dispatch.py",
+        "tests/test_cheminfo/geometry/test_native_default_parity.py",
+        "tests/test_cheminfo/geometry/test_native_migration_characterization.py",
+        "tests/test_cheminfo/geometry/test_native_nonplanar_fence.py",
+        "tests/test_cheminfo/geometry/test_native_nonplanar_relation.py",
+        "tests/test_cheminfo/geometry/test_native_nonplanar_surface.py",
+        "tests/test_cheminfo/geometry/test_native_planar_differential.py",
+        "tests/test_cheminfo/geometry/test_native_planar_fence.py",
+        "tests/test_cheminfo/geometry/test_native_prepared_invariants.py",
+        "tests/test_cheminfo/geometry/test_native_primitives.py",
+        "tests/test_cheminfo/geometry/test_object.py",
+        "tests/test_cheminfo/geometry/test_prepared_cycle.py",
+        "tests/test_cheminfo/geometry/test_readme_examples.py",
+        "tests/test_cheminfo/geometry/test_relation_primitives.py",
+        "tests/test_cheminfo/geometry/test_segment_cycle_relation.py",
+        "tests/test_cheminfo/geometry/test_settings.py",
+        "tests/test_cheminfo/graph/test_cycle_basis_oracle.py",
+        "tests/test_cheminfo/graph/test_direct_algorithms.py",
+        "tests/test_cheminfo/graph/test_graph_atlas.py",
+        "tests/test_cheminfo/graph/test_legacy_graph_api.py",
+        "tests/test_cheminfo/graph/test_native_cycle_basis.py",
+        "tests/test_cheminfo/graph/test_native_interface.py",
+        "tests/test_cheminfo/graph/test_rdl_differential.py",
+        "tests/test_cheminfo/graph/test_relevant_cycles.py",
+        "tests/test_cheminfo/test_geometry.py",
+        "tests/test_cheminfo/test_geometry_core_integration.py",
+        "tests/test_cheminfo/test_geometry_imports.py",
+        "tests/test_cheminfo/test_geometry_quality.py",
+        "tests/test_cheminfo/test_ligand_rings.py",
+        "tests/test_cheminfo/test_relevant_ring_integration.py",
+        "tests/test_cheminfo/test_topology_determinism.py",
+        "tests/test_cheminfo/test_topology_index.py"
+      ],
+      "native_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-high-compute",
+        "tests/test_cheminfo/geometry/native_cpp/test_batch_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_native_source_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_nonplanar_segment_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_nonplanar_surface_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_prepared_cycle_api.py",
+        "tests/test_cheminfo/graph/native_cpp/test_cycle_basis_source_api.py",
+        "tests/test_cheminfo/graph/native_cpp/test_graph_source_api.py"
+      ],
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/structure/test_view_identity.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_constraints.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_crystal_convention.py",
+          "status": "planned_not_created"
+        }
+      ],
+      "additional_requirements": [
+        "constraint persistence before Angle/Torsion cache removal; detached membership and UID remap"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage5": {
+      "predecessor": "Stage4",
+      "existing_test_files": [
+        "tests/smarts_conformance/test_adapter.py",
+        "tests/smarts_conformance/test_coordination_graph_semantics.py",
+        "tests/smarts_conformance/test_coordination_perception.py",
+        "tests/smarts_conformance/test_coordination_profiles.py",
+        "tests/smarts_conformance/test_coordination_rings.py",
+        "tests/smarts_conformance/test_corpus_validator.py",
+        "tests/smarts_conformance/test_differential_normalize.py",
+        "tests/smarts_conformance/test_enumeration.py",
+        "tests/smarts_conformance/test_extensions_exhaustive.py",
+        "tests/smarts_conformance/test_full_corpus_contract.py",
+        "tests/smarts_conformance/test_fuzz_generators.py",
+        "tests/smarts_conformance/test_metamorphic.py",
+        "tests/smarts_conformance/test_parse_and_query_graph.py",
+        "tests/smarts_conformance/test_real_rules.py",
+        "tests/smarts_conformance/test_regressions.py",
+        "tests/smarts_conformance/test_relevant_cycle_ring_semantics.py",
+        "tests/smarts_conformance/test_search_integration.py",
+        "tests/smarts_conformance/test_search_objects.py",
+        "tests/smarts_conformance/test_semantics.py",
+        "tests/smarts_conformance/test_typed_predicate_ir.py",
+        "tests/test_cheminfo/kekulize/test_known_limitations.py",
+        "tests/test_cheminfo/kekulize/test_legacy_api.py",
+        "tests/test_cheminfo/test_bond_metadata.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/test_elements.py"
+      ],
+      "native_high_compute_test_files": [],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/smarts_conformance/test_adapter.py",
+        "tests/smarts_conformance/test_coordination_graph_semantics.py",
+        "tests/smarts_conformance/test_coordination_perception.py",
+        "tests/smarts_conformance/test_coordination_profiles.py",
+        "tests/smarts_conformance/test_coordination_rings.py",
+        "tests/smarts_conformance/test_corpus_validator.py",
+        "tests/smarts_conformance/test_differential_normalize.py",
+        "tests/smarts_conformance/test_enumeration.py",
+        "tests/smarts_conformance/test_extensions_exhaustive.py",
+        "tests/smarts_conformance/test_full_corpus_contract.py",
+        "tests/smarts_conformance/test_fuzz_generators.py",
+        "tests/smarts_conformance/test_metamorphic.py",
+        "tests/smarts_conformance/test_parse_and_query_graph.py",
+        "tests/smarts_conformance/test_real_rules.py",
+        "tests/smarts_conformance/test_regressions.py",
+        "tests/smarts_conformance/test_relevant_cycle_ring_semantics.py",
+        "tests/smarts_conformance/test_search_integration.py",
+        "tests/smarts_conformance/test_search_objects.py",
+        "tests/smarts_conformance/test_semantics.py",
+        "tests/smarts_conformance/test_typed_predicate_ir.py",
+        "tests/test_cheminfo/kekulize/test_known_limitations.py",
+        "tests/test_cheminfo/kekulize/test_legacy_api.py",
+        "tests/test_cheminfo/test_bond_metadata.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/test_elements.py"
+      ],
+      "native_command": null,
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/structure/test_dependencies.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_representation_commit.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_interface_permissions.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_view_identity.py",
+          "status": "planned_not_created"
+        }
+      ],
+      "additional_requirements": [
+        "Ring immutable transition and coupled assignment; source-aware chemistry; first dirty/read repeated clean/coalesced changes"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage6": {
+      "predecessor": "Stage5",
+      "existing_test_files": [
+        "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py",
+        "tests/test_cheminfo/test_native_molecule_buffers.py",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py",
+        "tests/test_cheminfo/test_stereo_api.py",
+        "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
+        "tests/test_cheminfo/test_stereo_level1_native_packing.py",
+        "tests/test_cheminfo/test_stereo_level1_remap.py",
+        "tests/test_cheminfo/test_stereo_level1_storage.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py",
+        "tests/test_cheminfo/test_stereo_level2_algebra.py",
+        "tests/test_cheminfo/test_stereo_level2_gate2.py",
+        "tests/test_cheminfo/test_stereo_level2_gate3.py",
+        "tests/test_cheminfo/test_stereo_level2_gate4.py",
+        "tests/test_cheminfo/test_stereo_level2_gate5_axis.py",
+        "tests/test_cheminfo/test_stereo_level2_gate5_groups.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_derived.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_equivalence.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_projection.py",
+        "tests/test_cheminfo/test_stereo_level2_gate7_coordinates.py",
+        "tests/test_cheminfo/test_stereo_level2_gate7_coordination_graph.py",
+        "tests/test_cheminfo/test_stereo_level2_gate7_public.py",
+        "tests/test_cheminfo/test_stereo_level2_gate7_spy_algebra.py",
+        "tests/test_cheminfo/test_stereo_level2_toolkit_crosscheck.py"
+      ],
+      "native_high_compute_test_files": [
+        "tests/test_cheminfo/native_cpp/test_molecule_buffer_view.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_rdwrapper_api.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py"
+      ],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py",
+        "tests/test_cheminfo/test_native_molecule_buffers.py",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py",
+        "tests/test_cheminfo/test_stereo_api.py",
+        "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
+        "tests/test_cheminfo/test_stereo_level1_native_packing.py",
+        "tests/test_cheminfo/test_stereo_level1_remap.py",
+        "tests/test_cheminfo/test_stereo_level1_storage.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py",
+        "tests/test_cheminfo/test_stereo_level2_algebra.py",
+        "tests/test_cheminfo/test_stereo_level2_gate2.py",
+        "tests/test_cheminfo/test_stereo_level2_gate3.py",
+        "tests/test_cheminfo/test_stereo_level2_gate4.py",
+        "tests/test_cheminfo/test_stereo_level2_gate5_axis.py",
+        "tests/test_cheminfo/test_stereo_level2_gate5_groups.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_derived.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_equivalence.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_projection.py",
+        "tests/test_cheminfo/test_stereo_level2_gate7_coordinates.py",
+        "tests/test_cheminfo/test_stereo_level2_gate7_coordination_graph.py",
+        "tests/test_cheminfo/test_stereo_level2_gate7_public.py",
+        "tests/test_cheminfo/test_stereo_level2_gate7_spy_algebra.py",
+        "tests/test_cheminfo/test_stereo_level2_toolkit_crosscheck.py"
+      ],
+      "native_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-high-compute",
+        "tests/test_cheminfo/native_cpp/test_molecule_buffer_view.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_rdwrapper_api.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py"
+      ],
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/structure/test_buffer_ownership.py",
+          "status": "planned_not_created"
+        }
+      ],
+      "additional_requirements": [
+        "complete Level1 and Level2 Gate2-7, native packing, five facade signatures, Python3.10-3.14"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage7A": {
+      "predecessor": "Stage6",
+      "existing_test_files": [
+        "tests/test_cheminfo/obWrappers/test_bridge.py",
+        "tests/test_cheminfo/rdWrappers/test_import_order.py",
+        "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_cheminfo/test_molecule_conversion.py",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py"
+      ],
+      "native_high_compute_test_files": [],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/obWrappers/test_bridge.py",
+        "tests/test_cheminfo/rdWrappers/test_import_order.py",
+        "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_cheminfo/test_molecule_conversion.py",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py"
+      ],
+      "native_command": null,
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/structure/test_conversion_freshness.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_crystal_convention.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_adapter_boundaries.py",
+          "status": "planned_not_created"
+        }
+      ],
+      "additional_requirements": [
+        "fresh external values; I/O/thermo/visualization contracts; matrix convention; no carrier toolkit ownership"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage7B": {
+      "predecessor": "Stage7A",
+      "existing_test_files": [
+        "tests/test_cheminfo/test_forcefield_trajectory.py",
+        "tests/test_cheminfo/test_hidden_bond_restoration.py",
+        "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py"
+      ],
+      "native_high_compute_test_files": [],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/test_forcefield_trajectory.py",
+        "tests/test_cheminfo/test_hidden_bond_restoration.py",
+        "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py"
+      ],
+      "native_command": null,
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/structure/test_constraints.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_view_identity.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_topology_selection.py",
+          "status": "planned_not_created"
+        }
+      ],
+      "additional_requirements": [
+        "complete constraint identity/invalidation and task topology masks; preserve original rollback assertions"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage7C": {
+      "predecessor": "Stage7B",
+      "existing_test_files": [
+        "tests/mca/test_serialization.py",
+        "tests/mca/test_site_detection.py",
+        "tests/mca/test_site_detection_coordination.py",
+        "tests/test_cheminfo/test_mca_calculator.py",
+        "tests/test_cheminfo/test_native_molecule_buffers.py"
+      ],
+      "native_high_compute_test_files": [],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/mca/test_serialization.py",
+        "tests/mca/test_site_detection.py",
+        "tests/mca/test_site_detection_coordination.py",
+        "tests/test_cheminfo/test_mca_calculator.py",
+        "tests/test_cheminfo/test_native_molecule_buffers.py"
+      ],
+      "native_command": null,
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/structure/test_result_attachments.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_dependencies.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_buffer_ownership.py",
+          "status": "planned_not_created"
+        }
+      ],
+      "additional_requirements": [
+        "one MCA/partial-charge store; exact retain/mark/recompute map; no quadratic digest work"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage7D": {
+      "predecessor": "Stage7C",
+      "existing_test_files": [
+        "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+        "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+        "tests/test_cheminfo/test_stereo_level1_lifecycle.py"
+      ],
+      "native_high_compute_test_files": [],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+        "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+        "tests/test_cheminfo/test_stereo_level1_lifecycle.py"
+      ],
+      "native_command": null,
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/structure/test_coordinate_frames.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_result_attachments.py",
+          "status": "planned_not_created"
+        }
+      ],
+      "additional_requirements": [
+        "source/generated separation; selection/load/clear/copy; output validity distinct from input provenance"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage8A": {
+      "predecessor": "Stage7D",
+      "existing_test_files": [
+        "tests/benchmarks/scientific_state/test_cli.py",
+        "tests/benchmarks/scientific_state/test_corpus.py",
+        "tests/benchmarks/scientific_state/test_runner.py",
+        "tests/test_cheminfo/calculator/test_americium_curium_iii_rule.py",
+        "tests/test_cheminfo/calculator/test_anionic_x_ligand_rule.py",
+        "tests/test_cheminfo/calculator/test_assumption_severity.py",
+        "tests/test_cheminfo/calculator/test_backend_state_projection.py",
+        "tests/test_cheminfo/calculator/test_candidate_factor_merge.py",
+        "tests/test_cheminfo/calculator/test_candidate_path_expansion.py",
+        "tests/test_cheminfo/calculator/test_candidate_search_artifacts.py",
+        "tests/test_cheminfo/calculator/test_charge_contracts.py",
+        "tests/test_cheminfo/calculator/test_charge_legality.py",
+        "tests/test_cheminfo/calculator/test_coordination_counting.py",
+        "tests/test_cheminfo/calculator/test_coupled_state_constraints.py",
+        "tests/test_cheminfo/calculator/test_decision_search_contracts.py",
+        "tests/test_cheminfo/calculator/test_derived_charge_composition.py",
+        "tests/test_cheminfo/calculator/test_electronic_state_inference.py",
+        "tests/test_cheminfo/calculator/test_execution_selection_contracts.py",
+        "tests/test_cheminfo/calculator/test_f_block_hund_rule.py",
+        "tests/test_cheminfo/calculator/test_ionic_configuration_spin_rule.py",
+        "tests/test_cheminfo/calculator/test_lanthanide_iii_rule.py",
+        "tests/test_cheminfo/calculator/test_lewis_bounded_enumeration.py",
+        "tests/test_cheminfo/calculator/test_local_spin_coupling.py",
+        "tests/test_cheminfo/calculator/test_main_group_closed_shell_rule.py",
+        "tests/test_cheminfo/calculator/test_main_group_lewis_provider.py",
+        "tests/test_cheminfo/calculator/test_monoatomic_ion_rule.py",
+        "tests/test_cheminfo/calculator/test_net_charge_resolution.py",
+        "tests/test_cheminfo/calculator/test_neutral_atom_reference.py",
+        "tests/test_cheminfo/calculator/test_neutral_l_donor_rule.py",
+        "tests/test_cheminfo/calculator/test_operation_requirements.py",
+        "tests/test_cheminfo/calculator/test_oxidation_prior_framework.py",
+        "tests/test_cheminfo/calculator/test_oxidation_state_contracts.py",
+        "tests/test_cheminfo/calculator/test_oxidation_state_inference.py",
+        "tests/test_cheminfo/calculator/test_oxidation_state_legality.py",
+        "tests/test_cheminfo/calculator/test_oxidation_state_registry.py",
+        "tests/test_cheminfo/calculator/test_package_contract.py",
+        "tests/test_cheminfo/calculator/test_profile_eligibility.py",
+        "tests/test_cheminfo/calculator/test_public_api.py",
+        "tests/test_cheminfo/calculator/test_scientific_electronic_state_contracts.py",
+        "tests/test_cheminfo/calculator/test_scientific_state_composition.py",
+        "tests/test_cheminfo/calculator/test_scientific_state_defaults.py",
+        "tests/test_cheminfo/calculator/test_scientific_state_facts.py",
+        "tests/test_cheminfo/calculator/test_scientific_state_resolver.py",
+        "tests/test_cheminfo/calculator/test_scientific_state_rule_integration.py",
+        "tests/test_cheminfo/calculator/test_screening_decision_compiler.py",
+        "tests/test_cheminfo/calculator/test_spin_legality.py",
+        "tests/test_cheminfo/calculator/test_state_candidate_serialization.py",
+        "tests/test_cheminfo/calculator/test_state_candidate_space_serialization.py",
+        "tests/test_cheminfo/calculator/test_state_composition_contracts.py",
+        "tests/test_cheminfo/calculator/test_state_decision_snapshot.py",
+        "tests/test_cheminfo/calculator/test_state_identity_invalidation.py",
+        "tests/test_cheminfo/calculator/test_state_profile_artifact.py",
+        "tests/test_cheminfo/calculator/test_state_profile_manifest.py",
+        "tests/test_cheminfo/calculator/test_state_request_contracts.py",
+        "tests/test_cheminfo/calculator/test_state_rule_contracts.py",
+        "tests/test_cheminfo/calculator/test_state_rule_controller.py",
+        "tests/test_cheminfo/calculator/test_state_rule_registry.py",
+        "tests/test_cheminfo/calculator/test_state_rule_trace_serialization.py",
+        "tests/test_cheminfo/calculator/test_state_rule_validation.py",
+        "tests/test_cheminfo/calculator/test_state_selection_contracts.py",
+        "tests/test_cheminfo/calculator/test_thorium_iv_rule.py",
+        "tests/test_cheminfo/calculator/test_trusted_history_rule.py"
+      ],
+      "native_high_compute_test_files": [],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/benchmarks/scientific_state/test_cli.py",
+        "tests/benchmarks/scientific_state/test_corpus.py",
+        "tests/benchmarks/scientific_state/test_runner.py",
+        "tests/test_cheminfo/calculator/test_americium_curium_iii_rule.py",
+        "tests/test_cheminfo/calculator/test_anionic_x_ligand_rule.py",
+        "tests/test_cheminfo/calculator/test_assumption_severity.py",
+        "tests/test_cheminfo/calculator/test_backend_state_projection.py",
+        "tests/test_cheminfo/calculator/test_candidate_factor_merge.py",
+        "tests/test_cheminfo/calculator/test_candidate_path_expansion.py",
+        "tests/test_cheminfo/calculator/test_candidate_search_artifacts.py",
+        "tests/test_cheminfo/calculator/test_charge_contracts.py",
+        "tests/test_cheminfo/calculator/test_charge_legality.py",
+        "tests/test_cheminfo/calculator/test_coordination_counting.py",
+        "tests/test_cheminfo/calculator/test_coupled_state_constraints.py",
+        "tests/test_cheminfo/calculator/test_decision_search_contracts.py",
+        "tests/test_cheminfo/calculator/test_derived_charge_composition.py",
+        "tests/test_cheminfo/calculator/test_electronic_state_inference.py",
+        "tests/test_cheminfo/calculator/test_execution_selection_contracts.py",
+        "tests/test_cheminfo/calculator/test_f_block_hund_rule.py",
+        "tests/test_cheminfo/calculator/test_ionic_configuration_spin_rule.py",
+        "tests/test_cheminfo/calculator/test_lanthanide_iii_rule.py",
+        "tests/test_cheminfo/calculator/test_lewis_bounded_enumeration.py",
+        "tests/test_cheminfo/calculator/test_local_spin_coupling.py",
+        "tests/test_cheminfo/calculator/test_main_group_closed_shell_rule.py",
+        "tests/test_cheminfo/calculator/test_main_group_lewis_provider.py",
+        "tests/test_cheminfo/calculator/test_monoatomic_ion_rule.py",
+        "tests/test_cheminfo/calculator/test_net_charge_resolution.py",
+        "tests/test_cheminfo/calculator/test_neutral_atom_reference.py",
+        "tests/test_cheminfo/calculator/test_neutral_l_donor_rule.py",
+        "tests/test_cheminfo/calculator/test_operation_requirements.py",
+        "tests/test_cheminfo/calculator/test_oxidation_prior_framework.py",
+        "tests/test_cheminfo/calculator/test_oxidation_state_contracts.py",
+        "tests/test_cheminfo/calculator/test_oxidation_state_inference.py",
+        "tests/test_cheminfo/calculator/test_oxidation_state_legality.py",
+        "tests/test_cheminfo/calculator/test_oxidation_state_registry.py",
+        "tests/test_cheminfo/calculator/test_package_contract.py",
+        "tests/test_cheminfo/calculator/test_profile_eligibility.py",
+        "tests/test_cheminfo/calculator/test_public_api.py",
+        "tests/test_cheminfo/calculator/test_scientific_electronic_state_contracts.py",
+        "tests/test_cheminfo/calculator/test_scientific_state_composition.py",
+        "tests/test_cheminfo/calculator/test_scientific_state_defaults.py",
+        "tests/test_cheminfo/calculator/test_scientific_state_facts.py",
+        "tests/test_cheminfo/calculator/test_scientific_state_resolver.py",
+        "tests/test_cheminfo/calculator/test_scientific_state_rule_integration.py",
+        "tests/test_cheminfo/calculator/test_screening_decision_compiler.py",
+        "tests/test_cheminfo/calculator/test_spin_legality.py",
+        "tests/test_cheminfo/calculator/test_state_candidate_serialization.py",
+        "tests/test_cheminfo/calculator/test_state_candidate_space_serialization.py",
+        "tests/test_cheminfo/calculator/test_state_composition_contracts.py",
+        "tests/test_cheminfo/calculator/test_state_decision_snapshot.py",
+        "tests/test_cheminfo/calculator/test_state_identity_invalidation.py",
+        "tests/test_cheminfo/calculator/test_state_profile_artifact.py",
+        "tests/test_cheminfo/calculator/test_state_profile_manifest.py",
+        "tests/test_cheminfo/calculator/test_state_request_contracts.py",
+        "tests/test_cheminfo/calculator/test_state_rule_contracts.py",
+        "tests/test_cheminfo/calculator/test_state_rule_controller.py",
+        "tests/test_cheminfo/calculator/test_state_rule_registry.py",
+        "tests/test_cheminfo/calculator/test_state_rule_trace_serialization.py",
+        "tests/test_cheminfo/calculator/test_state_rule_validation.py",
+        "tests/test_cheminfo/calculator/test_state_selection_contracts.py",
+        "tests/test_cheminfo/calculator/test_thorium_iv_rule.py",
+        "tests/test_cheminfo/calculator/test_trusted_history_rule.py"
+      ],
+      "native_command": null,
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/structure/test_buffer_ownership.py",
+          "status": "planned_not_created"
+        }
+      ],
+      "additional_requirements": [
+        "public schema consolidation with candidate/quantity/evidence/serialization preservation; decision identities"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage8B": {
+      "predecessor": "Stage8A",
+      "existing_test_files": [
+        "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+        "tests/test_cheminfo/forcefields/test_coordination_components.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_checkpoint_acceptance.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_coordination_stage.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_optimization_stage.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_placement.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_public_workflows.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_setup_errors.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_workflow_stage.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_routing_contracts.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_settings.py",
+        "tests/test_cheminfo/forcefields/test_native_default_parity.py",
+        "tests/test_cheminfo/forcefields/test_native_trajectory_ingestion.py",
+        "tests/test_cheminfo/obWrappers/test_bridge.py",
+        "tests/test_cheminfo/obWrappers/test_native_engine_contract.py",
+        "tests/test_cheminfo/obWrappers/test_native_rules.py",
+        "tests/test_cheminfo/obWrappers/test_packing.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/test_complex_untangling_workflow.py",
+        "tests/test_cheminfo/test_complexes_build.py",
+        "tests/test_cheminfo/test_complexes_build_full.py",
+        "tests/test_cheminfo/test_forcefield_acceptance.py",
+        "tests/test_cheminfo/test_forcefield_api.py",
+        "tests/test_cheminfo/test_forcefield_auto_optimize.py",
+        "tests/test_cheminfo/test_forcefield_checkpoint_acceptance.py",
+        "tests/test_cheminfo/test_forcefield_cli.py",
+        "tests/test_cheminfo/test_forcefield_integration.py",
+        "tests/test_cheminfo/test_forcefield_native_session.py",
+        "tests/test_cheminfo/test_forcefield_optimizer.py",
+        "tests/test_cheminfo/test_forcefield_package.py",
+        "tests/test_cheminfo/test_forcefield_stage_scan_boundaries.py",
+        "tests/test_cheminfo/test_forcefield_trajectory.py"
+      ],
+      "native_high_compute_test_files": [
+        "tests/test_cheminfo/forcefields/native_cpp/test_coordination_stage_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_optimization_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_optimization_stage_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_placement_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_session_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_stage3_contracts_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_topology_workspace_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_untangling_engine_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_workflow_stage_header_api.py",
+        "tests/test_cheminfo/obWrappers/native_cpp/test_molecule_view_policy.py",
+        "tests/test_cheminfo/obWrappers/native_cpp/test_optimization_checks.py"
+      ],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+        "tests/test_cheminfo/forcefields/test_coordination_components.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_checkpoint_acceptance.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_coordination_stage.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_optimization_stage.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_placement.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_public_workflows.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_setup_errors.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_workflow_stage.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_routing_contracts.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_settings.py",
+        "tests/test_cheminfo/forcefields/test_native_default_parity.py",
+        "tests/test_cheminfo/forcefields/test_native_trajectory_ingestion.py",
+        "tests/test_cheminfo/obWrappers/test_bridge.py",
+        "tests/test_cheminfo/obWrappers/test_native_engine_contract.py",
+        "tests/test_cheminfo/obWrappers/test_native_rules.py",
+        "tests/test_cheminfo/obWrappers/test_packing.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/test_complex_untangling_workflow.py",
+        "tests/test_cheminfo/test_complexes_build.py",
+        "tests/test_cheminfo/test_complexes_build_full.py",
+        "tests/test_cheminfo/test_forcefield_acceptance.py",
+        "tests/test_cheminfo/test_forcefield_api.py",
+        "tests/test_cheminfo/test_forcefield_auto_optimize.py",
+        "tests/test_cheminfo/test_forcefield_checkpoint_acceptance.py",
+        "tests/test_cheminfo/test_forcefield_cli.py",
+        "tests/test_cheminfo/test_forcefield_integration.py",
+        "tests/test_cheminfo/test_forcefield_native_session.py",
+        "tests/test_cheminfo/test_forcefield_optimizer.py",
+        "tests/test_cheminfo/test_forcefield_package.py",
+        "tests/test_cheminfo/test_forcefield_stage_scan_boundaries.py",
+        "tests/test_cheminfo/test_forcefield_trajectory.py"
+      ],
+      "native_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-high-compute",
+        "tests/test_cheminfo/forcefields/native_cpp/test_coordination_stage_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_optimization_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_optimization_stage_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_placement_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_session_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_stage3_contracts_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_topology_workspace_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_untangling_engine_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_workflow_stage_header_api.py",
+        "tests/test_cheminfo/obWrappers/native_cpp/test_molecule_view_policy.py",
+        "tests/test_cheminfo/obWrappers/native_cpp/test_optimization_checks.py"
+      ],
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/structure/test_commit_atomicity.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_result_attachments.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_constraints.py",
+          "status": "planned_not_created"
+        }
+      ],
+      "additional_requirements": [
+        "native/pure physics/adapter/workflow separation; rollback/trajectory; O0 observations; same-budget FF performance"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage8C": {
+      "predecessor": "Stage8B",
+      "existing_test_files": [
+        "tests/smarts_conformance/test_adapter.py",
+        "tests/smarts_conformance/test_coordination_graph_semantics.py",
+        "tests/smarts_conformance/test_coordination_perception.py",
+        "tests/smarts_conformance/test_coordination_profiles.py",
+        "tests/smarts_conformance/test_coordination_rings.py",
+        "tests/smarts_conformance/test_corpus_validator.py",
+        "tests/smarts_conformance/test_differential_normalize.py",
+        "tests/smarts_conformance/test_enumeration.py",
+        "tests/smarts_conformance/test_extensions_exhaustive.py",
+        "tests/smarts_conformance/test_full_corpus_contract.py",
+        "tests/smarts_conformance/test_fuzz_generators.py",
+        "tests/smarts_conformance/test_metamorphic.py",
+        "tests/smarts_conformance/test_parse_and_query_graph.py",
+        "tests/smarts_conformance/test_real_rules.py",
+        "tests/smarts_conformance/test_regressions.py",
+        "tests/smarts_conformance/test_relevant_cycle_ring_semantics.py",
+        "tests/smarts_conformance/test_search_integration.py",
+        "tests/smarts_conformance/test_search_objects.py",
+        "tests/smarts_conformance/test_semantics.py",
+        "tests/smarts_conformance/test_typed_predicate_ir.py",
+        "tests/test_cheminfo/test_search.py",
+        "tests/test_cheminfo/test_search_mapping.py",
+        "tests/test_cheminfo/test_search_native_compiler.py",
+        "tests/test_cheminfo/test_search_native_contract.py",
+        "tests/test_cheminfo/test_search_native_cutover.py",
+        "tests/test_cheminfo/test_search_native_kernel.py",
+        "tests/test_cheminfo/test_search_native_predicate_parity.py",
+        "tests/test_cheminfo/test_search_native_prepared.py",
+        "tests/test_cheminfo/test_search_native_production_kernel.py",
+        "tests/test_cheminfo/test_search_native_target.py",
+        "tests/test_cheminfo/test_smarts.py"
+      ],
+      "native_high_compute_test_files": [
+        "tests/test_cheminfo/graph/native_cpp/test_cycle_basis_source_api.py",
+        "tests/test_cheminfo/graph/native_cpp/test_graph_source_api.py"
+      ],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/smarts_conformance/test_adapter.py",
+        "tests/smarts_conformance/test_coordination_graph_semantics.py",
+        "tests/smarts_conformance/test_coordination_perception.py",
+        "tests/smarts_conformance/test_coordination_profiles.py",
+        "tests/smarts_conformance/test_coordination_rings.py",
+        "tests/smarts_conformance/test_corpus_validator.py",
+        "tests/smarts_conformance/test_differential_normalize.py",
+        "tests/smarts_conformance/test_enumeration.py",
+        "tests/smarts_conformance/test_extensions_exhaustive.py",
+        "tests/smarts_conformance/test_full_corpus_contract.py",
+        "tests/smarts_conformance/test_fuzz_generators.py",
+        "tests/smarts_conformance/test_metamorphic.py",
+        "tests/smarts_conformance/test_parse_and_query_graph.py",
+        "tests/smarts_conformance/test_real_rules.py",
+        "tests/smarts_conformance/test_regressions.py",
+        "tests/smarts_conformance/test_relevant_cycle_ring_semantics.py",
+        "tests/smarts_conformance/test_search_integration.py",
+        "tests/smarts_conformance/test_search_objects.py",
+        "tests/smarts_conformance/test_semantics.py",
+        "tests/smarts_conformance/test_typed_predicate_ir.py",
+        "tests/test_cheminfo/test_search.py",
+        "tests/test_cheminfo/test_search_mapping.py",
+        "tests/test_cheminfo/test_search_native_compiler.py",
+        "tests/test_cheminfo/test_search_native_contract.py",
+        "tests/test_cheminfo/test_search_native_cutover.py",
+        "tests/test_cheminfo/test_search_native_kernel.py",
+        "tests/test_cheminfo/test_search_native_predicate_parity.py",
+        "tests/test_cheminfo/test_search_native_prepared.py",
+        "tests/test_cheminfo/test_search_native_production_kernel.py",
+        "tests/test_cheminfo/test_search_native_target.py",
+        "tests/test_cheminfo/test_smarts.py"
+      ],
+      "native_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-high-compute",
+        "tests/test_cheminfo/graph/native_cpp/test_cycle_basis_source_api.py",
+        "tests/test_cheminfo/graph/native_cpp/test_graph_source_api.py"
+      ],
+      "planned_contract_test_files": [],
+      "additional_requirements": [
+        "one RI/native CSR representation; exact callable isolation/enumeration and throughput"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage8D": {
+      "predecessor": "Stage8C",
+      "existing_test_files": [
+        "tests/cbond/test_apply.py",
+        "tests/cbond/test_cbond_cli.py",
+        "tests/cbond/test_dynamic_runtime.py",
+        "tests/mca/test_all_atom_model.py",
+        "tests/mca/test_api.py",
+        "tests/mca/test_batching.py",
+        "tests/mca/test_cli.py",
+        "tests/mca/test_conformer.py",
+        "tests/mca/test_cpu_backend.py",
+        "tests/mca/test_featurizer.py",
+        "tests/mca/test_gpu_memory.py",
+        "tests/mca/test_gpu_pipeline.py",
+        "tests/mca/test_gpu_resources.py",
+        "tests/mca/test_gpu_routing.py",
+        "tests/mca/test_gpu_validation_script.py",
+        "tests/mca/test_import_layouts.py",
+        "tests/mca/test_pipeline_workers.py",
+        "tests/mca/test_runtime_sessions.py",
+        "tests/mca/test_serialization.py",
+        "tests/mca/test_site_detection.py",
+        "tests/mca/test_site_detection_coordination.py",
+        "tests/model_artifacts/test_resolver.py",
+        "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py",
+        "tests/test_cheminfo/rdWrappers/test_import_order.py",
+        "tests/test_cheminfo/rdWrappers/test_native_binding.py",
+        "tests/test_cheminfo/rdWrappers/test_r0_benchmark_runner.py",
+        "tests/test_cheminfo/test_mca_calculator.py"
+      ],
+      "native_high_compute_test_files": [
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_rdwrapper_api.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py"
+      ],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/cbond/test_apply.py",
+        "tests/cbond/test_cbond_cli.py",
+        "tests/cbond/test_dynamic_runtime.py",
+        "tests/mca/test_all_atom_model.py",
+        "tests/mca/test_api.py",
+        "tests/mca/test_batching.py",
+        "tests/mca/test_cli.py",
+        "tests/mca/test_conformer.py",
+        "tests/mca/test_cpu_backend.py",
+        "tests/mca/test_featurizer.py",
+        "tests/mca/test_gpu_memory.py",
+        "tests/mca/test_gpu_pipeline.py",
+        "tests/mca/test_gpu_resources.py",
+        "tests/mca/test_gpu_routing.py",
+        "tests/mca/test_gpu_validation_script.py",
+        "tests/mca/test_import_layouts.py",
+        "tests/mca/test_pipeline_workers.py",
+        "tests/mca/test_runtime_sessions.py",
+        "tests/mca/test_serialization.py",
+        "tests/mca/test_site_detection.py",
+        "tests/mca/test_site_detection_coordination.py",
+        "tests/model_artifacts/test_resolver.py",
+        "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py",
+        "tests/test_cheminfo/rdWrappers/test_import_order.py",
+        "tests/test_cheminfo/rdWrappers/test_native_binding.py",
+        "tests/test_cheminfo/rdWrappers/test_r0_benchmark_runner.py",
+        "tests/test_cheminfo/test_mca_calculator.py"
+      ],
+      "native_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-high-compute",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_rdwrapper_api.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py"
+      ],
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/structure/test_adapter_boundaries.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_result_attachments.py",
+          "status": "planned_not_created"
+        }
+      ],
+      "additional_requirements": [
+        "existing sole Python-RDKit conformer route; threshold/rolling-window/session/GPU index; one-GPU installed smoke if runtime paths move"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage8E": {
+      "predecessor": "Stage8D",
+      "existing_test_files": [
+        "tests/test_cheminfo/test_core.py",
+        "tests/test_main/test_command_loading.py"
+      ],
+      "native_high_compute_test_files": [],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/test_core.py",
+        "tests/test_main/test_command_loading.py"
+      ],
+      "native_command": null,
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/structure/test_assembly_exports.py",
+          "status": "planned_not_created"
+        }
+      ],
+      "additional_requirements": [
+        "documented assembly examples verbatim; explicit exports; statistics deletion or separately approved completion"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage9": {
+      "predecessor": "Stage8E",
+      "existing_test_files": [
+        "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+        "tests/test_cheminfo/test_topology_determinism.py",
+        "tests/test_cheminfo/test_topology_index.py",
+        "tests/test_main/test_command_loading.py",
+        "tests/test_pipeline/test_artifacts.py",
+        "tests/test_pipeline/test_builtin_stages.py",
+        "tests/test_pipeline/test_contracts.py",
+        "tests/test_pipeline/test_documentation.py",
+        "tests/test_pipeline/test_registry.py",
+        "tests/test_pipeline/test_runner.py",
+        "tests/test_pipeline/test_state_recovery.py"
+      ],
+      "native_high_compute_test_files": [],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+        "tests/test_cheminfo/test_topology_determinism.py",
+        "tests/test_cheminfo/test_topology_index.py",
+        "tests/test_main/test_command_loading.py",
+        "tests/test_pipeline/test_artifacts.py",
+        "tests/test_pipeline/test_builtin_stages.py",
+        "tests/test_pipeline/test_contracts.py",
+        "tests/test_pipeline/test_documentation.py",
+        "tests/test_pipeline/test_registry.py",
+        "tests/test_pipeline/test_runner.py",
+        "tests/test_pipeline/test_state_recovery.py"
+      ],
+      "native_command": null,
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/structure/test_interface_permissions.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_architecture.py",
+          "status": "planned_not_created"
+        }
+      ],
+      "additional_requirements": [
+        "zero core imports including plugins/typing/string entry points; sole class identity and full default suite"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage10": {
+      "predecessor": "Stage9",
+      "existing_test_files": [
+        "tests/test_packaging/test_audit_rdwrapper_wheel.py",
+        "tests/test_packaging/test_github_workflows.py",
+        "tests/test_packaging/test_rdwrapper_build.py",
+        "tests/test_packaging_metadata.py"
+      ],
+      "native_high_compute_test_files": [
+        "tests/test_cheminfo/forcefields/native_cpp/test_coordination_stage_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_optimization_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_optimization_stage_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_placement_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_session_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_stage3_contracts_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_topology_workspace_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_untangling_engine_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_workflow_stage_header_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_batch_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_native_source_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_nonplanar_segment_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_nonplanar_surface_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_prepared_cycle_api.py",
+        "tests/test_cheminfo/graph/native_cpp/test_cycle_basis_source_api.py",
+        "tests/test_cheminfo/graph/native_cpp/test_graph_source_api.py",
+        "tests/test_cheminfo/native_cpp/test_molecule_buffer_view.py",
+        "tests/test_cheminfo/obWrappers/native_cpp/test_molecule_view_policy.py",
+        "tests/test_cheminfo/obWrappers/native_cpp/test_optimization_checks.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_rdwrapper_api.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py"
+      ],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_packaging/test_audit_rdwrapper_wheel.py",
+        "tests/test_packaging/test_github_workflows.py",
+        "tests/test_packaging/test_rdwrapper_build.py",
+        "tests/test_packaging_metadata.py"
+      ],
+      "native_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-high-compute",
+        "tests/test_cheminfo/forcefields/native_cpp/test_coordination_stage_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_optimization_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_optimization_stage_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_placement_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_session_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_stage3_contracts_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_topology_workspace_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_untangling_engine_source_api.py",
+        "tests/test_cheminfo/forcefields/native_cpp/test_workflow_stage_header_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_batch_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_native_source_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_nonplanar_segment_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_nonplanar_surface_api.py",
+        "tests/test_cheminfo/geometry/native_cpp/test_prepared_cycle_api.py",
+        "tests/test_cheminfo/graph/native_cpp/test_cycle_basis_source_api.py",
+        "tests/test_cheminfo/graph/native_cpp/test_graph_source_api.py",
+        "tests/test_cheminfo/native_cpp/test_molecule_buffer_view.py",
+        "tests/test_cheminfo/obWrappers/native_cpp/test_molecule_view_policy.py",
+        "tests/test_cheminfo/obWrappers/native_cpp/test_optimization_checks.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_rdwrapper_api.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py"
+      ],
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/structure/test_architecture.py",
+          "status": "planned_not_created"
+        }
+      ],
+      "additional_requirements": [
+        "clean sdist/wheel, all supported Python versions, native symbol/import and independent SDK consumers"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage11": {
+      "predecessor": "Stage10",
+      "existing_test_files": [
+        "tests/test_cli/test_run_cli.py",
+        "tests/test_cli/test_xtb_cli.py",
+        "tests/test_ds/test_cli_communication.py",
+        "tests/test_ds/test_cli_help.py",
+        "tests/test_main/test_command_loading.py",
+        "tests/test_main/test_optimize.py",
+        "tests/test_packaging_metadata.py",
+        "tests/test_works/test_convert.py"
+      ],
+      "native_high_compute_test_files": [],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cli/test_run_cli.py",
+        "tests/test_cli/test_xtb_cli.py",
+        "tests/test_ds/test_cli_communication.py",
+        "tests/test_ds/test_cli_help.py",
+        "tests/test_main/test_command_loading.py",
+        "tests/test_main/test_optimize.py",
+        "tests/test_packaging_metadata.py",
+        "tests/test_works/test_convert.py"
+      ],
+      "native_command": null,
+      "planned_contract_test_files": [],
+      "additional_requirements": [
+        "Decisions12/13 exact CLI names/arguments, sole asset owner and dataset manifest; only existing explicit-deferral mechanism"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage12": {
+      "predecessor": "Stage11",
+      "existing_test_files": [
+        "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_packaging/test_audit_rdwrapper_wheel.py",
+        "tests/test_packaging/test_github_workflows.py",
+        "tests/test_packaging/test_rdwrapper_build.py",
+        "tests/test_packaging_metadata.py"
+      ],
+      "native_high_compute_test_files": [],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_packaging/test_audit_rdwrapper_wheel.py",
+        "tests/test_packaging/test_github_workflows.py",
+        "tests/test_packaging/test_rdwrapper_build.py",
+        "tests/test_packaging_metadata.py"
+      ],
+      "native_command": null,
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/structure/test_architecture.py",
+          "status": "planned_not_created"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_interface_permissions.py",
+          "status": "planned_not_created"
+        }
+      ],
+      "additional_requirements": [
+        "full Sections11/12 matrix, final reports and verified main-scope B_exp"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage13A": {
+      "predecessor": "Stage12",
+      "existing_test_files": [],
+      "native_high_compute_test_files": [],
+      "technical_command": null,
+      "native_command": null,
+      "planned_contract_test_files": [],
+      "additional_requirements": [
+        "private protocol definition only; isolated contract test target frozen after reading actual B_exp bindings; no production integration"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    },
+    "Stage13B": {
+      "predecessor": "Stage13A",
+      "existing_test_files": [
+        "tests/test_cheminfo/kekulize/test_known_limitations.py",
+        "tests/test_cheminfo/kekulize/test_legacy_api.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/test_molecule_conversion.py"
+      ],
+      "native_high_compute_test_files": [],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/kekulize/test_known_limitations.py",
+        "tests/test_cheminfo/kekulize/test_legacy_api.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/test_molecule_conversion.py"
+      ],
+      "native_command": null,
+      "planned_contract_test_files": [],
+      "additional_requirements": [
+        "actual ordinary/fused/coordination/unsupported/failure paths through protocol; affected packaging/default suite; paired affected-workflow benchmark against B_exp"
+      ],
+      "execution_status": "not_executed_by_inventory_capture"
+    }
+  },
+  "migration_inventory_file": "baseline_inventory/migration_inventory.json",
+  "artifact_schemas": {
+    "inventory": "baseline_inventory/manifest.json schema_version=1; JSONL record schemas documented by capture tool",
+    "scientific": "run_scientific_report.py schema selected by reporter; all execution/absence and per-seed observations retained",
+    "performance": "separate Section12 manifest/report; raw samples and full outcome/workload accounting required"
+  }
+}

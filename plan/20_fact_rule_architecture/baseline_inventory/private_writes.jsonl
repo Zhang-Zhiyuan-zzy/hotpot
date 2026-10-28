@@ -1,0 +1,95 @@
+{"attribute": "_mca_sites", "line": 33, "path": "hotpot/cheminfo/calculator/mca_inference.py", "scope": "mca", "target": "object.__setattr__(mol, '_mca_sites', {mol.atoms[index]: value for index, value in site_values.items()})"}
+{"attribute": "_mca", "line": 32, "path": "hotpot/cheminfo/calculator/mca_inference.py", "scope": "mca", "target": "object.__setattr__(atom, '_mca', atom_values[atom.idx])"}
+{"attribute": "attrs", "kind": "buffer_or_mapping_item_write", "line": 3082, "path": "hotpot/cheminfo/core.py", "scope": "_atomic_number_setter", "target": "self.attrs[0]"}
+{"attribute": "attrs", "kind": "buffer_or_mapping_item_write", "line": 3083, "path": "hotpot/cheminfo/core.py", "scope": "_atomic_number_setter", "target": "self.attrs[Atom._ELECTRON_N_CONFIG:Atom._ELECTRON_G_CONFIG + 1]"}
+{"attribute": "attrs", "kind": "buffer_or_mapping_item_write", "line": 3085, "path": "hotpot/cheminfo/core.py", "scope": "_atomic_number_setter", "target": "self.attrs[Atom._attrs_enumerator.index('valence')]"}
+{"attribute": "attrs", "kind": "buffer_or_mapping_item_write", "line": 3086, "path": "hotpot/cheminfo/core.py", "scope": "_atomic_number_setter", "target": "self.attrs[Atom._attrs_enumerator.index('implicit_hydrogens')]"}
+{"attribute": "_model", "line": 139, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._model"}
+{"attribute": "_environ", "line": 140, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._environ"}
+{"attribute": "_atoms", "line": 142, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._atoms"}
+{"attribute": "_bonds", "line": 143, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._bonds"}
+{"attribute": "_topology_index", "line": 144, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._topology_index"}
+{"attribute": "_atom_pairs", "line": 148, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._atom_pairs"}
+{"attribute": "_angles", "line": 149, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._angles"}
+{"attribute": "_torsions", "line": 150, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._torsions"}
+{"attribute": "_rings", "line": 151, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._rings"}
+{"attribute": "_ring_indices_cache", "line": 152, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._ring_indices_cache"}
+{"attribute": "_ligand_rings", "line": 153, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._ligand_rings"}
+{"attribute": "_ligand_rings_signature", "line": 154, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._ligand_rings_signature"}
+{"attribute": "_obmol", "line": 155, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._obmol"}
+{"attribute": "_row2idx", "line": 156, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._row2idx"}
+{"attribute": "_hided_metal_bonds", "line": 159, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._hided_metal_bonds"}
+{"attribute": "_hided_covalent_bonds", "line": 160, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._hided_covalent_bonds"}
+{"attribute": "_stereo_payload", "line": 164, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.__init__", "target": "self._stereo_payload"}
+{"attribute": "_topology_index", "line": 588, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._update_topology", "target": "self._topology_index"}
+{"attribute": "_angles", "line": 591, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._update_topology", "target": "self._angles"}
+{"attribute": "_torsions", "line": 592, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._update_topology", "target": "self._torsions"}
+{"attribute": "_rings", "line": 593, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._update_topology", "target": "self._rings"}
+{"attribute": "_ring_indices_cache", "line": 594, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._update_topology", "target": "self._ring_indices_cache"}
+{"attribute": "_ligand_rings", "line": 595, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._update_topology", "target": "self._ligand_rings"}
+{"attribute": "_ligand_rings_signature", "line": 596, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._update_topology", "target": "self._ligand_rings_signature"}
+{"attribute": "_obmol", "line": 597, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._update_topology", "target": "self._obmol"}
+{"attribute": "_row2idx", "line": 598, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._update_topology", "target": "self._row2idx"}
+{"attribute": "_topology_index", "kind": "buffer_or_mapping_item_write", "line": 622, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._add_atom", "target": "self._topology_index[id(atom)]"}
+{"attribute": "_atoms", "kind": "buffer_or_mapping_item_write", "line": 726, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._replace_atom", "target": "self._atoms[original_atom_idx]"}
+{"attribute": "_hided_metal_bonds", "line": 1006, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.restore_bonds", "target": "self._hided_metal_bonds"}
+{"attribute": "_hided_covalent_bonds", "line": 1010, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.restore_bonds", "target": "self._hided_covalent_bonds"}
+{"attribute": "_hided_metal_bonds", "line": 2125, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._remove_atoms_from_topology", "target": "self._hided_metal_bonds"}
+{"attribute": "_hided_covalent_bonds", "line": 2129, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._remove_atoms_from_topology", "target": "self._hided_covalent_bonds"}
+{"attribute": "_angles", "line": 2855, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.update_angles", "target": "self._angles"}
+{"attribute": "_torsions", "line": 2868, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.update_torsions", "target": "self._torsions"}
+{"attribute": "attrs", "kind": "buffer_or_mapping_item_write", "line": 2997, "path": "hotpot/cheminfo/core.py", "scope": "MolBlock._default_attr_setter", "target": "self.attrs[attr_idx]"}
+{"attribute": "_topology_index", "kind": "buffer_or_mapping_item_write", "line": 3221, "path": "hotpot/cheminfo/core.py", "scope": "Atom.__init__", "target": "self.mol._topology_index[id(self)]"}
+{"attribute": "attrs", "kind": "buffer_or_mapping_item_write", "line": 4014, "path": "hotpot/cheminfo/core.py", "scope": "Atom.electron_configuration", "target": "self.attrs[Atom._ELECTRON_N_CONFIG:Atom._ELECTRON_G_CONFIG + 1]"}
+{"attribute": "_atoms", "line": 4386, "path": "hotpot/cheminfo/core.py", "scope": "AtomSeq.__init__", "target": "self._atoms"}
+{"attribute": "attrs", "line": 4844, "path": "hotpot/cheminfo/core.py", "scope": "Bond.__init__", "target": "self.attrs"}
+{"attribute": "_bonds", "line": 5337, "path": "hotpot/cheminfo/core.py", "scope": "Ring.__init__", "target": "self._bonds"}
+{"attribute": "_topology_index", "kind": "buffer_or_mapping_item_write", "line": 687, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._add_bond", "target": "self._topology_index[id(atom)]"}
+{"attribute": "_hided_metal_bonds", "line": 966, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.clear_metal_ligand_bonds", "target": "self._hided_metal_bonds"}
+{"attribute": "_hided_covalent_bonds", "line": 975, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.clear_hided_covalent_bonds", "target": "self._hided_covalent_bonds"}
+{"attribute": "_hided_metal_bonds", "line": 983, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.clear_hided_bonds", "target": "self._hided_metal_bonds"}
+{"attribute": "_hided_covalent_bonds", "line": 984, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.clear_hided_bonds", "target": "self._hided_covalent_bonds"}
+{"attribute": "_angles", "line": 1073, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.angles", "target": "self._angles"}
+{"attribute": "_torsions", "line": 1088, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.torsions", "target": "self._torsions"}
+{"attribute": "_rings", "line": 2541, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.rings", "target": "self._rings"}
+{"attribute": "_ring_indices_cache", "kind": "buffer_or_mapping_item_write", "line": 2626, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._materialize_rings", "target": "self._ring_indices_cache[cache_key]"}
+{"attribute": "_ligand_rings", "line": 2710, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.ligand_rings", "target": "self._ligand_rings"}
+{"attribute": "_ligand_rings", "line": 2719, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._refresh_ligand_ring_cache_signature", "target": "self._ligand_rings"}
+{"attribute": "_ligand_rings_signature", "line": 2723, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._refresh_ligand_ring_cache_signature", "target": "self._ligand_rings_signature"}
+{"attribute": "attrs", "line": 3247, "path": "hotpot/cheminfo/core.py", "scope": "Atom.__init__", "target": "self.attrs"}
+{"attribute": "_bonds", "line": 4389, "path": "hotpot/cheminfo/core.py", "scope": "AtomSeq.__init__", "target": "self._bonds"}
+{"attribute": "_bonds", "line": 4391, "path": "hotpot/cheminfo/core.py", "scope": "AtomSeq.__init__", "target": "self._bonds"}
+{"attribute": "_atoms", "line": 4438, "path": "hotpot/cheminfo/core.py", "scope": "AtomSeq._replace_atom", "target": "self._atoms"}
+{"attribute": "_obmol", "line": 2751, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.to_obmol", "target": "self._obmol"}
+{"attribute": "_row2idx", "line": 2751, "path": "hotpot/cheminfo/core.py", "scope": "Molecule.to_obmol", "target": "self._row2idx"}
+{"attribute": "attrs", "line": 3229, "path": "hotpot/cheminfo/core.py", "scope": "Atom.__init__", "target": "self.attrs"}
+{"attribute": "_atoms", "line": 4441, "path": "hotpot/cheminfo/core.py", "scope": "AtomSeq._replace_atom", "target": "self._atoms"}
+{"attribute": "_ring_indices_cache", "kind": "buffer_or_mapping_item_write", "line": 2722, "path": "hotpot/cheminfo/core.py", "scope": "Molecule._refresh_ligand_ring_cache_signature", "target": "self._ring_indices_cache[cache_key]"}
+{"attribute": "_obcell", "line": 24, "path": "hotpot/cheminfo/crystal.py", "scope": "Crystal.__init__", "target": "self._obcell"}
+{"attribute": "_atoms", "line": 251, "path": "hotpot/cheminfo/forcefields/trajectory.py", "scope": "ForceFieldTrajectory.__init__", "target": "self._atoms"}
+{"attribute": "_topology_index", "line": 256, "path": "hotpot/cheminfo/forcefields/trajectory.py", "scope": "ForceFieldTrajectory.__init__", "target": "self._topology_index"}
+{"attribute": "_topology_index", "kind": "buffer_or_mapping_item_write", "line": 521, "path": "hotpot/cheminfo/forcefields/trajectory.py", "scope": "ForceFieldTrajectory._pool_topology", "target": "self._topology_index[normalized]"}
+{"attribute": "_model", "line": 66, "path": "hotpot/cheminfo/forcefields/working_copy.py", "scope": "_copy_molecule_metadata", "target": "target_mol._model"}
+{"attribute": "_environ", "line": 67, "path": "hotpot/cheminfo/forcefields/working_copy.py", "scope": "_copy_molecule_metadata", "target": "target_mol._environ"}
+{"attribute": "_atoms", "kind": "buffer_or_mapping_item_write", "line": 218, "path": "hotpot/cheminfo/forcefields/working_copy.py", "scope": "_restore_failed_commit", "target": "mol._atoms[:]"}
+{"attribute": "_bonds", "kind": "buffer_or_mapping_item_write", "line": 219, "path": "hotpot/cheminfo/forcefields/working_copy.py", "scope": "_restore_failed_commit", "target": "mol._bonds[:]"}
+{"attribute": "_stereo_payload", "line": 228, "path": "hotpot/cheminfo/forcefields/working_copy.py", "scope": "_restore_failed_commit", "target": "mol._stereo_payload"}
+{"attribute": "attrs", "line": 221, "path": "hotpot/cheminfo/forcefields/working_copy.py", "scope": "_restore_failed_commit", "target": "object.__setattr__(atom, 'attrs', attrs)"}
+{"attribute": "_stereo_payload", "line": 247, "path": "hotpot/cheminfo/forcefields/working_copy.py", "scope": "_commit_working_copy", "target": "original_mol._stereo_payload"}
+{"attribute": "attrs", "line": 240, "path": "hotpot/cheminfo/forcefields/working_copy.py", "scope": "_commit_working_copy", "target": "atom.attrs"}
+{"attribute": "attrs", "line": 33, "path": "hotpot/cheminfo/parse_smarts.py", "scope": "SmartAtom.__init__", "target": "self.attrs"}
+{"attribute": "attrs", "line": 42, "path": "hotpot/cheminfo/parse_smarts.py", "scope": "SmartBond.__init__", "target": "self.attrs"}
+{"attribute": "_stereo_payload", "line": 1007, "path": "hotpot/cheminfo/stereo.py", "scope": "set_stereo_payload", "target": "mol._stereo_payload"}
+{"attribute": "attrs", "line": 41, "path": "hotpot/plugins/ComplexFormer/tools.py", "scope": "TargetGetter.__init__", "target": "self.attrs"}
+{"attribute": "attrs", "line": 307, "path": "hotpot/plugins/qm/gaussian/_works.py", "scope": "ResultsExtract.__init__", "target": "self.attrs"}
+{"attribute": "_obmol", "line": 408, "path": "hotpot/plugins/xtb/adapter.py", "scope": "commit_xtb_coordinates", "target": "mol._obmol"}
+{"attribute": "_row2idx", "line": 409, "path": "hotpot/plugins/xtb/adapter.py", "scope": "commit_xtb_coordinates", "target": "mol._row2idx"}
+{"attribute": "_mca", "line": 86, "path": "tests/mca/test_site_detection_coordination.py", "scope": "test_site_detection_preserves_existing_atom_mca_values", "target": "object.__setattr__(atom, '_mca', value)"}
+{"attribute": "_atoms", "line": 69, "path": "tests/smarts_conformance/test_metamorphic.py", "scope": "test_atom_renumbering_preserves_embeddings_after_stable_identity_mapping", "target": "renumbered._atoms"}
+{"attribute": "_mca_sites", "line": 427, "path": "tests/test_cheminfo/test_complex_hydrogens.py", "scope": "test_successful_commit_preserves_existing_object_identity_and_atom_ids", "target": "molecule._mca_sites"}
+{"attribute": "_mca", "line": 428, "path": "tests/test_cheminfo/test_complex_hydrogens.py", "scope": "test_successful_commit_preserves_existing_object_identity_and_atom_ids", "target": "original_atoms[1]._mca"}
+{"attribute": "_model", "line": 289, "path": "tests/test_cheminfo/test_complexes_build.py", "scope": "_DummyComplex.__init__", "target": "self._model"}
+{"attribute": "_environ", "line": 290, "path": "tests/test_cheminfo/test_complexes_build.py", "scope": "_DummyComplex.__init__", "target": "self._environ"}
+{"attribute": "_model", "line": 58, "path": "tests/test_cheminfo/test_forcefield_integration.py", "scope": "test_complex_worker_excludes_runtime_metadata_from_spawn_payload", "target": "molecule._model"}
+{"attribute": "_topology_index", "line": 63, "path": "tests/test_cheminfo/test_topology_index.py", "scope": "test_rebuild_is_deterministic_and_independent_of_bond_insertion_order", "target": "first._topology_index"}
+{"attribute": "_atoms", "line": 75, "path": "tests/test_cheminfo/test_topology_index.py", "scope": "test_atom_idx_does_not_scan_molecule_membership", "target": "molecule._atoms"}

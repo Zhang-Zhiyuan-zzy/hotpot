@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "stage": "Stage3 production authority integration; Python-engine checkpoint",
+  "stage_complete": false,
+  "source_commit": "caf959eda9c68b5ef1d2cbd60dc570d0a273ab18",
+  "source_worktree": "dirty; full production Python hashes in default command record",
+  "default": {
+    "command": {
+      "path": ".plan20-artifacts/20261029/stage3/production-exploratory/default-python-engine-frozen/command.json",
+      "sha256": "b8bb3ea47ced466f022cb1e0bef36cee27b8fde5c210693954057395f822dc97"
+    },
+    "log": {
+      "path": ".plan20-artifacts/20261029/stage3/production-exploratory/default-python-engine-frozen/test.log",
+      "sha256": "ee20818cf45da26ccc8b3ecd1c7d2e04d9e0ef0261b11d960adca1fbf07f7a68"
+    },
+    "junit": {
+      "path": ".plan20-artifacts/20261029/stage3/production-exploratory/default-python-engine-frozen/result.xml",
+      "sha256": "83a8e8838126718abeb77a8c7e4d2a1d0f47680f33732f764fbe974e60b0f616"
+    },
+    "result": {
+      "passed": 4349,
+      "skipped": 123,
+      "xfailed": 3,
+      "subtests_passed": 49,
+      "warnings": 10,
+      "pytest_seconds": 244.26,
+      "runner_seconds": 246.10923832841218
+    },
+    "production_unchanged_during_execution": true
+  },
+  "focused": {
+    "record": {
+      "path": ".plan20-artifacts/20261029/stage3/commit-performance-astra/final-focused.json",
+      "sha256": "e230e371dc32fe45a5dc3a05d739ae9346ac3296ba44013a3906987df8cd3f8b"
+    },
+    "result": "466 passed in8.75s; source unchanged during run; before mechanical Core whitespace cleanup"
+  },
+  "test_manifest": {
+    "path": ".plan20-artifacts/20261029/stage3/production-exploratory/default-python-engine-frozen/test-source-manifest.json",
+    "sha256": "a96f8f2bffddbd56cb065afac8c5ca5d09ecb2e193b39d505e91788077d9da5f"
+  },
+  "architecture": {
+    "record": {
+      "path": ".plan20-artifacts/20261029/stage3/production-exploratory/default-python-engine-frozen/architecture.json",
+      "sha256": "ab0c33ef46621f4494c1eacc686305b1493926505821e1fc1f18e3fe6f0d8a0f"
+    },
+    "remaining_debt": 281,
+    "new_debt": 0,
+    "allowlist_growth": 0,
+    "layer_findings": 0
+  },
+  "performance": {
+    "record": "stage3_commit_performance_escalation.json",
+    "status": "blocking regressions retained; no performance waiver"
+  },
+  "coverage_limits": [
+    "Source Python3.11 default suite only at this production checkpoint; final five-version affected selection outstanding",
+    "Not rebuilt current-wheel/native/standalone evidence",
+    "No real licensed CCDC execution or external xTB scientific execution",
+    "Legacy eager chemistry and later Stage4\u201312 ownership migration remain at their assigned steps"
+  ],
+  "next": "Sol-max reviewed compiled ingress/preparation/shared installer; preserve this checkpoint and continue same Stage3 gate"
+}

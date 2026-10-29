@@ -66,8 +66,23 @@ def test_atom_renumbering_preserves_embeddings_after_stable_identity_mapping():
     for stable_id, atom in enumerate(original.atoms, start=100):
         atom.id = stable_id
     renumbered = original.copy()
-    renumbered._atoms = list(reversed(renumbered._atoms))
-    renumbered._update_topology()
+    from hotpot.cheminfo.structure._commit import _commit_topology
+    from hotpot.cheminfo.structure._dependencies import _remap_dependency_state
+    from hotpot.cheminfo.structure._identity import _capture_source
+
+    rows = tuple(reversed(range(len(renumbered.atoms))))
+    atoms = tuple(renumbered._atoms)
+    record, metadata = renumbered._capture_factual_record(rows=rows)
+    dependencies = _remap_dependency_state(
+        renumbered._atom_table, tuple(atom._uid for atom in atoms),
+        tuple(atoms[row]._uid for row in rows), rows=rows,
+    )
+    _commit_topology(
+        renumbered, _capture_source(renumbered), record,
+        atom_bindings=tuple(atoms[row] for row in rows),
+        bond_bindings=tuple(renumbered._bonds + renumbered._hided_bonds),
+        dependency_state=dependencies, bond_metadata=metadata,
+    )
 
     assert [atom.id for atom in original.atoms] != [
         atom.id for atom in renumbered.atoms

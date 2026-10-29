@@ -875,3 +875,118 @@ review records and retained failed attempts by SHA256.
   silent fact loss or a new restriction on public copy/import behavior.
 - This checkpoint is the first commit after push`ce41629`; push after two
   further coherent commits. Stage3 remains in progress.
+
+### Stage3 production authority integration — exploratory checkpoint
+
+- Continued from `caf959eda9c68b5ef1d2cbd60dc570d0a273ab18` under the owner's
+  request to finish all Plan20. The full3498 lines of the main plan/four
+  normative companions were reread before this architectural continuation;
+  hashes, source/worktree/environment and bounded ownership are recorded in
+  `stage3_production_entry_review.json`. This is not a Stage4 entry.
+- Sol-max owns Core/global cutover design; an explicitly spawned
+  `gpt-6.1-sol/high` worker implemented the settled engine then factual
+  decoders sequentially, and performed a read-only cross-review. The parent
+  owns FF/outer consumers and evidence. No child was authorized to delegate.
+  The stale parent-only agent declined the new task because its model metadata
+  could not be verified; it made no new edits. No Astra escalation has occurred.
+- The uncommitted candidate now connects one Molecule-owned Atom table,
+  controlled row/matrix projections, approved `updata_atoms`, private factual
+  build/install methods, complete imports and FF publication/rollback. The
+  actual private builder methods reside on the still-single carrier so that
+  Stage3 does not introduce new direct-Core consumers; the record/codec stays
+  pure in `_builder.py`. This follows the settled cutover review, with no
+  registry, storage mode or extra public signature. Stage5 eager-chemistry
+  removal and Stage6/7 final ownership remain at their assigned steps.
+- The source architecture scan found no new debt after owner repair. Four
+  actual old writes are retired (two hidden-list removal assignments and
+  runtime-context copying in FF); the remaining allowlist is281. Its source
+  gate must be rerun on frozen final bytes. No scope/ceiling exemption was added.
+- Intermediate focused source outcomes reported/executed: engine183 passed;
+  record/import selection221 passed; broader affected selection503 passed with
+  one then-unretired ratchet failure; FF/native/xTB213 passed,8 skipped.
+  Licensed CCDC and official external xTB tiers were not executed. The CCDC
+  fake characterization rerun with explicit `PYTHONPATH` verified the baseline
+  `.atom` typo and missing return against HEAD's converter source; the current
+  fake boundary verifies `.atoms`, return identity and factual values.
+- Exploratory default command and per-file source-before/source-after hashes
+  are retained in `.plan20-artifacts/20261029/stage3/production-exploratory/`
+  under `default-attempt1`:4299 passed,8 failed,123 skipped,3 xfailed,
+  49 subtests,10 warnings,245.16 pytest seconds. Production bytes changed
+  during execution, so this is not accepted frozen-source evidence.
+- Old-to-new assertions retain their original technical purposes: attrs object
+  identity becomes exact numeric/isolation/owner restoration; malformed
+  Gate6 transport is injected at the actual private raw owner rather than a
+  failed public setter that previously left partial data; SMARTS permutation
+  remaps table/UIDs through the closed factual commit instead of reordering
+  membership alone; stereo storage fixtures use the real locked carrier;
+  FF fakes accept the new private source binding. Worker-only copies explicitly
+  clear annotation containers before spawning, preserving their structure-only
+  payload guarantee. A recheck of the eight failing areas plus new outer
+  regressions yielded64 passed; source was still changing, so final evidence
+  remains outstanding.
+- Independent reproductions found genuine gaps despite focused passes: live
+  extra angle constraints could overwrite a frozen serialization record, and
+  a replaced working-copy Atom with duplicate source labels/chemistry could
+  pass FF's old identity test. The candidate now reconstructs fact-bearing
+  constraints from the frozen record and validates fresh-copy row/UID/owner
+  membership, with regressions. Bond member-root lookup's ordinary-path cost
+  and lock-controlled existing angle/torsion constraints are also under repair.
+- Real B20/current diagnostics expose large unresolved costs (initial scalar
+  write64 about151x, construction8/64 about14x/8.2x; coordinates64 about0.75x).
+  These use equivalent frozen tasks but shared load/concurrent source and are
+  diagnostics, not acceptance. Sol-max is optimizing the measured commit,
+  dependency and constructor paths without bypassing raw writes, undo or
+  source checks. No global performance pass or exception is asserted.
+- No production commit has been made at this exploratory point. Last push is
+  `ce41629`; `caf959e` remains the first following commit. The next coherent
+  commits continue the every-three-commits push cadence, without artificial
+  cadence-only commits. Stage3 is incomplete until final integration,
+  source/Python/affected-wheel and performance gates have actual evidence.
+
+### Stage3 production authority integration — frozen Python checkpoint
+
+- The complete default suite now passes on frozen production Python bytes:
+  **4349 passed,123 skipped,3 xfailed,49 subtests,10 warnings**,244.26 pytest
+  seconds (246.11 runner seconds). Exact argv, environment, all production
+  file hashes before/after, JUnit and log are bound by
+  `stage3_python_cutover_evidence.json`. The command was
+  `python .plan20-artifacts/20261029/stage3/production-exploratory/run_check.py default-python-engine-frozen tests`;
+  the recorded child argv uses the selected Python3.11 interpreter and CPU24–31.
+  Six newly added whitespace-only lines in Core were cleaned before this run.
+- The final engine/structure/carrier/outer focused selection separately passed
+  **466 tests in8.75s** without production changes during execution. This is
+  the Python implementation, not evidence for a future compiled writer.
+  The source architecture audit passes with281 remaining debt entries and
+  zero new debt, allowlist growth or layer findings. It was executed as
+  `python plan/20_fact_rule_architecture/audit_architecture.py --output .plan20-artifacts/20261029/stage3/production-exploratory/default-python-engine-frozen/architecture.json`.
+- A genuine profiled Sol-max attempt reduced engine cost but did not solve
+  the same bounded performance problem. The owner policy therefore authorized
+  one explicit Astra/xhigh escalation; this supersedes the earlier exploratory
+  entry's then-current statement that no escalation had occurred. The engine
+  optimization combines physical-buffer undo, vectorized bulk capture and
+  finite-group dispatch while preserving sources, membership checks and
+  rollback. New regressions cover post-store failure and overlapping writes
+  across growth/removal, including removal followed by registration.
+- Frozen-runner paired diagnostics remain blocking: scalar8/64/256 ratios
+  are27.06/28.82/27.94; batch8/64/256 ratios are14.37/3.33/2.00; complete
+  write/read64 is11.60. All use the frozen semantic tasks,3 warmups and10
+  samples on the same core. Shared-host measurements are diagnostics, not a
+  global efficiency certificate. The attempted nonexistent4096 workload and
+  its no-output failure are retained. The complete237-file Astra artifact
+  archive and hashes live at
+  `.plan20-artifacts/20261029/stage3/commit-performance-astra/` and are bound
+  by `stage3_commit_performance_escalation.json`.
+- The root and Sol-max reread all3498 current main/companion lines before
+  reviewing a single private compiled ingress/preparation/installer. Actual
+  N05 transport/pickle, sole NumPy authority, owner/UID checks, outer undo and
+  BaseException restoration remain requirements. No native production code
+  was installed for this checkpoint. The final affected Python3.10–3.14,
+  current-wheel/native, scientific and performance gates are still open;
+  Stage3 is not complete and Stage4 has not started.
+- Read-only environment probes found the five existing interpreters and old
+  wheels usable, but those old wheels are not current-source evidence. The
+  Python3.13 `/tmp` build environment lacked build tools; the authorized
+  prerequisite command `python -m pip install 'pybind11>=3.0' setuptools build wheel ninja`
+  completed there with pybind11=3.1.0,setuptools=84.2.1,build=1.6.1,
+  wheel=0.48.0,ninja=1.13.2,pyproject_hooks=1.3.3. Other environment paths
+  and production sources were not changed by this installation.

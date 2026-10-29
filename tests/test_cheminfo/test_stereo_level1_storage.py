@@ -4,10 +4,6 @@ from hotpot.cheminfo.core import Molecule
 from hotpot.cheminfo import stereo
 
 
-class _MoleculeStub:
-    pass
-
-
 def test_molecule_constructor_owns_an_explicit_empty_payload():
     first = Molecule()
     second = Molecule()
@@ -21,12 +17,14 @@ def test_molecule_constructor_owns_an_explicit_empty_payload():
 
 
 def test_missing_stereo_storage_is_not_a_supported_legacy_shape():
+    mol = Molecule()
+    del mol._stereo_payload
     with pytest.raises(AttributeError, match="_stereo_payload"):
-        stereo.get_stereo_payload(_MoleculeStub())
+        stereo.get_stereo_payload(mol)
 
 
 def test_storage_keeps_the_exact_payload_without_interpretation_or_copying():
-    mol = _MoleculeStub()
+    mol = Molecule()
     payload = stereo.StereoPayload(
         schema_version=47,
         records=(

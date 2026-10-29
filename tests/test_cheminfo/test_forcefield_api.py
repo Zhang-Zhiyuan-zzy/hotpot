@@ -178,7 +178,7 @@ def test_build3d_captures_the_requested_hydrogen_policy(
         "evaluate_structure_acceptance",
         lambda *args, **options: SimpleNamespace(passed=True),
     )
-    monkeypatch.setattr(workflows, "_commit_working_copy", lambda *args: None)
+    monkeypatch.setattr(workflows, "_commit_working_copy", lambda *args, **options: None)
 
     ff.build3d(molecule, add_hydrogens=add_hydrogens)
 
@@ -269,7 +269,7 @@ def test_build_and_optimize_ignores_reserved_candidate_count(
     monkeypatch,
     candidate_count,
 ):
-    molecule = SimpleNamespace(has_metal=True)
+    molecule = read_mol("[Zn]", "smi")
     expected = object()
     calls = []
 
@@ -302,8 +302,8 @@ def test_build_and_optimize_ignores_reserved_candidate_count(
 
 
 def test_build_and_optimize_organic_builds_then_optimizes_once(monkeypatch):
-    molecule = SimpleNamespace(has_metal=False)
-    working = SimpleNamespace(has_metal=False)
+    molecule = read_mol("C", "smi")
+    working = read_mol("C", "smi")
     build_report = object()
     optimization_report = SimpleNamespace(
         requested_forcefield="GAFF",
@@ -316,7 +316,7 @@ def test_build_and_optimize_organic_builds_then_optimizes_once(monkeypatch):
     monkeypatch.setattr(
         workflows,
         "_hydrogenated_working_copy",
-        lambda current, *, add_hydrogens: working,
+        lambda current, *, add_hydrogens, source=None: working,
     )
     monkeypatch.setattr(
         workflows,
@@ -333,7 +333,7 @@ def test_build_and_optimize_organic_builds_then_optimizes_once(monkeypatch):
     monkeypatch.setattr(
         workflows,
         "_commit_working_copy",
-        lambda current, completed: calls.append(("commit", current, completed)),
+        lambda current, completed, **options: calls.append(("commit", current, completed)),
     )
 
     result = ff.build_and_optimize(
@@ -364,7 +364,7 @@ def test_auto_optimize_dispatches_organic_molecules_to_ordinary_optimizer(
 ):
     from hotpot.cheminfo.forcefields import auto as auto_workflow
 
-    molecule = SimpleNamespace(has_metal=False)
+    molecule = read_mol("C", "smi")
     calls = []
     expected = ff.ForceFieldRunReport(
         requested_forcefield=None,
@@ -413,7 +413,7 @@ def test_auto_optimize_dispatches_organic_molecules_to_ordinary_optimizer(
 
 
 def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
-    molecule = SimpleNamespace(has_metal=True)
+    molecule = read_mol("[Zn]", "smi")
     working = read_mol("CC", "smi")
     expected = ff.ForceFieldRunReport(
         requested_forcefield="UFF",
@@ -448,7 +448,7 @@ def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
     monkeypatch.setattr(
         workflows,
         "_hydrogenated_working_copy",
-        lambda current, *, add_hydrogens, seed=None: working,
+        lambda current, *, add_hydrogens, seed=None, source=None: working,
     )
     monkeypatch.setattr(
         workflows,
@@ -474,7 +474,7 @@ def test_optimize_on_metal_molecule_does_not_build_ligand_proxies(monkeypatch):
     monkeypatch.setattr(
         workflows,
         "_commit_working_copy",
-        lambda current, completed: calls.append((current, completed)),
+        lambda current, completed, **options: calls.append((current, completed)),
     )
 
     result = ff.optimize(
@@ -511,7 +511,7 @@ def test_build3d_only_embeds_coordinates(monkeypatch):
     monkeypatch.setattr(
         workflows,
         "_hydrogenated_working_copy",
-        lambda current, *, add_hydrogens, seed=None: current,
+        lambda current, *, add_hydrogens, seed=None, source=None: current,
     )
     monkeypatch.setattr(
         workflows,
@@ -531,7 +531,7 @@ def test_build3d_only_embeds_coordinates(monkeypatch):
     monkeypatch.setattr(
         workflows,
         "_commit_working_copy",
-        lambda current, completed: calls.append(("commit", current, completed)),
+        lambda current, completed, **options: calls.append(("commit", current, completed)),
     )
 
     report = ff.build3d(molecule, add_hydrogens=False)
@@ -614,7 +614,7 @@ def test_seeded_build3d_uses_isolated_builder(monkeypatch):
     monkeypatch.setattr(
         workflows,
         "_hydrogenated_working_copy",
-        lambda current, *, add_hydrogens, seed=None: current,
+        lambda current, *, add_hydrogens, seed=None, source=None: current,
     )
     monkeypatch.setattr(
         workflows,
@@ -636,7 +636,7 @@ def test_seeded_build3d_uses_isolated_builder(monkeypatch):
     monkeypatch.setattr(
         workflows,
         "_commit_working_copy",
-        lambda current, completed: calls.append(("commit", current, completed)),
+        lambda current, completed, **options: calls.append(("commit", current, completed)),
     )
 
     ff.build3d(molecule, add_hydrogens=False, seed=37, timeout=2.5)
@@ -754,8 +754,8 @@ def test_seeded_builder_helper_forwards_timeout_to_worker_protocol(monkeypatch):
 
 
 def test_organic_combined_workflow_forwards_build_timeout(monkeypatch):
-    molecule = SimpleNamespace(has_metal=False)
-    working = SimpleNamespace(has_metal=False)
+    molecule = read_mol("C", "smi")
+    working = read_mol("C", "smi")
     build_report = object()
     optimization_report = SimpleNamespace(
         requested_forcefield="UFF",
@@ -768,7 +768,7 @@ def test_organic_combined_workflow_forwards_build_timeout(monkeypatch):
     monkeypatch.setattr(
         workflows,
         "_hydrogenated_working_copy",
-        lambda current, *, add_hydrogens, seed=None: working,
+        lambda current, *, add_hydrogens, seed=None, source=None: working,
     )
     monkeypatch.setattr(
         workflows,
@@ -781,7 +781,7 @@ def test_organic_combined_workflow_forwards_build_timeout(monkeypatch):
         "optimize",
         lambda *args, **kwargs: optimization_report,
     )
-    monkeypatch.setattr(workflows, "_commit_working_copy", lambda *args: None)
+    monkeypatch.setattr(workflows, "_commit_working_copy", lambda *args, **options: None)
 
     result = ff.build_and_optimize(molecule, seed=47, timeout=3.75)
 
@@ -803,19 +803,23 @@ def test_organic_combined_workflow_forwards_build_timeout(monkeypatch):
 def test_perturb_only_changes_coordinates():
     original_coordinates = np.arange(9, dtype=float).reshape(3, 3)
     metadata = {"name": "probe"}
-    molecule = SimpleNamespace(
-        coordinates=original_coordinates.copy(),
-        metadata=metadata,
-        charge=2,
-    )
+    molecule = read_mol("CCO", "smi")
+    molecule.coordinates = original_coordinates
+    molecule.metadata = metadata
+    molecule.charge = 2
+    original_keys = set(vars(molecule))
+    original_facts = molecule.atom_matrix
 
     result = ff.perturb(molecule, sigma=0.1, seed=41)
 
-    assert result is molecule.coordinates
+    np.testing.assert_array_equal(result, molecule.coordinates)
+    assert not np.shares_memory(result, molecule.coordinates)
     assert not np.array_equal(molecule.coordinates, original_coordinates)
     assert molecule.metadata is metadata
     assert molecule.charge == 2
-    assert set(vars(molecule)) == {"coordinates", "metadata", "charge"}
+    assert set(vars(molecule)) == original_keys
+    np.testing.assert_array_equal(molecule.atom_matrix[:, :10], original_facts[:, :10])
+    np.testing.assert_array_equal(molecule.atom_matrix[:, 13:], original_facts[:, 13:])
 
 
 @pytest.mark.parametrize("forcefield", ("UFF", "MMFF94s"))
@@ -856,7 +860,7 @@ def test_ordinary_benzene_forcefield_request_reaches_optimizer_unchanged(
     monkeypatch.setattr(
         workflows,
         "_hydrogenated_working_copy",
-        lambda current, *, add_hydrogens, seed=None: current,
+        lambda current, *, add_hydrogens, seed=None, source=None: current,
     )
 
     def fake_run(current, **options):
@@ -869,7 +873,7 @@ def test_ordinary_benzene_forcefield_request_reaches_optimizer_unchanged(
         return quality
 
     monkeypatch.setattr(attempts, "evaluate_structure_acceptance", accept)
-    monkeypatch.setattr(workflows, "_commit_working_copy", lambda current, completed: None)
+    monkeypatch.setattr(workflows, "_commit_working_copy", lambda current, completed, **options: None)
 
     result = ff.optimize(molecule, forcefield, add_hydrogens=False)
 
@@ -921,7 +925,7 @@ def test_optimize_persists_recorded_frames_when_forcefield_stage_fails(
 
 
 def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
-    molecule = SimpleNamespace(has_metal=False, atoms=(), hydrogens=())
+    molecule = read_mol("C", "smi")
     hydrogen_requests = []
     expected = ff.ForceFieldRunReport(
         requested_forcefield="UFF",
@@ -951,9 +955,9 @@ def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
         lambda current, **options: "topology",
     )
 
-    def fake_working_copy(current, *, add_hydrogens, seed=None):
+    def fake_working_copy(current, *, add_hydrogens, seed=None, source=None):
         hydrogen_requests.append(add_hydrogens)
-        return SimpleNamespace(has_metal=False, atoms=(), hydrogens=())
+        return read_mol("C", "smi")
 
     monkeypatch.setattr(workflows, "_hydrogenated_working_copy", fake_working_copy)
     monkeypatch.setattr(workflows, "_ob_build", lambda current: None)
@@ -968,7 +972,7 @@ def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
         lambda *args, **kwargs: quality,
     )
     monkeypatch.setattr(attempts, "_optimize_working_mol", lambda *args, **kwargs: expected)
-    monkeypatch.setattr(workflows, "_commit_working_copy", lambda current, completed: None)
+    monkeypatch.setattr(workflows, "_commit_working_copy", lambda current, completed, **options: None)
 
     result = ff.build_and_optimize(molecule, add_hydrogens=True)
 

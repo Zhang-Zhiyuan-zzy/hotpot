@@ -234,11 +234,13 @@ def test_malformed_represented_edges_are_unsupported(malformation):
             Bond(molecule.atoms[0], molecule.atoms[1], bond_order=2.0)
         )
     elif malformation == "self_loop":
-        molecule._hided_covalent_bonds.append(
-            Bond(molecule.atoms[0], molecule.atoms[0], bond_order=1.0)
-        )
+        malformed = Bond(molecule.atoms[0], molecule.atoms[1], bond_order=1.0)
+        malformed._atoms = (molecule.atoms[0], molecule.atoms[0])
+        molecule._hided_covalent_bonds.append(malformed)
     else:
-        molecule.bonds[0].bond_order = float("nan")
+        # Inject malformed transport storage directly. Controlled setters now
+        # restore failed eager chemistry rather than leaving a partial NaN row.
+        molecule.bonds[0]._attrs[0] = float("nan")
 
     graph, issues = _gate6_projection(molecule)
 

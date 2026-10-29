@@ -37,10 +37,14 @@ def perturb(
     seed: Optional[int] = None,
 ) -> np.ndarray:
     """Perturb current coordinates in place with a local random generator."""
-    coordinates = _perturbed_coordinates(
-        mol.coordinates,
-        sigma=sigma,
-        rng=np.random.default_rng(seed),
-    )
-    mol.coordinates = coordinates
-    return coordinates
+    from ..structure._commit import _FactTransaction
+    from ..structure._fields import ATOM_SOURCE_CODES
+
+    with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["forcefield"]):
+        coordinates = _perturbed_coordinates(
+            mol.coordinates,
+            sigma=sigma,
+            rng=np.random.default_rng(seed),
+        )
+        mol.coordinates = coordinates
+        return coordinates

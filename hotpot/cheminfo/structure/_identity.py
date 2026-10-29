@@ -3,16 +3,11 @@
 Identities describe the current owners, not a second retained molecular state.
 Until Stage7B, complete Bond order is active, hidden-metal, hidden-covalent;
 moving a Bond between those partitions may conservatively change an identity.
-Until Stage7D, source frames mean the legacy ordered coordinate array only:
-that owner does not yet distinguish explicit and generated frames. Captures
-share the new commit lock; legacy writable-array aliases are not made atomic
-by this module and are removed by the complete table cutover.
+Until Stage7D, source frames retain their legacy coordinate-only meaning. The
+forcefield_inputs domain additionally covers every retained numeric/sparse
+input consumed before its final Stage5/7 ownership cutover. Captures and
+commits share one owner lock; table columns are captured directly once.
 
-Representation includes an explicit spin declaration where present, or the
-currently exposed legacy frame spin otherwise. This preserves current read
-semantics until declarations and frame results acquire their separate owners.
-The legacy numeric owner has no per-slot presence/producer metadata yet; that
-metadata must enter representation identities with the coordinated table cutover.
 """
 
 from __future__ import annotations
@@ -25,13 +20,13 @@ import json
 
 import numpy as np
 
-from ._fields import FIELD_INDEX
+from ._fields import FIELD_INDEX, ATOM_FIELDS, FIELD_PRESENCE_BITS
 
 
 __all__ = ()
 
 
-_DOMAINS = ("topology", "representation", "geometry", "cell", "constraints", "source_frames")
+_DOMAINS = ("topology", "representation", "geometry", "cell", "constraints", "source_frames", "forcefield_inputs")
 _REPRESENTATION_FIELDS = tuple(FIELD_INDEX[name] for name in (
     "atomic_number", "formal_charge", "implicit_hydrogens", "is_aromatic",
 ))
@@ -86,13 +81,25 @@ def _topology(mol, bonds):
 
 
 def _atom_columns(mol, indices):
-    return tuple(tuple(float(values[index]) for index in indices)
-                 for values in (atom.attrs for atom in mol._atoms))
+    fields = tuple(ATOM_FIELDS[index] for index in indices)
+    return mol._atom_table.select(fields)
+
+
+def _atom_metadata(mol, indices):
+    table = mol._atom_table
+    mask = sum(FIELD_PRESENCE_BITS[index] for index in indices)
+    return (table._presence[:len(table)] & mask,
+            table._sources[:len(table), indices])
+
+
+def _declaration(mol, prefix):
+    return tuple(mol.__dict__[f"_{prefix}_{suffix}"] for suffix in ("present", "value", "source"))
+
 
 
 def _current_spin(mol):
-    if "spin_mult" in mol.__dict__:
-        return "declared", mol.__dict__["spin_mult"]
+    if mol._spin_present:
+        return "declared", _declaration(mol, "spin")
     if mol._conformers._spin_mult is not None:
         return "selected_legacy_frame", mol._conformers.index_attr("spin_mult", mol._conformers_index)
     return "absent", None
@@ -109,16 +116,18 @@ def _content_identities(mol, domains):
             content = (
                 topology,
                 _atom_columns(mol, _REPRESENTATION_FIELDS),
+                _atom_metadata(mol, _REPRESENTATION_FIELDS),
                 tuple((bond.bond_order, bond.bond_kind, bond.bond_direction,
                        bond.bond_source, bond.bond_source_metadata) for bond in bonds),
                 mol._stereo_payload,
                 tuple((atom._uid, atom.__dict__["isotope"])
                       for atom in mol._atoms if "isotope" in atom.__dict__),
-                ("charge", mol.__dict__["charge"]),
+                ("charge", _declaration(mol, "charge")),
                 _current_spin(mol),
             )
         elif domain == "geometry":
-            content = topology, _atom_columns(mol, _COORDINATE_FIELDS)
+            content = (topology, _atom_columns(mol, _COORDINATE_FIELDS),
+                       _atom_metadata(mol, _COORDINATE_FIELDS))
         elif domain == "cell":
             cell = mol._crystal
             content = None if cell is None else tuple(
@@ -135,8 +144,29 @@ def _content_identities(mol, domains):
                 tuple(tuple(atom._uid for atom in view.atoms)
                       for view in mol._torsions if view.constraint),
             )
-        else:  # Closed domain: source_frames.
-            content = topology, mol._conformers._coordinates
+        elif domain == "source_frames":
+            with mol._conformers._mutation_lock:
+                content = topology, mol._conformers._coordinates
+                identities.append((domain, _digest(domain, content)))
+                continue
+        else:  # Closed legacy numeric input domain; opaque metadata is separate.
+            indices = tuple(index for index in range(len(ATOM_FIELDS)) if index not in _COORDINATE_FIELDS)
+            with mol._conformers._mutation_lock:
+                content = (
+                    topology, _atom_columns(mol, indices), _atom_metadata(mol, indices),
+                    tuple((atom._uid, tuple((name, atom.__dict__[name])
+                                           for name in ("isotope", "frac_valence") if name in atom.__dict__))
+                          for atom in mol._atoms),
+                    tuple((bond._uid, bond._attrs, bond.bond_kind, bond.bond_direction, bond.bond_source)
+                          for bond in bonds),
+                    _declaration(mol, "charge"), _current_spin(mol), mol._stereo_payload,
+                    tuple(getattr(mol._conformers, name) for name in (
+                        "_energy", "_partial_charge", "_spin_mult", "_gibbs", "_force",
+                        "_zero_point", "_thermo", "_capacity")),
+                    mol._conformers_index,
+                )
+                identities.append((domain, _digest(domain, content)))
+                continue
         identities.append((domain, _digest(domain, content)))
     return tuple(identities)
 
@@ -148,7 +178,10 @@ def _capture_source(mol, domains=()):
         if domain not in _DOMAINS:
             raise ValueError(f"Unknown source dependency domain: {domain!r}")
     with mol._mutation_lock:
-        return _SourceIdentity(mol._owner_token, _content_identities(mol, domains))
+        if not domains:
+            return _SourceIdentity(mol._owner_token, ())
+        with mol._conformers._mutation_lock:
+            return _SourceIdentity(mol._owner_token, _content_identities(mol, domains))
 
 
 def _check_source(mol, source):
@@ -156,11 +189,14 @@ def _check_source(mol, source):
     with mol._mutation_lock:
         if source.owner is not mol._owner_token:
             raise RuntimeError("Molecular source owner changed; recalculate before committing")
+        if not source.dependencies:
+            return
         domains = tuple(domain for domain, _ in source.dependencies)
         for domain in domains:
             if domain not in _DOMAINS:
                 raise ValueError(f"Unknown source dependency domain: {domain!r}")
-        current = _content_identities(mol, domains)
+        with mol._conformers._mutation_lock:
+            current = _content_identities(mol, domains)
         for (domain, previous), (_, observed) in zip(source.dependencies, current):
             if previous != observed:
                 raise RuntimeError(

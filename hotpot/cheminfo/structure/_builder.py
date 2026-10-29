@@ -1,4 +1,4 @@
-"""Private complete import records and a closed value codec; no installation."""
+"""Private complete import records and a closed immutable value codec."""
 
 from __future__ import annotations
 
@@ -186,12 +186,16 @@ def _stereo(payload):
             result = tuple(copy_value(item, item_type) for item in value)
             if len(expected) == 3 and len(result) != expected[2]:
                 raise ValueError("Stereo tuple field has the wrong width")
+            if type(value) is tuple and all(first is second for first, second in zip(value, result)):
+                return value
             return result
         if type(value) is not expected:
             raise TypeError(f"Stereo schema field requires {expected.__name__}")
         if expected in schemas:
-            return expected(*(copy_value(getattr(value, field.name), field_type)
-                              for field, field_type in zip(fields(value), schemas[expected])))
+            original = tuple(getattr(value, field.name) for field in fields(value))
+            sealed = tuple(copy_value(item, field_type)
+                           for item, field_type in zip(original, schemas[expected]))
+            return value if all(first is second for first, second in zip(original, sealed)) else expected(*sealed)
         return value
 
     return copy_value(payload, StereoPayload)

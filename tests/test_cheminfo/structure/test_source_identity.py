@@ -260,3 +260,66 @@ def test_source_frames_track_ordered_coordinates_not_current_selection_or_result
 
 def test_module_has_no_public_exports():
     assert _identity.__all__ == ()
+
+
+@pytest.mark.parametrize('field,value', [
+    ('s', 5), ('valence', 9), ('partial_charge', 0.25),
+    ('isotope', 13), ('frac_valence', 2.25),
+])
+def test_forcefield_source_checks_actual_legacy_numeric_and_sparse_inputs(field, value):
+    mol = _molecule()
+    source = _capture_source(mol, ('forcefield_inputs',))
+    setattr(mol.atoms[0], field, value)
+    with pytest.raises(RuntimeError, match='forcefield_inputs'):
+        _check_source(mol, source)
+
+
+def test_forcefield_numeric_source_excludes_opaque_bond_metadata():
+    mol = _molecule()
+    mol.bonds[0]._bond_source_metadata = {'opaque': object()}
+    source = _capture_source(mol, ('forcefield_inputs',))
+    _check_source(mol, source)
+    with pytest.raises(TypeError, match='Unsupported source identity'):
+        _capture_source(mol, ('representation',))
+
+
+def test_table_presence_and_producer_are_part_of_relevant_source_domains():
+    mol = _molecule()
+    table = mol._atom_table
+    representation = _capture_source(mol, ('representation',))
+    geometry = _capture_source(mol, ('geometry',))
+    from hotpot.cheminfo.structure._fields import FIELD_INDEX, FIELD_PRESENCE_BITS
+    table._sources[0, FIELD_INDEX['formal_charge']] = 3
+    with pytest.raises(RuntimeError, match='representation'):
+        _check_source(mol, representation)
+    _check_source(mol, geometry)
+    table._presence[0] ^= FIELD_PRESENCE_BITS[FIELD_INDEX['x']]
+    with pytest.raises(RuntimeError, match='geometry'):
+        _check_source(mol, geometry)
+
+
+def test_forcefield_source_covers_legacy_frame_results_without_changing_source_frame_domain():
+    mol = _molecule()
+    mol.conformer_add(mol.coordinates, energy=3.0)
+    source_frames = _capture_source(mol, ('source_frames',))
+    forcefield = _capture_source(mol, ('forcefield_inputs',))
+    mol._conformers._energy[0] = 9.0
+    _check_source(mol, source_frames)
+    with pytest.raises(RuntimeError, match='forcefield_inputs'):
+        _check_source(mol, forcefield)
+
+
+def test_owner_only_binding_never_reads_or_locks_unrequested_frames(monkeypatch):
+    mol = _molecule()
+
+    class UnrequestedFrameLock:
+        def __enter__(self):
+            raise AssertionError('owner-only binding acquired a frame lock')
+
+        def __exit__(self, *args):
+            return False
+
+    monkeypatch.setattr(mol._conformers, '_mutation_lock', UnrequestedFrameLock())
+    source = _capture_source(mol)
+    assert source.owner is mol._owner_token and source.dependencies == ()
+    _check_source(mol, source)

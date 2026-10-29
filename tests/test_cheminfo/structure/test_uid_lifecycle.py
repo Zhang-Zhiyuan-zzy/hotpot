@@ -216,11 +216,12 @@ def test_failed_construction_does_not_make_allocated_identity_reusable():
     mol = Molecule()
     with pytest.raises(ValueError, match="length"):
         Atom(mol, attrs_array=np.zeros(2))
-    # Legacy failed-constructor registration is characterized here; the table
-    # builder cutover must separately make construction failure atomic.
-    failed_uid = mol._atoms[-1]._uid
+    # A failed constructor now leaves no partial member and still consumes UID.
+    assert mol.atoms == [] and mol._topology_index == {}
+    failed_high_water = mol._next_atom_uid
+    assert failed_high_water > 0
     atom = Atom(mol, atomic_number=8)
-    assert atom._uid > failed_uid
+    assert atom._uid >= failed_high_water
 
 
 def test_allocators_serialize_competing_requests_without_an_extra_member_index():

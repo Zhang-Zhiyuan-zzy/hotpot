@@ -1,4 +1,4 @@
-"""Contracts of the isolated complete import record; no installer coverage."""
+"""Immutable complete import records and factual carrier installation contracts."""
 
 from copy import deepcopy
 from dataclasses import FrozenInstanceError, fields, replace
@@ -374,3 +374,99 @@ def test_canonical_array_header_must_be_decodable_at_constructor_and_thaw(shape,
         replace(_record(), legacy_frame_values=(encoded,) + (_freeze_value(None),) * 8)
     with pytest.raises((TypeError, ValueError, OverflowError)):
         _thaw_value(encoded)
+
+
+def test_factual_builder_installs_every_raw_fact_and_builds_topology_once(monkeypatch):
+    from hotpot import Atom, Molecule
+    import importlib
+    core = importlib.import_module(Molecule.__module__)
+    calls = []
+    original = core._build_topology_index
+    def counted(*args, **kwargs):
+        calls.append(len(args[0]))
+        return original(*args, **kwargs)
+    def forbidden(*args, **kwargs):
+        raise AssertionError('factual builder ran chemistry')
+    monkeypatch.setattr(core, '_build_topology_index', counted)
+    monkeypatch.setattr(Atom, 'get_valence', forbidden)
+    monkeypatch.setattr(Atom, '_calc_implicit_hydrogens', forbidden)
+    monkeypatch.setattr(Molecule, 'assign_bond_order', forbidden)
+    monkeypatch.setattr(Molecule, 'determine_rings_aromatic', forbidden)
+    record = _record()
+    mol = Molecule._build_molecule(record)
+    assert calls == [4]
+    assert mol.atom_matrix.tobytes() == record.atom_values
+    assert mol._atom_table.presence().tobytes() == record.atom_presence
+    assert mol._atom_table.sources().tobytes() == record.atom_sources
+    complete = mol._bonds + mol._hided_metal_bonds + mol._hided_covalent_bonds
+    assert b''.join(bond.attrs.tobytes() for bond in complete) == record.bond_values
+    assert tuple((bond.atom1.idx, bond.atom2.idx) for bond in complete) == record.bond_endpoints
+    assert (len(mol._bonds), len(mol._hided_metal_bonds), len(mol._hided_covalent_bonds)) == (1, 1, 1)
+    assert mol.atoms[0].isotope is None and mol.atoms[1].isotope == 0
+    assert mol.atoms[2].isotope == 13 and mol.atoms[0].frac_valence == 1.75
+    assert 'isotope' not in mol.atoms[3].__dict__
+    assert [tuple(atom.idx for atom in view.atoms) for view in mol._angles if view.constraint] == [(2, 0, 1)]
+    assert [tuple(atom.idx for atom in view.atoms) for view in mol._torsions if view.constraint] == [(3, 2, 0, 1)]
+
+
+def test_same_target_factual_installer_preserves_owner_lock_and_burned_uid_ranges():
+    from hotpot import Molecule
+    mol = Molecule()
+    owner, lock = mol._owner_token, mol._mutation_lock
+    mol._next_atom_uid, mol._next_bond_uid = 10, 20
+    assert mol._install_molecule(_record()) is mol
+    assert mol._owner_token is owner and mol._mutation_lock is lock
+    assert [atom._uid for atom in mol.atoms] == [10, 11, 12, 13]
+    assert [bond._uid for bond in mol._bonds + mol._hided_bonds] == [20, 21, 22]
+    assert mol._charge_present and mol.charge == 0
+    assert not mol._spin_present
+
+
+def test_factual_installer_preserves_all_nine_frame_domains_and_selection():
+    from hotpot import Molecule
+    frames = (np.arange(24.).reshape(2, 4, 3), np.array([3., 4.]),
+              np.arange(8.).reshape(2, 4), 1.25, np.arange(24.).reshape(2, 4, 3),
+              np.float32(0.5), 3, np.array(0.75), None)
+    mol = Molecule._build_molecule(_record(legacy_frame_values=frames, legacy_frame_index=-1))
+    assert mol._conformers_index == -1
+    for name, expected in zip(mol.conformers._attrs, frames):
+        observed = getattr(mol.conformers, '_' + name)
+        if expected is None:
+            assert observed is None
+        else:
+            np.testing.assert_array_equal(observed, expected)
+            if isinstance(expected, np.ndarray):
+                assert not np.shares_memory(observed, expected)
+
+
+def test_installer_rolls_back_after_published_topology_and_does_not_reuse_uids(monkeypatch):
+    from hotpot import Molecule
+    mol = Molecule()
+    mol.identifier = 'before'
+    index, table = mol._topology_index, mol._atom_table
+    original = Molecule._update_topology
+    def fail(self, *args, **kwargs):
+        original(self, *args, **kwargs)
+        raise KeyboardInterrupt('after topology publication')
+    monkeypatch.setattr(Molecule, '_update_topology', fail)
+    with pytest.raises(KeyboardInterrupt):
+        mol._install_molecule(_record(identifier=(True, 'candidate')))
+    assert not mol.atoms and not mol.bonds
+    assert mol._topology_index is index and mol._atom_table is table
+    assert mol.identifier == 'before'
+    assert mol._next_atom_uid == 4 and mol._next_bond_uid == 3
+
+
+def test_opaque_metadata_channel_requires_complete_mutually_exclusive_values():
+    from hotpot import Molecule
+    record = _record(bond_metadata=(None,) * 3)
+    with pytest.raises(ValueError, match='complete'):
+        Molecule._build_molecule(record, bond_metadata=({},))
+    with pytest.raises(ValueError, match='exclude record metadata'):
+        Molecule._build_molecule(_record(), bond_metadata=({}, {}, {}))
+    marker = object()
+    values = ({'opaque': marker}, {}, {})
+    mol = Molecule._build_molecule(record, bond_metadata=deepcopy(values))
+    assert mol.bonds[0]._bond_source_metadata['opaque'] is not marker
+    clone = mol.copy()
+    assert clone.bonds[0]._bond_source_metadata['opaque'] is not mol.bonds[0]._bond_source_metadata['opaque']

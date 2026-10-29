@@ -335,30 +335,34 @@ def apply_native_selected_structure(
     result: _SelectedStructureResult,
 ) -> None:
     """Apply native selected coordinates and coordination topology in place."""
-    ordered_bonds = _ordered_coordination_bonds(mol, session_input)
-    active_bond_ids = {id(bond) for bond in mol.bonds}
-    bonds_to_hide = tuple(
-        bond
-        for bond, active in zip(
-            ordered_bonds,
-            result.final_active_coordination_mask,
+    from ..structure._commit import _FactTransaction
+    from ..structure._fields import ATOM_SOURCE_CODES
+
+    with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["forcefield"]):
+        ordered_bonds = _ordered_coordination_bonds(mol, session_input)
+        active_bond_ids = {id(bond) for bond in mol.bonds}
+        bonds_to_hide = tuple(
+            bond
+            for bond, active in zip(
+                ordered_bonds,
+                result.final_active_coordination_mask,
+            )
+            if not active and id(bond) in active_bond_ids
         )
-        if not active and id(bond) in active_bond_ids
-    )
-    hidden_bond_ids = {id(bond) for bond in mol._hided_metal_bonds}
-    bonds_to_restore = tuple(
-        bond
-        for bond, active in zip(
-            ordered_bonds,
-            result.final_active_coordination_mask,
+        hidden_bond_ids = {id(bond) for bond in mol._hided_metal_bonds}
+        bonds_to_restore = tuple(
+            bond
+            for bond, active in zip(
+                ordered_bonds,
+                result.final_active_coordination_mask,
+            )
+            if active and id(bond) in hidden_bond_ids
         )
-        if active and id(bond) in hidden_bond_ids
-    )
-    if bonds_to_hide:
-        mol.hide_bonds(*bonds_to_hide, clear_conformers=False)
-    if bonds_to_restore:
-        mol.restore_bonds(*bonds_to_restore, clear_conformers=False)
-    mol.coordinates = result.selected_coordinates
+        if bonds_to_hide:
+            mol.hide_bonds(*bonds_to_hide, clear_conformers=False)
+        if bonds_to_restore:
+            mol.restore_bonds(*bonds_to_restore, clear_conformers=False)
+        mol.coordinates = result.selected_coordinates
 
 
 def ingest_native_trajectory(

@@ -11,6 +11,7 @@ from torch_geometric.data import Data
 
 from hotpot.cheminfo.core import Molecule, Atom, AtomPair
 from hotpot.cheminfo.graph.cycles import _cycle_basis
+from hotpot.cheminfo.AImodels.data_extract import extract_atom_attrs as _extract_numpy_atom_attrs
 from .consts import *
 
 __all__ = [
@@ -95,15 +96,8 @@ def direct_edge_to_indirect(attr_or_index: torch.Tensor, is_index=True) -> torch
 
 
 def extract_atom_attrs(mol: Molecule):
-    x_names = Atom._attrs_enumerator[:15]
-    additional_attr_names = ('is_metal',)
-    x_names = x_names + additional_attr_names
-    additional_attr_getter = attrgetter(*additional_attr_names)
-    x = torch.from_numpy(
-        np.array([a.attrs[:15].tolist() + [additional_attr_getter(a)] for a in mol.atoms])
-    ).float().reshape(-1, 16)
-
-    return x, x_names
+    extracted = _extract_numpy_atom_attrs(mol)
+    return torch.from_numpy(extracted['x']).float(), extracted['x_names']
 
 def extract_bond_attrs(mol: Molecule, edge_attr_names: Iterable[str]):
     bond_attr_getter = attrgetter(*edge_attr_names)

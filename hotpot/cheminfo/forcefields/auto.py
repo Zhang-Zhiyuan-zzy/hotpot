@@ -36,7 +36,7 @@ from .trajectory import (
     TrajectoryStage,
     TrajectoryStart,
 )
-from .working_copy import _commit_working_copy, _hydrogenated_working_copy
+from .working_copy import _capture_working_source, _commit_working_copy, _hydrogenated_working_copy
 from .workflows import _complexes_build_workflow, _finalize_trajectory, optimize
 
 
@@ -63,6 +63,7 @@ class _NativeFastBuildAttempt:
     trajectory: ForceFieldTrajectory
     report: Optional[ForceFieldRunReport]
     provenance: OptimizationAttemptReport
+    source: tuple
 
 
 def _attempt_status(report: ForceFieldRunReport) -> OptimizationAttemptStatus:
@@ -139,6 +140,7 @@ def _run_native_fast_build_attempt(
     vdw_cutoff_end: float,
 ) -> _NativeFastBuildAttempt:
     """Run direct native build and FAST optimization without committing."""
+    source = _capture_working_source(mol)
     started = perf_counter()
     topology_reference = capture_topology(
         mol,
@@ -148,6 +150,7 @@ def _run_native_fast_build_attempt(
         mol,
         add_hydrogens=add_hydrogens,
         seed=seed,
+        source=source,
     )
     trajectory = ForceFieldTrajectory.from_molecule(
         working_mol,
@@ -167,6 +170,7 @@ def _run_native_fast_build_attempt(
                 message="obWrappers.build returned an unsuccessful report",
                 elapsed_seconds=perf_counter() - started,
             ),
+            source=source,
         )
     _record_quick_build_frame(
         trajectory,
@@ -186,6 +190,7 @@ def _run_native_fast_build_attempt(
                 message="obWrappers.build returned non-finite coordinates",
                 elapsed_seconds=perf_counter() - started,
             ),
+            source=source,
         )
     report = _run_ordinary_optimization_attempt(
         working_mol,
@@ -218,6 +223,7 @@ def _run_native_fast_build_attempt(
             build_succeeded=True,
             elapsed_seconds=perf_counter() - started,
         ),
+        source=source,
     )
 
 
@@ -237,7 +243,7 @@ def _accept_native_fast_attempt(
         save_movie=save_movie,
         trajectory_path=trajectory_path,
     )
-    _commit_working_copy(mol, attempt.mol)
+    _commit_working_copy(mol, attempt.mol, source=attempt.source)
     return replace(
         report,
         trajectory=archive,
@@ -296,6 +302,7 @@ def _fallback_to_complex_workflow(
         mol,
         add_hydrogens=False,
         seed=seed,
+        source=preliminary.source,
     )
     try:
         workflow_report = _complexes_build_workflow(
@@ -347,7 +354,7 @@ def _fallback_to_complex_workflow(
     )
     if trajectory_path is not None:
         archive.write(trajectory_path)
-    _commit_working_copy(mol, fallback_mol)
+    _commit_working_copy(mol, fallback_mol, source=preliminary.source)
     fallback_attempt = _optimization_attempt_report(
         optimization_report,
         OptimizationRoute.COMPLEX_WORKFLOW,

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage3 in progress; readonly parent, UID/source infrastructure and private N01/N02/N05 records; production table/commit/builder remain incomplete",
+  "status": "Stage3 production authority integration in progress; current source evidence and integrated performance gates still open",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -24,13 +24,19 @@
     "retired_native_struct_candidates": 6,
     "ordinary_removal_commit": "c6bfcd4906254ee113c14103009f071e91f60368",
     "ordinary_removal_evidence": "stage2_execution_evidence.json",
-    "ordinary_classes_added": 1,
+    "ordinary_classes_added": 2,
     "ordinary_additions": [
       {
         "symbol": "hotpot.cheminfo.structure._atom_table._AtomFactTable",
         "stage": "Stage3",
-        "scope": "Validated private numeric candidate; current Molecule storage remains unchanged",
+        "scope": "Sole active Molecule Atom numeric/presence/source owner after the connected writer cutover; complete validation pending",
         "verification": "stage3_storage_evidence.json"
+      },
+      {
+        "symbol": "hotpot.cheminfo.structure._commit._FactTransaction",
+        "stage": "Stage3",
+        "scope": "Task-local closed-domain mutation/undo controller, never retained on a carrier; design frozen in stage3_table_cutover_review.md",
+        "verification": "Pending frozen production execution evidence"
       }
     ],
     "dataclass_additions": [
@@ -85,6 +91,23 @@
           "identifier"
         ],
         "verification": "stage3_record_evidence.json"
+      }
+    ],
+    "new_enums": 1,
+    "enum_additions": [
+      {
+        "symbol": "hotpot.cheminfo.structure._dependencies._FactStatus",
+        "stage": "Stage3",
+        "scope": "Five finite private validity states; no per-field object or extra value authority"
+      }
+    ],
+    "retired_typed_dicts": 1,
+    "typed_dict_retirements": [
+      {
+        "symbol": "hotpot.cheminfo.forcefields.working_copy._BondAttributePayload",
+        "stage": "Stage3",
+        "scope": "Per-Bond attr_dict codec replaced by complete raw3 Bond facts/metadata in the one N02; existing operational _WorkingCopyCommit retained",
+        "verification": "Pending frozen FF/rollback evidence"
       }
     ]
   },
@@ -506,10 +529,10 @@
   ],
   "change_policy": "Update a reservation with concrete responsibility/consumer evidence before exceeding it; new public schemas retain their own review gate. Never offset extra records by deleting unrelated reserved types or replace records with untyped dicts solely to improve counts.",
   "measured_current_counts": {
-    "all_python_classes": 777,
+    "all_python_classes": 778,
     "dataclasses": 350,
     "protocols": 13,
-    "typed_dicts": 3,
-    "method": "Full tracked and unignored new hotpot Python AST census; one ordinary table and N01/N02/N05 private records; no new Protocol/TypedDict/native mirror."
+    "typed_dicts": 2,
+    "method": "Full hotpot Python AST census; one new ordinary transaction, one finite enum and removal of the duplicate per-Bond TypedDict; no new native mirror or Protocol. Source remains under validation."
   }
 }

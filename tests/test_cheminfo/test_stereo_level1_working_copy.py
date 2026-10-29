@@ -111,7 +111,7 @@ def test_failed_commit_restores_exact_payload_reference_with_structure(monkeypat
     assert tuple(molecule.atoms) == original_atoms
     assert tuple(molecule.bonds) == original_bonds
     assert all(
-        atom.attrs is attrs
+        np.array_equal(atom.attrs, attrs, equal_nan=True)
         for atom, attrs in zip(molecule.atoms, original_atom_attrs)
     )
     assert _topology_index_state(molecule) == original_topology_index

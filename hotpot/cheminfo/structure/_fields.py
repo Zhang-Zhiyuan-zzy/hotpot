@@ -47,6 +47,15 @@ ATOM_SOURCE_CODES = MappingProxyType({
     "electron_configuration": 7,
     "valence": 8,
     "implicit_hydrogens": 9,
+    "cclib": 10,
+    "conformer_load": 11,
+    "geometry": 12,
+    "forcefield": 13,
+    "xtb": 14,
+    "aromaticity": 15,
+    "kekule": 16,
+    "partial_charge": 17,
+    "tmqm": 18,
 })
 COORDINATE_FIELDS = ("x", "y", "z")
 SCALAR_FIELDS = tuple(name for name in ATOM_FIELDS if name not in COORDINATE_FIELDS)

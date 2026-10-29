@@ -98,8 +98,16 @@ def _source_value(value):
     return value
 
 
+def _restore_atom_write(state):
+    selection, columns, sources, presence, old_presence = state
+    for index, column, value, code in columns:
+        column[selection] = value
+        sources[selection, index] = code
+    presence[selection] = old_presence
+
+
 class _AtomFactTable:
-    __slots__ = ("_blocks", "_columns", "_size", "_presence", "_sources")
+    __slots__ = ("_blocks", "_columns", "_size", "_presence", "_sources", "_group_status", "_dirty_seeds")
 
     def __init__(self, rows=None, *, presence=None, sources=None):
         values = np.empty((0, len(ATOM_FIELDS))) if rows is None else _numeric_rows(rows)
@@ -110,6 +118,8 @@ class _AtomFactTable:
         )
         self._blocks, self._columns, self._size = blocks, _column_views(blocks), len(values)
         self._presence, self._sources = masks, codes
+        from ._dependencies import _initialize_dependencies
+        _initialize_dependencies(self)
 
     def __len__(self):
         return self._size
@@ -119,12 +129,13 @@ class _AtomFactTable:
         # Spare capacity may be uninitialized and is recreated, never read.
         return (
             self._size, len(self._blocks[0]),
-            tuple(block[:self._size] for block in self._blocks),
-            self._presence[:self._size], self._sources[:self._size],
+            tuple(block[:self._size].copy() for block in self._blocks),
+            self._presence[:self._size].copy(), self._sources[:self._size].copy(),
+            self._group_status[:self._size].copy(), tuple(frozenset(seed) for seed in self._dirty_seeds),
         )
 
     def __setstate__(self, state):
-        size, capacity, values, presence, sources = state
+        size, capacity, values, presence, sources, status, seeds = state
         blocks = _storage(capacity)
         for block, value in zip(blocks, values):
             block[:size] = value
@@ -133,6 +144,9 @@ class _AtomFactTable:
         masks[:size], codes[:size] = presence, sources
         self._blocks, self._columns, self._size = blocks, _column_views(blocks), size
         self._presence, self._sources = masks, codes
+        self._group_status = np.empty((capacity, status.shape[1]), dtype=np.uint8)
+        self._group_status[:size] = status
+        self._dirty_seeds = tuple(set(seed) for seed in seeds)
 
     def _install_storage(self, blocks, columns, size, presence, sources):
         previous = self._blocks, self._columns, self._size, self._presence, self._sources
@@ -252,105 +266,76 @@ class _AtomFactTable:
             raise ValueError("Atom source mapping must match the updated fields")
         if not columns:
             return
-        if isinstance(rows, (int, np.integer)):
-            row = self._row(rows)
-            if len(columns) == 1:
-                field = next(iter(columns))
-                index = FIELD_INDEX[field]
-                column = self._columns[index]
-                value = _scalar_value(columns[field])
-                supplied = _present_value(present[field] if mapped_presence else present)
-                code = _source_value(source[field] if mapped_source else source)
-                if not (column.flags.writeable and self._presence.flags.writeable and self._sources.flags.writeable):
-                    raise ValueError("Atom update targets read-only storage")
-                previous = column[row]
-                old_presence = self._presence[row]
-                old_source = self._sources[row, index]
-                mask = FIELD_PRESENCE_BITS[index]
-                next_presence = int(old_presence) | mask if supplied else int(old_presence) & (ATOM_PRESENCE_ALL ^ mask)
-                try:
-                    column[row] = value
-                    self._sources[row, index] = code
-                    self._presence[row] = next_presence
-                except BaseException:
-                    column[row] = previous
-                    self._sources[row, index] = old_source
-                    self._presence[row] = old_presence
-                    raise
-                return
-
-            prepared = tuple(
-                (FIELD_INDEX[field], self._columns[FIELD_INDEX[field]], _scalar_value(value),
-                 _present_value(present[field] if mapped_presence else present),
-                 _source_value(source[field] if mapped_source else source))
-                for field, value in columns.items()
-            )
-            if (not self._presence.flags.writeable or not self._sources.flags.writeable
-                    or any(not column.flags.writeable for _, column, _, _, _ in prepared)):
-                raise ValueError("Atom update targets read-only storage")
-            previous = tuple(column[row] for _, column, _, _, _ in prepared)
-            old_sources = tuple(self._sources[row, index] for index, _, _, _, _ in prepared)
-            old_presence = self._presence[row]
-            next_presence = int(old_presence)
-            for index, _, _, supplied, _ in prepared:
-                mask = FIELD_PRESENCE_BITS[index]
-                next_presence = next_presence | mask if supplied else next_presence & (ATOM_PRESENCE_ALL ^ mask)
-            try:
-                for index, column, value, _, code in prepared:
-                    column[row] = value
-                    self._sources[row, index] = code
-                self._presence[row] = next_presence
-            except BaseException:
-                for (index, column, _, _, _), value, code in zip(prepared, previous, old_sources):
-                    column[row] = value
-                    self._sources[row, index] = code
-                self._presence[row] = old_presence
-                raise
-            return
-
         selection, count = self._rows(rows, unique=True)
+        if count == 1:
+            selection = selection.start if isinstance(selection, slice) else int(selection[0])
         prepared = []
         for field, value in columns.items():
             index = FIELD_INDEX[field]
-            column = self._columns[index]
-            candidate = np.asarray(value, dtype=np.float64)
-            if candidate.shape == ():
-                candidate = np.full(count, candidate, dtype=np.float64)
-            elif candidate.shape == (count,):
-                candidate = candidate.copy()
+            if count == 1:
+                candidate = _scalar_value(value)
             else:
-                raise ValueError(f"Atom field {field!r} requires a scalar or shape ({count},)")
-            supplied = _present_value(present[field] if mapped_presence else present)
-            code = _source_value(source[field] if mapped_source else source)
-            prepared.append((index, column, candidate, supplied, code))
-        if (not self._presence.flags.writeable or not self._sources.flags.writeable
-                or any(not column.flags.writeable for _, column, _, _, _ in prepared)):
+                candidate = np.asarray(value, dtype=np.float64)
+                if candidate.shape == ():
+                    candidate = np.full(count, candidate, dtype=np.float64)
+                elif candidate.shape == (count,):
+                    candidate = candidate.copy()
+                else:
+                    raise ValueError(f"Atom field {field!r} requires a scalar or shape ({count},)")
+            prepared.append((index, candidate,
+                             _present_value(present[field] if mapped_presence else present),
+                             _source_value(source[field] if mapped_source else source)))
+        self._write_prepared(selection, prepared)
+
+    def _write_prepared(self, selection, prepared, *, transaction=None):
+        """Install validated columns with one physical-buffer undo capture.
+
+        Molecular writes enroll this capture in their outer transaction before
+        the first store. Standalone writes restore the same capture locally.
+        Capturing the actual arrays keeps undo valid across table growth/remap.
+        """
+        if not self._presence.flags.writeable or not self._sources.flags.writeable:
             raise ValueError("Atom update targets read-only storage")
-        previous = tuple(column[selection].copy() for _, column, _, _, _ in prepared)
-        old_sources = tuple(self._sources[selection, index].copy() for index, _, _, _, _ in prepared)
-        old_presence = self._presence[selection].copy()
-        next_presence = old_presence.copy()
-        for index, _, _, supplied, _ in prepared:
-            mask = FIELD_PRESENCE_BITS[index]
-            if supplied:
-                next_presence |= np.uint32(mask)
+        scalar = isinstance(selection, (int, np.integer))
+        old_presence = int(self._presence[selection]) if scalar else self._presence[selection].copy()
+        next_presence = old_presence if scalar else old_presence.copy()
+        previous = []
+        for index, _, supplied, _ in prepared:
+            column = self._columns[index]
+            if not column.flags.writeable:
+                raise ValueError("Atom update targets read-only storage")
+            old_value, old_source = column[selection], self._sources[selection, index]
+            if not scalar:
+                old_value, old_source = old_value.copy(), old_source.copy()
+            previous.append((index, column, old_value, old_source))
+            if scalar:
+                mask = FIELD_PRESENCE_BITS[index]
+                next_presence = next_presence | mask if supplied else next_presence & ~mask
             else:
-                next_presence &= np.uint32(ATOM_PRESENCE_ALL ^ mask)
+                mask = FIELD_PRESENCE_BITS[index]
+                if supplied:
+                    next_presence |= np.uint32(mask)
+                else:
+                    next_presence &= np.uint32(ATOM_PRESENCE_ALL ^ mask)
+        state = selection, previous, self._sources, self._presence, old_presence
+        if transaction is not None:
+            transaction._cells.append(state)
         try:
-            for index, column, candidate, _, code in prepared:
-                column[selection] = candidate
+            for index, value, _, code in prepared:
+                self._columns[index][selection] = value
                 self._sources[selection, index] = code
             self._presence[selection] = next_presence
         except BaseException:
-            for (index, column, _, _, _), value, code in zip(prepared, previous, old_sources):
-                column[selection] = value
-                self._sources[selection, index] = code
-            self._presence[selection] = old_presence
+            _restore_atom_write(state)
             raise
 
     def append(self, rows, *, presence=None, sources=None):
         values = _numeric_rows(rows)
         masks, codes = _metadata_rows(len(values), presence, sources)
+        return self._append_prepared(values, masks, codes)
+
+    def _append_prepared(self, values, masks, codes):
+        """Append operation-owned rows with already normalized metadata."""
         first = self._size
         if not len(values):
             return first
@@ -374,7 +359,15 @@ class _AtomFactTable:
         next_presence[first:size] = masks
         next_sources[first:size] = codes
         columns = self._columns if blocks is self._blocks else _column_views(blocks)
+        from ._dependencies import _status_from_presence
+        if capacity > len(self._group_status):
+            status = np.empty((capacity, self._group_status.shape[1]), dtype=np.uint8)
+            status[:first] = self._group_status[:first]
+        else:
+            status = self._group_status
+        status[first:size] = _status_from_presence(masks)
         self._install_storage(blocks, columns, size, next_presence, next_sources)
+        self._group_status = status
         return first
 
     def remap(self, rows):
@@ -388,7 +381,10 @@ class _AtomFactTable:
         next_sources = np.empty_like(self._sources)
         next_presence[:size] = self._presence[selection]
         next_sources[:size] = self._sources[selection]
+        status = np.empty((len(blocks[0]), self._group_status.shape[1]), dtype=np.uint8)
+        status[:size] = self._group_status[selection]
         self._install_storage(blocks, _column_views(blocks), size, next_presence, next_sources)
+        self._group_status = status
 
     def take(self, rows):
         selection, size = self._rows(rows)
@@ -398,6 +394,8 @@ class _AtomFactTable:
         result = object.__new__(type(self))
         result._blocks, result._columns, result._size = blocks, _column_views(blocks), size
         result._presence, result._sources = presence, sources
+        result._group_status = self._group_status[selection].copy()
+        result._dirty_seeds = tuple(set(seed) for seed in self._dirty_seeds)
         return result
 
     def copy(self):

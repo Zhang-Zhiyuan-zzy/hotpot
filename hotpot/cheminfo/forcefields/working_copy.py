@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from copy import copy, deepcopy
 from dataclasses import dataclass
-from typing import Mapping, Optional, Tuple, TYPE_CHECKING, TypedDict, cast
+from typing import Mapping, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 
 from ..stereo import get_stereo_payload
+from ..structure._identity import _capture_source, _check_source, _complete_bonds
 from .coordination import _iter_metal_donor_pairs
 from .topology import (
     _atom_identity,
@@ -21,51 +22,58 @@ from .topology import (
 if TYPE_CHECKING:
     from ..core import Atom, AtomPair, Bond, BondKind, Molecule
     from ..stereo import StereoPayload
+    from ..structure._builder import MoleculeRecord
+    from ..structure._identity import _SourceIdentity
 
 
 __all__ = ()
 
 
 _NEUTRAL_DONOR_ATOMIC_NUMBERS = frozenset({7, 8, 15, 16, 33, 34})
+_FF_SOURCE_DOMAINS = (
+    "topology", "geometry", "cell", "constraints", "source_frames", "forcefield_inputs",
+)
 
 
-class _BondAttributePayload(TypedDict):
-    bond_order: float
-    constraint: bool
-    id: int
-    bond_kind: "BondKind"
-    bond_direction: Optional[str]
-    bond_source: Optional[str]
-    bond_source_metadata: Mapping[str, object]
+def _capture_working_source(mol: "Molecule") -> tuple:
+    with mol._mutation_lock:
+        return (
+            _capture_source(mol, _FF_SOURCE_DOMAINS),
+            tuple((bond, bond._bond_source_metadata) for bond in _complete_bonds(mol)),
+        )
+
+
+def _check_working_source(mol: "Molecule", source: tuple) -> None:
+    _check_source(mol, source[0])
+    if any(bond._bond_source_metadata is not metadata for bond, metadata in source[1]):
+        raise RuntimeError("Molecular Bond metadata changed; recalculate before committing")
 
 
 @dataclass(frozen=True)
 class _WorkingCopyCommit:
-    original_atom_attrs: Tuple[np.ndarray, ...]
-    added_atom_attrs: Tuple[np.ndarray, ...]
-    added_bonds: Tuple[Tuple[int, int, _BondAttributePayload], ...]
-    conformer_state: Mapping[str, object]
-    conformer_index: int
+    source: tuple
+    record: "MoleculeRecord"
+    bond_metadata: tuple
+    atom_bindings: tuple
+    bond_bindings: tuple
+    dependency_state: tuple
     stereo_payload: "StereoPayload"
 
 
 @dataclass(frozen=True)
 class _MoleculeCommitSnapshot:
-    atoms: Tuple["Atom", ...]
-    bonds: Tuple["Bond", ...]
-    atom_state: Tuple[Tuple["Atom", np.ndarray], ...]
+    state: Mapping[str, object]
+    member_state: tuple
     atom_pair_items: Tuple[Tuple[frozenset["Atom"], "AtomPair"], ...]
     conformer_state: Mapping[str, object]
-    conformer_index: int
-    stereo_payload: "StereoPayload"
+    membership: tuple
+    cache_state: tuple
 
 
 def _copy_molecule_metadata(source_mol: "Molecule", target_mol: "Molecule") -> None:
-    target_mol.charge = source_mol.charge
+    # copy() already remaps declarations and cell; annotation values retain
+    # their existing user-owned lifetime, with a separate mapping container.
     target_mol.properties = dict(source_mol.properties)
-    target_mol._model = source_mol._model
-    target_mol._environ = source_mol._environ
-    target_mol._crystal = source_mol._crystal
 
 
 def _recalculate_neutral_donor_valence(
@@ -88,10 +96,14 @@ def _hydrogenated_working_copy(
     *,
     add_hydrogens: bool,
     seed: Optional[int] = None,
+    source: tuple | None = None,
 ) -> "Molecule":
     """Copy ``mol`` and infer H atoms against its ligand covalent skeleton."""
-    working_mol = copy(mol)
-    _copy_molecule_metadata(mol, working_mol)
+    with mol._mutation_lock:
+        if source is not None:
+            _check_working_source(mol, source)
+        working_mol = copy(mol)
+        _copy_molecule_metadata(mol, working_mol)
     original_atom_count = len(working_mol.atoms)
     if add_hydrogens:
         if working_mol.has_metal:
@@ -127,7 +139,7 @@ def _hydrogenated_working_copy(
 def _make_worker_mol(mol: "Molecule") -> "Molecule":
     """Return a structure-only clone with private positional IDs for a worker."""
     worker_mol = copy(mol)
-    worker_mol.charge = mol.charge
+    worker_mol.properties = {}
     worker_mol.refresh_atom_id()
     return worker_mol
 
@@ -135,79 +147,83 @@ def _make_worker_mol(mol: "Molecule") -> "Molecule":
 def _prepare_working_copy_commit(
     original_mol: "Molecule",
     working_mol: "Molecule",
+    source: tuple,
 ) -> _WorkingCopyCommit:
+    from ..structure._dependencies import _remap_dependency_state
+
     original_atoms = tuple(original_mol._atoms)
-    working_atoms = tuple(working_mol.atoms)
-    original_atom_count = len(original_atoms)
-    if len(working_atoms) < original_atom_count:
+    working_atoms = tuple(working_mol._atoms)
+    original_count = len(original_atoms)
+    if len(working_atoms) < original_count:
         raise ValueError("The working copy removed an original atom")
+    # copy() allocates a fresh 0..N-1 UID range in source row order. Source
+    # labels/chemistry can coincide, so they cannot identify this retained prefix.
+    if any(atom.mol is not working_mol or atom._uid_owner is not working_mol._owner_token
+           or atom._uid != row or working_mol._topology_index.get(id(atom), (None,))[0] != row
+           for row, atom in enumerate(working_atoms[:original_count])):
+        raise ValueError("The working copy changed an original atom membership")
+    if any(_atom_identity(first) != _atom_identity(second)
+           for first, second in zip(original_atoms, working_atoms)):
+        raise ValueError("The working copy changed an original atom identity")
 
-    for original_atom, working_atom in zip(
-        original_atoms,
-        working_atoms[:original_atom_count],
-    ):
-        if _atom_identity(original_atom) != _atom_identity(working_atom):
-            raise ValueError("The working copy changed an original atom identity")
-
-    original_atom_indices = _atom_index_map(original_atoms)
-    working_atom_indices = _atom_index_map(working_atoms)
+    original_indices = _atom_index_map(original_atoms)
+    working_indices = _atom_index_map(working_atoms)
     original_bonds = {
-        _bond_identity(bond, original_atom_indices)
-        for bond in original_mol.bonds
+        _bond_identity(bond, original_indices): bond
+        for bond in _complete_bonds(original_mol)
     }
-    working_original_bonds = set()
-    working_bond_keys = set()
-    added_bonds: list[Tuple[int, int, _BondAttributePayload]] = []
-    for bond in working_mol.bonds:
-        if (
-            id(bond.atom1) not in working_atom_indices
-            or id(bond.atom2) not in working_atom_indices
-        ):
+    retained = set()
+    seen = set()
+    bond_bindings = []
+    for bond in _complete_bonds(working_mol):
+        if id(bond.atom1) not in working_indices or id(bond.atom2) not in working_indices:
             raise ValueError("The working copy contains a bond to an external atom")
-        first, second = _bond_endpoint_indices(bond, working_atom_indices)
+        first, second = _bond_endpoint_indices(bond, working_indices)
         key = tuple(sorted((first, second)))
-        if first == second or key in working_bond_keys:
+        if first == second or key in seen:
             raise ValueError("The working copy contains an invalid duplicate bond")
-        working_bond_keys.add(key)
-        if first < original_atom_count and second < original_atom_count:
-            working_original_bonds.add(
-                _bond_identity(bond, working_atom_indices)
-            )
+        seen.add(key)
+        if first < original_count and second < original_count:
+            identity = _bond_identity(bond, working_indices)
+            if identity not in original_bonds:
+                raise ValueError("The working copy changed the original bond topology")
+            retained.add(identity)
+            bond_bindings.append(original_bonds[identity])
         else:
-            attributes = cast(_BondAttributePayload, deepcopy(bond.attr_dict))
-            added_bonds.append((first, second, attributes))
-
-    if working_original_bonds != original_bonds:
+            bond_bindings.append(None)
+    if retained != original_bonds.keys():
         raise ValueError("The working copy changed the original bond topology")
 
+    record, metadata = working_mol._capture_factual_record()
+    final_uids = tuple(atom._uid for atom in original_atoms) + tuple(range(
+        original_mol._next_atom_uid,
+        original_mol._next_atom_uid + len(working_atoms) - original_count,
+    ))
+    dependency_state = _remap_dependency_state(
+        working_mol._atom_table, tuple(atom._uid for atom in working_atoms), final_uids,
+    )
     return _WorkingCopyCommit(
-        original_atom_attrs=tuple(
-            np.array(atom.attrs, copy=True)
-            for atom in working_atoms[:original_atom_count]
-        ),
-        added_atom_attrs=tuple(
-            np.array(atom.attrs, copy=True)
-            for atom in working_atoms[original_atom_count:]
-        ),
-        added_bonds=tuple(added_bonds),
-        conformer_state=deepcopy(working_mol._conformers.__dict__),
-        conformer_index=working_mol._conformers_index,
-        stereo_payload=get_stereo_payload(working_mol),
+        source, record, metadata,
+        original_atoms + (None,) * (len(working_atoms) - original_count),
+        tuple(bond_bindings), dependency_state, get_stereo_payload(working_mol),
     )
 
 
 def _snapshot_molecule_for_commit(mol: "Molecule") -> _MoleculeCommitSnapshot:
+    # The installer swaps complete prepared owners. These old owners remain
+    # task-local undo data and are never exposed as a second active store.
+    members = tuple(mol._atoms) + _complete_bonds(mol)
     return _MoleculeCommitSnapshot(
-        atoms=tuple(mol._atoms),
-        bonds=tuple(mol._bonds),
-        atom_state=tuple(
-            (atom, atom.attrs)
-            for atom in mol._atoms
-        ),
+        state=dict(mol.__dict__),
+        member_state=tuple((member, dict(member.__dict__)) for member in members),
         atom_pair_items=tuple(mol._atom_pairs.items()),
         conformer_state=dict(mol._conformers.__dict__),
-        conformer_index=mol._conformers_index,
-        stereo_payload=get_stereo_payload(mol),
+        membership=tuple((values, tuple(values)) for values in (
+            mol._atoms, mol._bonds, mol._hided_metal_bonds, mol._hided_covalent_bonds,
+        )),
+        cache_state=tuple((value, value.copy()) for value in (
+            mol._angles, mol._torsions, mol._rings, mol._ring_indices_cache,
+        )),
     )
 
 
@@ -215,40 +231,54 @@ def _restore_failed_commit(
     mol: "Molecule",
     snapshot: _MoleculeCommitSnapshot,
 ) -> None:
-    mol._atoms[:] = snapshot.atoms
-    mol._bonds[:] = snapshot.bonds
-    for atom, attrs in snapshot.atom_state:
-        object.__setattr__(atom, "attrs", attrs)
-    mol._update_topology(clear_conformers=False)
+    atom_high_water, bond_high_water = mol._next_atom_uid, mol._next_bond_uid
+    mol.__dict__.clear()
+    mol.__dict__.update(snapshot.state)
+    mol._next_atom_uid = max(mol._next_atom_uid, atom_high_water)
+    mol._next_bond_uid = max(mol._next_bond_uid, bond_high_water)
+    for members, values in snapshot.membership:
+        members[:] = values
+    for member, state in snapshot.member_state:
+        member.__dict__.clear()
+        member.__dict__.update(state)
+    for value, previous in snapshot.cache_state:
+        value.clear()
+        if isinstance(value, dict):
+            value.update(previous)
+        else:
+            value.extend(previous)
     dict.clear(mol._atom_pairs)
     dict.update(mol._atom_pairs, snapshot.atom_pair_items)
     mol._conformers.__dict__.clear()
     mol._conformers.__dict__.update(snapshot.conformer_state)
-    mol._conformers_index = snapshot.conformer_index
-    mol._stereo_payload = snapshot.stereo_payload
 
 
 def _commit_working_copy(
     original_mol: "Molecule",
     working_mol: "Molecule",
+    *,
+    source: tuple | None = None,
 ) -> None:
-    """Commit accepted geometry while preserving caller-owned object identities."""
-    payload = _prepare_working_copy_commit(original_mol, working_mol)
-    snapshot = _snapshot_molecule_for_commit(original_mol)
-    try:
-        for atom, attrs in zip(original_mol._atoms, payload.original_atom_attrs):
-            atom.attrs = attrs
-        for attrs in payload.added_atom_attrs:
-            original_mol._create_atom_from_array(attrs)
-        for first, second, attributes in payload.added_bonds:
-            original_mol._add_bond(first, second, **attributes)
+    """Install one accepted factual batch, retaining all original handles."""
+    from ..structure._commit import _FactTransaction, _commit_stereo, _commit_topology
+    from ..structure._fields import ATOM_SOURCE_CODES
 
-        original_mol._update_topology(clear_conformers=False)
-        original_mol._stereo_payload = payload.stereo_payload
-        original_mol._atom_pairs.update_pairs()
-        original_mol._conformers.__dict__.clear()
-        original_mol._conformers.__dict__.update(payload.conformer_state)
-        original_mol._conformers_index = payload.conformer_index
-    except BaseException:
-        _restore_failed_commit(original_mol, snapshot)
-        raise
+    with original_mol._mutation_lock, working_mol._mutation_lock:
+        if source is None:
+            source = _capture_working_source(original_mol)
+        _check_working_source(original_mol, source)
+        payload = _prepare_working_copy_commit(original_mol, working_mol, source)
+        _check_working_source(original_mol, source)
+        snapshot = _snapshot_molecule_for_commit(original_mol)
+        try:
+            with _FactTransaction(original_mol, producer=ATOM_SOURCE_CODES["forcefield"]):
+                _commit_topology(
+                    original_mol, payload.source[0], payload.record,
+                    atom_bindings=payload.atom_bindings, bond_bindings=payload.bond_bindings,
+                    dependency_state=payload.dependency_state, bond_metadata=payload.bond_metadata,
+                )
+                _commit_stereo(original_mol, _capture_source(original_mol), payload.stereo_payload)
+                original_mol._atom_pairs.update_pairs()
+        except BaseException:
+            _restore_failed_commit(original_mol, snapshot)
+            raise

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import operator
+import struct
 
 import numpy as np
 
@@ -129,4 +130,38 @@ def _normalize_atom_facts(source, rows, atom_uids, columns):
         source, rows, tuple(atom_uids), fields,
         tuple(prepared[field].tobytes() for field in fields), (True,) * len(fields),
         (ATOM_SOURCE_CODES["explicit"],) * len(fields),
+    )
+
+
+def _normalize_atom_scalar(source, row, atom_uid, field, value, *,
+                           producer=ATOM_SOURCE_CODES["explicit"], present=True):
+    """Prepare one trusted canonical scalar without the batch array pipeline."""
+    FIELD_INDEX[field]
+    if isinstance(value, (int, float, np.number)):
+        value = float(value)
+    else:
+        candidate = np.asarray(value, dtype=np.float64)
+        if candidate.shape not in ((), (1,)):
+            raise ValueError("A single-row Atom update requires a scalar or one value")
+        value = float(candidate.item())
+    result = object.__new__(_AtomFactUpdate)
+    for name, item in (("source", source), ("rows", (row,)),
+                       ("atom_uids", (atom_uid,)), ("fields", (field,)),
+                       ("value_bytes", (struct.pack("=d", value),)),
+                       ("presence", (bool(present),)), ("sources", (producer,))):
+        object.__setattr__(result, name, item)
+    return result
+
+
+def _normalize_atom_fields(source, rows, atom_uids, columns, *,
+                           producer=ATOM_SOURCE_CODES["explicit"], present=True):
+    """Closed internal canonical-field preparation for existing legacy writers."""
+    rows = tuple(rows)
+    fields = tuple(field for field in ATOM_FIELDS if field in columns)
+    if len(fields) != len(columns):
+        raise TypeError("Internal Atom updates require canonical fields")
+    return _AtomFactUpdate(
+        source, rows, tuple(atom_uids), fields,
+        tuple(_column_candidate(columns[field], len(rows), field).tobytes() for field in fields),
+        (present,) * len(fields), (producer,) * len(fields),
     )

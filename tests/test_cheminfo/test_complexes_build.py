@@ -1647,8 +1647,8 @@ def test_complexes_build_final_failure_does_not_modify_caller(
     original = _molecule_state(molecule)
     diagnostics = ff.ComplexBuildDiagnostics(1, 1, (), 0.0)
 
-    def built_working_copy(source, **options):
-        working = source.copy()
+    def built_working_copy(original_mol, **options):
+        working = original_mol.copy()
         working.coordinates = working.coordinates + 7.0
         working.atoms[1].formal_charge = 1
         return workflows._PreparedComplex(

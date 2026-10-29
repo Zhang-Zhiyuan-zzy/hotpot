@@ -14,8 +14,10 @@ Implementation branch: `implement/plan20-fact-rule-architecture`
 Stage3 checkpoints: [foundation evidence](stage3_foundation_evidence.json),
 [architecture coverage correction](stage3_architecture_coverage_correction.json),
 and [private storage review](stage3_storage_review.md) with
-[verification evidence](stage3_storage_evidence.json). The corrected remaining
-architecture debt is285; Atom storage has not yet switched to the private table.
+[verification evidence](stage3_storage_evidence.json). The production
+[table cutover review](stage3_table_cutover_review.md) now records the connected
+Molecule-owned table, factual imports, controlled writes and complete rollback.
+Remaining architecture debt is281; final Stage3 acceptance is still open.
 
 The current checkpoint adds [member/source identity and field provenance](stage3_identity_review.md),
 with [execution evidence](stage3_identity_metadata_evidence.json). The approved
@@ -25,14 +27,21 @@ Closed Atom update candidates and table serialization are now verified in the
 [preparation review](stage3_atom_update_review.md) and its
 [execution evidence](stage3_atom_update_evidence.json). Source validation:
 Python3.10–3.14 each273 passed; default4096 passed,123 skipped,3 xfailed.
-The production table, molecular commit, builder and integrated performance
-gates remain open.
+These are historical preparation results; the production checkpoint below
+supersedes their implementation status.
 Atom's existing parent is now read-only; detached inspection and current-version
 pickle/deepcopy are covered by [parent evidence](stage3_parent_evidence.json).
 The [complete import-record design](stage3_builder_review.md) now has verified
 immutable codecs and [execution evidence](stage3_record_evidence.json):
 Python3.10–3.14 each394 passed; default4217 passed. This is record preparation;
-the actual builder and production table cutover remain open.
+the actual builder and table were connected in the next production checkpoint.
+The frozen Python-engine checkpoint passes4349 default tests, with123 skipped,
+3 xfailed and49 subtests. Its466 focused contract tests also pass. Source
+hashes and commands are retained with the implementation log. The
+[performance escalation record](stage3_commit_performance_escalation.json)
+retains measured scalar/batch regressions after both Sol-max and bounded Astra
+optimization. Performance acceptance and final five-version/installed-wheel
+verification remain open; this is not Stage3 completion or Stage4 entry.
 Original planning branch: `refactor/fact-rule-architecture`
 
 Original planning baseline: `0a4b0ee`; reviewed documentation: `d9eb80e`.

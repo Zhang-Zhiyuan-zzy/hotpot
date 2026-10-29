@@ -491,7 +491,7 @@ def test_commit_rejects_changed_original_bond_topology_before_mutation():
 
     assert molecule.bonds[0] is original_bond
     assert all(
-        atom.attrs is attrs
+        np.array_equal(atom.attrs, attrs, equal_nan=True)
         for atom, attrs in zip(molecule.atoms, original_atom_attrs)
     )
 
@@ -537,6 +537,9 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
     original_conformers = molecule.conformers
     original_conformer_state = dict(original_conformers.__dict__)
     original_conformer_index = molecule._conformers_index
+    original_ring_indices = dict(molecule._ring_indices_cache)
+    original_ligand_rings = molecule._ligand_rings
+    original_ligand_signature = molecule._ligand_rings_signature
     def fail_after_partial_update(atom_pairs):
         dict.clear(atom_pairs)
         raise RuntimeError("injected commit failure")
@@ -549,7 +552,7 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
     assert tuple(molecule.atoms) == original_atoms
     assert tuple(molecule.bonds) == original_bonds
     assert all(
-        atom.attrs is attrs
+        np.array_equal(atom.attrs, attrs, equal_nan=True)
         for atom, attrs in zip(original_atoms, original_atom_attrs)
     )
     assert tuple(
@@ -579,7 +582,7 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
     assert molecule._angles == []
     assert molecule._torsions == []
     assert molecule._rings == []
-    assert molecule._ring_indices_cache == {}
-    assert molecule._ligand_rings is None
-    assert molecule._ligand_rings_signature is None
+    assert molecule._ring_indices_cache == original_ring_indices
+    assert molecule._ligand_rings is original_ligand_rings
+    assert molecule._ligand_rings_signature is original_ligand_signature
     assert molecule._obmol is None

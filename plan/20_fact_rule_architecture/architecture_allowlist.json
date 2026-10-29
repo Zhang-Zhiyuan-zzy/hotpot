@@ -534,24 +534,6 @@
     },
     {
       "path": "hotpot/cheminfo/core.py",
-      "line": 2121,
-      "scope": "Molecule._remove_atoms_from_topology",
-      "target": "self._hided_metal_bonds",
-      "attribute": "_hided_metal_bonds",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7B"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 2125,
-      "scope": "Molecule._remove_atoms_from_topology",
-      "target": "self._hided_covalent_bonds",
-      "attribute": "_hided_covalent_bonds",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7B"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
       "line": 2851,
       "scope": "Molecule.update_angles",
       "target": "self._angles",
@@ -1043,24 +1025,6 @@
       "local": "Molecule",
       "rule": "legacy_core_import",
       "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/forcefields/working_copy.py",
-      "line": 66,
-      "scope": "_copy_molecule_metadata",
-      "target": "target_mol._model",
-      "attribute": "_model",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage8D"
-    },
-    {
-      "path": "hotpot/cheminfo/forcefields/working_copy.py",
-      "line": 67,
-      "scope": "_copy_molecule_metadata",
-      "target": "target_mol._environ",
-      "attribute": "_environ",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage8D"
     },
     {
       "path": "hotpot/cheminfo/mol_assemble/__init__.py",

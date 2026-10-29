@@ -6,12 +6,16 @@ python v3.9.0
 @Data   : 2024/12/5
 @Time   : 21:28
 """
+from dataclasses import replace
 from typing import Any
 import numpy as np
 from openbabel import openbabel as ob, pybel as pb
 
 from hotpot.utils.chem import atom as chem_atom
 from hotpot.cheminfo.elements import elements
+from .structure._builder import _freeze_value
+from .structure._commit import _FactTransaction
+from .structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX, FIELD_PRESENCE_BITS
 
 def write_by_pybel(mol, fmt='smi', filename=None, overwrite=False, opt=None):
     pmol = pb.Molecule(mol2obmol(mol)[0])
@@ -81,38 +85,48 @@ def _add_mol_bonds_from_obmol(mol, obmol, idx_to_row):
 
 
 def obmol2mol(obmol, mol):
-    # Populate the idx_to_row dictionary to map OBMol atom indices to the reordered indices
-    idx_to_row = {oba.GetIdx():i for i, oba in enumerate(ob.OBMolAtomIter(obmol))}
-
-    for oba in ob.OBMolAtomIter(obmol):
-        n, s, p, d, f, g = elements.electron_configs[oba.GetAtomicNum()]
-        mol._create_atom_from_array(
-            attrs_array=np.array([
-                oba.GetAtomicNum(),
-                n, s, p, d, f, g,  # electron configure
-                oba.GetFormalCharge(),
-                oba.GetPartialCharge(),
-                float(oba.IsAromatic()),
-                oba.GetX(), oba.GetY(), oba.GetZ(),
-                oba.GetTotalValence(),
-                oba.GetImplicitHCount(),
-                0,
-                0, 0, 0,
-                ], dtype=np.float64)
+    with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["openbabel"]):
+        if mol._atoms or mol._bonds or mol._hided_metal_bonds or mol._hided_covalent_bonds:
+            raise ValueError("Factual import requires an empty Atom and complete-Bond target")
+        initial = mol._capture_factual_record()[0]
+        atoms = tuple(ob.OBMolAtomIter(obmol))
+        idx_to_row = {atom.GetIdx(): row for row, atom in enumerate(atoms)}
+        values = np.zeros((len(atoms), 19), dtype="<f8")
+        for row, atom in enumerate(atoms):
+            values[row] = (
+                atom.GetAtomicNum(), *elements.electron_configs[atom.GetAtomicNum()],
+                atom.GetFormalCharge(), atom.GetPartialCharge(), float(atom.IsAromatic()),
+                atom.GetX(), atom.GetY(), atom.GetZ(), atom.GetTotalValence(),
+                atom.GetImplicitHCount(), 0, 0, 0, 0,
             )
-
-    _add_mol_bonds_from_obmol(mol, obmol, idx_to_row)
-    mol._update_topology()
-    mol.charge = obmol.GetTotalCharge()
-
-    # add Crystal
-    cell_index = ob.UnitCell  # Get the index the UnitCell data save
-    cell_data = obmol.GetData(cell_index)
-    if cell_data:
-        c = ob.toUnitCell(cell_data)
-        mol.create_crystal(c.GetA(), c.GetB(), c.GetC(), c.GetAlpha(), c.GetBeta(), c.GetGamma())
-
-    return mol
+        supplied = tuple(range(15))
+        presence = np.full(len(atoms), sum(FIELD_PRESENCE_BITS[index] for index in supplied), dtype="<u4")
+        sources = np.zeros((len(atoms), 19), dtype="u1")
+        sources[:, supplied] = ATOM_SOURCE_CODES["openbabel"]
+        sources[:, 1:7] = ATOM_SOURCE_CODES["electron_configuration"]
+        entries = tuple(_retrieve_bonds_attrs_from_obmol(obmol, idx_to_row).items())
+        raw_bonds = np.zeros((len(entries), 3), dtype="<f8")
+        raw_bonds[:, 0] = [entry[1]["bond_order"] for entry in entries]
+        cell_data = obmol.GetData(ob.UnitCell)
+        cell = initial.cell
+        if cell_data:
+            unit_cell = ob.toUnitCell(cell_data)
+            cell = tuple(getattr(unit_cell, name)() for name in (
+                "GetA", "GetB", "GetC", "GetAlpha", "GetBeta", "GetGamma"))
+        record = replace(
+            initial, atom_count=len(atoms), atom_values=values.tobytes(),
+            atom_presence=presence.tobytes(), atom_sources=sources.tobytes(),
+            bond_endpoints=tuple(endpoints for endpoints, _ in entries),
+            bond_values=raw_bonds.tobytes(), bond_partitions=(0,) * len(entries),
+            bond_kinds=tuple(attrs["bond_kind"] for _, attrs in entries),
+            bond_directions=tuple(attrs["bond_direction"] for _, attrs in entries),
+            bond_sources=("openbabel",) * len(entries),
+            bond_metadata=tuple(_freeze_value(attrs["bond_source_metadata"]) for _, attrs in entries),
+            charge=(True, obmol.GetTotalCharge(), "openbabel"), cell=cell,
+            stereo_payload=mol._stereo_payload,
+            legacy_frame_values=(("none",),) * 9,
+        )
+        return mol._install_molecule(record)
 
 
 def mol2obmol(mol):

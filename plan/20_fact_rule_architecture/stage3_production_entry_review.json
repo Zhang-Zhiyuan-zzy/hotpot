@@ -1,0 +1,73 @@
+{
+  "stage": "Stage3 production table and connected writer cutover; not Stage4",
+  "recorded_at_utc": "2026-10-29T03:36:52.306712+00:00",
+  "source_commit": "caf959eda9c68b5ef1d2cbd60dc570d0a273ab18",
+  "worktree_before_work": "M hotpot/cheminfo/AImodels/data_extract.py\n M hotpot/plugins/PyG/data/utils.py\n?? plan/20_fact_rule_architecture/stage3_table_cutover_review.md",
+  "full_read": [
+    {
+      "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+      "sha256": "afb13f1a62f7d8db8a0fa8e893c4d1322e18d73edb785b0ad649c1eb02621f4b",
+      "lines": 2448,
+      "read_copy": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/production-entry-read/fact_rule_architecture_implementation_plan.md"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+      "sha256": "d0ac2cff4c15f525236b00e254211020423e90f7687c1a640bfe28c7fee45bfc",
+      "lines": 284,
+      "read_copy": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/production-entry-read/chemical_type_interface_contract.md"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+      "sha256": "72f935922c623948cc29d781c2eb77e38bcc8562cf368496a5cd7fb0599f1638",
+      "lines": 521,
+      "read_copy": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/production-entry-read/data_object_scope_audit.md"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+      "sha256": "e5549116f1409fb46b5fd2bdc82c0b20a34297989475eb66a119ac221a9d4a0b",
+      "lines": 177,
+      "read_copy": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/production-entry-read/plan17_plan20_execution_alignment.md"
+    },
+    {
+      "path": "plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+      "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+      "lines": 68,
+      "read_copy": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/production-entry-read/metal_cluster_implementation_plan.md"
+    }
+  ],
+  "method": "Main 1-2448 in eight bounded ranges; entire protocol/alignment/scope audit/Plan21, with all output inspected. Latest contract ledger, builder design and cutover design also inspected.",
+  "environment": {
+    "shell_interpreter": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+    "validation_interpreter": "/tmp/hotpot-plan20-env/bin/python"
+  },
+  "predecessors": {
+    "Stage0_2": "complete per maintained records",
+    "Stage3": "incomplete: immutable N02/N05 and metadata established; production authority, imports, FF/source/rollback, finite dependency engine and integrated performance remain"
+  },
+  "bounded_work": [
+    "Install one table, generated existing projections and approved updata_atoms while preserving Stage3 eager scientific bodies.",
+    "Connect all raw writers, complete import builder, scalar/batch and lifecycle/remaps/detachment, identity and frozen serialization atomically.",
+    "Connect factual decoders and outer/FF consumers with early captured source identities and complete rollback.",
+    "Run affected contract/Python/source/wheel checks and integrated B20 comparisons; keep unmet Stage3 gates explicit."
+  ],
+  "delegation": {
+    "carrier_global_integration": {
+      "agent": "stage3_builder_solmax",
+      "model": "gpt-6.1-sol",
+      "effort": "max",
+      "ownership": "core.py + bounded cutover design + carrier tests"
+    },
+    "commit_engine": {
+      "agent": "stage3_commit_engine",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "ownership": "six private structure modules and corresponding engine tests"
+    },
+    "parent": "FF, outer consumers and source tests/evidence; no further child delegation"
+  },
+  "github": {
+    "last_pushed_commit": "ce416297167e735c3961f75bcd04621d9746fde1",
+    "commits_since_push": 1,
+    "cadence": 3
+  }
+}

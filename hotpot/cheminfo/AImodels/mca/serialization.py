@@ -11,7 +11,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import numpy as np
 from rdkit import Chem
+
+from hotpot.cheminfo.elements import elements
+from hotpot.cheminfo.structure._builder import _make_molecule_record
+from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_PRESENCE_BITS
 
 from hotpot.cheminfo.convert import to_hotpot_mol
 from hotpot.cheminfo.core import Molecule as HotpotMolecule
@@ -71,43 +76,44 @@ def normalize_molecule(value) -> MoleculeDTO:
     """Normalize one public MCA input exactly once into a process-safe DTO."""
 
     native_mol = to_hotpot_mol(value)
-    feature_mol = _feature_molecule(value, native_mol)
-    atoms = tuple(
-        AtomDTO(
-            atomic_number=int(atom.atomic_number),
-            formal_charge=int(atom.formal_charge),
-            partial_charge=float(atom.partial_charge),
-            is_aromatic=bool(atom.is_aromatic),
-            implicit_hydrogens=int(atom.implicit_hydrogens),
-            valence=int(atom.valence),
-            isotope=int(getattr(atom, "isotope", 0)),
-            coordinates=tuple(float(coordinate) for coordinate in atom.coordinates),
+    with native_mol._mutation_lock:
+        feature_mol = _feature_molecule(value, native_mol)
+        atoms = tuple(
+            AtomDTO(
+                atomic_number=int(atom.atomic_number),
+                formal_charge=int(atom.formal_charge),
+                partial_charge=float(atom.partial_charge),
+                is_aromatic=bool(atom.is_aromatic),
+                implicit_hydrogens=int(atom.implicit_hydrogens),
+                valence=int(atom.valence),
+                isotope=int(getattr(atom, "isotope", 0)),
+                coordinates=tuple(float(coordinate) for coordinate in atom.coordinates),
+            )
+            for atom in native_mol.atoms
         )
-        for atom in native_mol.atoms
-    )
-    bonds = tuple(
-        BondDTO(
-            begin_atom_index=int(bond.a1idx),
-            end_atom_index=int(bond.a2idx),
-            bond_order=float(bond.bond_order),
-            bond_kind=bond.bond_kind.value,
-            bond_direction=bond.bond_direction,
+        bonds = tuple(
+            BondDTO(
+                begin_atom_index=int(bond.a1idx),
+                end_atom_index=int(bond.a2idx),
+                bond_order=float(bond.bond_order),
+                bond_kind=bond.bond_kind.value,
+                bond_direction=bond.bond_direction,
+            )
+            for bond in native_mol.bonds
         )
-        for bond in native_mol.bonds
-    )
-    atom_symbols = tuple(atom.symbol for atom in native_mol.atoms)
-    return MoleculeDTO(
-        version=MCA_MOLECULE_DTO_VERSION,
-        smiles=native_mol.smiles,
-        formal_charge=int(native_mol.charge),
-        atom_symbols=atom_symbols,
-        atom_count=len(atom_symbols),
-        atoms=atoms,
-        bonds=bonds,
-        rdkit_binary=bytes(
-            feature_mol.ToBinary(Chem.PropertyPickleOptions.AllProps)
-        ),
-    )
+        atom_symbols = tuple(atom.symbol for atom in native_mol.atoms)
+        return MoleculeDTO(
+            version=MCA_MOLECULE_DTO_VERSION,
+            smiles=native_mol.smiles,
+            formal_charge=int(native_mol.charge),
+            atom_symbols=atom_symbols,
+            atom_count=len(atom_symbols),
+            atoms=atoms,
+            bonds=bonds,
+            rdkit_binary=bytes(
+                feature_mol.ToBinary(Chem.PropertyPickleOptions.AllProps)
+            ),
+        )
 
 
 def validate_dto(
@@ -142,29 +148,33 @@ def hotpot_mol_from_dto(molecule: MoleculeDTO) -> HotpotMolecule:
             f"Unsupported MCA molecule DTO version {molecule.version}; "
             f"expected {MCA_MOLECULE_DTO_VERSION}"
         )
-    native_mol = HotpotMolecule()
-    for atom in molecule.atoms:
-        native_mol._create_atom(
-            atomic_number=atom.atomic_number,
-            formal_charge=atom.formal_charge,
-            partial_charge=atom.partial_charge,
-            is_aromatic=atom.is_aromatic,
-            implicit_hydrogens=atom.implicit_hydrogens,
-            valence=atom.valence,
-            isotope=atom.isotope,
-            coordinates=atom.coordinates,
-        )
-    for bond in molecule.bonds:
-        native_mol._add_bond(
-            bond.begin_atom_index,
-            bond.end_atom_index,
-            bond_order=bond.bond_order,
-            bond_kind=bond.bond_kind,
-            bond_direction=bond.bond_direction,
-        )
-    native_mol._update_topology()
-    native_mol.charge = molecule.formal_charge
-    return native_mol
+    values = np.zeros((len(molecule.atoms), 19), dtype=np.float64)
+    sources = np.zeros(values.shape, dtype=np.uint8)
+    supplied = (0, 7, 8, 9, 10, 11, 12, 13, 14)
+    for row, atom in enumerate(molecule.atoms):
+        values[row] = (atom.atomic_number, *elements.electron_configs[atom.atomic_number],
+                       atom.formal_charge, atom.partial_charge, atom.is_aromatic,
+                       *atom.coordinates, atom.valence, atom.implicit_hydrogens, 0, 0, 0, 0)
+    sources[:, supplied] = ATOM_SOURCE_CODES["mca_dto"]
+    sources[:, 1:7] = ATOM_SOURCE_CODES["electron_configuration"]
+    presence = np.full(len(values), sum(FIELD_PRESENCE_BITS[index] for index in range(15)), dtype=np.uint32)
+    bonds = molecule.bonds
+    raw_bonds = np.zeros((len(bonds), 3), dtype=np.float64)
+    raw_bonds[:, 0] = [bond.bond_order for bond in bonds]
+    record = _make_molecule_record(
+        atom_values=values, atom_presence=presence, atom_sources=sources,
+        atom_isotopes=tuple((row, atom.isotope) for row, atom in enumerate(molecule.atoms)),
+        atom_frac_valences=(),
+        bond_endpoints=tuple((bond.begin_atom_index, bond.end_atom_index) for bond in bonds),
+        bond_values=raw_bonds, bond_partitions=(0,) * len(bonds),
+        bond_kinds=tuple(bond.bond_kind for bond in bonds),
+        bond_directions=tuple(bond.bond_direction for bond in bonds),
+        bond_sources=(None,) * len(bonds), bond_metadata=(None,) * len(bonds),
+        charge=(True, molecule.formal_charge, "mca_dto"), spin_mult=(False, None, None),
+        cell=None, stereo_payload=None, legacy_frame_values=(None,) * 9,
+        legacy_frame_index=0, angle_constraints=(), torsion_constraints=(), identifier=(False, None),
+    )
+    return HotpotMolecule._build_molecule(record)
 
 
 def rdmol_from_dto(molecule: MoleculeDTO) -> Chem.Mol:

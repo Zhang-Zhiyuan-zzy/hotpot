@@ -47,15 +47,16 @@ def extract_potentials_cbonds(
     return data
 
 def extract_atom_attrs(mol: Molecule, data: dict[str, Any] = None, atomic_number_only: bool = False) -> dict:
-    if atomic_number_only:
-        x_names = ['atomic_number']
-        x = np.array([a.attrs[0] for a in mol.atoms], dtype=np.int32)
-    else:
-        x_names = Atom._attrs_enumerator[:15]
-        additional_attr_names = ('is_metal',)
-        x_names = x_names + additional_attr_names
-        additional_attr_getter = attrgetter(*additional_attr_names)
-        x = np.array([a.attrs[:15].tolist() + [additional_attr_getter(a)] for a in mol.atoms], dtype=np.float64).reshape(-1, 16)
+    with mol._mutation_lock:
+        if atomic_number_only:
+            x_names = ['atomic_number']
+            x = mol._atom_table.column('atomic_number').astype(np.int32)
+        else:
+            fields = Atom._attrs_enumerator[:15]
+            x_names = fields + ('is_metal',)
+            x = np.empty((len(mol._atoms), 16), dtype=np.float64)
+            x[:, :15] = mol._atom_table.select(fields)
+            x[:, 15] = [atom.is_metal for atom in mol._atoms]
 
     if isinstance(data, dict):
         data.update({'x': x, 'x_names': x_names})

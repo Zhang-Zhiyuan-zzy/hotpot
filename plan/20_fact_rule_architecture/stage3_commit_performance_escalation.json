@@ -1,0 +1,164 @@
+{
+  "recorded_at_utc": "2026-10-29T04:19:20.504618+00:00",
+  "bounded_problem": "Stage3 scalar/batch commit engine costs against frozen equivalent B20 workloads while preserving sole authority, metadata, atomic rollback and owner/source checks",
+  "sol_max_attempt": {
+    "agent": "stage3_builder_solmax",
+    "model": "gpt-6.1-sol",
+    "effort": "max",
+    "approach": [
+      "Profile actual scalar-write facade then inline schema-addressed getters",
+      "Remove redundant outer transactions, use trusted immutable scalar factory",
+      "Optimize actual prepared writers/finite dependency marking without dropping raw writes",
+      "Prepared row enrollment and local Bond adjacency undo instead of whole graph snapshots"
+    ],
+    "checks": "298 focused tests passed before latest enrollment refinements; full frozen validation still pending",
+    "results_v1": {
+      "scalar_write64": 151.0,
+      "batch64": 12.17,
+      "construct8": 14.0,
+      "construct64": 8.21,
+      "write_read64": 35.1
+    },
+    "results_v2": {
+      "scalar_read64": 0.979,
+      "scalar_write64": 68.6,
+      "batch64": 8.07,
+      "construct8": 3.52,
+      "construct64": 1.316,
+      "write_read64": 19.47,
+      "insert_delete64": 4.75,
+      "coordinates64": 0.744
+    },
+    "limits": "Shared host and concurrently changing candidate: diagnostic only. Both attempts fail to achieve acceptable commit-engine cost; remaining independent scalar/bulk journal/metadata overhead is substantial, beyond sampling noise."
+  },
+  "artifacts": [
+    {
+      "path": "/tmp/plan20-core-diagnostic-20261029/diagnostic.json",
+      "sha256": "430766fd2ca1aaf3dc0c3178bfdba82ad5f7a25b257441d1c0db4bc6640eee6e"
+    },
+    {
+      "path": "/tmp/plan20-core-diagnostic-20261029-v2/diagnostic.json",
+      "sha256": "5e0342c5ffca5f839be966aa93dd0a731d35b8431938ddc52a3ef87b210ed689"
+    }
+  ],
+  "remaining_obstacle": "Further exact commit/journal/dependency optimization needed; no performance waiver, old/new layout, skipped checks or stage advance authorized.",
+  "escalation": "Owner Sol-first policy permits one Astra escalation after this genuine measured Sol-max attempt on the same bounded problem; ordinary subsequent work stays Sol.",
+  "astra_attempt": {
+    "model": "gpt-6-astra",
+    "effort": "xhigh",
+    "bounded_scope": "same exact commit-engine problem after recorded Sol-max failure",
+    "approach": [
+      "Combine physical-buffer undo capture and vectorize bulk journaling",
+      "Closed scalar dispatch and dependency marking without removing checks",
+      "Repair remove-then-register rollback ordering"
+    ],
+    "focused_validation": {
+      "command": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/structure",
+        "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+        "tests/test_cheminfo/test_plan20_outer_cutover.py"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "environment_overrides": {
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6"
+      },
+      "source_commit": "caf959eda9c68b5ef1d2cbd60dc570d0a273ab18",
+      "hashes_before": {
+        "hotpot/cheminfo/core.py": "e6474fdc8e61e0a85c3b91069f045f18af672d81fe8c2b47173bd27919ec0648",
+        "hotpot/cheminfo/structure/_commit.py": "2bc7bb945b367cecbd6549434bb8431cda85b476c67c34ba686d1f7863f58d95",
+        "hotpot/cheminfo/structure/_builder.py": "fe39576929356a6c9604636b785bff34ef5ad382b93138cff8109352b9fd6aac",
+        "hotpot/cheminfo/structure/__init__.py": "24e5d4f167f216a4e5704c202e5ad6ddb21670e5327158475dc7e1d4047ddad2",
+        "hotpot/cheminfo/structure/_identity.py": "1755b968737e478426cec4bc6df2fb89c7626347f06da0bb841b77596d1fbe3b",
+        "hotpot/cheminfo/structure/_dependencies.py": "fff7d46982349f076a65ef3e83a3a51fbb601bfc70c60bbe533517c6aba36259",
+        "hotpot/cheminfo/structure/_fields.py": "c07ab9799024c3191aefa20c3a0dd4c139cebab927346cbbfeb62059094c3389",
+        "hotpot/cheminfo/structure/_atom_table.py": "f4e62c8e1e0e5ba549101a8461d6ed9ae7785b49a0986e76c4e2a197124c3e18",
+        "hotpot/cheminfo/structure/_mutation.py": "240b4e147fccb433fd399b248eb2c76fbf943c380b17a68db4f0ad270e67113a",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py": "8b0e9a05b32924557f8f6ce46765b684465ad11fb431369fe66ef22157716aa4"
+      },
+      "elapsed_seconds": 9.39136747829616,
+      "returncode": 0,
+      "hashes_after": {
+        "hotpot/cheminfo/core.py": "e6474fdc8e61e0a85c3b91069f045f18af672d81fe8c2b47173bd27919ec0648",
+        "hotpot/cheminfo/structure/_commit.py": "2bc7bb945b367cecbd6549434bb8431cda85b476c67c34ba686d1f7863f58d95",
+        "hotpot/cheminfo/structure/_builder.py": "fe39576929356a6c9604636b785bff34ef5ad382b93138cff8109352b9fd6aac",
+        "hotpot/cheminfo/structure/__init__.py": "24e5d4f167f216a4e5704c202e5ad6ddb21670e5327158475dc7e1d4047ddad2",
+        "hotpot/cheminfo/structure/_identity.py": "1755b968737e478426cec4bc6df2fb89c7626347f06da0bb841b77596d1fbe3b",
+        "hotpot/cheminfo/structure/_dependencies.py": "fff7d46982349f076a65ef3e83a3a51fbb601bfc70c60bbe533517c6aba36259",
+        "hotpot/cheminfo/structure/_fields.py": "c07ab9799024c3191aefa20c3a0dd4c139cebab927346cbbfeb62059094c3389",
+        "hotpot/cheminfo/structure/_atom_table.py": "f4e62c8e1e0e5ba549101a8461d6ed9ae7785b49a0986e76c4e2a197124c3e18",
+        "hotpot/cheminfo/structure/_mutation.py": "240b4e147fccb433fd399b248eb2c76fbf943c380b17a68db4f0ad270e67113a",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py": "8b0e9a05b32924557f8f6ce46765b684465ad11fb431369fe66ef22157716aa4"
+      },
+      "log_sha256": "1ab6f8ee5d508ac4c93a86f63b04d212883b7c27a121255ca616c9806ebc8a26"
+    },
+    "focused_result": "466 passed in8.75s; source unchanged during run",
+    "diagnostics": [
+      {
+        "path": ".plan20-artifacts/20261029/stage3/commit-performance-astra/paired-python/diagnostic.json",
+        "sha256": "1ea477ff2b733fbb9ca4b9af50ad77e3eb86f262b14f8432f769d4963ba7f489",
+        "ratios": {
+          "scalar_write_64": {
+            "baseline": 0.0004966016858816147,
+            "candidate": 0.014309996739029884,
+            "ratio": 28.81584405744699
+          },
+          "batch_facts_64": {
+            "candidate": 0.0016566123813390732,
+            "baseline": 0.000497809611260891,
+            "ratio": 3.3278031276717948
+          },
+          "write_read_64": {
+            "baseline": 0.010226043872535229,
+            "candidate": 0.11862340942025185,
+            "ratio": 11.600127175167582
+          },
+          "scalar_write_8": {
+            "candidate": 0.001841212622821331,
+            "baseline": 6.803032010793686e-05,
+            "ratio": 27.06458855257574
+          }
+        },
+        "source_unchanged": true,
+        "limits": "Shared host, source frozen during paired diagnostic; same B20 semantic workloads and frozen samples, no global performance acceptance claim.",
+        "failed_attempt": {
+          "workload": "scalar_write_4096",
+          "phase": "baseline",
+          "result": "no output; workload ID not in frozen manifest",
+          "log": "/tmp/plan20-engine-astra-20261029/paired-python/baseline-scalar_write_4096.log"
+        }
+      },
+      {
+        "path": ".plan20-artifacts/20261029/stage3/commit-performance-astra/paired-python-scaling/diagnostic.json",
+        "sha256": "2464267365f4ab707480c53743e22193c8be80a32f4a1838a4d3ef455c2f612d",
+        "ratios": {
+          "scalar_write_256": {
+            "baseline": 0.001989002339541912,
+            "candidate": 0.05556767247617245,
+            "ratio": 27.93745958537699
+          },
+          "batch_facts_8": {
+            "candidate": 0.0009664949029684067,
+            "baseline": 6.726663559675217e-05,
+            "ratio": 14.368117186093842
+          },
+          "batch_facts_256": {
+            "baseline": 0.001997457817196846,
+            "candidate": 0.003996539860963821,
+            "ratio": 2.000813146869058
+          }
+        },
+        "source_unchanged": true,
+        "limits": "Shared host, source frozen during paired diagnostic; same B20 semantic workloads and frozen samples, no global performance acceptance claim.",
+        "failed_attempt": null
+      }
+    ],
+    "result": "Python improvements remain far outside frozen efficiency policy; compiled proposal now requires Sol-max architectural review before implementation",
+    "artifact_root": ".plan20-artifacts/20261029/stage3/commit-performance-astra",
+    "artifact_manifest_sha256": "fb188cd5dd8350e7d1bba02ec5ea772e2e347385b226daa1c1c959398cca26dc"
+  }
+}

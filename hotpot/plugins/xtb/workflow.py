@@ -13,6 +13,9 @@ from hotpot.cheminfo.calculator.execution_selection import (
 )
 from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
 from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure._commit import _FactTransaction
+from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
+from hotpot.cheminfo.structure._identity import _capture_source, _check_source
 from hotpot.plugins._harness import isolated_workspace
 
 from .adapter import (
@@ -107,7 +110,9 @@ def _execute_workflow(
         input_path = workspace / (
             "input.sdf" if method is XTBMethod.GFNFF else "input.xyz"
         )
-        expected_geometry = prepare_xtb_input(mol, input_path)
+        with mol._mutation_lock:
+            source = _capture_source(mol, ("topology", "geometry", "forcefield_inputs"))
+            expected_geometry = prepare_xtb_input(mol, input_path)
         backend_info = probe_xtb_backend(
             executable,
             environment=process_environment,
@@ -119,7 +124,9 @@ def _execute_workflow(
             (atom.atomic_number for atom in mol.atoms),
         )
         context = XTBBackendContext(backend_info, method)
-        _validate_projection(mol, state, context)
+        with mol._mutation_lock:
+            _check_source(mol, source)
+            _validate_projection(mol, state, context)
         request = XTBRequest(
             backend_info=backend_info,
             method=method,
@@ -165,7 +172,9 @@ def _execute_workflow(
         coordinates_committed = False
         if task is XTBTask.OPTIMIZE:
             try:
-                commit_xtb_coordinates(mol, result)
+                with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["xtb"]):
+                    _check_source(mol, source)
+                    commit_xtb_coordinates(mol, result)
             except XTBInputError as error:
                 raise XTBResultError(
                     f"Validated xTB coordinates could not be committed: {error}",

@@ -395,15 +395,19 @@ def parse_xtb_artifacts(
 
 def commit_xtb_coordinates(mol: Molecule, result: XTBParsedResult) -> None:
     """Atomically apply a validated optimization geometry to ``mol``."""
-    geometry = result.optimized_geometry
-    if geometry is None:
-        raise XTBInputError("A single-point xTB result has no coordinates to commit")
-    if not result.atom_order_verified:
-        raise XTBInputError("xTB result atom order has not been verified")
-    _validate_geometry(geometry)
-    if geometry.symbols != tuple(atom.symbol for atom in mol.atoms):
-        raise XTBInputError("xTB result atom order does not match the molecule")
+    from hotpot.cheminfo.structure._commit import _FactTransaction
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
 
-    mol.coordinates = np.asarray(geometry.coordinates, dtype=float)
-    mol._obmol = None
-    mol._row2idx = None
+    with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["xtb"]):
+        geometry = result.optimized_geometry
+        if geometry is None:
+            raise XTBInputError("A single-point xTB result has no coordinates to commit")
+        if not result.atom_order_verified:
+            raise XTBInputError("xTB result atom order has not been verified")
+        _validate_geometry(geometry)
+        if geometry.symbols != tuple(atom.symbol for atom in mol.atoms):
+            raise XTBInputError("xTB result atom order does not match the molecule")
+
+        mol.coordinates = np.asarray(geometry.coordinates, dtype=float)
+        mol._obmol = None
+        mol._row2idx = None

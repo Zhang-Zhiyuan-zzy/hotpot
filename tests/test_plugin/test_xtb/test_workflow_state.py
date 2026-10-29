@@ -330,3 +330,27 @@ def test_failed_run_removes_workspace_unless_retention_is_requested(
     assert error.value.report.workspace_retained is False
     assert not error.value.report.work_directory.exists()
     assert tuple(workspace_parent.iterdir()) == ()
+
+
+def test_optimization_rejects_source_changes_during_external_execution(
+    fake_xtb_factory: FakeXTBFactory,
+    xtb_projection_factory: XTBProjectionFactory,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mol = _molecule()
+    executable = fake_xtb_factory()
+    state = xtb_projection_factory(mol, executable, XTBMethod.GFN2_XTB, 0, 0)
+    changed = mol.coordinates + 7
+    execute = xtb_workflow.run_xtb
+
+    def mutate_source(request):
+        report = execute(request)
+        mol.coordinates = changed
+        return report
+
+    monkeypatch.setattr(xtb_workflow, "run_xtb", mutate_source)
+    with pytest.raises(RuntimeError, match="geometry.*changed"):
+        xtb_workflow.run_gfn_xtb(
+            mol, state=state, task=XTBTask.OPTIMIZE, executable=executable,
+        )
+    np.testing.assert_array_equal(mol.coordinates, changed)

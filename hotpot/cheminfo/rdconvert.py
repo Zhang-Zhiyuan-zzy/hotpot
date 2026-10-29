@@ -7,9 +7,17 @@ python v3.9.0
 @Time   : 8:56
 """
 from uuid import uuid4
+from dataclasses import replace
+
+import numpy as np
 
 import rdkit
 from rdkit import Chem
+
+from .elements import elements
+from .structure._builder import _freeze_value
+from .structure._commit import _FactTransaction
+from .structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX, FIELD_PRESENCE_BITS
 
 from .stereo import (
     AtomTransportRecord,
@@ -693,74 +701,68 @@ def to_rdmol(mol, kekulize: bool = True, sanitize: bool = False):
 
 def from_rdmol(rdmol, mol):
     """Populate a Hotpot molecule from an RDKit molecule."""
-    rdmol = Chem.Mol(rdmol)
-    stereo_payload = _extract_stereo_payload(rdmol)
-    source_bond_metadata = {
-        bond.GetIdx(): {
-            "raw_bond_type": str(bond.GetBondType()),
-            "raw_bond_type_code": int(bond.GetBondType()),
-            "is_aromatic": bool(bond.GetIsAromatic()),
-            "is_conjugated": bool(bond.GetIsConjugated()),
-            "stereo": str(bond.GetStereo()),
-            "bond_dir": str(bond.GetBondDir()),
+    with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["rdkit"]):
+        if mol._atoms or mol._bonds or mol._hided_metal_bonds or mol._hided_covalent_bonds:
+            raise ValueError("Factual import requires an empty Atom and complete-Bond target")
+        initial = mol._capture_factual_record()[0]
+        rdmol = Chem.Mol(rdmol)
+        stereo_payload = _extract_stereo_payload(rdmol)
+        source_bond_metadata = {
+            bond.GetIdx(): {
+                "raw_bond_type": str(bond.GetBondType()),
+                "raw_bond_type_code": int(bond.GetBondType()),
+                "is_aromatic": bool(bond.GetIsAromatic()),
+                "is_conjugated": bool(bond.GetIsConjugated()),
+                "stereo": str(bond.GetStereo()),
+                "bond_dir": str(bond.GetBondDir()),
+            }
+            for bond in rdmol.GetBonds()
         }
-        for bond in rdmol.GetBonds()
-    }
-    source_bond_types = {
-        bond.GetIdx(): bond.GetBondType()
-        for bond in rdmol.GetBonds()
-    }
-    Chem.Kekulize(rdmol)
-    conformer = rdmol.GetConformer() if rdmol.GetNumConformers() else None
+        source_bond_types = {
+            bond.GetIdx(): bond.GetBondType()
+            for bond in rdmol.GetBonds()
+        }
+        Chem.Kekulize(rdmol)
+        conformer = rdmol.GetConformer() if rdmol.GetNumConformers() else None
 
-    idx_to_row = {}
-    for atom in rdmol.GetAtoms():
-        idx_to_row[atom.GetIdx()] = len(idx_to_row)
-        coordinates = (
-            conformer.GetAtomPosition(atom.GetIdx())
-            if conformer is not None
-            else (0.0, 0.0, 0.0)
+        atoms = tuple(rdmol.GetAtoms())
+        idx_to_row = {atom.GetIdx(): row for row, atom in enumerate(atoms)}
+        values = np.zeros((len(atoms), 19), dtype="<f8")
+        presence = np.zeros(len(atoms), dtype="<u4")
+        sources = np.zeros((len(atoms), 19), dtype="u1")
+        for row, atom in enumerate(atoms):
+            values[row, 0] = atom.GetAtomicNum()
+            values[row, 1:7] = elements.electron_configs[atom.GetAtomicNum()]
+            values[row, 7] = atom.GetFormalCharge()
+            values[row, 9] = atom.GetIsAromatic()
+            values[row, 13] = atom.GetTotalValence()
+            values[row, 14] = atom.GetNumImplicitHs() + atom.GetNumExplicitHs()
+            supplied = [0, 7, 9, 13, 14]
+            if atom.HasProp('_GasteigerCharge'):
+                values[row, 8] = atom.GetDoubleProp('_GasteigerCharge')
+                supplied.append(8)
+            if conformer is not None:
+                values[row, 10:13] = tuple(conformer.GetAtomPosition(atom.GetIdx()))
+                supplied.extend((10, 11, 12))
+            presence[row] = sum(FIELD_PRESENCE_BITS[index] for index in (*supplied, 1, 2, 3, 4, 5, 6))
+            sources[row, supplied] = ATOM_SOURCE_CODES["rdkit"]
+            sources[row, 1:7] = ATOM_SOURCE_CODES["electron_configuration"]
+        bonds = tuple(rdmol.GetBonds())
+        raw_bonds = np.zeros((len(bonds), 3), dtype="<f8")
+        raw_bonds[:, 0] = [bond.GetBondTypeAsDouble() for bond in bonds]
+        record = replace(
+            initial, atom_count=len(atoms), atom_values=values.tobytes(),
+            atom_presence=presence.tobytes(), atom_sources=sources.tobytes(),
+            bond_endpoints=tuple((idx_to_row[bond.GetBeginAtomIdx()], idx_to_row[bond.GetEndAtomIdx()]) for bond in bonds),
+            bond_values=raw_bonds.tobytes(), bond_partitions=(0,) * len(bonds),
+            bond_kinds=tuple(_rdkit_bond_kind(source_bond_types[bond.GetIdx()],
+                             source_bond_metadata[bond.GetIdx()]["is_aromatic"]) for bond in bonds),
+            bond_directions=tuple("atom1_to_atom2" if source_bond_types[bond.GetIdx()] in _RDKIT_DATIVE_BOND_TYPES
+                                  else None for bond in bonds),
+            bond_sources=("rdkit",) * len(bonds),
+            bond_metadata=tuple(_freeze_value(source_bond_metadata[bond.GetIdx()]) for bond in bonds),
+            charge=(True, Chem.GetFormalCharge(rdmol), "rdkit"),
+            stereo_payload=_remap_stereo_payload(stereo_payload, idx_to_row),
+            legacy_frame_values=(("none",),) * 9,
         )
-        mol._create_atom(
-            atomic_number=atom.GetAtomicNum(),
-            formal_charge=atom.GetFormalCharge(),
-            partial_charge=(
-                atom.GetDoubleProp('_GasteigerCharge')
-                if atom.HasProp('_GasteigerCharge')
-                else 0.0
-            ),
-            is_aromatic=atom.GetIsAromatic(),
-            coordinates=coordinates,
-            valence=atom.GetTotalValence(),
-            implicit_hydrogens=(
-                atom.GetNumImplicitHs() + atom.GetNumExplicitHs()
-            ),
-        )
-
-    for bond in rdmol.GetBonds():
-        source_bond_type = source_bond_types[bond.GetIdx()]
-        bond_kind = _rdkit_bond_kind(
-            source_bond_type,
-            source_bond_metadata[bond.GetIdx()]["is_aromatic"],
-        )
-        mol._add_bond(
-            idx_to_row[bond.GetBeginAtomIdx()],
-            idx_to_row[bond.GetEndAtomIdx()],
-            bond_order=bond.GetBondTypeAsDouble(),
-            bond_kind=bond_kind,
-            bond_direction=(
-                "atom1_to_atom2"
-                if source_bond_type in _RDKIT_DATIVE_BOND_TYPES
-                else None
-            ),
-            bond_source="rdkit",
-            bond_source_metadata=source_bond_metadata[bond.GetIdx()],
-        )
-
-    mol._update_topology()
-    mol.charge = Chem.GetFormalCharge(rdmol)
-    set_stereo_payload(
-        mol,
-        _remap_stereo_payload(stereo_payload, idx_to_row),
-    )
-    return mol
+        return mol._install_molecule(record)

@@ -255,35 +255,35 @@
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_builder.py",
-          "status": "partial;111 isolated record/codec cases passed on Python3.10–3.14; actual installer/one-topology/no-chemistry/atomicity not implemented"
+          "status": "implemented; immutable record plus actual factual install/no-chemistry/one-index/rollback source tests; final frozen five-version evidence pending"
         },
         {
           "path": "tests/test_cheminfo/structure/test_atom_fact_table.py",
-          "status": "private_numeric_and_metadata_primitive;81 cases passed on all5 versions, including unique serialization/view reconstruction; not yet Molecule authority"
+          "status": "implemented; sole production table with presence/source and dependency metadata, prepared writes and unique serialization; final frozen evidence pending"
         },
         {
           "path": "tests/test_cheminfo/structure/test_dependencies.py",
-          "status": "planned_not_created"
+          "status": "implemented; finite statuses, positive/negative scope, upstream remote-first expansion, remap and rollback; final frozen evidence pending"
         },
         {
           "path": "tests/test_cheminfo/structure/test_commit_atomicity.py",
-          "status": "planned_not_created"
+          "status": "implemented; complete named commits and overlapping/growth/removal/write-interruption undo; final frozen evidence pending"
         },
         {
           "path": "tests/test_cheminfo/structure/test_uid_lifecycle.py",
-          "status": "implemented;22 cases passed on Python3.10–3.14, including readonly parent and current-version pickle/deepcopy; table construction atomicity still pending"
+          "status": "implemented; readonly parent, constructor atomicity/UID burn, current serialization and local members; final frozen evidence pending"
         },
         {
           "path": "tests/test_cheminfo/structure/test_buffer_ownership.py",
-          "status": "planned_not_created"
+          "status": "implemented; public numeric/frame/candidate isolation and actual sole authority; final frozen evidence pending"
         },
         {
           "path": "tests/test_cheminfo/structure/test_interface_permissions.py",
-          "status": "planned_not_created"
+          "status": "implemented; approved updata_atoms aliases, complete selection/normalization failure, existing member errors and empty writes; final frozen evidence pending"
         },
         {
           "path": "tests/test_cheminfo/structure/test_architecture.py",
-          "status": "implemented;47 cases, package roots included; full five-version focused evidence in stage3_storage_evidence.json"
+          "status": "implemented; no new debt with281 remaining exact entries after four verified retirements; full final scan pending"
         },
         {
           "path": "tests/test_cheminfo/structure/test_reference.py",
@@ -291,7 +291,7 @@
         },
         {
           "path": "tests/test_cheminfo/structure/test_source_identity.py",
-          "status": "implemented;25 cases passed all5 versions; source capture/check primitives, not full legacy writer locking/result validity"
+          "status": "implemented; relevant table metadata, closed FF consumed-input domain and owner-only no-frame path; final frozen evidence pending"
         },
         {
           "path": "tests/test_cheminfo/structure/test_atom_matrix.py",
@@ -299,13 +299,43 @@
         },
         {
           "path": "tests/test_cheminfo/structure/test_atom_fact_update.py",
-          "status": "implemented;42 cases passed on Python3.10–3.14 and full default; closed immutable candidate only, molecular installation/member selection pending"
+          "status": "implemented; shared immutable scalar/batch candidates connected to molecular commit, including trusted scalar factory; final frozen evidence pending"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_factual_imports.py",
+          "status": "implemented; OB/RD/MCA/cclib/CCDC-fake decode, source/presence, target identity, nonempty/preconfigured targets; final frozen evidence pending"
+        },
+        {
+          "path": "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+          "status": "implemented; sole authority, atomic lifecycle, concurrency, rooted/joint pickle and deepcopy, constraints and Bond endpoint permissions; final frozen evidence pending"
+        },
+        {
+          "path": "tests/test_cheminfo/test_plan20_outer_cutover.py",
+          "status": "implemented; FF early source binding, original member identity, complete metadata/frames/rollback, native selected topology/geometry atomicity and field-only model reads; final frozen evidence pending"
         }
       ],
       "additional_requirements": [
         "builder one topology build/no implicit chemistry; UID non-reuse; finite dirty propagation; field schema; scalar/batch alias isolation and performance"
       ],
-      "execution_status": "in_progress; readonly parent, UID/source infrastructure, private table and N02/N05 record preparation verified; production table/closed commits/actual builder/dirty reads/integrated scaling remain open"
+      "execution_status": "in_progress; connected production authority and imports implemented under verification; exact final source/Python/affected-wheel, performance/scaling and remaining stage gates open",
+      "additional_affected_contract_test_files": [
+        "tests/test_cheminfo/test_stereo_level1_storage.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_projection.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/test_complexes_build.py",
+        "tests/test_cheminfo/test_forcefield_api.py",
+        "tests/test_cheminfo/test_forcefield_auto_optimize.py",
+        "tests/test_cheminfo/test_forcefield_integration.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/test_cheminfo/test_bond_metadata.py",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py",
+        "tests/test_cheminfo/test_ob2chem_compat.py",
+        "tests/test_cheminfo/test_molecule_conversion.py",
+        "tests/mca/test_serialization.py",
+        "tests/smarts_conformance/test_metamorphic.py",
+        "tests/test_plugin/test_xtb"
+      ]
     },
     "Stage4": {
       "predecessor": "Stage3",

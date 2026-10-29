@@ -17,6 +17,7 @@ from copy import copy, deepcopy
 from collections import Counter
 from itertools import combinations, product
 from threading import RLock as _RLock
+from functools import wraps as _wraps
 
 import cython
 import numpy as np
@@ -38,7 +39,24 @@ from .graph.paths import (
 from . import geometry, crystal as cryst
 from .pubchem import pubchem_service
 from .call_thermo import Thermo
-from .structure._fields import FIELD_CODECS as _ATOM_FIELD_CODECS
+from .structure._fields import (
+    ATOM_FIELDS as _ATOM_FIELDS, ATOM_PRESENCE_ALL as _ATOM_PRESENCE_ALL,
+    ATOM_SOURCE_CODES as _ATOM_SOURCE_CODES, FIELD_INDEX as _ATOM_FIELD_INDEX,
+    FIELD_ADDRESSES as _ATOM_FIELD_ADDRESSES,
+    FIELD_CODECS as _ATOM_FIELD_CODECS,
+)
+from .structure._atom_table import _AtomFactTable
+from .structure._identity import _capture_source
+from .structure._mutation import _AtomFactUpdate, _normalize_atom_facts, _normalize_atom_scalar
+from .structure._commit import (
+    _FactTransaction, _commit_atom_facts, _commit_coordinates, _commit_bond_facts,
+    _commit_molecular_declarations, _commit_atom_sparse, _commit_topology,
+    _current_transaction,
+)
+from .structure._dependencies import (
+    _dependency_state, _install_dependency_state, _remap_dependency_state,
+    _mark_topology_dirty,
+)
 from .stereo import StereoPayload as _StereoPayload
 
 
@@ -80,7 +98,7 @@ class NotInSameMolecule(Exception):
     def __init__(self, obj1, obj2):
         self.obj1 = obj1
         self.obj2 = obj2
-        self.message = f"The {obj1} and {obj2} are expected in a same Molecule, but not"
+        self.message = f"The {type(obj1).__name__} and {type(obj2).__name__} must belong to the same Molecule"
         super().__init__(self.message)
         
 class ObjNotInMolecule(Exception):
@@ -88,7 +106,7 @@ class ObjNotInMolecule(Exception):
     def __init__(self, obj, mol):
         self.obj = obj
         self.mol = mol
-        self.message = f"The {obj} not in {mol} molecule"
+        self.message = f"The {type(obj).__name__} is not a current member of the Molecule"
         super().__init__(self.message)
 
 
@@ -145,6 +163,7 @@ class Molecule:
         self._environ = None
 
         self._atoms = []
+        self._atom_table = _AtomFactTable()
         self._bonds = []
         self._topology_index = {}
         self._conformers = Conformers()
@@ -167,20 +186,17 @@ class Molecule:
 
         self._stereo_payload = _StereoPayload(1, (), (), ())
 
-        self.charge = 0
+        self._charge_value, self._charge_present, self._charge_source = 0, False, None
+        self._spin_value, self._spin_present, self._spin_source = None, False, None
 
     def __dir__(self):
         return list(Conformers._attrs) + list(super(Molecule, self).__dir__())
 
     def __getattr__(self, item):
-        try:
-            return super().__getattribute__(item)
-        except AttributeError as e:
-            # Retrieve attributes from conformers
-            if "_conformers" in self.__dict__ and item in Conformers._attrs:
+        if '_conformers' in self.__dict__ and item in Conformers._attrs:
+            with self._mutation_lock:
                 return self._conformers.index_attr(item, self._conformers_index)
-            else:
-                raise e
+        return object.__getattribute__(self, item)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.formula})"
@@ -194,18 +210,68 @@ class Molecule:
         return self.copy()
 
     def __getstate__(self):
-        with self._mutation_lock:
-            state = self.__dict__.copy()
-            del state['_mutation_lock']
-            return state
+        return _capture_molecule_pickle(self)
 
     def __setstate__(self, state):
-        self.__dict__.update(state)
-        self._mutation_lock = _RLock()
-        incident = {row: bonds for row, bonds in self._topology_index.values()}
-        self._topology_index = {
-            id(atom): (row, incident[row]) for row, atom in enumerate(self._atoms)
-        }
+        _restore_molecule_extra(self, state)
+
+    def __reduce_ex__(self, protocol):
+        record, owner, atom_uids, bond_uids, high_water, dependencies, state = self.__getstate__()
+        return (_restore_molecule_raw,
+                (type(self), record, owner, atom_uids, bond_uids, high_water, dependencies), state)
+
+    @property
+    def charge(self):
+        with self._mutation_lock:
+            return self._charge_value
+
+    @charge.setter
+    def charge(self, value):
+        _commit_molecular_declarations(self, _capture_source(self), charge=(True, value, 'explicit'))
+
+    @property
+    def spin_mult(self):
+        with self._mutation_lock:
+            if self._spin_present:
+                return self._spin_value
+            return self._conformers.index_attr('spin_mult', self._conformers_index)
+
+    @spin_mult.setter
+    def spin_mult(self, value):
+        _commit_molecular_declarations(self, _capture_source(self), spin_mult=(True, value, 'explicit'))
+
+    def updata_atoms(self, *, atoms=None, **columns) -> None:
+        selected = None if atoms is None else tuple(atoms)
+        with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']):
+            if selected is None:
+                selected = tuple(self._atoms)
+                rows = tuple(range(len(selected)))
+            else:
+                rows = _selected_atom_rows(self, selected, public=True)
+            update = _normalize_atom_facts(_capture_source(self), rows,
+                                           tuple(atom._uid for atom in selected), columns)
+            _commit_atom_facts(self, update)
+            if 'atomic_number' in update.fields:
+                for atom in selected:
+                    _atomic_number_setter(atom, 'atomic_number', atom.atomic_number)
+                downstream = tuple(field for field in update.fields if field != 'atomic_number')
+                if downstream:
+                    indices = tuple(update.fields.index(field) for field in downstream)
+                    _commit_atom_facts(self, _AtomFactUpdate(
+                        update.source, update.rows, update.atom_uids, downstream,
+                        tuple(update.value_bytes[i] for i in indices),
+                        tuple(update.presence[i] for i in indices), tuple(update.sources[i] for i in indices)))
+
+    @classmethod
+    def _build_molecule(cls, record, *, bond_metadata=None):
+        return cls()._install_molecule(record, bond_metadata=bond_metadata)
+
+    def _install_molecule(self, record, *, bond_metadata=None):
+        _commit_topology(self, _capture_source(self), record,
+                         atom_bindings=(None,) * record.atom_count,
+                         bond_bindings=(None,) * len(record.bond_endpoints),
+                         bond_metadata=bond_metadata)
+        return self
 
     def _allocate_atom_uid(self):
         with self._mutation_lock:
@@ -341,40 +407,17 @@ class Molecule:
         )
 
     def copy(self):
+        with self._mutation_lock:
+            record, metadata = self._capture_factual_record(include_frames=False)
+            dependencies = _remap_dependency_state(self._atom_table,
+                tuple(atom._uid for atom in self._atoms), tuple(range(len(self._atoms))))
+            annotations = dict(self.properties)
         clone = Molecule()
-        atom_map = {}
-        for atom in self._atoms:
-            cloned_atom = clone._add_atom(atom)
-            atom_map[id(atom)] = cloned_atom
-
-        for bond in self._bonds:
-            clone._add_bond(
-                atom_map[id(bond.atom1)],
-                atom_map[id(bond.atom2)],
-                **bond.attr_dict,
-            )
-
-        for bond in self._hided_metal_bonds:
-            clone._hided_metal_bonds.append(Bond(
-                atom_map[id(bond.atom1)],
-                atom_map[id(bond.atom2)],
-                **bond.attr_dict,
-            ))
-
-        for bond in self._hided_covalent_bonds:
-            clone._hided_covalent_bonds.append(Bond(
-                atom_map[id(bond.atom1)],
-                atom_map[id(bond.atom2)],
-                **bond.attr_dict,
-            ))
-
-        clone._update_topology()
-        clone._set_remapped_stereo_payload(
-            self,
-            {row: row for row in range(len(self._atoms))},
-            filter_bonds=False,
-        )
-
+        _commit_topology(clone, _capture_source(clone), record,
+                         atom_bindings=(None,) * record.atom_count,
+                         bond_bindings=(None,) * len(record.bond_endpoints),
+                         dependency_state=dependencies, bond_metadata=metadata)
+        clone.properties = annotations
         return clone
 
     @property
@@ -581,88 +624,90 @@ class Molecule:
             )
         ]
 
-    def _set_coordinates(self, coords: types.ArrayLike):
-        coords = np.array(coords)
-        if coords.shape != (len(self._atoms), 3):
-            raise ValueError(f"The shape of coordinates should be {(len(self._atoms), 3)}, but got {coords.shape}")
+    def _set_coordinates(self, coordinates):
+        self.coordinates = np.asarray(coordinates)
 
-        for atom, coord in zip(self._atoms, coords):
-            atom.coordinates = coord
+    def _update_topology(self, clear_conformers: bool = True, *,
+                         _prepared_index=None, _constraint_rows=None) -> None:
+        with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
+            if _prepared_index is self._topology_index and _constraint_rows is None:
+                transaction.touch_caches()
+            else:
+                transaction.touch_topology()
+            previous = self._topology_index
+            self._topology_index = (_build_topology_index(
+                self._atoms, self._bonds, self._hided_metal_bonds, self._hided_covalent_bonds)
+                if _prepared_index is None else _prepared_index)
+            if _constraint_rows is None and self._topology_index is not previous:
+                changed = tuple(atom._uid for atom in self._atoms if
+                    tuple(id(bond) for bond in previous.get(id(atom), (None, ()))[1]) !=
+                    tuple(id(bond) for bond in self._topology_index[id(atom)][1]))
+                _mark_topology_dirty(self, changed)
+            angles = {tuple(id(atom) for atom in angle.atoms) for angle in self._angles if angle.constraint}
+            torsions = {tuple(id(atom) for atom in torsion.atoms) for torsion in self._torsions if torsion.constraint}
+            next_angles = []
+            next_torsions = []
+            self._rings = []
+            self._ring_indices_cache = {}
+            self._ligand_rings = None
+            self._ligand_rings_signature = None
+            self._obmol = None
+            self._row2idx = None
+            if _constraint_rows is not None:
+                angle_rows, torsion_rows = _constraint_rows
+                complete_paths = {}
+                for bond in self._bonds + self._hided_bonds:
+                    complete_paths.setdefault(frozenset((id(bond.atom1), id(bond.atom2))), bond)
+                next_angles = [_new_constraint_view(Angle, self, item, complete_paths) for item in angle_rows]
+                next_torsions = [_new_constraint_view(Torsion, self, item, complete_paths) for item in torsion_rows]
+                for view in next_angles + next_torsions:
+                    view.constraint = True
+            else:
+                if angles:
+                    self.update_angles()
+                    next_angles = self._angles
+                    for angle in next_angles:
+                        angle.constraint = tuple(id(atom) for atom in angle.atoms) in angles
+                if torsions:
+                    self.update_torsions()
+                    next_torsions = self._torsions
+                    for torsion in next_torsions:
+                        torsion.constraint = tuple(id(atom) for atom in torsion.atoms) in torsions
+            self._angles = next_angles
+            self._torsions = next_torsions
+            if clear_conformers:
+                self._conformers.clear()
 
-    def _update_topology(self, clear_conformers: bool = True) -> None:
-        """Rebuild deterministic derived topology from atoms and Bond endpoints."""
-        atom_rows = {}
-        incident_bonds = {}
-        for row, atom in enumerate(self._atoms):
-            atom_id = id(atom)
-            if atom_id in atom_rows:
-                raise ValueError("a Molecule cannot contain the same Atom twice")
-            if atom.mol is not self:
-                raise ValueError("every Atom member must belong to its Molecule")
-            atom_rows[atom_id] = row
-            incident_bonds[atom_id] = []
-
-        hidden_ids = [id(bond) for bond in self._hided_bonds]
-        if len(hidden_ids) != len(set(hidden_ids)):
-            raise ValueError("a hidden Bond may occur in only one hidden collection")
-        if {id(bond) for bond in self._bonds}.intersection(hidden_ids):
-            raise ValueError("a Bond cannot be both active and hidden")
-
-        endpoint_pairs = set()
-        for bond in self._bonds:
-            first_id = id(bond.atom1)
-            second_id = id(bond.atom2)
-            if first_id not in atom_rows or second_id not in atom_rows:
-                raise ValueError("every active Bond endpoint must belong to its Molecule")
-            first_row = atom_rows[first_id]
-            second_row = atom_rows[second_id]
-            if first_row == second_row:
-                raise ValueError("a Molecule Bond cannot join an Atom to itself")
-            endpoint_pair = tuple(sorted((first_row, second_row)))
-            if endpoint_pair in endpoint_pairs:
-                raise ValueError("a Molecule cannot contain parallel active Bonds")
-            endpoint_pairs.add(endpoint_pair)
-            incident_bonds[first_id].append(bond)
-            incident_bonds[second_id].append(bond)
-
-        topology_index = {}
-        for atom in self._atoms:
-            atom_id = id(atom)
-            row = atom_rows[atom_id]
-            ordered_bonds = tuple(sorted(
-                incident_bonds[atom_id],
-                key=lambda bond: (
-                    atom_rows[id(
-                        bond.atom2 if bond.atom1 is atom else bond.atom1
-                    )],
-                    min(atom_rows[id(bond.atom1)], atom_rows[id(bond.atom2)]),
-                    max(atom_rows[id(bond.atom1)], atom_rows[id(bond.atom2)]),
-                ),
-            ))
-            topology_index[atom_id] = (row, ordered_bonds)
-        self._topology_index = topology_index
-
-        # clear the older AtomSeq
-        self._angles = []
-        self._torsions = []
-        self._rings = []
-        self._ring_indices_cache = {}
-        self._ligand_rings = None
-        self._ligand_rings_signature = None
-        self._obmol = None
-        self._row2idx = None
-
-        if clear_conformers:
-            self.conformers.clear()
 
     def _add_atom(self, atom):
-        """Copy a foreign factual row into a new locally owned Atom."""
         if atom.mol is self:
-            raise ValueError("An Atom already owned by this Molecule cannot be inserted again")
-        copied = self._create_atom_from_array(atom.attrs.copy())
-        for name in ('isotope', 'frac_valence'):
-            if name in atom.__dict__:
-                setattr(copied, name, deepcopy(atom.__dict__[name]))
+            raise ValueError('An Atom already owned by this Molecule cannot be inserted again')
+        with atom.mol._mutation_lock:
+            source_row = atom.mol._topology_index.get(id(atom))
+            table = atom._detached_table if source_row is None else atom.mol._atom_table
+            row = 0 if source_row is None else source_row[0]
+            values, presence, sources = table.row(row), table.presence(row), table.sources(row)
+            statuses = table._group_status[row].copy()
+            pending_groups = tuple(atom._uid in seeds for seeds in table._dirty_seeds)
+            sparse = {name: deepcopy(atom.__dict__[name]) for name in ('isotope', 'frac_valence') if name in atom.__dict__}
+        copied = Atom(self, attrs_array=values, update_electron_config=False)
+        with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
+            new_row = self._topology_index[id(copied)][0]
+            update = _AtomFactUpdate(_capture_source(self), (new_row,), (copied._uid,), _ATOM_FIELDS,
+                tuple(values[index:index + 1].tobytes() for index in range(len(_ATOM_FIELDS))),
+                tuple(bool(int(presence[0]) & (1 << index)) for index in range(len(_ATOM_FIELDS))),
+                tuple(int(code) for code in sources[0]))
+            _commit_atom_facts(self, update)
+            transaction.touch_dependency_status((new_row,), range(len(statuses)))
+            self._atom_table._group_status[new_row] = statuses
+            for group, pending_group in enumerate(pending_groups):
+                transaction.touch_dependency_seeds(group, (copied._uid,))
+                if pending_group:
+                    self._atom_table._dirty_seeds[group].add(copied._uid)
+                else:
+                    self._atom_table._dirty_seeds[group].discard(copied._uid)
+            for name, value in sparse.items():
+                setattr(copied, name, value)
         return copied
 
     def _add_bond(self, atom1: Union[int, "Atom"], atom2: Union[int, "Atom"], bond_order=1., **kwargs):
@@ -692,43 +737,46 @@ class Molecule:
             ValueError: If any of `atom1` or `atom2` do not belong to the
             molecule, or a bond between the specified atoms already exists.
         """
-        atom1 = atom1 if isinstance(atom1, Atom) else self._atoms[atom1]
-        atom2 = atom2 if isinstance(atom2, Atom) else self._atoms[atom2]
+        with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
+            atom1 = atom1 if isinstance(atom1, Atom) else self._atoms[atom1]
+            atom2 = atom2 if isinstance(atom2, Atom) else self._atoms[atom2]
 
-        if atom1.mol is not self or atom2.mol is not self:
-            raise ValueError("at least one of atom1 and atom2 not on the molecule!")
+            if atom1.mol is not self or atom2.mol is not self:
+                raise ValueError("at least one of atom1 and atom2 not on the molecule!")
 
-        if atom1 is atom2:
-            raise ValueError("a Molecule Bond cannot join an Atom to itself")
+            if atom1 is atom2:
+                raise ValueError("a Molecule Bond cannot join an Atom to itself")
 
-        first_record = self._topology_index[id(atom1)]
-        second_record = self._topology_index[id(atom2)]
-        incident = (
-            first_record[1]
-            if len(first_record[1]) <= len(second_record[1])
-            else second_record[1]
-        )
-        if any(
-            (bond.atom1 is atom1 and bond.atom2 is atom2)
-            or (bond.atom1 is atom2 and bond.atom2 is atom1)
-            for bond in incident
-        ):
-            raise ValueError(f"the bond between {atom1.idx} and {atom2.idx} is already exist!!")
+            first_record = self._topology_index[id(atom1)]
+            second_record = self._topology_index[id(atom2)]
+            incident = (
+                first_record[1]
+                if len(first_record[1]) <= len(second_record[1])
+                else second_record[1]
+            )
+            if any(
+                (bond.atom1 is atom1 and bond.atom2 is atom2)
+                or (bond.atom1 is atom2 and bond.atom2 is atom1)
+                for bond in incident
+            ):
+                raise ValueError(f"the bond between {atom1.idx} and {atom2.idx} is already exist!!")
 
-        kwargs['bond_order'] = bond_order
-        bond = Bond(atom1, atom2, **kwargs)
-        self._bonds.append(bond)
+            kwargs['bond_order'] = bond_order
+            bond = Bond(atom1, atom2, **kwargs)
+            transaction.touch_bond_membership((atom1, atom2))
+            self._bonds.append(bond)
+            _mark_topology_dirty(self, (atom1._uid, atom2._uid))
 
-        for atom, record in ((atom1, first_record), (atom2, second_record)):
-            bonds = tuple(sorted(
-                record[1] + (bond,),
-                key=lambda member: self._topology_index[
-                    id(member.atom2 if member.atom1 is atom else member.atom1)
-                ][0],
-            ))
-            self._topology_index[id(atom)] = (record[0], bonds)
+            for atom, record in ((atom1, first_record), (atom2, second_record)):
+                bonds = tuple(sorted(
+                    record[1] + (bond,),
+                    key=lambda member: self._topology_index[
+                        id(member.atom2 if member.atom1 is atom else member.atom1)
+                    ][0],
+                ))
+                self._topology_index[id(atom)] = (record[0], bonds)
 
-        return bond
+            return bond
 
     def add_atom(self, atom):
         """
@@ -751,34 +799,37 @@ class Molecule:
         self._replace_atom_transport(atom.idx, source_atom)
         return atom
 
-    def _replace_atom(
-            self,
-            original_atom_idx: int,
-            new_atom: Union[int, str, "Atom"],
-    ):
-        if isinstance(new_atom, Atom):
-            pass
-        elif isinstance(new_atom, int):
+    def _replace_atom(self, original_atom_idx: int, new_atom: Union[int, str, 'Atom']):
+        if isinstance(new_atom, int):
             new_atom = Atom(atomic_number=new_atom)
         elif isinstance(new_atom, str):
             new_atom = Atom(symbol=new_atom)
-        else:
-            raise ValueError(f"Unsupported atom type {type(new_atom)}")
-        ori_atom = self._atoms[original_atom_idx]
-        target_row = self._topology_index[id(ori_atom)][0]
+        elif not isinstance(new_atom, Atom):
+            raise ValueError(f'Unsupported atom type {type(new_atom)}')
+        original = self._atoms[original_atom_idx]
+        target_row = self._topology_index[id(original)][0]
         source_atom = new_atom
-        new_atom = self._add_atom(new_atom)
-        self._atoms.pop()
-        del self._topology_index[id(new_atom)]
-        self._atoms[original_atom_idx] = new_atom
-
+        source_members = tuple(self._atoms)
+        replacement = self._add_atom(new_atom)
+        old_uids = tuple(atom._uid for atom in self._atoms)
+        selection = tuple(len(self._atoms) - 1 if row == target_row else row
+                          for row in range(len(self._atoms) - 1))
+        next_atoms = list(source_members)
+        next_atoms[target_row] = replacement
+        state = _remap_dependency_state(self._atom_table, old_uids,
+                                        tuple(atom._uid for atom in next_atoms), rows=selection)
+        _detach_atom(original)
+        table = self._atom_table.take(selection)
+        _install_dependency_state(table, state)
+        self._atom_table = table
+        self._atoms[:] = next_atoms
         for bond in self._bonds + self._hided_bonds:
-            if bond.atom1 is ori_atom or bond.atom2 is ori_atom:
-                Bond._replace_atom(bond, ori_atom, new_atom)
-
+            if bond.atom1 is original or bond.atom2 is original:
+                Bond._replace_atom(bond, original, replacement)
+        self._topology_index = _build_topology_index(self._atoms, self._bonds,
+                                                    self._hided_metal_bonds, self._hided_covalent_bonds)
         self._replace_atom_transport(target_row, source_atom)
-
-        return ori_atom
+        return original
 
     def build_all_pair_links(
             self,
@@ -875,67 +926,59 @@ class Molecule:
         self._update_topology()
         return bonds
 
-    def add_component(self, component: "Molecule"):
-        """
-        Adds a molecule component to the current structure by integrating its atoms and bonds.
-
-        Parameters
-        ----------
-        component: Molecule
-            The molecule component to be added to the current structure. It
-            will be copied, and its atoms and bonds will be integrated into
-            the structure.
-
-        Notes
-        -----
-        This method incorporates all atoms from the provided molecule
-        component into the current structure. Bonds present in the molecule
-        component will also be included. The graph representing the molecule
-        structure is updated after the addition.
-
-        """
-        from .stereo import (
-            _remap_stereo_payload,
-            get_stereo_payload,
-            set_stereo_payload,
-        )
-
-        component = copy(component)
-        atom_offset = len(self._atoms)
-        target_payload = get_stereo_payload(self)
-        component_payload = _remap_stereo_payload(
-            get_stereo_payload(component),
-            {
-                source_row: atom_offset + source_row
-                for source_row in range(len(component._atoms))
-            },
-        )
-        atom_map = {id(atom): self._add_atom(atom) for atom in component.atoms}
-        for source_bonds, target_bonds in (
-            (component._bonds, self._bonds),
-            (component._hided_metal_bonds, self._hided_metal_bonds),
-            (component._hided_covalent_bonds, self._hided_covalent_bonds),
-        ):
-            for bond in source_bonds:
-                target_bonds.append(Bond(
-                    atom_map[id(bond.atom1)], atom_map[id(bond.atom2)],
-                    **deepcopy(bond.attr_dict),
-                ))
-        del component
-        self._update_topology()
-        set_stereo_payload(
-            self,
-            type(target_payload)(
-                schema_version=target_payload.schema_version,
-                records=target_payload.records + component_payload.records,
-                atom_facts=(
-                    target_payload.atom_facts + component_payload.atom_facts
-                ),
-                bond_facts=(
-                    target_payload.bond_facts + component_payload.bond_facts
-                ),
-            ),
-        )
+    def add_component(self, component: 'Molecule'):
+        from dataclasses import replace
+        from .stereo import _remap_stereo_payload
+        with component._mutation_lock:
+            incoming, incoming_metadata = component._capture_factual_record(include_frames=False)
+            incoming_dependencies = _dependency_state(component._atom_table)
+            incoming_uids = tuple(atom._uid for atom in component._atoms)
+        with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
+            transaction.touch_topology()
+            current, current_metadata = self._capture_factual_record(include_frames=False)
+            offset = current.atom_count
+            if offset and incoming.cell is not None and current.cell != incoming.cell:
+                raise ValueError('Components require compatible unit cells')
+            charge = incoming.charge if not offset else (
+                (True, current.charge[1] + incoming.charge[1], 'component_merge')
+                if current.charge[0] and incoming.charge[0] else (False, None, None))
+            spin = incoming.spin_mult if not offset else (False, None, None)
+            payload = _remap_stereo_payload(incoming.stereo_payload,
+                        {row: offset + row for row in range(incoming.atom_count)})
+            payload = type(payload)(current.stereo_payload.schema_version,
+                                    current.stereo_payload.records + payload.records,
+                                    current.stereo_payload.atom_facts + payload.atom_facts,
+                                    current.stereo_payload.bond_facts + payload.bond_facts)
+            record = replace(current, atom_count=offset + incoming.atom_count,
+                atom_values=current.atom_values + incoming.atom_values,
+                atom_presence=current.atom_presence + incoming.atom_presence,
+                atom_sources=current.atom_sources + incoming.atom_sources,
+                atom_isotopes=current.atom_isotopes + tuple((offset + row, value) for row, value in incoming.atom_isotopes),
+                atom_frac_valences=current.atom_frac_valences + tuple((offset + row, value) for row, value in incoming.atom_frac_valences),
+                bond_endpoints=current.bond_endpoints + tuple((offset + a, offset + b) for a,b in incoming.bond_endpoints),
+                bond_values=current.bond_values + incoming.bond_values,
+                bond_partitions=current.bond_partitions + incoming.bond_partitions,
+                bond_kinds=current.bond_kinds + incoming.bond_kinds,
+                bond_directions=current.bond_directions + incoming.bond_directions,
+                bond_sources=current.bond_sources + incoming.bond_sources,
+                bond_metadata=current.bond_metadata + incoming.bond_metadata,
+                charge=charge, spin_mult=spin, cell=current.cell if offset else incoming.cell,
+                stereo_payload=payload,
+                angle_constraints=current.angle_constraints + tuple(tuple(offset + row for row in item) for item in incoming.angle_constraints),
+                torsion_constraints=current.torsion_constraints + tuple(tuple(offset + row for row in item) for item in incoming.torsion_constraints))
+            old_atoms = tuple(self._atoms)
+            old_bonds = tuple(self._bonds + self._hided_bonds)
+            source_status, source_seeds = incoming_dependencies
+            uid_map = dict(zip(incoming_uids, range(self._next_atom_uid, self._next_atom_uid + incoming.atom_count)))
+            target_status, target_seeds = _dependency_state(self._atom_table)
+            dependencies = (np.vstack((target_status, source_status)),
+                tuple(frozenset(target) | frozenset(uid_map[uid] for uid in source if uid in uid_map)
+                      for target, source in zip(target_seeds, source_seeds)))
+            # Bindings follow the record's concatenated complete Bond order.
+            _commit_topology(self, _capture_source(self), record,
+                atom_bindings=old_atoms + (None,) * incoming.atom_count,
+                bond_bindings=old_bonds + (None,) * len(incoming.bond_endpoints),
+                dependency_state=dependencies, bond_metadata=current_metadata + incoming_metadata)
 
     def add_hydrogens(
             self,
@@ -1162,33 +1205,13 @@ class Molecule:
 
     @property
     def atom_matrix(self) -> np.ndarray:
-        """
-        Returns the attribute matrix of atoms.
-
-        This property compiles the attributes of all atoms in the 
-        object into a matrix format for further processing or analysis.
-
-        @rtype: np.ndarray
-        @return: A 2D numpy array where each row represents the attributes 
-                 of an atom.
-        """
-        return np.array([a.attrs for a in self._atoms], dtype=np.float64).reshape(
-            len(self._atoms), len(Atom._attrs_enumerator)
-        )
+        with self._mutation_lock:
+            return self._atom_table.matrix()
 
     @property
     def atoms(self):
-        """
-        Provides an interface to access the atoms of the molecule. This property 
-        returns a copy of the internal _atoms list to ensure the encapsulation of 
-        the original data. Modification of the returned list does not affect the 
-        internal state of the object.
-
-        Returns:
-            list: A copy of the internal _atoms list that can be freely modified 
-            without impacting the internal state.
-        """
-        return copy(self._atoms)
+        with self._mutation_lock:
+            return list(self._atoms)
 
     @property
     def c_bonds(self) -> list["Bond"]:
@@ -1197,36 +1220,28 @@ class Molecule:
 
     @property
     def bonds(self) -> list["Bond"]:
-        """
-        Retrieves a copy of the bonds.
-
-        Returns a duplicate of the stored bonds data, ensuring that the original 
-        bonds information remains unmodified during external operations. This 
-        ensures data integrity while allowing external access to the data.
-
-        Returns:
-            list: A copy of the stored bonds data.
-        """
-        return copy(self._bonds)
+        with self._mutation_lock:
+            return list(self._bonds)
 
     def bond(self, a1idx: int, a2idx: int):
         """Return the active Bond joining two Atom indices."""
-        first = self._atoms[a1idx]
-        second = self._atoms[a2idx]
-        first_bonds = self._topology_index[id(first)][1]
-        second_bonds = self._topology_index[id(second)][1]
-        incident = (
-            first_bonds
-            if len(first_bonds) <= len(second_bonds)
-            else second_bonds
-        )
-        for bond in incident:
-            if (
-                (bond.atom1 is first and bond.atom2 is second)
-                or (bond.atom1 is second and bond.atom2 is first)
-            ):
-                return bond
-        raise KeyError((a1idx, a2idx))
+        with self._mutation_lock:
+            first = self._atoms[a1idx]
+            second = self._atoms[a2idx]
+            first_bonds = self._topology_index[id(first)][1]
+            second_bonds = self._topology_index[id(second)][1]
+            incident = (
+                first_bonds
+                if len(first_bonds) <= len(second_bonds)
+                else second_bonds
+            )
+            for bond in incident:
+                if (
+                    (bond.atom1 is first and bond.atom2 is second)
+                    or (bond.atom1 is second and bond.atom2 is first)
+                ):
+                    return bond
+            raise KeyError((a1idx, a2idx))
 
     def build3d(
             self,
@@ -1393,9 +1408,11 @@ class Molecule:
         return self._conformers
 
     def conformer_load(self, i: int):
-        """ Load specific conformer to be current conformer """
-        self.coordinates = self.conformers.index_attr('coordinates', i)
-        self._conformers_index = i
+        coordinates = self._conformers.index_attr('coordinates', i)
+        with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['conformer_load']) as transaction:
+            transaction.touch_frames()
+            self.coordinates = coordinates
+            self._conformers_index = i
 
     @property
     def conformers_number(self) -> int:
@@ -1519,7 +1536,8 @@ class Molecule:
         )
 
         for atom in self.atoms:
-            atom.valence = atom.get_valence()
+            _store_atom_fields(atom, {'valence': atom.get_valence()},
+                               producer=_ATOM_SOURCE_CODES['valence'])
             atom.calc_implicit_hydrogens()
 
     def calc_implicit_hydrogens(self):
@@ -1536,76 +1554,22 @@ class Molecule:
 
     @property
     def components(self) -> list['Molecule']:
-        """
-        Fetches and returns the connected components of the molecule as a list of Molecule objects. 
-        Each component is a distinct-connected substructure derived from the molecular graph.
-
-        Returns:
-            list[Molecule]: A list of Molecule objects, each representing one connected component 
-                            of the molecular graph.
-
-        Raises:
-            None
-        """
-        components = []
-        edges = tuple(
-            (
-                self._topology_index[id(bond.atom1)][0],
-                self._topology_index[id(bond.atom2)][0],
-            )
-            for bond in self._bonds
-        )
-        for c_node_idx in connected_components(len(self._atoms), edges):
+        with self._mutation_lock:
+            edges = tuple((self._topology_index[id(b.atom1)][0], self._topology_index[id(b.atom2)][0])
+                          for b in self._bonds)
+            selections = connected_components(len(self._atoms), edges)
+            captures = [(rows, self._capture_factual_record(rows=rows, include_frames=False),
+                         _remap_dependency_state(self._atom_table, tuple(a._uid for a in self._atoms),
+                                                 tuple(range(len(rows))), rows=tuple(rows))) for rows in selections]
+        result = []
+        for rows, (record, metadata), state in captures:
             component = Molecule()
-            component_index = {
-                source_index: target_index
-                for target_index, source_index in enumerate(c_node_idx)
-            }
-            for node_idx in c_node_idx:
-                component._add_atom(self._atoms[node_idx])
-
-            for source_bond in self._bonds:
-                first = self._topology_index[id(source_bond.atom1)][0]
-                second = self._topology_index[id(source_bond.atom2)][0]
-                if first not in component_index:
-                    continue
-                component._add_bond(
-                    component_index[first],
-                    component_index[second],
-                    **source_bond.attr_dict
-                )
-
-            for source_bond in self._hided_metal_bonds:
-                if (
-                    source_bond.a1idx in component_index
-                    and source_bond.a2idx in component_index
-                ):
-                    component._hided_metal_bonds.append(Bond(
-                        component._atoms[component_index[source_bond.a1idx]],
-                        component._atoms[component_index[source_bond.a2idx]],
-                        **source_bond.attr_dict,
-                    ))
-
-            for source_bond in self._hided_covalent_bonds:
-                if (
-                    source_bond.a1idx in component_index
-                    and source_bond.a2idx in component_index
-                ):
-                    component._hided_covalent_bonds.append(Bond(
-                        component._atoms[component_index[source_bond.a1idx]],
-                        component._atoms[component_index[source_bond.a2idx]],
-                        **source_bond.attr_dict,
-                    ))
-
-            component._update_topology()
-            component._set_remapped_stereo_payload(
-                self,
-                component_index,
-                filter_bonds=True,
-            )
-            components.append(component)
-
-        return components
+            _commit_topology(component, _capture_source(component), record,
+                atom_bindings=(None,) * record.atom_count,
+                bond_bindings=(None,) * len(record.bond_endpoints),
+                dependency_state=state, bond_metadata=metadata)
+            result.append(component)
+        return result
 
     def constraint_bonds_angles(self, exclude_metal_bonds: bool = True):
         """
@@ -1631,38 +1595,17 @@ class Molecule:
 
     @property
     def coordinates(self) -> np.ndarray:
-        """
-        Returns the coordinates of all atoms in the structure.
-
-        This property computes and returns the coordinates of all the atoms 
-        contained in the `_atoms` class attribute. The coordinates are organized
-        as a NumPy array, with each atom's coordinates represented as an individual
-        element in the array.
-
-        Returns:
-            np.ndarray: A NumPy array containing the coordinates of atoms.
-
-        """
-        return np.array([a.coordinates for a in self._atoms])
+        with self._mutation_lock:
+            return self._atom_table.coordinates()
 
     @coordinates.setter
     def coordinates(self, value: np.ndarray) -> None:
-        """
-        Sets the coordinates of all atoms in the system.
-
-        This method ensures that the given coordinates match the expected dimensions
-        based on the number of atoms in the system. It iterates through each atom and
-        assigns the corresponding coordinate values to it.
-
-        Args:
-            value (np.ndarray): A 2D numpy array containing the coordinates of all 
-                atoms. The array should have a shape of (len(self.atoms), 3) where 
-                each row corresponds to the x, y, z coordinates of an atom.
-
-        """
-        assert value.shape == (len(self.atoms), 3)
-        for a, row in zip(self.atoms, value):
-            a.coordinates = row
+        coordinates = np.asarray(value, dtype=np.float64)
+        with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']):
+            assert coordinates.shape == (len(self._atoms), 3)
+            update = _normalize_atom_facts(_capture_source(self), tuple(range(len(self._atoms))),
+                        tuple(atom._uid for atom in self._atoms), {'coordinates': coordinates})
+            _commit_coordinates(self, update)
 
     def _create_atom_from_array(self, attrs_array: np.ndarray) -> "Atom":
         """
@@ -1705,23 +1648,11 @@ class Molecule:
         return Atom(self, **kwargs)
 
     def create_atom(self, **kwargs) -> 'Atom':
-        """
-        Creates and returns a new Atom object with the specified properties. 
-
-        This method uses the provided keyword arguments to create a new Atom using 
-        an internal helper method. After the creation, it updates the internal graph 
-        representation to reflect the addition of the new Atom.
-
-        Parameters:
-            **kwargs: Arbitrary keyword arguments used for defining properties of the 
-                Atom during the creation process.
-
-        Returns:
-            Atom: The newly created Atom object.
-        """
-        atom = self._create_atom(**kwargs)
-        self._update_topology()
-        return atom
+        with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
+            transaction.touch_caches()
+            atom = self._create_atom(**kwargs)
+            self._update_topology(_prepared_index=self._topology_index)
+            return atom
 
     @property
     def atom_pairwise_index(self) -> np.ndarray:
@@ -2155,34 +2086,29 @@ class Molecule:
         """
         return {b.id: b for b in self.bonds}
 
-    def _remove_atoms_from_topology(
-            self,
-            atoms: Iterable[Union["Atom", int]],
-    ) -> None:
-        """Remove atom members and remap stereo before one topology refresh."""
+    def _remove_atoms_from_topology(self, atoms: Iterable[Union['Atom', int]]) -> None:
         source_atoms = tuple(self._atoms)
-        atoms = tuple(
-            atom if isinstance(atom, Atom) else self._atoms[atom]
-            for atom in atoms
-        )
-        removed_atom_ids = {id(atom) for atom in atoms}
-        removed_bonds = {
-            bond
-            for atom in atoms
-            for bond in atom.bonds
-        }
-        for bond in removed_bonds:
-            self._bonds.remove(bond)
+        atoms = tuple(atom if isinstance(atom, Atom) else self._atoms[atom] for atom in atoms)
+        _selected_atom_rows(self, atoms)
+        removed = {id(atom) for atom in atoms}
+        retained = tuple(atom for atom in source_atoms if id(atom) not in removed)
+        rows = tuple(self._topology_index[id(atom)][0] for atom in retained)
+        affected = {atom._uid for atom in atoms}
+        affected.update(neighbour._uid for atom in atoms for neighbour in atom.neighbours)
+        _mark_topology_dirty(self, tuple(affected))
+        state = _remap_dependency_state(self._atom_table, tuple(atom._uid for atom in source_atoms),
+                                        tuple(atom._uid for atom in retained), rows=rows)
         for atom in atoms:
-            self._atoms.remove(atom)
-        self._hided_metal_bonds = [
-            bond for bond in self._hided_metal_bonds
-            if all(id(atom) not in removed_atom_ids for atom in bond.atoms)
-        ]
-        self._hided_covalent_bonds = [
-            bond for bond in self._hided_covalent_bonds
-            if all(id(atom) not in removed_atom_ids for atom in bond.atoms)
-        ]
+            _detach_atom(atom)
+        table = self._atom_table.take(rows)
+        _install_dependency_state(table, state)
+        self._atom_table = table
+        self._atoms[:] = retained
+        for name in ('_bonds', '_hided_metal_bonds', '_hided_covalent_bonds'):
+            getattr(self, name)[:] = [bond for bond in getattr(self, name)
+                                     if all(id(atom) not in removed for atom in bond.atoms)]
+        self._topology_index = _build_topology_index(self._atoms, self._bonds,
+                                                    self._hided_metal_bonds, self._hided_covalent_bonds)
         self._remap_stereo_after_atom_removal(source_atoms)
 
     def remove_atom(self, atom: Union[int, "Atom"]) -> None:
@@ -2253,6 +2179,7 @@ class Molecule:
             (bond.a1idx, bond.a2idx)
             for bond in bonds
         )
+        _mark_topology_dirty(self, tuple(atom._uid for bond in bonds for atom in bond.atoms))
         for bond in bonds:
             self._bonds.remove(bond)
         self._remove_stereo_bond_rows(removed_bond_rows)
@@ -2969,6 +2896,182 @@ class Molecule:
         return writer.write(self, write_single=write_single)
 
 
+    def _capture_frame_state(self, *, rows=None):
+        with self._mutation_lock, self._conformers._mutation_lock:
+            values = []
+            for name in Conformers._attrs:
+                value = getattr(self._conformers, '_' + name, None)
+                if isinstance(value, np.ndarray):
+                    if rows is not None and name in ('coordinates', 'force', 'partial_charge'):
+                        if value.ndim >= 2 and value.shape[1] == len(self._atoms):
+                            value = value[:, tuple(rows)]
+                        elif name == 'partial_charge' and value.ndim == 1 and len(value) == len(self._atoms):
+                            value = value[list(rows)]
+                    value = value.copy()
+                else:
+                    value = deepcopy(value)
+                values.append(value)
+            return tuple(values), self._conformers_index
+
+
+    def _install_frame_state(self, values, index):
+        prepared = tuple(np.array(value, copy=True) if isinstance(value, np.ndarray) else deepcopy(value)
+                         for value in values)
+        with self._conformers._mutation_lock:
+            previous = tuple(getattr(self._conformers, '_' + name, None) for name in Conformers._attrs)
+            old_index = self._conformers_index
+            try:
+                for name, value in zip(Conformers._attrs, prepared):
+                    object.__setattr__(self._conformers, '_' + name, value)
+                self._conformers_index = index
+            except BaseException:
+                for name, value in zip(Conformers._attrs, previous):
+                    object.__setattr__(self._conformers, '_' + name, value)
+                self._conformers_index = old_index
+                raise
+
+
+    def _capture_factual_record(self, *, rows=None, include_frames=True, copy_metadata=True):
+        from .structure._builder import _make_molecule_record
+        from .stereo import _remap_stereo_payload
+        with self._mutation_lock:
+            rows = tuple(range(len(self._atoms))) if rows is None else tuple(rows)
+            mapping = {row: target for target, row in enumerate(rows)}
+            atoms = tuple(self._atoms[row] for row in rows)
+            complete = tuple((partition, bond) for partition, bonds in enumerate(
+                             (self._bonds, self._hided_metal_bonds, self._hided_covalent_bonds)) for bond in bonds)
+            bonds = tuple((partition, bond) for partition, bond in complete
+                          if self._topology_index[id(bond.atom1)][0] in mapping
+                          and self._topology_index[id(bond.atom2)][0] in mapping)
+            endpoints = tuple((mapping[self._topology_index[id(bond.atom1)][0]],
+                               mapping[self._topology_index[id(bond.atom2)][0]]) for _, bond in bonds)
+            whole = rows == tuple(range(len(self._atoms)))
+            payload = _remap_stereo_payload(self._stereo_payload, mapping,
+                                            allowed_bonds=None if whole else endpoints)
+            frames, index = self._capture_frame_state(rows=rows) if include_frames else ((None,) * 9, 0)
+            def constraints(views):
+                return tuple(tuple(mapping[self._topology_index[id(atom)][0]] for atom in view.atoms)
+                             for view in views if view.constraint and all(
+                                 id(atom) in self._topology_index and self._topology_index[id(atom)][0] in mapping
+                                 for atom in view.atoms))
+            metadata = tuple(bond._bond_source_metadata for _, bond in bonds)
+            if copy_metadata:
+                metadata = deepcopy(metadata)
+            else:
+                memo = {id(self): self, **{id(atom): atom for atom in self._atoms},
+                        **{id(bond): bond for _, bond in complete}}
+                metadata = deepcopy(metadata, memo)
+            record = _make_molecule_record(
+                atom_values=self._atom_table.select(_ATOM_FIELDS, rows=rows),
+                atom_presence=self._atom_table.presence(rows), atom_sources=self._atom_table.sources(rows),
+                atom_isotopes=tuple((row, atom.__dict__['isotope']) for row, atom in enumerate(atoms) if 'isotope' in atom.__dict__),
+                atom_frac_valences=tuple((row, atom.__dict__['frac_valence']) for row, atom in enumerate(atoms) if 'frac_valence' in atom.__dict__),
+                bond_endpoints=endpoints, bond_values=np.array([bond._attrs for _, bond in bonds], dtype=np.float64).reshape(-1, 3),
+                bond_partitions=tuple(partition for partition, _ in bonds),
+                bond_kinds=tuple(bond._bond_kind.value for _, bond in bonds),
+                bond_directions=tuple(bond._bond_direction for _, bond in bonds),
+                bond_sources=tuple(bond._bond_source for _, bond in bonds), bond_metadata=(None,) * len(bonds),
+                charge=(True, self._charge_value, self._charge_source) if whole and self._charge_present else (False, None, None),
+                spin_mult=(True, self._spin_value, self._spin_source) if whole and self._spin_present else (False, None, None),
+                cell=None if self._crystal is None else tuple(getattr(self._crystal, name) for name in ('a', 'b', 'c', 'alpha', 'beta', 'gamma')),
+                stereo_payload=payload, legacy_frame_values=frames, legacy_frame_index=index,
+                angle_constraints=constraints(self._angles), torsion_constraints=constraints(self._torsions),
+                identifier=('identifier' in self.__dict__, self.__dict__.get('identifier')))
+            return record, metadata
+
+
+    def _install_factual_record(self, record, *, atom_bindings=None, bond_bindings=None,
+                                 dependency_state=None, bond_metadata=None):
+        from .structure._builder import _thaw_canonical
+        atom_bindings = (None,) * record.atom_count if atom_bindings is None else tuple(atom_bindings)
+        bond_bindings = (None,) * len(record.bond_endpoints) if bond_bindings is None else tuple(bond_bindings)
+        if len(atom_bindings) != record.atom_count or len(bond_bindings) != len(record.bond_endpoints):
+            raise ValueError('Factual bindings must align with the import record')
+        old_atoms = tuple(self._atoms)
+        old_bonds = tuple(self._bonds + self._hided_bonds)
+        for bindings, current in ((atom_bindings, old_atoms), (bond_bindings, old_bonds)):
+            current_ids = {id(member) for member in current}
+            present = [member for member in bindings if member is not None]
+            if len({id(member) for member in present}) != len(present) or any(
+                    member._uid_owner is not self._owner_token or id(member) not in current_ids
+                    for member in present):
+                raise ValueError('Factual bindings require distinct current members of this owner')
+        if bond_metadata is None:
+            metadata = tuple(_thaw_canonical(value) or {} for value in record.bond_metadata)
+        else:
+            metadata = tuple(bond_metadata)
+            if len(metadata) != len(record.bond_endpoints) or any(value != ('none',) for value in record.bond_metadata):
+                raise ValueError('Opaque Bond metadata must be complete and exclude record metadata')
+        table = _AtomFactTable(np.frombuffer(record.atom_values, dtype='<f8').reshape(record.atom_count, len(_ATOM_FIELDS)),
+                               presence=np.frombuffer(record.atom_presence, dtype='<u4'),
+                               sources=np.frombuffer(record.atom_sources, dtype='u1').reshape(record.atom_count, len(_ATOM_FIELDS)))
+        first_atom, first_bond = self._next_atom_uid, self._next_bond_uid
+        self._next_atom_uid += sum(atom is None for atom in atom_bindings)
+        self._next_bond_uid += sum(bond is None for bond in bond_bindings)
+        atom_uids = iter(range(first_atom, self._next_atom_uid))
+        bond_uids = iter(range(first_bond, self._next_bond_uid))
+        atoms = tuple(_new_atom_handle(self, next(atom_uids)) if atom is None else atom for atom in atom_bindings)
+        values = np.frombuffer(record.bond_values, dtype='<f8').reshape(-1, 3)
+        bonds = []
+        for row, binding in enumerate(bond_bindings):
+            first, second = record.bond_endpoints[row]
+            kwargs = dict(kind=record.bond_kinds[row], direction=record.bond_directions[row],
+                          source_namespace=record.bond_sources[row], metadata=metadata[row])
+            if binding is None:
+                bond = _new_bond_handle(self, next(bond_uids), atoms[first], atoms[second], values[row], **kwargs)
+            else:
+                bond = binding
+                _initialize_bond_handle(bond, self, bond._uid, atoms[first], atoms[second], values[row], **kwargs)
+            bonds.append(bond)
+        partitions = tuple([bond for bond, partition in zip(bonds, record.bond_partitions) if partition == wanted]
+                           for wanted in range(3))
+        topology_index = _build_topology_index(atoms, *partitions)
+        if dependency_state is not None:
+            _install_dependency_state(table, dependency_state)
+        elif old_atoms:
+            old_ids = {id(atom) for atom in old_atoms}
+            retained_uids = {atom._uid for atom in atoms if id(atom) in old_ids}
+            for row, atom in enumerate(atoms):
+                previous = self._topology_index.get(id(atom))
+                if previous is not None:
+                    table._group_status[row] = self._atom_table._group_status[previous[0]]
+            table._dirty_seeds = tuple(set(seeds).intersection(retained_uids) for seeds in self._atom_table._dirty_seeds)
+        retained_ids = {id(atom) for atom in atoms}
+        for atom in old_atoms:
+            if id(atom) not in retained_ids:
+                _detach_atom(atom)
+        sparse_isotopes, sparse_valences = dict(record.atom_isotopes), dict(record.atom_frac_valences)
+        transaction = _current_transaction(self)
+        for row, atom in enumerate(atoms):
+            if transaction is not None:
+                transaction.touch_sparse(atom)
+            atom.__dict__.pop('_detached_table', None)
+            for name, sparse in (('isotope', sparse_isotopes), ('frac_valence', sparse_valences)):
+                if row in sparse:
+                    atom.__dict__[name] = sparse[row]
+                else:
+                    atom.__dict__.pop(name, None)
+        self._atom_table = table
+        self._atoms[:] = atoms
+        self._bonds[:], self._hided_metal_bonds[:], self._hided_covalent_bonds[:] = partitions
+        self._update_topology(clear_conformers=False, _prepared_index=topology_index,
+                             _constraint_rows=(record.angle_constraints, record.torsion_constraints))
+        for name, declaration in (('charge', record.charge), ('spin', record.spin_mult)):
+            present, value, source = declaration
+            object.__setattr__(self, '_' + name + '_present', present)
+            object.__setattr__(self, '_' + name + '_value', value if present else (0 if name == 'charge' else None))
+            object.__setattr__(self, '_' + name + '_source', source)
+        self._crystal = None if record.cell is None else cryst.Crystal(*record.cell, mol=self)
+        self._stereo_payload = record.stereo_payload if record.stereo_payload is not None else _StereoPayload(1, (), (), ())
+        self._install_frame_state(tuple(_thaw_canonical(value) for value in record.legacy_frame_values), record.legacy_frame_index)
+        if record.identifier[0]:
+            self.identifier = record.identifier[1]
+        else:
+            self.__dict__.pop('identifier', None)
+        return self
+
+
+
 class MolBlock:
     """
     Represents an abstraction of a molecular block.
@@ -3029,29 +3132,35 @@ class MolBlock:
         return list(self._attrs_enumerator) + list(super(MolBlock, self).__dir__())
 
     def __getattr__(self, item):
-        try:
-            attr_idx = self._attrs_enumerator.index(item)
-            return self._attrs_dict[item](self.attrs[attr_idx])
-        except ValueError:
-            # raise AttributeError(f"{item} is not an attribute of the {self.__class__.__name__}")
-            return super().__getattribute__(item)
+        if item in self._attrs_dict:
+            if isinstance(self, Atom):
+                return _atom_numeric_value(self, item)
+            with self.mol._mutation_lock:
+                return self._attrs_dict[item](self._attrs[self._attrs_enumerator.index(item)])
+        return object.__getattribute__(self, item)
 
     def __setattr__(self, key, value):
-        try:
-            setter = self._attrs_setter.get(key, self._default_attr_setter)
-            setter(self, key, value)
-            # attr_idx = self._attrs_enumerator.index(key)
-            # self.attrs[attr_idx] = float(value)
-        except ValueError:
-            super().__setattr__(key, value)
-        except Exception as e:
-            print(key, value)
-            raise e
+        if isinstance(self, Atom) and key in _ATOM_FIELD_INDEX:
+            if key == 'atomic_number':
+                _atomic_number_setter(self, key, value)
+            else:
+                _store_atom_fields(self, {key: value})
+        elif isinstance(self, Bond) and key in self._attrs_dict:
+            if key == 'bond_order':
+                _bond_order_setter(self, key, value)
+            else:
+                _store_bond_field(self, key, value)
+        elif isinstance(self, Atom) and key in ('isotope', 'frac_valence') and '_mol' in self.__dict__:
+            _commit_atom_sparse(self.mol, self, **{key: value})
+        else:
+            object.__setattr__(self, key, value)
 
     @staticmethod
     def _default_attr_setter(self, key, value):
-        attr_idx = self._attrs_enumerator.index(key)
-        self.attrs[attr_idx] = float(value)
+        if isinstance(self, Atom):
+            _store_atom_fields(self, {key: value})
+        else:
+            _store_bond_field(self, key, value)
 
     @property
     def attrs_enumerator(self) -> tuple:
@@ -3120,27 +3229,14 @@ class MolBlock:
 #######################################################################
 #######################################################################
 # Define attributes setters
-def _atomic_number_setter(self: "Atom", key, atomic_number):
-    """
-    Sets the atomic number for the atom object and updates its electronic configuration.
-
-    This method enforces the atomic property by accepting a key specific 
-    to "atomic_number". Upon setting the atomic number, the elements' 
-    attributes, including its electronic configuration, are recalculated 
-    and updated accordingly based on the chemical properties.
-
-    Parameters:
-        key: str
-            Key name, expected to be "atomic_number".
-        atomic_number: int
-            The atomic number of the element to set and use for recalculations.
-    """
-    assert key == "atomic_number"
-    self.attrs[0] = atomic_number
-    self.attrs[Atom._ELECTRON_N_CONFIG: Atom._ELECTRON_G_CONFIG+1] = Atom.elements.electron_configs[atomic_number]
-    # Adding in 2025/7/19
-    self.attrs[Atom._attrs_enumerator.index("valence")] = self.get_valence()
-    self.attrs[Atom._attrs_enumerator.index("implicit_hydrogens")] = self._calc_implicit_hydrogens()
+def _atomic_number_setter(self: 'Atom', key, atomic_number):
+    assert key == 'atomic_number'
+    with _FactTransaction(self.mol, producer=_ATOM_SOURCE_CODES['explicit']):
+        _store_atom_fields(self, {'atomic_number': atomic_number})
+        self.electron_configuration = Atom.elements.electron_configs[atomic_number]
+        _store_atom_fields(self, {'valence': self.get_valence()}, producer=_ATOM_SOURCE_CODES['valence'])
+        _store_atom_fields(self, {'implicit_hydrogens': self._calc_implicit_hydrogens()},
+                           producer=_ATOM_SOURCE_CODES['implicit_hydrogens'])
 
 # ---------------------------------------------------------------------
 
@@ -3221,73 +3317,65 @@ class Atom(MolBlock):
 
     from .elements import elements
 
-    def __init__(
-            self,
-            mol: Molecule = None,
-            *,
-            attrs_array: np.ndarray = None,
-            update_electron_config: bool = True,
-            **kwargs
-    ):
-        """
-        Initializes an instance of the class, allowing the creation of an object associated with a given
-        molecular structure and attributes. The method provides options for defining default behavior
-        through keyword arguments or specifying attributes explicitly with an array.
-
-        Attributes:
-        mol (Molecule): Represents the molecular structure associated with the object.
-        attrs_array (np.ndarray): A numpy array of attributes with a fixed size equivalent to
-                                  the enumerated attributes of the class.
-
-        Methods:
-        __init__: Constructor to initialize the molecule and its attributes.  
-
-        Parameters:
-        mol: Optional; Defaults to None. If provided, specifies the molecular structure
-             to associate the object with; otherwise, the object is associated with a default Molecule instance.
-
-        attrs_array: The given numpy array specifying custom attribute values.  
-                    Must be one-dimensional. 
-
-         behaviors/ Rules ;proper Error Inflect 
-               ** detail ensure behaviors s """
-        object.__setattr__(self, '_mol', mol or Molecule())
-        object.__setattr__(self, '_member_uid', self.mol._allocate_atom_uid())
-        object.__setattr__(self, '_uid_owner', self.mol._owner_token)
-        getattr(self.mol, '_atoms').append(self)
-        self.mol._topology_index[id(self)] = (
-            len(getattr(self.mol, '_atoms')) - 1,
-            (),
-        )
-
+    def __init__(self, mol: Molecule = None, *, attrs_array: np.ndarray = None,
+                 update_electron_config: bool = True, **kwargs):
+        owner = mol if mol is not None else Molecule()
         if isinstance(attrs_array, np.ndarray):
             assert attrs_array.ndim == 1
-            if len(self._attrs_enumerator) == len(attrs_array):
-                self.attrs = attrs_array
-            else:
-                raise ValueError(
-                    f'Given attrs_array should be length {len(self._attrs_enumerator)},\n'
-                    f'The attrs arrange like the following: \n'
-                    f'\t {self._attrs_enumerator}'
-                )
-
+            if len(attrs_array) != len(_ATOM_FIELDS):
+                # Allocation remains monotonic even for invalid construction.
+                owner._allocate_atom_uid()
+                raise ValueError(f'Given attrs_array should be length {len(_ATOM_FIELDS)}')
+            values = np.array(attrs_array, dtype=np.float64, copy=True)
+            presence = _ATOM_PRESENCE_ALL
+            sources = np.full((1, len(_ATOM_FIELDS)), _ATOM_SOURCE_CODES['legacy_array'], dtype=np.uint8)
+            pending = {}
         else:
-            # When create a new atoms, bypassing the attr_setter interface to avoiding
-            # unexpected invoke. For example:
-            # - Calculate the bond order and implicit hydrogen before the bonds and molecular
-            #   graph is built.
-            if 'symbol' in kwargs:
-                kwargs['atomic_number'] = ob.GetAtomicNum(kwargs.pop('symbol'))
-            if 'coordinates' in kwargs:
-                kwargs['x'], kwargs['y'], kwargs['z'] = kwargs.pop('coordinates')
+            pending = dict(kwargs)
+            if 'symbol' in pending:
+                pending['atomic_number'] = ob.GetAtomicNum(pending.pop('symbol'))
+            if 'coordinates' in pending:
+                pending['x'], pending['y'], pending['z'] = pending.pop('coordinates')
+            supplied = {field for field in _ATOM_FIELDS if field in pending}
+            values = np.array([pending.pop(field, 0.) for field in _ATOM_FIELDS], dtype=np.float64)
+            presence = sum(1 << _ATOM_FIELD_INDEX[field] for field in supplied)
+            sources = np.array([[int(field in supplied) for field in _ATOM_FIELDS]], dtype=np.uint8)
+        _initialize_atom_handle(self, owner, owner._allocate_atom_uid())
+        prepared_electrons = update_electron_config and not pending
+        if prepared_electrons:
+            values[1:7] = self.elements.electron_configs[int(values[0])]
+            presence |= sum(1 << index for index in range(1, 7))
+            sources[0, 1:7] = _ATOM_SOURCE_CODES['electron_configuration']
+        with _FactTransaction(owner, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
+            transaction.touch_registration(self)
+            row = owner._atom_table._append_prepared(
+                values[None, :], np.asarray([presence], dtype=np.uint32), sources)
+            owner._atoms.append(self)
+            owner._topology_index[id(self)] = (row, ())
+            self.setattr(**pending)
+            if update_electron_config and not prepared_electrons:
+                self.electron_configuration = self.elements.electron_configs[self.atomic_number]
 
-            self.attrs = np.array([kwargs.pop(a, 0.) for a in self._attrs_enumerator])
+    @property
+    def attrs(self):
+        with self.mol._mutation_lock:
+            record = self.mol._topology_index.get(id(self))
+            if record is None:
+                return self._detached_table.row(0)
+            return self.mol._atom_table.row(record[0])
 
-            # TODO: Warning! It's not recommended to create a new atom obj.
-            self.setattr(**kwargs)  # Warning: This operation might cause some Error or Bug.
+    def __reduce_ex__(self, protocol):
+        with self.mol._mutation_lock:
+            record = self.mol._topology_index.get(id(self))
+            if record is not None:
+                return _restore_atom_member, (self.mol, record[0], self._uid)
+            state = self._detached_table.__getstate__()
+            extra = {key: value for key, value in self.__dict__.items()
+                     if key not in ('_mol', '_member_uid', '_uid_owner', '_detached_table')}
+            return _restore_detached_atom, (self.mol, self._uid, state), extra
 
-        if update_electron_config:
-            self.electron_configuration = self.elements.electron_configs[self.atomic_number]
+    def __setstate__(self, state):
+        self.__dict__.update(state)
 
     @classmethod
     def _get_atom_attr_dict(cls, atomic_number: int) -> dict:
@@ -3538,10 +3626,10 @@ class Atom(MolBlock):
         return hydrogens
 
     @property
-    def bonds(self) -> list["Bond"]:
-        """Return active incident Bonds in adjacent-Atom index order."""
-        record = self.mol._topology_index.get(id(self))
-        return [] if record is None else list(record[1])
+    def bonds(self) -> list['Bond']:
+        with self.mol._mutation_lock:
+            record = self.mol._topology_index.get(id(self))
+            return [] if record is None else list(record[1])
 
     def _calc_implicit_hydrogens(self) -> int:
         # TODO: Implement by C++
@@ -3598,7 +3686,8 @@ class Atom(MolBlock):
         calc_implicit_hydrogens : This function should ideally be implemented in C++ for 
             performance improvements.
         """
-        self.implicit_hydrogens = self._calc_implicit_hydrogens()
+        _store_atom_fields(self, {'implicit_hydrogens': self._calc_implicit_hydrogens()},
+                           producer=_ATOM_SOURCE_CODES['implicit_hydrogens'])
 
     @property
     def constraint(self) -> bool:
@@ -3616,49 +3705,17 @@ class Atom(MolBlock):
 
     @constraint.setter
     def constraint(self, value: bool):
-        """
-        Setter method for the `constraint` property that sets the same value 
-        for `x_constraint`, `y_constraint`, and `z_constraint` attributes of the instance.
-
-        Args:
-            value (bool): The value to be set for the constraints.
-        """
-        self.x_constraint = self.y_constraint = self.z_constraint = value
+        _store_atom_fields(self, dict.fromkeys(('x_constraint', 'y_constraint', 'z_constraint'), value))
 
     @property
     def coordinates(self):
-        """
-        Coordinates of the atom.
-
-        This property allows access to the 3D coordinates of an atom. It retrieves
-        the coordinates dynamically via an internal getter method.
-
-        Returns
-        -------
-        list of float
-            A list representing the x, y, and z coordinates of the atom.
-        """
-        return Atom._coord_getter(self)
+        with self.mol._mutation_lock:
+            return Atom._coord_getter(self)
 
     @coordinates.setter
     def coordinates(self, value: types.ArrayLike):
-        """
-        Sets the coordinates of the object.
-
-        This setter method allows assigning new values to the 
-        x, y, and z attributes of the object. The provided value 
-        must be an array-like object containing exactly three 
-        elements, which correspond to the coordinates x, y, and 
-        z in the given order.
-
-        Arguments:
-            value (types.ArrayLike): An array-like object that 
-            contains exactly three elements representing the x, 
-            y, and z coordinates. The input must conform to the 
-            ArrayLike type.
-
-        """
-        self.x, self.y, self.z = value
+        x, y, z = value
+        _store_atom_fields(self, {'x': x, 'y': y, 'z': z})
 
     @property
     def exact_mass(self):
@@ -3771,8 +3828,8 @@ class Atom(MolBlock):
 
     @property
     def idx(self) -> int:
-        """Return this Atom's current row in its Molecule."""
-        return self.mol._topology_index[id(self)][0]
+        with self.mol._mutation_lock:
+            return self.mol._topology_index[id(self)][0]
 
     @property
     def mca(self) -> float:
@@ -4046,13 +4103,17 @@ class Atom(MolBlock):
 
     @property
     def electron_configuration(self) -> np.ndarray[int]:
-        return np.int_(self.attrs[Atom._ELECTRON_N_CONFIG: Atom._ELECTRON_G_CONFIG + 1])
+        with self.mol._mutation_lock:
+            record = self.mol._topology_index.get(id(self))
+            table, row = (self._detached_table, 0) if record is None else (self.mol._atom_table, record[0])
+            return table.select(_ATOM_FIELDS[1:7], rows=(row,))[0].astype(int)
 
     @electron_configuration.setter
     def electron_configuration(self, value) -> None:
-        value = np.array(value)
-        assert len(value) == 6
-        self.attrs[Atom._ELECTRON_N_CONFIG: Atom._ELECTRON_G_CONFIG + 1] = value
+        values = np.asarray(value)
+        assert len(values) == 6
+        _store_atom_fields(self, dict(zip(_ATOM_FIELDS[1:7], values)),
+                           producer=_ATOM_SOURCE_CODES['electron_configuration'])
 
     @property
     def l(self) -> int:
@@ -4264,7 +4325,8 @@ class Atom(MolBlock):
                 from the valence configuration.
         """
         # self.valence = Atom._default_valence[self.atomic_number]
-        self.valence = self.get_valence()
+        _store_atom_fields(self, {'valence': self.get_valence()},
+                           producer=_ATOM_SOURCE_CODES['valence'])
 
     def setattr(self, *, add_defaults=False, **kwargs):
         """
@@ -4433,7 +4495,8 @@ class AtomSeq:
     def __getattr__(self, item):
         if re.match(r"atom\d+", item):
             idx = int(item[4:]) - 1
-            return self._atoms[idx]
+            with self.mol._mutation_lock:
+                return self._atoms[idx]
 
         elif re.match(r"bond\d+", item):
             idx = int(item[4:]) - 1
@@ -4492,7 +4555,8 @@ class AtomSeq:
 
     @property
     def atoms(self) -> tuple[Atom, ...]:
-        return copy(self._atoms)
+        with self.mol._mutation_lock:
+            return tuple(self._atoms)
 
     @property
     def atoms_indices(self):
@@ -4511,25 +4575,11 @@ class AtomSeq:
         return any(a.is_metal for a in self._atoms)
 
     def to_mol(self):
+        record, metadata = self.mol._capture_factual_record(rows=tuple(atom.idx for atom in self._atoms), include_frames=False)
         mol = Molecule()
-        for atom in self._atoms:
-            mol.create_atom(**atom.attr_dict)
-
-        mol_atoms = mol.atoms
-        for bond in self._bonds:
-            a1 = mol_atoms[self._atoms.index(bond.atom1)]
-            a2 = mol_atoms[self._atoms.index(bond.atom2)]
-            mol.add_bond(a1, a2, **bond.attr_dict)
-
-        mol._set_remapped_stereo_payload(
-            self.mol,
-            {
-                atom.idx: target_row
-                for target_row, atom in enumerate(self._atoms)
-            },
-            filter_bonds=True,
-        )
-
+        _commit_topology(mol, _capture_source(mol), record,
+                         atom_bindings=(None,) * record.atom_count,
+                         bond_bindings=(None,) * len(record.bond_endpoints), bond_metadata=metadata)
         return mol
 
 
@@ -4784,22 +4834,20 @@ class AtomPairs(dict):
 
 
 ######################################################################################
-def _bond_order_setter(self: "Bond", key, bond_order):
+def _bond_order_setter(self: 'Bond', key, bond_order):
     assert key == 'bond_order'
-    self._default_attr_setter(self, key, bond_order)
-
-    current_kind = getattr(self, '_bond_kind', None)
-    if current_kind in {
-        BondKind.SINGLE,
-        BondKind.DOUBLE,
-        BondKind.TRIPLE,
-        BondKind.AROMATIC,
-        BondKind.UNKNOWN,
-    }:
-        self._bond_kind = _bond_kind_from_order(bond_order)
-
-    for atom in self.atoms:
-        atom.calc_implicit_hydrogens()
+    with _FactTransaction(self.mol, producer=_ATOM_SOURCE_CODES['explicit']):
+        current_kind = self._bond_kind
+        kind = (_bond_kind_from_order(bond_order) if current_kind in {
+            BondKind.SINGLE, BondKind.DOUBLE, BondKind.TRIPLE, BondKind.AROMATIC, BondKind.UNKNOWN,
+        } else current_kind)
+        values = self._attrs.copy()
+        values[0] = float(bond_order)
+        _commit_bond_facts(self.mol, self, _capture_source(self.mol), raw_values=values,
+            kind=kind, direction=self._bond_direction, source_namespace=self._bond_source,
+            metadata=self._bond_source_metadata)
+        for atom in self.atoms:
+            atom.calc_implicit_hydrogens()
 
 class Bond(AtomSeq, MolBlock):
     """
@@ -4838,55 +4886,84 @@ class Bond(AtomSeq, MolBlock):
 
     def __init__(self, atom1: Atom, atom2: Atom, **kwargs):
         super().__init__(atom1, atom2)
-        for atom in (atom1, atom2):
-            if id(atom) not in self.mol._topology_index:
-                raise ValueError("A Bond endpoint must be a current Atom member")
-        object.__setattr__(self, '_member_uid', self.mol._allocate_bond_uid())
-        object.__setattr__(self, '_uid_owner', self.mol._owner_token)
-        bond_kind = kwargs.pop('bond_kind', None)
-        bond_direction = kwargs.pop('bond_direction', None)
-        bond_source = kwargs.pop('bond_source', None)
-        bond_source_metadata = kwargs.pop('bond_source_metadata', None)
-        # self.attrs = np.zeros(len(self._attrs_enumerator))
-        self.attrs = np.array([kwargs.pop(a, 0.) for a in self._attrs_enumerator])
-        self._set_bond_metadata(
-            bond_kind=_coerce_bond_kind(bond_kind, self.bond_order),
-            bond_direction=bond_direction,
-            bond_source=bond_source,
-            bond_source_metadata=bond_source_metadata,
-        )
+        owner = self.mol
+        with owner._mutation_lock:
+            _selected_atom_rows(owner, (atom1, atom2))
+            kind = kwargs.pop('bond_kind', None)
+            direction = kwargs.pop('bond_direction', None)
+            source = kwargs.pop('bond_source', None)
+            metadata = deepcopy(kwargs.pop('bond_source_metadata', None) or {})
+            values = np.array([kwargs.pop(name, 0.) for name in self._attrs_enumerator], dtype=np.float64)
+            _initialize_bond_handle(self, owner, owner._allocate_bond_uid(), atom1, atom2, values,
+                                    kind=_coerce_bond_kind(kind, values[0]), direction=direction,
+                                    source_namespace=source, metadata=metadata)
+            with _FactTransaction(owner, producer=_ATOM_SOURCE_CODES['explicit']):
+                self.setattr(**kwargs)
 
-        # TODO: This invoke might cause some unexpected bug and error
-        self.setattr(**kwargs)  # TODO: it's not recommended to be used to create an new bond obj
+    @property
+    def attrs(self):
+        with self.mol._mutation_lock:
+            return self._attrs.copy()
 
-    def _set_bond_metadata(
-            self,
-            *,
-            bond_kind,
-            bond_direction=None,
-            bond_source=None,
-            bond_source_metadata=None,
-    ):
-        self._bond_kind = _coerce_bond_kind(bond_kind, self.bond_order)
-        self._bond_direction = bond_direction
-        self._bond_source = bond_source
-        self._bond_source_metadata = deepcopy(bond_source_metadata or {})
+    @property
+    def atom1(self) -> Atom:
+        with self.mol._mutation_lock:
+            return self._atoms[0]
+
+    @property
+    def atom2(self) -> Atom:
+        with self.mol._mutation_lock:
+            return self._atoms[1]
+
+    def __reduce_ex__(self, protocol):
+        with self.mol._mutation_lock:
+            groups = (self.mol._bonds, self.mol._hided_metal_bonds, self.mol._hided_covalent_bonds)
+            hint = self._uid
+            member = _bond_member_at(self.mol, hint)
+            row = hint if member is self else None
+            if row is None:
+                offset = 0
+                for group in groups:
+                    local = next((i for i, bond in enumerate(group) if bond is self), None)
+                    if local is not None:
+                        row = offset + local
+                        break
+                    offset += len(group)
+            if row is not None:
+                return _restore_bond_member, (self.mol, row, self._uid)
+            state = {key: value for key, value in self.__dict__.items()
+                     if key not in ('_atoms', '_member_uid', '_uid_owner', '_attrs')}
+            return _restore_unregistered_bond, (self.mol, self._uid, self.atom1, self.atom2, self._attrs.copy()), state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+
+    def _set_bond_metadata(self, *, bond_kind, bond_direction=None, bond_source=None,
+                           bond_source_metadata=None):
+        metadata = deepcopy(bond_source_metadata or {})
+        _commit_bond_facts(self.mol, self, _capture_source(self.mol), raw_values=self._attrs.copy(),
+            kind=_coerce_bond_kind(bond_kind, self.bond_order), direction=bond_direction,
+            source_namespace=bond_source, metadata=metadata)
 
     @property
     def bond_kind(self) -> BondKind:
-        return self._bond_kind
+        with self.mol._mutation_lock:
+            return self._bond_kind
 
     @property
     def bond_direction(self) -> Optional[str]:
-        return self._bond_direction
+        with self.mol._mutation_lock:
+            return self._bond_direction
 
     @property
     def bond_source(self) -> Optional[str]:
-        return self._bond_source
+        with self.mol._mutation_lock:
+            return self._bond_source
 
     @property
     def bond_source_metadata(self) -> dict:
-        return deepcopy(self._bond_source_metadata)
+        with self.mol._mutation_lock:
+            return deepcopy(self._bond_source_metadata)
 
     @property
     def attr_dict(self) -> dict:
@@ -5086,7 +5163,7 @@ class Angle(AtomSeq):
     """
     def __init__(self, a1: Atom, a2: Atom, a3: Atom):
         super().__init__(a1, a2, a3)
-        self.constraint = False
+        self.__dict__['constraint'] = False
 
     @property
     def degrees(self) -> float:
@@ -5120,7 +5197,7 @@ class Torsion(AtomSeq):
     """
     def __init__(self, a: Atom, b: Atom, c: Atom, d: Atom):
         super().__init__(a, b, c, d)
-        self.constraint = False
+        self.__dict__['constraint'] = False
 
     @property
     def degrees(self) -> float:
@@ -5633,95 +5710,88 @@ class Conformers:
     )
 
     def __init__(self):
-        self._coordinates = None
-        self._energy = None
-        self._partial_charges = None
-        self._spin_mult = None
-        self._gibbs = None
-        self._force = None
-        self._zero_point = None
-        self._thermo = None
-        self._capacity = None
+        self._mutation_lock = _RLock()
+        for name in self._attrs:
+            setattr(self, '_' + name, None)
+
+    def __getstate__(self):
+        with self._mutation_lock:
+            return {key: value.copy() if isinstance(value, np.ndarray) else deepcopy(value)
+                    for key, value in self.__dict__.items() if key != '_mutation_lock'}
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._mutation_lock = _RLock()
 
     def __len__(self):
-        if self._coordinates is None:
-            return 0
-        return len(self._coordinates)
+        with self._mutation_lock:
+            return 0 if self._coordinates is None else len(self._coordinates)
 
     def __getitem__(self, idx):
-        info = {}
-        for attr in self._attrs:
-            try:
-                info[attr] = self.index_attr(attr, idx)
-            except (IndexError, TypeError):
-                continue
-
-        return info
+        with self._mutation_lock:
+            info = {}
+            for attr in self._attrs:
+                try:
+                    info[attr] = self.index_attr(attr, idx)
+                except (IndexError, TypeError):
+                    continue
+            return info
 
     def __iter__(self):
-        return iter(self._coordinates)
+        with self._mutation_lock:
+            values = None if self._coordinates is None else self._coordinates.copy()
+            return iter(values)
 
     def index_attr(self, name, i):
-        try:
-            return getattr(self, f"_{name}")[i]
-        except IndexError:
-            raise IndexError(f'The number of conformers is {len(self._coordinates)}, but attempt to access the index {i}')
-        except TypeError:
+        with self._mutation_lock:
             try:
-                return getattr(self, f"_{name}")
-            except AttributeError:
-                raise AttributeError(f"The conformers did not store {name} information")
+                value = getattr(self, f'_{name}')[i]
+            except IndexError:
+                raise IndexError(f'The number of conformers is {len(self._coordinates)}, but attempt to access the index {i}')
+            except TypeError:
+                try:
+                    value = getattr(self, f'_{name}')
+                except AttributeError:
+                    raise AttributeError(f'The conformers did not store {name} information')
+            return value.copy() if isinstance(value, np.ndarray) else deepcopy(value)
 
     def add(self, coords: types.ArrayLike, energy: Union[types.ArrayLike, float] = None):
-        """
-        Adds new coordinates and optionally associated energy values to the conformer.
-
-        This method stores molecular coordinates, formatted to ensure a consistent 
-        three-dimensional structure. Optionally, it allows associating energy values 
-        with the conformer, verifying compatibility between the number of energy values 
-        and the number of coordinates. If coordinates and energy have been previously added, 
-        the method appends the new values to the existing ones.
-
-        Parameters:
-            coords (types.ArrayLike): The molecular coordinates to add. Must be a 2D or 3D 
-                                      array convertible to a consistent 3D array structure.
-            energy (Union[types.ArrayLike, float], optional): Associated energy values, formatted 
-                                                              as a scalar or a flattenable array.
-
-        Raises:
-            ValueError: If the number of provided energy values does not match the number 
-                        of coordinate sets in the conformer.
-        """
         coords = np.array(coords)
-
         if coords.ndim == 2:
             coords = coords.reshape((1,) + coords.shape)
-
         assert coords.ndim == 3
         assert coords.shape[-1] == 3
-
-        if isinstance(self._coordinates, np.ndarray) and self._coordinates.shape[1] == coords.shape[1]:
-            coords = np.vstack((self._coordinates, coords))
-
-        self._coordinates = coords
-
-        if energy is not None:
-            if isinstance(energy, float):
-                energy = np.array([energy])
-            else:
-                energy = np.array(energy).flatten()
-
-            if self._energy is not None:
-                energy = np.vstack((self._coordinates, coords))
-
-            if len(energy) != len(self._coordinates):
-                raise ValueError("The length of input energy in conformer nust matches with the coordinates in conformer")
-
-            self._energy = energy
+        supplied_energy = energy is not None
+        if supplied_energy:
+            energy = np.array([energy]) if isinstance(energy, float) else np.array(energy).flatten()
+        with self._mutation_lock:
+            if isinstance(self._coordinates, np.ndarray) and self._coordinates.shape[1] == coords.shape[1]:
+                coords = np.vstack((self._coordinates, coords))
+            if supplied_energy:
+                # Preserve the characterized route until the Stage7D replacement.
+                if self._energy is not None:
+                    energy = np.vstack((coords, coords))
+                if len(energy) != len(coords):
+                    raise ValueError('The length of input energy in conformer nust matches with the coordinates in conformer')
+            previous = self._coordinates, self._energy
+            try:
+                self._coordinates = coords
+                if supplied_energy:
+                    self._energy = energy
+            except BaseException:
+                self._coordinates, self._energy = previous
+                raise
 
     def clear(self):
-        for attr_name in self._attrs:
-            setattr(self, f"_{attr_name}", None)
+        with self._mutation_lock:
+            previous = tuple(getattr(self, '_' + name) for name in self._attrs)
+            try:
+                for name in self._attrs:
+                    setattr(self, '_' + name, None)
+            except BaseException:
+                for name, value in zip(self._attrs, previous):
+                    setattr(self, '_' + name, value)
+                raise
 
     def coordinates(self, i):
         return self.index_attr('coordinates', i)
@@ -6044,3 +6114,318 @@ class InternalCoordinates:
 
 if __name__ == "__main__":
     pass
+
+
+# Stage3 carrier primitives. Chemistry stays in the existing facade bodies.
+def _selected_atom_rows(mol, atoms, *, public=False):
+    rows = []
+    seen = set()
+    for atom in atoms:
+        if atom.mol is not mol:
+            if public:
+                raise NotInSameMolecule(mol, atom)
+            raise ValueError('Selected Atom belongs to another Molecule')
+        record = mol._topology_index.get(id(atom))
+        if record is None:
+            if public:
+                raise ObjNotInMolecule(atom, mol)
+            raise KeyError(id(atom))
+        row = record[0]
+        if (atom._uid_owner is not mol._owner_token or mol._atoms[row] is not atom
+                or id(atom) in seen):
+            raise ValueError('Atom selection requires unique current members')
+        seen.add(id(atom))
+        rows.append(row)
+    return tuple(rows)
+
+
+def _atom_numeric_value(atom, field):
+    with atom.mol._mutation_lock:
+        record = atom.mol._topology_index.get(id(atom))
+        table, row = (atom._detached_table, 0) if record is None else (atom.mol._atom_table, record[0])
+        return _ATOM_FIELD_CODECS[field](table.raw_index(row, _ATOM_FIELD_INDEX[field]))
+
+
+def _store_atom_fields(atom, columns, *, producer=None):
+    mol = atom.mol
+    with mol._mutation_lock:
+        row = mol._topology_index[id(atom)][0]
+        source = _capture_source(mol)
+        if len(columns) == 1:
+            field, value = next(iter(columns.items()))
+            update = _normalize_atom_scalar(source, row, atom._uid, field, value,
+                        producer=_ATOM_SOURCE_CODES['explicit'] if producer is None else producer)
+        else:
+            fields = tuple(field for field in _ATOM_FIELDS if field in columns)
+            update = _AtomFactUpdate(source, (row,), (atom._uid,), fields,
+                tuple(np.asarray([columns[field]], dtype=np.float64).tobytes() for field in fields),
+                (True,) * len(fields),
+                (_ATOM_SOURCE_CODES['explicit'] if producer is None else producer,) * len(fields))
+        _commit_atom_facts(mol, update)
+
+
+def _store_bond_field(bond, field, value):
+    with _FactTransaction(bond.mol, producer=_ATOM_SOURCE_CODES['explicit']):
+        values = bond._attrs.copy()
+        values[bond._attrs_enumerator.index(field)] = float(value)
+        _commit_bond_facts(bond.mol, bond, _capture_source(bond.mol), raw_values=values,
+            kind=bond._bond_kind, direction=bond._bond_direction,
+            source_namespace=bond._bond_source, metadata=bond._bond_source_metadata)
+
+
+def _initialize_atom_handle(atom, mol, uid):
+    object.__setattr__(atom, '_mol', mol)
+    object.__setattr__(atom, '_member_uid', uid)
+    object.__setattr__(atom, '_uid_owner', mol._owner_token)
+
+
+def _new_atom_handle(mol, uid):
+    atom = object.__new__(Atom)
+    _initialize_atom_handle(atom, mol, uid)
+    return atom
+
+
+def _initialize_bond_handle(bond, mol, uid, atom1, atom2, raw_values, *, kind,
+                            direction, source_namespace, metadata):
+    object.__setattr__(bond, '_atoms', (atom1, atom2))
+    object.__setattr__(bond, '_bonds', [bond])
+    object.__setattr__(bond, '_member_uid', uid)
+    object.__setattr__(bond, '_uid_owner', mol._owner_token)
+    object.__setattr__(bond, '_attrs', np.array(raw_values, dtype=np.float64, copy=True))
+    object.__setattr__(bond, '_bond_kind', BondKind(kind))
+    object.__setattr__(bond, '_bond_direction', direction)
+    object.__setattr__(bond, '_bond_source', source_namespace)
+    object.__setattr__(bond, '_bond_source_metadata', metadata)
+
+
+def _new_bond_handle(mol, uid, atom1, atom2, raw_values, *, kind, direction,
+                     source_namespace, metadata):
+    bond = object.__new__(Bond)
+    _initialize_bond_handle(bond, mol, uid, atom1, atom2, raw_values, kind=kind,
+                            direction=direction, source_namespace=source_namespace, metadata=metadata)
+    return bond
+
+
+def _new_constraint_view(cls, mol, rows, complete_paths):
+    view = object.__new__(cls)
+    view._atoms = tuple(mol._atoms[row] for row in rows)
+    view._bonds = [complete_paths[frozenset((id(first), id(second)))]
+                   for first, second in zip(view._atoms, view._atoms[1:])]
+    view.__dict__['constraint'] = True
+    return view
+
+
+def _build_topology_index(atoms, bonds, hidden_metal=(), hidden_covalent=()):
+    rows = {}
+    incident = {}
+    for row, atom in enumerate(atoms):
+        if id(atom) in rows:
+            raise ValueError('a Molecule cannot contain the same Atom twice')
+        if atoms and atom.mol is not atoms[0].mol:
+            raise ValueError('every Atom member must belong to its Molecule')
+        rows[id(atom)] = row
+        incident[id(atom)] = []
+    complete = tuple(bonds) + tuple(hidden_metal) + tuple(hidden_covalent)
+    hidden_ids = [id(bond) for bond in tuple(hidden_metal) + tuple(hidden_covalent)]
+    if len(set(hidden_ids)) != len(hidden_ids):
+        raise ValueError('a hidden Bond may occur in only one hidden collection')
+    if {id(bond) for bond in bonds}.intersection(hidden_ids):
+        raise ValueError('a Bond cannot be both active and hidden')
+    for bond in complete:
+        if id(bond.atom1) not in rows or id(bond.atom2) not in rows:
+            raise ValueError('every Bond endpoint must belong to its Molecule')
+    pairs = set()
+    for bond in bonds:
+        first, second = rows[id(bond.atom1)], rows[id(bond.atom2)]
+        if first == second:
+            raise ValueError('a Molecule Bond cannot join an Atom to itself')
+        pair = tuple(sorted((first, second)))
+        if pair in pairs:
+            raise ValueError('a Molecule cannot contain parallel active Bonds')
+        pairs.add(pair)
+        incident[id(bond.atom1)].append(bond)
+        incident[id(bond.atom2)].append(bond)
+    return {id(atom): (rows[id(atom)], tuple(sorted(incident[id(atom)], key=lambda bond:
+                rows[id(bond.atom2 if bond.atom1 is atom else bond.atom1)]))) for atom in atoms}
+
+
+def _seal_detached_table(table):
+    table._blocks = tuple(np.frombuffer(block.tobytes(), dtype=block.dtype).reshape(block.shape)
+                          for block in table._blocks)
+    table._columns = tuple(table._blocks[block][:, offset] for block, offset in _ATOM_FIELD_ADDRESSES)
+    table._presence = np.frombuffer(table._presence.tobytes(), dtype=table._presence.dtype)
+    table._sources = np.frombuffer(table._sources.tobytes(), dtype=table._sources.dtype).reshape(table._sources.shape)
+    table._group_status = np.frombuffer(table._group_status.tobytes(), dtype=np.uint8).reshape(table._group_status.shape)
+    table._dirty_seeds = tuple(frozenset(seeds) for seeds in table._dirty_seeds)
+    return table
+
+
+def _detach_atom(atom):
+    row = atom.mol._topology_index[id(atom)][0]
+    table = atom.mol._atom_table.take((row,))
+    table._dirty_seeds = tuple({atom._uid}.intersection(seeds) for seeds in table._dirty_seeds)
+    object.__setattr__(atom, '_detached_table', _seal_detached_table(table))
+
+
+
+
+
+
+
+
+
+
+def _capture_molecule_pickle(mol):
+    with mol._mutation_lock:
+        record, metadata = mol._capture_factual_record(include_frames=False, copy_metadata=False)
+        bonds = tuple(mol._bonds + mol._hided_bonds)
+        owned = {'_mutation_lock', '_owner_token', '_atoms', '_bonds', '_hided_metal_bonds', '_hided_covalent_bonds',
+                 '_atom_table', '_topology_index', '_next_atom_uid', '_next_bond_uid', '_conformers',
+                 '_conformers_index', '_stereo_payload', '_crystal', '_charge_value', '_charge_present',
+                 '_charge_source', '_spin_value', '_spin_present', '_spin_source',
+                 '_angles', '_torsions', '_rings', '_ring_indices_cache', '_ligand_rings',
+                 '_ligand_rings_signature', '_obmol', '_row2idx', '_atom_pairs'}
+        state = {key: value for key, value in mol.__dict__.items() if key not in owned}
+        state['properties'] = dict(mol.properties)
+        graph_memo = {id(mol): mol, **{id(atom): atom for atom in mol._atoms},
+                      **{id(bond): bond for bond in bonds}}
+        state['_atom_pairs'] = deepcopy(mol._atom_pairs, graph_memo)
+        atom_state = tuple({key: value for key, value in atom.__dict__.items()
+                            if key not in ('_mol', '_member_uid', '_uid_owner', '_detached_table', 'isotope', 'frac_valence')}
+                           for atom in mol._atoms)
+        bond_state = tuple({key: value for key, value in bond.__dict__.items()
+                            if key not in ('_atoms', '_bonds', '_member_uid', '_uid_owner', '_attrs',
+                                           '_bond_kind', '_bond_direction', '_bond_source', '_bond_source_metadata')}
+                           for bond in bonds)
+        crystal_state = None if mol._crystal is None else dict(mol._crystal.__dict__)
+        extra = (state, metadata, atom_state, bond_state, mol._capture_frame_state(), crystal_state)
+        return (record, mol._owner_token, tuple(atom._uid for atom in mol._atoms),
+                tuple(bond._uid for bond in bonds), (mol._next_atom_uid, mol._next_bond_uid),
+                _dependency_state(mol._atom_table), extra)
+
+
+def _restore_molecule_raw(cls, record, owner, atom_uids, bond_uids, high_water, dependencies):
+    mol = cls()
+    mol._owner_token = owner
+    mol._install_factual_record(record, dependency_state=dependencies)
+    for atom, uid in zip(mol._atoms, atom_uids):
+        object.__setattr__(atom, '_member_uid', uid)
+    for bond, uid in zip(mol._bonds + mol._hided_bonds, bond_uids):
+        object.__setattr__(bond, '_member_uid', uid)
+    mol._next_atom_uid, mol._next_bond_uid = high_water
+    return mol
+
+
+def _restore_molecule_extra(mol, state):
+    attributes, metadata, atom_state, bond_state, frames, crystal_state = state
+    mol.__dict__.update(attributes)
+    for atom, extra in zip(mol._atoms, atom_state):
+        atom.__dict__.update(extra)
+    for bond, extra, supplied in zip(mol._bonds + mol._hided_bonds, bond_state, metadata):
+        bond.__dict__.update(extra)
+        object.__setattr__(bond, '_bond_source_metadata', supplied)
+    mol._install_frame_state(*frames)
+    if crystal_state is not None:
+        mol._crystal.__dict__.update(crystal_state)
+
+
+def _restore_atom_member(mol, row, uid):
+    if row >= len(mol._atoms) or mol._atoms[row]._uid != uid:
+        raise RuntimeError('Serialized Atom membership changed during capture')
+    return mol._atoms[row]
+
+
+def _restore_bond_member(mol, row, uid):
+    bond = _bond_member_at(mol, row)
+    if bond is None or bond._uid != uid:
+        raise RuntimeError('Serialized Bond membership changed during capture')
+    return bond
+
+
+def _bond_member_at(mol, row):
+    for group in (mol._bonds, mol._hided_metal_bonds, mol._hided_covalent_bonds):
+        if row < len(group):
+            return group[row]
+        row -= len(group)
+    return None
+
+
+def _restore_detached_atom(mol, uid, state):
+    atom = _new_atom_handle(mol, uid)
+    table = object.__new__(_AtomFactTable)
+    table.__setstate__(state)
+    object.__setattr__(atom, '_detached_table', _seal_detached_table(table))
+    return atom
+
+
+def _restore_unregistered_bond(mol, uid, first, second, values):
+    return _new_bond_handle(mol, uid, first, second, values, kind=BondKind.UNKNOWN,
+                            direction=None, source_namespace=None, metadata={})
+
+
+def _numeric_property(field):
+    index, codec = _ATOM_FIELD_INDEX[field], _ATOM_FIELD_CODECS[field]
+
+    def read(atom):
+        mol = atom._mol
+        with mol._mutation_lock:
+            record = mol._topology_index.get(id(atom))
+            if record is None:
+                return codec(atom._detached_table._columns[index][0])
+            return codec(mol._atom_table._columns[index][record[0]])
+
+    return property(read)
+
+
+def _legacy_constraint_property():
+    def read(view):
+        with view.mol._mutation_lock:
+            return view.__dict__['constraint']
+
+    def write(view, value):
+        with _FactTransaction(view.mol, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
+            transaction.touch_constraint(view)
+            view.__dict__['constraint'] = value
+
+    return property(read, write)
+
+
+for _field in _ATOM_FIELDS:
+    if _field not in Atom.__dict__:
+        setattr(Atom, _field, _numeric_property(_field))
+
+
+def _transactional_legacy(method, *, topology=False, frames=False, constraints=False):
+    @_wraps(method)
+    def guarded(self, *args, **kwargs):
+        mol = self if isinstance(self, Molecule) else self.mol
+        with _FactTransaction(mol, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
+            if topology:
+                transaction.touch_topology()
+                transaction.touch_dependencies()
+            if frames:
+                transaction.touch_frames()
+            if constraints:
+                transaction.touch_constraints()
+            return method(self, *args, **kwargs)
+    return guarded
+
+
+for _method in (
+        'add_atom', '_replace_atom', 'replace_atom', 'add_bond', 'add_bonds',
+        'remove_atom', 'remove_atoms', 'remove_bond', 'remove_bonds', 'add_hydrogens',
+        'clear_metal_ligand_bonds', 'clear_hided_covalent_bonds', 'clear_hided_bonds',
+        'restore_bonds', 'recover_hided_metal_ligand_bonds', 'recover_hided_covalent_bonds',
+        'hide_bonds', 'hide_metal_ligand_bonds', 'create_crystal'):
+    setattr(Molecule, _method, _transactional_legacy(getattr(Molecule, _method), topology=True))
+for _method in ('calc_atom_valence', 'calc_implicit_hydrogens', 'assign_partial_charge',
+                'refresh_atom_id', 'update_atoms_attrs_from_id_dict', 'update_bonds_attrs_from_id_dict'):
+    setattr(Molecule, _method, _transactional_legacy(getattr(Molecule, _method)))
+for _method in ('conformer_add', 'conformer_clear'):
+    setattr(Molecule, _method, _transactional_legacy(getattr(Molecule, _method), frames=True))
+for _method in ('clear_constraints', 'constraint_bonds_angles'):
+    setattr(Molecule, _method, _transactional_legacy(getattr(Molecule, _method), constraints=True))
+Ring.is_aromatic = Ring.is_aromatic.setter(_transactional_legacy(Ring.is_aromatic.fset))
+Angle.constraint = _legacy_constraint_property()
+Torsion.constraint = _legacy_constraint_property()
+del _field, _method

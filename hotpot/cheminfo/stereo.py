@@ -998,13 +998,18 @@ class StereoAlignmentReport:
 def get_stereo_payload(mol: Molecule) -> StereoPayload:
     """Return the exact Level-1 payload stored by a molecule."""
 
-    return mol._stereo_payload
+    with mol._mutation_lock:
+        return mol._stereo_payload
 
 
 def set_stereo_payload(mol: Molecule, payload: StereoPayload) -> None:
     """Store Level-1 facts without chemical interpretation."""
 
-    mol._stereo_payload = payload
+    from .structure._commit import _commit_stereo
+    from .structure._identity import _capture_source
+
+    with mol._mutation_lock:
+        _commit_stereo(mol, _capture_source(mol), payload)
 
 
 _GATE6_ROW_FIELD = "_hotpot_stereo_row"

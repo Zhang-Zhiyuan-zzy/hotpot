@@ -1,0 +1,467 @@
+{
+  "recorded_at_utc": "2026-10-29T05:00:05.733098+00:00",
+  "stage": "Stage3",
+  "status": "architecture adjudicated; native implementation not started; Stage3 incomplete",
+  "reviewer": {
+    "task": "/root/stage3_builder_solmax",
+    "model": "gpt-6.1-sol",
+    "effort": "max",
+    "delegation": "none"
+  },
+  "assignment": {
+    "owner": "/root",
+    "exclusive_files": [
+      "plan/20_fact_rule_architecture/stage3_table_cutover_review.md",
+      "plan/20_fact_rule_architecture/stage3_native_entry_review.json"
+    ],
+    "production_edits": false,
+    "main_plan_edits": false,
+    "commits": false
+  },
+  "entry": {
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "branch": "implement/plan20-fact-rule-architecture",
+    "head": "caf959eda9c68b5ef1d2cbd60dc570d0a273ab18",
+    "worktree_dirty": true,
+    "full_normative_reads": [
+      {
+        "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+        "sha256": "afb13f1a62f7d8db8a0fa8e893c4d1322e18d73edb785b0ad649c1eb02621f4b",
+        "lines": 2448,
+        "full_read": true
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+        "sha256": "d0ac2cff4c15f525236b00e254211020423e90f7687c1a640bfe28c7fee45bfc",
+        "lines": 284,
+        "full_read": true
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+        "sha256": "72f935922c623948cc29d781c2eb77e38bcc8562cf368496a5cd7fb0599f1638",
+        "lines": 521,
+        "full_read": true
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+        "sha256": "e5549116f1409fb46b5fd2bdc82c0b20a34297989475eb66a119ac221a9d4a0b",
+        "lines": 177,
+        "full_read": true
+      },
+      {
+        "path": "plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+        "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+        "lines": 68,
+        "full_read": true
+      }
+    ],
+    "full_normative_lines": 3498,
+    "truncation_handling": "Repeated main-plan 241-620, 621-1000 and full protocol in separate bounded calls; no truncated result counted as the full read.",
+    "additional_records_inspected": [
+      "stage1_contract_decisions.md",
+      "stage3_atom_update_review.md",
+      "stage3_commit_performance_escalation.json",
+      "data_object_budget.json N01/N05",
+      "stage_verification_map.json Stage3",
+      "implementation_log.md current Stage3 entry"
+    ],
+    "source_identities": [
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "sha256": "ece126e8b5a6c3355eae3a2ebb5c0984009c572f8e5a97c3124fae7ea4488c7c"
+      },
+      {
+        "path": "hotpot/cheminfo/structure/__init__.py",
+        "sha256": "24e5d4f167f216a4e5704c202e5ad6ddb21670e5327158475dc7e1d4047ddad2"
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_identity.py",
+        "sha256": "1755b968737e478426cec4bc6df2fb89c7626347f06da0bb841b77596d1fbe3b"
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_mutation.py",
+        "sha256": "240b4e147fccb433fd399b248eb2c76fbf943c380b17a68db4f0ad270e67113a"
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_commit.py",
+        "sha256": "2bc7bb945b367cecbd6549434bb8431cda85b476c67c34ba686d1f7863f58d95"
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_atom_table.py",
+        "sha256": "f4e62c8e1e0e5ba549101a8461d6ed9ae7785b49a0986e76c4e2a197124c3e18"
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_fields.py",
+        "sha256": "c07ab9799024c3191aefa20c3a0dd4c139cebab927346cbbfeb62059094c3389"
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_dependencies.py",
+        "sha256": "fff7d46982349f076a65ef3e83a3a51fbb601bfc70c60bbe533517c6aba36259"
+      },
+      {
+        "path": "setup.py",
+        "sha256": "950088733f88a752e8d69798692fc0d6da84427eea540a1c2e6565f6c2a5f037"
+      },
+      {
+        "path": "pyproject.toml",
+        "sha256": "247a1529d57b6b8ce3dd41654311b8ff6129cd6cf18bfe699cd484905a0593c2"
+      },
+      {
+        "path": "MANIFEST.in",
+        "sha256": "d53a97c9c9fccd94619496d42836069e6eecb8886336dd31af5b6df853b06cf5"
+      },
+      {
+        "path": "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "sha256": "8b0e9a05b32924557f8f6ce46765b684465ad11fb431369fe66ef22157716aa4"
+      },
+      {
+        "path": "tests/test_cheminfo/structure/test_atom_fact_table.py",
+        "sha256": "f4ca2d89c7928dd7d348f9c0658fc3620811cef98a8f3799f0212e1ab436cff9"
+      },
+      {
+        "path": "tests/test_cheminfo/structure/test_atom_fact_update.py",
+        "sha256": "66e31de387eacc5edf3d86729fd549d2b475c94d5943006889d653695a04ccfd"
+      },
+      {
+        "path": "tests/test_cheminfo/structure/test_interface_permissions.py",
+        "sha256": "36814ee6fe9fa561dd386b60b2da3790dc7179d92dc143d2004b85ec8564460c"
+      },
+      {
+        "path": "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+        "sha256": "413263b0317ca4c06797bd10741618ad2e7125cfc2eaa69c9ba57a56d08b1da9"
+      }
+    ],
+    "predecessors": {
+      "Stage0": "complete",
+      "Stage1": "complete with selected sole Python-RDKit B20",
+      "Stage2": "complete",
+      "Stage3": "sole-table/commit integrated, performance blocked; final matrix/wheel/scientific gates open"
+    },
+    "environment": {
+      "diagnostic_python": "/tmp/hotpot-plan20-env/bin/python",
+      "python_version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+      "numpy_build_policy": "existing pybind11/numpy.h; no new NumPy C-header requirement",
+      "new_native_artifact": "absent"
+    }
+  },
+  "decision": {
+    "verdict": "accept the bounded single-native-ingress/preparation/installer architecture subject to the recorded invariant and validation gates",
+    "implementation_activation": "Parent first records the frozen Python-engine checkpoint, then explicitly assigns production owners; this document-only assignment makes no native edits.",
+    "normative_plan_change_needed": false,
+    "reason": "Language/physical execution refinement of structure-owned invariant primitives; facts, closed updates, source checks, transaction semantics and scientific algorithms retain the approved contracts.",
+    "module": "hotpot.cheminfo.structure._fact_native",
+    "initial_source": "hotpot/cheminfo/structure/_native/facts.cpp",
+    "stub": "hotpot/cheminfo/structure/_fact_native.pyi",
+    "single_authority": "Directly mutate the existing table NumPy owners; no mirror, native Molecule, second row map, new transport, mode or Python fallback.",
+    "N01": "One existing _SourceIdentity type. Immediate scalar uses nonescaping owner-token guard under the same RLock; prepared/long operations retain every named dependency and source check.",
+    "N05": {
+      "retained_type": "hotpot.cheminfo.structure._mutation._AtomFactUpdate",
+      "fields": [
+        "source",
+        "rows",
+        "atom_uids",
+        "fields",
+        "value_bytes",
+        "presence",
+        "sources"
+      ],
+      "prepared_batch_and_escaping_updates": "actual unchanged seven-field immutable record, including pickle/deepcopy/joint owner identity",
+      "immediate_scalar": "const call-local eight-byte candidate and metadata are only the same closed N05 execution representation; no second accepted/retained update type",
+      "normalization": "One scalar converter and one closed alias/shape normalizer; actual N05 factories and immediate ingress reuse them.",
+      "if_semantics_cannot_be_preserved": "Retain the actual N05 object and honestly measure; do not weaken ownership, shape, bytes or source semantics."
+    },
+    "public_effects": [
+      "No successful-call signature, permission, return, numeric domain or scientific algorithm changes.",
+      "The first factual operation now requires the built private extension; missing/wrong ABI raises explicit ImportError before facts change.",
+      "Keep updata_atoms exact spelling, approved aliases/errors/selection order and atom_matrix full19 float64 independent projection."
+    ],
+    "entries": [
+      {
+        "signature": "_commit_atom_scalar(atom, field_index: int, value, *, producer: int, present: bool = True) -> None",
+        "meaning": "Complete synchronous scalar ingress; normalize, callback-after recheck, shared installer and undo."
+      },
+      {
+        "signature": "_commit_atom_facts(mol, update: _AtomFactUpdate) -> None",
+        "meaning": "Retained prepared boundary; all source domains, rows and UIDs checked; raw sealed bytes reach same installer."
+      },
+      {
+        "signature": "_commit_atom_columns(mol, atoms, columns) -> _AtomFactUpdate",
+        "meaning": "Existing outer transaction held; atoms is None or pre-realized tuple; compiled closed preparation and install, return actual N05 for Core eager ordering/downstream reinstall."
+      },
+      {
+        "signature": "_AtomFactTable._write_prepared(selection, prepared, *, transaction=None) -> None",
+        "meaning": "Thin call to the sole physical installer/restorer; standalone validating update shares it."
+      }
+    ],
+    "schema_configuration": {
+      "owners": [
+        "structure/_fields.py",
+        "structure/_dependencies.py"
+      ],
+      "inputs": [
+        "ATOM_SCHEMA",
+        "FIELD_INDEX",
+        "FIELD_ADDRESSES",
+        "FIELD_PRESENCE_BITS",
+        "ATOM_SOURCE_CODES",
+        "ALIAS_TARGETS",
+        "ATOM_BATCH_WRITABLE",
+        "ATOM_BATCH_READONLY",
+        "GROUPS",
+        "_FactStatus",
+        "_FIELD_EFFECTS"
+      ],
+      "allowed_cached_state": "Immutable declaration lookup and module/function/class bindings only; no molecule/atom/table/ndarray/UID/results.",
+      "binding_helpers": "Engine owner may choose private helper names within these fixed semantics; they are not public API or runtime registration."
+    },
+    "transaction_contract": [
+      "Same owner RLock and same captured physical NumPy/set owners throughout install/restore; keep GIL for this slice.",
+      "After conversion callbacks recheck token, atom._mol, _uid_owner, UID, row membership and topology row; prepared updates also recheck requested N01 content domains. Rebind the current table after callback growth.",
+      "With same-owner outer transaction, capture and append a complete physical undo entry before stores; current-entry restoration uses that capture and every native failure poisons the outer even when caught.",
+      "Root ordinary scalar may use fixed-size call-local undo for one field and declared groups; use the same installer/restorer, no Python transaction object/ContextVar cycle or retained journal.",
+      "Values, source, presence, status and seed add/remove changes all rollback for BaseException/KeyboardInterrupt/MemoryError/native allocation failure; readonly checks and undo enrollment occur before stores.",
+      "Outer eager element/Bond/batch bodies preserve ordering, producer inheritance and named codes; no user callbacks between first direct store and completion of an immediate native install.",
+      "Ordered physical undo handles overlap/growth/remap/removal and original member identities; UID high-water never rewinds; no whole-table scalar copies or raw-equality skip."
+    ],
+    "compiled_core_dispatch": "Allowed native Atom.__setattr__ canonical dispatch to direct scalar ingress; preserve Atom.n/all getters, atomic_number eager body, sparse/default attributes and Bond dispatch. Bootstrap only loads/delegates and never writes numerics. Ensure self binding with an actual method descriptor (for example PyDescr_NewMethod); a plain module function assigned to the class does not automatically bind.",
+    "budget": "No new Python data record or exported pybind class needed. Keep actual N01/N05/_FactTransaction counts; record real internal C++ helper structs separately, with no claimed consolidation from language moves."
+  },
+  "evidence_inspected_or_executed": {
+    "python_engine_focused": {
+      "evidence": {
+        "path": "/tmp/plan20-engine-astra-20261029/final-focused.json",
+        "sha256": "e230e371dc32fe45a5dc3a05d739ae9346ac3296ba44013a3906987df8cd3f8b"
+      },
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/structure",
+        "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+        "tests/test_cheminfo/test_plan20_outer_cutover.py"
+      ],
+      "environment_overrides": {
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6"
+      },
+      "result": "466 passed",
+      "executed_by_this_review": false,
+      "limit": "Pre-native Python3.11 dirty-source hashes in artifact; Core whitespace later changed only formatting."
+    },
+    "frozen_python_default": {
+      "evidence": {
+        "path": ".plan20-artifacts/20261029/stage3/production-exploratory/default-python-engine-frozen/command.json",
+        "sha256": "b8bb3ea47ced466f022cb1e0bef36cee27b8fde5c210693954057395f822dc97"
+      },
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests",
+        "--junitxml=/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/production-exploratory/default-python-engine-frozen/result.xml",
+        "-o",
+        "cache_dir=/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/production-exploratory/default-python-engine-frozen/pytest-cache"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "MPLCONFIGDIR": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/production-exploratory/default-python-engine-frozen/mpl",
+        "HOTPOT_DERIVED_MODEL_HOME": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/production-exploratory/default-python-engine-frozen/derived-models",
+        "HOTPOT_MCA_MODEL_DIR": "/home/zhangzhiyuan/.cache/hotpot/models/artifacts/mca/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/mca/v1",
+        "HOTPOT_CBOND_MODEL_DIR": "/tmp/hotpot-test-models/artifacts/cbond/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/cbond/v1",
+        "PYTHONPATH": "/home/zhangzhiyuan/hotpot"
+      },
+      "result": "4349 passed, 123 skipped, 3 xfailed, 49 subtests, 10 warnings; pytest 244.26s, parent runner 246.11s",
+      "executed_by_this_review": false,
+      "production_unchanged_during_execution": true,
+      "current_source_matches_recorded_production": true,
+      "limit": "Python3.11 source before native; no wheel/matrix/scientific/performance pass."
+    },
+    "paired_engine_diagnostics": {
+      "artifacts": [
+        {
+          "path": "/tmp/plan20-engine-astra-20261029/paired-python/diagnostic.json",
+          "sha256": "1ea477ff2b733fbb9ca4b9af50ad77e3eb86f262b14f8432f769d4963ba7f489"
+        },
+        {
+          "path": "/tmp/plan20-engine-astra-20261029/paired-python-scaling/diagnostic.json",
+          "sha256": "2464267365f4ab707480c53743e22193c8be80a32f4a1838a4d3ef455c2f612d"
+        }
+      ],
+      "baseline_commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+      "runner_sha256": "e6e2e5e5a82147399a545e7bb0b770bde2d653d7f9a984aaf44b0664a66177e4",
+      "manifest_sha256": "ed5bba12ac6ae0305f6c85f7af3aa8fa824a3278fe12aad537a2f0c13768571b",
+      "ratios": {
+        "scalar_write_64": 28.81584405744699,
+        "batch_facts_64": 3.3278031276717948,
+        "write_read_64": 11.600127175167582,
+        "scalar_write_8": 27.06458855257574,
+        "scalar_write_256": 27.93745958537699,
+        "batch_facts_8": 14.368117186093842,
+        "batch_facts_256": 2.000813146869058
+      },
+      "worker_executions_with_results": 14,
+      "measured_attempts": 140,
+      "failed_measured_attempts": 0,
+      "no_output_measured_attempts": 0,
+      "separate_invalid_worker_request": {
+        "workload": "scalar_write_4096",
+        "phase": "baseline",
+        "result": "no output; workload ID not in frozen manifest",
+        "log": "/tmp/plan20-engine-astra-20261029/paired-python/baseline-scalar_write_4096.log"
+      },
+      "limit": "Shared-host checkpoint diagnostics; not global 71-entry/family/integrated acceptance."
+    },
+    "profiles": [
+      {
+        "path": "/tmp/plan20-engine-astra-20261029/after1/scalar64.txt",
+        "sha256": "0aa26f2d622c3db35eb5794508f0768513a230b15988e8b706412201f9029422"
+      },
+      {
+        "path": "/tmp/plan20-engine-astra-20261029/after1/batch64.txt",
+        "sha256": "b4868400ab7f42937b4ac20c4ab32a2e1dcf49047b1644ad7964a8a7c6ff57b3"
+      },
+      {
+        "path": "/tmp/plan20-native-entry-review-20261029/actual_ingress_and_engine.prof",
+        "sha256": "ad6186038cae4f2600d60dc6ca8a9f8dfb53ded6e8f6c72692d964ecd9a27f85"
+      },
+      {
+        "path": "/tmp/plan20-native-entry-review-20261029/ingress_only_noop_engine.prof",
+        "sha256": "8ae3d1db32f422612e437631b2f5be44d20ae39f612f62f7228b0d2d36c3ba7f"
+      }
+    ],
+    "ingress_isolation_executed": {
+      "artifact": {
+        "path": "/tmp/plan20-native-entry-review-20261029/ingress-isolation.json",
+        "sha256": "d02cf39ffbfe8353f155d60fd4862d2dcdb7827167db7a0565bb67d1e3004089"
+      },
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-"
+      ],
+      "stdin_identity": "Exact executed stdin is retained in the functions.exec tool command for this review; artifact records profile and all samples.",
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "environment_overrides": {
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6"
+      },
+      "affinity": [
+        0
+      ],
+      "warmups_per_mode": 3,
+      "measured_samples_per_mode": 10,
+      "assignments_per_sample": 64000,
+      "actual_microseconds": 10.711606082622893,
+      "python_dispatch_with_noop_engine_microseconds": 0.21751220629084855,
+      "source_stable": true,
+      "elapsed_seconds": 7.599822759628296,
+      "limit": "No-op mode is deliberately non-equivalent diagnostic work; never a candidate speedup/acceptance value."
+    },
+    "fresh_import_trace_executed": {
+      "artifact": {
+        "path": "/tmp/plan20-native-entry-review-20261029/import-only-trace.json",
+        "sha256": "9860a2816369fa1948f6dbe8edec0662bbb56e68eaab2be1636fa5605a8b911a"
+      },
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-"
+      ],
+      "operation": "sys.setprofile constructor trace around import hotpot; import hotpot.cheminfo.structure in fresh process",
+      "constructor_count": 0,
+      "native_module_names_observed": [
+        "hotpot.cheminfo._native",
+        "hotpot.cheminfo.geometry._geometry_native"
+      ],
+      "fact_native_loaded": false,
+      "limit": "Pre-native source diagnostic; existing geometry/toolkit eager debt remains. Repeat absence/presence on actual native source and wheels."
+    }
+  },
+  "failure_test_map": [
+    {
+      "existing": "test_atom_fact_table.py::test_interrupted_write_restores_current_earlier_and_uninstalled_columns; test_metadata_write_interruption_restores_numeric_presence_and_source",
+      "native": "Operation-local failpoints after actual value/source/presence stores for scalar and bulk standalone update; keep every restoration assertion."
+    },
+    {
+      "existing": "test_commit_atomicity.py::test_commit_restores_write_that_raises_after_mutation",
+      "native": "Public scalar/batch value/source/presence/status failpoints plus seed-add/seed-remove; both KeyboardInterrupt and MemoryError."
+    },
+    {
+      "existing": "np.ndarray subclass WriteThenInterrupt/_WriteThenRaise __setitem__ hooks",
+      "native": "Explicit old-to-new mapping because direct C++ stores bypass Python hooks; do not count an unexecuted hook as evidence. Readonly preflight remains before first store."
+    },
+    {
+      "existing": "caught nested failure, producer inheritance, overlap/grow/remove/remove_then_grow cases",
+      "native": "Same single ordered journal, current-entry restoration, outer poisoning, raw bits/status/seeds/handles and non-reused UID checks."
+    },
+    {
+      "existing": "source/UID/permission/alias/serialization/publication tests",
+      "native": "Add conversion callback membership/source changes, callback growth, malformed readonly targets, no alias, N01/N05 joint pickle and exact raw NaN/-0/fractional values."
+    },
+    {
+      "existing": "import/native package tests",
+      "native": "No _fact_native on import; first fact op loads once; missing/wrong ABI explicit ImportError; fresh source and installed wheels for 3.10-3.14."
+    }
+  ],
+  "implementation_ownership": [
+    {
+      "owner": "parent-assigned existing bounded engine-performance task",
+      "files": [
+        "hotpot/cheminfo/structure/_native/facts.cpp",
+        "hotpot/cheminfo/structure/_fact_native.pyi",
+        "hotpot/cheminfo/structure/_commit.py",
+        "hotpot/cheminfo/structure/_mutation.py",
+        "hotpot/cheminfo/structure/_atom_table.py",
+        "hotpot/cheminfo/structure/_fields.py if declaration plumbing needed",
+        "hotpot/cheminfo/structure/_dependencies.py if declaration plumbing needed",
+        "tests/test_cheminfo/structure/test_fact_native.py",
+        "affected engine/table/dependency/atomicity tests"
+      ],
+      "excluded": [
+        "Core",
+        "build files",
+        "parent maintained records"
+      ]
+    },
+    {
+      "owner": "parent-assigned Sol-max Core integration task after hook freeze",
+      "files": [
+        "hotpot/cheminfo/core.py",
+        "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+        "affected permission tests as explicitly assigned"
+      ],
+      "responsibility": "Lazy compiled dispatch, scalar/closed batch ingress and existing scientific ordering; do not copy engine."
+    },
+    {
+      "owner": "/root",
+      "files": [
+        "setup.py",
+        "MANIFEST.in",
+        "pyproject.toml package data if needed",
+        "build/import/wheel evidence",
+        "budget/interface/verification/implementation log"
+      ],
+      "responsibility": "Single C++17 Pybind11Extension; five-ABI source/wheel/sdist builds and source/artifact identities; no separate RD driver or new external link."
+    }
+  ],
+  "remaining_gates": [
+    "Parent checkpoint commit records Python source/default/architecture evidence and unfavorable diagnostics, without Stage3/performance approval.",
+    "No active duplicate Python native normalizer/store/restore path at coherent cutover; missing extension never falls back.",
+    "All exact Stage3 existing five targets plus complete new/affected contracts on Python3.10-3.14 and full default on frozen final bytes.",
+    "Each ABI freshly built; wheel/sdist membership, actual imported source/extension paths and hash/RECORD identities outside checkout; fresh lazy-loader failures and both toolkit-use orders.",
+    "Strict architecture ratchet and actual public/class/helper budgets; no allowlist growth.",
+    "Frozen 71-entry individual/family/integrated performance and memory comparison with existing outcome/sample/exception policy; scalar/bulk/store microbenchmarks alone cannot close it.",
+    "Declared scientific report tiers preserve sole Python-RDKit MCA/O0 route and monitors; no fixed187/182 success criterion.",
+    "No Stage4 or later-stage implementation under this task."
+  ]
+}

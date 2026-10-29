@@ -8,6 +8,8 @@ python v3.9.0
 """
 import os
 from ._io import MolWriter
+from ..structure._commit import _FactTransaction
+from ..structure._fields import ATOM_SOURCE_CODES
 
 
 def _gjf_link0(link0: str):
@@ -22,7 +24,8 @@ def _gjf_route(route: str):
 def to_gjf_preprocess(writer, mol, *args, **kwargs):
 
     if not kwargs.get('miss_charge_calc', False) or not writer.kwargs.get('miss_charge_calc', False):
-        mol.charge = mol.calc_mol_default_charge()
+        with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["explicit"]):
+            mol.charge = mol.calc_mol_default_charge()
 
     writer.ob_opt.update({'b': None})
     print(f"mol charge: {mol.charge}")

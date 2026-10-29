@@ -83,7 +83,9 @@ from .trajectory import (
     ForceFieldTrajectoryArchive,
     TrajectoryStart,
 )
-from .working_copy import _commit_working_copy, _hydrogenated_working_copy, _make_worker_mol
+from .working_copy import (
+    _capture_working_source, _commit_working_copy, _hydrogenated_working_copy, _make_worker_mol,
+)
 from .workers import (
     _build_ligand_proxies_worker,
     _receive_worker_result,
@@ -185,6 +187,7 @@ def _prepare_complex_working_mol(
     trajectory_path: Optional[TrajectoryPath] = None,
     coordination_geometry: Optional[str],
     sampler: Optional[ConformerSampler] = None,
+    source: tuple | None = None,
 ) -> _PreparedComplex:
     """Run Stage 1 and return built ligand coordinates without restoring bonds."""
     if max_attempts < 1:
@@ -205,6 +208,7 @@ def _prepare_complex_working_mol(
         mol,
         add_hydrogens=add_hydrogens,
         seed=seed,
+        source=source,
     )
     trajectory = ForceFieldTrajectory.from_molecule(
         working_mol,
@@ -510,6 +514,7 @@ def _complexes_build_workflow(
     sampler: Optional[ConformerSampler] = None,
 ) -> ComplexBuildReport:
     """Build, optimize, validate, and atomically commit a complete complex."""
+    source = _capture_working_source(mol)
     _require_explicit_complex(mol)
     topology_reference = capture_topology(
         mol,
@@ -532,6 +537,7 @@ def _complexes_build_workflow(
         trajectory_path=trajectory_path,
         coordination_geometry=coordination_geometry,
         sampler=sampler,
+        source=source,
     )
     session_input = pack_complex_session_input(prepared.mol)
     coordination_options = _coordination_options(
@@ -645,7 +651,7 @@ def _complexes_build_workflow(
         quality_report=optimization_report.quality_report,
         trajectory=trajectory_archive,
     )
-    _commit_working_copy(mol, prepared.mol)
+    _commit_working_copy(mol, prepared.mol, source=source)
     return report
 
 
@@ -661,6 +667,7 @@ def _build3d_workflow(
     timeout: float = 1000.0,
 ) -> Build3DReport:
     """Generate initial 3D coordinates with OBBuilder, without optimization."""
+    source = _capture_working_source(mol)
     topology_reference = capture_topology(
         mol,
         allow_added_hydrogens=add_hydrogens,
@@ -670,6 +677,7 @@ def _build3d_workflow(
         mol,
         add_hydrogens=add_hydrogens,
         seed=seed,
+        source=source,
     )
     if seed is None:
         _ob_build(working_mol)
@@ -691,7 +699,7 @@ def _build3d_workflow(
         added_hydrogen_count=len(working_mol.hydrogens) - initial_hydrogens,
         quality_report=quality_report,
     )
-    _commit_working_copy(mol, working_mol)
+    _commit_working_copy(mol, working_mol, source=source)
     return report
 
 
@@ -734,6 +742,7 @@ def optimize(
     vdw_cutoff_end: float = 12.5,
 ) -> ForceFieldRunReport:
     """Run the ordinary Open Babel optimizer, including on explicit complexes."""
+    source = _capture_working_source(mol)
     topology_reference = capture_topology(
         mol,
         allow_added_hydrogens=add_hydrogens,
@@ -742,6 +751,7 @@ def optimize(
         mol,
         add_hydrogens=add_hydrogens,
         seed=seed,
+        source=source,
     )
     trajectory = ForceFieldTrajectory.from_molecule(
         working_mol,
@@ -794,7 +804,7 @@ def optimize(
         trajectory_path=trajectory_path,
     )
     report = replace(report, trajectory=trajectory_archive)
-    _commit_working_copy(mol, working_mol)
+    _commit_working_copy(mol, working_mol, source=source)
     return report
 
 
@@ -820,6 +830,7 @@ def _build_complex3d_workflow(
     sampler: Optional[ConformerSampler] = None,
 ) -> ComplexBuildReport:
     """Build ligand proxies and restore the complete complex topology."""
+    source = _capture_working_source(mol)
     _require_explicit_complex(mol)
     topology_reference = capture_topology(
         mol,
@@ -842,6 +853,7 @@ def _build_complex3d_workflow(
         trajectory_path=trajectory_path,
         coordination_geometry=coordination_geometry,
         sampler=sampler,
+        source=source,
     )
     session_input = pack_complex_session_input(prepared.mol)
     session = create_coordination_session(session_input)
@@ -920,7 +932,7 @@ def _build_complex3d_workflow(
         quality_report=quality_report,
         trajectory=trajectory_archive,
     )
-    _commit_working_copy(mol, prepared.mol)
+    _commit_working_copy(mol, prepared.mol, source=source)
     return report
 
 
@@ -1000,6 +1012,7 @@ def optimize_complex(
     vdw_cutoff_end: float = 12.5,
 ) -> ForceFieldRunReport:
     """Optimize existing complex coordinates with the complex force-field policy."""
+    source = _capture_working_source(mol)
     _require_explicit_complex(mol)
     topology_reference = capture_topology(
         mol,
@@ -1009,6 +1022,7 @@ def optimize_complex(
         mol,
         add_hydrogens=add_hydrogens,
         seed=seed,
+        source=source,
     )
     trajectory = ForceFieldTrajectory.from_molecule(
         working_mol,
@@ -1083,7 +1097,7 @@ def optimize_complex(
         trajectory_path=trajectory_path,
     )
     report = replace(report, trajectory=trajectory_archive)
-    _commit_working_copy(mol, working_mol)
+    _commit_working_copy(mol, working_mol, source=source)
     return report
 
 
@@ -1159,7 +1173,8 @@ def _build_and_optimize_workflow(
             sampler=sampler,
         )
 
-    working_mol = _hydrogenated_working_copy(mol, add_hydrogens=False)
+    source = _capture_working_source(mol)
+    working_mol = _hydrogenated_working_copy(mol, add_hydrogens=False, source=source)
     build_report = _build3d_workflow(
         working_mol,
         add_hydrogens=add_hydrogens,
@@ -1191,7 +1206,7 @@ def _build_and_optimize_workflow(
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
     )
-    _commit_working_copy(mol, working_mol)
+    _commit_working_copy(mol, working_mol, source=source)
     return BuildAndOptimizeReport(
         requested_forcefield=optimization_report.requested_forcefield,
         effective_forcefield=optimization_report.effective_forcefield,

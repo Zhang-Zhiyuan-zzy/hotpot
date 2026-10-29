@@ -106,6 +106,7 @@ def _preliminary_attempt(
 ) -> auto_workflow._NativeFastBuildAttempt:
     return auto_workflow._NativeFastBuildAttempt(
         mol=copy(molecule),
+        source=auto_workflow._capture_working_source(molecule),
         trajectory=_trajectory(molecule),
         report=report,
         provenance=ff.OptimizationAttemptReport(
@@ -272,7 +273,7 @@ def test_native_success_commits_once_without_complex_workflow(monkeypatch):
     monkeypatch.setattr(
         auto_workflow,
         "_commit_working_copy",
-        lambda original, completed: commits.append((original, completed)),
+        lambda original, completed, **options: commits.append((original, completed)),
     )
 
     result = auto_workflow.auto_optimize(molecule)
@@ -317,7 +318,7 @@ def test_rejected_native_attempt_runs_full_workflow_from_pristine_source(monkeyp
     monkeypatch.setattr(
         auto_workflow,
         "_commit_working_copy",
-        lambda original, completed: commits.append((original, completed)),
+        lambda original, completed, **options: commits.append((original, completed)),
     )
 
     result = auto_workflow.auto_optimize(

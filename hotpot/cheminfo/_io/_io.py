@@ -6,6 +6,8 @@ python v3.9.0
 @Data   : 2024/12/5
 @Time   : 10:08
 """
+from dataclasses import replace
+
 import os
 import re
 import sys
@@ -20,6 +22,9 @@ from openbabel import openbabel as ob, pybel as pb
 
 from hotpot.cheminfo.obconvert import obmol2mol, set_obmol_coordinates, get_ob_conversion
 from hotpot.cheminfo.pubchem import pubchem_service
+from ..elements import elements
+from ..structure._builder import _freeze_value
+from ..structure._fields import ATOM_SOURCE_CODES, FIELD_PRESENCE_BITS
 
 # set Openbabel Message
 ob_log_handler = ob.OBMessageHandler()
@@ -87,17 +92,6 @@ def _extract_force_matrix(lines, atomic_numbers):
 
     return np.array(all_forces)
 
-
-def _align_unit(conformers):
-    _energies = ('zero_point', 'gibbs', 'enthalpy', 'entropy')
-    _hartree2ev = 27.211386245988
-
-    item: cython.char
-    for item in _energies:
-        try:
-            setattr(conformers, f'_{item}', getattr(conformers, f"_{item}") * _hartree2ev)
-        except (TypeError, AttributeError):
-            continue
 
 def _extract_g16_thermo(lines):
     # Grab thermal energy, delta capacity at volume, delta entropy
@@ -254,49 +248,47 @@ class MolReader(IoBase):
             raise ValueError(f'read a incorrect MOL file!! {self.fmt}')
 
         mol = core.Molecule()
-        mol.charge = data.charge
-        mol.spin_mult = data.mult
-
-        _create_atom = getattr(mol, '_create_atom')
-        for atomic_number in data.atomnos:
-            _create_atom(atomic_number=atomic_number)
-
-        # get information about the coordination collections
-        conformers = mol.conformers
-        if hasattr(data, 'atomcoords'):
-            setattr(conformers, '_coordinates', getattr(data, 'atomcoords'))
-
-        # get information about the energy (SCF energies) vector
-        if hasattr(data, 'scfenergies'):
-            setattr(conformers, '_energy', getattr(data, 'scfenergies'))
-
+        initial = mol._capture_factual_record()[0]
+        coordinates = np.array(data.atomcoords, copy=True) if hasattr(data, 'atomcoords') else None
+        energies = np.array(data.scfenergies, copy=True) if hasattr(data, 'scfenergies') else None
+        partial_charges = None
         if hasattr(data, "atomcharges"):
             if data.atomcharges['mulliken'].ndim == 1:
                 partial_charges = np.zeros(data.atomcoords.shape[:-1])
                 partial_charges[-1] = data.atomcharges['mulliken']
             else:
-                partial_charges = data.atomcharges['mulliken']
-            setattr(conformers, '_partial_charge', partial_charges)
-
-        setattr(conformers, '_gibbs', getattr(data, 'freeenergy', None))
-        setattr(conformers, '_zero_point', getattr(data, 'zpve', None))
-        setattr(conformers, '_spin_mult', getattr(data, 'mult', None))
-
-
+                partial_charges = np.array(data.atomcharges['mulliken'], copy=True)
+        gibbs = getattr(data, 'freeenergy', None)
+        zero_point = getattr(data, 'zpve', None)
+        if gibbs is not None:
+            gibbs = gibbs * 27.211386245988
+        if zero_point is not None:
+            zero_point = zero_point * 27.211386245988
         if self.src_type == 'str':
             lines = self.src.splitlines()
         else:
             with open(self.src) as file:
                 lines = file.readlines()
-
         thermo, capacity = _extract_g16_thermo(lines)
-        setattr(conformers, '_thermo', thermo)
-        setattr(conformers, '_capacity', capacity)
-
-        setattr(conformers, '_force', _extract_force_matrix(lines, data.atomnos))
-
-        _align_unit(conformers)
-        mol.conformer_load(-1)  # load conformer
+        forces = _extract_force_matrix(lines, data.atomnos)
+        frames = (coordinates, energies, partial_charges, gibbs, forces,
+                  zero_point, data.mult, thermo, capacity)
+        values = np.zeros((len(data.atomnos), 19), dtype="<f8")
+        values[:, 0] = data.atomnos
+        values[:, 1:7] = [elements.electron_configs[number] for number in data.atomnos]
+        # The same selected last frame formerly loaded by conformer_load(-1).
+        values[:, 10:13] = coordinates[-1]
+        presence = np.full(len(values), sum(FIELD_PRESENCE_BITS[index] for index in (*range(7), 10, 11, 12)), dtype="<u4")
+        sources = np.zeros(values.shape, dtype="u1")
+        sources[:, (0, 10, 11, 12)] = ATOM_SOURCE_CODES["cclib"]
+        sources[:, 1:7] = ATOM_SOURCE_CODES["electron_configuration"]
+        record = replace(
+            initial, atom_count=len(values), atom_values=values.tobytes(),
+            atom_presence=presence.tobytes(), atom_sources=sources.tobytes(),
+            charge=(True, data.charge, "cclib"), spin_mult=(True, data.mult, "cclib"),
+            legacy_frame_values=tuple(_freeze_value(value) for value in frames), legacy_frame_index=-1,
+        )
+        mol._install_molecule(record)
 
         mol.link_atoms(assign_bond_order=False)
         mol.determine_rings_aromatic()

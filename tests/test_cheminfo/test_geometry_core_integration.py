@@ -4,7 +4,8 @@ import math
 
 import pytest
 
-from hotpot.cheminfo import geometry
+from hotpot.cheminfo.rules.mathematics import geometry
+from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from hotpot.cheminfo.core import Molecule, NotInSameMolecule
 
 
@@ -83,7 +84,7 @@ def test_ring_facades_preserve_sources_and_same_molecule_validation() -> None:
     assert finding.relation.state is geometry.PiercingState.PIERCES
 
     closest = ring.closest_edge_to_bond(probe)
-    assert isinstance(closest, geometry.RingEdgeDistance)
+    assert isinstance(closest, geometry_adapter.RingEdgeDistance)
     assert closest.bond is ring.bonds[closest.measurement.edge_index]
     assert closest.measurement.distance == pytest.approx(1.0)
 

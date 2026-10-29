@@ -26,7 +26,7 @@ from hotpot.cheminfo.forcefields.trajectory import (
     TrajectoryEvent,
     TrajectoryStage,
 )
-from hotpot.cheminfo.geometry import PiercingState, SegmentCycleIndeterminacy
+from hotpot.cheminfo.rules.mathematics.geometry import PiercingState, SegmentCycleIndeterminacy
 from hotpot.cheminfo.obWrappers import _ob_native
 
 

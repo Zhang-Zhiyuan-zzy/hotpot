@@ -11,9 +11,9 @@ from typing import Callable, Iterator, Union
 
 import pytest
 
-from hotpot.cheminfo.geometry import native, relation
-from hotpot.cheminfo.geometry.object import Cycle, Segment
-from hotpot.cheminfo.geometry.relation import (
+from hotpot.cheminfo.rules.mathematics.geometry import native, relation
+from hotpot.cheminfo.rules.mathematics.geometry.object import Cycle, Segment
+from hotpot.cheminfo.rules.mathematics.geometry.relation import (
     PiercingState,
     SegmentCycleRelation,
     SegmentCycleScreening,
@@ -241,7 +241,7 @@ def test_cold_import_reports_a_missing_native_extension() -> None:
 
         sys.meta_path.insert(0, BlockGeometryNative())
         try:
-            import hotpot.cheminfo.geometry
+            import hotpot.cheminfo.rules.mathematics.geometry
         except ImportError as error:
             assert "native extension is unavailable" in str(error)
         else:

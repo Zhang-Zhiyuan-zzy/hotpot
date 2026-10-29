@@ -6,7 +6,7 @@ import numpy as np
 
 from hotpot.utils import types
 
-from .matrix import adj2laplacian
+from hotpot.cheminfo.rules.mathematics.graph.matrix import adj2laplacian
 
 
 __all__ = (

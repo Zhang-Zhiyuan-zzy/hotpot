@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Optional, Union
 import numpy as np
 from numpy.typing import NDArray
 
-from ..geometry.settings import DEFAULT_GEOMETRY_SETTINGS, GeometrySettings
+from ..rules.mathematics.geometry.settings import DEFAULT_GEOMETRY_SETTINGS, GeometrySettings
 from ..obWrappers.native import _native_module
 from ..obWrappers.contracts import ConvergenceLevel, DEFAULT_CONVERGENCE_LEVEL
 from ..obWrappers.settings import (

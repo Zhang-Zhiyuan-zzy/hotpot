@@ -1,0 +1,498 @@
+{
+  "schema_version": 1,
+  "stage": "Stage4",
+  "status": "Measured focused regressions; no efficiency exception approved; bounded optimization pending",
+  "execution": {
+    "path": ".plan20-artifacts/20261029/stage4/performance-attempt1/execution.json",
+    "bytes": 284417,
+    "sha256": "3d5d138b998fbb94f882bdbbacf62f148b717efa745e2f73c8d24e16e8bc7c4c"
+  },
+  "recorded_wrapper": {
+    "path": ".plan20-artifacts/20261029/stage4/performance-wrapper-attempt1/command.json",
+    "bytes": 421342,
+    "sha256": "dc2471fee640c1d067945183627d86a19590cc911345c97609ca60758004279f"
+  },
+  "driver": {
+    "path": ".plan20-artifacts/20261029/stage4/validation-helpers/run_stage4_performance.py",
+    "bytes": 6226,
+    "sha256": "fbef9350997f07977046c7dfe1bfe1f3972e7e775f7b6fda727d0125b5f45e91"
+  },
+  "baseline_report": {
+    "path": ".plan20-artifacts/20261029/stage4/performance-attempt1/baseline-report.json",
+    "bytes": 67728,
+    "sha256": "00fb6576da72131174b880b9eecfcfe9013abbfb1e9faace55de960ab218f7d0"
+  },
+  "candidate_report": {
+    "path": ".plan20-artifacts/20261029/stage4/performance-attempt1/candidate-report.json",
+    "bytes": 73678,
+    "sha256": "765c77efb7401e2ceb02776f3e5924ca83d29378004fa4517c55ce04a9e10f93"
+  },
+  "comparison": {
+    "path": ".plan20-artifacts/20261029/stage4/performance-attempt1/comparison/comparison.json",
+    "bytes": 64952,
+    "sha256": "0a093e0c7ab9acc92a4c9d3188c29440f8493be187cc21c833367a1c80fa1f77"
+  },
+  "manifest": {
+    "path": "plan/20_fact_rule_architecture/performance_manifest.json",
+    "bytes": 34761,
+    "sha256": "ed5bba12ac6ae0305f6c85f7af3aa8fa824a3278fe12aad537a2f0c13768571b"
+  },
+  "sampling": {
+    "path": "plan/20_fact_rule_architecture/stages/stage01/sampling/sampling_plan.json",
+    "bytes": 5470,
+    "sha256": "be75408f19e3e860c4493e12b217095f9f757c7ec66d933df12811c6d75689f4"
+  },
+  "runner": {
+    "path": "plan/20_fact_rule_architecture/run_performance_baseline.py",
+    "bytes": 26240,
+    "sha256": "e6e2e5e5a82147399a545e7bb0b770bde2d653d7f9a984aaf44b0664a66177e4"
+  },
+  "candidate_binding": {
+    "path": "plan/20_fact_rule_architecture/_performance_workloads.py",
+    "bytes": 12130,
+    "sha256": "8c9cbb7822e90914460fa887a58dfa0e09b496549ed7d5395918ccd3b774ff0b"
+  },
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63
+  ],
+  "warmups": 3,
+  "samples": 10,
+  "workers": 6,
+  "total_attempts": 78,
+  "measured_attempts": 60,
+  "failed_or_no_output": 0,
+  "work_counters_equal": true,
+  "source_native_stable": true,
+  "environment_mismatches": [],
+  "workloads": [
+    {
+      "id": "graph_search_geometry",
+      "family": "graph_search_geometry",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "weight": 1.0,
+      "aggregate_runtime": true,
+      "baseline_attempts": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.1067377757281065,
+        "median_seconds": 0.010654222220182419,
+        "mad_seconds": 5.661137402057648e-05,
+        "p95_seconds": 0.010899484250694513,
+        "peak_rss_bytes": 199708672
+      },
+      "candidate_attempts": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.4320162162184715,
+        "median_seconds": 0.043181429617106915,
+        "mad_seconds": 3.521237522363663e-05,
+        "p95_seconds": 0.04334650989621878,
+        "peak_rss_bytes": 198307840
+      },
+      "paired_samples": 10,
+      "excluded_samples": [],
+      "comparable": true,
+      "runtime_ratio": 4.052987512810445,
+      "paired_bootstrap_95ci": [
+        4.040178164687011,
+        4.081164704088131
+      ],
+      "peak_rss_ratio": 0.992985622577271,
+      "paired_indices": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "paired_seconds": [
+        [
+          0.010721689090132713,
+          0.04337223060429096
+        ],
+        [
+          0.010576143860816956,
+          0.04331507347524166
+        ],
+        [
+          0.010646756738424301,
+          0.043212831020355225
+        ],
+        [
+          0.011044953018426895,
+          0.04318487457931042
+        ],
+        [
+          0.010561695322394371,
+          0.04314213618636131
+        ],
+        [
+          0.010673699900507927,
+          0.043097130954265594
+        ],
+        [
+          0.010580062866210938,
+          0.04317798465490341
+        ],
+        [
+          0.010662620887160301,
+          0.04314240626990795
+        ],
+        [
+          0.010661687701940536,
+          0.04316000081598759
+        ],
+        [
+          0.01060846634209156,
+          0.043211547657847404
+        ]
+      ],
+      "status": "regression",
+      "reasons": []
+    },
+    {
+      "id": "geometry_screen",
+      "family": "graph_search_geometry",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "weight": 1.0,
+      "aggregate_runtime": true,
+      "baseline_attempts": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.07418017834424973,
+        "median_seconds": 0.007398396730422974,
+        "mad_seconds": 3.715883940458298e-05,
+        "p95_seconds": 0.007624339591711759,
+        "peak_rss_bytes": 197664768
+      },
+      "candidate_attempts": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.07404601387679577,
+        "median_seconds": 0.007375697605311871,
+        "mad_seconds": 2.8082169592380524e-05,
+        "p95_seconds": 0.00761691266670823,
+        "peak_rss_bytes": 169127936
+      },
+      "paired_samples": 10,
+      "excluded_samples": [],
+      "comparable": true,
+      "runtime_ratio": 0.996931885929047,
+      "paired_bootstrap_95ci": [
+        0.9903487256453926,
+        1.0058755319642476
+      ],
+      "peak_rss_ratio": 0.8556301545857682,
+      "paired_indices": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "paired_seconds": [
+        [
+          0.007303003221750259,
+          0.007434593513607979
+        ],
+        [
+          0.0073164477944374084,
+          0.007372234016656876
+        ],
+        [
+          0.007366016507148743,
+          0.0073823463171720505
+        ],
+        [
+          0.007421256974339485,
+          0.0077660828828811646
+        ],
+        [
+          0.007347350940108299,
+          0.0073791611939668655
+        ],
+        [
+          0.007398797199130058,
+          0.007355395704507828
+        ],
+        [
+          0.007440334185957909,
+          0.007398694753646851
+        ],
+        [
+          0.0077748894691467285,
+          0.007300319150090218
+        ],
+        [
+          0.007414085790514946,
+          0.0073425304144620895
+        ],
+        [
+          0.007397996261715889,
+          0.007314655929803848
+        ]
+      ],
+      "status": "parity",
+      "reasons": []
+    },
+    {
+      "id": "crystal_matrix",
+      "family": "values_collections",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "weight": 1.0,
+      "aggregate_runtime": true,
+      "baseline_attempts": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.02084561623632908,
+        "median_seconds": 0.002087073400616646,
+        "mad_seconds": 9.568408131599426e-06,
+        "p95_seconds": 0.002096644416451454,
+        "peak_rss_bytes": 197128192
+      },
+      "candidate_attempts": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.02306259050965309,
+        "median_seconds": 0.0023017413914203644,
+        "mad_seconds": 6.185844540596008e-06,
+        "p95_seconds": 0.0023360750637948513,
+        "peak_rss_bytes": 168747008
+      },
+      "paired_samples": 10,
+      "excluded_samples": [],
+      "comparable": true,
+      "runtime_ratio": 1.1028559851993192,
+      "paired_bootstrap_95ci": [
+        1.09771770677785,
+        1.1121533557458338
+      ],
+      "peak_rss_ratio": 0.8560267625241549,
+      "paired_indices": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "paired_seconds": [
+        [
+          0.0020966678857803345,
+          0.002301366999745369
+        ],
+        [
+          0.002086106687784195,
+          0.002295706421136856
+        ],
+        [
+          0.002094374969601631,
+          0.0023049823939800262
+        ],
+        [
+          0.00207381509244442,
+          0.002308417111635208
+        ],
+        [
+          0.002075348049402237,
+          0.002350127324461937
+        ],
+        [
+          0.002096615731716156,
+          0.0022954046726226807
+        ],
+        [
+          0.0020880401134490967,
+          0.0022850148379802704
+        ],
+        [
+          0.0020942334085702896,
+          0.00231890007853508
+        ],
+        [
+          0.0020660609006881714,
+          0.0023005548864603043
+        ],
+        [
+          0.0020743533968925476,
+          0.00230211578309536
+        ]
+      ],
+      "status": "regression",
+      "reasons": []
+    }
+  ],
+  "graph_family": {
+    "members": [
+      "graph_search_geometry",
+      "geometry_screen"
+    ],
+    "comparable_members": [
+      "graph_search_geometry",
+      "geometry_screen"
+    ],
+    "complete": true,
+    "geometric_mean_runtime_ratio": 2.010112555254803,
+    "paired_bootstrap_95ci": [
+      2.0028417094316606,
+      2.0224089152828615
+    ]
+  },
+  "memory_probes": [
+    {
+      "id": "graph_search_geometry",
+      "memory_probe_baseline": {
+        "python_tracked_retained_bytes": 37478,
+        "python_tracked_peak_bytes": 42396,
+        "python_tracked_blocks": 488,
+        "timing_included": false,
+        "rss_bytes": 199708672,
+        "peak_rss_bytes": 199708672
+      },
+      "memory_probe_candidate": {
+        "python_tracked_retained_bytes": 61612,
+        "python_tracked_peak_bytes": 86786,
+        "python_tracked_blocks": 669,
+        "timing_included": false,
+        "rss_bytes": 198307840,
+        "peak_rss_bytes": 198307840
+      }
+    },
+    {
+      "id": "geometry_screen",
+      "memory_probe_baseline": {
+        "python_tracked_retained_bytes": 29996,
+        "python_tracked_peak_bytes": 32020,
+        "python_tracked_blocks": 526,
+        "timing_included": false,
+        "rss_bytes": 197664768,
+        "peak_rss_bytes": 197664768
+      },
+      "memory_probe_candidate": {
+        "python_tracked_retained_bytes": 28826,
+        "python_tracked_peak_bytes": 30850,
+        "python_tracked_blocks": 507,
+        "timing_included": false,
+        "rss_bytes": 169127936,
+        "peak_rss_bytes": 169127936
+      }
+    },
+    {
+      "id": "crystal_matrix",
+      "memory_probe_baseline": {
+        "python_tracked_retained_bytes": 0,
+        "python_tracked_peak_bytes": 801,
+        "python_tracked_blocks": 2,
+        "timing_included": false,
+        "rss_bytes": 197128192,
+        "peak_rss_bytes": 197128192
+      },
+      "memory_probe_candidate": {
+        "python_tracked_retained_bytes": 0,
+        "python_tracked_peak_bytes": 801,
+        "python_tracked_blocks": 2,
+        "timing_included": false,
+        "rss_bytes": 168747008,
+        "peak_rss_bytes": 168747008
+      }
+    }
+  ],
+  "limits": [
+    "Shared host; no concurrent task tests/builds intentionally scheduled; load before/after retained, no exclusive-host claim.",
+    "This focused subset is not the final71-entry scientific/end-to-end/global efficiency or overall memory acceptance.",
+    "Peak RSS changes and export gains do not compensate for runtime regressions; prior Stage3 regressions remain open.",
+    "Sol/max first reviews minimal view/mathematical dispatch optimizations with contracts and workloads unchanged; current checkpoint remains frozen."
+  ]
+}

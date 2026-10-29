@@ -1,0 +1,3179 @@
+{
+  "schema_version": 1,
+  "stage": "Stage4",
+  "status": "Frozen implementation handoff v2; parent full owning-stage validation and final report determine completion",
+  "entry": "../entry_review.json",
+  "contract_schema": "../contracts/schema.json",
+  "review": "../review.md",
+  "source_freeze": {
+    "path": ".plan20-artifacts/20261029/stage4/owner_freeze_v2.json",
+    "sha256": "ba7cfde0fcad742b48a32d0a70a4d3289bed7314b4a85454cd12a4fe810691a0",
+    "bytes": 140036
+  },
+  "superseded_freeze": {
+    "path": ".plan20-artifacts/20261029/stage4/owner_freeze.json",
+    "sha256": "5b381f30bb99c3f50570622981d8e5c67c585960e1784a65e80ed787a66c943f",
+    "bytes": 128720
+  },
+  "production_files": [
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "sha256": "6f30b1cb3f79151c18ab184df8f2a008b25e3d1e5ee38106766e816a1beda8d6",
+      "bytes": 230932
+    },
+    {
+      "path": "hotpot/cheminfo/crystal.py",
+      "sha256": "1818c58e5e457f81dc5dc96a29935a6ef82f32035f1d748982cec659b6093aa0",
+      "bytes": 802
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_builder.py",
+      "sha256": "2c3ac46a8e0b8a72710d304f037d1caf05a044d733c9d72e9ee72eba8b42d49d",
+      "bytes": 16082
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_commit.py",
+      "sha256": "0ea72b7b3b706dc5123bf5da1c4ebddcc848b6fa54b0b8dea48bf96ef6b3bb9a",
+      "bytes": 21515
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_identity.py",
+      "sha256": "09f0dbf0c4ad33baa2fe17259baca5d8dcfd0440369e6a454a008fa2f0709316",
+      "bytes": 8968
+    },
+    {
+      "path": "hotpot/cheminfo/structure/constraints.py",
+      "sha256": "c68efd369cc78c5ae77ad75cd9e0db36167692b96225e2c02b65348f56db2272",
+      "bytes": 979
+    },
+    {
+      "path": "hotpot/cheminfo/views/_source.py",
+      "sha256": "90ed2b9678ae24b3e2924257b3ad8a2a72c3ee77b0cd74873e5fe83f8c345ccb",
+      "bytes": 3589
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/working_copy.py",
+      "sha256": "6800a945816861928aad10fcdcb692e03ffdd770f03271c6311919f48d7e2abf",
+      "bytes": 10642
+    },
+    {
+      "path": "hotpot/cheminfo/rules/mathematics/internal_coordinates.py",
+      "sha256": "9a7f20cea66a68c68988ae9933e269e66e3a5bb56fb65b4c509b2063856202ea",
+      "bytes": 12334
+    },
+    {
+      "path": "hotpot/cheminfo/rules/mathematics/cell.py",
+      "sha256": "f569e8bf2ffecb69fe2782ff2eed32c43f91e3d5433a96b346412447864b601d",
+      "bytes": 569
+    },
+    {
+      "path": "hotpot/cheminfo/rules/mathematics/view_geometry.py",
+      "sha256": "7043eb0f12f91749977b43730d2fa79f03784011330e7cca3643f459e0b047f8",
+      "bytes": 913
+    },
+    {
+      "path": "hotpot/cheminfo/rules/mathematics/topology.py",
+      "sha256": "c67827ebe8f03b500afb1457c9651eab112c0d82b2db0028f470c4704c27218a",
+      "bytes": 3499
+    },
+    {
+      "path": "hotpot/cheminfo/operations/geometry.py",
+      "sha256": "47763d654575668e4ebe57dc1a30f42d89227566b651cece120ab4bd6bba02ae",
+      "bytes": 2782
+    },
+    {
+      "path": "hotpot/cheminfo/operations/topology_queries.py",
+      "sha256": "c9a2221132aa0ecc3354a1c810abeba8f869f910f92d5f734cc96e8955ccfd1c",
+      "bytes": 2619
+    },
+    {
+      "path": "hotpot/cheminfo/operations/descriptors.py",
+      "sha256": "1e679ed297bfc98b8a893963dc0cff6211c2119f1ba6fc1d17853459fd5bef97",
+      "bytes": 539
+    }
+  ],
+  "test_files": [
+    {
+      "path": "tests/test_cheminfo/structure/test_view_identity.py",
+      "sha256": "3497d2cdd10232b0ce30adf133970b17c6adcc4bb77b9d2f8469a8aaebf9103e",
+      "bytes": 8560
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_constraints.py",
+      "sha256": "f886015cfe2a845dc3f66a5f3c582192c3374002e5af389e5eb40ee17be25663",
+      "bytes": 3501
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_pair_observations.py",
+      "sha256": "2f461467226aced28b02ef125eec8cfda4066fd4c9faa0e5a64efe89a0648276",
+      "bytes": 13378
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_crystal_convention.py",
+      "sha256": "aca416c0103ac2e0bc2016db453e15f5040dbbd64907e80ded1f5d6620c3f183",
+      "bytes": 766
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_source_identity.py",
+      "sha256": "c6861dedfe7af2ccf35cc1ed548a766f8dd5f819363df8ecd8a1e73becb140e9",
+      "bytes": 12637
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_builder.py",
+      "sha256": "8f4bb95c49eeba532a052051a9f41ebf943c0007c8bf3b37fe74b914f2df3cc3",
+      "bytes": 22689
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_architecture.py",
+      "sha256": "231735b59c60618d25deeb1d76f81087fd017fa719f66421a8a78282726567b3",
+      "bytes": 7240
+    },
+    {
+      "path": "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+      "sha256": "95d54b24eeecda7f72c675700ec055d4f2e1c321b35e37f42f5b53c57e4a6e6f",
+      "bytes": 20377
+    },
+    {
+      "path": "tests/test_cheminfo/test_plan20_outer_cutover.py",
+      "sha256": "3ded5ae3b08ebaac7a9c54a0a8e37c274f5e49e769dd82c34dde70b88ab9eda0",
+      "bytes": 9082
+    },
+    {
+      "path": "tests/test_cheminfo/test_complex_hydrogens.py",
+      "sha256": "0fad291564c9600390ce083b8da8656a90f8012317e5465b0eb8b78f7491f3f8",
+      "bytes": 20126
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level1_working_copy.py",
+      "sha256": "57a258a8cb435d1dbe8170635c5a8b11416d73c955e774b00f9ed2239b3c51ff",
+      "bytes": 4547
+    }
+  ],
+  "architecture_and_budget_files": [
+    {
+      "path": "plan/20_fact_rule_architecture/audit_architecture.py",
+      "sha256": "970c576d1e02b8ea23227df59dd149db5e5dfce4e6fbeaf523b69c482ee58b63",
+      "bytes": 11825
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/architecture_allowlist.json",
+      "sha256": "a03838f2e689e9d7ed5d3b995a3cf855b5db8b6f59f3cd04f069514c9967379a",
+      "bytes": 67105
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/data_object_budget.json",
+      "sha256": "90ec2a59e50bf90334601496d6e3ba6ea20facd2a732b35f92324fe1ba5ae214",
+      "bytes": 26175
+    }
+  ],
+  "handoff_analysis": {
+    "path": ".plan20-artifacts/20261029/stage4/owner-handoff-attempt2/handoff.json",
+    "sha256": "d9172f0458b1b0b6521bbd0ca10c4b11d0311ec91a99004a8547ce664c3d8c9f",
+    "bytes": 262744
+  },
+  "handoff_analysis_elapsed_seconds": 6.335076,
+  "mathematical_extraction_parity": {
+    "InternalCoordinates_complete_class_AST_unchanged": true,
+    "Crystal_matrix_formula_body_AST_unchanged": true,
+    "scoped_longest_path_body_AST_unchanged": true,
+    "canonical_tree_body_AST_after_explicit_input_and_shadow_rename": true,
+    "simple_paths_body_AST_after_explicit_input": true
+  },
+  "parity_normalization": "Strip function docstrings only; remove carrier node/edge preparation from old query bodies; replace len(self._atoms) with node_count, self._longest_path with the sole helper, and rename the old nested path parameter to avoid shadowing that helper. InternalCoordinates compares its complete unchanged class, not just selected methods.",
+  "class_counts": {
+    "all_python_classes": 779,
+    "dataclasses": 351,
+    "protocols": 13,
+    "typed_dicts": 2
+  },
+  "budget_effect": {
+    "new_owner_dataclasses": 1,
+    "new_private_record_fields": 1,
+    "retired_dataclasses": 0,
+    "new_protocols": 0,
+    "new_typed_dicts": 0,
+    "new_product_native_ABI_mirrors": 0,
+    "meaning": "_ConstraintSet is an added owner implementation outside N01-N18. Module moves and removal of a snapshot field are not definition retirements. Product native types/source/binaries are unchanged; temporary allocator test extensions are test instrumentation."
+  },
+  "commands": [
+    {
+      "attempt": "owner-focused-attempt1",
+      "command": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-focused-attempt1/command.json",
+        "sha256": "18340ef84c4ae569b1b47a10e05b92de0e90159a1ac1055f5cf1e4f8c80413a9",
+        "bytes": 256240
+      },
+      "log": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-focused-attempt1/command.log",
+        "sha256": "b6c5548352d9e4bbbdbc027b9edaaeb3c5ca1b5ebe1df2ea28ea3a0c803cc998",
+        "bytes": 99
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-focused-attempt1/result.xml",
+        "sha256": "f3d79162fba6cdbed5287d6ae25242379431ad4bd95bd96f1d724a2de03eff2e",
+        "bytes": 4065
+      },
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/structure/test_view_identity.py",
+        "tests/test_cheminfo/structure/test_constraints.py",
+        "tests/test_cheminfo/structure/test_pair_observations.py",
+        "tests/test_cheminfo/structure/test_crystal_convention.py",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-focused-attempt1/result.xml",
+        "-o",
+        "cache_dir=/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-focused-attempt1/pytest-cache"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "source_commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONHASHSEED": "0",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "returncode": 0,
+      "wall_seconds": 1.4223094210028648,
+      "junit_seconds": 0.874,
+      "counts": {
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 23
+      },
+      "source_native_tests_unchanged": true,
+      "scope_and_limits": "Initial23 source contracts at an earlier implementation checkpoint; subsequent source/test changes supersede it as final gate evidence."
+    },
+    {
+      "attempt": "owner-focused-attempt2",
+      "command": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-focused-attempt2/command.json",
+        "sha256": "5ef15aa79506e21356b45843e645a3bd304c291c62da7ffe02adfc97f6cd7552",
+        "bytes": 256368
+      },
+      "log": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-focused-attempt2/command.log",
+        "sha256": "892572046afed693f67cf906e56dcf969820d2a08f4cb9d04b0ba3a08c3cf124",
+        "bytes": 55187
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-focused-attempt2/result.xml",
+        "sha256": "374f087d5a5d710630933218e782d6b5aa3ab77d75c991b21d2b9bc491e687cb",
+        "bytes": 67962
+      },
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/structure/test_view_identity.py",
+        "tests/test_cheminfo/structure/test_constraints.py",
+        "tests/test_cheminfo/structure/test_pair_observations.py",
+        "tests/test_cheminfo/structure/test_crystal_convention.py",
+        "--basetemp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-focused-attempt2/pytest-temp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-focused-attempt2/result.xml",
+        "-o",
+        "cache_dir=/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-focused-attempt2/pytest-cache"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "source_commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONHASHSEED": "0",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "returncode": 1,
+      "wall_seconds": 9.401185356080532,
+      "junit_seconds": 8.847,
+      "counts": {
+        "tests": 50,
+        "failures": 8,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 42
+      },
+      "source_native_tests_unchanged": true,
+      "scope_and_limits": "42 passed/8 harness failures before allocator rejection: reused MEM-only helper could not calibrate OBJ dict allocation; raw max(empty) failures retained."
+    },
+    {
+      "attempt": "owner-pair-attempt3",
+      "command": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-pair-attempt3/command.json",
+        "sha256": "bc752274ffdcc7b6e865800c24d466c4cbd84906baf9a3d070a7ea6999bcc00e",
+        "bytes": 255996
+      },
+      "log": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-pair-attempt3/command.log",
+        "sha256": "a153e03211091db96254d58a2ab72616fb303c803f0ca956bb19f21520353b67",
+        "bytes": 60555
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-pair-attempt3/result.xml",
+        "sha256": "8cf4b059031d6fe4057ba217d462d935d17121ee5155bb2f29277ba991149b82",
+        "bytes": 73053
+      },
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/structure/test_pair_observations.py",
+        "--basetemp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-pair-attempt3/pytest-temp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-pair-attempt3/result.xml",
+        "-o",
+        "cache_dir=/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-pair-attempt3/pytest-cache"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "source_commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONHASHSEED": "0",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "returncode": 1,
+      "wall_seconds": 9.246472511440516,
+      "junit_seconds": 8.719,
+      "counts": {
+        "tests": 21,
+        "failures": 8,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 13
+      },
+      "source_native_tests_unchanged": true,
+      "scope_and_limits": "13 passed/8 harness failures after real rejection/undo reached reporting: NumPy bool could not be JSON encoded. No pass claimed for those eight."
+    },
+    {
+      "attempt": "owner-integration-attempt4",
+      "command": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-integration-attempt4/command.json",
+        "sha256": "53f90b1b2e4e8cba43a5b52d9146cc60a122a6fde9fd353555161d28b7aa4083",
+        "bytes": 257312
+      },
+      "log": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-integration-attempt4/command.log",
+        "sha256": "786f2fe842909fba6f93372423c13ffc8737267a767b1da5d5eb47144c6887a7",
+        "bytes": 1406
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-integration-attempt4/result.xml",
+        "sha256": "ef7f72ffa4f6fe5f7d167110c4724872ac854f3f87652b77db75a4f5a635056d",
+        "bytes": 54285
+      },
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/structure/test_view_identity.py",
+        "tests/test_cheminfo/structure/test_constraints.py",
+        "tests/test_cheminfo/structure/test_pair_observations.py",
+        "tests/test_cheminfo/structure/test_crystal_convention.py",
+        "tests/test_cheminfo/structure/test_source_identity.py",
+        "tests/test_cheminfo/structure/test_builder.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+        "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+        "tests/test_cheminfo/test_plan20_outer_cutover.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py",
+        "--basetemp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-integration-attempt4/pytest-temp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-integration-attempt4/result.xml",
+        "-o",
+        "cache_dir=/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-integration-attempt4/pytest-cache"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "source_commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONHASHSEED": "0",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "returncode": 0,
+      "wall_seconds": 10.40119312889874,
+      "junit_seconds": 9.819,
+      "counts": {
+        "tests": 329,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 329
+      },
+      "source_native_tests_unchanged": true,
+      "scope_and_limits": "329 current-source owner integration tests; eight actual OBJECT-bucket rejection controls/rollback cases passed. Later materializer wiring and wider serialization cases supersede this checkpoint."
+    },
+    {
+      "attempt": "owner-final-attempt5",
+      "command": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-final-attempt5/command.json",
+        "sha256": "b0c00c9962baabc7d08fc2bda0e5882ed62e1023928d8a3052c5580a3f2bba05",
+        "bytes": 258201
+      },
+      "log": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-final-attempt5/command.log",
+        "sha256": "3e5731973c471408bc9aaee3b294b65c98b5d99b4e49d7f757fa7e2cbd132c8f",
+        "bytes": 3013
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-final-attempt5/result.xml",
+        "sha256": "03bdc8fa6500b622f8e53168de52725369e491c8d1cc3df470523e4a05d6498d",
+        "bytes": 83441
+      },
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/structure/test_view_identity.py",
+        "tests/test_cheminfo/structure/test_constraints.py",
+        "tests/test_cheminfo/structure/test_pair_observations.py",
+        "tests/test_cheminfo/structure/test_crystal_convention.py",
+        "tests/test_cheminfo/structure/test_source_identity.py",
+        "tests/test_cheminfo/structure/test_builder.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+        "tests/test_cheminfo/structure/test_architecture.py",
+        "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+        "tests/test_cheminfo/test_plan20_outer_cutover.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py",
+        "--basetemp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-final-attempt5/pytest-temp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-final-attempt5/result.xml",
+        "-o",
+        "cache_dir=/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-final-attempt5/pytest-cache"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "source_commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONHASHSEED": "0",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "returncode": 0,
+      "wall_seconds": 17.594784077256918,
+      "junit_seconds": 16.997,
+      "counts": {
+        "tests": 450,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 450
+      },
+      "source_native_tests_unchanged": true,
+      "scope_and_limits": "450 owner and architecture checks at freeze-v1 predecessor checkpoint. Later branched-tree regression and final read-API/helper/guard fixes mean this is not a full final-v2 suite."
+    },
+    {
+      "attempt": "owner-canonical-before-fix6",
+      "command": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-canonical-before-fix6/command.json",
+        "sha256": "6f9e53fbcda8723daf3f0fa40533d12462d68880ae5774d3684a78ed39604037",
+        "bytes": 256953
+      },
+      "log": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-canonical-before-fix6/command.log",
+        "sha256": "a57fcf42100a84944f7da21cc68e06b3387c769585c52c3e34fd67286acb4839",
+        "bytes": 3409
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-canonical-before-fix6/result.xml",
+        "sha256": "cbda59cb63b469e067d712718b69f57c4a29b39256e190830e1cf0562f860b75",
+        "bytes": 3428
+      },
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/structure/test_view_identity.py::test_branched_topology_query_preserves_the_existing_canonical_tree",
+        "--basetemp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-canonical-before-fix6/pytest-temp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-canonical-before-fix6/result.xml",
+        "-o",
+        "cache_dir=/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-canonical-before-fix6/pytest-cache"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "source_commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONHASHSEED": "0",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "returncode": 1,
+      "wall_seconds": 1.2478747367858887,
+      "junit_seconds": 0.727,
+      "counts": {
+        "tests": 1,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 0
+      },
+      "source_native_tests_unchanged": true,
+      "scope_and_limits": "Actual branched canonical-tree TypeError reproduced: recursive path parameter shadowed the moved helper."
+    },
+    {
+      "attempt": "owner-canonical-after-fix7",
+      "command": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-canonical-after-fix7/command.json",
+        "sha256": "17f8b16e4d670ebe97475d8845a0205daa1257b29782ac289637c547d910dcf7",
+        "bytes": 257046
+      },
+      "log": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-canonical-after-fix7/command.log",
+        "sha256": "c610a3e63483dc8cdf6018e4cc65fb66acfee4a2e95f707109ce7391dd63cb41",
+        "bytes": 99
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-canonical-after-fix7/result.xml",
+        "sha256": "b57c8811008efae9f63245e536f54a678dba3ec735e19348bbf49bb0ae43f796",
+        "bytes": 13312
+      },
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/structure/test_view_identity.py",
+        "tests/test_cheminfo/graph/test_direct_algorithms.py",
+        "tests/test_cheminfo/graph/test_legacy_graph_api.py",
+        "--basetemp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-canonical-after-fix7/pytest-temp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-canonical-after-fix7/result.xml",
+        "-o",
+        "cache_dir=/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-canonical-after-fix7/pytest-cache"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "source_commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONHASHSEED": "0",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "returncode": 0,
+      "wall_seconds": 1.550006851553917,
+      "junit_seconds": 0.996,
+      "counts": {
+        "tests": 72,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 72
+      },
+      "source_native_tests_unchanged": true,
+      "scope_and_limits": "72 view/direct-graph/legacy-graph cases after only renaming the shadowing parameter; algorithm parity independently checked."
+    },
+    {
+      "attempt": "owner-read-api-attempt8-cp311",
+      "command": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-read-api-attempt8-cp311/command.json",
+        "sha256": "77d3d0b39ff98a7ffe1dd36704d086e264000615b1122d1220d4117aad428029",
+        "bytes": 419013
+      },
+      "log": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-read-api-attempt8-cp311/command.log",
+        "sha256": "f6196848fa870e6ca54543f5563fb74f5382c24d86fddd3a79ca230350210c48",
+        "bytes": 179
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-read-api-attempt8-cp311/result.xml",
+        "sha256": "bb31256afcc2f2499270c36ba0d674f1e20322a17bf086c3da8c6473e2994031",
+        "bytes": 15113
+      },
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--import-mode=importlib",
+        "--basetemp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-read-api-attempt8-cp311/pytest-temp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-read-api-attempt8-cp311/result.xml",
+        "tests/test_cheminfo/structure/test_view_identity.py",
+        "tests/test_cheminfo/structure/test_pair_observations.py"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "source_commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONHASHSEED": "0",
+        "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "returncode": 0,
+      "wall_seconds": 9.517717191949487,
+      "junit_seconds": 8.955,
+      "counts": {
+        "tests": 80,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 80
+      },
+      "source_native_tests_unchanged": true,
+      "scope_and_limits": "Final-v2 read/API/view/pair contracts on Python3.11.16, including real dual-domain allocator controls; later audit-only guard registration changes no tested production body."
+    },
+    {
+      "attempt": "owner-probe-attempt9-cp313",
+      "command": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt9-cp313/command.json",
+        "sha256": "e28c9cb8ca5a0d586b529743733ebe3520c7d5f7a1d567b0f5bbf4774babc73a",
+        "bytes": 419026
+      },
+      "log": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt9-cp313/command.log",
+        "sha256": "ce76b42b45636b313e2181cccd6bcdb14350d6ee24605640378debd71f537ce1",
+        "bytes": 180
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt9-cp313/result.xml",
+        "sha256": "59a113dd942543265ad033876c0ba4a473ec15b1d169350c842dcde0446900d8",
+        "bytes": 15114
+      },
+      "argv": [
+        "taskset",
+        "-c",
+        "32-39",
+        "/tmp/hotpot-plan20-20261028/matrix/cp313/env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--import-mode=importlib",
+        "--basetemp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-probe-attempt9-cp313/pytest-temp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-probe-attempt9-cp313/result.xml",
+        "tests/test_cheminfo/structure/test_view_identity.py",
+        "tests/test_cheminfo/structure/test_pair_observations.py"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "source_commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONHASHSEED": "0",
+        "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "returncode": 0,
+      "wall_seconds": 27.56845636665821,
+      "junit_seconds": 26.735,
+      "counts": {
+        "tests": 80,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 80
+      },
+      "source_native_tests_unchanged": true,
+      "scope_and_limits": "Final-v2 read/API/view/pair contracts on Python3.13.15; actual dict-bucket allocation observed in MEM, not OBJ."
+    },
+    {
+      "attempt": "owner-probe-attempt10-cp314",
+      "command": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt10-cp314/command.json",
+        "sha256": "23da819b246766930d110e4124013a93ca53ee70a86098d82f323587a23263a4",
+        "bytes": 419030
+      },
+      "log": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt10-cp314/command.log",
+        "sha256": "d3e6932fbba0e21d1dcae47c8ff8053a3a828d0965b4c38a41edb7e64d76fea5",
+        "bytes": 180
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt10-cp314/result.xml",
+        "sha256": "2f1c8f7753250a5c3b5364c5321c592062519dc53cce5594b2606aa33feb508c",
+        "bytes": 15114
+      },
+      "argv": [
+        "taskset",
+        "-c",
+        "40-47",
+        "/tmp/hotpot-plan20-20261028/matrix/cp314/env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--import-mode=importlib",
+        "--basetemp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-probe-attempt10-cp314/pytest-temp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-probe-attempt10-cp314/result.xml",
+        "tests/test_cheminfo/structure/test_view_identity.py",
+        "tests/test_cheminfo/structure/test_pair_observations.py"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "source_commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONHASHSEED": "0",
+        "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "returncode": 0,
+      "wall_seconds": 30.620924957096577,
+      "junit_seconds": 29.677,
+      "counts": {
+        "tests": 80,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 80
+      },
+      "source_native_tests_unchanged": true,
+      "scope_and_limits": "Final-v2 read/API/view/pair contracts on Python3.14.7; actual dict-bucket allocation observed in MEM, not OBJ."
+    },
+    {
+      "attempt": "owner-probe-debug-attempt11-cp313",
+      "command": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt11-cp313/command.json",
+        "sha256": "9caca63d1289ef54ec93629b527a020189f656686dc92476097b52b5824192d2",
+        "bytes": 419089
+      },
+      "log": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt11-cp313/command.log",
+        "sha256": "4802e9e9bc2dd4a1faaa0e03cf8e8be12222f5633542e57c07c2054a96ada709",
+        "bytes": 99
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt11-cp313/result.xml",
+        "sha256": "660cd8486cf4438d6f8f40b1657827d0f03d805843c6635949f46640b44011d6",
+        "bytes": 1837
+      },
+      "argv": [
+        "taskset",
+        "-c",
+        "32-39",
+        "/tmp/hotpot-plan20-20261028/matrix/cp313/env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--import-mode=importlib",
+        "--basetemp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-probe-debug-attempt11-cp313/pytest-temp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-probe-debug-attempt11-cp313/result.xml",
+        "tests/test_cheminfo/structure/test_pair_observations.py::test_real_dictionary_bucket_allocation_rejection_preserves_owner_undo"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "source_commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONHASHSEED": "0",
+        "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "PYTHONMALLOC": "debug"
+      },
+      "returncode": 0,
+      "wall_seconds": 31.473584374412894,
+      "junit_seconds": 30.546,
+      "counts": {
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 8
+      },
+      "source_native_tests_unchanged": true,
+      "scope_and_limits": "Eight real allocator rejection/rollback cases with actual PYTHONMALLOC=debug on Python3.13.15."
+    },
+    {
+      "attempt": "owner-probe-debug-attempt12-cp314",
+      "command": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt12-cp314/command.json",
+        "sha256": "a132ee6fb06b0839cfc6b572b92906dee0f66a5c478218eaffc7636b0a9a6e97",
+        "bytes": 419089
+      },
+      "log": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt12-cp314/command.log",
+        "sha256": "8ba2214ee7b03bcd3be442641ef20d60c96f3d3686db3d8a76d6301dbc6d0e3e",
+        "bytes": 99
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt12-cp314/result.xml",
+        "sha256": "923db5f490192ff4d1c209caa90bfe67bc7efd20a281bf79fd168b71dfa003e9",
+        "bytes": 1837
+      },
+      "argv": [
+        "taskset",
+        "-c",
+        "40-47",
+        "/tmp/hotpot-plan20-20261028/matrix/cp314/env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--import-mode=importlib",
+        "--basetemp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-probe-debug-attempt12-cp314/pytest-temp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-probe-debug-attempt12-cp314/result.xml",
+        "tests/test_cheminfo/structure/test_pair_observations.py::test_real_dictionary_bucket_allocation_rejection_preserves_owner_undo"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "source_commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONHASHSEED": "0",
+        "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "PYTHONMALLOC": "debug"
+      },
+      "returncode": 0,
+      "wall_seconds": 34.262533670291305,
+      "junit_seconds": 33.231,
+      "counts": {
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 8
+      },
+      "source_native_tests_unchanged": true,
+      "scope_and_limits": "Eight real allocator rejection/rollback cases with actual PYTHONMALLOC=debug on Python3.14.7."
+    },
+    {
+      "attempt": "owner-architecture-final-attempt13",
+      "command": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-architecture-final-attempt13/command.json",
+        "sha256": "318c2144a2fe376a30b706f30bce3ed18f9bccc8494e9f5d711ccba0a358f13e",
+        "bytes": 256842
+      },
+      "log": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-architecture-final-attempt13/command.log",
+        "sha256": "ba1f9dff3827dcf72416c79402d18e4c57cff752d60c082e27ac29f9893bd2f1",
+        "bytes": 1790
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-architecture-final-attempt13/result.xml",
+        "sha256": "522f3d2aa300076293c2ede90759e4a9399149e902da1015578e072efcc44ad9",
+        "bytes": 24577
+      },
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/structure/test_architecture.py",
+        "--basetemp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-architecture-final-attempt13/pytest-temp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-architecture-final-attempt13/result.xml",
+        "-o",
+        "cache_dir=/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-architecture-final-attempt13/pytest-cache"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "source_commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONHASHSEED": "0",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "returncode": 0,
+      "wall_seconds": 6.837590212002397,
+      "junit_seconds": 6.494,
+      "counts": {
+        "tests": 95,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 95
+      },
+      "source_native_tests_unchanged": true,
+      "scope_and_limits": "95 final architecture checks, including current complete repository ratchet, exact numerical self initializers, and the actual new pair owner canonical guard."
+    }
+  ],
+  "real_allocator_evidence": [
+    {
+      "attempt": "owner-read-api-attempt8-cp311",
+      "build": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-read-api-attempt8-cp311/pytest-temp/dictionary-allocatorcurrent/build.json",
+        "sha256": "ce5f77675f03881257718e1b6b4a860a01e39eebb4afa29e63ca756241948e2f",
+        "bytes": 921
+      },
+      "python": "/tmp/hotpot-plan20-env/bin/python",
+      "python_version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+      "helper_source_sha256": "017ce8b443c41792b4c47df6c3713c0adb37e9164e969b92f916c7da6647285d",
+      "helper_binary_sha256": "1cc6ecf1a4f8488c0c135cf79c1ca011ed72036495afb2c47d04a313bc167f22",
+      "cases": [
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-read-api-attempt8-cp311/pytest-temp/dictionary-allocatorcurrent/index-forcefield-KeyboardInterrupt.json",
+            "sha256": "abeb2f18a2f9babbef6c84e3bf5f9688ea180b28483ea5c3d89579475bb4a9f7",
+            "bytes": 6232
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "OBJ"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              232,
+              56
+            ],
+            "allocation_domains": [
+              "OBJ",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 183,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-read-api-attempt8-cp311/pytest-temp/dictionary-allocatorcurrent/index-forcefield-MemoryError.json",
+            "sha256": "f5d403ed145a5928265edf8066182602d3a13923670b762c590957f2174dba98",
+            "bytes": 6226
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "OBJ"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              232,
+              56
+            ],
+            "allocation_domains": [
+              "OBJ",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 183,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-read-api-attempt8-cp311/pytest-temp/dictionary-allocatorcurrent/index-topology-KeyboardInterrupt.json",
+            "sha256": "b71d193d42f5f09057bd173a314592a98d652bc3b49a38315d6f64c2c2b3d133",
+            "bytes": 6228
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "OBJ"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              232,
+              56
+            ],
+            "allocation_domains": [
+              "OBJ",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 101,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-read-api-attempt8-cp311/pytest-temp/dictionary-allocatorcurrent/index-topology-MemoryError.json",
+            "sha256": "a2764b8613d2a128f613561cee936920198ba40af2177b5e4c121afd788812ca",
+            "bytes": 6222
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "OBJ"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              232,
+              56
+            ],
+            "allocation_domains": [
+              "OBJ",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 101,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-read-api-attempt8-cp311/pytest-temp/dictionary-allocatorcurrent/pair-forcefield-KeyboardInterrupt.json",
+            "sha256": "6f71d9703fb5becf3378320392c86fa19603263920277fb653afc436540e2f27",
+            "bytes": 6235
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "OBJ"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              232,
+              56
+            ],
+            "allocation_domains": [
+              "OBJ",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 183,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-read-api-attempt8-cp311/pytest-temp/dictionary-allocatorcurrent/pair-forcefield-MemoryError.json",
+            "sha256": "893dbff9853707f936eacbe2c49646b4de81f994dea90b36dcb217102f6012d8",
+            "bytes": 6229
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "OBJ"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              232,
+              56
+            ],
+            "allocation_domains": [
+              "OBJ",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 183,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-read-api-attempt8-cp311/pytest-temp/dictionary-allocatorcurrent/pair-topology-KeyboardInterrupt.json",
+            "sha256": "5f40197bbe0003e1a3c03a23f84fe50b494a09c60c8177353f9a00b50e56a121",
+            "bytes": 6231
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "OBJ"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              232,
+              56
+            ],
+            "allocation_domains": [
+              "OBJ",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 101,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-read-api-attempt8-cp311/pytest-temp/dictionary-allocatorcurrent/pair-topology-MemoryError.json",
+            "sha256": "c0362ff443fe00f67964bebc6a0e412abc11fbf12410abf129178b02c659b3d0",
+            "bytes": 6225
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "OBJ"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              232,
+              56
+            ],
+            "allocation_domains": [
+              "OBJ",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 101,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        }
+      ]
+    },
+    {
+      "attempt": "owner-probe-attempt9-cp313",
+      "build": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt9-cp313/pytest-temp/dictionary-allocatorcurrent/build.json",
+        "sha256": "a5c4b80a98566e68cf82027432ab75c473db1e71bf02c7ce3092b964294ac299",
+        "bytes": 870
+      },
+      "python": "/tmp/hotpot-plan20-20261028/matrix/cp313/env/bin/python",
+      "python_version": "3.13.15 (main, Aug  7 2026, 02:25:50) [Clang 22.1.3 ]",
+      "helper_source_sha256": "017ce8b443c41792b4c47df6c3713c0adb37e9164e969b92f916c7da6647285d",
+      "helper_binary_sha256": "535a3ff1f7f98aa057373827a6d7b4ae9dfe86f56328ea16e21a5f54b8cf8610",
+      "cases": [
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt9-cp313/pytest-temp/dictionary-allocatorcurrent/index-forcefield-KeyboardInterrupt.json",
+            "sha256": "b4023d8eede495b46f21b7ae6ce57889ecec5892e81825a93872a496ddef7fb6",
+            "bytes": 6251
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              248,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 128,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt9-cp313/pytest-temp/dictionary-allocatorcurrent/index-forcefield-MemoryError.json",
+            "sha256": "a859a875684999fc5191a70d05e0abab8892e7a1137fa872590a74af00ef78a2",
+            "bytes": 6245
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              248,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 128,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt9-cp313/pytest-temp/dictionary-allocatorcurrent/index-topology-KeyboardInterrupt.json",
+            "sha256": "b288e87429f1a1a1af0127775ea4b661f5d1df2074546ea6454a81853ab19a1d",
+            "bytes": 6246
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              248,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 92,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt9-cp313/pytest-temp/dictionary-allocatorcurrent/index-topology-MemoryError.json",
+            "sha256": "c2f6d2bc436a1aecade549d68397f5e6c26f924939061e497484e35bd3f3227e",
+            "bytes": 6240
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              248,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 93,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt9-cp313/pytest-temp/dictionary-allocatorcurrent/pair-forcefield-KeyboardInterrupt.json",
+            "sha256": "d59ca69ef407c53927ffe39c6aedb1f908118a32a1fd25b231a714fe29a505f9",
+            "bytes": 6254
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              248,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 128,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt9-cp313/pytest-temp/dictionary-allocatorcurrent/pair-forcefield-MemoryError.json",
+            "sha256": "ce470985716303fca5a78a4c761304581dccf31924f29d5c09f517878dd242a6",
+            "bytes": 6248
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              248,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 128,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt9-cp313/pytest-temp/dictionary-allocatorcurrent/pair-topology-KeyboardInterrupt.json",
+            "sha256": "a2fb6daccb6397e40fe39f08231ee8e58d8836fd2a4173bf3423e38045b85da3",
+            "bytes": 6249
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              248,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 92,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt9-cp313/pytest-temp/dictionary-allocatorcurrent/pair-topology-MemoryError.json",
+            "sha256": "61469fc7c95b0198c8f787a223a3ac1a61845a583f4dd0ecd9f32809f8165c0b",
+            "bytes": 6243
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              248,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 92,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        }
+      ]
+    },
+    {
+      "attempt": "owner-probe-attempt10-cp314",
+      "build": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt10-cp314/pytest-temp/dictionary-allocatorcurrent/build.json",
+        "sha256": "9e641fc8b3842b6abc592715497bd61c1960e8fec01d566d1aa88c870ecb321c",
+        "bytes": 870
+      },
+      "python": "/tmp/hotpot-plan20-20261028/matrix/cp314/env/bin/python",
+      "python_version": "3.14.7 (main, Aug  7 2026, 02:26:00) [Clang 22.1.3 ]",
+      "helper_source_sha256": "017ce8b443c41792b4c47df6c3713c0adb37e9164e969b92f916c7da6647285d",
+      "helper_binary_sha256": "62eb55326f47ed3b641dba7bae0c173ea4c3f590b6c117eadaac2a25175c8c04",
+      "cases": [
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt10-cp314/pytest-temp/dictionary-allocatorcurrent/index-forcefield-KeyboardInterrupt.json",
+            "sha256": "3f1626aae7b70a72772844ec5b5b182cd548abb45713d1c6ce3d70bce943fe3a",
+            "bytes": 5695
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              344,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 21,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt10-cp314/pytest-temp/dictionary-allocatorcurrent/index-forcefield-MemoryError.json",
+            "sha256": "5af2b60fa310bbeba6721c9aa833b4856867891c7f5aae5eb0d73911cd700398",
+            "bytes": 5689
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              344,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 21,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt10-cp314/pytest-temp/dictionary-allocatorcurrent/index-topology-KeyboardInterrupt.json",
+            "sha256": "56a8d904ca48c84971f08b88e84091c6eb59144df58ee25f3935dd4050436c10",
+            "bytes": 5612
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              344,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 15,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt10-cp314/pytest-temp/dictionary-allocatorcurrent/index-topology-MemoryError.json",
+            "sha256": "d6dca18c51df509a19b847aae8866f52eada5adaefb0f4bef4743a32991bdc1c",
+            "bytes": 5606
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              344,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 15,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt10-cp314/pytest-temp/dictionary-allocatorcurrent/pair-forcefield-KeyboardInterrupt.json",
+            "sha256": "cd41123cd7ebd3173dc066266b8247805b13a62a1ae21b83b523b04bfb91cc9e",
+            "bytes": 5698
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              344,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 21,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt10-cp314/pytest-temp/dictionary-allocatorcurrent/pair-forcefield-MemoryError.json",
+            "sha256": "c42c8823eeb4d637648e78f729b1a93dc4701824e0baa46a2d97419ca1b39389",
+            "bytes": 5692
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              344,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 21,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt10-cp314/pytest-temp/dictionary-allocatorcurrent/pair-topology-KeyboardInterrupt.json",
+            "sha256": "2e37359fa99d936157271cb50bfb7ba77c872a786697d3b6ae91f906f281a67b",
+            "bytes": 5615
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              344,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 15,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-attempt10-cp314/pytest-temp/dictionary-allocatorcurrent/pair-topology-MemoryError.json",
+            "sha256": "057b2510285538e20a611da8db70e18c38c352afa79b827d460ca7190e4a7c5d",
+            "bytes": 5609
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              344,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 15,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        }
+      ]
+    },
+    {
+      "attempt": "owner-probe-debug-attempt11-cp313",
+      "build": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt11-cp313/pytest-temp/dictionary-allocatorcurrent/build.json",
+        "sha256": "60e1096184571432ab95e14b41f0bd86c4853cf13d0c00e83a7d1a064524204f",
+        "bytes": 884
+      },
+      "python": "/tmp/hotpot-plan20-20261028/matrix/cp313/env/bin/python",
+      "python_version": "3.13.15 (main, Aug  7 2026, 02:25:50) [Clang 22.1.3 ]",
+      "helper_source_sha256": "017ce8b443c41792b4c47df6c3713c0adb37e9164e969b92f916c7da6647285d",
+      "helper_binary_sha256": "535a3ff1f7f98aa057373827a6d7b4ae9dfe86f56328ea16e21a5f54b8cf8610",
+      "cases": [
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt11-cp313/pytest-temp/dictionary-allocatorcurrent/index-forcefield-KeyboardInterrupt.json",
+            "sha256": "6bfeb6a6cbbc230f05c1f8dfb05c374b55818601747dacebe2a1f7b8af16af3e",
+            "bytes": 6258
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              248,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 128,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt11-cp313/pytest-temp/dictionary-allocatorcurrent/index-forcefield-MemoryError.json",
+            "sha256": "adb1719949dd1415339d4e6b5c56a10133a832560e4c85851172bbc069bb91ee",
+            "bytes": 6252
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              248,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 128,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt11-cp313/pytest-temp/dictionary-allocatorcurrent/index-topology-KeyboardInterrupt.json",
+            "sha256": "2d652f14951345862fb2cf2e2ea67c38c88cabb495045478190a9854c5f42a04",
+            "bytes": 6253
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              248,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 92,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt11-cp313/pytest-temp/dictionary-allocatorcurrent/index-topology-MemoryError.json",
+            "sha256": "9e74995b8288bb4732fa96a831b69dd87f107c0a46b4e89f59d4b8135e91a3c1",
+            "bytes": 6247
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              248,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 92,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt11-cp313/pytest-temp/dictionary-allocatorcurrent/pair-forcefield-KeyboardInterrupt.json",
+            "sha256": "70d3459c9c6d234a069b496aa4deeab71ba252722e248284c5bf742028185922",
+            "bytes": 6261
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              248,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 128,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt11-cp313/pytest-temp/dictionary-allocatorcurrent/pair-forcefield-MemoryError.json",
+            "sha256": "f5498d2a94de062701e90111df464412659baa361132fcf4ca80125ad205cd6e",
+            "bytes": 6255
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              248,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 128,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt11-cp313/pytest-temp/dictionary-allocatorcurrent/pair-topology-KeyboardInterrupt.json",
+            "sha256": "b3ece4215edd1e4201d1ee6ae5da56973d3d1082fab34f5c30b78c6d3746289b",
+            "bytes": 6256
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              248,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 92,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt11-cp313/pytest-temp/dictionary-allocatorcurrent/pair-topology-MemoryError.json",
+            "sha256": "7f48b285628df6ad9cb90d6e37bec4f0f34579e79373ba75fc86af2d7f4e0f79",
+            "bytes": 6250
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              248,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 92,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        }
+      ]
+    },
+    {
+      "attempt": "owner-probe-debug-attempt12-cp314",
+      "build": {
+        "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt12-cp314/pytest-temp/dictionary-allocatorcurrent/build.json",
+        "sha256": "ee1d592af2681ba4df39124526f39be270c3e53c69dc0455f8ab3d03982b4084",
+        "bytes": 882
+      },
+      "python": "/tmp/hotpot-plan20-20261028/matrix/cp314/env/bin/python",
+      "python_version": "3.14.7 (main, Aug  7 2026, 02:26:00) [Clang 22.1.3 ]",
+      "helper_source_sha256": "017ce8b443c41792b4c47df6c3713c0adb37e9164e969b92f916c7da6647285d",
+      "helper_binary_sha256": "62eb55326f47ed3b641dba7bae0c173ea4c3f590b6c117eadaac2a25175c8c04",
+      "cases": [
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt12-cp314/pytest-temp/dictionary-allocatorcurrent/index-forcefield-KeyboardInterrupt.json",
+            "sha256": "6c45fa988e506a03c2d655d2d557c5d4dc02016445a77b595f063c86a6387ad6",
+            "bytes": 5701
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              344,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 21,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt12-cp314/pytest-temp/dictionary-allocatorcurrent/index-forcefield-MemoryError.json",
+            "sha256": "6cd3a591ed630ea565e52285bb9fe44a35bb8cc681b64d73ff9a0ba8f17b497e",
+            "bytes": 5695
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              344,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 21,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt12-cp314/pytest-temp/dictionary-allocatorcurrent/index-topology-KeyboardInterrupt.json",
+            "sha256": "acd7bd49e4d0125deb68e80cd596ad055cdf61a1a5af2ac2d2bbb0887a602cc8",
+            "bytes": 5618
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              344,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 15,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt12-cp314/pytest-temp/dictionary-allocatorcurrent/index-topology-MemoryError.json",
+            "sha256": "6a950ad9045ac3fe30613028f57af686fd8fcfac7d5c7184fa000f704a6c4481",
+            "bytes": 5612
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              568
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 568,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              568,
+              344,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 568,
+            "attempts": 15,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt12-cp314/pytest-temp/dictionary-allocatorcurrent/pair-forcefield-KeyboardInterrupt.json",
+            "sha256": "092211b3b4f9187e8cb21a5075f67e6bc4cf7dec9d810e51fae3223b3b57169a",
+            "bytes": 5704
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              344,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 21,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt12-cp314/pytest-temp/dictionary-allocatorcurrent/pair-forcefield-MemoryError.json",
+            "sha256": "f3f6068389b0e5d275074ce7490b8cf2ac0e77752b9d455d8ab835fb5865f3c4",
+            "bytes": 5698
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              344,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 21,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt12-cp314/pytest-temp/dictionary-allocatorcurrent/pair-topology-KeyboardInterrupt.json",
+            "sha256": "918dd271504dbf4df3e5d3fcc1e824b1eaf1135a88cf263be071bf05712289b3",
+            "bytes": 5621
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              344,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 15,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        },
+        {
+          "artifact": {
+            "path": ".plan20-artifacts/20261029/stage4/owner-probe-debug-attempt12-cp314/pytest-temp/dictionary-allocatorcurrent/pair-topology-MemoryError.json",
+            "sha256": "cc117712ae66942a55dd9293af1a2f08b918a798255a0a2284b65023ed478a6e",
+            "bytes": 5615
+          },
+          "returncode": 0,
+          "calibration": {
+            "rejected_size": 0,
+            "attempts": 1,
+            "rejected": 0,
+            "allocation_sizes": [
+              4624
+            ],
+            "allocation_domains": [
+              "MEM"
+            ]
+          },
+          "allocator_control": {
+            "rejected_size": 4624,
+            "attempts": 3,
+            "rejected": 1,
+            "allocation_sizes": [
+              4624,
+              344,
+              56
+            ],
+            "allocation_domains": [
+              "MEM",
+              "OBJ",
+              "OBJ"
+            ]
+          },
+          "rollback_allocation": {
+            "rejected_size": 4624,
+            "attempts": 15,
+            "rejected": 0,
+            "allocation_trace": "Full sizes/domains remain in the hash-bound raw case artifact"
+          },
+          "state_checks": {
+            "same_exception": true,
+            "same_pair_owner": true,
+            "pair_values_restored": true,
+            "same_index_owner": true,
+            "index_entries_restored": true,
+            "same_table": true,
+            "facts_restored": true,
+            "original_view_current": true
+          }
+        }
+      ]
+    }
+  ],
+  "allocator_interpretation": {
+    "negative_control": "Real allocator denial breaks the former clear/update operation on a copy with the exact owner dictionary shape; this is not a claim that the complete old transaction was rerun under rejection.",
+    "actual_fixed_paths": "Mixed scalar/repeated observation edits, complete topology replacement, fast index writes before/after replacement, and FF publication rollback with both original KeyboardInterrupt and MemoryError.",
+    "observed_domains": "Python3.11 uses OBJ; Python3.13/3.14 use MEM. One callback set wraps both domains with their actual previous allocator contexts, recording the observed domain rather than skipping calibration.",
+    "verified": "Original exception object, original pair/index/table owners, observation presence/values, raw facts/presence/source/status, exact index entry references and original view capability are restored.",
+    "limits": "Other Python allocations remain and are counted. The evidence rejects specific real dict-bucket sizes and does not prove arbitrary-OOM immunity. Product _fact_native is unchanged; compiled C probes live only in pytest temporary artifacts."
+  },
+  "known_failed_attempts": [
+    {
+      "attempt": "owner-focused-attempt2",
+      "cause": "MEM-only probe could not observe OBJ dict keys on3.11; eight calibration failures before undo."
+    },
+    {
+      "attempt": "owner-pair-attempt3",
+      "cause": "Reporting a NumPy bool failed after the experiment; fixed with explicit bool conversion."
+    },
+    {
+      "attempt": "owner-canonical-before-fix6",
+      "cause": "Extraction introduced a helper/recursive-parameter name collision; fixed by a local parameter rename."
+    },
+    {
+      "parent_attempt": "matrix-final Python3.13/3.14 source runs",
+      "cause": "OBJ-only dict helper had empty calibration because those interpreters allocate dict buckets in MEM; eight failures per version before rollback. Parent preserves/archives the original whole-matrix records."
+    },
+    {
+      "artifact": {
+        "path": ".plan20-artifacts/20261029/stage4/new_owner_audit_review.json",
+        "sha256": "10a4327a16478e1f7900075af7947e281f14567bcbaf005a922c05b886372456",
+        "bytes": 667
+      },
+      "cause": "Actual new canonical pair field missing from CANONICAL; its rule-write test produced no finding. Field registration and three entry kinds are covered by final95-case architecture execution."
+    }
+  ],
+  "exploratory_smoke": {
+    "command": "LD_PRELOAD=/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6 PYTHONDONTWRITEBYTECODE=1 /tmp/hotpot-plan20-env/bin/python -",
+    "observed": "Four-carbon chain: angle90, distance1.7320508075688772, path vertex count4; copy/deepcopy/current pickle preserved true constraints and explicit Wiberg zero; no removed carrier caches.",
+    "limits": "Exploratory only: no complete dirty-source before/after manifest or elapsed time was captured. This is not frozen gate evidence."
+  },
+  "cross_owner_evidence": [
+    {
+      "path": ".plan20-artifacts/20261029/stage4/kernel-handoff/hotpot-stage4-kernel-check.json",
+      "sha256": "92271402c5573fca23a43491985803add40bf6fb081342213845e20a32aab857",
+      "bytes": 5912
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage4/consumer_rewire.json",
+      "sha256": "f6e21d9a7716fbf622ed69920039bd1e70cb1b261e6a57b445129140620e42bb",
+      "bytes": 8458
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage4/consumer_rewire_check.json",
+      "sha256": "c16b4a332308a3aff20daa470c3aa072145baaacedf453c7958714e00b7160ca",
+      "bytes": 18980
+    }
+  ],
+  "cross_owner_scope": "Kernel owner relocated original graph/geometry bodies and retained native homes; parent rewired62 consumers without domain-body changes. This owner did not edit parent62 files, native sources/binaries/build recipes, or later Stage5 ownership.",
+  "api_and_ownership_effects": "Exact implemented public/private effects, row/UID transport, read-only table mutator disposition and stage boundaries are recorded in ../contracts/schema.json and ../contracts/review.md.",
+  "later_document_identity": {
+    "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+    "entry_sha256": "72f935922c623948cc29d781c2eb77e38bcc8562cf368496a5cd7fb0599f1638",
+    "after_link_only_repair_sha256": "41d4c4ab4388f10a4fe9682023ac97769dc9fadf4f18cfe78291c8533b4257a6",
+    "effect": "Parent mechanically fixed90 source links to audit baseline d9eb80e239f24a694a8cb23fd412eb6baf030cbb and added historical identity wording. Classification, line numbers and normative semantics unchanged; the historical entry hash/read remains intact."
+  },
+  "remaining_gates_at_handoff": [
+    "Parent: full frozen default selection",
+    "Parent: supported Python3.10-3.14 complete affected source/current-wheel and debug-allocator selections",
+    "Parent: current package/sdist/native standalone evidence, retaining truly unaffected source closures",
+    "Parent: frozen graph/geometry/Crystal equivalent-work performance and final Stage4 report",
+    "Later owning gates: complete scientific/global efficiency/memory acceptance, existing Stage3 regressions retained, Stage5/7/9/10 boundaries unchanged"
+  ],
+  "commits": "No child commit or push; parent owns submission and push cadence.",
+  "documentation_layout": {
+    "artifact": {
+      "path": ".plan20-artifacts/20261029/stage4/owner_documentation_layout.json",
+      "sha256": "60ff5b11c508b459910d2d421966ba8722c77cf8ee2089eac488a7bf4e7082df",
+      "bytes": 2461
+    },
+    "argv": [
+      "/tmp/hotpot-plan20-env/bin/python",
+      "plan/20_fact_rule_architecture/audit_stage_records.py",
+      "--output",
+      ".plan20-artifacts/20261029/stage4/owner_documentation_layout.json"
+    ],
+    "environment_overrides": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "status": "passed",
+    "elapsed_seconds": 0.355008437,
+    "coverage": "31 Markdown / 30 JSON / 61 indexed stage records; naming, navigation, local links and JSON only; no runtime/scientific/performance acceptance"
+  },
+  "documentation_files": [
+    "plan/20_fact_rule_architecture/stages/stage04/README.md",
+    "plan/20_fact_rule_architecture/stages/stage04/entry_review.json",
+    "plan/20_fact_rule_architecture/stages/stage04/review.md",
+    "plan/20_fact_rule_architecture/stages/stage04/architecture/evidence.json",
+    "plan/20_fact_rule_architecture/stages/stage04/implementation/evidence.json",
+    "plan/20_fact_rule_architecture/stages/stage04/contracts/schema.json",
+    "plan/20_fact_rule_architecture/stages/stage04/contracts/review.md"
+  ],
+  "documentation_handoff": "README owner returned to parent after this index update; parent owns validation/performance evidence, final stage report and resulting navigation/status additions."
+}

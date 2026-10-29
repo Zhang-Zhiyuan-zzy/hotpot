@@ -1,7 +1,9 @@
-# `hotpot.cheminfo.graph`
+# `hotpot.cheminfo.rules.mathematics.graph`
 
-This package contains Hotpot's graph utilities and its native Relevant Cycle
-perception API. The native cycle implementation accepts topology only: atom
+This mathematical rules package contains Hotpot's graph utilities and its
+Relevant Cycle perception API. The native extension remains in
+`hotpot.cheminfo.graph._graph_native`. Chemical graph spectrum descriptors live
+in `hotpot.cheminfo.rules.chemistry.descriptors.graph_spectrum`. The native cycle implementation accepts topology only: atom
 types, bond orders, coordinates, aromaticity, and metal chemistry do not alter
 its result.
 
@@ -14,13 +16,17 @@ its result.
 | `DEFAULT_RELEVANT_CYCLE_LIMIT` | Default result limit, currently 10,000 cycles. |
 | `linkmat2adj` | Convert an edge matrix to an adjacency matrix. |
 | `adj2laplacian` | Convert an adjacency matrix to a graph Laplacian. |
-| `calc_spectrum` | Calculate the existing Hotpot graph spectrum. |
-| `GraphSpectrum` | Store and compare graph spectra. |
-| `calc_electron_config` | Calculate the existing electron-configuration feature. |
-| `atoms_electron_configurations` | Calculate electron-configuration features for atoms. |
+| `calc_spectrum` (chemical descriptor) | Calculate the existing Hotpot graph spectrum. |
+| `GraphSpectrum` (chemical descriptor) | Store and compare graph spectra. |
+| `calc_electron_config` (chemical descriptor) | Calculate the existing electron-configuration feature. |
+| `atoms_electron_configurations` (chemical descriptor) | Calculate electron-configuration features for atoms. |
 | `graph_dfs_path` | Return one depth-first path from explicit node/edge inputs. |
 
-The package contains numerical public APIs and direct topology algorithms; it
+The four chemical descriptor names above are imported from
+`hotpot.cheminfo.rules.chemistry.descriptors.graph_spectrum`; the remaining
+names are exported by `hotpot.cheminfo.rules.mathematics.graph`.
+
+The mathematical package contains numerical public APIs and direct topology algorithms; it
 does not expose a Graph data object. Native algorithms construct one private,
 task-local topology only when repeated adjacency work benefits from it.
 
@@ -48,7 +54,7 @@ first node. Rotation and direction are canonicalized, and the complete result
 is sorted by cycle length and then lexicographically.
 
 ```python
-from hotpot.cheminfo.graph import relevant_cycles
+from hotpot.cheminfo.rules.mathematics.graph import relevant_cycles
 
 triangle = relevant_cycles([(4, 7), (7, 9), (9, 4)])
 print(triangle)
@@ -77,7 +83,7 @@ shortest-path expansion. It releases the GIL and has no mutable global state.
 
 The implementation is derived from RingDecomposerLib's Vismara algorithm. RDL
 is not a runtime dependency. Its BSD 3-Clause license and provenance notice are
-included under `_native/`; the test-only oracle is pinned to commit
+included under `hotpot/cheminfo/graph/_native/`; the test-only oracle is pinned to commit
 `3a7ff93de0d9c4f6a5661508549c6063573f39c7`.
 
 `Molecule.rings` and `Molecule.ligand_rings` use this Relevant Cycle family.

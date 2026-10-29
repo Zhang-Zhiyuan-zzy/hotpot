@@ -15,12 +15,14 @@ from typing import Callable, Optional, Sequence, Tuple, TypeVar
 
 import numpy as np
 
-from hotpot.cheminfo.geometry import (
+from hotpot.cheminfo.rules.mathematics.geometry import (
     Cycle,
     PiercingState,
     Segment,
-    determine_bond_ring_piercing_state,
     determine_segment_cycle_relation,
+)
+from hotpot.cheminfo.adapters.structure.geometry import (
+    determine_bond_ring_piercing_state,
     scan_bond_ring_relations,
 )
 

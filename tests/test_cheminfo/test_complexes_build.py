@@ -7,7 +7,8 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
-from hotpot.cheminfo import geometry as geo
+from hotpot.cheminfo.rules.mathematics import geometry as geo
+from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields.contracts import BuildWorkerResult
 from hotpot.cheminfo.forcefields import ligand
@@ -802,7 +803,7 @@ lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(1.0, "kJ/mol", F
         atom_indices=(3, 4),
         bond_indices=(2,),
     )
-    monkeypatch.setattr(geo, "screen_bond_ring_relations", screen_relations)
+    monkeypatch.setattr(geometry_adapter, "screen_bond_ring_relations", screen_relations)
     watch = (
         repair._WatchedRingPiercing(
             repair._BondRingPairKey((0, 1, 2), (3, 4)),
@@ -896,7 +897,7 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
         return SimpleNamespace(passed=True, failures=())
 
     monkeypatch.setattr(
-        geo,
+        geometry_adapter,
         "screen_bond_ring_relations",
         screen_relations,
     )
@@ -954,7 +955,7 @@ def test_default_ligand_proxy_search_stops_after_one_accepted_candidate(
     _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(ligand, "capture_topology", lambda *args, **kwargs: object())
     monkeypatch.setattr(
-        geo,
+        geometry_adapter,
         "screen_bond_ring_relations",
         lambda *args, **kwargs: _piercing_report(),
     )
@@ -1011,7 +1012,7 @@ def test_ligand_proxy_search_stops_after_first_accepted_candidate(monkeypatch):
     _share_single_ob_optimization(monkeypatch)
     monkeypatch.setattr(ligand, "capture_topology", lambda *args, **kwargs: object())
     monkeypatch.setattr(
-        geo,
+        geometry_adapter,
         "screen_bond_ring_relations",
         lambda *args, **kwargs: _piercing_report(),
     )
@@ -1271,7 +1272,7 @@ def test_candidate_rejection_preserves_geometry_failure_details(monkeypatch):
         lambda mol, **options: object(),
     )
     monkeypatch.setattr(
-        geo,
+        geometry_adapter,
         "screen_bond_ring_relations",
         lambda *args, **kwargs: _piercing_report(),
     )
@@ -1331,7 +1332,7 @@ def test_failed_refinement_retains_the_medium_optimized_candidate(monkeypatch):
         lambda mol, **options: object(),
     )
     monkeypatch.setattr(
-        geo,
+        geometry_adapter,
         "screen_bond_ring_relations",
         lambda *args, **kwargs: _piercing_report(),
     )
@@ -1419,7 +1420,7 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         )
 
     monkeypatch.setattr(
-        geo,
+        geometry_adapter,
         "screen_bond_ring_relations",
         screen_relations,
     )
@@ -1588,7 +1589,7 @@ def test_select_ring_opening_edge_uses_watch_order(monkeypatch):
         ),
     )
 
-    monkeypatch.setattr(geo, "segment_from_bond", lambda bond: bond)
+    monkeypatch.setattr(geometry_adapter, "segment_from_bond", lambda bond: bond)
     monkeypatch.setattr(geo, "segment_segment_distance", lambda *args: 1.0)
 
     assert repair._select_ring_opening_edge(component, watch) is first

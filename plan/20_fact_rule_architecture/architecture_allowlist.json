@@ -301,24 +301,6 @@
     },
     {
       "path": "hotpot/cheminfo/core.py",
-      "line": 24,
-      "scope": "",
-      "target": "scipy.spatial.distance.pdist",
-      "local": "pdist",
-      "rule": "carrier_or_root_eager_toolkit_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 24,
-      "scope": "",
-      "target": "scipy.spatial.distance.squareform",
-      "local": "squareform",
-      "rule": "carrier_or_root_eager_toolkit_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
       "line": 69,
       "scope": "",
       "rule": "import_cycle_workaround",
@@ -342,33 +324,6 @@
       "attribute": "_environ",
       "rule": "forbidden_retained_state_write",
       "stage": "Stage8D"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 147,
-      "scope": "Molecule.__init__",
-      "target": "self._atom_pairs",
-      "attribute": "_atom_pairs",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage4"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 148,
-      "scope": "Molecule.__init__",
-      "target": "self._angles",
-      "attribute": "_angles",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage4"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 149,
-      "scope": "Molecule.__init__",
-      "target": "self._torsions",
-      "attribute": "_torsions",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage4"
     },
     {
       "path": "hotpot/cheminfo/core.py",
@@ -444,24 +399,6 @@
     },
     {
       "path": "hotpot/cheminfo/core.py",
-      "line": 590,
-      "scope": "Molecule._update_topology",
-      "target": "self._angles",
-      "attribute": "_angles",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage4"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 591,
-      "scope": "Molecule._update_topology",
-      "target": "self._torsions",
-      "attribute": "_torsions",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage4"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
       "line": 592,
       "scope": "Molecule._update_topology",
       "target": "self._rings",
@@ -534,24 +471,6 @@
     },
     {
       "path": "hotpot/cheminfo/core.py",
-      "line": 2851,
-      "scope": "Molecule.update_angles",
-      "target": "self._angles",
-      "attribute": "_angles",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage4"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 2864,
-      "scope": "Molecule.update_torsions",
-      "target": "self._torsions",
-      "attribute": "_torsions",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage4"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
       "line": 66,
       "scope": "",
       "rule": "import_cycle_workaround",
@@ -593,24 +512,6 @@
       "attribute": "_hided_covalent_bonds",
       "rule": "forbidden_retained_state_write",
       "stage": "Stage7B"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 1072,
-      "scope": "Molecule.angles",
-      "target": "self._angles",
-      "attribute": "_angles",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage4"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 1087,
-      "scope": "Molecule.torsions",
-      "target": "self._torsions",
-      "attribute": "_torsions",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage4"
     },
     {
       "path": "hotpot/cheminfo/core.py",
@@ -987,15 +888,6 @@
       "scope": "",
       "target": "hotpot.cheminfo.core.Atom",
       "local": "Atom",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/forcefields/working_copy.py",
-      "line": 22,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.AtomPair",
-      "local": "AtomPair",
       "rule": "legacy_core_import",
       "stage": "Stage9"
     },
@@ -1976,15 +1868,6 @@
       "scope": "",
       "target": "hotpot.cheminfo.core.Ring",
       "local": "Ring",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "tests/test_cheminfo/graph/test_direct_algorithms.py",
-      "line": 6,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.InternalCoordinates",
-      "local": "InternalCoordinates",
       "rule": "legacy_core_import",
       "stage": "Stage9"
     },

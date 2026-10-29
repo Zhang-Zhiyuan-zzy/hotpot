@@ -14,7 +14,7 @@ from torch_geometric.data import Data
 from torch_geometric.utils import from_smiles
 
 import hotpot as hp
-from hotpot.cheminfo.graph import calc_spectrum
+from hotpot.cheminfo.rules.chemistry.descriptors.graph_spectrum import calc_spectrum
 
 from . import base
 

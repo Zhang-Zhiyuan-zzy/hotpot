@@ -8,7 +8,8 @@ import pytest
 
 from hotpot.cheminfo.forcefields import acceptance as acceptance_policy
 from hotpot.cheminfo.forcefields import ff
-from hotpot.cheminfo import geometry as geo
+from hotpot.cheminfo.rules.mathematics import geometry as geo
+from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from hotpot.cheminfo.core import Molecule
 
 
@@ -127,7 +128,7 @@ def test_acceptance_levels_preserve_order_metrics_and_serialization(monkeypatch)
         return _clear_bond_ring_report()
 
     monkeypatch.setattr(
-        acceptance_policy.geo,
+        acceptance_policy.geometry_adapter,
         "screen_bond_ring_relations",
         scan_relations,
     )
@@ -263,7 +264,7 @@ def test_confirmed_bond_ring_piercing_fails_acceptance(monkeypatch):
         return _bond_ring_report(geo.PiercingState.PIERCES)
 
     monkeypatch.setattr(
-        geo,
+        geometry_adapter,
         "screen_bond_ring_relations",
         scan_relations,
     )
@@ -282,7 +283,7 @@ def test_confirmed_bond_ring_piercing_fails_acceptance(monkeypatch):
 
 def test_undetermined_bond_ring_relation_warns_without_rejection(monkeypatch):
     monkeypatch.setattr(
-        geo,
+        geometry_adapter,
         "screen_bond_ring_relations",
         lambda *args, **kwargs: _bond_ring_report(
             geo.PiercingState.UNDETERMINED
@@ -304,7 +305,7 @@ def test_undetermined_bond_ring_relation_warns_without_rejection(monkeypatch):
 
 def test_excluded_rings_are_reported_as_incomplete_policy_coverage(monkeypatch):
     monkeypatch.setattr(
-        geo,
+        geometry_adapter,
         "screen_bond_ring_relations",
         lambda *args, **kwargs: _bond_ring_report(
             geo.PiercingState.DOES_NOT_PIERCE,
@@ -328,7 +329,7 @@ def test_excluded_rings_are_reported_as_incomplete_policy_coverage(monkeypatch):
 
 def test_complete_ring_scope_has_no_coverage_warning(monkeypatch):
     monkeypatch.setattr(
-        geo,
+        geometry_adapter,
         "screen_bond_ring_relations",
         lambda *args, **kwargs: _bond_ring_report(
             geo.PiercingState.DOES_NOT_PIERCE,

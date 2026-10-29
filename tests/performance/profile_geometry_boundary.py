@@ -16,7 +16,8 @@ from typing import Callable, Dict, Sequence
 
 import numpy as np
 
-from hotpot.cheminfo import geometry
+from hotpot.cheminfo.rules.mathematics import geometry
+from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from tests.geometry_characterization import (
     JSONValue,
     build_geometry_characterization,
@@ -71,7 +72,10 @@ def _profile_calls(function: Callable[[], object]) -> Dict[str, JSONValue]:
         "python_geometry_calls": sum(
             row["total_calls"]
             for row in rows
-            if "/hotpot/cheminfo/geometry/" in row["file"]
+            if any(path in row["file"] for path in (
+                "/hotpot/cheminfo/rules/mathematics/geometry/",
+                "/hotpot/cheminfo/adapters/structure/geometry.py",
+            ))
             and row["file"].endswith(".py")
         ),
         "native_geometry_calls": sum(
@@ -96,9 +100,10 @@ def run_profile(repeats: int) -> Dict[str, JSONValue]:
     tracemalloc.stop()
 
     callable_modules = {
-        name: getattr(getattr(geometry, name), "__module__", None)
-        for name in geometry.__all__
-        if callable(getattr(geometry, name))
+        name: getattr(getattr(owner, name), "__module__", None)
+        for owner in (geometry, geometry_adapter)
+        for name in owner.__all__
+        if callable(getattr(owner, name))
     }
     return {
         "schema_version": 1,

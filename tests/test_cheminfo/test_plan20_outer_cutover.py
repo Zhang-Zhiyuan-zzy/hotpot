@@ -9,6 +9,7 @@ import pytest
 from hotpot import Atom, Molecule, read_mol
 from hotpot.cheminfo.AImodels.data_extract import extract_atom_attrs
 from hotpot.cheminfo.forcefields import working_copy
+from hotpot.cheminfo.structure import _commit
 from hotpot.cheminfo.structure._dependencies import _dependency_state
 from hotpot.cheminfo.structure._fields import ATOM_FIELDS, ATOM_PRESENCE_ALL
 
@@ -158,11 +159,13 @@ def test_forcefield_interrupted_publication_restores_owner_metadata_frames_and_s
     frames = deepcopy(mol.conformers[0])
     high_water = mol._next_atom_uid
 
-    def interrupt(pairs):
-        pairs.clear()
+    commit_stereo = _commit._commit_stereo
+
+    def interrupt(owner, source, payload):
+        commit_stereo(owner, source, payload)
         raise KeyboardInterrupt("interrupted after factual publication")
 
-    monkeypatch.setattr(type(mol.atom_pairs), "update_pairs", interrupt)
+    monkeypatch.setattr(_commit, "_commit_stereo", interrupt)
     with pytest.raises(KeyboardInterrupt, match="after factual publication"):
         working_copy._commit_working_copy(mol, working, source=source)
     assert mol._atom_table is table

@@ -6,7 +6,7 @@ from hotpot.cheminfo.forcefields.settings import (
     _BOND_RING_MAX_SIZE,
     _MAXIMUM_RELEVANT_CYCLE_COUNT,
 )
-from hotpot.cheminfo.geometry.settings import DEFAULT_GEOMETRY_SETTINGS
+from hotpot.cheminfo.rules.mathematics.geometry.settings import DEFAULT_GEOMETRY_SETTINGS
 
 
 def test_forcefield_ring_policy_defaults_are_shared() -> None:

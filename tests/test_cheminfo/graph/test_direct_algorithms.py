@@ -3,9 +3,10 @@
 import numpy as np
 import pytest
 
-from hotpot.cheminfo.core import InternalCoordinates, Molecule
-from hotpot.cheminfo.graph.components import connected_components
-from hotpot.cheminfo.graph.paths import (
+from hotpot.cheminfo.rules.mathematics.internal_coordinates import InternalCoordinates
+from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.rules.mathematics.graph.components import connected_components
+from hotpot.cheminfo.rules.mathematics.graph.paths import (
     all_simple_paths,
     depth_first_path,
     longest_simple_path,

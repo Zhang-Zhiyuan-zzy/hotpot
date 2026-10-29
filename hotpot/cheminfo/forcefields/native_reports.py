@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Optional, Tuple, cast
 import numpy as np
 from numpy.typing import NDArray
 
-from ..geometry import PiercingState, SegmentCycleIndeterminacy
+from ..rules.mathematics.geometry import PiercingState, SegmentCycleIndeterminacy
 from .trajectory import (
     CoordinationFrameEvidence,
     FrameEvidence,

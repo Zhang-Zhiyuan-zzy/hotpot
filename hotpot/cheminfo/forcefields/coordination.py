@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Iterator, Optional, Tuple
 
-from ..graph.components import connected_components
+from ..rules.mathematics.graph.components import connected_components
 from .contracts import (
     CoordinationEnvironment,
     CoordinationGeometryResult,

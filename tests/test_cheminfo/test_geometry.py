@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from hotpot.cheminfo import geometry as geo
+from hotpot.cheminfo.rules.mathematics import geometry as geo
+from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from hotpot.cheminfo.core import Molecule
 
 
@@ -42,12 +43,12 @@ def test_ligand_scope_excludes_a_chelate_cycle_without_mutating_ring_caches():
     ligand_rings_cache = mol._ligand_rings
     ligand_rings_signature = mol._ligand_rings_signature
 
-    full_graph = geo.scan_bond_ring_relations(
+    full_graph = geometry_adapter.scan_bond_ring_relations(
         mol,
         ring_scope="full_graph",
         max_ring_size=8,
     )
-    ligand_skeleton = geo.scan_bond_ring_relations(
+    ligand_skeleton = geometry_adapter.scan_bond_ring_relations(
         mol,
         ring_scope="ligand_skeleton",
         max_ring_size=8,
@@ -79,7 +80,7 @@ def test_metal_ligand_bond_can_pierce_a_real_ligand_ring():
     )
     metal_ligand_bond = mol.bond(6, 7)
 
-    report = geo.scan_bond_ring_relations(
+    report = geometry_adapter.scan_bond_ring_relations(
         mol,
         ring_scope="ligand_skeleton",
         max_ring_size=8,

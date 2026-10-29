@@ -1,15 +1,19 @@
-# `hotpot.cheminfo.geometry` API Reference
+# Geometry rules and structure adapters API Reference
 
 [Chinese version](README.zh.md)
 
-This document describes every public interface in `hotpot.cheminfo.geometry`,
-including its mathematical semantics, numerical settings, and rules for
-converting chemical objects. It is aligned with the package-level `__all__`;
-all public names can be imported from one entry point:
+This document describes mathematical geometry interfaces in
+`hotpot.cheminfo.rules.mathematics.geometry` and chemical-object conversions in
+`hotpot.cheminfo.adapters.structure.geometry`. Each entry point exports its own
+public names. Import mathematical rules with:
 
 ```python
-from hotpot.cheminfo import geometry as geo
+from hotpot.cheminfo.rules.mathematics import geometry as geo
+from hotpot.cheminfo.adapters.structure import geometry as structure_geo
 ```
+
+The original `hotpot.cheminfo.geometry` package remains the native extension
+home; numerical Python modules live under the mathematical rules package.
 
 ## 1. Package introduction
 
@@ -38,8 +42,7 @@ Module responsibilities and dependency direction are:
 ```text
 settings.py  ─┐
 object.py    ─┼─> relation.py ─┐
-              └───────────────┼─> convert.py
-                               └─> package __init__.py
+              └───────────────┴─> adapters/structure/geometry.py
 ```
 
 - `settings.py`: numerical tolerances and nonplanar-cycle surface-enumeration
@@ -48,8 +51,9 @@ object.py    ─┼─> relation.py ─┐
   algorithms;
 - `relation.py`: measurements and relationship classifications that accept
   only pure geometry objects;
-- `convert.py`: the thin adapter layer that understands chemical-object
-  structure.
+- `adapters/structure/geometry.py`: the thin adapter layer that understands
+  chemical-object structure; `settings.py`, `object.py`, and `relation.py` live
+  in `rules/mathematics/geometry/`.
 
 ### 1.1 Units and input conventions
 
@@ -68,7 +72,7 @@ object.py    ─┼─> relation.py ─┐
 #### a. Determine whether a cycle is planar
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> cycle = geo.Cycle([
 ...     (0.0, 0.0, 0.0),
 ...     (2.0, 0.0, 0.0),
@@ -83,7 +87,7 @@ object.py    ─┼─> relation.py ─┐
 #### b. Determine whether a segment pierces a nonplanar cycle
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> cycle = geo.Cycle([
 ...     (0.0, 0.0, 0.0),
 ...     (2.0, 0.0, 0.0),
@@ -108,8 +112,8 @@ pierces both confirmed embedded candidate surfaces, producing `PIERCES`.
 #### c. Scan a chemical object
 
 ```python
-from hotpot.cheminfo import geometry as geo
-report = geo.scan_bond_ring_relations(
+from hotpot.cheminfo.adapters.structure import geometry as structure_geo
+report = structure_geo.scan_bond_ring_relations(
     mol,
     ring_scope="ligand_skeleton",
     max_ring_size=16,
@@ -373,7 +377,7 @@ configuration normally uses `dataclasses.replace()`:
 
 ```python
 from dataclasses import replace
-from hotpot.cheminfo import geometry as geo
+from hotpot.cheminfo.rules.mathematics import geometry as geo
 
 settings = replace(
     geo.DEFAULT_GEOMETRY_SETTINGS,
@@ -780,7 +784,7 @@ decision.
 #### Example
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> cycle = geo.Cycle([(0, 0, 2), (2, 0, 2), (2, 2, 2), (0, 2, 2)])
 >>> result = geo.measure_planarity(cycle)
 >>> result.kind.value, result.maximum_deviation
@@ -833,7 +837,7 @@ Returns `LineRelation`.
 #### Example
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> first = geo.Line((0, 0, 0), (1, 0, 0))
 >>> second = geo.Line((0, 1, 1), (0, 1, 0))
 >>> result = geo.determine_line_relation(first, second)
@@ -858,7 +862,7 @@ degenerate or indeterminate.
 #### Example
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> first = geo.Line((0, 0, 0), (1, 0, 0))
 >>> second = geo.Line((0, 1, 0), (1, 0, 0))
 >>> geo.line_distance(first, second)
@@ -887,7 +891,7 @@ returns $\lVert\mathbf p-\mathbf a\rVert$. Non-finite input returns `NaN`.
 #### Example
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> point = geo.Point((1, 1, 0))
 >>> segment = geo.Segment((0, 0, 0), (2, 0, 0))
 >>> geo.point_segment_distance(point, segment)
@@ -914,7 +918,7 @@ Non-finite input returns `NaN`.
 #### Example
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> horizontal = geo.Segment((0, 0, 0), (1, 0, 0))
 >>> vertical = geo.Segment((0.5, -1, 0), (0.5, 1, 0))
 >>> geo.segment_segment_distance(horizontal, vertical)
@@ -939,7 +943,7 @@ There are $n(n-1)/2$ records. This function does not read
 #### Example
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> points = tuple(geo.Point((x, 0, 0)) for x in (0, 1, 3))
 >>> result = geo.point_pair_distances(points)
 >>> [(item.first_index, item.second_index, item.distance) for item in result]
@@ -962,7 +966,7 @@ $d_{ij}<d_{\mathrm{caller}}$. The caller owns the interpretation of
 #### Example
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> points = tuple(geo.Point((x, 0, 0)) for x in (0, 1, 3))
 >>> result = geo.find_point_pairs_below_distance(points, threshold=3.0)
 >>> [(item.first_index, item.second_index, item.distance) for item in result]
@@ -1014,7 +1018,7 @@ derived tolerance.
 #### Example
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> cycle = geo.Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)])
 >>> plane = geo.Plane((0, 0, 0), (0, 0, 1))
 >>> geo.locate_point_in_planar_cycle(geo.Point((1, 1, 4)), cycle, plane).value
@@ -1112,7 +1116,7 @@ candidate bonds share a cycle.
 #### Example
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> cycle = geo.Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)])
 >>> segments = (
 ...     geo.Segment((1, 1, -1), (1, 1, 1)),
@@ -1141,7 +1145,7 @@ enumeration evidence.
 #### Example
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> cycle = geo.Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)])
 >>> segment = geo.Segment((1, 1, -1), (1, 1, 1))
 >>> result = geo.determine_segment_cycle_relation(segment, cycle)
@@ -1174,7 +1178,7 @@ distance exists.
 #### Example
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> cycle = geo.Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)])
 >>> segment = geo.Segment((-1, -1, -1), (-1, -1, 1))
 >>> result = geo.closest_cycle_edge(cycle, segment)

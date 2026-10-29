@@ -6,7 +6,7 @@ from dataclasses import asdict
 from math import isfinite
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 
-from hotpot.cheminfo import geometry as geo
+from hotpot.cheminfo.rules.mathematics import geometry as geo
 
 
 JSONScalar = Union[None, bool, int, float, str]

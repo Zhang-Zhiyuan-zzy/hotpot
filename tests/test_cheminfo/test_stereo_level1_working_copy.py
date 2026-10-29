@@ -4,6 +4,7 @@ import pytest
 from hotpot import read_mol
 from hotpot.cheminfo import stereo
 from hotpot.cheminfo.forcefields import working_copy
+from hotpot.cheminfo.structure import _commit
 
 
 def _payload(descriptor):
@@ -90,16 +91,19 @@ def test_failed_commit_restores_exact_payload_reference_with_structure(monkeypat
     original_coordinates = molecule.coordinates.copy()
     failure_observed_working_payload = False
 
-    def fail_after_stereo_assignment(atom_pairs):
+    commit_stereo = _commit._commit_stereo
+
+    def fail_after_stereo_assignment(owner, source, payload):
         nonlocal failure_observed_working_payload
+        commit_stereo(owner, source, payload)
         failure_observed_working_payload = (
             stereo.get_stereo_payload(molecule) is working_payload
         )
         raise RuntimeError("injected failure after stereo assignment")
 
     monkeypatch.setattr(
-        type(molecule.atom_pairs),
-        "update_pairs",
+        _commit,
+        "_commit_stereo",
         fail_after_stereo_assignment,
     )
 

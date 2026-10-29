@@ -10,21 +10,24 @@ import numpy as np
 
 
 def _graph_api():
-    return importlib.import_module("hotpot.cheminfo.graph")
+    return importlib.import_module("hotpot.cheminfo.rules.mathematics.graph")
 
 
-def test_module_and_direct_imports_expose_the_legacy_api():
+def _spectrum_api():
+    return importlib.import_module("hotpot.cheminfo.rules.chemistry.descriptors.graph_spectrum")
+
+
+def test_canonical_modules_and_direct_imports_preserve_the_api():
     graph = _graph_api()
+    spectrum_api = _spectrum_api()
 
-    from hotpot.cheminfo.graph import (
+    from hotpot.cheminfo.rules.chemistry.descriptors.graph_spectrum import (
         GraphSpectrum,
-        adj2laplacian,
         atoms_electron_configurations,
         calc_electron_config,
         calc_spectrum,
-        graph_dfs_path,
-        linkmat2adj,
     )
+    from hotpot.cheminfo.rules.mathematics.graph import adj2laplacian, graph_dfs_path, linkmat2adj
 
     expected = {
         "GraphSpectrum": GraphSpectrum,
@@ -35,11 +38,15 @@ def test_module_and_direct_imports_expose_the_legacy_api():
         "graph_dfs_path": graph_dfs_path,
         "linkmat2adj": linkmat2adj,
     }
-    assert {name: getattr(graph, name) for name in expected} == expected
+    actual = {name: getattr(graph, name) for name in ("adj2laplacian", "graph_dfs_path", "linkmat2adj")}
+    actual.update({name: getattr(spectrum_api, name) for name in (
+        "GraphSpectrum", "atoms_electron_configurations", "calc_electron_config", "calc_spectrum"
+    )})
+    assert actual == expected
 
 
 def test_electron_configuration_outputs_are_unchanged():
-    graph = _graph_api()
+    graph = _spectrum_api()
 
     assert graph.calc_electron_config(1) == (0, [1, 0, 0, 0])
     assert graph.calc_electron_config(10) == (1, [2, 6, 0, 0])
@@ -115,7 +122,7 @@ def test_laplacian_conversion_preserves_normalization_and_isolated_nodes():
 
 
 def test_spectrum_and_graph_spectrum_behaviour_is_unchanged():
-    graph = _graph_api()
+    graph = _spectrum_api()
     adjacency = np.array([[0, 1], [1, 0]])
     atomic_numbers = np.array([1, 1])
 

@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "status": "Implemented Stage4 contracts; full Stage4 execution gates remain open",
+  "base_commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+  "source_manifest": ".plan20-artifacts/20261029/stage4/owner-handoff-attempt2/handoff.json",
+  "approvals": [
+    "Accepted common fixed-member/source read-only view contract and Stage4 real constraint-owner prerequisite",
+    "Parent explicitly authorized one finite private N02 addition to preserve existing supplied Wiberg observations",
+    "Parent explicitly authorized exact numerical-value initializer recognition in the architecture auditor; no new debt allowance"
+  ],
+  "private_records": {
+    "MoleculeRecord": {
+      "symbol": "hotpot.cheminfo.structure._builder.MoleculeRecord",
+      "fields_in_order": [
+        "atom_count",
+        "atom_values",
+        "atom_presence",
+        "atom_sources",
+        "atom_isotopes",
+        "atom_frac_valences",
+        "bond_endpoints",
+        "bond_values",
+        "bond_partitions",
+        "bond_kinds",
+        "bond_directions",
+        "bond_sources",
+        "bond_metadata",
+        "charge",
+        "spin_mult",
+        "cell",
+        "stereo_payload",
+        "legacy_frame_values",
+        "legacy_frame_index",
+        "angle_constraints",
+        "torsion_constraints",
+        "identifier",
+        "pair_wiberg_bond_orders"
+      ],
+      "appended_field": "pair_wiberg_bond_orders",
+      "default": "()",
+      "entry": "(first_row, second_row, float_value)",
+      "row_policy": "Normalize unordered pair keys into ascending distinct row indices; reject duplicate, malformed-width and out-of-range entries",
+      "zero_policy": "Missing observation is mathematical zero without storage; explicitly supplied zero is retained",
+      "public_or_native_effect": "No new public DTO/export/ABI; no N01 or N05 schema change"
+    },
+    "_ConstraintSet": {
+      "symbol": "hotpot.cheminfo.structure.constraints._ConstraintSet",
+      "fields_in_order": [
+        "angles",
+        "torsions"
+      ],
+      "defaults": [
+        "()",
+        "()"
+      ],
+      "entry": "ordered tuples of three/four non-reused Atom UIDs; only true constraints are stored",
+      "owner": "one Molecule._constraints reference; views project it",
+      "counting": "one added private owner dataclass, separate from N01-N18",
+      "later_scope": "Atom coordinate and Bond constraints stay at existing owners until Stage7B"
+    },
+    "_MoleculeCommitSnapshot": {
+      "symbol": "hotpot.cheminfo.forcefields.working_copy._MoleculeCommitSnapshot",
+      "fields_in_order": [
+        "state",
+        "member_state",
+        "conformer_state",
+        "membership",
+        "cache_state"
+      ],
+      "effect": "Existing private undo record retained; removal of obsolete per-pair cache state is a field change, not a class retirement"
+    }
+  },
+  "pair_observation_owner": {
+    "attribute": "Molecule._pair_wiberg_bond_orders",
+    "container": "one built-in dict",
+    "key": "(min_atom_uid, max_atom_uid)",
+    "value": "float supplied observation",
+    "transport": "N02 carries row triples; capture/install map rows to destination UIDs; merge offsets rows; subsets omit observations missing a member",
+    "copy_pickle": "copy/deepcopy/current pickle preserve presence and values, including explicit zero and UID gaps",
+    "source_guard": "Complete force-field input identity includes sorted observation entries",
+    "rollback": "Scalar updates enroll actual (dict,key,old-value/absence); complete topology publishes a prepared replacement and retains original owner reference for undo; no clear/update rebuilding of this owner"
+  },
+  "views": {
+    "names": [
+      "AtomSeq",
+      "Angle",
+      "Torsion",
+      "AtomPair",
+      "AtomPairs"
+    ],
+    "physical_home": "Remaining carrier/view definitions stay in core.py until Stage9",
+    "members": "Fixed references/UIDs; member and captured Bond inspection remains available after staleness",
+    "topology_source": "N01 owner plus actual sole topology-index reference and captured active/hidden member counts; no carrier counter, second index or repeated whole-molecule digest",
+    "geometry_source": "Relevant member coordinate raw bytes, presence and source metadata",
+    "failure": "RuntimeError for relevant stale source; no new exception type",
+    "current_pickle": "Rebind to restored owner actual topology index in both graph-root orders; preserve stale topology/member/geometry state rather than refreshing it",
+    "fixed_table": "Caller-owned Mapping; default pair views are lazy and no O(N^2) pair-object cache is retained",
+    "removed_dict_api": [
+      "__setitem__",
+      "__delitem__",
+      "clear",
+      "update",
+      "setdefault",
+      "pop",
+      "popitem",
+      "fromkeys",
+      "dict union mutation",
+      "clear_not_exist_pairs"
+    ],
+    "retained_table_api": {
+      "getdefault": "lookup only; no insertion",
+      "update_pairs": "validate captured topology; no expansion",
+      "idx_matrix": "current row indices in existing pair iteration order",
+      "pair_distance": "one prepared source/geometry check then condensed distance mathematics",
+      "pairs_shortest_path": "existing key-to-path-vertex-count meaning",
+      "copy": "independent caller-owned plain dict, preserving the existing read helper"
+    },
+    "pair_features_in_order": [
+      "wiberg_bond_order",
+      "length_shortest_path"
+    ],
+    "shortest_path_length": "Number of path vertices, including both endpoints; existing disconnected behavior retained",
+    "bonds_read": "AtomSeq.bonds returns an independent list over fixed captured Bond references"
+  },
+  "public_changes": [
+    "Molecule.angles/torsions/atom_pairs return fresh source-bound caller-owned views/tables",
+    "Remove update_angles/update_torsions and _retrieve_torsions without aliases; remove _angles/_torsions/_atom_pairs retained caches",
+    "Angle/Torsion.constraint writes the one persisted owner through the existing named commit",
+    "Keep AtomPairs spelling; inherited dict mutations no longer exist",
+    "InternalCoordinates moves to rules.mathematics.internal_coordinates with its complete class body unchanged; no old Core re-export",
+    "Keep updata_atoms, atom_matrix, native import names/signatures/build paths and the sole MCA Python-RDKit route"
+  ],
+  "later_stage_boundaries": {
+    "Stage5": "Eager chemistry, Atom constructor flag and Ring writer/cache ownership",
+    "Stage7A": "Crystal carrier/toolkit/back-reference isolation",
+    "Stage7B": "Remaining coordinate/Bond constraints and complete pair/hidden-topology ownership",
+    "Stage7C_7D": "Selected scientific results and frame ownership",
+    "Stage9": "Remaining carrier/view physical relocation and Core hard cut",
+    "Stage10": "Native source/build relocation"
+  },
+  "validation": "../implementation/evidence.json"
+}

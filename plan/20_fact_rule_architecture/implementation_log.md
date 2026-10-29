@@ -1214,3 +1214,263 @@ review records and retained failed attempts by SHA256.
   current-state assessment before its implementation starts.
 - The next coherent implementation commit begins the first of three commits
   since the successful`ba662e3` push. No cadence-only commit is created.
+
+## Stage4 entry — committed predecessor and scope assessment
+
+- Stage3 was committed as`bdc6a8066095e81c415e1152b0f3e4717583ac83` on
+  `implement/plan20-fact-rule-architecture`. The worktree was clean afterwards;
+  the branch is one coherent commit ahead of the last successful push.
+  `.plan20-artifacts/20261029/stage3/fact-native/source-commit-binding.json`
+  verifies that all validated production-manifest bytes match the committed
+  worktree; the actual production Git tree is
+  `3853805935e99521727956fd5968db42317ca3f4`. No unchanged test was rerun solely
+  because commit metadata changed.
+- Stage4 begins with a fresh full main-plan/four-companion read and actual
+  source/predecessor-gate assessment by the assigned Sol/max implementation
+  owner. Its entry/review records belong in`stages/stage04/`. Production stays
+  unchanged until this entry and bounded connection design are recorded.
+  An independent read-only Sol/low lookup maps only current constraint owners,
+  caches and consumers; it does not design, edit or run verification.
+- Public spelling, staged semantic/physical boundaries and the source of
+  stage gates remain unchanged. Stage5 retains Ring write-back/cache/eager
+  chemistry/constructor removal; Stage7 retains Crystal isolation and
+  result/frame ownership; Stage10 retains physical class/native/build moves.
+  No Stage13 protocol is implemented early. The final performance and memory
+  regressions recorded in Stage3 remain open, without an invented waiver.
+
+### Stage4 source lookup — constraints and pair metadata
+
+- Read-only lookup found no implemented`ConstraintSet`. Current Atom constraints
+  live in the three table projection columns, Bond constraints in the Bond
+  numeric slot, and Angle/Torsion constraints in their view dictionaries and
+  cached lists. Stage3's factual record/rollback transports these values; the
+  reserved owner class is a Stage4 implementation task, not an already created
+  type. The current `_commit_constraints` has no production caller.
+- `_refresh_topology_index`, factual capture/install, component/copy/merge and
+  pickle preserve ordered constraint rows. `SourceIdentity` reads current
+  constraint facts without constructing the cache. FF working-copy code
+  captures this domain and restores the current caches. Native FF has no
+  existing constraint field/execution path; this lookup does not authorize
+  adding new scientific constraint behavior.
+- `AtomPairs` also carries Wiberg/pair metadata and has independent copy/FF
+  restoration consumers. Removing mathematical caches must preserve those
+  actual facts. Exact source/test paths were delivered to the Stage4 Sol/max
+  owner before its connection design; no lookup edits or tests were executed.
+
+### Stage4 entry recorded and parallel extraction connected
+
+- The Sol/max owner completed the full3498-line current main/four-companion
+  read, recovering truncated outputs with smaller complete ranges. Actual
+  ranges, document/source/native identities, worktree/environment, completed
+  Stage3 gates and bounded scope are in`stages/stage04/entry_review.json`.
+  The connected design is`stages/stage04/review.md`. No main-plan requirement,
+  workload or public decision changed.
+- Clarification of the earlier entry shorthand: remaining carrier/view class
+  relocation belongs to Stage9; Stage10 owns native/source/build-path moves.
+  Stage4 moves the actual mathematical calculator implementations and the
+  specified structure adapter under their semantic owners. Angle/Torsion
+  constraints move now; coordinate/Bond constraints remain at Stage7B.
+- An explicitly assigned Sol/medium worker moved11 graph/geometry/descriptor/
+  adapter bodies, deleted their superseded bodies and updated local README
+  imports. The old graph/geometry packages remain native homes, with no
+  mathematical compatibility re-export tree. Geometry exports split into
+  38 mathematics and32 adapter entries; graph into6 mathematics and4 chemical
+  descriptor entries. Current native module names,38 native source/stub files
+  and16 matching existing binary identities stayed unchanged.
+- Actual mechanical check command was
+  `/tmp/hotpot-plan20-env/bin/python /tmp/hotpot-stage4-kernel-check.py`:
+  exit0,19 modules compiled,11 bodies matched the entry AST after imports were
+  excluded. Original helper/results are copied under
+  `.plan20-artifacts/20261029/stage4/kernel-handoff/`. This is a static/code
+  equivalence check, not runtime/default/native gate completion.
+- Parent connected62 inventoried consumer files, including13 geometry-alias
+  consumers and one dynamic monkeypatch consumer found after the initial48
+  list.57 files changed; the two local ComplexFormer graph imports and actual
+  native imports were left at their existing owners. Mathematical calls and
+  carrier-adapter calls now address their respective real modules, including
+  type annotations and string-based monkeypatch targets. Existing70-name
+  coverage, parameter signatures, numeric/golden assertions and missing-native
+  fences retain their behavioral purpose at the canonical paths.
+- Executed
+  `python .plan20-artifacts/20261029/stage4/helpers/check_consumer_rewire.py`:
+  all62 owned files parse, and production AST bodies are unchanged after
+  import/owner-qualifier normalization. Exact files/hashes and limits are in
+  `consumer_rewire_check.json`. No runtime test was run while Core/constraint/
+  view/serialization code remained under concurrent edits.
+- The Sol/max owner retains the finite private record change needed to preserve
+  supplied pair Wiberg observations through copy/subset/merge/current pickle.
+  Its default-empty row/value field is distinct from generated mathematical
+  pair defaults, preserves explicit zero, and changes no public DTO, N01 or
+  seven-field N05. Precise schema/owner and connected tests belong to the
+  Stage4 review and implementation, not a generic result/protocol expansion.
+
+
+### Stage directory standard follow-up and historical navigation
+
+- Reused the independent Sol/low source-lookup agent for the owner-requested
+  bounded layout audit; the initial mechanical migration was already committed
+  as`ba662e3`, so no duplicate move or historical evidence rewrite was made.
+  The catalog defines finite Markdown meanings and stage00–13 navigation.
+- The first follow-up audit found four broken source links in the historical
+  data-object audit after Stage4 mathematical files moved. The parent pinned
+  all90 source links in that audit to its actual original
+  `d9eb80e239f24a694a8cb23fd412eb6baf030cbb` source, preserving the original
+  line references and normative content. The appendix states that historical
+  identity; it does not point old line numbers at a different implementation.
+- The layout auditor now checks every file asset against its owning README,
+  the complete14-stage range and every stage's catalog link. It retains
+  Markdown type checks, JSON parsing, current local links and archival byte
+  checks. The catalog now acknowledges the actual Stage4 entry/design records.
+- Executed`python plan/20_fact_rule_architecture/audit_stage_records.py
+  --check-migration-bytes --output
+  plan/20_fact_rule_architecture/stages/layout_followup_evidence.json`:
+  exit0/passed;14 stage directories,30 Markdown,27 JSON,0 other assets,
+  57 indexed files and1282 external text files checked. All19 original JSON
+  snapshots,9 historical Markdown command/identity records and the existing
+  implementation-log prefix passed preservation checks. The earlier failed
+  audit is retained in the follow-up evidence. No Stage4 execution gate is
+  completed by this navigation audit.
+
+- Evidence clarification: the follow-up JSON retains a factual transcription
+  of the first failed audit and its four observed broken links. That command's
+  original output was visible in the tool record only; no original artifact
+  file was saved. Its artifact path/digest are explicitly null. The final
+  passing audit above has an actual retained JSON record.
+
+
+### Stage4 freeze-v1 executed gates and retained failures
+
+- After the owner froze production/tests/audit/allowlist/budget, ran the actual
+  complete default command through `stage4/validation-helpers/run_recorded.py`:
+  `taskset -c 24-31 /tmp/hotpot-plan20-env/bin/python -m pytest -q
+  --import-mode=importlib tests`, with exact environment/JUnit/temp arguments
+  retained in`stage4/default-attempt1/command.json` under the dated artifact
+  root. It passed4563 tests,123 skips,3 xfails and49 subtests, with10 warnings;
+  wall143.603s. All recorded production/native/tests/runner bytes stayed stable.
+- The independent Stage4 native command selected all7 mapped C++ source-API
+  tests with`--run-high-compute`; all7 passed, no skips/failures/errors,
+  wall34.294s. Their native source/recipe closure remains unchanged from
+  Stage3. This is actual standalone compilation/execution, not Stage10's
+  separate clean all-component build/ABI/SDK gate.
+- Actual`setup.py ... sdist` and content auditing passed542 current
+  Python/stub/native-source/license/documentation members, rejected prebuilt
+  shared libraries and confirmed11 superseded Python modules absent. This
+  freeze-v1 source archive is retained under`sdist-build-attempt1/` and is
+  historical once the two read-interface fixes below change production bytes.
+- The supported-version driver's first two preflight attempts failed before
+  tests/builds started: first a root-relative/native-wheel path namespace
+  mismatch, then its incorrect assumption that Stage3 root and installed OB
+  builds must have identical bytes. Both runner snapshots and actual failure
+  records are retained in`matrix-attempt{1,2}-preflight-failed/`.
+  The corrected provenance independently binds unchanged root binaries and
+  previously executed installed wheel/native identities, including the four
+  different OB builds, rather than conflating those builds.
+- The true five-version freeze-v1 run is retained in`matrix-final/` with its
+  partial commands/logs/XML. Python3.13/3.14 each exposed8 failures before
+  rollback execution: the new allocator calibration observed no allocations
+  and attempted`max([])`. Python3.11 installed testing exposed12 fixture errors
+  because its copied test support omitted`plan/17_rdkit_wrapper/run_r0_benchmark.py`.
+  These are actual failed checks, not passes or an excluded test population.
+- A final owner read-interface audit also found that bound sequence`bonds`
+  must retain its independent-list return and the read-only pair mapping's
+  `copy()` read helper must remain available. On that concrete evidence,
+  reopened freeze-v1 and stopped the running matrix with unified-exec Ctrl-C
+  (actual exit130).`matrix-final/cancellation.json` records that action and
+  the earlier unsuccessful cross-PID-namespace process search, which sent no
+  signal. The Sol/max owner owns the read-container and allocator-probe fixes;
+  the parent owns missing installed test-support assembly. Final source,
+  affected default/matrix/current-package evidence will use a new freeze and
+  new artifact directories. Unchanged standalone C++ evidence is not discarded
+  merely because unrelated Python view bytes change.
+
+
+### Stage4 freeze-v2/v3 and default-gate prerequisite defect
+
+- Freeze-v2 fixed the two existing read contracts and the actual new canonical
+  pair-owner scanner coverage. Python3.11/3.13/3.14 local80-case selections,
+  both3.13/3.14 debug8-case probes and the95-case architecture selection
+  passed. The probes now actually observe both MEM/OBJ domains:3.11 dict
+  buckets use OBJ,3.13/3.14 use MEM. No failure was skipped or inferred away.
+- The complete five-version v2 source/debug/current-wheel selections passed,
+  including actual outside-checkout runtime and smoke. Their unchanged source
+  identities are retained in`stage4/matrix-final-v2/`; current final evidence
+  supersedes their production checkpoint after the next concrete defect fix.
+- The v2 complete default run failed1 DS case with4569 passes,123 skips,
+  3 xfails,49 subtests. Its unchanged HEAD DS implementation and unchanged
+  original test missed O-to-N same-length source rewriting when filesystem
+  metadata stayed equal. An actual100-rewrite probe on this filesystem found
+  98 full stat-signature collisions; the raw observations and code identities
+  are in`default-attempt2/filesystem-timestamp-probe.json`.
+- Preserved that failure and added a deterministic unchanged-stat/changed-byte
+  case. Before the fix its exact recorded node failed; after the minimal fix
+  all409 DS tests passed with30 declared skips. Cache final release now uses
+  its existing stable-digest helper to reprove current source content once
+  per cached present asset. Shared snapshot/parse work remains shared; error
+  types and cleanup behavior remain the existing ones. No new public contract,
+  architecture, rule, model route or generic protocol was introduced.
+- The new collision case is an additional parametrized test. For final frozen
+  common-technical benchmarking, the original one-case node binds specifically
+  to`test_shared_asset_cache_rejects_source_change_before_reuse[False]`; the
+  new`[True]` case remains additional work. This mapping is recorded before
+  measuring that family; original node membership/weights are unchanged, and
+  the focused Stage4 graph/geometry/Crystal subset does not execute this node.
+- Recorded global`stage4/global_freeze_v3.json` after the DS prerequisite fix,
+  preserving the Stage4 owner's v2 bytes. The complete default rerun passed
+  4571 tests,123 skips,3 xfails,49 subtests and10 warnings in147.47s pytest time
+  (149.456s wall), with all source/native/tests/runner hashes stable. Current
+  source sdist building and542-member content auditing also passed.
+- Full affected chemistry plus all DS contracts passed source checks on all
+  Python3.10–3.14, along with debug allocator, current Python wheel assembly,
+  native provenance, wheel-content audits and isolated installs. All five
+  installed attempts then correctly failed the same DS documentation fixture
+  because test support omitted its source`pyproject.toml` input. Those actual
+  failed logs/XML are retained. The recovery driver copies and hashes that
+  already frozen build-metadata input and reruns the complete installed
+  selection and smoke without changing any production, test or wheel bytes;
+  its results remain pending until the actual commands complete.
+
+
+### Stage4 verified extraction checkpoint and measured regressions
+
+- Completed`validation-helpers/recover_installed_support.py`: each
+  Python3.10–3.14 reran the complete installed-runtime selection after its
+  missing frozen`pyproject.toml` support input was supplied. Each passed2143
+  tests with42 skips; all five actual installed core smokes passed. Production,
+  native, test, wheel and matrix-runner bytes stayed unchanged. Earlier
+  installed failures remain intact;`matrix-final-v3/matrix-acceptance.json`
+  binds the successful recovery rather than rewriting the old failed summary.
+- Final owning-stage technical evidence is in`stages/stage04/validation/`:
+  default4571 passed/123 skipped/3 xfailed/49 subtests; each supported Python
+  passes2273 source/162 debug/2143 installed. The42 source/installed skips are
+  41 requiring`--run-external` and1 requiring`--run-scientific-boundary`;
+  those tiers are not claimed executed. Seven standalone C++ builds/executables
+  and the current542-member source-distribution audit have their own records.
+- After all internal task tests/builds stopped, executed
+  `PYTHONDONTWRITEBYTECODE=1 /tmp/hotpot-plan20-env/bin/python
+  .plan20-artifacts/20261029/stage4/validation-helpers/run_recorded.py
+  .plan20-artifacts/20261029/stage4/request-performance-wrapper-attempt1.json`.
+  The actual interleaved B20/candidate driver ran all3 frozen workloads with
+  CPU0–63 and3 warmups/10 samples:6 workers,78 attempts,60 measured, no
+  failures/no-output, equal actual work counters, stable production/native
+  bytes and zero comparator environment mismatches. Manifest/policy bytes
+  remain unchanged; the host was shared and is not claimed exclusive.
+- Current/B20 graph/search/view reads are4.05299 (95% CI4.04018–4.08116),
+  geometry screening0.99693(CI0.99035–1.00588), Crystal matrix conversion
+  1.10286(CI1.09772–1.11215). The complete two-entry graph/geometry family is
+  2.01011(CI2.00284–2.02241). These are actual regressions/parity, not a
+  performance approval; lower observed process RSS does not erase them.
+  All original samples/limits are in`stages/stage04/performance/`.
+- The Sol/max owner has a read-only bounded task to identify minimal local
+  view-creation/Crystal-dispatch optimizations. No production edit is yet
+  authorized for that next partition; existing stale/member/constraint/undo
+  contracts, no-carrier-cache rule and frozen semantic work must remain.
+  No Stage5 eager chemistry, future experimental protocol or workload waiver
+  is used to explain away the measured4×cost.
+- `stages/stage04/report.md` is explicitly an in-progress extraction checkpoint,
+  and its README indexes all current records. Ran the actual layout audit
+  with`--check-migration-bytes --output
+  .plan20-artifacts/20261029/stage4/layout-checkpoint.json`: passed34 Markdown,
+  32 JSON,66 indexed files, all14 stages and original historical identities.
+  `git diff --check` passes. The next coherent extraction commit will be the
+  second commit since the successful`ba662e3` push; no cadence-only commit
+  is created and Stage4 is not declared complete at this checkpoint.

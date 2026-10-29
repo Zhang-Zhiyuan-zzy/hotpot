@@ -1,6 +1,6 @@
 """Acceptance-policy tests for precomputed native bond--ring checkpoints."""
 
-from hotpot.cheminfo import geometry as geo
+from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.core import Molecule
 from hotpot.cheminfo.forcefields import acceptance as acceptance_policy
 from hotpot.cheminfo.forcefields.native_reports import (
@@ -64,7 +64,7 @@ def test_native_checkpoint_acceptance_does_not_rescan_geometry(monkeypatch):
         raise AssertionError("native checkpoint acceptance must not rescan")
 
     monkeypatch.setattr(
-        acceptance_policy.geo,
+        acceptance_policy.geometry_adapter,
         "screen_bond_ring_relations",
         unexpected_scan,
     )

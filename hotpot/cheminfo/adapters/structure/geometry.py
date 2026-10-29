@@ -26,16 +26,16 @@ from typing import (
 
 import numpy as np
 
-from . import native as _native
-from .object import Cycle, Point, Segment
-from .relation import (
+from hotpot.cheminfo.rules.mathematics.geometry import native as _native
+from hotpot.cheminfo.rules.mathematics.geometry.object import Cycle, Point, Segment
+from hotpot.cheminfo.rules.mathematics.geometry.relation import (
     ClosestCycleEdge,
     PiercingState,
     PointPairDistance,
     SegmentCycleRelation,
     determine_segment_cycle_relation,
 )
-from .settings import DEFAULT_GEOMETRY_SETTINGS, GeometrySettings
+from hotpot.cheminfo.rules.mathematics.geometry.settings import DEFAULT_GEOMETRY_SETTINGS, GeometrySettings
 
 
 __all__ = (

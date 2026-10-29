@@ -683,6 +683,20 @@ class _AssetAssessmentCache:
                     raise AssetSourceChangedError(
                         "scientific asset changed while cached assessments were produced"
                     )
+                if cached["observed_sha256"] is not None:
+                    try:
+                        source_digest, source_signature = _stable_digest(cached["source_path"])
+                    except OSError as exc:
+                        raise AssetSourceChangedError(
+                            "scientific asset became unavailable while cached assessments were produced"
+                        ) from exc
+                    if (
+                        source_digest != cached["observed_sha256"]
+                        or ("present", source_signature) != cached["source_observation"]
+                    ):
+                        raise AssetSourceChangedError(
+                            "scientific asset changed while cached assessments were produced"
+                        )
                 snapshot_path = cached["snapshot_path"]
                 if snapshot_path is not None:
                     try:

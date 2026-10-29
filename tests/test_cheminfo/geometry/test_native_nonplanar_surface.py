@@ -6,13 +6,14 @@ from typing import Iterable
 import numpy as np
 import pytest
 
-from hotpot.cheminfo.geometry import _geometry_native, native, relation
-from hotpot.cheminfo.geometry.object import Cycle, Segment
-from hotpot.cheminfo.geometry.relation import (
+from hotpot.cheminfo.geometry import _geometry_native
+from hotpot.cheminfo.rules.mathematics.geometry import native, relation
+from hotpot.cheminfo.rules.mathematics.geometry.object import Cycle, Segment
+from hotpot.cheminfo.rules.mathematics.geometry.relation import (
     PiercingState,
     SegmentCycleIndeterminacy,
 )
-from hotpot.cheminfo.geometry.settings import (
+from hotpot.cheminfo.rules.mathematics.geometry.settings import (
     DEFAULT_GEOMETRY_SETTINGS,
     GeometrySettings,
 )

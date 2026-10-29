@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from hotpot.cheminfo import geometry as geo
+from hotpot.cheminfo.rules.mathematics import geometry as geo
 
 GEOMETRY_DOCUMENTATION_DIRECTORY = (
     Path(__file__).resolve().parents[3] / "hotpot" / "cheminfo" / "geometry"

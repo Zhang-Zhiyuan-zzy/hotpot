@@ -75,9 +75,62 @@ def test_thin_structure_facade_can_enter_named_operation_locally():
     "def run(subject):\n    subject.id = 10",
     "def run(subject):\n    subject.n = 2",
     "def run(subject):\n    subject.x_constraint = True",
+    "def run(subject):\n    subject._pair_wiberg_bond_orders[(0, 1)] = 1.25",
+    "def run(subject):\n    subject._pair_wiberg_bond_orders.clear()",
+    "def run(subject):\n    object.__setattr__(subject, '_pair_wiberg_bond_orders', {})",
 ])
 def test_rules_and_adapters_cannot_write_canonical_facts(layer, source):
     assert audit.layer_findings(f"hotpot/cheminfo/{layer}/example.py", source)
+
+
+_VALUE_INITIALIZERS = (
+    ("hotpot/cheminfo/rules/mathematics/geometry/object.py", "Point", "__init__",
+     'object.__setattr__(self, "coordinates", (1., 2., 3.))'),
+    ("hotpot/cheminfo/adapters/structure/geometry.py", "BondRingFrameWorkspace", "__post_init__",
+     'object.__setattr__(self, "coordinates", coordinate_snapshot)'),
+    ("hotpot/cheminfo/rules/mathematics/internal_coordinates.py", "InternalCoordinates", "__init__",
+     'self.coordinates = coordinates'),
+)
+
+
+@pytest.mark.parametrize('path,cls,method,statement', _VALUE_INITIALIZERS)
+def test_reviewed_numerical_values_can_initialize_their_own_fields(path, cls, method, statement):
+    source = f'class {cls}:\n    def {method}(self):\n        {statement}\n'
+    assert audit.layer_findings(path, source) == []
+
+
+@pytest.mark.parametrize('path,cls,method,initialization', _VALUE_INITIALIZERS)
+@pytest.mark.parametrize('statement', [
+    'subject.coordinates = coordinates',
+    'self.mol.coordinates = coordinates',
+    'object.__setattr__(foreign, "coordinates", coordinates)',
+    'object.__setattr__(self.mol, "coordinates", coordinates)',
+    'object.__setattr__(self, field, coordinates)',
+    'object.__setattr__(self, "charge", 1)',
+    'self.coordinates[:] = 1',
+    'self.coordinates.fill(0)',
+    'del self.coordinates',
+])
+def test_value_initialization_does_not_exempt_foreign_dynamic_or_buffer_writes(
+        path, cls, method, initialization, statement):
+    source = f'class {cls}:\n    def {method}(self):\n        {initialization}\n        {statement}\n'
+    assert audit.layer_findings(path, source)
+
+
+@pytest.mark.parametrize('path,cls,method,statement', _VALUE_INITIALIZERS)
+@pytest.mark.parametrize('changed_scope', ['path', 'class', 'method', 'nested'])
+def test_value_initialization_permission_has_exact_path_and_direct_method_scope(
+        path, cls, method, statement, changed_scope):
+    if changed_scope == 'path':
+        path = path.replace('.py', '_other.py')
+    elif changed_scope == 'class':
+        cls += 'Other'
+    elif changed_scope == 'method':
+        method = 'update'
+    source = f'class {cls}:\n    def {method}(self):\n        {statement}\n'
+    if changed_scope == 'nested':
+        source = f'class {cls}:\n    def {method}(self):\n        def nested():\n            {statement}\n'
+    assert audit.layer_findings(path, source)
 
 
 @pytest.mark.parametrize("source", [

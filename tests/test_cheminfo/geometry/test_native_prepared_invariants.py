@@ -1,8 +1,9 @@
 import numpy as np
 import pytest
 
-from hotpot.cheminfo.geometry import _geometry_native, native
-from hotpot.cheminfo.geometry.settings import DEFAULT_GEOMETRY_SETTINGS
+from hotpot.cheminfo.geometry import _geometry_native
+from hotpot.cheminfo.rules.mathematics.geometry import native
+from hotpot.cheminfo.rules.mathematics.geometry.settings import DEFAULT_GEOMETRY_SETTINGS
 
 
 def _square_coordinates() -> np.ndarray:

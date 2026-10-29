@@ -22,21 +22,16 @@ from functools import wraps as _wraps
 import cython
 import numpy as np
 from openbabel import pybel as pb, openbabel as ob
-from scipy.spatial.distance import pdist, squareform
 
 from hotpot.cheminfo.elements import elements
 from hotpot.utils import types, chem as hpchem
 import hotpot.cheminfo.obconvert as obc
 from .rdconvert import to_rdmol
-from . import graph as graph_algorithms, forcefields as ff, kekulize as kekulization
-from .graph.components import connected_components
-from .graph.paths import (
-    all_simple_paths,
-    depth_first_path,
-    longest_simple_path,
-    shortest_path as graph_shortest_path,
-)
-from . import geometry, crystal as cryst
+from .rules.mathematics import graph as graph_algorithms
+from . import forcefields as ff, kekulize as kekulization
+from .rules.mathematics import geometry
+from .adapters.structure import geometry as geometry_adapter
+from . import crystal as cryst
 from .pubchem import pubchem_service
 from .call_thermo import Thermo
 from .structure._fields import (
@@ -46,12 +41,13 @@ from .structure._fields import (
     FIELD_CODECS as _ATOM_FIELD_CODECS,
 )
 from .structure._atom_table import _AtomFactTable
+from .structure.constraints import _ConstraintSet
 from .structure._identity import _capture_source
 from .structure._mutation import _AtomFactUpdate, _normalize_atom_facts
 from .structure._commit import (
     _FactTransaction, _commit_atom_facts, _commit_coordinates, _commit_bond_facts,
     _commit_molecular_declarations, _commit_atom_sparse, _commit_topology,
-    _current_transaction, _fact_engine,
+    _current_transaction, _fact_engine, _commit_constraints,
 )
 from .structure._dependencies import (
     _dependency_state, _install_dependency_state, _remap_dependency_state,
@@ -169,9 +165,8 @@ class Molecule:
         self._conformers = Conformers()
         self._conformers_index = 0
 
-        self._atom_pairs = AtomPairs(mol=self)
-        self._angles = []
-        self._torsions = []
+        self._pair_wiberg_bond_orders = {}
+        self._constraints = _ConstraintSet()
         self._rings = []
         self._ring_indices_cache = {}
         self._ligand_rings = None
@@ -537,86 +532,10 @@ class Molecule:
             self.update_atoms_attrs_from_id_dict(atom_attrs_dict)
             self.update_bonds_attrs_from_id_dict(bond_attrs_dict)
 
-    def _retrieve_torsions(self):
-        """
-        Retrieve all torsions associated with the bonds of a molecule.
-
-        This method calculates torsions for each bond in the molecule by 
-        iterating over neighboring atoms of both bonded atoms. A torsion 
-        is defined by four atoms: two bonded atoms and their respective 
-        neighbors. This information is used to create `Torsion` objects.
-
-        Raises:
-            None
-
-        Returns:
-            list: A list of `Torsion` objects representing all the torsions 
-            in the molecule.
-        """
-        torsion = []
-        t1 = time.time()
-        for bond in self.bonds:
-            a1_neigh = list(bond.atom1.neighbours)
-            a2_neigh = list(bond.atom2.neighbours)
-            a1_neigh.remove(bond.atom2)
-            a2_neigh.remove(bond.atom1)
-
-            for a, d in product(a1_neigh, a2_neigh):
-                torsion.append(Torsion(a, bond.atom1, bond.atom2, d))
-        t2 = time.time()
-        logging.info(f'Torsion calculation took {t2-t1} seconds')
-
-        return torsion
 
     def simple_paths(self, source=None, target=None, cutoff=None):
-        """
-        Return all simple paths in a graph.
-
-        This method computes all simple paths between specified source and target nodes
-        within the provided graph. If no source and target are specified, it computes all
-        simple paths between all node pairs in the graph. The result includes all paths
-        up to a specified maximum "cutoff" length.
-
-        Parameters:
-            source (int, optional): The starting node for paths. If None, paths from all nodes
-                                     are considered. Defaults to None.
-            target (int, optional): The ending node for paths. If None, paths to all nodes
-                                     are considered. Defaults to None.
-            cutoff (int, optional): The maximum path length to compute. If None, no length
-                                     limit is applied. Defaults to None.
-
-        Returns:
-            list: A list of all simple paths in the graph, where each path is represented
-                  as a sequence of nodes.
-        """
-        nodes = range(len(self._atoms))
-        edges = tuple(
-            (
-                self._topology_index[id(bond.atom1)][0],
-                self._topology_index[id(bond.atom2)][0],
-            )
-            for bond in self._bonds
-        )
-        if source is None and target is None:
-            st = combinations(nodes, 2)
-        elif isinstance(source, int) and isinstance(target, int):
-            st = [(source, target)]
-        elif isinstance(source, int):
-            st = [(source, t) for t in nodes if t != source]
-        else:
-            st = [(s, target) for s in nodes if s != target]
-
-        return [
-            path
-            for start, end in st
-            for path in all_simple_paths(
-                len(self._atoms),
-                edges,
-                start,
-                end,
-                cutoff,
-            )
-        ]
+        from .operations.topology_queries import _simple_paths
+        return _simple_paths(self, source, target, cutoff)
 
     def _set_coordinates(self, coordinates):
         self.coordinates = np.asarray(coordinates)
@@ -632,43 +551,28 @@ class Molecule:
             self._topology_index = (_build_topology_index(
                 self._atoms, self._bonds, self._hided_metal_bonds, self._hided_covalent_bonds)
                 if _prepared_index is None else _prepared_index)
-            if _constraint_rows is None and self._topology_index is not previous:
+            if _constraint_rows is not None:
+                angle_rows, torsion_rows = _constraint_rows
+                self._constraints = _ConstraintSet(
+                    tuple(tuple(self._atoms[row]._uid for row in entry) for entry in angle_rows),
+                    tuple(tuple(self._atoms[row]._uid for row in entry) for entry in torsion_rows))
+            elif self._topology_index is not previous:
+                uids = {atom._uid for atom in self._atoms}
+                self._constraints = self._constraints.subset(uids)
+                if any(first not in uids or second not in uids for first, second in self._pair_wiberg_bond_orders):
+                    self._pair_wiberg_bond_orders = {
+                        pair: value for pair, value in self._pair_wiberg_bond_orders.items()
+                        if all(uid in uids for uid in pair)}
                 changed = tuple(atom._uid for atom in self._atoms if
                     tuple(id(bond) for bond in previous.get(id(atom), (None, ()))[1]) !=
                     tuple(id(bond) for bond in self._topology_index[id(atom)][1]))
                 _mark_topology_dirty(self, changed)
-            angles = {tuple(id(atom) for atom in angle.atoms) for angle in self._angles if angle.constraint}
-            torsions = {tuple(id(atom) for atom in torsion.atoms) for torsion in self._torsions if torsion.constraint}
-            next_angles = []
-            next_torsions = []
             self._rings = []
             self._ring_indices_cache = {}
             self._ligand_rings = None
             self._ligand_rings_signature = None
             self._obmol = None
             self._row2idx = None
-            if _constraint_rows is not None:
-                angle_rows, torsion_rows = _constraint_rows
-                complete_paths = {}
-                for bond in self._bonds + self._hided_bonds:
-                    complete_paths.setdefault(frozenset((id(bond.atom1), id(bond.atom2))), bond)
-                next_angles = [_new_constraint_view(Angle, self, item, complete_paths) for item in angle_rows]
-                next_torsions = [_new_constraint_view(Torsion, self, item, complete_paths) for item in torsion_rows]
-                for view in next_angles + next_torsions:
-                    view.constraint = True
-            else:
-                if angles:
-                    self.update_angles()
-                    next_angles = self._angles
-                    for angle in next_angles:
-                        angle.constraint = tuple(id(atom) for atom in angle.atoms) in angles
-                if torsions:
-                    self.update_torsions()
-                    next_torsions = self._torsions
-                    for torsion in next_torsions:
-                        torsion.constraint = tuple(id(atom) for atom in torsion.atoms) in torsions
-            self._angles = next_angles
-            self._torsions = next_torsions
             if clear_conformers:
                 self._conformers.clear()
 
@@ -956,7 +860,10 @@ class Molecule:
                 charge=charge, spin_mult=spin, cell=current.cell if offset else incoming.cell,
                 stereo_payload=payload,
                 angle_constraints=current.angle_constraints + tuple(tuple(offset + row for row in item) for item in incoming.angle_constraints),
-                torsion_constraints=current.torsion_constraints + tuple(tuple(offset + row for row in item) for item in incoming.torsion_constraints))
+                torsion_constraints=current.torsion_constraints + tuple(tuple(offset + row for row in item) for item in incoming.torsion_constraints),
+                pair_wiberg_bond_orders=current.pair_wiberg_bond_orders + tuple(
+                    (offset + first, offset + second, value)
+                    for first, second, value in incoming.pair_wiberg_bond_orders))
             old_atoms = tuple(self._atoms)
             old_bonds = tuple(self._bonds + self._hided_bonds)
             source_status, source_seeds = incoming_dependencies
@@ -1026,15 +933,14 @@ class Molecule:
         return Thermo(self, temp=temp, pressure=pressure)
 
     def clear_constraints(self) -> None:
-        """ clear all set constraints """
-        for atom in self.atoms:
-            atom.constraint = False
-        for bond in self.bonds:
-            bond.constraint = False
-        for angle in self.angles:
-            angle.constraint = False
-        for torsion in self.torsions:
-            torsion.constraint = False
+        """Clear the existing active coordinate/Bond and owned sequence constraints."""
+        with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
+            transaction.touch_constraints()
+            for atom in self.atoms:
+                atom.constraint = False
+            for bond in self.bonds:
+                bond.constraint = False
+            self._constraints = _ConstraintSet()
 
     def clear_metal_ligand_bonds(self) -> None:
         """
@@ -1134,49 +1040,20 @@ class Molecule:
 
     @property
     def atom_pairs(self) -> "AtomPairs":
-        """
-        Provides access to atom pair information stored in the object.
-
-        This property retrieves the `_atom_pairs` attribute of the object, which 
-        encapsulates atom pair information in the form of an `AtomPairs` object. 
-        The returned `AtomPairs` object provides detailed data and functionalities 
-        pertaining to atom pair relationships.
-
-        Returns:
-            AtomPairs: The atom pair information associated with the object.
-        """
-        return self._atom_pairs
+        """Return a fresh fixed pair table over the current molecular source."""
+        return AtomPairs(mol=self)
 
     @property
     def angles(self) -> list["Angle"]:
-        """
-        Gets the angles property which is a list of Angle objects representing
-        all possible angles formed by the given atoms and their neighbors. The
-        property is generated lazily and cached for future access.
-
-        Returns:
-            list[Angle]: A list of Angle objects, where each angle is formed by
-            a combination of two neighbors of an atom present in the `atoms`.
-
-        """
-        if not self._angles:
-            self._angles = [Angle(n1, a, n2) for a in self.atoms for n1, n2 in combinations(a.neighbours, 2)]
-        return copy(self._angles)
+        """Return fresh source-bound views; persisted constraints have one owner."""
+        from .operations.geometry import _angle_views
+        return _angle_views(self, Angle, _new_sequence_view)
 
     @property
     def torsions(self) -> list["Torsion"]:
-        """
-            Retrieves and returns a copy of the torsions associated with the object.
-            The torsions are computed once and cached for future retrieval.
-
-            Returns:
-                list["Torsion"]: A list of torsion objects. A copy of the cached
-                list is always returned to ensure the original list is immutable
-                to external changes.
-        """
-        if not self._torsions:
-            self._torsions = self._retrieve_torsions()
-        return copy(self._torsions)
+        """Return fresh source-bound torsion views without retaining a cache."""
+        from .operations.geometry import _torsion_views
+        return _torsion_views(self, Torsion, _new_sequence_view)
 
     def assign_bond_order(self):
         """
@@ -1545,29 +1422,15 @@ class Molecule:
 
     @property
     def components(self) -> list['Molecule']:
-        with self._mutation_lock:
-            edges = tuple((self._topology_index[id(b.atom1)][0], self._topology_index[id(b.atom2)][0])
-                          for b in self._bonds)
-            selections = connected_components(len(self._atoms), edges)
-            captures = [(rows, self._capture_factual_record(rows=rows, include_frames=False),
-                         _remap_dependency_state(self._atom_table, tuple(a._uid for a in self._atoms),
-                                                 tuple(range(len(rows))), rows=tuple(rows))) for rows in selections]
-        result = []
-        for rows, (record, metadata), state in captures:
-            component = Molecule()
-            _commit_topology(component, _capture_source(component), record,
-                atom_bindings=(None,) * record.atom_count,
-                bond_bindings=(None,) * len(record.bond_endpoints),
-                dependency_state=state, bond_metadata=metadata)
-            result.append(component)
-        return result
+        from .operations.topology_queries import _components
+        return _components(self, Molecule)
 
     def constraint_bonds_angles(self, exclude_metal_bonds: bool = True):
         """
         Constrains bonds and angles based on the provided conditions.
 
-        This method updates the angles first, then applies constraints to the bonds
-        and angles depending on whether they involve metals. Bonds and angles with
+        This method applies constraints to the bonds and fresh angle views
+        depending on whether they involve metals. Bonds and angles with
         metals are excluded from constraints if the flag `exclude_metal_bonds` is set
         to True.
 
@@ -1575,7 +1438,6 @@ class Molecule:
             exclude_metal_bonds (bool): A flag to indicate whether bonds and angles 
                 involving metals should be excluded from constraints. Default is True.
         """
-        self.update_angles()
         if exclude_metal_bonds:
             for bond in self.bonds:
                 if not bond.has_metal:
@@ -1762,33 +1624,13 @@ class Molecule:
 
     @property
     def pair_dist(self) -> np.ndarray:
-        """
-        Computes the pairwise distance between coordinates.
-
-        This property uses the scipy.spatial.distance.pdist function to calculate
-        the pairwise distances between points in the provided coordinates.
-
-        Returns:
-            np.ndarray: A 1D array containing the pairwise distances between points
-            in the coordinates.
-        """
-        return pdist(self.coordinates)
+        from .operations.geometry import _pair_distances
+        return _pair_distances(self)
 
     @property
     def dist_matrix(self) -> np.ndarray:
-        """
-        Gets the distance matrix for a set of coordinates.
-
-        Calculates the pairwise distances between each set of points
-        in the given coordinates. The distance calculation is based on
-        the Euclidean distance.
-
-        @return: A 2D numpy array representing the pairwise distance
-        matrix. Each element [i, j] in the matrix represents the distance
-        between point i and point j.
-        @rtype: numpy.ndarray
-        """
-        return squareform(pdist(self.coordinates))
+        from .operations.geometry import _distance_matrix
+        return _distance_matrix(self)
 
     @property
     def element_counts(self):
@@ -1831,15 +1673,8 @@ class Molecule:
         self._update_topology(clear_conformers)
 
     def graph_spectral(self, norm: Literal['infinite', 'min', 'l1', 'l2'] = 'l2'):
-        """ Return graph spectral matrix """
-        clone = copy(self)
-        clone.add_hydrogens()
-        adj = graph_algorithms.linkmat2adj(len(clone.atoms), clone.link_matrix)
-        return graph_algorithms.GraphSpectrum.from_adj_atoms(
-            adj,
-            np.array([a.atomic_number for a in clone.atoms]),
-            norm=norm,
-        )
+        from .operations.descriptors import _graph_spectral
+        return _graph_spectral(self, norm)
 
     @property
     def formula(self) -> str:
@@ -1867,7 +1702,7 @@ class Molecule:
         """
         return any(
             pair_distance.measurement.distance < _MINIMUM_ATOM_SEPARATION
-            for pair_distance in geometry.measure_atom_pair_distances(
+            for pair_distance in geometry_adapter.measure_atom_pair_distances(
                 self,
                 pair_scope="all",
             )
@@ -1914,7 +1749,7 @@ class Molecule:
             max_ring_size: int = _DEFAULT_BOND_RING_MAXIMUM_SIZE,
     ) -> "geometry.PiercingState":
         """Return the aggregate factual bond--ring piercing state."""
-        return geometry.determine_bond_ring_piercing_state(
+        return geometry_adapter.determine_bond_ring_piercing_state(
             self,
             ring_scope=ring_scope,
             max_ring_size=max_ring_size,
@@ -1925,9 +1760,9 @@ class Molecule:
             *,
             ring_scope: Literal["full_graph", "ligand_skeleton"] = "full_graph",
             max_ring_size: int = _DEFAULT_BOND_RING_MAXIMUM_SIZE,
-    ) -> "geometry.BondRingScanReport[Ring, Bond]":
+    ) -> "geometry_adapter.BondRingScanReport[Ring, Bond]":
         """Return the dense factual report for selected bond--ring pairs."""
-        return geometry.scan_bond_ring_relations(
+        return geometry_adapter.scan_bond_ring_relations(
             self,
             ring_scope=ring_scope,
             max_ring_size=max_ring_size,
@@ -2255,156 +2090,19 @@ class Molecule:
             raise NotImplementedError
 
     @staticmethod
-    def _longest_path(
-            node_count: int,
-            edges: Iterable[tuple[int, int]],
-            _start_node: int = None,
-            _end_node: int = None,
-            _scope_nodes: Iterable[int] = None,
-    ):
-        """Return one deterministic longest simple path over explicit topology."""
-        scope = tuple(sorted(
-            range(node_count) if _scope_nodes is None else _scope_nodes
-        ))
-        if not scope:
-            return []
-        local_rows = {node: row for row, node in enumerate(scope)}
-        local_edges = tuple(
-            (local_rows[first], local_rows[second])
-            for first, second in edges
-            if first in local_rows and second in local_rows
-        )
-        path = longest_simple_path(
-            len(scope),
-            local_edges,
-            None if _start_node is None else local_rows[_start_node],
-            None if _end_node is None else local_rows[_end_node],
-        )
-        return [scope[row] for row in path]
+    def _longest_path(node_count: int, edges: Iterable[tuple[int, int]],
+                      _start_node: int = None, _end_node: int = None,
+                      _scope_nodes: Iterable[int] = None):
+        from .rules.mathematics.topology import _longest_path
+        return _longest_path(node_count, edges, _start_node, _end_node, _scope_nodes)
 
     def longest_path(self):
-        """
-        Finds the longest path in a graph.
-
-        This method calculates the longest path within a graph 
-        using internal recursive logic. It assumes that the graph 
-        is represented as an adjacency list. The longest path is 
-        determined and returned to the caller.
-
-        Returns
-        -------
-        Any
-            The longest path within the graph. The exact type is 
-            dependent on the graph data structure used and the path
-            representation format.
-        """
-        return self._longest_path(
-            len(self._atoms),
-            (
-                (
-                    self._topology_index[id(bond.atom1)][0],
-                    self._topology_index[id(bond.atom2)][0],
-                )
-                for bond in self._bonds
-            ),
-        )
+        from .operations.topology_queries import _longest_path
+        return _longest_path(self)
 
     def canonical_tree(self):
-        """
-        Generate a canonical tree representation based on the longest path of the graph.
-
-        The function constructs a nested structure representing the tree where subtrees 
-        are organized according to their branching paths. Starting from the longest path 
-        on the graph, it recursively traverses and splits the graph while building the 
-        hierarchical nested representation.
-
-        Parameters:
-            self (CanonicalTree): The instance of the class that includes this method.
-
-        Returns:
-            tuple: A tuple containing the longest path of the entire graph and a 
-            nested dictionary representing the hierarchical tree structure.
-        """
-        node_count = len(self._atoms)
-        edges = tuple(
-            (
-                self._topology_index[id(bond.atom1)][0],
-                self._topology_index[id(bond.atom2)][0],
-            )
-            for bond in self._bonds
-        )
-
-        def _dfs(
-                scope_nodes: tuple[int, ...],
-                scope_edges: tuple[tuple[int, int], ...],
-                _longest_path: tuple[int, ...],
-                _nested: dict,
-        ):
-            adjacency = {node: [] for node in scope_nodes}
-            for first, second in scope_edges:
-                adjacency[first].append(second)
-                adjacency[second].append(first)
-            branch_start = [
-                (neighbor, parent)
-                for parent in _longest_path
-                for neighbor in sorted(adjacency[parent])
-                if neighbor not in _longest_path
-            ]
-            if branch_start:
-                removed = {
-                    (min(first, second), max(first, second))
-                    for first, second in branch_start
-                }
-                retained_edges = tuple(
-                    (first, second)
-                    for first, second in scope_edges
-                    if (min(first, second), max(first, second)) not in removed
-                )
-            else:
-                return
-
-            local_rows = {
-                node: row for row, node in enumerate(scope_nodes)
-            }
-            local_components = connected_components(
-                len(scope_nodes),
-                (
-                    (local_rows[first], local_rows[second])
-                    for first, second in retained_edges
-                ),
-            )
-            for local_component in local_components:
-                connected_nodes = tuple(scope_nodes[row] for row in local_component)
-                if not set(connected_nodes).difference(_longest_path):
-                    continue
-
-                start_node, parent_node = next(
-                    (node, parent)
-                    for node, parent in branch_start
-                    if node in connected_nodes
-                )
-                sub_edges = tuple(
-                    (first, second)
-                    for first, second in retained_edges
-                    if first in connected_nodes and second in connected_nodes
-                )
-                longest_path = self._longest_path(
-                    node_count,
-                    sub_edges,
-                    start_node,
-                    _scope_nodes=connected_nodes,
-                )
-
-                list_nested = _nested.setdefault(parent_node, [])
-                _sub_nested = {}
-                list_nested.append((longest_path, _sub_nested))
-
-                _dfs(connected_nodes, sub_edges, longest_path, _sub_nested)
-
-        nested_tree = (self._longest_path(node_count, edges), {})
-        _dfs(tuple(range(node_count)), edges, nested_tree[0], nested_tree[1])
-
-        return nested_tree
+        from .operations.topology_queries import _canonical_tree
+        return _canonical_tree(self)
 
     @property
     def InChi(self) -> str:
@@ -2420,54 +2118,12 @@ class Molecule:
         return pb.Molecule(self.to_obmol()).write('inchi')
 
     def shortest_path_index(self, atom1, atom2) -> list[int]:
-        """
-        Calculates the shortest path index between two atoms in a molecular graph.
-
-        This method determines the shortest path in terms of index connections 
-        between two specified atoms within the molecular graph. If there is no 
-        path between the two atoms, it returns an empty list.
-
-        Parameters:
-        atom1: Any
-            The first atom for which the shortest path index is to be calculated.
-        atom2: Any
-            The second atom for which the shortest path index is to be calculated.
-
-        Returns:
-        list
-            A list containing the indices of the shortest path between the two atoms.
-            Returns an empty list if no path exists.
-        """
-        source = self._topology_index[id(atom1)][0]
-        target = self._topology_index[id(atom2)][0]
-        edges = (
-            (
-                self._topology_index[id(bond.atom1)][0],
-                self._topology_index[id(bond.atom2)][0],
-            )
-            for bond in self._bonds
-        )
-        return graph_shortest_path(len(self._atoms), edges, source, target)
+        from .operations.topology_queries import _shortest_path_indices
+        return _shortest_path_indices(self, atom1, atom2)
 
     def shortest_path(self, atom1, atom2) -> list['Atom']:
-        """
-        Find the shortest path between two atoms in the molecular structure.
-
-        This method calculates the shortest path between two specified atoms in the 
-        molecular structure and returns a list of the atoms that constitute this path.
-
-        Parameters:
-        atom1 : int
-            Index of the first atom in the molecular structure.
-        atom2 : int
-            Index of the second atom in the molecular structure.
-
-        Returns:
-        list
-            A list of atoms representing the shortest path between the specified 
-            atoms in the molecular structure.
-        """
-        return [self._atoms[i] for i in self.shortest_path_index(atom1, atom2)]
+        from .operations.topology_queries import _shortest_path
+        return _shortest_path(self, atom1, atom2)
 
     def shortest_paths_indices(self, atom1, atom2):
         """
@@ -2515,34 +2171,13 @@ class Molecule:
 
     @property
     def cycle_basis(self) -> list[tuple[int, ...]]:
-        """Return the deterministic Paton basis of the active topology."""
-        return list(graph_algorithms._cycle_basis(
-            range(len(self._atoms)),
-            (
-                (
-                    self._topology_index[id(bond.atom1)][0],
-                    self._topology_index[id(bond.atom2)][0],
-                )
-                for bond in self._bonds
-            ),
-        ))
+        from .operations.topology_queries import _cycle_basis
+        return _cycle_basis(self)
 
     @property
     def all_cycle_basis(self) -> list[list[tuple[int, ...]]]:
-        """Return every complete simple-cycle basis, with the default first."""
-        return [
-            list(basis)
-            for basis in graph_algorithms._all_cycle_basis(
-                range(len(self._atoms)),
-                (
-                    (
-                        self._topology_index[id(bond.atom1)][0],
-                        self._topology_index[id(bond.atom2)][0],
-                    )
-                    for bond in self._bonds
-                ),
-            )
-        ]
+        from .operations.topology_queries import _all_cycle_basis
+        return _all_cycle_basis(self)
 
     @property
     def basis_rings(self) -> list["Ring"]:
@@ -2756,22 +2391,9 @@ class Molecule:
         return pb.Molecule(obc.mol2obmol(self)[0])
 
     def translation(self, vector: types.ArrayLike):
-        """
-        Update the coordinates of the object by applying a translation vector. The translation
-        vector is added to the current coordinates to produce the updated values.
-
-        Args:
-            vector (types.ArrayLike): A 1-dimensional array-like object representing
-            the translation vector. Must have exactly 3 elements.
-
-        Returns:
-            None
-        """
-        vector = np.array(vector).flatten()
-        assert len(vector) == 3
-
-        coordinates = self.coordinates
-        self.coordinates = coordinates + vector
+        """Translate current coordinates through the one coordinate commit."""
+        from .operations.geometry import _translate
+        return _translate(self, vector)
 
     def update_atoms_attrs_from_id_dict(self, id_dict: dict[int, dict]):
         """
@@ -2813,30 +2435,7 @@ class Molecule:
         for i, attr in id_dict.items():
             id_bonds[i].setattr(**attr)
 
-    def update_angles(self):
-        """
-        Updates the list of angles based on the current state of atoms and their neighbors.
 
-        In this method, all possible angle configurations are recalculated and updated 
-        in the '_angles' attribute. The computation is performed by iterating over each 
-        atom in the 'atoms' attribute, then generating all unique combinations of neighboring 
-        atoms for forming an angle. Each angle is represented as an instance of the Angle class.
-
-        """
-        self._angles = [Angle(n1, a, n2) for a in self.atoms for n1, n2 in combinations(a.neighbours, 2)]
-
-    def update_torsions(self):
-        """
-        Updates torsion angles by retrieving appropriate data.
-
-        The method refreshes the torsion angles of an object by calling an
-        internal function `_retrieve_torsions`. The updated values are then
-        stored in the internal variable `_torsions`.
-
-        Raises:
-            RuntimeError: If the torsions retrieval fails.
-        """
-        self._torsions = self._retrieve_torsions()
 
     @property
     def weight(self):
@@ -2940,11 +2539,11 @@ class Molecule:
             payload = _remap_stereo_payload(self._stereo_payload, mapping,
                                             allowed_bonds=None if whole else endpoints)
             frames, index = self._capture_frame_state(rows=rows) if include_frames else ((None,) * 9, 0)
-            def constraints(views):
-                return tuple(tuple(mapping[self._topology_index[id(atom)][0]] for atom in view.atoms)
-                             for view in views if view.constraint and all(
-                                 id(atom) in self._topology_index and self._topology_index[id(atom)][0] in mapping
-                                 for atom in view.atoms))
+            uid_rows = {atom._uid: row for row, atom in enumerate(self._atoms)}
+            def constraints(entries):
+                return tuple(tuple(mapping[uid_rows[uid]] for uid in entry)
+                             for entry in entries if all(uid in uid_rows and uid_rows[uid] in mapping
+                                                         for uid in entry))
             metadata = tuple(bond._bond_source_metadata for _, bond in bonds)
             if copy_metadata:
                 metadata = deepcopy(metadata)
@@ -2966,8 +2565,12 @@ class Molecule:
                 spin_mult=(True, self._spin_value, self._spin_source) if whole and self._spin_present else (False, None, None),
                 cell=None if self._crystal is None else tuple(getattr(self._crystal, name) for name in ('a', 'b', 'c', 'alpha', 'beta', 'gamma')),
                 stereo_payload=payload, legacy_frame_values=frames, legacy_frame_index=index,
-                angle_constraints=constraints(self._angles), torsion_constraints=constraints(self._torsions),
-                identifier=('identifier' in self.__dict__, self.__dict__.get('identifier')))
+                angle_constraints=constraints(self._constraints.angles), torsion_constraints=constraints(self._constraints.torsions),
+                identifier=('identifier' in self.__dict__, self.__dict__.get('identifier')),
+                pair_wiberg_bond_orders=tuple((mapping[uid_rows[first]], mapping[uid_rows[second]], value)
+                    for (first, second), value in self._pair_wiberg_bond_orders.items()
+                    if first in uid_rows and second in uid_rows
+                    and uid_rows[first] in mapping and uid_rows[second] in mapping))
             return record, metadata
 
 
@@ -3002,6 +2605,9 @@ class Molecule:
         atom_uids = iter(range(first_atom, self._next_atom_uid))
         bond_uids = iter(range(first_bond, self._next_bond_uid))
         atoms = tuple(_new_atom_handle(self, next(atom_uids)) if atom is None else atom for atom in atom_bindings)
+        pair_wiberg_bond_orders = {
+            tuple(sorted((atoms[first]._uid, atoms[second]._uid))): value
+            for first, second, value in record.pair_wiberg_bond_orders}
         values = np.frombuffer(record.bond_values, dtype='<f8').reshape(-1, 3)
         bonds = []
         for row, binding in enumerate(bond_bindings):
@@ -3042,6 +2648,7 @@ class Molecule:
                     atom.__dict__[name] = sparse[row]
                 else:
                     atom.__dict__.pop(name, None)
+        self._pair_wiberg_bond_orders = pair_wiberg_bond_orders
         self._atom_table = table
         self._atoms[:] = atoms
         self._bonds[:], self._hided_metal_bonds[:], self._hided_covalent_bonds[:] = partitions
@@ -4466,15 +4073,35 @@ class AtomSeq:
     """
     _length = None
 
+    def __setattr__(self, name, value):
+        if '_view_source' in self.__dict__ and (
+                name in ('_atoms', '_bonds') or re.fullmatch(r'(?:atom|bond)\d+|a\d+idx', name)):
+            raise AttributeError('View membership is read-only')
+        super().__setattr__(name, value)
+
+    def __reduce_ex__(self, protocol):
+        if '_view_source' not in self.__dict__:
+            return object.__reduce_ex__(self, protocol)
+        from .views._source import _restore_sequence_view, _view_source_current
+        with self.mol._mutation_lock:
+            current = _view_source_current(self.mol, self._view_source, self._atoms, self._view_uids)
+            return (_restore_sequence_view,
+                    (type(self), self._atoms, self._bonds, self._view_geometry, current))
+
     def __init__(self, *atoms: Atom):
         self._check_is_same_mol(*atoms)
         self._check_atom_number(*atoms)
         self._atoms = atoms
 
-        if isinstance(self, Bond):
-            self._bonds = [self]
-        else:
-            self._bonds = [self.mol.bond(atoms[i].idx, atoms[i+1].idx) for i in range(len(atoms) - 1)]
+        with self.mol._mutation_lock:
+            if isinstance(self, Bond):
+                self._bonds = [self]
+            else:
+                self._bonds = [self.mol.bond(atoms[i].idx, atoms[i+1].idx) for i in range(len(atoms) - 1)]
+            if not isinstance(self, (Bond, Ring)):
+                from .views._source import _bind_view
+                self._bonds = tuple(self._bonds)
+                _bind_view(self, atoms)
 
     def __repr__(self):
         return f"{self.__class__.__name__}" + '(' + ''.join(a.symbol for a in self.atoms) + ')'
@@ -4487,6 +4114,8 @@ class AtomSeq:
 
         elif re.match(r"bond\d+", item):
             idx = int(item[4:]) - 1
+            if '_view_source' in self.__dict__:
+                return self._bonds[idx]
             atom_start = self._atoms[idx]
             atom_end = self._atoms[idx+1]
             return list(set(atom_start.bonds) & set(atom_end.bonds))[0]
@@ -4494,7 +4123,9 @@ class AtomSeq:
         elif re.match(r"a\d+idx", item):
             len_idx = len(item) - 4
             idx = int(item[1:1+len_idx]) - 1
-            return self._atoms[idx].idx
+            with self.mol._mutation_lock:
+                self._check_topology_source()
+                return self._atoms[idx].idx
 
         else:
             super().__getattribute__(item)
@@ -4518,6 +4149,8 @@ class AtomSeq:
         return all(a in self._atoms for a in other.atoms) and all(b in self._bonds for b in other.bonds)
 
     def _replace_atom(self, old: Union[int, Atom], new: Atom):
+        if '_view_source' in self.__dict__:
+            raise AttributeError('View membership is read-only')
         assert isinstance(new, Atom) and new not in self
         if isinstance(old, int):
             if 0 <= old < len(self._atoms):
@@ -4528,6 +4161,11 @@ class AtomSeq:
             self._atoms = tuple(a if a is not old else new for a in self._atoms)
         else:
             raise TypeError(f"The old atom should be given by int or Atom, instead of a {type(old)}")
+
+    def _check_topology_source(self):
+        if '_view_source' in self.__dict__:
+            from .views._source import _check_view_source
+            _check_view_source(self.mol, self._view_source, self._atoms, self._view_uids)
 
     @staticmethod
     def _check_is_same_mol(*atoms):
@@ -4547,11 +4185,13 @@ class AtomSeq:
 
     @property
     def atoms_indices(self):
-        return [a.idx for a in self.atoms]
+        with self.mol._mutation_lock:
+            self._check_topology_source()
+            return [a.idx for a in self._atoms]
 
     @property
     def bonds(self) -> list["Bond"]:
-        return copy(self._bonds)
+        return list(self._bonds)
 
     @property
     def mol(self) -> Molecule:
@@ -4559,10 +4199,14 @@ class AtomSeq:
 
     @property
     def has_metal(self):
-        return any(a.is_metal for a in self._atoms)
+        with self.mol._mutation_lock:
+            self._check_topology_source()
+            return any(a.is_metal for a in self._atoms)
 
     def to_mol(self):
-        record, metadata = self.mol._capture_factual_record(rows=tuple(atom.idx for atom in self._atoms), include_frames=False)
+        with self.mol._mutation_lock:
+            self._check_topology_source()
+            record, metadata = self.mol._capture_factual_record(rows=tuple(atom.idx for atom in self._atoms), include_frames=False)
         mol = Molecule()
         _commit_topology(mol, _capture_source(mol), record,
                          atom_bindings=(None,) * record.atom_count,
@@ -4571,253 +4215,177 @@ class AtomSeq:
 
 
 class AtomPair:
-    """
-    Represents a pair of atoms within a molecule.
+    """Fixed pair membership with source-checked mathematics and supplied observations."""
 
-    Defines a data structure for managing pairs of atoms in a molecule, 
-    while offering attributes and methods that allow for the calculation and 
-    retrieval of information such as geometric distance, bond order, and 
-    shortest path length. The two atoms in the pair are required to belong 
-    to the same molecule.
-
-    Attributes:
-        atom1 (Atom): The first atom of the pair.
-        atom2 (Atom): The second atom of the pair.
-        mol (Molecule): The molecule to which both atoms belong.
-        wiberg_bond_order (float): An attribute defaulting to 0, representing 
-            the Wiberg bond order of the atom pair.
-
-    Raises:
-        AssertionError: If atom1 and atom2 do not belong to the same molecule.
-
-    Methods:
-        __repr__:
-            Returns a string representation of the atom pair, including 
-            the indices of the atoms within the molecule.
-        __eq__:
-            Compares two AtomPair objects and determines equality based on 
-            the constituent atoms, regardless of their order.
-        __contains__:
-            Checks if a specified atom is one of the two atoms in the pair.
-
-    Properties:
-        attrs:
-            Returns a list of attribute values, corresponding to the 
-            attribute names defined in the `attr_names` class-level variable.
-        shortest_path:
-            Retrieves the shortest path of atoms connecting atom1 and 
-            atom2 within the molecule.
-        length_shortest_path:
-            Provides the length of the shortest path (in bonds) between 
-            the two atoms.
-        distance:
-            Calculates and returns the Euclidean distance between the two 
-            atoms based on their 3D coordinates.
-    """
+    __slots__ = ('_atoms', '_view_source', '_view_uids', '_view_geometry')
     _length = 2
-    attr_names = (
-        'wiberg_bond_order',
-        'length_shortest_path'
-    )
+    attr_names = ('wiberg_bond_order', 'length_shortest_path')
+
     def __init__(self, atom1: Atom, atom2: Atom):
-        self.atom1 = atom1
-        self.atom2 = atom2
-        assert self.atom1.mol is self.atom2.mol
-        self.mol = self.atom1.mol
-        self.wiberg_bond_order = 0
+        from .views._source import _bind_view
+        assert atom1.mol is atom2.mol
+        self._atoms = (atom1, atom2)
+        _bind_view(self, self._atoms)
+
+    def __reduce_ex__(self, protocol):
+        from .views._source import _restore_pair_view, _view_source_current
+        with self.mol._mutation_lock:
+            current = _view_source_current(self.mol, self._view_source, self._atoms, self._view_uids)
+            return _restore_pair_view, (type(self), self._atoms, self._view_geometry, current)
+
+    @property
+    def atoms(self):
+        return self._atoms
+
+    @property
+    def atom1(self):
+        return self._atoms[0]
+
+    @property
+    def atom2(self):
+        return self._atoms[1]
+
+    @property
+    def mol(self):
+        return self.atom1.mol
 
     def __repr__(self):
-        return f"AtomPair({self.atom1.idx}, {self.atom2.idx})"
+        from .views._source import _check_view_source
+        with self.mol._mutation_lock:
+            _check_view_source(self.mol, self._view_source, self._atoms, self._view_uids)
+            return f"AtomPair({self.atom1.idx}, {self.atom2.idx})"
 
     def __eq__(self, other):
-        return (other.atom1 == self.atom1 and other.atom2 == self.atom2) or (other.atom1 == self.atom2 and other.atom2 == self.atom1)
+        if not isinstance(other, AtomPair):
+            return NotImplemented
+        return frozenset(self._atoms) == frozenset(other._atoms)
 
-    def __contains__(self, check_atom):
-        return check_atom is self.atom1 or check_atom is self.atom2
+    def __contains__(self, atom):
+        return atom is self.atom1 or atom is self.atom2
+
+    @property
+    def wiberg_bond_order(self):
+        with self.mol._mutation_lock:
+            if any(atom._uid_owner is not self.mol._owner_token or atom._uid != uid
+                   or id(atom) not in self.mol._topology_index
+                   for atom, uid in zip(self._atoms, self._view_uids)):
+                raise RuntimeError('Pair observation members changed')
+            return self.mol._pair_wiberg_bond_orders.get(tuple(sorted(self._view_uids)), 0)
+
+    @wiberg_bond_order.setter
+    def wiberg_bond_order(self, value):
+        from .structure._commit import _commit_pair_wiberg
+        _commit_pair_wiberg(self.mol, self._view_source[0], self._atoms, self._view_uids, value)
 
     @property
     def attrs(self):
-        return [getattr(self, n) for n in self.attr_names]
+        return [getattr(self, name) for name in self.attr_names]
 
     @property
     def shortest_path(self) -> list['Atom']:
-        """
-        Finds and returns the shortest path between two atoms in the molecule.
-
-        This method computes the shortest path between atom1 and atom2 using the
-        molecule's internal graph representation. The returned path is a list of
-        Atom objects representing the sequence of atoms along the shortest route.
-
-        It relies on the molecule's shortest_path method to calculate the path, 
-        assuming that the graph representation of the molecule is already 
-        configured correctly.
-
-        @return: A list of Atom objects, representing the shortest path.
-        """
-        return self.mol.shortest_path(self.atom1, self.atom2)
+        from .views._source import _check_view_source
+        with self.mol._mutation_lock:
+            _check_view_source(self.mol, self._view_source, self._atoms, self._view_uids)
+            return self.mol.shortest_path(self.atom1, self.atom2)
 
     @property
     def length_shortest_path(self) -> int:
-        """
-        Returns the length of the shortest path in the graph.
-
-        The length of the shortest path is calculated based on the precomputed
-        shortest_path property. This value represents the number of edges in 
-        the shortest path.
-
-        @return: The length of the shortest path
-        @rtype: int
-        """
         return len(self.shortest_path)
 
     @property
     def distance(self):
-        """
-        Calculates the Euclidean distance between two points in 3D space. This property retrieves the coordinates 
-        of two atoms and computes the straight-line distance between them using numpy's linear algebra norm 
-        function. It assumes that the coordinates are stored as three-dimensional tuples or lists.
-
-        Returns:
-            float: The Euclidean distance between the two atoms based on their 3D coordinates.
-        """
-        x2, y2, z2 = self.atom2.coordinates
-        x1, y1, z1 = self.atom1.coordinates
-        return np.linalg.norm((x2-x1, y2-y1, z2-z1))
+        from .rules.mathematics.view_geometry import _pair_distance
+        from .views._source import _view_coordinates
+        return _pair_distance(*_view_coordinates(self))
 
 
-class AtomPairs(dict):
-    """
-    A specialized dictionary-like object for managing atom pairs and their associated data.
+class AtomPairs(Mapping):
+    """Caller-owned fixed pair table; scientific observations remain at their owner."""
 
-    This class extends Python's built-in dictionary and is specialized for handling 
-    pairs of 'Atom' objects. It enforces that all keys are frozensets of two 'Atom' 
-    objects and that all corresponding values are instances of 'AtomPair'. It 
-    provides additional methods for managing atom pairs specific to a molecular 
-    context, ensuring integrity and convenience in molecular data processing.
+    __slots__ = ('_mol', '_atoms', '_members', '_items', '_view_source', '_view_uids', '_geometry')
 
-    Attributes:
-        mol: The molecule to which the atom pairs belong.
-
-    Initialization:
-        __init__(*args, mol, **kwargs):
-            Creates an instance of AtomPairs, initializing it with the provided 
-            key-value pairs and the parent molecule 'mol'.
-
-    Methods:
-        __setitem__(self, atom_pair, value):
-            Sets an 'AtomPair' instance with a frozenset of two 'Atom' objects as the key.
-
-            Raises TypeError if the value is not of type 'AtomPair'.
-
-        __getitem__(self, atom_pair):
-            Retrieves the value associated with a given frozenset of two 'Atom' objects.
-
-        __contains__(self, atom_pair):
-            Checks if a given frozenset of two 'Atom' objects exists in the dictionary.
-
-        getdefault(self, atom_pair):
-            Retrieves the value associated with a given frozenset of two 'Atom' objects 
-            or inserts a new default 'AtomPair' if the key does not exist.
-
-        clear_not_exist_pairs(self):
-            Removes all atom pairs from the dictionary where one or both atoms 
-            no longer exist in the molecule.
-
-        pair_distance(self):
-            Property that returns an array of distances for all atom pairs.
-
-        pairs_shortest_path(self):
-            Returns a dictionary mapping frozensets of atom indices to their shortest 
-            path distances.
-
-        update_pairs(self):
-            Updates the atom pairs dictionary by removing non-existent pairs and 
-            adding any missing pairs for combinations of atoms in the molecule.
-
-        idx_matrix(self):
-            Property that returns a 2D array where rows correspond to the indices 
-            of atoms in each atom pair.
-
-    Raises:
-        TypeError: If a non-AtomPair value is assigned to the dictionary.
-    """
     def __init__(self, *args, mol, **kwargs):
-        self.mol = mol
-        super().__init__(*args, **kwargs)
+        from types import MappingProxyType
+        from .views._source import _capture_view_source, _geometry_snapshot
+        with mol._mutation_lock:
+            self._mol = mol
+            self._atoms = tuple(mol._atoms)
+            self._members = MappingProxyType({atom: row for row, atom in enumerate(self._atoms)})
+            self._items = MappingProxyType(dict(*args, **kwargs)) if args or kwargs else None
+            self._view_source = _capture_view_source(mol)
+            self._view_uids = tuple(atom._uid for atom in self._atoms)
+            self._geometry = _geometry_snapshot(mol, self._atoms)[1]
 
-    def __setitem__(self, atom_pair: tuple[Atom, Atom], value: AtomPair):
-        if not isinstance(value, AtomPair):
-            raise TypeError(f'the value in AtomPairs should be `AtomPair`')
+    def __reduce_ex__(self, protocol):
+        from .views._source import _restore_pair_table, _view_source_current
+        with self.mol._mutation_lock:
+            current = _view_source_current(self.mol, self._view_source, self._atoms, self._view_uids)
+            items = None if self._items is None else tuple(self._items.items())
+            return (_restore_pair_table,
+                    (type(self), self.mol, self._atoms, self._geometry, current, items))
 
-        assert len(atom_pair) == 2  # length of atom must be 2
-        assert all(isinstance(k, Atom) for k in atom_pair)  # all items should be atom
-        super().__setitem__(frozenset(atom_pair), value)
+    @property
+    def mol(self):
+        return self._mol
 
-    def __getitem__(self, atom_pair):
-        assert len(atom_pair) == 2  # length of atom must be 2
-        assert all(isinstance(k, Atom) for k in atom_pair)  # all items should be atom
-        return super().__getitem__(frozenset(atom_pair))
+    def __len__(self):
+        count = len(self._atoms)
+        return len(self._items) if self._items is not None else count * (count - 1) // 2
 
-    def __contains__(self, atom_pair):
-        assert len(atom_pair) == 2
-        return super().__contains__(frozenset(atom_pair))
+    def __iter__(self):
+        return iter(self._items) if self._items is not None else (
+            frozenset(atoms) for atoms in combinations(self._atoms, 2))
+
+    def __getitem__(self, atoms):
+        key = frozenset(atoms)
+        if self._items is not None:
+            return self._items[key]
+        if len(key) != 2 or any(atom not in self._members for atom in key):
+            raise KeyError(key)
+        atoms = tuple(atoms)
+        pair = object.__new__(AtomPair)
+        pair._atoms = atoms
+        pair._view_source = self._view_source
+        pair._view_uids = tuple(atom._uid for atom in atoms)
+        rows = tuple(self._members[atom] for atom in atoms)
+        count = len(self._atoms)
+        pair._view_geometry = tuple(b''.join(
+            data[row * (len(data) // count):(row + 1) * (len(data) // count)]
+            for row in rows) for data in self._geometry)
+        return pair
 
     def getdefault(self, atom_pair):
-        return self.setdefault(frozenset(atom_pair), AtomPair(*atom_pair))
+        return self[atom_pair]
 
-    def clear_not_exist_pairs(self):
-        mol_atoms = set(self.mol.atoms)
-        to_remove = []
-        for pair_key in self:
-            if any(a not in mol_atoms for a in pair_key):
-                to_remove.append(pair_key)
+    def copy(self):
+        return dict(self.items())
 
-        for pair_key in to_remove:
-            del self[pair_key]
+    def update_pairs(self):
+        from .views._source import _check_view_source
+        with self.mol._mutation_lock:
+            _check_view_source(self.mol, self._view_source, self._atoms, self._view_uids)
 
     @property
     def pair_distance(self):
-        return np.array([p.distance for p in self.values()])
+        if self._items is not None:
+            return np.array([pair.distance for pair in self.values()])
+        from .rules.mathematics.view_geometry import _pair_distances
+        from .views._source import _check_view_source, _geometry_snapshot
+        with self.mol._mutation_lock:
+            _check_view_source(self.mol, self._view_source, self._atoms, self._view_uids)
+            coordinates, identity = _geometry_snapshot(self.mol, self._atoms)
+            if identity != self._geometry:
+                raise RuntimeError('View geometry source changed; request a new view')
+            return _pair_distances(coordinates)
 
-    def pairs_shortest_path(self) -> dict[frozenset[int, int], int]:
-        """
-        Computes the shortest path lengths for all pairs of nodes and returns 
-        them in a dictionary where the keys are frozensets representing the 
-        pairs of nodes, and the values are the shortest path lengths.
-
-        Returns
-        -------
-        dict[frozenset[int, int], int]
-            A dictionary with keys as frozensets containing pairs of nodes and 
-            values as the shortest path lengths between the nodes.
-        """
-        return {k: p.length_shortest_path for k, p in self.items()}
-
-    def update_pairs(self):
-        """
-        Updates the current list of atom pairs for the molecule. This function first clears any
-        pairs that no longer exist in the molecule and then updates the atom pairs to include
-        all possible unique combinations of two atoms from the molecule.
-        """
-        self.clear_not_exist_pairs()
-        for pair_key in combinations(self.mol.atoms, 2):
-            self.setdefault(frozenset(pair_key), AtomPair(*pair_key))
+    def pairs_shortest_path(self) -> dict:
+        return {key: pair.length_shortest_path for key, pair in self.items()}
 
     @property
     def idx_matrix(self) -> np.ndarray:
-        """
-        Return a matrix of indices for the elements in the collection.
-
-        This property method generates a matrix where each element of the 
-        matrix is the index (`idx`) of the corresponding element in the 
-        input structure. It assumes the elements in the collection and 
-        sub-collections have an `idx` attribute.
-
-        Returns:
-            np.array: A two-dimensional array where each entry corresponds
-            to the `idx` value of an element from the input collection.
-        """
-        return np.array([[a.idx for a in p] for p in self], dtype=np.int64)
+        with self.mol._mutation_lock:
+            self.update_pairs()
+            return np.array([[atom.idx for atom in key] for key in self], dtype=np.int64)
 
 
 ######################################################################################
@@ -5001,7 +4569,7 @@ class Bond(AtomSeq, MolBlock):
     @property
     def bond_segment(self) -> geometry.Segment:
         """Return the finite geometric segment represented by this bond."""
-        return geometry.segment_from_bond(self)
+        return geometry_adapter.segment_from_bond(self)
 
     @property
     def idx(self) -> int:
@@ -5032,7 +4600,8 @@ class Bond(AtomSeq, MolBlock):
             Returns:
                 float: The Euclidean distance (length) between the two atomic vectors.
         """
-        return float(np.linalg.norm(self.atom1.vector - self.atom2.vector))
+        from .operations.geometry import _bond_length
+        return _bond_length(self)
 
     @property
     def label(self):
@@ -5150,15 +4719,12 @@ class Angle(AtomSeq):
     """
     def __init__(self, a1: Atom, a2: Atom, a3: Atom):
         super().__init__(a1, a2, a3)
-        self.__dict__['constraint'] = False
 
     @property
     def degrees(self) -> float:
-        return InternalCoordinates.calc_angle(
-            self.atom1.coordinates,
-            self.atom2.coordinates,
-            self.atom3.coordinates
-        )
+        from .rules.mathematics.internal_coordinates import InternalCoordinates
+        from .views._source import _view_coordinates
+        return InternalCoordinates.calc_angle(*_view_coordinates(self))
 
 
 class Torsion(AtomSeq):
@@ -5184,16 +4750,12 @@ class Torsion(AtomSeq):
     """
     def __init__(self, a: Atom, b: Atom, c: Atom, d: Atom):
         super().__init__(a, b, c, d)
-        self.__dict__['constraint'] = False
 
     @property
     def degrees(self) -> float:
-        return InternalCoordinates.calc_dehedral(
-            self.atom1.coordinates,
-            self.atom2.coordinates,
-            self.atom3.coordinates,
-            self.atom4.coordinates
-        )
+        from .rules.mathematics.internal_coordinates import InternalCoordinates
+        from .views._source import _view_coordinates
+        return InternalCoordinates.calc_dehedral(*_view_coordinates(self))
 
     @property
     def rotatable(self) -> bool:
@@ -5207,7 +4769,9 @@ class Torsion(AtomSeq):
 
         @return: True if the bond is rotatable, False otherwise
         """
-        return self.bond2.rotatable
+        with self.mol._mutation_lock:
+            self._check_topology_source()
+            return self.bond2.rotatable
 
 
 
@@ -5463,7 +5027,7 @@ class Ring(AtomSeq):
         """
         return any(
             pair_distance.measurement.distance < _MINIMUM_ATOM_SEPARATION
-            for pair_distance in geometry.measure_atom_pair_distances(
+            for pair_distance in geometry_adapter.measure_atom_pair_distances(
                 self,
                 pair_scope="all",
             )
@@ -5617,21 +5181,21 @@ class Ring(AtomSeq):
     def relation_to_bond(
             self,
             bond: Bond,
-    ) -> "geometry.BondRingFinding[Ring, Bond]":
+    ) -> "geometry_adapter.BondRingFinding[Ring, Bond]":
         """Return the factual spatial relation between this ring and a bond."""
         if self.mol is not bond.mol or bond not in self.mol.bonds:
             raise NotInSameMolecule(self, bond)
-        return geometry.determine_bond_ring_relation(self, bond)
+        return geometry_adapter.determine_bond_ring_relation(self, bond)
 
     @property
     def geometry_cycle(self) -> geometry.Cycle:
         """Return this ring as an ordered geometric cycle boundary."""
-        return geometry.cycle_from_ring(self)
+        return geometry_adapter.cycle_from_ring(self)
 
     def closest_edge_to_bond(
             self,
             bond: Bond,
-    ) -> Optional["geometry.RingEdgeDistance[Bond]"]:
+    ) -> Optional["geometry_adapter.RingEdgeDistance[Bond]"]:
         """Return the closest ring edge together with its distance evidence."""
         if self.mol is not bond.mol or bond not in self.mol.bonds:
             raise NotInSameMolecule(self, bond)
@@ -5641,7 +5205,7 @@ class Ring(AtomSeq):
         )
         if measurement is None:
             return None
-        return geometry.RingEdgeDistance(
+        return geometry_adapter.RingEdgeDistance(
             bond=self.bonds[measurement.edge_index],
             measurement=measurement,
         )
@@ -5798,305 +5362,6 @@ class Conformers:
 
 
 
-class InternalCoordinates:
-    """
-    Represents and manages internal coordinates of a molecular system.
-
-    This class facilitates the representation of internal coordinates using methods such
-    as z-matrices. It also provides various mathematical utilities for calculations
-    related to molecular geometry, such as bond lengths, angles, and dihedrals. The
-    internal structure is represented by graph theory concepts, and it supports
-    operations on graph representations of molecular linkages.
-
-    Attributes:
-    coordinates (np.ndarray): The coordinates of the system's atoms.
-    link_matrix (np.ndarray): The connectivity data of the internal structure.
-    """
-    def __init__(self, coordinates: np.ndarray, link_matrix: np.ndarray):
-        self.coordinates = coordinates
-        self.link_matrix = link_matrix
-
-    @staticmethod
-    def calc_zmat_idx(
-            link_matrix: np.ndarray,
-            node_count: Optional[int] = None,
-    ) -> np.ndarray:
-        """
-            Calculate a Z-Matrix index from an explicit integer edge array.
-
-            Parameters:
-            link_matrix: A numpy array of shape ``(n_edges, 2)``.
-            node_count: Optional total node count when isolated nodes are present.
-
-            Returns:
-            np.ndarray: A numpy array of shape (n_nodes, 4) where each node's connectivity pattern is
-                described by its corresponding index path in the graph.
-
-            Raises:
-            RuntimeError: If an incorrect Z-Matrix is constructed due to issues in graph traversal.
-        """
-        edges = tuple(tuple(map(int, edge)) for edge in link_matrix)
-        if node_count is None:
-            node_count = 1 + max(
-                (node for edge in edges for node in edge),
-                default=-1,
-            )
-        adjacency = [set() for _ in range(node_count)]
-        for first, second in edges:
-            adjacency[first].add(second)
-            adjacency[second].add(first)
-
-        zmat_idx = -1 * np.ones((node_count, 4), dtype=int)
-        visited_nodes = set()
-        node = 0
-        while len(visited_nodes) < node_count:
-            row = len(visited_nodes)
-            visited_nodes.add(node)
-
-            path = depth_first_path(
-                node_count,
-                edges,
-                start_node=node,
-                scope_nodes=visited_nodes,
-                max_depth=min(row + 1, 4),
-            )
-            zmat_idx[row, :row+1] = path
-
-            try:
-                node = min(
-                    neighbor
-                    for visited in visited_nodes
-                    for neighbor in adjacency[visited]
-                    if neighbor not in visited_nodes
-                )
-            except ValueError:
-                if len(visited_nodes) != node_count:
-                    raise RuntimeError("Get an incorrect Z-Matirx !!")
-
-        return zmat_idx
-
-    @staticmethod
-    def calc_zmat(link_matrix: np.ndarray, coords: np.ndarray) -> np.ndarray:
-        """
-        Compute the Z-matrix from an explicit edge array and coordinates.
-
-        Args:
-            link_matrix: A numpy array of shape ``(n_edges, 2)``.
-            coords (np.ndarray): A 2D NumPy array of atomic coordinates with shape (N, 3), 
-                where N is the number of atoms.
-
-        Returns:
-            np.ndarray: A 2D NumPy array representing the Z-matrix. Each row corresponds to an
-                atom in the molecule, and the columns contain the bond length, bond angle, 
-                and dihedral angle, respectively, calculated for that atom using its connectivity.
-        """
-        zmat_idx = InternalCoordinates.calc_zmat_idx(
-            link_matrix,
-            node_count=len(coords),
-        )
-        zmat = -1 * np.ones((zmat_idx.shape[0], 3))
-
-        for i, index in enumerate(zmat_idx):
-            zmat[i, :i] = InternalCoordinates._calc_zmat_line(index, coords)
-
-        return zmat
-
-    @staticmethod
-    def _calc_zmat_line(index: types.ArrayLike, coords: np.ndarray):
-        """
-            Calculates the Z-matrix parameters for a given set of indices and coordinates.
-
-            This method computes bond length, bond angle, and dihedral angle depending 
-            on the number of vectors derived from the input indices. It uses `numpy`
-            for vector operations such as calculating norms, dot products, and cross 
-            products. Angles are converted from radians to degrees. The resulting 
-            parameters represent molecular geometry with respect to the provided indices.
-
-            Args:
-                index (types.ArrayLike): Array-like object containing indices that specify 
-                atoms connected to the current atom. It must have a length of 4.
-
-                coords (np.ndarray): A 2D numpy array where each row represents the
-
-            Returns:
-                list: A list of calculated Z-matrix parameters containing bond length, 
-                bond angle, and optionally dihedral angle as applicable.
-        """
-        assert len(index) == 4
-
-        vectors = [coords[index[i]] - coords[index[i-1]] for i in range(1, 4) if index[i] >= 0]
-
-        results = []
-        if len(vectors) >= 1:
-            r = np.linalg.norm(vectors[0])
-            results.append(r)
-
-        if len(vectors) >= 2:
-            r1 = np.linalg.norm(vectors[1])
-            cos_a = np.dot(vectors[0], vectors[1]) / (r*r1)
-            a = np.degrees(np.arccos(cos_a))
-            results.append(a)
-
-        if len(vectors) == 3:
-            n1 = np.cross(vectors[0], vectors[1])
-            n2 = np.cross(vectors[1], vectors[2])
-
-            norm_n1 = np.linalg.norm(n1)
-            norm_n2 = np.linalg.norm(n2)
-
-            if norm_n1 == 0 or norm_n2 == 0:
-                cos_dehedral = -1
-            else:
-                cos_dehedral = round(np.dot(n1, n2) / (norm_n1 * norm_n2), 8)
-
-            dehedral = np.degrees(np.arccos(cos_dehedral))
-            results.append(dehedral)
-
-        return results
-
-    @staticmethod
-    def calc_angle(a: types.ArrayLike, b: types.ArrayLike, c: types.ArrayLike):
-        """
-            Calculates the angle defined by three points.
-
-            This method computes the angle in radians at the middle point
-            defined by the lines connecting three points `a`, `b`, and `c`.
-            The calculation assumes the three points form two vectors
-            emanating from the middle point, and the angle is evaluated
-            between these two vectors.
-
-            Args:
-                a (types.ArrayLike): The coordinates of the first point.
-                b (types.ArrayLike): The coordinates of the middle point.
-                c (types.ArrayLike): The coordinates of the third point.
-
-            Returns:
-                float: The angle in radians between the vectors defined by
-                the points.
-
-            Raises:
-                ValueError: If the input arrays are of incompatible shapes
-                or do not represent valid points.
-        """
-        return InternalCoordinates._calc_angle(np.array(a), np.array(b), np.array(c))
-
-    @staticmethod
-    def _calc_angle(a: np.ndarray, b: np.ndarray, c: np.ndarray, return_degree: bool = True):
-        """
-            Calculate the angle formed by three points a, b, and c in a two-dimensional space. 
-            The angle is computed using the dot product formula and can be returned in radians 
-            or degrees.
-
-            Args:
-                a (np.ndarray): The first point in the 2D space.
-                b (np.ndarray): The second point in the 2D space.
-                c (np.ndarray): The third point in the 2D space.
-                return_degree (bool): Whether to return the angle in degrees or radians. 
-                    Defaults to True (degrees).
-
-            Returns:
-                float: The angle between the vectors ab and bc, in degrees or radians 
-                depending on return_degree.
-
-            Raises:
-                None: This method does not raise exceptions.
-        """
-        # Calculate vectors ab and bc
-        ab = b - a
-        bc = c - b
-
-        # Calculate the dot product and magnitudes
-        abc_dot = np.dot(ab, bc)
-        norm_ab = np.linalg.norm(ab)
-        norm_bc = np.linalg.norm(bc)
-
-        # Calculate the angle in radians
-        cos_theta = abc_dot / (norm_ab * norm_bc)
-        angle_radians = np.arccos(cos_theta)
-
-        if return_degree:
-            return np.degrees(angle_radians) # Convert to degrees
-        else:
-            return angle_radians
-
-    @staticmethod
-    def calc_dehedral(
-            a: types.ArrayLike,
-            b: types.ArrayLike,
-            c: types.ArrayLike,
-            d: types.ArrayLike,
-            return_degree: bool = True
-    ):
-        """
-        Calculate the dihedral angle formed by four points.
-
-        This static method computes the dihedral angle, measured in degrees or radians,
-        for four consecutive points in space. The input points are specified as array-like
-        structures. The computation determines the angle formed by the planes defined
-        by the four points.
-
-        Parameters:
-            a (ArrayLike): The first point in the sequence, given in Cartesian coordinates.
-            b (ArrayLike): The second point in the sequence, given in Cartesian coordinates.
-            c (ArrayLike): The third point in the sequence, given in Cartesian coordinates.
-            d (ArrayLike): The fourth point in the sequence, given in Cartesian coordinates.
-            return_degree (bool, optional): Determines the unit of the returned angle.
-                If True, the angle is returned in degrees. If False, the angle is returned
-                in radians. Defaults to True.
-
-        Returns:
-            float: The computed dihedral angle in degrees or radians, based on the value
-                of the return_degree parameter.
-        """
-        return InternalCoordinates._calc_dehedral(np.array(a), np.array(b), np.array(c), np.array(d), return_degree)
-
-    @staticmethod
-    def _calc_dehedral(a: np.ndarray, b: np.ndarray, c: np.ndarray, d: np.ndarray, return_degree: bool = True):
-        """
-            Calculates the dehedral angle formed by four points in 3D space.
-
-            This method computes the dehedral angle between the planes determined by 
-            four consecutive points (A, B, C, D). The calculation is performed using 
-            the vector cross products of the line segments between these points. The 
-            result can be returned in either degrees or radians as specified.
-
-            Args:
-                a (np.ndarray): Coordinates of the first point (A), given as a 
-                    1-dimensional numpy array.
-                b (np.ndarray): Coordinates of the second point (B), given as a 
-                    1-dimensional numpy array.
-                c (np.ndarray): Coordinates of the third point (C), given as a 
-                    1-dimensional numpy array.
-                d (np.ndarray): Coordinates of the fourth point (D), given as a 
-                    1-dimensional numpy array.
-                return_degree (bool): Boolean flag indicating whether the angle should 
-                    be returned in degrees (True) or in radians (False). Default is True.
-
-            Returns:
-                float: The calculated dehedral angle in degrees (when `return_degree` 
-                is True) or radians (when `return_degree` is False).
-        """
-        # Calculate vectors ab, bc, and cd
-        ab = b - a
-        bc = c - b
-        cd = d - c
-
-        n1 = np.cross(ab, bc)
-        n2 = np.cross(bc, cd)
-
-        norm_n1 = np.linalg.norm(n1)
-        norm_n2 = np.linalg.norm(n2)
-
-        if norm_n1 == 0 or norm_n2 == 0:
-            cos_dehedral = -1
-        else:
-            cos_dehedral = np.dot(n1, n2) / (norm_n1*norm_n2)
-
-        dehedral_radians = np.arccos(cos_dehedral)
-        if return_degree:
-            return np.degrees(dehedral_radians) # Convert to degrees
-        else:
-            return dehedral_radians
 
 
 if __name__ == "__main__":
@@ -6198,12 +5463,13 @@ def _new_bond_handle(mol, uid, atom1, atom2, raw_values, *, kind, direction,
     return bond
 
 
-def _new_constraint_view(cls, mol, rows, complete_paths):
+def _new_sequence_view(cls, mol, rows, complete_paths, *, source=None):
+    from .views._source import _bind_view
     view = object.__new__(cls)
     view._atoms = tuple(mol._atoms[row] for row in rows)
-    view._bonds = [complete_paths[frozenset((id(first), id(second)))]
-                   for first, second in zip(view._atoms, view._atoms[1:])]
-    view.__dict__['constraint'] = True
+    view._bonds = tuple(complete_paths.get(frozenset((id(first), id(second))))
+                        for first, second in zip(view._atoms, view._atoms[1:]))
+    _bind_view(view, view._atoms, source=source)
     return view
 
 
@@ -6275,13 +5541,12 @@ def _capture_molecule_pickle(mol):
                  '_atom_table', '_topology_index', '_next_atom_uid', '_next_bond_uid', '_conformers',
                  '_conformers_index', '_stereo_payload', '_crystal', '_charge_value', '_charge_present',
                  '_charge_source', '_spin_value', '_spin_present', '_spin_source',
-                 '_angles', '_torsions', '_rings', '_ring_indices_cache', '_ligand_rings',
-                 '_ligand_rings_signature', '_obmol', '_row2idx', '_atom_pairs'}
+                 '_constraints', '_rings', '_ring_indices_cache', '_ligand_rings',
+                 '_ligand_rings_signature', '_obmol', '_row2idx', '_pair_wiberg_bond_orders'}
         state = {key: value for key, value in mol.__dict__.items() if key not in owned}
         state['properties'] = dict(mol.properties)
         graph_memo = {id(mol): mol, **{id(atom): atom for atom in mol._atoms},
                       **{id(bond): bond for bond in bonds}}
-        state['_atom_pairs'] = deepcopy(mol._atom_pairs, graph_memo)
         atom_state = tuple({key: value for key, value in atom.__dict__.items()
                             if key not in ('_mol', '_member_uid', '_uid_owner', '_detached_table', 'isotope', 'frac_valence')}
                            for atom in mol._atoms)
@@ -6304,6 +5569,12 @@ def _restore_molecule_raw(cls, record, owner, atom_uids, bond_uids, high_water, 
         object.__setattr__(atom, '_member_uid', uid)
     for bond, uid in zip(mol._bonds + mol._hided_bonds, bond_uids):
         object.__setattr__(bond, '_member_uid', uid)
+    mol._constraints = _ConstraintSet(
+        tuple(tuple(atom_uids[row] for row in entry) for entry in record.angle_constraints),
+        tuple(tuple(atom_uids[row] for row in entry) for entry in record.torsion_constraints))
+    mol._pair_wiberg_bond_orders = {
+        tuple(sorted((atom_uids[first], atom_uids[second]))): value
+        for first, second, value in record.pair_wiberg_bond_orders}
     mol._next_atom_uid, mol._next_bond_uid = high_water
     return mol
 
@@ -6369,15 +5640,22 @@ def _numeric_property(field):
     return property(read)
 
 
-def _legacy_constraint_property():
+def _constraint_property(scope):
     def read(view):
+        from .views._source import _check_view_source
         with view.mol._mutation_lock:
-            return view.__dict__['constraint']
+            _check_view_source(view.mol, view._view_source, view.atoms, view._view_uids)
+            return view._view_uids in getattr(view.mol._constraints, scope)
 
     def write(view, value):
-        with _FactTransaction(view.mol, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
-            transaction.touch_constraint(view)
-            view.__dict__['constraint'] = value
+        from .views._source import _check_view_source
+        with view.mol._mutation_lock:
+            _check_view_source(view.mol, view._view_source, view.atoms, view._view_uids)
+            entries = ((view.atoms, value),)
+            if scope == 'angles':
+                _commit_constraints(view.mol, view._view_source[0], angle_entries=entries)
+            else:
+                _commit_constraints(view.mol, view._view_source[0], torsion_entries=entries)
 
     return property(read, write)
 
@@ -6418,6 +5696,6 @@ for _method in ('conformer_add', 'conformer_clear'):
 for _method in ('clear_constraints', 'constraint_bonds_angles'):
     setattr(Molecule, _method, _transactional_legacy(getattr(Molecule, _method), constraints=True))
 Ring.is_aromatic = Ring.is_aromatic.setter(_transactional_legacy(Ring.is_aromatic.fset))
-Angle.constraint = _legacy_constraint_property()
-Torsion.constraint = _legacy_constraint_property()
+Angle.constraint = _constraint_property('angles')
+Torsion.constraint = _constraint_property('torsions')
 del _field, _method

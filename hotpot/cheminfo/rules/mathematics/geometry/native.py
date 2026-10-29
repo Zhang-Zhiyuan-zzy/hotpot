@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Iterable, Optional, Sequence, Tuple, Union
 import numpy as np
 
 try:
-    from . import _geometry_native as _native
+    from hotpot.cheminfo.geometry import _geometry_native as _native
 except ImportError as exc:
     raise ImportError(
         "the hotpot.cheminfo.geometry native extension is unavailable; "

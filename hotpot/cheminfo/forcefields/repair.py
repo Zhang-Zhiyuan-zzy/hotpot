@@ -7,7 +7,8 @@ from typing import TYPE_CHECKING, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-from .. import geometry as geo
+from ..rules.mathematics import geometry as geo
+from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from .backend import _single_ob_optimization
 from .contracts import RingUntanglingReport
 from .coordinates import _copy_coordinates, _perturbed_coordinates
@@ -31,7 +32,7 @@ __all__ = ()
 class _RingUntanglingResult:
     report: RingUntanglingReport
     energy: float
-    checkpoint_report: "geo.BondRingScreeningReport[Ring, Bond]"
+    checkpoint_report: "geometry_adapter.BondRingScreeningReport[Ring, Bond]"
 
 
 @dataclass(frozen=True, order=True)
@@ -70,7 +71,7 @@ class _RingTrajectoryRecorder:
         *,
         energy: Optional[float] = None,
         state: Optional[geo.PiercingState] = None,
-        report: Optional["geo.BondRingScreeningReport[Ring, Bond]"] = None,
+        report: Optional["geometry_adapter.BondRingScreeningReport[Ring, Bond]"] = None,
         confirmed_piercing_count: Optional[int] = None,
         attempt: Optional[int] = None,
     ) -> Optional[int]:
@@ -97,7 +98,7 @@ class _RingTrajectoryRecorder:
 
     def record_checkpoint(
         self,
-        checkpoint_report: "geo.BondRingScreeningReport[Ring, Bond]",
+        checkpoint_report: "geometry_adapter.BondRingScreeningReport[Ring, Bond]",
         *,
         energy: Optional[float] = None,
         attempt: Optional[int] = None,
@@ -122,8 +123,8 @@ class _RingTrajectoryRecorder:
 
 def _piercing_count(
     report: Optional[Union[
-        "geo.BondRingScanReport[Ring, Bond]",
-        "geo.BondRingScreeningReport[Ring, Bond]",
+        "geometry_adapter.BondRingScanReport[Ring, Bond]",
+        "geometry_adapter.BondRingScreeningReport[Ring, Bond]",
     ]],
 ) -> int:
     """Return the confirmed piercing count of an optional geometry scan."""
@@ -150,12 +151,12 @@ def _select_ring_opening_edge(
         )
         if target_bond is None or not eligible_edges:
             continue
-        target_segment = geo.segment_from_bond(target_bond)
+        target_segment = geometry_adapter.segment_from_bond(target_bond)
 
         def edge_distance(edge: "Bond") -> Tuple[float, Tuple[int, int]]:
             return (
                 geo.segment_segment_distance(
-                    geo.segment_from_bond(edge),
+                    geometry_adapter.segment_from_bond(edge),
                     target_segment,
                 ),
                 _bond_key(edge),
@@ -167,7 +168,7 @@ def _select_ring_opening_edge(
 
 def _ring_edge_memberships(
     mol: "Molecule",
-    ring_scope: geo.RingScope,
+    ring_scope: geometry_adapter.RingScope,
 ) -> dict[Tuple[int, int], int]:
     """Count edge memberships across every ring in the selected scope."""
     memberships: dict[Tuple[int, int], int] = {}
@@ -180,7 +181,7 @@ def _ring_edge_memberships(
 
 def _ring_piercing_watch(
     mol: "Molecule",
-    report: "geo.BondRingScreeningReport[Ring, Bond]",
+    report: "geometry_adapter.BondRingScreeningReport[Ring, Bond]",
 ) -> Tuple[_WatchedRingPiercing, ...]:
     """Freeze stable graph keys for the currently confirmed piercings."""
     memberships = _ring_edge_memberships(mol, report.ring_scope)
@@ -244,11 +245,11 @@ def _scan_ring_piercing_watch(
     confirmed = []
     for ring_atom_indices, ring_watch in watched_by_ring.items():
         cycle = geo.Cycle(tuple(
-            geo.point_from_atom(atoms_by_index[index])
+            geometry_adapter.point_from_atom(atoms_by_index[index])
             for index in ring_atom_indices
         ))
         segments = tuple(
-            geo.segment_from_bond(
+            geometry_adapter.segment_from_bond(
                 bonds_by_key[item.key.bond_atom_indices]
             )
             for item in ring_watch
@@ -271,10 +272,10 @@ def _scan_ring_piercing_watch(
 def _scan_ring_checkpoint(
     mol: "Molecule",
     *,
-    ring_scope: geo.RingScope,
-) -> "geo.BondRingScreeningReport[Ring, Bond]":
+    ring_scope: geometry_adapter.RingScope,
+) -> "geometry_adapter.BondRingScreeningReport[Ring, Bond]":
     """Return one complete full-scope bond--ring checkpoint report."""
-    return geo.screen_bond_ring_relations(
+    return geometry_adapter.screen_bond_ring_relations(
         mol,
         ring_scope=ring_scope,
         max_ring_size=_BOND_RING_MAX_SIZE,
@@ -283,7 +284,7 @@ def _scan_ring_checkpoint(
 
 def _ring_frame_evidence(
     state: geo.PiercingState,
-    report: Optional["geo.BondRingScreeningReport[Ring, Bond]"],
+    report: Optional["geometry_adapter.BondRingScreeningReport[Ring, Bond]"],
     *,
     confirmed_piercing_count: Optional[int] = None,
 ) -> RingFrameEvidence:
@@ -331,7 +332,7 @@ def _ring_frame_evidence(
 
 def _record_ring_checkpoint(
     mol: "Molecule",
-    checkpoint_report: "geo.BondRingScreeningReport[Ring, Bond]",
+    checkpoint_report: "geometry_adapter.BondRingScreeningReport[Ring, Bond]",
     *,
     trajectory: Optional[ForceFieldTrajectory],
     stage: TrajectoryStage,
@@ -423,7 +424,7 @@ def _untangle_ring_piercings(
     settling_steps: int,
     perturb_sigma: float,
     rng: np.random.Generator,
-    checkpoint_report: "geo.BondRingScreeningReport[Ring, Bond]",
+    checkpoint_report: "geometry_adapter.BondRingScreeningReport[Ring, Bond]",
     initial_energy: float = float("nan"),
     trajectory: Optional[ForceFieldTrajectory] = None,
     trajectory_stage: TrajectoryStage = TrajectoryStage.COMPLEX_UNTANGLING,
@@ -473,7 +474,7 @@ def _resolve_ring_piercings(
     settling_steps: int,
     perturb_sigma: float,
     rng: np.random.Generator,
-    checkpoint_report: "geo.BondRingScreeningReport[Ring, Bond]",
+    checkpoint_report: "geometry_adapter.BondRingScreeningReport[Ring, Bond]",
     initial_energy: float,
     trajectory_recorder: _RingTrajectoryRecorder,
 ) -> _RingUntanglingResult:

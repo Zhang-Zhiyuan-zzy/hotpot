@@ -6,7 +6,8 @@ import inspect
 import json
 from pathlib import Path
 
-from hotpot.cheminfo import geometry
+from hotpot.cheminfo.rules.mathematics import geometry
+from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 
 from tests.geometry_characterization import (
     PUBLIC_COMPUTATIONAL_PARAMETERS,
@@ -89,14 +90,18 @@ EXPECTED_PUBLIC_API = (
 
 
 def test_public_api_inventory_is_frozen_for_native_migration():
-    assert tuple(geometry.__all__) == EXPECTED_PUBLIC_API
-    assert len(geometry.__all__) == len(set(geometry.__all__))
-    assert all(hasattr(geometry, name) for name in EXPECTED_PUBLIC_API)
+    actual_api = (*geometry.__all__, *geometry_adapter.__all__)
+    assert actual_api == EXPECTED_PUBLIC_API
+    assert len(actual_api) == len(set(actual_api))
+    assert all(hasattr(geometry, name) for name in geometry.__all__)
+    assert all(hasattr(geometry_adapter, name) for name in geometry_adapter.__all__)
 
 
 def test_public_computational_parameter_contract_is_frozen():
+    owners = {**dict.fromkeys(geometry.__all__, geometry),
+              **dict.fromkeys(geometry_adapter.__all__, geometry_adapter)}
     actual = {
-        name: tuple(inspect.signature(getattr(geometry, name)).parameters)
+        name: tuple(inspect.signature(getattr(owners[name], name)).parameters)
         for name in PUBLIC_COMPUTATIONAL_PARAMETERS
     }
 

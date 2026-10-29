@@ -4,7 +4,8 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
-from hotpot.cheminfo import geometry
+from hotpot.cheminfo.rules.mathematics import geometry
+from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from hotpot.cheminfo.forcefields import acceptance as acceptance_impl
 from hotpot.cheminfo.forcefields import attempts
 from hotpot.cheminfo.forcefields import backend as ob_backend
@@ -484,12 +485,12 @@ def test_optimizer_adapter_does_not_run_acceptance_or_topology_scans(monkeypatch
         lambda *args, **kwargs: pytest.fail("acceptance ran inside optimizer"),
     )
     monkeypatch.setattr(
-        geometry,
+        geometry_adapter,
         "determine_bond_ring_piercing_state",
         lambda *args, **kwargs: pytest.fail("topology scan ran inside optimizer"),
     )
     monkeypatch.setattr(
-        geometry,
+        geometry_adapter,
         "screen_bond_ring_relations",
         lambda *args, **kwargs: pytest.fail("topology scan ran inside optimizer"),
     )

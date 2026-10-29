@@ -405,8 +405,10 @@ def test_factual_builder_installs_every_raw_fact_and_builds_topology_once(monkey
     assert mol.atoms[0].isotope is None and mol.atoms[1].isotope == 0
     assert mol.atoms[2].isotope == 13 and mol.atoms[0].frac_valence == 1.75
     assert 'isotope' not in mol.atoms[3].__dict__
-    assert [tuple(atom.idx for atom in view.atoms) for view in mol._angles if view.constraint] == [(2, 0, 1)]
-    assert [tuple(atom.idx for atom in view.atoms) for view in mol._torsions if view.constraint] == [(3, 2, 0, 1)]
+    assert [tuple(atom.idx for atom in view.atoms) for view in mol.angles if view.constraint] == [(2, 0, 1)]
+    assert [tuple(atom.idx for atom in view.atoms) for view in mol.torsions if view.constraint] == [(3, 2, 0, 1)]
+    assert mol._constraints.angles == (tuple(mol.atoms[row]._uid for row in (2, 0, 1)),)
+    assert mol._constraints.torsions == (tuple(mol.atoms[row]._uid for row in (3, 2, 0, 1)),)
 
 
 def test_same_target_factual_installer_preserves_owner_lock_and_burned_uid_ranges():

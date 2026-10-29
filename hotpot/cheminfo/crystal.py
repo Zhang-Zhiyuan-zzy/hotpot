@@ -15,17 +15,8 @@ class Crystal:
 
     @staticmethod
     def _matrix_to_params(matrix: np.ndarray):
-        """ Covert the cell matrix to cell parameters: a, b, c, alpha, beta, gamma """
-        va, vb, vc = matrix
-        a = sum(va ** 2) ** 0.5
-        b = sum(vb ** 2) ** 0.5
-        c = sum(vc ** 2) ** 0.5
-
-        alpha = np.arccos(np.dot(va, vb) / (a * b)) / np.pi * 180
-        beta = np.arccos(np.dot(va, vc) / (a * c)) / np.pi * 180
-        gamma = np.arccos(np.dot(vb, vc) / (b * c)) / np.pi * 180
-
-        return a, b, c, alpha, beta, gamma
+        from .rules.mathematics.cell import _matrix_to_params
+        return _matrix_to_params(matrix)
 
     @classmethod
     def from_matrix(cls, matrix: np.ndarray):

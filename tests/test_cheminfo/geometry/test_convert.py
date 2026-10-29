@@ -8,12 +8,13 @@ from typing import TYPE_CHECKING, Dict, Optional, Sequence, Tuple
 import pytest
 
 from hotpot.cheminfo.core import Molecule
-from hotpot.cheminfo.geometry import convert, native
-from hotpot.cheminfo.geometry.relation import (
+from hotpot.cheminfo.adapters.structure import geometry as convert
+from hotpot.cheminfo.rules.mathematics.geometry import native
+from hotpot.cheminfo.rules.mathematics.geometry.relation import (
     PiercingState,
 )
-from hotpot.cheminfo.geometry.object import Segment
-from hotpot.cheminfo.geometry.settings import DEFAULT_GEOMETRY_SETTINGS
+from hotpot.cheminfo.rules.mathematics.geometry.object import Segment
+from hotpot.cheminfo.rules.mathematics.geometry.settings import DEFAULT_GEOMETRY_SETTINGS
 
 
 @dataclass(frozen=True)

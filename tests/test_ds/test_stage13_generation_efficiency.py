@@ -407,12 +407,26 @@ def test_equal_bytes_at_distinct_paths_are_independently_snapshotted(
     assert list(snapshots.iterdir()) == []
 
 
+@pytest.mark.parametrize("preserve_stat_signature", [False, True])
 def test_shared_asset_cache_rejects_source_change_before_reuse(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
+    preserve_stat_signature: bool,
 ) -> None:
     source = tmp_path / "shared.smi"
     source.write_text("O\n", encoding="utf-8")
+    if preserve_stat_signature:
+        source_stat = source.stat()
+        source_identity = source_stat.st_dev, source_stat.st_ino
+        stat_signature = generation_module._stat_signature
+        original_signature = stat_signature(source_stat)
+
+        def colliding_stat_signature(value):
+            if (value.st_dev, value.st_ino) == source_identity:
+                return original_signature
+            return stat_signature(value)
+
+        monkeypatch.setattr(generation_module, "_stat_signature", colliding_stat_signature)
     snapshots = tmp_path / "snapshots"
     snapshots.mkdir()
     policy = runtime_policy()

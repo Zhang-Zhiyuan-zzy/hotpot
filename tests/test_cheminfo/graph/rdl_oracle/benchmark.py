@@ -101,7 +101,8 @@ def main() -> None:
     arguments = parser.parse_args()
 
     sys.path.insert(0, str(REPOSITORY_ROOT))
-    from hotpot.cheminfo.graph import _graph_native, relevant_cycles
+    from hotpot.cheminfo.graph import _graph_native
+    from hotpot.cheminfo.rules.mathematics.graph import relevant_cycles
 
     extension_path = Path(_graph_native.__file__).resolve()
     native_sources = _native_source_paths()

@@ -11,11 +11,12 @@ from typing import Iterator, Tuple
 
 import pytest
 
-from hotpot.cheminfo import geometry
+from hotpot.cheminfo.rules.mathematics import geometry
+from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 
 
-GEOMETRY_DIR = Path(__file__).parents[2] / "hotpot" / "cheminfo" / "geometry"
-PACKAGE_MODULES = ("settings", "object", "relation", "convert")
+GEOMETRY_DIR = Path(__file__).parents[2] / "hotpot" / "cheminfo" / "rules" / "mathematics" / "geometry"
+PACKAGE_MODULES = ("settings", "object", "relation")
 
 
 def _imports_outside_type_checking(tree: ast.AST) -> Iterator[Tuple[int, str]]:
@@ -60,13 +61,14 @@ def _imports_outside_type_checking(tree: ast.AST) -> Iterator[Tuple[int, str]]:
 
 def test_root_exports_exact_child_union_without_duplicates():
     child_modules = [
-        importlib.import_module("hotpot.cheminfo.geometry.{}".format(name))
+        importlib.import_module("hotpot.cheminfo.rules.mathematics.geometry.{}".format(name))
         for name in PACKAGE_MODULES
     ]
     child_exports = [name for module in child_modules for name in module.__all__]
 
-    assert len(child_exports) == 70
-    assert len(child_exports) == len(set(child_exports))
+    all_exports = child_exports + list(geometry_adapter.__all__)
+    assert len(all_exports) == 70
+    assert len(all_exports) == len(set(all_exports))
     assert tuple(geometry.__all__) == tuple(child_exports)
 
     for module in child_modules:
@@ -77,7 +79,8 @@ def test_root_exports_exact_child_union_without_duplicates():
 @pytest.mark.parametrize(
     "module_name",
     (
-        "hotpot.cheminfo.geometry",
+        "hotpot.cheminfo.rules.mathematics.geometry",
+        "hotpot.cheminfo.adapters.structure.geometry",
         "hotpot.cheminfo.core",
         "hotpot.cheminfo.forcefields",
     ),
@@ -109,7 +112,10 @@ def test_module_imports_in_fresh_subprocess(module_name):
     ),
 )
 def test_runtime_import_dependency_direction(module_name, forbidden):
-    source_path = GEOMETRY_DIR / "{}.py".format(module_name)
+    source_path = (
+        Path(__file__).parents[2] / "hotpot" / "cheminfo" / "adapters" / "structure" / "geometry.py"
+        if module_name == "convert" else GEOMETRY_DIR / "{}.py".format(module_name)
+    )
     tree = ast.parse(source_path.read_text(encoding="utf-8"), filename=str(source_path))
     violations = [
         (line_number, imported)

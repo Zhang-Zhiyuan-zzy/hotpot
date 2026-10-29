@@ -9,7 +9,8 @@ from typing import Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from .. import geometry as geo
+from ..rules.mathematics import geometry as geo
+from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from ..conformers import (
     ConformerSampler,
     ConformerSamplingError,
@@ -61,7 +62,7 @@ class _LigandCandidate:
     energy: float
     attempt: int
     untangling: RingUntanglingReport
-    checkpoint_report: "geo.BondRingScreeningReport"
+    checkpoint_report: "geometry_adapter.BondRingScreeningReport"
     trajectory: Optional[ForceFieldTrajectory] = None
 
 
@@ -91,7 +92,7 @@ def _candidate_rejection_reason(
 
 def _checkpoint_warning_messages(
     component_index: int,
-    report: "geo.BondRingScreeningReport",
+    report: "geometry_adapter.BondRingScreeningReport",
 ) -> Tuple[str, ...]:
     """Return non-fatal Stage 1 coverage and indeterminacy warnings."""
     messages = []

@@ -2,7 +2,7 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
-from hotpot.cheminfo.geometry.settings import (
+from hotpot.cheminfo.rules.mathematics.geometry.settings import (
     DEFAULT_GEOMETRY_SETTINGS,
     GeometrySettings,
     NumericToleranceSettings,

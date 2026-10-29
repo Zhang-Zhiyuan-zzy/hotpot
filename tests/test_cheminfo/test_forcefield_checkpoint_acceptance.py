@@ -6,7 +6,8 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from hotpot.cheminfo import geometry as geo
+from hotpot.cheminfo.rules.mathematics import geometry as geo
+from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from hotpot.cheminfo.core import Molecule
 from hotpot.cheminfo.forcefields import acceptance as acceptance_policy
 
@@ -22,9 +23,9 @@ def _carbon_bond() -> Molecule:
 
 def _empty_screening_report(
     *,
-    ring_scope: geo.RingScope,
-) -> geo.BondRingScreeningReport:
-    return geo.BondRingScreeningReport(
+    ring_scope: geometry_adapter.RingScope,
+) -> geometry_adapter.BondRingScreeningReport:
+    return geometry_adapter.BondRingScreeningReport(
         actionable_findings=(),
         ring_scope=ring_scope,
         max_ring_size=16,
@@ -40,15 +41,15 @@ def _empty_screening_report(
     )
 
 
-def _piercing_screening_report() -> geo.BondRingScreeningReport:
-    finding = geo.BondRingFinding(
+def _piercing_screening_report() -> geometry_adapter.BondRingScreeningReport:
+    finding = geometry_adapter.BondRingFinding(
         target=SimpleNamespace(
             ring=SimpleNamespace(key=(2, 3, 4)),
             bond=SimpleNamespace(key=(0, 1)),
         ),
         relation=SimpleNamespace(state=geo.PiercingState.PIERCES),
     )
-    return geo.BondRingScreeningReport(
+    return geometry_adapter.BondRingScreeningReport(
         actionable_findings=(finding,),
         ring_scope="full_graph",
         max_ring_size=16,
@@ -73,7 +74,7 @@ def test_checkpoint_acceptance_requires_and_reuses_precomputed_report(
         raise AssertionError("checkpoint acceptance must not rescan geometry")
 
     monkeypatch.setattr(
-        acceptance_policy.geo,
+        acceptance_policy.geometry_adapter,
         "screen_bond_ring_relations",
         unexpected_scan,
     )
@@ -119,7 +120,7 @@ def test_public_acceptance_self_scans_once_with_existing_scope(monkeypatch):
         return report
 
     monkeypatch.setattr(
-        acceptance_policy.geo,
+        acceptance_policy.geometry_adapter,
         "screen_bond_ring_relations",
         scan_relations,
     )
@@ -142,7 +143,7 @@ def test_public_acceptance_preserves_nonfinite_scan_short_circuit(monkeypatch):
         raise AssertionError("nonfinite coordinates must fail before ring scanning")
 
     monkeypatch.setattr(
-        acceptance_policy.geo,
+        acceptance_policy.geometry_adapter,
         "screen_bond_ring_relations",
         unexpected_scan,
     )

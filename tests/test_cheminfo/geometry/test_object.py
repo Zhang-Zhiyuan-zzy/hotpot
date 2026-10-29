@@ -3,7 +3,7 @@ from math import inf
 
 import pytest
 
-from hotpot.cheminfo.geometry.object import (
+from hotpot.cheminfo.rules.mathematics.geometry.object import (
     Cycle,
     Line,
     Plane,

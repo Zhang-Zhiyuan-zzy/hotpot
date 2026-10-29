@@ -145,7 +145,7 @@ def prepare(entry, phase):
         segments = [geometry.Segment((x, 0.0, -2.0), (x, 0.0, 2.0)) for x in (0.0, 3.0)]
         return repeat(lambda: [geometry.determine_segment_cycle_relation(segment, cycle).state.value for segment in segments]), lambda: None
     if name == "crystal":
-        module = "hotpot.cheminfo.crystal" if phase == "baseline" else "hotpot.cheminfo.structure.crystal"
+        module = "hotpot.cheminfo.crystal"
         Crystal = importlib.import_module(module).Crystal
         matrix = np.asarray(params["matrix"], dtype=float)
         return repeat(lambda: vars(Crystal.from_matrix(matrix))["a"]), lambda: None

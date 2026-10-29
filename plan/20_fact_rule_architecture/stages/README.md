@@ -2,7 +2,7 @@
 
 The main plan and normative companions remain in the project root (Plan21
 remains in its own project). This catalog organizes Stage0–13. Existing execution records cover Stage0–3;
-Stage4–13 currently have navigation indexes only. Folder creation supplies no
+Stage4 has entry and design records; Stage5–13 currently have navigation indexes only. Folder creation supplies no
 stage-entry or execution evidence and changes no objective, gate, contract,
 scientific route or accepted decision.
 
@@ -23,7 +23,8 @@ variants.
 
 JSON names follow their record's purpose; entry/evidence records commonly use
 `entry_review.json` and `evidence.json`. Every JSON file must be linked from its
-stage README, including JSON in topic directories. Catalog-wide JSON files
+stage README, including JSON in topic directories. Other stage assets follow
+the same stage ownership and README indexing rule. Catalog-wide JSON files
 are linked here. A Markdown type need not be duplicated as JSON or created
 merely to fill a directory.
 
@@ -35,7 +36,7 @@ merely to fill a directory.
 | Stage1 | [stage01](stage01/README.md) | API/assets/interfaces, accepted decisions, baseline sampling and evidence |
 | Stage2 | [stage02](stage02/README.md) | Dead/placeholder cleanup entry and execution evidence |
 | Stage3 | [stage03](stage03/README.md) | Foundation, storage, identities, closed updates/builders, table cutover and native entry |
-| Stage4 | [stage04](stage04/README.md) | Planned: Extract mathematical rules and structure adapters |
+| Stage4 | [stage04](stage04/README.md) | Entry and design: Extract mathematical rules and structure adapters |
 | Stage5 | [stage05](stage05/README.md) | Planned: Extract elemental, bonding, charge, and hydrogen rules |
 | Stage6 | [stage06](stage06/README.md) | Planned: Split stereochemistry facts and rules |
 | Stage7 | [stage07](stage07/README.md) | Planned: Remove second truth sources and clarify results |
@@ -58,6 +59,9 @@ a second source of stage-completion or approval semantics.
   current homes and original/relocated document identities.
 - [Executed layout evidence](layout_evidence.json): actual naming/index/link/
   JSON audit and byte-preservation results for this mechanical migration.
+- [Follow-up layout evidence](layout_followup_evidence.json): current Stage0–13
+  naming, complete asset indexing and historical-byte checks; records any
+  unresolved links from concurrent source migration.
 - [Read-only audit tool](../audit_stage_records.py): run
   `python plan/20_fact_rule_architecture/audit_stage_records.py` from the
   repository root; `--output <path>` retains its JSON result.

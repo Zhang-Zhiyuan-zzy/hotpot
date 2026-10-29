@@ -215,7 +215,7 @@ def test_optimize_complex_uses_native_stage_three_and_checkpoint_acceptance(
         _unexpected_call("native workflow coordinator"),
     )
     monkeypatch.setattr(
-        acceptance_policy.geo,
+        acceptance_policy.geometry_adapter,
         "screen_bond_ring_relations",
         _unexpected_call("Python bond--ring scanner"),
     )

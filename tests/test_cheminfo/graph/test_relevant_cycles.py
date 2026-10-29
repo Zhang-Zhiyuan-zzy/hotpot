@@ -9,7 +9,7 @@ import networkx as nx
 import numpy as np
 import pytest
 
-from hotpot.cheminfo.graph import (
+from hotpot.cheminfo.rules.mathematics.graph import (
     RelevantCycleLimitExceeded,
     relevant_cycles,
 )
@@ -139,7 +139,7 @@ def test_invalid_limits_are_rejected(keyword, value, error):
 
 
 def test_empty_edges_return_empty_without_loading_native_backend(monkeypatch):
-    import hotpot.cheminfo.graph.cycles as cycle_module
+    import hotpot.cheminfo.rules.mathematics.graph.cycles as cycle_module
 
     def unexpected_native_load():
         raise AssertionError(

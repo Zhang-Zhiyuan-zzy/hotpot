@@ -1,7 +1,8 @@
 # Stage 20 — Fact-Carrier and Rule Architecture
 
 Status: implementation authorized on 2026-10-28; Stage0–3 complete;
-Stage4 is next. All public chemical
+Stage4 implementation/technical verification is recorded; its focused
+performance regressions remain under investigation. All public chemical
 types follow a common protocol for fact ownership, interface mapping,
 permissions, dependencies, buffer ownership and lifecycle. Atom's unified
 fact table is one concrete implementation. Stage2 completed the approved dead/placeholder implementation cleanup;
@@ -52,6 +53,15 @@ Original planning branch: `refactor/fact-rule-architecture`
 Original planning baseline: `0a4b0ee`; reviewed documentation: `d9eb80e`.
 Stage1 must record a fresh executable/performance baseline at the selected
 Plan17/Plan20 boundary before production refactoring.
+
+## Current Stage4 checkpoint
+
+The [Stage4 report](stages/stage04/report.md) binds the extracted mathematics,
+source-bound views, constraint ownership and preserved pair observations.
+Default4571 tests and all five source/debug/current-wheel selections pass.
+The [focused performance report](stages/stage04/performance/report.md) retains
+4.053×graph/view and1.103×Crystal regressions; no efficiency exception is
+approved. Stage4 is still in progress, and later stages remain gated.
 
 ## Records
 

@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from hotpot.cheminfo import geometry as geo
+from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.core import Molecule
 from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import ff, repair
@@ -456,7 +456,7 @@ def test_ring_checkpoint_preserves_a_non_piercing_report(monkeypatch):
         calls.append((current_molecule, ring_scope, max_ring_size))
         return expected
 
-    monkeypatch.setattr(repair.geo, "screen_bond_ring_relations", screen)
+    monkeypatch.setattr(repair.geometry_adapter, "screen_bond_ring_relations", screen)
 
     result = repair._scan_ring_checkpoint(
         molecule,

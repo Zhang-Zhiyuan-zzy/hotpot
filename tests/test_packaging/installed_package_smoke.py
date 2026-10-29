@@ -25,7 +25,7 @@ def core() -> None:
     )
     from hotpot.cheminfo.calculator.contracts import ScientificQuantity
     from hotpot.cheminfo.calculator.state_selection import StateDecisionAction
-    from hotpot.cheminfo.graph import relevant_cycles
+    from hotpot.cheminfo.rules.mathematics.graph import relevant_cycles
     from hotpot.cheminfo.search import _search_native
 
     assert _search_native.NativeProblem is not None
@@ -71,10 +71,10 @@ def core() -> None:
     ).startswith("# Hotpot controlled molecular pipeline")
     assert files("hotpot.cheminfo.geometry").joinpath("README.md").read_text(
         encoding="utf-8"
-    ).startswith("# `hotpot.cheminfo.geometry` API Reference")
+    ).startswith("# Geometry rules and structure adapters API Reference")
     assert files("hotpot.cheminfo.geometry").joinpath("README.zh.md").read_text(
         encoding="utf-8"
-    ).startswith("# `hotpot.cheminfo.geometry` API 参考（中文版）")
+    ).startswith("# 几何数学规则与结构适配器 API 参考（中文版）")
     fonts = files("hotpot.cheminfo").joinpath("fonts", "Arial")
     for filename in (
         "Arial.ttf",

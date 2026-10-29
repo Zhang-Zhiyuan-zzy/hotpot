@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "stage": "Stage4",
+  "status": "Final local architecture95-case execution passed against frozen v2; no allowlist growth",
+  "base_ref": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+  "source_freeze": {
+    "path": ".plan20-artifacts/20261029/stage4/owner_freeze_v2.json",
+    "sha256": "ba7cfde0fcad742b48a32d0a70a4d3289bed7314b4a85454cd12a4fe810691a0",
+    "bytes": 140036
+  },
+  "initial_diagnostic": {
+    "path": ".plan20-artifacts/20261029/stage4/architecture_before_retirement.json",
+    "sha256": "480aff1d79460e03e26778ea9277b44c6d9ee5a7ab602c96d0c4733f4d0f5d72",
+    "bytes": 7696
+  },
+  "retirement": {
+    "path": ".plan20-artifacts/20261029/stage4/allowlist_retirement.json",
+    "sha256": "950d35e6a92c6e974a57d6db4a2ece10b52c5a1c6e8ef119d6407604d6a24c07",
+    "bytes": 3529
+  },
+  "remaining_debt_before": 281,
+  "remaining_debt_after": 268,
+  "retired_entries": [
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 24,
+      "scope": "",
+      "target": "scipy.spatial.distance.pdist",
+      "local": "pdist",
+      "rule": "carrier_or_root_eager_toolkit_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 24,
+      "scope": "",
+      "target": "scipy.spatial.distance.squareform",
+      "local": "squareform",
+      "rule": "carrier_or_root_eager_toolkit_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 147,
+      "scope": "Molecule.__init__",
+      "target": "self._atom_pairs",
+      "attribute": "_atom_pairs",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 148,
+      "scope": "Molecule.__init__",
+      "target": "self._angles",
+      "attribute": "_angles",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 149,
+      "scope": "Molecule.__init__",
+      "target": "self._torsions",
+      "attribute": "_torsions",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 590,
+      "scope": "Molecule._update_topology",
+      "target": "self._angles",
+      "attribute": "_angles",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 591,
+      "scope": "Molecule._update_topology",
+      "target": "self._torsions",
+      "attribute": "_torsions",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 2851,
+      "scope": "Molecule.update_angles",
+      "target": "self._angles",
+      "attribute": "_angles",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 2864,
+      "scope": "Molecule.update_torsions",
+      "target": "self._torsions",
+      "attribute": "_torsions",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 1072,
+      "scope": "Molecule.angles",
+      "target": "self._angles",
+      "attribute": "_angles",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "line": 1087,
+      "scope": "Molecule.torsions",
+      "target": "self._torsions",
+      "attribute": "_torsions",
+      "rule": "forbidden_retained_state_write",
+      "stage": "Stage4"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/working_copy.py",
+      "line": 22,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.AtomPair",
+      "local": "AtomPair",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    {
+      "path": "tests/test_cheminfo/graph/test_direct_algorithms.py",
+      "line": 6,
+      "scope": "",
+      "target": "hotpot.cheminfo.core.InternalCoordinates",
+      "local": "InternalCoordinates",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    }
+  ],
+  "retirement_scope": "Nine actual angular/pair retained-cache writers plus two eliminated SciPy imports, obsolete FF AtomPair import and migrated InternalCoordinates test import. No Stage5 Ring debt retired.",
+  "post_retirement_diagnostic": {
+    "path": ".plan20-artifacts/20261029/stage4/architecture_after_retirement.json",
+    "sha256": "28356d9bc94dcf3a4413ba475fbda0049f186697160db2495f65588c87ddde8d",
+    "bytes": 532
+  },
+  "standalone_diagnostic_commands": [
+    "PYTHONDONTWRITEBYTECODE=1 /tmp/hotpot-plan20-env/bin/python plan/20_fact_rule_architecture/audit_architecture.py --base-ref bdc6a8066095e81c415e1152b0f3e4717583ac83 --output .plan20-artifacts/20261029/stage4/architecture_before_retirement.json",
+    "PYTHONDONTWRITEBYTECODE=1 /tmp/hotpot-plan20-env/bin/python plan/20_fact_rule_architecture/audit_architecture.py --base-ref bdc6a8066095e81c415e1152b0f3e4717583ac83 --output .plan20-artifacts/20261029/stage4/architecture_after_retirement.json"
+  ],
+  "diagnostic_limit": "Standalone CLI diagnostics did not separately capture a complete timing manifest. The recorded timed architecture suite below executes the full repository audit against hash-bound final source, auditor and allowlist.",
+  "final_recorded_execution": {
+    "attempt": "owner-architecture-final-attempt13",
+    "command": {
+      "path": ".plan20-artifacts/20261029/stage4/owner-architecture-final-attempt13/command.json",
+      "sha256": "318c2144a2fe376a30b706f30bce3ed18f9bccc8494e9f5d711ccba0a358f13e",
+      "bytes": 256842
+    },
+    "log": {
+      "path": ".plan20-artifacts/20261029/stage4/owner-architecture-final-attempt13/command.log",
+      "sha256": "ba1f9dff3827dcf72416c79402d18e4c57cff752d60c082e27ac29f9893bd2f1",
+      "bytes": 1790
+    },
+    "junit": {
+      "path": ".plan20-artifacts/20261029/stage4/owner-architecture-final-attempt13/result.xml",
+      "sha256": "522f3d2aa300076293c2ede90759e4a9399149e902da1015578e072efcc44ad9",
+      "bytes": 24577
+    },
+    "argv": [
+      "taskset",
+      "-c",
+      "24-31",
+      "/tmp/hotpot-plan20-env/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "--import-mode=importlib",
+      "tests/test_cheminfo/structure/test_architecture.py",
+      "--basetemp",
+      "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-architecture-final-attempt13/pytest-temp",
+      "--junitxml",
+      "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-architecture-final-attempt13/result.xml",
+      "-o",
+      "cache_dir=/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/owner-architecture-final-attempt13/pytest-cache"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "source_commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+    "environment_overrides": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1",
+      "PYTHONHASHSEED": "0",
+      "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1"
+    },
+    "returncode": 0,
+    "wall_seconds": 6.837590212002397,
+    "junit_seconds": 6.494,
+    "counts": {
+      "tests": 95,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 95
+    },
+    "source_native_tests_unchanged": true,
+    "scope_and_limits": "95 final architecture checks, including current complete repository ratchet, exact numerical self initializers, and the actual new pair owner canonical guard."
+  },
+  "numerical_initialization_recognition": [
+    {
+      "path": "hotpot/cheminfo/rules/mathematics/geometry/object.py",
+      "class": "Point",
+      "method": "__init__",
+      "receiver": "self",
+      "field": "coordinates",
+      "operation": "object.__setattr__"
+    },
+    {
+      "path": "hotpot/cheminfo/adapters/structure/geometry.py",
+      "class": "BondRingFrameWorkspace",
+      "method": "__post_init__",
+      "receiver": "self",
+      "field": "coordinates",
+      "operation": "object.__setattr__"
+    },
+    {
+      "path": "hotpot/cheminfo/rules/mathematics/internal_coordinates.py",
+      "class": "InternalCoordinates",
+      "method": "__init__",
+      "receiver": "self",
+      "field": "coordinates",
+      "operation": "attribute store"
+    }
+  ],
+  "permission_limits": "Only the registered module-level class direct-method self initializer and operation match. Foreign/live-carrier receivers, dynamic fields, other fields, buffer stores/mutators/deletion, nested functions and wrong path/class/method remain forbidden.",
+  "new_owner_guard": {
+    "before_failure": {
+      "path": ".plan20-artifacts/20261029/stage4/new_owner_audit_review.json",
+      "sha256": "10a4327a16478e1f7900075af7947e281f14567bcbaf005a922c05b886372456",
+      "bytes": 667
+    },
+    "field": "_pair_wiberg_bond_orders",
+    "effect": "Register the actual new canonical owner, strengthening existing rules/adapters write detection",
+    "tested_entries": [
+      "direct mapping-item store",
+      "clear mutation",
+      "object.__setattr__ owner replacement"
+    ]
+  },
+  "final_findings": "The final recorded test_repository_architecture_ratchet passed: no new debt, stale allowances, growth, frozen-inventory excess, migrated-layer finding or duplicate carrier definition. The source-only diagnostic reported882 Python files and268 debt; the final change registers a known owner and changes no source-file count or remaining-debt entry.",
+  "coverage_limits": "Syntactic source/import/write ratchet only; runtime ownership, stale-view behavior, real rollback allocation, package/native ABI and scientific acceptance use their separate evidence."
+}

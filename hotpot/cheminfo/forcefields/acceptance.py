@@ -17,7 +17,8 @@ from typing import (
 
 import numpy as np
 
-from .. import geometry as geo
+from ..rules.mathematics import geometry as geo
+from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from .contracts import (
     AcceptanceCheck,
     AcceptanceLevel,
@@ -76,7 +77,7 @@ class _BondRingAcceptanceFacts:
     """Normalized facts from one completed bond--ring checkpoint."""
 
     actionable_findings: Tuple[_BondRingAcceptanceFinding, ...]
-    ring_scope: geo.RingScope
+    ring_scope: geometry_adapter.RingScope
     max_ring_size: int
     selected_ring_count: int
     excluded_ring_count: int
@@ -101,7 +102,7 @@ class _BondRingAcceptanceFacts:
         )
 
 
-_NATIVE_RING_SCOPES: dict[NativeRingGraphScope, geo.RingScope] = {
+_NATIVE_RING_SCOPES: dict[NativeRingGraphScope, geometry_adapter.RingScope] = {
     NativeRingGraphScope.LIGAND_SKELETON: "ligand_skeleton",
     NativeRingGraphScope.FULL_GRAPH: "full_graph",
 }
@@ -157,7 +158,7 @@ def _acceptance_checks_pass(checks: Sequence[AcceptanceCheck]) -> bool:
 
 
 def _overlap_issues(
-    distances: Sequence["geo.AtomPairDistance[Atom]"],
+    distances: Sequence["geometry_adapter.AtomPairDistance[Atom]"],
     tolerance: float,
 ) -> Tuple[_AtomPairAcceptanceIssue, ...]:
     return tuple(
@@ -173,11 +174,11 @@ def _overlap_issues(
 
 
 def _too_close_issues(
-    distances: Sequence["geo.AtomPairDistance[Atom]"],
+    distances: Sequence["geometry_adapter.AtomPairDistance[Atom]"],
     *,
     minimum_distance: float,
     covalent_radius_scale: Optional[float],
-    pair_scope: geo.PairScope,
+    pair_scope: geometry_adapter.PairScope,
     include_overlaps: bool,
     overlap_tolerance: float,
 ) -> Tuple[_AtomPairAcceptanceIssue, ...]:
@@ -549,7 +550,7 @@ def _coordination_metrics(
 
 
 def _geometry_bond_ring_acceptance_finding(
-    finding: "geo.BondRingFinding[Ring, Bond]",
+    finding: "geometry_adapter.BondRingFinding[Ring, Bond]",
 ) -> _BondRingAcceptanceFinding:
     state = finding.relation.state
     return _BondRingAcceptanceFinding(
@@ -565,7 +566,7 @@ def _geometry_bond_ring_acceptance_finding(
 
 
 def _geometry_bond_ring_acceptance_facts(
-    report: "geo.BondRingScreeningReport[Ring, Bond]",
+    report: "geometry_adapter.BondRingScreeningReport[Ring, Bond]",
 ) -> _BondRingAcceptanceFacts:
     return _BondRingAcceptanceFacts(
         actionable_findings=tuple(
@@ -725,7 +726,7 @@ def _atom_pair_distance_acceptance_section(
     dict[str, ForceFieldDiagnosticValue],
 ]:
     """Return atom-pair distance checks and distance metrics."""
-    distances = geo.measure_atom_pair_distances(mol, "all")
+    distances = geometry_adapter.measure_atom_pair_distances(mol, "all")
     metrics: dict[str, ForceFieldDiagnosticValue] = {}
     if distances:
         metrics["minimum_pair_distance"] = min(
@@ -1020,7 +1021,7 @@ def _evaluate_structure_acceptance(
 def evaluate_structure_acceptance_at_checkpoint(
     mol: "Molecule",
     *,
-    bond_ring_report: "geo.BondRingScreeningReport[Ring, Bond]",
+    bond_ring_report: "geometry_adapter.BondRingScreeningReport[Ring, Bond]",
     level: AcceptanceLevel = "standard",
     topology_reference: Optional[TopologyReference] = None,
     forcefield_report: Optional[ForceFieldAcceptanceEvidence] = None,
@@ -1079,7 +1080,7 @@ def evaluate_structure_acceptance(
     """Apply chemistry and force-field acceptance policy to geometry facts."""
     def scan_bond_ring_relations() -> _BondRingAcceptanceFacts:
         return _geometry_bond_ring_acceptance_facts(
-            geo.screen_bond_ring_relations(
+            geometry_adapter.screen_bond_ring_relations(
                 mol,
                 ring_scope="ligand_skeleton",
                 max_ring_size=_BOND_RING_MAX_SIZE,

@@ -6,7 +6,7 @@ from itertools import product
 
 import numpy as np
 
-from ..geometry import measure_planarity
+from ..rules.mathematics.geometry import measure_planarity
 from ._protocols import RingLike
 from .settings import AROMATIC_PLANARITY_RELATIVE_TOLERANCE
 

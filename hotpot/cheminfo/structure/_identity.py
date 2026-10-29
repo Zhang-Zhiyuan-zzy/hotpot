@@ -139,10 +139,8 @@ def _content_identities(mol, domains):
                 tuple(tuple(bool(value) for value in row)
                       for row in _atom_columns(mol, _CONSTRAINT_FIELDS)),
                 tuple((bond._uid, bool(bond.constraint)) for bond in bonds),
-                tuple(tuple(atom._uid for atom in view.atoms)
-                      for view in mol._angles if view.constraint),
-                tuple(tuple(atom._uid for atom in view.atoms)
-                      for view in mol._torsions if view.constraint),
+                mol._constraints.angles,
+                mol._constraints.torsions,
             )
         elif domain == "source_frames":
             with mol._conformers._mutation_lock:
@@ -164,6 +162,7 @@ def _content_identities(mol, domains):
                         "_energy", "_partial_charge", "_spin_mult", "_gibbs", "_force",
                         "_zero_point", "_thermo", "_capacity")),
                     mol._conformers_index,
+                    tuple(sorted(mol._pair_wiberg_bond_orders.items())),
                 )
                 identities.append((domain, _digest(domain, content)))
                 continue

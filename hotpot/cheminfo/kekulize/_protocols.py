@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Protocol, Sequence
 
-from ..geometry import Cycle
+from ..rules.mathematics.geometry import Cycle
 
 
 class AtomLike(Protocol):

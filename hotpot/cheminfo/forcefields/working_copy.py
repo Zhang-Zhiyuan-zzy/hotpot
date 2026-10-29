@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from copy import copy, deepcopy
 from dataclasses import dataclass
-from typing import Mapping, Optional, Tuple, TYPE_CHECKING
+from typing import Mapping, Optional, TYPE_CHECKING
 
 import numpy as np
 
@@ -20,7 +20,7 @@ from .topology import (
 
 
 if TYPE_CHECKING:
-    from ..core import Atom, AtomPair, Bond, BondKind, Molecule
+    from ..core import Atom, Bond, BondKind, Molecule
     from ..stereo import StereoPayload
     from ..structure._builder import MoleculeRecord
     from ..structure._identity import _SourceIdentity
@@ -64,7 +64,6 @@ class _WorkingCopyCommit:
 class _MoleculeCommitSnapshot:
     state: Mapping[str, object]
     member_state: tuple
-    atom_pair_items: Tuple[Tuple[frozenset["Atom"], "AtomPair"], ...]
     conformer_state: Mapping[str, object]
     membership: tuple
     cache_state: tuple
@@ -216,13 +215,12 @@ def _snapshot_molecule_for_commit(mol: "Molecule") -> _MoleculeCommitSnapshot:
     return _MoleculeCommitSnapshot(
         state=dict(mol.__dict__),
         member_state=tuple((member, dict(member.__dict__)) for member in members),
-        atom_pair_items=tuple(mol._atom_pairs.items()),
         conformer_state=dict(mol._conformers.__dict__),
         membership=tuple((values, tuple(values)) for values in (
             mol._atoms, mol._bonds, mol._hided_metal_bonds, mol._hided_covalent_bonds,
         )),
         cache_state=tuple((value, value.copy()) for value in (
-            mol._angles, mol._torsions, mol._rings, mol._ring_indices_cache,
+            mol._rings, mol._ring_indices_cache,
         )),
     )
 
@@ -247,8 +245,6 @@ def _restore_failed_commit(
             value.update(previous)
         else:
             value.extend(previous)
-    dict.clear(mol._atom_pairs)
-    dict.update(mol._atom_pairs, snapshot.atom_pair_items)
     mol._conformers.__dict__.clear()
     mol._conformers.__dict__.update(snapshot.conformer_state)
 
@@ -278,7 +274,6 @@ def _commit_working_copy(
                     dependency_state=payload.dependency_state, bond_metadata=payload.bond_metadata,
                 )
                 _commit_stereo(original_mol, _capture_source(original_mol), payload.stereo_payload)
-                original_mol._atom_pairs.update_pairs()
         except BaseException:
             _restore_failed_commit(original_mol, snapshot)
             raise

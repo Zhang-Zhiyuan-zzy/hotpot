@@ -27,11 +27,11 @@ _DECLARATIONS = ("_charge_value", "_charge_present", "_charge_source",
 _FRAME_FIELDS = ("_coordinates", "_energy", "_partial_charge", "_spin_mult", "_gibbs",
                  "_force", "_zero_point", "_thermo", "_capacity")
 _TOPOLOGY_FIELDS = ("_atoms", "_bonds", "_hided_metal_bonds", "_hided_covalent_bonds",
-                    "_angles", "_torsions", "_rings", "_ring_indices_cache", "_ligand_rings",
-                    "_ligand_rings_signature", "_obmol", "_row2idx", "_crystal", "_atom_pairs",
+                    "_constraints", "_rings", "_ring_indices_cache", "_ligand_rings",
+                    "_ligand_rings_signature", "_obmol", "_row2idx", "_crystal", "_pair_wiberg_bond_orders",
                     "identifier", "properties")
 _BOND_FIELDS = ("_bond_kind", "_bond_direction", "_bond_source", "_bond_source_metadata")
-_CACHE_FIELDS = ("_angles", "_torsions", "_rings", "_ring_indices_cache", "_ligand_rings",
+_CACHE_FIELDS = ("_rings", "_ring_indices_cache", "_ligand_rings",
                  "_ligand_rings_signature", "_obmol", "_row2idx")
 
 
@@ -108,7 +108,7 @@ class _FactTransaction:
 
     __slots__ = ("mol", "producer", "_joined", "_token", "_cells", "_statuses", "_seeds",
                  "_bonds", "_sparse", "_declarations", "_stereo", "_frames", "_topology",
-                 "_registrations", "_bond_membership", "_cache_state", "_constraints", "_failed")
+                 "_registrations", "_bond_membership", "_index_entries", "_cache_state", "_constraints", "_pair_values", "_failed")
 
     def __init__(self, mol, *, producer):
         self.mol = mol
@@ -125,8 +125,10 @@ class _FactTransaction:
         self._topology = None
         self._registrations = None
         self._bond_membership = None
+        self._index_entries = None
         self._cache_state = None
         self._constraints = None
+        self._pair_values = None
         self._failed = False
 
     def __enter__(self):
@@ -162,8 +164,10 @@ class _FactTransaction:
         self._cells.clear()
         self._statuses = self._seeds = self._bonds = self._sparse = None
         self._constraints = self._registrations = None
+        self._pair_values = None
         self._declarations = self._frames = self._topology = None
         self._bond_membership = None
+        self._index_entries = None
         self._cache_state = None
         self._stereo = _UNCHANGED
         self._joined = self._token = None
@@ -212,14 +216,14 @@ class _FactTransaction:
                                   for name in _FRAME_FIELDS))
 
     def touch_constraints(self):
-        for view in tuple(self.mol._angles) + tuple(self.mol._torsions):
-            self.touch_constraint(view)
-
-    def touch_constraint(self, view):
         if self._constraints is None:
-            self._constraints = {}
-        if id(view) not in self._constraints:
-            self._constraints[id(view)] = (view, view.__dict__.get('constraint', _UNCHANGED))
+            self._constraints = self.mol._constraints
+
+    def touch_pair_value(self, key):
+        if self._pair_values is None:
+            self._pair_values = []
+        values = self.mol._pair_wiberg_bond_orders
+        self._pair_values.append((values, key, values.get(key, _UNCHANGED)))
 
     def touch_caches(self):
         if self._topology is not None or self._cache_state is not None:
@@ -234,6 +238,7 @@ class _FactTransaction:
         self.touch_constraints()
 
     def touch_registration(self, atom):
+        self.touch_index_entry(id(atom))
         if self._topology is not None:
             return
         table = self.mol._atom_table
@@ -242,13 +247,18 @@ class _FactTransaction:
         self._registrations.append((atom, table, _table_storage(table), len(self.mol._atoms)))
 
     def touch_bond_membership(self, atoms):
+        for atom in atoms:
+            self.touch_index_entry(id(atom))
         if self._topology is not None:
             return
         if self._bond_membership is None:
-            self._bond_membership = (self.mol._bonds, len(self.mol._bonds), self.mol._topology_index, {})
-        index, entries = self._bond_membership[2:]
-        for atom in atoms:
-            entries.setdefault(id(atom), index[id(atom)])
+            self._bond_membership = (self.mol._bonds, len(self.mol._bonds), self.mol._topology_index)
+
+    def touch_index_entry(self, key):
+        if self._index_entries is None:
+            self._index_entries = []
+        index = self.mol._topology_index
+        self._index_entries.append((index, key, index.get(key, _UNCHANGED)))
 
     def touch_topology(self):
         if self._topology is not None:
@@ -257,16 +267,18 @@ class _FactTransaction:
         values = []
         for name in _TOPOLOGY_FIELDS:
             value = mol.__dict__.get(name, _UNCHANGED)
-            contents = list(value) if isinstance(value, list) else dict(value) if isinstance(value, dict) else None
+            # Complete pair publication replaces its owner. Scalar writes have
+            # their own per-key undo; rebuilding this factual dict could allocate.
+            contents = (None if name == "_pair_wiberg_bond_orders" else
+                        list(value) if isinstance(value, list) else dict(value) if isinstance(value, dict) else None)
             values.append((name, value, contents))
         table = mol._atom_table
         self._topology = (table, _table_storage(table), mol._topology_index,
-                          dict(mol._topology_index), tuple(values),
+                          tuple(values),
                           tuple((atom, atom.__dict__.get("_detached_table", _UNCHANGED)) for atom in mol._atoms))
         for bond in tuple(mol._bonds) + tuple(mol._hided_metal_bonds) + tuple(mol._hided_covalent_bonds):
             self.touch_bond(bond)
-        for view in tuple(mol._angles) + tuple(mol._torsions):
-            self.touch_constraint(view)
+        self.touch_constraints()
         self.touch_declarations()
         self.touch_stereo()
         self.touch_frames()
@@ -275,7 +287,7 @@ class _FactTransaction:
     def _rollback(self):
         mol = self.mol
         if self._topology is not None:
-            table, storage, index, entries, values, detached = self._topology
+            table, storage, index, values, detached = self._topology
             _restore_storage(table, storage)
             mol._atom_table = table
             for name, value, contents in values:
@@ -286,21 +298,25 @@ class _FactTransaction:
                         value.clear()
                         value.update(contents)
                 _restore_fields(mol, ((name, value),))
-            index.clear()
-            index.update(entries)
             mol._topology_index = index
             for atom, value in detached:
                 _restore_fields(atom, (("_detached_table", value),))
         if self._bond_membership is not None:
-            bonds, length, index, entries = self._bond_membership
+            bonds, length, index = self._bond_membership
             del bonds[length:]
-            index.update(entries)
             mol._bonds, mol._topology_index = bonds, index
         for atom, table, storage, length in reversed(self._registrations or ()):
             _restore_storage(table, storage)
             del mol._atoms[length:]
-            mol._topology_index.pop(id(atom), None)
             atom.__dict__.pop("_detached_table", None)
+        # Forward in-place index writes only append a key or replace an existing
+        # entry. Reverse those writes against their actual owner without bucket
+        # rebuilding, including writes made after a complete owner replacement.
+        for index, key, previous in reversed(self._index_entries or ()):
+            if previous is _UNCHANGED:
+                index.pop(key, None)
+            else:
+                index[key] = previous
         if self._cells:
             restore = _fact_engine()._restore_write
             for state in reversed(self._cells):
@@ -320,8 +336,13 @@ class _FactTransaction:
             with frames._mutation_lock:
                 _restore_fields(frames, fields)
             mol._conformers, mol._conformers_index = frames, index
-        for view, constraint in (self._constraints or {}).values():
-            _restore_fields(view, (("constraint", constraint),))
+        if self._constraints is not None:
+            mol._constraints = self._constraints
+        for values, key, previous in reversed(self._pair_values or ()):
+            if previous is _UNCHANGED:
+                values.pop(key, None)
+            else:
+                values[key] = previous
         if self._cache_state is not None:
             for name, value, contents in self._cache_state:
                 if contents is not None:
@@ -414,10 +435,19 @@ def _commit_constraints(mol, source, *, atom_update=None, bond_entries=(),
                         angle_entries=(), torsion_entries=()):
     with _FactTransaction(mol, producer=_EXPLICIT_SOURCE) as transaction:
         _check_source(mol, source)
-        for entries, membership in ((angle_entries, mol._angles), (torsion_entries, mol._torsions)):
-            for view, _ in entries:
-                if not any(member is view for member in membership):
-                    raise ValueError("Constraint view is no longer current")
+        prepared = []
+        for entries, width in ((angle_entries, 3), (torsion_entries, 4)):
+            normalized = []
+            for atoms, value in entries:
+                atoms = tuple(atoms)
+                if len(atoms) != width:
+                    raise ValueError("Constraint members must match the declared scope")
+                if any(atom._uid_owner is not mol._owner_token or id(atom) not in mol._topology_index
+                       for atom in atoms):
+                    raise ValueError("Constraint Atom is no longer current")
+                normalized.append((tuple(atom._uid for atom in atoms), bool(value)))
+            prepared.append(tuple(normalized))
+        constraints = mol._constraints.updated(angles=prepared[0], torsions=prepared[1])
         if atom_update is not None:
             if any(field not in ("x_constraint", "y_constraint", "z_constraint") for field in atom_update.fields):
                 raise ValueError("Atom constraints require canonical constraint axes")
@@ -427,9 +457,21 @@ def _commit_constraints(mol, source, *, atom_update=None, bond_entries=(),
                 raise ValueError("Constraint Bond is no longer current")
             transaction.touch_bond(bond)
             bond._attrs[2] = value
-        for view, value in tuple(angle_entries) + tuple(torsion_entries):
-            transaction.touch_constraint(view)
-            view.__dict__["constraint"] = value
+        if angle_entries or torsion_entries:
+            transaction.touch_constraints()
+            mol._constraints = constraints
+
+
+def _commit_pair_wiberg(mol, source, atoms, uids, value):
+    value = float(value)
+    with _FactTransaction(mol, producer=_EXPLICIT_SOURCE) as transaction:
+        _check_source(mol, source)
+        if any(atom._uid_owner is not mol._owner_token or atom._uid != uid
+               or id(atom) not in mol._topology_index for atom, uid in zip(atoms, uids)):
+            raise RuntimeError("Pair observation members changed")
+        key = tuple(sorted(uids))
+        transaction.touch_pair_value(key)
+        mol._pair_wiberg_bond_orders[key] = value
 
 
 def _commit_topology(mol, source, record, *, atom_bindings, bond_bindings,

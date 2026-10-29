@@ -1,0 +1,375 @@
+{
+  "schema_version": 1,
+  "stage": "Stage4",
+  "status": "entered; design and implementation authorized; no Stage4 validation or completion claim",
+  "recorded_at_utc": "2026-10-29T07:15:35.862343+00:00",
+  "owner": {
+    "task": "/root/stage3_builder_solmax",
+    "model": "gpt-6.1-sol",
+    "effort": "max",
+    "delegation": "No child delegation; parent may assign explicitly separated mechanical partitions"
+  },
+  "source": {
+    "commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+    "production_tree": "3853805935e99521727956fd5968db42317ca3f4",
+    "initial_worktree": "git status --short was empty before Stage4 entry; parent subsequently owns global log/map/index changes",
+    "production_worktree": "",
+    "source_and_native_manifest_entries": 563,
+    "source_and_native_manifest_sha256": "76b000ae9df749204090154860df97c978f1e2a19021c2a582d5ad95904f1daa",
+    "native_artifacts": {
+      "hotpot/cheminfo/geometry/_geometry_native.cpython-310-x86_64-linux-gnu.so": "9cee17b9654c029714d0be8c046f4b0c549e952f690b7048da090a6195199c5a",
+      "hotpot/cheminfo/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so": "97acdb9652fa491cd3e2634a176519dd7dd87a5951fd99dda8ae6e72491a0c68",
+      "hotpot/cheminfo/geometry/_geometry_native.cpython-312-x86_64-linux-gnu.so": "1a88498b38ae0373891eecaa4df96a021cf9e8f5be3491477dbef544b46fe55a",
+      "hotpot/cheminfo/geometry/_geometry_native.cpython-313-x86_64-linux-gnu.so": "7a34546eaf849668a852a82fb52d1b0b7e8b86378366eba45eb6ff7eae2168e8",
+      "hotpot/cheminfo/geometry/_geometry_native.cpython-314-x86_64-linux-gnu.so": "f9e43df8f8cea142c61f8e84f22a5afdc3a797ed47c041076d2cd930630fdbf4",
+      "hotpot/cheminfo/geometry/_geometry_native.cpython-39-x86_64-linux-gnu.so": "22ca619aa5817dce4f12a2be3ad0b062e3c2e0b4fdc7aeaede0d84533270705f",
+      "hotpot/cheminfo/graph/_graph_native.cpython-310-x86_64-linux-gnu.so": "ae4e7e1c2c85284704d2305c27ab76c88716495becaed48791ceb88d0fe21a08",
+      "hotpot/cheminfo/graph/_graph_native.cpython-311-x86_64-linux-gnu.so": "477db3a9d2f315b655b0245802da0209089fb6dc85db8256f740acb27658c471",
+      "hotpot/cheminfo/graph/_graph_native.cpython-312-x86_64-linux-gnu.so": "481d383adc52050bbbb02b7de0ac24c7da16808874e524e343cd5401234a3a01",
+      "hotpot/cheminfo/graph/_graph_native.cpython-313-x86_64-linux-gnu.so": "715262b420e81549d147ec4787cecd6447c4829cfe2ed400746ab9cc9fa2b497",
+      "hotpot/cheminfo/graph/_graph_native.cpython-314-x86_64-linux-gnu.so": "b92dd16d41b56847dd2ef5f55cd766db5ec64acf5d9048d9a286254a94ec4b79",
+      "hotpot/cheminfo/graph/_relevant_cycles.cpython-310-x86_64-linux-gnu.so": "76ad5608768581fc60590b2369f2a89cd0f86e7173c6f7fc1d677616adc12a28",
+      "hotpot/cheminfo/graph/_relevant_cycles.cpython-312-x86_64-linux-gnu.so": "4dd3e8e859c029c8fe9b29db25890841737af9bdead2717e5290d993a17d5649",
+      "hotpot/cheminfo/graph/_relevant_cycles.cpython-313-x86_64-linux-gnu.so": "da0236d07ac41d1501b4e7c36aa09b36e8053ac5a21dd0f403ef15c0330da040",
+      "hotpot/cheminfo/graph/_relevant_cycles.cpython-314-x86_64-linux-gnu.so": "af281f6f0c58ea0084f6f32f7a113fc3af96d904cd3d5213749f8bd8b24de5a4",
+      "hotpot/cheminfo/graph/_relevant_cycles.cpython-39-x86_64-linux-gnu.so": "5d5c979383ea8d91d928f95c1f729a5beb0c7c8d6d624376e3a03101f65c0441",
+      "hotpot/cheminfo/obWrappers/_ob_native.cpython-310-x86_64-linux-gnu.so": "d5dcbd06070bcffc886d8b5c0234b1975fb15981be26665f39d52ea5575da04c",
+      "hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so": "d92b29334ff1737fd9b4bdb39fdcc08dcf74dba57a105f269ff48122dd303715",
+      "hotpot/cheminfo/obWrappers/_ob_native.cpython-312-x86_64-linux-gnu.so": "28da74d0e201200292f96152a4893dfe94200fc9ca4f6bd45e43c7675a447951",
+      "hotpot/cheminfo/obWrappers/_ob_native.cpython-313-x86_64-linux-gnu.so": "695c885eaaaf54228d79955c33a3497a56a0b33d01073054d9c6445d3d7835d2",
+      "hotpot/cheminfo/obWrappers/_ob_native.cpython-314-x86_64-linux-gnu.so": "35dfd127f3f51c55f39ece6260926589cb5f9f42f6f35a21ccaa6d7dee069cc0",
+      "hotpot/cheminfo/obWrappers/_ob_native.cpython-39-x86_64-linux-gnu.so": "56db4a6189dfabe4302f88fb7cb631e09e120dc8033b8c3c6b333798918f3080",
+      "hotpot/cheminfo/rdWrappers/_rd_native.cpython-310-x86_64-linux-gnu.so": "daed47eda4095e518e75f78fce4f383ebb2cc2c7e5a75126f43c14d2ef98d912",
+      "hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so": "50a30f51e5d02ecfc22b107321a4fce8a37ce5c8df6c7829b9a8dadd789019d8",
+      "hotpot/cheminfo/rdWrappers/_rd_native.cpython-312-x86_64-linux-gnu.so": "62f5f710f6a684c2ec94e194b6a8bf9507ae67ea37600cc198e90c48f0ca186a",
+      "hotpot/cheminfo/rdWrappers/_rd_native.cpython-313-x86_64-linux-gnu.so": "02aa46573b980dae01b2d472239ce064d3fbf4659947ebc2f3f168d7bab6e568",
+      "hotpot/cheminfo/rdWrappers/_rd_native.cpython-314-x86_64-linux-gnu.so": "f37d010beb50488e4b7df912f72bf362b381aa56f1fd0e474926aafa4c7fc27f",
+      "hotpot/cheminfo/search/_search_native.cpython-310-x86_64-linux-gnu.so": "583d8628bad40e4efdd474d6481eaddc4aafcf6ef57a2211b3226e04cfc9e45a",
+      "hotpot/cheminfo/search/_search_native.cpython-311-x86_64-linux-gnu.so": "71e1c4b4787297ddcc3711f029beef58fb1e7893bd13bb4694d030cbb1d2689e",
+      "hotpot/cheminfo/search/_search_native.cpython-312-x86_64-linux-gnu.so": "8aadaff9d6195eb16bad9caccd3fa518418899fd5ec535cd054b451a986b12dd",
+      "hotpot/cheminfo/search/_search_native.cpython-313-x86_64-linux-gnu.so": "1496abeba8851b3379e9490aed60569cb3f7deadd28eead7b1c87ceebeee85d6",
+      "hotpot/cheminfo/search/_search_native.cpython-314-x86_64-linux-gnu.so": "e184a46b86e4fe4cc1c2940782c056c85ab32ac13ff9b7e4e1e4f23fa1b424f7",
+      "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "eb091e7b8d1a33b1938c3c06bf373fd3365f96e7dda205620bc536e4965783fe",
+      "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "cd2d675795a574cc950ade23d6a6c1b70cbb9733b017173bcdff2f05907c2b2c",
+      "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "43f6ad536561830c327050397f7c6c7328b308011780a8c03f64882957eabc0e",
+      "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so": "33f42bff5a2780fc7df460ff5b5d41486de6b4f0e09fb27419967467bc22b3cb",
+      "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so": "6051de121e32ff002f5b5e1b1de5f837f5a38a44e2254220a741a8593dd0bda0"
+    }
+  },
+  "environment": {
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "entry_record_interpreter": "/tmp/hotpot-plan20-env/bin/python",
+    "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "validation_interpreter": "/tmp/hotpot-plan20-env/bin/python",
+    "validation_ownership": "parent owns full affected five-version/source/wheel/native/default/performance execution"
+  },
+  "full_normative_read": {
+    "total_lines": 3498,
+    "method": "Actual bounded sed reads; every truncated combined read was recovered with smaller complete ranges; no omitted output counted as read",
+    "documents": [
+      {
+        "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+        "sha256": "afb13f1a62f7d8db8a0fa8e893c4d1322e18d73edb785b0ad649c1eb02621f4b",
+        "bytes": 173892,
+        "lines": 2448,
+        "complete_read_ranges": [
+          [
+            1,
+            150
+          ],
+          [
+            151,
+            400
+          ],
+          [
+            401,
+            650
+          ],
+          [
+            651,
+            900
+          ],
+          [
+            901,
+            1150
+          ],
+          [
+            1151,
+            1400
+          ],
+          [
+            1401,
+            1525
+          ],
+          [
+            1526,
+            1650
+          ],
+          [
+            1651,
+            1800
+          ],
+          [
+            1801,
+            1950
+          ],
+          [
+            1951,
+            2100
+          ],
+          [
+            2101,
+            2250
+          ],
+          [
+            2251,
+            2448
+          ]
+        ]
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+        "sha256": "e5549116f1409fb46b5fd2bdc82c0b20a34297989475eb66a119ac221a9d4a0b",
+        "bytes": 12817,
+        "lines": 177,
+        "complete_read_ranges": [
+          [
+            1,
+            90
+          ],
+          [
+            91,
+            177
+          ]
+        ]
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+        "sha256": "72f935922c623948cc29d781c2eb77e38bcc8562cf368496a5cd7fb0599f1638",
+        "bytes": 53221,
+        "lines": 521,
+        "complete_read_ranges": [
+          [
+            1,
+            125
+          ],
+          [
+            126,
+            250
+          ],
+          [
+            251,
+            375
+          ],
+          [
+            376,
+            425
+          ],
+          [
+            426,
+            475
+          ],
+          [
+            476,
+            521
+          ]
+        ]
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+        "sha256": "90be7a21289210ee0db86dec4729988e085c764366ea7aa64d49b7d8427166e3",
+        "bytes": 23663,
+        "lines": 284,
+        "complete_read_ranges": [
+          [
+            1,
+            100
+          ],
+          [
+            101,
+            200
+          ],
+          [
+            201,
+            284
+          ]
+        ]
+      },
+      {
+        "path": "plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+        "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+        "bytes": 4225,
+        "lines": 68,
+        "complete_read_ranges": [
+          [
+            1,
+            68
+          ]
+        ]
+      }
+    ]
+  },
+  "accepted_decision_sources": [
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage01/contracts/decisions.md",
+      "sha256": "fa647efe5e827cb16c207b70312bf6a708659589b41d5e87caaec7b6d0ed07e9",
+      "bytes": 13924,
+      "lines": 191
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage01/interfaces/review.md",
+      "sha256": "2198aaef918fc1f934e248a2a734b15f657e95983615582200a0f9350c0c7aa0",
+      "bytes": 15454,
+      "lines": 202
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/reviewed_interface_contracts.json",
+      "sha256": "fed58150bb7b60fbbdf3b16988b87d012d66dd1b7d5e2a1a6e0f4221695e737f",
+      "bytes": 206563,
+      "lines": 4646
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/baseline_inventory/migration_inventory.json",
+      "sha256": "58885f2d8d8fcc8a0189618f1ab3c7e72eaa81d1ab406fb8393a45ce9acf598b",
+      "bytes": 111548,
+      "lines": 4004
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stage_verification_map.json",
+      "sha256": "7bb40dcc7b34edd56f1d1b786f2d504eadda2f9a8e10312bf03ee0e77f30a150",
+      "bytes": 79087,
+      "lines": 1563
+    }
+  ],
+  "predecessor": {
+    "stage": "Stage3",
+    "commit": "bdc6a8066095e81c415e1152b0f3e4717583ac83",
+    "report": {
+      "path": "plan/20_fact_rule_architecture/stages/stage03/report.md",
+      "sha256": "c741b9b618255f609434de892fb7f8321d3410b0ca9eae33feb2f8a20b01ffee",
+      "bytes": 3998,
+      "lines": 66
+    },
+    "validation": {
+      "path": "plan/20_fact_rule_architecture/stages/stage03/validation/evidence.json",
+      "sha256": "ec0a1102fe854d681d6bfd112fefa6770c36f03d7637a3ee8ffa7b804fbf2705",
+      "bytes": 71703,
+      "lines": 765
+    },
+    "performance": {
+      "path": "plan/20_fact_rule_architecture/stages/stage03/performance/evidence.json",
+      "sha256": "54d0043a58dc12ff44537319b3093d384d305fd217474ffcfb176e0ca97b5584",
+      "bytes": 35724,
+      "lines": 1251
+    },
+    "owning_gates": "completed; independently inspected technical/default, all five source/debug/current-wheel selections, actual sdist, source bindings, storage/scaling and layout evidence",
+    "missing_predecessor_gates": [],
+    "open_later_gates": "Complete final scientific/global71-entry efficiency and memory acceptance remain OPEN with observed regressions; Stage10 clean all-component rebuilding/SDK/symbol checks remain at Stage10"
+  },
+  "state_findings": [
+    "Molecule/Atom/Bond and view class definitions currently remain in core.py; graph/geometry pure Python and native entry points are mixed at their existing paths",
+    "No ConstraintSet class exists: Stage3 supplied complete factual constraint transport and transaction hooks; Angle/Torsion values are still cached view-local fields",
+    "Stage4 must preserve angle/torsion constraints before deleting caches and preserve existing supplied Wiberg observations independently of pair mathematics",
+    "Existing N01 owner binding, non-reused member UIDs and sole topology index provide source capabilities; no per-view whole-molecule digest, second index or revision counter is needed"
+  ],
+  "bounded_scope": [
+    "Extract existing pure graph/geometry and graph-spectrum policy into their named owners with atomic consumer updates; retain actual native module/source/build identities",
+    "Install carrier-to-geometry adapter ownership without copying immutable geometry contracts",
+    "Extract InternalCoordinates and Crystal parameter/matrix mathematics without changing scientific/numeric conventions",
+    "Implement source-bound fixed-membership Angle/Torsion/AtomPair views and on-demand non-Ring view production",
+    "Move persisted Angle/Torsion constraints into one Molecule-owned ConstraintSet, update complete commits/copy/remap/serialization/FF capture and rollback, then remove corresponding caches and update methods",
+    "Retire only architecture allowlist entries actually eliminated and add the Stage4 contract tests from the existing verification map"
+  ],
+  "excluded_scope": [
+    "Stage5 eager chemistry/old Atom constructor parameters/Ring write-back and ring cache removal",
+    "Stage7 Crystal carrier/toolkit isolation, selected result and coordinate-frame ownership; remaining coordinate/Bond constraint migration stays Stage7B",
+    "Stage9 physical carrier/view-class relocation and core.py hard cut",
+    "Stage10 native sources, module names, C++ includes, stubs, build recipes and clean all-component rebuild",
+    "Scientific algorithm changes, Plan17 MCA route replacement, new public exception/AtomPairTable alias, main-plan/normative-contract changes"
+  ],
+  "mechanical_partition_candidates": {
+    "kernel_and_adapter": {
+      "existing": [
+        "hotpot/cheminfo/graph/__init__.py",
+        "hotpot/cheminfo/graph/components.py",
+        "hotpot/cheminfo/graph/cycles.py",
+        "hotpot/cheminfo/graph/matrix.py",
+        "hotpot/cheminfo/graph/paths.py",
+        "hotpot/cheminfo/graph/traversal.py",
+        "hotpot/cheminfo/graph/spectrum.py",
+        "hotpot/cheminfo/geometry/__init__.py",
+        "hotpot/cheminfo/geometry/native.py",
+        "hotpot/cheminfo/geometry/object.py",
+        "hotpot/cheminfo/geometry/relation.py",
+        "hotpot/cheminfo/geometry/settings.py",
+        "hotpot/cheminfo/geometry/convert.py"
+      ],
+      "new": [
+        "hotpot/cheminfo/rules/mathematics/__init__.py",
+        "hotpot/cheminfo/rules/mathematics/graph/",
+        "hotpot/cheminfo/rules/mathematics/geometry/",
+        "hotpot/cheminfo/rules/chemistry/__init__.py",
+        "hotpot/cheminfo/rules/chemistry/descriptors/__init__.py",
+        "hotpot/cheminfo/rules/chemistry/descriptors/graph_spectrum.py",
+        "hotpot/cheminfo/adapters/structure/__init__.py",
+        "hotpot/cheminfo/adapters/structure/geometry.py"
+      ],
+      "restriction": "No C++/.so/.pyi/build edits; only existing algorithm relocation/import changes, not scientific policy changes"
+    },
+    "consumer_imports": {
+      "files": [
+        "hotpot/cheminfo/AImodels/data_extract.py",
+        "hotpot/cheminfo/forcefields/acceptance.py",
+        "hotpot/cheminfo/forcefields/coordination.py",
+        "hotpot/cheminfo/forcefields/ligand.py",
+        "hotpot/cheminfo/forcefields/native.py",
+        "hotpot/cheminfo/forcefields/native_reports.py",
+        "hotpot/cheminfo/forcefields/repair.py",
+        "hotpot/cheminfo/kekulize/_protocols.py",
+        "hotpot/cheminfo/kekulize/aromaticity.py",
+        "hotpot/plugins/ComplexFormer/models/_core.py",
+        "hotpot/plugins/ComplexFormer/models/core/graph_core.py",
+        "hotpot/plugins/PyG/data/utils.py",
+        "hotpot/plugins/dl/function/graph.py",
+        "tests/performance/profile_geometry_boundary.py",
+        "tests/performance/segment_cycle_relation_benchmark.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_optimization_stage.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_settings.py",
+        "tests/test_cheminfo/geometry/test_convert.py",
+        "tests/test_cheminfo/geometry/test_documentation.py",
+        "tests/test_cheminfo/geometry/test_metamorphic.py",
+        "tests/test_cheminfo/geometry/test_native_cycle_batch.py",
+        "tests/test_cheminfo/geometry/test_native_cycle_dispatch.py",
+        "tests/test_cheminfo/geometry/test_native_default_parity.py",
+        "tests/test_cheminfo/geometry/test_native_nonplanar_fence.py",
+        "tests/test_cheminfo/geometry/test_native_nonplanar_relation.py",
+        "tests/test_cheminfo/geometry/test_native_nonplanar_surface.py",
+        "tests/test_cheminfo/geometry/test_native_planar_differential.py",
+        "tests/test_cheminfo/geometry/test_native_planar_fence.py",
+        "tests/test_cheminfo/geometry/test_native_prepared_invariants.py",
+        "tests/test_cheminfo/geometry/test_native_primitives.py",
+        "tests/test_cheminfo/geometry/test_object.py",
+        "tests/test_cheminfo/geometry/test_prepared_cycle.py",
+        "tests/test_cheminfo/geometry/test_relation_primitives.py",
+        "tests/test_cheminfo/geometry/test_segment_cycle_relation.py",
+        "tests/test_cheminfo/geometry/test_settings.py",
+        "tests/test_cheminfo/graph/__init__.py",
+        "tests/test_cheminfo/graph/rdl_oracle/benchmark.py",
+        "tests/test_cheminfo/graph/test_direct_algorithms.py",
+        "tests/test_cheminfo/graph/test_graph_atlas.py",
+        "tests/test_cheminfo/graph/test_legacy_graph_api.py",
+        "tests/test_cheminfo/graph/test_native_cycle_basis.py",
+        "tests/test_cheminfo/graph/test_native_interface.py",
+        "tests/test_cheminfo/graph/test_rdl_differential.py",
+        "tests/test_cheminfo/graph/test_relevant_cycles.py",
+        "tests/test_cheminfo/rdWrappers/test_r0_benchmark_runner.py",
+        "tests/test_cheminfo/test_geometry_imports.py",
+        "tests/test_cheminfo/test_relevant_ring_integration.py",
+        "tests/test_packaging/installed_package_smoke.py"
+      ],
+      "restriction": "Import/path wiring only; native source/module identities and existing behavioral assertions preserved; excludes Core/Crystal/structure/views/working_copy and new Stage4 contracts"
+    }
+  },
+  "stage4_gates": "Existing Stage4 verification-map technical/native selection plus the new view identity/constraints/Crystal contracts, default suite and focused equivalent-work performance; no new sub-stage gates introduced",
+  "checks_at_entry": "Read-only source/worktree/document/predecessor assessment only; no unchanged passed suite rerun"
+}

@@ -5,7 +5,7 @@ from __future__ import annotations
 import networkx as nx
 import pytest
 
-from hotpot.cheminfo.graph.cycles import _all_cycle_basis, _cycle_basis
+from hotpot.cheminfo.rules.mathematics.graph.cycles import _all_cycle_basis, _cycle_basis
 
 from .cycle_basis_oracle import (
     all_simple_cycle_bases,

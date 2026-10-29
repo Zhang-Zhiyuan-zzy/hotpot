@@ -9,7 +9,7 @@ from typing import Iterable, Sequence
 
 import pytest
 
-from hotpot.cheminfo.graph import relevant_cycles
+from hotpot.cheminfo.rules.mathematics.graph import relevant_cycles
 
 from .rdl_oracle import RDLOracle, load_oracle_from_environment
 from .rdl_oracle.corpus import (

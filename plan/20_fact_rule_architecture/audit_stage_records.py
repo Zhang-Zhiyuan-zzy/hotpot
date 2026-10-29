@@ -63,12 +63,16 @@ def audit(*, check_migration_bytes=False):
     allowed = set(re.findall(r"^\| `([^`]+\.md)` \|", catalog, re.MULTILINE))
     errors = []
     folders = sorted(path for path in STAGES.iterdir() if path.is_dir())
-    stage_dirs = [path for path in folders if re.fullmatch(r"stage\d{2}", path.name)]
+    expected_stages = {f"stage{number:02d}" for number in range(14)}
+    stage_dirs = [path for path in folders if path.name in expected_stages]
+    for name in sorted(expected_stages - {path.name for path in stage_dirs}):
+        errors.append(f"Missing stage directory: {name}")
     for path in folders:
         if path not in stage_dirs:
             errors.append(f"Unknown stage directory: {path.relative_to(ROOT)}")
     markdown = sorted(STAGES.rglob("*.md"))
     records = sorted(STAGES.rglob("*.json"))
+    assets = sorted(path for path in STAGES.rglob("*") if path.is_file())
     if not allowed:
         errors.append("The catalog defines no Markdown filenames")
     for path in markdown:
@@ -77,11 +81,15 @@ def audit(*, check_migration_bytes=False):
     for folder in stage_dirs:
         if not (folder / "README.md").is_file():
             errors.append(f"Missing stage index: {folder.relative_to(ROOT)}")
+        elif (folder / "README.md").resolve() not in {
+            target for _, _, target in _local_links(STAGES / "README.md")
+        }:
+            errors.append(f"Stage absent from catalog: {folder.name}")
     index_links = {}
-    for path in records + markdown:
+    for path in assets:
         relative = path.relative_to(STAGES)
         index = STAGES / relative.parts[0] / "README.md" if len(relative.parts) > 1 else STAGES / "README.md"
-        if len(relative.parts) > 1 and not re.fullmatch(r"stage\d{2}", relative.parts[0]):
+        if len(relative.parts) > 1 and relative.parts[0] not in expected_stages:
             errors.append(f"Unknown stage directory: {path.relative_to(ROOT)}")
         if index.is_file():
             targets = index_links.setdefault(index, {target for _, _, target in _local_links(index)})
@@ -170,6 +178,11 @@ def audit(*, check_migration_bytes=False):
         "allowed_markdown_types": sorted(allowed),
         "markdown_files_checked": len(markdown),
         "json_files_checked": len(records),
+        "other_asset_files_checked": len(assets) - len(markdown) - len(records),
+        "indexed_files_checked": len(assets),
+        "source_commit": subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True,
+        ).strip(),
         "migrated_records": len(migration["entries"]),
         "external_text_files_scanned": external_checked,
         "historical_identity_checks": identity_checks,

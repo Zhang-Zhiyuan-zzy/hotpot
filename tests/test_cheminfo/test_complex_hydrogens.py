@@ -9,6 +9,7 @@ from hotpot.cheminfo.forcefields import ff
 from hotpot.cheminfo.forcefields import working_copy
 from hotpot.cheminfo.forcefields import workflows
 from hotpot.cheminfo.core import BondKind
+from hotpot.cheminfo.structure import _commit
 
 
 def _coordinated(smiles, donor_index):
@@ -424,6 +425,7 @@ def test_successful_commit_preserves_existing_object_identity_and_atom_ids(monke
     original_bond = molecule.bonds[0]
     original_conformers = molecule.conformers
     original_atom_pairs = molecule.atom_pairs
+    original_atom_pairs[original_atoms].wiberg_bond_order = 1.25
     molecule._mca_sites = {original_atoms[1]: 314.0}
     original_atoms[1]._mca = 314.0
     sentinel = _optimization_report(-2.0)
@@ -446,7 +448,10 @@ def test_successful_commit_preserves_existing_object_identity_and_atom_ids(monke
     )
     assert molecule.bonds[0] is original_bond
     assert molecule.conformers is original_conformers
-    assert molecule.atom_pairs is original_atom_pairs
+    current_pairs = molecule.atom_pairs
+    assert current_pairs is not original_atom_pairs
+    assert tuple(original_atom_pairs) == (frozenset(original_atoms),)
+    assert current_pairs[original_atoms].wiberg_bond_order == 1.25
     assert [atom.id for atom in molecule.atoms[:2]] == [101, 305]
     assert [atom.idx for atom in original_atoms] == [0, 1]
     assert all(atom.mol is molecule for atom in original_atoms)
@@ -499,7 +504,7 @@ def test_commit_rejects_changed_original_bond_topology_before_mutation():
 def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
     molecule = read_mol("CO")
     molecule.conformer_add(molecule.coordinates.copy(), -1.0)
-    molecule.atom_pairs.update_pairs()
+    molecule.atom_pairs[tuple(molecule.atoms)].wiberg_bond_order = 0.
     _ = molecule.rings
     _ = molecule.cycle_basis
     _ = molecule.all_cycle_basis
@@ -534,17 +539,24 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
     }
     original_pairs = molecule.atom_pairs
     original_pair_items = tuple(original_pairs.items())
+    original_pair_values = tuple((key, tuple(pair.attrs)) for key, pair in original_pair_items)
+    original_observations = molecule._pair_wiberg_bond_orders
+    original_observation_values = dict(original_observations)
+    original_constraints = molecule._constraints
     original_conformers = molecule.conformers
     original_conformer_state = dict(original_conformers.__dict__)
     original_conformer_index = molecule._conformers_index
     original_ring_indices = dict(molecule._ring_indices_cache)
     original_ligand_rings = molecule._ligand_rings
     original_ligand_signature = molecule._ligand_rings_signature
-    def fail_after_partial_update(atom_pairs):
-        dict.clear(atom_pairs)
+    commit_stereo = _commit._commit_stereo
+
+    def fail_after_partial_update(owner, source, payload):
+        commit_stereo(owner, source, payload)
+        owner.atom_pairs[tuple(owner.atoms[:2])].wiberg_bond_order = 9.
         raise RuntimeError("injected commit failure")
 
-    monkeypatch.setattr(type(molecule.atom_pairs), "update_pairs", fail_after_partial_update)
+    monkeypatch.setattr(_commit, "_commit_stereo", fail_after_partial_update)
 
     with pytest.raises(RuntimeError, match="injected commit failure"):
         working_copy._commit_working_copy(molecule, working)
@@ -570,8 +582,12 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
             for atom in original_atoms
         )
     } == original_topology
-    assert molecule.atom_pairs is original_pairs
-    assert tuple(molecule.atom_pairs.items()) == original_pair_items
+    current_pairs = molecule.atom_pairs
+    assert current_pairs is not original_pairs
+    assert tuple(current_pairs.items()) == original_pair_items
+    assert tuple((key, tuple(pair.attrs)) for key, pair in current_pairs.items()) == original_pair_values
+    assert molecule._pair_wiberg_bond_orders is original_observations
+    assert molecule._pair_wiberg_bond_orders == original_observation_values
     assert molecule.conformers is original_conformers
     assert all(
         molecule.conformers.__dict__[name] is value
@@ -579,8 +595,8 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
     )
     assert molecule._conformers_index == original_conformer_index
     assert molecule._row2idx is None
-    assert molecule._angles == []
-    assert molecule._torsions == []
+    assert molecule._constraints is original_constraints
+    assert not {'_angles', '_torsions'}.intersection(molecule.__dict__)
     assert molecule._rings == []
     assert molecule._ring_indices_cache == original_ring_indices
     assert molecule._ligand_rings is original_ligand_rings

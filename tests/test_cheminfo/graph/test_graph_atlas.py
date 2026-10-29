@@ -2,7 +2,7 @@
 
 import networkx as nx
 
-from hotpot.cheminfo.graph import relevant_cycles
+from hotpot.cheminfo.rules.mathematics.graph import relevant_cycles
 
 from .exhaustive_oracle import exhaustive_relevant_cycles
 from .fixtures import normalized_edges

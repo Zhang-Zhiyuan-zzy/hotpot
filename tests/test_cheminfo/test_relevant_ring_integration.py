@@ -11,7 +11,7 @@ import pytest
 from hotpot.cheminfo.forcefields import repair
 from hotpot.cheminfo.core import Molecule
 from hotpot.cheminfo.AImodels.data_extract import extract_ring_attrs
-from hotpot.cheminfo.graph import RelevantCycleLimitExceeded
+from hotpot.cheminfo.rules.mathematics.graph import RelevantCycleLimitExceeded
 
 
 def _molecule_from_edges(

@@ -2,8 +2,8 @@ import math
 
 import pytest
 
-from hotpot.cheminfo.geometry.object import Cycle, Line, Plane, Point, Segment
-from hotpot.cheminfo.geometry.relation import (
+from hotpot.cheminfo.rules.mathematics.geometry.object import Cycle, Line, Plane, Point, Segment
+from hotpot.cheminfo.rules.mathematics.geometry.relation import (
     LineRelationKind,
     PlanarityKind,
     PointCycleLocation,

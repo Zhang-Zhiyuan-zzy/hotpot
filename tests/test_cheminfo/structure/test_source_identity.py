@@ -202,20 +202,27 @@ def test_atom_or_bond_membership_change_invalidates_topology():
         _check_source(mol, source)
 
 
-def test_constraint_identity_reads_existing_true_views_without_creating_caches():
+def test_constraint_identity_reads_the_constraint_owner_without_creating_views(monkeypatch):
     mol = _molecule()
     geometry = _capture_source(mol, ("geometry",))
     constraints = _capture_source(mol, ("constraints",))
-    mol.update_angles()
-    mol.update_torsions()
+    angle = mol.angles[0]
+    _ = mol.torsions
     _check_source(mol, constraints)
-    mol._angles[0].constraint = True
+    angle.constraint = True
     with pytest.raises(RuntimeError, match="constraints"):
         _check_source(mol, constraints)
     _check_source(mol, geometry)
-    snapshot = tuple(mol._angles), tuple(mol._torsions)
+    owner = mol._constraints
+
+    def forbidden(mol):
+        raise AssertionError('constraint source capture generated mathematical views')
+
+    monkeypatch.setattr(Molecule, 'angles', property(forbidden))
+    monkeypatch.setattr(Molecule, 'torsions', property(forbidden))
     _capture_source(mol, ("constraints",))
-    assert snapshot == (tuple(mol._angles), tuple(mol._torsions))
+    assert mol._constraints is owner
+    assert not {'_angles', '_torsions'}.intersection(mol.__dict__)
 
 
 @pytest.mark.parametrize("change", [

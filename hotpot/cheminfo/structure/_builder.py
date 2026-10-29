@@ -137,6 +137,17 @@ def _sparse(values, count, convert):
     return result
 
 
+def _pair_values(values, count):
+    values = tuple(tuple(entry) for entry in values)
+    if any(len(entry) != 3 for entry in values):
+        raise ValueError("Supplied pair observations require row/row/value triples")
+    pairs = _rows((entry[:2] for entry in values), 2, count)
+    pairs = tuple(tuple(sorted(pair)) for pair in pairs)
+    if any(first == second for first, second in pairs) or len(set(pairs)) != len(pairs):
+        raise ValueError("Supplied pair observations require distinct unique Atom pairs")
+    return tuple((first, second, float(entry[2])) for (first, second), entry in zip(pairs, values))
+
+
 def _declared(value):
     present, item, source = value
     if type(present) is not bool:
@@ -225,6 +236,7 @@ class MoleculeRecord:
     angle_constraints: tuple
     torsion_constraints: tuple
     identifier: tuple
+    pair_wiberg_bond_orders: tuple = ()
 
     def __post_init__(self):
         count = operator.index(self.atom_count)
@@ -278,6 +290,7 @@ class MoleculeRecord:
             legacy_frame_index=operator.index(self.legacy_frame_index),
             angle_constraints=_rows(self.angle_constraints, 3, count),
             torsion_constraints=_rows(self.torsion_constraints, 4, count), identifier=identifier,
+            pair_wiberg_bond_orders=_pair_values(self.pair_wiberg_bond_orders, count),
         )
         for name, value in normalized.items():
             object.__setattr__(self, name, value)
@@ -293,7 +306,8 @@ def _make_molecule_record(*, atom_values, atom_presence, atom_sources, atom_isot
                           atom_frac_valences, bond_endpoints, bond_values, bond_partitions,
                           bond_kinds, bond_directions, bond_sources, bond_metadata, charge,
                           spin_mult, cell, stereo_payload, legacy_frame_values,
-                          legacy_frame_index, angle_constraints, torsion_constraints, identifier):
+                          legacy_frame_index, angle_constraints, torsion_constraints, identifier,
+                          pair_wiberg_bond_orders=()):
     """Encode one complete supplied import without chemistry or owner mutation."""
     values = np.asarray(atom_values, dtype="<f8")
     width = len(ATOM_FIELDS)
@@ -317,5 +331,5 @@ def _make_molecule_record(*, atom_values, atom_presence, atom_sources, atom_isot
         endpoints, bonds.tobytes(order="C"), bond_partitions, bond_kinds,
         bond_directions, bond_sources, tuple(map(_freeze_value, bond_metadata)),
         charge, spin_mult, cell, stereo_payload, tuple(map(_freeze_value, legacy_frame_values)),
-        legacy_frame_index, angle_constraints, torsion_constraints, identifier,
+        legacy_frame_index, angle_constraints, torsion_constraints, identifier, pair_wiberg_bond_orders,
     )

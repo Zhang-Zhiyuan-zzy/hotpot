@@ -467,21 +467,96 @@
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_view_identity.py",
-          "status": "planned_not_created"
+          "status": "implemented and verified in complete default, all five source/debug/current-wheel selections; exact evidence in stages/stage04/validation/evidence.json"
         },
         {
           "path": "tests/test_cheminfo/structure/test_constraints.py",
-          "status": "planned_not_created"
+          "status": "implemented and verified in complete default, all five source/debug/current-wheel selections; exact evidence in stages/stage04/validation/evidence.json"
         },
         {
           "path": "tests/test_cheminfo/structure/test_crystal_convention.py",
-          "status": "planned_not_created"
+          "status": "implemented and verified in complete default, all five source/debug/current-wheel selections; exact evidence in stages/stage04/validation/evidence.json"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_pair_observations.py",
+          "status": "implemented and verified in complete default, all five source/debug/current-wheel selections; exact evidence in stages/stage04/validation/evidence.json"
         }
       ],
       "additional_requirements": [
         "constraint persistence before Angle/Torsion cache removal; detached membership and UID remap"
       ],
-      "execution_status": "not_executed_by_inventory_capture"
+      "execution_status": "in_progress; frozen v3 implementation/default/five-version source-debug-current-wheel/sdist/standalone-native verified; focused measurements expose graph/view4.053x and Crystal1.103x regressions; bounded Sol/max optimization investigation pending; no waiver",
+      "additional_affected_contract_test_files": [
+        "tests/test_cheminfo/forcefields/test_forcefield_native_optimization_stage.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_settings.py",
+        "tests/test_cheminfo/geometry/test_convert.py",
+        "tests/test_cheminfo/geometry/test_documentation.py",
+        "tests/test_cheminfo/geometry/test_metamorphic.py",
+        "tests/test_cheminfo/geometry/test_native_cycle_batch.py",
+        "tests/test_cheminfo/geometry/test_native_cycle_dispatch.py",
+        "tests/test_cheminfo/geometry/test_native_default_parity.py",
+        "tests/test_cheminfo/geometry/test_native_nonplanar_fence.py",
+        "tests/test_cheminfo/geometry/test_native_nonplanar_relation.py",
+        "tests/test_cheminfo/geometry/test_native_nonplanar_surface.py",
+        "tests/test_cheminfo/geometry/test_native_planar_differential.py",
+        "tests/test_cheminfo/geometry/test_native_planar_fence.py",
+        "tests/test_cheminfo/geometry/test_native_prepared_invariants.py",
+        "tests/test_cheminfo/geometry/test_native_primitives.py",
+        "tests/test_cheminfo/geometry/test_object.py",
+        "tests/test_cheminfo/geometry/test_prepared_cycle.py",
+        "tests/test_cheminfo/geometry/test_relation_primitives.py",
+        "tests/test_cheminfo/geometry/test_segment_cycle_relation.py",
+        "tests/test_cheminfo/geometry/test_settings.py",
+        "tests/test_cheminfo/graph/test_direct_algorithms.py",
+        "tests/test_cheminfo/graph/test_graph_atlas.py",
+        "tests/test_cheminfo/graph/test_legacy_graph_api.py",
+        "tests/test_cheminfo/graph/test_native_cycle_basis.py",
+        "tests/test_cheminfo/graph/test_native_interface.py",
+        "tests/test_cheminfo/graph/test_rdl_differential.py",
+        "tests/test_cheminfo/graph/test_relevant_cycles.py",
+        "tests/test_cheminfo/rdWrappers/test_r0_benchmark_runner.py",
+        "tests/test_cheminfo/test_geometry_imports.py",
+        "tests/test_cheminfo/test_relevant_ring_integration.py",
+        "tests/test_cheminfo/test_complex_untangling_workflow.py",
+        "tests/test_cheminfo/test_forcefield_stage_scan_boundaries.py",
+        "tests/test_cheminfo/test_geometry.py",
+        "tests/test_cheminfo/test_complexes_build.py",
+        "tests/test_cheminfo/test_forcefield_acceptance.py",
+        "tests/test_cheminfo/test_forcefield_checkpoint_acceptance.py",
+        "tests/test_cheminfo/test_geometry_core_integration.py",
+        "tests/test_cheminfo/test_forcefield_optimizer.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_checkpoint_acceptance.py",
+        "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+        "tests/test_cheminfo/geometry/test_readme_examples.py",
+        "tests/test_cheminfo/geometry/test_native_migration_characterization.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_public_workflows.py"
+      ],
+      "evidence_records": [
+        "stages/stage04/README.md",
+        "stages/stage04/architecture/evidence.json",
+        "stages/stage04/contracts/review.md",
+        "stages/stage04/contracts/schema.json",
+        "stages/stage04/entry_review.json",
+        "stages/stage04/implementation/evidence.json",
+        "stages/stage04/performance/evidence.json",
+        "stages/stage04/performance/report.md",
+        "stages/stage04/report.md",
+        "stages/stage04/review.md",
+        "stages/stage04/validation/evidence.json",
+        "stages/stage04/validation/report.md"
+      ],
+      "verification_note": "Actual complete Stage3/4 owner/builder/identity/native/pickle/FF/consumer selection plus all DS contracts after the observed prerequisite defect; Python3.10\u20133.14 each2273 source/162 debug/2143 installed;42 external/scientific skips. Seven standalone CPP checks and current sdist separate. Focused3+10 benchmarks are measurements, not final71-entry approval.",
+      "default_gate_prerequisite_scope": {
+        "reason": "Real default-gate existing DS cache source-content failure on unchanged metadata",
+        "affected_source": "hotpot/ds/public/_generation.py",
+        "complete_test_target": "tests/test_ds",
+        "support_scripts": [
+          "plan/17_rdkit_wrapper/run_r0_benchmark.py",
+          "plan/13_dataset_bundle_governance/rebuild_current_runtime.py"
+        ],
+        "source_metadata_test_support": "pyproject.toml",
+        "final_evidence": "stages/stage04/validation/evidence.json"
+      }
     },
     "Stage5": {
       "predecessor": "Stage4",

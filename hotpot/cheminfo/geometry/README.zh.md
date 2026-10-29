@@ -1,13 +1,17 @@
-# `hotpot.cheminfo.geometry` API 参考（中文版）
+# 几何数学规则与结构适配器 API 参考（中文版）
 
 [English](README.md)
 
-本文说明 `hotpot.cheminfo.geometry` 的全部公开接口、数学语义、数值参数和化学对象转换规则。
-文档与 package 根目录的 `__all__` 对齐；用户可统一从以下入口导入：
+本文说明 `hotpot.cheminfo.rules.mathematics.geometry` 的数学接口、语义和数值参数，
+以及 `hotpot.cheminfo.adapters.structure.geometry` 的化学对象转换规则。两个入口分别导出
+各自的公开接口：
 
 ```python
-from hotpot.cheminfo import geometry as geo
+from hotpot.cheminfo.rules.mathematics import geometry as geo
+from hotpot.cheminfo.adapters.structure import geometry as structure_geo
 ```
+
+原 `hotpot.cheminfo.geometry` package 保留为 native 扩展 home；Python 数学模块已迁入数学规则包。
 
 ## 1. Package 简介
 
@@ -29,14 +33,14 @@ from hotpot.cheminfo import geometry as geo
 ```text
 settings.py  ─┐
 object.py    ─┼─> relation.py ─┐
-              └───────────────┼─> convert.py
-                               └─> package __init__.py
+              └───────────────┴─> adapters/structure/geometry.py
 ```
 
 - `settings.py`：数值容差和非平面环曲面枚举预算；
 - `object.py`：不含关系算法的不可变几何值对象；
 - `relation.py`：只接受纯几何对象的度量和关系分类；
-- `convert.py`：唯一理解化学对象结构的薄适配层。
+- `adapters/structure/geometry.py`：唯一理解化学对象结构的薄适配层；
+  `settings.py`、`object.py` 和 `relation.py` 位于 `rules/mathematics/geometry/`。
 
 ### 1.1 单位和输入约定
 
@@ -51,7 +55,7 @@ object.py    ─┼─> relation.py ─┐
 #### a. 判定一个环是否为平面
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> cycle = geo.Cycle([
 ...     (0.0, 0.0, 0.0),
 ...     (2.0, 0.0, 0.0),
@@ -66,7 +70,7 @@ object.py    ─┼─> relation.py ─┐
 #### b. 判定非平面环与线段是否互穿
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> cycle = geo.Cycle([
 ...     (0.0, 0.0, 0.0),
 ...     (2.0, 0.0, 0.0),
@@ -91,8 +95,8 @@ object.py    ─┼─> relation.py ─┐
 #### c. 扫描化学对象
 
 ```python
-from hotpot.cheminfo import geometry as geo
-report = geo.scan_bond_ring_relations(
+from hotpot.cheminfo.adapters.structure import geometry as structure_geo
+report = structure_geo.scan_bond_ring_relations(
     mol,
     ring_scope="ligand_skeleton",
     max_ring_size=16,
@@ -344,7 +348,7 @@ DEFAULT_GEOMETRY_SETTINGS: GeometrySettings
 
 ```python
 from dataclasses import replace
-from hotpot.cheminfo import geometry as geo
+from hotpot.cheminfo.rules.mathematics import geometry as geo
 
 settings = replace(
     geo.DEFAULT_GEOMETRY_SETTINGS,
@@ -728,7 +732,7 @@ $h_{\mathrm{rms}}=\sqrt{\frac1m\sum_i h_i^2}$
 #### 简例
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> cycle = geo.Cycle([(0, 0, 2), (2, 0, 2), (2, 2, 2), (0, 2, 2)])
 >>> result = geo.measure_planarity(cycle)
 >>> result.kind.value, result.maximum_deviation
@@ -779,7 +783,7 @@ $\epsilon_d=\epsilon_{\mathrm{abs}}+\epsilon_r d$
 #### 简例
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> first = geo.Line((0, 0, 0), (1, 0, 0))
 >>> second = geo.Line((0, 1, 1), (0, 1, 0))
 >>> result = geo.determine_line_relation(first, second)
@@ -803,7 +807,7 @@ $d_{\mathrm{skew}}$，退化或未决时返回 `NaN`。
 #### 简例
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> first = geo.Line((0, 0, 0), (1, 0, 0))
 >>> second = geo.Line((0, 1, 0), (1, 0, 0))
 >>> geo.line_distance(first, second)
@@ -832,7 +836,7 @@ $d(\mathbf p,S)=\lVert\mathbf p-[\mathbf a+t(\mathbf b-\mathbf a)]\rVert$
 #### 简例
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> point = geo.Point((1, 1, 0))
 >>> segment = geo.Segment((0, 0, 0), (2, 0, 0))
 >>> geo.point_segment_distance(point, segment)
@@ -858,7 +862,7 @@ $d(S_1,S_2)=\min_{s,t\in[0,1]}\lVert\mathbf a+s(\mathbf b-\mathbf a)-\mathbf c-t
 #### 简例
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> horizontal = geo.Segment((0, 0, 0), (1, 0, 0))
 >>> vertical = geo.Segment((0.5, -1, 0), (0.5, 1, 0))
 >>> geo.segment_segment_distance(horizontal, vertical)
@@ -882,7 +886,7 @@ $d_{ij}=\lVert\mathbf p_i-\mathbf p_j\rVert$
 #### 简例
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> points = tuple(geo.Point((x, 0, 0)) for x in (0, 1, 3))
 >>> result = geo.point_pair_distances(points)
 >>> [(item.first_index, item.second_index, item.distance) for item in result]
@@ -904,7 +908,7 @@ def find_point_pairs_below_distance(
 #### 简例
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> points = tuple(geo.Point((x, 0, 0)) for x in (0, 1, 3))
 >>> result = geo.find_point_pairs_below_distance(points, threshold=3.0)
 >>> [(item.first_index, item.second_index, item.distance) for item in result]
@@ -949,7 +953,7 @@ $w(\mathbf p)=\frac1{2\pi}\sum_i\operatorname{atan2}\left((\mathbf z_i\times\mat
 #### 简例
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> cycle = geo.Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)])
 >>> plane = geo.Plane((0, 0, 0), (0, 0, 1))
 >>> geo.locate_point_in_planar_cycle(geo.Point((1, 1, 4)), cycle, plane).value
@@ -1029,7 +1033,7 @@ def iter_segment_cycle_relations(
 #### 简例
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> cycle = geo.Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)])
 >>> segments = (
 ...     geo.Segment((1, 1, -1), (1, 1, 1)),
@@ -1055,7 +1059,7 @@ def determine_segment_cycle_relation(
 #### 简例
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> cycle = geo.Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)])
 >>> segment = geo.Segment((1, 1, -1), (1, 1, 1))
 >>> result = geo.determine_segment_cycle_relation(segment, cycle)
@@ -1087,7 +1091,7 @@ $i^*=\min\{i\mid d_i\le d_{\min}+\epsilon_L\}$
 #### 简例
 
 ```pycon
->>> from hotpot.cheminfo import geometry as geo
+>>> from hotpot.cheminfo.rules.mathematics import geometry as geo
 >>> cycle = geo.Cycle([(0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)])
 >>> segment = geo.Segment((-1, -1, -1), (-1, -1, 1))
 >>> result = geo.closest_cycle_edge(cycle, segment)

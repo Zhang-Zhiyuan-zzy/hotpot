@@ -30,7 +30,7 @@ LAYERS = {"structure", "views", "rules", "operations", "adapters", "reference"}
 EXTERNAL = {"rdkit", "openbabel", "thermo", "pubchempy"}
 CANONICAL = inventory.PRIVATE_FACTS | inventory.FACT_PROPERTIES | {
     "_atom_table", "_uid", "_next_atom_uid", "_next_bond_uid", "_constraints",
-    "_results", "_dependencies", "_source_frames", "_crystal",
+    "_results", "_dependencies", "_source_frames", "_crystal", "_pair_wiberg_bond_orders",
     # Scalar projections are writes to the same facts as their array aliases.
     "n", "s", "p", "d", "f", "g", "valence", "electron_configuration",
     "x", "y", "z", "id", "x_constraint", "y_constraint", "z_constraint",
@@ -46,6 +46,17 @@ CARRIER_METHODS = {
     "hide_metal_ligand_bonds", "recover_metal_ligand_bonds",
 }
 CARRIERS = {"Molecule", "Atom", "Bond", "BondKind", "Crystal"}
+# These declared numerical values initialize their own coordinate fields; they
+# do not receive a live carrier to edit. Keep path, class, method, field and
+# operation exact so foreign receivers and later buffer mutations stay checked.
+VALUE_INITIALIZERS = {
+    ("hotpot/cheminfo/rules/mathematics/geometry/object.py", "Point", "__init__", "coordinates"):
+        "object.__setattr__",
+    ("hotpot/cheminfo/adapters/structure/geometry.py", "BondRingFrameWorkspace", "__post_init__", "coordinates"):
+        "object.__setattr__",
+    ("hotpot/cheminfo/rules/mathematics/internal_coordinates.py", "InternalCoordinates", "__init__", "coordinates"):
+        "attribute",
+}
 
 
 def debt_key(record):
@@ -95,6 +106,17 @@ def layer_findings(path, source):
         return any(isinstance(item, ast.Attribute) and item.attr in CANONICAL
                    for item in ast.walk(node))
 
+    def initializes_value(node, receiver, attribute, operation):
+        if not isinstance(receiver, ast.Name) or receiver.id != "self":
+            return False
+        scope = node
+        while scope in parents and not isinstance(scope, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            scope = parents[scope]
+        cls = parents.get(scope)
+        if not isinstance(cls, ast.ClassDef) or not isinstance(parents.get(cls), ast.Module):
+            return False
+        return VALUE_INITIALIZERS.get((path, cls.name, scope.name, attribute)) == operation
+
     for node in ast.walk(tree):
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             if isinstance(node, ast.Import):
@@ -138,7 +160,9 @@ def layer_findings(path, source):
         if layer not in {"rules", "adapters"}:
             continue
         if isinstance(node, (ast.Attribute, ast.Subscript)) and isinstance(node.ctx, (ast.Store, ast.Del)):
-            if owns_fact(node):
+            initialization = (isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Store)
+                              and initializes_value(node, node.value, node.attr, "attribute"))
+            if owns_fact(node) and not initialization:
                 add(node, "canonical_fact_write")
         if isinstance(node, ast.Call):
             name = ast.unparse(node.func)
@@ -147,7 +171,9 @@ def layer_findings(path, source):
                     not isinstance(node.args[1], ast.Constant)
                     or node.args[1].value in CANONICAL
                 ):
-                    add(node, "canonical_or_dynamic_fact_write")
+                    attribute = node.args[1].value if isinstance(node.args[1], ast.Constant) else None
+                    if not initializes_value(node, node.args[0], attribute, name):
+                        add(node, "canonical_or_dynamic_fact_write")
             if isinstance(node.func, ast.Attribute) and (
                 (node.func.attr in MUTATORS and owns_fact(node.func.value))
                 or node.func.attr in CARRIER_METHODS

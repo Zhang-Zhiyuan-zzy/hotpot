@@ -11,8 +11,8 @@ import math
 import numpy as np
 import pytest
 
-from hotpot.cheminfo.geometry.object import Cycle, Plane, Point, Segment
-from hotpot.cheminfo.geometry.relation import (
+from hotpot.cheminfo.rules.mathematics.geometry.object import Cycle, Plane, Point, Segment
+from hotpot.cheminfo.rules.mathematics.geometry.relation import (
     PiercingState,
     PlanarityKind,
     PointCycleLocation,
@@ -24,7 +24,7 @@ from hotpot.cheminfo.geometry.relation import (
     locate_point_in_planar_cycle,
     measure_planarity,
 )
-from hotpot.cheminfo.geometry.settings import DEFAULT_GEOMETRY_SETTINGS
+from hotpot.cheminfo.rules.mathematics.geometry.settings import DEFAULT_GEOMETRY_SETTINGS
 
 
 SQUARE = Cycle(((0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)))

@@ -11,7 +11,8 @@ from types import SimpleNamespace
 import numpy as np
 
 from hotpot import read_mol
-from hotpot.cheminfo import geometry as geo
+from hotpot.cheminfo.rules.mathematics import geometry as geo
+from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import ff, ligand, repair
 from hotpot.cheminfo.forcefields import optimizer as optimizer_impl
@@ -24,7 +25,7 @@ from hotpot.cheminfo.forcefields.trajectory import (
 
 
 def _empty_screening_report(*, ring_scope="full_graph"):
-    return geo.BondRingScreeningReport(
+    return geometry_adapter.BondRingScreeningReport(
         actionable_findings=(),
         ring_scope=ring_scope,
         max_ring_size=16,
@@ -44,7 +45,7 @@ def _piercing_screening_report(*, ring_scope="ligand_skeleton"):
     finding = SimpleNamespace(
         relation=SimpleNamespace(state=geo.PiercingState.PIERCES),
     )
-    return geo.BondRingScreeningReport(
+    return geometry_adapter.BondRingScreeningReport(
         actionable_findings=(finding,),
         ring_scope=ring_scope,
         max_ring_size=16,
@@ -379,7 +380,7 @@ def test_numerical_optimizer_does_not_evaluate_acceptance_or_topology_each_epoch
         topology_calls.append(kwargs["ring_scope"])
         return geo.PiercingState.DOES_NOT_PIERCE
 
-    monkeypatch.setattr(geo, "determine_bond_ring_piercing_state", scan)
+    monkeypatch.setattr(geometry_adapter, "determine_bond_ring_piercing_state", scan)
     optimizer = optimizer_impl._OpenBabelOptimizer(
         "UFF",
         "UFF",

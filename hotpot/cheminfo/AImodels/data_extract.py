@@ -5,7 +5,7 @@ from operator import attrgetter
 import numpy as np
 
 from ..core import Molecule, Atom, AtomPair
-from ..graph.cycles import _cycle_basis
+from ..rules.mathematics.graph.cycles import _cycle_basis
 
 
 def direct_edge_to_indirect(attr_or_index: np.ndarray) -> np.ndarray:

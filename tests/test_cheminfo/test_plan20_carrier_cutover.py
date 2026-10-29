@@ -378,7 +378,6 @@ def test_pickle_constraint_capture_cannot_be_overwritten_by_live_view_extras(mon
     mol = molecule()
     mol.atoms[0].constraint = True
     mol.bonds[0].constraint = True
-    mol.update_angles()
     mol.angles[0].constraint = True
     original_getstate = Molecule.__getstate__
 
@@ -427,17 +426,20 @@ def test_local_atom_and_bond_append_undo_removes_the_new_index_entry():
     assert len(mol._atom_table) == 1 and mol.bonds == []
 
 
-def test_standalone_legacy_constraint_joins_undo_without_new_fact_owner():
+def test_standalone_constraint_projects_the_owner_and_joins_undo():
     mol = molecule()
     angle = core.Angle(*mol.atoms)
-    assert mol._angles == []
+    owner = mol._constraints
+    assert owner.angles == ()
     with pytest.raises(RuntimeError):
         with _FactTransaction(mol, producer=1):
             angle.constraint = True
+            assert mol._constraints.angles == (tuple(atom._uid for atom in angle.atoms),)
             raise RuntimeError('constraint failure')
     assert angle.constraint is False
-    assert angle.__dict__['constraint'] is False
-    assert mol._angles == []
+    assert 'constraint' not in angle.__dict__
+    assert mol._constraints is owner
+    assert '_angles' not in mol.__dict__
 
 
 def test_public_batch_reuses_membership_errors_without_repr_of_detached_atom():

@@ -6,9 +6,9 @@ import numpy as np
 import pytest
 
 from hotpot.cheminfo.geometry import _geometry_native
-from hotpot.cheminfo.geometry import native
-from hotpot.cheminfo.geometry.object import Line, Point, Segment
-from hotpot.cheminfo.geometry.relation import (
+from hotpot.cheminfo.rules.mathematics.geometry import native
+from hotpot.cheminfo.rules.mathematics.geometry.object import Line, Point, Segment
+from hotpot.cheminfo.rules.mathematics.geometry.relation import (
     LineRelationKind,
     determine_line_relation as python_line_relation,
     find_point_pairs_below_distance as python_pairs_below,
@@ -17,7 +17,7 @@ from hotpot.cheminfo.geometry.relation import (
     point_segment_distance as python_point_segment_distance,
     segment_segment_distance as python_segment_segment_distance,
 )
-from hotpot.cheminfo.geometry.settings import (
+from hotpot.cheminfo.rules.mathematics.geometry.settings import (
     GeometrySettings,
     NumericToleranceSettings,
 )

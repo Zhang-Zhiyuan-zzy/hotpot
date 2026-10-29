@@ -828,3 +828,50 @@ review records and retained failed attempts by SHA256.
   remain open. No new class or public constructor signature was added.
 - This is the third coherent commit since last push`40312df`, following
   `d7989b3` and`5a5006f`; push the implementation branch immediately afterward.
+
+### Stage3 complete immutable import-record preparation
+
+- The third-commit push succeeded through`ce41629`; the three-commit counter
+  restarts there. Continued the owner's instruction to finish all Plan20 under
+  the latest explicit Sol/effort policy; no later-stage gate is bypassed.
+- Sol-max read the full3498 lines of main/normative companions again and
+  assessed clean`5a5006f` before the bounded architecture design. Hashes,
+  consumer evidence, exact22 N02 fields and installation boundaries are in
+  `stage3_builder_review.md`. The separate readonly-parent work subsequently
+  reached`ce41629`. Normal implementation used an isolated Sol-medium draft;
+  the loader was not installed into the project.
+- Added one private `MoleculeRecord` and finite lossless codecs, preserving
+  raw Atom/Bond numbers, explicit-zero versus absent masks, heterogeneous
+  producer rows, directional/hidden Bonds, source metadata, sparse inputs,
+  cell/declarations, protected stereo classes and all nine old frame domains.
+  Immutable bytes/tuples are authoritative; decoded headers/containers are
+  independent. No generic opaque-pickle fallback, public export, extra DTO
+  family or unimplemented installer placeholder is added.
+- An initial75-case implementation passed all358/version and4181 default
+  tests, but independent probes found wrong-position stereo node types and
+  NumPy shapes that accepted bytes could not decode. Retained source/probe
+  artifacts document both gaps. Added exact nested-type checks and a temporary
+  NumPy header check, preserving arbitrary version/descriptor/scientific
+  values. Final record coverage is111 cases; original75 fixtures remain.
+- Accepted source: default **4217 passed,123 skipped,3 xfailed,49 subtests**,
+  10 warnings,239.65 seconds. Python **3.10–3.14 each394 passed** on the full
+  affected source selection. Independent adjacent probes confirm both fixes,
+  six pickle protocols and88 array/scalar dtype round trips. These are not
+  production installer or rebuilt-wheel/native evidence.
+- All pre-existing production files remain unchanged from`ce41629`.
+  Census is777 classes/350 dataclasses/13 Protocols/3 TypedDicts; N02 is the
+  only added record this checkpoint. Architecture debt stays285.
+- New-only record preparation/pickle measurements retain78 attempts, zero
+  failures. At N16/256/4096 with B=N-1, four metadata entries per Bond and
+  two source frames: preparation~0.261/2.624/60.751ms; pickle roundtrip
+  ~0.181/1.844/30.568ms. Installation/UID/topology/rollback are excluded;
+  no old-baseline speedup or integrated parity is claimed.
+- `stage3_record_evidence.json` binds exact sources, commands, all-version/
+  default results, rejected attempt and diagnostic costs. The complete
+  production table/writer/lifecycle/FF rollback migration is the next coherent
+  batch, with Sol-max independently rereading/designing that bounded step.
+  Existing opaque metadata behavior, converter identity and technical defects
+  require their concrete handling; isolated-codec restrictions do not approve
+  silent fact loss or a new restriction on public copy/import behavior.
+- This checkpoint is the first commit after push`ce41629`; push after two
+  further coherent commits. Stage3 remains in progress.

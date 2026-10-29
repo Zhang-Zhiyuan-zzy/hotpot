@@ -29,6 +29,10 @@ The production table, molecular commit, builder and integrated performance
 gates remain open.
 Atom's existing parent is now read-only; detached inspection and current-version
 pickle/deepcopy are covered by [parent evidence](stage3_parent_evidence.json).
+The [complete import-record design](stage3_builder_review.md) now has verified
+immutable codecs and [execution evidence](stage3_record_evidence.json):
+Python3.10–3.14 each394 passed; default4217 passed. This is record preparation;
+the actual builder and production table cutover remain open.
 Original planning branch: `refactor/fact-rule-architecture`
 
 Original planning baseline: `0a4b0ee`; reviewed documentation: `d9eb80e`.

@@ -1,0 +1,381 @@
+{
+  "schema_version": 1,
+  "stage": "Stage3",
+  "checkpoint": "N02 complete immutable factual import record and closed codecs",
+  "status": "isolated record verified; production table/installer/writer/rollback/dependency gates remain open",
+  "recorded_at_utc": "2026-10-29T03:13:38.913207+00:00",
+  "predecessor_commit": "ce416297167e735c3961f75bcd04621d9746fde1",
+  "entry_and_design_review": {
+    "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage3_builder_review.md",
+    "bytes": 28268,
+    "sha256": "a7b0a6e753b6ec0f39ef0c81795c2234e7a97b9cc1e10a3e27baa7195fbbceba"
+  },
+  "source": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/source-manifest.json",
+    "bytes": 599,
+    "sha256": "ddedaf21d482a66c6e64710a02fce885b1a9405b5ebacd1c3002ad1e2eda1981"
+  },
+  "source_audit": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/source-audit.json",
+    "bytes": 421,
+    "sha256": "801c03d0d36d7ddd44baab9fda1fa19f666c4d19cf0c5fec9dc4bffc5e7194d0"
+  },
+  "architecture": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/architecture.json",
+    "bytes": 499,
+    "sha256": "94840286d4685aa13fcc7758e87722f0dcc55cbe108031a2112802b4d613792b"
+  },
+  "counts": {
+    "all_python_classes": 777,
+    "dataclasses": 350,
+    "protocols": 13,
+    "typed_dicts": 3
+  },
+  "scope": [
+    "One new private MoleculeRecord,22 fixed fields; existing numeric schema/source codes/stereo classes reused. No new public export, per-row wrapper, installer placeholder or production table mode.",
+    "Numeric bytes preserve all19 raw Atom and3 raw Bond slots, masks/producers/direction/hidden partition/sparse inputs; declarations and frame None/scalar/array forms remain distinct.",
+    "Closed tagged codec stores immutable bytes/tuples, revalidates canonical NumPy headers and exact nested stereo types, returns independent decoded headers/containers. It does not interpret scientific descriptors, constrain version values or run chemistry.",
+    "All pre-existing tracked production files remain byte-identical to ce41629; only the new record module is added."
+  ],
+  "tests": {
+    "default": {
+      "passed": 4217,
+      "skipped": 123,
+      "xfailed": 3,
+      "passed_subtests": 49,
+      "warnings": 10,
+      "seconds": 239.65,
+      "exit_code": 0,
+      "artifacts": {
+        "runner.py": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/runner.py",
+          "bytes": 4903,
+          "sha256": "e3752ffa6598a80d7cf597d132e9c45a5527a6a3b337b4b9160abd7a9191bbc1"
+        },
+        "default-command.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/default-command.json",
+          "bytes": 1496,
+          "sha256": "fc9d2dc9308c555f998e778931fa70d287ac99fb48e603bc8d5d73201f8d16c6"
+        },
+        "default.xml": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/default.xml",
+          "bytes": 716997,
+          "sha256": "405e2ccd0c257b8dcd8330b74dc7aedcc5da898b37094f8b23d5fa3f8f3d1e31"
+        },
+        "default.log": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/default.log",
+          "bytes": 8798,
+          "sha256": "00d3f979b17bc013e8ecb22c6729f013f1df2bd4ffb472bc725eb39fc4cf8b4f"
+        }
+      }
+    },
+    "focused_python_matrix": {
+      "scope": "Current-source affected contracts, including111 record/codec cases; not rebuilt wheel/native/installer evidence",
+      "versions": [
+        {
+          "version": "3.10",
+          "passed": 394,
+          "seconds": 10.331,
+          "exit_code": 0,
+          "runtime": {
+            "python": "3.10.20 (main, Aug  7 2026, 02:25:15) [Clang 22.1.3 ]",
+            "executable": "/tmp/hotpot-plan20-20261028/matrix/cp310/env/bin/python",
+            "numpy": "2.2.6",
+            "source_modules": {
+              "core": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core.py",
+              "_fields": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fields.py",
+              "_atom_table": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_atom_table.py",
+              "_mutation": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_mutation.py",
+              "_builder": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_builder.py"
+            }
+          },
+          "artifacts": {
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/3.10/command.json",
+              "bytes": 3322,
+              "sha256": "cbebfc4c18e7502c10c7e7a9e80255b5de81da3c14414a7ae7fe86b464b2aa41"
+            },
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/3.10/focused.log",
+              "bytes": 3397,
+              "sha256": "1179a9a8b9561ffd97efb7378465367985ab88504b2df5c34a93527403decdab"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/3.10/focused.xml",
+              "bytes": 65504,
+              "sha256": "f22166ab46554a04622f747aeef15556192d8b0e09bc7cd9e244e9769f9bfa8b"
+            }
+          }
+        },
+        {
+          "version": "3.11",
+          "passed": 394,
+          "seconds": 7.666,
+          "exit_code": 0,
+          "runtime": {
+            "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+            "executable": "/tmp/hotpot-plan20-env/bin/python",
+            "numpy": "2.4.6",
+            "source_modules": {
+              "core": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core.py",
+              "_fields": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fields.py",
+              "_atom_table": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_atom_table.py",
+              "_mutation": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_mutation.py",
+              "_builder": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_builder.py"
+            }
+          },
+          "artifacts": {
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/3.11/command.json",
+              "bytes": 3144,
+              "sha256": "49b11f829e21e7de23bb077062d6fe2c5f895f5395744fae1b6f83d66fdf336f"
+            },
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/3.11/focused.log",
+              "bytes": 3371,
+              "sha256": "e8c583761053575b6230da2ba872f4d782ad0237de4798775266b2d7d6a37865"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/3.11/focused.xml",
+              "bytes": 65503,
+              "sha256": "9d848d594a696a9eaed1a52899b791442d0afdb652e9b58d354a24cd62847bda"
+            }
+          }
+        },
+        {
+          "version": "3.12",
+          "passed": 394,
+          "seconds": 7.707,
+          "exit_code": 0,
+          "runtime": {
+            "python": "3.12.13 (main, Aug  7 2026, 02:25:39) [Clang 22.1.3 ]",
+            "executable": "/tmp/hotpot-plan20-20261028/matrix/cp312/env/bin/python",
+            "numpy": "2.5.4",
+            "source_modules": {
+              "core": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core.py",
+              "_fields": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fields.py",
+              "_atom_table": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_atom_table.py",
+              "_mutation": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_mutation.py",
+              "_builder": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_builder.py"
+            }
+          },
+          "artifacts": {
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/3.12/command.json",
+              "bytes": 3574,
+              "sha256": "e4dcf4fac103f069aeadfc1512dbda6489fe5c93534177d50b9993d3974b2aab"
+            },
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/3.12/focused.log",
+              "bytes": 5382,
+              "sha256": "7ff20a21adc2fcf86cd1f0ae9e567f1ee25f225b5b2e197113ef43d68c75919e"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/3.12/focused.xml",
+              "bytes": 65503,
+              "sha256": "2ca1041f2e214edf0a1aa85f5dfd1753e798ef839b5413e9b351c8f742c5ae22"
+            }
+          }
+        },
+        {
+          "version": "3.13",
+          "passed": 394,
+          "seconds": 7.211,
+          "exit_code": 0,
+          "runtime": {
+            "python": "3.13.15 (main, Aug  7 2026, 02:25:50) [Clang 22.1.3 ]",
+            "executable": "/tmp/hotpot-plan20-20261028/matrix/cp313/env/bin/python",
+            "numpy": "2.5.4",
+            "source_modules": {
+              "core": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core.py",
+              "_fields": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fields.py",
+              "_atom_table": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_atom_table.py",
+              "_mutation": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_mutation.py",
+              "_builder": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_builder.py"
+            }
+          },
+          "artifacts": {
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/3.13/command.json",
+              "bytes": 3374,
+              "sha256": "6994820a047f589400dc824c243dd2d6408c9e2b975e4748cee289c67ef8bc5d"
+            },
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/3.13/focused.log",
+              "bytes": 5819,
+              "sha256": "93a4deffcd6cc807478a19129248ea76934d6b22e87bc9a31563dc66abe9dc0a"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/3.13/focused.xml",
+              "bytes": 65503,
+              "sha256": "ca27f3d2363d1eaf2b6b0835d235e8bcdfcb2ce10395087f974e6c5c430387c4"
+            }
+          }
+        },
+        {
+          "version": "3.14",
+          "passed": 394,
+          "seconds": 6.872,
+          "exit_code": 0,
+          "runtime": {
+            "python": "3.14.7 (main, Aug  7 2026, 02:26:00) [Clang 22.1.3 ]",
+            "executable": "/tmp/hotpot-plan20-20261028/matrix/cp314/env/bin/python",
+            "numpy": "2.5.4",
+            "source_modules": {
+              "core": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core.py",
+              "_fields": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fields.py",
+              "_atom_table": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_atom_table.py",
+              "_mutation": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_mutation.py",
+              "_builder": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_builder.py"
+            }
+          },
+          "artifacts": {
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/3.14/command.json",
+              "bytes": 3317,
+              "sha256": "8e1b9ebabb9fa1411959836a84d8b3d1bc08c289b668eff0c2c7af6aa92b78b8"
+            },
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/3.14/focused.log",
+              "bytes": 5896,
+              "sha256": "134b32b8b65e233b41f7e4d479e351fa98dd94dbc4150c9345728d05a208bb1f"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/3.14/focused.xml",
+              "bytes": 65503,
+              "sha256": "2a60f7a84a26f98222c6f06ecee0bfb58dfdbfac59dce992c4539c0a8da01eda"
+            }
+          }
+        }
+      ],
+      "commands": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/matrix-commands.json",
+        "bytes": 17271,
+        "sha256": "608a32d05e1b40234f4213abb88cc2078ec90233e147bedbdb0c0ca905e6cad4"
+      }
+    }
+  },
+  "retained_rejected_candidate": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record",
+    "source": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record/source-manifest.json",
+      "bytes": 581,
+      "sha256": "b0c70035088ada6bab50351c1673a333705d699f68fd3d109c3e6e2a31428892"
+    },
+    "matrix": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record/matrix-commands.json",
+      "bytes": 17045,
+      "sha256": "daa09d1e71e86fafea4734fb3a4a25986f728a197f29c74dbc109b3c05d53d7f"
+    },
+    "default_log": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record/default.log",
+      "bytes": 8798,
+      "sha256": "f05ebdd9f1878d6539dad30de1d339e61bb41c8e6a9b354821a53494b97c74d4"
+    },
+    "observed": "Initial candidate passed358/version and4181 default but independent probes found wrong-position protected stereo types and undecodable canonical ndarray shapes. Those passes do not certify the missing structural contracts.",
+    "probe": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record/review_probe.json",
+      "bytes": 2040,
+      "sha256": "83b1f3fa6fbc7c2f90677a270c86766bcb8fc37b1623c88e301bd2fea978d7d1"
+    },
+    "probe_script": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record/review_probe.py",
+      "bytes": 1738,
+      "sha256": "b2a3b77f7196d8a4d7c99b65ea17e51ca443c6efce80c509423f8c7422eca90d"
+    },
+    "resolution": "Added typed nested-schema validation without scientific interpretation and actual NumPy header construction without data allocation. Original75 record cases retained;36 additional regressions, final111 cases. Reviewer repeated both original probes and adjacent88 dtype cases with exit0 on hash9fec55f5...aca05."
+  },
+  "new_only_cost": {
+    "scope": "Complete record preparation/pickle only for N16/256/4096, B=N-1 with4 source-metadata entries per Bond and two source frames. No B20 counterpart, carrier install/UID/topology/rollback/current-projection cost or parity claim.",
+    "artifacts": {
+      "manifest.json": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/cost/manifest.json",
+        "bytes": 1143,
+        "sha256": "960df58da567bcb115096f541e7a7aed66fcb109c5f2f1744d4ace21802c7b4a"
+      },
+      "raw_samples.json": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/cost/raw_samples.json",
+        "bytes": 17932,
+        "sha256": "e88f2f106394e34b5d9a5d06233cc5620a2265dd5daaf55888002b9ecefdf28c"
+      },
+      "summary.json": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/cost/summary.json",
+        "bytes": 1132,
+        "sha256": "e09734513841820da4429495909c276f71907521424dbfd6afa753d531762e0b"
+      },
+      "runner.py": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/molecule-record-accepted/cost/runner.py",
+        "bytes": 3472,
+        "sha256": "5b47172003c938e3d521461dcd28686b5c9635e0dba2e1f185de52629c4df050"
+      }
+    },
+    "attempts": {
+      "requested": 78,
+      "completed": 78,
+      "failed": 0
+    },
+    "samples": [
+      {
+        "atoms": 16,
+        "bonds": 15,
+        "mode": "prepare",
+        "median_seconds": 0.00026084275499999997,
+        "mad_seconds": 3.416999999999971e-07,
+        "stored_numeric_bytes": 3160
+      },
+      {
+        "atoms": 16,
+        "bonds": 15,
+        "mode": "pickle_roundtrip",
+        "median_seconds": 0.00018106912,
+        "mad_seconds": 5.588100000000063e-07,
+        "stored_numeric_bytes": 3160
+      },
+      {
+        "atoms": 256,
+        "bonds": 255,
+        "mode": "prepare",
+        "median_seconds": 0.00262433625,
+        "mad_seconds": 1.7194874999999863e-05,
+        "stored_numeric_bytes": 50920
+      },
+      {
+        "atoms": 256,
+        "bonds": 255,
+        "mode": "pickle_roundtrip",
+        "median_seconds": 0.0018437491,
+        "mad_seconds": 5.820299999999908e-06,
+        "stored_numeric_bytes": 50920
+      },
+      {
+        "atoms": 4096,
+        "bonds": 4095,
+        "mode": "prepare",
+        "median_seconds": 0.06075093575,
+        "mad_seconds": 0.0009085737500000024,
+        "stored_numeric_bytes": 815080
+      },
+      {
+        "atoms": 4096,
+        "bonds": 4095,
+        "mode": "pickle_roundtrip",
+        "median_seconds": 0.030567591249999998,
+        "mad_seconds": 0.0001429437499999974,
+        "stored_numeric_bytes": 815080
+      }
+    ],
+    "observed": "Preparation~0.261/2.624/60.751ms and pickle roundtrip~0.181/1.844/30.568ms; added work remains relevant to future integrated performance.",
+    "memory_metric_limit": "stored_numeric_bytes counts only the four core Atom/Bond byte buffers; it excludes frames, nested metadata, Python/header overhead and peak RSS. No memory acceptance is asserted."
+  },
+  "limits": [
+    "Finite opaque/dtype transport boundary is not approval to narrow existing public Bond metadata/copy behavior.",
+    "No converter, fact-table owner, scalar/batch writer, FF rollback or lifecycle installation is connected.",
+    "One topology construction/no implicit chemistry, source locks, readonly detached rows, row remaps and integrated performance remain Stage3 gates.",
+    "Later result/frame ownership, constructor removals, Plan17 backend replacement and Stage13 protocol remain at their assigned stages."
+  ],
+  "github_cadence": {
+    "last_pushed_commit": "ce416297167e735c3961f75bcd04621d9746fde1",
+    "commits_since_push": 0,
+    "this_checkpoint": "First subsequent commit; push after two more coherent commits."
+  }
+}

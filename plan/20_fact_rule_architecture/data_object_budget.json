@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage3 in progress; active UID infrastructure and N01/N05 private records; private table metadata/serialization and closed candidate verified, production table/commit/builder incomplete",
+  "status": "Stage3 in progress; readonly parent, UID/source infrastructure and private N01/N02/N05 records; production table/commit/builder remain incomplete",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -13,7 +13,7 @@
     "alias_caveat": "Zero explicit TypeAlias syntax does not establish zero implicit aliases."
   },
   "measured_delta": {
-    "new_dataclasses": 2,
+    "new_dataclasses": 3,
     "retired_dataclasses": 0,
     "new_protocols": 0,
     "new_typed_dicts": 0,
@@ -56,6 +56,35 @@
           "sources"
         ],
         "verification": "stage3_atom_update_evidence.json"
+      },
+      {
+        "symbol": "hotpot.cheminfo.structure._builder.MoleculeRecord",
+        "reservation": "N02",
+        "fields": [
+          "atom_count",
+          "atom_values",
+          "atom_presence",
+          "atom_sources",
+          "atom_isotopes",
+          "atom_frac_valences",
+          "bond_endpoints",
+          "bond_values",
+          "bond_partitions",
+          "bond_kinds",
+          "bond_directions",
+          "bond_sources",
+          "bond_metadata",
+          "charge",
+          "spin_mult",
+          "cell",
+          "stereo_payload",
+          "legacy_frame_values",
+          "legacy_frame_index",
+          "angle_constraints",
+          "torsion_constraints",
+          "identifier"
+        ],
+        "verification": "stage3_record_evidence.json"
       }
     ]
   },
@@ -138,11 +167,53 @@
       "proposed_definition": "MoleculeRecord",
       "stage": "Stage3",
       "dataclass_upper_bound": 1,
-      "responsibility": "One complete factual import record; compose existing stereo/cell contracts, no per-Atom import wrapper",
-      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
-      "actual_symbol": null,
+      "responsibility": "One complete immutable factual import record; raw Atom19/Bond3 bytes, presence/source, existing stereo/cell and nine legacy frame domains; no per-row wrapper, UID table or arbitrary result DTO",
+      "status": "implemented immutable record/codec only; no installer or production table cutover",
+      "actual_symbol": "hotpot.cheminfo.structure._builder.MoleculeRecord",
       "commit": null,
-      "verification": null
+      "verification": "stage3_record_evidence.json",
+      "review": "stage3_builder_review.md",
+      "planned_symbol": "hotpot.cheminfo.structure._builder.MoleculeRecord",
+      "fields": [
+        "atom_count",
+        "atom_values",
+        "atom_presence",
+        "atom_sources",
+        "atom_isotopes",
+        "atom_frac_valences",
+        "bond_endpoints",
+        "bond_values",
+        "bond_partitions",
+        "bond_kinds",
+        "bond_directions",
+        "bond_sources",
+        "bond_metadata",
+        "charge",
+        "spin_mult",
+        "cell",
+        "stereo_payload",
+        "legacy_frame_values",
+        "legacy_frame_index",
+        "angle_constraints",
+        "torsion_constraints",
+        "identifier"
+      ],
+      "numeric_encoding": {
+        "atom_values": "<f8 C(N,19) immutable bytes in ATOM_FIELDS order; no scalar read codecs",
+        "atom_presence": "<u4(N) immutable bytes; existing19-bit masks",
+        "atom_sources": "u1(N,19) immutable bytes; existing producer codes independent of presence",
+        "bond_values": "<f8 C(B,3) immutable bytes for raw order/constraint/id; attr_dict is not the import codec"
+      },
+      "nested_ownership": "Closed tagged tuple/bytes codec preserves None, Python/NumPy scalar, list/tuple/dict and ordinary non-object ndarray dtype/shape; Bond metadata roots are None/dict; declarations use real scalars without scientific acceptance checks; protected stereo classes retain identity and field order; pickle re-enters the validating constructor",
+      "codec_limits": "No unknown-object/opaque-pickle fallback; reject object/structured/subdtype/dtype-metadata arrays rather than lose dtype schema. Public metadata-path compatibility remains a pre-installation gate.",
+      "consumers": [
+        "Future one _build_molecule and target-preserving _install_molecule; no installer placeholder at the isolated checkpoint",
+        "Open Babel/RDKit/CCDC/cclib factual decoders; converter target identity and nonempty disposition require concrete coverage before connection",
+        "copy/components/member remap and MCA DTO reconstruction through shared raw initialization",
+        "FF original-member commit/rollback uses shared preparation primitives and retains its real snapshot records; N02 is not a rollback image"
+      ],
+      "installation_gate": "Connect only with sole Atom table and complete writer/metadata/rollback migration; no accepted-but-discarded presence/source, temporary shadow owner or per-Molecule old/new mode",
+      "public_api_effect": "None at isolated record/codec checkpoint; exact updata_atoms/atom_matrix and A2 Stage3/5/7C sequence remain unchanged"
     },
     {
       "id": "N03",
@@ -435,10 +506,10 @@
   ],
   "change_policy": "Update a reservation with concrete responsibility/consumer evidence before exceeding it; new public schemas retain their own review gate. Never offset extra records by deleting unrelated reserved types or replace records with untyped dicts solely to improve counts.",
   "measured_current_counts": {
-    "all_python_classes": 776,
-    "dataclasses": 349,
+    "all_python_classes": 777,
+    "dataclasses": 350,
     "protocols": 13,
     "typed_dicts": 3,
-    "method": "Full tracked and unignored new hotpot Python AST census; one prior ordinary table, N01 SourceIdentity and N05 AtomFactUpdate. No new Protocol/TypedDict/native mirror."
+    "method": "Full tracked and unignored new hotpot Python AST census; one ordinary table and N01/N02/N05 private records; no new Protocol/TypedDict/native mirror."
   }
 }

@@ -255,7 +255,7 @@
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_builder.py",
-          "status": "planned_not_created"
+          "status": "partial;111 isolated record/codec cases passed on Python3.10–3.14; actual installer/one-topology/no-chemistry/atomicity not implemented"
         },
         {
           "path": "tests/test_cheminfo/structure/test_atom_fact_table.py",
@@ -305,7 +305,7 @@
       "additional_requirements": [
         "builder one topology build/no implicit chemistry; UID non-reuse; finite dirty propagation; field schema; scalar/batch alias isolation and performance"
       ],
-      "execution_status": "in_progress; member UID/source infrastructure, private table metadata/serialization and closed update preparation verified; production table/commit/builder/dirty reads/integrated scaling remain open"
+      "execution_status": "in_progress; readonly parent, UID/source infrastructure, private table and N02/N05 record preparation verified; production table/closed commits/actual builder/dirty reads/integrated scaling remain open"
     },
     "Stage4": {
       "predecessor": "Stage3",

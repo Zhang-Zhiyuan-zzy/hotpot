@@ -27,6 +27,8 @@ Closed Atom update candidates and table serialization are now verified in the
 Python3.10–3.14 each273 passed; default4096 passed,123 skipped,3 xfailed.
 The production table, molecular commit, builder and integrated performance
 gates remain open.
+Atom's existing parent is now read-only; detached inspection and current-version
+pickle/deepcopy are covered by [parent evidence](stage3_parent_evidence.json).
 Original planning branch: `refactor/fact-rule-architecture`
 
 Original planning baseline: `0a4b0ee`; reviewed documentation: `d9eb80e`.

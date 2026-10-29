@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "stage": "Stage3",
+  "checkpoint": "Atom parent reference becomes readonly",
+  "status": "verified local lifecycle contract; complete Stage3 table/builder/commit/dependency gates open",
+  "recorded_at_utc": "2026-10-29T02:52:02.850196+00:00",
+  "predecessor_commit": "5a5006f6c9964e6106fdce16e4bd3b56f3651345",
+  "source": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/source-manifest.json",
+    "bytes": 565,
+    "sha256": "f0eaedba22265756d92410dec779ca0c6790b0f47d4271c0737f6e81102228fc"
+  },
+  "architecture": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/architecture.json",
+    "bytes": 499,
+    "sha256": "68e2e3a17c55b0efc9bb782e64ca0b4d4510dda1565f4b6319af9a98df023fc8"
+  },
+  "design_basis": {
+    "plan": "main §7.2/§7.5 readonly Atom parent and Stage3 lifecycle; shared with existing molecule projection",
+    "decision": "Sol-max bounded builder/identity design confirms only Atom.__init__ assigns the Atom parent; other self.mol writes belong to independent types",
+    "scope": "constructor binds _mol internally; read-only mol property; no public signature change, historical pickle fallback, table installation, new class or scientific algorithm"
+  },
+  "tests": {
+    "default": {
+      "passed": 4106,
+      "skipped": 123,
+      "xfailed": 3,
+      "passed_subtests": 49,
+      "warnings": 10,
+      "seconds": 238.97,
+      "exit_code": 0,
+      "artifacts": {
+        "runner.py": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/runner.py",
+          "bytes": 4860,
+          "sha256": "72bded0ffb4cc6a178f4defd2edc203b7b6d6264cfe6601dc4d4a809026477a4"
+        },
+        "default-command.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/default-command.json",
+          "bytes": 1476,
+          "sha256": "caf868e0a859c02ff4a8d040d6d59ea1d1cff00de85377629da4a74fc26e8bd2"
+        },
+        "default.xml": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/default.xml",
+          "bytes": 700011,
+          "sha256": "348ca11fe9db69a43541a00bce6739b1af86b959a8f0f61d2e3ebb6c6b6a9eb2"
+        },
+        "default.log": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/default.log",
+          "bytes": 8718,
+          "sha256": "1ad3395d0e3b74183758d971e698643ddeb8623a1eb48187c767da7dc116cf63"
+        }
+      }
+    },
+    "focused_python_matrix": {
+      "scope": "Current-source affected selection;22 UID/lifecycle cases, not a rebuilt wheel/native matrix",
+      "versions": [
+        {
+          "version": "3.10",
+          "passed": 283,
+          "seconds": 10.075,
+          "exit_code": 0,
+          "artifacts": {
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/3.10/command.json",
+              "bytes": 3243,
+              "sha256": "5e93c2cfee71615bed6cb5c0c802bc37958bdeeb8a4d00cbe2c1b98dd7194407"
+            },
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/3.10/focused.log",
+              "bytes": 3158,
+              "sha256": "1ec7aa90c1c813628a56b935a181804a14fffca9faa4c87f73bd2838e8d82175"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/3.10/focused.xml",
+              "bytes": 48518,
+              "sha256": "97c6835560846f2dc95258ead0da33acd28a8bc66d4fbaa9cbe045e89dc6a9a3"
+            }
+          }
+        },
+        {
+          "version": "3.11",
+          "passed": 283,
+          "seconds": 7.51,
+          "exit_code": 0,
+          "artifacts": {
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/3.11/command.json",
+              "bytes": 3065,
+              "sha256": "b8937570f00ff198e6463366a18a5520db7499ee069b2820c17cb01bc5c31ed3"
+            },
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/3.11/focused.log",
+              "bytes": 3132,
+              "sha256": "3bad6d66bf52a4901556d6b10ca5a4a8d29122ac04c6d622b3db220fd78ae073"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/3.11/focused.xml",
+              "bytes": 48517,
+              "sha256": "d0c892cc6f0bf7ce5b0dd37fec19575638d1229634da5af27206875294b17bfa"
+            }
+          }
+        },
+        {
+          "version": "3.12",
+          "passed": 283,
+          "seconds": 7.641,
+          "exit_code": 0,
+          "artifacts": {
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/3.12/command.json",
+              "bytes": 3495,
+              "sha256": "3961a2a1529b696596929d62dc717207c01e82e177255bffd0ffcf691eb6fcd7"
+            },
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/3.12/focused.log",
+              "bytes": 4054,
+              "sha256": "6ec7733f1b94b76c96463f7871f22988a1e901b848d6e46745c60954ec47c9c8"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/3.12/focused.xml",
+              "bytes": 48517,
+              "sha256": "0d2e72f8875b66b2950c17f3b0e4a7085614a690c1affc3815a24ccaf1f5d39e"
+            }
+          }
+        },
+        {
+          "version": "3.13",
+          "passed": 283,
+          "seconds": 7.074,
+          "exit_code": 0,
+          "artifacts": {
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/3.13/command.json",
+              "bytes": 3295,
+              "sha256": "8feafd89f53b09d6b1dec3b34fcbd0e8bf9c4b5f9ab1d23a590b1be407d5aeab"
+            },
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/3.13/focused.log",
+              "bytes": 3955,
+              "sha256": "a657b448d292b67cdc57f1ce24b084fbe946e0d2772295471359870cbc6849d0"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/3.13/focused.xml",
+              "bytes": 48517,
+              "sha256": "0dfcd67b0d4c329ae74c7d034e60f1c427fca1cd076ce97ea35eabf0b9cb87c9"
+            }
+          }
+        },
+        {
+          "version": "3.14",
+          "passed": 283,
+          "seconds": 6.734,
+          "exit_code": 0,
+          "artifacts": {
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/3.14/command.json",
+              "bytes": 3238,
+              "sha256": "1c82113c8e97cebc148f1cf049e9d1e271c22f8c3cd8c6240f06ef0d0119787f"
+            },
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/3.14/focused.log",
+              "bytes": 4469,
+              "sha256": "89af8a031585374a5a546d96a64463b22ae844e012ebbbc3648cbc07d02b57f1"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/3.14/focused.xml",
+              "bytes": 48517,
+              "sha256": "438fd46ad4a62fd31b43bf119528f6ad2dd1191fc01cc261ae3e4eacc09c111f"
+            }
+          }
+        }
+      ],
+      "commands": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/matrix-commands.json",
+        "bytes": 16876,
+        "sha256": "3d50f429f2947571c5046eac495e9bc82a07a01dfce9e2aa04bd83ddcd6d4daf"
+      }
+    }
+  },
+  "performance": {
+    "scope": "13 frozen B20 diagnostic workloads, CPU32/numeric threads1. No concurrent task tests/builds during measurement; shared-host load uncontrolled. Non-interleaved comparison, not global acceptance.",
+    "command": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/performance-command.json",
+      "bytes": 1603,
+      "sha256": "84db3bb85938e756b6538bfaed70c8636cb9e3ffcc3bdc4779d08bb3ce19458e"
+    },
+    "candidate_report": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/performance/report.json",
+      "bytes": 124158,
+      "sha256": "ae6b89d95d8d1a5415229a6ecd4929a0c385ab20d61c0566767ef30855bd3e02"
+    },
+    "comparison": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/performance-comparison-accepted/comparison.json",
+      "bytes": 75616,
+      "sha256": "36c9e6953fdf0f38a0de039d36c1de3194269c51991bdc2fb6729a06a7d86eb6"
+    },
+    "readable": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/parent-readonly/performance-comparison-accepted/comparison.md",
+      "bytes": 4642,
+      "sha256": "d117b27e68b8f4e4cc45fd0a0166b136f0f6e679959945f5a21854ec77d9dc54"
+    },
+    "observed_unresolved": "construct N8/64/256 ratios1.063/1.057/1.067; insert-delete~1.044–1.050 versus B20. Scalar paths mostly neutral; unexecuted families inconclusive. No parity approval or exception asserted."
+  },
+  "unchanged": "Atom constructor signature, numeric row owner and all existing chemical calculations; molecule alias still projects the same parent; no Bond/Crystal/view-parent permission change",
+  "remaining": [
+    "Complete MoleculeRecord/codec plus table installer; current readonly parent is a separate invariant only",
+    "Sole production table and connected writer/lifecycle/FF rollback cutover",
+    "Detached numeric row readonly, actual atomic commits, finite dependency reads and integrated performance"
+  ],
+  "github_cadence": {
+    "last_pushed_commit": "40312df7c678dc193a9104248f54819ac1dc062a",
+    "previous_unpushed_commits": [
+      "d7989b3",
+      "5a5006f"
+    ],
+    "this_checkpoint": "Third subsequent coherent commit; push immediately afterward."
+  }
+}

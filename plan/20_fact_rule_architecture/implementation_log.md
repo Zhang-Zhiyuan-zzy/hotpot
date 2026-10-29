@@ -798,3 +798,33 @@ review records and retained failed attempts by SHA256.
   discard metadata or create a temporary shadow owner/mode.
 - This checkpoint is the second commit since last push`40312df`, following
   `d7989b3`. Push after the next coherent commit.
+
+### Stage3 readonly Atom parent invariant
+
+- Continued Stage3 from clean`5a5006f` with the latest Sol-first delegation
+  policy and both project stage/validation skills. The bounded Sol-max builder
+  review performs the fresh full main/companion read and freezes the next
+  import-record design; this local change implements the already specified
+  readonly-parent lifecycle without changing the table/builder route.
+- The repository's only Atom-parent assignment is its constructor. It now
+  binds private `_mol` directly; existing `mol` is a readonly property and
+  `molecule` still projects it. Copy/insertion/replacement already create local
+  handles, so no additional reparenting writer or old/new mode is introduced.
+  Other types' parent properties and chemical implementations are unchanged.
+- Added attached/detached × same/foreign assignment rejection and verified
+  owner/UID/topology retention, plus Atom/Bond/Molecule-root pickle/deepcopy.
+  Current-version serialization succeeds; no historical-pickle fallback is
+  added. UID/lifecycle coverage is22 cases.
+- Default: **4106 passed,123 skipped,3 xfailed,49 subtests**,10 warnings,
+  238.97 seconds. Python **3.10–3.14 each283 passed** on the affected source
+  selection. These do not assert a new installed-wheel/native build.
+- Thirteen frozen B20 diagnostic tasks retain all attempts. Construction is
+  about1.063/1.057/1.067x at N8/64/256 and insert-delete about1.044–1.050x.
+  These shared-host, non-interleaved interim regressions remain unresolved;
+  no global parity, improvement or rare exception is approved. Actual table,
+  scalar/batch and final workflow performance still require integration.
+- `stage3_parent_evidence.json` binds frozen source, commands, results and
+  measurement limits. The complete Stage3 owner/builder/commit/dirty gates
+  remain open. No new class or public constructor signature was added.
+- This is the third coherent commit since last push`40312df`, following
+  `d7989b3` and`5a5006f`; push the implementation branch immediately afterward.

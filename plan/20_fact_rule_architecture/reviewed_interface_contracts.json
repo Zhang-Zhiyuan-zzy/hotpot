@@ -1853,7 +1853,7 @@
         "mol"
       ],
       "contract": "identity",
-      "note": "Existing ordinary back-reference; handle ownership, not copied chemical fact."
+      "note": "Existing parent reference now readonly under Stage3 lifecycle: constructor binds one private _mol; molecule alias projects it. Detached parent stays inspectable. Current-version pickle/deepcopy retain the owner graph; no historical pickle fallback. Evidence: stage3_parent_evidence.json."
     },
     {
       "type": "hotpot.cheminfo.core.Atom",

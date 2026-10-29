@@ -3251,7 +3251,7 @@ class Atom(MolBlock):
 
          behaviors/ Rules ;proper Error Inflect 
                ** detail ensure behaviors s """
-        self.mol = mol or Molecule()
+        object.__setattr__(self, '_mol', mol or Molecule())
         object.__setattr__(self, '_member_uid', self.mol._allocate_atom_uid())
         object.__setattr__(self, '_uid_owner', self.mol._owner_token)
         getattr(self.mol, '_atoms').append(self)
@@ -3936,6 +3936,11 @@ class Atom(MolBlock):
             float: The calculated mass of the object.
         """
         return ob.GetMass(self.atomic_number)
+
+    @property
+    def mol(self) -> Molecule:
+        """Return the immutable molecule owner, including after detachment."""
+        return self._mol
 
     @property
     def molecule(self):

@@ -271,7 +271,7 @@
         },
         {
           "path": "tests/test_cheminfo/structure/test_uid_lifecycle.py",
-          "status": "implemented;12 cases passed on Python3.10–3.14; full table construction atomicity still pending"
+          "status": "implemented;22 cases passed on Python3.10–3.14, including readonly parent and current-version pickle/deepcopy; table construction atomicity still pending"
         },
         {
           "path": "tests/test_cheminfo/structure/test_buffer_ownership.py",

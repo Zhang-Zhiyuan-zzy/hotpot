@@ -1,6 +1,7 @@
 """Private member identities stay distinct from rows and source labels."""
 
 from concurrent.futures import ThreadPoolExecutor
+from copy import deepcopy
 import pickle
 
 import numpy as np
@@ -28,6 +29,35 @@ def test_atom_uids_survive_row_compaction_and_source_id_changes():
         _ = removed.idx
     with pytest.raises(AttributeError):
         first._uid = 500
+
+
+@pytest.mark.parametrize("detached", [False, True])
+@pytest.mark.parametrize("foreign", [False, True])
+def test_atom_molecule_owner_is_read_only_without_changing_identity_or_topology(detached, foreign):
+    mol = Molecule()
+    atom = mol.create_atom(atomic_number=6)
+    neighbour = mol.create_atom(atomic_number=8)
+    mol.add_bond(atom, neighbour)
+    if detached:
+        mol.remove_atom(atom)
+    target = Molecule() if foreign else mol
+    original_uid, original_owner = atom._uid, atom._uid_owner
+    original_atoms = tuple(mol.atoms)
+    original_bonds = tuple(mol.bonds)
+    original_topology = dict(mol._topology_index)
+    target_atoms = tuple(target.atoms)
+    target_topology = dict(target._topology_index)
+
+    with pytest.raises(AttributeError):
+        atom.mol = target
+
+    assert atom.mol is atom.molecule is mol
+    assert atom._uid == original_uid and atom._uid_owner is original_owner
+    assert tuple(mol.atoms) == original_atoms
+    assert tuple(mol.bonds) == original_bonds
+    assert mol._topology_index == original_topology
+    assert tuple(target.atoms) == target_atoms
+    assert target._topology_index == target_topology
 
 
 def test_direct_hidden_and_registered_bonds_share_one_non_reusing_allocator():
@@ -218,3 +248,32 @@ def test_pickle_recreates_lock_and_preserves_uid_owner_graph_and_high_water():
     assert [atom.idx for atom in restored.atoms] == [0, 1]
     assert restored.atoms[0].neighbours == [restored.atoms[1]]
     assert restored.create_atom(atomic_number=7)._uid > removed._uid
+
+
+@pytest.mark.parametrize("transport", [deepcopy, pytest.param(
+    lambda value: pickle.loads(pickle.dumps(value)), id="pickle"
+)])
+@pytest.mark.parametrize("root", ["atom", "bond", "molecule"])
+def test_current_transport_preserves_read_only_atom_owner_graph(transport, root):
+    mol = Molecule()
+    atom = mol.create_atom(atomic_number=6)
+    neighbour = mol.create_atom(atomic_number=8)
+    bond = mol.add_bond(atom, neighbour)
+    restored = transport({"atom": atom, "bond": bond, "molecule": mol}[root])
+    restored_mol = restored if root == "molecule" else restored.mol
+    restored_atom, restored_neighbour = restored_mol.atoms
+    restored_bond = restored_mol.bonds[0]
+
+    assert restored_mol is not mol
+    assert restored_mol._owner_token is not mol._owner_token
+    assert restored_mol._mutation_lock is not mol._mutation_lock
+    assert (restored_atom._uid, restored_neighbour._uid) == (atom._uid, neighbour._uid)
+    assert restored_bond._uid == bond._uid
+    assert all(member._uid_owner is restored_mol._owner_token
+               for member in (restored_atom, restored_neighbour, restored_bond))
+    assert restored_atom.mol is restored_neighbour.mol is restored_mol
+    assert restored_bond.atom1 is restored_atom and restored_bond.atom2 is restored_neighbour
+    assert restored_atom.neighbours == [restored_neighbour]
+    assert (restored_atom.idx, restored_neighbour.idx) == (0, 1)
+    with pytest.raises(AttributeError):
+        restored_atom.mol = mol

@@ -2,7 +2,7 @@
 
 This review completes the finite interface/mutation/read table required by the
 main plan's Stage1 item 9 and the chemical-interface companion Section6. The
-machine-readable table is [reviewed_interface_contracts.json](reviewed_interface_contracts.json).
+machine-readable table is [reviewed_interface_contracts.json](../../../reviewed_interface_contracts.json).
 It supplements the captured API inventory with ownership, dependency,
 presence, permission, operation and lifecycle semantics. It adds no production
 protocol, registry, descriptor, common base class or chemical algorithm.
@@ -133,7 +133,7 @@ as a deeply immutable result.
 
 The user's **2026-10-28 A2 acceptance** covers the exact constructor removal,
 independent numeric snapshots, missing-result NaN encoding and unchanged model
-input encoding in [stage1_contract_decisions.md](stage1_contract_decisions.md).
+input encoding in [stage1_contract_decisions.md](../contracts/decisions.md).
 It does not approve every other new public signature or combine the
 Stage3/5/7C changes into one early cutover.
 

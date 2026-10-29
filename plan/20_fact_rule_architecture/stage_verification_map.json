@@ -200,7 +200,7 @@
         "full default suite, original baseline scientific/technical selection, full Section12 workload measurements",
         "Supplementary installed-wheel Python3.10–3.14 baseline: common_commands.python_matrix_baseline, with all five matching wheels and verified models prepared before timing."
       ],
-      "execution_status": "completed; exact commands, outcomes and digests are in stage1_execution_evidence.json and implementation_log.md"
+      "execution_status": "completed; exact commands, outcomes and digests are in stages/stage01/evidence.json and implementation_log.md"
     },
     "Stage2": {
       "predecessor": "Stage1",
@@ -227,7 +227,7 @@
       "additional_requirements": [
         "source/build/consumer zero-reference audit for every deletion; replace tests of deleted compatibility entry with equivalent supported-entry assertions"
       ],
-      "execution_status": "completed; default suite, focused conversions/imports, fresh-process smoke and source/build audit are bound in stage2_execution_evidence.json"
+      "execution_status": "completed; default suite, focused conversions/imports, fresh-process smoke and source/build audit are bound in stages/stage02/evidence.json"
     },
     "Stage3": {
       "predecessor": "Stage2",

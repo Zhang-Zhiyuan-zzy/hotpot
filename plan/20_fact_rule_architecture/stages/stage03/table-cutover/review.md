@@ -583,7 +583,7 @@ Molecule/Atom/Bond/joint N05 pickle and deepcopy; concurrent frozen serializatio
 remote-first dirty propagation; and one actual topology build/no chemistry in
 factual build. A mock topology counter alone does not establish value coverage.
 
-Run the Stage3 exact selection in `stage_verification_map.json`, the full new
+Run the Stage3 exact selection in `../../../stage_verification_map.json`, the full new
 affected contract set on Python3.10–3.14, the default suite and the appropriate
 installed-wheel/native transport tests. Inspect both fresh-process import
 orders and the architecture ratchet after the new private imports. Keep
@@ -957,7 +957,7 @@ the earlier322-case run certifies that later engine implementation.
 
 This is the bounded Sol-max architecture review requested by the parent after
 the measured Python-engine refinement. The reviewer owns only this document
-and `stage3_native_entry_review.json` at this entry. No production, main-plan,
+and `../native/entry_review.json` at this entry. No production, main-plan,
 build or test source is changed by the review. The full current main plan and
 four normative companions were reread, all3498 lines, including repeated
 bounded reads where combined tool output was truncated. Their five digests

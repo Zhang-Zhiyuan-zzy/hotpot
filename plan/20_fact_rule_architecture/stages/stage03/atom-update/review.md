@@ -1,6 +1,6 @@
 # Stage3 closed Atom update preparation
 
-Entry: `stage3_cutover_entry_review.json`, following `d7989b3`. The main plan
+Entry: `entry_review.json`, following `d7989b3`. The main plan
 and four normative companions were read completely before this work. Stage3
 remains in progress; no production table cutover or public batch publication
 is claimed by this preparation.

@@ -2529,5 +2529,5 @@
       "stage": "Stage9"
     }
   ],
-  "coverage_correction": "stage3_architecture_coverage_correction.json: restore three frozen, never-retired root-module entries omitted by the first scanner; no new production debt or gate exception"
+  "coverage_correction": "stages/stage03/architecture/coverage_correction.json: restore three frozen, never-retired root-module entries omitted by the first scanner; no new production debt or gate exception"
 }

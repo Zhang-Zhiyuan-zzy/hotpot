@@ -18,7 +18,7 @@
     "data_object_scope_audit.md": "481d5195ece9e1a8707187574b3df73663456b77453f5bf89f76e4bcbad51f5c",
     "plan17_plan20_execution_alignment.md": "e5549116f1409fb46b5fd2bdc82c0b20a34297989475eb66a119ac221a9d4a0b"
   },
-  "decision_reference": "stage1_contract_decisions.md: A2 accepted 2026-10-28; other exact new public schemas keep their named owning-stage gates.",
+  "decision_reference": "stages/stage01/contracts/decisions.md: A2 accepted 2026-10-28; other exact new public schemas keep their named owning-stage gates.",
   "scope": {
     "selection": "Every Python class definition under hotpot/cheminfo is dispositioned. Explicit type lists distinguish chemical interface families, module-visible support, known retirement and private/deployment implementation. Top-level exports remain baseline declared_exports/runtime_surface, not all selected types.",
     "entry_resolution": "Resolve an entry by (type,entry) override first, else its explicit type-group contract; an override kind_policies further distinguishes retained read from retired write. Exact signature, default, annotation and read/write syntax come from bound interface_inventory; exact dataclass field order/bases/decorators from bound classes. Inheritance and ordinary/dynamic fields below supplement, not replace, those schemas.",
@@ -631,7 +631,7 @@
       "role": "assembly rule/action / task factory",
       "owner": "rules/chemistry/assembly and operations/assembly",
       "fact_or_dependencies": "Fragment and subclasses combine matching/action points; MolBatch/AssembleFactory own task iteration/settings.",
-      "shape_dtype_unit": "Existing fragment template action_point/exclude schema and output order; source assets reviewed in stage1_asset_review.md.",
+      "shape_dtype_unit": "Existing fragment template action_point/exclude schema and output order; source assets reviewed in stages/stage01/assets/review.md.",
       "presence_source": "Preserve unsupported/failure/empty task behavior; no fabricated fragment facts.",
       "read_policy": "Read fragment/query/task configuration; live Molecule references are handles, not immutable DTO content.",
       "write_policy": "Action proposes/executes named full structural edits through Molecule commit; factory mutates own task state.",
@@ -1853,7 +1853,7 @@
         "mol"
       ],
       "contract": "identity",
-      "note": "Existing parent reference now readonly under Stage3 lifecycle: constructor binds one private _mol; molecule alias projects it. Detached parent stays inspectable. Current-version pickle/deepcopy retain the owner graph; no historical pickle fallback. Evidence: stage3_parent_evidence.json."
+      "note": "Existing parent reference now readonly under Stage3 lifecycle: constructor binds one private _mol; molecule alias projects it. Detached parent stays inspectable. Current-version pickle/deepcopy retain the owner graph; no historical pickle fallback. Evidence: stages/stage03/parent/evidence.json."
     },
     {
       "type": "hotpot.cheminfo.core.Atom",
@@ -4369,13 +4369,13 @@
       "id": "A4",
       "signature": "Molecule.updata_atoms(*, atoms=None, **columns) -> None",
       "status": "owner-approved exact spelling and capability on2026-10-28; Stage3 implementation/gates pending",
-      "reference": "stage1_contract_decisions.md"
+      "reference": "stages/stage01/contracts/decisions.md"
     },
     {
       "id": "A5",
       "signature": "Molecule.atom_matrix: numpy.ndarray (read-only property, independent float64 (N,19))",
       "status": "owner-approved complete-matrix property on2026-10-28; direct rename of atom_attr_matrix under the later naming/no-duplication instruction; no fields/dtype parameters or old alias",
-      "reference": "stage1_contract_decisions.md"
+      "reference": "stages/stage01/contracts/decisions.md"
     },
     {
       "id": "Decision24",

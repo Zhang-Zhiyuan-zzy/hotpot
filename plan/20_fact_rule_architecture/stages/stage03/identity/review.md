@@ -2,7 +2,7 @@
 
 This continues Stage3 from `40312df`; it does not enter Stage4. On 2026-10-29
 the main plan and all four normative companions were read in full again.
-`stage3_continuation_review.json` records hashes, retained complete read copies,
+`entry_review.json` records hashes, retained complete read copies,
 the clean synchronized branch and the missing gates. Scientific rules, MCA
 backend selection and the Stage13 experiment retain their assigned stages.
 
@@ -93,7 +93,7 @@ cannot be presented as an old mechanism with a fabricated baseline.
 
 ## Evidence and remaining work
 
-`stage3_identity_metadata_evidence.json` binds the default suite, full affected
+`evidence.json` binds the default suite, full affected
 Python3.10–3.14 source selection, B20 native-binary preparation, failed attempts,
 source/class census and actual performance records. An initial matrix exposed
 missing matching graph binaries in the source checkout; four baseline wheels

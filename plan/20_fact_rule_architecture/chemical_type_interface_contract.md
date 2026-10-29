@@ -262,7 +262,7 @@ N×F 导出、原生打包和逐原子结果投影，确保高效批量访问与
 | 编号 | 公开接口或行为 | 提案 | 当前状态 |
 |---|---|---|---|
 | A1 | `Atom.atomic_number`, `Atom.symbol` | 保留现有名字与读写；同一 atomic_number 事实，移除立即重算副作用 | 保留签名；副作用变更待审 |
-| A2 | `Atom.attrs`, `Atom(attrs_array=..., update_electron_config=...)` | 移除长期可写事实数组暴露；完整导入使用私有builder，Stage5删除两个旧构造参数；保留独立19列快照，Stage7C缺失结果用NaN且保持模型输入编码，详见[具体决定](stage1_contract_decisions.md) | 2026-10-28用户已确认；按Stage3/5/7C分步验证 |
+| A2 | `Atom.attrs`, `Atom(attrs_array=..., update_electron_config=...)` | 移除长期可写事实数组暴露；完整导入使用私有builder，Stage5删除两个旧构造参数；保留独立19列快照，Stage7C缺失结果用NaN且保持模型输入编码，详见[具体决定](stages/stage01/contracts/decisions.md) | 2026-10-28用户已确认；按Stage3/5/7C分步验证 |
 | A3 | `Atom.coordinates`, x/y/z, `Molecule.coordinates` | 保留现有赋值入口、共享唯一坐标事实；返回数组副本/不可变行为按基线明确 | 返回别名行为变更待审 |
 | A4 | `Molecule.updata_atoms(*, atoms=None, **columns) -> None` | 按用户指定拼写；Atom句柄选行，None为全部；只接受已审事实/别名，广播、重叠一致、一次校验/提交；不公开UID | 2026-10-28用户确认能力与改名；Stage3实施验证 |
 | A5 | `Molecule.atom_matrix` property | 无fields/dtype参数，返回完整19列float64独立数组；沿既有schema/单位，缺失可选结果按A2在Stage7C编码NaN；不自动增加MCA或新私有字段 | 2026-10-28用户确认；按后续改名/不重复指示直接改名atom_attr_matrix，迁移调用，不保留旧别名 |

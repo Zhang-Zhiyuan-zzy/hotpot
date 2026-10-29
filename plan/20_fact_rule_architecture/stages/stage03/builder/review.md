@@ -13,7 +13,7 @@ companions were read completely in bounded ranges: main1–2448, protocol1–284
 scope audit1–521 including the appendix, alignment1–177, Plan21 1–68; 3498 lines
 in total. Oversized main-plan output was recovered by rereading281–450,
 451–610 and1291–1395. The accepted concrete decisions and affected semantic
-entries of `reviewed_interface_contracts.json` were also inspected.
+entries of `../../../reviewed_interface_contracts.json` were also inspected.
 
 | Record | SHA-256 at this review |
 |---|---|
@@ -41,7 +41,7 @@ Stage0–2 are complete. At HEAD, each Atom still owns its legacy19-slot array.
 The private table, N01 source identity and N05 immutable update candidate exist,
 but complete molecular commits and the builder do not. Prior4096 default
 passes and273/version source passes are predecessor evidence in
-`stage3_atom_update_evidence.json`; they do not validate the proposed installer.
+`../atom-update/evidence.json`; they do not validate the proposed installer.
 Table/writer/rollback integration, readonly detached rows, dependency reads and
 integrated performance remain open. No Stage4, Plan17 backend replacement,
 Stage7 result/frame ownership cutover or Stage13 protocol is started here.
@@ -357,7 +357,7 @@ behavior until Stage5; and unchanged model input encoding. Cover current and
 detached handles plus repeated independent imports. The nonempty/preconfigured
 target and opaque-metadata gates above must be resolved at that concrete step.
 
-Use the Stage3 command selection in `stage_verification_map.json` and add the
+Use the Stage3 command selection in `../../../stage_verification_map.json` and add the
 actual builder/record tests to the complete affected Python3.10–3.14 selection.
 Run the default suite with
 `python -m pytest -q --import-mode=importlib tests` in the selected environment.

@@ -1,0 +1,77 @@
+{
+  "recorded_at_utc": "2026-10-29T05:24:48.721541+00:00",
+  "status": "passed",
+  "scope": "Document layout and navigation only; no implementation/test/scientific/performance acceptance",
+  "stages": [
+    "stage00",
+    "stage01",
+    "stage02",
+    "stage03"
+  ],
+  "allowed_markdown_types": [
+    "README.md",
+    "decisions.md",
+    "entry_review.md",
+    "report.md",
+    "review.md"
+  ],
+  "markdown_files_checked": 14,
+  "json_files_checked": 21,
+  "migrated_records": 28,
+  "external_text_files_scanned": 1263,
+  "historical_identity_checks": {
+    "enabled": true,
+    "json_snapshots": 19,
+    "markdown_command_and_identity_records": 9,
+    "implementation_log_prefix": true
+  },
+  "errors": [],
+  "command": [
+    "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+    "plan/20_fact_rule_architecture/audit_stage_records.py",
+    "--check-migration-bytes",
+    "--output",
+    "plan/20_fact_rule_architecture/stages/layout_evidence.json"
+  ],
+  "cwd": "/home/zhangzhiyuan/hotpot",
+  "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+  "cpu_affinity": [
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+  ],
+  "audit_source_sha256": "96c6b511999b2146b237f55187de984439a8e9ef037849f1ab748cef8a8e3a2a",
+  "negative_probe": {
+    "status": "passed",
+    "command": [
+      "taskset",
+      "-c",
+      "24-31",
+      "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+      "/tmp/plan20-stage-layout-20261029/probe_layout.py"
+    ],
+    "environment_overrides": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "source": {
+      "path": "/tmp/plan20-stage-layout-20261029/probe_layout.py",
+      "sha256": "9ba7c52191dc1d703d3ec73d2d0c0a4daf558aeb9a3127ffecf723f114fb2c04"
+    },
+    "fixture": "Isolated temporary copy of the plan; original input files untouched",
+    "fixture_baseline": "passed",
+    "negative_fixture": "failed as required",
+    "detected_conditions": [
+      "top-level stage3 directory rejected; stageNN required",
+      "unknown Markdown filename rejected",
+      "unindexed JSON rejected",
+      "unindexed Markdown rejected",
+      "missing local Markdown link rejected"
+    ],
+    "production_tests_rerun": false
+  }
+}

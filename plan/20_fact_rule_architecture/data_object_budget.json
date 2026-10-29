@@ -23,19 +23,19 @@
     "ordinary_classes_retired": 9,
     "retired_native_struct_candidates": 6,
     "ordinary_removal_commit": "c6bfcd4906254ee113c14103009f071e91f60368",
-    "ordinary_removal_evidence": "stage2_execution_evidence.json",
+    "ordinary_removal_evidence": "stages/stage02/evidence.json",
     "ordinary_classes_added": 2,
     "ordinary_additions": [
       {
         "symbol": "hotpot.cheminfo.structure._atom_table._AtomFactTable",
         "stage": "Stage3",
         "scope": "Sole active Molecule Atom numeric/presence/source owner after the connected writer cutover; complete validation pending",
-        "verification": "stage3_storage_evidence.json"
+        "verification": "stages/stage03/storage/evidence.json"
       },
       {
         "symbol": "hotpot.cheminfo.structure._commit._FactTransaction",
         "stage": "Stage3",
-        "scope": "Task-local closed-domain mutation/undo controller, never retained on a carrier; design frozen in stage3_table_cutover_review.md",
+        "scope": "Task-local closed-domain mutation/undo controller, never retained on a carrier; design frozen in stages/stage03/table-cutover/review.md",
         "verification": "Pending frozen production execution evidence"
       }
     ],
@@ -47,7 +47,7 @@
           "owner",
           "dependencies"
         ],
-        "verification": "stage3_identity_metadata_evidence.json"
+        "verification": "stages/stage03/identity/evidence.json"
       },
       {
         "symbol": "hotpot.cheminfo.structure._mutation._AtomFactUpdate",
@@ -61,7 +61,7 @@
           "presence",
           "sources"
         ],
-        "verification": "stage3_atom_update_evidence.json"
+        "verification": "stages/stage03/atom-update/evidence.json"
       },
       {
         "symbol": "hotpot.cheminfo.structure._builder.MoleculeRecord",
@@ -90,7 +90,7 @@
           "torsion_constraints",
           "identifier"
         ],
-        "verification": "stage3_record_evidence.json"
+        "verification": "stages/stage03/builder/evidence.json"
       }
     ],
     "new_enums": 1,
@@ -183,7 +183,7 @@
       "status": "implemented; one immutable owner/domain binding, not six identity classes",
       "actual_symbol": "hotpot.cheminfo.structure._identity._SourceIdentity",
       "commit": "d7989b3",
-      "verification": "stage3_identity_metadata_evidence.json"
+      "verification": "stages/stage03/identity/evidence.json"
     },
     {
       "id": "N02",
@@ -194,8 +194,8 @@
       "status": "implemented immutable record/codec only; no installer or production table cutover",
       "actual_symbol": "hotpot.cheminfo.structure._builder.MoleculeRecord",
       "commit": null,
-      "verification": "stage3_record_evidence.json",
-      "review": "stage3_builder_review.md",
+      "verification": "stages/stage03/builder/evidence.json",
+      "review": "stages/stage03/builder/review.md",
       "planned_symbol": "hotpot.cheminfo.structure._builder.MoleculeRecord",
       "fields": [
         "atom_count",
@@ -269,7 +269,7 @@
       "status": "implemented; one immutable closed candidate, production commit/table cutover pending",
       "actual_symbol": "hotpot.cheminfo.structure._mutation._AtomFactUpdate",
       "commit": null,
-      "verification": "stage3_atom_update_evidence.json",
+      "verification": "stages/stage03/atom-update/evidence.json",
       "fields": [
         "source",
         "rows",
@@ -279,7 +279,7 @@
         "presence",
         "sources"
       ],
-      "review": "stage3_atom_update_review.md",
+      "review": "stages/stage03/atom-update/review.md",
       "consumers": [
         "closed scalar/batch Atom normalization",
         "future one _commit_atom_facts; no public export"

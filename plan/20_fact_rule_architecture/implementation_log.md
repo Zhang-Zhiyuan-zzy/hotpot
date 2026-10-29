@@ -990,3 +990,39 @@ review records and retained failed attempts by SHA256.
   completed there with pybind11=3.1.0,setuptools=84.2.1,build=1.6.1,
   wheel=0.48.0,ninja=1.13.2,pyproject_hooks=1.3.3. Other environment paths
   and production sources were not changed by this installation.
+
+### Stage-record layout — mechanical organization on 2026-10-29
+
+- The owner explicitly requested stage-based document directories while the
+  main process continued implementation. Starting from
+  `aeda200868209243aabf8b8c611765fdde142710`, the assigned Sol-max task moved
+  28 existing records (9 Markdown,19 JSON) into `stages/stage00` through
+  `stage03`, with topic directories for repeated Stage3 reviews. The complete
+  old/new list and original/relocated identities are in
+  `stages/path_migration.json`; every stage has a complete README index.
+- `stages/README.md` defines the finite Markdown filenames `README.md`,
+  `entry_review.md`, `review.md`, `decisions.md`, `report.md`. JSON names remain
+  purpose-specific and each JSON is indexed by the corresponding README.
+  No empty later-stage directory was created. Main/normative and genuinely
+  cross-stage manifests, ledgers, baseline inventory and tools retain their
+  existing ownership. The chemical-type companion has one mechanical link
+  adjustment; plan objectives, stages, gates, contracts and decisions did not
+  change. This move does not assert a new normative reread or test rerun.
+- All19 historical JSON files retain their exact bytes. Existing Markdown
+  command fences, digest-bound identity rows and all preceding implementation
+  log text were preserved against the checkpoint. Active root navigation and
+  maintained-ledger references were updated; historical checkout filenames
+  resolve through the migration index rather than alias files or rewritten
+  evidence identities.
+- Executed `taskset -c 24-31 python plan/20_fact_rule_architecture/audit_stage_records.py --check-migration-bytes --output plan/20_fact_rule_architecture/stages/layout_evidence.json`.
+  The read-only audit checks Markdown types, complete README indexes, JSON,
+  local links, migration targets and active external paths. An isolated copied
+  plan also verified rejection of an unknown Markdown type, unindexed Markdown
+  and JSON records, and a missing link target. Exact results, interpreter,
+  affinity and audit/probe identities are retained in
+  `stages/layout_evidence.json`. This is document-layout evidence, not native,
+  default-suite, scientific or performance acceptance.
+- Core/native/build implementation remained outside this document change.
+  Core integration resumes under its already frozen private hooks after the
+  document handoff. No commit/push was performed by the document worker; the
+  parent owns the next coherent documentation commit and push cadence.

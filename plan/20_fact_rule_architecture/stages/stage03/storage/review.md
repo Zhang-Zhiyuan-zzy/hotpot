@@ -1,10 +1,10 @@
 # Stage3 private storage review
 
 This is preparation within the Stage3 entry recorded in
-`stage3_entry_review.json`, after foundation commit `f9f87da`. It does not
+`../foundation/entry_review.json`, after foundation commit `f9f87da`. It does not
 complete Stage3 or start a later stage. The main plan and four companions were
 fully read at entry and again for the revised interface review; the immutable
-read records are indexed by `stage3_foundation_evidence.json`.
+read records are indexed by `../foundation/evidence.json`.
 
 The separate `8a7c6a6` coverage fix includes package-root Python files and
 restores three never-retired original debt entries. Its correction record
@@ -62,7 +62,7 @@ ratios for N16/256/4096 were 0.762/0.209/0.159. These are mixed results, not a
 production performance pass; scalar dispatch and molecular transactions still
 need a measured integrated design. Retained-memory figures describe freshly
 constructed stores, excluding temporary growth/remap peak allocations.
-Final measured results and tests are indexed by `stage3_storage_evidence.json`.
+Final measured results and tests are indexed by `evidence.json`.
 
 ## Required complete production cutover
 

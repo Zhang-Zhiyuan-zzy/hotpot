@@ -41,6 +41,12 @@ def _geometry_snapshot(mol, atoms):
     return coordinates, (coordinates.tobytes(), presence, sources)
 
 
+def _member_geometry(geometry, rows, count):
+    return tuple(b''.join(
+        data[row * (len(data) // count):(row + 1) * (len(data) // count)]
+        for row in rows) for data in geometry)
+
+
 def _view_coordinates(view):
     mol = view.mol
     with mol._mutation_lock:
@@ -51,12 +57,19 @@ def _view_coordinates(view):
         return coordinates
 
 
+def _initialize_view_source(view, source, uids, geometry):
+    """Install the existing source fields on a newly constructed view."""
+    object.__setattr__(view, '_view_source', source)
+    object.__setattr__(view, '_view_uids', uids)
+    object.__setattr__(view, '_view_geometry', geometry)
+
+
 def _bind_view(view, atoms, *, source=None):
     mol = atoms[0].mol
     with mol._mutation_lock:
-        view._view_source = _capture_view_source(mol) if source is None else source
-        view._view_uids = tuple(atom._uid for atom in atoms)
-        view._view_geometry = _geometry_snapshot(mol, atoms)[1]
+        _initialize_view_source(
+            view, _capture_view_source(mol) if source is None else source,
+            tuple(atom._uid for atom in atoms), _geometry_snapshot(mol, atoms)[1])
 
 
 def _restored_source(mol, current):

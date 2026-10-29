@@ -1474,3 +1474,109 @@ review records and retained failed attempts by SHA256.
   `git diff --check` passes. The next coherent extraction commit will be the
   second commit since the successful`ba662e3` push; no cadence-only commit
   is created and Stage4 is not declared complete at this checkpoint.
+
+
+### Stage4 bounded optimization and frozen follow-up — 2026-10-29
+
+- Continued the same Stage4 entry at`0bc19f8`; no new stage, scientific route,
+  protocol experiment or architectural revision was entered. The Sol/max
+  implementation owner confirmed the unchanged main-plan digest and preserved
+  the scope-audit's link-only appendix change separately. The six dirty
+  production/test files were its known exclusive work; no unknown user edit
+  or competing writer was found. All owner writes stopped before final gates.
+- The bounded implementation captures source/UID/geometry once under the
+  existing sequence-query lock and creates the same fresh views with the same
+  five fields/three byte buffers. One existing pair slice expression now has
+  one private helper. The complete Bond lookup preserves first active, then
+  hidden-metal, then hidden-covalent selection and missing`None`. Crystal's
+  existing private staticmethod binds the sole unchanged mathematical function
+  directly, retaining subclass dispatch. No carrier cache, extra index, public
+  signature, native source or scientific algorithm changed.
+- The owner's focused second attempt passed320 tests in16.26s. Its first
+  attempt's one architecture import failure and319 passes remain preserved;
+  only the new tests' direct-Core imports required correction. The actual
+  profiling commands and unchanged-work counts live in
+  `stages/stage04/performance/profiling/evidence.json`;840 geometry snapshots
+  became40, with840 fresh views retained. These diagnostics are not formal
+  performance acceptance.
+- Executed the actual recorded wrappers with
+  `/tmp/hotpot-plan20-env/bin/python
+  .plan20-artifacts/20261029/stage4/validation-helpers-opt/run_recorded.py`
+  and requests`request-default-attempt4.json`,`request-matrix-v4.json`, and
+  `request-sdist-optimization-attempt1.json`. The complete default command
+  remains`taskset -c 24-31 /tmp/hotpot-plan20-env/bin/python -m pytest -q
+  --import-mode=importlib tests` with exact XML/cache/temp arguments recorded:
+  4585 passed,123 skipped,3 xfailed,49 subtests,10 warnings;146.92s pytest,
+  148.877s wall. Python3.10–3.14 each passed2287 source,175 debug allocator,
+  2157 installed tests and42 source/installed skips. All five current-wheel
+  audits, outside-checkout smokes and542-member current sdist audit passed.
+  Frozen production/native/tests/runner bytes stayed stable. The unchanged
+  seven standalone native source/API results retain their exact provenance;
+  Stage10's clean native rebuild is not claimed here.
+- The common technical benchmark runner now binds exactly the original DS
+  node to`[False]` only in candidate mode. Four baseline/candidate and
+  collection/execution command checks preserve count, already qualified and
+  unrelated targets; the original function-body AST matches B20 after the
+  sole new collision conditional is removed. New`[True]` work stays outside
+  the frozen common set. Full common-suite timing is still pending. The first
+  artifact-only helper had an incorrect argv-offset assertion; its failed
+  record remains. An sdist request also stopped before build on an already
+  used output directory; the passing fresh directory did not overwrite it.
+- Executed the same recorded wrapper with
+  `request-performance-wrapper-attempt2.json` only after all technical work
+  stopped. Original three workloads/inputs,CPU0–63,one BLAS/OpenMP thread,
+  three warmups/ten samples and interleaved phase ordering remain unchanged.
+  Six workers/78 attempts/60 measured samples complete, no failed/no-output,
+  equal work counters,stable source/native and zero environment mismatches;
+  host shared, not exclusive. Graph/view current/B20 is2.05414
+  (95%CI2.03997–2.06512), screening1.00568(CI0.99899–1.01255), Crystal0.99424
+  (CI0.99093–0.99957). Complete graph family1.43729(CI1.43035–1.44402)
+  remains a regression. Original4.053/1.103 results remain visible, no
+  exception was requested/approved, and lower process RSS does not close
+  global memory/performance acceptance. Exact artifacts and hashes are appended
+  as`optimization_followup` in the owning validation/performance evidence.
+- Helper v2 was acknowledged/transmitted. The unique inline-delta remote
+  review returned no concrete correctness blocker but executed no tests;
+  source/test hashes link the actual local follow-up above. That task was
+  already running on its existing5.6-sol/xhigh thread when the latest model
+  correction arrived, and the actual model is recorded. Later explicit6.1-sol
+  dispatch did not change that existing thread; the uniquely authorized6.1
+  child failed deployment with404 before analysis. No failed task is called
+  completed analysis. The bounded gate-interpretation task was uniquely moved
+  to local6.1-sol/high; no duplicate remote/local analysis ran. No project
+  synchronization, MCP installation or permission copying occurred.
+
+### Stage4 owning-stage closure and unchanged final acceptance
+
+- Completed the bounded work and its frozen follow-up before changing the
+  current in-progress status. The actual Stage4 gate requires focused
+  comparison; numerical geometry/Crystal parity is a separate correctness
+  item. Section12.2 explicitly blocks`performance acceptance` on convincing
+  regressions, and Stage12 owns the complete Sections11–12 matrix. This is
+  the same scope distinction already recorded at Stage3 closure, not a new
+  gate, policy amendment or efficiency waiver.
+- The unique local6.1-sol/high analysis read the packet and actual main/status
+  documents and reported those exact controlling phrases. Root checked the
+  key quotes and actual frozen execution evidence; the analysis itself ran
+  no tests and supplied no approval. The formal closure, evidence map and
+  unresolved results are in`stages/stage04/gates/review.md`. Main-plan edits
+  only refresh its stale status header; objectives/stages/gates are unchanged.
+- Explicitly closed Stage4's owning implementation/technical/current-package
+  and valid-comparison obligations in its report, README and verification map.
+  The2.054×graph/view and1.437×complete graph-family regressions, earlier
+  Stage3 costs, scientific/all71-workload/GPU/end-to-end/memory obligations
+  continue to block final main-scope acceptance. No claim says these will
+  disappear automatically in later stages. No Stage13 experiment is entered.
+- Stage5 entry is next, only after the coherent Git checkpoint; it must reread
+  the full current main plan/four companions and assess predecessor/source/
+  worktree/environment before design or implementation. The optimization
+  checkpoint is the third commit since the successful`ba662e3` push and will
+  be pushed under the owner's established cadence. Actual commit/push identity
+  will be captured by the next stage-entry record; no cadence-only commit is
+  created for that bookkeeping.
+- Executed`python plan/20_fact_rule_architecture/audit_stage_records.py
+  --check-migration-bytes --output
+  .plan20-artifacts/20261029/stage4/layout-closure.json`:passed36 Markdown,
+  33 JSON,69 indexed assets,all14 stages and historical identity checks.
+  `git diff --check` passes. These navigation checks supply no performance
+  or scientific approval.

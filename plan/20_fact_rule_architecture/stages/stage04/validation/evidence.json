@@ -3644,5 +3644,535 @@
     "path": ".plan20-artifacts/20261029/stage4/layout-checkpoint.json",
     "bytes": 2503,
     "sha256": "448d13bfe0cc68de3ffe092bca3ee4fa81f0667626d2f26a8579339a63b6abd9"
+  },
+  "optimization_followup": {
+    "recorded_at_utc": "2026-10-29T09:56:29.421232+00:00",
+    "source_commit": "0bc19f824a193b60b3ef93d89cd852079494baa8",
+    "status": "executed default/source/debug/current-wheel/sdist passed; focused performance tracked separately; no global acceptance",
+    "production": {
+      "hotpot/cheminfo/core.py": "d567da7f5287aeae2ed434803f1314f5fc5e68995db8e5af5e8ad42e0b06ba2c",
+      "hotpot/cheminfo/crystal.py": "b212225ee09337f019dcba412f9304077b7155e372bc928823984c104b69dc35",
+      "hotpot/cheminfo/operations/geometry.py": "7abf9de6534ff909bf217a088aed71d09f15deab659e06b1e762acfe54a3d5e4",
+      "hotpot/cheminfo/views/_source.py": "d37cc81ffb2ae5582e49ed46e8fd99196b83e4ecefa610047fc85b6242942ddd"
+    },
+    "changed_tests": {
+      "tests/test_cheminfo/structure/test_view_identity.py": "86729b72a359b3e1d43ab0662917b6f761b333d5c0a3285df03a3be458e243d2",
+      "tests/test_cheminfo/structure/test_crystal_convention.py": "46ed382d6f5a7e55cf0cf8ca1f8ccafdaf36b2779a071a6ceaaebc0add0cb114"
+    },
+    "default": {
+      "command": {
+        "path": ".plan20-artifacts/20261029/stage4/default-attempt4/command.json",
+        "sha256": "290248465a2476f8e9e09cbf4e1477850518ad3299612d619aaf936dca47f089"
+      },
+      "xml": {
+        "path": ".plan20-artifacts/20261029/stage4/default-attempt4/result.xml",
+        "sha256": "dd7e02b11593651a1f72584f5877ed4b2fda8ea1ab2087d8ae0f96be23ecedd3"
+      },
+      "xml_counts_include_subtests": {
+        "tests": 4760,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 126
+      },
+      "pytest_summary": "4585 passed, 123 skipped, 3 xfailed, 49 subtests passed; 10 warnings; 146.92s pytest, 148.877s wall"
+    },
+    "matrix_wrapper": {
+      "path": ".plan20-artifacts/20261029/stage4/matrix-wrapper-v4/command.json",
+      "sha256": "01f6ab82b2c2b31f73d9679b266cd75cd6e59de50c9c8d5c5ad93365afad69a5"
+    },
+    "matrix_summary": {
+      "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/summary.json",
+      "sha256": "75cd94b1d28c3f946e74ee6d0019aa323fb64655a7f9289da697fa146d5be52c"
+    },
+    "matrix_frozen_before": {
+      "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/frozen-before.json",
+      "sha256": "3570ae0fad501f976bffd1361a8e768225e33e23c3bf3782f319fcc966225fb0"
+    },
+    "matrix_frozen_after": {
+      "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/frozen-after.json",
+      "sha256": "3570ae0fad501f976bffd1361a8e768225e33e23c3bf3782f319fcc966225fb0"
+    },
+    "versions": [
+      {
+        "version": "3.10",
+        "summary": {
+          "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.10/summary.json",
+          "sha256": "d918bb8223dc0696cf4cbddd15d991b77539cccae443e2b62f79b51f4f5b5eed"
+        },
+        "wheel": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/matrix-final-v4/3.10/wheels/hotpot_zzy-0.5.4.5-cp310-cp310-linux_x86_64.whl",
+          "sha256": "7a9e68d798fa7ab5893b7eff97831b6bdc7474a2ca01097b1f829164e9babe9d"
+        },
+        "runs": {
+          "source": {
+            "command": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.10/source-attempt1/command.json",
+              "sha256": "fc617ee21ed56d4225741c9f5297217b49187077504fa5b9904297d9ff7521f4"
+            },
+            "xml": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.10/source.xml",
+              "sha256": "08b2b4bc495a9ada0ec6aa4cd9ca3949f623ce2f2394f9d06c22b4a305d8e968"
+            },
+            "xml_counts": {
+              "tests": 2329,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 42
+            }
+          },
+          "debug": {
+            "command": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.10/debug-allocator-attempt1/command.json",
+              "sha256": "cd7bddb1efbe615afe7a03b27b4896f0aff2d0a176e815acc01cc3295e1eeefc"
+            },
+            "xml": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.10/debug.xml",
+              "sha256": "d395a555e177f7d64192fb9578767fad0f2906307dc5fe8a40b074a6701b8b26"
+            },
+            "xml_counts": {
+              "tests": 175,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 0
+            }
+          },
+          "installed": {
+            "command": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.10/installed-runtime-attempt1/command.json",
+              "sha256": "307626357db111b5b9ee41f7ea4988d8c11cc573c92d337b09e1ddebae089c21"
+            },
+            "xml": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.10/installed.xml",
+              "sha256": "9c2777fad111b50a71c89102645f620d54f6c941cc39fd94985647931121b3c2"
+            },
+            "xml_counts": {
+              "tests": 2199,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 42
+            }
+          },
+          "build-py-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.10/build-py-attempt1/command.json",
+            "sha256": "2163a94160c286364fed7801dd0a20b2fc91db67bbdb0d1b6f25c24a30aa7040"
+          },
+          "bdist-wheel-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.10/bdist-wheel-attempt1/command.json",
+            "sha256": "d9ca334ed442b088890d8cbf5d81b752cb9468c49b851b3025dc419480a1bf68"
+          },
+          "wheel-audit-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.10/wheel-audit-attempt1/command.json",
+            "sha256": "4f317f258adf59bdc18db1811baa2f562b02ed704d8d3e6da2aa53762648a32e"
+          },
+          "pip-install-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.10/pip-install-attempt1/command.json",
+            "sha256": "51d0b1e1caff5f3de1fb16e0d987f10fc8ec8fc2c0bce07e2503162152f0219e"
+          },
+          "installed-core-smoke-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.10/installed-core-smoke-attempt1/command.json",
+            "sha256": "0d0c261180226e61d74d8e0bee3ce79007b03ef59df18da909eac87b2e51ad69"
+          }
+        }
+      },
+      {
+        "version": "3.11",
+        "summary": {
+          "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.11/summary.json",
+          "sha256": "83e134d823c39d68e1b27f6b10454da5dfc1f168eb986525fcbd9300228331e4"
+        },
+        "wheel": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/matrix-final-v4/3.11/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+          "sha256": "6bb9c81c3e3382817974aff707d419d2c2722e3a6dff8db8014c9e37fd5b72ec"
+        },
+        "runs": {
+          "source": {
+            "command": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.11/source-attempt1/command.json",
+              "sha256": "a9bf11859bbb1e4b6ba20befa622abe29858437914a1daa354691ec4265afce2"
+            },
+            "xml": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.11/source.xml",
+              "sha256": "839b1981c4f6f9b4dcb7c61a2f7a7104f53647891dcf5ed11ccec8b406c7c0c5"
+            },
+            "xml_counts": {
+              "tests": 2329,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 42
+            }
+          },
+          "debug": {
+            "command": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.11/debug-allocator-attempt1/command.json",
+              "sha256": "39ae1e1926e9edf01261c07d3734e28f65e097deaa7d6e59deaf602562b313c0"
+            },
+            "xml": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.11/debug.xml",
+              "sha256": "dc57858cc872ead335219b868ca2567f31083250b73790aac7571b5f4b37eb65"
+            },
+            "xml_counts": {
+              "tests": 175,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 0
+            }
+          },
+          "installed": {
+            "command": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.11/installed-runtime-attempt1/command.json",
+              "sha256": "423a8bca2146b0d10150f2b89db005a53bf834cd42e0eb91b6d882a53f334968"
+            },
+            "xml": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.11/installed.xml",
+              "sha256": "ffddeff8fcae82bb52347194ae9048b309173a1480e6dfb48aa12f48b90186d7"
+            },
+            "xml_counts": {
+              "tests": 2199,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 42
+            }
+          },
+          "build-py-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.11/build-py-attempt1/command.json",
+            "sha256": "7e09a42aea92deeea9ca27f2108c7dd3a3590c68b82de2eea8a6277df21a8650"
+          },
+          "bdist-wheel-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.11/bdist-wheel-attempt1/command.json",
+            "sha256": "80c6c1a0d544b58a079b65fd14301aad88304d766d597e7b20ef33af58199942"
+          },
+          "wheel-audit-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.11/wheel-audit-attempt1/command.json",
+            "sha256": "5f6f37d126047ce7432094979775e45cc75d8bbf2009ed640de1434415e957bf"
+          },
+          "pip-install-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.11/pip-install-attempt1/command.json",
+            "sha256": "96e9555793eeecd1308298dbfb7f6525d03ac6732b6ce402abba6324ddea6c60"
+          },
+          "installed-core-smoke-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.11/installed-core-smoke-attempt1/command.json",
+            "sha256": "cd19a246ca349b8c3119cc9c49eeb2b35ac7c6fc8e86606cff644285b8ccbaf8"
+          }
+        }
+      },
+      {
+        "version": "3.12",
+        "summary": {
+          "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.12/summary.json",
+          "sha256": "a0e67038f4310149328856d318c544b177fa8ec2fd25e6c3dd2debc6b1f18bff"
+        },
+        "wheel": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/matrix-final-v4/3.12/wheels/hotpot_zzy-0.5.4.5-cp312-cp312-linux_x86_64.whl",
+          "sha256": "97bddd2525fdd39b656e9858876e25e757e7a6f1b25e4b04a190e1a97d189156"
+        },
+        "runs": {
+          "source": {
+            "command": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.12/source-attempt1/command.json",
+              "sha256": "2b2ed1e997ca214a3f213e40fe8c2ef2b31bffd35552bdacb45291314c09edac"
+            },
+            "xml": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.12/source.xml",
+              "sha256": "9bd64a0b5e91c3dd7511c6c9cd7bbfc2cd01742b489aa800d0975866a6297117"
+            },
+            "xml_counts": {
+              "tests": 2329,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 42
+            }
+          },
+          "debug": {
+            "command": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.12/debug-allocator-attempt1/command.json",
+              "sha256": "d0d335067a29cfde2ac9e154b1ae6280100c6780f07312c748307f7717bcb7fc"
+            },
+            "xml": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.12/debug.xml",
+              "sha256": "3dde0ddae400861e08d1595b4eca8861c5b7a6172ae7485f5a812e34e7f3ac72"
+            },
+            "xml_counts": {
+              "tests": 175,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 0
+            }
+          },
+          "installed": {
+            "command": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.12/installed-runtime-attempt1/command.json",
+              "sha256": "34c1f1828089e342225b264ef009a5958c5e4e1a5d050eb00b73af0acaaf2833"
+            },
+            "xml": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.12/installed.xml",
+              "sha256": "0e3d6de6e969460259becb7a735c3083686fe05e59aff21a9fe79078448b50cc"
+            },
+            "xml_counts": {
+              "tests": 2199,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 42
+            }
+          },
+          "build-py-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.12/build-py-attempt1/command.json",
+            "sha256": "1767cb43367d3f2b7074c1d5af6f591c2b58deef1e7db181b38c1c7c91c7213b"
+          },
+          "bdist-wheel-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.12/bdist-wheel-attempt1/command.json",
+            "sha256": "c6f37fe5e0548240c3638a1e226d2a29b636aa1645974b4ae6b65077f02058c2"
+          },
+          "wheel-audit-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.12/wheel-audit-attempt1/command.json",
+            "sha256": "5c291d8990795581bb8ff661cf153653c7172f2bdc44b64e7095aeda3a832232"
+          },
+          "pip-install-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.12/pip-install-attempt1/command.json",
+            "sha256": "1dd43e7485b80d88783e44b9a34fec4b317f70bee6501ad998636125e19b3020"
+          },
+          "installed-core-smoke-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.12/installed-core-smoke-attempt1/command.json",
+            "sha256": "ecce465e041e3dfb7431190bea0f3109b46e5c332f3a686038de029857b1d005"
+          }
+        }
+      },
+      {
+        "version": "3.13",
+        "summary": {
+          "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.13/summary.json",
+          "sha256": "437f0709dc77e1fd88e40f88036149f47b53b20b6319cfd44486d98f74867a9a"
+        },
+        "wheel": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/matrix-final-v4/3.13/wheels/hotpot_zzy-0.5.4.5-cp313-cp313-linux_x86_64.whl",
+          "sha256": "8a7cfe15e6662bd8ab0df647f1cdfad6062250a011812918d416de42d142592e"
+        },
+        "runs": {
+          "source": {
+            "command": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.13/source-attempt1/command.json",
+              "sha256": "6efaa3b792b9b5c95a9eb5f0448160603fd1fe43d84e901d8bab07ea342d7688"
+            },
+            "xml": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.13/source.xml",
+              "sha256": "c348b1371bf6c2f372baeb4ab9f5e485c6d14072855519478bb801d0c58626e7"
+            },
+            "xml_counts": {
+              "tests": 2329,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 42
+            }
+          },
+          "debug": {
+            "command": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.13/debug-allocator-attempt1/command.json",
+              "sha256": "a9924c8b490f5261c27aea19ee0a7af581d5aeec8ef56dce323f11fff13e9555"
+            },
+            "xml": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.13/debug.xml",
+              "sha256": "644b65b6852aec1135955320c57425e80dd686e5a638d5eec9c689774b1d827b"
+            },
+            "xml_counts": {
+              "tests": 175,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 0
+            }
+          },
+          "installed": {
+            "command": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.13/installed-runtime-attempt1/command.json",
+              "sha256": "e770c8bf8e3762024df040110d201258ff050c68a01a521b7a3055adcfe96181"
+            },
+            "xml": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.13/installed.xml",
+              "sha256": "19d76037c10180ecbaaa9517dec1ed520ac835ab18a9f7fdf27c938ae9051013"
+            },
+            "xml_counts": {
+              "tests": 2199,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 42
+            }
+          },
+          "build-py-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.13/build-py-attempt1/command.json",
+            "sha256": "0f36116f03915ec01a040c1432ffc383d825bf3bc301940108b3c080dd22bb59"
+          },
+          "bdist-wheel-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.13/bdist-wheel-attempt1/command.json",
+            "sha256": "62ca2728bf4f33689c9e05508668e9868ad98554be90754c57a637336f45b69d"
+          },
+          "wheel-audit-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.13/wheel-audit-attempt1/command.json",
+            "sha256": "c9d63ec936e8bcf74853ce527e4af0666060dae0fc3f54707e1786f50fc767e0"
+          },
+          "pip-install-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.13/pip-install-attempt1/command.json",
+            "sha256": "7fad1666a49635b81a1c51b046b4b6a7093778451819aafd51baef77947295ea"
+          },
+          "installed-core-smoke-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.13/installed-core-smoke-attempt1/command.json",
+            "sha256": "73433e2a8203abcac2c4874791a944712dc7db7ffa2233aab7d284f875ab2f78"
+          }
+        }
+      },
+      {
+        "version": "3.14",
+        "summary": {
+          "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.14/summary.json",
+          "sha256": "bc08cde0b1055915b23c6b4e15a4eb60e5fdc40580fad23b855b272e306500bd"
+        },
+        "wheel": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage4/matrix-final-v4/3.14/wheels/hotpot_zzy-0.5.4.5-cp314-cp314-linux_x86_64.whl",
+          "sha256": "2da0a3e8921bc09df6c034ac1b7d945584426e9fa0cbc17598f73a2d63b3d503"
+        },
+        "runs": {
+          "source": {
+            "command": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.14/source-attempt1/command.json",
+              "sha256": "667c525139480c1e0cb4cc8e2a8afdfb78c38fe5041146fb0b0bfec596f2e00a"
+            },
+            "xml": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.14/source.xml",
+              "sha256": "2d18f25b420322911d3a63c8fd3b61e93fbd49a46605902fee52c41968d9e9d3"
+            },
+            "xml_counts": {
+              "tests": 2329,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 42
+            }
+          },
+          "debug": {
+            "command": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.14/debug-allocator-attempt1/command.json",
+              "sha256": "77709c994a735b442376482973a1aac332de455a2d539c7ef6d0484dc6c39dc6"
+            },
+            "xml": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.14/debug.xml",
+              "sha256": "af40f9ab648e923b617ce84a6498727ab1f9b73ca49a83bbf0f95f296b9b32bb"
+            },
+            "xml_counts": {
+              "tests": 175,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 0
+            }
+          },
+          "installed": {
+            "command": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.14/installed-runtime-attempt1/command.json",
+              "sha256": "f47355f76d651e8c9ca0027170ad713a3bd049eb858ebe2a32ec71eea128f5d4"
+            },
+            "xml": {
+              "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.14/installed.xml",
+              "sha256": "d1126409e9eb25cd8ce05d1a01f6dbce2f2b83a77cfe66c18e16adeb859170d7"
+            },
+            "xml_counts": {
+              "tests": 2199,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 42
+            }
+          },
+          "build-py-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.14/build-py-attempt1/command.json",
+            "sha256": "bfedf47f8838517cbd8a724838281a9b025db7e68ebf30d4ff0045268e182d0d"
+          },
+          "bdist-wheel-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.14/bdist-wheel-attempt1/command.json",
+            "sha256": "b40f32a46719406ce27cfb1ac27ca14118dd6aa645f282741e0ab7eba98a575f"
+          },
+          "wheel-audit-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.14/wheel-audit-attempt1/command.json",
+            "sha256": "e60f68848a0292e610d74a4e1a3282a2e4b42974c4592c20bdbeae4aac7eedcb"
+          },
+          "pip-install-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.14/pip-install-attempt1/command.json",
+            "sha256": "5dafafea56062a77e8460bdbe5587002572df551e77546e43807427018f88eab"
+          },
+          "installed-core-smoke-attempt1": {
+            "path": ".plan20-artifacts/20261029/stage4/matrix-final-v4/3.14/installed-core-smoke-attempt1/command.json",
+            "sha256": "bc9efc15e7c5e5ec331b75d5e4241a5e73e9a8b5e9f2ccdf30da88d383c6bd6f"
+          }
+        }
+      }
+    ],
+    "sdist": {
+      "command": {
+        "path": ".plan20-artifacts/20261029/stage4/sdist-optimization-wrapper-attempt1/command.json",
+        "sha256": "c6537f14221d7ffeb4d8ec3f18115e95f043574c0689b94793e66fa1ccc3c03e"
+      },
+      "audit": {
+        "path": ".plan20-artifacts/20261029/stage4/sdist-optimization-attempt1/content-audit.json",
+        "sha256": "8af5b02dc723a4b7d1a86387fe2b2327ad1808ad5e1c22059152d243b235ce36"
+      },
+      "matched_members": 542
+    },
+    "peer_review": {
+      "task_id": "p20-s4-opt-review-704283-02",
+      "task_hash": "6c31ae88a5088f028552f1db75929e0194d1f97fed16ade40c15cf44b2c7770e",
+      "diff_or_tree_hash": "79afb14cdd2e844a85f743fbeab423a97ac1445022fd2d2f9756959abfdec292",
+      "packet": {
+        "path": ".plan20-artifacts/20261029/stage4/peer-review/p20-s4-opt-review-704283-02.json",
+        "sha256": "9a79b1bd040dc584c0e637a122fa9ab070e786b88f990710c98e9fe34d8f797d"
+      },
+      "result": {
+        "path": ".plan20-artifacts/20261029/stage4/peer-review/p20-s4-opt-review-704283-02-result.json",
+        "sha256": "5c3efa0a733af3cae635a63f090a44e9534c62789117439e0a8aa43d5d860f99"
+      },
+      "production_and_test_bytes_match": {
+        "hotpot/cheminfo/views/_source.py": true,
+        "hotpot/cheminfo/operations/geometry.py": true,
+        "hotpot/cheminfo/crystal.py": true,
+        "tests/test_cheminfo/structure/test_view_identity.py": true,
+        "tests/test_cheminfo/structure/test_crystal_convention.py": true
+      },
+      "actual_model": "gpt-5.6-sol",
+      "actual_effort": "xhigh",
+      "scope": "Static supplied-delta review only; no tests executed by peer. Model correction arrived after this task was queued. Later attempted gpt-6.1-sol remote dispatch returned MODEL_LIMITATION; no analysis claimed."
+    },
+    "common_case_binding": {
+      "runner": {
+        "path": "plan/20_fact_rule_architecture/run_performance_baseline.py",
+        "sha256": "470d65ea6c1d4a04866f37bde453ba9c83df56cff9ff9aa1c9b152f26924b73d"
+      },
+      "checks": {
+        "path": ".plan20-artifacts/20261029/stage4/common-case-binding-wrapper-v2/command.json",
+        "sha256": "914f6b5acddd151c17f534fee4daf03fc4c18f71630801040340f5251aa53147"
+      },
+      "historical_body_comparison": {
+        "path": ".plan20-artifacts/20261029/stage4/common-case-binding-v2/historical-body-comparison.json",
+        "sha256": "5161a39d972c43f6f01f75f9c551e35bfe56b21dc38720b616e9b9758641d1db"
+      },
+      "scope": "Candidate-only exact original node -> [False]; baseline/qualified/unrelated targets and count unchanged. Original body AST equals B20. No full common-suite timing claimed."
+    },
+    "retained_followup_failures": [
+      {
+        "command": {
+          "path": ".plan20-artifacts/20261029/stage4/common-case-binding-wrapper/command.json",
+          "sha256": "b7e1943d42fa7aae62ffd2189d0ffb2465130a55826ced964803a5afad063748"
+        },
+        "cause": "Artifact-only helper expected target slice at wrong argv offset; corrected helper passed; runner unchanged."
+      },
+      {
+        "command": {
+          "path": ".plan20-artifacts/20261029/stage4/sdist-wrapper-attempt3/command.json",
+          "sha256": "61c264833c80ef48be9b6616d88705dc1bc5cf40bc2d2d7c3329414b67cf7704"
+        },
+        "cause": "Output directory already held earlier checkpoint; no build ran. New unique output used, no prior artifact overwritten."
+      }
+    ],
+    "limits": [
+      "42 source/installed skips are external/scientific-boundary tiers, not execution evidence.",
+      "Native source/recipes/ABI bytes unchanged; reuse earlier executed seven standalone builds and verified binary identities. No new clean native build claimed.",
+      "Global scientific, 71-workload, GPU/end-to-end and overall memory acceptance remain open."
+    ],
+    "layout": {
+      "path": ".plan20-artifacts/20261029/stage4/layout-closure.json",
+      "sha256": "803403533d00f072f8cf84695f9d63b291e828e8668d0e4dc77dab8a804dcba8",
+      "status": "passed;36 Markdown/33 JSON/69 indexed assets,14 stages and retained historical identities"
+    }
   }
 }

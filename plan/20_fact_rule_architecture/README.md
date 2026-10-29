@@ -1,8 +1,7 @@
 # Stage 20 — Fact-Carrier and Rule Architecture
 
-Status: implementation authorized on 2026-10-28; Stage0–3 complete;
-Stage4 implementation/technical verification is recorded; its focused
-performance regressions remain under investigation. All public chemical
+Status: implementation authorized on 2026-10-28; Stage0–4 owning-stage gates complete.
+Stage5 entry is next; final scientific/global efficiency acceptance remains open. All public chemical
 types follow a common protocol for fact ownership, interface mapping,
 permissions, dependencies, buffer ownership and lifecycle. Atom's unified
 fact table is one concrete implementation. Stage2 completed the approved dead/placeholder implementation cleanup;
@@ -54,14 +53,23 @@ Original planning baseline: `0a4b0ee`; reviewed documentation: `d9eb80e`.
 Stage1 must record a fresh executable/performance baseline at the selected
 Plan17/Plan20 boundary before production refactoring.
 
-## Current Stage4 checkpoint
+## Completed Stage4 owning gates
 
 The [Stage4 report](stages/stage04/report.md) binds the extracted mathematics,
 source-bound views, constraint ownership and preserved pair observations.
-Default4571 tests and all five source/debug/current-wheel selections pass.
+After bounded local optimization, default4585 tests pass; each Python3.10–3.14
+passes2287 source/175 debug/2157 installed tests, with current package audits.
 The [focused performance report](stages/stage04/performance/report.md) retains
-4.053×graph/view and1.103×Crystal regressions; no efficiency exception is
-approved. Stage4 is still in progress, and later stages remain gated.
+original and follow-up samples: graph/view2.054×B20, numerical screening1.006×,
+Crystal0.994×; the complete graph family remains1.437×. No efficiency exception
+is approved and final performance acceptance remains blocked.
+
+The [owning-stage gate record](stages/stage04/gates/review.md) closes Stage4's
+actual technical and valid focused-comparison obligations after its bounded
+work completed. This follows the main plan's existing gate scope; it changes no
+final threshold or workload. Stage5 starts with a fresh full normative read and
+project-state assessment. Stage12 global acceptance and the later separately
+branched Stage13 experiment retain their original gates.
 
 ## Records
 

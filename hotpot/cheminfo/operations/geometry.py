@@ -6,7 +6,7 @@ from ..rules.mathematics.view_geometry import _angle_rows, _torsion_rows
 from ..structure._commit import _commit_coordinates
 from ..structure._identity import _capture_source
 from ..structure._mutation import _normalize_atom_facts
-from ..views._source import _capture_view_source
+from ..views._source import _capture_view_source, _geometry_snapshot
 
 
 __all__ = ()
@@ -15,14 +15,15 @@ __all__ = ()
 def _sequence_views(mol, scope, cls, materialize):
     with mol._mutation_lock:
         atoms = tuple(mol._atoms)
+        uids = tuple(atom._uid for atom in atoms)
         index = mol._topology_index
-        adjacency = tuple(tuple(index[id(bond.atom2 if bond.atom1 is atom else bond.atom1)][0]
+        adjacency = tuple(tuple(index[id(bond._atoms[1] if bond._atoms[0] is atom else bond._atoms[0])][0]
                                 for bond in index[id(atom)][1]) for atom in atoms)
-        edges = tuple((index[id(bond.atom1)][0], index[id(bond.atom2)][0]) for bond in mol._bonds)
+        edges = tuple((index[id(bond._atoms[0])][0], index[id(bond._atoms[1])][0]) for bond in mol._bonds)
         rows = list(_angle_rows(adjacency) if scope == "angles" else _torsion_rows(edges, adjacency))
         constrained = getattr(mol._constraints, scope)
         if constrained:
-            uid_rows = {atom._uid: row for row, atom in enumerate(atoms)}
+            uid_rows = {uid: row for row, uid in enumerate(uids)}
             seen = set(rows)
             for members in constrained:
                 entry = tuple(uid_rows[uid] for uid in members)
@@ -30,9 +31,13 @@ def _sequence_views(mol, scope, cls, materialize):
                     rows.append(entry)
                     seen.add(entry)
         complete = tuple(mol._bonds) + tuple(mol._hided_metal_bonds) + tuple(mol._hided_covalent_bonds)
-        bonds = {frozenset((id(bond.atom1), id(bond.atom2))): bond for bond in complete}
+        bonds = {}
+        for bond in complete:
+            bonds.setdefault(frozenset((id(bond._atoms[0]), id(bond._atoms[1]))), bond)
         source = _capture_view_source(mol)
-        return [materialize(cls, mol, row, bonds, source=source) for row in rows]
+        geometry = _geometry_snapshot(mol, atoms)[1]
+        return [materialize(cls, atoms, row, bonds, source=source, uids=uids, geometry=geometry)
+                for row in rows]
 
 
 def _angle_views(mol, cls, materialize):

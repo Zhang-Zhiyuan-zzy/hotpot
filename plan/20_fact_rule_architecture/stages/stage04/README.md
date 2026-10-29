@@ -1,9 +1,9 @@
 # Stage4 records
 
 Mathematical extraction, source-bound views and persisted constraint ownership.
-Technical/source/package gates are verified on the frozen checkpoint;
-measured view/Crystal regressions remain under bounded optimization review.
-Stage4 is still in progress.
+Owning-stage technical/source/package and valid focused-comparison gates are
+complete after bounded local optimization. The measured graph/view regression
+continues to block final global performance acceptance; Stage5 entry is next.
 
 [Catalog and filename meanings](../README.md) · [Main project index](../../README.md)
 
@@ -21,4 +21,7 @@ Stage4 is still in progress.
 | [validation/evidence.json](validation/evidence.json) | Exact commands, artifacts, frozen source identities, all actual results and prerequisite DS defect evidence |
 | [performance/report.md](performance/report.md) | Focused equivalent-work results, visible regressions and remaining optimization |
 | [performance/evidence.json](performance/evidence.json) | Original raw-sample/command identities, confidence intervals, work counts and memory limits |
-| [report.md](report.md) | Coherent extraction checkpoint and explicit remaining Stage4/global work |
+| [performance/review.md](performance/review.md) | Bounded local view/Crystal optimization, preserved contracts and diagnostic limits |
+| [performance/profiling/evidence.json](performance/profiling/evidence.json) | Actual profiling/focused attempts, frozen identities, retained failure and handoff |
+| [gates/review.md](gates/review.md) | Executed owning-stage closure, exact main-plan scope and retained global acceptance blockers |
+| [report.md](report.md) | Completed Stage4 owning gates and explicit remaining global work |

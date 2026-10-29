@@ -1,9 +1,10 @@
-# Stage4 extraction checkpoint
+# Stage4 owning-stage completion
 
-Status: implementation and technical gates are verified; Stage4 remains in
-progress because its focused measurements expose regressions under bounded
-Sol/max investigation. This is a reviewable checkpoint, not final Stage4 or
-main-plan acceptance.
+Status: Stage4's owning-stage implementation, bounded optimization, technical
+checks and valid focused comparison are complete. Final scientific/global
+performance acceptance remains open and blocked by measured regressions.
+[Gate closure](gates/review.md) records the exact main-plan scope, executed
+evidence and explicit transition from the prior in-progress checkpoint.
 
 ## Implemented ownership
 
@@ -34,9 +35,9 @@ ownership is actually included in the write scanner's negative tests.
 
 ## Executed evidence
 
-[Technical report](validation/report.md): complete default4571 passed,
-123 skipped,3 xfailed and49 subtests; each Python3.10–3.14 passes2273 source,
-162 debug-allocator and2143 installed tests (42 source/installed skips),
+[Technical report](validation/report.md): complete default4585 passed,
+123 skipped,3 xfailed and49 subtests; each Python3.10–3.14 passes2287 source,
+175 debug-allocator and2157 installed tests (42 source/installed skips),
 plus wheel audit/smoke, actual source-distribution audit and7 standalone C++
 source-API builds. Original failures and every subsequent repair are retained.
 
@@ -46,18 +47,19 @@ filesystem observations support its minimal release-time proof repair;
 complete DS and supported-version evidence cover it. This adds no architecture,
 public interface or scientific route.
 
-[Performance report](performance/report.md): all six focused workers/78
-attempts complete with equal work. Graph/search/view reads are4.053×B20,
-Crystal conversion1.103×, numerical geometry screening0.997× (parity).
-These regressions are not waived or hidden by lower process RSS. A bounded
-Sol/max review investigates local creation/delegation costs before further
-Stage4 closure; the current production bytes remain frozen until a concrete
-change partition is accepted.
+[Performance report](performance/report.md): after bounded source/geometry
+capture and Crystal dispatch optimization, all six focused workers/78 attempts
+complete with equal work. Graph/search/view reads are2.054×B20, screening1.006×,
+Crystal0.994×; the complete graph family remains1.437×. The original4.053/1.103
+regressions remain visible. Exact frozen follow-up tests, source/package runs,
+raw samples and failures are appended in the owning evidence records.
 
 ## Remaining boundaries
 
-Stage4 is not declared complete at this checkpoint. The final71-workload,
-scientific, end-to-end and overall memory gates remain open, including prior
-Stage3 regressions. Stage5–12 and the separately branched Stage13 experiment
-are not entered by this report. Stage13 still requires completed, tested,
-benchmarked and committed main-plan delivery first.
+Stage4's own obligations are complete; the final71-workload, scientific,
+end-to-end and overall memory gates remain open, including prior Stage3
+regressions and current graph/view costs. No efficiency exception is approved.
+Stage5 begins with a fresh full normative read and project-state assessment.
+Stage6–12 and the separately branched Stage13 experiment retain their original
+gates. Stage13 still requires completed, tested, benchmarked and committed
+main-plan delivery first.

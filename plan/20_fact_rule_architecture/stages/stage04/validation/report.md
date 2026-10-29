@@ -1,7 +1,8 @@
 # Stage4 technical validation checkpoint
 
 The frozen implementation passes its technical, supported-Python and package
-checks. Stage4 remains in progress for its measured performance regressions;
+checks after the frozen local optimization. [Owning-stage closure](../gates/review.md)
+retains the measured graph/view regression as an open final performance item;
 this report supplies no final scientific/global efficiency approval.
 [Execution evidence](evidence.json) binds exact argv, cwd, environment,
 interpreter, production/native/tests/runner hashes, artifacts and elapsed time.
@@ -10,10 +11,10 @@ interpreter, production/native/tests/runner hashes, artifacts and elapsed time.
 
 | Check | Result |
 |---|---|
-| Complete default suite |4571 passed,123 skipped,3 xfailed,49 subtests;10 warnings |
-| Python3.10–3.14 source, each |2273 passed,42 skipped |
-| Python3.10–3.14 debug allocator, each |162 passed |
-| Python3.10–3.14 installed runtime, each |2143 passed,42 skipped |
+| Complete default suite |4585 passed,123 skipped,3 xfailed,49 subtests;10 warnings |
+| Python3.10–3.14 source, each |2287 passed,42 skipped |
+| Python3.10–3.14 debug allocator, each |175 passed |
+| Python3.10–3.14 installed runtime, each |2157 passed,42 skipped |
 | Five installed core smokes and wheel audits |passed |
 | Standalone graph/geometry C++ API builds |7 passed; seven executable identities retained |
 | Actual source distribution content |542 current source/stub/license/documentation members match; no prebuilt `.so` |
@@ -67,3 +68,28 @@ default and five-version source/installed checks cover it. The original common
 technical benchmark node maps to its`[False]` case; the new collision`[True]`
 case is additional work. That mapping is recorded before final common-suite
 measurement and changes no frozen membership or weights.
+
+## Frozen optimization follow-up
+
+The current results above follow the bounded bulk view-source capture and
+direct Crystal mathematical binding in [the local review](../performance/review.md).
+The earlier4571/2273/162/2143 checkpoint remains recorded in the evidence;
+its results are not relabeled as tests of changed production bytes. The new
+default run took148.877s wall. All five complete source/debug/current-wheel
+selections, wheel audits, outside-checkout smokes and the current542-member
+sdist audit passed with unchanged frozen production/native/tests/runner bytes.
+
+The independent supplied-delta review found no concrete correctness blocker.
+It executed no tests; its missing exact-snapshot evidence is supplied by the
+actual local runs above, linked by matching production/test hashes. That peer
+task had already started on its existing5.6-sol/xhigh thread when the latest
+model correction arrived. A subsequent6.1-sol remote task could not start
+(404); no analysis or test result is claimed for that failed deployment.
+
+Two follow-up harness failures are retained: a binding-check helper initially
+asserted the wrong argv offset, and an sdist invocation found an already used
+output directory before building. The corrected helper and a fresh sdist
+directory passed; no production fix or overwritten artifact was involved.
+The candidate-only common-node mapping preserves the original body AST against
+B20 and keeps baseline, already qualified and unrelated targets unchanged.
+Full common-suite timing remains a later gate.

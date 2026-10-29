@@ -494,5 +494,372 @@
     "This focused subset is not the final71-entry scientific/end-to-end/global efficiency or overall memory acceptance.",
     "Peak RSS changes and export gains do not compensate for runtime regressions; prior Stage3 regressions remain open.",
     "Sol/max first reviews minimal view/mathematical dispatch optimizations with contracts and workloads unchanged; current checkpoint remains frozen."
-  ]
+  ],
+  "optimization_followup": {
+    "recorded_at_utc": "2026-10-29T09:56:29.553930+00:00",
+    "source_commit": "0bc19f824a193b60b3ef93d89cd852079494baa8",
+    "status": "measured graph regression and geometry/Crystal parity; no global efficiency acceptance",
+    "execution": {
+      "path": ".plan20-artifacts/20261029/stage4/performance-attempt2/execution.json",
+      "sha256": "d0c90e6ae1a0bbffb8a5dd759b2b0928efcbafd1569b45fad83705a09fb2c2c0"
+    },
+    "recorded_wrapper": {
+      "path": ".plan20-artifacts/20261029/stage4/performance-wrapper-attempt2/command.json",
+      "sha256": "7a3b06d4a0cdbda89452796e110e9acc8a87bf62fa8853b1a197d92f3829b8ef"
+    },
+    "baseline_report": {
+      "path": ".plan20-artifacts/20261029/stage4/performance-attempt2/baseline-report.json",
+      "sha256": "0b66b0a8735a461c09eb930aebecee312b45099288b17d70162ab30b466f095d"
+    },
+    "candidate_report": {
+      "path": ".plan20-artifacts/20261029/stage4/performance-attempt2/candidate-report.json",
+      "sha256": "51393ce6fbf8a01b3b53a97dce7c84a56cb2b999d1a96e3b65e8271bebd1fe0a"
+    },
+    "comparison": {
+      "path": ".plan20-artifacts/20261029/stage4/performance-attempt2/comparison/comparison.json",
+      "sha256": "73fa440a03ce1d9a03c7c856e9625bde9154e829345465a0e58ac6fd45e17c0d"
+    },
+    "manifest": {
+      "path": "plan/20_fact_rule_architecture/performance_manifest.json",
+      "sha256": "ed5bba12ac6ae0305f6c85f7af3aa8fa824a3278fe12aad537a2f0c13768571b"
+    },
+    "runner": {
+      "path": "plan/20_fact_rule_architecture/run_performance_baseline.py",
+      "sha256": "470d65ea6c1d4a04866f37bde453ba9c83df56cff9ff9aa1c9b152f26924b73d"
+    },
+    "workloads": [
+      {
+        "id": "graph_search_geometry",
+        "family": "graph_search_geometry",
+        "hardware_mode": "cpu",
+        "end_to_end": false,
+        "weight": 1.0,
+        "aggregate_runtime": true,
+        "baseline_attempts": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.10633012652397156,
+          "median_seconds": 0.010592336766421795,
+          "mad_seconds": 4.559941589832306e-05,
+          "p95_seconds": 0.010867656394839286,
+          "peak_rss_bytes": 199864320
+        },
+        "candidate_attempts": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.2180713415145874,
+          "median_seconds": 0.021758138202130795,
+          "mad_seconds": 5.5023469030857086e-05,
+          "p95_seconds": 0.02214802373200655,
+          "peak_rss_bytes": 198623232
+        },
+        "paired_samples": 10,
+        "excluded_samples": [],
+        "comparable": true,
+        "runtime_ratio": 2.054139580522507,
+        "paired_bootstrap_95ci": [
+          2.0399681184929346,
+          2.0651150836979153
+        ],
+        "peak_rss_ratio": 0.993790347371657,
+        "paired_indices": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "paired_seconds": [
+          [
+            0.010600943118333817,
+            0.02183638885617256
+          ],
+          [
+            0.010546192526817322,
+            0.02183675952255726
+          ],
+          [
+            0.010583730414509773,
+            0.02173391729593277
+          ],
+          [
+            0.010550860315561295,
+            0.021726341918110847
+          ],
+          [
+            0.011005951091647148,
+            0.021772200241684914
+          ],
+          [
+            0.010619288310408592,
+            0.021744076162576675
+          ],
+          [
+            0.010520711541175842,
+            0.02177678793668747
+          ],
+          [
+            0.010656537488102913,
+            0.022402694448828697
+          ],
+          [
+            0.010547282174229622,
+            0.021563833579421043
+          ],
+          [
+            0.010698629543185234,
+            0.021678341552615166
+          ]
+        ],
+        "status": "regression",
+        "reasons": []
+      },
+      {
+        "id": "geometry_screen",
+        "family": "graph_search_geometry",
+        "hardware_mode": "cpu",
+        "end_to_end": false,
+        "weight": 1.0,
+        "aggregate_runtime": true,
+        "baseline_attempts": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.07399105466902256,
+          "median_seconds": 0.007372541353106499,
+          "mad_seconds": 2.507120370864868e-05,
+          "p95_seconds": 0.00761728947982192,
+          "peak_rss_bytes": 197480448
+        },
+        "candidate_attempts": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0744668785482645,
+          "median_seconds": 0.007414449937641621,
+          "mad_seconds": 2.9034912586212158e-05,
+          "p95_seconds": 0.007661784347146749,
+          "peak_rss_bytes": 168910848
+        },
+        "paired_samples": 10,
+        "excluded_samples": [],
+        "comparable": true,
+        "runtime_ratio": 1.0056844149836424,
+        "paired_bootstrap_95ci": [
+          0.9989879461029524,
+          1.012552633830548
+        ],
+        "peak_rss_ratio": 0.8553294754526788,
+        "paired_indices": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "paired_seconds": [
+          [
+            0.007369345054030418,
+            0.007450569421052933
+          ],
+          [
+            0.007267432287335396,
+            0.007434649392962456
+          ],
+          [
+            0.007375737652182579,
+            0.007416592910885811
+          ],
+          [
+            0.007347064092755318,
+            0.007834596559405327
+          ],
+          [
+            0.007306268438696861,
+            0.0074036698788404465
+          ],
+          [
+            0.007453363388776779,
+            0.00741230696439743
+          ],
+          [
+            0.007751410827040672,
+            0.0074381958693265915
+          ],
+          [
+            0.007347876206040382,
+            0.007342316210269928
+          ],
+          [
+            0.007386269047856331,
+            0.007353855296969414
+          ],
+          [
+            0.007386287674307823,
+            0.007380126044154167
+          ]
+        ],
+        "status": "parity",
+        "reasons": []
+      },
+      {
+        "id": "crystal_matrix",
+        "family": "values_collections",
+        "hardware_mode": "cpu",
+        "end_to_end": false,
+        "weight": 1.0,
+        "aggregate_runtime": true,
+        "baseline_attempts": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.020949076861143112,
+          "median_seconds": 0.0020949766039848328,
+          "mad_seconds": 8.541159331798553e-06,
+          "p95_seconds": 0.002108984626829624,
+          "peak_rss_bytes": 197525504
+        },
+        "candidate_attempts": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0208548903465271,
+          "median_seconds": 0.002082906663417816,
+          "mad_seconds": 4.492700099945068e-06,
+          "p95_seconds": 0.002107072714716196,
+          "peak_rss_bytes": 168390656
+        },
+        "paired_samples": 10,
+        "excluded_samples": [],
+        "comparable": true,
+        "runtime_ratio": 0.9942386275130431,
+        "paired_bootstrap_95ci": [
+          0.9909310133957931,
+          0.9995677042954473
+        ],
+        "peak_rss_ratio": 0.8525008294625083,
+        "paired_indices": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "paired_seconds": [
+          [
+            0.0021096132695674896,
+            0.0020849015563726425
+          ],
+          [
+            0.0021082162857055664,
+            0.002087978646159172
+          ],
+          [
+            0.002100704237818718,
+            0.002084745094180107
+          ],
+          [
+            0.002102768048644066,
+            0.0021176431328058243
+          ],
+          [
+            0.0020986367017030716,
+            0.0020796041935682297
+          ],
+          [
+            0.0020856857299804688,
+            0.0020725615322589874
+          ],
+          [
+            0.002091316506266594,
+            0.002078993245959282
+          ],
+          [
+            0.002082500606775284,
+            0.0020732413977384567
+          ],
+          [
+            0.0020812861621379852,
+            0.0020941533148288727
+          ],
+          [
+            0.002088349312543869,
+            0.002081068232655525
+          ]
+        ],
+        "status": "parity",
+        "reasons": []
+      }
+    ],
+    "graph_family": {
+      "members": [
+        "graph_search_geometry",
+        "geometry_screen"
+      ],
+      "comparable_members": [
+        "graph_search_geometry",
+        "geometry_screen"
+      ],
+      "complete": true,
+      "geometric_mean_runtime_ratio": 1.4372947374608043,
+      "paired_bootstrap_95ci": [
+        1.4303472423283212,
+        1.4440243883434642
+      ]
+    },
+    "values_family": {
+      "members": [
+        "crystal_matrix",
+        "molecule_bundle",
+        "source_conformers"
+      ],
+      "comparable_members": [
+        "crystal_matrix"
+      ],
+      "complete": false,
+      "geometric_mean_runtime_ratio": 0.9942386275130431,
+      "paired_bootstrap_95ci": [
+        0.9909310133957931,
+        0.9995677042954473
+      ]
+    },
+    "workers": 6,
+    "warmups_per_worker": 3,
+    "samples_per_worker": 10,
+    "total_attempts": 78,
+    "measured_attempts": 60,
+    "failed_or_no_output": 0,
+    "work_counters_equal": true,
+    "source_native_stable": true,
+    "environment_mismatches": [],
+    "limits": [
+      "Same original workload/input/counters/CPU0-63/threads and frozen sampling. Shared host, no exclusive resource claim.",
+      "Technical tests/builds finished before timing. Each workload used interleaved phase order; unchanged policy.",
+      "Complete graph family remains a regression. Values family is incomplete; no final family/global acceptance.",
+      "No exception requested or approved; reduced process RSS does not erase runtime or earlier retained-memory regressions."
+    ]
+  }
 }

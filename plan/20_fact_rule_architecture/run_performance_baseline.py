@@ -233,6 +233,9 @@ def _command_sample(entry, args, sample_dir):
     else:
         selection = json.loads(args.test_selection.read_text())
         nodeids = selection["nodeids"]
+        if args.phase == "candidate":
+            original = "tests/test_ds/test_stage13_generation_efficiency.py::test_shared_asset_cache_rejects_source_change_before_reuse"
+            nodeids = [node + "[False]" if node == original else node for node in nodeids]
         targets = [str(args.repository / node.split("::", 1)[0]) + ("::" + node.split("::", 1)[1] if "::" in node else "") for node in nodeids]
         command = [sys.executable, "-m", "pytest", "-q", "--import-mode=importlib", *targets]
         if entry["operation"] == "test_collection":

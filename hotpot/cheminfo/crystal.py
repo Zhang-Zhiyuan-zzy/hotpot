@@ -1,6 +1,8 @@
 import numpy as np
 from openbabel import openbabel as ob
 
+from .rules.mathematics.cell import _matrix_to_params as _cell_matrix_to_params
+
 
 class Crystal:
     def __init__(self, a, b, c, alpha, beta, gamma, *, mol=None):
@@ -13,10 +15,7 @@ class Crystal:
         self.mol = mol
         self._obcell = None
 
-    @staticmethod
-    def _matrix_to_params(matrix: np.ndarray):
-        from .rules.mathematics.cell import _matrix_to_params
-        return _matrix_to_params(matrix)
+    _matrix_to_params = staticmethod(_cell_matrix_to_params)
 
     @classmethod
     def from_matrix(cls, matrix: np.ndarray):

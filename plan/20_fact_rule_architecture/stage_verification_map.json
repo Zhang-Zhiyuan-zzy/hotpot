@@ -485,7 +485,7 @@
       "additional_requirements": [
         "constraint persistence before Angle/Torsion cache removal; detached membership and UID remap"
       ],
-      "execution_status": "in_progress; frozen v3 implementation/default/five-version source-debug-current-wheel/sdist/standalone-native verified; focused measurements expose graph/view4.053x and Crystal1.103x regressions; bounded Sol/max optimization investigation pending; no waiver",
+      "execution_status": "complete owning-stage obligations after bounded local optimization and frozen default/five-version source-debug-current-wheel/sdist/native-provenance plus valid focused comparison; graph/view2.054x and complete graph family1.437x remain unresolved and block final global performance acceptance; no waiver; see stages/stage04/gates/review.md",
       "additional_affected_contract_test_files": [
         "tests/test_cheminfo/forcefields/test_forcefield_native_optimization_stage.py",
         "tests/test_cheminfo/forcefields/test_forcefield_settings.py",
@@ -543,9 +543,12 @@
         "stages/stage04/report.md",
         "stages/stage04/review.md",
         "stages/stage04/validation/evidence.json",
-        "stages/stage04/validation/report.md"
+        "stages/stage04/validation/report.md",
+        "stages/stage04/gates/review.md",
+        "stages/stage04/performance/review.md",
+        "stages/stage04/performance/profiling/evidence.json"
       ],
-      "verification_note": "Actual complete Stage3/4 owner/builder/identity/native/pickle/FF/consumer selection plus all DS contracts after the observed prerequisite defect; Python3.10\u20133.14 each2273 source/162 debug/2143 installed;42 external/scientific skips. Seven standalone CPP checks and current sdist separate. Focused3+10 benchmarks are measurements, not final71-entry approval.",
+      "verification_note": "Actual complete Stage3/4 owner/builder/identity/native/pickle/FF/consumer selection plus all DS contracts: Python3.10\u20133.14 each2287 source/175 debug/2157 installed;42 external/scientific skips. Default4585 passed/123 skipped/3 xfailed/49 subtests. Seven unchanged standalone CPP checks and current542-member sdist separate. Focused3+10 benchmarks are valid executed comparisons, not final71-entry approval.",
       "default_gate_prerequisite_scope": {
         "reason": "Real default-gate existing DS cache source-content failure on unchanged metadata",
         "affected_source": "hotpot/ds/public/_generation.py",

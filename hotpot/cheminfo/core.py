@@ -4348,10 +4348,8 @@ class AtomPairs(Mapping):
         pair._view_source = self._view_source
         pair._view_uids = tuple(atom._uid for atom in atoms)
         rows = tuple(self._members[atom] for atom in atoms)
-        count = len(self._atoms)
-        pair._view_geometry = tuple(b''.join(
-            data[row * (len(data) // count):(row + 1) * (len(data) // count)]
-            for row in rows) for data in self._geometry)
+        from .views._source import _member_geometry
+        pair._view_geometry = _member_geometry(self._geometry, rows, len(self._atoms))
         return pair
 
     def getdefault(self, atom_pair):
@@ -5463,13 +5461,15 @@ def _new_bond_handle(mol, uid, atom1, atom2, raw_values, *, kind, direction,
     return bond
 
 
-def _new_sequence_view(cls, mol, rows, complete_paths, *, source=None):
-    from .views._source import _bind_view
+def _new_sequence_view(cls, atoms, rows, complete_paths, *, source, uids, geometry):
+    from .views._source import _initialize_view_source, _member_geometry
     view = object.__new__(cls)
-    view._atoms = tuple(mol._atoms[row] for row in rows)
-    view._bonds = tuple(complete_paths.get(frozenset((id(first), id(second))))
-                        for first, second in zip(view._atoms, view._atoms[1:]))
-    _bind_view(view, view._atoms, source=source)
+    members = tuple(atoms[row] for row in rows)
+    object.__setattr__(view, '_atoms', members)
+    object.__setattr__(view, '_bonds', tuple(complete_paths.get(frozenset((id(first), id(second))))
+                                          for first, second in zip(members, members[1:])))
+    _initialize_view_source(view, source, tuple(uids[row] for row in rows),
+                            _member_geometry(geometry, rows, len(atoms)))
     return view
 
 

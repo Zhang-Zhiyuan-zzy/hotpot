@@ -1,14 +1,18 @@
 """Source/member contracts for Stage4's on-demand mathematical views."""
 
 from copy import deepcopy
+from dataclasses import replace
+from itertools import combinations
 import pickle
 
 import numpy as np
 import pytest
 
 from hotpot import Molecule
-from hotpot.cheminfo.structure._commit import _FactTransaction
+from hotpot.cheminfo.structure._commit import _FactTransaction, _commit_atom_facts
+from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX, FIELD_PRESENCE_BITS
 from hotpot.cheminfo.structure import _identity
+from hotpot.cheminfo.structure._mutation import _normalize_atom_scalar
 
 
 def molecule():
@@ -82,6 +86,129 @@ def test_geometry_binding_uses_only_the_relevant_member_rows():
     assert angle.atoms[0] is mol.atoms[0]
     with pytest.raises(RuntimeError, match='geometry'):
         _ = angle.degrees
+
+
+def test_collection_and_standalone_geometry_bindings_preserve_raw_bits_and_metadata():
+    mol = molecule()
+    for row in range(4, 7):
+        mol.create_atom(atomic_number=6, coordinates=(row, 0., 0.))
+        mol.add_bond(row - 1, row)
+    record, _ = mol._capture_factual_record()
+    values = np.frombuffer(record.atom_values, dtype='<f8').reshape(7, -1).copy()
+    bits = np.resize(np.array((0x8000000000000000, 0, 0x7FF8000000000001,
+                               0x3FF0000000000000, 0xFFF800000000002A), dtype=np.uint64), 21)
+    values[:, 10:13] = bits.view(np.float64).reshape(7, 3)
+    coordinate_bits = tuple(FIELD_PRESENCE_BITS[FIELD_INDEX[name]] for name in ('x', 'y', 'z'))
+    presence = np.frombuffer(record.atom_presence, dtype='<u4').copy()
+    presence &= ~np.uint32(sum(coordinate_bits))
+    presence |= np.array([sum(bit for axis, bit in enumerate(coordinate_bits) if (row + axis) % 2)
+                          for row in range(7)], dtype=np.uint32)
+    sources = np.frombuffer(record.atom_sources, dtype=np.uint8).reshape(7, -1).copy()
+    sources[:, 10:13] = np.resize(tuple(ATOM_SOURCE_CODES.values()), 21).reshape(7, 3)
+    mol = Molecule._build_molecule(replace(record, atom_values=values.tobytes(),
+                                          atom_presence=presence.tobytes(), atom_sources=sources.tobytes()))
+    np.testing.assert_array_equal(mol.coordinates.view(np.uint64).ravel(), bits)
+    for view in mol.angles + mol.torsions:
+        direct = type(view)(*view.atoms)
+        assert view._view_geometry == direct._view_geometry
+        assert tuple(map(len, view._view_geometry)) == (len(view) * 24, len(view) * 4, len(view) * 3)
+    table = mol.atom_pairs
+    for first, second in combinations(mol.atoms, 2):
+        for members in ((first, second), (second, first)):
+            pair = table[members]
+            assert pair._view_geometry == type(pair)(*members)._view_geometry
+
+
+@pytest.mark.parametrize('kind', ['angle', 'torsion', 'pair'])
+@pytest.mark.parametrize('dependency', ['coordinates', 'presence', 'producer'])
+def test_collection_and_standalone_views_check_only_relevant_geometry_sources(kind, dependency):
+    mol = molecule()
+    mol.create_atom(atomic_number=6, coordinates=(2., 2., 2.))
+    view = (mol.angles[0] if kind == 'angle' else mol.torsions[0] if kind == 'torsion'
+            else mol.atom_pairs[(mol.atoms[0], mol.atoms[3])])
+    direct = type(view)(*view.atoms)
+
+    def query(value):
+        return value.distance if kind == 'pair' else value.degrees
+
+    def change(row):
+        atom = mol.atoms[row]
+        update = _normalize_atom_scalar(
+            _identity._capture_source(mol), row, atom._uid, 'x',
+            atom.x + 1. if dependency == 'coordinates' else atom.x,
+            producer=ATOM_SOURCE_CODES['geometry'] if dependency == 'producer' else ATOM_SOURCE_CODES['explicit'],
+            present=dependency != 'presence')
+        _commit_atom_facts(mol, update)
+
+    expected = query(view)
+    change(4)
+    assert query(view) == pytest.approx(expected)
+    assert query(direct) == pytest.approx(expected)
+    change(0)
+    for value in (view, direct):
+        with pytest.raises(RuntimeError, match='geometry'):
+            query(value)
+
+
+def test_collection_geometry_and_constraint_bindings_survive_provenance_rollback():
+    mol = molecule()
+    angle, torsion = mol.angles[0], mol.torsions[0]
+    pair = mol.atom_pairs[(mol.atoms[0], mol.atoms[3])]
+    views = (angle, type(angle)(*angle.atoms), torsion, type(torsion)(*torsion.atoms))
+    pairs = (pair, type(pair)(*pair.atoms))
+    expected = [value.degrees for value in views] + [value.distance for value in pairs]
+    owner = mol._constraints
+    original = MemoryError('aborted geometry provenance and constraint edit')
+    with pytest.raises(MemoryError) as caught:
+        with _FactTransaction(mol, producer=ATOM_SOURCE_CODES['geometry']):
+            angle.constraint = True
+            torsion.constraint = True
+            _commit_atom_facts(mol, _normalize_atom_scalar(
+                _identity._capture_source(mol), 0, mol.atoms[0]._uid, 'x', 5.,
+                producer=ATOM_SOURCE_CODES['geometry'], present=False))
+            with pytest.raises(RuntimeError, match='geometry'):
+                _ = angle.degrees
+            raise original
+    assert caught.value is original
+    assert mol._constraints is owner and not angle.constraint and not torsion.constraint
+    actual = [value.degrees for value in views] + [value.distance for value in pairs]
+    np.testing.assert_allclose(actual, expected)
+
+
+def test_imported_overlapping_bond_partitions_keep_active_first_and_hidden_fallback_order():
+    record, _ = molecule()._capture_factual_record()
+    mol = Molecule._build_molecule(replace(
+        record, bond_endpoints=record.bond_endpoints + ((1, 0), (0, 1), (0, 3), (3, 0)),
+        bond_values=record.bond_values + record.bond_values[:24] * 4,
+        bond_partitions=record.bond_partitions + (1, 2, 1, 2),
+        bond_kinds=record.bond_kinds + (record.bond_kinds[0],) * 4,
+        bond_directions=record.bond_directions + (None,) * 4,
+        bond_sources=record.bond_sources + (None,) * 4,
+        bond_metadata=record.bond_metadata + (record.bond_metadata[0],) * 4,
+        angle_constraints=((0, 3, 1),), torsion_constraints=((1, 0, 3, 2),)))
+    angle = mol.angles[0]
+    direct = type(angle)(*angle.atoms)
+    assert angle.bond1 is direct.bond1 is mol.bond(0, 1)
+    assert angle.bond2 is direct.bond2 is mol.bond(1, 2)
+    extra = next(view for view in mol.angles if view.constraint)
+    assert extra.bond1 is mol._hided_metal_bonds[1] and extra.bond2 is None
+    torsion = next(view for view in mol.torsions if view.constraint)
+    assert torsion.bond1 is mol.bond(1, 0)
+    assert torsion.bond2 is mol._hided_metal_bonds[1]
+    assert torsion.bond3 is mol.bond(3, 2)
+    with pytest.raises(KeyError):
+        mol.bond(0, 3)
+
+
+def test_triangle_torsions_preserve_repeated_members_and_constraint_projection():
+    mol = molecule()
+    mol.add_bond(0, 2)
+    repeated = [view for view in mol.torsions if view.atoms[0] is view.atoms[-1]]
+    assert repeated
+    for view in repeated:
+        assert view._view_geometry == type(view)(*view.atoms)._view_geometry
+    repeated[0].constraint = True
+    assert next(view for view in mol.torsions if view._view_uids == repeated[0]._view_uids).constraint
 
 
 def test_rolled_back_fast_topology_append_keeps_the_original_view_valid():

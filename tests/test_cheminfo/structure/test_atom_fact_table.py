@@ -1,6 +1,8 @@
 """Numeric ownership, atomic updates and remapping before facade integration."""
 
+from copy import deepcopy
 from pathlib import Path
+import pickle
 import subprocess
 import sys
 
@@ -29,6 +31,13 @@ def _rows(count=4):
     values[:, FIELD_INDEX["implicit_hydrogens"]] = 65537.25
     values[:, FIELD_INDEX["id"]] = float(2 ** 70)
     return values
+
+
+@pytest.fixture(params=("pickle", "deepcopy"))
+def roundtrip(request):
+    if request.param == "pickle":
+        return lambda table: pickle.loads(pickle.dumps(table))
+    return deepcopy
 
 
 class _WriteThenRaise(np.ndarray):
@@ -279,6 +288,104 @@ def test_remap_keeps_capacity_for_a_subsequent_append_without_shared_rows():
     assert table._blocks is blocks
     np.testing.assert_array_equal(table.matrix(), np.concatenate((original[[4, 2, 0, 1]], addition)))
     assert len(table.copy()._blocks[0]) == len(table)
+
+
+def test_roundtrip_rebuilds_column_views_and_preserves_independent_metadata(roundtrip):
+    expected = _rows()
+    masks = np.array([0, ATOM_PRESENCE_ALL, 1, 2], dtype=np.uint32)
+    codes = np.arange(4 * 19, dtype=np.uint8).reshape(4, 19) % len(ATOM_SOURCE_CODES)
+    original = _AtomFactTable(expected, presence=masks, sources=codes)
+    restored = roundtrip(original)
+    np.testing.assert_array_equal(restored.matrix(), expected)
+    np.testing.assert_array_equal(restored.presence(), masks)
+    np.testing.assert_array_equal(restored.sources(), codes)
+    assert all(sum(np.shares_memory(column, block) for block in restored._blocks) == 1
+               for column in restored._columns)
+    assert all(not np.shares_memory(left, right)
+               for left in restored._blocks for right in original._blocks)
+    assert not np.shares_memory(restored._presence, original._presence)
+    assert not np.shares_memory(restored._sources, original._sources)
+
+    restored.update(0, {"x": -123, "formal_charge": 88}, source=ATOM_SOURCE_CODES["rdkit"])
+    restored.update((3, 1), {"z": (13, 17)}, present=False)
+    expected[0, [10, 7]] = (-123, 88)
+    expected[[3, 1], 12] = (13, 17)
+    masks[0] |= (1 << 10) | (1 << 7)
+    masks[[3, 1]] &= np.uint32(ATOM_PRESENCE_ALL ^ (1 << 12))
+    codes[0, [10, 7]] = ATOM_SOURCE_CODES["rdkit"]
+    codes[[3, 1], 12] = ATOM_SOURCE_CODES["explicit"]
+    np.testing.assert_array_equal(restored.matrix(), expected)
+    np.testing.assert_array_equal(restored.coordinates(), expected[:, 10:13])
+    np.testing.assert_array_equal(restored.presence(), masks)
+    np.testing.assert_array_equal(restored.sources(), codes)
+    for row in range(len(restored)):
+        np.testing.assert_array_equal(restored.row(row), expected[row])
+        for field in ("x", "z", "formal_charge"):
+            assert restored.raw(row, field) == expected[row, FIELD_INDEX[field]]
+    np.testing.assert_array_equal(original.matrix(), _rows())
+    assert original.presence()[0] == 0
+
+
+def test_roundtrip_preserves_spare_capacity_and_rebinds_after_append_remap(roundtrip):
+    original = _AtomFactTable(_rows(6), presence=0, sources=ATOM_SOURCE_CODES["rdkit"])
+    original.remap((4, 2, 0))
+    expected = original.matrix()
+    restored = roundtrip(original)
+    blocks = restored._blocks
+    assert len(blocks[0]) == 6
+    addition = _rows(2) + 100
+    restored.append(addition)
+    assert restored._blocks is blocks
+    expected = np.concatenate((expected, addition))
+    restored.remap((4, 0, 3))
+    expected = expected[[4, 0, 3]]
+    restored.update(1, {"x": -123})
+    expected[1, 10] = -123
+    np.testing.assert_array_equal(restored.matrix(), expected)
+    np.testing.assert_array_equal(restored.coordinates(), expected[:, 10:13])
+    assert restored.raw(1, "x") == -123
+    np.testing.assert_array_equal(restored.presence(), [ATOM_PRESENCE_ALL, 1 << 10, ATOM_PRESENCE_ALL])
+    assert restored.sources()[1, 0] == ATOM_SOURCE_CODES["rdkit"]
+    assert restored.sources()[0, 0] == ATOM_SOURCE_CODES["legacy_array"]
+    np.testing.assert_array_equal(original.matrix(), _rows(6)[[4, 2, 0]])
+
+
+@pytest.mark.parametrize("capacity", (0, 6))
+def test_empty_roundtrip_can_append_and_grow_with_one_numeric_owner(roundtrip, capacity):
+    original = _AtomFactTable(_rows(capacity))
+    original.remap([])
+    restored = roundtrip(original)
+    assert len(restored) == 0 and len(restored._blocks[0]) == capacity
+    assert restored.matrix().shape == (0, 19)
+    assert restored.presence().shape == (0,)
+    assert restored.sources().shape == (0, 19)
+    with pytest.raises(IndexError):
+        restored.raw(0, "x")
+    expected = _rows(capacity + 1)
+    restored.append(expected, presence=0, sources=ATOM_SOURCE_CODES["openbabel"])
+    restored.update(-1, {"y": -77})
+    expected[-1, 11] = -77
+    np.testing.assert_array_equal(restored.matrix(), expected)
+    np.testing.assert_array_equal(restored.coordinates(), expected[:, 10:13])
+    assert restored.raw(-1, "y") == -77
+    assert restored.presence()[-1] == 1 << 11
+    assert restored.sources()[0, 0] == ATOM_SOURCE_CODES["openbabel"]
+    assert len(original) == 0
+
+
+def test_pickle_does_not_serialize_unused_numeric_or_metadata_slots():
+    table = _AtomFactTable(_rows(6))
+    table.remap((0,))
+    marker = b"unused!!"
+    table._blocks[0][1:] = np.frombuffer(marker, dtype=np.float64)[0]
+    table._blocks[1][1:] = np.frombuffer(marker, dtype=np.float64)[0]
+    table._presence[1:].view(np.uint8)[:len(marker)] = np.frombuffer(marker, dtype=np.uint8)
+    table._sources[1:].ravel()[:len(marker)] = np.frombuffer(marker, dtype=np.uint8)
+    serialized = pickle.dumps(table, protocol=pickle.HIGHEST_PROTOCOL)
+    assert marker not in serialized
+    restored = pickle.loads(serialized)
+    assert len(restored._blocks[0]) == 6 and len(restored) == 1
+    np.testing.assert_array_equal(restored.matrix(), _rows(6)[:1])
 
 
 def test_presence_distinguishes_absent_and_explicit_zero_without_changing_numeric_slots():

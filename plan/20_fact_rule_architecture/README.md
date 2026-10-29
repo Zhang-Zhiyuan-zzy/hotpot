@@ -21,6 +21,12 @@ The current checkpoint adds [member/source identity and field provenance](stage3
 with [execution evidence](stage3_identity_metadata_evidence.json). The approved
 complete numeric property is `atom_matrix`, directly renamed from the existing
 entry; its implementation and callers remain singular.
+Closed Atom update candidates and table serialization are now verified in the
+[preparation review](stage3_atom_update_review.md) and its
+[execution evidence](stage3_atom_update_evidence.json). Source validation:
+Python3.10–3.14 each273 passed; default4096 passed,123 skipped,3 xfailed.
+The production table, molecular commit, builder and integrated performance
+gates remain open.
 Original planning branch: `refactor/fact-rule-architecture`
 
 Original planning baseline: `0a4b0ee`; reviewed documentation: `d9eb80e`.

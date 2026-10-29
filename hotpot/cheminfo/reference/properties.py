@@ -9,6 +9,23 @@ from types import MappingProxyType
 __all__ = ()
 
 
+_ELEMENT_SYMBOLS = (
+    "0",
+    "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne",
+    "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca",
+    "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",
+    "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr",
+    "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn",
+    "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd",
+    "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb",
+    "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg",
+    "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th",
+    "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm",
+    "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds",
+    "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og"
+)
+
+
 def _freeze(value):
     if isinstance(value, dict):
         return MappingProxyType({key: _freeze(item) for key, item in value.items()})
@@ -36,6 +53,18 @@ def _element_properties():
 def _element_properties_snapshot():
     """Preserve the existing public dict/list table without exposing the source."""
     return _mutable_copy(_element_properties())
+
+
+def _atomic_number_for_symbol(symbol):
+    """Translate the existing symbol spelling without loading a toolkit."""
+    if not symbol.isascii():
+        return 0
+    if symbol in ("D", "T"):
+        return 1
+    try:
+        return _ELEMENT_SYMBOLS.index(symbol[:1].upper() + symbol[1:])
+    except ValueError:
+        return 0
 
 
 @cache

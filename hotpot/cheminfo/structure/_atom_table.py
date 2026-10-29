@@ -114,6 +114,26 @@ class _AtomFactTable:
     def __len__(self):
         return self._size
 
+    def __getstate__(self):
+        # NumPy serializes views independently, so persist only the owners.
+        # Spare capacity may be uninitialized and is recreated, never read.
+        return (
+            self._size, len(self._blocks[0]),
+            tuple(block[:self._size] for block in self._blocks),
+            self._presence[:self._size], self._sources[:self._size],
+        )
+
+    def __setstate__(self, state):
+        size, capacity, values, presence, sources = state
+        blocks = _storage(capacity)
+        for block, value in zip(blocks, values):
+            block[:size] = value
+        masks = np.empty(capacity, dtype=np.uint32)
+        codes = np.empty((capacity, len(ATOM_FIELDS)), dtype=np.uint8)
+        masks[:size], codes[:size] = presence, sources
+        self._blocks, self._columns, self._size = blocks, _column_views(blocks), size
+        self._presence, self._sources = masks, codes
+
     def _install_storage(self, blocks, columns, size, presence, sources):
         previous = self._blocks, self._columns, self._size, self._presence, self._sources
         try:

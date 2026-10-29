@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage3 in progress; active UID infrastructure and one private SourceIdentity record; numeric table metadata verified but table not installed on Molecule",
+  "status": "Stage3 in progress; active UID infrastructure and N01/N05 private records; private table metadata/serialization and closed candidate verified, production table/commit/builder incomplete",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -13,11 +13,13 @@
     "alias_caveat": "Zero explicit TypeAlias syntax does not establish zero implicit aliases."
   },
   "measured_delta": {
-    "new_dataclasses": 1,
+    "new_dataclasses": 2,
     "retired_dataclasses": 0,
     "new_protocols": 0,
     "new_typed_dicts": 0,
-    "commits": [],
+    "commits": [
+      "d7989b3"
+    ],
     "ordinary_classes_retired": 9,
     "retired_native_struct_candidates": 6,
     "ordinary_removal_commit": "c6bfcd4906254ee113c14103009f071e91f60368",
@@ -40,6 +42,20 @@
           "dependencies"
         ],
         "verification": "stage3_identity_metadata_evidence.json"
+      },
+      {
+        "symbol": "hotpot.cheminfo.structure._mutation._AtomFactUpdate",
+        "reservation": "N05",
+        "fields": [
+          "source",
+          "rows",
+          "atom_uids",
+          "fields",
+          "value_bytes",
+          "presence",
+          "sources"
+        ],
+        "verification": "stage3_atom_update_evidence.json"
       }
     ]
   },
@@ -114,7 +130,7 @@
       "responsibility": "One owner binding plus domain-tagged dependency identities",
       "status": "implemented; one immutable owner/domain binding, not six identity classes",
       "actual_symbol": "hotpot.cheminfo.structure._identity._SourceIdentity",
-      "commit": null,
+      "commit": "d7989b3",
       "verification": "stage3_identity_metadata_evidence.json"
     },
     {
@@ -152,14 +168,28 @@
     },
     {
       "id": "N05",
-      "proposed_definition": "AtomFactUpdate",
+      "proposed_definition": "_AtomFactUpdate",
       "stage": "Stage3",
       "dataclass_upper_bound": 1,
       "responsibility": "One reviewed scalar/batch candidate commit",
-      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
-      "actual_symbol": null,
+      "status": "implemented; one immutable closed candidate, production commit/table cutover pending",
+      "actual_symbol": "hotpot.cheminfo.structure._mutation._AtomFactUpdate",
       "commit": null,
-      "verification": null
+      "verification": "stage3_atom_update_evidence.json",
+      "fields": [
+        "source",
+        "rows",
+        "atom_uids",
+        "fields",
+        "value_bytes",
+        "presence",
+        "sources"
+      ],
+      "review": "stage3_atom_update_review.md",
+      "consumers": [
+        "closed scalar/batch Atom normalization",
+        "future one _commit_atom_facts; no public export"
+      ]
     },
     {
       "id": "N06",
@@ -405,10 +435,10 @@
   ],
   "change_policy": "Update a reservation with concrete responsibility/consumer evidence before exceeding it; new public schemas retain their own review gate. Never offset extra records by deleting unrelated reserved types or replace records with untyped dicts solely to improve counts.",
   "measured_current_counts": {
-    "all_python_classes": 775,
-    "dataclasses": 348,
+    "all_python_classes": 776,
+    "dataclasses": 349,
     "protocols": 13,
     "typed_dicts": 3,
-    "method": "Full tracked and unignored new hotpot Python AST census; one new ordinary table from prior checkpoint plus one new dataclass; no native mirrors."
+    "method": "Full tracked and unignored new hotpot Python AST census; one prior ordinary table, N01 SourceIdentity and N05 AtomFactUpdate. No new Protocol/TypedDict/native mirror."
   }
 }

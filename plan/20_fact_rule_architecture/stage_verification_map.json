@@ -259,7 +259,7 @@
         },
         {
           "path": "tests/test_cheminfo/structure/test_atom_fact_table.py",
-          "status": "private_numeric_and_metadata_primitive;72 cases passed on all5 versions; not yet Molecule authority"
+          "status": "private_numeric_and_metadata_primitive;81 cases passed on all5 versions, including unique serialization/view reconstruction; not yet Molecule authority"
         },
         {
           "path": "tests/test_cheminfo/structure/test_dependencies.py",
@@ -296,12 +296,16 @@
         {
           "path": "tests/test_cheminfo/structure/test_atom_matrix.py",
           "status": "implemented;3 cases passed on Python3.10–3.14 and full default; full19 float64 independent projection, direct approved rename"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_atom_fact_update.py",
+          "status": "implemented;42 cases passed on Python3.10–3.14 and full default; closed immutable candidate only, molecular installation/member selection pending"
         }
       ],
       "additional_requirements": [
         "builder one topology build/no implicit chemistry; UID non-reuse; finite dirty propagation; field schema; scalar/batch alias isolation and performance"
       ],
-      "execution_status": "in_progress; active member UID/source infrastructure and private table metadata verified; complete builder/closed molecular commits/table cutover/dirty reads/actual integrated scaling still open"
+      "execution_status": "in_progress; member UID/source infrastructure, private table metadata/serialization and closed update preparation verified; production table/commit/builder/dirty reads/integrated scaling remain open"
     },
     "Stage4": {
       "predecessor": "Stage3",

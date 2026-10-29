@@ -66,3 +66,8 @@ ATOM_BATCH_WRITABLE = frozenset({
     "atomic_number", "symbol", "formal_charge", "implicit_hydrogens", "id",
     "coordinates", *COORDINATE_FIELDS,
 })
+ATOM_BATCH_READONLY = frozenset({
+    *ATOM_FIELDS, *ALIAS_TARGETS,
+    "attrs", "attrs_enumerator", "electron_configuration", "idx", "mol", "mca",
+    "isotope",
+}) - ATOM_BATCH_WRITABLE

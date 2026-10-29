@@ -747,3 +747,54 @@ review records and retained failed attempts by SHA256.
   reads and integrated scaling still block Stage3 completion.
 - Last push is`40312df`; this checkpoint is the first subsequent commit.
   Push after two more commits, without manufacturing commits for cadence.
+
+### Stage3 closed update preparation and unique table serialization
+
+- Again read the full2448-line main plan and four normative companions
+  (3498 lines total) before this connected-writer preparation. Exact hashes,
+  read copies, synchronized predecessor`d7989b3`, project-state assessment and
+  bounded tasks are in`stage3_cutover_entry_review.json`. This stays Stage3.
+- Froze N05 fields/consumers before code. One private `_AtomFactUpdate` owns
+  source, aligned row/UID tuples, canonical fields, immutable numeric bytes and
+  per-field presence/producer codes. Approved scalar/batch columns use the
+  same normalizer; overlapping aliases must agree. No molecular installer or
+  public batch method is published before the complete owner/writer cutover.
+- An independent review caught retained ndarray header mutability despite
+  read-only elements, and Unicode casing that could turn unknown spellings
+  into real elements. Replaced array authority with bytes/transient headers
+  and restricted symbol casing to ASCII; regression cases cover both.
+  Joint/standalone pickle checks preserve/reject owner bindings as appropriate.
+- Shared the existing Element.symbols tuple with the reference module, leaving
+  all Element scientific-function ASTs and Core bytes unchanged. The property
+  JSON has different atomic numbers for In/Tb/Yb/Bk; it was not substituted
+  for existing behavior or corrected in this refactor. The full118-element
+  spelling comparison and D/T/unknown cases match current Open Babel.
+- Reproduced a private-table pickle/deepcopy defect: separately serialized
+  column views could update raw reads while coordinates/matrix stayed old.
+  Serialize unique live owner blocks/metadata, preserve capacity without
+  reading spare slots and reconstruct views. Table coverage is81 cases.
+- Accepted final source: **4096 passed,123 skipped,3 xfailed,49 subtests**,
+  10 warnings,241.07 seconds. Affected source selection on Python
+  **3.10–3.14:273 passed per version**, including42 update candidate cases.
+  This is source coverage, not a new installed-wheel/native rebuild.
+- The initial candidate's271/version and4094 default passing tests are
+  retained as superseded evidence: review found the two gaps above despite
+  those passes. A new owner-pickle fixture briefly used an unsupported
+  positional create_atom call; it was corrected to the existing keyword API.
+  No production behavior was changed to accommodate that fixture.
+- New-only preparation measurements retain104 attempts and no failures:
+  one-row x~11.1us, coordinate aliases~24.0us;4096 rows~0.787/0.814ms.
+  These exclude member selection, installation and dirty work and have no
+  fabricated B20 comparator. Their scalar cost remains an integrated
+  efficiency concern. Prior unfavorable table results remain retained.
+- Census:776 classes,349 dataclasses,13 Protocols,3 TypedDicts. N05 is the
+  only added record this checkpoint; architecture debt stays285. Evidence and
+  exact frozen source/commands are in`stage3_atom_update_evidence.json`.
+- Production table/connected writers/FF rollback, complete builder and
+  metadata installation, parent/detached readonly, dependency reads and real
+  facade scaling remain open. Subsequent builder work may first unify current
+  representable factual imports using the existing unique row owner, then
+  change that same installer during table cutover. It must not accept and
+  discard metadata or create a temporary shadow owner/mode.
+- This checkpoint is the second commit since last push`40312df`, following
+  `d7989b3`. Push after the next coherent commit.

@@ -1,0 +1,58 @@
+{
+  "stage": "Stage3 connected-writer cutover preparation; no Stage4 entry",
+  "recorded_at_utc": "2026-10-29T01:59:58.855711+00:00",
+  "source_commit": "d7989b3d2db7d279fccbf8cdbebce327f1c075ac",
+  "worktree_before_work": "",
+  "full_read": [
+    {
+      "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+      "sha256": "afb13f1a62f7d8db8a0fa8e893c4d1322e18d73edb785b0ad649c1eb02621f4b",
+      "lines": 2448,
+      "read_copy": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/cutover-entry-read/fact_rule_architecture_implementation_plan.md"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+      "sha256": "d0ac2cff4c15f525236b00e254211020423e90f7687c1a640bfe28c7fee45bfc",
+      "lines": 284,
+      "read_copy": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/cutover-entry-read/chemical_type_interface_contract.md"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+      "sha256": "72f935922c623948cc29d781c2eb77e38bcc8562cf368496a5cd7fb0599f1638",
+      "lines": 521,
+      "read_copy": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/cutover-entry-read/data_object_scope_audit.md"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+      "sha256": "e5549116f1409fb46b5fd2bdc82c0b20a34297989475eb66a119ac221a9d4a0b",
+      "lines": 177,
+      "read_copy": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/cutover-entry-read/plan17_plan20_execution_alignment.md"
+    },
+    {
+      "path": "plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+      "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+      "lines": 68,
+      "read_copy": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/cutover-entry-read/metal_cluster_implementation_plan.md"
+    }
+  ],
+  "method": "Full3498 lines: main1–2448, protocol1–284, scope audit1–521 including appendix, alignment1–177, Plan21 1–68; main1290–1375 repeated to recover oversized output.",
+  "assessment": [
+    "d7989b3 commits member/source identity, table metadata and approved matrix rename; default4045 passed, affected five-version selection222 per version.",
+    "One SourceIdentity and one private numeric table exist; production Atom remains raw per-row arrays. No updata_atoms published.",
+    "Full Stage3 incomplete: table sole authority, connected writers/rollback, complete builder and commits, readonly detach/parent, dependency reads and integrated performance.",
+    "Exact private update/import fields must follow actual consumers. Use N02/N05 only where useful; no new per-row DTO, persistent map or Stage5/7 semantic change.",
+    "Private table default pickle can detach _columns views from _blocks; repair before installing as sole authority."
+  ],
+  "bounded_work": [
+    "Repair table current-version pickle/deepcopy view reconstruction with metadata and ownership evidence.",
+    "Implement closed reviewed scalar/batch Atom normalization against shared schema, isolate candidates, validate aliases and source row mapping before any installation.",
+    "Freeze complete factual import record/builder from real importers/lifecycle/FF consumers before coherent production cutover; retain no per-Molecule mode.",
+    "Production writer/table cutover must migrate numeric metadata and rollback together; preserve existing eager chemistry until Stage5.",
+    "Measure actual costs, retain failed attempts, run affected contracts/Python checks and required full validation before completion."
+  ],
+  "github": {
+    "last_pushed_commit": "40312df7c678dc193a9104248f54819ac1dc062a",
+    "commits_since_push": 1,
+    "cadence": 3
+  }
+}

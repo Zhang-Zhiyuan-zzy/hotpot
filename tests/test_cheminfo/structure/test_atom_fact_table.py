@@ -10,6 +10,7 @@ import numpy as np
 import pytest
 
 from hotpot import Atom
+from hotpot.cheminfo.structure._commit import _native_fail_after
 from hotpot.cheminfo.structure._atom_table import _AtomFactTable
 from hotpot.cheminfo.structure._fields import (
     ALIAS_TARGETS,
@@ -38,24 +39,6 @@ def roundtrip(request):
     if request.param == "pickle":
         return lambda table: pickle.loads(pickle.dumps(table))
     return deepcopy
-
-
-class _WriteThenRaise(np.ndarray):
-    """A one-shot failure after data changed, including KeyboardInterrupt."""
-
-    def __new__(cls, column):
-        value = column.view(cls)
-        value.armed = True
-        return value
-
-    def __array_finalize__(self, source):
-        self.armed = getattr(source, "armed", False)
-
-    def __setitem__(self, key, value):
-        super().__setitem__(key, value)
-        if self.armed:
-            self.armed = False
-            raise KeyboardInterrupt("injected after a completed column write")
 
 
 def test_schema_preserves_model_order_and_does_not_publish_internal_columns():
@@ -174,13 +157,9 @@ def test_failed_update_preserves_the_complete_previous_table(rows, columns, exce
 def test_read_only_target_rejects_the_complete_write_before_install(rows):
     expected = _rows()
     table = _AtomFactTable(expected)
-    columns = list(table._columns)
-    columns[FIELD_INDEX["x"]] = _WriteThenRaise(columns[FIELD_INDEX["x"]])
-    table._columns = tuple(columns)
     table._columns[FIELD_INDEX["y"]].flags.writeable = False
-    with pytest.raises(ValueError):
+    with _native_fail_after("value"), pytest.raises(ValueError):
         table.update(rows, {"x": 100, "y": 200})
-    assert table._columns[FIELD_INDEX["x"]].armed
     np.testing.assert_array_equal(table.matrix(), expected)
 
 
@@ -195,12 +174,10 @@ def test_interrupted_write_restores_current_earlier_and_uninstalled_columns(rows
     expected = _rows()
     table = _AtomFactTable(expected)
     presence, sources = table.presence(), table.sources()
-    columns = list(table._columns)
-    columns[FIELD_INDEX["y"]] = _WriteThenRaise(columns[FIELD_INDEX["y"]])
-    table._columns = tuple(columns)
-    with pytest.raises(KeyboardInterrupt, match="after a completed column write"):
+    count = len(table) if rows is None else 1 if isinstance(rows, int) else len(rows)
+    occurrence = tuple(updates).index("y") * count + 1
+    with _native_fail_after("value", occurrence), pytest.raises(KeyboardInterrupt, match="native fact store"):
         table.update(rows, updates)
-    assert not table._columns[FIELD_INDEX["y"]].armed
     np.testing.assert_array_equal(table.matrix(), expected)
     np.testing.assert_array_equal(table.presence(), presence)
     np.testing.assert_array_equal(table.sources(), sources)
@@ -460,8 +437,8 @@ def test_invalid_metadata_rejects_numeric_and_metadata_changes_together(rows, op
 def test_metadata_write_interruption_restores_numeric_presence_and_source(metadata, rows, columns):
     table = _AtomFactTable(_rows(), presence=0)
     numeric, presence, sources = table.matrix(), table.presence(), table.sources()
-    setattr(table, metadata, _WriteThenRaise(getattr(table, metadata)))
-    with pytest.raises(KeyboardInterrupt):
+    boundary = "presence" if metadata == "_presence" else "source"
+    with _native_fail_after(boundary), pytest.raises(KeyboardInterrupt):
         table.update(rows, columns)
     np.testing.assert_array_equal(table.matrix(), numeric)
     np.testing.assert_array_equal(table.presence(), presence)
@@ -473,13 +450,9 @@ def test_metadata_write_interruption_restores_numeric_presence_and_source(metada
 def test_read_only_metadata_is_rejected_before_numeric_install(metadata, rows):
     table = _AtomFactTable(_rows(), presence=0)
     numeric, presence, sources = table.matrix(), table.presence(), table.sources()
-    columns = list(table._columns)
-    columns[FIELD_INDEX["x"]] = _WriteThenRaise(columns[FIELD_INDEX["x"]])
-    table._columns = tuple(columns)
     getattr(table, metadata).flags.writeable = False
-    with pytest.raises(ValueError):
+    with _native_fail_after("value"), pytest.raises(ValueError):
         table.update(rows, {"x": 100})
-    assert table._columns[FIELD_INDEX["x"]].armed
     np.testing.assert_array_equal(table.matrix(), numeric)
     np.testing.assert_array_equal(table.presence(), presence)
     np.testing.assert_array_equal(table.sources(), sources)

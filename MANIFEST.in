@@ -29,6 +29,9 @@ recursive-include hotpot/cheminfo/geometry/_native *.cpp *.hpp
 include hotpot/cheminfo/graph/README.md
 include hotpot/cheminfo/graph/_graph_native.pyi
 recursive-include hotpot/cheminfo/graph/_native *.cpp *.hpp *.md
+include hotpot/cheminfo/structure/_fact_native.pyi
+recursive-include hotpot/cheminfo/structure/_native *.cpp *.hpp
+include hotpot/cheminfo/structure/_native/CPYTHON_LICENSE
 include hotpot/cheminfo/search/_search_native.pyi
 recursive-include hotpot/cheminfo/search/_native *.cpp *.hpp
 include hotpot/cheminfo/kekulize/Kekulize.md

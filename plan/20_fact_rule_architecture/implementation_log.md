@@ -1026,3 +1026,191 @@ review records and retained failed attempts by SHA256.
   Core integration resumes under its already frozen private hooks after the
   document handoff. No commit/push was performed by the document worker; the
   parent owns the next coherent documentation commit and push cadence.
+
+### Stage3 native integration — first compiled checkpoint, performance open
+
+- The reliable Python integration was committed as
+  `aeda200868209243aabf8b8c611765fdde142710`. The owner-requested stage-record
+  layout was separately committed as`ba662e3` and pushed successfully to
+  `origin/implement/plan20-fact-rule-architecture`, completing the three-commit
+  cadence since`ce41629`. Native/build changes were excluded from that
+  documentation commit. The next implementation commit starts a new cadence.
+- The sole private`structure._fact_native` now supplies scalar/column
+  preparation and physical installation/restoration against the existing
+  NumPy owners. Python update numeric normalizer/store/restore bodies are removed;
+  actual seven-field N05 bytes/pickle remain. Native and Python dependency
+  mutations enroll in one ordered physical undo journal. Core retains its
+  existing eager scientific bodies and later-stage ownership cutovers.
+- Four recorded Python3.11 builds were attempted. The first two failed on a
+  C++ conditional pointer conversion and a pybind11 tuple conversion; the
+  third and fourth compiled. Focused runs found a real NumPy1D selection
+  classification bug and an extension-loading gap on first append. Both were
+  repaired; first-transaction loading precedes lock acquisition and stores.
+  Original compiler/test failures remain retained, rather than replaced by
+  the later successful attempt.
+- The first complete compiled focused selection passed **521 tests,6
+  warnings in10.68s**, followed by **59 passed in0.96s** on the exact existing
+  Stage3 targets and additional Bond/stereo working-copy contracts. Their
+  source/native/test hashes were stable during execution. Commands, logs,
+  dirty-source/binary snapshots, build identities and coverage limits are
+  indexed in`stages/stage03/native/evidence.json`; the complete raw archive
+  lives under`.plan20-artifacts/20261029/stage3/fact-native/native-v1-checkpoint/`.
+  These are Python3.11 source/native checks, not all-ABI/wheel completion.
+- The same frozen seven paired tasks still fail performance policy:
+  scalar8/64/256 ratios5.756/6.129/6.030, batch8/64/256
+  ratios4.424/2.313/2.059, and complete write/read64 ratio5.229. CPU0,
+  three warmups and ten measured samples were used on both B20 and candidate;
+  full raw attempts, load and source/native identities remain in the archive.
+  Ordinary scalar64 now costs about2.40us/write against B20 about0.39us.
+  This improvement over the earlier Python attempt does not establish parity.
+- A subsequent public-signature review found that native special-method
+  binding must retain the successful bound and unbound keyword calls of the
+  frozen`MolBlock.__setattr__(self,key,value)`, including unbound`self=`.
+  The Stage1 inventory explicitly covers that interface. Its repair and
+  independent undo review remain in progress; no public contract was waived.
+- Further engine optimization targets measured temporary allocation,
+  attribute lookup and ContextVar overhead within the accepted boundary.
+  Stage3 remains incomplete; the final default, five-ABI/source/wheel/sdist,
+  relevant scientific and performance gates remain open. No Stage4 or
+  Stage13 implementation has started.
+
+### Stage3 native undo — frozen build8 and gate interpretation correction
+
+- A real allocator probe demonstrated that membership-only seed restoration
+  could allocate during rollback, partially restore facts/seeds and replace
+  the original exception. The original eight rejection/control subprocesses
+  are retained. The Sol-max-reviewed revision now captures physical bucket
+  entry/counter beforeimages, and preserves actual prior set bodies at
+  clear/rehash boundaries. It retains the same active Python seed sets and
+  ordered journal. Applied/cancelled state prevents restoring uninstalled
+  candidates and duplicate outer replay. No Python writer fallback or later
+  scientific owner was introduced.
+- Final build8 C++ SHA-256 is
+  `482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1`;
+  Core SHA-256 is
+  `5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595`.
+  The actual matching CPython3.10–3.14 extensions compiled successfully.
+  The first3.13/3.14 attempt failed because `_PySet_Dummy` is no longer
+  declared by their public headers; runtime sentinel binding from a disposable
+  builtin set resolved that build failure. This is a per-minor CPython
+  extension, not abi3 or validated free-threaded support. Matching CPython
+  algorithm/source identities and the unmodified PSF license are retained.
+- Build7's full focused selection passed548 tests. It is an earlier source
+  checkpoint, distinct from build8. Build8 with `PYTHONMALLOC=debug` passed75
+  native tests, including actual MEM allocator rejection, zero allocation
+  attempts during physical seed restoration, original exception identity,
+  preparation rejection, repeated body generations, collisions and lifecycle.
+  Raw probes, logs, helpers and hashes are archived under
+  `.plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/`.
+- Actual final default command is recorded verbatim in
+  `.plan20-artifacts/20261029/stage3/fact-native/request-default-build8-attempt1.json`:
+  CPU24–31, `/tmp/hotpot-plan20-env/bin/python -m pytest -q
+  --import-mode=importlib tests`, with isolated JUnit/cache/model-output paths.
+  `helpers/run_recorded_v2.py` measured259.05s wall time; pytest reported
+  **4432 passed,123 skipped,3 xfailed,49 passed subtests**,10 warnings in257.20s.
+  Production source and every checkout native binary were unchanged throughout.
+  This source/default result does not substitute for five-version or installed
+  wheel verification; those final checks are running separately.
+- The final paired-v4 diagnostic retains scalar8/64/256 ratios
+  **1.865/1.905/1.877**, batch8/64/256 **2.338/0.756/0.551**, and complete
+  write/read64 **3.136**. These include real unresolved regressions. A failed
+  driver call accidentally reused the v3 output directory, produced no new
+  samples and invalidated its top metadata; its failure is preserved, and
+  the previously archived valid v3 remains separately bound. No failed call
+  is counted as a passing measurement.
+- `stages/stage03/gates/review.md` corrects an execution interpretation:
+  the complete71-entry final global comparison is required at Stage12/final
+  delivery, while Stage3 requires actual migrated-mechanism correctness,
+  source/native/wheel and storage/export/scaling evidence. Neither frozen
+  workloads nor efficiency thresholds/weights/exception policy changed. This
+  grants no performance waiver; the new engine's own overhead remains visible
+  and cannot all be attributed to retained Stage5 eager chemistry. Stage3 is
+  still in progress and Stage4 has not started.
+- The owner-requested directory standard now includes navigation READMEs for
+  every `stage00` through `stage13`; later-stage navigation is not an entry or
+  execution record. The current layout audit
+  `.plan20-artifacts/20261029/stage3/fact-native/layout-final-attempt1.json`
+  passes26 Markdown records,23 JSON records and28 migration identities with
+  no errors. Historical migration evidence remains unchanged.
+- The frozen five-column float32 benchmark now binds its candidate to the
+  existing private table selector under the owner lock. Native export still
+  calls the sole current `_native.buffers` path until its Stage10 physical
+  move. This only supplies owning-stage fixture/import bindings: task fields,
+  dtype, work, manifest, sampling and public readers are unchanged. The full
+  public19-column float64 matrix remains a separate measured operation.
+
+### Stage3 final frozen validation and storage evidence
+
+- Executed `PYTHONDONTWRITEBYTECODE=1 /tmp/hotpot-plan20-env/bin/python
+  .plan20-artifacts/20261029/stage3/fact-native/helpers/run_matrix_final.py`.
+  Python3.10–3.14 each passed1023 source tests with8 external-xTB skips,
+  75 actual debug-allocator native tests,941 installed-runtime tests with the
+  same8 skips, wheel content audits and installed core smoke. The full affected
+  selection adds the new native test, import safety/order and changed-build
+  scans.43 source targets and38 installed targets are explicitly frozen;
+  architecture/four packaging source scans are not relabeled wheel tests.
+- Every matrix command binds exact argv, cwd, environment, interpreter,
+  source/native/tests/runner before/after hashes and elapsed time. The whole
+  matrix manifest is stable. Copied test bytes match, and all installed
+  Hotpot/MCA origins resolve to each isolated pip target outside checkout.
+  Current Python/stub/license and each rebuilt fact extension were packaged;
+  unchanged existing native members were reused only after matching their B20
+  source closure/build recipe/wheel-member identities. This is current
+  installed-package evidence, not the Stage10 clean all-native rebuild/SDK gate.
+- The actual current sdist was built and audited: current fact CPP, stub and
+  unmodified PSF license match exactly, with no prebuilt `.so`. The matrix and
+  package identities are in`stages/stage03/validation/evidence.json`; the
+  executed validation report is`stages/stage03/validation/report.md`.
+- After all task builds/tests stopped, executed
+  `helpers/run_stage3_storage_final.py` under the fact-native artifact root,
+  using the same interpreter, LD_PRELOAD and single-thread environment as the
+  frozen source/default runs. The script's exact commands/hashes are retained
+  in`storage-final-attempt1/execution.json`.25 unchanged workload comparisons
+  used CPU0–63,3 warmups/10 samples:50 workers,650 total attempts,500 measured,
+  no failures/no-output, equal actual work counters, stable source/native,
+  and zero comparator environment mismatches. Manifest/policy bytes did not
+  change; the candidate binding changes were limited to their owning stage.
+- Current/B20 scalar-write8/64/256 ratios are1.833/1.878/1.872; batch
+  ratios2.339/0.760/0.563; coordinate write/read0.402/0.122/0.082;
+  five-column float32 export0.227/0.033/0.008; native export
+  0.398/0.126/0.077. Construction ratios3.585/1.343/0.455 and
+  insert/delete7.088/3.880/2.867 remain fully visible. Complete write/read64
+  is3.111(CI3.076–3.146). The entire measured Atom-storage family is
+  1.037(CI1.035–1.041), not parity. No exception was requested or approved.
+- Executed the supplemental`helpers/measure_stage3_marking.py`:12 new-only
+  scaling cases,156 attempts/120 measured.20 sparse UID marks in one actual
+  transaction cost48.1/49.9/50.6/51.0us at N8/64/256/4096. Dense marking and
+  full19-column float64 exports retain their N-dependent costs and buffers.
+  This is actual mechanism evidence, not a fabricated old/new counterpart.
+- Executed`helpers/run_retained_final.py` with six fresh-process memory
+  controls. Full19-column numeric projections match B20 byte-for-byte at
+  N8/256/4096. GC-controlled Python/NumPy-tracked retained deltas are
+  B20=7667/129203/2095348B and current=17187/144419/2175556B. Current retained
+  increases remain open; lower observed process peak-RSS does not erase them.
+  All memory/scaling source/native before-after identities are stable.
+- `stages/stage03/performance/{report.md,evidence.json}` preserve all25
+  confidence intervals, individual regressions, family completeness, original
+  samples, GC/release observations and measurement limits. Final71-entry
+  scientific/efficiency/end-to-end/memory acceptance stays open at its owning
+  later stages. No inferred improvement from future eager/result changes is
+  counted now. The ratchet passes281 remaining entries, with no new debt;
+  the document audit now passes28 Markdown/25 JSON and all28 migration records.
+
+### Stage3 closure
+
+- The owning Stage3 gates are complete on the frozen build8 production bytes:
+  the one factual owner/writer, connected factual importers and outer commits,
+  raw value/source/UID/permission/lifecycle/buffer/dirty contracts, actual
+  allocator-safe rollback, complete default, affected five-Python source and
+  current installed-package checks, architecture ratchet and actual selected
+  storage/export/marking/memory measurements. The final stage report is
+  `stages/stage03/report.md`; the verification map now reflects these executed
+  gates rather than historical pending checkpoint labels.
+- This closes Stage3, not final global efficiency or scientific delivery.
+  The recorded regressions and retained-memory increases remain open under
+  the unchanged Stage12/final policy. Stage10 clean all-component native
+  rebuild/SDK and the assigned later science/result/frame owners are not
+  claimed complete. Stage4 requires a new complete main/companion reread and
+  current-state assessment before its implementation starts.
+- The next coherent implementation commit begins the first of three commits
+  since the successful`ba662e3` push. No cadence-only commit is created.

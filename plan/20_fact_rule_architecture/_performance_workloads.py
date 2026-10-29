@@ -79,14 +79,14 @@ def prepare(entry, phase):
                 if phase == "baseline":
                     matrix = np.asarray([(a.atomic_number, a.formal_charge, *a.coordinates) for a in atoms], dtype=np.float32)
                 else:
-                    raise NotImplementedError(
-                        "Bind the frozen five-column float32 task to the Stage3 private projector; "
-                        "the public atom_matrix property exports all19 float64 columns"
-                    )
+                    with mol._mutation_lock:
+                        matrix = mol._atom_table.select(
+                            ("atomic_number", "formal_charge", "x", "y", "z"), dtype="float32"
+                        )
                 return {"shape": list(matrix.shape), "returned_bytes": matrix.nbytes, "dtype": str(matrix.dtype)}
             return repeat(export), lambda: None
         if name == "native":
-            module = "hotpot.cheminfo._native.buffers" if phase == "baseline" else "hotpot.cheminfo.adapters.native.molecule_buffers"
+            module = "hotpot.cheminfo._native.buffers"
             native = importlib.import_module(module)
             fields = frozenset(getattr(native.NativeMoleculeField, field) for field in params["fields"])
             def pack():

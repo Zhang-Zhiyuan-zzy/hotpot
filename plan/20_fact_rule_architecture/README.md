@@ -1,7 +1,7 @@
 # Stage 20 — Fact-Carrier and Rule Architecture
 
-Status: implementation authorized on 2026-10-28; Stage0–2 complete;
-Stage3 in progress. All public chemical
+Status: implementation authorized on 2026-10-28; Stage0–3 complete;
+Stage4 is next. All public chemical
 types follow a common protocol for fact ownership, interface mapping,
 permissions, dependencies, buffer ownership and lifecycle. Atom's unified
 fact table is one concrete implementation. Stage2 completed the approved dead/placeholder implementation cleanup;
@@ -17,7 +17,8 @@ and [private storage review](stages/stage03/storage/review.md) with
 [verification evidence](stages/stage03/storage/evidence.json). The production
 [table cutover review](stages/stage03/table-cutover/review.md) now records the connected
 Molecule-owned table, factual imports, controlled writes and complete rollback.
-Remaining architecture debt is281; final Stage3 acceptance is still open.
+Remaining architecture debt is281. The [Stage3 report](stages/stage03/report.md)
+records its completed owning-stage gates and explicit later global acceptance limits.
 
 The current checkpoint adds [member/source identity and field provenance](stages/stage03/identity/review.md),
 with [execution evidence](stages/stage03/identity/evidence.json). The approved
@@ -40,8 +41,12 @@ The frozen Python-engine checkpoint passes4349 default tests, with123 skipped,
 hashes and commands are retained with the implementation log. The
 [performance escalation record](stages/stage03/performance/escalation.json)
 retains measured scalar/batch regressions after both Sol-max and bounded Astra
-optimization. Performance acceptance and final five-version/installed-wheel
-verification remain open; this is not Stage3 completion or Stage4 entry.
+optimization. These are historical checkpoint results. Final build8 [validation](stages/stage03/validation/report.md)
+passes4432 default tests, with123 skipped,3 xfailed and49 subtests;
+each Python3.10–3.14 passes1023 source/75 debug-native/941 installed tests
+(8 external-xTB skips in source/installed). [Storage/scaling evidence](stages/stage03/performance/report.md)
+retains current regressions and memory increases. Stage3 is complete; final
+scientific/global efficiency acceptance remains open at its owning later gates.
 Original planning branch: `refactor/fact-rule-architecture`
 
 Original planning baseline: `0a4b0ee`; reviewed documentation: `d9eb80e`.

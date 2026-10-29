@@ -1,0 +1,1150 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-29T06:12:33.299575+00:00",
+  "stage": "Stage3",
+  "status": "bounded private undo revision accepted by parent; implementation and acceptance gates open",
+  "author": {
+    "task": "/root/stage3_builder_solmax",
+    "model": "gpt-6.1-sol",
+    "effort": "max",
+    "delegation": "none"
+  },
+  "authorization": {
+    "source": "parent explicit assignment in the active implementation conversation on2026-10-29",
+    "read_only_to_design_handoff": true,
+    "exclusive_document_files": [
+      "plan/20_fact_rule_architecture/stages/stage03/native/review.md",
+      "plan/20_fact_rule_architecture/stages/stage03/native/undo_revision_entry_review.json"
+    ],
+    "index_edit_only": "plan/20_fact_rule_architecture/stages/stage03/README.md",
+    "core_wiring": "Only assigned _store_atom_fields multi-field branch; any seed-copy wiring is coordinated with parent ownership",
+    "engine_owner": "/root/stage3_commit_perf_escalation",
+    "production_engine_edits_by_author": false,
+    "main_plan_edits": false,
+    "original_historical_entry_json_edits": false,
+    "commits": false
+  },
+  "entry": {
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "branch": "implement/plan20-fact-rule-architecture",
+    "head": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+    "worktree_status": [
+      " M MANIFEST.in",
+      " M hotpot/cheminfo/core.py",
+      " M hotpot/cheminfo/structure/_atom_table.py",
+      " M hotpot/cheminfo/structure/_commit.py",
+      " M hotpot/cheminfo/structure/_dependencies.py",
+      " M hotpot/cheminfo/structure/_mutation.py",
+      " M plan/20_fact_rule_architecture/implementation_log.md",
+      " M plan/20_fact_rule_architecture/stages/README.md",
+      " M plan/20_fact_rule_architecture/stages/stage03/README.md",
+      " M pyproject.toml",
+      " M setup.py",
+      " M tests/test_cheminfo/structure/test_atom_fact_table.py",
+      " M tests/test_cheminfo/structure/test_commit_atomicity.py",
+      " M tests/test_cheminfo/test_plan20_carrier_cutover.py",
+      "?? hotpot/cheminfo/structure/_fact_native.pyi",
+      "?? hotpot/cheminfo/structure/_native/",
+      "?? plan/20_fact_rule_architecture/stages/stage03/native/evidence.json",
+      "?? plan/20_fact_rule_architecture/stages/stage03/native/review.md",
+      "?? plan/20_fact_rule_architecture/stages/stage04/",
+      "?? plan/20_fact_rule_architecture/stages/stage05/",
+      "?? plan/20_fact_rule_architecture/stages/stage06/",
+      "?? plan/20_fact_rule_architecture/stages/stage07/",
+      "?? plan/20_fact_rule_architecture/stages/stage08/",
+      "?? plan/20_fact_rule_architecture/stages/stage09/",
+      "?? plan/20_fact_rule_architecture/stages/stage10/",
+      "?? plan/20_fact_rule_architecture/stages/stage11/",
+      "?? plan/20_fact_rule_architecture/stages/stage12/",
+      "?? plan/20_fact_rule_architecture/stages/stage13/",
+      "?? tests/test_cheminfo/structure/test_fact_native.py"
+    ],
+    "concurrent_engine_changes": "Approved multi-field and static slot-offset refinements may progress; listed live hashes are a checkpoint, not a frozen validation claim",
+    "full_normative_reads": [
+      {
+        "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+        "sha256": "afb13f1a62f7d8db8a0fa8e893c4d1322e18d73edb785b0ad649c1eb02621f4b",
+        "bytes": 173892,
+        "lines": 2448,
+        "full_read": true
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+        "sha256": "90be7a21289210ee0db86dec4729988e085c764366ea7aa64d49b7d8427166e3",
+        "bytes": 23663,
+        "lines": 284,
+        "full_read": true
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+        "sha256": "72f935922c623948cc29d781c2eb77e38bcc8562cf368496a5cd7fb0599f1638",
+        "bytes": 53221,
+        "lines": 521,
+        "full_read": true
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+        "sha256": "e5549116f1409fb46b5fd2bdc82c0b20a34297989475eb66a119ac221a9d4a0b",
+        "bytes": 12817,
+        "lines": 177,
+        "full_read": true
+      },
+      {
+        "path": "plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+        "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+        "bytes": 4225,
+        "lines": 68,
+        "full_read": true
+      }
+    ],
+    "full_normative_lines": 3498,
+    "main_plan_ranges_read": [
+      "1-300",
+      "301-700",
+      "701-1100",
+      "1101-1300",
+      "1301-1500",
+      "1501-1850",
+      "1851-2150",
+      "2151-2448"
+    ],
+    "companion_ranges_read": {
+      "plan/20_fact_rule_architecture/chemical_type_interface_contract.md": [
+        "1-150",
+        "151-284"
+      ],
+      "plan/20_fact_rule_architecture/data_object_scope_audit.md": [
+        "1-180",
+        "181-320",
+        "321-430",
+        "431-521"
+      ],
+      "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md": [
+        "1-177"
+      ],
+      "plan/21_metal_cluster/metal_cluster_implementation_plan.md": [
+        "1-68"
+      ]
+    },
+    "truncation_handling": "Main1101-1500 truncated once; reread1101-1300 and1301-1500 separately. Only complete bounded outputs counted.",
+    "skills_read": [
+      ".codex/skills/hotpot-stage/SKILL.md",
+      ".codex/skills/hotpot-validation/SKILL.md"
+    ],
+    "additional_records_inspected": [
+      "plan/20_fact_rule_architecture/README.md",
+      "plan/20_fact_rule_architecture/stages/stage01/contracts/decisions.md",
+      "plan/20_fact_rule_architecture/stages/stage03/native/entry_review.json",
+      "plan/20_fact_rule_architecture/stage_verification_map.json Stage3",
+      "/tmp/plan20-native-facts-20261029/focused-attempt4/command.json"
+    ],
+    "implementation_inspected": [
+      "Native-v1 facts.cpp1-808 and _commit.py complete, followed by bounded live diff/Undo/prepare/install/capture review",
+      "_dependencies._seed/_expand_dirty plus fresh-state installation/remap",
+      "Core _store_atom_fields and Molecule._add_atom pending-seed writer",
+      "_FactTransaction touch_topology/touch_registration/touch_dependencies/_rollback and table slot/codec owners",
+      "CPython3.11 cpython/setobject.h actual struct and ownership fields"
+    ],
+    "live_source_checkpoint": [
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "sha256": "916dc5664ff471a0c60dbe7593ea32594d85a642ed2f4aa63a0fbea5702f29b3",
+        "bytes": 258000
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_native/facts.cpp",
+        "sha256": "58b2326b94195150d81abff4ef24afc4bcedcc4e1afc24f78afc4d5f251c7fae",
+        "bytes": 49253
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_commit.py",
+        "sha256": "ed9d3c1baf0b0ab761cff41e257195471c51c4ec1bc9bf53b4d7b084ad386b39",
+        "bytes": 19633
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_dependencies.py",
+        "sha256": "1a09fd3955e0d53f68c438521a9117774033ff09f8532e5eea3ff5be904cb710",
+        "bytes": 7009
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_atom_table.py",
+        "sha256": "595ef42f0524ec2760a739787a62bd52ce9d4a14759c38b52b0c32afa783796a",
+        "bytes": 14529
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_mutation.py",
+        "sha256": "4c62aa4d626fd7babd1c80961f909dc37dba70bd136279bcba2b6b20b6482283",
+        "bytes": 3989
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_fact_native.pyi",
+        "sha256": "233a5bea82ee72a5cef431260317b86a4320788e51187fa74365617bed433737",
+        "bytes": 1778
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "3661bb263a458efb0dc6d9cc868927236f8cbe5f378f17723c4a8cfbd17f7808",
+        "bytes": 376912
+      },
+      {
+        "path": "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+        "sha256": "f2df9e31dfb1455c3497ec0d0fbd3c78937f164a50e9a76099b711722f820989",
+        "bytes": 20242
+      }
+    ],
+    "completed_predecessors": [
+      "Stage0",
+      "Stage1",
+      "Stage2"
+    ],
+    "stage3_not_complete": true
+  },
+  "api_effects": {
+    "public_additions_removals_signature_permission_return_changes": [],
+    "public_contracts_retained": [
+      "Molecule.updata_atoms spelling and semantics",
+      "Molecule.atom_matrix complete19-column independent float64 projection",
+      "all four frozen Atom.__setattr__ calling conventions"
+    ],
+    "N01": "One source binding; owner-only immediate guards and all declared content checks for prepared/long proposals remain",
+    "N05_fields": [
+      "source",
+      "rows",
+      "atom_uids",
+      "fields",
+      "value_bytes",
+      "presence",
+      "sources"
+    ],
+    "N05": "Actual immutable seven-field type retained; no second escaping update class",
+    "private_multi_field_hook": "_commit_atom_fields(atom, columns, *, producer:int, present:bool=True)->None; actual N05 once and same installer",
+    "static_slot_binding": "Actual _AtomFactTable PyMemberDescr T_OBJECT_EX code offsets plus descriptor/type references; current slot/arrays checked on every call; no instance/data pointers retained",
+    "seed_container": "Existing actual Python set and _dirty_seeds tuple; no new canonical container, persistent owner, selector or fallback",
+    "internal_abi_effect": "Version-compiled CPython PySetObject/setentry access for physical beforeimages/body swaps; no abi3 or cross-minor binary compatibility claim",
+    "budget": "No new Python record/exported pybind class; count any actual new C++ undo/preparation structs separately, with no claimed DTO reduction"
+  },
+  "accepted_undo": {
+    "same_installer_and_ordered_journal": true,
+    "ordinary_changes": "Pre-enrolled exact bucket-entry key/hash beforeimages plus fill/used; closed builtin-UID lookup and one installer; restore direct physical entries/counts/ref ownership",
+    "batch": "O(k) expected operation-local changed-entry overlay; all metadata reserved before stores",
+    "clear": "Prepare empty set before stores; swap bodies retaining actual old storage under inactive operation-local candidate",
+    "rehash": "Only at actual rehash boundary prepare after-candidate; body swap retains original heap bucket allocation, capacity and tombstones",
+    "restore": "No allocation, PySet_Add, fallible Python operation or user callback; original BaseException identity and outer poison preserved",
+    "once_flag": "Restored/cancelled Undo skipped when replayed after local catch restoration; no second body swap",
+    "storage_lifetime": "Pin actual set, keys and inactive body owners. Restore each heap/inline generation before dereferencing older entries, including topology restoration first.",
+    "complexity": {
+      "scalar": "O(touched entries) expected",
+      "batch": "O(k) expected",
+      "real_rehash": "O(bucket capacity)",
+      "clear": "empty preparation plus body swap; no member copy"
+    },
+    "must_not_do": [
+      "copy full set on every scalar",
+      "boolean-membership-only restore",
+      "clear-only repair",
+      "forward-rehash-only repair with PySet_Add rollback",
+      "new persistent container/owner",
+      "second active writer",
+      "change chemistry or enter Stage4+"
+    ],
+    "partial_installation": "Each body swap has an applied state set in the uninterrupted native installation segment before its fault checkpoint. Enrollment/earlier-store failure must not swap an uninstalled after-candidate into active storage; reverse only applied transitions before cancelling the Undo."
+  },
+  "writer_consumer_coverage": [
+    {
+      "owner": "Native fact engine",
+      "actions": [
+        "scalar/prepared/columns/multi-field seed changes use one physical plan/install/restore"
+      ]
+    },
+    {
+      "owner": "_dependencies._seed",
+      "actions": [
+        "Remove active Python set.update and route downstream changes through same seed ingress"
+      ]
+    },
+    {
+      "owner": "_dependencies._expand_dirty",
+      "actions": [
+        "Remove active set.clear; preserve scope/status semantics and pre-store captures"
+      ]
+    },
+    {
+      "owner": "Core Molecule._add_atom",
+      "actions": [
+        "Remove active Python seed add/discard from pending-group copy"
+      ]
+    },
+    {
+      "owner": "_FactTransaction dependency capture helpers",
+      "actions": [
+        "Remove remaining membership-only restore assumptions and reconcile broad captures"
+      ]
+    },
+    {
+      "owner": "Table/codec/remap/detach/new owner paths",
+      "actions": [
+        "Retain fresh-owner preparation and complete existing storage/topology restoration; verify old physical ownership"
+      ]
+    },
+    {
+      "owner": "Readers/copy/serialization",
+      "actions": [
+        "Same actual set/frozenset logical values; no fallback or second representation"
+      ]
+    }
+  ],
+  "allocation_evidence": {
+    "driver_command": [
+      "/tmp/hotpot-plan20-env/bin/python",
+      "/tmp/plan20-undo-allocation-review-20261029/build_and_run.py"
+    ],
+    "environment": {
+      "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "affinity": "24-31",
+    "python": "/tmp/hotpot-plan20-env/bin/python",
+    "python_version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "platform": "Linux-5.15.0-139-generic-x86_64-with-glibc2.31",
+    "build": {
+      "argv": [
+        "cc",
+        "-shared",
+        "-fPIC",
+        "-O2",
+        "-I/home/zhangzhiyuan/usr/conda3/envs/hp-usage/include/python3.11",
+        "/tmp/plan20-undo-allocation-review-20261029/seed_alloc_probe.c",
+        "-o",
+        "/tmp/plan20-undo-allocation-review-20261029/seed_alloc_probe.cpython-311-x86_64-linux-gnu.so"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "python": "/tmp/hotpot-plan20-env/bin/python",
+      "python_version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]"
+    },
+    "compiler_version_command": [
+      "cc",
+      "--version"
+    ],
+    "compiler_version": "cc (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0",
+    "frozen_native_source": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/native-v1-checkpoint/source-snapshot/hotpot/cheminfo/structure/_native/facts.cpp",
+      "sha256": "cdf3de18d2e02748a7622ee08285b384b3949a214fa3552ad8927accffde6bd9",
+      "bytes": 40476
+    },
+    "frozen_native_binary": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/native-v1-checkpoint/source-snapshot/hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so",
+      "sha256": "7c66215f15b3399d310f17edc1b396e721383bbd3a629528a4e697f1fe9b4a57",
+      "bytes": 358000
+    },
+    "artifacts": [
+      {
+        "path": "/tmp/plan20-undo-allocation-review-20261029/build.json",
+        "sha256": "ad3ed83d04621a3970a36e70228b6be20fab3d280c255f571d26d97ec19c1425",
+        "bytes": 494
+      },
+      {
+        "path": "/tmp/plan20-undo-allocation-review-20261029/build_and_run.py",
+        "sha256": "5866e23ce6a977c6001f3ba150702458a102230204281a1ef627513fade79860",
+        "bytes": 2445
+      },
+      {
+        "path": "/tmp/plan20-undo-allocation-review-20261029/probe.py",
+        "sha256": "b18f60622f77a38de4cae7720b1da837a6b74ee1bbf78700c1c900d23a5a0fea",
+        "bytes": 4823
+      },
+      {
+        "path": "/tmp/plan20-undo-allocation-review-20261029/results.json",
+        "sha256": "4101608c674726aaaaa445affd1556fcbea143f041ebc9a990525fe0526ce89d",
+        "bytes": 9648
+      },
+      {
+        "path": "/tmp/plan20-undo-allocation-review-20261029/seed_alloc_probe.c",
+        "sha256": "de68dff675da2d98166977a86bf99cb202b70038316f589c7d2948b0d954e0a3",
+        "bytes": 2782
+      },
+      {
+        "path": "/tmp/plan20-undo-allocation-review-20261029/seed_alloc_probe.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "cb44ceaccadf84d0e0db92f25278da69d8527caca1fd947d2dbb36f394c7bd46",
+        "bytes": 17648
+      }
+    ],
+    "runs": [
+      {
+        "name": "clear-KeyboardInterrupt-0",
+        "argv": [
+          "taskset",
+          "-c",
+          "24-31",
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/tmp/plan20-undo-allocation-review-20261029/probe.py",
+          "clear",
+          "KeyboardInterrupt",
+          "0"
+        ],
+        "returncode": 0,
+        "original_exception_identity_preserved": true,
+        "all_seeds_restored": true,
+        "all_statuses_restored": true,
+        "all_numeric_facts_restored": true,
+        "allocation": {
+          "rejected_size": 0,
+          "attempts": 2,
+          "rejected": 0,
+          "allocation_sizes": [
+            512,
+            2048
+          ]
+        },
+        "set_states": {
+          "before": {
+            "fill": 64,
+            "used": 64,
+            "mask": 127,
+            "table_address": 94865005310080
+          },
+          "forward": {
+            "fill": 0,
+            "used": 0,
+            "mask": 7,
+            "table_address": 139910892243712
+          },
+          "after": {
+            "fill": 64,
+            "used": 64,
+            "mask": 127,
+            "table_address": 94865005310080
+          }
+        },
+        "report_identity": {
+          "path": "/tmp/plan20-undo-allocation-review-20261029/clear-KeyboardInterrupt-0.stdout.json",
+          "sha256": "ea135c9c646d652682c3bdb7b62fb3c0dc0d420f2d675fa0e2f5e44b67f04f29",
+          "bytes": 3541
+        },
+        "caught_exception": "KeyboardInterrupt",
+        "original_exception_is_context": false,
+        "seed_counts": [
+          64,
+          64
+        ],
+        "nonzero_formal_charge_count": 0,
+        "all_presence_restored": true,
+        "all_sources_restored": true,
+        "physical_seed_owner_preserved": true,
+        "python_source_matches_v1_snapshot": true,
+        "python_source_stable": true,
+        "interpretation": "control restored state and original exception"
+      },
+      {
+        "name": "clear-KeyboardInterrupt-512",
+        "argv": [
+          "taskset",
+          "-c",
+          "24-31",
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/tmp/plan20-undo-allocation-review-20261029/probe.py",
+          "clear",
+          "KeyboardInterrupt",
+          "512"
+        ],
+        "returncode": 0,
+        "original_exception_identity_preserved": false,
+        "all_seeds_restored": false,
+        "all_statuses_restored": false,
+        "all_numeric_facts_restored": true,
+        "allocation": {
+          "rejected_size": 512,
+          "attempts": 1,
+          "rejected": 1,
+          "allocation_sizes": [
+            512
+          ]
+        },
+        "set_states": {
+          "before": {
+            "fill": 64,
+            "used": 64,
+            "mask": 127,
+            "table_address": 94200368104816
+          },
+          "forward": {
+            "fill": 0,
+            "used": 0,
+            "mask": 7,
+            "table_address": 140018728569600
+          },
+          "after": {
+            "fill": 5,
+            "used": 5,
+            "mask": 7,
+            "table_address": 140018728569600
+          }
+        },
+        "report_identity": {
+          "path": "/tmp/plan20-undo-allocation-review-20261029/clear-KeyboardInterrupt-512.stdout.json",
+          "sha256": "9798de852862c7051321fae9c2528c967958cde82da897d41e6f85aeb9104ea8",
+          "bytes": 3495
+        },
+        "caught_exception": "MemoryError",
+        "original_exception_is_context": true,
+        "seed_counts": [
+          64,
+          5
+        ],
+        "nonzero_formal_charge_count": 0,
+        "all_presence_restored": true,
+        "all_sources_restored": true,
+        "physical_seed_owner_preserved": true,
+        "python_source_matches_v1_snapshot": true,
+        "python_source_stable": true,
+        "interpretation": "confirmed atomicity defect; report process exit0 is not a pass"
+      },
+      {
+        "name": "clear-MemoryError-0",
+        "argv": [
+          "taskset",
+          "-c",
+          "24-31",
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/tmp/plan20-undo-allocation-review-20261029/probe.py",
+          "clear",
+          "MemoryError",
+          "0"
+        ],
+        "returncode": 0,
+        "original_exception_identity_preserved": true,
+        "all_seeds_restored": true,
+        "all_statuses_restored": true,
+        "all_numeric_facts_restored": true,
+        "allocation": {
+          "rejected_size": 0,
+          "attempts": 2,
+          "rejected": 0,
+          "allocation_sizes": [
+            512,
+            2048
+          ]
+        },
+        "set_states": {
+          "before": {
+            "fill": 64,
+            "used": 64,
+            "mask": 127,
+            "table_address": 94392244610640
+          },
+          "forward": {
+            "fill": 0,
+            "used": 0,
+            "mask": 7,
+            "table_address": 140437808745216
+          },
+          "after": {
+            "fill": 64,
+            "used": 64,
+            "mask": 127,
+            "table_address": 94392244610640
+          }
+        },
+        "report_identity": {
+          "path": "/tmp/plan20-undo-allocation-review-20261029/clear-MemoryError-0.stdout.json",
+          "sha256": "6b77ef12f08306b71d84424211409006b09fbd8ca5c4b82e5b088ddcf7a3500b",
+          "bytes": 3529
+        },
+        "caught_exception": "MemoryError",
+        "original_exception_is_context": false,
+        "seed_counts": [
+          64,
+          64
+        ],
+        "nonzero_formal_charge_count": 0,
+        "all_presence_restored": true,
+        "all_sources_restored": true,
+        "physical_seed_owner_preserved": true,
+        "python_source_matches_v1_snapshot": true,
+        "python_source_stable": true,
+        "interpretation": "control restored state and original exception"
+      },
+      {
+        "name": "clear-MemoryError-512",
+        "argv": [
+          "taskset",
+          "-c",
+          "24-31",
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/tmp/plan20-undo-allocation-review-20261029/probe.py",
+          "clear",
+          "MemoryError",
+          "512"
+        ],
+        "returncode": 0,
+        "original_exception_identity_preserved": false,
+        "all_seeds_restored": false,
+        "all_statuses_restored": false,
+        "all_numeric_facts_restored": true,
+        "allocation": {
+          "rejected_size": 512,
+          "attempts": 1,
+          "rejected": 1,
+          "allocation_sizes": [
+            512
+          ]
+        },
+        "set_states": {
+          "before": {
+            "fill": 64,
+            "used": 64,
+            "mask": 127,
+            "table_address": 94727767601792
+          },
+          "forward": {
+            "fill": 0,
+            "used": 0,
+            "mask": 7,
+            "table_address": 139955852708608
+          },
+          "after": {
+            "fill": 5,
+            "used": 5,
+            "mask": 7,
+            "table_address": 139955852708608
+          }
+        },
+        "report_identity": {
+          "path": "/tmp/plan20-undo-allocation-review-20261029/clear-MemoryError-512.stdout.json",
+          "sha256": "ef856c486aacac3c4134daa6603fc6958816abf6b92f8eaab308b11b9450322b",
+          "bytes": 3489
+        },
+        "caught_exception": "MemoryError",
+        "original_exception_is_context": true,
+        "seed_counts": [
+          64,
+          5
+        ],
+        "nonzero_formal_charge_count": 0,
+        "all_presence_restored": true,
+        "all_sources_restored": true,
+        "physical_seed_owner_preserved": true,
+        "python_source_matches_v1_snapshot": true,
+        "python_source_stable": true,
+        "interpretation": "confirmed atomicity defect; report process exit0 is not a pass"
+      },
+      {
+        "name": "tombstone-KeyboardInterrupt-0",
+        "argv": [
+          "taskset",
+          "-c",
+          "24-31",
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/tmp/plan20-undo-allocation-review-20261029/probe.py",
+          "tombstone",
+          "KeyboardInterrupt",
+          "0"
+        ],
+        "returncode": 0,
+        "original_exception_identity_preserved": true,
+        "all_seeds_restored": true,
+        "all_statuses_restored": true,
+        "all_numeric_facts_restored": true,
+        "allocation": {
+          "rejected_size": 0,
+          "attempts": 2,
+          "rejected": 0,
+          "allocation_sizes": [
+            1024,
+            4096
+          ]
+        },
+        "set_states": {
+          "before": {
+            "fill": 76,
+            "used": 76,
+            "mask": 127,
+            "table_address": 94286746915552
+          },
+          "after_discards": {
+            "fill": 76,
+            "used": 1,
+            "mask": 127,
+            "table_address": 94286746915552
+          },
+          "forward": {
+            "fill": 2,
+            "used": 2,
+            "mask": 15,
+            "table_address": 140168741659184
+          },
+          "after": {
+            "fill": 76,
+            "used": 76,
+            "mask": 255,
+            "table_address": 94286747162992
+          }
+        },
+        "report_identity": {
+          "path": "/tmp/plan20-undo-allocation-review-20261029/tombstone-KeyboardInterrupt-0.stdout.json",
+          "sha256": "92f6c95febb548b7e747645a83b4c5f9c9f74d999442af537990d8ddb5c84e2c",
+          "bytes": 3670
+        },
+        "caught_exception": "KeyboardInterrupt",
+        "original_exception_is_context": false,
+        "seed_counts": [
+          76,
+          76
+        ],
+        "nonzero_formal_charge_count": 0,
+        "all_presence_restored": true,
+        "all_sources_restored": true,
+        "physical_seed_owner_preserved": true,
+        "python_source_matches_v1_snapshot": true,
+        "python_source_stable": true,
+        "interpretation": "control restored state and original exception"
+      },
+      {
+        "name": "tombstone-KeyboardInterrupt-1024",
+        "argv": [
+          "taskset",
+          "-c",
+          "24-31",
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/tmp/plan20-undo-allocation-review-20261029/probe.py",
+          "tombstone",
+          "KeyboardInterrupt",
+          "1024"
+        ],
+        "returncode": 0,
+        "original_exception_identity_preserved": false,
+        "all_seeds_restored": false,
+        "all_statuses_restored": true,
+        "all_numeric_facts_restored": false,
+        "allocation": {
+          "rejected_size": 1024,
+          "attempts": 1,
+          "rejected": 1,
+          "allocation_sizes": [
+            1024
+          ]
+        },
+        "set_states": {
+          "before": {
+            "fill": 76,
+            "used": 76,
+            "mask": 127,
+            "table_address": 94481490424560
+          },
+          "after_discards": {
+            "fill": 76,
+            "used": 1,
+            "mask": 127,
+            "table_address": 94481490424560
+          },
+          "forward": {
+            "fill": 2,
+            "used": 2,
+            "mask": 15,
+            "table_address": 140596432560688
+          },
+          "after": {
+            "fill": 9,
+            "used": 8,
+            "mask": 15,
+            "table_address": 140596432560688
+          }
+        },
+        "report_identity": {
+          "path": "/tmp/plan20-undo-allocation-review-20261029/tombstone-KeyboardInterrupt-1024.stdout.json",
+          "sha256": "e36d4b3c22bd6a89d43f94ef19cc2e372014def3020ae9e33e0852700b42c170",
+          "bytes": 3627
+        },
+        "caught_exception": "MemoryError",
+        "original_exception_is_context": true,
+        "seed_counts": [
+          76,
+          8
+        ],
+        "nonzero_formal_charge_count": 68,
+        "all_presence_restored": true,
+        "all_sources_restored": true,
+        "physical_seed_owner_preserved": true,
+        "python_source_matches_v1_snapshot": true,
+        "python_source_stable": true,
+        "interpretation": "confirmed atomicity defect; report process exit0 is not a pass"
+      },
+      {
+        "name": "tombstone-MemoryError-0",
+        "argv": [
+          "taskset",
+          "-c",
+          "24-31",
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/tmp/plan20-undo-allocation-review-20261029/probe.py",
+          "tombstone",
+          "MemoryError",
+          "0"
+        ],
+        "returncode": 0,
+        "original_exception_identity_preserved": true,
+        "all_seeds_restored": true,
+        "all_statuses_restored": true,
+        "all_numeric_facts_restored": true,
+        "allocation": {
+          "rejected_size": 0,
+          "attempts": 2,
+          "rejected": 0,
+          "allocation_sizes": [
+            1024,
+            4096
+          ]
+        },
+        "set_states": {
+          "before": {
+            "fill": 76,
+            "used": 76,
+            "mask": 127,
+            "table_address": 94077954661408
+          },
+          "after_discards": {
+            "fill": 76,
+            "used": 1,
+            "mask": 127,
+            "table_address": 94077954661408
+          },
+          "forward": {
+            "fill": 2,
+            "used": 2,
+            "mask": 15,
+            "table_address": 139818853212720
+          },
+          "after": {
+            "fill": 76,
+            "used": 76,
+            "mask": 255,
+            "table_address": 94077954948624
+          }
+        },
+        "report_identity": {
+          "path": "/tmp/plan20-undo-allocation-review-20261029/tombstone-MemoryError-0.stdout.json",
+          "sha256": "20efa5dc9224286e7b60b7584411e4566425707319f05fff460523373f666466",
+          "bytes": 3658
+        },
+        "caught_exception": "MemoryError",
+        "original_exception_is_context": false,
+        "seed_counts": [
+          76,
+          76
+        ],
+        "nonzero_formal_charge_count": 0,
+        "all_presence_restored": true,
+        "all_sources_restored": true,
+        "physical_seed_owner_preserved": true,
+        "python_source_matches_v1_snapshot": true,
+        "python_source_stable": true,
+        "interpretation": "control restored state and original exception"
+      },
+      {
+        "name": "tombstone-MemoryError-1024",
+        "argv": [
+          "taskset",
+          "-c",
+          "24-31",
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/tmp/plan20-undo-allocation-review-20261029/probe.py",
+          "tombstone",
+          "MemoryError",
+          "1024"
+        ],
+        "returncode": 0,
+        "original_exception_identity_preserved": false,
+        "all_seeds_restored": false,
+        "all_statuses_restored": true,
+        "all_numeric_facts_restored": false,
+        "allocation": {
+          "rejected_size": 1024,
+          "attempts": 1,
+          "rejected": 1,
+          "allocation_sizes": [
+            1024
+          ]
+        },
+        "set_states": {
+          "before": {
+            "fill": 76,
+            "used": 76,
+            "mask": 127,
+            "table_address": 94783887033680
+          },
+          "after_discards": {
+            "fill": 76,
+            "used": 1,
+            "mask": 127,
+            "table_address": 94783887033680
+          },
+          "forward": {
+            "fill": 2,
+            "used": 2,
+            "mask": 15,
+            "table_address": 140086852133424
+          },
+          "after": {
+            "fill": 9,
+            "used": 8,
+            "mask": 15,
+            "table_address": 140086852133424
+          }
+        },
+        "report_identity": {
+          "path": "/tmp/plan20-undo-allocation-review-20261029/tombstone-MemoryError-1024.stdout.json",
+          "sha256": "26755294f5245d1e1876cffd0f34fc9a5b7381cc5b54399deb6f49164b718fd3",
+          "bytes": 3621
+        },
+        "caught_exception": "MemoryError",
+        "original_exception_is_context": true,
+        "seed_counts": [
+          76,
+          8
+        ],
+        "nonzero_formal_charge_count": 68,
+        "all_presence_restored": true,
+        "all_sources_restored": true,
+        "physical_seed_owner_preserved": true,
+        "python_source_matches_v1_snapshot": true,
+        "python_source_stable": true,
+        "interpretation": "confirmed atomicity defect; report process exit0 is not a pass"
+      }
+    ],
+    "interpretation": "All four controls restore original exception identity and full state. Four rejected-allocation cases confirm defects. Exit0 means a completed diagnostic, not correct rollback.",
+    "coverage_limits": [
+      "CPython3.11.16 only",
+      "archived native-v1 binary only",
+      "two real seed scenarios and selected MEM allocation sizes",
+      "not an exhaustive process OOM proof",
+      "not correctness/performance acceptance of the forthcoming repair"
+    ]
+  },
+  "checks_inspected_or_executed": [
+    {
+      "command": "/tmp/hotpot-plan20-env/bin/python /tmp/plan20-undo-allocation-review-20261029/build_and_run.py",
+      "result": "Eight completed diagnostics:4 controls correct;4 confirmed rollback defects",
+      "executed_by": "this author"
+    },
+    {
+      "command": "/tmp/hotpot-plan20-env/bin/python -m pytest -q --import-mode=importlib tests/test_cheminfo/structure tests/test_cheminfo/test_plan20_carrier_cutover.py tests/test_cheminfo/test_plan20_outer_cutover.py",
+      "result": "529 passed,6 warnings in10.68s; stable build5 source/native/tests",
+      "executed_by": "engine owner; command JSON/log inspected by this author",
+      "artifact": "/tmp/plan20-native-facts-20261029/focused-attempt4/command.json",
+      "limit": "Includes8 added keyword/exception cases; predates new Core multi-field hook wiring and undo revision"
+    },
+    {
+      "command": "/tmp/hotpot-plan20-env/bin/python -c [ast.parse Core source]",
+      "result": "passed after minimal multi-field wiring",
+      "limit": "Syntax only; runtime requires new hook binary"
+    }
+  ],
+  "required_validation": [
+    "Reproduce all8 allocation scenarios against fixed, source-matched final native artifacts; preserve exact exception identities and complete state",
+    "Root/outer, enrollment/preparation/body-candidate failures, caught inner errors and cancelled second outer replay",
+    "Collisions, repeated clear/rehash, heap/inline and multi-generation bucket pointer lifetime; GC/ref ownership and mixed dependency/native paths",
+    "Topology growth/remap/removal and copied pending states; no external active Python set mutation remains",
+    "Raw bits/status/source/presence, N05 isolation, callback-after source/member checks, strides/readonly, UID high-water unchanged",
+    "Matching CPython3.10-3.14 builds and complete affected-contract matrix, native ownership evidence, source and installed-wheel coverage",
+    "Current Stage3 correctness and affected schema/scalar-batch scaling gates; final global71-entry performance/memory/scientific acceptance remains open at its owning gates under unchanged policy"
+  ],
+  "unresolved_risks": [
+    "CPython private probing/layout/rehash rules must be verified per target version; unsupported ABI is not passing evidence",
+    "Inline body swaps must restore the original set smalltable address before earlier entry pointers are used",
+    "Strong key/body ownership, dummy handling, GC and disposal must be proven without callbacks or allocation during restore",
+    "Any remaining Python active-set writer breaks exact physical-entry assumptions",
+    "Source is concurrently changing under bounded engine ownership; historical v1/build5 tests do not validate new bytes",
+    "Performance and memory of physical seed undo are unmeasured; no waiver or final parity claim"
+  ],
+  "supplementary_header_layout_evidence": {
+    "executed_by": "parent",
+    "inspected_by": "/root/stage3_builder_solmax",
+    "result_identity": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/set-abi-probe/result.json",
+      "sha256": "37ffcc935d73b15948d6e6a14cc17a5bb757e7c600a0469010dbc42e4e7a5e59",
+      "bytes": 12127
+    },
+    "scope": "Standalone compile/sizeof/offset observations from each supported interpreter header; not a rebuilt fact-native or runtime atomicity gate",
+    "source_sha256": "ccd20467e4d2cffadadb5ac6f5bf15b61926c2f1677c25f14b7833f780faf48f",
+    "runs": [
+      {
+        "version": "3.10",
+        "python": "/tmp/hotpot-plan20-20261028/matrix/cp310/env/bin/python",
+        "compile_argv": [
+          "g++",
+          "-std=c++17",
+          "-I/tmp/hotpot-python/cpython-3.10.20-linux-x86_64-gnu/include/python3.10",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/set-abi-probe/layout.cpp",
+          "-o",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/set-abi-probe/layout-3.10"
+        ],
+        "compile_returncode": 0,
+        "probe_returncode": 0,
+        "observations": {
+          "python": "3.10",
+          "set_object": 200,
+          "entry": 16,
+          "min_size": 8,
+          "fill": 16,
+          "used": 24,
+          "mask": 32,
+          "table": 40,
+          "hash": 48,
+          "finger": 56,
+          "smalltable": 64,
+          "weakreflist": 192,
+          "member_descr": 48
+        },
+        "binary_sha256": "c644a17428cbbfb5be89e42b9403a84f73bd939e7e6e03e5baef223fa4319abd"
+      },
+      {
+        "version": "3.11",
+        "python": "/tmp/hotpot-plan20-env/bin/python",
+        "compile_argv": [
+          "g++",
+          "-std=c++17",
+          "-I/home/zhangzhiyuan/usr/conda3/envs/hp-usage/include/python3.11",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/set-abi-probe/layout.cpp",
+          "-o",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/set-abi-probe/layout-3.11"
+        ],
+        "compile_returncode": 0,
+        "probe_returncode": 0,
+        "observations": {
+          "python": "3.11",
+          "set_object": 200,
+          "entry": 16,
+          "min_size": 8,
+          "fill": 16,
+          "used": 24,
+          "mask": 32,
+          "table": 40,
+          "hash": 48,
+          "finger": 56,
+          "smalltable": 64,
+          "weakreflist": 192,
+          "member_descr": 48
+        },
+        "binary_sha256": "f3b667b6c3c5fe3a55894801c9b8a72cc57aa177ffadd243c8ee0666aa366434"
+      },
+      {
+        "version": "3.12",
+        "python": "/tmp/hotpot-plan20-20261028/matrix/cp312/env/bin/python",
+        "compile_argv": [
+          "g++",
+          "-std=c++17",
+          "-I/tmp/hotpot-python/cpython-3.12.13-linux-x86_64-gnu/include/python3.12",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/set-abi-probe/layout.cpp",
+          "-o",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/set-abi-probe/layout-3.12"
+        ],
+        "compile_returncode": 0,
+        "probe_returncode": 0,
+        "observations": {
+          "python": "3.12",
+          "set_object": 200,
+          "entry": 16,
+          "min_size": 8,
+          "fill": 16,
+          "used": 24,
+          "mask": 32,
+          "table": 40,
+          "hash": 48,
+          "finger": 56,
+          "smalltable": 64,
+          "weakreflist": 192,
+          "member_descr": 48
+        },
+        "binary_sha256": "968c079c20fae7ff9b209c4aedcc1469913c76d9804f489ba04ed994415234d4"
+      },
+      {
+        "version": "3.13",
+        "python": "/tmp/hotpot-plan20-20261028/matrix/cp313/env/bin/python",
+        "compile_argv": [
+          "g++",
+          "-std=c++17",
+          "-I/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/include/python3.13",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/set-abi-probe/layout.cpp",
+          "-o",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/set-abi-probe/layout-3.13"
+        ],
+        "compile_returncode": 0,
+        "probe_returncode": 0,
+        "observations": {
+          "python": "3.13",
+          "set_object": 200,
+          "entry": 16,
+          "min_size": 8,
+          "fill": 16,
+          "used": 24,
+          "mask": 32,
+          "table": 40,
+          "hash": 48,
+          "finger": 56,
+          "smalltable": 64,
+          "weakreflist": 192,
+          "member_descr": 48
+        },
+        "binary_sha256": "95ad5a4084c4e9627fbb43ec838d3899949a79b64ab40d085dc92e8c876a92f3"
+      },
+      {
+        "version": "3.14",
+        "python": "/tmp/hotpot-plan20-20261028/matrix/cp314/env/bin/python",
+        "compile_argv": [
+          "g++",
+          "-std=c++17",
+          "-I/tmp/hotpot-python/cpython-3.14.7-linux-x86_64-gnu/include/python3.14",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/set-abi-probe/layout.cpp",
+          "-o",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/set-abi-probe/layout-3.14"
+        ],
+        "compile_returncode": 0,
+        "probe_returncode": 0,
+        "observations": {
+          "python": "3.14",
+          "set_object": 200,
+          "entry": 16,
+          "min_size": 8,
+          "fill": 16,
+          "used": 24,
+          "mask": 32,
+          "table": 40,
+          "hash": 48,
+          "finger": 56,
+          "smalltable": 64,
+          "weakreflist": 192,
+          "member_descr": 48
+        },
+        "binary_sha256": "d491ea411d6c9ee855063f5ab84982fde7c0e59f72da0741fcea8ae1e877f260"
+      }
+    ],
+    "limit": "Header layout only; not a rebuilt fact-native, algorithm/probing, refcount/GC or runtime rollback gate. Compile actual structs, never hardcode observed offsets.",
+    "provenance_requirement": "If adapting CPython probing, retain exact source/version/digest and required attribution"
+  },
+  "documentation_checks": {
+    "argv": [
+      "/tmp/hotpot-plan20-env/bin/python",
+      "plan/20_fact_rule_architecture/audit_stage_records.py",
+      "--check-migration-bytes"
+    ],
+    "returncode": 0,
+    "result_identity": {
+      "path": "/tmp/plan20-undo-allocation-review-20261029/documentation-audit.json",
+      "sha256": "219cb931d1b391e715cabe6425f9267f11008dcd988373da355fe3c31fb63efe",
+      "bytes": 2274
+    },
+    "status": "passed",
+    "markdown_files_checked": 25,
+    "json_files_checked": 23,
+    "migrated_records": 28,
+    "external_text_files_scanned": 1263,
+    "historical_identity_checks": {
+      "enabled": true,
+      "json_snapshots": 19,
+      "markdown_command_and_identity_records": 9,
+      "implementation_log_prefix": true
+    },
+    "scope": "Document layout and navigation only; no implementation/test/scientific/performance acceptance"
+  }
+}

@@ -103,71 +103,11 @@ def _remap_dependency_state(table, old_uids, new_uids, *, rows=None):
                   for seeds in table._dirty_seeds))
 
 
-def _transaction(mol):
-    from ._commit import _current_transaction
-    return _current_transaction(mol)
-
-
 def _seed(mol, group, uids):
-    table = mol._atom_table
-    uids = tuple(uids)
-    transaction = _transaction(mol)
+    from ._commit import _fact_engine
     # Queue downstream groups now, so consuming an upstream seed cannot hide
     # its effect from a later remote-first read of another group.
-    for index in _GROUP_DOWNSTREAM[group]:
-        if transaction is not None:
-            transaction.touch_dependency_seeds(index, uids)
-        table._dirty_seeds[index].update(uids)
-
-
-def _mark_atom_facts(mol, rows, fields, *, transaction, atom_uids=None):
-    table = mol._atom_table
-    if len(fields) == 1:
-        affected, materialized_group = _FIELD_EFFECTS[fields[0]]
-        materialized = () if materialized_group is None else (materialized_group,)
-    else:
-        materialized = {_MATERIALIZED_GROUP[field] for field in fields if field in _MATERIALIZED_GROUP}
-        affected = set()
-        for field in fields:
-            affected.update(_FIELD_GROUPS.get(field, ()))
-        affected.difference_update(materialized)
-    if not affected and not materialized:
-        return
-    uids = tuple(mol._atoms[row]._uid for row in rows) if atom_uids is None else atom_uids
-    if len(rows) == 1:
-        uid, row = uids[0], rows[0]
-        for group in affected:
-            seeds = table._dirty_seeds[group]
-            if uid not in seeds:
-                transaction.touch_dependency_seeds(group, uids)
-                seeds.add(uid)
-        for group in materialized:
-            if int(table._group_status[row, group]) != 0:
-                transaction.touch_dependency_status(rows, (group,))
-                table._group_status[row, group] = 0
-            seeds = table._dirty_seeds[group]
-            if uid in seeds:
-                transaction.touch_dependency_seeds(group, uids)
-                seeds.remove(uid)
-        return
-    uid_set = set(uids)
-    for group in affected:
-        seeds = table._dirty_seeds[group]
-        added = uid_set.difference(seeds)
-        if added:
-            transaction.touch_dependency_seeds(group, added)
-            seeds.update(added)
-    selection = np.asarray(rows, dtype=np.intp)
-    for group in materialized:
-        changed_rows = selection[table._group_status[selection, group] != 0]
-        if len(changed_rows):
-            transaction.touch_dependency_status(changed_rows, (group,))
-            table._group_status[changed_rows, group] = 0
-        seeds = table._dirty_seeds[group]
-        removed = uid_set.intersection(seeds)
-        if removed:
-            transaction.touch_dependency_seeds(group, removed)
-            seeds.difference_update(removed)
+    _fact_engine()._update_dependency_seeds(mol, _GROUP_DOWNSTREAM[group], tuple(uids), True)
 
 
 def _mark_topology_dirty(mol, atom_uids):
@@ -208,7 +148,7 @@ def _component_rows(mol, seeds):
 
 def _expand_dirty(mol, group):
     table = mol._atom_table
-    transaction = _transaction(mol)
+    from ._commit import _fact_engine
     for index in _upstream_groups(group):
         seeds = table._dirty_seeds[index]
         if not seeds:
@@ -220,13 +160,7 @@ def _expand_dirty(mol, group):
             rows = tuple(range(len(table)))
         else:
             rows = tuple(row for row, atom in enumerate(mol._atoms) if atom._uid in seeds)
-        if transaction is not None:
-            transaction.touch_dependency_status(rows, (index,))
-            transaction.touch_dependency_seeds(index, tuple(seeds))
-        for row in rows:
-            if table._group_status[row, index] == _FactStatus.CURRENT:
-                table._group_status[row, index] = _FactStatus.NEEDS_RECALC
-        seeds.clear()
+        _fact_engine()._clear_dependency_seeds(mol, index, rows)
 
 
 def _ensure_group(mol, group, *, rows=None):

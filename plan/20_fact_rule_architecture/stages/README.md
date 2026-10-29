@@ -1,9 +1,10 @@
 # Stage record catalog
 
 The main plan and normative companions remain in the project root (Plan21
-remains in its own project). This catalog organizes the existing Stage0–3
-records; it changes no objective, gate, contract, scientific route or accepted
-decision. No empty future-stage directories are created.
+remains in its own project). This catalog organizes Stage0–13. Existing execution records cover Stage0–3;
+Stage4–13 currently have navigation indexes only. Folder creation supplies no
+stage-entry or execution evidence and changes no objective, gate, contract,
+scientific route or accepted decision.
 
 ## Markdown types
 
@@ -34,6 +35,16 @@ merely to fill a directory.
 | Stage1 | [stage01](stage01/README.md) | API/assets/interfaces, accepted decisions, baseline sampling and evidence |
 | Stage2 | [stage02](stage02/README.md) | Dead/placeholder cleanup entry and execution evidence |
 | Stage3 | [stage03](stage03/README.md) | Foundation, storage, identities, closed updates/builders, table cutover and native entry |
+| Stage4 | [stage04](stage04/README.md) | Planned: Extract mathematical rules and structure adapters |
+| Stage5 | [stage05](stage05/README.md) | Planned: Extract elemental, bonding, charge, and hydrogen rules |
+| Stage6 | [stage06](stage06/README.md) | Planned: Split stereochemistry facts and rules |
+| Stage7 | [stage07](stage07/README.md) | Planned: Remove second truth sources and clarify results |
+| Stage8 | [stage08](stage08/README.md) | Planned: Split rule policy, workflow, and backend execution |
+| Stage9 | [stage09](stage09/README.md) | Planned: Split the carriers and hard-cut `core.py` |
+| Stage10 | [stage10](stage10/README.md) | Planned: Complete physical package and native build migration |
+| Stage11 | [stage11](stage11/README.md) | Planned: Clean outer commands and data ownership |
+| Stage12 | [stage12](stage12/README.md) | Planned: Explicit exports, documentation, and final hardening |
+| Stage13 | [stage13](stage13/README.md) | Planned: kekulize/aromatic experimental rule-interface protocol |
 
 Read the current main plan and normative companions as required by the plan,
 then the selected stage README, its entry assessment, relevant review/decisions

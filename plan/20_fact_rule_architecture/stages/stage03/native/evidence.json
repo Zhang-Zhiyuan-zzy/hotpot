@@ -1,0 +1,3002 @@
+{
+  "schema_version": 1,
+  "stage": "Stage3",
+  "status": "Stage3 native correctness/ABI/current-package integration verified; owning-stage storage/scaling evidence complete; final scientific/global efficiency and retained-memory acceptance OPEN with explicit regressions",
+  "checkpoint_commit": "aeda200868209243aabf8b8c611765fdde142710",
+  "document_layout_commit": "ba662e3",
+  "native_scope": "One structure-owned compiled ingress, closed normalization and physical installer/restorer; sole existing NumPy authority; no Python fallback",
+  "validation_attempts": [
+    {
+      "kind": "exploratory builds",
+      "attempts": [
+        {
+          "number": 1,
+          "evidence": {
+            "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp311-attempt1/command.json",
+            "sha256": "e25f87e58b9e2d76d271d720306ec21428093cf2ac763c8cd7e0ba32a7a5fa94"
+          },
+          "result": "compile failure"
+        },
+        {
+          "number": 2,
+          "evidence": {
+            "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp311-attempt2/command.json",
+            "sha256": "3259d2dda8c19353d811ff2c444c338e5575f87258b5c5b3d004a205ef601b11"
+          },
+          "result": "compile failure"
+        },
+        {
+          "number": 3,
+          "evidence": {
+            "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp311-attempt3/command.json",
+            "sha256": "fcf4a363f0019e032dc9f39c5be68a6f8864bbe5513a77e8134949f16e28f503"
+          },
+          "result": "compiled"
+        },
+        {
+          "number": 4,
+          "evidence": {
+            "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp311-attempt4/command.json",
+            "sha256": "046e3f01b3aa7085c55e5bf87a4eac5dcf6d7fb18249a27f7f254a2ff2552f55"
+          },
+          "result": "compiled"
+        }
+      ]
+    },
+    {
+      "kind": "focused source/native correctness",
+      "evidence": {
+        "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v1-checkpoint/focused-attempt3/command.json",
+        "sha256": "148f64d10ff880e54e358f44f1435922d604c1bffee7f140a9051004ff5ec84f"
+      },
+      "log": {
+        "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v1-checkpoint/focused-attempt3/command.log",
+        "sha256": "d980233add91e3a63a36b2b59147987a47b1712a6a31fd87b109074a96817424"
+      },
+      "result": "521 passed,6 warnings in10.68s; source/native/test identities stable"
+    },
+    {
+      "kind": "additional existing Stage3/Core/Bond/stereo targets",
+      "evidence": {
+        "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v1-checkpoint/core-integration/command.json",
+        "sha256": "8e7d03e2186a9b6c2218d7f87768c63d2cf972682428d7a26ba1ab875ae9c5a2"
+      },
+      "log": {
+        "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v1-checkpoint/core-integration/test.log",
+        "sha256": "b965d106ed3fa787ea0bd9845f41c9c638209d54cf1975a9188dabca90f50c46"
+      },
+      "result": "59 passed in0.96s; source/native/test identities stable"
+    },
+    {
+      "kind": "allocation and binding refinement checkpoint",
+      "builds": [
+        {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp311-attempt5/command.json",
+          "sha256": "0f371af607bed0aa4967c9010898bd943cd38fef8abf37fded6042da5e2ff8a2"
+        },
+        {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp311-attempt6/command.json",
+          "sha256": "0af0b078debde40f5109a6fb5bda1d7be057db9240cb2df70dbe1d7c89083c00"
+        }
+      ],
+      "focused": {
+        "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v2-checkpoint/focused-attempt4/command.json",
+        "sha256": "46939c35b7bd8e6868687fdd4cc0d79e9660d56e6c9b76e5c8e40bf41bebf107"
+      },
+      "focused_result": "529 passed,6 warnings in10.68s with stable source/native/test identities; precedes later multi-field/slot refinements",
+      "archive": {
+        "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v2-checkpoint/artifact-manifest.json",
+        "sha256": "6fb764f829aecae5d743ad4bc2aa63e14cc86f19d856923f0260f36b8a17190a"
+      }
+    }
+  ],
+  "retained_defects": [
+    "Build1: conditional expression const-double/char pointer types",
+    "Build2: pybind11 tuple conversion from handle",
+    "Focused1: one-dimensional NumPy row selection incorrectly treated as scalar through __index__",
+    "Focused2: first factual append failed to verify extension availability; now first transaction loads before acquiring the lock",
+    "Build7 cp313/cp314 failed because _PySet_Dummy was not declared by public headers; build8 runtime sentinel discovery resolves the compile issue",
+    "Initial undo test run2 failed/70 passed because CURRENT status fixture was missing; corrected fixture72 passed on the same production checkpoint",
+    "Initial paired-v4 driver reused existing paired-v3 output paths and loaded stale results after worker failure; invalid records retained and excluded; corrected isolated paired-v4 rerun verified"
+  ],
+  "technical_coverage": [
+    "Value/source/presence/status/seed-add/seed-remove post-store faults; KeyboardInterrupt and MemoryError",
+    "Outer-caught failure poisoning and one ordered physical undo journal, including Python dependency expansion",
+    "Conversion callback detachment/growth; owner/source/UID/row checks",
+    "NaN payload and signed-zero preservation, real self-binding, missing-extension/lazy import, standalone and molecular writes",
+    "Real allocator-denial regressions and allocation-free physical seed restoration under PYTHONMALLOC=debug",
+    "Root/outer rehash preparation failure; clear cancellation and30 partial body-generation/enrollment/store combinations",
+    "Current-source build8 default4432 passing tests; five actual fact-native ABI compilations"
+  ],
+  "performance_v1": {
+    "evidence": {
+      "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v1-checkpoint/paired-v1/diagnostic.json",
+      "sha256": "7ea06516396702ce04d0df48a451fbb23c83dc3c9a4dbc64ad5a2e8563d1d661"
+    },
+    "ratios": {
+      "scalar_write_8": {
+        "baseline": 6.694253534078598e-05,
+        "candidate": 0.0003853254020214081,
+        "candidate_over_baseline": 5.756062271317075
+      },
+      "scalar_write_64": {
+        "candidate": 0.0030680838972330093,
+        "baseline": 0.0005005495622754097,
+        "candidate_over_baseline": 6.129430786605912
+      },
+      "scalar_write_256": {
+        "baseline": 0.002033005468547344,
+        "candidate": 0.012258552014827728,
+        "candidate_over_baseline": 6.029768342722121
+      },
+      "batch_facts_8": {
+        "candidate": 0.00029729027301073074,
+        "baseline": 6.719306111335754e-05,
+        "candidate_over_baseline": 4.424419249320841
+      },
+      "batch_facts_64": {
+        "baseline": 0.0004996424540877342,
+        "candidate": 0.0011554565280675888,
+        "candidate_over_baseline": 2.3125667537144423
+      },
+      "batch_facts_256": {
+        "candidate": 0.004140602424740791,
+        "baseline": 0.002011374570429325,
+        "candidate_over_baseline": 2.058593404537766
+      },
+      "write_read_64": {
+        "baseline": 0.010204501450061798,
+        "candidate": 0.05336041562259197,
+        "candidate_over_baseline": 5.229105594597061
+      }
+    },
+    "classification": "Blocking regressions retained, same frozen tasks onCPU0 with3 warmups/10 samples; shared-host diagnostic, not global acceptance"
+  },
+  "archive": {
+    "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v1-checkpoint/artifact-manifest.json",
+    "sha256": "37e8b3bcf607baf50d9850735e28eff7b361bbd7139908d18322c6a902b60885"
+  },
+  "coverage_limits": [
+    "Five ABI rebuilt fact compilation, complete affected-contract runtime tests, debug allocator, current installed-wheel and sdist checks have completed; exact results/provenance in ../validation/evidence.json. Unchanged dependency reuse is not Stage10 clean all-component rebuild.",
+    "Focused548 is build7; build8 debug75/default4432 have their own distinct source/native/test identities",
+    "Optional/external skips and xfails are retained; no fabricated execution of unavailable tiers",
+    "Seven paired-v4 diagnostics do not establish complete family/end-to-end/global71-entry, memory or scientific acceptance",
+    "Large scalar/small-batch/write-read costs remain real unresolved observations; neither all legacy attribution nor a performance waiver is claimed",
+    "Stage3 closure follows stages/stage03/gates/review.md, not a new final71-entry gate before Stage4"
+  ],
+  "next": "Continue Stage4 only after its full-document read and state assessment; Stage5 eager extraction, Stage7 result/frame migration, Stage10 clean native rebuild and final71-entry/scientific/global comparison remain at their assigned gates.",
+  "performance_v2": {
+    "evidence": {
+      "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v2-checkpoint/paired-v2/diagnostic.json",
+      "sha256": "ed8b61d77b9d98161088552ba264b53c42f705cec5642b84ea253377d793bb86"
+    },
+    "ratios": {
+      "scalar_write_8": {
+        "baseline": 6.589386612176895e-05,
+        "candidate": 0.00013097748160362244,
+        "candidate_over_baseline": 1.9877037016098258
+      },
+      "scalar_write_64": {
+        "candidate": 0.0010356158018112183,
+        "baseline": 0.0005033537745475769,
+        "candidate_over_baseline": 2.057431282286594
+      },
+      "scalar_write_256": {
+        "baseline": 0.0020799506455659866,
+        "candidate": 0.00407769251614809,
+        "candidate_over_baseline": 1.9604756126501681
+      },
+      "batch_facts_8": {
+        "candidate": 0.00016063451766967773,
+        "baseline": 6.774067878723145e-05,
+        "candidate_over_baseline": 2.3713154421469422
+      },
+      "batch_facts_64": {
+        "baseline": 0.0004970533773303032,
+        "candidate": 0.0003702733665704727,
+        "candidate_over_baseline": 0.744936828634438
+      },
+      "batch_facts_256": {
+        "candidate": 0.0010490939021110535,
+        "baseline": 0.0020422879606485367,
+        "candidate_over_baseline": 0.5136855929846003
+      },
+      "write_read_64": {
+        "baseline": 0.010151753202080727,
+        "candidate": 0.042370736598968506,
+        "candidate_over_baseline": 4.1737358814321945
+      }
+    },
+    "classification": "Larger batch tasks faster, but scalar/small batch/complete eager workflow remain blocking diagnostic outliers; no final efficiency acceptance"
+  },
+  "set_header_abi_probe": {
+    "evidence": {
+      "path": ".plan20-artifacts/20261029/stage3/fact-native/set-abi-probe/result.json",
+      "sha256": "37ffcc935d73b15948d6e6a14cc17a5bb757e7c600a0469010dbc42e4e7a5e59"
+    },
+    "result": "Standalone layout probe compiled and ran for Python3.10\u20133.14; matching observed structure sizes and offsets",
+    "limit": "Not rebuilt fact-native/atomicity or algorithm compatibility evidence; use each ABI header, never hardcode observed offsets"
+  },
+  "updated_at_utc": "2026-10-29T06:49:36.165095+00:00",
+  "integration_review": {
+    "author": {
+      "task": "/root/stage3_builder_solmax",
+      "model": "gpt-6.1-sol",
+      "effort": "max"
+    },
+    "assignment": "Read-only native/source/artifact verification and evidence/budget integration; no production, tests, runner, binary, main plan or frozen policy edits",
+    "skills_read": [
+      ".codex/skills/hotpot-stage/SKILL.md",
+      ".codex/skills/hotpot-validation/SKILL.md"
+    ],
+    "normative_read_reference": "stages/stage03/native/undo_revision_entry_review.json: current main+four companions3498 lines already reread before this accepted revision; this update changes no architecture",
+    "historical_sections": "Existing validation_attempts/performance_v1/performance_v2 remain historical checkpoint evidence; current build/runtime identities are explicitly separated below",
+    "source_before": {
+      "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1",
+      "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+      "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+      "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+      "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+      "tests/test_cheminfo/structure/test_fact_native.py": "46eb5e6d7d1fbb68f416ad21b78fcf92fa8437b8de0fc640aaec6e774e36bb21",
+      "tests/test_cheminfo/test_plan20_carrier_cutover.py": "f2df9e31dfb1455c3497ec0d0fbd3c78937f164a50e9a76099b711722f820989",
+      "hotpot/cheminfo/structure/_native/CPYTHON_LICENSE": "b0e25a78cffb43f4d92de8b61ccfa1f1f98ecbc22330b54b5251e7b6ba010231"
+    },
+    "source_after": {
+      "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1",
+      "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+      "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+      "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+      "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+      "tests/test_cheminfo/structure/test_fact_native.py": "46eb5e6d7d1fbb68f416ad21b78fcf92fa8437b8de0fc640aaec6e774e36bb21",
+      "tests/test_cheminfo/test_plan20_carrier_cutover.py": "f2df9e31dfb1455c3497ec0d0fbd3c78937f164a50e9a76099b711722f820989",
+      "hotpot/cheminfo/structure/_native/CPYTHON_LICENSE": "b0e25a78cffb43f4d92de8b61ccfa1f1f98ecbc22330b54b5251e7b6ba010231"
+    },
+    "native_before": {
+      "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "eb091e7b8d1a33b1938c3c06bf373fd3365f96e7dda205620bc536e4965783fe",
+      "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "cd2d675795a574cc950ade23d6a6c1b70cbb9733b017173bcdff2f05907c2b2c",
+      "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "43f6ad536561830c327050397f7c6c7328b308011780a8c03f64882957eabc0e",
+      "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so": "33f42bff5a2780fc7df460ff5b5d41486de6b4f0e09fb27419967467bc22b3cb",
+      "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so": "6051de121e32ff002f5b5e1b1de5f837f5a38a44e2254220a741a8593dd0bda0"
+    },
+    "native_after": {
+      "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "eb091e7b8d1a33b1938c3c06bf373fd3365f96e7dda205620bc536e4965783fe",
+      "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "cd2d675795a574cc950ade23d6a6c1b70cbb9733b017173bcdff2f05907c2b2c",
+      "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "43f6ad536561830c327050397f7c6c7328b308011780a8c03f64882957eabc0e",
+      "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so": "33f42bff5a2780fc7df460ff5b5d41486de6b4f0e09fb27419967467bc22b3cb",
+      "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so": "6051de121e32ff002f5b5e1b1de5f837f5a38a44e2254220a741a8593dd0bda0"
+    },
+    "source_native_unchanged_during_integration": true,
+    "actual_verification_driver": {
+      "path": "/tmp/plan20-native-evidence-integration-20261029/integrate.py",
+      "sha256": "dbab2b10b149cf5578b45eecccdcd4b5c5be25a8e8217605388969c058db3804",
+      "bytes": 23732
+    },
+    "archive_hash_verification": {
+      "manifest": {
+        "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/artifact_manifest.json",
+        "sha256": "544f06f46ecea9dd32ed4c5878a299dca4f8b6fc204d1335c3b6620b683a14de",
+        "bytes": 54134
+      },
+      "scope": "Immutable copy of final undo/debug/paired-v4 evidence and original allocator failure; original /tmp paired-v3 top metadata explicitly excluded because invalidated, valid v3 archived in native-v3-checkpoint.",
+      "manifest_entries": 393,
+      "observed_files_including_manifest": 394,
+      "all_recorded_hashes_match": true
+    }
+  },
+  "build8": {
+    "source_cpp": {
+      "path": "hotpot/cheminfo/structure/_native/facts.cpp",
+      "sha256": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1"
+    },
+    "five_abi_compile_records": [
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp310-attempt2/command.json",
+          "sha256": "01fcd50f3f628498d470035e279d32dc7260414ce3399cd35e56978f291f74d4",
+          "bytes": 133878
+        },
+        "log": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp310-attempt2/command.log",
+          "sha256": "51c89a939a74ab278059b472c37bdb2fd0b5282f38ca74998f1075da35509b0d",
+          "bytes": 1609
+        },
+        "argv": [
+          "taskset",
+          "-c",
+          "32-39",
+          "/tmp/hotpot-plan20-20261028/matrix/cp310/env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/helpers/build_fact_extension.py",
+          "build_ext",
+          "--inplace",
+          "--force",
+          "--build-temp",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/build-temp-cp310-attempt2"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "environment_overrides": {
+          "PATH": "/tmp/hotpot-plan20-20261028/matrix/cp310/env/bin:/usr/local/bin:/usr/bin:/bin",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONHASHSEED": "0",
+          "MPLCONFIGDIR": "/tmp/hotpot-plan20-20261028/matrix/cp310/mpl",
+          "TMPDIR": "/tmp/hotpot-plan20-20261028/matrix/cp310/tmp",
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "NUMEXPR_NUM_THREADS": "1",
+          "HOTPOT_MODEL_HOME": "/tmp/hotpot-plan20-20261028/matrix/cp310/model-cache",
+          "HOTPOT_MCA_MODEL_DIR": "/home/zhangzhiyuan/.cache/hotpot/models/artifacts/mca/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/mca/v1",
+          "HOTPOT_CBOND_MODEL_DIR": "/tmp/hotpot-test-models/artifacts/cbond/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/cbond/v1",
+          "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+          "XDG_CACHE_HOME": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/matrix-runtime/3.10/cache",
+          "CUDA_VISIBLE_DEVICES": "",
+          "HOTPOT_MODEL_SOURCE": "local",
+          "PYTHONPATH": "/home/zhangzhiyuan/hotpot"
+        },
+        "source_commit": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+        "returncode": 0,
+        "elapsed_seconds": 9.124021027237177,
+        "source_before": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1"
+        },
+        "source_after": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1"
+        },
+        "source_stable": true,
+        "driver_sha256": "f8ea0f4642703a3a984481558fb6d01d81271cd54367cae0938c9a3c98e7b3e7",
+        "recording_runner_sha256": "6391f6a905e05e104c12993f78f8a6700f96b0703f5647da2bc93aa181239d9b",
+        "native_unchanged_during_execution": false,
+        "native_before": {
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "f62692692d9e8e5c208beb3b9a22028ec1b05286857d60e0621b9deb6a48093e",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "1f8a2b86e6e0052e62f434364ded4d22e629d4c27a312885b5a25fa33a21d871"
+        },
+        "native_after": {
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "eb091e7b8d1a33b1938c3c06bf373fd3365f96e7dda205620bc536e4965783fe",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "cd2d675795a574cc950ade23d6a6c1b70cbb9733b017173bcdff2f05907c2b2c",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "1f8a2b86e6e0052e62f434364ded4d22e629d4c27a312885b5a25fa33a21d871",
+          "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so": "33f42bff5a2780fc7df460ff5b5d41486de6b4f0e09fb27419967467bc22b3cb",
+          "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so": "6051de121e32ff002f5b5e1b1de5f837f5a38a44e2254220a741a8593dd0bda0"
+        },
+        "log_result": "copying build/lib.linux-x86_64-cpython-310/hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so -> hotpot/cheminfo/structure",
+        "python_version": "3.10",
+        "produced_native": {
+          "path": "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so",
+          "sha256": "eb091e7b8d1a33b1938c3c06bf373fd3365f96e7dda205620bc536e4965783fe"
+        },
+        "scope": "Actual fact-native compile/link for this ABI; not runtime contract or installed-wheel acceptance"
+      },
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp311-attempt8/command.json",
+          "sha256": "ebaffbd8a2360c9501d22486c6215181dc824955de1c8b6d9a8e0e6a9feb2987",
+          "bytes": 133184
+        },
+        "log": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp311-attempt8/command.log",
+          "sha256": "1653349ad74429368e31944024f9a913756cbddac7233903a645f99fd7246ebb",
+          "bytes": 1509
+        },
+        "argv": [
+          "taskset",
+          "-c",
+          "24-31",
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/helpers/build_fact_extension.py",
+          "build_ext",
+          "--inplace",
+          "--force",
+          "--build-temp",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/build-temp-cp311-attempt8"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "environment_overrides": {
+          "XDG_CACHE_HOME": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/matrix-runtime/3.11/cache",
+          "HOTPOT_MODEL_HOME": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/matrix-runtime/3.11/models",
+          "HOTPOT_MCA_MODEL_DIR": "/home/zhangzhiyuan/.cache/hotpot/models/artifacts/mca/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/mca/v1",
+          "HOTPOT_CBOND_MODEL_DIR": "/tmp/hotpot-test-models/artifacts/cbond/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/cbond/v1",
+          "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+          "CUDA_VISIBLE_DEVICES": "",
+          "HOTPOT_MODEL_SOURCE": "local",
+          "PYTHONPATH": "/home/zhangzhiyuan/hotpot"
+        },
+        "source_commit": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+        "returncode": 0,
+        "elapsed_seconds": 8.399422129616141,
+        "source_before": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1"
+        },
+        "source_after": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1"
+        },
+        "source_stable": true,
+        "driver_sha256": "f8ea0f4642703a3a984481558fb6d01d81271cd54367cae0938c9a3c98e7b3e7",
+        "recording_runner_sha256": "6391f6a905e05e104c12993f78f8a6700f96b0703f5647da2bc93aa181239d9b",
+        "native_unchanged_during_execution": false,
+        "native_before": {
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "f62692692d9e8e5c208beb3b9a22028ec1b05286857d60e0621b9deb6a48093e",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "1f8a2b86e6e0052e62f434364ded4d22e629d4c27a312885b5a25fa33a21d871"
+        },
+        "native_after": {
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "f62692692d9e8e5c208beb3b9a22028ec1b05286857d60e0621b9deb6a48093e",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "cd2d675795a574cc950ade23d6a6c1b70cbb9733b017173bcdff2f05907c2b2c",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "1f8a2b86e6e0052e62f434364ded4d22e629d4c27a312885b5a25fa33a21d871"
+        },
+        "log_result": "copying build/lib.linux-x86_64-cpython-311/hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so -> hotpot/cheminfo/structure",
+        "python_version": "3.11",
+        "produced_native": {
+          "path": "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so",
+          "sha256": "cd2d675795a574cc950ade23d6a6c1b70cbb9733b017173bcdff2f05907c2b2c"
+        },
+        "scope": "Actual fact-native compile/link for this ABI; not runtime contract or installed-wheel acceptance"
+      },
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp312-attempt2/command.json",
+          "sha256": "32c5e478a31ca393db4305469e9bfc07ec7191a5b9bd7ec6b9ae8d8ad513fda0",
+          "bytes": 134159
+        },
+        "log": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp312-attempt2/command.log",
+          "sha256": "fa9003ba753100b88769c0efe0b48b245b4843ddf24d631048223f3895569cd3",
+          "bytes": 1663
+        },
+        "argv": [
+          "taskset",
+          "-c",
+          "32-39",
+          "/tmp/hotpot-plan20-20261028/matrix/cp312/env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/helpers/build_fact_extension.py",
+          "build_ext",
+          "--inplace",
+          "--force",
+          "--build-temp",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/build-temp-cp312-attempt2"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "environment_overrides": {
+          "PATH": "/tmp/hotpot-plan20-20261028/matrix/cp312/env/bin:/tmp/hotpot-rdkit-toolchain/bin:/usr/bin:/bin",
+          "HOTPOT_RDKIT_OFFLINE": "1",
+          "HOTPOT_RDKIT_SOURCE_CACHE": "/tmp/hotpot-plan17-release-cache",
+          "HOTPOT_RDWRAPPERS_BUILD_PROFILE": "probe",
+          "HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX": "/tmp/hotpot-rdkit-toolchain",
+          "CMAKE_BUILD_PARALLEL_LEVEL": "8",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONNOUSERSITE": "1",
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "NUMEXPR_NUM_THREADS": "1",
+          "MPLCONFIGDIR": "/tmp/hotpot-plan20-20261028/matrix/cp312/mpl",
+          "TMPDIR": "/tmp/hotpot-plan20-20261028/matrix/cp312/tmp",
+          "XDG_CACHE_HOME": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/matrix-runtime/3.12/cache",
+          "HOTPOT_MCA_MODEL_DIR": "/home/zhangzhiyuan/.cache/hotpot/models/artifacts/mca/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/mca/v1",
+          "HOTPOT_CBOND_MODEL_DIR": "/tmp/hotpot-test-models/artifacts/cbond/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/cbond/v1",
+          "HOTPOT_MODEL_HOME": "/tmp/hotpot-plan20-20261028/matrix/cp312/model-cache",
+          "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+          "HOTPOT_MODEL_SOURCE": "local",
+          "CUDA_VISIBLE_DEVICES": "",
+          "PYTHONPATH": "/home/zhangzhiyuan/hotpot"
+        },
+        "source_commit": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+        "returncode": 0,
+        "elapsed_seconds": 9.374816324561834,
+        "source_before": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1"
+        },
+        "source_after": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1"
+        },
+        "source_stable": true,
+        "driver_sha256": "f8ea0f4642703a3a984481558fb6d01d81271cd54367cae0938c9a3c98e7b3e7",
+        "recording_runner_sha256": "6391f6a905e05e104c12993f78f8a6700f96b0703f5647da2bc93aa181239d9b",
+        "native_unchanged_during_execution": false,
+        "native_before": {
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "f62692692d9e8e5c208beb3b9a22028ec1b05286857d60e0621b9deb6a48093e",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "1f8a2b86e6e0052e62f434364ded4d22e629d4c27a312885b5a25fa33a21d871"
+        },
+        "native_after": {
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "eb091e7b8d1a33b1938c3c06bf373fd3365f96e7dda205620bc536e4965783fe",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "cd2d675795a574cc950ade23d6a6c1b70cbb9733b017173bcdff2f05907c2b2c",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "43f6ad536561830c327050397f7c6c7328b308011780a8c03f64882957eabc0e",
+          "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so": "33f42bff5a2780fc7df460ff5b5d41486de6b4f0e09fb27419967467bc22b3cb",
+          "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so": "6051de121e32ff002f5b5e1b1de5f837f5a38a44e2254220a741a8593dd0bda0"
+        },
+        "log_result": "copying build/lib.linux-x86_64-cpython-312/hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so -> hotpot/cheminfo/structure",
+        "python_version": "3.12",
+        "produced_native": {
+          "path": "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so",
+          "sha256": "43f6ad536561830c327050397f7c6c7328b308011780a8c03f64882957eabc0e"
+        },
+        "scope": "Actual fact-native compile/link for this ABI; not runtime contract or installed-wheel acceptance"
+      },
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp313-attempt2/command.json",
+          "sha256": "1cd61c82a42fae2ee970851b4bb28dd2eb2dbed67a26f4cd352a7a1fe7aced22",
+          "bytes": 133985
+        },
+        "log": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp313-attempt2/command.log",
+          "sha256": "42ee790f06f3bff1231135eab903c25532ce4966eb655a0c5927057e0311cafa",
+          "bytes": 1522
+        },
+        "argv": [
+          "taskset",
+          "-c",
+          "32-39",
+          "/tmp/hotpot-plan20-20261028/matrix/cp313/env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/helpers/build_fact_extension.py",
+          "build_ext",
+          "--inplace",
+          "--force",
+          "--build-temp",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/build-temp-cp313-attempt2"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "environment_overrides": {
+          "PATH": "/tmp/hotpot-plan20-20261028/matrix/cp313/env/bin:/usr/local/bin:/usr/bin:/bin",
+          "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+          "HOTPOT_MCA_MODEL_DIR": "/home/zhangzhiyuan/.cache/hotpot/models/artifacts/mca/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/mca/v1",
+          "HOTPOT_CBOND_MODEL_DIR": "/tmp/hotpot-test-models/artifacts/cbond/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/cbond/v1",
+          "HOTPOT_MODEL_HOME": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/cp313-runtime/model-cache",
+          "XDG_CACHE_HOME": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/matrix-runtime/3.13/cache",
+          "TMPDIR": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/cp313-runtime/tmp",
+          "MPLCONFIGDIR": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/cp313-runtime/mpl",
+          "PYTHONNOUSERSITE": "1",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONSAFEPATH": "1",
+          "HOTPOT_MODEL_SOURCE": "local",
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "NUMEXPR_NUM_THREADS": "1",
+          "CUDA_VISIBLE_DEVICES": "",
+          "PYTHONPATH": "/home/zhangzhiyuan/hotpot"
+        },
+        "source_commit": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+        "returncode": 0,
+        "elapsed_seconds": 9.229139192029834,
+        "source_before": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1"
+        },
+        "source_after": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1"
+        },
+        "source_stable": true,
+        "driver_sha256": "f8ea0f4642703a3a984481558fb6d01d81271cd54367cae0938c9a3c98e7b3e7",
+        "recording_runner_sha256": "6391f6a905e05e104c12993f78f8a6700f96b0703f5647da2bc93aa181239d9b",
+        "native_unchanged_during_execution": false,
+        "native_before": {
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "f62692692d9e8e5c208beb3b9a22028ec1b05286857d60e0621b9deb6a48093e",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "1f8a2b86e6e0052e62f434364ded4d22e629d4c27a312885b5a25fa33a21d871"
+        },
+        "native_after": {
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "eb091e7b8d1a33b1938c3c06bf373fd3365f96e7dda205620bc536e4965783fe",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "cd2d675795a574cc950ade23d6a6c1b70cbb9733b017173bcdff2f05907c2b2c",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "43f6ad536561830c327050397f7c6c7328b308011780a8c03f64882957eabc0e",
+          "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so": "33f42bff5a2780fc7df460ff5b5d41486de6b4f0e09fb27419967467bc22b3cb",
+          "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so": "6051de121e32ff002f5b5e1b1de5f837f5a38a44e2254220a741a8593dd0bda0"
+        },
+        "log_result": "copying build/lib.linux-x86_64-cpython-313/hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so -> hotpot/cheminfo/structure",
+        "python_version": "3.13",
+        "produced_native": {
+          "path": "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so",
+          "sha256": "33f42bff5a2780fc7df460ff5b5d41486de6b4f0e09fb27419967467bc22b3cb"
+        },
+        "scope": "Actual fact-native compile/link for this ABI; not runtime contract or installed-wheel acceptance"
+      },
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp314-attempt2/command.json",
+          "sha256": "7504badc1bcd8a161b19bf29b9bb51338d242d2bd68f0587facfd177e6363f55",
+          "bytes": 133690
+        },
+        "log": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp314-attempt2/command.log",
+          "sha256": "d7bf1d878588cd1f3cf55e348942311b582e08fe10adf1d9891ee545cb7a981c",
+          "bytes": 1731
+        },
+        "argv": [
+          "taskset",
+          "-c",
+          "32-39",
+          "/tmp/hotpot-plan20-20261028/matrix/cp314/env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/helpers/build_fact_extension.py",
+          "build_ext",
+          "--inplace",
+          "--force",
+          "--build-temp",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/build-temp-cp314-attempt2"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "environment_overrides": {
+          "PATH": "/tmp/hotpot-plan20-20261028/matrix/cp314/env/bin:/usr/local/bin:/usr/bin:/bin",
+          "HOTPOT_MODEL_HOME": "/tmp/hotpot-plan20-20261028/matrix/cp314/models",
+          "HOTPOT_MCA_MODEL_DIR": "/home/zhangzhiyuan/.cache/hotpot/models/artifacts/mca/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/mca/v1",
+          "HOTPOT_CBOND_MODEL_DIR": "/tmp/hotpot-test-models/artifacts/cbond/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/cbond/v1",
+          "MPLCONFIGDIR": "/tmp/hotpot-plan20-20261028/matrix/cp314/mpl",
+          "TMPDIR": "/tmp/hotpot-plan20-20261028/matrix/cp314/tmp",
+          "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "NUMEXPR_NUM_THREADS": "1",
+          "PYTHONHASHSEED": "0",
+          "XDG_CACHE_HOME": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/matrix-runtime/3.14/cache",
+          "CUDA_VISIBLE_DEVICES": "",
+          "HOTPOT_MODEL_SOURCE": "local",
+          "PYTHONPATH": "/home/zhangzhiyuan/hotpot"
+        },
+        "source_commit": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+        "returncode": 0,
+        "elapsed_seconds": 8.94187207147479,
+        "source_before": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1"
+        },
+        "source_after": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1"
+        },
+        "source_stable": true,
+        "driver_sha256": "f8ea0f4642703a3a984481558fb6d01d81271cd54367cae0938c9a3c98e7b3e7",
+        "recording_runner_sha256": "6391f6a905e05e104c12993f78f8a6700f96b0703f5647da2bc93aa181239d9b",
+        "native_unchanged_during_execution": false,
+        "native_before": {
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "f62692692d9e8e5c208beb3b9a22028ec1b05286857d60e0621b9deb6a48093e",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "1f8a2b86e6e0052e62f434364ded4d22e629d4c27a312885b5a25fa33a21d871"
+        },
+        "native_after": {
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "f62692692d9e8e5c208beb3b9a22028ec1b05286857d60e0621b9deb6a48093e",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "cd2d675795a574cc950ade23d6a6c1b70cbb9733b017173bcdff2f05907c2b2c",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "1f8a2b86e6e0052e62f434364ded4d22e629d4c27a312885b5a25fa33a21d871",
+          "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so": "6051de121e32ff002f5b5e1b1de5f837f5a38a44e2254220a741a8593dd0bda0"
+        },
+        "log_result": "copying build/lib.linux-x86_64-cpython-314/hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so -> hotpot/cheminfo/structure",
+        "python_version": "3.14",
+        "produced_native": {
+          "path": "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so",
+          "sha256": "6051de121e32ff002f5b5e1b1de5f837f5a38a44e2254220a741a8593dd0bda0"
+        },
+        "scope": "Actual fact-native compile/link for this ABI; not runtime contract or installed-wheel acceptance"
+      }
+    ],
+    "previous_build7": {
+      "record": {
+        "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp311-attempt7/command.json",
+        "sha256": "76a0d8c0143eaa7442bc0b7722a5bc389469ddb13b7abe9cebf3bebd448310f2",
+        "bytes": 132593
+      },
+      "log": {
+        "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp311-attempt7/command.log",
+        "sha256": "a4c47c2a08c845f3dbc2f753af9a6b2cc50a10a128ada508e6c3cea3dbb5ce58",
+        "bytes": 1966
+      },
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/helpers/build_fact_extension.py",
+        "build_ext",
+        "--inplace",
+        "--force",
+        "--build-temp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/build-temp-cp311-attempt7"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "environment_overrides": {
+        "XDG_CACHE_HOME": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/matrix-runtime/3.11/cache",
+        "HOTPOT_MODEL_HOME": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/matrix-runtime/3.11/models",
+        "HOTPOT_MCA_MODEL_DIR": "/home/zhangzhiyuan/.cache/hotpot/models/artifacts/mca/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/mca/v1",
+        "HOTPOT_CBOND_MODEL_DIR": "/tmp/hotpot-test-models/artifacts/cbond/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/cbond/v1",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "CUDA_VISIBLE_DEVICES": "",
+        "HOTPOT_MODEL_SOURCE": "local",
+        "PYTHONPATH": "/home/zhangzhiyuan/hotpot"
+      },
+      "source_commit": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+      "returncode": 0,
+      "elapsed_seconds": 8.277112098410726,
+      "source_before": {
+        "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+        "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+        "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+        "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+        "hotpot/cheminfo/structure/_native/facts.cpp": "1562f8d4f67b45617545c0968dc9166e7117ef54cd43052aacf51d963c9454a3"
+      },
+      "source_after": {
+        "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+        "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+        "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+        "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+        "hotpot/cheminfo/structure/_native/facts.cpp": "1562f8d4f67b45617545c0968dc9166e7117ef54cd43052aacf51d963c9454a3"
+      },
+      "source_stable": true,
+      "driver_sha256": "f8ea0f4642703a3a984481558fb6d01d81271cd54367cae0938c9a3c98e7b3e7",
+      "recording_runner_sha256": "6391f6a905e05e104c12993f78f8a6700f96b0703f5647da2bc93aa181239d9b",
+      "native_unchanged_during_execution": false,
+      "native_before": {
+        "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "3661bb263a458efb0dc6d9cc868927236f8cbe5f378f17723c4a8cfbd17f7808"
+      },
+      "native_after": {
+        "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8"
+      },
+      "log_result": "copying build/lib.linux-x86_64-cpython-311/hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so -> hotpot/cheminfo/structure"
+    },
+    "retained_build7_abi_failures": [
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp313-attempt1/command.json",
+          "sha256": "a9e78a06edccf2072680cb88d062ce4a95e1ccdc83847e7e4c66c73a804378b9",
+          "bytes": 133081
+        },
+        "log": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp313-attempt1/command.log",
+          "sha256": "56edb28009f1021c828c22cd425093bebecc8fe599a3f859620b4d075970a0a4",
+          "bytes": 2842
+        },
+        "argv": [
+          "taskset",
+          "-c",
+          "32-39",
+          "/tmp/hotpot-plan20-20261028/matrix/cp313/env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/helpers/build_fact_extension.py",
+          "build_ext",
+          "--inplace",
+          "--force",
+          "--build-temp",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/build-temp-cp313-attempt1"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "environment_overrides": {
+          "PATH": "/tmp/hotpot-plan20-20261028/matrix/cp313/env/bin:/usr/local/bin:/usr/bin:/bin",
+          "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+          "HOTPOT_MCA_MODEL_DIR": "/home/zhangzhiyuan/.cache/hotpot/models/artifacts/mca/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/mca/v1",
+          "HOTPOT_CBOND_MODEL_DIR": "/tmp/hotpot-test-models/artifacts/cbond/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/cbond/v1",
+          "HOTPOT_MODEL_HOME": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/cp313-runtime/model-cache",
+          "XDG_CACHE_HOME": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/matrix-runtime/3.13/cache",
+          "TMPDIR": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/cp313-runtime/tmp",
+          "MPLCONFIGDIR": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/cp313-runtime/mpl",
+          "PYTHONNOUSERSITE": "1",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONSAFEPATH": "1",
+          "HOTPOT_MODEL_SOURCE": "local",
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "NUMEXPR_NUM_THREADS": "1",
+          "CUDA_VISIBLE_DEVICES": "",
+          "PYTHONPATH": "/home/zhangzhiyuan/hotpot"
+        },
+        "source_commit": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+        "returncode": 1,
+        "elapsed_seconds": 3.661135820671916,
+        "source_before": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "1562f8d4f67b45617545c0968dc9166e7117ef54cd43052aacf51d963c9454a3"
+        },
+        "source_after": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "1562f8d4f67b45617545c0968dc9166e7117ef54cd43052aacf51d963c9454a3"
+        },
+        "source_stable": true,
+        "driver_sha256": "f8ea0f4642703a3a984481558fb6d01d81271cd54367cae0938c9a3c98e7b3e7",
+        "recording_runner_sha256": "6391f6a905e05e104c12993f78f8a6700f96b0703f5647da2bc93aa181239d9b",
+        "native_unchanged_during_execution": true,
+        "native_before": {
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8"
+        },
+        "native_after": {
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8"
+        },
+        "log_result": "error: Command '['c++', '-pthread', '-fno-strict-overflow', '-Wsign-compare', '-Wunreachable-code', '-DNDEBUG', '-g', '-O3', '-Wall', '-O3', '-fstack-protector', '-fstack-clash-protection', '-U_FORTIFY_SOURCE', '-D_FORTIFY_SOURCE=2', '-fno-omit-frame-pointer', '-mno-omit-leaf-frame-pointer', '-fPIC', '-fPIC', '-I/tmp/hotpot-plan20-20261028/matrix/cp313/env/lib/python3.13/site-packages/pybind11/include', '-I/tmp/hotpot-plan20-20261028/matrix/cp313/env/include', '-I/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/include/python3.13', '-c', 'hotpot/cheminfo/structure/_native/facts.cpp', '-o', '/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/build-temp-cp313-attempt1/hotpot/cheminfo/structure/_native/facts.o', '-fvisibility=hidden', '-g0', '-std=c++17']' returned non-zero exit status 1.",
+        "failure_lines": [
+          "hotpot/cheminfo/structure/_native/facts.cpp:196:55: error: \u2018_PySet_Dummy\u2019 was not declared in this scope",
+          "  196 | bool active_key(PyObject *key) { return key && key != _PySet_Dummy; }",
+          "hotpot/cheminfo/structure/_native/facts.cpp:368:71: error: \u2018_PySet_Dummy\u2019 was not declared in this scope",
+          "  368 |         action.after = present ? setentry{uid.ptr(), hash} : setentry{_PySet_Dummy, -1};"
+        ],
+        "resolution": "Build8 obtains and retains the actual immutable dummy sentinel from a disposable builtin set during configure; no undeclared extern or hardcoded address"
+      },
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp314-attempt1/command.json",
+          "sha256": "27c4ee90321eb7bf6210c940ba073fe3a1b9ff2a49e4be74ab46cbdd77fbcd8e",
+          "bytes": 132934
+        },
+        "log": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/build-cp314-attempt1/command.log",
+          "sha256": "b031585dd31ea7ea07d91c836bbb6b149a20c346002d33eaba7b4430f8fcccb0",
+          "bytes": 2215
+        },
+        "argv": [
+          "taskset",
+          "-c",
+          "32-39",
+          "/tmp/hotpot-plan20-20261028/matrix/cp314/env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/helpers/build_fact_extension.py",
+          "build_ext",
+          "--inplace",
+          "--force",
+          "--build-temp",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/build-temp-cp314-attempt1"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "environment_overrides": {
+          "PATH": "/tmp/hotpot-plan20-20261028/matrix/cp314/env/bin:/usr/local/bin:/usr/bin:/bin",
+          "HOTPOT_MODEL_HOME": "/tmp/hotpot-plan20-20261028/matrix/cp314/models",
+          "HOTPOT_MCA_MODEL_DIR": "/home/zhangzhiyuan/.cache/hotpot/models/artifacts/mca/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/mca/v1",
+          "HOTPOT_CBOND_MODEL_DIR": "/tmp/hotpot-test-models/artifacts/cbond/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/cbond/v1",
+          "MPLCONFIGDIR": "/tmp/hotpot-plan20-20261028/matrix/cp314/mpl",
+          "TMPDIR": "/tmp/hotpot-plan20-20261028/matrix/cp314/tmp",
+          "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "NUMEXPR_NUM_THREADS": "1",
+          "PYTHONHASHSEED": "0",
+          "XDG_CACHE_HOME": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261028/matrix-runtime/3.14/cache",
+          "CUDA_VISIBLE_DEVICES": "",
+          "HOTPOT_MODEL_SOURCE": "local",
+          "PYTHONPATH": "/home/zhangzhiyuan/hotpot"
+        },
+        "source_commit": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+        "returncode": 1,
+        "elapsed_seconds": 3.9916399344801903,
+        "source_before": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "1562f8d4f67b45617545c0968dc9166e7117ef54cd43052aacf51d963c9454a3"
+        },
+        "source_after": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "1562f8d4f67b45617545c0968dc9166e7117ef54cd43052aacf51d963c9454a3"
+        },
+        "source_stable": true,
+        "driver_sha256": "f8ea0f4642703a3a984481558fb6d01d81271cd54367cae0938c9a3c98e7b3e7",
+        "recording_runner_sha256": "6391f6a905e05e104c12993f78f8a6700f96b0703f5647da2bc93aa181239d9b",
+        "native_unchanged_during_execution": true,
+        "native_before": {
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8"
+        },
+        "native_after": {
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8"
+        },
+        "log_result": "error: command '/usr/bin/c++' failed with exit code 1",
+        "failure_lines": [
+          "hotpot/cheminfo/structure/_native/facts.cpp:196:55: error: \u2018_PySet_Dummy\u2019 was not declared in this scope",
+          "  196 | bool active_key(PyObject *key) { return key && key != _PySet_Dummy; }",
+          "hotpot/cheminfo/structure/_native/facts.cpp:368:71: error: \u2018_PySet_Dummy\u2019 was not declared in this scope",
+          "  368 |         action.after = present ? setentry{uid.ptr(), hash} : setentry{_PySet_Dummy, -1};"
+        ],
+        "resolution": "Build8 obtains and retains the actual immutable dummy sentinel from a disposable builtin set during configure; no undeclared extern or hardcoded address"
+      }
+    ],
+    "implementation": [
+      "One exact physical seed-entry/body-swap action engine under the existing Undo and ordered journal",
+      "Per-action applied state and once-restored Undo; reverse actions restore prior storage generations before entry writes",
+      "Pinned builtin UID before/after keys, actual set owner, and inactive candidate bodies; no PySet_Add/allocation in native restore",
+      "Active Python _seed/update, _expand_dirty/clear and Core copied pending-group writes migrate to the same native ingress",
+      "Runtime dummy sentinel resolved from disposable builtin set; no active owner cache or undeclared ABI symbol",
+      "Actual N01/N05 and immutable candidate bytes, post-conversion checks, scientific bodies and sole table unchanged"
+    ],
+    "source_review": {
+      "scope": "Affected physical entry/body preparation/install/restore, topology journal order, static slot/dummy configure and connected seed writers",
+      "finding": "No new physical generation/refcount flaw identified in inspected affected code",
+      "limits": "Read-only inspection is not proof of exhaustive allocation faults or all supported runtime/installed contracts"
+    },
+    "native_type_budget": {
+      "source": {
+        "path": "hotpot/cheminfo/structure/_native/facts.cpp",
+        "sha256": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1",
+        "bytes": 60724
+      },
+      "internal_struct_definitions": 14,
+      "internal_enum_definitions": 1,
+      "structs": [
+        {
+          "name": "Field",
+          "line": 32
+        },
+        {
+          "name": "Configuration",
+          "line": 40
+        },
+        {
+          "name": "OwnerLock",
+          "line": 107
+        },
+        {
+          "name": "Failpoint",
+          "line": 143
+        },
+        {
+          "name": "SmallArray",
+          "line": 166
+        },
+        {
+          "name": "Cell",
+          "line": 189
+        },
+        {
+          "name": "Presence",
+          "line": 194
+        },
+        {
+          "name": "Status",
+          "line": 195
+        },
+        {
+          "name": "SeedAction",
+          "line": 219
+        },
+        {
+          "name": "SeedOverlay",
+          "line": 252
+        },
+        {
+          "name": "SeedPreparation",
+          "line": 283
+        },
+        {
+          "name": "Undo",
+          "line": 394
+        },
+        {
+          "name": "Column",
+          "line": 465
+        },
+        {
+          "name": "Selection",
+          "line": 474
+        }
+      ],
+      "enums": [
+        {
+          "name": "Name",
+          "line": 29
+        }
+      ],
+      "python_records_or_exported_pybind_classes_added": 0,
+      "exported_native_abi_mirror_definitions_added": 0,
+      "legacy_candidate_scan": {
+        "baseline": 164,
+        "retired_stage2": 6,
+        "new_matches": 13,
+        "current": 171,
+        "method": "Same line-start named-struct regex as capture_baseline_inventory.py, applied to all current hotpot native sources including the pending new file",
+        "missed_actual_template_definition": "SmallArray at166; actual new internal struct definitions are14, not13"
+      },
+      "counting_effect": "Implementation additions are recorded separately. They do not reduce dataclass/DTO counts or constitute ABI-schema consolidation."
+    }
+  },
+  "undo_validation": {
+    "attempts": {
+      "undo-tests-v1": {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/undo-tests-v1/command.json",
+          "sha256": "1756f2b88bc943e2286a2e50e7e307d7d3b0fc5b7f324986f423a62c1ebda2d6",
+          "bytes": 99126
+        },
+        "log": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/undo-tests-v1/command.log",
+          "sha256": "03fda39a9b3b71c18ce99a7c9be0ab6ccfd061df47bb7f1cfad25d678384b0b8",
+          "bytes": 1910
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "--import-mode=importlib",
+          "tests/test_cheminfo/structure/test_fact_native.py"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "environment_overrides": {
+          "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6"
+        },
+        "source_commit": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+        "returncode": 1,
+        "elapsed_seconds": 11.301189364865422,
+        "source_before": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "1562f8d4f67b45617545c0968dc9166e7117ef54cd43052aacf51d963c9454a3",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8",
+          "tests/test_cheminfo/structure/test_fact_native.py": "617ee13fdb8e6f3be33a63e250f0d152d22a0a76f6904cb559ecd69e54056784",
+          "tests/test_cheminfo/test_plan20_carrier_cutover.py": "f2df9e31dfb1455c3497ec0d0fbd3c78937f164a50e9a76099b711722f820989"
+        },
+        "source_after": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "1562f8d4f67b45617545c0968dc9166e7117ef54cd43052aacf51d963c9454a3",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8",
+          "tests/test_cheminfo/structure/test_fact_native.py": "617ee13fdb8e6f3be33a63e250f0d152d22a0a76f6904cb559ecd69e54056784",
+          "tests/test_cheminfo/test_plan20_carrier_cutover.py": "f2df9e31dfb1455c3497ec0d0fbd3c78937f164a50e9a76099b711722f820989"
+        },
+        "source_stable": true,
+        "driver_sha256": "77d69e5c11ad3ab97953f020d90d68919b6e6483175a6e5131f926b10b417c97",
+        "log_result": "2 failed, 70 passed in 10.76s",
+        "explanation": "2 failed/70 passed: status failpoints were not reached because the fixture had not materialized formal-charge CURRENT; the corrected fixture explicitly writes formal_charge=0. Production source/native hashes are unchanged between v1/v2."
+      },
+      "undo-tests-v2": {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/undo-tests-v2/command.json",
+          "sha256": "b866631e20448f36a6c6928963ea9c2d031811d99429e20c3890bb187350f51a",
+          "bytes": 99125
+        },
+        "log": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/undo-tests-v2/command.log",
+          "sha256": "146144153e21d21a72d8cab314e59c03e6b39e51103e48e174f937ce890e02e0",
+          "bytes": 100
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "--import-mode=importlib",
+          "tests/test_cheminfo/structure/test_fact_native.py"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "environment_overrides": {
+          "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6"
+        },
+        "source_commit": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+        "returncode": 0,
+        "elapsed_seconds": 12.07129074446857,
+        "source_before": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "1562f8d4f67b45617545c0968dc9166e7117ef54cd43052aacf51d963c9454a3",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8",
+          "tests/test_cheminfo/structure/test_fact_native.py": "726d7e78b3898835fe7a1722f33c013e4d572d54703c8075e2b8d6c1232eb793",
+          "tests/test_cheminfo/test_plan20_carrier_cutover.py": "f2df9e31dfb1455c3497ec0d0fbd3c78937f164a50e9a76099b711722f820989"
+        },
+        "source_after": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "1562f8d4f67b45617545c0968dc9166e7117ef54cd43052aacf51d963c9454a3",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8",
+          "tests/test_cheminfo/structure/test_fact_native.py": "726d7e78b3898835fe7a1722f33c013e4d572d54703c8075e2b8d6c1232eb793",
+          "tests/test_cheminfo/test_plan20_carrier_cutover.py": "f2df9e31dfb1455c3497ec0d0fbd3c78937f164a50e9a76099b711722f820989"
+        },
+        "source_stable": true,
+        "driver_sha256": "77d69e5c11ad3ab97953f020d90d68919b6e6483175a6e5131f926b10b417c97",
+        "log_result": "72 passed in 11.52s"
+      },
+      "focused-undo-v1": {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/focused-undo-v1/command.json",
+          "sha256": "0bc71fab06ee647d04b8ca80b8094723e0ef60a38ed1a5edca7e7b9ce50c13cc",
+          "bytes": 99300
+        },
+        "log": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/focused-undo-v1/command.log",
+          "sha256": "47718ae9d6b5bd4769c78c149fa6717d92b8c5c30126dc3d8d8d92e3fe10475c",
+          "bytes": 2272
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "--import-mode=importlib",
+          "--basetemp=/tmp/plan20-native-facts-20261029/focused-undo-v1/pytest-temp",
+          "tests/test_cheminfo/structure",
+          "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+          "tests/test_cheminfo/test_plan20_outer_cutover.py"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "environment_overrides": {
+          "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6"
+        },
+        "source_commit": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+        "returncode": 0,
+        "elapsed_seconds": 21.144548000767827,
+        "source_before": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "1562f8d4f67b45617545c0968dc9166e7117ef54cd43052aacf51d963c9454a3",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8",
+          "tests/test_cheminfo/structure/test_fact_native.py": "18840745b24e615a76b49f894f0a83a4fd01316968ddad34194145083f43ac2f",
+          "tests/test_cheminfo/test_plan20_carrier_cutover.py": "f2df9e31dfb1455c3497ec0d0fbd3c78937f164a50e9a76099b711722f820989"
+        },
+        "source_after": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "1562f8d4f67b45617545c0968dc9166e7117ef54cd43052aacf51d963c9454a3",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8",
+          "tests/test_cheminfo/structure/test_fact_native.py": "18840745b24e615a76b49f894f0a83a4fd01316968ddad34194145083f43ac2f",
+          "tests/test_cheminfo/test_plan20_carrier_cutover.py": "f2df9e31dfb1455c3497ec0d0fbd3c78937f164a50e9a76099b711722f820989"
+        },
+        "source_stable": true,
+        "driver_sha256": "d84726a3963fdbbe58761c3491ec58cec8f51e739bba1fb0ed85d2e96e45b83d",
+        "log_result": "548 passed, 6 warnings in 20.52s",
+        "coverage_limit": "548 focused passes belong to build7 C++1562f8d4/native c6142f84, before the dummy-sentinel ABI refinement and later test expansion; not relabelled as a build8 run"
+      },
+      "debug-undo-v1": {
+        "record": {
+          "path": "/tmp/plan20-native-facts-20261029/debug-undo-v1/command.json",
+          "sha256": "0a6c01100569cd7fbfb17ed9af789ad6d1ec908b32608c2b6f38753eb1d6913f",
+          "bytes": 99816
+        },
+        "log": {
+          "path": "/tmp/plan20-native-facts-20261029/debug-undo-v1/command.log",
+          "sha256": "0f51c9302b216502a35e81833ad1e05c7f93911c16728f0df0040b62cef5e647",
+          "bytes": 180
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "--import-mode=importlib",
+          "--basetemp=/tmp/plan20-native-facts-20261029/debug-undo-v1/pytest-temp",
+          "tests/test_cheminfo/structure/test_fact_native.py"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "environment_overrides": {
+          "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+          "PYTHONMALLOC": "debug"
+        },
+        "source_commit": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+        "returncode": 0,
+        "elapsed_seconds": 16.06363379023969,
+        "source_before": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "1562f8d4f67b45617545c0968dc9166e7117ef54cd43052aacf51d963c9454a3",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "1f8a2b86e6e0052e62f434364ded4d22e629d4c27a312885b5a25fa33a21d871",
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "f62692692d9e8e5c208beb3b9a22028ec1b05286857d60e0621b9deb6a48093e",
+          "tests/test_cheminfo/structure/test_fact_native.py": "46eb5e6d7d1fbb68f416ad21b78fcf92fa8437b8de0fc640aaec6e774e36bb21",
+          "tests/test_cheminfo/test_plan20_carrier_cutover.py": "f2df9e31dfb1455c3497ec0d0fbd3c78937f164a50e9a76099b711722f820989"
+        },
+        "source_after": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "1562f8d4f67b45617545c0968dc9166e7117ef54cd43052aacf51d963c9454a3",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "c6142f84ad0a61807dbad93402ae1ffc7f6f76dca63f2fdd92b74d16cd654ef8",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "1f8a2b86e6e0052e62f434364ded4d22e629d4c27a312885b5a25fa33a21d871",
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "f62692692d9e8e5c208beb3b9a22028ec1b05286857d60e0621b9deb6a48093e",
+          "tests/test_cheminfo/structure/test_fact_native.py": "46eb5e6d7d1fbb68f416ad21b78fcf92fa8437b8de0fc640aaec6e774e36bb21",
+          "tests/test_cheminfo/test_plan20_carrier_cutover.py": "f2df9e31dfb1455c3497ec0d0fbd3c78937f164a50e9a76099b711722f820989"
+        },
+        "source_stable": true,
+        "driver_sha256": "7415f9fad596f3dcc3ce56d6b86db73f970f7996192dcbc2682db352f1e4c5ae",
+        "log_result": "75 passed in 15.42s",
+        "coverage_limit": "Historical build7 debug75; superseded by separately executed source-matched build8 debug-undo-v2"
+      },
+      "debug-undo-v2": {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/debug-undo-v2/command.json",
+          "sha256": "eb9b44343f7752465cab51c46f58d11a5c53b3f6e4fa31046a676e0e6d57040b",
+          "bytes": 100401
+        },
+        "log": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/debug-undo-v2/command.log",
+          "sha256": "0f51c9302b216502a35e81833ad1e05c7f93911c16728f0df0040b62cef5e647",
+          "bytes": 180
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "--import-mode=importlib",
+          "--basetemp=/tmp/plan20-native-facts-20261029/debug-undo-v2/pytest-temp",
+          "tests/test_cheminfo/structure/test_fact_native.py"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "environment_overrides": {
+          "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+          "PYTHONMALLOC": "debug"
+        },
+        "source_commit": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+        "returncode": 0,
+        "elapsed_seconds": 16.071020606905222,
+        "source_before": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1",
+          "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so": "33f42bff5a2780fc7df460ff5b5d41486de6b4f0e09fb27419967467bc22b3cb",
+          "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so": "6051de121e32ff002f5b5e1b1de5f837f5a38a44e2254220a741a8593dd0bda0",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "cd2d675795a574cc950ade23d6a6c1b70cbb9733b017173bcdff2f05907c2b2c",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "43f6ad536561830c327050397f7c6c7328b308011780a8c03f64882957eabc0e",
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "eb091e7b8d1a33b1938c3c06bf373fd3365f96e7dda205620bc536e4965783fe",
+          "tests/test_cheminfo/structure/test_fact_native.py": "46eb5e6d7d1fbb68f416ad21b78fcf92fa8437b8de0fc640aaec6e774e36bb21",
+          "tests/test_cheminfo/test_plan20_carrier_cutover.py": "f2df9e31dfb1455c3497ec0d0fbd3c78937f164a50e9a76099b711722f820989"
+        },
+        "source_after": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1",
+          "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so": "33f42bff5a2780fc7df460ff5b5d41486de6b4f0e09fb27419967467bc22b3cb",
+          "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so": "6051de121e32ff002f5b5e1b1de5f837f5a38a44e2254220a741a8593dd0bda0",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "cd2d675795a574cc950ade23d6a6c1b70cbb9733b017173bcdff2f05907c2b2c",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "43f6ad536561830c327050397f7c6c7328b308011780a8c03f64882957eabc0e",
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "eb091e7b8d1a33b1938c3c06bf373fd3365f96e7dda205620bc536e4965783fe",
+          "tests/test_cheminfo/structure/test_fact_native.py": "46eb5e6d7d1fbb68f416ad21b78fcf92fa8437b8de0fc640aaec6e774e36bb21",
+          "tests/test_cheminfo/test_plan20_carrier_cutover.py": "f2df9e31dfb1455c3497ec0d0fbd3c78937f164a50e9a76099b711722f820989"
+        },
+        "source_stable": true,
+        "driver_sha256": "7415f9fad596f3dcc3ce56d6b86db73f970f7996192dcbc2682db352f1e4c5ae",
+        "log_result": "75 passed in 15.42s"
+      }
+    },
+    "allocator_helper_build": {
+      "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/debug-undo-v2/pytest-temp/seed-allocator0/build.json",
+      "sha256": "f35f9f262d2bbfdbd8329380ca0749647cf9acb6b1aa95b65bda6448b9c2cab4",
+      "bytes": 825
+    },
+    "build8_allocator_subprocesses": [
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/debug-undo-v2/pytest-temp/seed-allocator0/clear-KeyboardInterrupt-0.json",
+          "sha256": "ae23a4ce10d4d4fbb5f6a1d213c921e1635be2641fa811dbef7e84e2ea7de927",
+          "bytes": 2624
+        },
+        "returncode": 0,
+        "result": {
+          "same_exception": true,
+          "state_restored": true,
+          "physical_restored": true,
+          "same_set": true,
+          "allocation": {
+            "rejected_size": 0,
+            "attempts": 0,
+            "rejected": 0,
+            "allocation_sizes": []
+          },
+          "allocator_control": {
+            "rejected_size": 512,
+            "attempts": 1,
+            "rejected": 1,
+            "allocation_sizes": [
+              512
+            ]
+          }
+        }
+      },
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/debug-undo-v2/pytest-temp/seed-allocator0/clear-KeyboardInterrupt-512.json",
+          "sha256": "441e6a27fb7fa778a9213969ec86437b554960fb38a986fa0addc10ede15c9f9",
+          "bytes": 2628
+        },
+        "returncode": 0,
+        "result": {
+          "same_exception": true,
+          "state_restored": true,
+          "physical_restored": true,
+          "same_set": true,
+          "allocation": {
+            "rejected_size": 512,
+            "attempts": 0,
+            "rejected": 0,
+            "allocation_sizes": []
+          },
+          "allocator_control": {
+            "rejected_size": 512,
+            "attempts": 1,
+            "rejected": 1,
+            "allocation_sizes": [
+              512
+            ]
+          }
+        }
+      },
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/debug-undo-v2/pytest-temp/seed-allocator0/clear-MemoryError-0.json",
+          "sha256": "24ff9410959781a1b4a12a51cd325abdc9e238f6125c7fc6f44dda28df249c44",
+          "bytes": 2618
+        },
+        "returncode": 0,
+        "result": {
+          "same_exception": true,
+          "state_restored": true,
+          "physical_restored": true,
+          "same_set": true,
+          "allocation": {
+            "rejected_size": 0,
+            "attempts": 0,
+            "rejected": 0,
+            "allocation_sizes": []
+          },
+          "allocator_control": {
+            "rejected_size": 512,
+            "attempts": 1,
+            "rejected": 1,
+            "allocation_sizes": [
+              512
+            ]
+          }
+        }
+      },
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/debug-undo-v2/pytest-temp/seed-allocator0/clear-MemoryError-512.json",
+          "sha256": "fbcd9e01ff3e5017dd0c70ee7590fc0bbcbe75b705f168a6ff1f9ff717e88707",
+          "bytes": 2622
+        },
+        "returncode": 0,
+        "result": {
+          "same_exception": true,
+          "state_restored": true,
+          "physical_restored": true,
+          "same_set": true,
+          "allocation": {
+            "rejected_size": 512,
+            "attempts": 0,
+            "rejected": 0,
+            "allocation_sizes": []
+          },
+          "allocator_control": {
+            "rejected_size": 512,
+            "attempts": 1,
+            "rejected": 1,
+            "allocation_sizes": [
+              512
+            ]
+          }
+        }
+      },
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/debug-undo-v2/pytest-temp/seed-allocator0/partial-rehash.json",
+          "sha256": "1286e835d576f0860eee9c0d30768db994c7e5f93a69e2726b6ce5fd80cef1f0",
+          "bytes": 4436
+        },
+        "returncode": 0,
+        "result": {
+          "passed": [
+            [
+              false,
+              "KeyboardInterrupt",
+              "value",
+              1
+            ],
+            [
+              false,
+              "KeyboardInterrupt",
+              "seed_add",
+              1
+            ],
+            [
+              false,
+              "KeyboardInterrupt",
+              "seed_add",
+              5
+            ],
+            [
+              false,
+              "KeyboardInterrupt",
+              "seed_add",
+              6
+            ],
+            [
+              false,
+              "KeyboardInterrupt",
+              "seed_add",
+              13
+            ],
+            [
+              false,
+              "KeyboardInterrupt",
+              "seed_add",
+              16
+            ],
+            [
+              false,
+              "KeyboardInterrupt",
+              "seed_add",
+              21
+            ],
+            [
+              false,
+              "MemoryError",
+              "value",
+              1
+            ],
+            [
+              false,
+              "MemoryError",
+              "seed_add",
+              1
+            ],
+            [
+              false,
+              "MemoryError",
+              "seed_add",
+              5
+            ],
+            [
+              false,
+              "MemoryError",
+              "seed_add",
+              6
+            ],
+            [
+              false,
+              "MemoryError",
+              "seed_add",
+              13
+            ],
+            [
+              false,
+              "MemoryError",
+              "seed_add",
+              16
+            ],
+            [
+              false,
+              "MemoryError",
+              "seed_add",
+              21
+            ],
+            [
+              true,
+              "KeyboardInterrupt",
+              "value",
+              1
+            ],
+            [
+              true,
+              "KeyboardInterrupt",
+              "seed_add",
+              1
+            ],
+            [
+              true,
+              "KeyboardInterrupt",
+              "seed_add",
+              5
+            ],
+            [
+              true,
+              "KeyboardInterrupt",
+              "seed_add",
+              6
+            ],
+            [
+              true,
+              "KeyboardInterrupt",
+              "seed_add",
+              13
+            ],
+            [
+              true,
+              "KeyboardInterrupt",
+              "seed_add",
+              16
+            ],
+            [
+              true,
+              "KeyboardInterrupt",
+              "seed_add",
+              21
+            ],
+            [
+              true,
+              "KeyboardInterrupt",
+              "enrollment",
+              1
+            ],
+            [
+              true,
+              "MemoryError",
+              "value",
+              1
+            ],
+            [
+              true,
+              "MemoryError",
+              "seed_add",
+              1
+            ],
+            [
+              true,
+              "MemoryError",
+              "seed_add",
+              5
+            ],
+            [
+              true,
+              "MemoryError",
+              "seed_add",
+              6
+            ],
+            [
+              true,
+              "MemoryError",
+              "seed_add",
+              13
+            ],
+            [
+              true,
+              "MemoryError",
+              "seed_add",
+              16
+            ],
+            [
+              true,
+              "MemoryError",
+              "seed_add",
+              21
+            ],
+            [
+              true,
+              "MemoryError",
+              "enrollment",
+              1
+            ]
+          ]
+        },
+        "case_count": 30
+      },
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/debug-undo-v2/pytest-temp/seed-allocator0/prepare-outer-False.json",
+          "sha256": "776894d7da89d11c6521655748b27f2072421f303a778eb4c985a97da209b7f7",
+          "bytes": 1896
+        },
+        "returncode": 0,
+        "result": {
+          "allocation": {
+            "rejected_size": 512,
+            "attempts": 1,
+            "rejected": 1,
+            "allocation_sizes": [
+              512
+            ]
+          },
+          "outer_poisoned": false,
+          "unchanged": true
+        }
+      },
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/debug-undo-v2/pytest-temp/seed-allocator0/prepare-outer-True.json",
+          "sha256": "b7a580a1ab2ce107c3a5fd53463e2d1f5fc3b9c72150d12a8ddce6ebe4c1179e",
+          "bytes": 1895
+        },
+        "returncode": 0,
+        "result": {
+          "allocation": {
+            "rejected_size": 512,
+            "attempts": 1,
+            "rejected": 1,
+            "allocation_sizes": [
+              512
+            ]
+          },
+          "outer_poisoned": true,
+          "unchanged": true
+        }
+      },
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/debug-undo-v2/pytest-temp/seed-allocator0/tombstone-KeyboardInterrupt-0.json",
+          "sha256": "9e5264f4ff1d7877d12552cc3af76b714d4412688b9202c0f0f371e1d3610759",
+          "bytes": 2628
+        },
+        "returncode": 0,
+        "result": {
+          "same_exception": true,
+          "state_restored": true,
+          "physical_restored": true,
+          "same_set": true,
+          "allocation": {
+            "rejected_size": 0,
+            "attempts": 0,
+            "rejected": 0,
+            "allocation_sizes": []
+          },
+          "allocator_control": {
+            "rejected_size": 512,
+            "attempts": 1,
+            "rejected": 1,
+            "allocation_sizes": [
+              512
+            ]
+          }
+        }
+      },
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/debug-undo-v2/pytest-temp/seed-allocator0/tombstone-KeyboardInterrupt-1024.json",
+          "sha256": "7a2b3479dc47eeb40e67f780612f306d4996964ad3b5d43d60ec1659990d46fc",
+          "bytes": 2636
+        },
+        "returncode": 0,
+        "result": {
+          "same_exception": true,
+          "state_restored": true,
+          "physical_restored": true,
+          "same_set": true,
+          "allocation": {
+            "rejected_size": 1024,
+            "attempts": 0,
+            "rejected": 0,
+            "allocation_sizes": []
+          },
+          "allocator_control": {
+            "rejected_size": 1024,
+            "attempts": 1,
+            "rejected": 1,
+            "allocation_sizes": [
+              1024
+            ]
+          }
+        }
+      },
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/debug-undo-v2/pytest-temp/seed-allocator0/tombstone-MemoryError-0.json",
+          "sha256": "a9dd81ceaee8bfb6903b80512f26b067e2118aacfbef758b089d3a3fc1b8823c",
+          "bytes": 2622
+        },
+        "returncode": 0,
+        "result": {
+          "same_exception": true,
+          "state_restored": true,
+          "physical_restored": true,
+          "same_set": true,
+          "allocation": {
+            "rejected_size": 0,
+            "attempts": 0,
+            "rejected": 0,
+            "allocation_sizes": []
+          },
+          "allocator_control": {
+            "rejected_size": 512,
+            "attempts": 1,
+            "rejected": 1,
+            "allocation_sizes": [
+              512
+            ]
+          }
+        }
+      },
+      {
+        "record": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/debug-undo-v2/pytest-temp/seed-allocator0/tombstone-MemoryError-1024.json",
+          "sha256": "ac23dbfc0844e021437747477f975d3c59999d6074312475548d4ff41bbae6d9",
+          "bytes": 2630
+        },
+        "returncode": 0,
+        "result": {
+          "same_exception": true,
+          "state_restored": true,
+          "physical_restored": true,
+          "same_set": true,
+          "allocation": {
+            "rejected_size": 1024,
+            "attempts": 0,
+            "rejected": 0,
+            "allocation_sizes": []
+          },
+          "allocator_control": {
+            "rejected_size": 1024,
+            "attempts": 1,
+            "rejected": 1,
+            "allocation_sizes": [
+              1024
+            ]
+          }
+        }
+      }
+    ],
+    "interpretation": "Eight rollback cases preserve original exception identity and exact physical/logical state with zero PYMEM_DOMAIN_MEM attempts; allocator controls really reject requests. Two root/outer genuine preparation allocation failures leave facts unchanged, outer poisoned. Thirty partial/uninstalled/cancelled multi-generation combinations pass.",
+    "coverage_limit": "CPython3.11 debug run; zero MEM-domain attempts is not an exhaustive whole-process OOM proof or five-version runtime matrix"
+  },
+  "default_build8": {
+    "record": {
+      "path": ".plan20-artifacts/20261029/stage3/fact-native/default-build8-attempt1/command.json",
+      "sha256": "c62ab963ce9436a61c656ab1c94031545a5de890d2755f8bb2118baa2ca9dabe",
+      "bytes": 133885
+    },
+    "log": {
+      "path": ".plan20-artifacts/20261029/stage3/fact-native/default-build8-attempt1/command.log",
+      "sha256": "dbf64c9843c80caa6cbef896002f9a640e412e7c1cbce2e811cede52519a7355",
+      "bytes": 9038
+    },
+    "argv": [
+      "taskset",
+      "-c",
+      "24-31",
+      "/tmp/hotpot-plan20-env/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "--import-mode=importlib",
+      "tests",
+      "--junitxml=/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/default-build8-attempt1/result.xml",
+      "-o",
+      "cache_dir=/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/default-build8-attempt1/pytest-cache"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "environment_overrides": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+      "MPLCONFIGDIR": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/default-build8-attempt1/mpl",
+      "HOTPOT_DERIVED_MODEL_HOME": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/default-build8-attempt1/derived-models",
+      "HOTPOT_MCA_MODEL_DIR": "/home/zhangzhiyuan/.cache/hotpot/models/artifacts/mca/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/mca/v1",
+      "HOTPOT_CBOND_MODEL_DIR": "/tmp/hotpot-test-models/artifacts/cbond/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/cbond/v1",
+      "PYTHONPATH": "/home/zhangzhiyuan/hotpot"
+    },
+    "source_commit": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+    "returncode": 0,
+    "elapsed_seconds": 259.05163833871484,
+    "source_before": {
+      "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+      "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+      "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+      "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+      "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1"
+    },
+    "source_after": {
+      "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+      "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+      "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+      "hotpot/cheminfo/structure/_fact_native.pyi": "1a4b5e8e7caecf9b7b50337d2c136567a2fcb70160f28d44d4d6f0f6608a8991",
+      "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1"
+    },
+    "source_stable": true,
+    "recording_runner_sha256": "6391f6a905e05e104c12993f78f8a6700f96b0703f5647da2bc93aa181239d9b",
+    "native_unchanged_during_execution": true,
+    "native_before": {
+      "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "eb091e7b8d1a33b1938c3c06bf373fd3365f96e7dda205620bc536e4965783fe",
+      "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "cd2d675795a574cc950ade23d6a6c1b70cbb9733b017173bcdff2f05907c2b2c",
+      "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "43f6ad536561830c327050397f7c6c7328b308011780a8c03f64882957eabc0e",
+      "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so": "33f42bff5a2780fc7df460ff5b5d41486de6b4f0e09fb27419967467bc22b3cb",
+      "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so": "6051de121e32ff002f5b5e1b1de5f837f5a38a44e2254220a741a8593dd0bda0"
+    },
+    "native_after": {
+      "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "eb091e7b8d1a33b1938c3c06bf373fd3365f96e7dda205620bc536e4965783fe",
+      "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "cd2d675795a574cc950ade23d6a6c1b70cbb9733b017173bcdff2f05907c2b2c",
+      "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "43f6ad536561830c327050397f7c6c7328b308011780a8c03f64882957eabc0e",
+      "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so": "33f42bff5a2780fc7df460ff5b5d41486de6b4f0e09fb27419967467bc22b3cb",
+      "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so": "6051de121e32ff002f5b5e1b1de5f837f5a38a44e2254220a741a8593dd0bda0"
+    },
+    "log_result": "4432 passed, 123 skipped, 3 xfailed, 10 warnings, 49 subtests passed in 257.20s (0:04:17)",
+    "junit": {
+      "path": ".plan20-artifacts/20261029/stage3/fact-native/default-build8-attempt1/result.xml",
+      "sha256": "a27ca4848f7d1bff36cae886b3cd484da4d0095e94d9761d0e38d62734eb5c78",
+      "bytes": 753564
+    },
+    "technical_result": {
+      "passed": 4432,
+      "skipped": 123,
+      "xfailed": 3,
+      "warnings": 10,
+      "subtests_passed": 49,
+      "pytest_seconds": 257.2
+    },
+    "coverage_limit": "Current-source CPython3.11 default suite; optional/external skips and xfails are retained; not installed-wheel, five-version runtime or final scientific/performance acceptance"
+  },
+  "performance_v4": {
+    "evidence": {
+      "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/paired-v4/diagnostic.json",
+      "sha256": "85fd6255f6fd21b0d2b9dfa235b842c278d9069ddaeb4e4d63b3271f90ef6531",
+      "bytes": 21094
+    },
+    "note": "Shared host, source frozen during paired diagnostic; same B20 semantic workloads and frozen samples, no global performance acceptance claim.",
+    "runner_sha256": "e6e2e5e5a82147399a545e7bb0b770bde2d653d7f9a984aaf44b0664a66177e4",
+    "manifest_sha256": "ed5bba12ac6ae0305f6c85f7af3aa8fa824a3278fe12aad537a2f0c13768571b",
+    "affinity": [
+      0
+    ],
+    "load_before": [
+      0.36,
+      0.89,
+      1.37
+    ],
+    "load_after": [
+      0.45,
+      0.9,
+      1.37
+    ],
+    "identities": {
+      "baseline": {
+        "head": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+        "sources": {
+          "hotpot/cheminfo/core.py": "75c1be7e5bde13a5e67bb30c731388505438495964a4adad7f64a9a060f52532"
+        }
+      },
+      "candidate": {
+        "head": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+        "sources": {
+          "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+          "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+          "hotpot/cheminfo/structure/_builder.py": "fe39576929356a6c9604636b785bff34ef5ad382b93138cff8109352b9fd6aac",
+          "hotpot/cheminfo/structure/__init__.py": "24e5d4f167f216a4e5704c202e5ad6ddb21670e5327158475dc7e1d4047ddad2",
+          "hotpot/cheminfo/structure/_identity.py": "1755b968737e478426cec4bc6df2fb89c7626347f06da0bb841b77596d1fbe3b",
+          "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+          "hotpot/cheminfo/structure/_fields.py": "c07ab9799024c3191aefa20c3a0dd4c139cebab927346cbbfeb62059094c3389",
+          "hotpot/cheminfo/structure/_atom_table.py": "595ef42f0524ec2760a739787a62bd52ce9d4a14759c38b52b0c32afa783796a",
+          "hotpot/cheminfo/structure/_mutation.py": "4c62aa4d626fd7babd1c80961f909dc37dba70bd136279bcba2b6b20b6482283",
+          "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so": "33f42bff5a2780fc7df460ff5b5d41486de6b4f0e09fb27419967467bc22b3cb",
+          "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so": "6051de121e32ff002f5b5e1b1de5f837f5a38a44e2254220a741a8593dd0bda0",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "cd2d675795a574cc950ade23d6a6c1b70cbb9733b017173bcdff2f05907c2b2c",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "43f6ad536561830c327050397f7c6c7328b308011780a8c03f64882957eabc0e",
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "eb091e7b8d1a33b1938c3c06bf373fd3365f96e7dda205620bc536e4965783fe",
+          "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1"
+        }
+      }
+    },
+    "candidate_after": {
+      "head": "ba662e353fad5229e7134ecfc741f3608dd17fee",
+      "sources": {
+        "hotpot/cheminfo/core.py": "5dba619e4a46f9c5fc6faa0019fbc931b02127ba5d71d152292874e3cfcdd595",
+        "hotpot/cheminfo/structure/_commit.py": "dd509741b0fa969c2af41c2c201919fb7329a1a7512455d8ee89be5e2fdb1b88",
+        "hotpot/cheminfo/structure/_builder.py": "fe39576929356a6c9604636b785bff34ef5ad382b93138cff8109352b9fd6aac",
+        "hotpot/cheminfo/structure/__init__.py": "24e5d4f167f216a4e5704c202e5ad6ddb21670e5327158475dc7e1d4047ddad2",
+        "hotpot/cheminfo/structure/_identity.py": "1755b968737e478426cec4bc6df2fb89c7626347f06da0bb841b77596d1fbe3b",
+        "hotpot/cheminfo/structure/_dependencies.py": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+        "hotpot/cheminfo/structure/_fields.py": "c07ab9799024c3191aefa20c3a0dd4c139cebab927346cbbfeb62059094c3389",
+        "hotpot/cheminfo/structure/_atom_table.py": "595ef42f0524ec2760a739787a62bd52ce9d4a14759c38b52b0c32afa783796a",
+        "hotpot/cheminfo/structure/_mutation.py": "4c62aa4d626fd7babd1c80961f909dc37dba70bd136279bcba2b6b20b6482283",
+        "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so": "33f42bff5a2780fc7df460ff5b5d41486de6b4f0e09fb27419967467bc22b3cb",
+        "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so": "6051de121e32ff002f5b5e1b1de5f837f5a38a44e2254220a741a8593dd0bda0",
+        "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "cd2d675795a574cc950ade23d6a6c1b70cbb9733b017173bcdff2f05907c2b2c",
+        "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "43f6ad536561830c327050397f7c6c7328b308011780a8c03f64882957eabc0e",
+        "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "eb091e7b8d1a33b1938c3c06bf373fd3365f96e7dda205620bc536e4965783fe",
+        "hotpot/cheminfo/structure/_native/facts.cpp": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1"
+      }
+    },
+    "source_native_stable": true,
+    "worker_output_paths_and_raw_summaries_checked": true,
+    "ratios": {
+      "scalar_write_8": {
+        "baseline": 6.678514182567596e-05,
+        "candidate": 0.00012458302080631256,
+        "candidate_over_baseline": 1.8654302049923301
+      },
+      "scalar_write_64": {
+        "candidate": 0.0009627705439925194,
+        "baseline": 0.000505523756146431,
+        "candidate_over_baseline": 1.904501088794809
+      },
+      "scalar_write_256": {
+        "baseline": 0.0020157434046268463,
+        "candidate": 0.0037832288071513176,
+        "candidate_over_baseline": 1.8768404740739646
+      },
+      "batch_facts_8": {
+        "candidate": 0.00015716813504695892,
+        "baseline": 6.722286343574524e-05,
+        "candidate_over_baseline": 2.3380160709337767
+      },
+      "batch_facts_64": {
+        "baseline": 0.0005029924213886261,
+        "candidate": 0.0003801519051194191,
+        "candidate_over_baseline": 0.7557805822797935
+      },
+      "batch_facts_256": {
+        "candidate": 0.0011332230642437935,
+        "baseline": 0.0020553581416606903,
+        "candidate_over_baseline": 0.5513506582011887
+      },
+      "write_read_64": {
+        "baseline": 0.010205250233411789,
+        "candidate": 0.03200372774153948,
+        "candidate_over_baseline": 3.1360061742298
+      }
+    },
+    "runs": [
+      {
+        "phase": "baseline",
+        "workload": "scalar_write_8",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/tmp/hotpot-plan20-20261028/source-b20",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v4/baseline-scalar_write_8",
+          "--worker",
+          "scalar_write_8",
+          "--phase",
+          "baseline",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 0,
+        "wall_seconds": 0.9339771270751953,
+        "summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0006685294210910797,
+          "median_seconds": 6.678514182567596e-05,
+          "mad_seconds": 2.551823854446411e-07,
+          "p95_seconds": 6.747320294380188e-05,
+          "peak_rss_bytes": 197746688
+        },
+        "result": {
+          "path": "/tmp/plan20-native-facts-20261029/paired-v4/baseline-scalar_write_8/result.json",
+          "sha256": "633bd402dff3b3cfc1511d06a4c91238409d470419cf9270d71fdb3de2c5d559",
+          "bytes": 5282
+        }
+      },
+      {
+        "phase": "candidate",
+        "workload": "scalar_write_8",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/home/zhangzhiyuan/hotpot",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v4/candidate-scalar_write_8",
+          "--worker",
+          "scalar_write_8",
+          "--phase",
+          "candidate",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 0,
+        "wall_seconds": 0.9054796695709229,
+        "summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.001253567636013031,
+          "median_seconds": 0.00012458302080631256,
+          "mad_seconds": 1.0505318641662598e-06,
+          "p95_seconds": 0.0001294105313718319,
+          "peak_rss_bytes": 193757184
+        },
+        "result": {
+          "path": "/tmp/plan20-native-facts-20261029/paired-v4/candidate-scalar_write_8/result.json",
+          "sha256": "4f822d7a847664db172d3663aee392a0cb68f801f422e8211456f013f49d6602",
+          "bytes": 5280
+        }
+      },
+      {
+        "phase": "candidate",
+        "workload": "scalar_write_64",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/home/zhangzhiyuan/hotpot",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v4/candidate-scalar_write_64",
+          "--worker",
+          "scalar_write_64",
+          "--phase",
+          "candidate",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 0,
+        "wall_seconds": 0.9230198860168457,
+        "summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.009634267538785934,
+          "median_seconds": 0.0009627705439925194,
+          "mad_seconds": 7.310882210731506e-07,
+          "p95_seconds": 0.0009703909978270531,
+          "peak_rss_bytes": 193949696
+        },
+        "result": {
+          "path": "/tmp/plan20-native-facts-20261029/paired-v4/candidate-scalar_write_64/result.json",
+          "sha256": "a37cd8da99033ce2d6a314d929ac18a7058df469d6d6e3cf5770f10425d614db",
+          "bytes": 5288
+        }
+      },
+      {
+        "phase": "baseline",
+        "workload": "scalar_write_64",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/tmp/hotpot-plan20-20261028/source-b20",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v4/baseline-scalar_write_64",
+          "--worker",
+          "scalar_write_64",
+          "--phase",
+          "baseline",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 0,
+        "wall_seconds": 0.9507408142089844,
+        "summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.005083777010440826,
+          "median_seconds": 0.000505523756146431,
+          "mad_seconds": 4.759058356285095e-06,
+          "p95_seconds": 0.0005257747136056423,
+          "peak_rss_bytes": 197275648
+        },
+        "result": {
+          "path": "/tmp/plan20-native-facts-20261029/paired-v4/baseline-scalar_write_64/result.json",
+          "sha256": "753196ce475c9e65d3c71bddb649e05140c326d9bc2ddb617276b4e51b2c1481",
+          "bytes": 5297
+        }
+      },
+      {
+        "phase": "baseline",
+        "workload": "scalar_write_256",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/tmp/hotpot-plan20-20261028/source-b20",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v4/baseline-scalar_write_256",
+          "--worker",
+          "scalar_write_256",
+          "--phase",
+          "baseline",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 0,
+        "wall_seconds": 0.9855608940124512,
+        "summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.02017141506075859,
+          "median_seconds": 0.0020157434046268463,
+          "mad_seconds": 9.853392839431763e-06,
+          "p95_seconds": 0.0020296827889978884,
+          "peak_rss_bytes": 197259264
+        },
+        "result": {
+          "path": "/tmp/plan20-native-facts-20261029/paired-v4/baseline-scalar_write_256/result.json",
+          "sha256": "fea4c0f2fd1ca5535288ead0d7f9101a57149387562824d423302e177b9dfe30",
+          "bytes": 5309
+        }
+      },
+      {
+        "phase": "candidate",
+        "workload": "scalar_write_256",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/home/zhangzhiyuan/hotpot",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v4/candidate-scalar_write_256",
+          "--worker",
+          "scalar_write_256",
+          "--phase",
+          "candidate",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 0,
+        "wall_seconds": 0.9775309562683105,
+        "summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.037797266617417336,
+          "median_seconds": 0.0037832288071513176,
+          "mad_seconds": 1.8980354070663452e-05,
+          "p95_seconds": 0.003802379872649908,
+          "peak_rss_bytes": 194211840
+        },
+        "result": {
+          "path": "/tmp/plan20-native-facts-20261029/paired-v4/candidate-scalar_write_256/result.json",
+          "sha256": "3279cf8abd544ce2c189c7007923376c068e52510fe35c3ea27e166218c989f3",
+          "bytes": 5291
+        }
+      },
+      {
+        "phase": "candidate",
+        "workload": "batch_facts_8",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/home/zhangzhiyuan/hotpot",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v4/candidate-batch_facts_8",
+          "--worker",
+          "batch_facts_8",
+          "--phase",
+          "candidate",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 0,
+        "wall_seconds": 0.9071428775787354,
+        "summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0015944968909025192,
+          "median_seconds": 0.00015716813504695892,
+          "mad_seconds": 7.57165253162384e-07,
+          "p95_seconds": 0.00016802791506052015,
+          "peak_rss_bytes": 194289664
+        },
+        "result": {
+          "path": "/tmp/plan20-native-facts-20261029/paired-v4/candidate-batch_facts_8/result.json",
+          "sha256": "6468bc222034af02d204c4b52860826762940edebb73f311d2ca113b5691263a",
+          "bytes": 5345
+        }
+      },
+      {
+        "phase": "baseline",
+        "workload": "batch_facts_8",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/tmp/hotpot-plan20-20261028/source-b20",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v4/baseline-batch_facts_8",
+          "--worker",
+          "batch_facts_8",
+          "--phase",
+          "baseline",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 0,
+        "wall_seconds": 0.9319643974304199,
+        "summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.000673387199640274,
+          "median_seconds": 6.722286343574524e-05,
+          "mad_seconds": 1.4528632164001465e-07,
+          "p95_seconds": 6.833365187048912e-05,
+          "peak_rss_bytes": 197464064
+        },
+        "result": {
+          "path": "/tmp/plan20-native-facts-20261029/paired-v4/baseline-batch_facts_8/result.json",
+          "sha256": "6bdae6c0b29acd550e59b0b42889c7aa3d504b854aed5d24f565575f845f7c9b",
+          "bytes": 5345
+        }
+      },
+      {
+        "phase": "baseline",
+        "workload": "batch_facts_64",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/tmp/hotpot-plan20-20261028/source-b20",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v4/baseline-batch_facts_64",
+          "--worker",
+          "batch_facts_64",
+          "--phase",
+          "baseline",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 0,
+        "wall_seconds": 0.9435384273529053,
+        "summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.005047045648097992,
+          "median_seconds": 0.0005029924213886261,
+          "mad_seconds": 3.1013041734695435e-06,
+          "p95_seconds": 0.0005132609978318215,
+          "peak_rss_bytes": 197812224
+        },
+        "result": {
+          "path": "/tmp/plan20-native-facts-20261029/paired-v4/baseline-batch_facts_64/result.json",
+          "sha256": "04706c72ad807e031877c697bb230348a5eb8b626ee91d3755a31ea74b11be0f",
+          "bytes": 5362
+        }
+      },
+      {
+        "phase": "candidate",
+        "workload": "batch_facts_64",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/home/zhangzhiyuan/hotpot",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v4/candidate-batch_facts_64",
+          "--worker",
+          "batch_facts_64",
+          "--phase",
+          "candidate",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 0,
+        "wall_seconds": 0.9215917587280273,
+        "summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0038409456610679626,
+          "median_seconds": 0.0003801519051194191,
+          "mad_seconds": 1.691281795501709e-06,
+          "p95_seconds": 0.0004000659100711345,
+          "peak_rss_bytes": 193925120
+        },
+        "result": {
+          "path": "/tmp/plan20-native-facts-20261029/paired-v4/candidate-batch_facts_64/result.json",
+          "sha256": "1bf6a1933703fa9654794b3bfd6db4312d9f496ce45829434fd93fe49c5d1d6a",
+          "bytes": 5363
+        }
+      },
+      {
+        "phase": "candidate",
+        "workload": "batch_facts_256",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/home/zhangzhiyuan/hotpot",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v4/candidate-batch_facts_256",
+          "--worker",
+          "batch_facts_256",
+          "--phase",
+          "candidate",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 0,
+        "wall_seconds": 0.94126296043396,
+        "summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.011361520737409592,
+          "median_seconds": 0.0011332230642437935,
+          "mad_seconds": 1.235026866197586e-05,
+          "p95_seconds": 0.0011605246923863887,
+          "peak_rss_bytes": 194691072
+        },
+        "result": {
+          "path": "/tmp/plan20-native-facts-20261029/paired-v4/candidate-batch_facts_256/result.json",
+          "sha256": "0563d432ff39a98d4b852576943ae08811cce54bf072de83e2d413bd7a68c5fe",
+          "bytes": 5366
+        }
+      },
+      {
+        "phase": "baseline",
+        "workload": "batch_facts_256",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/tmp/hotpot-plan20-20261028/source-b20",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v4/baseline-batch_facts_256",
+          "--worker",
+          "batch_facts_256",
+          "--phase",
+          "baseline",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 0,
+        "wall_seconds": 0.9864723682403564,
+        "summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.02055109478533268,
+          "median_seconds": 0.0020553581416606903,
+          "mad_seconds": 9.668059647083282e-06,
+          "p95_seconds": 0.0020764841698110103,
+          "peak_rss_bytes": 197103616
+        },
+        "result": {
+          "path": "/tmp/plan20-native-facts-20261029/paired-v4/baseline-batch_facts_256/result.json",
+          "sha256": "4482447973517cd1ab33e5551821864af6fffd16c1e0a22b4717fb00f90a29d7",
+          "bytes": 5367
+        }
+      },
+      {
+        "phase": "baseline",
+        "workload": "write_read_64",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/tmp/hotpot-plan20-20261028/source-b20",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v4/baseline-write_read_64",
+          "--worker",
+          "write_read_64",
+          "--phase",
+          "baseline",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 0,
+        "wall_seconds": 1.1020288467407227,
+        "summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.10193115845322609,
+          "median_seconds": 0.010205250233411789,
+          "mad_seconds": 8.558761328458786e-05,
+          "p95_seconds": 0.010304978676140308,
+          "peak_rss_bytes": 197488640
+        },
+        "result": {
+          "path": "/tmp/plan20-native-facts-20261029/paired-v4/baseline-write_read_64/result.json",
+          "sha256": "23316d30c9fc39015c2b6e7cd59baf5e246dca138a9ed574607b5b46df8f4e93",
+          "bytes": 5415
+        }
+      },
+      {
+        "phase": "candidate",
+        "workload": "write_read_64",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/home/zhangzhiyuan/hotpot",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v4/candidate-write_read_64",
+          "--worker",
+          "write_read_64",
+          "--phase",
+          "candidate",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 0,
+        "wall_seconds": 1.4299449920654297,
+        "summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.3197418265044689,
+          "median_seconds": 0.03200372774153948,
+          "mad_seconds": 6.31948933005333e-05,
+          "p95_seconds": 0.03213249482214451,
+          "peak_rss_bytes": 194260992
+        },
+        "result": {
+          "path": "/tmp/plan20-native-facts-20261029/paired-v4/candidate-write_read_64/result.json",
+          "sha256": "a91bfe61afb8ef7acfe64a719a58b4723f989d9837f4eeeaa16377d399a56f68",
+          "bytes": 5395
+        }
+      }
+    ],
+    "classification": "Seven shared-host paired diagnostics only. Scalar/small batch/write-read regressions remain unresolved; larger batches are faster in these point estimates. No complete Stage3 or final family/global/memory acceptance.",
+    "limits": [
+      "No new bootstrap confidence interval or complete family/global comparison was produced by this integration",
+      "RSS/memory observations remain in raw results and are not a full memory verdict",
+      "Gate interpretation remains stages/stage03/gates/review.md; final71 coverage is not newly imposed before Stage4"
+    ]
+  },
+  "retained_invalid_performance_attempt": {
+    "failure_record": {
+      "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/paired-v4-failed-reused-output/failure.json",
+      "sha256": "6c4634d5ebf13ad348bc7df85e743aab71bfdd9b60a73240ae5c82861e17c4b0",
+      "bytes": 603
+    },
+    "diagnostic": {
+      "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/paired-v4-failed-reused-output/diagnostic.json",
+      "sha256": "62f9d6bd9775b66d860387332efa33c904f841fe9da3c6ede2c47bdd815479aa",
+      "bytes": 21109
+    },
+    "explanation": {
+      "cause": "Driver path substitution failed; all v4 workers were pointed at existing paired-v3 directories and exited before sampling. Driver incorrectly loaded existing result files. No build8 performance measurements occurred.",
+      "coverage_limit": "paired-v3 original per-worker result and sample files remain intact; original v3 top-level diagnostic/logs were overwritten by the failed invocation. Copied overwritten files retained here; do not treat their mixed old results/current identities as evidence.",
+      "driver_sha256": "971c3a93957479d68850e11685a5c968a9505d0e23219641da338edfb9d81b99"
+    },
+    "workers": [
+      {
+        "phase": "baseline",
+        "workload": "scalar_write_8",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/tmp/hotpot-plan20-20261028/source-b20",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v3/baseline-scalar_write_8",
+          "--worker",
+          "scalar_write_8",
+          "--phase",
+          "baseline",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 1,
+        "wall_seconds": 0.07219529151916504
+      },
+      {
+        "phase": "candidate",
+        "workload": "scalar_write_8",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/home/zhangzhiyuan/hotpot",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v3/candidate-scalar_write_8",
+          "--worker",
+          "scalar_write_8",
+          "--phase",
+          "candidate",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 1,
+        "wall_seconds": 0.07510995864868164
+      },
+      {
+        "phase": "candidate",
+        "workload": "scalar_write_64",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/home/zhangzhiyuan/hotpot",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v3/candidate-scalar_write_64",
+          "--worker",
+          "scalar_write_64",
+          "--phase",
+          "candidate",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 1,
+        "wall_seconds": 0.07654047012329102
+      },
+      {
+        "phase": "baseline",
+        "workload": "scalar_write_64",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/tmp/hotpot-plan20-20261028/source-b20",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v3/baseline-scalar_write_64",
+          "--worker",
+          "scalar_write_64",
+          "--phase",
+          "baseline",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 1,
+        "wall_seconds": 0.07475709915161133
+      },
+      {
+        "phase": "baseline",
+        "workload": "scalar_write_256",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/tmp/hotpot-plan20-20261028/source-b20",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v3/baseline-scalar_write_256",
+          "--worker",
+          "scalar_write_256",
+          "--phase",
+          "baseline",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 1,
+        "wall_seconds": 0.0763251781463623
+      },
+      {
+        "phase": "candidate",
+        "workload": "scalar_write_256",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/home/zhangzhiyuan/hotpot",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v3/candidate-scalar_write_256",
+          "--worker",
+          "scalar_write_256",
+          "--phase",
+          "candidate",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 1,
+        "wall_seconds": 0.07941174507141113
+      },
+      {
+        "phase": "candidate",
+        "workload": "batch_facts_8",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/home/zhangzhiyuan/hotpot",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v3/candidate-batch_facts_8",
+          "--worker",
+          "batch_facts_8",
+          "--phase",
+          "candidate",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 1,
+        "wall_seconds": 0.07488107681274414
+      },
+      {
+        "phase": "baseline",
+        "workload": "batch_facts_8",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/tmp/hotpot-plan20-20261028/source-b20",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v3/baseline-batch_facts_8",
+          "--worker",
+          "batch_facts_8",
+          "--phase",
+          "baseline",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 1,
+        "wall_seconds": 0.07901477813720703
+      },
+      {
+        "phase": "baseline",
+        "workload": "batch_facts_64",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/tmp/hotpot-plan20-20261028/source-b20",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v3/baseline-batch_facts_64",
+          "--worker",
+          "batch_facts_64",
+          "--phase",
+          "baseline",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 1,
+        "wall_seconds": 0.07660913467407227
+      },
+      {
+        "phase": "candidate",
+        "workload": "batch_facts_64",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/home/zhangzhiyuan/hotpot",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v3/candidate-batch_facts_64",
+          "--worker",
+          "batch_facts_64",
+          "--phase",
+          "candidate",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 1,
+        "wall_seconds": 0.07751846313476562
+      },
+      {
+        "phase": "candidate",
+        "workload": "batch_facts_256",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/home/zhangzhiyuan/hotpot",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v3/candidate-batch_facts_256",
+          "--worker",
+          "batch_facts_256",
+          "--phase",
+          "candidate",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 1,
+        "wall_seconds": 0.07812237739562988
+      },
+      {
+        "phase": "baseline",
+        "workload": "batch_facts_256",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/tmp/hotpot-plan20-20261028/source-b20",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v3/baseline-batch_facts_256",
+          "--worker",
+          "batch_facts_256",
+          "--phase",
+          "baseline",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 1,
+        "wall_seconds": 0.07709026336669922
+      },
+      {
+        "phase": "baseline",
+        "workload": "write_read_64",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/tmp/hotpot-plan20-20261028/source-b20",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v3/baseline-write_read_64",
+          "--worker",
+          "write_read_64",
+          "--phase",
+          "baseline",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 1,
+        "wall_seconds": 0.08025097846984863
+      },
+      {
+        "phase": "candidate",
+        "workload": "write_read_64",
+        "command": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+          "--manifest",
+          "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+          "--repository",
+          "/home/zhangzhiyuan/hotpot",
+          "--output",
+          "/tmp/plan20-native-facts-20261029/paired-v3/candidate-write_read_64",
+          "--worker",
+          "write_read_64",
+          "--phase",
+          "candidate",
+          "--cpu-affinity",
+          "0"
+        ],
+        "returncode": 1,
+        "wall_seconds": 0.07836604118347168
+      }
+    ],
+    "use_as_timing_evidence": false,
+    "invalidated_tmp_v3_marker": {
+      "path": "/tmp/plan20-native-facts-20261029/paired-v3/METADATA_INVALIDATED.json",
+      "sha256": "6c4634d5ebf13ad348bc7df85e743aab71bfdd9b60a73240ae5c82861e17c4b0",
+      "bytes": 603
+    },
+    "valid_v3_archive": {
+      "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v3-checkpoint/artifact-manifest.json",
+      "sha256": "31a4c4e8444531f50f4f4ac96e7b7b6ebe0cc849eef30dbab657c76fc19bc635",
+      "bytes": 30087
+    }
+  },
+  "cpython_psf_provenance": {
+    "source_review": {
+      "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/cpython-sources/review-sections.json",
+      "sha256": "9dc70fda9ca7acf4ee32b1f57c97ff0b4bb35196f3ff22d2d4053fd007cf5909",
+      "bytes": 54891
+    },
+    "comparison": {
+      "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/cpython-sources/comparison.json",
+      "sha256": "3d552392a9753490d8a3f760dd858b45dad4f4dfcc4ca135206566497e033f96",
+      "bytes": 3402
+    },
+    "sources": [
+      {
+        "version": "3.10.20",
+        "url": "https://raw.githubusercontent.com/python/cpython/v3.10.20/Objects/setobject.c",
+        "sha256": "9805f9d115ab08852ad14e85f6ca75f827ff46ee44c0ae8657072785dad48b1f",
+        "archived_source": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/cpython-sources/setobject-3.10.20.c",
+          "sha256": "9805f9d115ab08852ad14e85f6ca75f827ff46ee44c0ae8657072785dad48b1f",
+          "bytes": 74447
+        },
+        "reviewed_sections": [
+          "set_lookkey",
+          "set_add_entry",
+          "set_insert_clean",
+          "set_table_resize",
+          "set_discard_entry",
+          "set_empty_to_minsize",
+          "set_clear_internal",
+          "set_swap_bodies"
+        ]
+      },
+      {
+        "version": "3.11.16",
+        "url": "https://raw.githubusercontent.com/python/cpython/v3.11.16/Objects/setobject.c",
+        "sha256": "01462829ff1e731582656adf49ef1d662a5f48002ac49114acdae1ea3674ce57",
+        "archived_source": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/cpython-sources/setobject-3.11.16.c",
+          "sha256": "01462829ff1e731582656adf49ef1d662a5f48002ac49114acdae1ea3674ce57",
+          "bytes": 74717
+        },
+        "reviewed_sections": [
+          "set_lookkey",
+          "set_add_entry",
+          "set_insert_clean",
+          "set_table_resize",
+          "set_discard_entry",
+          "set_empty_to_minsize",
+          "set_clear_internal",
+          "set_swap_bodies"
+        ]
+      },
+      {
+        "version": "3.12.13",
+        "url": "https://raw.githubusercontent.com/python/cpython/v3.12.13/Objects/setobject.c",
+        "sha256": "e633e7ae4e427ecead8879965910e27427d34ae0fc5b956142bc337f741a367c",
+        "archived_source": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/cpython-sources/setobject-3.12.13.c",
+          "sha256": "e633e7ae4e427ecead8879965910e27427d34ae0fc5b956142bc337f741a367c",
+          "bytes": 74585
+        },
+        "reviewed_sections": [
+          "set_lookkey",
+          "set_add_entry",
+          "set_insert_clean",
+          "set_table_resize",
+          "set_discard_entry",
+          "set_empty_to_minsize",
+          "set_clear_internal",
+          "set_swap_bodies"
+        ]
+      },
+      {
+        "version": "3.13.15",
+        "url": "https://raw.githubusercontent.com/python/cpython/v3.13.15/Objects/setobject.c",
+        "sha256": "ff47fd189c6caf3da43c0dd17daed8d8ae13ebc66bf5270e8bbf40140dd7328d",
+        "archived_source": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/cpython-sources/setobject-3.13.15.c",
+          "sha256": "ff47fd189c6caf3da43c0dd17daed8d8ae13ebc66bf5270e8bbf40140dd7328d",
+          "bytes": 80064
+        },
+        "reviewed_sections": [
+          "set_lookkey",
+          "set_add_entry",
+          "set_insert_clean",
+          "set_table_resize",
+          "set_discard_entry",
+          "set_empty_to_minsize",
+          "set_clear_internal",
+          "set_swap_bodies"
+        ]
+      },
+      {
+        "version": "3.14.7",
+        "url": "https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/setobject.c",
+        "sha256": "0068114a2f05d377f27a34942401d46eda83ef925e75f295364b9db5727c63be",
+        "archived_source": {
+          "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/cpython-sources/setobject-3.14.7.c",
+          "sha256": "0068114a2f05d377f27a34942401d46eda83ef925e75f295364b9db5727c63be",
+          "bytes": 83366
+        },
+        "reviewed_sections": [
+          "set_lookkey",
+          "set_add_entry",
+          "set_insert_clean",
+          "set_table_resize",
+          "set_discard_entry",
+          "set_empty_to_minsize",
+          "set_clear_internal",
+          "set_swap_bodies"
+        ]
+      }
+    ],
+    "license_provenance": {
+      "path": ".plan20-artifacts/20261029/stage3/fact-native/cpython-license-provenance.json",
+      "sha256": "7b90c4b5bc69bd828157996cf593a2edc38502a8fa95eee054c8800aa0b98817",
+      "bytes": 612
+    },
+    "license": {
+      "path": "hotpot/cheminfo/structure/_native/CPYTHON_LICENSE",
+      "sha256": "b0e25a78cffb43f4d92de8b61ccfa1f1f98ecbc22330b54b5251e7b6ba010231",
+      "bytes": 13804
+    },
+    "download_argv": [
+      "curl",
+      "-L",
+      "--fail",
+      "--silent",
+      "--show-error",
+      "https://raw.githubusercontent.com/python/cpython/v3.14.7/LICENSE",
+      "-o",
+      "hotpot/cheminfo/structure/_native/CPYTHON_LICENSE"
+    ],
+    "package_rule_sources": [
+      {
+        "path": "MANIFEST.in",
+        "sha256": "9dd84c4bcde46b3dd260de75412bbdfb99139afb634780ec4381496db9298834",
+        "bytes": 2729
+      },
+      {
+        "path": "pyproject.toml",
+        "sha256": "f0325a971529dfdf7fed2cc559d227957bea62a5689d5b5880583a2c8bb05fa5",
+        "bytes": 4419
+      }
+    ],
+    "source_attribution": "facts.cpp header credits CPython Objects/setobject.c and PSF/CPYTHON_LICENSE; code is restricted to GIL-enabled matching CPython headers, not limited ABI",
+    "additional_inspection": "Read3.14 set_add_entry_takeref135-217 because review-sections set_add_entry is the wrapper; closed GIL probe constants/last-dummy/load threshold agree",
+    "package_coverage_limit": "Source package-data rules inspected; wheel/sdist inclusion awaits parent packaging verification"
+  },
+  "archive_v4": {
+    "manifest": {
+      "path": ".plan20-artifacts/20261029/stage3/fact-native/native-v4-undo-checkpoint/artifact_manifest.json",
+      "sha256": "544f06f46ecea9dd32ed4c5878a299dca4f8b6fc204d1335c3b6620b683a14de",
+      "bytes": 54134
+    },
+    "scope": "Immutable copy of final undo/debug/paired-v4 evidence and original allocator failure; original /tmp paired-v3 top metadata explicitly excluded because invalidated, valid v3 archived in native-v3-checkpoint.",
+    "manifest_entries": 393,
+    "observed_files_including_manifest": 394,
+    "all_recorded_hashes_match": true
+  },
+  "final_update_utc": "2026-10-29T07:04:58.209205+00:00",
+  "preceding_checkpoint_status": "Build8 physical seed undo: five ABI compilation, CPython3.11 debug/default evidence verified; full affected Python/wheel and final performance/scientific gates remain open; Stage3 incomplete",
+  "final_supported_matrix": "../validation/evidence.json",
+  "final_performance": "../performance/evidence.json",
+  "stage_report": "../report.md"
+}

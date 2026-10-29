@@ -485,3 +485,37 @@ def test_bond_endpoint_projection_rejects_shadow_assignment(name, foreign):
     assert (bond.atom1, bond.atom2) == endpoints
     assert name not in bond.__dict__
     assert facts(mol) == before and mol._topology_index == index
+
+
+@pytest.mark.parametrize('form', ['bound_keywords', 'bound_mixed',
+                                 'unbound_keywords', 'unbound_self_keyword'])
+@pytest.mark.parametrize('exception', [KeyboardInterrupt, MemoryError])
+def test_atom_assignment_retains_keyword_binding_and_original_exceptions(form, exception):
+    mol = molecule()
+    atom = mol.atoms[0]
+    atom.x = 0.
+
+    def assign(key, value):
+        if form == 'bound_keywords':
+            return atom.__setattr__(key=key, value=value)
+        if form == 'bound_mixed':
+            return atom.__setattr__(key, value=value)
+        if form == 'unbound_keywords':
+            return Atom.__setattr__(atom, key=key, value=value)
+        return Atom.__setattr__(self=atom, key=key, value=value)
+
+    assert assign('formal_charge', 2.5) is None
+    assert atom.formal_charge == 2
+    assert atom.attrs[core._ATOM_FIELD_INDEX['formal_charge']] == 2.5
+    assert 'formal_charge' not in atom.__dict__
+    before = facts(mol)
+    original = exception('conversion interruption')
+
+    class InterruptedValue:
+        def __float__(self):
+            raise original
+
+    with pytest.raises(exception) as caught:
+        assign('x', InterruptedValue())
+    assert caught.value is original
+    assert facts(mol) == before

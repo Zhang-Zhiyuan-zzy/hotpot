@@ -47,11 +47,11 @@ from .structure._fields import (
 )
 from .structure._atom_table import _AtomFactTable
 from .structure._identity import _capture_source
-from .structure._mutation import _AtomFactUpdate, _normalize_atom_facts, _normalize_atom_scalar
+from .structure._mutation import _AtomFactUpdate, _normalize_atom_facts
 from .structure._commit import (
     _FactTransaction, _commit_atom_facts, _commit_coordinates, _commit_bond_facts,
     _commit_molecular_declarations, _commit_atom_sparse, _commit_topology,
-    _current_transaction,
+    _current_transaction, _fact_engine,
 )
 from .structure._dependencies import (
     _dependency_state, _install_dependency_state, _remap_dependency_state,
@@ -243,15 +243,9 @@ class Molecule:
     def updata_atoms(self, *, atoms=None, **columns) -> None:
         selected = None if atoms is None else tuple(atoms)
         with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']):
-            if selected is None:
-                selected = tuple(self._atoms)
-                rows = tuple(range(len(selected)))
-            else:
-                rows = _selected_atom_rows(self, selected, public=True)
-            update = _normalize_atom_facts(_capture_source(self), rows,
-                                           tuple(atom._uid for atom in selected), columns)
-            _commit_atom_facts(self, update)
+            update = _atom_fact_engine()._commit_atom_columns(self, selected, columns)
             if 'atomic_number' in update.fields:
+                selected = tuple(self._atoms[row] for row in update.rows)
                 for atom in selected:
                     _atomic_number_setter(atom, 'atomic_number', atom.atomic_number)
                 downstream = tuple(field for field in update.fields if field != 'atomic_number')
@@ -701,11 +695,8 @@ class Molecule:
             transaction.touch_dependency_status((new_row,), range(len(statuses)))
             self._atom_table._group_status[new_row] = statuses
             for group, pending_group in enumerate(pending_groups):
-                transaction.touch_dependency_seeds(group, (copied._uid,))
-                if pending_group:
-                    self._atom_table._dirty_seeds[group].add(copied._uid)
-                else:
-                    self._atom_table._dirty_seeds[group].discard(copied._uid)
+                _atom_fact_engine()._update_dependency_seeds(
+                    self, (group,), (copied._uid,), pending_group)
             for name, value in sparse.items():
                 setattr(copied, name, value)
         return copied
@@ -3140,18 +3131,14 @@ class MolBlock:
         return object.__getattribute__(self, item)
 
     def __setattr__(self, key, value):
-        if isinstance(self, Atom) and key in _ATOM_FIELD_INDEX:
-            if key == 'atomic_number':
-                _atomic_number_setter(self, key, value)
-            else:
-                _store_atom_fields(self, {key: value})
+        if isinstance(self, Atom):
+            _atom_fact_engine()
+            Atom.__setattr__(self, key, value)
         elif isinstance(self, Bond) and key in self._attrs_dict:
             if key == 'bond_order':
                 _bond_order_setter(self, key, value)
             else:
                 _store_bond_field(self, key, value)
-        elif isinstance(self, Atom) and key in ('isotope', 'frac_valence') and '_mol' in self.__dict__:
-            _commit_atom_sparse(self.mol, self, **{key: value})
         else:
             object.__setattr__(self, key, value)
 
@@ -6146,22 +6133,27 @@ def _atom_numeric_value(atom, field):
         return _ATOM_FIELD_CODECS[field](table.raw_index(row, _ATOM_FIELD_INDEX[field]))
 
 
+_ATOM_FACT_ENGINE = None
+
+
+def _atom_fact_engine():
+    global _ATOM_FACT_ENGINE
+    if _ATOM_FACT_ENGINE is None:
+        engine = _fact_engine()
+        engine._install_atom_dispatch(Atom, _atomic_number_setter, _commit_atom_sparse,
+                                      NotInSameMolecule, ObjNotInMolecule)
+        _ATOM_FACT_ENGINE = engine
+    return _ATOM_FACT_ENGINE
+
+
 def _store_atom_fields(atom, columns, *, producer=None):
-    mol = atom.mol
-    with mol._mutation_lock:
-        row = mol._topology_index[id(atom)][0]
-        source = _capture_source(mol)
-        if len(columns) == 1:
-            field, value = next(iter(columns.items()))
-            update = _normalize_atom_scalar(source, row, atom._uid, field, value,
-                        producer=_ATOM_SOURCE_CODES['explicit'] if producer is None else producer)
-        else:
-            fields = tuple(field for field in _ATOM_FIELDS if field in columns)
-            update = _AtomFactUpdate(source, (row,), (atom._uid,), fields,
-                tuple(np.asarray([columns[field]], dtype=np.float64).tobytes() for field in fields),
-                (True,) * len(fields),
-                (_ATOM_SOURCE_CODES['explicit'] if producer is None else producer,) * len(fields))
-        _commit_atom_facts(mol, update)
+    engine = _atom_fact_engine()
+    producer = _ATOM_SOURCE_CODES['explicit'] if producer is None else producer
+    if len(columns) == 1:
+        field, value = next(iter(columns.items()))
+        engine._commit_atom_scalar(atom, _ATOM_FIELD_INDEX[field], value, producer=producer)
+        return
+    engine._commit_atom_fields(atom, columns, producer=producer)
 
 
 def _store_bond_field(bond, field, value):

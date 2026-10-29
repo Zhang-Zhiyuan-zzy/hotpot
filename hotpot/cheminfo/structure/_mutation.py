@@ -9,11 +9,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import operator
-import struct
 
 import numpy as np
 
-from ..reference.properties import _atomic_number_for_symbol
 from ._fields import (
     ATOM_BATCH_READONLY, ATOM_BATCH_WRITABLE, ATOM_FIELDS, ATOM_SOURCE_CODES,
     COORDINATE_FIELDS, FIELD_INDEX,
@@ -22,15 +20,6 @@ from ._identity import _SourceIdentity
 
 
 __all__ = ()
-
-
-def _column_candidate(value, count, field):
-    candidate = np.asarray(value, dtype=np.float64)
-    if candidate.shape == ():
-        return np.full(count, candidate, dtype=np.float64)
-    if candidate.shape != (count,):
-        raise ValueError(f"Atom field {field!r} requires a scalar or shape ({count},)")
-    return candidate
 
 
 @dataclass(frozen=True, eq=False)
@@ -88,80 +77,17 @@ class _AtomFactUpdate:
 
 
 def _normalize_atom_facts(source, rows, atom_uids, columns):
-    """Encode the approved scalar/batch fields into one complete candidate."""
-    for field in columns:
-        if field in ATOM_BATCH_READONLY:
-            raise AttributeError(f"Atom field {field!r} is not writable through updata_atoms")
-        if field not in ATOM_BATCH_WRITABLE:
-            raise TypeError(f"Unknown Atom update field: {field!r}")
-    rows = tuple(rows)
-    count = len(rows)
-    prepared = {}
-
-    def add(field, value):
-        value = _column_candidate(value, count, field)
-        if field in prepared and not np.array_equal(prepared[field], value, equal_nan=True):
-            raise ValueError(f"Conflicting Atom update aliases for {field!r}")
-        prepared[field] = value
-
-    for field, value in columns.items():
-        if field == "symbol":
-            symbols = np.asarray(value)
-            if symbols.shape == ():
-                add("atomic_number", _atomic_number_for_symbol(symbols.item()))
-            elif symbols.shape == (count,):
-                add("atomic_number", [_atomic_number_for_symbol(item) for item in symbols])
-            else:
-                raise ValueError(f"Atom symbols require a scalar or shape ({count},)")
-        elif field == "coordinates":
-            coordinates = np.asarray(value, dtype=np.float64)
-            if coordinates.shape == (3,):
-                for name, item in zip(COORDINATE_FIELDS, coordinates):
-                    add(name, item)
-            elif coordinates.shape == (count, 3):
-                for index, name in enumerate(COORDINATE_FIELDS):
-                    add(name, coordinates[:, index])
-            else:
-                raise ValueError(f"Atom coordinates require shape (3,) or ({count}, 3)")
-        else:
-            add(field, value)
-    fields = tuple(field for field in ATOM_FIELDS if field in prepared)
-    return _AtomFactUpdate(
-        source, rows, tuple(atom_uids), fields,
-        tuple(prepared[field].tobytes() for field in fields), (True,) * len(fields),
-        (ATOM_SOURCE_CODES["explicit"],) * len(fields),
-    )
+    from ._commit import _fact_engine
+    return _fact_engine()._normalize_atom_facts(source, rows, atom_uids, columns)
 
 
 def _normalize_atom_scalar(source, row, atom_uid, field, value, *,
                            producer=ATOM_SOURCE_CODES["explicit"], present=True):
-    """Prepare one trusted canonical scalar without the batch array pipeline."""
-    FIELD_INDEX[field]
-    if isinstance(value, (int, float, np.number)):
-        value = float(value)
-    else:
-        candidate = np.asarray(value, dtype=np.float64)
-        if candidate.shape not in ((), (1,)):
-            raise ValueError("A single-row Atom update requires a scalar or one value")
-        value = float(candidate.item())
-    result = object.__new__(_AtomFactUpdate)
-    for name, item in (("source", source), ("rows", (row,)),
-                       ("atom_uids", (atom_uid,)), ("fields", (field,)),
-                       ("value_bytes", (struct.pack("=d", value),)),
-                       ("presence", (bool(present),)), ("sources", (producer,))):
-        object.__setattr__(result, name, item)
-    return result
+    from ._commit import _fact_engine
+    return _fact_engine()._normalize_atom_scalar(source, row, atom_uid, field, value, producer, present)
 
 
 def _normalize_atom_fields(source, rows, atom_uids, columns, *,
                            producer=ATOM_SOURCE_CODES["explicit"], present=True):
-    """Closed internal canonical-field preparation for existing legacy writers."""
-    rows = tuple(rows)
-    fields = tuple(field for field in ATOM_FIELDS if field in columns)
-    if len(fields) != len(columns):
-        raise TypeError("Internal Atom updates require canonical fields")
-    return _AtomFactUpdate(
-        source, rows, tuple(atom_uids), fields,
-        tuple(_column_candidate(columns[field], len(rows), field).tobytes() for field in fields),
-        (present,) * len(fields), (producer,) * len(fields),
-    )
+    from ._commit import _fact_engine
+    return _fact_engine()._normalize_atom_fields(source, rows, atom_uids, columns, producer, present)

@@ -5,23 +5,23 @@ staged values, while nested commits join the same journal and external readers
 wait until publication or restoration completes.
 """
 
+from contextlib import contextmanager
 from contextvars import ContextVar
 from copy import deepcopy
 from dataclasses import fields, is_dataclass
-from struct import unpack
 
 import numpy as np
 
 from ._fields import ATOM_SOURCE_CODES, COORDINATE_FIELDS, FIELD_INDEX
 from ._identity import _check_source
-from ._atom_table import _restore_atom_write
-from ._dependencies import _mark_atom_facts
 
 __all__ = ()
 
 _UNCHANGED = object()
 _EXPLICIT_SOURCE = ATOM_SOURCE_CODES["explicit"]
 _TRANSACTIONS = ContextVar("hotpot_fact_transactions", default=())
+_NATIVE_FAILURES = ContextVar("hotpot_fact_native_failure", default=None)
+_ENGINE = None
 _DECLARATIONS = ("_charge_value", "_charge_present", "_charge_source",
                  "_spin_value", "_spin_present", "_spin_source")
 _FRAME_FIELDS = ("_coordinates", "_energy", "_partial_charge", "_spin_mult", "_gibbs",
@@ -33,6 +33,50 @@ _TOPOLOGY_FIELDS = ("_atoms", "_bonds", "_hided_metal_bonds", "_hided_covalent_b
 _BOND_FIELDS = ("_bond_kind", "_bond_direction", "_bond_source", "_bond_source_metadata")
 _CACHE_FIELDS = ("_angles", "_torsions", "_rings", "_ring_indices_cache", "_ligand_rings",
                  "_ligand_rings_signature", "_obmol", "_row2idx")
+
+
+def _fact_engine():
+    global _ENGINE
+    if _ENGINE is None:
+        try:
+            from . import _fact_native
+        except ImportError as error:
+            raise ImportError("Hotpot factual writes require the built _fact_native extension; "
+                              "build/install Hotpot for this Python version") from error
+        from ._fields import ATOM_FIELDS, FIELD_PRESENCE_BITS, ATOM_BATCH_WRITABLE, ATOM_BATCH_READONLY, ALIAS_TARGETS
+        from ._dependencies import GROUPS, _FIELD_EFFECTS, _FactStatus
+        from ._identity import _SourceIdentity
+        from ._mutation import _AtomFactUpdate
+        from ._atom_table import _AtomFactTable
+        from ..reference.properties import _atomic_number_for_symbol
+        _fact_native._configure({
+            "fields": ATOM_FIELDS, "indices": dict(FIELD_INDEX), "presence": FIELD_PRESENCE_BITS,
+            "aliases": dict(ALIAS_TARGETS),
+            "producers": dict(ATOM_SOURCE_CODES), "writable": ATOM_BATCH_WRITABLE,
+            "readonly": ATOM_BATCH_READONLY, "effects": dict(_FIELD_EFFECTS), "groups": GROUPS,
+            "transactions": _TRANSACTIONS, "failures": _NATIVE_FAILURES,
+            "source_type": _SourceIdentity, "update_type": _AtomFactUpdate,
+            "table_type": _AtomFactTable,
+            "check_source": _check_source, "symbol_number": _atomic_number_for_symbol,
+            "number_type": np.number, "asarray": np.asarray, "current_status": int(_FactStatus.CURRENT),
+            "needs_recalc_status": int(_FactStatus.NEEDS_RECALC),
+        })
+        _ENGINE = _fact_native
+    return _ENGINE
+
+
+@contextmanager
+def _native_fail_after(boundary, occurrence=1, exception=KeyboardInterrupt):
+    """Private operation-local deterministic post-store interruption for tests."""
+    if boundary not in {"value", "source", "presence", "status", "seed_add", "seed_remove", "seed_clear", "enrollment"}:
+        raise ValueError("Unknown native fact failure boundary")
+    if occurrence < 1 or exception not in (KeyboardInterrupt, MemoryError):
+        raise ValueError("Native failure injection requires a positive occurrence and builtin exception")
+    token = _NATIVE_FAILURES.set((boundary, occurrence, exception))
+    try:
+        yield
+    finally:
+        _NATIVE_FAILURES.reset(token)
 
 
 def _current_transaction(mol):
@@ -86,6 +130,7 @@ class _FactTransaction:
         self._failed = False
 
     def __enter__(self):
+        _fact_engine()
         self.mol._mutation_lock.acquire()
         parent = _current_transaction(self.mol)
         if parent is not None:
@@ -124,29 +169,13 @@ class _FactTransaction:
         self._joined = self._token = None
 
     def touch_dependency_status(self, rows, groups):
-        status = self.mol._atom_table._group_status
-        if self._statuses is None:
-            self._statuses = {}
-        for row in rows:
-            for group in groups:
-                key = (id(status), row, group)
-                if key not in self._statuses:
-                    self._statuses[key] = (status, status[row, group])
-
-    def touch_dependency_seeds(self, group, uids):
-        seeds = self.mol._atom_table._dirty_seeds[group]
-        if self._seeds is None:
-            self._seeds = {}
-        for uid in uids:
-            key = (id(seeds), uid)
-            if key not in self._seeds:
-                self._seeds[key] = (seeds, uid in seeds)
+        self._cells.append(_fact_engine()._capture_status(self.mol._atom_table, rows, groups))
 
     def touch_dependencies(self):
         table = self.mol._atom_table
         self.touch_dependency_status(range(len(table)), range(len(table._dirty_seeds)))
-        for group, seeds in enumerate(table._dirty_seeds):
-            self.touch_dependency_seeds(group, tuple(seeds))
+        # Every active seed mutation enrolls exact physical undo at its native
+        # ingress; a broad membership snapshot cannot restore bucket ownership.
 
     def touch_bond(self, bond):
         if self._bonds is None:
@@ -272,15 +301,10 @@ class _FactTransaction:
             del mol._atoms[length:]
             mol._topology_index.pop(id(atom), None)
             atom.__dict__.pop("_detached_table", None)
-        for state in reversed(self._cells):
-            _restore_atom_write(state)
-        for (_, row, group), (status, value) in (self._statuses or {}).items():
-            status[row, group] = value
-        for (_, uid), (seeds, present) in (self._seeds or {}).items():
-            if present:
-                seeds.add(uid)
-            else:
-                seeds.discard(uid)
+        if self._cells:
+            restore = _fact_engine()._restore_write
+            for state in reversed(self._cells):
+                restore(state)
         for bond, raw, fields, first, second in (self._bonds or {}).values():
             bond.__dict__["_attrs"] = raw
             _restore_fields(bond, fields)
@@ -309,42 +333,8 @@ class _FactTransaction:
                 _restore_fields(mol, ((name, value),))
 
 
-def _check_atom_rows(mol, update):
-    atoms, topology, owner = mol._atoms, mol._topology_index, mol._owner_token
-    for row, uid in zip(update.rows, update.atom_uids):
-        if row >= len(atoms):
-            raise ValueError("Atom update member is no longer current")
-        atom = atoms[row]
-        if (atom._mol is not mol or atom._member_uid != uid or atom._uid_owner is not owner
-                or topology.get(id(atom), (None,))[0] != row):
-            raise ValueError("Atom update member or UID is no longer current")
-
-
 def _commit_atom_facts(mol, update):
-    with _FactTransaction(mol, producer=_EXPLICIT_SOURCE) as transaction:
-        _check_source(mol, update.source)
-        _check_atom_rows(mol, update)
-        if len(update.rows) == 1:
-            selection = update.rows[0]
-            if len(update.fields) == 1:
-                code = update.sources[0]
-                prepared = ((FIELD_INDEX[update.fields[0]], unpack("=d", update.value_bytes[0])[0],
-                             update.presence[0], transaction.producer if code == _EXPLICIT_SOURCE else code),)
-            else:
-                prepared = tuple((FIELD_INDEX[field], unpack("=d", value)[0], present,
-                                  transaction.producer if code == _EXPLICIT_SOURCE else code)
-                                 for field, value, present, code in
-                                 zip(update.fields, update.value_bytes, update.presence, update.sources))
-        else:
-            selection = (slice(0, len(update.rows)) if update.rows == tuple(range(len(mol._atoms)))
-                         else np.asarray(update.rows, dtype=np.intp))
-            prepared = tuple((FIELD_INDEX[field], np.frombuffer(value, dtype=np.float64), present,
-                              transaction.producer if code == _EXPLICIT_SOURCE else code)
-                             for field, value, present, code in
-                             zip(update.fields, update.value_bytes, update.presence, update.sources))
-        mol._atom_table._write_prepared(selection, prepared, transaction=transaction)
-        _mark_atom_facts(mol, update.rows, update.fields, transaction=transaction,
-                         atom_uids=update.atom_uids)
+    _fact_engine()._commit_atom_facts(mol, update)
 
 
 def _commit_coordinates(mol, update):

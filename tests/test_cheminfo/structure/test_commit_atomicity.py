@@ -10,7 +10,7 @@ import pytest
 from hotpot import Atom, Molecule
 from hotpot.cheminfo.stereo import StereoPayload
 from hotpot.cheminfo.structure._commit import (
-    _FactTransaction, _commit_atom_facts, _commit_atom_sparse, _commit_bond_facts,
+    _native_fail_after, _FactTransaction, _commit_atom_facts, _commit_atom_sparse, _commit_bond_facts,
     _commit_molecular_declarations, _commit_stereo, _current_transaction,
 )
 from hotpot.cheminfo.structure._dependencies import _dependency_state
@@ -226,36 +226,12 @@ def test_overlapping_bulk_scalar_undo_targets_original_buffers_after_topology_ed
 @pytest.mark.parametrize('batch', [False, True])
 @pytest.mark.parametrize('target', ['value', 'presence', 'source', 'status'])
 def test_commit_restores_write_that_raises_after_mutation(batch, target):
-    class WriteThenInterrupt(np.ndarray):
-        def __new__(cls, value):
-            result = value.view(cls)
-            result.armed = True
-            return result
-
-        def __array_finalize__(self, source):
-            self.armed = getattr(source, 'armed', False)
-
-        def __setitem__(self, selection, value):
-            super().__setitem__(selection, value)
-            if self.armed:
-                self.armed = False
-                raise KeyboardInterrupt('after the store')
-
     mol = _molecule()
     table = mol._atom_table
     if target == 'status':
         table._group_status[:, 3] = 1
-        table._group_status = WriteThenInterrupt(table._group_status)
-    elif target == 'value':
-        columns = list(table._columns)
-        columns[FIELD_INDEX['formal_charge']] = WriteThenInterrupt(columns[FIELD_INDEX['formal_charge']])
-        table._columns = tuple(columns)
-    elif target == 'source':
-        table._sources = WriteThenInterrupt(table._sources)
-    else:
-        table._presence = WriteThenInterrupt(table._presence)
     before = table.matrix().tobytes(), table.presence(), table.sources(), _dependency_state(table)
-    with pytest.raises(KeyboardInterrupt, match='after the store'):
+    with _native_fail_after(target), pytest.raises(KeyboardInterrupt, match='native fact store'):
         if batch:
             mol.updata_atoms(formal_charge=-2)
         else:

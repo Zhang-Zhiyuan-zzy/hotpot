@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage3 production authority integration in progress; current source evidence and integrated performance gates still open",
+  "status": "Stage3 production authority/native undo integration verified and recorded; current native implementation types explicitly counted; no DTO consolidation or final net-reduction claim",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -109,7 +109,94 @@
         "scope": "Per-Bond attr_dict codec replaced by complete raw3 Bond facts/metadata in the one N02; existing operational _WorkingCopyCommit retained",
         "verification": "Pending frozen FF/rollback evidence"
       }
-    ]
+    ],
+    "new_native_internal_struct_definitions": 14,
+    "new_native_internal_enum_definitions": 1,
+    "native_implementation_additions": {
+      "source": {
+        "path": "hotpot/cheminfo/structure/_native/facts.cpp",
+        "sha256": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1",
+        "bytes": 60724
+      },
+      "internal_struct_definitions": 14,
+      "internal_enum_definitions": 1,
+      "structs": [
+        {
+          "name": "Field",
+          "line": 32
+        },
+        {
+          "name": "Configuration",
+          "line": 40
+        },
+        {
+          "name": "OwnerLock",
+          "line": 107
+        },
+        {
+          "name": "Failpoint",
+          "line": 143
+        },
+        {
+          "name": "SmallArray",
+          "line": 166
+        },
+        {
+          "name": "Cell",
+          "line": 189
+        },
+        {
+          "name": "Presence",
+          "line": 194
+        },
+        {
+          "name": "Status",
+          "line": 195
+        },
+        {
+          "name": "SeedAction",
+          "line": 219
+        },
+        {
+          "name": "SeedOverlay",
+          "line": 252
+        },
+        {
+          "name": "SeedPreparation",
+          "line": 283
+        },
+        {
+          "name": "Undo",
+          "line": 394
+        },
+        {
+          "name": "Column",
+          "line": 465
+        },
+        {
+          "name": "Selection",
+          "line": 474
+        }
+      ],
+      "enums": [
+        {
+          "name": "Name",
+          "line": 29
+        }
+      ],
+      "python_records_or_exported_pybind_classes_added": 0,
+      "exported_native_abi_mirror_definitions_added": 0,
+      "legacy_candidate_scan": {
+        "baseline": 164,
+        "retired_stage2": 6,
+        "new_matches": 13,
+        "current": 171,
+        "method": "Same line-start named-struct regex as capture_baseline_inventory.py, applied to all current hotpot native sources including the pending new file",
+        "missed_actual_template_definition": "SmallArray at166; actual new internal struct definitions are14, not13"
+      },
+      "counting_effect": "Implementation additions are recorded separately. They do not reduce dataclass/DTO counts or constitute ABI-schema consolidation."
+    },
+    "new_enums_scope": "Existing new_enums=1 counts the Python _FactStatus enum only; the native Name enum is counted separately"
   },
   "consolidation_budget": [
     {
@@ -457,7 +544,14 @@
       "ConstraintIdentity",
       "SourceFramesIdentity"
     ],
-    "stage13": "separate experimental branch/budget; no definitions created early"
+    "stage13": "separate experimental branch/budget; no definitions created early",
+    "native_execution_types": {
+      "new_internal_struct_definitions": 14,
+      "new_internal_enum_definitions": 1,
+      "new_exported_abi_mirrors": 0,
+      "verification": "stages/stage03/native/evidence.json build8.native_type_budget",
+      "meaning": "Internal code/undo/preparation additions, not Python DTO reduction or a second canonical carrier/container"
+    }
   },
   "retained_reuse": [
     "Existing MolecularFacts and scientific-state identities/candidates/selection records",
@@ -533,6 +627,17 @@
     "dataclasses": 350,
     "protocols": 13,
     "typed_dicts": 2,
-    "method": "Full hotpot Python AST census; one new ordinary transaction, one finite enum and removal of the duplicate per-Bond TypedDict; no new native mirror or Protocol. Source remains under validation."
+    "method": "Python counts retain the prior AST census; native counts now separately include the actual14 internal structs plus1 enum. Baseline-compatible native candidate regex yields171 and misses inline-template SmallArray. No exported ABI mirror/Protocol added; no DTO reduction claimed.",
+    "native_struct_candidates": 171,
+    "native_struct_candidate_method": {
+      "baseline": 164,
+      "retired_stage2": 6,
+      "new_matches": 13,
+      "current": 171,
+      "method": "Same line-start named-struct regex as capture_baseline_inventory.py, applied to all current hotpot native sources including the pending new file",
+      "missed_actual_template_definition": "SmallArray at166; actual new internal struct definitions are14, not13"
+    },
+    "new_fact_native_actual_struct_definitions": 14,
+    "new_fact_native_actual_enum_definitions": 1
   }
 }

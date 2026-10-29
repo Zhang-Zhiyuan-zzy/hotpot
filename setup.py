@@ -122,6 +122,11 @@ openbabel_include_dir, openbabel_library_dir = _openbabel_build_paths()
 ext_modules = [
     LockedCMakeExtension("hotpot.cheminfo.rdWrappers._rd_native"),
     Pybind11Extension(
+        "hotpot.cheminfo.structure._fact_native",
+        ["hotpot/cheminfo/structure/_native/facts.cpp"],
+        cxx_std=17,
+    ),
+    Pybind11Extension(
         "hotpot.cheminfo.search._search_native",
         [
             "hotpot/cheminfo/search/_native/bindings.cpp",

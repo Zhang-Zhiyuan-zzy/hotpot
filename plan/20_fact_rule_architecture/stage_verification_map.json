@@ -198,7 +198,7 @@
       "planned_contract_test_files": [],
       "additional_requirements": [
         "full default suite, original baseline scientific/technical selection, full Section12 workload measurements",
-        "Supplementary installed-wheel Python3.10–3.14 baseline: common_commands.python_matrix_baseline, with all five matching wheels and verified models prepared before timing."
+        "Supplementary installed-wheel Python3.10\u20133.14 baseline: common_commands.python_matrix_baseline, with all five matching wheels and verified models prepared before timing."
       ],
       "execution_status": "completed; exact commands, outcomes and digests are in stages/stage01/evidence.json and implementation_log.md"
     },
@@ -251,73 +251,85 @@
         "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
         "tests/test_cheminfo/test_topology_index.py"
       ],
-      "native_command": null,
+      "native_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/structure/test_fact_native.py"
+      ],
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_builder.py",
-          "status": "implemented; immutable record plus actual factual install/no-chemistry/one-index/rollback source tests; final frozen five-version evidence pending"
+          "status": "implemented and verified in final frozen build8 default and complete affected Python3.10-3.14 source/package selections; see stages/stage03/validation/evidence.json"
         },
         {
           "path": "tests/test_cheminfo/structure/test_atom_fact_table.py",
-          "status": "implemented; sole production table with presence/source and dependency metadata, prepared writes and unique serialization; final frozen evidence pending"
+          "status": "implemented and verified in final frozen build8 default and complete affected Python3.10-3.14 source/package selections; see stages/stage03/validation/evidence.json"
         },
         {
           "path": "tests/test_cheminfo/structure/test_dependencies.py",
-          "status": "implemented; finite statuses, positive/negative scope, upstream remote-first expansion, remap and rollback; final frozen evidence pending"
+          "status": "implemented and verified in final frozen build8 default and complete affected Python3.10-3.14 source/package selections; see stages/stage03/validation/evidence.json"
         },
         {
           "path": "tests/test_cheminfo/structure/test_commit_atomicity.py",
-          "status": "implemented; complete named commits and overlapping/growth/removal/write-interruption undo; final frozen evidence pending"
+          "status": "implemented and verified in final frozen build8 default and complete affected Python3.10-3.14 source/package selections; see stages/stage03/validation/evidence.json"
         },
         {
           "path": "tests/test_cheminfo/structure/test_uid_lifecycle.py",
-          "status": "implemented; readonly parent, constructor atomicity/UID burn, current serialization and local members; final frozen evidence pending"
+          "status": "implemented and verified in final frozen build8 default and complete affected Python3.10-3.14 source/package selections; see stages/stage03/validation/evidence.json"
         },
         {
           "path": "tests/test_cheminfo/structure/test_buffer_ownership.py",
-          "status": "implemented; public numeric/frame/candidate isolation and actual sole authority; final frozen evidence pending"
+          "status": "implemented and verified in final frozen build8 default and complete affected Python3.10-3.14 source/package selections; see stages/stage03/validation/evidence.json"
         },
         {
           "path": "tests/test_cheminfo/structure/test_interface_permissions.py",
-          "status": "implemented; approved updata_atoms aliases, complete selection/normalization failure, existing member errors and empty writes; final frozen evidence pending"
+          "status": "implemented and verified in final frozen build8 default and complete affected Python3.10-3.14 source/package selections; see stages/stage03/validation/evidence.json"
         },
         {
           "path": "tests/test_cheminfo/structure/test_architecture.py",
-          "status": "implemented; no new debt with281 remaining exact entries after four verified retirements; full final scan pending"
+          "status": "implemented and verified in final frozen build8 default and complete affected Python3.10-3.14 source/package selections; see stages/stage03/validation/evidence.json"
         },
         {
           "path": "tests/test_cheminfo/structure/test_reference.py",
-          "status": "implemented;4 passed in full default and final focused runs"
+          "status": "implemented and verified in final frozen build8 default and complete affected Python3.10-3.14 source/package selections; see stages/stage03/validation/evidence.json"
         },
         {
           "path": "tests/test_cheminfo/structure/test_source_identity.py",
-          "status": "implemented; relevant table metadata, closed FF consumed-input domain and owner-only no-frame path; final frozen evidence pending"
+          "status": "implemented and verified in final frozen build8 default and complete affected Python3.10-3.14 source/package selections; see stages/stage03/validation/evidence.json"
         },
         {
           "path": "tests/test_cheminfo/structure/test_atom_matrix.py",
-          "status": "implemented;3 cases passed on Python3.10–3.14 and full default; full19 float64 independent projection, direct approved rename"
+          "status": "implemented and verified in final frozen build8 default and complete affected Python3.10-3.14 source/package selections; see stages/stage03/validation/evidence.json"
         },
         {
           "path": "tests/test_cheminfo/structure/test_atom_fact_update.py",
-          "status": "implemented; shared immutable scalar/batch candidates connected to molecular commit, including trusted scalar factory; final frozen evidence pending"
+          "status": "implemented and verified in final frozen build8 default and complete affected Python3.10-3.14 source/package selections; see stages/stage03/validation/evidence.json"
         },
         {
           "path": "tests/test_cheminfo/structure/test_factual_imports.py",
-          "status": "implemented; OB/RD/MCA/cclib/CCDC-fake decode, source/presence, target identity, nonempty/preconfigured targets; final frozen evidence pending"
+          "status": "implemented and verified in final frozen build8 default and complete affected Python3.10-3.14 source/package selections; see stages/stage03/validation/evidence.json"
         },
         {
           "path": "tests/test_cheminfo/test_plan20_carrier_cutover.py",
-          "status": "implemented; sole authority, atomic lifecycle, concurrency, rooted/joint pickle and deepcopy, constraints and Bond endpoint permissions; final frozen evidence pending"
+          "status": "implemented and verified in final frozen build8 default and complete affected Python3.10-3.14 source/package selections; see stages/stage03/validation/evidence.json"
         },
         {
           "path": "tests/test_cheminfo/test_plan20_outer_cutover.py",
-          "status": "implemented; FF early source binding, original member identity, complete metadata/frames/rollback, native selected topology/geometry atomicity and field-only model reads; final frozen evidence pending"
+          "status": "implemented and verified in final frozen build8 default and complete affected Python3.10-3.14 source/package selections; see stages/stage03/validation/evidence.json"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_fact_native.py",
+          "status": "implemented and verified in final frozen build8 default and complete affected Python3.10-3.14 source/package selections; see stages/stage03/validation/evidence.json"
         }
       ],
       "additional_requirements": [
-        "builder one topology build/no implicit chemistry; UID non-reuse; finite dirty propagation; field schema; scalar/batch alias isolation and performance"
+        "builder one topology build/no implicit chemistry; UID non-reuse; finite dirty propagation; field schema; scalar/batch alias isolation and performance",
+        "sole _fact_native writer and N05 normalization; supported-ABI build/runtime, actual allocator rejection and allocation-free seed restoration, exact exception/outer-poison identity; wheel/stub/PSF license inclusion"
       ],
-      "execution_status": "in_progress; connected production authority and imports implemented under verification; exact final source/Python/affected-wheel, performance/scaling and remaining stage gates open",
+      "execution_status": "complete; owning-stage technical/default/import/UID/permission/lifecycle/buffer/dirty/native/allocator/package/layout/scaling gates evidenced in stages/stage03/report.md; final71-entry/scientific/global efficiency acceptance remains open with actual performance and retained-memory regressions at owning later gates",
       "additional_affected_contract_test_files": [
         "tests/test_cheminfo/test_stereo_level1_storage.py",
         "tests/test_cheminfo/test_stereo_level1_working_copy.py",
@@ -335,7 +347,15 @@
         "tests/mca/test_serialization.py",
         "tests/smarts_conformance/test_metamorphic.py",
         "tests/test_plugin/test_xtb"
-      ]
+      ],
+      "evidence_records": [
+        "stages/stage03/report.md",
+        "stages/stage03/native/evidence.json",
+        "stages/stage03/validation/evidence.json",
+        "stages/stage03/performance/evidence.json",
+        "stages/stage03/gates/review.md"
+      ],
+      "native_validation_note": "New fact extension rebuilt for all five matching CPython minors; actual allocator/debug/lifetime tests run per version. Unchanged existing native dependencies have explicit B20 source/recipe/wheel-member provenance; Stage10 clean all-component/native SDK gates remain open."
     },
     "Stage4": {
       "predecessor": "Stage3",

@@ -1,0 +1,1251 @@
+{
+  "schema_version": 1,
+  "stage": "Stage3",
+  "status": "Actual owning-stage storage/export/scaling/memory evidence recorded; final global performance acceptance OPEN with explicit regressions; no exception approved",
+  "frozen_workload_identity": {
+    "manifest": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+      "bytes": 34761,
+      "sha256": "ed5bba12ac6ae0305f6c85f7af3aa8fa824a3278fe12aad537a2f0c13768571b"
+    },
+    "runner": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/run_performance_baseline.py",
+      "bytes": 26240,
+      "sha256": "e6e2e5e5a82147399a545e7bb0b770bde2d653d7f9a984aaf44b0664a66177e4"
+    },
+    "comparator": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/compare_performance_baselines.py",
+      "bytes": 16536,
+      "sha256": "8371de3dfb36bc7793206fe1b9d85fec198c9a56aae4bc548cf2cfd79eb0470e"
+    },
+    "candidate_binding": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/_performance_workloads.py",
+      "bytes": 12194,
+      "sha256": "07abbad675403ca9f8a95b68bdad5728c91c6d24cc0d4fef2b75b662fcf28405"
+    },
+    "binding_before": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/helpers/workload-bindings-before.py",
+      "bytes": 12308,
+      "sha256": "93e74bf857e91752d4ab2ad2307f8f020e3d01aedda9ad65a0df22494d40e798"
+    },
+    "changes": "Candidate five-column float32 private select and current sole native export import path only; no task/public reader/field/dtype/loop/threshold/weight/policy change"
+  },
+  "paired_final_subset": {
+    "execution": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/storage-final-attempt1/execution.json",
+      "bytes": 367829,
+      "sha256": "b73173b95bbfd72b8700ad61d2ef38484ab5a42539902913a26e1869794b4826"
+    },
+    "baseline": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/storage-final-attempt1/baseline-report.json",
+      "bytes": 218842,
+      "sha256": "1b67a9c57d3a52c8731c43782330fa04851b4b813a060c560afce349fb8c88f0"
+    },
+    "candidate": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/storage-final-attempt1/candidate-report.json",
+      "bytes": 220233,
+      "sha256": "3978424313bb37edf545b6dedf9049f298d353bd5bd9c03ffaacea7d103f3a58"
+    },
+    "comparison": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/storage-final-attempt1/comparison/comparison.json",
+      "bytes": 99934,
+      "sha256": "18997032559136b542037d508dcfe030139d8a956b7e69562e69ca5deaa48bca"
+    },
+    "driver": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/helpers/run_stage3_storage_final.py",
+      "bytes": 6311,
+      "sha256": "012cfd431d1923ee41ecafe79db1572639a3a712fff3b70f23c33c14306833ef"
+    },
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "warmups": 3,
+    "samples": 10,
+    "workloads": 25,
+    "workers": 50,
+    "total_attempts": 650,
+    "measured_attempts": 500,
+    "failed_or_no_output": 0,
+    "work_counters_equal": true,
+    "source_native_stable": true,
+    "environment_mismatches": [],
+    "workloads_outcomes": [
+      {
+        "id": "construct_8",
+        "family": "construction",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 3.585380878014923,
+        "paired_bootstrap_95ci": [
+          3.4268450047751777,
+          3.6732775601608783
+        ],
+        "status": "regression"
+      },
+      {
+        "id": "scalar_read_8",
+        "family": "atom_storage",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 0.9146618750372572,
+        "paired_bootstrap_95ci": [
+          0.9125645468134257,
+          0.9291083086760443
+        ],
+        "status": "improved"
+      },
+      {
+        "id": "scalar_write_8",
+        "family": "atom_storage",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 1.8329415057374756,
+        "paired_bootstrap_95ci": [
+          1.7984621721817933,
+          1.8552587318495262
+        ],
+        "status": "regression"
+      },
+      {
+        "id": "batch_facts_8",
+        "family": "atom_storage",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 2.339379199472361,
+        "paired_bootstrap_95ci": [
+          2.318700301617768,
+          2.3707998237303074
+        ],
+        "status": "regression"
+      },
+      {
+        "id": "coordinates_8",
+        "family": "atom_storage",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 0.4024409700782859,
+        "paired_bootstrap_95ci": [
+          0.3966025746058659,
+          0.41069078598018727
+        ],
+        "status": "improved"
+      },
+      {
+        "id": "insert_delete_8",
+        "family": "atom_storage",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 7.087667083929934,
+        "paired_bootstrap_95ci": [
+          6.972659717814464,
+          7.159979287925763
+        ],
+        "status": "regression"
+      },
+      {
+        "id": "matrix_8",
+        "family": "native_export",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 0.22741111606336517,
+        "paired_bootstrap_95ci": [
+          0.22317353955438082,
+          0.23302477238598296
+        ],
+        "status": "improved"
+      },
+      {
+        "id": "native_8",
+        "family": "native_export",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 0.3984898082448779,
+        "paired_bootstrap_95ci": [
+          0.3947958290568628,
+          0.40181645002568883
+        ],
+        "status": "improved"
+      },
+      {
+        "id": "construct_64",
+        "family": "construction",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 1.3431234816392974,
+        "paired_bootstrap_95ci": [
+          1.3372092536786997,
+          1.3552479087325031
+        ],
+        "status": "regression"
+      },
+      {
+        "id": "scalar_read_64",
+        "family": "atom_storage",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 1.0136118603009245,
+        "paired_bootstrap_95ci": [
+          1.0022480915379675,
+          1.0192102937788745
+        ],
+        "status": "parity"
+      },
+      {
+        "id": "scalar_write_64",
+        "family": "atom_storage",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 1.8775800333120547,
+        "paired_bootstrap_95ci": [
+          1.8646192105813353,
+          1.8978406659264215
+        ],
+        "status": "regression"
+      },
+      {
+        "id": "batch_facts_64",
+        "family": "atom_storage",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 0.7597307205670133,
+        "paired_bootstrap_95ci": [
+          0.7495570015944243,
+          0.770664280473978
+        ],
+        "status": "improved"
+      },
+      {
+        "id": "coordinates_64",
+        "family": "atom_storage",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 0.12220901385492013,
+        "paired_bootstrap_95ci": [
+          0.12094877106246961,
+          0.12454081976604811
+        ],
+        "status": "improved"
+      },
+      {
+        "id": "insert_delete_64",
+        "family": "atom_storage",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 3.8797202734565017,
+        "paired_bootstrap_95ci": [
+          3.8539553640823985,
+          3.934801251828261
+        ],
+        "status": "regression"
+      },
+      {
+        "id": "matrix_64",
+        "family": "native_export",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 0.03348074018927755,
+        "paired_bootstrap_95ci": [
+          0.03317035092653817,
+          0.03399795343992051
+        ],
+        "status": "improved"
+      },
+      {
+        "id": "native_64",
+        "family": "native_export",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 0.12572443378655893,
+        "paired_bootstrap_95ci": [
+          0.12470081628622108,
+          0.12679218150437682
+        ],
+        "status": "improved"
+      },
+      {
+        "id": "write_read_64",
+        "family": "lazy_dependencies",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 3.111185099187101,
+        "paired_bootstrap_95ci": [
+          3.0764223442483614,
+          3.146132491857928
+        ],
+        "status": "regression"
+      },
+      {
+        "id": "construct_256",
+        "family": "construction",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 0.45474885338265253,
+        "paired_bootstrap_95ci": [
+          0.4527155106966417,
+          0.458922937209888
+        ],
+        "status": "improved"
+      },
+      {
+        "id": "scalar_read_256",
+        "family": "atom_storage",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 0.9159977220614923,
+        "paired_bootstrap_95ci": [
+          0.9100342343328813,
+          0.9211041773492066
+        ],
+        "status": "improved"
+      },
+      {
+        "id": "scalar_write_256",
+        "family": "atom_storage",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 1.8723190856663794,
+        "paired_bootstrap_95ci": [
+          1.8559232482962478,
+          1.8901088137759265
+        ],
+        "status": "regression"
+      },
+      {
+        "id": "batch_facts_256",
+        "family": "atom_storage",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 0.5630510213346288,
+        "paired_bootstrap_95ci": [
+          0.5603521949240851,
+          0.5659959522001773
+        ],
+        "status": "improved"
+      },
+      {
+        "id": "coordinates_256",
+        "family": "atom_storage",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 0.08163659777468538,
+        "paired_bootstrap_95ci": [
+          0.08104187013631442,
+          0.08232501386780763
+        ],
+        "status": "improved"
+      },
+      {
+        "id": "insert_delete_256",
+        "family": "atom_storage",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 2.867065454389837,
+        "paired_bootstrap_95ci": [
+          2.85775681089967,
+          2.8789901054985765
+        ],
+        "status": "regression"
+      },
+      {
+        "id": "matrix_256",
+        "family": "native_export",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 0.008455666522231385,
+        "paired_bootstrap_95ci": [
+          0.00840969623856228,
+          0.008536728400391144
+        ],
+        "status": "improved"
+      },
+      {
+        "id": "native_256",
+        "family": "native_export",
+        "hardware_mode": "cpu",
+        "paired_samples": 10,
+        "comparable": true,
+        "runtime_ratio": 0.07678566550730999,
+        "paired_bootstrap_95ci": [
+          0.07624769917723895,
+          0.07781034330763606
+        ],
+        "status": "improved"
+      }
+    ],
+    "complete_measured_families": {
+      "atom_storage/cpu": {
+        "members": [
+          "scalar_read_8",
+          "scalar_write_8",
+          "batch_facts_8",
+          "coordinates_8",
+          "insert_delete_8",
+          "scalar_read_64",
+          "scalar_write_64",
+          "batch_facts_64",
+          "coordinates_64",
+          "insert_delete_64",
+          "scalar_read_256",
+          "scalar_write_256",
+          "batch_facts_256",
+          "coordinates_256",
+          "insert_delete_256"
+        ],
+        "comparable_members": [
+          "scalar_read_8",
+          "scalar_write_8",
+          "batch_facts_8",
+          "coordinates_8",
+          "insert_delete_8",
+          "scalar_read_64",
+          "scalar_write_64",
+          "batch_facts_64",
+          "coordinates_64",
+          "insert_delete_64",
+          "scalar_read_256",
+          "scalar_write_256",
+          "batch_facts_256",
+          "coordinates_256",
+          "insert_delete_256"
+        ],
+        "complete": true,
+        "geometric_mean_runtime_ratio": 1.0373521707675917,
+        "paired_bootstrap_95ci": [
+          1.0351127114435599,
+          1.040999182322786
+        ]
+      },
+      "native_export/cpu": {
+        "members": [
+          "matrix_8",
+          "native_8",
+          "matrix_64",
+          "native_64",
+          "matrix_256",
+          "native_256"
+        ],
+        "comparable_members": [
+          "matrix_8",
+          "native_8",
+          "matrix_64",
+          "native_64",
+          "matrix_256",
+          "native_256"
+        ],
+        "complete": true,
+        "geometric_mean_runtime_ratio": 0.07924622948551266,
+        "paired_bootstrap_95ci": [
+          0.07891083626261762,
+          0.07976028061106898
+        ]
+      }
+    },
+    "all_families_complete": false,
+    "remaining_families": "Unmeasured/incomplete stay open; no subset aggregate substitutes for the frozen final71 entries"
+  },
+  "supplemental_new_only_scaling": {
+    "artifact": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/marking-final-attempt1/result.json",
+      "bytes": 204345,
+      "sha256": "d5f66edb2d1600dd54782e725efc61177e2e67ffcc71d61deb5f1a0e36d234e7"
+    },
+    "runner": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/helpers/measure_stage3_marking.py",
+      "bytes": 4443,
+      "sha256": "210054cf49dbff738e12beb71e2b43f6df7899d10e338cddf06b8d43e29ce992"
+    },
+    "source_native_stable": true,
+    "workloads": 12,
+    "attempts": 156,
+    "measured_attempts": 120,
+    "outcomes": [
+      {
+        "name": "sparse_mark",
+        "atoms": 8,
+        "median_seconds": 4.809722304344177e-05,
+        "mad_seconds": 3.2316893339157104e-07,
+        "memory": {
+          "rss_before": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "rss_after": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "python_tracked_retained_bytes": 1688,
+          "python_tracked_peak_bytes": 4098,
+          "python_tracked_blocks": 9,
+          "value": {
+            "calls": 20,
+            "uids": 20,
+            "seed_cardinality": [
+              8,
+              8,
+              8,
+              0
+            ]
+          }
+        },
+        "sample_value": {
+          "calls": 20,
+          "uids": 20,
+          "seed_cardinality": [
+            8,
+            8,
+            8,
+            0
+          ]
+        }
+      },
+      {
+        "name": "dense_mark",
+        "atoms": 8,
+        "median_seconds": 1.0673888027668e-05,
+        "mad_seconds": 1.8812716007232666e-07,
+        "memory": {
+          "rss_before": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "rss_after": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "python_tracked_retained_bytes": 1688,
+          "python_tracked_peak_bytes": 2824,
+          "python_tracked_blocks": 9,
+          "value": {
+            "calls": 1,
+            "uids": 8,
+            "seed_cardinality": [
+              8,
+              8,
+              8,
+              0
+            ]
+          }
+        },
+        "sample_value": {
+          "calls": 1,
+          "uids": 8,
+          "seed_cardinality": [
+            8,
+            8,
+            8,
+            0
+          ]
+        }
+      },
+      {
+        "name": "full_atom_matrix",
+        "atoms": 8,
+        "median_seconds": 5.941838026046753e-05,
+        "mad_seconds": 4.898756742477417e-07,
+        "memory": {
+          "rss_before": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "rss_after": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "python_tracked_retained_bytes": 330,
+          "python_tracked_peak_bytes": 3208,
+          "python_tracked_blocks": 10,
+          "value": {
+            "calls": 20,
+            "shape": [
+              8,
+              19
+            ],
+            "dtype": "float64",
+            "bytes_per_return": 1216
+          }
+        },
+        "sample_value": {
+          "calls": 20,
+          "shape": [
+            8,
+            19
+          ],
+          "dtype": "float64",
+          "bytes_per_return": 1216
+        }
+      },
+      {
+        "name": "sparse_mark",
+        "atoms": 64,
+        "median_seconds": 4.991050809621811e-05,
+        "mad_seconds": 2.4400651454925537e-07,
+        "memory": {
+          "rss_before": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "rss_after": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "python_tracked_retained_bytes": 6296,
+          "python_tracked_peak_bytes": 10890,
+          "python_tracked_blocks": 9,
+          "value": {
+            "calls": 20,
+            "uids": 20,
+            "seed_cardinality": [
+              20,
+              20,
+              20,
+              0
+            ]
+          }
+        },
+        "sample_value": {
+          "calls": 20,
+          "uids": 20,
+          "seed_cardinality": [
+            20,
+            20,
+            20,
+            0
+          ]
+        }
+      },
+      {
+        "name": "dense_mark",
+        "atoms": 64,
+        "median_seconds": 2.7570873498916626e-05,
+        "mad_seconds": 2.1420419216156006e-07,
+        "memory": {
+          "rss_before": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "rss_after": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "python_tracked_retained_bytes": 6296,
+          "python_tracked_peak_bytes": 9616,
+          "python_tracked_blocks": 9,
+          "value": {
+            "calls": 1,
+            "uids": 64,
+            "seed_cardinality": [
+              64,
+              64,
+              64,
+              0
+            ]
+          }
+        },
+        "sample_value": {
+          "calls": 1,
+          "uids": 64,
+          "seed_cardinality": [
+            64,
+            64,
+            64,
+            0
+          ]
+        }
+      },
+      {
+        "name": "full_atom_matrix",
+        "atoms": 64,
+        "median_seconds": 8.827075362205505e-05,
+        "mad_seconds": 3.8836151361465454e-07,
+        "memory": {
+          "rss_before": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "rss_after": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "python_tracked_retained_bytes": 330,
+          "python_tracked_peak_bytes": 20232,
+          "python_tracked_blocks": 10,
+          "value": {
+            "calls": 20,
+            "shape": [
+              64,
+              19
+            ],
+            "dtype": "float64",
+            "bytes_per_return": 9728
+          }
+        },
+        "sample_value": {
+          "calls": 20,
+          "shape": [
+            64,
+            19
+          ],
+          "dtype": "float64",
+          "bytes_per_return": 9728
+        }
+      },
+      {
+        "name": "sparse_mark",
+        "atoms": 256,
+        "median_seconds": 5.05596399307251e-05,
+        "mad_seconds": 1.9278377294540405e-07,
+        "memory": {
+          "rss_before": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "rss_after": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "python_tracked_retained_bytes": 6296,
+          "python_tracked_peak_bytes": 10890,
+          "python_tracked_blocks": 9,
+          "value": {
+            "calls": 20,
+            "uids": 20,
+            "seed_cardinality": [
+              20,
+              20,
+              20,
+              0
+            ]
+          }
+        },
+        "sample_value": {
+          "calls": 20,
+          "uids": 20,
+          "seed_cardinality": [
+            20,
+            20,
+            20,
+            0
+          ]
+        }
+      },
+      {
+        "name": "dense_mark",
+        "atoms": 256,
+        "median_seconds": 8.762162178754807e-05,
+        "mad_seconds": 3.3620744943618774e-07,
+        "memory": {
+          "rss_before": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "rss_after": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "python_tracked_retained_bytes": 24728,
+          "python_tracked_peak_bytes": 34840,
+          "python_tracked_blocks": 9,
+          "value": {
+            "calls": 1,
+            "uids": 256,
+            "seed_cardinality": [
+              256,
+              256,
+              256,
+              0
+            ]
+          }
+        },
+        "sample_value": {
+          "calls": 1,
+          "uids": 256,
+          "seed_cardinality": [
+            256,
+            256,
+            256,
+            0
+          ]
+        }
+      },
+      {
+        "name": "full_atom_matrix",
+        "atoms": 256,
+        "median_seconds": 0.00018391944468021393,
+        "mad_seconds": 2.7008354663848877e-07,
+        "memory": {
+          "rss_before": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "rss_after": {
+            "rss_bytes": 199716864,
+            "peak_rss_bytes": 201728000
+          },
+          "python_tracked_retained_bytes": 330,
+          "python_tracked_peak_bytes": 78600,
+          "python_tracked_blocks": 10,
+          "value": {
+            "calls": 20,
+            "shape": [
+              256,
+              19
+            ],
+            "dtype": "float64",
+            "bytes_per_return": 38912
+          }
+        },
+        "sample_value": {
+          "calls": 20,
+          "shape": [
+            256,
+            19
+          ],
+          "dtype": "float64",
+          "bytes_per_return": 38912
+        }
+      },
+      {
+        "name": "sparse_mark",
+        "atoms": 4096,
+        "median_seconds": 5.0975941121578217e-05,
+        "mad_seconds": 1.4435499906539917e-07,
+        "memory": {
+          "rss_before": {
+            "rss_bytes": 200581120,
+            "peak_rss_bytes": 201728000
+          },
+          "rss_after": {
+            "rss_bytes": 200581120,
+            "peak_rss_bytes": 201728000
+          },
+          "python_tracked_retained_bytes": 6296,
+          "python_tracked_peak_bytes": 10890,
+          "python_tracked_blocks": 9,
+          "value": {
+            "calls": 20,
+            "uids": 20,
+            "seed_cardinality": [
+              20,
+              20,
+              20,
+              0
+            ]
+          }
+        },
+        "sample_value": {
+          "calls": 20,
+          "uids": 20,
+          "seed_cardinality": [
+            20,
+            20,
+            20,
+            0
+          ]
+        }
+      },
+      {
+        "name": "dense_mark",
+        "atoms": 4096,
+        "median_seconds": 0.0012945858761668205,
+        "mad_seconds": 7.052905857563019e-06,
+        "memory": {
+          "rss_before": {
+            "rss_bytes": 200581120,
+            "peak_rss_bytes": 201728000
+          },
+          "rss_after": {
+            "rss_bytes": 200581120,
+            "peak_rss_bytes": 201728000
+          },
+          "python_tracked_retained_bytes": 393484,
+          "python_tracked_peak_bytes": 527656,
+          "python_tracked_blocks": 13,
+          "value": {
+            "calls": 1,
+            "uids": 4096,
+            "seed_cardinality": [
+              4096,
+              4096,
+              4096,
+              0
+            ]
+          }
+        },
+        "sample_value": {
+          "calls": 1,
+          "uids": 4096,
+          "seed_cardinality": [
+            4096,
+            4096,
+            4096,
+            0
+          ]
+        }
+      },
+      {
+        "name": "full_atom_matrix",
+        "atoms": 4096,
+        "median_seconds": 0.0021076425909996033,
+        "mad_seconds": 1.0989606380462646e-05,
+        "memory": {
+          "rss_before": {
+            "rss_bytes": 200581120,
+            "peak_rss_bytes": 201728000
+          },
+          "rss_after": {
+            "rss_bytes": 200581120,
+            "peak_rss_bytes": 201728000
+          },
+          "python_tracked_retained_bytes": 362,
+          "python_tracked_peak_bytes": 1245960,
+          "python_tracked_blocks": 11,
+          "value": {
+            "calls": 20,
+            "shape": [
+              4096,
+              19
+            ],
+            "dtype": "float64",
+            "bytes_per_return": 622592
+          }
+        },
+        "sample_value": {
+          "calls": 20,
+          "shape": [
+            4096,
+            19
+          ],
+          "dtype": "float64",
+          "bytes_per_return": 622592
+        }
+      }
+    ],
+    "limits": "New-only diagnostic, no B20 counterpart or fabricated speedup. Sparse20 single-UID marks use one real transaction; dense marks all N UIDs; full19 float64 export is separate from frozen five-column float32 comparison. CPU0,3 warmups/10 samples."
+  },
+  "fresh_process_retained_memory": {
+    "execution": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/retained-final-attempt1/execution.json",
+      "bytes": 284186,
+      "sha256": "6fdf0434576f82fa0d2f65e8774c7bdf04e687b8bce0613f193949e2fb1943d8"
+    },
+    "runner": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/helpers/run_retained_final.py",
+      "bytes": 1872,
+      "sha256": "469f6d2b7ec7760ec2b7a7bc6db10cce6bc93527605e91385b351d64be3457fc"
+    },
+    "worker": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/fact-native/helpers/measure_stage3_retained.py",
+      "bytes": 3168,
+      "sha256": "3370b8612d0e06ddec1d6d4a197faac57c57632dcce13114f46560f700330211"
+    },
+    "source_native_stable": true,
+    "cases": [
+      {
+        "atoms": 8,
+        "full_projection_equal": true,
+        "baseline_tracked_retained_delta_bytes": 7667,
+        "candidate_tracked_retained_delta_bytes": 17187,
+        "baseline": {
+          "before": {
+            "python_tracked_current_bytes": 0,
+            "python_tracked_peak_bytes": 0,
+            "rss_bytes": 195366912,
+            "peak_rss_bytes": 195366912
+          },
+          "retained_after_gc": {
+            "python_tracked_current_bytes": 7667,
+            "python_tracked_peak_bytes": 14123,
+            "rss_bytes": 195366912,
+            "peak_rss_bytes": 195366912
+          },
+          "after_release_gc": {
+            "python_tracked_current_bytes": 1929,
+            "python_tracked_peak_bytes": 19510,
+            "rss_bytes": 195366912,
+            "peak_rss_bytes": 195366912
+          },
+          "buffers": {
+            "numeric_capacity_bytes": 1216,
+            "metadata_capacity_bytes": 0,
+            "seed_sets_getsizeof_bytes": 0
+          },
+          "projection": {
+            "shape": [
+              8,
+              19
+            ],
+            "dtype": "float64",
+            "sha256": "9b6aaea8963655d430c1955ed5c277047c9530ac0e15103212ebced0f29fc693"
+          }
+        },
+        "candidate": {
+          "before": {
+            "python_tracked_current_bytes": 0,
+            "python_tracked_peak_bytes": 0,
+            "rss_bytes": 192495616,
+            "peak_rss_bytes": 192495616
+          },
+          "retained_after_gc": {
+            "python_tracked_current_bytes": 17187,
+            "python_tracked_peak_bytes": 33320,
+            "rss_bytes": 192495616,
+            "peak_rss_bytes": 192495616
+          },
+          "after_release_gc": {
+            "python_tracked_current_bytes": 6006,
+            "python_tracked_peak_bytes": 33320,
+            "rss_bytes": 192495616,
+            "peak_rss_bytes": 192495616
+          },
+          "buffers": {
+            "numeric_capacity_bytes": 1368,
+            "metadata_capacity_bytes": 243,
+            "seed_sets_getsizeof_bytes": 864
+          },
+          "projection": {
+            "shape": [
+              8,
+              19
+            ],
+            "dtype": "float64",
+            "sha256": "9b6aaea8963655d430c1955ed5c277047c9530ac0e15103212ebced0f29fc693"
+          }
+        }
+      },
+      {
+        "atoms": 256,
+        "full_projection_equal": true,
+        "baseline_tracked_retained_delta_bytes": 129203,
+        "candidate_tracked_retained_delta_bytes": 144419,
+        "baseline": {
+          "before": {
+            "python_tracked_current_bytes": 0,
+            "python_tracked_peak_bytes": 0,
+            "rss_bytes": 196202496,
+            "peak_rss_bytes": 196202496
+          },
+          "retained_after_gc": {
+            "python_tracked_current_bytes": 129203,
+            "python_tracked_peak_bytes": 215171,
+            "rss_bytes": 196202496,
+            "peak_rss_bytes": 196202496
+          },
+          "after_release_gc": {
+            "python_tracked_current_bytes": 1929,
+            "python_tracked_peak_bytes": 215171,
+            "rss_bytes": 196202496,
+            "peak_rss_bytes": 196202496
+          },
+          "buffers": {
+            "numeric_capacity_bytes": 38912,
+            "metadata_capacity_bytes": 0,
+            "seed_sets_getsizeof_bytes": 0
+          },
+          "projection": {
+            "shape": [
+              256,
+              19
+            ],
+            "dtype": "float64",
+            "sha256": "536ca8df8ad77debc342814dc9f84cedc7881b9ee82d5e4d28a51510920cc31a"
+          }
+        },
+        "candidate": {
+          "before": {
+            "python_tracked_current_bytes": 0,
+            "python_tracked_peak_bytes": 0,
+            "rss_bytes": 192856064,
+            "peak_rss_bytes": 192856064
+          },
+          "retained_after_gc": {
+            "python_tracked_current_bytes": 144419,
+            "python_tracked_peak_bytes": 271428,
+            "rss_bytes": 193380352,
+            "peak_rss_bytes": 193380352
+          },
+          "after_release_gc": {
+            "python_tracked_current_bytes": 19973,
+            "python_tracked_peak_bytes": 271428,
+            "rss_bytes": 193380352,
+            "peak_rss_bytes": 193380352
+          },
+          "buffers": {
+            "numeric_capacity_bytes": 48032,
+            "metadata_capacity_bytes": 8532,
+            "seed_sets_getsizeof_bytes": 864
+          },
+          "projection": {
+            "shape": [
+              256,
+              19
+            ],
+            "dtype": "float64",
+            "sha256": "536ca8df8ad77debc342814dc9f84cedc7881b9ee82d5e4d28a51510920cc31a"
+          }
+        }
+      },
+      {
+        "atoms": 4096,
+        "full_projection_equal": true,
+        "baseline_tracked_retained_delta_bytes": 2095348,
+        "candidate_tracked_retained_delta_bytes": 2175556,
+        "baseline": {
+          "before": {
+            "python_tracked_current_bytes": 0,
+            "python_tracked_peak_bytes": 0,
+            "rss_bytes": 195977216,
+            "peak_rss_bytes": 195977216
+          },
+          "retained_after_gc": {
+            "python_tracked_current_bytes": 2095348,
+            "python_tracked_peak_bytes": 3369972,
+            "rss_bytes": 203067392,
+            "peak_rss_bytes": 203067392
+          },
+          "after_release_gc": {
+            "python_tracked_current_bytes": 1926,
+            "python_tracked_peak_bytes": 3369972,
+            "rss_bytes": 203370496,
+            "peak_rss_bytes": 204419072
+          },
+          "buffers": {
+            "numeric_capacity_bytes": 622592,
+            "metadata_capacity_bytes": 0,
+            "seed_sets_getsizeof_bytes": 0
+          },
+          "projection": {
+            "shape": [
+              4096,
+              19
+            ],
+            "dtype": "float64",
+            "sha256": "ce403e0a6b8e314b75d53427fc8a0403f1ff95ccf9d0c42490ea6ed152d2b574"
+          }
+        },
+        "candidate": {
+          "before": {
+            "python_tracked_current_bytes": 0,
+            "python_tracked_peak_bytes": 0,
+            "rss_bytes": 192114688,
+            "peak_rss_bytes": 192114688
+          },
+          "retained_after_gc": {
+            "python_tracked_current_bytes": 2175556,
+            "python_tracked_peak_bytes": 3139687,
+            "rss_bytes": 197238784,
+            "peak_rss_bytes": 197238784
+          },
+          "after_release_gc": {
+            "python_tracked_current_bytes": 20435,
+            "python_tracked_peak_bytes": 3422028,
+            "rss_bytes": 198590464,
+            "peak_rss_bytes": 198590464
+          },
+          "buffers": {
+            "numeric_capacity_bytes": 820040,
+            "metadata_capacity_bytes": 145665,
+            "seed_sets_getsizeof_bytes": 864
+          },
+          "projection": {
+            "shape": [
+              4096,
+              19
+            ],
+            "dtype": "float64",
+            "sha256": "ce403e0a6b8e314b75d53427fc8a0403f1ff95ccf9d0c42490ea6ed152d2b574"
+          }
+        }
+      }
+    ],
+    "limits": "One warmed construction then fresh measured molecule per process; GC controlled; tracemalloc covers tracked Python/NumPy only. RSS is page/allocator-granular. Higher current retained costs are explicitly unresolved, not hidden by lower whole-process peak."
+  },
+  "layout_selection_history": "../storage/evidence.json retains actual current-array/AoS/two-block prototypes and primitive runs before production selection; it is historical primitive evidence, not current molecular writer timing.",
+  "acceptance_boundary": "Stage3 has measured its migrated mechanisms and complexity/scaling; this does not approve any final parity exception. Scalar/small batch/edit/write-read regressions and retained-memory increases remain visible through later owner migrations and Stage12 complete reports."
+}

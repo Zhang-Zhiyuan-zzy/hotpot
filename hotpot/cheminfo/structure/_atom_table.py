@@ -48,17 +48,6 @@ def _selected_blocks(blocks, selection):
     return blocks[0][selection], blocks[1][selection]
 
 
-def _scalar_value(value):
-    if isinstance(value, (int, float, np.number)):
-        return float(value)
-    candidate = np.asarray(value, dtype=np.float64)
-    if candidate.shape == ():
-        return float(candidate)
-    if candidate.shape == (1,):
-        return float(candidate[0])
-    raise ValueError("A single-row Atom update requires a scalar or one value")
-
-
 def _metadata_array(value, shape, dtype, maximum, name):
     candidate = np.asarray(value)
     if candidate.shape != () and candidate.shape != shape:
@@ -96,14 +85,6 @@ def _source_value(value):
     if value not in _SOURCE_CODES:
         raise ValueError("Atom update source is not a declared source code")
     return value
-
-
-def _restore_atom_write(state):
-    selection, columns, sources, presence, old_presence = state
-    for index, column, value, code in columns:
-        column[selection] = value
-        sources[selection, index] = code
-    presence[selection] = old_presence
 
 
 class _AtomFactTable:
@@ -272,62 +253,15 @@ class _AtomFactTable:
         prepared = []
         for field, value in columns.items():
             index = FIELD_INDEX[field]
-            if count == 1:
-                candidate = _scalar_value(value)
-            else:
-                candidate = np.asarray(value, dtype=np.float64)
-                if candidate.shape == ():
-                    candidate = np.full(count, candidate, dtype=np.float64)
-                elif candidate.shape == (count,):
-                    candidate = candidate.copy()
-                else:
-                    raise ValueError(f"Atom field {field!r} requires a scalar or shape ({count},)")
-            prepared.append((index, candidate,
+            prepared.append((index, value,
                              _present_value(present[field] if mapped_presence else present),
                              _source_value(source[field] if mapped_source else source)))
         self._write_prepared(selection, prepared)
 
     def _write_prepared(self, selection, prepared, *, transaction=None):
-        """Install validated columns with one physical-buffer undo capture.
-
-        Molecular writes enroll this capture in their outer transaction before
-        the first store. Standalone writes restore the same capture locally.
-        Capturing the actual arrays keeps undo valid across table growth/remap.
-        """
-        if not self._presence.flags.writeable or not self._sources.flags.writeable:
-            raise ValueError("Atom update targets read-only storage")
-        scalar = isinstance(selection, (int, np.integer))
-        old_presence = int(self._presence[selection]) if scalar else self._presence[selection].copy()
-        next_presence = old_presence if scalar else old_presence.copy()
-        previous = []
-        for index, _, supplied, _ in prepared:
-            column = self._columns[index]
-            if not column.flags.writeable:
-                raise ValueError("Atom update targets read-only storage")
-            old_value, old_source = column[selection], self._sources[selection, index]
-            if not scalar:
-                old_value, old_source = old_value.copy(), old_source.copy()
-            previous.append((index, column, old_value, old_source))
-            if scalar:
-                mask = FIELD_PRESENCE_BITS[index]
-                next_presence = next_presence | mask if supplied else next_presence & ~mask
-            else:
-                mask = FIELD_PRESENCE_BITS[index]
-                if supplied:
-                    next_presence |= np.uint32(mask)
-                else:
-                    next_presence &= np.uint32(ATOM_PRESENCE_ALL ^ mask)
-        state = selection, previous, self._sources, self._presence, old_presence
-        if transaction is not None:
-            transaction._cells.append(state)
-        try:
-            for index, value, _, code in prepared:
-                self._columns[index][selection] = value
-                self._sources[selection, index] = code
-            self._presence[selection] = next_presence
-        except BaseException:
-            _restore_atom_write(state)
-            raise
+        """Install through the sole native physical writer and undo boundary."""
+        from ._commit import _fact_engine
+        _fact_engine()._write_prepared(self, selection, prepared, transaction)
 
     def append(self, rows, *, presence=None, sources=None):
         values = _numeric_rows(rows)

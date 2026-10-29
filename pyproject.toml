@@ -132,6 +132,7 @@ include-package-data = true
 
 [tool.setuptools.package-data]
 "hotpot.cheminfo.fonts.Arial" = ["*.ttf"]
+"hotpot.cheminfo.structure" = ["_fact_native.pyi", "_native/CPYTHON_LICENSE"]
 "hotpot.cheminfo.rdWrappers" = [
     "_rd_native.pyi",
 ]

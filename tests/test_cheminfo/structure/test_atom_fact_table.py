@@ -13,7 +13,9 @@ from hotpot.cheminfo.structure._fields import (
     ALIAS_TARGETS,
     ATOM_BATCH_WRITABLE,
     ATOM_FIELDS,
+    ATOM_PRESENCE_ALL,
     ATOM_SCHEMA,
+    ATOM_SOURCE_CODES,
     FIELD_INDEX,
 )
 
@@ -151,9 +153,12 @@ def test_scalar_and_batch_updates_share_the_same_raw_value_semantics():
 def test_failed_update_preserves_the_complete_previous_table(rows, columns, exception):
     expected = _rows()
     table = _AtomFactTable(expected)
+    presence, sources = table.presence(), table.sources()
     with pytest.raises(exception):
         table.update(rows, columns)
     np.testing.assert_array_equal(table.matrix(), expected)
+    np.testing.assert_array_equal(table.presence(), presence)
+    np.testing.assert_array_equal(table.sources(), sources)
 
 
 @pytest.mark.parametrize("rows", [1, (1, 3), None])
@@ -180,6 +185,7 @@ def test_read_only_target_rejects_the_complete_write_before_install(rows):
 def test_interrupted_write_restores_current_earlier_and_uninstalled_columns(rows, updates):
     expected = _rows()
     table = _AtomFactTable(expected)
+    presence, sources = table.presence(), table.sources()
     columns = list(table._columns)
     columns[FIELD_INDEX["y"]] = _WriteThenRaise(columns[FIELD_INDEX["y"]])
     table._columns = tuple(columns)
@@ -187,6 +193,8 @@ def test_interrupted_write_restores_current_earlier_and_uninstalled_columns(rows
         table.update(rows, updates)
     assert not table._columns[FIELD_INDEX["y"]].armed
     np.testing.assert_array_equal(table.matrix(), expected)
+    np.testing.assert_array_equal(table.presence(), presence)
+    np.testing.assert_array_equal(table.sources(), sources)
 
 
 @pytest.mark.parametrize("read", [
@@ -271,6 +279,153 @@ def test_remap_keeps_capacity_for_a_subsequent_append_without_shared_rows():
     assert table._blocks is blocks
     np.testing.assert_array_equal(table.matrix(), np.concatenate((original[[4, 2, 0, 1]], addition)))
     assert len(table.copy()._blocks[0]) == len(table)
+
+
+def test_presence_distinguishes_absent_and_explicit_zero_without_changing_numeric_slots():
+    table = _AtomFactTable(np.zeros((2, 19)), presence=0)
+    table.update(0, {"formal_charge": 0})
+    assert table.raw(0, "formal_charge") == table.raw(1, "formal_charge") == 0
+    np.testing.assert_array_equal(table.presence(), [1 << FIELD_INDEX["formal_charge"], 0])
+    assert table.sources()[0, FIELD_INDEX["formal_charge"]] == ATOM_SOURCE_CODES["explicit"]
+    assert table.sources()[1, FIELD_INDEX["formal_charge"]] == ATOM_SOURCE_CODES["default"]
+    assert table.presence().dtype == np.uint32
+    assert table.sources().dtype == np.uint8
+
+
+def test_raw_rows_default_to_legacy_supplied_metadata_and_empty_shapes_are_explicit():
+    table = _AtomFactTable(np.zeros((2, 19)))
+    np.testing.assert_array_equal(table.presence(), np.full(2, ATOM_PRESENCE_ALL, dtype=np.uint32))
+    np.testing.assert_array_equal(table.sources(), np.full((2, 19), ATOM_SOURCE_CODES["legacy_array"], dtype=np.uint8))
+    empty = _AtomFactTable(np.empty((0, 19)), presence=[], sources=np.empty((0, 19)))
+    assert empty.presence().shape == (0,)
+    assert empty.sources().shape == (0, 19)
+    with pytest.raises(TypeError):
+        ATOM_SOURCE_CODES["custom"] = 10
+
+
+def test_mixed_field_metadata_is_installed_with_one_numeric_write_set():
+    table = _AtomFactTable(_rows(), presence=0)
+    columns = {"atomic_number": 8, "n": 2, "x": 0}
+    present = {"atomic_number": True, "n": True, "x": False}
+    source = {
+        "atomic_number": ATOM_SOURCE_CODES["explicit"],
+        "n": ATOM_SOURCE_CODES["electron_configuration"],
+        "x": ATOM_SOURCE_CODES["openbabel"],
+    }
+    table.update((2, 0), columns, present=present, source=source)
+    mask = (1 << FIELD_INDEX["atomic_number"]) | (1 << FIELD_INDEX["n"])
+    np.testing.assert_array_equal(table.presence(), [mask, 0, mask, 0])
+    for field, value in columns.items():
+        np.testing.assert_array_equal(table.column(field, (2, 0)), [value, value])
+        np.testing.assert_array_equal(table.sources((2, 0))[:, FIELD_INDEX[field]], [source[field], source[field]])
+    # An absent toolkit slot can still retain its explicit source diagnostic.
+    assert table.sources()[0, FIELD_INDEX["x"]] == ATOM_SOURCE_CODES["openbabel"]
+    table.update(0, {"n": 0}, present=False, source=ATOM_SOURCE_CODES["default"])
+    assert table.presence()[0] == 1 << FIELD_INDEX["atomic_number"]
+
+
+@pytest.mark.parametrize("option, value", [
+    ("present", 1),
+    ("present", {"x": True}),
+    ("present", {"x": True, "y": True, "z": True}),
+    ("source", 255),
+    ("source", 1.5),
+    ("source", {"x": ATOM_SOURCE_CODES["explicit"]}),
+])
+@pytest.mark.parametrize("rows", [0, (0, 2)])
+def test_invalid_metadata_rejects_numeric_and_metadata_changes_together(rows, option, value):
+    table = _AtomFactTable(_rows(), presence=0)
+    numeric, presence, sources = table.matrix(), table.presence(), table.sources()
+    with pytest.raises((TypeError, ValueError)):
+        table.update(rows, {"x": 100, "y": 200}, **{option: value})
+    np.testing.assert_array_equal(table.matrix(), numeric)
+    np.testing.assert_array_equal(table.presence(), presence)
+    np.testing.assert_array_equal(table.sources(), sources)
+
+
+@pytest.mark.parametrize("metadata", ["_presence", "_sources"])
+@pytest.mark.parametrize("rows, columns", [
+    (1, {"x": 100}),
+    (1, {"x": 100, "y": 200}),
+    ((1, 3), {"x": 100, "y": 200}),
+    (None, {"x": 100, "y": 200}),
+])
+def test_metadata_write_interruption_restores_numeric_presence_and_source(metadata, rows, columns):
+    table = _AtomFactTable(_rows(), presence=0)
+    numeric, presence, sources = table.matrix(), table.presence(), table.sources()
+    setattr(table, metadata, _WriteThenRaise(getattr(table, metadata)))
+    with pytest.raises(KeyboardInterrupt):
+        table.update(rows, columns)
+    np.testing.assert_array_equal(table.matrix(), numeric)
+    np.testing.assert_array_equal(table.presence(), presence)
+    np.testing.assert_array_equal(table.sources(), sources)
+
+
+@pytest.mark.parametrize("metadata", ["_presence", "_sources"])
+@pytest.mark.parametrize("rows", [1, (1, 3), None])
+def test_read_only_metadata_is_rejected_before_numeric_install(metadata, rows):
+    table = _AtomFactTable(_rows(), presence=0)
+    numeric, presence, sources = table.matrix(), table.presence(), table.sources()
+    columns = list(table._columns)
+    columns[FIELD_INDEX["x"]] = _WriteThenRaise(columns[FIELD_INDEX["x"]])
+    table._columns = tuple(columns)
+    getattr(table, metadata).flags.writeable = False
+    with pytest.raises(ValueError):
+        table.update(rows, {"x": 100})
+    assert table._columns[FIELD_INDEX["x"]].armed
+    np.testing.assert_array_equal(table.matrix(), numeric)
+    np.testing.assert_array_equal(table.presence(), presence)
+    np.testing.assert_array_equal(table.sources(), sources)
+
+
+def test_metadata_inputs_exports_growth_remap_and_copies_preserve_exact_rows():
+    masks = np.array([0, 1 << FIELD_INDEX["x"], ATOM_PRESENCE_ALL], dtype=np.uint32)
+    codes = np.arange(3 * 19, dtype=np.uint8).reshape(3, 19) % len(ATOM_SOURCE_CODES)
+    expected_masks, expected_codes = masks.copy(), codes.copy()
+    table = _AtomFactTable(_rows(3), presence=masks, sources=codes)
+    masks[:] = 0
+    codes[:] = 0
+    table.append(_rows(2), presence=[0, 1 << FIELD_INDEX["id"]], sources=ATOM_SOURCE_CODES["rdkit"])
+    expected_masks = np.concatenate((expected_masks, [0, 1 << FIELD_INDEX["id"]])).astype(np.uint32)
+    expected_codes = np.concatenate((expected_codes, np.full((2, 19), ATOM_SOURCE_CODES["rdkit"], dtype=np.uint8)))
+    table.remap((4, 0, 2))
+    expected_masks, expected_codes = expected_masks[[4, 0, 2]], expected_codes[[4, 0, 2]]
+    clone, subset = table.copy(), table.take((2, 0))
+    np.testing.assert_array_equal(table.presence(), expected_masks)
+    np.testing.assert_array_equal(table.sources(), expected_codes)
+    np.testing.assert_array_equal(subset.presence(), expected_masks[[2, 0]])
+    np.testing.assert_array_equal(subset.sources(), expected_codes[[2, 0]])
+    returned_masks, returned_codes = table.presence(), table.sources()
+    returned_masks[:] = 0
+    returned_codes[:] = 0
+    table.update(0, {"x": -1}, source=ATOM_SOURCE_CODES["mca_dto"])
+    np.testing.assert_array_equal(clone.presence(), expected_masks)
+    np.testing.assert_array_equal(clone.sources(), expected_codes)
+    for other in (clone, subset):
+        assert not np.shares_memory(table._presence, other._presence)
+        assert not np.shares_memory(table._sources, other._sources)
+    assert clone._sources.shape == (len(clone), 19)
+    assert subset._presence.shape == (len(subset),)
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"presence": [0, ATOM_PRESENCE_ALL + 1]},
+    {"presence": [0.5, 0]},
+    {"sources": 255},
+    {"sources": np.zeros((2, 18), dtype=np.uint8)},
+])
+def test_invalid_append_metadata_leaves_values_metadata_and_capacity_unchanged(kwargs):
+    table = _AtomFactTable(_rows(), presence=0)
+    numeric, presence, sources = table.matrix(), table.presence(), table.sources()
+    blocks, masks_owner, sources_owner = table._blocks, table._presence, table._sources
+    with pytest.raises((TypeError, ValueError)):
+        table.append(_rows(2), **kwargs)
+    assert table._blocks is blocks
+    assert table._presence is masks_owner
+    assert table._sources is sources_owner
+    np.testing.assert_array_equal(table.matrix(), numeric)
+    np.testing.assert_array_equal(table.presence(), presence)
+    np.testing.assert_array_equal(table.sources(), sources)
 
 
 def test_storage_leaf_import_loads_no_carrier_or_execution_backend(tmp_path):

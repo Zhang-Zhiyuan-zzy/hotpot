@@ -228,7 +228,8 @@ presence/source/status。脱离 Atom 的行转移至同 schema 只读单行表�
 
 公开 `Molecule.atom_matrix` 为完整19列 float64 独立数组的只读 property，
 不接收 fields/dtype 参数。它与 Atom.attrs 共用唯一事实投影；既有
-atom_attr_matrix 的改名/别名去向单独记录，不能增加第二份矩阵或生成实现。
+依用户后续改名及不重复指示，将atom_attr_matrix直接改名并迁移调用，不保留旧名别名，
+不增加第二份矩阵或生成实现。
 内部矩阵导出仍明确字段顺序、dtype、单位和未知值策略，不保存持久 one-hot 或
 归一化特征，不把 UID 转成有损浮点。字段选择式 native transport 可在有效
 寿命和只读保证内借用缓冲区，否则显式打包，不另造通用运输系统。
@@ -264,7 +265,7 @@ N×F 导出、原生打包和逐原子结果投影，确保高效批量访问与
 | A2 | `Atom.attrs`, `Atom(attrs_array=..., update_electron_config=...)` | 移除长期可写事实数组暴露；完整导入使用私有builder，Stage5删除两个旧构造参数；保留独立19列快照，Stage7C缺失结果用NaN且保持模型输入编码，详见[具体决定](stage1_contract_decisions.md) | 2026-10-28用户已确认；按Stage3/5/7C分步验证 |
 | A3 | `Atom.coordinates`, x/y/z, `Molecule.coordinates` | 保留现有赋值入口、共享唯一坐标事实；返回数组副本/不可变行为按基线明确 | 返回别名行为变更待审 |
 | A4 | `Molecule.updata_atoms(*, atoms=None, **columns) -> None` | 按用户指定拼写；Atom句柄选行，None为全部；只接受已审事实/别名，广播、重叠一致、一次校验/提交；不公开UID | 2026-10-28用户确认能力与改名；Stage3实施验证 |
-| A5 | `Molecule.atom_matrix` property | 无fields/dtype参数，返回完整19列float64独立数组；沿既有schema/单位，缺失可选结果按A2在Stage7C编码NaN；不自动增加MCA或新私有字段 | 2026-10-28用户确认；复用既有atom_attr_matrix投影，其旧名去向单独确认 |
+| A5 | `Molecule.atom_matrix` property | 无fields/dtype参数，返回完整19列float64独立数组；沿既有schema/单位，缺失可选结果按A2在Stage7C编码NaN；不自动增加MCA或新私有字段 | 2026-10-28用户确认；按后续改名/不重复指示直接改名atom_attr_matrix，迁移调用，不保留旧别名 |
 | A6 | 例子 `Atom.new_attrs` | 仅说明schema联动；具体名字、dtype、权限、依赖另列审阅 | 不添加示例属性 |
 | A7 | 现有 `Atom.valence`、`n/s/p/d/f/g`、`electron_configuration`、`implicit_hydrogens`、`is_aromatic` 的赋值权限 | valence/电子组态和芳香投影改只读；隐式H setter保留为明确计数声明，完整推断走既有method；不新增hybridization property | 确切签名/消费者影响在Stage1提交审批，权限改变待审 |
 | A8 | `Atom.partial_charge` | 只读 Optional[float]，None为无选定值；全量assignment是唯一写入口（原Decision22提案） | 返回类型/setter变化待审 |

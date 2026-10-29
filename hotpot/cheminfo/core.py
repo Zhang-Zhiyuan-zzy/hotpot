@@ -16,6 +16,7 @@ from typing import Union, Literal, Iterable, Optional, Callable, Mapping, Tuple
 from copy import copy, deepcopy
 from collections import Counter
 from itertools import combinations, product
+from threading import RLock as _RLock
 
 import cython
 import numpy as np
@@ -38,6 +39,7 @@ from . import geometry, crystal as cryst
 from .pubchem import pubchem_service
 from .call_thermo import Thermo
 from .structure._fields import FIELD_CODECS as _ATOM_FIELD_CODECS
+from .stereo import StereoPayload as _StereoPayload
 
 
 PartialChargeModel = Literal[
@@ -135,6 +137,10 @@ class Molecule:
     forming the basis for chemical computations and geometry manipulations.
     """
     def __init__(self):
+        self._owner_token = object()
+        self._mutation_lock = _RLock()
+        self._next_atom_uid = 0
+        self._next_bond_uid = 0
         self._model = None  # AI model
         self._environ = None
 
@@ -159,8 +165,7 @@ class Molecule:
         self._hided_covalent_bonds = []
         self.properties = {}  # To store any mol properties
 
-        from .stereo import StereoPayload
-        self._stereo_payload = StereoPayload(1, (), (), ())
+        self._stereo_payload = _StereoPayload(1, (), (), ())
 
         self.charge = 0
 
@@ -187,6 +192,32 @@ class Molecule:
 
     def __copy__(self):
         return self.copy()
+
+    def __getstate__(self):
+        with self._mutation_lock:
+            state = self.__dict__.copy()
+            del state['_mutation_lock']
+            return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._mutation_lock = _RLock()
+        incident = {row: bonds for row, bonds in self._topology_index.values()}
+        self._topology_index = {
+            id(atom): (row, incident[row]) for row, atom in enumerate(self._atoms)
+        }
+
+    def _allocate_atom_uid(self):
+        with self._mutation_lock:
+            uid = self._next_atom_uid
+            self._next_atom_uid += 1
+            return uid
+
+    def _allocate_bond_uid(self):
+        with self._mutation_lock:
+            uid = self._next_bond_uid
+            self._next_bond_uid += 1
+            return uid
 
     @property
     def _hided_bonds(self):
@@ -221,6 +252,31 @@ class Molecule:
                 allowed_bonds=allowed_bonds,
             ),
         )
+
+    def _replace_atom_transport(self, target_row, source_atom):
+        """Install one imported Atom transport row at its new member position."""
+        from dataclasses import replace
+        from .stereo import get_stereo_payload, set_stereo_payload
+
+        source_row = source_atom.mol._topology_index.get(id(source_atom))
+        imported = () if source_row is None else tuple(
+            replace(fact, atom=target_row)
+            for fact in get_stereo_payload(source_atom.mol).atom_facts
+            if fact.atom == source_row[0]
+        )
+        payload = get_stereo_payload(self)
+        atom_facts = []
+        installed = False
+        for fact in payload.atom_facts:
+            if fact.atom == target_row:
+                if not installed:
+                    atom_facts.extend(imported)
+                    installed = True
+            else:
+                atom_facts.append(fact)
+        if not installed:
+            atom_facts.extend(imported)
+        set_stereo_payload(self, replace(payload, atom_facts=tuple(atom_facts)))
 
     def _remap_stereo_after_atom_removal(
             self,
@@ -288,7 +344,7 @@ class Molecule:
         clone = Molecule()
         atom_map = {}
         for atom in self._atoms:
-            cloned_atom = clone._create_atom(**atom.attr_dict)
+            cloned_atom = clone._add_atom(atom)
             atom_map[id(atom)] = cloned_atom
 
         for bond in self._bonds:
@@ -600,27 +656,14 @@ class Molecule:
             self.conformers.clear()
 
     def _add_atom(self, atom):
-        """
-        Adds an atom to the molecule and associates it with the molecule instance.
-
-        This method appends an atom to the molecule's internal list of atoms and sets
-        the molecule attribute of the atom to the current molecule instance. The
-        method is used to establish a bidirectional association between the molecule
-        and its atoms.
-
-        Parameters:
-            atom: Atom
-                The Atom instance to add to the molecule.
-
-        Returns:
-            Atom
-                The Atom instance that was added.
-        """
-        self._atoms.append(atom)
-        atom.mol = self
-        self._topology_index[id(atom)] = (len(self._atoms) - 1, ())
-
-        return atom
+        """Copy a foreign factual row into a new locally owned Atom."""
+        if atom.mol is self:
+            raise ValueError("An Atom already owned by this Molecule cannot be inserted again")
+        copied = self._create_atom_from_array(atom.attrs.copy())
+        for name in ('isotope', 'frac_valence'):
+            if name in atom.__dict__:
+                setattr(copied, name, deepcopy(atom.__dict__[name]))
+        return copied
 
     def _add_bond(self, atom1: Union[int, "Atom"], atom2: Union[int, "Atom"], bond_order=1., **kwargs):
         """
@@ -702,8 +745,10 @@ class Molecule:
         Returns:
             The atom object added to the graph.
         """
+        source_atom = atom
         atom = self._add_atom(atom)
         self._update_topology()
+        self._replace_atom_transport(atom.idx, source_atom)
         return atom
 
     def _replace_atom(
@@ -719,13 +764,19 @@ class Molecule:
             new_atom = Atom(symbol=new_atom)
         else:
             raise ValueError(f"Unsupported atom type {type(new_atom)}")
-        new_atom.mol = self
-
         ori_atom = self._atoms[original_atom_idx]
+        target_row = self._topology_index[id(ori_atom)][0]
+        source_atom = new_atom
+        new_atom = self._add_atom(new_atom)
+        self._atoms.pop()
+        del self._topology_index[id(new_atom)]
         self._atoms[original_atom_idx] = new_atom
 
-        for bond in ori_atom.bonds:
-            Bond._replace_atom(bond, ori_atom, new_atom)
+        for bond in self._bonds + self._hided_bonds:
+            if bond.atom1 is ori_atom or bond.atom2 is ori_atom:
+                Bond._replace_atom(bond, ori_atom, new_atom)
+
+        self._replace_atom_transport(target_row, source_atom)
 
         return ori_atom
 
@@ -859,11 +910,17 @@ class Molecule:
                 for source_row in range(len(component._atoms))
             },
         )
-        for atom in component.atoms:
-            self._add_atom(atom)
-        self._bonds.extend(component.bonds)
-        self._hided_metal_bonds.extend(component._hided_metal_bonds)
-        self._hided_covalent_bonds.extend(component._hided_covalent_bonds)
+        atom_map = {id(atom): self._add_atom(atom) for atom in component.atoms}
+        for source_bonds, target_bonds in (
+            (component._bonds, self._bonds),
+            (component._hided_metal_bonds, self._hided_metal_bonds),
+            (component._hided_covalent_bonds, self._hided_covalent_bonds),
+        ):
+            for bond in source_bonds:
+                target_bonds.append(Bond(
+                    atom_map[id(bond.atom1)], atom_map[id(bond.atom2)],
+                    **deepcopy(bond.attr_dict),
+                ))
         del component
         self._update_topology()
         set_stereo_payload(
@@ -1104,7 +1161,7 @@ class Molecule:
         self.recover_hided_metal_ligand_bonds()
 
     @property
-    def atom_attr_matrix(self) -> np.ndarray:
+    def atom_matrix(self) -> np.ndarray:
         """
         Returns the attribute matrix of atoms.
 
@@ -1115,7 +1172,9 @@ class Molecule:
         @return: A 2D numpy array where each row represents the attributes 
                  of an atom.
         """
-        return np.array([a.attrs for a in self._atoms])
+        return np.array([a.attrs for a in self._atoms], dtype=np.float64).reshape(
+            len(self._atoms), len(Atom._attrs_enumerator)
+        )
 
     @property
     def atoms(self):
@@ -1503,9 +1562,7 @@ class Molecule:
                 for target_index, source_index in enumerate(c_node_idx)
             }
             for node_idx in c_node_idx:
-                component._create_atom_from_array(
-                    self._atoms[node_idx].attrs.copy(),
-                )
+                component._add_atom(self._atoms[node_idx])
 
             for source_bond in self._bonds:
                 first = self._topology_index[id(source_bond.atom1)][0]
@@ -2958,6 +3015,10 @@ class MolBlock:
     _default_attrs = {}
     _attrs_enumerator = tuple(_attrs_dict.keys())
 
+    @property
+    def _uid(self):
+        return self._member_uid
+
     def __repr__(self):
         return f"{self.__class__.__name__}({self.label})"
 
@@ -3191,6 +3252,8 @@ class Atom(MolBlock):
          behaviors/ Rules ;proper Error Inflect 
                ** detail ensure behaviors s """
         self.mol = mol or Molecule()
+        object.__setattr__(self, '_member_uid', self.mol._allocate_atom_uid())
+        object.__setattr__(self, '_uid_owner', self.mol._owner_token)
         getattr(self.mol, '_atoms').append(self)
         self.mol._topology_index[id(self)] = (
             len(getattr(self.mol, '_atoms')) - 1,
@@ -4770,6 +4833,11 @@ class Bond(AtomSeq, MolBlock):
 
     def __init__(self, atom1: Atom, atom2: Atom, **kwargs):
         super().__init__(atom1, atom2)
+        for atom in (atom1, atom2):
+            if id(atom) not in self.mol._topology_index:
+                raise ValueError("A Bond endpoint must be a current Atom member")
+        object.__setattr__(self, '_member_uid', self.mol._allocate_bond_uid())
+        object.__setattr__(self, '_uid_owner', self.mol._owner_token)
         bond_kind = kwargs.pop('bond_kind', None)
         bond_direction = kwargs.pop('bond_direction', None)
         bond_source = kwargs.pop('bond_source', None)

@@ -198,7 +198,7 @@
       "planned_contract_test_files": [],
       "additional_requirements": [
         "full default suite, original baseline scientific/technical selection, full Section12 workload measurements",
-        "Supplementary installed-wheel Python3.10\u20133.14 baseline: common_commands.python_matrix_baseline, with all five matching wheels and verified models prepared before timing."
+        "Supplementary installed-wheel Python3.10–3.14 baseline: common_commands.python_matrix_baseline, with all five matching wheels and verified models prepared before timing."
       ],
       "execution_status": "completed; exact commands, outcomes and digests are in stage1_execution_evidence.json and implementation_log.md"
     },
@@ -259,7 +259,7 @@
         },
         {
           "path": "tests/test_cheminfo/structure/test_atom_fact_table.py",
-          "status": "private_numeric_primitive_only;38 cases passed; Molecule storage/UID/presence/commit integration remains unimplemented"
+          "status": "private_numeric_and_metadata_primitive;72 cases passed on all5 versions; not yet Molecule authority"
         },
         {
           "path": "tests/test_cheminfo/structure/test_dependencies.py",
@@ -271,7 +271,7 @@
         },
         {
           "path": "tests/test_cheminfo/structure/test_uid_lifecycle.py",
-          "status": "planned_not_created"
+          "status": "implemented;12 cases passed on Python3.10–3.14; full table construction atomicity still pending"
         },
         {
           "path": "tests/test_cheminfo/structure/test_buffer_ownership.py",
@@ -288,12 +288,20 @@
         {
           "path": "tests/test_cheminfo/structure/test_reference.py",
           "status": "implemented;4 passed in full default and final focused runs"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_source_identity.py",
+          "status": "implemented;25 cases passed all5 versions; source capture/check primitives, not full legacy writer locking/result validity"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_atom_matrix.py",
+          "status": "implemented;3 cases passed on Python3.10–3.14 and full default; full19 float64 independent projection, direct approved rename"
         }
       ],
       "additional_requirements": [
         "builder one topology build/no implicit chemistry; UID non-reuse; finite dirty propagation; field schema; scalar/batch alias isolation and performance"
       ],
-      "execution_status": "in_progress; foundation and private numeric table verified (stage3_storage_evidence.json); authoritative table/builder/UID/metadata/closed commits remain open; architecture coverage correction restores actual debt285"
+      "execution_status": "in_progress; active member UID/source infrastructure and private table metadata verified; complete builder/closed molecular commits/table cutover/dirty reads/actual integrated scaling still open"
     },
     "Stage4": {
       "predecessor": "Stage3",

@@ -39,10 +39,12 @@ result slots without a current selected value encode `NaN`; an explicitly
 present zero stays zero. This missing-value encoding is an explicit observable
 change accompanying A8's `Atom.partial_charge -> Optional[float]` contract.
 
-The original A2 decision retained `Molecule.atom_attr_matrix`. Stage3's later
-owner instruction names the full-matrix property `atom_matrix`; the old name's
-direct rename versus same-source alias is under explicit clarification. Until
-that disposition is recorded, do not remove the existing entry or add an alias.
+The original A2 decision retained `Molecule.atom_attr_matrix`. The owner's later
+instruction explicitly asks for `Molecule.atom_matrix` and says to check existing
+facts and avoid duplication. Apply that latest naming instruction as a direct
+rename: migrate the existing entry and its consumers, without an old-name alias.
+This resolves the earlier optional clarification from existing authorization;
+no new user reply is asserted or inferred from elapsed time.
 Both row and complete-matrix access use one schema/projection implementation.
 Field-selective native/model snapshots remain private; no second public export
 method, persistent matrix, validity path or calculated fact is introduced.

@@ -1419,7 +1419,7 @@ or excluding public/wrapper contracts from the denominator.
 |---|---|---|
 | `hotpot.version()` | keep | reads the one runtime/package version source; no eager chemistry backend import |
 | `hotpot.Molecule`, `Atom`, `Bond`, `BondKind` | move | exact same class identities at `hotpot.cheminfo.structure`; top-level exports remain the ordinary user entry points |
-| `Molecule.updata_atoms`, `Molecule.atom_matrix` | add reviewed entries | owner-approved transactional batch method and complete19-column float64 snapshot property; reuse the existing fact/projection implementation, with the old atom_attr_matrix name disposition recorded separately |
+| `Molecule.updata_atoms`, `Molecule.atom_matrix` | add batch entry / rename existing matrix | owner-approved transactional batch method and complete19-column float64 snapshot property; directly rename atom_attr_matrix, migrate consumers and retain no old-name alias |
 | `hotpot.Crystal` | add export/refactor | six-parameter value carrier described in Sections 5 and 7; no Molecule back-reference/toolkit object |
 | future `MetalCluster`, `Molecule.metal_clusters -> list[MetalCluster]` | reserve for Plan21 | owner-specified names/relationship; concrete registration, construction, return semantics and export path deferred; no Plan20 runtime addition |
 | `MolReader`, `MolWriter`, `read_mol` | move/merge | one `adapters.io` implementation; public call signatures and supported formats are frozen in Stage 1 |
@@ -2309,9 +2309,10 @@ Keep the owner's exact `updata_atoms` spelling. `atom_matrix` takes no fields
 or dtype argument; it reuses the existing complete19-column projection and
 never stores a second matrix. Optional result absence follows A2's NaN policy
 at Stage7C; it does not start a model or add MCA as a twentieth column.
-The existing `atom_attr_matrix` name is being resolved against A2's earlier
-preservation decision before its removal or alias publication. Implementation
-remains subject to the Stage3 gates. No public fact-table class, schema registry,
+The owner's later rename/no-duplication instruction supersedes A2's earlier
+matrix spelling: directly rename `atom_attr_matrix`, migrate its consumers and
+retain no old-name alias. Implementation remains subject to the Stage3 gates.
+No public fact-table class, schema registry,
 dirty-state method, `new_attrs` example property, universal base or parallel
 batch API is added. Existing attrs/constructor arguments, coordinate aliases,
 inferred-property setters, partial-charge return behavior and stale reads

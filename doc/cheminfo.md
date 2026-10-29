@@ -62,7 +62,7 @@
 | `torsions`                         | Torsion angles                                |  
 | `assign_aromatic`                  | Assign aromaticity                            |  
 | `assign_bond_order`                | Assign bond order                             |  
-| `atom_attr_matrix`                 | Atom attribute matrix                         |  
+| `atom_matrix`                      | Independent complete 19-column float64 matrix  |
 | `atoms`                            | Atom access                                   |  
 | `c_bonds`                          | Likely covalent bonds?                        |  
 | `bonds`                            | Bonds access                                  |  

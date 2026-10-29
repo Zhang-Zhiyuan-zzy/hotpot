@@ -1,0 +1,359 @@
+{
+  "schema_version": 1,
+  "stage": "Stage3",
+  "checkpoint": "active member/source identity, private numeric metadata and approved matrix rename",
+  "status": "verified intermediate checkpoint; Stage3 incomplete",
+  "recorded_at_utc": "2026-10-29T01:55:39.681006+00:00",
+  "predecessor_commit": "40312df7c678dc193a9104248f54819ac1dc062a",
+  "entry_review": {
+    "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage3_continuation_review.json",
+    "bytes": 3483,
+    "sha256": "3c1c1785d6ece3b581b8c26b0d42d9e4db7950217ffba1452da531cd3d35262f"
+  },
+  "review": {
+    "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage3_identity_review.md",
+    "bytes": 6553,
+    "sha256": "37e5cd32eabf436ad0836c81d49451bec1fd15353317b91f7bd627ffc85dd15b"
+  },
+  "source": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/validated-final-source/manifest.json",
+    "bytes": 1105,
+    "sha256": "c023e94c0fe22f6014e9268341c08e0ca2922f5fb4ce9acb1a6b0cf767abb155"
+  },
+  "source_audit": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-source-audit-accepted.json",
+    "bytes": 2121,
+    "sha256": "cd28845c209ca5afd18d42a175c9297ddfb815b9b71871c46b672d9c7e4e2cbe"
+  },
+  "production_census": {
+    "counts": {
+      "all_python_classes": 775,
+      "dataclasses": 348,
+      "protocols": 13,
+      "typed_dicts": 3
+    },
+    "artifact": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-production-class-count-accepted.json",
+      "bytes": 93,
+      "sha256": "fa20c46af256943e667f58610bbce64743152bbb03a111cc0378d2169ddd728f"
+    }
+  },
+  "architecture": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-audit-accepted.json",
+    "bytes": 499,
+    "sha256": "681d69bd95335f6c58d15d2577586580eaf1389139f8bcd3ceec6e4cc162eb15"
+  },
+  "tests": {
+    "default": {
+      "passed": 4045,
+      "skipped": 123,
+      "xfailed": 3,
+      "warnings": 10,
+      "passed_subtests": 49,
+      "seconds": 239.84,
+      "exit_code": 0,
+      "artifacts": {
+        "default-command.json": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/default-command.json",
+          "bytes": 1520,
+          "sha256": "41fd264900e5653ee69cb8590b0c75c8b2f52dcdb26f0d468df0ff0c2d74920c"
+        },
+        "default.log": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/default.log",
+          "bytes": 8735,
+          "sha256": "e362cee194cf7e20279ee9914a734f8412c6e8d2ff428c553092bd53043ccc2d"
+        },
+        "default.xml": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/default.xml",
+          "bytes": 690007,
+          "sha256": "3c3fc45d3ae61556bbf0467a5748dac13e58f4397952808d9626db0847785845"
+        },
+        "runner.py": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/runner.py",
+          "bytes": 4844,
+          "sha256": "d6372771908f3b7a17a8b28f07ae43d8026d2e2d99c3f7dadc2f18770ab1ab8b"
+        }
+      }
+    },
+    "focused_python_matrix": {
+      "scope": "Current-source contracts, 222 tests per version; not an installed-wheel or native ABI rebuild",
+      "versions": [
+        {
+          "version": "3.10",
+          "passed": 222,
+          "seconds": 9.913,
+          "exit_code": 0,
+          "runtime_and_source_origins": {
+            "python": "3.10.20 (main, Aug  7 2026, 02:25:15) [Clang 22.1.3 ]",
+            "executable": "/tmp/hotpot-plan20-20261028/matrix/cp310/env/bin/python",
+            "numpy": "2.2.6",
+            "source_modules": {
+              "core": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core.py",
+              "_fields": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fields.py",
+              "_atom_table": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_atom_table.py"
+            }
+          },
+          "artifacts": {
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/3.10/command.json",
+              "bytes": 3310,
+              "sha256": "b5d949a343641e5a5cbae586903033255be5085e213d1f008c9e3c50484963b9"
+            },
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/3.10/focused.log",
+              "bytes": 3076,
+              "sha256": "32e100fbd62ba44f3b65e7f5c13351c3edf4021cebebd84cfe10122f6208e91b"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/3.10/focused.xml",
+              "bytes": 38513,
+              "sha256": "ee172edbeb7e57ca7fdcf0240fdf56f40b49ebfba6523d3123f36fcf2d300bac"
+            }
+          }
+        },
+        {
+          "version": "3.11",
+          "passed": 222,
+          "seconds": 7.384,
+          "exit_code": 0,
+          "runtime_and_source_origins": {
+            "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+            "executable": "/tmp/hotpot-plan20-env/bin/python",
+            "numpy": "2.4.6",
+            "source_modules": {
+              "core": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core.py",
+              "_fields": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fields.py",
+              "_atom_table": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_atom_table.py"
+            }
+          },
+          "artifacts": {
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/3.11/command.json",
+              "bytes": 3133,
+              "sha256": "0e3f24385138bd80888943671dd66f8b55ebf9a52a9514a06bd84b88fe90dcbb"
+            },
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/3.11/focused.log",
+              "bytes": 3051,
+              "sha256": "1ecc101882e0977eca6b52bc1f4c2001b8af589c75835b71d68a6f08d1284307"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/3.11/focused.xml",
+              "bytes": 38513,
+              "sha256": "46c7626a1d2bb0dccff6e6d7909d36338dda16d2228965e74b536fd7d2066e91"
+            }
+          }
+        },
+        {
+          "version": "3.12",
+          "passed": 222,
+          "seconds": 7.399,
+          "exit_code": 0,
+          "runtime_and_source_origins": {
+            "python": "3.12.13 (main, Aug  7 2026, 02:25:39) [Clang 22.1.3 ]",
+            "executable": "/tmp/hotpot-plan20-20261028/matrix/cp312/env/bin/python",
+            "numpy": "2.5.4",
+            "source_modules": {
+              "core": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core.py",
+              "_fields": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fields.py",
+              "_atom_table": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_atom_table.py"
+            }
+          },
+          "artifacts": {
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/3.12/command.json",
+              "bytes": 3563,
+              "sha256": "37a6be7078ef7a7d31567c033dd05c4cde12e7896d91bddb2618b7cb8e406e67"
+            },
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/3.12/focused.log",
+              "bytes": 3150,
+              "sha256": "6c8a6bd1bad38ea5a8324b932c154ad919125874ac0eaeacb45e4f507ba5696f"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/3.12/focused.xml",
+              "bytes": 38513,
+              "sha256": "d4084d68930358e5cfa524ecfbe05a4d637db6f5fa4e9b1303c5a303b6f42f11"
+            }
+          }
+        },
+        {
+          "version": "3.13",
+          "passed": 222,
+          "seconds": 6.934,
+          "exit_code": 0,
+          "runtime_and_source_origins": {
+            "python": "3.13.15 (main, Aug  7 2026, 02:25:50) [Clang 22.1.3 ]",
+            "executable": "/tmp/hotpot-plan20-20261028/matrix/cp313/env/bin/python",
+            "numpy": "2.5.4",
+            "source_modules": {
+              "core": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core.py",
+              "_fields": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fields.py",
+              "_atom_table": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_atom_table.py"
+            }
+          },
+          "artifacts": {
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/3.13/command.json",
+              "bytes": 3363,
+              "sha256": "66c68d6ec82dfaba1c073e2c8b69da423f7ef04eff2b7f063f7697f9bb022344"
+            },
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/3.13/focused.log",
+              "bytes": 3488,
+              "sha256": "70266facf1f126959a9765d69c596744595304b35b9a3221ed0058daef4af261"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/3.13/focused.xml",
+              "bytes": 38513,
+              "sha256": "2e3bd4c0432414946af15aed4e1ce9dd2fc8be58109c074d40025d5db099fb13"
+            }
+          }
+        },
+        {
+          "version": "3.14",
+          "passed": 222,
+          "seconds": 6.562,
+          "exit_code": 0,
+          "runtime_and_source_origins": {
+            "python": "3.14.7 (main, Aug  7 2026, 02:26:00) [Clang 22.1.3 ]",
+            "executable": "/tmp/hotpot-plan20-20261028/matrix/cp314/env/bin/python",
+            "numpy": "2.5.4",
+            "source_modules": {
+              "core": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core.py",
+              "_fields": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fields.py",
+              "_atom_table": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_atom_table.py"
+            }
+          },
+          "artifacts": {
+            "command.json": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/3.14/command.json",
+              "bytes": 3306,
+              "sha256": "ec1f447bc1a46a9ad57e7174b12c1075efb80814812e25bcc4b1c30895aaab85"
+            },
+            "focused.log": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/3.14/focused.log",
+              "bytes": 3663,
+              "sha256": "e8493a56ddbc7555648b495e876c4bae67300d764bf750289b6b3587c477fae8"
+            },
+            "focused.xml": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/3.14/focused.xml",
+              "bytes": 38513,
+              "sha256": "6cbf2fc15bd2729db8e86873d214f2fa7ceca5a1f5a8e0b0a138f91ca204acfa"
+            }
+          }
+        }
+      ],
+      "commands": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-accepted-candidate/matrix-commands.json",
+        "bytes": 17215,
+        "sha256": "83c32aad4a212fe704412789c37fc00ae7b90a1e51a895d029f2028b1238ea07"
+      },
+      "preparation": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/native-matrix-preparation/record.json",
+        "bytes": 3736,
+        "sha256": "ade1610653566ddfbbea627aaf72f9501a6a75bc0ac1cc7caa1ec9b4f5cdbb7d"
+      }
+    }
+  },
+  "retained_attempts": [
+    {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-validation",
+      "outcome": "3.11 passed209; others205 passed/4 failures: missing matching graph-native extension. Original B20 wheel hashes and unchanged native source checked before environment preparation."
+    },
+    {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-validation-prepared",
+      "outcome": "Prepared source matrix209 per version and default4039 passed; earlier candidate, not final bytes."
+    },
+    {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/identity-metadata-final",
+      "outcome": "Rejected shared-empty StereoPayload optimization: default1 failed/4038 passed. Unique per-Molecule payload restored before final validation."
+    }
+  ],
+  "private_table_measurement": {
+    "scope": "Primitive includes new metadata; old layouts exclude metadata. Not molecular commit/facade acceptance.",
+    "attempts": {
+      "requested": 1560,
+      "completed": 1560,
+      "failed": 0,
+      "not_run": 0
+    },
+    "validation_checks": 39,
+    "artifacts": {
+      "manifest.json": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/performance-identity/table-metadata/manifest.json",
+        "bytes": 6178,
+        "sha256": "e95cfb750a6e84e2b2dfd7adcf7010f523e52c830635a71188374c802c3e8ef2"
+      },
+      "raw_samples.json": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/performance-identity/table-metadata/raw_samples.json",
+        "bytes": 416079,
+        "sha256": "4cf2b0e6625bf6932c4912b1a4e2696d02590c82da188a1fdac43993ac447460"
+      },
+      "summary.json": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/performance-identity/table-metadata/summary.json",
+        "bytes": 45623,
+        "sha256": "95acc083b86432b8e047bd8302bc7db02899cf4d02219101a606e1e8124c0e28"
+      },
+      "validation.json": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/performance-identity/table-metadata/validation.json",
+        "bytes": 4197,
+        "sha256": "1fc01c56b8366766b4d028b28d8a7feceb5e3180db8b4a3acfd0a18f9f9ded07"
+      },
+      "report.md": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/performance-identity/table-metadata/report.md",
+        "bytes": 12086,
+        "sha256": "2a130b49b2819ab84139b328de08ed51bd795c917d51ce0688a10d269ee77b51"
+      },
+      "benchmark_atom_storage.py": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/performance-identity/table-metadata/benchmark_atom_storage.py",
+        "bytes": 27130,
+        "sha256": "abe5815a6ec6c820786a3d3d6851a1ce5a1f31396867a4a3754a89768b2bd721"
+      },
+      "_fields.py": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/performance-identity/table-metadata/_fields.py",
+        "bytes": 2018,
+        "sha256": "4788255ce6361231ac0308e2e003614f839aa64e9fd44fb3e1a778bd2b7fffe6"
+      },
+      "_atom_table.py": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/performance-identity/table-metadata/_atom_table.py",
+        "bytes": 16928,
+        "sha256": "f23d0f3bab4d2e2e5ce2bf22790455cc094a0ebd2a74918607d1d0ec4226e786"
+      }
+    },
+    "observations": "Scalar write11.43–11.66x, scalar read~1.46x; full19 matrix N16/256/4096~0.796/0.209/0.160x; remap~13.84/3.20/2.01x. All unfavorable results retained."
+  },
+  "production_diagnostic": {
+    "scope": "13 frozen B20 workloads only, same interpreter/CPU32/one numeric thread. Sequential baseline then candidate, not interleaved; uncontrolled shared-host load. Final source preserved. No whole-plan acceptance.",
+    "baseline": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/performance-identity/baseline",
+    "final_candidate": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/performance-identity/candidate-final",
+    "comparison": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/performance-identity/comparison-final/comparison.json",
+      "bytes": 76620,
+      "sha256": "936318ec6437803ef229026ce56cd1cc67169117ee19f0114c942886e83a6237"
+    },
+    "report": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage3/performance-identity/comparison-final/comparison.md",
+      "bytes": 4631,
+      "sha256": "a3086cf725fe36387e215d5da89cd5f46ba98f4dc21c5f5a8936c15cd87fed8d"
+    },
+    "unresolved": "construct_8 runtime1.065x (95% CI1.036–1.127); construct_64 inconclusive. Unexecuted workload families inconclusive.",
+    "rejected_optimization": "candidate-refined shared-empty payload violates constructor ownership; its~0.633x constructor result is withdrawn. candidate and candidate-isolated-payload also retained as intermediate attempts."
+  },
+  "public_interfaces": {
+    "atom_matrix": "Approved direct rename of existing atom_attr_matrix; full independent float64 shape(N,19), empty(0,19), no alias; live docs/tests migrated. This follows later explicit rename/no-duplication authorization, not a fresh answer to optional clarification.",
+    "updata_atoms": "Exact approved spelling retained; publication awaits actual closed commit path."
+  },
+  "remaining": [
+    "Production table ownership and all connected legacy writer migration, parent/detached readonly",
+    "Exact complete MoleculeRecord and one-shot factual builder",
+    "Closed molecular commits with presence/source alignment and failure rollback",
+    "Finite dependency declarations, dirty seeds and reads",
+    "Actual scalar/batch/facade scaling and owning-stage Python/wheel/native gates",
+    "No Stage4 entry; no Stage5 lazy chemistry or Stage13 protocol early"
+  ],
+  "github_cadence": {
+    "last_pushed_commit": "40312df7c678dc193a9104248f54819ac1dc062a",
+    "this_checkpoint": "First commit since last push; push after two more commits."
+  }
+}

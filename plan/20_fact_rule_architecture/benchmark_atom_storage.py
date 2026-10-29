@@ -1,8 +1,9 @@
 """Measure Atom storage candidates without importing the Hotpot facade.
 
-The common workload retains all 19 current numeric columns to isolate layout
-cost. It does not decide their final fact/result ownership or measure the new
-identity, presence, source, dependency, transaction, or public projection code.
+The common workload retains all 19 current numeric columns. The optional
+private table also includes its current presence/source bookkeeping; the
+other layouts have no such metadata. Molecular identity, dependency state,
+outer transactions and public projection dispatch remain outside this test.
 """
 
 from __future__ import annotations
@@ -546,6 +547,11 @@ def main():
         "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repository, text=True).strip(),
         "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "private_source_files": private_sources,
+        "private_table_metadata": (
+            "Private table includes its implemented presence/source bookkeeping; "
+            "other layouts have no metadata. Report this added work explicitly."
+            if private_sources else "No private table measured."
+        ),
         "available_cpu_affinity": available_cpus, "measured_cpu_affinity": sorted(os.sched_getaffinity(0)),
         "threads": {name: os.environ[name] for name in THREAD_VARIABLES},
         "shared_load_note": args.shared_load_note, "load_average_before": os.getloadavg(),
@@ -564,11 +570,11 @@ def main():
                          for count, fixture in fixtures.items()},
         "scope": {
             "included": "numeric storage, scalar conversion, independent reads/exports, writes and row remap",
-            "excluded": "Atom handles, chemistry, UID lookup, presence/source/status, commits, native ABI packing and full public API dispatch",
+            "excluded": "Atom handles, chemistry, UID lookup, molecular dependency status/outer commits, native ABI packing and full public API dispatch",
             "dtype_policy": "charge/H/id and other existing non-boolean projections retain float64 storage; no narrow-integer range is approved",
             "memory": "owned NumPy buffers plus Python containers/array headers, deduplicating shared bases; excludes shared field-name strings and caller data",
             "timing": "one complete workload pass; fresh layout construction excluded; repeated operations use one private mutable store",
-            "new_only_costs": "presence/source/status and other absent old mechanisms need separate production measurements",
+            "new_only_costs": "private-table presence/source is included only in that layout; molecular status and other absent old mechanisms need separate production measurements",
         },
     }
     memory = [{"size": count, "layout": name, **_owned_memory(factory(fixture["matrix"]))}
@@ -622,6 +628,7 @@ def main():
         "# Atom storage layout prototype", "",
         "These measurements isolate the same 19-column storage work. They do not",
         "establish production parity or include the new identity/status/commit costs.", "",
+        manifest["private_table_metadata"], "",
         "The full matrix export models the requested atom_matrix property: all 19",
         "columns in float64. Selected-column export is a private/native/model task.", "",
         f"CPU affinity: {args.cpu}; NumPy threads: 1; warmups: {WARMUPS}; samples: {SAMPLES}.",

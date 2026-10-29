@@ -34,6 +34,20 @@ ATOM_SCHEMA = (
 ATOM_FIELDS = tuple(name for name, _ in ATOM_SCHEMA)
 FIELD_INDEX = MappingProxyType({name: index for index, name in enumerate(ATOM_FIELDS)})
 FIELD_CODECS = MappingProxyType(dict(ATOM_SCHEMA))
+FIELD_PRESENCE_BITS = tuple(1 << index for index in range(len(ATOM_FIELDS)))
+ATOM_PRESENCE_ALL = (1 << len(ATOM_FIELDS)) - 1
+ATOM_SOURCE_CODES = MappingProxyType({
+    "default": 0,
+    "explicit": 1,
+    "legacy_array": 2,
+    "rdkit": 3,
+    "openbabel": 4,
+    "ccdc": 5,
+    "mca_dto": 6,
+    "electron_configuration": 7,
+    "valence": 8,
+    "implicit_hydrogens": 9,
+})
 COORDINATE_FIELDS = ("x", "y", "z")
 SCALAR_FIELDS = tuple(name for name in ATOM_FIELDS if name not in COORDINATE_FIELDS)
 FIELD_ADDRESSES = tuple(

@@ -4327,7 +4327,7 @@
       "z_constraint"
     ],
     "dtype": "float64",
-    "alias": "Atom.attrs and the owner-approved Molecule.atom_matrix are independent numeric projections of one table; old atom_attr_matrix rename/alias disposition is separately pending.",
+    "alias": "Atom.attrs and the owner-approved Molecule.atom_matrix are independent numeric projections. The later rename/no-duplication instruction directly renames atom_attr_matrix and migrates consumers without an old-name alias; sole table integration remains Stage3 work.",
     "absence": "Full19-column float64 projection: absent optional selected result -> NaN at Stage7C; explicit zero remains zero. No public field selector or MCA twentieth column; model input encoding remains unchanged.",
     "stage": "Stage3 sole table/isolation; Stage5 migrated constructor removal/derived ownership; Stage7C selected partial-charge owner and missing encoding."
   },
@@ -4374,7 +4374,7 @@
     {
       "id": "A5",
       "signature": "Molecule.atom_matrix: numpy.ndarray (read-only property, independent float64 (N,19))",
-      "status": "owner-approved complete-matrix property on2026-10-28; no fields/dtype parameters; old atom_attr_matrix disposition separately pending",
+      "status": "owner-approved complete-matrix property on2026-10-28; direct rename of atom_attr_matrix under the later naming/no-duplication instruction; no fields/dtype parameters or old alias",
       "reference": "stage1_contract_decisions.md"
     },
     {
@@ -4400,7 +4400,7 @@
     {
       "id": "A4-A5",
       "stage": "Stage3",
-      "required": "Owner accepted updata_atoms and complete19-column float64 atom_matrix property. Reuse one fact/projection implementation; finalize existing atom_attr_matrix disposition and complete Stage3 technical/performance gates.",
+      "required": "Owner accepted updata_atoms and complete19-column float64 atom_matrix property. Directly rename existing atom_attr_matrix, migrate consumers and retain no old alias; complete Stage3 technical/performance gates.",
       "blocks_stage2": false
     },
     {
@@ -4639,7 +4639,8 @@
       "Molecule.atom_matrix"
     ],
     "matrix": "property, complete existing19-column float64 independent array, no fields/dtype parameters",
-    "duplicate_audit": "Existing atom_attr_matrix matches this semantic projection; preserve one implementation, exact old-name disposition pending",
-    "full_reread_evidence": ".plan20-artifacts/20261028/stage3/interface-review-read/read_manifest.json"
+    "duplicate_audit": "Existing atom_attr_matrix matches this semantic projection; directly rename it to atom_matrix, migrate consumers and retain one implementation with no old-name alias",
+    "full_reread_evidence": ".plan20-artifacts/20261028/stage3/interface-review-read/read_manifest.json",
+    "matrix_disposition_basis": "Later owner instruction: 同意新增但是需要改名…Molecule.atom_matrix…检验是否已经有同样事实，切勿重复. This resolves the earlier optional clarification using existing authorization; no new user reply is asserted."
   }
 }

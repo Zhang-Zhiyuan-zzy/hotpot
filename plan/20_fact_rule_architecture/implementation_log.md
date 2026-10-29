@@ -698,3 +698,52 @@ review records and retained failed attempts by SHA256.
 - This checkpoint is the third commit after the last push through `c6bfcd4`,
   following `f9f87da` and `8a7c6a6`; push the implementation branch immediately
   after committing it, then restart the three-commit counter.
+
+### Stage3 member/source identity and private metadata checkpoint
+
+- Read the full current main plan and four normative companions again before
+  this continuation; hashes and complete retained read copies are recorded in
+  `stage3_continuation_review.json`. This checkpoint continues Stage3 only.
+- Molecule owns the lock, opaque owner token and non-reusing Atom/Bond UID
+  high-water marks. Copy/insertion/merge/replacement create local member
+  handles; hidden Bond endpoints and single-Atom transport records survive
+  replacement. Raw fractional/electron slots survive copy/components. The
+  current-version pickle restores the lock and existing topology-index keys.
+- One private `_SourceIdentity(owner, dependencies)` record captures only
+  requested domains; owner-only checks do not hash facts. Legacy writable
+  arrays/writers still bypass the new lock, so concurrent molecular snapshots
+  and result validity are not claimed. Source frame provenance remains Stage7D.
+- The private numeric table adds per-row presence bits and aligned producer
+  codes, preserving explicit zero and numeric/metadata rollback together. It
+  remains a private candidate, not a second authority installed on Molecule.
+  The full production census is775 classes/348 dataclasses/13 Protocols/
+  3 TypedDicts; N01 is the only new record. Architecture debt stays285.
+- The later owner instruction to rename and avoid duplication resolves the
+  earlier matrix clarification: directly rename `atom_attr_matrix` to
+  `atom_matrix`, migrate live docs/tests and retain no old-name alias. It
+  returns an independent complete19-column float64 array, including `(0,19)`
+  for empty input. This uses existing explicit authorization, not a new answer
+  to the optional clarification. `updata_atoms` awaits the closed commit path.
+- Accepted-source final default run: **4045 passed,123 skipped,3 xfailed,
+  49 subtests**,10 warnings,239.84 seconds. Python **3.10–3.14:222 passed per
+  version** on the affected source selection. Hashes bind the exact frozen
+  production bytes. Matching graph binaries were missing in four source
+  environments initially; SHA-verified original B20 wheels supplied unchanged
+  binaries. This is not a new candidate installed-wheel/native build.
+- Retained failed attempts include the missing-binary matrix and a shared-empty
+  StereoPayload optimization that violated per-Molecule payload ownership.
+  Unique payloads were restored before accepted validation. Its earlier
+  approximately0.633x constructor timing is withdrawn as acceptable evidence.
+- The thirteen-workload final B20 diagnostic has small-molecule construction
+  at1.065x (95% CI1.036–1.127); other unmeasured families remain inconclusive.
+  New private metadata writes cost about11.4–11.7x bare-array writes and small
+  remaps about13.8x. Bulk matrix export improves. All attempts are retained;
+  non-interleaved shared-host diagnostics do not establish global acceptance.
+- `stage3_identity_metadata_evidence.json` binds commands, logs, original and
+  final attempts, binary preparation, source audits and performance records.
+  A separate read-only review found no new checkpoint blocker and verified
+  current pickle/deepcopy ownership. Production table/writer cutover, complete
+  factual builder, atomic commits, parent/detached readonly, finite dependency
+  reads and integrated scaling still block Stage3 completion.
+- Last push is`40312df`; this checkpoint is the first subsequent commit.
+  Push after two more commits, without manufacturing commits for cadence.

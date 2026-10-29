@@ -28,8 +28,8 @@ def test_molecule_copy_preserves_graph_without_sharing_atoms() -> None:
     assert cloned is not molecule
     np.testing.assert_array_equal(cloned.link_matrix, molecule.link_matrix)
     np.testing.assert_array_equal(
-        cloned.atom_attr_matrix,
-        molecule.atom_attr_matrix,
+        cloned.atom_matrix,
+        molecule.atom_matrix,
     )
     assert all(
         cloned_atom is not source_atom

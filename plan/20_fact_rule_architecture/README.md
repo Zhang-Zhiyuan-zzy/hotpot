@@ -1,7 +1,7 @@
 # Stage 20 — Fact-Carrier and Rule Architecture
 
 Status: implementation authorized on 2026-10-28; Stage0–4 owning-stage gates complete.
-Stage5 entry is next; final scientific/global efficiency acceptance remains open. All public chemical
+Stage5 is in progress; final scientific/global efficiency acceptance remains open. All public chemical
 types follow a common protocol for fact ownership, interface mapping,
 permissions, dependencies, buffer ownership and lifecycle. Atom's unified
 fact table is one concrete implementation. Stage2 completed the approved dead/placeholder implementation cleanup;
@@ -70,6 +70,31 @@ work completed. This follows the main plan's existing gate scope; it changes no
 final threshold or workload. Stage5 starts with a fresh full normative read and
 project-state assessment. Stage12 global acceptance and the later separately
 branched Stage13 experiment retain their original gates.
+
+## Stage5 in progress
+
+The [independent implementation checkpoint](stages/stage05/review.md) retains
+477 passed/5 pending-public-H exclusions/3 strict xfails and seven bounded
+B20 assignment observations. It is an intermediate known-input checkpoint;
+Stage5 gates remain open. The owner clarified that explicit H counts are
+retained and unspecified counts must be inferred from valence rules. The bounded
+[Sol-max scientific/default design](stages/stage05/hydrogen-defaults/decisions.md)
+is complete, with a final304-pass focused handoff and accepted bounded static
+review. Rebuilt native evidence is retained. The first final five-version source matrix
+failed on the same74 nodes; [bounded corrections](stages/stage05/source-matrix-corrections/report.md)
+now cover those original failures locally. Current Python3.11 default passes4945 tests; the latest63-node consumer correction and matching bounded review/audit pass. Supported-version/native/current-wheel/package and focused performance gates remain open. The earlier optional
+scalar proposal is superseded. The [read contract](stages/stage05/contracts/decisions.md)
+retains historical placeholder display while strict consumers check internal
+readiness; no new public return type or H-to-NaN export is adopted.
+
+[Checkpoint bookkeeping](stages/stage05/bookkeeping/review.md) reconciles the
+current256-entry architecture allowlist and actual776/353/8/2 class/dataclass/
+protocol/TypedDict census. The source ratchet and document-layout audit pass.
+[Validation preparation](stages/stage05/validation-preparation/review.md)
+records the immutable pre-correction snapshot, failed helper notification and
+three local static findings assigned for bounded reproduction/correction.
+No current full-suite, matrix, remote or final performance acceptance is
+inferred from this preparation.
 
 ## Records
 

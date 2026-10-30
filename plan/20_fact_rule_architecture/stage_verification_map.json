@@ -198,7 +198,7 @@
       "planned_contract_test_files": [],
       "additional_requirements": [
         "full default suite, original baseline scientific/technical selection, full Section12 workload measurements",
-        "Supplementary installed-wheel Python3.10\u20133.14 baseline: common_commands.python_matrix_baseline, with all five matching wheels and verified models prepared before timing."
+        "Supplementary installed-wheel Python3.10–3.14 baseline: common_commands.python_matrix_baseline, with all five matching wheels and verified models prepared before timing."
       ],
       "execution_status": "completed; exact commands, outcomes and digests are in stages/stage01/evidence.json and implementation_log.md"
     },
@@ -548,7 +548,7 @@
         "stages/stage04/performance/review.md",
         "stages/stage04/performance/profiling/evidence.json"
       ],
-      "verification_note": "Actual complete Stage3/4 owner/builder/identity/native/pickle/FF/consumer selection plus all DS contracts: Python3.10\u20133.14 each2287 source/175 debug/2157 installed;42 external/scientific skips. Default4585 passed/123 skipped/3 xfailed/49 subtests. Seven unchanged standalone CPP checks and current542-member sdist separate. Focused3+10 benchmarks are valid executed comparisons, not final71-entry approval.",
+      "verification_note": "Actual complete Stage3/4 owner/builder/identity/native/pickle/FF/consumer selection plus all DS contracts: Python3.10–3.14 each2287 source/175 debug/2157 installed;42 external/scientific skips. Default4585 passed/123 skipped/3 xfailed/49 subtests. Seven unchanged standalone CPP checks and current542-member sdist separate. Focused3+10 benchmarks are valid executed comparisons, not final71-entry approval.",
       "default_gate_prerequisite_scope": {
         "reason": "Real default-gate existing DS cache source-content failure on unchanged metadata",
         "affected_source": "hotpot/ds/public/_generation.py",
@@ -627,25 +627,95 @@
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_dependencies.py",
-          "status": "planned_not_created"
+          "status": "existing prior-stage target; Stage5 revisions and final frozen execution evidence pending"
         },
         {
-          "path": "tests/test_cheminfo/structure/test_representation_commit.py",
-          "status": "planned_not_created"
+          "path": "tests/test_cheminfo/structure/test_stage5_bonding.py",
+          "status": "actual settled-contract assertions exist in owning bonding suite; pre-correction checkpoint executed them, new correction/source final gates remain open",
+          "replaces_planned_path": "tests/test_cheminfo/structure/test_representation_commit.py",
+          "covering_nodes": [
+            "test_bonding_input_and_assignment_are_immutable_and_do_not_change_source",
+            "test_aromatic_assignment_rolls_back_atom_bond_and_dependency_changes_together",
+            "test_aromatic_proposal_rejects_changed_inputs_before_any_commit",
+            "test_breaking_imported_aromatic_cycle_retains_facts_and_marks_conflict"
+          ]
         },
         {
           "path": "tests/test_cheminfo/structure/test_interface_permissions.py",
-          "status": "planned_not_created"
+          "status": "existing prior-stage target; Stage5 revisions and final frozen execution evidence pending"
         },
         {
           "path": "tests/test_cheminfo/structure/test_view_identity.py",
-          "status": "planned_not_created"
+          "status": "existing prior-stage target; Stage5 revisions and final frozen execution evidence pending"
         }
       ],
       "additional_requirements": [
-        "Ring immutable transition and coupled assignment; source-aware chemistry; first dirty/read repeated clean/coalesced changes"
+        "Ring immutable transition and coupled assignment; source-aware chemistry; first dirty/read repeated clean/coalesced changes",
+        "Current fact_native readonly ingress and P4 physical-column cutover: rebuild and execute source/debug/current-wheel evidence on Python3.10-3.14; preserve unchanged independent-native closure separately, not old fact-native binary reuse"
       ],
-      "execution_status": "not_executed_by_inventory_capture"
+      "execution_status": "in_progress; first five-version74-failure attempt and superseded five-build/7collection handoff retained. First default4932pass/5fail and second4932pass/12fail retained; final task27 implementation63focusedpass and full current-source default4945pass/123skip/3xfail/49subtests with stable bytes. Matching task28 static/audit PASS. Fresh supported-version source/debug/current-installed-wheel/sdist/focused performance gates remain open.",
+      "additional_affected_contract_test_files": [
+        "tests/test_cheminfo/structure/test_atom_fact_table.py",
+        "tests/test_cheminfo/structure/test_atom_matrix.py",
+        "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+        "tests/test_cheminfo/structure/test_fact_native.py",
+        "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+        "tests/test_cheminfo/test_plan20_outer_cutover.py",
+        "tests/test_cheminfo/graph/test_legacy_graph_api.py",
+        "tests/test_cheminfo/structure/test_stage5_bonding.py",
+        "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py",
+        "tests/test_cheminfo/structure/test_atom_fact_update.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/structure/test_source_identity.py",
+        "tests/test_cheminfo/structure/test_pair_observations.py",
+        "tests/test_cheminfo/test_complexes_build.py",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py",
+        "tests/mca/test_serialization.py",
+        "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+        "tests/benchmarks/coordination_complexes/test_validation_cohort.py",
+        "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py",
+        "tests/test_cheminfo/rdWrappers/test_native_binding.py",
+        "tests/benchmarks/coordination_complexes/test_validation_evidence.py"
+      ],
+      "evidence_records": [
+        "stages/stage05/README.md",
+        "stages/stage05/entry_review.json",
+        "stages/stage05/contracts/decisions.md",
+        "stages/stage05/elements/review.md",
+        "stages/stage05/elements/evidence.json",
+        "stages/stage05/science/review.md",
+        "stages/stage05/science/evidence.json",
+        "stages/stage05/storage-tests/review.md",
+        "stages/stage05/storage-tests/evidence.json",
+        "stages/stage05/review.md",
+        "stages/stage05/rules_checkpoint_evidence.json",
+        "stages/stage05/contracts/bound_fixture.py",
+        "stages/stage05/bookkeeping/review.md",
+        "stages/stage05/bookkeeping/evidence.json",
+        "stages/stage05/validation-preparation/review.md",
+        "stages/stage05/validation-preparation/evidence.json",
+        "stages/stage05/corrections/review.md",
+        "stages/stage05/corrections/evidence.json",
+        "stages/stage05/performance-analysis/review.md",
+        "stages/stage05/performance-analysis/evidence.json",
+        "stages/stage05/hydrogen-defaults/decisions.md",
+        "stages/stage05/hydrogen-defaults/review.md",
+        "stages/stage05/hydrogen-defaults/evidence.json",
+        "stages/stage05/runner-review/report.md",
+        "stages/stage05/runner-review/evidence.json",
+        "stages/stage05/hydrogen-review/report.md",
+        "stages/stage05/hydrogen-review/evidence.json",
+        "stages/stage05/hydrogen-implementation/review.md",
+        "stages/stage05/hydrogen-implementation/evidence.json",
+        "stages/stage05/hydrogen-source-review/report.md",
+        "stages/stage05/hydrogen-source-review/evidence.json",
+        "stages/stage05/gate-evidence-review/report.md",
+        "stages/stage05/gate-evidence-review/evidence.json",
+        "stages/stage05/storage-ingress-review/report.md",
+        "stages/stage05/storage-ingress-review/evidence.json",
+        "stages/stage05/source-matrix-corrections/report.md",
+        "stages/stage05/source-matrix-corrections/evidence.json"
+      ]
     },
     "Stage6": {
       "predecessor": "Stage5",

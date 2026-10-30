@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "stage": "Stage5",
+  "scope": "Independent settled elemental/reference/rule extraction only; full Stage5 gates pending",
+  "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+  "owned_files": {
+    "hotpot/cheminfo/elements.py": "274c61afe45559198c354a6874148edc4c8c3f66e9a1cf3448e5f7067b6bd626",
+    "hotpot/cheminfo/reference/elements.py": "b64367b01abccb2f3059f5d437a6083a2c6235ba8ceda00c63f2d28eb06e6449",
+    "hotpot/cheminfo/rules/chemistry/elements.py": "95bbfe85bd293f0f54dc1412156e6bdead55d94c7da3e1f513e9a3e09023e924",
+    "hotpot/utils/chem/atom.py": "2747de059e5a6d6b372d8f9307e7e76a9348aaf0a853161eca6cdd012e6f7302",
+    "hotpot/cheminfo/rules/chemistry/descriptors/graph_spectrum.py": "405397349fca49b7a88589f5070ab593ea8d48028a92d41a256d8dc7263251ae",
+    "tests/test_cheminfo/test_elements.py": "00a464b9f9b8eb5b87d60765b11142c8069f5611fea9bab4a2a85136e4eeb140"
+  },
+  "actual_equivalence": {
+    "argv": [
+      ".plan20-artifacts/20261029/stage5/elements/compare_values.py"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+    "dirty_source_hashes": {
+      "hotpot/cheminfo/elements.py": "274c61afe45559198c354a6874148edc4c8c3f66e9a1cf3448e5f7067b6bd626",
+      "hotpot/cheminfo/reference/elements.py": "b64367b01abccb2f3059f5d437a6083a2c6235ba8ceda00c63f2d28eb06e6449",
+      "hotpot/cheminfo/rules/chemistry/elements.py": "95bbfe85bd293f0f54dc1412156e6bdead55d94c7da3e1f513e9a3e09023e924",
+      "hotpot/utils/chem/atom.py": "2747de059e5a6d6b372d8f9307e7e76a9348aaf0a853161eca6cdd012e6f7302",
+      "hotpot/cheminfo/rules/chemistry/descriptors/graph_spectrum.py": "405397349fca49b7a88589f5070ab593ea8d48028a92d41a256d8dc7263251ae",
+      "tests/test_cheminfo/test_elements.py": "00a464b9f9b8eb5b87d60765b11142c8069f5611fea9bab4a2a85136e4eeb140"
+    },
+    "interpreter": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+    "version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "environment_overrides": {
+      "LD_LIBRARY_PATH": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib",
+      "PYTHONPATH": "."
+    },
+    "elapsed_seconds": 0.5781779456883669,
+    "results": {
+      "strict_type_and_value_leaf_comparisons": 10190,
+      "public_attributes": 27,
+      "mass_z": "0..118",
+      "electron_z": "0..168",
+      "rule_z": "1..118",
+      "graph_lengths": [
+        0,
+        1,
+        4,
+        5,
+        8
+      ],
+      "status": "passed"
+    },
+    "limits": "Focused Python equivalence; no native, wheel, supported-Python matrix, or performance evidence."
+  },
+  "actual_focused_tests": {
+    "argv": [
+      "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "--import-mode=importlib",
+      "tests/test_cheminfo/test_elements.py",
+      "tests/test_cheminfo/graph/test_legacy_graph_api.py"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "environment_overrides": {
+      "LD_LIBRARY_PATH": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib",
+      "PYTHONPATH": "."
+    },
+    "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+    "dirty_source_hashes": {
+      "hotpot/cheminfo/elements.py": "274c61afe45559198c354a6874148edc4c8c3f66e9a1cf3448e5f7067b6bd626",
+      "hotpot/cheminfo/reference/elements.py": "b64367b01abccb2f3059f5d437a6083a2c6235ba8ceda00c63f2d28eb06e6449",
+      "hotpot/cheminfo/rules/chemistry/elements.py": "95bbfe85bd293f0f54dc1412156e6bdead55d94c7da3e1f513e9a3e09023e924",
+      "hotpot/utils/chem/atom.py": "2747de059e5a6d6b372d8f9307e7e76a9348aaf0a853161eca6cdd012e6f7302",
+      "hotpot/cheminfo/rules/chemistry/descriptors/graph_spectrum.py": "405397349fca49b7a88589f5070ab593ea8d48028a92d41a256d8dc7263251ae",
+      "tests/test_cheminfo/test_elements.py": "00a464b9f9b8eb5b87d60765b11142c8069f5611fea9bab4a2a85136e4eeb140"
+    },
+    "interpreter": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+    "version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "elapsed_seconds": 1.107166973873973,
+    "exit_code": 0,
+    "stdout": "..................                                                       [100%]\n18 passed in 0.57s\n",
+    "limits": "Current-source Python-only element and graph facade tests; stage default, native, wheel, full matrix, and scientific/performance gates remain root-owned."
+  },
+  "artifacts": {
+    "atom.py": {
+      "path": ".plan20-artifacts/20261029/stage5/elements/atom.py",
+      "sha256": "affed55afd0a1dc985d5d2d605187c39956b719250a22b05b175957c0b25c6cf",
+      "bytes": 789
+    },
+    "baseline.json": {
+      "path": ".plan20-artifacts/20261029/stage5/elements/baseline.json",
+      "sha256": "08534589243fdfb0007147f4deb267e952395c17358e591bc585b3b0d911c42a",
+      "bytes": 1175
+    },
+    "baseline.pkl": {
+      "path": ".plan20-artifacts/20261029/stage5/elements/baseline.pkl",
+      "sha256": "be39824093e724d9ca89381f0db42766c38a37692e8f3d39992c9d0163d242cb",
+      "bytes": 45021
+    },
+    "baseline_capture.py": {
+      "path": ".plan20-artifacts/20261029/stage5/elements/baseline_capture.py",
+      "sha256": "ac085c6927db8aee9debd00106d709f862af3e4796adc0cbf2eef97b71570672",
+      "bytes": 2032
+    },
+    "compare_values.py": {
+      "path": ".plan20-artifacts/20261029/stage5/elements/compare_values.py",
+      "sha256": "fd711a9a26cf6522b00214ae318da4987e26ccbe718296bb083127687727369a",
+      "bytes": 3485
+    },
+    "elements.py": {
+      "path": ".plan20-artifacts/20261029/stage5/elements/elements.py",
+      "sha256": "f3c1d91cd3f36e784823b732e54d29e4d57d3c34fbf0603e2281b4e7f1e90470",
+      "bytes": 73880
+    },
+    "equivalence.json": {
+      "path": ".plan20-artifacts/20261029/stage5/elements/equivalence.json",
+      "sha256": "7a8dafc1f12c0c9f7fb5faa8122bb6fcb01fd569373c083cfc87f723569986e7",
+      "bytes": 1603
+    },
+    "extract.py": {
+      "path": ".plan20-artifacts/20261029/stage5/elements/extract.py",
+      "sha256": "10ac4dd59f6cc0dd936fe8c73afa54aab295095d5cd10d078a91a072a509b9df",
+      "bytes": 2443
+    },
+    "focused_tests.json": {
+      "path": ".plan20-artifacts/20261029/stage5/elements/focused_tests.json",
+      "sha256": "34399dd3825d32c6a8613c18b89168677b8adb0f564fc831bcf6a0f902beb831",
+      "bytes": 1681
+    },
+    "focused_tests.stdout": {
+      "path": ".plan20-artifacts/20261029/stage5/elements/focused_tests.stdout",
+      "sha256": "dda573ec46d2d61d847997f3762482e0bb9a232c80d926d72d24270185b97ea3",
+      "bytes": 99
+    },
+    "graph_spectrum.py": {
+      "path": ".plan20-artifacts/20261029/stage5/elements/graph_spectrum.py",
+      "sha256": "1b227f5b9fec02a6e46d46311b93de303b85f7e3436c30eb1e3194d80ea567e3",
+      "bytes": 5400
+    },
+    "handoff.md": {
+      "path": ".plan20-artifacts/20261029/stage5/elements/handoff.md",
+      "sha256": "0189a8cf0d2f6a040f42f79a204228f2efb2cb1f1c760c70ebe02cc088fd0d5b",
+      "bytes": 1786
+    },
+    "original_failures.json": {
+      "path": ".plan20-artifacts/20261029/stage5/elements/original_failures.json",
+      "sha256": "d6a20701b0d41fce378979ff76def845f7c8bc3cb7fff95bc04135fd34d51f5f",
+      "bytes": 1211
+    },
+    "run_checks.py": {
+      "path": ".plan20-artifacts/20261029/stage5/elements/run_checks.py",
+      "sha256": "83bf5de06077aba09366e4aad0bad8a83998cb3c871fd8c5b29eb38879f9693a",
+      "bytes": 1353
+    }
+  },
+  "coverage_limits": [
+    "Worker ran current Python3.11 narrow equivalence/element/graph-facade tests; not a whole-project source freeze.",
+    "Other Stage5 source ownership remains concurrently active. Full default/supported-Python/current-native/current-wheel/scientific/performance evidence must use final coherent frozen bytes.",
+    "Original baseline-probe failures are retained; excerpts came from actual tool transcript, not separately preserved original stdout files.",
+    "No performance result or scientific truth verdict is supplied by the equivalence checks."
+  ]
+}

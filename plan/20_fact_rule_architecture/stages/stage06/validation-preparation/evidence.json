@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "stage": "Stage6",
+  "status": "runner_revision1_blocked_revision2_pending_no_runtime_release",
+  "recorded_utc": "2026-10-30T11:51:40.066600+00:00",
+  "source_commit": "90ff36c2c0b415bb9cf27628265bb4528e425922",
+  "scope": "Validation preparation,static/synthetic runner checks,actual readonlyreview,and historical native supplement only. No currentStage6pytest/build/wheel/SDK/science/performance result.",
+  "preparation": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-preparation/preparation.json",
+    "sha256": "28b24e3ce6c43c804082a9b0bd022f641f9920e9b62a666f35f19c229406cc18"
+  },
+  "runner_revision1": {
+    "capture": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-runners/review-capture.json",
+      "sha256": "b81bb73162a8d1263493c3809694b9c3a3924ac140ea66798a3623d9044c9b12"
+    },
+    "evidence": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-runners/evidence.json",
+      "sha256": "3dd038169ccb9919a8e61d7c93a649957a9fbfa636bb27105edba16baa5e64cd"
+    },
+    "report": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-runners/report.md",
+      "sha256": "70c3a5dc9fe5ef8afb337da77a2ca91645b6d1b52f4e431170d7074488771b99"
+    },
+    "executed_checks": "Two retained standard-library synthetic attempts passed10checks each;deliberately rejected required ordinary skip retained. SDKlookup was readonly;no pytest/runtime command ran."
+  },
+  "primary_review": {
+    "task_id": "p20-s6-runner-review-704283-33",
+    "task_hash": "41da58aebaec5c942ac31b393658f5c0ce22c260688da1af8d9a84e47d81eb37",
+    "source_commit": "90ff36c2c0b415bb9cf27628265bb4528e425922",
+    "diff_or_tree_hash": "b81bb73162a8d1263493c3809694b9c3a3924ac140ea66798a3623d9044c9b12",
+    "identity_encoding": "SHA256of frozenreview-capture.json rawbytes,notGitTree",
+    "exact_turn_id": "01a18c9f-bd67-7aa2-bd85-525d45710052",
+    "substantive_status": "BLOCKED_WITH_MINIMAL_FIXES",
+    "actual_readonly_audit_status": "PASS",
+    "review": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s6-runner-review-704283-33/review-result.txt",
+      "sha256": "e917a8a6048509b0d06ba06b0e376b5f096be712bcb5b17a463f577bda9853e5"
+    },
+    "result": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s6-runner-review-704283-33/result.json",
+      "sha256": "7b57836e5907bb15d6f95bc16e6cab6df3f7f4474d5eda37168aa1aac573c865"
+    },
+    "audit": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s6-runner-review-704283-33/audit-result.json",
+      "sha256": "2def52c763ad912771e649cf2bd59d7c7862d35e689dde4d124fa75e8055ee0c"
+    },
+    "blocking_findings": [
+      "Supplement merge can overwrite prior historical hashes;require exact disjoint attested missing paths.",
+      "Required node selection incorrectly combines native cases into default gating.",
+      "Owner test/support paths lack canonical source/destination containment and explicit support allowance.",
+      "Both SDKABI cases and missing outcomes must be structurally enforced,not assumed.",
+      "Release output/runtime/freeze roots need validation before writes.",
+      "Native closure requires explicitly enumerated reviewed paths or recipe completeness evidence."
+    ]
+  },
+  "root_key_review": {
+    "checked_source_ranges": {
+      "stage6_runner.py": [
+        [
+          68,
+          100
+        ],
+        [
+          116,
+          141
+        ],
+        [
+          234,
+          240
+        ],
+        [
+          323,
+          355
+        ],
+        [
+          380,
+          394
+        ]
+      ],
+      "stage6_observation.py": [
+        [
+          1,
+          118
+        ]
+      ]
+    },
+    "decision": "Accept concrete review findings as correction requirements;runner execution and freeze stay onHOLD.",
+    "qualification": [
+      "The reviewer heading Statisticallysupported describes static inspection only;no statistical or runtime support is inferred.",
+      "SDK pass/missing enforcement is scoped to native-source. Default remains gated without high-compute/external flags,including when an SDKbinding exists.",
+      "Historical supplement was unresolved at the review capture. The later independent Git/provenance task below supplies actual historical proof;code merge guards still require correction."
+    ]
+  },
+  "historical_native_supplement": {
+    "status": "accepted_bounded_historical_recipe_omission_proof_for_future_freeze",
+    "supplement": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/git-management/stage6-native-closure/outputs/historical_native_supplement.json",
+      "sha256": "02f81aeb67c9e99f06914893590c883f5193db4254032915a708a3087023bbda"
+    },
+    "proof": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/git-management/stage6-native-closure/outputs/historical-native-proof.json",
+      "sha256": "ce903f4bbbc38fcc73151ce44802dc70210d216e12343888c5ad13bf888436de"
+    },
+    "handoff": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/git-management/stage6-native-closure/outputs/final-handoff.json",
+      "sha256": "39c82fea53c1e08d991550ce7325544a7bec1bdcc95c13e2655eb049c58800ce"
+    },
+    "report": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/git-management/stage6-native-closure/outputs/report.md",
+      "sha256": "304c63b21b9fb9be76ee1d13a25d0c4a9a5122515da2d8b6a6915c93ece9efb8"
+    },
+    "actual_checks": "13trackedrecipefiles identical at actual B20RD-nativebuild e6082f5,actualStage5fact-nativebuild cac32af6,target90ff36 andcurrentbytes;46Gitcommands/123artifactchecks. FiveRDnativeABIhash chains retained.",
+    "root_key_confirmation": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/root-gate-checks/native-proof-keypoints.json",
+      "sha256": "4d8c45d3452620a24f5a7b15e1f6f32f286a5647c6589961f6c9f3e9b8fb1754"
+    },
+    "root_limit": "Root checked originalcp312sourceidentity andcp313buildprovenance hashes/sourcecommit/lock keys only;did not repeat46Git/123delegatedchecks.",
+    "limits": "Only historical missingrecipe evidence;actual future frozen source/native closure must match. Not a current rebuild or SDKacceptance. Bound temporary originalartifacts must remain available."
+  },
+  "external_sdk": {
+    "status": "two_external_ABI_cases_missing_no_current_frozen_prefix",
+    "lookup": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-runners/sdk-lookup-attempt1/sdk-lookup.json",
+      "sha256": "cfffb18b2271f328abc49c502900e2403bcf9a41c0d92bca5cd0f1a5b08960cc"
+    },
+    "finding": "Eight inspected old installations declare0.5.4.0;currentCMakepackage consumer requests0.5.4.5 EXACT.",
+    "scope": "Source-native local header/recipe tests separate from installedruntime. Freshall-componentSDKbuild not invented asStage6prerequisite;Stage10fullSDKgate staysopen.",
+    "build_executed": false
+  },
+  "next": "Verifier explicitlygpt-6.1-sol/medium owns freshrevision2runneronly. Awaitdelta-only primaryreview+exactturnaudit,finalnewtests/support,reviewednativeclosureinventory and owner-authoredSOURCE_READY before anyruntimecommand.",
+  "stage6_runtime_acceptance": false,
+  "global_science_performance_acceptance": false
+}

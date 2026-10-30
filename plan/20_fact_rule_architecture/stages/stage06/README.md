@@ -8,4 +8,6 @@ Stage6 entry alignment is complete on the verified Stage5 checkpoint `aed86adb60
 
 - [Entry assessment and bounded contract](entry_review.json): current normative/source/predecessor identities, accepted reuse, design ownership, included/excluded work, required validation and rollback boundary.
 
+- [Validation preparation and rejected first runner](validation-preparation/evidence.json): actual synthetic/lookup evidence, task33 substantive blockers and matching readonly audit, accepted bounded historical recipe supplement, missing SDK tier and explicit runtime hold.
+
 Add actual design, execution and gate records here as authorized work produces them. A record's existence does not establish its validation result.

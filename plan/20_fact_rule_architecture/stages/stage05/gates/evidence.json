@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "stage": "Stage5",
+  "recorded_utc": "2026-10-30T11:19:49.797545+00:00",
+  "status": "owning_stage_technical_gates_complete_global_science_and_performance_open",
+  "source_commit": "cac32af6b4001f377cf347f750bf5a73ffe2bea9",
+  "scope": "Settled Stage5implementation/migration/default/affected-contract/package/bounded assignment-report obligations only;no global performance waiver or final-plan acceptance.",
+  "aggregate_review": {
+    "task_id": "p20-s5-aggregate-evidence-review-704283-31",
+    "task_hash": "d41d955bc99548be177ad6b4bfe17a5f02d98d9d4b1949a6f8d03137aa4ff5cb",
+    "source_commit": "cac32af6b4001f377cf347f750bf5a73ffe2bea9",
+    "diff_or_tree_hash": "22a469ef6af9bbeae2d6653b5c5174085a6212cfde33c151475bdf49c70a511b",
+    "exact_turn_id": "01a18c83-0fe9-7c60-9c87-9a0791fd4e1d",
+    "substantive_status": "BLOCKED_WITH_CONCRETE_EVIDENCE_GAPS"
+  },
+  "review_result": {
+    "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-aggregate-evidence-review-704283-31/result.json",
+    "sha256": "71895d5960ba74b932a5da4a6e0d27963f3b41ec73aa4ba7271478c5ffcf1cf5"
+  },
+  "verbatim_review": {
+    "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-aggregate-evidence-review-704283-31/analysis-result.txt",
+    "sha256": "332d0e6407bc0c16b115bd0d7635bcf2904a692ad736f4b01ac96fc6cc224846"
+  },
+  "actual_readonly_audit": {
+    "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-aggregate-evidence-review-704283-31/audit-result.json",
+    "sha256": "2814ff78aaed71dd9315add0276f41caae101b905b7c1054a8cf60f822f24492"
+  },
+  "snapshot_hash_encoding": "diff_or_tree_hash22a469ef… is MATRIX_FREEZE.snapshot_sha256,not a Git tree or archive hash.",
+  "root_key_checks": [
+    {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/root-gate-checks/key-check-attempt1.json",
+      "sha256": "35ec906cd6406b1196a02914d3a24b22a0682ce4786cc4a94f0f58d2b35e1447"
+    },
+    {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/root-gate-checks/clean-read-semantic-check-attempt1.json",
+      "sha256": "f4ba19c6b48c39fde5f627bd4ec84b684a99cfc424af86656a42a32aef46ca80"
+    }
+  ],
+  "technical_obligations": {
+    "implementation": "Element facts/rules,descriptors,valence/H/formal-charge/bond-order/aromatic/Kekule rules and one coupled assignment;Ring writer/cache removal and identity-bound immutable views;source-aware lazy invalidation/read permissions and atomicity are represented by current affected suites.",
+    "default": {
+      "passed": 4945,
+      "ordinary_skipped": 123,
+      "strict_xfailed": 3,
+      "subtests_passed": 49,
+      "warnings": 10,
+      "evidence": "../source-matrix-corrections/evidence.json"
+    },
+    "each_supported_python": {
+      "versions": [
+        "3.10",
+        "3.11",
+        "3.12",
+        "3.13",
+        "3.14"
+      ],
+      "source": {
+        "passed": 2969,
+        "ordinary_skipped": 42,
+        "strict_xfailed": 3,
+        "required_nodes": 1337,
+        "required_passed": 1334,
+        "required_strict_xfailed": 3,
+        "required_ordinary_skipped": 0
+      },
+      "debug": {
+        "passed": 175,
+        "required_nodes": 168,
+        "required_passed": 168
+      },
+      "installed": {
+        "passed": 2837,
+        "ordinary_skipped": 42,
+        "strict_xfailed": 3,
+        "required_nodes": 1335,
+        "required_passed": 1332,
+        "required_strict_xfailed": 3,
+        "required_ordinary_skipped": 0
+      }
+    },
+    "total_matrix_outcomes": {
+      "passed": 29905,
+      "ordinary_skipped": 420,
+      "strict_xfailed": 30,
+      "failures": 0,
+      "errors": 0
+    },
+    "additional_evidence": "All12coordination validation-evidence nodes passed source+installed on each version,120actual executions. Five forced fact_native builds,current-wheel audits/smokes and548-current-member/no.so sdist audited;independent native provenance reused,not all-component clean rebuild.",
+    "scientific_assignment_explanation": "7exact-bound B20aromatic/Kekule observations,0executionerrors/compared differences;90Hconvention cases:84known/6expectedUNRESOLVED;original source/native/input identities retained. Not physical truth or fullO0."
+  },
+  "performance_disposition": {
+    "original_raw_comparator_output_retained": {
+      "counter_equal_entries": 11,
+      "regression": 7,
+      "improved": 3,
+      "parity": 1,
+      "lazy_family_geometric_mean": 4.386663003766647,
+      "claim_status": "Superseded for acceptance:counter equality missed three differing scalar outputs."
+    },
+    "accepted_comparability": {
+      "valid_entries": 8,
+      "regression": 4,
+      "improved": 3,
+      "parity": 1,
+      "noncomparable_entries": [
+        "clean_read_8",
+        "clean_read_64",
+        "clean_read_256"
+      ],
+      "noncomparable_reason": "Baseline output0vs candidate32/256/1024,despite20completedcalls. Frozen semantic requires already-prepared H;fixture did not prepare baseline. Full scalarvalue is excluded from work_counters.",
+      "accepted_lazy_family_geometric_mean": null,
+      "lazy_family_complete": false,
+      "accepted_overall_geometric_mean": null,
+      "graph_family_geometric_mean": 1.8796295808115762,
+      "graph_family_ci95": [
+        1.8689026559483584,
+        1.89210843598039
+      ]
+    },
+    "acceptance": false,
+    "closure_basis": "The Stage5Gate at mainSection10 requires technicalchemistry/SMARTS/transport,Ring/coupledatomicity,lazystatus,onetime materialization,full default and assignment report. Section12.2performanceacceptance remains separately blocked and Stage12 owns fullglobal parity. No local or global threshold/membership/weight/denominator changed."
+  },
+  "remaining_global_gates": [
+    "Stage3runtime and retained-memory debt;valid write_read13.104/9.925/9.379and graph/view3.510regressions;repair or explicitly classify clean-read comparability before full frozen-work acceptance.",
+    "All71workloads,complete family/end-to-end CPU/GPU and overall RSS/memory parity;no all11or overall result inferred from this subset.",
+    "Full187-source O0,seeds42/43/44,per-case/per-seed monitoring,dynamic eligibility and integrated Plan12 current-source functional/scientific acceptance.",
+    "Stage7C/8Aassigned diagnostics and concrete public result-contract decisions;unsupported imported-H normalization remains an unapproved separate proposal.",
+    "Stage10clean all-component native/SDK/source+sdist installation and final package closure;Stage12full architecture/type/contract/docs acceptance.",
+    "Verified,committed main-scopeB_exp before separately branched Stage13A/D_exp then Stage13B/I_exp."
+  ],
+  "git_delivery": {
+    "path": "/tmp/codex-stage4-bridge-01a18583/git-management/release-execution/final-handoff.json",
+    "sha256": "f1cfdbd096b168bb77cc6c5d9d17b7b4b75a16cc0c1010f2c825bf7d546e9919"
+  },
+  "current_record_checks": {
+    "record_layout": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/root-record-layout-attempt2/report.json",
+      "sha256": "0031190dbe30ffd10e865aae73b7ee7f46b711d74c8e3cfbd0c3c646abc20288"
+    },
+    "command": [
+      "python3",
+      "plan/20_fact_rule_architecture/audit_stage_records.py",
+      "--check-migration-bytes",
+      "--output",
+      ".plan20-artifacts/20261030/stage5/root-record-layout-attempt2/report.json"
+    ],
+    "result": "passed:58Markdown/53JSON/112indexed;19historicalJSON/9Markdown identities and original log prefix retained.",
+    "scope": "Final Stage5 gate/index paths and layout. The subsequently added task32 handoff and this binding alter record contents only; no implementation/test/science/performance acceptance is inferred.",
+    "source_test_native_changes": "None; source remains the validated cac32af6 snapshot.",
+    "git_diff_check": "passed before this record-binding append; final release check is separate."
+  }
+}

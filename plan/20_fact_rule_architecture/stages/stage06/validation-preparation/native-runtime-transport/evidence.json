@@ -1,0 +1,186 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_NATIVE_RUNTIME_TRANSPORT_MECHANISM_SOURCE_READY_RUNTIME_HELD",
+  "owner": "/root/stage6_validation",
+  "model": "gpt-6.1-sol",
+  "effort": "medium",
+  "reason": "The only released production/native143 inventory overlap is a packaged Python runtime transport module. Actual setup/CMake/native readers do not compile it. Keep the full exact owner-tree inventory while qualifying the one authorized Python adapter rewire separately from unchanged native/build inputs.",
+  "diagnosis": {
+    "path": ".plan20-artifacts/20261030/stage6/source-ready-support/native-closure-overlap/diagnosis-attempt1/evidence.json",
+    "sha256": "0398c05b131720e59146055e6a2306cc99e5256c3a97cf5c89fcfa5d9a5238ca",
+    "bytes": 40909
+  },
+  "diagnosis_report": {
+    "path": ".plan20-artifacts/20261030/stage6/source-ready-support/native-closure-overlap/diagnosis-attempt1/report.md",
+    "sha256": "617c62d3f5f69f3897499e7a2f0b042a48832ef73c7e58efd60579df0439764c",
+    "bytes": 4205
+  },
+  "predecessor_helpers": {
+    "stage6_runner.py": {
+      "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/stage6_runner.py",
+      "sha256": "b04aca859f2150b1b9eb8fecb34b75ae972237f57d83144907a5035e1fd1c272",
+      "bytes": 24580
+    },
+    "stage6_policy.py": {
+      "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/stage6_policy.py",
+      "sha256": "e31c829bdf3959ee5d643bec1274c7e2c441e6d3cad8a59109c057dc295df553",
+      "bytes": 9024
+    },
+    "stage6_observation.py": {
+      "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/stage6_observation.py",
+      "sha256": "607e24e2fe320c6d919f3769ea35bb1e5f5e1169236fd6bf179a1aacdf9fef38",
+      "bytes": 8522
+    },
+    "test-support-allowlist.json": {
+      "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/test-support-allowlist.json",
+      "sha256": "73e5f63f916813967830e8e08a436b648e7e9e87a39f4a36ddf5d5cbbbd232b6",
+      "bytes": 882
+    },
+    "native-closure-inventory.json": {
+      "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/native-closure-inventory.json",
+      "sha256": "a2c35a8023986b5d7d2eb58df73f9e67d5d29510e6dc8d507db1b0cc33e5ea9c",
+      "bytes": 10666
+    }
+  },
+  "retained_predecessor_directory": ".plan20-artifacts/20261030/stage6/validation-runners/revision3",
+  "new_output_directory": ".plan20-artifacts/20261030/stage6/validation-runners/revision4",
+  "exact_packaged_runtime_transport_owner": "hotpot/cheminfo/_native/buffers.py",
+  "historical_stage5_sha256": "a916c72a5872c59e19a07de0443aca557f97adec287305682cdd45cd67c9a9d2",
+  "candidate_identity": "UNSET_AUTHOR_HANDOFF_AND_FINAL_ROOT_SOURCE_READY_REQUIRED; diagnostic60202219 is transient only",
+  "source_review_boundary": "Only accepted contract import relocation, payload-accessor import and accessor call rewire; final author source must be reviewed independently. No buffer schema/dtype/container/native encoding or ABI change is authorized.",
+  "authorized_helper_delta": [
+    "Copy accepted revision3 helper set into fresh revision4; preserve revision3 and all historical runner evidence unchanged.",
+    "Keep native-closure-inventory.json all143 paths and both historical/current membership checks byte-identical; retain new/missing/suffixless path rejection.",
+    "Use one closed, literal packaged-runtime role for exactly hotpot/cheminfo/_native/buffers.py. Keep historical hash intact; require final root SOURCE_READY to bind its exact candidate hash plus this frozen qualification. No caller-supplied skip/changed-file list, suffix rule, generic path override or silent fallback.",
+    "Require all142 other inventory members byte-identical to accepted historical source and all current native binaries unchanged. Preserve per-version historical source/build attestation and SDK/default policies.",
+    "Expose historical and final runtime-transport identities separately from strict unchanged-native/build inputs in freeze and wheel provenance; never label the Python adapter unchanged.",
+    "Keep final full-source snapshot/drift guard, current wheel Python member equality and installed source/member origin attribution for this exact owner. Preserve all46 source/installed runtime paths, three native-source paths and the one installed source-audit deselection.",
+    "Preserve exact12support paths and installed MCA origin mechanism. No source/test/build/package/runtime edits or execution."
+  ],
+  "required_targeted_checks": [
+    "Exact143 inventory partition:142 strict plus singleton runtime owner; known historical bytes remain bound.",
+    "Changed strict inputs/native binaries and missing/new/suffixless inventory members reject on either historical/current side.",
+    "Unknown/multiple runtime-role paths, malformed/unknown hash records, unbound qualification and generic exemptions reject.",
+    "Correct singleton candidate binding accepts synthetic closed role only; candidate hash mismatch and postfreeze runtime-owner drift reject.",
+    "Actual source freeze and current wheel-member/installed-origin guard remain on the singleton owner; synthetic mismatch rejected without importing Hotpot/pytest or spawning subprocesses.",
+    "AST comparison confirms unchanged selection, per-tier default/SDK logic, historical attestation, native equality, support/MCA protection outside the narrow correction."
+  ],
+  "required_future_runtime_evidence": [
+    "tests/test_cheminfo/test_native_molecule_buffers.py",
+    "tests/test_cheminfo/test_stereo_level1_native_packing.py",
+    "tests/test_cheminfo/structure/test_buffer_ownership.py",
+    "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py",
+    "tests/test_cheminfo/native_cpp/test_molecule_buffer_view.py",
+    "tests/test_cheminfo/rdWrappers/native_cpp/test_rdwrapper_api.py",
+    "Full affected46file source/installed matrix Python3.10-3.14 and3.11default plus accepted extraction/packing/concurrency/cost gates"
+  ],
+  "allowed_writes": [
+    ".plan20-artifacts/20261030/stage6/validation-runners/revision4"
+  ],
+  "prohibited": [
+    "Production/tests/root-maintained-record or Git mutations",
+    "Candidate Hotpot imports,pytest collection/tests,build/install/wheelassembly/native probes",
+    "Remote/environment/config/model/bridge changes",
+    "Broad old123/53/32check reruns without new reason"
+  ],
+  "review_required": "Root critical delta review before selecting revision4; task38 may include the exact qualified helper delta. This release is not SOURCE_READY, runtime/native compatibility, stage acceptance or a Stage10/global waiver.",
+  "execution_authorized": false,
+  "original_release": {
+    "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/root-release-before-acceptance.json",
+    "sha256": "b8bd1cb9e920ff6e79403e8c6ff5381adbf2c4c39459b1caeafb4b63f05d7441",
+    "bytes": 6651
+  },
+  "root_critical_review": {
+    "scope": "Read all three exact Python helper diffs and both actual targeted-result records; no synthetic rerun, duplicate broad audit or candidate execution.",
+    "inspected": [
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/evidence.json",
+        "sha256": "847915d6df0a2e4bd8c5cdaef894fb08cb72a81bd24c7256dbf2018e4f056187",
+        "bytes": 4433
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/review-capture.json",
+        "sha256": "9c97d158975bf9d8373d55d6136545e4b63a0634535c48f47064bba2db9812a5",
+        "bytes": 7909
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/report.md",
+        "sha256": "f577e95fd8dba36281df40ba6271e63e2ffe52bf58733a3f5638078b3f8ac6f8",
+        "bytes": 3803
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/correctness-attempt1/stage6_policy.py.diff",
+        "sha256": "bc07ddd5a1ad130187e2efc603e5412475a4c66c5b5a9b79b8ecddeb4a53bd64",
+        "bytes": 2387
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/correctness-attempt1/stage6_runner.py.diff",
+        "sha256": "546d59a508efb64d0c48b29786f0434a44c6677c6f6893885ceb3ad1bfd841ce",
+        "bytes": 4738
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/correctness-attempt1/stage6_observation.py.diff",
+        "sha256": "582420a0e26e2081468172b1534378288b45c682591cce5958bb0260a54b00a9",
+        "bytes": 2973
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/correctness-attempt1/checks.json",
+        "sha256": "29d41478e3f86972819fff23082b879cccca3151da8f8e0ebe9eb80ea48f88e6",
+        "bytes": 19978
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/correctness-supplement-attempt1/checks.json",
+        "sha256": "c0cdc20b1b96cecd0005ee282f90c2c0b9f73acb55afe60f01b2e324a6107cc6",
+        "bytes": 3950
+      }
+    ],
+    "actual_keypoints": [
+      "Literal singleton buffers.py role; exact four-key request, fixed historical hash and frozen root qualification, final candidate64hex must match fullsnapshot. Unknown or multiple owner records reject.",
+      "Both inventory_paths checks remain; exact143inventory/owner trees/explicit files unchanged; strict142map returned separately,allnative.so equality and perversion historical attestations retained.",
+      "Prepare verifies actual qualificationbytes and includes externalbinding; assert_freeze compares fullsnapshot and runtime binding before/after commands.",
+      "Wheel provenance labels adapter as qualified runtime transport,not unchangednative; existing allcurrentPython and nativereshash checks retained.",
+      "Observer receives frozen binding, checks canonicalsource/installed path+loadedmodule bytes and exactcurrentwheel member; mismatch invalidates evidence.",
+      "Selection/default/SDK/12support/MCA guards remain; suppliedAST preservation evidence supports this bounded delta only."
+    ],
+    "accepted_helpers": [
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/stage6_runner.py",
+        "sha256": "aca4a00ee35c0188e80c5bd496bcf65595110ea575d169b62098732a8236de49",
+        "bytes": 25199
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/stage6_policy.py",
+        "sha256": "ae0254ca10ac7b7af14b1afb1c22bcf4a9027c009338dec9f36888911b34e634",
+        "bytes": 10417
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/stage6_observation.py",
+        "sha256": "125b39ee2b2e5baaffb9328fb825207b5b1ef63bd8c2711a0669336b60beaeef",
+        "bytes": 10157
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/test-support-allowlist.json",
+        "sha256": "73e5f63f916813967830e8e08a436b648e7e9e87a39f4a36ddf5d5cbbbd232b6",
+        "bytes": 882
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/native-closure-inventory.json",
+        "sha256": "a2c35a8023986b5d7d2eb58df73f9e67d5d29510e6dc8d507db1b0cc33e5ea9c",
+        "bytes": 10666
+      }
+    ],
+    "checks": "Supplied34+8newedgecases=42passed/0failed/0skipped in two rc0 stdlib attempts. Root inspected,not rerun. Synthetic ZIP is not built/installed wheel.",
+    "decision": "Select revision4 as eventual SOURCE_READY runner; include bounded mechanism/support identities in task38. Final buffers source review,candidate identity,source-ready and actual compatibility remain required."
+  },
+  "document_layout_check": {
+    "path": "/tmp/p20-stage6-native-runtime-record-layout.json",
+    "sha256": "d0ceb4689ada918b4f0461f235758909f4c6fb144325694ec1d3b575d1860a01",
+    "actual_argv": [
+      "python3",
+      "plan/20_fact_rule_architecture/audit_stage_records.py",
+      "--output",
+      "/tmp/p20-stage6-native-runtime-record-layout.json"
+    ],
+    "returncode": 0,
+    "result": "69Markdown/65JSON/135indexed assets;0errors;navigation only, no runtime acceptance"
+  }
+}

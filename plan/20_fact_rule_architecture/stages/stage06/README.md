@@ -17,4 +17,6 @@ Stage6 entry alignment is complete on the verified Stage5 checkpoint `aed86adb60
 
 - [Connected installed support delta](validation-preparation/connected-support/review.md) and [exact scope/evidence](validation-preparation/connected-support/evidence.json): four bound support additions and installed MCA origin binding; revision3 mechanism accepted after32targeted checks/root delta review, SOURCE_READY/runtime pending.
 
+- [Packaged runtime transport qualification](validation-preparation/native-runtime-transport/review.md) and [exact release/evidence](validation-preparation/native-runtime-transport/evidence.json): retain native143 inventory,142unchanged inputs and all native binaries; exact Python buffer-owner candidate identity remains separately bound. Revision4 mechanism accepted after42targeted checks/root delta review; final candidate identity and SOURCE_READY/runtime remain held.
+
 Add actual execution and gate records here as authorized work produces them. A record's existence does not establish its validation result.

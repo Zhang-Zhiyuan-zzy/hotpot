@@ -865,12 +865,13 @@
       "entry_evidence": "stages/stage06/entry_review.json",
       "validation_preparation": {
         "path": ".plan20-artifacts/20261030/stage6/validation-preparation/preparation.json",
-        "status": "Static runner-r2 review/audit retained; root accepts narrow revision3 support delta with32targeted checks. SOURCE_READY/candidate execution remains held.",
+        "status": "Static runner-r2 review/audit and accepted revision3 support retained; root accepts bounded revision4 singleton runtime-transport qualification after42targeted checks. Final candidate identity and SOURCE_READY/candidate execution remain held.",
         "limits": "Source-only native header/recipe tier separate from installedruntime;two external SDK ABIcases lack frozenbinding;ordinaryrequiredskipsremainmissingevidence.",
-        "selected_runner_revision": 3,
-        "selected_runner": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/stage6_runner.py",
-        "selected_runner_sha256": "b04aca859f2150b1b9eb8fecb34b75ae972237f57d83144907a5035e1fd1c272",
-        "connected_support_evidence": "stages/stage06/validation-preparation/connected-support/evidence.json"
+        "selected_runner_revision": 4,
+        "selected_runner": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/stage6_runner.py",
+        "selected_runner_sha256": "aca4a00ee35c0188e80c5bd496bcf65595110ea575d169b62098732a8236de49",
+        "connected_support_evidence": "stages/stage06/validation-preparation/connected-support/evidence.json",
+        "native_runtime_transport_qualification": "stages/stage06/validation-preparation/native-runtime-transport/evidence.json"
       },
       "design_evidence_records": [
         "stages/stage06/contracts/review.md",

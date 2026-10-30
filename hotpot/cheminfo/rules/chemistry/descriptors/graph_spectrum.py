@@ -7,6 +7,7 @@ import numpy as np
 from hotpot.utils import types
 
 from hotpot.cheminfo.rules.mathematics.graph.matrix import adj2laplacian
+from hotpot.cheminfo.rules.chemistry.elements import _fill_electron_shell
 
 
 __all__ = (
@@ -18,35 +19,7 @@ __all__ = (
 
 
 def calc_electron_config(atomic_number: int, length: int = 4) -> (int, list):
-    shells = [
-        [2],
-        [2, 6],
-        [2, 6],
-        [2, 10, 6],
-        [2, 10, 6],
-        [2, 14, 10, 6],
-        [2, 14, 10, 6],
-        [2, 18, 14, 10, 6],
-    ]
-    conf = []
-    _atomic_number = atomic_number
-
-    n = 0
-    l = 0
-    while _atomic_number > 0:
-        if l >= len(shells[n]):
-            n += 1
-            l = 0
-            conf = []
-
-        if _atomic_number - shells[n][l] > 0:
-            conf.append(shells[n][l])
-        else:
-            conf.append(_atomic_number)
-
-        _atomic_number -= shells[n][l]
-        l += 1
-
+    n, _, conf = _fill_electron_shell(atomic_number)
     return n, conf + [0] * (length - len(conf))
 
 

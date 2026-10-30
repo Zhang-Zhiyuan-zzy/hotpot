@@ -3124,7 +3124,8 @@ class Atom(MolBlock):
 
     @property
     def group(self):
-        return self.elements.Z_TO_GROUP[self.atomic_number]
+        from .rules.chemistry.elements import _group
+        return _group(self.atomic_number)
 
     @property
     def polar_hydrogen_site(self) -> bool:
@@ -3313,35 +3314,13 @@ class Atom(MolBlock):
 
     @property
     def exact_mass(self):
-        """
-        Returns the exact mass of the element based on its atomic number.
-
-        The exact mass refers to the precise mass of the most abundant 
-        isotope of the element, calculated directly. The value is derived 
-        from the atomic number associated with the element.
-
-        Returns
-        -------
-        float
-            The exact mass of the element based on its atomic number.
-        """
-        return ob.GetExactMass(self.atomic_number)
+        from .rules.chemistry.elements import _exact_mass
+        return _exact_mass(self.atomic_number)
 
     @property
     def electronegativity(self) -> Optional[float]:
-        """
-        Return the electronegativity of the element.
-
-        The electronegativity of an element is a measure of its tendency to attract
-        and bond with electrons. This property is dependent on the element's atomic 
-        number and is based on predefined values from the elements data.
-
-        @return: The electronegativity value of the element or None if the value
-        is not defined.
-
-        @rtype: Optional[float]
-        """
-        return self.elements.electronegativity[self.atomic_number]
+        from .rules.chemistry.elements import _electronegativity
+        return _electronegativity(self.atomic_number)
 
     @property
     def explicit_hydrogens(self) -> int:
@@ -3359,29 +3338,13 @@ class Atom(MolBlock):
 
     @property
     def covalent_radius(self) -> float:
-        """
-        This property retrieves the covalent radius of an atom based on its 
-        atomic number, utilizing pre-stored data for elements' covalent radii.
-
-        Returns
-        -------
-        float
-            The covalent radius of the atom in appropriate units.
-        """
-        return self.elements.covalent_radii[self.atomic_number]
+        from .rules.chemistry.elements import _covalent_radius
+        return _covalent_radius(self.atomic_number)
 
     @property
     def density(self) -> float:
-        """
-        Calculate and return the density of an element based on its atomic number 
-        and the associated density values stored in the elements object.
-
-        Attrs:
-            density (float): The density of the element retrieved using the
-            element's atomic number. This property fetches the corresponding
-            density value from the elements object's density mapping.
-        """
-        return self.elements.density[self.atomic_number]
+        from .rules.chemistry.elements import _density
+        return _density(self.atomic_number)
 
     @property
     def hyb(self) -> int:
@@ -3485,51 +3448,28 @@ class Atom(MolBlock):
 
     @property
     def is_lanthanide(self):
-        return self.atomic_number in elements.lanthanides
+        from .rules.chemistry.elements import _is_lanthanide
+        return _is_lanthanide(self.atomic_number)
 
     @property
     def is_actinide(self):
-        return self.atomic_number in elements.actinides
+        from .rules.chemistry.elements import _is_actinide
+        return _is_actinide(self.atomic_number)
 
     @property
     def is_noble_gases(self):
-        """
-        A property that checks if the current atom is a noble gas.
-
-        This property evaluates the atomic number of the atom and determines whether
-        it belongs to the set of noble gases.
-
-        Returns:
-            bool: True if the atomic number corresponds to a noble gas, False otherwise.
-        """
-        return self.atomic_number in Atom.elements.noble_gases
+        from .rules.chemistry.elements import _is_noble_gas
+        return _is_noble_gas(self.atomic_number)
 
     @property
     def is_halogens(self):
-        """
-        Check if the atom is a halogen element based on its atomic number.
-
-        Atoms with atomic numbers found in the predefined halogens list will return
-        True for this property. Halogens are a group of elements with specific
-        chemical properties.
-
-        Returns:
-            bool: True if the atom is a halogen, otherwise False.
-        """
-        return self.atomic_number in Atom.elements.halogens
+        from .rules.chemistry.elements import _is_halogen
+        return _is_halogen(self.atomic_number)
 
     @property
     def is_metal(self):
-        """
-        Determine if the element is a metal based on its atomic number.
-
-        This property checks whether the element, characterized by its atomic
-        number, belongs to the set of elements classified as metals.
-
-        Returns:
-            bool: True if the element is a metal, otherwise False.
-        """
-        return self.atomic_number in self.elements.metal
+        from .rules.chemistry.elements import _is_metal
+        return _is_metal(self.atomic_number)
 
     @property
     def label(self) -> str:
@@ -3573,20 +3513,8 @@ class Atom(MolBlock):
 
     @property
     def mass(self):
-        """
-        Gets the mass of an object based on its atomic number.
-
-        @property
-            A read-only attribute that calculates and returns the mass
-            of the current object using the provided atomic number.
-
-        Raises:
-            ValueError: If the atomic number is invalid or out of range.
-
-        Returns:
-            float: The calculated mass of the object.
-        """
-        return ob.GetMass(self.atomic_number)
+        from .rules.chemistry.elements import _mass
+        return _mass(self.atomic_number)
 
     @property
     def mol(self) -> Molecule:
@@ -4019,7 +3947,8 @@ class Atom(MolBlock):
         Returns:
             str: The chemical symbol associated with the element's atomic number.
         """
-        return self.elements.symbols[self.atomic_number]
+        from .reference.properties import _ELEMENT_SYMBOLS
+        return _ELEMENT_SYMBOLS[self.atomic_number]
 
     @symbol.setter
     def symbol(self, value: str):
@@ -4036,7 +3965,8 @@ class Atom(MolBlock):
             Args:
                 value: A string representing the chemical symbol of the element.
         """
-        self.atomic_number = self.elements.symbols.index(value)
+        from .reference.properties import _ELEMENT_SYMBOLS
+        self.atomic_number = _ELEMENT_SYMBOLS.index(value)
 
     @property
     def vector(self) -> np.ndarray:

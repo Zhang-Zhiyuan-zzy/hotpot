@@ -257,5 +257,20 @@
       "Scientific two_s/multiplicity remains distinct from backend UHF. Retained hard-inadmissible candidates may carry attribution while being excluded from composition."
     ],
     "implementation_status": "Open; Sol-max decides critical contract boundaries at the owning stages. Reuse this accepted inventory rather than repeat a full analysis."
+  },
+  "source_consumer_gap_inventory": {
+    "task_id": "p20-state-result-consumer-gap-inventory-704283-37",
+    "revision": 1,
+    "task_hash": "447ea0ec46c752938309b37f11ad733758a25dd1c16a598083282bbbecaf021e",
+    "source_commit": "979455ed8bada61f4d44038935e7f02c1b204c86",
+    "diff_or_tree_hash": "b862f1106d8fed488038dba4112dd0118f712d29c998f398b06287b27ec0e665",
+    "exact_turn_id": "01a18ccd-234f-7490-9f48-aed26bb8c628",
+    "status": "AUDIT_PASSED",
+    "substantive_status": "PREENTRY_GAP_INVENTORY_ONLY",
+    "maintained_review": "stages/stage07/preentry-results/review.md",
+    "sha256": "dc0f0fc977bc9fb2c8bd01c467629caccc863ca98ae27ab91751827c3986168c",
+    "maintained_evidence": "stages/stage07/preentry-results/evidence.json",
+    "mandatory_rebind": "After preceding source/import moves and before Stage7C/8A design ownership, rebind exact changed source/import graph, consumer bodies and complete source/installed-wheel selections. Reuse unchanged accepted task30/task37 coverage rather than repeat it.",
+    "scope_limit": "Remaining supplied bodies and repo-wide discovery indexes; no complete dynamic/external consumer coverage, schema/public-role decision, stage entry or implementation authorization."
   }
 }

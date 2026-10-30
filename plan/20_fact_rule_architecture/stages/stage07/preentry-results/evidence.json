@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "stage_owners": [
+    "Stage7C",
+    "Stage8A"
+  ],
+  "status": "accepted_PREENTRY_GAP_INVENTORY_ONLY_not_entry_or_design",
+  "recorded_utc": "2026-10-30T12:39:33.883954+00:00",
+  "task": {
+    "task_id": "p20-state-result-consumer-gap-inventory-704283-37",
+    "revision": 1,
+    "task_hash": "447ea0ec46c752938309b37f11ad733758a25dd1c16a598083282bbbecaf021e",
+    "source_commit": "979455ed8bada61f4d44038935e7f02c1b204c86",
+    "diff_or_tree_hash": "b862f1106d8fed488038dba4112dd0118f712d29c998f398b06287b27ec0e665",
+    "exact_turn_id": "01a18ccd-234f-7490-9f48-aed26bb8c628"
+  },
+  "substantive": {
+    "status": "PREENTRY_GAP_INVENTORY_ONLY",
+    "verbatim_review": "review.md",
+    "bytes": 16879,
+    "sha256": "dc0f0fc977bc9fb2c8bd01c467629caccc863ca98ae27ab91751827c3986168c",
+    "scope": "Remaining state/result producer/control/serialization/pipeline/recovery/MCA/partial-charge/CBond consumers beyond accepted task30. No repeated task30 bodies, Stage6/stage7A/stage7B engines or scientific execution."
+  },
+  "actual_turn_audit": {
+    "task_id": "p20-state-result-consumer-gap-inventory-704283-37",
+    "revision": 1,
+    "task_hash": "447ea0ec46c752938309b37f11ad733758a25dd1c16a598083282bbbecaf021e",
+    "source_commit": "979455ed8bada61f4d44038935e7f02c1b204c86",
+    "diff_or_tree_hash": "b862f1106d8fed488038dba4112dd0118f712d29c998f398b06287b27ec0e665",
+    "exact_turn_id": "01a18ccd-234f-7490-9f48-aed26bb8c628",
+    "reviewer_thread_id": "01a186e8-89de-7791-8969-98b64ab572c3",
+    "communication_owner": "01a18b0c-e0c4-7641-aeaa-c34444b3cad9",
+    "verification_code": "704283",
+    "status": "PASS",
+    "reported_status": "AUDIT_PASSED",
+    "historical_snapshot_identity_preserved": true,
+    "actual_context": {
+      "line": 1544,
+      "timestamp": "2026-10-30T12:33:55.331Z",
+      "sha256": "bac43551064ec8d64a37a57da5094c3c65825e17e29ddaae005a403a27681019"
+    },
+    "actual_range": {
+      "lines": "1540-1564",
+      "sha256": "2ba400a30f836f3e095b2f43b2fb42366bc6ab651c9464bab91141562b8ff168"
+    },
+    "actual_sandbox": "read-only; network restricted; managed/restricted; root read; write-capable entries0",
+    "approval_policy": "on-request",
+    "cwd": "/home/zhangzhiyuan",
+    "model": "gpt-5.6-sol",
+    "effort": "xhigh",
+    "tools": 0,
+    "commands": 0,
+    "delegation": 0,
+    "task_complete": 1,
+    "assistant_final_completed": 1,
+    "item_completed": 8,
+    "exact_identities_match": true,
+    "transport_root_thread_id": "01a18583-f506-71f2-81c9-a66ca32e3561"
+  },
+  "archive": {
+    "root": "/tmp/codex-stage4-bridge-01a18583/p20-state-result-consumer-gap-inventory-704283-37",
+    "audit_json_sha256": "294c3769909584b39348dca37e700472a3e70e0ec6f55695aadd701f2956a456",
+    "result_json_sha256": "81d15e1633f8782239dca4cf43050d6f5c659d7a5540059ef337bd822ca38a76",
+    "transport_is_separate": true,
+    "audit_or_review_repeated": false
+  },
+  "root_key_review": {
+    "actual_inspection": [
+      "hotpot/pipeline/state_recovery.py:1-124",
+      "hotpot/cheminfo/calculator/mca_inference.py:1-39",
+      "hotpot/pipeline/artifacts.py:38-105",
+      "stages/stage01/contracts/decisions.md existing partial-charge/D01 references"
+    ],
+    "accepted_bounded_findings": [
+      "Current recovery returns STOP on every supplied path; future continuation/integration remains unproven.",
+      "MCA attachment currently stores exact payload in properties and copied Atom/_mca_sites values; immediate access tests are not full lifecycle/currentness evidence.",
+      "Pipeline payload hash intentionally selects reduced state fields; full decision-snapshot durability/currentness needs an owning-stage decision and tests.",
+      "Current raw partial-charge field is distinct from the already approved later None/NaN/selected-result cutover; method/source/currentness/native/model encoding must migrate together.",
+      "Identity/admissibility/candidates/findings/certification are live operational inputs; natural candidate sets/distributions and method-specific CBond scores are not automatically forbidden result envelopes."
+    ],
+    "qualifications": [
+      "No supplied generic-confidence control reader is bounded source evidence, not proof of repository-wide or external nonuse. Public-role/schema and complete consumer decisions remain at Stage7C/8A.",
+      "Reduced pipeline hash or absent cold recovery body does not by itself establish an integrity defect or approval to alter the public schema.",
+      "Exact Stage1 partial-charge approved contracts remain authoritative; current default zero is not mislabeled as future selected-result behavior.",
+      "Outside-body dynamic/external/benchmark/dataset/wheel consumers remain explicit coverage gaps. No duplicated source inventory or current-source runtime test was executed."
+    ],
+    "disposition": "Accept only the bounded preentry gap inventory; no Stage6 dependency, Stage7C/8A entry/design/implementation release or gate closure."
+  },
+  "mandatory_rebind": "After preceding source/import moves and before Stage7C/8A design ownership, rebind exact changed source/import graph, consumer bodies and complete source/installed-wheel selections. Reuse unchanged accepted task30/task37 coverage rather than repeat it.",
+  "implementation_authorized": false,
+  "stage6_dependency": false,
+  "stage7c_entry": false,
+  "stage8a_entry": false,
+  "gate_closed": false,
+  "runtime_executed": false
+}

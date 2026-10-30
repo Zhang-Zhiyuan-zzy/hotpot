@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "stage": "Stage6",
+  "status": "entry_complete_bounded_design_authorized_implementation_ownership_pending",
+  "recorded_utc": "2026-10-30T11:33:26.109924+00:00",
+  "current_head": "aed86adb601866d9870df371aef4df0812d19a97",
+  "normative_documents_current": [
+    {
+      "path": "plan/20_fact_rule_architecture/goal.md",
+      "sha256": "6e116730e1a31ec999b623e9e594d26f23e3cf8a95e68048652acf9c699b0118",
+      "lines": 81
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+      "sha256": "472d8ad110472ff6f2e3e4b85cbcd91e0df3a46f1c4931a15ee2d8266df19cd3",
+      "lines": 2549
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+      "sha256": "96f4808f91e9470bdf60ff4a8f58b514d838b023328e7ea37f90fcf3f7328707",
+      "lines": 295
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+      "sha256": "23a7b5c43851837a5aeaf69b4a127dc712d1a4b9c7bb178242015839543d8213",
+      "lines": 184
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+      "sha256": "f1e6dce3aa3be649b7e5491f8d35752accc84ec80cb3a597bfc2850d5aa82554",
+      "lines": 543
+    },
+    {
+      "path": "plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+      "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+      "lines": 68
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage01/contracts/decisions.md",
+      "sha256": "1a733cf83d0e7c098b7e227fbb4543ba382015c0f69141c46caf0daf8599c10f",
+      "lines": 200
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage05/contracts/decisions.md",
+      "sha256": "35f0d8c78e1f2890feeff3807c104ea3f20b406c2ddaaf77e391ec4db34a60d4",
+      "lines": 99
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/decisions.md",
+      "sha256": "9645dfa50c55870d94b09831a0c2b34609fb52be4c6a4be53c9beb5cd7954f7f",
+      "lines": 421
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/integrated_requirements.json",
+      "sha256": "fca6bcecf2425c4d52264f4c48e5260244baf6178a43c58c99c5e8fc0e39dc2c",
+      "lines": 261
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stage_verification_map.json",
+      "sha256": "be902ce11fa4bd395fdce96d1ae94e022d6fac77648610c6f5d8198ee84a8af4",
+      "lines": 1718
+    }
+  ],
+  "source_stereo": {
+    "path": "hotpot/cheminfo/stereo.py",
+    "sha256": "4c8c66f411af3d1f627293a47558d8479ee45cbe62a54220fc44ea873dad34e0",
+    "lines": 4747
+  },
+  "reuse_inventory": {
+    "path": "/tmp/codex-stage4-bridge-01a18583/p20-s6-preentry-inventory-704283-21/revision2/result.json",
+    "sha256": "53de4f1eb2d9875f4f74ce238b184bff46af09b162acad6cce77f58784f86bd8"
+  },
+  "bounded_contract": {
+    "objective": "Physically split Level1transport/current lifecycle and Level2Gate2-7rules while preserving all settled scientific algorithms,publicfacade/schema/native and source/rollback semantics.",
+    "entry": "Satisfied:Stage5owningtechnical gate complete,current full-normative/source alignment,andverified committed predecessor aed86ad handoff.",
+    "initial_owner": "/root/stage6_stereo_solmax,explicitgpt-6.1-sol/max;onlystages/stage06/contracts/review.md,evidence.jsonafterSTAGE6_ENTRY_READY.",
+    "initial_outputs": [
+      "Acyclic ownership/import and call graph with exact single homes and extraction/migration order",
+      "Exact publicclassidentity/functionsignature,fieldorder/sourcecode/nativepacking preservation table",
+      "Captured-input/rule/output/control/commit boundaries;conditionalH/errorprecedence,oneGate6projection/native-target reuse and monkeypatch contract",
+      "Connected lifecycle/adapter/testmigration includingpure-remap vscommit;no parallel implementation or blanket privatefacade export",
+      "Narrow necessarycontract tests and completeStage6mappedvalidation plan"
+    ],
+    "excluded": [
+      "Scientific algorithm/threshold/convention changes",
+      "Any H/default/readiness/importnormalization change",
+      "Newpublicschema or signature",
+      "NativeABI/schema change",
+      "Stage7hidden-bond removal,broaderresult/defaultprofile redesign orStage13experiment",
+      "Performancehypothesis implementation before its existingownergate"
+    ],
+    "remaining_gates": [
+      "Stage3/runtime/RSS and current valid performance regressions;full71/GPU/end-to-end comparisons",
+      "Full187/O0/seeds42-44 and integratedPlan12current scientific/functionality gates",
+      "Stage7C/8Aassigned diagnostic/resultcontracts",
+      "Stage10clean-native/SDK/sdist runtime and Stage12architecture/type/API/docs/performance",
+      "Committed verified B_exp then separate D_exp and I_expStage13ordering"
+    ],
+    "rollback": "Rootcontrolled;dedicatedGitagent small coherent checkpoints;no reset/amend/rebase/stash/forcepush without rootdecision.",
+    "completion": "All moved bodies have soleowner;facadeexact;allLevel1Level2Gate2-7/nativepacking/RDroundtrip/publicsignatures;completeaffected3.10-3.14source+wheel evidence and owningrecords agree;globalacceptanceopenuntilactualfinalgates.",
+    "required_evidence_destinations": [
+      "stages/stage06/contracts/review.md",
+      "stages/stage06/contracts/evidence.json",
+      "stages/stage06/validation/evidence.json",
+      "stages/stage06/report.md",
+      "stages/stage06/gates/review.md",
+      "implementation_log.md",
+      "stage_verification_map.json"
+    ]
+  },
+  "normative_read_alignment": {
+    "root": "Full active goal/main/normative companions/decisions/map reads completed before this entry in the same logical continuation. Current main status-only delta and Stage5 map/index changes were authored/read after those complete reads; no architectural requirement changed.",
+    "main_full_read_before_mechanical_status": {
+      "sha256": "fc976a8de95de4d6459ae1a80e7fb8b3e03d1b2a85df2741d85d658ba1d99064",
+      "lines": [
+        1,
+        2549
+      ]
+    },
+    "main_current_read_delta": "Current lines1-14 and actual Stage0-5complete/Stage6next mechanical status change;currentSHA472d8ad110472ff6f2e3e4b85cbcd91e0df3a46f1c4931a15ee2d8266df19cd3.",
+    "map": "Full1-1711pre-status read followed by authored current Stage5status/evidence/required-node corrections and read of currentStage6map;current1718lines.",
+    "integrated_requirements": "Full1-227read followed by authored/read task30sourceconsumerinventory through261.",
+    "design_owner": "/root/stage6_stereo_solmax independently completed all current normative documents and full log1-1924;current main-header/map updates reread;later root task32/layout append lines1925-1928 are record-only and are supplied at design release.",
+    "truncation_recovery": "Earlier data-audit291-543 and verification-map full bounded reads were recovered explicitly;root current targeted gates/report/Stage6plan1660-1720 and map read without truncation."
+  },
+  "governance_full_read": [
+    {
+      "path": "/home/zhangzhiyuan/hotpot/.codex/skills/hotpot-stage/SKILL.md",
+      "sha256": "d249a80bf84197f87034882c1d87070747fb119dd69ac85bd69b962f71c0b5f8"
+    },
+    {
+      "path": "/home/zhangzhiyuan/hotpot/.codex/skills/hotpot-validation/SKILL.md",
+      "sha256": "bcbfeef52f219359e4af057b9ee560659d1d1b45b91e461dc409cd4d2b9a6541"
+    },
+    {
+      "path": "/home/zhangzhiyuan/hotpot/.codex/skills/hotpot-plan-governance/SKILL.md",
+      "sha256": "6724ebfce1fe9df9f717ee249f124f1533fbea9d51aa51faf2118995052be297"
+    },
+    {
+      "path": "/home/zhangzhiyuan/hotpot/.codex/skills/hotpot-plan-governance/references/plan-execution-governance.md",
+      "sha256": "62d36bb6d6770d623b38a3f39fe5aa0d758dd0a5f7707e447d88b2849cc22bd1"
+    },
+    {
+      "path": "/home/zhangzhiyuan/hotpot/.codex/skills/hotpot-plan-governance/references/cheminformatics-harness-principles.md",
+      "sha256": "8e552c711c5aa71719d0b910376dda44a452d702ceba5497bb117c201dd0a48e"
+    }
+  ],
+  "predecessor": {
+    "owning_gate": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage05/gates/evidence.json",
+      "sha256": "d093f0aa931e580bafb4f5b94651606f9dcb648ec8595fad564d612ed1bf01ce"
+    },
+    "owning_review": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage05/gates/review.md",
+      "sha256": "03f350bbe6e1fd5d87e0aff211e74843e44ec044cf15a8bb947330ae73f13241"
+    },
+    "git_handoff": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/git-management/post-execution-records/final-handoff.json",
+      "sha256": "edde11d39a81c9b4ac24e292ee596e26336f5dd3d0b86006e1290b6d218eb66b"
+    },
+    "git_delivery": "Four natural records commits4bfae48/03506fe/6c56f09/aed86ad;two every-third pushes;remoteHEAD verified;aed86ad current;counter0;index/worktree clean.",
+    "source_native": "Git owner verified1068watchedfiles/37nativebinarybytes unchanged;root currentstereo hash below matches task21;no technical suites repeated."
+  },
+  "repo_assessment": {
+    "branch": "implement/plan20-fact-rule-architecture",
+    "head": "aed86adb601866d9870df371aef4df0812d19a97",
+    "dirty_before_entry": "",
+    "source_changes_since_validated_cac32af6": "None;only18recordpathscommitted.",
+    "stage6_source_matches_reused_inventory": true,
+    "discrepancies": [
+      "No Stage6design/implementation existed at entry;directoryindex alone was not entry evidence.",
+      "Globalperformance/scienceopen;3clean_readnoncomparablesandtask32hypotheses retained;not a Stage6science/default change."
+    ]
+  }
+}

@@ -800,13 +800,19 @@
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_buffer_ownership.py",
-          "status": "planned_not_created"
+          "status": "existing Stage3 implemented file;Stage6 connected buffer/schema extraction cases and current matrix pending"
         }
       ],
       "additional_requirements": [
         "complete Level1 and Level2 Gate2-7, native packing, five facade signatures, Python3.10-3.14"
       ],
-      "execution_status": "not_executed_by_inventory_capture"
+      "execution_status": "entry_aligned_bounded_design_active;implementation_and_current_stage6_validation_pending",
+      "entry_evidence": "stages/stage06/entry_review.json",
+      "validation_preparation": {
+        "path": ".plan20-artifacts/20261030/stage6/validation-preparation/preparation.json",
+        "status": "commands/old-environment-provenance preparation only;no Stage6execution/currentwheel acceptance",
+        "limits": "Source-only native header/recipe tier separate from installedruntime;two external SDK ABIcases lack frozenbinding;ordinaryrequiredskipsremainmissingevidence."
+      }
     },
     "Stage7A": {
       "predecessor": "Stage6",

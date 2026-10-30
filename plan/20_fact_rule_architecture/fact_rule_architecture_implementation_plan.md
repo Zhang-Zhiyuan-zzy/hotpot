@@ -1,7 +1,7 @@
 # Fact-Carrier and Rule Architecture Refactor
 
 Status: **implementation authorized on 2026-10-28; Stage0–5 owning-stage gates complete;
-Stage6 entry next; final scientific/global efficiency acceptance open**. The architecture, lazy invalidation, scientific-reporting, and
+Stage6 entry aligned and bounded design active; final scientific/global efficiency acceptance open**. The architecture, lazy invalidation, scientific-reporting, and
 performance requirements are incorporated. The owner's implementation request
 authorizes the concrete documented route; Stage1 records exact API differences
 and consumer evidence. Unspecified public signatures, return semantics and

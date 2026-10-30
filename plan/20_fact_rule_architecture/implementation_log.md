@@ -1747,3 +1747,85 @@ review records and retained failed attempts by SHA256.
   audit. Queue/global flag parsing is not used as evidence. The unique next
   task is environment/destination-metadata inventory only, without source
   review or test/build execution. No current project source was synchronized.
+
+
+### Stage5 default-H design and validation preparation — 2026-10-30
+
+- The bounded Sol/max design task completed its full normative reread and
+  scientific/default convention, with a seven-line main-plan amendment limited
+  to the owner's requested H-default correction. Its53 local observations,
+  29 RDKit references and12 aromatic-charge references are source-labelled
+  design evidence, not production/default/native acceptance. Exact primary
+  source/probe identities, the first import-path failure and actual document
+  checks are in `stages/stage05/hydrogen-defaults/evidence.json`. The integer
+  property and supplied source/model encodings are retained; imported-count
+  normalization remains a separate unapproved proposal. Root assigned the
+  original production owner the one-rule/default/new-input-dependency migration.
+  The genuinely missing-input public read remains a concrete bounded review;
+  ordinary known-element defaults need no optional-scalar decision.
+- Completed remote environment task07 and narrow Open Babel task08 were
+  audited as actual read-only turns with zero filesystem write entries and
+  unchanged gpt-5.6-sol/xhigh. The available remote interpreter is3.10.13;
+  direct `find_spec`/import confirms Open Babel absent. No compatible3.11–3.14
+  runtime/project destination exists there. No sync/install/build/test was
+  performed. Existing local compatible environments therefore own the required
+  runtime gates; helper work stays uniquely scoped readonly analysis.
+- Historical view-profile task09/revision2 completed with inline-only evidence.
+  Root checked the four profile source hashes against the complete committed
+  Stage4 production delta; helper corrected the source-provenance limitation.
+  The batching/tuple-construction suggestions are future hypotheses, without
+  new measurements or a Stage5/final performance-pass claim. Exact task/hash/
+  turn identities and the narrow root check are in
+  `stages/stage05/performance-analysis/evidence.json`.
+- Prepared optional base-Git/model support archives are retained under
+  `.plan20-artifacts/20261030/stage5/remote-support/` with their actual evidence
+  manifests. They were not synchronized or used for a remote validation claim.
+  The older incomplete pre-correction snapshot remains immutable.
+- Unique ai4 static runner task `p20-s5-runner-review-704283-10` returned
+  BLOCKED for six evidence-binding/failure-propagation issues; it executed no
+  scripts or production review. The exact turn
+  `01a18b07-c2f5-7dd0-9ef6-966f4d8dbc5f` was independently audited read-only,
+  zero tools/delegation/write entries, unchanged model/effort. Root checked
+  the reported ABI selection, performance exit and actual earlier wheel
+  command provenance, then assigned one local writer to correct only the
+  prepared validation scripts. A stable authorized dirty tree is valid input
+  when bound to its exact manifest; a clean-worktree prerequisite is not
+  introduced. Script corrections/collection/runtime gates remain unexecuted.
+  No Git commit or push occurred; cadence count remains0.
+
+
+- The follow-up Sol/max parent review selected the existing display behaviour
+  for genuinely missing H input: scalar/permissive field14 show the historical
+  zero placeholder, without committing zero, inventing source/presence, marking
+  CURRENT or returning a stale derived count. Strict consumers retain the
+  existing unresolved `ValueError` guard. Explicit/source zero and real inferred
+  zero remain present/current. This preserves the public integer contract and
+  needs no new owner approval; the earlier scalar/projection-error recommendation
+  was withdrawn, never attributed to the owner. A2's optional selected-result
+  NaN policy remains distinct. Exact amended records and actual document-check
+  outcomes are in `hydrogen-defaults/evidence.json`; default/read implementation
+  and runtime gates are pending. Independent helper task11 owns inline contract
+  review only, with no overlapping source inspection or execution.
+
+
+- Received `HELPER_PROTOCOL_UPDATE 704283`: the owner explicitly permits
+  non-overlapping concurrent readonly helper tasks on distinct reviewer threads,
+  still with per-turn explicit sandbox and exact task/hash/turn audits. Every
+  envelope carries expected output and its critical wait point. Dependent
+  architecture/science/acceptance/commit/stage-gate decisions wait for matching
+  results; independent implementation may continue. Root ACKed and relayed the
+  protocol through the existing communication child. The update starts no new
+  task and changes no model/effort/config/source permissions or rate limits.
+
+
+- The changed-document layout check retained two failures: the first invocation
+  could not write its absent output directory; the next found two concurrently
+  created owning H-implementation records missing from the stage index. Root
+  created the output parent and indexed those real records. The third exact
+  `python .../audit_stage_records.py --check-migration-bytes --output .../attempt3/report.json`
+  passes50 Markdown/46 JSON/1 other asset/97 indexed entries, with19 original
+  JSON,9 Markdown identity records and the original log prefix preserved.
+  Exact argv/cwd/interpreter/elapsed/log identities and original failures are
+  under `.plan20-artifacts/20261030/stage5/layout-after-design-review/`.
+  This covers changed navigation only; no source/native/test/science acceptance
+  is inferred. No production tests were run by root while the writer was active.

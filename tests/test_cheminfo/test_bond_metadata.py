@@ -183,6 +183,7 @@ def test_rdkit_dativeone_subtype_round_trips_when_supported():
 
 def test_rdkit_export_rejects_dative_bond_without_direction():
     bond = _hotpot_bond(bond_kind=BondKind.DATIVE)
+    bond.mol.updata_atoms(implicit_hydrogens=0)
 
     with pytest.raises(ValueError, match="requires a bond direction"):
         to_rdmol(bond.mol, kekulize=False)

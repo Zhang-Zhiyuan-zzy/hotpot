@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
+from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX
 from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from hotpot.cheminfo.forcefields import backend as ob_backend
@@ -1781,6 +1782,12 @@ def test_coordination_environments_preserve_a_bridging_donor():
 
 def test_small_zinc_build_uses_default_inactive_coordination_hook(monkeypatch):
     molecule = read_mol("[Zn](N)(N)", "smi")
+    members = tuple(molecule.atoms)
+    field = FIELD_INDEX['implicit_hydrogens']
+    declarations = tuple((molecule._atom_table._columns[field][atom.idx].tobytes(),
+                          int(molecule._atom_table._sources[atom.idx, field])) for atom in members)
+    assert all(code == ATOM_SOURCE_CODES['openbabel'] for _, code in declarations)
+    expected_hydrogens = sum(atom.implicit_hydrogens for atom in members)
     monkeypatch.setattr(
         ff,
         "prepare_coordination_geometry",
@@ -1800,12 +1807,24 @@ def test_small_zinc_build_uses_default_inactive_coordination_hook(monkeypatch):
     )
 
     assert report.effective_forcefield == "UFF"
-    assert len(molecule.hydrogens) == 6
+    assert len(molecule.hydrogens) == expected_hydrogens
     assert len(molecule.c_bonds) == 2
+    assert all(atom in molecule.atoms for atom in members)
+    for atom, (raw, code) in zip(members, declarations):
+        assert molecule._atom_table._columns[field][atom.idx].tobytes() == raw
+        assert int(molecule._atom_table._presence[atom.idx]) & (1 << field)
+        assert molecule._atom_table._sources[atom.idx, field] == code
+    assert np.all(np.isfinite(molecule.coordinates))
 
 
 def test_seeded_complex_proxy_build_preserves_finite_complete_structure():
     molecule = read_mol("[Zn](N)(N)", "smi")
+    members = tuple(molecule.atoms)
+    field = FIELD_INDEX['implicit_hydrogens']
+    declarations = tuple((molecule._atom_table._columns[field][atom.idx].tobytes(),
+                          int(molecule._atom_table._sources[atom.idx, field])) for atom in members)
+    assert all(code == ATOM_SOURCE_CODES['openbabel'] for _, code in declarations)
+    expected_hydrogens = sum(atom.implicit_hydrogens for atom in members)
 
     ff.build_complex3d(
         molecule,
@@ -1818,6 +1837,12 @@ def test_seeded_complex_proxy_build_preserves_finite_complete_structure():
         seed=37,
     )
 
-    assert molecule.coordinates.shape == (9, 3)
+    assert molecule.coordinates.shape == (len(members) + expected_hydrogens, 3)
     assert np.all(np.isfinite(molecule.coordinates))
     assert len(molecule.c_bonds) == 2
+    assert all(atom in molecule.atoms for atom in members)
+    for atom, (raw, code) in zip(members, declarations):
+        assert molecule._atom_table._columns[field][atom.idx].tobytes() == raw
+        assert int(molecule._atom_table._presence[atom.idx]) & (1 << field)
+        assert molecule._atom_table._sources[atom.idx, field] == code
+    assert np.all(np.isfinite(molecule.coordinates))

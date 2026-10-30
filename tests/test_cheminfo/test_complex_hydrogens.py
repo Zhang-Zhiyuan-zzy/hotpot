@@ -3,13 +3,15 @@ from collections import Counter
 import numpy as np
 import pytest
 
-from hotpot import read_mol
+from hotpot import Molecule, read_mol
 from hotpot.cheminfo.forcefields import attempts
 from hotpot.cheminfo.forcefields import ff
 from hotpot.cheminfo.forcefields import working_copy
 from hotpot.cheminfo.forcefields import workflows
 from hotpot.cheminfo.core import BondKind
 from hotpot.cheminfo.structure import _commit
+from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX
+from hotpot.cheminfo.operations.chemistry import _atom_implicit_proposal
 
 
 def _coordinated(smiles, donor_index):
@@ -151,6 +153,28 @@ def test_neutral_donor_hydrogenation_is_independent_of_input_path(
     assembled.add_bond(metal, assembled_donor)
     assembled.refresh_atom_id()
     parsed = read_mol(complex_smiles, "smi")
+    parsed_donor = next(atom for atom in parsed.atoms if atom.symbol == donor_symbol)
+    # Imported counts are declarations, including0; missing-count defaults
+    # are exercised separately with a declared donor-to-Zn dative link.
+    # A covalent single metal bond instead consumes one ordinary valence slot.
+    absent = Molecule()
+    carbon = absent.create_atom(symbol='C')
+    absent_donor = absent.create_atom(symbol=donor_symbol)
+    absent_metal = absent.create_atom(symbol='Zn')
+    absent.add_bond(carbon, absent_donor)
+    absent.add_bond(absent_donor, absent_metal, bond_kind=BondKind.DATIVE,
+                    bond_direction='atom1_to_atom2')
+    assert absent.bonds[-1].bond_kind is BondKind.DATIVE
+    assert not int(absent._atom_table._presence[absent_donor.idx]) & (1 << FIELD_INDEX['implicit_hydrogens'])
+    assert _atom_implicit_proposal(absent_donor) == expected_hydrogens
+    assert absent_donor.implicit_hydrogens == expected_hydrogens
+    assert absent._atom_table._sources[absent_donor.idx, FIELD_INDEX['implicit_hydrogens']] == ATOM_SOURCE_CODES['implicit_hydrogens']
+    field = FIELD_INDEX['implicit_hydrogens']
+    declared = tuple(int(atom.mol._atom_table.raw(atom.idx, 'implicit_hydrogens'))
+                     for atom in (assembled_donor, parsed_donor))
+    for atom in (assembled_donor, parsed_donor):
+        assert int(atom.mol._atom_table._presence[atom.idx]) & (1 << field)
+        assert atom.mol._atom_table._sources[atom.idx, field] == ATOM_SOURCE_CODES['openbabel']
 
     assembled_working = working_copy._hydrogenated_working_copy(
         assembled,
@@ -173,7 +197,10 @@ def test_neutral_donor_hydrogenation_is_independent_of_input_path(
         for atom in parsed_working.atoms
         if atom.symbol == donor_symbol
     )
-    assert assembled_hydrogens == parsed_hydrogens == expected_hydrogens
+    assert (assembled_hydrogens, parsed_hydrogens) == declared
+    for working in (assembled_working, parsed_working):
+        donor = next(atom for atom in working.atoms if atom.symbol == donor_symbol)
+        assert working._atom_table._sources[donor.idx, field] == ATOM_SOURCE_CODES['openbabel']
 
 
 @pytest.mark.parametrize(

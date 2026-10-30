@@ -6,4 +6,4 @@ Remove second truth sources and clarify results. This directory is navigation fo
 
 ## Complete record index
 
-There are no stage-owned records beyond this navigation index. Add actual Markdown records using the catalog's defined filenames and index every Markdown/JSON record here when the authorized stage work produces it.
+- [Conversion/Crystal/thermo/visualization preentry inventory](preentry-conversion/review.md) and [evidence disposition](preentry-conversion/evidence.json): bounded task35 current-source findings with matching actual read-only audit; source/transitive imports and wheel selections must be rebound after Stage6. This is neither Stage7A entry nor design/implementation authorization.

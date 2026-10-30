@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7A",
+  "status": "PREENTRY_INVENTORY_ONLY_REBIND_REQUIRED",
+  "recorded_utc": "2026-10-30T12:13:29.026381+00:00",
+  "task": {
+    "task_id": "p20-s7a-preentry-consumer-inventory-704283-35",
+    "revision": 1,
+    "task_hash": "3ee1cec59629068e8857ea2f16bc529864d07bd917135eb35068d27be38d109e",
+    "source_commit": "25735ab07ca9a2b30f5a395abe4fd10133852913",
+    "diff_or_tree_hash": "a6891525f4f834287666f8bb031a265dca6dd5728ecf4cd1581bd8778d19e75f",
+    "exact_turn_id": "01a18cb6-a3f8-70e2-a66a-5dcdc88ee306",
+    "identity_encoding": "SHA256 canonical capture-manifest raw bytes, not a Git tree"
+  },
+  "inventory": {
+    "verbatim": "review.md",
+    "sha256": "e915fe3924b67fc5f81fe697966818f85834c318f841e4dccb686372390a1978",
+    "capture": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s7a-preentry-consumer-inventory-704283-35/capture-manifest.json",
+      "sha256": "a6891525f4f834287666f8bb031a265dca6dd5728ecf4cd1581bd8778d19e75f"
+    },
+    "envelope_verification": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s7a-preentry-consumer-inventory-704283-35/envelope-verification.json",
+      "sha256": "a5de1600d416dd9ad9b5a2ef178357426bb459c3663104d4f1608e3caec5f00e"
+    },
+    "use": "Bounded current connected-source inventory for later entry; no design or scientific/public decision approval."
+  },
+  "actual_turn_audit": {
+    "status": "AUDIT_PASSED",
+    "receipt_source": "Exact user AUDIT_RESULT; no repeat audit",
+    "turn_context_line": 1443,
+    "timestamp": "2026-10-30T12:09:02.219Z",
+    "turn_context_sha256": "e6dde0bd99756d2060149505633f0cf7ef5697a1609d722172ba893c520c7fa6",
+    "exact_range_lines": [
+      1442,
+      1464
+    ],
+    "exact_range_sha256": "0baeff8e8807f370f9813ce231ccea376b79da681cd81af328758f830b137f10",
+    "sandbox": "read-only",
+    "network": "restricted",
+    "filesystem": "managed/restricted; root read; no write entries",
+    "model": "gpt-5.6-sol",
+    "effort": "xhigh",
+    "tool_calls": 0,
+    "command_calls": 0,
+    "delegation_calls": 0,
+    "task_complete": 1,
+    "identity_match": true
+  },
+  "root_key_review": {
+    "checked_current_source": [
+      "hotpot/cheminfo/core.py:2066-2079",
+      "hotpot/cheminfo/_io/_io.py:395-406",
+      "hotpot/cheminfo/crystal.py:1-28",
+      "stage_verification_map.json:Stage7A planned Crystal convention test entry"
+    ],
+    "confirmed": [
+      "to_obmol returns the stored external object for a populated cache.",
+      "Multi-conformer writer mutates coordinates on the external object returned by to_obmol.",
+      "Crystal retains mol and _obcell, while obcell constructs a fresh external cell and the old named placeholder methods are absent.",
+      "The existing Crystal convention test remains incorrectly labelled planned_not_created in Stage7A map."
+    ],
+    "acceptance": "Accept PREENTRY_INVENTORY_ONLY, including explicit remaining evidence and mandatory source rebind; do not infer a complete implementation audit.",
+    "qualifications": [
+      "543 read_mol references are a grouped path/line index, not 543 reviewed implementation bodies.",
+      "No general coordinate/fact cache invalidation coverage is proven from this static packet.",
+      "Native session-owned external objects are distinct from Python Molecule carrier caches; no blanket removal of native OBMol state is authorized.",
+      "Existing matrix mathematics, approved public Crystal route and caller-owned Thermo declared/dynamic property behavior remain settled; do not redesign or delete them from stale historical labels.",
+      "Thermo/visualization/optional-dependency/cold-wheel/memory/workflow requirements still need actual owning-stage coverage."
+    ]
+  },
+  "rebind": {
+    "required_before": "Stage7A entry/design implementation release after Stage6 source changes",
+    "scope": "All changed connected source, transitive imports, exact existing/new tests and installed-wheel selections; preserve this historical capture."
+  },
+  "Stage6_dependency": false,
+  "Stage7A_entry": false,
+  "implementation_authorized": false,
+  "runtime_executed": false,
+  "gate_closed": false
+}

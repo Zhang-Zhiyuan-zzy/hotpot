@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage4 implementation handoff: one persisted constraint owner and one finite private pair-observation record field counted; full Stage4 validation remains open; no DTO consolidation or final net-reduction claim",
+  "status": "Stage5 independent known-input checkpoint: actual +2 dataclasses and -5 protocols, net -3 classes since Stage4; no final Stage5, scientific or performance acceptance",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -13,7 +13,7 @@
     "alias_caveat": "Zero explicit TypeAlias syntax does not establish zero implicit aliases."
   },
   "measured_delta": {
-    "new_dataclasses": 4,
+    "new_dataclasses": 6,
     "retired_dataclasses": 0,
     "new_protocols": 0,
     "new_typed_dicts": 0,
@@ -89,10 +89,12 @@
           "angle_constraints",
           "torsion_constraints",
           "identifier",
-          "pair_wiberg_bond_orders"
+          "pair_wiberg_bond_orders",
+          "bond_aromatic"
         ],
         "verification": "stages/stage03/builder/evidence.json",
-        "stage4_extension_verification": "stages/stage04/contracts/schema.json and stages/stage04/implementation/evidence.json"
+        "stage4_extension_verification": "stages/stage04/contracts/schema.json and stages/stage04/implementation/evidence.json",
+        "stage5_extension_verification": "stages/stage05/rules_checkpoint_evidence.json; final Stage5 gates open"
       },
       {
         "symbol": "hotpot.cheminfo.structure.constraints._ConstraintSet",
@@ -105,6 +107,42 @@
         ],
         "verification": "stages/stage04/contracts/schema.json and stages/stage04/implementation/evidence.json",
         "counting_effect": "One addition; moved mathematical classes and a removed snapshot field retire no dataclass."
+      },
+      {
+        "symbol": "hotpot.cheminfo.structure.snapshots._BondingSnapshot",
+        "reservation": "N03",
+        "stage": "Stage5",
+        "fields": [
+          "source",
+          "atom_uids",
+          "atomic_numbers",
+          "implicit_hydrogens",
+          "aromatic",
+          "bonds",
+          "coordinates",
+          "rings",
+          "ring_has_3d"
+        ],
+        "verification": "stages/stage05/rules_checkpoint_evidence.json",
+        "status": "implemented known-input checkpoint; final Stage5 gates open"
+      },
+      {
+        "symbol": "hotpot.cheminfo.structure.snapshots._AromaticAssignment",
+        "reservation": "N11",
+        "stage": "Stage5",
+        "fields": [
+          "source",
+          "atom_uids",
+          "bond_uids",
+          "atom_aromatic",
+          "bond_aromatic",
+          "bond_orders",
+          "bond_kinds",
+          "covered_rows",
+          "method"
+        ],
+        "verification": "stages/stage05/rules_checkpoint_evidence.json",
+        "status": "implemented known-input checkpoint; final Stage5 gates open"
       }
     ],
     "new_enums": 1,
@@ -210,7 +248,40 @@
       },
       "counting_effect": "Implementation additions are recorded separately. They do not reduce dataclass/DTO counts or constitute ABI-schema consolidation."
     },
-    "new_enums_scope": "Existing new_enums=1 counts the Python _FactStatus enum only; the native Name enum is counted separately"
+    "new_enums_scope": "Existing new_enums=1 counts the Python _FactStatus enum only; the native Name enum is counted separately",
+    "retired_protocols": 5,
+    "protocol_retirements": [
+      {
+        "symbol": "hotpot.cheminfo.kekulize._protocols.AtomLike",
+        "stage": "Stage5",
+        "verification": "stages/stage05/rules_checkpoint_evidence.json",
+        "scope": "Retired isolated aromaticity protocols; no replacement generic protocol created"
+      },
+      {
+        "symbol": "hotpot.cheminfo.kekulize._protocols.BondLike",
+        "stage": "Stage5",
+        "verification": "stages/stage05/rules_checkpoint_evidence.json",
+        "scope": "Retired isolated aromaticity protocols; no replacement generic protocol created"
+      },
+      {
+        "symbol": "hotpot.cheminfo.kekulize._protocols.RingLike",
+        "stage": "Stage5",
+        "verification": "stages/stage05/rules_checkpoint_evidence.json",
+        "scope": "Retired isolated aromaticity protocols; no replacement generic protocol created"
+      },
+      {
+        "symbol": "hotpot.cheminfo.kekulize._protocols.JointRingLike",
+        "stage": "Stage5",
+        "verification": "stages/stage05/rules_checkpoint_evidence.json",
+        "scope": "Retired isolated aromaticity protocols; no replacement generic protocol created"
+      },
+      {
+        "symbol": "hotpot.cheminfo.kekulize._protocols.MoleculeLike",
+        "stage": "Stage5",
+        "verification": "stages/stage05/rules_checkpoint_evidence.json",
+        "scope": "Retired isolated aromaticity protocols; no replacement generic protocol created"
+      }
+    ]
   },
   "consolidation_budget": [
     {
@@ -292,7 +363,7 @@
       "stage": "Stage3",
       "dataclass_upper_bound": 1,
       "responsibility": "One complete immutable factual import record; raw Atom19/Bond3 bytes, presence/source, existing stereo/cell and nine legacy frame domains; no per-row wrapper, UID table or arbitrary result DTO; Stage4 additionally preserves supplied Wiberg pair observations independently of generated views",
-      "status": "Stage3 complete factual carrier installation verified; Stage4 appends one private optional pair-observation field, with final owning-stage validation open",
+      "status": "Stage3 factual installation and Stage4 extension verified at their checkpoints; Stage5 adds private bond_aromatic with known-input checks and final owning-stage validation open",
       "actual_symbol": "hotpot.cheminfo.structure._builder.MoleculeRecord",
       "commit": null,
       "verification": "stages/stage03/builder/evidence.json",
@@ -321,7 +392,8 @@
         "angle_constraints",
         "torsion_constraints",
         "identifier",
-        "pair_wiberg_bond_orders"
+        "pair_wiberg_bond_orders",
+        "bond_aromatic"
       ],
       "numeric_encoding": {
         "atom_values": "<f8 C(N,19) immutable bytes in ATOM_FIELDS order; no scalar read codecs",
@@ -348,6 +420,14 @@
         "schema_effect": "One appended private field; no new public DTO, N01/N05 schema or native ABI mirror",
         "review": "stages/stage04/contracts/review.md",
         "verification": "stages/stage04/implementation/evidence.json"
+      },
+      "stage5_extension": {
+        "field": "bond_aromatic",
+        "default": "()",
+        "encoding": "immutable complete ordered Bond flag tuple; empty default defers to the existing kind-derived interpretation",
+        "purpose": "Preserve supplied independent aromatic flags on complete copy/components/merge/import/rollback while Bond kinds may be single/double",
+        "schema_effect": "One trailing private field; no public/native stereo schema change, class addition or second stored Molecule table",
+        "verification": "stages/stage05/rules_checkpoint_evidence.json; final Stage5 gates open"
       }
     },
     {
@@ -355,11 +435,23 @@
       "proposed_definition": "MolecularSnapshot",
       "stage": "Stage3",
       "dataclass_upper_bound": 1,
-      "responsibility": "Requested readonly fields and stable row/source identities",
-      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
-      "actual_symbol": null,
+      "responsibility": "Immutable field-selective bonding inputs and actual source/UID/ring mapping; the general snapshot reservation is used by this bounded domain snapshot, with no general Molecule mirror",
+      "status": "implemented as a bounded private Stage5 snapshot/assignment; final owning-stage validation open",
+      "actual_symbol": "hotpot.cheminfo.structure.snapshots._BondingSnapshot",
       "commit": null,
-      "verification": null
+      "verification": "stages/stage05/rules_checkpoint_evidence.json",
+      "actual_stage": "Stage5",
+      "fields": [
+        "source",
+        "atom_uids",
+        "atomic_numbers",
+        "implicit_hydrogens",
+        "aromatic",
+        "bonds",
+        "coordinates",
+        "rings",
+        "ring_has_3d"
+      ]
     },
     {
       "id": "N04",
@@ -447,10 +539,11 @@
       "stage": "Stage5",
       "dataclass_upper_bound": 1,
       "responsibility": "Complete kind/order assignment",
-      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "status": "no standalone definition at Stage5 known-input checkpoint",
       "actual_symbol": null,
       "commit": null,
-      "verification": null
+      "verification": "stages/stage05/rules_checkpoint_evidence.json",
+      "reuse_at_current_checkpoint": "Complete coupled bond orders/kinds are part of N11 _AromaticAssignment; no independent record was created"
     },
     {
       "id": "N11",
@@ -458,10 +551,22 @@
       "stage": "Stage5",
       "dataclass_upper_bound": 1,
       "responsibility": "Coupled Atom/Bond aromatic assignment; compose bond-order values",
-      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
-      "actual_symbol": null,
+      "status": "implemented as a bounded private Stage5 snapshot/assignment; final owning-stage validation open",
+      "actual_symbol": "hotpot.cheminfo.structure.snapshots._AromaticAssignment",
       "commit": null,
-      "verification": null
+      "verification": "stages/stage05/rules_checkpoint_evidence.json",
+      "actual_stage": "Stage5",
+      "fields": [
+        "source",
+        "atom_uids",
+        "bond_uids",
+        "atom_aromatic",
+        "bond_aromatic",
+        "bond_orders",
+        "bond_kinds",
+        "covered_rows",
+        "method"
+      ]
     },
     {
       "id": "N12",
@@ -469,10 +574,11 @@
       "stage": "Stage5",
       "dataclass_upper_bound": 1,
       "responsibility": "Complete H representation; reuse HydrogenTransportState",
-      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "status": "no standalone definition at Stage5 known-input checkpoint",
       "actual_symbol": null,
       "commit": null,
-      "verification": null
+      "verification": "stages/stage05/rules_checkpoint_evidence.json",
+      "reuse_at_current_checkpoint": "Hydrogen proposals reuse the existing N05 _AtomFactUpdate and one named commit; no new H DTO was created"
     },
     {
       "id": "N13",
@@ -480,10 +586,11 @@
       "stage": "Stage5",
       "dataclass_upper_bound": 1,
       "responsibility": "Covered formal-charge assignment and existing evidence",
-      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "status": "no standalone definition at Stage5 known-input checkpoint",
       "actual_symbol": null,
       "commit": null,
-      "verification": null
+      "verification": "stages/stage05/rules_checkpoint_evidence.json",
+      "reuse_at_current_checkpoint": "Current extracted charge calculations return task-derived pure values; complete fact writes reuse existing factual commit. No FormalChargeAssignment record was created"
     },
     {
       "id": "N14",
@@ -665,11 +772,11 @@
   ],
   "change_policy": "Update a reservation with concrete responsibility/consumer evidence before exceeding it; new public schemas retain their own review gate. Never offset extra records by deleting unrelated reserved types or replace records with untyped dicts solely to improve counts.",
   "measured_current_counts": {
-    "all_python_classes": 779,
-    "dataclasses": 351,
-    "protocols": 13,
+    "all_python_classes": 776,
+    "dataclasses": 353,
+    "protocols": 8,
     "typed_dicts": 2,
-    "method": "Same production-class AST marker census as capture_baseline_inventory.py, executed at the Stage4 frozen owner handoff; 779 classes / 351 dataclasses / 13 Protocols / 2 TypedDicts. Mathematical module moves retain definitions. One new _ConstraintSet adds one dataclass; a snapshot field removal retires no class. Native source and ABI remain unchanged, retaining the separately recorded 14 internal structs plus 1 enum.",
+    "method": "Exact baseline capture_baseline_inventory.py leaf/CONTRACT_MARKERS ClassDef census. Stage4 779/351/13/2 -> current776/353/8/2; two frozen snapshots added and five protocol definitions retired. Generic subscript markers are deliberately treated exactly as in the original baseline. No runtime validation is implied.",
     "native_struct_candidates": 171,
     "native_struct_candidate_method": {
       "baseline": 164,
@@ -681,6 +788,13 @@
     },
     "new_fact_native_actual_struct_definitions": 14,
     "new_fact_native_actual_enum_definitions": 1,
-    "verification": "stages/stage04/implementation/evidence.json; raw .plan20-artifacts/20261029/stage4/owner-handoff-attempt2/handoff.json"
+    "verification": "stages/stage05/bookkeeping/evidence.json; raw .plan20-artifacts/20261030/stage5/bookkeeping-attempt2/census.json",
+    "stage5_native_scope": "Readonly carrier dispatch plus configured DERIVED_FIELDS rejection at native ingress/preparation; existing Field gains immutable configuration metadata, with no new class/struct/enum or exported ABI. Corrected source awaits five fresh ABI builds and runtime evidence.",
+    "stage5_native_source": {
+      "path": "hotpot/cheminfo/structure/_native/facts.cpp",
+      "sha256": "319f47b9ee54c325fbe7c05e871faef248a254875c8e0c8ea6ab3f14819c613f",
+      "bytes": 61640,
+      "verification": "stages/stage05/storage-ingress-review/evidence.json; static only at this checkpoint"
+    }
   }
 }

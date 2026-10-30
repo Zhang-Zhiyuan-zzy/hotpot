@@ -327,42 +327,6 @@
     },
     {
       "path": "hotpot/cheminfo/core.py",
-      "line": 150,
-      "scope": "Molecule.__init__",
-      "target": "self._rings",
-      "attribute": "_rings",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage5"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 151,
-      "scope": "Molecule.__init__",
-      "target": "self._ring_indices_cache",
-      "attribute": "_ring_indices_cache",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage5"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 152,
-      "scope": "Molecule.__init__",
-      "target": "self._ligand_rings",
-      "attribute": "_ligand_rings",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage5"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 153,
-      "scope": "Molecule.__init__",
-      "target": "self._ligand_rings_signature",
-      "attribute": "_ligand_rings_signature",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage5"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
       "line": 154,
       "scope": "Molecule.__init__",
       "target": "self._obmol",
@@ -396,42 +360,6 @@
       "attribute": "_hided_covalent_bonds",
       "rule": "forbidden_retained_state_write",
       "stage": "Stage7B"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 592,
-      "scope": "Molecule._update_topology",
-      "target": "self._rings",
-      "attribute": "_rings",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage5"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 593,
-      "scope": "Molecule._update_topology",
-      "target": "self._ring_indices_cache",
-      "attribute": "_ring_indices_cache",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage5"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 594,
-      "scope": "Molecule._update_topology",
-      "target": "self._ligand_rings",
-      "attribute": "_ligand_rings",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage5"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 595,
-      "scope": "Molecule._update_topology",
-      "target": "self._ligand_rings_signature",
-      "attribute": "_ligand_rings_signature",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage5"
     },
     {
       "path": "hotpot/cheminfo/core.py",
@@ -512,42 +440,6 @@
       "attribute": "_hided_covalent_bonds",
       "rule": "forbidden_retained_state_write",
       "stage": "Stage7B"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 2537,
-      "scope": "Molecule.rings",
-      "target": "self._rings",
-      "attribute": "_rings",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage5"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 2706,
-      "scope": "Molecule.ligand_rings",
-      "target": "self._ligand_rings",
-      "attribute": "_ligand_rings",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage5"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 2715,
-      "scope": "Molecule._refresh_ligand_ring_cache_signature",
-      "target": "self._ligand_rings",
-      "attribute": "_ligand_rings",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage5"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 2719,
-      "scope": "Molecule._refresh_ligand_ring_cache_signature",
-      "target": "self._ligand_rings_signature",
-      "attribute": "_ligand_rings_signature",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage5"
     },
     {
       "path": "hotpot/cheminfo/core.py",
@@ -2412,5 +2304,13 @@
       "stage": "Stage9"
     }
   ],
-  "coverage_correction": "stages/stage03/architecture/coverage_correction.json: restore three frozen, never-retired root-module entries omitted by the first scanner; no new production debt or gate exception"
+  "coverage_correction": "stages/stage03/architecture/coverage_correction.json: restore three frozen, never-retired root-module entries omitted by the first scanner; no new production debt or gate exception",
+  "stage5_retirement": {
+    "status": "known-input implementation checkpoint; Stage5 gates open",
+    "before_entries": 268,
+    "removed_entries": 12,
+    "remaining_entries": 256,
+    "verification": "stages/stage05/rules_checkpoint_evidence.json and stages/stage05/bookkeeping/evidence.json",
+    "scope": "Twelve exact retired Ring cache writes; no additions or waiver. Runtime and final stage gates remain open."
+  }
 }

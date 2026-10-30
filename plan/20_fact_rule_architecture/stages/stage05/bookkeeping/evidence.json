@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "stage": "Stage5",
+  "status": "metadata reconciliation only; owning gates remain open",
+  "recorded_utc": "2026-10-30T02:21:08.796620+00:00",
+  "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+  "source_review": "../review.md",
+  "checkpoint_evidence": "../rules_checkpoint_evidence.json",
+  "source_owner_freeze": "All71 recorded source/test identities and cp311 binary confirmed unchanged by existing implementation owner at recovery; no production edits by this bookkeeping task",
+  "architecture_allowlist": {
+    "before_sha256": "a03838f2e689e9d7ed5d3b995a3cf855b5db8b6f59f3cd04f069514c9967379a",
+    "after_sha256": "69ad8824ea294912f05b4284b5ec13a034f2e2a5b77e89bb369b7aed86fa5fca",
+    "before_count": 268,
+    "retired_count": 12,
+    "remaining_count": 256,
+    "retired_entries": [
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 150,
+        "scope": "Molecule.__init__",
+        "target": "self._rings",
+        "attribute": "_rings",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage5"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 151,
+        "scope": "Molecule.__init__",
+        "target": "self._ring_indices_cache",
+        "attribute": "_ring_indices_cache",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage5"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 152,
+        "scope": "Molecule.__init__",
+        "target": "self._ligand_rings",
+        "attribute": "_ligand_rings",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage5"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 153,
+        "scope": "Molecule.__init__",
+        "target": "self._ligand_rings_signature",
+        "attribute": "_ligand_rings_signature",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage5"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 592,
+        "scope": "Molecule._update_topology",
+        "target": "self._rings",
+        "attribute": "_rings",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage5"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 593,
+        "scope": "Molecule._update_topology",
+        "target": "self._ring_indices_cache",
+        "attribute": "_ring_indices_cache",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage5"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 594,
+        "scope": "Molecule._update_topology",
+        "target": "self._ligand_rings",
+        "attribute": "_ligand_rings",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage5"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 595,
+        "scope": "Molecule._update_topology",
+        "target": "self._ligand_rings_signature",
+        "attribute": "_ligand_rings_signature",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage5"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 2537,
+        "scope": "Molecule.rings",
+        "target": "self._rings",
+        "attribute": "_rings",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage5"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 2706,
+        "scope": "Molecule.ligand_rings",
+        "target": "self._ligand_rings",
+        "attribute": "_ligand_rings",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage5"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 2715,
+        "scope": "Molecule._refresh_ligand_ring_cache_signature",
+        "target": "self._ligand_rings",
+        "attribute": "_ligand_rings",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage5"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 2719,
+        "scope": "Molecule._refresh_ligand_ring_cache_signature",
+        "target": "self._ligand_rings_signature",
+        "attribute": "_ligand_rings_signature",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage5"
+      }
+    ],
+    "new_entries": [],
+    "limit": "Fresh post-reconciliation ratchet passed against HEAD:890 scanned Python files,256 remaining debt; no new/unretired/grown/excess debt, layer finding or duplicate carrier definition. Runtime and native gates remain separate."
+  },
+  "data_object_budget": {
+    "before_sha256": "90ec2a59e50bf90334601496d6e3ba6ea20facd2a732b35f92324fe1ba5ae214",
+    "after_sha256": "91d8c9a3f575cd3bcd39f2e89f03e7028a1fa78eb68d0cffc6a47ec7be81ff6b",
+    "measured_counts": {
+      "all_python_classes": 776,
+      "dataclasses": 353,
+      "protocols": 8,
+      "typed_dicts": 2
+    },
+    "current_additions": {
+      "_BondingSnapshot": [
+        "source",
+        "atom_uids",
+        "atomic_numbers",
+        "implicit_hydrogens",
+        "aromatic",
+        "bonds",
+        "coordinates",
+        "rings",
+        "ring_has_3d"
+      ],
+      "_AromaticAssignment": [
+        "source",
+        "atom_uids",
+        "bond_uids",
+        "atom_aromatic",
+        "bond_aromatic",
+        "bond_orders",
+        "bond_kinds",
+        "covered_rows",
+        "method"
+      ]
+    },
+    "retired_protocols": [
+      "hotpot.cheminfo.kekulize._protocols.AtomLike",
+      "hotpot.cheminfo.kekulize._protocols.BondLike",
+      "hotpot.cheminfo.kekulize._protocols.RingLike",
+      "hotpot.cheminfo.kekulize._protocols.JointRingLike",
+      "hotpot.cheminfo.kekulize._protocols.MoleculeLike"
+    ],
+    "same_method_census": ".plan20-artifacts/20261030/stage5/bookkeeping-attempt2/census.json",
+    "census_sha256": "e43c068a34df4d6560229358520588033eef419945a6bb1266c0db4d5311d534",
+    "preserved_initial_attempt": ".plan20-artifacts/20261030/stage5/bookkeeping-attempt1/census.json",
+    "initial_attempt_limit": "Initial ad hoc census added subscript traversal and was not identical to the frozen baseline method; corrected by importing unchanged inventory.leaf/CONTRACT_MARKERS. Class/dataclass/TypedDict counts agree; only protocol marker count corrected from12 to8."
+  },
+  "pending": [
+    "Exact public unknown implicit-H scalar decision and complete connected reader/export",
+    "Unfiltered default/affected current-source gates",
+    "All five fresh fact_native ABI/build/wheel and packaging checks",
+    "Final scientific reports and lazy/performance comparison",
+    "Existing final global performance blockers"
+  ],
+  "executed_metadata_checks": [
+    {
+      "scope": "architecture",
+      "argv": [
+        "python",
+        "plan/20_fact_rule_architecture/audit_architecture.py",
+        "--base-ref",
+        "HEAD",
+        "--output",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/bookkeeping-checks-architecture/report.json"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+      "record": ".plan20-artifacts/20261030/stage5/bookkeeping-checks-architecture/command.json",
+      "record_sha256": "5bf360b0bfc7f229fc5a7c071f6aa47707cfc2645680bde637c7d116747e2f0c",
+      "report": ".plan20-artifacts/20261030/stage5/bookkeeping-checks-architecture/report.json",
+      "report_sha256": "5f02758c319be2f648b44b27e6776507cc7c2843c7254f576668768a96184b37",
+      "returncode": 0,
+      "elapsed_seconds": 6.352923499420285,
+      "frozen_unchanged": true,
+      "actual_status": "passed",
+      "coverage_limit": "Source/import/write ratchet and migrated-layer checks. Runtime alias/permission/lifecycle, semantic class identity and native ABI gates remain separate."
+    },
+    {
+      "scope": "layout",
+      "argv": [
+        "python",
+        "plan/20_fact_rule_architecture/audit_stage_records.py",
+        "--check-migration-bytes",
+        "--output",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/bookkeeping-checks-layout/report.json"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "environment_overrides": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+      "record": ".plan20-artifacts/20261030/stage5/bookkeeping-checks-layout/command.json",
+      "record_sha256": "6d3f736c6f802b0a4eebc47c0bb8ea0e0b1582e863b38ec084fa780302885774",
+      "report": ".plan20-artifacts/20261030/stage5/bookkeeping-checks-layout/report.json",
+      "report_sha256": "9f4e08b121a34f604b03bcbf29570fc638f58ef01965bba5c941c1be9baadf5d",
+      "returncode": 0,
+      "elapsed_seconds": 0.4705687612295151,
+      "frozen_unchanged": true,
+      "actual_status": "passed",
+      "coverage_limit": "Document layout and navigation only; no implementation/test/scientific/performance acceptance"
+    }
+  ]
+}

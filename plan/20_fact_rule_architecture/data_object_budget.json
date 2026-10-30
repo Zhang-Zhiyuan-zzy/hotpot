@@ -524,14 +524,17 @@
     },
     {
       "id": "N09",
-      "proposed_definition": "StereoUpdate",
-      "stage": "Stage3",
+      "proposed_definition": "_StereoSnapshot",
+      "stage": "Stage6",
       "dataclass_upper_bound": 1,
-      "responsibility": "Source binding plus existing protected StereoPayload",
-      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
+      "responsibility": "One carrier-free frozen read capture with exactly payload: StereoPayload, atom_keys: tuple[int, ...], bonds: tuple[tuple[int, int, float, str, str | None], ...], in that order. Consumers: structure capture adapter, pure stereo graph/validation/assignment/alignment and stereo operation. Source binding and strong identity-key referents remain operation-local; no fourth field, StereoUpdate wrapper or duplicate reservation.",
+      "status": "root-key accepted exact three-field r2 reservation on 2026-10-30; implementation HOLD pending exact release; cap1 unchanged, no measured census or retirement credit",
       "actual_symbol": null,
       "commit": null,
-      "verification": null
+      "verification": null,
+      "design": "stages/stage06/contracts/review.md",
+      "decisions": "stages/stage06/contracts/decisions.md",
+      "storage_follow_on": "Stage7E completes canonical decomposition before Stage8 and Stage12/global acceptance; reuse existing source/record/update/transaction families, zero new types unless separately reviewed at entry."
     },
     {
       "id": "N10",

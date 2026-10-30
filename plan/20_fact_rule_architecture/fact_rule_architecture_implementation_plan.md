@@ -403,7 +403,7 @@ Section 16.
 | aromaticity | Atom and Bond local aromatic flags are committed together by one `AromaticAssignment`; Ring aromaticity is always a derived view and never writes back by itself |
 | molecular and atom charge | molecular net charge and atom formal charges are distinct facts; they must sum only when formal-charge coverage is declared complete. Partial charges are a named P3 result set and never replace formal charge |
 | coordinates and conformers | a `CoordinateFrame` is a value: the selected current Cartesian frame and explicitly supplied source frames are P1; generated/optimized `ConformerEnsembleResult` is P3. `conformer_load(i)` atomically copies one projected frame into current coordinates; adding a source frame does not change current coordinates |
-| stereo/source transport | Molecule stores stereo records and an immutable source-representation ledger. Current isotope/radical/H values have one Atom-table owner and direction has one Bond owner; they are assembled into `StereoPayload` on request; they are never stored a second time in the ledger |
+| stereo/source transport | Stage7E installs the sole stereo-record/schema and immutable source-ledger owners. Current isotope/radical/H declarations belong only to the Atom table; display direction belongs only to Bond, separately from dative direction. `StereoPayload` is assembled on request; no retained assembled-payload mirror remains. Stage6 preserves the present whole-payload layout only until the separately gated Stage7E cutover |
 | stereo and coordinates | Level-1 stereo records preserve explicit/source representation; coordinates may validate or propose Level-2 assignments but never silently overwrite explicit stereo on disagreement |
 | crystal representation | public `Crystal(a, b, c, alpha, beta, gamma)` is the sole persistent cell value and preserves the current API/native ABI; “unit cell” is the concept, not a second carrier type; a lattice matrix is a calculated mathematical view |
 | constraints | Molecule owns one typed `ConstraintSet`: coordinates use Atom UID, bonds use Bond UID, and angles/torsions use ordered Atom-UID tuples; Atom/Bond/Angle/Torsion `.constraint` access, if retained, is only a projection into that set |
@@ -426,8 +426,22 @@ facts, and an immutable source-representation ledger. The ledger retains
 presence/unknown/source values required for exact round trips, not a duplicate
 `current_hydrogens`, isotope, radical, or display-direction table.
 `get_stereo_payload()` reassembles the transport value from those owners.
-`set(get(mol))` and supported toolkit round trips must remain byte/field
-equivalent under the existing schema tests.
+`set(get(mol))` and supported toolkit round trips must remain byte/field,
+presence/source, schema and ordering equivalent under the existing tests.
+Bond display direction and the existing dative `_bond_direction` have different
+meanings and must have separate canonical slots.
+
+**Stage7E is the assigned implementation and acceptance owner of this storage
+contract, and must complete before Stage8 and before Stage12/global ownership
+acceptance.** Stage6 extracts rules through the access/capture seam while
+preserving current storage, including `get(mol) is payload`, as a transitional
+behavior test. That identity is not a permanent public storage guarantee or a
+waiver of this section. Stage7E replaces those transitional assertions with
+lossless canonical ownership/reassembly gates and deletes whole `_stereo_payload`
+as stored truth in the same connected cutover. Its exact source owners, zero-new-
+type budget, source-only ledger, H-convention entry decision, lifecycle/transport
+coverage and blocking gate are specified in Stage7E below. The Stage6 decision
+record is [contracts/decisions.md](stages/stage06/contracts/decisions.md).
 
 Partial charge is likewise never duplicated in Atom storage. A selected
 `PartialChargeSet` records presence, values, method/version, units, provenance,
@@ -1362,10 +1376,10 @@ only the obvious monolith.
 | `search/native.py` Molecule packing | `adapters/structure/substructure.py` | pack current facts into task-local native input; callable predicates alone return to Python |
 | `smarts.md` | substructure operation/rule docs | update paths and test examples verbatim |
 | `solvents.py` | none | delete the broken import-time singleton, missing-sheet dependency, empty methods, and semantically empty Molecule subclass; real solvent assets, if admitted, use the governed dataset/query layer |
-| `stereo.py` payload schema and fact dataclasses | `structure/stereo.py` | retain the public transport schema; split stored stereo records/source ledger from current Atom/Bond facts |
-| `stereo.py` public functions/schema exports | maintained thin `cheminfo/stereo.py` facade | preserve the five Plan 17 public signatures and complete public schema class identities exactly; facade delegates to one operation/rule implementation |
-| `stereo.py` pure remap proposals, validation, assignment, alignment, Gate 2-7 | `rules/chemistry/stereochemistry/` | split by algebra, topology, coordinate classification, validation, assignment, and alignment; preserve all gates |
-| `stereo.py` payload decomposition/remap commit | `adapters/structure/stereo.py` plus `operations/chemistry.py` | build immutable updates, validate once, and commit; rules never write Molecule |
+| `stereo.py` payload schema and fact dataclasses | `structure/stereo.py`; `structure/_stereo.py` access/storage seam | Stage6 relocates the existing18 public contracts once and preserves public module/pickle identity; Stage7E removes whole-payload stored truth and installs canonical Atom/Bond decomposition |
+| `stereo.py` public functions/schema exports | maintained thin `cheminfo/stereo.py` facade | preserve five Plan17 signatures, actual postponed string annotations and public class identities; delegate to one operation/rule implementation; no runtime Core annotation import or private compatibility aliases |
+| `stereo.py` pure remap proposals, validation, assignment, alignment, Gate 2-7 | `rules/chemistry/stereochemistry/` | algebra owns `_bond_key`, `_axis_bond_keys`, `_remap_stereo_payload` and shared record/group transforms; graph, coordinates, validation, assignment and alignment each own one implementation; preserve all gates |
+| `stereo.py` payload decomposition/remap commit | `adapters/structure/stereochemistry.py`, `structure/_stereo.py` and `operations/chemistry.py` | Stage6 capture/packing uses the structure adapter; lifecycle remap enters the chemistry operation and invokes algebra once; existing `_commit_stereo(mol, source, payload)` needs no update wrapper. Stage7E owns atomic decomposition/reassembly and connected canonical storage migration; rules never write Molecule |
 
 ### 9.3 Outer-package and build disposition
 
@@ -1484,7 +1498,7 @@ or excluding public/wrapper contracts from the denominator.
 | `_angles`, `_torsions`, `_rings`, `_ring_indices_cache`, `_ligand_rings`, `_atom_pairs` | delete | identity-bound views are produced on request and never carrier-owned |
 | `_obmol`, `_row2idx` | delete | fresh conversion objects and direct topology lookup; no persistent external cache |
 | `_model`, `_environ` | delete | explicit operation/runtime inputs |
-| stored whole `_stereo_payload` | refactor | stereo records/source ledger plus canonical Atom/Bond facts; payload assembled/decomposed losslessly |
+| stored whole `_stereo_payload` | delete as stored truth in Stage7E | records/schema plus source-only ledger and canonical Atom/Bond facts; atomic lossless assembly/decomposition across all writers/consumers; completion blocks Stage8 and Stage12/global ownership acceptance |
 | Angle/Torsion-local mutable constraints | merge/refactor | one Molecule-owned `ConstraintSet`; views only project entries |
 | arbitrary `properties["mca"]` and partial-charge storage | refactor | dependency-bound typed records in `structure/results.py` |
 | `_io`/`core` `sys.modules` cycle workaround | delete | one-way dependency and local facade imports |
@@ -1703,19 +1717,56 @@ receive an execution report and explanation.
 
 ### Stage 6 — Split stereochemistry facts and rules
 
-1. Move Level-1 payload/transport dataclasses into `structure/stereo.py`
-   without changing schema, field order, source codes, or native packing.
-2. Split descriptor algebra, graph semantics, coordinate classifiers,
-   validation, assignment, and alignment into named rule modules.
-3. Route remapping and commits through structure mutation/operation code.
-4. Update RDKit/Open Babel translation to depend on transport contracts rather
-   than the former monolith.
-5. Reduce `cheminfo/stereo.py` to the maintained Plan 17 public facade after
-   every Gate 2-7 implementation body moves; delete the old monolithic bodies,
-   not the facade module.
+1. Relocate all18 existing public enums/frozen records once to
+   `structure/stereo.py`, preserving schema, field order, source codes, public
+   module/qualname/pickle identity and the ordered23 exports. Keep the five
+   facade signatures and actual postponed string annotations unchanged.
+2. Split descriptor algebra, graph semantics, coordinate classifiers, validation,
+   assignment and alignment into the six named rule owners. Pure remap belongs
+   to algebra; lifecycle callers enter the chemistry operation. No private facade
+   alias or second implementation remains.
+3. Use the exact N09 three-field `_StereoSnapshot`; capture per distinct owner,
+   retain transient identity-key referents locally, and freeze each rule's inputs.
+   Release every stereo-owned capture/preparation scope before user mapping or
+   coordinate callbacks and native mapping work. Preserve conditional H/native
+   calls, reference/target exception order and graph-before-coordinate suppression.
+   Root separately key-accepted the exact tracked-outer-transaction contention
+   and deferred raw-capture RuntimeErrors after revision2 review/audit; their
+   triggers, messages, order and late side effects are recorded in the Stage6
+   contracts. Production remains HOLD pending exact connected ownership release.
+4. Rewire the connected carrier/builder/native/toolkit/conformer/working-copy
+   consumers to sole owners. Keep current whole-payload storage and object
+   identity behavior only as the Section5.3 transitional preservation contract;
+   Stage7E owns its mandatory replacement before Stage8/global acceptance.
+5. Reduce `cheminfo/stereo.py` to its maintained explicit facade after every
+   Gate2–7 body moves. Require recursive type/key-order/container/scalar native
+   packing equality, one pack per target, and the frozen bounded time/allocation
+   adverse-disposition gate in S6-R2-09.
 
-Gate: all Level-1/Level-2 tests, native packing, RDKit round trips, public
-stereo signatures, Python 3.10-3.14 focused matrix.
+Before bounded measurements, freeze identical semantic work/prepared state,
+fixtures/artifacts/resources and the existing Section12 sampling/noise policy;
+retain all raw/adverse/missing/non-comparable observations. Correctness/count/
+retention violations, unexplained scaling/repeated per-query work or unexplained
+adverse cost block Stage6 pending fix/repeat. Missing/inconclusive required bounded
+evidence stays open. Root must explicitly disposition every attributable adverse
+time/allocation result before Stage6 acceptance, with cause, fixture/size/sample
+and allocation evidence. Only measured necessary bounded O(V+E) overhead may be
+accepted locally with that record; expected overhead cannot auto-pass. Local
+acceptance preserves all Section12/Stage12 global performance debt and supplies
+no speedup/parity claim or global threshold/waiver. Close this local gate only
+with conclusive required evidence, matched compared work/state, passing
+correctness/count/retention checks and every adverse result resolved or explicitly
+accepted under the bounded terms; missing/inconclusive evidence cannot downgrade
+an established violation or unexplained adverse result.
+
+Gate: root-key accepted revision2 [design](stages/stage06/contracts/review.md) and
+[decisions](stages/stage06/contracts/decisions.md), explicit connected ownership
+release, all Level1/Level2 and connected lifecycle/H tests, exact public
+annotation/signature/type-hint/pickle contracts, callback/concurrency/packing
+contracts, RDKit/native round trips, the bounded cost gate and explicit adverse
+result dispositions, and affected Python3.10–3.14 source and installed-wheel
+selection. Static design checks and task34's historical audit
+are not implementation passes. Section5.3 ownership remains open until Stage7E.
 
 ### Stage 7 — Remove second truth sources and clarify results
 
@@ -1779,6 +1830,77 @@ final-frame validity; keep the reviewed conformer projection deterministic.
 
 Gate: source/generated role tests, seed behavior, load/clear invalidation,
 copy/component semantics, and existing conformer array-access parity.
+
+#### Stage 7E — Canonical stereo facts and lossless source transport
+
+This sub-stage completes Section5.3 before entry to Stage8 and before Stage12 or
+global architecture/ownership acceptance. Stage6 extraction cannot waive it.
+Stage7A/7B/7D predecessor moves and the exact surviving owner paths must be
+frozen at entry; this is one connected storage cutover, not an optional cleanup.
+
+1. Own the current `structure/stereo.py` contracts and `structure/_stereo.py`
+   assembly/access seam; `_fields.py`, `_atom_table.py`, `_mutation.py`,
+   `_dependencies.py`, `_identity.py`, `_builder.py`, `_commit.py` and
+   `structure/_native/facts.cpp`; current carrier lifecycle in `core.py`;
+   `operations/chemistry.py`, `operations/stereochemistry.py`,
+   `adapters/structure/stereochemistry.py` and `_native/buffers.py`; sole toolkit
+   conversion/stereo owners; and the then-current conformer transport and
+   force-field working-copy publication/rollback owners. At entry, record an
+   exact one-to-one rename manifest for `rdconvert.py` →
+   `adapters/rdkit/conversion.py` + `adapters/rdkit/stereo.py`, `obconvert.py` →
+   `adapters/openbabel/conversion.py`, and any already moved `_native/buffers.py`,
+   `conformers/adapters.py` or `forcefields/working_copy.py`. Assign the surviving
+   implementation once; never retain old/new copies. Their later Stage8 workflow
+   migration and Stage9 carrier split stay outside Stage7E.
+2. Delete persistent whole `_stereo_payload` and every retained assembled-payload
+   mirror. Molecule owns stereo records/schema version plus an immutable
+   **source-only** representation ledger. Canonical current isotope, radical and
+   H declaration values/presence/source live only in the Atom table. Canonical
+   display direction lives only on Bond, separately from dative `_bond_direction`.
+   The ledger may retain source/unknown/unbound transport information needed for
+   losslessness, never a parallel table of bound current values.
+3. Freeze the exact slot/presence/source mapping at entry. In particular,
+   `current_hydrogens.implicit_hydrogens` is transport output, not an extra H-rule
+   input. Preserve Stage5's radical/current-bracket/no-implicit dependency tuple.
+   Legacy site-total and toolkit omitted-H counts describe potentially different
+   scopes; do not silently normalize imported counts or conflate them with one
+   canonical quantity. Necessary distinct declared representation counts belong
+   in explicit Atom-table slots, with their scope documented. A semantic H
+   normalization needs its own concrete approval before code; unresolved mapping
+   blocks this sub-stage and later ownership acceptance.
+4. Reuse N01 `_SourceIdentity`, N02 `MoleculeRecord`, N05 `_AtomFactUpdate`,
+   existing immutable public transport records and the existing transaction/undo
+   mechanism. New class/dataclass/Protocol/enum/ABI-mirror budget is **zero**;
+   N09 is already `_StereoSnapshot`, not a second `StereoUpdate` reservation.
+   Any concrete extra type requires a separately reviewed entry decision. Preserve
+   the public19-column legacy projection and native ABI prefix; private fact
+   extensions stay outside that prefix, and all Python/native configuration,
+   writers, batch setters, invalidation and rollback migrate together.
+5. Make set/decomposition and get/reassembly atomic and lossless in field values,
+   scalar types, presence/source, record/fact order and schema. Preserve opaque
+   schema47/record-row81 payloads on an empty Molecule and today's accepted
+   duplicate/out-of-range `AtomTransportRecord` rows. Such unbound/opaque source
+   entries must remain diagnosable at the existing projection boundary; do not
+   invent target facts, choose a duplicate winner, reject them earlier or use
+   them to justify a second bound-current ledger. Freeze their exact source-only
+   handling at entry using the existing immutable record family.
+6. Migrate get/set, builder/install, H materialization, source binding and
+   invalidation, copy/component/merge/remap, cold pickle, RDKit/Open Babel,
+   field-selective native transport, conformer transport and working-copy
+   publication/rollback in the same change. Replace transitional `is payload`
+   storage assertions with canonical ownership and lossless equality tests;
+   preserve the public schema classes and pickle spelling.
+
+Gate: exact owner/rename/slot/unbound-source decisions and zero-new-type audit;
+no whole-payload stored truth or mirror; lossless `set(get(mol))`, schema/row/order
+and distinct H-scope fixtures; exact effective H seeds and stale-source behavior;
+atomic failure/rollback across every connected writer; copy/component/merge,
+cold-pickle/toolkit/native/working-copy parity; and the full affected source and
+installed-wheel Python3.10–3.14 selection with the current native build bound to
+the same source. Record commands/artifact identities/results and allocation/
+throughput observations in the owning stage report and verification map. Missing
+or failed evidence blocks Stage8 and Stage12/global ownership acceptance; it
+cannot be relabeled as completed by Stage6 or as approved long-term layout debt.
 
 ### Stage 8 — Split rule policy, workflow, and backend execution
 

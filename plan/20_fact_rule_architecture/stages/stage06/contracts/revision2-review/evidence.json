@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "stage": "Stage6",
-  "status": "revision2_static_design_key_accepted_final_record_integration_and_implementation_pending",
+  "status": "revision2_static_design_key_accepted_final_integration_complete_implementation_pending_baseline",
   "recorded_utc": "2026-10-30T12:32:48.973504+00:00",
   "task": {
     "task_id": "p20-s6-contract-review-704283-34",
@@ -126,7 +126,7 @@
     "current_docs_only_head": "98bcfa8dedec124e0bdc0c2e1c2f634afa38b597",
     "production": "Unchanged from validated cac32af6b4001f377cf347f750bf5a73ffe2bea9; no source/test cutover released."
   },
-  "next_gate": "Finalize bounded accepted contract records and mechanical map/indices; preserve pre-cutover source/existing-wheel introspection/target fixtures, then explicit 20-production/16-test ownership release. Full execution still needs STAGE6_SOURCE_READY.",
+  "next_gate": "Preserve current pre-cutover source/existing-wheel introspection/typed-target/native/cost fixture baseline and manifest, then exact20-production/16-test ownership release. Full execution still needs STAGE6_SOURCE_READY.",
   "production_implementation_authorized": false,
   "stage6_acceptance": false,
   "global_architecture_acceptance": false,
@@ -146,5 +146,51 @@
     "indexed_assets": 127,
     "scope": "Document layout and navigation only; no implementation/test/scientific/performance acceptance",
     "not_runtime_evidence": true
+  },
+  "final_integration": {
+    "author": "Established /root/stage6_stereo_solmax GPT-6.1 Sol/max",
+    "reviewer_result_was_not_rewritten": true,
+    "preservation_manifest": "/tmp/p20-stage6-contracts-reviewed-r2-before-root-integration-20261030/manifest.json",
+    "preservation_manifest_sha256": "daab249c51a592d940f5c4fe53cb30ee7def93a9a555e798810eb3c6ae175783",
+    "reviewed_input_bytes": 398275,
+    "final_outputs": [
+      {
+        "path": "plan/20_fact_rule_architecture/stages/stage06/contracts/review.md",
+        "sha256": "71730c7b847f59690bb7e1e2ac9dfb6e64bf4609421492de66cb78f12235d466"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/stages/stage06/contracts/evidence.json",
+        "sha256": "7f8aa0f3ac98257fdcd8978a1089fa0daa57b36158cbe98953161f80f902fa76"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/stages/stage06/contracts/decisions.md",
+        "sha256": "88b86a1c395ad548b1750d36c2478912ee9e37e374a81c4ed0f7e82f5d983dc2"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+        "sha256": "f83bf4603b638222960cef341766fd6accea6929bdfe5b814abb4e4edc7bf1b6"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/data_object_budget.json",
+        "sha256": "57010cec81b2a43a84371683818b211c013cfc37a09c74d7dc630c2197146520"
+      }
+    ],
+    "root_final_delta_review": "Read exact main Stage6 delta versus frozen reviewed bytes and final S6-R2-09 cost rule; accepts the narrow lock-description correction and explicit adverse disposition as directed. All original contract triggers/order/partition/DAG retained. No fresh reviewer acceptance claimed.",
+    "author_check": {
+      "command": [
+        "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+        "/tmp/p20-stage6-root-integration-check.py"
+      ],
+      "status": "PASS_BOUNDED_ROOT_INTEGRATION_STATIC_CHECKS_ONLY",
+      "attempt_exit_codes": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "failures_retained": "Three checker prose matching/field-wording corrections remain in authored evidence; no hidden failed runtime or design attempt.",
+      "root_repeated": false
+    },
+    "production_release": false
   }
 }

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "source_commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
   "stage_entry": "Full current main plan and normative companions reread and project-state assessment before every stage/sub-stage",
-  "scope": "Existing exact technical target selections plus explicitly planned targets. Tests added by owning stages join the complete affected Python matrix before their gates pass.",
+  "scope": "Existing exact technical target selections plus explicitly planned targets. Tests added by owning stages join the complete affected Python matrix before their gates pass. Mandatory Stage7E is transcribed from the root-key accepted Stage6 normative amendment; existing planned-file labels are corrected without claiming future-stage passes.",
   "baseline_environment": {
     "local_python": "/tmp/hotpot-plan20-env/bin/python",
     "frozen_source_worktree": "/tmp/hotpot-plan20-20261028/source-b20",
@@ -801,18 +801,37 @@
         {
           "path": "tests/test_cheminfo/structure/test_buffer_ownership.py",
           "status": "existing Stage3 implemented file;Stage6 connected buffer/schema extraction cases and current matrix pending"
+        },
+        {
+          "path": "tests/test_cheminfo/test_stereo_extraction.py",
+          "status": "planned_not_created; exact accepted capture/lock/drift/callback/packing/public introspection contracts join source and installed selections before SOURCE_READY"
         }
       ],
       "additional_requirements": [
-        "complete Level1 and Level2 Gate2-7, native packing, five facade signatures, Python3.10-3.14"
+        "complete Level1 and Level2 Gate2-7; exact18 public class identities, ordered23 exports, five facade signatures, actual postponed annotations and default/explicit-namespace type-hint outcomes",
+        "independent task34 revision2 actual audit plus root-key accepted exact tracked-transaction contention and deferred raw-capture drift RuntimeErrors; conditional H/native order and late-error side effects",
+        "one snapshot per distinct owner, strong transient referents, exact partition/raw type-and-byte drift guard; callback/native work outside stereo-owned scopes; same-owner reuse and bounded barrier/timeout tests",
+        "recursive type/key-order/container/scalar/float-byte native packing equality; exactly one pack per target and zero pair/query repacks; real native acceptance/mapping equivalence",
+        "pre-cutover source/existing-wheel introspection/cold-pickle/target fixtures bound before code changes; full affected Python3.10-3.14 source/installed/current-native selection after SOURCE_READY",
+        "capture/check/projection/freeze/pack/native time and Python peak/retained allocation at fixed16/128/512 rows and representative chemistry, equivalent prepared-H state,3 warmups/at least10samples; explicit root adverse-result disposition before Stage6 acceptance; no global parity waiver",
+        "whole-payload object identity is transitional Stage6 behavior only; mandatory Stage7E canonical storage gate remains open and blocks Stage8/Stage12/global ownership acceptance"
       ],
-      "execution_status": "entry_aligned_bounded_design_active;implementation_and_current_stage6_validation_pending",
+      "execution_status": "revision2_static_design_root_key_accepted; final-document integration/precutover-baseline/coherent implementation/SOURCE_READY/runtime gates remain open",
       "entry_evidence": "stages/stage06/entry_review.json",
       "validation_preparation": {
         "path": ".plan20-artifacts/20261030/stage6/validation-preparation/preparation.json",
         "status": "commands/old-environment-provenance preparation only;no Stage6execution/currentwheel acceptance",
         "limits": "Source-only native header/recipe tier separate from installedruntime;two external SDK ABIcases lack frozenbinding;ordinaryrequiredskipsremainmissingevidence."
-      }
+      },
+      "design_evidence_records": [
+        "stages/stage06/contracts/review.md",
+        "stages/stage06/contracts/evidence.json",
+        "stages/stage06/contracts/decisions.md",
+        "stages/stage06/contracts/initial-review/review.md",
+        "stages/stage06/contracts/initial-review/evidence.json",
+        "stages/stage06/contracts/revision2-review/review.md",
+        "stages/stage06/contracts/revision2-review/evidence.json"
+      ]
     },
     "Stage7A": {
       "predecessor": "Stage6",
@@ -844,7 +863,7 @@
         },
         {
           "path": "tests/test_cheminfo/structure/test_crystal_convention.py",
-          "status": "planned_not_created"
+          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
         },
         {
           "path": "tests/test_cheminfo/structure/test_adapter_boundaries.py",
@@ -854,7 +873,11 @@
       "additional_requirements": [
         "fresh external values; I/O/thermo/visualization contracts; matrix convention; no carrier toolkit ownership"
       ],
-      "execution_status": "not_executed_by_inventory_capture"
+      "execution_status": "accepted_PREENTRY_INVENTORY_ONLY; current source/import/test/wheel rebind after preceding stages is mandatory; no entry/design/implementation acceptance",
+      "preentry_evidence": [
+        "stages/stage07/preentry-conversion/review.md",
+        "stages/stage07/preentry-conversion/evidence.json"
+      ]
     },
     "Stage7B": {
       "predecessor": "Stage7A",
@@ -880,11 +903,11 @@
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_constraints.py",
-          "status": "planned_not_created"
+          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
         },
         {
           "path": "tests/test_cheminfo/structure/test_view_identity.py",
-          "status": "planned_not_created"
+          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
         },
         {
           "path": "tests/test_cheminfo/structure/test_topology_selection.py",
@@ -894,7 +917,11 @@
       "additional_requirements": [
         "complete constraint identity/invalidation and task topology masks; preserve original rollback assertions"
       ],
-      "execution_status": "not_executed_by_inventory_capture"
+      "execution_status": "accepted_PREENTRY_INVENTORY_ONLY; current source/import/test/wheel rebind after preceding stages is mandatory; no entry/design/implementation acceptance",
+      "preentry_evidence": [
+        "stages/stage07/preentry-selections/review.md",
+        "stages/stage07/preentry-selections/evidence.json"
+      ]
     },
     "Stage7C": {
       "predecessor": "Stage7B",
@@ -926,11 +953,11 @@
         },
         {
           "path": "tests/test_cheminfo/structure/test_dependencies.py",
-          "status": "planned_not_created"
+          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
         },
         {
           "path": "tests/test_cheminfo/structure/test_buffer_ownership.py",
-          "status": "planned_not_created"
+          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
         }
       ],
       "additional_requirements": [
@@ -972,8 +999,96 @@
       ],
       "execution_status": "not_executed_by_inventory_capture"
     },
-    "Stage8A": {
+    "Stage7E": {
       "predecessor": "Stage7D",
+      "existing_test_files": [
+        "tests/test_cheminfo/test_stereo_level1_storage.py",
+        "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
+        "tests/test_cheminfo/test_stereo_level1_remap.py",
+        "tests/test_cheminfo/test_stereo_level1_native_packing.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py",
+        "tests/test_cheminfo/test_native_molecule_buffers.py",
+        "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py",
+        "tests/test_cheminfo/structure/test_builder.py",
+        "tests/test_cheminfo/structure/test_factual_imports.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/structure/test_source_identity.py",
+        "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+        "tests/test_cheminfo/structure/test_atom_fact_table.py",
+        "tests/test_cheminfo/structure/test_fact_native.py",
+        "tests/test_cheminfo/structure/test_dependencies.py",
+        "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py"
+      ],
+      "native_high_compute_test_files": [
+        "tests/test_cheminfo/native_cpp/test_molecule_buffer_view.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_rdwrapper_api.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py"
+      ],
+      "technical_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/test_stereo_level1_storage.py",
+        "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
+        "tests/test_cheminfo/test_stereo_level1_remap.py",
+        "tests/test_cheminfo/test_stereo_level1_native_packing.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py",
+        "tests/test_cheminfo/test_native_molecule_buffers.py",
+        "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py",
+        "tests/test_cheminfo/structure/test_builder.py",
+        "tests/test_cheminfo/structure/test_factual_imports.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/structure/test_source_identity.py",
+        "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+        "tests/test_cheminfo/structure/test_atom_fact_table.py",
+        "tests/test_cheminfo/structure/test_fact_native.py",
+        "tests/test_cheminfo/structure/test_dependencies.py",
+        "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py"
+      ],
+      "native_command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-high-compute",
+        "tests/test_cheminfo/native_cpp/test_molecule_buffer_view.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_rdwrapper_api.py",
+        "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py"
+      ],
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/structure/test_stereo_facts.py",
+          "status": "planned_not_created; exact entry freezes canonical-slot/source-only/unbound-source/atomic assembly cases and all affected post-move source/wheel selections"
+        }
+      ],
+      "additional_requirements": [
+        "Main Section5.3 and Stage7E own the mandatory canonical stereo storage cutover before Stage8 and Stage12/global ownership acceptance; Stage6 cannot waive it.",
+        "Exact surviving owner/rename manifest after Stage7A/7B/7D; reuse N01/N02/N05/current transaction/public transport; zero new class/dataclass/Protocol/enum/ABI mirror budget unless separately reviewed at entry.",
+        "No stored whole _stereo_payload or assembled mirror; sole stereo records/schema + source-only ledger, canonical Atom isotope/radical/current-H declarations and separate Bond display/dative direction.",
+        "Entry freezes exact H-scope/slot/presence/source mapping and opaque/unbound/duplicate/out-of-range source handling; preserve schema47/row81 and legacy19/native ABI prefix losslessly; no silent omitted-H/site-total normalization.",
+        "Lossless atomic set/get and set(get(mol)); copy/component/merge/remap/pickle/toolkit/native/conformer/working-copy publication and failure rollback; all writers/configurations migrate together.",
+        "Full affected Python3.10-3.14 source/installed-wheel with current native build source binding; exact effective-H seeds, stale-source behavior, type/presence/source/order and no-mirror tests; allocation/throughput observations."
+      ],
+      "execution_status": "assigned_mandatory_future_gate_not_entered; source/slot/unbound/rename and full affected selections must be frozen at entry",
+      "normative_owner": "fact_rule_architecture_implementation_plan.md Section5.3 and Stage7E",
+      "blocking_successors": [
+        "Stage8A",
+        "Stage12",
+        "global_architecture_and_ownership_acceptance"
+      ],
+      "new_type_budget": 0
+    },
+    "Stage8A": {
+      "predecessor": "Stage7E",
       "existing_test_files": [
         "tests/benchmarks/scientific_state/test_cli.py",
         "tests/benchmarks/scientific_state/test_corpus.py",
@@ -1112,7 +1227,7 @@
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_buffer_ownership.py",
-          "status": "planned_not_created"
+          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
         }
       ],
       "additional_requirements": [
@@ -1232,7 +1347,7 @@
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_commit_atomicity.py",
-          "status": "planned_not_created"
+          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
         },
         {
           "path": "tests/test_cheminfo/structure/test_result_attachments.py",
@@ -1240,7 +1355,7 @@
         },
         {
           "path": "tests/test_cheminfo/structure/test_constraints.py",
-          "status": "planned_not_created"
+          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
         }
       ],
       "additional_requirements": [
@@ -1503,15 +1618,15 @@
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_interface_permissions.py",
-          "status": "planned_not_created"
+          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
         },
         {
           "path": "tests/test_cheminfo/structure/test_uid_lifecycle.py",
-          "status": "planned_not_created"
+          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
         },
         {
           "path": "tests/test_cheminfo/structure/test_architecture.py",
-          "status": "planned_not_created"
+          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
         }
       ],
       "additional_requirements": [
@@ -1593,7 +1708,7 @@
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_architecture.py",
-          "status": "planned_not_created"
+          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
         }
       ],
       "additional_requirements": [
@@ -1662,15 +1777,16 @@
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_architecture.py",
-          "status": "planned_not_created"
+          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
         },
         {
           "path": "tests/test_cheminfo/structure/test_interface_permissions.py",
-          "status": "planned_not_created"
+          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
         }
       ],
       "additional_requirements": [
-        "full Sections11/12 matrix, final reports and verified main-scope B_exp"
+        "full Sections11/12 matrix, final reports and verified main-scope B_exp",
+        "Mandatory Stage7E canonical stereo storage gate complete; no transitional Stage6 whole-payload storage waiver."
       ],
       "execution_status": "not_executed_by_inventory_capture"
     },

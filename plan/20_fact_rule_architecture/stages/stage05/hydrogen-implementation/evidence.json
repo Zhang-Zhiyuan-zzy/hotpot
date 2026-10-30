@@ -1,0 +1,381 @@
+{
+  "task": "p20-s5-h-default-implementation-02",
+  "date": "2026-10-30",
+  "status": "Implementation complete and production/tests frozen; final affected focus304 PASS and final static/environment PASS; parent delta review and broad Stage5 gates pending",
+  "branch": "implement/plan20-fact-rule-architecture",
+  "head": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+  "entry_source_sha256": {
+    "hotpot/cheminfo/rules/chemistry/bonding/hydrogen.py": "e120026e5f12694dc0984810313301a6db5bb82b5d66c98e75a783c57a5eaee1",
+    "hotpot/cheminfo/operations/chemistry.py": "0324a22423648128f8f13bc154f4cd338fd98beed122b6e8ecef462efd152732",
+    "hotpot/cheminfo/structure/_identity.py": "754dfed66113509f935b815173d8dc07cc2c36162fd2d2f71b8fec11ef97bb66",
+    "hotpot/cheminfo/structure/_commit.py": "02cdbc53990510f994ba269be79c46b88400d7429e974502be66b892ca8dc87c",
+    "hotpot/cheminfo/core.py": "be399d0e505bffb1d1056f5ccf0bb54b44e8c821a38700d8ff7e0a5022136321"
+  },
+  "entry_document_sha256": {
+    "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md": "38c760c821ad41d189491145a280f09f1ab11faa6e65868de48e7616b0bc2ac8",
+    "plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/decisions.md": "a5484f845838d276024a428c190eddac88c1635a5dcf63595933f8ea16cc1eca",
+    "plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/review.md": "a85a4cafeea4cc1fe08000803520155cabf9ee0fdc27ae980bf3279bec8f7d29",
+    "plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/evidence.json": "ddc19a951d8b40cd86a4dcd6b9c95a546ccb9b1f2eed65c1f9aea0ff7f2170ce",
+    "plan/20_fact_rule_architecture/stages/stage05/contracts/decisions.md": "0de5ab3024a3b793bb916c264357cd7adeeffa8a005ed53ed47d84c4c25b9fd3",
+    "plan/20_fact_rule_architecture/stages/stage05/entry_review.json": "3b2e6d74a3ce4692397d213fc4a7226732e42da7d0bd42744869f36bb7ef796a"
+  },
+  "decisions": [
+    "Use the finite scientific table in hydrogen-defaults/decisions.md; preserve supplied field14 bytes and count source.",
+    "Public int and permissive numeric absent-slot zero are display only; no H fact/source/CURRENT is created for missing input; strict consumers retain existing ValueError.",
+    "Bind effective uid/radical/bracket-H/no-implicit only; current transport implicit count and immutable source ledger are not a second count owner.",
+    "Keep existing metal classification, aromatic/Kekule algorithm and toolkit/model encodings.",
+    "For eligible ordinary nonmetal automatic producer9 counts, expand max(T-E,0) and clean existing current implicit/bracket transport at every residual including0; preserve exact no_implicit and immutable source ledger. Exclude real H/metals, supplied counts and explicit num from cleanup."
+  ],
+  "bounded_work": [
+    "Replace the single default H rule and add H-only immutable extraction.",
+    "Implement scalar, permissive and detached count display without stale inferred facts.",
+    "Bind and invalidate consumed payload inputs, dative direction and retained installer inputs with transaction rollback.",
+    "Test finite chemistry, missing display/strict boundaries, source preservation, retry/coalescing, payload/remap/rollback and inferred expansion."
+  ],
+  "validation": [
+    {
+      "attempt": "focused-attempt1",
+      "request": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt1.request.json",
+      "test_input_snapshot": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt1-test-inputs",
+      "status": "failed; source/tests frozen",
+      "returncode": 1,
+      "elapsed_seconds": 4.526503955945373,
+      "frozen_unchanged": true,
+      "results": {
+        "passed": 222,
+        "failed": 17
+      },
+      "artifact": ".plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt1/command.json",
+      "findings": [
+        "11 new fixture failures used unsupported Bond kwargs kind/direction; fixed to existing bond_kind/bond_direction.",
+        "Source-only no-dirty assertion sampled after a read consumed an already pending aromatic seed; compare setter state before read, retain forbidden H-rule assertion.",
+        "Detached derived count with unexpanded pending input incorrectly displayed stale4; display now respects pending seeds without mutating sealed state.",
+        "Legacy isolated-H monitor expected old UNRESOLVED; update retains historical node and asserts new real-H0 presence/source/CURRENT plus H2 retry.",
+        "Two historical failure spies used old five-arg private H signature; migrate spies to *inputs while retaining injected failures/rollback assertions.",
+        "Private raw row import failed to schedule initial aromatic revalidation; import now queues existing groups; original raw codec/aromatic-conflict test unchanged."
+      ]
+    },
+    {
+      "attempt": "focused-attempt2",
+      "request": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt2.request.json",
+      "test_input_snapshot": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt2-test-inputs",
+      "status": "failed; source/tests frozen",
+      "returncode": 1,
+      "elapsed_seconds": 2.7709376104176044,
+      "frozen_unchanged": true,
+      "results": {
+        "passed": 258,
+        "failed": 4
+      },
+      "artifact": ".plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt2/command.json",
+      "findings": [
+        "Removal queued its own topology seeds before freezing detached state, hiding a known inferred value. Freeze before removal invalidation and preserve pre-existing local/neighbour pending validity in the frozen status.",
+        "RDKit [nH] fixture retained no_implicit=False; explicitly set the requested True input on the reference molecule before import instead of assuming toolkit policy.",
+        "Historical second-endpoint monitor expected pre-write SINGLE after an already committed DOUBLE write. Retain all rollback assertions at the real lazy-preparation boundary and assert the complete written DOUBLE raw row remains."
+      ]
+    },
+    {
+      "attempt": "focused-attempt3",
+      "request": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt3.request.json",
+      "test_input_snapshot": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt3-test-inputs",
+      "status": "passed; source/tests frozen during run; superseded source, not final acceptance evidence",
+      "returncode": 0,
+      "elapsed_seconds": 2.6406648978590965,
+      "frozen_unchanged": true,
+      "results": {
+        "passed": 267,
+        "failed": 0
+      },
+      "artifact": ".plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt3/command.json"
+    },
+    {
+      "attempt": "final-static-and-environment",
+      "request": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/final-static-and-environment.request.json",
+      "status": "failed; unchanged production/tests",
+      "returncode": 1,
+      "frozen_unchanged": true,
+      "elapsed_seconds": 0.7704526074230671,
+      "artifact": ".plan20-artifacts/20261030/stage5/hydrogen-implementation/final-static-and-environment/command.json",
+      "findings": [
+        "Static helper assumed every line of legacy core.py had no trailing whitespace; assigned git diff --check already passed. Correct the helper scope and preserve production/test freeze; do not reformat unrelated legacy code."
+      ]
+    },
+    {
+      "attempt": "final-static-and-environment-attempt2",
+      "request": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/final-static-and-environment-attempt2.request.json",
+      "status": "passed; frozen; superseded by subsequent retained-installer delta",
+      "returncode": 0,
+      "frozen_unchanged": true,
+      "elapsed_seconds": 0.8592411689460278,
+      "artifact": ".plan20-artifacts/20261030/stage5/hydrogen-implementation/final-static-and-environment-attempt2/command.json"
+    },
+    {
+      "attempt": "focused-attempt4",
+      "request": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt4.request.json",
+      "test_input_snapshot": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt4-test-inputs",
+      "status": "passed; source/tests frozen during run; superseded source, not final acceptance evidence",
+      "returncode": 0,
+      "elapsed_seconds": 2.67697836086154,
+      "frozen_unchanged": true,
+      "results": {
+        "passed": 275,
+        "failed": 0
+      },
+      "artifact": ".plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt4/command.json"
+    },
+    {
+      "attempt": "final-static-and-environment-attempt3",
+      "request": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/final-static-and-environment-attempt3.request.json",
+      "status": "passed; unchanged275 source; superseded by reviewed A=0 repair",
+      "artifact": ".plan20-artifacts/20261030/stage5/hydrogen-implementation/final-static-and-environment-attempt3/command.json",
+      "log": ".plan20-artifacts/20261030/stage5/hydrogen-implementation/final-static-and-environment-attempt3/command.log",
+      "returncode": 0,
+      "elapsed_seconds": 0.8579746689647436,
+      "frozen_unchanged": true,
+      "started_at_utc": "2026-10-30T05:32:49.035193+00:00",
+      "ended_at_utc": "2026-10-30T05:32:50.202750+00:00",
+      "log_sha256": "f5dfccba18d5b6570a05a03f9434151edfb1356db18676c4d1a57c9668cfe306"
+    },
+    {
+      "attempt": "zero-residual-regression-before-fix",
+      "request": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/zero-residual-regression-before-fix.request.json",
+      "artifact": ".plan20-artifacts/20261030/stage5/hydrogen-implementation/zero-residual-regression-before-fix/command.json",
+      "log": ".plan20-artifacts/20261030/stage5/hydrogen-implementation/zero-residual-regression-before-fix/command.log",
+      "returncode": 1,
+      "elapsed_seconds": 1.6041052285581827,
+      "frozen_unchanged": true,
+      "started_at_utc": "2026-10-30T05:41:15.818632+00:00",
+      "ended_at_utc": "2026-10-30T05:41:17.723379+00:00",
+      "log_sha256": "d00fa111f9b440f61cc46a305f1f9f2cac9fb4a615628849a94bae50d286c85d",
+      "test_input_snapshot": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/zero-residual-regression-before-fix-test-inputs",
+      "status": "expected failure; frozen production275 plus new regression tests",
+      "results": {
+        "passed": 21,
+        "failed": 8,
+        "deselected": 167
+      },
+      "findings": [
+        "All6 ordinary carbon A=0 cleanup cases failed with current implicit91 retained, and both cleanup rollback-injection cases did not enter the helper. All21 exception-preservation cases passed."
+      ]
+    },
+    {
+      "attempt": "focused-attempt5",
+      "request": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt5.request.json",
+      "artifact": ".plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt5/command.json",
+      "log": ".plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt5/command.log",
+      "returncode": 1,
+      "elapsed_seconds": 3.0313545875251293,
+      "frozen_unchanged": true,
+      "started_at_utc": "2026-10-30T05:44:02.445016+00:00",
+      "ended_at_utc": "2026-10-30T05:44:05.778931+00:00",
+      "log_sha256": "ef4a6e4566516734ecb63b87992e4b88335c7d322aa62b981941753c69346ac9",
+      "test_input_snapshot": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt5-test-inputs",
+      "status": "failed; source/tests frozen",
+      "results": {
+        "passed": 303,
+        "failed": 1
+      },
+      "findings": [
+        "All29 new cases passed. Existing batch-eligibility spy asserted first-pass NEEDS_RECALC again during the second idempotent call because A=0 now enters the helper. Restore the original helper before that repeat, preserving the original first-pass assertions and repeat graph-count assertions; no further production change."
+      ]
+    },
+    {
+      "attempt": "focused-attempt6",
+      "request": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt6.request.json",
+      "artifact": ".plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt6/command.json",
+      "log": ".plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt6/command.log",
+      "returncode": 0,
+      "elapsed_seconds": 2.824779950082302,
+      "frozen_unchanged": true,
+      "started_at_utc": "2026-10-30T05:46:20.605909+00:00",
+      "ended_at_utc": "2026-10-30T05:46:23.732355+00:00",
+      "log_sha256": "f37a3b725887dc0c5c13d9f62f12ef25df126c49798b49d3f2ecc0f32b7d1df1",
+      "test_input_snapshot": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt6-test-inputs",
+      "status": "passed; final source/tests frozen",
+      "results": {
+        "passed": 304,
+        "failed": 0
+      }
+    },
+    {
+      "attempt": "final-static-and-environment-attempt4",
+      "request": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/final-static-and-environment-attempt4.request.json",
+      "artifact": ".plan20-artifacts/20261030/stage5/hydrogen-implementation/final-static-and-environment-attempt4/command.json",
+      "log": ".plan20-artifacts/20261030/stage5/hydrogen-implementation/final-static-and-environment-attempt4/command.log",
+      "returncode": 0,
+      "elapsed_seconds": 0.8581587597727776,
+      "frozen_unchanged": true,
+      "started_at_utc": "2026-10-30T05:47:35.703796+00:00",
+      "ended_at_utc": "2026-10-30T05:47:36.864468+00:00",
+      "log_sha256": "315686275734283618746d012eea03b6031efcfc56ec54441a1c1f9a007fe869",
+      "status": "passed; final source/tests frozen"
+    }
+  ],
+  "remaining_gates": [
+    "Parent delta-only ai4 re-review of frozen post267 and post275 source/test patches, including reviewed A=0 repair.",
+    "Parent broad default, native/five-ABI/wheel/matrix, science and comparable performance gates; global record updates and Git remain parent-owned."
+  ],
+  "implementation_progress": [
+    "Single finite H rule replaced; H-only extraction and effective transport source binding implemented.",
+    "Integer/permissive/detached display implemented; unresolved stale derived H presence/source cleared atomically.",
+    "Payload and dative direction writers seed H; retained record installer compares effective inputs by UID.",
+    "Inferred residual expansion and current-H cleanup including A=0 share one existing calculation/update path and outer factual transaction across Atom and Molecule; all selected eligibility/inputs are captured before any graph write."
+  ],
+  "final_inspection_correction": "After focused267 passed, direct retained-dependency record install was found to compare payload only. The one H extractor now belongs to structure identity and is reused by operation and installer. Installation compares actual local inputs, member adjacency and H presence/source/raw slot, so changed elemental/charge/Bond/count facts queue the existing H group while source-only history does not. No scientific rule or data schema was duplicated.",
+  "new_scientific_matrix_case_count": 90,
+  "final_source_and_test_sha256": {
+    "hotpot/cheminfo/core.py": "0c63e60ffe22f006bb3fdf36a534c785253083164e858024304974889da34c97",
+    "hotpot/cheminfo/operations/chemistry.py": "ffb00624bcdfadc971613f6f5ab548b5c9e672309b60c7710c6a7219180dd50c",
+    "hotpot/cheminfo/rules/chemistry/bonding/hydrogen.py": "5c453018a6cb75573f12b35546f39f05be621bb2103e1e7850c56369d4a14068",
+    "hotpot/cheminfo/stereo.py": "4c8c66f411af3d1f627293a47558d8479ee45cbe62a54220fc44ea873dad34e0",
+    "hotpot/cheminfo/structure/_identity.py": "7ce44a3be08d50ce4c07c8ce4c504e75a95de69165825a23dbf7d13b98fed534",
+    "hotpot/cheminfo/structure/_commit.py": "836c5b87f972adc0a62b626e0aa0fd9688df9a5a774fb70913a0d5f97ccad854",
+    "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py": "c5746c31a64e4f214574140c3f9011584213adc4f49c4d4a0e046c700410221f",
+    "tests/test_cheminfo/structure/test_stage5_bonding.py": "dc6583d7a6c04fab6ecf3277a40e2ee0131241f482622cea62ce977eb17a3eef",
+    "tests/test_cheminfo/test_plan20_carrier_cutover.py": "a1891140a243bbd6e143814fbd3616e6be4907db584f4973c477443e4c20d53f"
+  },
+  "final_document_sha256": {
+    "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/decisions.md": "9645dfa50c55870d94b09831a0c2b34609fb52be4c6a4be53c9beb5cd7954f7f",
+    "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/review.md": "6e98709340a3fc783ebf389241e430311c11a6d087a3ea9bd9839808f0f9e983",
+    "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage05/contracts/decisions.md": "35f0d8c78e1f2890feeff3807c104ea3f20b406c2ddaaf77e391ec4db34a60d4"
+  },
+  "final_environment": {
+    "python_executable": "/tmp/hotpot-plan20-env/bin/python",
+    "python_version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "numpy_version": "2.4.6",
+    "rdkit_version": "2026.09.1",
+    "openbabel_release": "3.2.1",
+    "hotpot_module": "/home/zhangzhiyuan/hotpot/hotpot/__init__.py",
+    "fact_native_path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so",
+    "fact_native_sha256": "77473313ae381af6818a5d4b5c2e940d54a44cc0edf36855a68cdf03aa80327a",
+    "static_result": "AST PASS for all9 files; new-file whitespace and assigned diff --check PASS; existing whole-file whitespace is not reformatted",
+    "pytest_version": "9.1.1",
+    "environment_overrides": {
+      "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+      "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONHASHSEED": "0",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1"
+    }
+  },
+  "final_validation_commands": {
+    "recorder": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage5/local/independent-checkpoint-attempt4/recording_runner.py",
+    "recorder_sha256": {
+      "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage5/local/independent-checkpoint-attempt4/recording_runner.py": "4790bf504bf504d9af6a7c6672720a3a7dfd153c13518bd265aeca9b85a4e287"
+    },
+    "interpreter": "/tmp/hotpot-plan20-env/bin/python",
+    "focused_request": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt6.request.json",
+    "focused_argv": [
+      "taskset",
+      "-c",
+      "24-31",
+      "/tmp/hotpot-plan20-env/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py",
+      "tests/test_cheminfo/structure/test_stage5_bonding.py",
+      "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+      "tests/test_cheminfo/kekulize/test_legacy_api.py",
+      "tests/test_cheminfo/structure/test_atom_fact_table.py::test_raw_numeric_domain_is_preserved_separately_from_scalar_codecs"
+    ],
+    "static_request": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/final-static-and-environment-attempt4.request.json",
+    "static_argv": [
+      "taskset",
+      "-c",
+      "24-31",
+      "/tmp/hotpot-plan20-env/bin/python",
+      "-c",
+      "import ast, hashlib, json, pathlib, subprocess, sys\nimport numpy as np\nimport rdkit\nfrom openbabel import openbabel as ob\nimport hotpot\nfrom hotpot.cheminfo.structure import _fact_native\nroot = pathlib.Path('/home/zhangzhiyuan/hotpot')\nfiles = (\n'hotpot/cheminfo/core.py',\n'hotpot/cheminfo/operations/chemistry.py',\n'hotpot/cheminfo/rules/chemistry/bonding/hydrogen.py',\n'hotpot/cheminfo/stereo.py',\n'hotpot/cheminfo/structure/_identity.py',\n'hotpot/cheminfo/structure/_commit.py',\n'tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py',\n'tests/test_cheminfo/structure/test_stage5_bonding.py',\n'tests/test_cheminfo/test_plan20_carrier_cutover.py',\n)\nfor name in files:\n    text = (root/name).read_text()\n    ast.parse(text, filename=name)\n    if name in (files[1], files[2], files[6]):\n        assert all(line.rstrip() == line for line in text.splitlines()), name\nsubprocess.run(['git', 'diff', '--check', '--', *files], cwd=root, check=True)\nnative = pathlib.Path(_fact_native.__file__)\nprint(json.dumps({\n    'python_executable': sys.executable,\n    'python_version': sys.version,\n    'numpy_version': np.__version__,\n    'rdkit_version': rdkit.__version__,\n    'openbabel_release': ob.OBReleaseVersion(),\n    'hotpot_module': hotpot.__file__,\n    'fact_native_path': str(native),\n    'fact_native_sha256': hashlib.sha256(native.read_bytes()).hexdigest(),\n    'owned_source_and_test_sha256': {name: hashlib.sha256((root/name).read_bytes()).hexdigest() for name in files},\n    'static_result': 'AST PASS for all9 files; new-file whitespace and assigned diff --check PASS; existing whole-file whitespace is not reformatted',\n}, indent=2))"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "test_input_snapshot": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt6-test-inputs",
+    "production_snapshot": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt6/source-snapshot"
+  },
+  "post267_deltas": [
+    {
+      "files": [
+        "hotpot/cheminfo/structure/_identity.py",
+        "hotpot/cheminfo/operations/chemistry.py"
+      ],
+      "change": "Move sole existing eleven-input _hydrogen_inputs extraction into structure identity and import it from chemistry; reuse in retained-install comparison. No rule/table change or duplicate implementation."
+    },
+    {
+      "files": [
+        "hotpot/cheminfo/core.py",
+        "hotpot/cheminfo/structure/_identity.py"
+      ],
+      "change": "Retained-dependency record install binds local elemental/charge/aromatic/Bond/order/kind/dative/current transport inputs, Bond and neighbour UID adjacency, H presence/source and raw float64 bytes by retained UID; changed input queues existing H group, source-only history does not."
+    },
+    {
+      "files": [
+        "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py"
+      ],
+      "change": "Eight retained-installer cases:6 input families, unresolved to supplied0, and history-only no-recalculation. This delta passed275 before the reviewed A=0 repair."
+    },
+    {
+      "files": [
+        "hotpot/cheminfo/operations/chemistry.py"
+      ],
+      "change": "Capture explicit ordinary nonmetal eligibility from the shared input tuple; perform current-H cleanup independently of positive graph additions, including A=0. Existing explicit/supplied/legacy and H/metal paths are preserved."
+    },
+    {
+      "files": [
+        "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py"
+      ],
+      "change": "Add29 A=0 cases:6 Atom/Molecule x None/False/True cleanup/idempotency/target-source-ledger/isotope-radical invariants,6 direct real-H/metal exception cases,15 supplied/legacy/explicit-num0 preservation cases,2 whole-entry cleanup rollback cases. Existing batch dirty-injection spy is restored before its repeat call; first-pass and repeat assertions retained."
+    }
+  ],
+  "reviewed_zero_residual_finding": {
+    "review_artifact": "/tmp/codex-stage4-bridge-01a18583/p20-s5-h-implementation-review-704283-12/result.json",
+    "review_status": "Parent reported formal audit match; reviewed content BLOCKED on A=0 cleanup. That review was against267 source and is not acceptance of final source.",
+    "repair_status": "Reproduced8 failures before production change; repaired and all304 affected tests pass; final delta-only review pending."
+  },
+  "public_and_private_api_effects": [
+    "Public Atom.implicit_hydrogens stays int with its existing setter/int codec, field14 and source encodings. Explicit/source values including0 and characterized float64 payloads retain priority.",
+    "Absent required scientific input displays historical scalar/permissive0 while preserving absent H presence/default source and UNRESOLVED; stale inferred values are hidden. CONFLICT keeps RuntimeError; strict consumers retain the existing unresolved ValueError.",
+    "Ordinary default completion follows the approved single finite rule. Metal raw0 and real-H graph inventory exceptions precede ordinary no-implicit handling.",
+    "Atom/Molecule automatic inferred addition uses one prepared residual and current-H update path including zero residual. Only existing current-H records are replaced, no_implicit remains exact and source_hydrogens is immutable.",
+    "Private _calculate_implicit_hydrogens now accepts11 arguments; private spies use *inputs. Shared private extraction/install bindings were added; no public type/schema/DTO/group or misspelled alias was added."
+  ],
+  "preserved_invariants": [
+    "Ninety scientific table cases remain passing; old valence/formal-charge, metal classification and aromatic/Kekule algorithms remain unchanged by this bounded task.",
+    "Current transport implicit count is not a second default-count owner; only radical/current bracket/current no_implicit affect the minimal H payload binding.",
+    "Before any graph write, capture all selected T/E/J/producer/eligibility and eleven-input tuples, validate the original complete source, and retain prepared eligibility while own writes dirty later rows.",
+    "Raw inferred T, producer9/presence, exact None/False/True policy, immutable source ledger bytes, isotopes and radicals survive successful materialization; source-ledger history is not copied into current state.",
+    "Existing fact transaction covers graph/payload/current target/dependencies and final topology. Later-row and final-topology failures plus new zero-residual cleanup failures restore published state, with existing burned UID semantics.",
+    "Original selected historical nodes and strict scientific xfails remain. Final focus has no -k exclusion and includes all five formerly excluded functions unchanged in identity."
+  ],
+  "preserved_historical_nodes": [
+    "tests/test_cheminfo/kekulize/test_legacy_api.py::test_ring_facade_matches_isolated_legacy_assignment",
+    "tests/test_cheminfo/structure/test_atom_fact_table.py::test_raw_numeric_domain_is_preserved_separately_from_scalar_codecs",
+    "tests/test_cheminfo/test_plan20_carrier_cutover.py::test_eager_element_failure_rolls_back_every_value_and_metadata",
+    "tests/test_cheminfo/test_plan20_carrier_cutover.py::test_bond_endpoint_failure_restores_order_kind_and_first_endpoint",
+    "tests/test_cheminfo/test_plan20_carrier_cutover.py::test_batch_stages_all_inputs_and_preserves_explicit_downstream_values"
+  ],
+  "scope_limits": [
+    "Focused evidence is source execution on Python3.11.16 and the existing cp311 native binary only; no native source/binary edits or rebuild performed by this owner.",
+    "Parent owns final independent delta review, broad default suite, five-ABI/native/wheel and matrix/science/performance acceptance. None of those gates is claimed here.",
+    "Inherited toolkit/model and broader SMARTS/stereo consumer total-versus-omitted H inconsistency remains characterized and unnormalized; imported field14 normalization remains an unapproved separate proposal.",
+    "Existing aromatic/Kekule scientific limitations and strict xfails remain in scope as characterized; this task introduces no algorithm changes there."
+  ],
+  "final_handoff_manifest": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/final-handoff.manifest.json",
+    "sha256": "ecdbe8b87ce76465ebfcf34f12bdc68b577dc91fbd0ef83decb93513db2f936e"
+  },
+  "final_source_freeze": {
+    "production_and_test_writes_stopped": true,
+    "final_focused_started_at_utc": "2026-10-30T05:46:20.605909+00:00",
+    "final_static_ended_at_utc": "2026-10-30T05:47:36.864468+00:00",
+    "last_identity_confirmation_at_utc": "2026-10-30T05:50:33.392472+00:00",
+    "production_snapshot": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt6/source-snapshot",
+    "test_snapshot": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/focused-attempt6-test-inputs",
+    "review_delta_files": [
+      "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/final-post267.diff",
+      "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/hydrogen-implementation/final-post275.diff"
+    ]
+  }
+}

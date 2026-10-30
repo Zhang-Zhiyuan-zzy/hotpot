@@ -272,14 +272,10 @@ def _project_stereo(stereo: Mapping[str, object], atom_count: int) -> dict[str, 
 
 
 def _project_original_graph(molecule: object, atom_count: int) -> dict[str, object]:
-    graph = _graph_document(molecule)
+    graph = _graph_document(molecule, atom_count=atom_count)
     return {
-        "atoms": graph["atoms"][:atom_count],
-        "bonds": [
-            bond
-            for bond in graph["bonds"]
-            if int(bond["begin"]) < atom_count and int(bond["end"]) < atom_count
-        ],
+        "atoms": graph["atoms"],
+        "bonds": graph["bonds"],
         "stereo": _project_stereo(graph["stereo"], atom_count),
     }
 

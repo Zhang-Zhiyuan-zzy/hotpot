@@ -199,6 +199,9 @@ def test_compiled_path_accepts_cohort_reconstructed_pyrrolic_hydrogens():
     metal = molecule.create_atom(atomic_number=95)
     molecule.add_bond(8, metal.idx)
     molecule.refresh_atom_id()
+    from hotpot.cheminfo.operations.chemistry import _require_implicit_hydrogens
+
+    _require_implicit_hydrogens(molecule)
     graph = _graph_document(molecule)
     coordination = {
         "metal": {

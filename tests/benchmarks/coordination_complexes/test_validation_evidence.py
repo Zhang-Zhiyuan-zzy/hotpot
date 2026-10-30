@@ -2,15 +2,17 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
+from dataclasses import asdict, replace
 
 import numpy as np
+import pytest
 
 from hotpot.cheminfo.core import Molecule
 from hotpot.cheminfo.forcefields import ff
 
 from .validation_cohort import _graph_document, canonical_digest
 from .validation_evidence import (
+    _project_original_graph,
     evaluate_route,
     semantic_evidence,
     write_selected_structure,
@@ -32,6 +34,9 @@ def _complex() -> Molecule:
 
 
 def _case(molecule: Molecule) -> dict[str, object]:
+    from hotpot.cheminfo.operations.chemistry import _require_implicit_hydrogens
+
+    _require_implicit_hydrogens(molecule)
     graph = _graph_document(molecule)
     coordination = {
         "metal": {
@@ -204,8 +209,20 @@ def test_successful_report_translates_to_all_ten_passing_gates() -> None:
     assert "terminal_reason:budget_exhausted" in result.diagnostics
 
 
-def test_added_hydrogen_rows_do_not_change_original_graph_semantics() -> None:
+def test_added_hydrogen_rows_do_not_change_original_graph_semantics(monkeypatch) -> None:
+    from hotpot.cheminfo.operations import chemistry
+    from hotpot.cheminfo.stereo import (
+        AtomTransportRecord, BondTransportRecord, StereoPayload, set_stereo_payload,
+    )
+    from hotpot.cheminfo.structure._dependencies import _dependency_state
+    from hotpot.cheminfo.structure._fields import FIELD_INDEX
+
     molecule = _complex()
+    source_payload = StereoPayload(
+        1, (), (AtomTransportRecord(0, 15, None, None, None, "fixture"),),
+        (BondTransportRecord((0, 1), "begin_wedge"),),
+    )
+    set_stereo_payload(molecule, source_payload)
     case = _case(molecule)
     molecule.create_atom(atomic_number=1, id=13)
     molecule.add_bond(0, 2, 1.0)
@@ -213,11 +230,57 @@ def test_added_hydrogen_rows_do_not_change_original_graph_semantics() -> None:
         ((0.0, 0.0, 0.0), (2.4, 0.0, 0.0), (0.0, 1.0, 0.0)),
         dtype=np.float64,
     )
+    set_stereo_payload(molecule, replace(
+        source_payload,
+        atom_facts=source_payload.atom_facts + (AtomTransportRecord(2, 2, None, None, None, "fixture"),),
+        bond_facts=source_payload.bond_facts + (BondTransportRecord((0, 2), "end_dash"),),
+    ))
+    assert not int(molecule._atom_table._presence[2]) & (1 << FIELD_INDEX["implicit_hydrogens"])
+    before, metadata = molecule._capture_factual_record(include_frames=False)
+    statuses, seeds = _dependency_state(molecule._atom_table)
 
+    def forbidden(*args, **kwargs):
+        raise AssertionError("semantic observation prepared or repaired result facts")
+
+    monkeypatch.setattr(chemistry, "_prepare_hydrogens", forbidden)
+    monkeypatch.setattr(chemistry, "_prepare_aromatic_representation", forbidden)
     evidence = semantic_evidence(case, molecule)
+    projected = _project_original_graph(molecule, 2)
 
     assert evidence.equal
     assert evidence.source_digest == evidence.result_digest
+    assert projected == case["graph"]
+    after, after_metadata = molecule._capture_factual_record(include_frames=False)
+    after_statuses, after_seeds = _dependency_state(molecule._atom_table)
+    assert asdict(after) == asdict(before)
+    assert after_metadata == metadata
+    assert after_statuses.tobytes() == statuses.tobytes()
+    assert after_seeds == seeds
+
+
+def test_original_graph_projection_rejects_missing_original_h_without_repair(monkeypatch):
+    from hotpot.cheminfo.operations import chemistry
+    from hotpot.cheminfo.structure._fields import ATOM_PRESENCE_ALL, FIELD_INDEX
+
+    molecule = _complex()
+    case = _case(molecule)
+    record, metadata = molecule._capture_factual_record(include_frames=False)
+    presence = np.frombuffer(record.atom_presence, dtype="<u4").copy()
+    presence[0] &= np.uint32(~(1 << FIELD_INDEX["implicit_hydrogens"]) & ATOM_PRESENCE_ALL)
+    observed = Molecule._build_molecule(
+        replace(record, atom_presence=presence.tobytes()), bond_metadata=metadata
+    )
+    before, _ = observed._capture_factual_record(include_frames=False)
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("semantic observation repaired missing original H")
+
+    monkeypatch.setattr(chemistry, "_prepare_hydrogens", forbidden)
+    monkeypatch.setattr(chemistry, "_prepare_aromatic_representation", forbidden)
+    with pytest.raises(ValueError, match="requires present implicit-H facts"):
+        semantic_evidence(case, observed)
+    after, _ = observed._capture_factual_record(include_frames=False)
+    assert asdict(after) == asdict(before)
 
 
 def test_unavailable_gradient_requires_explicit_successful_recovery() -> None:

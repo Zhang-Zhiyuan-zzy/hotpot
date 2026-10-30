@@ -67,8 +67,7 @@ def _empty_stereo_document() -> dict[str, object]:
     }
 
 
-def _stereo_document(molecule: object) -> dict[str, object]:
-    payload = getattr(molecule, "_stereo_payload", None)
+def _stereo_document(payload: object | None) -> dict[str, object]:
     if payload is None:
         return _empty_stereo_document()
 
@@ -143,8 +142,65 @@ def _cohort_atom_ids(molecule: object) -> tuple[int, ...]:
 def _graph_document(
     molecule: object,
     atom_ids: tuple[int, ...] | None = None,
+    *,
+    atom_count: int | None = None,
 ) -> dict[str, object]:
-    atoms = tuple(molecule.atoms)
+    import numpy as np
+
+    from hotpot import Molecule
+    from hotpot.cheminfo.structure._fields import FIELD_INDEX
+
+    if isinstance(molecule, Molecule):
+        record, _ = molecule._capture_factual_record(include_frames=False)
+        count = record.atom_count if atom_count is None else atom_count
+        values = np.frombuffer(record.atom_values, dtype="<f8").reshape(
+            record.atom_count, len(FIELD_INDEX)
+        )[:count]
+        presence = np.frombuffer(record.atom_presence, dtype="<u4")[:count]
+        if not np.all(presence & (1 << FIELD_INDEX["implicit_hydrogens"])):
+            raise ValueError("graph serialization requires present implicit-H facts")
+        atom_ids = (
+            tuple(int(value) for value in values[:, FIELD_INDEX["id"]])
+            if atom_ids is None else atom_ids
+        )
+        atom_documents = [
+            {
+                "row": row,
+                "atom_id": atom_ids[row],
+                "atomic_number": int(value[FIELD_INDEX["atomic_number"]]),
+                "formal_charge": int(value[FIELD_INDEX["formal_charge"]]),
+                "is_aromatic": bool(value[FIELD_INDEX["is_aromatic"]]),
+                "implicit_hydrogens": int(value[FIELD_INDEX["implicit_hydrogens"]]),
+            }
+            for row, value in enumerate(values)
+        ]
+        bond_values = np.frombuffer(record.bond_values, dtype="<f8").reshape(-1, 3)
+        bond_documents = [
+            {
+                "row": row,
+                "begin": record.bond_endpoints[index][0],
+                "end": record.bond_endpoints[index][1],
+                "bond_order": float(bond_values[index, 0]),
+                "bond_kind": record.bond_kinds[index],
+                "is_aromatic": bool(
+                    record.bond_kinds[index] == "aromatic" or record.bond_aromatic[index]
+                ),
+                "bond_direction": record.bond_directions[index],
+            }
+            for row, index in enumerate(
+                index for index, partition in enumerate(record.bond_partitions)
+                if partition == 0 and all(
+                    endpoint < count for endpoint in record.bond_endpoints[index]
+                )
+            )
+        ]
+        return {
+            "atoms": atom_documents,
+            "bonds": bond_documents,
+            "stereo": _stereo_document(record.stereo_payload),
+        }
+
+    atoms = tuple(molecule.atoms)[:atom_count]
     atom_ids = tuple(int(atom.id) for atom in atoms) if atom_ids is None else atom_ids
     atom_rows = {id(atom): row for row, atom in enumerate(atoms)}
     atom_documents = [
@@ -159,7 +215,13 @@ def _graph_document(
         for row, atom in enumerate(atoms)
     ]
     bond_documents = []
-    for row, bond in enumerate(molecule.bonds):
+    selected_bonds = molecule.bonds
+    if atom_count is not None:
+        selected_bonds = (
+            bond for bond in selected_bonds
+            if id(bond.atom1) in atom_rows and id(bond.atom2) in atom_rows
+        )
+    for row, bond in enumerate(selected_bonds):
         bond_kind = str(_enum_value(bond.bond_kind))
         bond_documents.append(
             {
@@ -175,7 +237,7 @@ def _graph_document(
     return {
         "atoms": atom_documents,
         "bonds": bond_documents,
-        "stereo": _stereo_document(molecule),
+        "stereo": _stereo_document(getattr(molecule, "_stereo_payload", None)),
     }
 
 
@@ -276,6 +338,9 @@ def build_validation_cohort(
     CBond result (with ``molecule`` and ``donor_indices``) or ``None``.
     """
 
+    from hotpot import Molecule
+    from hotpot.cheminfo.operations.chemistry import _require_implicit_hydrogens
+
     if metal != "Am":
         raise ValueError("the Plan-17 semantic cohort is fixed to Am")
     if settings != STANDARD_SETTINGS:
@@ -307,6 +372,8 @@ def build_validation_cohort(
             )
             continue
 
+        if isinstance(result.molecule, Molecule):
+            _require_implicit_hydrogens(result.molecule)
         atom_ids = _cohort_atom_ids(result.molecule)
         graph = _graph_document(result.molecule, atom_ids)
         coordination = _coordination_document(
@@ -631,8 +698,12 @@ def semantic_case_molecule(case: Mapping[str, object]):
 
     if case["status"] != "cbond":
         raise ValueError("a molecule can only be built from a CBond-positive case")
+    from dataclasses import replace
+
+    import numpy as np
+
     from hotpot.cheminfo.core import Molecule
-    from hotpot.cheminfo.stereo import set_stereo_payload
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX
 
     graph = case["graph"]
     molecule = Molecule()
@@ -643,7 +714,6 @@ def semantic_case_molecule(case: Mapping[str, object]):
             id=int(atom["atom_id"]),
             atomic_number=int(atom["atomic_number"]),
             formal_charge=int(atom["formal_charge"]),
-            is_aromatic=bool(atom["is_aromatic"]),
             implicit_hydrogens=int(atom["implicit_hydrogens"]),
         )
     for bond in graph["bonds"]:
@@ -656,8 +726,20 @@ def semantic_case_molecule(case: Mapping[str, object]):
         )
     molecule._update_topology()
     molecule.charge = molecule.sum_atoms_charge
-    set_stereo_payload(molecule, _stereo_from_document(graph["stereo"]))
-    return molecule
+    record, metadata = molecule._capture_factual_record()
+    values = np.frombuffer(record.atom_values, dtype="<f8").reshape(record.atom_count, 19).copy()
+    presence = np.frombuffer(record.atom_presence, dtype="<u4").copy()
+    sources = np.frombuffer(record.atom_sources, dtype="u1").reshape(record.atom_count, 19).copy()
+    field = FIELD_INDEX["is_aromatic"]
+    values[:, field] = [bool(atom["is_aromatic"]) for atom in graph["atoms"]]
+    presence |= 1 << field
+    sources[:, field] = ATOM_SOURCE_CODES["explicit"]
+    return Molecule._build_molecule(replace(
+        record, atom_values=values.tobytes(), atom_presence=presence.tobytes(),
+        atom_sources=sources.tobytes(),
+        bond_aromatic=tuple(bool(bond["is_aromatic"]) for bond in graph["bonds"]),
+        stereo_payload=_stereo_from_document(graph["stereo"]),
+    ), bond_metadata=metadata)
 
 
 __all__ = (

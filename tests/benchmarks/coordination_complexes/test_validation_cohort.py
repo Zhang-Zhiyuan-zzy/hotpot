@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import subprocess
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
 from types import SimpleNamespace
@@ -378,3 +378,125 @@ def test_native_projection_and_hotpot_reconstruction_reuse_the_same_graph() -> N
     assert cohort_module._graph_document(rebuilt) == case["graph"]
     assert [atom.idx for atom in rebuilt.metals] == [1]
     assert rebuilt.atoms[0].implicit_hydrogens == 1
+
+
+def _raw_graph_state(molecule):
+    from hotpot.cheminfo.structure._dependencies import _dependency_state
+
+    record, metadata = molecule._capture_factual_record(include_frames=False)
+    status, seeds = _dependency_state(molecule._atom_table)
+    return asdict(record), metadata, status.tobytes(), seeds
+
+
+@pytest.mark.parametrize("supplied_aromatic", [False, True])
+def test_source_graph_capture_does_not_evaluate_or_change_aromatic_facts(
+    monkeypatch, supplied_aromatic
+):
+    from hotpot import Molecule
+    from hotpot.cheminfo.operations import chemistry
+    from hotpot.cheminfo.structure._fields import FIELD_INDEX
+
+    if supplied_aromatic:
+        case = _positive_cases(
+            build_validation_cohort(cbond_builder=_fixture_builder([]))
+        )[0]
+        molecule = semantic_case_molecule(case)
+    else:
+        molecule = Molecule()
+        molecule.create_atom(atomic_number=6, implicit_hydrogens=0)
+        aromatic_bit = 1 << FIELD_INDEX["is_aromatic"]
+        assert not int(molecule._atom_table._presence[0]) & aromatic_bit
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("source serialization evaluated chemistry")
+
+    monkeypatch.setattr(chemistry, "_prepare_hydrogens", forbidden)
+    monkeypatch.setattr(chemistry, "_prepare_aromatic_representation", forbidden)
+    before = _raw_graph_state(molecule)
+
+    graph = cohort_module._graph_document(molecule)
+
+    assert graph["atoms"][0]["is_aromatic"] is supplied_aromatic
+    assert _raw_graph_state(molecule) == before
+    if supplied_aromatic:
+        assert graph == case["graph"]
+    else:
+        assert not int(molecule._atom_table._presence[0]) & aromatic_bit
+
+
+def test_cohort_prepares_new_metal_h_without_replacing_supplied_ligand_h():
+    from hotpot import Atom, Molecule
+    from hotpot.cheminfo.stereo import set_stereo_payload
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX
+
+    molecule = Molecule()
+    molecule.create_atom(atomic_number=7, implicit_hydrogens=1, id=17)
+    molecule.add_atom(Atom(symbol="Am", formal_charge=3, id=93))
+    molecule.add_bond(0, 1, bond_order=1.0)
+    set_stereo_payload(molecule, _stereo_payload())
+    field = FIELD_INDEX["implicit_hydrogens"]
+    assert not int(molecule._atom_table._presence[1]) & (1 << field)
+    ligand_bytes = molecule._atom_table._columns[field][:1].tobytes()
+    ligand_source = int(molecule._atom_table._sources[0, field])
+    result = SimpleNamespace(molecule=molecule, donor_indices=(0,))
+
+    def build(index, *args):
+        return None if index in EXPECTED_NO_CBOND_INDICES else result
+
+    cohort = build_validation_cohort(cbond_builder=build)
+    case = _positive_cases(cohort)[0]
+
+    assert molecule._atom_table._columns[field][:1].tobytes() == ligand_bytes
+    assert int(molecule._atom_table._sources[0, field]) == ligand_source
+    assert ligand_source == ATOM_SOURCE_CODES["explicit"]
+    assert int(molecule._atom_table._presence[1]) & (1 << field)
+    assert case["graph"]["atoms"][1]["implicit_hydrogens"] == 0
+    assert cohort_module._graph_document(semantic_case_molecule(case)) == case["graph"]
+    assert case["graph"]["stereo"] == cohort_module._stereo_document(_stereo_payload())
+
+
+def test_cohort_refreshes_stale_inferred_h_before_raw_graph_capture():
+    from hotpot import Atom, Molecule
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX
+
+    molecule = Molecule()
+    donor = molecule.create_atom(atomic_number=7)
+    assert donor.implicit_hydrogens == 3
+    molecule.create_atom(atomic_number=8, implicit_hydrogens=0)
+    molecule.add_bond(0, 1, bond_order=1.0)
+    molecule.add_atom(Atom(symbol="Am", formal_charge=3))
+    molecule.add_bond(
+        0, 2, bond_order=1.0, bond_kind="dative", bond_direction="atom1_to_atom2"
+    )
+    field = FIELD_INDEX["implicit_hydrogens"]
+    assert int(molecule._atom_table._columns[field][0]) == 3
+    result = SimpleNamespace(molecule=molecule, donor_indices=(0,))
+
+    def build(index, *args):
+        return None if index in EXPECTED_NO_CBOND_INDICES else result
+
+    case = _positive_cases(build_validation_cohort(cbond_builder=build))[0]
+
+    assert case["graph"]["atoms"][0]["implicit_hydrogens"] == 2
+    assert int(molecule._atom_table._sources[0, field]) == ATOM_SOURCE_CODES["implicit_hydrogens"]
+    assert cohort_module._graph_document(semantic_case_molecule(case)) == case["graph"]
+
+
+def test_unresolved_h_is_not_serialized_as_an_authoritative_zero():
+    from hotpot import Atom, BondKind, Molecule
+    from hotpot.cheminfo.structure._fields import FIELD_INDEX
+
+    molecule = Molecule()
+    molecule.create_atom(atomic_number=7)
+    molecule.add_atom(Atom(symbol="Am"))
+    molecule.add_bond(0, 1, bond_order=1.0, bond_kind=BondKind.UNKNOWN)
+    result = SimpleNamespace(molecule=molecule, donor_indices=(0,))
+
+    with pytest.raises(ValueError, match="requires resolved implicit-H"):
+        build_validation_cohort(cbond_builder=lambda *args: result)
+
+    field = FIELD_INDEX["implicit_hydrogens"]
+    assert not int(molecule._atom_table._presence[0]) & (1 << field)
+    with pytest.raises(ValueError, match="requires present implicit-H facts"):
+        cohort_module._graph_document(molecule)
+    assert not int(molecule._atom_table._presence[0]) & (1 << field)

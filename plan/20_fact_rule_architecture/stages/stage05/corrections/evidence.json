@@ -1,0 +1,613 @@
+{
+  "schema_version": 1,
+  "task": "p20-s5-known-corrections-01",
+  "status": "F1-F3 corrected; production/tests frozen for root handoff; Stage5 incomplete",
+  "recorded_at_utc": "2026-10-30T03:52:50.273758+00:00",
+  "branch": "implement/plan20-fact-rule-architecture",
+  "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+  "owning_review": "review.md",
+  "entry": "Continuation of the existing Stage5 checkpoint; bounded settled-contract fixes, not a new stage or scientific algorithm revision",
+  "prior_immutable_snapshot": {
+    "archive": ".plan20-artifacts/20261030/stage5/remote-checkpoint01/source-snapshot.tar.gz",
+    "sha256": "d7433533eb891364900c6666e9138d55fee8d45ece73c5540b00484ca857fa0c",
+    "tree": "11663c53dca93b803c8d77445243aad8ab89e8bdf3644a463afdd1220662b697"
+  },
+  "unchanged_original_checkpoint_records": {
+    "plan/20_fact_rule_architecture/stages/stage05/review.md": "0c4799bbd4b88c2a16b7514b316c7c19cce44474a6b8b94d43595a03e5420b12",
+    "plan/20_fact_rule_architecture/stages/stage05/rules_checkpoint_evidence.json": "e37456a4c6e596b12ac1347c2bd2b2fa56ff109ab0498e788cd843a201c3aea1"
+  },
+  "current_owned_source_test_sha256": {
+    "hotpot/cheminfo/structure/_dependencies.py": "92fcc35c87a0ef5d2beef8c889ddb4c1a7317af5bf4bf69f84f4cf1d41c3e6bc",
+    "hotpot/cheminfo/structure/_commit.py": "02cdbc53990510f994ba269be79c46b88400d7429e974502be66b892ca8dc87c",
+    "hotpot/cheminfo/operations/chemistry.py": "0324a22423648128f8f13bc154f4cd338fd98beed122b6e8ecef462efd152732",
+    "hotpot/cheminfo/core.py": "be399d0e505bffb1d1056f5ccf0bb54b44e8c821a38700d8ff7e0a5022136321",
+    "tests/test_cheminfo/structure/test_stage5_bonding.py": "6481b51a0d413dd3366d4947b0c5354680a97b3c7b87f7e886e4bf82632fbc67",
+    "tests/test_cheminfo/structure/test_dependencies.py": "f12ab4361e5a6a712b4af715cbf9cf5f7d695e0b91d2489ca57a2f94c9a1b296",
+    "tests/test_cheminfo/kekulize/test_legacy_api.py": "576ab99d29914e24f016d087339a2361bf23947b872a38a1e32487121c225847"
+  },
+  "original_to_current_changes": {
+    "hotpot/cheminfo/core.py": {
+      "before": "e7aa4d08b47bb672745c46b63dd063b96188b097fc550b8cc54783987aa31f93",
+      "after": "be399d0e505bffb1d1056f5ccf0bb54b44e8c821a38700d8ff7e0a5022136321"
+    },
+    "hotpot/cheminfo/operations/chemistry.py": {
+      "before": "8396b96e90ea7c23e5ffdc61b17bf2d9605647b2ff5e41113409eec6462442bd",
+      "after": "0324a22423648128f8f13bc154f4cd338fd98beed122b6e8ecef462efd152732"
+    },
+    "hotpot/cheminfo/structure/_commit.py": {
+      "before": "59996f4811c135f5a62d9447398fc3c9f2e60d215c3f030d0f18b0001f6a7516",
+      "after": "02cdbc53990510f994ba269be79c46b88400d7429e974502be66b892ca8dc87c"
+    },
+    "hotpot/cheminfo/structure/_dependencies.py": {
+      "before": "23507670f46237c94a9949a1342466431bca48bd8133418a01e8f647049cc5d2",
+      "after": "92fcc35c87a0ef5d2beef8c889ddb4c1a7317af5bf4bf69f84f4cf1d41c3e6bc"
+    },
+    "tests/test_cheminfo/kekulize/test_legacy_api.py": {
+      "before": "bb107744207554bf7196e1c46e9527540d14944466286a13d23e10bca67f37b5",
+      "after": "576ab99d29914e24f016d087339a2361bf23947b872a38a1e32487121c225847"
+    },
+    "tests/test_cheminfo/structure/test_dependencies.py": {
+      "before": "a54d687a303b866f8ecf865a686ee8d7987c94a62b4b372e2373055c3c71aeac",
+      "after": "f12ab4361e5a6a712b4af715cbf9cf5f7d695e0b91d2489ca57a2f94c9a1b296"
+    },
+    "tests/test_cheminfo/structure/test_stage5_bonding.py": {
+      "before": "1f1c5848a4f64827b261421092c94143fd042d1c9de5a67f081ec7bbfb136e10",
+      "after": "6481b51a0d413dd3366d4947b0c5354680a97b3c7b87f7e886e4bf82632fbc67"
+    }
+  },
+  "all_71_current_checkpoint_source_test_identities": {
+    "hotpot/cheminfo/AImodels/data_extract.py": "3b023cb54d1a175e25ebbf7191a549d756709096d394ab7cb96107d36679706c",
+    "hotpot/cheminfo/AImodels/mca/serialization.py": "4579518b5838f1068b9434296e1190e3a3036bce9d5fbd511baa756d0c3fa09e",
+    "hotpot/cheminfo/_io/_io.py": "eeccb15c9a230b6b334c9e5078bec9b4ee3bb4cd7059d7bf14c6ed330bd3134c",
+    "hotpot/cheminfo/_native/buffers.py": "a916c72a5872c59e19a07de0443aca557f97adec287305682cdd45cd67c9a9d2",
+    "hotpot/cheminfo/adapters/structure/geometry.py": "17173eec7411a8f17d2472a1d0c362999fb0141e670252d570cc92ba55d2af39",
+    "hotpot/cheminfo/core.py": "be399d0e505bffb1d1056f5ccf0bb54b44e8c821a38700d8ff7e0a5022136321",
+    "hotpot/cheminfo/elements.py": "274c61afe45559198c354a6874148edc4c8c3f66e9a1cf3448e5f7067b6bd626",
+    "hotpot/cheminfo/forcefields/ligand.py": "5df3008ce8e12a516f829b583b7cca7f848ae668cde6d6fa0c12428c6a91c3cc",
+    "hotpot/cheminfo/forcefields/working_copy.py": "42cccec5ead3e290de6d1142cda1f64b683c472ea0a87b88639a5cf239dfd837",
+    "hotpot/cheminfo/kekulize/Kekulize.md": null,
+    "hotpot/cheminfo/kekulize/__init__.py": null,
+    "hotpot/cheminfo/kekulize/_protocols.py": null,
+    "hotpot/cheminfo/kekulize/aromaticity.py": null,
+    "hotpot/cheminfo/kekulize/assignment.py": null,
+    "hotpot/cheminfo/kekulize/settings.py": null,
+    "hotpot/cheminfo/kekulize/workflow.py": null,
+    "hotpot/cheminfo/mol_assemble/action_func.py": "1cdbcd2ff90793a95fa4117ec09c111583ca1cc194f5136d64eae45998f0dfff",
+    "hotpot/cheminfo/obconvert.py": "70165aaf25cf7659bead86efc1d8804de0537662dcdfa4ce4978f97821987487",
+    "hotpot/cheminfo/operations/chemistry.py": "0324a22423648128f8f13bc154f4cd338fd98beed122b6e8ecef462efd152732",
+    "hotpot/cheminfo/operations/descriptors.py": "551a27a36d2b6261aa187c9f78234472f8545fe57bce55b15d36e0466821cc40",
+    "hotpot/cheminfo/operations/topology_queries.py": "367737e99a8f141b12da754bff74a7f65233902febfa1c0b39a4b3a45523bf05",
+    "hotpot/cheminfo/rdconvert.py": "fa74993f21226f9e02d898224c8a0f16ec702fdac65ff79089ee83da3a7903f7",
+    "hotpot/cheminfo/reference/elements.py": "b64367b01abccb2f3059f5d437a6083a2c6235ba8ceda00c63f2d28eb06e6449",
+    "hotpot/cheminfo/rules/chemistry/bonding/Kekulize.md": "53c1a143abda2e6576dcf7bb4af21bdc9dff5ebe51c43c0a07a0ac3ee447aa00",
+    "hotpot/cheminfo/rules/chemistry/bonding/__init__.py": "59396f4b38ec26532c7f2de3839338a1c13af7952456236c8cd2830b0f3fcbd8",
+    "hotpot/cheminfo/rules/chemistry/bonding/aromaticity.py": "99813565cbddad0eea4bc20715929406bfab9d2c8d797581ace3ab748f1220df",
+    "hotpot/cheminfo/rules/chemistry/bonding/bond_order.py": "51bc90d1a5ea7c97e83dda1ed42c8537f4f3f368ce3b098143be73a6f2541410",
+    "hotpot/cheminfo/rules/chemistry/bonding/formal_charge.py": "9faaf6641464b0d802928dd907e988bf673407e5784dcd89b347f07d4ce11f3c",
+    "hotpot/cheminfo/rules/chemistry/bonding/hydrogen.py": "e120026e5f12694dc0984810313301a6db5bb82b5d66c98e75a783c57a5eaee1",
+    "hotpot/cheminfo/rules/chemistry/bonding/kekule.py": "3e7e565aa5aba4006a03e23748b68df559fd072c424b4467828f047b4472c603",
+    "hotpot/cheminfo/rules/chemistry/bonding/valence.py": "6607f5c28c8b42ed9014bec1517f3afa2994b7a7dd66933e1eddd6e216cbd1ab",
+    "hotpot/cheminfo/rules/chemistry/descriptors/formula.py": "a7cb616c0fca5f8561a45d939a3cb349bdefcdcedd730f15d4048d4b44ab9ba7",
+    "hotpot/cheminfo/rules/chemistry/descriptors/graph_spectrum.py": "405397349fca49b7a88589f5070ab593ea8d48028a92d41a256d8dc7263251ae",
+    "hotpot/cheminfo/rules/chemistry/elements.py": "95bbfe85bd293f0f54dc1412156e6bdead55d94c7da3e1f513e9a3e09023e924",
+    "hotpot/cheminfo/search/native.py": "ad5b82b457104386cda4b8ec3417b234dee72b011b38f6943b4787b4fcc6090f",
+    "hotpot/cheminfo/search/smarts.py": "16d56c4e404c27d678dd935dc5eaa2504dbaf20c7af4f3a1f67b5804fe0e03ea",
+    "hotpot/cheminfo/structure/_atom_table.py": "025d4616f565d0093505c9624f4b3ce2ade225549d88cf7f090b5d65426f27b0",
+    "hotpot/cheminfo/structure/_builder.py": "779095c68889fbdd887b4e3c055ad45499a5ff042489f301507f6ac3c4c59650",
+    "hotpot/cheminfo/structure/_commit.py": "02cdbc53990510f994ba269be79c46b88400d7429e974502be66b892ca8dc87c",
+    "hotpot/cheminfo/structure/_dependencies.py": "92fcc35c87a0ef5d2beef8c889ddb4c1a7317af5bf4bf69f84f4cf1d41c3e6bc",
+    "hotpot/cheminfo/structure/_fields.py": "8dff72608a494ceabeb2d824b8c4651ab3e5a17ebab77e6059d3e5481f3d3320",
+    "hotpot/cheminfo/structure/_identity.py": "754dfed66113509f935b815173d8dc07cc2c36162fd2d2f71b8fec11ef97bb66",
+    "hotpot/cheminfo/structure/_mutation.py": "1d08ceec8a854a755828fc46871394216e889e7a5667898d5300a26b4224c50c",
+    "hotpot/cheminfo/structure/_native/facts.cpp": "d1825610dd747c59f052ec6a08d75dbc3615e71ebc220d20f971d8ed96431638",
+    "hotpot/cheminfo/structure/snapshots.py": "55bfdcf538b79831db80a2face4c018bb6ee5e2982d4721946695dfece0ca58b",
+    "hotpot/cheminfo/views/_source.py": "29ce5b8a23730daf0c88b74a5c3f2ac5cd64b967e4c8357bd30dbed8e6720bb5",
+    "hotpot/plugins/ccdc_api/convert.py": "b0c7819f567a317f39857ff0b735e23bd00cd90b05070e7287fb77d6403e6715",
+    "hotpot/utils/chem/atom.py": "2747de059e5a6d6b372d8f9307e7e76a9348aaf0a853161eca6cdd012e6f7302",
+    "tests/test_cheminfo/_stage5_fixtures.py": "ce6309d5cbfbdd46905f3e867716c2e2e626fa8b6846db9c335e7621c1e5ace5",
+    "tests/test_cheminfo/geometry/test_convert.py": "f4aee7fe92c85dd77b7e17ad86ccee03dffe3ca4b07ba4d316d58a9fa2f0f45a",
+    "tests/test_cheminfo/kekulize/test_known_limitations.py": "5e7822ed47ba81cba0f705e0bf5d8929ba3097524c1661fa2b4b0f81d6ffeb46",
+    "tests/test_cheminfo/kekulize/test_legacy_api.py": "576ab99d29914e24f016d087339a2361bf23947b872a38a1e32487121c225847",
+    "tests/test_cheminfo/structure/test_atom_fact_table.py": "5526cf3a4018dfe473a741c3547a02b9fe36f3883fb9000493ce6604581e6b28",
+    "tests/test_cheminfo/structure/test_atom_matrix.py": "72a342f49d2f949d37dff973c714236911cc64f213029b15d3f262765c59e156",
+    "tests/test_cheminfo/structure/test_builder.py": "cfc75e13481ec94abddfc4221c8360cf9368dfb2ab64170e71e8e17d65c760ae",
+    "tests/test_cheminfo/structure/test_dependencies.py": "f12ab4361e5a6a712b4af715cbf9cf5f7d695e0b91d2489ca57a2f94c9a1b296",
+    "tests/test_cheminfo/structure/test_factual_imports.py": "63ec3dab869dcf177908a85d8913a6cc9d2a9563d3ab7813d54f828729a66a79",
+    "tests/test_cheminfo/structure/test_interface_permissions.py": "37bfb739d4ab1e6ffa9285917685d09eec9c3b7762a4d9b69670e914d6bee9c0",
+    "tests/test_cheminfo/structure/test_stage5_bonding.py": "6481b51a0d413dd3366d4947b0c5354680a97b3c7b87f7e886e4bf82632fbc67",
+    "tests/test_cheminfo/structure/test_uid_lifecycle.py": "47b30d5280fe231d10c901f798a2845162854694390a4f60d85f6ba9924fe96b",
+    "tests/test_cheminfo/test_complex_hydrogens.py": "909f50cdb7bd41da482ced93abebc0511b275e73e74f8a091b7bbf3766f47835",
+    "tests/test_cheminfo/test_elements.py": "00a464b9f9b8eb5b87d60765b11142c8069f5611fea9bab4a2a85136e4eeb140",
+    "tests/test_cheminfo/test_geometry.py": "1b7bc8e35e89aa243c208a91cbe895f5298019324544c35db631829e0f0f4e38",
+    "tests/test_cheminfo/test_geometry_core_integration.py": "3edc99eef284aaaf183aebbe3b96559df9e13ddae08820db5a885ee1cf9e4e53",
+    "tests/test_cheminfo/test_geometry_quality.py": "6cefe19cd64400e47a9f76c553cfa250d414b85aa38dafa56394e6e7e3dbdfb5",
+    "tests/test_cheminfo/test_ligand_rings.py": "5643b47508f9f839edd7ed4d34c4335519fe6b18916d8faf1e8dcb701ea39a94",
+    "tests/test_cheminfo/test_plan20_carrier_cutover.py": "0687f783f273afb282bbdc1cd4dfdfda81f04a9042ae51401f8efef0278b5fa0",
+    "tests/test_cheminfo/test_plan20_outer_cutover.py": "89d05701e670e7551c0468386f928eb60786f824e6f0244dd687b7ff66c083ca",
+    "tests/test_cheminfo/test_relevant_ring_integration.py": "13b0e0c1cd4d7101ffd3e78e2ccfdc41de0cfc5bb56cc7b0e1f032426c82fd5f",
+    "tests/test_cheminfo/test_stereo_level2_gate6_equivalence.py": "9ccb99031990bf4fb284d0d61cef6111abc53c0bdb3c6c16bf37085885594740",
+    "tests/test_cheminfo/test_stereo_level2_gate6_projection.py": "1b21ab595f817a57cca318b67d076fbc4cb7670e1329181d2a0217c6e52dbb7c"
+  },
+  "current_71_identity_manifest_sha256": "1fbb7b9dd7cd1aed8c5fec736a48ddf6215ebbd93ef84f51734c27245958477c",
+  "correction_patch": {
+    "path": ".plan20-artifacts/20261030/stage5/corrections/correction.patch",
+    "sha256": "e6e5122848d56089408c55d16524fed86e8991c8b7a149b0c469cd5b94737bf6"
+  },
+  "private_signature": "_commit_aromatic_assignment(mol, assignment, *, snapshot, preserve_sources=False)",
+  "private_effect": "Mandatory existing operation-owned _BondingSnapshot; identical captured source object and current Atom binding; exact covered_rows-derived captured Bond selection; no default/alias/new DTO/new scientific rule",
+  "call_sites": [
+    {
+      "path": "hotpot/cheminfo/operations/chemistry.py",
+      "line": 324,
+      "snapshot_keyword": true
+    },
+    {
+      "path": "hotpot/cheminfo/operations/chemistry.py",
+      "line": 387,
+      "snapshot_keyword": true
+    },
+    {
+      "path": "hotpot/cheminfo/operations/chemistry.py",
+      "line": 455,
+      "snapshot_keyword": true
+    },
+    {
+      "path": "hotpot/cheminfo/operations/chemistry.py",
+      "line": 479,
+      "snapshot_keyword": true
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_stage5_bonding.py",
+      "line": 585,
+      "snapshot_keyword": true
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_stage5_bonding.py",
+      "line": 600,
+      "snapshot_keyword": true
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_stage5_bonding.py",
+      "line": 173,
+      "snapshot_keyword": true
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_stage5_bonding.py",
+      "line": 190,
+      "snapshot_keyword": true
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_stage5_bonding.py",
+      "line": 504,
+      "snapshot_keyword": true
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_stage5_bonding.py",
+      "line": 623,
+      "snapshot_keyword": true
+    },
+    {
+      "path": "tests/test_cheminfo/kekulize/test_legacy_api.py",
+      "line": 78,
+      "snapshot_keyword": true
+    }
+  ],
+  "environment": {
+    "executable": "/tmp/hotpot-plan20-env/bin/python",
+    "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "platform": "Linux-5.15.0-139-generic-x86_64-with-glibc2.31",
+    "hotpot_file": "/home/zhangzhiyuan/hotpot/hotpot/__init__.py",
+    "hotpot_version": "0.5.4.5",
+    "packages": {
+      "numpy": "2.4.6",
+      "rdkit": "2026.9.1",
+      "pytest": "9.1.1",
+      "periodictable": "2.1.0"
+    },
+    "openbabel_package": {
+      "version": "3.2.1",
+      "file": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/__init__.py",
+      "library": "3.2.1"
+    },
+    "cpu_affinity": [
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31
+    ],
+    "model_artifacts_used": false,
+    "package_mode": "Current source; rebuilt checkpoint cp311 native unchanged; no wheel/matrix claim"
+  },
+  "executed_native": {
+    "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so",
+    "sha256": "77473313ae381af6818a5d4b5c2e940d54a44cc0edf36855a68cdf03aa80327a",
+    "matches_original_checkpoint": true
+  },
+  "native_source_and_scientific_algorithm_changes": "None; hashes compared to the original checkpoint",
+  "unchanged_science_native_and_xfail_checks": {
+    "hotpot/cheminfo/rules/chemistry/bonding/hydrogen.py": {
+      "sha256": "e120026e5f12694dc0984810313301a6db5bb82b5d66c98e75a783c57a5eaee1",
+      "matches_original_checkpoint": true
+    },
+    "hotpot/cheminfo/rules/chemistry/bonding/valence.py": {
+      "sha256": "6607f5c28c8b42ed9014bec1517f3afa2994b7a7dd66933e1eddd6e216cbd1ab",
+      "matches_original_checkpoint": true
+    },
+    "hotpot/cheminfo/rules/chemistry/bonding/kekule.py": {
+      "sha256": "3e7e565aa5aba4006a03e23748b68df559fd072c424b4467828f047b4472c603",
+      "matches_original_checkpoint": true
+    },
+    "hotpot/cheminfo/rules/chemistry/bonding/aromaticity.py": {
+      "sha256": "99813565cbddad0eea4bc20715929406bfab9d2c8d797581ace3ab748f1220df",
+      "matches_original_checkpoint": true
+    },
+    "hotpot/cheminfo/rules/chemistry/bonding/bond_order.py": {
+      "sha256": "51bc90d1a5ea7c97e83dda1ed42c8537f4f3f368ce3b098143be73a6f2541410",
+      "matches_original_checkpoint": true
+    },
+    "hotpot/cheminfo/rules/chemistry/bonding/formal_charge.py": {
+      "sha256": "9faaf6641464b0d802928dd907e988bf673407e5784dcd89b347f07d4ce11f3c",
+      "matches_original_checkpoint": true
+    },
+    "hotpot/cheminfo/structure/_native/facts.cpp": {
+      "sha256": "d1825610dd747c59f052ec6a08d75dbc3615e71ebc220d20f971d8ed96431638",
+      "matches_original_checkpoint": true
+    },
+    "tests/test_cheminfo/kekulize/test_known_limitations.py": {
+      "sha256": "5e7822ed47ba81cba0f705e0bf5d8929ba3097524c1661fa2b4b0f81d6ffeb46",
+      "matches_original_checkpoint": true
+    }
+  },
+  "historical_test_identity_checks": [
+    {
+      "path": "tests/test_cheminfo/structure/test_stage5_bonding.py",
+      "original_test_function_count": 27,
+      "all_names_and_parameter_decorators_retained": true
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_dependencies.py",
+      "original_test_function_count": 8,
+      "all_names_and_parameter_decorators_retained": true
+    },
+    {
+      "path": "tests/test_cheminfo/kekulize/test_legacy_api.py",
+      "original_test_function_count": 6,
+      "all_names_and_parameter_decorators_retained": true
+    }
+  ],
+  "pending_public_H_reader_still_absent": true,
+  "assertion_migration": {
+    "F1_final_rule_comparison": "Initial and current counts are compared with _atom_implicit_proposal; exact one-time scalar/batch neighbour recalculation remains asserted. N4 is only the retained old-rule pre-fix observation, not scientific truth.",
+    "only_function_changed_after_82_pass_run": [
+      "test_neighbour_element_change_refreshes_inferred_h_before_remote_first_read"
+    ],
+    "final_function_actual_result": "neighbour-invariant-attempt1: 2 passed",
+    "prior_executed_test_bytes": {
+      "repro": {
+        "path": ".plan20-artifacts/20261030/stage5/corrections/repro-attempt1/test-inputs/tests/test_cheminfo/structure/test_stage5_bonding.py",
+        "sha256": "2ff54b1e7248339ccb065d26218c42a9d3f8b6866357e3b776531085a49c23f8"
+      },
+      "82_pass": {
+        "path": ".plan20-artifacts/20261030/stage5/corrections/focused-attempt2/test-inputs/tests/test_cheminfo/structure/test_stage5_bonding.py",
+        "sha256": "36fd0f46b65abca2bb19c60f506fa4e02d158abd8414b9de56b60070ac4a7161"
+      }
+    }
+  },
+  "preserved_helper_failure": {
+    "command": ".plan20-artifacts/20261030/stage5/corrections/bindings-attempt1/command.json",
+    "original_helper": ".plan20-artifacts/20261030/stage5/corrections/bindings-attempt1/check_correction_bindings.before.py",
+    "sha256": "68aec7cff55f94f06bc654630ea6ef2e7e05023b2e64368b5a102b7844bd840c",
+    "fix": "Read actual openbabel.__version__, module file and OBReleaseVersion rather than assuming wheel distribution metadata"
+  },
+  "class_or_carrier_delta": 0,
+  "runs": [
+    {
+      "path": ".plan20-artifacts/20261030/stage5/corrections/repro-attempt1/command.json",
+      "sha256": "484b7f37902d885aad77eb304bb06c2d9d916f41166d40d2155d72968966421c",
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_cheminfo/structure/test_stage5_bonding.py",
+        "-k",
+        "test_neighbour_element_change_refreshes_inferred_h_before_remote_first_read or test_aromatic_assignment_rejects_incomplete_or_out_of_scope_bond_coverage or test_stale_ring_export_rejects_changed_representation_and_retains_members"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "environment_overrides": {
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONHASHSEED": "0",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+      "recording_interpreter": {
+        "executable": "/tmp/hotpot-plan20-env/bin/python",
+        "version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]"
+      },
+      "returncode": 1,
+      "elapsed_seconds": 1.3042173124849796,
+      "frozen_unchanged": true,
+      "command_log": ".plan20-artifacts/20261030/stage5/corrections/repro-attempt1/command.log",
+      "command_log_sha256": "9ef590c0efb24d530e873920e591120132484c11797d535ffdf819bd49faab7f",
+      "result": {
+        "failed": 7,
+        "deselected": 43,
+        "result": "All seven F1/F2/F3 regressions failed for the reported reasons before production correction"
+      }
+    },
+    {
+      "path": ".plan20-artifacts/20261030/stage5/corrections/focused-attempt1/command.json",
+      "sha256": "fc0ab12d2a5868fc05ebcbab06b4e65b70c625c1d6be86978387d0c6a7e00294",
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_cheminfo/structure/test_dependencies.py",
+        "tests/test_cheminfo/structure/test_stage5_bonding.py",
+        "tests/test_cheminfo/kekulize/test_legacy_api.py",
+        "-k",
+        "not test_ring_facade_matches_isolated_legacy_assignment"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "environment_overrides": {
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONHASHSEED": "0",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+      "recording_interpreter": {
+        "executable": "/tmp/hotpot-plan20-env/bin/python",
+        "version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 1.8758556190878153,
+      "frozen_unchanged": true,
+      "command_log": ".plan20-artifacts/20261030/stage5/corrections/focused-attempt1/command.log",
+      "command_log_sha256": "34e1d9e7d15c497e06e9b5aaac29d3a81f0332819976c82ad191ae9d0fe1251c",
+      "result": {
+        "passed": 80,
+        "deselected": 1,
+        "result": "Three affected test files passed except the pending public-H scalar node"
+      }
+    },
+    {
+      "path": ".plan20-artifacts/20261030/stage5/corrections/focused-attempt2/command.json",
+      "sha256": "876ecdb23ebbe11806ce6e6337815254a3952ee135be4e3c155c245fee748d5c",
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_cheminfo/structure/test_dependencies.py",
+        "tests/test_cheminfo/structure/test_stage5_bonding.py",
+        "tests/test_cheminfo/kekulize/test_legacy_api.py",
+        "-k",
+        "not test_ring_facade_matches_isolated_legacy_assignment"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "environment_overrides": {
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONHASHSEED": "0",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+      "recording_interpreter": {
+        "executable": "/tmp/hotpot-plan20-env/bin/python",
+        "version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 1.8921747598797083,
+      "frozen_unchanged": true,
+      "command_log": ".plan20-artifacts/20261030/stage5/corrections/focused-attempt2/command.log",
+      "command_log_sha256": "ad6c8329829bb554caa5b5c6542eba70673faa5bd9deaba9f7b3925b8127812f",
+      "result": {
+        "passed": 82,
+        "deselected": 1,
+        "result": "Added real OB perception and assembly producer coverage passed; production unchanged from focused-attempt1"
+      }
+    },
+    {
+      "path": ".plan20-artifacts/20261030/stage5/corrections/bound-fixture-attempt1/command.json",
+      "sha256": "1dadf365cd8dff8f65b662a095b4ee841ee7260853e3577ef6242646229280db",
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage5/local/check_bound_fixture.py",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/corrections/bound-fixture-attempt1/report.json"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "environment_overrides": {
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONHASHSEED": "0",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+      "recording_interpreter": {
+        "executable": "/tmp/hotpot-plan20-env/bin/python",
+        "version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 0.7461134046316147,
+      "frozen_unchanged": true,
+      "command_log": ".plan20-artifacts/20261030/stage5/corrections/bound-fixture-attempt1/command.log",
+      "command_log_sha256": "7c26382a6b0f7e1b8f97a52c99a68d1207ecef4f6c1b1b3f75f05846a349050d",
+      "result": {
+        "completed": 7,
+        "execution_errors": 0,
+        "compared_differences": 0,
+        "all_inputs_bound": true,
+        "result": "Existing seven B20-bound private cases preserved after commit-boundary correction"
+      },
+      "report": {
+        "path": ".plan20-artifacts/20261030/stage5/corrections/bound-fixture-attempt1/report.json",
+        "sha256": "fc73e80579b731333c4654201fc868ac0fc89fb7b11e85e4c558e3c9d329a231"
+      }
+    },
+    {
+      "path": ".plan20-artifacts/20261030/stage5/corrections/neighbour-invariant-attempt1/command.json",
+      "sha256": "f9b9c5dedafa4b31e5f2ad7f9224be4a3a6a91392dc20b91814f937169258663",
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_cheminfo/structure/test_stage5_bonding.py",
+        "-k",
+        "test_neighbour_element_change_refreshes_inferred_h_before_remote_first_read"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "environment_overrides": {
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONHASHSEED": "0",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+      "recording_interpreter": {
+        "executable": "/tmp/hotpot-plan20-env/bin/python",
+        "version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 1.1684160735458136,
+      "frozen_unchanged": true,
+      "command_log": ".plan20-artifacts/20261030/stage5/corrections/neighbour-invariant-attempt1/command.log",
+      "command_log_sha256": "c2615cb385bdcf94ce26a3ca6f165c7167f2ef1e47f974827911214d69ba5bf3",
+      "result": {
+        "passed": 2,
+        "deselected": 62,
+        "result": "Final scalar/batch tests compare current lazy reads to the active pure rule; only this test function changed after the 82-pass run"
+      }
+    },
+    {
+      "path": ".plan20-artifacts/20261030/stage5/corrections/bindings-attempt1/command.json",
+      "sha256": "39e1b38bb71d2871bd6367d25568e9b9a666b591f082b282507258e9d0b5925c",
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/corrections/check_correction_bindings.py",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/corrections/bindings-attempt1/report.json"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "environment_overrides": {
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONHASHSEED": "0",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+      "recording_interpreter": {
+        "executable": "/tmp/hotpot-plan20-env/bin/python",
+        "version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]"
+      },
+      "returncode": 1,
+      "elapsed_seconds": 1.9439807329326868,
+      "frozen_unchanged": true,
+      "command_log": ".plan20-artifacts/20261030/stage5/corrections/bindings-attempt1/command.log",
+      "command_log_sha256": "4a89eeaac834f827dffd0b71810d981519293b30045a6f7523b3cb195a0c675d",
+      "result": {
+        "result": "Evidence-helper failure: Conda OpenBabel has no openbabel-wheel distribution metadata; no production/test failure claim"
+      }
+    },
+    {
+      "path": ".plan20-artifacts/20261030/stage5/corrections/bindings-attempt2/command.json",
+      "sha256": "884bd87525dda207642be3fb38be3957c371c90eb025ce05cfa46e717013411e",
+      "argv": [
+        "taskset",
+        "-c",
+        "24-31",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/corrections/check_correction_bindings.py",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/corrections/bindings-attempt2/report.json"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "environment_overrides": {
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+        "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONHASHSEED": "0",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1"
+      },
+      "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+      "recording_interpreter": {
+        "executable": "/tmp/hotpot-plan20-env/bin/python",
+        "version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 1.9371040929108858,
+      "frozen_unchanged": true,
+      "command_log": ".plan20-artifacts/20261030/stage5/corrections/bindings-attempt2/command.log",
+      "command_log_sha256": "ffbe50da1f342852a20fccd6dee0c41a7570eb6b8d48e8ac7c3149cd46f4bcb3",
+      "result": {
+        "ast_files": 7,
+        "snapshot_bound_calls": 11,
+        "historical_test_identity_files": 3,
+        "result": "Successful bounded caller/source/native/test-ID handoff after using actual OpenBabel module/library version"
+      },
+      "report": {
+        "path": ".plan20-artifacts/20261030/stage5/corrections/bindings-attempt2/report.json",
+        "sha256": "66d740fbadd756e952ffaa27481f3d6910d89dc9c5ba5204926e3d4b9eb10a86"
+      }
+    }
+  ],
+  "latest_owner_H_direction": "Explicit count follows the supplied declaration; unspecified H is inferred from valence/bond defaults. A separate Sol-max scientific review owns that default policy; no exact int|None approval for truly insufficient input is inferred here.",
+  "remaining_gates": [
+    "Separate scientific H-default review/accepted implementation; exact truly-unresolved scalar/export semantics remain unimplemented",
+    "Unfiltered affected-contract/default suites and source/debug/current installed-wheel Python3.10-3.14 matrix",
+    "Packaging/native closure and final scientific reports",
+    "Final frozen lazy9/graph measurements and unresolved Stage4 performance acceptance; no waiver",
+    "Root owns global records/indexing, critical review and Git; no global guard/performance acceptance claimed by this bounded handoff"
+  ],
+  "operational_limit": "Native exec_command/write_stdin worked. Legacy functions.exec and direct collaboration tool calls returned unsupported-call errors; earlier TUI send delivered but blocked 3358.521 seconds, so it was not reused. No subagents or model escalation."
+}

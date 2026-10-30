@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7B",
+  "status": "PREENTRY_INVENTORY_ONLY_REBIND_REQUIRED",
+  "recorded_utc": "2026-10-30T12:25:50.323285+00:00",
+  "task": {
+    "task_id": "p20-s7b-hidden-constraint-inventory-704283-36",
+    "revision": 1,
+    "task_hash": "d4cfb178387db81924e5e03ea3ce739dc4145d328acd2072b4f0a5583d1adcd0",
+    "source_commit": "979455ed8bada61f4d44038935e7f02c1b204c86",
+    "diff_or_tree_hash": "82d24bc5b463bd011683d2cc322d4ceb858e42d5680db0980c67a15d659401f6",
+    "exact_turn_id": "01a18cc2-3eae-7c22-9e21-b55e13cc4543",
+    "identity_encoding": "SHA256 canonical capture-manifest raw bytes, not a Git tree"
+  },
+  "inventory": {
+    "verbatim": "review.md",
+    "sha256": "e3d66e946bb478cba90ea8ba61eaa96c75f1774e8ef318ef7637f034c993a441",
+    "capture": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s7b-hidden-constraint-inventory-704283-36/capture-manifest.json",
+      "sha256": "82d24bc5b463bd011683d2cc322d4ceb858e42d5680db0980c67a15d659401f6"
+    },
+    "accepted_use": "Remaining current hidden-selection and constraint consumer inventory only; accepted Stage4 view/Angle/Torsion and Stage5 ring algorithms were not reopened."
+  },
+  "actual_turn_audit": {
+    "status": "AUDIT_PASSED",
+    "receipt_source": "Exact user AUDIT_RESULT; no repeat audit",
+    "turn_context_line": 1470,
+    "timestamp": "2026-10-30T12:22:02.796Z",
+    "turn_context_sha256": "1ddd8982da89b29730ca8483935bc2e1a726a7d15e9c4f7b9b55cfd75f550b7b",
+    "exact_range_lines": [
+      1466,
+      1494
+    ],
+    "exact_range_sha256": "1899431f15808899693011ab395ecdc0b97bf662f3cfcb17a588f815face380e",
+    "sandbox": "read-only",
+    "network": "restricted",
+    "filesystem": "managed/restricted; root read; no write entries",
+    "model": "gpt-5.6-sol",
+    "effort": "xhigh",
+    "tool_calls": 0,
+    "command_calls": 0,
+    "delegation_calls": 0,
+    "task_complete": 1,
+    "identity_match": true
+  },
+  "root_key_review": {
+    "checked_current_source": [
+      "structure/constraints.py:1-34",
+      "core.py:826-872",
+      "core.py:2790-2806"
+    ],
+    "accepted_use": "PREENTRY_INVENTORY_ONLY, with mandatory changed-source rebind at owning entry; no broad consumer audit repeated.",
+    "confirmed": [
+      "The current _ConstraintSet stores Angle/Torsion UID tuples only.",
+      "Atom.constraint projects the three table-axis fields.",
+      "clear_constraints explicitly describes active Bond scope and iterates active self.bonds.",
+      "Direct permanent hidden-clear bodies remove collections then call _remove_stereo_bond_rows; transitive invalidation remains unproved by supplied excerpts."
+    ],
+    "qualifications": [
+      "Active-only clear behavior is a characterized scope/coverage question, not an established defect or an authorization to change it.",
+      "Common buffer absence of a constraint field does not prove that every separate native/force-field path lacks enforcement. Treat the stated missing propagation evidence as missing, not a runtime failure.",
+      "Existing Angle/Torsion ownership/rollback and ring science stay accepted; remaining consolidation must migrate actual surviving consumers once.",
+      "Historical hide/recover APIs and removal decisions are not approved or changed by inventory.",
+      "Stale future-map labels for already-created constraints/view tests and incomplete selection must be corrected at entry before a gate claim."
+    ]
+  },
+  "rebind": {
+    "required_before": "Stage7B design or implementation release after Stage6/Stage7A",
+    "scope": "Affected production/import/search/test identities and source/installed-wheel selections; preserve historical capture."
+  },
+  "Stage6_dependency": false,
+  "stage_entry": false,
+  "implementation_authorized": false,
+  "runtime_executed": false,
+  "gate_closed": false
+}

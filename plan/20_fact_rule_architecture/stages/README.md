@@ -4,7 +4,7 @@ The main plan and normative companions remain in the project root (Plan21
 remains in its own project). This catalog organizes Stage0–13. Existing execution records close Stage0–5 owning-stage gates;
 Stage5 retains corrected performance comparability and open final global gates.
 Stage6 has a bounded entry assessment with design authorized; Stage7 has a
-preentry conversion-consumer inventory requiring a post-Stage6 source rebind;
+preentry conversion/selection inventories requiring the owning source rebind;
 Stage8–13 have navigation indexes only. Folder creation supplies no
 stage-entry or execution evidence and changes no objective, gate, contract,
 scientific route or accepted decision.
@@ -42,7 +42,7 @@ merely to fill a directory.
 | Stage4 | [stage04](stage04/README.md) | Completed owning gates, validation and focused comparison; final global performance remains open |
 | Stage5 | [stage05](stage05/README.md) | Completed owning technical gates,finite H-default correction,retained failures and open final performance/science |
 | Stage6 | [stage06](stage06/README.md) | Entry aligned;bounded Sol-max stereo extraction design authorized |
-| Stage7 | [stage07](stage07/README.md) | Planned; bounded conversion preentry inventory only, no stage entry |
+| Stage7 | [stage07](stage07/README.md) | Planned; bounded conversion/selection inventories only, no stage entry |
 | Stage8 | [stage08](stage08/README.md) | Planned: Split rule policy, workflow, and backend execution |
 | Stage9 | [stage09](stage09/README.md) | Planned: Split the carriers and hard-cut `core.py` |
 | Stage10 | [stage10](stage10/README.md) | Planned: Complete physical package and native build migration |

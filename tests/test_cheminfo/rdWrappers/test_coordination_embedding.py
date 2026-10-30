@@ -307,6 +307,35 @@ def test_unknown_bond_without_hydrogen_declarations_rejects_strict_projection():
         rdWrappers.generate_conformers(molecule, options=rdWrappers.ETKDGOptions(seed=37))
 
 
+def test_c1_c2_loader_preserves_supplied_representation_without_perception(monkeypatch):
+    from hotpot.cheminfo.operations import chemistry
+
+    def no_perception(*args, **kwargs):
+        raise AssertionError("factual reconstruction must not run chemical preparation")
+
+    monkeypatch.setattr(chemistry, "_prepare_hydrogens", no_perception)
+    monkeypatch.setattr(chemistry, "_prepare_aromatic_representation", no_perception)
+    runner = _load_benchmark_runner()
+    molecule = runner._build_molecule({
+        "atoms": [
+            {"atomic_number": 7, "formal_charge": 0, "atom_id": 17,
+             "is_aromatic": True, "implicit_hydrogens": 1},
+            {"atomic_number": 30, "formal_charge": 0, "atom_id": 17,
+             "is_aromatic": False, "implicit_hydrogens": 0},
+        ],
+        "bonds": [{"begin": 0, "end": 1, "bond_order": 1.0, "bond_kind": "dative",
+                   "bond_direction": "atom1_to_atom2", "is_aromatic": False}],
+    })
+    record, _ = molecule._capture_factual_record()
+    values = np.frombuffer(record.atom_values, dtype="<f8").reshape(2, 19)
+    assert values[:, 15].tolist() == [17, 17]
+    assert values[:, 14].tolist() == [1, 0]
+    assert values[:, 9].tolist() == [1, 0]
+    assert record.bond_kinds == ("dative",)
+    assert record.bond_directions == ("atom1_to_atom2",)
+    assert record.bond_aromatic == (False,)
+
+
 def _write_smoke_coordination_artifacts(root: Path):
     manifest = root / "manifest.json"
     structures = root / "structures"

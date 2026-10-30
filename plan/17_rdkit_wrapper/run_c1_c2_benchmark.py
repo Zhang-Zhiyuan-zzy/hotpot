@@ -105,14 +105,22 @@ def _load_native_structure(path: Path, *, case_index: int) -> Mapping[str, objec
 
 
 def _build_molecule(structure: Mapping[str, object]):
+    from dataclasses import replace
+
     from hotpot.cheminfo.core import BondKind, Molecule
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX
 
     molecule = Molecule()
     for atom in structure["atoms"]:
+        supplied = {}
+        if "atom_id" in atom:
+            supplied["id"] = int(atom["atom_id"])
+        if "implicit_hydrogens" in atom:
+            supplied["implicit_hydrogens"] = int(atom["implicit_hydrogens"])
         molecule.create_atom(
             atomic_number=int(atom["atomic_number"]),
             formal_charge=int(atom.get("formal_charge", 0)),
-            is_aromatic=bool(atom.get("is_aromatic", False)),
+            **supplied,
         )
     for bond in structure["bonds"]:
         molecule.add_bond(
@@ -122,7 +130,20 @@ def _build_molecule(structure: Mapping[str, object]):
             bond_kind=BondKind(str(bond["bond_kind"])),
             bond_direction=bond.get("bond_direction"),
         )
-    return molecule
+    record, metadata = molecule._capture_factual_record()
+    values = np.frombuffer(record.atom_values, dtype="<f8").reshape(record.atom_count, 19).copy()
+    presence = np.frombuffer(record.atom_presence, dtype="<u4").copy()
+    sources = np.frombuffer(record.atom_sources, dtype="u1").reshape(record.atom_count, 19).copy()
+    field = FIELD_INDEX["is_aromatic"]
+    values[:, field] = [bool(atom.get("is_aromatic", False)) for atom in structure["atoms"]]
+    presence |= 1 << field
+    sources[:, field] = ATOM_SOURCE_CODES["explicit"]
+    return Molecule._build_molecule(replace(
+        record, atom_values=values.tobytes(), atom_presence=presence.tobytes(),
+        atom_sources=sources.tobytes(),
+        bond_aromatic=tuple(bool(bond.get("is_aromatic", bond["bond_kind"] == "aromatic"))
+                            for bond in structure["bonds"]),
+    ), bond_metadata=metadata)
 
 
 def _constraints(structure: Mapping[str, object]):

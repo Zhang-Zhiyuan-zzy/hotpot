@@ -1,0 +1,216 @@
+{
+  "schema_version": 1,
+  "stage": "Stage5",
+  "status": "immutable snapshot ready; no sync, delivery, remote review or remote execution",
+  "recorded_utc": "2026-10-30T02:25:38.136204+00:00",
+  "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+  "source_owner_sha256_count": 71,
+  "source_manifest_path": ".plan20-artifacts/20261030/stage5/remote-checkpoint01/snapshot-manifest.json",
+  "source_manifest_sha256": "1cd659f3bc93ece72e43926e06a2ba1cb96c88573700c8c62259927b8f8221b7",
+  "diff_or_tree_hash": "11663c53dca93b803c8d77445243aad8ab89e8bdf3644a463afdd1220662b697",
+  "archive": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/remote-checkpoint01/source-snapshot.tar.gz",
+  "archive_sha256": "d7433533eb891364900c6666e9138d55fee8d45ece73c5540b00484ca857fa0c",
+  "archive_bytes": 43679523,
+  "before_after_source_equal": true,
+  "archive_contents": {
+    "repository_file_count": 1818,
+    "support_file_count": 75,
+    "source": "Current tracked/nonignored untracked repository files plus two stage workflow skills; no Git history/config/credentials",
+    "support": "Changed-file HEAD source, current dirty diff, six shipped current cp311 native binaries, actual local checkpoint logs/reports and explicitly hashed libstdc++ support",
+    "limit": "Known-input incomplete Stage5 state; only cp311 binaries, no five-ABI claim; support/execution records keep their historical original cwd paths"
+  },
+  "communication": {
+    "root_thread_id": "01a18583-f506-71f2-81c9-a66ca32e3561",
+    "changed": false,
+    "communication_thread_id": "01a186d6-d3e5-7df0-911b-449c54e0f92e",
+    "verification_code": "704283",
+    "attempted_notification": "SESSION_ROUTE_UPDATE; delivery failed before queueing, no message_id",
+    "route_result": {
+      "task_id": "p20-bridge-route-704283-04",
+      "status": "BLOCKED",
+      "binary": "/home/zhangzhiyuan/.codex/packages/standalone/releases/0.166.0-x86_64-unknown-linux-musl/bin/codex",
+      "queue_contract_failure": "rc2: codex queue does not support --sandbox",
+      "global_placement": "codex --sandbox read-only queue --help returns0; no-send missing-argument probe parses but cannot prove sandbox propagation/enforcement",
+      "enforcement": "NOT VERIFIED; no accepted equivalent established",
+      "socket": "ai4-app.sock connect => ConnectionRefusedError(111); cannot inspect destination sandbox using existing route",
+      "installed_previous_version": "0.165.0 present; not switched/executed for delivery; older CLI alone cannot establish destination sandbox enforcement",
+      "local_source": "standalone release contains executable/resources, no queue source/docs found in bounded release listing",
+      "minimal_next_step": "root must explicitly authorize restoration of existing transport endpoint and a contract replacement that dispatches turn with explicit verified readOnly sandbox; do not silently omit flag or treat global parse as enforcement",
+      "no_tasks_sent": true
+    },
+    "route_evidence_path": "/tmp/codex-stage4-bridge-01a18583/p20-bridge-route-704283-04-result.json",
+    "route_evidence_sha256": "72610f6dd7c492bfb27bfc002ed529f3dcbf280f74b32d474a28919bb63cde6d",
+    "active_contract_preserved": true,
+    "remote_Stage5_tasks_delivered": 0,
+    "next_remote_action": "None without repairing the existing transport and establishing an explicitly enforced readonly dispatch compatible with the user contract; no bridge recreation/PhaseB/sandbox flag removal performed"
+  },
+  "local_fallback_task": {
+    "task_id": "p20-s5-local-known-review-01",
+    "owner": "/root/stage5_known_checkpoint_review",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+    "diff_or_tree_hash": "11663c53dca93b803c8d77445243aad8ab89e8bdf3644a463afdd1220662b697",
+    "exclusive_scope": "Read-only finite dependency/explicit-source H/coupled aromatic assignment/immutable view correctness review, independent of pending public scalar decision",
+    "ai11_critical_review_points": [
+      "Concrete correctness findings and their file:line evidence",
+      "No duplicate broad review or unexecuted tests accepted as validation",
+      "Public pending-H proposal remains unapproved"
+    ],
+    "remote_duplicate": false,
+    "file_modification_authority": "none",
+    "test_execution": "none",
+    "status": "completed static review; three findings assigned for recorded reproduction and bounded correction",
+    "execution_limit": "Read-only code inspection only; no tests/builds/scientific workloads run by reviewer. Code-derived reproducers not treated as actual failures.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "P1",
+        "path": "hotpot/cheminfo/structure/_dependencies.py",
+        "line": 175,
+        "secondary_path": "hotpot/cheminfo/operations/chemistry.py",
+        "secondary_line": 184,
+        "finding": "Element mutation seeds only written Atom UIDs although inferred H consumes neighbouring atomic numbers; ordinary current read may disagree with forced preparation",
+        "code_derived_case": "N-C single bond prepare strictH(2,3); C->O; ordinary read may retain N2 although the preserved current N-O rule proposes N4",
+        "coverage_gap": "Existing tests cover isolated element mutation/topology addition, not an already-current neighbouring H value after scalar/batch element mutation",
+        "scientific_limit": "Consistency under the existing algorithm only; N4 is not claimed to be universal scientific truth"
+      },
+      {
+        "id": "F2",
+        "severity": "P2",
+        "path": "hotpot/cheminfo/structure/_commit.py",
+        "line": 429,
+        "finding": "Aligned distinct existing Bond UID tuples do not prove complete selected Bond coverage; a truncated coupled proposal can be marked CURRENT",
+        "code_derived_case": "Remove the final entry from all four Bond tuples on a complete proposal; omitted Bond retains old values while covered Atom statuses become CURRENT",
+        "coverage_gap": "Existing rollback kind/source tests do not remove an aligned Bond entry or submit out-of-scope Bonds",
+        "production_limit": "No existing real producer was observed intentionally submitting a malformed subset; exact ligand/partial-scope contract must be checked before correction"
+      },
+      {
+        "id": "F3",
+        "severity": "P2",
+        "path": "hotpot/cheminfo/core.py",
+        "line": 3408,
+        "finding": "Ring inherits AtomSeq.to_mol topology-only source check; stale representation can be exported through a held Ring",
+        "code_derived_case": "Retain Ring, change member element or Bond order without topology change; is_aromatic rejects but to_mol may export new facts",
+        "coverage_gap": "Existing Ring source tests cover aromatic/geometry reads, not export"
+      }
+    ],
+    "root_critical_check": "Root inspected only cited dependency scope/expansion, complete-commit validation and inherited to_mol checks; did not repeat the primary review or run its reproducers."
+  },
+  "pending": [
+    "Exact public unknown-H scalar approval and implementation",
+    "Full unfiltered default/affected source tests",
+    "Five fresh fact_native ABI/build/wheel evidence and packaging",
+    "Final science and comparable performance gates"
+  ],
+  "correction_task": {
+    "task_id": "p20-s5-known-corrections-01",
+    "owner": "/root/stage5_rules_solmax",
+    "model": "gpt-6.1-sol",
+    "effort": "max",
+    "status": "bounded reproduction/correction in progress",
+    "source_snapshot_basis": "11663c53dca93b803c8d77445243aad8ab89e8bdf3644a463afdd1220662b697",
+    "exclusive_scope": [
+      "structure/_dependencies.py",
+      "structure/_commit.py",
+      "operations/chemistry.py as required",
+      "core Ring export boundary",
+      "meaningful focused regression tests",
+      "stages/stage05/corrections/review.md and evidence.json"
+    ],
+    "constraints": [
+      "Preserve existing algorithms/scientific xfails/public decisions",
+      "Do not implement pending scalar-H/export choice",
+      "Validate actual ligand selection and component scope before fixing coverage",
+      "Record exact failing reproduction first, then focused changed-contract validation",
+      "No new public schema/protocol or unrelated edits; no child delegation"
+    ],
+    "source_freeze": "Original snapshot remains immutable; source-owner freeze released only for this correction; no new snapshot/remote dispatch yet"
+  },
+  "follow_up_20261030": {
+    "status": "bridge restored; exact per-turn readonly enforcement audited; remote source/runtime gates still not executed",
+    "previous_failures_retained": true,
+    "reconnect_probe_id": "reconnect-20261030-01",
+    "readonly_preflight_turn": "01a18aec-ba1e-7b21-b498-adfde0a18a24",
+    "review_dispatch_policy": {
+      "method": "turn/start over existing Unix WebSocket",
+      "sandboxPolicy": {
+        "type": "readOnly",
+        "networkAccess": false
+      },
+      "audit": "require matching exact turn_context with normalized read-only policy and zero filesystem write entries",
+      "unsuitable_methods": [
+        "queue/global flag parsing as enforcement proof",
+        "turn/steer"
+      ]
+    },
+    "remote_environment": {
+      "task_id": "p20-s5-ai4-env-704283-07",
+      "task_hash": "79173f768672fbe40ed9c585ac2bcf0742f8adb5763b13d44fb7cdf350aa3508",
+      "audited_turn": "01a18aef-d46a-7681-b911-9af723ddd1cf",
+      "project_destination": "absent",
+      "available_interpreters": {
+        "/mnt/miniconda3/bin/python": "CPython3.10.13"
+      },
+      "missing_available_interpreter_versions": [
+        "3.11",
+        "3.12",
+        "3.13",
+        "3.14"
+      ],
+      "metadata_only_openbabel_claim": "insufficient evidence; superseded by direct module check below"
+    },
+    "critical_follow_up": {
+      "task_id": "p20-s5-ai4-env-ob-704283-08",
+      "task_hash": "4bbf560879fcd447e208e55bcef1309bfeddbac8bcb7e332d75e77647013a1b4",
+      "audited_turn": "01a18af6-e37a-7e90-8ee8-482c49e69a4c",
+      "actual_result": "find_spec=null; import raises ModuleNotFoundError: No module named openbabel",
+      "root_review": "No repeated inventory; distinguish absent metadata from actual module absence."
+    },
+    "execution_ownership": "Existing local compatible Python3.10-3.14 environments own required source/debug/native/current-wheel validation. ai4 remains available for uniquely scoped readonly review.",
+    "remote_project_sync": false,
+    "remote_project_tests_builds": 0,
+    "receipts": {
+      "reconnect-20261030-01-receipt.json": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/reconnect-20261030-01-receipt.json",
+        "sha256": "b757a20e25ce88e69bebda1192292c8e193ea08eabdce5ae14773107e55ce662"
+      },
+      "p20-bridge-readonly-preflight-704283-06-receipt.json": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-bridge-readonly-preflight-704283-06-receipt.json",
+        "sha256": "7f0eda2f09f44bf468a17f1fc4c275006e4ea85ef671948a716fd8cd0b2aa942"
+      },
+      "p20-bridge-readonly-preflight-704283-06-audit-result.json": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-bridge-readonly-preflight-704283-06-audit-result.json",
+        "sha256": "1be9927884b5011b6f752e53d2f1c20ee7a86e5e8e3a3a8427fccd58b812920d"
+      },
+      "p20-s5-ai4-env-704283-07-envelope.json": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-ai4-env-704283-07-envelope.json",
+        "sha256": "954bfad9398451b480745488361b0ada2eb7773fec31b252e215159d5c5c92ea"
+      },
+      "p20-s5-ai4-env-704283-07-receipt.json": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-ai4-env-704283-07-receipt.json",
+        "sha256": "06e07eaac6e4b85b4554ac977d5a222649954ddc355e27b2f2e6aebd93fc6e70"
+      },
+      "p20-s5-ai4-env-704283-07-audit-result.json": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-ai4-env-704283-07-audit-result.json",
+        "sha256": "64008f852fd5e552f7346b3655b0ff71d37151b217231e2feb794aeccba318b2"
+      },
+      "p20-s5-ai4-env-704283-07-result.json": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-ai4-env-704283-07-result.json",
+        "sha256": "69f87d7385976c0fdb97b04d3a024ecfa10fc325e56d393779854e309ba69db0"
+      },
+      "p20-s5-ai4-env-ob-704283-08-envelope.json": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-ai4-env-ob-704283-08-envelope.json",
+        "sha256": "7090d1663639970203ba41a96dd967eb32aab88fa0c6d5a8f67c0bec1f0eaf78"
+      },
+      "p20-s5-ai4-env-ob-704283-08-result.json": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-ai4-env-ob-704283-08-result.json",
+        "sha256": "d5b16aea4778262a486a81b1db16ae95330862824b841fb3061688be1a1b0c54"
+      },
+      "p20-s5-ai4-env-ob-704283-08-audit-result.json": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-ai4-env-ob-704283-08-audit-result.json",
+        "sha256": "cbf5fee0ee8825cecad89a875e5461c14986cec35d34cb12614c64f2177749df"
+      }
+    }
+  }
+}

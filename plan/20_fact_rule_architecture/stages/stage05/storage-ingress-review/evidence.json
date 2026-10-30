@@ -1,0 +1,113 @@
+{
+  "date": "2026-10-30",
+  "status": "Two bounded corrections implemented and statically checked; unique delta review, compiled/runtime evidence and stage gates pending",
+  "reviews": [
+    {
+      "task_id": "p20-s5-storage-ingress-review-704283-15",
+      "revision": 1,
+      "task_hash": "13206226a7578e79fce16332581060e12585e0f5eced915868bdbfef31c441ea",
+      "source_commit": "0d8c7098b375c8b3c1ab7845fb555f97c57810aa",
+      "diff_or_tree_hash": "7397c749621f414fce3673920cfc6f75fde0ab97f1e93964f27dbf89e93271a8",
+      "exact_turn_id": "01a18b7d-3c09-78a3-a749-6480807398e4",
+      "task_file": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-storage-ingress-review-704283-15/task.json",
+        "sha256": "de58501c5f5dfa5a0b4eea3b798ead8fb918e3ec775bcb76610c239884523fe8"
+      },
+      "result_file": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-storage-ingress-review-704283-15/result.json",
+        "sha256": "e7f0803f792b4b2785da9ac39a819583e8e69d4d55aad0258d9fc2ddd71b5fe4"
+      },
+      "audit_receipt": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-storage-ingress-review-704283-15/audit-result.txt",
+        "sha256": "fdcb0e8229aec4f4f7019126cc9b963aa942e7f1e82e8aae01b4cd854a97d9d0"
+      },
+      "substantive_result": "REVIEW_RESULT  \ntask_id=p20-s5-storage-ingress-review-704283-15  \ntask_hash=13206226a7578e79fce16332581060e12585e0f5eced915868bdbfef31c441ea  \nsource_commit=0d8c7098b375c8b3c1ab7845fb555f97c57810aa  \ndiff_or_tree_hash=7397c749621f414fce3673920cfc6f75fde0ab97f1e93964f27dbf89e93271a8  \nverdict=CONTEXT_REQUIRED\n\nHigh — the native readonly configuration bridge is missing from the supplied evidence.\n\n`facts.cpp:982-991` uses `config->scalar_readonly`, and `facts.cpp:1135-1139` unconditionally reads `values[\"scalar_readonly\"]`. Core imports `_ATOM_SCALAR_READONLY`, but the body that constructs the native `_configure` mapping is absent. Supply the complete `_atom_fact_engine`/`_fact_engine` configuration function to prove the key and exact field set are installed. Otherwise first factual use could fail or use an incorrect guard.\n\nMedium — append status normalization cannot be resolved from supplied context.\n\nIn `_atom_table.py:282-303`, derived presence bits are cleared from `next_presence[first:size]`, but dependency status is initialized from the original unnormalized `masks`:\n\n```python\nstatus[first:size] = _status_from_presence(masks)\n```\n\nSupply `GROUP_INDEX`, field effects and `_status_from_presence`. If derived bits influence any group, this is a defect; the shortest fix is to derive status from `next_presence[first:size]`. Existing import tests check values/presence/sources but not resulting group status.\n\nMedium — native private readonly rejection needs direct proof.\n\n`_AtomFactUpdate.__post_init__` rejects derived fields, but native `make_update()` uses `tp_alloc` and bypasses that method. The private `normalize_columns(..., public_fields=False)` path accepts any canonical field, including derived ones; rejection then appears to depend on later access to a `None` physical column. Add a focused test covering `_normalize_atom_scalar` and `_normalize_atom_fields` with mixed factual/derived fields, asserting deterministic rejection before stores and unchanged values, metadata, statuses and seeds. An explicit native derived-field guard would make the invariant direct.\n\nThe supplied table/projection tests otherwise substantively cover 19-column order, NaN-derived projection, independent buffers, metadata stripping, copy/remap/pickle and factual-builder rollback. Five-ABI/native runtime evidence remains pending and is not inferred here.",
+      "actual_readonly_audit": {
+        "status": "PASS",
+        "model": "gpt-5.6-sol",
+        "effort": "xhigh",
+        "tools": 0,
+        "delegation": 0,
+        "write_capable_entries": 0,
+        "limits": "Identity and actual execution permissions only; not approval of substantive findings."
+      }
+    },
+    {
+      "task_id": "p20-s5-storage-ingress-review-704283-15",
+      "revision": 2,
+      "task_hash": "d278c6a9eb142265925be9d84a7bd5ecaf95335ea2c1695be6856c64b3b3b2d2",
+      "source_commit": "0d8c7098b375c8b3c1ab7845fb555f97c57810aa",
+      "diff_or_tree_hash": "06c6676538d4f722837c537701214b20f924ea0cb08eff2d577685618252e350",
+      "exact_turn_id": "01a18b91-7324-7632-84ee-888072953639",
+      "task_file": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-storage-ingress-review-704283-15-r2/task.json",
+        "sha256": "db37b2a36da381237f8e0a149aab9524cbd4b1ccb85868248b023b0c894e3d74"
+      },
+      "result_file": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-storage-ingress-review-704283-15-r2/result.json",
+        "sha256": "5efabcf2e22faa683f4889efe4f4b9ea7d1e152050a975c3018d506246b5a94a"
+      },
+      "audit_receipt": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-storage-ingress-review-704283-15-r2/audit-result.txt",
+        "sha256": "32468653fbf5361389c0d42e04a5f145f17da28a6eddb1ea4bedb97752646f44"
+      },
+      "substantive_result": "REVIEW_RESULT  \ntask_id=p20-s5-storage-ingress-review-704283-15  \nrevision=2  \ntask_hash=d278c6a9eb142265925be9d84a7bd5ecaf95335ea2c1695be6856c64b3b3b2d2  \nsource_commit=0d8c7098b375c8b3c1ab7845fb555f97c57810aa  \ndiff_or_tree_hash=06c6676538d4f722837c537701214b20f924ea0cb08eff2d577685618252e350  \nverdict=BLOCKED\n\nHigh — appended rows can mark nonexistent valence facts CURRENT.\n\nAt `_atom_table.py:284-303`, derived bits are removed from installed `next_presence`, but status is calculated from the original `masks`:\n\n```python\nstatus[first:size] = _status_from_presence(masks)\n```\n\nBecause `GROUP_FIELDS` includes `valence`, the supplied current-ABI reproduction obtains `VALENCE=CURRENT` while normalized presence requires `ABSENT`.\n\nSmallest correction:\n\n```python\nstatus[first:size] = _status_from_presence(next_presence[first:size])\n```\n\nRegression: append rows carrying all presence/source bits and assert:\n\n- all seven derived bits are absent with default sources;\n- status exactly equals `_status_from_presence(table.presence(appended_rows))`;\n- specifically VALENCE is ABSENT while legitimate present fact groups retain their expected states;\n- copy/remap/round-trip preserve that normalized status.\n\nMedium — private native normalization returns invalid derived-field candidates.\n\nAt `facts.cpp:706-808`, private `normalize_columns(..., public_fields=false)` and `normalize_scalar()` accept all seven `DERIVED_FIELDS`. `make_update()` uses `tp_alloc`, bypassing `_AtomFactUpdate.__post_init__`. The probe confirms both scalar and mixed-field paths return candidates rather than rejecting them.\n\nSmallest explicit correction:\n\n- Pass `DERIVED_FIELDS` separately in `_fact_native._configure`.\n- Store it as a native configuration set.\n- Reject membership before value conversion in private `normalize_columns` and `normalize_scalar`.\n- Keep `is_aromatic` outside this set so legitimate internal coupled-assignment commits remain allowed.\n- Prefer the same guard in `prepared_columns` as a commit-boundary backstop for malformed candidates.\n\nRegression: for every derived field, private scalar and mixed `x + derived` normalization must raise `AttributeError` without evaluating later values or changing values, presence, sources, statuses or seeds. Add a positive assertion that internal `is_aromatic` normalization/commit remains permitted.\n\nThe original configuration-context concern is resolved: `_fact_engine()` supplies the exact `scalar_readonly` set, and `_atom_fact_engine()` installs the dispatch.\n\nThese are exact-current-cp311 findings only. Five-ABI/native runtime acceptance remains pending.",
+      "actual_readonly_audit": {
+        "status": "PASS",
+        "model": "gpt-5.6-sol",
+        "effort": "xhigh",
+        "tools": 0,
+        "delegation": 0,
+        "write_capable_entries": 0,
+        "limits": "Identity and actual execution permissions only; not approval of substantive findings."
+      }
+    }
+  ],
+  "root_critical_reproduction": {
+    "command": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/storage-ingress-probe/attempt1/command.json",
+      "sha256": "1a5eebdb2081bc7390de2b097c7a306d207980fab1b5550f72997775111a0e0a"
+    },
+    "log": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/storage-ingress-probe/attempt1/command.log",
+      "sha256": "09a040f0e60c7d0c721b04c23c31e24aaa11239c21dc77ed30afbe437b49a527"
+    },
+    "result": "Actual child rc1, validation rc0;14 private derived candidates were accepted, all pre/post states equal; appended VALENCE=CURRENT whereas normalized presence gives ABSENT.",
+    "limits": "Narrow exact-current cp311 reproduction only; no full native or chemistry review."
+  },
+  "superseded_freeze": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/final-validation/INVALIDATION.json",
+    "sha256": "90c154669b7531c663126cf309029ebf6b39628b1e7964661e8757af803f1a43"
+  },
+  "correction_owner": "/root/stage5_storage_ingress_fixes",
+  "bounded_correction": [
+    "Initialize appended dependency status from installed normalized presence.",
+    "Explicit native DERIVED_FIELDS rejection while retaining internal aromatic fact assignment; candidate and store atomicity regressions."
+  ],
+  "stage5_closed": false,
+  "correction": {
+    "diff": {
+      "path": "/tmp/hotpot-storage-ingress-patch/fix.diff",
+      "sha256": "6dc2635d4adb6285af3da86d815caa8aac0091401bda11d0f26647c714140991"
+    },
+    "static_results": {
+      "path": "/tmp/hotpot-storage-ingress-patch/static_results.json",
+      "sha256": "0a951742d92d0b0dccecbc0a9ef91b59536258153be56025902e22a3b55b69f9"
+    },
+    "source_files": {
+      "hotpot/cheminfo/structure/_atom_table.py": "d91df2330be1455a31fa95cf99d74e3ac57fc37c957cc2a633afd8bb37494cb8",
+      "hotpot/cheminfo/structure/_commit.py": "48eeb8a6eab0fceb29d9d65de432803ee2f5e5cdbd0dcc918635e22ea0a7cdd3",
+      "hotpot/cheminfo/structure/_native/facts.cpp": "319f47b9ee54c325fbe7c05e871faef248a254875c8e0c8ea6ab3f14819c613f",
+      "tests/test_cheminfo/structure/test_atom_fact_table.py": "c6917f07c4c34ae856ef5d4758ac941969217f1e492ac050dace916c2b431eb8",
+      "tests/test_cheminfo/structure/test_atom_fact_update.py": "772990613087a1e5190e4db0b084583d3e9f8bfc8859c5c0f651f7f1ea3633ce"
+    },
+    "static_command": [
+      "python",
+      "/tmp/hotpot-storage-ingress-patch/static_check.py"
+    ],
+    "static_result": "AST and changed-line checks passed; no compilation or pytest executed",
+    "prepared_parameter_cases": "68 expected from new regressions; not collected or executed yet",
+    "review_task": "p20-s5-storage-ingress-review-704283-15 revision3",
+    "review_task_hash": "77003f7516980d5255b2d968ff0a0964450c31382af979a9888d337485e5d544"
+  }
+}

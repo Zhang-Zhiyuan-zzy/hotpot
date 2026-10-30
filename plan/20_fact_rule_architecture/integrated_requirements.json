@@ -223,5 +223,39 @@
       ]
     }
   ],
-  "diagnostic_control_debt_limits": "Concrete later-owner assignment under existing Stage7C/8A scope; not implemented, not accepted, no waiver/new stage gate/optional scientific profile activation. Global finding-control acceptance remains open."
+  "diagnostic_control_debt_limits": "Concrete later-owner assignment under existing Stage7C/8A scope; not implemented, not accepted, no waiver/new stage gate/optional scientific profile activation. Global finding-control acceptance remains open.",
+  "source_consumer_inventory": {
+    "task_id": "p20-state-result-consumer-inventory-704283-30",
+    "task_hash": "f098b4307313fba1c966ac24b55362e54c3c3847816d8f8cf8fe0ef8428e44c5",
+    "source_commit": "cac32af6b4001f377cf347f750bf5a73ffe2bea9",
+    "diff_or_tree_hash": "f95652ed9dc47545560017380e40c038670ec60989bf7583d56ae538a6ab3d6e",
+    "exact_turn_id": "01a18c76-179c-78f2-9585-704f4729374f",
+    "status": "AUDIT_PASSED",
+    "substantive_status": "FACTUAL_RESULT_CONSUMER_INVENTORY_ONLY",
+    "result": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-state-result-consumer-inventory-704283-30/result.json",
+      "sha256": "57ef2262d95d38d6a6db21fb00a24423dbf4df8574889a05208e57e2a722650d"
+    },
+    "verbatim_result": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-state-result-consumer-inventory-704283-30/analysis-result.txt",
+      "sha256": "f477f91994bdd760ec9a8855adcc3b1503042a52d7bbb740319d896c16780ca7"
+    },
+    "actual_readonly_audit": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-state-result-consumer-inventory-704283-30/audit-result.json",
+      "sha256": "363732acf00c938502b3beea877559fdffaecff2d8686c40aa2b3f0387fc34f6"
+    },
+    "recorded_utc": "2026-10-30T11:12:31.599214+00:00",
+    "kind": "Pre-entry factual source-consumer inventory extending task23 documents; not design approval or Stage7/8 entry.",
+    "owner_stages": [
+      "Stage7C",
+      "Stage8A"
+    ],
+    "root_critical_assessment": [
+      "Natural candidate structures and required control/provenance are not forbidden merely because typed. The supplied slice establishes live identity/currentness/admissibility/resolution/certification readers; deletion must preserve those behaviors.",
+      "No supplied generic-confidence control reader is not evidence of repository-wide nonuse. Complete projection,pipeline,artifacts,recovery,CLI,non-xTB and sample-batch consumers remain to trace.",
+      "Precise ordinary-value versus expert orchestration role of the public resolver remains a later concrete design choice; this inventory authorizes no schema removal,relocation or activation.",
+      "Scientific two_s/multiplicity remains distinct from backend UHF. Retained hard-inadmissible candidates may carry attribution while being excluded from composition."
+    ],
+    "implementation_status": "Open; Sol-max decides critical contract boundaries at the owning stages. Reuse this accepted inventory rather than repeat a full analysis."
+  }
 }

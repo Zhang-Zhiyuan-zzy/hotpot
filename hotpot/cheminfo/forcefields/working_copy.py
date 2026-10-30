@@ -219,9 +219,7 @@ def _snapshot_molecule_for_commit(mol: "Molecule") -> _MoleculeCommitSnapshot:
         membership=tuple((values, tuple(values)) for values in (
             mol._atoms, mol._bonds, mol._hided_metal_bonds, mol._hided_covalent_bonds,
         )),
-        cache_state=tuple((value, value.copy()) for value in (
-            mol._rings, mol._ring_indices_cache,
-        )),
+        cache_state=(),
     )
 
 

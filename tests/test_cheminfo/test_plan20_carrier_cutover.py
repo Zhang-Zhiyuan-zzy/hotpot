@@ -15,6 +15,8 @@ from hotpot.cheminfo.structure._commit import _FactTransaction, _commit_topology
 from hotpot.cheminfo.structure._dependencies import _dependency_state
 from hotpot.cheminfo.structure._identity import _capture_source, _check_source
 from hotpot.cheminfo.structure._mutation import _normalize_atom_facts
+from hotpot.cheminfo.operations import chemistry
+from hotpot.utils.chem.atom import calc_electron_config
 
 
 def molecule():
@@ -27,7 +29,7 @@ def molecule():
 
 def facts(mol):
     status, seeds = _dependency_state(mol._atom_table)
-    return (mol.atom_matrix.tobytes(), mol._atom_table.presence().tobytes(),
+    return (mol._atom_table.matrix().tobytes(), mol._atom_table.presence().tobytes(),
             mol._atom_table.sources().tobytes(), status.tobytes(), seeds,
             tuple(mol.atoms), tuple(mol._bonds + mol._hided_bonds))
 
@@ -35,8 +37,11 @@ def facts(mol):
 def test_sole_numeric_owner_and_public_snapshot_isolation():
     values = np.arange(19, dtype=np.float64) + 0.25
     values[0] = 6
-    atom = Atom(attrs_array=values, update_electron_config=False)
+    values[9] = 0
+    atom = Molecule()._create_atom_from_array(values)
     expected = values.copy()
+    expected[1:7] = (2, 2, 2, 0, 0, 0)
+    expected[13] = 4
     values[:] = -1
     np.testing.assert_array_equal(atom.attrs, expected)
     row, matrix = atom.attrs, atom.mol.atom_matrix
@@ -59,63 +64,82 @@ def test_scalar_getter_and_coordinate_export_do_not_build_atom_rows(monkeypatch)
     monkeypatch.setattr(type(mol._atom_table), 'row', forbidden)
     monkeypatch.setattr(type(mol._atom_table), 'matrix', forbidden)
     assert atom.atomic_number == 6 and atom.formal_charge == 0
-    assert atom.n == core.hpchem.calc_electron_config(6)[0]
+    assert atom.n == calc_electron_config(6)[0]
     assert atom.coordinates == (0., 0., 0.)
     assert mol.coordinates.shape == (3, 3)
 
 
 def test_eager_element_failure_rolls_back_every_value_and_metadata(monkeypatch):
+    """Keep the frozen regression name; current contracts are asserted below."""
     mol = molecule()
     atom = mol.atoms[0]
     before = facts(mol)
     observed = []
+    calculate = chemistry._calculate_implicit_hydrogens
 
-    def valence(self):
-        observed.append(('valence', self.atomic_number))
-        return 5
-
-    def failure(self):
-        observed.append(('hydrogen', self.valence))
+    def failure(*inputs):
+        observed.append(inputs)
         raise ValueError('injected hydrogen calculation')
 
-    monkeypatch.setattr(Atom, 'get_valence', valence)
-    monkeypatch.setattr(Atom, '_calc_implicit_hydrogens', failure)
+    monkeypatch.setattr(chemistry, '_calculate_implicit_hydrogens', failure)
+    atom.atomic_number = 7
+    assert observed == []
+    after_write = facts(mol)
+    assert after_write != before and atom.atomic_number == 7
     with pytest.raises(ValueError, match='injected hydrogen'):
-        atom.atomic_number = 7
-    assert observed == [('valence', 7), ('hydrogen', 5)]
-    assert facts(mol) == before
+        _ = atom.implicit_hydrogens
+    assert len(observed) == 1 and observed[0][0] == 7
+    assert facts(mol) == after_write
     assert 'atomic_number' not in atom.__dict__
+    monkeypatch.setattr(chemistry, '_calculate_implicit_hydrogens', calculate)
+    assert atom.implicit_hydrogens == 2
+    assert atom.atomic_number == 7
 
 
 def test_bond_endpoint_failure_restores_order_kind_and_first_endpoint(monkeypatch):
+    """Keep the frozen regression name; current contracts are asserted below."""
     mol = molecule()
     bond = mol.bonds[0]
-    before = facts(mol)
     old_raw, old_kind = bond.attrs, bond.bond_kind
     first, second = bond.atoms
+    calculate = chemistry._calculate_implicit_hydrogens
+    observed = []
 
-    def hydrogen(self):
-        if self is second:
+    def hydrogen(*inputs):
+        observed.append(inputs)
+        if len(observed) == 2:
             raise RuntimeError('second endpoint')
         return 17
 
-    monkeypatch.setattr(Atom, '_calc_implicit_hydrogens', hydrogen)
+    monkeypatch.setattr(chemistry, '_calculate_implicit_hydrogens', hydrogen)
+    bond.bond_order = 2
+    assert observed == []
+    after_write = facts(mol)
+    written_raw, written_kind = bond.attrs, bond.bond_kind
+    assert bond.attrs[0] == 2 and old_raw[0] == 1
+    assert written_kind is core.BondKind.DOUBLE and written_kind is not old_kind
     with pytest.raises(RuntimeError, match='second endpoint'):
-        bond.bond_order = 2
-    np.testing.assert_array_equal(bond.attrs, old_raw)
-    assert bond.bond_kind is old_kind and facts(mol) == before
-    assert first.implicit_hydrogens != 17
+        mol.calc_implicit_hydrogens()
+    assert len(observed) == 2
+    # The factual write already committed; the later lazy preparation restores
+    # its own proposal and retains the complete written DOUBLE representation.
+    assert facts(mol) == after_write and bond.bond_kind is written_kind
+    np.testing.assert_array_equal(bond.attrs, written_raw)
+    np.testing.assert_array_equal(bond.attrs[1:], old_raw[1:])
     assert 'attrs' not in bond.__dict__
     with pytest.raises(AttributeError):
         bond.attrs = old_raw
+    monkeypatch.setattr(chemistry, '_calculate_implicit_hydrogens', calculate)
+    assert first.implicit_hydrogens != 17
+    assert second.implicit_hydrogens != 17
 
 
 def test_failed_constructor_leaves_no_member_and_burns_allocated_uid():
     mol = Molecule()
     original = Atom(mol, atomic_number=6)
     next_uid = mol._next_atom_uid
-    with pytest.raises((IndexError, KeyError)):
-        Atom(mol, atomic_number=999)
+    with pytest.raises(ValueError, match="[Cc]onflict"):
+        Atom(mol, symbol="C", atomic_number=8)
     assert mol.atoms == [original]
     assert len(mol._atom_table) == 1
     added = Atom(mol, atomic_number=8)
@@ -134,10 +158,17 @@ def test_batch_stages_all_inputs_and_preserves_explicit_downstream_values(monkey
 
     monkeypatch.setattr(Atom, 'get_valence', valence)
     monkeypatch.setattr(Atom, '_calc_implicit_hydrogens', lambda self: 3)
+
+    def rule(*args):
+        seen.append(args)
+        return 3
+
+    monkeypatch.setattr(chemistry, '_calculate_valence', rule)
+    monkeypatch.setattr(chemistry, '_calculate_implicit_hydrogens', rule)
     assert mol.updata_atoms(atoms=[second, first], symbol=['N', 'O'],
         coordinates=[[1, 2, 3], [4, 5, 6]], implicit_hydrogens=[8, 9]) is None
-    assert [uid for uid, _ in seen] == [second._uid, first._uid]
-    assert all(numbers[:2] == (8, 7) for _, numbers in seen)
+    assert seen == []
+    assert tuple(atom.atomic_number for atom in mol.atoms) == (8, 7, 8)
     assert (second.implicit_hydrogens, first.implicit_hydrogens) == (8, 9)
     np.testing.assert_array_equal(mol.coordinates[:2], [[4, 5, 6], [1, 2, 3]])
     before = facts(mol)
@@ -219,12 +250,16 @@ def test_factual_installer_builds_index_once_and_never_runs_chemistry(monkeypatc
     monkeypatch.setattr(core, '_build_topology_index', counted)
     monkeypatch.setattr(Atom, 'get_valence', forbidden)
     monkeypatch.setattr(Atom, '_calc_implicit_hydrogens', forbidden)
+    monkeypatch.setattr(chemistry, '_calculate_valence', forbidden)
+    monkeypatch.setattr(chemistry, '_calculate_implicit_hydrogens', forbidden)
     target = Molecule()
     _commit_topology(target, _capture_source(target), record,
         atom_bindings=(None,) * record.atom_count,
         bond_bindings=(None,) * len(record.bond_endpoints), bond_metadata=metadata)
     assert calls == [1]
-    np.testing.assert_array_equal(target.atom_matrix, source.atom_matrix)
+    np.testing.assert_array_equal(target._atom_table.matrix(), source._atom_table.matrix())
+    np.testing.assert_array_equal(target._atom_table.presence(), source._atom_table.presence())
+    np.testing.assert_array_equal(target._atom_table.sources(), source._atom_table.sources())
     assert target.atoms[0].isotope == 13 and target.atoms[1].frac_valence == 3.75
     assert target.bonds[0].constraint and target._charge_present
 

@@ -1,11 +1,20 @@
-"""Regression tests for the isolated legacy aromaticity implementation."""
+"""Characterized chemistry through pure rules and complete Molecule operations.
+
+Historical test names remain the frozen regression selection identities.
+"""
 
 from __future__ import annotations
+
+import math
 
 import networkx as nx
 
 import hotpot as hp
-from hotpot.cheminfo import kekulize
+from hotpot.cheminfo.operations.chemistry import _bonding_snapshot
+from hotpot.cheminfo.rules.chemistry.bonding.aromaticity import _determine_ring_aromaticity
+from hotpot.cheminfo.rules.chemistry.bonding.kekule import _calculate_aromatic_assignment
+from hotpot.cheminfo.structure._commit import _commit_aromatic_assignment
+from tests.test_cheminfo._stage5_fixtures import factual_state, supplied_aromatic_flags
 
 
 def _layout(mol: hp.Molecule):
@@ -16,13 +25,15 @@ def _layout(mol: hp.Molecule):
 
 
 def _planar_benzene() -> hp.Molecule:
-    mol = hp.read_mol("c1ccccc1", "smi")
-    coordinates = _layout(mol)
-    for atom in mol.atoms:
-        atom.coordinates = (*coordinates[atom.idx], 0.0)
-        atom.is_aromatic = False
-    for bond in mol.bonds:
-        bond.bond_order = 1.0
+    mol = hp.Molecule()
+    for row in range(6):
+        mol.create_atom(atomic_number=6,
+            coordinates=(math.cos(row * math.pi / 3), math.sin(row * math.pi / 3), 0.))
+    for row in range(6):
+        mol.add_bond(row, (row + 1) % 6, 1.)
+    # Match the old all-single pre-assignment input: inferred H2, not a
+    # fresh aromatic parse carrying a protected supplied H1 declaration.
+    mol.calc_implicit_hydrogens()
     return mol
 
 
@@ -31,101 +42,70 @@ def _bond_orders(mol: hp.Molecule) -> tuple[float, ...]:
 
 
 def _planar_molecule(smiles: str) -> hp.Molecule:
-    mol = hp.read_mol(smiles, "smi")
+    mol = hp.read_mol(smiles, 'smi')
     coordinates = _layout(mol)
     for atom in mol.atoms:
-        atom.coordinates = (*coordinates[atom.idx], 0.0)
-        atom.is_aromatic = False
-    return mol
+        atom.coordinates = (*coordinates[atom.idx], 0.)
+    return supplied_aromatic_flags(mol, (False,) * len(mol.atoms))
 
 
 def test_ring_facade_matches_isolated_aromaticity_function() -> None:
-    direct = _planar_benzene()
-    facade = _planar_benzene()
-
-    direct_result = kekulize.determine_ring_aromaticity(
-        direct.rings[0],
-        inplace=True,
-    )
-    facade_result = facade.rings[0].determine_aromatic(inplace=True)
-
-    assert direct_result is facade_result is True
-    assert [atom.is_aromatic for atom in direct.atoms] == [
-        atom.is_aromatic for atom in facade.atoms
-    ]
+    direct, facade = _planar_benzene(), _planar_benzene()
+    before = factual_state(direct)
+    snapshot = _bonding_snapshot(direct)
+    result = _determine_ring_aromaticity(snapshot, snapshot.rings[0], True, snapshot.aromatic)
+    facade.calc_atom_valence(assign_aromatic=True)
+    assert result is True
+    assert factual_state(direct) == before
+    assert all(atom.is_aromatic for atom in facade.atoms)
 
 
 def test_ring_facade_matches_isolated_legacy_assignment() -> None:
-    direct = _planar_benzene()
-    facade = _planar_benzene()
-
-    kekulize.kekulize_ring(direct.rings[0])
-    facade.rings[0].kekulize()
-
-    assert _bond_orders(direct) == _bond_orders(facade)
-    assert sum(order == 2.0 for order in _bond_orders(direct)) == 3
+    direct, facade = _planar_benzene(), _planar_benzene()
+    assert [atom.implicit_hydrogens for atom in direct.atoms] == [2] * 6
+    before = factual_state(direct)
+    proposal = _calculate_aromatic_assignment(_bonding_snapshot(direct), kekule=True)
+    assert factual_state(direct) == before
+    facade.determine_rings_aromatic()
+    assert proposal.bond_orders == _bond_orders(facade)
+    assert sum(order == 2. for order in proposal.bond_orders) == 3
+    assert [atom.implicit_hydrogens for atom in facade.atoms] == [1] * 6
 
 
 def test_molecule_facade_matches_isolated_legacy_workflow() -> None:
-    direct = _planar_benzene()
-    facade = _planar_benzene()
-
-    kekulize.kekulize_molecule_rings(direct)
+    direct, facade = _planar_benzene(), _planar_benzene()
+    snapshot = _bonding_snapshot(direct)
+    _commit_aromatic_assignment(direct, _calculate_aromatic_assignment(snapshot, kekule=True), snapshot=snapshot)
     facade.determine_rings_aromatic()
-
     assert _bond_orders(direct) == _bond_orders(facade)
-    assert [atom.is_aromatic for atom in direct.atoms] == [
-        atom.is_aromatic for atom in facade.atoms
-    ]
+    assert [atom.is_aromatic for atom in direct.atoms] == [atom.is_aromatic for atom in facade.atoms]
 
 
 def test_legacy_aromaticity_golden_cases() -> None:
-    expected = {
-        "C1=CC=CC=C1": True,
-        "C1CCC1": False,
-        "C1=COC=C1": True,
-        "C1=CC=NC=C1": True,
-    }
-
-    for smiles, expected_aromaticity in expected.items():
+    for smiles, expected in {'C1=CC=CC=C1': True, 'C1CCC1': False,
+                             'C1=COC=C1': True, 'C1=CC=NC=C1': True}.items():
         mol = _planar_molecule(smiles)
-        result = kekulize.determine_ring_aromaticity(
-            mol.rings[0],
-            inplace=True,
-        )
-        assert result is expected_aromaticity
-        assert all(atom.is_aromatic is expected_aromaticity for atom in mol.atoms)
+        snapshot = _bonding_snapshot(mol)
+        assert _determine_ring_aromaticity(snapshot, snapshot.rings[0], True, snapshot.aromatic) is expected
+        mol.calc_atom_valence(assign_aromatic=True)
+        assert all(atom.is_aromatic is expected for atom in mol.atoms)
 
 
 def test_legacy_metal_ring_is_not_aromatic() -> None:
     mol = hp.Molecule()
-    for atomic_number, coordinates in (
-        (6, (0.0, 0.0, 0.0)),
-        (6, (1.0, 0.0, 0.0)),
-        (26, (0.5, 1.0, 0.0)),
-    ):
-        mol.create_atom(
-            atomic_number=atomic_number,
-            coordinates=coordinates,
-            is_aromatic=False,
-        )
-    mol.add_bond(0, 1, bond_order=1.0)
-    mol.add_bond(1, 2, bond_order=1.0)
-    mol.add_bond(2, 0, bond_order=1.0)
-
-    assert kekulize.determine_ring_aromaticity(
-        mol.rings[0],
-        inplace=True,
-    ) is False
+    for number, coordinates in ((6, (0., 0., 0.)), (6, (1., 0., 0.)), (26, (.5, 1., 0.))):
+        mol.create_atom(atomic_number=number, coordinates=coordinates)
+    for first, second in ((0, 1), (1, 2), (2, 0)):
+        mol.add_bond(first, second, 1.)
+    snapshot = _bonding_snapshot(mol, ligand_skeleton=False)
+    assert _determine_ring_aromaticity(snapshot, snapshot.rings[0], True, snapshot.aromatic) is False
+    mol.determine_rings_aromatic()
     assert not any(atom.is_aromatic for atom in mol.atoms)
 
 
 def test_valence_aromaticity_gate_is_owned_by_kekulize_package() -> None:
-    skipped = _planar_benzene()
-    perceived = _planar_benzene()
-
-    kekulize.perceive_ligand_ring_aromaticity(skipped, force=False)
-    kekulize.perceive_ligand_ring_aromaticity(perceived, force=True)
-
+    skipped, perceived = _planar_benzene(), _planar_benzene()
+    skipped.calc_atom_valence(assign_aromatic=False)
+    perceived.calc_atom_valence(assign_aromatic=True)
     assert not any(atom.is_aromatic for atom in skipped.atoms)
     assert all(atom.is_aromatic for atom in perceived.atoms)

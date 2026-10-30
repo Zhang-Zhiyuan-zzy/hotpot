@@ -92,12 +92,17 @@ def test_relevant_ring_scope_forwards_native_limits() -> None:
 def test_relevant_ring_cache_is_invalidated_by_topology_update() -> None:
     mol = _molecule_from_edges([(0, 1), (1, 2), (2, 0)], atom_count=4)
 
-    assert len(mol.rings_for_scope("full_graph")) == 1
-    assert mol._ring_indices_cache
+    held = mol.rings_for_scope('full_graph')
+    assert len(held) == 1
+    members = held[0].atoms
+    assert not {'_rings', '_ring_indices_cache', '_ligand_rings', '_ligand_rings_signature'}.intersection(mol.__dict__)
 
     mol.add_bond(2, 3, bond_order=1.0)
 
-    assert mol._ring_indices_cache == {}
+    assert held[0].atoms == members
+    with pytest.raises(RuntimeError, match='topology source changed'):
+        _ = held[0].is_aromatic
+    assert not {'_rings', '_ring_indices_cache', '_ligand_rings', '_ligand_rings_signature'}.intersection(mol.__dict__)
     assert len(mol.rings_for_scope("full_graph")) == 1
 
 

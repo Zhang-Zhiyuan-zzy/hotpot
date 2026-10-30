@@ -1,7 +1,7 @@
 """Finite Atom dependency declarations and UID-scoped pending invalidation.
 
-This mechanism records validity only. Stage 3 retains the legacy eager chemistry;
-no evaluator here invents a chemical result or marks a stale value current.
+This module records validity only. Named chemistry operations prepare the
+declared groups; a field write never executes a scientific rule.
 """
 
 from enum import IntEnum
@@ -32,10 +32,15 @@ GROUP_UPSTREAM = MappingProxyType({
     "FORMAL_CHARGE_COVERAGE": (),
 })
 GROUP_SCOPE = MappingProxyType({
-    "VALENCE": "atom", "IMPLICIT_H": "atom",
+    "VALENCE": "neighbourhood", "IMPLICIT_H": "neighbourhood",
     "AROMATIC_REPRESENTATION": "component", "FORMAL_CHARGE_COVERAGE": "molecule",
 })
-GROUP_READ_POLICY = MappingProxyType({group: "report_status_without_evaluator" for group in GROUPS})
+GROUP_READ_POLICY = MappingProxyType({
+    'VALENCE': 'pure_local_projection_without_value_storage',
+    'IMPLICIT_H': 'prepare_source_aware_hydrogens',
+    'AROMATIC_REPRESENTATION': 'prepare_coupled_aromatic_representation',
+    'FORMAL_CHARGE_COVERAGE': 'check_explicit_coverage_without_redistribution',
+})
 _GROUP_DOWNSTREAM = ((0, 1, 2), (1, 2), (2,), (3,))
 _FIELD_GROUPS = MappingProxyType({
     "atomic_number": (0, 1, 2, 3),
@@ -43,8 +48,12 @@ _FIELD_GROUPS = MappingProxyType({
     "valence": (1, 2),
     "implicit_hydrogens": (2, 3),
     "is_aromatic": (0, 1, 2),
+    'x': (2,), 'y': (2,), 'z': (2,),
 })
-_MATERIALIZED_GROUP = MappingProxyType({field: index for index, field in enumerate(GROUP_FIELDS)})
+_MATERIALIZED_GROUP = MappingProxyType({
+    'implicit_hydrogens': GROUP_INDEX['IMPLICIT_H'],
+    'is_aromatic': GROUP_INDEX['AROMATIC_REPRESENTATION'],
+})
 _FIELD_EFFECTS = MappingProxyType({
     field: (tuple(group for group in _FIELD_GROUPS.get(field, ())
                   if group != _MATERIALIZED_GROUP.get(field)),
@@ -115,6 +124,10 @@ def _mark_topology_dirty(mol, atom_uids):
         _seed(mol, group, atom_uids)
 
 
+def _mark_bond_representation_dirty(mol, atom_uids):
+    _seed(mol, GROUP_INDEX['VALENCE'], atom_uids)
+
+
 def _mark_declarations_dirty(mol):
     _seed(mol, GROUP_INDEX["FORMAL_CHARGE_COVERAGE"], (atom._uid for atom in mol._atoms))
 
@@ -127,6 +140,17 @@ def _upstream_groups(group):
         selected.add(GROUP_INDEX[name])
     visit(group)
     return tuple(index for index in range(len(GROUPS)) if index in selected)
+
+
+def _neighbour_rows(mol, seeds):
+    rows = set()
+    for atom in mol._atoms:
+        if atom._uid in seeds:
+            row, bonds = mol._topology_index[id(atom)]
+            rows.add(row)
+            rows.update(mol._topology_index[id(bond.atom2 if bond.atom1 is atom else bond.atom1)][0]
+                        for bond in bonds)
+    return tuple(sorted(rows))
 
 
 def _component_rows(mol, seeds):
@@ -154,7 +178,9 @@ def _expand_dirty(mol, group):
         if not seeds:
             continue
         scope = GROUP_SCOPE[GROUPS[index]]
-        if scope == "component":
+        if scope == "neighbourhood":
+            rows = _neighbour_rows(mol, seeds)
+        elif scope == "component":
             rows = _component_rows(mol, seeds)
         elif scope == "molecule":
             rows = tuple(range(len(table)))

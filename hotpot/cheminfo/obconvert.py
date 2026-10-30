@@ -12,10 +12,9 @@ import numpy as np
 from openbabel import openbabel as ob, pybel as pb
 
 from hotpot.utils.chem import atom as chem_atom
-from hotpot.cheminfo.elements import elements
 from .structure._builder import _freeze_value
 from .structure._commit import _FactTransaction
-from .structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX, FIELD_PRESENCE_BITS
+from .structure._fields import ATOM_SOURCE_CODES, FIELD_PRESENCE_BITS
 
 def write_by_pybel(mol, fmt='smi', filename=None, overwrite=False, opt=None):
     pmol = pb.Molecule(mol2obmol(mol)[0])
@@ -93,17 +92,13 @@ def obmol2mol(obmol, mol):
         idx_to_row = {atom.GetIdx(): row for row, atom in enumerate(atoms)}
         values = np.zeros((len(atoms), 19), dtype="<f8")
         for row, atom in enumerate(atoms):
-            values[row] = (
-                atom.GetAtomicNum(), *elements.electron_configs[atom.GetAtomicNum()],
-                atom.GetFormalCharge(), atom.GetPartialCharge(), float(atom.IsAromatic()),
-                atom.GetX(), atom.GetY(), atom.GetZ(), atom.GetTotalValence(),
-                atom.GetImplicitHCount(), 0, 0, 0, 0,
-            )
-        supplied = tuple(range(15))
+            values[row, (0, 7, 8, 9, 10, 11, 12, 14)] = (
+                atom.GetAtomicNum(), atom.GetFormalCharge(), atom.GetPartialCharge(),
+                float(atom.IsAromatic()), atom.GetX(), atom.GetY(), atom.GetZ(), atom.GetImplicitHCount())
+        supplied = (0, 7, 8, 9, 10, 11, 12, 14)
         presence = np.full(len(atoms), sum(FIELD_PRESENCE_BITS[index] for index in supplied), dtype="<u4")
         sources = np.zeros((len(atoms), 19), dtype="u1")
         sources[:, supplied] = ATOM_SOURCE_CODES["openbabel"]
-        sources[:, 1:7] = ATOM_SOURCE_CODES["electron_configuration"]
         entries = tuple(_retrieve_bonds_attrs_from_obmol(obmol, idx_to_row).items())
         raw_bonds = np.zeros((len(entries), 3), dtype="<f8")
         raw_bonds[:, 0] = [entry[1]["bond_order"] for entry in entries]
@@ -119,6 +114,7 @@ def obmol2mol(obmol, mol):
             bond_endpoints=tuple(endpoints for endpoints, _ in entries),
             bond_values=raw_bonds.tobytes(), bond_partitions=(0,) * len(entries),
             bond_kinds=tuple(attrs["bond_kind"] for _, attrs in entries),
+            bond_aromatic=tuple(attrs['bond_source_metadata']['is_aromatic'] for _, attrs in entries),
             bond_directions=tuple(attrs["bond_direction"] for _, attrs in entries),
             bond_sources=("openbabel",) * len(entries),
             bond_metadata=tuple(_freeze_value(attrs["bond_source_metadata"]) for _, attrs in entries),
@@ -130,6 +126,13 @@ def obmol2mol(obmol, mol):
 
 
 def mol2obmol(mol):
+    from .operations.chemistry import _require_aromatic_representation
+    with mol._mutation_lock:
+        _require_aromatic_representation(mol)
+        return _factual_obmol(mol, tuple(mol.bonds))
+
+
+def _factual_obmol(mol, bonds):
     obmol = ob.OBMol()
     obmol.BeginModify()
 
@@ -144,7 +147,7 @@ def mol2obmol(mol):
         # Store mapping from label to atom index (1-based indexing in OBMol)
         row_to_idx[i] = oba.GetIdx()
 
-    for bond in mol.bonds:
+    for bond in bonds:
         if bond.bond_kind.value == "dative":
             raise ValueError(
                 "Open Babel cannot represent dative bonds losslessly"
@@ -158,14 +161,14 @@ def mol2obmol(mol):
 
     obmol.EndModify()
     for row, atom in enumerate(mol.atoms):
-        obmol.GetAtom(row_to_idx[row]).SetAromatic(atom.is_aromatic)
-    for bond in mol.bonds:
+        obmol.GetAtom(row_to_idx[row]).SetAromatic(bool(mol._atom_table.raw(row, 'is_aromatic')))
+    for bond in bonds:
         obb = obmol.GetBond(
             row_to_idx[bond.atom1.idx],
             row_to_idx[bond.atom2.idx],
         )
         obb.SetAromatic(
-            bond.bond_kind.value == "aromatic" or bond.is_aromatic
+            bond._is_aromatic
         )
     obmol.SetAromaticPerceived(True)
 
@@ -174,6 +177,7 @@ def mol2obmol(mol):
         obmol.CloneData(mol.crystal.obcell)
 
     return obmol, row_to_idx
+
 
 
 def link_atoms(mol):
@@ -185,19 +189,17 @@ def link_atoms(mol):
     _add_mol_bonds_from_obmol(mol, obmol, idx_to_row)
 
 
-def assign_bond_order(mol):
-    obmol, row_to_idx = mol2obmol(mol)
-    idx_to_row = {i: r for r, i in row_to_idx.items()}
-
+def _perceive_bond_orders(mol, bonds):
+    with mol._mutation_lock:
+        obmol, row_to_idx = _factual_obmol(mol, bonds)
+        idx_to_row = {index: row for row, index in row_to_idx.items()}
     obmol.PerceiveBondOrders()
-    _bond_attrs: dict[tuple[int, int], dict[str, Any]] = _retrieve_bonds_attrs_from_obmol(obmol, idx_to_row)
-    for (a1idx, a2idx), attrs in _bond_attrs.items():
-        bond = mol.bond(a1idx, a2idx)
-        bond.bond_order = attrs['bond_order']
-        bond._set_bond_metadata(**{
-            key: value for key, value in attrs.items()
-            if key != 'bond_order'
-        })
+    return (tuple(bool(atom.IsAromatic()) for atom in ob.OBMolAtomIter(obmol)),
+            tuple((pair, attrs['bond_order'], attrs['bond_kind'], attrs['bond_direction'],
+                   attrs['bond_source'], _freeze_value(attrs['bond_source_metadata']),
+                   attrs['bond_source_metadata']['is_aromatic'])
+                  for pair, attrs in _retrieve_bonds_attrs_from_obmol(obmol, idx_to_row).items()))
+
 
 
 def extract_obatom_coordinate(obatom: ob.OBMol):

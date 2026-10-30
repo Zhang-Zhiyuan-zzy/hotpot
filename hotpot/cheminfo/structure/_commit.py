@@ -13,7 +13,7 @@ from dataclasses import fields, is_dataclass
 import numpy as np
 
 from ._fields import ATOM_SOURCE_CODES, COORDINATE_FIELDS, FIELD_INDEX
-from ._identity import _check_source
+from ._identity import _check_source, _hydrogen_transport_inputs
 
 __all__ = ()
 
@@ -27,12 +27,10 @@ _DECLARATIONS = ("_charge_value", "_charge_present", "_charge_source",
 _FRAME_FIELDS = ("_coordinates", "_energy", "_partial_charge", "_spin_mult", "_gibbs",
                  "_force", "_zero_point", "_thermo", "_capacity")
 _TOPOLOGY_FIELDS = ("_atoms", "_bonds", "_hided_metal_bonds", "_hided_covalent_bonds",
-                    "_constraints", "_rings", "_ring_indices_cache", "_ligand_rings",
-                    "_ligand_rings_signature", "_obmol", "_row2idx", "_crystal", "_pair_wiberg_bond_orders",
+                    "_constraints", "_obmol", "_row2idx", "_crystal", "_pair_wiberg_bond_orders",
                     "identifier", "properties")
 _BOND_FIELDS = ("_bond_kind", "_bond_direction", "_bond_source", "_bond_source_metadata", "_is_aromatic")
-_CACHE_FIELDS = ("_rings", "_ring_indices_cache", "_ligand_rings",
-                 "_ligand_rings_signature", "_obmol", "_row2idx")
+_CACHE_FIELDS = ("_obmol", "_row2idx")
 
 
 def _fact_engine():
@@ -380,8 +378,8 @@ def _commit_atom_sparse(mol, atom, *, isotope=_UNCHANGED, frac_valence=_UNCHANGE
 
 
 def _commit_bond_facts(mol, bond, binding, *, raw_values, kind, direction,
-                       source_namespace, metadata):
-    from ._dependencies import _mark_topology_dirty
+                       source_namespace, metadata, aromatic=_UNCHANGED):
+    from ._dependencies import _mark_bond_representation_dirty
     raw_values = np.array(raw_values, dtype=np.float64, copy=True)
     if raw_values.shape != (3,):
         raise ValueError("Bond facts require the complete raw three-slot row")
@@ -395,10 +393,76 @@ def _commit_bond_facts(mol, bond, binding, *, raw_values, kind, direction,
             if atom.mol is not mol or entry is None or mol._atoms[entry[0]] is not atom:
                 raise ValueError("Bond endpoints must be current members")
         transaction.touch_bond(bond)
+        changed = (bond._attrs[0] != raw_values[0] or bond._bond_kind != kind
+                   or (bond._bond_kind.value == 'dative' and bond._bond_direction != direction))
         bond.__dict__["_attrs"] = raw_values
         for name, value in zip(_BOND_FIELDS, (kind, direction, source_namespace, metadata)):
             bond.__dict__[name] = value
-        _mark_topology_dirty(mol, (bond.atom1._uid, bond.atom2._uid))
+        if aromatic is not _UNCHANGED:
+            changed |= bond._is_aromatic != aromatic
+            bond.__dict__["_is_aromatic"] = bool(aromatic)
+        if changed:
+            _mark_bond_representation_dirty(mol, (bond.atom1._uid, bond.atom2._uid))
+
+
+def _set_group_status(mol, group, rows, status):
+    from ._dependencies import GROUP_INDEX
+    rows = tuple(rows)
+    if not rows:
+        return
+    with _FactTransaction(mol, producer=_EXPLICIT_SOURCE) as transaction:
+        index = GROUP_INDEX[group]
+        transaction.touch_dependency_status(rows, (index,))
+        mol._atom_table._group_status[list(rows), index] = status
+        _fact_engine()._update_dependency_seeds(mol, (index,),
+                                               tuple(mol._atoms[row]._uid for row in rows), False)
+
+
+def _commit_aromatic_assignment(mol, assignment, *, snapshot, preserve_sources=False):
+    from ._dependencies import _FactStatus, _mark_bond_representation_dirty
+    from ._mutation import _normalize_atom_fields
+    from ._fields import FIELD_PRESENCE_BITS
+    with _FactTransaction(mol, producer=ATOM_SOURCE_CODES[assignment.method]) as transaction:
+        if assignment.source is not snapshot.source:
+            raise ValueError("Aromatic assignment source must match its captured input")
+        _check_source(mol, snapshot.source)
+        if (tuple(atom._uid for atom in mol._atoms) != snapshot.atom_uids
+                or assignment.atom_uids != snapshot.atom_uids):
+            raise RuntimeError("Aromatic assignment Atom membership changed")
+        complete = {bond._uid: bond for bond in mol._bonds}
+        if (len(assignment.bond_uids) != len(set(assignment.bond_uids))
+                or any(uid not in complete for uid in assignment.bond_uids)
+                or len(assignment.atom_aromatic) != len(mol._atoms)
+                or not len(assignment.bond_uids) == len(assignment.bond_aromatic) == len(assignment.bond_orders) == len(assignment.bond_kinds)):
+            raise ValueError("Aromatic assignment requires complete aligned member values")
+        if (len(set(assignment.covered_rows)) != len(assignment.covered_rows)
+                or any(row < 0 or row >= len(mol._atoms) for row in assignment.covered_rows)):
+            raise ValueError("Aromatic assignment coverage requires distinct current Atom rows")
+        covered = set(assignment.covered_rows)
+        expected = {bond[0] for bond in snapshot.bonds
+                    if bond[1] in covered and bond[2] in covered}
+        if set(assignment.bond_uids) != expected:
+            raise ValueError("Aromatic assignment Bond coverage must match its captured selection")
+        table = mol._atom_table
+        index = FIELD_INDEX['is_aromatic']
+        rows = tuple(row for row in assignment.covered_rows if not preserve_sources
+                     or bool(table._columns[index][row]) != assignment.atom_aromatic[row]
+                     or not int(table._presence[row]) & FIELD_PRESENCE_BITS[index])
+        if rows:
+            update = _normalize_atom_fields(assignment.source, rows,
+                tuple(mol._atoms[row]._uid for row in rows),
+                {'is_aromatic': tuple(assignment.atom_aromatic[row] for row in rows)},
+                producer=ATOM_SOURCE_CODES[assignment.method])
+            _commit_atom_facts(mol, update)
+        for uid, order, aromatic, kind in zip(assignment.bond_uids, assignment.bond_orders, assignment.bond_aromatic, assignment.bond_kinds):
+            bond = complete[uid]
+            transaction.touch_bond(bond)
+            if bond._attrs[0] != order or bond._bond_kind.value != kind or bond._is_aromatic != aromatic:
+                _mark_bond_representation_dirty(mol, (bond.atom1._uid, bond.atom2._uid))
+            bond._attrs[0] = order
+            bond.__dict__['_bond_kind'] = type(bond._bond_kind)(kind)
+            bond.__dict__['_is_aromatic'] = bool(aromatic)
+        _set_group_status(mol, 'AROMATIC_REPRESENTATION', assignment.covered_rows, _FactStatus.CURRENT)
 
 
 def _commit_molecular_declarations(mol, binding, *, charge=_UNCHANGED, spin_mult=_UNCHANGED):
@@ -424,12 +488,19 @@ def _immutable_stereo_tree(value):
 
 def _commit_stereo(mol, source, payload):
     from ._builder import _stereo
+    from ._dependencies import _seed, GROUP_INDEX
     sealed = _stereo(payload)
     payload = payload if _immutable_stereo_tree(payload) else sealed
     with _FactTransaction(mol, producer=_EXPLICIT_SOURCE) as transaction:
         _check_source(mol, source)
+        uids = tuple(atom._uid for atom in mol._atoms)
+        previous = _hydrogen_transport_inputs(uids, mol._stereo_payload)
+        current = _hydrogen_transport_inputs(uids, payload)
+        changed = tuple(after[0] for before, after in zip(previous, current) if before != after)
         transaction.touch_stereo()
         mol._stereo_payload = payload
+        if changed:
+            _seed(mol, GROUP_INDEX['IMPLICIT_H'], changed)
 
 
 def _commit_constraints(mol, source, *, atom_update=None, bond_entries=(),

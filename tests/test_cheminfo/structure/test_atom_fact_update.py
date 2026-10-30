@@ -247,3 +247,28 @@ def test_private_native_ingress_preserves_internal_aromatic_commits():
     group = GROUP_INDEX["AROMATIC_REPRESENTATION"]
     assert table._group_status[0, group] == _FactStatus.CURRENT
     assert atom._uid not in table._dirty_seeds[group]
+
+
+def test_derived_field_guard_preserves_complete_aromatic_assignment():
+    import math
+
+    from hotpot import Molecule
+    from hotpot.cheminfo.operations import chemistry
+    from hotpot.cheminfo.rules.chemistry.bonding.kekule import _calculate_aromatic_assignment
+    from hotpot.cheminfo.structure._commit import _commit_aromatic_assignment
+    from hotpot.cheminfo.structure._dependencies import GROUP_INDEX, _FactStatus
+
+    mol = Molecule()
+    for row in range(6):
+        angle = row * math.pi / 3
+        mol.create_atom(atomic_number=6, coordinates=(math.cos(angle), math.sin(angle), 0.))
+    for row in range(6):
+        mol.add_bond(row, (row + 1) % 6, 1.)
+    snapshot = chemistry._bonding_snapshot(mol)
+    assignment = _calculate_aromatic_assignment(snapshot, kekule=True)
+    _commit_aromatic_assignment(mol, assignment, snapshot=snapshot)
+    assert mol._atom_table.column("is_aromatic").tolist() == [1.] * 6
+    assert tuple(bond._is_aromatic for bond in mol.bonds) == (True,) * 6
+    assert tuple(bond.bond_order for bond in mol.bonds) == assignment.bond_orders
+    assert (mol._atom_table._group_status[:6, GROUP_INDEX["AROMATIC_REPRESENTATION"]]
+            == _FactStatus.CURRENT).all()

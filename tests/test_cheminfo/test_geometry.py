@@ -38,10 +38,8 @@ def test_ligand_scope_excludes_a_chelate_cycle_without_mutating_ring_caches():
         ((0, 1), (1, 2), (2, 3), (3, 4), (4, 0), (5, 6)),
         (30, 7, 6, 6, 7, 8, 8),
     )
-    rings_cache = mol._rings
-    ring_indices_cache = mol._ring_indices_cache
-    ligand_rings_cache = mol._ligand_rings
-    ligand_rings_signature = mol._ligand_rings_signature
+    held_rings = mol.rings
+    held_members = tuple((ring.atoms, ring.bonds) for ring in held_rings)
 
     full_graph = geometry_adapter.scan_bond_ring_relations(
         mol,
@@ -57,10 +55,9 @@ def test_ligand_scope_excludes_a_chelate_cycle_without_mutating_ring_caches():
     assert full_graph.piercing_pair_count == 1
     assert ligand_skeleton.selected_ring_count == 0
     assert ligand_skeleton.piercing_pair_count == 0
-    assert mol._rings is rings_cache
-    assert mol._ring_indices_cache is ring_indices_cache
-    assert mol._ligand_rings is ligand_rings_cache
-    assert mol._ligand_rings_signature is ligand_rings_signature
+    assert tuple((ring.atoms, ring.bonds) for ring in held_rings) == held_members
+    assert all(ring.geometry_cycle for ring in held_rings)
+    assert not {'_rings', '_ring_indices_cache', '_ligand_rings', '_ligand_rings_signature'}.intersection(mol.__dict__)
 
 
 def test_metal_ligand_bond_can_pierce_a_real_ligand_ring():

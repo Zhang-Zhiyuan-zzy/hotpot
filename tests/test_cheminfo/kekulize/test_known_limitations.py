@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import networkx as nx
 import pytest
+from dataclasses import replace
 
 import hotpot as hp
-from hotpot.cheminfo import kekulize
+from hotpot.cheminfo.operations.chemistry import _bonding_snapshot
+from hotpot.cheminfo.rules.chemistry.bonding.kekule import _calculate_aromatic_assignment
+from tests.test_cheminfo._stage5_fixtures import supplied_aromatic_flags
 
 
 def _planar_theta_graph() -> hp.Molecule:
@@ -18,7 +21,6 @@ def _planar_theta_graph() -> hp.Molecule:
     for atom_index in range(8):
         mol._create_atom(
             atomic_number=6,
-            is_aromatic=False,
             implicit_hydrogens=0 if graph.degree[atom_index] == 3 else 1,
             coordinates=(*coordinates[atom_index], 0.0),
         )
@@ -29,17 +31,17 @@ def _planar_theta_graph() -> hp.Molecule:
 
 
 def _apply_in_order(mol: hp.Molecule, reverse: bool) -> frozenset[int]:
-    rings = list(mol.rings)
+    snapshot = _bonding_snapshot(mol)
+    rings = list(snapshot.rings)
     if reverse:
         rings.reverse()
-    for ring in rings:
-        kekulize.determine_ring_aromaticity(ring, inplace=True)
-    return frozenset(atom.idx for atom in mol.atoms if atom.is_aromatic)
+    assignment = _calculate_aromatic_assignment(replace(snapshot, rings=tuple(rings)), kekule=False)
+    return frozenset(row for row, flag in enumerate(assignment.atom_aromatic) if flag)
 
 
 @pytest.mark.xfail(
     strict=True,
-    reason="legacy per-ring writes make aromaticity depend on ring order",
+    reason="the retained per-ring assignment makes aromaticity depend on ring order",
 )
 def test_aromaticity_is_independent_of_relevant_cycle_order() -> None:
     forward = _planar_theta_graph()
@@ -60,12 +62,10 @@ def test_azulene_is_perceived_without_imported_aromatic_flags() -> None:
     coordinates = nx.planar_layout(graph)
     for atom in mol.atoms:
         atom.coordinates = (*coordinates[atom.idx], 0.0)
-        atom.is_aromatic = False
-
-    for ring in mol.rings:
-        kekulize.determine_ring_aromaticity(ring, inplace=True)
-
-    assert all(atom.is_aromatic for atom in mol.atoms)
+    snapshot = _bonding_snapshot(mol)
+    assignment = _calculate_aromatic_assignment(
+        replace(snapshot, aromatic=(False,) * len(mol.atoms)), kekule=False)
+    assert all(assignment.atom_aromatic)
 
 
 @pytest.mark.xfail(
@@ -74,7 +74,5 @@ def test_azulene_is_perceived_without_imported_aromatic_flags() -> None:
 )
 def test_aromatic_joint_rings_accept_relevant_cycles_with_shared_paths() -> None:
     mol = _planar_theta_graph()
-    for atom in mol.atoms:
-        atom.is_aromatic = True
-
+    mol = supplied_aromatic_flags(mol, (True,) * len(mol.atoms))
     assert mol.aromatic_joint_rings

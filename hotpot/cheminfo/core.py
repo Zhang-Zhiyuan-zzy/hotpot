@@ -12,9 +12,8 @@ import sys
 import time
 import operator
 from enum import Enum
-from typing import Union, Literal, Iterable, Optional, Callable, Mapping, Tuple
+from typing import Union, Literal, Iterable, Optional, Callable, Mapping
 from copy import copy, deepcopy
-from collections import Counter
 from itertools import combinations, product
 from threading import RLock as _RLock
 from functools import wraps as _wraps
@@ -24,11 +23,11 @@ import numpy as np
 from openbabel import pybel as pb, openbabel as ob
 
 from hotpot.cheminfo.elements import elements
-from hotpot.utils import types, chem as hpchem
+from hotpot.utils import types
 import hotpot.cheminfo.obconvert as obc
 from .rdconvert import to_rdmol
 from .rules.mathematics import graph as graph_algorithms
-from . import forcefields as ff, kekulize as kekulization
+from . import forcefields as ff
 from .rules.mathematics import geometry
 from .adapters.structure import geometry as geometry_adapter
 from . import crystal as cryst
@@ -44,7 +43,7 @@ from .structure._fields import (
 )
 from .structure._atom_table import _AtomFactTable
 from .structure.constraints import _ConstraintSet
-from .structure._identity import _capture_source
+from .structure._identity import _capture_source, _hydrogen_install_inputs
 from .structure._mutation import _AtomFactUpdate, _normalize_atom_facts
 from .structure._commit import (
     _FactTransaction, _commit_atom_facts, _commit_coordinates, _commit_bond_facts,
@@ -76,19 +75,10 @@ OPENBABEL_PARTIAL_CHARGE_MODELS = (
 _MINIMUM_ATOM_SEPARATION = 0.5
 _DEFAULT_BOND_RING_MAXIMUM_SIZE = 16
 
-_LigandRingSignature = Tuple[
-    Tuple[int, ...],
-    Tuple[Tuple[int, int], ...],
-]
-
 if sys.modules.get('hotpot.cheminfo._io', None) is None:
     from . import _io
 else:
     _io = sys.modules['hotpot.cheminfo._io']
-
-def _metal_valence(atom):
-    return 0
-
 
 # Exceptions
 class NotInSameMolecule(Exception):
@@ -169,10 +159,6 @@ class Molecule:
 
         self._pair_wiberg_bond_orders = {}
         self._constraints = _ConstraintSet()
-        self._rings = []
-        self._ring_indices_cache = {}
-        self._ligand_rings = None
-        self._ligand_rings_signature = None
         self._obmol = None
         self._row2idx = None
         self._crystal = None
@@ -461,7 +447,8 @@ class Molecule:
 
     @property
     def sum_implicit_hydrogens(self) -> int:
-        return sum(a.implicit_hydrogens for a in self.heavy_atoms)
+        from .operations.chemistry import _require_implicit_hydrogens
+        return sum(_require_implicit_hydrogens(self, rows=tuple(atom.idx for atom in self.heavy_atoms)))
 
     @property
     def has_hydrogens(self) -> bool:
@@ -472,56 +459,9 @@ class Molecule:
         return len(self.hydrogens) > 0
 
     def calc_mol_default_charge(self):
-        """
-        Calculates the default molecular charge of a molecule.
+        from .operations.chemistry import _calculate_default_molecular_charge
+        return _calculate_default_molecular_charge(self)
 
-        The method determines the molecular charge by calculating the explicit
-        and implicit hydrogens for organic molecules and applies specific rules
-        for non-organic molecules. The calculation may include adding hydrogens
-        or hiding metal-ligand bonds for appropriate evaluation.
-
-        Raises
-        ------
-        None
-
-        Returns
-        -------
-        int
-            The calculated molecular charge.
-        """
-        self.calc_atom_valence()
-
-        clone = copy(self)
-        if not clone.has_hydrogens:
-            clone.add_hydrogens()
-
-        if clone.is_organic:
-            return clone.sum_explicit_hydrogens - clone.sum_implicit_hydrogens
-        else:
-            # clone = copy(self)
-            clone.hide_metal_ligand_bonds()
-
-            charge = 0
-            for c in clone.components:
-                if c.is_organic:
-                    charge += c.sum_explicit_hydrogens - c.sum_implicit_hydrogens
-                elif len(c.atoms) == 1:
-                    charge += c.atoms[0].get_formal_charge()
-                else:
-                    pass
-
-            return charge
-
-    def _after_hide_metal_ligand_bonds(self, func: Callable, atom_attrs: list, bond_attrs: list):
-        self.refresh_atom_id()
-        self.hide_metal_ligand_bonds()
-
-        for c in self.components:
-            func(c)
-            atom_attrs_dict = {a.id: {a_attr: getattr(a, a_attr) for a_attr in atom_attrs} for a in c.atoms}
-            bond_attrs_dict = {b.id: {b_attr: getattr(b, b_attr)} for b_attr in bond_attrs for b in c.bonds}
-            self.update_atoms_attrs_from_id_dict(atom_attrs_dict)
-            self.update_bonds_attrs_from_id_dict(bond_attrs_dict)
 
 
     def simple_paths(self, source=None, target=None, cutoff=None):
@@ -558,10 +498,6 @@ class Molecule:
                     tuple(id(bond) for bond in previous.get(id(atom), (None, ()))[1]) !=
                     tuple(id(bond) for bond in self._topology_index[id(atom)][1]))
                 _mark_topology_dirty(self, changed)
-            self._rings = []
-            self._ring_indices_cache = {}
-            self._ligand_rings = None
-            self._ligand_rings_signature = None
             self._obmol = None
             self._row2idx = None
             if clear_conformers:
@@ -869,39 +805,8 @@ class Molecule:
             rm_polar_hs: bool = True,
             rng: Optional[np.random.Generator] = None,
     ):
-        """
-        Adds or removes hydrogen atoms to/from the molecule.
-
-        This method iterates over all atoms in the molecule and determines whether
-        hydrogen atoms need to be added or removed based on the polarity settings.
-        If any modifications are made to the molecular structure, the graph is updated
-        accordingly.
-
-        Parameters
-        ----------
-        rm_polar_hs : bool, optional
-            Determines whether polar hydrogens should be removed. Defaults to True.
-        rng : numpy.random.Generator, optional
-            Generator used to place newly added hydrogen atoms. When omitted,
-            NumPy's process-global random generator is used.
-
-        Returns
-        -------
-        None
-        """
-        # Add hydrogens
-        modified = False
-        for atom in self.atoms:
-            if not (atom.is_hydrogen or atom.is_metal):
-                add_or_rm, hs = atom._add_hydrogens(
-                    rm_polar_hs=rm_polar_hs,
-                    rng=rng,
-                )
-                if add_or_rm:
-                    modified = True
-
-        if modified:
-            self._update_topology()
+        from .operations.chemistry import _add_hydrogens
+        return _add_hydrogens(self, rm_polar_hs, rng)
 
     @property
     def cid(self) -> Optional[int]:
@@ -1042,25 +947,13 @@ class Molecule:
         return _torsion_views(self, Torsion, _new_sequence_view)
 
     def assign_bond_order(self):
-        """
-        Assigns bond orders to the molecule and updates its structure accordingly.
-
-        This function is designed to manage bond order assignment in a way that temporarily 
-        hides metal-ligand bonds, performs the bond order assignment, and then restores the 
-        hidden bonds. It ensures the molecule's structural integrity during this process.
-
-        Raises:
-            Exception: If any issues occur during bond order assignment or if the molecular 
-            structure is invalid.
-        """
-        self.hide_metal_ligand_bonds()
-        obc.assign_bond_order(self)
-        self.recover_hided_metal_ligand_bonds()
+        from .operations.chemistry import _assign_bond_orders
+        return _assign_bond_orders(self)
 
     @property
     def atom_matrix(self) -> np.ndarray:
-        with self._mutation_lock:
-            return self._atom_table.matrix()
+        from .operations.chemistry import _atom_projection
+        return _atom_projection(self)
 
     @property
     def atoms(self):
@@ -1184,15 +1077,8 @@ class Molecule:
 
     @property
     def sum_atoms_charge(self) -> int:
-        """
-        Calculates the sum of formal charges of all atoms in the molecule.
-
-        This property iterates through all atoms and sums their formal charges, providing
-        the total charge value of the molecule.
-
-        @return: An integer representing the total sum of formal charges of the atoms.
-        """
-        return sum(a.formal_charge for a in self._atoms)
+        from .operations.chemistry import _atom_charge_sum
+        return _atom_charge_sum(self)
 
     @property
     def default_unpaired_electrons(self):
@@ -1223,30 +1109,8 @@ class Molecule:
         return (sum(a.atomic_number for a in self.atoms) - self.charge) % 2 + 1
 
     def determine_rings_aromatic(self):
-        """
-        Determines whether the rings in a molecule are aromatic, applying specific procedures such as
-        hiding metal-ligand bonds and kekulizing the rings. The method involves iterating through 
-        predefined rings of the molecule and addressing individual ring properties.
-
-        Methods
-        -------
-        determine_rings_aromatic:
-            Processes the rings in the molecule to determine their aromaticity, temporarily modifying
-            connectivity before restoring any changes.
-
-        Parameters
-        ----------
-        This method does not take any parameters.
-
-        Raises
-        ------
-        This method does not explicitly raise any exceptions.
-
-        Returns
-        -------
-        This method does not return any value.
-        """
-        return kekulization.kekulize_molecule_rings(self)
+        from .operations.chemistry import _assign_aromaticity
+        return _assign_aromaticity(self, kekule=True)
 
     @property
     def conformers(self) -> "Conformers":
@@ -1375,36 +1239,12 @@ class Molecule:
         )
 
     def calc_atom_valence(self, assign_aromatic: Optional[bool] = None):
-        """
-        Calculate the valence and number of implicit hydrogens for each atom.
-
-        The method iterates through all the atoms in the `atoms` list, determines the valence
-        of each atom using the `get_valence` method, and calculates the implicit hydrogens
-        using the `calc_implicit_hydrogens` method. The results are assigned to the respective
-        attributes of each atom.
-
-        """
-        kekulization.perceive_ligand_ring_aromaticity(
-            self,
-            force=assign_aromatic,
-        )
-
-        for atom in self.atoms:
-            _store_atom_fields(atom, {'valence': atom.get_valence()},
-                               producer=_ATOM_SOURCE_CODES['valence'])
-            atom.calc_implicit_hydrogens()
+        from .operations.chemistry import _prepare_valence_and_hydrogens
+        return _prepare_valence_and_hydrogens(self, assign_aromatic)
 
     def calc_implicit_hydrogens(self):
-        """
-        Calculates the implicit hydrogens for each atom in the molecule.
-
-        This method iterates over all atoms in the molecule and calculates the 
-        number of implicit hydrogens for each atom. This is useful for analyzing 
-        structures where explicit hydrogen atoms are not represented.
-
-        """
-        for a in self.atoms:
-            a.calc_implicit_hydrogens()
+        from .operations.chemistry import _prepare_hydrogens
+        _prepare_hydrogens(self, force=True)
 
     @property
     def components(self) -> list['Molecule']:
@@ -1607,17 +1447,8 @@ class Molecule:
 
     @property
     def element_counts(self):
-        """
-        Returns the count of each element in the list of atoms by their symbol.
-
-        Summary:
-        Computes the frequency of each element within the atoms of the object 
-        by using their symbols. Utilizes a Python Counter for efficient calculation.
-
-        Returns:
-            dict: A dictionary mapping element symbols (str) to their counts (int).
-        """
-        return Counter([a.symbol for a in self.atoms])
+        from .operations.descriptors import _element_counts
+        return _element_counts(self)
 
     def _hide_bond(self, bond: "Bond"):
         if bond not in self.bonds:
@@ -1651,12 +1482,8 @@ class Molecule:
 
     @property
     def formula(self) -> str:
-        """ Formula of the molecule """
-        formula = ''
-        for ele, count in self.element_counts.items():
-            formula += f'{ele}{count}'
-
-        return formula
+        from .operations.descriptors import _formula
+        return _formula(self)
 
     @property
     def is_disorder(self):
@@ -1775,9 +1602,10 @@ class Molecule:
         @return: True if the molecule meets the criteria for being organic; otherwise, False
         @rtype: bool
         """
+        from .operations.chemistry import _require_implicit_hydrogens
         return (
             all(not a.is_metal for a in self.atoms) and
-            any(a.is_hydrogen or a.implicit_hydrogens != 0 for a in self._atoms) and
+            (bool(self.hydrogens) or any(_require_implicit_hydrogens(self))) and
             any(a.atomic_number == 6 for a in self._atoms)
         )
 
@@ -1894,11 +1722,11 @@ class Molecule:
         rows = tuple(self._topology_index[id(atom)][0] for atom in retained)
         affected = {atom._uid for atom in atoms}
         affected.update(neighbour._uid for atom in atoms for neighbour in atom.neighbours)
+        for atom in atoms:
+            _detach_atom(atom)
         _mark_topology_dirty(self, tuple(affected))
         state = _remap_dependency_state(self._atom_table, tuple(atom._uid for atom in source_atoms),
                                         tuple(atom._uid for atom in retained), rows=rows)
-        for atom in atoms:
-            _detach_atom(atom)
         table = self._atom_table.take(rows)
         _install_dependency_state(table, state)
         self._atom_table = table
@@ -2018,21 +1846,8 @@ class Molecule:
         return searcher.search(self)
 
     def set_default_valence(self):
-        """
-        Sets the default valence for each atom in the internal list of atoms.
-
-        This method iterates over all atoms in the `_atoms` attribute of the class
-        and calls the `set_default_valence` method for each atom. It is typically
-        used to initialize or reset the default valence for every atom in the
-        collection.
-
-        Raises:
-            AttributeError: If the `_atoms` attribute or `set_default_valence`
-                method on any atom is not properly defined.
-
-        """
-        for atom in self._atoms:
-            atom.set_default_valence()
+        from .operations.chemistry import _prepare_valences
+        return _prepare_valences(self)
 
     def similarity(
             self,
@@ -2128,19 +1943,7 @@ class Molecule:
 
     @property
     def rings(self) -> list["Ring"]:
-        """
-        Return the graph's complete Relevant Cycle family.
-
-        Relevant Cycles are the union of all minimum cycle bases.  Unlike one
-        arbitrary cycle basis, the family is uniquely determined by the fixed
-        unweighted molecular graph and preserves symmetry-equivalent rings.
-        Enumeration is complete up to the configured safety limit or raises
-        ``RelevantCycleLimitExceeded`` rather than returning a partial family.
-        """
-        if not self._rings:
-            self._rings = self._materialize_rings()
-
-        return copy(self._rings)
+        return self._materialize_rings()
 
     @property
     def cycle_basis(self) -> list[tuple[int, ...]]:
@@ -2166,11 +1969,8 @@ class Molecule:
         ]
 
     def _rings_from_cycles(self, cycles: Iterable[Iterable[int]]) -> list["Ring"]:
-        """Materialize ordered ring objects from atom-index cycles."""
-        return [
-            Ring(*(self._atoms[index] for index in cycle))
-            for cycle in cycles
-        ]
+        from .operations.topology_queries import _rings_from_cycles
+        return _rings_from_cycles(self, Ring, cycles)
 
     def _materialize_rings(
             self,
@@ -2179,31 +1979,9 @@ class Molecule:
             max_size: Optional[int] = None,
             max_cycles: Optional[int] = graph_algorithms.DEFAULT_RELEVANT_CYCLE_LIMIT,
     ) -> list["Ring"]:
-        """Materialize rings while caching their native index-cycle family."""
-        ligand_signature = (
-            self._current_ligand_ring_signature()
-            if ligand_skeleton
-            else None
-        )
-        cache_key = (
-            ligand_skeleton,
-            max_size,
-            max_cycles,
-            ligand_signature,
-        )
-        cycles = self._ring_indices_cache.get(cache_key)
-        if cycles is None:
-            cycles = graph_algorithms.relevant_cycles(
-                (
-                    (bond.a1idx, bond.a2idx)
-                    for bond in self._bonds
-                    if not ligand_skeleton or not bond.is_metal_ligand_bond
-                ),
-                max_size=max_size,
-                max_cycles=max_cycles,
-            )
-            self._ring_indices_cache[cache_key] = cycles
-        return self._rings_from_cycles(cycles)
+        from .operations.topology_queries import _ring_views
+        return _ring_views(self, Ring, ligand_skeleton=ligand_skeleton,
+                           max_size=max_size, max_cycles=max_cycles)
 
     def rings_for_scope(
             self,
@@ -2273,43 +2051,9 @@ class Molecule:
 
     @property
     def ligand_rings(self) -> list["Ring"]:
-        """
-        Retrieve the list of ligand rings associated with the object.
+        return self._materialize_rings(ligand_skeleton=True)
 
-        Metal-ligand edges are removed from a filtered graph without changing
-        the molecule, its cached full-graph rings, or its conformers.
 
-        @property
-            Returns:
-                list[Ring]: A list of Ring objects representing ligand
-                rings associated with the object.
-        """
-        self._refresh_ligand_ring_cache_signature()
-        if self._ligand_rings is None:
-            self._ligand_rings = self._materialize_rings(
-                ligand_skeleton=True,
-            )
-        return copy(self._ligand_rings)
-
-    def _refresh_ligand_ring_cache_signature(self) -> None:
-        """Invalidate ligand ring caches after graph or element changes."""
-        signature = self._current_ligand_ring_signature()
-        if signature != self._ligand_rings_signature:
-            self._ligand_rings = None
-            for cache_key in tuple(self._ring_indices_cache):
-                if cache_key[0]:
-                    del self._ring_indices_cache[cache_key]
-            self._ligand_rings_signature = signature
-
-    def _current_ligand_ring_signature(self) -> _LigandRingSignature:
-        """Return the element-and-edge signature defining the ligand view."""
-        return (
-            tuple(atom.atomic_number for atom in self._atoms),
-            tuple(sorted(
-                (min(bond.a1idx, bond.a2idx), max(bond.a1idx, bond.a2idx))
-                for bond in self._bonds
-            )),
-        )
 
     def to_pyg_data(self, prefix: str = "", with_batch: bool = True):
         from ..plugins.PyG.data.utils import mol_to_pyg_data
@@ -2368,57 +2112,14 @@ class Molecule:
         from .operations.geometry import _translate
         return _translate(self, vector)
 
-    def update_atoms_attrs_from_id_dict(self, id_dict: dict[int, dict]):
-        """
-        Updates the attributes of atoms in the atom_id_dict based on the provided id_dict.
 
-        This function iterates through the given id_dict, matches the atom IDs in the
-        atom_id_dict, and updates their attributes using the key-value pairs provided
-        in the id_dict. Each atom's attributes are updated with the specified values.
-
-        Parameters:
-            id_dict (dict[int, dict]): A dictionary where keys are atom IDs (int) and
-            values are dictionaries containing attribute names as keys and their values.
-
-        Returns:
-            None
-        """
-        id_atoms = self.atom_id_dict
-        for i, attr in id_dict.items():
-            id_atoms[i].setattr(**attr)
-
-    def update_bonds_attrs_from_id_dict(self, id_dict: dict[int, dict]):
-        """
-        Updates attributes of bonds in the bond_id_dict using values from the given dictionary.
-
-        This function iterates over the provided id_dict and for each key-value pair, 
-        updates the corresponding bond instance's attributes in the bond_id_dict. 
-        The attributes are updated using the setattr method, passing the dictionary 
-        values as keyword arguments.
-
-        Parameters:
-            id_dict (dict[int, dict]): A dictionary where each key corresponds to a bond ID, 
-            and the value is another dictionary specifying attributes to be updated for the 
-            corresponding bond.
-
-        Returns:
-            None
-        """
-        id_bonds = self.bond_id_dict
-        for i, attr in id_dict.items():
-            id_bonds[i].setattr(**attr)
 
 
 
     @property
     def weight(self):
-        """
-        Returns the total weight of the structure by summing the mass of all atoms.
-
-        This property calculates the weight based on the individual masses of 
-        all atoms contained within the `_atoms` attribute.
-        """
-        return sum(a.mass for a in self._atoms)
+        from .operations.descriptors import _weight
+        return _weight(self)
 
     def write(
             self,
@@ -2557,6 +2258,7 @@ class Molecule:
             raise ValueError('Factual bindings must align with the import record')
         old_atoms = tuple(self._atoms)
         old_bonds = tuple(self._bonds + self._hided_bonds)
+        old_hydrogen_inputs = _hydrogen_install_inputs(self) if dependency_state is not None else {}
         for bindings, current in ((atom_bindings, old_atoms), (bond_bindings, old_bonds)):
             current_ids = {id(member) for member in current}
             present = [member for member in bindings if member is not None]
@@ -2633,8 +2335,15 @@ class Molecule:
             object.__setattr__(self, '_' + name + '_present', present)
             object.__setattr__(self, '_' + name + '_value', value if present else (0 if name == 'charge' else None))
             object.__setattr__(self, '_' + name + '_source', source)
-        self._crystal = None if record.cell is None else cryst.Crystal(*record.cell, mol=self)
         self._stereo_payload = record.stereo_payload if record.stereo_payload is not None else _StereoPayload(1, (), (), ())
+        if dependency_state is None:
+            _mark_topology_dirty(self, tuple(atom._uid for atom in atoms))
+        elif old_hydrogen_inputs:
+            changed = tuple(uid for uid, inputs in _hydrogen_install_inputs(self).items()
+                            if uid in old_hydrogen_inputs and old_hydrogen_inputs[uid] != inputs)
+            if changed:
+                _seed(self, GROUP_INDEX['IMPLICIT_H'], changed)
+        self._crystal = None if record.cell is None else cryst.Crystal(*record.cell, mol=self)
         self._install_frame_state(tuple(_thaw_canonical(value) for value in record.legacy_frame_values), record.legacy_frame_index)
         if record.identifier[0]:
             self.identifier = record.identifier[1]
@@ -2893,11 +2602,12 @@ class Atom(MolBlock):
 
     @property
     def attrs(self):
+        from .operations.chemistry import _atom_projection
         with self.mol._mutation_lock:
             record = self.mol._topology_index.get(id(self))
             if record is None:
-                return self._detached_table.row(0)
-            return self.mol._atom_table.row(record[0])
+                return _detached_atom_projection(self)
+            return _atom_projection(self.mol, rows=(record[0],))[0]
 
     def __reduce_ex__(self, protocol):
         with self.mol._mutation_lock:
@@ -3033,59 +2743,8 @@ class Atom(MolBlock):
             rm_polar_hs: bool = True,
             rng: Optional[np.random.Generator] = None,
     ) -> (int, list["Atom"]):
-        """
-        Adds or removes hydrogen atoms to achieve the correct count based on the molecule's implicit hydrogens.
-
-        This method adjusts the number of hydrogen atoms attached to a given site. It accounts
-        for polar hydrogen sites, metal-ligand bonds, and optionally removes polar hydrogens if needed.
-        The number of hydrogens to be added or removed is calculated based on the implicit hydrogen
-        count and existing hydrogens present. If adjustments are necessary, the function either
-        adds new hydrogen atoms or removes an excess based on the specified criteria. Returns
-        information about the adjustment performed.
-
-        Parameters:
-            num: int or None
-                The number of hydrogens to add or remove. If None, the value is determined 
-                based on the implicit hydrogen count and the current state of the molecule.
-            rm_polar_hs: bool
-                A flag to indicate whether polar hydrogens should be removed when reducing
-                the hydrogen count in case of excess.
-            rng: numpy.random.Generator or None
-                Generator used to place newly added hydrogen atoms. When omitted,
-                NumPy's process-global random generator is used.
-
-        Returns:
-            tuple[int, list["Atom"]]
-                A tuple where the first element indicates the type of adjustment performed:
-                - 1 indicates addition of hydrogens,
-                - -1 indicates removal,
-                - 0 indicates no adjustment.
-                The second element is a list of hydrogen atoms added or removed.
-
-        """
-        neighbours = self.neighbours
-        hydrogens = [a for a in neighbours if a.atomic_number == 1]
-
-        # Calculate the difference between current number and balance number of hydrogens
-        if num is None:
-            num = self.implicit_hydrogens - len(hydrogens)
-            if self.polar_hydrogen_site:
-                num -= len([a for a in neighbours if a.is_metal])  # minus metal-ligand bonds
-
-        if num > 0:
-            return 1, [
-                self._add_atom(atom_attrs={
-                    'coordinates': np.array(self.coordinates)
-                    + self.random_point_on_sphere(1.05, rng=rng)
-                }) for _ in range(num)
-            ]
-
-        elif num < 0 and self.polar_hydrogen_site and hydrogens and rm_polar_hs:
-            self.mol._remove_atoms_from_topology(hydrogens[:abs(num)])
-            return -1, hydrogens[:abs(num)]
-
-        else:
-            return 0, []
+        from .operations.chemistry import _add_atom_hydrogens
+        return _add_atom_hydrogens(self, num, rm_polar_hs, rng)
 
     def add_hydrogen(self, num: int = None) -> list["Atom"]:
         """
@@ -3102,9 +2761,11 @@ class Atom(MolBlock):
         Returns:
             list["Atom"]: A list of the hydrogen atoms added to the molecule.
         """
-        add_or_rm, hydrogens = self._add_hydrogens(num)
-        getattr(self.mol, '_update_topology')()
-        return hydrogens
+        with _FactTransaction(self.mol, producer=_ATOM_SOURCE_CODES['implicit_hydrogens']) as transaction:
+            transaction.touch_topology()
+            add_or_rm, hydrogens = self._add_hydrogens(num)
+            self.mol._update_topology()
+            return hydrogens
 
     @property
     def bonds(self) -> list['Bond']:
@@ -3114,61 +2775,13 @@ class Atom(MolBlock):
 
     def _calc_implicit_hydrogens(self) -> int:
         # TODO: Implement by C++
-        if self.is_metal:
-            return 0
-        elif self.atomic_number == 1:
-            if self.neighbours[0].atomic_number == 1:
-                return 1
-            else:
-                return 0
-
-        elif self.is_aromatic:
-            num = len([a for a in self.neighbours if a.atomic_number != 1 and (not a.is_metal)])
-
-            if self.atomic_number in [6, 14]:
-                if num == 3:
-                    return 0
-                else:
-                    return 1
-            elif self.atomic_number in [7, 15, 33]:
-                if num == 3 or self.sum_heavy_cov_orders > 2:
-                    return 0
-                else:
-                    return 1
-            elif self.atomic_number in [8, 16, 34]:
-                return 0
-            elif self.atomic_number == 5:
-                return 1
-            elif self.atomic_number == 32:  # Ge
-                return 0
-            else:
-                raise AttributeError(f"Get an incorrect atom!!， {self.symbol}")
-        else:
-            return max(self.valence - self.sum_heavy_cov_orders, 0)
+        from .operations.chemistry import _atom_implicit_proposal
+        return _atom_implicit_proposal(self)
 
 
     def calc_implicit_hydrogens(self):
-        """
-        Calculates the implicit hydrogen count for an atom based on its atomic properties.
-
-        This function determines the number of implicit hydrogens an atom should possess 
-        depending on its atomic number, aromaticity, and covalent bonding context. The 
-        calculation is influenced by whether the atom is metallic, aromatic, part of specific 
-        groups (e.g., carbon, nitrogen), or based on its valence and bonding characteristics.
-
-        Raises
-        ------
-        AttributeError
-            If the atom's properties do not align with known rules (e.g., incorrect type or 
-            unrecognized atomic number).
-
-        See Also
-        --------
-        calc_implicit_hydrogens : This function should ideally be implemented in C++ for 
-            performance improvements.
-        """
-        _store_atom_fields(self, {'implicit_hydrogens': self._calc_implicit_hydrogens()},
-                           producer=_ATOM_SOURCE_CODES['implicit_hydrogens'])
+        from .operations.chemistry import _prepare_hydrogens
+        _prepare_hydrogens(self.mol, rows=(self.idx,), force=True)
 
     @property
     def constraint(self) -> bool:
@@ -3234,40 +2847,8 @@ class Atom(MolBlock):
 
     @property
     def hyb(self) -> int:
-        """
-        Determines the hybridization state of an atom based on its atomic number, bond orders, and 
-        other associated properties. This computation is specific to elements such as Carbon, Silicon,
-        Nitrogen, Phosphorus, and Hydrogen, accounting for aromaticity, double bonds, triple bonds, or 
-        other bonding characteristics.
-
-        @return: Returns the hybridization state of the atom as an integer. 
-                 0 indicates sp3 hybridization, 1 indicates sp hybridization, 
-                 2 indicates sp2 hybridization, and 3 indicates an undefined or other state.
-
-        @rtype: int
-        """
-        # TODO: Debug
-        if self.atomic_number == 1:
-            return 0
-        elif self.atomic_number in {6, 14}:  # C Si
-            if self.is_aromatic or any(b.bond_order == 2 for b in self.bonds):
-                return 2
-            elif any(b.bond_order == 3 for b in self.bonds):
-                return 1
-            else:
-                return 3
-        elif self.atomic_number == 7:  # N
-            if self.sum_heavy_cov_orders == 3:
-                return 2
-            else:
-                return 3
-        elif self.atomic_number == 15:  # P
-            if self.sum_heavy_cov_orders == 3:
-                return 2
-            else:
-                return 3
-        else:
-            return 0
+        from .operations.chemistry import _atom_hybridization
+        return _atom_hybridization(self)
 
     @property
     def idx(self) -> int:
@@ -3486,8 +3067,8 @@ class Atom(MolBlock):
         Returns:
             int: The number of missing electrons for the element.
         """
-        conf = self.electron_configuration
-        return sum(self.elements.atomic_orbital[conf[0]]) - sum(conf[1:])
+        from .rules.chemistry.bonding.valence import _missing_electrons
+        return _missing_electrons(self.atomic_number)
 
     @property
     def missing_electrons(self):
@@ -3577,6 +3158,8 @@ class Atom(MolBlock):
         elif self.atomic_number in [1, 9, 17]:  # H, F, Cl
             return 1
 
+        from .operations.chemistry import _require_implicit_hydrogens
+        hydrogen_count = _require_implicit_hydrogens(self.mol, rows=(self.idx,))[0]
         _state = 0
         _temp_state = 0
         for bond in self.bonds:
@@ -3593,7 +3176,7 @@ class Atom(MolBlock):
             else:
                 _state += int(bond.bond_order)
 
-        _state += self.implicit_hydrogens
+        _state += hydrogen_count
 
         if _state > 0:
             _state += _temp_state
@@ -3603,204 +3186,32 @@ class Atom(MolBlock):
         return _state
 
     def get_formal_charge(self) -> cython.int:
-        """
-        Determines the formal charge of the atom based on its atomic number, neighbors,
-        and other attributes. Specific rules and conditions for different elements 
-        are implemented to calculate the formal charge.
-
-        Raises:
-            No exceptions are explicitly raised by this function. However, it assumes 
-            that the relevant attributes such as `atomic_number`, `is_metal`, 
-            `neighbours`, and `sum_covalent_orders` are correctly defined and accessible.
-
-        Returns:
-            cython.int: Corresponds to the formal charge of the atom as determined 
-            by its atomic properties and interaction with neighbors.
-        """
-        if self.is_metal or self.atomic_number in self.elements.metalloid_2nd:
-            return Atom.elements.default_valence[self.atomic_number]
-        elif self.atomic_number in [6, 14]:  # C, Si
-            return 4
-        elif self.atomic_number == 8:  # O
-            return -2
-        elif self.atomic_number == 7:  # N
-            if all(na.atomic_number != 8 for na in self.neighbours):
-                return -3
-            else:
-                return max(5, 2 * len([na for na in self.neighbours if na.atomic_number == 8]) + 1)
-        elif self.atomic_number == 15: # P
-            if all(na.atomic_number != 8 for na in self.neighbours):
-                return 3
-            else:
-                return max(5, 2 * len([na for na in self.neighbours if na.atomic_number == 8]) + 1)
-        elif self.atomic_number == 16: # S
-            if all(na.atomic_number != 8 for na in self.neighbours):
-                return -2
-            elif self.sum_covalent_orders <= 4:
-                return 4
-            else:
-                return 6
-        elif self.atomic_number == 5: # B
-            return 3
-        elif self.atomic_number == 33: # As, TODO: more precise adjustments are needed.
-            return 3
-        elif self.atomic_number == 1:
-            return 1
-        elif self.is_halogens:
-            return -1
-        else:
-            raise NotImplementedError(f'The formal charge of {self.symbol} is not implemented.')
+        from .operations.chemistry import _atom_formal_charge
+        return _atom_formal_charge(self)
 
     def get_valence(self) -> cython.int:
-        """
-        Returns the valence for an atom based on its atomic number or specific properties.
-
-        The function calculates the valence of the current atom instance by considering 
-        its atomic number, types of neighboring atoms, sum of covalent orders, and other 
-        specific attributes (such as whether the atom is a metal, halogen, or noble gas). 
-        Different rules apply depending on the atomic number and bonding configuration. 
-
-        Raises an exception if the atomic number or class attributes do not provide sufficient 
-        information to determine the valence.
-
-        Returns:
-            cython.int: The determined valence of the atom.
-
-        Raises:
-            AttributeError: If required attributes are missing from the object.
-            KeyError: If the atomic number is not present in the default valence lookup.
-        """
-        if self.atomic_number in [6, 14]:  # C, Si
-            return 4
-        elif self.atomic_number == 8:  # O
-            return 2
-        elif self.atomic_number == 7:  # N
-            if all(na.atomic_number != 8 for na in self.neighbours):
-                return 3
-            else:
-                return max(5, 2 * len([na for na in self.neighbours if na.atomic_number == 8]) + 1)
-        elif self.atomic_number == 15: # P
-            if all(na.atomic_number != 8 for na in self.neighbours):
-                return 3
-            else:
-                return max(5, 2 * len([na for na in self.neighbours if na.atomic_number == 8]) + 1)
-        elif self.atomic_number == 16: # S
-            if all(na.atomic_number != 8 for na in self.neighbours):
-                return 2
-            elif self.sum_covalent_orders <= 4:
-                return 4
-            else:
-                return 6
-        elif self.atomic_number == 5: # B
-            return 3
-        elif self.atomic_number == 1 or self.is_halogens:
-            return 1
-        elif self.is_metal:
-            return Atom.elements.default_valence[self.atomic_number]
-        elif self.is_noble_gases:
-            return 0
-        else:
-            return Atom.elements.default_valence[self.atomic_number]
+        from .operations.chemistry import _atom_valence
+        return _atom_valence(self)
 
     def set_valence_to_default(self):
-        """
-        Sets the valence of the atom to its default value.
+        from .operations.chemistry import _atom_valence
+        _atom_valence(self)
 
-        This method resets the valence of the atom using the default settings
-        based on its atomic number. The default valence calculation can be 
-        custom or provided by another function depending on the implementation.
-
-        Raises:
-            KeyError: If the atomic number is not recognized or is missing 
-                from the valence configuration.
-        """
-        # self.valence = Atom._default_valence[self.atomic_number]
-        _store_atom_fields(self, {'valence': self.get_valence()},
-                           producer=_ATOM_SOURCE_CODES['valence'])
-
-    def setattr(self, *, add_defaults=False, **kwargs):
-        """
-        Sets attributes on an object with the option to translate specific keys 
-        into alternative metadata formats. Particularly useful for custom handling of 
-        coordinate and symbol-to-atomic-number translation, while supporting additional 
-        keyword arguments.
-
-        Parameters:
-            add_defaults (bool): Indicates whether default attributes should be added.
-            kwargs: Additional keyword arguments to set as attributes.
-
-        Keyword Args:
-            coordinates (Any): Optional key representing 3D coordinates, expected to 
-                be an iterable with three elements (e.g., [x, y, z]) that will be 
-                translated into x, y, z attributes.
-            symbol (str): Optional key representing an atomic symbol, which will be 
-                converted into an 'atomic_number' attribute based on internal symbol 
-                indexing.
-
-        Raises:
-            Any exceptions raised during the setting of attributes in the parent class's
-            setattr method.
-
-        This method allows dynamic translation of given attributes and delegates all 
-        remaining attribute assignments to the parent's setattr implementation. Handles 
-        keys intelligently, such as extracting individual axes from a coordinates tuple 
-        or substituting atomic symbols with their corresponding atomic numbers.
-
-        TODO: Warning!
-        TODO: This methods is recommended to be invoked after the molecular graph has
-        TODO: been built. If the method is invoked in the obj-create stage. Some unexpected
-        TODO: error might raise.
-        """
-        coords = kwargs.get("coordinates", None)
-        symbol = kwargs.get("symbol", None)
-
-        if coords is not None:
-            del kwargs["coordinates"]
-            kwargs.update({'x': coords[0], 'y': coords[1], 'z': coords[2]})
-        if isinstance(symbol, str):
-            del kwargs["symbol"]
-            kwargs['atomic_number'] = Atom.elements.symbols.index(symbol)
-
-        super().setattr(add_defaults=add_defaults, **kwargs)
 
     @property
     def sum_bond_orders(self) -> int:
-        """
-        Represents the calculation of the total bond orders for a set of bonds. This
-        property iterates through all bonds in the `bonds` attribute and sums up their
-        individual bond orders.
-
-        @property
-
-        Returns:
-            int: The sum of all bond orders within the `bonds` attribute.
-        """
-        return int(sum(b.bond_order for b in self.bonds))
+        from .operations.chemistry import _atom_order_sum
+        return _atom_order_sum(self, 'all')
 
     @property
     def sum_heavy_cov_orders(self) -> int:
-        """
-        Calculate the sum of heavy covalent bond orders for all bonds in the object.
-
-        The method iterates over all bonds, filtering for bonds marked as heavy covalent,
-        and computes the sum of their bond orders. It provides a concise total of
-        bond orders exclusively for heavy covalent bonds.
-
-        Returns: 
-            int: The sum of bond orders for heavy covalent bonds in the object.
-        """
-        return int(sum(b.bond_order for b in self.bonds if b.is_heavy_covalent))
+        from .operations.chemistry import _atom_order_sum
+        return _atom_order_sum(self, 'heavy')
 
     @property
     def sum_covalent_orders(self) -> int:
-        """
-        Calculate the total of covalent bond orders for the bonds associated
-        with the instance.
-
-        @return: The sum of covalent bond orders
-        @rtype: int
-        """
-        return int(sum(b.bond_order for b in self.bonds if b.is_covalent))
+        from .operations.chemistry import _atom_order_sum
+        return _atom_order_sum(self, 'covalent')
 
     @property
     def symbol(self) -> str:
@@ -3873,7 +3284,7 @@ class AtomSeq:
 
     def __setattr__(self, name, value):
         if '_view_source' in self.__dict__ and (
-                name in ('_atoms', '_bonds') or re.fullmatch(r'(?:atom|bond)\d+|a\d+idx', name)):
+                name in ('_atoms', '_bonds') or name.startswith('_view_') or re.fullmatch(r'(?:atom|bond)\d+|a\d+idx', name)):
             raise AttributeError('View membership is read-only')
         super().__setattr__(name, value)
 
@@ -3883,6 +3294,10 @@ class AtomSeq:
         from .views._source import _restore_sequence_view, _view_source_current
         with self.mol._mutation_lock:
             current = _view_source_current(self.mol, self._view_source, self._atoms, self._view_uids)
+            if '_view_representation' in self.__dict__:
+                from .views._source import _restore_ring_view
+                return (_restore_ring_view, (type(self), self._atoms, self._bonds,
+                         self._view_geometry, self._view_representation, current))
             return (_restore_sequence_view,
                     (type(self), self._atoms, self._bonds, self._view_geometry, current))
 
@@ -4197,8 +3612,6 @@ def _bond_order_setter(self: 'Bond', key, bond_order):
         _commit_bond_facts(self.mol, self, _capture_source(self.mol), raw_values=values,
             kind=kind, direction=self._bond_direction, source_namespace=self._bond_source,
             metadata=self._bond_source_metadata)
-        for atom in self.atoms:
-            atom.calc_implicit_hydrogens()
 
 class Bond(AtomSeq, MolBlock):
     """
@@ -4415,16 +3828,8 @@ class Bond(AtomSeq, MolBlock):
 
     @property
     def is_aromatic(self) -> bool:
-        """
-        Check if the molecule contains any aromatic ring.
-
-        This property evaluates the presence of aromaticity within the molecule by 
-        checking whether any of its constituent rings are aromatic.
-
-        @return: Indicates if the molecule contains aromatic rings.
-
-        """
-        return any(r.is_aromatic for r in self.rings)
+        from .operations.chemistry import _bond_aromatic_read
+        return _bond_aromatic_read(self)
 
     @property
     def is_covalent(self) -> bool:
@@ -4456,14 +3861,6 @@ class Bond(AtomSeq, MolBlock):
             False otherwise.
         """
         return not any(a.is_metal or a.atomic_number == 1 for a in self.atoms)
-
-    # @is_aromatic.setter
-    # def is_aromatic(self, value: bool):
-    #     if not self.in_ring:
-    #         raise AttributeError("Can't assign a bond outside an ring to be ")
-    #
-    #     self.atom1.is_aromatic = value
-    #     self.atom2.is_aromatic = value
 
     @property
     def is_metal_ligand_bond(self) -> bool:
@@ -4587,8 +3984,8 @@ class JointRing:
             initialization with `*ring`.
         mol: The molecule associated with the first ring in the input. This attribute 
             assumes all provided rings belong to the same molecule.
-        atoms (list): Unique list of all atoms shared among the provided rings.
-        bonds (list): Unique list of all bonds shared among the provided rings.
+        atoms (tuple): Fixed unique atoms in first-occurrence member order.
+        bonds (tuple): Fixed unique bonds in first-occurrence member order.
 
     Methods:
         __contains__(item): Checks membership of an atom, bond, or ring within 
@@ -4606,29 +4003,62 @@ class JointRing:
             while remaining part of the JointRing.
         check_kekulize: Validates the kekulization constraints of atoms in the 
             JointRing.
-        kekulize: Placeholder for implementing kekulization on the JointRing.
     """
+    def __setattr__(self, name, value):
+        if '_view_source' in self.__dict__:
+            raise AttributeError('JointRing is a structurally immutable view')
+        object.__setattr__(self, name, value)
+
+    @property
+    def rings(self):
+        return self._member_rings
+
+    @property
+    def atoms(self):
+        return self._atoms
+
+    @property
+    def bonds(self):
+        return self._bonds
+
+    @property
+    def mol(self):
+        return self._mol
+
+    def _check_source(self):
+        from .views._source import _check_ring_source
+        _check_ring_source(self, prepare=True)
+
+    def __reduce_ex__(self, protocol):
+        from .views._source import _restore_joint_ring, _view_source_current
+        with self.mol._mutation_lock:
+            current = _view_source_current(self.mol, self._view_source, self._atoms, self._view_uids)
+            return (_restore_joint_ring, (type(self), self._member_rings, self._atoms, self._bonds,
+                     self._view_geometry, self._view_representation, current))
+
     def __init__(self, *ring):
-        self.rings = ring
-        self.mol = ring[0].mol
-        self.atoms = list(set([a for r in ring for a in r.atoms]))
-        self.bonds = list(set([b for r in ring for b in r.bonds]))
+        from .views._source import _bind_view, _ring_representation, _check_ring_source
+        mol = ring[0].mol
+        with mol._mutation_lock:
+            for member in ring:
+                if member.mol is not mol:
+                    raise NotInSameMolecule(ring[0], member)
+                _check_ring_source(member)
+            self._member_rings = tuple(ring)
+            self._mol = mol
+            self._atoms = tuple({id(atom): atom for member in ring for atom in member.atoms}.values())
+            self._bonds = tuple({id(bond): bond for member in ring for bond in member.bonds}.values())
+            _bind_view(self, self._atoms)
+            object.__setattr__(self, '_view_representation', _ring_representation(mol, self._atoms, self._bonds))
 
     def __contains__(self, item: Union[Atom, Bond, 'Ring']):
         if isinstance(item, Atom):
-            if self.index(item):
-                return True
-            return False
-        elif isinstance(item, Bond):
-            if all(self.index_bond(item)):
-                return True
-            return False
-        elif isinstance(item, Ring):
-            if any(all(a in r.atoms for a in item.atoms) for r in self.rings):
-                return True
-            return False
-        else:
-            raise TypeError("Expected an instance of Atom or Bond or Ring, got {}".format(type(item)))
+            return any(member is item for member in self._atoms)
+        if isinstance(item, Bond):
+            return any(member is item for member in self._bonds)
+        if isinstance(item, Ring):
+            return any(all(atom in member.atoms for atom in item.atoms) for member in self._member_rings)
+        raise TypeError("Expected an instance of Atom or Bond or Ring, got {}".format(type(item)))
 
     @property
     def empty(self) -> bool:
@@ -4684,7 +4114,9 @@ class JointRing:
             tuple[int, int]: A tuple containing the indices of `atom1` and 
             `atom2` in the structure.
         """
-        return self.index(bond.atom1), self.index(bond.atom2)
+        with self.mol._mutation_lock:
+            self._check_source()
+            return self.index(bond.atom1), self.index(bond.atom2)
 
     def atom_neigh_atom(self, atom: Atom):
         """
@@ -4699,7 +4131,9 @@ class JointRing:
             list: A list of neighboring atoms that are part of the current 
             structure or collection.
         """
-        return [a for a in atom.neighbors if a in self]
+        with self.mol._mutation_lock:
+            self._check_source()
+            return [a for a in atom.neighbours if a in self]
 
     def atom_neigh_bond(self, atom: Atom):
         """
@@ -4720,7 +4154,9 @@ class JointRing:
             in the object's context.
 
         """
-        return [b for b in atom.bonds if b in self]
+        with self.mol._mutation_lock:
+            self._check_source()
+            return [b for b in atom.bonds if b in self]
 
     def bond_neigh_bond(self, bond: Bond):
         """
@@ -4733,22 +4169,13 @@ class JointRing:
         Returns:
             list[Bond]: A list of neighboring bonds connected to the atoms of the provided bond.
         """
-        return [b for a in bond.atoms for b in a.bonds if (b is not bond and b in self)]
+        with self.mol._mutation_lock:
+            self._check_source()
+            return [b for a in bond.atoms for b in a.bonds if (b is not bond and b in self)]
 
     def check_kekulize(self):
-        """
-        Checks whether the molecular structure adheres to Kekulé rules.
-
-        This function evaluates the atomic properties of each atom in a given structure
-        to determine if it satisfies Kekulé bonding rules. The checks focus on
-        the atomic number, sum of heavy covalent bond orders, and the number of
-        implicit hydrogens for specific atom types. If any atom violates these rules,
-        the function returns False. Otherwise, it returns True once all atoms are validated.
-
-        Returns:
-            bool: True if the structure conforms to Kekulé rules, otherwise False.
-        """
-        return kekulization.check_joint_ring_kekulization(self)
+        from .operations.chemistry import _check_joint_ring
+        return _check_joint_ring(self)
 
 
 class Ring(AtomSeq):
@@ -4763,8 +4190,25 @@ class Ring(AtomSeq):
     graph representations of the ring for further computational purposes.
     """
     def __init__(self, *atoms: Atom):
-        super().__init__(*atoms)
-        self._bonds = self._bonds + [self.mol.bond(self._atoms[0].idx, self._atoms[-1].idx)]
+        self._check_is_same_mol(*atoms)
+        self._check_atom_number(*atoms)
+        from .operations.chemistry import _prepare_aromatic_representation
+        from .views._source import _bind_view, _ring_representation
+        with atoms[0].mol._mutation_lock:
+            mol = atoms[0].mol
+            _selected_atom_rows(mol, atoms)
+            _prepare_aromatic_representation(mol)
+            self._atoms = tuple(atoms)
+            self._bonds = tuple(mol.bond(first.idx, second.idx)
+                                for first, second in zip(atoms, (*atoms[1:], atoms[0])))
+            _bind_view(self, atoms)
+            object.__setattr__(self, '_view_representation', _ring_representation(mol, atoms, self._bonds))
+
+    def to_mol(self):
+        from .views._source import _check_ring_source
+        with self.mol._mutation_lock:
+            _check_ring_source(self, prepare=True)
+            return super().to_mol()
 
     def to_pair_edge(self):
         """
@@ -4781,34 +4225,9 @@ class Ring(AtomSeq):
 
     @property
     def is_aromatic(self) -> bool:
-        """
-        Returns whether the molecule is aromatic.
+        from .operations.chemistry import _ring_aromatic_read
+        return _ring_aromatic_read(self)
 
-        This property determines the aromaticity of the molecule by
-        evaluating if all the atoms in the molecule are aromatic. The
-        atoms are checked for their respective aromaticity status.
-
-        Returns:
-            bool: True if all the atoms in the molecule are aromatic,
-            otherwise False.
-        """
-        return all(a.is_aromatic for a in self._atoms)
-
-    @is_aromatic.setter
-    def is_aromatic(self, value: bool):
-        """
-        Sets the aromatic property for all atoms in the molecule.
-
-        This method updates the `is_aromatic` property for each individual atom
-        contained in the molecule to the specified boolean value. The operation affects
-        all atoms in the list of atoms associated with this molecule.
-
-        Parameters:
-            value (bool): A boolean value indicating whether the atoms should be 
-                          set as aromatic or not.
-        """
-        for a in self._atoms:
-            a.is_aromatic = value
 
     @property
     def is_disorder(self):
@@ -4832,16 +4251,10 @@ class Ring(AtomSeq):
 
     @property
     def has_metal(self):
-        """
-        Check if the structure contains any metallic elements.
-
-        This property evaluates whether any of the atoms within the structure
-        are classified as metallic based on their `is_metal` attribute.
-
-        @return: True if at least one atom is metallic, otherwise False.
-        :rtype: bool
-        """
-        return any(a.is_metal for a in self._atoms)
+        from .views._source import _check_ring_source
+        with self.mol._mutation_lock:
+            _check_ring_source(self)
+            return any(atom.is_metal for atom in self._atoms)
 
     def joint_with(self, other: "Ring") -> bool:
         """
@@ -4869,8 +4282,13 @@ class Ring(AtomSeq):
         """
         if not isinstance(other, Ring):
             raise TypeError(f"expected Ring but got {type(other)}")
-
-        intersect_bonds = list(set(self.bonds) & set(other.bonds))
+        from .views._source import _check_ring_source
+        with self.mol._mutation_lock:
+            _check_ring_source(self, prepare=True)
+            if other.mol is not self.mol:
+                return False
+            _check_ring_source(other, prepare=True)
+            intersect_bonds = list(set(self.bonds) & set(other.bonds))
         if len(intersect_bonds) == 0 :
             return False
         elif len(intersect_bonds) == 1:
@@ -4896,18 +4314,19 @@ class Ring(AtomSeq):
             A new JointRing object if one or more rings meet the conditions, 
             otherwise None.
         """
-        if aromatic and not self.is_aromatic:
-            return None
-
-        rings = []
-        for r in self.mol.rings:
-            if r == self:
-                rings.append(r)
-            elif self.joint_with(r) and (not aromatic or r.is_aromatic):
-                rings.append(r)
-
-        if rings:
-            return JointRing(*rings)
+        from .views._source import _check_ring_source
+        with self.mol._mutation_lock:
+            _check_ring_source(self, prepare=True)
+            if aromatic and not self.is_aromatic:
+                return None
+            rings = []
+            for ring in self.mol.rings:
+                if ring == self:
+                    rings.append(ring)
+                elif self.joint_with(ring) and (not aromatic or ring.is_aromatic):
+                    rings.append(ring)
+            if rings:
+                return JointRing(*rings)
 
     def next_atom(self, atom: Atom, reverse: bool = False) -> Atom:
         """
@@ -4941,39 +4360,11 @@ class Ring(AtomSeq):
 
     @property
     def has_3d(self):
-        """
-        Check if the structure contains 3D coordinates.
+        from .views._source import _view_coordinates
+        with self.mol._mutation_lock:
+            coordinates = _view_coordinates(self)
+            return any(tuple(row) != self.atoms[0] for row in coordinates)
 
-        The property determines whether any atom in the structure has 3D coordinates
-        different from the first atom.
-
-        @return: True if any atom has 3D coordinates different from the first atom, False otherwise 
-        @rtype: bool
-        """
-        return any(a.coordinates != self.atoms[0] for a in self.atoms)
-
-    def determine_aromatic(self, inplace=False) -> bool:
-        """
-        Determines if the molecule is aromatic, applying Hückel's Rule.
-
-        This method evaluates the aromatic behavior of a molecule based on its
-        structure and specific electronic configuration. It includes conditions
-        for neutral molecules and handles planar geometry checks for aromaticity.
-        This operation can either return the result directly or modify the object's
-        aromaticity status if `inplace` is set to True.
-
-        Parameters
-        ----------
-        inplace : bool, default=False
-            If True, the property ``is_aromatic`` of the object will be updated
-            in-place based on the aromaticity check result.
-
-        Returns
-        -------
-        bool
-            True if the molecule is found to be aromatic, otherwise False.
-        """
-        return kekulization.determine_ring_aromaticity(self, inplace=inplace)
 
     def relation_to_bond(
             self,
@@ -5007,13 +4398,6 @@ class Ring(AtomSeq):
             measurement=measurement,
         )
 
-    def kekulize(self):
-        """
-        Kekulize method analyzes and adjusts the bond orders within a molecule to ensure the aromaticity rules 
-        are consistently applied. This function modifies the bond orders directly in place to achieve a strict 
-        Kekulé structure representation if the molecule has aromatic properties.
-        """
-        return kekulization.kekulize_ring(self)
 
 
 class Conformers:
@@ -5255,6 +4639,23 @@ def _import_atom_row(mol, values, *, presence=None, sources=None):
         return atom
 
 
+def _detached_atom_projection(atom):
+    from .rules.chemistry.elements import _electron_configuration
+    from .operations.chemistry import _atom_valence, _hydrogen_display_value
+    table = atom._detached_table
+    values = table.row(0)
+    values[1:7] = _electron_configuration(atom.atomic_number)
+    values[13] = _atom_valence(atom)
+    field = _ATOM_FIELD_INDEX['implicit_hydrogens']
+    from .structure._fields import FIELD_PRESENCE_BITS
+    from .structure._dependencies import _FactStatus
+    pending = any(atom._uid in seeds for seeds in table._dirty_seeds[:2])
+    if (table._group_status[0, GROUP_INDEX['IMPLICIT_H']] != _FactStatus.CURRENT
+            or not int(table._presence[0]) & FIELD_PRESENCE_BITS[field] or pending):
+        values[field] = _hydrogen_display_value(table, 0, pending=pending)
+    return values
+
+
 def _initialize_bond_handle(bond, mol, uid, atom1, atom2, raw_values, *, kind,
                             direction, source_namespace, metadata, aromatic=None):
     object.__setattr__(bond, '_atoms', (atom1, atom2))
@@ -5336,8 +4737,14 @@ def _seal_detached_table(table):
 
 
 def _detach_atom(atom):
-    row = atom.mol._topology_index[id(atom)][0]
+    from .structure._dependencies import _FactStatus
+    row, bonds = atom.mol._topology_index[id(atom)]
     table = atom.mol._atom_table.take((row,))
+    local_uids = {atom._uid, *(bond.atom2._uid if bond.atom1 is atom else bond.atom1._uid for bond in bonds)}
+    if (int(table._sources[0, _ATOM_FIELD_INDEX['implicit_hydrogens']]) == _ATOM_SOURCE_CODES['implicit_hydrogens']
+            and table._group_status[0, GROUP_INDEX['IMPLICIT_H']] == _FactStatus.CURRENT
+            and any(local_uids.intersection(seeds) for seeds in table._dirty_seeds[:2])):
+        table._group_status[0, GROUP_INDEX['IMPLICIT_H']] = _FactStatus.NEEDS_RECALC
     table._dirty_seeds = tuple({atom._uid}.intersection(seeds) for seeds in table._dirty_seeds)
     object.__setattr__(atom, '_detached_table', _seal_detached_table(table))
 
@@ -5358,8 +4765,7 @@ def _capture_molecule_pickle(mol):
                  '_atom_table', '_topology_index', '_next_atom_uid', '_next_bond_uid', '_conformers',
                  '_conformers_index', '_stereo_payload', '_crystal', '_charge_value', '_charge_present',
                  '_charge_source', '_spin_value', '_spin_present', '_spin_source',
-                 '_constraints', '_rings', '_ring_indices_cache', '_ligand_rings',
-                 '_ligand_rings_signature', '_obmol', '_row2idx', '_pair_wiberg_bond_orders'}
+                 '_constraints', '_obmol', '_row2idx', '_pair_wiberg_bond_orders'}
         state = {key: value for key, value in mol.__dict__.items() if key not in owned}
         state['properties'] = dict(mol.properties)
         graph_memo = {id(mol): mol, **{id(atom): atom for atom in mol._atoms},
@@ -5447,6 +4853,16 @@ def _numeric_property(field):
     index, codec = _ATOM_FIELD_INDEX[field], _ATOM_FIELD_CODECS[field]
 
     def read(atom):
+        if field in _ATOM_DERIVED_FIELDS:
+            if field == 'valence':
+                return atom.get_valence()
+            return int(atom.electron_configuration[index - 1])
+        if field == 'is_aromatic':
+            from .operations.chemistry import _atom_aromatic_read
+            return _atom_aromatic_read(atom)
+        if field == 'implicit_hydrogens':
+            from .operations.chemistry import _implicit_hydrogen_read
+            return _implicit_hydrogen_read(atom)
         mol = atom._mol
         with mol._mutation_lock:
             record = mol._topology_index.get(id(atom))
@@ -5506,13 +4922,12 @@ for _method in (
         'hide_bonds', 'hide_metal_ligand_bonds', 'create_crystal'):
     setattr(Molecule, _method, _transactional_legacy(getattr(Molecule, _method), topology=True))
 for _method in ('calc_atom_valence', 'calc_implicit_hydrogens', 'assign_partial_charge',
-                'refresh_atom_id', 'update_atoms_attrs_from_id_dict', 'update_bonds_attrs_from_id_dict'):
+                'refresh_atom_id'):
     setattr(Molecule, _method, _transactional_legacy(getattr(Molecule, _method)))
 for _method in ('conformer_add', 'conformer_clear'):
     setattr(Molecule, _method, _transactional_legacy(getattr(Molecule, _method), frames=True))
 for _method in ('clear_constraints', 'constraint_bonds_angles'):
     setattr(Molecule, _method, _transactional_legacy(getattr(Molecule, _method), constraints=True))
-Ring.is_aromatic = Ring.is_aromatic.setter(_transactional_legacy(Ring.is_aromatic.fset))
 Angle.constraint = _constraint_property('angles')
 Torsion.constraint = _constraint_property('torsions')
 del _field, _method

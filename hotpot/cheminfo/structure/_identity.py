@@ -20,13 +20,13 @@ import json
 
 import numpy as np
 
-from ._fields import FIELD_INDEX, ATOM_FIELDS, FIELD_PRESENCE_BITS
+from ._fields import FIELD_INDEX, ATOM_FIELDS, FIELD_PRESENCE_BITS, FACT_FIELDS
 
 
 __all__ = ()
 
 
-_DOMAINS = ("topology", "representation", "geometry", "cell", "constraints", "source_frames", "forcefield_inputs")
+_DOMAINS = ("topology", "representation", "geometry", "cell", "constraints", "source_frames", "forcefield_inputs", "bonding_inputs")
 _REPRESENTATION_FIELDS = tuple(FIELD_INDEX[name] for name in (
     "atomic_number", "formal_charge", "implicit_hydrogens", "is_aromatic",
 ))
@@ -34,6 +34,7 @@ _COORDINATE_FIELDS = tuple(FIELD_INDEX[name] for name in ("x", "y", "z"))
 _CONSTRAINT_FIELDS = tuple(FIELD_INDEX[name] for name in (
     "x_constraint", "y_constraint", "z_constraint",
 ))
+_BONDING_FIELDS = (*_REPRESENTATION_FIELDS, FIELD_INDEX['partial_charge'], *_COORDINATE_FIELDS)
 
 
 @dataclass(frozen=True, eq=False)
@@ -105,6 +106,70 @@ def _current_spin(mol):
     return "absent", None
 
 
+
+def _hydrogen_transport_inputs(atom_uids, payload):
+    """Effective current H-rule inputs; historical transport is not an owner."""
+    facts = {} if payload is None else {fact.atom: fact for fact in payload.atom_facts}
+    inputs = []
+    for row, uid in enumerate(atom_uids):
+        fact = facts.get(row)
+        current = None if fact is None else fact.current_hydrogens
+        inputs.append((uid, 0 if fact is None or fact.radical_electrons is None else fact.radical_electrons,
+                       0 if current is None or current.bracket_explicit_hydrogens is None
+                       else current.bracket_explicit_hydrogens,
+                       False if current is None or current.no_implicit is None else current.no_implicit))
+    return tuple(inputs)
+
+
+def _hydrogen_inputs(atom, transport_inputs):
+    """Immutable local inputs for H only; other bonding projections stay intact."""
+    mol = atom.mol
+    entry = mol._topology_index.get(id(atom))
+    table, row, bonds = ((atom._detached_table, 0, ()) if entry is None
+                         else (mol._atom_table, entry[0], entry[1]))
+    number_field = FIELD_INDEX['atomic_number']
+    charge_field = FIELD_INDEX['formal_charge']
+    def number(index):
+        return int(table._columns[number_field][index]) if (
+            int(table._presence[index]) & FIELD_PRESENCE_BITS[number_field]) else 0
+    neighbours, orders, kinds, flags, roles = [], [], [], [], []
+    for bond in bonds:
+        other = bond.atom2 if bond.atom1 is atom else bond.atom1
+        neighbours.append(number(mol._topology_index[id(other)][0]))
+        orders.append(float(bond._attrs[0]))
+        kinds.append(bond._bond_kind.value)
+        flags.append(bond._is_aromatic)
+        direction = bond._bond_direction
+        donor = (bond.atom1 if direction == 'atom1_to_atom2'
+                 else bond.atom2 if direction == 'atom2_to_atom1' else None)
+        roles.append(None if donor is None else 'donor' if donor is atom else 'acceptor')
+    radical, bracket, no_implicit = transport_inputs.get(atom._uid, (0, 0, False))
+    charge = int(table._columns[charge_field][row]) if (
+        int(table._presence[row]) & FIELD_PRESENCE_BITS[charge_field]) else 0
+    return (number(row), tuple(neighbours), tuple(orders),
+            bool(table._columns[FIELD_INDEX['is_aromatic']][row]), charge,
+            tuple(kinds), tuple(flags), tuple(roles), radical, bracket, no_implicit)
+
+
+
+def _hydrogen_install_inputs(mol):
+    """Bindings for retained H status across a complete factual installation."""
+    transport = {entry[0]: entry[1:] for entry in _hydrogen_transport_inputs(
+        tuple(atom._uid for atom in mol._atoms), mol._stereo_payload)}
+    table = mol._atom_table
+    field = FIELD_INDEX['implicit_hydrogens']
+    inputs = {}
+    for atom in mol._atoms:
+        row, bonds = mol._topology_index[id(atom)]
+        inputs[atom._uid] = (
+            _hydrogen_inputs(atom, transport),
+            tuple((bond._uid, bond.atom2._uid if bond.atom1 is atom else bond.atom1._uid) for bond in bonds),
+            bool(int(table._presence[row]) & FIELD_PRESENCE_BITS[field]),
+            int(table._sources[row, field]), table._columns[field][row].tobytes(),
+        )
+    return inputs
+
+
 def _content_identities(mol, domains):
     bonds = _complete_bonds(mol) if any(domain != "cell" for domain in domains) else ()
     topology = _topology(mol, bonds) if bonds or any(domain != "cell" for domain in domains) else None
@@ -112,12 +177,20 @@ def _content_identities(mol, domains):
     for domain in domains:
         if domain == "topology":
             content = topology
+        elif domain == 'bonding_inputs':
+            # Closed numeric dependencies of the Stage5 rules/OB perception.
+            # Opaque Bond annotations and legacy result frames are not inputs.
+            content = (topology, _atom_columns(mol, _BONDING_FIELDS),
+                       _atom_metadata(mol, _BONDING_FIELDS),
+                       tuple((bond._uid, bond.bond_order, bond.bond_kind, bond._is_aromatic,
+                              bond.bond_direction, bond.bond_source) for bond in bonds),
+                       _hydrogen_transport_inputs(tuple(atom._uid for atom in mol._atoms), mol._stereo_payload))
         elif domain == "representation":
             content = (
                 topology,
                 _atom_columns(mol, _REPRESENTATION_FIELDS),
                 _atom_metadata(mol, _REPRESENTATION_FIELDS),
-                tuple((bond.bond_order, bond.bond_kind, bond.bond_direction,
+                tuple((bond.bond_order, bond.bond_kind, bond._is_aromatic, bond.bond_direction,
                        bond.bond_source, bond.bond_source_metadata) for bond in bonds),
                 mol._stereo_payload,
                 tuple((atom._uid, atom.__dict__["isotope"])
@@ -148,14 +221,15 @@ def _content_identities(mol, domains):
                 identities.append((domain, _digest(domain, content)))
                 continue
         else:  # Closed legacy numeric input domain; opaque metadata is separate.
-            indices = tuple(index for index in range(len(ATOM_FIELDS)) if index not in _COORDINATE_FIELDS)
+            indices = tuple(FIELD_INDEX[field] for field in FACT_FIELDS if FIELD_INDEX[field] not in _COORDINATE_FIELDS)
             with mol._conformers._mutation_lock:
                 content = (
                     topology, _atom_columns(mol, indices), _atom_metadata(mol, indices),
                     tuple((atom._uid, tuple((name, atom.__dict__[name])
                                            for name in ("isotope", "frac_valence") if name in atom.__dict__))
                           for atom in mol._atoms),
-                    tuple((bond._uid, bond._attrs, bond.bond_kind, bond.bond_direction, bond.bond_source)
+                    tuple((bond._uid, bond._attrs, bond.bond_kind, bond._is_aromatic,
+                           bond.bond_direction, bond.bond_source)
                           for bond in bonds),
                     _declaration(mol, "charge"), _current_spin(mol), mol._stereo_payload,
                     tuple(getattr(mol._conformers, name) for name in (

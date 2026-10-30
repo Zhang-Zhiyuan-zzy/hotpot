@@ -18,7 +18,7 @@ from hotpot.cheminfo.structure._dependencies import (
 def _molecule():
     mol = Molecule()
     for _ in range(5):
-        mol.create_atom(attrs_array=np.zeros(19), update_electron_config=False)
+        mol.create_atom(atomic_number=6, formal_charge=0, implicit_hydrogens=0)
     for first, second in ((0, 1), (1, 2), (3, 4)):
         mol.add_bond(first, second)
     mol._atom_table._group_status[:5] = _FactStatus.CURRENT
@@ -121,4 +121,16 @@ def test_invalid_dependency_state_is_rejected_before_publication(status, seeds):
     table = _AtomFactTable(np.ones((1, 19)))
     with pytest.raises(ValueError):
         _install_dependency_state(table, (status, seeds))
-    assert table._group_status.tolist() == [[0] * 4]
+    assert table._group_status.tolist() == [[2, 0, 0, 0]]
+
+
+@pytest.mark.parametrize('writer', ('scalar', 'batch'))
+def test_neighbour_dependency_scope_expands_before_remote_h_read_without_reaching_two_hops(writer):
+    mol = _molecule()
+    if writer == 'scalar':
+        mol.atoms[0].atomic_number = 7
+    else:
+        mol.updata_atoms(atoms=(mol.atoms[0],), atomic_number=(7,))
+    assert _ensure_group(mol, 'IMPLICIT_H', rows=(1, 2, 4)).tolist() == [
+        _FactStatus.NEEDS_RECALC, _FactStatus.CURRENT, _FactStatus.CURRENT]
+    assert mol._atom_table._group_status[:5, GROUP_INDEX['VALENCE']].tolist() == [1, 1, 0, 0, 0]

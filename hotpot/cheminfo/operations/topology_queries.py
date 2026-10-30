@@ -52,6 +52,53 @@ def _all_cycle_basis(mol):
         return [list(basis) for basis in graph._all_cycle_basis(range(count), edges)]
 
 
+def _ring_cycles(mol, *, ligand_skeleton=False, max_size=None,
+                 max_cycles=graph.DEFAULT_RELEVANT_CYCLE_LIMIT):
+    index = mol._topology_index
+    return graph.relevant_cycles(
+        ((index[id(bond._atoms[0])][0], index[id(bond._atoms[1])][0])
+         for bond in mol._bonds if not ligand_skeleton or not bond.is_metal_ligand_bond),
+        max_size=max_size, max_cycles=max_cycles)
+
+
+def _rings_from_cycles(mol, cls, cycles):
+    from .chemistry import _prepare_aromatic_representation
+    from ..views._source import (
+        _capture_view_source, _geometry_snapshot, _initialize_view_source,
+        _member_geometry, _ring_representation,
+    )
+    with mol._mutation_lock:
+        _prepare_aromatic_representation(mol)
+        atoms = tuple(mol._atoms)
+        uids = tuple(atom._uid for atom in atoms)
+        index = mol._topology_index
+        bonds = {frozenset((index[id(bond._atoms[0])][0], index[id(bond._atoms[1])][0])): bond
+                 for bond in mol._bonds}
+        source = _capture_view_source(mol)
+        geometry = _geometry_snapshot(mol, atoms)[1]
+        result = []
+        for rows in cycles:
+            rows = tuple(rows)
+            ring = object.__new__(cls)
+            members = tuple(atoms[row] for row in rows)
+            edges = tuple(bonds.get(frozenset((first, second)))
+                          for first, second in zip(rows, (*rows[1:], rows[0])))
+            object.__setattr__(ring, '_atoms', members)
+            object.__setattr__(ring, '_bonds', edges)
+            _initialize_view_source(ring, source, tuple(uids[row] for row in rows),
+                                    _member_geometry(geometry, rows, len(atoms)))
+            object.__setattr__(ring, '_view_representation', _ring_representation(mol, members, edges))
+            result.append(ring)
+        return result
+
+
+def _ring_views(mol, cls, *, ligand_skeleton=False, max_size=None,
+                max_cycles=graph.DEFAULT_RELEVANT_CYCLE_LIMIT):
+    with mol._mutation_lock:
+        return _rings_from_cycles(mol, cls, _ring_cycles(mol,
+            ligand_skeleton=ligand_skeleton, max_size=max_size, max_cycles=max_cycles))
+
+
 def _components(mol, molecule_type):
     from ..rules.mathematics.graph.components import connected_components
     from ..structure._commit import _commit_topology

@@ -149,12 +149,13 @@ def shoulder_bond_action(
     bond_ap2_info = [(ap2, ma2n_idx, ma2_bo) for ma2n_idx, ma2_bo in zip(ma2_neigh_idx, ma2_bond_order)]
     mol.add_bonds(bond_ap1_info + bond_ap2_info)
 
-    # Reassign the aromatics
-    mol.atoms[ap1].is_aromatic = aa1_is_aromatic
-    mol.atoms[ap2].is_aromatic = aa2_is_aromatic
+    replacement_atoms = mol.atoms[ap1], mol.atoms[ap2]
 
     # Remove old bond atoms
     mol.remove_atoms([ma1, ma2])
+
+    from ..operations.chemistry import _restore_assembly_aromaticity
+    _restore_assembly_aromaticity(mol, tuple(zip(replacement_atoms, (aa1_is_aromatic, aa2_is_aromatic))))
 
     mol.calc_implicit_hydrogens()
     return mol

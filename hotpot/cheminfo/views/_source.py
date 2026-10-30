@@ -72,6 +72,26 @@ def _bind_view(view, atoms, *, source=None):
             tuple(atom._uid for atom in atoms), _geometry_snapshot(mol, atoms)[1])
 
 
+def _ring_representation(mol, atoms, bonds):
+    table = mol._atom_table
+    return (tuple((int(table._columns[0][mol._topology_index[id(atom)][0]]),
+                   bool(table._columns[FIELD_INDEX['is_aromatic']][mol._topology_index[id(atom)][0]]))
+                  for atom in atoms),
+            tuple(None if bond is None else (float(bond._attrs[0]), bond._bond_kind.value, bond._is_aromatic)
+                  for bond in bonds))
+
+
+def _check_ring_source(view, *, prepare=False):
+    mol = view.mol
+    with mol._mutation_lock:
+        _check_view_source(mol, view._view_source, view.atoms, view._view_uids)
+        if prepare:
+            from ..operations.chemistry import _prepare_aromatic_representation
+            _prepare_aromatic_representation(mol, rows=tuple(mol._topology_index[id(atom)][0] for atom in view.atoms))
+        if _ring_representation(mol, view.atoms, view.bonds) != view._view_representation:
+            raise RuntimeError('Ring representation source changed; request a new view')
+
+
 def _restored_source(mol, current):
     source = _capture_view_source(mol)
     return source if current else (source[0], object(), *source[2:])
@@ -81,7 +101,23 @@ def _restore_sequence_view(cls, atoms, bonds, geometry, current):
     view = object.__new__(cls)
     view._atoms, view._bonds = atoms, bonds
     _bind_view(view, atoms, source=_restored_source(atoms[0].mol, current))
-    view._view_geometry = geometry
+    object.__setattr__(view, '_view_geometry', geometry)
+    return view
+
+
+def _restore_ring_view(cls, atoms, bonds, geometry, representation, current):
+    view = _restore_sequence_view(cls, atoms, bonds, geometry, current)
+    object.__setattr__(view, '_view_representation', representation)
+    return view
+
+
+def _restore_joint_ring(cls, rings, atoms, bonds, geometry, representation, current):
+    view = object.__new__(cls)
+    for name, value in (('_member_rings', rings), ('_atoms', atoms), ('_bonds', bonds), ('_mol', atoms[0].mol)):
+        object.__setattr__(view, name, value)
+    _bind_view(view, atoms, source=_restored_source(atoms[0].mol, current))
+    object.__setattr__(view, '_view_geometry', geometry)
+    object.__setattr__(view, '_view_representation', representation)
     return view
 
 

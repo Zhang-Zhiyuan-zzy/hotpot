@@ -630,6 +630,9 @@ def cycle_from_ring(ring: RingSourceT) -> Cycle:
 
     This adapter copies coordinates only; it performs no ring perception.
     """
+    if getattr(ring, '_view_source', None) is not None:
+        from ...views._source import _view_coordinates
+        return Cycle(_view_coordinates(ring))
     return Cycle(tuple(point_from_atom(atom) for atom in ring.atoms))
 
 

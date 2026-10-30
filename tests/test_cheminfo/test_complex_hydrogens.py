@@ -546,9 +546,8 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
     original_conformers = molecule.conformers
     original_conformer_state = dict(original_conformers.__dict__)
     original_conformer_index = molecule._conformers_index
-    original_ring_indices = dict(molecule._ring_indices_cache)
-    original_ligand_rings = molecule._ligand_rings
-    original_ligand_signature = molecule._ligand_rings_signature
+    original_rings = tuple((ring.atoms, ring.bonds) for ring in molecule.rings)
+    original_ligand_rings = tuple((ring.atoms, ring.bonds) for ring in molecule.ligand_rings)
     commit_stereo = _commit._commit_stereo
 
     def fail_after_partial_update(owner, source, payload):
@@ -597,8 +596,7 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
     assert molecule._row2idx is None
     assert molecule._constraints is original_constraints
     assert not {'_angles', '_torsions'}.intersection(molecule.__dict__)
-    assert molecule._rings == []
-    assert molecule._ring_indices_cache == original_ring_indices
-    assert molecule._ligand_rings is original_ligand_rings
-    assert molecule._ligand_rings_signature is original_ligand_signature
+    assert tuple((ring.atoms, ring.bonds) for ring in molecule.rings) == original_rings
+    assert tuple((ring.atoms, ring.bonds) for ring in molecule.ligand_rings) == original_ligand_rings
+    assert not {'_rings', '_ring_indices_cache', '_ligand_rings', '_ligand_rings_signature'}.intersection(molecule.__dict__)
     assert molecule._obmol is None

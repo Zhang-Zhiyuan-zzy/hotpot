@@ -45,8 +45,9 @@ def test_ligand_rings_filters_metal_edges_without_mutating_molecule():
     original_bonds = tuple(molecule.bonds)
     original_link_matrix = molecule.link_matrix.copy()
     original_rings = _ring_atom_indices(molecule.rings)
-    original_ring_cache = molecule._rings
-    original_ring_objects = tuple(original_ring_cache)
+    original_ring_objects = tuple(molecule.rings)
+    original_ring_members = tuple((ring.atoms, ring.bonds) for ring in original_ring_objects)
+    original_ring_metal = tuple(ring.has_metal for ring in original_ring_objects)
     original_conformer_array = molecule.conformers._coordinates
     original_conformers = molecule.conformers._coordinates.copy()
 
@@ -61,11 +62,9 @@ def test_ligand_rings_filters_metal_edges_without_mutating_molecule():
     )
     np.testing.assert_array_equal(molecule.link_matrix, original_link_matrix)
     assert _ring_atom_indices(molecule.rings) == original_rings
-    assert molecule._rings is original_ring_cache
-    assert all(
-        current is original
-        for current, original in zip(molecule._rings, original_ring_objects)
-    )
+    assert tuple((ring.atoms, ring.bonds) for ring in original_ring_objects) == original_ring_members
+    assert tuple(ring.has_metal for ring in original_ring_objects) == original_ring_metal
+    assert not {'_rings', '_ring_indices_cache', '_ligand_rings', '_ligand_rings_signature'}.intersection(molecule.__dict__)
     assert molecule.conformers._coordinates is original_conformer_array
     np.testing.assert_array_equal(molecule.conformers._coordinates, original_conformers)
     assert molecule._hided_metal_bonds == []

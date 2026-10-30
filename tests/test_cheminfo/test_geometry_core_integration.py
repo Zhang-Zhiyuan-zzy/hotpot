@@ -115,4 +115,7 @@ def test_aromaticity_keeps_core_chemical_planarity_tolerance() -> None:
         measurement.maximum_deviation / measurement.length_scale
         < 0.03
     )
-    assert ring.determine_aromatic()
+    mol.calc_atom_valence(assign_aromatic=True)
+    assert mol.rings[0].is_aromatic
+    with pytest.raises(RuntimeError, match='representation source changed'):
+        _ = ring.is_aromatic

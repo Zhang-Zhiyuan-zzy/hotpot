@@ -269,15 +269,13 @@ def test_core_ring_scope_query_does_not_populate_ring_caches() -> None:
     mol.add_bond(1, 2, bond_order=1.0)
     mol.add_bond(2, 0, bond_order=1.0)
 
-    assert mol._rings == []
-    assert mol._ligand_rings is None
+    assert not {'_rings', '_ring_indices_cache', '_ligand_rings', '_ligand_rings_signature'}.intersection(mol.__dict__)
 
     full_graph = mol.rings_for_scope("full_graph")
     ligand_skeleton = mol.rings_for_scope("ligand_skeleton")
 
     assert len(full_graph) == len(ligand_skeleton) == 1
-    assert mol._rings == []
-    assert mol._ligand_rings is None
+    assert not {'_rings', '_ring_indices_cache', '_ligand_rings', '_ligand_rings_signature'}.intersection(mol.__dict__)
 
 
 def test_dense_scan_records_every_pair_and_coverage(

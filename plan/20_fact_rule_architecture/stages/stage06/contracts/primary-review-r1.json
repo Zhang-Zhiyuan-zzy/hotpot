@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "stage": "Stage6",
+  "status": "revision1_blocked_design_revision2_required_no_implementation_release",
+  "recorded_utc": "2026-10-30T11:58:25.622874+00:00",
+  "task": {
+    "task_id": "p20-s6-contract-review-704283-34",
+    "revision": 1,
+    "task_hash": "21ad8134d66f80c4f8df735a6f46e5c6f0f377a8bf3e370527ebf7b10df43698",
+    "source_commit": "90ff36c2c0b415bb9cf27628265bb4528e425922",
+    "diff_or_tree_hash": "1bed097223b51033a780f5dc1ae452ffcdc01761bb0e4e52e23dc7ccad33b39f",
+    "identity_encoding": "SHA256 of canonical frozen capture-manifest raw bytes; not a Git tree",
+    "exact_turn_id": "01a18ca8-73e4-7eb3-ab38-ab4dcbca44a7"
+  },
+  "substantive": {
+    "status": "BLOCKED_WITH_REQUIRED_DESIGN_DELTAS_AND_ROOT_DECISIONS",
+    "verbatim_review": "primary-review-r1.md",
+    "verbatim_review_sha256": "40ae276830957e41f409ede01727d2478d4a7d063115588f073f7f6d728be354",
+    "coverage": "Frozen design and supplied source/normative excerpts only; zero reviewer tools. No implementation/runtime proof."
+  },
+  "actual_turn_audit": {
+    "status": "PASS",
+    "receipt_source": "User-supplied exact AUDIT_RESULT; relayed to existing communication owner without new audit",
+    "reviewer_thread_id": "01a186e8-89de-7791-8969-98b64ab572c3",
+    "timestamp": "2026-10-30T11:53:32.425Z",
+    "turn_context_line": 1373,
+    "turn_context_sha256": "154084e066fbd9d4bf057065d8fb4bf097cacb0935398808aea3cd72c22a160f",
+    "exact_range_lines": [
+      1372,
+      1410
+    ],
+    "exact_range_sha256": "2a5d00007787e31eb7c0828125a1ce1e80d62ff888d5efae1c9002825dc4a70c",
+    "sandbox": "read-only",
+    "network": "restricted",
+    "filesystem": "restricted; root read; zero write-capable entries",
+    "model": "gpt-5.6-sol",
+    "effort": "xhigh",
+    "tool_calls": 0,
+    "command_calls": 0,
+    "delegation_calls": 0,
+    "task_complete": 1,
+    "identity_match": true,
+    "content_acceptance": false
+  },
+  "root_key_review": {
+    "actual_inspection": [
+      "hotpot/cheminfo/structure/_commit.py:105-159",
+      "hotpot/cheminfo/forcefields/working_copy.py:253-277",
+      "hotpot/cheminfo/stereo.py:4010-4048,4572-4668",
+      "main implementation plan:394-430",
+      "N09 current ledger reservation"
+    ],
+    "findings_accepted": [
+      "Whole-operation sorted dual locks do not solve inherited-lock inversion and invoke public/native callbacks while locked.",
+      "Section5.3 decomposition needs an exact later owner and blocking gate.",
+      "N09 responsibility needs an explicit bounded revision.",
+      "Pure remap owner must agree with the normative mapping.",
+      "Evaluated public annotations require actual runtime annotation imports in the DAG.",
+      "Deep-frozen/native-packed equivalence must preserve recursive type, value and ordering, with one packing per target and explicit unmeasured cost."
+    ],
+    "qualifications": [
+      "The working-copy publication is evidence of a lock-order risk pattern, not a proven production path into alignment.",
+      "Coordinate coercion outside locks must still follow graph validation and its issue-suppression order; early __array__ conversion is not accepted.",
+      "An unconditional new rejection for every alignment inside an outer transaction could change existing behavior; Sol-max must specify a safe bounded route before root acceptance.",
+      "No general guarantee for arbitrary caller-held private RLocks is inferred."
+    ],
+    "revision2_direction": "Sol-max revises the design, explicit N09 cap-one reservation and exact Stage7E storage-decomposition owner/gate; root retains map/log/indices and all source/test/Git release decisions. No production/test changes authorized."
+  },
+  "next_gate": "Receive revision2 frozen design and unique delta-only review plus matching actual exact-turn audit; root key decision before implementation release.",
+  "runtime_tests_executed": false,
+  "stage6_acceptance": false,
+  "global_architecture_acceptance": false
+}

@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-30",
+  "status": "Unique helper scope analysis accepted with correction; runtime gates pending",
+  "reviews": [
+    {
+      "task_id": "p20-s5-gate-evidence-review-704283-14",
+      "revision": 1,
+      "task_hash": "bbf3af1e4d54ac722b5d56ab13507e43a629521844e6e9bbd39a8a71d11da2ce",
+      "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+      "diff_or_tree_hash": "aea8fc7d46af75a27e0e16b8fc0af91050b52d88134ca9a75ae1cc11cb1b65eb",
+      "exact_turn_id": "01a18b75-ba1a-7c02-a9bf-632f100c2e7b",
+      "task_file": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-gate-evidence-review-704283-14/task.json",
+        "sha256": "ec77ca30a77242cc234db400ff59986f2218dce2dac48d78e14bea87fd6db1d0"
+      },
+      "result_file": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-gate-evidence-review-704283-14/result.json",
+        "sha256": "dc6d6a584c45fe164412f44d5e3ff42ae4db8c1959ece66834f6db38eca430bf"
+      },
+      "audit_receipt": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-gate-evidence-review-704283-14/audit-result.txt",
+        "sha256": "3040eb9b5db427b9fbd7b8d263c822a6e236901529174ca947e8804222aed9ff"
+      },
+      "substantive_result": "ANALYSIS_RESULT  \ntask_id=p20-s5-gate-evidence-review-704283-14  \ntask_hash=bbf3af1e4d54ac722b5d56ab13507e43a629521844e6e9bbd39a8a71d11da2ce  \nsource_commit=ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8  \ndiff_or_tree_hash=aea8fc7d46af75a27e0e16b8fc0af91050b52d88134ca9a75ae1cc11cb1b65eb  \nstatus=EVIDENCE_PENDING\n\n## Stage5 must close before Stage6\n\n1. **Final identity, review, and log**\n   - Bind all results to the final source/test/native/wheel hashes and resulting focused commit.\n   - Record the full-plan reread, environment/worktree state, completed/missing gates, changes and exact counts in the implementation log.\n   - Authority: §10 lines1485–1499 and §13.\n   - The focused304 result is useful but is not closure by itself; its final-byte identity and task12r2 readonly audit must match.\n\n2. **Named Stage5 technical gate**\n   - Execute the complete SMARTS/chemistry/transport, dependency, immutable Ring/view, coupled-assignment atomicity, conflict/read-permission, lazy-status and materialization selections.\n   - Run the complete default suite with exact pass/fail/skip/xfail counts.\n   - Authority: Stage5 gate, lines1640–1668; Stage5 verification map.\n   - Collection/list output is not node execution. Mandatory nodes and the five formerly excluded functions must be shown as executed.\n\n3. **Coverage**\n   - The verification map names `tests/run_coverage.sh` as a common command. It is absent from the root execution plan. Run and record it, or formally reconcile the verification map before closure.\n   - Authority: §11.3 and supplied verification map.\n\n4. **Five-version/native/package evidence**\n   - Rebuild current fact-native for Python3.10–3.14 and run actual source, debug and outside-checkout installed-wheel affected-contract selections on each version.\n   - Record interpreter, build inputs, binary/wheel hashes, commands and skips.\n   - Run applicable wheel audit, installed-package smoke/import-order checks and sdist content/import evidence.\n   - Authority: §11 packaging/Python and I/O rows, §11.3, and Stage5’s explicit current fact-native/P4 requirement.\n   - Unchanged independent-native evidence may be reused only with exact source/header/stub/recipe closure. It cannot substitute for rebuilt current fact-native.\n\n5. **Scoped architecture audit**\n   - Confirm the Stage5 extraction objectives: sole rule implementations, factual setters plus dirty marking, immutable Ring views, coupled assignment, no obsolete write-back/cache path, approved exports and relevant ownership/layout budgets.\n   - This is the Stage5-relevant architecture audit, not the final repository-wide §14 scan.\n\n6. **Scientific execution report**\n   - Run the current seven-case aromatic/Kekule report against the exact frozen B20 factual fixtures and explain every difference/known limitation.\n   - Add a final-byte, rule-versioned H-default report or equivalent explicit per-case evidence for the 90-case charge/radical/aromatic/dative/bracket/metal roster and its limitations.\n   - Authority: Stage5 gate and §11 chemistry/stereo row.\n   - The B20 seven-case baseline alone is incomplete because its candidate binding remains pending.\n\n7. **Affected performance report**\n   - Execute the frozen equivalent-work Stage5 lazy/graph/H-relevant subset without concurrent load, retaining samples, actual-work membership, exclusions and resource observations.\n   - Authority: §11 docs/performance “affected benchmarks and final.”\n   - This is an owning-stage report, not global performance acceptance. Any regression remains visible debt; no threshold waiver follows.\n\n## Later global/final obligations\n\nThe following are not new Stage5 prerequisites under the supplied Stage5 gate:\n\n- Full 187-source O0 corpus with seeds42/43/44, dynamic eligibility and complete trial/frame monitoring.\n- Full71-workload performance comparison, family/end-to-end ratios, overall RSS and §12.2 global-parity decision.\n- GPU CPU/1-GPU/4-GPU validation.\n- Final cross-type inventory, complete final report, repository-wide duplicate/cache scan and all §14 acceptance criteria.\n\nThese remain mandatory for final Plan20 acceptance. Stage4’s measured graph/family regressions remain open and unwaived.\n\n## Claims to avoid\n\n- “267/304 passed” does not mean the final committed tree or Stage5 passed.\n- Old independent-native binaries do not validate current fact-native.\n- Seven bounded aromatic cases do not replace the full O0 report.\n- Focused Stage5 timing does not satisfy §12 global parity.\n- Skipped external/native/SDK tiers cannot be described as passed.\n- No Stage5 or runtime acceptance exists until the executions above produce matching final-byte evidence.",
+      "actual_readonly_audit": {
+        "status": "PASS",
+        "model": "gpt-5.6-sol",
+        "effort": "xhigh",
+        "tools": 0,
+        "delegation": 0,
+        "write_capable_entries": 0,
+        "limits": "Identity and actual execution permissions only; not approval of substantive findings."
+      }
+    },
+    {
+      "task_id": "p20-s5-gate-evidence-review-704283-14",
+      "revision": 2,
+      "task_hash": "29c6a1ac6383c57942c531472b918d7cc55bcc7b434f61fd7d3f1e96166d76cf",
+      "source_commit": "0d8c7098b375c8b3c1ab7845fb555f97c57810aa",
+      "diff_or_tree_hash": "4aa33a7bcf9752524b2ec661e8439e61e1715232bb50f02c0bb49b35d7bd375a",
+      "exact_turn_id": "01a18b7c-25a6-74e1-b890-fa59d473284f",
+      "task_file": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-gate-evidence-review-704283-14-r2/task.json",
+        "sha256": "1242a4d90effd7c988fd97eba4abd358769ca5604d5124631cfe21ac3afeda6d"
+      },
+      "result_file": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-gate-evidence-review-704283-14-r2/result.json",
+        "sha256": "9bd6579a5e9a8479099d5cd993553cdf45c2b38ec139cc5b24432ba366d7316a"
+      },
+      "audit_receipt": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-gate-evidence-review-704283-14-r2/audit-result.txt",
+        "sha256": "974b3a157d2fc29e6cbfb106f11a4475119d7619a085db213e149be2ea939081"
+      },
+      "substantive_result": "ANALYSIS_RESULT  \ntask_id=p20-s5-gate-evidence-review-704283-14  \nrevision=2  \ntask_hash=29c6a1ac6383c57942c531472b918d7cc55bcc7b434f61fd7d3f1e96166d76cf  \nsource_commit=0d8c7098b375c8b3c1ab7845fb555f97c57810aa  \ndiff_or_tree_hash=4aa33a7bcf9752524b2ec661e8439e61e1715232bb50f02c0bb49b35d7bd375a\n\nCorrection: the supplied authority does **not** make `tests/run_coverage.sh` a mandatory Stage5 gate.\n\nSection 11.3 calls the listed commands:\n\n> “Existing technical entry points”\n\nIt does not require every entry point at every stage. The verification map likewise places coverage under `common_commands`, separately from Stage5’s `technical_command` and `additional_requirements`. Neither Stage5’s named gate nor those Stage5-specific map fields require a coverage execution.\n\nTherefore point3 of the prior result was an overstatement and should be removed. Coverage remains a useful optional diagnostic, but it is not a prerequisite for Stage5 closure on the supplied record. The required complete-default and enumerated affected-contract executions remain unchanged.\n\nNo normative plan or map edit, approval, waiver, or new obligation is required—only correction of the earlier helper inference. Invoking the coverage script during the current source freeze is unnecessary, particularly where its generated files would invalidate the accepted test manifest.",
+      "actual_readonly_audit": {
+        "status": "PASS",
+        "model": "gpt-5.6-sol",
+        "effort": "xhigh",
+        "tools": 0,
+        "delegation": 0,
+        "write_capable_entries": 0,
+        "limits": "Identity and actual execution permissions only; not approval of substantive findings."
+      }
+    }
+  ],
+  "root_critical_check": "Checked exact Section11.3 and common_commands versus Stage5-specific map fields. Coverage is not mandatory for Stage5. Original point3 withdrawn; no plan/map waiver or new gate.",
+  "required_remaining_evidence": [
+    "Complete default and named affected source/debug/installed-wheel matrix Python3.10-3.14",
+    "Applicable current native/package/import/sdist and unchanged independent-native closure",
+    "Scoped Stage5 ownership/architecture/layout audit",
+    "Seven-case current aromatic/Kekule report with exact B20 factual inputs; per-case final-byte finite H-default report",
+    "Frozen focused affected performance comparison without concurrent test/build load"
+  ],
+  "later_obligations": [
+    "Full historical187-source O0 monitoring with seeds42-44",
+    "Full71-workload/family/end-to-end/RSS and global parity",
+    "GPU and final global cross-type/repository acceptance"
+  ],
+  "stage5_closed": false
+}

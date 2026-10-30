@@ -1654,6 +1654,13 @@ default suite, and focused performance comparison.
 6. Enforce the approved fact-conflict/read-permission table, including unresolved
    H, breaking aromatic topology, changed total charge, and absent/stale results.
 
+Owner-directed default-H correction (2026-10-30): absent counts receive
+conventional valence-based defaults; supplied counts, including zero, are
+retained. This is a bounded exception to the behavior-preservation objective.
+The ordinary-nonmetal convention with explicit legacy metal0, preserved read
+boundary, atomic current-H materialization and separate unapproved normalization are in
+[Stage5 hydrogen defaults](stages/stage05/hydrogen-defaults/decisions.md).
+
 Gate: technical chemistry/SMARTS/transport contracts, immutable Ring views and
 coupled-assignment atomicity, lazy-status and one-time materialization tests,
 complete default suite; scientific assignment and aromatic/Kekule changes

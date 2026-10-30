@@ -206,12 +206,16 @@ expected_observations, expected_index = dict(observations), dict(index)
 angle = mol.angles[0]
 degrees = angle.degrees
 def state():
+    # Save raw facts before a public read could repair faulty rollback state.
     status, seeds = _dependency_state(mol._atom_table)
-    return (mol.atom_matrix.tobytes(), mol._atom_table.presence().tobytes(),
-            mol._atom_table.sources().tobytes(), status.tobytes(), seeds,
-            tuple(atom._uid for atom in mol.atoms),
-            tuple((bond._uid, bond.atom1._uid, bond.atom2._uid) for bond in mol.bonds),
-            mol._constraints)
+    raw = (mol._atom_table.matrix().tobytes(), mol._atom_table.presence().tobytes(),
+           mol._atom_table.sources().tobytes(), status.tobytes(), seeds,
+           tuple(atom._uid for atom in mol.atoms),
+           tuple((bond._uid, bond.atom1._uid, bond.atom2._uid) for bond in mol.bonds),
+           mol._constraints)
+    return raw, mol.atom_matrix.tobytes()
+# Settle the lazy chemistry once, before the tested transaction starts.
+mol.atom_matrix.tobytes()
 before = state()
 
 # Measure the actual CPython bucket request for this owner's dictionary shape,

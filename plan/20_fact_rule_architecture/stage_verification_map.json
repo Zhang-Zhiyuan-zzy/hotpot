@@ -627,11 +627,11 @@
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_dependencies.py",
-          "status": "existing prior-stage target; Stage5 revisions and final frozen execution evidence pending"
+          "status": "implemented and verified in final current default plus complete affected five-version source/debug/current-wheel selections;see stages/stage05/validation/evidence.json and owning gates/review.md"
         },
         {
           "path": "tests/test_cheminfo/structure/test_stage5_bonding.py",
-          "status": "actual settled-contract assertions exist in owning bonding suite; pre-correction checkpoint executed them, new correction/source final gates remain open",
+          "status": "implemented and verified in final current default plus complete affected five-version source/debug/current-wheel selections;see stages/stage05/validation/evidence.json and owning gates/review.md",
           "replaces_planned_path": "tests/test_cheminfo/structure/test_representation_commit.py",
           "covering_nodes": [
             "test_bonding_input_and_assignment_are_immutable_and_do_not_change_source",
@@ -642,18 +642,18 @@
         },
         {
           "path": "tests/test_cheminfo/structure/test_interface_permissions.py",
-          "status": "existing prior-stage target; Stage5 revisions and final frozen execution evidence pending"
+          "status": "implemented and verified in final current default plus complete affected five-version source/debug/current-wheel selections;see stages/stage05/validation/evidence.json and owning gates/review.md"
         },
         {
           "path": "tests/test_cheminfo/structure/test_view_identity.py",
-          "status": "existing prior-stage target; Stage5 revisions and final frozen execution evidence pending"
+          "status": "implemented and verified in final current default plus complete affected five-version source/debug/current-wheel selections;see stages/stage05/validation/evidence.json and owning gates/review.md"
         }
       ],
       "additional_requirements": [
         "Ring immutable transition and coupled assignment; source-aware chemistry; first dirty/read repeated clean/coalesced changes",
         "Current fact_native readonly ingress and P4 physical-column cutover: rebuild and execute source/debug/current-wheel evidence on Python3.10-3.14; preserve unchanged independent-native closure separately, not old fact-native binary reuse"
       ],
-      "execution_status": "in_progress; first five-version74-failure attempt and superseded five-build/7collection handoff retained. First default4932pass/5fail and second4932pass/12fail retained; final task27 implementation63focusedpass and full current-source default4945pass/123skip/3xfail/49subtests with stable bytes. Matching task28 static/audit PASS. Fresh supported-version source/debug/current-installed-wheel/sdist/focused performance gates remain open.",
+      "execution_status": "complete owning-stage obligations:currentdefault4945pass/five-version2969source175debug2837installed/sdist548/currentfactnative/bounded7case90Hreports. Required source1334pass+3strictxfail,installed1332+3,debug168pass,noordinaryrequiredskip. Aggregate task31andactualaudit matched;3clean_readnoncomparable invalidateslazy/overallaggregate,8validcomparisonsretain4regressions. Finalglobalperformance/science/Plan12acceptance open;no waiver;see stages/stage05/gates/review.md.",
       "additional_affected_contract_test_files": [
         "tests/test_cheminfo/structure/test_atom_fact_table.py",
         "tests/test_cheminfo/structure/test_atom_matrix.py",
@@ -714,7 +714,14 @@
         "stages/stage05/storage-ingress-review/report.md",
         "stages/stage05/storage-ingress-review/evidence.json",
         "stages/stage05/source-matrix-corrections/report.md",
-        "stages/stage05/source-matrix-corrections/evidence.json"
+        "stages/stage05/source-matrix-corrections/evidence.json",
+        "stages/stage05/validation/report.md",
+        "stages/stage05/validation/evidence.json",
+        "stages/stage05/performance/report.md",
+        "stages/stage05/performance/evidence.json",
+        "stages/stage05/report.md",
+        "stages/stage05/gates/review.md",
+        "stages/stage05/gates/evidence.json"
       ]
     },
     "Stage6": {

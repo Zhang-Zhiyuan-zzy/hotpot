@@ -1,15 +1,18 @@
 # Stage5 records
 
-Extract elemental, bonding, charge and hydrogen rules. The full normative
-entry is complete; connected implementation is in progress. Stage5 gates
-remain open. The owner requires explicit H declarations to be retained and
-unspecified counts to receive valence-based defaults. Sol-max has documented the finite scientific defaults; the earlier optional
-scalar proposal is superseded without an approval claim. The bounded default correction and its consumed-input dependencies now have
-a frozen304-test focused handoff and accepted static delta review. The first final five-version source matrix failed on the same74 nodes; bounded local
-corrections now cover those failures. Current Python3.11 default passes4945 tests and the latest63-node consumer correction has a matching bounded static review/audit; final matrix/package/performance gates remain open. The parent review retains historical display-only placeholders for genuinely
-missing input, with internal UNRESOLVED and existing strict-consumer guards;
-supplied source/model encodings retain their current meanings. Scope and gates follow the
-[main plan](../../fact_rule_architecture_implementation_plan.md), Section10.
+Extract elemental, bonding, charge and hydrogen rules. Stage5's settled
+implementation, connected migrations and owning technical gates are complete.
+The [final report](report.md) and [gate decision](gates/review.md) bind that
+closure. Current Python3.11 default passes4945 tests; each Python3.10–3.14
+passes2969 source/175 debug/2837 installed tests, with the explicitly retained
+skips and strict xfails. Aggregate review corrects performance comparability:
+eight tasks are comparable(four regressions,three improvements,one parity),
+three clean-read tasks are non-comparable and the lazy-family aggregate is
+not accepted. Final scientific/global performance acceptance remains open.
+The integer H contract retains supplied counts and the approved finite default
+rule,with missing-input display separate from strict readiness. Earlier
+checkpoint records retain their historical status. Scope and gates follow the
+[main plan](../../fact_rule_architecture_implementation_plan.md),Section10.
 
 [Catalog and filename meanings](../README.md) · [Main project index](../../README.md)
 
@@ -53,3 +56,10 @@ supplied source/model encodings retain their current meanings. Scope and gates f
 | [storage-ingress-review/evidence.json](storage-ingress-review/evidence.json) | Exact source/task/native probe/turn/audit identities and superseded build-freeze record |
 | [source-matrix-corrections/report.md](source-matrix-corrections/report.md) | Retained five-version74-failure attempt, bounded production/test corrections and pending final gates |
 | [source-matrix-corrections/evidence.json](source-matrix-corrections/evidence.json) | Exact task17 audit, invalidation, named rollback diagnosis, actual focused commands and unchanged-byte identities |
+| [validation/report.md](validation/report.md) | Final five-version source/debug/current-wheel and sdist execution, retained failures and native reuse limits |
+| [validation/evidence.json](validation/evidence.json) | Exact attempt4 source/freeze/build/wheel/command/observation/JUnit and package identities |
+| [performance/report.md](performance/report.md) | Executed focused measurements,8valid comparisons/3noncomparables and open global runtime/RSS/GPU acceptance |
+| [performance/evidence.json](performance/evidence.json) | Raw paired samples, equal work, comparator/family identities and shared-host/memory limits |
+| [report.md](report.md) | Completed Stage5 implementation, actual technical/scientific-assignment evidence and open final obligations |
+| [gates/review.md](gates/review.md) | Owning-stage closure, corrected comparability and unchanged final performance/science gates |
+| [gates/evidence.json](gates/evidence.json) | Exact task31content/audit/root key checks,required-node outcomes and bounded gate disposition |

@@ -1,0 +1,353 @@
+{
+  "task_id": "p20-s5-runner-review-704283-10",
+  "task_hash": "a892cde2623c7cc4127b79942616a4bac6980a983c3869ebc9378afb3dff0bea",
+  "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+  "diff_or_tree_hash": "36fc4157cf1f7c952a71a5bb37bf969cb856d34831bcb5f8c522c4a369401baf",
+  "exact_turn_id": "01a18b07-c2f5-7dd0-9ef6-966f4d8dbc5f",
+  "owner": "ai-4",
+  "scope": "Inline-only static validation orchestration review; no project/H scientific analysis, no execution or filesystem inspection.",
+  "exclusive_scope": "Stage5 prepared validation runner orchestration and evidence binding only; ai11 owns implementation and runtime execution.",
+  "status": "Primary readonly review complete; bounded corrections pending; no execution or stage acceptance",
+  "request": {
+    "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-runner-review-704283-10/request.txt",
+    "sha256": "885b3bab19c973318ba5c3bee43b907358befa6299ff71040b334a412534b4e7"
+  },
+  "source_evidence_manifest": [
+    {
+      "path": ".plan20-artifacts/20261029/stage5/validation-helpers/run_matrix_final.py",
+      "sha256": "79cb37e9bd02747a81cf64c1d22dcd124eaca5d40d3eddd265a282445a384c0b"
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/validation-helpers/recorded_matrix_worker.py",
+      "sha256": "5d557cb1be2af27357e93b53ee86c3ece8c1c32373c3d85f2efd61b3d0a805d8"
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/validation-helpers/build_fact_extension.py",
+      "sha256": "f8ea0f4642703a3a984481558fb6d01d81271cd54367cae0938c9a3c98e7b3e7"
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/validation-helpers/run_recorded_v2.py",
+      "sha256": "6391f6a905e05e104c12993f78f8a6700f96b0703f5647da2bc93aa181239d9b"
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/validation-helpers/index_fact_builds.py",
+      "sha256": "f962471ffc12fd277d123c3de7ed3993f65f537ddc17bc998f46537379c54f94"
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/validation-helpers/run_stage5_performance.py",
+      "sha256": "9949b726a788ab56ed6e27e8e346c686f7bef5b98aa1088ebaa445a0a545ed35"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stage_verification_map.json:Stage5-and-invocation",
+      "sha256": "79d44bbee3888859b707dcca3afb9da1f95fd4aa816ccbe782ec6b1f26769666"
+    }
+  ],
+  "result": {
+    "task_id": "p20-s5-runner-review-704283-10",
+    "exact_turn_id": "01a18b07-c2f5-7dd0-9ef6-966f4d8dbc5f",
+    "result_messages": [
+      {
+        "type": "agentMessage",
+        "id": "msg_0e8acd85eec1929a016ae41ae824108195ae339e80bab3804e",
+        "text": "REVIEW_RESULT  \ntask_id=p20-s5-runner-review-704283-10  \ntask_hash=a892cde2623c7cc4127b79942616a4bac6980a983c3869ebc9378afb3dff0bea  \nsource_commit=ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8  \nbase_commit=ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8  \ndiff_or_tree_hash=36fc4157cf1f7c952a71a5bb37bf969cb856d34831bcb5f8c522c4a369401baf  \nstatus=BLOCKED\n\nDefinite defects\n\n1. High — five-ABI rebuild identity is not enforced end-to-end.\n\n`index_fact_builds.py:10-24` follows whatever versions occur in the mutable descriptor and selects each binary with `next(glob(...))`; it neither asserts exactly Python 3.10–3.14 nor rejects duplicate ABI binaries.\n\n`run_matrix_final.py:45-49` validates only build-index entries that exist. It never asserts that their version set exactly equals the execution descriptors. Later, `recorded_matrix_worker.py:133-140` independently selects another `_fact_native` using `next(glob(...))`, without proving it is the indexed path/hash for that version.\n\nA missing indexed ABI or duplicate/stale binary can therefore enter a wheel while the matrix reports success.\n\nMinimal correction: assert unique descriptor and index sets equal exactly `{3.10,3.11,3.12,3.13,3.14}`; reject multiple ABI matches; pass the indexed path/hash into `execute_version`; assert the copied and archived binary equals that indexed hash.\n\n2. High — independent-native “unchanged source” check is overbroadly bypassed.\n\n`run_matrix_final.py:37-44` excludes the entire `hotpot/cheminfo/structure/_native/` source tree from comparison, while claiming unchanged independent native source/recipes. A non-fact-native source/header there could change while an old independent binary is reused.\n\nMinimal correction: exclude only an explicit fact-native-owned file allowlist. Compare every other `_native` source/header/recipe with the prior frozen manifest and record the allowlist.\n\n3. High — performance runner can exit successfully after invalid evidence.\n\n`run_stage5_performance.py:72-78` records `work_equal` but never requires it. Lines 79-91 record `source_native_stable` and the comparison subprocess return code but assert neither and never exit with the comparator failure.\n\nThus unequal work, source mutation, or comparator failure can leave a zero process exit.\n\nMinimal correction: fail immediately unless every `work_equal` is true, `source_native_stable` is true, and `comparison.returncode == 0`; require the expected comparison outputs before success.\n\n4. High — execution is stability-bound, not snapshot-bound.\n\n`recorded_matrix_worker.py:34-42` hashes broad source/native/test/runner content, and `run_matrix_final.py` compares before/after, but no entry assertion binds HEAD, clean status, or the supplied tree identity. Per-command HEAD recording at `recorded_matrix_worker.py:44-66` is observational only.\n\nA stable but wrong or dirty tree can pass.\n\nMinimal correction: before any output/build, assert expected HEAD and exact frozen manifest/tree hash from an immutable request; record both. Recheck them after the matrix.\n\n5. Medium — “complete affected contracts passed” is not demonstrated.\n\n`run_matrix_final.py:13-34` dynamically derives targets from the stage map, consumer-rewire artifact, globs, and descriptor file, but records no hashes for those selection inputs. `recorded_matrix_worker.py:69-93` records collected node IDs, yet nothing compares them with a frozen required-node manifest. Lines 179-183 label a version `passed` without parsing JUnit counts or rejecting skipped required Stage5 nodes.\n\nFiles can be renamed/removed or required nodes skipped while pytest returns zero.\n\nMinimal correction: hash every selection input, freeze expected node IDs after final source handoff, compare source and installed observations to the applicable manifest, parse JUnit counts, and reject missing/skipped required Stage5 contract nodes.\n\n6. Medium — reused wheel provenance can select stale artifacts.\n\n`run_matrix_final.py:50-70` uses `next(previous/<version>/wheels/*.whl)`, writes a hardcoded previous commit, and checks only that an earlier summary says passed. It does not require exactly one wheel, prove the summary/runtime used that wheel, or verify the recorded prior commit against the hardcoded value.\n\nMinimal correction: require one wheel; bind its path/hash to the prior summary and `HOTPOT_TEST_WHEEL`; verify the prior command’s recorded source commit.\n\nWhat is otherwise sound\n\n- Command failures from pytest/build/audit/install propagate through `run()`, worker exceptions, and the final matrix assertion.\n- Source, debug-allocator, and installed-wheel runs use the selected interpreter and distinct environments.\n- Installed tests run outside the checkout with origin checking against the installed site.\n- Wheel inspection verifies current Python bytes, the selected fact binary, removed modules, and six native members.\n- The runner correctly declares reused independent native binaries and does not claim a Stage10 clean all-component rebuild.\n\nFinal-freeze conditions\n\nRoot must additionally verify all hardcoded paths—baseline wheels, matrix descriptors, previous frozen manifest, `/tmp` benchmark checkout/interpreter, and preload library—against immutable hashes before invocation. No script execution, chemistry review, or runtime-pass claim was performed here.",
+        "phase": "final_answer",
+        "memoryCitation": null,
+        "delivery": null,
+        "questions": null,
+        "startedAtMs": 1793333992376,
+        "completedAtMs": 1793334002695
+      }
+    ],
+    "status": "RESULT_RECEIVED_AUDIT_PENDING"
+  },
+  "readonly_audit": {
+    "provenance": "Actual helper rollout audit relayed in owner thread; not independently re-executed by root",
+    "turn_id": "01a18b07-c2f5-7dd0-9ef6-966f4d8dbc5f",
+    "root_turn_id": "01a18b07-c2f5-7dd0-9ef6-966f4d8dbc5f",
+    "sandbox_policy": {
+      "type": "read-only"
+    },
+    "network": "restricted",
+    "model": "gpt-5.6-sol",
+    "effort": "xhigh",
+    "filesystem_write_entries": 0,
+    "tools": 0,
+    "delegation": 0,
+    "rollout": "/home/zhangzhiyuan/.codex/sessions/2026/10/29/rollout-2026-10-29T17-05-49-01a186e8-89de-7791-8969-98b64ab572c3.jsonl",
+    "lines": [
+      418,
+      462
+    ],
+    "context_line": 419,
+    "context_sha256": "690b3ee6b2f73e8db8691de1340cc9757da6859f65059a69532e0c88f66ef0a7",
+    "range_sha256": "88d639b2dff4a72053fc545db1a4b3a115e3b6fad44b6bff5a7815b49200352f"
+  },
+  "root_critical_review": [
+    "Confirmed missing unique ABI/index binding and performance assertions in supplied runner bytes.",
+    "Confirmed previous3.11 actual installed command source_commit ba662e353fad5229e7134ecfc741f3608dd17fee; later hardcoded commit is inaccurate provenance.",
+    "Authorized dirty snapshots are valid when exact request/tree bound; no new clean-worktree prerequisite is adopted.",
+    "One separate local writer owns runner corrections; final collection/build/runtime evidence remains pending."
+  ],
+  "runtime_validation_executed_by_this_task": false,
+  "original_evidence_sha256_before_revision2_append": "5cc521d47e7e86225774d93427b8876b1087e0c5de7b6fae36c82999b42a559c",
+  "review_revisions": [
+    {
+      "task_id": "p20-s5-runner-review-704283-10",
+      "revision": 2,
+      "task_hash": "cce64148e642300d0d3c5e66b1a6485396bd1b035cd67225c7bc1c387296c5a9",
+      "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+      "diff_or_tree_hash": "f3f461657fd0a265b590a77ff21431e10893bd47be5a600cd2458c7b6d14a401",
+      "exact_turn_id": "01a18b32-58ce-7703-8d04-9df6b544b4ff",
+      "status": "BLOCKED_ON_SINGLE_NONSTRICT_XPASS_DEFECT; six original findings resolved; matching readonly audit passed",
+      "artifacts": {
+        "task.json": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-runner-review-704283-10-r2/task.json",
+          "sha256": "40580772087c2a2d7e1d69c58cc923d6347fab1d157ea5a163890dfa356a4dc3"
+        },
+        "request.txt": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-runner-review-704283-10-r2/request.txt",
+          "sha256": "fac538b81219faff9a0341b028467f45a7f0e891bbb03ac67c947b1d32c787a6"
+        },
+        "snapshot-manifest.json": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-runner-review-704283-10-r2/snapshot-manifest.json",
+          "sha256": "27669dee8e841146a29ed3f3fb8a584e377fa0ae0ce9080c5b0a84c9fe9662f1"
+        },
+        "result.json": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-runner-review-704283-10-r2/result.json",
+          "sha256": "b165e143a7294b7ace7ff68863e30f752db7583c2de08b14fddc5210f2ab94d7"
+        },
+        "audit-result.json": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-runner-review-704283-10-r2/audit-result.json",
+          "sha256": "269c9da6f3eec97c4eb6811fa45d14008f69c6610526616e27d4846a9ad35618"
+        }
+      },
+      "result": {
+        "task_id": "p20-s5-runner-review-704283-10",
+        "revision": 2,
+        "exact_turn_id": "01a18b32-58ce-7703-8d04-9df6b544b4ff",
+        "result_messages": [
+          {
+            "type": "agentMessage",
+            "id": "msg_0e8acd85eec1929a016ae425e0161081958a212682c83b6ece",
+            "text": "REVIEW_RESULT  \ntask_id=p20-s5-runner-review-704283-10  \nrevision=2  \ntask_hash=cce64148e642300d0d3c5e66b1a6485396bd1b035cd67225c7bc1c387296c5a9  \nsource_commit=ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8  \nbase_commit=ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8  \ndiff_or_tree_hash=f3f461657fd0a265b590a77ff21431e10893bd47be5a600cd2458c7b6d14a401  \nstatus=BLOCKED\n\n## Remaining correction-created defect\n\nMedium — non-strict XPASS can be reported as a pass.\n\nIn `recorded_matrix_worker.py:56-63`, collection metadata stores only `strict_xfail`; it does not record whether an xfail marker exists. Consequently, an unmarked test and a non-strict-xfail test both have `strict_xfail=False`.\n\nIn `recorded_matrix_worker.py:108-116`, non-strict xfail is rejected only when its runtime report is `skipped`. A non-strict XPASS has `outcome=\"passed\"` and `wasxfail` set, bypasses that branch, and is counted as passed later.\n\nThis contradicts the correction record’s claim that non-strict xfails are rejected and permits a false passed summary. The synthetic `outcomes()` check covers a strict XFAIL but not a non-strict XPASS.\n\nMinimal correction:\n\n- Record `has_xfail = xfail is not None` in frozen node metadata.\n- Reject non-strict xfail markers during collection, or reject any report with `wasxfail` when the frozen marker is non-strict, regardless of passed/skipped outcome.\n- Add synthetic cases for non-strict XFAIL and non-strict XPASS.\n\n## Earlier six findings\n\n1. Five-ABI identity: resolved.\n\n`exact_versions` requires exactly unique 3.10–3.14 entries. `unique_fact` rejects missing/duplicate ABI files. Index path/hash/interpreter/forced-command identity is passed into the worker and rechecked before copying and inside the wheel archive.\n\n2. Independent-native exclusion: resolved.\n\nThe comparison is symmetric and excludes only the two explicit `FACT_OWNED` paths. Other `_native` sources, headers, stubs, recipes and license data remain compared.\n\n3. Performance failure propagation: resolved.\n\nWorker failure/no output, unequal work, source/native mutation, freeze mismatch, comparator failure, missing outputs and incomplete comparison workloads all terminate nonzero. Comparator return code remains recorded.\n\n4. Snapshot binding with authorized dirty state: resolved.\n\nThe owner request binds expected HEAD, the exact dirty manifest and nonempty path owners. The freeze binds source, native, tests, all helper bytes, selection inputs and external artifacts, with entry/exit checks. It correctly does not impose a clean-tree requirement.\n\n5. Selection/outcome accounting: resolved except for the XPASS defect above.\n\nPer-interpreter node lists and marker metadata are frozen; applicable formerly excluded functions and all collected parameter variants are required. Runtime node identity, required skips, failures, JUnit counts and package origins are checked.\n\n6. Previous-wheel provenance: resolved.\n\nExactly one wheel is required; summary path/hash and runtime `HOTPOT_TEST_WHEEL` must match it. Archive/native installed hashes and the actual prior runtime commit are retained without substituting a hardcoded commit.\n\n## Other reviewed boundaries\n\n- Actual child return code and validation rejection code remain separate in `run_recorded_v2.py`.\n- Fact builds are constrained to one ABI mutation and must be executed sequentially.\n- Source, debug and installed executions remain isolated and fail closed on node/origin differences.\n- Synthetic checks establish helper-path behavior only.\n\nAfter the non-strict-XPASS correction, real freeze preparation may still expose environment-dependent collection differences or required skips; those are final execution outcomes, not static runner defects.\n\nNo production build, collection, test, benchmark, or runtime acceptance is claimed.",
+            "phase": "final_answer",
+            "memoryCitation": null,
+            "delivery": null,
+            "questions": null,
+            "startedAtMs": 1793336800308,
+            "completedAtMs": 1793336807366
+          }
+        ],
+        "status": "RESULT_RECEIVED_AUDIT_PENDING"
+      },
+      "readonly_audit": {
+        "task_id": "p20-s5-runner-review-704283-10",
+        "revision": 2,
+        "task_hash": "cce64148e642300d0d3c5e66b1a6485396bd1b035cd67225c7bc1c387296c5a9",
+        "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+        "diff_or_tree_hash": "f3f461657fd0a265b590a77ff21431e10893bd47be5a600cd2458c7b6d14a401",
+        "exact_turn_id": "01a18b32-58ce-7703-8d04-9df6b544b4ff",
+        "status": "PASS_READONLY_RUNNER_REV2_AUDIT",
+        "source": "matching user CONTROL_RESULT relayed by root",
+        "sandbox": "read-only; root read1/write0",
+        "model": "gpt-5.6-sol",
+        "effort": "xhigh",
+        "tools": 0,
+        "delegation": 0,
+        "context_line": 521,
+        "context_sha256": "1e3c995a2a456069d9d3e8318b6cedbf6aafb9fb91a0892613b605fa7a648bb8",
+        "range": "520-570",
+        "range_sha256": "faee1a65b44fee24d4fcfeeea678a5bb6beca06986e52cf4c5dd2b97f39d27fd",
+        "root_disposition": "single non-strict XPASS defect accepted; original runner owner assigned correction; future review only delta, not resolved six findings"
+      },
+      "source_evidence_manifest": [
+        {
+          "path": ".plan20-artifacts/20261029/stage5/validation-helpers/run_matrix_final.py",
+          "sha256": "61f4511494bfeff54addff3e235528e01faf82d683f4bf875702f23d982b7347",
+          "bytes": 7506
+        },
+        {
+          "path": ".plan20-artifacts/20261029/stage5/validation-helpers/index_fact_builds.py",
+          "sha256": "24e3e87c1922103974b6854317e01429d23480a225073ca983a11fbc6c16d1dc",
+          "bytes": 2899
+        },
+        {
+          "path": ".plan20-artifacts/20261029/stage5/validation-helpers/recorded_matrix_worker.py",
+          "sha256": "d642eebf18782b5daa955601f48e24cb57baf2e6b3d5b5dbbe113f49a4968bc3",
+          "bytes": 17492
+        },
+        {
+          "path": ".plan20-artifacts/20261029/stage5/validation-helpers/run_stage5_performance.py",
+          "sha256": "4746421d98a2f72edf25b3afe3a98cb791e77e7b43e4a570d7fc936b0a670075",
+          "bytes": 9031
+        },
+        {
+          "path": ".plan20-artifacts/20261029/stage5/validation-helpers/run_recorded_v2.py",
+          "sha256": "d1e064f81d90e33eb36e3a2df58f158cd8aa3520c4c38290ca93b5af7a60e36a",
+          "bytes": 3510
+        },
+        {
+          "path": ".plan20-artifacts/20261029/stage5/validation-helpers/build_fact_extension.py",
+          "sha256": "c52a96a8d0f1ed5e17007a5ddc7f419c7fa16deecd1e2f0581d6be98cb054b6c",
+          "bytes": 686
+        },
+        {
+          "path": ".plan20-artifacts/20261029/stage5/validation-helpers/stage5_freeze.py",
+          "sha256": "0534170585683a1891a7f0f79c17baf92b4ef664f5213c916e0daef2293a3581",
+          "bytes": 10357
+        },
+        {
+          "path": ".plan20-artifacts/20261029/stage5/validation-helpers/prepare_stage5_freeze.py",
+          "sha256": "1d226a7f127a524f3349901c39e03ed7e90094568e4b39901ed4260ae9ff64b1",
+          "bytes": 3340
+        },
+        {
+          "path": ".plan20-artifacts/20261030/stage5/runner-corrections/review.md",
+          "sha256": "28544773ee0c8d4e978ec2466321c7c1fd97cd30b0b07fa41a502f0fcf454f90",
+          "bytes": 9304
+        },
+        {
+          "path": ".plan20-artifacts/20261030/stage5/runner-corrections/evidence.json",
+          "sha256": "3e28e7036b1a08a2e049296bdf85e9c211128f6792e4eed7dea9081253e79d4f",
+          "bytes": 5156
+        },
+        {
+          "path": ".plan20-artifacts/20261030/stage5/runner-corrections/static_checks.py",
+          "sha256": "2e1f9479c456b7a341413a96c832c9b70324390a2b04e78e08fa28ebb2a2c29f",
+          "bytes": 14802
+        },
+        {
+          "path": ".plan20-artifacts/20261030/stage5/runner-corrections/static-checks.json",
+          "sha256": "cb06da80bc97c204734a205bb5365a51e32cec3e59ff82c74ee8c9defdfea0de",
+          "bytes": 1074
+        }
+      ],
+      "root_critical_review": [
+        "The exact wasxfail branch is conditional on skipped outcome; passed+wasxfail can reach the passed count. This bounded defect was confirmed by inspecting only that branch, not by repeating the helper full review.",
+        "Original six corrections are accepted as static review findings only; no real collection/build/runtime/performance execution is inferred.",
+        "The original runner writer owns a narrow metadata/outcome correction and synthetic non-strict XFAIL/XPASS cases; final helpers must freeze and receive delta-only review before use."
+      ],
+      "runtime_validation_executed_by_this_task": false
+    },
+    {
+      "task_id": "p20-s5-runner-review-704283-10",
+      "revision": 3,
+      "task_hash": "07420050f965723387974bd33b8d7b85f6c1c0a9867a949048c093d5404f0efc",
+      "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+      "diff_or_tree_hash": "3a1b88a60e84461e36ee85014ccc3149c0329406e92d84bf44a9c7ff501ede3a",
+      "exact_turn_id": "01a18b38-355e-7570-9948-161c6d5b0fde",
+      "status": "PASS_RUNNER_STATIC_AND_MATCHING_READONLY_AUDIT; real runtime gates pending",
+      "artifacts": {
+        "task.json": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-runner-review-704283-10-r3/task.json",
+          "sha256": "e463665e3f357cc6ab83bc2c819efb9e8ce957e04c097faeac5d9ba8307aeaf3"
+        },
+        "request.txt": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-runner-review-704283-10-r3/request.txt",
+          "sha256": "9e5d04b2d5b236413a1790d6903eca2ec777005a5a049b5947f98670809f35a4"
+        },
+        "snapshot-manifest.json": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-runner-review-704283-10-r3/snapshot-manifest.json",
+          "sha256": "e4a2f5b1647eb2f9d96eaa32a66496dcf54667d1780de9bbb53854aac380632f"
+        },
+        "result.json": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-runner-review-704283-10-r3/result.json",
+          "sha256": "0a269fa2793dc725f7a661e358abb438e788cfd9e38e919c8529a554b8c27e98"
+        },
+        "audit-result.json": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-runner-review-704283-10-r3/audit-result.json",
+          "sha256": "343f75a85c5c745076a6a477a31d801f52fafb660e6d389bd835154b99731202"
+        }
+      },
+      "result": {
+        "task_id": "p20-s5-runner-review-704283-10",
+        "revision": 3,
+        "exact_turn_id": "01a18b38-355e-7570-9948-161c6d5b0fde",
+        "result_messages": [
+          {
+            "type": "agentMessage",
+            "id": "msg_0e8acd85eec1929a016ae427065dd88195a39854a99da00650",
+            "text": "REVIEW_RESULT  \ntask_id=p20-s5-runner-review-704283-10  \nrevision=3  \ntask_hash=07420050f965723387974bd33b8d7b85f6c1c0a9867a949048c093d5404f0efc  \nsource_commit=ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8  \ndiff_or_tree_hash=3a1b88a60e84461e36ee85014ccc3149c0329406e92d84bf44a9c7ff501ede3a  \nverdict=PASS_RUNNER_STATIC\n\nThe correction closes the sole revision-2 defect:\n\n- `has_xfail` now distinguishes ordinary tests from conditionally marked tests.\n- `wasxfail is not None` rejects non-strict XFAIL and XPASS, including empty reasons.\n- Strict XFAIL remains accepted and counted correctly.\n- Inactive conditional xfail markers with no runtime `wasxfail` remain valid.\n- Required ordinary skips still fail.\n\nThe synthetic cases cover ordinary pass, inactive marker, strict XFAIL, empty-reason strict XFAIL, non-strict XFAIL, non-strict XPASS, and empty-reason XPASS, while verifying the exact saved rejection reason.\n\nNo defect was found in the changed marker/outcome path. This is static helper approval only; no production collection, test, build, benchmark, or runtime acceptance is claimed.",
+            "phase": "final_answer",
+            "memoryCitation": null,
+            "delivery": null,
+            "questions": null,
+            "startedAtMs": 1793337094504,
+            "completedAtMs": 1793337096699
+          }
+        ],
+        "status": "RESULT_RECEIVED_AUDIT_PENDING"
+      },
+      "readonly_audit": {
+        "task_id": "p20-s5-runner-review-704283-10",
+        "revision": 3,
+        "task_hash": "07420050f965723387974bd33b8d7b85f6c1c0a9867a949048c093d5404f0efc",
+        "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+        "diff_or_tree_hash": "3a1b88a60e84461e36ee85014ccc3149c0329406e92d84bf44a9c7ff501ede3a",
+        "exact_turn_id": "01a18b38-355e-7570-9948-161c6d5b0fde",
+        "status": "PASS_READONLY_RUNNER_REV3_AUDIT",
+        "source": "matching user audit relayed by root",
+        "timestamp": "2026-10-30T05:11:19.149Z",
+        "sandbox": "normalized read-only; restricted network; root read1/write0; filesystem sandbox write0",
+        "model": "gpt-5.6-sol",
+        "effort": "xhigh",
+        "tools": 0,
+        "delegation": 0,
+        "context_line": 573,
+        "context_sha256": "09c58aa1315cbdc1ff9a184592464782e96a81f0e4cf2887f9a054dba42964f8",
+        "range": "572-584",
+        "range_sha256": "fa53b651aa430818e776859f35c528eba99c5346b80953d9fdd3463b1f1e8f83",
+        "root_disposition": "static helper revision accepted only; real Stage5 execution waits H owner"
+      },
+      "source_evidence_manifest": [
+        {
+          "path": ".plan20-artifacts/20261029/stage5/validation-helpers/recorded_matrix_worker.py",
+          "sha256": "77c9b39ae497f10e823c31f02ca061b8365c4bcdaea38f3636a3beae9d1d7a59",
+          "bytes": 17545
+        },
+        {
+          "path": ".plan20-artifacts/20261030/stage5/runner-corrections/static_checks.py",
+          "sha256": "665d48d733a71d814f6dcddc0aa84b313eb89d2f1f79f894488fad3f58e35236",
+          "bytes": 17709
+        },
+        {
+          "path": ".plan20-artifacts/20261030/stage5/runner-corrections/xpass-correction/worker.patch",
+          "sha256": "baffff65cc1ad6af42071252a1d0f998481a8df350092109ec4a245f9528a0d5",
+          "bytes": 1911
+        },
+        {
+          "path": ".plan20-artifacts/20261030/stage5/runner-corrections/xpass-correction/review.md",
+          "sha256": "95ad253c2935e8d8fc6338a5cbd21c08e8e418b5acb25e6df7e98110b296df16",
+          "bytes": 2187
+        },
+        {
+          "path": ".plan20-artifacts/20261030/stage5/runner-corrections/xpass-correction/evidence.json",
+          "sha256": "d5be748957c4cfd1219625970d3b5cdaa9ab1949cabf524e949be4b84cfd5c6c",
+          "bytes": 6241
+        },
+        {
+          "path": ".plan20-artifacts/20261030/stage5/runner-corrections/xpass-correction/static-checks.json",
+          "sha256": "7c7076bc3ee06d01912dce2a5db36e5b9c523170775f152c02a487a02f1fc83d",
+          "bytes": 1215
+        }
+      ],
+      "root_critical_review": [
+        "The narrow diff records has_xfail and checks wasxfail is not None independently of passed/skipped, including an empty reason. No duplicate full review was performed.",
+        "All eight current helpers match the reviewed revision2 plus revision3 replacement-worker identities. These exact bytes may be frozen for execution after the production handoff.",
+        "The ten synthetic groups are implementation-path evidence only; no real source collection/build/test/performance gate has run."
+      ],
+      "runtime_validation_executed_by_this_task": false
+    }
+  ],
+  "current_status": "Exact eight helper bytes statically accepted; all final runtime gates await production source handoff",
+  "accepted_helper_manifest": {
+    ".plan20-artifacts/20261029/stage5/validation-helpers/run_matrix_final.py": "61f4511494bfeff54addff3e235528e01faf82d683f4bf875702f23d982b7347",
+    ".plan20-artifacts/20261029/stage5/validation-helpers/index_fact_builds.py": "24e3e87c1922103974b6854317e01429d23480a225073ca983a11fbc6c16d1dc",
+    ".plan20-artifacts/20261029/stage5/validation-helpers/recorded_matrix_worker.py": "77c9b39ae497f10e823c31f02ca061b8365c4bcdaea38f3636a3beae9d1d7a59",
+    ".plan20-artifacts/20261029/stage5/validation-helpers/run_stage5_performance.py": "4746421d98a2f72edf25b3afe3a98cb791e77e7b43e4a570d7fc936b0a670075",
+    ".plan20-artifacts/20261029/stage5/validation-helpers/run_recorded_v2.py": "d1e064f81d90e33eb36e3a2df58f158cd8aa3520c4c38290ca93b5af7a60e36a",
+    ".plan20-artifacts/20261029/stage5/validation-helpers/build_fact_extension.py": "c52a96a8d0f1ed5e17007a5ddc7f419c7fa16deecd1e2f0581d6be98cb054b6c",
+    ".plan20-artifacts/20261029/stage5/validation-helpers/stage5_freeze.py": "0534170585683a1891a7f0f79c17baf92b4ef664f5213c916e0daef2293a3581",
+    ".plan20-artifacts/20261029/stage5/validation-helpers/prepare_stage5_freeze.py": "1d226a7f127a524f3349901c39e03ed7e90094568e4b39901ed4260ae9ff64b1"
+  }
+}

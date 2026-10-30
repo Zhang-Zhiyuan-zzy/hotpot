@@ -185,6 +185,7 @@ def test_imported_overlapping_bond_partitions_keep_active_first_and_hidden_fallb
         bond_directions=record.bond_directions + (None,) * 4,
         bond_sources=record.bond_sources + (None,) * 4,
         bond_metadata=record.bond_metadata + (record.bond_metadata[0],) * 4,
+        bond_aromatic=record.bond_aromatic + (record.bond_aromatic[0],) * 4,
         angle_constraints=((0, 3, 1),), torsion_constraints=((1, 0, 3, 2),)))
     angle = mol.angles[0]
     direct = type(angle)(*angle.atoms)

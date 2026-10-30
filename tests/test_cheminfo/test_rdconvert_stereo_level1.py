@@ -16,6 +16,17 @@ from hotpot.cheminfo.stereo import (
 )
 
 
+def _atom_only_copy(source):
+    record, _ = source._capture_factual_record()
+    payload = get_stereo_payload(source)
+    return Molecule._build_molecule(replace(
+        record,
+        bond_endpoints=(), bond_values=b'', bond_partitions=(), bond_kinds=(),
+        bond_directions=(), bond_sources=(), bond_metadata=(), bond_aromatic=(),
+        stereo_payload=replace(payload, records=(), bond_facts=()),
+    ))
+
+
 def _round_trip(smiles):
     source = Chem.MolFromSmiles(smiles)
     molecule = from_rdmol(source, Molecule())
@@ -190,9 +201,7 @@ def test_bracket_explicit_h_odd_bond_reordering_preserves_configuration():
         if chiral_index in (bond.atom1.idx, bond.atom2.idx)
     ]
     other = [bond for bond in imported.bonds if bond not in incident]
-    reordered = Molecule()
-    for atom in imported.atoms:
-        reordered._create_atom(**atom.attr_dict)
+    reordered = _atom_only_copy(imported)
     for bond in (incident[1], incident[0], *incident[2:], *other):
         reordered._add_bond(
             bond.atom1.idx,
@@ -340,9 +349,7 @@ def test_double_bond_stereo_controlling_atoms_and_display_direction_round_trip(
 def test_bond_stereo_remains_equivalent_when_target_anchor_is_reversed(smiles):
     source = Chem.MolFromSmiles(smiles)
     imported = from_rdmol(source, Molecule())
-    reversed_molecule = Molecule()
-    for atom in imported.atoms:
-        reversed_molecule._create_atom(**atom.attr_dict)
+    reversed_molecule = _atom_only_copy(imported)
     for bond in imported.bonds:
         first, second = bond.atom1.idx, bond.atom2.idx
         if bond.bond_order == 2:
@@ -383,9 +390,7 @@ def test_reversed_atropisomer_anchor_is_explicitly_rejected():
     atrop_bond.SetStereoAtoms(0, 3)
     atrop_bond.SetStereo(Chem.BondStereo.STEREOATROPCW)
     imported = from_rdmol(source.GetMol(), Molecule())
-    reversed_molecule = Molecule()
-    for atom in imported.atoms:
-        reversed_molecule._create_atom(**atom.attr_dict)
+    reversed_molecule = _atom_only_copy(imported)
     for bond in imported.bonds:
         first, second = bond.atom1.idx, bond.atom2.idx
         if frozenset((first, second)) == frozenset((1, 2)):
@@ -409,9 +414,7 @@ def test_slash_display_direction_flips_when_its_bond_endpoint_order_reverses():
         for bond in source.GetBonds()
         if bond.GetBondDir() == Chem.BondDir.ENDUPRIGHT
     )
-    reversed_molecule = Molecule()
-    for atom in imported.atoms:
-        reversed_molecule._create_atom(**atom.attr_dict)
+    reversed_molecule = _atom_only_copy(imported)
     for bond in imported.bonds:
         first, second = bond.atom1.idx, bond.atom2.idx
         if bond.idx == directed_source.GetIdx():
@@ -440,9 +443,7 @@ def test_crossed_double_display_is_endpoint_order_invariant():
     source.AddBond(0, 1, Chem.BondType.DOUBLE)
     source.GetBondWithIdx(0).SetBondDir(Chem.BondDir.EITHERDOUBLE)
     imported = from_rdmol(source.GetMol(), Molecule())
-    reversed_molecule = Molecule()
-    for atom in imported.atoms:
-        reversed_molecule._create_atom(**atom.attr_dict)
+    reversed_molecule = _atom_only_copy(imported)
     reversed_molecule._add_bond(1, 0, **imported.bonds[0].attr_dict)
     reversed_molecule._update_topology()
     set_stereo_payload(
@@ -469,9 +470,7 @@ def test_reversed_endpoint_anchored_display_direction_is_rejected(direction):
     source.AddBond(0, 1, Chem.BondType.SINGLE)
     source.GetBondWithIdx(0).SetBondDir(direction)
     imported = from_rdmol(source.GetMol(), Molecule())
-    reversed_molecule = Molecule()
-    for atom in imported.atoms:
-        reversed_molecule._create_atom(**atom.attr_dict)
+    reversed_molecule = _atom_only_copy(imported)
     reversed_molecule._add_bond(1, 0, **imported.bonds[0].attr_dict)
     reversed_molecule._update_topology()
     set_stereo_payload(

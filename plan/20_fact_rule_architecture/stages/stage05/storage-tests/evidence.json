@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "stage": "Stage5",
+  "status": "static migration frozen; no collection/pytest execution; actual owning-stage coverage pending",
+  "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+  "owned_files": {
+    "tests/test_cheminfo/structure/test_atom_fact_table.py": "e868c420965c0891031ececd6236e929ef9372381be02290312312da52f4d2a6",
+    "tests/test_cheminfo/structure/test_atom_matrix.py": "b7a3391080c70871de7834a87a9fc0fefab6841c20cf3d2b12491113b24f900a",
+    "tests/test_cheminfo/structure/test_uid_lifecycle.py": "a51916f4d2964754ef74cc3337b466419553da21455035dad98ef610fc8bfdcb",
+    "tests/test_cheminfo/test_plan20_carrier_cutover.py": "80d96c2c3634708080fc60585bec7aa57af00b16241881c6ba94dd3b1c950061",
+    "tests/test_cheminfo/test_plan20_outer_cutover.py": "50bce779475e224391114e5ca19e6a87e3ef368c23a68044005015b68b9172e2"
+  },
+  "artifacts": [
+    {
+      "path": ".plan20-artifacts/20261029/stage5/storage-tests/assertion-mapping.json",
+      "sha256": "86fc49476fbacd2d1fac8d654321ce766aac0d22defd660ccf62e118397f87df",
+      "bytes": 10835
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/storage-tests/before-hashes.json",
+      "sha256": "62965331ceb3c3ae9e4c8f7a9f8c7db910b36dd17c7c3e316ac38af281a39f67",
+      "bytes": 624
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/storage-tests/check_param_ids.py",
+      "sha256": "595e0bdff53640c934770b4a50aa056efe226ac930286b6fa5b1411eb078a595",
+      "bytes": 2924
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/storage-tests/check_static.py",
+      "sha256": "bbac98df4cd08c4e85f80c1612fd66529857bea4d0d2e12fc28396cc78d2b7f3",
+      "bytes": 2080
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/storage-tests/function-nodeid-audit.json",
+      "sha256": "4d3543e486d14074bac93566ff26ff842bb1bdb3f49cc3c02cd0021bf697f7be",
+      "bytes": 15010
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/storage-tests/param-nodeid-audit.json",
+      "sha256": "aa46563592fc57301f2c42880cca767afd58ab4d997d6d71f0ba0d7213be2f78",
+      "bytes": 4729
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/storage-tests/static-freeze.json",
+      "sha256": "5ceaf2a92be73954d2b52ce9b632c7221ae05d68cc9c0cc866206e8194fae3e7",
+      "bytes": 1449
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/storage-tests/test_atom_fact_table.before.py",
+      "sha256": "c359af552a2c6effaee52cf0f6cea0b6da2388ff622868ac6848b58376240351",
+      "bytes": 23633
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/storage-tests/test_atom_matrix.before.py",
+      "sha256": "604e4b51e904ac7b2642fb95f208b54d15c49cf980ea21af306b86ad960b7ebf",
+      "bytes": 1520
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/storage-tests/test_plan20_carrier_cutover.before.py",
+      "sha256": "95d54b24eeecda7f72c675700ec055d4f2e1c321b35e37f42f5b53c57e4a6e6f",
+      "bytes": 20377
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/storage-tests/test_plan20_outer_cutover.before.py",
+      "sha256": "3ded5ae3b08ebaac7a9c54a0a8e37c274f5e49e769dd82c34dde70b88ab9eda0",
+      "bytes": 9082
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/storage-tests/test_uid_lifecycle.before.py",
+      "sha256": "8f7f8e593d06c7307e613afa59c912c68c03ee162b18e44b498445d05e005cb7",
+      "bytes": 12320
+    }
+  ],
+  "static_result": {
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "argv": [
+      "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+      ".plan20-artifacts/20261029/stage5/storage-tests/check_static.py"
+    ],
+    "interpreter": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+    "version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "platform": "Linux-5.15.0-139-generic-x86_64-with-glibc2.31",
+    "environment_overrides": {},
+    "elapsed_seconds": 0.03267146460711956,
+    "result": "5/5 files parse; no legacy attrs_array/update_electron_config/hpchem fixtures",
+    "coverage_limits": "AST and text checks only. Assertion counts do not establish coverage. No test execution or native/source/wheel acceptance. Production owner has not issued coherent-green; unknown implicit-H scalar decision pending.",
+    "files": {
+      "tests/test_cheminfo/structure/test_atom_fact_table.py": "e868c420965c0891031ececd6236e929ef9372381be02290312312da52f4d2a6",
+      "tests/test_cheminfo/structure/test_atom_matrix.py": "b7a3391080c70871de7834a87a9fc0fefab6841c20cf3d2b12491113b24f900a",
+      "tests/test_cheminfo/structure/test_uid_lifecycle.py": "a51916f4d2964754ef74cc3337b466419553da21455035dad98ef610fc8bfdcb",
+      "tests/test_cheminfo/test_plan20_carrier_cutover.py": "80d96c2c3634708080fc60585bec7aa57af00b16241881c6ba94dd3b1c950061",
+      "tests/test_cheminfo/test_plan20_outer_cutover.py": "50bce779475e224391114e5ca19e6a87e3ef368c23a68044005015b68b9172e2"
+    }
+  },
+  "scope": [
+    "Preserve factual raw/codec/metadata/isolation/undo assertions; mathematical columns are no longer persisted inputs.",
+    "Replace eager failure checks with factual writes that run no rule, first required materialization failure and retained dirty/input state.",
+    "Readonly field negative checks remain additional to actual factual source-change rejection.",
+    "Valid imported benzene positive aromatic flags are checked through attrs, complete matrix and existing model encoding.",
+    "Original parameter and test-function node IDs restored exactly with historical-identity comments; no aliases, duplicates or frozen-selection edits."
+  ],
+  "limits": [
+    "AST parse/count/name checks are an inventory, not executed coverage or test success.",
+    "Full original-node collection still needs the coherent implemented source.",
+    "Exact unknown implicit-H public return remains pending; these tests do not choose it.",
+    "Final frozen default/five-version/debug/native/current-wheel/scientific/performance gates remain open."
+  ]
+}

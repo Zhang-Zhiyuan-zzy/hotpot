@@ -14,7 +14,7 @@ import numpy as np
 
 from ._fields import (
     ATOM_BATCH_READONLY, ATOM_BATCH_WRITABLE, ATOM_FIELDS, ATOM_SOURCE_CODES,
-    COORDINATE_FIELDS, FIELD_INDEX,
+    COORDINATE_FIELDS, FIELD_INDEX, DERIVED_FIELDS,
 )
 from ._identity import _SourceIdentity
 
@@ -42,6 +42,8 @@ class _AtomFactUpdate:
         fields = tuple(self.fields)
         if len(set(fields)) != len(fields) or any(field not in FIELD_INDEX for field in fields):
             raise ValueError("Atom updates require unique canonical fields")
+        if any(field in DERIVED_FIELDS for field in fields):
+            raise AttributeError("Calculated electron and valence projections cannot be committed")
         if not len(fields) == len(self.value_bytes) == len(self.presence) == len(self.sources):
             raise ValueError("Atom update values and metadata must align with fields")
         presence = tuple(self.presence)

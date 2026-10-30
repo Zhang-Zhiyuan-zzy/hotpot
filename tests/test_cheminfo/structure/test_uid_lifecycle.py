@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 
 from hotpot import Atom, Bond, Molecule
+from hotpot.cheminfo.structure._fields import FACT_FIELDS, FIELD_INDEX
 from hotpot.cheminfo.rdconvert import from_rdmol, to_rdmol
 from hotpot.cheminfo.stereo import get_stereo_payload
 from rdkit import Chem
@@ -83,7 +84,8 @@ def test_direct_hidden_and_registered_bonds_share_one_non_reusing_allocator():
 def test_foreign_insertion_copies_raw_facts_without_changing_original_owner():
     values = np.arange(19, dtype=np.float64) + 0.25
     values[0] = 6
-    source = Atom(attrs_array=values, update_electron_config=False)
+    values[9] = 0
+    source = Molecule()._create_atom_from_array(values)
     source.isotope = 13
     source.frac_valence = 3.75
     original_mol, original_uid = source.mol, source._uid
@@ -95,7 +97,12 @@ def test_foreign_insertion_copies_raw_facts_without_changing_original_owner():
     assert original_mol.atoms == [source]
     assert added.mol is target and added._uid_owner is target._owner_token
     assert added._uid == 1
-    np.testing.assert_array_equal(added.attrs, values)
+    expected = values.copy()
+    expected[1:7] = (2, 2, 2, 0, 0, 0)
+    expected[13] = 4
+    np.testing.assert_array_equal(added.attrs, expected)
+    indices = [FIELD_INDEX[field] for field in FACT_FIELDS]
+    np.testing.assert_array_equal(added.attrs[indices], values[indices])
     assert not np.shares_memory(added.attrs, source.attrs)
     assert (added.isotope, added.frac_valence) == (13, 3.75)
     before = tuple(target.atoms)
@@ -151,14 +158,21 @@ def test_copy_components_and_merge_bind_fresh_owner_and_destination_uids():
 
 
 def test_factual_copy_and_component_preserve_supplied_electrons_and_sparse_inputs():
+    """Keep the frozen regression name; current contracts are asserted below."""
     raw = np.arange(19, dtype=np.float64) + 0.25
     raw[0] = 6
-    source = Atom(attrs_array=raw, update_electron_config=False)
+    raw[9] = 0
+    source = Molecule()._create_atom_from_array(raw)
     source.isotope, source.frac_valence = 13, 3.75
     clone = source.mol.copy()
     component = source.mol.components[0]
+    expected = raw.copy()
+    expected[1:7] = (2, 2, 2, 0, 0, 0)
+    expected[13] = 4
     for copied in (clone.atoms[0], component.atoms[0]):
-        np.testing.assert_array_equal(copied.attrs, raw)
+        np.testing.assert_array_equal(copied.attrs, expected)
+        indices = [FIELD_INDEX[field] for field in FACT_FIELDS]
+        np.testing.assert_array_equal(copied.attrs[indices], raw[indices])
         assert (copied.isotope, copied.frac_valence) == (13, 3.75)
         assert not np.shares_memory(copied.attrs, source.attrs)
 
@@ -214,8 +228,8 @@ def test_replacement_installs_new_atom_transport_and_removes_old_source_facts():
 
 def test_failed_construction_does_not_make_allocated_identity_reusable():
     mol = Molecule()
-    with pytest.raises(ValueError, match="length"):
-        Atom(mol, attrs_array=np.zeros(2))
+    with pytest.raises(ValueError, match="[Cc]onflict"):
+        Atom(mol, symbol="C", atomic_number=8)
     # A failed constructor now leaves no partial member and still consumes UID.
     assert mol.atoms == [] and mol._topology_index == {}
     failed_high_water = mol._next_atom_uid

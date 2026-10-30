@@ -33,12 +33,13 @@ struct Field {
     std::string name;
     std::uint32_t presence;
     std::vector<int> affected;
+    bool derived = false;
     int materialized = -1;
     std::uint64_t affected_mask = 0, materialized_mask = 0;
 };
 
 struct Configuration {
-    py::object indices, writable, readonly, source_type, update_type, check_source;
+    py::object indices, writable, readonly, scalar_readonly, derived_fields, source_type, update_type, check_source;
     py::object transactions, failures, symbol_number, number_type, asarray, atom_type, eager, sparse;
     py::object foreign_error, detached_error, seed_dummy;
     std::array<py::object, static_cast<std::size_t>(Name::Count)> names;
@@ -477,6 +478,13 @@ struct Selection {
     py::object owner;
 };
 
+void require_stored_field(int index) {
+    if (index < 0 || index >= static_cast<int>(config->fields.size()))
+        throw py::value_error("Unknown canonical Atom field");
+    if (config->fields[index].derived)
+        throw py::attribute_error("Calculated electron and valence projections cannot be committed");
+}
+
 void check_member(py::handle mol, py::handle atoms, py::handle topology, py::handle owner,
                    Py_ssize_t row, py::handle uid, PyObject *expected = nullptr) {
     if (row < 0 || row >= PyList_GET_SIZE(atoms.ptr()))
@@ -528,8 +536,7 @@ void prepare_undo(Undo &undo, py::handle table, const Rows &rows,
     std::uint64_t affected = 0, materialized = 0;
     for (std::size_t f = 0; f < columns.size(); ++f) {
         const auto &column = columns[f];
-        if (column.index < 0 || column.index >= static_cast<int>(config->fields.size()))
-            throw py::value_error("Atom update requires canonical fields");
+        require_stored_field(column.index);
         const auto &field = config->fields[column.index];
         auto values = array(PyTuple_GET_ITEM(undo.owners[0].ptr(), column.index), 'f', 8, 1, true);
         if (values.shape(0) < logical) throw py::value_error("Atom value storage is not aligned");
@@ -728,8 +735,10 @@ std::vector<Column> normalize_columns(py::dict supplied, std::size_t count,
                 if (readonly) throw py::attribute_error("Atom field is not writable through updata_atoms");
                 throw py::type_error("Unknown Atom update field");
             }
-        } else if (!PyDict_Contains(config->indices.ptr(), pair.first.ptr())) {
-            throw py::type_error("Internal Atom updates require canonical fields");
+        } else {
+            if (!PyDict_Contains(config->indices.ptr(), pair.first.ptr()))
+                throw py::type_error("Internal Atom updates require canonical fields");
+            require_stored_field(field_index(pair.first));
         }
     }
     std::vector<py::object> encoded(config->fields.size());
@@ -807,12 +816,13 @@ py::object normalize_facts(py::handle source, py::iterable raw_rows, py::iterabl
 py::object normalize_scalar(py::handle source, py::handle row, py::handle uid,
                             py::handle field, py::handle value, int producer, bool present) {
     int index = field_index(field);
+    require_stored_field(index);
     std::vector<Column> columns{{index, scalar_bytes(value), present, producer}};
     return make_update(source, py::make_tuple(row), py::make_tuple(uid), columns);
 }
 
 void commit_scalar(py::handle atom, int index, py::handle value, int producer, bool present) {
-    if (index < 0 || index >= static_cast<int>(config->fields.size())) throw py::value_error("Unknown canonical Atom field");
+    require_stored_field(index);
     py::object ad = dictionary(atom);
     py::object mol = py::reinterpret_borrow<py::object>(item(ad, Name::Parent));
     OwnerLock lock(mol);
@@ -985,6 +995,9 @@ void clear_dependency_seeds(py::handle mol, int group, py::iterable rows) {
 
 PyObject *atom_setattr(PyObject *self, PyObject *const *args) {
     try {
+        int readonly = PySequence_Contains(config->scalar_readonly.ptr(), args[0]);
+        if (readonly < 0) python_error();
+        if (readonly) throw py::attribute_error("Calculated Atom projections are read-only; use the complete Molecule assignment");
         PyObject *index = PyDict_GetItemWithError(config->indices.ptr(), args[0]);
         if (!index && PyErr_Occurred()) python_error();
         if (index) {
@@ -1051,8 +1064,10 @@ std::vector<Column> prepared_columns(py::handle update, int inherited) {
         py::handle field = PyTuple_GET_ITEM(fields.ptr(), i);
         PyObject *index = PyDict_GetItemWithError(config->indices.ptr(), field.ptr());
         if (!index) { if (PyErr_Occurred()) python_error(); throw py::value_error("Unknown canonical Atom field"); }
+        int field_index = static_cast<int>(integer(index));
+        require_stored_field(field_index);
         int code = static_cast<int>(integer(PyTuple_GET_ITEM(producers.ptr(), i)));
-        result.push_back({static_cast<int>(integer(index)), py::reinterpret_borrow<py::bytes>(PyTuple_GET_ITEM(values.ptr(), i)),
+        result.push_back({field_index, py::reinterpret_borrow<py::bytes>(PyTuple_GET_ITEM(values.ptr(), i)),
                           PyTuple_GET_ITEM(presence.ptr(), i) == Py_True,
                           code == config->explicit_source ? inherited : code});
     }
@@ -1085,6 +1100,7 @@ void write_prepared(py::handle table, py::handle selected, py::iterable prepared
     for (py::handle entry : prepared) {
         auto values = py::reinterpret_borrow<py::sequence>(entry);
         int index = static_cast<int>(integer(values[0]));
+        require_stored_field(index);
         columns.push_back({index, rows.size() == 1 ? scalar_bytes(values[1])
                                                  : column_bytes(values[1], rows.size(), config->fields.at(index).name),
                            py::cast<bool>(values[2]), py::cast<int>(values[3])});
@@ -1135,6 +1151,8 @@ void configure(py::dict values) {
         next->coordinate_fields.push_back(py::cast<int>(next->indices[name]));
     next->element_field = py::cast<int>(next->indices[aliases[py::str("symbol")][py::int_(0)]]);
     next->writable = values["writable"]; next->readonly = values["readonly"];
+    next->scalar_readonly = values["scalar_readonly"];
+    next->derived_fields = values["derived_fields"];
     next->source_type = values["source_type"]; next->update_type = values["update_type"];
     next->transactions = values["transactions"]; next->failures = values["failures"];
     next->check_source = values["check_source"]; next->symbol_number = values["symbol_number"];
@@ -1150,6 +1168,9 @@ void configure(py::dict values) {
     for (py::size_t i = 0; i < py::len(names); ++i) {
         Field field;
         field.name = py::cast<std::string>(names[i]); field.presence = py::cast<std::uint32_t>(bits[i]);
+        int derived = PySet_Contains(next->derived_fields.ptr(), names[i].ptr());
+        if (derived < 0) python_error();
+        field.derived = derived != 0;
         py::sequence effect = effects[names[i]];
         field.affected = py::cast<std::vector<int>>(effect[0]);
         if (!effect[1].is_none()) field.materialized = py::cast<int>(effect[1]);

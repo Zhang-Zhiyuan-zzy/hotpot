@@ -38,7 +38,9 @@ from .structure._fields import (
     ATOM_FIELDS as _ATOM_FIELDS, ATOM_PRESENCE_ALL as _ATOM_PRESENCE_ALL,
     ATOM_SOURCE_CODES as _ATOM_SOURCE_CODES, FIELD_INDEX as _ATOM_FIELD_INDEX,
     FIELD_ADDRESSES as _ATOM_FIELD_ADDRESSES,
-    FIELD_CODECS as _ATOM_FIELD_CODECS,
+    FIELD_CODECS as _ATOM_FIELD_CODECS, FACT_FIELDS as _ATOM_FACT_FIELDS,
+    DERIVED_FIELDS as _ATOM_DERIVED_FIELDS,
+    ATOM_SCALAR_READONLY as _ATOM_SCALAR_READONLY,
 )
 from .structure._atom_table import _AtomFactTable
 from .structure.constraints import _ConstraintSet
@@ -51,7 +53,7 @@ from .structure._commit import (
 )
 from .structure._dependencies import (
     _dependency_state, _install_dependency_state, _remap_dependency_state,
-    _mark_topology_dirty,
+    _mark_topology_dirty, _seed, GROUP_INDEX,
 )
 from .stereo import StereoPayload as _StereoPayload
 
@@ -238,18 +240,7 @@ class Molecule:
     def updata_atoms(self, *, atoms=None, **columns) -> None:
         selected = None if atoms is None else tuple(atoms)
         with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']):
-            update = _atom_fact_engine()._commit_atom_columns(self, selected, columns)
-            if 'atomic_number' in update.fields:
-                selected = tuple(self._atoms[row] for row in update.rows)
-                for atom in selected:
-                    _atomic_number_setter(atom, 'atomic_number', atom.atomic_number)
-                downstream = tuple(field for field in update.fields if field != 'atomic_number')
-                if downstream:
-                    indices = tuple(update.fields.index(field) for field in downstream)
-                    _commit_atom_facts(self, _AtomFactUpdate(
-                        update.source, update.rows, update.atom_uids, downstream,
-                        tuple(update.value_bytes[i] for i in indices),
-                        tuple(update.presence[i] for i in indices), tuple(update.sources[i] for i in indices)))
+            _atom_fact_engine()._commit_atom_columns(self, selected, columns)
 
     @classmethod
     def _build_molecule(cls, record, *, bond_metadata=None):
@@ -588,19 +579,13 @@ class Molecule:
             statuses = table._group_status[row].copy()
             pending_groups = tuple(atom._uid in seeds for seeds in table._dirty_seeds)
             sparse = {name: deepcopy(atom.__dict__[name]) for name in ('isotope', 'frac_valence') if name in atom.__dict__}
-        copied = Atom(self, attrs_array=values, update_electron_config=False)
         with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
+            copied = _import_atom_row(self, values, presence=presence, sources=sources)
             new_row = self._topology_index[id(copied)][0]
-            update = _AtomFactUpdate(_capture_source(self), (new_row,), (copied._uid,), _ATOM_FIELDS,
-                tuple(values[index:index + 1].tobytes() for index in range(len(_ATOM_FIELDS))),
-                tuple(bool(int(presence[0]) & (1 << index)) for index in range(len(_ATOM_FIELDS))),
-                tuple(int(code) for code in sources[0]))
-            _commit_atom_facts(self, update)
             transaction.touch_dependency_status((new_row,), range(len(statuses)))
             self._atom_table._group_status[new_row] = statuses
             for group, pending_group in enumerate(pending_groups):
-                _atom_fact_engine()._update_dependency_seeds(
-                    self, (group,), (copied._uid,), pending_group)
+                _atom_fact_engine()._update_dependency_seeds(self, (group,), (copied._uid,), pending_group)
             for name, value in sparse.items():
                 setattr(copied, name, value)
         return copied
@@ -854,6 +839,7 @@ class Molecule:
                 bond_values=current.bond_values + incoming.bond_values,
                 bond_partitions=current.bond_partitions + incoming.bond_partitions,
                 bond_kinds=current.bond_kinds + incoming.bond_kinds,
+                bond_aromatic=current.bond_aromatic + incoming.bond_aromatic,
                 bond_directions=current.bond_directions + incoming.bond_directions,
                 bond_sources=current.bond_sources + incoming.bond_sources,
                 bond_metadata=current.bond_metadata + incoming.bond_metadata,
@@ -1461,20 +1447,7 @@ class Molecule:
             _commit_coordinates(self, update)
 
     def _create_atom_from_array(self, attrs_array: np.ndarray) -> "Atom":
-        """
-        Creates an Atom instance using the provided attributes array.
-
-        This method is used to create an Atom object by passing an array of attributes.
-        The returned Atom instance is associated with the current molecule.
-
-        Args:
-            attrs_array (np.ndarray): An array containing attributes necessary to
-            initialize the Atom object.
-
-        Returns:
-            Atom: A new Atom instance initialized with the provided attributes array.
-        """
-        return Atom(self, attrs_array=attrs_array, update_electron_config=False)
+        return _import_atom_row(self, attrs_array)
 
     def _create_atom(self, **kwargs):
         """
@@ -2561,6 +2534,7 @@ class Molecule:
                 bond_kinds=tuple(bond._bond_kind.value for _, bond in bonds),
                 bond_directions=tuple(bond._bond_direction for _, bond in bonds),
                 bond_sources=tuple(bond._bond_source for _, bond in bonds), bond_metadata=(None,) * len(bonds),
+                bond_aromatic=tuple(bond._is_aromatic for _, bond in bonds),
                 charge=(True, self._charge_value, self._charge_source) if whole and self._charge_present else (False, None, None),
                 spin_mult=(True, self._spin_value, self._spin_source) if whole and self._spin_present else (False, None, None),
                 cell=None if self._crystal is None else tuple(getattr(self._crystal, name) for name in ('a', 'b', 'c', 'alpha', 'beta', 'gamma')),
@@ -2613,7 +2587,7 @@ class Molecule:
         for row, binding in enumerate(bond_bindings):
             first, second = record.bond_endpoints[row]
             kwargs = dict(kind=record.bond_kinds[row], direction=record.bond_directions[row],
-                          source_namespace=record.bond_sources[row], metadata=metadata[row])
+                          source_namespace=record.bond_sources[row], metadata=metadata[row], aromatic=record.bond_aromatic[row])
             if binding is None:
                 bond = _new_bond_handle(self, next(bond_uids), atoms[first], atoms[second], values[row], **kwargs)
             else:
@@ -2708,8 +2682,6 @@ class MolBlock:
         in_organic: Property to check if the molecular block belongs to an 
             organic molecule.
         rings: Property to get a list of rings involving the molecular block.
-        setattr: Method for batch attribute setting, optionally including 
-            default values.
     """
     _attrs_dict = {}
     _attrs_setter = {}
@@ -2794,43 +2766,13 @@ class MolBlock:
         """
         return [r for r in self.mol.rings if self in r]
 
-    def setattr(self, *, add_defaults=False, **kwargs):
-        """
-        Sets attributes of the current object based on the passed keyword arguments. 
-        An optional flag allows to start with default attributes before applying 
-        the provided updates.
-
-        Parameters
-        ----------
-        add_defaults : bool, optional
-            If True, initializes attributes with the default set before applying 
-            updates from kwargs. Default is False.
-        **kwargs : Any
-            Arbitrary keyword arguments representing attribute names and their 
-            associated values to be applied as updates.
-
-        TODO: Warning!
-        TODO: This methods is recommended to be invoked after, the molecular graph has
-        TODO: been built. If the method is invoked in the obj-create stage. Some unexpected
-        TODO: error might raise.
-        """
-        _attrs = copy(self._default_attrs) if add_defaults else {}
-        _attrs.update(kwargs)
-        for name, value in _attrs.items():
-            setattr(self, name, value)
 
 
 #######################################################################
 #######################################################################
 # Define attributes setters
 def _atomic_number_setter(self: 'Atom', key, atomic_number):
-    assert key == 'atomic_number'
-    with _FactTransaction(self.mol, producer=_ATOM_SOURCE_CODES['explicit']):
-        _store_atom_fields(self, {'atomic_number': atomic_number})
-        self.electron_configuration = Atom.elements.electron_configs[atomic_number]
-        _store_atom_fields(self, {'valence': self.get_valence()}, producer=_ATOM_SOURCE_CODES['valence'])
-        _store_atom_fields(self, {'implicit_hydrogens': self._calc_implicit_hydrogens()},
-                           producer=_ATOM_SOURCE_CODES['implicit_hydrogens'])
+    _store_atom_fields(self, {'atomic_number': atomic_number})
 
 # ---------------------------------------------------------------------
 
@@ -2911,44 +2853,43 @@ class Atom(MolBlock):
 
     from .elements import elements
 
-    def __init__(self, mol: Molecule = None, *, attrs_array: np.ndarray = None,
-                 update_electron_config: bool = True, **kwargs):
+    def __init__(self, mol: Molecule = None, **kwargs):
         owner = mol if mol is not None else Molecule()
-        if isinstance(attrs_array, np.ndarray):
-            assert attrs_array.ndim == 1
-            if len(attrs_array) != len(_ATOM_FIELDS):
-                # Allocation remains monotonic even for invalid construction.
-                owner._allocate_atom_uid()
-                raise ValueError(f'Given attrs_array should be length {len(_ATOM_FIELDS)}')
-            values = np.array(attrs_array, dtype=np.float64, copy=True)
-            presence = _ATOM_PRESENCE_ALL
-            sources = np.full((1, len(_ATOM_FIELDS)), _ATOM_SOURCE_CODES['legacy_array'], dtype=np.uint8)
-            pending = {}
-        else:
-            pending = dict(kwargs)
-            if 'symbol' in pending:
-                pending['atomic_number'] = ob.GetAtomicNum(pending.pop('symbol'))
-            if 'coordinates' in pending:
-                pending['x'], pending['y'], pending['z'] = pending.pop('coordinates')
-            supplied = {field for field in _ATOM_FIELDS if field in pending}
-            values = np.array([pending.pop(field, 0.) for field in _ATOM_FIELDS], dtype=np.float64)
-            presence = sum(1 << _ATOM_FIELD_INDEX[field] for field in supplied)
-            sources = np.array([[int(field in supplied) for field in _ATOM_FIELDS]], dtype=np.uint8)
-        _initialize_atom_handle(self, owner, owner._allocate_atom_uid())
-        prepared_electrons = update_electron_config and not pending
-        if prepared_electrons:
-            values[1:7] = self.elements.electron_configs[int(values[0])]
-            presence |= sum(1 << index for index in range(1, 7))
-            sources[0, 1:7] = _ATOM_SOURCE_CODES['electron_configuration']
+        uid = owner._allocate_atom_uid()
+        allowed = {'atomic_number', 'symbol', 'formal_charge', 'implicit_hydrogens',
+                   'coordinates', 'x', 'y', 'z', 'id', 'constraint',
+                   'x_constraint', 'y_constraint', 'z_constraint'}
+        unknown = kwargs.keys() - allowed
+        if unknown:
+            raise TypeError(f"Unsupported Atom constructor fields: {', '.join(sorted(unknown))}")
+        constraints = {name: kwargs.pop(name) for name in tuple(kwargs)
+                       if name in ('constraint', 'x_constraint', 'y_constraint', 'z_constraint')}
         with _FactTransaction(owner, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
+            row = len(owner._atom_table)
+            update = _normalize_atom_facts(_capture_source(owner), (row,), (uid,), kwargs)
+            values = np.zeros(19, dtype=np.float64)
+            presence = 0
+            sources = np.zeros((1, 19), dtype=np.uint8)
+            for field, column in zip(update.fields, update.values):
+                index = _ATOM_FIELD_INDEX[field]
+                values[index] = column[0]
+                presence |= 1 << index
+                sources[0, index] = _ATOM_SOURCE_CODES['explicit']
+            for axis in ('x_constraint', 'y_constraint', 'z_constraint'):
+                if axis in constraints or 'constraint' in constraints:
+                    value = constraints.get(axis, constraints.get('constraint'))
+                    if 'constraint' in constraints and axis in constraints and bool(value) != bool(constraints['constraint']):
+                        raise ValueError(f'Conflicting Atom constructor aliases for {axis}')
+                    index = _ATOM_FIELD_INDEX[axis]
+                    values[index] = bool(value)
+                    presence |= 1 << index
+                    sources[0, index] = _ATOM_SOURCE_CODES['explicit']
+            _initialize_atom_handle(self, owner, uid)
             transaction.touch_registration(self)
-            row = owner._atom_table._append_prepared(
-                values[None, :], np.asarray([presence], dtype=np.uint32), sources)
+            owner._atom_table._append_prepared(values[None, :], np.asarray([presence], dtype=np.uint32), sources)
             owner._atoms.append(self)
             owner._topology_index[id(self)] = (row, ())
-            self.setattr(**pending)
-            if update_electron_config and not prepared_electrons:
-                self.electron_configuration = self.elements.electron_configs[self.atomic_number]
+            _seed(owner, GROUP_INDEX['FORMAL_CHARGE_COVERAGE'], (uid,))
 
     @property
     def attrs(self):
@@ -2971,36 +2912,6 @@ class Atom(MolBlock):
     def __setstate__(self, state):
         self.__dict__.update(state)
 
-    @classmethod
-    def _get_atom_attr_dict(cls, atomic_number: int) -> dict:
-        """
-        Provides an internal utility method to retrieve a dictionary
-        containing various attributes of an atom based on its atomic number.
-        This dynamic method initializes an Open Babel OBAtom object, sets the 
-        atomic number, and fetches the relevant chemical properties associated
-        with the atom like atomic number, formal charge, partial charge, valence, 
-        and implicit hydrogens.
-
-        Parameters:
-            atomic_number (int): The atomic number of the element being queried.
-
-        Returns:
-            dict: A dictionary containing properties of the atom, such as:
-                - atomic_number 
-                - formal_charge 
-                - partial_charge 
-                - valence 
-                - implicit_hydrogens
-        """
-        oba = ob.OBAtom()
-        oba.SetAtomicNum(atomic_number)
-        return dict(
-            atomic_number=oba.GetAtomicNum(),
-            formal_charge=oba.GetFormalCharge(),
-            partial_charge=oba.GetPartialCharge(),
-            valence=oba.GetTotalValence(),
-            implicit_hydrogens=oba.GetImplicitHCount()
-        )
 
     def _add_atom(
             self,
@@ -3009,41 +2920,16 @@ class Atom(MolBlock):
             atom_attrs: dict = None,
             bond_attrs: dict = None
     ):
-        """
-        Adds an atom to the molecular structure with the specified properties and bond order.
-
-        The method allows adding atoms by different formats (e.g., string, integer, or Atom object)
-        and automatically resolves the appropriate atomic properties. Bond-related attributes and
-        additional atomic attributes can also be specified. The atom is added with its specified
-        properties and linked with the molecule structure according to the given bond order.
-
-        Args:
-            atom: Union of string, integer, or Atom instance representing the atom to be added.
-                  Defaults to 1.
-            bond_order: Integer specifying the bond order of the bond between the given atom and 
-                        the molecule. Defaults to 1.
-            atom_attrs: Dictionary holding additional attributes for the atom (optional).
-            bond_attrs: Dictionary holding additional attributes for the bond (optional).
-
-        Returns:
-            Atom: The newly created atom instance within the molecule structure.
-
-        Raises:
-            This method does not include explicit error raising information. Ensure valid input
-            types and values.
-        """
         if isinstance(atom, str):
-            atom = ob.GetAtomicNum(atom)
-
+            from .reference.properties import _atomic_number_for_symbol
+            atom = _atomic_number_for_symbol(atom)
         if isinstance(atom, int):
-            atom_attrs_ = self._get_atom_attr_dict(atom)
+            atom = self.mol._create_atom(atomic_number=atom, **(atom_attrs or {}))
         else:
-            atom_attrs_ = atom.attr_dict
-
-        atom_attrs_.update(atom_attrs or {})
-        atom = self.mol._create_atom(**atom_attrs_)
-        getattr(self.mol, '_add_bond')(self, atom, bond_order, **(bond_attrs or {}))
-
+            atom = self.mol._add_atom(atom)
+            if atom_attrs:
+                self.mol.updata_atoms(atoms=(atom,), **atom_attrs)
+        self.mol._add_bond(self, atom, bond_order, **(bond_attrs or {}))
         return atom
 
     def add_atom(
@@ -3625,17 +3511,9 @@ class Atom(MolBlock):
 
     @property
     def electron_configuration(self) -> np.ndarray[int]:
-        with self.mol._mutation_lock:
-            record = self.mol._topology_index.get(id(self))
-            table, row = (self._detached_table, 0) if record is None else (self.mol._atom_table, record[0])
-            return table.select(_ATOM_FIELDS[1:7], rows=(row,))[0].astype(int)
+        from .rules.chemistry.elements import _electron_configuration
+        return np.asarray(_electron_configuration(self.atomic_number), dtype=int)
 
-    @electron_configuration.setter
-    def electron_configuration(self, value) -> None:
-        values = np.asarray(value)
-        assert len(values) == 6
-        _store_atom_fields(self, dict(zip(_ATOM_FIELDS[1:7], values)),
-                           producer=_ATOM_SOURCE_CODES['electron_configuration'])
 
     @property
     def l(self) -> int:
@@ -3668,19 +3546,9 @@ class Atom(MolBlock):
         return n
 
     def calc_electron_config(self) -> (int, int, list[int]):
-        """
-        Calculates the electron configuration of an element based on its atomic number.
-
-        This function returns the electron configuration for a given element as a
-        tuple containing the total number of electrons, valence electrons, and
-        a list of electrons in each energy level shell.
-
-        Returns:
-            tuple[int, int, list[int]]: A tuple representing the electron
-            configuration, including the total number of electrons, the number
-            of valence electrons, and a list of electrons in each shell.
-        """
-        return hpchem.calc_electron_config(self.atomic_number)
+        from .rules.chemistry.elements import _fill_electron_shell
+        n, l, conf = _fill_electron_shell(self.atomic_number)
+        return n, l, conf + [0] * (5 - len(conf))
 
     @property
     def oxidation_state(self) -> int:
@@ -4381,7 +4249,8 @@ class Bond(AtomSeq, MolBlock):
                                     kind=_coerce_bond_kind(kind, values[0]), direction=direction,
                                     source_namespace=source, metadata=metadata)
             with _FactTransaction(owner, producer=_ATOM_SOURCE_CODES['explicit']):
-                self.setattr(**kwargs)
+                if kwargs:
+                    raise TypeError(f"Unsupported Bond constructor fields: {', '.join(sorted(kwargs))}")
 
     @property
     def attrs(self):
@@ -5340,6 +5209,8 @@ def _atom_fact_engine():
 
 
 def _store_atom_fields(atom, columns, *, producer=None):
+    if columns.keys() & _ATOM_SCALAR_READONLY:
+        raise AttributeError('Calculated Atom projections are read-only; use the complete Molecule assignment')
     engine = _atom_fact_engine()
     producer = _ATOM_SOURCE_CODES['explicit'] if producer is None else producer
     if len(columns) == 1:
@@ -5370,8 +5241,22 @@ def _new_atom_handle(mol, uid):
     return atom
 
 
+def _import_atom_row(mol, values, *, presence=None, sources=None):
+    """Install one supplied factual row through the private import boundary."""
+    values = np.asarray(values, dtype=np.float64)
+    prepared = _AtomFactTable(values[None, :], presence=presence, sources=sources)
+    with _FactTransaction(mol, producer=_ATOM_SOURCE_CODES['legacy_array']) as transaction:
+        atom = _new_atom_handle(mol, mol._allocate_atom_uid())
+        transaction.touch_registration(atom)
+        row = mol._atom_table._append_prepared(prepared.matrix(), prepared.presence(), prepared.sources())
+        mol._atoms.append(atom)
+        mol._topology_index[id(atom)] = (row, ())
+        _mark_topology_dirty(mol, (atom._uid,))
+        return atom
+
+
 def _initialize_bond_handle(bond, mol, uid, atom1, atom2, raw_values, *, kind,
-                            direction, source_namespace, metadata):
+                            direction, source_namespace, metadata, aromatic=None):
     object.__setattr__(bond, '_atoms', (atom1, atom2))
     object.__setattr__(bond, '_bonds', [bond])
     object.__setattr__(bond, '_member_uid', uid)
@@ -5381,13 +5266,14 @@ def _initialize_bond_handle(bond, mol, uid, atom1, atom2, raw_values, *, kind,
     object.__setattr__(bond, '_bond_direction', direction)
     object.__setattr__(bond, '_bond_source', source_namespace)
     object.__setattr__(bond, '_bond_source_metadata', metadata)
+    object.__setattr__(bond, '_is_aromatic', kind == 'aromatic' if aromatic is None else bool(aromatic))
 
 
 def _new_bond_handle(mol, uid, atom1, atom2, raw_values, *, kind, direction,
-                     source_namespace, metadata):
+                     source_namespace, metadata, aromatic=None):
     bond = object.__new__(Bond)
     _initialize_bond_handle(bond, mol, uid, atom1, atom2, raw_values, kind=kind,
-                            direction=direction, source_namespace=source_namespace, metadata=metadata)
+                            direction=direction, source_namespace=source_namespace, metadata=metadata, aromatic=aromatic)
     return bond
 
 
@@ -5440,7 +5326,8 @@ def _build_topology_index(atoms, bonds, hidden_metal=(), hidden_covalent=()):
 def _seal_detached_table(table):
     table._blocks = tuple(np.frombuffer(block.tobytes(), dtype=block.dtype).reshape(block.shape)
                           for block in table._blocks)
-    table._columns = tuple(table._blocks[block][:, offset] for block, offset in _ATOM_FIELD_ADDRESSES)
+    from .structure._atom_table import _column_views
+    table._columns = _column_views(table._blocks)
     table._presence = np.frombuffer(table._presence.tobytes(), dtype=table._presence.dtype)
     table._sources = np.frombuffer(table._sources.tobytes(), dtype=table._sources.dtype).reshape(table._sources.shape)
     table._group_status = np.frombuffer(table._group_status.tobytes(), dtype=np.uint8).reshape(table._group_status.shape)
@@ -5482,7 +5369,7 @@ def _capture_molecule_pickle(mol):
                            for atom in mol._atoms)
         bond_state = tuple({key: value for key, value in bond.__dict__.items()
                             if key not in ('_atoms', '_bonds', '_member_uid', '_uid_owner', '_attrs',
-                                           '_bond_kind', '_bond_direction', '_bond_source', '_bond_source_metadata')}
+                                           '_bond_kind', '_bond_direction', '_bond_source', '_bond_source_metadata', '_is_aromatic')}
                            for bond in bonds)
         crystal_state = None if mol._crystal is None else dict(mol._crystal.__dict__)
         extra = (state, metadata, atom_state, bond_state, mol._capture_frame_state(), crystal_state)

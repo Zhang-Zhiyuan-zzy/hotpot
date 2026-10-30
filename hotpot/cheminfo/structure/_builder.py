@@ -237,6 +237,7 @@ class MoleculeRecord:
     torsion_constraints: tuple
     identifier: tuple
     pair_wiberg_bond_orders: tuple = ()
+    bond_aromatic: tuple[bool, ...] = ()
 
     def __post_init__(self):
         count = operator.index(self.atom_count)
@@ -257,11 +258,12 @@ class MoleculeRecord:
         bond_count = len(endpoints)
         partitions = tuple(operator.index(value) for value in self.bond_partitions)
         kinds, directions, bond_sources = map(tuple, (self.bond_kinds, self.bond_directions, self.bond_sources))
+        aromatic = tuple(self.bond_aromatic) if self.bond_aromatic else tuple(kind == 'aromatic' for kind in kinds)
         metadata = tuple(map(_canonical_value, self.bond_metadata))
         if any(value[0] not in ("none", "dict") for value in metadata):
             raise TypeError("Bond metadata requires dict or None at each root")
         if (len(bond_values) != bond_count * 3 * 8 or any(
-                len(column) != bond_count for column in (partitions, kinds, directions, bond_sources, metadata))):
+                len(column) != bond_count for column in (partitions, kinds, directions, bond_sources, metadata, aromatic))):
             raise ValueError("Bond import values and metadata must align with endpoints")
         if any(value not in (0, 1, 2) for value in partitions) or any(
                 type(value) is not str or value not in _BOND_KINDS for value in kinds):
@@ -291,6 +293,7 @@ class MoleculeRecord:
             angle_constraints=_rows(self.angle_constraints, 3, count),
             torsion_constraints=_rows(self.torsion_constraints, 4, count), identifier=identifier,
             pair_wiberg_bond_orders=_pair_values(self.pair_wiberg_bond_orders, count),
+            bond_aromatic=tuple(bool(value) for value in aromatic),
         )
         for name, value in normalized.items():
             object.__setattr__(self, name, value)
@@ -307,7 +310,7 @@ def _make_molecule_record(*, atom_values, atom_presence, atom_sources, atom_isot
                           bond_kinds, bond_directions, bond_sources, bond_metadata, charge,
                           spin_mult, cell, stereo_payload, legacy_frame_values,
                           legacy_frame_index, angle_constraints, torsion_constraints, identifier,
-                          pair_wiberg_bond_orders=()):
+                          pair_wiberg_bond_orders=(), bond_aromatic=()):
     """Encode one complete supplied import without chemistry or owner mutation."""
     values = np.asarray(atom_values, dtype="<f8")
     width = len(ATOM_FIELDS)
@@ -331,5 +334,5 @@ def _make_molecule_record(*, atom_values, atom_presence, atom_sources, atom_isot
         endpoints, bonds.tobytes(order="C"), bond_partitions, bond_kinds,
         bond_directions, bond_sources, tuple(map(_freeze_value, bond_metadata)),
         charge, spin_mult, cell, stereo_payload, tuple(map(_freeze_value, legacy_frame_values)),
-        legacy_frame_index, angle_constraints, torsion_constraints, identifier, pair_wiberg_bond_orders,
+        legacy_frame_index, angle_constraints, torsion_constraints, identifier, pair_wiberg_bond_orders, bond_aromatic,
     )

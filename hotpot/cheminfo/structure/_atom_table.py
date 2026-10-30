@@ -1,8 +1,8 @@
 """One private numeric Atom store, without chemistry or molecule membership.
 
-Two float64 blocks preserve every historical numeric slot. The 19 column
-views only address those blocks; they own no data. Callers serialize mutations
-and perform owner/source checks at the Molecule commit boundary.
+Two float64 blocks own only factual numeric slots. The historical19-column
+transport shape is projected with unavailable P4 slots; operations calculate
+electron and valence views. No derived numeric value is retained here.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ import numpy as np
 
 from ._fields import (
     ATOM_FIELDS, ATOM_PRESENCE_ALL, ATOM_SOURCE_CODES, FIELD_ADDRESSES,
-    FIELD_CODECS, FIELD_INDEX, FIELD_PRESENCE_BITS, SCALAR_FIELDS,
+    FIELD_CODECS, FIELD_INDEX, FIELD_PRESENCE_BITS, SCALAR_FIELDS, DERIVED_FIELDS,
 )
 
 
@@ -38,7 +38,8 @@ def _storage(capacity):
 
 
 def _column_views(blocks):
-    return tuple(blocks[block][:, offset] for block, offset in FIELD_ADDRESSES)
+    return tuple(None if address is None else blocks[address[0]][:, address[1]]
+                 for address in FIELD_ADDRESSES)
 
 
 def _selected_blocks(blocks, selection):
@@ -93,10 +94,12 @@ class _AtomFactTable:
     def __init__(self, rows=None, *, presence=None, sources=None):
         values = np.empty((0, len(ATOM_FIELDS))) if rows is None else _numeric_rows(rows)
         masks, codes = _metadata_rows(len(values), presence, sources)
-        blocks = (
-            np.concatenate((values[:, :10], values[:, 13:]), axis=1),
-            values[:, 10:13].copy(),
-        )
+        blocks = (values[:, [FIELD_INDEX[name] for name in SCALAR_FIELDS]].copy(),
+                  values[:, 10:13].copy())
+        for field in DERIVED_FIELDS:
+            index = FIELD_INDEX[field]
+            masks &= np.uint32(~FIELD_PRESENCE_BITS[index] & ATOM_PRESENCE_ALL)
+            codes[:, index] = ATOM_SOURCE_CODES["default"]
         self._blocks, self._columns, self._size = blocks, _column_views(blocks), len(values)
         self._presence, self._sources = masks, codes
         from ._dependencies import _initialize_dependencies
@@ -195,11 +198,7 @@ class _AtomFactTable:
 
     def row(self, row):
         row = self._row(row)
-        values = np.empty(len(ATOM_FIELDS), dtype=np.float64)
-        values[:10] = self._blocks[0][row, :10]
-        values[10:13] = self._blocks[1][row]
-        values[13:] = self._blocks[0][row, 10:]
-        return values
+        return self.select(ATOM_FIELDS, rows=(row,))[0]
 
     def column(self, field, rows=None):
         selection, _ = self._rows(rows)
@@ -210,11 +209,7 @@ class _AtomFactTable:
         return self._blocks[1][selection].copy()
 
     def matrix(self):
-        return np.concatenate((
-            self._blocks[0][:self._size, :10],
-            self._blocks[1][:self._size],
-            self._blocks[0][:self._size, 10:],
-        ), axis=1)
+        return self.select(ATOM_FIELDS)
 
     def presence(self, rows=None):
         selection, _ = self._rows(rows)
@@ -229,7 +224,8 @@ class _AtomFactTable:
         selection, count = self._rows(rows)
         values = np.empty((count, len(indices)), dtype=dtype)
         for target, index in enumerate(indices):
-            values[:, target] = self._columns[index][selection]
+            column = self._columns[index]
+            values[:, target] = np.nan if column is None else column[selection]
         return values
 
     def update(self, rows, columns, *, present=True, source=ATOM_SOURCE_CODES["explicit"]):
@@ -252,6 +248,8 @@ class _AtomFactTable:
             selection = selection.start if isinstance(selection, slice) else int(selection[0])
         prepared = []
         for field, value in columns.items():
+            if field in DERIVED_FIELDS:
+                raise AttributeError(f"{field} is a calculated read-only projection")
             index = FIELD_INDEX[field]
             prepared.append((index, value,
                              _present_value(present[field] if mapped_presence else present),
@@ -287,11 +285,14 @@ class _AtomFactTable:
         else:
             blocks = self._blocks
             next_presence, next_sources = self._presence, self._sources
-        blocks[0][first:size, :10] = values[:, :10]
-        blocks[0][first:size, 10:] = values[:, 13:]
+        blocks[0][first:size] = values[:, [FIELD_INDEX[name] for name in SCALAR_FIELDS]]
         blocks[1][first:size] = values[:, 10:13]
         next_presence[first:size] = masks
         next_sources[first:size] = codes
+        for field in DERIVED_FIELDS:
+            index = FIELD_INDEX[field]
+            next_presence[first:size] &= np.uint32(~FIELD_PRESENCE_BITS[index] & ATOM_PRESENCE_ALL)
+            next_sources[first:size, index] = ATOM_SOURCE_CODES["default"]
         columns = self._columns if blocks is self._blocks else _column_views(blocks)
         from ._dependencies import _status_from_presence
         if capacity > len(self._group_status):
@@ -299,7 +300,7 @@ class _AtomFactTable:
             status[:first] = self._group_status[:first]
         else:
             status = self._group_status
-        status[first:size] = _status_from_presence(masks)
+        status[first:size] = _status_from_presence(next_presence[first:size])
         self._install_storage(blocks, columns, size, next_presence, next_sources)
         self._group_status = status
         return first

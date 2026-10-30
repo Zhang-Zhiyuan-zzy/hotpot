@@ -30,7 +30,7 @@ _TOPOLOGY_FIELDS = ("_atoms", "_bonds", "_hided_metal_bonds", "_hided_covalent_b
                     "_constraints", "_rings", "_ring_indices_cache", "_ligand_rings",
                     "_ligand_rings_signature", "_obmol", "_row2idx", "_crystal", "_pair_wiberg_bond_orders",
                     "identifier", "properties")
-_BOND_FIELDS = ("_bond_kind", "_bond_direction", "_bond_source", "_bond_source_metadata")
+_BOND_FIELDS = ("_bond_kind", "_bond_direction", "_bond_source", "_bond_source_metadata", "_is_aromatic")
 _CACHE_FIELDS = ("_rings", "_ring_indices_cache", "_ligand_rings",
                  "_ligand_rings_signature", "_obmol", "_row2idx")
 
@@ -43,7 +43,7 @@ def _fact_engine():
         except ImportError as error:
             raise ImportError("Hotpot factual writes require the built _fact_native extension; "
                               "build/install Hotpot for this Python version") from error
-        from ._fields import ATOM_FIELDS, FIELD_PRESENCE_BITS, ATOM_BATCH_WRITABLE, ATOM_BATCH_READONLY, ALIAS_TARGETS
+        from ._fields import ATOM_FIELDS, FIELD_PRESENCE_BITS, ATOM_BATCH_WRITABLE, ATOM_BATCH_READONLY, ALIAS_TARGETS, ATOM_SCALAR_READONLY, DERIVED_FIELDS
         from ._dependencies import GROUPS, _FIELD_EFFECTS, _FactStatus
         from ._identity import _SourceIdentity
         from ._mutation import _AtomFactUpdate
@@ -54,6 +54,7 @@ def _fact_engine():
             "aliases": dict(ALIAS_TARGETS),
             "producers": dict(ATOM_SOURCE_CODES), "writable": ATOM_BATCH_WRITABLE,
             "readonly": ATOM_BATCH_READONLY, "effects": dict(_FIELD_EFFECTS), "groups": GROUPS,
+            "scalar_readonly": ATOM_SCALAR_READONLY, "derived_fields": DERIVED_FIELDS,
             "transactions": _TRANSACTIONS, "failures": _NATIVE_FAILURES,
             "source_type": _SourceIdentity, "update_type": _AtomFactUpdate,
             "table_type": _AtomFactTable,

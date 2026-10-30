@@ -16,9 +16,10 @@ def molecule():
 
 
 def state(mol):
+    matrix = mol.atom_matrix
     status, seeds = _dependency_state(mol._atom_table)
     return (tuple(mol.atoms), tuple(atom._uid for atom in mol.atoms),
-            mol.atom_matrix.tobytes(), mol._atom_table.presence().tobytes(),
+            matrix.tobytes(), mol._atom_table.presence().tobytes(),
             mol._atom_table.sources().tobytes(), status.tobytes(), seeds)
 
 

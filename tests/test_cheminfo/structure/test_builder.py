@@ -395,9 +395,15 @@ def test_factual_builder_installs_every_raw_fact_and_builds_topology_once(monkey
     record = _record()
     mol = Molecule._build_molecule(record)
     assert calls == [4]
-    assert mol.atom_matrix.tobytes() == record.atom_values
-    assert mol._atom_table.presence().tobytes() == record.atom_presence
-    assert mol._atom_table.sources().tobytes() == record.atom_sources
+    from hotpot.cheminfo.structure._fields import FACT_FIELDS, DERIVED_FIELDS, FIELD_INDEX
+    indices = tuple(FIELD_INDEX[field] for field in FACT_FIELDS)
+    np.testing.assert_array_equal(mol._atom_table.select(FACT_FIELDS), _atoms(record)[:, indices])
+    retired = sum(1 << FIELD_INDEX[field] for field in DERIVED_FIELDS)
+    np.testing.assert_array_equal(mol._atom_table.presence(), np.frombuffer(record.atom_presence, dtype='<u4') & ~np.uint32(retired))
+    expected_sources = np.frombuffer(record.atom_sources, dtype='u1').reshape(record.atom_count, 19).copy()
+    expected_sources[:, tuple(FIELD_INDEX[field] for field in DERIVED_FIELDS)] = 0
+    np.testing.assert_array_equal(mol._atom_table.sources(), expected_sources)
+    assert all(mol._atom_table._columns[FIELD_INDEX[field]] is None for field in DERIVED_FIELDS)
     complete = mol._bonds + mol._hided_metal_bonds + mol._hided_covalent_bonds
     assert b''.join(bond.attrs.tobytes() for bond in complete) == record.bond_values
     assert tuple((bond.atom1.idx, bond.atom2.idx) for bond in complete) == record.bond_endpoints

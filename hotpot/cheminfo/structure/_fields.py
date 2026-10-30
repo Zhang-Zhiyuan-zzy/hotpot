@@ -1,7 +1,7 @@
 """Private Atom projections shared by storage and the existing facade.
 
-Codecs describe scalar reads, not storage casts. The old numeric projection
-keeps all 19 float64 values until each owning stage migrates its facts/results.
+Codecs describe scalar reads, not storage casts. The historical 19-column
+transport/projection order remains; seven derived slots have no value storage.
 """
 
 from types import MappingProxyType
@@ -56,10 +56,15 @@ ATOM_SOURCE_CODES = MappingProxyType({
     "kekule": 16,
     "partial_charge": 17,
     "tmqm": 18,
+    "bond_order": 19,
 })
 COORDINATE_FIELDS = ("x", "y", "z")
-SCALAR_FIELDS = tuple(name for name in ATOM_FIELDS if name not in COORDINATE_FIELDS)
+DERIVED_FIELDS = frozenset({"n", "s", "p", "d", "f", "g", "valence"})
+FACT_FIELDS = tuple(name for name in ATOM_FIELDS if name not in DERIVED_FIELDS)
+ATOM_SCALAR_READONLY = frozenset({*DERIVED_FIELDS, "is_aromatic", "electron_configuration"})
+SCALAR_FIELDS = tuple(name for name in FACT_FIELDS if name not in COORDINATE_FIELDS)
 FIELD_ADDRESSES = tuple(
+    None if name in DERIVED_FIELDS else
     (1, COORDINATE_FIELDS.index(name)) if name in COORDINATE_FIELDS
     else (0, SCALAR_FIELDS.index(name))
     for name in ATOM_FIELDS

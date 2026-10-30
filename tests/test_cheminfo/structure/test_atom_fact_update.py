@@ -165,3 +165,85 @@ def test_symbol_translation_reuses_existing_order_without_json_number_errors():
             assert _atomic_number_for_symbol(spelling) == ob.GetAtomicNum(spelling)
     for spelling in ("D", "T", "d", "t", "X", "*", "Carbon", "", "ſ", "ı", "ſn", "ın"):
         assert _atomic_number_for_symbol(spelling) == ob.GetAtomicNum(spelling)
+
+
+class _UnconvertedDerivedValue:
+    def __float__(self):
+        raise AssertionError("Derived input must be rejected before numeric conversion")
+
+    def __array__(self, dtype=None, copy=None):
+        raise AssertionError("Mixed input must be rejected before numeric conversion")
+
+
+def _stored_atom_state(mol):
+    table = mol._atom_table
+    return (tuple(block[:len(table)].tobytes() for block in table._blocks),
+            table.presence().tobytes(), table.sources().tobytes(),
+            table._group_status[:len(table)].tobytes(),
+            tuple(frozenset(seed) for seed in table._dirty_seeds))
+
+
+@pytest.mark.parametrize("field", ["n", "s", "p", "d", "f", "g", "valence"])
+@pytest.mark.parametrize("path", ["normalize_scalar", "normalize_mixed", "commit_scalar",
+                                  "commit_mixed", "commit_candidate", "write_prepared"])
+def test_private_native_ingress_rejects_derived_fields_atomically(field, path):
+    from hotpot import Molecule
+    from hotpot.cheminfo.structure._commit import _fact_engine
+    from hotpot.cheminfo.structure._fields import FIELD_INDEX
+    from hotpot.cheminfo.structure._identity import _capture_source
+    from hotpot.cheminfo.structure._mutation import _normalize_atom_fields, _normalize_atom_scalar
+
+    mol = Molecule()
+    atom = mol.create_atom(atomic_number=6, implicit_hydrogens=4)
+    table = mol._atom_table
+    source = _capture_source(mol)
+    engine = _fact_engine()
+    producer = ATOM_SOURCE_CODES["explicit"]
+    value = _UnconvertedDerivedValue()
+    table._dirty_seeds[0].add(atom._uid)
+    before = _stored_atom_state(mol)
+    with pytest.raises(AttributeError, match="Calculated electron and valence"):
+        if path == "normalize_scalar":
+            _normalize_atom_scalar(source, 0, atom._uid, field, value)
+        elif path == "normalize_mixed":
+            _normalize_atom_fields(source, (0,), (atom._uid,), {"x": value, field: value})
+        elif path == "commit_scalar":
+            engine._commit_atom_scalar(atom, FIELD_INDEX[field], value, producer=producer)
+        elif path == "commit_mixed":
+            engine._commit_atom_fields(atom, {"x": value, field: value}, producer=producer)
+        elif path == "commit_candidate":
+            update = _normalize_atom_fields(source, (0,), (atom._uid,), {"x": 9, "y": 7})
+            object.__setattr__(update, "fields", ("x", field))
+            engine._commit_atom_facts(mol, update)
+        else:
+            engine._write_prepared(table, 0, [(FIELD_INDEX["x"], 9, True, producer),
+                                              (FIELD_INDEX[field], value, True, producer)])
+    assert _stored_atom_state(mol) == before
+
+
+def test_private_native_ingress_preserves_internal_aromatic_commits():
+    from hotpot import Molecule
+    from hotpot.cheminfo.structure._commit import _commit_atom_facts, _fact_engine
+    from hotpot.cheminfo.structure._dependencies import GROUP_INDEX, _FactStatus
+    from hotpot.cheminfo.structure._fields import FIELD_INDEX, FIELD_PRESENCE_BITS
+    from hotpot.cheminfo.structure._identity import _capture_source
+    from hotpot.cheminfo.structure._mutation import _normalize_atom_fields, _normalize_atom_scalar
+
+    mol = Molecule()
+    atom = mol.create_atom(atomic_number=6, implicit_hydrogens=4)
+    source = _capture_source(mol)
+    producer = ATOM_SOURCE_CODES["explicit"]
+    for update in (_normalize_atom_scalar(source, 0, atom._uid, "is_aromatic", True),
+                   _normalize_atom_fields(source, (0,), (atom._uid,), {"x": 9, "is_aromatic": True})):
+        _commit_atom_facts(mol, update)
+    engine = _fact_engine()
+    engine._commit_atom_scalar(atom, FIELD_INDEX["is_aromatic"], False, producer=producer)
+    engine._commit_atom_fields(atom, {"x": 8, "is_aromatic": True}, producer=producer)
+    table = mol._atom_table
+    index = FIELD_INDEX["is_aromatic"]
+    assert table.raw(0, "is_aromatic") == 1
+    assert int(table.presence()[0]) & FIELD_PRESENCE_BITS[index]
+    assert table.sources()[0, index] == producer
+    group = GROUP_INDEX["AROMATIC_REPRESENTATION"]
+    assert table._group_status[0, group] == _FactStatus.CURRENT
+    assert atom._uid not in table._dirty_seeds[group]

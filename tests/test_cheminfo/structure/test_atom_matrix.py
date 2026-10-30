@@ -3,20 +3,24 @@
 import numpy as np
 import pytest
 
-from hotpot import Atom, Molecule
+from hotpot import Molecule
 
 
 def test_complete_matrix_preserves_raw_order_and_always_returns_float64():
     mol = Molecule()
     rows = np.arange(38, dtype=np.int32).reshape(2, 19)
+    rows[:, 9] = 0
     for row in rows:
-        Atom(mol, attrs_array=row, update_electron_config=False)
+        mol._create_atom_from_array(row)
+    expected = rows.astype(np.float64)
+    expected[:, 1:7] = [(0, 0, 0, 0, 0, 0), (4, 1, 0, 0, 0, 0)]
+    expected[:, 13] = [0, 1]
     matrix = mol.atom_matrix
     assert matrix.shape == (2, 19) and matrix.dtype == np.float64
-    np.testing.assert_array_equal(matrix, rows)
+    np.testing.assert_array_equal(matrix, expected)
     assert all(not np.shares_memory(matrix, atom.attrs) for atom in mol.atoms)
     matrix[:] = -1
-    np.testing.assert_array_equal(mol.atom_matrix, rows)
+    np.testing.assert_array_equal(mol.atom_matrix, expected)
 
 
 def test_empty_matrix_has_the_declared_complete_shape_and_property_permissions():

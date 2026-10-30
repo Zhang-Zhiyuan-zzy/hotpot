@@ -304,8 +304,13 @@ class _DummyComplex:
     def components(self):
         return [self.component]
 
-    def update_atoms_attrs_from_id_dict(self, updates):
-        return None
+    def _components_with_bindings(self):
+        return [(self.component, tuple(self.component.atoms))]
+
+    def updata_atoms(self, *, atoms, coordinates):
+        for atom, row in zip(atoms, coordinates):
+            atom.coordinates = np.array(row, copy=True)
+        self.coordinates = np.array([atom.coordinates for atom in self.component.atoms])
 
 
 def _bond_ring_finding(ring, bond):

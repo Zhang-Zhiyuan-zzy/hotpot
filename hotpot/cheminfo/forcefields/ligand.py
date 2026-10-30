@@ -150,7 +150,9 @@ def _build_ligand_proxies(
         else "conformer provider"
     )
 
-    for component_index, component_mol in enumerate(clone_mol.components):
+    for component_index, (component_mol, component_atoms) in enumerate(
+        clone_mol._components_with_bindings()
+    ):
         if component_mol.has_metal:
             continue
 
@@ -528,12 +530,7 @@ def _build_ligand_proxies(
         )
         selected_untangling_reports.append(selected_candidate.untangling)
         component_mol.coordinates = selected_candidate.coordinates
-        clone_mol.update_atoms_attrs_from_id_dict(
-            {
-                atom.id: {"coordinates": atom.coordinates}
-                for atom in component_mol.atoms
-            }
-        )
+        clone_mol.updata_atoms(atoms=component_atoms, coordinates=component_mol.coordinates)
 
     elapsed_seconds = time.monotonic() - started
     diagnostics = ComplexBuildDiagnostics(

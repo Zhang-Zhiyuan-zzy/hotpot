@@ -556,3 +556,36 @@ def test_public_forcefield_api_keeps_candidate_count_reserved(monkeypatch):
     assert workflows.complexes_build(object(), candidate_count=37) is marker
     assert "candidate_count" not in captured
     assert "sampler" not in captured
+
+
+def test_ligand_coordinates_follow_members_with_duplicate_public_ids(monkeypatch):
+    molecule = read_mol("[Zn].CC.N", "smi")
+    molecule.updata_atoms(id=17)
+    before = molecule.coordinates.copy()
+    trace = []
+    _patch_accepted_downstream(monkeypatch, trace)
+    calls = []
+
+    def sample(component, request):
+        calls.append((len(component.atoms), request.seed))
+        rows = np.arange(len(component.atoms) * 3, dtype=float).reshape(1, -1, 3)
+        return ConformerBatch(rows + 100.0 * len(calls), (0,))
+
+    coordinates, diagnostics = ligand._build_ligand_proxies(
+        molecule,
+        max_attempts=1,
+        candidate_warmup_steps=1,
+        candidate_score_steps=1,
+        best_candidate_refine_steps=1,
+        effective_forcefield="UFF",
+        seed=31,
+        sampler=SimpleNamespace(sample=sample),
+    )
+
+    assert calls == [(2, 31), (1, 31)]
+    np.testing.assert_array_equal(coordinates[0], before[0])
+    np.testing.assert_array_equal(coordinates[1:3], np.arange(6).reshape(2, 3) + 100)
+    np.testing.assert_array_equal(coordinates[3], np.arange(3) + 200)
+    np.testing.assert_array_equal(molecule.coordinates, before)
+    assert tuple(atom.id for atom in molecule.atoms) == (17, 17, 17, 17)
+    assert diagnostics.accepted_candidates == 2

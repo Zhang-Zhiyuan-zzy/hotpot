@@ -1246,6 +1246,10 @@ class Molecule:
         from .operations.chemistry import _prepare_hydrogens
         _prepare_hydrogens(self, force=True)
 
+    def _components_with_bindings(self):
+        from .operations.topology_queries import _components
+        return _components(self, Molecule, with_bindings=True)
+
     @property
     def components(self) -> list['Molecule']:
         from .operations.topology_queries import _components

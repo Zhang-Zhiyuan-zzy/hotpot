@@ -99,13 +99,14 @@ def _ring_views(mol, cls, *, ligand_skeleton=False, max_size=None,
             ligand_skeleton=ligand_skeleton, max_size=max_size, max_cycles=max_cycles))
 
 
-def _components(mol, molecule_type):
+def _components(mol, molecule_type, *, with_bindings=False):
     from ..rules.mathematics.graph.components import connected_components
     from ..structure._commit import _commit_topology
     from ..structure._dependencies import _remap_dependency_state
     from ..structure._identity import _capture_source
 
     with mol._mutation_lock:
+        members = tuple(mol._atoms)
         selections = connected_components(*_topology(mol))
         captures = [(rows, mol._capture_factual_record(rows=rows, include_frames=False),
                      _remap_dependency_state(mol._atom_table, tuple(atom._uid for atom in mol._atoms),
@@ -117,5 +118,6 @@ def _components(mol, molecule_type):
             atom_bindings=(None,) * record.atom_count,
             bond_bindings=(None,) * len(record.bond_endpoints),
             dependency_state=state, bond_metadata=metadata)
-        result.append(component)
+        result.append((component, tuple(members[row] for row in rows))
+                      if with_bindings else component)
     return result

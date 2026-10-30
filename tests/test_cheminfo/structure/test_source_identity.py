@@ -270,13 +270,14 @@ def test_module_has_no_public_exports():
 
 
 @pytest.mark.parametrize('field,value', [
-    ('s', 5), ('valence', 9), ('partial_charge', 0.25),
+    ('atomic_number', 7), ('bond_order', 2), ('partial_charge', 0.25),
     ('isotope', 13), ('frac_valence', 2.25),
 ])
 def test_forcefield_source_checks_actual_legacy_numeric_and_sparse_inputs(field, value):
     mol = _molecule()
     source = _capture_source(mol, ('forcefield_inputs',))
-    setattr(mol.atoms[0], field, value)
+    target = mol.bonds[0] if field == 'bond_order' else mol.atoms[0]
+    setattr(target, field, value)
     with pytest.raises(RuntimeError, match='forcefield_inputs'):
         _check_source(mol, source)
 

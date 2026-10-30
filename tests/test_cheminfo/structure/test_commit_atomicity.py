@@ -74,10 +74,10 @@ def test_operation_producer_is_inherited_but_named_computation_is_retained():
     mol = _molecule()
     with _FactTransaction(mol, producer=ATOM_SOURCE_CODES['xtb']):
         _commit_atom_facts(mol, _update(mol, 0, 'x', 9))
-        _commit_atom_facts(mol, _update(mol, 0, 'valence', 3, producer=ATOM_SOURCE_CODES['valence']))
+        _commit_atom_facts(mol, _update(mol, 0, 'implicit_hydrogens', 3, producer=ATOM_SOURCE_CODES['implicit_hydrogens']))
     codes = mol._atom_table.sources(0)[0]
     assert codes[FIELD_INDEX['x']] == ATOM_SOURCE_CODES['xtb']
-    assert codes[FIELD_INDEX['valence']] == ATOM_SOURCE_CODES['valence']
+    assert codes[FIELD_INDEX['implicit_hydrogens']] == ATOM_SOURCE_CODES['implicit_hydrogens']
 
 
 def test_scalar_raw_write_keeps_negative_zero_and_immutable_candidate():
@@ -103,33 +103,41 @@ def test_source_and_uid_checks_precede_any_write():
     assert mol.atom_matrix.tobytes() == before
 
 
+def _complete_state(mol):
+    from tests.test_cheminfo._stage5_fixtures import factual_state
+    status, seeds = _dependency_state(mol._atom_table)
+    raw = factual_state(mol), status.tobytes(), seeds
+    return raw, mol.atom_matrix.tobytes()
+
+
 def test_eager_element_failure_restores_all_prior_slots(monkeypatch):
     mol = _molecule()
-    before = mol.atom_matrix.tobytes(), mol._atom_table.sources()
-    def fail(atom):
-        raise RuntimeError('valence interruption')
-    monkeypatch.setattr(Atom, 'get_valence', fail)
-    with pytest.raises(RuntimeError, match='valence interruption'):
+    mol.atom_matrix.tobytes()  # Settle lazy chemistry before the tested transaction.
+    before = _complete_state(mol)
+    def forbidden(atom):
+        raise AssertionError('Element publication must not execute a valence rule')
+    monkeypatch.setattr(Atom, 'get_valence', forbidden)
+    with _native_fail_after('value'), pytest.raises(KeyboardInterrupt, match='native fact store'):
         mol.atoms[0].atomic_number = 7
-    assert mol.atom_matrix.tobytes() == before[0]
-    np.testing.assert_array_equal(mol._atom_table.sources(), before[1])
+    assert _complete_state(mol) == before
 
 
 def test_bond_endpoint_failure_rolls_back_bond_and_prior_endpoint(monkeypatch):
     mol = _molecule()
-    first, second = mol.atoms[:2]
-    before = mol.atom_matrix.tobytes(), mol.bonds[0].attrs.tobytes(), mol.bonds[0].bond_kind
-    original = Atom._calc_implicit_hydrogens
-    def fail(atom):
-        if atom is second:
-            raise RuntimeError('second endpoint')
-        return original(atom)
-    monkeypatch.setattr(Atom, '_calc_implicit_hydrogens', fail)
-    with pytest.raises(RuntimeError, match='second endpoint'):
+    mol.atom_matrix.tobytes()  # Settle lazy chemistry before the tested transaction.
+    before = _complete_state(mol)
+    bond = mol.bonds[0]
+    before_bond = bond.attrs.tobytes(), bond.bond_kind
+    def forbidden(atom):
+        raise AssertionError('Bond publication must not execute an endpoint H rule')
+    monkeypatch.setattr(Atom, '_calc_implicit_hydrogens', forbidden)
+    # The second real seed store fails after the Bond and a prior seed changed.
+    with _native_fail_after('seed_add', occurrence=2), pytest.raises(KeyboardInterrupt, match='native fact store'):
         mol.bonds[0].bond_order = 2
-    assert mol.atom_matrix.tobytes() == before[0]
-    assert mol.bonds[0].attrs.tobytes() == before[1]
-    assert mol.bonds[0].bond_kind is before[2]
+    assert mol.bonds[0] is bond
+    assert bond.attrs.tobytes() == before_bond[0]
+    assert bond.bond_kind is before_bond[1]
+    assert _complete_state(mol) == before
 
 
 def test_cross_domain_topology_undo_restores_handles_endpoints_frames_and_declarations():
@@ -228,14 +236,16 @@ def test_overlapping_bulk_scalar_undo_targets_original_buffers_after_topology_ed
 def test_commit_restores_write_that_raises_after_mutation(batch, target):
     mol = _molecule()
     table = mol._atom_table
+    field = 'implicit_hydrogens' if target == 'status' else 'formal_charge'
+    value = 2 if target == 'status' else -2
     if target == 'status':
-        table._group_status[:, 3] = 1
+        table._group_status[:, 1] = 1
     before = table.matrix().tobytes(), table.presence(), table.sources(), _dependency_state(table)
     with _native_fail_after(target), pytest.raises(KeyboardInterrupt, match='native fact store'):
         if batch:
-            mol.updata_atoms(formal_charge=-2)
+            mol.updata_atoms(**{field: value})
         else:
-            mol.atoms[0].formal_charge = -2
+            setattr(mol.atoms[0], field, value)
     assert table.matrix().tobytes() == before[0]
     np.testing.assert_array_equal(table.presence(), before[1])
     np.testing.assert_array_equal(table.sources(), before[2])

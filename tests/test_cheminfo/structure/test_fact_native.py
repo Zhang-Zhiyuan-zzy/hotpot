@@ -61,16 +61,18 @@ def test_standalone_uses_same_native_post_store_restorer(rows, boundary, excepti
 def test_public_native_post_store_failure_restores_every_owner(batch, boundary, exception):
     mol = molecule()
     table = mol._atom_table
-    table._group_status[:, 3] = 1
+    field = 'implicit_hydrogens' if boundary in ('status', 'seed_remove') else 'formal_charge'
+    value = 2 if field == 'implicit_hydrogens' else -2
+    table._group_status[:, 1] = 1
     for seeds in table._dirty_seeds:
         seeds.clear()
-    table._dirty_seeds[3].update(atom._uid for atom in mol.atoms)
+    table._dirty_seeds[1].update(atom._uid for atom in mol.atoms)
     before = state(mol)
     with _native_fail_after(boundary, exception=exception), pytest.raises(exception):
         if batch:
-            mol.updata_atoms(formal_charge=-2)
+            mol.updata_atoms(**{field: value})
         else:
-            mol.atoms[0].formal_charge = -2
+            setattr(mol.atoms[0], field, value)
     assert state(mol) == before
 
 
@@ -420,6 +422,7 @@ assert allocation['attempts'] == 0
 def test_clear_failure_cancels_only_installed_body_swaps(boundary, exception):
     mol = molecule()
     mol.updata_atoms(formal_charge=0)
+    mol._atom_table._group_status[:, 3] = 0
     engine = _fact_engine()
     before = state(mol)
     owners = mol._atom_table._dirty_seeds
@@ -508,7 +511,10 @@ mol.updata_atoms(formal_charge=0)
 engine = _fact_engine()
 uids = tuple(atom._uid for atom in mol.atoms[:5])
 seeds = mol._atom_table._dirty_seeds[3]
-before = alloc.set_state(seeds), _dependency_state(mol._atom_table), mol.atom_matrix.tobytes()
+projection = mol.atom_matrix.tobytes()
+engine._clear_dependency_seeds(mol, 3, ())
+assert not seeds
+before = alloc.set_state(seeds), _dependency_state(mol._atom_table), projection
 def failing_update():
     caught = None
     alloc.arm(512)

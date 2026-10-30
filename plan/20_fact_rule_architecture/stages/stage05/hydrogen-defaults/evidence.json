@@ -1,0 +1,3664 @@
+{
+  "task": "p20-s5-h-default-design-01",
+  "date": "2026-10-30",
+  "status": "scientific/default design recommendation; no production implementation or stage acceptance claimed",
+  "author_role": "bounded scientific/default-H design owner",
+  "scope": {
+    "allowed_project_writes": [
+      "plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/decisions.md",
+      "plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/review.md",
+      "plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/evidence.json",
+      "plan/20_fact_rule_architecture/stages/stage05/contracts/decisions.md",
+      "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md"
+    ],
+    "production_and_tests_changed_by_this_task": false,
+    "git_mutations": false,
+    "delegation": false,
+    "unrelated_stage_entry": false
+  },
+  "latest_owner_instruction": "明确设定依照设定；没有设定应该依照价键规则提供默认值。（请高阶模型提供符合科学事实的默认规则）",
+  "decisions": {
+    "recommended_public_signature": "Atom.implicit_hydrogens: int",
+    "supplied_counts": "Preserve explicit/source values including zero; scalar int codec; numeric float64 bytes.",
+    "default": "Finite charge/radical/bond-kind-aware conventional completion as maintained decisions.md.",
+    "default_count_meaning": "ordinary-nonmetal inferred site-total-H target; metal inference legacy raw0 even with graph/bracket H; real H separate H2/isolated-H rule; supplied encodings protected",
+    "unknown_scalar_and_requested_H_projection": "Preserve legacy scalar int0/permissive float64-zero absent-slot display; no inferred H proposal/presence/source/CURRENT. Strict current-H consumer still raises existing ValueError. Prior scalar/permissive-export exception proposal superseded.",
+    "optional_scalar_or_H_NaN_encoding_approved": false,
+    "import_count_normalization_approved": false,
+    "count_normalization_proposal": "For ordinary-nonmetal imports, inventory target=graph_H+source_non_graph_H; retain explicit metal/H encoding exceptions and original source ledger; derive omitted=max(target-graph_H,0) for all affected consumers of those normalized targets; preserve model task encoding. Public/encoding review and connected migration required, not selected this round.",
+    "charged_aromatic_C_refinement": "No unspecified H addition at q=-1/+1; supplied/bracket/graph H retained. Original probe arithmetic has unused superseded charged-C AROMATIC entries.",
+    "bounded_implementable_boundary": "One corrected pure default and int reader; preserve absent-slot zero display separately from strict H preparation; keep source/raw/model encoding; bind/invalidate newly consumed current input; for the new inferred producer expand target minus graph H without old extra metal subtraction. No imported-count normalization or new public read choice required.",
+    "inherited_count_inconsistency": "Pre-existing mixed total/omitted semantics recorded as limitation; separate normalization proposal is not an added gate for this bounded correction.",
+    "new_public_missing_H_exception_adopted": false,
+    "missing_H_display_is_a_fact": false,
+    "H_read_owner_decision_still_required_for_preservation_route": false,
+    "mandatory_effective_payload_binding": "(atom_uid, effective_radical_count, effective_current_bracket_H, effective_no_implicit); all four required for final algorithm; radical-only alternative removed",
+    "scoped_current_H_materialization": "For current inferred-producer automatic ordinary-nonmetal expansion, atomically create T-E graph H and replace affected existing current-H implicit/bracket counts with0, preserve previous no_implicit, retain raw T/producer and immutable source ledger. Topology+payload invalidate existing groups; next preparation derives same T. Both Atom and Molecule must have outer graph/topology/payload/dependency rollback coverage."
+  },
+  "skills_read": [
+    {
+      "path": ".codex/skills/hotpot-stage/SKILL.md",
+      "read_fully": true
+    },
+    {
+      "path": ".codex/skills/hotpot-validation/SKILL.md",
+      "read_fully": true
+    }
+  ],
+  "normative_reads": [
+    {
+      "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+      "full_read_before_design": true,
+      "lines_at_full_read": 2448,
+      "sha256_at_full_read": "61302b0907205b7fdf59c5f69114878637700ad8ab4e33a6b68a2a5412785914",
+      "read_ranges_inclusive": [
+        [
+          1,
+          220
+        ],
+        [
+          221,
+          440
+        ],
+        [
+          441,
+          660
+        ],
+        [
+          661,
+          880
+        ],
+        [
+          881,
+          1100
+        ],
+        [
+          1101,
+          1320
+        ],
+        [
+          1321,
+          1540
+        ],
+        [
+          1541,
+          1760
+        ],
+        [
+          1761,
+          1980
+        ],
+        [
+          1981,
+          2200
+        ],
+        [
+          2201,
+          2448
+        ]
+      ],
+      "sha256_at_document_write": "0e67fb54c2333d6774984982fbc3a5c9af75cf8c498560965d4050d28c14f3aa",
+      "current_line_count": 2455
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+      "full_read_before_design": true,
+      "lines_at_full_read": 284,
+      "sha256_at_full_read": "90be7a21289210ee0db86dec4729988e085c764366ea7aa64d49b7d8427166e3",
+      "read_ranges_inclusive": [
+        [
+          1,
+          170
+        ],
+        [
+          171,
+          284
+        ]
+      ],
+      "sha256_at_document_write": "90be7a21289210ee0db86dec4729988e085c764366ea7aa64d49b7d8427166e3",
+      "current_line_count": 284
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+      "full_read_before_design": true,
+      "lines_at_full_read": 177,
+      "sha256_at_full_read": "e5549116f1409fb46b5fd2bdc82c0b20a34297989475eb66a119ac221a9d4a0b",
+      "read_ranges_inclusive": [
+        [
+          1,
+          177
+        ]
+      ],
+      "sha256_at_document_write": "e5549116f1409fb46b5fd2bdc82c0b20a34297989475eb66a119ac221a9d4a0b",
+      "current_line_count": 177
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+      "full_read_before_design": true,
+      "lines_at_full_read": 523,
+      "sha256_at_full_read": "41d4c4ab4388f10a4fe9682023ac97769dc9fadf4f18cfe78291c8533b4257a6",
+      "read_ranges_inclusive": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          523
+        ]
+      ],
+      "sha256_at_document_write": "41d4c4ab4388f10a4fe9682023ac97769dc9fadf4f18cfe78291c8533b4257a6",
+      "current_line_count": 523
+    },
+    {
+      "path": "plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+      "full_read_before_design": true,
+      "lines_at_full_read": 68,
+      "sha256_at_full_read": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+      "read_ranges_inclusive": [
+        [
+          1,
+          68
+        ]
+      ],
+      "sha256_at_document_write": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+      "current_line_count": 68
+    }
+  ],
+  "additional_current_records_read": [
+    "plan/20_fact_rule_architecture/README.md",
+    "plan/20_fact_rule_architecture/stages/stage05/entry_review.json",
+    "plan/20_fact_rule_architecture/stages/stage05/review.md",
+    "plan/20_fact_rule_architecture/stages/stage05/contracts/decisions.md",
+    "plan/20_fact_rule_architecture/stages/stage05/science/review.md",
+    "plan/20_fact_rule_architecture/stages/stage05/validation-preparation/review.md",
+    "Stage1 accepted API/encoding decisions and affected implementation consumers"
+  ],
+  "checkout": {
+    "branch": "implement/plan20-fact-rule-architecture",
+    "head": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+    "dirty_source": "Shared Stage5 implementation belongs to its production owner. Probe binds selected file hashes, not HEAD alone."
+  },
+  "environment": {
+    "interpreter": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+    "versions": {
+      "rdkit": "2026.9.1",
+      "numpy": "2.4.6",
+      "openbabel": "3.2.1",
+      "pytest": "9.1.1"
+    },
+    "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "PYTHONPATH_for_success": "/home/zhangzhiyuan/hotpot",
+    "PYTHONDONTWRITEBYTECODE_for_success": "1"
+  },
+  "commands": [
+    {
+      "command": "python /tmp/hotpot-p20-hydrogen-default-design-20261030/probe.py",
+      "exit_code": 1,
+      "result": "ModuleNotFoundError: No module named hotpot.cheminfo.rules",
+      "reason": "Executing script without checkout PYTHONPATH imported installed package. Not counted as coverage."
+    },
+    {
+      "command": "PYTHONPATH=/home/zhangzhiyuan/hotpot PYTHONDONTWRITEBYTECODE=1 python /tmp/hotpot-p20-hydrogen-default-design-20261030/probe.py",
+      "exit_code": 0,
+      "result": {
+        "local_observations": 53,
+        "rdkit_reference_cases": 29,
+        "elapsed_seconds": 0.6454152259975672,
+        "selected_production_source_bytes_stable": true
+      },
+      "coverage_limit": "Actual B20 AST/private-rule observations plus separate design arithmetic; no current public getter/default implementation test."
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python - <<'PY'\nfrom pathlib import Path\nimport hashlib, json, sys\nfrom rdkit import Chem, rdBase\nout=[]\nfor smiles,row in [('c1ccccc1',0),('c1ccncc1',3),('[bH-]1ccccc1',0),('[cH-]1cccc1',0)]:\n for q in (-1,0,1):\n  m=Chem.MolFromSmiles(smiles)\n  a=m.GetAtomWithIdx(row)\n  a.SetNumExplicitHs(0)\n  a.SetNoImplicit(False)\n  a.SetNumRadicalElectrons(0)\n  a.SetFormalCharge(q)\n  try:\n   m.UpdatePropertyCache(strict=False)\n   result={'element':a.GetSymbol(),'q':q,'implicit_h':a.GetNumImplicitHs(),'explicit_valence':a.GetValence(Chem.ValenceType.EXPLICIT),'radical':a.GetNumRadicalElectrons(),'aromatic':a.GetIsAromatic(),'degree':a.GetDegree()}\n  except Exception as e:\n   result={'error':type(e).__name__,'message':str(e)}\n  out.append({'smiles':smiles,'row':row,'observed':result})\np=Path('/tmp/hotpot-p20-hydrogen-default-design-20261030/aromatic-charge-boundary.json')\np.write_text(json.dumps({'purpose':'RDKit conventional implicit count after clearing explicit H/noImplicit; read-only reference, not production validation','interpreter':sys.executable,'rdkit':rdBase.rdkitVersion,'cases':out},indent=2)+'\\n')\nprint(p)\nprint(p.read_text())\nprint('sha256',hashlib.sha256(p.read_bytes()).hexdigest())\nPY",
+      "exit_code": 0,
+      "result": {
+        "rdkit_aromatic_charge_observations": 12
+      },
+      "coverage_limit": "RDKit convention after explicitly clearing bracket/no-implicit; strict=False property cache is not physical validation or a valid-molecule claim."
+    }
+  ],
+  "probe_artifacts": [
+    {
+      "path": "/tmp/hotpot-p20-hydrogen-default-design-20261030/aromatic-charge-boundary.json",
+      "bytes": 3267,
+      "sha256": "561de861bc720b786c6306383753ad84753d34919c9de4337c7e8222d551f665"
+    },
+    {
+      "path": "/tmp/hotpot-p20-hydrogen-default-design-20261030/observations.json",
+      "bytes": 59146,
+      "sha256": "174b8cdab288d6c56994ae077135778e17d46d2bdd33859174d11b45d2a93215"
+    },
+    {
+      "path": "/tmp/hotpot-p20-hydrogen-default-design-20261030/openbabel-obfunctions.cpp",
+      "bytes": 21770,
+      "sha256": "335daa012503b1096e0f3419f94941cb8341b5a9a3505b295cbffc4e3b7a56d9"
+    },
+    {
+      "path": "/tmp/hotpot-p20-hydrogen-default-design-20261030/opensmiles.html",
+      "bytes": 189875,
+      "sha256": "19d87bddc4f9d1384e0317276c29768e262e15cdeee0f4fc9d6528927a26d9f4"
+    },
+    {
+      "path": "/tmp/hotpot-p20-hydrogen-default-design-20261030/primary-source-identities.json",
+      "bytes": 1064,
+      "sha256": "52953980266808b922cfc3039b5cbf5db03b1cfee0d72ac26f073e8bf42dbeba"
+    },
+    {
+      "path": "/tmp/hotpot-p20-hydrogen-default-design-20261030/probe.py",
+      "bytes": 11520,
+      "sha256": "c997ccd4c9d30860f15876635c9c9da80e16cf728c1ff9417db42e7cd7cffcc8"
+    },
+    {
+      "path": "/tmp/hotpot-p20-hydrogen-default-design-20261030/rdkit-Atom.cpp",
+      "bytes": 32093,
+      "sha256": "0fa8ee52acd81779141d1bacc2f69eea8523430a4e1e268a7c37ba2a6849d6dd"
+    },
+    {
+      "path": "/tmp/hotpot-p20-hydrogen-default-design-20261030/rdkit-atomic_data.cpp",
+      "bytes": 97166,
+      "sha256": "7f9cee6e430b60d303a0a7fa9e33c45e5c529ee204f86afeab6a20f68b6b0631"
+    }
+  ],
+  "primary_sources": [
+    {
+      "name": "opensmiles.html",
+      "url": "https://raw.githubusercontent.com/opensmiles/OpenSMILES/master/opensmiles.html",
+      "sha256": "19d87bddc4f9d1384e0317276c29768e262e15cdeee0f4fc9d6528927a26d9f4",
+      "bytes": 189875,
+      "lines": 4505,
+      "artifact": "/tmp/hotpot-p20-hydrogen-default-design-20261030/opensmiles.html",
+      "availability": "Downloaded primary source; exact identity retained here."
+    },
+    {
+      "name": "rdkit-Atom.cpp",
+      "url": "https://raw.githubusercontent.com/rdkit/rdkit/Release_2026_09_1/Code/GraphMol/Atom.cpp",
+      "sha256": "0fa8ee52acd81779141d1bacc2f69eea8523430a4e1e268a7c37ba2a6849d6dd",
+      "bytes": 32093,
+      "lines": 1059,
+      "artifact": "/tmp/hotpot-p20-hydrogen-default-design-20261030/rdkit-Atom.cpp",
+      "availability": "Downloaded primary source; exact identity retained here."
+    },
+    {
+      "name": "rdkit-atomic_data.cpp",
+      "url": "https://raw.githubusercontent.com/rdkit/rdkit/Release_2026_09_1/Code/GraphMol/atomic_data.cpp",
+      "sha256": "7f9cee6e430b60d303a0a7fa9e33c45e5c529ee204f86afeab6a20f68b6b0631",
+      "bytes": 97166,
+      "lines": 3491,
+      "artifact": "/tmp/hotpot-p20-hydrogen-default-design-20261030/rdkit-atomic_data.cpp",
+      "availability": "Downloaded primary source; exact identity retained here."
+    },
+    {
+      "name": "openbabel-obfunctions.cpp",
+      "url": "https://raw.githubusercontent.com/openbabel/openbabel/openbabel-3-1-1/src/obfunctions.cpp",
+      "sha256": "335daa012503b1096e0f3419f94941cb8341b5a9a3505b295cbffc4e3b7a56d9",
+      "bytes": 21770,
+      "lines": 947,
+      "artifact": "/tmp/hotpot-p20-hydrogen-default-design-20261030/openbabel-obfunctions.cpp",
+      "availability": "Downloaded primary source; exact identity retained here."
+    }
+  ],
+  "additional_primary_sources_read_online": [
+    {
+      "url": "https://www.rdkit.org/docs/RDKit_Book.html#valence-calculation-and-allowed-valences",
+      "section": "Valence calculation and allowed valences"
+    },
+    {
+      "url": "https://www.daylight.com/dayhtml/doc/theory/theory.smiles.html",
+      "section": "3.2 SMILES"
+    },
+    {
+      "url": "https://goldbook.iupac.org/terms/view/V06588",
+      "section": "valence"
+    }
+  ],
+  "probe_script": {
+    "path": "/tmp/hotpot-p20-hydrogen-default-design-20261030/probe.py",
+    "sha256": "c997ccd4c9d30860f15876635c9c9da80e16cf728c1ff9417db42e7cd7cffcc8",
+    "source": "import ast\nimport hashlib\nimport importlib.metadata\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nimport time\nfrom types import SimpleNamespace\n\nSTART = time.perf_counter()\nROOT = Path('/home/zhangzhiyuan/hotpot')\nOUT = Path('/tmp/hotpot-p20-hydrogen-default-design-20261030')\nCURRENT_PATHS = ('hotpot/cheminfo/rules/chemistry/bonding/hydrogen.py',\n                 'hotpot/cheminfo/rules/chemistry/bonding/valence.py',\n                 'hotpot/cheminfo/operations/chemistry.py',\n                 'hotpot/cheminfo/structure/_identity.py',\n                 'hotpot/cheminfo/structure/_fields.py',\n                 'hotpot/cheminfo/structure/_dependencies.py',\n                 'hotpot/cheminfo/reference/elements.py')\ndef hashes():\n    return {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in CURRENT_PATHS}\nbefore = hashes()\nfrom hotpot.cheminfo.rules.chemistry.bonding.hydrogen import _calculate_implicit_hydrogens as current\nfrom hotpot.cheminfo.rules.chemistry.elements import _is_metal, _is_halogen, _is_noble_gas, _default_valence\nfrom rdkit import Chem, rdBase\n\nB20 = 'e6082f5fd67cb1054726ddcf43db7f963f7091ed'\nb20_text = subprocess.check_output(['git', 'show', B20 + ':hotpot/cheminfo/core.py'], cwd=ROOT).decode()\ntree = ast.parse(b20_text)\nfunctions = [n for c in tree.body if isinstance(c, ast.ClassDef) and c.name == 'Atom'\n             for n in c.body if isinstance(n, ast.FunctionDef)\n             and n.name in ('get_valence', '_calc_implicit_hydrogens')]\nfor function in functions:\n    function.decorator_list = []\n    function.returns = None\nscope = {'Atom': SimpleNamespace(elements=SimpleNamespace(default_valence={z: _default_valence(z) for z in range(1,119)}))}\nexec(compile(ast.fix_missing_locations(ast.Module(body=functions, type_ignores=[])), '<actual-b20-functions>', 'exec'), scope)\n\n# This is an executable arithmetic illustration of the documented proposal.\n# It is not Hotpot production implementation or its validation.\nVALENCES = {\n    5: {-1:(4,),0:(3,),1:(2,)}, 6:{-1:(3,),0:(4,),1:(3,)},\n    7:{-1:(2,),0:(3,),1:(4,)}, 8:{-2:(0,),-1:(1,),0:(2,),1:(3,)},\n    14:{-1:(3,5),0:(4,),1:(3,)},\n    15:{-1:(2,4,6),0:(3,5),1:(4,)},\n    33:{-1:(2,4,6),0:(3,5),1:(4,)},\n}\nfor z in (16,34,52):\n    VALENCES[z] = {-2:(0,),-1:(1,3,5),0:(2,4,6),1:(3,5),2:(4,)}\nfor z in (9,17,35,53,85):\n    VALENCES[z] = {-1:(0,),0:(1,),1:(2,)}\nAROMATIC = {(5,-1):3,(6,-1):3,(6,0):3,(6,1):3,(7,1):3,(14,0):3}\nRADICAL_AUTOFILL = frozenset((5,6,7,8,9,14,17,35,53,85))\n\ndef proposed(case):\n    z, q, r, aromatic = (case[k] for k in ('z','q','radicals','aromatic'))\n    bonds = case['bonds']\n    e = sum(other == 1 for other, _, _, _, _ in bonds)\n    bracket = case.get('bracket', 0)\n    if 'supplied' in case:\n        return {'raw': case['supplied'], 'status':'protected', 'extra':None}\n    if case.get('no_implicit', False):\n        return {'raw': e + bracket, 'status':'transport_no_implicit', 'extra':0}\n    if z == 0:\n        return {'raw':None, 'status':'missing_element', 'extra':None}\n    if _is_metal(z):\n        return {'raw':0, 'status':'no_metal_autohydrides', 'extra':0}\n    if z == 1:\n        return {'raw':e, 'status':'explicit_hydrogen_atom', 'extra':0}\n    if any(other == 0 or kind == 'unknown' or (kind == 'dative' and role is None)\n           for other, _, kind, _, role in bonds):\n        return {'raw':None, 'status':'missing_local_bonding_input', 'extra':None}\n    occupied = bracket\n    for other, order, kind, is_aromatic, role in bonds:\n        if kind == 'zero' or (kind == 'dative' and role == 'donor'):\n            contribution = 0\n        elif kind == 'dative':\n            contribution = 1\n        elif aromatic and (kind == 'aromatic' or is_aromatic):\n            contribution = 1\n        else:\n            contribution = order\n        occupied += contribution\n    if r and (z not in RADICAL_AUTOFILL or (aromatic and z == 7)):\n        return {'raw':e+bracket,'status':'no_unspecified_H_for_unsupported_radical','extra':0}\n    if aromatic:\n        candidates = () if (z,q) not in AROMATIC else (AROMATIC[z,q],)\n    else:\n        candidates = VALENCES.get(z,{}).get(q,())\n    chosen = next((v for v in candidates if v >= occupied+r), None)\n    extra = 0 if chosen is None else int(chosen-occupied-r)\n    return {'raw':e+bracket+extra, 'status':'finite_default' if chosen is not None else 'no_autofill_for_known_unusual_state',\n            'extra':extra,'occupied':occupied,'target_valence':chosen}\n\n\ndef bond(other, order=1, kind='single', aromatic=False, role=None):\n    return (other,order,kind,aromatic,role)\n\ndef case(name,z,q=0,radicals=0,aromatic=False,bonds=(),**kwargs):\n    return {'name':name,'z':z,'q':q,'radicals':radicals,'aromatic':aromatic,'bonds':tuple(bonds),**kwargs}\n\ncases = [case('isolated B neutral',5),case('isolated B-',5,-1),case('isolated B+',5,1),\n case('isolated C neutral',6),case('isolated C+',6,1),case('isolated C-',6,-1),\n case('isolated N neutral',7),case('isolated N+',7,1),case('isolated N-',7,-1),\n case('isolated O neutral',8),case('isolated O+',8,1),case('isolated O-',8,-1),case('isolated O2-',8,-2),\n case('neutral N-O single (the invalidation N4 reproducer)',7,bonds=(bond(8),)),\n case('nitro N+ with C single O single O double',7,1,bonds=(bond(6),bond(8),bond(8,2,'double'))),\n case('C one radical and one C bond',6,radicals=1,bonds=(bond(6),)),\n case('C two radicals no bonds',6,radicals=2),\n case('C bound to four graph H',6,bonds=(bond(1),)*4),\n case('C bound to one graph H',6,bonds=(bond(1),)),\n case('aromatic c two aromatic bonds',6,aromatic=True,bonds=(bond(6,1.5,'aromatic',True),)*2),\n case('fused aromatic c three aromatic bonds',6,aromatic=True,bonds=(bond(6,1.5,'aromatic',True),)*3),\n case('aromatic n two aromatic bonds',7,aromatic=True,bonds=(bond(6,1.5,'aromatic',True),)*2),\n case('aromatic [nH] supplied',7,aromatic=True,bonds=(bond(6,1.5,'aromatic',True),)*2,supplied=1),\n case('aromatic n with graph H',7,aromatic=True,bonds=(bond(6,1.5,'aromatic',True),)*2+(bond(1),)),\n case('aromatic n+ no supplied H',7,1,aromatic=True,bonds=(bond(6,1.5,'aromatic',True),)*2),\n case('aromatic n with no_implicit source and bracket H',7,aromatic=True,bonds=(bond(6,1.5,'aromatic',True),)*2,bracket=1,no_implicit=True),\n case('isolated F',9),case('isolated Cl-',17,-1),case('Cl bound to C',17,bonds=(bond(6),)),\n case('P one C single',15,bonds=(bond(6),)),case('P four C singles',15,bonds=(bond(6),)*4),\n case('P(=O)(O)O centre',15,bonds=(bond(8,2,'double'),bond(8),bond(8))),\n case('P(=O)(O)(O)O centre',15,bonds=(bond(8,2,'double'),bond(8),bond(8),bond(8))),\n case('S DMSO centre',16,bonds=(bond(6),bond(6),bond(8,2,'double'))),\n case('S sulfone centre',16,bonds=(bond(6),bond(6),bond(8,2,'double'),bond(8,2,'double'))),\n case('isolated H',1),case('isolated H+',1,1),case('isolated H-',1,-1),case('H in H2',1,bonds=(bond(1),)),\n case('Zn centre',30),case('Zn centre with graph hydride',30,bonds=(bond(1),)),\n case('C bound to Zn by covalent single',6,bonds=(bond(30),)),\n case('N donor to Zn dative',7,bonds=(bond(30,1,'dative',role='donor'),)),\n case('B acceptor from N dative',5,-1,bonds=(bond(7,1,'dative',role='acceptor'),)),\n case('C known ZERO bond to O',6,bonds=(bond(8,0,'zero'),)),\n case('C UNKNOWN zero-order edge',6,bonds=(bond(8,0,'unknown'),)),\n case('absent element Z0',0),case('C neighbour element Z0',6,bonds=(bond(0),)),\n case('neutral overvalent N four C singles',7,bonds=(bond(6),)*4),\n case('unlisted charge C+3',6,3),case('unsupported S radical with one C single',16,radicals=1,bonds=(bond(6),)),\n case('source explicit zero wins even with missing element',0,supplied=0),\n case('source arbitrary finite count preserved',6,supplied=65537.25),\n]\nobservations=[]\nfor item in cases:\n    z, neighbours = item['z'], tuple(x[0] for x in item['bonds'])\n    orders = tuple(x[1] for x in item['bonds'])\n    atom = SimpleNamespace(atomic_number=z,is_metal=_is_metal(z),is_aromatic=item['aromatic'],\n        is_halogens=_is_halogen(z),is_noble_gases=_is_noble_gas(z),symbol=str(z),\n        neighbours=tuple(SimpleNamespace(atomic_number=n,is_metal=_is_metal(n)) for n in neighbours),\n        sum_heavy_cov_orders=int(sum(order for n,order in zip(neighbours,orders) if n != 1 and not _is_metal(n))),\n        sum_covalent_orders=int(sum(order for n,order in zip(neighbours,orders) if not _is_metal(n))))\n    try:\n        atom.valence = scope['get_valence'](atom)\n        historical = {'value':scope['_calc_implicit_hydrogens'](atom)}\n    except Exception as error:\n        historical = {'error_type':type(error).__name__,'error':str(error)}\n    try:\n        current_result={'value':current(z,neighbours,orders,item['aromatic'],str(z))}\n    except Exception as error:\n        current_result={'error_type':type(error).__name__,'error':str(error)}\n    observations.append({'case':item,'actual_b20_source_function':historical,\n                         'actual_current_private_rule':current_result,'design_arithmetic_only':proposed(item)})\n\nparams = Chem.SmilesParserParams()\nparams.removeHs=False\nrdkit_cases = []\nfor smiles in ('C','[CH3+]','[CH3-]','N','[NH4+]','[NH2-]','O','[OH3+]','[OH-]',\n               'B','[BH4-]','NO','C[N+](=O)[O-]','[H]C([H])([H])[H]',\n               'c1ccccc1','n1ccccc1','[nH]1cccc1','[H]','[H+]','[H-]','[H][H]',\n               'CP','OP(=O)(O)O','CS(=O)C','CS(=O)(=O)C','N->[Zn]','[Zn]C','[13CH4]','[2H]O[2H]'):\n    molecule=Chem.MolFromSmiles(smiles, params)\n    rdkit_cases.append({'smiles':smiles,'parsed':molecule is not None,'atoms':[] if molecule is None else [\n        {'z':a.GetAtomicNum(),'q':a.GetFormalCharge(),'radicals':a.GetNumRadicalElectrons(),\n         'aromatic':a.GetIsAromatic(),'graph_H':sum(n.GetAtomicNum()==1 for n in a.GetNeighbors()),\n         'rdkit_implicit':a.GetNumImplicitHs(),'rdkit_bracket':a.GetNumExplicitHs(),\n         'non_graph_H':a.GetNumImplicitHs()+a.GetNumExplicitHs(),\n         'no_implicit':a.GetNoImplicit(),'total_H_with_neighbours':a.GetTotalNumHs(includeNeighbors=True),\n         'isotope':a.GetIsotope()} for a in molecule.GetAtoms()]})\nafter=hashes()\nreport={'task':'p20-s5-h-default-design-01','kind':'read-only source probes and proposal arithmetic; not production validation',\n        'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),\n        'argv':sys.argv,'cwd':str(ROOT),'interpreter':sys.executable,'python':sys.version,\n        'rdkit':rdBase.rdkitVersion,'numpy':importlib.metadata.version('numpy'),\n        'b20_source':{'commit':B20,'path':'hotpot/cheminfo/core.py','sha256':hashlib.sha256(b20_text.encode()).hexdigest(),\n                      'actual_ast_ranges':[[n.lineno,n.end_lineno] for n in functions]},\n        'source_before':before,'source_after':after,'source_bytes_stable':before==after,\n        'private_rule_cases':observations,'rdkit_reference_cases':rdkit_cases,\n        'elapsed_seconds':time.perf_counter()-START}\n(OUT/'observations.json').write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\\n')\nprint(json.dumps({'cases':len(observations),'rdkit_reference_cases':len(rdkit_cases),\n                  'source_bytes_stable':report['source_bytes_stable'],'elapsed_seconds':report['elapsed_seconds'],\n                  'output':str(OUT/'observations.json')},indent=2))\nfor index in (1,4,7,10,13,14,15,17,19,21,30,31,35,39,40,41,43,44,45):\n    row=observations[index]\n    print(row['case']['name'], 'B20=',row['actual_b20_source_function'],\n          'current=',row['actual_current_private_rule'],'proposal=',row['design_arithmetic_only'])\n",
+    "final_design_difference": "Unused arithmetic AROMATIC entries for C(q=-1/+1) were narrowed by later boundary evidence; decisions.md is the final recommendation. Final algorithm states ordinary-nonmetal total scope, legacy metal0 precedence before ordinary no_implicit completion, and atomic current-J materialization; original helper does not execute this operation/rollback or cover metal+no_implicit precedence."
+  },
+  "complete_observations": {
+    "task": "p20-s5-h-default-design-01",
+    "kind": "read-only source probes and proposal arithmetic; not production validation",
+    "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+    "argv": [
+      "/tmp/hotpot-p20-hydrogen-default-design-20261030/probe.py"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "interpreter": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+    "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "rdkit": "2026.09.1",
+    "numpy": "2.4.6",
+    "b20_source": {
+      "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+      "path": "hotpot/cheminfo/core.py",
+      "sha256": "75c1be7e5bde13a5e67bb30c731388505438495964a4adad7f64a9a060f52532",
+      "actual_ast_ranges": [
+        [
+          3509,
+          3541
+        ],
+        [
+          4162,
+          4215
+        ]
+      ]
+    },
+    "source_before": {
+      "hotpot/cheminfo/rules/chemistry/bonding/hydrogen.py": "e120026e5f12694dc0984810313301a6db5bb82b5d66c98e75a783c57a5eaee1",
+      "hotpot/cheminfo/rules/chemistry/bonding/valence.py": "6607f5c28c8b42ed9014bec1517f3afa2994b7a7dd66933e1eddd6e216cbd1ab",
+      "hotpot/cheminfo/operations/chemistry.py": "0324a22423648128f8f13bc154f4cd338fd98beed122b6e8ecef462efd152732",
+      "hotpot/cheminfo/structure/_identity.py": "754dfed66113509f935b815173d8dc07cc2c36162fd2d2f71b8fec11ef97bb66",
+      "hotpot/cheminfo/structure/_fields.py": "8dff72608a494ceabeb2d824b8c4651ab3e5a17ebab77e6059d3e5481f3d3320",
+      "hotpot/cheminfo/structure/_dependencies.py": "92fcc35c87a0ef5d2beef8c889ddb4c1a7317af5bf4bf69f84f4cf1d41c3e6bc",
+      "hotpot/cheminfo/reference/elements.py": "b64367b01abccb2f3059f5d437a6083a2c6235ba8ceda00c63f2d28eb06e6449"
+    },
+    "source_after": {
+      "hotpot/cheminfo/rules/chemistry/bonding/hydrogen.py": "e120026e5f12694dc0984810313301a6db5bb82b5d66c98e75a783c57a5eaee1",
+      "hotpot/cheminfo/rules/chemistry/bonding/valence.py": "6607f5c28c8b42ed9014bec1517f3afa2994b7a7dd66933e1eddd6e216cbd1ab",
+      "hotpot/cheminfo/operations/chemistry.py": "0324a22423648128f8f13bc154f4cd338fd98beed122b6e8ecef462efd152732",
+      "hotpot/cheminfo/structure/_identity.py": "754dfed66113509f935b815173d8dc07cc2c36162fd2d2f71b8fec11ef97bb66",
+      "hotpot/cheminfo/structure/_fields.py": "8dff72608a494ceabeb2d824b8c4651ab3e5a17ebab77e6059d3e5481f3d3320",
+      "hotpot/cheminfo/structure/_dependencies.py": "92fcc35c87a0ef5d2beef8c889ddb4c1a7317af5bf4bf69f84f4cf1d41c3e6bc",
+      "hotpot/cheminfo/reference/elements.py": "b64367b01abccb2f3059f5d437a6083a2c6235ba8ceda00c63f2d28eb06e6449"
+    },
+    "source_bytes_stable": true,
+    "private_rule_cases": [
+      {
+        "case": {
+          "name": "isolated B neutral",
+          "z": 5,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 3
+        },
+        "actual_current_private_rule": {
+          "value": 3
+        },
+        "design_arithmetic_only": {
+          "raw": 3,
+          "status": "finite_default",
+          "extra": 3,
+          "occupied": 0,
+          "target_valence": 3
+        }
+      },
+      {
+        "case": {
+          "name": "isolated B-",
+          "z": 5,
+          "q": -1,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 3
+        },
+        "actual_current_private_rule": {
+          "value": 3
+        },
+        "design_arithmetic_only": {
+          "raw": 4,
+          "status": "finite_default",
+          "extra": 4,
+          "occupied": 0,
+          "target_valence": 4
+        }
+      },
+      {
+        "case": {
+          "name": "isolated B+",
+          "z": 5,
+          "q": 1,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 3
+        },
+        "actual_current_private_rule": {
+          "value": 3
+        },
+        "design_arithmetic_only": {
+          "raw": 2,
+          "status": "finite_default",
+          "extra": 2,
+          "occupied": 0,
+          "target_valence": 2
+        }
+      },
+      {
+        "case": {
+          "name": "isolated C neutral",
+          "z": 6,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 4
+        },
+        "actual_current_private_rule": {
+          "value": 4
+        },
+        "design_arithmetic_only": {
+          "raw": 4,
+          "status": "finite_default",
+          "extra": 4,
+          "occupied": 0,
+          "target_valence": 4
+        }
+      },
+      {
+        "case": {
+          "name": "isolated C+",
+          "z": 6,
+          "q": 1,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 4
+        },
+        "actual_current_private_rule": {
+          "value": 4
+        },
+        "design_arithmetic_only": {
+          "raw": 3,
+          "status": "finite_default",
+          "extra": 3,
+          "occupied": 0,
+          "target_valence": 3
+        }
+      },
+      {
+        "case": {
+          "name": "isolated C-",
+          "z": 6,
+          "q": -1,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 4
+        },
+        "actual_current_private_rule": {
+          "value": 4
+        },
+        "design_arithmetic_only": {
+          "raw": 3,
+          "status": "finite_default",
+          "extra": 3,
+          "occupied": 0,
+          "target_valence": 3
+        }
+      },
+      {
+        "case": {
+          "name": "isolated N neutral",
+          "z": 7,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 3
+        },
+        "actual_current_private_rule": {
+          "value": 3
+        },
+        "design_arithmetic_only": {
+          "raw": 3,
+          "status": "finite_default",
+          "extra": 3,
+          "occupied": 0,
+          "target_valence": 3
+        }
+      },
+      {
+        "case": {
+          "name": "isolated N+",
+          "z": 7,
+          "q": 1,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 3
+        },
+        "actual_current_private_rule": {
+          "value": 3
+        },
+        "design_arithmetic_only": {
+          "raw": 4,
+          "status": "finite_default",
+          "extra": 4,
+          "occupied": 0,
+          "target_valence": 4
+        }
+      },
+      {
+        "case": {
+          "name": "isolated N-",
+          "z": 7,
+          "q": -1,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 3
+        },
+        "actual_current_private_rule": {
+          "value": 3
+        },
+        "design_arithmetic_only": {
+          "raw": 2,
+          "status": "finite_default",
+          "extra": 2,
+          "occupied": 0,
+          "target_valence": 2
+        }
+      },
+      {
+        "case": {
+          "name": "isolated O neutral",
+          "z": 8,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 2
+        },
+        "actual_current_private_rule": {
+          "value": 2
+        },
+        "design_arithmetic_only": {
+          "raw": 2,
+          "status": "finite_default",
+          "extra": 2,
+          "occupied": 0,
+          "target_valence": 2
+        }
+      },
+      {
+        "case": {
+          "name": "isolated O+",
+          "z": 8,
+          "q": 1,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 2
+        },
+        "actual_current_private_rule": {
+          "value": 2
+        },
+        "design_arithmetic_only": {
+          "raw": 3,
+          "status": "finite_default",
+          "extra": 3,
+          "occupied": 0,
+          "target_valence": 3
+        }
+      },
+      {
+        "case": {
+          "name": "isolated O-",
+          "z": 8,
+          "q": -1,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 2
+        },
+        "actual_current_private_rule": {
+          "value": 2
+        },
+        "design_arithmetic_only": {
+          "raw": 1,
+          "status": "finite_default",
+          "extra": 1,
+          "occupied": 0,
+          "target_valence": 1
+        }
+      },
+      {
+        "case": {
+          "name": "isolated O2-",
+          "z": 8,
+          "q": -2,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 2
+        },
+        "actual_current_private_rule": {
+          "value": 2
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "finite_default",
+          "extra": 0,
+          "occupied": 0,
+          "target_valence": 0
+        }
+      },
+      {
+        "case": {
+          "name": "neutral N-O single (the invalidation N4 reproducer)",
+          "z": 7,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              8,
+              1,
+              "single",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 4
+        },
+        "actual_current_private_rule": {
+          "value": 4
+        },
+        "design_arithmetic_only": {
+          "raw": 2,
+          "status": "finite_default",
+          "extra": 2,
+          "occupied": 1,
+          "target_valence": 3
+        }
+      },
+      {
+        "case": {
+          "name": "nitro N+ with C single O single O double",
+          "z": 7,
+          "q": 1,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              8,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              8,
+              2,
+              "double",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 1
+        },
+        "actual_current_private_rule": {
+          "value": 1
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "finite_default",
+          "extra": 0,
+          "occupied": 4,
+          "target_valence": 4
+        }
+      },
+      {
+        "case": {
+          "name": "C one radical and one C bond",
+          "z": 6,
+          "q": 0,
+          "radicals": 1,
+          "aromatic": false,
+          "bonds": [
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 3
+        },
+        "actual_current_private_rule": {
+          "value": 3
+        },
+        "design_arithmetic_only": {
+          "raw": 2,
+          "status": "finite_default",
+          "extra": 2,
+          "occupied": 1,
+          "target_valence": 4
+        }
+      },
+      {
+        "case": {
+          "name": "C two radicals no bonds",
+          "z": 6,
+          "q": 0,
+          "radicals": 2,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 4
+        },
+        "actual_current_private_rule": {
+          "value": 4
+        },
+        "design_arithmetic_only": {
+          "raw": 2,
+          "status": "finite_default",
+          "extra": 2,
+          "occupied": 0,
+          "target_valence": 4
+        }
+      },
+      {
+        "case": {
+          "name": "C bound to four graph H",
+          "z": 6,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              1,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              1,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              1,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              1,
+              1,
+              "single",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 4
+        },
+        "actual_current_private_rule": {
+          "value": 4
+        },
+        "design_arithmetic_only": {
+          "raw": 4,
+          "status": "finite_default",
+          "extra": 0,
+          "occupied": 4,
+          "target_valence": 4
+        }
+      },
+      {
+        "case": {
+          "name": "C bound to one graph H",
+          "z": 6,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              1,
+              1,
+              "single",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 4
+        },
+        "actual_current_private_rule": {
+          "value": 4
+        },
+        "design_arithmetic_only": {
+          "raw": 4,
+          "status": "finite_default",
+          "extra": 3,
+          "occupied": 1,
+          "target_valence": 4
+        }
+      },
+      {
+        "case": {
+          "name": "aromatic c two aromatic bonds",
+          "z": 6,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": true,
+          "bonds": [
+            [
+              6,
+              1.5,
+              "aromatic",
+              true,
+              null
+            ],
+            [
+              6,
+              1.5,
+              "aromatic",
+              true,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 1
+        },
+        "actual_current_private_rule": {
+          "value": 1
+        },
+        "design_arithmetic_only": {
+          "raw": 1,
+          "status": "finite_default",
+          "extra": 1,
+          "occupied": 2,
+          "target_valence": 3
+        }
+      },
+      {
+        "case": {
+          "name": "fused aromatic c three aromatic bonds",
+          "z": 6,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": true,
+          "bonds": [
+            [
+              6,
+              1.5,
+              "aromatic",
+              true,
+              null
+            ],
+            [
+              6,
+              1.5,
+              "aromatic",
+              true,
+              null
+            ],
+            [
+              6,
+              1.5,
+              "aromatic",
+              true,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 0
+        },
+        "actual_current_private_rule": {
+          "value": 0
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "finite_default",
+          "extra": 0,
+          "occupied": 3,
+          "target_valence": 3
+        }
+      },
+      {
+        "case": {
+          "name": "aromatic n two aromatic bonds",
+          "z": 7,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": true,
+          "bonds": [
+            [
+              6,
+              1.5,
+              "aromatic",
+              true,
+              null
+            ],
+            [
+              6,
+              1.5,
+              "aromatic",
+              true,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 0
+        },
+        "actual_current_private_rule": {
+          "value": 0
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "no_autofill_for_known_unusual_state",
+          "extra": 0,
+          "occupied": 2,
+          "target_valence": null
+        }
+      },
+      {
+        "case": {
+          "name": "aromatic [nH] supplied",
+          "z": 7,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": true,
+          "bonds": [
+            [
+              6,
+              1.5,
+              "aromatic",
+              true,
+              null
+            ],
+            [
+              6,
+              1.5,
+              "aromatic",
+              true,
+              null
+            ]
+          ],
+          "supplied": 1
+        },
+        "actual_b20_source_function": {
+          "value": 0
+        },
+        "actual_current_private_rule": {
+          "value": 0
+        },
+        "design_arithmetic_only": {
+          "raw": 1,
+          "status": "protected",
+          "extra": null
+        }
+      },
+      {
+        "case": {
+          "name": "aromatic n with graph H",
+          "z": 7,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": true,
+          "bonds": [
+            [
+              6,
+              1.5,
+              "aromatic",
+              true,
+              null
+            ],
+            [
+              6,
+              1.5,
+              "aromatic",
+              true,
+              null
+            ],
+            [
+              1,
+              1,
+              "single",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 0
+        },
+        "actual_current_private_rule": {
+          "value": 0
+        },
+        "design_arithmetic_only": {
+          "raw": 1,
+          "status": "no_autofill_for_known_unusual_state",
+          "extra": 0,
+          "occupied": 3,
+          "target_valence": null
+        }
+      },
+      {
+        "case": {
+          "name": "aromatic n+ no supplied H",
+          "z": 7,
+          "q": 1,
+          "radicals": 0,
+          "aromatic": true,
+          "bonds": [
+            [
+              6,
+              1.5,
+              "aromatic",
+              true,
+              null
+            ],
+            [
+              6,
+              1.5,
+              "aromatic",
+              true,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 0
+        },
+        "actual_current_private_rule": {
+          "value": 0
+        },
+        "design_arithmetic_only": {
+          "raw": 1,
+          "status": "finite_default",
+          "extra": 1,
+          "occupied": 2,
+          "target_valence": 3
+        }
+      },
+      {
+        "case": {
+          "name": "aromatic n with no_implicit source and bracket H",
+          "z": 7,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": true,
+          "bonds": [
+            [
+              6,
+              1.5,
+              "aromatic",
+              true,
+              null
+            ],
+            [
+              6,
+              1.5,
+              "aromatic",
+              true,
+              null
+            ]
+          ],
+          "bracket": 1,
+          "no_implicit": true
+        },
+        "actual_b20_source_function": {
+          "value": 0
+        },
+        "actual_current_private_rule": {
+          "value": 0
+        },
+        "design_arithmetic_only": {
+          "raw": 1,
+          "status": "transport_no_implicit",
+          "extra": 0
+        }
+      },
+      {
+        "case": {
+          "name": "isolated F",
+          "z": 9,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 1
+        },
+        "actual_current_private_rule": {
+          "value": 1
+        },
+        "design_arithmetic_only": {
+          "raw": 1,
+          "status": "finite_default",
+          "extra": 1,
+          "occupied": 0,
+          "target_valence": 1
+        }
+      },
+      {
+        "case": {
+          "name": "isolated Cl-",
+          "z": 17,
+          "q": -1,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 1
+        },
+        "actual_current_private_rule": {
+          "value": 1
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "finite_default",
+          "extra": 0,
+          "occupied": 0,
+          "target_valence": 0
+        }
+      },
+      {
+        "case": {
+          "name": "Cl bound to C",
+          "z": 17,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 0
+        },
+        "actual_current_private_rule": {
+          "value": 0
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "finite_default",
+          "extra": 0,
+          "occupied": 1,
+          "target_valence": 1
+        }
+      },
+      {
+        "case": {
+          "name": "P one C single",
+          "z": 15,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 2
+        },
+        "actual_current_private_rule": {
+          "value": 2
+        },
+        "design_arithmetic_only": {
+          "raw": 2,
+          "status": "finite_default",
+          "extra": 2,
+          "occupied": 1,
+          "target_valence": 3
+        }
+      },
+      {
+        "case": {
+          "name": "P four C singles",
+          "z": 15,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 0
+        },
+        "actual_current_private_rule": {
+          "value": 0
+        },
+        "design_arithmetic_only": {
+          "raw": 1,
+          "status": "finite_default",
+          "extra": 1,
+          "occupied": 4,
+          "target_valence": 5
+        }
+      },
+      {
+        "case": {
+          "name": "P(=O)(O)O centre",
+          "z": 15,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              8,
+              2,
+              "double",
+              false,
+              null
+            ],
+            [
+              8,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              8,
+              1,
+              "single",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 3
+        },
+        "actual_current_private_rule": {
+          "value": 3
+        },
+        "design_arithmetic_only": {
+          "raw": 1,
+          "status": "finite_default",
+          "extra": 1,
+          "occupied": 4,
+          "target_valence": 5
+        }
+      },
+      {
+        "case": {
+          "name": "P(=O)(O)(O)O centre",
+          "z": 15,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              8,
+              2,
+              "double",
+              false,
+              null
+            ],
+            [
+              8,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              8,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              8,
+              1,
+              "single",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 4
+        },
+        "actual_current_private_rule": {
+          "value": 4
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "finite_default",
+          "extra": 0,
+          "occupied": 5,
+          "target_valence": 5
+        }
+      },
+      {
+        "case": {
+          "name": "S DMSO centre",
+          "z": 16,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              8,
+              2,
+              "double",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 0
+        },
+        "actual_current_private_rule": {
+          "value": 0
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "finite_default",
+          "extra": 0,
+          "occupied": 4,
+          "target_valence": 4
+        }
+      },
+      {
+        "case": {
+          "name": "S sulfone centre",
+          "z": 16,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              8,
+              2,
+              "double",
+              false,
+              null
+            ],
+            [
+              8,
+              2,
+              "double",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 0
+        },
+        "actual_current_private_rule": {
+          "value": 0
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "finite_default",
+          "extra": 0,
+          "occupied": 6,
+          "target_valence": 6
+        }
+      },
+      {
+        "case": {
+          "name": "isolated H",
+          "z": 1,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "error_type": "IndexError",
+          "error": "tuple index out of range"
+        },
+        "actual_current_private_rule": {
+          "value": null
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "explicit_hydrogen_atom",
+          "extra": 0
+        }
+      },
+      {
+        "case": {
+          "name": "isolated H+",
+          "z": 1,
+          "q": 1,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "error_type": "IndexError",
+          "error": "tuple index out of range"
+        },
+        "actual_current_private_rule": {
+          "value": null
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "explicit_hydrogen_atom",
+          "extra": 0
+        }
+      },
+      {
+        "case": {
+          "name": "isolated H-",
+          "z": 1,
+          "q": -1,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "error_type": "IndexError",
+          "error": "tuple index out of range"
+        },
+        "actual_current_private_rule": {
+          "value": null
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "explicit_hydrogen_atom",
+          "extra": 0
+        }
+      },
+      {
+        "case": {
+          "name": "H in H2",
+          "z": 1,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              1,
+              1,
+              "single",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 1
+        },
+        "actual_current_private_rule": {
+          "value": 1
+        },
+        "design_arithmetic_only": {
+          "raw": 1,
+          "status": "explicit_hydrogen_atom",
+          "extra": 0
+        }
+      },
+      {
+        "case": {
+          "name": "Zn centre",
+          "z": 30,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 0
+        },
+        "actual_current_private_rule": {
+          "value": 0
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "no_metal_autohydrides",
+          "extra": 0
+        }
+      },
+      {
+        "case": {
+          "name": "Zn centre with graph hydride",
+          "z": 30,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              1,
+              1,
+              "single",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 0
+        },
+        "actual_current_private_rule": {
+          "value": 0
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "no_metal_autohydrides",
+          "extra": 0
+        }
+      },
+      {
+        "case": {
+          "name": "C bound to Zn by covalent single",
+          "z": 6,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              30,
+              1,
+              "single",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 4
+        },
+        "actual_current_private_rule": {
+          "value": 4
+        },
+        "design_arithmetic_only": {
+          "raw": 3,
+          "status": "finite_default",
+          "extra": 3,
+          "occupied": 1,
+          "target_valence": 4
+        }
+      },
+      {
+        "case": {
+          "name": "N donor to Zn dative",
+          "z": 7,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              30,
+              1,
+              "dative",
+              false,
+              "donor"
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 3
+        },
+        "actual_current_private_rule": {
+          "value": 3
+        },
+        "design_arithmetic_only": {
+          "raw": 3,
+          "status": "finite_default",
+          "extra": 3,
+          "occupied": 0,
+          "target_valence": 3
+        }
+      },
+      {
+        "case": {
+          "name": "B acceptor from N dative",
+          "z": 5,
+          "q": -1,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              7,
+              1,
+              "dative",
+              false,
+              "acceptor"
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 2
+        },
+        "actual_current_private_rule": {
+          "value": 2
+        },
+        "design_arithmetic_only": {
+          "raw": 3,
+          "status": "finite_default",
+          "extra": 3,
+          "occupied": 1,
+          "target_valence": 4
+        }
+      },
+      {
+        "case": {
+          "name": "C known ZERO bond to O",
+          "z": 6,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              8,
+              0,
+              "zero",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 4
+        },
+        "actual_current_private_rule": {
+          "value": 4
+        },
+        "design_arithmetic_only": {
+          "raw": 4,
+          "status": "finite_default",
+          "extra": 4,
+          "occupied": 0,
+          "target_valence": 4
+        }
+      },
+      {
+        "case": {
+          "name": "C UNKNOWN zero-order edge",
+          "z": 6,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              8,
+              0,
+              "unknown",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 4
+        },
+        "actual_current_private_rule": {
+          "value": 4
+        },
+        "design_arithmetic_only": {
+          "raw": null,
+          "status": "missing_local_bonding_input",
+          "extra": null
+        }
+      },
+      {
+        "case": {
+          "name": "absent element Z0",
+          "z": 0,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "error_type": "KeyError",
+          "error": "0"
+        },
+        "actual_current_private_rule": {
+          "value": null
+        },
+        "design_arithmetic_only": {
+          "raw": null,
+          "status": "missing_element",
+          "extra": null
+        }
+      },
+      {
+        "case": {
+          "name": "C neighbour element Z0",
+          "z": 6,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              0,
+              1,
+              "single",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 3
+        },
+        "actual_current_private_rule": {
+          "value": 3
+        },
+        "design_arithmetic_only": {
+          "raw": null,
+          "status": "missing_local_bonding_input",
+          "extra": null
+        }
+      },
+      {
+        "case": {
+          "name": "neutral overvalent N four C singles",
+          "z": 7,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ],
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 0
+        },
+        "actual_current_private_rule": {
+          "value": 0
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "no_autofill_for_known_unusual_state",
+          "extra": 0,
+          "occupied": 4,
+          "target_valence": null
+        }
+      },
+      {
+        "case": {
+          "name": "unlisted charge C+3",
+          "z": 6,
+          "q": 3,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": []
+        },
+        "actual_b20_source_function": {
+          "value": 4
+        },
+        "actual_current_private_rule": {
+          "value": 4
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "no_autofill_for_known_unusual_state",
+          "extra": 0,
+          "occupied": 0,
+          "target_valence": null
+        }
+      },
+      {
+        "case": {
+          "name": "unsupported S radical with one C single",
+          "z": 16,
+          "q": 0,
+          "radicals": 1,
+          "aromatic": false,
+          "bonds": [
+            [
+              6,
+              1,
+              "single",
+              false,
+              null
+            ]
+          ]
+        },
+        "actual_b20_source_function": {
+          "value": 1
+        },
+        "actual_current_private_rule": {
+          "value": 1
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "no_unspecified_H_for_unsupported_radical",
+          "extra": 0
+        }
+      },
+      {
+        "case": {
+          "name": "source explicit zero wins even with missing element",
+          "z": 0,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [],
+          "supplied": 0
+        },
+        "actual_b20_source_function": {
+          "error_type": "KeyError",
+          "error": "0"
+        },
+        "actual_current_private_rule": {
+          "value": null
+        },
+        "design_arithmetic_only": {
+          "raw": 0,
+          "status": "protected",
+          "extra": null
+        }
+      },
+      {
+        "case": {
+          "name": "source arbitrary finite count preserved",
+          "z": 6,
+          "q": 0,
+          "radicals": 0,
+          "aromatic": false,
+          "bonds": [],
+          "supplied": 65537.25
+        },
+        "actual_b20_source_function": {
+          "value": 4
+        },
+        "actual_current_private_rule": {
+          "value": 4
+        },
+        "design_arithmetic_only": {
+          "raw": 65537.25,
+          "status": "protected",
+          "extra": null
+        }
+      }
+    ],
+    "rdkit_reference_cases": [
+      {
+        "smiles": "C",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 4,
+            "rdkit_bracket": 0,
+            "non_graph_H": 4,
+            "no_implicit": false,
+            "total_H_with_neighbours": 4,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "[CH3+]",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 6,
+            "q": 1,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 3,
+            "non_graph_H": 3,
+            "no_implicit": true,
+            "total_H_with_neighbours": 3,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "[CH3-]",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 6,
+            "q": -1,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 3,
+            "non_graph_H": 3,
+            "no_implicit": true,
+            "total_H_with_neighbours": 3,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "N",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 7,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 3,
+            "rdkit_bracket": 0,
+            "non_graph_H": 3,
+            "no_implicit": false,
+            "total_H_with_neighbours": 3,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "[NH4+]",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 7,
+            "q": 1,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 4,
+            "non_graph_H": 4,
+            "no_implicit": true,
+            "total_H_with_neighbours": 4,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "[NH2-]",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 7,
+            "q": -1,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 2,
+            "non_graph_H": 2,
+            "no_implicit": true,
+            "total_H_with_neighbours": 2,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "O",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 8,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 2,
+            "rdkit_bracket": 0,
+            "non_graph_H": 2,
+            "no_implicit": false,
+            "total_H_with_neighbours": 2,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "[OH3+]",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 8,
+            "q": 1,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 3,
+            "non_graph_H": 3,
+            "no_implicit": true,
+            "total_H_with_neighbours": 3,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "[OH-]",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 8,
+            "q": -1,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 1,
+            "non_graph_H": 1,
+            "no_implicit": true,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "B",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 5,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 3,
+            "rdkit_bracket": 0,
+            "non_graph_H": 3,
+            "no_implicit": false,
+            "total_H_with_neighbours": 3,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "[BH4-]",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 5,
+            "q": -1,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 4,
+            "non_graph_H": 4,
+            "no_implicit": true,
+            "total_H_with_neighbours": 4,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "NO",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 7,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 2,
+            "rdkit_bracket": 0,
+            "non_graph_H": 2,
+            "no_implicit": false,
+            "total_H_with_neighbours": 2,
+            "isotope": 0
+          },
+          {
+            "z": 8,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "C[N+](=O)[O-]",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 3,
+            "rdkit_bracket": 0,
+            "non_graph_H": 3,
+            "no_implicit": false,
+            "total_H_with_neighbours": 3,
+            "isotope": 0
+          },
+          {
+            "z": 7,
+            "q": 1,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": true,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          },
+          {
+            "z": 8,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": false,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          },
+          {
+            "z": 8,
+            "q": -1,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": true,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "[H]C([H])([H])[H]",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 1,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": true,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 4,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": false,
+            "total_H_with_neighbours": 4,
+            "isotope": 0
+          },
+          {
+            "z": 1,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": true,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          },
+          {
+            "z": 1,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": true,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          },
+          {
+            "z": 1,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": true,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "c1ccccc1",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "n1ccccc1",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 7,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": false,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "[nH]1cccc1",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 7,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 1,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": true,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "[H]",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 1,
+            "q": 0,
+            "radicals": 1,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": true,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "[H+]",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 1,
+            "q": 1,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": true,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "[H-]",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 1,
+            "q": -1,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": true,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "[H][H]",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 1,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 1,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": true,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          },
+          {
+            "z": 1,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 1,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": true,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "CP",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 3,
+            "rdkit_bracket": 0,
+            "non_graph_H": 3,
+            "no_implicit": false,
+            "total_H_with_neighbours": 3,
+            "isotope": 0
+          },
+          {
+            "z": 15,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 2,
+            "rdkit_bracket": 0,
+            "non_graph_H": 2,
+            "no_implicit": false,
+            "total_H_with_neighbours": 2,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "OP(=O)(O)O",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 8,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          },
+          {
+            "z": 15,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": false,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          },
+          {
+            "z": 8,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": false,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          },
+          {
+            "z": 8,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          },
+          {
+            "z": 8,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 1,
+            "rdkit_bracket": 0,
+            "non_graph_H": 1,
+            "no_implicit": false,
+            "total_H_with_neighbours": 1,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "CS(=O)C",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 3,
+            "rdkit_bracket": 0,
+            "non_graph_H": 3,
+            "no_implicit": false,
+            "total_H_with_neighbours": 3,
+            "isotope": 0
+          },
+          {
+            "z": 16,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": false,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          },
+          {
+            "z": 8,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": false,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 3,
+            "rdkit_bracket": 0,
+            "non_graph_H": 3,
+            "no_implicit": false,
+            "total_H_with_neighbours": 3,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "CS(=O)(=O)C",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 3,
+            "rdkit_bracket": 0,
+            "non_graph_H": 3,
+            "no_implicit": false,
+            "total_H_with_neighbours": 3,
+            "isotope": 0
+          },
+          {
+            "z": 16,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": false,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          },
+          {
+            "z": 8,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": false,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          },
+          {
+            "z": 8,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": false,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 3,
+            "rdkit_bracket": 0,
+            "non_graph_H": 3,
+            "no_implicit": false,
+            "total_H_with_neighbours": 3,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "N->[Zn]",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 7,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 3,
+            "rdkit_bracket": 0,
+            "non_graph_H": 3,
+            "no_implicit": false,
+            "total_H_with_neighbours": 3,
+            "isotope": 0
+          },
+          {
+            "z": 30,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": true,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "[Zn]C",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 30,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": true,
+            "total_H_with_neighbours": 0,
+            "isotope": 0
+          },
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 3,
+            "rdkit_bracket": 0,
+            "non_graph_H": 3,
+            "no_implicit": false,
+            "total_H_with_neighbours": 3,
+            "isotope": 0
+          }
+        ]
+      },
+      {
+        "smiles": "[13CH4]",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 6,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 4,
+            "non_graph_H": 4,
+            "no_implicit": true,
+            "total_H_with_neighbours": 4,
+            "isotope": 13
+          }
+        ]
+      },
+      {
+        "smiles": "[2H]O[2H]",
+        "parsed": true,
+        "atoms": [
+          {
+            "z": 1,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": true,
+            "total_H_with_neighbours": 0,
+            "isotope": 2
+          },
+          {
+            "z": 8,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 2,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": false,
+            "total_H_with_neighbours": 2,
+            "isotope": 0
+          },
+          {
+            "z": 1,
+            "q": 0,
+            "radicals": 0,
+            "aromatic": false,
+            "graph_H": 0,
+            "rdkit_implicit": 0,
+            "rdkit_bracket": 0,
+            "non_graph_H": 0,
+            "no_implicit": true,
+            "total_H_with_neighbours": 0,
+            "isotope": 2
+          }
+        ]
+      }
+    ],
+    "elapsed_seconds": 0.6454152259975672
+  },
+  "aromatic_charge_boundary": {
+    "purpose": "RDKit conventional implicit count after clearing explicit H/noImplicit; read-only reference, not production validation",
+    "interpreter": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+    "rdkit": "2026.09.1",
+    "cases": [
+      {
+        "smiles": "c1ccccc1",
+        "row": 0,
+        "observed": {
+          "element": "C",
+          "q": -1,
+          "implicit_h": 0,
+          "explicit_valence": 3,
+          "radical": 0,
+          "aromatic": true,
+          "degree": 2
+        }
+      },
+      {
+        "smiles": "c1ccccc1",
+        "row": 0,
+        "observed": {
+          "element": "C",
+          "q": 0,
+          "implicit_h": 1,
+          "explicit_valence": 3,
+          "radical": 0,
+          "aromatic": true,
+          "degree": 2
+        }
+      },
+      {
+        "smiles": "c1ccccc1",
+        "row": 0,
+        "observed": {
+          "element": "C",
+          "q": 1,
+          "implicit_h": 0,
+          "explicit_valence": 3,
+          "radical": 0,
+          "aromatic": true,
+          "degree": 2
+        }
+      },
+      {
+        "smiles": "c1ccncc1",
+        "row": 3,
+        "observed": {
+          "element": "N",
+          "q": -1,
+          "implicit_h": 0,
+          "explicit_valence": 2,
+          "radical": 0,
+          "aromatic": true,
+          "degree": 2
+        }
+      },
+      {
+        "smiles": "c1ccncc1",
+        "row": 3,
+        "observed": {
+          "element": "N",
+          "q": 0,
+          "implicit_h": 0,
+          "explicit_valence": 3,
+          "radical": 0,
+          "aromatic": true,
+          "degree": 2
+        }
+      },
+      {
+        "smiles": "c1ccncc1",
+        "row": 3,
+        "observed": {
+          "element": "N",
+          "q": 1,
+          "implicit_h": 1,
+          "explicit_valence": 3,
+          "radical": 0,
+          "aromatic": true,
+          "degree": 2
+        }
+      },
+      {
+        "smiles": "[bH-]1ccccc1",
+        "row": 0,
+        "observed": {
+          "element": "B",
+          "q": -1,
+          "implicit_h": 1,
+          "explicit_valence": 3,
+          "radical": 0,
+          "aromatic": true,
+          "degree": 2
+        }
+      },
+      {
+        "smiles": "[bH-]1ccccc1",
+        "row": 0,
+        "observed": {
+          "element": "B",
+          "q": 0,
+          "implicit_h": 0,
+          "explicit_valence": 3,
+          "radical": 0,
+          "aromatic": true,
+          "degree": 2
+        }
+      },
+      {
+        "smiles": "[bH-]1ccccc1",
+        "row": 0,
+        "observed": {
+          "element": "B",
+          "q": 1,
+          "implicit_h": 0,
+          "explicit_valence": 2,
+          "radical": 0,
+          "aromatic": true,
+          "degree": 2
+        }
+      },
+      {
+        "smiles": "[cH-]1cccc1",
+        "row": 0,
+        "observed": {
+          "element": "C",
+          "q": -1,
+          "implicit_h": 0,
+          "explicit_valence": 3,
+          "radical": 0,
+          "aromatic": true,
+          "degree": 2
+        }
+      },
+      {
+        "smiles": "[cH-]1cccc1",
+        "row": 0,
+        "observed": {
+          "element": "C",
+          "q": 0,
+          "implicit_h": 1,
+          "explicit_valence": 3,
+          "radical": 0,
+          "aromatic": true,
+          "degree": 2
+        }
+      },
+      {
+        "smiles": "[cH-]1cccc1",
+        "row": 0,
+        "observed": {
+          "element": "C",
+          "q": 1,
+          "implicit_h": 0,
+          "explicit_valence": 3,
+          "radical": 0,
+          "aromatic": true,
+          "degree": 2
+        }
+      }
+    ]
+  },
+  "dependency_design": {
+    "existing_gap": "bonding_inputs omits stereo payload; current _commit_stereo does not seed H for radical changes.",
+    "minimal_binding": "Mandatory tuple in current Atom order: (uid,effective radical,effective current bracket H,effective no_implicit). Existing table/Bond binding covers charge/kind/order/direction/aromatic flags; radical-only does not implement final algorithm.",
+    "write_boundary": "_commit_stereo compare consumed old/new UID inputs and seed existing IMPLICIT_H with downstream aromatic fanout inside existing transaction; cover retained dependency state during complete install/remap; rollback restores payload/seeds/status.",
+    "excluded": "isotopes, descriptors, source_hydrogens/history, source namespaces, opaque annotations; no new dependency group/carrier/schema."
+  },
+  "not_executed_by_this_task": [
+    "pytest/default suite",
+    "production default/scalar/getter tests",
+    "full SMARTS/transport/stereo/model technical selection",
+    "scientific assignment reports",
+    "native rebuild",
+    "wheel/source/debug/current five-ABI matrix",
+    "performance measurements"
+  ],
+  "remaining_gates": [
+    "Implement/test retained absent-slot scalar/snapshot zero display with absent/UNRESOLVED H, one unchanged attempt, relevant-input retry, and existing strict consumer rejection; no new public H-read owner decision is needed for this preservation route.",
+    "Implement/test explicit legacy metal0 exception, mandatory four-entry payload binding, and automatic inferred current-J materialization with source-ledger preservation, no_implicit preservation, idempotence and Atom/Molecule batch rollback.",
+    "Default implementation with one local rule, closed new-input bindings and writer invalidation.",
+    "Separate normalization proposal remains unapproved and universal explicit-H closure unclaimed; it is not a prerequisite to this bounded default/read correction.",
+    "Root Stage5 technical/default/scientific/native/wheel/five-ABI/performance gates."
+  ],
+  "project_files_before_sha256": {
+    "plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/decisions.md": "999c1b0c0ec85ec11ed925a1d6798a402b58807194fb55c078cd2d07b502cd27",
+    "plan/20_fact_rule_architecture/stages/stage05/contracts/decisions.md": "dec6b2dc05447edadb666426aee3351f59c81cde008ce39a5dabdf2a4195d8a4",
+    "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md": "61302b0907205b7fdf59c5f69114878637700ad8ab4e33a6b68a2a5412785914"
+  },
+  "project_files_after_sha256": {
+    "plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/decisions.md": "9645dfa50c55870d94b09831a0c2b34609fb52be4c6a4be53c9beb5cd7954f7f",
+    "plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/review.md": "6e98709340a3fc783ebf389241e430311c11a6d087a3ea9bd9839808f0f9e983",
+    "plan/20_fact_rule_architecture/stages/stage05/contracts/decisions.md": "35f0d8c78e1f2890feeff3807c104ea3f20b406c2ddaaf77e391ec4db34a60d4",
+    "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md": "130f4ed18d4726d83d66daf4c330500834bfbd9d86e80756b49721d822e4425d"
+  },
+  "document_validation": {
+    "status": "documentation checks passed after bounded metal/binding/current-H materialization refinement; shared production drift recorded separately",
+    "executed_checks": [
+      {
+        "command": "python /tmp/hotpot-p20-hydrogen-default-design-20261030/check_documents.py",
+        "exit_code": 0,
+        "script_sha256": "decd0fc779f7d8ac717ed7c0843f0f44c92fc468e53cef779b1b567bed8b30c2",
+        "script_source": "from pathlib import Path\nimport hashlib\nimport json\nimport re\n\nroot = Path('/home/zhangzhiyuan/hotpot')\nbase = root / 'plan/20_fact_rule_architecture'\nown = base / 'stages/stage05/hydrogen-defaults'\nfiles = [own / 'decisions.md', own / 'review.md', own / 'evidence.json',\n         base / 'stages/stage05/contracts/decisions.md']\nevidence = json.loads((own / 'evidence.json').read_text())\nlinks = 0\nfor path in files:\n    text = path.read_text()\n    assert all(line.rstrip() == line for line in text.splitlines()), path\n    if path.suffix == '.md':\n        for _, target in re.findall(r'\\[([^\\]]+)\\]\\(([^)]+)\\)', text):\n            if '://' not in target and not target.startswith('#'):\n                assert (path.parent / target.split('#', 1)[0]).exists(), target\n                links += 1\nassert links == 6\nobservations = evidence['complete_observations']\nassert len(observations['private_rule_cases']) == 53\nassert len(observations['rdkit_reference_cases']) == 29\nassert len(evidence['aromatic_charge_boundary']['cases']) == 12\nassert observations['source_bytes_stable']\nassert observations['source_before'] == observations['source_after']\nassert 'Atom.implicit_hydrogens: int | None' not in files[-1].read_text()\nassert '| C(0), Si(0), B(-1) | 3 |' in files[0].read_text()\nassert 'not a prerequisite' in ' '.join(evidence['remaining_gates'])\nfor name, digest in evidence['project_files_after_sha256'].items():\n    assert hashlib.sha256((root / name).read_bytes()).hexdigest() == digest, name\nprint('PASS: JSON, six local links, 53/29/12 observations, source stability, final int/aromatic conventions, assigned-file hashes and whitespace.')\n",
+        "result": "PASS: JSON, six local links, 53/29/12 observations, source stability, final int/aromatic conventions, assigned-file hashes and whitespace.",
+        "coverage_limit": "Documentation and evidence consistency only; no production implementation validation."
+      },
+      {
+        "command": "git diff --check -- plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/decisions.md plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/review.md plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/evidence.json plan/20_fact_rule_architecture/stages/stage05/contracts/decisions.md plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+        "exit_code": 0,
+        "result": "No tracked assigned-file whitespace findings. New untracked records were separately read/parsed; no production test claim."
+      }
+    ],
+    "concurrency": "Only assigned project records edited. Main-plan amendment is seven lines at Stage5; existing shared implementation edits retained.",
+    "bounded_followup_commands": [
+      {
+        "command": "python /tmp/hotpot-p20-hydrogen-default-design-20261030/check_documents.py",
+        "script_sha256": "decd0fc779f7d8ac717ed7c0843f0f44c92fc468e53cef779b1b567bed8b30c2",
+        "script_source": "from pathlib import Path\nimport hashlib\nimport json\nimport re\n\nroot = Path('/home/zhangzhiyuan/hotpot')\nbase = root / 'plan/20_fact_rule_architecture'\nown = base / 'stages/stage05/hydrogen-defaults'\nfiles = [own / 'decisions.md', own / 'review.md', own / 'evidence.json',\n         base / 'stages/stage05/contracts/decisions.md']\nevidence = json.loads((own / 'evidence.json').read_text())\nlinks = 0\nfor path in files:\n    text = path.read_text()\n    assert all(line.rstrip() == line for line in text.splitlines()), path\n    if path.suffix == '.md':\n        for _, target in re.findall(r'\\[([^\\]]+)\\]\\(([^)]+)\\)', text):\n            if '://' not in target and not target.startswith('#'):\n                assert (path.parent / target.split('#', 1)[0]).exists(), target\n                links += 1\nassert links == 6\nobservations = evidence['complete_observations']\nassert len(observations['private_rule_cases']) == 53\nassert len(observations['rdkit_reference_cases']) == 29\nassert len(evidence['aromatic_charge_boundary']['cases']) == 12\nassert observations['source_bytes_stable']\nassert observations['source_before'] == observations['source_after']\nassert 'Atom.implicit_hydrogens: int | None' not in files[-1].read_text()\nassert '| C(0), Si(0), B(-1) | 3 |' in files[0].read_text()\nassert 'not a prerequisite' in ' '.join(evidence['remaining_gates'])\nfor name, digest in evidence['project_files_after_sha256'].items():\n    assert hashlib.sha256((root / name).read_bytes()).hexdigest() == digest, name\nprint('PASS: JSON, six local links, 53/29/12 observations, source stability, final int/aromatic conventions, assigned-file hashes and whitespace.')\n",
+        "exit_code": 1,
+        "result": "AssertionError at assert links == 6 after the replaced review paragraph removed a redundant local link.",
+        "coverage_limit": "Stale expected link-count assertion; all visited link targets existed. Not counted as a pass."
+      },
+      {
+        "command": "git diff --check -- plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/decisions.md plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/review.md plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/evidence.json plan/20_fact_rule_architecture/stages/stage05/contracts/decisions.md plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+        "exit_code": 0,
+        "result": "No tracked assigned-file whitespace findings; all four owned records also passed explicit trailing-whitespace assertions."
+      },
+      {
+        "command": "python /tmp/hotpot-p20-hydrogen-default-design-20261030/check_display_boundary_documents.py",
+        "script_sha256": "39109c384734d4c88e7184047ad9b9ad3a7c6cc2d9766ed6bea0a601822b988f",
+        "script_source": "from pathlib import Path\nimport hashlib\nimport json\nimport re\n\nroot = Path('/home/zhangzhiyuan/hotpot')\nbase = root / 'plan/20_fact_rule_architecture'\nown = base / 'stages/stage05/hydrogen-defaults'\nfiles = [own / 'decisions.md', own / 'review.md', own / 'evidence.json',\n         base / 'stages/stage05/contracts/decisions.md']\nevidence = json.loads((own / 'evidence.json').read_text())\nlinks = 0\nfor path in files:\n    text = path.read_text()\n    assert all(line.rstrip() == line for line in text.splitlines()), path\n    if path.suffix == '.md':\n        for _, target in re.findall(r'\\[([^\\]]+)\\]\\(([^)]+)\\)', text):\n            if '://' not in target and not target.startswith('#'):\n                assert (path.parent / target.split('#', 1)[0]).exists(), target\n                links += 1\nobservations = evidence['complete_observations']\nassert len(observations['private_rule_cases']) == 53\nassert len(observations['rdkit_reference_cases']) == 29\nassert len(evidence['aromatic_charge_boundary']['cases']) == 12\nassert observations['source_bytes_stable']\nassert observations['source_before'] == observations['source_after']\nassert 'Atom.implicit_hydrogens: int | None' not in files[-1].read_text()\nassert '| C(0), Si(0), B(-1) | 3 |' in files[0].read_text()\nassert 'not a prerequisite' in ' '.join(evidence['remaining_gates'])\nfor name, digest in evidence['project_files_after_sha256'].items():\n    assert hashlib.sha256((root / name).read_bytes()).hexdigest() == digest, name\nassert evidence['decisions']['new_public_missing_H_exception_adopted'] is False\nassert evidence['decisions']['H_read_owner_decision_still_required_for_preservation_route'] is False\nprint(f'PASS: JSON, {links} current local links, 53/29/12 observations, source stability, preserved display/strict boundary, assigned-file hashes and whitespace.')\n",
+        "exit_code": 0,
+        "result": "PASS: JSON, 5 current local links, 53/29/12 observations, source stability, preserved display/strict boundary, assigned-file hashes and whitespace.",
+        "coverage_limit": "Documentation/evidence consistency only; no production H getter/default/strict-consumer implementation executed."
+      }
+    ],
+    "bounded_materialization_commands": [
+      {
+        "command": "python /tmp/hotpot-p20-hydrogen-default-design-20261030/check_materialization_contract_documents.py",
+        "script_sha256": "ccf385c90b63d05160ac4680d49a97070f224308d5b5cfb214df5215d702a2b1",
+        "script_source": "from pathlib import Path\nimport hashlib\nimport json\nimport re\n\nroot = Path('/home/zhangzhiyuan/hotpot')\nbase = root / 'plan/20_fact_rule_architecture'\nown = base / 'stages/stage05/hydrogen-defaults'\nfiles = [own / 'decisions.md', own / 'review.md', own / 'evidence.json',\n         base / 'stages/stage05/contracts/decisions.md']\nevidence = json.loads((own / 'evidence.json').read_text())\nlinks = 0\nfor path in files:\n    text = path.read_text()\n    assert all(line.rstrip() == line for line in text.splitlines()), path\n    if path.suffix == '.md':\n        for _, target in re.findall(r'\\[([^\\]]+)\\]\\(([^)]+)\\)', text):\n            if '://' not in target and not target.startswith('#'):\n                assert (path.parent / target.split('#', 1)[0]).exists(), target\n                links += 1\nobservations = evidence['complete_observations']\nassert len(observations['private_rule_cases']) == 53\nassert len(observations['rdkit_reference_cases']) == 29\nassert len(evidence['aromatic_charge_boundary']['cases']) == 12\nassert observations['source_bytes_stable']\nassert observations['source_before'] == observations['source_after']\nassert 'Atom.implicit_hydrogens: int | None' not in files[-1].read_text()\nassert '| C(0), Si(0), B(-1) | 3 |' in files[0].read_text()\nassert 'not a prerequisite' in ' '.join(evidence['remaining_gates'])\nfor name, digest in evidence['project_files_after_sha256'].items():\n    assert hashlib.sha256((root / name).read_bytes()).hexdigest() == digest, name\nassert evidence['decisions']['new_public_missing_H_exception_adopted'] is False\nassert evidence['decisions']['H_read_owner_decision_still_required_for_preservation_route'] is False\ndecision = (own / 'decisions.md').read_text()\nassert 'For **ordinary nonmetal inference**' in decision\nassert 'A metal returns legacy raw0' in decision\nassert 'This four-entry tuple is mandatory' in decision\nassert 'A radical-only tuple does not' in decision\nassert '## 7. Scoped inferred bracket-H materialization' in decision\nassert 'no_implicit = the previous current value (including None/False/True)' in decision\nassert 'Capture every selected row' in decision\nassert 'Atom.add_hydrogen currently lacks it' in ' '.join(decision.split())\nprint(f'PASS: JSON, {links} local links, evidence/source hashes, explicit metal0, mandatory tuple, current-H materialization/transaction contract and whitespace.')\n",
+        "exit_code": 0,
+        "result": "PASS: JSON, 5 local links, evidence/source hashes, explicit metal0, mandatory tuple, current-H materialization/transaction contract and whitespace.",
+        "coverage_limit": "Maintained-document/evidence consistency only; no production H rule/materialization/read/rollback execution. Historical probe source equality is not a claim that the current shared production tree stayed unchanged."
+      },
+      {
+        "command": "git diff --check -- plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/decisions.md plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/review.md plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/evidence.json plan/20_fact_rule_architecture/stages/stage05/contracts/decisions.md plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+        "exit_code": 0,
+        "result": "No tracked assigned-file whitespace findings; all four owned records also checked explicitly for trailing whitespace."
+      },
+      {
+        "command": "python -",
+        "exit_code": 1,
+        "result": "AssertionError: concurrently changing production source hashes did not all remain equal. Exact before/after identities and changed paths are retained under bounded_materialization_review; no files reverted.",
+        "coverage_limit": "This failed stability assertion is not a production test or a documentation failure.",
+        "failure_point_source": "after={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in r['selected_production_source_hashes_before']}\nassert after==r['selected_production_source_hashes_before']"
+      }
+    ]
+  },
+  "bounded_public_read_review": {
+    "date": "2026-10-30",
+    "parent_request": "Determine whether legacy int/raw zero display for genuinely missing H can remain while internal state is absent/UNRESOLVED and existing strict consumers raise ValueError; avoid unapproved new scalar/export behavior and global normalization.",
+    "conclusion": "Feasible preservation route; A2 does not mandate H NaN. No remaining public-read decision blocks that route.",
+    "A2_scope": "Stage1 contract lines37-40 specifies optional selected-result absence and A8 partial charge; lines23-24 preserves constructor placeholders with separate presence; lines120-132 retains one numeric projection and unavailable selected-result encoding. This is not a general H optional-value approval.",
+    "normative_UNRESOLVED_interpretation": "No zero fact/proposal/strict fallback is created. Permissive legacy display can remain0 while presence is absent and group UNRESOLVED; any consumer requiring a current H count must check the existing strict boundary. The public display alone remains ambiguous as before.",
+    "exact_public_boundary": "Known/supplied values use existing scalar int and numeric float64 codecs. Missing H slot renders scalar0/numeric0 without fact writes; no None/NaN/new scalar or permissive-export exception. CONFLICT keeps existing error handling.",
+    "stale_derived_bytes": "A stale derived H is not read as a current count; unused bytes do not establish presence or CURRENT. Do not modify explicit/source bytes to render an absent-slot placeholder.",
+    "consumer_audit": "Direct scalar inventory still includes core count/charge/state, assembly, stereo, xTB and state-facts consumers in addition to the already named strict add-H/toolkit/native/SMARTS/MCA task boundaries. Guard strict chemistry at those existing boundaries; no new public method is needed.",
+    "not_owner_approved_proposals": [
+      "int | None for implicit H",
+      "H-to-NaN export",
+      "moving missing-input ValueError onto public scalar/permissive H projection",
+      "imported total/omitted-H normalization"
+    ],
+    "scoped_reads": [
+      {
+        "path": "plan/20_fact_rule_architecture/stages/stage01/contracts/decisions.md",
+        "read_ranges_inclusive": [
+          [
+            1,
+            105
+          ],
+          [
+            110,
+            146
+          ],
+          [
+            166,
+            184
+          ]
+        ],
+        "sha256": "fa647efe5e827cb16c207b70312bf6a708659589b41d5e87caaec7b6d0ed07e9"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+        "read_ranges_inclusive": [
+          [
+            1,
+            30
+          ],
+          [
+            72,
+            124
+          ],
+          [
+            249,
+            284
+          ]
+        ],
+        "sha256": "90be7a21289210ee0db86dec4729988e085c764366ea7aa64d49b7d8427166e3"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/stages/stage01/interfaces/review.md",
+        "read_ranges_inclusive": [
+          [
+            134,
+            164
+          ]
+        ],
+        "sha256": "2198aaef918fc1f934e248a2a734b15f657e95983615582200a0f9350c0c7aa0"
+      },
+      {
+        "path": "hotpot/cheminfo/operations/chemistry.py",
+        "read_ranges_inclusive": [
+          [
+            84,
+            145
+          ],
+          [
+            333,
+            382
+          ]
+        ],
+        "sha256": "0324a22423648128f8f13bc154f4cd338fd98beed122b6e8ecef462efd152732"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "read_ranges_inclusive": [
+          [
+            2570,
+            2610
+          ],
+          [
+            2615,
+            2667
+          ],
+          [
+            4718,
+            4742
+          ],
+          [
+            4770,
+            4810
+          ],
+          [
+            4826,
+            4850
+          ]
+        ],
+        "sha256": "be399d0e505bffb1d1056f5ccf0bb54b44e8c821a38700d8ff7e0a5022136321"
+      },
+      {
+        "path": "hotpot/cheminfo/rules/chemistry/bonding/valence.py",
+        "read_ranges_inclusive": [
+          [
+            1,
+            50
+          ]
+        ],
+        "sha256": "6607f5c28c8b42ed9014bec1517f3afa2994b7a7dd66933e1eddd6e216cbd1ab"
+      },
+      {
+        "path": "hotpot/cheminfo/rules/chemistry/elements.py",
+        "read_ranges_inclusive": [
+          [
+            1,
+            75
+          ]
+        ],
+        "sha256": "95bbfe85bd293f0f54dc1412156e6bdead55d94c7da3e1f513e9a3e09023e924"
+      }
+    ],
+    "B20_static_characterization": {
+      "command": "git show e6082f5fd67cb1054726ddcf43db7f963f7091ed:hotpot/cheminfo/core.py",
+      "ranges_read_inclusive": [
+        [
+          3154,
+          3206
+        ],
+        [
+          3509,
+          3543
+        ]
+      ],
+      "observed": "Atom _attrs_dict implicit_hydrogens int and _default_attrs implicit_hydrogens0. Explicit evaluation of the B20 Z0 default rule is a KeyError, not an actual inferred0; class placeholder and scientific calculation are different.",
+      "production_or_current_public_getter_executed": false
+    },
+    "source_review_hashes_before": {
+      "hotpot/cheminfo/operations/chemistry.py": "0324a22423648128f8f13bc154f4cd338fd98beed122b6e8ecef462efd152732",
+      "hotpot/cheminfo/core.py": "be399d0e505bffb1d1056f5ccf0bb54b44e8c821a38700d8ff7e0a5022136321",
+      "hotpot/cheminfo/rules/chemistry/bonding/valence.py": "6607f5c28c8b42ed9014bec1517f3afa2994b7a7dd66933e1eddd6e216cbd1ab",
+      "hotpot/cheminfo/rules/chemistry/elements.py": "95bbfe85bd293f0f54dc1412156e6bdead55d94c7da3e1f513e9a3e09023e924"
+    },
+    "no_production_or_test_edits_by_design_owner": true,
+    "validation_status": "Documentation checks passed after retaining a stale expected-link-count failure; selected production source hashes unchanged; production display/strict behaviour awaits implementation tests.",
+    "source_review_hashes_after": {
+      "hotpot/cheminfo/operations/chemistry.py": "0324a22423648128f8f13bc154f4cd338fd98beed122b6e8ecef462efd152732",
+      "hotpot/cheminfo/core.py": "be399d0e505bffb1d1056f5ccf0bb54b44e8c821a38700d8ff7e0a5022136321",
+      "hotpot/cheminfo/rules/chemistry/bonding/valence.py": "6607f5c28c8b42ed9014bec1517f3afa2994b7a7dd66933e1eddd6e216cbd1ab",
+      "hotpot/cheminfo/rules/chemistry/elements.py": "95bbfe85bd293f0f54dc1412156e6bdead55d94c7da3e1f513e9a3e09023e924"
+    },
+    "selected_production_source_bytes_stable": true
+  },
+  "bounded_materialization_review": {
+    "date": "2026-10-30",
+    "parent_request": "Resolve primary-review F1 metal/site-total wording, F2 mandatory bracket/no-implicit binding, and current-J double count after inferred materialization; no production/tests or global normalization.",
+    "primary_review": {
+      "task_id": "p20-s5-h-contract-review-704283-11",
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-h-contract-review-704283-11/result.json",
+      "sha256": "ea681190dc07738a8ccdc364e205452f1a786a41638b953f288d674ada618e35",
+      "result": {
+        "task_id": "p20-s5-h-contract-review-704283-11",
+        "exact_turn_id": "01a18b14-13d0-78d1-9e14-e8676ad1c951",
+        "result_messages": [
+          {
+            "type": "agentMessage",
+            "id": "msg_0e8acd85eec1929a016ae41e07d29481958199740f9d3dea23",
+            "text": "REVIEW_RESULT  \ntask_id=p20-s5-h-contract-review-704283-11  \ntask_hash=be5fb81f094c265ea47854978e49b6d248f1e39089797f85fcb76b2d5471d200  \nsource_commit=ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8  \nbase_commit=ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8  \ndiff_or_tree_hash=a312e7c6ff319f54736e6ff37a749f6c044cbc3804a0349c344bdb1baf5590ed  \nstatus=BLOCKED_ON_CONTRACT_CLARIFICATION\n\n1. High — metal graph-H contradicts the declared site-total target\n\nThe contract defines inferred H as `Htarget = E + J + extra`, where `E` is graph-H neighbours. Unsupported known states correctly return `E+J`. However §4 says “A metal returns0,” and the supplied Zn–graph-hydride case expects `0` despite `E=1`.\n\nThat is incompatible with the asserted site-total-H meaning. “No automatic metal hydrides” only requires `extra=0`; it does not imply erasing represented graph H from the target.\n\nBefore implementation, either:\n\n- make inferred metal targets `E+J`, preserving the uniform site-total convention; or\n- explicitly establish a metal-specific non-total exception and audit every inferred-producer consumer accordingly.\n\nThe first is internally consistent and leaves expansion unchanged because `max((E+J)-E,0)=J`.\n\nThe same formula should be stated explicitly for a `no_implicit` branch: retain represented graph/bracket H as `E+J`, with no added default.\n\n2. High — bracket/no-implicit inputs are simultaneously mandatory and optional\n\nSections 1, 3, 4 and the required tests make current bracket H and `no_implicit` part of the final algorithm. They determine `[nH]`, transport-prohibited addition, occupied valence, and the returned target.\n\nSection 6 nevertheless permits a “minimal implementation” binding only radicals. That implementation would not satisfy the stated final algorithm and could return or retain a stale target after bracket/no-implicit changes.\n\nFor this final bounded contract, the added effective-input binding must include:\n\n`(atom_uid, radical_count, current_bracket_H, current_no_implicit)`\n\nalongside the existing bound element, charge, aromatic, topology, Bond kind/order/aromatic flag/direction, endpoint-relative dative role, and neighbour identity inputs. The radical-only alternative should be removed or explicitly labelled as not implementing this contract.\n\n3. Scoped inferred-producer expansion is otherwise arithmetically coherent\n\nFor an inferred target, `Htarget=E+J+extra`; therefore `max(Htarget-E,0)=J+extra`. After successful expansion, retaining the same target makes the next residual zero. Bypassing the old polar-metal subtraction is consistent because covalent metal edges and dative roles were already consumed by the rule.\n\nImplementation must prove:\n\n- inferred-producer identity is current, not historical;\n- `E` and current bracket `J` are non-overlapping inventories;\n- producer/source, target, graph-H creation and dependency status commit atomically;\n- partial failure restores all of them;\n- repeated add-H is idempotent;\n- supplied/toolkit/model counts remain on their characterized existing path.\n\nThis scoped rule does not itself require universal imported-count normalization. The documented SMARTS/stereo/toolkit total-versus-omitted inconsistency remains pre-existing and unclosed.\n\n4. Read/presence/source boundary is internally consistent but high-risk\n\nThe following distinction is coherent:\n\n- absent required input: no H fact, absent presence/source, UNRESOLVED;\n- permissive scalar/matrix display: numeric zero only;\n- strict consumer: existing `ValueError`;\n- real supplied/inferred zero: present and CURRENT;\n- CONFLICT: existing `RuntimeError`.\n\nImplementation evidence must prove that projections actively render zero rather than exposing stale unused bytes, and that no strict consumer infers readiness from `int(...)`, truthiness, scalar zero, or field14. Repeated unresolved reads must reuse the closed failed-attempt binding without rerunning. A consumed-input change must retry; source-ledger, isotope and unrelated stereo-descriptor changes must not.\n\nSupplied values—including zero and characterized non-integral float64 source bytes—must remain untouched in storage/snapshots. The public integer codec may retain its historical projection, but default preparation must not normalize or overwrite the raw current fact.\n\n5. Scientific/default arithmetic\n\nApart from the metal-total inconsistency, the finite tables and ordering are internally consistent with the supplied cases:\n\n- neutral N–O gives H2;\n- nitro N+ gives H0;\n- radicals consume vacancies;\n- aromatic neutral C/N and charged-C cases follow the stated sigma policy;\n- ZERO versus UNKNOWN and donor/acceptor dative cases remain distinct;\n- explicit H, `[nH]`, unusual known valence, isotope and supplied-zero behavior follow the declared deterministic representation convention.\n\nThese rules are conventions for graph completion, not claims of unique protonation, tautomerism, oxidation state, or spin.\n\nOnly source identities and summarized observations were supplied; the primary-source bytes were not. This review therefore finds internal consistency against the inline cases but does not independently validate the external scientific citations.\n\nNo production execution, Stage5 acceptance, or universal hydrogen-normalization approval is claimed.",
+            "phase": "final_answer",
+            "memoryCitation": null,
+            "delivery": null,
+            "questions": null,
+            "startedAtMs": 1793334791949,
+            "completedAtMs": 1793334802962
+          }
+        ],
+        "status": "RESULT_RECEIVED_AUDIT_PENDING"
+      },
+      "audit_attribution": "Parent reports actual readonly audit complete; this design owner inspected the result, not a new remote audit. Result JSON retains its earlier transport status.",
+      "coverage_limit": "Reviewer checked supplied source identities/inline consistency, not downloaded external primary-source bytes; no production execution or stage approval."
+    },
+    "F1": "Keep B20 inferred metal raw0, including graph hydride. Site-total formula is ordinary-nonmetal only; real H and supplied source encodings are explicit exceptions. Existing add-H skips metals; heavy-atom counts, SMARTS graph+raw and native/model fields would change if metal raw were made E+J.",
+    "F2": "Final mandatory effective tuple (uid,radical,current_bracket,current_no_implicit); remove radical-only alternative because exact algorithm consumes all three fields.",
+    "J_materialization": "For auto inferred T=E+J+extra, A=T-E. Create A graph H and commit existing current_H(implicit0,bracket0,noimplicit preserved) in same outer transaction. Source ledger unchanged. Eprime=T,Jprime=0; next preparation returns T and next auto residual0.",
+    "no_implicit_policy": "Preserve raw current None/False/True. Do not force True from the conformer working-copy projection; that would suppress later defaults.",
+    "transaction_gap": "Molecule.add_hydrogens already has topology=True outer wrapper; Atom.add_hydrogen currently does not. Cover both complete entry paths including _update_topology; existing nested _commit_stereo journals payload, seeds and all graph/fact writes roll back together. No new carrier/schema.",
+    "scoped_reads": [
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "read_ranges_inclusive": [
+          [
+            430,
+            455
+          ],
+          [
+            790,
+            820
+          ],
+          [
+            2725,
+            2769
+          ],
+          [
+            4870,
+            4908
+          ]
+        ],
+        "sha256": "be399d0e505bffb1d1056f5ccf0bb54b44e8c821a38700d8ff7e0a5022136321"
+      },
+      {
+        "path": "hotpot/cheminfo/operations/chemistry.py",
+        "read_ranges_inclusive": [
+          [
+            262,
+            291
+          ]
+        ],
+        "sha256": "0324a22423648128f8f13bc154f4cd338fd98beed122b6e8ecef462efd152732"
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_commit.py",
+        "read_ranges_inclusive": [
+          [
+            133,
+            182
+          ],
+          [
+            203,
+            207
+          ],
+          [
+            296,
+            339
+          ],
+          [
+            488,
+            497
+          ]
+        ],
+        "sha256": "02cdbc53990510f994ba269be79c46b88400d7429e974502be66b892ca8dc87c"
+      },
+      {
+        "path": "hotpot/cheminfo/conformers/adapters.py",
+        "read_ranges_inclusive": [
+          [
+            24,
+            109
+          ]
+        ],
+        "sha256": "ab85618e22bb66d752e9bbd616740a329f82b732d07794a39c1cb83abe92f595"
+      },
+      {
+        "path": "hotpot/cheminfo/stereo.py",
+        "read_ranges_inclusive": [
+          [
+            151,
+            188
+          ],
+          [
+            998,
+            1013
+          ]
+        ],
+        "sha256": "548b25ea382d6b7bbce977046402b80f5f13711ee75693b831f819d0cceee84c"
+      },
+      {
+        "path": "hotpot/cheminfo/rdconvert.py",
+        "read_ranges_inclusive": [
+          [
+            637,
+            660
+          ]
+        ],
+        "sha256": "fa74993f21226f9e02d898224c8a0f16ec702fdac65ff79089ee83da3a7903f7"
+      },
+      {
+        "path": "hotpot/cheminfo/search/_native/production.cpp",
+        "read_ranges_inclusive": [
+          [
+            616,
+            628
+          ]
+        ],
+        "sha256": "efa7adfad04c85cb75031cc3661570e7d2652ee668362645fe9822a220dc79fa"
+      }
+    ],
+    "selected_production_source_hashes_before": {
+      "hotpot/cheminfo/core.py": "be399d0e505bffb1d1056f5ccf0bb54b44e8c821a38700d8ff7e0a5022136321",
+      "hotpot/cheminfo/operations/chemistry.py": "0324a22423648128f8f13bc154f4cd338fd98beed122b6e8ecef462efd152732",
+      "hotpot/cheminfo/structure/_commit.py": "02cdbc53990510f994ba269be79c46b88400d7429e974502be66b892ca8dc87c",
+      "hotpot/cheminfo/conformers/adapters.py": "ab85618e22bb66d752e9bbd616740a329f82b732d07794a39c1cb83abe92f595",
+      "hotpot/cheminfo/stereo.py": "548b25ea382d6b7bbce977046402b80f5f13711ee75693b831f819d0cceee84c",
+      "hotpot/cheminfo/rdconvert.py": "fa74993f21226f9e02d898224c8a0f16ec702fdac65ff79089ee83da3a7903f7",
+      "hotpot/cheminfo/search/_native/production.cpp": "efa7adfad04c85cb75031cc3661570e7d2652ee668362645fe9822a220dc79fa"
+    },
+    "production_or_tests_edited_by_design_owner": false,
+    "new_production_tests_executed": false,
+    "validation_status": "Documentation checks passed; selected production source drift observed during shared-workspace finalization and recorded by exact hashes. No production edit/test execution by this design owner; implementation owner must validate the current code.",
+    "batch_currentness": "Capture all selected CURRENT inferred-producer eligibility, T/E/J and consumed inputs before first graph write. Use captured eligibility for later rows after own expected mutations enqueue dirtiness; do not dispatch from historical source ledger or incorrectly fall back based on now-dirty live status.",
+    "selected_production_source_hashes_after": {
+      "hotpot/cheminfo/core.py": "77edea0c7344c758b62decafeebedea07289549f49a8b32591369bf2d84ab9ba",
+      "hotpot/cheminfo/operations/chemistry.py": "42feb15acfb5f43d10cd4fbe8d5a931ced9e70a0f8ef336fb197ca3da5c9072e",
+      "hotpot/cheminfo/structure/_commit.py": "836c5b87f972adc0a62b626e0aa0fd9688df9a5a774fb70913a0d5f97ccad854",
+      "hotpot/cheminfo/conformers/adapters.py": "ab85618e22bb66d752e9bbd616740a329f82b732d07794a39c1cb83abe92f595",
+      "hotpot/cheminfo/stereo.py": "548b25ea382d6b7bbce977046402b80f5f13711ee75693b831f819d0cceee84c",
+      "hotpot/cheminfo/rdconvert.py": "fa74993f21226f9e02d898224c8a0f16ec702fdac65ff79089ee83da3a7903f7",
+      "hotpot/cheminfo/search/_native/production.cpp": "efa7adfad04c85cb75031cc3661570e7d2652ee668362645fe9822a220dc79fa"
+    },
+    "selected_production_source_bytes_stable": false,
+    "concurrent_source_changes": {
+      "hotpot/cheminfo/core.py": {
+        "inspected_sha256": "be399d0e505bffb1d1056f5ccf0bb54b44e8c821a38700d8ff7e0a5022136321",
+        "after_sha256": "77edea0c7344c758b62decafeebedea07289549f49a8b32591369bf2d84ab9ba"
+      },
+      "hotpot/cheminfo/operations/chemistry.py": {
+        "inspected_sha256": "0324a22423648128f8f13bc154f4cd338fd98beed122b6e8ecef462efd152732",
+        "after_sha256": "42feb15acfb5f43d10cd4fbe8d5a931ced9e70a0f8ef336fb197ca3da5c9072e"
+      },
+      "hotpot/cheminfo/structure/_commit.py": {
+        "inspected_sha256": "02cdbc53990510f994ba269be79c46b88400d7429e974502be66b892ca8dc87c",
+        "after_sha256": "836c5b87f972adc0a62b626e0aa0fd9688df9a5a774fb70913a0d5f97ccad854"
+      }
+    }
+  }
+}

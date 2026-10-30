@@ -1701,3 +1701,49 @@ review records and retained failed attempts by SHA256.
   file is included as an affected target. The prepared matrix driver reads
   that map dynamically; it was inspected only, not executed. This is target
   reconciliation, not a new suite-pass claim.
+
+
+### Stage5 owner clarification and restored communication — 2026-10-30
+
+- The owner's answer requires explicit/source H declarations to retain their
+  supplied counts and unspecified H to receive valence-rule defaults. It does
+  not mean explicit-input-only acceptance, and the old optional-scalar proposal
+  is not silently marked approved. A separate bounded GPT-6.1 Sol/max task
+  `p20-s5-h-default-design-01` owns scientific default design, primary-source
+  verification and the precise contract record. The original implementation
+  owner continues the three recorded structural corrections; scientific
+  H/valence algorithm changes await that design. No model-limit escalation or
+  duplicate broad review was requested.
+- The user reported the existing bidirectional bridge restored. The existing
+  communication child sent the requested communication-only `RECONNECT_ACK`
+  once for `reconnect-20261030-01`; actual returncode0 and message ID
+  `01a18ae4-fff5-7303-a393-c9c6439dae54` were reported, then the helper confirmed
+  receipt. Main/communication thread IDs remain unchanged. The earlier failed
+  delivery record remains historical evidence. This ACK's explicitly authorized
+  no-sandbox-flag syntax does not alter substantive review enforcement. No
+  snapshot synchronization, project/config change or remote Stage5 validation
+  occurred as part of reconnection.
+
+
+- The original owner completed `p20-s5-known-corrections-01`. The exact
+  pre-fix selection actually produced7 failures; changed-boundary validation
+  produced82 passed/1 pending-H deselection. The final two neighbour regressions
+  then passed against the active rule after removing a fixed N4 expectation.
+  Seven already-bound assignment cases completed with no compared differences.
+  All attempts, including the metadata helper's original failure, remain in
+  `stages/stage05/corrections/evidence.json`. Root compared the pre-fix snapshot
+  with the four production boundaries, inspected the malformed/positive-scope
+  and declaration/one-time regressions, and checked command/log identities.
+  No test was rerun by root and no concrete correction blocker was found.
+  Native/scientific-rule bytes remained unchanged. The owner froze its source
+  and tests for the separate scientific/default handoff; Stage5 gates stay open.
+- Restored-route preflight `p20-bridge-readonly-preflight-704283-06` used the
+  actual0.166 schema's explicit per-turn `readOnly` policy over the existing
+  socket. The helper audited exact turn
+  `01a18aec-ba1e-7b21-b498-adfde0a18a24`: normalized `read-only`, zero filesystem
+  write entries, unchanged gpt-5.6-sol/xhigh, zero tool/delegation activity and
+  the expected control ACK. This establishes that exact turn's enforcement;
+  every later substantive turn still requires explicit policy and its own
+  audit. Queue/global flag parsing is not used as evidence. The unique next
+  task is environment/destination-metadata inventory only, without source
+  review or test/build execution. No current project source was synchronized.

@@ -1580,3 +1580,124 @@ review records and retained failed attempts by SHA256.
   33 JSON,69 indexed assets,all14 stages and historical identity checks.
   `git diff --check` passes. These navigation checks supply no performance
   or scientific approval.
+
+
+### Stage5 entry, independent partitions and concrete read decision
+
+- Entered after the actual`ba5fa6d` Stage4 commit and successful third-commit
+  push to`origin/implement/plan20-fact-rule-architecture`; post-push worktree
+  was clean and commits since push reset to0. The Sol/max owner completed
+  the full current2448-line main and all four normative companions, recovered
+  truncated aggregate reads, and recorded effective ranges/digests, actual
+  project/environment, predecessor closure and bounded scope in
+  `stages/stage05/entry_review.json`. This entry is actual reading/assessment,
+  not production or validation completion. Only status headers changed later
+  to show Stage5 active; no normative route/gate changed.
+- Sol/max owns the connected chemistry/representation/readonly Ring, finite
+  dependency/commit/snapshot/native-ingress implementation and real consumers.
+  A separately assigned Sol/medium worker completed the bounded elemental
+  reference/rule extraction and froze its files. The actual10,190 leaf
+  type/value comparisons and18 focused tests are recorded in
+  `stages/stage05/elements/evidence.json`; concurrent stage work means these
+  are preparation evidence, not a whole-project source freeze or Stage5 gate.
+- Readonly property enforcement must also reach the sole compiled fact writer:
+  the owning implementer identified its direct field ingress bypass. The
+  bounded fact-native permission/schema connection therefore requires five
+  fresh CPython builds/debug/current-wheel evidence. Root prepared requests
+  and an actual-build index checker but has not executed final builds during
+  source edits. Independent graph/geometry/rd/ob dependencies retain separate
+  unchanged-closure checks; old fact-native binaries cannot stand in for the
+  changed component.
+- At the concrete implicit-H reader step, no prior approval fixes its unknown
+  scalar return. The Sol/max owner wrote an exact pending`int | None` proposal
+  in`stages/stage05/contracts/decisions.md`; A2's numeric-snapshot NaN decision
+  does not approve this new scalar return. Root submitted one async exact
+  choice to the owner, explaining its documented authorization boundary.
+  This read/export branch waits for an explicit answer; elapsed time is not
+  approval. All independent authorized implementation continues.
+- Root located the actual archived B20 O0 report/source identity and captured
+  seven existing planar aromatic/Kekule cases against frozen`e6082f5`, with
+  7 completed,0 execution errors and stable B20 source/native. The retained
+  second producer adds exact argv/cwd/environment/dependency/input provenance;
+  its input canonical JSON hash is
+  `a781ee50b4c4bf52d8b111235b94bdd69c5924481a0b52f33746c19a4d879d2d`.
+  These bounded state observations are not a truth gate, current Stage5
+  evidence or the full187-source O0 corpus. Candidate execution will use the
+  same frozen inputs/producer after owner handoff.
+
+
+### Stage5 recovery and metadata reconciliation — 2026-10-30
+
+- Recovered the existing root thread, actual CODEX_THREAD_ID and SESSION_ID
+  both`01a18583-f506-71f2-81c9-a66ca32e3561`; no thread-ID change was detected.
+  The existing communication subagent retains real UUID
+  `01a186d6-d3e5-7df0-911b-449c54e0f92e` and OTP704283. The attempted
+  SESSION_ROUTE_UPDATE using the required readonly queue flag failed before
+  delivery:rc2,`codex queue does not support --sandbox`. There is no message ID
+  or successful delivery claim. Reply/receipt/unique ledger are maintained in
+  `/tmp/codex-stage4-bridge-01a18583/`; existing-route compatibility is being
+  checked without dropping the readonly contract or recreating a bridge.
+- The original Sol/max implementation owner confirmed all71 recorded source/
+  test identities and current cp311 fact extension unchanged, and froze its
+  production/tests/contracts records for an immutable helper snapshot.
+  The accepted known-input checkpoint is477 passed,5 exact pending-scalar
+  deselections and3 strict xfails; the seven private B20-bound observations
+  have zero compared differences. These completed checks were inspected,
+  not rerun. Undefined`_implicit_hydrogen_read` and unavailable scalar/export
+  handling remain an explicitly non-distributable pending public decision,
+  not an approved fallback or Stage5 completion.
+- Root reconciled the exact12 retired Ring-cache allowlist entries:268→256,
+  no added entry. Two actual frozen snapshots and five retired protocols
+  change the class census779→776, dataclasses351→353, protocols13→8 and
+  TypedDicts2→2. The exact original inventory marker method was imported;
+  a first local census that incorrectly extended subscript marker handling
+  is retained separately and superseded. No retired reservation was credited
+  as an actual class removal. The private trailing`bond_aromatic` field is
+  counted as a schema extension. See`stages/stage05/bookkeeping/`.
+- Changed-metadata checks actually ran through the frozen recorder:
+  `python plan/20_fact_rule_architecture/audit_architecture.py --base-ref HEAD
+  --output .plan20-artifacts/20261030/stage5/bookkeeping-checks-architecture/report.json`
+  passes890 files/256 remaining entries, no ratchet/layer/carrier findings.
+  `python plan/20_fact_rule_architecture/audit_stage_records.py
+  --check-migration-bytes --output
+  .plan20-artifacts/20261030/stage5/bookkeeping-checks-layout/report.json`
+  passes42 Markdown,39 JSON,1 other asset and82 indexed entries/all14 stages;
+  all original migration and log-prefix identities pass. Actual argv includes
+  the absolute output paths; exact commands/interpreter/input identities and
+  before/after hashes are retained in each`command.json`. Production/test/
+  native bytes remained equal. These checks cover metadata only, not the
+  remaining unfiltered source/default/five-ABI/current-wheel/science/performance
+  gates. No new Git commit or push occurred; cadence count remains0.
+
+- The unique route diagnosis`p20-bridge-route-704283-04` additionally observed
+  `ConnectionRefusedError(111)` at the existing socket. Global sandbox-option
+  parsing alone is not enforcement evidence. No Stage5 remote task or session
+  notification was delivered, no transport/configuration/contract was changed,
+  and no duplicate remote review was started. The fixed43,679,523-byte archive
+  is retained with source/support manifests under
+  `.plan20-artifacts/20261030/stage5/remote-checkpoint01/`; archiveSHA
+  `d7433533eb891364900c6666e9138d55fee8d45ece73c5540b00484ca857fa0c`,
+  source-treeSHA`11663c53dca93b803c8d77445243aad8ab89e8bdf3644a463afdd1220662b697`.
+  All71 owner identities and before/after repository bytes matched during
+  packaging. This is snapshot preparation, not synchronization or testing.
+  A single local readonly Sol/high task owns a bounded independent correctness
+  fallback; it changes no files/runs no tests. The pending exact H return
+  decision and all final gates remain open.
+
+- The unique local static review completed with three actionable code-derived
+  findings, not executed failures: neighbour-element H invalidation, exact
+  selected Bond coverage at aromatic commit, and Ring export's representation
+  source check. Root inspected the cited boundaries only and released the
+  original owner for`p20-s5-known-corrections-01` to record reproducers before
+  minimal fixes/focused regressions. Real ligand/partial-component selection
+  must determine the coverage fix. No prior full suite/scientific run is
+  duplicated; no new scalar-H approval or scientific truth claim is inferred.
+  The pre-correction archive remains immutable and unsynchronized.
+
+- Verified the actual owning test definitions and mapped the formerly planned
+  `tests/test_cheminfo/structure/test_representation_commit.py` target to
+  `test_stage5_bonding.py`, retaining the original planned path and explicit
+  immutable/rollback/source/conflict nodes in the verification map. The actual
+  file is included as an affected target. The prepared matrix driver reads
+  that map dynamically; it was inspected only, not executed. This is target
+  reconciliation, not a new suite-pass claim.

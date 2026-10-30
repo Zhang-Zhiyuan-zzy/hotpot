@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "stage": "Stage6",
+  "status": "revision2_static_design_key_accepted_final_record_integration_and_implementation_pending",
+  "recorded_utc": "2026-10-30T12:32:48.973504+00:00",
+  "task": {
+    "task_id": "p20-s6-contract-review-704283-34",
+    "revision": 2,
+    "task_hash": "2af2b832a8ea05daf98b30d47db18cdb48f9464f171f7bdad806dca87f44579a",
+    "source_commit": "979455ed8bada61f4d44038935e7f02c1b204c86",
+    "diff_or_tree_hash": "3e2476a82e925f9c33683bdb1b10361cefff111b0d6a2ad8703fa2eaf238da82",
+    "exact_turn_id": "01a18cc5-cec4-7b93-aabb-d0e509405603"
+  },
+  "substantive": {
+    "status": "BLOCKED_PENDING_ROOT_KEY_ACCEPTANCE_AND_IMPLEMENTATION_EVIDENCE",
+    "verbatim_review": "review.md",
+    "verbatim_review_sha256": "5b44416bfa79280d617f5032c72751ca750a61082c71e7796a0cb9dbde05f063",
+    "bytes": 6721,
+    "scope": "Supplied frozen revision2 documents and exact source excerpts; all six prior findings resolved statically; zero tools. Not runtime evidence or reviewer acceptance."
+  },
+  "actual_turn_audit": {
+    "reported_status": "AUDIT_PASSED",
+    "reviewer_thread_id": "01a186e8-89de-7791-8969-98b64ab572c3",
+    "actual_context": {
+      "line": 1500,
+      "timestamp": "2026-10-30T12:25:59.745Z",
+      "sha256": "5731fb86d49ec297265675db75385f519226706178a1f67766f105dc488819dc"
+    },
+    "actual_range": {
+      "lines": "1496-1538",
+      "sha256": "f3d8175d73de6bab1ec3136fc55b77bccb9c0011015ecc9ce4dc9659ecdec00b"
+    },
+    "actual_sandbox": "read-only; network restricted; managed/restricted; root read; write-capable entries0",
+    "approval_policy": "on-request",
+    "cwd": "/home/zhangzhiyuan",
+    "model": "gpt-5.6-sol",
+    "effort": "xhigh",
+    "tools": 0,
+    "commands": 0,
+    "delegation": 0,
+    "task_complete": 1,
+    "assistant_final_completed": 1,
+    "item_completed": 17,
+    "exact_identities_match": true
+  },
+  "archive": {
+    "root": "/tmp/codex-stage4-bridge-01a18583/p20-s6-contract-review-704283-34/revision2",
+    "raw_audit_json_sha256": "3893496809ca5cff123fb596f40dd33110872d0972b1a0776d2c97ee436c6517",
+    "raw_audit_text_sha256": "749caf95ee901dd6b9757dd5938196986828ec9820f92cea273bd34f21b6f1ea",
+    "result_json_sha256": "bb90a1dc9099900299e00bca4539553f74b1b91f6b6528e9f5b80878557ff781",
+    "transport_ack_is_separate": true,
+    "new_review_or_audit_performed": false
+  },
+  "root_key_review": {
+    "disposition": "Accept concrete static design decisions; production/test release remains a separate exact step after final documentation integration and baseline preservation.",
+    "critical_source_ranges": [
+      "hotpot/cheminfo/structure/_commit.py:19-23,81-85,105-159",
+      "hotpot/cheminfo/structure/_identity.py:247-277",
+      "hotpot/cheminfo/stereo.py:4084-4180"
+    ],
+    "accepted": [
+      "Exact distinct-input alignment nonblocking route when any tracked outer transaction exists, including third owner; every initial/deferred scope; same-thread reentry and uncontended success; exact specified RuntimeError only on contention.",
+      "Exact deferred raw-capture drift RuntimeError after deterministic preflight and before required strict-H preparation; preserve original owner-source failure, raw type/byte/partition checks, strong referents and late-side-effect order.",
+      "N09 exact cap-one three-field _StereoSnapshot with no duplicate update/source wrapper.",
+      "Sole algebra remap owner and real chemistry lifecycle operation.",
+      "Actual postponed annotation strings and source/wheel success-or-error introspection baseline, public class/pickle identity.",
+      "Immutable native graph with recursive typed ordered packing, one pack per target and zero query/pair repacks.",
+      "Mandatory Stage7E canonical stereo decomposition before Stage8/Stage12/global acceptance; transitional current payload identity is not a permanent guarantee."
+    ],
+    "qualification": "Owner-only _capture_source/_check_source with empty dependencies acquires no conformer lock. Nonempty existing H helper source paths retain their existing hierarchy. No general deadlock/callback lock-freedom claim.",
+    "remaining_document_delta": "Sol-max freezes explicit adverse time/allocation disposition before measurements and corrects the empty-domain conformer-lock wording while preserving all five reviewed document bytes/hashes. No new substantive review requested.",
+    "cost_gate_direction": "Missing/inconclusive required bounded evidence and unexplained adverse time/allocation/scaling/retention or extra per-query work block Stage6. Root must explicitly disposition each adverse result under existing sampling/noise policy; only measured necessary bounded linear overhead may be accepted locally with evidence/cause and unchanged Stage12/global performance debt. No expected-overhead automatic pass or parity waiver."
+  },
+  "realignment": {
+    "documents": [
+      {
+        "path": "plan/20_fact_rule_architecture/goal.md",
+        "sha256": "6e116730e1a31ec999b623e9e594d26f23e3cf8a95e68048652acf9c699b0118",
+        "lines": 81,
+        "read": "complete bounded root read after material revision; first main truncation recovered at290-420"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+        "sha256": "57ede1913cbfb37a81e34c410773acc1447b8f109f6be641efe5449f8289fcbb",
+        "lines": 2652,
+        "read": "complete bounded root read after material revision; first main truncation recovered at290-420"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+        "sha256": "96f4808f91e9470bdf60ff4a8f58b514d838b023328e7ea37f90fcf3f7328707",
+        "lines": 295,
+        "read": "complete bounded root read after material revision; first main truncation recovered at290-420"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+        "sha256": "23a7b5c43851837a5aeaf69b4a127dc712d1a4b9c7bb178242015839543d8213",
+        "lines": 184,
+        "read": "complete bounded root read after material revision; first main truncation recovered at290-420"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+        "sha256": "f1e6dce3aa3be649b7e5491f8d35752accc84ec80cb3a597bfc2850d5aa82554",
+        "lines": 543,
+        "read": "complete bounded root read after material revision; first main truncation recovered at290-420"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/../21_metal_cluster/metal_cluster_implementation_plan.md",
+        "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+        "lines": 68,
+        "read": "complete bounded root read after material revision; first main truncation recovered at290-420"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/integrated_requirements.json",
+        "sha256": "fca6bcecf2425c4d52264f4c48e5260244baf6178a43c58c99c5e8fc0e39dc2c",
+        "lines": 261,
+        "read": "complete bounded root read after material revision; first main truncation recovered at290-420"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/stage_verification_map.json",
+        "sha256": "716b35ead9384b03695aed5289bd4f14f101ba692308511ab2a330b761040dfe",
+        "lines": 1724,
+        "read": "complete bounded root read after material revision; first main truncation recovered at290-420"
+      }
+    ],
+    "governance": "Full hotpot-stage/hotpot-validation/hotpot-plan-governance and both governance reference reads completed; Stage6 entry reused, no new stage entry inferred.",
+    "current_docs_only_head": "98bcfa8dedec124e0bdc0c2e1c2f634afa38b597",
+    "production": "Unchanged from validated cac32af6b4001f377cf347f750bf5a73ffe2bea9; no source/test cutover released."
+  },
+  "next_gate": "Finalize bounded accepted contract records and mechanical map/indices; preserve pre-cutover source/existing-wheel introspection/target fixtures, then explicit 20-production/16-test ownership release. Full execution still needs STAGE6_SOURCE_READY.",
+  "production_implementation_authorized": false,
+  "stage6_acceptance": false,
+  "global_architecture_acceptance": false,
+  "runtime_tests_executed_by_this_record": false,
+  "document_check": {
+    "argv": [
+      "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+      "plan/20_fact_rule_architecture/audit_stage_records.py",
+      "--output",
+      "/tmp/p20-stage6-r2-record-integration-audit.json"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "report": "/tmp/p20-stage6-r2-record-integration-audit.json",
+    "sha256": "11ae6e8f9ad759858b53e03fb3d87922a615314dd506bf5fb6341d7fed19222b",
+    "status": "passed",
+    "indexed_assets": 127,
+    "scope": "Document layout and navigation only; no implementation/test/scientific/performance acceptance",
+    "not_runtime_evidence": true
+  }
+}

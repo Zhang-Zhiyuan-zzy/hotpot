@@ -865,8 +865,12 @@
       "entry_evidence": "stages/stage06/entry_review.json",
       "validation_preparation": {
         "path": ".plan20-artifacts/20261030/stage6/validation-preparation/preparation.json",
-        "status": "commands/old-environment-provenance preparation only;no Stage6execution/currentwheel acceptance",
-        "limits": "Source-only native header/recipe tier separate from installedruntime;two external SDK ABIcases lack frozenbinding;ordinaryrequiredskipsremainmissingevidence."
+        "status": "Static runner-r2 review/audit retained; root accepts narrow revision3 support delta with32targeted checks. SOURCE_READY/candidate execution remains held.",
+        "limits": "Source-only native header/recipe tier separate from installedruntime;two external SDK ABIcases lack frozenbinding;ordinaryrequiredskipsremainmissingevidence.",
+        "selected_runner_revision": 3,
+        "selected_runner": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/stage6_runner.py",
+        "selected_runner_sha256": "b04aca859f2150b1b9eb8fecb34b75ae972237f57d83144907a5035e1fd1c272",
+        "connected_support_evidence": "stages/stage06/validation-preparation/connected-support/evidence.json"
       },
       "design_evidence_records": [
         "stages/stage06/contracts/review.md",

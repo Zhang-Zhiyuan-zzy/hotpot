@@ -1,0 +1,115 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_SUPPORT_MECHANISM_SOURCE_READY_RUNTIME_HELD",
+  "reason": "Full connected46file source/installed selection exposes missing exact harness support. Preserve runtime coverage and installed-origin attribution.",
+  "owner": "/root/stage6_validation",
+  "model": "gpt-6.1-sol",
+  "effort": "medium",
+  "predecessor_runner_sha256": "3203a82de916bb2ee6a2aa0be1f93b8df6126c258cc6d24a95e61e14822e6584",
+  "retained_predecessor_directory": ".plan20-artifacts/20261030/stage6/validation-runners/revision2",
+  "new_output_directory": ".plan20-artifacts/20261030/stage6/validation-runners/revision3",
+  "exact_support_additions": [
+    {
+      "path": "tests/smarts_conformance/__init__.py",
+      "sha256": "03758f6a55b80e4295e9df3451c86accf4015fd186d1a4b5a22c0dc534a76253",
+      "bytes": 70
+    },
+    {
+      "path": "tests/smarts_conformance/coordination_cases.py",
+      "sha256": "f592e72b758d7c7c2dc9a820dd1cb3da72964c20b106dd9b979daac6a4646b7b",
+      "bytes": 4100
+    },
+    {
+      "path": "plan/17_rdkit_wrapper/run_r0_benchmark.py",
+      "sha256": "8f4de7b82f2e822db7889738858f69746480e93397ca2ac990846f62df4160e6",
+      "bytes": 37080
+    },
+    {
+      "path": "plan/17_rdkit_wrapper/run_c1_c2_benchmark.py",
+      "sha256": "0f0e0bdb904771d214118f2f35d53944b37a71c078bebbc2dc0a59091e5d5dcf",
+      "bytes": 21209
+    }
+  ],
+  "copy_policy": "Add exactly four bound regular files to explicit support list. Only exact two named Plan17 scripts receive outside-tests namespace allowance. Preserve canonical/symlink/source/destination containment and no arbitrary additions/plan tree/native data/package source copying.",
+  "mca_loader": "Installed tier may add only its actual wheel installation site/hotpot/cheminfo/AImodels to PYTHONPATH to match the source-only parent conftest MCA namespace setup; bind directory and module origins to installed bytes. Do not copy tests/mca/conftest.py or inject checkout AImodels.",
+  "unchanged_requirements": [
+    "All46 runtime files in source and installed tiers",
+    "Only the original one installed source-audit deselection",
+    "Three native-source paths and SDK/default outcomes",
+    "Historical disjoint native attestation and closure policies",
+    "No source/test/plan-script/golden/runtime edits by verifier",
+    "No Hotpot/pytest/subprocess execution for support delta check"
+  ],
+  "required_evidence": [
+    "Exact old/new helper and support hashes and bounded diff",
+    "Deterministic delta checks for approved copies and denied traversal/symlink/namespace/allowlist injection",
+    "Static source/installed MCA import-origin binding",
+    "Root critical review before SOURCE_READY; no broad53check rerun required"
+  ],
+  "execution_authorized": false,
+  "original_release": {
+    "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/root-release-before-acceptance.json",
+    "sha256": "7e1d312bc399fc9fe800c986bab060af01b078cd142fe672cf3e8dac6e6d597e",
+    "bytes": 2752
+  },
+  "root_critical_review": {
+    "scope": "Read exact full revision3 bounded diff and executed32check evidence; no synthetic rerun or broad audit.",
+    "inspected": [
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/revision3.diff",
+        "sha256": "ea2f64d9ec286fb45175ed8b323eb24ba4f1026c38266d47c737677da171fd1f",
+        "bytes": 16803
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/evidence.json",
+        "sha256": "573d77cb2145e579b07e8e807ba58d01a1bcd0da0abdd4017536abd842a8cae3",
+        "bytes": 12537
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/correctness-attempt2/checks.json",
+        "sha256": "81e86c2f30779989b2680b80b0771df5018526fc54020558ea1327399a826f07",
+        "bytes": 30785
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/report.md",
+        "sha256": "71bf9eaa8c83c8b256b6cfe3f1a274a4fdb8a5250a675ec7908fc822edead666",
+        "bytes": 4231
+      }
+    ],
+    "actual_keypoints": [
+      "Exact12path set, original8retained, only two literal Plan17 namespace exceptions; existing regular/canonical/source/destination checks stay in force",
+      "snapshot additionally hashes exacttwo Plan17 scripts",
+      "source environment unchanged; inherited MCA-site override discarded; execute retains wheel-internal AImodels PYTHONPATH",
+      "observer checks canonical installed directory and each loaded MCA module against actual wheel-member bytes",
+      "46source/installed paths and one exact installed deselection unchanged; native/default/SDK/historical-attestation function ASTs unchanged"
+    ],
+    "accepted_helpers": [
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/stage6_runner.py",
+        "sha256": "b04aca859f2150b1b9eb8fecb34b75ae972237f57d83144907a5035e1fd1c272",
+        "bytes": 24580
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/stage6_policy.py",
+        "sha256": "e31c829bdf3959ee5d643bec1274c7e2c441e6d3cad8a59109c057dc295df553",
+        "bytes": 9024
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/stage6_observation.py",
+        "sha256": "607e24e2fe320c6d919f3769ea35bb1e5f5e1169236fd6bf179a1aacdf9fef38",
+        "bytes": 8522
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/test-support-allowlist.json",
+        "sha256": "73e5f63f916813967830e8e08a436b648e7e9e87a39f4a36ddf5d5cbbbd232b6",
+        "bytes": 882
+      },
+      {
+        "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision3/native-closure-inventory.json",
+        "sha256": "a2c35a8023986b5d7d2eb58df73f9e67d5d29510e6dc8d507db1b0cc33e5ea9c",
+        "bytes": 10666
+      }
+    ],
+    "checks": "Supplied targeted attempt2:32passed/0failed; prior31pass attempt retained after snapshot binding delta. No candidate Hotpot/pytest/subprocess imported/executed.",
+    "decision": "Select revision3 for eventual SOURCE_READY prepare/execution; acceptance covers this exact support delta only. Existing revision2 static review/audit remains separately historical; no new reviewer/audit claim."
+  }
+}

@@ -15,4 +15,6 @@ Stage6 entry alignment is complete on the verified Stage5 checkpoint `aed86adb60
 
 - [Implementation release](implementation/review.md) and [exact ownership/baseline identities](implementation/evidence.json): settled20-production/16-test cutover released to Sol-max after preservation; candidate runtime remains SOURCE_READY gated.
 
+- [Connected installed support delta](validation-preparation/connected-support/review.md) and [exact scope/evidence](validation-preparation/connected-support/evidence.json): four bound support additions and installed MCA origin binding; revision3 mechanism accepted after32targeted checks/root delta review, SOURCE_READY/runtime pending.
+
 Add actual execution and gate records here as authorized work produces them. A record's existence does not establish its validation result.

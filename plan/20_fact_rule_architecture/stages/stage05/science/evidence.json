@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "stage": "Stage5",
-  "status": "B20 bounded preparation executed; candidate and Stage5 scientific explanation pending final freeze",
+  "status": "bounded_baseline_and_current7case_90H_observations_recorded_original_identities_retained_not_global_science_acceptance",
   "source_commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
   "interpreter": "/tmp/hotpot-plan20-env/bin/python",
   "python_version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
@@ -347,5 +347,44 @@
     ],
     "observations": "Seven exact-bound B20 cases completed with0 compared differences;90 finite-H contract cases matched, including6 expected unresolved values. No full O0/physical truth/global scientific acceptance.",
     "recorder": "Reused exact existing Stage4 run_recorded.py; each command retains its actual runner hash/full current source/test/native/input snapshots. Native identities are the actual previously corrected current-source binaries used here; no fresh five-ABI build/runtime pass is inferred."
+  },
+  "reuse_binding_check": {
+    "recorded_utc": "2026-10-30T11:12:31.599214+00:00",
+    "actual_command": [
+      "python3",
+      ".plan20-artifacts/20261030/stage5/science-final/reuse-binding-check.py"
+    ],
+    "evidence": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/science-final/reuse-binding-check-attempt1.json",
+      "sha256": "e2d20a1aa7522d7ae090caaed681c0fde94dcddeaec6dfedfa877b5c8cbb883a"
+    },
+    "script": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/science-final/reuse-binding-check.py",
+      "sha256": "07514442a0d54de6ab7a7089c6e6b36c8af124fe64b60120e5b1fd2e08c13565"
+    },
+    "result": "passed;632source files unchanged for each retained run and all observer/fixture/contract input bindings match. Already executed once; no scientific rerun or current rebuilt-binary substitution.",
+    "original_native_identity_policy": "Retain exact native binaries in the original run records and reuse record. Fresh forced builds being byte-identical do not relabel old executions."
+  },
+  "scoped_science_review": {
+    "task_id": "p20-s5-science-results-review-704283-22",
+    "task_hash": "3d0b75f9a18f1b899fc75c69fead2ca0ccd7b0a1f6efbd9f60b9541303593380",
+    "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+    "diff_or_tree_hash": "d26d768a80ac6b1a526106ca32a5bcfbc54c5fd22322b5d35fc71bf6fa9978a1",
+    "exact_turn_id": "01a18c15-72fb-72d0-a129-3458b7c95a02",
+    "status": "AUDIT_PASSED",
+    "substantive_status": "PASS_SCOPED_SCIENTIFIC_OBSERVATIONS",
+    "result": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-science-results-review-704283-22/result.json",
+      "sha256": "2da6c775e13ea99c6801569582dde333d27768506d2a52ccbf733437f0742881"
+    },
+    "verbatim_result": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-science-results-review-704283-22/review-result.txt",
+      "sha256": "1e7f4a2ba47f736b4a0afb81302b8f24ed7180903d51e2433f7e760db972b284"
+    },
+    "actual_readonly_audit": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-science-results-review-704283-22/audit-result.json",
+      "sha256": "0be81e548d8d5ab0a0b17d9a9946887e8119be45e6e0fe25cbed2b6f36707010"
+    },
+    "root_acceptance": "Only exact-bound7case B20 observations and90H convention cases(84known/6expectedUNRESOLVED); not physical truth,fullO0,all187sources or final science acceptance."
   }
 }

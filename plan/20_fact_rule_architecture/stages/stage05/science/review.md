@@ -33,3 +33,15 @@ uncertainty into a fixed success-count gate.
 The accepted corrected observer executed all seven exact-bound B20 prepared inputs, with every declared input/provenance check true, seven completed cases, no execution errors and no compared before/after differences. The separate current finite-H observer executed all90 unique convention cases:90 matched, zero differences/errors and6 expected unresolved outcomes. Expected unresolved cases remain unresolved; the report does not count them as known-H assignments.
 
 Each execution retains actual argv/environment/interpreter, source/test/native/input snapshots and unchanged-byte checks in the linked evidence. These are bounded Python3.11 observations, not the full O0 corpus or an experimental/unique physical-truth claim. Source-default/five-version/debug/wheel/sdist and performance obligations remain separate.
+
+
+## Retained execution binding
+
+Root's one completed reuse-binding check matches all632source files for each
+retained run and all observer/fixture/contract inputs. Original native identities
+remain in the actual command and reuse records; fresh byte-identical forced
+builds do not relabel an earlier execution. The unique task22 content and its
+matching exact-turn actual read-only audit support only these seven bounded
+observations and90H convention cases(84known,6expectedUNRESOLVED). No science
+run was repeated. Full O0,all187sources,seeds42/43/44 and global scientific
+acceptance remain open. Exact identities are appended in [evidence](evidence.json).

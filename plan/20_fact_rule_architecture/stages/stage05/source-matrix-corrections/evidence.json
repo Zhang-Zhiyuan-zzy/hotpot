@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "stage": "Stage5",
-  "status": "complete_current_source_default_passed_remaining_stage5_matrix_package_performance_open",
+  "status": "owning_stage5_technical_gates_complete_global_science_and_performance_open",
   "recorded_at_utc": "2026-10-30T08:22:42.863285+00:00",
   "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151",
   "goal_steering": {
@@ -1593,5 +1593,87 @@
       "Earlier five ABI builds/collection attempts and failures retained. Fresh owner freeze will bind final bytes and Git identity.",
       "Scientific7case/90H observations remain their exact source/task bindings and do not imply O0/full corpus/final acceptance."
     ]
-  }
+  },
+  "final_default_integrity_review": {
+    "task_id": "p20-s5-default-evidence-review-704283-29",
+    "task_hash": "578c7f40b671b47f73eade648127fc3b01d35d51b762fbcb3c7331a937175ae8",
+    "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+    "diff_or_tree_hash": "d19abff60be2744af1bfe88206b4640dd4e9c3da4a7976a5742c126233da8a48",
+    "exact_turn_id": "01a18c6b-d865-7d62-9423-d82f0411291a",
+    "status": "AUDIT_PASSED",
+    "result": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-default-evidence-review-704283-29/result.json",
+      "sha256": "c4849ccbc4fe0b4a85f851492a0878f15b72c34650b72e8fc4cea46077314d86"
+    },
+    "verbatim_result": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-default-evidence-review-704283-29/analysis-result.txt",
+      "sha256": "7049aa4105cd9fee679d3100c670b6da387fbab192e5c2ef882f4a1af7c8cee9"
+    },
+    "actual_readonly_audit": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-default-evidence-review-704283-29/audit-result.json",
+      "sha256": "142876359c5bba7d36ae99be407cb04dacb52028cf96a668f5a165998c92c40f"
+    },
+    "recorded_utc": "2026-10-30T11:11:57.607215+00:00",
+    "root_acceptance": "Bounded Python3.11 source default evidence integrity only; no repeated pytest or full evidence analysis. All former failures actually passed,5063original cases retained.",
+    "attempts": [
+      {
+        "attempt": 1,
+        "junit_tests": 5112,
+        "testcase_elements": 5063,
+        "passed": 4932,
+        "failed": 5,
+        "xml_skipped": 126,
+        "ordinary_skipped": 123,
+        "xfailed": 3,
+        "subtests": 49,
+        "returncode": 1
+      },
+      {
+        "attempt": 2,
+        "junit_tests": 5119,
+        "testcase_elements": 5070,
+        "passed": 4932,
+        "failed": 12,
+        "xml_skipped": 126,
+        "ordinary_skipped": 123,
+        "xfailed": 3,
+        "subtests": 49,
+        "returncode": 1
+      },
+      {
+        "attempt": 3,
+        "junit_tests": 5120,
+        "testcase_elements": 5071,
+        "passed": 4945,
+        "failed": 0,
+        "xml_skipped": 126,
+        "ordinary_skipped": 123,
+        "xfailed": 3,
+        "subtests": 49,
+        "returncode": 0
+      }
+    ],
+    "roster_intervals": {
+      "first_to_second_additions": 7,
+      "second_to_final_additions": 1,
+      "first_to_final_additions": 8,
+      "removed_original_cases": 0
+    },
+    "packet_label_limit": "The immutable packet added_in_final field is final minus union(first,second),so it denotes one second-to-final addition,not eight first-to-final additions. Original packet is retained unchanged."
+  },
+  "final_execution_followup": {
+    "recorded_utc": "2026-10-30T11:11:57.607215+00:00",
+    "source_commit": "cac32af6b4001f377cf347f750bf5a73ffe2bea9",
+    "handoff": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/final-validation-attempt4/execution-handoff.json",
+      "sha256": "6f0edf2507e6588d53dfa807b595d7d20f1525306901428a8179e231ad1d92b5"
+    },
+    "root_key_check": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/root-gate-checks/key-check-attempt1.json",
+      "sha256": "35ec906cd6406b1196a02914d3a24b22a0682ce4786cc4a94f0f58d2b35e1447"
+    },
+    "state": "Stage5 owning technical gates closed in gates/review.md. Five-version matrix/packages and bounded reports accepted;task31corrected3clean_readnoncomparables/lazyfamilyincomplete,globalperformanceopen.",
+    "historical_pending_gates_note": "Earlier pending lists describe their recorded checkpoints; latest current state is this followup and final owning validation/gates records."
+  },
+  "owning_closure_record": "../gates/evidence.json"
 }

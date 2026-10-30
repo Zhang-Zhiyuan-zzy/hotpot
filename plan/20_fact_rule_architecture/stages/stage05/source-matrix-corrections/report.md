@@ -26,3 +26,29 @@ The successive real attempts remain retained: focused49pass/2fail,51pass; second
 Unique task24r3,25r2,26,27 and28 results and actual readonly audits are linked by exact task/source/tree/hash/turn in the evidence record. Root reviewed only the disputed source/prefix/readiness/selection key points. Task28 confirms the new implementation delta and the mechanical four-file selection extension; it does not repeat the accepted cohort/runner audits. Source and installed-applicable collection contain63/61 required nodes with exactly the original two source-only audits; all12 evidence-file nodes remain required. That collection is not installed-wheel execution.
 
 The finalized81-line goal is effective under the owner's explicit2026-10-30 authorization. GPT-6.1 Sol/max reconciled the main plan and four companion records; root completed the full revised main/companion reread and recorded exact identities. Ordinary requested values, scoped conflicts, hard-local rejection and non-hard findings/control now agree across them. Settled H/aromatic return behavior is retained. The concrete unavailable-H/imprecise-diagnostic debt is assigned to existing Stage7C/8A owners and remains open under final diagnostic acceptance. No new public schema, scientific algorithm, efficiency waiver or Stage5 gate was introduced. Stage5 remains open pending its required matrix/package/performance evidence; Stage6 has not begun.
+
+
+## Final current-source handoff
+
+The later final execution completed at `cac32af6b4001f377cf347f750bf5a73ffe2bea9`.
+The [technical report](../validation/report.md) now records all five current
+source/debug/installed-wheel results and sdist. Earlier attempts above retain
+their actual source identities and failures. The source-only default's unique
+task29 integrity review and exact-turn audit confirm that all former5and12
+failures pass and all5063original cases remain. Roster growth is seven cases
+from first to second and one from second to final,eight from first to final;
+the immutable packet's single `added_in_final` item denotes final minus the
+union of the two prior attempts. Source default evidence was not rerun.
+
+The [focused comparison](../performance/report.md) records seven regressions,
+three improvements and one neutral result. Its execution does not supply
+performance acceptance. Root aggregate review and Stage5 closure remain
+pending; no later-stage entry follows from this correction record alone.
+
+
+The later [owning-stage gate](../gates/review.md) closes Stage5technical
+obligations after matching task31content and its actual read-only audit. That
+review corrects the earlier raw-comparator summary:3clean-read tasks are
+non-comparable,8other comparisons remain valid,and the complete lazy-family
+aggregate is not accepted. Original measurements,failures and checkpoint
+wording above remain historical. Final global performance/science stays open.

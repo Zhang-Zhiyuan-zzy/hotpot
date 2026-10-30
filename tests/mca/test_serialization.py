@@ -224,3 +224,15 @@ def test_unknown_dto_version_is_rejected_by_both_rebuilders():
         hotpot_mol_from_dto(dto)
     with pytest.raises(ValueError, match="Unsupported MCA molecule DTO version"):
         rdmol_from_dto(dto)
+
+
+def test_normalization_supports_both_serialization_import_routes():
+    from dataclasses import asdict
+    from importlib import import_module
+
+    expected = asdict(normalize_molecule("CCN"))
+    for name in ("mca.serialization", "hotpot.cheminfo.AImodels.mca.serialization"):
+        module = import_module(name)
+        dto = module.normalize_molecule("CCN")
+        assert asdict(dto) == expected
+        assert _site_records(module.hotpot_mol_from_dto(dto)) == ((2, "Amine"),)

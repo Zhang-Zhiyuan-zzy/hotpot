@@ -77,6 +77,8 @@ def normalize_molecule(value) -> MoleculeDTO:
 
     native_mol = to_hotpot_mol(value)
     with native_mol._mutation_lock:
+        from hotpot.cheminfo.operations.chemistry import _require_implicit_hydrogens
+        hydrogens = _require_implicit_hydrogens(native_mol)
         feature_mol = _feature_molecule(value, native_mol)
         atoms = tuple(
             AtomDTO(
@@ -84,12 +86,12 @@ def normalize_molecule(value) -> MoleculeDTO:
                 formal_charge=int(atom.formal_charge),
                 partial_charge=float(atom.partial_charge),
                 is_aromatic=bool(atom.is_aromatic),
-                implicit_hydrogens=int(atom.implicit_hydrogens),
+                implicit_hydrogens=hydrogen,
                 valence=int(atom.valence),
                 isotope=int(getattr(atom, "isotope", 0)),
                 coordinates=tuple(float(coordinate) for coordinate in atom.coordinates),
             )
-            for atom in native_mol.atoms
+            for atom, hydrogen in zip(native_mol.atoms, hydrogens)
         )
         bonds = tuple(
             BondDTO(

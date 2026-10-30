@@ -1,0 +1,351 @@
+{
+  "schema_version": 1,
+  "stage": "Stage5",
+  "status": "B20 bounded preparation executed; candidate and Stage5 scientific explanation pending final freeze",
+  "source_commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+  "interpreter": "/tmp/hotpot-plan20-env/bin/python",
+  "python_version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+  "argv": [
+    "/tmp/hotpot-plan20-env/bin/python",
+    "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage5/science-helpers/assignment_observations_v3.py",
+    "--repository",
+    "/tmp/hotpot-plan20-20261028/source-b20",
+    "--output",
+    "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261029/stage5/assignment-baseline-attempt3",
+    "--phase",
+    "baseline"
+  ],
+  "cwd": "/tmp/hotpot-plan20-20261028/source-b20",
+  "environment_overrides": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "/tmp/hotpot-plan20-20261028/source-b20",
+    "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "NUMEXPR_NUM_THREADS": "1"
+  },
+  "dependencies": {
+    "numpy": "2.4.6",
+    "networkx": "3.6.1",
+    "rdkit": "2026.9.1",
+    "openbabel": "3.2.1"
+  },
+  "input_canonical_sha256": "a781ee50b4c4bf52d8b111235b94bdd69c5924481a0b52f33746c19a4d879d2d",
+  "input_hash_encoding": "canonical JSON of in-memory case definitions, sorted keys/compact separators/no newline",
+  "input_file_sha256": "9fca2d8fe800fc0366ed62a59e84a555386805263a93d18e6942b8eccdfc4319",
+  "summary": {
+    "completed": 7,
+    "execution_error": 0
+  },
+  "source_native_stable": true,
+  "artifacts": [
+    {
+      "path": ".plan20-artifacts/20261029/stage5/assignment-baseline-attempt3/report.json",
+      "sha256": "522c5e1f45978c0c9ae67badde3039bceccf6e5d51cc35fa86888daae4f61606",
+      "bytes": 264734
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/assignment-baseline-attempt3/cases.json",
+      "sha256": "9fca2d8fe800fc0366ed62a59e84a555386805263a93d18e6942b8eccdfc4319",
+      "bytes": 886
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/science-helpers/assignment_observations_v3.py",
+      "sha256": "0a4c14075fba424b6985d61a9b367cd1936d2924c751017904e2e49056380f06",
+      "bytes": 6829
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/assignment-baseline-attempt2/report.json",
+      "sha256": "7adb76a82c67e5c0617592bd5434e82d167e94c592ecd9378507f2f06dbf83aa",
+      "bytes": 205459
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/assignment-baseline-attempt1/report.json",
+      "sha256": "fff6f31d85428ea561a70890837114c0d0eb07edcca48b3786f481eaac9d5ce7",
+      "bytes": 204275
+    },
+    {
+      "path": ".plan20-artifacts/20261029/stage5/b20-transport-probe.json",
+      "sha256": "032492dd905daaf5b3d35a94ce5e053ffe84b6dfbbd272774de7530b6172d298",
+      "bytes": 1238
+    }
+  ],
+  "observations": [
+    {
+      "id": "benzene_alternating",
+      "status": "completed",
+      "before_aromatic_atoms": 0,
+      "after_aromatic_atoms": 6,
+      "before_H": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "after_H": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "cyclobutane",
+      "status": "completed",
+      "before_aromatic_atoms": 0,
+      "after_aromatic_atoms": 0,
+      "before_H": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "after_H": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "id": "furan",
+      "status": "completed",
+      "before_aromatic_atoms": 0,
+      "after_aromatic_atoms": 5,
+      "before_H": [
+        1,
+        1,
+        0,
+        1,
+        1
+      ],
+      "after_H": [
+        1,
+        1,
+        0,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "pyridine",
+      "status": "completed",
+      "before_aromatic_atoms": 0,
+      "after_aromatic_atoms": 6,
+      "before_H": [
+        1,
+        1,
+        1,
+        0,
+        1,
+        1
+      ],
+      "after_H": [
+        1,
+        1,
+        1,
+        0,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "benzene_single_bonds",
+      "status": "completed",
+      "before_aromatic_atoms": 0,
+      "after_aromatic_atoms": 6,
+      "before_H": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "after_H": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "azulene_without_flags",
+      "status": "completed",
+      "before_aromatic_atoms": 0,
+      "after_aromatic_atoms": 0,
+      "before_H": [
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1
+      ],
+      "after_H": [
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "naphthalene",
+      "status": "completed",
+      "before_aromatic_atoms": 0,
+      "after_aromatic_atoms": 10,
+      "before_H": [
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      "after_H": [
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1
+      ]
+    }
+  ],
+  "capture_extension_check": "Attempt3 adds exact prepared transport facts/source-ledger availability; all before/after observations and inputs equal attempt2. Attempts1/2 retained.",
+  "candidate_binding": "Pending closed complete importer example from Stage5 owner; deleted public aromatic writers must not be used. Actual legacy values are imported without inventing legacy source codes.",
+  "limits": [
+    "Bounded seven-case rule observations, not the full187-source/O0/seed42-44 report.",
+    "Completed execution is not a scientific correctness/quality pass; known legacy limitations are retained.",
+    "B20 Atom has only mol/attrs, no modern table presence/source arrays; those are explicitly absent. Candidate source/status is new infrastructure evidence, not fake historical metadata.",
+    "All frozen case membership/preparation/coordinates/Atom and Bond initial values must remain visible for candidate comparison; P4 columns are calculated, not authoritative builder facts."
+  ],
+  "current_scoped_execution": {
+    "recorded_at_utc": "2026-10-30T09:03:35.099640+00:00",
+    "runs": [
+      {
+        "scope": "public-attempt1",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/science-final/public-attempt1/command.json",
+          "sha256": "89fd15b27f156457dbe0b990930cfdb93b2b4e9ce5dbce20b46ec3ac799a7318"
+        },
+        "report": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/science-final/public-attempt1/report.json",
+          "sha256": "7f4697412f408e16615aa401f858480687e58ea12cd4275ffe9942668d18fec2"
+        },
+        "argv": [
+          "taskset",
+          "-c",
+          "24-31",
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/science-final/observe_bound_public.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/science-final/public-attempt1/report.json"
+        ],
+        "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+        "environment_overrides": {
+          "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+          "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONHASHSEED": "0",
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "NUMEXPR_NUM_THREADS": "1"
+        },
+        "source_tests_native_inputs_unchanged": true,
+        "elapsed_seconds": 0.7294637970626354,
+        "actual_totals": {
+          "cases": 7,
+          "completed": 7,
+          "execution_errors": 0,
+          "differences": 0
+        },
+        "all_inputs_bound": true,
+        "case_roster_bound": true,
+        "input_and_rule_source_unchanged": null,
+        "limits": [
+          "Modern candidate source/presence metadata are separately declared, never fabricated for B20.",
+          "Seven bounded assignments, not full187/O0, forcefield, MCA or final global science.",
+          "Per-case differences/errors are preserved; no fixed aromatic or success-count truth criterion.",
+          "Inherited total/omitted-H toolkit inconsistency is not normalized by this runner."
+        ]
+      },
+      {
+        "scope": "hydrogen-attempt1",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/science-final/hydrogen-attempt1/command.json",
+          "sha256": "9419e1c25620ccd538fab555efcba7c943a9c6428c7252a1d00241c0fd367635"
+        },
+        "report": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/science-final/hydrogen-attempt1/report.json",
+          "sha256": "4f6e5475e2103e068f00a06960e58f2dac16e1f2aa8dcf569381be000aa02bfd"
+        },
+        "argv": [
+          "taskset",
+          "-c",
+          "24-31",
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/science-final/observe_hydrogen_cases.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/science-final/hydrogen-attempt1/report.json"
+        ],
+        "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+        "environment_overrides": {
+          "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+          "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONHASHSEED": "0",
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "NUMEXPR_NUM_THREADS": "1"
+        },
+        "source_tests_native_inputs_unchanged": true,
+        "elapsed_seconds": 0.7703423537313938,
+        "actual_totals": {
+          "cases": 90,
+          "matched_contract": 90,
+          "different_from_contract": 0,
+          "execution_errors": 0,
+          "unresolved": 6
+        },
+        "all_inputs_bound": null,
+        "case_roster_bound": null,
+        "input_and_rule_source_unchanged": true,
+        "limits": [
+          "This graph-completion convention does not choose a unique protonation state, tautomer, oxidation state, spin state or experimental structure.",
+          "Historical metal classification and real-H/raw-zero exceptions are retained.",
+          "Supplied/toolkit/model total-versus-omitted H encoding is outside this finite default report; no universal imported-count normalization is claimed.",
+          "This report exercises the sole pure rule; operation/materialization/rollback/native/package evidence belongs to separately executed affected suites.",
+          "No full O0 corpus, external chemistry truth criterion or global Plan20 acceptance is inferred."
+        ]
+      }
+    ],
+    "observations": "Seven exact-bound B20 cases completed with0 compared differences;90 finite-H contract cases matched, including6 expected unresolved values. No full O0/physical truth/global scientific acceptance.",
+    "recorder": "Reused exact existing Stage4 run_recorded.py; each command retains its actual runner hash/full current source/test/native/input snapshots. Native identities are the actual previously corrected current-source binaries used here; no fresh five-ABI build/runtime pass is inferred."
+  }
+}

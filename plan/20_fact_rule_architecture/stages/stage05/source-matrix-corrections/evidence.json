@@ -1,0 +1,1597 @@
+{
+  "schema_version": 1,
+  "stage": "Stage5",
+  "status": "complete_current_source_default_passed_remaining_stage5_matrix_package_performance_open",
+  "recorded_at_utc": "2026-10-30T08:22:42.863285+00:00",
+  "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151",
+  "goal_steering": {
+    "path": "/home/zhangzhiyuan/.codex/attachments/ffa0418d-9b69-4e0a-8dca-0cbd1387e2f0/pasted-text-1.txt",
+    "sha256": "c0cd5b3a33de1c50ca41c05541663f468da4ed53f3b616732e100c2713ed9f47"
+  },
+  "original_matrix": {
+    "directory": ".plan20-artifacts/20261030/stage5/matrix-final-attempt1",
+    "per_version": {
+      "tests": 2949,
+      "failures": 74,
+      "errors": 0,
+      "junit_skipped_including_xfails": 45
+    },
+    "versions": [
+      "3.10",
+      "3.11",
+      "3.12",
+      "3.13",
+      "3.14"
+    ],
+    "same_failed_node_set_sha256": "323bbdfb94e2c43f229d95e3a73782000f445096c974128a3d50ffa40aeffde1",
+    "frozen_bytes_unchanged": true,
+    "debug_wheel_installed_not_executed": true
+  },
+  "invalidation": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/final-validation-attempt2/INVALIDATION.json",
+    "sha256": "b57f3a9b09eb4cfd5a9808cae9c5f254b7abc4714634164f703b6eadccde7a18"
+  },
+  "helper_task17": {
+    "task_id": "p20-s5-source-failure-analysis-704283-17",
+    "task_hash": "735145973840177bf5b26375abe774a158e82dca4875835dd26dbf2b10ed57c5",
+    "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151",
+    "diff_or_tree_hash": "769da544b99b8b5b26033fdee9035ad39d15a876856556948daf47fbb507d5f5",
+    "exact_turn_id": "01a18bad-b2bb-7c20-8db9-9724c228e2d3",
+    "status": "RESULT_AND_ACTUAL_AUDIT_MATCHED",
+    "result_messages": [
+      {
+        "type": "agentMessage",
+        "id": "msg_0e8acd85eec1929a016ae44566f468819580fd64f775d00709",
+        "text": "ANALYSIS_RESULT  \ntask_id=p20-s5-source-failure-analysis-704283-17  \ntask_hash=735145973840177bf5b26375abe774a158e82dca4875835dd26dbf2b10ed57c5  \nsource_commit=93457a7507539f9a731e14b487e599fdc86fd151  \ndiff_or_tree_hash=769da544b99b8b5b26033fdee9035ad39d15a876856556948daf47fbb507d5f5  \nstatus=ANALYZED_WITH_FIXES\n\nAll 74 failures have the same membership across Python 3.10–3.14. They reduce to seven causes.\n\n## Production defects\n\n### High — MCA uses a package-depth-dependent relative import: 19 nodes\n\nAt `hotpot/cheminfo/AImodels/mca/serialization.py:79`, `from ...operations.chemistry` works only under the canonical deep package. The tests intentionally import the supported top-level `mca.serialization`, where it raises “relative import beyond top-level package.”\n\nBounded fix: use the absolute import:\n\n```python\nfrom hotpot.cheminfo.operations.chemistry import _require_implicit_hydrogens\n```\n\nAffected functions:\n\n- `test_dto_is_versioned_immutable_and_pickleable` [1]\n- `test_supported_inputs_share_the_same_dto_semantics` [6]\n- `test_iterable_rdmol_adapter_is_normalized_once` [1]\n- `test_rdkit_stereochemistry_and_coordinates_survive_the_dto` [1]\n- `test_aromatic_atoms_bonds_and_site_order_survive_both_representations` [1]\n- `test_coordination_graph_round_trip_preserves_site_semantics` [5]\n- `test_dative_graph_keeps_the_existing_hotpot_smiles_failure` [1]\n- `test_hotpot_isotope_keeps_site_symmetry_distinction` [1]\n- `test_validation_preserves_existing_target_domain_checks` [1]\n- `test_unknown_dto_version_is_rejected_by_both_rebuilders` [1]\n\nRegression: import and invoke normalization through both module names, then retain all 19 existing assertions.\n\n### High — ligand coordinate publication uses non-unique public IDs: 11 nodes\n\nAt `hotpot/cheminfo/forcefields/ligand.py:531-532`, publication uses `clone_mol.atom_id_dict` and indexes it with `component_mol` public `Atom.id` values.\n\nThis is not merely a deficient dummy. Two real-molecule seam failures resolve distinct component atoms to the same `Atom(C3)`/`Atom(C2)`, and the batch writer correctly rejects duplicate selected members. The nine dummy failures additionally show the worker now requires an unrelated facade property absent from the test protocol.\n\nBounded fix: carry a stable unique component-to-clone membership binding established when components are selected—private UID/source membership or an explicit positional binding—not `Atom.id`. Do not refresh or silently rewrite public IDs.\n\nAffected functions:\n\n- Eight `test_complexes_build.py` functions from `test_candidate_attempts_are_bounded...` through `test_best_unqualified_ligand_candidate_is_selected` [9 nodes]\n- `test_provider_runs_once_per_component_and_downstream_budgets_are_unchanged` [1]\n- `test_default_openbabel_path_matches_explicit_adapter_and_seeds_worker_once` [1]\n\nRegression: two component atoms with identical public IDs must publish distinct coordinate rows; retain the existing attempt, geometry, refinement, warning, and sampler-call assertions. Dummy fixtures should not gain `atom_id_dict` merely to mask the defect.\n\n### High — pair/topology rollback state differs after restoration: 8 nodes; exact component still unresolved\n\nAll owner × operation × exception variants of `test_real_dictionary_bucket_allocation_rejection_preserves_owner_undo` report:\n\n- original exception preserved;\n- pair/index/table owners and entries restored;\n- allocation rejection absent during rollback;\n- existing view current;\n- aggregate `facts_restored=False`.\n\nThis is common to all eight variants, so it is not allocator-, owner-, operation-, exception-, or ABI-specific. Do not weaken the assertion or exclude the 19-column projection.\n\nThe supplied aggregate boolean cannot identify whether the mismatch is factual bytes, derived projection, presence/source, dependency status/seeds, membership, bonds, or constraints. Before correcting production, obtain one representative named-component diff from `tests/test_cheminfo/structure/test_pair_observations.py:180-293`, including first differing row/field/group/seed, and supply the current `_FactTransaction.touch_topology/_rollback` bodies.\n\nCorrection boundary:\n\n- factual/status/seed mismatch → fix transaction journaling/restoration;\n- projection-only mismatch → prove restored topology/facts and stable recomputation, then assert both factual restoration and the expected public projection separately;\n- lazy H materialization during comparison → preserve its fact/source/status atomically rather than dropping it from the monitor.\n\n## Settled-contract test migrations\n\n### Medium — retired stored derived/eager assumptions: 14 nodes\n\n`DERIVED_FIELDS` has no physical value/source slots, and ordinary field writes no longer execute scientific rules. These failures are stale tests, not reasons to restore derived storage or eager chemistry.\n\nAffected:\n\n- named `valence` producer commit [1];\n- eager element `get_valence` failure [1];\n- eager bond-endpoint implicit-H failure [1];\n- forcefield source mutations of `s` and `valence` [2];\n- six RDKit stereo clone functions [9].\n\nCorrections:\n\n- `test_operation_producer...`: use the materialized factual `implicit_hydrogens` field with its named producer; retain the outer-transaction producer assertion for `x`.\n- Element/bond atomicity tests: make retired chemistry callbacks forbidden, inject failure at an actual native value/seed boundary, and retain complete value/bond/metadata/dependency rollback assertions.\n- Source-identity test: replace direct `s`/`valence` assignments with changes to their actual factual inputs, such as element facts and bond representation; retain the source-invalidated assertion.\n- RDKit stereo tests at `test_rdconvert_stereo_level1.py:179-483`: stop replaying `atom.attr_dict` through `Atom.__init__`. Build an atom-only factual record preserving raw facts, presence/sources and sparse atom facts, clear every aligned bond column including `bond_aromatic`, then add bonds in the required order and restore the stereo payload. Do not re-authorize derived constructor keywords.\n\n### Medium — failpoints target transitions that no longer occur: 14 nodes\n\nOnly these variants fail:\n\n- `test_commit_restores_write_that_raises_after_mutation[status-*]` [2]\n- `test_public_native_post_store_failure_restores_every_owner` status and seed-remove variants [8]\n- `test_clear_failure_cancels_only_installed_body_swaps[*-status]` [2]\n- `test_real_rehash_preparation_allocation_failure_precedes_all_stores` [2]\n\nA `formal_charge` write queues invalidation; it does not materialize a group, write status, or remove an existing seed. Re-aim tests without reducing coverage:\n\n- For `status`, use `implicit_hydrogens` with its group initially non-CURRENT.\n- For `seed_remove`, preinstall that UID in the implicit-H group seed and materialize implicit H.\n- Keep `formal_charge` for value/source/presence/seed-add boundaries.\n- Before the clear-status test, set the selected formal-charge-coverage rows CURRENT so `_clear_dependency_seeds` performs a real CURRENT→NEEDS_RECALC store.\n- Before the rehash-allocation test, empty the target seed set; the current formal-charge setup already populated it, making the tested add a no-op.\n\nRetain both exception classes, scalar/batch variants, transaction poisoning, physical set restoration, and allocation-denial controls.\n\n### Medium — supplied-H retention supersedes old inferred-count expectations: 7 nodes\n\nAffected:\n\n- four neutral donor cases [4];\n- two zinc complex-build expectations [2];\n- RDKit dative-direction error ordering [1].\n\nOpenBabel-supplied H counts, including explicit source zero, win under the settled contract. Do not change production to infer over them.\n\nCorrections:\n\n- Donor test: assert the imported/assembled supplied counts and source codes are retained through the working copy. Separately exercise absent-H factual fixtures against the finite default values 1/2; do not replace the scientific assertion with an unexplained `(0, 0)`.\n- Zinc build tests: derive final H count and coordinate row count from the bound supplied counts, assert source preservation and finite complete output. Use a separate absent-H construction if default N3 coverage is intended.\n- Dative export test: explicitly supply ready H counts to both atoms so strict H readiness succeeds and the intended missing-direction validation is reached.\n\nNo imported-H normalization or algorithm change is authorized.\n\n### Low — new aligned bond-aromatic transport column omitted by one test: 1 node\n\n`test_view_identity.py:178-201` appends four bonds to every aligned record column except `bond_aromatic`; `_builder.py:260-267` correctly rejects it.\n\nAppend four corresponding aromatic flags—copied from the intended source bond or explicitly false—then retain every partition/view-order assertion.\n\n## Ownership partition\n\n- MCA owner: `AImodels/mca/serialization.py` and its 19 tests.\n- Forcefield owner: `forcefields/ligand.py`, duplicate-ID publication regressions, and 11 affected build/seam nodes.\n- Transaction owner: pair-observation eight-node named-state diagnostic and resulting `_commit.py` repair.\n- Storage/native test owner: 14 failpoint migrations plus named-producer/source-identity migrations.\n- Stereo/transport test owner: nine factual-clone migrations and the one `bond_aromatic` alignment fix.\n- H-consumer test owner: seven supplied-count/readiness migrations.\n\nValidation after correction: run all 74 exact nodes first, then their containing files, then the frozen source matrix on all five ABIs. Debug/wheel executions remain pending gates, not additional source defects.",
+        "phase": "final_answer",
+        "memoryCitation": null,
+        "delivery": null,
+        "questions": null,
+        "startedAtMs": 1793344871191,
+        "completedAtMs": 1793344891658
+      }
+    ],
+    "audit": {
+      "task_id": "p20-s5-source-failure-analysis-704283-17",
+      "task_hash": "735145973840177bf5b26375abe774a158e82dca4875835dd26dbf2b10ed57c5",
+      "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151",
+      "diff_or_tree_hash": "769da544b99b8b5b26033fdee9035ad39d15a876856556948daf47fbb507d5f5",
+      "exact_turn_id": "01a18bad-b2bb-7c20-8db9-9724c228e2d3",
+      "reviewer_thread_id": "01a186e8-89de-7791-8969-98b64ab572c3",
+      "verification_code": "704283",
+      "status": "PASS",
+      "provenance": "Verbatim user actual-audit receipt relayed by root; no repeated audit performed",
+      "historical_snapshot_identity_preserved": true,
+      "actual_context": {
+        "line": 853,
+        "timestamp": "2026-10-30T07:19:38.954Z",
+        "sha256": "cfe73f496de0130c7ef43b5bf18f7e93300c2108a325f8c8ec863f1fd3356ac1"
+      },
+      "actual_range": {
+        "lines": "852-892",
+        "sha256": "ada8810ec4206b0e095d55e7b38b76b622527a594649a7defc2a31cfd91ebf46"
+      },
+      "actual_sandbox": "normalized read-only; network restricted; filesystem restricted; root entry read; write-capable entries0",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "tools": 0,
+      "commands": 0,
+      "delegation": 0,
+      "task_started": 1,
+      "item_completed": 18,
+      "task_complete": 1,
+      "task_failed": 0,
+      "turn_aborted": 0,
+      "turn_failed": 0,
+      "assistant_message": 1,
+      "root_bearing_records": 4,
+      "all_root_turn_ids_match_exact_turn": true,
+      "transport_root_thread_id": "01a18583-f506-71f2-81c9-a66ca32e3561",
+      "transport_root_separate_identity": true,
+      "communication_owner": "01a18b0c-e0c4-7641-aeaa-c34444b3cad9",
+      "raw_audit_text": "AUDIT_RESULT verification_code=704283 task_id=p20-s5-source-failure-analysis-704283-17 task_hash=735145973840177bf5b26375abe774a158e82dca4875835dd26dbf2b10ed57c5 source_commit=93457a7507539f9a731e14b487e599fdc86fd151 diff_or_tree_hash=769da544b99b8b5b26033fdee9035ad39d15a876856556948daf47fbb507d5f5 exact_turn_id=01a18bad-b2bb-7c20-8db9-9724c228e2d3 reviewer_thread_id=01a186e8-89de-7791-8969-98b64ab572c3 status=PASS. Historical task/hash/source/tree identities match task and result; current checkout was not inspected and did not rewrite provenance. Actual turn_context line=853 timestamp=2026-10-30T07:19:38.954Z sha256=cfe73f496de0130c7ef43b5bf18f7e93300c2108a325f8c8ec863f1fd3356ac1; exact range lines=852-892 sha256=ada8810ec4206b0e095d55e7b38b76b622527a594649a7defc2a31cfd91ebf46. Actual normalized sandbox=read-only; permission network=restricted; filesystem=restricted; root entry access=read; write-capable entries=0. Actual model=gpt-5.6-sol effort=xhigh. Activity: tool_calls=0 command_calls=0 delegation_calls=0. Completion: task_started=1 item_completed=18 task_complete=1 task_failed=0 turn_aborted=0 turn_failed=0 assistant_message=1. Exact turn matches structural task_started/turn_context/task_complete; all 4 root-bearing records have root_turn_id=01a18bad-b2bb-7c20-8db9-9724c228e2d3 and match exact_turn_id. Relay route root_thread_id=01a18583-f506-71f2-81c9-a66ca32e3561 is separate transport identity."
+    },
+    "content_acceptance": false,
+    "gate_closed": false
+  },
+  "critical_root_checks": [
+    "Supported top-level MCA import required one absolute import.",
+    "Ligand members must use original source handles captured by the same component query, because public IDs may collide. New real-molecule regression covers both within-component and cross-component duplicates.",
+    "Named representative rollback diagnostic showed original state() captured status/seeds before public projection materialized missing H. Raw post-read factual bytes/presence/source/status/seeds are identical after rollback; no transaction production patch inferred.",
+    "Fault injection re-aimed at actual materialized-H status/seed-remove, CURRENT formal-charge-coverage clear, and genuinely empty target set rehash. Complete rollback/sentinel/owner/physical-allocation checks retained.",
+    "Explicit-H declarations stay; separate absent-count donor fixture declares dative donor-to-Zn linkage. A covalent single metal bond instead consumes one ordinary valence slot under the existing finite rule; no algorithm changed."
+  ],
+  "pair_diagnostic": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/pair-rollback-diagnostic-attempt1/command.json",
+    "sha256": "502fa624178d8db2b9e5261732695aaa0145bbea157adcdb9ea4a9517f633643"
+  },
+  "focused_commands": [
+    {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/consumer-binding-corrections/focused-command.json",
+      "sha256": "eeff3a695710072c2dd4926fc53c3d5f3ec8c00ba5b58026c5e6aba8c61001ba",
+      "returncode": 0,
+      "elapsed_seconds": 2.8131848573684692,
+      "source_tests_helpers_native_unchanged": true,
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider",
+        "--import-mode=importlib",
+        "--basetemp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/consumer-binding-corrections/pytest-tmp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/consumer-binding-corrections/focused.xml",
+        "tests/test_cheminfo/test_complexes_build.py::test_candidate_attempts_are_bounded_and_use_geometry_relations",
+        "tests/test_cheminfo/test_complexes_build.py::test_ligand_proxy_only_opens_rings_for_confirmed_piercing[PiercingState.DOES_NOT_PIERCE]",
+        "tests/test_cheminfo/test_complexes_build.py::test_ligand_proxy_only_opens_rings_for_confirmed_piercing[PiercingState.UNDETERMINED]",
+        "tests/test_cheminfo/test_complexes_build.py::test_default_ligand_proxy_search_stops_after_one_accepted_candidate",
+        "tests/test_cheminfo/test_complexes_build.py::test_ligand_proxy_search_stops_after_first_accepted_candidate",
+        "tests/test_cheminfo/test_complexes_build.py::test_candidate_rejection_preserves_geometry_failure_details",
+        "tests/test_cheminfo/test_complexes_build.py::test_failed_refinement_retains_the_medium_optimized_candidate",
+        "tests/test_cheminfo/test_complexes_build.py::test_refined_intersection_retains_all_structured_geometry_evidence",
+        "tests/test_cheminfo/test_complexes_build.py::test_best_unqualified_ligand_candidate_is_selected",
+        "tests/mca/test_serialization.py::test_dto_is_versioned_immutable_and_pickleable",
+        "tests/mca/test_serialization.py::test_supported_inputs_share_the_same_dto_semantics[smiles]",
+        "tests/mca/test_serialization.py::test_supported_inputs_share_the_same_dto_semantics[hotpot]",
+        "tests/mca/test_serialization.py::test_supported_inputs_share_the_same_dto_semantics[rdkit]",
+        "tests/mca/test_serialization.py::test_supported_inputs_share_the_same_dto_semantics[pybel]",
+        "tests/mca/test_serialization.py::test_supported_inputs_share_the_same_dto_semantics[obmol]",
+        "tests/mca/test_serialization.py::test_supported_inputs_share_the_same_dto_semantics[adapter]",
+        "tests/mca/test_serialization.py::test_iterable_rdmol_adapter_is_normalized_once",
+        "tests/mca/test_serialization.py::test_rdkit_stereochemistry_and_coordinates_survive_the_dto",
+        "tests/mca/test_serialization.py::test_aromatic_atoms_bonds_and_site_order_survive_both_representations",
+        "tests/mca/test_serialization.py::test_coordination_graph_round_trip_preserves_site_semantics[free]",
+        "tests/mca/test_serialization.py::test_coordination_graph_round_trip_preserves_site_semantics[zero-order]",
+        "tests/mca/test_serialization.py::test_coordination_graph_round_trip_preserves_site_semantics[single]",
+        "tests/mca/test_serialization.py::test_coordination_graph_round_trip_preserves_site_semantics[chelate]",
+        "tests/mca/test_serialization.py::test_coordination_graph_round_trip_preserves_site_semantics[metal-star]",
+        "tests/mca/test_serialization.py::test_dative_graph_keeps_the_existing_hotpot_smiles_failure",
+        "tests/mca/test_serialization.py::test_hotpot_isotope_keeps_site_symmetry_distinction",
+        "tests/mca/test_serialization.py::test_validation_preserves_existing_target_domain_checks",
+        "tests/mca/test_serialization.py::test_unknown_dto_version_is_rejected_by_both_rebuilders",
+        "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py::test_provider_runs_once_per_component_and_downstream_budgets_are_unchanged",
+        "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py::test_default_openbabel_path_matches_explicit_adapter_and_seeds_worker_once",
+        "tests/mca/test_serialization.py::test_normalization_supports_both_serialization_import_routes",
+        "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py::test_ligand_coordinates_follow_members_with_duplicate_public_ids"
+      ],
+      "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151"
+    },
+    {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/contract-test-corrections/focused-command.json",
+      "sha256": "686170de4013fb93bf8ea87c8ff9f375a40423e667163f4deb631d4e3ceae8fc",
+      "returncode": 1,
+      "elapsed_seconds": 4.751860294491053,
+      "source_tests_helpers_native_unchanged": true,
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider",
+        "--import-mode=importlib",
+        "--basetemp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/contract-test-corrections/pytest-tmp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/contract-test-corrections/focused.xml",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py::test_operation_producer_is_inherited_but_named_computation_is_retained",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py::test_eager_element_failure_restores_all_prior_slots",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py::test_bond_endpoint_failure_rolls_back_bond_and_prior_endpoint",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py::test_commit_restores_write_that_raises_after_mutation[status-False]",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py::test_commit_restores_write_that_raises_after_mutation[status-True]",
+        "tests/test_cheminfo/structure/test_source_identity.py::test_forcefield_source_checks_actual_legacy_numeric_and_sparse_inputs[atomic_number-7]",
+        "tests/test_cheminfo/structure/test_source_identity.py::test_forcefield_source_checks_actual_legacy_numeric_and_sparse_inputs[bond_order-2]",
+        "tests/test_cheminfo/structure/test_fact_native.py::test_public_native_post_store_failure_restores_every_owner[KeyboardInterrupt-status-False]",
+        "tests/test_cheminfo/structure/test_fact_native.py::test_public_native_post_store_failure_restores_every_owner[KeyboardInterrupt-status-True]",
+        "tests/test_cheminfo/structure/test_fact_native.py::test_public_native_post_store_failure_restores_every_owner[KeyboardInterrupt-seed_remove-False]",
+        "tests/test_cheminfo/structure/test_fact_native.py::test_public_native_post_store_failure_restores_every_owner[KeyboardInterrupt-seed_remove-True]",
+        "tests/test_cheminfo/structure/test_fact_native.py::test_public_native_post_store_failure_restores_every_owner[MemoryError-status-False]",
+        "tests/test_cheminfo/structure/test_fact_native.py::test_public_native_post_store_failure_restores_every_owner[MemoryError-status-True]",
+        "tests/test_cheminfo/structure/test_fact_native.py::test_public_native_post_store_failure_restores_every_owner[MemoryError-seed_remove-False]",
+        "tests/test_cheminfo/structure/test_fact_native.py::test_public_native_post_store_failure_restores_every_owner[MemoryError-seed_remove-True]",
+        "tests/test_cheminfo/structure/test_fact_native.py::test_clear_failure_cancels_only_installed_body_swaps[KeyboardInterrupt-status]",
+        "tests/test_cheminfo/structure/test_fact_native.py::test_clear_failure_cancels_only_installed_body_swaps[MemoryError-status]",
+        "tests/test_cheminfo/structure/test_fact_native.py::test_real_rehash_preparation_allocation_failure_precedes_all_stores[False]",
+        "tests/test_cheminfo/structure/test_fact_native.py::test_real_rehash_preparation_allocation_failure_precedes_all_stores[True]",
+        "tests/test_cheminfo/test_complex_hydrogens.py::test_neutral_donor_hydrogenation_is_independent_of_input_path[CS-[Zn]SC-S-1]",
+        "tests/test_cheminfo/test_complex_hydrogens.py::test_neutral_donor_hydrogenation_is_independent_of_input_path[CP-[Zn]PC-P-2]",
+        "tests/test_cheminfo/test_complex_hydrogens.py::test_neutral_donor_hydrogenation_is_independent_of_input_path[C[Se]-[Zn][Se]C-Se-1]",
+        "tests/test_cheminfo/test_complex_hydrogens.py::test_neutral_donor_hydrogenation_is_independent_of_input_path[C[As]-[Zn][As]C-As-2]",
+        "tests/test_cheminfo/test_complexes_build.py::test_small_zinc_build_uses_default_inactive_coordination_hook",
+        "tests/test_cheminfo/test_complexes_build.py::test_seeded_complex_proxy_build_preserves_finite_complete_structure",
+        "tests/test_cheminfo/test_bond_metadata.py::test_rdkit_export_rejects_dative_bond_without_direction",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py::test_bracket_explicit_h_odd_bond_reordering_preserves_configuration",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py::test_bond_stereo_remains_equivalent_when_target_anchor_is_reversed[F/C=C/F]",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py::test_bond_stereo_remains_equivalent_when_target_anchor_is_reversed[F/C=C\\\\F]",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py::test_reversed_atropisomer_anchor_is_explicitly_rejected",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py::test_slash_display_direction_flips_when_its_bond_endpoint_order_reverses",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py::test_crossed_double_display_is_endpoint_order_invariant",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py::test_reversed_endpoint_anchored_display_direction_is_rejected[BEGINWEDGE]",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py::test_reversed_endpoint_anchored_display_direction_is_rejected[BEGINDASH]",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py::test_reversed_endpoint_anchored_display_direction_is_rejected[UNKNOWN]",
+        "tests/test_cheminfo/structure/test_view_identity.py::test_imported_overlapping_bond_partitions_keep_active_first_and_hidden_fallback_order"
+      ],
+      "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151"
+    },
+    {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/contract-test-corrections/focused-attempt2/focused-command.json",
+      "sha256": "a9267b370730148794d81ca76d0c395e2ecae5dd2102dd7d30827ace83cd1219",
+      "returncode": 0,
+      "elapsed_seconds": 4.137952972203493,
+      "source_tests_helpers_native_unchanged": true,
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider",
+        "--import-mode=importlib",
+        "--basetemp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/contract-test-corrections/focused-attempt2/pytest-tmp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/contract-test-corrections/focused-attempt2/focused.xml",
+        "tests/test_cheminfo/test_complex_hydrogens.py::test_neutral_donor_hydrogenation_is_independent_of_input_path[CS-[Zn]SC-S-1]",
+        "tests/test_cheminfo/test_complex_hydrogens.py::test_neutral_donor_hydrogenation_is_independent_of_input_path[CP-[Zn]PC-P-2]",
+        "tests/test_cheminfo/test_complex_hydrogens.py::test_neutral_donor_hydrogenation_is_independent_of_input_path[C[Se]-[Zn][Se]C-Se-1]",
+        "tests/test_cheminfo/test_complex_hydrogens.py::test_neutral_donor_hydrogenation_is_independent_of_input_path[C[As]-[Zn][As]C-As-2]",
+        "tests/test_cheminfo/test_complexes_build.py::test_small_zinc_build_uses_default_inactive_coordination_hook",
+        "tests/test_cheminfo/test_complexes_build.py::test_seeded_complex_proxy_build_preserves_finite_complete_structure"
+      ],
+      "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151"
+    },
+    {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/pair-rollback-correction/focused-command.json",
+      "sha256": "3b7563ef204fff4a551d79f002d3605d5fcfbeecd48e014cf5eb7cd460abb4a8",
+      "returncode": 0,
+      "elapsed_seconds": 10.240187302231789,
+      "source_tests_helpers_native_unchanged": true,
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider",
+        "--import-mode=importlib",
+        "--basetemp",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/pair-rollback-correction/pytest-tmp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/pair-rollback-correction/focused.xml",
+        "tests/test_cheminfo/structure/test_pair_observations.py::test_real_dictionary_bucket_allocation_rejection_preserves_owner_undo[KeyboardInterrupt-topology-pair]",
+        "tests/test_cheminfo/structure/test_pair_observations.py::test_real_dictionary_bucket_allocation_rejection_preserves_owner_undo[KeyboardInterrupt-topology-index]",
+        "tests/test_cheminfo/structure/test_pair_observations.py::test_real_dictionary_bucket_allocation_rejection_preserves_owner_undo[KeyboardInterrupt-forcefield-pair]",
+        "tests/test_cheminfo/structure/test_pair_observations.py::test_real_dictionary_bucket_allocation_rejection_preserves_owner_undo[KeyboardInterrupt-forcefield-index]",
+        "tests/test_cheminfo/structure/test_pair_observations.py::test_real_dictionary_bucket_allocation_rejection_preserves_owner_undo[MemoryError-topology-pair]",
+        "tests/test_cheminfo/structure/test_pair_observations.py::test_real_dictionary_bucket_allocation_rejection_preserves_owner_undo[MemoryError-topology-index]",
+        "tests/test_cheminfo/structure/test_pair_observations.py::test_real_dictionary_bucket_allocation_rejection_preserves_owner_undo[MemoryError-forcefield-pair]",
+        "tests/test_cheminfo/structure/test_pair_observations.py::test_real_dictionary_bucket_allocation_rejection_preserves_owner_undo[MemoryError-forcefield-index]"
+      ],
+      "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151"
+    }
+  ],
+  "current_focused_handoff": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/source-matrix-corrections/focused-handoff.json",
+    "sha256": "650b1b61534ae4e4151fc88d69d28b4484a4000762d02a087b64a87b1e620bab"
+  },
+  "unique_successful_correction_nodes": {
+    "original_failed_nodes_accounted": 74,
+    "additional_production_regressions": 2,
+    "count": 76,
+    "historical_node_mapping": {
+      "test_forcefield_source_checks_actual_legacy_numeric_and_sparse_inputs[s-5]": "test_forcefield_source_checks_actual_legacy_numeric_and_sparse_inputs[atomic_number-7]",
+      "test_forcefield_source_checks_actual_legacy_numeric_and_sparse_inputs[valence-9]": "test_forcefield_source_checks_actual_legacy_numeric_and_sparse_inputs[bond_order-2]"
+    }
+  },
+  "retained_local_failed_correction_attempt": {
+    "path": ".plan20-artifacts/20261030/stage5/contract-test-corrections/focused-command.json",
+    "actual": "30 passed,6 failed; four absent-H fixtures accidentally declared a covalent metal bond, two byte checks called tobytes on Python float. Two test files corrected; six-node retry passed with retained two partial-metal-placement warnings.",
+    "no_production_correction_needed": true
+  },
+  "task18": {
+    "task_id": "p20-s5-monitor-delta-review-704283-18",
+    "task_hash": "0e5067fe7fa5b50da01596544f46114e7db9e78f2d507eb4d6cfea162a3fe853",
+    "diff_or_tree_hash": "a8321825ac0a84ae9631a56c1637bbc9e45f0eb2ae367b7602a659857ffa2c67",
+    "state": "observer_and_revision2_monitor_static_accepted",
+    "scope": "Pair projection-first/raw-inclusive monitor and seven-case observer binding correction only",
+    "reason": "Historical pending owners released ACK-only; existing communication owner resumed with exact prepared task18. Exact dispatch identity/result/audit not yet received.",
+    "dependent_acceptance": "Bounded static corrections accepted; owning runtime/science/matrix gates still open.",
+    "exact_turn_id": "01a18bf6-8732-7742-a573-7a8cf89fe44b",
+    "content_verdict": "BLOCKED",
+    "root_content_check": "Accepted concrete concealment path: projecting first on every snapshot can materialize and conceal rollback defects. Correction warms once, snapshots raw immutable bytes/state first and public projection second. The original task18 found no remaining observer static blocker. Full runtime/scientific acceptance remains separate.",
+    "actual_readonly_audit": {
+      "status": "PASS",
+      "turn_context_line": 898,
+      "turn_context_sha256": "cbaaf12c7c49e362bbfff108eb7049e6717d5e9b1ec98c6e51547bb6003b1e4a",
+      "range": [
+        894,
+        924
+      ],
+      "range_sha256": "14b8dec2beade96ed46d85e63e6c7b204c635a5405a72cd8029f5a394691e27c",
+      "sandbox": "read-only",
+      "network": "restricted",
+      "filesystem_write_entries": 0,
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "tools": 0,
+      "commands": 0,
+      "delegation": 0
+    },
+    "revision2": {
+      "task_hash": "8dc202d7ff90e3c8b93524aca4acf96b7d7efa3f145b14196f7ba20dc55766d6",
+      "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151",
+      "diff_or_tree_hash": "2b39e82a30794e773955c893c9bfa8d18f3510fbd18c83ac80254f3df10f9bac",
+      "state": "matched_static_accepted",
+      "scope": "raw-before-projection monitor only; no repeated observer/science review",
+      "runtime_command": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/pair-rollback-correction/attempt2/focused-command.json",
+        "sha256": "e48dde75944fcfb159f245d470d03ad676337cb3bc4eb6ff54edb9872adbd0fc"
+      },
+      "actual_runtime": "8 passed; all original combinations/assertions retained; source/tests/helpers/native unchanged",
+      "content_result": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-monitor-delta-review-704283-18/revision2/result.json",
+        "sha256": "4abf6793f0d18699708a1ca0804afbb2c595f9ad18ac02741edbbbcfee195986",
+        "result": {
+          "task_id": "p20-s5-monitor-delta-review-704283-18",
+          "revision": 2,
+          "task_hash": "8dc202d7ff90e3c8b93524aca4acf96b7d7efa3f145b14196f7ba20dc55766d6",
+          "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151",
+          "diff_or_tree_hash": "2b39e82a30794e773955c893c9bfa8d18f3510fbd18c83ac80254f3df10f9bac",
+          "exact_turn_id": "01a18bfb-b26d-78d3-81dd-f072897f38b5",
+          "status": "AUDIT_PASSED",
+          "result_messages": [
+            {
+              "type": "agentMessage",
+              "id": "msg_0e8acd85eec1929a016ae4590b9fe48195b4dd9c9a31d1f1ec",
+              "text": "REVIEW_RESULT  \ntask_id=p20-s5-monitor-delta-review-704283-18  \nrevision=2  \ntask_hash=8dc202d7ff90e3c8b93524aca4acf96b7d7efa3f145b14196f7ba20dc55766d6  \nsource_commit=93457a7507539f9a731e14b487e599fdc86fd151  \ndiff_or_tree_hash=2b39e82a30794e773955c893c9bfa8d18f3510fbd18c83ac80254f3df10f9bac  \nverdict=PASS_MONITOR_DELTA_STATIC\n\nNo blocking findings.\n\nThe once-only prewarm establishes the same settled chemistry state that previously existed when the tested transaction began. Thereafter, `state()` copies raw matrix, presence, sources, status, seeds, identities, bonds, and constraints before invoking the potentially materializing public projection.\n\nConsequently, a faulty rollback cannot be concealed: even if the trailing `mol.atom_matrix` read repairs live state, the raw bytes and dependency snapshot being compared were already captured. The public 19-column projection remains independently compared.\n\nAll eight owner × operation × exception variants retain:\n\n- original sentinel identity checks;\n- pair/index/table owner and value restoration;\n- physical allocator calibration and denial;\n- allocation-free rollback assertion;\n- current-view assertion.\n\nThe supplied runtime record reports all eight exact nodes passing under Python 3.11 with monitored files unchanged. This supports the correction but does not establish other Python ABIs, full-matrix, native, wheel, scientific, performance, or universal rollback acceptance.",
+              "phase": "final_answer",
+              "memoryCitation": null,
+              "delivery": null,
+              "questions": null,
+              "startedAtMs": 1793349899761,
+              "completedAtMs": 1793349902582
+            }
+          ],
+          "substantive_status": "PASS_MONITOR_DELTA_STATIC",
+          "exact_turn_status": "completed",
+          "content_acceptance": false,
+          "gate_closed": false,
+          "audit_result_path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-monitor-delta-review-704283-18/revision2/audit-result.json"
+        }
+      },
+      "actual_audit_receipt": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-monitor-delta-review-704283-18/revision2/audit-result.json",
+        "sha256": "f40cfe65a497cbdec09d2e37631ed3db293ae3192927484fed466ed5d25140cc",
+        "audit": {
+          "task_id": "p20-s5-monitor-delta-review-704283-18",
+          "revision": 2,
+          "task_hash": "8dc202d7ff90e3c8b93524aca4acf96b7d7efa3f145b14196f7ba20dc55766d6",
+          "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151",
+          "diff_or_tree_hash": "2b39e82a30794e773955c893c9bfa8d18f3510fbd18c83ac80254f3df10f9bac",
+          "exact_turn_id": "01a18bfb-b26d-78d3-81dd-f072897f38b5",
+          "reviewer_thread_id": "01a186e8-89de-7791-8969-98b64ab572c3",
+          "verification_code": "704283",
+          "status": "PASS",
+          "provenance": "Current user actual-audit receipt relayed verbatim by root; no repeated audit performed",
+          "historical_snapshot_identity_preserved": true,
+          "actual_context": {
+            "line": 949,
+            "timestamp": "2026-10-30T08:44:50.682Z",
+            "sha256": "6b98b2ac4695be1be914353d9052bcd8855b4f5c1125d7eea0c244f6197e00f3"
+          },
+          "actual_range": {
+            "lines": "948-958",
+            "sha256": "dd2609f30810d3acee8db3ad95825fa03b51ddfed4b9f2dda195c7df0324332a"
+          },
+          "actual_sandbox": "normalized read-only; network restricted; filesystem restricted; root read; write-capable entries0",
+          "model": "gpt-5.6-sol",
+          "effort": "xhigh",
+          "tools": 0,
+          "commands": 0,
+          "delegation": 0,
+          "task_started": 1,
+          "item_completed": 3,
+          "task_complete": 1,
+          "failure_or_abort": 0,
+          "assistant_message": 1,
+          "root_bearing_records": 4,
+          "all_root_turn_ids_match_exact_turn": true,
+          "transport_root_thread_id": "01a18583-f506-71f2-81c9-a66ca32e3561",
+          "transport_root_separate_identity": true,
+          "raw_audit_text": "AUDIT_RESULT verification_code=704283 task_id=p20-s5-monitor-delta-review-704283-18 revision=2 task_hash=8dc202d7ff90e3c8b93524aca4acf96b7d7efa3f145b14196f7ba20dc55766d6 source_commit=93457a7507539f9a731e14b487e599fdc86fd151 diff_or_tree_hash=2b39e82a30794e773955c893c9bfa8d18f3510fbd18c83ac80254f3df10f9bac exact_turn_id=01a18bfb-b26d-78d3-81dd-f072897f38b5 reviewer_thread_id=01a186e8-89de-7791-8969-98b64ab572c3 status=PASS. Exact task/revision/hash/source/tree match; current checkout not inspected. Actual context949 timestamp2026-10-30T08:44:50.682Z sha256=6b98b2ac4695be1be914353d9052bcd8855b4f5c1125d7eea0c244f6197e00f3; exact948-958 sha256=dd2609f30810d3acee8db3ad95825fa03b51ddfed4b9f2dda195c7df0324332a. normalized sandbox read-only, network/filesystem restricted, root read, write entries0; gpt-5.6-sol/xhigh. tools0 commands0 delegations0; task_started1 item_completed3 task_complete1 failure/abort0 assistant_message1; all4 root-bearing IDs exact. Separate transport root01a18583-f506-71f2-81c9-a66ca32e3561. Archive once, no reaudit; return matching substantive results. No new task implied by audit."
+        }
+      },
+      "content_acceptance": true,
+      "critical_root_check": "Copied raw bytes/status/seeds precede lazy public projection; prewarm occurs once before transaction. All original8 owner/operation/exception combinations/assertions remain. Actual source3.11 execution record independently retained."
+    },
+    "content_result": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-monitor-delta-review-704283-18/result.json",
+      "sha256": "e8c1285af36bf684e2fa95b1a38ffc8045d42e4f9c84a46ea65ea6b04bfcac35",
+      "result": {
+        "task_id": "p20-s5-monitor-delta-review-704283-18",
+        "task_hash": "0e5067fe7fa5b50da01596544f46114e7db9e78f2d507eb4d6cfea162a3fe853",
+        "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151",
+        "diff_or_tree_hash": "a8321825ac0a84ae9631a56c1637bbc9e45f0eb2ae367b7602a659857ffa2c67",
+        "exact_turn_id": "01a18bf6-8732-7742-a573-7a8cf89fe44b",
+        "status": "AUDIT_PASSED",
+        "result_messages": [
+          {
+            "type": "agentMessage",
+            "id": "msg_0e8acd85eec1929a016ae457f901ec81959c38a304c125d680",
+            "text": "REVIEW_RESULT  \ntask_id=p20-s5-monitor-delta-review-704283-18  \ntask_hash=0e5067fe7fa5b50da01596544f46114e7db9e78f2d507eb4d6cfea162a3fe853  \nsource_commit=93457a7507539f9a731e14b487e599fdc86fd151  \ndiff_or_tree_hash=a8321825ac0a84ae9631a56c1637bbc9e45f0eb2ae367b7602a659857ffa2c67  \nverdict=BLOCKED\n\nHigh — the proposed projection-first snapshot can conceal rollback defects.\n\nAt `test_pair_observations.py:208-215`, the original snapshot captures status/seeds before `mol.atom_matrix`, while presence/sources are captured afterward. Public projection invokes hydrogen/aromatic preparation (`chemistry.py:147-153,175-246`), explaining the supplied representative delta: ABSENT→CURRENT, seed consumption, and H value/presence/source materialization. The empty post-first-read versus post-rollback raw delta establishes temporal incoherence—not lost transaction state—for this representative only.\n\nHowever, moving projection first inside every `state()` call is weaker: after a faulty rollback, projection could rematerialize H values, presence, sources, statuses, or seeds before raw capture and hide the defect.\n\nMinimal strong correction:\n\n1. Call `mol.atom_matrix.tobytes()` once before `before` to settle the same lazy state that already existed when the tested transaction began.\n2. Capture a non-mutating raw snapshot first: `_atom_table.matrix()`, presence, sources, status, seeds, UIDs, bonds, and constraints.\n3. Capture the public 19-column projection afterward and compare both raw and projected snapshots.\n\nThis retains every owner/allocator/view assertion and adds raw-value coverage without allowing projection to repair state before it is inspected.\n\nThe diagnostic does not establish outcomes for the other seven owner/operation/exception variants; all eight still require execution unchanged in parameter coverage and allocator controls.\n\nObserver delta — no remaining task16 static blocker.\n\n`observe_bound_public.py` now:\n\n- pins the baseline SHA-256;\n- requires the exact ordered seven unique IDs, excluding empty, duplicated, or replaced rosters;\n- binds molecular charge, bond sources, opaque metadata, bond values/endpoints/kinds/directions/aromatic flags;\n- verifies complete candidate presence/source arrays independently of historical B20 provenance;\n- derives `all_inputs_bound` from named required checks.\n\nThe explicit `baseline_provenance_claim=False` and fixture classification avoid fabricating B20 metadata. Scientific observations and runtime results remain unexecuted and unreviewed here.",
+            "phase": "final_answer",
+            "memoryCitation": null,
+            "delivery": null,
+            "questions": null,
+            "startedAtMs": 1793349625136,
+            "completedAtMs": 1793349630815
+          }
+        ],
+        "substantive_status": "BLOCKED",
+        "exact_turn_status": "completed",
+        "audit_result_path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-monitor-delta-review-704283-18/audit-result.json",
+        "content_acceptance": false,
+        "gate_closed": false
+      }
+    },
+    "actual_audit_receipt": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-monitor-delta-review-704283-18/audit-result.json",
+      "sha256": "202766699025d30b61a7bde07b0ead8ca2f91f07b564b618f9e186355bc8de07",
+      "audit": {
+        "task_id": "p20-s5-monitor-delta-review-704283-18",
+        "task_hash": "0e5067fe7fa5b50da01596544f46114e7db9e78f2d507eb4d6cfea162a3fe853",
+        "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151",
+        "diff_or_tree_hash": "a8321825ac0a84ae9631a56c1637bbc9e45f0eb2ae367b7602a659857ffa2c67",
+        "exact_turn_id": "01a18bf6-8732-7742-a573-7a8cf89fe44b",
+        "reviewer_thread_id": "01a186e8-89de-7791-8969-98b64ab572c3",
+        "verification_code": "704283",
+        "status": "PASS",
+        "provenance": "Current user actual-audit receipt relayed verbatim by root; no repeated audit performed",
+        "historical_snapshot_identity_preserved": true,
+        "actual_context": {
+          "line": 898,
+          "timestamp": "2026-10-30T08:39:35.904Z",
+          "sha256": "cbaaf12c7c49e362bbfff108eb7049e6717d5e9b1ec98c6e51547bb6003b1e4a"
+        },
+        "actual_range": {
+          "lines": "894-924",
+          "sha256": "14b8dec2beade96ed46d85e63e6c7b204c635a5405a72cd8029f5a394691e27c"
+        },
+        "actual_sandbox": "normalized read-only; network restricted; root read; write-capable entries0",
+        "model": "gpt-5.6-sol",
+        "effort": "xhigh",
+        "tools": 0,
+        "commands": 0,
+        "delegation": 0,
+        "task_started": 1,
+        "item_completed": 11,
+        "task_complete": 1,
+        "failures_or_aborts": 0,
+        "assistant_message": 1,
+        "root_bearing_records": 5,
+        "all_root_turn_ids_match_exact_turn": true,
+        "transport_root_thread_id": "01a18583-f506-71f2-81c9-a66ca32e3561",
+        "transport_root_separate_identity": true,
+        "raw_audit_text": "Relay current user AUDIT_RESULT task18 (please archive exact receipt once): verification_code=704283 task_id=p20-s5-monitor-delta-review-704283-18 task_hash=0e5067fe7fa5b50da01596544f46114e7db9e78f2d507eb4d6cfea162a3fe853 source_commit=93457a7507539f9a731e14b487e599fdc86fd151 diff_or_tree_hash=a8321825ac0a84ae9631a56c1637bbc9e45f0eb2ae367b7602a659857ffa2c67 exact_turn_id=01a18bf6-8732-7742-a573-7a8cf89fe44b reviewer_thread_id=01a186e8-89de-7791-8969-98b64ab572c3 status=PASS. Historical identities match; current checkout not inspected. Actual context898 timestamp2026-10-30T08:39:35.904Z sha256=cbaaf12c7c49e362bbfff108eb7049e6717d5e9b1ec98c6e51547bb6003b1e4a; exact894-924 sha256=14b8dec2beade96ed46d85e63e6c7b204c635a5405a72cd8029f5a394691e27c. normalized sandbox read-only, network restricted, root read, write entries0; gpt-5.6-sol/xhigh. tools0 commands0 delegations0; task_started1 item_completed11 task_complete1 failures/aborts0 assistant_message1. All5 root-bearing records root_turn_id exact. Transport root01a18583-f506-71f2-81c9-a66ca32e3561 separate. No reaudit; return matching substantive content promptly. Next unique task19 packet will follow shortly."
+      }
+    }
+  },
+  "pending_gates": [
+    "Full default test execution (11 containing files394-pass observed)",
+    "Fresh five-version source/debug/current installed-wheel/native/package/sdist evidence",
+    "Owning scientific report/interpretation (seven-case+H90 actual observations now executed)",
+    "Focused performance and budget/architecture/layout audits",
+    "Current small Git checkpoints and every-third-commit push",
+    "Owning Stage5 global alignment and closure"
+  ],
+  "later_gates_preserved": "No Stage6 entry, no final O0/global parity/GPU/final-tree/Stage13 acceptance.",
+  "containing_file_validation": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/containing-files-attempt1/focused-command.json",
+    "sha256": "9a74d2aed2242f829723ddf19eeaed21514cd89640d6d00a618998ecc1ca292b",
+    "argv": [
+      "/tmp/hotpot-plan20-env/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra",
+      "-p",
+      "no:cacheprovider",
+      "--import-mode=importlib",
+      "--basetemp",
+      "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/containing-files-attempt1/pytest-tmp",
+      "--junitxml",
+      "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/containing-files-attempt1/focused.xml",
+      "tests/mca/test_serialization.py",
+      "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+      "tests/test_cheminfo/structure/test_commit_atomicity.py",
+      "tests/test_cheminfo/structure/test_fact_native.py",
+      "tests/test_cheminfo/structure/test_pair_observations.py",
+      "tests/test_cheminfo/structure/test_source_identity.py",
+      "tests/test_cheminfo/structure/test_view_identity.py",
+      "tests/test_cheminfo/test_bond_metadata.py",
+      "tests/test_cheminfo/test_complex_hydrogens.py",
+      "tests/test_cheminfo/test_complexes_build.py",
+      "tests/test_cheminfo/test_rdconvert_stereo_level1.py"
+    ],
+    "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151",
+    "interpreter": "/tmp/hotpot-plan20-env/bin/python",
+    "environment_record": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/containing-files-attempt1/focused-command.json",
+    "elapsed_seconds": 23.580715591087937,
+    "returncode": 0,
+    "source_tests_helpers_native_unchanged": true,
+    "junit": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/containing-files-attempt1/focused.xml",
+      "sha256": "93747849c2fd13438ffa23f9f5e6de7816eb08c8938ac3aca6605927f44d7063"
+    },
+    "tests": 394,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "actual_summary": "394 passed,4 warnings",
+    "coverage": "11 complete files containing the original74 failures plus2 new production regressions",
+    "limits": "One current-source Python3.11 execution; not full default or five-version/source/debug/installed-wheel/scientific/performance acceptance."
+  },
+  "current_alignment": {
+    "recorded_at_utc": "2026-10-30T08:40:01.585221+00:00",
+    "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151",
+    "branch": "implement/plan20-fact-rule-architecture",
+    "normative_full_read": [
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+        "sha256": "130f4ed18d4726d83d66daf4c330500834bfbd9d86e80756b49721d822e4425d",
+        "lines": 2455,
+        "untruncated_ranges": [
+          [
+            1,
+            300
+          ],
+          [
+            301,
+            600
+          ],
+          [
+            601,
+            900
+          ],
+          [
+            901,
+            1200
+          ],
+          [
+            1201,
+            1500
+          ],
+          [
+            1501,
+            1800
+          ],
+          [
+            1801,
+            2100
+          ],
+          [
+            2101,
+            2455
+          ]
+        ],
+        "coverage": "Full current document read in the preceding uninterrupted Stage5 continuation; these identities were recorded after that read, without rereading solely for compaction."
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+        "sha256": "90be7a21289210ee0db86dec4729988e085c764366ea7aa64d49b7d8427166e3",
+        "lines": 284,
+        "untruncated_ranges": [
+          [
+            1,
+            284
+          ]
+        ],
+        "coverage": "Full current document read in the preceding uninterrupted Stage5 continuation; these identities were recorded after that read, without rereading solely for compaction."
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+        "sha256": "e5549116f1409fb46b5fd2bdc82c0b20a34297989475eb66a119ac221a9d4a0b",
+        "lines": 177,
+        "untruncated_ranges": [
+          [
+            1,
+            177
+          ]
+        ],
+        "coverage": "Full current document read in the preceding uninterrupted Stage5 continuation; these identities were recorded after that read, without rereading solely for compaction."
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/data_object_scope_audit.md",
+        "sha256": "41d4c4ab4388f10a4fe9682023ac97769dc9fadf4f18cfe78291c8533b4257a6",
+        "lines": 523,
+        "untruncated_ranges": [
+          [
+            1,
+            260
+          ],
+          [
+            261,
+            523
+          ]
+        ],
+        "coverage": "Full current document read in the preceding uninterrupted Stage5 continuation; these identities were recorded after that read, without rereading solely for compaction."
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+        "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+        "lines": 68,
+        "untruncated_ranges": [
+          [
+            1,
+            68
+          ]
+        ],
+        "coverage": "Full current document read in the preceding uninterrupted Stage5 continuation; these identities were recorded after that read, without rereading solely for compaction."
+      }
+    ],
+    "approved_decisions_predecessor_read": [
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage01/contracts/decisions.md",
+        "sha256": "fa647efe5e827cb16c207b70312bf6a708659589b41d5e87caaec7b6d0ed07e9",
+        "read_scope": "Full document",
+        "untruncated_ranges": [
+          [
+            1,
+            191
+          ]
+        ]
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage05/contracts/decisions.md",
+        "sha256": "35f0d8c78e1f2890feeff3807c104ea3f20b406c2ddaaf77e391ec4db34a60d4",
+        "read_scope": "Full document",
+        "untruncated_ranges": [
+          [
+            1,
+            99
+          ]
+        ]
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/decisions.md",
+        "sha256": "9645dfa50c55870d94b09831a0c2b34609fb52be4c6a4be53c9beb5cd7954f7f",
+        "read_scope": "Full document",
+        "untruncated_ranges": [
+          [
+            1,
+            220
+          ],
+          [
+            221,
+            421
+          ]
+        ]
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage04/gates/review.md",
+        "sha256": "772793d5a498c6b6234b8e593d58abf430f48346d4d52099bf28d243b72da221",
+        "read_scope": "Full document",
+        "untruncated_ranges": [
+          [
+            1,
+            61
+          ]
+        ]
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage04/report.md",
+        "sha256": "082e49cdea1817580f97f6e13dece7f3d4b744385b6b659af527b6230d7bdf45",
+        "read_scope": "Full document",
+        "untruncated_ranges": [
+          [
+            1,
+            65
+          ]
+        ]
+      }
+    ],
+    "current_git_worktrees": "worktree /home/zhangzhiyuan/hotpot\nHEAD 93457a7507539f9a731e14b487e599fdc86fd151\nbranch refs/heads/implement/plan20-fact-rule-architecture\n\nworktree /tmp/hotpot-ds-huggingface\nHEAD 49aca43f54e5aa76e4f0251a800475a172cb6f1c\nbranch refs/heads/feat/ds-huggingface-transfer\n\nworktree /tmp/hotpot-mca-speedup\nHEAD f93bc3218c4dac4cc5b3f5b37cf2055cd54f22c8\nbranch refs/heads/perf/mca-all-atom-inference\n\nworktree /tmp/hotpot-plan20-20261028/source-b20\nHEAD e6082f5fd67cb1054726ddcf43db7f963f7091ed\ndetached\n\n",
+    "dirty_manifest_sha256": "37e4c501468bd1dfefb0b1a5c28425f63535cbcbb7ea24241d68cbe9cd9e52bc",
+    "source_tests_helpers_native_snapshot_sha256": "3821e486347024db7899b064278675c8cf20434eba83247de8699e09578627a6",
+    "scope": "Stage5 bounded contract/consumer corrections and owning validation; no Stage6 entry or architecture/scientific contract change.",
+    "assessment": [
+      "Stage0-4 owning gates complete; existing final performance/scientific debt remains open.",
+      "One fact owner, readonly pure rules, approved public spelling/schema and result/validation/atomic-commit route remain required.",
+      "All original74 source-matrix failure nodes have local successful mapped coverage;11 containing files now pass394 tests.",
+      "Current full default/five-version/debug/wheel/sdist/native/scientific/performance evidence still required.",
+      "Decisions12/13 need planned implementation or explicit owner final-tree exceptions; no new exceptions inferred.",
+      "Stage13 requires validated committed Stage0-12 B_exp, prescribed new experiment branch and separate D_exp/I_exp commits."
+    ],
+    "bounded_next_tasks": [
+      "Consume unique task18 content and exact-turn audit before dependent acceptance.",
+      "Prepare small semantic Git checkpoints through dedicated Git owner.",
+      "Establish coherent fresh build/index/matrix freeze preserving all superseded attempts.",
+      "Execute owning runtime, scientific and performance gates and close Stage5 only with actual evidence."
+    ]
+  },
+  "task19": {
+    "task_id": "p20-s5-consumer-index-review-704283-19",
+    "task_hash": "1cdbf5d2c14281234e7998266cb045b9a7aecda1ee0a502939955218fa0d6889",
+    "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151",
+    "diff_or_tree_hash": "63e79360d34167f1c1ecc805a098874a0e0eb0426767d0e0c412383ce2026935",
+    "scope": "MCA/ligand captured-source-member correction and proposed fresh build-index artifact path",
+    "state": "matched_static_accepted",
+    "dependent_acceptance": true,
+    "content_result": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-consumer-index-review-704283-19/result.json",
+      "sha256": "6cf8097089b4d611af51e3d547bfdbc2dad8b38d02f117df02affba034a0aa51",
+      "result": {
+        "task_id": "p20-s5-consumer-index-review-704283-19",
+        "task_hash": "1cdbf5d2c14281234e7998266cb045b9a7aecda1ee0a502939955218fa0d6889",
+        "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151",
+        "diff_or_tree_hash": "63e79360d34167f1c1ecc805a098874a0e0eb0426767d0e0c412383ce2026935",
+        "exact_turn_id": "01a18bfa-4df9-7752-ae17-9bd25a254f93",
+        "status": "AUDIT_PASSED",
+        "result_messages": [
+          {
+            "type": "agentMessage",
+            "id": "msg_0e8acd85eec1929a016ae458cd5f4081958242479190589fbc",
+            "text": "REVIEW_RESULT  \ntask_id=p20-s5-consumer-index-review-704283-19  \ntask_hash=1cdbf5d2c14281234e7998266cb045b9a7aecda1ee0a502939955218fa0d6889  \nsource_commit=93457a7507539f9a731e14b487e599fdc86fd151  \ndiff_or_tree_hash=63e79360d34167f1c1ecc805a098874a0e0eb0426767d0e0c412383ce2026935  \nverdict=PASS_CONSUMER_INDEX_STATIC\n\nNo blocking findings.\n\n`topology_queries.py:108-122` captures the source members, component rows, factual records, and dependency remaps under one lock. Each component and its binding use the identical `rows` order, so coordinates remain aligned even if component ordering itself varies. Connected components are disjoint, preventing duplicate fact owners.\n\n`ligand.py:153-155,531-533` publishes through those captured member handles and the existing transactional batch writer. It no longer depends on public `Atom.id`; stale or non-current handles are rejected by normal membership validation rather than silently misdirected. The default `_components(..., with_bindings=False)` path is unchanged, preserving public `Molecule.components` semantics.\n\nThe duplicate-ID regression is substantive: `[Zn].CC.N` exercises skipped metal and multiple non-contiguous ligand components, distinct coordinate markers verify row publication, all public IDs remain duplicated, and the input molecule remains unchanged. No essential additional regression is apparent.\n\nThe MCA correction is bounded and correct. The absolute import in `normalize_molecule` resolves from both `mca.serialization` and `hotpot.cheminfo.AImodels.mca.serialization`. The new regression invokes normalization and rebuilding through each route without requiring module-alias DTO class identity.\n\nThe fresh `BUILD_INDEX` path is provenance-coherent:\n\n- It cannot overwrite the historical index.\n- `index_fact_builds.py` requires the new index not to exist.\n- Every selected build record must bind the owning build freeze, accepted source commit and source snapshot, successful forced build/validation, matching interpreter, and actual in-place binary digest.\n- The matrix freeze subsequently binds the new index, binaries, commands, helper bytes, and build freeze.\n\nThe new parent directory must exist before `write(BUILD_INDEX, index)`; the proposed attempt-directory build commands naturally satisfy that operational precondition. This is not a binding defect.\n\nSupplied runtime evidence proves only the reported Python 3.11 containing-file run: 394 passed with unchanged source/tests/helpers/native state. It does not prove the fresh five-ABI rebuild/index, matrix, wheel, or broader gates.",
+            "phase": "final_answer",
+            "memoryCitation": null,
+            "delivery": null,
+            "questions": null,
+            "startedAtMs": 1793349837515,
+            "completedAtMs": 1793349845027
+          }
+        ],
+        "substantive_status": "PASS_CONSUMER_INDEX_STATIC",
+        "exact_turn_status": "completed",
+        "content_acceptance": false,
+        "gate_closed": false,
+        "audit_result_path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-consumer-index-review-704283-19/audit-result.json"
+      }
+    },
+    "actual_audit_receipt": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-consumer-index-review-704283-19/audit-result.json",
+      "sha256": "979de0220965f17e8104f616f194654f2bf420edbe81ec1b494fbfe5232fb82c",
+      "audit": {
+        "task_id": "p20-s5-consumer-index-review-704283-19",
+        "task_hash": "1cdbf5d2c14281234e7998266cb045b9a7aecda1ee0a502939955218fa0d6889",
+        "source_commit": "93457a7507539f9a731e14b487e599fdc86fd151",
+        "diff_or_tree_hash": "63e79360d34167f1c1ecc805a098874a0e0eb0426767d0e0c412383ce2026935",
+        "exact_turn_id": "01a18bfa-4df9-7752-ae17-9bd25a254f93",
+        "reviewer_thread_id": "01a186e8-89de-7791-8969-98b64ab572c3",
+        "verification_code": "704283",
+        "status": "PASS",
+        "provenance": "Current user actual-audit receipt relayed verbatim by root; no repeated audit performed",
+        "historical_snapshot_identity_preserved": true,
+        "actual_context": {
+          "line": 927,
+          "timestamp": "2026-10-30T08:43:19.433Z",
+          "sha256": "0b12b7d001d54256867ae17dfa6570b24479686747670b9d124892872e9514d7"
+        },
+        "actual_range": {
+          "lines": "926-946",
+          "sha256": "3124b9451da9f5496512276248346bd029d211ec6917a268c5b13c33df1af643"
+        },
+        "actual_sandbox": "normalized read-only; network restricted; filesystem restricted; root read; write-capable entries0",
+        "model": "gpt-5.6-sol",
+        "effort": "xhigh",
+        "tools": 0,
+        "commands": 0,
+        "delegation": 0,
+        "task_started": 1,
+        "item_completed": 8,
+        "task_complete": 1,
+        "failures_or_aborts": 0,
+        "assistant_message": 1,
+        "root_bearing_records": 4,
+        "all_root_turn_ids_match_exact_turn": true,
+        "transport_root_thread_id": "01a18583-f506-71f2-81c9-a66ca32e3561",
+        "transport_root_separate_identity": true,
+        "raw_audit_text": "AUDIT_RESULT verification_code=704283 task_id=p20-s5-consumer-index-review-704283-19 task_hash=1cdbf5d2c14281234e7998266cb045b9a7aecda1ee0a502939955218fa0d6889 source_commit=93457a7507539f9a731e14b487e599fdc86fd151 diff_or_tree_hash=63e79360d34167f1c1ecc805a098874a0e0eb0426767d0e0c412383ce2026935 exact_turn_id=01a18bfa-4df9-7752-ae17-9bd25a254f93 reviewer_thread_id=01a186e8-89de-7791-8969-98b64ab572c3 status=PASS. Historical identities match; current checkout not inspected. Actual context927 timestamp2026-10-30T08:43:19.433Z sha256=0b12b7d001d54256867ae17dfa6570b24479686747670b9d124892872e9514d7; exact926-946 sha256=3124b9451da9f5496512276248346bd029d211ec6917a268c5b13c33df1af643. normalized read-only/network restricted/filesystem restricted/root read/write entries0. gpt-5.6-sol/xhigh. tools0 commands0 delegations0; task_started1 item_completed8 task_complete1 failures/aborts0 assistant_message1. All4 root-bearing IDs exact. Separate transport root01a18583-f506-71f2-81c9-a66ca32e3561. Archive once, no reaudit; return matching content, then task18r2 as queued."
+      }
+    },
+    "critical_root_check": "Same component row order binds captured source handles; approved batch writer validates membership. The sole shared BUILD_INDEX constant points to a new absent index path; old index remains byte-identical."
+  },
+  "architecture_layout_commands": [
+    {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/current-architecture-layout/architecture-command.json",
+      "sha256": "5b3603fa3dee5327846060899688ef9e48fbf6001a64f27b6f805f51074fb9f9"
+    },
+    {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/current-architecture-layout/layout-command.json",
+      "sha256": "61ffe7a9a05ffbab0af448457f5d93154cd9c3cd08017eca58fe942ab781765e"
+    }
+  ],
+  "architecture_layout_results": {
+    "architecture": "passed891 Python files,256 remaining debt,no new layer/carrier findings",
+    "layout": "passed54 Markdown/50 JSON/1 other,105 indexed assets,28 historical migrations",
+    "limits": "Source/import/write ratchet and document-navigation coverage only; checks precede this evidence/log append. No runtime, scientific or performance acceptance."
+  },
+  "native_index_path_correction": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/native-index-path-correction/evidence.json",
+    "sha256": "2c8ee796f807e95aec1fdf7dba68868b399775a54015e21f67e465e3e41ee8b5"
+  },
+  "task20": {
+    "task_id": "p20-s5-test-migration-review-704283-20",
+    "scope": "Eight existing test migration deltas only",
+    "original": {
+      "content_result": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-test-migration-review-704283-20/result.json",
+        "sha256": "3064aa04d5e71d76535a4aa877851e017df967c27cbb6503786ee0e7d003bca3",
+        "result": {
+          "task_id": "p20-s5-test-migration-review-704283-20",
+          "task_hash": "8ed27459074d08746e68dc226855682c007d075ae52667eb6b8d8544226f56d9",
+          "source_commit": "26a92ad684eb1a415915e1d69343b4e93ef13dac",
+          "diff_or_tree_hash": "4732cc65f02f3e1b1474375b2cf379076806bfb02aaf8d76f894e6d6c70fcccf",
+          "exact_turn_id": "01a18c02-fbd6-7962-913e-d8006366867a",
+          "status": "AUDIT_PASSED",
+          "result_messages": [
+            {
+              "type": "agentMessage",
+              "id": "msg_0e8acd85eec1929a016ae45b13db2c8195bd3f9756c36577a7",
+              "text": "REVIEW_RESULT  \ntask_id=p20-s5-test-migration-review-704283-20  \ntask_hash=8ed27459074d08746e68dc226855682c007d075ae52667eb6b8d8544226f56d9  \nsource_commit=26a92ad684eb1a415915e1d69343b4e93ef13dac  \ndiff_or_tree_hash=4732cc65f02f3e1b1474375b2cf379076806bfb02aaf8d76f894e6d6c70fcccf  \nverdict=BLOCKED\n\nHigh — rollback state can still be repaired before inspection.\n\nIn `test_commit_atomicity.py`, `_complete_state()` calls:\n\n```python\nprojection = mol.atom_matrix.tobytes()\n```\n\nbefore capturing `factual_state`, statuses, and seeds. The post-failure call can therefore consume dirty seeds or rematerialize H/aromatic state before raw rollback state is saved, concealing exactly the dependency rollback defects exercised by the new `seed_add` fault.\n\nRequired correction:\n\n- Prewarm `mol.atom_matrix` once before the baseline snapshot in each affected test.\n- In `_complete_state`, copy `factual_state`, status, and seeds first.\n- Capture the public projection last.\n\nThis preserves both raw rollback evidence and the public 19-column comparison.\n\nMedium — preservation of the original bond assertions is not demonstrated inline.\n\n`test_bond_endpoint_failure_rolls_back_bond_and_prior_endpoint` removed explicit comparisons of `bond.attrs.tobytes()` and `bond_kind`, replacing them with `factual_state(mol)`. The supplied evidence does not include that helper’s definition. Either show that it contains bond raw attributes/kind and ownership, or retain the two explicit bond assertions.\n\nThe remaining migrations are statically coherent:\n\n- Native tests retain all batch/scalar, exception, status, seed-add/remove/clear, poisoning, allocator and owner paths while targeting materialized factual fields.\n- Source-identity cases replace retired projections with real atom, bond, numeric and sparse inputs.\n- Stereo cloning retains factual records/provenance and clears every aligned bond column, including `bond_aromatic`, before reconstruction.\n- Dative export supplies H readiness without bypassing the missing-direction assertion.\n- Imported H declarations retain presence/source and, in complex-build tests, exact raw bytes; absent-H scientific values are separately checked on explicitly directed donor→Zn dative fixtures.\n\nThe reported 394-pass Python 3.11 run does not remove the monitor-strength defect and is not all-version or final-gate evidence.",
+              "phase": "final_answer",
+              "memoryCitation": null,
+              "delivery": null,
+              "questions": null,
+              "startedAtMs": 1793350420126,
+              "completedAtMs": 1793350423776
+            }
+          ],
+          "substantive_status": "BLOCKED",
+          "exact_turn_status": "completed",
+          "content_acceptance": false,
+          "gate_closed": false,
+          "audit_result_path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-test-migration-review-704283-20/audit-result.json"
+        }
+      },
+      "content_acceptance": false,
+      "actual_audit_receipt": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-test-migration-review-704283-20/audit-result.json",
+        "sha256": "34984c9075ca28ab74e1d86eaddb5835ca2f7460562a9788ae4413614a9e5724",
+        "audit": {
+          "task_id": "p20-s5-test-migration-review-704283-20",
+          "task_hash": "8ed27459074d08746e68dc226855682c007d075ae52667eb6b8d8544226f56d9",
+          "source_commit": "26a92ad684eb1a415915e1d69343b4e93ef13dac",
+          "diff_or_tree_hash": "4732cc65f02f3e1b1474375b2cf379076806bfb02aaf8d76f894e6d6c70fcccf",
+          "exact_turn_id": "01a18c02-fbd6-7962-913e-d8006366867a",
+          "reviewer_thread_id": "01a186e8-89de-7791-8969-98b64ab572c3",
+          "verification_code": "704283",
+          "status": "PASS",
+          "provenance": "Current user actual-audit receipt relayed verbatim by root; no repeated audit performed",
+          "historical_snapshot_identity_preserved": true,
+          "actual_context": {
+            "line": 961,
+            "timestamp": "2026-10-30T08:52:48.241Z",
+            "sha256": "c157a0995a5ca195aa35ffaab04bf782b71f5b364701d79ea93fe70dd7af33d0"
+          },
+          "actual_range": {
+            "lines": "960-984",
+            "sha256": "63df35009f2e203d97413c0e054a5956ac895360908dccf7c4d0b32664f2e154"
+          },
+          "actual_sandbox": "normalized read-only; network restricted; filesystem restricted; root read; write-capable entries0",
+          "model": "gpt-5.6-sol",
+          "effort": "xhigh",
+          "tools": 0,
+          "commands": 0,
+          "delegation": 0,
+          "task_started": 1,
+          "item_completed": 10,
+          "task_complete": 1,
+          "failures_or_aborts": 0,
+          "assistant_message": 1,
+          "root_bearing_records": 4,
+          "all_root_turn_ids_match_exact_turn": true,
+          "transport_root_thread_id": "01a18583-f506-71f2-81c9-a66ca32e3561",
+          "transport_root_separate_identity": true,
+          "raw_audit_text": "AUDIT_RESULT verification_code=704283 task_id=p20-s5-test-migration-review-704283-20 task_hash=8ed27459074d08746e68dc226855682c007d075ae52667eb6b8d8544226f56d9 source_commit=26a92ad684eb1a415915e1d69343b4e93ef13dac diff_or_tree_hash=4732cc65f02f3e1b1474375b2cf379076806bfb02aaf8d76f894e6d6c70fcccf exact_turn_id=01a18c02-fbd6-7962-913e-d8006366867a reviewer_thread_id=01a186e8-89de-7791-8969-98b64ab572c3 status=PASS. Historical identities match, current checkout not inspected. Actual context961 timestamp2026-10-30T08:52:48.241Z sha256=c157a0995a5ca195aa35ffaab04bf782b71f5b364701d79ea93fe70dd7af33d0; exact960-984 sha256=63df35009f2e203d97413c0e054a5956ac895360908dccf7c4d0b32664f2e154. normalized read-only/network+filesystem restricted/root read/write entries0; gpt-5.6-sol/xhigh. tools0 commands0 delegations0; task_started1 item_completed10 task_complete1 failures/aborts0 assistant_message1; all4 root-bearing IDs exact. Transport root01a18583-f506-71f2-81c9-a66ca32e3561 separate. Archive once, no reaudit; return matching substantive result promptly for final freeze."
+        }
+      }
+    },
+    "revision2": {
+      "content_result": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-test-migration-review-704283-20/revision2/result.json",
+        "sha256": "3c024b247c57ce94367b0d2f6a8590471e7078a66525ed8a542cda6efabeaca1",
+        "result": {
+          "task_id": "p20-s5-test-migration-review-704283-20",
+          "revision": 2,
+          "task_hash": "873c6b2c8b9cd2f82fc2652311fb5e7ee40c11874258c5f2ceba785918a25955",
+          "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+          "diff_or_tree_hash": "a2738d17a75d03a03021c6a68155e5d20ebb8057cb4938b29d895573b73083f3",
+          "exact_turn_id": "01a18c0a-a674-7280-baa0-c015e5d5f83c",
+          "status": "AUDIT_PASSED",
+          "result_messages": [
+            {
+              "type": "agentMessage",
+              "id": "msg_0e8acd85eec1929a016ae45cde42488195841fc2da8296757c",
+              "text": "REVIEW_RESULT  \ntask_id=p20-s5-test-migration-review-704283-20  \nrevision=2  \ntask_hash=873c6b2c8b9cd2f82fc2652311fb5e7ee40c11874258c5f2ceba785918a25955  \nsource_commit=a5fc8f52f0028c28ec666438f7bca4d9951034a4  \ndiff_or_tree_hash=a2738d17a75d03a03021c6a68155e5d20ebb8057cb4938b29d895573b73083f3  \nverdict=PASS_TEST_MIGRATION_DELTA_STATIC\n\nNo blocking findings.\n\nThe once-only prewarm establishes the transaction’s baseline state. `_complete_state` then copies the complete factual record, metadata, dependency statuses, and seeds before the public projection can materialize anything. A faulty rollback therefore remains visible in the saved raw snapshot.\n\nBoth real native fault controls remain intact:\n\n- element publication fails after the native value store;\n- bond publication fails on the second actual `seed_add`.\n\nThe forbidden eager callbacks continue proving that publication does not execute retired scientific rules.\n\nThe bond test now directly restores and verifies:\n\n- identical Bond object ownership;\n- exact raw attribute bytes;\n- identical `BondKind` enum object;\n- complete factual/dependency/public state.\n\nThe supplied Python 3.11 record reports both corrected nodes passing with monitored files unchanged. It does not establish other ABIs or broader gates.",
+              "phase": "final_answer",
+              "memoryCitation": null,
+              "delivery": null,
+              "questions": null,
+              "startedAtMs": 1793350878389,
+              "completedAtMs": 1793350881092
+            }
+          ],
+          "substantive_status": "PASS_TEST_MIGRATION_DELTA_STATIC",
+          "exact_turn_status": "completed",
+          "content_acceptance": false,
+          "gate_closed": false,
+          "audit_result_path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-test-migration-review-704283-20/revision2/audit-result.json"
+        }
+      },
+      "content_acceptance": true,
+      "actual_audit_receipt": {
+        "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-test-migration-review-704283-20/revision2/audit-result.json",
+        "sha256": "c2e9c1dc92d2838a141829ce427ecdc6bf0752bd41a780804e1293e32e95bd68",
+        "audit": {
+          "task_id": "p20-s5-test-migration-review-704283-20",
+          "revision": 2,
+          "task_hash": "873c6b2c8b9cd2f82fc2652311fb5e7ee40c11874258c5f2ceba785918a25955",
+          "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+          "diff_or_tree_hash": "a2738d17a75d03a03021c6a68155e5d20ebb8057cb4938b29d895573b73083f3",
+          "exact_turn_id": "01a18c0a-a674-7280-baa0-c015e5d5f83c",
+          "reviewer_thread_id": "01a186e8-89de-7791-8969-98b64ab572c3",
+          "verification_code": "704283",
+          "status": "PASS",
+          "provenance": "Current user actual-audit receipt relayed verbatim by root; no repeated audit performed",
+          "historical_snapshot_identity_preserved": true,
+          "actual_context": {
+            "line": 987,
+            "timestamp": "2026-10-30T09:01:10.661Z",
+            "sha256": "0b5099d3b100569fadd6f4b54e314517dfd4346b0cf4bb8e53aac6c63fbccc2b"
+          },
+          "actual_range": {
+            "lines": "986-996",
+            "sha256": "ec0deed97d322061c3287d416cb66d89cb03f1606caabc91290c67a7c8c5829d"
+          },
+          "actual_sandbox": "normalized read-only; network restricted; filesystem restricted; root read; write-capable entries0",
+          "model": "gpt-5.6-sol",
+          "effort": "xhigh",
+          "tools": 0,
+          "commands": 0,
+          "delegation": 0,
+          "task_started": 1,
+          "item_completed": 3,
+          "task_complete": 1,
+          "failures_or_aborts": 0,
+          "assistant_message": 1,
+          "root_bearing_records": 4,
+          "all_root_turn_ids_match_exact_turn": true,
+          "transport_root_thread_id": "01a18583-f506-71f2-81c9-a66ca32e3561",
+          "transport_root_separate_identity": true,
+          "raw_audit_text": "AUDIT_RESULT verification_code=704283 task_id=p20-s5-test-migration-review-704283-20 revision=2 task_hash=873c6b2c8b9cd2f82fc2652311fb5e7ee40c11874258c5f2ceba785918a25955 source_commit=a5fc8f52f0028c28ec666438f7bca4d9951034a4 diff_or_tree_hash=a2738d17a75d03a03021c6a68155e5d20ebb8057cb4938b29d895573b73083f3 exact_turn_id=01a18c0a-a674-7280-baa0-c015e5d5f83c reviewer_thread_id=01a186e8-89de-7791-8969-98b64ab572c3 status=PASS. Exact task/revision/hash/source/tree match; current checkout not inspected. Actual context987 timestamp2026-10-30T09:01:10.661Z sha256=0b5099d3b100569fadd6f4b54e314517dfd4346b0cf4bb8e53aac6c63fbccc2b; exact986-996 sha256=ec0deed97d322061c3287d416cb66d89cb03f1606caabc91290c67a7c8c5829d. Actual read-only, network/filesystem restricted, root read, write entries0; gpt-5.6-sol/xhigh. tools0 commands0 delegations0; task_started1 item_completed3 task_complete1 failures/aborts0 assistant_message1; all4 root-bearing IDs exact. Separate transport root01a18583-f506-71f2-81c9-a66ca32e3561. Archive once, no reaudit; return matching content then dispatch queued task21 inventory without waiting for root further. Main scientific7cases completed7/7 fullbindings0diff, H90 completed90/90, no errors; exact evidence readout separately later, no reanalysis now."
+        }
+      }
+    },
+    "critical_root_checks": [
+      "_complete_state copies factual state/status/seeds before public projection; exactly two affected tests warm once before transaction.",
+      "Explicit Bond raw bytes/BondKind identity restored and same-Bond-owner assertion added; actual value/second seed_add failpoints unchanged.",
+      "Other seven originally reviewed test-file hashes unchanged; no repeated complete analysis."
+    ],
+    "corrected_runtime": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/contract-test-corrections/monitor-attempt2/focused-command.json",
+      "sha256": "68d5aaefc539ebc3c9f006887aaa0e909ccaa7b8ec2ce9b114c4327a689f6a18"
+    }
+  },
+  "git_checkpoint": {
+    "path": "/tmp/codex-stage4-bridge-01a18583/git-management/batch3.result.json",
+    "sha256": "0e813b7be53934c44baa4e4512757c08400ab291c900d7dcbd548c88659eb076",
+    "head": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+    "remote_sha_matched": true,
+    "commits_since_push": 0,
+    "selected_source_bytes_unchanged": true,
+    "shared_tree_limit": "Git owner observed the unselected root-owned commit-atomicity test correction concurrently; no claim that full shared tree stayed unchanged during Git operations."
+  },
+  "goal_constitution_realignment": {
+    "recorded_at_utc": "2026-10-30T09:56:49.605614+00:00",
+    "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+    "owner_goal": "Complete Plan20 mainline and integrated Plan12 functional requirements by following plan/20_fact_rule_architecture/goal.md; user subsequently confirmed goal.md finalized long-term constitution.",
+    "goal": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/goal.md",
+      "sha256": "6195b5c429395e3abac6295102db5d250b013b8ac8465fb77f3d07e1acd9265f"
+    },
+    "full_normative_read": [
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+        "sha256": "130f4ed18d4726d83d66daf4c330500834bfbd9d86e80756b49721d822e4425d",
+        "lines": 2455,
+        "read_range": [
+          1,
+          2455
+        ]
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+        "sha256": "90be7a21289210ee0db86dec4729988e085c764366ea7aa64d49b7d8427166e3",
+        "lines": 284,
+        "read_range": [
+          1,
+          284
+        ]
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+        "sha256": "e5549116f1409fb46b5fd2bdc82c0b20a34297989475eb66a119ac221a9d4a0b",
+        "lines": 177,
+        "read_range": [
+          1,
+          177
+        ]
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/data_object_scope_audit.md",
+        "sha256": "41d4c4ab4388f10a4fe9682023ac97769dc9fadf4f18cfe78291c8533b4257a6",
+        "lines": 523,
+        "read_range": [
+          1,
+          523
+        ]
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+        "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+        "lines": 68,
+        "read_range": [
+          1,
+          68
+        ]
+      }
+    ],
+    "read_note": "Full tool reads across bounded ranges; truncated main-plan and data-object appendix ranges were explicitly reread to complete coverage. This is a new-goal realignment within Stage5, not Stage6 entry.",
+    "state": {
+      "stage": "Stage5 open",
+      "git_head": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+      "git_owner": "/root/git_management holds HEAD/index; no commits since last successful push",
+      "source_changed_since_previous_builds": "Only benchmark/test consumer corrections since5 forced attempt3 builds; no native or pure chemistry algorithm edit.",
+      "unknown_external_document": "User explicit active-goal replacement established goal.md authority; preserve exact file bytes."
+    },
+    "bounded_next": [
+      "Complete remaining factual serializer/caller correction; preserve original failures and assertions.",
+      "Consume local Sol-max constitutional boundary judgment and ai4 narrow followups before dependent acceptance.",
+      "Fresh owner/build/index/matrix freeze, complete default/source/debug/installed-wheel/sdist and equivalent-work focused performance.",
+      "Close Stage5 owning gates only after actual evidence; retain final global performance debt and Stage13 B_exp/D_exp/I_exp ordering."
+    ]
+  },
+  "validation_attempt3": {
+    "status": "superseded exact-owner collection preparation; successful build executions retained",
+    "build_freeze": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/final-validation-attempt3/BUILD_FREEZE.json",
+      "sha256": "e3047e1d1a5133645f6b6ef169bc1ce7049f3eee34e6f7847589265f2c264858"
+    },
+    "build_index": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/fact-native-builds-attempt3/build-index.json",
+      "sha256": "a9ad1765292b57fd5f9d83ab99f50ef5c0228b2407131e9407a06259f8cbb067"
+    },
+    "actual_five_build_commands": [
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/fact-native-builds-attempt3/cp310-attempt1/command.json",
+        "sha256": "86a1d232e115776162bdf87e8929021287cc198fe0f92f319fd77ee5c2306f96"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/fact-native-builds-attempt3/cp311-attempt1/command.json",
+        "sha256": "880aebf55de96c02f38167fd4728580269a2e6276d87a9d9aa66855e1bf778a6"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/fact-native-builds-attempt3/cp312-attempt1/command.json",
+        "sha256": "defba3d96461a666eb00a3aa455eb35bb07ba5cee3aabb8b3a820f2acd7b7ff9"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/fact-native-builds-attempt3/cp313-attempt1/command.json",
+        "sha256": "b86243448c797e5168362203e2fbebaae011f5088a7ad4a0123f8dc59bee4985"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/fact-native-builds-attempt3/cp314-attempt1/command.json",
+        "sha256": "c1d1938719ba642f5d42b345d6d52714f2445107f70d291e70b9d9ac83c05fe6"
+      }
+    ],
+    "ownership_failure": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/final-validation-attempt3/owner-mismatch-diagnostic.json",
+      "sha256": "f7db05505d1a99d520002b6580818a70cb61c9171f616850ec6c664b4ebf38f9"
+    },
+    "invalidation": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/final-validation-attempt3/INVALIDATION.json",
+      "sha256": "0a6b8e4b9254a99d93c0f230f1105c074074ba3bc10a8004f4dea7d52c75d46f"
+    },
+    "matrix_freeze_created": false,
+    "completed_collections": 7,
+    "runtime_matrix_started": false,
+    "reason": "New goal.md dirty path during collection; HEAD and source/test snapshot stable. New user goal now explicitly authorizes that document. No old evidence rewritten."
+  },
+  "default_tier_correction": {
+    "first_default": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-final-attempt1/command.json",
+      "sha256": "773db1a5163d69c78c028e43adea8e66c3c0b8ad42a5ecee2db559dfb040f3d4",
+      "junit": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-final-attempt1/result.xml",
+        "sha256": "6e025063ebcb8c34e08a46847f7e9b2e70b6102b0382249b0c934a78426c97d1"
+      },
+      "returncode": 1,
+      "elapsed_seconds": 145.3337362166494,
+      "frozen_unchanged": true,
+      "junit_totals": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "5",
+        "skipped": "126",
+        "tests": "5112",
+        "time": "143.325",
+        "timestamp": "2026-10-30T17:33:04.219648+08:00",
+        "hostname": "chemlex-ai-2"
+      }
+    },
+    "first_default_counts": "4932 passed,5 failed,123 skipped,3 xfailed,49 subtests,10 warnings",
+    "first_containing_retry": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-corrections/focused-attempt1/command.json",
+      "sha256": "b54e9b4bb8117f47cbdabbc0ed5ba91c0d9eadee33056942b8c7d8513781ee4b",
+      "junit": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-corrections/focused-attempt1/result.xml",
+        "sha256": "78accdb267c965d1b3a5062adb115b248fd2839a6e8c7f3bbdfcc72f8f01ae73"
+      },
+      "returncode": 1,
+      "elapsed_seconds": 1.9067162405699492,
+      "frozen_unchanged": true,
+      "junit_totals": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "1",
+        "skipped": "0",
+        "tests": "46",
+        "time": "1.378",
+        "timestamp": "2026-10-30T17:47:06.186993+08:00",
+        "hostname": "chemlex-ai-2"
+      }
+    },
+    "containing_counts": "45 passed,1 failed",
+    "task24": "/tmp/codex-stage4-bridge-01a18583/p20-s5-default-failure-analysis-704283-24",
+    "correction_status": "Four original failure paths corrected; source-fact serializer boundary remains under delta-only review. Native/chemistry production algorithms unchanged."
+  },
+  "current_census": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/current-architecture-layout/current-census.json",
+    "sha256": "10223617fb0219a5a315d5365b5eb3a7a3c12515ff1075c426815784fbdfaa37"
+  },
+  "effective_constitution_adoption": {
+    "recorded_at_utc": "2026-10-30T10:28:18.401106+00:00",
+    "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+    "authorization": "Owner: 按照你的理解微调goal.md并正式生效；分发6.1sol-max核对主实施计划并修正。",
+    "local_design_owner": "/root/goal_stage5_alignment",
+    "model": "gpt-6.1-sol",
+    "effort": "max",
+    "documents_root_read_in_full": [
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/goal.md",
+        "sha256": "6e116730e1a31ec999b623e9e594d26f23e3cf8a95e68048652acf9c699b0118",
+        "lines": 81,
+        "read_ranges": [
+          [
+            1,
+            81
+          ]
+        ]
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+        "sha256": "fc976a8de95de4d6459ae1a80e7fb8b3e03d1b2a85df2741d85d658ba1d99064",
+        "lines": 2549,
+        "read_ranges": [
+          [
+            1,
+            1040
+          ],
+          [
+            1041,
+            1300
+          ],
+          [
+            1301,
+            1560
+          ],
+          [
+            1561,
+            1820
+          ],
+          [
+            1821,
+            2080
+          ],
+          [
+            2081,
+            2340
+          ],
+          [
+            2341,
+            2549
+          ]
+        ]
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+        "sha256": "96f4808f91e9470bdf60ff4a8f58b514d838b023328e7ea37f90fcf3f7328707",
+        "lines": 295,
+        "read_ranges": [
+          [
+            1,
+            200
+          ],
+          [
+            201,
+            295
+          ]
+        ]
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+        "sha256": "23a7b5c43851837a5aeaf69b4a127dc712d1a4b9c7bb178242015839543d8213",
+        "lines": 184,
+        "read_ranges": [
+          [
+            1,
+            184
+          ]
+        ]
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/data_object_scope_audit.md",
+        "sha256": "f1e6dce3aa3be649b7e5491f8d35752accc84ec80cb3a597bfc2850d5aa82554",
+        "lines": 543,
+        "read_ranges": [
+          [
+            1,
+            205
+          ],
+          [
+            206,
+            410
+          ],
+          [
+            411,
+            543
+          ],
+          [
+            480,
+            543
+          ]
+        ]
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage01/contracts/decisions.md",
+        "sha256": "1a733cf83d0e7c098b7e227fbb4543ba382015c0f69141c46caf0daf8599c10f",
+        "lines": 200,
+        "read_ranges": [
+          [
+            1,
+            200
+          ]
+        ]
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+        "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+        "lines": 68,
+        "read_ranges": [
+          [
+            1,
+            68
+          ]
+        ]
+      }
+    ],
+    "coverage_note": "Main1–1040 inherited from this same continuation before compaction;1041–2549 read now. Final81-line goal and four final companions plus current Stage1 decisions/Plan21 read fully. Truncated data appendix explicitly recovered480–543. Governing skills and both governance references read fully. Historical6195/130f document reads remain their original separate record.",
+    "accepted_changes": [
+      "Goal effective, ordinary requested values may themselves be candidate sets/distributions/trajectories, necessary internal lifecycle/provenance retained, broken required units/mapping/attribution/schema/transaction integrity makes finite result unavailable.",
+      "Main plan and four companion clauses align scoped source/conflict/projection, named hard-local failure versus non-hard finding/control and integrated Plan12 obligations.",
+      "D01 historical public confidence/admissibility-envelope proposal superseded/unapproved; no replacement schema approved."
+    ],
+    "public_effect": "No production API/signature/type/schema/ABI/scientific algorithm changed by this document adoption. Section12 efficiency policy and Section17 B_exp/D_exp/I_exp ordering retained.",
+    "stage5_decision": "No settled H/aromatic return-contract blocker. Diagnostic/control debt explicitly assigned in integrated_requirements.json to existing Stage7C/8A owners and remains open for final acceptance.",
+    "repository_state": {
+      "head": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+      "branch": "implement/plan20-fact-rule-architecture",
+      "stage": "Stage5 open",
+      "stage6_entered": false,
+      "git_owner": "/root/git_management",
+      "git_state": "HEAD/index HOLD; last successful push a5fc8f52; counter0",
+      "source_scope": "Root test/benchmark caller correction; other code writers handed off. Companion writer finishes its own artifacts only."
+    },
+    "bounded_route": [
+      "Execute prepared focused attempt5 for full-raw-capture/original-row prefix implementation.",
+      "Unique ai4 task28 reviews only new task27 implementation delta plus one-line four-file source/installed selection extension; wait exact result+turn audit before acceptance.",
+      "Run fresh complete default after correction; retain earlier failures. Stabilize root records and small natural Git checkpoints, then fresh coherent required native/matrix/package/performance handoff."
+    ],
+    "remaining_gates": [
+      "Stage5 full default, Python3.10–3.14 source/debug/installed-wheel, package/sdist, required scientific/focused performance.",
+      "Global Stage3/4 runtime/RSS debt, fullO0/seeds187-source reporting, frozen71-workload parity/RSS/GPU and complete final architecture/type/Plan12 acceptance.",
+      "Stage0–12/B_exp before separate Stage13A/D_exp and Stage13B/I_exp."
+    ],
+    "author_artifacts": [
+      {
+        "path": "/tmp/p20-goal-stage5-alignment/result.json",
+        "sha256": "ed6a0c6b93be37485eef328fa5ce9e949b4ed427b0c36bcb742b43de3ac0e653"
+      },
+      {
+        "path": "/tmp/p20-goal-stage5-alignment/result.patch",
+        "sha256": "f5b7311c27c12e854bafccb0c75dc7d43338346ebefbb48b5d82094fb0b0b731"
+      },
+      {
+        "path": "/tmp/p20-goal-stage5-alignment/read_ranges.json",
+        "sha256": "8009a2c2df6ab554613b585cc03c333c84c5c3f9b32afcb8efba3107f22869bb"
+      },
+      {
+        "path": "/tmp/p20-goal-stage5-alignment/result.document_validation.command.json",
+        "sha256": "f420de53242b06364ee43c34281f2ee55de4cdcfa96015e592a38766169a71cb"
+      },
+      {
+        "path": "/tmp/p20-goal-stage5-alignment/result.layout_audit.command.json",
+        "sha256": "becbabd6d54f95c04df82a091b521387e5cdf04ea5810d749bab03ce4150d754"
+      }
+    ],
+    "companion_author_handoff": {
+      "result": {
+        "path": "/tmp/p20-goal-stage5-alignment/companions/result.json",
+        "sha256": "613aec43f6e31ebc4e3a59d4a6687135d5b367db012e9542b6a7f59a95625d94"
+      },
+      "patch": {
+        "path": "/tmp/p20-goal-stage5-alignment/companions/companions.patch",
+        "sha256": "a5076a5019e679e0dc861aab598d504291a1a2fabaac3057bb94cd7dbd112cf5"
+      },
+      "diagnostic_debt": {
+        "path": "/tmp/p20-goal-stage5-alignment/companions/diagnostic_debt_handoff.json",
+        "sha256": "81596ebec6826e5fd65d6fa9679baf71967edd337a136ba98f0897494406960a"
+      },
+      "checks": "24/24 document checks,17local links,scoped diffcheck exit0,layout0errors;18protected identities and44original evidence artifacts unchanged. Document-only evidence."
+    }
+  },
+  "cohort_and_evidence_caller_followup": {
+    "recorded_at_utc": "2026-10-30T10:33:56.182293+00:00",
+    "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+    "correction": "Single raw-fact graph serializer, explicit source-fixture H readiness, original-row prefix for observation, same full captured stereo and existing row-only filtering. Existing factual builder retains all supplied facts and no aromatic perception/source rewrite.",
+    "actual_attempts": {
+      "default-corrections/focused-attempt2": {
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-corrections/focused-attempt2/command.json",
+          "sha256": "f7c5213a7e2ca3791506417f54077592b173c9f4f1049d3aa87dcbc80d4a7db7"
+        },
+        "log": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-corrections/focused-attempt2/command.log",
+          "sha256": "8a46499eb324c0fcb36908908fcccabb813c4557ac70926447d154123c38d740"
+        },
+        "junit": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-corrections/focused-attempt2/result.xml",
+          "sha256": "b56fc58089b2ee3208b55e39ee937374e7a219d9e3a36692c883893d52b77212"
+        },
+        "returncode": 1,
+        "elapsed_seconds": 2.0033644903451204,
+        "frozen_unchanged": true,
+        "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+        "summary": "2 failed, 49 passed in 1.47s"
+      },
+      "default-corrections/focused-attempt3": {
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-corrections/focused-attempt3/command.json",
+          "sha256": "a770fa4842a004e29bf4f0dea2ed56e85be5e23b71b9e39a53836f0574aa1891"
+        },
+        "log": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-corrections/focused-attempt3/command.log",
+          "sha256": "91b4141ed28ab8bdff74df466add83fc739a69a66afe4a3a38961bd4d025a56f"
+        },
+        "junit": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-corrections/focused-attempt3/result.xml",
+          "sha256": "1a8f7772654bfff71a3e8bfd494733a132e16e6b54f317edd11ef1715701eba4"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 1.9716154038906097,
+        "frozen_unchanged": true,
+        "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+        "summary": "51 passed in 1.44s"
+      },
+      "default-final-attempt2": {
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-final-attempt2/command.json",
+          "sha256": "063957da4dd3114fb4da2442c176f36ed98e4aa587ac2671b244759576fbd74d"
+        },
+        "log": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-final-attempt2/command.log",
+          "sha256": "b12416df18eb6e8ea8a2d6b20f2eeb310ca83d454a28b535f6f611f107dfe183"
+        },
+        "junit": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-final-attempt2/result.xml",
+          "sha256": "205bfee35a1abbb48cca57d319c4a458e1fa54fa7e62313a9268eccf3744e4db"
+        },
+        "returncode": 1,
+        "elapsed_seconds": 144.97385298088193,
+        "frozen_unchanged": true,
+        "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+        "summary": "12 failed, 4932 passed, 123 skipped, 3 xfailed, 10 warnings, 49 subtests passed in 143.04s (0:02:23)"
+      },
+      "default-corrections/focused-attempt4": {
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-corrections/focused-attempt4/command.json",
+          "sha256": "e956350a9394fd86158e650a88820148fd95599f06c411c539d9d19727dd5dad"
+        },
+        "log": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-corrections/focused-attempt4/command.log",
+          "sha256": "4fc4122d78caed835eeca11edc590efd518e579bae26040207963bc0b66ae06f"
+        },
+        "junit": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-corrections/focused-attempt4/result.xml",
+          "sha256": "0343b5200a96ac69b2d06569c02d20b26eb89d64726ea144ec2c18fbcc172e69"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 2.0572743490338326,
+        "frozen_unchanged": true,
+        "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+        "summary": "63 passed in 1.53s"
+      },
+      "default-corrections/focused-attempt5": {
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-corrections/focused-attempt5/command.json",
+          "sha256": "2f227ac1583cf47516a4fc3464e83e22722b8fb4521fe14138b52f55eb3787b9"
+        },
+        "log": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-corrections/focused-attempt5/command.log",
+          "sha256": "4fc4122d78caed835eeca11edc590efd518e579bae26040207963bc0b66ae06f"
+        },
+        "junit": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-corrections/focused-attempt5/result.xml",
+          "sha256": "893610178defb3fd9c5037ca65acf057d9b9594f886000b4fe86860ccbf7b10f"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 2.0555817168205976,
+        "frozen_unchanged": true,
+        "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+        "summary": "63 passed in 1.53s"
+      },
+      "default-final-attempt3": {
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-final-attempt3/command.json",
+          "sha256": "8772791390bfe26f4f57af276b6b71bc223b2912bc2ffb0d917ce3086815d489"
+        },
+        "log": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-final-attempt3/command.log",
+          "sha256": "4e93d81ee0abc747cf606ec35a58ecaf69f0e8b44c75f8e786afdf57593d7c4f"
+        },
+        "junit": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-final-attempt3/result.xml",
+          "sha256": "33b9d1b061045ddc8db75e0fe104786767c09838ab4050782d74a632c2e36aa7"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 145.08495537377894,
+        "frozen_unchanged": true,
+        "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+        "summary": "4945 passed, 123 skipped, 3 xfailed, 10 warnings, 49 subtests passed in 143.15s (0:02:23)"
+      }
+    },
+    "historical_failures": [
+      "First focused45pass/1fail and full default4932pass/5fail retained in original default_tier_correction record.",
+      "Focused2:49pass/2fail; staleH fixture needed explicit donor-to-Am dative semantics, native pyrrole fixture needed strict-H preparation. No scientific rule correction.",
+      "Second default:4932pass/12fail;11missing-readiness/prefix evidence callers plus one architecture ratchet from3new direct-core imports. Existing public imports fix the latter; no allowlist growth."
+    ],
+    "latest_focused": "63passed in1.53s, recorder2.0556s, unchanged source/tests/native/inputs; full raw capture and prefix selection, not subset-codec filtering.",
+    "historical_focused4_limit": "Earlier63pass is retained but used subset record capture. Attempt5 follows accepted task27 exactly by full capture then prefix projection; no extra stereo filtering.",
+    "latest_default": "4945passed/123skipped/3xfailed/49subtests,10retainedwarnings; pytest143.15s/recorder145.084955s,rc0, unchanged source/tests/native/inputs.",
+    "architecture": {
+      "result": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/default-corrections/architecture-attempt3.json",
+        "sha256": "f27bb223d51edaf5efb9e58b2392ae5b4d2e8f2f9f54c044ad2f0f856004074b"
+      },
+      "result_summary": "891files/256debt,zero new debt/allowlist growth/layer findings; failure259 retained as architecture-attempt2.json. Full default3 includes current architecture node."
+    },
+    "primary_reviews": [
+      {
+        "task_id": "p20-s5-default-failure-analysis-704283-24",
+        "task_hash": "0154aa9df87b018304a2617fa827494eb135cb0c7a5289ca924597e110a98e30",
+        "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+        "diff_or_tree_hash": "a525f07795795fb948605f94229d5bd1bdf4528bbc140c5b96eef031339ac4eb",
+        "exact_turn_id": "01a18c3c-561f-72d0-9fc3-7788b3ce9372",
+        "substantive_status": "CORRECTED_MINIMAL_PREPARE_THEN_CAPTURE_SEQUENCE",
+        "result": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-default-failure-analysis-704283-24/revision3/result.json",
+          "sha256": "8eda67fd691787517db4d0e597b8f9be9628bad6d96b51928f024a70120901c4"
+        },
+        "actual_readonly_audit": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-default-failure-analysis-704283-24/revision3/audit-result.json",
+          "sha256": "4eaafe12733bc7cd5e0f99dabacb1cbace8a2a9b819e68f70263f6af246e2651"
+        },
+        "root_content_acceptance": true,
+        "root_critical_check": "Root corrected earlier overbroad mandatory aromatic-presence suggestion; accepted prepare-before-source-capture without observed-result repair."
+      },
+      {
+        "task_id": "p20-s5-runner-delta-review-704283-25",
+        "task_hash": "8716e5f15abb6e1220acf7901245da409b4e17954e3c485bdc802bfe393c7406",
+        "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+        "diff_or_tree_hash": "9866761d65957931c160b4a9e616def0aea7b749ed5c1ac0cf0fed98ba349a9e",
+        "exact_turn_id": "01a18c4a-65c4-7d92-8734-880043ec0354",
+        "substantive_status": "PASS_RUNNER_DELTA_STATIC",
+        "result": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-runner-delta-review-704283-25/revision2/result.json",
+          "sha256": "a1133efe9a7ffe094c366d3815e3df3aa8e75c1c58e6e368f3c79a959a158425"
+        },
+        "actual_readonly_audit": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-runner-delta-review-704283-25/revision2/audit-result.json",
+          "sha256": "5cfb2ad5e10ae399afecadbe2dc6bdf0c3d24b9048aa6ea3ab1e8a0e500b5dcd"
+        },
+        "root_content_acceptance": true,
+        "root_critical_check": "Exact corpus support bytes and exactly2source-only nodes; no runtime-file deselection."
+      },
+      {
+        "task_id": "p20-s5-cohort-implementation-review-704283-26",
+        "task_hash": "518d1a176335133de8e6781c91311edf2e377471c488d502936593f70669c1fc",
+        "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+        "diff_or_tree_hash": "4f850c9682fb0514689b854eee90967c82a4764b42ac7ba1a17af4ca08d43073",
+        "exact_turn_id": "01a18c49-16ac-7d01-87d1-b2f247b39c1c",
+        "substantive_status": "PASS_COHORT_DELTA_STATIC",
+        "result": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-cohort-implementation-review-704283-26/result.json",
+          "sha256": "a854dd216a9d8dd934f6a84cefb9d2a0848eee9d9c0ba5f869c676c5398d4d68"
+        },
+        "actual_readonly_audit": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-cohort-implementation-review-704283-26/audit-result.json",
+          "sha256": "fc9df28acdd595ebb8b6a46df4c5b91697911fb1d559c9b3397f300bc3ca7d31"
+        },
+        "root_content_acceptance": true,
+        "root_critical_check": "Accepted three-file historical loader/capture delta; superseded by28only for new prefix/caller delta."
+      },
+      {
+        "task_id": "p20-s5-evidence-caller-analysis-704283-27",
+        "task_hash": "296a8d0ec206ae5455a16cdeb1fab827b0f6d51da51c4f13ccbac378584c3f3c",
+        "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+        "diff_or_tree_hash": "6a466b46dc6da05caa1f94116421ff9338c9d0d353edb9b4d388ba6077d2a718",
+        "exact_turn_id": "01a18c4d-c224-7321-8674-fda615aba476",
+        "substantive_status": "ANALYZED_WITH_MINIMAL_CALLER_PROJECTION_FIX",
+        "result": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-evidence-caller-analysis-704283-27/result.json",
+          "sha256": "09590432d6286db59d91b979f1398959f739055f092fdcc55a4ca28a8bfe82aa"
+        },
+        "actual_readonly_audit": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-evidence-caller-analysis-704283-27/audit-result.json",
+          "sha256": "7df1134f0b7ad554e6595a960f9da3b382c602e85219152d351cd891bdb9217f"
+        },
+        "root_content_acceptance": true,
+        "root_critical_check": "Source fixture readiness versus non-mutating selected-row observation; no duplicated full analysis."
+      },
+      {
+        "task_id": "p20-s5-evidence-prefix-review-704283-28",
+        "task_hash": "12a4bfe5a0bb0ee4e9f1dcc747edb80deff608dc9c40ee5f146cfce8643445d2",
+        "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+        "diff_or_tree_hash": "a8a4abaa4ddd98bc6446e35288268bfb61bad28bd53c03e1d4e8a80553fe13be",
+        "exact_turn_id": "01a18c5b-e920-73e2-b446-fecf4e78cf84",
+        "substantive_status": "PASS_EVIDENCE_PREFIX_DELTA_STATIC",
+        "result": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-evidence-prefix-review-704283-28/result.json",
+          "sha256": "de682d5834bcba1e23c73d791f46d2a8e595732f3fe40b09754badd2020cbcd0"
+        },
+        "actual_readonly_audit": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-evidence-prefix-review-704283-28/audit-result.json",
+          "sha256": "83db606f9232f6c33d1cd9b6fcd281f819e42c43ca001f1992274caeefbeefcc"
+        },
+        "root_content_acceptance": true,
+        "root_critical_check": "Full raw capture once, strict original H presence, active original-only bonds, existing stereo row filter, no preparation in observation;12new runtime nodes required in bothtiers."
+      }
+    ],
+    "runner_support": {
+      "three_file_corrections": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/runner-delta-corrections/collection-difference-result.json",
+        "sha256": "4d6fa8b51fdf0d7eca4e875f872324d32fff3491f34f1768b82d4b9b78150827"
+      },
+      "four_file_extension": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/runner-delta-corrections/four-file-extension/evidence.json",
+        "sha256": "917a1b1a4f32b2026ebce2169fe9a1c30896c50c6e8183d5350024d23e94ab9c"
+      },
+      "four_file_patch": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/runner-delta-corrections/four-file-extension/stage5_freeze.py.diff",
+        "sha256": "e9e8f689127162a7503f3b9a9807c89e9aa9f2fdbbf7a4cb58b79bb71647e2b4"
+      },
+      "summary": "63source/61installed-applicable;12evidence-file nodes required in both,exact2source-only audits.61prior artifacts unchanged. Collection predates latest internal full-capture change; current runtime is focused5/default3,not installed-wheel evidence."
+    },
+    "limits": [
+      "Python3.11 current-source default/focused; no current all-five source/debug/installed-wheel/sdist or comparable performance acceptance.",
+      "Earlier five ABI builds/collection attempts and failures retained. Fresh owner freeze will bind final bytes and Git identity.",
+      "Scientific7case/90H observations remain their exact source/task bindings and do not imply O0/full corpus/final acceptance."
+    ]
+  }
+}

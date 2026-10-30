@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "stage": "Stage5",
+  "task_id": "p20-s5-performance-analysis-704283-09",
+  "status": "audited inline-evidence analysis only; no implementation or new runtime/performance acceptance",
+  "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+  "task_hash": "1b12d46fa7de96bc4468be5c2e7951faef7ef1666c23530d84a9c29819ffd434",
+  "revision2_task_hash": "600e5789e58071a3eb175b54eedc9891a7dd90c8036647bc09e1f326e00d3d7a",
+  "evidence_manifest_hash": "9b785da9186f3020f07bdf8a32e44b05fd96660f606fc4746e619fb32410bdaf",
+  "analysis_owner": "ai-4; existing fixed gpt-5.6-sol/xhigh readonly worker",
+  "root_critical_check": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage5/remote-support/profile-source-check.json",
+    "sha256": "4ccaa61660e3e70ca9fb1380e67e195bc38b4043840df6b9b82ce7d2fed5b301",
+    "result": "All four optimized-profile dirty-overlay source hashes equal committed ba5fa6d; they are the complete hotpot diff from0bc19f8 toba5fa6d. No repeated profile or full analysis."
+  },
+  "actual_readonly_turns": {
+    "primary": "01a18afd-27d2-7f81-8c4c-4cb9bb5ef162",
+    "narrow_provenance_clarification": "01a18b00-306d-71c3-a525-f28129e877ac"
+  },
+  "audit_result": "Both exact turn audits passed: explicit readOnly normalized read-only, zero filesystem writes, zero tool/filesystem/command/delegation activity; input evidence inline only.",
+  "hypotheses": [
+    "Batch generation of exact member geometry/provenance bytes from one captured snapshot may reduce per-view Python work.",
+    "Preconstruct member/UID/Bond tuples by integer rows with identical active/hidden precedence; no retained cache."
+  ],
+  "limits": [
+    "Historical diagnostic profile, not formal causal experiment or acceptance sampling.",
+    "No current Stage5 runtime or speedup measured.",
+    "No source/config/Git edits, sync, tests/builds or delegation by reviewer.",
+    "Original work, inputs, neutral band, thresholds, weights, memory and final global gates unchanged."
+  ],
+  "receipts": {
+    "p20-s5-performance-analysis-704283-09-envelope.json": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-performance-analysis-704283-09-envelope.json",
+      "sha256": "ef72cf86f7e9db29963bf781c374a7142b45612cb62451e14b57d7d40c5dba07"
+    },
+    "p20-s5-performance-analysis-704283-09-result.json": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-performance-analysis-704283-09-result.json",
+      "sha256": "8255a75f9f3c3f2b8e0fb7ac17a78d8d1dd5bec5f20960bc44e469fe29503b46"
+    },
+    "p20-s5-performance-analysis-704283-09-audit-result.json": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-performance-analysis-704283-09-audit-result.json",
+      "sha256": "ca3a6a4b0bf38029d8d6c4e950f7bb21f41cf22aa6e782b7b287faf96c2c8b8c"
+    },
+    "p20-s5-performance-analysis-704283-09-r2-envelope.json": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-performance-analysis-704283-09-r2-envelope.json",
+      "sha256": "60fa3da6f47d4ee607b05eb1e187a9f32f811b13a1a71cd70945fe781e703c17"
+    },
+    "p20-s5-performance-analysis-704283-09-r2-result.json": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-performance-analysis-704283-09-r2-result.json",
+      "sha256": "9d2502a954bed5b458f1f1277c1408b3986cbada6fdf5fd47e5eed2e5c48f5c3"
+    },
+    "p20-s5-performance-analysis-704283-09-r2-audit-result.json": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-performance-analysis-704283-09-r2-audit-result.json",
+      "sha256": "f7f4cd21ce37a60d1f9bd137bb7fcb9ad4252f6d2292e3ecb858f46129bba0df"
+    }
+  }
+}

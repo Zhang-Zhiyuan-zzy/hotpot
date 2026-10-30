@@ -50,3 +50,48 @@ def test_conformer_projection_does_not_expose_captured_numeric_owners():
     result = mol.conformers[0]
     result['coordinates'][:] = 99
     assert mol.conformers[0]['coordinates'].tolist() == [[1, 2, 3], [4, 5, 6]]
+
+
+def test_stereo_capture_is_frozen_and_has_only_the_three_approved_fields():
+    from dataclasses import FrozenInstanceError, fields
+    from hotpot.cheminfo.operations.stereochemistry import _capture_stereo_owner
+    from hotpot.cheminfo.stereo import get_stereo_payload
+
+    mol = _molecule()
+    snapshot, source, referents = _capture_stereo_owner(mol)
+    assert tuple(field.name for field in fields(snapshot)) == ("payload", "atom_keys", "bonds")
+    assert snapshot.payload is get_stereo_payload(mol)
+    assert snapshot.atom_keys == tuple(id(atom) for atom in mol.atoms)
+    assert all(type(key) is int for key in snapshot.atom_keys)
+    assert all(type(row) is tuple and len(row) == 5 for row in snapshot.bonds)
+    assert source.owner is mol._owner_token
+    assert source.dependencies == ()
+    assert len(referents) == 3
+    with pytest.raises(FrozenInstanceError):
+        snapshot.payload = None
+    with pytest.raises(TypeError):
+        snapshot.bonds[0][2] = 9.0
+
+
+def test_stereo_graph_is_deeply_readonly_and_packed_values_are_independent():
+    from hotpot.cheminfo.adapters.structure.stereochemistry import _pack_gate6_target
+    from hotpot.cheminfo.operations.stereochemistry import _gate6_projection
+
+    mol = _molecule()
+    graph, issues = _gate6_projection(mol)
+    assert issues == ()
+    before = mol.atom_matrix.tobytes(), mol.bonds[0].attrs.tobytes()
+    with pytest.raises(TypeError):
+        graph.target_spec["keys"] = ()
+    with pytest.raises(TypeError):
+        graph.target_spec["atoms"][0]["fields"]["atomic_number"] = 99
+    with pytest.raises(TypeError):
+        graph.target_spec["atoms"][0]["full"]["degree"] = 99
+    with pytest.raises(TypeError):
+        graph.target_spec["bonds"][0]["fields"]["bond_order"] = 99.0
+    packed = _pack_gate6_target(graph)
+    packed["atoms"][0]["fields"]["atomic_number"] = 99
+    packed["bonds"][0]["fields"]["bond_order"] = 99.0
+    assert graph.target_spec["atoms"][0]["fields"]["atomic_number"] == 6
+    assert graph.target_spec["bonds"][0]["fields"]["bond_order"] == 1.0
+    assert (mol.atom_matrix.tobytes(), mol.bonds[0].attrs.tobytes()) == before

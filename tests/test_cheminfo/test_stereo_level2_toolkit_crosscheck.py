@@ -23,32 +23,35 @@ from rdkit.Geometry import Point3D
 
 from hotpot.cheminfo import stereo
 
+from hotpot.cheminfo.rules.chemistry.stereochemistry import algebra as stereo_algebra
+from hotpot.cheminfo.rules.chemistry.stereochemistry import coordinates as stereo_coordinates
+
 
 _RDKIT_COORDINATION_LOOKUP = {
-    stereo._Level2DescriptorFamily.SQUARE_PLANAR: (
+    stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR: (
         1, 3, 2,
     ),
-    stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL: (
+    stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL: (
         7, 8, 5, 6, 3, 4, 1, 2, 13, 14,
         10, 12, 9, 11, 16, 19, 15, 20, 17, 18,
     ),
-    stereo._Level2DescriptorFamily.OCTAHEDRAL: (
+    stereo_algebra._Level2DescriptorFamily.OCTAHEDRAL: (
         27, 28, 25, 30, 26, 29, 21, 22, 19, 24,
         20, 23, 12, 13, 6, 18, 7, 17, 9, 11,
         3, 16, 5, 15, 8, 10, 1, 2, 4, 14,
     ),
 }
 _RDKIT_TAGS = {
-    stereo._Level2DescriptorFamily.SQUARE_PLANAR: "CHI_SQUAREPLANAR",
-    stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL: (
+    stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR: "CHI_SQUAREPLANAR",
+    stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL: (
         "CHI_TRIGONALBIPYRAMIDAL"
     ),
-    stereo._Level2DescriptorFamily.OCTAHEDRAL: "CHI_OCTAHEDRAL",
+    stereo_algebra._Level2DescriptorFamily.OCTAHEDRAL: "CHI_OCTAHEDRAL",
 }
 _CENTER_ATOMIC_NUMBERS = {
-    stereo._Level2DescriptorFamily.SQUARE_PLANAR: 78,
-    stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL: 33,
-    stereo._Level2DescriptorFamily.OCTAHEDRAL: 27,
+    stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR: 78,
+    stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL: 33,
+    stereo_algebra._Level2DescriptorFamily.OCTAHEDRAL: 27,
 }
 _LIGAND_ATOMIC_NUMBERS = (9, 17, 35, 53, 7, 15)
 _OPENBABEL_CAPABILITY_SCOPE = frozenset({"TH", "DB", "SP"})
@@ -130,8 +133,8 @@ def test_all_sp_tbp_oh_ideal_descriptors_match_frozen_rdkit_lookup(
     descriptor_index,
     rdkit_index,
 ):
-    directions = stereo._gate7_ideal_carrier_directions(
-        stereo._Level2Descriptor(family, descriptor_index)
+    directions = stereo_coordinates._gate7_ideal_carrier_directions(
+        stereo_algebra._Level2Descriptor(family, descriptor_index)
     )
 
     assert _rdkit_perception(family, directions) == (
@@ -143,17 +146,17 @@ def test_all_sp_tbp_oh_ideal_descriptors_match_frozen_rdkit_lookup(
 @pytest.mark.parametrize(
     ("family", "descriptor_index"),
     (
-        (stereo._Level2DescriptorFamily.SQUARE_PLANAR, 3),
-        (stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL, 17),
-        (stereo._Level2DescriptorFamily.OCTAHEDRAL, 29),
+        (stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR, 3),
+        (stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL, 17),
+        (stereo_algebra._Level2DescriptorFamily.OCTAHEDRAL, 29),
     ),
 )
 def test_rdkit_oracle_preserves_descriptor_under_proper_rotation(
     family,
     descriptor_index,
 ):
-    directions = stereo._gate7_ideal_carrier_directions(
-        stereo._Level2Descriptor(family, descriptor_index)
+    directions = stereo_coordinates._gate7_ideal_carrier_directions(
+        stereo_algebra._Level2Descriptor(family, descriptor_index)
     )
     rotation = np.asarray(
         ((0.0, -1.0, 0.0), (1.0, 0.0, 0.0), (0.0, 0.0, 1.0))
@@ -168,9 +171,9 @@ def test_rdkit_oracle_preserves_descriptor_under_proper_rotation(
 @pytest.mark.parametrize(
     ("family", "source_index", "reflected_index"),
     (
-        (stereo._Level2DescriptorFamily.SQUARE_PLANAR, 1, 1),
-        (stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL, 1, 2),
-        (stereo._Level2DescriptorFamily.OCTAHEDRAL, 1, 2),
+        (stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR, 1, 1),
+        (stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL, 1, 2),
+        (stereo_algebra._Level2DescriptorFamily.OCTAHEDRAL, 1, 2),
     ),
 )
 def test_rdkit_oracle_matches_frozen_mirror_witness(
@@ -178,8 +181,8 @@ def test_rdkit_oracle_matches_frozen_mirror_witness(
     source_index,
     reflected_index,
 ):
-    directions = stereo._gate7_ideal_carrier_directions(
-        stereo._Level2Descriptor(family, source_index)
+    directions = stereo_coordinates._gate7_ideal_carrier_directions(
+        stereo_algebra._Level2Descriptor(family, source_index)
     ).copy()
     directions[:, 0] *= -1.0
 
@@ -192,17 +195,17 @@ def test_rdkit_oracle_matches_frozen_mirror_witness(
 @pytest.mark.parametrize(
     ("family", "reordered_index"),
     (
-        (stereo._Level2DescriptorFamily.SQUARE_PLANAR, 2),
-        (stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL, 2),
-        (stereo._Level2DescriptorFamily.OCTAHEDRAL, 2),
+        (stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR, 2),
+        (stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL, 2),
+        (stereo_algebra._Level2DescriptorFamily.OCTAHEDRAL, 2),
     ),
 )
 def test_rdkit_oracle_matches_first_carrier_exchange(
     family,
     reordered_index,
 ):
-    directions = stereo._gate7_ideal_carrier_directions(
-        stereo._Level2Descriptor(family, 1)
+    directions = stereo_coordinates._gate7_ideal_carrier_directions(
+        stereo_algebra._Level2Descriptor(family, 1)
     ).copy()
     directions[[0, 1]] = directions[[1, 0]]
 

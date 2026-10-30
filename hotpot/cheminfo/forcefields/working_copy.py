@@ -8,7 +8,7 @@ from typing import Mapping, Optional, TYPE_CHECKING
 
 import numpy as np
 
-from ..stereo import get_stereo_payload
+from ..structure._stereo import _get_stereo_payload
 from ..structure._identity import _capture_source, _check_source, _complete_bonds
 from .coordination import _iter_metal_donor_pairs
 from .topology import (
@@ -21,7 +21,7 @@ from .topology import (
 
 if TYPE_CHECKING:
     from ..core import Atom, Bond, BondKind, Molecule
-    from ..stereo import StereoPayload
+    from ..structure.stereo import StereoPayload
     from ..structure._builder import MoleculeRecord
     from ..structure._identity import _SourceIdentity
 
@@ -207,7 +207,7 @@ def _prepare_working_copy_commit(
     return _WorkingCopyCommit(
         source, record, metadata,
         original_atoms + (None,) * (len(working_atoms) - original_count),
-        tuple(bond_bindings), dependency_state, get_stereo_payload(working_mol),
+        tuple(bond_bindings), dependency_state, _get_stereo_payload(working_mol),
     )
 
 

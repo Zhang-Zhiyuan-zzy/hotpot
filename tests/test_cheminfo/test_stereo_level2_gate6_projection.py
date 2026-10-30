@@ -11,11 +11,13 @@ from hotpot.cheminfo.stereo import (
     AtomTransportRecord,
     StereoIssueCode,
     StereoPayload,
-    _gate6_projection,
-    _gate6_query_spec,
     get_stereo_payload,
     set_stereo_payload,
 )
+from hotpot.cheminfo.operations.stereochemistry import _gate6_projection
+from hotpot.cheminfo.rules.chemistry.stereochemistry.graph import _gate6_query_spec
+
+from hotpot.cheminfo.adapters.structure.stereochemistry import _pack_gate6_target
 
 
 def _molecule(atomic_numbers, edges=(), *, implicit_hydrogens=()):
@@ -113,7 +115,7 @@ def test_query_can_pin_an_explicit_hydrogen_to_a_virtual_hydrogen():
     assert issues == ()
 
     mappings = tuple(
-        _NativeTarget(graph.target_spec).iter_mappings(
+        _NativeTarget(_pack_gate6_target(graph)).iter_mappings(
             _gate6_query_spec(graph, {0: 0, 1: 2})
         )
     )
@@ -132,7 +134,7 @@ def test_virtual_edges_are_lexicographically_sorted_with_real_edges():
 
     assert issues == ()
     assert graph.target_spec["edges"] == ((0, 3), (1, 2))
-    NativeTarget(graph.target_spec)
+    NativeTarget(_pack_gate6_target(graph))
 
 
 def test_projection_uses_exact_atom_fact_and_molecule_scalar_labels():
@@ -318,9 +320,9 @@ def test_query_copies_exact_labels_and_pins_rows_for_real_native_target():
     assert issues == ()
     query = _gate6_query_spec(graph, {0: 1})
 
-    NativeTarget(graph.target_spec)
+    NativeTarget(_pack_gate6_target(graph))
     mappings = tuple(
-        _NativeTarget(graph.target_spec).iter_mappings(query)
+        _NativeTarget(_pack_gate6_target(graph)).iter_mappings(query)
     )
 
     assert mappings == ({0: 1, 1: 0},)

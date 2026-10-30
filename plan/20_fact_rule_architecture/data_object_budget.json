@@ -528,13 +528,33 @@
       "stage": "Stage6",
       "dataclass_upper_bound": 1,
       "responsibility": "One carrier-free frozen read capture with exactly payload: StereoPayload, atom_keys: tuple[int, ...], bonds: tuple[tuple[int, int, float, str, str | None], ...], in that order. Consumers: structure capture adapter, pure stereo graph/validation/assignment/alignment and stereo operation. Source binding and strong identity-key referents remain operation-local; no fourth field, StereoUpdate wrapper or duplicate reservation.",
-      "status": "root-key accepted exact three-field r2 reservation on 2026-10-30; implementation HOLD pending exact release; cap1 unchanged, no measured census or retirement credit",
-      "actual_symbol": null,
+      "status": "Implemented within cap1 on 2026-10-30; exact three-field frozen source capture passes static ownership/census review. Runtime/primary-review/Stage6 gates remain open.",
+      "actual_symbol": "hotpot.cheminfo.structure.snapshots._StereoSnapshot",
       "commit": null,
-      "verification": null,
+      "verification": "stages/stage06/bookkeeping/evidence.json",
       "design": "stages/stage06/contracts/review.md",
       "decisions": "stages/stage06/contracts/decisions.md",
-      "storage_follow_on": "Stage7E completes canonical decomposition before Stage8 and Stage12/global acceptance; reuse existing source/record/update/transaction families, zero new types unless separately reviewed at entry."
+      "storage_follow_on": "Stage7E completes canonical decomposition before Stage8 and Stage12/global acceptance; reuse existing source/record/update/transaction families, zero new types unless separately reviewed at entry.",
+      "fields": [
+        "payload",
+        "atom_keys",
+        "bonds"
+      ],
+      "current_fields": [
+        {
+          "name": "payload",
+          "annotation": "StereoPayload"
+        },
+        {
+          "name": "atom_keys",
+          "annotation": "tuple[int, ...]"
+        },
+        {
+          "name": "bonds",
+          "annotation": "tuple[tuple[int, int, float, str, str | None], ...]"
+        }
+      ],
+      "semantic_retirement_credit": 0
     },
     {
       "id": "N10",
@@ -775,11 +795,11 @@
   ],
   "change_policy": "Update a reservation with concrete responsibility/consumer evidence before exceeding it; new public schemas retain their own review gate. Never offset extra records by deleting unrelated reserved types or replace records with untyped dicts solely to improve counts.",
   "measured_current_counts": {
-    "all_python_classes": 776,
-    "dataclasses": 353,
+    "all_python_classes": 777,
+    "dataclasses": 354,
     "protocols": 8,
     "typed_dicts": 2,
-    "method": "Exact baseline capture_baseline_inventory.py leaf/CONTRACT_MARKERS ClassDef census. Stage4 779/351/13/2 -> current776/353/8/2; two frozen snapshots added and five protocol definitions retired. Generic subscript markers are deliberately treated exactly as in the original baseline. No runtime validation is implied.",
+    "method": "Exact baseline capture_baseline_inventory.py leaf/CONTRACT_MARKERS ClassDef census. Stage5 776/353/8/2 -> Stage6 777/354/8/2; exactly one N09 class/dataclass added. Existing stereo class relocations receive zero retirement credit. Original direct generic-subscript marker behavior remains unchanged. Static source counts only; no runtime validation.",
     "native_struct_candidates": 171,
     "native_struct_candidate_method": {
       "baseline": 164,
@@ -791,13 +811,14 @@
     },
     "new_fact_native_actual_struct_definitions": 14,
     "new_fact_native_actual_enum_definitions": 1,
-    "verification": "stages/stage05/bookkeeping/evidence.json; raw .plan20-artifacts/20261030/stage5/bookkeeping-attempt2/census.json",
+    "verification": "stages/stage06/bookkeeping/evidence.json; raw .plan20-artifacts/20261030/stage6/bookkeeping-attempt1/census.json",
     "stage5_native_scope": "Readonly carrier dispatch plus configured DERIVED_FIELDS rejection at native ingress/preparation; existing Field gains immutable configuration metadata, with no new class/struct/enum or exported ABI. Corrected source awaits five fresh ABI builds and runtime evidence.",
     "stage5_native_source": {
       "path": "hotpot/cheminfo/structure/_native/facts.cpp",
       "sha256": "319f47b9ee54c325fbe7c05e871faef248a254875c8e0c8ea6ab3f14819c613f",
       "bytes": 61640,
       "verification": "stages/stage05/storage-ingress-review/evidence.json; static only at this checkpoint"
-    }
+    },
+    "stage6_native_counts": "Existing171native-struct candidate count and14fact-native actual definitions are retained historical Stage5 evidence, not rerun by this Python-only census. Stage6 permits no native/build/schema edit; final strict142/native-byte comparison remains SOURCE_READY-gated."
   }
 }

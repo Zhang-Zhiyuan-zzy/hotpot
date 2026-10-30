@@ -1,8 +1,10 @@
 """Immutable, field-selective bonding inputs and complete aromatic proposals."""
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 
 from ._identity import _SourceIdentity
+from .stereo import StereoPayload
 
 
 __all__ = ()
@@ -42,3 +44,22 @@ class _AromaticAssignment:
     def __post_init__(self):
         for field in ("atom_uids", "bond_uids", "atom_aromatic", "bond_aromatic", "bond_orders", "bond_kinds", "covered_rows"):
             object.__setattr__(self, field, tuple(getattr(self, field)))
+
+
+@dataclass(frozen=True)
+class _StereoSnapshot:
+    """One immutable capture of the raw facts consumed by stereo rules."""
+
+    payload: StereoPayload
+    atom_keys: tuple[int, ...]
+    bonds: tuple[tuple[int, int, float, str, str | None], ...]
+
+
+@dataclass(frozen=True)
+class _Gate6Graph:
+    """One immutable augmented represented-graph snapshot for Gate 6."""
+
+    target_spec: Mapping
+    directed_dative_edges: frozenset[tuple[int, int]]
+    real_atom_count: int
+    virtual_hydrogens: tuple[tuple[int, ...], ...]

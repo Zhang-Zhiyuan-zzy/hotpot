@@ -10,6 +10,9 @@ import pytest
 from hotpot.cheminfo import stereo
 from hotpot.cheminfo.core import Molecule
 
+from hotpot.cheminfo.rules.chemistry.stereochemistry import algebra as stereo_algebra
+from hotpot.cheminfo.rules.chemistry.stereochemistry import coordinates as stereo_coordinates
+
 
 _DATA_DIRECTORY = Path(__file__).parents[1] / "data" / "stereo"
 _GOLDEN = json.loads(
@@ -19,10 +22,10 @@ _GOLDEN = json.loads(
     ).read_text()
 )
 _FAMILIES = {
-    "SP": stereo._Level2DescriptorFamily.SQUARE_PLANAR,
-    "TBP": stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL,
-    "SPY": stereo._Level2DescriptorFamily.SQUARE_PYRAMIDAL,
-    "OH": stereo._Level2DescriptorFamily.OCTAHEDRAL,
+    "SP": stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR,
+    "TBP": stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL,
+    "SPY": stereo_algebra._Level2DescriptorFamily.SQUARE_PYRAMIDAL,
+    "OH": stereo_algebra._Level2DescriptorFamily.OCTAHEDRAL,
 }
 _REFLECT_Y = np.diag((1.0, -1.0, 1.0))
 _TEST_ROTATION = np.array(
@@ -39,7 +42,7 @@ def _family_golden(family):
 
 
 def _descriptor(family, value):
-    return stereo._Level2Descriptor(family, value)
+    return stereo_algebra._Level2Descriptor(family, value)
 
 
 def _independent_representatives(family):
@@ -84,7 +87,7 @@ def _independent_fit(ideal, observed):
 
 
 def _candidate(family, value, score):
-    return stereo._Gate7CoordinateCandidate(
+    return stereo_coordinates._Gate7CoordinateCandidate(
         _descriptor(family, value),
         score,
     )
@@ -98,7 +101,7 @@ def _candidate_pair(family, best, second):
 
 
 def _select(family, candidates):
-    return stereo._select_gate7_coordination_descriptor(
+    return stereo_coordinates._select_gate7_coordination_descriptor(
         family,
         candidates,
         record_index=7,
@@ -112,7 +115,7 @@ def _site(family, value, carrier_count=None):
         if carrier_count is None
         else carrier_count
     )
-    return stereo._Gate7CoordinationSite(
+    return stereo_algebra._Gate7CoordinationSite(
         record_index=7,
         descriptor=_descriptor(family, value),
         center=0,
@@ -168,11 +171,11 @@ def test_coordination_geometry_golden_is_independent_and_preserves_old_bytes():
         "same_family_margin": radians(2.0),
         "five_coordinate_margin": radians(3.0),
     }
-    assert stereo._GATE7_ACCEPTANCE_RADIANS == policy["acceptance"]
-    assert stereo._GATE7_SAME_FAMILY_MARGIN_RADIANS == policy[
+    assert stereo_coordinates._GATE7_ACCEPTANCE_RADIANS == policy["acceptance"]
+    assert stereo_coordinates._GATE7_SAME_FAMILY_MARGIN_RADIANS == policy[
         "same_family_margin"
     ]
-    assert stereo._GATE7_FIVE_COORDINATE_MARGIN_RADIANS == policy[
+    assert stereo_coordinates._GATE7_FIVE_COORDINATE_MARGIN_RADIANS == policy[
         "five_coordinate_margin"
     ]
 
@@ -192,12 +195,12 @@ def test_frozen_templates_have_complete_proper_site_rotation_groups(family):
 
     np.testing.assert_allclose(np.linalg.norm(sites, axis=1), 1.0)
     assert actual == expected
-    assert set(stereo._COORDINATION_ROTATIONS[family]) == expected
+    assert set(stereo_algebra._COORDINATION_ROTATIONS[family]) == expected
 
     representatives = _independent_representatives(family)
     assert len(representatives) == frozen["cardinality"]
     assert len(representatives) * len(expected) == factorial(len(sites))
-    assert representatives == stereo._COORDINATION_REPRESENTATIVES[family]
+    assert representatives == stereo_algebra._COORDINATION_REPRESENTATIVES[family]
 
 
 def test_all_83_descriptor_directions_follow_the_independent_site_oracle():
@@ -206,7 +209,7 @@ def test_all_83_descriptor_directions_follow_the_independent_site_oracle():
         frozen = _family_golden(family)
         for value in range(1, frozen["cardinality"] + 1):
             expected = _independent_directions(family, value)
-            actual = stereo._gate7_ideal_carrier_directions(
+            actual = stereo_coordinates._gate7_ideal_carrier_directions(
                 _descriptor(family, value)
             )
             np.testing.assert_array_equal(actual, expected)
@@ -221,7 +224,7 @@ def test_proper_rotation_fitter_matches_an_independent_angular_oracle(family):
         ideal = _independent_directions(family, value)
         observed = ideal @ _TEST_ROTATION
         expected_rotation, expected_score = _independent_fit(ideal, observed)
-        rotation, score = stereo._gate7_proper_rotation_fit(ideal, observed)
+        rotation, score = stereo_coordinates._gate7_proper_rotation_fit(ideal, observed)
 
         assert np.linalg.det(rotation) == pytest.approx(1.0, abs=1.0e-12)
         np.testing.assert_allclose(ideal @ rotation, observed, atol=1.0e-12)
@@ -235,7 +238,7 @@ def test_every_ideal_descriptor_ranks_itself_and_matches_oracle_scores(family):
     cardinality = _family_golden(family)["cardinality"]
     for observed_value in range(1, cardinality + 1):
         observed = _independent_directions(family, observed_value)
-        actual = stereo._gate7_coordination_candidates(family, observed)
+        actual = stereo_coordinates._gate7_coordination_candidates(family, observed)
         assert len(actual) == cardinality
         assert actual[0].descriptor == _descriptor(family, observed_value)
         assert actual[0].score_radians == pytest.approx(0.0, abs=1.0e-14)
@@ -272,7 +275,7 @@ def test_nearest_wrong_descriptor_score_ties_and_witness_are_frozen(family):
     score_by_pair = {}
     for observed_value in range(1, cardinality + 1):
         observed = _independent_directions(family, observed_value)
-        for candidate in stereo._gate7_coordination_candidates(family, observed):
+        for candidate in stereo_coordinates._gate7_coordination_candidates(family, observed):
             candidate_value = int(candidate.descriptor.value)
             if candidate_value == observed_value:
                 continue
@@ -302,19 +305,19 @@ def test_literal_y_reflection_follows_every_frozen_mirror_map(family):
     for source_value, expected_value in enumerate(mirror, start=1):
         source = _independent_directions(family, source_value)
         reflected = source @ _REFLECT_Y
-        candidates = stereo._gate7_coordination_candidates(family, reflected)
+        candidates = stereo_coordinates._gate7_coordination_candidates(family, reflected)
         assert candidates[0].descriptor == _descriptor(family, expected_value)
         assert candidates[0].score_radians == pytest.approx(0.0, abs=1.0e-14)
 
 
 def test_tbp_spy_cross_family_minimum_has_60_frozen_ties():
-    tbp = stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL
-    spy = stereo._Level2DescriptorFamily.SQUARE_PYRAMIDAL
+    tbp = stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL
+    spy = stereo_algebra._Level2DescriptorFamily.SQUARE_PYRAMIDAL
     frozen = _GOLDEN["five_coordinate_cross"]
     score_by_pair = {}
     for tbp_value in range(1, _family_golden(tbp)["cardinality"] + 1):
         observed = _independent_directions(tbp, tbp_value)
-        for candidate in stereo._gate7_coordination_candidates(spy, observed):
+        for candidate in stereo_coordinates._gate7_coordination_candidates(spy, observed):
             pair = (tbp_value, int(candidate.descriptor.value))
             score_by_pair[pair] = candidate.score_radians
 
@@ -338,7 +341,7 @@ def test_no_centroid_probe_retains_center_rooted_independent_radii():
     site = _site(family, probe["descriptor"])
     coordinates = np.asarray(probe["coordinates"])
 
-    directions, issue = stereo._gate7_center_rooted_directions(site, coordinates)
+    directions, issue = stereo_coordinates._gate7_center_rooted_directions(site, coordinates)
     assert issue is None
     np.testing.assert_array_equal(directions, probe["expected_directions"])
     np.testing.assert_array_equal(
@@ -346,7 +349,7 @@ def test_no_centroid_probe_retains_center_rooted_independent_radii():
         @ np.asarray(probe["proper_rotation"]),
         directions,
     )
-    descriptor, issue = stereo._gate7_coordination_coordinate_descriptor(
+    descriptor, issue = stereo_coordinates._gate7_coordination_coordinate_descriptor(
         site,
         coordinates,
     )
@@ -385,7 +388,7 @@ def test_all_83_descriptors_survive_translation_rotation_scale_and_radii():
             )
             coordinates *= 17.0
             descriptor, issue = (
-                stereo._gate7_coordination_coordinate_descriptor(
+                stereo_coordinates._gate7_coordination_coordinate_descriptor(
                     _site(family, value),
                     coordinates,
                 )
@@ -397,7 +400,7 @@ def test_all_83_descriptors_survive_translation_rotation_scale_and_radii():
 
 
 def test_finite_extreme_coordinates_normalize_without_overflow():
-    family = stereo._Level2DescriptorFamily.OCTAHEDRAL
+    family = stereo_algebra._Level2DescriptorFamily.OCTAHEDRAL
     scale = 1.1e308
     coordinates = np.asarray(
         (
@@ -411,7 +414,7 @@ def test_finite_extreme_coordinates_normalize_without_overflow():
         )
     )
 
-    directions, issue = stereo._gate7_center_rooted_directions(
+    directions, issue = stereo_coordinates._gate7_center_rooted_directions(
         _site(family, 1),
         coordinates,
     )
@@ -426,7 +429,7 @@ def test_finite_extreme_coordinates_normalize_without_overflow():
 
 
 def test_huge_common_translation_does_not_underflow_local_directions():
-    family = stereo._Level2DescriptorFamily.OCTAHEDRAL
+    family = stereo_algebra._Level2DescriptorFamily.OCTAHEDRAL
     translation = 1.0e308
     coordinates = np.asarray(
         (
@@ -440,7 +443,7 @@ def test_huge_common_translation_does_not_underflow_local_directions():
         )
     )
 
-    directions, issue = stereo._gate7_center_rooted_directions(
+    directions, issue = stereo_coordinates._gate7_center_rooted_directions(
         _site(family, 1),
         coordinates,
     )
@@ -460,12 +463,12 @@ def test_huge_common_translation_does_not_underflow_local_directions():
 
 
 def test_center_coincident_carrier_has_one_stable_relative_tolerance_issue():
-    family = stereo._Level2DescriptorFamily.OCTAHEDRAL
+    family = stereo_algebra._Level2DescriptorFamily.OCTAHEDRAL
     directions = _independent_directions(family, 1)
     coordinates = _coordinates(directions)
     coordinates[3] = coordinates[0]
 
-    actual, issue = stereo._gate7_center_rooted_directions(
+    actual, issue = stereo_coordinates._gate7_center_rooted_directions(
         _site(family, 1),
         coordinates,
     )
@@ -484,7 +487,7 @@ def test_center_coincident_carrier_has_one_stable_relative_tolerance_issue():
 
 @pytest.mark.parametrize("relation", ("inside", "equal", "outside"))
 def test_exact_12_degree_acceptance_boundary(relation):
-    family = stereo._Level2DescriptorFamily.SQUARE_PLANAR
+    family = stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR
     cutoff = _GOLDEN["policy_radians"]["acceptance"]
     margin = _GOLDEN["policy_radians"]["same_family_margin"]
     best = {
@@ -516,7 +519,7 @@ def test_exact_12_degree_acceptance_boundary(relation):
 
 @pytest.mark.parametrize("relation", ("inside", "equal", "outside"))
 def test_exact_2_degree_same_family_boundary(relation):
-    family = stereo._Level2DescriptorFamily.OCTAHEDRAL
+    family = stereo_algebra._Level2DescriptorFamily.OCTAHEDRAL
     margin = _GOLDEN["policy_radians"]["same_family_margin"]
     gap = {
         "inside": np.nextafter(margin, 0.0),
@@ -544,7 +547,7 @@ def test_exact_2_degree_same_family_boundary(relation):
 
 
 def test_same_family_margin_uses_raw_second_score_above_acceptance():
-    family = stereo._Level2DescriptorFamily.SQUARE_PLANAR
+    family = stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR
     cutoff = _GOLDEN["policy_radians"]["acceptance"]
     candidates = {
         family: _candidate_pair(
@@ -567,8 +570,8 @@ def test_same_family_margin_uses_raw_second_score_above_acceptance():
 
 @pytest.mark.parametrize("relation", ("inside", "equal", "outside"))
 def test_exact_3_degree_five_coordinate_boundary(relation):
-    tbp = stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL
-    spy = stereo._Level2DescriptorFamily.SQUARE_PYRAMIDAL
+    tbp = stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL
+    spy = stereo_algebra._Level2DescriptorFamily.SQUARE_PYRAMIDAL
     family_margin = _GOLDEN["policy_radians"]["five_coordinate_margin"]
     same_margin = _GOLDEN["policy_radians"]["same_family_margin"]
     gap = {
@@ -600,8 +603,8 @@ def test_exact_3_degree_five_coordinate_boundary(relation):
 
 
 def test_both_five_coordinate_families_outside_acceptance_are_degenerate():
-    tbp = stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL
-    spy = stereo._Level2DescriptorFamily.SQUARE_PYRAMIDAL
+    tbp = stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL
+    spy = stereo_algebra._Level2DescriptorFamily.SQUARE_PYRAMIDAL
     cutoff = _GOLDEN["policy_radians"]["acceptance"]
     same_margin = _GOLDEN["policy_radians"]["same_family_margin"]
     above = np.nextafter(cutoff, np.inf)
@@ -630,8 +633,8 @@ def test_both_five_coordinate_families_outside_acceptance_are_degenerate():
 
 @pytest.mark.parametrize("relation", ("equal", "outside"))
 def test_alternate_better_side_of_3_degree_boundary_never_migrates(relation):
-    tbp = stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL
-    spy = stereo._Level2DescriptorFamily.SQUARE_PYRAMIDAL
+    tbp = stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL
+    spy = stereo_algebra._Level2DescriptorFamily.SQUARE_PYRAMIDAL
     family_margin = _GOLDEN["policy_radians"]["five_coordinate_margin"]
     same_margin = _GOLDEN["policy_radians"]["same_family_margin"]
     gap = {
@@ -661,8 +664,8 @@ def test_alternate_better_side_of_3_degree_boundary_never_migrates(relation):
 
 
 def test_strong_alternate_family_is_a_contradiction_without_migration():
-    tbp = stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL
-    spy = stereo._Level2DescriptorFamily.SQUARE_PYRAMIDAL
+    tbp = stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL
+    spy = stereo_algebra._Level2DescriptorFamily.SQUARE_PYRAMIDAL
     same_margin = _GOLDEN["policy_radians"]["same_family_margin"]
     candidates = {
         tbp: _candidate_pair(tbp, radians(7.0), radians(11.0)),
@@ -682,8 +685,8 @@ def test_strong_alternate_family_is_a_contradiction_without_migration():
 
 
 def test_alternate_family_precedes_declared_numeric_index_ambiguity():
-    tbp = stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL
-    spy = stereo._Level2DescriptorFamily.SQUARE_PYRAMIDAL
+    tbp = stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL
+    spy = stereo_algebra._Level2DescriptorFamily.SQUARE_PYRAMIDAL
     candidates = {
         tbp: _candidate_pair(tbp, radians(8.0), radians(9.0)),
         spy: _candidate_pair(spy, 0.0, radians(4.0)),
@@ -704,13 +707,13 @@ def test_alternate_family_precedes_declared_numeric_index_ambiguity():
     ("declared", "observed", "message"),
     (
         (
-            stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL,
-            stereo._Level2DescriptorFamily.SQUARE_PYRAMIDAL,
+            stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL,
+            stereo_algebra._Level2DescriptorFamily.SQUARE_PYRAMIDAL,
             "declared TBP family contradicts coordinate-preferred SPY family",
         ),
         (
-            stereo._Level2DescriptorFamily.SQUARE_PYRAMIDAL,
-            stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL,
+            stereo_algebra._Level2DescriptorFamily.SQUARE_PYRAMIDAL,
+            stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL,
             "declared SPY family contradicts coordinate-preferred TBP family",
         ),
     ),
@@ -727,7 +730,7 @@ def test_real_ideal_tbp_spy_geometries_contradict_the_other_family(
     coordinates = _coordinates(directions)
     site = _site(declared, 1)
 
-    descriptor, issue = stereo._gate7_coordination_coordinate_descriptor(
+    descriptor, issue = stereo_coordinates._gate7_coordination_coordinate_descriptor(
         site,
         coordinates,
     )
@@ -742,7 +745,7 @@ def test_real_ideal_tbp_spy_geometries_contradict_the_other_family(
 
 
 def test_public_gate7_coordinate_assignment_uses_private_classifier():
-    family = stereo._Level2DescriptorFamily.SQUARE_PLANAR
+    family = stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR
     coordinates = _coordinates(_independent_directions(family, 1))
     molecule, payload = _coordination_molecule(family, coordinates)
 

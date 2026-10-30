@@ -23,19 +23,20 @@ __all__ = ("OpenBabelConformerAdapter", "RDKitConformerAdapter")
 
 def _materialized_hydrogen_projection(molecule: "Molecule") -> "Molecule":
     """Project a fully explicit-H working copy into RDKit's graph-H model."""
-    from ..stereo import (
+    from ..structure.stereo import (
         HydrogenTransportState,
         StereoAnchorKind,
         StereoCarrierKind,
-        get_stereo_payload,
-        set_stereo_payload,
     )
+
+    from ..structure._stereo import _get_stereo_payload
+    from ..operations.chemistry import _set_stereo_payload
 
     projected = copy(molecule)
     for atom in projected.atoms:
         atom.implicit_hydrogens = 0
 
-    payload = get_stereo_payload(projected)
+    payload = _get_stereo_payload(projected)
     records = []
     for record in payload.records:
         if not any(
@@ -95,7 +96,7 @@ def _materialized_hydrogen_projection(molecule: "Molecule") -> "Molecule":
         bracket_explicit_hydrogens=0,
         no_implicit=True,
     )
-    set_stereo_payload(
+    _set_stereo_payload(
         projected,
         replace(
             payload,

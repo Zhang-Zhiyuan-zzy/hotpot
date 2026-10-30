@@ -9,12 +9,14 @@ import pytest
 from hotpot.cheminfo import stereo
 from hotpot.cheminfo.core import Molecule
 
+from hotpot.cheminfo.rules.chemistry.stereochemistry import algebra as stereo_algebra
+
 
 _DATA_DIRECTORY = Path(__file__).parents[1] / "data" / "stereo"
 _GOLDEN = json.loads(
     (_DATA_DIRECTORY / "level2_gate7_spy_algebra_golden.json").read_text()
 )
-_FAMILY = stereo._Level2DescriptorFamily.SQUARE_PYRAMIDAL
+_FAMILY = stereo_algebra._Level2DescriptorFamily.SQUARE_PYRAMIDAL
 _IDEAL_SITES = np.array(
     (
         (0, 0, 1),
@@ -54,7 +56,7 @@ def _carriers():
 
 
 def _parsed(index):
-    result = stereo._parse_level2_descriptor(
+    result = stereo_algebra._parse_level2_descriptor(
         f"hotpot.stereo/2/SPY/{index}"
     )
     assert result.issues == ()
@@ -136,13 +138,13 @@ def test_frozen_site_order_and_c4_permutations_follow_proper_rotations():
     # Active and pullback permutations are inverse conventions. C4 contains
     # both directions, so the frozen orbit is identical under either one.
     assert set(induced) == set(expected)
-    assert stereo._SQUARE_PYRAMIDAL_ROTATIONS == expected
+    assert stereo_algebra._SQUARE_PYRAMIDAL_ROTATIONS == expected
 
 
 def test_all_120_arrangements_form_30_disjoint_size_four_orbits():
     representatives = _independent_representatives()
     assert representatives == tuple(map(tuple, _GOLDEN["representatives"]))
-    assert representatives == stereo._COORDINATION_REPRESENTATIVES[_FAMILY]
+    assert representatives == stereo_algebra._COORDINATION_REPRESENTATIVES[_FAMILY]
     assert len(representatives) == 30
 
     orbit_union = set()
@@ -162,14 +164,14 @@ def test_all_30_spy_indices_parse_and_render():
     assert _GOLDEN["descriptor_range"] == list(range(1, 31))
     for index in _GOLDEN["descriptor_range"]:
         descriptor = _parsed(index)
-        assert stereo._render_level2_descriptor(descriptor) == (
+        assert stereo_algebra._render_level2_descriptor(descriptor) == (
             f"hotpot.stereo/2/SPY/{index}"
         )
 
 
 @pytest.mark.parametrize("token", ("0", "31", "01", "unsupported", "-1"))
 def test_invalid_spy_indices_are_rejected(token):
-    result = stereo._parse_level2_descriptor(
+    result = stereo_algebra._parse_level2_descriptor(
         f"hotpot.stereo/2/SPY/{token}"
     )
     assert result.descriptor is None
@@ -183,7 +185,7 @@ def test_carrier_swap_golden_covers_every_spy_descriptor():
     reordered = (source[1], source[0], *source[2:])
     actual = []
     for index in _GOLDEN["descriptor_range"]:
-        result = stereo._transform_level2_descriptor(
+        result = stereo_algebra._transform_level2_descriptor(
             _parsed(index),
             source,
             reordered,
@@ -200,7 +202,7 @@ def test_all_3600_carrier_reorderings_match_the_independent_oracle():
         descriptor = _parsed(index)
         for reordering in permutations(range(5)):
             reordered = tuple(source[position] for position in reordering)
-            result = stereo._transform_level2_descriptor(
+            result = stereo_algebra._transform_level2_descriptor(
                 descriptor,
                 source,
                 reordered,
@@ -212,7 +214,7 @@ def test_all_3600_carrier_reorderings_match_the_independent_oracle():
                 reordered,
                 representatives,
             )
-            restored = stereo._transform_level2_descriptor(
+            restored = stereo_algebra._transform_level2_descriptor(
                 result.descriptor,
                 reordered,
                 source,
@@ -238,7 +240,7 @@ def test_yz_reflection_pairs_all_spy_descriptors_without_collapsing_them():
     assert mirror == tuple(_GOLDEN["mirror_yz"])
     assert all(mapped != index for index, mapped in enumerate(mirror, 1))
     assert all(mirror[mapped - 1] == index for index, mapped in enumerate(mirror, 1))
-    assert reflection not in stereo._SQUARE_PYRAMIDAL_ROTATIONS
+    assert reflection not in stereo_algebra._SQUARE_PYRAMIDAL_ROTATIONS
 
 
 def test_spy_algebra_is_connected_to_public_graph_semantics():

@@ -8,6 +8,8 @@ import pytest
 from hotpot.cheminfo import stereo
 from hotpot.cheminfo.core import Molecule
 
+from hotpot.cheminfo.operations import stereochemistry as stereo_operations
+
 
 def _molecule(atomic_numbers, bonds=(), *, implicit_hydrogens=None):
     molecule = Molecule()
@@ -648,15 +650,15 @@ def test_global_gate6_projection_issue_suppresses_all_priority_output():
 def test_assignment_runs_complete_graph_validation_once(monkeypatch):
     molecule, carriers = _direct_th_molecule()
     _set_payload(molecule, (_tetrahedral(0, carriers),))
-    original = stereo._validate_graph_stereochemistry
+    original = stereo_operations._validate_graph_stereochemistry
     call_count = 0
 
-    def counted(candidate):
+    def counted(candidate, **context):
         nonlocal call_count
         call_count += 1
-        return original(candidate)
+        return original(candidate, **context)
 
-    monkeypatch.setattr(stereo, "_validate_graph_stereochemistry", counted)
+    monkeypatch.setattr(stereo_operations, "_validate_graph_stereochemistry", counted)
 
     report = stereo.assign_stereochemistry(molecule)
 

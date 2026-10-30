@@ -8,6 +8,8 @@ import pytest
 from hotpot.cheminfo import stereo
 from hotpot.cheminfo.core import Molecule
 
+from hotpot.cheminfo.rules.chemistry.stereochemistry import algebra as stereo_algebra
+
 
 def _molecule(
     atom_count,
@@ -568,7 +570,7 @@ def test_alignment_supports_nonidentity_axis_reversal_mapping():
 
 
 def test_axial_algebra_exhausts_endpoint_swaps_and_full_path_reversal():
-    descriptor = stereo._parse_level2_descriptor(
+    descriptor = stereo_algebra._parse_level2_descriptor(
         "hotpot.stereo/2/AX/even"
     ).descriptor
     source_anchor = stereo.StereoAnchor(
@@ -592,7 +594,7 @@ def test_axial_algebra_exhausts_endpoint_swaps_and_full_path_reversal():
                     ),
                 )
 
-                result = stereo._transform_level2_descriptor(
+                result = stereo_algebra._transform_level2_descriptor(
                     descriptor,
                     source,
                     target,
@@ -606,9 +608,9 @@ def test_axial_algebra_exhausts_endpoint_swaps_and_full_path_reversal():
 
 
 def test_partial_axis_reordering_and_bond_axis_cross_match_are_rejected():
-    descriptor = stereo._parse_level2_descriptor("hotpot.stereo/2/AX/even").descriptor
+    descriptor = stereo_algebra._parse_level2_descriptor("hotpot.stereo/2/AX/even").descriptor
     carriers = tuple(_atom(atom) for atom in range(4))
-    partial = stereo._transform_level2_descriptor(
+    partial = stereo_algebra._transform_level2_descriptor(
         descriptor,
         carriers,
         carriers,
@@ -621,7 +623,7 @@ def test_partial_axis_reordering_and_bond_axis_cross_match_are_rejected():
             (4, 7, 6, 5, 8),
         ),
     )
-    cross_kind = stereo._transform_gate5_axial(
+    cross_kind = stereo_algebra._transform_gate5_axial(
         descriptor,
         _axial(stereo.StereoAnchorKind.BOND, (4, 5), carriers),
         _axial(stereo.StereoAnchorKind.AXIS, (4, 6, 5), carriers),

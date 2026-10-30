@@ -219,7 +219,7 @@ def _pack_utf8(values: tuple[str | None, ...]) -> NativeUtf8Table:
 
 
 def _pack_stereo_records(payload) -> NativeStereoRecordBuffers:
-    from ..stereo import (
+    from ..structure.stereo import (
         StereoAnchorKind,
         StereoCarrierKind,
         StereoGroupKind,
@@ -553,9 +553,9 @@ def pack_molecule(
             }
         )
         if stereo_fields:
-            from ..stereo import get_stereo_payload
+            from ..structure._stereo import _get_stereo_payload
 
-            payload = get_stereo_payload(mol)
+            payload = _get_stereo_payload(mol)
             if NativeMoleculeField.STEREO_RECORDS in fields:
                 stereo_records = _pack_stereo_records(payload)
             if NativeMoleculeField.ATOM_TRANSPORT in fields:

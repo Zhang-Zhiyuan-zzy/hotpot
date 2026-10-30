@@ -21,6 +21,8 @@ from hotpot.cheminfo.structure._identity import _capture_source, _check_source
 from tests.test_cheminfo._stage5_fixtures import factual_state
 
 
+
+
 H_FIELD = FIELD_INDEX['implicit_hydrogens']
 H_GROUP = GROUP_INDEX['IMPLICIT_H']
 
@@ -790,7 +792,7 @@ def test_direct_chemical_consumers_do_not_treat_missing_display_as_ready(consume
         'default_charge': lambda: mol.calc_mol_default_charge(),
     }
     if consumer == 'stereo':
-        from hotpot.cheminfo.stereo import _gate6_projection
+        from hotpot.cheminfo.operations.stereochemistry import _gate6_projection
         action = lambda: _gate6_projection(mol)
     else:
         action = consume[consumer]

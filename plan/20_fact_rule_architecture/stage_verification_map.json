@@ -849,7 +849,8 @@
         },
         {
           "path": "tests/test_cheminfo/test_stereo_extraction.py",
-          "status": "planned_not_created; exact accepted capture/lock/drift/callback/packing/public introspection contracts join source and installed selections before SOURCE_READY"
+          "status": "created;27functions/44staticparametercases;uncollected and runtimeheld",
+          "sha256": "22a4619e53e40c180ab7bbe8e7d5d716e028b8997a71d853243b817a38d322f9"
         }
       ],
       "additional_requirements": [
@@ -861,7 +862,7 @@
         "capture/check/projection/freeze/pack/native time and Python peak/retained allocation at fixed16/128/512 rows and representative chemistry, equivalent prepared-H state,3 warmups/at least10samples; explicit root adverse-result disposition before Stage6 acceptance; no global parity waiver",
         "whole-payload object identity is transitional Stage6 behavior only; mandatory Stage7E canonical storage gate remains open and blocks Stage8/Stage12/global ownership acceptance"
       ],
-      "execution_status": "revision2_static_design_root_key_accepted_and_final_integration_complete; precutover_preservation_complete; exact20production_16test_implementation_released; SOURCE_READY_and_candidate_runtime_gates_HELD",
+      "execution_status": "Coherent20-production/16-test static implementation and exact3file import correction complete; root static budget/architecture review recorded. Primary task38 and final STAGE6_SOURCE_READY/runtime remain pending.",
       "entry_evidence": "stages/stage06/entry_review.json",
       "validation_preparation": {
         "path": ".plan20-artifacts/20261030/stage6/validation-preparation/preparation.json",
@@ -906,7 +907,8 @@
         "retained_exit1": 2,
         "pytest_sessions": 0,
         "old_cost_records": 468
-      }
+      },
+      "static_implementation_evidence": "stages/stage06/bookkeeping/evidence.json"
     },
     "Stage7A": {
       "predecessor": "Stage6",

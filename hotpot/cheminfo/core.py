@@ -54,7 +54,7 @@ from .structure._dependencies import (
     _dependency_state, _install_dependency_state, _remap_dependency_state,
     _mark_topology_dirty, _seed, GROUP_INDEX,
 )
-from .stereo import StereoPayload as _StereoPayload
+from .structure.stereo import StereoPayload as _StereoPayload
 
 
 PartialChargeModel = Literal[
@@ -269,17 +269,14 @@ class Molecule:
             *,
             filter_bonds: bool,
     ) -> None:
-        from .stereo import (
-            _remap_stereo_payload,
-            get_stereo_payload,
-            set_stereo_payload,
-        )
+        from .structure._stereo import _get_stereo_payload
+        from .operations.chemistry import _remap_stereo_transport, _set_stereo_payload
 
         allowed_bonds = self._structural_bond_rows() if filter_bonds else None
-        set_stereo_payload(
+        _set_stereo_payload(
             self,
-            _remap_stereo_payload(
-                get_stereo_payload(source),
+            _remap_stereo_transport(
+                _get_stereo_payload(source),
                 atom_mapping,
                 allowed_bonds=allowed_bonds,
             ),
@@ -288,15 +285,16 @@ class Molecule:
     def _replace_atom_transport(self, target_row, source_atom):
         """Install one imported Atom transport row at its new member position."""
         from dataclasses import replace
-        from .stereo import get_stereo_payload, set_stereo_payload
+        from .structure._stereo import _get_stereo_payload
+        from .operations.chemistry import _set_stereo_payload
 
         source_row = source_atom.mol._topology_index.get(id(source_atom))
         imported = () if source_row is None else tuple(
             replace(fact, atom=target_row)
-            for fact in get_stereo_payload(source_atom.mol).atom_facts
+            for fact in _get_stereo_payload(source_atom.mol).atom_facts
             if fact.atom == source_row[0]
         )
-        payload = get_stereo_payload(self)
+        payload = _get_stereo_payload(self)
         atom_facts = []
         installed = False
         for fact in payload.atom_facts:
@@ -308,7 +306,7 @@ class Molecule:
                 atom_facts.append(fact)
         if not installed:
             atom_facts.extend(imported)
-        set_stereo_payload(self, replace(payload, atom_facts=tuple(atom_facts)))
+        _set_stereo_payload(self, replace(payload, atom_facts=tuple(atom_facts)))
 
     def _remap_stereo_after_atom_removal(
             self,
@@ -332,14 +330,11 @@ class Molecule:
             self,
             removed_bond_rows: Iterable[tuple[int, int]],
     ) -> None:
-        from .stereo import (
-            StereoAnchorKind,
-            _remap_stereo_payload,
-            get_stereo_payload,
-            set_stereo_payload,
-        )
+        from .structure.stereo import StereoAnchorKind
+        from .structure._stereo import _get_stereo_payload
+        from .operations.chemistry import _remap_stereo_transport, _set_stereo_payload
 
-        payload = get_stereo_payload(self)
+        payload = _get_stereo_payload(self)
         removed_keys = {
             frozenset(atom_indices) for atom_indices in removed_bond_rows
         }
@@ -363,9 +358,9 @@ class Molecule:
             for fact in payload.bond_facts
             if frozenset(fact.atom_indices) not in removed_keys
         )
-        set_stereo_payload(
+        _set_stereo_payload(
             self,
-            _remap_stereo_payload(
+            _remap_stereo_transport(
                 payload,
                 {row: row for row in range(len(self._atoms))},
                 allowed_bonds=allowed_bonds,
@@ -744,7 +739,7 @@ class Molecule:
 
     def add_component(self, component: 'Molecule'):
         from dataclasses import replace
-        from .stereo import _remap_stereo_payload
+        from .operations.chemistry import _remap_stereo_transport
         with component._mutation_lock:
             incoming, incoming_metadata = component._capture_factual_record(include_frames=False)
             incoming_dependencies = _dependency_state(component._atom_table)
@@ -759,7 +754,7 @@ class Molecule:
                 (True, current.charge[1] + incoming.charge[1], 'component_merge')
                 if current.charge[0] and incoming.charge[0] else (False, None, None))
             spin = incoming.spin_mult if not offset else (False, None, None)
-            payload = _remap_stereo_payload(incoming.stereo_payload,
+            payload = _remap_stereo_transport(incoming.stereo_payload,
                         {row: offset + row for row in range(incoming.atom_count)})
             payload = type(payload)(current.stereo_payload.schema_version,
                                     current.stereo_payload.records + payload.records,
@@ -2201,7 +2196,7 @@ class Molecule:
 
     def _capture_factual_record(self, *, rows=None, include_frames=True, copy_metadata=True):
         from .structure._builder import _make_molecule_record
-        from .stereo import _remap_stereo_payload
+        from .operations.chemistry import _remap_stereo_transport
         with self._mutation_lock:
             rows = tuple(range(len(self._atoms))) if rows is None else tuple(rows)
             mapping = {row: target for target, row in enumerate(rows)}
@@ -2214,7 +2209,7 @@ class Molecule:
             endpoints = tuple((mapping[self._topology_index[id(bond.atom1)][0]],
                                mapping[self._topology_index[id(bond.atom2)][0]]) for _, bond in bonds)
             whole = rows == tuple(range(len(self._atoms)))
-            payload = _remap_stereo_payload(self._stereo_payload, mapping,
+            payload = _remap_stereo_transport(self._stereo_payload, mapping,
                                             allowed_bonds=None if whole else endpoints)
             frames, index = self._capture_frame_state(rows=rows) if include_frames else ((None,) * 9, 0)
             uid_rows = {atom._uid: row for row, atom in enumerate(self._atoms)}

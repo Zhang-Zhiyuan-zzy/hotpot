@@ -5,12 +5,16 @@ import pytest
 from hotpot.cheminfo import stereo
 from hotpot.cheminfo.core import Bond, Molecule
 
+from hotpot.cheminfo.operations import stereochemistry as stereo_operations
+from hotpot.cheminfo.rules.chemistry.stereochemistry import algebra as stereo_algebra
+from hotpot.cheminfo.rules.chemistry.stereochemistry import graph as stereo_graph
+
 
 _FAMILY_CASES = (
-    ("SP", stereo._Level2DescriptorFamily.SQUARE_PLANAR, 4),
-    ("TBP", stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL, 5),
-    ("SPY", stereo._Level2DescriptorFamily.SQUARE_PYRAMIDAL, 5),
-    ("OH", stereo._Level2DescriptorFamily.OCTAHEDRAL, 6),
+    ("SP", stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR, 4),
+    ("TBP", stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL, 5),
+    ("SPY", stereo_algebra._Level2DescriptorFamily.SQUARE_PYRAMIDAL, 5),
+    ("OH", stereo_algebra._Level2DescriptorFamily.OCTAHEDRAL, 6),
 )
 
 
@@ -74,7 +78,7 @@ def _opaque_record(center):
 
 
 def _descriptor(record):
-    result = stereo._parse_level2_descriptor(record.descriptor)
+    result = stereo_algebra._parse_level2_descriptor(record.descriptor)
     assert result.issues == ()
     assert result.descriptor is not None
     return result.descriptor
@@ -85,15 +89,15 @@ def _payload(*records):
 
 
 def _projected_adjacency(molecule):
-    graph, issues = stereo._gate6_projection(molecule)
+    graph, issues = stereo_operations._gate6_projection(molecule)
     assert issues == ()
     assert graph is not None
-    return graph, stereo._gate7_represented_adjacency(graph)
+    return graph, stereo_graph._gate7_represented_adjacency(graph)
 
 
 def _validated_site(molecule, record, *, record_index=0):
     _, adjacency = _projected_adjacency(molecule)
-    site, issues = stereo._validate_gate7_coordination_record(
+    site, issues = stereo_graph._validate_gate7_coordination_record(
         record,
         _descriptor(record),
         record_index=record_index,
@@ -126,7 +130,7 @@ def test_represented_shell_unifies_active_and_both_hidden_bond_classes():
     record = _record("SP", 0, (1, 2, 3, 4))
 
     graph, adjacency = _projected_adjacency(molecule)
-    site, issues = stereo._validate_gate7_coordination_record(
+    site, issues = stereo_graph._validate_gate7_coordination_record(
         record,
         _descriptor(record),
         record_index=7,
@@ -181,7 +185,7 @@ def test_coordination_carrier_count_has_one_exact_non_cascading_issue():
     record = _record("SP", 0, (1, 2, 3))
     _, adjacency = _projected_adjacency(molecule)
 
-    site, issues = stereo._validate_gate7_coordination_record(
+    site, issues = stereo_graph._validate_gate7_coordination_record(
         record,
         _descriptor(record),
         record_index=2,
@@ -216,7 +220,7 @@ def test_coordination_non_atom_carrier_has_one_exact_issue(kind):
     record = _record("SP", 0, carriers)
     _, adjacency = _projected_adjacency(molecule)
 
-    site, issues = stereo._validate_gate7_coordination_record(
+    site, issues = stereo_graph._validate_gate7_coordination_record(
         record,
         _descriptor(record),
         record_index=3,
@@ -261,7 +265,7 @@ def test_malformed_atom_carriers_reuse_exact_level2_diagnostics(carriers, messag
     record = _record("SP", 0, carriers)
     _, adjacency = _projected_adjacency(molecule)
 
-    site, issues = stereo._validate_gate7_coordination_record(
+    site, issues = stereo_graph._validate_gate7_coordination_record(
         record,
         _descriptor(record),
         record_index=4,
@@ -308,7 +312,7 @@ def test_coordination_atom_ranges_have_exact_non_cascading_issues(
     record = _record("SP", center, carriers)
     _, adjacency = _projected_adjacency(molecule)
 
-    site, issues = stereo._validate_gate7_coordination_record(
+    site, issues = stereo_graph._validate_gate7_coordination_record(
         record,
         _descriptor(record),
         record_index=5,
@@ -338,7 +342,7 @@ def test_all_enhanced_group_kinds_have_the_exact_coordination_boundary(kind):
     record = _record("SP", 0, (1, 2, 3, 4), group=group)
     _, adjacency = _projected_adjacency(molecule)
 
-    site, issues = stereo._validate_gate7_coordination_record(
+    site, issues = stereo_graph._validate_gate7_coordination_record(
         record,
         _descriptor(record),
         record_index=6,
@@ -364,7 +368,7 @@ def test_coordination_carriers_must_equal_the_complete_represented_shell():
     record = _record("SP", 0, (1, 2, 3, 5))
     _, adjacency = _projected_adjacency(molecule)
 
-    site, issues = stereo._validate_gate7_coordination_record(
+    site, issues = stereo_graph._validate_gate7_coordination_record(
         record,
         _descriptor(record),
         record_index=8,
@@ -392,7 +396,7 @@ def test_current_implicit_hydrogen_is_part_of_the_represented_shell():
     record = _record("SP", 0, (1, 2, 3, 4))
     graph, adjacency = _projected_adjacency(molecule)
 
-    site, issues = stereo._validate_gate7_coordination_record(
+    site, issues = stereo_graph._validate_gate7_coordination_record(
         record,
         _descriptor(record),
         record_index=8,
@@ -444,7 +448,7 @@ def test_source_hydrogen_ledger_does_not_enter_the_current_shell():
     )
 
     graph, adjacency = _projected_adjacency(molecule)
-    site, issues = stereo._validate_gate7_coordination_record(
+    site, issues = stereo_graph._validate_gate7_coordination_record(
         record,
         _descriptor(record),
         record_index=0,
@@ -466,7 +470,7 @@ def test_anchor_cannot_be_coerced_into_an_atom_carrier():
     record = _record("SP", 0, (0, 2, 3, 4))
     _, adjacency = _projected_adjacency(molecule)
 
-    site, issues = stereo._validate_gate7_coordination_record(
+    site, issues = stereo_graph._validate_gate7_coordination_record(
         record,
         _descriptor(record),
         record_index=9,
@@ -493,7 +497,7 @@ def test_every_same_center_geometry_record_is_rejected_without_a_winner():
         for index, record in enumerate(records)
     }
 
-    issues = stereo._gate7_same_center_issues(
+    issues = stereo_graph._gate7_same_center_issues(
         payload,
         descriptors,
         atom_count=6,
@@ -537,10 +541,10 @@ def test_chelate_pairs_are_order_independent_and_remove_only_own_spokes():
     # Row 5 can represent another center.  Its two spokes remain available
     # after only row 0's center-to-carrier edges are removed.
     assert adjacency[5] == frozenset((1, 2))
-    assert stereo._gate7_chelate_pairs(source_site, adjacency) == frozenset(
+    assert stereo_graph._gate7_chelate_pairs(source_site, adjacency) == frozenset(
         ((1, 2),)
     )
-    assert stereo._gate7_chelate_pairs(reordered_site, adjacency) == frozenset(
+    assert stereo_graph._gate7_chelate_pairs(reordered_site, adjacency) == frozenset(
         ((1, 2),)
     )
 
@@ -549,7 +553,7 @@ def _coordination_sites(molecule, records):
     _, adjacency = _projected_adjacency(molecule)
     sites = []
     for record_index, record in enumerate(records):
-        site, issues = stereo._validate_gate7_coordination_record(
+        site, issues = stereo_graph._validate_gate7_coordination_record(
             record,
             _descriptor(record),
             record_index=record_index,
@@ -592,11 +596,11 @@ def test_disconnected_coordination_centers_remain_independent():
         (6, 7, 8, 9),
     )
 
-    assert stereo._gate7_coupled_multicenter_issues(sites, adjacency) == ()
+    assert stereo_graph._gate7_coupled_multicenter_issues(sites, adjacency) == ()
 
 
 def _assert_two_sp_centers_are_coupled(sites, adjacency):
-    issues = stereo._gate7_coupled_multicenter_issues(sites, adjacency)
+    issues = stereo_graph._gate7_coupled_multicenter_issues(sites, adjacency)
     assert _issue_facts(issues) == (
         (
             0,
@@ -663,7 +667,7 @@ def test_shared_donor_chain_diagnoses_every_incident_coordination_record():
         ),
     )
 
-    issues = stereo._gate7_coupled_multicenter_issues(sites, adjacency)
+    issues = stereo_graph._gate7_coupled_multicenter_issues(sites, adjacency)
 
     assert tuple(issue.record_index for issue in issues) == (0, 1, 2)
     assert all(issue.code is stereo.StereoIssueCode.UNSUPPORTED for issue in issues)
@@ -718,7 +722,7 @@ def test_carrier_component_reaching_another_center_diagnoses_both_records():
 
 def test_synthetic_alternate_path_back_to_own_center_is_diagnosed():
     descriptor = _descriptor(_record("SP", 0, (1, 2, 3, 4)))
-    site = stereo._Gate7CoordinationSite(
+    site = stereo_algebra._Gate7CoordinationSite(
         record_index=12,
         descriptor=descriptor,
         center=0,
@@ -733,7 +737,7 @@ def test_synthetic_alternate_path_back_to_own_center_is_diagnosed():
         frozenset((0, 1)),
     )
 
-    issues = stereo._gate7_coupled_multicenter_issues((site,), adjacency)
+    issues = stereo_graph._gate7_coupled_multicenter_issues((site,), adjacency)
 
     assert _issue_facts(issues) == (
         (
@@ -767,12 +771,12 @@ def test_malformed_and_opaque_records_do_not_enter_the_base_valid_site_set():
     descriptors = {0: _descriptor(valid), 1: _descriptor(malformed)}
     _, adjacency = _projected_adjacency(molecule)
 
-    assert stereo._gate7_same_center_issues(
+    assert stereo_graph._gate7_same_center_issues(
         payload,
         descriptors,
         atom_count=len(molecule.atoms),
     ) == ()
-    valid_site, valid_issues = stereo._validate_gate7_coordination_record(
+    valid_site, valid_issues = stereo_graph._validate_gate7_coordination_record(
         valid,
         descriptors[0],
         record_index=0,
@@ -780,7 +784,7 @@ def test_malformed_and_opaque_records_do_not_enter_the_base_valid_site_set():
         adjacency=adjacency,
     )
     malformed_site, malformed_issues = (
-        stereo._validate_gate7_coordination_record(
+        stereo_graph._validate_gate7_coordination_record(
             malformed,
             descriptors[1],
             record_index=1,
@@ -812,8 +816,8 @@ def test_graph_equivalent_coordination_ligands_are_allowed():
 
     site, adjacency = _validated_site(molecule, record)
 
-    assert stereo._gate7_chelate_pairs(site, adjacency) == frozenset()
-    assert stereo._gate7_coupled_multicenter_issues((site,), adjacency) == ()
+    assert stereo_graph._gate7_chelate_pairs(site, adjacency) == frozenset()
+    assert stereo_graph._gate7_coupled_multicenter_issues((site,), adjacency) == ()
 
 
 def test_public_gate7_graph_semantics_allow_graph_equivalent_ligands():

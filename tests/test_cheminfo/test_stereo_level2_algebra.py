@@ -6,6 +6,8 @@ import pytest
 
 from hotpot.cheminfo import stereo
 
+from hotpot.cheminfo.rules.chemistry.stereochemistry import algebra as stereo_algebra
+
 
 _GOLDEN = json.loads(
     (
@@ -27,7 +29,7 @@ def _carrier(token):
 
 
 def _parsed(text):
-    result = stereo._parse_level2_descriptor(text)
+    result = stereo_algebra._parse_level2_descriptor(text)
     assert result.issues == ()
     assert result.descriptor is not None
     return result.descriptor
@@ -49,16 +51,16 @@ def test_golden_corpus_has_stable_schema():
 @pytest.mark.parametrize("case", _GOLDEN["permutations"])
 def test_permutation_golden_facts(case):
     items = tuple(case["items"])
-    assert stereo._permutation_parity(items) == case["parity"]
-    assert stereo._permutation_rank(items) == case["rank"]
-    assert stereo._permutation_unrank(len(items), case["rank"]) == items
+    assert stereo_algebra._permutation_parity(items) == case["parity"]
+    assert stereo_algebra._permutation_rank(items) == case["rank"]
+    assert stereo_algebra._permutation_unrank(len(items), case["rank"]) == items
 
 
 @pytest.mark.parametrize("size", range(7))
 def test_rank_and_unrank_are_exact_for_small_finite_families(size):
     for expected_rank, permutation in enumerate(permutations(range(size))):
-        assert stereo._permutation_rank(permutation) == expected_rank
-        assert stereo._permutation_unrank(size, expected_rank) == permutation
+        assert stereo_algebra._permutation_rank(permutation) == expected_rank
+        assert stereo_algebra._permutation_unrank(size, expected_rank) == permutation
 
 
 @pytest.mark.parametrize(
@@ -70,7 +72,7 @@ def test_all_supported_coordination_indices_parse_and_render(family, expected_co
     assert indices == list(range(1, expected_count + 1))
     for index in indices:
         text = f"hotpot.stereo/2/{family}/{index}"
-        assert stereo._render_level2_descriptor(_parsed(text)) == text
+        assert stereo_algebra._render_level2_descriptor(_parsed(text)) == text
 
 
 @pytest.mark.parametrize("family", ("SP", "TBP", "OH"))
@@ -84,7 +86,7 @@ def test_coordination_swap_transform_covers_entire_golden_family(family):
     reordered = (source[1], source[0], *source[2:])
     actual = []
     for index in indices:
-        result = stereo._transform_level2_descriptor(
+        result = stereo_algebra._transform_level2_descriptor(
             _parsed(f"hotpot.stereo/2/{family}/{index}"),
             source,
             reordered,
@@ -98,7 +100,7 @@ def test_coordination_swap_transform_covers_entire_golden_family(family):
 def test_descriptor_transform_golden_facts(case):
     source = tuple(map(_carrier, case["source"]))
     reordered = tuple(map(_carrier, case["reordered"]))
-    result = stereo._transform_level2_descriptor(
+    result = stereo_algebra._transform_level2_descriptor(
         _parsed(case["descriptor"]),
         source,
         reordered,
@@ -114,7 +116,7 @@ def test_descriptor_transform_golden_facts(case):
         ),
     )
     assert result.issues == ()
-    assert stereo._render_level2_descriptor(result.descriptor) == case["expected"]
+    assert stereo_algebra._render_level2_descriptor(result.descriptor) == case["expected"]
 
 
 @pytest.mark.parametrize(
@@ -129,7 +131,7 @@ def test_descriptor_transform_golden_facts(case):
     ),
 )
 def test_reference_relative_descriptors_parse_and_render(text):
-    assert stereo._render_level2_descriptor(_parsed(text)) == text
+    assert stereo_algebra._render_level2_descriptor(_parsed(text)) == text
 
 
 @pytest.mark.parametrize(
@@ -145,7 +147,7 @@ def test_reference_relative_descriptors_parse_and_render(text):
     ),
 )
 def test_invalid_or_unknown_descriptor_has_stable_issue(text, code):
-    result = stereo._parse_level2_descriptor(text)
+    result = stereo_algebra._parse_level2_descriptor(text)
     assert result.descriptor is None
     assert tuple(issue.code for issue in result.issues) == (code,)
 
@@ -157,7 +159,7 @@ def test_duplicate_and_malformed_carriers_are_rejected():
         stereo.StereoCarrier(stereo.StereoCarrierKind.IMPLICIT_H),
         stereo.StereoCarrier(stereo.StereoCarrierKind.LONE_PAIR, 3),
     )
-    issues = stereo._validate_stereo_carriers(carriers, expected_count=4)
+    issues = stereo_algebra._validate_stereo_carriers(carriers, expected_count=4)
     assert tuple(issue.code for issue in issues) == (
         stereo.StereoIssueCode.INVALID_CARRIER,
         stereo.StereoIssueCode.INVALID_CARRIER,
@@ -171,7 +173,7 @@ def test_duplicate_and_malformed_carriers_are_rejected():
 def test_alkene_reordering_cannot_mix_endpoint_carrier_pairs():
     source = tuple(_carrier(token) for token in ("a:1", "a:2", "a:3", "a:4"))
     reordered = (source[0], source[2], source[1], source[3])
-    result = stereo._transform_level2_descriptor(
+    result = stereo_algebra._transform_level2_descriptor(
         _parsed("hotpot.stereo/2/DB/together"),
         source,
         reordered,
@@ -184,7 +186,7 @@ def test_alkene_reordering_cannot_mix_endpoint_carrier_pairs():
 
 def test_reverse_bond_anchor_requires_reverse_endpoint_carrier_pairs():
     source = tuple(_carrier(token) for token in ("a:1", "a:2", "a:3", "a:4"))
-    result = stereo._transform_level2_descriptor(
+    result = stereo_algebra._transform_level2_descriptor(
         _parsed("hotpot.stereo/2/DB/together"),
         source,
         source,
@@ -206,9 +208,9 @@ def test_reverse_bond_anchor_requires_reverse_endpoint_carrier_pairs():
     ),
 )
 def test_invalid_anchor_shape_or_identity_is_reported(anchor):
-    issues = stereo._validate_stereo_anchor(
+    issues = stereo_algebra._validate_stereo_anchor(
         anchor,
-        family=stereo._Level2DescriptorFamily.DOUBLE_BOND,
+        family=stereo_algebra._Level2DescriptorFamily.DOUBLE_BOND,
     )
     assert issues
     assert all(issue.code is stereo.StereoIssueCode.INVALID_ANCHOR for issue in issues)
@@ -217,7 +219,7 @@ def test_invalid_anchor_shape_or_identity_is_reported(anchor):
 def test_reordering_requires_exactly_the_same_carrier_identities():
     source = tuple(_carrier(token) for token in ("a:1", "a:2", "a:3", "a:4"))
     reordered = (*source[:3], _carrier("a:9"))
-    result = stereo._transform_level2_descriptor(
+    result = stereo_algebra._transform_level2_descriptor(
         _parsed("hotpot.stereo/2/TH/even"),
         source,
         reordered,
@@ -231,10 +233,10 @@ def test_reordering_requires_exactly_the_same_carrier_identities():
 @pytest.mark.parametrize("permutation", ((0, 0), (0, 2), (1, -1)))
 def test_invalid_permutation_is_rejected(permutation):
     with pytest.raises(ValueError, match="each index exactly once"):
-        stereo._permutation_rank(permutation)
+        stereo_algebra._permutation_rank(permutation)
 
 
 @pytest.mark.parametrize(("size", "rank"), ((-1, 0), (3, -1), (3, 6)))
 def test_invalid_permutation_rank_is_rejected(size, rank):
     with pytest.raises(ValueError, match="outside the permutation family"):
-        stereo._permutation_unrank(size, rank)
+        stereo_algebra._permutation_unrank(size, rank)

@@ -1,0 +1,178 @@
+{
+  "status": "ROOT_STATIC_IMPLEMENTATION_REVIEWABLE_RUNTIME_AND_PRIMARY_REVIEW_PENDING",
+  "source_commit_at_census": "a060900bfa3acbb7f6273b8b7d9365e8993ec904",
+  "author_handoff": {
+    "path": ".plan20-artifacts/20261030/stage6/implementation/revision2/handoff.json",
+    "sha256": "4af55362af01d6b79a064a323ca67a9a8363a3f930f007e1757dfd433e5f7fe6",
+    "bytes": 75365
+  },
+  "author_currentfiles": {
+    "path": ".plan20-artifacts/20261030/stage6/implementation/revision2/currentfiles.json",
+    "sha256": "c0327e819c3d024a1464eaac5e6690298a69272223313d8af8da20d328871e7e",
+    "bytes": 31952
+  },
+  "historical_handoff": {
+    "path": ".plan20-artifacts/20261030/stage6/implementation/handoff.json",
+    "sha256": "0134b3fb7ce5e85f52a32be5de2c65ed72e90bdfce5b36040922bc1dfc2c3804",
+    "bytes": 33592
+  },
+  "historical_source_archive": {
+    "path": ".plan20-artifacts/20261030/stage6/implementation/revision2/predecessor-archive.json",
+    "sha256": "0f214dcd75648c4c4dc2e81f9f5169784b86ae042c253e20adc7952626c5d264",
+    "bytes": 32008
+  },
+  "actual_root_census": {
+    "argv": [
+      "python3",
+      ".plan20-artifacts/20261030/stage6/bookkeeping-attempt1/capture_census.py",
+      "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/bookkeeping-attempt1/census.json"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "environment_overrides": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "interpreter": {
+      "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+      "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66",
+      "bytes": 25548152
+    },
+    "script": {
+      "path": ".plan20-artifacts/20261030/stage6/bookkeeping-attempt1/capture_census.py",
+      "sha256": "03908631124aeffea1e900765bff95a3b6edb8516b759f60610fdd38c87bf8d8",
+      "bytes": 2993
+    },
+    "result": {
+      "path": ".plan20-artifacts/20261030/stage6/bookkeeping-attempt1/census.json",
+      "sha256": "35ac29ac1259b455bcc7da6f376882273c89b312d2359241dfa3c30405df6be7",
+      "bytes": 304356
+    },
+    "returncode": 0,
+    "counts": {
+      "all_python_classes": 777,
+      "dataclasses": 354,
+      "protocols": 8,
+      "typed_dicts": 2
+    },
+    "delta": {
+      "all_python_classes": 1,
+      "dataclasses": 1,
+      "protocols": 0,
+      "typed_dicts": 0
+    },
+    "same_original_method_sha256": "45716c543081ca1180f71911d03303a4b93f2806bffaca1896d7152766aa222e"
+  },
+  "class_relocations": {
+    "path": ".plan20-artifacts/20261030/stage6/bookkeeping-attempt1/class-relocations.json",
+    "sha256": "f3e1c03f3a015d174b7c8ec1cdde49e00e886998629ab7d7d245fa2a413cecd7",
+    "bytes": 8864
+  },
+  "budget_before": {
+    "path": ".plan20-artifacts/20261030/stage6/bookkeeping-attempt1/data_object_budget.before.json",
+    "sha256": "57010cec81b2a43a84371683818b211c013cfc37a09c74d7dc630c2197146520",
+    "bytes": 32297
+  },
+  "budget_after": {
+    "path": "plan/20_fact_rule_architecture/data_object_budget.json",
+    "sha256": "40b1e3a1c0b605efacaa43b76c2138151459a0ea913d64c209a674b4e0e3f571",
+    "bytes": 33185
+  },
+  "architecture": {
+    "first_root_failure": {
+      "path": ".plan20-artifacts/20261030/stage6/bookkeeping-attempt1/architecture-attempt1-command.json",
+      "sha256": "7d8a27431ba3a6381369d9fbbc1d1d0b65c23caa5f41754661b134a97f357dde",
+      "bytes": 791
+    },
+    "first_result": {
+      "path": ".plan20-artifacts/20261030/stage6/bookkeeping-attempt1/architecture-attempt1.json",
+      "sha256": "d59dd26ea213a41e024e99d80ebf73699f3f19198668c1ff7e2d6e3f0e5f1b76",
+      "bytes": 2103
+    },
+    "corrected_actual_result": {
+      "path": ".plan20-artifacts/20261030/stage6/implementation/revision2/architecture-after-correction.json",
+      "sha256": "89b63bd57aa74fe13e61af7612f5c9afb6e50a35cf225f7e3a7d4d47e36255ef",
+      "bytes": 532
+    },
+    "corrected_command_evidence": {
+      "path": ".plan20-artifacts/20261030/stage6/implementation/revision2/command-results.json",
+      "sha256": "ed1fb80f06818535baa4f53ad9f999382e9cd161b4644c94fd5dc543dd0e1ed9",
+      "bytes": 1366
+    },
+    "affected_checks": {
+      "path": ".plan20-artifacts/20261030/stage6/implementation/revision2/static-correction.json",
+      "sha256": "eaf1040ae91bc6647074b65d83af5998edd7cfcdc81f857e1bc0cffe7a23006f",
+      "bytes": 7505
+    },
+    "allowlist": {
+      "path": "plan/20_fact_rule_architecture/architecture_allowlist.json",
+      "sha256": "69ad8824ea294912f05b4284b5ec13a034f2e2a5b77e89bb369b7aed86fa5fca",
+      "bytes": 64334
+    },
+    "remaining_debt": 256,
+    "retired_allowlist_entries": 0,
+    "new_debt": 0,
+    "allowlist_growth": 0,
+    "layer_or_duplicate_carrier_findings": 0,
+    "root_limit": "Root inspected exact3file diff and actual15check/architecture record; no successful suite rerun."
+  },
+  "root_critical_read": {
+    "scope": "Final capture/guard/lock/reentry/ordering/public facade/immutable graph/native pack and connected production rewires; exact3file root-directed import correction.",
+    "keypoints": [
+      "N09 has only payload,atom_keys,bonds; source and strong identity referents stay operation-local. No duplicate record/update reservation.",
+      "Empty source identity has no conformer lock. One fresh owner scope at a time; any tracked outer transaction makes distinct-owner alignment acquisition nonblocking initially and at deferred preparation.",
+      "Raw capture reference then target precedes mapping callbacks; consumed raw integrity guard follows preflight and precedes strictH/scalars. Native and user callbacks occur after stereo scope release; outer caller locks/late side effects remain.",
+      "Gate2/coordination-head order/no-candidate behavior/reference-native-before-noncoordination-target and late coordinate coercion are retained.",
+      "One recursively immutable graph and one ordinary native pack/target per actual target; pure rules accept synchronous mapping callable and retain no live owner/native callable.",
+      "Public18class definitions/fiveexactfaçade signatures/23orderedexports and canonicalmodule tokens retained; original25structural+19transformedAST checks are supplied prior static evidence, not rerun/runtime proof.",
+      "buffers.py final60202219… bytes contain only exact3import/accessor rewires; revision4 singleton qualification preserves143inventory,142strict inputs/native identity/fullsource-wheel-origins and complete boundary tests."
+    ],
+    "decision": "No remaining static source blocker identified within released scope after the four import debts were removed. Accept for one unique task38 primary review and exact final-source preparation only; no runtime or stage acceptance."
+  },
+  "authored_tests": {
+    "functions": 33,
+    "static_parameter_cases": 53,
+    "extraction_functions": 27,
+    "extraction_static_cases": 44,
+    "roster": {
+      "path": ".plan20-artifacts/20261030/stage6/implementation/revision2/new-tests.json",
+      "sha256": "ee13b7ba6ffa5daee7c814abe1cc1e3a6cd70261393b33d4a3c9593d33e55703",
+      "bytes": 27185
+    },
+    "selectors": {
+      "path": ".plan20-artifacts/20261030/stage6/implementation/revision2/new-test-selectors.txt",
+      "sha256": "292066e78ab29d0ae6a90ac9eebdd4e996408ac090b70fe5ee4edc6f982bb51b",
+      "bytes": 3846
+    },
+    "runtime_collected_or_passed": false
+  },
+  "required_next": [
+    "Complete supplementary preservation/cold/cost support and exact bindings",
+    "Unique task38 substantive review plus separate matching actual audit/root decision",
+    "Root STAGE6_SOURCE_READY final source/tests/helper/support/native/interpreter/model/output release",
+    "Focused first and full46file fivePython source/installed/native-source selection and3.11default",
+    "Historical typed/public/cold preservation plus bounded cost/adverse disposition",
+    "Mandatory Stage7E and all later/global gates remain open"
+  ],
+  "scope_limits": [
+    "Static source evidence only; no candidate import/collection/runtime/native compatibility/scientific/performance result",
+    "Original failed generator/checks and first architecture failure are preserved;Ruff unavailable",
+    "Native SDK/clean-native/sdist gates remain Stage10/global obligations; no waiver"
+  ],
+  "execution_authorized": false,
+  "document_layout": {
+    "path": "/tmp/p20-stage6-static-implementation-record-layout.json",
+    "sha256": "6a960e16902693f62ff71ca946fba169a0b892ecaaa4a495face719a38a2c6c8",
+    "actual_argv": [
+      "python3",
+      "plan/20_fact_rule_architecture/audit_stage_records.py",
+      "--output",
+      "/tmp/p20-stage6-static-implementation-record-layout.json"
+    ],
+    "returncode": 0,
+    "result": "70Markdown/66JSON/137indexedassets;0errors;navigation only"
+  },
+  "root_source_test_hash_check": {
+    "path": ".plan20-artifacts/20261030/stage6/bookkeeping-attempt1/source-test-key-binding.json",
+    "sha256": "15561dfbe94d77671627e1c4c3f48383db1ff0899b743863f60ece72ea7ff860",
+    "matched": 36
+  }
+}

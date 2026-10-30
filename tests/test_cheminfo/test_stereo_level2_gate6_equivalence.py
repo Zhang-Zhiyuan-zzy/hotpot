@@ -11,6 +11,10 @@ from hotpot.cheminfo.core import Molecule
 from hotpot.cheminfo.search.native import _NativeTarget
 from tests.test_cheminfo._stage5_fixtures import supplied_aromatic_flags
 
+from hotpot.cheminfo.operations import stereochemistry as stereo_operations
+from hotpot.cheminfo.rules.chemistry.stereochemistry import algebra as stereo_algebra
+from hotpot.cheminfo.rules.chemistry.stereochemistry import graph as stereo_graph
+
 
 def _molecule(
     atomic_numbers,
@@ -790,11 +794,11 @@ def test_valid_coordination_descendant_constrains_gate6_automorphisms():
 def test_gate6_semantic_context_interprets_valid_coordination_descendant():
     molecule = _coordination_descendant_molecule(declared=True)
     payload = stereo.get_stereo_payload(molecule)
-    graph, projection_issues = stereo._gate6_projection(molecule)
+    graph, projection_issues = stereo_operations._gate6_projection(molecule)
 
     assert projection_issues == ()
     assert graph is not None
-    context = stereo._gate6_semantic_context(
+    context = stereo_graph._gate6_semantic_context(
         payload,
         graph,
         excluded_record_index=0,
@@ -804,10 +808,10 @@ def test_gate6_semantic_context_interprets_valid_coordination_descendant():
 
     assert context.payload.records == (payload.records[1],)
     assert tuple(descriptor.family for descriptor in context.descriptors) == (
-        stereo._Level2DescriptorFamily.SQUARE_PLANAR,
+        stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR,
     )
     assert context.opaque_records == ()
-    identity = stereo._alignment_record_identity(
+    identity = stereo_algebra._alignment_record_identity(
         context.descriptors[0].family,
         context.payload.records[0].anchor,
     )

@@ -6,7 +6,7 @@ import numpy as np
 
 from ..structure._commit import (
     _FactTransaction, _commit_aromatic_assignment, _commit_atom_facts,
-    _set_group_status,
+    _set_group_status, _commit_stereo,
 )
 from ..structure._dependencies import (
     GROUP_INDEX, _FactStatus, _ensure_group, _expand_dirty, _component_rows, _neighbour_rows,
@@ -18,6 +18,8 @@ from ..structure._identity import (
     _capture_source, _check_source, _hydrogen_inputs, _hydrogen_transport_inputs,
 )
 from ..structure._mutation import _normalize_atom_fields
+from ..structure._stereo import _get_stereo_payload
+from ..rules.chemistry.stereochemistry.algebra import _remap_stereo_payload
 from ..structure.snapshots import _BondingSnapshot, _AromaticAssignment
 from ..rules.chemistry.elements import _electron_configuration, _is_metal
 from ..rules.chemistry.bonding.valence import _calculate_valence, _hybridization
@@ -300,15 +302,14 @@ def _prepare_valences(mol):
 
 def _materialize_current_hydrogens(atom):
     """Transfer current virtual/bracket H to graph H, keeping source history."""
-    from ..stereo import get_stereo_payload, set_stereo_payload
-    payload = get_stereo_payload(atom.mol)
+    payload = _get_stereo_payload(atom.mol)
     row = atom.idx
     facts = tuple(replace(fact, current_hydrogens=replace(fact.current_hydrogens,
                       implicit_hydrogens=0, bracket_explicit_hydrogens=0))
                   if fact.atom == row and fact.current_hydrogens is not None else fact
                   for fact in payload.atom_facts)
     if facts != payload.atom_facts:
-        set_stereo_payload(atom.mol, replace(payload, atom_facts=facts))
+        _set_stereo_payload(atom.mol, replace(payload, atom_facts=facts))
 
 
 def _prepare_hydrogen_expansions(mol, atoms):
@@ -561,3 +562,16 @@ def _restore_assembly_aromaticity(mol, changes):
                 raise ValueError('Assembly aromatic assignment requires current owned members')
             flags[mol._topology_index[id(atom)][0]] = bool(value)
         _commit_aromatic_assignment(mol, _aromatic_flags_assignment(snapshot, flags), snapshot=snapshot, preserve_sources=True)
+
+
+def _set_stereo_payload(mol, payload):
+    """Store Level-1 facts through the existing sealed factual commit."""
+
+    with mol._mutation_lock:
+        _commit_stereo(mol, _capture_source(mol), payload)
+
+
+def _remap_stereo_transport(payload, atom_mapping, *, allowed_bonds=None):
+    """Apply the sole pure transport remap at a molecular lifecycle boundary."""
+
+    return _remap_stereo_payload(payload, atom_mapping, allowed_bonds=allowed_bonds)

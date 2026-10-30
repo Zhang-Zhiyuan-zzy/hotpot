@@ -6,12 +6,16 @@ import pytest
 from hotpot.cheminfo import stereo
 from hotpot.cheminfo.core import Bond, Molecule
 
+from hotpot.cheminfo.operations import stereochemistry as stereo_operations
+from hotpot.cheminfo.rules.chemistry.stereochemistry import algebra as stereo_algebra
+from hotpot.cheminfo.rules.chemistry.stereochemistry import coordinates as stereo_coordinates
+
 
 _FAMILIES = (
-    (stereo._Level2DescriptorFamily.SQUARE_PLANAR, 4, 3),
-    (stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL, 5, 20),
-    (stereo._Level2DescriptorFamily.SQUARE_PYRAMIDAL, 5, 30),
-    (stereo._Level2DescriptorFamily.OCTAHEDRAL, 6, 30),
+    (stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR, 4, 3),
+    (stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL, 5, 20),
+    (stereo_algebra._Level2DescriptorFamily.SQUARE_PYRAMIDAL, 5, 30),
+    (stereo_algebra._Level2DescriptorFamily.OCTAHEDRAL, 6, 30),
 )
 _ALL_DESCRIPTORS = tuple(
     (family, carrier_count, value)
@@ -83,8 +87,8 @@ def _coordination_molecule(family, carrier_count, *, value=1):
 
 
 def _ideal_coordinates(family, value):
-    descriptor = stereo._Level2Descriptor(family, value)
-    directions = stereo._gate7_ideal_carrier_directions(descriptor)
+    descriptor = stereo_algebra._Level2Descriptor(family, value)
+    directions = stereo_coordinates._gate7_ideal_carrier_directions(descriptor)
     center = np.array((4.0, -3.0, 7.0))
     radii = np.linspace(0.8, 2.4, len(directions))
     return np.vstack((center, center + radii[:, None] * directions))
@@ -109,7 +113,7 @@ def _gate6_coordination_descendant_molecule(*, declared):
     )
     records = [
         _record(
-            stereo._Level2DescriptorFamily.TETRAHEDRAL,
+            stereo_algebra._Level2DescriptorFamily.TETRAHEDRAL,
             (1, 2, 3, 4),
             value="even",
         )
@@ -117,7 +121,7 @@ def _gate6_coordination_descendant_molecule(*, declared):
     if declared:
         records.append(
             _record(
-                stereo._Level2DescriptorFamily.SQUARE_PLANAR,
+                stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR,
                 (0, 5, 6, 7),
                 center=1,
             )
@@ -160,7 +164,7 @@ def test_public_gate7_accepts_and_assigns_each_declared_family(
 
 
 def test_public_assignment_replaces_only_the_declared_numeric_index():
-    family = stereo._Level2DescriptorFamily.SQUARE_PLANAR
+    family = stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR
     molecule, payload = _coordination_molecule(family, 4, value=1)
     coordinates = _ideal_coordinates(family, 3)
 
@@ -184,8 +188,8 @@ def test_public_assignment_replaces_only_the_declared_numeric_index():
 
 
 def test_five_coordinate_contradiction_never_migrates_descriptor_family():
-    family = stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL
-    alternate = stereo._Level2DescriptorFamily.SQUARE_PYRAMIDAL
+    family = stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL
+    alternate = stereo_algebra._Level2DescriptorFamily.SQUARE_PYRAMIDAL
     molecule, payload = _coordination_molecule(family, 5, value=1)
     coordinates = _ideal_coordinates(alternate, 1)
 
@@ -223,8 +227,8 @@ def test_generic_transform_and_public_alignment_cover_each_family(
         source,
         carriers=(source.carriers[1], source.carriers[0], *source.carriers[2:]),
     )
-    descriptor = stereo._parse_level2_descriptor(source.descriptor).descriptor
-    expected = stereo._transform_level2_descriptor(
+    descriptor = stereo_algebra._parse_level2_descriptor(source.descriptor).descriptor
+    expected = stereo_algebra._transform_level2_descriptor(
         descriptor,
         source.carriers,
         reordered.carriers,
@@ -232,7 +236,7 @@ def test_generic_transform_and_public_alignment_cover_each_family(
         reordered_anchor=reordered.anchor,
     )
     assert expected.issues == ()
-    transformed = stereo._transform_supported_record(
+    transformed = stereo_algebra._transform_supported_record(
         descriptor,
         source,
         reordered,
@@ -242,7 +246,7 @@ def test_generic_transform_and_public_alignment_cover_each_family(
     target = reference.copy()
     target_record = replace(
         reordered,
-        descriptor=stereo._render_level2_descriptor(expected.descriptor),
+        descriptor=stereo_algebra._render_level2_descriptor(expected.descriptor),
     )
     _set_record(target, target_record)
     alignment = stereo.align_stereochemistry(
@@ -262,7 +266,7 @@ def test_generic_transform_and_public_alignment_cover_each_family(
 def test_public_alignment_rejects_coordination_chelate_split_or_merge(
     source_has_bridge,
 ):
-    family = stereo._Level2DescriptorFamily.SQUARE_PLANAR
+    family = stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR
     spokes = tuple((0, carrier) for carrier in range(1, 5))
     bridge = ((1, 5), (5, 2))
     source_edges = spokes + (bridge if source_has_bridge else ())
@@ -291,7 +295,7 @@ def test_public_alignment_rejects_coordination_chelate_split_or_merge(
 
 
 def test_public_alignment_maps_coordination_chelate_partition_before_comparison():
-    family = stereo._Level2DescriptorFamily.SQUARE_PLANAR
+    family = stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR
     source_edges = (
         *((0, carrier) for carrier in range(1, 5)),
         (1, 5),
@@ -319,17 +323,17 @@ def test_public_alignment_maps_coordination_chelate_partition_before_comparison(
 
 
 def test_public_entry_points_project_each_coordination_graph_once(monkeypatch):
-    family = stereo._Level2DescriptorFamily.SQUARE_PLANAR
+    family = stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR
     reference, _ = _coordination_molecule(family, 4)
     target = reference.copy()
-    original = stereo._gate6_projection
+    original = stereo_operations._gate6_projection
     calls = []
 
-    def tracked_projection(molecule):
+    def tracked_projection(molecule, **context):
         calls.append(molecule)
-        return original(molecule)
+        return original(molecule, **context)
 
-    monkeypatch.setattr(stereo, "_gate6_projection", tracked_projection)
+    monkeypatch.setattr(stereo_operations, "_gate6_projection", tracked_projection)
 
     validation = stereo.validate_stereochemistry(reference)
     assert validation.is_valid
@@ -351,8 +355,8 @@ def test_public_entry_points_project_each_coordination_graph_once(monkeypatch):
 
 
 def test_public_alignment_never_coerces_five_coordinate_families():
-    reference_family = stereo._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL
-    target_family = stereo._Level2DescriptorFamily.SQUARE_PYRAMIDAL
+    reference_family = stereo_algebra._Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL
+    target_family = stereo_algebra._Level2DescriptorFamily.SQUARE_PYRAMIDAL
     reference, _ = _coordination_molecule(reference_family, 5)
     target, _ = _coordination_molecule(target_family, 5)
 
@@ -372,12 +376,12 @@ def test_public_alignment_never_coerces_five_coordinate_families():
 
 @pytest.mark.parametrize("cross_family", (False, True))
 def test_same_center_coordination_records_reject_every_participant(cross_family):
-    family = stereo._Level2DescriptorFamily.SQUARE_PLANAR
+    family = stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR
     molecule, _ = _coordination_molecule(family, 4)
     first = stereo.get_stereo_payload(molecule).records[0]
     second = (
         _record(
-            stereo._Level2DescriptorFamily.TETRAHEDRAL,
+            stereo_algebra._Level2DescriptorFamily.TETRAHEDRAL,
             (1, 2, 3, 4),
             value="even",
         )
@@ -414,9 +418,9 @@ def _two_center_molecule(*, shared_donor):
     )
     molecule = _molecule(atom_count, edges)
     records = (
-        _record(stereo._Level2DescriptorFamily.SQUARE_PLANAR, first),
+        _record(stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR, first),
         _record(
-            stereo._Level2DescriptorFamily.SQUARE_PLANAR,
+            stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR,
             second,
             center=5,
         ),
@@ -447,7 +451,7 @@ def test_public_gate7_diagnoses_every_shared_donor_center():
 
 
 def test_public_gate7_rejects_current_implicit_hydrogen_in_first_shell():
-    family = stereo._Level2DescriptorFamily.SQUARE_PLANAR
+    family = stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR
     molecule = _molecule(
         5,
         tuple((0, carrier) for carrier in range(1, 5)),
@@ -467,7 +471,7 @@ def test_public_gate7_rejects_current_implicit_hydrogen_in_first_shell():
 
 
 def test_public_gate7_ignores_source_only_hydrogen_ledger():
-    family = stereo._Level2DescriptorFamily.SQUARE_PLANAR
+    family = stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR
     molecule, _ = _coordination_molecule(family, 4)
     record = stereo.get_stereo_payload(molecule).records[0]
     fact = stereo.AtomTransportRecord(
@@ -486,7 +490,7 @@ def test_public_gate7_ignores_source_only_hydrogen_ledger():
 
 
 def test_public_gate7_preserves_non_atom_and_group_boundaries():
-    family = stereo._Level2DescriptorFamily.SQUARE_PLANAR
+    family = stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR
     molecule, _ = _coordination_molecule(family, 4)
     record = stereo.get_stereo_payload(molecule).records[0]
     group = stereo.StereoGroupRef(
@@ -539,7 +543,7 @@ def test_public_gate7_never_discovers_undeclared_coordination_centers():
 def test_coordination_only_payload_triggers_complete_gate6_projection(
     malformation,
 ):
-    family = stereo._Level2DescriptorFamily.SQUARE_PLANAR
+    family = stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR
     molecule, _ = _coordination_molecule(family, 4)
     record = stereo.get_stereo_payload(molecule).records[0]
     if malformation == "parallel":
@@ -604,7 +608,7 @@ def test_declared_coordination_family_projects_even_with_invalid_numeric_value(
     local_code,
     triggers_projection,
 ):
-    family = stereo._Level2DescriptorFamily.SQUARE_PLANAR
+    family = stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR
     molecule, _ = _coordination_molecule(family, 4)
     record = replace(
         stereo.get_stereo_payload(molecule).records[0],
@@ -630,7 +634,7 @@ def test_declared_coordination_family_projects_even_with_invalid_numeric_value(
 
 
 def test_gate7_public_cutover_is_atomic_across_main_entry_points():
-    family = stereo._Level2DescriptorFamily.SQUARE_PLANAR
+    family = stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR
     molecule, payload = _coordination_molecule(family, 4, value=3)
     coordinates = _ideal_coordinates(family, 3)
     target = molecule.copy()
@@ -649,8 +653,8 @@ def test_gate7_public_cutover_is_atomic_across_main_entry_points():
         dict(enumerate(range(5))),
     )
     source_record = payload.records[0]
-    transformed = stereo._transform_supported_record(
-        stereo._parse_level2_descriptor(source_record.descriptor).descriptor,
+    transformed = stereo_algebra._transform_supported_record(
+        stereo_algebra._parse_level2_descriptor(source_record.descriptor).descriptor,
         source_record,
         source_record,
     )
@@ -667,7 +671,7 @@ def test_gate7_public_cutover_is_atomic_across_main_entry_points():
     assert assignment.derived == ()
     assert alignment.is_equivalent
     assert alignment.issues == ()
-    assert transformed.descriptor == stereo._parse_level2_descriptor(
+    assert transformed.descriptor == stereo_algebra._parse_level2_descriptor(
         source_record.descriptor
     ).descriptor
     assert transformed.issues == ()

@@ -11,7 +11,7 @@ import numpy as np
 from ._fields import ATOM_FIELDS, ATOM_PRESENCE_ALL, ATOM_SOURCE_CODES
 
 if TYPE_CHECKING:
-    from ..stereo import StereoPayload
+    from .stereo import StereoPayload
 
 
 __all__ = ()
@@ -164,7 +164,7 @@ def _declared(value):
 def _stereo(payload):
     if payload is None:
         return None
-    from ..stereo import (
+    from .stereo import (
         AtomTransportRecord, BondTransportRecord, HydrogenTransportState,
         StereoAnchor, StereoAnchorKind, StereoCarrier, StereoCarrierKind,
         StereoGroupKind, StereoGroupRef, StereoPayload, StereoRecord,

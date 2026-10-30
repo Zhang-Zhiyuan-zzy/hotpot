@@ -18,7 +18,7 @@ from .structure._builder import _freeze_value
 from .structure._commit import _FactTransaction
 from .structure._fields import ATOM_SOURCE_CODES, FIELD_PRESENCE_BITS
 
-from .stereo import (
+from .structure.stereo import (
     AtomTransportRecord,
     BondTransportRecord,
     HydrogenTransportState,
@@ -30,10 +30,10 @@ from .stereo import (
     StereoGroupRef,
     StereoPayload,
     StereoRecord,
-    _remap_stereo_payload,
-    get_stereo_payload,
-    set_stereo_payload,
 )
+
+from .structure._stereo import _get_stereo_payload
+from .operations.chemistry import _remap_stereo_transport
 
 _hphyb2rdkithyb = {
     -1: rdkit.Chem.rdchem.HybridizationType.UNSPECIFIED,
@@ -636,7 +636,7 @@ def to_rdmol(mol, kekulize: bool = True, sanitize: bool = False):
 
 def _to_rdmol_prepared(mol, kekulize, sanitize, hydrogens):
     rdmol = Chem.RWMol()
-    payload = get_stereo_payload(mol)
+    payload = _get_stereo_payload(mol)
     atoms = mol.atoms
     bonds = mol.bonds
     _validate_payload_references(
@@ -696,7 +696,7 @@ def _to_rdmol_prepared(mol, kekulize, sanitize, hydrogens):
         Chem.SanitizeMol(rdmol)
 
     rdmol = Chem.RWMol(rdmol)
-    export_payload = _remap_stereo_payload(payload, row_to_idx)
+    export_payload = _remap_stereo_transport(payload, row_to_idx)
     _apply_stereo_payload(rdmol, export_payload)
     _verify_current_implicit_hydrogens(
         rdmol,
@@ -767,7 +767,7 @@ def from_rdmol(rdmol, mol):
             bond_sources=("rdkit",) * len(bonds),
             bond_metadata=tuple(_freeze_value(source_bond_metadata[bond.GetIdx()]) for bond in bonds),
             charge=(True, Chem.GetFormalCharge(rdmol), "rdkit"),
-            stereo_payload=_remap_stereo_payload(stereo_payload, idx_to_row),
+            stereo_payload=_remap_stereo_transport(stereo_payload, idx_to_row),
             legacy_frame_values=(("none",),) * 9,
         )
         return mol._install_molecule(record)

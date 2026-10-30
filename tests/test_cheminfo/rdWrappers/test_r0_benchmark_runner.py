@@ -12,6 +12,9 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
+from hotpot.cheminfo.rules.chemistry.stereochemistry import algebra as stereo_algebra
+from hotpot.cheminfo.rules.chemistry.stereochemistry import coordinates as stereo_coordinates
+
 
 RUNNER_PATH = (
     Path(__file__).resolve().parents[3]
@@ -341,11 +344,11 @@ def _square_planar_molecule():
 def _square_planar_coordinates(value):
     from hotpot.cheminfo import stereo
 
-    descriptor = stereo._Level2Descriptor(
-        stereo._Level2DescriptorFamily.SQUARE_PLANAR,
+    descriptor = stereo_algebra._Level2Descriptor(
+        stereo_algebra._Level2DescriptorFamily.SQUARE_PLANAR,
         value,
     )
-    directions = stereo._gate7_ideal_carrier_directions(descriptor)
+    directions = stereo_coordinates._gate7_ideal_carrier_directions(descriptor)
     return np.asarray(((0.0, 0.0, 0.0), *directions), dtype=np.float64)
 
 

@@ -1,0 +1,257 @@
+{
+  "schema_version": 1,
+  "stage": "Stage6",
+  "record_kind": "owning_stage_evidence_integration_and_remaining_gates",
+  "recorded_date": "2026-10-30",
+  "status": "ROOT_EVIDENCE_OBLIGATIONS_SATISFIED_RECORDS_INTEGRATED_VALIDATED_GIT_DELIVERY_AND_ROOT_FINAL_CLOSURE_PENDING",
+  "author": "Assigned GPT-6.1 Sol/max maintained-record writer; acceptance decisions remain attributed to root",
+  "source_identity": {
+    "branch": "implement/plan20-fact-rule-architecture",
+    "validated_source_commit": "d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a",
+    "validated_git_tree": "3a48d3bb2949f0f8aa11b6ea3dff35cbc97ed198",
+    "frozen_snapshot_file_count": 4129,
+    "frozen_snapshot_value_sha256": "782466b4ab6f1c8091633a4a3458ea9b42dd19d591f1b607597239f6631cb4c3",
+    "documentation_delivery_note": "This record integrates C61 evidence. A later documentation-only commit does not replace the validated source identity."
+  },
+  "authority": {
+    "path": ".plan20-artifacts/20261030/stage6/root-gate-decision/attempt1/evidence.json",
+    "sha256": "9301541d81f730a076df1eed5342f4fb120004f0cb8a3b7713a7ce2897f41603",
+    "bytes": 4348
+  },
+  "authority_time_utc": "2026-10-30T14:59:52.683491+00:00",
+  "authority_exact_status": "RUNTIME_FREEZE_ENDED_STAGE6_EVIDENCE_ACCEPTED_MAINTAINED_RECORD_INTEGRATION_RELEASED",
+  "root_accepts_stage6_static_runtime_and_bounded_cost_evidence": true,
+  "runtime_freeze_ended_by_root": true,
+  "original_freeze_preserved": {
+    "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/FREEZE.json",
+    "sha256": "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60",
+    "bytes": 3994469
+  },
+  "maintained_records_integrated": true,
+  "validated_git_delivery_pending": true,
+  "root_final_record_source_consistency_and_closure_pending": true,
+  "stage6_fully_recorded_and_delivered": false,
+  "stage7A_entry_released": false,
+  "stage7A_entered": false,
+  "decision_ownership": "Root owns scientific/architecture/cost acceptance, Stage7 entry and Git delivery. Writer integrates accepted evidence without new substantive design/science/performance decisions.",
+  "evidence_gates": [
+    {
+      "gate": "Unique Task38 static review, actual audit and separate root decision",
+      "status": "ROOT_ACCEPTED_STATIC_CHECKPOINT",
+      "evidence": {
+        "path": ".plan20-artifacts/20261030/stage6/root-key-review/attempt1/evidence.json",
+        "sha256": "d56406c7cb9c215bd8d8930326cf7af439eea769a41838441ac1624154113ee1",
+        "bytes": 8135
+      },
+      "record": "stages/stage06/review-result/evidence.json"
+    },
+    {
+      "gate": "C61 SOURCE_READY and unchanged native/source freeze",
+      "status": "EXECUTED_BOUND_AND_ACCEPTED",
+      "evidence": {
+        "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/SOURCE_READY.json",
+        "sha256": "95aac448d37a5ba463da2ca4a1dc3acb6d68c35a94ec1a98bccc2f56c04122f8",
+        "bytes": 141372
+      },
+      "freeze": {
+        "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/FREEZE.json",
+        "sha256": "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60",
+        "bytes": 3994469
+      }
+    },
+    {
+      "gate": "Focused3.11 and46-file source/installed3.10-3.14 plus3 native-source files",
+      "status": "ROOT_ACCEPTED_WITH_EXTERNAL_SDK_MISSING_EVIDENCE_RETAINED",
+      "evidence": {
+        "path": ".plan20-artifacts/20261030/stage6/root-runtime-review/attempt3/matrix-review.json",
+        "sha256": "457f6c33601870f5f643e1111f0eed7e74c01325e6d9abf0ed8434207e628689",
+        "bytes": 51773
+      },
+      "record": "stages/stage06/validation/evidence.json"
+    },
+    {
+      "gate": "Default3.11 source integration",
+      "status": "ROOT_ACCEPTED_ORIGINAL_EXECUTION_AFTER_STRICT_ARTIFACT_ONLY_SUBTEST_RECOVERY",
+      "evidence": {
+        "path": ".plan20-artifacts/20261030/stage6/root-runtime-review/default-recovery/acceptance.json",
+        "sha256": "02e41f32ccdabafa71aba4a5a4e0224d150f04bce32f910001089093ec2cb38a",
+        "bytes": 3915
+      }
+    },
+    {
+      "gate": "Source/wheel introspection/cold pickle/typed target/native mapping/counts/retention",
+      "status": "ROOT_VERIFIED_AND_ACCEPTED",
+      "evidence": {
+        "path": ".plan20-artifacts/20261030/stage6/root-runtime-review/supplementary/attempt2/review.json",
+        "sha256": "b0dc052a057113d93b9c230c24bf3905ea3668b7c42a98a57bd6c35266f8823b",
+        "bytes": 543167
+      }
+    },
+    {
+      "gate": "S6-R2-09 bounded costs and every adverse/inconclusive observation",
+      "status": "ROOT_ACCEPTED_ALL72_ADVERSE_METRIC_DISPOSITIONS_FOR_STAGE6_ONLY",
+      "evidence": {
+        "path": ".plan20-artifacts/20261030/stage6/root-cost-disposition/attempt2/decision.json",
+        "sha256": "13de0f53684f01f18122ac1e6f7cdab5f82b9aa49ced59dc077b0b4f39ce7165",
+        "bytes": 90736
+      },
+      "record": "stages/stage06/performance/evidence.json"
+    },
+    {
+      "gate": "Maintained records/document consistency/validated Git delivery",
+      "status": "DOCUMENT_CHECK_PASSED_PARENT_VALIDATED_GIT_AND_ROOT_FINAL_CLOSURE_PENDING",
+      "record": "stages/stage06/gates/evidence.json"
+    }
+  ],
+  "public_and_connected_effects": {
+    "public_types": "One definition of18 public types in structure/stereo.py; existing hotpot.cheminfo.stereo module/qualname/pickle/canonical tokens retained.",
+    "facade": "Same ordered23 exports/five signatures/defaults/keyword-only/postponed string annotations; default Molecule get_type_hints NameError and explicit-namespace success preserved.",
+    "accepted_new_local_read_errors": [
+      {
+        "exception": "RuntimeError",
+        "message": "Stereochemistry alignment cannot acquire a distinct owner while a factual transaction is active",
+        "trigger": "Distinct-owner alignment with any tracked outer _FactTransaction in current _TRANSACTIONS context, including a third owner, encounters contention on an initial or deferred stereo-owned nonblocking acquisition.",
+        "limits": "Uncontended/same-thread RLock reentry succeed. Same-owner alignment retains reentrant blocking. Release only this operation acquisitions; do not alter caller locks, spin or blanket-reject transactions. Initial failure precedes mapping/H/native; late failures retain earlier side effects subject to outer transaction rollback."
+      },
+      {
+        "exception": "RuntimeError",
+        "message": "Captured stereochemistry facts changed; retry the operation",
+        "trigger": "After preflight, immediately before required live preparation/strict H, raw payload/schema/order, atom/partition/endpoint identities/order or consumed raw bond types/float bytes differ from retained capture.",
+        "limits": "Owner-token mismatch keeps existing source error. Guard only consumed raw capture; select unconsumed Z/charge/aromatic/readiness fields at original late point. No projection means no guard/preparation/H/native. No paired undo; legitimate completed preparation is not rejected post-H."
+      }
+    ],
+    "ordering": "Reference/target raw capture precedes mapping callbacks; preflight precedes strict H/scalars; reference native work precedes deferred noncoordination target preparation; global graph issues suppress coordinate conversion; mapping/coordinate/native callbacks outside fresh stereo-owned scopes. Caller-owned outer locks/late side effects remain.",
+    "snapshot": "One N09 _StereoSnapshot(payload, atom_keys, bonds) per distinct owner; source binding/strong referent tuples operation-local. No fourth field or duplicate update wrapper.",
+    "rule_and_native_path": "Pure algebra owns one remap. Lifecycle calls use chemistry operation. Deep immutable graph produces one ordinary pack/native target; bound mapping callable reused synchronously with no pair/query repack or persistent retention.",
+    "transitional_storage": "Whole _stereo_payload and get(mol) is payload remain Stage6-transitional. No public identity guarantee/global ownership waiver; Stage7E must remove persistent whole-payload/mirror truth.",
+    "unchanged_scientific_boundary": "Scientific algorithms, Stage5 explicit/unspecified H defaults, native ABI, target schema/order, source bindings, strict readiness and deterministic mapping/issue behavior remain as accepted."
+  },
+  "static_budget_and_architecture": {
+    "owning_historical_evidence": {
+      "path": "plan/20_fact_rule_architecture/stages/stage06/bookkeeping/evidence.json",
+      "sha256": "d0a5e8317a0bcd66b99a70ce672dd0b2666a876ca74d4d34f33576f60a58221c",
+      "bytes": 8945
+    },
+    "classes": 777,
+    "dataclasses": 354,
+    "protocols": 8,
+    "typed_dicts": 2,
+    "delta": {
+      "classes": 1,
+      "dataclasses": 1,
+      "protocols": 0,
+      "typed_dicts": 0
+    },
+    "N09": "_StereoSnapshot(payload, atom_keys, bonds); cap1",
+    "new_architecture_debt": 0,
+    "remaining_inherited_debt": 256,
+    "allowlist_growth": 0,
+    "existing_class_move_retirement_credit": 0,
+    "new_census_or_architecture_rerun": false
+  },
+  "unchanged_global_and_later_gates": [
+    {
+      "gate": "Stage7A",
+      "status": "NOT_ENTERED",
+      "required": "Post-Stage6 source/import/test/wheel rebind before design/implementation release; fresh current main/normative read and owning entry assessment."
+    },
+    {
+      "gate": "Stage7E",
+      "status": "MANDATORY_OPEN",
+      "required": "Canonical stereo storage/complete writer/native/undo/consumer coverage and lossless transport before Stage8/Stage12/global ownership acceptance."
+    },
+    {
+      "gate": "Stage10",
+      "status": "OPEN",
+      "required": "Clean native build/ABI/SDK/sdist/package evidence; reused binaries/10 SDK skips do not close this gate."
+    },
+    {
+      "gate": "Global acceptance",
+      "status": "OPEN",
+      "required": "Section12/Stage12 scientific/performance/hardware/Plan12/global ownership gates, including earlier regressions/missing evidence."
+    },
+    {
+      "gate": "Stage13A/B",
+      "status": "NOT_RELEASED",
+      "required": "Completed Stage0-12 B_exp and existing separately gated B_exp -> D_exp -> I_exp route; no experimental implementation released by Stage6."
+    }
+  ],
+  "record_author_scope": {
+    "allowed_files": [
+      "README.md",
+      "fact_rule_architecture_implementation_plan.md",
+      "implementation_log.md",
+      "stage_verification_map.json",
+      "stages/README.md",
+      "stages/stage06/README.md",
+      "stages/stage06/gates/evidence.json",
+      "stages/stage06/gates/review.md",
+      "stages/stage06/performance/evidence.json",
+      "stages/stage06/performance/report.md",
+      "stages/stage06/review-result/evidence.json",
+      "stages/stage06/review-result/review.md",
+      "stages/stage06/validation/evidence.json",
+      "stages/stage06/validation/report.md"
+    ],
+    "changes": "Four record pairs; Stage6/root/catalog introductions/indexes; Stage6-only map status/evidence; append-only log; mechanical main top status.",
+    "production_test_support_changes": 0,
+    "runtime_test_build_model_benchmark_review_audit_reruns": 0,
+    "git_commands": 0,
+    "delegations": 0,
+    "historical_records_and_normative_body_preserved": true
+  },
+  "document_only_validation": {
+    "status": "PASS",
+    "actual_argv": [
+      "python3",
+      "/tmp/plan20-stage6-records-document-baseline-20261030/check_stage6_records.py",
+      "--output",
+      "/tmp/plan20-stage6-records-document-baseline-20261030/document-check-result.json"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "interpreter": {
+      "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+      "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+    },
+    "script": {
+      "path": "/tmp/plan20-stage6-records-document-baseline-20261030/check_stage6_records.py",
+      "sha256": "11a1870c491b801a5678c1abf73516527c671278a50886ce02fa3548e5f3263a"
+    },
+    "completed_pass_evidence": {
+      "path": "/tmp/plan20-stage6-records-document-baseline-20261030/document-check-attempt2.json",
+      "sha256": "b0c84acb948cbd0a74c71036d91af93e02dbc54fddd4d74f4edba0e5fa43d9ea",
+      "bytes": 9769
+    },
+    "check_count": 21,
+    "coverage": {
+      "assigned_changed_files": 14,
+      "new_record_pairs": 4,
+      "assigned_json_parsed": 5,
+      "stage6_assets_excluding_readme": 27,
+      "local_links_checked": 158,
+      "unique_referenced_artifact_files": 236,
+      "protected_existing_plan_and_source_test_files": 218,
+      "source_test_files_with_final_author_hashes": 36,
+      "original_log_prefix_lines": 1987,
+      "original_log_prefix_sha256": "cf6cbcc839271ecbaf427d253449f2540075916eb365c2848e9a33cd5e6f1dce",
+      "main_scope": "Top status only; remaining main body unchanged byte-for-byte",
+      "map_scope": "Stage6 status/evidence only; all other map bytes and all technical selections/requirements unchanged",
+      "raw_task38_copy": "6466 bytes, SHA256989327b46b10d4008fa9fc549649a7610380bf047fe9b5cc54aa1dbbdb16b2e2",
+      "evidence_arithmetic": "All90 ordinary metric projections,72 root dispositions,original/final repeat statistics,source/installed/native results and default subtest accounting match immutable root evidence"
+    },
+    "retained_first_failed_document_check": {
+      "path": "/tmp/plan20-stage6-records-document-baseline-20261030/document-check-attempt1.json",
+      "sha256": "2ae51b99049701a2d7d8f687eaf8cc12cf3b26075fb7e60278b631c69096b6f6",
+      "bytes": 10410
+    },
+    "first_failure_correction": "A diff-patch subject/hash in the coverage projection was initially labelled path/sha256 and treated as a current source-file binding. Renamed to source_path/patch_sha256/patch_bytes; raw patch identities and original root evidence unchanged. No source/runtime correction or checker weakening.",
+    "final_snapshot_report_path": "/tmp/plan20-stage6-records-document-baseline-20261030/document-check-result.json",
+    "final_snapshot_note": "After this evidence/log result note is recorded, the same stdlib-only checker records final14-file hashes in the final snapshot report. The immutable completed-pass evidence above predates only this result note; parent receives the final report identity for Git handoff.",
+    "limits": [
+      "Assigned14-file delta, existing182 project files and36 source/test hashes only; not a new source/runtime/scientific/performance/ABI/SDK approval.",
+      "Existing unchanged main body/original log prefix preserved by bytes; their historical external links not revisited.",
+      "Referenced artifact bytes verified; underlying runtime/cost acceptance remains the existing root decision. Git state/delivery and later-stage entry belong to parent."
+    ],
+    "scope": "Document-only standard-library reads/hashes/JSON/link/index/preservation/arithmetic; no Git/subprocess/Hotpot import/test/build/model/benchmark/review/audit execution."
+  }
+}

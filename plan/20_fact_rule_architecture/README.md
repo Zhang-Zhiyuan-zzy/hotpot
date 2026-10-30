@@ -1,7 +1,7 @@
 # Stage 20 — Fact-Carrier and Rule Architecture
 
 Status: implementation authorized on 2026-10-28; Stage0–5 owning-stage gates complete.
-Stage6 entry and revision2 design are aligned; the coherent implementation is released after preserved predecessor evidence, while SOURCE_READY and candidate runtime gates remain open; final scientific/global efficiency acceptance remains open. All public chemical
+Root accepts Stage6 C61 static/runtime/bounded-cost evidence on 2026-10-30; records are integrated, while validated Git delivery/root final closure remain pending. Stage7A has not entered; final scientific/global efficiency acceptance remains open. All public chemical
 types follow a common protocol for fact ownership, interface mapping,
 permissions, dependencies, buffer ownership and lifecycle. Atom's unified
 fact table is one concrete implementation. Stage2 completed the approved dead/placeholder implementation cleanup;
@@ -104,7 +104,32 @@ three local static findings assigned for bounded reproduction/correction.
 No current full-suite, matrix, remote or final performance acceptance is
 inferred from this preparation.
 
-The [Stage6 revision2 review and root key disposition](stages/stage06/contracts/revision2-review/evidence.json) separates exact transport, actual read-only audit and static design decisions. The [accepted contract decisions](stages/stage06/contracts/decisions.md) retain implementation/runtime gates. Mandatory Stage7E completes canonical stereo storage before Stage8 and global ownership acceptance; Stage6 whole-payload identity remains transitional.
+## Stage6 owning evidence accepted; delivery pending
+
+Root's [final evidence decision](../../.plan20-artifacts/20261030/stage6/root-gate-decision/attempt1/evidence.json)
+accepts frozen C61 static/runtime/bounded-cost evidence and ends the runtime
+freeze. The [exact Task38 result/provenance](stages/stage06/review-result/evidence.json)
+preserve the historical conclusion, matching actual audit and separate root
+acceptance. [Validation](stages/stage06/validation/report.md) and
+[exact evidence](stages/stage06/validation/evidence.json) record focused65;
+each Python3.10–3.14 source1,397/installed1,396/native-source6 passes plus2
+missing SDK skips; default4,998passed/123skipped/3strictxfailed plus49passedsubtests,
+accepted through strict artifact-only accounting. All15 supplementary commands
+pass with source/wheel preservation/count/retention observations.
+
+[Bounded performance](stages/stage06/performance/report.md) and
+[dispositions](stages/stage06/performance/evidence.json) retain90 original
+comparisons/all72 adverse metrics accepted for Stage6 only. Fixed60-pair
+installedchain512 repeat classification follows the frozen noise rule; original
+inconclusive observation/broad interval/order effects remain. No global parity
+or waiver. The [owning gate record](stages/stage06/gates/review.md) and
+[exact root/delivery evidence](stages/stage06/gates/evidence.json) leave coherent
+validated Git delivery/root final record/source check/full Stage6 closure pending.
+Stage7A has not entered and requires its post-Stage6 rebind. Mandatory Stage7E
+removes transitional whole-payload stereo storage before Stage8/global ownership;
+Stage10 clean-native/ABI/SDK/sdist and final science/performance/Plan12/experimental
+prerequisites remain open. The [Stage6 index](stages/stage06/README.md) links all
+accepted decisions/historical preparation/current evidence.
 
 ## Records
 

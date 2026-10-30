@@ -1985,3 +1985,139 @@ review records and retained failed attempts by SHA256.
 - Solmax revision2handoff4af55362… corrects exactly3already-owned files,archives36precorrection source/test bytes plus51support artifacts intact,passes15affectedstaticchecks and actualarchitectureaudit with256remaininginheriteddebts/0new/0stale/0growth/0layers/0duplicatecarriers. Root reads exactdiff/actualresults and inherits unchanged96AST/23constant/19scientific-body evidence without rerun;allsource algorithms/costkwargs/publicfaçade remain unchanged. SOURCE_READY/runtime and unique task38 remain pending.
 - Root executes PYTHONDONTWRITEBYTECODE=1 python3 .plan20-artifacts/20261030/stage6/bookkeeping-attempt1/capture_census.py /home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/bookkeeping-attempt1/census.json:rc0,exactoriginalleaf/CONTRACT_MARKERS method measures777classes/354dataclasses/8Protocols/2TypedDicts(delta+1/+1/0/0). N09capone has exactlypayload/atom_keys/bonds;27existingstereo classmoves receive0retirementcredit. Ledger/map nowrecord actualimplementation/newtestexistence;no allowlist edit or runtime/native/scientific/performance acceptance. Owningrecords:stage06/bookkeeping;singletonsupport/actualsource/primaryreview/fivePython matrix/cost/Stage7E gates remainopen.
 - Document-only audit_stage_records.py --output /tmp/p20-stage6-static-implementation-record-layout.json passes70Markdown/66JSON/137indexedassets,rc0/0errors on a060900… plus newbookkeepingrecords;reportSHA6a960e16902693f62ff71ca946fba169a0b892ecaaa4a495face719a38a2c6c8 retained. Root verifies all36finalr2source/test hashes match without execution. Coherent extraction plus tests/actualbudget/staticrecords now released for one natural Gitcheckpoint;source-ready/runtime remainheld.
+
+## 2026-10-30 — Stage6 C61 frozen validation and root evidence acceptance
+
+The validated source remains C61 `d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a`, tree
+`3a48d3bb2949f0f8aa11b6ea3dff35cbc97ed198`;4,129-file snapshot value SHA256
+`782466b4ab6f1c8091633a4a3458ea9b42dd19d591f1b607597239f6631cb4c3`. A documentation-only delivery does not
+replace this source provenance. The original1,987-line log prefix is preserved.
+
+- Unique Task38 `p20-s6-implementation-review-704283-38`,revision1,taskhash
+  `74453b3627e8f524615367190c82ffbf9bee21e9a16c8c784cc05fcbb5d32741`,exactturn
+  `01a18d11-a632-7861-bc45-9a8d413cbdb2`:raw6,466-byte result SHA256
+  `989327b46b10d4008fa9fc549649a7610380bf047fe9b5cc54aa1dbbdb16b2e2`
+  copied verbatim to [review-result/review.md](stages/stage06/review-result/review.md),
+  with [separate provenance/root disposition](stages/stage06/review-result/evidence.json).
+  Existing1,838-byte matching actual-audit relay SHA256
+  `53199b16ab96cf24db4901cbd95442615d878b999752f5ae19d243655aeff1e3`
+  attests historical gpt-5.6-sol/xhigh,read-only/restricted,zero tools/commands/delegation.
+  Root static decision SHA256`d56406c7cb9c215bd8d8930326cf7af439eea769a41838441ac1624154113ee1`
+  accepts the bounded checkpoint for validation. Coverage:24modified-file patches/
+  160hunks bound;23complete patches/155hunks inline;oldmonolith5move-delete hunks
+  hash-indexed with accepted116/23/18 partition and25/19AST evidence. Capture SHA256
+  `5b0b54bfe8feb6f5797e66ac6bcc20521550cfa87f51070857816da72b27738d`
+  is not a Git tree. Historical HOLD/rejected pre-turn input remain;no duplicate review/audit.
+- Root publishes [SOURCE_READY](../../.plan20-artifacts/20261030/stage6/validation-execution-attempt1/SOURCE_READY.json)
+  SHA256`95aac448d37a5ba463da2ca4a1dc3acb6d68c35a94ec1a98bccc2f56c04122f8`
+  and [original FREEZE](../../.plan20-artifacts/20261030/stage6/validation-execution-attempt1/FREEZE.json)
+  SHA256`06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60`. Revision4runner SHA256
+  `aca4a00ee35c0188e80c5bd496bcf65595110ea575d169b62098732a8236de49`;
+  143nativeclosure inputs retained,142strict unchanged plus qualifiedbuffers.py
+  candidate`60202219c365993884b5b77fad11954d5fd89bf33b2fe4e2b0a5f644f2c2886f`
+  versus historical`a916c72a5872c59e19a07de0443aca557f97adec287305682cdd45cd67c9a9d2`.
+  All native binaries preserved;no clean native build.
+- Frozen execution order:focusedcp311,matrixcp311/cp310/cp312/cp313/cp314,defaultcp311.
+  The [immutable execution index](../../.plan20-artifacts/20261030/stage6/validation-execution-attempt1/execution-evidence-index-attempt1.json)
+  binds exact argv/cwd/resolved interpreters/elapsed/output hashes and historical
+  failure/pending states;[validation report](stages/stage06/validation/report.md)
+  and [evidence](stages/stage06/validation/evidence.json) apply later root decisions.
+  Focused source pytest command uses `/tmp/hotpot-plan20-env/bin/python -m pytest -q -ra -p no:cacheprovider -p stage6_observation --import-mode=importlib --rootdir /home/zhangzhiyuan/hotpot`
+  plus three bound files/basetemp/JUnit arguments;exact fullargv is copied in evidence.
+  It returns0 in4.576901959s:65passed/0skips/0failures.
+- Each Python3.10–3.14 executes46source/46installed/3native-source files:
+  1,397sourcepasses/1,396installedpasses/6native-sourcepasses plus2externalSDKskips.
+  Totals6,985/6,980/30passes and10missingSDKcases;no ordinary required skips.
+  Exact installed deselection
+  `tests/test_cheminfo/rdWrappers/test_coordination_embedding.py::test_native_sampler_has_no_business_forcefield_entrypoint_calls`
+  executes in every source tier. Current wheels reuse13nativepieces each from
+  accepted Stage5 wheels. Root [third matrix artifact review](../../.plan20-artifacts/20261030/stage6/root-runtime-review/attempt3/matrix-review.json)
+  SHA256`457f6c33601870f5f643e1111f0eed7e74c01325e6d9abf0ed8434207e628689`
+  verifies rosters/origins/transport/native identities. Both prior reader failures
+  remain;SDK skips are missing evidence and supply no Stage10 waiver.
+- Original default pytest child returns0 in267.226480996s:4,998passed/123skipped/
+  3strictxfailed plus49passedsubtests;5,124ordinaryXMLcases versus5,173JUnit-summary
+  entries. Original driver/verifier fails count equality and stays unchanged.
+  Strict artifact-only [recovery](../../.plan20-artifacts/20261030/stage6/default-evidence-recovery/attempt1/evidence.json)
+  SHA256`63027dc6b90f7637050f1f98f8fa71babd59eb01e5dbc36b416f2c7286e5c3ad`,
+  resultSHA`60203a8fc8ad306436be56b7369a6eb10404db324085da4a6dde9a3af030ccb1`,
+  reconciles ordinary nodes/report order/all1,397requiredpasses plus the49-subtest
+  loop at `tests/test_cheminfo/test_search.py::TestSmartsSearch::test_smarts_search`.
+  Root [acceptance](../../.plan20-artifacts/20261030/stage6/root-runtime-review/default-recovery/acceptance.json)
+  SHA256`02e41f32ccdabafa71aba4a5a4e0224d150f04bce32f910001089093ec2cb38a`
+  accepts retained execution only. No pytest rerun/helper weakening. Individual
+  report classes/parameter contexts were flattened;pytest source/RECORD bound at
+  recovery time,not before original execution.
+- All15supplementary commands return0/unchangedfreeze;[index](../../.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-evidence-index-attempt1.json)
+  SHA256`c7caaf81cc22e23be32d0fb554a21a66a28db6c220d235e85023db4a130d3630`
+  binds362outputs. Root [supplementary review](../../.plan20-artifacts/20261030/stage6/root-runtime-review/supplementary/attempt2/review.json)
+  SHA256`b0dc052a057113d93b9c230c24bf3905ea3668b7c42a98a57bd6c35266f8823b`
+  verifies719bindings/90comparisons/0exclusions. Each source/installed mode preserves
+  TH/DB/AX/coordination-SP/virtual-H/hidden-bonds and four cold orders with18classes/
+  40values. Recursive typed/ordered targets,real native acceptance/full mappings
+  match;onecapture/check/projection/pack/target/query per workflow,zero pair/query
+  repacks,localweakrefsrelease;fixtureowners intentionally live. Source/wheel23exports/
+  five signatures/annotations/defaultNameError/explicitnamespacehints remain.
+  Historical-origin reader failure retained;cold success is not final optional-dependency acceptance.
+- [Bounded performance](stages/stage06/performance/report.md) and
+  [evidence](stages/stage06/performance/evidence.json) retain9fixtures×2modes×5metrics=
+  90comparisons,3warmups+10measuredsamples per fixture,117timing/allocation/component
+  samples per mode;allocation uses two workflows/sample. All72adverse metrics=
+  18time+54allocation;18after-release deltas unchanged atmedian120bytes per side.
+  Root [original decisions](../../.plan20-artifacts/20261030/stage6/root-cost-disposition/attempt1/decisions.json)
+  SHA256`93dd86d31bf64d4140a6a6eee73a9d6e63692682bd447ddec8beba7ea03ae36f`
+  accept71locally as measured necessary bounded O(V+E) representation overhead;
+  installedchain512 timing initially remains OPEN at1.0357985918412507,
+  CI[0.9879678176170452,1.1086391064835066]. Components overlap and never replace
+  ordinary totals. No global parity/waiver.
+- Only the authorized installedchain512 repeat executes after [release revision2](../../.plan20-artifacts/20261030/stage6/root-cost-disposition/attempt1/repeat-release-revision2.json)
+  SHA256`1655d30ad60a9fdc735ef4eceb2c1a9f0964a7f80d8b350d6d0aad9344b5c79d`
+  and packetrevision3SHA`3e9b508b8956eebacb5028f59ffda8babd215d5d174e7bd9ca669fc42788dce3`.
+  Earlier release was superseded before execution;failed preparations remain.
+  [Repeat index](../../.plan20-artifacts/20261030/stage6/cost-repeat-support/attempt1/execution-evidence-index-attempt1.json)
+  SHA256`303640afc86f39af0b09a0626fd59681371fd96e89dbb79e1b2999a9a9ebed1d`
+  and actualcommandSHA`3b39d332d220e3f40c41c920793cf14446deebbae25a0008deaafdc388632597`
+  bind6warmup+60fixed measured pairs,seed20261030;all66returned,zero failed/unexecuted/
+  excluded,68stdoutrecords per worker,2,629inputbindings/fourtrees unchanged.
+  Root [final cost decision](../../.plan20-artifacts/20261030/stage6/root-cost-disposition/attempt2/decision.json)
+  SHA256`13de0f53684f01f18122ac1e6f7cdab5f82b9aa49ced59dc077b0b4f39ce7165`
+  verifies311bindings/fullmappings/H/identities and closes all72local dispositions.
+  Repeat medianratio1.024215348938727,descriptive95%CI[0.9522841362211566,1.0694335062571536];
+  baseline/candidate median234.0823795/239.750766ms,MAD14.8482935/3.9378505ms,
+  p95256.471937/248.890517ms,order ratios1.0366828189165689/0.9769974771308086.
+  Frozen0.97–1.03pointband+CIcovers1 rule met;positive cost accepted Stage6 only,
+  not equivalence-confidence/causal/global-parity evidence. Original adverse/
+  inconclusive results/all54allocation decisions stay. No allocation repeat/native
+  build. Shared-load/order/process/cache/RSS/native-allocation/two-resident-worker limits remain.
+- Root [final gate authority](../../.plan20-artifacts/20261030/stage6/root-gate-decision/attempt1/evidence.json)
+  SHA256`9301541d81f730a076df1eed5342f4fb120004f0cb8a3b7713a7ce2897f41603`,
+  recorded2026-10-30T14:59:52.683491+00:00,accepts static/runtime/boundedcost and
+  ends runtime freeze while preserving its original artifact. [Gate narrative](stages/stage06/gates/review.md)
+  and [evidence](stages/stage06/gates/evidence.json),Stage6/root/catalog/map current
+  status and mechanical main header integrate that release. No science/API/design/
+  gate-body/Section12 changes,production/tests/support/allowlist/budget/historical
+  record edits or newruntime/review/audit/Git commands by this writer. Existing
+  census777/354/8/2,N09threefieldcap1,zero newdebt/256inherited,zero move credit preserved.
+- Validated Git delivery/root final record-source check/full Stage6 closure remain
+  pending. Stage7A entry not released/not entered;post-Stage6 source/import/test/wheel
+  rebind remains an entry prerequisite. Stage7E canonical storage beforeStage8/global
+  ownership;Stage10 clean-native/ABI/SDK/sdist;global Section12/Stage12 science/
+  performance/hardware/Plan12;Stage0–12B_exp before separately gated Stage13A/B
+  remain open. Transitionalgetidentity adds no publicstorage guarantee. Scientific
+  algorithms/Stage5Hdefaults/nativeABI preserved.
+
+- Executed document-only `python3 /tmp/plan20-stage6-records-document-baseline-20261030/check_stage6_records.py --output /tmp/plan20-stage6-records-document-baseline-20261030/document-check-result.json`
+  from `/home/zhangzhiyuan/hotpot`;script SHA256`11a1870c491b801a5678c1abf73516527c671278a50886ce02fa3548e5f3263a`.
+  Result:rc0,21checks PASS,5assignedJSON parsed,27Stage6assets completely indexed,
+  158local links,236unique artifact hashes,218protected existing plan/source-test
+  files including36final author source/test hashes. Original1,987-line log prefix
+  SHA256`cf6cbcc839271ecbaf427d253449f2540075916eb365c2848e9a33cd5e6f1dce`
+  preserved;main body unchanged after top status;non-Stage6 map bytes and Stage6
+  test selections/requirements unchanged;Task38exact6466-byte copy preserved.
+  Retained pass `/tmp/plan20-stage6-records-document-baseline-20261030/document-check-attempt2.json`
+  SHA256`b0c84acb948cbd0a74c71036d91af93e02dbc54fddd4d74f4edba0e5fa43d9ea`. First document check retained separately:diff-patch
+  hash/subject labels were clarified to avoid confusing patch bytes with current
+  source identity;raw evidence/source unchanged and no checker weakening. The
+  same check captures final14-file hashes after this evidence/log note. No Git,
+  project import,test/build/model/benchmark or new review/audit execution;no
+  Stage7entry or full Stage6 delivery claim.

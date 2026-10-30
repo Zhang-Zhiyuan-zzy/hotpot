@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "stage": "Stage6",
+  "record_kind": "independent_static_review_and_root_disposition",
+  "recorded_date": "2026-10-30",
+  "status": "ORIGINAL_STATIC_RESULT_PRESERVED_ROOT_ACCEPTED_STATIC_CHECKPOINT_LATER_RUNTIME_AND_COST_ACCEPTED_SEPARATELY",
+  "author": "Assigned GPT-6.1 Sol/max maintained-record writer; acceptance decisions remain attributed to root",
+  "source_identity": {
+    "branch": "implement/plan20-fact-rule-architecture",
+    "validated_source_commit": "d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a",
+    "validated_git_tree": "3a48d3bb2949f0f8aa11b6ea3dff35cbc97ed198",
+    "frozen_snapshot_file_count": 4129,
+    "frozen_snapshot_value_sha256": "782466b4ab6f1c8091633a4a3458ea9b42dd19d591f1b607597239f6631cb4c3",
+    "documentation_delivery_note": "This record integrates C61 evidence. A later documentation-only commit does not replace the validated source identity."
+  },
+  "historical_review": {
+    "task_id": "p20-s6-implementation-review-704283-38",
+    "revision": 1,
+    "verification_code": "704283",
+    "task_hash": "74453b3627e8f524615367190c82ffbf9bee21e9a16c8c784cc05fcbb5d32741",
+    "exact_turn_id": "01a18d11-a632-7861-bc45-9a8d413cbdb2",
+    "capture_manifest_sha256": "5b0b54bfe8feb6f5797e66ac6bcc20521550cfa87f51070857816da72b27738d",
+    "capture_identity_kind": "Canonical capture-manifest raw-byte SHA256; not a Git tree",
+    "original_status": "STATIC_REVIEW_NO_CONCRETE_DEFECT_ESTABLISHED_RUNTIME_AND_ROOT_ACCEPTANCE_HELD",
+    "original_result": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s6-implementation-review-704283-38/review-result.txt",
+      "sha256": "989327b46b10d4008fa9fc549649a7610380bf047fe9b5cc54aa1dbbdb16b2e2",
+      "bytes": 6466
+    },
+    "maintained_verbatim_copy": {
+      "path": "plan/20_fact_rule_architecture/stages/stage06/review-result/review.md",
+      "sha256": "989327b46b10d4008fa9fc549649a7610380bf047fe9b5cc54aa1dbbdb16b2e2",
+      "bytes": 6466
+    },
+    "completion_bindings": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s6-implementation-review-704283-38/completion-bindings.json",
+      "sha256": "9578cc48cfb93290442d180949fc071d44abab7dc1e818d9d8f1dcae9bd16d08",
+      "bytes": 2042
+    },
+    "capture_manifest": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s6-implementation-review-704283-38/capture-manifest.json",
+      "sha256": "5b0b54bfe8feb6f5797e66ac6bcc20521550cfa87f51070857816da72b27738d",
+      "bytes": 391668
+    },
+    "coverage_clarification": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s6-implementation-review-704283-38/capture-coverage-clarification.json",
+      "sha256": "68abc1d51d49168905d5618a598e96ff1aefbbd8fb063d2ced38274531370a5c",
+      "bytes": 893
+    },
+    "exact_byte_transport_receipt": {
+      "path": ".plan20-artifacts/20261030/stage6/root-transport-receipts/task38-result-base64-receipt.json",
+      "sha256": "bc97ce8de5d7244c39457483de1304738dac20af607a29ae6f0ebd1fb1ac5c3c",
+      "bytes": 2696
+    },
+    "identity_limit": "The raw result could not self-attest its returned-turn ID; the existing completion/turn receipt and matching actual audit supply that binding."
+  },
+  "matching_actual_audit": {
+    "raw_result": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s6-implementation-review-704283-38/audit-result.txt",
+      "sha256": "53199b16ab96cf24db4901cbd95442615d878b999752f5ae19d243655aeff1e3",
+      "bytes": 1838
+    },
+    "structured_result": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s6-implementation-review-704283-38/audit-result.json",
+      "sha256": "f5e78dd655d15c00543bca7c2175a0233310be41d98311dddeb80277b648910a",
+      "bytes": 4252
+    },
+    "existing_command_output": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s6-implementation-review-704283-38/actual-audit-command-output.txt",
+      "sha256": "5f13faaa9f3fabc96a429400d321c36a02aa91a8dbd5a843e3bae3b50383b7d1",
+      "bytes": 1731
+    },
+    "historical_model": "gpt-5.6-sol",
+    "historical_effort": "xhigh",
+    "access": "Read-only and network-restricted",
+    "tool_calls": 0,
+    "commands": 0,
+    "delegations": 0,
+    "identity_mismatch_established": false,
+    "attestation_scope": "Existing historical receipt, identity and access-behavior audit. Not content, scientific, runtime or stage acceptance.",
+    "review_or_audit_repeated_by_record_author": false
+  },
+  "coverage": {
+    "modified_file_patches_bound": 24,
+    "hunks_bound": 160,
+    "complete_patches_inlined": 23,
+    "complete_patch_hunks_inlined": 155,
+    "monolith_patch": {
+      "source_path": "hotpot/cheminfo/stereo.py",
+      "patch_bytes": 165624,
+      "hunks": 5,
+      "patch_sha256": "5928eda36f1e20a00a527d7284fe6ec3ff6220a95fe723e50f794d5f60987e99",
+      "identity_kind": "Archived diff-patch bytes; source_path is the patch subject, not a current source-file hash binding",
+      "coverage": "Full patch hash-indexed; original public/control bodies are inline, original scientific bodies reuse accepted partition and AST evidence. Final facade and all new science files are whole inline."
+    },
+    "reporting_correction": "Earlier shorthand all24 patch hunks meant24 modified-file patches; actual count is160 bound hunks.23 complete patches/155hunks are inline;5monolith move-delete hunks are hash-indexed with original control selections and reused science AST evidence.",
+    "task_and_request_unchanged": true,
+    "no_new_review_or_audit_request": true
+  },
+  "scientific_source_coverage_limit": "Original science relies on the accepted116/23/18 partition and25structural/19transformed AST evidence. Old-monolith five move/delete hunks are hash-indexed; do not describe every deleted scientific body as inline.",
+  "root_static_disposition": {
+    "evidence": {
+      "path": ".plan20-artifacts/20261030/stage6/root-key-review/attempt1/evidence.json",
+      "sha256": "d56406c7cb9c215bd8d8930326cf7af439eea769a41838441ac1624154113ee1",
+      "bytes": 8135
+    },
+    "narrative": {
+      "path": ".plan20-artifacts/20261030/stage6/root-key-review/attempt1/review.md",
+      "sha256": "cb84cbd8dc9bfa7b7ad28edefbd6013cb4ec6654a921822a391aa6919504fa65",
+      "bytes": 2259
+    },
+    "decision": "No concrete static implementation defect requiring a source correction is established by this bounded review and retained static implementation evidence. Accept the static checkpoint for frozen candidate validation; publish a separate exact SOURCE_READY release.",
+    "author_currentfiles": {
+      "path": ".plan20-artifacts/20261030/stage6/implementation/revision2/currentfiles.json",
+      "sha256": "c0327e819c3d024a1464eaac5e6690298a69272223313d8af8da20d328871e7e",
+      "bytes": 31952
+    },
+    "production_paths": 20,
+    "test_paths": 16,
+    "scope_limit": "Static checkpoint accepted for the separately frozen candidate validation. No source correction required by this bounded review."
+  },
+  "subsequent_evidence_authority": {
+    "source_ready": {
+      "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/SOURCE_READY.json",
+      "sha256": "95aac448d37a5ba463da2ca4a1dc3acb6d68c35a94ec1a98bccc2f56c04122f8",
+      "bytes": 141372
+    },
+    "original_freeze": {
+      "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/FREEZE.json",
+      "sha256": "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60",
+      "bytes": 3994469
+    },
+    "final_root_decision": {
+      "path": ".plan20-artifacts/20261030/stage6/root-gate-decision/attempt1/evidence.json",
+      "sha256": "9301541d81f730a076df1eed5342f4fb120004f0cb8a3b7713a7ce2897f41603",
+      "bytes": 4348
+    },
+    "validation_record": "stages/stage06/validation/evidence.json",
+    "cost_record": "stages/stage06/performance/evidence.json",
+    "gate_record": "stages/stage06/gates/evidence.json",
+    "interpretation": "Historical HOLD in the exact result remains unchanged. Later root acceptance is separately attributed and does not revise what the reviewer observed."
+  },
+  "preservation": "Rejected pre-turn input, original review/audit/receipt and earlier failed attempts remain in their original archive. No duplicate review or actual-audit request.",
+  "stage6_fully_delivered": false,
+  "stage7A_entered": false
+}

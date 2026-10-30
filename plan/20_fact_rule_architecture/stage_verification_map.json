@@ -845,11 +845,11 @@
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_buffer_ownership.py",
-          "status": "existing Stage3 implemented file;Stage6 connected buffer/schema extraction cases and current matrix pending"
+          "status": "Existing Stage3 file with Stage6 connected buffer/schema cases; focused and full46-file source/installed five-version matrix executed/root-accepted."
         },
         {
           "path": "tests/test_cheminfo/test_stereo_extraction.py",
-          "status": "created;27functions/44staticparametercases;uncollected and runtimeheld",
+          "status": "Created27functions/44staticparametercases; collected/executed in focused3.11 and source/installed3.10-3.14; root-accepted evidence in stages/stage06/validation/evidence.json.",
           "sha256": "22a4619e53e40c180ab7bbe8e7d5d716e028b8997a71d853243b817a38d322f9"
         }
       ],
@@ -862,11 +862,11 @@
         "capture/check/projection/freeze/pack/native time and Python peak/retained allocation at fixed16/128/512 rows and representative chemistry, equivalent prepared-H state,3 warmups/at least10samples; explicit root adverse-result disposition before Stage6 acceptance; no global parity waiver",
         "whole-payload object identity is transitional Stage6 behavior only; mandatory Stage7E canonical storage gate remains open and blocks Stage8/Stage12/global ownership acceptance"
       ],
-      "execution_status": "Coherent20-production/16-test static implementation and exact3file import correction complete; root static budget/architecture review recorded. Primary task38 and final STAGE6_SOURCE_READY/runtime remain pending.",
+      "execution_status": "Root accepts frozen C61 static/runtime/bounded-cost evidence; maintained records integrated. Validated Git delivery/root final record/source closure pending; Stage7A entry not released/not entered. Historical HOLD/failure snapshots unchanged.",
       "entry_evidence": "stages/stage06/entry_review.json",
       "validation_preparation": {
         "path": ".plan20-artifacts/20261030/stage6/validation-preparation/preparation.json",
-        "status": "Static runner-r2 review/audit and accepted revision3 support retained; root accepts bounded revision4 singleton runtime-transport qualification after42targeted checks. Final candidate identity and SOURCE_READY/candidate execution remain held.",
+        "status": "Historical preparation retained; selected revision4 used by exact C61 SOURCE_READY/FREEZE and executed focused/matrix/default/supplementary lanes. Root accepts resulting technical evidence with missing external SDK tier preserved; see stages/stage06/validation/evidence.json.",
         "limits": "Source-only native header/recipe tier separate from installedruntime;two external SDK ABIcases lack frozenbinding;ordinaryrequiredskipsremainmissingevidence.",
         "selected_runner_revision": 4,
         "selected_runner": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/stage6_runner.py",
@@ -884,7 +884,7 @@
         "stages/stage06/contracts/revision2-review/evidence.json"
       ],
       "connected_selection": {
-        "status": "prepared_complete_affected_selection_candidate_execution_HELD",
+        "status": "Complete46-file source/installed selection executed3.10-3.14/root-accepted; one accepted installed source-reading deselection and two external SDK skips per native-source tier retained.",
         "original_runtime_files_retained": 23,
         "additional_existing_connected_files": 22,
         "planned_new_extraction_file": "tests/test_cheminfo/test_stereo_extraction.py",
@@ -895,7 +895,7 @@
           "path": ".plan20-artifacts/20261030/stage6/precutover-baseline/connected-selection-proposal.json",
           "sha256": "75671e0231d35f07da9496745ba6553d5c19ed1f35f49f7faea0b784c568d3fb"
         },
-        "exact_identities": "Actual new/existing tests, helpers, collection nodes, source/native/interpreters and outputs bind at STAGE6_SOURCE_READY; no collection has run for this selection."
+        "exact_identities": "Exact source/tests/helpers/native/interpreters/wheels/ordered nodes/outputs bound by C61 SOURCE_READY/FREEZE/immutable execution/root matrix records; maintained projection: stages/stage06/validation/evidence.json."
       },
       "implementation_release": "stages/stage06/implementation/evidence.json",
       "precutover_preservation": {
@@ -908,7 +908,51 @@
         "pytest_sessions": 0,
         "old_cost_records": 468
       },
-      "static_implementation_evidence": "stages/stage06/bookkeeping/evidence.json"
+      "static_implementation_evidence": "stages/stage06/bookkeeping/evidence.json",
+      "current_evidence_source": {
+        "validated_source_commit": "d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a",
+        "validated_git_tree": "3a48d3bb2949f0f8aa11b6ea3dff35cbc97ed198",
+        "snapshot_files": 4129,
+        "snapshot_value_sha256": "782466b4ab6f1c8091633a4a3458ea9b42dd19d591f1b607597239f6631cb4c3",
+        "source_ready": {
+          "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/SOURCE_READY.json",
+          "sha256": "95aac448d37a5ba463da2ca4a1dc3acb6d68c35a94ec1a98bccc2f56c04122f8",
+          "bytes": 141372
+        },
+        "original_freeze": {
+          "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/FREEZE.json",
+          "sha256": "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60",
+          "bytes": 3994469
+        },
+        "note": "Validated C61 provenance remains after documentation-only delivery."
+      },
+      "owning_evidence_records": [
+        "stages/stage06/review-result/review.md",
+        "stages/stage06/review-result/evidence.json",
+        "stages/stage06/validation/report.md",
+        "stages/stage06/validation/evidence.json",
+        "stages/stage06/performance/report.md",
+        "stages/stage06/performance/evidence.json",
+        "stages/stage06/gates/review.md",
+        "stages/stage06/gates/evidence.json"
+      ],
+      "root_evidence_acceptance": {
+        "authority": {
+          "path": ".plan20-artifacts/20261030/stage6/root-gate-decision/attempt1/evidence.json",
+          "sha256": "9301541d81f730a076df1eed5342f4fb120004f0cb8a3b7713a7ce2897f41603",
+          "bytes": 4348
+        },
+        "static_runtime_bounded_cost_accepted": true,
+        "runtime_freeze_ended": true,
+        "original_freeze_unchanged": true,
+        "all72_adverse_cost_metrics_dispositioned_for_stage6_only": true,
+        "maintained_records_integrated": true,
+        "validated_git_delivery_pending": true,
+        "root_final_record_source_consistency_and_closure_pending": true,
+        "stage6_fully_recorded_and_delivered": false,
+        "stage7A_entry_released": false,
+        "global_science_and_performance_accepted": false
+      }
     },
     "Stage7A": {
       "predecessor": "Stage6",

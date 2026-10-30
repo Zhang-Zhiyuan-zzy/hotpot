@@ -1,0 +1,3338 @@
+{
+  "schema_version": 1,
+  "stage": "Stage6",
+  "record_kind": "bounded_cost_observations_and_root_dispositions",
+  "recorded_date": "2026-10-30",
+  "status": "STAGE6_LOCAL_COST_OBLIGATIONS_SATISFIED_ALL72_ADVERSE_METRICS_RETAINED_GLOBAL_ACCEPTANCE_OPEN",
+  "author": "Assigned GPT-6.1 Sol/max maintained-record writer; acceptance decisions remain attributed to root",
+  "source_identity": {
+    "branch": "implement/plan20-fact-rule-architecture",
+    "validated_source_commit": "d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a",
+    "validated_git_tree": "3a48d3bb2949f0f8aa11b6ea3dff35cbc97ed198",
+    "frozen_snapshot_file_count": 4129,
+    "frozen_snapshot_value_sha256": "782466b4ab6f1c8091633a4a3458ea9b42dd19d591f1b607597239f6631cb4c3",
+    "documentation_delivery_note": "This record integrates C61 evidence. A later documentation-only commit does not replace the validated source identity."
+  },
+  "authority": {
+    "path": ".plan20-artifacts/20261030/stage6/root-gate-decision/attempt1/evidence.json",
+    "sha256": "9301541d81f730a076df1eed5342f4fb120004f0cb8a3b7713a7ce2897f41603",
+    "bytes": 4348
+  },
+  "accepted_policy": {
+    "path": "plan/20_fact_rule_architecture/stages/stage06/contracts/decisions.md",
+    "sha256": "88b86a1c395ad548b1750d36c2478912ee9e37e374a81c4ed0f7e82f5d983dc2",
+    "bytes": 18046
+  },
+  "policy_id": "S6-R2-09; existing main Section12.1/12.2 and frozen performance_manifest.json",
+  "frozen_performance_manifest": {
+    "path": "plan/20_fact_rule_architecture/performance_manifest.json",
+    "sha256": "ed5bba12ac6ae0305f6c85f7af3aa8fa824a3278fe12aad537a2f0c13768571b",
+    "bytes": 34761
+  },
+  "original_comparator_summary": {
+    "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/comparison-attempt1/summary.json",
+    "sha256": "a27d9147c187633fc6fe4d8d4b0e2e9790540c52f809e69828544baeadf0a557",
+    "bytes": 425974
+  },
+  "supplementary_execution_index": {
+    "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-evidence-index-attempt1.json",
+    "sha256": "c7caaf81cc22e23be32d0fb554a21a66a28db6c220d235e85023db4a130d3630",
+    "bytes": 183597
+  },
+  "root_comparison_review": {
+    "path": ".plan20-artifacts/20261030/stage6/root-runtime-review/supplementary/attempt2/review.json",
+    "sha256": "b0dc052a057113d93b9c230c24bf3905ea3668b7c42a98a57bd6c35266f8823b",
+    "bytes": 543167
+  },
+  "initial_root_dispositions": {
+    "path": ".plan20-artifacts/20261030/stage6/root-cost-disposition/attempt1/decisions.json",
+    "sha256": "93dd86d31bf64d4140a6a6eee73a9d6e63692682bd447ddec8beba7ea03ae36f",
+    "bytes": 209378
+  },
+  "final_root_disposition": {
+    "path": ".plan20-artifacts/20261030/stage6/root-cost-disposition/attempt2/decision.json",
+    "sha256": "13de0f53684f01f18122ac1e6f7cdab5f82b9aa49ced59dc077b0b4f39ce7165",
+    "bytes": 90736
+  },
+  "source_ready": {
+    "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/SOURCE_READY.json",
+    "sha256": "95aac448d37a5ba463da2ca4a1dc3acb6d68c35a94ec1a98bccc2f56c04122f8",
+    "bytes": 141372
+  },
+  "original_freeze": {
+    "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/FREEZE.json",
+    "sha256": "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60",
+    "bytes": 3994469
+  },
+  "ordinary_sample_policy": {
+    "fixtures_per_mode": 9,
+    "modes": [
+      "source",
+      "installed"
+    ],
+    "warmups_per_fixture": 3,
+    "measured_per_fixture": 10,
+    "timing_samples_including_warmups_per_mode": 117,
+    "allocation_samples_including_warmups_per_mode": 117,
+    "component_samples_including_warmups_per_mode": 117,
+    "allocation_workflows_per_sample": 2,
+    "excluded_pairs": 0,
+    "pairing": "Historical/candidate sample-index pairing from separate times/processes; not contemporaneous/interleaved. Bootstrap intervals are descriptive.",
+    "component_accounting": "Separate nested/instrumented capture/check/projection/freeze/pack/native observations; overlapping times are never summed or substituted for the ordinary complete-work total.",
+    "new_component_baselines": "New capture/check/freeze/pack costs are added work, without fabricated pre-extraction baselines.",
+    "interval_coverage": "Paired bootstrap intervals are reported for ordinary timing. Original allocation comparisons do not report intervals; null in the projection preserves that absence."
+  },
+  "equivalent_work": {
+    "fixtures": [
+      "TH",
+      "DB",
+      "AX",
+      "coordination-SP",
+      "virtual-H",
+      "hidden-bonds",
+      "chain16",
+      "chain128",
+      "chain512"
+    ],
+    "typed_target_and_native_mapping_match": true,
+    "prepared_H_dimensions_and_schema_preserved": true,
+    "one_capture_check_projection_pack_target_query_per_workflow": true,
+    "pair_or_query_repacks": 0,
+    "operation_local_weak_references_released": true,
+    "fixture_carriers": "Intentionally live in harness; release checks concern operation-local captures/graphs/callables/referents."
+  },
+  "metric_accounting": {
+    "original_comparisons": 90,
+    "adverse_metrics": 72,
+    "adverse_time_metrics": 18,
+    "adverse_allocation_metrics": 54,
+    "unchanged_after_release_metrics": 18,
+    "unchanged_after_release_median_bytes_each": 120,
+    "initial_explicit_local_acceptances": 71,
+    "initial_required_repeat_open": 1,
+    "final_explicit_local_dispositions": 72,
+    "root_verified_original_bindings": 719
+  },
+  "raw_observation_bindings": {
+    "source/TH": {
+      "work": {
+        "real_rows": 5,
+        "augmented_V": 5,
+        "augmented_E": 4,
+        "virtual_H_count": 0
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/source-cost-attempt1/TH/observations.json",
+        "sha256": "d0fa948981d6f570cbd49cefc1695bcbb90a2023b6ab1f603da67c8b313ede15",
+        "size": 25413
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-source-attempt1/TH/observations.json",
+        "sha256": "a0fd5c46e07c70d2ad951231b2325d271a5f66f9f2b141365621199f4116906b",
+        "size": 28931
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-source-attempt1/TH/observations.json",
+        "sha256": "0a4fa6e71c529db832149574049d96aeee4e781fa5dd8eae301d28cca8003b89",
+        "size": 30225
+      }
+    },
+    "source/DB": {
+      "work": {
+        "real_rows": 6,
+        "augmented_V": 6,
+        "augmented_E": 5,
+        "virtual_H_count": 0
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/source-cost-attempt1/DB/observations.json",
+        "sha256": "3fad38eb05997e073c020870baad10256f0b940275a86f4c688b0ee4dc2efd16",
+        "size": 25594
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-source-attempt1/DB/observations.json",
+        "sha256": "68ce9e6bf44d9bcb89c9ea03cfe8a386295df0076074d1ac2c50a69bd6169357",
+        "size": 29112
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-source-attempt1/DB/observations.json",
+        "sha256": "ab3b0cf5fd2ba1d9b67f0dd4aeacb54585f936dde0ca243950bdaa83ebfeb30d",
+        "size": 30399
+      }
+    },
+    "source/AX": {
+      "work": {
+        "real_rows": 7,
+        "augmented_V": 7,
+        "augmented_E": 6,
+        "virtual_H_count": 0
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/source-cost-attempt1/AX/observations.json",
+        "sha256": "7b5b12924235bb0e491bcf07a4b147a547d85c6d67dd03f1afd4961f7b6b81d5",
+        "size": 25367
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-source-attempt1/AX/observations.json",
+        "sha256": "cc8c639164ee768c70a048d4555d9cd3501be00f589dd499f7aa4a264f122f6d",
+        "size": 28885
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-source-attempt1/AX/observations.json",
+        "sha256": "43079fbe969cb306751c906c206387d655f5279eafece5545062037ffdd7a46a",
+        "size": 30171
+      }
+    },
+    "source/coordination-SP": {
+      "work": {
+        "real_rows": 5,
+        "augmented_V": 5,
+        "augmented_E": 4,
+        "virtual_H_count": 0
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/source-cost-attempt1/coordination-SP/observations.json",
+        "sha256": "35f2182d5cebff12fc94ab04924545c61e5e5f67aecaee09dca12cd09d242357",
+        "size": 25372
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-source-attempt1/coordination-SP/observations.json",
+        "sha256": "0779a4ea42128879e1873d4bfdf3a6c550d745046bd0359168f3174810c5abd2",
+        "size": 28903
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-source-attempt1/coordination-SP/observations.json",
+        "sha256": "51b4178b924df09f217d29206e91fb0cd941132df7f2ac5983a1af9536442ca1",
+        "size": 30200
+      }
+    },
+    "source/virtual-H": {
+      "work": {
+        "real_rows": 2,
+        "augmented_V": 3,
+        "augmented_E": 2,
+        "virtual_H_count": 1
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/source-cost-attempt1/virtual-H/observations.json",
+        "sha256": "2c0cbb03328e15ad255046285490c13c4ae32b26296b0890ab3c5860add116c2",
+        "size": 25047
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-source-attempt1/virtual-H/observations.json",
+        "sha256": "844bf83dece62253ade1c5c5900c4b15f2986a114d9aa34c867755c08c9c1928",
+        "size": 28580
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-source-attempt1/virtual-H/observations.json",
+        "sha256": "7bba76fa3b3927f2d820307d191957ca9ef4272699e1098bfec8652c14c50bcb",
+        "size": 29913
+      }
+    },
+    "source/hidden-bonds": {
+      "work": {
+        "real_rows": 4,
+        "augmented_V": 4,
+        "augmented_E": 3,
+        "virtual_H_count": 0
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/source-cost-attempt1/hidden-bonds/observations.json",
+        "sha256": "bbe7228e501c8b5cd70c74080540c22e47ae27906218488390d3672d41995455",
+        "size": 25303
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-source-attempt1/hidden-bonds/observations.json",
+        "sha256": "868769ea5c8b1753acf45cd9926e2f6d657c9c83e201770d71c9a9feaba2a5f3",
+        "size": 28832
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-source-attempt1/hidden-bonds/observations.json",
+        "sha256": "9147c015b782532a17ff22e31e3157cea3218ba6dea05db8e9c406aefcef8b95",
+        "size": 30116
+      }
+    },
+    "source/chain16": {
+      "work": {
+        "real_rows": 16,
+        "augmented_V": 16,
+        "augmented_E": 15,
+        "virtual_H_count": 0
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/source-cost-attempt1/chain16/observations.json",
+        "sha256": "eca08fe2a16d44b5f5c5eea267be6b55e4dc7e94e1f7046f0bd29a41b274c8e6",
+        "size": 26490
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-source-attempt1/chain16/observations.json",
+        "sha256": "84d611aaf036ca6b4b517a5a4d900034c3d4a7da948735eeca2268a7f7e8151d",
+        "size": 29995
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-source-attempt1/chain16/observations.json",
+        "sha256": "edce3a0d910fd7bca2738a5645b5e9bea8d310eb876e80df78272373cbae81fd",
+        "size": 31077
+      }
+    },
+    "source/chain128": {
+      "work": {
+        "real_rows": 128,
+        "augmented_V": 128,
+        "augmented_E": 127,
+        "virtual_H_count": 0
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/source-cost-attempt1/chain128/observations.json",
+        "sha256": "6edc5b8304de61256e04967212c26203e1100c821877149cfbefd7318013ab51",
+        "size": 40399
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-source-attempt1/chain128/observations.json",
+        "sha256": "55a77d82d4f98f5d3ae6ff5a49d8614b4c62da4b622a4b39a739d92069809277",
+        "size": 43844
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-source-attempt1/chain128/observations.json",
+        "sha256": "d572883a9f8b7f058638e4a166b00b4c78d38992935aa49908f561d34078d71a",
+        "size": 41396
+      }
+    },
+    "source/chain512": {
+      "work": {
+        "real_rows": 512,
+        "augmented_V": 512,
+        "augmented_E": 511,
+        "virtual_H_count": 0
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/source-cost-attempt1/chain512/observations.json",
+        "sha256": "1cc991ad8a902deddf108586894012eaba6404d6ae50d056dc6126d1996a5429",
+        "size": 87784
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-source-attempt1/chain512/observations.json",
+        "sha256": "fd93de9587d0b959d5840045fc321d9a29e3a908918789497811f1447731c27a",
+        "size": 91150
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-source-attempt1/chain512/observations.json",
+        "sha256": "2c0f55047505533c0a1a8280b63a99af8d741685c1a429125edfc5ce371c18c6",
+        "size": 75806
+      }
+    },
+    "installed/TH": {
+      "work": {
+        "real_rows": 5,
+        "augmented_V": 5,
+        "augmented_E": 4,
+        "virtual_H_count": 0
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/installed-cost-attempt1/TH/observations.json",
+        "sha256": "eb3686ceb373cca2b9da51ecde0a1682b8151e227984a38a8b0cf3fa15f7a9ad",
+        "size": 25418
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-installed-attempt1/TH/observations.json",
+        "sha256": "c677b8b2779b5bd98e077b14b52267a10c738f99c1b14a2225ae234b50ec72c3",
+        "size": 28938
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-installed-attempt1/TH/observations.json",
+        "sha256": "94ac09be78756f260be166089c6eed7bd4592ede177b23ab8ac9c895954c2ccc",
+        "size": 30227
+      }
+    },
+    "installed/DB": {
+      "work": {
+        "real_rows": 6,
+        "augmented_V": 6,
+        "augmented_E": 5,
+        "virtual_H_count": 0
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/installed-cost-attempt1/DB/observations.json",
+        "sha256": "0313884ad4122e426f367c25cf2f5ce47c5b1d2fdce2b11b29770616879c23c5",
+        "size": 25596
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-installed-attempt1/DB/observations.json",
+        "sha256": "acd38a40a6b2ed129ab0297818d984725e0e6561c1e9b848a013adb65eaa914d",
+        "size": 29118
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-installed-attempt1/DB/observations.json",
+        "sha256": "d94161c851246f7727465e87f8c272bc7ec3735c8bbd870235ddddd3f50fbfc5",
+        "size": 30401
+      }
+    },
+    "installed/AX": {
+      "work": {
+        "real_rows": 7,
+        "augmented_V": 7,
+        "augmented_E": 6,
+        "virtual_H_count": 0
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/installed-cost-attempt1/AX/observations.json",
+        "sha256": "470e67b97b12c3eb2f98a6d8c56f091e93d022ed88a184e567ca2cbb65ed312a",
+        "size": 25370
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-installed-attempt1/AX/observations.json",
+        "sha256": "9cbf7e3891a3565f31b635aa309437e7db5167209586b5ccc9e9e8210c6a9b74",
+        "size": 28891
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-installed-attempt1/AX/observations.json",
+        "sha256": "2d89e1ae7fe3995ab10f3d31712a71275cdf176216c3c67051e788911fb67aa4",
+        "size": 30153
+      }
+    },
+    "installed/coordination-SP": {
+      "work": {
+        "real_rows": 5,
+        "augmented_V": 5,
+        "augmented_E": 4,
+        "virtual_H_count": 0
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/installed-cost-attempt1/coordination-SP/observations.json",
+        "sha256": "badb967c76e1f6e03302d2240d9a5ebaaacd1478a6db7c56179b6525b16e36f2",
+        "size": 25375
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-installed-attempt1/coordination-SP/observations.json",
+        "sha256": "643b3b7f4ef3b8d323757bf9a69e415ca0857038fd9bab5596ae0c739f7a15fd",
+        "size": 28909
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-installed-attempt1/coordination-SP/observations.json",
+        "sha256": "0c044c4ec3c5220503ffc442f5b85a4d59ee025922e23e3f9a15d9169df6d5f6",
+        "size": 30185
+      }
+    },
+    "installed/virtual-H": {
+      "work": {
+        "real_rows": 2,
+        "augmented_V": 3,
+        "augmented_E": 2,
+        "virtual_H_count": 1
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/installed-cost-attempt1/virtual-H/observations.json",
+        "sha256": "a9558382e8bf0b2711b02ecafdf2cc95f3d4c763c092304dde35420a57ac46bb",
+        "size": 25054
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-installed-attempt1/virtual-H/observations.json",
+        "sha256": "25b554acec161a77ea8bf27847c2c8879690a1afe3ec2ee396b39feae012c91c",
+        "size": 28587
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-installed-attempt1/virtual-H/observations.json",
+        "sha256": "d82a56414c2ec89019f7783b6ea1220331063ac11fbac546ea372af589450b22",
+        "size": 29905
+      }
+    },
+    "installed/hidden-bonds": {
+      "work": {
+        "real_rows": 4,
+        "augmented_V": 4,
+        "augmented_E": 3,
+        "virtual_H_count": 0
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/installed-cost-attempt1/hidden-bonds/observations.json",
+        "sha256": "cd83361e0c66f8ba48c494862e0cc89b45dd2498302818711071dcb0825989a2",
+        "size": 25308
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-installed-attempt1/hidden-bonds/observations.json",
+        "sha256": "f419769338c11e9a214b80c991bcdf5a48fe6940b8ed9eabaace0e5f07be841e",
+        "size": 28838
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-installed-attempt1/hidden-bonds/observations.json",
+        "sha256": "6738e553261cd3e87bf35658bb49bf8d154513726d31d202e603ae737d19e690",
+        "size": 30123
+      }
+    },
+    "installed/chain16": {
+      "work": {
+        "real_rows": 16,
+        "augmented_V": 16,
+        "augmented_E": 15,
+        "virtual_H_count": 0
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/installed-cost-attempt1/chain16/observations.json",
+        "sha256": "d6ccd7e5a5685450eaff8f96627f5e495859dfa3aeeb99c2ae3cb9ed849760c5",
+        "size": 26495
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-installed-attempt1/chain16/observations.json",
+        "sha256": "1bfbb3e3a8eb5988ae59ed863e9acf9aaa6bf50c838235b6b806a322fe758dfe",
+        "size": 30001
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-installed-attempt1/chain16/observations.json",
+        "sha256": "573005d2d036f9b0e67fbc8d253043021cfd9cdaf914788b4bc73007ef62e4ff",
+        "size": 31079
+      }
+    },
+    "installed/chain128": {
+      "work": {
+        "real_rows": 128,
+        "augmented_V": 128,
+        "augmented_E": 127,
+        "virtual_H_count": 0
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/installed-cost-attempt1/chain128/observations.json",
+        "sha256": "549b55170d28f4477e8b290ef394d846184f8ce712898f53b3e8e19e7a03edfc",
+        "size": 40403
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-installed-attempt1/chain128/observations.json",
+        "sha256": "594b01e696167d8ff859c80c54a966fc4c0a4c0eddf5313efa7c67448c0d52c8",
+        "size": 43850
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-installed-attempt1/chain128/observations.json",
+        "sha256": "54d45b314f18b34b03f669edec25de8fd09958a6b696ebbb9477037c09436afc",
+        "size": 41397
+      }
+    },
+    "installed/chain512": {
+      "work": {
+        "real_rows": 512,
+        "augmented_V": 512,
+        "augmented_E": 511,
+        "virtual_H_count": 0
+      },
+      "historical_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/installed-cost-attempt1/chain512/observations.json",
+        "sha256": "a5e9237d131dca07309e4d2951741224be246f9f5e2435c40532adf5df2ec06f",
+        "size": 87787
+      },
+      "candidate_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-installed-attempt1/chain512/observations.json",
+        "sha256": "bd45435ca1a7a1efabb3c4546aa8fbc0c043f0008a47ef0727379651e4ed0141",
+        "size": 91156
+      },
+      "component_raw": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-installed-attempt1/chain512/observations.json",
+        "sha256": "bd81bf1ba39d4979eff4014e209bd84c258ae9d06106152e5420f0a6ae606f0e",
+        "size": 75806
+      }
+    }
+  },
+  "metric_comparisons": [
+    {
+      "mode": "source",
+      "fixture": "TH",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 0,
+      "raw_binding_key": "source/TH",
+      "historical_summary": {
+        "count": 10,
+        "median": 579069.5,
+        "MAD": 2966.0,
+        "p95_nearest_rank": 606361
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 736172.0,
+        "MAD": 4393.0,
+        "p95_nearest_rank": 789307
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2713016313240466,
+      "candidate_minus_historical": 157102.5,
+      "descriptive_paired_bootstrap_95ci": [
+        1.2578851608481372,
+        1.2845136219049669
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 0,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "TH",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 1,
+      "raw_binding_key": "source/TH",
+      "historical_summary": {
+        "count": 10,
+        "median": 17800.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 17976
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 23816.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 23920
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3379775280898876,
+      "candidate_minus_historical": 6016.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 1,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "TH",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 2,
+      "raw_binding_key": "source/TH",
+      "historical_summary": {
+        "count": 10,
+        "median": 17160.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 17264
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 23000.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 23104
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3403263403263403,
+      "candidate_minus_historical": 5840.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 2,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "TH",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 3,
+      "raw_binding_key": "source/TH",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "source",
+      "fixture": "TH",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 4,
+      "raw_binding_key": "source/TH",
+      "historical_summary": {
+        "count": 10,
+        "median": 18552.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 18704
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 24664.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 24752
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3294523501509272,
+      "candidate_minus_historical": 6112.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 3,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "DB",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 5,
+      "raw_binding_key": "source/DB",
+      "historical_summary": {
+        "count": 10,
+        "median": 658014.0,
+        "MAD": 3376.5,
+        "p95_nearest_rank": 676083
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 815256.5,
+        "MAD": 6266.5,
+        "p95_nearest_rank": 868699
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.238965280373974,
+      "candidate_minus_historical": 157242.5,
+      "descriptive_paired_bootstrap_95ci": [
+        1.2300972606136855,
+        1.261142075623246
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 4,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "DB",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 6,
+      "raw_binding_key": "source/DB",
+      "historical_summary": {
+        "count": 10,
+        "median": 21264.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 21264
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 27800.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 27800
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3073739653875094,
+      "candidate_minus_historical": 6536.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 5,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "DB",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 7,
+      "raw_binding_key": "source/DB",
+      "historical_summary": {
+        "count": 10,
+        "median": 20464.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 20464
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 27000.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 27000
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3193901485535575,
+      "candidate_minus_historical": 6536.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 6,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "DB",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 8,
+      "raw_binding_key": "source/DB",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "source",
+      "fixture": "DB",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 9,
+      "raw_binding_key": "source/DB",
+      "historical_summary": {
+        "count": 10,
+        "median": 22016.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 22016
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 28648.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 28648
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.301235465116279,
+      "candidate_minus_historical": 6632.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 7,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "AX",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 10,
+      "raw_binding_key": "source/AX",
+      "historical_summary": {
+        "count": 10,
+        "median": 724510.0,
+        "MAD": 2054.0,
+        "p95_nearest_rank": 735887
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 899897.5,
+        "MAD": 5335.0,
+        "p95_nearest_rank": 918372
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2420774040385916,
+      "candidate_minus_historical": 175387.5,
+      "descriptive_paired_bootstrap_95ci": [
+        1.2333720616148514,
+        1.2500693472354856
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 8,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "AX",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 11,
+      "raw_binding_key": "source/AX",
+      "historical_summary": {
+        "count": 10,
+        "median": 24560.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 24560
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 32248.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 32248
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.313029315960912,
+      "candidate_minus_historical": 7688.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 9,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "AX",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 12,
+      "raw_binding_key": "source/AX",
+      "historical_summary": {
+        "count": 10,
+        "median": 23760.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 23760
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 31448.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 31448
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3235690235690236,
+      "candidate_minus_historical": 7688.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 10,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "AX",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 13,
+      "raw_binding_key": "source/AX",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "source",
+      "fixture": "AX",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 14,
+      "raw_binding_key": "source/AX",
+      "historical_summary": {
+        "count": 10,
+        "median": 25232.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 25232
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 33096.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 33096
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3116677235256817,
+      "candidate_minus_historical": 7864.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 11,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "coordination-SP",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 15,
+      "raw_binding_key": "source/coordination-SP",
+      "historical_summary": {
+        "count": 10,
+        "median": 573464.0,
+        "MAD": 3506.5,
+        "p95_nearest_rank": 595741
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 726819.0,
+        "MAD": 2715.5,
+        "p95_nearest_rank": 736507
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2674187045743064,
+      "candidate_minus_historical": 153355.0,
+      "descriptive_paired_bootstrap_95ci": [
+        1.2507284456405794,
+        1.2784118435926781
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 12,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "coordination-SP",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 16,
+      "raw_binding_key": "source/coordination-SP",
+      "historical_summary": {
+        "count": 10,
+        "median": 17800.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 17800
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 23816.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 23816
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3379775280898876,
+      "candidate_minus_historical": 6016.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 13,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "coordination-SP",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 17,
+      "raw_binding_key": "source/coordination-SP",
+      "historical_summary": {
+        "count": 10,
+        "median": 17160.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 17160
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 23000.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 23000
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3403263403263403,
+      "candidate_minus_historical": 5840.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 14,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "coordination-SP",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 18,
+      "raw_binding_key": "source/coordination-SP",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "source",
+      "fixture": "coordination-SP",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 19,
+      "raw_binding_key": "source/coordination-SP",
+      "historical_summary": {
+        "count": 10,
+        "median": 18552.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 18552
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 24664.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 24664
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3294523501509272,
+      "candidate_minus_historical": 6112.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 15,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "virtual-H",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 20,
+      "raw_binding_key": "source/virtual-H",
+      "historical_summary": {
+        "count": 10,
+        "median": 376103.5,
+        "MAD": 2089.0,
+        "p95_nearest_rank": 380603
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 485892.0,
+        "MAD": 852.0,
+        "p95_nearest_rank": 491603
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.291910338510543,
+      "candidate_minus_historical": 109788.5,
+      "descriptive_paired_bootstrap_95ci": [
+        1.2840726968829836,
+        1.2986467680790825
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 16,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "virtual-H",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 21,
+      "raw_binding_key": "source/virtual-H",
+      "historical_summary": {
+        "count": 10,
+        "median": 11480.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 11480
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 14624.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 14624
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2738675958188153,
+      "candidate_minus_historical": 3144.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 17,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "virtual-H",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 22,
+      "raw_binding_key": "source/virtual-H",
+      "historical_summary": {
+        "count": 10,
+        "median": 10840.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 10840
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 13984.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 13984
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2900369003690038,
+      "candidate_minus_historical": 3144.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 18,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "virtual-H",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 23,
+      "raw_binding_key": "source/virtual-H",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "source",
+      "fixture": "virtual-H",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 24,
+      "raw_binding_key": "source/virtual-H",
+      "historical_summary": {
+        "count": 10,
+        "median": 12152.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 12152
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 15472.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 15472
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.273206056616195,
+      "candidate_minus_historical": 3320.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 19,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "hidden-bonds",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 25,
+      "raw_binding_key": "source/hidden-bonds",
+      "historical_summary": {
+        "count": 10,
+        "median": 502453.5,
+        "MAD": 2209.0,
+        "p95_nearest_rank": 518334
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 608589.5,
+        "MAD": 1402.5,
+        "p95_nearest_rank": 611560
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2112354675606798,
+      "candidate_minus_historical": 106136.0,
+      "descriptive_paired_bootstrap_95ci": [
+        1.199242803775922,
+        1.2184144659753056
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 20,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "hidden-bonds",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 26,
+      "raw_binding_key": "source/hidden-bonds",
+      "historical_summary": {
+        "count": 10,
+        "median": 14608.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 14608
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 19072.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 19072
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3055859802847756,
+      "candidate_minus_historical": 4464.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 21,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "hidden-bonds",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 27,
+      "raw_binding_key": "source/hidden-bonds",
+      "historical_summary": {
+        "count": 10,
+        "median": 13968.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 13968
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 18280.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 18280
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3087056128293242,
+      "candidate_minus_historical": 4312.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 22,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "hidden-bonds",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 28,
+      "raw_binding_key": "source/hidden-bonds",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "source",
+      "fixture": "hidden-bonds",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 29,
+      "raw_binding_key": "source/hidden-bonds",
+      "historical_summary": {
+        "count": 10,
+        "median": 15280.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 15280
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 19920.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 19920
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3036649214659686,
+      "candidate_minus_historical": 4640.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 23,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "chain16",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 30,
+      "raw_binding_key": "source/chain16",
+      "historical_summary": {
+        "count": 10,
+        "median": 1385835.0,
+        "MAD": 4202.5,
+        "p95_nearest_rank": 1408995
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 1686204.5,
+        "MAD": 6171.5,
+        "p95_nearest_rank": 1698062
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2167426136589132,
+      "candidate_minus_historical": 300369.5,
+      "descriptive_paired_bootstrap_95ci": [
+        1.2043670636508064,
+        1.2237655693548095
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 24,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "chain16",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 31,
+      "raw_binding_key": "source/chain16",
+      "historical_summary": {
+        "count": 10,
+        "median": 55016.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 55016
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 72400.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 72400
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3159808055838302,
+      "candidate_minus_historical": 17384.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 25,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "chain16",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 32,
+      "raw_binding_key": "source/chain16",
+      "historical_summary": {
+        "count": 10,
+        "median": 54088.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 54088
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 71472.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 71472
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3214021594438692,
+      "candidate_minus_historical": 17384.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 26,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "chain16",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 33,
+      "raw_binding_key": "source/chain16",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "source",
+      "fixture": "chain16",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 34,
+      "raw_binding_key": "source/chain16",
+      "historical_summary": {
+        "count": 10,
+        "median": 55688.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 55688
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 73120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 73120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3130297371067374,
+      "candidate_minus_historical": 17432.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 27,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "chain128",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 35,
+      "raw_binding_key": "source/chain128",
+      "historical_summary": {
+        "count": 10,
+        "median": 14783236.0,
+        "MAD": 36034.0,
+        "p95_nearest_rank": 14857813
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 16342470.5,
+        "MAD": 234294.5,
+        "p95_nearest_rank": 16752403
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.1054731521569432,
+      "candidate_minus_historical": 1559234.5,
+      "descriptive_paired_bootstrap_95ci": [
+        1.0917992274525292,
+        1.1260254355640817
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 28,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "chain128",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 36,
+      "raw_binding_key": "source/chain128",
+      "historical_summary": {
+        "count": 10,
+        "median": 405168.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 405168
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 491624.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 491624
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2133830904711131,
+      "candidate_minus_historical": 86456.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 29,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "chain128",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 37,
+      "raw_binding_key": "source/chain128",
+      "historical_summary": {
+        "count": 10,
+        "median": 400200.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 400200
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 462656.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 462656
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.1560619690154923,
+      "candidate_minus_historical": 62456.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 30,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "chain128",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 38,
+      "raw_binding_key": "source/chain128",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "source",
+      "fixture": "chain128",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 39,
+      "raw_binding_key": "source/chain128",
+      "historical_summary": {
+        "count": 10,
+        "median": 405672.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 405672
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 492416.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 492416
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2138279200930802,
+      "candidate_minus_historical": 86744.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 31,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "chain512",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 40,
+      "raw_binding_key": "source/chain512",
+      "historical_summary": {
+        "count": 10,
+        "median": 230295534.0,
+        "MAD": 2953040.5,
+        "p95_nearest_rank": 238646285
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 249679105.0,
+        "MAD": 3261077.0,
+        "p95_nearest_rank": 257137720
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0841682453121302,
+      "candidate_minus_historical": 19383571.0,
+      "descriptive_paired_bootstrap_95ci": [
+        1.063047925068268,
+        1.103223136269719
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 32,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "chain512",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 41,
+      "raw_binding_key": "source/chain512",
+      "historical_summary": {
+        "count": 10,
+        "median": 1639796.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 1639796
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 1983996.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 1983996
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2099041588099984,
+      "candidate_minus_historical": 344200.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 33,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "chain512",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 42,
+      "raw_binding_key": "source/chain512",
+      "historical_summary": {
+        "count": 10,
+        "median": 1621644.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 1621644
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 1785812.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 1785812
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.1012355362829327,
+      "candidate_minus_historical": 164168.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 34,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "source",
+      "fixture": "chain512",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 43,
+      "raw_binding_key": "source/chain512",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "source",
+      "fixture": "chain512",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 44,
+      "raw_binding_key": "source/chain512",
+      "historical_summary": {
+        "count": 10,
+        "median": 1640300.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 1640300
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 1984788.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 1984788
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2100152411144303,
+      "candidate_minus_historical": 344488.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 35,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "TH",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 45,
+      "raw_binding_key": "installed/TH",
+      "historical_summary": {
+        "count": 10,
+        "median": 576560.0,
+        "MAD": 7744.5,
+        "p95_nearest_rank": 613314
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 744337.5,
+        "MAD": 3927.5,
+        "p95_nearest_rank": 781813
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2909974677396976,
+      "candidate_minus_historical": 167777.5,
+      "descriptive_paired_bootstrap_95ci": [
+        1.2733006618708975,
+        1.3067806381808083
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 36,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "TH",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 46,
+      "raw_binding_key": "installed/TH",
+      "historical_summary": {
+        "count": 10,
+        "median": 17800.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 17976
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 23816.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 23920
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3379775280898876,
+      "candidate_minus_historical": 6016.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 37,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "TH",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 47,
+      "raw_binding_key": "installed/TH",
+      "historical_summary": {
+        "count": 10,
+        "median": 17160.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 17264
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 23000.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 23104
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3403263403263403,
+      "candidate_minus_historical": 5840.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 38,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "TH",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 48,
+      "raw_binding_key": "installed/TH",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "installed",
+      "fixture": "TH",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 49,
+      "raw_binding_key": "installed/TH",
+      "historical_summary": {
+        "count": 10,
+        "median": 18552.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 18704
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 24664.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 24752
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3294523501509272,
+      "candidate_minus_historical": 6112.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 39,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "DB",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 50,
+      "raw_binding_key": "installed/DB",
+      "historical_summary": {
+        "count": 10,
+        "median": 652077.5,
+        "MAD": 1052.0,
+        "p95_nearest_rank": 656596
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 826342.5,
+        "MAD": 1958.5,
+        "p95_nearest_rank": 847247
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.267245841176854,
+      "candidate_minus_historical": 174265.0,
+      "descriptive_paired_bootstrap_95ci": [
+        1.2627779013446883,
+        1.2721752714565917
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 40,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "DB",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 51,
+      "raw_binding_key": "installed/DB",
+      "historical_summary": {
+        "count": 10,
+        "median": 21264.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 21264
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 27800.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 27800
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3073739653875094,
+      "candidate_minus_historical": 6536.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 41,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "DB",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 52,
+      "raw_binding_key": "installed/DB",
+      "historical_summary": {
+        "count": 10,
+        "median": 20464.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 20464
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 27000.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 27000
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3193901485535575,
+      "candidate_minus_historical": 6536.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 42,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "DB",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 53,
+      "raw_binding_key": "installed/DB",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "installed",
+      "fixture": "DB",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 54,
+      "raw_binding_key": "installed/DB",
+      "historical_summary": {
+        "count": 10,
+        "median": 22016.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 22016
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 28648.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 28648
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.301235465116279,
+      "candidate_minus_historical": 6632.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 43,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "AX",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 55,
+      "raw_binding_key": "installed/AX",
+      "historical_summary": {
+        "count": 10,
+        "median": 718214.0,
+        "MAD": 1889.0,
+        "p95_nearest_rank": 728032
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 913869.0,
+        "MAD": 4112.5,
+        "p95_nearest_rank": 971403
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2724188055370684,
+      "candidate_minus_historical": 195655.0,
+      "descriptive_paired_bootstrap_95ci": [
+        1.265944472643077,
+        1.3019300210813405
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 44,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "AX",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 56,
+      "raw_binding_key": "installed/AX",
+      "historical_summary": {
+        "count": 10,
+        "median": 24560.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 24560
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 32248.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 32248
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.313029315960912,
+      "candidate_minus_historical": 7688.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 45,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "AX",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 57,
+      "raw_binding_key": "installed/AX",
+      "historical_summary": {
+        "count": 10,
+        "median": 23760.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 23760
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 31448.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 31448
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3235690235690236,
+      "candidate_minus_historical": 7688.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 46,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "AX",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 58,
+      "raw_binding_key": "installed/AX",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "installed",
+      "fixture": "AX",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 59,
+      "raw_binding_key": "installed/AX",
+      "historical_summary": {
+        "count": 10,
+        "median": 25232.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 25232
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 33096.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 33096
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3116677235256817,
+      "candidate_minus_historical": 7864.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 47,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "coordination-SP",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 60,
+      "raw_binding_key": "installed/coordination-SP",
+      "historical_summary": {
+        "count": 10,
+        "median": 570704.0,
+        "MAD": 5921.0,
+        "p95_nearest_rank": 587916
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 734749.0,
+        "MAD": 2986.0,
+        "p95_nearest_rank": 755564
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2874432280131207,
+      "candidate_minus_historical": 164045.0,
+      "descriptive_paired_bootstrap_95ci": [
+        1.2673352267027351,
+        1.3027624621423377
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 48,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "coordination-SP",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 61,
+      "raw_binding_key": "installed/coordination-SP",
+      "historical_summary": {
+        "count": 10,
+        "median": 17800.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 17800
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 23816.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 23816
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3379775280898876,
+      "candidate_minus_historical": 6016.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 49,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "coordination-SP",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 62,
+      "raw_binding_key": "installed/coordination-SP",
+      "historical_summary": {
+        "count": 10,
+        "median": 17160.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 17160
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 23000.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 23000
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3403263403263403,
+      "candidate_minus_historical": 5840.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 50,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "coordination-SP",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 63,
+      "raw_binding_key": "installed/coordination-SP",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "installed",
+      "fixture": "coordination-SP",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 64,
+      "raw_binding_key": "installed/coordination-SP",
+      "historical_summary": {
+        "count": 10,
+        "median": 18552.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 18552
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 24664.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 24664
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3294523501509272,
+      "candidate_minus_historical": 6112.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 51,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "virtual-H",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 65,
+      "raw_binding_key": "installed/virtual-H",
+      "historical_summary": {
+        "count": 10,
+        "median": 372306.5,
+        "MAD": 877.0,
+        "p95_nearest_rank": 375663
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 492153.5,
+        "MAD": 2520.0,
+        "p95_nearest_rank": 547228
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3219041300648793,
+      "candidate_minus_historical": 119847.0,
+      "descriptive_paired_bootstrap_95ci": [
+        1.3121876879887708,
+        1.3488377087600705
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 52,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "virtual-H",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 66,
+      "raw_binding_key": "installed/virtual-H",
+      "historical_summary": {
+        "count": 10,
+        "median": 11480.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 11480
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 14624.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 14624
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2738675958188153,
+      "candidate_minus_historical": 3144.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 53,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "virtual-H",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 67,
+      "raw_binding_key": "installed/virtual-H",
+      "historical_summary": {
+        "count": 10,
+        "median": 10840.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 10840
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 13984.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 13984
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2900369003690038,
+      "candidate_minus_historical": 3144.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 54,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "virtual-H",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 68,
+      "raw_binding_key": "installed/virtual-H",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "installed",
+      "fixture": "virtual-H",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 69,
+      "raw_binding_key": "installed/virtual-H",
+      "historical_summary": {
+        "count": 10,
+        "median": 12152.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 12152
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 15472.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 15472
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.273206056616195,
+      "candidate_minus_historical": 3320.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 55,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "hidden-bonds",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 70,
+      "raw_binding_key": "installed/hidden-bonds",
+      "historical_summary": {
+        "count": 10,
+        "median": 500054.0,
+        "MAD": 4689.0,
+        "p95_nearest_rank": 517662
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 626208.0,
+        "MAD": 8726.5,
+        "p95_nearest_rank": 637670
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2522807536786027,
+      "candidate_minus_historical": 126154.0,
+      "descriptive_paired_bootstrap_95ci": [
+        1.2290072821461313,
+        1.2656869132748587
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 56,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "hidden-bonds",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 71,
+      "raw_binding_key": "installed/hidden-bonds",
+      "historical_summary": {
+        "count": 10,
+        "median": 14608.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 14608
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 19072.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 19072
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3055859802847756,
+      "candidate_minus_historical": 4464.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 57,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "hidden-bonds",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 72,
+      "raw_binding_key": "installed/hidden-bonds",
+      "historical_summary": {
+        "count": 10,
+        "median": 13968.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 13968
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 18280.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 18280
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3087056128293242,
+      "candidate_minus_historical": 4312.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 58,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "hidden-bonds",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 73,
+      "raw_binding_key": "installed/hidden-bonds",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "installed",
+      "fixture": "hidden-bonds",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 74,
+      "raw_binding_key": "installed/hidden-bonds",
+      "historical_summary": {
+        "count": 10,
+        "median": 15280.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 15280
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 19920.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 19920
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3036649214659686,
+      "candidate_minus_historical": 4640.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 59,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "chain16",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 75,
+      "raw_binding_key": "installed/chain16",
+      "historical_summary": {
+        "count": 10,
+        "median": 1370651.5,
+        "MAD": 10359.5,
+        "p95_nearest_rank": 1416438
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 1713250.5,
+        "MAD": 9744.0,
+        "p95_nearest_rank": 1735563
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2499533980738358,
+      "candidate_minus_historical": 342599.0,
+      "descriptive_paired_bootstrap_95ci": [
+        1.226601318332855,
+        1.2658530579119018
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 60,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "chain16",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 76,
+      "raw_binding_key": "installed/chain16",
+      "historical_summary": {
+        "count": 10,
+        "median": 55016.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 55016
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 72400.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 72400
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3159808055838302,
+      "candidate_minus_historical": 17384.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 61,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "chain16",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 77,
+      "raw_binding_key": "installed/chain16",
+      "historical_summary": {
+        "count": 10,
+        "median": 54088.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 54088
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 71472.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 71472
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3214021594438692,
+      "candidate_minus_historical": 17384.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 62,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "chain16",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 78,
+      "raw_binding_key": "installed/chain16",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "installed",
+      "fixture": "chain16",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 79,
+      "raw_binding_key": "installed/chain16",
+      "historical_summary": {
+        "count": 10,
+        "median": 55688.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 55688
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 73120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 73120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.3130297371067374,
+      "candidate_minus_historical": 17432.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 63,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "chain128",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 80,
+      "raw_binding_key": "installed/chain128",
+      "historical_summary": {
+        "count": 10,
+        "median": 14651140.5,
+        "MAD": 82927.0,
+        "p95_nearest_rank": 14758283
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 16590516.5,
+        "MAD": 224771.5,
+        "p95_nearest_rank": 16900124
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.1323703093284785,
+      "candidate_minus_historical": 1939376.0,
+      "descriptive_paired_bootstrap_95ci": [
+        1.114073609917178,
+        1.171526266257242
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 64,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "chain128",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 81,
+      "raw_binding_key": "installed/chain128",
+      "historical_summary": {
+        "count": 10,
+        "median": 405168.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 405168
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 491624.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 491624
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2133830904711131,
+      "candidate_minus_historical": 86456.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 65,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "chain128",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 82,
+      "raw_binding_key": "installed/chain128",
+      "historical_summary": {
+        "count": 10,
+        "median": 400200.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 400200
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 462656.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 462656
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.1560619690154923,
+      "candidate_minus_historical": 62456.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 66,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "chain128",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 83,
+      "raw_binding_key": "installed/chain128",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "installed",
+      "fixture": "chain128",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 84,
+      "raw_binding_key": "installed/chain128",
+      "historical_summary": {
+        "count": 10,
+        "median": 405672.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 405672
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 492416.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 492416
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2138279200930802,
+      "candidate_minus_historical": 86744.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 67,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "chain512",
+      "metric": "complete_work_ns",
+      "root_comparison_index": 85,
+      "raw_binding_key": "installed/chain512",
+      "historical_summary": {
+        "count": 10,
+        "median": 246890842.5,
+        "MAD": 5136880.5,
+        "p95_nearest_rank": 259778741
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 255729187.0,
+        "MAD": 6199266.5,
+        "p95_nearest_rank": 262239294
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0357985918412507,
+      "candidate_minus_historical": 8838344.5,
+      "descriptive_paired_bootstrap_95ci": [
+        0.9879678176170452,
+        1.1086391064835066
+      ],
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 68,
+      "initial_root_disposition": "REPEAT_REQUIRED_INCONCLUSIVE_TIMING",
+      "final_root_disposition": "ACCEPT_OBSERVED_BOUNDED_REPRESENTATION_COST_FOR_STAGE6_ONLY_AFTER_FROZEN_NEUTRAL_NOISE_CLASSIFICATION"
+    },
+    {
+      "mode": "installed",
+      "fixture": "chain512",
+      "metric": "python_peak_bytes",
+      "root_comparison_index": 86,
+      "raw_binding_key": "installed/chain512",
+      "historical_summary": {
+        "count": 10,
+        "median": 1639796.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 1639796
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 1983996.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 1983996
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2099041588099984,
+      "candidate_minus_historical": 344200.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 69,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "chain512",
+      "metric": "python_with_result_bytes",
+      "root_comparison_index": 87,
+      "raw_binding_key": "installed/chain512",
+      "historical_summary": {
+        "count": 10,
+        "median": 1621644.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 1621644
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 1785812.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 1785812
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.1012355362829327,
+      "candidate_minus_historical": 164168.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 70,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    },
+    {
+      "mode": "installed",
+      "fixture": "chain512",
+      "metric": "python_after_release_delta_bytes",
+      "root_comparison_index": 88,
+      "raw_binding_key": "installed/chain512",
+      "historical_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 120.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 120
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.0,
+      "candidate_minus_historical": 0.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": false,
+      "final_root_disposition": "UNCHANGED_AFTER_RELEASE_DELTA_NO_ADVERSE_METRIC"
+    },
+    {
+      "mode": "installed",
+      "fixture": "chain512",
+      "metric": "release_probe_peak_bytes",
+      "root_comparison_index": 89,
+      "raw_binding_key": "installed/chain512",
+      "historical_summary": {
+        "count": 10,
+        "median": 1640300.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 1640300
+      },
+      "candidate_summary": {
+        "count": 10,
+        "median": 1984788.0,
+        "MAD": 0.0,
+        "p95_nearest_rank": 1984788
+      },
+      "measured_pairs": 10,
+      "excluded_pairs": 0,
+      "median_ratio": 1.2100152411144303,
+      "candidate_minus_historical": 344488.0,
+      "descriptive_paired_bootstrap_95ci": null,
+      "original_comparison_status": "complete_equivalent_work_observations",
+      "observed_increase": true,
+      "initial_root_disposition_index": 71,
+      "initial_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY",
+      "final_root_disposition": "ACCEPT_MEASURED_NECESSARY_BOUNDED_OVERHEAD_FOR_STAGE6_ONLY"
+    }
+  ],
+  "disposition_trace": "Each adverse metric names its original decisions[] index and immutable root comparison index. Root decisions retain exact work/raw/spread/uncertainty/reason/scope. Sole override refers to root_final_metric_decision in final decision; other71 decisions unchanged.",
+  "accepted_mechanism_and_scope": {
+    "attributed_by": "root",
+    "basis": {
+      "contract": "Accepted S6-R2-09: exact once-only raw capture and freshness checking, strong transient referents, deeply immutable projected graph and one ordinary native dictionary pack per target.",
+      "observed_work": "All measured old/new workloads project the same prepared facts and consume the same fully pinned mapping; recursive target types/order/scalars/float bytes, native identities and query work match. All source/installed operation-local capture/check/projection/pack/native/query counts are one; no per-query repacking.",
+      "time_cause": "Additional per-owner capture/check, scalar transport and recursive immutable graph/native materialization passes explain the bounded added Python work. Component observations separately locate these passes; their nested/instrumented times overlap and are not added or substituted for the ordinary total. Existing mapping consumption dominates the largest chain and is unchanged in identity/work.",
+      "allocation_cause": "The immutable graph plus one native dictionary materialization and transient identity referents require additional bounded containers while the result is live. Complete represented topology is held once per operation. All observed local weak references are released and old/new median after-release traced delta is exactly 120 bytes in every fixture.",
+      "scaling": "For chains16/128/512, capture/check/freeze/pack component timings and extra Python peak allocation scale with the transported atoms/bonds. No additional target/query count or persistent owner is introduced. This is bounded O(V+E) representation overhead, not a proof of total native matcher complexity or a causal decomposition of ordinary timings.",
+      "allocation_limit": "Python tracemalloc excludes native allocation. RSS/high-water includes differing guard/module/input bootstrap and process history; retain those raw values without inferring comparable native allocation, a native leak or a global memory pass.",
+      "uncertainty": "Historical/candidate processes were separated in time. Existing paired-bootstrap intervals are descriptive. No exclusive machine-load or contemporaneous attribution claim; installed chain512 timing remains open for a fixed interleaved repeat.",
+      "scope": "Accept measured necessary bounded overhead only for Stage6 extraction/capture safety. Preserve every adverse observation and all Section12/Stage12 global speed, memory, scientific, native/SDK/sdist gates. No parity, speedup or global performance waiver."
+    },
+    "mechanism": "Once-only capture/raw checks, scalar snapshot, deep immutable graph and one native dictionary pack add measured bounded O(V+E) representation work. Fixed16/128/512 observations and one-path counts support attribution; existing complete mapping work retained.",
+    "scope": "Stage6 extraction/capture safety only. No global performance threshold, workload, weight or scientific rule changes."
+  },
+  "installed_chain512_repeat": {
+    "original_observation": {
+      "median_ratio": 1.0357985918412507,
+      "descriptive_95ci": [
+        0.9879678176170452,
+        1.1086391064835066
+      ],
+      "status": "Original adverse median and inconclusive classification retained unchanged; repeat adds evidence without replacing it."
+    },
+    "original_unexecuted_release": {
+      "path": ".plan20-artifacts/20261030/stage6/root-cost-disposition/attempt1/repeat-release.json",
+      "sha256": "dc94a42653057dfac25fc9d131af377a7a983e25df26f651074cd182c06f14bd",
+      "bytes": 2184
+    },
+    "executed_release": {
+      "path": ".plan20-artifacts/20261030/stage6/root-cost-disposition/attempt1/repeat-release-revision2.json",
+      "sha256": "1655d30ad60a9fdc735ef4eceb2c1a9f0964a7f80d8b350d6d0aad9344b5c79d",
+      "bytes": 2855
+    },
+    "packet": {
+      "path": ".plan20-artifacts/20261030/stage6/cost-repeat-support/attempt1/packet_revision3.json",
+      "sha256": "3e9b508b8956eebacb5028f59ffda8babd215d5d174e7bd9ca669fc42788dce3",
+      "bytes": 7002
+    },
+    "execution_index": {
+      "path": ".plan20-artifacts/20261030/stage6/cost-repeat-support/attempt1/execution-evidence-index-attempt1.json",
+      "sha256": "303640afc86f39af0b09a0626fd59681371fd96e89dbb79e1b2999a9a9ebed1d",
+      "bytes": 16396
+    },
+    "actual_command": {
+      "path": ".plan20-artifacts/20261030/stage6/cost-repeat-support/attempt1/execution-attempt1/command.json",
+      "sha256": "3b39d332d220e3f40c41c920793cf14446deebbae25a0008deaafdc388632597",
+      "bytes": 1436898
+    },
+    "warmup_pairs": 6,
+    "fixed_measured_pairs": 60,
+    "order_seed": 20261030,
+    "frozen_input_bindings": 2629,
+    "frozen_tree_memberships": 4,
+    "technical_outcomes": {
+      "workers": {
+        "baseline": {
+          "returncode": 0,
+          "raw_stdout_records": 68,
+          "worker_event_records": 133,
+          "ready_origin_count": 124,
+          "stopped_origin_count": 124,
+          "origins_match_immutable_inventory": true,
+          "native_matches": true,
+          "all_66_full_identity_mappings_and_H_checks": true,
+          "timing_range_ns": [
+            217627832,
+            256746976
+          ],
+          "stderr_empty": true
+        },
+        "candidate": {
+          "returncode": 0,
+          "raw_stdout_records": 68,
+          "worker_event_records": 133,
+          "ready_origin_count": 135,
+          "stopped_origin_count": 135,
+          "origins_match_immutable_inventory": true,
+          "native_matches": true,
+          "all_66_full_identity_mappings_and_H_checks": true,
+          "timing_range_ns": [
+            231915872,
+            257092067
+          ],
+          "stderr_empty": true
+        }
+      },
+      "pair_slots": 66,
+      "warmup_pairs": 6,
+      "measured_pairs": 60,
+      "returned_pairs": 66,
+      "failed_pairs": 0,
+      "unexecuted_pairs": 0,
+      "excluded_pairs": 0,
+      "controller_pair_event_records": 264,
+      "one_worker_executes_at_a_time": true
+    },
+    "observations": {
+      "measured_pair_count": 60,
+      "excluded_pairs": [],
+      "baseline_median_ns": 234082379.5,
+      "candidate_median_ns": 239750766.0,
+      "median_ratio": 1.024215348938727,
+      "paired_bootstrap_95ci": [
+        0.9522841362211566,
+        1.0694335062571536
+      ],
+      "observed_increase": true,
+      "within_recommended_neutral_band_with_CI_covering1": true,
+      "baseline_MAD_ns": 14848293.5,
+      "candidate_MAD_ns": 3937850.5,
+      "baseline_p95_nearest_rank_ns": 256471937,
+      "candidate_p95_nearest_rank_ns": 248890517,
+      "order_median_ratios": {
+        "baseline": 1.0366828189165689,
+        "candidate": 0.9769974771308086
+      },
+      "interpretation": "Descriptive paired repeat only; original evidence retained; root applies frozen policy and owns attribution/disposition. No automatic acceptance or scientific conclusion."
+    },
+    "root_verified_bindings": 311,
+    "final_metric_decision": {
+      "mode": "installed",
+      "fixture": "chain512",
+      "metric": "complete_work_ns",
+      "real_rows": 512,
+      "augmented_V": 512,
+      "augmented_E": 511,
+      "virtual_H_count": 0,
+      "decision": "ACCEPT_OBSERVED_BOUNDED_REPRESENTATION_COST_FOR_STAGE6_ONLY_AFTER_FROZEN_NEUTRAL_NOISE_CLASSIFICATION",
+      "reason": "The exact same full-work target/mapping/native/H contracts passed for all66 slots, including60 balanced measured pairs. The repeat point ratio1.024215 lies inside the precommitted0.97-1.03 recommended neutral band and its descriptive interval covers1, satisfying the frozen neutral-noise classification. Conservatively retain the positive median as a Stage6-local bounded cost, along with the original3.58percent adverse point; no speedup or global parity is inferred.",
+      "mechanism": "The accepted once-only capture/drift checks, scalar snapshot, recursive immutable graph and one native dictionary pack add O(V+E) representation work. Separately measured16/128/512 capture/check/freeze/pack scaling, one-per-workflow counts, matched native identities and zero local weak-reference retention support this cause. Instrumented nested times are not summed or used as ordinary totals.",
+      "uncertainty": "The confidence interval is broad and order-conditioned ratios1.036683 and0.976997 differ. The causal sign and exact magnitude are not established; shared scheduling/frequency and process/cache/history effects remain. Neutral-noise classification follows the unchanged precommitted rule; it is not an equivalence-confidence bound, end-to-end parity claim or erasure of the original inconclusive sample.",
+      "allocation": "No new allocation evidence claimed. Both persistent workers are resident; only timing is compared. The original source/installed allocation observations and all54 explicit Stage6-local allocation decisions remain intact.",
+      "global_limits": "Section12/Stage12 family/end-to-end time, overall RSS/native allocation, scientific validation, clean-native/ABI/SDK/sdist gates remain OPEN. No new threshold, workload exclusion, optional stopping or performance waiver."
+    },
+    "allocation_repeat": false,
+    "native_rebuild": false,
+    "baseline_wheel": {
+      "path": ".plan20-artifacts/20261030/stage5/final-validation-attempt4/matrix-final/3.11/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "sha256": "48587aead9844f97343c83426ef6d8e3da5c4409b609f9507c618e8f083793f4",
+      "bytes": 6267656
+    },
+    "candidate_wheel": {
+      "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "sha256": "a515a469901666408fde2789ff8a4a30f8c52c9a23d9334cd20b428dbf908522",
+      "bytes": 6278489
+    },
+    "limitations": [
+      "Focused installed chain512 timing only; original preservation, all timing/allocation results, failures, and root dispositions stay retained.",
+      "Two distinct persistent interpreter processes each retain the same nine fixture owners; they execute one worker command at a time. Both are resident, so this is not the historical single-process memory allocation.",
+      "Each fixture is prepared once against its historical typed target/H/dimensions. Earlier eight fixtures are not remeasured; historical preceding allocation/cache history is not reproduced. Six chain512 warmup pairs precede the fixed 60 measured pairs.",
+      "One ordinary production projection/pack/native/query/full-mapping workflow per sample. No monkeypatches, component timers, tracemalloc or allocation repeat. Validation, GC, raw H, RSS/load and protocol IO occur outside timing.",
+      "Both sides use exactly two perf_counter_ns reads. The original historical total included three intermediate clock reads; this repeat uses a matched timing boundary and does not overwrite that original evidence.",
+      "Baseline uses retained old installed st._gate6_projection and graph.target_spec; candidate uses frozen installed operations._gate6_projection and one measured operations._pack_gate6_target. Both construct _NativeTarget, build the pinned query and consume every mapping. Typed validation uses one additional candidate pack outside timing.",
+      "Balanced randomized pair order is precommitted separately for warmup/measured phases (seed 20261030). Pairs are temporally adjacent, not simultaneous; GC and interpreter/cache/allocator effects and shared CPU scheduling/frequency still matter.",
+      "Inherited CPU affinity and actual load/RSS/rusage are recorded; no exclusive-load, pinned-frequency or system-isolation claim. Root must avoid overlapping candidate/cost workloads during execution.",
+      "Fixed 60 measured pairs (six times the original ten); no optional stopping or automatic further repeats. First concrete failure stops subsequent samples, retaining started, failed and unexecuted slots.",
+      "Policy neutral band/confidence/bootstrap parameters are read from frozen performance_manifest; CI is descriptive, and inconclusive required evidence stays OPEN for root. No new threshold, automatic exception or global performance acceptance.",
+      "No native rebuild, ABI/SDK/sdist qualification, native leak inference, scientific truth, mechanism attribution or end-to-end throughput claim.",
+      "Every consumed worker stdout line is retained before parsing, with stderr and per-worker sample-start/result records. Root must use a separate outer recorder for exact launch/stdout/stderr/elapsed and any preflight failure before destination creation."
+    ],
+    "classification_limit": "Frozen recommended0.97-1.03 point-band plus CI-covers1 condition met. Not an equivalence confidence bound, causal sign/magnitude conclusion, global parity/speedup claim or waiver."
+  },
+  "preservation_and_limits": [
+    "Original adverse/inconclusive observations, root reader/preparation failures and superseded unexecuted release unchanged.",
+    "No allocation repeat. Original54 allocation dispositions and18 unchanged release deltas remain.",
+    "Shared scheduling/frequency/process/cache/history, Python-only allocation and total RSS/native-allocation uncertainty remain; no isolated-host claim.",
+    "Repeat runs one worker at a time with both persistent processes resident; memory state differs from historical single-process memory experiment.",
+    "Section12/Stage12 family/end-to-end time, overall RSS/native allocation, hardware/scientific/Plan12 and clean-native/ABI/SDK/sdist gates open."
+  ],
+  "stage6_local_cost_gate_satisfied_by_root": true,
+  "global_performance_accepted": false,
+  "performance_waiver": false,
+  "workload_rerun_by_record_author": false,
+  "stage6_fully_delivered": false
+}

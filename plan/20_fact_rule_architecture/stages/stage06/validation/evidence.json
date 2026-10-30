@@ -1,0 +1,2424 @@
+{
+  "schema_version": 1,
+  "stage": "Stage6",
+  "record_kind": "executed_technical_and_preservation_evidence",
+  "recorded_date": "2026-10-30",
+  "status": "ROOT_ACCEPTED_FROZEN_C61_TECHNICAL_EVIDENCE_RECORD_DELIVERY_PENDING",
+  "author": "Assigned GPT-6.1 Sol/max maintained-record writer; acceptance decisions remain attributed to root",
+  "source_identity": {
+    "branch": "implement/plan20-fact-rule-architecture",
+    "validated_source_commit": "d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a",
+    "validated_git_tree": "3a48d3bb2949f0f8aa11b6ea3dff35cbc97ed198",
+    "frozen_snapshot_file_count": 4129,
+    "frozen_snapshot_value_sha256": "782466b4ab6f1c8091633a4a3458ea9b42dd19d591f1b607597239f6631cb4c3",
+    "documentation_delivery_note": "This record integrates C61 evidence. A later documentation-only commit does not replace the validated source identity."
+  },
+  "authority": {
+    "path": ".plan20-artifacts/20261030/stage6/root-gate-decision/attempt1/evidence.json",
+    "sha256": "9301541d81f730a076df1eed5342f4fb120004f0cb8a3b7713a7ce2897f41603",
+    "bytes": 4348
+  },
+  "source_ready": {
+    "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/SOURCE_READY.json",
+    "sha256": "95aac448d37a5ba463da2ca4a1dc3acb6d68c35a94ec1a98bccc2f56c04122f8",
+    "bytes": 141372
+  },
+  "original_freeze": {
+    "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/FREEZE.json",
+    "sha256": "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60",
+    "bytes": 3994469
+  },
+  "runner": {
+    "path": ".plan20-artifacts/20261030/stage6/validation-runners/revision4/stage6_runner.py",
+    "sha256": "aca4a00ee35c0188e80c5bd496bcf65595110ea575d169b62098732a8236de49",
+    "bytes": 25199
+  },
+  "execution_index": {
+    "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/execution-evidence-index-attempt1.json",
+    "sha256": "b8fa45719d5d52c06458140baf3ad0b55141fbba813eaeca0722130d53c83767",
+    "bytes": 218871
+  },
+  "historical_index_note": "Pending/failure statuses in original indexes and root matrix review remain snapshots. Later default recovery, supplementary review, cost disposition and final root decision govern current status.",
+  "native_closure": {
+    "inventory_paths": 143,
+    "strict_unchanged_paths": 142,
+    "qualified_python_transport": {
+      "path": "hotpot/cheminfo/_native/buffers.py",
+      "historical_sha256": "a916c72a5872c59e19a07de0443aca557f97adec287305682cdd45cd67c9a9d2",
+      "candidate_sha256": "60202219c365993884b5b77fad11954d5fd89bf33b2fe4e2b0a5f644f2c2886f",
+      "qualification": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-runners/revision4/root-release-before-acceptance.json",
+        "sha256": "b8bd1cb9e920ff6e79403e8c6ff5381adbf2c4c39459b1caeafb4b63f05d7441"
+      }
+    },
+    "inventory": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-runners/revision4/native-closure-inventory.json",
+      "sha256": "a2c35a8023986b5d7d2eb58df73f9e67d5d29510e6dc8d507db1b0cc33e5ea9c"
+    },
+    "source_and_installed_transport_verified": true,
+    "native_rebuilt": false,
+    "native_pieces_reused_per_wheel": 13,
+    "reused_from": "Accepted matching-Python Stage5 wheels",
+    "scope": "Current Stage6 Python wheel assembly/execution against reused native binaries; no fresh native ABI/SDK qualification."
+  },
+  "focused": {
+    "summary": {
+      "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/focused-cp311-attempt1/summary.json",
+      "sha256": "86ca6b063a4eb8d103ddef00dddbf89dfe73ae622a73c08a87d0c0f37fa193b1",
+      "bytes": 1826
+    },
+    "outcomes": {
+      "passed": 65,
+      "skipped": 0,
+      "xfailed": 0,
+      "failed": 0
+    },
+    "files": [
+      "tests/test_cheminfo/test_stereo_api.py",
+      "tests/test_cheminfo/test_stereo_extraction.py",
+      "tests/test_cheminfo/structure/test_buffer_ownership.py"
+    ],
+    "actual_pytest_command": {
+      "phase": "source-run-attempt1",
+      "record": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/focused-cp311-attempt1/source-run-attempt1/command.json",
+        "sha256": "984e886da4dbff89aa8cd66ca93e239eb8fca5c1637d1af089dcf10b2b1c3f82"
+      },
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "stage6_observation",
+        "--import-mode=importlib",
+        "--rootdir",
+        "/home/zhangzhiyuan/hotpot",
+        "tests/test_cheminfo/test_stereo_api.py",
+        "tests/test_cheminfo/test_stereo_extraction.py",
+        "tests/test_cheminfo/structure/test_buffer_ownership.py",
+        "--basetemp",
+        "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/focused-cp311-attempt1/source-pytest-tmp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/focused-cp311-attempt1/source.xml"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "interpreter": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+        "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 4.576901959255338,
+      "before_snapshot_sha256": "782466b4ab6f1c8091633a4a3458ea9b42dd19d591f1b607597239f6631cb4c3",
+      "after_snapshot_sha256": "782466b4ab6f1c8091633a4a3458ea9b42dd19d591f1b607597239f6631cb4c3",
+      "frozen_unchanged": true,
+      "log": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/focused-cp311-attempt1/source-run-attempt1/command.log",
+        "sha256": "02f6ee9b138436212cf413eb9e7d6896b1d3f201af66c61b42edc1fba17bf66b"
+      }
+    }
+  },
+  "matrix": {
+    "root_artifact_review": {
+      "path": ".plan20-artifacts/20261030/stage6/root-runtime-review/attempt3/matrix-review.json",
+      "sha256": "457f6c33601870f5f643e1111f0eed7e74c01325e6d9abf0ed8434207e628689",
+      "bytes": 51773
+    },
+    "selection_file_counts": {
+      "source": 46,
+      "installed": 46,
+      "native-source": 3
+    },
+    "versions": {
+      "3.10": {
+        "summary": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/summary.json",
+          "sha256": "e9af91c52d63dce471a2f5707ceb69af86a817c0c9ae532c4a6f4fadec394a5b"
+        },
+        "wheel": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/wheels/hotpot_zzy-0.5.4.5-cp310-cp310-linux_x86_64.whl",
+          "sha256": "e64f142cc1cc7abe8836aa6fbceb2de00a7228303596e94ee2b6c03aec89f85b"
+        },
+        "wheel_bytes": 6298775,
+        "wheel_content": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/wheel-content.json",
+          "sha256": "4e0635c8e1c60ccb09ce951f7e364c724542d5ba8a4315bd2b98b0fb1b997ff9"
+        },
+        "native_provenance": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/wheel-native-provenance.json",
+          "sha256": "7db0c2c2bbe7331ad78fc290f66f61236b7fc278890eda28670ebbc1914c0e8e"
+        },
+        "native_reuse_classification": "Current Stage6 Python assembly; all native modules reused from accepted Stage5 wheel; no native rebuild",
+        "reused_native_pieces": 13,
+        "source_only_deselection": [
+          "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py::test_native_sampler_has_no_business_forcefield_entrypoint_calls"
+        ],
+        "tiers": {
+          "source": {
+            "outcomes": {
+              "passed": 1397,
+              "skipped": 0,
+              "xfailed": 0,
+              "failed": 0
+            },
+            "junit_counts": {
+              "tests": 1397,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 0
+            },
+            "expected_nodes_sha256": "ce6963500ad98cc3898d3345944336272ba881f573238c954adfd6ca24bee8dc",
+            "ordered_nodeids_sha256": "03ef4582411cf222b731f1cc9621964be2500a142c8a1985f0103ca8d3e1a9d1",
+            "observation": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/source-run-attempt1/observation.json",
+              "sha256": "e330ab8c78d25548d820b51a3f787cd7132157c89d92b00accea9ff13ae9c9d0"
+            },
+            "junit": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/source.xml",
+              "sha256": "3ab8961aff31511d369550735f8a1e839d34712f89f16f17e95733ee2df44f8b"
+            },
+            "python": "/tmp/hotpot-plan20-20261028/matrix/cp310/env/bin/python",
+            "python_resolved": "/tmp/hotpot-python/cpython-3.10.20-linux-x86_64-gnu/bin/python3.10",
+            "python_sha256": "3303d2b5dc566818e412d2b5b6cd8e792bd360865da47593429a635f72668226",
+            "python_version": "3.10.20 (main, Aug  7 2026, 02:25:15) [Clang 22.1.3 ]",
+            "missing_external_sdk_nodes": [],
+            "runtime_transport_matches_candidate": true
+          },
+          "installed": {
+            "outcomes": {
+              "passed": 1396,
+              "skipped": 0,
+              "xfailed": 0,
+              "failed": 0
+            },
+            "junit_counts": {
+              "tests": 1396,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 0
+            },
+            "expected_nodes_sha256": "385e64d7a9fa83831e9e327cbf9546e5d7acb919131a67a2ceaef65ca5776157",
+            "ordered_nodeids_sha256": "d3cb2cf3433f6326e483ccda968aa693719be912bae630c941d04f2ed59404f0",
+            "observation": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/installed-run-attempt1/observation.json",
+              "sha256": "6c7c2490f5aad285ce64260b20d276bdacdaf1ec785c000b8426117fb061f978"
+            },
+            "junit": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/installed.xml",
+              "sha256": "e96882debf7c959d989dbbdf08fad22a8388c62c1cd8d3a2daf1568ebe8d9b70"
+            },
+            "python": "/tmp/hotpot-plan20-20261028/matrix/cp310/env/bin/python",
+            "python_resolved": "/tmp/hotpot-python/cpython-3.10.20-linux-x86_64-gnu/bin/python3.10",
+            "python_sha256": "3303d2b5dc566818e412d2b5b6cd8e792bd360865da47593429a635f72668226",
+            "python_version": "3.10.20 (main, Aug  7 2026, 02:25:15) [Clang 22.1.3 ]",
+            "missing_external_sdk_nodes": [],
+            "runtime_transport_matches_candidate": true,
+            "runtime_transport_matches_wheel": true
+          },
+          "native-source": {
+            "outcomes": {
+              "passed": 6,
+              "skipped": 2,
+              "xfailed": 0,
+              "failed": 0
+            },
+            "junit_counts": {
+              "tests": 8,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 2
+            },
+            "expected_nodes_sha256": "029d87bb561dbdcdd9fc6a3bafe448960a3c3f7cebb106d6a2f1faea84164b1d",
+            "ordered_nodeids_sha256": "aab81468617cd6e6b23e85700d307363b1b9456c45b0bfb5d0fab279230a1093",
+            "observation": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/native-source-run-attempt1/observation.json",
+              "sha256": "3097d12ae87598f66d37bf98d1256354c053f88776572005512cd23d3035876f"
+            },
+            "junit": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/native-source.xml",
+              "sha256": "9561628fac9bfe586769eeadefbed7173ce8e98da28cd4d1c5cd8135dc80ec33"
+            },
+            "python": "/tmp/hotpot-plan20-20261028/matrix/cp310/env/bin/python",
+            "python_resolved": "/tmp/hotpot-python/cpython-3.10.20-linux-x86_64-gnu/bin/python3.10",
+            "python_sha256": "3303d2b5dc566818e412d2b5b6cd8e792bd360865da47593429a635f72668226",
+            "python_version": "3.10.20 (main, Aug  7 2026, 02:25:15) [Clang 22.1.3 ]",
+            "missing_external_sdk_nodes": [
+              "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py::test_installed_sdk_find_package_link_and_run[0]",
+              "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py::test_installed_sdk_find_package_link_and_run[1]"
+            ],
+            "runtime_transport_matches_candidate": true
+          }
+        }
+      },
+      "3.11": {
+        "summary": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/summary.json",
+          "sha256": "05a4688956a7879f17c30b6714af8e0affa1c1ddd428b00e016af147f3aa5bc7"
+        },
+        "wheel": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+          "sha256": "a515a469901666408fde2789ff8a4a30f8c52c9a23d9334cd20b428dbf908522"
+        },
+        "wheel_bytes": 6278489,
+        "wheel_content": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/wheel-content.json",
+          "sha256": "4095978004cf1d1c278b39e135d03ece9f8c2c04bed382d6dfa1cfbc73884c12"
+        },
+        "native_provenance": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/wheel-native-provenance.json",
+          "sha256": "1183351bc2909a292f8be5fd356827e1f8d43b395f8a91fa7671fa36dae756ce"
+        },
+        "native_reuse_classification": "Current Stage6 Python assembly; all native modules reused from accepted Stage5 wheel; no native rebuild",
+        "reused_native_pieces": 13,
+        "source_only_deselection": [
+          "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py::test_native_sampler_has_no_business_forcefield_entrypoint_calls"
+        ],
+        "tiers": {
+          "source": {
+            "outcomes": {
+              "passed": 1397,
+              "skipped": 0,
+              "xfailed": 0,
+              "failed": 0
+            },
+            "junit_counts": {
+              "tests": 1397,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 0
+            },
+            "expected_nodes_sha256": "6cf407c385d942f4469726353575330b011bc88f4dc116c4a96098df7f113f84",
+            "ordered_nodeids_sha256": "03ef4582411cf222b731f1cc9621964be2500a142c8a1985f0103ca8d3e1a9d1",
+            "observation": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/source-run-attempt1/observation.json",
+              "sha256": "72d86d6974aa3f8bf670af9a016184ec261bf31e0199bcb6f84972a76723a039"
+            },
+            "junit": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/source.xml",
+              "sha256": "baabad76945622a01b718b0fac520db6a88742d5790efc4cd29b58e2f36e3f71"
+            },
+            "python": "/tmp/hotpot-plan20-env/bin/python",
+            "python_resolved": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "python_sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66",
+            "python_version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+            "missing_external_sdk_nodes": [],
+            "runtime_transport_matches_candidate": true
+          },
+          "installed": {
+            "outcomes": {
+              "passed": 1396,
+              "skipped": 0,
+              "xfailed": 0,
+              "failed": 0
+            },
+            "junit_counts": {
+              "tests": 1396,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 0
+            },
+            "expected_nodes_sha256": "8a108f0701352780374cfec2f1b4bd4290c7ae200bcc0e92045dcbfa24587e4f",
+            "ordered_nodeids_sha256": "d3cb2cf3433f6326e483ccda968aa693719be912bae630c941d04f2ed59404f0",
+            "observation": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/installed-run-attempt1/observation.json",
+              "sha256": "68148d02f0f22d3f6a3a0c42e5e325febf7b1f80c104febff773bb71e54d924c"
+            },
+            "junit": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/installed.xml",
+              "sha256": "d3440465d443b4d25ffb537c51e3406d77505dbe9d27e5cc59fbbca5085e4d3b"
+            },
+            "python": "/tmp/hotpot-plan20-env/bin/python",
+            "python_resolved": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "python_sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66",
+            "python_version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+            "missing_external_sdk_nodes": [],
+            "runtime_transport_matches_candidate": true,
+            "runtime_transport_matches_wheel": true
+          },
+          "native-source": {
+            "outcomes": {
+              "passed": 6,
+              "skipped": 2,
+              "xfailed": 0,
+              "failed": 0
+            },
+            "junit_counts": {
+              "tests": 8,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 2
+            },
+            "expected_nodes_sha256": "5e8f0fa21787955b160393b66dbc9346f8053f0d0aedde72f69654fd22cae2e4",
+            "ordered_nodeids_sha256": "aab81468617cd6e6b23e85700d307363b1b9456c45b0bfb5d0fab279230a1093",
+            "observation": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/native-source-run-attempt1/observation.json",
+              "sha256": "6df4037b387b2ea36d879f50d4420d48bb3493fbbc57ce58d26e7a842d5e92b2"
+            },
+            "junit": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/native-source.xml",
+              "sha256": "ca3a1b6df2b9d51b6a28e3db02f57592fd18f651ed795c415b0d4a885eff2db5"
+            },
+            "python": "/tmp/hotpot-plan20-env/bin/python",
+            "python_resolved": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "python_sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66",
+            "python_version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+            "missing_external_sdk_nodes": [
+              "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py::test_installed_sdk_find_package_link_and_run[0]",
+              "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py::test_installed_sdk_find_package_link_and_run[1]"
+            ],
+            "runtime_transport_matches_candidate": true
+          }
+        }
+      },
+      "3.12": {
+        "summary": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/summary.json",
+          "sha256": "0c4a38821e9b6679b820806d2ed75bc062ebcbe0d2ab61ba29e78ab9331b27a1"
+        },
+        "wheel": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/wheels/hotpot_zzy-0.5.4.5-cp312-cp312-linux_x86_64.whl",
+          "sha256": "c9c58b37e542dfcadfd6b5373285c4a33244855d98fd32d99816c932f4d32e7b"
+        },
+        "wheel_bytes": 6300141,
+        "wheel_content": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/wheel-content.json",
+          "sha256": "6843a9f479fc6f4aa613e76ac173a818dacc3c83019988b34754b45034ab6cf6"
+        },
+        "native_provenance": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/wheel-native-provenance.json",
+          "sha256": "09f86752e9b5aef26a64c95d1c1c9aee6c3390fd5a4a2a69d783b70c13a0fc62"
+        },
+        "native_reuse_classification": "Current Stage6 Python assembly; all native modules reused from accepted Stage5 wheel; no native rebuild",
+        "reused_native_pieces": 13,
+        "source_only_deselection": [
+          "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py::test_native_sampler_has_no_business_forcefield_entrypoint_calls"
+        ],
+        "tiers": {
+          "source": {
+            "outcomes": {
+              "passed": 1397,
+              "skipped": 0,
+              "xfailed": 0,
+              "failed": 0
+            },
+            "junit_counts": {
+              "tests": 1397,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 0
+            },
+            "expected_nodes_sha256": "01ad9e2a65a96fd70a7cf567b5b21b6f0905f2aeaafd20ee74f8f0be30adb33c",
+            "ordered_nodeids_sha256": "03ef4582411cf222b731f1cc9621964be2500a142c8a1985f0103ca8d3e1a9d1",
+            "observation": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/source-run-attempt1/observation.json",
+              "sha256": "012cbfdb1cc773fa49d914022a32a67471cf3d5042edf7026edd3806a917350c"
+            },
+            "junit": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/source.xml",
+              "sha256": "2f976c6c70b9fdd8fc7ce1263e8c61b0f680fdbfb24a865675f9334b503e582c"
+            },
+            "python": "/tmp/hotpot-plan20-20261028/matrix/cp312/env/bin/python",
+            "python_resolved": "/tmp/hotpot-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+            "python_sha256": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7",
+            "python_version": "3.12.13 (main, Aug  7 2026, 02:25:39) [Clang 22.1.3 ]",
+            "missing_external_sdk_nodes": [],
+            "runtime_transport_matches_candidate": true
+          },
+          "installed": {
+            "outcomes": {
+              "passed": 1396,
+              "skipped": 0,
+              "xfailed": 0,
+              "failed": 0
+            },
+            "junit_counts": {
+              "tests": 1396,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 0
+            },
+            "expected_nodes_sha256": "405710994de06ab260412123d57ee50bb5ffdd364277ef4dd8f2bd4921f8fe21",
+            "ordered_nodeids_sha256": "d3cb2cf3433f6326e483ccda968aa693719be912bae630c941d04f2ed59404f0",
+            "observation": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/installed-run-attempt1/observation.json",
+              "sha256": "8b1d9fb3174f32425f1d44dc505cf3e5e4b68c1093a413d64f71cff8f77f8d16"
+            },
+            "junit": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/installed.xml",
+              "sha256": "1d375962730763cbc5e29dfa56272aba3e9297afaad1752625c61dfa168f0ce2"
+            },
+            "python": "/tmp/hotpot-plan20-20261028/matrix/cp312/env/bin/python",
+            "python_resolved": "/tmp/hotpot-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+            "python_sha256": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7",
+            "python_version": "3.12.13 (main, Aug  7 2026, 02:25:39) [Clang 22.1.3 ]",
+            "missing_external_sdk_nodes": [],
+            "runtime_transport_matches_candidate": true,
+            "runtime_transport_matches_wheel": true
+          },
+          "native-source": {
+            "outcomes": {
+              "passed": 6,
+              "skipped": 2,
+              "xfailed": 0,
+              "failed": 0
+            },
+            "junit_counts": {
+              "tests": 8,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 2
+            },
+            "expected_nodes_sha256": "d4778b6753523220e74b25bf8cf620129a0157bd184e28c8d9117784c44b24d5",
+            "ordered_nodeids_sha256": "aab81468617cd6e6b23e85700d307363b1b9456c45b0bfb5d0fab279230a1093",
+            "observation": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/native-source-run-attempt1/observation.json",
+              "sha256": "8123204445d99a133e702121944bb0af26b3e20370c37a712d281b0178e0e931"
+            },
+            "junit": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/native-source.xml",
+              "sha256": "a9604e72f88c9d9cfcb100da3449e100d57dbf0e62c989cbfd450eb16fd58a5b"
+            },
+            "python": "/tmp/hotpot-plan20-20261028/matrix/cp312/env/bin/python",
+            "python_resolved": "/tmp/hotpot-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+            "python_sha256": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7",
+            "python_version": "3.12.13 (main, Aug  7 2026, 02:25:39) [Clang 22.1.3 ]",
+            "missing_external_sdk_nodes": [
+              "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py::test_installed_sdk_find_package_link_and_run[0]",
+              "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py::test_installed_sdk_find_package_link_and_run[1]"
+            ],
+            "runtime_transport_matches_candidate": true
+          }
+        }
+      },
+      "3.13": {
+        "summary": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/summary.json",
+          "sha256": "252b1a9a686753e44f00dad26cc77959ff959fb7b806f0bdbcb7bafac55de583"
+        },
+        "wheel": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/wheels/hotpot_zzy-0.5.4.5-cp313-cp313-linux_x86_64.whl",
+          "sha256": "7fb1363e593691178b5794adafe13a7dffd884116e90972400530a44b29a52c5"
+        },
+        "wheel_bytes": 6300804,
+        "wheel_content": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/wheel-content.json",
+          "sha256": "a9d5f0201827e6bcf43f0b58bdbd53d8571e9f0f9c16462884c8295c6b11ed38"
+        },
+        "native_provenance": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/wheel-native-provenance.json",
+          "sha256": "f2976262f01a9abe311257a72a1b52d9669a43c4a327fd79a6cdb6ed60917890"
+        },
+        "native_reuse_classification": "Current Stage6 Python assembly; all native modules reused from accepted Stage5 wheel; no native rebuild",
+        "reused_native_pieces": 13,
+        "source_only_deselection": [
+          "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py::test_native_sampler_has_no_business_forcefield_entrypoint_calls"
+        ],
+        "tiers": {
+          "source": {
+            "outcomes": {
+              "passed": 1397,
+              "skipped": 0,
+              "xfailed": 0,
+              "failed": 0
+            },
+            "junit_counts": {
+              "tests": 1397,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 0
+            },
+            "expected_nodes_sha256": "2027c62cb4202ba2699f7ab8aabe62ded981cafe3b4d09952d85a9eb16920d82",
+            "ordered_nodeids_sha256": "03ef4582411cf222b731f1cc9621964be2500a142c8a1985f0103ca8d3e1a9d1",
+            "observation": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/source-run-attempt1/observation.json",
+              "sha256": "29af80696ea291eb456a0a52d7b2503ec1ae3cd2cb5e2ef44c2d78860e0b52e4"
+            },
+            "junit": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/source.xml",
+              "sha256": "145177a799db7ccd2a0a71e184960d0597026e5b67dcf0c08c9f476d771410ba"
+            },
+            "python": "/tmp/hotpot-plan20-20261028/matrix/cp313/env/bin/python",
+            "python_resolved": "/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/bin/python3.13",
+            "python_sha256": "441e35a78c27a717b4634c21d8c118d9f535afb675add1ed421c581bb410a27f",
+            "python_version": "3.13.15 (main, Aug  7 2026, 02:25:50) [Clang 22.1.3 ]",
+            "missing_external_sdk_nodes": [],
+            "runtime_transport_matches_candidate": true
+          },
+          "installed": {
+            "outcomes": {
+              "passed": 1396,
+              "skipped": 0,
+              "xfailed": 0,
+              "failed": 0
+            },
+            "junit_counts": {
+              "tests": 1396,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 0
+            },
+            "expected_nodes_sha256": "eb790b5383d293a77434e35d947b77290134e359a8c80b11515dcafb370f238f",
+            "ordered_nodeids_sha256": "d3cb2cf3433f6326e483ccda968aa693719be912bae630c941d04f2ed59404f0",
+            "observation": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/installed-run-attempt1/observation.json",
+              "sha256": "343d9014e68f25044593639d732cf469c48e938f0e9616846a28618fcf72e587"
+            },
+            "junit": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/installed.xml",
+              "sha256": "afd2fd9e6ea4cff8f934a0a99534cd522993c83e629972b327c835f0204192c7"
+            },
+            "python": "/tmp/hotpot-plan20-20261028/matrix/cp313/env/bin/python",
+            "python_resolved": "/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/bin/python3.13",
+            "python_sha256": "441e35a78c27a717b4634c21d8c118d9f535afb675add1ed421c581bb410a27f",
+            "python_version": "3.13.15 (main, Aug  7 2026, 02:25:50) [Clang 22.1.3 ]",
+            "missing_external_sdk_nodes": [],
+            "runtime_transport_matches_candidate": true,
+            "runtime_transport_matches_wheel": true
+          },
+          "native-source": {
+            "outcomes": {
+              "passed": 6,
+              "skipped": 2,
+              "xfailed": 0,
+              "failed": 0
+            },
+            "junit_counts": {
+              "tests": 8,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 2
+            },
+            "expected_nodes_sha256": "454f25d8d12ca6209558fbde99fb9d114fdd57517ff3d4a90cd3115b05e4490d",
+            "ordered_nodeids_sha256": "aab81468617cd6e6b23e85700d307363b1b9456c45b0bfb5d0fab279230a1093",
+            "observation": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/native-source-run-attempt1/observation.json",
+              "sha256": "b56886fc3e3a84db38fba70be73d04625d78d874f7b67488f410d41c56b19fb7"
+            },
+            "junit": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/native-source.xml",
+              "sha256": "c1965e3e3bd43e315a2420250cb8164d26832a9cb4dc45480b53e846c909e319"
+            },
+            "python": "/tmp/hotpot-plan20-20261028/matrix/cp313/env/bin/python",
+            "python_resolved": "/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/bin/python3.13",
+            "python_sha256": "441e35a78c27a717b4634c21d8c118d9f535afb675add1ed421c581bb410a27f",
+            "python_version": "3.13.15 (main, Aug  7 2026, 02:25:50) [Clang 22.1.3 ]",
+            "missing_external_sdk_nodes": [
+              "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py::test_installed_sdk_find_package_link_and_run[0]",
+              "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py::test_installed_sdk_find_package_link_and_run[1]"
+            ],
+            "runtime_transport_matches_candidate": true
+          }
+        }
+      },
+      "3.14": {
+        "summary": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/summary.json",
+          "sha256": "efba893d4d3649143e9234af04f2d39583112788e2e00c7d647478d64a20e566"
+        },
+        "wheel": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/wheels/hotpot_zzy-0.5.4.5-cp314-cp314-linux_x86_64.whl",
+          "sha256": "7182f77dcf3f810f6de19486f5b6c0b20da79dea4d09047d4bc2cadd6f0b33f7"
+        },
+        "wheel_bytes": 6302972,
+        "wheel_content": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/wheel-content.json",
+          "sha256": "a9332b313c1a009c8b1d92407a3c2a8c5d60de854ce3ab6c457839783d1d7332"
+        },
+        "native_provenance": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/wheel-native-provenance.json",
+          "sha256": "c578d779be3e092c2707988a9387e07031aaa585caa1e1fd7ce0a52410d77b19"
+        },
+        "native_reuse_classification": "Current Stage6 Python assembly; all native modules reused from accepted Stage5 wheel; no native rebuild",
+        "reused_native_pieces": 13,
+        "source_only_deselection": [
+          "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py::test_native_sampler_has_no_business_forcefield_entrypoint_calls"
+        ],
+        "tiers": {
+          "source": {
+            "outcomes": {
+              "passed": 1397,
+              "skipped": 0,
+              "xfailed": 0,
+              "failed": 0
+            },
+            "junit_counts": {
+              "tests": 1397,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 0
+            },
+            "expected_nodes_sha256": "a270dac850fd4e6919158474587a9d6d0eac98a97e81c717d2b6a81501367f82",
+            "ordered_nodeids_sha256": "03ef4582411cf222b731f1cc9621964be2500a142c8a1985f0103ca8d3e1a9d1",
+            "observation": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/source-run-attempt1/observation.json",
+              "sha256": "7411e9eb493fb910728f147bf5f0e910c7ba5c6983b8e01b9df7f387f9dcd48a"
+            },
+            "junit": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/source.xml",
+              "sha256": "897ae2757fef05ff0f28894f6130a72f1dcfde74d1c015d08caddbfe90818bc9"
+            },
+            "python": "/tmp/hotpot-plan20-20261028/matrix/cp314/env/bin/python",
+            "python_resolved": "/tmp/hotpot-python/cpython-3.14.7-linux-x86_64-gnu/bin/python3.14",
+            "python_sha256": "ce7402fee6629ce791aeb871cd4d1a1e21ad2e90ca4b3236611484053a7e06ac",
+            "python_version": "3.14.7 (main, Aug  7 2026, 02:26:00) [Clang 22.1.3 ]",
+            "missing_external_sdk_nodes": [],
+            "runtime_transport_matches_candidate": true
+          },
+          "installed": {
+            "outcomes": {
+              "passed": 1396,
+              "skipped": 0,
+              "xfailed": 0,
+              "failed": 0
+            },
+            "junit_counts": {
+              "tests": 1396,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 0
+            },
+            "expected_nodes_sha256": "9f096f7fcba71ba09dc21c4d9b38ad060d1025318a74eb747eab34cc1aee493a",
+            "ordered_nodeids_sha256": "d3cb2cf3433f6326e483ccda968aa693719be912bae630c941d04f2ed59404f0",
+            "observation": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/installed-run-attempt1/observation.json",
+              "sha256": "e3e3df2a5f1c1f85e49de9eebce1d449c27acce3573e084ac69e34bb87bdaae3"
+            },
+            "junit": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/installed.xml",
+              "sha256": "54b73c764c933e3c700e6f975f05898860d9d1cce418a31ea798d7e2d27d5ecf"
+            },
+            "python": "/tmp/hotpot-plan20-20261028/matrix/cp314/env/bin/python",
+            "python_resolved": "/tmp/hotpot-python/cpython-3.14.7-linux-x86_64-gnu/bin/python3.14",
+            "python_sha256": "ce7402fee6629ce791aeb871cd4d1a1e21ad2e90ca4b3236611484053a7e06ac",
+            "python_version": "3.14.7 (main, Aug  7 2026, 02:26:00) [Clang 22.1.3 ]",
+            "missing_external_sdk_nodes": [],
+            "runtime_transport_matches_candidate": true,
+            "runtime_transport_matches_wheel": true
+          },
+          "native-source": {
+            "outcomes": {
+              "passed": 6,
+              "skipped": 2,
+              "xfailed": 0,
+              "failed": 0
+            },
+            "junit_counts": {
+              "tests": 8,
+              "failures": 0,
+              "errors": 0,
+              "skipped": 2
+            },
+            "expected_nodes_sha256": "3f4a9d49cd0567d9c703c05904ff00008dfbfeffc353c90e38f3a5c167d13546",
+            "ordered_nodeids_sha256": "aab81468617cd6e6b23e85700d307363b1b9456c45b0bfb5d0fab279230a1093",
+            "observation": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/native-source-run-attempt1/observation.json",
+              "sha256": "56f72d24584ded2e825ff7e285d6e3a6b2c18548c852ec92ec26cdc6475f084c"
+            },
+            "junit": {
+              "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/native-source.xml",
+              "sha256": "bfdfba83276cd6ddc103ee85c1898515b8f590ef1c374bd88b81aaec2ca43c68"
+            },
+            "python": "/tmp/hotpot-plan20-20261028/matrix/cp314/env/bin/python",
+            "python_resolved": "/tmp/hotpot-python/cpython-3.14.7-linux-x86_64-gnu/bin/python3.14",
+            "python_sha256": "ce7402fee6629ce791aeb871cd4d1a1e21ad2e90ca4b3236611484053a7e06ac",
+            "python_version": "3.14.7 (main, Aug  7 2026, 02:26:00) [Clang 22.1.3 ]",
+            "missing_external_sdk_nodes": [
+              "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py::test_installed_sdk_find_package_link_and_run[0]",
+              "tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py::test_installed_sdk_find_package_link_and_run[1]"
+            ],
+            "runtime_transport_matches_candidate": true
+          }
+        }
+      }
+    },
+    "aggregate_outcomes": {
+      "source": {
+        "passed": 6985,
+        "skipped": 0,
+        "xfailed": 0,
+        "failed": 0
+      },
+      "installed": {
+        "passed": 6980,
+        "skipped": 0,
+        "xfailed": 0,
+        "failed": 0
+      },
+      "native-source": {
+        "passed": 30,
+        "skipped": 10,
+        "xfailed": 0,
+        "failed": 0
+      }
+    },
+    "installed_deselection": [
+      "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py::test_native_sampler_has_no_business_forcefield_entrypoint_calls"
+    ],
+    "installed_deselection_reason": "Accepted policy excludes the one source-reading forcefield-entrypoint test; it executes in every source tier.",
+    "ordinary_required_skips": 0,
+    "sdk_skips_are_missing_evidence": true,
+    "earlier_root_reader_failures": [
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/root-runtime-review/attempt1/failure.json",
+        "sha256": "db330247c752be2948c4f7c1e10e2e453143de40387db1570f2db8b8eb00fcec"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/root-runtime-review/attempt2/failure.json",
+        "sha256": "1a672e62ed27d4a891a14151e5587a082c5231b280bebe952aabb342ed83648a"
+      }
+    ]
+  },
+  "default_integration": {
+    "actual_pytest_command": {
+      "phase": "default-run-attempt1",
+      "record": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/default-cp311-attempt1/default-run-attempt1/command.json",
+        "sha256": "68e614e74dad29ea35f32665834d1a427763d8856b29fe96a2d97a477f2db35c"
+      },
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "stage6_observation",
+        "--import-mode=importlib",
+        "--rootdir",
+        "/home/zhangzhiyuan/hotpot",
+        "tests",
+        "--basetemp",
+        "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/default-cp311-attempt1/default-pytest-tmp",
+        "--junitxml",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/default-cp311-attempt1/default.xml"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "interpreter": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+        "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 267.2264809962362,
+      "before_snapshot_sha256": "782466b4ab6f1c8091633a4a3458ea9b42dd19d591f1b607597239f6631cb4c3",
+      "after_snapshot_sha256": "782466b4ab6f1c8091633a4a3458ea9b42dd19d591f1b607597239f6631cb4c3",
+      "frozen_unchanged": true,
+      "log": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/default-cp311-attempt1/default-run-attempt1/command.log",
+        "sha256": "15f8a73b6eda77ce6e2a8e53b189293e04b266f062cfc07bdf3bdb8841d11dc3"
+      }
+    },
+    "original_driver_launch": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/default-cp311-attempt1.launch.json",
+      "sha256": "ce1842141124af586d9e7ad940ed458e3d9fd07891f4097992ba9ca4569cb694"
+    },
+    "original_driver_returncode": 1,
+    "original_verifier_problem": [
+      "JUnit test count differs from frozen nodes"
+    ],
+    "original_failure": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/first-failure-default-cp311-attempt1.json",
+      "sha256": "b32d775fa80c1dcc9cffc8ab628069fc9d1a6c34a7e6fb47ff213227d5f71d3e"
+    },
+    "ordinary_outcomes": {
+      "passed": 4998,
+      "skipped": 123,
+      "xfailed": 3,
+      "failed": 0
+    },
+    "ordinary_nodes": 5124,
+    "required_stage6_passed": 1397,
+    "additional_passed_subtests": 49,
+    "junit_testcase_elements": 5124,
+    "junit_suite_counts_preserved": {
+      "tests": 5173,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 126
+    },
+    "subtest_parent": "tests/test_cheminfo/test_search.py::TestSmartsSearch::test_smarts_search",
+    "recovery_evidence": {
+      "path": ".plan20-artifacts/20261030/stage6/default-evidence-recovery/attempt1/evidence.json",
+      "sha256": "63027dc6b90f7637050f1f98f8fa71babd59eb01e5dbc36b416f2c7286e5c3ad",
+      "bytes": 7754
+    },
+    "recovery_result": {
+      "path": ".plan20-artifacts/20261030/stage6/default-evidence-recovery/attempt1/recovery-result-attempt1.json",
+      "sha256": "60203a8fc8ad306436be56b7369a6eb10404db324085da4a6dde9a3af030ccb1",
+      "bytes": 25670
+    },
+    "root_acceptance": {
+      "path": ".plan20-artifacts/20261030/stage6/root-runtime-review/default-recovery/acceptance.json",
+      "sha256": "02e41f32ccdabafa71aba4a5a4e0224d150f04bce32f910001089093ec2cb38a",
+      "bytes": 3915
+    },
+    "decision": "Accept the original default execution as current Stage6 default technical evidence using separate strict artifact-only accounting. The original revision4 verifier failure remains historical and unmodified. No change to source/test selection, denominator, failure/skip policy, runtime/source identities or accepted scientific contracts.",
+    "mechanism": "The sole49entry unittest.subTest loop emits49successful additional call reports and one successful parent call. Every5124ordinary node has exact setup/call-or-skip/teardown and XML identity/order; all1397required nodes pass. JUnit suite counts successful call reports while testcase reporters are keyed once per ordinary node. Both5173summary entries and5124cases are preserved.",
+    "attribution_limits": [
+      "Installed pytest source and RECORD are bound at recovery time. Original command records did not hash pytest source before execution. Retained original terminal/report/XML evidence directly records the 49-count accounting; individual subtest report types and parameter contexts were flattened by the original observer.",
+      "Per-subtest parameter contexts/report classes were not retained; aggregate attribution uses the frozen test loop, exact report block, original terminal subtest total and bound inspected implementation.",
+      "Recovery covers retained default source integration evidence only. No pytest/build/import, fresh native SDK/ABI evidence, scientific acceptance or performance acceptance is supplied."
+    ],
+    "pytest_rerun": false,
+    "frozen_helper_edits": false
+  },
+  "execution_receipts": [
+    {
+      "name": "focused-cp311-attempt1",
+      "role": "focused-source",
+      "launch": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/focused-cp311-attempt1.launch.json",
+        "sha256": "8380684f142e8c6f295869a5455609f3cd8ca65073ca00046d7a0186694502c4"
+      },
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/root-execution-support/revision1/focused_source.py",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/FREEZE.json",
+        "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/focused-cp311-attempt1",
+        "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/focused-cp311-attempt1"
+      ],
+      "outer_interpreter": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+        "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+      },
+      "payload_interpreter": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+        "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+      },
+      "returncode": 0,
+      "status": "PASSED",
+      "elapsed_seconds": 19.070159908384085,
+      "status_is_historical": true,
+      "child_command_receipts": [
+        {
+          "phase": "source-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/focused-cp311-attempt1/source-collection-attempt1/command.json",
+            "sha256": "860c6d429d78dff4e0add9638672a50b86974daf6356581dbd669592d2080db4"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 1.248092744499445,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "source-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/focused-cp311-attempt1/source-run-attempt1/command.json",
+            "sha256": "984e886da4dbff89aa8cd66ca93e239eb8fca5c1637d1af089dcf10b2b1c3f82"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 4.576901959255338,
+          "frozen_unchanged": true
+        }
+      ]
+    },
+    {
+      "name": "cp311-attempt1",
+      "role": "matrix3.11",
+      "launch": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1.launch.json",
+        "sha256": "5376803181baba19ed46934b19e67c6b47a5431d38be6d62571b7381c8d2908d"
+      },
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-runners/revision4/stage6_runner.py",
+        "execute",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/FREEZE.json",
+        "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60",
+        "3.11",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1",
+        "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp311-attempt1"
+      ],
+      "outer_interpreter": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+        "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+      },
+      "payload_interpreter": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+        "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+      },
+      "returncode": 0,
+      "status": "PASSED",
+      "elapsed_seconds": 151.5446253605187,
+      "status_is_historical": true,
+      "child_command_receipts": [
+        {
+          "phase": "bdist-wheel-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/bdist-wheel-attempt1/command.json",
+            "sha256": "c06161ca8f5f93756567210870548f9299bd451dbb28c28fc204b5ba4e5ceee5"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 1.337375421077013,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "build-py-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/build-py-attempt1/command.json",
+            "sha256": "3234a456bdcdf1d3524a9e7161f27307a8bdb7ea171c1b8ca37809aa60b7fbb0"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.5079279951751232,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "installed-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/installed-collection-attempt1/command.json",
+            "sha256": "cb5d2fd42c56fa5842eca92fb7d2b7f71e8d8b03a98a3a60e855f9b636971577"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp311-attempt1/installed-runtime",
+          "interpreter": {
+            "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 2.9463600739836693,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "installed-core-smoke-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/installed-core-smoke-attempt1/command.json",
+            "sha256": "458e6132501284a6cd57c94ef239344ee654775e52061902948032120847edbb"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp311-attempt1/installed-runtime",
+          "interpreter": {
+            "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 4.038306821137667,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "installed-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/installed-run-attempt1/command.json",
+            "sha256": "1ba820ede9027722fb86e41235a8d0dc9e2093dd7b42a1fb7ba7f8e4fe7d3c9d"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp311-attempt1/installed-runtime",
+          "interpreter": {
+            "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 34.95791447162628,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "native-source-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/native-source-collection-attempt1/command.json",
+            "sha256": "12ce4a2f78b28a8156c55881323acf8fe8e6c47768b7a5ce639155bb5d93a686"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.3954756073653698,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "native-source-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/native-source-run-attempt1/command.json",
+            "sha256": "1fd49ec12ff071f1236026c85c789dbf28844a6de3355483e4e46432ce4abe71"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 4.673671578988433,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "pip-install-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/pip-install-attempt1/command.json",
+            "sha256": "7a6811166bda28e65380a9e3ba7232cc175cecd7bc7e91b440a06b9b5a830ac3"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp311-attempt1",
+          "interpreter": {
+            "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 1.5110842790454626,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "source-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/source-collection-attempt1/command.json",
+            "sha256": "bebeeb9314bf62a82797beed64bd7ba88b9b34ce8674cef8d985a63e30b5b0a4"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 2.7720285560935736,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "source-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/source-run-attempt1/command.json",
+            "sha256": "b8e5b24083a5f5c7da31c8759198eb646fbb92dc51033ffef638ee11a0978fe7"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 32.75099241733551,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "wheel-audit-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp311-attempt1/wheel-audit-attempt1/command.json",
+            "sha256": "db9bea771b979677a28ed8c0fa01eeb9e200daa865a8071121507b1041583c9c"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp311-attempt1",
+          "interpreter": {
+            "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.03777766041457653,
+          "frozen_unchanged": true
+        }
+      ]
+    },
+    {
+      "name": "cp310-attempt1",
+      "role": "matrix3.10",
+      "launch": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1.launch.json",
+        "sha256": "84b543ad40c1cf386da29a8d6c392b15eef7ef9f7c3f57d86cf2205010292793"
+      },
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-runners/revision4/stage6_runner.py",
+        "execute",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/FREEZE.json",
+        "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60",
+        "3.10",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1",
+        "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp310-attempt1"
+      ],
+      "outer_interpreter": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+        "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+      },
+      "payload_interpreter": {
+        "path": "/tmp/hotpot-python/cpython-3.10.20-linux-x86_64-gnu/bin/python3.10",
+        "sha256": "3303d2b5dc566818e412d2b5b6cd8e792bd360865da47593429a635f72668226"
+      },
+      "returncode": 0,
+      "status": "PASSED",
+      "elapsed_seconds": 252.4809056315571,
+      "status_is_historical": true,
+      "child_command_receipts": [
+        {
+          "phase": "bdist-wheel-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/bdist-wheel-attempt1/command.json",
+            "sha256": "920d5a02f4d577050ff26aac3ccaa81df6d37e4dfaa7347bd865b802e0735373"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.10.20-linux-x86_64-gnu/bin/python3.10",
+            "sha256": "3303d2b5dc566818e412d2b5b6cd8e792bd360865da47593429a635f72668226"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 1.503180868923664,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "build-py-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/build-py-attempt1/command.json",
+            "sha256": "460e385c24dad8934bbe8713ec42edc269684252a17d94924cc324bfb896b5fd"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.10.20-linux-x86_64-gnu/bin/python3.10",
+            "sha256": "3303d2b5dc566818e412d2b5b6cd8e792bd360865da47593429a635f72668226"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.6836266405880451,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "installed-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/installed-collection-attempt1/command.json",
+            "sha256": "f5a7b1dfec906a338a047f28f654ba39cdcfd337d81535ed3a5db37efe88fbb8"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp310-attempt1/installed-runtime",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.10.20-linux-x86_64-gnu/bin/python3.10",
+            "sha256": "3303d2b5dc566818e412d2b5b6cd8e792bd360865da47593429a635f72668226"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 5.054354498162866,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "installed-core-smoke-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/installed-core-smoke-attempt1/command.json",
+            "sha256": "1250428a433844ab0a3fe1e58391c8f202c9e2a44c40ad69c7da8aeead8294c5"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp310-attempt1/installed-runtime",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.10.20-linux-x86_64-gnu/bin/python3.10",
+            "sha256": "3303d2b5dc566818e412d2b5b6cd8e792bd360865da47593429a635f72668226"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 10.723607068881392,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "installed-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/installed-run-attempt1/command.json",
+            "sha256": "17bd5a629f87ed1f12d6d54363d2785b734d859cf5109bf65863633805f61571"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp310-attempt1/installed-runtime",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.10.20-linux-x86_64-gnu/bin/python3.10",
+            "sha256": "3303d2b5dc566818e412d2b5b6cd8e792bd360865da47593429a635f72668226"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 78.35060579143465,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "native-source-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/native-source-collection-attempt1/command.json",
+            "sha256": "e1c693e01292dea021bb476c81d49e03109a647547191fd90ce22a4ce2ae2dd4"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.10.20-linux-x86_64-gnu/bin/python3.10",
+            "sha256": "3303d2b5dc566818e412d2b5b6cd8e792bd360865da47593429a635f72668226"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.6212324127554893,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "native-source-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/native-source-run-attempt1/command.json",
+            "sha256": "2df4540e46a8780fdbdc2c404a6604be7b246355a97c025fb7a7f5faa36637b2"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.10.20-linux-x86_64-gnu/bin/python3.10",
+            "sha256": "3303d2b5dc566818e412d2b5b6cd8e792bd360865da47593429a635f72668226"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 4.8879560474306345,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "pip-install-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/pip-install-attempt1/command.json",
+            "sha256": "2bb98bd3c0a885c65254a92eb898a9a1dbbb3f7531a34cee511fdd0c45e57c02"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp310-attempt1",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.10.20-linux-x86_64-gnu/bin/python3.10",
+            "sha256": "3303d2b5dc566818e412d2b5b6cd8e792bd360865da47593429a635f72668226"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.9999571610242128,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "source-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/source-collection-attempt1/command.json",
+            "sha256": "ba66f52f9ae3407546155b488edd6be3538a1f369b1027284811174b79d84d05"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.10.20-linux-x86_64-gnu/bin/python3.10",
+            "sha256": "3303d2b5dc566818e412d2b5b6cd8e792bd360865da47593429a635f72668226"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 5.237083815038204,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "source-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/source-run-attempt1/command.json",
+            "sha256": "da51ec3447f99ca6b09706606318afa2a362871598d7f13cd14734e8d402034b"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.10.20-linux-x86_64-gnu/bin/python3.10",
+            "sha256": "3303d2b5dc566818e412d2b5b6cd8e792bd360865da47593429a635f72668226"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 78.72747660428286,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "wheel-audit-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp310-attempt1/wheel-audit-attempt1/command.json",
+            "sha256": "5c3713c8d0ea18d44c7d765cf2ba0868f031582a878360f40e9c0cbcf4856af8"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp310-attempt1",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.10.20-linux-x86_64-gnu/bin/python3.10",
+            "sha256": "3303d2b5dc566818e412d2b5b6cd8e792bd360865da47593429a635f72668226"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.042785972356796265,
+          "frozen_unchanged": true
+        }
+      ]
+    },
+    {
+      "name": "cp312-attempt1",
+      "role": "matrix3.12",
+      "launch": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1.launch.json",
+        "sha256": "ebb6a1a513091ba7bdb64cb5641a5a8ddc273ea80086535ae30d421fbdf1fee8"
+      },
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-runners/revision4/stage6_runner.py",
+        "execute",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/FREEZE.json",
+        "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60",
+        "3.12",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1",
+        "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp312-attempt1"
+      ],
+      "outer_interpreter": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+        "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+      },
+      "payload_interpreter": {
+        "path": "/tmp/hotpot-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+        "sha256": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7"
+      },
+      "returncode": 0,
+      "status": "PASSED",
+      "elapsed_seconds": 261.27614401467144,
+      "status_is_historical": true,
+      "child_command_receipts": [
+        {
+          "phase": "bdist-wheel-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/bdist-wheel-attempt1/command.json",
+            "sha256": "94fe004cd3161a43da90af3b5477d2d098a9f498a374a4b627e87db80d38bddd"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+            "sha256": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 1.5748369991779327,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "build-py-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/build-py-attempt1/command.json",
+            "sha256": "5baf7eb4bcd04fd36241ab175f210bf76d9b5d92c9b48c3a6ec7dc74a8acd6d7"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+            "sha256": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.7266486901789904,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "installed-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/installed-collection-attempt1/command.json",
+            "sha256": "894742464d516e3ae91e44eb62bddad65f3b5db8dd03df43d7ec4a6ab04970cb"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp312-attempt1/installed-runtime",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+            "sha256": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 4.969161482527852,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "installed-core-smoke-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/installed-core-smoke-attempt1/command.json",
+            "sha256": "6faff154d2af701e8f4997b0124065de8a8eb0f13457d14f4351566e97feb12f"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp312-attempt1/installed-runtime",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+            "sha256": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 11.559909639880061,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "installed-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/installed-run-attempt1/command.json",
+            "sha256": "b8911147277f3ab2d8f174cbde09a6c905fecd2f87e2f40281189d1dc00de4a9"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp312-attempt1/installed-runtime",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+            "sha256": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 82.1549690309912,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "native-source-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/native-source-collection-attempt1/command.json",
+            "sha256": "e18478d626d25d9b77c341be873cf67bb3b7db368350277d8a6d3bd60a6f88b8"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+            "sha256": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.63601253926754,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "native-source-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/native-source-run-attempt1/command.json",
+            "sha256": "927139c126f193f7185d8638ecf43a880789065ea58b1c648d4183aaafef22ad"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+            "sha256": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 4.905332874506712,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "pip-install-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/pip-install-attempt1/command.json",
+            "sha256": "70f946a5b8618040299eda26ab864e6f5f80098a40ecd4739f6e48ebc884b37e"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp312-attempt1",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+            "sha256": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 1.1027452927082777,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "source-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/source-collection-attempt1/command.json",
+            "sha256": "3a3588e9ae5e85197b0b5264161492f78f03180d9e9d8fc729611e33b236a217"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+            "sha256": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 5.169989326968789,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "source-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/source-run-attempt1/command.json",
+            "sha256": "656e7dd8453ec23c75313218fbe93c6df36cc1b304105687b98dbd8b94f35ed5"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+            "sha256": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 82.61531221494079,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "wheel-audit-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp312-attempt1/wheel-audit-attempt1/command.json",
+            "sha256": "6b2fbc8ddcca432927d2173d01bd7cac2983f51e2a6edae61b9dbdc5eb987b02"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp312-attempt1",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+            "sha256": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.037894897162914276,
+          "frozen_unchanged": true
+        }
+      ]
+    },
+    {
+      "name": "cp313-attempt1",
+      "role": "matrix3.13",
+      "launch": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1.launch.json",
+        "sha256": "537ce199299ce5d3f0f57ddd5f3d3f3a0a5a2d2419f22616ba2f4cb998b1dc68"
+      },
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-runners/revision4/stage6_runner.py",
+        "execute",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/FREEZE.json",
+        "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60",
+        "3.13",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1",
+        "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp313-attempt1"
+      ],
+      "outer_interpreter": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+        "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+      },
+      "payload_interpreter": {
+        "path": "/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/bin/python3.13",
+        "sha256": "441e35a78c27a717b4634c21d8c118d9f535afb675add1ed421c581bb410a27f"
+      },
+      "returncode": 0,
+      "status": "PASSED",
+      "elapsed_seconds": 261.0582502707839,
+      "status_is_historical": true,
+      "child_command_receipts": [
+        {
+          "phase": "bdist-wheel-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/bdist-wheel-attempt1/command.json",
+            "sha256": "49bcd483dba0f14fc21c958c9ab55b756ef667f52af865c1e525ad3a085c07fd"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/bin/python3.13",
+            "sha256": "441e35a78c27a717b4634c21d8c118d9f535afb675add1ed421c581bb410a27f"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 1.4030778594315052,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "build-py-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/build-py-attempt1/command.json",
+            "sha256": "49a87a2964786dace0d9bd3eb2f975e7fb1ab2e21d0f97e4ac2fd4c35a8e40bf"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/bin/python3.13",
+            "sha256": "441e35a78c27a717b4634c21d8c118d9f535afb675add1ed421c581bb410a27f"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.5668663661926985,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "installed-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/installed-collection-attempt1/command.json",
+            "sha256": "edc6b9b58d241a8880c72f35188ae76a00f9474a970b92dd20483ad808c111a9"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp313-attempt1/installed-runtime",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/bin/python3.13",
+            "sha256": "441e35a78c27a717b4634c21d8c118d9f535afb675add1ed421c581bb410a27f"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 4.7253149170428514,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "installed-core-smoke-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/installed-core-smoke-attempt1/command.json",
+            "sha256": "9f70f38393c94b74ab4f1d8aae0aa1c44215b12c3d250350e4e2c97494e5ed7a"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp313-attempt1/installed-runtime",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/bin/python3.13",
+            "sha256": "441e35a78c27a717b4634c21d8c118d9f535afb675add1ed421c581bb410a27f"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 11.81879579462111,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "installed-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/installed-run-attempt1/command.json",
+            "sha256": "17b03bf5a31af030a5e2f0a9e381c5e2c9842325c3f6a8e8c28f0656c21b1b40"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp313-attempt1/installed-runtime",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/bin/python3.13",
+            "sha256": "441e35a78c27a717b4634c21d8c118d9f535afb675add1ed421c581bb410a27f"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 82.61219133809209,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "native-source-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/native-source-collection-attempt1/command.json",
+            "sha256": "095dd1704b8a41ce4719678ca24604ec6880e206107a969e2dd5d67585d65542"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/bin/python3.13",
+            "sha256": "441e35a78c27a717b4634c21d8c118d9f535afb675add1ed421c581bb410a27f"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.634365675970912,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "native-source-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/native-source-run-attempt1/command.json",
+            "sha256": "fb6ac55a05d988c80d0d9cfddcb9ec7b825b1cd9f9f1f46ee3ac52162485254c"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/bin/python3.13",
+            "sha256": "441e35a78c27a717b4634c21d8c118d9f535afb675add1ed421c581bb410a27f"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 4.907409148290753,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "pip-install-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/pip-install-attempt1/command.json",
+            "sha256": "e24305acafc6b29bd69c0d0a6eadca084d465116e05d364a858687d3aa44d9d4"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp313-attempt1",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/bin/python3.13",
+            "sha256": "441e35a78c27a717b4634c21d8c118d9f535afb675add1ed421c581bb410a27f"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.8824254963546991,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "source-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/source-collection-attempt1/command.json",
+            "sha256": "1757f9993b8fe5d0078d28aede19a899721fc3cb0ddd87eb3ed665b62c40542d"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/bin/python3.13",
+            "sha256": "441e35a78c27a717b4634c21d8c118d9f535afb675add1ed421c581bb410a27f"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 4.904196888208389,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "source-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/source-run-attempt1/command.json",
+            "sha256": "0f5f1cf357f071fc1aeba809997c7aa2f5e772daf144efe90c534a5cddbcca72"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/bin/python3.13",
+            "sha256": "441e35a78c27a717b4634c21d8c118d9f535afb675add1ed421c581bb410a27f"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 82.679897563532,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "wheel-audit-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp313-attempt1/wheel-audit-attempt1/command.json",
+            "sha256": "e705d517c135394078c068995498a8d554040f57782a262844b8ad211fa186e7"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp313-attempt1",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.13.15-linux-x86_64-gnu/bin/python3.13",
+            "sha256": "441e35a78c27a717b4634c21d8c118d9f535afb675add1ed421c581bb410a27f"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.03810015320777893,
+          "frozen_unchanged": true
+        }
+      ]
+    },
+    {
+      "name": "cp314-attempt1",
+      "role": "matrix3.14",
+      "launch": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1.launch.json",
+        "sha256": "9298fd892a60c3c0e8471d28b14d4d18e69862202ee1806652c9ffb39b5b641e"
+      },
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-runners/revision4/stage6_runner.py",
+        "execute",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/FREEZE.json",
+        "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60",
+        "3.14",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1",
+        "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp314-attempt1"
+      ],
+      "outer_interpreter": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+        "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+      },
+      "payload_interpreter": {
+        "path": "/tmp/hotpot-python/cpython-3.14.7-linux-x86_64-gnu/bin/python3.14",
+        "sha256": "ce7402fee6629ce791aeb871cd4d1a1e21ad2e90ca4b3236611484053a7e06ac"
+      },
+      "returncode": 0,
+      "status": "PASSED",
+      "elapsed_seconds": 279.8032179083675,
+      "status_is_historical": true,
+      "child_command_receipts": [
+        {
+          "phase": "bdist-wheel-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/bdist-wheel-attempt1/command.json",
+            "sha256": "f588c67039666b57cb8e73860d98d8d7a18819c5234e2503628064bcc0b97ae6"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.14.7-linux-x86_64-gnu/bin/python3.14",
+            "sha256": "ce7402fee6629ce791aeb871cd4d1a1e21ad2e90ca4b3236611484053a7e06ac"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 1.2903265487402678,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "build-py-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/build-py-attempt1/command.json",
+            "sha256": "3e89c1a3e8f98597d0e1dd9c8bfe030852f1b80e2e0322fd74095182f3f99854"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.14.7-linux-x86_64-gnu/bin/python3.14",
+            "sha256": "ce7402fee6629ce791aeb871cd4d1a1e21ad2e90ca4b3236611484053a7e06ac"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.46843828819692135,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "installed-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/installed-collection-attempt1/command.json",
+            "sha256": "a26bd578d5342f00bb8fc0f39e8e7fbbec1d06dce76c279b830c2f4a891f47a0"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp314-attempt1/installed-runtime",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.14.7-linux-x86_64-gnu/bin/python3.14",
+            "sha256": "ce7402fee6629ce791aeb871cd4d1a1e21ad2e90ca4b3236611484053a7e06ac"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 5.109471606090665,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "installed-core-smoke-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/installed-core-smoke-attempt1/command.json",
+            "sha256": "027e010ca6f23c444a5ee874ff1946cdaf5c709046e6e6df2057eb8acdc5faed"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp314-attempt1/installed-runtime",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.14.7-linux-x86_64-gnu/bin/python3.14",
+            "sha256": "ce7402fee6629ce791aeb871cd4d1a1e21ad2e90ca4b3236611484053a7e06ac"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 13.096248295158148,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "installed-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/installed-run-attempt1/command.json",
+            "sha256": "a1616eea2398c7d29f033c8e75f0901739d123074937d49a5b559a3c4052c72f"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp314-attempt1/installed-runtime",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.14.7-linux-x86_64-gnu/bin/python3.14",
+            "sha256": "ce7402fee6629ce791aeb871cd4d1a1e21ad2e90ca4b3236611484053a7e06ac"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 91.33228016644716,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "native-source-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/native-source-collection-attempt1/command.json",
+            "sha256": "0243d28572c81f9a019fabcbbcc37808fa0540743d753934e959cb11e1e33d1c"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.14.7-linux-x86_64-gnu/bin/python3.14",
+            "sha256": "ce7402fee6629ce791aeb871cd4d1a1e21ad2e90ca4b3236611484053a7e06ac"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.6993582751601934,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "native-source-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/native-source-run-attempt1/command.json",
+            "sha256": "46cc5c8116f797048bdaea9e2b87d6978ce41ed9bcd7540588cc4ada20c1a4fb"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.14.7-linux-x86_64-gnu/bin/python3.14",
+            "sha256": "ce7402fee6629ce791aeb871cd4d1a1e21ad2e90ca4b3236611484053a7e06ac"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 4.9726716466248035,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "pip-install-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/pip-install-attempt1/command.json",
+            "sha256": "d45d736d7d553394ae1eb08a788f7ba055f802f12d3f7f68587cabd1bf13347e"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp314-attempt1",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.14.7-linux-x86_64-gnu/bin/python3.14",
+            "sha256": "ce7402fee6629ce791aeb871cd4d1a1e21ad2e90ca4b3236611484053a7e06ac"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.8804844692349434,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "source-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/source-collection-attempt1/command.json",
+            "sha256": "2c34dafc0f339b558500c36db80ff9872a2eb19cd09abdbf58955068f72ff094"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.14.7-linux-x86_64-gnu/bin/python3.14",
+            "sha256": "ce7402fee6629ce791aeb871cd4d1a1e21ad2e90ca4b3236611484053a7e06ac"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 5.294553507119417,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "source-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/source-run-attempt1/command.json",
+            "sha256": "539ec363417f7d21530edf9f506b877e96646844436fb3e4026ea4eee1c40eb6"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.14.7-linux-x86_64-gnu/bin/python3.14",
+            "sha256": "ce7402fee6629ce791aeb871cd4d1a1e21ad2e90ca4b3236611484053a7e06ac"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 90.86461078375578,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "wheel-audit-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/cp314-attempt1/wheel-audit-attempt1/command.json",
+            "sha256": "454d2cea7d2ac629fdb0c632686085dc4f75ea3274a39fc1c34cafaffac524b7"
+          },
+          "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp314-attempt1",
+          "interpreter": {
+            "path": "/tmp/hotpot-python/cpython-3.14.7-linux-x86_64-gnu/bin/python3.14",
+            "sha256": "ce7402fee6629ce791aeb871cd4d1a1e21ad2e90ca4b3236611484053a7e06ac"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 0.035624785348773,
+          "frozen_unchanged": true
+        }
+      ]
+    },
+    {
+      "name": "default-cp311-attempt1",
+      "role": "default3.11",
+      "launch": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/default-cp311-attempt1.launch.json",
+        "sha256": "ce1842141124af586d9e7ad940ed458e3d9fd07891f4097992ba9ca4569cb694"
+      },
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-runners/revision4/stage6_runner.py",
+        "default",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/FREEZE.json",
+        "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60",
+        "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/default-cp311-attempt1"
+      ],
+      "outer_interpreter": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+        "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+      },
+      "payload_interpreter": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+        "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+      },
+      "returncode": 1,
+      "status": "FAILED",
+      "elapsed_seconds": 288.9274727795273,
+      "status_is_historical": true,
+      "child_command_receipts": [
+        {
+          "phase": "default-collection-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/default-cp311-attempt1/default-collection-attempt1/command.json",
+            "sha256": "93e0b5bd9af25d61a33e162a84732f376bc8acdd7f462fa013d9860a7efadd9a"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 8.083768835291266,
+          "frozen_unchanged": true
+        },
+        {
+          "phase": "default-run-attempt1",
+          "record": {
+            "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/default-cp311-attempt1/default-run-attempt1/command.json",
+            "sha256": "68e614e74dad29ea35f32665834d1a427763d8856b29fe96a2d97a477f2db35c"
+          },
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "interpreter": {
+            "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+            "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+          },
+          "returncode": 0,
+          "elapsed_seconds": 267.2264809962362,
+          "frozen_unchanged": true
+        }
+      ]
+    }
+  ],
+  "receipt_coverage": "Immutable index/command.json retain exact argv/cwd/resolved interpreter, output identities and elapsed time. Child receipt projections retain original command status.",
+  "supplementary": {
+    "execution_index": {
+      "path": ".plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-evidence-index-attempt1.json",
+      "sha256": "c7caaf81cc22e23be32d0fb554a21a66a28db6c220d235e85023db4a130d3630",
+      "bytes": 183597
+    },
+    "root_artifact_review": {
+      "path": ".plan20-artifacts/20261030/stage6/root-runtime-review/supplementary/attempt2/review.json",
+      "sha256": "b0dc052a057113d93b9c230c24bf3905ea3668b7c42a98a57bd6c35266f8823b",
+      "bytes": 543167
+    },
+    "executed_commands": [
+      {
+        "name": "preservation-source-attempt1",
+        "status": "EXECUTED_RETURNED0",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/preservation-source-attempt1/command.json",
+          "sha256": "157ccdfd7737ab56f4523ef10e7fff1f7affecc1689c390453d83b6d2d6405a6",
+          "size": 6862
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/capture_candidate.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/requests/preservation-source-attempt1.json",
+          "a6e2d2cc99a291f0c0d9e84dbcbad95796452a2a6e62abb9739009188023c3c9",
+          "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "interpreter": {
+          "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+          "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 4.297911452129483,
+        "frozen_unchanged": true
+      },
+      {
+        "name": "cold-source-facade-first-attempt1",
+        "status": "EXECUTED_RETURNED0",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/cold-source-facade-first-attempt1/command.json",
+          "sha256": "ddb5db589b8727635f45a948a32629a9fb738d5dbea57c50f4c4ba38d5f4e658",
+          "size": 6894
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/cold_candidate.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/requests/cold-source-facade-first-attempt1.json",
+          "998dfc1d6403d5618013620d855fe4dbd69db6d35128ea45ce4222e4d5bf8473",
+          "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "interpreter": {
+          "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+          "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 4.219701396301389,
+        "frozen_unchanged": true
+      },
+      {
+        "name": "cold-source-core-first-attempt1",
+        "status": "EXECUTED_RETURNED0",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/cold-source-core-first-attempt1/command.json",
+          "sha256": "52aeb9258102a81e577373ec271c80252067fa8980eba73d101f7fb595bb6595",
+          "size": 6880
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/cold_candidate.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/requests/cold-source-core-first-attempt1.json",
+          "bb892e3888bf83a6f91807e11e5ed1ff7a20b030e00b6029ead5ac28e4c300ae",
+          "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "interpreter": {
+          "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+          "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 4.210455853492022,
+        "frozen_unchanged": true
+      },
+      {
+        "name": "cold-source-identity-first-attempt1",
+        "status": "EXECUTED_RETURNED0",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/cold-source-identity-first-attempt1/command.json",
+          "sha256": "1b2d3031055732add46c7fa3ba88f755c746dbe2fdbe1a2b61e953aee10056b0",
+          "size": 6908
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/cold_candidate.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/requests/cold-source-identity-first-attempt1.json",
+          "2ddfe5660cecc5c3d74a78c22805ce3aa91ee66ceb62b3b238ad35eb209fd86c",
+          "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "interpreter": {
+          "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+          "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 4.224187081679702,
+        "frozen_unchanged": true
+      },
+      {
+        "name": "cold-source-unpickle-only-attempt1",
+        "status": "EXECUTED_RETURNED0",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/cold-source-unpickle-only-attempt1/command.json",
+          "sha256": "d0a3a2288eb4a6a5e18ffec3e85893c046a000fa16f21e40018a2429c4329754",
+          "size": 6901
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/cold_candidate.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/requests/cold-source-unpickle-only-attempt1.json",
+          "3385ec997c03bf7abee62198502be4996ffc9f4c00ef1685186fef7cf0a0c014",
+          "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "interpreter": {
+          "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+          "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 4.236712101846933,
+        "frozen_unchanged": true
+      },
+      {
+        "name": "ordinary-cost-source-attempt1",
+        "status": "EXECUTED_RETURNED0",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-source-attempt1/command.json",
+          "sha256": "d7bfdeb5a94c91c35760fd4783775e8efd585b6f44bd85c1618f3ad21acf411d",
+          "size": 6874
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/capture_candidate_cost.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/requests/ordinary-cost-source-attempt1.json",
+          "0b89de3f01b62a3a75b2778369f2bf1954562ebf4d19796debc85775e1994d63",
+          "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "interpreter": {
+          "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+          "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 37.50652472116053,
+        "frozen_unchanged": true
+      },
+      {
+        "name": "components-source-attempt1",
+        "status": "EXECUTED_RETURNED0",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-source-attempt1/command.json",
+          "sha256": "0a3c51c34c937b9d8318b6b2db416da69250a317e02d746ebdfb1356d90fb15f",
+          "size": 6856
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/probe_candidate_components.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/requests/components-source-attempt1.json",
+          "7693ae70b5885f21fb60000f73954bad815646a1db3c2cdd4840277cb109aa89",
+          "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "interpreter": {
+          "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+          "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 16.5395352486521,
+        "frozen_unchanged": true
+      },
+      {
+        "name": "preservation-installed-attempt1",
+        "status": "EXECUTED_RETURNED0",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/preservation-installed-attempt1/command.json",
+          "sha256": "25f7e89151dfd08b55a2a363d87694e1b07be917225f0451fc385585bd8352da",
+          "size": 7612
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/capture_candidate.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/requests/preservation-installed-attempt1.json",
+          "95a0446e4ee6291f05c374a2f243ab54fc0e13cf7b64fe62cc2568e2fdb26555",
+          "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60"
+        ],
+        "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp311-attempt1/installed-runtime",
+        "interpreter": {
+          "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+          "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 4.426418779417872,
+        "frozen_unchanged": true
+      },
+      {
+        "name": "cold-installed-facade-first-attempt1",
+        "status": "EXECUTED_RETURNED0",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/cold-installed-facade-first-attempt1/command.json",
+          "sha256": "e50cec14062f782742853849a321dcfc7ee6f0cd0e93219299feb563243a3e05",
+          "size": 7645
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/cold_candidate.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/requests/cold-installed-facade-first-attempt1.json",
+          "bf7900a13baa2edfcc23ec66b4b590842207a6d8b10665a904c0e46ec5d2e854",
+          "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60"
+        ],
+        "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp311-attempt1/installed-runtime",
+        "interpreter": {
+          "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+          "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 4.3491411823779345,
+        "frozen_unchanged": true
+      },
+      {
+        "name": "cold-installed-core-first-attempt1",
+        "status": "EXECUTED_RETURNED0",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/cold-installed-core-first-attempt1/command.json",
+          "sha256": "47ab3d17240c153f9f5d21b3a7cc3337bf7030720e0b598772039b683c6b47a1",
+          "size": 7630
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/cold_candidate.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/requests/cold-installed-core-first-attempt1.json",
+          "ff631beb2aa21d76a55aa5391d1dbb2fe7a4e2e7a982eb32793fc72e648fdd6e",
+          "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60"
+        ],
+        "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp311-attempt1/installed-runtime",
+        "interpreter": {
+          "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+          "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 4.323595503345132,
+        "frozen_unchanged": true
+      },
+      {
+        "name": "cold-installed-identity-first-attempt1",
+        "status": "EXECUTED_RETURNED0",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/cold-installed-identity-first-attempt1/command.json",
+          "sha256": "05efbc2929c534139ef3556a08077eb9f52edb0273d7378f33f73397a09dabd0",
+          "size": 7658
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/cold_candidate.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/requests/cold-installed-identity-first-attempt1.json",
+          "0ce8c5a8451827db6d5f7be810f31843ee846d83cf9ee56714556f26ab174f53",
+          "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60"
+        ],
+        "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp311-attempt1/installed-runtime",
+        "interpreter": {
+          "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+          "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 4.356403633952141,
+        "frozen_unchanged": true
+      },
+      {
+        "name": "cold-installed-unpickle-only-attempt1",
+        "status": "EXECUTED_RETURNED0",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/cold-installed-unpickle-only-attempt1/command.json",
+          "sha256": "bb2af2ddd1f26276db8a245da01dffc7541d559ee34edd31caf283979d74c088",
+          "size": 7651
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/cold_candidate.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/requests/cold-installed-unpickle-only-attempt1.json",
+          "bb999464842dcfbd2045fbdb82f6943c19bc571018d25e896d3332cd95865515",
+          "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60"
+        ],
+        "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp311-attempt1/installed-runtime",
+        "interpreter": {
+          "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+          "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 4.323235681280494,
+        "frozen_unchanged": true
+      },
+      {
+        "name": "ordinary-cost-installed-attempt1",
+        "status": "EXECUTED_RETURNED0",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/ordinary-cost-installed-attempt1/command.json",
+          "sha256": "a63b87cb01c1a4168d50f46a4daa4aeae10619661219b7b1e94e4f37a62739cf",
+          "size": 7624
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/capture_candidate_cost.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/requests/ordinary-cost-installed-attempt1.json",
+          "1ce27906f930e72dcb17b378103e4e4af4de39831e7a00cc226e7c9b1cc74f29",
+          "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60"
+        ],
+        "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp311-attempt1/installed-runtime",
+        "interpreter": {
+          "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+          "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 37.70789330266416,
+        "frozen_unchanged": true
+      },
+      {
+        "name": "components-installed-attempt1",
+        "status": "EXECUTED_RETURNED0",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/components-installed-attempt1/command.json",
+          "sha256": "7b745f561b13fb10a5421f51fa00505967cfcd5468b17bc36a1595c09622c002",
+          "size": 7607
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/probe_candidate_components.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/requests/components-installed-attempt1.json",
+          "9aa664fc2c826329260b9f9e214fb3036a43bcfd4fbe2b616547e05e0ea9e1fc",
+          "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60"
+        ],
+        "cwd": "/tmp/hotpot-plan20-stage6-20261030/validation-execution-attempt1/cp311-attempt1/installed-runtime",
+        "interpreter": {
+          "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+          "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 16.60853629373014,
+        "frozen_unchanged": true
+      },
+      {
+        "name": "comparison-attempt1",
+        "status": "EXECUTED_RETURNED0",
+        "command": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-execution-attempt1/supplementary-attempt1/comparison-attempt1/command.json",
+          "sha256": "4c9fa62bd6eb700e494d339b5dff72d8ada7a9ee9c136f1412349ff03706fdfa",
+          "size": 6812
+        },
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/compare_candidate_observations.py",
+          "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/candidate-observation-support/revision1/requests/comparison-attempt1.json",
+          "78766de8970717eb5ed75440832842c6063fdda66eda1ee1eef050b46141e9ad",
+          "06407cb9ac778f8ae0302374a6e78ad4902412523eb96349dc5923bc8e533e60"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "interpreter": {
+          "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+          "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 4.505301246419549,
+        "frozen_unchanged": true
+      }
+    ],
+    "command_count": 15,
+    "all_returned_zero": true,
+    "all_frozen_unchanged": true,
+    "indexed_output_files": 362,
+    "root_verified_bindings": 719,
+    "modes": {
+      "source": {
+        "preservation_fixtures": 6,
+        "cold_orders": 4,
+        "public_classes": 18,
+        "public_values": 40,
+        "timing_samples_including_warmups": 117,
+        "allocation_samples_including_warmups": 117,
+        "component_samples_including_warmups": 117,
+        "allocation_workflows_per_sample": 2,
+        "single_path_counts": true,
+        "operation_local_weak_references_released": true
+      },
+      "installed": {
+        "preservation_fixtures": 6,
+        "cold_orders": 4,
+        "public_classes": 18,
+        "public_values": 40,
+        "timing_samples_including_warmups": 117,
+        "allocation_samples_including_warmups": 117,
+        "component_samples_including_warmups": 117,
+        "allocation_workflows_per_sample": 2,
+        "single_path_counts": true,
+        "operation_local_weak_references_released": true
+      }
+    },
+    "preservation_fixtures": [
+      "TH",
+      "DB",
+      "AX",
+      "coordination-SP",
+      "virtual-H",
+      "hidden-bonds"
+    ],
+    "cold_orders": [
+      "facade-first",
+      "core-first",
+      "identity-first",
+      "unpickle-only"
+    ],
+    "public_class_count": 18,
+    "public_value_count": 40,
+    "public_export_count": 23,
+    "facade_function_count": 5,
+    "default_type_hints": "NameError for Molecule retained",
+    "explicit_namespace_type_hints": "Resolves with explicit Molecule namespace in source and installed mode",
+    "invariants": [
+      "Recursive type/key-order/container/scalar/float-byte targets and real native acceptance/mapping output match retained historical inputs.",
+      "One capture, check, projection, pack, native target and query per actual distinct-owner workflow; complete mapping consumption and no pair/query repacking.",
+      "Operation-local weak references release after completion. Fixture owners are intentionally retained by the observation harness."
+    ],
+    "historical_reader_failure": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/root-runtime-review/supplementary/attempt1/failure.json",
+      "sha256": "9239662c18f1fb1fb01589997e6e8173da71d94af34194167e12b5eca72b52a9",
+      "size": 965
+    },
+    "cost_acceptance_record": "stages/stage06/performance/evidence.json"
+  },
+  "scientific_scope": "Extraction preserves scientific algorithms, Stage5 H defaults, selected outputs and native ABI contracts. No new scientific monitoring report, global success-count claim or algorithm approval.",
+  "remaining_limits": [
+    "All10 external SDK skips remain unavailable evidence; Stage10 clean-native/ABI/SDK/sdist gates remain open.",
+    "Cold success in existing environments is not final optional-dependency or lazy-import acceptance.",
+    "Recovery cannot reconstruct individual subtest report classes/parameter contexts; pytest implementation bound at recovery, not before original run.",
+    "C61 remains validated source after record-only delivery. Parent owns final consistency, Git delivery and full Stage6 closure.",
+    "Stage7A entry rebind, Stage7E storage, global science/performance/Plan12 and Stage13 experiment prerequisites remain separately gated."
+  ],
+  "runtime_rerun_by_record_author": false,
+  "stage6_fully_delivered": false,
+  "stage7A_entered": false
+}

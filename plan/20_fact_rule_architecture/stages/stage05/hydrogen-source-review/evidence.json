@@ -1,0 +1,231 @@
+{
+  "task_id": "p20-s5-h-implementation-review-704283-12",
+  "task_hash": "f21125f987edb5df5b181c345ce69b4076c579837fc9e803940be45ca7360506",
+  "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+  "diff_or_tree_hash": "eba438d6af5db030b201868699a6aad15c5d3a7091408cd59ad7c95269c40c8c",
+  "exact_turn_id": "01a18b47-3a6d-7472-9b48-0521b5becbcc",
+  "date": "2026-10-30",
+  "owner": "ai-4",
+  "exclusive_scope": "Primary inline-only source review of the focused-attempt3 H implementation snapshot; no filesystem reads, execution or delegation.",
+  "status": "BLOCKED_ON_ZERO_RESIDUAL_CURRENT_TRANSPORT; matching actual readonly turn audit passed; final source revision and runtime gates pending",
+  "snapshot_limit": "The 267-pass snapshot is historical. Subsequent retained-installer/shared-extractor and zero-residual changes need delta review and their own runtime evidence.",
+  "artifacts": {
+    "task.json": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-h-implementation-review-704283-12/task.json",
+      "sha256": "d7fa99674a858ffae03af10eb355bb08deb2875aa87bdf8cfa301047213dd71b"
+    },
+    "request.txt": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-h-implementation-review-704283-12/request.txt",
+      "sha256": "b7b849a738d598c280e807bc43bd66ca9f3ba1c7d7af693ccf36c5efed440bde"
+    },
+    "result.json": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-h-implementation-review-704283-12/result.json",
+      "sha256": "c22a0bd79acf39ba873a0155d33faeaa6c6583c68de08eda8cbe1c8f33b12551"
+    },
+    "audit-result.json": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-h-implementation-review-704283-12/audit-result.json",
+      "sha256": "b7bdea46e94a112ccdbd142c3024c4d7498ac211b96c03395b1a24eba44ab53f"
+    }
+  },
+  "result": {
+    "task_id": "p20-s5-h-implementation-review-704283-12",
+    "task_hash": "f21125f987edb5df5b181c345ce69b4076c579837fc9e803940be45ca7360506",
+    "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+    "diff_or_tree_hash": "eba438d6af5db030b201868699a6aad15c5d3a7091408cd59ad7c95269c40c8c",
+    "exact_turn_id": "01a18b47-3a6d-7472-9b48-0521b5becbcc",
+    "status": "COMPLETED_AUDITED",
+    "result_messages": [
+      {
+        "type": "agentMessage",
+        "id": "msg_0e8acd85eec1929a016ae42b938f208195890faeedae52ff78",
+        "text": "REVIEW_RESULT  \ntask_id=p20-s5-h-implementation-review-704283-12  \ntask_hash=f21125f987edb5df5b181c345ce69b4076c579837fc9e803940be45ca7360506  \nsource_commit=ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8  \ndiff_or_tree_hash=eba438d6af5db030b201868699a6aad15c5d3a7091408cd59ad7c95269c40c8c  \nverdict=BLOCKED\n\n## Concrete defect\n\nHigh — zero-residual inferred materialization leaves stale current transport H.\n\nIn `hotpot/cheminfo/operations/chemistry.py:360-388`, `_materialize_current_hydrogens(atom)` is called only inside `if num > 0`.\n\nFor an eligible inferred ordinary nonmetal with `A = max(T-E, 0) == 0`, automatic add-H returns without replacing an existing `AtomTransportRecord.current_hydrogens`. A nonzero `current_hydrogens.implicit_hydrogens` can therefore survive even though:\n\n- the atom field is owned by the new inferred producer;\n- the residual is zero;\n- current transport implicit H is explicitly not a second count owner;\n- Section 7 requires an existing current-H record to be normalized to implicit/bracket zero while preserving `no_implicit` and source history.\n\nThis edge is reachable because changes to current transport implicit count intentionally do not dirty or alter the H rule.\n\nShortest fix:\n\n- Carry an explicit `eligible_inferred_ordinary_nonmetal` flag in the prepared tuple.\n- For every automatic call with that eligibility, invoke `_materialize_current_hydrogens` even when no graph H is added; the helper already no-ops when no current record exists or its values are unchanged.\n- Do not apply this cleanup to the metal or real-H encoding exceptions.\n- Keep the cleanup inside the existing outer transaction.\n\nRequired regression:\n\n1. Fully graph-saturated ordinary carbon with inferred `T`, `J=0`, and an existing nonzero current transport implicit count.\n2. Run both Atom and Molecule automatic add-H paths.\n3. Assert no graph change, current implicit/bracket become zero, `no_implicit` and source history remain byte-identical, raw `T`/producer/presence remain unchanged, and repetition remains a no-op.\n4. Assert direct metal/real-H automatic calls do not clear their exceptional current transport state.\n\n## Static conclusions otherwise\n\n- The finite rule matches the settled charge/valence, metal raw-zero, H/H₂, radical, aromatic, ZERO/UNKNOWN and site-relative dative conventions.\n- Missing inputs become absent/default-source UNRESOLVED facts with permissive display zero; strict supplied consumers raise.\n- Explicit/source zero and raw float64 snapshots are protected.\n- The effective UID/radical/bracket/no-implicit tuple is incorporated into source identity and stereo invalidation; source-history, isotope and unrelated descriptor edits do not seed H.\n- Direction-only dative changes invalidate the H dependency.\n- Positive-residual inferred expansion captures the whole batch before writes, consumes current bracket H, preserves source history and `no_implicit`, and uses joined Atom/Molecule transactions with rollback coverage.\n- Existing injected-failure assertions remain substantive; the supplied focused run reports 267 passes against the bound snapshot.\n\nThe zero-residual transport case is not covered by the supplied tests. No full default, five-ABI, source/debug/installed-wheel, scientific, performance, or Stage5 acceptance claim is made.",
+        "phase": "final_answer",
+        "memoryCitation": null,
+        "delivery": null,
+        "questions": null,
+        "startedAtMs": 1793338259783,
+        "completedAtMs": 1793338266298
+      }
+    ],
+    "audit": {
+      "task_id": "p20-s5-h-implementation-review-704283-12",
+      "task_hash": "f21125f987edb5df5b181c345ce69b4076c579837fc9e803940be45ca7360506",
+      "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+      "diff_or_tree_hash": "eba438d6af5db030b201868699a6aad15c5d3a7091408cd59ad7c95269c40c8c",
+      "exact_turn_id": "01a18b47-3a6d-7472-9b48-0521b5becbcc",
+      "status": "PASS_ACTUAL_TURN_AUDIT",
+      "source": "Matching user-delivered AUDIT_RESULT relayed by root to current communication owner",
+      "identity_checks": "user/assistant payload task_id/hash/source/tree individually matched; turn/root_turn matched",
+      "sandbox": "actual normalized read-only; restricted network; root read1/write0; filesystem sandbox write0",
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "tools": 0,
+      "delegation": 0,
+      "completions": 1,
+      "timestamp": "2026-10-30T05:27:43.484Z",
+      "context_line": 587,
+      "context_sha256": "ac71bee80badffed3185d0c21b3af73c6ef9fab4d2df513ce0d2f1dcd9651b09",
+      "range": "586-664",
+      "range_sha256": "efffc1281f22a6fa2405407d9e96bec5c73a9bede9fab1cc3e7b5c632784c7d8",
+      "communication_owner": "01a18b0c-e0c4-7641-aeaa-c34444b3cad9",
+      "limits": "Audit checks actual turn enforcement/identity only; no chemistry content review or source acceptance."
+    }
+  },
+  "readonly_audit": {
+    "task_id": "p20-s5-h-implementation-review-704283-12",
+    "task_hash": "f21125f987edb5df5b181c345ce69b4076c579837fc9e803940be45ca7360506",
+    "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+    "diff_or_tree_hash": "eba438d6af5db030b201868699a6aad15c5d3a7091408cd59ad7c95269c40c8c",
+    "exact_turn_id": "01a18b47-3a6d-7472-9b48-0521b5becbcc",
+    "status": "PASS_ACTUAL_TURN_AUDIT",
+    "source": "Matching user-delivered AUDIT_RESULT relayed by root to current communication owner",
+    "identity_checks": "user/assistant payload task_id/hash/source/tree individually matched; turn/root_turn matched",
+    "sandbox": "actual normalized read-only; restricted network; root read1/write0; filesystem sandbox write0",
+    "model": "gpt-5.6-sol",
+    "effort": "xhigh",
+    "tools": 0,
+    "delegation": 0,
+    "completions": 1,
+    "timestamp": "2026-10-30T05:27:43.484Z",
+    "context_line": 587,
+    "context_sha256": "ac71bee80badffed3185d0c21b3af73c6ef9fab4d2df513ce0d2f1dcd9651b09",
+    "range": "586-664",
+    "range_sha256": "efffc1281f22a6fa2405407d9e96bec5c73a9bede9fab1cc3e7b5c632784c7d8",
+    "communication_owner": "01a18b0c-e0c4-7641-aeaa-c34444b3cad9",
+    "limits": "Audit checks actual turn enforcement/identity only; no chemistry content review or source acceptance."
+  },
+  "root_critical_review": [
+    "Confirmed the reported helper call was guarded by num > 0 in the reviewed source. Section7 requires normalization of existing current transport on every eligible automatic inferred ordinary-nonmetal materialization, including zero residual.",
+    "Assigned the sole production owner the narrow cleanup and both Atom/Molecule zero-residual regressions, preserving metal/real-H exceptions, explicit/supplied paths, source history, no_implicit and raw target/producer/presence.",
+    "Actual turn audit validates identity and readonly enforcement only. It does not overturn the substantive BLOCKED verdict or establish chemistry correctness.",
+    "Final revision review must include every post267 production/test delta and matching task/hash/turn audit; prior pass counts do not apply to changed bytes."
+  ],
+  "runtime_validation_executed_by_this_task": false,
+  "current_acceptance": {
+    "bounded_H_source_static_review": true,
+    "full_production_runtime": false,
+    "stage5_gate": false
+  },
+  "document_layout_check": {
+    "command.json": {
+      "path": ".plan20-artifacts/20261030/stage5/layout-source-review-attempt1/command.json",
+      "sha256": "73fcbe20cfe71e01cecd5366110ecb44cf29d00eb5ec49280179259d83517210"
+    },
+    "report.json": {
+      "path": ".plan20-artifacts/20261030/stage5/layout-source-review-attempt1/report.json",
+      "sha256": "91f7531dc590aec54dee343bc385ecf6523f825010ae99af3d0a97004039e6e3"
+    },
+    "actual_result": {
+      "status": "passed",
+      "markdown": 51,
+      "json": 47,
+      "other": 1,
+      "indexed": 99,
+      "limits": "Document navigation and archival integrity only; not source or runtime acceptance."
+    }
+  },
+  "current_status": "Bounded final H delta static review accepted; source/tests frozen; final Stage5 gates open",
+  "review_revisions": [
+    {
+      "task_id": "p20-s5-h-implementation-review-704283-12",
+      "revision": 2,
+      "task_hash": "4798a531d73313d81a78a78183b17d843049a0d7a473879d8f165abc6f54d813",
+      "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+      "diff_or_tree_hash": "96a0beee5eca952b7daf7f4041133891ccdffff0f1c9a5f35ff93f8c14f2abec",
+      "status": "PASS_IMPLEMENTATION_STATIC_AND_MATCHING_ACTUAL_READONLY_AUDIT; accepted for bounded source delta only",
+      "task_path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-h-implementation-review-704283-12-r2/task.json",
+      "task_file_sha256": "a590d516a2edebf79a31aa39c343c017b1f6977f8fb3684126978729cfc56e2c",
+      "delta_manifest": [
+        {
+          "path": "hotpot/cheminfo/core.py",
+          "kind": "source",
+          "before_sha256": "191ac0f879a49e3cd4d5134adb87aef685ec93c46bb579e82ce21959762a3e7c",
+          "after_sha256": "0c63e60ffe22f006bb3fdf36a534c785253083164e858024304974889da34c97"
+        },
+        {
+          "path": "hotpot/cheminfo/operations/chemistry.py",
+          "kind": "source",
+          "before_sha256": "ed4acf771b15f09ae3f6d3d34e5117ba4e134a107a445985764c2b313efab6e5",
+          "after_sha256": "ffb00624bcdfadc971613f6f5ab548b5c9e672309b60c7710c6a7219180dd50c"
+        },
+        {
+          "path": "hotpot/cheminfo/structure/_identity.py",
+          "kind": "source",
+          "before_sha256": "af02a14568969c900f621bfe6d5290c6adb9e70d29a77fa2dc53723deb8f1346",
+          "after_sha256": "7ce44a3be08d50ce4c07c8ce4c504e75a95de69165825a23dbf7d13b98fed534"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py",
+          "kind": "tests",
+          "before_sha256": "98fe0f84e8ba8b5e21d4210a5f8c78c5861570fd16075776d5b729e25904181f",
+          "after_sha256": "c5746c31a64e4f214574140c3f9011584213adc4f49c4d4a0e046c700410221f"
+        }
+      ],
+      "runtime_coverage_limit": "304 affected tests and final static checks only; broad default/native/ABI/wheel/science/performance pending.",
+      "exact_turn_id": "01a18b65-51b7-7451-9f5e-41a75338529c",
+      "result": {
+        "task_id": "p20-s5-h-implementation-review-704283-12",
+        "revision": 2,
+        "task_hash": "4798a531d73313d81a78a78183b17d843049a0d7a473879d8f165abc6f54d813",
+        "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+        "diff_or_tree_hash": "96a0beee5eca952b7daf7f4041133891ccdffff0f1c9a5f35ff93f8c14f2abec",
+        "exact_turn_id": "01a18b65-51b7-7451-9f5e-41a75338529c",
+        "status": "RESULT_RECEIVED_AUDIT_PENDING",
+        "result_messages": [
+          {
+            "type": "agentMessage",
+            "id": "msg_0e8acd85eec1929a016ae432cd96f4819585f7095e9c85a57d",
+            "text": "REVIEW_RESULT  \ntask_id=p20-s5-h-implementation-review-704283-12  \nrevision=2  \ntask_hash=4798a531d73313d81a78a78183b17d843049a0d7a473879d8f165abc6f54d813  \nsource_commit=ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8  \ndiff_or_tree_hash=96a0beee5eca952b7daf7f4041133891ccdffff0f1c9a5f35ff93f8c14f2abec  \nverdict=PASS_IMPLEMENTATION_STATIC\n\nNo concrete defects found.\n\n- `operations/chemistry.py:318-360` now performs current-H normalization for every eligible automatic inferred ordinary-nonmetal call, including zero residual. Explicit `num`, supplied sources, metals, and real H remain excluded.\n- Both Atom and Molecule paths retain transaction coverage. Tests cover repetition, preserved target/source/presence/history/`no_implicit`, exceptional paths, and rollback.\n- `_identity.py:126-176` and `core.py:2258-2343` compare retained records by UID across consumed local inputs, topology, and H-slot state. Historical source H, isotope, and unrelated payload data remain outside invalidation.\n- Installer tests cover element, charge, bond order/kind/direction, H-slot changes, source-only history, promotion from unresolved supplied zero, and rollback.\n- Existing injected-failure assertions remain substantive.\n\nThe supplied record reports 304 focused passes. This is static approval only—not full runtime, ABI, installed-wheel, performance, or Stage5 acceptance.",
+            "phase": "final_answer",
+            "memoryCitation": null,
+            "delivery": null,
+            "questions": null,
+            "startedAtMs": 1793340109729,
+            "completedAtMs": 1793340113818
+          }
+        ]
+      },
+      "root_critical_review": [
+        "Checked the exact fix: inference eligibility includes CURRENT, present H, current inferred producer and ordinary nonmetal; cleanup is outside positive-addition guard and explicit num leaves eligibility false.",
+        "The sole production owner reports304 focused passes and retained pre-fix8 failures. Primary delta review found no concrete defects across retained-install and rollback changes; no duplicate broad root review or test run performed.",
+        "Matching exact-turn audit received and accepted. Static source-delta review is complete; broad runtime/native/scientific/performance and Stage5 acceptance remain pending."
+      ],
+      "result_file_sha256": "3e14a5a25a4b9cd882d676de0093776b1f66cfccce311496645130dac7e47f7d",
+      "readonly_audit": {
+        "status": "PASS",
+        "provenance": "Exact matching user-delivered AUDIT_RESULT; duplicate existing_receipt deduplicated without re-audit",
+        "task_id": "p20-s5-h-implementation-review-704283-12",
+        "revision": 2,
+        "task_hash": "4798a531d73313d81a78a78183b17d843049a0d7a473879d8f165abc6f54d813",
+        "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+        "diff_or_tree_hash": "96a0beee5eca952b7daf7f4041133891ccdffff0f1c9a5f35ff93f8c14f2abec",
+        "exact_turn_id": "01a18b65-51b7-7451-9f5e-41a75338529c",
+        "root_turn_id": "01a18b65-51b7-7451-9f5e-41a75338529c",
+        "context_line": 670,
+        "timestamp": "2026-10-30T06:01:07.158Z",
+        "context_sha256": "ac8bb5ecd1856e4328a1b6594d355a2e4b8d54bac19647726a9596a2c757f6fb",
+        "lines": [
+          666,
+          692
+        ],
+        "range_sha256": "2c16265c91cc6e6e1ad7651765c8b54e939df9b7aacc78d2c7f69fd424fcd1e7",
+        "sandbox": "normalized read-only; restricted network/filesystem; root read entry; zero write-capable entries",
+        "model": "gpt-5.6-sol",
+        "effort": "xhigh",
+        "tool_calls": 0,
+        "command_calls": 0,
+        "delegation_calls": 0,
+        "task_started": 1,
+        "item_completed": 9,
+        "task_complete": 1,
+        "task_failed": 0,
+        "turn_aborted": 0,
+        "turn_failed": 0,
+        "assistant_messages": 1,
+        "root_bearing_identity_records_matched": 5,
+        "transport_root_thread": "01a18583-f506-71f2-81c9-a66ca32e3561",
+        "communication_owner": "01a18b0c-e0c4-7641-aeaa-c34444b3cad9"
+      }
+    }
+  ]
+}

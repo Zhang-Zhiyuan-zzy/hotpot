@@ -1,0 +1,175 @@
+{
+  "task_id": "p20-s5-h-contract-review-704283-11",
+  "task_hash": "be5fb81f094c265ea47854978e49b6d248f1e39089797f85fcb76b2d5471d200",
+  "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+  "diff_or_tree_hash": "a312e7c6ff319f54736e6ff37a749f6c044cbc3804a0349c344bdb1baf5590ed",
+  "exact_turn_id": "01a18b14-13d0-78d1-9e14-e8676ad1c951",
+  "owner": "ai-4",
+  "scope": "Inline-only primary readonly review of the final bounded hydrogen-default contract, no implementation execution or source inspection.",
+  "exclusive_scope": "Review default-H design convention/internal consistency and known-read/strict-boundary promises only. ai11 owner alone implements, root only checks key blockers. Runner review10 already complete; do not repeat it.",
+  "status": "Primary readonly review complete; bounded corrections pending; no execution or stage acceptance",
+  "request": {
+    "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-h-contract-review-704283-11/request.txt",
+    "sha256": "0c524a210ff038931d3253e39c1cbf7e1981fb32e0414c767790910b3903c79c"
+  },
+  "source_evidence_manifest": [
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/decisions.md",
+      "sha256": "a5484f845838d276024a428c190eddac88c1635a5dcf63595933f8ea16cc1eca"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/review.md",
+      "sha256": "a85a4cafeea4cc1fe08000803520155cabf9ee0fdc27ae980bf3279bec8f7d29"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage05/contracts/decisions.md",
+      "sha256": "0de5ab3024a3b793bb916c264357cd7adeeffa8a005ed53ed47d84c4c25b9fd3"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage01/contracts/decisions.md",
+      "sha256": "fa647efe5e827cb16c207b70312bf6a708659589b41d5e87caaec7b6d0ed07e9"
+    },
+    {
+      "path": "inline:executed-design-observations-and-primary-source-identities",
+      "sha256": "217056d19934411459ac75f817e66695fdf5bf884733acf9fa69bc9c37287a55"
+    }
+  ],
+  "result": {
+    "task_id": "p20-s5-h-contract-review-704283-11",
+    "exact_turn_id": "01a18b14-13d0-78d1-9e14-e8676ad1c951",
+    "result_messages": [
+      {
+        "type": "agentMessage",
+        "id": "msg_0e8acd85eec1929a016ae41e07d29481958199740f9d3dea23",
+        "text": "REVIEW_RESULT  \ntask_id=p20-s5-h-contract-review-704283-11  \ntask_hash=be5fb81f094c265ea47854978e49b6d248f1e39089797f85fcb76b2d5471d200  \nsource_commit=ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8  \nbase_commit=ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8  \ndiff_or_tree_hash=a312e7c6ff319f54736e6ff37a749f6c044cbc3804a0349c344bdb1baf5590ed  \nstatus=BLOCKED_ON_CONTRACT_CLARIFICATION\n\n1. High — metal graph-H contradicts the declared site-total target\n\nThe contract defines inferred H as `Htarget = E + J + extra`, where `E` is graph-H neighbours. Unsupported known states correctly return `E+J`. However §4 says “A metal returns0,” and the supplied Zn–graph-hydride case expects `0` despite `E=1`.\n\nThat is incompatible with the asserted site-total-H meaning. “No automatic metal hydrides” only requires `extra=0`; it does not imply erasing represented graph H from the target.\n\nBefore implementation, either:\n\n- make inferred metal targets `E+J`, preserving the uniform site-total convention; or\n- explicitly establish a metal-specific non-total exception and audit every inferred-producer consumer accordingly.\n\nThe first is internally consistent and leaves expansion unchanged because `max((E+J)-E,0)=J`.\n\nThe same formula should be stated explicitly for a `no_implicit` branch: retain represented graph/bracket H as `E+J`, with no added default.\n\n2. High — bracket/no-implicit inputs are simultaneously mandatory and optional\n\nSections 1, 3, 4 and the required tests make current bracket H and `no_implicit` part of the final algorithm. They determine `[nH]`, transport-prohibited addition, occupied valence, and the returned target.\n\nSection 6 nevertheless permits a “minimal implementation” binding only radicals. That implementation would not satisfy the stated final algorithm and could return or retain a stale target after bracket/no-implicit changes.\n\nFor this final bounded contract, the added effective-input binding must include:\n\n`(atom_uid, radical_count, current_bracket_H, current_no_implicit)`\n\nalongside the existing bound element, charge, aromatic, topology, Bond kind/order/aromatic flag/direction, endpoint-relative dative role, and neighbour identity inputs. The radical-only alternative should be removed or explicitly labelled as not implementing this contract.\n\n3. Scoped inferred-producer expansion is otherwise arithmetically coherent\n\nFor an inferred target, `Htarget=E+J+extra`; therefore `max(Htarget-E,0)=J+extra`. After successful expansion, retaining the same target makes the next residual zero. Bypassing the old polar-metal subtraction is consistent because covalent metal edges and dative roles were already consumed by the rule.\n\nImplementation must prove:\n\n- inferred-producer identity is current, not historical;\n- `E` and current bracket `J` are non-overlapping inventories;\n- producer/source, target, graph-H creation and dependency status commit atomically;\n- partial failure restores all of them;\n- repeated add-H is idempotent;\n- supplied/toolkit/model counts remain on their characterized existing path.\n\nThis scoped rule does not itself require universal imported-count normalization. The documented SMARTS/stereo/toolkit total-versus-omitted inconsistency remains pre-existing and unclosed.\n\n4. Read/presence/source boundary is internally consistent but high-risk\n\nThe following distinction is coherent:\n\n- absent required input: no H fact, absent presence/source, UNRESOLVED;\n- permissive scalar/matrix display: numeric zero only;\n- strict consumer: existing `ValueError`;\n- real supplied/inferred zero: present and CURRENT;\n- CONFLICT: existing `RuntimeError`.\n\nImplementation evidence must prove that projections actively render zero rather than exposing stale unused bytes, and that no strict consumer infers readiness from `int(...)`, truthiness, scalar zero, or field14. Repeated unresolved reads must reuse the closed failed-attempt binding without rerunning. A consumed-input change must retry; source-ledger, isotope and unrelated stereo-descriptor changes must not.\n\nSupplied values—including zero and characterized non-integral float64 source bytes—must remain untouched in storage/snapshots. The public integer codec may retain its historical projection, but default preparation must not normalize or overwrite the raw current fact.\n\n5. Scientific/default arithmetic\n\nApart from the metal-total inconsistency, the finite tables and ordering are internally consistent with the supplied cases:\n\n- neutral N–O gives H2;\n- nitro N+ gives H0;\n- radicals consume vacancies;\n- aromatic neutral C/N and charged-C cases follow the stated sigma policy;\n- ZERO versus UNKNOWN and donor/acceptor dative cases remain distinct;\n- explicit H, `[nH]`, unusual known valence, isotope and supplied-zero behavior follow the declared deterministic representation convention.\n\nThese rules are conventions for graph completion, not claims of unique protonation, tautomerism, oxidation state, or spin.\n\nOnly source identities and summarized observations were supplied; the primary-source bytes were not. This review therefore finds internal consistency against the inline cases but does not independently validate the external scientific citations.\n\nNo production execution, Stage5 acceptance, or universal hydrogen-normalization approval is claimed.",
+        "phase": "final_answer",
+        "memoryCitation": null,
+        "delivery": null,
+        "questions": null,
+        "startedAtMs": 1793334791949,
+        "completedAtMs": 1793334802962
+      }
+    ],
+    "status": "RESULT_RECEIVED_AUDIT_PENDING"
+  },
+  "readonly_audit": {
+    "provenance": "Actual helper rollout audit relayed in owner thread; not independently re-executed by root",
+    "turn_id": "01a18b14-13d0-78d1-9e14-e8676ad1c951",
+    "root_turn_id": "01a18b14-13d0-78d1-9e14-e8676ad1c951",
+    "sandbox_policy": {
+      "type": "read-only"
+    },
+    "network": "restricted",
+    "model": "gpt-5.6-sol",
+    "effort": "xhigh",
+    "filesystem_write_entries": 0,
+    "tools": 0,
+    "delegation": 0,
+    "rollout": "/home/zhangzhiyuan/.codex/sessions/2026/10/29/rollout-2026-10-29T17-05-49-01a186e8-89de-7791-8969-98b64ab572c3.jsonl",
+    "lines": [
+      464,
+      500
+    ],
+    "context_line": 465,
+    "context_sha256": "96109cf5b9baaf9a61e2d8f41a090d68daea0aca1a73de8d4e19d33c54254eed",
+    "range_sha256": "8ab87758fa3371a1e74fda2223e1c3bf5808f0bfb58a9a5a991f7e403b755cd7"
+  },
+  "root_critical_review": [
+    "The metal/site-total wording needs a bounded clarification; changing raw metal H from historical0 to graph-H total could introduce additional model/consumer value changes. The scientific designer owns the final resolution.",
+    "The final algorithm consumes bracket/no-implicit, so those effective fields must be bound and invalidated together with radicals.",
+    "After expansion, graph-H and current bracket inventory must not overlap on recomputation; source history stays unchanged and rollback must cover payload and topology.",
+    "The display-only0/UNRESOLVED distinction is coherent only if all strict consumers use readiness guards and stale unused bytes never escape.",
+    "No independent external literature validation or current production pass is inferred from inline observations."
+  ],
+  "runtime_validation_executed_by_this_task": false,
+  "original_evidence_sha256_before_revision2_append": "3d623abeed865c898fbae2f2de315e2a9c31a222d9f88950e162bf4874991dec",
+  "review_revisions": [
+    {
+      "task_id": "p20-s5-h-contract-review-704283-11",
+      "revision": 2,
+      "task_hash": "0b99720bbc144915c5d1d208e4197af7aaa33e0fb834b5257ae8505c9b2fe4c8",
+      "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+      "diff_or_tree_hash": "a9803954012be3e56d4a39c5605b9c49208c01c781ebee09d8682dd5ebe05c1b",
+      "exact_turn_id": "01a18b2b-4526-7150-905a-e202a7697160",
+      "status": "PASS_CONTRACT_AND_MATCHING_READONLY_AUDIT; implementation/runtime/stage acceptance still pending",
+      "artifacts": {
+        "task.json": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-h-contract-review-704283-11-r2/task.json",
+          "sha256": "b0c15f51ae2dbcbdab2f14df7317a691e0afe388e0bf9cf83dc05055025fb7eb"
+        },
+        "request.txt": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-h-contract-review-704283-11-r2/request.txt",
+          "sha256": "ce5d3952a21276b5ddd61d7d6b6b2d526e770bd243a3dc97c7d17ecd73feb46c"
+        },
+        "result.json": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-h-contract-review-704283-11-r2/result.json",
+          "sha256": "4e7c832b295f504fd4c01d0d223933f8477fb5293c77ac4ea0bf50999c1b71f9"
+        },
+        "audit-result.json": {
+          "path": "/tmp/codex-stage4-bridge-01a18583/p20-s5-h-contract-review-704283-11-r2/audit-result.json",
+          "sha256": "faab619fd4924495c5f495c3a85d65b2edeb3956b2fbfda3ea951dabce2c0d42"
+        }
+      },
+      "result": {
+        "task_id": "p20-s5-h-contract-review-704283-11",
+        "revision": 2,
+        "exact_turn_id": "01a18b2b-4526-7150-905a-e202a7697160",
+        "result_messages": [
+          {
+            "type": "agentMessage",
+            "id": "msg_0e8acd85eec1929a016ae423bcb7148195a77f3cc1362d8a68",
+            "text": "REVIEW_RESULT  \ntask_id=p20-s5-h-contract-review-704283-11  \nrevision=2  \ntask_hash=0b99720bbc144915c5d1d208e4197af7aaa33e0fb834b5257ae8505c9b2fe4c8  \nsource_commit=ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8  \nbase_commit=ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8  \ndiff_or_tree_hash=a9803954012be3e56d4a39c5605b9c49208c01c781ebee09d8682dd5ebe05c1b  \nstatus=PASS_CONTRACT\n\nContract resolution\n\n1. F1 resolved.\n\nThe contract now explicitly limits site-total semantics to inferred ordinary nonmetals and preserves metal raw field14 as historical zero. Graph/bracket hydrogens remain represented in their topology/transport owners.\n\nCorrection to the prior review: raw scalar zero does not erase graph-H facts; it only omits them from the metal field14 encoding. This explicit exception is internally consistent and requires no imported/model normalization. Metals remain excluded from automatic add-H.\n\n2. F2 resolved.\n\nThe mandatory binding is now unambiguous:\n\n`(uid, effective_radical, current_bracket_H, current_no_implicit)`\n\nA radical-only implementation is expressly nonconforming. Together with existing bonding identity, this covers the consumed charge, topology, aromatic, Bond-kind/order/direction, dative-role and current transport inputs.\n\n3. Section 7 closes the repeat-add-H contract risk.\n\nFor eligible inferred ordinary nonmetals:\n\n- `T = E + J + extra`\n- `A = T - E = J + extra`\n- materialization creates `A` graph hydrogens;\n- current bracket/implicit transport counts become zero;\n- `no_implicit`, immutable source history, raw `T`, producer and presence are preserved.\n\nAfterward `E′=T`, `J′=0`; re-preparation returns `T` and the next residual is zero. Capturing all row eligibility, producers and `J` before graph writes prevents earlier batch mutations from routing later rows through legacy paths.\n\nNo unresolved contract contradiction remains.\n\nImplementation evidence still required\n\nProduction must prove:\n\n- exact producer/current/presence eligibility—not historical-ledger inference;\n- source-ledger byte equality and unchanged supplied/toolkit paths;\n- one outer transaction covering graph creation, current-H replacement, topology finalization and dependency state;\n- equivalent Atom and Molecule entry-point coverage;\n- complete rollback after a later-row failure;\n- preservation of `no_implicit`;\n- `[nH]` and ordinary-C current-J materialization are idempotent;\n- initial graph-H and metal raw-zero cases remain correct.\n\nNo execution, implementation validation, Stage5 acceptance, or universal hydrogen normalization is claimed.",
+            "phase": "final_answer",
+            "memoryCitation": null,
+            "delivery": null,
+            "questions": null,
+            "startedAtMs": 1793336252851,
+            "completedAtMs": 1793336258112
+          }
+        ],
+        "status": "RESULT_RECEIVED_AUDIT_PENDING"
+      },
+      "readonly_audit": {
+        "task_id": "p20-s5-h-contract-review-704283-11",
+        "revision": 2,
+        "task_hash": "0b99720bbc144915c5d1d208e4197af7aaa33e0fb834b5257ae8505c9b2fe4c8",
+        "source_commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+        "diff_or_tree_hash": "a9803954012be3e56d4a39c5605b9c49208c01c781ebee09d8682dd5ebe05c1b",
+        "exact_turn_id": "01a18b2b-4526-7150-905a-e202a7697160",
+        "status": "PASS_READONLY_H_CONTRACT_REV2_AUDIT",
+        "source": "actual audit relayed by root",
+        "sandbox": "normalized read-only; restricted network; root read entry; zero write entries",
+        "model": "gpt-5.6-sol",
+        "effort": "xhigh",
+        "tools": 0,
+        "delegation": 0,
+        "context_line": 503,
+        "context_sha256": "60668d2013e20cc29e64f2395ac726d6bb16ad387ec02bfbde9e2d4eb7687c66",
+        "range": "502-518",
+        "range_sha256": "ddf51ae68b34a1b54bfc1528e4ad54377d613ee27d75bf5bb5c5f3d20fdf5d4b",
+        "root_disposition": "matching PASS_CONTRACT accepted for F1/F2/currentJ clarification only; production not accepted; gate not closed"
+      },
+      "source_evidence_manifest": [
+        {
+          "path": "plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/decisions.md",
+          "sha256": "9645dfa50c55870d94b09831a0c2b34609fb52be4c6a4be53c9beb5cd7954f7f"
+        },
+        {
+          "path": "plan/20_fact_rule_architecture/stages/stage05/contracts/decisions.md",
+          "sha256": "35f0d8c78e1f2890feeff3807c104ea3f20b406c2ddaaf77e391ec4db34a60d4"
+        },
+        {
+          "path": "inline:solmax-resolution-and-root-critical-response"
+        }
+      ],
+      "root_critical_review": [
+        "The explicit historical metal raw0 exception is coherent; the earlier helper statement that it erased graph-H facts is incorrect and is retained/corrected in this revision. Graph and transport hydrogen owners remain intact.",
+        "All effective radical/bracket-H/no-implicit inputs are mandatory bindings; current-J and graph-H inventories must not overlap after automatic materialization.",
+        "Final Section7 captures the entire batch before writes, clears current transport counts through the existing stereo commit, and preserves source history/no_implicit/target/producer/presence atomically. Production proof remains mandatory.",
+        "Exact task/hash/turn matches and actual audit now permit consuming contract clarification only. No tests, builds, implementation acceptance or gate closure are inferred."
+      ],
+      "runtime_validation_executed_by_this_task": false
+    }
+  ],
+  "current_status": "Revision2 contract clarification accepted; production handoff and all final gates remain open"
+}

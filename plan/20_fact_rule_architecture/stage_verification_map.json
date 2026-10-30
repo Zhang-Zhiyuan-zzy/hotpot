@@ -749,7 +749,29 @@
         "tests/test_cheminfo/test_stereo_level2_gate7_coordination_graph.py",
         "tests/test_cheminfo/test_stereo_level2_gate7_public.py",
         "tests/test_cheminfo/test_stereo_level2_gate7_spy_algebra.py",
-        "tests/test_cheminfo/test_stereo_level2_toolkit_crosscheck.py"
+        "tests/test_cheminfo/test_stereo_level2_toolkit_crosscheck.py",
+        "tests/test_cheminfo/structure/test_buffer_ownership.py",
+        "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_cheminfo/rdWrappers/test_import_order.py",
+        "tests/test_cheminfo/test_core.py",
+        "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+        "tests/test_cheminfo/structure/test_builder.py",
+        "tests/test_cheminfo/structure/test_factual_imports.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/structure/test_source_identity.py",
+        "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+        "tests/test_cheminfo/structure/test_atom_fact_update.py",
+        "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py",
+        "tests/test_cheminfo/structure/test_stage5_bonding.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/test_complexes_build.py",
+        "tests/test_cheminfo/test_forcefield_integration.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+        "tests/test_cheminfo/test_molecule_conversion.py",
+        "tests/test_cheminfo/test_ob2chem_compat.py",
+        "tests/mca/test_serialization.py",
+        "tests/test_cheminfo/rdWrappers/test_r0_benchmark_runner.py"
       ],
       "native_high_compute_test_files": [
         "tests/test_cheminfo/native_cpp/test_molecule_buffer_view.py",
@@ -784,7 +806,30 @@
         "tests/test_cheminfo/test_stereo_level2_gate7_coordination_graph.py",
         "tests/test_cheminfo/test_stereo_level2_gate7_public.py",
         "tests/test_cheminfo/test_stereo_level2_gate7_spy_algebra.py",
-        "tests/test_cheminfo/test_stereo_level2_toolkit_crosscheck.py"
+        "tests/test_cheminfo/test_stereo_level2_toolkit_crosscheck.py",
+        "tests/test_cheminfo/structure/test_buffer_ownership.py",
+        "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_cheminfo/rdWrappers/test_import_order.py",
+        "tests/test_cheminfo/test_core.py",
+        "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+        "tests/test_cheminfo/structure/test_builder.py",
+        "tests/test_cheminfo/structure/test_factual_imports.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/structure/test_source_identity.py",
+        "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+        "tests/test_cheminfo/structure/test_atom_fact_update.py",
+        "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py",
+        "tests/test_cheminfo/structure/test_stage5_bonding.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/test_complexes_build.py",
+        "tests/test_cheminfo/test_forcefield_integration.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+        "tests/test_cheminfo/test_molecule_conversion.py",
+        "tests/test_cheminfo/test_ob2chem_compat.py",
+        "tests/mca/test_serialization.py",
+        "tests/test_cheminfo/rdWrappers/test_r0_benchmark_runner.py",
+        "tests/test_cheminfo/test_stereo_extraction.py"
       ],
       "native_command": [
         "python",
@@ -816,7 +861,7 @@
         "capture/check/projection/freeze/pack/native time and Python peak/retained allocation at fixed16/128/512 rows and representative chemistry, equivalent prepared-H state,3 warmups/at least10samples; explicit root adverse-result disposition before Stage6 acceptance; no global parity waiver",
         "whole-payload object identity is transitional Stage6 behavior only; mandatory Stage7E canonical storage gate remains open and blocks Stage8/Stage12/global ownership acceptance"
       ],
-      "execution_status": "revision2_static_design_root_key_accepted; final-document integration/precutover-baseline/coherent implementation/SOURCE_READY/runtime gates remain open",
+      "execution_status": "revision2_static_design_root_key_accepted_and_final_integration_complete; precutover_preservation_complete; exact20production_16test_implementation_released; SOURCE_READY_and_candidate_runtime_gates_HELD",
       "entry_evidence": "stages/stage06/entry_review.json",
       "validation_preparation": {
         "path": ".plan20-artifacts/20261030/stage6/validation-preparation/preparation.json",
@@ -831,7 +876,32 @@
         "stages/stage06/contracts/initial-review/evidence.json",
         "stages/stage06/contracts/revision2-review/review.md",
         "stages/stage06/contracts/revision2-review/evidence.json"
-      ]
+      ],
+      "connected_selection": {
+        "status": "prepared_complete_affected_selection_candidate_execution_HELD",
+        "original_runtime_files_retained": 23,
+        "additional_existing_connected_files": 22,
+        "planned_new_extraction_file": "tests/test_cheminfo/test_stereo_extraction.py",
+        "total_runtime_files_after_new_file": 46,
+        "source_and_installed_policy": "All46 runtime files join both current-source and installed-wheel selections; exact source-only nodes from accepted runner policy remain separately qualified. Three native header/API/SDK recipe files remain source-only. No unavailable tier is passed.",
+        "rationale": "Connected builder/factual import/atomic commit/source/UID/Atom fact/buffer/H/conformer/working-copy/forcefield/MCA/R0 and cold import coverage of the settled20path cutover; inherited Stage5 selection reused without a new broad inventory.",
+        "proposal": {
+          "path": ".plan20-artifacts/20261030/stage6/precutover-baseline/connected-selection-proposal.json",
+          "sha256": "75671e0231d35f07da9496745ba6553d5c19ed1f35f49f7faea0b784c568d3fb"
+        },
+        "exact_identities": "Actual new/existing tests, helpers, collection nodes, source/native/interpreters and outputs bind at STAGE6_SOURCE_READY; no collection has run for this selection."
+      },
+      "implementation_release": "stages/stage06/implementation/evidence.json",
+      "precutover_preservation": {
+        "status": "complete_for_implementation_release_not_candidate_acceptance",
+        "report": ".plan20-artifacts/20261030/stage6/precutover-baseline/preservation-report.json",
+        "sha256": "0359e61638b4b59ab5d23ef544c8a22e060453f728e8f6314d9b45e1faedbc01",
+        "commands": 14,
+        "exit0": 12,
+        "retained_exit1": 2,
+        "pytest_sessions": 0,
+        "old_cost_records": 468
+      }
     },
     "Stage7A": {
       "predecessor": "Stage6",

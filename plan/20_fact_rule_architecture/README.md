@@ -1,7 +1,7 @@
 # Stage 20 — Fact-Carrier and Rule Architecture
 
 Status: implementation authorized on 2026-10-28; Stage0–5 owning-stage gates complete.
-Stage6 entry is aligned and revision2 static design has root key acceptance; implementation and current runtime gates remain open; final scientific/global efficiency acceptance remains open. All public chemical
+Stage6 entry and revision2 design are aligned; the coherent implementation is released after preserved predecessor evidence, while SOURCE_READY and candidate runtime gates remain open; final scientific/global efficiency acceptance remains open. All public chemical
 types follow a common protocol for fact ownership, interface mapping,
 permissions, dependencies, buffer ownership and lifecycle. Atom's unified
 fact table is one concrete implementation. Stage2 completed the approved dead/placeholder implementation cleanup;

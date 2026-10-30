@@ -1,0 +1,137 @@
+{
+  "status": "IMPLEMENTATION_RELEASED_CANDIDATE_EXECUTION_HELD_UNTIL_STAGE6_SOURCE_READY",
+  "released_at": "2026-10-30T20:46:25.302462+08:00",
+  "owner": "/root/stage6_stereo_solmax",
+  "model": "gpt-6.1-sol",
+  "effort": "max",
+  "release_commit": "579daaa94e78d5dc79161c63d52141ccf8c188b9",
+  "validated_production_predecessor": "cac32af6b4001f377cf347f750bf5a73ffe2bea9",
+  "accepted_design": [
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage06/contracts/review.md",
+      "sha256": "71730c7b847f59690bb7e1e2ac9dfb6e64bf4609421492de66cb78f12235d466",
+      "bytes": 31762
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage06/contracts/evidence.json",
+      "sha256": "7f8aa0f3ac98257fdcd8978a1089fa0daa57b36158cbe98953161f80f902fa76",
+      "bytes": 211021
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage06/contracts/decisions.md",
+      "sha256": "88b86a1c395ad548b1750d36c2478912ee9e37e374a81c4ed0f7e82f5d983dc2",
+      "bytes": 18046
+    }
+  ],
+  "ownership": {
+    "production_paths": [
+      "hotpot/cheminfo/structure/stereo.py",
+      "hotpot/cheminfo/structure/_stereo.py",
+      "hotpot/cheminfo/structure/snapshots.py",
+      "hotpot/cheminfo/adapters/structure/stereochemistry.py",
+      "hotpot/cheminfo/operations/chemistry.py",
+      "hotpot/cheminfo/operations/stereochemistry.py",
+      "hotpot/cheminfo/rules/chemistry/stereochemistry/algebra.py",
+      "hotpot/cheminfo/rules/chemistry/stereochemistry/graph.py",
+      "hotpot/cheminfo/rules/chemistry/stereochemistry/coordinates.py",
+      "hotpot/cheminfo/rules/chemistry/stereochemistry/validation.py",
+      "hotpot/cheminfo/rules/chemistry/stereochemistry/assignment.py",
+      "hotpot/cheminfo/rules/chemistry/stereochemistry/alignment.py",
+      "hotpot/cheminfo/stereo.py",
+      "hotpot/cheminfo/rules/chemistry/stereochemistry/__init__.py",
+      "hotpot/cheminfo/core.py",
+      "hotpot/cheminfo/structure/_builder.py",
+      "hotpot/cheminfo/_native/buffers.py",
+      "hotpot/cheminfo/rdconvert.py",
+      "hotpot/cheminfo/conformers/adapters.py",
+      "hotpot/cheminfo/forcefields/working_copy.py"
+    ],
+    "test_paths": [
+      "tests/test_cheminfo/test_stereo_level1_remap.py",
+      "tests/test_cheminfo/test_stereo_level2_algebra.py",
+      "tests/test_cheminfo/test_stereo_level2_gate5_axis.py",
+      "tests/test_cheminfo/test_stereo_level2_gate6_derived.py",
+      "tests/test_cheminfo/test_stereo_level2_gate6_equivalence.py",
+      "tests/test_cheminfo/test_stereo_level2_gate6_projection.py",
+      "tests/test_cheminfo/test_stereo_level2_gate7_coordinates.py",
+      "tests/test_cheminfo/test_stereo_level2_gate7_coordination_graph.py",
+      "tests/test_cheminfo/test_stereo_level2_gate7_public.py",
+      "tests/test_cheminfo/test_stereo_level2_gate7_spy_algebra.py",
+      "tests/test_cheminfo/test_stereo_level2_toolkit_crosscheck.py",
+      "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py",
+      "tests/test_cheminfo/rdWrappers/test_r0_benchmark_runner.py",
+      "tests/test_cheminfo/test_stereo_api.py",
+      "tests/test_cheminfo/structure/test_buffer_ownership.py",
+      "tests/test_cheminfo/test_stereo_extraction.py"
+    ],
+    "read_only_connected_paths": [
+      "hotpot/cheminfo/structure/_commit.py",
+      "hotpot/cheminfo/structure/_identity.py",
+      "hotpot/cheminfo/search/native.py",
+      "hotpot/cheminfo/obconvert.py",
+      "hotpot/cheminfo/structure/_fields.py",
+      "hotpot/cheminfo/structure/_dependencies.py"
+    ],
+    "root_only_records": [
+      "architecture_allowlist.json",
+      "stage_verification_map.json",
+      "implementation_log.md",
+      "README/indexes/stage reports/gates; root review/Git/cadence"
+    ],
+    "excluded": "Native source/header/ABI/build files,otherstage implementations,golden science fixtures,Git mutations."
+  },
+  "precutover_preservation": [
+    {
+      "path": ".plan20-artifacts/20261030/stage6/precutover-baseline/preservation-report.json",
+      "sha256": "0359e61638b4b59ab5d23ef544c8a22e060453f728e8f6314d9b45e1faedbc01",
+      "bytes": 58215
+    },
+    {
+      "path": ".plan20-artifacts/20261030/stage6/precutover-baseline/preservation-inventory.json",
+      "sha256": "5f3830810afdb4b49843dc6fd27eaeec5fe9b32afa2be93691434604b62f934a",
+      "bytes": 133162
+    },
+    {
+      "path": ".plan20-artifacts/20261030/stage6/precutover-baseline/cost-fixture-manifest.json",
+      "sha256": "ab8d72281684751232bc8c355d44d675cd5f4a22dbd0dc760c34c7a0ccf20230",
+      "bytes": 3277
+    },
+    {
+      "path": ".plan20-artifacts/20261030/stage6/precutover-baseline/cost-attempt2/manifest.json",
+      "sha256": "5b532bc68735af4effc52abd7261aac9d5876bbce9fd6cdeefcd5703967fea71",
+      "bytes": 10302
+    }
+  ],
+  "precutover_result": {
+    "runtime_commands": 14,
+    "exit0": 12,
+    "retained_exit1": 2,
+    "pytest_sessions": 0,
+    "old_cost_records": 468,
+    "root_disposition": "Sufficient preserved predecessor evidence to release the settled coherent cutover; no candidate or global gate acceptance."
+  },
+  "allowed_actions": [
+    "Coherent move/delete extraction and connected production/test migration within exact ownership",
+    "Static AST/syntax/dependency checks without importing Hotpot or collecting tests",
+    "Ignored implementation support/handoff artifacts"
+  ],
+  "held_actions": [
+    "Candidate runtime imports or probes",
+    "pytest collection/execution",
+    "build/install/wheel/native or matrix execution",
+    "Git mutations",
+    "additional source/test ownership",
+    "native/build/ABI changes",
+    "scientific golden changes"
+  ],
+  "required_handoff": [
+    "Actual changed-file and symbol-owner identities",
+    "Public identities/signatures and sole algorithm owner preserved statically",
+    "Snapshot count and deep-immutable packing implementation",
+    "Exact lock/drift/ordering routes",
+    "Meaningful deterministic concurrency, packing and retention tests",
+    "Static check argv/outcomes including original failures",
+    "Unresolved issues and exact support/new-test identities for root SOURCE_READY release"
+  ],
+  "authority": "Mechanical implementation release of already accepted Stage6 contracts; main plan and decisions remain authoritative. No Stage6 acceptance, Stage7 entry or global waiver."
+}

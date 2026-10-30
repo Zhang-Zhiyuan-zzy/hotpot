@@ -1,6 +1,8 @@
 # Plan20：数据对象作用域、重复与精简审计
 
 状态：2026-10-28 文档审计及实施提案；没有修改生产类、函数签名或导出。
+2026-10-30 对齐当前 [goal](goal.md)：D01 通用公开外壳提案已被取代且始终
+未获批准；具体替代设计待审。原始库存与旧提案的条件估算保留为历史记录。
 代码基线：`d9eb80e`，生产实现基线与 Plan20 的 `0a4b0ee` 相同。
 本报告是 [主实施计划](fact_rule_architecture_implementation_plan.md) 的数据合约依据，
 按[化学类型公开接口一致协议](chemical_type_interface_contract.md)组织事实、视图、
@@ -84,12 +86,20 @@ CLI 选项定义。已有真实作用的过程消息、独立 wrapper 合约和�
 | `ElectronicStateInferenceResult` | `calculator/electronic_state/contracts.py:75` | 自旋/电子态推断结果 |
 
 `calculator/state_resolver.py:600-608` 已跨结果统一读取 admissibility/resolution，
-说明共同外壳确有消费者，而非纯粹形式相似。
+说明现有内部决策依赖真实存在，精简时必须完整迁移；这不批准把这些字段
+带入普通公开输出。
 
-提案：一个同域 `StateInferenceResult[T]`，用显式 quantity/tag 区分科学量，
+历史提案（2026-10-28，未批准；2026-10-30 由当前 goal 的普通结果边界取代）：
+一个同域 `StateInferenceResult[T]`，用显式 quantity/tag 区分科学量，
 `candidates` 保持静态泛型；空候选时也能无歧义序列化和分派。不要通过五个空子类
 再加一个基类来声称“减少了五类”：若保留五个公开运行时子类，类数反而增加。
-只有批准公开构造器/返回类型的统一后，5→1 才实际净减少 4。
+在该旧假设下，只有批准公开构造器/返回类型的统一后，5→1 才实际净减少 4。
+
+D01 当前仍待具体设计：先明确所请求的领域值（可为候选集、分布或轨迹）及
+全部生产者/消费者，再审阅确切公开变化。普通输出不附加通用成功、置信度或
+admissibility 评级；所需候选、硬规则评估、来源与生命周期记录按实际内部
+控制/持久化用途保留。本文不提出替代公开 schema；D01 当前目标定义数及
+净减少未定。
 
 ### 3.2 科学状态诊断与开关：按同域收敛，保留角色和权限
 
@@ -244,7 +254,7 @@ ComplexFormer 的 `RunArgs`、`DataModuleArgs`、`ConfigArgs`、`OptimizerConfig
 | 用户意图/计算输入 | `...Request` | 输入与选择参数；不能夹带执行后的测量值 |
 | 数值/算法参数 | `...Options` | 同域公共选项只有一个 schema；保留已批准的旧公开名称直到审阅 |
 | 任务消息 | `...Task` / `...Request` | 可序列化的工作说明与关联键 |
-| 科学输出 | `...Result` | 明确 quantity、输入来源、值与单位、证据，不等同 accepted/rejected 判定 |
+| 科学输出 | `...Result`（确需记录类型时） | 返回所请求的领域值；内部控制、归属、持久化或报告所需信息按角色保留，不附加通用成功、admissibility 或 confidence 评级 |
 | 观察和诊断 | `...Finding` / `...Observation` | code、测量、阈值/不确定性、消息与关联身份 |
 | 执行汇总 | `...Report` | 执行事实、来源、结果/观察组合、错误及资源；科学监控数值动态变化应报告 |
 | 变更建议 | `...Assignment` / `...Update` | 来源身份、被影响行/字段和值；由 operation 验证并提交 |
@@ -257,7 +267,9 @@ wrapper 保持现有公开类名与 namespace，adapter 用限定导入化解同
 
 ### 6.2 同系记录的字段定义与顺序
 
-新建或经批准统一后的记录遵循以下组序，**只包含其真实需要的组**：
+下列组序是确需定义/统一的记录的组织惯例，**只包含其真实角色需要的组**。
+内部控制、持久化/运输和报告可按需保留这些信息；这不是普通输出的必填
+元数据清单，也不设立新公开 schema：
 
 1. schema/version 与 quantity/variant（只有序列化或判别确有需要时）；
 2. subject/source owner、必要的依赖身份和行身份；
@@ -306,18 +318,23 @@ float64 property，与 Atom.attrs 共用唯一投影。三者共享声明与来�
 
 ### 7.1 已有定义的可审议收敛
 
+下表保留 2026-10-28 原提案的条件估算，不是批准或实施后的数量。D01 通用
+公开外壳提案已于 2026-10-30 被当前 goal 取代，其当前目标/净减少待具体设计；
+含该假设的合计只作为历史估算保留。其他候选继续按原有边界待审。
+
 | 归并项 | 当前→目标定义数 | 理论净减少 | 前提 |
 |---|---:|---:|---|
-| 五种科学推断结果外壳 | 5→1 | 4 | quantity tag/泛型和公开返回类型审阅 |
+| 五种科学推断结果外壳 | 5→1（历史假设；当前待定） | 4（历史假设） | 原 quantity tag/泛型提案未批准且已被取代 |
 | 四种科学状态 finding/reason | 4→1 | 3 | 保留 namespace、角色和字段 presence |
 | provider/rule toggle | 2→1 | 1 | ID 域和启用权限仍分开 |
 | 两种 Python 停止参数 | 2→1 | 1 | 不改独立 C++ 绑定结构 |
 | 两种力场 bond snapshot | 2→1 | 1 | 统一端点规范化与历史导出 |
 | FF CLI 重复 options | 1→0（复用已有 options） | 1 | 输出设置移到已有 work item，不新增 wrapper |
-| **上述合计** | **16→5** | **11** | **均未实施，涉及公开项尚待审** |
+| **原提案历史合计** | **16→5** | **11** | **均未实施；含已被取代的 D01 假设，不是当前目标合计** |
 
-故在“不考虑 Plan20 新机制新增对象”的局部条件下，347 个 dataclass 的理论数为 336；
-3 TypedDict、13 Protocol 未因此减少。这不是实施后总量承诺。
+在原提案且“不考虑 Plan20 新机制新增对象”的局部假设下，347→336 是历史
+理论条件值；3 TypedDict、13 Protocol 未因此减少。D01 当前目标与净减少未定，
+上述值不是当前精简承诺或实施后总量。
 另有 `CoordinationGeometryCandidate/Result` 与 `RingEdgeDistance` 共 3 个 dataclass 的
 条件删除候选；若批准，可另减 3。`AtomPairKey` 不在 dataclass 口径中，单独记录。
 
@@ -339,8 +356,9 @@ float64 property，与 Atom.attrs 共用唯一投影。三者共享声明与来�
 Protocol、普通数据/实现类、type alias 与 C++ ABI structs。新增基类也计数；
 把字段搬到另一个类、改名、重导出或把 dataclass 改成普通 class 均不算减少。
 
-最终规模目标是关键域的记录数量与必要字段/转换层同时下降；不能用11的局部潜力
-抵消未记账的新类，或把训练/插件的独立对象当作必须消除的化学内核负担。
+最终规模目标是关键域的记录数量与必要字段/转换层同时下降；不能把上述历史
+条件值11用作当前净减少证明或抵消未记账的新类，也不能把训练/插件的独立对象
+当作必须消除的化学内核负担。
 
 ## 8. 公开接口待审表
 
@@ -349,7 +367,7 @@ Protocol、普通数据/实现类、type alias 与 C++ ABI structs。新增基�
 
 | 编号 | 现有公开面 | 提案变化 | 审阅内容 |
 |---|---|---|---|
-| D01 | 五种 `...Result` | 统一为拟议 `StateInferenceResult[T]` | 新类名/路径、quantity tag、候选泛型、构造参数/字段序、返回类型、序列化 |
+| D01 | 五种 `...Result` | 原 `StateInferenceResult[T]` 通用公开外壳提案已被当前 goal 取代且未批准；具体领域值/内部记录设计待审 | 明确所请求的值并覆盖全部生产者、控制消费者与 codecs；必要候选、硬规则、来源/生命周期记录保留；确切名字/路径、构造/字段、返回与序列化变化逐项审阅，不添加通用评级 |
 | D02 | 三种 Finding/Reason 与 StaticEligibilityFinding | 统一为拟议 `StateFinding` | code namespace、related_identities 缺省、角色投影、旧名称去向 |
 | D03 | `ProviderToggle` / `RuleToggle` | 统一为拟议 `StateActivation[TId]` | 新类及 ID 类型、enabled 语义、provider/rule 权限边界 |
 | D04 | `OptimizationStoppingCriteria` / `OptimizationStoppingOptions` | 保留一个 Python 参数类型 | 最终名称/路径、旧导入去向；5字段/单位/默认值保持 |
@@ -381,8 +399,10 @@ Protocol、普通数据/实现类、type alias 与 C++ ABI structs。新增基�
    snapshot packing、worker pickle、report encoding 和启动/测试耗时的重构前基准。
    精简类型不以增加复制/摘要扫描次数为代价；遵守全局至少持平、总体期望更快标准。
 6. 科学运行输出逐例观测、能量/几何/恢复/失败与历史差异报告；187/182是来源与
-   当前适用队列的记录，不是永久成功数目标。监控器触发不直接宣判科学真伪；
-   类型/索引/单位/所有权/序列化等工程契约仍由确定性测试核验。
+   当前适用队列的记录，不是永久成功数目标。非硬监控异常默认报告并继续，保留
+   有限、可归属且完整的观测；命名硬规则在声明域内拒绝受影响输入/请求/结果，
+   留存原始失败观测。非有限值或所需单位/映射/归属/schema/事务完整性失败使
+   局部结果不可用；类型/索引/单位/所有权/序列化等工程契约仍由确定性测试核验。
 7. standalone wrapper schema、StereoPayload 与 ABI 字段序保持各自已批准合约；
    合并 DTO 不改科学语义。所有类型新增、删除、改名、权限及返回变化逐项审阅，
    私有 schema 增加字段不自动授权公开接口。

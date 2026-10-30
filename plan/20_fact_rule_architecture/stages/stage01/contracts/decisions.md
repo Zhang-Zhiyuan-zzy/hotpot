@@ -172,13 +172,22 @@ existing full atom_attr_matrix projection, so only one implementation remains.
 
 ### Exact D01–D05 result-family proposals
 
-These proposals refine the already documented consolidation candidates. D01–D03
-change public construction/schema and remain listed for review before Stage8A
-publishes them; the A2 approval above does not approve these separately.
+These records refine the already documented consolidation candidates. D01–D03
+public construction/schema decisions remain unapproved and require concrete
+review before dependent Stage8A publication; the A2 approval above does not
+approve these separately.
+
+2026-10-30 alignment: The [current goal](../../../goal.md) supersedes D01's generic
+public admissibility/confidence-envelope proposal. It was never approved or
+implemented; its exact historical proposal is retained below. D01 remains open
+for a concrete design of requested domain values and all producers, consumers
+and codecs. Preserve candidate data and necessary internal hard-rule,
+provenance, source-binding and lifecycle records. This alignment specifies no
+replacement public schema/signature and grants no approval.
 
 | Item | Retained/new definition and exact behavior | Schema/consumer obligation |
 |---|---|---|
-| D01 | `rules/chemistry/scientific_state/contracts.py::StateInferenceResult[T]`; field order `quantity, identity, facts_identity, candidates, admissibility, resolution, confidence, findings`; quantity reuses the existing ScientificQuantity domain, with the existing candidate element types | Replace the five old result classes and their return annotations; no empty alias subclasses. `asdict` gains quantity explicitly, while existing explicit candidate-space/decision codecs retain their schemas. Authority/control policy is unchanged. |
+| D01 | **Superseded, unapproved historical proposal (2026-10-30):** `rules/chemistry/scientific_state/contracts.py::StateInferenceResult[T]`; field order `quantity, identity, facts_identity, candidates, admissibility, resolution, confidence, findings`; quantity reuses the existing ScientificQuantity domain, with the existing candidate element types | **Historical migration proposal, also superseded:** Replace the five old result classes and their return annotations; no empty alias subclasses. `asdict` gains quantity explicitly, while existing explicit candidate-space/decision codecs retain their schemas. Authority/control policy is unchanged. Current D01 review follows the dated alignment above. |
 | D02 | Same module: `StateFinding(code: str, message: str, related_identities: tuple[str,...]=())` | Preserve current code strings and context roles. Existing static-eligibility codec stays code/message only; other reason codecs retain related identities. Do not replace those distinct explicit codecs with indiscriminate asdict. |
 | D03 | `operations/calculation/scientific_state/contracts.py::StateActivation(namespace: Literal["provider","rule"], identifier: str, enabled: bool, configuration: tuple[tuple[str,ProviderValue],...]=())` | Replace provider_id/rule_id with explicit domain and identifier; keep separate ID namespaces, defaults and permission checks. Identity digests retain their existing domain-normalized payload. |
 | D04 | Retain `operations/forcefields/contracts.py::OptimizationStoppingCriteria` with its five existing fields/defaults/validation | Remove the Python-only native OptimizationStoppingOptions and copying helper; preserve the real C++/pybind ABI type. |

@@ -1,7 +1,7 @@
 # Fact-Carrier and Rule Architecture Refactor
 
 Status: **implementation authorized on 2026-10-28; Stage0–4 owning-stage gates complete;
-Stage5 entry next; final scientific/global efficiency acceptance open**. The architecture, lazy invalidation, scientific-reporting, and
+Stage5 in progress; final scientific/global efficiency acceptance open**. The architecture, lazy invalidation, scientific-reporting, and
 performance requirements are incorporated. The owner's implementation request
 authorizes the concrete documented route; Stage1 records exact API differences
 and consumer evidence. Unspecified public signatures, return semantics and
@@ -17,7 +17,12 @@ Original planning baseline: `0a4b0ee`; reviewed documentation commit: `d9eb80e`.
 The executable implementation baseline is frozen in Stage 1 after the selected
 Plan17 prerequisite route, not assumed to be the original planning commit.
 
-Initial audit: 2026-10-27. Owner-directed revision: 2026-10-28.
+Initial audit: 2026-10-27. Owner-directed revisions: 2026-10-28 and 2026-10-30.
+
+The [current implementation constitution](goal.md), effective under the owner's
+2026-10-30 authorization, governs execution, ordinary results, findings and
+control decisions in this plan. Settled public contracts, scientific constraints
+and required validation/performance work remain binding.
 
 Normative companion records:
 
@@ -67,11 +72,15 @@ The refactor has eight simultaneous goals:
    `rdWrapper`, `obWrapper`, and field-selective molecule buffers without
    allowing any of them to become a second source of truth.
 
-This is an architectural refactor, not a new aromaticity model, force field,
-stereochemistry convention, graph-search algorithm, or MCA model. Scientific
-algorithm changes require separate scope and evidence. Scientific outcomes are
-reported, including changes in eligible cohorts and geometry/energy monitors;
-historical outcomes are not a fixed truth or a fixed success-count gate.
+Physical migration preserves the selected aromaticity, force-field, stereo,
+graph-search and MCA algorithms. Evidence-bound revisions within approved
+scientific scope follow the constitution and owning-stage records; a new
+scientific scope still requires its separate decision and evidence. The main
+agent may revise the implementation route, diagnostics and warning/break policy
+within that authority, without reducing declared work, denominators or acceptance
+gates. Scientific outcomes are reported, including changes in eligible cohorts
+and geometry/energy monitors; historical outcomes are not a fixed truth or a
+fixed success-count gate.
 
 ## 2. Scope and non-goals
 
@@ -90,7 +99,11 @@ historical outcomes are not a fixed truth or a fixed success-count gate.
   separate coherent data-governance commit;
 - removal of dead or superseded chemistry implementations discovered by the
   zero-reference/build audit;
-- behavior, packaging, scientific-boundary, and performance validation; and
+- behavior, packaging, scientific-boundary, and performance validation;
+- completion of the functional requirements established by
+  [Plan12](../12_xtb_workflow/README.md) through the Plan20 fact/rule, operation
+  and adapter owners, including their required tests and scientific execution;
+  no parallel Plan12 implementation or bypass of this plan is introduced; and
 - design registration of MetalCluster and its relationship to Molecule,
   Atom and Bond; runtime implementation belongs to Plan21.
 
@@ -100,8 +113,8 @@ historical outcomes are not a fixed truth or a fixed success-count gate.
   `hotpot/ds`, except for moving chemistry-package assets that are currently in
   the wrong ownership layer;
 - redesigning the generic `hotpot.pipeline` engine;
-- restructuring independent plugin internals that do not violate the new
-  carrier/rule boundary;
+- restructuring independent plugin internals outside the integrated Plan12
+  requirements that do not violate the new carrier/rule boundary;
 - MetalCluster templates, recognition, runtime objects and superatom
   execution; these are deferred to the Plan21 framework draft;
 - changing trained model weights or tuning scientific monitor thresholds to
@@ -362,11 +375,21 @@ verified explicit input
 > unresolved
 ```
 
-This ordering is not applied globally by a magic generic resolver. Each named
-operation states which sources it accepts and produces a typed conflict when
-same-authority values disagree. User mutation can replace a field through its
-documented setter/operation, but it cannot violate P0 invariants or cause an
-unrelated lower-priority value to repair the new input.
+This is domain-specific source selection, not a universal confidence scale
+or a rating attached to ordinary results. Each operation declares accepted
+sources. A conflict requires incompatible statements about the same subject,
+authoritative fact slot, scope, lifecycle and representation convention; valid
+equivalent projections, including aromatic and coupled Kekule assignments, are
+not conflicts. User mutation can replace a field through its documented
+setter/operation, but it cannot violate P0 invariants or cause an unrelated
+lower-priority value to repair the new input.
+
+Factual serialization preserves supplied/source facts independently of whether a
+current rule evaluation or toolkit projection is available. Strict scientific
+projections still prepare and check their required facts. Rules, fallbacks,
+sanitization and adapters must not silently rewrite authoritative input; an
+unsupported or lossy toolkit projection is an adapter-scoped finding, not a
+chemical impossibility or a redefinition of Hotpot facts.
 
 ### 5.3 Provisional ownership of coupled facts
 
@@ -649,8 +672,14 @@ def calc_implicit_hydrogens(self):
 ```
 
 The operation snapshots, calculates, validates, commits, and returns the
-documented existing result. It does not contain a second chemistry
-implementation.
+documented existing result, including None for an existing successful command.
+It does not contain a second chemistry implementation. Internal proposals,
+source/lifecycle records and hard-rule assessments retain the information needed
+for calculation, attribution and atomicity. They do not prescribe a public
+success envelope: ordinary output is the requested value, which may itself be a
+candidate set, distribution or trajectory, without generic success, evidence,
+admissibility or confidence fields. Method assumptions and support belong in
+companion documentation and benchmark reports; Section11.1 governs findings.
 
 Temporary topology filtering has one private, non-owning contract:
 
@@ -1277,7 +1306,7 @@ only the obvious monolith.
 | `_native/` | `adapters/native/` | retain one generic field-selective molecule transport and shared C++ headers |
 | `bundle.py` | `structure/bundle.py` | retain MolBundle as a carrier collection; move PyG conversion to adapter |
 | `MolecularFacts`, `MolecularFactsIdentity`, `ComponentIdentity`, `HydrogenInventory`, `SemanticBond` | one scientific-state snapshot contract with necessary composed values | preserve the useful MolecularFacts semantic projection and component/H/semantic-bond constituents; align source dependencies with shared identities and merge only audit-confirmed synonyms. A `ScientificStateSnapshot` rename is a public proposal, not proof these five types are duplicates |
-| scientific quantity/admissibility/authority/confidence enums, findings and provider values/evidence | `rules/chemistry/scientific_state/contracts.py` | immutable rule vocabulary and findings have this one owner |
+| current scientific quantity/admissibility/authority/confidence enums, findings and provider values/evidence | `rules/chemistry/scientific_state/contracts.py` | retain quantity semantics, exact hard-rule assessments, candidate/provenance data and domain findings under one owner; trace actual consumers of existing admissibility/confidence fields instead of carrying them forward as generic public ratings. Necessary internal control/lifecycle metadata remains; Sections6.2 and11.1 govern the result boundary |
 | policy/toggle/provider-set/budget/requirements/selection contracts | `operations/calculation/scientific_state/contracts.py` | execution choice and orchestration configuration are operation contracts, not facts or rules |
 | `BackendIdentity`/`BackendContext` protocols | `adapters/calculation/contracts.py` | define generic scientific backend/projection identity once at the external boundary; inference and force-field wrapper-specific contracts remain with their named standalone/adapters and do not redeclare it |
 | state-composition candidates/decisions/resolution reports | `operations/calculation/scientific_state/composition/contracts.py` | retain operational search/result DTOs without declaring a second Molecule snapshot or representation identity |
@@ -1496,6 +1525,12 @@ document digests, worktree/environment state, completed and missing gates, and
 the resulting bounded task list in the implementation log. Repeat the full
 read before any architectural revision; a changed stage number alone is not
 evidence that its prerequisites passed.
+
+The [integrated requirement record](integrated_requirements.json) maps Plan12
+work to existing Stage7C, Stage8A/B, Stage9/10 and Stage12 owners. It is an
+inventory, not current-source validation. Each owner traces actual writers and
+consumers and updates its affected verification targets before closing an
+assigned requirement; no extra parallel implementation or new stage is implied.
 
 ### Stage 0 — Freeze the reviewed plan
 
@@ -1752,7 +1787,12 @@ Each sub-stage is independently committed and gated:
 #### Stage 8A — Scientific-state calculation
 
 Split deterministic providers/rules, Molecule snapshot extraction, and
-selection/composition/resolution controllers.
+selection/composition/resolution controllers. Complete the assigned Plan12
+providers, hard constraints, factorized candidate composition, bounded decision
+search and backend-projection requirements through these same owners. Optional
+scientific-profile activation retains its individual approval, applicability
+artifacts and held-out validation requirements from
+[Plan12 rules](../12_xtb_workflow/rules/README.md); this alignment activates none.
 
 Gate: provider, legality, conservation, conflict/evidence, composition search,
 serialization, and state-resolution tests.
@@ -1761,7 +1801,10 @@ serialization, and state-resolution tests.
 
 Split physics/acceptance kernels, structure packing, workflow controllers, and
 the Open Babel/native adapter. Retain standalone `obWrapper` as the sole
-backend implementation.
+backend implementation. Complete the assigned external xTB/plugin/pipeline
+requirements at their operation/adapter boundaries, including finding/control
+separation, sample isolation, method-specific transport and atomic coordinate
+commits; retain the existing plugin and generic-pipeline ownership boundaries.
 
 Gate: pure-policy tests, native and Python workflow parity, rollback,
 trajectory, wrapper standalone tests, and FF benchmarks; O0 scientific execution
@@ -1859,7 +1902,8 @@ manifest checks.
    order in both directions from an installed wheel.
 3. Update README, API docs, module docs, type references, and every example.
 4. Test README/docs examples verbatim.
-5. Run the complete validation and performance matrix in Sections 11-12.
+5. Run the complete validation and performance matrix in Sections 11-12,
+   including the integrated Plan12 functional and scientific requirements.
 6. Write the main-scope final implementation report, final API tree, deletion
    table, benchmark tables, remaining limitations, and commit map.
 
@@ -1872,19 +1916,25 @@ start on a new branch, progressing through `D_exp` and `I_exp` independently.
 
 Technical contracts and scientific observations have different purposes.
 Ownership, transport, deterministic mathematical algorithms, API permissions,
-atomicity, packaging, and resource bounds have testable invariants. Scientific
-geometry, energy, state inference, model values, and eligible-case counts are
-reported observations under named rule versions. Geometry/energy gates are
-**monitors, not scientific decision criteria or fixed project pass/fail gates**.
-No fixed 182/182 success requirement or unconditional historical-output equality
-is introduced. Changes must be visible and explained, not erased to match a
-previous report. Existing workflow control policies are separately documented;
-this reporting requirement does not silently rewrite their algorithms.
+atomicity, packaging and resource bounds have testable invariants. Named hard
+rules reject the affected input, candidate, request or result within their
+declared domains. Non-hard geometry, energy and chemistry gates report possible
+problems while retaining defined finite observations by default; they do not
+establish scientific impossibility or a quality grade. Section11.1 separates
+findings from control actions and local failure from batch loss. No fixed
+182/182 success requirement or unconditional historical-output equality is
+introduced. Changes remain visible and explained; existing algorithms are not
+silently rewritten by reporting changes.
 
 Stage1 reruns baselines at the selected executable baseline commit. Previous
 reports are input/provenance references only; final evidence comes from the
 actually implemented paths. Every report states commit, input/rule/model and
 wheel identities, environment, commands, enabled tiers and missing evidence.
+Method assumptions and applicability belong in companion documentation;
+scientific support belongs in benchmark-validation reports, with literature
+where appropriate. An unavailable required run gets a versioned placeholder
+with the missing protocol/evidence and blank results, leaving its gate open;
+it does not produce a confidence verdict or an invented benchmark outcome.
 
 | Area | Technical evidence / scientific report | Frequency |
 |---|---|---|
@@ -1897,10 +1947,36 @@ wheel identities, environment, commands, enabled tiers and missing evidence.
 | conformers/force fields | seed/control/rollback/trajectory technical contracts; per-trial geometry/energy/recovery observations | affected stages and final |
 | MCA/CBond | field/order/site-join/resource tests; per-site numeric and recognition reports, not a population correlation alone | inference changes and final |
 | scientific corpus | fixed source snapshot/digest, rule-derived dynamic eligibility roster, per-case/per-seed reports including failures/unknowns | declared scientific tier; bounded CI evidence |
+| integrated Plan12 functions | current provider/hard-rule/composition/backend/pipeline contracts, actual consumer coverage, required scientific execution and finding/control behavior from the integrated requirement record | assigned owning stages and final; historical Plan12 reports are references only |
 | packaging/Python | sdist/wheels outside checkout; Python3.10–3.14 with explicitly enumerated complete affected-contract selection | affected moves and final |
 | docs/performance | exact published technical examples; baseline/final runtime and resource reports | changed examples; affected benchmarks and final |
 
 ### 11.1 Scientific monitoring and comparison policy
+
+For every actual rule, gate, adapter boundary and workflow stage, its owner
+records and tests the following decision table using existing domain contracts:
+
+`finding code | declared domain and trigger | whether a defined value remains available | default warning/local-failure behavior | permitted per-code break scope | commit/fallback consequence`
+
+Only an interpretation/control-relevant problem discovered during evaluation
+emits a finding: a stable domain-scoped code, exact rule or phenomenon, affected
+subject, and the measured value, reference, threshold, unit or reason needed to
+understand it. Evaluations with no such problem stay silent. A named hard gate
+rejects locally and preserves its diagnostic observation. Non-finite energy or
+another violation of a declared finite-value contract makes that result
+unavailable. Broken required units, mapping, attribution, schema or transaction
+integrity likewise makes a result unavailable even if its numeric fields are finite.
+
+Non-hard findings default to reporting and continuation with the finite,
+attributable observation retained; a finding cannot silently erase, replace or
+repair it. Finding content is independent of warning/break policy. A user may
+promote a specific code to an operation, sample or batch break; that is expected
+control. Independent sample failures remain attributed in stable denominators.
+Unexpected termination beyond the affected operation/sample is reserved for an
+objective inability to continue or integrity/infrastructure damage that makes
+later results untrustworthy. Retry, repair and fallback retain the original
+failure and any material change of scientific meaning. This table introduces
+no generic public API, result schema or pre-Stage13 rule-interface protocol.
 
 1. Record the 187-source corpus as a historical dataset identifier and the
    exact source digest for each execution. Eligibility is calculated by the
@@ -1927,8 +2003,12 @@ wheel identities, environment, commands, enabled tiers and missing evidence.
    Plan17 algorithm cutover has its own report; Plan20 must not hide that
    scientific change inside relocation. Stable-input technical projections and
    serialization still retain exact invariant tests where justified.
-6. xTB/DFT/QM are optional independent evidence, not mandatory scientific truth
-   for this architecture refactor. Their absence is declared explicitly.
+6. Additional xTB/DFT/QM comparisons beyond the integrated Plan12 requirements
+   remain optional independent evidence, not mandatory scientific truth. This
+   does not waive required Plan12 functional/scientific execution or its existing
+   activation conditions. Missing required software, corpus, hardware or reports
+   leaves the applicable gate open and is recorded explicitly; a placeholder is
+   not completed validation.
 
 The full scientific test currently in
 `tests/scientific_boundary/test_extractant_workflow.py` runs `hotpot-auto` and
@@ -2115,14 +2195,18 @@ executed work. Every entry contains:
 - technical commands/tests and exact pass/fail/skip counts; scientific runs
   separately record report completeness, execution errors and observations;
 - performance measurements where relevant;
-- unexpected findings, plan impact, and decision required; and
+- named findings, warning/break-node changes, commit/fallback consequences,
+  plan impact and any decision required; and
 - the full-plan/companion reread and project-state assessment at stage entry,
   with document digests, and any repeated read before an architectural revision.
 
 If implementation discovers a conflict with this plan, work pauses at the
 smallest coherent checkpoint. The plan is reread in full, contradictory or
-redundant wording is edited rather than merely appended, and the owner is
-notified before the revised route is implemented.
+redundant wording is edited rather than merely appended, and the evidence,
+route and verification consequences are recorded and communicated to the owner.
+In-scope evidence-bound revisions proceed under the constitution's main-agent
+authority; an unspecified public change or new scientific scope still follows
+its concrete dependent decision under Section16.4.
 
 The final implementation report below covers the main Stage0–12 delivery.
 Complete its validation, report and Git submission before starting the
@@ -2194,7 +2278,12 @@ runtime behavior is not a Plan20 gate.
 14. audited data-contract families have a documented measured reduction from
     real consolidation, consistent naming/field order, one owner per contract,
     and no unapproved public schema changes. Moves/dict substitutions do not
-    count as a reduction.
+    count as a reduction; and
+15. the integrated Plan12 functional requirements are implemented and validated
+    through their assigned Plan20 owners/stages; ordinary results and every actual
+    rule/gate/adapter/workflow finding-control boundary satisfy Sections6.2 and11.1.
+    Unavailable required execution/evidence remains an open gate, without reduced
+    work, denominators or acceptance criteria.
 
 ## 15. Risks and controls
 
@@ -2328,11 +2417,16 @@ existing complete method; otherwise list its exact signature for approval.
 Neither Atom candidates nor invertibility authorize corresponding setters or
 batch methods on other chemical types.
 
-The data-object audit's proposed envelope/tag/naming changes follow the same
-process. Stage1 enumerates each affected import/class and its consumer,
-serialization and ABI impact. Private consolidation does not license unlisted
-public schema changes. Standalone wrappers keep their reviewed component
-identities; inheritance or aliases cannot conceal a second implementation.
+The data-object audit's proposed result/tag/naming changes follow the same
+process and the ordinary-result boundary in Section6.2. D01's proposed common
+admissibility/confidence envelope does not define an approved public return
+contract; its generic ratings must not be added to ordinary output. Its
+dependent design must identify the requested domain value and trace every
+consumer. Necessary internal hard-rule, provenance and lifecycle information
+remains. Stage1 records each affected import/class, consumer, serialization and
+ABI impact. Private consolidation licenses no unlisted public schema changes.
+Standalone wrappers keep their reviewed component identities; inheritance or
+aliases cannot conceal a second implementation.
 
 ### 16.4 Ready-to-execute decision record
 

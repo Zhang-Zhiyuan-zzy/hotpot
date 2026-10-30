@@ -1,0 +1,227 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-30T09:56:49.605614+00:00",
+  "status": "current_goal_integrated_requirements_inventory_not_acceptance",
+  "authority": {
+    "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/goal.md",
+    "sha256": "6e116730e1a31ec999b623e9e594d26f23e3cf8a95e68048652acf9c699b0118"
+  },
+  "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+  "primary_inventory": {
+    "task_id": "p20-plan12-requirements-inventory-704283-23",
+    "task_hash": "7d3eab5e9202edf107120fef9d59885c0dd5815d1f99bc36c75a2c0a3e867264",
+    "source_commit": "a5fc8f52f0028c28ec666438f7bca4d9951034a4",
+    "diff_or_tree_hash": "1bfddc176c2a7b166df2b49a456e87f2a0b0d92656f06b5f85466991d381881d",
+    "exact_turn_id": "01a18c26-6800-7092-a9e1-b427a72735c5",
+    "result": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-plan12-requirements-inventory-704283-23/analysis-result.txt",
+      "sha256": "bf25bb3fbba4ae67006933c032816716cd3b20b33884bf9ee8bd29ab19614db9"
+    },
+    "audit": {
+      "path": "/tmp/codex-stage4-bridge-01a18583/p20-plan12-requirements-inventory-704283-23/audit-result.json",
+      "sha256": "4efc5705b6bbd5e687d519649550f46e166e3a913fade2d1aae2ae99d3793791"
+    },
+    "document_bindings": {
+      "plan/12_xtb_workflow/README.md": "b38227af3282d8bd9de39acd88b099545ec388af90e212dfb2aefd64b261964f",
+      "plan/12_xtb_workflow/compatibility_audit.md": "bbf7d39753e079ed8ed36df7b25a4190fecd61b474e0aee8295ccbdb61832a84",
+      "plan/12_xtb_workflow/execution/EXECUTION-001-exact-context-history.md": "bf04a8fa1941e671a62571895f4a987aa0b1fc603f2bbc72f4f41887780c7223",
+      "plan/12_xtb_workflow/execution/README.md": "67298fc31918f2e4b40e06a660b8141c71c568af48f840c49f8a56cdecec3769",
+      "plan/12_xtb_workflow/legacy_scientific_state_consumer_audit.md": "8e6b9c56bebbdfa555883cf687df56c76b909cf605c8e21f9d47069a3e23114c",
+      "plan/12_xtb_workflow/providers/PROVIDER-001-main-group-lewis-solver.md": "ae6051b8f0dee7cefe964edc8d428c97d3c7f10c09d19e0b04c900289f4f0a39",
+      "plan/12_xtb_workflow/providers/PROVIDER-002-element-oxidation-registry.md": "4e0ff566f3021e7abaf740ffd5b6705aabae00309e04d4b9c941352c865750be",
+      "plan/12_xtb_workflow/providers/PROVIDER-003-neutral-atom-reference.md": "bd28101e44c7f5198f1d2ccd6c7782feb54ad2521b65d770adc6331b66e20034",
+      "plan/12_xtb_workflow/providers/README.md": "f29d994a589534eaa35928cfe4f3d59d75b84233eaaff67d4166d7db4e6c9b49",
+      "plan/12_xtb_workflow/recovery/README.md": "b14d447431b93e5a62f55b42d10356a537ec1ac39498a814acf6656ff0efbdff",
+      "plan/12_xtb_workflow/recovery/RECOVERY-001-legal-state-retry.md": "65806c52727778e7cb14e3660327275628e7844ee4e9f700a1fe8ede55b6e56b",
+      "plan/12_xtb_workflow/rules/DEFAULT-001-strict.md": "fb2aa6104018c46aa451088af43e325078a89923c9746e622e198cb4311aeff5",
+      "plan/12_xtb_workflow/rules/DEFAULT-002-coordination-screening-v1.md": "7a1e046ff76de678aa5977fc6f18481f707c65f37d1e8309228b44411550434a",
+      "plan/12_xtb_workflow/rules/DEFAULT-003-source-authority.md": "c613f479b7ba42e621909e10e7dd781ca787a721d7c016750349fe4d070c9572",
+      "plan/12_xtb_workflow/rules/DEFAULT-004-lowest-legal-xtb-uhf.md": "69dfd3409fc968cc4e05883645fa8f0813fdd256d08533eace7df7895e4ebec0",
+      "plan/12_xtb_workflow/rules/DEFAULT-005-oxidation-ambiguity.md": "7506300d35f3d194b0509e82b1780ac6638528388e9bba2a8b09a712ca23fd83",
+      "plan/12_xtb_workflow/rules/DEFAULT-006-candidate-preservation.md": "1d91171894f90866097acb00b1317e1ca15460efef631723fe62e38dc79896b4",
+      "plan/12_xtb_workflow/rules/DEFAULT-007-intermediate-recovery.md": "e8b59383f69adf3a14be88591288f163e2708a831195abf969f5d165c3c94fc2",
+      "plan/12_xtb_workflow/rules/HARD-001-boundary-identity.md": "3658cf8c230c3078058a202ffe56d7a98e0e2ae60b3c3c6df8a45cc3122d37f9",
+      "plan/12_xtb_workflow/rules/HARD-002-charge-conservation.md": "c0cd0500f73210e14003d6ed56cba229b8327fd9d847ecec0479c132f99dd63b",
+      "plan/12_xtb_workflow/rules/HARD-003-charge-quantity-separation.md": "dc456cb30e7b81cb81f3b705ada7e0222e039d25a2c45acc576b90b28e1818a5",
+      "plan/12_xtb_workflow/rules/HARD-004-oxidation-state-conservation.md": "da9ad6680ee19e086d75a4c85dd65e2fdc45d382fe3824cab28bd569d5087535",
+      "plan/12_xtb_workflow/rules/HARD-005-counting-convention-exclusivity.md": "a0b6237db412f537a3d489885e67af74786ad0124a31a8dc98b217c97ed993e2",
+      "plan/12_xtb_workflow/rules/HARD-006-electron-spin-legality.md": "a3fec21288172287363c4680966c6330cc8fb9f9713af1d76acbc77de00c01a7",
+      "plan/12_xtb_workflow/rules/HARD-007-explicit-state-consistency.md": "c6a856c85515d5105440ec6716e80da1a28e73ad90a77e587d3e9f80dc9a5b9e",
+      "plan/12_xtb_workflow/rules/HARD-008-backend-projection.md": "b4904c7a45948c2d085ee90bf4c2cf029f373c7dfac279aa7da819b134fc1fbc",
+      "plan/12_xtb_workflow/rules/HARD-009-state-invalidation.md": "ad4f7bb4cbf21791d9b1dbb14efdce8c5be8286940214b34a14905518c88f888",
+      "plan/12_xtb_workflow/rules/HARD-010-module-independence.md": "f0ad3e0e5cfaeea15ee91ad6bf95b17f15d405c538088774273714f064ff0e58",
+      "plan/12_xtb_workflow/rules/HARD-011-method-specific-transport.md": "cb768792e2432abed571e3749eafbb47211b2333702c35dbf26a7490d1ba7ff4",
+      "plan/12_xtb_workflow/rules/HARD-012-failure-and-gate-semantics.md": "86302be3e4e77a5cd41367385d66d4b5647ea595c277ed59ab1bd0b41b37063e",
+      "plan/12_xtb_workflow/rules/HARD-013-backend-electron-uhf-legality.md": "ec0b31e805e767907776a3eda54b2961ab95df797249139ea939de4680f263c8",
+      "plan/12_xtb_workflow/rules/OPTIONAL-001-main-group-closed-shell.md": "b899bf67b4ddb493e736a4cb8826e06e628c4d950567b61551633d7167b63c62",
+      "plan/12_xtb_workflow/rules/OPTIONAL-002-monoatomic-ions.md": "772801de35d133c07584b22f7a1f32aa9d3213d8bdb88c0c3a2fb98347106773",
+      "plan/12_xtb_workflow/rules/OPTIONAL-003-neutral-l-donors.md": "3a24d907d2384168b95a692d882286c8347300f1883a5993f01c379b0a893a47",
+      "plan/12_xtb_workflow/rules/OPTIONAL-004-anionic-x-ligands.md": "a078e60f302e5269c17ae80e506ed07300a43ccf7d06c51077dac2c6f9741d5c",
+      "plan/12_xtb_workflow/rules/OPTIONAL-005-lanthanide-iii.md": "4fda86bd6a04b284f67f7763cfb50fcd11656de25cfde287fac49fa4318b39a2",
+      "plan/12_xtb_workflow/rules/OPTIONAL-006-americium-curium-iii.md": "6dec3d21c908e11d7c2e6b980de8a8b6954091c3851e134890ba523dd8569b10",
+      "plan/12_xtb_workflow/rules/OPTIONAL-007-thorium-iv.md": "9c67cf3f22b1b9e33669e90c07ebbdbf9cc0767177ee8bd4785a2356ef2d4b0c",
+      "plan/12_xtb_workflow/rules/OPTIONAL-008-actinyl-states.md": "5167dc94f906b6af1f483a05c5f3a7d344003c9eb7f45f8dbf98d4db63eed53f",
+      "plan/12_xtb_workflow/rules/OPTIONAL-009-ionic-configuration-spin.md": "7e3481d526333dead578d139d6e08c326bd587b454fb7adf7e92d32e83b61a13",
+      "plan/12_xtb_workflow/rules/OPTIONAL-010-transition-metal-ligand-field.md": "f49f8c5a346ca2d32cdb6404a50a4ab0092e289f9ada92074b41cc7f2bd1f9d2",
+      "plan/12_xtb_workflow/rules/OPTIONAL-011-f-block-hund-prior.md": "9dba30b9b4a5cfb9c396ed55eade08c78fffdf56d8e4c7704a2d22a51a5214ee",
+      "plan/12_xtb_workflow/rules/OPTIONAL-012-noninnocent-ligands.md": "d7a222e71e79cd29ce0f5e1829e347a7bb184f253f6576d34ca009dfd2dda23e",
+      "plan/12_xtb_workflow/rules/OPTIONAL-013-bond-valence-ranking.md": "d9daf72944100c81f0a3f5fc01398436c85f23afedc578ffe95b205e9b1a6f1f",
+      "plan/12_xtb_workflow/rules/OPTIONAL-014-trusted-history.md": "62c30354a5fe069cc0b8e158f4e56332c220a197b445f8aa3a6101cbd093dff0",
+      "plan/12_xtb_workflow/rules/OPTIONAL-015-ai-state-prior.md": "445939b09525d7b5d62cb0ee4afe889dcb76ad7d35473d904aa87122a180a710",
+      "plan/12_xtb_workflow/rules/OPTIONAL-016-oxidation-occurrence-ranking.md": "5d68440e8969bb56231e78ee7b280957603dc1a5497e8a9669f5d9f7d3aad429",
+      "plan/12_xtb_workflow/rules/README.md": "c00fdc3ad50a7e3243ee8dba83e7dc31583eef3008a9933d68c6cb08d3543a39",
+      "plan/12_xtb_workflow/scientific_state_implementation.md": "13b61da5a93fb5c9f4c2df548b262c5604539094100b4ffc5a1c2b64bbe7da48",
+      "plan/12_xtb_workflow/scientific_state_implementation_report.md": "ce2e47ef8bc2b3da9d74d238b67c74a1ce2a0fb37c8e7366247229b4525f2a7f",
+      "plan/12_xtb_workflow/scientific_state_pre_activation_baseline.md": "c44ffca2fc431224ca203709794b3b21584123adb17812a1df13dcbccc820ed4",
+      "plan/12_xtb_workflow/xtb_workflow_implementation.md": "939075ccf71c069e6e3bc532c05497f1ab4d9e34a07f0b4fd9b86639a0c95cc2",
+      "plan/12_xtb_workflow/xtb_workflow_implementation_report.md": "76e784ac8aefaabe3384a35868b64dff01b85109fb1cab6315a4e2c83f9aead0",
+      "plan/12_xtb_workflow/xtb_workflow_validation_report.md": "a658483b9d1c3e2dbdd1833827398fe16eb09a947daf9594e1a58e5d49b71810",
+      "plan/20_fact_rule_architecture/goal.md": "a536ad0d1ef5e1c4d930815965fbd63247d945951b06a375402baca13eb632a8",
+      "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md": "130f4ed18d4726d83d66daf4c330500834bfbd9d86e80756b49721d822e4425d"
+    }
+  },
+  "root_critical_assessment": [
+    "Historical Plan12 reports do not validate current Plan20 bytes.",
+    "Natural requested value can itself be a candidate set/distribution/trajectory; internal diagnostics/provenance are not automatically forbidden success envelopes. The helper documentary BLOCKER is scoped to an actual public result-contract choice, not every internal result record or current Stage5.",
+    "Recheck concrete Stage1 decisions at each dependent boundary; do not infer every numbered main-plan proposal remains unresolved. D01-D03 public schema consolidation remains explicitly proposed in the current Stage1 decision record.",
+    "Current rules/README profile activation requires individual scientific/owner approval, frozen artifacts and held-out validation; inventory supplies none. Stable6.7.1 Am restriction remains intact."
+  ],
+  "requirements": [
+    {
+      "owner_stage": "Stage7C",
+      "scope": "Reconcile ordinary public values, selected typed results and necessary internal diagnostics/provenance under existing approved interfaces.",
+      "status": "current acceptance open"
+    },
+    {
+      "owner_stage": "Stage8A",
+      "scope": "Current pure charge/OS/electronic-state providers, hard constraints, factorized composition, bounded/certified decisions and backend projection; optional screening activation follows its own documented prerequisites.",
+      "status": "current acceptance open"
+    },
+    {
+      "owner_stage": "Stage8B",
+      "scope": "External xTB/forcefield/pipeline finding-control separation, sample containment, method support and coordinate-only atomic commits.",
+      "status": "current acceptance open"
+    },
+    {
+      "owner_stage": "Stage9",
+      "scope": "Current resolver/projector consumers and removal of obsolete duplicate scientific paths.",
+      "status": "current acceptance open"
+    },
+    {
+      "owner_stage": "Stage10",
+      "scope": "Current clean-source build, sdist and supported Python/native/wheel validation.",
+      "status": "current acceptance open"
+    },
+    {
+      "owner_stage": "Stage12",
+      "scope": "Current scientific reports, held-out/automatic-profile evidence where approved, docs, full validation and frozen-work global efficiency.",
+      "status": "current acceptance open"
+    }
+  ],
+  "scope_limits": "Inventory of56 supplied current documents only. No current source audit, execution, activation, stage entry, public change or gate closure.",
+  "authority_effective_at_utc": "2026-10-30T10:28:18.401106+00:00",
+  "authority_basis": "Owner's2026-10-30 explicit authorization to minimally refine goal.md and put it into force; original Plan12 task23 source/document bindings retained as historical inventory.",
+  "diagnostic_control_debt": [
+    {
+      "id": "stage5-explicit-h-unavailable",
+      "status": "assigned_open_not_new_stage5_gate",
+      "owner_stages": [
+        "Stage7C",
+        "Stage8A"
+      ],
+      "responsibility": {
+        "Stage7C": "Trace ordinary-value/current-selected-result/readiness and all connected consumers; preserve approved integer/display and selected-result contracts.",
+        "Stage8A": "Set and implement the existing chemistry operation/strict-consumer finding-control boundary for an explicitly requested H calculation with insufficient input, including mixed-row transaction extent and independent-sample continuation."
+      },
+      "actual_owners": [
+        "hotpot/cheminfo/core.py::Atom.calc_implicit_hydrogens",
+        "hotpot/cheminfo/core.py::Molecule.calc_implicit_hydrogens",
+        "hotpot/cheminfo/core.py::Molecule.calc_atom_valence",
+        "hotpot/cheminfo/operations/chemistry.py::_prepare_hydrogens",
+        "hotpot/cheminfo/operations/chemistry.py::_require_implicit_hydrogens",
+        "hotpot/cheminfo/operations/chemistry.py::_prepare_valence_and_hydrogens"
+      ],
+      "connected_consumers": [
+        "Molecule.replace_atom",
+        "forcefields donor preparation",
+        "mol_assemble actions/fragments",
+        "_io chemistry preparation",
+        "strict RD/native transport",
+        "SMARTS/stereo/forcefield/model/MCA consumers that actually require H"
+      ],
+      "observed_debt": "Sol-max current-source probe found12 explicit-command None completions with H absent/UNRESOLVED; strict H failure retains ValueError but lacks stable domain code, affected subject and specific missing element/kind/direction reason.",
+      "preserved_contract": "Known/source H, including0, remains integer and authoritative. Permissive absent display0 supplies neither presence nor CURRENT. Successful calculation commands retain None. No fabricated zero, optional-H/NaN scalar, generic envelope or scientific rule/algorithm change is selected.",
+      "required_decision_and_tests": [
+        "Use stable domain-scoped finding code and exact subject/reason through existing error/control contracts; no new public class/schema inferred.",
+        "Trace callers before changing explicit-command failure behavior; retain permissive lazy/display consumers.",
+        "Test missing site/neighbor element, UNKNOWN bond kind and missing dative direction, original-source preservation, mixed-row atomicity, strict transport and independent sample continuation."
+      ],
+      "evidence": [
+        {
+          "path": "/tmp/p20-goal-stage5-alignment/result.json",
+          "sha256": "ed6a0c6b93be37485eef328fa5ce9e949b4ed427b0c36bcb742b43de3ac0e653"
+        },
+        {
+          "path": "/tmp/p20-goal-stage5-alignment/probe.command.json",
+          "sha256": "129c00cdadae29941e1274072d4de716f88ebf70c3be3ff54614f70cda2ad289"
+        },
+        {
+          "path": "/tmp/p20-goal-stage5-alignment/probe.stdout.json",
+          "sha256": "a3e148217467fd8943522470cd72c22890a394bac95cdf231f26b055685eb14a"
+        },
+        {
+          "path": "/tmp/p20-goal-stage5-alignment/companions/diagnostic_debt_handoff.json",
+          "sha256": "81596ebec6826e5fd65d6fa9679baf71967edd337a136ba98f0897494406960a"
+        }
+      ]
+    },
+    {
+      "id": "stage5-aromatic-projection-diagnostic",
+      "status": "assigned_open_not_new_stage5_gate",
+      "owner_stages": [
+        "Stage7C",
+        "Stage8A"
+      ],
+      "actual_owners": [
+        "hotpot/cheminfo/operations/chemistry.py::_prepare_aromatic_representation",
+        "hotpot/cheminfo/core.py::Atom.is_aromatic",
+        "factual record capture and strict adapter projections",
+        "hotpot/cheminfo/operations/chemistry.py::_atom_aromatic_read"
+      ],
+      "responsibility": "Keep supplied aromatic source facts independently serializable; add precise domain-scoped subject/reason to current-projection failure at the owning operation/consumer boundary. Trace actual scientific-state consumers during Stage8A.",
+      "observed_debt": "Supplied acyclic aromaticTrue remains source data while evaluated current projection can reject under its representation rule; the existing failure needs stable domain finding content, not a universal chemical-impossibility verdict.",
+      "preserved_contract": "Do not replace suppliedTrue withFalse, weaken the current strict projection, or infer unsupported public no-proposal behavior. Coupled aromatic/Kekule algorithm and source/transaction integrity remain.",
+      "required_decision_and_tests": [
+        "Fact capture remains read-only after strict projection failure.",
+        "Scoped conflict versus equivalent projection and stable diagnostic content independent of warning/break policy.",
+        "Source-changed assignment rejection remains local and preserves committed state."
+      ],
+      "evidence": [
+        {
+          "path": "/tmp/p20-goal-stage5-alignment/result.json",
+          "sha256": "ed6a0c6b93be37485eef328fa5ce9e949b4ed427b0c36bcb742b43de3ac0e653"
+        },
+        {
+          "path": "/tmp/p20-goal-stage5-alignment/aromatic_fact_probe_attempt3.command.json",
+          "sha256": "d6bca951bafda312a85b5deddfdadc4beee9e04d135fa42b4408f908deee6cc4"
+        },
+        {
+          "path": "/tmp/p20-goal-stage5-alignment/aromatic_fact_probe_attempt3.stdout.json",
+          "sha256": "2d20725b12eb3f2897264cb1b0562c1b800a450562bb39df347572bbcf5b6d36"
+        },
+        {
+          "path": "/tmp/p20-goal-stage5-alignment/companions/diagnostic_debt_handoff.json",
+          "sha256": "81596ebec6826e5fd65d6fa9679baf71967edd337a136ba98f0897494406960a"
+        }
+      ],
+      "connected_consumers": [
+        "strict native/RDKit projections",
+        "SMARTS/search",
+        "stereo",
+        "force-field/MCA",
+        "hotpot/cheminfo/calculator/state_resolver.py:600-624"
+      ]
+    }
+  ],
+  "diagnostic_control_debt_limits": "Concrete later-owner assignment under existing Stage7C/8A scope; not implemented, not accepted, no waiver/new stage gate/optional scientific profile activation. Global finding-control acceptance remains open."
+}

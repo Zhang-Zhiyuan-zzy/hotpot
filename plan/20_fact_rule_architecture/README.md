@@ -73,6 +73,8 @@ branched Stage13 experiment retain their original gates.
 
 ## Records
 
+- [Current implementation constitution](goal.md)
+- [Integrated Plan12 requirements and remaining evidence](integrated_requirements.json)
 - [Architecture audit and implementation plan](fact_rule_architecture_implementation_plan.md)
 - [Implementation log and stage-entry assessments](implementation_log.md)
 - [Stage2 execution evidence](stages/stage02/evidence.json)

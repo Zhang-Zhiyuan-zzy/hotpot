@@ -1,0 +1,513 @@
+{
+  "schema_version": 1,
+  "stage": "Stage5",
+  "status": "entry_complete_implementation_pending",
+  "captured_utc": "2026-10-29T10:11:54.042681+00:00",
+  "source": {
+    "commit": "ba5fa6d7357c4fcdb8b2847bb407274a62b4a5a8",
+    "branch": "implement/plan20-fact-rule-architecture",
+    "worktree_porcelain_before_entry": "",
+    "predecessor_git_checkpoint": ".plan20-artifacts/20261029/stage4/git-checkpoint.json",
+    "predecessor_git_checkpoint_sha256": "89b45aa2ecf39004dfc5d98b59e56ae77279bbca4ce40abd45a2ba33a765b16b"
+  },
+  "normative_full_read": [
+    {
+      "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+      "sha256": "49c8490a693f6faa8b02432900b005bf79f31f5322df10b85d8f3537bc679756",
+      "lines": 2448,
+      "untruncated_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          420
+        ],
+        [
+          421,
+          660
+        ],
+        [
+          661,
+          900
+        ],
+        [
+          901,
+          1140
+        ],
+        [
+          1141,
+          1380
+        ],
+        [
+          1381,
+          1620
+        ],
+        [
+          1621,
+          1860
+        ],
+        [
+          1861,
+          2100
+        ],
+        [
+          2101,
+          2340
+        ],
+        [
+          2341,
+          2448
+        ]
+      ],
+      "coverage": "all current lines read; ranges ending at EOF are complete"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+      "sha256": "90be7a21289210ee0db86dec4729988e085c764366ea7aa64d49b7d8427166e3",
+      "lines": 284,
+      "untruncated_ranges": [
+        [
+          1,
+          150
+        ],
+        [
+          151,
+          284
+        ]
+      ],
+      "coverage": "all current lines read; ranges ending at EOF are complete"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+      "sha256": "e5549116f1409fb46b5fd2bdc82c0b20a34297989475eb66a119ac221a9d4a0b",
+      "lines": 177,
+      "untruncated_ranges": [
+        [
+          1,
+          177
+        ]
+      ],
+      "coverage": "all current lines read; ranges ending at EOF are complete"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+      "sha256": "41d4c4ab4388f10a4fe9682023ac97769dc9fadf4f18cfe78291c8533b4257a6",
+      "lines": 523,
+      "untruncated_ranges": [
+        [
+          1,
+          180
+        ],
+        [
+          181,
+          360
+        ],
+        [
+          361,
+          440
+        ],
+        [
+          441,
+          523
+        ]
+      ],
+      "coverage": "all current lines read; ranges ending at EOF are complete"
+    },
+    {
+      "path": "plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+      "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+      "lines": 68,
+      "untruncated_ranges": [
+        [
+          1,
+          68
+        ]
+      ],
+      "coverage": "all current lines read; ranges ending at EOF are complete"
+    }
+  ],
+  "read_corrections": [
+    "Aggregate output main181-660 and1381-1620 truncated; each range reread without truncation.",
+    "data-object361-523 exceeded budget;361-440 and441-523 reread without truncation. Only complete replacement ranges listed."
+  ],
+  "other_records_read": [
+    {
+      "path": "plan/20_fact_rule_architecture/README.md",
+      "sha256": "d3e8805fba8ef87b87bd749404139c4ea7d64dc3f674f3686ab2f0d35a3e07ae",
+      "lines": 137
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/README.md",
+      "sha256": "761b4c4971861c1ec5020fd4be39157aef19fb71799867ed19ad278bfc8ae9cd",
+      "lines": 90
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage04/gates/review.md",
+      "sha256": "772793d5a498c6b6234b8e593d58abf430f48346d4d52099bf28d243b72da221",
+      "lines": 61
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage01/contracts/decisions.md",
+      "sha256": "fa647efe5e827cb16c207b70312bf6a708659589b41d5e87caaec7b6d0ed07e9",
+      "lines": 191
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/reviewed_interface_contracts.json",
+      "sha256": "fed58150bb7b60fbbdf3b16988b87d012d66dd1b7d5e2a1a6e0f4221695e737f",
+      "lines": 4646
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stage_verification_map.json",
+      "sha256": "9ee77ed15648e34f04773f3295f4a5a46172d8781f58f3ec35829af07244298e",
+      "lines": 1641
+    }
+  ],
+  "other_record_scope": {
+    "reviewed_interface_contracts.json": "Relevant families and all Molecule/Atom/Bond/Ring overrides, notes and supplemental entries; not claimed full companion read.",
+    "stage_verification_map.json": "Complete Stage5 targets; not claimed full companion read."
+  },
+  "environment": {
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "interpreter": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+    "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "platform": "Linux-5.15.0-139-generic-x86_64-with-glibc2.31",
+    "affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99,
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110,
+      111,
+      112,
+      113,
+      114,
+      115,
+      116,
+      117,
+      118,
+      119,
+      120,
+      121,
+      122,
+      123,
+      124,
+      125,
+      126,
+      127
+    ],
+    "packages": {
+      "hotpot-zzy": "0.5.4.5",
+      "numpy": "2.4.6",
+      "rdkit": "2026.9.1",
+      "pytest": "9.1.1",
+      "periodictable": "2.1.0"
+    },
+    "overrides": {
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "MKL_NUM_THREADS": null,
+      "NUMEXPR_NUM_THREADS": null,
+      "PYTHONDONTWRITEBYTECODE": null
+    },
+    "fact_native": [
+      {
+        "path": "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so",
+        "sha256": "eb091e7b8d1a33b1938c3c06bf373fd3365f96e7dda205620bc536e4965783fe",
+        "lines": null
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "cd2d675795a574cc950ade23d6a6c1b70cbb9733b017173bcdff2f05907c2b2c",
+        "lines": null
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so",
+        "sha256": "43f6ad536561830c327050397f7c6c7328b308011780a8c03f64882957eabc0e",
+        "lines": null
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so",
+        "sha256": "33f42bff5a2780fc7df460ff5b5d41486de6b4f0e09fb27419967467bc22b3cb",
+        "lines": null
+      },
+      {
+        "path": "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so",
+        "sha256": "6051de121e32ff002f5b5e1b1de5f837f5a38a44e2254220a741a8593dd0bda0",
+        "lines": null
+      }
+    ]
+  },
+  "predecessor_gates": {
+    "Stage0_4_owning": "complete at ba5fa6d; Stage4 source/default/five-version/package/native/focused comparison evidence inspected via owning gate review",
+    "Stage4_default": "4585 passed,123 skipped,3 xfailed,49 subtests (predecessor evidence; not rerun here)",
+    "Stage4_matrix": "each Python3.10-3.14:2287 source,175 debug,2157 installed passed (predecessor evidence)",
+    "final_performance": "OPEN/BLOCKED: graph/view2.05414x B20 and graph family1.43729x; no exception/waiver; Stage5 entry grants no final acceptance",
+    "final_scientific_and_Stage12": "open at owning later scope",
+    "Stage13": "not entered; requires validated committed Stage0-12 B_exp and separate branch/two commits"
+  },
+  "source_inventory": [
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "sha256": "d567da7f5287aeae2ed434803f1314f5fc5e68995db8e5af5e8ad42e0b06ba2c",
+      "lines": 5701
+    },
+    {
+      "path": "hotpot/cheminfo/elements.py",
+      "sha256": "f3c1d91cd3f36e784823b732e54d29e4d57d3c34fbf0603e2281b4e7f1e90470",
+      "lines": 1845
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_dependencies.py",
+      "sha256": "37f70079bf661d886bf69fbd5c5a33d3ef6f6a5943c830e1cf096eb41e3faf4f",
+      "lines": 171
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_commit.py",
+      "sha256": "0ea72b7b3b706dc5123bf5da1c4ebddcc848b6fa54b0b8dea48bf96ef6b3bb9a",
+      "lines": 484
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_atom_table.py",
+      "sha256": "595ef42f0524ec2760a739787a62bd52ce9d4a14759c38b52b0c32afa783796a",
+      "lines": 336
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_fields.py",
+      "sha256": "c07ab9799024c3191aefa20c3a0dd4c139cebab927346cbbfeb62059094c3389",
+      "lines": 82
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_identity.py",
+      "sha256": "09f0dbf0c4ad33baa2fe17259baca5d8dcfd0440369e6a454a008fa2f0709316",
+      "lines": 203
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_builder.py",
+      "sha256": "2c3ac46a8e0b8a72710d304f037d1caf05a044d733c9d72e9ee72eba8b42d49d",
+      "lines": 335
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_native/facts.cpp",
+      "sha256": "482ac5feb9778ef9ebc39f7f7e40be320bd7d4a61aecde9da8b18f04465f91c1",
+      "lines": 1193
+    },
+    {
+      "path": "hotpot/cheminfo/views/_source.py",
+      "sha256": "d37cc81ffb2ae5582e49ed46e8fd99196b83e4ecefa610047fc85b6242942ddd",
+      "lines": 105
+    },
+    {
+      "path": "hotpot/cheminfo/operations/topology_queries.py",
+      "sha256": "c9a2221132aa0ecc3354a1c810abeba8f869f910f92d5f734cc96e8955ccfd1c",
+      "lines": 74
+    },
+    {
+      "path": "hotpot/cheminfo/obconvert.py",
+      "sha256": "a1612aba017762a069a7014cc9351967716e5d273147cf144032ce1c0e272683",
+      "lines": 250
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/working_copy.py",
+      "sha256": "6800a945816861928aad10fcdcb692e03ffdd770f03271c6311919f48d7e2abf",
+      "lines": 279
+    },
+    {
+      "path": "hotpot/cheminfo/mol_assemble/action_func.py",
+      "sha256": "a29ec5d782debd2149a40b68a2363932c1047e6a865f017b711cd2cb93fd0094",
+      "lines": 223
+    },
+    {
+      "path": "hotpot/cheminfo/kekulize/__init__.py",
+      "sha256": "94eeee9e76faec3fe3aaf4b3ea427c2de100045af3b33c4cf4cff95f0cc4a622",
+      "lines": 20
+    },
+    {
+      "path": "hotpot/cheminfo/kekulize/_protocols.py",
+      "sha256": "c3a8dac2293866a685815ebf46ee45c5b88c10b411dfd120f90a6a1f23195342",
+      "lines": 72
+    },
+    {
+      "path": "hotpot/cheminfo/kekulize/aromaticity.py",
+      "sha256": "6e0d7611641997fbc74ca80a843ef90d1f76a9d39b63040270c8c533244f2123",
+      "lines": 89
+    },
+    {
+      "path": "hotpot/cheminfo/kekulize/assignment.py",
+      "sha256": "fbfaf96a3dfbe2d77a85098a1a60777ce69e158ba10c400c4d844da973a1a59f",
+      "lines": 47
+    },
+    {
+      "path": "hotpot/cheminfo/kekulize/settings.py",
+      "sha256": "b7846b95119c2dca925ab84397abd8564a1a08ea3d41188317c116b6f4ef1853",
+      "lines": 6
+    },
+    {
+      "path": "hotpot/cheminfo/kekulize/workflow.py",
+      "sha256": "5326ac95e51d64d1475e5154e48e0930ce0cef0d0724b1a3a5a5527379ada863",
+      "lines": 35
+    }
+  ],
+  "actual_owner_consumer_inventory": {
+    "eager_writers": [
+      "core._atomic_number_setter installs electron/valence/H",
+      "core.updata_atoms repeats eager element setter",
+      "core._bond_order_setter recalculates both endpoint H",
+      "core.calc_atom_valence/Atom.set_valence_to_default store P4 valence",
+      "core.Atom.__init__ accepts raw array/supplied electron config"
+    ],
+    "ring_writers": [
+      "kekulize.aromaticity.determine_ring_aromaticity(inplace=True)",
+      "kekulize.assignment.kekulize_ring writes Ring aromatic and Bond orders",
+      "kekulize.workflow sequences hidden-metal topology and writes",
+      "Ring.is_aromatic setter and Ring.kekulize/determine_aromatic",
+      "mol_assemble/action_func.py restores individual aromatic flags"
+    ],
+    "ring_caches": [
+      "Molecule._rings",
+      "_ring_indices_cache",
+      "_ligand_rings",
+      "_ligand_rings_signature",
+      "topology invalidation, undo and pickle exclusions retire together"
+    ],
+    "connected_imports_and_projections": [
+      "core._add_atom/_create_atom_from_array and factual builder/copy/components",
+      "forcefields.working_copy uses factual record boundary",
+      "obconvert/rdconvert/_io/MCA serializers and native/model feature readers consume electron/valence/H/aromatic projections",
+      "SMARTS/stereo/forcefield and geometry consume Ring membership/representation; source/version tests migrate"
+    ],
+    "read_permission": "A1/A2/A7 approved route; electron/valence/aromatic projections readonly; implicit-H explicit setter retained; source conflicts kept; existing RuntimeError for stale views; no public exception/alias"
+  },
+  "bounded_tasks": [
+    "Extract immutable elemental facts/classification/electron calculations and exact formula/mass/count descriptors without science changes.",
+    "Delete eager chemistry from scalar/batch element and Bond-order writers; factual commit plus finite dependency marking.",
+    "Connect source-aware named pure recomputation for H/representation with remote-first seeds, one-time materialization, unresolved/conflict and rollback evidence.",
+    "Return one coupled Atom/Bond aromatic/Kekule assignment; migrate every Ring writer/cache plus immutable source-bound Ring/JointRing membership in one coherent migration.",
+    "Remove approved attrs_array/update_electron_config constructor parameters after factual import callers migrate; preserve19-column snapshots and model encoding.",
+    "Run focused Stage5 contracts with commands/failures/source identities, then freeze bytes for root owning default/matrix/package/science/performance gates."
+  ],
+  "excluded": [
+    "Stage6 stereo/scientific spin/oxidation extraction",
+    "Stage7 external toolkit/result/hidden-bond/coordinate ownership except Stage5 required local bonding selection",
+    "Stage9 carrier split/Stage10 native physical paths",
+    "Stage13 generic rule protocol/registry/runtime old-new selector"
+  ],
+  "ownership": {
+    "stage5_rules_solmax": "core.py; connected structure commit/dependencies/fields/table/identity/snapshot contracts; bonding rules; operations chemistry/ring topology; views source; required import/consumer updates and affected tests; Stage5 entry/review/contracts records",
+    "stage5_elements_worker": "elements.py; reference/elements.py; rules/chemistry/elements.py; utils/chem/atom.py; descriptors/graph_spectrum.py; corresponding element tests, under fixed local extraction design",
+    "root": "global plan/index/log/map/allowlist/data budget; global validation/scientific/performance scripts and Git"
+  },
+  "validation": {
+    "entry_only": true,
+    "production_tests_run": false,
+    "remaining_gates": "All Stage5 implementation/focused/default/matrix/package/scientific/performance gates open at entry.",
+    "entry_record_attempt": "First record construction failed before any write: binary .so was read as text for line count; fixed by recording binary lines as null."
+  }
+}

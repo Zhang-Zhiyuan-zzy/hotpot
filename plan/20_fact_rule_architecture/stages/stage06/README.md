@@ -8,7 +8,7 @@ Stage6 entry alignment is complete on the verified Stage5 checkpoint `aed86adb60
 
 - [Entry assessment and bounded contract](entry_review.json): current normative/source/predecessor identities, accepted reuse, design ownership, included/excluded work, required validation and rollback boundary.
 
-- [Primary design review, revision1](contracts/primary-review-r1.md) and [root evidence disposition](contracts/primary-review-r1.json): actual read-only audit passes; substantive design remains blocked on lock/callback boundaries, exact storage-decomposition ownership and four other bounded corrections. Sol-max revision2 is pending.
-- [Validation preparation](validation-preparation/evidence.json): retained rejected runner, accepted bounded historical recipe supplement and missing SDK tier. [Revision2 review](validation-preparation/runner-review-r2.md) and [root disposition](validation-preparation/runner-review-r2.json) accept the six static fixes after the matching actual read-only audit; source-ready/freeze/runtime remain held.
+- [Primary design review, revision1](contracts/initial-review/review.md) and [root evidence disposition](contracts/initial-review/evidence.json): actual read-only audit passes; substantive design remains blocked on lock/callback boundaries, exact storage-decomposition ownership and four other bounded corrections. Sol-max revision2 is pending.
+- [Validation preparation](validation-preparation/evidence.json): retained rejected runner, accepted bounded historical recipe supplement and missing SDK tier. [Revision2 review](validation-preparation/revision2-review/review.md) and [root disposition](validation-preparation/revision2-review/evidence.json) accept the six static fixes after the matching actual read-only audit; source-ready/freeze/runtime remain held.
 
 Add actual design, execution and gate records here as authorized work produces them. A record's existence does not establish its validation result.

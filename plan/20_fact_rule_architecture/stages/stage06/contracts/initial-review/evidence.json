@@ -14,7 +14,7 @@
   },
   "substantive": {
     "status": "BLOCKED_WITH_REQUIRED_DESIGN_DELTAS_AND_ROOT_DECISIONS",
-    "verbatim_review": "primary-review-r1.md",
+    "verbatim_review": "review.md",
     "verbatim_review_sha256": "40ae276830957e41f409ede01727d2478d4a7d063115588f073f7f6d728be354",
     "coverage": "Frozen design and supplied source/normative excerpts only; zero reviewer tools. No implementation/runtime proof."
   },

@@ -132,9 +132,9 @@
   "stage6_runtime_acceptance": false,
   "global_science_performance_acceptance": false,
   "runner_revision2": {
-    "record": "runner-review-r2.json",
-    "record_sha256": "4c8ff43cadb426b47c75a556139b9188a765b981ccc253b93a274b9c38946ec0",
-    "verbatim_review": "runner-review-r2.md",
+    "record": "revision2-review/evidence.json",
+    "record_sha256": "40bd7766c7ba695aaceefaa2b652328fc718c983f65de9d53ab951d4609f5a36",
+    "verbatim_review": "revision2-review/review.md",
     "verbatim_review_sha256": "598f97e10930d45981fa2cd3f1f0a004447954caf5eb9e5ccfa05708b5e1e2c4",
     "status": "six fixes accepted statically after matching actual read-only audit; source-ready and runtime remain held"
   }

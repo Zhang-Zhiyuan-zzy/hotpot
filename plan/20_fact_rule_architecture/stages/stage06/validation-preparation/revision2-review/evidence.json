@@ -14,7 +14,7 @@
   },
   "substantive": {
     "status": "SIX_FINDINGS_RESOLVED_STATICALLY_FREEZE_EXECUTION_REMAINS_HELD",
-    "verbatim_review": "runner-review-r2.md",
+    "verbatim_review": "review.md",
     "verbatim_review_sha256": "598f97e10930d45981fa2cd3f1f0a004447954caf5eb9e5ccfa05708b5e1e2c4",
     "reviewer_execution": "Zero tools, commands or delegation; review of exact supplied frozen code/delta/evidence."
   },

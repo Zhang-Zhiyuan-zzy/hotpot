@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "stage": "Stage6",
-  "status": "runner_revision1_blocked_revision2_pending_no_runtime_release",
-  "recorded_utc": "2026-10-30T11:51:40.066600+00:00",
+  "status": "runner_revision2_six_fixes_accepted_static_runtime_hold",
+  "recorded_utc": "2026-10-30T12:03:11.721024+00:00",
   "source_commit": "90ff36c2c0b415bb9cf27628265bb4528e425922",
   "scope": "Validation preparation,static/synthetic runner checks,actual readonlyreview,and historical native supplement only. No currentStage6pytest/build/wheel/SDK/science/performance result.",
   "preparation": {
@@ -128,7 +128,14 @@
     "scope": "Source-native local header/recipe tests separate from installedruntime. Freshall-componentSDKbuild not invented asStage6prerequisite;Stage10fullSDKgate staysopen.",
     "build_executed": false
   },
-  "next": "Verifier explicitlygpt-6.1-sol/medium owns freshrevision2runneronly. Awaitdelta-only primaryreview+exactturnaudit,finalnewtests/support,reviewednativeclosureinventory and owner-authoredSOURCE_READY before anyruntimecommand.",
+  "next": "Preserve reviewed revision2 helpers unchanged. After accepted Stage6 design and coherent source/test implementation, root must bind new tests/support, complete native closure and exact source/model/interpreter identities in STAGE6_SOURCE_READY before freeze/runtime execution.",
   "stage6_runtime_acceptance": false,
-  "global_science_performance_acceptance": false
+  "global_science_performance_acceptance": false,
+  "runner_revision2": {
+    "record": "runner-review-r2.json",
+    "record_sha256": "4c8ff43cadb426b47c75a556139b9188a765b981ccc253b93a274b9c38946ec0",
+    "verbatim_review": "runner-review-r2.md",
+    "verbatim_review_sha256": "598f97e10930d45981fa2cd3f1f0a004447954caf5eb9e5ccfa05708b5e1e2c4",
+    "status": "six fixes accepted statically after matching actual read-only audit; source-ready and runtime remain held"
+  }
 }

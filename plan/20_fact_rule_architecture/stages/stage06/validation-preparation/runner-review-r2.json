@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "stage": "Stage6",
+  "status": "runner_revision2_six_fixes_accepted_static_runtime_hold",
+  "recorded_utc": "2026-10-30T12:01:56.804145+00:00",
+  "task": {
+    "task_id": "p20-s6-runner-review-704283-33",
+    "revision": 2,
+    "task_hash": "2def81c065c71577a253c91f188d15d11fef7a6634d4ce2328b108f6f59fffd2",
+    "source_commit": "90ff36c2c0b415bb9cf27628265bb4528e425922",
+    "diff_or_tree_hash": "ec97b93f89677771ab63b56fda01f0bc47ff2640e5d58ae0304564406660bf19",
+    "identity_encoding": "SHA256 of frozen review-capture.json raw bytes; not a Git tree",
+    "exact_turn_id": "01a18cac-3d1f-7682-95be-cc60483a53e4"
+  },
+  "substantive": {
+    "status": "SIX_FINDINGS_RESOLVED_STATICALLY_FREEZE_EXECUTION_REMAINS_HELD",
+    "verbatim_review": "runner-review-r2.md",
+    "verbatim_review_sha256": "598f97e10930d45981fa2cd3f1f0a004447954caf5eb9e5ccfa05708b5e1e2c4",
+    "reviewer_execution": "Zero tools, commands or delegation; review of exact supplied frozen code/delta/evidence."
+  },
+  "capture": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-runners/revision2/review-capture.json",
+    "sha256": "ec97b93f89677771ab63b56fda01f0bc47ff2640e5d58ae0304564406660bf19"
+  },
+  "delta_packet": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-runners/revision2/delta-review-packet.json",
+    "sha256": "52d91a017db72018f497ba6da454461f1ecadb8fd14e4cb857e3d52df0857223"
+  },
+  "existing_synthetic_evidence": {
+    "binding": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/validation-runners/revision2/correctness-attempt1/checks.json",
+      "sha256": "1de7553c70090039f4c3f3bd0005ac80e617ca80dcc829e25db53244feea4aad"
+    },
+    "outcome": "53 deterministic synthetic/content checks passed by the assigned verifier; not rerun by root or reviewer."
+  },
+  "actual_turn_audit": {
+    "status": "AUDIT_PASSED",
+    "receipt_source": "Exact user AUDIT_RESULT relayed to current communication owner; no new audit",
+    "turn_context_line": 1416,
+    "timestamp": "2026-10-30T11:58:05.191Z",
+    "turn_context_sha256": "ce577f08f8d367c0b6164f338534a52e5aa0a35dfb7ba212712ce8c371e83bd2",
+    "exact_range_lines": [
+      1412,
+      1440
+    ],
+    "exact_range_sha256": "da42a62af9da44327ff30900a29641c5328757d272ee6696dd24c08ec135f19",
+    "sandbox": "read-only",
+    "network": "restricted",
+    "filesystem": "managed/restricted; root read; no write entries",
+    "model": "gpt-5.6-sol",
+    "effort": "xhigh",
+    "tool_calls": 0,
+    "command_calls": 0,
+    "delegation_calls": 0,
+    "completed": 1,
+    "identity_match": true
+  },
+  "root_key_review": {
+    "reviewed_ranges": {
+      "stage6_policy.py": [
+        [
+          51,
+          78
+        ],
+        [
+          130,
+          173
+        ]
+      ],
+      "stage6_runner.py": [
+        [
+          124,
+          160
+        ]
+      ]
+    },
+    "scope": "Historical exact/disjoint attestation, per-tier required nodes, exact SDK pair/outcomes and root preflight before source/output writes. No duplicate execution of 53 synthetic checks or full code review.",
+    "disposition": "Accept six concrete fixes and frozen revision2 mechanism for future owner-authorized SOURCE_READY execution. No further runner edits requested.",
+    "limits": [
+      "Current source/native closure has not yet been compared at SOURCE_READY.",
+      "Actual current SDK ABI cases remain missing; native-source records both ordinary missing skips, with no SDK qualification inferred from default tier.",
+      "No Stage6 collection, pytest, wheel/install, build, SDK runtime, scientific or performance acceptance follows.",
+      "Task34 design remains independently blocked pending revision2."
+    ]
+  },
+  "next_gate": "Accepted Stage6 design and coherent source/test implementation; exact new test/support/model/native/interpreter identities; owner-authored STAGE6_SOURCE_READY, then actual mapped execution.",
+  "freeze_authorized": false,
+  "runtime_authorized": false,
+  "stage6_acceptance": false
+}

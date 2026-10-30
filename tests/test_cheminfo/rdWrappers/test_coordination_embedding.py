@@ -283,8 +283,8 @@ def test_native_sampler_has_no_business_forcefield_entrypoint_calls():
 def test_unknown_bond_state_is_reported_as_unsupported():
     _load_test_extension()
     molecule = Molecule()
-    molecule.create_atom(atomic_number=7)
-    molecule.create_atom(atomic_number=30)
+    molecule.create_atom(atomic_number=7, implicit_hydrogens=0)
+    molecule.create_atom(atomic_number=30, implicit_hydrogens=0)
     molecule.add_bond(0, 1, bond_order=1.0, bond_kind=BondKind.UNKNOWN)
 
     result = rdWrappers.generate_conformers(
@@ -294,6 +294,17 @@ def test_unknown_bond_state_is_reported_as_unsupported():
 
     assert result.status is rdWrappers.GenerationStatus.UNSUPPORTED
     assert "UNKNOWN bond" in result.diagnostic
+
+
+def test_unknown_bond_without_hydrogen_declarations_rejects_strict_projection():
+    _load_test_extension()
+    molecule = Molecule()
+    molecule.create_atom(atomic_number=7)
+    molecule.create_atom(atomic_number=30)
+    molecule.add_bond(0, 1, bond_order=1.0, bond_kind=BondKind.UNKNOWN)
+
+    with pytest.raises(ValueError, match="requires resolved implicit-H input"):
+        rdWrappers.generate_conformers(molecule, options=rdWrappers.ETKDGOptions(seed=37))
 
 
 def _write_smoke_coordination_artifacts(root: Path):

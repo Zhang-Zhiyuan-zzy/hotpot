@@ -9,6 +9,7 @@ import pytest
 from hotpot.cheminfo import stereo
 from hotpot.cheminfo.core import Molecule
 from hotpot.cheminfo.search.native import _NativeTarget
+from tests.test_cheminfo._stage5_fixtures import supplied_aromatic_flags
 
 
 def _molecule(
@@ -380,8 +381,7 @@ def test_aromatic_kekule_bonds_normalize_but_biaryl_axis_remains_single():
             (11, 1, 1.0),
         ),
     )
-    for atom in molecule.atoms:
-        atom.is_aromatic = True
+    molecule = supplied_aromatic_flags(molecule, (True,) * len(molecule.atoms))
     _set_payload(
         molecule,
         (

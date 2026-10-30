@@ -14,7 +14,6 @@ from dataclasses import dataclass
 import numpy as np
 from rdkit import Chem
 
-from hotpot.cheminfo.elements import elements
 from hotpot.cheminfo.structure._builder import _make_molecule_record
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_PRESENCE_BITS
 
@@ -152,14 +151,13 @@ def hotpot_mol_from_dto(molecule: MoleculeDTO) -> HotpotMolecule:
         )
     values = np.zeros((len(molecule.atoms), 19), dtype=np.float64)
     sources = np.zeros(values.shape, dtype=np.uint8)
-    supplied = (0, 7, 8, 9, 10, 11, 12, 13, 14)
+    supplied = (0, 7, 8, 9, 10, 11, 12, 14)
     for row, atom in enumerate(molecule.atoms):
-        values[row] = (atom.atomic_number, *elements.electron_configs[atom.atomic_number],
+        values[row, supplied] = (atom.atomic_number,
                        atom.formal_charge, atom.partial_charge, atom.is_aromatic,
-                       *atom.coordinates, atom.valence, atom.implicit_hydrogens, 0, 0, 0, 0)
+                       *atom.coordinates, atom.implicit_hydrogens)
     sources[:, supplied] = ATOM_SOURCE_CODES["mca_dto"]
-    sources[:, 1:7] = ATOM_SOURCE_CODES["electron_configuration"]
-    presence = np.full(len(values), sum(FIELD_PRESENCE_BITS[index] for index in range(15)), dtype=np.uint32)
+    presence = np.full(len(values), sum(FIELD_PRESENCE_BITS[index] for index in supplied), dtype=np.uint32)
     bonds = molecule.bonds
     raw_bonds = np.zeros((len(bonds), 3), dtype=np.float64)
     raw_bonds[:, 0] = [bond.bond_order for bond in bonds]

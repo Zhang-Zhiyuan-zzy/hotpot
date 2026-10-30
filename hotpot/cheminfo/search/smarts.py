@@ -99,6 +99,14 @@ class _RecursiveEvaluator:
 
 def _molecule_search_signature(mol: object) -> Tuple[object, ...]:
     """Return the molecular state consumed by SMARTS matching predicates."""
+    from ..operations.chemistry import _require_aromatic_representation, _require_implicit_hydrogens
+    with mol._mutation_lock:
+        _require_implicit_hydrogens(mol)
+        _require_aromatic_representation(mol)
+        return _molecule_search_signature_values(mol)
+
+
+def _molecule_search_signature_values(mol):
     atoms = tuple(
         (
             atom.idx,

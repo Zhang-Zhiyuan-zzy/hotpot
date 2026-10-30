@@ -6,6 +6,7 @@ import numpy as np
 
 from ..core import Molecule, Atom, AtomPair
 from ..rules.mathematics.graph.cycles import _cycle_basis
+from ..operations.chemistry import _atom_projection
 
 
 def direct_edge_to_indirect(attr_or_index: np.ndarray) -> np.ndarray:
@@ -55,7 +56,7 @@ def extract_atom_attrs(mol: Molecule, data: dict[str, Any] = None, atomic_number
             fields = Atom._attrs_enumerator[:15]
             x_names = fields + ('is_metal',)
             x = np.empty((len(mol._atoms), 16), dtype=np.float64)
-            x[:, :15] = mol._atom_table.select(fields)
+            x[:, :15] = _atom_projection(mol, fields=fields, strict_hydrogens=True)
             x[:, 15] = [atom.is_metal for atom in mol._atoms]
 
     if isinstance(data, dict):

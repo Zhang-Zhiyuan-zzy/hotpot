@@ -6,6 +6,7 @@ from hotpot.cheminfo import MolReader
 from hotpot.cheminfo.core import Bond, Molecule
 from hotpot.cheminfo.search._search_native import NativeTarget
 from hotpot.cheminfo.search.native import _NativeTarget
+from tests.test_cheminfo._stage5_fixtures import supplied_aromatic_flags
 from hotpot.cheminfo.stereo import (
     AtomTransportRecord,
     StereoIssueCode,
@@ -135,9 +136,11 @@ def test_virtual_edges_are_lexicographically_sorted_with_real_edges():
 
 
 def test_projection_uses_exact_atom_fact_and_molecule_scalar_labels():
-    molecule = _molecule((6,))
+    # A complete aromatic cycle supplies the label; an isolated aromatic Atom
+    # is now an explicitly conflicting representation under Stage5 reads.
+    molecule = _molecule((6,) * 6, tuple((row, (row + 1) % 6, 1.) for row in range(6)))
+    molecule = supplied_aromatic_flags(molecule, (True,) * 6)
     molecule.atoms[0].formal_charge = -1
-    molecule.atoms[0].is_aromatic = True
     set_stereo_payload(
         molecule,
         StereoPayload(1, (), (_atom_fact(0, isotope=13, radical=1),), ()),
@@ -169,8 +172,7 @@ def test_kekule_aromatic_cycle_normalizes_but_aromatic_biaryl_bridge_does_not():
         (6,) * 12,
         first_ring + second_ring + ((0, 6, 1.0),),
     )
-    for atom in molecule.atoms:
-        atom.is_aromatic = True
+    molecule = supplied_aromatic_flags(molecule, (True,) * len(molecule.atoms))
 
     graph, issues = _gate6_projection(molecule)
 

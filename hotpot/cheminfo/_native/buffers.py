@@ -327,6 +327,8 @@ def _pack_hydrogen_state(state):
 
 
 def _pack_atom_transport(payload, atoms) -> NativeAtomTransportBuffers:
+    from ..operations.chemistry import _require_implicit_hydrogens
+
     facts = tuple(payload.atom_facts)
     transported_atoms = {fact.atom for fact in facts}
     missing_atoms = tuple(
@@ -335,6 +337,8 @@ def _pack_atom_transport(payload, atoms) -> NativeAtomTransportBuffers:
         if row not in transported_atoms
     )
     missing_count = len(missing_atoms)
+    missing_hydrogens = (_require_implicit_hydrogens(atoms[0].mol,
+        rows=tuple(row for row, _ in missing_atoms)) if missing_atoms else ())
     atom_rows = tuple(fact.atom for fact in facts) + tuple(
         row for row, _ in missing_atoms
     )
@@ -370,11 +374,11 @@ def _pack_atom_transport(payload, atoms) -> NativeAtomTransportBuffers:
     ) + tuple(
         (
             NativeHydrogenTransportFieldCode.IMPLICIT,
-            atom.implicit_hydrogens,
+            hydrogen,
             0,
             0,
         )
-        for _, atom in missing_atoms
+        for hydrogen in missing_hydrogens
     )
     source_hydrogens = tuple(
         _pack_hydrogen_state(fact.source_hydrogens)
@@ -437,6 +441,9 @@ def pack_molecule(
 ) -> NativeMoleculeBuffers:
     """Copy only the requested molecule fields into contiguous arrays."""
     with mol._mutation_lock:
+        if fields & {NativeMoleculeField.ATOM_AROMATIC, NativeMoleculeField.BOND_AROMATIC}:
+            from ..operations.chemistry import _require_aromatic_representation
+            _require_aromatic_representation(mol)
 
         atoms = tuple(mol.atoms)
         bonds = tuple(mol.bonds)
@@ -514,7 +521,7 @@ def pack_molecule(
         bond_aromatic = bond_values(
             NativeMoleculeField.BOND_AROMATIC,
             (
-                bond.bond_kind.value == "aromatic" or bond.is_aromatic
+                bond.bond_kind.value == "aromatic" or bond._is_aromatic
                 for bond in bonds
             ),
             np.uint8,

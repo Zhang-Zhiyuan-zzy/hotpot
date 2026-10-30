@@ -78,7 +78,9 @@ def test_rdkit_presence_distinguishes_absent_coordinates_partial_charge_and_supp
     assert not any(mask & FIELD_PRESENCE_BITS[FIELD_INDEX['id']] for mask in masks)
     assert codes[0, FIELD_INDEX['partial_charge']] == ATOM_SOURCE_CODES['rdkit']
     assert codes[1, FIELD_INDEX['partial_charge']] == ATOM_SOURCE_CODES['default']
-    assert codes[0, FIELD_INDEX['s']] == ATOM_SOURCE_CODES['electron_configuration']
+    assert codes[0, FIELD_INDEX['s']] == ATOM_SOURCE_CODES['default']
+    assert not masks[0] & FIELD_PRESENCE_BITS[FIELD_INDEX['s']]
+    assert mol.atoms[0].s == 2
     assert mol._charge_present and mol._charge_source == 'rdkit' and mol.charge == 0
 
 
@@ -158,7 +160,9 @@ def test_cclib_prepares_all_nine_frames_units_and_last_coordinates_before_scienc
     assert mol.conformers._force[0, 0, 0] == 0
     codes = mol._atom_table.sources()
     assert np.all(codes[:, FIELD_INDEX['x']] == ATOM_SOURCE_CODES['cclib'])
-    assert np.all(codes[:, FIELD_INDEX['s']] == ATOM_SOURCE_CODES['electron_configuration'])
+    assert np.all(codes[:, FIELD_INDEX['s']] == ATOM_SOURCE_CODES['default'])
+    assert not np.any(mol._atom_table.presence() & FIELD_PRESENCE_BITS[FIELD_INDEX['s']])
+    assert [atom.electron_configuration.tolist() for atom in mol.atoms] == [[2, 2, 2, 0, 0, 0], [2, 2, 4, 0, 0, 0]]
     assert not np.any(mol._atom_table.presence() & FIELD_PRESENCE_BITS[FIELD_INDEX['partial_charge']])
 
 
@@ -182,7 +186,7 @@ def test_ccdc_fake_boundary_uses_atoms_collection_returns_carrier_and_installs_n
              SimpleNamespace(label='O1', atomic_number=8, formal_charge=-1,
                              partial_charge=-0.25, coordinates=(4, 5, 6), rings=())]
     normalized = []
-    source = SimpleNamespace(atoms=atoms, bonds=[SimpleNamespace(atoms=tuple(atoms), bond_type='Double')],
+    source = SimpleNamespace(atoms=atoms, bonds=[SimpleNamespace(atoms=tuple(atoms), bond_type='Double', rings=())],
                              normalise_labels=lambda: normalized.append(True))
     def forbidden(*args, **kwargs):
         raise AssertionError('CCDC factual import used chemistry')

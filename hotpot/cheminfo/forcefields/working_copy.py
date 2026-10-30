@@ -36,7 +36,10 @@ _FF_SOURCE_DOMAINS = (
 
 
 def _capture_working_source(mol: "Molecule") -> tuple:
+    from ..operations.chemistry import _require_aromatic_representation, _require_implicit_hydrogens
     with mol._mutation_lock:
+        _require_implicit_hydrogens(mol)
+        _require_aromatic_representation(mol)
         return (
             _capture_source(mol, _FF_SOURCE_DOMAINS),
             tuple((bond, bond._bond_source_metadata) for bond in _complete_bonds(mol)),
@@ -86,7 +89,7 @@ def _recalculate_neutral_donor_valence(
             donor.formal_charge == 0
             and donor.atomic_number in _NEUTRAL_DONOR_ATOMIC_NUMBERS
         ):
-            donor.valence = donor.get_valence()
+            donor.set_valence_to_default()
             donor.calc_implicit_hydrogens()
 
 

@@ -8,10 +8,13 @@ import pytest
 
 from hotpot import Atom, Molecule, read_mol
 from hotpot.cheminfo.AImodels.data_extract import extract_atom_attrs
+from hotpot.cheminfo.elements import elements
 from hotpot.cheminfo.forcefields import working_copy
 from hotpot.cheminfo.structure import _commit
 from hotpot.cheminfo.structure._dependencies import _dependency_state
-from hotpot.cheminfo.structure._fields import ATOM_FIELDS, ATOM_PRESENCE_ALL
+from hotpot.cheminfo.structure._fields import (
+    ATOM_FIELDS, ATOM_PRESENCE_ALL, DERIVED_FIELDS, FIELD_INDEX,
+)
 
 
 def _molecule():
@@ -19,6 +22,7 @@ def _molecule():
     mol.create_atom(atomic_number=6, id=10)
     mol.create_atom(atomic_number=8, id=20)
     mol.add_bond(0, 1, bond_order=1)
+    mol.calc_implicit_hydrogens()
     return mol
 
 
@@ -27,10 +31,13 @@ def test_model_extraction_preserves_raw_features_and_requests_selected_fields(mo
     mol = Molecule()
     rows = np.arange(count * 19, dtype=np.float64).reshape(count, 19) + 0.25
     rows[:, 0] = np.resize([6.5, 30.5, 8.5, 7.5], count)
+    rows[:, 9] = 0
     for row in rows:
-        Atom(mol=mol, attrs_array=row, update_electron_config=False)
+        mol._create_atom_from_array(row)
     expected = np.empty((count, 16), dtype=np.float64)
     expected[:, :15] = rows[:, :15]
+    expected[:, 1:7] = np.asarray([elements.electron_configs[int(row[0])] for row in rows]).reshape(count, 6)
+    expected[:, 13] = np.resize([4, 2, 2, 3], count)
     expected[:, 15] = [atom.is_metal for atom in mol.atoms]
 
     def forbidden(*args, **kwargs):
@@ -47,9 +54,20 @@ def test_model_extraction_preserves_raw_features_and_requests_selected_fields(mo
     np.testing.assert_array_equal(atomic_numbers["x"], rows[:, 0].astype(np.int32))
 
 
+def test_valid_aromatic_ring_keeps_true_flags_in_public_rows_matrix_and_model_features():
+    mol = read_mol("c1ccccc1", "smi")
+    assert all(atom.is_aromatic for atom in mol.atoms)
+    np.testing.assert_array_equal(mol.atom_matrix[:, 9], np.ones(6))
+    np.testing.assert_array_equal([atom.attrs[9] for atom in mol.atoms], np.ones(6))
+    np.testing.assert_array_equal(extract_atom_attrs(mol)["x"][:, 9], np.ones(6))
+
+
 @pytest.mark.parametrize("field,value", [
     ("x", 9), ("formal_charge", 1), ("partial_charge", 0.25),
-    ("valence", 5), ("s", 1), ("frac_valence", 1.75), ("isotope", 13),
+    # Historical IDs retain frozen regression identity; actual fields are factual inputs.
+    pytest.param("atomic_number", 7, id="valence-5"),
+    pytest.param("implicit_hydrogens", 5, id="s-1"),
+    ("frac_valence", 1.75), ("isotope", 13),
 ])
 def test_forcefield_rejects_input_changes_since_working_copy_creation(field, value):
     mol = _molecule()
@@ -61,6 +79,18 @@ def test_forcefield_rejects_input_changes_since_working_copy_creation(field, val
     with pytest.raises(RuntimeError, match="changed"):
         working_copy._commit_working_copy(mol, working, source=source)
     np.testing.assert_array_equal(mol.atom_matrix, previous)
+
+
+@pytest.mark.parametrize("field,value", [("valence", 5), ("s", 1)])
+def test_forcefield_inputs_expose_calculated_electron_and_valence_fields_read_only(field, value):
+    mol = _molecule()
+    previous = mol.atom_matrix
+    presence, sources = mol._atom_table.presence(), mol._atom_table.sources()
+    with pytest.raises(AttributeError):
+        setattr(mol.atoms[0], field, value)
+    np.testing.assert_array_equal(mol.atom_matrix, previous)
+    np.testing.assert_array_equal(mol._atom_table.presence(), presence)
+    np.testing.assert_array_equal(mol._atom_table.sources(), sources)
 
 
 def test_forcefield_rejects_changed_input_before_making_a_clone(monkeypatch):
@@ -80,6 +110,7 @@ def test_forcefield_rejects_replaced_working_members_with_identical_source_label
     mol = Molecule()
     for x in (1, 2):
         mol.create_atom(atomic_number=6, x=x)
+    mol.calc_implicit_hydrogens()
     source = working_copy._capture_working_source(mol)
     working = working_copy._hydrogenated_working_copy(mol, add_hydrogens=False, source=source)
     working.remove_atom(working.atoms[0])
@@ -124,6 +155,10 @@ def test_forcefield_preserves_heterogeneous_metadata_and_all_frame_values():
     table = working._atom_table
     table._presence[:2] = [1, ATOM_PRESENCE_ALL]
     table._sources[:2] = np.arange(38, dtype=np.uint8).reshape(2, 19) % 10
+    for field in DERIVED_FIELDS:
+        index = FIELD_INDEX[field]
+        table._presence[:2] &= np.uint32(ATOM_PRESENCE_ALL ^ (1 << index))
+        table._sources[:2, index] = 0
     expected_presence, expected_sources = table.presence(), table.sources()
     frames = (
         np.arange(12.0).reshape(2, 2, 3), np.array([-1., -2.]),

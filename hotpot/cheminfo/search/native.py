@@ -169,6 +169,20 @@ def _pack_target(mol, *, needs_atom_objects, needs_bond_objects):
 def _pack_target_snapshot(
     mol, *, needs_atom_objects, needs_bond_objects, derived_requirements
 ):
+    from ..operations.chemistry import _require_aromatic_representation, _require_implicit_hydrogens
+    with mol._mutation_lock:
+        if (derived_requirements['total_h'] or 'implicit_hydrogens' in derived_requirements['atom_fields']
+                or any({'connectivity', 'valence'}.intersection(derived_requirements[name])
+                       for name in ('full', 'ligand'))):
+            _require_implicit_hydrogens(mol)
+        if (derived_requirements['bond_aromatic'] or 'is_aromatic' in derived_requirements['atom_fields']
+                or 'is_aromatic' in derived_requirements['bond_fields']):
+            _require_aromatic_representation(mol)
+        return _pack_target_values(mol, needs_atom_objects=needs_atom_objects,
+            needs_bond_objects=needs_bond_objects, derived_requirements=derived_requirements)
+
+
+def _pack_target_values(mol, *, needs_atom_objects, needs_bond_objects, derived_requirements):
     atoms_by_key = {}
     for atom in mol.atoms:
         atoms_by_key[atom.idx] = atom
@@ -328,6 +342,14 @@ def _pack_aromatic_edges(rings):
 
 
 def _exact_topology_labels(mol, keys, edges):
+    from ..operations.chemistry import _require_aromatic_representation, _require_implicit_hydrogens
+    with mol._mutation_lock:
+        _require_implicit_hydrogens(mol)
+        _require_aromatic_representation(mol)
+        return _exact_topology_label_values(mol, keys, edges)
+
+
+def _exact_topology_label_values(mol, keys, edges):
     atoms = {atom.idx: atom for atom in mol.atoms}
     bonds = {
         tuple(sorted((bond.a1idx, bond.a2idx))): bond

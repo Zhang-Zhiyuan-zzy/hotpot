@@ -22,7 +22,6 @@ from openbabel import openbabel as ob, pybel as pb
 
 from hotpot.cheminfo.obconvert import obmol2mol, set_obmol_coordinates, get_ob_conversion
 from hotpot.cheminfo.pubchem import pubchem_service
-from ..elements import elements
 from ..structure._builder import _freeze_value
 from ..structure._fields import ATOM_SOURCE_CODES, FIELD_PRESENCE_BITS
 
@@ -275,13 +274,11 @@ class MolReader(IoBase):
                   zero_point, data.mult, thermo, capacity)
         values = np.zeros((len(data.atomnos), 19), dtype="<f8")
         values[:, 0] = data.atomnos
-        values[:, 1:7] = [elements.electron_configs[number] for number in data.atomnos]
         # The same selected last frame formerly loaded by conformer_load(-1).
         values[:, 10:13] = coordinates[-1]
-        presence = np.full(len(values), sum(FIELD_PRESENCE_BITS[index] for index in (*range(7), 10, 11, 12)), dtype="<u4")
+        presence = np.full(len(values), sum(FIELD_PRESENCE_BITS[index] for index in (0, 10, 11, 12)), dtype="<u4")
         sources = np.zeros(values.shape, dtype="u1")
         sources[:, (0, 10, 11, 12)] = ATOM_SOURCE_CODES["cclib"]
-        sources[:, 1:7] = ATOM_SOURCE_CODES["electron_configuration"]
         record = replace(
             initial, atom_count=len(values), atom_values=values.tobytes(),
             atom_presence=presence.tobytes(), atom_sources=sources.tobytes(),

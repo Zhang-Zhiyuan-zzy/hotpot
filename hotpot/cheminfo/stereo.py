@@ -1231,6 +1231,8 @@ def _gate6_projection(
         adjacency_lists[second].append(first)
     adjacency = tuple(tuple(sorted(neighbours)) for neighbours in adjacency_lists)
 
+    from .operations.chemistry import _require_implicit_hydrogens
+    prepared_hydrogens = _require_implicit_hydrogens(mol)
     node_fields = []
     implicit_counts = []
     for row, atom in enumerate(atoms):
@@ -1253,7 +1255,7 @@ def _gate6_projection(
                 _GATE6_ROW_FIELD: row,
             }
         )
-        implicit_count = int(atom.implicit_hydrogens)
+        implicit_count = prepared_hydrogens[row]
         if implicit_count < 0:
             issues.append(
                 _gate6_issue(

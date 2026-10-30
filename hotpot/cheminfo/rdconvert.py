@@ -14,10 +14,9 @@ import numpy as np
 import rdkit
 from rdkit import Chem
 
-from .elements import elements
 from .structure._builder import _freeze_value
 from .structure._commit import _FactTransaction
-from .structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX, FIELD_PRESENCE_BITS
+from .structure._fields import ATOM_SOURCE_CODES, FIELD_PRESENCE_BITS
 
 from .stereo import (
     AtomTransportRecord,
@@ -628,6 +627,14 @@ def _rdkit_bond_kind(bond_type, is_aromatic):
 
 
 def to_rdmol(mol, kekulize: bool = True, sanitize: bool = False):
+    from .operations.chemistry import _require_aromatic_representation, _require_implicit_hydrogens
+    with mol._mutation_lock:
+        hydrogens = _require_implicit_hydrogens(mol)
+        _require_aromatic_representation(mol)
+        return _to_rdmol_prepared(mol, kekulize, sanitize, hydrogens)
+
+
+def _to_rdmol_prepared(mol, kekulize, sanitize, hydrogens):
     rdmol = Chem.RWMol()
     payload = get_stereo_payload(mol)
     atoms = mol.atoms
@@ -647,7 +654,7 @@ def to_rdmol(mol, kekulize: bool = True, sanitize: bool = False):
         rda.SetFormalCharge(atom.formal_charge)
         atom_fact = atom_facts.get(i)
         if atom_fact is None:
-            rda.SetNumExplicitHs(atom.implicit_hydrogens)
+            rda.SetNumExplicitHs(hydrogens[i])
         else:
             _apply_atom_fact(rda, atom_fact)
         rda.SetDoubleProp('_GasteigerCharge', atom.partial_charge)
@@ -732,21 +739,18 @@ def from_rdmol(rdmol, mol):
         sources = np.zeros((len(atoms), 19), dtype="u1")
         for row, atom in enumerate(atoms):
             values[row, 0] = atom.GetAtomicNum()
-            values[row, 1:7] = elements.electron_configs[atom.GetAtomicNum()]
             values[row, 7] = atom.GetFormalCharge()
             values[row, 9] = atom.GetIsAromatic()
-            values[row, 13] = atom.GetTotalValence()
             values[row, 14] = atom.GetNumImplicitHs() + atom.GetNumExplicitHs()
-            supplied = [0, 7, 9, 13, 14]
+            supplied = [0, 7, 9, 14]
             if atom.HasProp('_GasteigerCharge'):
                 values[row, 8] = atom.GetDoubleProp('_GasteigerCharge')
                 supplied.append(8)
             if conformer is not None:
                 values[row, 10:13] = tuple(conformer.GetAtomPosition(atom.GetIdx()))
                 supplied.extend((10, 11, 12))
-            presence[row] = sum(FIELD_PRESENCE_BITS[index] for index in (*supplied, 1, 2, 3, 4, 5, 6))
+            presence[row] = sum(FIELD_PRESENCE_BITS[index] for index in supplied)
             sources[row, supplied] = ATOM_SOURCE_CODES["rdkit"]
-            sources[row, 1:7] = ATOM_SOURCE_CODES["electron_configuration"]
         bonds = tuple(rdmol.GetBonds())
         raw_bonds = np.zeros((len(bonds), 3), dtype="<f8")
         raw_bonds[:, 0] = [bond.GetBondTypeAsDouble() for bond in bonds]
@@ -757,6 +761,7 @@ def from_rdmol(rdmol, mol):
             bond_values=raw_bonds.tobytes(), bond_partitions=(0,) * len(bonds),
             bond_kinds=tuple(_rdkit_bond_kind(source_bond_types[bond.GetIdx()],
                              source_bond_metadata[bond.GetIdx()]["is_aromatic"]) for bond in bonds),
+            bond_aromatic=tuple(source_bond_metadata[bond.GetIdx()]['is_aromatic'] for bond in bonds),
             bond_directions=tuple("atom1_to_atom2" if source_bond_types[bond.GetIdx()] in _RDKIT_DATIVE_BOND_TYPES
                                   else None for bond in bonds),
             bond_sources=("rdkit",) * len(bonds),

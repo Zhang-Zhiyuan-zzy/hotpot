@@ -1840,5 +1840,292 @@
     },
     "historical_integrity_preparation": "Task144 root-accepted TASK135-F1/TASK141-F1/TASK141-F2 disposition remains preparation-only. Actual installed inventory binding is recorded separately above. Diagnostic/runtime and real positive bound CONTROL_INTEGRITY_AND_SHARED_COMPARISON_PASS with comparison_acceptable=true and root review remain separate requirements. Shared Task121/Task88 and sealed Task127/138 preserved; accepted inventory is never refreshed.",
     "remaining": "Root subsequently reports actual Task144 nine-step diagnostic compile RC0/CONTROL_COMPILE_METADATA_COMPLETE,9completed steps/20MATCH inventory checkpoints; Task152 compiled ABI/closure review is running and no runtime release exists. This later state is attributed to root, outside the bounded Task151 build/install/binding archive; diagnostic outputs are owned by the next checkpoint. Diagnostics acceptance, SDK Eigen3::Eigen/consumer ABI0, full actual dependency/loader-search and process mapping/load-order/Python behavior, separate no-overlap full264-cell runtime and positive bound CONTROL_INTEGRITY_AND_SHARED_COMPARISON_PASS with comparison_acceptable=true/intact bindings/root review remain pending. Retained upstream UB/truncation/binding/doc risks are not waived. Full214 supported source/wheel/native/function/reflection and fresh26 performance rebind where required, native-memory sufficiency/SDF and all remaining stage/global gates stay open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY."
+  },
+  "task154_checkpoint": {
+    "recorded_at_utc": "2026-11-02T13:41:10.281921+00:00",
+    "status": "ACTUAL_NINE_STEP_COMPILE_TASK152_STATIC_METADATA_ROOT_ACCEPTED_FULL264_RUNTIME_RELEASED_IN_PROGRESS_NO_RESULT_ACCEPTANCE",
+    "scope": "Task154 finite factual archive/checkpoint only. All prior JSON values/raw spellings and Markdown prefixes remain history. Root-authorized same-stage Task108 continuity reuses12 normative digests; no fresh full-plan/design/API/scientific acceptance claim. Exactly four assigned stage07 README/review/report/native-record files; no verification-map/root-log/source/tests/config/environment/native/Git change. Commit/push held for root exact-file/digest review.",
+    "current_docs_HEAD_reported_by_root": "74873f75bb31fb9793f455abb643c76bc02b8b9d",
+    "product_ancestry_unchanged": "9999ecd",
+    "actual_Task144_nine_step_compile": {
+      "compile_result": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/actual-compile/COMPILE_RESULT.json",
+        "bytes": 137092,
+        "sha256": "b4e58348a55bd8c70987d3562d015b60c70f0363981797ec9cf9d71bdce1759b"
+      },
+      "root_compile_release": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/root-receipts/TASK144_ROOT_COMPILE_RELEASE.json",
+        "bytes": 1916,
+        "sha256": "c08f44e2f37a60c5913d9aeaa1720bb008314713ac27c07755995716b347e7eb"
+      },
+      "root_launch": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/root-receipts/TASK144_COMPILE_LAUNCH.command.json",
+        "bytes": 1293,
+        "sha256": "41d8c4abedd599ef62efc92a85d389481c6bf99416002b166fcc3a10c17ea5a8"
+      },
+      "root_launch_stdout": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/root-receipts/TASK144_COMPILE_LAUNCH.stdout.txt",
+        "bytes": 809,
+        "sha256": "7781a3a8a7e617cc27883db48538b694e4f81c9c347c67242589412d4835f495"
+      },
+      "root_launch_stderr": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/root-receipts/TASK144_COMPILE_LAUNCH.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "status": "CONTROL_COMPILE_METADATA_COMPLETE",
+      "root_launch_RC": 0,
+      "root_outer_elapsed_seconds": 20.300479751080275,
+      "completed_steps": 9,
+      "step_ids": [
+        "compile-driver",
+        "compile-observer",
+        "driver-elf-header",
+        "driver-elf-dynamic",
+        "driver-elf-program-headers",
+        "driver-undefined-symbols",
+        "observer-elf-header",
+        "observer-elf-dynamic",
+        "observer-exported-symbols"
+      ],
+      "all_steps_actual_supervisor_RC": 0,
+      "supervisor_affinity": [
+        16
+      ],
+      "base_plan_guard_bindings": 8227,
+      "cumulative_guard_counts": [
+        8230,
+        8233,
+        8236,
+        8236,
+        8236,
+        8236,
+        8236,
+        8236,
+        8236
+      ],
+      "inventory_MATCH_checkpoints": 20,
+      "physical_nodes_per_inventory_check": 351,
+      "abort_reason": null,
+      "automatic_retries": 0,
+      "all_steps_unchanged_guards_no_timeout_complete_direct_child_and_owned_reaping": true,
+      "resource_qualification": "Actual receipts show supervisor affinity CPU16; immutable launcher checks unlimited AS/RSS/data before phases. Limits were not independently sampled by this review.",
+      "scope": "Actual installed-bound diagnostic compiler/ELF steps only. Exact immutable receipts and raw streams archived. No native driver/observer behavior, loader, scientific, performance, memory or stage acceptance follows."
+    },
+    "actual_Task152_compiled_static_review": {
+      "root_metadata_acceptance": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/root-receipts/TASK152_ROOT_METADATA_REVIEW.json",
+        "bytes": 47308,
+        "sha256": "b475f1e70ecedaef43a63cf975dca8f3bfabfa7196ed7e1578d6f569f791e7d7"
+      },
+      "root_accepted_status": "ROOT_ACCEPTED_TASK127_CONTROL_DIAGNOSTIC_METADATA",
+      "report": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/task152-long/REPORT.md",
+        "bytes": 2781,
+        "sha256": "760798a7b42c916af0a6c8b6618f9f2953ad7c93c78bbbffcb8b8ae744fdbf17"
+      },
+      "assessment": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/task152-long/ASSESSMENT.json",
+        "bytes": 4014,
+        "sha256": "4b5cd33b31e5e75ee962401db02522d4849798fec09832806e81c72ae1ee6076"
+      },
+      "evidence_index": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/task152-long/EVIDENCE_INDEX.json",
+        "bytes": 7112,
+        "sha256": "89566397631585bace006dfd328dbba6a22279dec5a0999f676713402e9807ec"
+      },
+      "execution_receipt_review": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/task152-long/EXECUTION_RECEIPT_REVIEW.json",
+        "bytes": 26219,
+        "sha256": "20982c324fcfa8289724ae625fec4bf47496e071c34f306f54052adbff38eca1"
+      },
+      "consumed_headers": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/task152-long/CONSUMED_HEADER_REVIEW.json",
+        "bytes": 117053,
+        "sha256": "5f9a44df08798fe5871af50b93555318102919412d7c1a5d480adff1cc3ffcdc"
+      },
+      "link_maps": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/task152-long/LINK_MAP_REVIEW.json",
+        "bytes": 41326,
+        "sha256": "5f680fbdb0512d59d381efe3687abbae4f68c7e1da39579253ecfcdee2de1ce6"
+      },
+      "ELF_ABI_forwarding": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/task152-long/ELF_ABI_FORWARDING_REVIEW.json",
+        "bytes": 4129,
+        "sha256": "77645e8b653286d9980d20c7e3d83e908356196900cc184b1867b091696d4be6"
+      },
+      "runtime_dependency_closure": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/task152-long/RUNTIME_DEPENDENCY_CLOSURE.json",
+        "bytes": 383183,
+        "sha256": "d32a80b85fef3b54f046fa3b336fdcf201e1866cfa6cf030d577eef0583bd8c8"
+      },
+      "loader_trace_requirements": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/task152-long/LOADER_TRACE_REQUIREMENTS.json",
+        "bytes": 1541,
+        "sha256": "776f199795f204041f158325af163ff49221199de11954e29a2fd72a7b1eb1e3"
+      },
+      "final_stability": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/task152-long/FINAL_STABILITY.json",
+        "bytes": 375,
+        "sha256": "4a57bda729a4f674e38acc8db556a085bcefbabb67c5563c09c8fe340472490b"
+      },
+      "status_at_review_completion": "CONTROL_DIAGNOSTIC_STATIC_REVIEW_PASS_AWAIT_ROOT_METADATA_ACCEPTANCE",
+      "blockers": [],
+      "counts": {
+        "MATCH_inventory_checkpoints": 20,
+        "accepted_inventory_nodes": 351,
+        "completed_cells": 9,
+        "driver_consumed_dependencies": 324,
+        "driver_private_SDK_headers": 22,
+        "external_provider_canonicals": 12,
+        "new_metadata_commands": 4,
+        "normative_continuity_digests": 12,
+        "observer_consumed_dependencies": 238,
+        "observer_private_SDK_headers": 7,
+        "plan_guard_bindings": 8227,
+        "reviewed_installed_ELF_roots": 150,
+        "runtime_dependency_file_bindings": 179,
+        "static_DT_NEEDED_edges": 670
+      },
+      "driver": {
+        "bytes": 76104,
+        "path": "/tmp/hotpot_plan20/medium/stage7a-native-control-integrity-repair-task144/diagnostic-build-bound-after-install-attempt1/driver",
+        "sha256": "95fbd973c5e32743b574b9335854cff551f3b6ea80a5d8f61d1e5a85991288cc"
+      },
+      "observer": {
+        "bytes": 18760,
+        "path": "/tmp/hotpot_plan20/medium/stage7a-native-control-integrity-repair-task144/diagnostic-build-bound-after-install-attempt1/observer.so",
+        "sha256": "95060a3630b81305d24031e6a9cf2f6972e3941a34c47fbd9e107789c7dfca6f"
+      },
+      "native_canonical": {
+        "bytes": 4030192,
+        "canonical_path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libopenbabel.so.8.0.0",
+        "device": 66307,
+        "inode": 6044293,
+        "link_device": 66307,
+        "link_inode": 6044293,
+        "path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libopenbabel.so.8.0.0",
+        "sha256": "bdc92e62f35b5fbfe6b6ab53a1c9f0072b83bf4593c3bf7e935fda573c59979b",
+        "symlink_target": null
+      },
+      "driver_consumed_dependencies": 324,
+      "observer_consumed_dependencies": 238,
+      "driver_private_CONTROL_SDK_headers": 22,
+      "observer_private_CONTROL_SDK_headers": 7,
+      "diagnostic_compiler_warnings": 0,
+      "explicit_compile_contract": "GCC9/C++17/ABI0/canonical private native-path/strict Werror settled binder transformation unchanged. No original or source-tree OpenBabel SDK headers consumed. Linker temporary objects explicitly unretained.",
+      "driver_OpenBabel_imports_statically_exported_by_exact_CONTROL_core": 15,
+      "driver_old_string_undefined_manglings": 17,
+      "diagnostic_ABI1_manglings": [],
+      "observer_exports": "Exactly one GTD forwarder plus four API functions.",
+      "observer_static_original_self_values_indirect_forward_call_sites": 1,
+      "static_callsite_qualification": "Frozen source and disassembly show exact receiver/reference pass-through and original exception propagation at one indirect callsite. This is static code evidence; actual RTLD_NEXT provider/interposition/native behavior requires runtime proof.",
+      "static_closure": {
+        "driver_observer_included": true,
+        "installed_ELF_and_plugin_roots": 150,
+        "DT_NEEDED_edges": 670,
+        "external_provider_canonicals": 12,
+        "runtime_dependency_file_bindings": 179,
+        "missing_provider_or_required_version": 0,
+        "exact_LD_LIBRARY_PATH": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib:/usr/lib/x86_64-linux-gnu",
+        "host_ld_so_preload_absent": true,
+        "qualification": "Declared static candidate closure is complete; it is not actual loader/process mapping or SDK/runtime acceptance."
+      },
+      "final_stable_bindings": 186,
+      "canonical_native_identity_defects": [],
+      "review_metadata_commands": 4,
+      "review_execution_scope": "Four logged metadata commands only; no compiler/build/diagnostic/native/import/loader/ldd/prepare_runtime/supervisor/environment mutation by Task152. Historical report/template pending-root statements remain unchanged; later actual root acceptance is separately recorded.",
+      "root_metadata_authority": "Root accepts bounded diagnostic/static metadata and permits pure prepare_runtime materialization only. ROOT_METADATA_REVIEW.template.json remains TEMPLATE_NO_AUTHORITY; root actual acceptance is distinct. Task149 retained upstream risks are not waived."
+    },
+    "actual_runtime_preparation_and_separate_root_release": {
+      "root_prepare_command": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/root-receipts/TASK144_PREPARE_RUNTIME.command.json",
+        "bytes": 1454,
+        "sha256": "7de23ca9ad2fb5255c34d59a8c7b06e4bee2abd18ba2b169871dfe456a9c7866"
+      },
+      "root_prepare_stdout": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/root-receipts/TASK144_PREPARE_RUNTIME.stdout.txt",
+        "bytes": 77,
+        "sha256": "ba648f13453928817b0b9bc3148259cca4ef37bae831063261e903da3e4855b4"
+      },
+      "root_prepare_stderr": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/root-receipts/TASK144_PREPARE_RUNTIME.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "actual_prepare_RC": 0,
+      "actual_prepare_elapsed_seconds": 0.9114685598760843,
+      "prepared_manifest": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/runtime-authority-only/ROOT_CONTROL_RUNTIME.prepared.json",
+        "bytes": 502665,
+        "sha256": "16338fa41a8aa4d82222d79d7493ea394fa1fa4da4d26bfb38c216ca7038a707"
+      },
+      "prepared_status": "PREPARED_CONTROL_RUNTIME_NO_RELEASE",
+      "root_runtime_release": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/runtime-authority-only/ROOT_CONTROL_RUNTIME_RELEASE.json",
+        "bytes": 506643,
+        "sha256": "15fee48bedbd7fa87abbdcafea94fd5d3408e19086e6e60c024c5130e48617ed"
+      },
+      "root_release_status": "ROOT_RELEASED_TASK121_CONTROL_RUNTIME",
+      "runtime_status_at_task_entry": "ROOT_REPORTED_ONE_FULL264_CONTROL_RUNTIME_RUNNING",
+      "runtime_planned_cells": 264,
+      "runtime_guard_bindings_in_release": 2102,
+      "root_release_only_once_no_overlap_automatic_retries_zero": true,
+      "plain_and_observed_LD_DEBUG": "libs,versions",
+      "LD_DEBUG_OUTPUT_absent": true,
+      "exact_LD_LIBRARY_PATH": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib:/usr/lib/x86_64-linux-gnu",
+      "scope": "Immutable release/prepared bytes only. Root metadata acceptance, pure materialization and separate root runtime release are distinct chronological actions. Actual264-cell runtime, raw loader/stdout/stderr, native behavior and comparison remain unreviewed at this checkpoint; no growing runtime path/output was read or traversed."
+    },
+    "archives": {
+      "manifest": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/EVIDENCE_ARCHIVE_MANIFEST.task154.json",
+        "bytes": 75418,
+        "sha256": "d8b0910bbde27b580daa5f97f81fac9263adc8b47e57885fa3a104278f449732"
+      },
+      "tar": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/complete-immutable-diagnostic-evidence.tar.gz",
+        "bytes": 8527220,
+        "sha256": "3348fb0f0f3d8083c43dfaf06db9ef46607dbc001937a84978c604d059f54c19"
+      },
+      "node_counts": {
+        "regular": 98,
+        "directory": 21,
+        "symlink": 0
+      },
+      "compact_copies": 24,
+      "diagnostic_fixed_binary_dependency_linkmap_outputs": 6,
+      "accepted_review_input_identities_verified": 216,
+      "all_member_SHA256_size_modes_and_isolated_reconstruction_verified": true,
+      "source_nodes_bytes_unchanged": true,
+      "previous_Task151_plan_inventory_reused": [
+        {
+          "original": {
+            "path": "/tmp/hotpot_plan20/long/stage7a-native-control-integrity-repair-task144/bound-after-install-attempt1/COMPILE_PLAN.json",
+            "bytes": 1604140,
+            "sha256": "eca4b20b7f21d53426e9d3f499b1e9770b92e926e00b86a6fcd787d2751c8e89"
+          },
+          "archived": {
+            "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/actual-binding/COMPILE_PLAN.json",
+            "bytes": 1604140,
+            "sha256": "eca4b20b7f21d53426e9d3f499b1e9770b92e926e00b86a6fcd787d2751c8e89"
+          }
+        },
+        {
+          "original": {
+            "path": "/tmp/hotpot_plan20/long/stage7a-native-control-integrity-repair-task144/bound-after-install-attempt1/INSTALLED_PREFIX_INVENTORY.json",
+            "bytes": 156327,
+            "sha256": "f8e52219e8cf5041b5c11cacca3ecf60418e6c47cfe9705d7591dbc310828a20"
+          },
+          "archived": {
+            "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/actual-binding/INSTALLED_PREFIX_INVENTORY.json",
+            "bytes": 156327,
+            "sha256": "f8e52219e8cf5041b5c11cacca3ecf60418e6c47cfe9705d7591dbc310828a20"
+          }
+        }
+      ],
+      "runtime_output_or_mutable_path_reads_traversals": 0,
+      "scope": "Complete immutable9stepcompile receipts/raw supervisor outputs; six exact diagnostic driver/observer/.d/link-map files; full finished Task152long/medium review/source/metadata/raw receipts and exact root compile/metadata/preparation/release manifests. No runtime attempt, compiler tmp, original37610source tree or prior archive duplicate. Original inode/device/mtime are provenance, not reconstructed runtime identities."
+    },
+    "remaining": "Full264 CONTROL runtime is root-released/in progress at entry, with no result/loader/native acceptance inspected or claimed. Actual process mappings/loader search/RTLD_NEXT origin/forwarding/ABI/load-order/native behavior and SDK consumer proof, all-roster accounting/inventory/observation checks and positive bound CONTROL_INTEGRITY_AND_SHARED_COMPARISON_PASS with comparison_acceptable=true/intact bindings/root review remain pending. Candidate correspondence/scientific/function/reflection/full214 source-wheel-native matrix and fresh26 performance rebind where required, SDF FIX_REQUIRED/native-memory sufficiency and all remaining stage/global gates stay open. Stage7A IN_PROGRESS/Stage7B PREENTRY. Retain all Task149 upstream UB/truncation/SWIG/doc risks; no waiver."
   }
 }

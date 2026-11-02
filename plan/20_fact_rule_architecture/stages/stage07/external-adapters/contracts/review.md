@@ -1256,3 +1256,71 @@ full264-cell native runtime and positive bound combined comparison remain pendin
 SDF and all remaining stage/global gates stay open. Stage7A IN_PROGRESS/SDF
 FIX_REQUIRED/Stage7B PREENTRY. No main plan/design/source/test/environment/
 config/native/status/gate change is made; commit/push are held for root review.
+
+
+## Current factual checkpoint — Task154 / 2026-11-02
+
+The [native diagnostic record](../validation/native_gtd_diagnostic.json),
+`task154_checkpoint`, preserves actual Task144 installed-bound compilation,
+Task152 compiled/static review and subsequent actual root metadata acceptance,
+pure runtime preparation and separate runtime release. Prior pending statements
+remain historical; root-authorized Task108 continuity reuses12 normative digests.
+No main-plan/design/API/scientific decision is made.
+
+Actual nine compile/ELF steps completed RC0, CONTROL_COMPILE_METADATA_COMPLETE,
+with20 ordered MATCH inventory checks of351 physical nodes and8227 base plan
+guards. Cumulative actual guard counts are8230/8233 then8236. Every step retains
+CPU16, unchanged guards, no timeout/retry and complete direct-child/owned reaping.
+Root launch elapsed20.300479751080275s. The immutable launcher checks unlimited
+AS/RSS/data; Task152 did not independently sample those limits. No scientific
+or native behavior acceptance follows from compiler/metadata completion.
+
+Root accepted Task152's exact final report/assessment/index and FINAL_STABILITY.json.
+Driver/observer consume324/238 dependencies, including22/7 canonical installed
+CONTROL SDK headers, excluding original/source-tree OpenBabel SDK headers.
+GCC9/C++17/ABI0/native-path/strict Werror argv retain the settled binder contract;
+no diagnostic compiler warning occurred. Six fixed driver/observer binary/.d/
+link-map files are retained; compiler temporary objects remain unretained.
+The76104-byte driver and18760-byte observer retain exact private ELF identities.
+All15 driver OpenBabel imports are statically supplied by the exact CONTROL core;
+17 old-string imports and absent diagnostic ABI1 manglings corroborate compatibility.
+Observer exports the GTD forwarder plus four APIs. Frozen source/disassembly show
+one indirect original(self,values) callsite with unchanged receiver/reference and
+exception propagation; this is static evidence, not actual forwarding behavior.
+
+The complete declared static closure includes driver/observer and all150 installed
+ELF/plugin roots:670 dependency edges,12 external canonical providers and179 file
+bindings, with no missing provider/version. Exact LD_LIBRARY_PATH is private lib
+then /usr/lib/x86_64-linux-gnu; no empty/original-family entry or cache fallback is
+required and host ld.so.preload is absent. Final186 bindings/canonical identities
+are stable. Task152 ran four metadata commands only; it ran no compiler/build/
+loader/native/diagnostic/import/ldd/prepare_runtime/supervisor workload. Task149's
+retained upstream UB/truncation/SWIG/doc risks remain unwaived.
+
+The template remains TEMPLATE_NO_AUTHORITY. Actual root status
+ROOT_ACCEPTED_TASK127_CONTROL_DIAGNOSTIC_METADATA permits pure preparation only.
+Root then ran prepare_runtime once, RC0 in0.9114685598760843s; its preserved
+manifest remains PREPARED_CONTROL_RUNTIME_NO_RELEASE. Root separately signed
+ROOT_RELEASED_TASK121_CONTROL_RUNTIME and reports one full264-cell CONTROL runtime
+running at Task154 entry. Both modes bind LD_DEBUG=libs,versions, omit LD_DEBUG_OUTPUT
+and retain the exact approved library path; raw runtime loader/stderr proof remains
+pending. No growing runtime directory or incomplete stdout/stderr was read, scanned
+or archived. This checkpoint makes no runtime completion/result acceptance claim.
+
+Lossless finite archives verify/reconstruct98 regular files and21 directories,
+including full immutable9-step receipts/raw streams, six diagnostic build outputs,
+complete Task152 review/program/metadata/raw evidence, actual root acceptance and
+compile/preparation receipts plus immutable prepared/released manifests. Twenty-four
+compact copies match;216 accepted-review input identities were verified. Existing
+Task151 plan/inventory/build/install archives are reused unchanged; no original
+37610-source tree or previous archive duplicate occurs. Original inode/device/mtime
+are provenance, not reconstructed runtime identities. Compiler tmp is excluded.
+
+Actual all264-cell runtime process mappings/search/RTLD_NEXT/native behavior and
+SDK consumer proof, complete accounting/inventory/raw observation checks, bound
+integrity-plus-shared comparison with comparison_acceptable=true and root review,
+candidate/scientific/function/reflection/full214 source-wheel-native/fresh26 where
+required, SDF/native-memory and all stage/global gates remain open. Stage7A remains
+IN_PROGRESS/SDF FIX_REQUIRED and Stage7B PREENTRY. Exactly four factual records
+are appended; source/tests/config/environment/native/root-log/verification-map/Git
+are untouched. Commit/push remain held for root exact-file/digest review.

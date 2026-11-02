@@ -254,3 +254,33 @@ Task96 prepared metadata, isolated support and future validation commands; it di
 Task99 actual preparation command: `python -I -S -B .plan20-artifacts/20261030/stage7a/sdf-post-repair-validation-task96/revision2/prepare_task99.py`. Its evidence is under that `revision2` directory, including the exact main one-line diff/untouched-byte proof and seven UNAPPLIED record copies/patch. Task99 performs no tests, collection, product imports, builds, packaging, benchmarks, model execution, environment/package operations, Git changes or identity rebind. Performance, memory, science, Stage7A and all later/global acceptance gates remain open. Root applied these factual records in Task100; future identity-only materialization and runtime releases remain separate steps.
 
 Root factual review/application (Task100, 2026-11-02T06:31:40.898245+00:00): all seven exact base files and referenced evidence identities matched. Original proposals remain immutable. External helper service has ended; root continues directly. No performance, memory, scientific, stage or global gate is closed.
+
+
+## Current factual checkpoint — Task154 / 2026-11-02
+
+Task144's actual installed-bound nine-step compile/ELF phase completed RC0,
+CONTROL_COMPILE_METADATA_COMPLETE, with20 MATCH checks of351 installed nodes,
+8227 base plan guards, CPU16/no timeout/no retry and complete owned reaping.
+Root accepted Task152's bounded compiled/static metadata:324/238 driver/observer
+dependencies,22/7 private CONTROL SDK headers,15 statically resolved core imports,
+one static observer forward-call site and670 static dependency edges through12
+canonical external providers/179 bound files covering all150 installed ELF roots.
+Final186 bindings/canonical identities remain stable. These static facts do not
+prove actual loader/RTLD_NEXT/forwarding/native behavior or general SDK compatibility.
+
+Actual pure runtime preparation returned0; the template/prepared manifest retain
+no authority. Root separately released one full264-cell CONTROL runtime, reported
+running at checkpoint entry. Immutable release binds LD_DEBUG=libs,versions in both
+modes, no LD_DEBUG_OUTPUT and exact private-lib/system LD_LIBRARY_PATH. No growing
+runtime path or incomplete output was read or archived; completion/results and
+loader/native acceptance remain pending. Historical pending-root report statements
+remain byte-preserved alongside actual subsequent root acceptance/preparation/release.
+
+The [native record](native_gtd_diagnostic.json), `task154_checkpoint`, links the
+complete immutable compile/Task152/root receipt archive:98 regular files/21 directories,
+24 compact copies, all hashes/modes/member mapping and isolated reconstruction verified.
+Six fixed diagnostic build outputs are preserved; previous Task151 archives are reused.
+No compiler/native/loader/audit/guard rerun, mutable runtime read, source/root-log/Git
+change or stage/global gate closure occurs. Full runtime/accounting/combined comparison,
+SDK/scientific/performance/SDF/native-memory and all remaining gates stay open. Commit/
+push are held for root exact-file/digest review.

@@ -2774,6 +2774,21 @@
         "task117_control_build_released": false,
         "task116_compile_runtime_released": false,
         "source_dependency_policy_stage_gate_change": false
+      },
+      "native_gtd_diagnostic_task116_121": {
+        "record": {
+          "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/validation/native_gtd_diagnostic.json",
+          "bytes": 4032,
+          "sha256": "4d72f076f238417c44e087168c18c5ada25d6a7d953022fdd620dc98401070e2"
+        },
+        "status": "TASK116_PREPARED_TASK119_STATIC_REVIEW_ACCEPTED_TASK120_COMPILE_PREPARATION_ONLY",
+        "small_fixtures": 84751,
+        "selected_fixtures": 123,
+        "task119_static_review_accepted": true,
+        "compiled": false,
+        "native_runtime_executed": false,
+        "control_or_candidate_native_change": false,
+        "all_broader_gates_open": true
       }
     },
     "Stage7B": {

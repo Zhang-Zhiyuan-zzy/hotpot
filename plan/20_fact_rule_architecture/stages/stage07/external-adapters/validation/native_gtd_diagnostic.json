@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-11-02T11:57:48.989278+00:00",
+  "status": "TASK116_PREPARED_TASK119_STATIC_REVIEW_ACCEPTED_TASK120_COMPILE_PREPARATION_ONLY",
+  "source_provenance": {
+    "task116_source_commit": "9999ecdbcf2b26bac0ed2bb49a6f11960422d423",
+    "current_record_parent_commit": "09190ed303416432c0250d115529372c301fa1ac",
+    "native_library": {
+      "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/libopenbabel.so.8",
+      "bytes": 3721104,
+      "sha256": "46c565393702f84146fdee597dc4764ed6d6c4e1d3f70bd61fc70f75735aaf8b"
+    },
+    "path_limit": ".so.8.0.0 has equal bytes but a distinct inode; exact actual .so.8 mapping is required."
+  },
+  "evidence": {
+    "task116_manifest": {
+      "path": ".plan20-artifacts/20261102/stage7a/native-gtd-equivalence-task116/MANIFEST.json",
+      "bytes": 2946,
+      "sha256": "5967f43129a56c57d5a94808a7a635925ada3fba67fecccbb54d9cae8f874e38"
+    },
+    "task116_archive": {
+      "path": ".plan20-artifacts/20261102/stage7a/native-gtd-equivalence-task116/ARCHIVE_MANIFEST.json",
+      "bytes": 4552,
+      "sha256": "ef68f365e00874e8371386e7397b34ae5b06449eb2af14d181ed05cb24a1ad66"
+    },
+    "task119_review": {
+      "path": ".plan20-artifacts/20261102/stage7a/native-gtd-observer-review-task119/REVIEW.md",
+      "bytes": 4018,
+      "sha256": "04ca69a4cbdb951198f20db374d2e41d8d3751241f3f86bf8cc76edd9a0a9ce9"
+    },
+    "task119_archive": {
+      "path": ".plan20-artifacts/20261102/stage7a/native-gtd-observer-review-task119/ARCHIVE_MANIFEST.json",
+      "bytes": 692,
+      "sha256": "fda2ff99f39c1adc7f21b35b9d58dc686cc843bc13da7eba4b54ff4306d041be"
+    },
+    "task118_delivery": {
+      "path": ".plan20-artifacts/20261102/stage7a/git-delivery-task118/ROOT_FINAL_RECEIPT.json",
+      "bytes": 1177,
+      "sha256": "125fe532018181e32c915afe2cefa8d611ea73f76481bcddef92cc24b4e2bd6e"
+    }
+  },
+  "task116": {
+    "small_fixtures": 84751,
+    "selected_fixtures": 123,
+    "total_cases_per_lane_mode": 84874,
+    "public_route": "fresh independent OBMol/OBGraphSym per case/mask; fresh/repeat calls within each case",
+    "observer": "Exact private GTD symbol; opaque receiver, same original call/arguments once, bool and actual vector observed only after return, native exceptions rethrown. No fabricated vectors/flags/classes.",
+    "native_state": "Nonperceiving public snapshots; construction/rejection/no-call and missing/output failure accounting retained. Private Atom flags unavailable.",
+    "preparation_checks_reported": 14,
+    "root_packet_hash_members_verified": 14,
+    "runtime_results": null
+  },
+  "task119": {
+    "root_acceptance": "Bounded static evidence only; no concrete defect established.",
+    "limits": "Uncompiled/unexecuted; no actual linkage/interposition/resource-failure/private-Atom-flag or complete stereo/format/wheel/SDF/memory/scientific acceptance; independent every-row TSV revalidation not performed."
+  },
+  "task120": "LOCAL Sol/high original-lane exact compiler/header/ABI/native/runtime compilation-freeze preparation only; root separately reviews before compilation and native runtime.",
+  "task121": "LOCAL Sol/high original-lane supervised exact roster and streaming accounting/comparison preparation only; no native execution.",
+  "task117": "LOCAL Sol-max unmodified official-source CONTROL reconstruction preparation only; exact-original build recipe/B0 still unavailable/open. Original/control semantic correspondence precedes a patched candidate.",
+  "released": {
+    "production_or_dependency_change": false,
+    "diagnostic_compilation": false,
+    "native_runtime": false,
+    "control_build": false,
+    "patched_candidate": false,
+    "stage_gate_closure": false
+  },
+  "remaining": "Full current214-file supported source/wheel/native/function/reflection and fresh26 performance rebind after coherent repair settles; native-memory sufficiency and all later/global gates open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY."
+}

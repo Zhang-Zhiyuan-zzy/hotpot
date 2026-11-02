@@ -1,5 +1,13 @@
 # Stage7A external-object and adapter contract proposal
 
+## Current exact native diagnostic preparation — Task116/119, 2026-11-02T11:57:48.989278+00:00
+
+Task118 provenance records were accepted, committed and pushed as `09190ed303416432c0250d115529372c301fa1ac`, with separate exact remote verification; `.plan20-artifacts/20261102/stage7a/git-delivery-task118/ROOT_FINAL_RECEIPT.json` supersedes its earlier authoring-time delivery-pending statements only.
+
+Task116 is sealed and byte-exact archived:84,751 exhaustive small fixtures plus123 selected cases, fresh public OBMol/OBGraphSym construction, actual native-index/fragment/renumbering and genuine constructor rejection observations. The opaque exact-symbol observer forwards the same original call once and reads the actual returned bool/vector. No expected-vector oracle, perception flag shortcut or new chemistry algorithm is supplied. Task119 localSol/high static review found no concrete defect and root accepts only that bounded evidence. Neither packet was compiled or run; private Atom flags and full format/stereo/wheel/SDF/resource behavior remain unproved. Compact graph: `../validation/native_gtd_diagnostic.json`.
+
+Task120 localSol/high prepares exact original-lane compiler/transitive-header/ABI/native/runtime/argv/environment bindings; root reviews before a separate diagnostic compilation release. Task121 localSol/high prepares supervised roster/accounting/comparison; no runtime is released. Task117 localSol-max continues private UNMODIFIED official-source CONTROL reconstruction preparation; original resolved-build recipe/exact-buildB0 remain unavailable/open. Shared native/package baselines remain immutable; original/control correspondence precedes a patched candidate. These same-stage preparations change no production/dependency, public/scientific/performance policy or gate. Full current214-file source/wheel/native/function/reflection and fresh26 performance rebind remain pending; Stage7A **IN_PROGRESS**, SDF **FIX_REQUIRED**, native memory **OPEN**, Stage7B **PREENTRY**.
+
 ## Current delivery and native preparation checkpoint — Task118, 2026-11-02T11:44:12.469412+00:00
 
 Task111/113 was root accepted, committed and pushed as `9999ecdbcf2b26bac0ed2bb49a6f11960422d423` (six exact source/test/record paths), then independently matched by a separate ls-remote receipt. Source/test bytes match the corrected88pass run. Delivery receipt: `.plan20-artifacts/20261102/stage7a/git-delivery-task111/ROOT_FINAL_RECEIPT.json`. This supersedes earlier Task111/113 record-acceptance/commit/push-pending authoring-time statements only; full acceptance gates remain open.

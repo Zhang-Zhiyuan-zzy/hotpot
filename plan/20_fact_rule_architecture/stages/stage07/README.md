@@ -21,3 +21,13 @@ The [mandatory Stage7E canonical stereo storage gate](../../fact_rule_architectu
 - [Root bounded design acceptance](external-adapters/root_acceptance.json), [exclusive implementation release](external-adapters/implementation_release.json) and [six-test/probe authoring release](external-adapters/test_authoring_release.json): current authority; original entry/frozen proposal/baseline records remain preserved. All candidate project imports, collection/tests/builds and runtime await root integration/SOURCE_READY and exact execution release.
 
 - [Connected-consumer and selection supplement](external-adapters/connected_consumer_supplement.json): root migrates dataset `_PARSER_IMPLEMENTATION_FILES` literal source bindings to actual owners, preserving digest/schema/frozen-current and reassessment contracts. All36 test_ds files add to the preserved175-file proposal, giving final211 source/installed files on Python3.10–3.14; no Stage13 experiment is opened.
+
+## Stage7A current implementation and repair records
+
+Stage7A is IN_PROGRESS; the complete SDF performance gate is FIX_REQUIRED, native-memory sufficiency remains OPEN, and Stage7B remains PREENTRY. The original authoring/release statements above remain historical; the dated current checkpoints below bind later implementation and repair evidence. No later/global gate closes.
+
+- [Connected legacy-import relocation](external-adapters/architecture_guard/legacy_core_import_relocation.json) and [root architecture review](external-adapters/architecture_guard/root_review.json).
+- [Bookkeeping evidence](external-adapters/bookkeeping/evidence.json), [technical validation report](external-adapters/validation/report.md) and [validation evidence](external-adapters/validation/evidence.json). Full current-source rebind after the latest repairs remains pending.
+- [Coordinate-copy repair](external-adapters/validation/sdf_coordinate_copy.json) and [bulk atom-value capture](external-adapters/validation/ob_capture_bulk_values.json): isolated preservation and focused current-main results with original failures retained.
+- [Native call attribution](external-adapters/validation/sdf_native_call_attribution.json) and [inner graph-distance attribution](external-adapters/validation/sdf_native_inner_attribution.json): diagnostic observations with original bound source provenance; no performance acceptance.
+- [Native traversal proposal and dependency provenance](external-adapters/validation/native_gtd_preparation.json) and [exact GTD diagnostic preparation](external-adapters/validation/native_gtd_diagnostic.json): isolated preparation/static review; compilation, original/control correspondence, patched candidate and complete workflow gates remain separate.

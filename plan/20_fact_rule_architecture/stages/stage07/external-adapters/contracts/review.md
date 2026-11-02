@@ -444,6 +444,17 @@ backend/Thermo references that otherwise force eager imports:
 | topology helper current evaluated Molecule parameter | quote `"Molecule"` in its real operation owner; explicit namespace resolves without a runtime core import. |
 | existing drawing Molecule, nested `_fill_highlight_atoms_list` `list["Chem.Mol"]`, three MolWriter `"core.Molecule"` parameters and GJF from_gjf strings | remove runtime core/backend bindings; stored expressions remain, but default hint resolution may now fail; explicit namespaces use actual current Molecule/core/Chem definitions. No facade lookup alias. |
 
+Subsequent P02 decision, accepted by root on 2026-11-02 under
+`ROOT_P02_CP310_DISPOSITION.json`, SHA256
+`8acb6903f59890b452ff8b606a60a5fe56e575a2fa175b7b622d023cb260c30b`; Task73 HANDOFF
+`1b3ac5cbc32cfca07691a104239f955427f3168601a44926898e3d91d14c490d` supplies the actual four-context evidence.
+
+For `hotpot.cheminfo.adapters.visualization.draw.compute_atom_bond_colors`, accept the following additional explicit-hint observation only for the Task73-bound CPython 3.10.20 interpreter and its source/installed contexts. With the recorded explicit namespaces containing the actual `mcolors` and `cm` modules, `typing.get_type_hints` returns successfully, but the evaluated built-in tuple `GenericAlias` retains literal `builtins.str` values at return-argument indices 2 and 3: `mcolors.Normalize` and `cm.ScalarMappable`. The baseline nodes are the actual `matplotlib.colors.Normalize` and `matplotlib.colorizer._ScalarMappable` classes. This is an accepted observable reflection difference; `RETURNED` does not mean that these nested strings resolved to classes. Preserve the evaluated surrounding tuple/dict/RGBColor structure, argument order, sharing and all remaining recursive content under only the already accepted exact P01/P02 mappings. Preserve each other Python version's own measured explicit-hint output; this decision permits no general class/string equivalence, unresolved nested reference, namespace substitution or added annotation change. The sole caller-owned Thermo class remains defined in `operations.thermo` under P01. Actual function return values, algorithms, arguments, defaults, public exports, force-field default identity and existing remaining gates keep their current contracts.
+
+This later decision supplements the historical design acceptance; it does not
+rewrite that receipt. Original two-node unequal graphs/default-hint errors
+remain. P01 Thermo and P04 Crystal remain separate; no gate is closed.
+
 Evidence contains an AST-derived exact declaration roster and baseline source
 spans. For already postponed conversion annotations preserve stored string
 behavior explicitly for is_molecule_input return `"bool"` and to_hotpot_mol return
@@ -770,3 +781,54 @@ and frozen-proposal extraction are separate leaves. These add no public API,
 record schema, scientific algorithm or new approval gate. Candidate P03 traces,
 pickle/reflection/full facts/freshness/source-wheel/runtime/memory and all root
 integration/Stage7A completion gates remain OPEN.
+
+
+## 13. Settled observation progress — Task86 / 2026-11-02T05:15:52.347726+00:00
+
+This record-only supplement changes no design/public contract. Exact root-accepted
+Task74 P02 wording in Section8 remains unchanged; P01 Thermo/P04 Crystal stay
+separate and RETURNED does not mean nested resolved. Current Task80 review
+completed12000checks/0failures; root accepted12cells/90pairs/equal work/observed
+allocation. One Task81 frozen inference(10000draws/cell,seed20261028) confirms
+completeSDFGM2.6212510090812637,all six95%CIs>1. Root disposition
+`56ee5c10808e0e0afec1890cfcda4858c181b0eab370ec2b75c458d9673c6007`
+requires a fix; faster independentGM0.4351127171605065/lowerRSS cannot compensate.
+All306original serialization findings and historical failures remain. Technical13
+retains FREEZE10,with no rebuild/nativeABI/SDK/sdist claim. Task82 capture reports
+128batches/12800returns/997.277102451semanticseconds/0failedbatches/cleanclose,
+outerRC0/alltaskreaped; reader/root memory review remain pending. Task83 is
+static and unquantified; Task84 profiling is only prepared/HOLD. Current evidence
+is bound in validation/evidence.json's task86 checkpoint. Stage7A IN_PROGRESS,
+7B PREENTRY,goalopen;performance/native/scientific/later/global gates remain open.
+No source,execution,application,commit or push release is granted here.
+
+
+## 14. Current mechanical record checkpoint — Task90 / 2026-11-02T05:41:58.823780+00:00
+
+This is an **UNAPPLIED** record-only finalization under root release
+28548c82b6825c50e41366990c58120b719232b2229349022b23a147b5979386; it adds no design decision. Task85's four diagnostics
+each returned0 once and were reaped:240writes/480frames total,
+80profiledwrites/160profiledframes and320readbackframes. CPU16 profiling
+overlapped the immutable CPU0 reader. Cumulative cProfile rows are nested and
+non-additive. At size256 capture is59.331ms,packing44.000ms and candidate/baseline
+native WriteString are92.044/24.856ms; native internal cause and benefit remain
+unknown, so performance acceptance stays open.
+
+Task87 launched once at2026-11-02T05:14:55.100343+00:00 onCPU0 with the original
+3600s lifecycle and unlimited file-size limits. At the input cutoff it is
+RUNNING_AS_OF_TASK90_INPUT_CUTOFF; no terminal output was inspected and root
+memory sufficiency remains pending. Task88 isolated repair is in progress; no
+main source/test edit or root implementation acceptance is recorded here.
+Original SDFGM2.6212510090812637,six adverse CIs,306 findings and FREEZE10/12
+provenance remain unchanged. Stage7A IN_PROGRESS,7B PREENTRY; performance,
+native-memory,science,stage/global/later gates remain open. Application/rebind,
+commit and push are null and root-owned. Actual model/effort is unverified.
+
+
+## Root progress checkpoint — 2026-11-02T05:52:48.511656+00:00
+
+The six maintained records are now applied under Task89; Git checkpoint/push are separately authorized and not yet reported complete. Stage7A remains IN_PROGRESS and Stage7B PREENTRY. Task90 is the external helper's mechanical preparation, not design or runtime acceptance; its historical UNAPPLIED labels below describe preparation time.
+
+The local Task88 isolated SDF patch has completed 61 focused/connected passes and the same original P03 node passes after its approved coordinate-table injection migration. The earlier60pass/1fail record and all128 equal cross-copy comparisons remain retained. Root reviewed the three-file patch but main source/test application remains held at the Task87 reader/source boundary. The bulk-coordinate improvement does not close the complete SDF regression: the original GM2.6212510090812637, six adverse intervals and306 findings remain. Native serialization cause remains unknown; local Task91 owns a bounded first/second-frame diagnosis without product edits. Task87 has one authorized execution; root has not yet inspected a terminal result or accepted memory sufficiency.
+
+The independent record/Git checkpoint changes no production/test bytes. Original technicalFREEZE10 and captureFREEZE12/source identities remain historical and are not rewritten. Performance, native-memory, scientific, Stage7A and global gates remain open. Local subagents and external helper are distinct; token/credit savings have not been measured.

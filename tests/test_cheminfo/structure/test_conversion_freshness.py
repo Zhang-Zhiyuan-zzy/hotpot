@@ -6,7 +6,7 @@ from openbabel import openbabel as ob
 from rdkit import Chem
 
 from hotpot import Molecule, read_mol
-from hotpot.cheminfo.core import BondKind
+from hotpot.cheminfo import BondKind
 from hotpot.cheminfo.adapters.openbabel import perception as ob_perception
 from hotpot.cheminfo.operations import chemistry, conversion
 from hotpot.cheminfo.structure._builder import _freeze_value

@@ -216,5 +216,189 @@
     "sha256": "6a9b951d12d1a8875f8f7f6b4a311631c81b03024660413569a27226afb1125b"
   },
   "stage_gate_closed": false,
-  "status": "DESIGN_ACCEPTED_IMPLEMENTATION_SCOPE_PENDING"
+  "status": "DESIGN_ACCEPTED_IMPLEMENTATION_SCOPE_PENDING",
+  "subsequent_scoped_root_decisions": {
+    "prepared_record_status": "DRAFT_UNAPPLIED",
+    "historical_receipt_preserved": true,
+    "historical_receipt_qualification": "All original fields above retain their 2026-10-30 bounded-design authoring scope. They are not rewritten to imply advance acceptance of the Task73 observation or current execution authority.",
+    "decisions": [
+      {
+        "recorded_at_utc": "2026-11-02T04:30:43.974430+00:00",
+        "status": "ROOT_ACCEPTED_P02_CP310_NESTED_EXPLICIT_HINT_STRINGS",
+        "owner": "root",
+        "root_receipt": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/reflection-p02-disposition-task74/ROOT_P02_CP310_DISPOSITION.json",
+          "bytes": 3236,
+          "sha256": "8acb6903f59890b452ff8b606a60a5fe56e575a2fa175b7b622d023cb260c30b"
+        },
+        "task73_evidence": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/probe-root-release/attempt9-tmp-lifecycle-materialization/execution-attempt1/cp310-recursive-reflection-supplement-task73/HANDOFF.json",
+          "bytes": 14408,
+          "sha256": "1b3ac5cbc32cfca07691a104239f955427f3168601a44926898e3d91d14c490d"
+        },
+        "exact_accepted_paragraph": "For `hotpot.cheminfo.adapters.visualization.draw.compute_atom_bond_colors`, accept the following additional explicit-hint observation only for the Task73-bound CPython 3.10.20 interpreter and its source/installed contexts. With the recorded explicit namespaces containing the actual `mcolors` and `cm` modules, `typing.get_type_hints` returns successfully, but the evaluated built-in tuple `GenericAlias` retains literal `builtins.str` values at return-argument indices 2 and 3: `mcolors.Normalize` and `cm.ScalarMappable`. The baseline nodes are the actual `matplotlib.colors.Normalize` and `matplotlib.colorizer._ScalarMappable` classes. This is an accepted observable reflection difference; `RETURNED` does not mean that these nested strings resolved to classes. Preserve the evaluated surrounding tuple/dict/RGBColor structure, argument order, sharing and all remaining recursive content under only the already accepted exact P01/P02 mappings. Preserve each other Python version's own measured explicit-hint output; this decision permits no general class/string equivalence, unresolved nested reference, namespace substitution or added annotation change. The sole caller-owned Thermo class remains defined in `operations.thermo` under P01. Actual function return values, algorithms, arguments, defaults, public exports, force-field default identity and existing remaining gates keep their current contracts.",
+        "scope": {
+          "baseline": [
+            "matplotlib.colors.Normalize class",
+            "matplotlib.colorizer._ScalarMappable class"
+          ],
+          "candidate": [
+            "builtins.str: mcolors.Normalize",
+            "builtins.str: cm.ScalarMappable"
+          ],
+          "contexts": [
+            "source",
+            "installed"
+          ],
+          "field": "explicit_type_hints.return.args[2:4]",
+          "interpreter": "Task73-bound CPython3.10.20",
+          "interpreter_binary_sha256": "3303d2b5dc566818e412d2b5b6cd8e792bd360865da47593429a635f72668226",
+          "symbol": "hotpot.cheminfo.adapters.visualization.draw.compute_atom_bond_colors",
+          "typing_py_sha256": "ec7b7f73fc92827c78a7d2aff90cffe070530cad6c693460165c26f76d195f41"
+        },
+        "product_change_authorized": false,
+        "stage_gate_closed": false,
+        "global_gate_closed": false
+      }
+    ]
+  },
+  "subsequent_performance_evidence_disposition_task86": {
+    "prepared_record_status": "DRAFT_UNAPPLIED",
+    "historical_receipts_preserved": true,
+    "root_membership_receipt": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-paired-analysis/current-source-task76/entrypoint-rebind-task78/root-pair-membership-acceptance.json",
+      "bytes": 64985,
+      "sha256": "eb91529897355e0bfbff17b909a5cda21529ddca599f4c94c88f219bcf5b1646"
+    },
+    "root_membership_accepted": true,
+    "scope": "Actual12cells/90pairs/equal semantic work/observed allocation only; shared unreserved host and all original findings retained.",
+    "root_performance_receipt": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-paired-analysis/current-source-task76/entrypoint-rebind-task78/ROOT_CURRENT_PERFORMANCE_DISPOSITION.json",
+      "bytes": 7302,
+      "sha256": "56ee5c10808e0e0afec1890cfcda4858c181b0eab370ec2b75c458d9673c6007"
+    },
+    "recorded_at_utc": "2026-11-02T04:54:19.096037+00:00",
+    "status": "ROOT_CURRENT_SDF_REGRESSION_CONFIRMED_FIX_REQUIRED_PERFORMANCE_ACCEPTANCE_HOLD",
+    "decision": "Accept the completed bound inference as evidence; do not accept SDF parity or performance. Investigate and repair the full workflow while preserving freshness, source ownership, real baseline caching, exact20writes/40frames, output facts/mapping/order/readback and frozen comparison policy. No rare exception, changed denominator, shifted timed work or mechanism/RSS compensation authorized.",
+    "current_SDF_GM": 2.6212510090812637,
+    "all_six_SDF_CIs_above_one": true,
+    "performance_accepted": false,
+    "native_memory_sufficiency_accepted": false,
+    "stage_gate_closed": false,
+    "global_gate_closed": false,
+    "capture_qualification": "Task82 report/outer completion only; reader/root memory review remains pending. No new root memory approval is invented."
+  },
+  "subsequent_record_finalization_task90_unapplied": {
+    "task": 90,
+    "status": "ROOT_RELEASE_RECORDED_FINAL_COPIES_UNAPPLIED",
+    "root_record_application_release": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/record-application-task89/ROOT_RECORD_APPLICATION_RELEASE.json",
+      "bytes": 4681,
+      "sha256": "28548c82b6825c50e41366990c58120b719232b2229349022b23a147b5979386"
+    },
+    "task85_diagnostic_complete_not_performance_acceptance": true,
+    "task87_status": "RUNNING_AS_OF_TASK90_INPUT_CUTOFF",
+    "task87_terminal_result_inspected": false,
+    "task88_status": "ISOLATED_REPAIR_IN_PROGRESS_NO_MAIN_SOURCE_TEST_EDIT_OR_ROOT_IMPLEMENTATION_ACCEPTANCE",
+    "complete_sdf_gm_preserved": 2.6212510090812637,
+    "record_application": null,
+    "modified_record_rebind": null,
+    "git_commit": null,
+    "push_result": null,
+    "remote_verification": null,
+    "stage7A": "IN_PROGRESS",
+    "stage7B": "PREENTRY",
+    "performance_accepted": false,
+    "native_memory_sufficiency_accepted": false,
+    "science_accepted": false,
+    "stage_gate_closed": false,
+    "global_gate_closed": false,
+    "actual_model_effort": "UNVERIFIED"
+  },
+  "current_progress_checkpoint_task89": {
+    "owner": "root",
+    "recorded_at_utc": "2026-11-02T05:52:48.511656+00:00",
+    "status": "RECORDS_APPLIED_GIT_CHECKPOINT_RELEASED_SOURCE_PATCH_HELD",
+    "stage7A": "IN_PROGRESS",
+    "stage7B": "PREENTRY",
+    "application_release": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/record-application-task89/ROOT_RECORD_APPLICATION_RELEASE.json",
+      "bytes": 4681,
+      "sha256": "28548c82b6825c50e41366990c58120b719232b2229349022b23a147b5979386"
+    },
+    "prepared_batch": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/record-finalization-task90/HANDOFF.json",
+      "bytes": 6457,
+      "sha256": "4865ce4ff632f17ce77857d087448c148f9615ecf8a3921f8b45da38dd03e283"
+    },
+    "task90_document_checks": {
+      "passed": 109,
+      "failed": 0,
+      "coverage": "Immutable document consistency only; no source/runtime acceptance."
+    },
+    "task88_root_review": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/record-application-task89/ROOT_ISOLATED_SDF_PATCH_REVIEW.json",
+      "bytes": 3234,
+      "sha256": "f96e4f9cd0c6a7e3b60ab0e3f92ddd0c83e13850304a58f975eb6067b9c331bb"
+    },
+    "task88": {
+      "status": "LOCAL_SUBAGENT_ISOLATED_PATCH_REVIEWED_MAIN_APPLY_HELD",
+      "handoff": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-repair-task88/HANDOFF.json",
+        "bytes": 17061,
+        "sha256": "d2bd7e61e34c20fa3c3bbdb338bfe51dd4eff7caf7b382dd51132e0cacf2a302"
+      },
+      "patch": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-repair-task88/isolated-repair.patch",
+        "bytes": 11060,
+        "sha256": "9fd53f5b455f7cedacc9f4b66a1533ba9fa07f2cb06401d750013cedb9197a5e"
+      },
+      "current_focused_connected": {
+        "passed": 61,
+        "failed": 0,
+        "returncode": 0
+      },
+      "original_P03_node_after_migration": {
+        "passed": 1,
+        "failed": 0,
+        "returncode": 0
+      },
+      "historical_before_migration": {
+        "passed": 60,
+        "failed": 1,
+        "retained": true
+      },
+      "cross_copy_comparisons_equal": 128,
+      "native_serialization_internal_cause": "UNKNOWN",
+      "main_source_test_changes_applied": false
+    },
+    "task91": {
+      "status": "LOCAL_SUBAGENT_BOUNDED_FIRST_SECOND_SERIALIZATION_DIAGNOSTIC_ASSIGNED",
+      "source": "Task88 isolated source-after",
+      "no_product_edit_authorized": true
+    },
+    "task87": {
+      "status": "ONE_AUTHORIZED_READER_EXECUTION_TERMINAL_RESULT_NOT_YET_INSPECTED_BY_ROOT",
+      "root_native_memory_sufficiency_pending": true
+    },
+    "delegation": {
+      "local_subagents": [
+        "Task87 native reader",
+        "Task88 isolated SDF repair, completed",
+        "Task91 bounded serialization diagnosis",
+        "Git management"
+      ],
+      "external_helper": "Task90 mechanical document preparation only; actual model/effort UNVERIFIED",
+      "token_credit_savings_measured": false
+    },
+    "source_provenance": "Production/test bytes unchanged by this record application. Original technical13 stays FREEZE10; completed capture stays FREEZE12 and original4195-file snapshot/HEAD. Changed docs/HEAD are not retrospectively bound to those runs. Future launches must rebind applicable current identities.",
+    "complete_sdf_gm": 2.6212510090812637,
+    "six_adverse_CIs_and_306_original_findings_retained": true,
+    "performance_accepted": false,
+    "native_memory_sufficiency_accepted": false,
+    "stage_gate_closed": false,
+    "global_gate_closed": false,
+    "checkpoint_commit": null,
+    "push_result": null
+  }
 }

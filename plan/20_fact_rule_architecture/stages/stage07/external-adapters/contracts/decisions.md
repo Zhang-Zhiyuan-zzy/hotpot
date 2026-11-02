@@ -40,12 +40,26 @@ supplements; no candidate implementation or gate acceptance follows.
 | ID | Accepted concrete decision | Exact public/API and ownership effect | Authority and remaining evidence |
 |---|---|---|---|
 | S7A-P01 (ROOT ACCEPTED) | Carrier-consuming dispatch/I/O/import/Thermo/drawing APIs in operations; adapter leaves only classify/extract/serialize/render prepared values | `operations.conversion` owns is_molecule_input, to_hotpot_mol, mol2obmol, obmol2mol, to_rdmol, from_rdmol and Pybel entry. `operations.io` owns one MolReader/MolWriter/read_mol; operations.thermo owns the sole caller-owned Thermo class and all carrier getter/fallback methods; operations.visualization owns draw_single_mol/draw_grid/_load_rdmol and exact hasattr-then-smiles work. Adapter utilities receive no carrier handle/getter callback. Root/cheminfo existing public call names and identity stay; drawing names are not newly exported there; old internal modules hard-delete. Root-authorized owner-tree/Section9.1/Section9.2/Section9.6 clarifications now explicitly split carrier-consuming Thermo/drawing and conversion/I/O modules against Section6.1; stage objectives/gates/Section12/public names remain unchanged. No adapter re-exports operations. One local concrete-Molecule import in operations.conversion relocates/reduces existing debt and points to actual core definition until Stage9. | Root accepted the exact placement and temporary real-owner lookup and authorized the minimal owner rows; recorded diff applied. Root design acceptance binds completed full-main/normative read continuity; exact implementation paths are separately released. |
-| S7A-P02 (ROOT ACCEPTED) | Quote only exact evaluated optional-backend/Thermo/Molecule annotation references | Stored annotation objects/ForwardRefs and inspect.signature text change for named declarations in evidence; default get_type_hints may raise NameError while explicit namespace resolves. No core-wide future annotations, lazy class proxy or upward facade alias. Keep existing ff binding/default objects and ff hint globals. Python3.14 is measured independently. | Root acceptance P02 accepts exact effects after review7 ten-cell reflection baseline; candidate namespace/representation checks remain required. |
+| S7A-P02 (ROOT ACCEPTED) | Quote only exact evaluated optional-backend/Thermo/Molecule annotation references | Stored annotation objects/ForwardRefs and inspect.signature text change for named declarations in evidence; default get_type_hints may raise NameError; record explicit-namespace returned objects per version, including the separately root-dispositioned Task73 CPython3.10.20 nested-string result below. No core-wide future annotations, lazy class proxy or upward facade alias. Keep existing ff binding/default objects and ff hint globals. Python3.14 is measured independently. | Root acceptance P02 accepts exact effects after review7 ten-cell reflection baseline; candidate namespace/representation checks remain required. |
 | S7A-P03 (ROOT ACCEPTED) | Operation captures consumed primitive export rows after original lazy/preflight sequence; adapters never invoke carrier lazy getters | Preserve container creation point, H→aromatic→payload preflight and remap/application sequence. Later primitive/derived field reads precede per-atom toolkit construction instead of interleaving. If both would fail, carrier-read/per-atom backend exception precedence may change; preserve failures and completed preparation in named negative fixtures. No extra inference/source rule or carrier DTO. | Root acceptance P03 accepts this exact seam after review6; candidate negative tests must retain real completed preparation and bound failure traces. |
 | S7A-P04 (ROOT ACCEPTED) | Factual-only cell with the existing six-slot Molecule extra-state envelope | Independent Crystal path is already accepted as A11. Keep extra tuple arity6 at the same core restore paths/package version0.5.4.5: capture always None in the final non-owning slot; unconditionally ignore prior/current final-slot data. Cell facts remain the sole owner; no crystal dict capture/update, old/new schema branch or module alias. Matrix helper uses one function-local rule delegate. | Root acceptance P04 accepts the exact six-slot implementation after reviews6/8; candidate restores of the bound1181-byte old cell pickle and copy/pickle/OB/native round trips remain required. |
 | S7A-P05 (ROOT ACCEPTED) | Lazy dependency failure/logging/version-check timing | OB I/O suppression initializes on first relevant format use; drawing version check on first actual RD use; missing dependencies fail at named required operation/import boundary. Root RDKit and inherited pandas preload remain qualified. No new custom exception or ImportError→unsupported/None fallback. | Root acceptance P05 accepts exact delayed effects after bounded eager-import baseline; candidate actual first-required-use boundaries remain required. |
 | S7A-P06 (ROOT ACCEPTED) | Full proposed affected-file roster and equal-work/cost recipe | Existing150-file preparer selection expands with exact additional affected tests and six new files in evidence. Both source and installed3.10–3.14 execute same affected contracts, plus final cp311 default/coverage and qualified native/SDK tiers. No historical count substitutes actual collection. | Root acceptance P06 freezes175 paths and qualified baseline recipe; six-test authoring is separately released. Candidate SOURCE_READY, execution, comparable costs and sufficient native memory remain OPEN. |
 | S7A-P07 (OWNER SEAMS ACCEPTED; FUTURE BYTES GATED) | Candidate probe patch seams | Bind OB pair/import module to operations.conversion; count both dynamic operation attribute and actual adapter projection; fake Chemical patches adapters.thermo.chemical._chemical_type() returning fake class, while Thermo class binds to operations.thermo; public draw input functions bind operations.visualization and external rendering/fonts bind adapters.visualization.draw; new Crystal cell owner explicit. Existing preparation packet must be revised/rehashed by its owner. | Root acceptance P07 accepts actual-owner seams/workflow; validator owns new probe copies. Exact future probe-byte release and candidate SOURCE_READY remain required. |
+
+## Subsequent scoped P02 root decision — 2026-11-02
+
+Root receipt SHA256 `8acb6903f59890b452ff8b606a60a5fe56e575a2fa175b7b622d023cb260c30b`
+accepts the exact Task74 clarification after Task73 HANDOFF
+`1b3ac5cbc32cfca07691a104239f955427f3168601a44926898e3d91d14c490d`. The historical root receipt retains its original scope.
+
+For `hotpot.cheminfo.adapters.visualization.draw.compute_atom_bond_colors`, accept the following additional explicit-hint observation only for the Task73-bound CPython 3.10.20 interpreter and its source/installed contexts. With the recorded explicit namespaces containing the actual `mcolors` and `cm` modules, `typing.get_type_hints` returns successfully, but the evaluated built-in tuple `GenericAlias` retains literal `builtins.str` values at return-argument indices 2 and 3: `mcolors.Normalize` and `cm.ScalarMappable`. The baseline nodes are the actual `matplotlib.colors.Normalize` and `matplotlib.colorizer._ScalarMappable` classes. This is an accepted observable reflection difference; `RETURNED` does not mean that these nested strings resolved to classes. Preserve the evaluated surrounding tuple/dict/RGBColor structure, argument order, sharing and all remaining recursive content under only the already accepted exact P01/P02 mappings. Preserve each other Python version's own measured explicit-hint output; this decision permits no general class/string equivalence, unresolved nested reference, namespace substitution or added annotation change. The sole caller-owned Thermo class remains defined in `operations.thermo` under P01. Actual function return values, algorithms, arguments, defaults, public exports, force-field default identity and existing remaining gates keep their current contracts.
+
+The two original recursive differences remain archived, as do the exact
+24 stored-expression changes, version-specific default-hint errors and
+cp311 eight unordered differences. The earlier sole-Thermo explicit-hint
+claim applies only to the old opaque projection. No P01/P04 conflation or
+scientific/native/performance/stage/global closure follows.
 
 ## Concrete preservation and exclusion decisions
 
@@ -153,3 +167,48 @@ execution. No source prerequisite remains within this bounded assignment.
 This is an authored-source checkpoint, not SOURCE_READY, a candidate pass or
 Stage7A closure. All current runtime/exact-probe release, final211 source/wheel/
 native/resource/scientific/performance and memory gates remain open.
+
+
+## Current observation and root disposition record — Task86 / 2026-11-02T05:15:52.347726+00:00
+
+No P01–P07 contract or new design decision is introduced. Task74's exact
+root-accepted P02 paragraph above remains unchanged. Actual Task80 review
+12000/0 and separate root membership receipt accept12cells/90pairs/228turns,
+equal complete work and observed allocation with shared-host qualifications.
+One Task81 inference used10000draws/cell,seed20261028. The actual subsequent
+root performance receipt is `/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-paired-analysis/current-source-task76/entrypoint-rebind-task78/ROOT_CURRENT_PERFORMANCE_DISPOSITION.json`,
+SHA256 `56ee5c10808e0e0afec1890cfcda4858c181b0eab370ec2b75c458d9673c6007`.
+Its decision is recorded verbatim:
+
+Accept the completed bound inference as evidence; do not accept SDF parity or performance. Investigate and repair the full workflow while preserving freshness, source ownership, real baseline caching, exact20writes/40frames, output facts/mapping/order/readback and frozen comparison policy. No rare exception, changed denominator, shifted timed work or mechanism/RSS compensation authorized.
+
+Current SDFGM2.6212510090812637/all sixCIs>1 is FIX_REQUIRED; independent
+GM0.4351127171605065 andRSS gains do not compensate. Preserve306original
+COST_SAMPLE_REPORT_DIFFERENCE findings and all historical adverse/failed evidence.
+Task82 completed capture and collector clean-close are observations only; reader
+and root native-memory review remain pending. Task83 static diagnosis does not
+quantify cause; Task84 profiling remains prepared/HOLD. Technical13 stays
+FREEZE10. Stage7A IN_PROGRESS/7B PREENTRY; all acceptance/global gates stay open.
+Apply/commit/push and source/runtime work require separate root authority.
+
+
+## Administrative record disposition — Task90 / 2026-11-02T05:41:58.823780+00:00
+
+No new architecture, public, scientific or implementation decision is made.
+Root's scoped release is recorded, but these six copies remain UNAPPLIED and
+application/rebind/commit/push slots remain empty. Task85 is diagnostic-only;
+Task87 is RUNNING_AS_OF_TASK90_INPUT_CUTOFF without terminal inspection; Task88
+is isolated repair work in progress without main source/test edits or root
+implementation acceptance. Preserve GM2.6212510090812637,all six adverse paired
+intervals,all306 findings and FREEZE10/FREEZE12 provenance. Stage7A remains
+IN_PROGRESS and Stage7B PREENTRY; performance,memory,science,stage/global/later
+gates remain open. Root retains sole acceptance and Git authority.
+
+
+## Root progress checkpoint — 2026-11-02T05:52:48.511656+00:00
+
+The six maintained records are now applied under Task89; Git checkpoint/push are separately authorized and not yet reported complete. Stage7A remains IN_PROGRESS and Stage7B PREENTRY. Task90 is the external helper's mechanical preparation, not design or runtime acceptance; its historical UNAPPLIED labels below describe preparation time.
+
+The local Task88 isolated SDF patch has completed 61 focused/connected passes and the same original P03 node passes after its approved coordinate-table injection migration. The earlier60pass/1fail record and all128 equal cross-copy comparisons remain retained. Root reviewed the three-file patch but main source/test application remains held at the Task87 reader/source boundary. The bulk-coordinate improvement does not close the complete SDF regression: the original GM2.6212510090812637, six adverse intervals and306 findings remain. Native serialization cause remains unknown; local Task91 owns a bounded first/second-frame diagnosis without product edits. Task87 has one authorized execution; root has not yet inspected a terminal result or accepted memory sufficiency.
+
+The independent record/Git checkpoint changes no production/test bytes. Original technicalFREEZE10 and captureFREEZE12/source identities remain historical and are not rewritten. Performance, native-memory, scientific, Stage7A and global gates remain open. Local subagents and external helper are distinct; token/credit savings have not been measured.

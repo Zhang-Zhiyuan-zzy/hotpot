@@ -5393,5 +5393,1541 @@
     "goal": "ACTIVE",
     "root_quality_review_and_acceptance_of_this_new_record": "SEPARATE_ROOT_REVIEW",
     "gate_acceptance": false
+  },
+  "task79_current_checkpoint_draft": {
+    "status": "DRAFT_UNAPPLIED_SETTLED_RECEIPTS_WITH_EXPLICIT_PENDING_FIELDS",
+    "prepared_at_utc": "2026-11-02T04:50:21.159122+00:00",
+    "source": {
+      "commit": "2f39de03feaaee5533662e97df8fdace202f8b41",
+      "snapshot_sha256": "1a5954727ddbc4c0c6460906aaa1af70456db07f107d2c057607b2a96e763e86",
+      "inventory_files": 4195,
+      "identity_source": "Named immutable execution/acceptance receipts; no new Git/full-source assertion by Task79."
+    },
+    "historical_fields_qualification": "All preexisting evidence fields retain their original authoring/source scope. This appended checkpoint is the current proposed record; old matrices, old aggregate26 statistics, incomplete native traces and failed attempts remain historical.",
+    "technical13": {
+      "root_acceptance": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/probe-root-release/attempt7-probe-authority/ROOT_TECHNICAL_ACCEPTANCE.json",
+        "bytes": 6699,
+        "sha256": "e06ab4f76c52dcac714c61d054b930073405e27320e2885262f822b2eed84cc3"
+      },
+      "original_FREEZE10": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-execution-attempt10/freeze/FREEZE.json",
+        "bytes": 53279,
+        "sha256": "0a087d52bd87be7693cda15a6726e77cddc866ea02795e8b73ce46016803ac89"
+      },
+      "actual_run_index": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/record-update-preparation-task79/TECHNICAL13_INDEX.json",
+        "bytes": 18228,
+        "sha256": "83eb953457092ae202730c86e3bfb7fd93d1303cee852c76725b45d13a8e34ee"
+      },
+      "runs": [
+        {
+          "version": "3.11",
+          "tier": "source",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3749,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3819,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.11",
+          "tier": "installed",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3737,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3807,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.10",
+          "tier": "source",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3749,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3819,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.10",
+          "tier": "installed",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3737,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3807,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.12",
+          "tier": "source",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3749,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3819,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.12",
+          "tier": "installed",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3737,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3807,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.13",
+          "tier": "source",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3749,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3819,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.13",
+          "tier": "installed",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3737,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3807,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.14",
+          "tier": "source",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3749,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3819,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.14",
+          "tier": "installed",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3737,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3807,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.11",
+          "tier": "default",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 5143,
+            "skipped": 123,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 5269,
+          "distinct_collected_test_files": 373
+        },
+        {
+          "version": "3.11",
+          "tier": "coverage",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 5143,
+            "skipped": 123,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 5269,
+          "distinct_collected_test_files": 373
+        },
+        {
+          "version": "3.11",
+          "tier": "native-source",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 6,
+            "skipped": 2,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 8,
+          "distinct_collected_test_files": 3
+        }
+      ],
+      "wheel_native_rebuilt": false
+    },
+    "functional": {
+      "task65": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/probe-root-release/attempt9-tmp-lifecycle-materialization/execution-attempt1/TASK65_HANDOFF.json",
+        "bytes": 9515,
+        "sha256": "3d1d4dbb0f8d28e13a839e5bb844a5f9f3f99aa2e8f083501c63fc5e2f4f5c95"
+      },
+      "task72_authoritative": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/probe-root-release/attempt9-tmp-lifecycle-materialization/execution-attempt1/reflection-delta-diagnosis-task72/AUTHORITATIVE_TASK72_HANDOFF.json",
+        "bytes": 12949,
+        "sha256": "c92e506591496b0721db7913230f5f1a3ab74d754df021594c09489429f952b4"
+      },
+      "task73": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/probe-root-release/attempt9-tmp-lifecycle-materialization/execution-attempt1/cp310-recursive-reflection-supplement-task73/HANDOFF.json",
+        "bytes": 14408,
+        "sha256": "1b3ac5cbc32cfca07691a104239f955427f3168601a44926898e3d91d14c490d"
+      },
+      "root_current_functional_acceptance": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-execution/attempt4-current-source-preparation/ROOT_FUNCTIONAL_ACCEPTANCE_RECEIPT_SHAPE_CORRECTION_ATTEMPT2.json",
+        "bytes": 5612,
+        "sha256": "8fb3869eeda7d891ec540aea83997add8fe394a93be151e33cd2bba834120761"
+      },
+      "counts": {
+        "automatic_retries": 0,
+        "comparator_rc0": 985,
+        "comparators_completed": 985,
+        "factual_comparisons": 970,
+        "factual_exact_equal": 970,
+        "full_raw_archives": 212,
+        "infrastructure_or_identity_failures": 0,
+        "original_wrappers": 620,
+        "reflection_reports": 15,
+        "separate_drawing_supplement": 80,
+        "wrapper_rc0": 700,
+        "wrappers_completed": 700
+      },
+      "original_drawing_failures": 80,
+      "drawing_supplement": {
+        "total": 80,
+        "direct_SVG_nonrequired_dependency_controls": 20,
+        "ModuleNotFoundError_observations": 60,
+        "source_fact_checks_original_plus_supplement": 160
+      },
+      "reflection_raw_source_installed_equal": 132,
+      "reflection_raw_source_installed_total": 140,
+      "cp311_eight": "Accept only actual unordered frozenset n/s edge-position permutation with all954 nodes and other ordered edges/aliases preserved. Original8 unequal verdicts remain.",
+      "cp310_two_nodes": {
+        "root_receipt": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/reflection-p02-disposition-task74/ROOT_P02_CP310_DISPOSITION.json",
+          "bytes": 3236,
+          "sha256": "8acb6903f59890b452ff8b606a60a5fe56e575a2fa175b7b622d023cb260c30b"
+        },
+        "exact_accepted_paragraph": "For `hotpot.cheminfo.adapters.visualization.draw.compute_atom_bond_colors`, accept the following additional explicit-hint observation only for the Task73-bound CPython 3.10.20 interpreter and its source/installed contexts. With the recorded explicit namespaces containing the actual `mcolors` and `cm` modules, `typing.get_type_hints` returns successfully, but the evaluated built-in tuple `GenericAlias` retains literal `builtins.str` values at return-argument indices 2 and 3: `mcolors.Normalize` and `cm.ScalarMappable`. The baseline nodes are the actual `matplotlib.colors.Normalize` and `matplotlib.colorizer._ScalarMappable` classes. This is an accepted observable reflection difference; `RETURNED` does not mean that these nested strings resolved to classes. Preserve the evaluated surrounding tuple/dict/RGBColor structure, argument order, sharing and all remaining recursive content under only the already accepted exact P01/P02 mappings. Preserve each other Python version's own measured explicit-hint output; this decision permits no general class/string equivalence, unresolved nested reference, namespace substitution or added annotation change. The sole caller-owned Thermo class remains defined in `operations.thermo` under P01. Actual function return values, algorithms, arguments, defaults, public exports, force-field default identity and existing remaining gates keep their current contracts.",
+        "original_unequal_proof": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/probe-root-release/attempt9-tmp-lifecycle-materialization/execution-attempt1/cp310-recursive-reflection-supplement-task73/EXPLICIT_HINT_RECURSIVE_PROOF.json",
+          "bytes": 13727,
+          "sha256": "afbb9bf42e5cd7187b46e19ca2bb9eae08a7b9f6ed2c0ce473773332e086564c"
+        },
+        "exact_boundary_proof": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/probe-root-release/attempt9-tmp-lifecycle-materialization/execution-attempt1/cp310-recursive-reflection-supplement-task73/EXPLICIT_HINT_EXACT_BOUNDARY_PROOF.json",
+          "bytes": 57141,
+          "sha256": "3425715d037c12b443e6902a8acf35f64b5163a249a6ee5ed4eb714ce562b346"
+        }
+      },
+      "task72_qualification": "The sole-Thermo explicit-hint conclusion belongs only to its old opaque cp310 projection. Task73 supplies the additional two actual recursive nodes. No700/985 rerun or original verdict rewrite.",
+      "task73_scoped_counts": {
+        "annotation_graphs": "112/112",
+        "signature_graphs": "56/56",
+        "source_installed_selected_recursive_fields": "896/896",
+        "old_field_projection_preservation": "1792/1792"
+      },
+      "wrapper_rc0_is_not_success_of_every_internal_scientific_operation": true
+    },
+    "current_performance26_execution": {
+      "status": "ACTUAL_ALL26_COMPLETED_REAP_AND_FINAL_FREEZE_PASS_ACCEPTANCE_HOLD",
+      "handoff": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-execution/attempt4-current-source-preparation/task75-execution-handoff/TASK75_HANDOFF.json",
+        "bytes": 6456,
+        "sha256": "8f13711776f8b9f084903f7924bd9f0280b05575c82690588bbdbe88fe44d5bf"
+      },
+      "materialization": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-execution/attempt4-current-source-preparation/active-attempt1/materialization-result.json",
+        "bytes": 4266,
+        "sha256": "385be0bf1d4dd09fdf945aae36491e216b1a891375d3b77e5aab730cc3c51a55"
+      },
+      "started_at_utc": "2026-11-02T04:32:47.366954+00:00",
+      "ended_at_utc": "2026-11-02T04:41:33.176706+00:00",
+      "returncode": 0,
+      "counts": {
+        "automatic_retries": 0,
+        "commands_started": 26,
+        "historical_completed_cells_reused": 0,
+        "paired_reports": 12,
+        "phase_attempts": 228,
+        "planned": {
+          "cost": 18,
+          "measured_pairs": 90,
+          "paired_cells": 12,
+          "phase_turns": 228,
+          "public_descriptive": 6,
+          "retention": 8,
+          "warmup_blocks": 24
+        },
+        "public_sample_attempts": 78,
+        "retention_batches": 80,
+        "unstarted": 0,
+        "wrappers_completed": 26
+      },
+      "all26_fresh": true,
+      "historical_completions_reused": 0,
+      "all_observed_task_processes_reaped": true,
+      "final_source_status": "PASS_ACTUAL_FINAL_CHECK_FREEZE",
+      "final_source_guard": {
+        "bytes": 1225,
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-execution/attempt4-current-source-preparation/execution-attempt1/final-source-guard.json",
+        "sha256": "402939dffc2f5d4bfa91965051f782411adbf2a17962f247a4d48327a46667c8"
+      },
+      "statistics_executed": false,
+      "scientific_observations_classified": false,
+      "performance_acceptance": "HOLD",
+      "native_acceptance": "HOLD",
+      "first_activation_failure": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-execution/attempt4-current-source-preparation/activation-attempt1-failure.json",
+        "bytes": 1987,
+        "sha256": "910263275c46a16118b61f5e90dc23e80f026b22e4e19b84751e8944343adb34"
+      },
+      "second_activation_metadata_shape_correction": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-execution/attempt4-current-source-preparation/activation-attempt2-command.json",
+        "bytes": 1352,
+        "sha256": "7e43c2b0aeb5259e795b14d2a1cb5913a32c3949e7e14173669267789731faf5"
+      },
+      "failure_qualification": "Attempt1 rejected an extra bytes field in the root functional freeze token before materialization/measurement; attempt2 metadata-shape correction RC0. Original failure retained; no measurement retry."
+    },
+    "native_startup_only": {
+      "root_receipt": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/native-memory-attribution-release-preparation/attempt9-budget-and-qualification-integration/startup-qualification-execution-attempt1/ROOT_STARTUP_OBSERVATIONS_ACCEPTANCE.json",
+        "bytes": 2719,
+        "sha256": "44a6ef83690b6070b69a55a0ee3ebb45a050a893abb38082dca3138084d9c9d3"
+      },
+      "accepted_scope": {
+        "serial_commands": 3,
+        "actual_freeze_passes": 6,
+        "inventory_files_per_freeze": 4195,
+        "retries": 0,
+        "all_owned_processes_reaped": true,
+        "same_python_bytes_and_ordered_sys_path_observed": true,
+        "raw_executable_and_prefix_differences_retained": true,
+        "matplotlib_code_and_metadata": "3.11.2",
+        "old_venv_distutils_hack_origin_retained": true,
+        "forbidden_backend_modules_observed": []
+      },
+      "qualification": "Selected startup/import observations only. No universal base/venv equivalence, profiler interception, backend late-native closure, chemistry, ABI, capture, reader, performance or stage/global acceptance. Existing isolated-helper profiler qualification retains its original limited scope.",
+      "current_capture_or_reader_executed": false,
+      "file_size_cap": null,
+      "proposed_time_budgets_not_runtime_evidence": [
+        3600,
+        7200,
+        3600
+      ]
+    },
+    "historical_adverse_performance_retained": {
+      "source_scope": "Earlier accepted aggregate26 bytes only; not current Task75 statistics.",
+      "SDF_geometric_mean": 3.522012,
+      "six_cell_ratio_range": [
+        2.871096,
+        4.398163
+      ],
+      "current_results": null,
+      "waiver": false
+    },
+    "architecture_repair_and_lifecycle": {
+      "original_failure": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-execution-attempt9/TASK51_HANDOFF.json",
+        "bytes": 10107,
+        "sha256": "cd0e15c8ee9a732b2f48bf9a259f3d220a9d8c06aadf8131c6d824d42422b484"
+      },
+      "diagnostic_command": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-execution-attempt9/architecture-failure-diagnostic-attempt1/command.json",
+        "bytes": 1011,
+        "sha256": "d6106c0b71f7b747b406fd2bd5dac761db6c765f30ee035c1723fe8166af831f"
+      },
+      "diagnostic": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-execution-attempt9/architecture-failure-diagnostic-attempt1/audit-report.json",
+        "bytes": 893,
+        "sha256": "31465906c0926e8bbed38d617b5f67fab14e9017f29d9a5f4008c506356d92b2"
+      },
+      "one_line_import_repair": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-repair-preparation/attempt10-test-import/HANDOFF.json",
+        "bytes": 2483,
+        "sha256": "495549649c59a58ce1c65b1a835cdc138758d6e8a0f1ca0e5bfd5f5a288c6a30"
+      },
+      "repair_command": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-repair-preparation/attempt10-test-import/preparation-command.json",
+        "bytes": 1491,
+        "sha256": "c5f3d9ff9833c1ab8fa52fdcee25fcdf73dbc5071e120f6692ccfa36652b5b66"
+      },
+      "repair_patch": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-repair-preparation/attempt10-test-import/test-import-only.applied.patch",
+        "bytes": 492,
+        "sha256": "eff8bdbe98112d1d6ded55a60454f7d7d8d6492cbe5ee132446599199c5f7f39"
+      },
+      "resource_recovery": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-execution-attempt10/TASK60_RECOVERY_HANDOFF.json",
+        "bytes": 3254,
+        "sha256": "4ca97647137a1f0a08b08b1821d07a2f8d5869abb204dcef75927166c59f727c"
+      },
+      "authorized_cleanup": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-execution-attempt10/resource-recovery-attempt2/HANDOFF-CLEANUP.json",
+        "bytes": 9556,
+        "sha256": "5d32046a5af2c713dd8aee3446c1df6ba82a0092e59e546a0cf46100e9e6787a"
+      },
+      "cleanup_result": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-execution-attempt10/resource-recovery-attempt2/COMPREHENSIVE_RESULT.json",
+        "bytes": 1877,
+        "sha256": "9a1c515e3c5f666f93ff7b40bf4a50d66e2ec686f617e614b7f86c52133e51aa"
+      },
+      "cleanup_scope_clarification": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-execution-attempt10/resource-recovery-attempt2/COMPREHENSIVE_RESULT_SCOPE_CLARIFICATION.json",
+        "bytes": 923,
+        "sha256": "fed776c341fa8da4489ad477c273f16e19e717f345ad3e91d71afac2d3798f8b"
+      },
+      "residual_cleanup": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-execution-attempt10/resource-recovery-attempt2/RESIDUAL_RESULT.json",
+        "bytes": 1316,
+        "sha256": "7c8de3295ab3e285c23d9fca06eb8346e8f6ffb77e00b0f2aa4005352ca7e11e"
+      },
+      "qualification": "Archive actual saved receipts only; no cleanup or recovery command executed by Task79. Mutable tmp registry/manifest bindings retain their recorded timestamp/prefix scopes; no current whole-file identity asserted."
+    },
+    "pending": {
+      "DRAFT_PENDING_ACTUAL26_FACTUAL_REVIEW": {
+        "status": "IN_PROGRESS_SEPARATE_WORKER_ROOT_REVIEW_PENDING",
+        "review_handoff": null,
+        "allocation_comparability_decision": null,
+        "per_cell_scientific_observations": null,
+        "root_decision": null
+      },
+      "DRAFT_PENDING_CURRENT_FINAL_STATISTICS": {
+        "status": "HOLD_NOT_EXECUTED_IN_TASK75",
+        "analysis_release": null,
+        "analysis_handoff": null,
+        "median_MAD_p95_and_all_attempt_totals": null,
+        "paired_ratios_and_95pct_intervals": null,
+        "current_family_geometric_means": null,
+        "exclusions_and_failures": null
+      },
+      "DRAFT_PENDING_CURRENT_NATIVE_CAPTURE_READER": {
+        "status": "HOLD_NO_CURRENT_ACTUAL_CAPTURE_OR_READER",
+        "root_runtime_release": null,
+        "capture_handoff": null,
+        "reader_handoff": null,
+        "tracking_completeness": null,
+        "native_sufficiency_decision": null,
+        "no_file_size_cap": true,
+        "proposed_time_budgets_seconds_not_runtime_evidence": [
+          3600,
+          7200,
+          3600
+        ]
+      },
+      "DRAFT_PENDING_PERFORMANCE_ACCEPTANCE": {
+        "status": "HOLD",
+        "root_decision": null,
+        "section12_acceptance": null
+      },
+      "DRAFT_PENDING_RECORD_APPLICATION_REBIND_AND_DELIVERY": {
+        "status": "DRAFT_UNAPPLIED_NO_GIT_ACTIONS",
+        "root_application_release": null,
+        "modified_record_rebind": null,
+        "checkpoint_commit": null,
+        "push_and_remote_verification": null
+      }
+    },
+    "gates": {
+      "stage7A": "IN_PROGRESS",
+      "stage7B": "PREENTRY",
+      "stage_gate_closed": false,
+      "global_gate_closed": false,
+      "goal": "ACTIVE_OPEN",
+      "scientific": "OPEN",
+      "performance": "HOLD",
+      "native_sufficiency": "HOLD",
+      "Plan12": "OPEN",
+      "ABI_SDK_sdist": "OPEN",
+      "Stage7E_before_Stage8_and_global": "REQUIRED",
+      "B_exp_before_Stage13": "REQUIRED"
+    },
+    "scope": "Mechanical unapplied draft of six existing maintained records under Task79. Exact root-accepted Task74 wording only; no new public contract, main-plan/goal/architecture change or external-helper governance approval. External helper legal framework remains unapproved reference only."
+  },
+  "task86_current_checkpoint_draft": {
+    "task": 86,
+    "status": "DRAFT_UNAPPLIED_CURRENT_SDF_FIX_REQUIRED_NATIVE_READER_REVIEW_PENDING",
+    "prepared_at_utc": "2026-11-02T05:15:52.347726+00:00",
+    "supersedes_current_at_authoring_only": "task79_current_checkpoint_draft remains unchanged historical evidence; its then-pending factual/statistics/capture slots do not describe the Task86 current state.",
+    "source": {
+      "commit": "2f39de03feaaee5533662e97df8fdace202f8b41",
+      "tree_from_root_assignment_not_recomputed": "a4036ad3f370c22d47469df2e3fa58f8213d4a47",
+      "inventory_files": 4195,
+      "snapshot_sha256": "1a5954727ddbc4c0c6460906aaa1af70456db07f107d2c057607b2a96e763e86",
+      "qualification": "Frozen source identity from root assignment and bound execution receipts; no Git/full-source/native traversal by Task86."
+    },
+    "inherited_task79_handoff": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/record-update-preparation-task79/HANDOFF.json",
+      "bytes": 5066,
+      "sha256": "9b00b1380e8c55f867f93feaaa0669d982629900c934c8aa979443b30b8ff041"
+    },
+    "inherited_task79_validation": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/record-update-preparation-task79/VERIFICATION.json",
+      "bytes": 11924,
+      "sha256": "2ee828dfdf4dcaad1d22a365ad37c41185f082158436c4b348f6bb3bb05c743f"
+    },
+    "technical13_original_FREEZE10": {
+      "root_acceptance": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/probe-root-release/attempt7-probe-authority/ROOT_TECHNICAL_ACCEPTANCE.json",
+        "bytes": 6699,
+        "sha256": "e06ab4f76c52dcac714c61d054b930073405e27320e2885262f822b2eed84cc3"
+      },
+      "original_FREEZE10": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-execution-attempt10/freeze/FREEZE.json",
+        "bytes": 53279,
+        "sha256": "0a087d52bd87be7693cda15a6726e77cddc866ea02795e8b73ce46016803ac89"
+      },
+      "actual_run_index": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/record-update-preparation-task79/TECHNICAL13_INDEX.json",
+        "bytes": 18228,
+        "sha256": "83eb953457092ae202730c86e3bfb7fd93d1303cee852c76725b45d13a8e34ee"
+      },
+      "runs": [
+        {
+          "version": "3.11",
+          "tier": "source",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3749,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3819,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.11",
+          "tier": "installed",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3737,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3807,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.10",
+          "tier": "source",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3749,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3819,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.10",
+          "tier": "installed",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3737,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3807,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.12",
+          "tier": "source",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3749,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3819,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.12",
+          "tier": "installed",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3737,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3807,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.13",
+          "tier": "source",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3749,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3819,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.13",
+          "tier": "installed",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3737,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3807,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.14",
+          "tier": "source",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3749,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3819,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.14",
+          "tier": "installed",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 3737,
+            "skipped": 67,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 3807,
+          "distinct_collected_test_files": 212
+        },
+        {
+          "version": "3.11",
+          "tier": "default",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 5143,
+            "skipped": 123,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 5269,
+          "distinct_collected_test_files": 373
+        },
+        {
+          "version": "3.11",
+          "tier": "coverage",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 5143,
+            "skipped": 123,
+            "xfailed": 3,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 5269,
+          "distinct_collected_test_files": 373
+        },
+        {
+          "version": "3.11",
+          "tier": "native-source",
+          "counts": {
+            "failed": 0,
+            "no_completed_call": 0,
+            "passed": 6,
+            "skipped": 2,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "actual_collection_nodes": 8,
+          "distinct_collected_test_files": 3
+        }
+      ],
+      "wheel_native_rebuilt": false
+    },
+    "P02_exact_root_accepted_Task74": {
+      "root_receipt": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/reflection-p02-disposition-task74/ROOT_P02_CP310_DISPOSITION.json",
+        "bytes": 3236,
+        "sha256": "8acb6903f59890b452ff8b606a60a5fe56e575a2fa175b7b622d023cb260c30b"
+      },
+      "exact_accepted_paragraph": "For `hotpot.cheminfo.adapters.visualization.draw.compute_atom_bond_colors`, accept the following additional explicit-hint observation only for the Task73-bound CPython 3.10.20 interpreter and its source/installed contexts. With the recorded explicit namespaces containing the actual `mcolors` and `cm` modules, `typing.get_type_hints` returns successfully, but the evaluated built-in tuple `GenericAlias` retains literal `builtins.str` values at return-argument indices 2 and 3: `mcolors.Normalize` and `cm.ScalarMappable`. The baseline nodes are the actual `matplotlib.colors.Normalize` and `matplotlib.colorizer._ScalarMappable` classes. This is an accepted observable reflection difference; `RETURNED` does not mean that these nested strings resolved to classes. Preserve the evaluated surrounding tuple/dict/RGBColor structure, argument order, sharing and all remaining recursive content under only the already accepted exact P01/P02 mappings. Preserve each other Python version's own measured explicit-hint output; this decision permits no general class/string equivalence, unresolved nested reference, namespace substitution or added annotation change. The sole caller-owned Thermo class remains defined in `operations.thermo` under P01. Actual function return values, algorithms, arguments, defaults, public exports, force-field default identity and existing remaining gates keep their current contracts.",
+      "original_unequal_proof": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/probe-root-release/attempt9-tmp-lifecycle-materialization/execution-attempt1/cp310-recursive-reflection-supplement-task73/EXPLICIT_HINT_RECURSIVE_PROOF.json",
+        "bytes": 13727,
+        "sha256": "afbb9bf42e5cd7187b46e19ca2bb9eae08a7b9f6ed2c0ce473773332e086564c"
+      },
+      "exact_boundary_proof": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/probe-root-release/attempt9-tmp-lifecycle-materialization/execution-attempt1/cp310-recursive-reflection-supplement-task73/EXPLICIT_HINT_EXACT_BOUNDARY_PROOF.json",
+        "bytes": 57141,
+        "sha256": "3425715d037c12b443e6902a8acf35f64b5163a249a6ee5ed4eb714ce562b346"
+      }
+    },
+    "fresh26_execution": {
+      "status": "ACTUAL_ALL26_COMPLETED_REAP_AND_FINAL_FREEZE_PASS_ACCEPTANCE_HOLD",
+      "handoff": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-execution/attempt4-current-source-preparation/task75-execution-handoff/TASK75_HANDOFF.json",
+        "bytes": 6456,
+        "sha256": "8f13711776f8b9f084903f7924bd9f0280b05575c82690588bbdbe88fe44d5bf"
+      },
+      "materialization": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-execution/attempt4-current-source-preparation/active-attempt1/materialization-result.json",
+        "bytes": 4266,
+        "sha256": "385be0bf1d4dd09fdf945aae36491e216b1a891375d3b77e5aab730cc3c51a55"
+      },
+      "started_at_utc": "2026-11-02T04:32:47.366954+00:00",
+      "ended_at_utc": "2026-11-02T04:41:33.176706+00:00",
+      "returncode": 0,
+      "counts": {
+        "automatic_retries": 0,
+        "commands_started": 26,
+        "historical_completed_cells_reused": 0,
+        "paired_reports": 12,
+        "phase_attempts": 228,
+        "planned": {
+          "cost": 18,
+          "measured_pairs": 90,
+          "paired_cells": 12,
+          "phase_turns": 228,
+          "public_descriptive": 6,
+          "retention": 8,
+          "warmup_blocks": 24
+        },
+        "public_sample_attempts": 78,
+        "retention_batches": 80,
+        "unstarted": 0,
+        "wrappers_completed": 26
+      },
+      "all26_fresh": true,
+      "historical_completions_reused": 0,
+      "all_observed_task_processes_reaped": true,
+      "final_source_status": "PASS_ACTUAL_FINAL_CHECK_FREEZE",
+      "final_source_guard": {
+        "bytes": 1225,
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-execution/attempt4-current-source-preparation/execution-attempt1/final-source-guard.json",
+        "sha256": "402939dffc2f5d4bfa91965051f782411adbf2a17962f247a4d48327a46667c8"
+      },
+      "statistics_executed": false,
+      "scientific_observations_classified": false,
+      "performance_acceptance": "HOLD",
+      "native_acceptance": "HOLD",
+      "first_activation_failure": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-execution/attempt4-current-source-preparation/activation-attempt1-failure.json",
+        "bytes": 1987,
+        "sha256": "910263275c46a16118b61f5e90dc23e80f026b22e4e19b84751e8944343adb34"
+      },
+      "second_activation_metadata_shape_correction": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-execution/attempt4-current-source-preparation/activation-attempt2-command.json",
+        "bytes": 1352,
+        "sha256": "7e43c2b0aeb5259e795b14d2a1cb5913a32c3949e7e14173669267789731faf5"
+      },
+      "failure_qualification": "Attempt1 rejected an extra bytes field in the root functional freeze token before materialization/measurement; attempt2 metadata-shape correction RC0. Original failure retained; no measurement retry."
+    },
+    "fresh26_execution_qualification": "Execution facts retained; then-pending statistics flags in the unchanged Task79 object are historical and superseded only by Task81 facts below.",
+    "actual_factual_review80": {
+      "handoff": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-paired-analysis/current-source-task76/entrypoint-rebind-task78/task80-factual-review/TASK80_HANDOFF.json",
+        "bytes": 65197,
+        "sha256": "32dfb08a72f359f17548d988f09aae83ca78803f02156064a71d9e94bbaf216b"
+      },
+      "result": {
+        "FINAL_phase_identity_records": 24,
+        "all12cells_proposed_eligible": true,
+        "checks": 12000,
+        "counts": {
+          "actual_raw_cost_samples_scope_paired_both_phases_plus_candidate_public": 306,
+          "candidate_retention_batches": 80,
+          "candidate_retention_cells": 8,
+          "candidate_retention_returned_values": 8000,
+          "expected_candidate_retention_batches": 80,
+          "expected_candidate_retention_cells": 8,
+          "expected_candidate_retention_returned_values": 8000,
+          "expected_measured_pairs": 90,
+          "expected_paired_cells": 12,
+          "expected_phase_turns": 228,
+          "expected_public_descriptive_cells": 6,
+          "expected_raw_cost_samples_same_scope": 306,
+          "expected_warmup_pairs": 24,
+          "measured_pairs": 90,
+          "paired_cells": 12,
+          "phase_turns": 228,
+          "public_descriptive_cells": 6,
+          "warmup_pairs": 24
+        },
+        "failed_checks": [],
+        "immutable_input_files": 2664,
+        "incomplete_commands": [],
+        "named_check_counts": {
+          "ACCEPTED_ANALYZER": 1,
+          "BOUND_ARTIFACT_BYTES": 2711,
+          "CANONICAL_FACTS_AND_COUNTS": 24,
+          "COMPLETE_PHASE_BUDGET": 24,
+          "CONTEMPORANEOUS_ALLOCATION_AND_LIBRARIES": 228,
+          "CONTROLLER_FINAL": 12,
+          "CROSS_PHASE_ATOM_MAPPING": 12,
+          "CROSS_PHASE_EXTERNAL_OUTPUTS": 6,
+          "CROSS_PHASE_SDF_BYTES_ORDER_READBACK": 6,
+          "CROSS_PHASE_SOURCE_FACTS": 12,
+          "DESCRIPTIVE_ORIGIN_INTERPRETER_ALLOCATION": 14,
+          "DESCRIPTIVE_OUTER_FINAL_GUARD": 14,
+          "EXACT_REFERENCED_BYTES": 838,
+          "FINAL_LOADED_EXTERNAL_CLOSURE": 12,
+          "FROZEN_BLOCK_ORDER": 12,
+          "LOADED_HOTPOT_MEMBER_BYTES": 2940,
+          "LOADED_NATIVE_HASHES": 504,
+          "LOADED_PACKAGE_ORIGIN": 504,
+          "ORDER_SEED_AND_RANDOMIZED_SCHEDULE": 1,
+          "OUTER_FINAL_GUARDS": 12,
+          "PACKET_AND_SOURCE": 12,
+          "PAIRED_FINAL": 12,
+          "PERSISTENT_FIXTURE_CACHE_LIFETIME": 24,
+          "PUBLIC_COMPLETE_DESCRIPTIVE_WORK": 6,
+          "RAW_BLOCK_ID_AND_RETURN": 228,
+          "REAL_RELEASE_RETURN_ADJACENCY": 12,
+          "RESOURCE_CHECKPOINT_DENOMINATOR": 24,
+          "RESOURCE_CONTEXT": 504,
+          "RESOURCE_HOOKS_AND_THREADS": 504,
+          "RETENTION_ACTUAL_DENOMINATOR": 8,
+          "RETENTION_ACTUAL_NUMBERED_BATCH": 80,
+          "RETENTION_INITIAL_FINAL_FACTS": 8,
+          "RETENTION_REPORT_SUMMARY_VALUES": 8,
+          "REVIEW_CPU0_NICE10": 1,
+          "REVIEW_INPUT_IMMUTABLE": 2664,
+          "SDF_COMPLETE_READBACK_CARDINALITY": 6,
+          "TEMPLATE_CELL_IDENTITIES": 12
+        },
+        "numbered_retention_batches": 80,
+        "passed_checks": 12000,
+        "pending_paired_ids": [],
+        "raw_input_files": 2664,
+        "resource_records": 504,
+        "retention_sidecars": 160,
+        "status": "COMPLETE_PROPOSED_MEMBERSHIP_REQUIRES_ROOT_DECISION"
+      },
+      "selected_fields": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/record-update-preparation-task86/TASK80_SELECTED_FIELDS.json",
+        "bytes": 7337,
+        "sha256": "a854232668509a4902b5cc9f64af2f24f9a53af649314a9aa3b9f1feadc1bd25"
+      }
+    },
+    "root_membership_equal_work_observed_allocation": {
+      "receipt": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-paired-analysis/current-source-task76/entrypoint-rebind-task78/root-pair-membership-acceptance.json",
+        "bytes": 64985,
+        "sha256": "eb91529897355e0bfbff17b909a5cda21529ddca599f4c94c88f219bcf5b1646"
+      },
+      "selected_fields": {
+        "status": "ROOT_REVIEWED_TRUE_PAIRED_EQUAL_WORK_ALLOCATION",
+        "root_acceptance": true,
+        "recorded_at_utc": "2026-11-02T04:49:48.171013+00:00",
+        "paired_cell_count": 12,
+        "measured_pair_count": 90,
+        "excluded_actual_measured_pairs": 0,
+        "root_qualifications": [
+          "All12 fixed cells/90 measured pairs and24 warmup blocks accepted; all228 actual release/return ledger turns and24 phase FINAL/exit records checked. No measured-pair exclusion, retry, historical completion reuse or ordinal historical pairing.",
+          "Equal semantic work accepted for100 independent values or20 SDF writes/40 frames per turn; full source facts, exact atom mapping, output bytes/order/readback and persistent fixture/cache lifetimes are supported by the bound factual checks. Baseline cache advantage and original conversion counts remain visible.",
+          "Equivalent observed allocation accepted only for this adjacent randomized shared-host experiment: CPU16/thread1, interpreter, environment, cwd, native/common external origins and contemporaneous before/after/FINAL resources. Host is unreserved; scheduling noise, shared load and namespace visibility limits remain. No posthoc load cutoff or outlier removal.",
+          "All306 original COST_SAMPLE_REPORT_DIFFERENCE findings remain. The existing typed comparison canonicalizes dictionary keys only and preserves floats, list order and values; it passed every sample/report comparison. This bounded serialization disposition does not erase the strict findings.",
+          "Six public costs and8 retention cells remain descriptive; retention80 numbered batches/8000 values/160 sidecars. No public cached/fresh ratio, retention timing comparison, native heap claim or subtraction.",
+          "Authorize one unchanged inference invocation with10000 bootstrap draws/seed20261028 and original family/context/end-to-end geometric means. Historical adverse SDF results remain separate. This receipt accepts membership/semantic work/observed allocation only; performance, native, stage and global acceptance remain open."
+        ],
+        "shared_host_disclosed": true,
+        "performance_accepted": false,
+        "native_memory_sufficiency_accepted": false
+      }
+    },
+    "actual_inference81": {
+      "handoff": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-paired-analysis/current-source-task76/entrypoint-rebind-task78/task81-actual-inference/TASK81_HANDOFF.json",
+        "bytes": 35730,
+        "sha256": "eace884b345945bd08b2b15460cb523eca452132612ae3ad1733346228e3cb67"
+      },
+      "inference": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-paired-analysis/current-source-task76/entrypoint-rebind-task78/post26-inference-attempt1/inference.json",
+        "bytes": 918899,
+        "sha256": "62bcd12978e146ec6f0482dad7ddd4e2eb606f06f184909785147f634be776a9"
+      },
+      "selected_fields": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/record-update-preparation-task86/CURRENT_INFERENCE_SELECTED_FIELDS.json",
+        "bytes": 68468,
+        "sha256": "25ea915c8f1646ffb232b29015f00c5087d8fb3ea109aa05f1d36089a208e778"
+      },
+      "counts": {
+        "candidate_retention_cells": 8,
+        "excluded_measured_pairs": 0,
+        "measured_pairs": 90,
+        "original_serialization_findings": 306,
+        "paired_cells": 12,
+        "phase_turns_preserved": 228,
+        "public_descriptive_cells": 6,
+        "retention_fact_sidecars": 160,
+        "retention_numbered_batches": 80,
+        "retention_values_returned": 8000,
+        "warmup_pairs_preserved": 24
+      },
+      "algorithm": {
+        "aggregate_CI": null,
+        "analyzer": {
+          "bytes": 35658,
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-analysis-preparation/attempt2/analyze.py",
+          "sha256": "ae6ca7069a3a6e48c5a7748cf5b1c092d893d0447b648debe26bb8cb7ef007df"
+        },
+        "derived_inference": {
+          "bytes": 20396,
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-paired-analysis/current-source-task76/entrypoint-rebind-task78/infer_current26.py",
+          "sha256": "43b91e9d1dc222e739ff201d2f98960779ebe3ffc940bf085e2b073868f1f6ca"
+        },
+        "draws_per_cell": 10000,
+        "mixed_family_overall_score": null,
+        "per_cell_bootstrap_invocations": 12,
+        "policy": {
+          "bytes": 3874,
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-preparation/attempt1/performance-protocol.proposal.json",
+          "sha256": "edb7094769abdcae34b8e944209b6a3c21075f92343a5d535186feca62ab73a9"
+        },
+        "seed": 20261028,
+        "single_inference_invocation": true,
+        "summary_policy": "Fixed equal size weights within context/family and equal context weights within family. End-to-end SDF summaries remain explicit. Faster mechanisms cannot compensate for slower complete workflows."
+      },
+      "family_summaries": [
+        {
+          "aggregate_CI": null,
+          "context_weights": {
+            "installed": 0.5,
+            "source": 0.5
+          },
+          "family": "independent_value_mechanism",
+          "geometric_mean_runtime_ratio": 0.4351127171605065,
+          "member_weights": {
+            "installed-cost-independent_ob_values-256": 0.16666666666666666,
+            "installed-cost-independent_ob_values-64": 0.16666666666666666,
+            "installed-cost-independent_ob_values-8": 0.16666666666666666,
+            "source-cost-independent_ob_values-256": 0.16666666666666666,
+            "source-cost-independent_ob_values-64": 0.16666666666666666,
+            "source-cost-independent_ob_values-8": 0.16666666666666666
+          },
+          "members": [
+            "source-cost-independent_ob_values-8",
+            "source-cost-independent_ob_values-64",
+            "source-cost-independent_ob_values-256",
+            "installed-cost-independent_ob_values-8",
+            "installed-cost-independent_ob_values-64",
+            "installed-cost-independent_ob_values-256"
+          ],
+          "performance_disposition": "ROOT_REVIEW_OPEN",
+          "uncertainty_scope": "Point summary only. Per-cell frozen bootstrap intervals are reported; no additional group bootstrap was run."
+        },
+        {
+          "aggregate_CI": null,
+          "context_weights": {
+            "installed": 0.5,
+            "source": 0.5
+          },
+          "family": "complete_sdf_workflow",
+          "geometric_mean_runtime_ratio": 2.6212510090812637,
+          "member_weights": {
+            "installed-cost-two_frame_sdf_workflow-256": 0.16666666666666666,
+            "installed-cost-two_frame_sdf_workflow-64": 0.16666666666666666,
+            "installed-cost-two_frame_sdf_workflow-8": 0.16666666666666666,
+            "source-cost-two_frame_sdf_workflow-256": 0.16666666666666666,
+            "source-cost-two_frame_sdf_workflow-64": 0.16666666666666666,
+            "source-cost-two_frame_sdf_workflow-8": 0.16666666666666666
+          },
+          "members": [
+            "source-cost-two_frame_sdf_workflow-8",
+            "source-cost-two_frame_sdf_workflow-64",
+            "source-cost-two_frame_sdf_workflow-256",
+            "installed-cost-two_frame_sdf_workflow-8",
+            "installed-cost-two_frame_sdf_workflow-64",
+            "installed-cost-two_frame_sdf_workflow-256"
+          ],
+          "performance_disposition": "ROOT_REVIEW_OPEN",
+          "uncertainty_scope": "Point summary only. Per-cell frozen bootstrap intervals are reported; no additional group bootstrap was run."
+        }
+      ],
+      "six_adverse_cells": [
+        {
+          "context": "source",
+          "id": "source-cost-two_frame_sdf_workflow-8",
+          "paired_bootstrap_95ci": [
+            2.3505115860597483,
+            2.400743420249727
+          ],
+          "runtime_ratio": 2.381146801022797,
+          "size": 8,
+          "workload": "two_frame_sdf_workflow"
+        },
+        {
+          "context": "source",
+          "id": "source-cost-two_frame_sdf_workflow-64",
+          "paired_bootstrap_95ci": [
+            2.375380081950772,
+            2.4134905797572834
+          ],
+          "runtime_ratio": 2.4049526466486535,
+          "size": 64,
+          "workload": "two_frame_sdf_workflow"
+        },
+        {
+          "context": "source",
+          "id": "source-cost-two_frame_sdf_workflow-256",
+          "paired_bootstrap_95ci": [
+            3.158842164622973,
+            3.1786404559552337
+          ],
+          "runtime_ratio": 3.1653223839925864,
+          "size": 256,
+          "workload": "two_frame_sdf_workflow"
+        },
+        {
+          "context": "installed",
+          "id": "installed-cost-two_frame_sdf_workflow-8",
+          "paired_bootstrap_95ci": [
+            2.335239776190921,
+            2.387216402126187
+          ],
+          "runtime_ratio": 2.363461677451684,
+          "size": 8,
+          "workload": "two_frame_sdf_workflow"
+        },
+        {
+          "context": "installed",
+          "id": "installed-cost-two_frame_sdf_workflow-64",
+          "paired_bootstrap_95ci": [
+            2.381996105515146,
+            2.4040931526247697
+          ],
+          "runtime_ratio": 2.3891074828786194,
+          "size": 64,
+          "workload": "two_frame_sdf_workflow"
+        },
+        {
+          "context": "installed",
+          "id": "installed-cost-two_frame_sdf_workflow-256",
+          "paired_bootstrap_95ci": [
+            3.1479112054619645,
+            3.1874129086342466
+          ],
+          "runtime_ratio": 3.169251912186697,
+          "size": 256,
+          "workload": "two_frame_sdf_workflow"
+        }
+      ],
+      "no_mixed_family_compensation": true,
+      "performance_accepted": false
+    },
+    "root_current_performance_disposition": {
+      "receipt": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-paired-analysis/current-source-task76/entrypoint-rebind-task78/ROOT_CURRENT_PERFORMANCE_DISPOSITION.json",
+        "bytes": 7302,
+        "sha256": "56ee5c10808e0e0afec1890cfcda4858c181b0eab370ec2b75c458d9673c6007"
+      },
+      "status": "ROOT_CURRENT_SDF_REGRESSION_CONFIRMED_FIX_REQUIRED_PERFORMANCE_ACCEPTANCE_HOLD",
+      "recorded_at_utc": "2026-11-02T04:54:19.096037+00:00",
+      "decision": "Accept the completed bound inference as evidence; do not accept SDF parity or performance. Investigate and repair the full workflow while preserving freshness, source ownership, real baseline caching, exact20writes/40frames, output facts/mapping/order/readback and frozen comparison policy. No rare exception, changed denominator, shifted timed work or mechanism/RSS compensation authorized.",
+      "retention_disposition": "80batches/8000values/160sidecars and post-drop weakrefs are bounded evidence only. Flat terminal RSS slope is not native deallocation or leak freedom. Current native diagnostic remains independently in progress.",
+      "next_action_at_root_receipt_authoring": "Task83 read-only component/source diagnosis; implementation release follows exact owner/options review after frozen runtime evidence is closed.",
+      "performance_accepted": false,
+      "native_memory_sufficiency_accepted": false,
+      "stage_gate_closed": false,
+      "global_gate_closed": false
+    },
+    "original_serialization_findings": {
+      "code": "COST_SAMPLE_REPORT_DIFFERENCE",
+      "count": 306,
+      "first_difference_path": [
+        "<key:0>"
+      ],
+      "original_strict_findings_preserved": true,
+      "reason": "VALUE",
+      "supplemental_typed_equality": "All228paired+78public samples pass existing object_key_order_only then unchanged strict against final report by exact index. No scientific fact normalization,float/list changes or deleted finding."
+    },
+    "historical_adverse_and_failed_evidence": {
+      "Task79_records_preserved": true,
+      "old_SDF_GM": 3.522012,
+      "old_six_cell_range": [
+        2.871096,
+        4.398163
+      ],
+      "qualification": "Historical source/attempt separate from current GM2.6212510090812637. No cross-attempt causal improvement claim; retain all prior architecture/activation/proof/drawing/native failures and unequal comparator verdicts."
+    },
+    "current_native82_capture": {
+      "report": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-execution-attempt12/native-memory-attribution-freeze12-rdkit64-attempt1/payload/report.json",
+        "bytes": 202751,
+        "sha256": "643385d25264359d2b708c4cfc1f0681866ec57527f0ca910a66477dba7c657e"
+      },
+      "outer": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-execution-attempt12/native-memory-attribution-freeze12-rdkit64-attempt1/outer/outer-result.json",
+        "bytes": 1361693,
+        "sha256": "69fd8cd11802c0278bb802527a83f553a3ae0a2530af90d25722883650c1a2de"
+      },
+      "collector_status": "OBSERVATIONS_CAPTURED_SUFFICIENCY_REQUIRES_ROOT_REVIEW",
+      "attempted_batches": 128,
+      "observed_batches": 128,
+      "failed_batches": 0,
+      "semantic_calls_attempted": 12800,
+      "semantic_calls_returned": 12800,
+      "semantic_elapsed_ns": 997277102451,
+      "semantic_elapsed_seconds": 997.277102451,
+      "stop_reason": "PREDECLARED_MINIMUM_WORK_AND_DURATION_COMPLETED",
+      "collector_total_elapsed_seconds": 1060.491670716554,
+      "collector_report_claims_closed_cleanly": true,
+      "capture_identity_inherited_from_report_not_read_or_rehashed": {
+        "bytes": 7271399424,
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-execution-attempt12/native-memory-attribution-freeze12-rdkit64-attempt1/payload/native-allocation.bin",
+        "sha256": "3fe29090374750e5380c47ad4a8fbb6054b39a6a2ca62fceef1434f3220c4220"
+      },
+      "attribution_mode": {
+        "file_format": "ALL_ALLOCATIONS",
+        "follow_fork": false,
+        "memory_interval_ms": 10,
+        "name": "native_allocators_only_v1",
+        "native_traces": true,
+        "trace_python_allocators": false,
+        "track_object_lifetimes": false
+      },
+      "attribution_limits": [
+        "Individual Python small-block allocation/free/lifetime stacks are unavailable. Native backing/arena allocations may overlap separate tracemalloc/allocated-block/GC scalars; no subtraction or combined total.",
+        "Interception and temporal-bin evidence only; not all native storage or destructor coverage.",
+        "Python/native/mapping allocator layers are not additive or subtractable.",
+        "Disk exhaustion, inherited OS restrictions or other write failures may leave an invalid trace footer; retain incomplete files and report the actual failure."
+      ],
+      "inherited_file_size_limit": {
+        "application_file_size_limit_applied": false,
+        "both_unlimited": true,
+        "finding": null,
+        "hard_bytes": null,
+        "soft_bytes": null
+      },
+      "outer_status": "PAYLOAD_EXITED_ZERO_REQUIRES_REPORT_REVIEW",
+      "outer_returncode": 0,
+      "outer_started_at_utc": "2026-11-02T04:53:50.617480+00:00",
+      "outer_ended_at_utc": "2026-11-02T05:11:37.655139+00:00",
+      "outer_elapsed_seconds": 1067.0405822824687,
+      "all_task_processes_reaped": true,
+      "task_processes_remaining": [],
+      "automatic_retries": false,
+      "collector_claims_clean_completion": true,
+      "outer_coverage_limits": [
+        "Outer process completion is not collector completion or a valid profiler footer.",
+        "Monotonic checks bound userspace phases including cleanup and finalization; uninterruptible kernel/filesystem operations or SIGKILL of the recorder cannot guarantee a footer.",
+        "Release prerequisites are exact bound root inputs; this recorder does not qualify profiler ABI, symbols, chemistry or performance."
+      ],
+      "memory_gate_closed": false,
+      "performance_accepted": false,
+      "reader_and_root_memory_review": "PENDING_NO_RESULT_INSPECTED_IN_TASK86",
+      "qualification": "Capture completion and collector clean-close claim are actual observations. Valid footer/native stack/temporal completeness, native ownership/deallocation and sufficiency need the separate reader/root review; no memory acceptance or binary trace inspection by Task86."
+    },
+    "task83_static_unquantified": {
+      "handoff": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-regression-diagnosis-task83/HANDOFF.json",
+        "bytes": 32687,
+        "sha256": "140d340bc988322de085c6dcb65ffe588174aaab29a561bab9818b1933925285"
+      },
+      "status": "STATIC_DIAGNOSIS_COMPLETE_NO_IMPLEMENTATION_OR_RUNTIME_VALIDATION",
+      "conclusion": "Verified warmed cross-write baseline cache versus20 fresh candidate values, each reused for2frames; safe local duplicate-work candidates remain unimplemented/unmeasured. Cannot attribute total regression from overlapping component clocks or promise closure.",
+      "cost_attribution_quantified": false
+    },
+    "task84_preparation_only": {
+      "handoff": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-regression-profile-preparation-task84/PREPARATION_HANDOFF.json",
+        "bytes": 21500,
+        "sha256": "5fb9545b3e549045f966a715003116ba9b0cefa0d7ffc7135f14fdb8ec0d8621"
+      },
+      "status": "PREPARATION_COMPLETE_EXECUTION_HOLD",
+      "runtime_authorized": false,
+      "profile_observations_obtained": 0
+    },
+    "pending": {
+      "DRAFT_PENDING_SDF_REPAIR_AND_VALIDATION": {
+        "status": "REGRESSION_FIX_REQUIRED_NO_IMPLEMENTATION_RELEASE_BY_TASK86",
+        "current_root_disposition": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-paired-analysis/current-source-task76/entrypoint-rebind-task78/ROOT_CURRENT_PERFORMANCE_DISPOSITION.json",
+          "bytes": 7302,
+          "sha256": "56ee5c10808e0e0afec1890cfcda4858c181b0eab370ec2b75c458d9673c6007"
+        },
+        "implementation_release": null,
+        "new_source_validation": null,
+        "new_frozen_equal_work_measurements": null,
+        "future_root_disposition": null
+      },
+      "DRAFT_PENDING_NATIVE_READER_AND_ROOT_MEMORY_REVIEW": {
+        "status": "CAPTURE_COMPLETED_READER_ROOT_MEMORY_REVIEW_PENDING",
+        "completed_capture_report": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-execution-attempt12/native-memory-attribution-freeze12-rdkit64-attempt1/payload/report.json",
+          "bytes": 202751,
+          "sha256": "643385d25264359d2b708c4cfc1f0681866ec57527f0ca910a66477dba7c657e"
+        },
+        "reader_release": null,
+        "reader_result": null,
+        "trace_integrity_and_attribution_review": null,
+        "root_native_sufficiency_decision": null
+      },
+      "DRAFT_PENDING_COMPONENT_ATTRIBUTION_AND_PROFILE": {
+        "status": "TASK83_STATIC_UNQUANTIFIED_TASK84_PREPARED_HOLD",
+        "task83": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-regression-diagnosis-task83/HANDOFF.json",
+          "bytes": 32687,
+          "sha256": "140d340bc988322de085c6dcb65ffe588174aaab29a561bab9818b1933925285"
+        },
+        "task84": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-regression-profile-preparation-task84/PREPARATION_HANDOFF.json",
+          "bytes": 21500,
+          "sha256": "5fb9545b3e549045f966a715003116ba9b0cefa0d7ffc7135f14fdb8ec0d8621"
+        },
+        "profile_runtime_release": null,
+        "actual_profile_observations": null,
+        "quantified_cause": null
+      },
+      "DRAFT_PENDING_PERFORMANCE_ACCEPTANCE": {
+        "status": "HOLD_FIX_REQUIRED",
+        "current_root_hold_decision": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/performance-paired-analysis/current-source-task76/entrypoint-rebind-task78/ROOT_CURRENT_PERFORMANCE_DISPOSITION.json",
+          "bytes": 7302,
+          "sha256": "56ee5c10808e0e0afec1890cfcda4858c181b0eab370ec2b75c458d9673c6007"
+        },
+        "future_performance_acceptance": null,
+        "section12_acceptance": null
+      },
+      "DRAFT_PENDING_RECORD_APPLICATION_REBIND_AND_DELIVERY": {
+        "status": "HOLD_UNAPPLIED_NO_GIT_ACTIONS",
+        "root_application_release": null,
+        "modified_record_rebind": null,
+        "checkpoint_commit": null,
+        "push_and_remote_verification": null
+      }
+    },
+    "gates": {
+      "stage7A": "IN_PROGRESS",
+      "stage7B": "PREENTRY",
+      "stage_gate_closed": false,
+      "global_gate_closed": false,
+      "goal": "ACTIVE_OPEN",
+      "scientific": "OPEN",
+      "performance": "HOLD_FIX_REQUIRED",
+      "native_sufficiency": "PENDING_READER_AND_ROOT_REVIEW",
+      "Plan12": "OPEN",
+      "ABI_SDK_sdist": "OPEN",
+      "Stage7E_before_Stage8_and_global": "REQUIRED",
+      "B_exp_before_Stage13": "REQUIRED"
+    },
+    "scope": "Mechanical unapplied record update only. No new design/public contract/waiver/gate/legal framework. Exact Task74 P02 text and all original root fields/log prefix retained. Apply/commit/push HOLD under root.",
+    "record_preparation_command": "python -I -S -B .plan20-artifacts/20261030/stage7a/record-update-preparation-task86/prepare_drafts.py"
+  },
+  "task90_current_checkpoint_unapplied": {
+    "task": 90,
+    "task_id": "p20-s7a-record-finalization-704283-90",
+    "status": "UNAPPLIED_MECHANICAL_RECORD_FINALIZATION",
+    "recorded_checkpoint_utc": "2026-11-02T05:41:58.823780+00:00",
+    "actual_model_effort": "UNVERIFIED",
+    "task85_diagnostic": {
+      "handoff": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-regression-profile-preparation-task84/task85-execution-handoff/TASK85_HANDOFF.json",
+        "bytes": 13994,
+        "sha256": "5b4c9a6172cb1d0aa404ca3790a57ffacdccfe968b9b837f14144cfe87b58ecc"
+      },
+      "report": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-regression-profile-preparation-task84/task85-execution-handoff/REPORT.md",
+        "bytes": 3537,
+        "sha256": "dd2ce04e6a13f3b5d8a0da47ff7cd441b15d739720ee1b4d83faf7477db9fffa"
+      },
+      "commands_once_each": 4,
+      "returncodes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "all_reaped": true,
+      "observed_diagnostic_only": true,
+      "cpu": 16,
+      "concurrent_with_immutable_cpu0_reader": true,
+      "public_writes_total": 240,
+      "serialized_frames_total": 480,
+      "profiled_writes": 80,
+      "profiled_frames": 160,
+      "readback_frames_outside_profile": 320,
+      "nested_cumulative_timings_overlap_not_additive": true,
+      "size256_ms": {
+        "capture_ob_values": 59.331,
+        "factual_pack": 44.0,
+        "candidate_native_WriteString": 92.044,
+        "baseline_native_WriteString": 24.856
+      },
+      "native_internal_cause": "UNKNOWN",
+      "performance_accepted": false
+    },
+    "task87_reader": {
+      "launch": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/native-memory-attribution-release-preparation/task87-reader-handoff/launch.json",
+        "bytes": 3214,
+        "sha256": "bf59cce48c081cd1fa425832ece5309faf1691b005bb885d7b938346f3817ebc"
+      },
+      "root_release": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-execution-attempt12/native-memory-attribution-freeze12-packet-attempt1/ROOT_EXACT_READER_EXECUTION_RELEASE.json",
+        "bytes": 3477,
+        "sha256": "c3e653e2bbcfafdc232da0e32b26035e7d26cec85d97af92c10b80c27a3e2b0a"
+      },
+      "launched_once_at_utc": "2026-11-02T05:14:55.100343+00:00",
+      "cpu": 0,
+      "original_lifecycle_seconds": 3600,
+      "file_size_limits": "UNLIMITED",
+      "status": "RUNNING_AS_OF_TASK90_INPUT_CUTOFF",
+      "terminal_result_inspected": false,
+      "memory_attribution_pending": true,
+      "root_memory_sufficiency_pending": true
+    },
+    "task88_isolated_repair": {
+      "source": "ROOT_SUPPLIED_TASK90_ASSIGNMENT_ONLY",
+      "status": "LOCAL_SOL_MAX_ISOLATED_REPAIR_IN_PROGRESS",
+      "inspected_or_duplicated_by_task90": false,
+      "main_source_test_edits_recorded": false,
+      "root_implementation_acceptance": false
+    },
+    "preserved": {
+      "complete_sdf_gm": 2.6212510090812637,
+      "six_adverse_paired95_intervals": [
+        {
+          "context": "source",
+          "size": 8,
+          "ratio": 2.381146801,
+          "ci95": [
+            2.350511586,
+            2.40074342
+          ]
+        },
+        {
+          "context": "source",
+          "size": 64,
+          "ratio": 2.404952647,
+          "ci95": [
+            2.375380082,
+            2.41349058
+          ]
+        },
+        {
+          "context": "source",
+          "size": 256,
+          "ratio": 3.165322384,
+          "ci95": [
+            3.158842165,
+            3.178640456
+          ]
+        },
+        {
+          "context": "installed",
+          "size": 8,
+          "ratio": 2.363461677,
+          "ci95": [
+            2.335239776,
+            2.387216402
+          ]
+        },
+        {
+          "context": "installed",
+          "size": 64,
+          "ratio": 2.389107483,
+          "ci95": [
+            2.381996106,
+            2.404093153
+          ]
+        },
+        {
+          "context": "installed",
+          "size": 256,
+          "ratio": 3.169251912,
+          "ci95": [
+            3.147911205,
+            3.187412909
+          ]
+        }
+      ],
+      "all_six_ci_lower_bounds_above_one": true,
+      "original_findings": 306,
+      "task74_exact_p02_preserved": true,
+      "technical_provenance": "FREEZE10_RETAINED_NOT_RELABELLED",
+      "capture_provenance": "FREEZE12_RETAINED_NOT_REBOUND"
+    },
+    "application": {
+      "root_release": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/record-application-task89/ROOT_RECORD_APPLICATION_RELEASE.json",
+        "bytes": 4681,
+        "sha256": "28548c82b6825c50e41366990c58120b719232b2229349022b23a147b5979386"
+      },
+      "record_application": null,
+      "modified_record_rebind": null,
+      "checkpoint_commit": null,
+      "push_result": null,
+      "remote_verification": null,
+      "root_owned": true
+    },
+    "gates": {
+      "stage7A": "IN_PROGRESS",
+      "stage7B": "PREENTRY",
+      "performance": false,
+      "native_memory_sufficiency": false,
+      "science": false,
+      "stage_gate_closed": false,
+      "global_gate_closed": false
+    }
+  },
+  "current_progress_checkpoint_task89": {
+    "owner": "root",
+    "recorded_at_utc": "2026-11-02T05:52:48.511656+00:00",
+    "status": "RECORDS_APPLIED_GIT_CHECKPOINT_RELEASED_SOURCE_PATCH_HELD",
+    "stage7A": "IN_PROGRESS",
+    "stage7B": "PREENTRY",
+    "application_release": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/record-application-task89/ROOT_RECORD_APPLICATION_RELEASE.json",
+      "bytes": 4681,
+      "sha256": "28548c82b6825c50e41366990c58120b719232b2229349022b23a147b5979386"
+    },
+    "prepared_batch": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/record-finalization-task90/HANDOFF.json",
+      "bytes": 6457,
+      "sha256": "4865ce4ff632f17ce77857d087448c148f9615ecf8a3921f8b45da38dd03e283"
+    },
+    "task90_document_checks": {
+      "passed": 109,
+      "failed": 0,
+      "coverage": "Immutable document consistency only; no source/runtime acceptance."
+    },
+    "task88_root_review": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/record-application-task89/ROOT_ISOLATED_SDF_PATCH_REVIEW.json",
+      "bytes": 3234,
+      "sha256": "f96e4f9cd0c6a7e3b60ab0e3f92ddd0c83e13850304a58f975eb6067b9c331bb"
+    },
+    "task88": {
+      "status": "LOCAL_SUBAGENT_ISOLATED_PATCH_REVIEWED_MAIN_APPLY_HELD",
+      "handoff": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-repair-task88/HANDOFF.json",
+        "bytes": 17061,
+        "sha256": "d2bd7e61e34c20fa3c3bbdb338bfe51dd4eff7caf7b382dd51132e0cacf2a302"
+      },
+      "patch": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-repair-task88/isolated-repair.patch",
+        "bytes": 11060,
+        "sha256": "9fd53f5b455f7cedacc9f4b66a1533ba9fa07f2cb06401d750013cedb9197a5e"
+      },
+      "current_focused_connected": {
+        "passed": 61,
+        "failed": 0,
+        "returncode": 0
+      },
+      "original_P03_node_after_migration": {
+        "passed": 1,
+        "failed": 0,
+        "returncode": 0
+      },
+      "historical_before_migration": {
+        "passed": 60,
+        "failed": 1,
+        "retained": true
+      },
+      "cross_copy_comparisons_equal": 128,
+      "native_serialization_internal_cause": "UNKNOWN",
+      "main_source_test_changes_applied": false
+    },
+    "task91": {
+      "status": "LOCAL_SUBAGENT_BOUNDED_FIRST_SECOND_SERIALIZATION_DIAGNOSTIC_ASSIGNED",
+      "source": "Task88 isolated source-after",
+      "no_product_edit_authorized": true
+    },
+    "task87": {
+      "status": "ONE_AUTHORIZED_READER_EXECUTION_TERMINAL_RESULT_NOT_YET_INSPECTED_BY_ROOT",
+      "root_native_memory_sufficiency_pending": true
+    },
+    "delegation": {
+      "local_subagents": [
+        "Task87 native reader",
+        "Task88 isolated SDF repair, completed",
+        "Task91 bounded serialization diagnosis",
+        "Git management"
+      ],
+      "external_helper": "Task90 mechanical document preparation only; actual model/effort UNVERIFIED",
+      "token_credit_savings_measured": false
+    },
+    "source_provenance": "Production/test bytes unchanged by this record application. Original technical13 stays FREEZE10; completed capture stays FREEZE12 and original4195-file snapshot/HEAD. Changed docs/HEAD are not retrospectively bound to those runs. Future launches must rebind applicable current identities.",
+    "complete_sdf_gm": 2.6212510090812637,
+    "six_adverse_CIs_and_306_original_findings_retained": true,
+    "performance_accepted": false,
+    "native_memory_sufficiency_accepted": false,
+    "stage_gate_closed": false,
+    "global_gate_closed": false,
+    "checkpoint_commit": null,
+    "push_result": null
   }
 }

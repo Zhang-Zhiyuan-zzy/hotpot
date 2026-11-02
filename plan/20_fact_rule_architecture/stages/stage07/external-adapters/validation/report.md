@@ -284,3 +284,43 @@ No compiler/native/loader/audit/guard rerun, mutable runtime read, source/root-l
 change or stage/global gate closure occurs. Full runtime/accounting/combined comparison,
 SDK/scientific/performance/SDF/native-memory and all remaining gates stay open. Commit/
 push are held for root exact-file/digest review.
+
+
+## Current factual checkpoint — Task158 / 2026-11-02
+
+Root accepted bounded ORIGINAL/private unmodified CONTROL public/GTD correspondence
+from separately released guard-corrected attempt2. Actual264cells returned0 in
+351.39727744832635s with530 MATCH351-node checks; the complete bound integrity/shared
+comparison returned0 in185.56386914476752s,CONTROL_INTEGRITY_AND_SHARED_COMPARISON_PASS,
+comparison_acceptable=true/zero blockers. Task157 ran once RC0/7.084170026704669s,
+issues[], verifying2105 release/2107 case guards covering all13 provider paths and
+3718 stable final bindings. All264 public/132 observer endpoints retain ABI0/canonical
+native identity; mapping claims remain bounded by inspected compiled guards and
+successful endpoints, with no full raw process-map dumps.
+
+First attempt1 RC0/comparison PASS remains distinct from complete acceptance HOLD:
+Task153's retained RC2 identified missing per-cell smartcols alias/canonical guards.
+Current matching identity could not establish historical invariance. Attempt2 adds
+exactly those two guards plus unchanged closure metadata, preserving all2102 previous
+guards; it supplies prospective evidence only and does not rewrite first outcomes.
+Literal plain optional-observer lookup/(fatal) diagnostics and all raw data remain.
+
+Every lane/mode retains84874 planned/scheduled/started/complete constructor-or-public
+cases,84867 accepted constructions/seven constructor rejects. Each observed lane has
+169734 actual vectors/14 unavailable scopes; paired GTD comparison retains those
+169734 comparable/14 unavailable scopes. Plain unobserved vectors remain unavailable
+by design. Correspondence supplies no scientific truth oracle or fabricated success.
+
+The [native record](native_gtd_diagnostic.json), `task158_checkpoint`, links exact root
+acceptance and complete lossless raw/comparison/Task153/157 archives:4046 regular files,
+2648 directories/3769447610 regular bytes,68 compact copies and original member mapping/
+SHA256/mode/reconstruction proof. ORIGINAL Task121/first release/prior archives are
+reused; first/second preparation manifests remain immutable history. No workload,
+checker/reviewer/guard/native/import/test/build rerun occurs in Task158.
+
+Acceptance is bounded correspondence only. Exact-original B0 is unrecovered; only
+isolated Task112 candidate source preparation is separately released. Candidate build/
+install/ABI/loader/runtime/correspondence, current214 source/wheel/native matrix and
+function/reflection, SDK/SWIG/import order, fresh26 performance/SDF FIX_REQUIRED,
+native-memory and all stage/later/global gates remain open. No source/root-log/
+verification-map/Git change or stage/global closure occurs. Commit/push are held.

@@ -1324,3 +1324,86 @@ required, SDF/native-memory and all stage/global gates remain open. Stage7A rema
 IN_PROGRESS/SDF FIX_REQUIRED and Stage7B PREENTRY. Exactly four factual records
 are appended; source/tests/config/environment/native/root-log/verification-map/Git
 are untouched. Commit/push remain held for root exact-file/digest review.
+
+
+## Current factual checkpoint — Task158 / 2026-11-02
+
+The [native diagnostic record](../validation/native_gtd_diagnostic.json),
+`task158_checkpoint`, preserves both terminal CONTROL attempts, both actual
+combined comparisons and the Task153/157 loader reviews. Root accepts bounded
+ORIGINAL/private unmodified CONTROL public/GTD correspondence after corrected
+attempt2. Prior JSON values/raw spelling and Markdown prefixes remain history;
+Task108 same-stage alignment reuses12 unchanged normative identities. Docs HEAD
+is116d44e5bd9d91778d727f191b9c11eae2f5e94a; product ancestry9999ecd is unchanged.
+
+Attempt1 completed264cells RC0 in349.18536794371903s with530 MATCH351-node checks.
+Its combined integrity/shared comparison returned0 in185.88378752581775s,
+comparison_acceptable=true/zero blockers. Task153's one auditor run returned2
+in7.069271650165319s. Matching driver-family endpoints/current provider bytes did
+not prove historical per-cell libsmartcols invariance: prlimit initialized that
+provider in all264cells without alias/canonical guards. Root kept complete runtime
+acceptance HOLD, retaining TASK153-F1, the initial strict metadata-direct-guard
+assumption and both manifestations of the wrapper gap. Original release, raw
+observations, RC2 and first acceptance disposition remain byte-exact history.
+
+Root separately released a new complete guard-corrected attempt2, preserving all
+2102 previous release guards and adding exactly smartcols alias/canonical plus
+the unchanged accepted static-closure report. Actual264cells completed RC0 in
+351.39727744832635s,132plain/132observed,530 ordered MATCH checks of351 nodes,
+no abort/retry/timeout/signal/guard mismatch or reaping failure. All2105 release
+and2107 ordered before/after case guards cover all13 actual lexical/canonical
+provider paths; smartcols initializes only in prlimit. This supplies prospective
+attempt2 provenance and does not retroactively repair attempt1.
+
+Task157's prepared offline auditor ran once RC0 in7.084170026704669s,issues[].
+All264 raw loader stderr were fully read/hash-checked:11410740bytes,4092 init
+observations,35904 version checks/272 distinct edges. Provider/version profiles
+match separately for prlimit/taskset/driver in both modes.18216 search probes
+are excluded from loaded-object claims. All528 literal undefined-symbol/(fatal)
+messages are four expected optional observer dlsym lookups per plain cell;
+observed/unclassified diagnostics are zero. Preserve the strings and actual
+RC0/run_end distinction, rather than relabeling these as process termination.
+
+Every driver selects only the CONTROL.so.8 alias/canonical.so.8.0.0, SHA256
+bdc92e62f35b5fbfe6b6ab53a1c9f0072b83bf4593c3bf7e935fda573c59979b,
+device66307/inode6044293. All264 public start/end and132 observer origin/end
+records match ABI0/canonical identity. Inspected compiled guards attest exact
+dladdr/sole-family mapping before both public endpoints and guarded RTLD_NEXT
+origin. Full raw process-map dumps are unavailable; reaping claims cover the
+supervisor-visible /proc namespace. Final3718 full-hash bindings plus264 public/
+132 observer first/final records and sizes are stable. Task157 ran no target,
+loader/import/test/build or benchmark; complete stream hashes/values belong to
+the separate shared comparison, not this endpoint-focused review.
+
+The actual attempt2 combined integrity/shared comparison returned0 in
+185.56386914476752s,CONTROL_INTEGRITY_AND_SHARED_COMPARISON_PASS with
+comparison_acceptable=true and zero blockers. Each lane/mode retains84874 planned/
+scheduled/started/completed constructor-or-public cases,84867 accepted constructions
+and seven constructor rejections. Each observed lane retains169734 actual returned
+vectors/14 unavailable scopes; ORIGINAL/CONTROL comparison retains169734 comparable
+GTD scopes/14 unavailable. Plain unobserved scopes and constructor rejects remain
+in the original denominators. No vector or success was fabricated; vector_oracle
+remains null and scientific truth is not established by correspondence.
+
+Root's exact10970-byte acceptance SHA256
+76db39636aa38036dd6152685546faa7ea1d42e3b7eb0d249d35c2b671185bbe
+accepts only measured bounded ORIGINAL/private CONTROL public/GTD correspondence,
+loader profiles, inventory and supervisor receipts. It verifies38 bound identities.
+Complete lossless archives reconstruct4046 regular files/2648 directories and
+3769447610 regular bytes across both terminal raw attempts and both full comparison/
+accounting/review packets. Sixty-eight compact copies match. First/second raw
+subset manifests remain unchanged; ORIGINAL Task121 runtime is reused fromTask132,
+first release fromTask154, without duplicating the1.6GB ORIGINAL/source/build/prior
+archives. No growing output was read before its terminal authorization. Original
+inode/device/mtime are provenance, not reconstructed runtime identities.
+
+Exact-original build recipe/B0 remains unrecovered. Only isolated one-function
+Task112 FIFO/stamp candidate source preparation is separately released; no candidate
+compile/install/native/runtime/production release follows. Candidate ABI/loader and
+original-control-candidate correspondence, current214 source/installed/native supported
+matrix/function/reflection checks, SDK/SWIG/import order, fresh26 performance,
+complete-SDF FIX_REQUIRED/native-memory sufficiency and all stage/later/global gates
+remain open. Stage7A IN_PROGRESS/Stage7B PREENTRY; Task149 upstream risks stay retained.
+Exactly four factual records append after actual root finalization; root log,
+verification map/source/tests/config/environment/native/Git remain untouched.
+Commit/push are held for root exact-file/digest review.

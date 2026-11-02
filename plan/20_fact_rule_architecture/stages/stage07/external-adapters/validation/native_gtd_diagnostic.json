@@ -2127,5 +2127,463 @@
       "scope": "Complete immutable9stepcompile receipts/raw supervisor outputs; six exact diagnostic driver/observer/.d/link-map files; full finished Task152long/medium review/source/metadata/raw receipts and exact root compile/metadata/preparation/release manifests. No runtime attempt, compiler tmp, original37610source tree or prior archive duplicate. Original inode/device/mtime are provenance, not reconstructed runtime identities."
     },
     "remaining": "Full264 CONTROL runtime is root-released/in progress at entry, with no result/loader/native acceptance inspected or claimed. Actual process mappings/loader search/RTLD_NEXT origin/forwarding/ABI/load-order/native behavior and SDK consumer proof, all-roster accounting/inventory/observation checks and positive bound CONTROL_INTEGRITY_AND_SHARED_COMPARISON_PASS with comparison_acceptable=true/intact bindings/root review remain pending. Candidate correspondence/scientific/function/reflection/full214 source-wheel-native matrix and fresh26 performance rebind where required, SDF FIX_REQUIRED/native-memory sufficiency and all remaining stage/global gates stay open. Stage7A IN_PROGRESS/Stage7B PREENTRY. Retain all Task149 upstream UB/truncation/SWIG/doc risks; no waiver."
+  },
+  "task158_checkpoint": {
+    "recorded_at_utc": "2026-11-02T14:01:35.665928+00:00",
+    "status": "ROOT_ACCEPTED_BOUNDED_ORIGINAL_CONTROL_CORRESPONDENCE_ATTEMPT2",
+    "scope": "Task158 finite factual archives and four append-only records, after separate actual root finalization authorization. Prior JSON values/raw spelling and all Markdown prefixes remain history. Root-authorized same-stage Task108 alignment reuses12 unchanged normative identities; no fresh full-plan/design/API/scientific acceptance claim. Exactly stage07 README/contracts review/validation report/native diagnostic record; no root log/verification-map/source/tests/config/environment/native/Git change. Commit/push held for root exact-file/digest review.",
+    "docs_HEAD_from_root_acceptance": "116d44e5bd9d91778d727f191b9c11eae2f5e94a",
+    "product_ancestry_parent_reported_unchanged": "9999ecd",
+    "root_bounded_acceptance": {
+      "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/final-packet/root-receipts/TASK157_ROOT_CONTROL_CORRESPONDENCE_ACCEPTANCE.json",
+      "bytes": 10970,
+      "sha256": "76db39636aa38036dd6152685546faa7ea1d42e3b7eb0d249d35c2b671185bbe"
+    },
+    "root_disposition": "Accept only measured bounded original/private unmodified CONTROL public and GTD correspondence, actual loader profiles, inventory and supervisor receipts. TASK153-F1 is addressed prospectively by separately released attempt2; attempt1 and initial RC2 remain unchanged. Current source/wheel/native integration and scientific truth are not inferred.",
+    "root_acceptance_bindings_verified": 38,
+    "first_attempt_and_Task153_history": {
+      "runtime_RC": 0,
+      "runtime_outer_elapsed_seconds": 349.18536794371903,
+      "cells": 264,
+      "MATCH_inventory_checkpoints": 530,
+      "physical_nodes": 351,
+      "first_combined_gate": "CONTROL_INTEGRITY_AND_SHARED_COMPARISON_PASS",
+      "first_comparison_acceptable": true,
+      "first_comparison_RC": 0,
+      "first_comparison_outer_elapsed_seconds": 185.88378752581775,
+      "Task153_report": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/attempt1-packet/task153-long/REPORT.md",
+        "bytes": 3497,
+        "sha256": "1dd008c8423a223b7e2580763ee22a0f962aa46188e92fce274340e381527215"
+      },
+      "Task153_assessment": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/attempt1-packet/task153-long/ASSESSMENT.json",
+        "bytes": 6172,
+        "sha256": "4c3b99904c0b43eb7adc8a0288d3eecff3b7c08ddb31964e7b2038c95d1647b1"
+      },
+      "Task153_classification": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/attempt1-packet/task153-long/AUDIT_FINDING_CLASSIFICATION.json",
+        "bytes": 7335,
+        "sha256": "4d365c8cd1a91bc9c00cccb65fac554e075974a5b8eea90e9f2b3827210712e8"
+      },
+      "Task153_root_disposition": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/attempt1-packet/root-receipts/TASK153_ROOT_DISPOSITION.json",
+        "bytes": 3219,
+        "sha256": "e6008fdd03f7f331094fb42083fff6373ec5ea7aacb684c64d52c4c54362c556"
+      },
+      "first_audit_RC": 2,
+      "first_audit_elapsed_seconds": 7.069271650165319,
+      "material_finding": "TASK153-F1",
+      "first_complete_runtime_acceptance": "HOLD_WITH_WRAPPER_GUARD_GAP; preserved without retroactive repair",
+      "finding": "prlimit initialized libsmartcols in all264cells, but alias/canonical bytes were absent from per-cell guards. Current exact provider path/hash/stat equality and matching driver family did not establish historical per-cell wrapper byte invariance.",
+      "classification": "Initial auditor retained one overly strict metadata-direct-guard assumption and two manifestations of the one material smartcols gap. Exact accepted metadata indirectly bound the unchanged static-closure report. Root separately selected prospective new full-roster guards; original release/results/RC2 stay immutable.",
+      "archive": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/ATTEMPT1_ARCHIVE_MANIFEST.task158.json",
+        "bytes": 3175395,
+        "sha256": "22e4df2828b50662e25ebc7370c26515e89e28ccdf6062f580522951ff8abfc2"
+      },
+      "prepared_subsets_maintained_records_unedited_until_root_finalization": true
+    },
+    "guard_corrected_actual_attempt2": {
+      "root_terminal_receipt": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/attempt2-packet/root-receipts/TASK144_RUNTIME_ATTEMPT2_LAUNCH.command.json",
+        "bytes": 1550,
+        "sha256": "6ea19db207967a30bed7850512873479f7ff5ae816326253cf45c3fc879cb093"
+      },
+      "runtime_index": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/attempt2-packet/control-runtime-attempt2/RUN_INDEX.json",
+        "bytes": 509576,
+        "sha256": "e0d735d3c1ae0c7fb520b222b55eda2170e5531bc70830e3722a6f339ff5ff42"
+      },
+      "root_release": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/attempt1-packet/immutable-releases/ROOT_CONTROL_RUNTIME_RELEASE_ATTEMPT2.json",
+        "bytes": 508737,
+        "sha256": "562cbebef1005025cd789ded53f116cb76ce8fa764e16abb2d62c895a0c15dea"
+      },
+      "root_started_receipt": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/attempt1-packet/root-receipts/TASK144_RUNTIME_ATTEMPT2_LAUNCH.started.json",
+        "bytes": 961,
+        "sha256": "047814ba0f7d909deae40028abe7b84519353fbf65cbf7aa856e648fda88f73e"
+      },
+      "runtime_RC": 0,
+      "runtime_outer_elapsed_seconds": 351.39727744832635,
+      "completed_cells": 264,
+      "mode_cells": {
+        "observed": 132,
+        "plain": 132
+      },
+      "MATCH_inventory_checkpoints": 530,
+      "inventory_nodes": 351,
+      "abort_reason": null,
+      "automatic_retries": 0,
+      "release_guard_bindings": 2105,
+      "ordered_per_cell_before_after_guards": 2107,
+      "all2102_previous_release_guards_preserved": true,
+      "exact_three_added_guards": [
+        "/usr/lib/x86_64-linux-gnu/libsmartcols.so.1",
+        "/usr/lib/x86_64-linux-gnu/libsmartcols.so.1.1.0",
+        "/tmp/hotpot_plan20/long/stage7a-control-diagnostic-review-task152/RUNTIME_DEPENDENCY_CLOSURE.json"
+      ],
+      "all13_actual_provider_path_nodes_direct_lexical_and_canonical_guards": true,
+      "smartcols_only_prlimit_not_taskset_or_driver": true,
+      "prospective_F1_disposition": "TASK153-F1 historical guard coverage addressed for separately released attempt2 only; first attempt unchanged.",
+      "all_process_RC0_no_timeout_signal_guard_mismatch_or_reaping_failure": true,
+      "supervisor_CPU": [
+        16
+      ],
+      "process_receipt_scope": "Exact argv/cwd/environment/resource arguments match accepted contract. Reaping claims cover only the supervisor-visible /proc namespace.",
+      "archive": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/ATTEMPT2_ARCHIVE_MANIFEST.task158.json",
+        "bytes": 1604194,
+        "sha256": "fb5dce1f535fe64e8958a9b656effdd986b6a13dffce022f8ec9d95356ad6686"
+      }
+    },
+    "actual_attempt2_combined_comparison": {
+      "root_launch": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/final-packet/root-receipts/TASK144_ATTEMPT2_COMPARISON_LAUNCH.command.json",
+        "bytes": 2598,
+        "sha256": "bf58346e04386f309a0b1c15a7e3805636d16ed7a8c37e6510e1ae0d4765ea88"
+      },
+      "merged_index": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/final-packet/attempt2-bound-outcomes/ORIGINAL_CONTROL_ATTEMPT2_RUN_INDEX.json",
+        "bytes": 870546,
+        "sha256": "9e98cf920b0eae3c8377e421d3fc5e3f52ce54e342c2ad68e033834690da0a34"
+      },
+      "integrity_report": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/final-packet/attempt2-bound-outcomes/CONTROL_ATTEMPT2_INTEGRITY_REPORT.json",
+        "bytes": 1309,
+        "sha256": "491c28421f9454221c8a0aa1c004acf2c98c301ccf1f9f81d4bc2224f268544c"
+      },
+      "combined_gate": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/final-packet/attempt2-bound-outcomes/ORIGINAL_CONTROL_ATTEMPT2_RUN_INDEX.COMPARISON_GATE.json",
+        "bytes": 2322,
+        "sha256": "0e9f5f022afc79d16462c5d64b55ff056001f9470ecdb70505c7886c1d4db7f4"
+      },
+      "shared_report": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/final-packet/shared-comparison-attempt2/REPORT.json",
+        "bytes": 3598,
+        "sha256": "04f89dd7eef7b797ef1fb64f0e0c6f8b6f2c851b82d245c370d8a0908dc7403e"
+      },
+      "shared_run_metadata": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/final-packet/shared-comparison-attempt2/run_metadata.json",
+        "bytes": 344139,
+        "sha256": "88d33a37ac69b75c61d4eb0fefbb35f5d8c0c313771388fddbad32d8ea1fcb15"
+      },
+      "status": "CONTROL_INTEGRITY_AND_SHARED_COMPARISON_PASS",
+      "comparison_acceptable": true,
+      "shared_checker_RC": 0,
+      "combined_root_outer_elapsed_seconds": 185.56386914476752,
+      "blocker_count": 0,
+      "shared_report_status": "DIAGNOSTIC_ACCOUNTING_ONLY",
+      "counts_by_lane_mode": {
+        "original/observed": {
+          "planned": 84874,
+          "observed": 84867,
+          "scheduled": 84874,
+          "attempted": 84874,
+          "started": 84874,
+          "failed_started": 0,
+          "missing_scheduled": 0,
+          "complete_constructor_or_public": 84874,
+          "construction_accepted": 84867,
+          "public_completed_scopes": 169734,
+          "no_call_scopes": 0,
+          "actual_returned_vectors": 169734,
+          "unavailable_vector_scopes": 14,
+          "constructor_rejected": 7,
+          "construction_rejected": 7
+        },
+        "original/plain": {
+          "planned": 84874,
+          "observed": 84867,
+          "scheduled": 84874,
+          "attempted": 84874,
+          "started": 84874,
+          "failed_started": 0,
+          "missing_scheduled": 0,
+          "complete_constructor_or_public": 84874,
+          "construction_accepted": 84867,
+          "public_completed_scopes": 169734,
+          "no_call_scopes": 0,
+          "actual_returned_vectors": 0,
+          "unavailable_vector_scopes": 169748,
+          "constructor_rejected": 7,
+          "construction_rejected": 7
+        },
+        "control/observed": {
+          "planned": 84874,
+          "observed": 84867,
+          "scheduled": 84874,
+          "attempted": 84874,
+          "started": 84874,
+          "failed_started": 0,
+          "missing_scheduled": 0,
+          "complete_constructor_or_public": 84874,
+          "construction_accepted": 84867,
+          "public_completed_scopes": 169734,
+          "no_call_scopes": 0,
+          "actual_returned_vectors": 169734,
+          "unavailable_vector_scopes": 14,
+          "constructor_rejected": 7,
+          "construction_rejected": 7
+        },
+        "control/plain": {
+          "planned": 84874,
+          "observed": 84867,
+          "scheduled": 84874,
+          "attempted": 84874,
+          "started": 84874,
+          "failed_started": 0,
+          "missing_scheduled": 0,
+          "complete_constructor_or_public": 84874,
+          "construction_accepted": 84867,
+          "public_completed_scopes": 169734,
+          "no_call_scopes": 0,
+          "actual_returned_vectors": 0,
+          "unavailable_vector_scopes": 169748,
+          "constructor_rejected": 7,
+          "construction_rejected": 7
+        }
+      },
+      "comparison_counts": {
+        "original:observed/plain:public_comparable": 84874,
+        "original:observed/plain:public_complete_pairs": 84874,
+        "control:observed/plain:public_comparable": 84874,
+        "control:observed/plain:public_complete_pairs": 84874,
+        "original/control:observed:public_comparable": 84874,
+        "original/control:plain:public_comparable": 84874,
+        "original/control:gtd_comparable_scopes": 169734,
+        "original/control:gtd_unavailable_scopes": 14
+      },
+      "case_denominator_per_lane_mode": 84874,
+      "construction_accepted_per_lane_mode": 84867,
+      "constructor_rejected_per_lane_mode": 7,
+      "actual_returned_vectors_per_observed_lane": 169734,
+      "unavailable_vector_scopes_per_observed_lane": 14,
+      "plain_vector_unavailability_is_retained_by_design": true,
+      "vector_oracle": null,
+      "scope": "Actual complete planned public/GTD stream comparison retains constructor rejections/unavailable scopes and original denominators. Integrity and unchanged shared-checker input/report bindings both pass; no fabricated vector, scientific truth oracle, exact-original B0 or candidate evidence follows."
+    },
+    "actual_Task157_loader_and_receipt_review": {
+      "report": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/final-packet/task157-long/REPORT.md",
+        "bytes": 3099,
+        "sha256": "88cadde95044771a3334e0c7382f34cd55c56c5914e132ae5af80738018a5e31"
+      },
+      "assessment": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/final-packet/task157-long/ASSESSMENT.json",
+        "bytes": 6198,
+        "sha256": "3ea694172db717600dff771e7389f83a84d9b3b24c393d90d269caad06ac7136"
+      },
+      "evidence_index": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/final-packet/task157-long/EVIDENCE_INDEX.json",
+        "bytes": 7328,
+        "sha256": "9319d91a7973e175009544b7fb4f7257c3446e1a1467d1ca97b0fb9bd64edc70"
+      },
+      "corrected_guards": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/final-packet/task157-long/CORRECTED_GUARD_REVIEW.json",
+        "bytes": 830250,
+        "sha256": "7ac4192a79fc1253db5ad4ebf4b5068ad0d1a1ea1aef8f18d8056692bb24a099"
+      },
+      "auditor_diff": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/final-packet/task157-long/AUDITOR.diff",
+        "bytes": 12267,
+        "sha256": "4be4fd79d887bc89690caf8ddb8dcec9d5793a0652cd75737aba6b4fca1b7cc6"
+      },
+      "raw_error_classification": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/final-packet/task157-long/RAW_ERROR_LINES.json",
+        "bytes": 312555,
+        "sha256": "b7aa555262c59bcf42a19d547d90d07ca791cf04fd512fba899c136ec22ec78d"
+      },
+      "inventory_review": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/final-packet/task157-long/INVENTORY_REVIEW.json",
+        "bytes": 67684,
+        "sha256": "ff60abaff071429f20e91fb63f659e26db33f61ca421075a465c293e3b850024"
+      },
+      "source_guard_review": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/final-packet/task157-long/SOURCE_GUARD_REVIEW.json",
+        "bytes": 3180,
+        "sha256": "1ec3aaeafc024ef14f7db15454e13c25809c1b9de39c043f5da0a7a8d38d8163"
+      },
+      "final_stability": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/final-packet/task157-long/FINAL_STABILITY.json",
+        "bytes": 944802,
+        "sha256": "49c3224b910c287ec481d65215d0d5e8179c46313918498ba0d11784f14fd1b8"
+      },
+      "status": "PASS_BOUNDED_CONTROL_ATTEMPT2_LOADER_AND_RECEIPTS",
+      "actual_auditor_RC": 0,
+      "actual_auditor_executions": 1,
+      "actual_auditor_elapsed_seconds": 7.084170026704669,
+      "issues": [],
+      "actual_loader_stderr_files": 264,
+      "actual_loader_stderr_bytes": 11410740,
+      "calling_init_observations": 4092,
+      "version_check_observations": 35904,
+      "distinct_version_edges": 272,
+      "observed_provider_path_nodes": 13,
+      "trying_file_probes_excluded_from_loaded_object_proof": 18216,
+      "profiles": [
+        {
+          "cells": 132,
+          "mode": "observed",
+          "stages": [
+            {
+              "frozen_provider_set_match": true,
+              "frozen_version_edges_match": true,
+              "initialized": 7,
+              "program": "/usr/bin/prlimit",
+              "version_checks": 54
+            },
+            {
+              "frozen_provider_set_match": true,
+              "frozen_version_edges_match": true,
+              "initialized": 6,
+              "program": "/usr/bin/taskset",
+              "version_checks": 43
+            },
+            {
+              "frozen_provider_set_match": true,
+              "frozen_version_edges_match": true,
+              "initialized": 8,
+              "program": "/tmp/hotpot_plan20/medium/stage7a-native-control-integrity-repair-task144/diagnostic-build-bound-after-install-attempt1/driver",
+              "version_checks": 77
+            }
+          ]
+        },
+        {
+          "cells": 132,
+          "mode": "plain",
+          "stages": [
+            {
+              "frozen_provider_set_match": true,
+              "frozen_version_edges_match": true,
+              "initialized": 2,
+              "program": "/usr/bin/prlimit",
+              "version_checks": 20
+            },
+            {
+              "frozen_provider_set_match": true,
+              "frozen_version_edges_match": true,
+              "initialized": 1,
+              "program": "/usr/bin/taskset",
+              "version_checks": 9
+            },
+            {
+              "frozen_provider_set_match": true,
+              "frozen_version_edges_match": true,
+              "initialized": 7,
+              "program": "/tmp/hotpot_plan20/medium/stage7a-native-control-integrity-repair-task144/diagnostic-build-bound-after-install-attempt1/driver",
+              "version_checks": 69
+            }
+          ]
+        }
+      ],
+      "diagnostics": {
+        "observed_diagnostics": 0,
+        "plain_optional_observer_dlsym_diagnostic": 528,
+        "unclassified_diagnostics": 0
+      },
+      "literal_plain_fatal_qualification": "All528 literal undefined-symbol/(fatal) messages are the four expected optional observer dlsym probes per132plaincells. Preserve them; actual RC0/run_end distinguishes lookup diagnostics from process termination. Observed/unclassified diagnostics are zero.",
+      "native_anchor": {
+        "bytes": 4030192,
+        "canonical_path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libopenbabel.so.8.0.0",
+        "device": 66307,
+        "inode": 6044293,
+        "link_device": 66307,
+        "link_inode": 6044294,
+        "path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libopenbabel.so.8",
+        "sha256": "bdc92e62f35b5fbfe6b6ab53a1c9f0072b83bf4593c3bf7e935fda573c59979b",
+        "symlink_target": "libopenbabel.so.8.0.0"
+      },
+      "native_canonical": {
+        "bytes": 4030192,
+        "path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libopenbabel.so.8.0.0",
+        "sha256": "bdc92e62f35b5fbfe6b6ab53a1c9f0072b83bf4593c3bf7e935fda573c59979b"
+      },
+      "run_start_and_run_end_identity_endpoints": 264,
+      "observer_origin_and_end_identity_endpoints": 132,
+      "final_full_hash_bindings_stable": 3718,
+      "public_first_final_records_and_sizes_checked": 264,
+      "observer_first_final_records_and_sizes_checked": 132,
+      "raw_full_process_map_dumps_available": false,
+      "mapping_proof_scope": "Inspected frozen compiled-source guards attest exact dladdr/sole mapped family before both public endpoints; guarded RTLD_NEXT observer-origin/end matches ABI0/canonical identity. Full raw /proc/self/maps dumps are unavailable; shared SONAME alone is never provenance proof.",
+      "reviewer_coverage": "Task157 independently inspected complete loader stderr, exact provider/version paths/guards and public/GTD first/final records/sizes. Root shared checker owns complete stream hashes/values/correspondence. No target/loader/import/test/build/benchmark execution by reviewer."
+    },
+    "archives": {
+      "first_subset": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/ATTEMPT1_ARCHIVE_MANIFEST.task158.json",
+        "bytes": 3175395,
+        "sha256": "22e4df2828b50662e25ebc7370c26515e89e28ccdf6062f580522951ff8abfc2"
+      },
+      "second_raw_subset": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/ATTEMPT2_ARCHIVE_MANIFEST.task158.json",
+        "bytes": 1604194,
+        "sha256": "fb5dce1f535fe64e8958a9b656effdd986b6a13dffce022f8ec9d95356ad6686"
+      },
+      "final_comparison_review_acceptance_subset": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/FINAL_OUTCOMES_ARCHIVE_MANIFEST.task158.json",
+        "bytes": 49247,
+        "sha256": "80b908db745f3ab415b138ebead1c554d986c1a42f8a1c1601e3c91be37907ff"
+      },
+      "tars": [
+        {
+          "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/attempt1-complete-finite-runtime-comparison-review.tar.gz",
+          "bytes": 124734907,
+          "sha256": "956a60c8b33867b5289e770910eb2aa5caf6e6cbd68ec2eedce970dab07af400"
+        },
+        {
+          "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/attempt2-terminal-raw-runtime.tar.gz",
+          "bytes": 112553042,
+          "sha256": "003327e51a60759e75733add2f447aaf9ba5b3dded3bbda046b9ae8d728903e7"
+        },
+        {
+          "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/attempt2-final-comparison-review-acceptance.tar.gz",
+          "bytes": 12154114,
+          "sha256": "368c99f0eebbce89639982af6f56abdf8ce426f66ea24c4332353bc1ce3aaa56"
+        }
+      ],
+      "regular_files": 4046,
+      "directory_nodes": 2648,
+      "symlink_nodes": 0,
+      "regular_bytes": 3769447610,
+      "compact_copies": 68,
+      "all_original_mapping_member_SHA256_size_modes_and_isolated_reconstruction_verified": true,
+      "prior_raw_subset_manifests_unchanged": [
+        {
+          "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/ATTEMPT1_ARCHIVE_MANIFEST.task158.json",
+          "bytes": 3175395,
+          "sha256": "22e4df2828b50662e25ebc7370c26515e89e28ccdf6062f580522951ff8abfc2"
+        },
+        {
+          "path": ".plan20-artifacts/20261102/stage7a/control-runtime-records-task158/ATTEMPT2_ARCHIVE_MANIFEST.task158.json",
+          "bytes": 1604194,
+          "sha256": "fb5dce1f535fe64e8958a9b656effdd986b6a13dffce022f8ec9d95356ad6686"
+        }
+      ],
+      "ORIGINAL_Task121_runtime_archive_reused": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-gtd-original-runtime-task121/ARCHIVE_MANIFEST.task132.json",
+        "bytes": 1499782,
+        "sha256": "3e2ab1ee92dee5adde7902dad5a4de17099967a0fb3960c807dbfa2871a71ad6"
+      },
+      "first_runtime_release_reused_from_Task154": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-diagnostic-records-task154/packet/runtime-authority-only/ROOT_CONTROL_RUNTIME_RELEASE.json",
+        "bytes": 506643,
+        "sha256": "15fee48bedbd7fa87abbdcafea94fd5d3408e19086e6e60c024c5130e48617ed"
+      },
+      "scope": "Both terminal raw CONTROL attempts, complete actual shared comparison/accounting reports, Task153 RC2/F1 and Task157 corrected review/source/diffs/raw receipts plus root launches/dispositions/acceptance preserved. Existing ORIGINAL1.6GB/source/build/priorarchives reused without duplication. Incomplete paths were not read before terminal authorization. Original inode/device/mtime are provenance, not reconstructed runtime identities."
+    },
+    "next_separate_scope": {
+      "root_release": "Prepare an isolated one-function Task112 FIFO/stamp candidate from the exact accepted CONTROL source and same qualified recipe. No compile/native/runtime/production release follows; each actual execution remains separately root-reviewed.",
+      "qualification": "Only isolated one-function Task112 FIFO/stamp candidate source preparation is separately released. No candidate bytes/test/build/install/ABI/loader/native/runtime/production result or authorization is claimed here."
+    },
+    "open_gates": [
+      "exact-original-build-recipe/B0 unrecovered",
+      "candidate source/build/install/ABI/loader and original-control-candidate correspondence",
+      "current214 source/installed/native supported-version matrix and functional/reflection checks",
+      "fresh26 performance and complete-SDF FIX_REQUIRED",
+      "native-memory sufficiency OPEN",
+      "Stage7A IN_PROGRESS; Stage7B PREENTRY; later/global gates OPEN"
+    ],
+    "remaining": "Root acceptance is bounded measured ORIGINAL/private unmodified CONTROL public/GTD correspondence plus actual loader/inventory/supervisor receipts only. Exact-original build recipe/B0 remains unrecovered; candidate source/build/install/ABI/loader/runtime and original-control-candidate correspondence remain separate gates. Current214 source/installed/native supported-version/function/reflection matrix, fresh26 performance/complete-SDF FIX_REQUIRED, native-memory sufficiency and Stage7A IN_PROGRESS/Stage7B PREENTRY/later/global gates remain open. No SWIG/import-order/full package/SDK/scientific truth/performance/memory/stage acceptance; Task149 retained upstream risks are not waived."
   }
 }

@@ -8,7 +8,7 @@ from ..adapters.openbabel import conversion as _openbabel
 from ..adapters.rdkit import conversion as _rdkit
 from ..adapters.rdkit import stereo_transport as _stereo
 from ..structure._commit import _FactTransaction
-from ..structure._fields import ATOM_SOURCE_CODES
+from ..structure._fields import ATOM_SOURCE_CODES, FIELD_CODECS
 from ..structure._stereo import _get_stereo_payload
 from . import chemistry as _chemistry
 
@@ -53,9 +53,13 @@ def _capture_ob_values(mol, bonds):
     topology = mol._topology_index
     atoms = mol.atoms
     coordinates = table.coordinates()
-    atom_rows = tuple((table.read(row, 'atomic_number'), table.read(row, 'formal_charge'),
-                       table.read(row, 'partial_charge'), tuple(map(float, coordinates[row])),
-                       table.raw(row, 'is_aromatic'))
+    atomic_number = FIELD_CODECS['atomic_number']
+    formal_charge = FIELD_CODECS['formal_charge']
+    partial_charge = FIELD_CODECS['partial_charge']
+    values = table.select(('atomic_number', 'formal_charge', 'partial_charge', 'is_aromatic')).tolist()
+    coordinate_rows = coordinates.tolist()
+    atom_rows = tuple((atomic_number(values[row][0]), formal_charge(values[row][1]),
+                       partial_charge(values[row][2]), tuple(coordinate_rows[row]), values[row][3])
                       for row in range(len(atoms)))
     bond_rows = []
     for bond in bonds:

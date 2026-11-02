@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "task_id": "Task111",
+  "record_task": "Task113",
+  "recorded_at_utc": "2026-11-02T11:33:17.001645+00:00",
+  "status": "ROOT_CURRENT_MAIN_FOCUSED_PASS_FULL_GATES_OPEN_RECORD_DELIVERY_PENDING",
+  "source_parent": "d6df707a459229b35fd67333572d6a11e247f3d4",
+  "original_control_commit": "f63149c21657771e02b2ce36e0e4887b1e0d2b8f",
+  "source": {
+    "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/operations/conversion.py",
+    "bytes": 8437,
+    "sha256": "988a2ccb1728432ee9ac5bb18e6bfd620947e1110942698b478bd5f1f0323947"
+  },
+  "tests": {
+    "path": "/home/zhangzhiyuan/hotpot/tests/test_cheminfo/structure/test_ob_capture_bulk_coordinates.py",
+    "bytes": 12170,
+    "sha256": "669c46dd21a18396502383bc4d4936b8d954b11290f40935ca9b6ff27016f205"
+  },
+  "test_function_declarations": 7,
+  "new_regression_cases": 16,
+  "source_identity": {
+    "control_manifest_members_verified": 846,
+    "prototype_manifest_members_verified": 846,
+    "current_main_matches_prototype_members": 846,
+    "source_snapshot_scope": "Relevant exact before/after source and before/proposal/corrected test bytes only; all846identities in each original SOURCE_COPIES manifest preserved unchanged."
+  },
+  "isolated_execution": {
+    "actual_case_count": 7,
+    "capture_equal": 95,
+    "capture_total": 95,
+    "focused_prototype_passed": 72,
+    "isolated_regression_proposals_passed": 34,
+    "focused_control_rerun": false,
+    "focused_control_qualification": "Deliberately unreleased; unchanged same-byte current-main72passed Task109",
+    "actual_workflow_cases": 4,
+    "workflow_sizes": [
+      8,
+      256
+    ],
+    "work_per_workflow": "20fresh projections/public writes,40distinct coordinate frames/native writes/path readbacks",
+    "byte_equal_output_pairs": 40,
+    "strict_normalized_readback_pairs": 40,
+    "source_facts_unchanged": true,
+    "all20_wrappers_dead_after_each_workflow": true,
+    "carrier_cache_present": false,
+    "summary": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/EXECUTION_SUMMARY.json",
+      "bytes": 35567,
+      "sha256": "c980952cdba74d7cdb78bb46ec6c940cad3aa51ade2573829693ea9c8fb33e1e"
+    },
+    "runtime_report": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/RUNTIME_REPORT.md",
+      "bytes": 3694,
+      "sha256": "58ca6ff77c00414e56ae37e7653b0d4ea3ac308071e052a46ea40ef22e9ef00d"
+    },
+    "workflow_comparison": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/WORKFLOW_COMPARISON.json",
+      "bytes": 63973,
+      "sha256": "e8af0958a396e10740a0e1a6606312b593461d0f8aca3723559ef13779df3f17"
+    }
+  },
+  "current_main_focused": {
+    "passed": 88,
+    "failed": 0,
+    "guards_unchanged": 939,
+    "loaded_current_main_modules": 138,
+    "timed_out": false,
+    "owned_processes_reaped": true,
+    "execution": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/main-focused-attempt2/execution.json",
+      "bytes": 393108,
+      "sha256": "9e5d5f69ef1efd0c0dfb3924bed0128742d3263705e7335ee874292c105ab6c2"
+    },
+    "release": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/main-focused-attempt2/RELEASE.json",
+      "bytes": 1390,
+      "sha256": "000cb71ad8e1969e19f5ddffba3e21b0e5ba4994bbca42e7a7f4f6391094a558"
+    },
+    "origins": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/main-focused-attempt2/origins.json",
+      "bytes": 43218,
+      "sha256": "939a27181f0281426f358fc613931cd674f376251a7e14ddcfe670c3b1c4038b"
+    },
+    "stdout": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/main-focused-attempt2/stdout.txt",
+      "bytes": 179,
+      "sha256": "2909da754eefaa8aa8ee3e6734dd15c764499292b717c5db2afd80ecf1046c17"
+    },
+    "command": [
+      "/tmp/hotpot-plan20-env/bin/python",
+      "-s",
+      "-P",
+      "-B",
+      "/tmp/hotpot_plan20/long/stage7a-ob-capture-bulk-values-task111/test_runner.py",
+      "--source-root",
+      "/home/zhangzhiyuan/hotpot",
+      "--output",
+      "/tmp/hotpot_plan20/long/stage7a-ob-capture-bulk-values-task111/main-focused-attempt2/origins.json",
+      "-q",
+      "--import-mode=importlib",
+      "tests/test_cheminfo/structure/test_conversion_freshness.py",
+      "tests/test_cheminfo/structure/test_adapter_boundaries.py",
+      "tests/test_cheminfo/structure/test_ob_capture_bulk_coordinates.py",
+      "tests/test_cheminfo/adapters/test_io_transport.py",
+      "tests/test_cheminfo/adapters/test_crystal_transport.py",
+      "tests/test_cheminfo/structure/test_crystal_convention.py",
+      "tests/test_cheminfo/test_molecule_conversion.py",
+      "tests/test_cheminfo/obWrappers/test_bridge.py::test_native_boundary_rejects_lossy_dative_bond_conversion",
+      "tests/test_cheminfo/structure/test_ob_coordinate_buffer.py",
+      "--basetemp=/tmp/hotpot_plan20/medium/stage7a-ob-capture-bulk-values-task111/main-focused-retry/pytest",
+      "-o",
+      "cache_dir=/tmp/hotpot_plan20/medium/stage7a-ob-capture-bulk-values-task111/main-focused-retry/pytest-cache"
+    ],
+    "command_cwd": "/home/zhangzhiyuan/hotpot",
+    "environment_record": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/main-focused-attempt2/execution.json",
+      "bytes": 393108,
+      "sha256": "9e5d5f69ef1efd0c0dfb3924bed0128742d3263705e7335ee874292c105ab6c2"
+    },
+    "elapsed_supervisor_seconds": 1.5016001425683498
+  },
+  "retained_first_main_attempt": {
+    "passed": 87,
+    "failed": 1,
+    "returncode": 1,
+    "guards_unchanged": 938,
+    "timed_out": false,
+    "owned_processes_reaped": true,
+    "failure": "Detached-capture test assumed imported partial_charge0; actual imported value0.18218836454110438. Fixture had not established the expected baseline.",
+    "correction": "Explicitly initialize formal_charge and partial_charge before first capture; production source bytes unchanged.",
+    "execution": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/main-focused-attempt1/execution.json",
+      "bytes": 392603,
+      "sha256": "42a97d3504755168603029a39e328f2ec436676acf14fb886ee86ad28444d29d"
+    },
+    "stdout": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/main-focused-attempt1/stdout.txt",
+      "bytes": 1437,
+      "sha256": "7f3a0e276ae94b80ac3a506e9b5895b56772b7a2d1ecb460bdb75ea96a46563f"
+    },
+    "fixture_correction": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/FIXTURE_CORRECTION.json",
+      "bytes": 928,
+      "sha256": "1716ce8d63928f6451668bc2a5d81c8bee92fc80faabfcda30f0c93c5d04b2a6"
+    }
+  },
+  "portable_proposal": {
+    "status": "ORIGINAL_UNEXECUTED_PROPOSAL_PRESERVED_SEPARATELY_FROM_LATER_MAIN_RUNS",
+    "tests": {
+      "path": "/tmp/hotpot_plan20/medium/stage7a-ob-capture-bulk-values-task111/portable-proposal/tests/test_cheminfo/structure/test_ob_capture_bulk_coordinates.py",
+      "bytes": 12092,
+      "sha256": "819022cc9c52edb67601fc57ebca6dd289a45a7b7bc40ac20228944dbc858b2c"
+    },
+    "proposal": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/PORTABLE_TEST_PROPOSAL.json",
+      "bytes": 2069,
+      "sha256": "604b23c2c37e0553df4cd509f15a5c2453ec5080686b162e6579037039767f09"
+    },
+    "corrected_current_test_sha256": "669c46dd21a18396502383bc4d4936b8d954b11290f40935ca9b6ff27016f205"
+  },
+  "diagnostic_clocks": {
+    "qualification": "Single instrumented observations only; inclusive clocks overlap, not acceptance comparisons, savings or causal performance evidence. All adverse observations retained.",
+    "size8_native_write_ms": {
+      "control": 2.067351,
+      "prototype": 2.072286
+    },
+    "size8_complete_workflow_ms": {
+      "control": 7.132303,
+      "prototype": 6.780716
+    },
+    "size256_complete_workflow_ms": {
+      "control": 163.48867,
+      "prototype": 153.923365
+    },
+    "size8_capture_inclusive_ms": {
+      "control": 0.695538,
+      "prototype": 0.457291
+    },
+    "size256_capture_inclusive_ms": {
+      "control": 15.18912,
+      "prototype": 6.460651
+    }
+  },
+  "archive_manifest": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/ARCHIVE_MANIFEST.json",
+    "bytes": 89173,
+    "sha256": "4292937d3c44ea9ea1fdd25ab4a1266538c5068ca6a2d2a1bfcc4233f90ddf74"
+  },
+  "artifact_verification": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/RECORD_VERIFICATION.json",
+    "bytes": 9414,
+    "sha256": "df36f3bf2c90c1d80b94d9c8156452145c84f27d8a9d0345129e077f1286d40d"
+  },
+  "root_application": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/ROOT_APPLICATION.json",
+    "bytes": 4313,
+    "sha256": "b8b889ef1d65331df32a1c7bf234372d6b022bd0bd6c92ab20e3efd08660e165"
+  },
+  "root_current_focused_review": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/ROOT_CURRENT_FOCUSED_REVIEW.json",
+    "bytes": 2583,
+    "sha256": "9a6826219389e511a3365dc4d9960254c5623a60161efb75677e211fc38f27dd"
+  },
+  "original_long_evidence_root": "/tmp/hotpot_plan20/long/stage7a-ob-capture-bulk-values-task111",
+  "original_medium_source_root": "/tmp/hotpot_plan20/medium/stage7a-ob-capture-bulk-values-task111",
+  "archive_root": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111",
+  "remaining": "Full current affected214-file supported Python source/wheel/native selection, functional/reflection rebind and fresh26 performance recipe remain pending after coherent repair settles. Historical Task100/102 evidence retained. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/native memory OPEN/Stage7B PREENTRY; later/global gates unchanged. Final root record acceptance/commit/push pending."
+}

@@ -1073,13 +1073,13 @@
         },
         {
           "path": "tests/test_cheminfo/structure/test_ob_capture_bulk_coordinates.py",
-          "status": "CURRENT_FILE_EXECUTED_IN_TASK100_213_FILE_SOURCE_INSTALLED_MATRIX",
+          "status": "CURRENT_MAIN_FOCUSED_EXECUTED_TASK111_CORRECTED_FIXTURE_FULL_MATRIX_PENDING",
           "source_binding": {
             "path": "tests/test_cheminfo/structure/test_ob_capture_bulk_coordinates.py",
-            "bytes": 6929,
-            "sha256": "a043c0d1d63112fd652fec1970688313005d5d96b38c877113f582aeb95aaddb"
+            "bytes": 12170,
+            "sha256": "669c46dd21a18396502383bc4d4936b8d954b11290f40935ca9b6ff27016f205"
           },
-          "test_function_declarations": 3
+          "test_function_declarations": 7
         },
         {
           "path": "tests/test_cheminfo/structure/test_ob_coordinate_buffer.py",
@@ -1095,7 +1095,7 @@
       "additional_requirements": [
         "fresh external values; I/O/thermo/visualization contracts; matrix convention; no carrier toolkit ownership"
       ],
-      "execution_status": "Stage7A IN_PROGRESS: Task109 coordinate-copy repair applied/current-main focused72passed; Task100 technical/functional and Task102 full26 outcomes are historical. Current affected214-file source/wheel/native, functional/reflection and fresh26 performance rebind remain pending after coherent SDF repair. SDF FIX_REQUIRED/native memory OPEN;Stage7B PREENTRY;later/globalgatesopen.",
+      "execution_status": "Stage7A IN_PROGRESS: Task109 coordinate-copy and Task111 canonical bulk-value capture repairs applied; corrected current-main focused88passed/0failed, original87passed/1fixturefailure retained. Task100 technical/functional and Task102 full26 outcomes remain historical. Current affected214-file supported source/wheel/native, functional/reflection and fresh26 performance rebind remain pending after coherent SDF repair. SDF FIX_REQUIRED/native memory OPEN;Stage7B PREENTRY;later/globalgatesopen.",
       "preentry_evidence": [
         "stages/stage07/preentry-conversion/review.md",
         "stages/stage07/preentry-conversion/evidence.json"
@@ -1780,8 +1780,8 @@
         "source_ready_status": "HOLD_ROOT_FINAL_BYTE_IDENTITY_FREEZE_REQUIRED",
         "candidate_runtime_authorized": false
       },
-      "source_ready_status": "TASK109_LOCAL_FOCUSED_PASS_FULL_CURRENT_SOURCE_WHEEL_REBIND_PENDING",
-      "candidate_execution_status": "TASK109_FOCUSED_COMPLETE_FUTURE_FULL_RUNTIME_REQUIRES_FRESH_RELEASE",
+      "source_ready_status": "TASK111_CORRECTED_CURRENT_MAIN_FOCUSED_PASS_FULL_CURRENT_SOURCE_WHEEL_REBIND_PENDING",
+      "candidate_execution_status": "TASK111_FOCUSED_COMPLETE_FUTURE_FULL_RUNTIME_REQUIRES_FRESH_RELEASE",
       "candidate_runtime_authorized": false,
       "stage_gate_closed": false,
       "global_gate_closed": false,
@@ -2705,6 +2705,55 @@
         },
         "implementation_released": false,
         "future_gtd_proposal": "Task112 LOCAL Sol-max preparation only"
+      },
+      "current_capture_bulk_values_repair_task111": {
+        "record": {
+          "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage07/external-adapters/validation/ob_capture_bulk_values.json",
+          "bytes": 10298,
+          "sha256": "b1a34a07e543878d8e810554f41c61505d17d65f4cfed0d30f0f7ade2ba10f7f"
+        },
+        "root_application": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/ROOT_APPLICATION.json",
+          "bytes": 4313,
+          "sha256": "b8b889ef1d65331df32a1c7bf234372d6b022bd0bd6c92ab20e3efd08660e165"
+        },
+        "root_current_focused_review": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/ROOT_CURRENT_FOCUSED_REVIEW.json",
+          "bytes": 2583,
+          "sha256": "9a6826219389e511a3365dc4d9960254c5623a60161efb75677e211fc38f27dd"
+        },
+        "archive_manifest": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-capture-bulk-values-task111/ARCHIVE_MANIFEST.json",
+          "bytes": 89173,
+          "sha256": "4292937d3c44ea9ea1fdd25ab4a1266538c5068ca6a2d2a1bfcc4233f90ddf74"
+        },
+        "source": {
+          "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/operations/conversion.py",
+          "bytes": 8437,
+          "sha256": "988a2ccb1728432ee9ac5bb18e6bfd620947e1110942698b478bd5f1f0323947"
+        },
+        "test": {
+          "path": "/home/zhangzhiyuan/hotpot/tests/test_cheminfo/structure/test_ob_capture_bulk_coordinates.py",
+          "bytes": 12170,
+          "sha256": "669c46dd21a18396502383bc4d4936b8d954b11290f40935ca9b6ff27016f205"
+        },
+        "test_function_declarations": 7,
+        "new_regression_cases": 16,
+        "isolated_cases_equal": 95,
+        "isolated_focused_passed": 72,
+        "isolated_regression_proposals_passed": 34,
+        "workflow_output_pairs_equal": 40,
+        "workflow_normalized_readback_pairs_equal": 40,
+        "current_main_focused_passed": 88,
+        "current_main_focused_failed": 0,
+        "retained_first_attempt": "87passed/1failed fixture assumption; charges initialized explicitly; source unchanged; original attempt and unexecuted portable proposal immutable.",
+        "guards_unchanged": 939,
+        "loaded_current_main_modules": 138,
+        "full_current_affected_file_count_pending": 214,
+        "fresh_performance_cells_pending": 26,
+        "prior_complete_outcomes_are_historical": true,
+        "record_acceptance_commit_push_pending": true,
+        "timing_limit": "Single instrumented diagnostic clocks only; adverse size8native write2.067351/2.072286ms retained. No performance inference or gate closure."
       }
     },
     "Stage7B": {

@@ -2,17 +2,20 @@
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import astuple
 from threading import Event
+import struct
 
 import numpy as np
 import pytest
 from openbabel import openbabel as ob
 
 from hotpot import Molecule, read_mol
+from hotpot.cheminfo import BondKind
 from hotpot.cheminfo.operations import chemistry, conversion, io
 from hotpot.cheminfo.adapters.openbabel import conversion as ob_adapter
 from hotpot.cheminfo.adapters.io.formats import openbabel as ob_format
 from hotpot.cheminfo.structure._builder import _freeze_value
 from hotpot.cheminfo.structure._atom_table import _AtomFactTable
+from hotpot.cheminfo.structure._fields import FIELD_INDEX
 
 
 def _facts(mol):
@@ -164,3 +167,99 @@ def test_each_write_uses_fresh_value_for_all_frames_and_preserves_distinct_curre
     assert _facts(mol) == before
     assert not any(isinstance(value, ob.OBMol) for value in writer.__dict__.values())
     assert not {'_obmol', '_row2idx'} & mol.__dict__.keys()
+
+
+@pytest.mark.parametrize('bits', [
+    0x0000000000000000, 0x8000000000000000, 0x7ff0000000000000,
+    0xfff0000000000000, 0x7ff8000000000042, 0xfff8000000000043,
+    0x7ff0000000000001, 0x0000000000000001, 0x8000000000000001,
+    0x7fefffffffffffff,
+], ids=lambda bits: f'{bits:016x}')
+def test_capture_retains_exact_scalar_types_float_bits_and_unbounded_integers(bits):
+    mol = read_mol('CCO', 'smi')
+    table = mol._atom_table
+    value = struct.unpack('>d', struct.pack('>Q', bits))[0]
+    # These deliberately raw numeric facts characterize capture only. They
+    # must never be passed to a chemistry backend or interpreted as valid Z.
+    for field in ('partial_charge', 'is_aromatic', 'x', 'y', 'z'):
+        table._columns[FIELD_INDEX[field]][1] = value
+    table._columns[FIELD_INDEX['atomic_number']][0] = 6.75
+    table._columns[FIELD_INDEX['formal_charge']][0] = -1.75
+    table._columns[FIELD_INDEX['atomic_number']][1] = float(2 ** 80)
+    table._columns[FIELD_INDEX['formal_charge']][1] = -float(2 ** 100)
+    with mol._mutation_lock:
+        rows, bonds, cell = conversion._capture_ob_values(mol, tuple(mol.bonds))
+    assert type(rows) is tuple and len(rows) == 3
+    for row in rows:
+        assert type(row) is tuple
+        assert tuple(type(value) for value in row) == (int, int, float, tuple, float)
+        assert len(row[3]) == 3 and all(type(value) is float for value in row[3])
+    assert rows[0][:2] == (6, -1)
+    assert rows[1][:2] == (2 ** 80, -(2 ** 100))
+    assert rows[2][0] == 8
+    for captured in (rows[1][2], rows[1][4], *rows[1][3]):
+        assert struct.pack('>d', captured) == struct.pack('>Q', bits)
+    assert type(bonds) is tuple and len(bonds) == 2 and cell is None
+
+
+@pytest.mark.parametrize(('slots', 'error_type', 'message'), [
+    ([(0, 'formal_charge', float('nan')), (1, 'atomic_number', float('inf'))],
+     ValueError, 'cannot convert float NaN to integer'),
+    ([(1, 'atomic_number', float('inf')), (1, 'formal_charge', float('nan'))],
+     OverflowError, 'cannot convert float infinity to integer'),
+    ([(1, 'formal_charge', float('-inf')), (2, 'atomic_number', float('nan'))],
+     OverflowError, 'cannot convert float infinity to integer'),
+], ids=['earlier-row-formal-charge', 'atomic-number-before-formal-charge', 'later-row-nan'])
+def test_capture_malformed_integer_error_preserves_row_and_field_precedence(slots, error_type, message):
+    mol = read_mol('CCO', 'smi')
+    table = mol._atom_table
+    for row, field, value in slots:
+        table._columns[FIELD_INDEX[field]][row] = value
+    before = tuple(block[:len(table)].tobytes() for block in table._blocks)
+    with mol._mutation_lock, pytest.raises(error_type) as caught:
+        conversion._capture_ob_values(mol, tuple(mol.bonds))
+    assert type(caught.value) is error_type and caught.value.args == (message,)
+    assert tuple(block[:len(table)].tobytes() for block in table._blocks) == before
+
+
+def test_capture_rows_remain_detached_and_next_capture_reads_current_values():
+    mol = read_mol('CCO', 'smi')
+    before = np.arange(9.).reshape(3, 3) / 8
+    mol.coordinates = before
+    mol._atom_table.update((1,), {'formal_charge': 0., 'partial_charge': 0.})
+    with mol._mutation_lock:
+        previous, _, _ = conversion._capture_ob_values(mol, tuple(mol.bonds))
+        mol.coordinates = before + 7.
+        mol._atom_table.update((1,), {'formal_charge': -1., 'partial_charge': .375})
+        current, _, _ = conversion._capture_ob_values(mol, tuple(mol.bonds))
+    assert previous[1] == (6, 0, 0., (.375, .5, .625), 0.)
+    assert current[1] == (6, -1, .375, (7.375, 7.5, 7.625), 0.)
+    assert previous is not current and previous[1] is not current[1]
+    assert previous[1][3] is not current[1][3]
+
+
+@pytest.mark.parametrize('malformed', [False, True], ids=['complete-atoms-before-cutoff', 'atom-error-before-cutoff'])
+def test_capture_finishes_atom_rows_before_first_dative_and_never_reads_cell(monkeypatch, malformed):
+    mol = Molecule()
+    for number in (7, 29, 8):
+        mol.create_atom(atomic_number=number)
+    mol.coordinates = np.array(((0., 0., 0.), (1., 0., 0.), (2., 0., 0.)))
+    dative = mol.add_bond(0, 1, bond_kind=BondKind.DATIVE, bond_direction='atom1_to_atom2')
+    mol._atom_table._columns[FIELD_INDEX['formal_charge']][2] = float('nan') if malformed else -2.75
+    cell_reads = []
+    def unread_cell(owner):
+        cell_reads.append(owner)
+        raise AssertionError('cell was read after first dative')
+    monkeypatch.setattr(Molecule, 'crystal', property(unread_cell))
+    with mol._mutation_lock:
+        if malformed:
+            with pytest.raises(ValueError) as caught:
+                conversion._capture_ob_values(mol, (dative, object()))
+            assert type(caught.value) is ValueError
+            assert caught.value.args == ('cannot convert float NaN to integer',)
+        else:
+            rows, bonds, cell = conversion._capture_ob_values(mol, (dative, object()))
+            assert len(rows) == 3
+            assert rows[2] == (8, -2, 0., (2., 0., 0.), 0.)
+            assert bonds == (('dative',),) and cell is None
+    assert cell_reads == []

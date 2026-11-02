@@ -2585,5 +2585,192 @@
       "Stage7A IN_PROGRESS; Stage7B PREENTRY; later/global gates OPEN"
     ],
     "remaining": "Root acceptance is bounded measured ORIGINAL/private unmodified CONTROL public/GTD correspondence plus actual loader/inventory/supervisor receipts only. Exact-original build recipe/B0 remains unrecovered; candidate source/build/install/ABI/loader/runtime and original-control-candidate correspondence remain separate gates. Current214 source/installed/native supported-version/function/reflection matrix, fresh26 performance/complete-SDF FIX_REQUIRED, native-memory sufficiency and Stage7A IN_PROGRESS/Stage7B PREENTRY/later/global gates remain open. No SWIG/import-order/full package/SDK/scientific truth/performance/memory/stage acceptance; Task149 retained upstream risks are not waived."
+  },
+  "task166_checkpoint": {
+    "recorded_at_utc": "2026-11-02",
+    "status": "CONFIGURE_PASS_TASK161_F1_BUILD_HOLD_PENDING_TASK165",
+    "source_provenance": {
+      "head": "87439ed927324236437bfca43feb43c5ddc1e16b",
+      "product": "9999ecd",
+      "scope": "Authored evidence identities retained; factual documentation checkpoint only."
+    },
+    "evidence_index": {
+      "path": ".plan20-artifacts/20261102/stage7a/native-gtd-candidate-records-task166/INDEX.json",
+      "bytes": 3886,
+      "sha256": "4ce067ae7cd4737db28bdbf215090f5e5778fbf84ea848b5cbeab9e28d6b547b"
+    },
+    "archive": {
+      "path": ".plan20-artifacts/20261102/stage7a/native-gtd-candidate-records-task166/completed-configure-review-sealed-preparation.tar.gz",
+      "bytes": 1307886,
+      "sha256": "c7cc3b2d3959ecfbdf51219d14d310d86682eca98c9a2663f3b2291cd0dbf809",
+      "members": 632,
+      "uncompressed_file_bytes": 12089403
+    },
+    "member_manifest": {
+      "path": ".plan20-artifacts/20261102/stage7a/native-gtd-candidate-records-task166/MEMBER_MANIFEST.json",
+      "bytes": 341280,
+      "sha256": "ab8c1d7ec624db53e7320d6ce930948970433c2d7f908ea4bd82016452a2b09f"
+    },
+    "Task161_configure": {
+      "result": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-gtd-candidate-task161/configure-attempt1/RESULT.json",
+        "bytes": 147542,
+        "sha256": "a9e3b0adc8097595bb414c12a427338e1e93b3ecba3cbeacb30091abd02718ff"
+      },
+      "status": "PASS_CONFIGURED_STATIC_GATE_AWAIT_ROOT_BUILD_REVIEW",
+      "outer_returncode": 0,
+      "outer_elapsed_seconds": 37.726026406511664,
+      "supervisor_returncode": 0,
+      "configured_static_gate_returncode": 0,
+      "configured_metadata_bindings": 477,
+      "translation_units": 320,
+      "CXX_explicit_ABI0": 273,
+      "C_included_InChI": 47,
+      "guards": 1818,
+      "inherited_CONTROL_guards": 1641,
+      "owned_process_and_guards_ok": true,
+      "automatic_retries": 0,
+      "scope": "Actual completed configure and emitted metadata; no candidate compilation/ELF/install/runtime or comparable performance result."
+    },
+    "Task161_F1": {
+      "root_disposition": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK161_CONFIGURE_AND_GUARD_BOUNDARY_DISPOSITION.json",
+        "bytes": 2097,
+        "sha256": "a68497ceb66f2e0e66fa0fdd097c09266e9e168aed3477cee20b8d9c910054f5"
+      },
+      "finding": "Nine build-generated data headers are absent after configure but required as preexisting immutable build guards in sealed Task161.",
+      "sealed_build_case_released": false,
+      "generated_header_paths": [
+        "data/atomizationenergies.h",
+        "data/atomtyp.h",
+        "data/bondtyp.h",
+        "data/phmodeldata.h",
+        "data/resdata.h",
+        "data/ringtyp.h",
+        "data/spacegroups.h",
+        "data/torlib.h",
+        "data/types.h"
+      ],
+      "selected_next_step": "Separate immutable Task165 build/install successor preserving477immutable configure metadata/all inherited guards, exact nine generated-output boundary and post-build/install binding. Reuse successful configure; pending at this checkpoint."
+    },
+    "Task164": {
+      "report": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-gtd-configured-review-task164/REPORT.md",
+        "bytes": 8105,
+        "sha256": "fe1cef6d4d5c49040c721ac1def7497ee809fbaba93892562ac0e350af84a975"
+      },
+      "assessment": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-gtd-configured-review-task164/ASSESSMENT.json",
+        "bytes": 6436,
+        "sha256": "ca651c8d5797f81589e2c464d24834217f59f494badcc16f977f7fc250e27251"
+      },
+      "evidence_index": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-gtd-configured-review-task164/EVIDENCE_INDEX.json",
+        "bytes": 19382,
+        "sha256": "73f049c2539832f19c44e9b3e59fec168b9227d0d058c1cc6226038859ddb2d6"
+      },
+      "status": "CONFIGURE_METADATA_PASS_BUILD_RELEASE_HOLD",
+      "root_acceptance_claimed": true,
+      "configure_metadata_blockers": [],
+      "build_release_blockers": [
+        "Task161 sealed build case includes nine currently absent data/*.h build outputs among its 486 immutable guards. Task88 hashes guards with Path.read_bytes before Popen and requires byte equality afterward. The existing build case cannot be released. Install is separately gated after a successful reviewed build; its generated headers belong in immutable post-build inputs."
+      ],
+      "compile_units": 320,
+      "CXX_explicit_ABI0": 273,
+      "links": 150,
+      "planned_package_paths": 329,
+      "plugins": 128,
+      "data": 55,
+      "headers": 91,
+      "metadata_bindings": 477,
+      "exact_path_substitution_byte_equal": 474,
+      "configure_log_event_signatures": 33,
+      "retained_dependency_order_raw_diffs": 2,
+      "negative_probes_disposed": 5,
+      "warning_statuses_disposed": 8,
+      "initial_parser_issues": 325,
+      "initial_audit_process_returncode": 0,
+      "corrected_audit_issues": [],
+      "corrected_audit_process_returncode": 0,
+      "scope": "Completed stdlib metadata review only; initial parser reports and finalization stdout-index correction retained without target rerun.",
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK164_CONFIGURE_REVIEW_ACCEPTANCE.json",
+        "bytes": 1728,
+        "sha256": "53a0dd91f46bff1b8b4f5d9bff7cb058a9c8e770df9ab2b8b9053c55d8cd1b3c"
+      },
+      "acceptance_scope": "Bounded actual configure metadata only; sealed Task161 build prohibited until separately frozen/reviewed Task165 and full-build-only release; no configure rerun."
+    },
+    "Task162": {
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK162_PREPARATION_ACCEPTANCE.json",
+        "bytes": 1670,
+        "sha256": "2d24a5c829eff6130c81dacf43f9c2d6cfe143e7b05c5fd77be29d46057a656c"
+      },
+      "report": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-gtd-candidate-runtime-task162/REPORT.md",
+        "bytes": 3644,
+        "sha256": "350e272ac6aa00900b2ebfb5fd6a733173897a0933f96f5ed4a5d0bd10c6c1e1"
+      },
+      "seal": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-gtd-candidate-runtime-task162/SEAL.json",
+        "bytes": 1511,
+        "sha256": "ecc51dbd35fe3060113449ab0a9c5754bc7f7e1e62dd4014bdc1001bf192b1be"
+      },
+      "status": "ROOT_ACCEPTED_BOUNDED_SEALED_DIAGNOSTIC_RUNTIME_PREPARATION",
+      "immutable_inputs": 2084,
+      "manifest_members": 37,
+      "evidence_members": 62,
+      "synthetic_accounting_passed": 28,
+      "synthetic_adaptation_passed": 12,
+      "actual_candidate_install_native_SDK_inventory_compile_loader_runtime": "UNBOUND",
+      "execution_authority": false,
+      "scope": "Sealed preparation only; root install review must bind actual successor checker/process receipts, never relabel planned Task161 execution as actual."
+    },
+    "Task163": {
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK163_PREPARATION_ARCHIVE_ACCEPTANCE.json",
+        "bytes": 2962,
+        "sha256": "be9093723591c8eccfcf20d489c5a6783a6cb88a002f4c4be35caeec85aadfbd"
+      },
+      "reused_archive": {
+        "bytes": 3029120,
+        "members": 688,
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/native-gtd-candidate-records-task163/preparation-evidence.tar.gz",
+        "sha256": "1588141e63229c65ae60fad7e8c8d5ea3cb60ad7282b7afd76aab589bad8182e",
+        "uncompressed_file_bytes": 24205099
+      },
+      "members": 688,
+      "raw_file_bytes": 24205099,
+      "preserved_metadata_observations": 90,
+      "scope": "Accepted finite Task161/155/156/160 preparation preservation, exact archive/manifest reused without duplicate tar or trace reads."
+    },
+    "preservation_checks": {
+      "indexed_expected_hashes_verified": 602,
+      "members_reconstructed": 632,
+      "raw_file_bytes": 12089403,
+      "deterministic_regenerations_equal": true,
+      "reconstructed_raw_bytes_and_modes_equal": true,
+      "selected_originals_postcheck_equal": true,
+      "original_paths_preserved": true,
+      "full_source_build_install_scan": false,
+      "growing_Task165_scan": false
+    },
+    "same_stage_alignment": {
+      "reference": "/tmp/hotpot_plan20/long/stage7a-sdf-repair-root-alignment-task108/ALIGNMENT.json",
+      "unchanged_normative_identities": 12,
+      "new_full_plan_read_claim": false
+    },
+    "remaining": [
+      "Task165 successor/root review and separate actual candidate build/install releases",
+      "actual candidate SWIG/wrapper/consumed-header/ELF/ABI/install/SDK/loader/runtime and original-control-candidate correspondence",
+      "exact-original B0 unrecovered",
+      "current214 source/wheel/native supported-version and functional/reflection rebind",
+      "fresh26 and complete-SDF FIX_REQUIRED",
+      "native-memory sufficiency OPEN",
+      "Stage7A IN_PROGRESS; Stage7B PREENTRY; later/global gates OPEN"
+    ],
+    "scientific_observations": [],
+    "stage_gate_closed": false,
+    "global_gate_closed": false
   }
 }

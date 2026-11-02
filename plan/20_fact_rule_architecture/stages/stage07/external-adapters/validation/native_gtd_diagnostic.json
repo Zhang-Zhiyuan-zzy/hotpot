@@ -3448,5 +3448,289 @@
     "new_scientific_observations": [],
     "stage_gate_closed": false,
     "global_gate_closed": false
+  },
+  "task190_checkpoint": {
+    "recorded_at_utc": "2026-11-02",
+    "verification": "704283",
+    "status": "ACCEPTED_CP311_BACKEND_PRIVATE_INSTALL_FIRST_NATIVE_BUILD_RC0_UNACCEPTED_PREPARATION_ONLY",
+    "source_provenance": {
+      "docs_head": "e86baaeccfe6b1f1d7f089f61a0ab8c96cda59bf",
+      "consumed_product_ancestry": "9999ecd",
+      "historical_authored_evidence_unchanged": true
+    },
+    "evidence_index": {
+      "path": ".plan20-artifacts/20261102/stage7a/cp311-wheel-install-records-task190/INDEX.json",
+      "bytes": 9603,
+      "sha256": "0a55e1a703dc9ea929454036f0a015c815f0472fd26a126598726f41e8220e8b"
+    },
+    "archive": {
+      "path": ".plan20-artifacts/20261102/stage7a/cp311-wheel-install-records-task190/terminal-cp311-wheel-install-native-preparation.tar.gz",
+      "bytes": 45458714,
+      "sha256": "ff4684704c79f7f35dccf64e109c07f15963f514ca2bd9ea86b3d912eab6bc88"
+    },
+    "member_manifest": {
+      "path": ".plan20-artifacts/20261102/stage7a/cp311-wheel-install-records-task190/MEMBER_MANIFEST.json",
+      "bytes": 8919829,
+      "sha256": "b89b5ce0da38546e6653efd13f7fd385f9e8a37aad44ec79d5a5ee138ba543b7"
+    },
+    "backend_wheel": {
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK177_CP311_BACKEND_ACCEPTANCE.json",
+        "bytes": 14337,
+        "sha256": "9685780d3f46aa1864b6a004ebd2ee0c8d0f51aed99c151120566d05e499ec0c"
+      },
+      "status": "ROOT_ACCEPTED_BOUNDED_CP311_UPSTREAM_BACKEND_FOR_PRIVATE_INSTALL_ONLY",
+      "outer_returncode": 0,
+      "outer_elapsed_seconds": 109.2717857323587,
+      "guards": 49915,
+      "original_reviewer_failed_checks_retained": 325,
+      "failed_supplement1_retained": true,
+      "corrected_checks_passed": 2067,
+      "corrected_checks_failed": 0,
+      "unique_metadata_commands": 1562,
+      "metadata_commands_all_RC0": true,
+      "auxiliary_cache_tools_not_prebuild_frozen": 2,
+      "root_disposition": "Unused cache wrappers/IPO OFF/no observed archive-LTO use; not retrospectively frozen. Both lexical paths now guarded in install/native cases.",
+      "unwaived_warning_events": 669,
+      "distinct_warning_messages": 43,
+      "retained_SDK_runtime_defects": [
+        "SDK_PKGCONFIG_TEMP_PREFIX",
+        "SDK_EIGEN_IMPORTED_TARGET",
+        "SDK_ABI0_NOT_EXPORTED",
+        "NATIVE_FALLBACK_TEMP_PATHS",
+        "ACTUAL_NATIVE_FAMILY_DIFFERS"
+      ],
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/medium/stage7a-native-gtd-package-build-preparation-task177/cp311/wheelhouse/openbabel-3.2.1-cp311-cp311-linux_x86_64.whl",
+        "bytes": 12597992,
+        "sha256": "d1ff982a45d1eb3460a7dbfddce7a1e98088e0f72edb6076d9f4d96922e72337"
+      },
+      "regular_wheel_members": 335,
+      "package_members": 329,
+      "unique_wheel_ELFs_differing_from_diagnostic_family": 150,
+      "native_family_correspondence_transferred": false
+    },
+    "ordinary_private_install": {
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK177_CP311_DEPENDENCY_INSTALLED_ACCEPTANCE.json",
+        "bytes": 3294,
+        "sha256": "639209f2543f7abbb22fe560aedda5c9f18f871b58d28d5f4953e2e65ff19dd5"
+      },
+      "status": "ROOT_ACCEPTED_CP311_ORDINARY_PRIVATE_DEPENDENCY_INSTALL_FOR_EXTENSION_BUILD_ONLY",
+      "returncode": 0,
+      "outer_elapsed_seconds": 5.0262538604438305,
+      "guards": 49927,
+      "guards_unchanged": true,
+      "owned_processes_reaped": true,
+      "installed_files": 339,
+      "package_members_byte_equal": 329,
+      "native_family_members": 209,
+      "family_sha256": "9aebb29db23591dfbd5c85c329ece0fd0440a8a72b4a73a7d3553c5c830aa1c0",
+      "raw_RECORD_entry": "../../bin/obabel",
+      "actual_script_path": "bin/obabel",
+      "root_rewrote_original_RECORD": false,
+      "raw_RECORD_relative_resolution_or_entrypoint_execution_claimed": false,
+      "root_checker_and_case_preflight_failures_retained": true,
+      "native_family_correspondence_transferred": false
+    },
+    "first_existing_native_build": {
+      "actual_root_execution": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK177_CP311_OB_NATIVE.command.json",
+        "bytes": 1958,
+        "sha256": "93b3b0a891904986ba6ed984db33de429f06bd178f27b7fb38ca7a7c69c3d778"
+      },
+      "terminal_result": {
+        "path": "/tmp/hotpot_plan20/medium/stage7a-native-gtd-package-build-preparation-task177/cp311/OB_NATIVE_BUILD_RESULT.json",
+        "bytes": 5283,
+        "sha256": "7fcc502622e8eab236acff5f208cd6f1482e9a2a5f5e0743feac9db40acb0fb7"
+      },
+      "outer_returncode": 0,
+      "outer_elapsed_seconds": 91.68030174076557,
+      "guards": 50274,
+      "declared_existing_sources": 38,
+      "terminal_objects": 38,
+      "terminal_dependency_files": 38,
+      "binary_bytes": 2843720,
+      "binary_sha256": "305f0f14303da5f9285947580870982a3f898012d9f732d8d337f21c6d93e3bc",
+      "source_proof": {
+        "path": ".plan20-artifacts/20261102/stage7a/cp311-wheel-install-records-task190/SOURCE_PROOF.json",
+        "bytes": 70185,
+        "sha256": "bc7041276d6d709454286e87a80e830cb27a999d97c5c9686da11a25990fc775"
+      },
+      "canonical_copied_source_inputs_matched": 112,
+      "supervisor_stdout_bytes": 0,
+      "actual_compile_link_argv_proven": false,
+      "first_build_accepted": false,
+      "Task189_review_state_at_assignment": "RUNNING",
+      "Task189_Task191_outputs_read_or_archived": false,
+      "scope": "Returned binary/receipts only; actual command/header/ELF/ABI/loader review and root acceptance remain required."
+    },
+    "Task186_Task188_corrected_I3_preparation": {
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK186_CORRECTED_CONTEXT_PREPARATION_ACCEPTANCE.json",
+        "bytes": 17295,
+        "sha256": "b2628d9c3ad2c6023cef1662d048040203d3a3b5af58740b7bf73782c7b57cfb"
+      },
+      "status": "ROOT_ACCEPTED_CORRECTED_I3_CONTEXT_PREPARATION_ONLY",
+      "author_targeted_checks": 36,
+      "author_relocated_preparation_checks": 33,
+      "independent_Task188_checks": 21,
+      "actual_five_version_I1_context_SOURCE_READY_runtime_obtained": false,
+      "scientific_inference_sampling_roster_changed": false
+    },
+    "Task182_recipe_route": {
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK182_RECIPE_ROUTE_ACCEPTANCE.json",
+        "bytes": 4090,
+        "sha256": "65f24d064a69050e432292303a412ef1455bb724cdf64fe77b4013fc2e77b27e"
+      },
+      "status": "ROOT_ADOPTED_EXPLICIT_HASH_BOUND_NATIVE_PAIR_WHEELHOUSE_ROUTE_PREPARATION_ONLY",
+      "maintained_home": "third_party/openbabel",
+      "promotion_applied": false,
+      "promotion_hold": "Protect frozen MANIFEST.in; later promotion and consumer migration require separate byte rebind.",
+      "public_suffix_name_registry_publication_accepted": false,
+      "final_shipping_artifacts_or_family_accepted": false
+    },
+    "Task187_preparation": {
+      "evidence_index": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-wheel-family-correspondence-preparation-task187/EVIDENCE_INDEX.json",
+        "bytes": 9902,
+        "sha256": "75319ad03fdf31916ff874f76ace6f16ee05d8aff916fe56fe869a1900193a8a"
+      },
+      "status": "PREPARATION_COMPLETE_ACTUAL_INSTALLED_FAMILY_UNBOUND",
+      "root_review": "HELD at checkpoint",
+      "binding_grouping_fixture_checks": 12,
+      "unchanged_accounting_fixture_checks": 28,
+      "runtime_or_correspondence_accepted": false,
+      "finite_roster_safe_notice": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-cp311-wheel-install-records-task190/TASK187_ROSTER_SAFE.json",
+        "bytes": 201,
+        "sha256": "42150de28f1eafe141ca7461344d70469e8672678ac003aedb3532808db276da"
+      }
+    },
+    "preservation": {
+      "task": "Task190",
+      "verification": "704283",
+      "status": "PASS_FINITE_LOSSLESS_CP311_TERMINAL_WHEEL_INSTALL_NATIVE_PREPARATION_PRESERVATION",
+      "member_counts": {
+        "regular-file": 13276,
+        "directory": 4471,
+        "symlink": 13
+      },
+      "regular_file_bytes": 275582045,
+      "indexed_expected_hashes_verified": 131413,
+      "mapped_wheel_and_installed_payload_files": 669,
+      "raw_pip_exception_files": 5,
+      "native_objects": 38,
+      "native_dependency_files": 38,
+      "source_proof_inputs": 112,
+      "finite_selection_sealed_before_archive": true,
+      "deterministic_regeneration_to_hash_sink_equal": true,
+      "actual_reconstruction_bytes_modes_links_equal": true,
+      "mapped_payload_bytes_verified_from_reconstructed_wheel": true,
+      "originals_postcheck_equal": true,
+      "terminal_tree_rosters_postcheck_equal": true,
+      "Task187_original_rosters_postchecked_safe_for_new_bound_directory": true,
+      "Task189_Task191_outputs_read_or_archived": false,
+      "private_credential_environment_read_or_archived": false,
+      "workload_native_import_test_build_install_comparator_review_reruns": 0,
+      "gates_closed": false,
+      "elapsed_seconds": 19.963475620374084,
+      "preterminal_preparation_references_retained": 19,
+      "synthetic_negative_final_binding_fixture_references_retained": 532
+    },
+    "reused_archives": [
+      {
+        "task": "Task184",
+        "index": {
+          "path": ".plan20-artifacts/20261102/stage7a/native-gtd-correspondence-records-task184/INDEX.json",
+          "bytes": 7962,
+          "sha256": "cf9ecb6cc0381ef108c92b7899be40641e32689072f3ec30ea8cd6ebb6817487"
+        },
+        "archive": {
+          "path": ".plan20-artifacts/20261102/stage7a/native-gtd-correspondence-records-task184/terminal-candidate-runtime-correspondence-preparation.tar.gz",
+          "bytes": 115915745,
+          "sha256": "c4677c3df43a59f261fc28eb12fc76b0af9f8260432f4bae221790d8463ef8bd"
+        },
+        "member_manifest": {
+          "path": ".plan20-artifacts/20261102/stage7a/native-gtd-correspondence-records-task184/MEMBER_MANIFEST.json",
+          "bytes": 1836394,
+          "sha256": "74913996268c30768abcef6bc5fec7db10d413d516cfcff1632e315bc5796683"
+        }
+      },
+      {
+        "task": "Task179",
+        "index": {
+          "path": ".plan20-artifacts/20261102/stage7a/native-gtd-diagnostic-records-task179/INDEX.json",
+          "bytes": 7005,
+          "sha256": "c7489b75bb777f5b348f76a80eb7834adc5c432db6a7fe98c0891f6538c76f0f"
+        },
+        "archive": {
+          "path": ".plan20-artifacts/20261102/stage7a/native-gtd-diagnostic-records-task179/terminal-installed-review-diagnostic-compile-metadata.tar.gz",
+          "bytes": 10576765,
+          "sha256": "1cc157442f5aa3c23915c545a85153ff1d42f2e132482c52f4a5d81a5299c5b6"
+        },
+        "member_manifest": {
+          "path": ".plan20-artifacts/20261102/stage7a/native-gtd-diagnostic-records-task179/MEMBER_MANIFEST.json",
+          "bytes": 271542,
+          "sha256": "2b6ea6b7300eb2484696b24618f90f1fefa7e811ef9265926a2670c71392a76e"
+        }
+      },
+      {
+        "task": "Task171",
+        "index": {
+          "path": ".plan20-artifacts/20261102/stage7a/native-gtd-build-install-records-task171/INDEX.json",
+          "bytes": 5258,
+          "sha256": "9a444af9cebafc11c8569593d90abb3b7183c42e09fd63ef4a7186ea8215ca49"
+        },
+        "archive": {
+          "bytes": 27113151,
+          "member_counts": {
+            "directory": 247,
+            "regular-file": 4557,
+            "symlink": 8
+          },
+          "path": ".plan20-artifacts/20261102/stage7a/native-gtd-build-install-records-task171/terminal-candidate-build-install-preparation-review.tar.gz",
+          "regular_file_bytes": 135859633,
+          "sha256": "61c621e8cf35f267ce283bdf3fd6a6ba75d9eb8bebbee463234fb5058da62199"
+        },
+        "member_manifest": {
+          "bytes": 2616672,
+          "path": ".plan20-artifacts/20261102/stage7a/native-gtd-build-install-records-task171/MEMBER_MANIFEST.json",
+          "sha256": "e528b4d8245b9195ac9e7586c9ef13aca381ed826138287c691d993bd1660190"
+        }
+      }
+    ],
+    "reused_source_archives": [
+      {
+        "bytes": 36477455,
+        "path": "/tmp/hotpot_plan20/medium/stage7a-ob-dependency-provenance-task115/openbabel-3.2.1.tar.gz",
+        "sha256": "3afad3decd3b4343e09af3d98472b72f84cbf9a0fa25c2e4eb102abc334548c3"
+      },
+      {
+        "bytes": 2354,
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-gtd-candidate-task161/gtd.patch",
+        "sha256": "65fff4137e956cec167dcc0bc1ef9b61c29975073918ddb689568d16fe5b316d"
+      },
+      {
+        "bytes": 1116413,
+        "path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-build-input-task123/rapidjson-7c73dd7de7c4f14379b781418c6e947ad464c818.tar.gz",
+        "sha256": "91138ebc9c980e554e6bcf9d13537f9eebf42710e0b956fdca46181ad645f94d"
+      }
+    ],
+    "same_stage_alignment": {
+      "reference": "/tmp/hotpot_plan20/long/stage7a-sdf-repair-root-alignment-task108/ALIGNMENT.json",
+      "unchanged_normative_identities": 12,
+      "new_full_plan_read_claim": false
+    },
+    "shipping_boundary": "Task182 explicit hash-bound per-CPython native-pair wheelhouse route adopted for preparation only; third_party/openbabel remains sole future maintained home. Promotion absent while MANIFEST.in is frozen; no new public suffix/name or registry claim.",
+    "remaining": [
+      "First native build actual compile/link argv/consumed-header/ELF/loader/ABI review and root acceptance; actual source/I1/READY not obtained.",
+      "Final shipping-family correspondence/all CPython wrappers and current214/707/985/fresh26 rebind.",
+      "Complete SDF FIX_REQUIRED/native memory OPEN/Stage7A IN_PROGRESS/Stage7B PREENTRY/Stage10SDK/later-global gates OPEN."
+    ],
+    "new_scientific_observations": [],
+    "stage_gate_closed": false,
+    "global_gate_closed": false
   }
 }

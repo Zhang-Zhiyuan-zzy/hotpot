@@ -200,12 +200,10 @@
   "owner": "root",
   "recorded_at_utc": "2026-10-30T16:27:46.677321+00:00",
   "remaining_gates": [
-    "Exclusive implementation release and coherent source migration",
-    "Exact candidate probe release and SOURCE_READY",
-    "Focused and full175-file five-version source/installed selection plus finalcp311 default/coverage",
-    "Current cold/missing-use/fonts/native and prior/cell pickle evidence",
-    "All adverse cost dispositions and sufficient native-memory evidence",
-    "Stage7B-E and later Plan20/Plan12/global requirements;Stage7E blocks8/12/global;Stage10 clean builds/ABI/SDK/sdist;B_exp before13A/B"
+    "Repair the current completeSDFregression; all six current95%CIs above1. No transferredStage6waiver or mixed-family compensation.",
+    "Sufficient native-heap/long-run memory evidence, including unresolved SDF/native scope; old RDKit64slice is bounded.",
+    "Fresh identity/release/evidence after any further product repair; subsequent validated Git delivery.",
+    "Stage7B–E and all later Plan20/Plan12/global requirements;Stage7Ebefore8/12/global;clean-native/ABI/SDK/sdist;B_expbefore13."
   ],
   "schema_version": 1,
   "source_commit": "d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a",
@@ -216,7 +214,7 @@
     "sha256": "6a9b951d12d1a8875f8f7f6b4a311631c81b03024660413569a27226afb1125b"
   },
   "stage_gate_closed": false,
-  "status": "DESIGN_ACCEPTED_IMPLEMENTATION_SCOPE_PENDING",
+  "status": "DESIGN_ACCEPTED_CURRENT_TECHNICAL_FUNCTIONAL_COMPLETE_PERFORMANCE_FIX_REQUIRED_MEMORY_OPEN",
   "subsequent_scoped_root_decisions": {
     "prepared_record_status": "DRAFT_UNAPPLIED",
     "historical_receipt_preserved": true,
@@ -400,5 +398,208 @@
     "global_gate_closed": false,
     "checkpoint_commit": null,
     "push_result": null
-  }
+  },
+  "current_progress_checkpoint_task99": {
+    "owner": "root",
+    "task": 99,
+    "recorded_at_utc": "2026-11-02T06:26:00.403521+00:00",
+    "status": "ROOT_REVIEWED_FACTUAL_RECORDS_APPLIED_IDENTITY_REBIND_PENDING",
+    "stage7A": "IN_PROGRESS",
+    "stage7B": "PREENTRY",
+    "record_proposal_applied": true,
+    "record_proposal_scope": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-post-repair-validation-task96/revision2/TASK99_SCOPE.json",
+      "bytes": 3871,
+      "sha256": "ffaa56ab152cfee91f995d890cb878fb9d3b6ffed09f5ca80f06b0411f86d5b5"
+    },
+    "inputs": {
+      "task95_application": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-main-application-task95/APPLIED_SOURCE.json",
+        "bytes": 1928,
+        "sha256": "79b05aeb76701544f470c5fa73995a5c924ace6eefe4d1ba0aa5b26bd8811acd"
+      },
+      "task95_release": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-main-application-task95/ROOT_SOURCE_APPLICATION_RELEASE.json",
+        "bytes": 3874,
+        "sha256": "333863aa75cd0b69d7663942b05b7c4aad0eb307436d7229e95c3ff39f1d5749"
+      },
+      "task95_focused_result": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-main-application-task95/FOCUSED_RESULT.json",
+        "bytes": 803,
+        "sha256": "a12e429f4b5dff7273a9f883e6e21591f048651e7c8c3504cc11164a38084fc1"
+      },
+      "task94_report": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/adverse-cost-mainline-route-task94/REPORT.md",
+        "bytes": 3146,
+        "sha256": "6ad938baeba342cb365864ba0c5aeabcfdf8350d1eaed27b5cd017c27fce3738"
+      },
+      "task94_evidence": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/adverse-cost-mainline-route-task94/EVIDENCE.json",
+        "bytes": 44953,
+        "sha256": "23f310fb098ef0c5659534ad7794eddbe35b47cef92cc413513caaa5ac370d82"
+      },
+      "task94_handoff": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/adverse-cost-mainline-route-task94/HANDOFF.json",
+        "bytes": 4555,
+        "sha256": "da56e8d925d7db65b1ef0880b42ae7653b4d279a24429e99f6e5a47c1b371fb7"
+      },
+      "task87_handoff": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/native-memory-attribution-release-preparation/task87-reader-handoff/TASK87_HANDOFF.json",
+        "bytes": 14520,
+        "sha256": "ec807caf60d2195d3ae560acc60aabf104968f1115fef1e6877ebca99822f7f1"
+      },
+      "git_checkpoint": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/record-application-task89/ROOT_GIT_DELIVERY_VERIFICATION.json",
+        "bytes": 2475,
+        "sha256": "30435232bcb4b17feb953c6be9caeb1469aeae22fea927b384d82d1e1f70a7e7"
+      },
+      "task96_preparation": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-post-repair-validation-task96/HANDOFF.json",
+        "bytes": 6403,
+        "sha256": "2ae2e578dffbe9566fe34b93a606464e033547ede90ffcdc17fe676ca189e6bb"
+      },
+      "affected_membership": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-post-repair-validation-task96/ROOT_AFFECTED_MEMBERSHIP.json",
+        "bytes": 25755,
+        "sha256": "76c9383364ee34a5fb631a69bd3d1f2ab2d27f76be7cad3559e0cdb20e1dd2b1"
+      }
+    },
+    "source_commit": "af11b084049a2e497b15e938b7e7f7747ba7f1b4",
+    "git_checkpoint": {
+      "status": "ROOT_VERIFIED_PUSHED",
+      "receipt": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/record-application-task89/ROOT_GIT_DELIVERY_VERIFICATION.json",
+        "bytes": 2475,
+        "sha256": "30435232bcb4b17feb953c6be9caeb1469aeae22fea927b384d82d1e1f70a7e7"
+      }
+    },
+    "task95": {
+      "status": "THREE_FILE_MAIN_PATCH_APPLIED_CURRENT_MAIN_FOCUSED61_PASSED_FULL_MATRIX_PENDING",
+      "application": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-main-application-task95/APPLIED_SOURCE.json",
+        "bytes": 1928,
+        "sha256": "79b05aeb76701544f470c5fa73995a5c924ace6eefe4d1ba0aa5b26bd8811acd"
+      },
+      "release": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-main-application-task95/ROOT_SOURCE_APPLICATION_RELEASE.json",
+        "bytes": 3874,
+        "sha256": "333863aa75cd0b69d7663942b05b7c4aad0eb307436d7229e95c3ff39f1d5749"
+      },
+      "focused": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-main-application-task95/FOCUSED_RESULT.json",
+        "bytes": 803,
+        "sha256": "a12e429f4b5dff7273a9f883e6e21591f048651e7c8c3504cc11164a38084fc1"
+      },
+      "passed": 61,
+      "failed": 0,
+      "source_native_identities_unchanged_during_focused_run": 929,
+      "loaded_hotpot_module_origins_current": 138,
+      "native_rebuild_or_abi_evidence": false,
+      "installed_wheel_or_five_version_evidence": false
+    },
+    "task88_history": {
+      "isolated_passed": 61,
+      "cross_copy_comparisons_equal": 128,
+      "original_passed": 60,
+      "original_failed": 1,
+      "all_historical_outputs_retained": true
+    },
+    "task94": {
+      "status": "COMPLETE_NO_CHANGE_REQUIRED",
+      "performance_disposition": "FIX_REQUIRED",
+      "complete_sdf_gm": 2.6212510090812637,
+      "six_old_adverse_CIs_retained": true,
+      "original_findings": 306,
+      "no_2_6x_allowance": true,
+      "no_scientific_or_diagnostic_decision_changed": true,
+      "fresh_performance_cells_pending": 26
+    },
+    "task87": {
+      "status": "INCOMPLETE_LIFECYCLE_TIMEOUT",
+      "handoff": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/native-memory-attribution-release-preparation/task87-reader-handoff/TASK87_HANDOFF.json",
+        "bytes": 14520,
+        "sha256": "ec807caf60d2195d3ae560acc60aabf104968f1115fef1e6877ebca99822f7f1"
+      },
+      "outer_elapsed_seconds": 3580.8523763641715,
+      "payload_returncode": -15,
+      "all_task_processes_reaped": true,
+      "analysis_report_present": false,
+      "memory_acceptance": "HOLD_ROOT_OWNED"
+    },
+    "task97": {
+      "scope": "Offline reader tool repair only",
+      "status": "PREPARATION_COMPLETE_32_SYNTHETIC_PASSED_ROOT_REVIEWED_REAL_TRACE_UNEXECUTED",
+      "candidate_source_changed_by_task97": false,
+      "handoff": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/native-reader-repair-task97/HANDOFF.json",
+        "bytes": 6098,
+        "sha256": "195a25888e8ab525ab0d09afef81163da39d68f2545b373cb2a3fff4830a91dd"
+      }
+    },
+    "task96": {
+      "status": "PREPARATION_COMPLETE_NOT_RUNTIME_OR_ACCEPTANCE",
+      "handoff": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-post-repair-validation-task96/HANDOFF.json",
+        "bytes": 6403,
+        "sha256": "2ae2e578dffbe9566fe34b93a606464e033547ede90ffcdc17fe676ca189e6bb"
+      },
+      "proposed_213_file_source_installed_matrix": true
+    },
+    "task99_helper": {
+      "status": "EXACT_ONE_LINE_FONT_CONSUMER_RELOCATION_APPLIED_UNEXECUTED",
+      "receipt": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/sdf-post-repair-validation-task96/revision2/MAIN_HELPER_REPAIR.json",
+        "bytes": 2185,
+        "sha256": "9647307e20244232029ad97aba13b3a64292f17be9b32c123b03244149d956ef"
+      },
+      "all_other_bytes_and_five_filename_checks_preserved": true,
+      "copied_support_refresh_pending": true
+    },
+    "required_validation": {
+      "source_installed_file_count": 213,
+      "python_versions": [
+        "3.10",
+        "3.11",
+        "3.12",
+        "3.13",
+        "3.14"
+      ],
+      "cp311_default_coverage": true,
+      "applicable_native": true,
+      "fresh_performance_cells": 26,
+      "all_current_full_matrix_pending": true
+    },
+    "historical_provenance": "Original technicalFREEZE10/captureFREEZE12, failed outputs and older source/wheel/native identities remain historical and immutable; no result relabeling. Task95 focused receipt predates Task99 helper edit and does not execute this helper.",
+    "identity_rebind_status": "PENDING_ROOT_CURRENT_IDENTITY_REBIND; original Task96/Task99 proposals immutable",
+    "performance_accepted": false,
+    "native_memory_sufficiency_accepted": false,
+    "scientific_accepted": false,
+    "candidate_runtime_authorized": false,
+    "stage_gate_closed": false,
+    "global_gate_closed": false,
+    "later_gates_open": true,
+    "root_applied_at_utc": "2026-11-02T06:31:40.898245+00:00",
+    "root_review_task100": {
+      "scope": "Factual record application and exact one-line helper proof only",
+      "remote_helper_terminated": true,
+      "source_only_classifications": "Pending fresh actual collections; retain all historical qualifications",
+      "runtime_executed": false
+    }
+  },
+  "historical_status_before_task100": "DESIGN_ACCEPTED_IMPLEMENTATION_SCOPE_PENDING",
+  "historical_remaining_gates_before_task100": [
+    "Exclusive implementation release and coherent source migration",
+    "Exact candidate probe release and SOURCE_READY",
+    "Focused and full175-file five-version source/installed selection plus finalcp311 default/coverage",
+    "Current cold/missing-use/fonts/native and prior/cell pickle evidence",
+    "All adverse cost dispositions and sufficient native-memory evidence",
+    "Stage7B-E and later Plan20/Plan12/global requirements;Stage7E blocks8/12/global;Stage10 clean builds/ABI/SDK/sdist;B_exp before13A/B"
+  ],
+  "current_outcome_checkpoint_task100": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/root-continuation-task100/ROOT_CURRENT_RESULTS.json",
+    "bytes": 3511,
+    "sha256": "86b69663ed51f0a006168ef5498266b03176212461061a104200aac7dff97bda"
+  },
+  "record_scope": "Original source_commit/content_acceptance/implementation flags retain their original bounded-design authority. Current actual execution and open acceptance gates are in current_outcome_checkpoint_task100; no historical source is relabeled."
 }

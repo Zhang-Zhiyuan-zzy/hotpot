@@ -10,6 +10,7 @@ from hotpot import Atom, Molecule
 from hotpot.cheminfo.operations import chemistry, conversion
 from hotpot.cheminfo.adapters.rdkit import stereo_transport
 from hotpot.cheminfo.structure._builder import _freeze_value
+from hotpot.cheminfo.structure._atom_table import _AtomFactTable
 from hotpot.cheminfo.structure.stereo import StereoPayload
 
 
@@ -109,7 +110,6 @@ def test_ob_capture_precedes_atom_failure_after_preparation(monkeypatch):
     observation.preparations()
     real_obmol, real_begin = ob.OBMol, ob.OBMol.BeginModify
     real_new_atom, real_end = ob.OBMol.NewAtom, ob.OBMol.EndModify
-    real_coordinates = Atom.coordinates
     def empty_container(*args, **kwargs):
         value = real_obmol(*args, **kwargs)
         observation.containers.append(value)
@@ -130,20 +130,17 @@ def test_ob_capture_precedes_atom_failure_after_preparation(monkeypatch):
     def end(*args, **kwargs):
         observation.events.append('EndModify:attempt')
         return real_end(*args, **kwargs)
-    def coordinates(atom):
-        row = observation.row(atom)
-        observation.events.append('coordinates:' + str(row))
-        if row == 1:
-            raise ValueError('S7A injected atom1 coordinates')
-        return real_coordinates.fget(atom)
+    def coordinates(table, rows=None):
+        assert table is mol._atom_table and rows is None
+        observation.events.append('coordinates:snapshot')
+        raise ValueError('S7A injected coordinate snapshot')
     monkeypatch.setattr(real_obmol, 'BeginModify', begin)
     monkeypatch.setattr(real_obmol, 'NewAtom', new_atom)
     monkeypatch.setattr(real_obmol, 'EndModify', end)
     monkeypatch.setattr(ob.OBAtom, 'SetAtomicNum', fail_atomic_number)
     monkeypatch.setattr(ob, 'OBMol', empty_container)
-    monkeypatch.setattr(Atom, 'coordinates', property(coordinates, real_coordinates.fset,
-                                                    real_coordinates.fdel, real_coordinates.__doc__))
-    with pytest.raises(ValueError, match='^S7A injected atom1 coordinates$'):
+    monkeypatch.setattr(_AtomFactTable, 'coordinates', coordinates)
+    with pytest.raises(ValueError, match='^S7A injected coordinate snapshot$'):
         conversion.mol2obmol(mol)
     counts = Counter(observation.events)
     assert counts['_require_aromatic_representation:returned'] == 1
@@ -154,9 +151,9 @@ def test_ob_capture_precedes_atom_failure_after_preparation(monkeypatch):
     assert len(observation.containers) == 1
     assert observation.containers[0].NumAtoms() == observation.containers[0].NumBonds() == 0
     selected = {'_require_aromatic_representation:enter', 'OBMol:created', 'BeginModify:returned',
-                'coordinates:0', 'coordinates:1'}
+                'coordinates:snapshot'}
     assert [event for event in observation.events if event in selected] == [
         '_require_aromatic_representation:enter', 'OBMol:created', 'BeginModify:returned',
-        'coordinates:0', 'coordinates:1']
+        'coordinates:snapshot']
     assert _facts(mol) == observation.completed_facts['_require_aromatic_representation']
     assert not {'_obmol', '_row2idx'} & mol.__dict__.keys()

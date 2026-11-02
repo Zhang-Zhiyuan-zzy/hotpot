@@ -75,7 +75,7 @@ def core() -> None:
     assert files("hotpot.cheminfo.geometry").joinpath("README.zh.md").read_text(
         encoding="utf-8"
     ).startswith("# 几何数学规则与结构适配器 API 参考（中文版）")
-    fonts = files("hotpot.cheminfo").joinpath("fonts", "Arial")
+    fonts = files("hotpot.cheminfo").joinpath("adapters", "visualization", "fonts", "Arial")
     for filename in (
         "Arial.ttf",
         "Arial_Black.ttf",

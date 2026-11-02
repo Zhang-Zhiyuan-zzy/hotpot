@@ -51,10 +51,12 @@ def to_hotpot_mol(value, *, fmt=None, **kwargs) -> "Molecule":
 def _capture_ob_values(mol, bonds):
     table = mol._atom_table
     topology = mol._topology_index
+    atoms = mol.atoms
+    coordinates = table.coordinates()
     atom_rows = tuple((table.read(row, 'atomic_number'), table.read(row, 'formal_charge'),
-                       table.read(row, 'partial_charge'), tuple(atom.coordinates),
+                       table.read(row, 'partial_charge'), tuple(map(float, coordinates[row])),
                        table.raw(row, 'is_aromatic'))
-                      for row, atom in enumerate(mol.atoms))
+                      for row in range(len(atoms)))
     bond_rows = []
     for bond in bonds:
         kind = bond._bond_kind.value

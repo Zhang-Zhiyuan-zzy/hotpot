@@ -3026,6 +3026,74 @@
         "historical_values_and_raw_spelling_preserved": true,
         "all_remaining_stage_and_global_gates_open": true,
         "scope": "Factual records/archive only; no main plan/design/source/test/environment/config/native/status/gate change. Commit/push held."
+      },
+      "control_build_install_checkpoint_task143_151": {
+        "record": {
+          "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/validation/native_gtd_diagnostic.json",
+          "bytes": 107349,
+          "sha256": "afdb570a5e90e09515ea9c336d2a0f0b5e38b1f1d101dd4e9b22dcd923220bde"
+        },
+        "status": "TASK143_BUILD_INSTALL_TASK149_TASK150_ROOT_ACCEPTED_TASK144_INSTALLED_BINDING_RC0_COMPILED_REVIEW_PENDING_NO_RUNTIME_RELEASE",
+        "Task143_actual_build_result": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-build-phase/RESULT.json",
+          "bytes": 524,
+          "sha256": "261d0478c57bb5430ff19e172abda49b484dde8e1c1af8525cc3b3d5f924abd6"
+        },
+        "Task143_actual_installed_result": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-install-phase/RESULT.json",
+          "bytes": 539,
+          "sha256": "a5744cf2c0b99173aaf61ec42a191de2c5f17e59e0051986d475799055646337"
+        },
+        "actual_build_RC": 0,
+        "actual_private_install_RC": 0,
+        "actual_installed_static_gate_RC": 0,
+        "build_objects_and_dependency_files": [
+          320,
+          320
+        ],
+        "installed_package_paths": 329,
+        "Task149_root_acceptance": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/root-review/TASK149_BUILD_REVIEW_ACCEPTANCE.json",
+          "bytes": 1712,
+          "sha256": "ea3b8df7e8ae8332388f313263ceb92deb9fb482cc645794c55f4c1268de8c67"
+        },
+        "Task150_root_acceptance": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/root-review/TASK150_INSTALL_REVIEW_ACCEPTANCE.json",
+          "bytes": 1743,
+          "sha256": "5cd1e136f18eec7b876cedba8babdd520af2d80ba20139d8809065ebe13fe15d"
+        },
+        "selected_build_install_archive": {
+          "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-retry-task143/ARCHIVE_APPEND.task151.completed-phases.json",
+          "bytes": 1479207,
+          "sha256": "30ea5591821b7db7ff093755a226fe1be02d65e422f8eb764d000e91ea316ddc"
+        },
+        "accepted_Task149_archive": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task149/ARCHIVE_MANIFEST.task151.json",
+          "bytes": 950674,
+          "sha256": "ff5a56259a274bc8ac0fbad5cd2d95c28894b7cbc5a0b60fd19742b95397439a"
+        },
+        "accepted_Task150_archive": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task150/ARCHIVE_MANIFEST.task151.json",
+          "bytes": 182647,
+          "sha256": "2d85af2652d9f85f194de2e250eae5584f64634669c03b194d7dddaf5d551f68"
+        },
+        "Task144_actual_installed_binding": {
+          "manifest": {
+            "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/actual-binding/ARCHIVE_MANIFEST.task151.json",
+            "bytes": 7425,
+            "sha256": "5dde9d934bd34a53ea0e4dedac8e3fe65756e884ffe26e5a73f6c352604f3b11"
+          },
+          "RC": 0,
+          "physical_entries": 351,
+          "guards": 8227,
+          "planned_steps": 9,
+          "diagnostic_outputs_archived": false,
+          "later_compile_RC0_root_reported": true
+        },
+        "Task144_integrity_repair": "ADDRESSED_IN_PREPARATION_ONLY; actual binding RC0 recorded; diagnostic/runtime/combined comparison pending",
+        "historical_values_and_raw_spelling_preserved": true,
+        "all_remaining_stage_and_global_gates_open": true,
+        "scope": "Factual records/archive only; no source/main-plan/design/tests/environment/config/native/status/gate change. Commit/push held."
       }
     },
     "Stage7B": {

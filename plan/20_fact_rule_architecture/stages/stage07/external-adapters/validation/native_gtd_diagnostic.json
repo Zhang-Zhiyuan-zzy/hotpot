@@ -1162,5 +1162,683 @@
       "scope": "Task144 complete long/medium synthetic fixtures/diffs/inputs and retained attempts; Task146 complete reports/offline audit failure/correction/program/raw receipts; exact19metadata additions only. No whole growing attempt3 tree scan, source-tree duplicate or target execution."
     },
     "remaining": "Actual attempt3 full build result, consumed-header/SWIG/linker/ELF review, separate private install release/acceptance, canonical CONTROL SDK/native/data/plugin binding and accepted inventory freeze, diagnostic compile/ABI review, complete loader/search review, no-overlap full-roster runtime and positive bound integrity-plus-shared comparison remain pending. Full214 supported source/wheel/native/function/reflection and fresh26 performance rebind where required, native-memory sufficiency and all stage/global gates stay open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY."
+  },
+  "task151_checkpoint": {
+    "recorded_at_utc": "2026-11-02T13:25:25.717182+00:00",
+    "status": "TASK143_BUILD_INSTALL_TASK149_TASK150_ROOT_ACCEPTED_TASK144_INSTALLED_BINDING_RC0_COMPILED_REVIEW_PENDING_NO_RUNTIME_RELEASE",
+    "scope": "Task151 factual archival checkpoint only. Prior OPEN/preparation/in-progress/release/checkpoint fields are preserved as history. Same-stage Task108 alignment continuity is root-authorized; no fresh full-plan/design review claim. Exactly four maintained factual records; no root log, source, tests, main plan, design, environment, config or native changes. Commit/push held for root review.",
+    "preceding_delivered_record_commit": "c06156adb0857801fa0cc500a6a5e9ee4eaa904f",
+    "actual_Task143_build": {
+      "result": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-build-phase/RESULT.json",
+        "bytes": 524,
+        "sha256": "261d0478c57bb5430ff19e172abda49b484dde8e1c1af8525cc3b3d5f924abd6"
+      },
+      "invocation": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-build-phase/INVOCATION.json",
+        "bytes": 3210,
+        "sha256": "7f11996e6287b48500b7de1e34b0281f0bedf3a397dbb6b31f09e9471ba5b1ec"
+      },
+      "supervision": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-build-phase/supervisor/execution.json",
+        "bytes": 812758,
+        "sha256": "7a86d393ad3c9ba30e76b3b4883d2f5398111d8309ff8b948e07b68966105137"
+      },
+      "supervisor_command": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-build-phase/SUPERVISOR_COMMAND.json",
+        "bytes": 1019,
+        "sha256": "66b83465027d185be5918b5e8819f66079c22d8c3f11623ddcffb82fe192b53d"
+      },
+      "raw_stdout": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-build-phase/supervisor/stdout.txt",
+        "bytes": 40869,
+        "sha256": "33d054154b18cc5743363db480ec4dd408970cb9440d19f78bace3c81e67ab54"
+      },
+      "raw_stderr": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-build-phase/supervisor/stderr.txt",
+        "bytes": 628360,
+        "sha256": "91fcf365d8d509f2d85d97f2076e5cefff56c421bf4c2165f14f3de6e8abbe3f"
+      },
+      "guards_before": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-build-phase/GUARDS_BEFORE.json",
+        "bytes": 456,
+        "sha256": "ace46aed4b37b1604c776892a42487f90fd10f1c05528814d07de4da223ecf8b"
+      },
+      "guards_after": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-build-phase/GUARDS_AFTER.json",
+        "bytes": 715,
+        "sha256": "db0cb4d8900a0cde259053c90802694dddc00619c094b63bd91df96aac201e98"
+      },
+      "status": "PASS_BUILD_AWAIT_PRIVATE_INSTALL",
+      "supervisor_RC": 0,
+      "gate_RC": null,
+      "supervisor_elapsed_seconds": 94.52610870078206,
+      "finished_at_utc": "2026-11-02T13:09:44.331270+00:00",
+      "guard_members_before_after": 1641,
+      "no_timeout_unchanged_guards_direct_child_reaped_subreaper_all_owned_absent": true,
+      "parent_affinity": [
+        16
+      ],
+      "child_affinity": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "child_RLIMIT_AS": [
+        -1,
+        -1
+      ],
+      "parallel_jobs": 8,
+      "automatic_retries": 0,
+      "next_phase_automatic": false,
+      "native_runtime_authorized": false,
+      "preserved_guard_counts": {
+        "Eigen_files": 1784,
+        "RapidJSON_files": 313,
+        "baseline_hash_stat_files": 344,
+        "frozen_Task117_files": 51,
+        "official_source_files": 37610,
+        "selected_and_closure_file_bindings": 99,
+        "tool_header_files": 11703,
+        "wheel_payload_files": 337
+      }
+    },
+    "actual_Task143_private_install": {
+      "result": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-install-phase/RESULT.json",
+        "bytes": 539,
+        "sha256": "a5744cf2c0b99173aaf61ec42a191de2c5f17e59e0051986d475799055646337"
+      },
+      "invocation": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-install-phase/INVOCATION.json",
+        "bytes": 3435,
+        "sha256": "edb3bdcae6fec5b4374052099a7d631e73c265dcb65e63f2ddc9388bb6cfdfb5"
+      },
+      "supervision": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-install-phase/supervisor/execution.json",
+        "bytes": 812456,
+        "sha256": "72ea1dfb3860eaa7464244ddd50fc194fe2256ebbe6242deb645a3de303b6b72"
+      },
+      "supervisor_command": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-install-phase/SUPERVISOR_COMMAND.json",
+        "bytes": 1022,
+        "sha256": "0a954d28e2a57df91837d8be4ce67a9a9ec5d01c6d57265d41cacc7b9f64ac70"
+      },
+      "raw_stdout": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-install-phase/supervisor/stdout.txt",
+        "bytes": 82054,
+        "sha256": "f73807e729ff6026abd8cfb8ce49ad1ea6422106f85b5b7eb306a46c3b8238a5"
+      },
+      "raw_stderr": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-install-phase/supervisor/stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "guards_before": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-install-phase/GUARDS_BEFORE.json",
+        "bytes": 715,
+        "sha256": "db0cb4d8900a0cde259053c90802694dddc00619c094b63bd91df96aac201e98"
+      },
+      "guards_after": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-install-phase/GUARDS_AFTER.json",
+        "bytes": 715,
+        "sha256": "db0cb4d8900a0cde259053c90802694dddc00619c094b63bd91df96aac201e98"
+      },
+      "status": "PASS_INSTALLED_STATIC_GATE_NATIVE_RUNTIME_HOLD",
+      "supervisor_RC": 0,
+      "gate_RC": 0,
+      "supervisor_elapsed_seconds": 0.3505817949771881,
+      "finished_at_utc": "2026-11-02T13:13:03.546098+00:00",
+      "guard_members_before_after": 1641,
+      "no_timeout_unchanged_guards_direct_child_reaped_subreaper_all_owned_absent": true,
+      "parent_affinity": [
+        16
+      ],
+      "child_affinity": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "child_RLIMIT_AS": [
+        -1,
+        -1
+      ],
+      "parallel_jobs": 8,
+      "automatic_retries": 0,
+      "next_phase_automatic": false,
+      "native_runtime_authorized": false,
+      "preserved_guard_counts": {
+        "Eigen_files": 1784,
+        "RapidJSON_files": 313,
+        "baseline_hash_stat_files": 344,
+        "frozen_Task117_files": 51,
+        "official_source_files": 37610,
+        "selected_and_closure_file_bindings": 99,
+        "tool_header_files": 11703,
+        "wheel_payload_files": 337
+      }
+    },
+    "actual_installed_static_gate": {
+      "report": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-install-phase/installed.stdout.json",
+        "bytes": 573453,
+        "sha256": "2444ad7e54466c22bb1a46096222dc3399177783f7c9275f5a82f7fec49be448"
+      },
+      "command": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/actual-install-phase/installed.command.json",
+        "bytes": 1405,
+        "sha256": "87b228aa887326b71c266aaf93d26a8ef2ed09b4f4558c59669d4ae0b4b4b2c8"
+      },
+      "status": "PASS_STATIC_GATE_ONLY",
+      "RC": 0,
+      "issues": [],
+      "elapsed_seconds": 3.913948928937316,
+      "counts": {
+        "frozen_packet_files": 51,
+        "official_source_files": 37610,
+        "Eigen_files": 1784,
+        "baseline_hash_stat_files": 344,
+        "original_wheel_payload_equalities": 337,
+        "selected_and_closure_file_bindings": 99,
+        "tool_and_header_tree_file_bindings": 11703,
+        "current_Hotpot_source_consumers": 5,
+        "expected_plugins": 128,
+        "source_equal_headers": 90,
+        "source_equal_data": 55,
+        "CXX_translation_units_ABI0": 273,
+        "all_translation_units": 320,
+        "installed_package_paths": 329,
+        "installed_ELF_files_inspected": 150,
+        "install_manifest_entries": 329
+      },
+      "metadata_commands": 151,
+      "scope": "Actual static installed-path/ELF metadata gate; no import/native/chemistry/runtime operation. Static checker metadata tools are preserved as actual commands/raw outputs, not rerun."
+    },
+    "root_build_receipts_private_install_acceptance": {
+      "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/receipts/root-receipts/TASK143_BUILD_RECEIPT_ACCEPTANCE.json",
+      "bytes": 178055,
+      "sha256": "c996094de9e8e2e1cfca844dc6b7aad15999792f6fdab970e9b96fb7b499431c"
+    },
+    "actual_Task149_build_audit": {
+      "root_acceptance": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/root-review/TASK149_BUILD_REVIEW_ACCEPTANCE.json",
+        "bytes": 1712,
+        "sha256": "ea3b8df7e8ae8332388f313263ceb92deb9fb482cc645794c55f4c1268de8c67"
+      },
+      "root_acceptance_status": "ROOT_ACCEPTED_BOUNDED_ACTUAL_BUILD_WITH_RETAINED_UPSTREAM_WARNINGS",
+      "report": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task149/packet/REPORT.md",
+        "bytes": 8118,
+        "sha256": "28c265ccdc0b3d1fe472f4790a2570a1bec5cb220b3fd771cb409a62affa8efb"
+      },
+      "assessment": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task149/packet/ASSESSMENT.json",
+        "bytes": 2291,
+        "sha256": "983db632f9c99fb49fc3f3495f476f6d7910672f66e25735c7cf2839f931b583"
+      },
+      "evidence_index": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task149/packet/EVIDENCE_INDEX.json",
+        "bytes": 6209,
+        "sha256": "53dec418142be4b0d21b4c09c0263ebf8435bf3e24f4717913cd1186f8ba3428"
+      },
+      "checks": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task149/packet/CHECKS.json",
+        "bytes": 3458307,
+        "sha256": "6bda98e60be38c399fc45497c45eff33679da9c618759b7543ed0db20d4209f1"
+      },
+      "finalization": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task149/packet/FINALIZATION.json",
+        "bytes": 1544,
+        "sha256": "11e887c3d14b57d8b6eee67cf8766d25f63c9fd2785ee1b1534017f1b32e14b3"
+      },
+      "warning_dispositions": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task149/packet/WARNINGS_REVIEW.json",
+        "bytes": 1694471,
+        "sha256": "d014a8fbdf2e5e87d120b604cbe995ec1d80b881ee334d1c5cd6bf2793dc705f"
+      },
+      "dependency_review": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task149/packet/DEPENDENCY_REVIEW.json",
+        "bytes": 18148216,
+        "sha256": "08a7471443d67f59d1429d2afa031331bde4a257e4166e1fce21977db3a9c687"
+      },
+      "ELF_ABI_review": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task149/packet/ELF_ABI_REVIEW.json",
+        "bytes": 1575848,
+        "sha256": "e42623128ea9c6541d3df94331e4d6c612e814c2809dfde1f1f9cdf0168dddea"
+      },
+      "NEEDED_origin_review": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task149/packet/NEEDED_ORIGIN_REVIEW.json",
+        "bytes": 491380,
+        "sha256": "0e50b4bc2ff42b53368772830ccc40fd6615222b6f51f8b007c93837e3981cdd"
+      },
+      "SWIG_review": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task149/packet/SWIG_REVIEW.json",
+        "bytes": 2646,
+        "sha256": "f711adc30f2cd1ebe1fbeb08673206a79533dca09a10d33d6ba5c4e5b054ebfb"
+      },
+      "final_stability": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task149/packet/FINAL_STABILITY_RECHECK.json",
+        "bytes": 83,
+        "sha256": "f1f8a5aaccdcc901a50bbaf2b93169220d3a76b540964109ad510b4b5f414225"
+      },
+      "status": "PASS_BOUNDED_ACTUAL_BUILD_WITH_RETAINED_UPSTREAM_WARNINGS",
+      "passed_checks": 8986,
+      "failed_checks": 0,
+      "actual_metadata_commands": 944,
+      "metadata_commands_only": "readelf/nm; no loader/ldd/import/compiler/configure/make/supervisor/native/Git/package change",
+      "actual_auditor_RC": 0,
+      "actual_auditor_outer_elapsed_seconds": 13.415135031566024,
+      "internal_assessment_elapsed_seconds": 13.292545933276415,
+      "compile_units": 320,
+      "CXX_explicit_ABI0": 273,
+      "C_included_InChI": 47,
+      "object_ELFs": 320,
+      "link_output_ELFs": 150,
+      "CXX_link_plans_explicit_ABI0": 149,
+      "required_OpenBabel_symbol_occurrences_static_resolved": 5303,
+      "unique_consumed_paths": 1206,
+      "consumed_category_counts": {
+        "Eigen": 182,
+        "RapidJSON": 27,
+        "configured_generated_header": 1,
+        "generated_SWIG_wrapper": 1,
+        "generated_data": 9,
+        "official_source": 487,
+        "system_headers": 197,
+        "tool_or_Python_headers": 302
+      },
+      "generated_data_headers_reconstructed_exact": 9,
+      "direct_NEEDED_edges": 632,
+      "explicit_frozen_libxml2_canonical_SHA256": "101605ea7125abd8b691f1ef21a39144adf1937db4a018b90a407100871b0734",
+      "libxml2_SONAME": "libxml2.so.2",
+      "final_inspected_bindings_stable": 5836,
+      "warning_events": 668,
+      "distinct_warning_messages": 42,
+      "warning_categories": {
+        "SWIG_Doxygen_translation": 15,
+        "SWIG_omitted_nested_type": 4,
+        "SWIG_shadowed_overload": 8,
+        "generated_docstring_trigraph": 2,
+        "upstream_deprecated_API": 619,
+        "upstream_format_truncation_risk": 19,
+        "upstream_loop_undefined_behavior_risk": 1
+      },
+      "no_error_diagnostic": true,
+      "warning_free_claim": false,
+      "retained_actual_upstream_risks": "Jacobi unsigned-dimension/signed-index large-dimension UB risk remains unproved;19 individually disposed truncation diagnostics include concrete YASARA/YOB writer size4 %4d needing at least5bytes with NUL. Large labels/counts,PDB charge fields and MDL year rollover remain risks. SWIG nested/public Functor callback and overload omissions, documentation degradation and literal trigraph-doc limitations remain. No source/flag/feature/scientific/format/API-parity waiver.",
+      "build_origin_limits": "Fresh core and ORIGINAL both use SONAME8. Exact link/static exports identify build providers only; no actual process resolution proven. Upstream build RUNPATH colon padding/trailing empty components can mean current directory and do not establish private installed/load-order safety.",
+      "retained_corrections": "Iteration1 canonical frozen symlink-name comparison caused258 false provenance rows; fixed by already-frozen resolved identity plus bytes/hash. Iteration2 omitted explicit libxml2 own SONAME and retained5 accounting rows; fixed against exact frozen explicit metadata, without installed-output consultation. Prior clean assessment preserved under iteration3 before final wording/check-label correction acknowledging shared SONAME8. No production artifact changed.",
+      "scope": "Root accepts bounded actual build audit with retained upstream warnings only. Consumed headers/data/wrapper/object/linker/ABI/static provenance reviewed. No installed output or standalone SDK/native/runtime/scientific/performance/memory/stage acceptance."
+    },
+    "actual_Task150_installed_audit": {
+      "assessment": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task150/packet/ASSESSMENT.json",
+        "bytes": 7336,
+        "sha256": "655acad2fa120aedccbe783bfde2a93d05f054c254a56ece9fc03ca5f9ec87f6"
+      },
+      "report": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task150/packet/REPORT.md",
+        "bytes": 2637,
+        "sha256": "50dd6b8f5468cc66798cc9ca1b6aa9e9d8adb8c1d6588eac7978cc2fa753ff4a"
+      },
+      "evidence_index": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task150/packet/EVIDENCE_INDEX.json",
+        "bytes": 6992,
+        "sha256": "a447a19bf8a7eaf6a43fdb61b548ddfe2f74579f7ae1af8c3d8d22496df3baea"
+      },
+      "static_provider_closure": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task150/packet/STATIC_PROVIDER_CLOSURE.json",
+        "bytes": 349043,
+        "sha256": "d0956b381f96be5fdba56529d7c389ebec654e47f73eee29c9c195c084cfaa95"
+      },
+      "prefix_stat_review": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task150/packet/PREFIX_STAT_REVIEW.json",
+        "bytes": 289383,
+        "sha256": "ec3c0201d945fa8d680260e5320a3082cae2ff8fc5d7488518543b45b36ae3f8"
+      },
+      "SDK_static_review": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task150/packet/SDK_STATIC_REVIEW.json",
+        "bytes": 5371,
+        "sha256": "d0edf9642bc9761f4a16557843114002fb7c1be7b275533400ea8c4c2b91c23f"
+      },
+      "ABI_review": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task150/packet/ABI_REVIEW.json",
+        "bytes": 732,
+        "sha256": "48b5c973c221721d7fb285f12b84b7f4f87bce52c28bbdc6b625250a932525e6"
+      },
+      "binder_requirements": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task150/packet/BINDER_REQUIREMENTS.json",
+        "bytes": 4943,
+        "sha256": "2aab11dcb38c524ddb57aa3f96c59705d9cd363c41e704d38ddb2a96abcb752d"
+      },
+      "final_stability": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task150/packet/FINAL_STABILITY_RECHECK.json",
+        "bytes": 129,
+        "sha256": "8fc3eeb1fd30998609d2f351f5758391151c92cfa3bff90fe081abdfd6079183"
+      },
+      "status": "INSTALLED_STATIC_REVIEW_PASS_ROOT_ACCEPTANCE_AND_NATIVE_HOLD",
+      "blockers": [],
+      "actual_install_warnings": [],
+      "counts": {
+        "Task143_freeze_bindings": 1279,
+        "Task143_manifest_members": 64,
+        "Task144_sealed_members": 24,
+        "data": 55,
+        "external_static_providers": 12,
+        "fresh_metadata_tool_invocations": 0,
+        "headers": 91,
+        "installed_ELF_files": 150,
+        "installed_package_paths": 329,
+        "metadata_command_records": 163,
+        "plugins": 128,
+        "reused_actual_dynamic_commands": 150,
+        "reused_metadata_records": 163,
+        "static_dependency_edges": 661,
+        "symlinks": 4,
+        "unchanged_normative_documents": 12
+      },
+      "installed_paths": {
+        "cmake_root": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib64/cmake/openbabel3",
+        "data_root": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/share/openbabel/3.2.1",
+        "header_root": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/include/openbabel3",
+        "inchi_header_root": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/include/inchi",
+        "pkg_config": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/pkgconfig/openbabel-3.pc",
+        "plugin_root": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/openbabel/3.2.1"
+      },
+      "installed_native_identity": {
+        "anchor": {
+          "bytes": 4030192,
+          "canonical_path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libopenbabel.so.8.0.0",
+          "device": 66307,
+          "inode": 6044293,
+          "link_device": 66307,
+          "link_inode": 6044294,
+          "link_mode": 511,
+          "mode": 420,
+          "path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libopenbabel.so.8",
+          "sha256": "bdc92e62f35b5fbfe6b6ab53a1c9f0072b83bf4593c3bf7e935fda573c59979b",
+          "symlink_target": "libopenbabel.so.8.0.0"
+        },
+        "canonical": {
+          "bytes": 4030192,
+          "canonical_path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libopenbabel.so.8.0.0",
+          "device": 66307,
+          "inode": 6044293,
+          "link_device": 66307,
+          "link_inode": 6044293,
+          "link_mode": 420,
+          "mode": 420,
+          "path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libopenbabel.so.8.0.0",
+          "sha256": "bdc92e62f35b5fbfe6b6ab53a1c9f0072b83bf4593c3bf7e935fda573c59979b",
+          "symlink_target": null
+        },
+        "inchi_anchor": {
+          "bytes": 1521968,
+          "canonical_path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libinchi.so.1.07.5",
+          "device": 66307,
+          "inode": 6044426,
+          "link_device": 66307,
+          "link_inode": 6044427,
+          "link_mode": 511,
+          "mode": 420,
+          "path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libinchi.so.1",
+          "sha256": "3d03f17958592f4642fcb7c02bc3fa9d3fce1b21cabd458d2dc97431697cf54a",
+          "symlink_target": "libinchi.so.1.07.5"
+        },
+        "inchi_canonical": {
+          "bytes": 1521968,
+          "canonical_path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libinchi.so.1.07.5",
+          "device": 66307,
+          "inode": 6044426,
+          "link_device": 66307,
+          "link_inode": 6044426,
+          "link_mode": 420,
+          "mode": 420,
+          "path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libinchi.so.1.07.5",
+          "sha256": "3d03f17958592f4642fcb7c02bc3fa9d3fce1b21cabd458d2dc97431697cf54a",
+          "symlink_target": null
+        },
+        "python_extension": {
+          "bytes": 4029576,
+          "canonical_path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/_openbabel.so",
+          "device": 66307,
+          "inode": 6044449,
+          "link_device": 66307,
+          "link_inode": 6044449,
+          "link_mode": 420,
+          "mode": 420,
+          "path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/_openbabel.so",
+          "sha256": "757e3292eeb517ff2d851fd69dabfff101020a20fefff84f1779398c0d8b2269",
+          "symlink_target": null
+        }
+      },
+      "ABI0_domain_symbol_summary": {
+        "core_OpenBabel_symbols": 2743,
+        "core_old_string_manglings": 154,
+        "coverage": "Installed core/module OpenBabel domain symbols and accepted explicit ABI0 compile/link plans; Task149 owns deep consumed-build-header/linker/warning evidence. SDK and runtime behavior remain unproven.",
+        "module_OpenBabel_symbols": 1716,
+        "module_Python_undefined_symbols": 83,
+        "module_old_string_manglings": 61
+      },
+      "physical_snapshot_entries_unchanged": 351,
+      "review_execution_qualification": "163 readelf/nm metadata commands executed once in preserved iteration1; corrected offline audit reused exact bound streams and launched no subprocess. No guard/checker/binder/runtime execution.",
+      "retained_first_audit_correction": "First audit falsely rejected sourceheader oberror.h filename and five lexical /./ manifest components. Corrected offline interpretation reuses163exact readelf/nm streams without new subprocesses; original failure/command/program/raw streams retained; production bytes/accepted inventory unchanged.",
+      "scope": "Actual installed static package/native metadata audit only.661 static dependency edges resolve through private family/12frozen providers with no missing required versions. Static candidates are not loader observations. All4aliases stay in prefix; ORIGINAL .so.8 bytes/device/inode unchanged. Python83undefined API symbols, inherited Eigen3::Eigen provisioning and explicit SDK consumer ABI0 remain later gates; no binder/import/loader/diagnostic/runtime acceptance.",
+      "root_acceptance": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/root-review/TASK150_INSTALL_REVIEW_ACCEPTANCE.json",
+        "bytes": 1743,
+        "sha256": "5cd1e136f18eec7b876cedba8babdd520af2d80ba20139d8809065ebe13fe15d"
+      },
+      "root_acceptance_status": "ROOT_ACCEPTED_BOUNDED_ACTUAL_PRIVATE_INSTALL_STATIC_REVIEW"
+    },
+    "actual_Task144_installed_binding": {
+      "manifest": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/actual-binding/ARCHIVE_MANIFEST.task151.json",
+        "bytes": 7425,
+        "sha256": "5dde9d934bd34a53ea0e4dedac8e3fe65756e884ffe26e5a73f6c352604f3b11"
+      },
+      "root_install_acceptance": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/root-review/TASK143_ROOT_INSTALL_REVIEW.json",
+        "bytes": 3398,
+        "sha256": "20d71130120591d59cc6c439cab940d3445985c95a917895a19f3ed9d21bf7f2"
+      },
+      "actual_binder_command": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/root-review/TASK144_BIND_INSTALL.command.json",
+        "bytes": 1444,
+        "sha256": "e53ecd08036d6c73532029210c48ce209b9a3eb7b6e68b21c621eb43d8ba997d"
+      },
+      "actual_binder_stdout": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/root-review/TASK144_BIND_INSTALL.stdout.txt",
+        "bytes": 356,
+        "sha256": "73d362ae72db9c19eecda4684ade332fb4d0fb6d790d2f91f7e429f3db9f1cb5"
+      },
+      "actual_binder_stderr": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/root-review/TASK144_BIND_INSTALL.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "installed_prefix_inventory": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/actual-binding/INSTALLED_PREFIX_INVENTORY.json",
+        "bytes": 156327,
+        "sha256": "f8e52219e8cf5041b5c11cacca3ecf60418e6c47cfe9705d7591dbc310828a20"
+      },
+      "compile_plan": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/actual-binding/COMPILE_PLAN.json",
+        "bytes": 1604140,
+        "sha256": "eca4b20b7f21d53426e9d3f499b1e9770b92e926e00b86a6fcd787d2751c8e89"
+      },
+      "compile_release_template_no_authority": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/actual-binding/ROOT_COMPILE_RELEASE.template.json",
+        "bytes": 742,
+        "sha256": "4906614e8a5ca51c3a19aade16a5f3d0cfe4c7f17e32632b9b364d8fbef269c0"
+      },
+      "initial_root_preflight_failure": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/root-review/TASK149_150_ROOT_PREFLIGHT_SCHEMA_ERROR.json",
+        "bytes": 353,
+        "sha256": "f3eda0f53f377597b80d6eaba966952a7df8a234f13d000928b079433c7aa15b"
+      },
+      "status": "PREPARED_CONTROL_DIAGNOSTIC_COMPILE_NO_RELEASE",
+      "actual_binder_RC": 0,
+      "actual_binder_elapsed_seconds": 0.8706790283322334,
+      "frozen_physical_prefix_entries": 351,
+      "guard_bindings": 8227,
+      "planned_diagnostic_steps": 9,
+      "glibcxx_abi": 0,
+      "native": {
+        "anchor": {
+          "path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libopenbabel.so.8",
+          "bytes": 4030192,
+          "sha256": "bdc92e62f35b5fbfe6b6ab53a1c9f0072b83bf4593c3bf7e935fda573c59979b",
+          "canonical_path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libopenbabel.so.8.0.0",
+          "device": 66307,
+          "inode": 6044293,
+          "link_device": 66307,
+          "link_inode": 6044294,
+          "symlink_target": "libopenbabel.so.8.0.0"
+        },
+        "canonical": {
+          "path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libopenbabel.so.8.0.0",
+          "bytes": 4030192,
+          "sha256": "bdc92e62f35b5fbfe6b6ab53a1c9f0072b83bf4593c3bf7e935fda573c59979b",
+          "canonical_path": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/libopenbabel.so.8.0.0",
+          "device": 66307,
+          "inode": 6044293,
+          "link_device": 66307,
+          "link_inode": 6044293,
+          "symlink_target": null
+        }
+      },
+      "header_root": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/include/openbabel3",
+      "data_root": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/share/openbabel/3.2.1",
+      "plugin_root": "/tmp/hotpot_plan20/medium/stage7a-ob-control-swig-retry-task143/attempt3/site/openbabel/lib/openbabel/3.2.1",
+      "automatic_retries": 0,
+      "native_or_compiler_execution": false,
+      "scope": "Actual canonical CONTROL native/SDK/data/plugins and immutable physical inventory binding only. Legacy ROOT_ACCEPTED_TASK124_PRIVATE_CONTROL_INSTALL status is the binder-required spelling; actual task explicitly Task143 attempt3. No diagnostic compile/runtime authority follows; template remains nonauthority. Root initial evidence-index-schema KeyError stopped before any output/acceptance/execution, was corrected to actual schemas before final acceptances/binder; failure retained."
+    },
+    "generated_build_and_installed_archive": {
+      "manifest": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-retry-task143/ARCHIVE_APPEND.task151.completed-phases.json",
+        "bytes": 1479207,
+        "sha256": "30ea5591821b7db7ff093755a226fe1be02d65e422f8eb764d000e91ea316ddc"
+      },
+      "tar": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/completed-build-install-selected.tar.gz",
+        "bytes": 24191518,
+        "sha256": "79fcf65c260610edbc9f77218de782e1e3fc6a7546e7a8e943f9f805b2b4feb2"
+      },
+      "node_counts": {
+        "regular": 2415,
+        "directory": 240,
+        "symlink": 8
+      },
+      "objects": 320,
+      "dependency_files": 320,
+      "installed_package_paths": 329,
+      "installed_regular_files": 325,
+      "installed_symlinks": 4,
+      "existing_configured_metadata_reused_unchanged": 172,
+      "compact_actual_phase_and_root_receipts": 34,
+      "all_regular_SHA256_size_tar_and_isolated_reconstruction_verified": true,
+      "all_source_nodes_bytes_rechecked_unchanged": true,
+      "coverage": "Finite completed build metadata/native outputs/generated Python plus exact generated wrapper and full329-path private installed SDK/native/data/plugins including literal symlink targets/modes. Actual finite command/stream/guard/static-checker/root receipts preserved. Original37610source tree and previous archives not duplicated. Original inode/device/mtime are provenance; reconstructed inode identities are not runtime identities."
+    },
+    "accepted_review_archives": {
+      "Task149": {
+        "task": "Task151",
+        "review": "Task149",
+        "status": "PASS_COMPLETED_REVIEW_ARCHIVE_RECONSTRUCTION",
+        "manifest": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task149/ARCHIVE_MANIFEST.task151.json",
+          "bytes": 950674,
+          "sha256": "ff5a56259a274bc8ac0fbad5cd2d95c28894b7cbc5a0b60fd19742b95397439a"
+        },
+        "tar": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task149/complete-accepted-review.tar.gz",
+          "bytes": 7198696,
+          "sha256": "daef2b65a106f6de3ec5d518b31b33a3e12e1ec96d5dbc66ca34c7117e2504fd"
+        },
+        "root_acceptance": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/root-review/TASK149_BUILD_REVIEW_ACCEPTANCE.json",
+          "bytes": 1712,
+          "sha256": "ea3b8df7e8ae8332388f313263ceb92deb9fb482cc645794c55f4c1268de8c67"
+        },
+        "root_acceptance_status": "ROOT_ACCEPTED_BOUNDED_ACTUAL_BUILD_WITH_RETAINED_UPSTREAM_WARNINGS",
+        "completed_review_authority": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task149/packet/EVIDENCE_INDEX.json",
+          "bytes": 6209,
+          "sha256": "53dec418142be4b0d21b4c09c0263ebf8435bf3e24f4717913cd1186f8ba3428"
+        },
+        "node_counts": {
+          "regular": 1968,
+          "directory": 9,
+          "symlink": 0
+        },
+        "compact_copies": 18,
+        "root_bound_identities_verified": 26
+      },
+      "Task150": {
+        "task": "Task151",
+        "review": "Task150",
+        "status": "PASS_ROOT_ACCEPTED_REVIEW_ARCHIVE_RECONSTRUCTION",
+        "manifest": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task150/ARCHIVE_MANIFEST.task151.json",
+          "bytes": 182647,
+          "sha256": "2d85af2652d9f85f194de2e250eae5584f64634669c03b194d7dddaf5d551f68"
+        },
+        "tar": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task150/complete-accepted-review.tar.gz",
+          "bytes": 562035,
+          "sha256": "a0a7852a3a93768461a6588cc2afaf5bb9967a02aee0ee35cc5f91ddbe2fb811"
+        },
+        "root_acceptance": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/root-review/TASK150_INSTALL_REVIEW_ACCEPTANCE.json",
+          "bytes": 1743,
+          "sha256": "5cd1e136f18eec7b876cedba8babdd520af2d80ba20139d8809065ebe13fe15d"
+        },
+        "root_acceptance_status": "ROOT_ACCEPTED_BOUNDED_ACTUAL_PRIVATE_INSTALL_STATIC_REVIEW",
+        "completed_review_authority": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task150/packet/EVIDENCE_INDEX.json",
+          "bytes": 6992,
+          "sha256": "a447a19bf8a7eaf6a43fdb61b548ddfe2f74579f7ae1af8c3d8d22496df3baea"
+        },
+        "node_counts": {
+          "regular": 360,
+          "directory": 4,
+          "symlink": 0
+        },
+        "compact_copies": 14,
+        "root_bound_identities_verified": 29,
+        "root_acceptance_append_manifest": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-build-install-records-task151/task150/ROOT_ACCEPTANCE_APPEND.task151.json",
+          "bytes": 1894,
+          "sha256": "fc3e284b0ec17e6ea0a0b97b60a221a9d8a65855f13602fe1c1465f4837c8e01"
+        }
+      },
+      "scope": "Completed accepted review reports/program/exact commands/raw evidence and retained failures/corrections. No review tool/target rerun."
+    },
+    "later_root_report_outside_archive": {
+      "recorded_at_utc": "2026-11-02T13:25:25.687760+00:00",
+      "authority": "Subsequent direct root sequencing update; diagnostic outputs not inspected or archived by Task151.",
+      "root_reported_compile_RC": 0,
+      "root_reported_status": "CONTROL_COMPILE_METADATA_COMPLETE",
+      "root_reported_steps_completed": 9,
+      "root_reported_inventory_MATCH_checkpoints": 20,
+      "root_reported_Task152": "ACTUAL_COMPILED_ABI_CLOSURE_REVIEW_RUNNING",
+      "root_reported_runtime_release": false,
+      "diagnostic_output_archive_owner": "Root log/next checkpoint",
+      "scope": "Historical build/install/binding facts remain tied to their actual times. Diagnostic acceptance/SDK/loader/full264runtime/combined comparison/SDF/memory/global gates remain pending."
+    },
+    "historical_integrity_preparation": "Task144 root-accepted TASK135-F1/TASK141-F1/TASK141-F2 disposition remains preparation-only. Actual installed inventory binding is recorded separately above. Diagnostic/runtime and real positive bound CONTROL_INTEGRITY_AND_SHARED_COMPARISON_PASS with comparison_acceptable=true and root review remain separate requirements. Shared Task121/Task88 and sealed Task127/138 preserved; accepted inventory is never refreshed.",
+    "remaining": "Root subsequently reports actual Task144 nine-step diagnostic compile RC0/CONTROL_COMPILE_METADATA_COMPLETE,9completed steps/20MATCH inventory checkpoints; Task152 compiled ABI/closure review is running and no runtime release exists. This later state is attributed to root, outside the bounded Task151 build/install/binding archive; diagnostic outputs are owned by the next checkpoint. Diagnostics acceptance, SDK Eigen3::Eigen/consumer ABI0, full actual dependency/loader-search and process mapping/load-order/Python behavior, separate no-overlap full264-cell runtime and positive bound CONTROL_INTEGRITY_AND_SHARED_COMPARISON_PASS with comparison_acceptable=true/intact bindings/root review remain pending. Retained upstream UB/truncation/binding/doc risks are not waived. Full214 supported source/wheel/native/function/reflection and fresh26 performance rebind where required, native-memory sufficiency/SDF and all remaining stage/global gates stay open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY."
   }
 }

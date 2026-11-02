@@ -1161,3 +1161,98 @@ Full214/fresh26 where required, native-memory sufficiency and all stage/global
 gates remain open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY.
 This factual checkpoint changes no main plan/design/source/test/environment/
 config/native/status/gate; commit/push are held for root review.
+
+
+## Current factual checkpoint — Task151 / 2026-11-02
+
+The [native diagnostic record](../validation/native_gtd_diagnostic.json),
+`task151_checkpoint`, records actual Task143 full build/private install,
+root-accepted bounded Task149/150 reviews and actual Task144 installed binding.
+Earlier OPEN/preparation/build-running fields remain byte-preserved history.
+Same-stage Task108 alignment reuses12 unchanged normative digests; no new
+full-plan/design/API/scientific review or acceptance is claimed.
+
+Actual Task143 build returns0, status PASS_BUILD_AWAIT_PRIVATE_INSTALL;
+supervisor elapsed94.52610870078206s. Separately root-released private install
+returns0, status PASS_INSTALLED_STATIC_GATE_NATIVE_RUNTIME_HOLD; supervisor
+elapsed0.3505817949771881s. Each retains1641 unchanged guards, no timeout/retry,
+direct-child reaping/subreaper and all owned processes reaped/absent. Child
+CPUs16–23/jobs8/unlimited RLIMIT_AS and supervisor CPU16 remain bound. Full
+source guards preserve37610 original files; the sole source addition is the
+actual generated wrapper. Installed static checker returns0/no issues in
+3.913948928937316s with329 package paths/150 installed ELF inspections; these
+are static/process results, with no imported/native/chemistry execution.
+
+Root accepted Task149's bounded actual build with retained upstream warnings:
+8986 passed/0 failed checks,320 objects/320 .d files,273 C++ explicit ABI0,
+47 included InChI C units,1206 consumed paths and nine independently reconstructed
+generated data headers. All150 link outputs/149 C++ ABI0 links,5303 required
+OpenBabel symbol occurrences and632 direct NEEDED edges have static evidence.
+The frozen canonical libxml2 own SONAME resolves five retained provisional
+accounting rows without consulting installed outputs. Final5836 inspected
+bindings are stable. Corrected review uses944 readelf/nm metadata calls only;
+outer elapsed13.415135031566024s differs from internal13.292545933276415s.
+No compiler/configure/make/loader/target import/native workload ran in review.
+
+All668 warning events/42 distinct messages remain:619 deprecated API, one
+Jacobi loop UB-risk,19 truncation, four SWIG nested-type omissions,15 Doxygen,
+eight shadowed overload and two literal docstring trigraph diagnostics. The
+Jacobi large-dimension boundary remains unproved. YASARA/YOB size4 %4d needs
+at least five bytes including NUL and concretely discards a character; other
+site-specific label/count/charge/year-rollover risks remain. Public callback/
+overload omissions and documentation limits are not API-parity acceptance.
+No warning flag/source/feature/scientific/format rule was waived. Build
+RUNPATH empty components may resolve current directory; ORIGINAL and fresh
+core both use SONAME8. Static link/export evidence does not prove process
+origin, Python resolution or load-order safety. Parser iterations retain258
+canonical-name false positives, five explicit-libxml2 accounting rows and a
+prior clean assessment before final shared-SONAME wording qualification.
+
+Root separately accepted Task150's bounded installed static review: exactly
+329 paths/325 regular files/four in-prefix symlinks,128 plugins/55 data/91
+headers/150 ELFs;90 source headers and55 data retain original frozen bytes.
+All661 static dependency edges resolve through the private family or12 frozen
+providers with no missing required versions. Actual SONAME/origin-only installed
+RUNPATH match plans. Static installed-domain old-string manglings154/61 are
+distinct from build-wide symbol counts. Python83 undefined API symbols still
+need interpreter proof. SDK Eigen3::Eigen provisioning and explicit consumer
+ABI0 remain later gates. The351-entry observational snapshot stayed unchanged;
+ORIGINAL .so.8 bytes/device/inode are preserved. First audit's oberror.h and
+five lexical /./ false positives remain; corrected interpretation reused the
+same163 readelf/nm streams without new subprocesses. No binder/loader/native
+execution is attributed to that review.
+
+Root's exact install acceptance keeps binder-required legacy status
+ROOT_ACCEPTED_TASK124_PRIVATE_CONTROL_INSTALL and explicitly identifies actual
+Task143 attempt3. Root then ran Task144 bind_after_install.py once: RC0 in
+0.8706790283322334s, freezing351 physical-prefix entries and binding canonical
+CONTROL native/SDK/data/plugins, ABI0 and8227 guards for nine diagnostic steps.
+Only INSTALLED_PREFIX_INVENTORY.json, COMPILE_PLAN.json and the nonauthority
+ROOT_COMPILE_RELEASE.template.json plus exact root command/raw receipts were
+archived; no recursive diagnostic destination scan occurred. The binder itself
+executed no compiler/native workload. Root's initial
+evidence-index schema KeyError stopped before any output/acceptance/execution;
+its failure and subsequent actual corrected acceptances remain preserved.
+
+Selected lossless archives reconstruct2415 regular files/240 directories/eight
+symlinks for finite completed build/install outputs, metadata, generated wrapper/
+Python and actual process/static-checker/root receipts. All320 objects/320 .d
+files and complete329-path installed SDK/native/data/plugins are preserved.
+Existing172 configuration files are reused unchanged; no original37610-source
+tree or prior archive was duplicated. Complete accepted Task149/150 reports,
+programs/commands/raw observations and retained corrections are separately
+archived/reconstructed; Task147/148 archive files remain unchanged. Original
+inode/device/mtime are provenance, not reconstructed runtime identities.
+
+Task144 accounting findings remain addressed in preparation only; actual binding
+does not substitute for diagnostic/runtime/integrity-plus-shared comparison.
+Root subsequently reports actual nine-step diagnostic compile RC0,
+CONTROL_COMPILE_METADATA_COMPLETE, nine completed steps and20 MATCH inventory
+checkpoints. Task152 compiled ABI/closure review is running; no runtime release
+exists. This later root report is outside the bounded Task151 archive; diagnostic
+outputs belong to the next checkpoint. Diagnostics acceptance, SDK consumer,
+complete loader/search/process mappings/load-order/Python behavior, no-overlap
+full264-cell native runtime and positive bound combined comparison remain pending. Full214/fresh26 where required, native-memory sufficiency,
+SDF and all remaining stage/global gates stay open. Stage7A IN_PROGRESS/SDF
+FIX_REQUIRED/Stage7B PREENTRY. No main plan/design/source/test/environment/
+config/native/status/gate change is made; commit/push are held for root review.

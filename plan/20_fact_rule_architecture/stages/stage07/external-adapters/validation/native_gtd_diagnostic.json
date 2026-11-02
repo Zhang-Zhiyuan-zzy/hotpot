@@ -447,5 +447,233 @@
       "scope": "Task121 complete finished long/raw/checker and medium preparation/synthetic/frozen-failure trees. Task124 full sealed long packet and actual8-file configure-build tree; no huge extracted source/Eigen tree. Task130 entire final review plus retained first review/refinement."
     },
     "remaining": "Original/control semantic correspondence and any patched candidate remain unestablished. Task131 diagnosis/retry and CONTROL configure/build/install/native evidence are separate. Full214 supported source/wheel/native/function/reflection and fresh26 performance rebind where required, native-memory sufficiency and all remaining Stage7A/later/global gates stay open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY."
+  },
+  "task139_checkpoint": {
+    "recorded_at_utc": "2026-11-02T12:40:48.150535+00:00",
+    "status": "TASK131_PRIVATE_DEV_DIAGNOSED_TASK133_CONFIGURE_PASS_TASK136_METADATA_PASS_TASK133_BUILD_FAILED_RETAINED_TASK135_P2_OPEN",
+    "scope": "Task139 factual evidence only. Earlier status/release fields and Task126/132 checkpoints retain their historical meaning. Root owns all releases, acceptance, Task138 successor preparation and Task140 build-failure diagnosis; no plan/design/scientific/performance/status/gate change.",
+    "record_source_head_as_assigned": "d6d11ed6c85f11b4bec79015e1f8ac66f4853e9d",
+    "task131_private_device_diagnosis": {
+      "report": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-diagnosis-task131/packet/REPORT.md",
+        "bytes": 2263,
+        "sha256": "ebd11a6d4f5f96d07eb2930c55ccc4547222ee828c3515f2d034c47aedd8a6da"
+      },
+      "result": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-diagnosis-task131/packet/RESULT.json",
+        "bytes": 26571,
+        "sha256": "bf7e47f01c59b18c391ed2e454437c3f8e5451301ab3f828f530a5e2498da0a9"
+      },
+      "mechanism": "Recursive bwrap read-only root bind gives /dev/null nodev; strace records CMake link-launch child open(/dev/null,O_RDONLY)=EACCES before GCC execve. Standalone GCC9 works.",
+      "selected_boundary_fix": [
+        "--dev",
+        "/dev"
+      ],
+      "single_device_dev_bind_failure_retained": true,
+      "whole_host_dev_bind_alternative_not_selected": true,
+      "standalone_hello_C_CXX_configure_and_build_RC0": true,
+      "supervised_attempts": 6,
+      "all_six_no_timeout_guards_unchanged_owned_reaped": true,
+      "scope": "Standalone diagnosis/probes only; all original failures, raw strace and hello outputs archived. Toolchain/ABI0/features/network/read-only source/jobs8/unlimitedAS and Task88 supervision were preserved."
+    },
+    "task133_sealed_retry_and_configure": {
+      "preparation_receipt": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-retry-task133/packet/FINAL_RECEIPT.json",
+        "bytes": 2250,
+        "sha256": "393afc24d65f17bb520536d6538030347c56a38073e51325e48a3f8ed37dec59"
+      },
+      "freeze": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-retry-task133/packet/FREEZE.json",
+        "bytes": 73757,
+        "sha256": "3beedb663bc28777622af82631c8f3832bb9088b08bf79ce6780ec67816983d3"
+      },
+      "configure_release": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-retry-task133/packet/ROOT_CONFIGURE_RELEASE.json",
+        "bytes": 956,
+        "sha256": "cba58e7a33d61bc0ae4f35970532efb4c09f2903f9b27a6578a8715f08041ffb"
+      },
+      "actual_configure_result": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-retry-task133/packet/configure-attempt2/RESULT.json",
+        "bytes": 48388,
+        "sha256": "957a47ef0abff58a21e9e65062e06226679ed8291016b93378e4072312b72a80"
+      },
+      "status": "PASS_CONFIGURED_STATIC_GATE_AWAIT_ROOT_BUILD_REVIEW",
+      "supervisor_RC": 0,
+      "configured_static_gate_RC": 0,
+      "owned_process_and_guards_ok": true,
+      "automatic_retries": 0,
+      "private_dev_boundary": true,
+      "preparation_history": "Original immutable preparation receipt/report still describe their pre-execution checkpoint. Successor changes private dev boundary and attempt output/checker paths only; all predecessor failures retained.",
+      "scope": "New attempt2 configured successfully; this does not imply actual full build/install/runtime success."
+    },
+    "task136_actual_configured_metadata_review": {
+      "report": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configured-review-task136/packet/REPORT.md",
+        "bytes": 3641,
+        "sha256": "9331a6bd9ac220705e0c65021c3e111ac3afce3cfa980fb501c64b338360e0ec"
+      },
+      "assessment": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configured-review-task136/packet/ASSESSMENT.json",
+        "bytes": 2998,
+        "sha256": "201a044d24041c2d16297572cbac77f8e0c0b1da5d36899d1868871b1ed9e9d7"
+      },
+      "evidence_index": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configured-review-task136/packet/EVIDENCE_INDEX.json",
+        "bytes": 2502,
+        "sha256": "9402f0d150e04b9296dd0c0c6cbfc1bfe37fbf8c668ccdac2639c8489dcacb2e"
+      },
+      "status": "CONFIGURATION_REVIEW_PASS_AWAIT_ROOT_BUILD_RELEASE",
+      "blockers": [],
+      "counts": {
+        "CXX_all_ABI0_and_pinned_Eigen_RapidJSON": 273,
+        "C_included_InChI": 47,
+        "compile_units": 320,
+        "configured_metadata_bindings": 153,
+        "data": 55,
+        "full_expected_package_paths": 329,
+        "headers": 91,
+        "links": 150,
+        "plugins": 128,
+        "sealed_packet_bindings_rechecked": 308
+      },
+      "source_and_ABI": "320 planned translation units:319 frozen source plus sole future SWIG wrapper. All273 C++ units use selected GCC9/explicit ABI0/gnu++11/O3/NDEBUG/pinned Eigen3.4.0/RapidJSON;47 included InChI C units.",
+      "link_and_install_plan": "150 link plans use selected GCC9/G++9. Relative native dependencies resolve to private build family; selected system zlib/libxml2 remain external. No original OpenBabel/libpython link origin. Exact329 planned paths, including128plugins/55data/91headers;90 source headers plus generated header with only two private-path differences.",
+      "warnings": "Missing Eigen CONFIG resolves via pinned MODULE fallback; disabled Cairo/PNG2/Maestro/Coordgen match frozen features. Redundant/unused CMake options and normal negative probes retained. No feature waiver; actual SDK Eigen export-consumer gate remains pending.",
+      "scope": "Generated metadata review, not successful compilation/install/ELF/loader/package acceptance.153 metadata/308 sealed bindings were rechecked by Task136; that historical review is not rerun here."
+    },
+    "task135_P2_runtime_inventory_finding": {
+      "report": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-diagnostic-review-task135/packet/REPORT.md",
+        "bytes": 3812,
+        "sha256": "9ca7977b8aa0d7df84bd37fcfac3476fdd5fece63139daecb214e2254d881f7b"
+      },
+      "review": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-diagnostic-review-task135/packet/REVIEW.json",
+        "bytes": 8624,
+        "sha256": "cd1668d2f09b1ac9c6e37b5b8a4b9ac5c325d12d4eb1fbf71f0f28f18453e503"
+      },
+      "finding_id": "TASK135-F1",
+      "priority": "P2",
+      "trigger_executed": false,
+      "mechanism": "Task127 guards existing installed files but misses newly added runtime-search files. A new private libstdc++.so.6 could leave every existing-file guard unchanged and change loader dependency selection. No actual contamination is claimed.",
+      "required_before": "CONTROL runtime release",
+      "successor_preparation": "Task138 separate pending successor/inventory-guard preparation; all15 sealed Task127 members stay unchanged. No remedy or runtime acceptance claimed.",
+      "synthetic_limit": "Existing mixed-lane synthetics skip real receipt authentication and do not test added-search-file trigger."
+    },
+    "task133_completed_full_build_failure": {
+      "root_build_install_release": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-retry-task133/packet/ROOT_BUILD_INSTALL_RELEASE.json",
+        "bytes": 1039,
+        "sha256": "809bc3db249db280bf0e828e1157baf3f343f74b50ae1761501d90916d3c06b6"
+      },
+      "result": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-retry-task133/packet/build-attempt2/RESULT.json",
+        "bytes": 515,
+        "sha256": "cd7fac41291d76c97dfbf9eee5700491dae90073f5b17b8a215cebfadcd1c664"
+      },
+      "execution_receipt": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-retry-task133/packet/build-attempt2/supervisor/execution.json",
+        "bytes": 191976,
+        "sha256": "a9fea188a47a3a199d6f8d581d07d20a02ecdfbc7f2bb8240c1cd80734f95c6c"
+      },
+      "raw_stderr": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-retry-task133/packet/build-attempt2/supervisor/stderr.txt",
+        "bytes": 622711,
+        "sha256": "ae8ff7a56dd626bd4a7f94647f4071cdfcd5e47132deffdc386097deb939309e"
+      },
+      "raw_stdout": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-retry-task133/packet/build-attempt2/supervisor/stdout.txt",
+        "bytes": 40434,
+        "sha256": "cb7dd17a834ed91fee6050659a82480b06d86ace21b07c1cb8a862d95e59c0e0"
+      },
+      "status": "FAIL_STOP_NO_RETRY",
+      "supervisor_RC": 1,
+      "automatic_retries": 0,
+      "next_phase_automatic": false,
+      "owned_process_and_guards_ok": true,
+      "failure": "SWIG4.0.1 wrapper generation rejects HAVE_EIGEN3 macro redefinition: generated babelconfig.h:134 versus command-line definition. Raw stderr5039-5042 retained. Several native targets completed, but the complete build failed.",
+      "failed_generated_wrapper": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-retry-task133/FAILED_WRAPPER_RECEIPT.task139.json",
+        "bytes": 747,
+        "sha256": "e92ecfb88f9502781a6796eecc742e51b7d0129ad44a61162c30a9f892f50789"
+      },
+      "wrapper_present": true,
+      "wrapper_bytes": 0,
+      "failed_build_inventory": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-retry-task133/FAILED_BUILD_INVENTORY.task139.json",
+        "bytes": 894635,
+        "sha256": "284d5c26b3587a534870ac72726aa0c3dfb746b769b10818a2ee85dd386f4868"
+      },
+      "failed_build_selected_tar": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-retry-task133/failed-build-selected-artifacts.tar.gz",
+        "bytes": 6760285,
+        "sha256": "572b56a2e6b4b81b744310773a6933a1fe9b8152316490c8dede0e6d1e93d358"
+      },
+      "regular_build_files_hash_indexed": 2322,
+      "build_symlinks_indexed": 4,
+      "selected_actual_binary_library_dependency_compile_link_metadata_members": 772,
+      "install_permitted_after_failure": false,
+      "successful_full_build_install_or_CONTROL_runtime_claimed": false,
+      "remediation": "Task140 root diagnosis/tool scout separate. No macro/feature waiver, retry, generated-wrapper rewrite/removal or source change authorized by this record."
+    },
+    "root_review_receipts": {
+      "index": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-configured-records-task139/ROOT_REVIEW_ARCHIVE.json",
+        "bytes": 2170,
+        "sha256": "5ab859822ba165d3bdf1508fe45e553712604393f1c542b5f102d28f6cd854d7"
+      },
+      "configure_retry_release": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-configured-records-task139/root-review/CONFIGURE_RETRY_RELEASE_REVIEW.json",
+        "bytes": 384,
+        "sha256": "2530d6b6e0209d91783fb05d5d805853f116934a3248463ad4b2cb7cd4339a85"
+      },
+      "bounded_original_loader_acceptance": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-configured-records-task139/root-review/ORIGINAL_LOADER_REVIEW.json",
+        "bytes": 1162,
+        "sha256": "63b984b325ce4e8f0062d0aa6c0b488d6be6ac5ccc4c60fe978d72b4908dbf68"
+      },
+      "configured_metadata_and_build_then_install_release": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-configured-records-task139/root-review/CONFIGURED_BUILD_RELEASE_REVIEW.json",
+        "bytes": 483,
+        "sha256": "cbb52e76425809ad354f34986154c6f4fd89a49080567794eaababe1ce82931a"
+      },
+      "build_failure_review": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-configured-records-task139/root-review/BUILD_FAILURE_REVIEW.json",
+        "bytes": 1359,
+        "sha256": "e337e3e1ee4f5637a856160030271aa11899f2e716a62b2decb0069bb375b849"
+      }
+    },
+    "archives": {
+      "packet_indexes": {
+        "Task131": {
+          "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-diagnosis-task131/ARCHIVE_MANIFEST.task139.json",
+          "bytes": 83384,
+          "sha256": "7843f730670ca5dcd86d8299cc6b077aa177768de9a5512fba08a931405df28c"
+        },
+        "Task133": {
+          "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-retry-task133/ARCHIVE_MANIFEST.task139.json",
+          "bytes": 36966,
+          "sha256": "7e77f28a0d882d367d3a8d95b7c481bf7a4b09a41b516c3057ff08bebe4717d5"
+        },
+        "Task135": {
+          "path": ".plan20-artifacts/20261102/stage7a/native-control-diagnostic-review-task135/ARCHIVE_MANIFEST.task139.json",
+          "bytes": 1417,
+          "sha256": "0f6df7c12c068be88cb44356a8051a8d93239fb38caf3d5ae9275dc90f564eb4"
+        },
+        "Task136": {
+          "path": ".plan20-artifacts/20261102/stage7a/ob-control-configured-review-task136/ARCHIVE_MANIFEST.task139.json",
+          "bytes": 6612,
+          "sha256": "5afa516597ca2ce65767bf607ecf97ae73030a81772ed721ed34d5ce0e698627"
+        }
+      },
+      "direct_packet_copies": 232,
+      "root_review_copies": 4,
+      "selected_failed_build_tar_members": 772,
+      "failed_wrapper_bytes": 0,
+      "all_new_copy_and_selected_tar_member_SHA256_size_verified": true,
+      "full_failed_build_regular_inventory_rehashed_unchanged": true,
+      "scope": "Task131 complete long/probe/raw-strace medium trees; Task133 sealed preparation and completed configure/build receipts; Task135/136 complete review files. Failed full build selectively archived with complete hash inventory; no whole extracted source/build tree copied. Embedded original paths/raw evidence retained."
+    },
+    "remaining": "No successful full build/install, CONTROL diagnostic compilation/runtime, original/control correspondence or candidate evidence. Task138 P2 successor and Task140 SWIG failure diagnosis/remediation are separate. Full214 supported source/wheel/native/function/reflection and fresh26 performance rebind where required, native-memory sufficiency and all remaining gates stay open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY."
   }
 }

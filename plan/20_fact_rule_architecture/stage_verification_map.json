@@ -2865,6 +2865,69 @@
         },
         "all_broader_gates_open": true,
         "source_test_main_plan_design_gate_changes": false
+      },
+      "control_configure_and_failed_build_task131_139": {
+        "record": {
+          "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/validation/native_gtd_diagnostic.json",
+          "bytes": 39437,
+          "sha256": "e21f0f9bed822261046a49752d4d5ae6b18c2ef1e294488d3d506f61e78cbf4e"
+        },
+        "status": "TASK131_PRIVATE_DEV_DIAGNOSED_TASK133_CONFIGURE_PASS_TASK136_METADATA_PASS_TASK133_BUILD_FAILED_RETAINED_TASK135_P2_OPEN",
+        "prior_checkpoint_scope": "All preexisting status/release/checkpoint values and raw spelling remain preserved at their own historical cutoff.",
+        "Task131_private_dev_diagnosis_complete": true,
+        "Task133_configure_supervisor_RC": 0,
+        "Task133_configured_static_gate_RC": 0,
+        "Task136_configured_metadata_blockers": 0,
+        "Task136_planned_compile_units": 320,
+        "Task136_explicit_ABI0_CXX_units": 273,
+        "Task136_link_plans": 150,
+        "Task136_planned_install_paths": 329,
+        "Task136_plugins_data_headers": [
+          128,
+          55,
+          91
+        ],
+        "Task135_P2": "TASK135-F1 new runtime-search file inventory defect; Task138 successor preparation pending before CONTROL runtime release.",
+        "Task133_full_build_status": "FAIL_STOP_NO_RETRY",
+        "Task133_full_build_supervisor_RC": 1,
+        "Task133_build_guards_and_reaping_ok": true,
+        "Task133_failed_wrapper_bytes": 0,
+        "Task133_install_permitted_after_failure": false,
+        "CONTROL_runtime_claimed": false,
+        "archive_packet_indexes": {
+          "Task131": {
+            "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-diagnosis-task131/ARCHIVE_MANIFEST.task139.json",
+            "bytes": 83384,
+            "sha256": "7843f730670ca5dcd86d8299cc6b077aa177768de9a5512fba08a931405df28c"
+          },
+          "Task133": {
+            "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-retry-task133/ARCHIVE_MANIFEST.task139.json",
+            "bytes": 36966,
+            "sha256": "7e77f28a0d882d367d3a8d95b7c481bf7a4b09a41b516c3057ff08bebe4717d5"
+          },
+          "Task135": {
+            "path": ".plan20-artifacts/20261102/stage7a/native-control-diagnostic-review-task135/ARCHIVE_MANIFEST.task139.json",
+            "bytes": 1417,
+            "sha256": "0f6df7c12c068be88cb44356a8051a8d93239fb38caf3d5ae9275dc90f564eb4"
+          },
+          "Task136": {
+            "path": ".plan20-artifacts/20261102/stage7a/ob-control-configured-review-task136/ARCHIVE_MANIFEST.task139.json",
+            "bytes": 6612,
+            "sha256": "5afa516597ca2ce65767bf607ecf97ae73030a81772ed721ed34d5ce0e698627"
+          }
+        },
+        "failed_build_inventory": {
+          "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-retry-task133/FAILED_BUILD_INVENTORY.task139.json",
+          "bytes": 894635,
+          "sha256": "284d5c26b3587a534870ac72726aa0c3dfb746b769b10818a2ee85dd386f4868"
+        },
+        "all_broader_gates_open": true,
+        "source_mainplan_design_status_gate_change": false,
+        "root_build_failure_review": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-configured-records-task139/root-review/BUILD_FAILURE_REVIEW.json",
+          "bytes": 1359,
+          "sha256": "e337e3e1ee4f5637a856160030271aa11899f2e716a62b2decb0069bb375b849"
+        }
       }
     },
     "Stage7B": {

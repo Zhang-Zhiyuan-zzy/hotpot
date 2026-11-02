@@ -997,3 +997,55 @@ fresh26 performance rebind where required, native-memory sufficiency and all
 remaining gates stay open. Stage7A remains IN_PROGRESS/SDF FIX_REQUIRED and
 Stage7B PREENTRY. No main-plan, design, scientific, performance, status or gate
 change follows from this factual checkpoint.
+
+
+## Current factual checkpoint — Task139 / 2026-11-02
+
+The [native diagnostic record](../validation/native_gtd_diagnostic.json),
+`task139_checkpoint`, preserves completed diagnosis/configure/review evidence
+and the later stopped full build. Task131's raw strace shows CMake opening
+nodev `/dev/null` fails EACCES before GCC execve; the selected private
+`--dev /dev` boundary repairs standalone C/C++ hello configure/build checks.
+The failed single-device bind and broader unselected host-device alternative
+remain retained. All six supervised probes had no timeout, unchanged guards
+and owned-process reaping; toolchain/ABI0/features/jobs8/network/source and
+Task88 supervision remained bound. This diagnosis did not alter chemistry.
+
+Task133's new attempt2 configure returned0 and passed the configured static
+gate. Task136 reviewed all320 planned translation units,273 explicit-ABI0
+C++ units,150 private-family link plans and exactly329 planned package paths
+(128plugins/55data/91headers). All90 source headers and55data map to frozen
+sources; the generated91st header differs only at two private-path macros.
+153 generated-metadata and308 sealed bindings matched in that review. Normal
+negative probes and expected feature/option warnings remain documented, with
+no feature waiver. These configured plans do not establish actual full build,
+installed ABI/ELF/loader/SDK or package acceptance.
+
+Task135 found P2 TASK135-F1: Task127's existing-file guards miss additions to
+the runtime-search tree; a new private dependency could change loader origin
+without changing the declared bindings. No contamination or trigger execution
+is claimed. Task138 successor/inventory preparation remains separate before
+CONTROL runtime release; all15 sealed Task127 members stay unchanged.
+
+Root subsequently released build then install subject to successful build.
+The actual full build ended FAIL_STOP_NO_RETRY/supervisorRC1: SWIG4.0.1 rejects
+HAVE_EIGEN3 redefinition between generated babelconfig.h:134 and command line.
+Raw stderr5039-5042, complete build receipts and the zero-byte failed generated
+wrapper are retained. Guards/reaping remain true; several native targets
+completed, but no successful complete build, install or CONTROL runtime is
+claimed. Task140 diagnosis/remediation and any retry/generated-wrapper action
+remain root-owned; no macro or feature waiver follows.
+
+The archive indexes preserve complete Task131 probes/raw strace, Task133
+sealed preparation and actual configure/build attempts, and Task135/136
+reviews plus root review receipts. A complete failed-build hash inventory
+accompanies selectively archived actual binaries/libraries/.d and compile/
+link/configure metadata; the huge extracted source/build tree is not copied.
+All copied bytes and selected tar members match original SHA256/size, with
+original embedded paths and all earlier failure/provenance records preserved.
+
+No source/test/main-plan/design/status/gate change is made. Original/control
+correspondence and candidate evidence remain absent. Full214 supported source/
+wheel/native/function/reflection evidence and fresh26 performance rebind where
+required, native-memory sufficiency and all remaining gates stay open.
+Stage7A remains IN_PROGRESS/SDF FIX_REQUIRED, Stage7B PREENTRY.

@@ -244,5 +244,208 @@
       ]
     },
     "remaining": "Task121 original runtime is root-owned; no outcome claimed here. Task124 CONTROL configure preparation/result remains separate. Original/control semantic correspondence precedes patched candidate. Full214 supported source/wheel/native/function/reflection evidence and fresh26 performance rebind where required, native-memory sufficiency and all remaining gates stay open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY; no later/global gate closure."
+  },
+  "task132_checkpoint": {
+    "recorded_at_utc": "2026-11-02T12:26:00.576138+00:00",
+    "status": "TASK121_ORIGINAL_DIAGNOSTIC_ACCOUNTING_OBSERVED_TASK130_BOUNDED_LOADER_REVIEW_TASK124_CONFIGURE_FAILED_RETAINED",
+    "scope": "Task132 factual checkpoint only. All earlier status/release fields and Task126 statements retain their original checkpoint meaning; no plan/design/scientific/performance/status/gate change. Task131 diagnosis and any retry remain separately root-owned.",
+    "source_provenance": {
+      "record_integration_source_head_prefix_supplied_by_root": "ca80f266",
+      "Task116_source_commit": "9999ecdbcf2b26bac0ed2bb49a6f11960422d423",
+      "Task120_preparation_snapshot": "09190ed303416432c0250d115529372c301fa1ac",
+      "native_library": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/libopenbabel.so.8",
+        "sha256": "46c565393702f84146fdee597dc4764ed6d6c4e1d3f70bd61fc70f75735aaf8b"
+      },
+      "equal_byte_so_8_0_0_substitution": false,
+      "original_source_provenance_relabelled": false
+    },
+    "task121_original_runtime": {
+      "root_stream_review": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-gtd-original-runtime-task121/root-review/ORIGINAL_STREAM_REVIEW.json",
+        "bytes": 1927,
+        "sha256": "6b05734cd88a4bec5e20c7e304134740ca7d20ee11acc4d82872a9726a658d65"
+      },
+      "runtime_release": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-gtd-original-runtime-task121/packet/ROOT_RUNTIME_RELEASE.json",
+        "bytes": 242355,
+        "sha256": "c959805b799979d5b44397a4baf6b773f7b06f2f7d598c5bd2a5d5b772e0efed"
+      },
+      "run_index": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-gtd-original-runtime-task121/packet/root-runs-attempt1/RUN_INDEX.json",
+        "bytes": 428208,
+        "sha256": "21228af957f52073b8321b2d15b214eb7e2bb1f26ba0c694ab3023bbb761a208"
+      },
+      "stream_report": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-gtd-original-runtime-task121/packet/original-check-attempt1/REPORT.json",
+        "bytes": 2234,
+        "sha256": "a4163ec559f2ab0a10c6cce3a0c131333c127cc4c6399a03a4e91ae04060ce6d"
+      },
+      "ROOT_LAUNCH_returncode": 0,
+      "ROOT_CHECK_returncode": 0,
+      "run_index_status": "ROOT_ROSTER_ATTEMPT_FINISHED",
+      "completed_cells": 264,
+      "observed_cells": 132,
+      "plain_cells": 132,
+      "automatic_retries": 0,
+      "denominator_per_mode": 84874,
+      "construction_accepted_per_mode": 84867,
+      "constructor_rejected_per_mode": 7,
+      "constructor_rejections_retained": [
+        "self-loop-carbon",
+        "self-loop-H",
+        "loop-plus-edge",
+        "parallel-identical",
+        "parallel-reversed",
+        "parallel-different-order",
+        "loops-parallel-path"
+      ],
+      "actual_observed_fresh_repeat_vectors": 169734,
+      "unavailable_observed_vector_scopes": 14,
+      "complete_public_observed_plain_pairs": 84874,
+      "stream_blocker_count": 0,
+      "empty_graph_actual_vectors": {
+        "fresh": [
+          []
+        ],
+        "repeat": [
+          []
+        ]
+      },
+      "vector_oracle": null,
+      "coverage": "Actual original standalone public/GTD observations and complete accounting. Constructor rejections/unavailable vectors remain in the denominator; no fabricated vector or scientific verdict. CONTROL/candidate lanes remain absent. No timing, package/SWIG/import-order, full source/wheel/function/reflection or native-memory acceptance."
+    },
+    "task130_independent_loader_review": {
+      "report": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-original-runtime-review-task130/packet/REPORT.md",
+        "bytes": 6922,
+        "sha256": "35b8a2be93f38b638f12af2c8cb8600cbfcc16ff3c75f28e1a800a0cef86e75e"
+      },
+      "summary": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-original-runtime-review-task130/packet/SUMMARY.json",
+        "bytes": 4734,
+        "sha256": "aa7e23c641d664a88c14bf2b827ed95945c67aeb8cfe5bf3f1331815e7bf2268"
+      },
+      "dependency_graph": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-original-runtime-review-task130/packet/DEPENDENCY_GRAPH.json",
+        "bytes": 175624,
+        "sha256": "63e33ece2315078d7cd7244e461ec956e687be8f357c3244e7d5db56b6e146f6"
+      },
+      "cell_review": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-original-runtime-review-task130/packet/CELL_REVIEW.json",
+        "bytes": 864239,
+        "sha256": "e3300d9fc51093eedc37446f6d0b12a4e5908ba1433cfbe2a06a13cf0158c1f1"
+      },
+      "raw_error_lines": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-original-runtime-review-task130/packet/RAW_ERROR_LINES.json",
+        "bytes": 292491,
+        "sha256": "41122391d5c827fa9b3915485cce3c4dded8df4c4d872a0f1cd0f19e4a3dc7c2"
+      },
+      "final_receipt": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-original-runtime-review-task130/packet/FINAL_RECEIPT.json",
+        "bytes": 3432,
+        "sha256": "0177ddac2534fc4c9c310096508a4262806b77a577924887b65e224f597bb6a5"
+      },
+      "status": "PASS_BOUNDED_ORIGINAL_LOADER_AND_RECEIPTS",
+      "raw_LD_DEBUG_stderr_files_reviewed_in_full": 264,
+      "raw_stderr_bytes_read": 9245676,
+      "exact_original_driver_families": 264,
+      "guard_bound_path_nodes": 14,
+      "loader_profiles": 2,
+      "version_edges": 278,
+      "search_attempt_lines_excluded_from_loaded_object_claims": 11616,
+      "guard_closure_rows_per_cell": 1065,
+      "before_after_file_guards_per_cell_including_release_case": 1067,
+      "supervisor_timeout_signal_nonzero_guard_reaping_issues": 0,
+      "literal_optional_lookup_fatal_lines_retained": 528,
+      "optional_lookup_interpretation": "Four optional task116_observer_{open,begin,end,close} dlsym lookups in each of132 plain cells emit literal undefined-symbol error/(fatal) diagnostics. Frozen driver requires these symbols absent in plain mode. All132 plain processes returned0 and emitted run_end; no raw line is hidden or relabelled as process termination.",
+      "retained_first_review_refinement": "review-attempt1 retained. Final offline parser corrects indented trying-file search-attempt count and explicitly interprets optional-symbol diagnostics; positive init/version evidence is unchanged and no workload reran.",
+      "coverage": "prlimit/taskset/driver images separated. Exact original.so.8 initializes in all driver images, never substituted by equal-byte.so.8.0.0. Observer initializes only in observed mode. No plugin/Hotpot/SWIG/import-order/control/candidate coverage; raw full process-map dumps were not emitted. Process/reaping assertions cover visible /proc namespace only."
+    },
+    "task124_control_configure": {
+      "preparation_receipt": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-task124/packet/FINAL_RECEIPT.json",
+        "bytes": 10429,
+        "sha256": "f38b5b66c409cb6770ccbf1f0dd63b4801009daacb6222257629f926ae12ec46"
+      },
+      "root_configure_release": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-task124/packet/ROOT_CONFIGURE_RELEASE.json",
+        "bytes": 829,
+        "sha256": "81f333308fab98a2f4b9297e6d6272f1c8872e4eb7047fcf412132ea54166d9d"
+      },
+      "actual_result": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-task124/packet/configure-attempt1/RESULT.json",
+        "bytes": 1065,
+        "sha256": "0304715e533b2dd842398b6d3a76968bb454e037060c73fed6cfd4f1f7984be8"
+      },
+      "execution_receipt": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-task124/packet/configure-attempt1/supervisor/execution.json",
+        "bytes": 187301,
+        "sha256": "65d8b35ba18c54ebc8e4f870714b4d9c76982ba8590242429e0a192b05bb1951"
+      },
+      "raw_stderr": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-task124/packet/configure-attempt1/supervisor/stderr.txt",
+        "bytes": 1961,
+        "sha256": "7a60e6c202d56a1a7cfcedc43c3e565d7fccaa4f619aa791c1cd4543e6ac9baf"
+      },
+      "root_failure_review": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-task124/root-review/CONFIGURE_FAILURE_REVIEW.json",
+        "bytes": 1008,
+        "sha256": "6ce2cf311f6889b063d1756622682dbc24662662efc274641ee4c5f8d28ab216"
+      },
+      "status": "FAIL_STOP_NO_RETRY",
+      "supervisor_returncode": 1,
+      "automatic_retries": 0,
+      "next_phase_automatic": false,
+      "timed_out": false,
+      "guards_unchanged": true,
+      "all_owned_processes_reaped_or_absent": true,
+      "mechanism_observed": "C object compilation succeeded; CMake cmake_link_script could not launch the GCC link command: permission denied. Exact cause remains under separate Task131 diagnosis; no retry result is claimed.",
+      "actual_configure_build_output_files_archived": 8,
+      "original_extracted_source_tree_archived": false,
+      "history": "Sealed preparation FINAL_RECEIPT/CHECKS still describe their pre-execution checkpoint. All failed network/selftest attempts and the actual configure failure remain retained.",
+      "full_build_install_or_CONTROL_runtime_completed": false
+    },
+    "archives": {
+      "Task121": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-gtd-original-runtime-task121/ARCHIVE_MANIFEST.task132.json",
+        "bytes": 1499782,
+        "sha256": "3e2ab1ee92dee5adde7902dad5a4de17099967a0fb3960c807dbfa2871a71ad6"
+      },
+      "Task124": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-task124/ARCHIVE_MANIFEST.task132.json",
+        "bytes": 37068,
+        "sha256": "94bb2059d66e753bb74b047dc2256f8f6af5d1d20db95cae2814e1b3aed755a4"
+      },
+      "Task130": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-original-runtime-review-task130/ARCHIVE_MANIFEST.task132.json",
+        "bytes": 7250,
+        "sha256": "66c6ff8c22c4b328c157ab2c7a03c9c56b392998f96a6404936af4cadd7e3f71"
+      },
+      "Task121_lossless_tar_archives": [
+        {
+          "path": ".plan20-artifacts/20261102/stage7a/native-gtd-original-runtime-task121/complete-long-packet.tar.gz",
+          "bytes": 93972737,
+          "sha256": "66097a22783af6bd6f7d24dce819e6549e85d6e546823562d053727051ec48e1"
+        },
+        {
+          "path": ".plan20-artifacts/20261102/stage7a/native-gtd-original-runtime-task121/complete-medium-preparation.tar.gz",
+          "bytes": 4748960,
+          "sha256": "7b393cb0984a0e3ef3df5060c48733fe1f5314153f2f8ab2dc8b9ec48afd4826"
+        }
+      ],
+      "Task121_regular_tar_members": 3037,
+      "Task121_uncompressed_regular_bytes": 1618599590,
+      "Task121_compact_copies": 35,
+      "Task124_long_files": 60,
+      "Task124_root_review_copies": 1,
+      "Task124_actual_configure_build_outputs": 8,
+      "Task130_review_files": 13,
+      "all_copied_and_tar_member_SHA256_size_verified": true,
+      "embedded_original_paths_and_bytes_preserved": true,
+      "source_hashes_unchanged_after_tar_archive": true,
+      "scope": "Task121 complete finished long/raw/checker and medium preparation/synthetic/frozen-failure trees. Task124 full sealed long packet and actual8-file configure-build tree; no huge extracted source/Eigen tree. Task130 entire final review plus retained first review/refinement."
+    },
+    "remaining": "Original/control semantic correspondence and any patched candidate remain unestablished. Task131 diagnosis/retry and CONTROL configure/build/install/native evidence are separate. Full214 supported source/wheel/native/function/reflection and fresh26 performance rebind where required, native-memory sufficiency and all remaining Stage7A/later/global gates stay open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY."
   }
 }

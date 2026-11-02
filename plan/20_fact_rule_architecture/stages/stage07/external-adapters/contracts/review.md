@@ -947,3 +947,53 @@ rebind where required, native-memory sufficiency and remaining gates stay open.
 Stage7A remains IN_PROGRESS/SDF FIX_REQUIRED, Stage7B PREENTRY; no scientific,
 performance, stage or later/global gate closes. Existing checkpoint history
 and immutable preparation evidence remain preserved.
+
+
+## Current factual checkpoint — Task132 / 2026-11-02
+
+The [native diagnostic record](../validation/native_gtd_diagnostic.json),
+`task132_checkpoint`, records completed original-lane observations and the
+stopped CONTROL configure attempt without changing prior checkpoints or gates.
+Task121's final RUN_INDEX reports264 completed cells,132 observed/132 plain;
+root launch and stream checker returned0 with zero blockers. Each mode retains
+the84874-case denominator:84867 accepted constructions and seven named
+constructor rejections. The observed fresh/repeat calls returned169734 actual
+vectors;14 unavailable observed scopes remain accounted for. All84874 public
+observed/plain pairs are complete. Empty-graph vectors are actual empty arrays;
+no expected-vector oracle or fabricated rejection result is introduced.
+
+Task130 independently reviewed all264 raw loader stderr files in full
+(9,245,676 bytes), separating prlimit/taskset/driver images. Its14 path nodes
+are bound to runtime-release guards, with278 version edges;11616 search
+attempts are excluded from loaded-object claims. All264 driver families use
+the exact original .so.8, with no equal-byte .so.8.0.0 substitution. Receipts
+report no timeout/signal/nonzero/guard/reaping issue within visible /proc.
+All528 literal undefined-symbol `(fatal)` lines remain retained: each plain
+cell performs four optional observer dlsym lookups that the frozen driver
+requires absent; all132 plain processes returned0 and emitted run_end.
+The first offline parsing attempt/refinement is retained; no workload reran.
+Raw full process-map dumps and plugin/Hotpot/SWIG/import-order coverage are
+not supplied by this standalone review.
+
+Task124's actual configure-attempt1 ended FAIL_STOP_NO_RETRY, supervisorRC1.
+The C object compiled, then CMake cmake_link_script could not launch GCC's
+link command: permission denied. Guards remained unchanged and owned processes
+were reaped; no full build/install or CONTROL runtime completed. All original
+preparation/selftest failures and actual configure output are preserved. Exact
+cause and any retry remain separately root-owned under Task131; this checkpoint
+claims no diagnosis or retry outcome.
+
+The archive indexes bind Task121's complete long and medium preparation/raw/
+checker trees as lossless tar.gz:3037 regular members/1,618,599,590 uncompressed
+bytes, with35 compact report/index copies. Task124 retains all60 long files,
+root failure review and eight actual configure-build outputs, excluding the
+extracted source tree. Task130 retains all13 final/first-review files. Every
+new copy and tar member passed original SHA256/size verification; embedded
+paths, original source provenance, raw diagnostic text and failures are intact.
+
+Original/control semantic correspondence and patched-candidate evidence remain
+absent. Full214 supported source/wheel/native/function/reflection evidence and
+fresh26 performance rebind where required, native-memory sufficiency and all
+remaining gates stay open. Stage7A remains IN_PROGRESS/SDF FIX_REQUIRED and
+Stage7B PREENTRY. No main-plan, design, scientific, performance, status or gate
+change follows from this factual checkpoint.

@@ -2820,6 +2820,51 @@
         "Task124_configure_outcome_claimed": false,
         "control_or_candidate_native_change": false,
         "all_broader_gates_open": true
+      },
+      "native_original_runtime_control_configure_task121_132": {
+        "record": {
+          "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/validation/native_gtd_diagnostic.json",
+          "bytes": 25314,
+          "sha256": "452ab8af51fed7299c84fcc251e9c8f9cef3eb50963e82ce3d85f05ca3851ac6"
+        },
+        "status": "TASK121_ORIGINAL_DIAGNOSTIC_ACCOUNTING_OBSERVED_TASK130_BOUNDED_LOADER_REVIEW_TASK124_CONFIGURE_FAILED_RETAINED",
+        "historical_checkpoint_scope": "All preexisting native diagnostic/preparation/Task126 values and raw spelling remain preserved at their own checkpoint; this entry supplies subsequent completed Task121/130 and stopped Task124 facts.",
+        "Task121_completed_original_cells": 264,
+        "Task121_ROOT_LAUNCH_RC": 0,
+        "Task121_ROOT_CHECK_RC": 0,
+        "Task121_denominator_per_mode": 84874,
+        "Task121_accepted_per_mode": 84867,
+        "Task121_constructor_rejected_retained_per_mode": 7,
+        "Task121_actual_observed_vectors": 169734,
+        "Task121_complete_public_observed_plain_pairs": 84874,
+        "Task121_stream_blockers": 0,
+        "Task130_all_raw_loader_files_reviewed": 264,
+        "Task130_guard_bound_nodes": 14,
+        "Task130_timeout_signal_guard_reaping_issues": 0,
+        "Task130_literal_optional_plain_dlsym_fatal_lines_retained": 528,
+        "Task124_status": "FAIL_STOP_NO_RETRY",
+        "Task124_supervisor_RC": 1,
+        "Task124_owned_process_and_guards_ok": true,
+        "Task124_full_build_install_or_CONTROL_runtime_completed": false,
+        "archive_manifests": {
+          "Task121": {
+            "path": ".plan20-artifacts/20261102/stage7a/native-gtd-original-runtime-task121/ARCHIVE_MANIFEST.task132.json",
+            "bytes": 1499782,
+            "sha256": "3e2ab1ee92dee5adde7902dad5a4de17099967a0fb3960c807dbfa2871a71ad6"
+          },
+          "Task124": {
+            "path": ".plan20-artifacts/20261102/stage7a/ob-control-configure-task124/ARCHIVE_MANIFEST.task132.json",
+            "bytes": 37068,
+            "sha256": "94bb2059d66e753bb74b047dc2256f8f6af5d1d20db95cae2814e1b3aed755a4"
+          },
+          "Task130": {
+            "path": ".plan20-artifacts/20261102/stage7a/native-original-runtime-review-task130/ARCHIVE_MANIFEST.task132.json",
+            "bytes": 7250,
+            "sha256": "66c6ff8c22c4b328c157ab2c7a03c9c56b392998f96a6404936af4cadd7e3f71"
+          }
+        },
+        "all_broader_gates_open": true,
+        "source_test_main_plan_design_gate_changes": false
       }
     },
     "Stage7B": {

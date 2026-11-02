@@ -905,3 +905,45 @@ Task96 prepared metadata, isolated support and future validation commands; it di
 Task99 actual preparation command: `python -I -S -B .plan20-artifacts/20261030/stage7a/sdf-post-repair-validation-task96/revision2/prepare_task99.py`. Its evidence is under that `revision2` directory, including the exact main one-line diff/untouched-byte proof and seven UNAPPLIED record copies/patch. Task99 performs no tests, collection, product imports, builds, packaging, benchmarks, model execution, environment/package operations, Git changes or identity rebind. Performance, memory, science, Stage7A and all later/global acceptance gates remain open. Root applied these factual records in Task100; future identity-only materialization and runtime releases remain separate steps.
 
 Root factual review/application (Task100, 2026-11-02T06:31:40.898245+00:00): all seven exact base files and referenced evidence identities matched. Original proposals remain immutable. External helper service has ended; root continues directly. No performance, memory, scientific, stage or global gate is closed.
+
+
+## Current factual checkpoint — Task126 / 2026-11-02
+
+The [native diagnostic record](../validation/native_gtd_diagnostic.json),
+`task126_checkpoint`, integrates completed Task120/123/125 evidence only.
+Task120's two diagnostic compile/link and seven ELF/symbol metadata steps
+returned0;718 guards matched before/after, actual driver324/observer238
+dependency rosters equal their freezes, and no timeout/interruption occurred.
+All owned processes were reaped or absent within the visible /proc namespace.
+Six actual outputs, including binaries, .d files and link maps, are archived
+with original-path mappings. Frozen authoring-time uncompiled status remains
+byte-exact; Task116 source9999ecdbcf2b26bac0ed2bb49a6f11960422d423 and
+Task120 preparation09190ed303416432c0250d115529372c301fa1ac are not relabeled.
+No native runtime occurred in that compile packet.
+
+Task123's subsequent static READY checker returned0/build_ready=true/noissues
+after the exact1,116,413-byte RapidJSON input was acquired and313 regular files
+were bound. The initial missing-parent mkdir failure extracted zero files and
+is retained with its corrected root release. READY preserved37610 original
+source/1784 Eigen/344 baseline/337 wheel/11703 tool-header bindings and the
+128-plugin/55-data/90-header surface; only the313 allowed RapidJSON source
+additions were made. Task117's earlier preparation-time build_ready=false is
+preserved. Static readiness is not configure/build/native acceptance; exact
+original recipe/B0 and the original wheel's RapidJSON version remain unresolved.
+
+Task125 retained all61/304/10 long-packet files, including earlier failures,
+plus exact compressed Eigen/RapidJSON inputs and the six compiler outputs.
+All383 copied evidence members matched original SHA256/size; final verification
+rechecked390 source/destination pairs,395 archive members and two existing
+byte-exact source/wheel archive references. No extracted source/Eigen trees
+were duplicated. The diagnostic record indexes the archive manifests, graph,
+report and final verification; embedded original paths/provenance remain intact.
+
+This factual integration claims no Task121 runtime outcome or Task124 configure
+result. Root owns those separate releases/executions and their review.
+Original/control semantic correspondence precedes a patched candidate. Full214
+supported source/wheel/native/function/reflection evidence, fresh26 performance
+rebind where required, native-memory sufficiency and remaining gates stay open.
+Stage7A remains IN_PROGRESS/SDF FIX_REQUIRED, Stage7B PREENTRY; no scientific,
+performance, stage or later/global gate closes. Existing checkpoint history
+and immutable preparation evidence remain preserved.

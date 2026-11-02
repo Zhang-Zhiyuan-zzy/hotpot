@@ -65,5 +65,184 @@
     "patched_candidate": false,
     "stage_gate_closure": false
   },
-  "remaining": "Full current214-file supported source/wheel/native/function/reflection and fresh26 performance rebind after coherent repair settles; native-memory sufficiency and all later/global gates open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY."
+  "remaining": "Full current214-file supported source/wheel/native/function/reflection and fresh26 performance rebind after coherent repair settles; native-memory sufficiency and all later/global gates open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY.",
+  "historical_preparation_fields_scope": "All preexisting status/task/released fields describe their original preparation checkpoint; see task126_checkpoint for later completed compile/input/archive facts.",
+  "task126_checkpoint": {
+    "recorded_at_utc": "2026-11-02T12:16:09.452896+00:00",
+    "status": "TASK120_DIAGNOSTIC_COMPILE_AND_ELF_OBSERVED_TASK123_STATIC_READY_TASK125_ARCHIVED",
+    "scope": "Task126 factual integration of completed Task120/123/125 evidence only. Existing preparation-status/release fields and earlier map nodes retain their authoring-time meaning; this checkpoint supplies subsequent outcomes. No Task121 outcome or Task124 configure result is inspected or asserted.",
+    "source_provenance": {
+      "record_integration_source_head": "7bcf55cc9b9dd50919ffa0694fa18a881465d1c1",
+      "task116_source_commit": "9999ecdbcf2b26bac0ed2bb49a6f11960422d423",
+      "task120_preparation_snapshot": "09190ed303416432c0250d115529372c301fa1ac",
+      "later_documentation_commits_relabel_sources": false
+    },
+    "task120": {
+      "actual_result": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-gtd-original-diagnostic-task120/execution-attempt1/RESULT.json",
+        "bytes": 38183,
+        "sha256": "e3142066411ca3485b2a6465202ede00daac5caa0b32896dd756d59202c08e94"
+      },
+      "compile_freeze": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-gtd-original-diagnostic-task120/COMPILE_FREEZE.json",
+        "bytes": 622759,
+        "sha256": "7546104954b8665523d6834a274af56b0de9211fffb3115fa3c01caefe40f26a"
+      },
+      "compile_only_release": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-gtd-original-diagnostic-task120/ROOT_COMPILE_RELEASE.json",
+        "bytes": 1016,
+        "sha256": "71f89333efdfadd3e06d2e226276119d640ff2a445ffecf7ac6eb2fad6cf74ed"
+      },
+      "actual_steps": 9,
+      "compiler_link_steps": 2,
+      "ELF_symbol_metadata_steps": 7,
+      "RC0_steps": 9,
+      "guard_members": 718,
+      "guards_before": "MATCHED",
+      "guards_after": "MATCHED",
+      "timeouts": 0,
+      "interruptions": 0,
+      "all_owned_processes_reaped_or_absent": true,
+      "process_observation_limit": "Visible /proc namespace only; no fault-injection claim.",
+      "actual_dependency_rosters": {
+        "driver": {
+          "actual": 324,
+          "expected": 324,
+          "equal": true
+        },
+        "observer": {
+          "actual": 238,
+          "expected": 238,
+          "equal": true
+        }
+      },
+      "output_mapping": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-gtd-original-diagnostic-task120/BUILD_OUTPUT_MAPPING.task125.json",
+        "bytes": 3806,
+        "sha256": "a63bdfb1843f6b0d7cd868dac327129096851784a1c48536d56bbf9072117b6d"
+      },
+      "archived_compiler_outputs": 6,
+      "native_runtime_executions_in_compile_packet": 0,
+      "chronology": "Frozen STATUS.md and COMPILE_FREEZE authoring-time uncompiled statements remain byte-exact. Actual execution-attempt1 records the subsequent successful diagnostic compile/ELF steps.",
+      "acceptance_limit": "Compilation/ELF metadata supports diagnostic artifacts only; actual runtime/loader/interposition, original/control correspondence and complete workflow acceptance remain separate."
+    },
+    "task117_123": {
+      "preparation_final_receipt": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-build-preparation-task117/FINAL_RECEIPT.json",
+        "bytes": 2824,
+        "sha256": "ed15a06e929271926d616bb62abb8857e6c42f3c967bc891e1ef314f10b66692"
+      },
+      "original_preparation_build_ready": false,
+      "READY_result": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-build-input-task123/READY.stdout.json",
+        "bytes": 1607,
+        "sha256": "94cd568ac3151939815c2d054e1e92c6e3c3ea020d79149eb3de27f19887632d"
+      },
+      "READY_command": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-build-input-task123/READY_COMMAND.json",
+        "bytes": 630,
+        "sha256": "e64fc42f04a7138d5330f9bf785c53b78f922a924aee6c8c10e1457ed7b57a35"
+      },
+      "READY_rc": 0,
+      "build_ready": true,
+      "READY_issues": [],
+      "READY_counts": {
+        "frozen_packet_files": 51,
+        "official_source_files": 37610,
+        "Eigen_files": 1784,
+        "baseline_hash_stat_files": 344,
+        "original_wheel_payload_equalities": 337,
+        "selected_and_closure_file_bindings": 99,
+        "tool_and_header_tree_file_bindings": 11703,
+        "current_Hotpot_source_consumers": 5,
+        "expected_plugins": 128,
+        "source_equal_headers": 90,
+        "source_equal_data": 55
+      },
+      "RapidJSON_receipt": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-build-input-task123/RAPIDJSON_RECEIPT.json",
+        "bytes": 47861,
+        "sha256": "e4b8bed6218a2ceade41d090ba8cd7e1354d96928772a75ea45a7f8a48308b97"
+      },
+      "RapidJSON_archive": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/ob-control-build-input-task123/downloads/rapidjson-7c73dd7de7c4f14379b781418c6e947ad464c818.tar.gz",
+        "bytes": 1116413,
+        "sha256": "91138ebc9c980e554e6bcf9d13537f9eebf42710e0b956fdca46181ad645f94d"
+      },
+      "RapidJSON_regular_files": 313,
+      "retained_failure": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-build-input-task123/EXTRACTION_FAILURE1.json",
+        "bytes": 352,
+        "sha256": "ab833d9386c28eb23944759e941bb4b32ccfa4afbf50feb055c4e2f6c4bef20d"
+      },
+      "corrected_extraction_release": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-build-input-task123/EXTRACTION_RELEASE2.json",
+        "bytes": 1009,
+        "sha256": "9651d775886a8cf33c345c5573efb2880e491f6c4bee763cf3a56ecf5f40d0a2"
+      },
+      "failure_and_correction": "Initial missing external parent mkdir failure extracted zero files. Corrected root release retained; only verified parent/target and313 digest-bound files added.",
+      "source_scope": "READY preserved37610 original source files and1784 Eigen files; CONTROL source additions limited to313 allowed RapidJSON input files. No configure/build/native execution follows from this static result.",
+      "exact_original_recipe_or_B0_closed": false,
+      "original_wheel_RapidJSON_version": "unknown"
+    },
+    "task125": {
+      "report": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-records-task125/REPORT.md",
+        "bytes": 2998,
+        "sha256": "cc567baf9b158cfc5dab526e75a25100e9d489c00dd0ab51ab87001a12e0efbb"
+      },
+      "evidence_graph": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-records-task125/EVIDENCE_GRAPH.json",
+        "bytes": 14759,
+        "sha256": "162af62f7a5b6c8576844b686ce49e5b229d55a8f6dc8fc9cc7b664152f960de"
+      },
+      "copy_manifest": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-records-task125/ARCHIVE_COPY_MANIFEST.json",
+        "bytes": 232087,
+        "sha256": "12132cbcaef33f980651312d8deb8c248033d20911a767a8f208c4ead7c512d0"
+      },
+      "archive_manifest": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-records-task125/ARCHIVE_MANIFEST.task125.json",
+        "bytes": 4065,
+        "sha256": "28063312a42adfc0ac015fd819d58eb5c18d6f5bda132384533d490031e267cf"
+      },
+      "final_verification": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-records-task125/FINAL_VERIFICATION.json",
+        "bytes": 108986,
+        "sha256": "f54df1bf28da19522054435fdbbf5dba108862130c0f41b81abbf8f1f371b4ee"
+      },
+      "archived_long_packet_files": {
+        "Task117": 61,
+        "Task120": 304,
+        "Task123": 10
+      },
+      "copied_evidence_members": 383,
+      "source_destination_pairs_rechecked": 390,
+      "archive_members_checked": 395,
+      "existing_source_wheel_archive_references_checked": 2,
+      "current_Task116_bindings_checked": 16,
+      "all_copied_hashes_verified": true,
+      "extracted_source_or_Eigen_trees_copied": false,
+      "compressed_Eigen_input_archived": true,
+      "retained_Task117_failed_attempts": 3,
+      "packet_archive_indexes": [
+        {
+          "path": ".plan20-artifacts/20261102/stage7a/ob-control-build-preparation-task117/ARCHIVE_MANIFEST.task125.json",
+          "bytes": 35917,
+          "sha256": "7a15d10bab3388260a70edb644c481f3a129f7e719fb6d8528b1ad6cdbebfe48"
+        },
+        {
+          "path": ".plan20-artifacts/20261102/stage7a/native-gtd-original-diagnostic-task120/ARCHIVE_MANIFEST.task125.json",
+          "bytes": 186763,
+          "sha256": "8ed218997b715318ffd393c1bde502d743de4514e07095d590f31e72b530f821"
+        },
+        {
+          "path": ".plan20-artifacts/20261102/stage7a/ob-control-build-input-task123/ARCHIVE_MANIFEST.task125.json",
+          "bytes": 5984,
+          "sha256": "caba224f2feec36f48c02aa70f6d478751f3301bf5bca7ebb51626f2e4e5dffa"
+        }
+      ]
+    },
+    "remaining": "Task121 original runtime is root-owned; no outcome claimed here. Task124 CONTROL configure preparation/result remains separate. Original/control semantic correspondence precedes patched candidate. Full214 supported source/wheel/native/function/reflection evidence and fresh26 performance rebind where required, native-memory sufficiency and all remaining gates stay open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY; no later/global gate closure."
+  }
 }

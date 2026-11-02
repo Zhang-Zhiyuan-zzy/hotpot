@@ -2789,6 +2789,37 @@
         "native_runtime_executed": false,
         "control_or_candidate_native_change": false,
         "all_broader_gates_open": true
+      },
+      "native_gtd_compile_control_inputs_task120_126": {
+        "record": {
+          "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/validation/native_gtd_diagnostic.json",
+          "bytes": 13479,
+          "sha256": "3e138183003fe47720784761dfb173f9e7fbcafc7d825843e35491555fe02aed"
+        },
+        "status": "TASK120_DIAGNOSTIC_COMPILE_AND_ELF_OBSERVED_TASK123_STATIC_READY_TASK125_ARCHIVED",
+        "previous_checkpoint_scope": "native_gtd_preparation_task112_115 and native_gtd_diagnostic_task116_121 preserve historical preparation status/compiled=false/release facts and original record-byte identities; current subsequent facts are in this checkpoint.",
+        "compile_RC0_steps": 9,
+        "immutable_guard_members_matched": 718,
+        "actual_dependencies_equal": {
+          "driver": 324,
+          "observer": 238
+        },
+        "archived_compiler_outputs": 6,
+        "native_runtime_executions_in_Task120_packet": 0,
+        "Task123_static_READY_rc": 0,
+        "Task123_build_ready": true,
+        "Task123_RapidJSON_regular_files": 313,
+        "Task123_original_missing_parent_failure_retained": true,
+        "Task125_archive_members_verified": 395,
+        "Task125_archive_manifest": {
+          "path": ".plan20-artifacts/20261102/stage7a/native-control-records-task125/ARCHIVE_MANIFEST.task125.json",
+          "bytes": 4065,
+          "sha256": "28063312a42adfc0ac015fd819d58eb5c18d6f5bda132384533d490031e267cf"
+        },
+        "Task121_outcome_claimed": false,
+        "Task124_configure_outcome_claimed": false,
+        "control_or_candidate_native_change": false,
+        "all_broader_gates_open": true
       }
     },
     "Stage7B": {

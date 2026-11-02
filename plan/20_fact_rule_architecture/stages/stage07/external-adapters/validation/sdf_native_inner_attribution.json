@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "task_id": "p20-s7a-sdf-native-inner-attribution-704283-110",
+  "status": "BOUNDED_NATIVE_ATTRIBUTION_ACCEPTED_NO_IMPLEMENTATION_RELEASE",
+  "source_qualification": "846 Task106 source-copy members, source_commit7799c409ba881c409697e57d7326b84ceb50942b; HEAD74aa30628630900abd4b229e23ad5daa4735a24f is a later documentation-only record, not a relabeling of snapshot origin.",
+  "native_library": {
+    "bytes": 3721104,
+    "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/libopenbabel.so.8",
+    "sha256": "46c565393702f84146fdee597dc4764ed6d6c4e1d3f70bd61fc70f75735aaf8b"
+  },
+  "public_writes": 20,
+  "distinct_coordinate_frames": 40,
+  "run_checks_passed": 15,
+  "guarded_files_unchanged": 957,
+  "native_spans": 280,
+  "inclusive_graph_distance_ns": 63862455,
+  "inclusive_get_symmetry_ns": 65642008,
+  "inclusive_extend_invariants_ns": 921078,
+  "root_review": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/sdf-native-inner-attribution-task110/ROOT_REVIEW.json",
+    "bytes": 3642,
+    "sha256": "9d3819c6f55742b45fd42e622b6f19f835a96ac1e969c383f9942dad7b7ed49f"
+  },
+  "archive_manifest": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/sdf-native-inner-attribution-task110/ARCHIVE_MANIFEST.json",
+    "bytes": 36870,
+    "sha256": "00db159f0bd239579b715297908dc6792434743b6e1ef43fd674a9b73b3ec355"
+  },
+  "limits": [
+    "One original20write40frame size256 AST workload on exact Task106846member source; no new native dependency/scientific algorithm.",
+    "First path guard failed before work; .so.8 and .so.8.0.0 are distinct inodes with identical bound bytes, retry explicitly binds actual mapped .so.8.",
+    "Nested inclusive times overlap and instrumentation affects cost; no additive/exclusive savings, acceptance ratio/CI or current-main performance claim.",
+    "Direct ExtendInvariants recursion is included in outer spans without separate recursive entries.",
+    "Current main Task109 is a separate coordinate-transport change with actual native/full-workflow equivalence; this observation retains original source provenance.",
+    "Future pure graph-distance optimization remains Task112 proposal only; SDF FIX_REQUIRED/native memory OPEN/7B PREENTRY and later/global gates unchanged."
+  ]
+}

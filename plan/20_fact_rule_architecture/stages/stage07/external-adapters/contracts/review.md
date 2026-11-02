@@ -1,6 +1,14 @@
 # Stage7A external-object and adapter contract proposal
 
-## Current validated checkpoint — Task100/102/104, 2026-11-02T08:57:16.574254+00:00
+## Current repair checkpoint — Task109/110, 2026-11-02T11:22:04.904054+00:00
+
+Coordinate transport repair is committed/pushed as `f63149c21657771e02b2ce36e0e4887b1e0d2b8f`, independently remote-matched. Current-main focused/connected validation:72passed,936source/native/testguards unchanged,138current-main module origins. Isolated native56/56cases and four20write/40frame workflows preserve coordinate bits/native buffers/conformers/state/errors/output facts/readbacks/release. Full current214-file source/wheel/native, functional/reflection and fresh26 performance rebind remain pending after the coherent repair; the Task100/102 full results below are historical after this source change.
+
+Task110 forward-only attribution on the bound Task106source completed with15/15checks and957unchanged guards. Graph-distance traversal inclusive63.862455ms lies inside GetSymmetry65.642008ms; outer ExtendInvariants0.921078ms includes direct recursion. Nested instrumented times are diagnostic only. The first pre-work library-path guard failure remains; corrected attempt explicitly binds the actual mapped `.so.8`, byte-identical to the distinct `.so.8.0.0` file. No dependency/scientific/body/flag change was made. Maintained evidence: `../validation/sdf_native_inner_attribution.json`. Task111 bulk-fact capture is separately released only in isolated copies; Task112 native graph-distance design is preparation-only. External helper remains terminated; these two bounded tasks use LOCAL subagents under root authority.
+
+Stage7A remains **IN_PROGRESS**, complete SDF **FIX_REQUIRED**, native memory **OPEN**, Stage7B **PREENTRY**; all later/global gates remain open. No accepted public/scientific contract, performance policy, requirement or gate changes.
+
+## Historical validated checkpoint — Task100/102/104, 2026-11-02T08:57:16.574254+00:00
 
 Stage7A remains **IN_PROGRESS**; Stage7B remains **PREENTRY**. Current technical and bounded functional evidence is accepted. Complete SDF performance remains **FIX_REQUIRED** and native-memory sufficiency remains **OPEN**. No stage/global or scientific gate closes.
 

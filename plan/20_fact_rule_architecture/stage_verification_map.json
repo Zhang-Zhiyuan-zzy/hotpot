@@ -2695,6 +2695,16 @@
           "current_runtime_selection_rebind_pending": true
         },
         "prior_complete_outcomes_are_historical": true
+      },
+      "native_inner_attribution_task110": {
+        "record": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/validation/sdf_native_inner_attribution.json",
+        "root_review": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/sdf-native-inner-attribution-task110/ROOT_REVIEW.json",
+          "bytes": 3642,
+          "sha256": "9d3819c6f55742b45fd42e622b6f19f835a96ac1e969c383f9942dad7b7ed49f"
+        },
+        "implementation_released": false,
+        "future_gtd_proposal": "Task112 LOCAL Sol-max preparation only"
       }
     },
     "Stage7B": {

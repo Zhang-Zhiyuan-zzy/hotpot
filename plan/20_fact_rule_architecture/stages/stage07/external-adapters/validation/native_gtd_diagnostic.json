@@ -4063,5 +4063,331 @@
     "new_scientific_observations": [],
     "stage_gate_closed": false,
     "global_gate_closed": false
+  },
+  "task214_checkpoint": {
+    "task": 214,
+    "recorded_date": "2026-11-03",
+    "status": "FINITE_CANDIDATE_RECORD_CHECKPOINT_FOR_ROOT_REVIEW_ONLY",
+    "docs_predecessor_from_root": "c7cdd8803835fffcb739e483a327957b5db0e6a1",
+    "product_ancestry": "9999ecd",
+    "frozen_Task177_source_commit": "d7524e8182f13704e9c69db8f6ab97c34602168f",
+    "accepted_cutoff": [
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK187_CP311_ROOT_FINAL_WHEEL_CORRESPONDENCE_ACCEPTANCE.json",
+        "bytes": 4816,
+        "sha256": "1f56a15f67753369af70a0a3535fc8a5782402962717f2f2ce49a317ae7d95ef"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK203_CP311_I1_PROVENANCE_ACCEPTANCE.json",
+        "bytes": 2740,
+        "sha256": "a2668b8a91ae282419aa524ff749fd0bbe7e1fafb284810a8926c88ddba06060"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK202_CP310_BACKEND_ACCEPTANCE.json",
+        "bytes": 5332,
+        "sha256": "c379dd480599f0386239a8a0653ff5631f0bf240d39f8db36126e8afd590294d"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK206_ROOT_BACKEND_BATCH_ACCEPTANCE.json",
+        "bytes": 1385,
+        "sha256": "96e2661c560dd3548dd5894658757e4da711585ff9b44d6de4c1f26b6f84a95c"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK207_CP310_DEPENDENCY_INSTALLED_ACCEPTANCE.json",
+        "bytes": 4856,
+        "sha256": "acddd8fa57bc799cbc132896db4d848bab51f30da62ba65677b277cfee85d187"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK209_ROOT_INSTALL_BATCH_ACCEPTANCE.json",
+        "bytes": 1405,
+        "sha256": "fa44c94c699a0b94ec26cad13c0790dd9057129bca16211f26fd7f486b88224a"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK203_CP310_ACTUAL_TERMINAL.json",
+        "bytes": 2965,
+        "sha256": "00ae149fa288098274e6cf003fdc62baa89463896fa92458c7e1c64a2df6ab9b"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK203_REMAINING_ROOT_TERMINAL_BATCH_ACCEPTANCE.json",
+        "bytes": 2580,
+        "sha256": "9b094401b85bf8d2941f7f23afc35bf434a74e6f92fef5f956d1e7c564834bf7"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK212_PREPARATION_ACCEPTANCE.json",
+        "bytes": 1096,
+        "sha256": "aab5263b8f328814b3ad15c053b4d9796d3de2c4a4e189dbc5e0907ba2f8ebcc"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK210_REVISION2_PREPARATION_ACCEPTANCE.json",
+        "bytes": 1848,
+        "sha256": "fb40393a2c112ef422217b231a6055a9766d019af6dc35b3b0021121d7781f35"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK213_ROOT_REMOTE_ACCEPTANCE.json",
+        "bytes": 1090,
+        "sha256": "16d908ffbe8572d0dd25be78e1ac6e31058a30c78f733b85db4c6450616c0022"
+      }
+    ],
+    "evidence_graph": {
+      "path": "/tmp/hotpot_plan20/long/stage7a-native-records-checkpoint-task214/EVIDENCE_GRAPH.json",
+      "bytes": 108105,
+      "sha256": "ea12925e318b259f92b52d77d2aeef55c835334a5c7107caa22c32b375e96296"
+    },
+    "same_stage_alignment": {
+      "reference": "/tmp/hotpot_plan20/long/stage7a-sdf-repair-root-alignment-task108/ALIGNMENT.json",
+      "unchanged_normative_identities": 12,
+      "new_full_plan_read_claim": false,
+      "new_design_or_scientific_route": false
+    },
+    "CP311_final_wheel_correspondence": {
+      "accepted_by": "TASK187_CP311_ROOT_FINAL_WHEEL_CORRESPONDENCE_ACCEPTANCE.json",
+      "complete_cells": 792,
+      "case_mode_pairs": 509244,
+      "public_complete_pairs_per_lane_mode": 84874,
+      "construction_accepts_per_lane_mode": 84867,
+      "construction_rejects_per_lane_mode": 7,
+      "GTD_vectors_per_observed_lane": 169734,
+      "unavailable_scopes_per_comparison": 14,
+      "scope": "Exact ORIGINAL/accepted CONTROL/exact CP311 installed final-wheel family bounded public/GTD/loader correspondence only; no other-version transfer or scientific/performance/memory acceptance."
+    },
+    "CP311_observed_I1_provenance": {
+      "checks_passed": 24369,
+      "checks_failed": 0,
+      "consumed_units": 38,
+      "consumed_unique_paths": 626,
+      "unprefrozen_consumed_inputs": 0,
+      "observed_execve_success": 118,
+      "observed_execve_failed": 0,
+      "exact_metadata_reuses": 78,
+      "new_metadata_commands": 0,
+      "selected_record_fragment": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-complete-input-closure-preparation-task203/actual-review-attempt1/CP311_RECORD_FOR_ROOT_REVIEW.json",
+        "bytes": 3885,
+        "sha256": "7ffcca4398ba80e12816a2e0361ee534b83e282f02acb2215091eddd543a50f3"
+      },
+      "selected_build_provenance_fragment": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-complete-input-closure-preparation-task203/actual-review-attempt1/CP311_SELECTION_FOR_ROOT_REVIEW.json",
+        "bytes": 611,
+        "sha256": "133a535b55b941d75dbfbb948ef693a39d571d354e90ce9add35a7aded45cf2a"
+      },
+      "limits": "CP311 only, observed execve/command/physical input/prospective alias-guard closure and exact static metadata. No execveat/full fork lineage/per-exec atomic snapshots/dynamic provider mapping/SDK/ABI/science/performance/memory acceptance. Later root193 finalizer requires allfive exact ownversion accepted records and selections.",
+      "all_five_I1_complete": false
+    },
+    "historical_Task199_failure": {
+      "root_disposition": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK199_ACTUAL_GAP_DISPOSITION.json",
+        "bytes": 1698,
+        "sha256": "4ccd8a645326c2e111f1564354b3f21ba295bf2183d2c490b0f8eaa5386c3bd1"
+      },
+      "passed": 19936,
+      "failed": 867,
+      "unique_headers_missing_prospective_guards": 52,
+      "status": "HISTORICAL_UNACCEPTED_AND_UNREPAIRED; separate fresh Task203 attempt4 supplies its own prospective evidence and does not repair attempt3."
+    },
+    "remaining_backend_acceptances": {
+      "3.10": {
+        "primary_checks": {
+          "passed": 12261,
+          "failed": 0
+        },
+        "supplement_checks": {
+          "passed": 1134,
+          "failed": 0
+        },
+        "wheel": {
+          "bytes": 12597334,
+          "path": "/tmp/hotpot_plan20/medium/stage7a-native-gtd-package-build-preparation-task177/cp310/wheelhouse/openbabel-3.2.1-cp310-cp310-linux_x86_64.whl",
+          "sha256": "28dab73610a112556c5f7ee0e0f8344f1766702f56f47977b7db4cdf065968bf"
+        },
+        "scope": "Bounded static backend acceptance for private installation only."
+      },
+      "3.12": {
+        "primary_checks": {
+          "passed": 12271,
+          "failed": 0
+        },
+        "supplement_checks": {
+          "failed": 0,
+          "passed": 1133
+        },
+        "wheel": {
+          "bytes": 12595685,
+          "path": "/tmp/hotpot_plan20/medium/stage7a-native-gtd-package-build-preparation-task177/cp312/wheelhouse/openbabel-3.2.1-cp312-cp312-linux_x86_64.whl",
+          "sha256": "fa49e5ef86767903a9137a7e67fca3c3a51923872818c262528f59e4c26e025f"
+        },
+        "scope": "Bounded static backend acceptance for private installation only."
+      },
+      "3.13": {
+        "primary_checks": {
+          "passed": 12281,
+          "failed": 0
+        },
+        "supplement_checks": {
+          "failed": 0,
+          "passed": 1133
+        },
+        "wheel": {
+          "bytes": 12595604,
+          "path": "/tmp/hotpot_plan20/medium/stage7a-native-gtd-package-build-preparation-task177/cp313/wheelhouse/openbabel-3.2.1-cp313-cp313-linux_x86_64.whl",
+          "sha256": "ddd1e8ea11a6e92474ac5848777707f9c3fbd5251c3f77157b9f64c65b282627"
+        },
+        "scope": "Bounded static backend acceptance for private installation only."
+      },
+      "3.14": {
+        "primary_checks": {
+          "passed": 12283,
+          "failed": 0
+        },
+        "supplement_checks": {
+          "failed": 0,
+          "passed": 1133
+        },
+        "wheel": {
+          "bytes": 12595819,
+          "path": "/tmp/hotpot_plan20/medium/stage7a-native-gtd-package-build-preparation-task177/cp314/wheelhouse/openbabel-3.2.1-cp314-cp314-linux_x86_64.whl",
+          "sha256": "21a3206886f09eebed742cebd8d99e858804da1304f0473b7df425c2dd8f594e"
+        },
+        "scope": "Bounded static backend acceptance for private installation only."
+      }
+    },
+    "remaining_private_install_acceptances": {
+      "3.10": {
+        "checks_passed": 3519,
+        "checks_failed": 0,
+        "installed_regular_files": 339,
+        "wheel_members": 335,
+        "package_equal_members": 329,
+        "native_family_members": 209,
+        "family_sha256": "9e1c1f19e4aa7f403c426a121ad4ebdf3c9c68689dd16985e9ffa5b20dd7f91e"
+      },
+      "3.12": {
+        "checks_passed": 3572,
+        "checks_failed": 0,
+        "installed_regular_files": 339,
+        "wheel_members": 335,
+        "package_equal_members": 329,
+        "native_family_members": 209,
+        "family_sha256": "c97abebcbb03be76b37524d824c0822d926f07c8d8af3fd9d7ad9781b27f6608"
+      },
+      "3.13": {
+        "checks_passed": 3578,
+        "checks_failed": 0,
+        "installed_regular_files": 339,
+        "wheel_members": 335,
+        "package_equal_members": 329,
+        "native_family_members": 209,
+        "family_sha256": "515ee4dd58640138873a8ede35f014adc28fe35e46d25535c0b7e4065fc0cfe9"
+      },
+      "3.14": {
+        "checks_passed": 3578,
+        "checks_failed": 0,
+        "installed_regular_files": 339,
+        "wheel_members": 335,
+        "package_equal_members": 329,
+        "native_family_members": 209,
+        "family_sha256": "973b25b9c39166fa539e41d1063a0c6080d5addf089bb986a4a51c71accf91f1"
+      }
+    },
+    "private_install_limits": {
+      "RECORD": "Raw ../../bin/obabel remains unchanged; only explicit actual bin/obabel hash/size/entry owner mapping accepted, without raw-path validity or entrypoint execution.",
+      "direct_url": "CP310 archive_info={} retained and accepted via exact URL plus independently selected wheel/payload. CP312/313/314 encoded hash and hashes values match their exact wheels; absent metadata hashes are never inferred.",
+      "freshness": "Bound root prelaunch empty-private-site assertion; no independently recreated preinstall snapshot.",
+      "execution": "Ordinary private pip installs accepted for separately released own-version native preparation; no target import or family correspondence transfer."
+    },
+    "remaining_native_build_terminals": {
+      "3.10": {
+        "actual_returncode": 0,
+        "actual_elapsed_seconds": 101.11092364788055,
+        "actual_guard_count": 13006,
+        "guards_unchanged": true,
+        "owned_processes_reaped": true,
+        "scope": "Build terminal facts only; own-version consumed-input/static-metadata acceptance excluded."
+      },
+      "3.12": {
+        "actual_returncode": 0,
+        "actual_elapsed_seconds": 101.05515171214938,
+        "actual_guard_count": 12927,
+        "guards_unchanged": true,
+        "owned_processes_reaped": true,
+        "scope": "Build terminal facts only; own-version consumed-input/static-metadata acceptance excluded."
+      },
+      "3.13": {
+        "actual_returncode": 0,
+        "actual_elapsed_seconds": 100.99641793221235,
+        "actual_guard_count": 12927,
+        "guards_unchanged": true,
+        "owned_processes_reaped": true,
+        "scope": "Build terminal facts only; own-version consumed-input/static-metadata acceptance excluded."
+      },
+      "3.14": {
+        "actual_returncode": 0,
+        "actual_elapsed_seconds": 99.5980273745954,
+        "actual_guard_count": 12927,
+        "guards_unchanged": true,
+        "owned_processes_reaped": true,
+        "scope": "Build terminal facts only; own-version consumed-input/static-metadata acceptance excluded."
+      }
+    },
+    "Task210_revision2": {
+      "acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK210_REVISION2_PREPARATION_ACCEPTANCE.json",
+        "bytes": 1848,
+        "sha256": "fb40393a2c112ef422217b231a6055a9766d019af6dc35b3b0021121d7781f35"
+      },
+      "historical_defect_disposition": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK210_CONTROLLER_ALIAS_STATIC_DEFECT_DISPOSITION.json",
+        "bytes": 2543,
+        "sha256": "a121e9e00788797d4c05133bcd6f3b9063abe1fc0ba679a72fd225f0ed0d443c"
+      },
+      "scope": "Preparation only: separate exact outer/prelaunch controller aliases, both prospectively frozen with identical executable bytes, bound to their own receipts and argv. Original static defect found before actual review/metadata. No actual review outcome included."
+    },
+    "Task212_preparation": {
+      "acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK212_PREPARATION_ACCEPTANCE.json",
+        "bytes": 1096,
+        "sha256": "aab5263b8f328814b3ad15c053b4d9796d3de2c4a4e189dbc5e0907ba2f8ebcc"
+      },
+      "scope": "Sealed remaining final-family preparation only; no actual bind/compile/metadata/runtime/loader/correspondence result included."
+    },
+    "Task213_Git_delivery": {
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK213_ROOT_REMOTE_ACCEPTANCE.json",
+        "bytes": 1090,
+        "sha256": "16d908ffbe8572d0dd25be78e1ac6e31058a30c78f733b85db4c6450616c0022"
+      },
+      "commit": "c7cdd8803835fffcb739e483a327957b5db0e6a1",
+      "tree": "0f11ce8e3e3c412d1158d975f130067a0a9d0729",
+      "scope": "Prior execution-log delivery independently matched remotely; this Task214 preparation performs no Git delivery."
+    },
+    "prior_evidence_reuse": {
+      "Task200_root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK200_RECORD_ACCEPTANCE.json",
+        "bytes": 5063,
+        "sha256": "de310cc040cd2bbff842d52f762fbd1ac6c3628ceb6a7f5299e60f9270537a87"
+      },
+      "existing_archive_index": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261103/stage7a/native-checkpoint-task200/INDEX.json",
+        "bytes": 14475,
+        "sha256": "de6e2c80a98a77dcb7ab6e25084d376ee52f2be5c1af154c9a62226b18c6366e"
+      },
+      "scope": "Existing 564-member archive referenced without reconstruction or duplication."
+    },
+    "excluded_outcomes": [
+      "Every Task210 actual preflight, new metadata capture, actual completion assessment and resulting provenance/selection fragment, whether currently running or subsequently terminal.",
+      "Every Task212 actual installed-family bind and subsequent compile/metadata/runtime/loader/correspondence result.",
+      "Any outcome beyond the eleven explicitly named accepted-cutoff root receipts and their finite selected support."
+    ],
+    "remaining": [
+      "Complete five-version I1 selection/final manifest remains incomplete; only CP311 provenance/selection is accepted here.",
+      "CP310/CP312/CP313/CP314 consumed-input, exec and static-metadata acceptance and final-family runtime/loader/correspondence remain outside this cutoff.",
+      "Current214 supported-version source/installed/native rebind, 707/985 and fresh26 remain incomplete.",
+      "Complete SDF performance gate remains FIX_REQUIRED; prior GM2.527527024115116 and all six adverse confidence intervals remain retained.",
+      "Native-memory sufficiency OPEN; standalone SDK/Eigen consumer remains later Stage10 OPEN.",
+      "Stage7A IN_PROGRESS; Stage7B PREENTRY; scientific, performance, SDK, later-stage and global gates remain open."
+    ],
+    "shipping_boundary": "third_party/openbabel remains future maintained home; no promotion, public dependency selection, registry publication or shipped-fix claim.",
+    "new_scientific_observations": [],
+    "stage_gate_closed": false,
+    "global_gate_closed": false
   }
 }

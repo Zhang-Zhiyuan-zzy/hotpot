@@ -877,5 +877,290 @@
       "scope": "Complete Task140/142 long+medium preparation/actual proof including exact tool wheel/data;Task138/141 full preparation/review/diffs/exact probes/receipts including retained first attempts. Regular bytes, node types/modes, literal symlink targets and FIFO types reconstructed in Task145 scratch. Original inode/device metadata is provenance, not a reconstruction identity claim. No huge original source copy or target execution."
     },
     "remaining": "Task133 attempt2 remains fullbuildFAIL/noinstall; no CONTROL runtime/correspondence or candidate evidence. Task143 is preparation-only at this checkpoint, with no reset/configure/retry result claimed. Task141 P2F1/P3F2 remain OPEN pending Task144. Full214 supported source/wheel/native/function/reflection and fresh26 performance rebind where required, native-memory sufficiency and all remaining gates stay open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY."
+  },
+  "task148_checkpoint": {
+    "recorded_at_utc": "2026-11-02T13:10:34.664482+00:00",
+    "status": "TASK143_CONFIGURED_TASK146_ACCEPTED_BUILD_IN_PROGRESS_TASK144_REPAIR_ACCEPTED_IN_PREPARATION_ONLY",
+    "scope": "Task148 factual archival checkpoint only. Prior OPEN/preparation/release/checkpoint fields are preserved as history. Same-stage Task108 alignment reuse is root-authorized; no fresh full-plan/design review claim. Exactly four maintained factual records; no root log, source, tests, main plan, design, environment, config or native changes. Commit/push held for root review.",
+    "preceding_delivered_record_commit": "80eaa2f555fdb37c882b22c98c1179586d73a2d7",
+    "task143_sealed_recipe_reset_and_actual_configure": {
+      "freeze": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-retry-task143/packet/FREEZE.json",
+        "bytes": 317229,
+        "sha256": "eaff8a8bd3c20c666edd9b4f697a9fa8aea4f22607e675180f616c4da36da9da"
+      },
+      "manifest": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-retry-task143/packet/MANIFEST.json",
+        "bytes": 14774,
+        "sha256": "c8e2a6a172af8e53f7e9d8b282f98fe063124930254ffa9eb851c9a5c66156f7"
+      },
+      "seal": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-retry-task143/packet/SEAL.json",
+        "bytes": 925,
+        "sha256": "8fdd543b876d987f6a0c7703d1b6036a046391f0503c7c8548ef29113d36649c"
+      },
+      "actual_configure_result": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-retry-task143/packet/configure-attempt3/RESULT.json",
+        "bytes": 47618,
+        "sha256": "67fbbd6efe823c243375e370763a552a7d6bc455870b24ecb643d964f3359081"
+      },
+      "Task147_archive_receipt": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-swig-retry-checkpoint-task147/FINAL_RECEIPT.json",
+        "bytes": 3369,
+        "sha256": "93f3aaca263815ec1cdace10de8dde140aa88935f5b6d53f18e5ed38a2d77490"
+      },
+      "Task147_archive_manifest": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-retry-task143/ARCHIVE_MANIFEST.task147.json",
+        "bytes": 155887,
+        "sha256": "4fb275f0eb8ac54dbc035d5f91cba514b836e1cb1b5cca37a003c841a3156112"
+      },
+      "sealed_long_members": 35,
+      "sealed_medium_members": 29,
+      "freeze_bindings": 1279,
+      "selected_tool_bindings": 843,
+      "private_SWIG_version": "4.4.1",
+      "unchanged_rule": "Bare -DHAVE_EIGEN3/header HAVE_EIGEN3=1; GCC9/ABI0/source/features unchanged.",
+      "root_reset": "Root removed only the canonical failed zero-byte generated wrapper; all37610 original source files and the old failure archive preserved. Task147 root reset/release receipts preserve actual authority.",
+      "actual_configure_status": "PASS_CONFIGURED_STATIC_GATE_AWAIT_ROOT_BUILD_REVIEW",
+      "supervisor_ready_configured_RC": [
+        0,
+        0,
+        0
+      ],
+      "issues": [],
+      "guards_reaping_ok": true,
+      "translation_units": 320,
+      "CXX_units_explicit_ABI0": 273,
+      "C_included_InChI_units": 47,
+      "result_bound_metadata_files": 153,
+      "capture_qualification": "Frozen SEAL.stdout.json is an empty placeholder; actual678-byte sealer stream preserved separately as POSTSEAL_SEAL.stdout.json with POSTSEAL_CAPTURE_CORRECTION.json. Preserve chronology; placeholder is not raw stdout.",
+      "Task147_preservation_only": {
+        "files": 252,
+        "bytes": 3246530,
+        "all_hashes_sizes_reconstruction_verified": true
+      },
+      "scope": "Actual completed configure and sealed preparation are distinct. Historical Task133 attempt2 fullbuildFAIL/noinstall remains. No successful attempt3 build/install/native result follows."
+    },
+    "task146_actual_configured_metadata_review": {
+      "root_acceptance": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-swig-integrity-records-task148/root-review/TASK146_CONFIGURATION_ACCEPTANCE.json",
+        "bytes": 2100,
+        "sha256": "fa7e6ddb58c59d5555ae08bd28b62106e6423add5dff4eb46d073fdd54f74045"
+      },
+      "assessment": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-configured-review-task146/packet/ASSESSMENT.json",
+        "bytes": 3245,
+        "sha256": "ef0f49ff7465508285818dacad455bbc9fbc8bf1a7ee7df23d823774a1d6c016"
+      },
+      "report": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-configured-review-task146/packet/REPORT.md",
+        "bytes": 5564,
+        "sha256": "8e22cce7a3ccd5ce536a7448d95fce63a00c9eda2445cc26d93658eb5c53cb8c"
+      },
+      "warnings": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-configured-review-task146/packet/WARNINGS_REVIEW.json",
+        "bytes": 6917,
+        "sha256": "3fba4c74e94bf49eb66eb660a2b33ae85c1a289ee45df091e74fcff0be4fd3bd"
+      },
+      "evidence_index": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-configured-review-task146/packet/EVIDENCE_INDEX.json",
+        "bytes": 9178,
+        "sha256": "5b529c30dcf255e6e58b94694b81c15c1487921d30c5a85ee8a7b91dbd6ccec8"
+      },
+      "metadata_roster": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-configured-review-task146/packet/METADATA_BINDINGS.json",
+        "bytes": 569618,
+        "sha256": "ae63176ab475e5df0e970ac44caade362486f1040191a89c4b3f9aca51a24088"
+      },
+      "final_stability": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-configured-review-task146/packet/FINAL_STABILITY_RECHECK.json",
+        "bytes": 370,
+        "sha256": "488a27fd5ce86803741a6d6ac9135ea09cebc6fbe16d73a62048f9e52567d5bf"
+      },
+      "status": "ROOT_ACCEPTED_CONFIGURED_METADATA_BUILD_ONLY_RELEASED",
+      "metadata_blockers": 0,
+      "effective_cache_values_matched": 79,
+      "actual_cache_entries_inspected": 334,
+      "compile_units": 320,
+      "CXX_explicit_ABI0": 273,
+      "link_plans": 150,
+      "CXX_link_plans_explicit_ABI0": 149,
+      "planned_package_paths": 329,
+      "planned_plugins": 128,
+      "planned_data": 55,
+      "planned_headers": 91,
+      "source_headers": 90,
+      "configure_event_signatures": 33,
+      "normal_negative_probes_individually_disposed": 5,
+      "warning_statuses_individually_disposed": 8,
+      "metadata_result_bound": 153,
+      "metadata_final_stable": 172,
+      "additional_bound_metadata_archived": 19,
+      "unexpected_roster_differences": 0,
+      "archive": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-configured-review-task146/ARCHIVE_MANIFEST.task148.json",
+        "bytes": 32949,
+        "sha256": "52b2950890fe0263e8e2307c573ac28db428bf54bb7875c40c25185e53a738ce"
+      },
+      "append_to_Task143_archive": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-retry-task143/ARCHIVE_APPEND.task148.json",
+        "bytes": 11061,
+        "sha256": "11693d2c824b0077dd62f227c739cbdd0740c1d1a8b60be957c94533887c5c4d"
+      },
+      "first_offline_audit_failure": "Retained first audit parser false positives and correction: key units by source/object output, apply PIC to shared targets, classify output/SONAME separately from dependencies. No production metadata/contract changed. Corrected stdlib-only offline review RC0,0.6028987653553486s.",
+      "scope": "Actual configuration metadata acceptance only. Private SWIG executable/data and exact frozen argv/includes/links/install plans reviewed. Planned origin-only RPATH and inherited Eigen3::Eigen export still require actual installed ELF/SDK checks. Review ran no configure/compiler/build/install/native/guard suite."
+    },
+    "task143_build_in_progress_at_checkpoint": {
+      "root_build_only_release": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-swig-integrity-records-task148/root-review/TASK143_ROOT_BUILD_RELEASE.json",
+        "bytes": 2414,
+        "sha256": "9b58f20aeb9b590cb7637e738705ff3b08bdf43916c52ea8566892e61676599c"
+      },
+      "status": "ACTUAL_FULL_BUILD_RUNNING_AS_REPORTED_BY_ROOT_AT_TASK148_ENTRY",
+      "authority": "Root reports one separately released full BUILD actually running; this records launch/in-progress only. No result or completion claimed. Install remains separately gated; no native runtime authority."
+    },
+    "task144_integrity_and_accounting_repair": {
+      "root_acceptance": {
+        "path": ".plan20-artifacts/20261102/stage7a/control-swig-integrity-records-task148/root-review/TASK144_PREPARATION_ACCEPTANCE.json",
+        "bytes": 2285,
+        "sha256": "44987ec14843e324a2d6923711d3a68856f5f369fc33c54277fdab90be42490d"
+      },
+      "report": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-integrity-repair-task144/packet/REPORT.md",
+        "bytes": 7251,
+        "sha256": "a0bfed6c9587e72efdaaad155525de4d6a290e0462cb95bdc0ff6259e1e4edde"
+      },
+      "manifest": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-integrity-repair-task144/packet/MANIFEST.json",
+        "bytes": 4816,
+        "sha256": "807d208935840d1b0d7b154311750dbf66ab3d770d36c46ac730b76fcacdb922"
+      },
+      "checks": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-integrity-repair-task144/packet/CHECKS.json",
+        "bytes": 4374,
+        "sha256": "30cc975ebf33d64f3b490dbe037a83a0cec1b5675a77cb9f28cc0fab4b4de310"
+      },
+      "final_receipt": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-integrity-repair-task144/receipts/FINAL_RECEIPT.json",
+        "bytes": 5449,
+        "sha256": "8149b36ecfecf382992ca1f5a9b08b66cf4fc0bcbeb71544d02d1e3e392171e1"
+      },
+      "final_regressions": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-integrity-repair-task144/receipts/regression-attempt3/CHECKS.json",
+        "bytes": 84573,
+        "sha256": "a96590964c6934505f9e860f9ee6c84ac84e7123fb4cf1e6709237f8d0e6172b"
+      },
+      "affected_final_checks": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-integrity-repair-task144/receipts/FINAL_BINDING_CHECKS.json",
+        "bytes": 3708,
+        "sha256": "cb611829b92894c1e2803b66bfba07b48ecd9e4b6191196c816855fb2d01fbc8"
+      },
+      "Task143_binding": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-integrity-repair-task144/packet/TASK143_BINDING.json",
+        "bytes": 2503,
+        "sha256": "ce148e2f81130fadcac7b951058926005dc0626a202a6160d7fee572255def37"
+      },
+      "findings": {
+        "TASK135-F1": "ADDRESSED_IN_PREPARATION_ONLY",
+        "TASK141-F1": "ADDRESSED_IN_PREPARATION_ONLY",
+        "TASK141-F2": "ADDRESSED_IN_PREPARATION_ONLY"
+      },
+      "input_bindings": 1373,
+      "sealed_members": 24,
+      "existing_synthetic_regressions_passed": 23,
+      "existing_regression_RC": 0,
+      "existing_regression_elapsed_seconds": 12.498920293524861,
+      "affected_final_flag_binding_checks_passed": 8,
+      "affected_final_checks_RC": 0,
+      "affected_final_checks_elapsed_seconds": 0.13587222434580326,
+      "AST_files": 8,
+      "concrete_diffs": 7,
+      "unchanged_predecessor_function_ASTs": 19,
+      "unchanged_sealed_predecessor_members": 56,
+      "normative_continuity_digests": 12,
+      "six_core_bodies_unchanged_after_23_checks": true,
+      "exact_Task143_map_and_both_required_flags": [
+        "--path-override",
+        "--tool-override"
+      ],
+      "inventory_error_normalization": "Frozen inventory binding/provenance/unavailability errors become InventoryMismatch; affected launched/completed cell becomes failed with explicit mismatch; abort retains every planned cell/raw observation. Never refresh accepted inventory.",
+      "integrity_before_comparison": "Derived merge emits a bound machine-readable CONTROL integrity report first and rejects aborted/unfinished phases, bad cell state/markers, altered roster/counts, missing/reordered/extra/non-MATCH/inconsistent entry/before/after/final checkpoints and changed/unavailable frozen inventory bindings. Only integrity pass can call unchanged Task121 scientific checker.",
+      "future_required_combined_gate": {
+        "status": "CONTROL_INTEGRITY_AND_SHARED_COMPARISON_PASS",
+        "comparison_acceptable": true,
+        "bindings_intact_and_root_review_required": true,
+        "standalone_Task121_zero_blocker_report_sufficient": false
+      },
+      "final_cell_reproductions": {
+        "completed": 263,
+        "failed": 1,
+        "unscheduled": 0,
+        "planned_CONTROL_case_mode_pairs_retained": 169748,
+        "shared_comparison_invocations": 0
+      },
+      "early_failure": {
+        "failed": 1,
+        "unscheduled": 263
+      },
+      "clean_synthetic_path": {
+        "cells": 264,
+        "MATCH_checkpoints": 530,
+        "comparison_stub_only": true
+      },
+      "actual_subprocess_native_build_supervisor_installed_shared_checker_runs": 0,
+      "retained_attempts": "Intermediate19/20-check regression passes and initial duplicate/historical FREEZE path-map assembly failure retained; exact current Task143 map corrects preparation assembly.",
+      "scope": "Root accepts bounded preparation repair only. Shared Task121 checker/Task88 supervisor and sealed Task127/138 preserved. No actual installed inventory/binding, diagnostic compile, native runtime or real scientific comparison evidence."
+    },
+    "archives": {
+      "Task144_packet_index": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-integrity-repair-task144/ARCHIVE_MANIFEST.task148.json",
+        "bytes": 18416764,
+        "sha256": "4e8ac42f034eeffb65ace198cf07763dd59eb15f03840819cd85a9c00228b04c"
+      },
+      "Task144_compact_receipts_index": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-integrity-repair-task144/COMPACT_RECEIPTS.task148.json",
+        "bytes": 6998,
+        "sha256": "e55fcc33ebbf38b51c0463bab4b0d7bebd55ae3cf10ee67e65d424e283bb1fb3"
+      },
+      "Task144_node_counts": {
+        "directory": 12097,
+        "regular": 18291,
+        "symlink": 30
+      },
+      "Task144_all_member_hashes_and_isolated_reconstruction_verified": true,
+      "Task144_source_nodes_rechecked_unchanged": true,
+      "Task146_completed_bound_archive": {
+        "task": "Task148",
+        "status": "PASS_COMPLETED_TASK146_BOUND_ARCHIVE",
+        "archive_manifest": {
+          "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-configured-review-task146/ARCHIVE_MANIFEST.task148.json",
+          "bytes": 32949,
+          "sha256": "52b2950890fe0263e8e2307c573ac28db428bf54bb7875c40c25185e53a738ce"
+        },
+        "copied_files": 59,
+        "Task146_report_and_raw_receipt_files": 38,
+        "additional_configured_metadata_files": 19,
+        "existing_Task147153_metadata_rechecked_unchanged": true,
+        "all172metadata_bound_hashes_verified": true,
+        "root_acceptance": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-swig-integrity-records-task148/root-review/TASK146_CONFIGURATION_ACCEPTANCE.json",
+          "bytes": 2100,
+          "sha256": "fa7e6ddb58c59d5555ae08bd28b62106e6423add5dff4eb46d073fdd54f74045"
+        },
+        "build_only_release": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-swig-integrity-records-task148/root-review/TASK143_ROOT_BUILD_RELEASE.json",
+          "bytes": 2414,
+          "sha256": "9b58f20aeb9b590cb7637e738705ff3b08bdf43916c52ea8566892e61676599c"
+        },
+        "append_manifest": {
+          "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-retry-task143/ARCHIVE_APPEND.task148.json",
+          "bytes": 11061,
+          "sha256": "11693d2c824b0077dd62f227c739cbdd0740c1d1a8b60be957c94533887c5c4d"
+        }
+      },
+      "Task147_files_immutable": true,
+      "scope": "Task144 complete long/medium synthetic fixtures/diffs/inputs and retained attempts; Task146 complete reports/offline audit failure/correction/program/raw receipts; exact19metadata additions only. No whole growing attempt3 tree scan, source-tree duplicate or target execution."
+    },
+    "remaining": "Actual attempt3 full build result, consumed-header/SWIG/linker/ELF review, separate private install release/acceptance, canonical CONTROL SDK/native/data/plugin binding and accepted inventory freeze, diagnostic compile/ABI review, complete loader/search review, no-overlap full-roster runtime and positive bound integrity-plus-shared comparison remain pending. Full214 supported source/wheel/native/function/reflection and fresh26 performance rebind where required, native-memory sufficiency and all stage/global gates stay open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY."
   }
 }

@@ -1094,3 +1094,70 @@ rebind where required, native-memory sufficiency and all remaining gates stay
 open. Stage7A remains IN_PROGRESS/SDF FIX_REQUIRED, Stage7B PREENTRY. No main-
 plan/design/source/test/environment/config/native/status/gate change is made;
 commit/push remain held for root review.
+
+
+## Current factual checkpoint — Task148 / 2026-11-02
+
+The [native diagnostic record](../validation/native_gtd_diagnostic.json),
+`task148_checkpoint`, preserves the sealed Task143 recipe, actual root reset
+and configure, root-accepted Task146 configuration review and root-accepted
+Task144 preparation repair. Prior OPEN/preparation fields remain historical.
+
+Task143 uses private SWIG4.4.1 and its exact data with unchanged bare
+-DHAVE_EIGEN3/header1, source/features/GCC9/ABI0. Root reset only the failed
+zero-byte generated wrapper, preserving all37610 original source files and
+the old failure archive. Actual configure supervisor/ready/configured gates
+return0 with no issues and intact guard/reaping receipts. All320 compile
+units include273 C++ with explicit ABI0. Task147 preserves252 files/3246530
+bytes with verified hashes and reconstruction. Frozen SEAL.stdout.json is an
+empty placeholder; the actual678-byte sealer stream and capture correction
+remain separately preserved with exact chronology.
+
+Root accepted Task146's actual bounded configuration review with no metadata
+blocker:79 effective cache values,320 compile units,150 link plans,329 planned
+package paths including128 plugins/55 data/91 headers,33 configure signatures,
+five negative probes and eight warning/status dispositions. All153 RESULT-
+bound metadata files and172 total inspected metadata files were stable. The
+complete review archive retains the first offline audit's parser failures,
+correction, reports, source and raw receipts;19 exact additional bound files
+were copied without modifying Task147 files or scanning the growing build.
+The corrected offline review returned0 in0.6028987653553486s. It executed no
+configure/compiler/build/install/native operation. Planned install/RPATH and
+Eigen3::Eigen consumer resolution still need actual installed ELF/SDK review.
+Root separately released one full build and reported it actually running at
+this checkpoint. This is an in-progress observation, with no build result or
+install/native acceptance.
+
+Task144 addresses TASK135-F1, TASK141-F1 and TASK141-F2 IN PREPARATION ONLY.
+Frozen inventory binding/provenance/unavailability errors become explicit
+InventoryMismatch; affected launched/completed cells become failed and the
+abort retains every planned cell/raw observation. The derived merge writes a
+bound CONTROL integrity report before unchanged Task121 comparison, rejecting
+phase/cell/count/checkpoint/inventory failures. Acceptance requires positive
+CONTROL_INTEGRITY_AND_SHARED_COMPARISON_PASS, comparison_acceptable=true,
+intact input/report/checker bindings and root review. A standalone shared-
+checker zero-blocker report is insufficient. Shared Task121/Task88 and sealed
+Task127/138 remain preserved; accepted inventory is never refreshed.
+
+The existing23 synthetic regressions returned0 in12.498920293524861s; eight
+affected final flag/binding checks returned0 in0.13587222434580326s. Both
+final-cell reproductions retain263 completed/1 failed/0 unscheduled and all
+169748 CONTROL case/mode pairs with no comparison invocation. The clean
+264-cell synthetic path has530 MATCH checkpoints and reaches only a stub.
+All1373 input bindings include the exact Task143 map, both --path-override
+and --tool-override flags and843 selected tool bindings. Six core bodies are
+unchanged after the23-check run; eight ASTs/seven diffs,19 predecessor function
+ASTs,56 sealed predecessor members and12 continuity digests were verified.
+No actual subprocess/native/build/supervisor/installed/shared-checker run is
+represented by these regressions. Intermediate19/20-check passes and the
+initial metadata assembly failure/correction remain retained. Task144's full
+archive reconstructs18291 regular files,12097 directories and30 symlinks.
+
+Actual build result/consumed headers/SWIG/linker/ELF, separately released
+private install and canonical CONTROL SDK/native/data/plugin inventory,
+diagnostic compile/ABI, full loader/search review, separately released no-
+overlap full-roster runtime and real bound combined comparison remain open.
+Full214/fresh26 where required, native-memory sufficiency and all stage/global
+gates remain open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY.
+This factual checkpoint changes no main plan/design/source/test/environment/
+config/native/status/gate; commit/push are held for root review.

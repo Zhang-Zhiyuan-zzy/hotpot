@@ -2979,6 +2979,53 @@
         ],
         "all_broader_gates_open": true,
         "source_mainplan_design_status_gate_change": false
+      },
+      "control_swig_integrity_checkpoint_task143_148": {
+        "record": {
+          "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/validation/native_gtd_diagnostic.json",
+          "bytes": 69194,
+          "sha256": "ee34b4a3100c8706a4e079e2d97550b16512b709e59baec9fdca1545fe51c141"
+        },
+        "status": "TASK143_CONFIGURED_TASK146_ACCEPTED_BUILD_IN_PROGRESS_TASK144_REPAIR_ACCEPTED_IN_PREPARATION_ONLY",
+        "Task143_configure_status": "PASS_CONFIGURED_STATIC_GATE_AWAIT_ROOT_BUILD_REVIEW",
+        "Task143_actual_configure_RC": 0,
+        "Task143_actual_build": "RUNNING_AT_CHECKPOINT; no completion/result claim",
+        "Task146_root_acceptance": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-swig-integrity-records-task148/root-review/TASK146_CONFIGURATION_ACCEPTANCE.json",
+          "bytes": 2100,
+          "sha256": "fa7e6ddb58c59d5555ae08bd28b62106e6423add5dff4eb46d073fdd54f74045"
+        },
+        "Task146_metadata_final_stable": 172,
+        "Task146_result_bound_metadata": 153,
+        "Task146_extra_metadata_archived": 19,
+        "Task146_planned_install_paths": 329,
+        "Task144_root_acceptance": {
+          "path": ".plan20-artifacts/20261102/stage7a/control-swig-integrity-records-task148/root-review/TASK144_PREPARATION_ACCEPTANCE.json",
+          "bytes": 2285,
+          "sha256": "44987ec14843e324a2d6923711d3a68856f5f369fc33c54277fdab90be42490d"
+        },
+        "Task144_findings": {
+          "TASK135-F1": "ADDRESSED_IN_PREPARATION_ONLY",
+          "TASK141-F1": "ADDRESSED_IN_PREPARATION_ONLY",
+          "TASK141-F2": "ADDRESSED_IN_PREPARATION_ONLY"
+        },
+        "Task144_existing_synthetic_regressions": 23,
+        "Task144_affected_final_checks": 8,
+        "Task144_actual_native_or_shared_checker_runs": 0,
+        "required_future_combined_gate": "CONTROL_INTEGRITY_AND_SHARED_COMPARISON_PASS + comparison_acceptable=true + intact bindings + root review",
+        "Task144_archive": {
+          "path": ".plan20-artifacts/20261102/stage7a/native-control-integrity-repair-task144/ARCHIVE_MANIFEST.task148.json",
+          "bytes": 18416764,
+          "sha256": "4e8ac42f034eeffb65ace198cf07763dd59eb15f03840819cd85a9c00228b04c"
+        },
+        "Task146_archive": {
+          "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-configured-review-task146/ARCHIVE_MANIFEST.task148.json",
+          "bytes": 32949,
+          "sha256": "52b2950890fe0263e8e2307c573ac28db428bf54bb7875c40c25185e53a738ce"
+        },
+        "historical_values_and_raw_spelling_preserved": true,
+        "all_remaining_stage_and_global_gates_open": true,
+        "scope": "Factual records/archive only; no main plan/design/source/test/environment/config/native/status/gate change. Commit/push held."
       }
     },
     "Stage7B": {

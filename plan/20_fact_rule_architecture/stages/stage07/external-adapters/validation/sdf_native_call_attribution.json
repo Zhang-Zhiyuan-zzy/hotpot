@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "task_id": "p20-s7a-sdf-native-call-attribution-704283-106",
+  "recorded_at_utc": "2026-11-02T10:31:38.482755+00:00",
+  "status": "OBSERVED_DIAGNOSTIC_ONLY",
+  "source_commit": "7799c409ba881c409697e57d7326b84ceb50942b",
+  "isolated_source_files": 846,
+  "source_copy": {
+    "path": ".plan20-artifacts/20261102/stage7a/sdf-native-call-attribution-task106/SOURCE_COPY.json",
+    "bytes": 160428,
+    "sha256": "1f4183ca872dda1dc50ae5ab4be40b5b8264982e3bc597343846dbaa10d1172d"
+  },
+  "conversion_source": {
+    "path": "hotpot/cheminfo/operations/conversion.py",
+    "bytes": 8179,
+    "sha256": "5f7d85004812437ab7afba46b237bdbc834b3535f5680d2e9deb1951489f8de7"
+  },
+  "actual_counts": {
+    "conversions": 20,
+    "coordinate_updates": 40,
+    "native_writes": 40,
+    "new": 20
+  },
+  "complete_work": {
+    "public_writes": 20,
+    "distinct_coordinate_frames_per_write": 2,
+    "native_frames": 40,
+    "warmup_batches": 0,
+    "profile_replay": false
+  },
+  "checks": {
+    "complete_native_texts": true,
+    "complete_work": true,
+    "counts": true,
+    "facts_unchanged": true,
+    "fresh_released_wrappers": true,
+    "input_guards": true,
+    "native_interposition_observed": true,
+    "no_carrier_toolkit": true,
+    "readback40": true,
+    "readback_equal_prior": true
+  },
+  "root_checks": {
+    "record_ids_sequential": true,
+    "all_nesting_valid": true,
+    "symmetry_inside_stereo3d": true,
+    "units_inside_stereo3d": true,
+    "twenty_expensive_three_d_calls": true,
+    "run_checks": true,
+    "all_owned_terminal": true
+  },
+  "native_inclusive_times": {
+    "FindStereogenicUnits": {
+      "calls": 20,
+      "inclusive_ns": 2936899,
+      "max_ns": 152319,
+      "min_ns": 144314
+    },
+    "OBAtomTyper::AssignHyb": {
+      "calls": 20,
+      "inclusive_ns": 2847860,
+      "max_ns": 147871,
+      "min_ns": 140125
+    },
+    "OBGraphSym::GetSymmetry": {
+      "calls": 20,
+      "inclusive_ns": 64842555,
+      "max_ns": 3290039,
+      "min_ns": 3201020
+    },
+    "OBMol::ConvertZeroBonds": {
+      "calls": 40,
+      "inclusive_ns": 844737,
+      "max_ns": 22693,
+      "min_ns": 19567
+    },
+    "OBMol::FindSSSR": {
+      "calls": 20,
+      "inclusive_ns": 204577,
+      "max_ns": 12013,
+      "min_ns": 8737
+    },
+    "PerceiveStereo": {
+      "calls": 40,
+      "inclusive_ns": 67870827,
+      "max_ns": 3438189,
+      "min_ns": 121
+    },
+    "StereoFrom3D": {
+      "calls": 40,
+      "inclusive_ns": 67854946,
+      "max_ns": 3437999,
+      "min_ns": 30
+    }
+  },
+  "process": {
+    "started_at_utc": "2026-11-02T10:20:36.127213+00:00",
+    "ended_at_utc": "2026-11-02T10:20:38.597018+00:00",
+    "elapsed_seconds": 2.469789819791913,
+    "rc": 0,
+    "timeout": false,
+    "waited_reaped": true,
+    "proc_after_wait_exists": false,
+    "group_after_wait_exists": false
+  },
+  "findings": [
+    "Twenty first-frame StereoFrom3D calls each invoke one GetSymmetry and one FindStereogenicUnits; the second frame reuses the same local perceived state.",
+    "GetSymmetry inclusive total64.842555ms; FindStereogenicUnits inclusive2.936899ms. Nested timings overlap and are not additive or exclusive savings.",
+    "Actual library disassembly confirms both native quick predicates and the empty-unit return before symmetry-vector consumption.",
+    "One separate fresh-value/two-frame native-state observation finds SSSR plus local-origin OpenBabel Symmetry Classes generic data after first serialization. A future earlier empty-unit route must explicitly assess this private derived data and all native side effects."
+  ],
+  "evidence": {
+    "ROOT_REVIEW.json": {
+      "path": ".plan20-artifacts/20261102/stage7a/sdf-native-call-attribution-task106/ROOT_REVIEW.json",
+      "bytes": 1326,
+      "sha256": "1d0ac8dcec978d8a9dea1a35bd65259eb6bd169707f662d1471ac0be5eaa60cd"
+    },
+    "BINARY_INSPECTION.json": {
+      "path": ".plan20-artifacts/20261102/stage7a/sdf-native-call-attribution-task106/BINARY_INSPECTION.json",
+      "bytes": 1923,
+      "sha256": "f8e40ab229d15bfa6146e5d72b8a19b328e841371c91a2f98ebd75cd8968a2a8"
+    },
+    "EXECUTION.json": {
+      "path": ".plan20-artifacts/20261102/stage7a/sdf-native-call-attribution-task106/EXECUTION.json",
+      "bytes": 2685,
+      "sha256": "eab9505951193c0c30e0d3bbdf63a0bfe9a330bb83e0f027631232f1c409c810"
+    },
+    "attempt1/RESULT.json": {
+      "path": ".plan20-artifacts/20261102/stage7a/sdf-native-call-attribution-task106/attempt1/RESULT.json",
+      "bytes": 312682,
+      "sha256": "9127628dff25c6947fb8ee40313e32fe38215744dd676a261027e5e77e9d3249"
+    },
+    "attempt1/native-spans.jsonl": {
+      "path": ".plan20-artifacts/20261102/stage7a/sdf-native-call-attribution-task106/attempt1/native-spans.jsonl",
+      "bytes": 21496,
+      "sha256": "fb6b3536d28bd8d92267e10f6933f70b2c9a4f9d91d69a98c3b63fd26fc94757"
+    },
+    "STATE_EXECUTION.json": {
+      "path": ".plan20-artifacts/20261102/stage7a/sdf-native-call-attribution-task106/STATE_EXECUTION.json",
+      "bytes": 2414,
+      "sha256": "0b6882a84d230e9da57cdb5e8dad4297867cf9a1d4a9313df6536a10cd764cde"
+    },
+    "state-inspection-attempt1/RESULT.json": {
+      "path": ".plan20-artifacts/20261102/stage7a/sdf-native-call-attribution-task106/state-inspection-attempt1/RESULT.json",
+      "bytes": 228302,
+      "sha256": "1ff1b3b3213520813666e6c39c66f9736938b57de920fb89295f18d74f0d8a74"
+    },
+    "ARCHIVE_MANIFEST.json": {
+      "path": ".plan20-artifacts/20261102/stage7a/sdf-native-call-attribution-task106/ARCHIVE_MANIFEST.json",
+      "bytes": 11820,
+      "sha256": "728705dc78ec9ec405cb4f8d1b437fd55995beadcc048408ae3286dbbb244f55"
+    }
+  },
+  "evidence_graph": {
+    "entry": "this record -> ROOT_REVIEW.json -> original RESULT.json/native-spans.jsonl/EXECUTION.json; BINARY_INSPECTION.json -> exact binary disassembly; STATE_EXECUTION.json -> native-state RESULT.json; ARCHIVE_MANIFEST.json -> every retained byte",
+    "full_original_evidence": "/tmp/hotpot_plan20/long/stage7a-sdf-native-call-attribution-task106",
+    "transient_isolated_source": "/tmp/hotpot_plan20/medium/stage7a-sdf-native-call-attribution-task106/source"
+  },
+  "limits": [
+    "Forward-only diagnostic interposition uses co-installed C++ declarations and actual dynamic library. This is not a clean rebuilt native/ABI/SDK/sdist tier.",
+    "One instrumented source size256 workload on shared CPU16; no installed/new version/performance ratio/CI or general domain proof.",
+    "No product/test source changed and no shortcut, flag assignment or malformed symmetry input was executed.",
+    "Existing current technical/functional26cell performance evidence and every adverse result remain unchanged.",
+    "Stage7A IN_PROGRESS; complete SDF FIX_REQUIRED; native-memory/global gates OPEN; Stage7B PREENTRY."
+  ],
+  "root_next_step": "Local read-only Sol-max Task107 evaluates the smallest proved empty-unit route. Root owns acceptance; design/implementation/performance acceptance are separate."
+}

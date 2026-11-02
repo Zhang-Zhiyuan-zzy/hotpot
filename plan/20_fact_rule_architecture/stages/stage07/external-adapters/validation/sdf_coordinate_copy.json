@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "task_id": "p20-s7a-sdf-coordinate-copy-704283-109",
+  "status": "ROOT_CURRENT_FOCUSED_PASS_FULL_GATES_OPEN",
+  "source": {
+    "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/adapters/openbabel/conversion.py",
+    "bytes": 6585,
+    "sha256": "5e2da95b301ebb6b779ec77e3d6235e160b80c451bb6ea913ef869b79a5b4ed5"
+  },
+  "tests": {
+    "path": "/home/zhangzhiyuan/hotpot/tests/test_cheminfo/structure/test_ob_coordinate_buffer.py",
+    "bytes": 3645,
+    "sha256": "6400d2f154197cdd3044c8ea4c2fc8a1be36a18826ef28a72e1fde0388d28e1d"
+  },
+  "isolated_native_cases_equal": 56,
+  "actual_workflow_cases": 4,
+  "current_focused_passed": 72,
+  "current_focused_failed": 0,
+  "guards_unchanged": 936,
+  "loaded_current_main_modules": 138,
+  "archive_manifest": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/sdf-coordinate-copy-task109/ARCHIVE_MANIFEST.json",
+    "bytes": 71971,
+    "sha256": "33e3881351c2acac901cf3bf6b12ead218662d06168099902101b942c0d4b472"
+  },
+  "root_review": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/sdf-coordinate-copy-task109/ROOT_REVIEW.json",
+    "bytes": 3334,
+    "sha256": "04d454711a95e4f1df15719fe0ded443444ecbd9b2580c133414ac1b03da67ff"
+  },
+  "remaining": "Full current affected214-file supported source/wheel/native selection, functional/reflection rebind and fresh26 performance recipe remain pending after coherent repair settles. Historical Task100/102 evidence retained. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/native memory OPEN/Stage7B PREENTRY; no stage/global/scientific acceptance."
+}

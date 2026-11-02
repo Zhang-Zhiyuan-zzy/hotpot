@@ -100,8 +100,11 @@ def set_obmol_coordinates(obmol: "ob.OBMol", coords):
     assert coords.shape[1] == 3
     assert obmol.NumAtoms() == coords.shape[0]
 
-    for oba, coord in zip(ob.OBMolAtomIter(obmol), coords):
-        oba.SetVector(*coord)
+    if coords.dtype == np.float64 and obmol.GetMod() == 0 and obmol.GetCoordinates():
+        obmol.SetCoordinates(ob.double_array(coords.flat))
+    else:
+        for oba, coord in zip(ob.OBMolAtomIter(obmol), coords):
+            oba.SetVector(*coord)
 
 
 def to_arrays(obmol):

@@ -1080,12 +1080,22 @@
             "sha256": "a043c0d1d63112fd652fec1970688313005d5d96b38c877113f582aeb95aaddb"
           },
           "test_function_declarations": 3
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_ob_coordinate_buffer.py",
+          "status": "CURRENT_MAIN_FOCUSED_EXECUTED_TASK109_FULL_MATRIX_PENDING",
+          "source_binding": {
+            "path": "tests/test_cheminfo/structure/test_ob_coordinate_buffer.py",
+            "bytes": 3645,
+            "sha256": "6400d2f154197cdd3044c8ea4c2fc8a1be36a18826ef28a72e1fde0388d28e1d"
+          },
+          "test_function_declarations": 3
         }
       ],
       "additional_requirements": [
         "fresh external values; I/O/thermo/visualization contracts; matrix convention; no carrier toolkit ownership"
       ],
-      "execution_status": "Stage7A IN_PROGRESS: current18technical cells and707functional/985comparators complete/accepted within scope;26fresh measurements complete with SDFGM2.527527024115116/all6adverse95%CIs FIX_REQUIRED; native memory OPEN. All old failures/provenance retained;Stage7B PREENTRY;later/globalgatesopen.",
+      "execution_status": "Stage7A IN_PROGRESS: Task109 coordinate-copy repair applied/current-main focused72passed; Task100 technical/functional and Task102 full26 outcomes are historical. Current affected214-file source/wheel/native, functional/reflection and fresh26 performance rebind remain pending after coherent SDF repair. SDF FIX_REQUIRED/native memory OPEN;Stage7B PREENTRY;later/globalgatesopen.",
       "preentry_evidence": [
         "stages/stage07/preentry-conversion/review.md",
         "stages/stage07/preentry-conversion/evidence.json"
@@ -1770,8 +1780,8 @@
         "source_ready_status": "HOLD_ROOT_FINAL_BYTE_IDENTITY_FREEZE_REQUIRED",
         "candidate_runtime_authorized": false
       },
-      "source_ready_status": "ACTUAL_BC148AC1_RUNTIME_COMPLETE_PRESERVED_FUTURE_RUNS_REQUIRE_CURRENT_IDENTITY_REBIND",
-      "candidate_execution_status": "TASK100_AND_TASK102_COMPLETE_FUTURE_RUNTIME_REQUIRES_SEPARATE_RELEASE",
+      "source_ready_status": "TASK109_LOCAL_FOCUSED_PASS_FULL_CURRENT_SOURCE_WHEEL_REBIND_PENDING",
+      "candidate_execution_status": "TASK109_FOCUSED_COMPLETE_FUTURE_FULL_RUNTIME_REQUIRES_FRESH_RELEASE",
       "candidate_runtime_authorized": false,
       "stage_gate_closed": false,
       "global_gate_closed": false,
@@ -2669,6 +2679,22 @@
         "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/root-continuation-task100/ROOT_INSTALLED_RUN_COMMANDS.json",
         "bytes": 10076,
         "sha256": "faccb3b54ba6edbf258b27dc4bdf040ed2f56bc42deefbbd0053dd31317adb20"
+      },
+      "historical_execution_status_before_task109": "Stage7A IN_PROGRESS: current18technical cells and707functional/985comparators complete/accepted within scope;26fresh measurements complete with SDFGM2.527527024115116/all6adverse95%CIs FIX_REQUIRED; native memory OPEN. All old failures/provenance retained;Stage7B PREENTRY;later/globalgatesopen.",
+      "current_coordinate_copy_repair_task109": {
+        "record": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/validation/sdf_coordinate_copy.json",
+        "root_review": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/sdf-coordinate-copy-task109/ROOT_REVIEW.json",
+          "bytes": 3334,
+          "sha256": "04d454711a95e4f1df15719fe0ded443444ecbd9b2580c133414ac1b03da67ff"
+        },
+        "next_affected_selection": {
+          "prior_executed_file_count": 213,
+          "additional_file": "tests/test_cheminfo/structure/test_ob_coordinate_buffer.py",
+          "expected_full_file_count": 214,
+          "current_runtime_selection_rebind_pending": true
+        },
+        "prior_complete_outcomes_are_historical": true
       }
     },
     "Stage7B": {

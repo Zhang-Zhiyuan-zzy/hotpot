@@ -2772,5 +2772,295 @@
     "scientific_observations": [],
     "stage_gate_closed": false,
     "global_gate_closed": false
+  },
+  "task171_checkpoint": {
+    "recorded_at_utc": "2026-11-02",
+    "status": "ACTUAL_CANDIDATE_BUILD_INSTALL_RC0_ACCEPTED_BUILD_REVIEW_INSTALLED_REVIEW_PENDING",
+    "source_provenance": {
+      "actual_root_phase_release_head": "e697bd988a1413d53ac6f569c24860d5d3adbc7c",
+      "frozen_preparation_head": "87439ed927324236437bfca43feb43c5ddc1e16b",
+      "product": "9999ecd",
+      "historical_authored_evidence_unchanged": true
+    },
+    "evidence_index": {
+      "path": ".plan20-artifacts/20261102/stage7a/native-gtd-build-install-records-task171/INDEX.json",
+      "bytes": 5258,
+      "sha256": "9a444af9cebafc11c8569593d90abb3b7183c42e09fd63ef4a7186ea8215ca49"
+    },
+    "archive": {
+      "bytes": 27113151,
+      "member_counts": {
+        "directory": 247,
+        "regular-file": 4557,
+        "symlink": 8
+      },
+      "path": ".plan20-artifacts/20261102/stage7a/native-gtd-build-install-records-task171/terminal-candidate-build-install-preparation-review.tar.gz",
+      "regular_file_bytes": 135859633,
+      "sha256": "61c621e8cf35f267ce283bdf3fd6a6ba75d9eb8bebbee463234fb5058da62199"
+    },
+    "member_manifest": {
+      "bytes": 2616672,
+      "path": ".plan20-artifacts/20261102/stage7a/native-gtd-build-install-records-task171/MEMBER_MANIFEST.json",
+      "sha256": "e528b4d8245b9195ac9e7586c9ef13aca381ed826138287c691d993bd1660190"
+    },
+    "Task165_preparation": {
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK165_PREPARATION_ACCEPTANCE.json",
+        "bytes": 1813,
+        "sha256": "dc87cb2eeec1c0fe812536af4f1e43e70804123e33648aca206bddf0e8e57d02"
+      },
+      "scope": "Only exact nine generated-header lifecycle repaired; reuse actual Task161 configure and immutable source/SPEC,477configure metadata/all inherited original-CONTROL-provider guards; no Task161 mutation or configure rerun.",
+      "focused_stdlib_checks_inspected_not_rerun": 52,
+      "build_guards": 2302,
+      "install_guards": 2952
+    },
+    "actual_build": {
+      "result": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-gtd-build-boundary-repair-task165/build-attempt1/RESULT.json",
+        "bytes": 211713,
+        "sha256": "aaa99581fdbdca87166718c846e2e3a5dd0c6872e411c77a801f89e7419c4fa4"
+      },
+      "root_release": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK165_ROOT_BUILD_RELEASE.json",
+        "bytes": 2987,
+        "sha256": "16aa73d89f4f1326a5b5fdc40fdafd2f4c1967e1d83aa96583155b5ec6f0b7bc"
+      },
+      "root_launch": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK165_BUILD_LAUNCH.command.json",
+        "bytes": 2178,
+        "sha256": "1fc0a7737160ea8114398f8d07116164ecf8c601ddd135af310b5c081f0010a5"
+      },
+      "outer_returncode": 0,
+      "outer_elapsed_seconds": 112.42281311005354,
+      "supervisor_returncode": 0,
+      "supervisor_elapsed_seconds": 94.61062324978411,
+      "owned_processes_reaped_or_absent": true,
+      "guards_unchanged": true,
+      "automatic_retries": 0,
+      "output_bindings": 650,
+      "generated_headers": 9,
+      "objects": 320,
+      "dependency_files": 320,
+      "generated_wrapper": 1
+    },
+    "Task167_build_review": {
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK167_BUILD_REVIEW_ACCEPTANCE.json",
+        "bytes": 2035,
+        "sha256": "7bd171d1ac7264f6adf681e7b9a921a43b160c384379f069190a8ee1fa38fd84"
+      },
+      "report": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-gtd-build-review-task167/REPORT.md",
+        "bytes": 8572,
+        "sha256": "4d0f73365c82e0399e3a748d124ccfe026b88aeb44726c35ddb301c22c44ff4c"
+      },
+      "assessment": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-gtd-build-review-task167/ASSESSMENT.json",
+        "bytes": 4821,
+        "sha256": "11bd85ecb4d560c4af6ab04009c83f728c1e85a79ece1d493dfa801c0714cd84"
+      },
+      "evidence_index": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-gtd-build-review-task167/EVIDENCE_INDEX.json",
+        "bytes": 454020,
+        "sha256": "911475ee77b3709c7475b54a0e30a635761dbbc2f6615a74c43b228056c5ec77"
+      },
+      "status": "PASS_BOUNDED_ACTUAL_BUILD_WITH_RETAINED_UPSTREAM_WARNINGS",
+      "actual_audit_returncode": 0,
+      "actual_audit_outer_elapsed_seconds": 13.739888103678823,
+      "checks_passed": 8996,
+      "checks_failed": 0,
+      "issues": [],
+      "metadata_reads": 940,
+      "metadata_read_failures": 0,
+      "evidence_bindings": 1924,
+      "unique_consumed_paths": 1206,
+      "configured_metadata_unchanged": 477,
+      "CXX_explicit_ABI0": 273,
+      "C_included_InChI": 47,
+      "object_ELFs": 320,
+      "link_output_ELFs": 150,
+      "direct_NEEDED_edges": 632,
+      "warning_events": 668,
+      "distinct_warning_messages": 42,
+      "warning_categories": {
+        "SWIG_Doxygen_translation": 15,
+        "SWIG_omitted_nested_type": 4,
+        "SWIG_shadowed_overload": 8,
+        "generated_docstring_trigraph": 2,
+        "upstream_deprecated_API": 619,
+        "upstream_format_truncation_risk": 19,
+        "upstream_loop_undefined_behavior_risk": 1
+      },
+      "warning_risks_unwaived": true,
+      "scope": "Actual static build/consumed-header/generated-wrapper/ELF provenance only; known UB/truncation/SWIG/API/documentation risks retained, no warning waiver, universal writer/API correctness or runtime-origin proof."
+    },
+    "actual_install": {
+      "result": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-gtd-build-boundary-repair-task165/install-attempt1/RESULT.json",
+        "bytes": 1272,
+        "sha256": "f4cb45a54f53d0526eab982fce8699133c4e7ac11d46c49217a26ff0eb677f72"
+      },
+      "root_release": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK165_ROOT_INSTALL_RELEASE.json",
+        "bytes": 3122,
+        "sha256": "142d4af971710e66ef381aca569add88ccfe601dc903c84d62a4c273f317219f"
+      },
+      "root_launch": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK165_INSTALL_LAUNCH.command.json",
+        "bytes": 2017,
+        "sha256": "cf12894bb8237259828ddb5ad38ebe6f4da23a67a381b8b64a01096b957422d3"
+      },
+      "outer_returncode": 0,
+      "outer_elapsed_seconds": 25.800901260226965,
+      "supervisor_returncode": 0,
+      "supervisor_elapsed_seconds": 0.46839411556720734,
+      "installed_static_checker": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-gtd-build-boundary-repair-task165/install-attempt1/installed.stdout.json",
+        "bytes": 572123,
+        "sha256": "762733f12cd1c44b6f020d34903e55c602d80e6e982cd0f2cf99051d7f365aad"
+      },
+      "installed_static_checker_returncode": 0,
+      "planned_package_paths_inspected": 329,
+      "installed_ELFs_statically_inspected": 150,
+      "guards_unchanged": 2952,
+      "owned_processes_reaped_or_absent": true,
+      "automatic_retries": 0,
+      "scope": "Actual private install and unchanged Task161 installed static checker only; Task168 independent actual installed review remains pending at this freeze."
+    },
+    "Task168_preaudit": {
+      "root_disposition": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK168_PREAUDIT_SCHEMA_DISPOSITION.json",
+        "bytes": 856,
+        "sha256": "fc9cd57002af5475cb1729e4dfc2cb2e968ffecda18ed6745ee6cb744dd0cb2b"
+      },
+      "finding": "TASK168_PREAUDIT_RECEIPT_KEY_ASSUMPTION",
+      "actual_install_release_field": "root_build_review_acceptance",
+      "incorrect_inert_preparation_field": "build_receipt_acceptance",
+      "classification": "PREPARATION_CORRECTION_BEFORE_ANY_ACTUAL_AUDIT_NOT_INSTALL_OR_AUDIT_FAILURE",
+      "old_inert_seal_and_actual_release_receipts_immutable": true,
+      "actual_audit_or_install_retry": false,
+      "separate_minimal_inert_review_gate_successor": "Prepared separately; exact root successor1 metadata-only terminal notice retained as finite authority supplement. Actual audit released, result pending; all Task168/170 growing outputs excluded.",
+      "root_terminal_notice": {
+        "bytes": 3364,
+        "copy_path": ".plan20-artifacts/20261102/stage7a/native-gtd-build-install-records-task171/TASK168_SUCCESSOR1_INSTALL_TERMINAL_READY.json",
+        "mode": 436,
+        "original_path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK168_SUCCESSOR1_INSTALL_TERMINAL_READY.json",
+        "scope": "Exact immutable root metadata-only terminal notice supplied after main archive selection. No growing actual audit output read; actual review pending.",
+        "sha256": "7ce31518a5996f9037e47f5500aa81cd78648da67274f5a3f98511c08cfd2bf9"
+      },
+      "actual_installed_review_accepted": false
+    },
+    "next_binding": {
+      "Task162_actual_binding": false,
+      "diagnostic_compile_or_runtime_obtained": false,
+      "execution_spec": "Task161/SPEC.json",
+      "must_bind_actual_successor_receipts": "Task165 build/install RESULT, supervisor/process and installed-checker bytes; never relabel planned Task161 execution paths.",
+      "current_static_review": "Installed export/header/native-origin review before diagnostic binding.",
+      "standalone_SDK_Eigen_consumer": "Existing later Stage10 obligation; not a new gate before existing diagnostic binding."
+    },
+    "preservation": {
+      "Task168_Task170_growing_outputs_read": false,
+      "Task168_preaudit": "PREPARATION_KEY_ASSUMPTION_CORRECTION_NOT_ACTUAL_INSTALL_OR_AUDIT_FAILURE",
+      "Task168_review": "PENDING_AT_FREEZE_EXCLUDED",
+      "all_gates_remain_open": true,
+      "archive_bytes": 27113151,
+      "archive_sha256": "61c621e8cf35f267ce283bdf3fd6a6ba75d9eb8bebbee463234fb5058da62199",
+      "complete_terminal_tree_rosters_postcheck_equal": true,
+      "deterministic_regenerations_equal": true,
+      "indexed_expected_hashes_verified": 2612,
+      "member_counts": {
+        "directory": 247,
+        "regular-file": 4557,
+        "symlink": 8
+      },
+      "native_test_build_workload_review_reruns": 0,
+      "normative_identities_checked": 12,
+      "reconstructed_raw_bytes_symlink_targets_modes_equal": true,
+      "regular_file_bytes": 135859633,
+      "selected_originals_postcheck_equal": true,
+      "source_test_config_environment_git_mutations": 0,
+      "status": "PASS_FINITE_LOSSLESS_TERMINAL_BUILD_INSTALL_PRESERVATION",
+      "task": "Task171",
+      "trace_lifetime_reads": 0
+    },
+    "reused_archives": [
+      {
+        "archive": {
+          "bytes": 3029120,
+          "members": 688,
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/native-gtd-candidate-records-task163/preparation-evidence.tar.gz",
+          "sha256": "1588141e63229c65ae60fad7e8c8d5ea3cb60ad7282b7afd76aab589bad8182e",
+          "uncompressed_file_bytes": 24205099
+        },
+        "index": {
+          "bytes": 2912,
+          "path": ".plan20-artifacts/20261102/stage7a/native-gtd-candidate-records-task163/INDEX.json",
+          "sha256": "46f76e1a1029de1e41efe8e0e0e8482cdc1f95879c221576e941c1eadd5397d1"
+        },
+        "manifest": {
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261102/stage7a/native-gtd-candidate-records-task163/MEMBER_MANIFEST.json",
+          "sha256": "e5eed93018490f154158abf1ad2e113f03db9aad62d465f55244f4f379e52007"
+        },
+        "task": "Task163"
+      },
+      {
+        "archive": {
+          "bytes": 1307886,
+          "members": 632,
+          "path": ".plan20-artifacts/20261102/stage7a/native-gtd-candidate-records-task166/completed-configure-review-sealed-preparation.tar.gz",
+          "sha256": "c7cc3b2d3959ecfbdf51219d14d310d86682eca98c9a2663f3b2291cd0dbf809",
+          "uncompressed_file_bytes": 12089403
+        },
+        "index": {
+          "bytes": 3886,
+          "path": ".plan20-artifacts/20261102/stage7a/native-gtd-candidate-records-task166/INDEX.json",
+          "sha256": "4ce067ae7cd4737db28bdbf215090f5e5778fbf84ea848b5cbeab9e28d6b547b"
+        },
+        "manifest": {
+          "bytes": 341280,
+          "path": ".plan20-artifacts/20261102/stage7a/native-gtd-candidate-records-task166/MEMBER_MANIFEST.json",
+          "sha256": "ab8c1d7ec624db53e7320d6ce930948970433c2d7f908ea4bd82016452a2b09f"
+        },
+        "task": "Task166"
+      }
+    ],
+    "same_stage_alignment": {
+      "reference": "/tmp/hotpot_plan20/long/stage7a-sdf-repair-root-alignment-task108/ALIGNMENT.json",
+      "unchanged_normative_identities": 12,
+      "new_full_plan_read_claim": false
+    },
+    "remaining": [
+      "Task168 completed actual installed static export/native-origin/header review and root acceptance",
+      "Task162 actual install/inventory/native-SDK/diagnostic binding and separately released compile/runtime/loader/correspondence",
+      "Standalone SDK/Eigen consumer remains later Stage10",
+      "Exact-original build recipe/B0 unrecovered",
+      "Current214 source/installed/native supported-version and functional/reflection rebind pending",
+      "Fresh26 and complete-SDF FIX_REQUIRED",
+      "Native-memory sufficiency OPEN",
+      "Stage7A IN_PROGRESS; Stage7B PREENTRY; later/global gates OPEN"
+    ],
+    "scientific_observations": [],
+    "stage_gate_closed": false,
+    "global_gate_closed": false,
+    "current_review_note_after_archive_freeze": {
+      "authority": "Root supplied current factual correction after Task171 archive freeze; Task171 did not inspect growing successor2 or rerun an audit.",
+      "status": "ACTUAL_SUCCESSOR1_REVIEWER_PARSING_FAILURE_SUCCESSOR2_PREPARATION_ONLY",
+      "actual_successor1_audit_invocations": 1,
+      "returncode": 1,
+      "root_reported_elapsed_seconds_approx": 0.1143,
+      "metadata_commands_executed": 0,
+      "failure_location": "terminal_gate.py:80",
+      "exception": "KeyError: root_release",
+      "actual_immutable_Task165_outer_launch_key": "release",
+      "classification": "ACTUAL_REVIEWER_PARSING_FAILURE",
+      "install_failure": false,
+      "install_retry": false,
+      "native_conclusion": false,
+      "preaudit_first_correction": "Retained separately in Task168_preaudit and immutable TASK168_PREAUDIT_SCHEMA_DISPOSITION.json; discovered before any actual audit.",
+      "root_repair": "Same local worker assigned a separate successor2 with exhaustive ACTUAL-receipt comparison.",
+      "successor2_new_audit_executed": false,
+      "archive_and_existing_final_receipt": "Preserved unchanged as checkpoint history; this addendum supplies current record digests.",
+      "all_gates_remain_open": true
+    }
   }
 }

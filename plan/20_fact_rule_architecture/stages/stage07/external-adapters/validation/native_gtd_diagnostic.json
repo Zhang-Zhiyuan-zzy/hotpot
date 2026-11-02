@@ -4812,5 +4812,524 @@
     "new_scientific_observations": [],
     "stage_gate_closed": false,
     "global_gate_closed": false
+  },
+  "task248_checkpoint": {
+    "task": 248,
+    "recorded_date": "2026-11-03",
+    "status": "FINITE_ROOT_ACCEPTED_FIVE_VERSION_CORRESPONDENCE_AND_SOURCE_CONTEXT_INTEGRITY_CHECKPOINT",
+    "docs_HEAD_at_candidate_snapshot": "ffccd1704e1c23399d67ac7499dbac7468dea0a4",
+    "frozen_Task177_I1_source_commit": "d7524e8182f13704e9c69db8f6ab97c34602168f",
+    "product_ancestry": "9999ecd",
+    "same_stage_alignment": {
+      "reference": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/ALIGNMENT_REUSE.json",
+        "bytes": 3655,
+        "sha256": "5905e6fd2fc3ad52b2b56bbe507f05f7063787259bead8cd45931eecf358eb0f"
+      },
+      "unchanged_normative_identities": 12,
+      "new_stage_entry_or_full_plan_reread_claim": false,
+      "design_or_scientific_route_change": false
+    },
+    "finite_cutoff": {
+      "included": "All five own bounded final-wheel native/public/GTD and actual loader/terminal correspondence, accepted I1 artifact handoff, preparation descriptor and all five actual isolated source-context integrity decisions only.",
+      "own_family_decisions_retained_separately": true,
+      "current_outcomes_outside_cutoff": "Actual current SOURCE_READY/FREEZE, package and current214/707/985/fresh26 results are outside this finite cutoff and retain their separate root-owned dispositions; no inference about those results is made here.",
+      "root_CP314_correspondence_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK237_CP314_ROOT_CORRESPONDENCE_ACCEPTANCE.json",
+        "bytes": 2539,
+        "sha256": "3f30ec6d1fc74b16a61bbc2d8e0fe93a48f9aba26277d51e3d13f210e0f43478"
+      },
+      "root_remaining_source_context_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK247_ROOT_REMAINING_SOURCE_CONTEXT_ACCEPTANCE.json",
+        "bytes": 7878,
+        "sha256": "cb447ee2bcd66f67621ff9f4252e747d0fd4048f93667ab841bdc9d2fc3bd4b8"
+      }
+    },
+    "CP311_evidence_roles": {
+      "Task203_build_provenance_root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK203_CP311_I1_PROVENANCE_ACCEPTANCE.json",
+        "bytes": 2740,
+        "sha256": "a2668b8a91ae282419aa524ff749fd0bbe7e1fafb284810a8926c88ddba06060"
+      },
+      "Task187_final_wheel_correspondence_root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK187_CP311_ROOT_FINAL_WHEEL_CORRESPONDENCE_ACCEPTANCE.json",
+        "bytes": 4816,
+        "sha256": "1f56a15f67753369af70a0a3535fc8a5782402962717f2f2ce49a317ae7d95ef"
+      },
+      "Task198_actual_loader_root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK198_CP311_ROOT_LOADER_ACCEPTANCE.json",
+        "bytes": 2229,
+        "sha256": "064fcf9b1f432a8e181f7461f38680b03527d4e761539df105b7a035d289c328"
+      },
+      "distinction": "Task203 proves bounded observed I1 build provenance and selects the rebuilt CP311 _ob_native record; Task187/198 proves bounded installed final-wheel libopenbabel one-function/public/GTD and loader correspondence. These are separate objects and scopes; neither supplies full CPython wrapper/SWIG/import/current-matrix or scientific acceptance."
+    },
+    "all_five_own_bounded_correspondence": [
+      {
+        "version": "3.10",
+        "root_correspondence_acceptance": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK237_CP310_ROOT_CORRESPONDENCE_ACCEPTANCE.json",
+          "bytes": 2539,
+          "sha256": "6f321abfe3cb7cb9bec169e0bf8efc3d6e9298b231d9448dbf4402d9f7d14973"
+        },
+        "root_loader_acceptance": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK235_CP310_ROOT_LOADER_ACCEPTANCE.json",
+          "bytes": 2857,
+          "sha256": "88620750cf0f1023d2801154e740b97429d02b86c06f0ae93625216a57b7493e"
+        },
+        "root_terminal_ready": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK235_CP310_TERMINAL_READY.json",
+          "bytes": 2298,
+          "sha256": "68e52c588adb4a5b041955cb6576c0df95be237789ce2b3ad14a919409f2e68c"
+        },
+        "runtime_index": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/bound-family-cp310-attempt1/candidate-runtime-attempt1/RUN_INDEX.json",
+          "bytes": 556711,
+          "sha256": "d0d98bf3826647e4566f8e0adc95c9a67e6ef1a3e88e3fcd2f03fc402ee29484"
+        },
+        "comparison_gate": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/bound-family-cp310-attempt1/ORIGINAL_CONTROL_CANDIDATE_RUN_INDEX.COMPARISON_GATE.json",
+          "bytes": 3198,
+          "sha256": "381d09ec8b61755bc9d0cd27ca7fdf4e81b341491dd4908627e456d3801a3ced"
+        },
+        "shared_checker_report": {
+          "path": "/tmp/hotpot_plan20/medium/stage7a-remaining-final-wheel-correspondence-preparation-task212/family-cp310-comparison-attempt1/REPORT.json",
+          "bytes": 5237,
+          "sha256": "904fff2f03e3b5ef7c89b31ed5f24887f11eb2d10cec20d58ea4e35f4ad3172e"
+        },
+        "integrity_report": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/bound-family-cp310-attempt1/CONTROL_CANDIDATE_INTEGRITY_REPORT.json",
+          "bytes": 2398,
+          "sha256": "66bdb37f88ee1a518dd351372c0a3b2b302d8f4f6718c0e07b7c7fe8cdc1a7e1"
+        },
+        "retained_cells": 792,
+        "case_mode_pairs": 509244,
+        "per_lane_mode_cases": 84874,
+        "construction_accepts": 84867,
+        "construction_rejections": 7,
+        "observed_vectors_per_lane": 169734,
+        "unavailable_scopes_per_observed_lane": 14,
+        "blocker_count": 0
+      },
+      {
+        "version": "3.11",
+        "root_correspondence_acceptance": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK187_CP311_ROOT_FINAL_WHEEL_CORRESPONDENCE_ACCEPTANCE.json",
+          "bytes": 4816,
+          "sha256": "1f56a15f67753369af70a0a3535fc8a5782402962717f2f2ce49a317ae7d95ef"
+        },
+        "root_loader_acceptance": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK198_CP311_ROOT_LOADER_ACCEPTANCE.json",
+          "bytes": 2229,
+          "sha256": "064fcf9b1f432a8e181f7461f38680b03527d4e761539df105b7a035d289c328"
+        },
+        "root_terminal_ready": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK198_CP311_RUNTIME_TERMINAL_READY.json",
+          "bytes": 1746,
+          "sha256": "46ee7e1447c801f263d748b5f95b1b361fbbe0848bb9a8961504f1b3ea9af4f4"
+        },
+        "runtime_index": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-wheel-family-correspondence-preparation-task187/bound-family-cp311-first/candidate-runtime-attempt1/RUN_INDEX.json",
+          "bytes": 542166,
+          "sha256": "3381facdedea2bf3a55f6e8169a3e29a19e613c75d2d15f56627f5c6a491ca94"
+        },
+        "comparison_gate": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-wheel-family-correspondence-preparation-task187/bound-family-cp311-first/ORIGINAL_CONTROL_CANDIDATE_RUN_INDEX.COMPARISON_GATE.json",
+          "bytes": 3144,
+          "sha256": "c7a2867c1d7a4e7a3611c8b2b5a8980c6f9d7be8f01436a31631311f28d7b6b3"
+        },
+        "shared_checker_report": {
+          "path": "/tmp/hotpot_plan20/medium/stage7a-wheel-family-correspondence-preparation-task187/family-cp311-first-comparison-attempt1/REPORT.json",
+          "bytes": 5225,
+          "sha256": "099a8bc99798eb569df33802f97e255e9cca94d8e4e93161ed3ec25396ee4f25"
+        },
+        "integrity_report": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-wheel-family-correspondence-preparation-task187/bound-family-cp311-first/CONTROL_CANDIDATE_INTEGRITY_REPORT.json",
+          "bytes": 2386,
+          "sha256": "639de428db2150132c6982aeae2118971d611f249bef35b8b75e93a1fb356295"
+        },
+        "retained_cells": 792,
+        "case_mode_pairs": 509244,
+        "per_lane_mode_cases": 84874,
+        "construction_accepts": 84867,
+        "construction_rejections": 7,
+        "observed_vectors_per_lane": 169734,
+        "unavailable_scopes_per_observed_lane": 14,
+        "blocker_count": 0
+      },
+      {
+        "version": "3.12",
+        "root_correspondence_acceptance": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK237_CP312_ROOT_CORRESPONDENCE_ACCEPTANCE.json",
+          "bytes": 2539,
+          "sha256": "2c5418d56e1acb3e6f4f3f0662dc6cb7d5e7fd4e5294a9d027e5e69da57038b9"
+        },
+        "root_loader_acceptance": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK235_CP312_ROOT_LOADER_ACCEPTANCE.json",
+          "bytes": 2857,
+          "sha256": "3469f6d9868b83c7f97bbd0dbb9e56d5817d7ce039d1bf8f11da8d4de5a1a954"
+        },
+        "root_terminal_ready": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK235_CP312_TERMINAL_READY.json",
+          "bytes": 2298,
+          "sha256": "fcf385e6639e48f7d950edba99a2fc3c2c6db949f477d4539699698d66a959fb"
+        },
+        "runtime_index": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/bound-family-cp312-attempt1/candidate-runtime-attempt1/RUN_INDEX.json",
+          "bytes": 556711,
+          "sha256": "c1e16e7a55c458631a60388a0684d620c139564c8e29c654cd842fd6b68f854a"
+        },
+        "comparison_gate": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/bound-family-cp312-attempt1/ORIGINAL_CONTROL_CANDIDATE_RUN_INDEX.COMPARISON_GATE.json",
+          "bytes": 3198,
+          "sha256": "941a10cd907f41525d468ccfa4c584eefa9cc340e63ab0dc355be9278526fcd1"
+        },
+        "shared_checker_report": {
+          "path": "/tmp/hotpot_plan20/medium/stage7a-remaining-final-wheel-correspondence-preparation-task212/family-cp312-comparison-attempt1/REPORT.json",
+          "bytes": 5237,
+          "sha256": "c707b3c0fd8dd8110b3da2df5c4c14b87320130b2d2420408fab6364c5d96171"
+        },
+        "integrity_report": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/bound-family-cp312-attempt1/CONTROL_CANDIDATE_INTEGRITY_REPORT.json",
+          "bytes": 2398,
+          "sha256": "69c907a209f0ea56cd01c73653083e71815ca6e6f15e2bd222340d1a0b105262"
+        },
+        "retained_cells": 792,
+        "case_mode_pairs": 509244,
+        "per_lane_mode_cases": 84874,
+        "construction_accepts": 84867,
+        "construction_rejections": 7,
+        "observed_vectors_per_lane": 169734,
+        "unavailable_scopes_per_observed_lane": 14,
+        "blocker_count": 0
+      },
+      {
+        "version": "3.13",
+        "root_correspondence_acceptance": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK237_CP313_ROOT_CORRESPONDENCE_ACCEPTANCE.json",
+          "bytes": 2539,
+          "sha256": "6ae93bcaa1f1628bb509f0368706844b6e6c0b862fe2e2e6b7a3aa61fdc93a10"
+        },
+        "root_loader_acceptance": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK235_CP313_ROOT_LOADER_ACCEPTANCE.json",
+          "bytes": 2857,
+          "sha256": "2c4171656b1b9314dfe7d8d5c529b4d0d1992b7b7613fb578869f7ae2db92da7"
+        },
+        "root_terminal_ready": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK235_CP313_TERMINAL_READY.json",
+          "bytes": 2298,
+          "sha256": "6b3f98bcc14d8b776a8b472f76e6ce89450d99665652941c8c41b0ffa6b1562b"
+        },
+        "runtime_index": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/bound-family-cp313-attempt1/candidate-runtime-attempt1/RUN_INDEX.json",
+          "bytes": 556711,
+          "sha256": "ac087f7f04b9506268b62960d8ee31295e7aa700aa9fe3939900c8ffd7be95f5"
+        },
+        "comparison_gate": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/bound-family-cp313-attempt1/ORIGINAL_CONTROL_CANDIDATE_RUN_INDEX.COMPARISON_GATE.json",
+          "bytes": 3198,
+          "sha256": "e0f6d79575cfb04561952dba995c1cce2dcdf2242f92ae86c07d211c950badcf"
+        },
+        "shared_checker_report": {
+          "path": "/tmp/hotpot_plan20/medium/stage7a-remaining-final-wheel-correspondence-preparation-task212/family-cp313-comparison-attempt1/REPORT.json",
+          "bytes": 5237,
+          "sha256": "3b95ce8abd0afa2f5b54629048830a4b3452b93cee1d8756abfc7bdf9d2a87ea"
+        },
+        "integrity_report": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/bound-family-cp313-attempt1/CONTROL_CANDIDATE_INTEGRITY_REPORT.json",
+          "bytes": 2398,
+          "sha256": "a6c8a22bafeedd46b2055748e1a8631996c51a9545634061730770b58f5c87cf"
+        },
+        "retained_cells": 792,
+        "case_mode_pairs": 509244,
+        "per_lane_mode_cases": 84874,
+        "construction_accepts": 84867,
+        "construction_rejections": 7,
+        "observed_vectors_per_lane": 169734,
+        "unavailable_scopes_per_observed_lane": 14,
+        "blocker_count": 0
+      },
+      {
+        "version": "3.14",
+        "root_correspondence_acceptance": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK237_CP314_ROOT_CORRESPONDENCE_ACCEPTANCE.json",
+          "bytes": 2539,
+          "sha256": "3f30ec6d1fc74b16a61bbc2d8e0fe93a48f9aba26277d51e3d13f210e0f43478"
+        },
+        "root_loader_acceptance": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK235_CP314_ROOT_LOADER_ACCEPTANCE.json",
+          "bytes": 2857,
+          "sha256": "03f1a92a52b15e9a43b6bc55c4923dbcfc7139f680b60c8d63a1954d2555e20e"
+        },
+        "root_terminal_ready": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK235_CP314_TERMINAL_READY.json",
+          "bytes": 2298,
+          "sha256": "0a887cfca153eb4bad92bfa8bc0c00e3850501339e84345093c0991561ec5cdb"
+        },
+        "runtime_index": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/bound-family-cp314-attempt1/candidate-runtime-attempt1/RUN_INDEX.json",
+          "bytes": 556711,
+          "sha256": "91ec853096e5a35c56fe56f99d58f1762c3e9edf4faf2909226425cdcc37a1d9"
+        },
+        "comparison_gate": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/bound-family-cp314-attempt1/ORIGINAL_CONTROL_CANDIDATE_RUN_INDEX.COMPARISON_GATE.json",
+          "bytes": 3198,
+          "sha256": "52699ee7d96ec244fdeb34aeadb36369001d916b9afc001f7fcc6fa1f53d8285"
+        },
+        "shared_checker_report": {
+          "path": "/tmp/hotpot_plan20/medium/stage7a-remaining-final-wheel-correspondence-preparation-task212/family-cp314-comparison-attempt1/REPORT.json",
+          "bytes": 5237,
+          "sha256": "318b8550c3e3a84f62c7a1e8329a80ea9cde83a5953dc2081ef039b7188d6e57"
+        },
+        "integrity_report": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/bound-family-cp314-attempt1/CONTROL_CANDIDATE_INTEGRITY_REPORT.json",
+          "bytes": 2398,
+          "sha256": "3e83f0c5e479f43fbabd2e07b025cb2e88724f1e9ea338a94637b787ac66bbfc"
+        },
+        "retained_cells": 792,
+        "case_mode_pairs": 509244,
+        "per_lane_mode_cases": 84874,
+        "construction_accepts": 84867,
+        "construction_rejections": 7,
+        "observed_vectors_per_lane": 169734,
+        "unavailable_scopes_per_observed_lane": 14,
+        "blocker_count": 0
+      }
+    ],
+    "shared_denominator_policy": "Each own-family comparison retains all792 ORIGINAL264+CONTROL264+CANDIDATE264 cells and509244 case-mode pairs. Reused ORIGINAL/CONTROL lanes are not collapsed into a new cross-version denominator;7construction rejects and14unavailable observed vector scopes remain.",
+    "Task228_accepted_terminal_summary": {
+      "summary": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-remaining-family-whole-roster-runtime-task228/SUMMARY.json",
+        "bytes": 8796,
+        "sha256": "ad53430e33ed6f8ba5d72d36982ddef85634a834dcb64664939316078f580004"
+      },
+      "four_serial_once_RC0": true,
+      "cells": 1056,
+      "case_mode_observations": 678992,
+      "inventory_MATCH_checkpoints": 2120,
+      "timeouts": 0,
+      "retries": 0,
+      "scope": "Producer/terminal accounting is independently bounded by own235 loader/terminal and237 full-stream root decisions; the worker HOLD label is historical."
+    },
+    "own_remaining_loader_checkpoint": {
+      "root_acceptance_task": 235,
+      "versions": [
+        "3.10",
+        "3.12",
+        "3.13",
+        "3.14"
+      ],
+      "per_version_cells": 264,
+      "per_version_inventory_checkpoints": 530,
+      "inventory_nodes": 351,
+      "per_cell_guards": 2940,
+      "complete_own_loader_profiles": 2,
+      "canonical_providers": 13,
+      "optional_plain_lookup_diagnostics_retained_per_version": 528,
+      "issues_and_notices": [],
+      "raw_maps_or_plugin_execution_claim": false
+    },
+    "all_five_I1_artifact_handoff": {
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK229_ROOT_FIVE_NATIVE_BINDING_HANDOFF_ACCEPTANCE.json",
+        "bytes": 6470,
+        "sha256": "54b7bf10b11cecc45fc3bff1871eabfec8b8f117269e9dd1a9d4b613d026bb7f"
+      },
+      "selected_native_bindings": {
+        "bytes": 20827,
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-gtd-package-build-preparation-task177/candidate-native-bindings.json",
+        "sha256": "572be6177bde221bf8398d378a5970588c4a97723f4e27d9d04a3ee81e82a393"
+      },
+      "source_files": 112,
+      "wheel_members_per_version": 335,
+      "family_members_per_version": 209,
+      "distinct_final_families": 5,
+      "schema_changed": false,
+      "scope": "Unchanged173 I1 artifact handoff only; no transfer between own final families."
+    },
+    "preparation_only_descriptor": {
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK240_ROOT_DESCRIPTOR_ACCEPTANCE.json",
+        "bytes": 1241,
+        "sha256": "36ec8f6e22a36c3fda53b5ac8045e01a741e723e5a1e1a8255eeb2c7e175540a"
+      },
+      "descriptor": {
+        "bytes": 87427,
+        "path": "/tmp/hotpot_plan20/long/stage7a-I3-current-native-task234-attempt1/SOURCE_DESCRIPTOR.json",
+        "sha256": "bde3db4be08618f93e49224ef3df57fe5b8ec025a4dbbe3566579c8f701f9ca9"
+      },
+      "prechecks_passed": 905,
+      "postchecks_passed": 21,
+      "historical_descriptor_execution_release": "HOLD with empty allowed_actions;240 itself releases no context or target runtime."
+    },
+    "all_five_actual_isolated_source_context_integrity": [
+      {
+        "version": "3.10",
+        "root_acceptance": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK247_ROOT_REMAINING_SOURCE_CONTEXT_ACCEPTANCE.json",
+          "bytes": 7878,
+          "sha256": "cb447ee2bcd66f67621ff9f4252e747d0fd4048f93667ab841bdc9d2fc3bd4b8"
+        },
+        "source_context": {
+          "bytes": 635960,
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261103/stage7a/i3-current-native-task234-attempt1/source-3.10/SOURCE_CONTEXT.json",
+          "sha256": "49a5d4d089d60a9c3fbe1ebe78bf26b06c1dd876fb017867179c908be4d53936"
+        },
+        "manifest_files": 3475,
+        "native_members": 6,
+        "helper_invocations": 1,
+        "pip_invocations": 1,
+        "actual_returncodes": [
+          0,
+          0
+        ],
+        "postchecks_passed": 19
+      },
+      {
+        "version": "3.11",
+        "root_acceptance": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK243_ROOT_CP311_CONTEXT_ACCEPTANCE.json",
+          "bytes": 2070,
+          "sha256": "bf7954d90e654f688d9629d23af93a5647efcaf8b00fd42f6b617b204e3d0325"
+        },
+        "source_context": {
+          "bytes": 635960,
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261103/stage7a/i3-current-native-task234-attempt1/source-3.11/SOURCE_CONTEXT.json",
+          "sha256": "fbdc969685cf515f27317a8102084ca34e67779ab5128935d33a1c4d49723787"
+        },
+        "manifest_files": 3475,
+        "native_members": 6,
+        "original_helper_invocations": 1,
+        "original_pip_invocations": 1,
+        "original_audit_recorder_returncode": 3,
+        "corrected_read_only_checks_passed": 49,
+        "original_failure_retained": true
+      },
+      {
+        "version": "3.12",
+        "root_acceptance": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK247_ROOT_REMAINING_SOURCE_CONTEXT_ACCEPTANCE.json",
+          "bytes": 7878,
+          "sha256": "cb447ee2bcd66f67621ff9f4252e747d0fd4048f93667ab841bdc9d2fc3bd4b8"
+        },
+        "source_context": {
+          "bytes": 635960,
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261103/stage7a/i3-current-native-task234-attempt1/source-3.12/SOURCE_CONTEXT.json",
+          "sha256": "bca9264617fb0712683ca9ac1cffd200264260694b29d8ee1743482322a6dd0e"
+        },
+        "manifest_files": 3475,
+        "native_members": 6,
+        "helper_invocations": 1,
+        "pip_invocations": 1,
+        "actual_returncodes": [
+          0,
+          0
+        ],
+        "postchecks_passed": 19
+      },
+      {
+        "version": "3.13",
+        "root_acceptance": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK247_ROOT_REMAINING_SOURCE_CONTEXT_ACCEPTANCE.json",
+          "bytes": 7878,
+          "sha256": "cb447ee2bcd66f67621ff9f4252e747d0fd4048f93667ab841bdc9d2fc3bd4b8"
+        },
+        "source_context": {
+          "bytes": 635960,
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261103/stage7a/i3-current-native-task234-attempt1/source-3.13/SOURCE_CONTEXT.json",
+          "sha256": "9747c150ddc79a69a4d12e51fcf918c0f3f22d75689004652dea441e2366185e"
+        },
+        "manifest_files": 3475,
+        "native_members": 6,
+        "helper_invocations": 1,
+        "pip_invocations": 1,
+        "actual_returncodes": [
+          0,
+          0
+        ],
+        "postchecks_passed": 19
+      },
+      {
+        "version": "3.14",
+        "root_acceptance": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK247_ROOT_REMAINING_SOURCE_CONTEXT_ACCEPTANCE.json",
+          "bytes": 7878,
+          "sha256": "cb447ee2bcd66f67621ff9f4252e747d0fd4048f93667ab841bdc9d2fc3bd4b8"
+        },
+        "source_context": {
+          "bytes": 635960,
+          "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261103/stage7a/i3-current-native-task234-attempt1/source-3.14/SOURCE_CONTEXT.json",
+          "sha256": "8b108d8a3b41ee7154367326be7d0e01b9009081a07ddfa2aee40ec0ca4ead3b"
+        },
+        "manifest_files": 3475,
+        "native_members": 6,
+        "helper_invocations": 1,
+        "pip_invocations": 1,
+        "actual_returncodes": [
+          0,
+          0
+        ],
+        "postchecks_passed": 19
+      }
+    ],
+    "source_context_failure_history": {
+      "original241_result": {
+        "bytes": 11905,
+        "path": "/tmp/hotpot_plan20/long/stage7a-cp311-source-context-materialization-task241/RESULT.json",
+        "sha256": "0c038e88a9ef4a20587f5d052ab21ac35978c3315563a7db660c00fbe87ad29a"
+      },
+      "root243_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK243_ROOT_CP311_CONTEXT_ACCEPTANCE.json",
+        "bytes": 2070,
+        "sha256": "bf7954d90e654f688d9629d23af93a5647efcaf8b00fd42f6b617b204e3d0325"
+      },
+      "original241_helper_and_pip_once_RC0": true,
+      "original241_audit_recorder_RC": 3,
+      "failure": "Prefix-only no_other_CPython_or_old_OB predicate misclassified canonical _ob_native.pyi; separate exact six-native union had passed.",
+      "successor": "Task243 read-only native-suffix classification with separate canonical-stub check passed49/0 on the same unchanged3475-file context; no helper/pip/install retry.",
+      "root247_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK247_ROOT_REMAINING_SOURCE_CONTEXT_ACCEPTANCE.json",
+        "bytes": 7878,
+        "sha256": "cb447ee2bcd66f67621ff9f4252e747d0fd4048f93667ab841bdc9d2fc3bd4b8"
+      },
+      "remaining244": "Four serial own helper/pip materializations once each RC0;518prechecks+76postchecks+7summary checks pass, no retry and no CP311 repeat.",
+      "per_context_manifest_files": 3475,
+      "per_context_native_members": 6,
+      "all_five_manifest_files": 17375,
+      "scope": "Materialization/source/native-union/member integrity only; no application/native import/test/package, READY/FREEZE or stage acceptance is inferred."
+    },
+    "preserved_history": {
+      "all_prior_Markdown_byte_prefixes_preserved": true,
+      "all_existing_JSON_values_preserved": true,
+      "prior_Task233_cutoff_and_exclusions_unchanged": true,
+      "strict_tags": "CP311 RPATH=[$ORIGIN/../../../openbabel/lib],RUNPATH=[]; CP310/312/313/314 RPATH=[],RUNPATH=[$ORIGIN/../../../openbabel/lib]. No arbitrary tag equivalence.",
+      "original_Task210_128pass_1fail_and_Task199_gaps_retained": true
+    },
+    "archive_member_proposal": {
+      "path": "/tmp/hotpot_plan20/long/stage7a-five-version-correspondence-context-records-task248/ARCHIVE_INDEX.json",
+      "bytes": 954,
+      "sha256": "528db415adf2f7321768523bf1d08c723305ac3333685469677552bc2212359f"
+    },
+    "prior_applied_archive_reuse": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261103/stage7a/finite-I1-checkpoint-task233/INDEX.json",
+      "bytes": 3956,
+      "sha256": "8ae260b6e24e8aa1adaf8b8cef0d1b66d7b3e0d4b2829fad61f8b64d764296dd"
+    },
+    "runtime_guard_path_review": {
+      "path": "/tmp/hotpot_plan20/long/stage7a-five-version-correspondence-context-records-task248/RUNTIME_GUARD_PATH_REVIEW.json",
+      "bytes": 1691,
+      "sha256": "de9c0ceef71bd0632d0398b20e827c8d7becedd4ecbbb14f4c798b77262ea133"
+    },
+    "remaining_and_excluded_acceptance": [
+      "Stage7A IN_PROGRESS; Stage7B PREENTRY; no later/global gate closes.",
+      "Complete SDF performance remains FIX_REQUIRED with GM2.527527024115116 and all six adverse confidence intervals; native-memory sufficiency remains OPEN.",
+      "Standalone SDK/Eigen consumer remains later Stage10 OPEN; no wrapper/SWIG/import/SDK/scientific truth/performance/memory or stage acceptance follows.",
+      "Actual current SOURCE_READY/FREEZE, package and current214/707/985/fresh26 results are outside this finite cutoff and retain their separate root-owned dispositions; no inference about those results is made here.",
+      "Exact-original build recipe/B0 remains unrecovered; existing qualified recipe, resource, source-identity and release restrictions remain unchanged.",
+      "third_party/openbabel remains future maintained home; no promotion/public dependency/registry/shipped-fix claim."
+    ],
+    "new_scientific_observations": [],
+    "stage_gate_closed": false,
+    "global_gate_closed": false,
+    "root_application_and_git_pending": true
   }
 }

@@ -7,7 +7,7 @@ from rdkit import Chem
 
 import hotpot
 from hotpot.cheminfo import Molecule, is_molecule_input, to_hotpot_mol
-from hotpot.cheminfo._io import _io as io_module
+from hotpot.cheminfo.pubchem import pubchem_service
 
 
 class RDKitMoleculeAdapter:
@@ -50,7 +50,7 @@ def test_string_path_uses_its_file_format(tmp_path: Path, monkeypatch):
 
 
 def test_name_reader_returns_hotpot_molecule(monkeypatch):
-    monkeypatch.setattr(io_module.pubchem_service, "name_to_smi", lambda _: "CCO")
+    monkeypatch.setattr(pubchem_service, "name_to_smi", lambda _: "CCO")
 
     molecule = to_hotpot_mol("ethanol", fmt="name")
 

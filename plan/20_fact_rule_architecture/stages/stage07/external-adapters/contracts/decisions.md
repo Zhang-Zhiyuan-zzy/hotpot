@@ -1,0 +1,155 @@
+# Stage7A decisions and release register
+
+Authored: 2026-10-30. Updated: 2026-10-31 (Asia/Shanghai). Assigned author: GPT-6.1 Sol/max. Current status:
+**DESIGN_ROOT_ACCEPTED; BOUNDED_IMPLEMENTATION_AND_TEST_AUTHORING_RELEASED; CANDIDATE_RUNTIME_HELD**.
+The [review](review.md) owns the complete design; [evidence](evidence.json) binds
+source symbols, consumers, public effects, proposed test files and raw inputs.
+[Root acceptance](../root_acceptance.json) accepts P02–P06 and P07 owner seams;
+P07 future probe bytes still need exact release. [Exclusive implementation](../implementation_release.json)
+and [six-test/probe authoring](../test_authoring_release.json) separately release
+exact writers. This record releases no candidate runtime or scientific change.
+
+## Existing approved decisions carried forward
+
+| ID | Authority/status | Exact invariant |
+|---|---|---|
+| S7A-A01 | Main Section10 Stage7A and immutable entry | Delete Python Molecule `_obmol/_row2idx` across construction, read/materialization, journal/undo, pickle, xTB and cache synchronization; each conversion produces an independent task value, coarse tasks reuse one locally. Native session-owned OBMol remains. |
+| S7A-A02 | Stage1 Crystal decision | Six ordinary writable scalars in original order; from_matrix retains alpha first-two-row convention and subclass dispatch; remove mol/obcell/toolkit storage/placeholders; no matrix property, slots or frozen replacement. |
+| S7A-A03 | Stage1 Thermo decision | Preserve get_thermo defaults and caller-owned Thermo with ordered181 declared names plus unrestricted Chemical forwarding/executable objects. No reduced result DTO. |
+| S7A-A04 | Existing tested force-field public contract | Actual build3d/optimize default object remains ff.DEFAULT_CONVERGENCE_LEVEL and ff.ConvergenceLevel.FAST by identity. No None/sentinel/proxy/duplicate enum. |
+| S7A-A05 | Stage5 and Stage6 owning decisions | Current H display/presence/source/strictness, aromatic/Kekule rules and toolkit/raw count meanings,18 stereo public identities, remap/diagnostic ordering/native schemas and standalone APIs remain. Imported-H normalization and Stage7E storage are not included. |
+| S7A-A06 | Main Section6.1 | One operation owner for all lazy preparation, mutation, target validation and installation; adapter leaves return primitive transport/record/assignment values and have no source-carrier writes or upward facade import. |
+| S7A-A07 | Root current stage assignment | Root RDKit preload/final wildcard cleanup remain Stage12; no silent expansion into Stage8 FF algorithms or adjacent pandas surfaces. |
+| S7A-A08 | Section12 frozen policy | Equal complete work and raw unfavorable/failure/no-output accounting; exact existing sampling/noise/rare-exception rules and global gates remain. Stage6 local adverse acceptance does not transfer. |
+
+## Subsequent narrow root acceptance
+
+| ID | Concrete trigger/authority | Accepted effect and required evidence |
+|---|---|---|
+| S7A-A09 | Twelve C61 source/installed preservation calls; two draw-grid failures; root baseline review SHA256 `6e5a10b65f0443847d8a3218b8c1ffbc804ce25cbd3ceb9c66a6a93d646ba132` | Root explicitly accepts only `Chem.MolFromSMiles` → `Chem.MolFromSmiles` in the moved drawing string-input branch. Retain both baseline AttributeErrors and add string/grid success assertion. No other drawing failure or algorithm correction is accepted by this decision. |
+| S7A-A10 | Same baseline review and explicit root direction | Preserve current MolReader(text,'sdf') one-record Pybel.readstring behavior. Multi-frame output has2 versus single1 delimiter; use separate file-path readback and output assertions. Do not silently change string-reader cardinality. |
+
+| S7A-A11 | Root's explicit P04 follow-up review in the current design session | Independent Crystal's canonical class module moves to structure.crystal. The removed old standalone module path has no shim; distinguish that accepted path effect from ordinary Molecule's same-version pickle protocol. |
+
+These are root decisions already received, not questions to reapprove. Baseline
+release permits only its exact observations and later separately bound root
+supplements; no candidate implementation or gate acceptance follows.
+
+## Concrete architecture/public effects register
+
+| ID | Accepted concrete decision | Exact public/API and ownership effect | Authority and remaining evidence |
+|---|---|---|---|
+| S7A-P01 (ROOT ACCEPTED) | Carrier-consuming dispatch/I/O/import/Thermo/drawing APIs in operations; adapter leaves only classify/extract/serialize/render prepared values | `operations.conversion` owns is_molecule_input, to_hotpot_mol, mol2obmol, obmol2mol, to_rdmol, from_rdmol and Pybel entry. `operations.io` owns one MolReader/MolWriter/read_mol; operations.thermo owns the sole caller-owned Thermo class and all carrier getter/fallback methods; operations.visualization owns draw_single_mol/draw_grid/_load_rdmol and exact hasattr-then-smiles work. Adapter utilities receive no carrier handle/getter callback. Root/cheminfo existing public call names and identity stay; drawing names are not newly exported there; old internal modules hard-delete. Root-authorized owner-tree/Section9.1/Section9.2/Section9.6 clarifications now explicitly split carrier-consuming Thermo/drawing and conversion/I/O modules against Section6.1; stage objectives/gates/Section12/public names remain unchanged. No adapter re-exports operations. One local concrete-Molecule import in operations.conversion relocates/reduces existing debt and points to actual core definition until Stage9. | Root accepted the exact placement and temporary real-owner lookup and authorized the minimal owner rows; recorded diff applied. Root design acceptance binds completed full-main/normative read continuity; exact implementation paths are separately released. |
+| S7A-P02 (ROOT ACCEPTED) | Quote only exact evaluated optional-backend/Thermo/Molecule annotation references | Stored annotation objects/ForwardRefs and inspect.signature text change for named declarations in evidence; default get_type_hints may raise NameError while explicit namespace resolves. No core-wide future annotations, lazy class proxy or upward facade alias. Keep existing ff binding/default objects and ff hint globals. Python3.14 is measured independently. | Root acceptance P02 accepts exact effects after review7 ten-cell reflection baseline; candidate namespace/representation checks remain required. |
+| S7A-P03 (ROOT ACCEPTED) | Operation captures consumed primitive export rows after original lazy/preflight sequence; adapters never invoke carrier lazy getters | Preserve container creation point, H→aromatic→payload preflight and remap/application sequence. Later primitive/derived field reads precede per-atom toolkit construction instead of interleaving. If both would fail, carrier-read/per-atom backend exception precedence may change; preserve failures and completed preparation in named negative fixtures. No extra inference/source rule or carrier DTO. | Root acceptance P03 accepts this exact seam after review6; candidate negative tests must retain real completed preparation and bound failure traces. |
+| S7A-P04 (ROOT ACCEPTED) | Factual-only cell with the existing six-slot Molecule extra-state envelope | Independent Crystal path is already accepted as A11. Keep extra tuple arity6 at the same core restore paths/package version0.5.4.5: capture always None in the final non-owning slot; unconditionally ignore prior/current final-slot data. Cell facts remain the sole owner; no crystal dict capture/update, old/new schema branch or module alias. Matrix helper uses one function-local rule delegate. | Root acceptance P04 accepts the exact six-slot implementation after reviews6/8; candidate restores of the bound1181-byte old cell pickle and copy/pickle/OB/native round trips remain required. |
+| S7A-P05 (ROOT ACCEPTED) | Lazy dependency failure/logging/version-check timing | OB I/O suppression initializes on first relevant format use; drawing version check on first actual RD use; missing dependencies fail at named required operation/import boundary. Root RDKit and inherited pandas preload remain qualified. No new custom exception or ImportError→unsupported/None fallback. | Root acceptance P05 accepts exact delayed effects after bounded eager-import baseline; candidate actual first-required-use boundaries remain required. |
+| S7A-P06 (ROOT ACCEPTED) | Full proposed affected-file roster and equal-work/cost recipe | Existing150-file preparer selection expands with exact additional affected tests and six new files in evidence. Both source and installed3.10–3.14 execute same affected contracts, plus final cp311 default/coverage and qualified native/SDK tiers. No historical count substitutes actual collection. | Root acceptance P06 freezes175 paths and qualified baseline recipe; six-test authoring is separately released. Candidate SOURCE_READY, execution, comparable costs and sufficient native memory remain OPEN. |
+| S7A-P07 (OWNER SEAMS ACCEPTED; FUTURE BYTES GATED) | Candidate probe patch seams | Bind OB pair/import module to operations.conversion; count both dynamic operation attribute and actual adapter projection; fake Chemical patches adapters.thermo.chemical._chemical_type() returning fake class, while Thermo class binds to operations.thermo; public draw input functions bind operations.visualization and external rendering/fonts bind adapters.visualization.draw; new Crystal cell owner explicit. Existing preparation packet must be revised/rehashed by its owner. | Root acceptance P07 accepts actual-owner seams/workflow; validator owns new probe copies. Exact future probe-byte release and candidate SOURCE_READY remain required. |
+
+## Concrete preservation and exclusion decisions
+
+- Retain the current Thermo CID fallback `T=self.pressure` as well as
+  `P=self.pressure`, ValueError-only fallback order, full181-name tuple and
+  repeated current RD conversion work. Its scientific parameter correction is
+  not selected. Caller-owned proxy source reference is legitimate; Molecule
+  retains no Thermo instance.
+- Delete both carrier-cache fields completely, including `_cache_state` journal
+  slots/reset/undo. Preserve touch_caches' real frame/constraint effects by
+  explicit calls in both consumers; retain all other undo and burned UID rules.
+- Preserve source/target import semantics: same supplied target, all four empty
+  partitions checked before toolkit source access, one topology install, producer
+  codes, initial cell/spin/identifier/constraints, OB retained versus RD replaced
+  stereo, nine cleared frames and existing transaction poison behavior.
+- `link_atoms` and bond-order perception become named operation sequencing with
+  adapter-only external calculation. Do not invent a larger rollback scope or
+  repair algorithms while moving. All carrier writes and lazy preparations must
+  leave adapters, including indirect property reads that call operations.
+- Keep current core→forcefields facade binding for default/hint identity in this
+  stage; its inherited later-stage debt is explicit. No direct Python toolkit
+  import in this new path is assumed from its deferred native accessor. Any
+  actual contradictory cold result needs the smallest concrete root-reviewed
+  seam before source expansion.
+- Thermo class and all repeated carrier getter/fallback work are operation-owned;
+  its adapters take external objects/identifiers/rows only. Drawing operations
+  preserve RD-first dispatch, both hasattr/getattr smiles accesses and per-item
+  grid preparation before adapter rendering. No carrier callback hides an
+  adapter-to-operation dependency. The existing five drawing functions split
+  between their actual owners without an adapter facade or new package export.
+- Preserve I/O quirks and GJF callback/charge preparation order, actual add_plugin
+  decorator behavior, return values and read cardinality. New adapters have no
+  sys.modules cycle workaround, duplicate plugin registry or direct target write.
+- Every old module/symbol consumer and all five fonts have one destination in
+  the exact evidence manifest. Existing placeholder removals/moved classes
+  receive zero new type-deletion credit. No new dataclass/enum/result schema,
+  native ABI, allowlist or data-budget change is booked by this design.
+
+## Cost and unavailable-evidence disposition
+
+Public cached-old versus fresh-new repeated calls are descriptive changed-
+contract observations. The independent-value mechanism and identical two-frame
+public write tasks preserve real old cache advantage and complete work. Record
+conversion/preparation/serialization counts, immutable factual outputs/mappings,
+all attempts and unfavorable time/allocation/RSS/retention. Stage7A receives no
+S6-R2-09 exception and no new local overhead allowance. Required measurements
+that are missing, noisy, reduced-work or incomparable remain OPEN. A concrete
+count/retention/correctness violation or unexplained scaling/adverse result
+requires investigation, fix/repeat or an exact root decision under the existing
+Section12 frozen policy. The one bounded retention protocol is attempt2: ten
+batches of100 requests at size64 for each of public OB/independent OB/Pybel/RDKit,
+in source and installed modes; sizes8/64/256 retain cost allocation/RSS reporting.
+No twenty-batch/all-size retention obligation is silently substituted, and this
+bounded probe cannot certify full native heap release. Root disposition must list workload/size/work/context,
+raw observations/uncertainty/cause and remaining global debt; benchmark execution
+alone closes no global performance item. Native heap attribution/long-run memory
+sufficiency is explicit, and inconclusive RSS/weakref evidence keeps memory open.
+Root review5 accepts qualified C61 baseline18cells/150samples and80 retention
+batches after the separately released attribution extension. Preserve192 key-
+order differences,40/60 raw SDF timestamp differences and adverse raw data. The
+retention archive lacks raw source-fact snapshots for independent recomparison;
+candidate must include them and necessary native-allocation evidence. Candidate
+cost/native heap/long-run memory and global performance remain OPEN.
+
+## Current release boundary and remaining gates
+
+P01–P06 are root accepted; P07 actual-owner seams/workflow are accepted while
+future exact probe bytes require root release. Additional root-authorized owner
+precision uses only adapters/rdkit/stereo_transport.py, with no sibling/alias.
+Root reviews5–8 bind qualified C61 cost/retention, injected-failure, reflection
+and cell-cold baselines. Exact implementation and six-test/probe authoring are
+separately released by the current root authority files. SOURCE_READY, current candidate contracts, full five-version
+source/wheel selection, default/coverage, cold/missing-use/resources, qualified
+native tests and conclusive memory/equal-work evidence remain open. No new
+review/audit request is issued by this record. No named reviewer is an extra
+approval gate. Stage7A is not complete; later-stage and whole-plan gates remain.
+
+The [root connected-consumer supplement](../connected_consumer_supplement.json)
+adds the dataset literal parser-file binding migration and all36 existing test_ds
+files, preserving the original175-file proposal/baseline. Final affected source/
+installed selection is211 for each Python3.10–3.14. Root owns the production/test
+consumer changes and preserves schema/digests/frozen-current/reassessment policy.
+No Stage13 experiment, certificate acceptance or candidate pass is authorized.
+
+
+## Released production realization — 2026-10-31
+
+The primary21-path assignment is now authored:14 surviving source files plus
+seven hard deletions, with no old shim or alias. Existing public arguments and
+defaults remain; exact accepted annotation strings, task-local projection
+lifetimes, six-slot factual-only cell pickle and complete journal cache removal
+are realized in those sources. The root-owned public exports, connected
+consumers and architecture release remain separate. Existing scientific kernels,
+strict H/aromatic/preflight order, one RD remap/one complete import install,
+charge lookup/extra-copy/error order and I/O/plugin quirks remain preserved.
+
+Private packing/extraction seams and exact current file hashes are recorded in
+evidence.primary_implementation_checkpoint. Root resolved the original undefined
+private cell helper call against the final exclusive release: the operation
+creates an independent existing Crystal value from six captured scalars under
+the source lock, and the leaf calls the released `to_obcell(crystal)` once. No
+peer file/new helper/tuple shim was introduced. The primary static checker
+passes617, including actual caller-to-definition binding, with no project
+execution. No source prerequisite remains within this bounded assignment.
+This is an authored-source checkpoint, not SOURCE_READY, a candidate pass or
+Stage7A closure. All current runtime/exact-probe release, final211 source/wheel/
+native/resource/scientific/performance and memory gates remain open.

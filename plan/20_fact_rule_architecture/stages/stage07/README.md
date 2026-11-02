@@ -1,6 +1,6 @@
 # Stage7 records
 
-Remove second truth sources and clarify results. This directory is navigation for a planned stage; no stage-entry or execution record has been created. Its prerequisites, scope and gates remain in the [main implementation plan](../../fact_rule_architecture_implementation_plan.md), Section 10.
+Remove second truth sources and clarify results. Stage7A entry is aligned after delivered Stage6 and the post-Stage6 source/import/test/wheel rebind. Root accepted P01–P07 design boundaries and the exact stereo_transport owner precision. The separate implementation and six-test/probe authoring releases govern exclusive files; candidate imports/runtime remain held until root integration/SOURCE_READY. P07 future probe bytes still require exact root release. Stage7B–7E have not entered. Scope and gates remain in the [main implementation plan](../../fact_rule_architecture_implementation_plan.md), Section 10.
 
 [Catalog and filename meanings](../README.md) · [Main project index](../../README.md)
 
@@ -13,3 +13,11 @@ Remove second truth sources and clarify results. This directory is navigation fo
 The [mandatory Stage7E canonical stereo storage gate](../../fact_rule_architecture_implementation_plan.md#stage-7e--canonical-stereo-facts-and-lossless-source-transport) completes Section5.3 after the Stage7A/7B/7D owner moves and before Stage8 or Stage12/global ownership acceptance. Its entry must freeze the surviving owner paths, H-slot/source conventions and unbound lossless transport cases; it has not begun. Stage6 whole-payload identity is transitional.
 
 - [Remaining state/result consumer inventory](preentry-results/review.md) and [root bounded disposition](preentry-results/evidence.json): task37 fills task30’s named source gaps for later Stage7C/8A. Dynamic/external and cold-wheel coverage remains limited; prior-stage source/import/wheel rebind is mandatory. This is independent of Stage6 and authorizes no entry/design/schema change.
+
+- [Stage7A entry and bounded design release](external-adapters/entry_review.json): C62 delivered predecessor, C61 production inputs, normative alignment and mandatory source/import/test/wheel rebind; its design-only release remains historical; the separate root acceptances/releases below govern current authoring scope.
+
+- [Stage7A external-object and adapter contract proposal](external-adapters/contracts/review.md), [decision register](external-adapters/contracts/decisions.md) and [exact source/consumer/API/annotation/selection evidence](external-adapters/contracts/evidence.json): root-accepted P01–P07 boundaries and additional exact stereo_transport path precision, unchanged scientific algorithms, and qualified C61 baseline reviews5–8. Exact candidate probe bytes, candidate validation, comparable cost and native-memory sufficiency remain open. No Stage7A completion.
+
+- [Root bounded design acceptance](external-adapters/root_acceptance.json), [exclusive implementation release](external-adapters/implementation_release.json) and [six-test/probe authoring release](external-adapters/test_authoring_release.json): current authority; original entry/frozen proposal/baseline records remain preserved. All candidate project imports, collection/tests/builds and runtime await root integration/SOURCE_READY and exact execution release.
+
+- [Connected-consumer and selection supplement](external-adapters/connected_consumer_supplement.json): root migrates dataset `_PARSER_IMPLEMENTATION_FILES` literal source bindings to actual owners, preserving digest/schema/frozen-current and reassessment contracts. All36 test_ds files add to the preserved175-file proposal, giving final211 source/installed files on Python3.10–3.14; no Stage13 experiment is opened.

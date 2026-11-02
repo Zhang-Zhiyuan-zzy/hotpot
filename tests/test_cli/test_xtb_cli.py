@@ -14,7 +14,7 @@ import pytest
 
 import hotpot
 from hotpot import __main__ as hotpot_main
-from hotpot.cheminfo._io import MolReader
+from hotpot.cheminfo.operations.io import MolReader
 from hotpot.plugins.xtb import cli
 
 

@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from hotpot.cheminfo.crystal import Crystal
+from hotpot.cheminfo.structure.crystal import Crystal
 
 
 def test_oblique_cell_preserves_alpha_between_the_first_two_rows():

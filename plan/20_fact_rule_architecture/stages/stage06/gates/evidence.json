@@ -253,5 +253,28 @@
       "Referenced artifact bytes verified; underlying runtime/cost acceptance remains the existing root decision. Git state/delivery and later-stage entry belong to parent."
     ],
     "scope": "Document-only standard-library reads/hashes/JSON/link/index/preservation/arithmetic; no Git/subprocess/Hotpot import/test/build/model/benchmark/review/audit execution."
+  },
+  "subsequent_root_closure": {
+    "status": "STAGE6_COMPLETE_C62_DELIVERED_STAGE7A_ENTERED_DESIGN_ACTIVE_IMPLEMENTATION_HELD",
+    "closure_authority": {
+      "path": ".plan20-artifacts/20261030/stage6/root-final-closure/attempt1/evidence.json",
+      "sha256": "427d8fa580e34b82d55cff4fadc6134fb3a6af43cd6eccc729621c41484c41f5",
+      "bytes": 5591
+    },
+    "stage7A_entry_authority": {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/entry_review.json",
+      "sha256": "6a9b951d12d1a8875f8f7f6b4a311631c81b03024660413569a27226afb1125b",
+      "bytes": 12067
+    },
+    "validated_runtime_source_commit": "d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a",
+    "stage6_documentation_delivery_commit": "aeb72d0b97fb1c2e50df86a057c31585a2e34e0c",
+    "stage6_documentation_delivery_tree": "3d3a6ce84c69367dd674ebb76ebbebd1c6575fc4",
+    "maintained_records_delivered_remote_verified": true,
+    "stage6_complete": true,
+    "stage7A_entered": true,
+    "stage7A_design_active": true,
+    "stage7A_design_approved": false,
+    "stage7A_implementation_authorized": false,
+    "historical_note": "Earlier status/booleans/commands/check reports remain the C62 record-integration snapshot. This later separate root closure supplies current delivery/entry authority. No original runtime/review/cost/default/failure artifact is revised."
   }
 }

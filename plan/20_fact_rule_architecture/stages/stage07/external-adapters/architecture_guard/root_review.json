@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7A",
+  "recorded_at": "2026-10-31T00:51:43.272536+08:00",
+  "owner": "root",
+  "status": "BOUNDED_GUARD_ALIGNMENT_ACCEPTED_FULL_REPOSITORY_AUDIT_PENDING",
+  "method": "Root read the entire audit/test diff, complete final helper bodies, handoff and maintained relocation evidence. Root independently compared debt_key/ratchet_findings ASTs against HEAD and original test prefix and matched all three final handoff source/evidence hashes; reported synthetic checks were not rerun.",
+  "unchanged_function_AST": {
+    "debt_key": true,
+    "ratchet_findings": true
+  },
+  "original_test_bytes_remain_prefix": true,
+  "verified_handoff_files": [
+    {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/audit_architecture.py",
+      "bytes": 15010,
+      "sha256": "42b75ef4d7ff7a7ef049a8c5e9f53ad74bb39764c6dc8a08ca975eba6123b7f4",
+      "current_sha256": "42b75ef4d7ff7a7ef049a8c5e9f53ad74bb39764c6dc8a08ca975eba6123b7f4",
+      "matches": true
+    },
+    {
+      "path": "/home/zhangzhiyuan/hotpot/tests/test_cheminfo/structure/test_architecture.py",
+      "bytes": 15628,
+      "sha256": "003587eb30bea8be32703ce77afbdae0fd5ac9fc3a1810b8650952b9ea6ee70c",
+      "current_sha256": "003587eb30bea8be32703ce77afbdae0fd5ac9fc3a1810b8650952b9ea6ee70c",
+      "matches": true
+    },
+    {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage07/external-adapters/architecture_guard/legacy_core_import_relocation.json",
+      "bytes": 14467,
+      "sha256": "e313545fd0b55c47c67aac8f4026d32ff4fea53a403b4b2bad11121831507831",
+      "current_sha256": "e313545fd0b55c47c67aac8f4026d32ff4fea53a403b4b2bad11121831507831",
+      "matches": true
+    }
+  ],
+  "baseline_inventory_binding": {
+    "path": "plan/20_fact_rule_architecture/baseline_inventory/architecture_debt.jsonl",
+    "bytes": 56256,
+    "sha256": "e4bfa3426dbd26c44ef9683749cc24e809e1a4bcbe03ca5837a372d165bc8f2a"
+  },
+  "accepted_scope": [
+    "Exactly one old convert.py Molecule-import identity supplies one reference-ceiling slot to the actual no-argument operations.conversion._molecule_type function import. Previous and frozen ceilings remain independent; actual and allowed identities remain exact.",
+    "Coexistence, duplicate destination entries, another source/path/scope/alias/target/rule and post-retirement reintroduction remain failures. No configurable relocation registry is introduced.",
+    "Only direct Crystal._matrix_to_params(matrix) static-method local unaliased import of the one mathematics.cell helper is allowed in exact structure/crystal.py. Other rules/adapters/execution dependencies and all existing canonical-write checks stay guarded.",
+    "Stage9 must retire the sole temporary lookup; the final zero-debt target remains."
+  ],
+  "worker_reported_commands": [
+    {
+      "command": "python3 -I -B /tmp/hotpot-stage7a-architecture-guard/check_guards.py",
+      "returncode": 0,
+      "counts": {
+        "passed": 188,
+        "failed": 0
+      }
+    },
+    {
+      "command": "python3 -I -B /tmp/hotpot-stage7a-architecture-guard/check_actual_source.py",
+      "returncode": 0,
+      "counts": {
+        "passed": 7,
+        "failed": 0
+      }
+    },
+    {
+      "command": "git diff --check -- plan/20_fact_rule_architecture/audit_architecture.py tests/test_cheminfo/structure/test_architecture.py",
+      "returncode": 0
+    }
+  ],
+  "remaining": [
+    "Root retires obsolete exact allowlist entries and replaces only the authorized source row with its actual destination row",
+    "Complete current repository static audit after source integration",
+    "Formal architecture tests with candidate source/installed qualification after SOURCE_READY"
+  ],
+  "candidate_runtime_authorized": false,
+  "stage_gate_closed": false,
+  "global_gate_closed": false
+}

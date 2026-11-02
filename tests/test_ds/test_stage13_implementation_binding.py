@@ -35,8 +35,10 @@ def test_runtime_policy_is_a_complete_canonical_self_digest() -> None:
     }
     assert "ds/gates/_base.py" in assessment_paths
     assert "ds/public/_implementation.py" in assessment_paths
-    assert "cheminfo/_io/_io.py" in parser_paths
-    assert "cheminfo/crystal.py" in parser_paths
+    assert "cheminfo/operations/io.py" in parser_paths
+    assert "cheminfo/adapters/io/formats/openbabel.py" in parser_paths
+    assert "cheminfo/adapters/openbabel/conversion.py" in parser_paths
+    assert "cheminfo/structure/crystal.py" in parser_paths
 
     identities = {
         item["name"]: item for item in policy["runtime"]["distributions"]

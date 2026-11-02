@@ -589,7 +589,7 @@ def _run_openbabel(
 ) -> dict[str, object]:
     from openbabel import openbabel as ob
     from hotpot.cheminfo import forcefields as ff
-    from hotpot.cheminfo.obconvert import extract_obmol_coordinates
+    from hotpot.cheminfo.adapters.openbabel.conversion import extract_obmol_coordinates
 
     obmol = complex_mol.to_obmol()
     expected_atoms = obmol.NumAtoms()

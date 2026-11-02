@@ -1,0 +1,220 @@
+{
+  "accepted_author_handoff": {
+    "bytes": 5492,
+    "path": "/tmp/plan20-stage7a-design-20261030/handoff.json",
+    "sha256": "3d0910880142a6607a4475553c4f6e61a194b64c285d0fde68416bf4c2a66bb4"
+  },
+  "accepted_design_inputs": {
+    "decisions.md": {
+      "bytes": 14166,
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage07/external-adapters/contracts/decisions.md",
+      "sha256": "ae0aebc9be067a2c10d76a06920bb1aa69d7afbbf3ab898fa48eec26226e5dd3"
+    },
+    "evidence.json": {
+      "bytes": 416230,
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage07/external-adapters/contracts/evidence.json",
+      "sha256": "9150474569b2569bfb53cf5c6217960ded8fc73dede75dea0b75040100d09e31"
+    },
+    "review.md": {
+      "bytes": 51988,
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage07/external-adapters/contracts/review.md",
+      "sha256": "0fd5b7df35fd3dd720f79b5b243c08e0f91fae5c63c6b95a645b6083baa5021d"
+    }
+  },
+  "baseline_acceptances": {
+    "3": {
+      "bytes": 215717,
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/root-baseline-review/attempt3/review.json",
+      "sha256": "08586e1991304a64a8022fa80a63a4f1af33e28da30fe6554726cc1fb718585c"
+    },
+    "4": {
+      "bytes": 60070,
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/root-baseline-review/attempt4/review.json",
+      "sha256": "daf5d4c8eaa89f70cc89a922c4ea6de40e99ba559dd5f45700a21c9ce25e9e1f"
+    },
+    "5": {
+      "bytes": 21375,
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/root-baseline-review/attempt5/review.json",
+      "sha256": "7a63cb4771b1c8d4fcb06c7bc227fc3fb1b619a93a3d7fa5cdab1a1d266f2579"
+    },
+    "6": {
+      "bytes": 20435,
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/root-baseline-review/attempt6/review.json",
+      "sha256": "1a32d5f78580ef68e28c9e6b5d04a723742f0490fb8381c5d6f851ebdb06eaa4"
+    },
+    "7": {
+      "bytes": 14088,
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/root-baseline-review/attempt7/review.json",
+      "sha256": "c1d0a5903c89f9cfa623f5a16dfe10acb4e76f4bc4be24082b9df1b54a60644e"
+    },
+    "8": {
+      "bytes": 6452,
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/root-baseline-review/attempt8/review.json",
+      "sha256": "e2e07d04d1d91f3e7b37503d225d46d25ed194463ed6115e6263ca516fc13359"
+    }
+  },
+  "candidate_runtime_authorized": false,
+  "content_acceptance": "BOUNDED_DESIGN_ONLY",
+  "decisions": [
+    {
+      "decision": "Accept exactly frozen24 annotation/global namespace effects, narrow quoted references and existing recursive surrounding representation. Preserve evaluated bool versus postponed bool distinctions and real ff.DEFAULT_CONVERGENCE_LEVEL/FAST identity. No blanket future annotations or class proxy.",
+      "evidence": "Actual3.10-3.14 source/installed28 declarations percell: baseline all default/explicit hints resolve; candidate changes and exact namespaces remain separately measured.",
+      "id": "S7A-P02",
+      "status": "ACCEPTED"
+    },
+    {
+      "decision": "Accept primitive captured export rows after original lazy/preflight/container sequence; later carrier/derived row reads precede earlier per-atom backend errors at the two exact injected seams. Preserve H/aromatic/payload/dative/remap/native ordering, completed preparation and existing transaction boundary. No broader rollback or science change.",
+      "evidence": "Two valid two-carbon base inputs, deliberate paired technical failures, empty schema1 payload. C61 RuntimeErrors occur before later reads; candidate expected later-read ValueErrors before atom construction. All four source/installed complete factual comparisons match. No ordinary public conflicting-error pair or nonempty payload claim.",
+      "id": "S7A-P03",
+      "status": "ACCEPTED"
+    },
+    {
+      "decision": "Keep ordinary Molecule extra tuple arity6. Write None in final non-owning slot; unconditionally ignore old/current final slot in restore. Six cell facts sole owner, six ordinary writable Crystal scalars, no carrier/backref/backend state. No schema/arity branch or old module shim. Independent old Crystal path move already accepted.",
+      "evidence": "Both actual C61 cell pickles1181bytes SHA2561d8fcfaec55d02b60c08dc587fd6941c99075a63ed562dc01e35e380d3a14c55; source/installed cold restored complete facts match producers. Candidate cold and cell/native/OB roundtrips still required.",
+      "id": "S7A-P04",
+      "status": "ACCEPTED"
+    },
+    {
+      "decision": "Accept OB I/O logging initialization on first relevant format use and drawing version check before first actual RD use/input getter. Missing dependencies fail at named required operation/import boundary with original exception class, no unsupported/None fallback. Preserve root RDKit preload and inherited pandas reachability until owning later stages.",
+      "evidence": "C61 eager22 missing-import observations are bounded baseline timing; no operation reached. Candidate fresh-process actual-use/import-order probes are mandatory and exact future bytes need separate release.",
+      "id": "S7A-P05",
+      "status": "ACCEPTED"
+    },
+    {
+      "decision": "Freeze169 existing plus6 new=175 affected files, same source/installed selections on3.10-3.14, finalcp311 default/coverage and qualified native tiers. Accept bound sampling/work recipe without changing Section12. Preserve old cache advantage,40frame paths, counts/fingerprints and adverse data.",
+      "evidence": "18cost cells/42warmups/150samples plus80retention batches reviewed. Memory/nativeheap, candidate performance, unavailable tiers and final stage/global gates remainOPEN; no Stage6 exception transfers.",
+      "id": "S7A-P06",
+      "status": "ACCEPTED"
+    },
+    {
+      "decision": "Accept actual operation/adapter lookup seams and exact candidate rebinding workflow. Validator owns fresh probe copies and rawfacts enhancement; no rewriting prior packets. Root later freezes their actual bytes and candidate SOURCE_READY before execution.",
+      "evidence": "Operations conversion pair/import/reader spy plus actual adapter projection; operation Thermo with adapters.thermo.chemical._chemical_type; drawing entries operations.visualization, renderer/resources adapters.visualization.draw; actual Crystal owner structure.crystal.",
+      "id": "S7A-P07",
+      "status": "ACCEPTED_OWNER_SEAMS_FUTURE_BYTES_RELEASE_REQUIRED"
+    }
+  ],
+  "documentation_HEAD": "aeb72d0b97fb1c2e50df86a057c31585a2e34e0c",
+  "exact_path_resolution": {
+    "action": "Use exactly this actual path once; minimally synchronize conceptual stereo.py owner spelling in main/evidence/review with already frozen annotation-roster owner. No second file or re-export. This is path precision for the existing algorithm owner, not scientific redesign.",
+    "rdkit_stereo_transport_owner": "hotpot/cheminfo/adapters/rdkit/stereo_transport.py"
+  },
+  "full_plan_read_continuity": {
+    "current_bindings": [
+      {
+        "bytes": 194308,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+        "sha256": "0cd8d7a0db2298040877fa903241c4bc1ebccc7151cc5cbf3b90f7a56df7f288"
+      },
+      {
+        "bytes": 14287,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/goal.md",
+        "sha256": "6e116730e1a31ec999b623e9e594d26f23e3cf8a95e68048652acf9c699b0118"
+      },
+      {
+        "bytes": 13443,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+        "sha256": "23a7b5c43851837a5aeaf69b4a127dc712d1a4b9c7bb178242015839543d8213"
+      },
+      {
+        "bytes": 62948,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/data_object_scope_audit.md",
+        "sha256": "f1e6dce3aa3be649b7e5491f8d35752accc84ec80cb3a597bfc2850d5aa82554"
+      },
+      {
+        "bytes": 24498,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+        "sha256": "96f4808f91e9470bdf60ff4a8f58b514d838b023328e7ea37f90fcf3f7328707"
+      },
+      {
+        "bytes": 21531,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/integrated_requirements.json",
+        "sha256": "18c75f0e02d0fb98fe9a4577a4d66f3ceadb682630e626db60725bb45d1a0f5a"
+      },
+      {
+        "bytes": 111588,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage_verification_map.json",
+        "sha256": "3d36ac41a3165cc22f1804c42dc36c0009ceb4699aa887bba59d2a6fbfc1b702"
+      },
+      {
+        "bytes": 206563,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/reviewed_interface_contracts.json",
+        "sha256": "fed58150bb7b60fbbdf3b16988b87d012d66dd1b7d5e2a1a6e0f4221695e737f"
+      },
+      {
+        "bytes": 33185,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/data_object_budget.json",
+        "sha256": "40b1e3a1c0b605efacaa43b76c2138151459a0ea913d64c209a674b4e0e3f571"
+      },
+      {
+        "bytes": 34761,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+        "sha256": "ed5bba12ac6ae0305f6c85f7af3aa8fa824a3278fe12aad537a2f0c13768571b"
+      },
+      {
+        "bytes": 355269,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/python_matrix_manifest.json",
+        "sha256": "7c6ed13718cfa1563f65c99c8f3ac8ff94b77eddf43aaf5e0ff27ac54de3a107"
+      },
+      {
+        "bytes": 14642,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage01/contracts/decisions.md",
+        "sha256": "1a733cf83d0e7c098b7e227fbb4543ba382015c0f69141c46caf0daf8599c10f"
+      },
+      {
+        "bytes": 6151,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage05/contracts/decisions.md",
+        "sha256": "35f0d8c78e1f2890feeff3807c104ea3f20b406c2ddaaf77e391ec4db34a60d4"
+      },
+      {
+        "bytes": 25845,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/decisions.md",
+        "sha256": "9645dfa50c55870d94b09831a0c2b34609fb52be4c6a4be53c9beb5cd7954f7f"
+      },
+      {
+        "bytes": 18046,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage06/contracts/decisions.md",
+        "sha256": "88b86a1c395ad548b1750d36c2478912ee9e37e374a81c4ed0f7e82f5d983dc2"
+      },
+      {
+        "bytes": 15421,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage07/preentry-conversion/review.md",
+        "sha256": "e915fe3924b67fc5f81fe697966818f85834c318f841e4dccb686372390a1978"
+      },
+      {
+        "bytes": 4153,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage07/preentry-conversion/evidence.json",
+        "sha256": "7800316860d62ed58ec92e6e584145c52a1948fd3ef769404c725d7a50e671a2"
+      },
+      {
+        "bytes": 12067,
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage07/external-adapters/entry_review.json",
+        "sha256": "6a9b951d12d1a8875f8f7f6b4a311631c81b03024660413569a27226afb1125b"
+      }
+    ],
+    "declaration": "Root completed full current main/normative/goal/integrated requirements/Stage1 and map/performance reads across the continuous stage-entry session, including all final authorized owner changes and final contracts. Context compaction does not reset those reads; current hashes bind the already-read text and are not a replacement for reading. Current design preserves the Plan20/Plan12 global objective and existing scientific/high-throughput contracts.",
+    "status": "COMPLETE_ACROSS_CONTINUATION_AND_POST_P01_FINAL_OWNER_DIFF_ALIGNMENT"
+  },
+  "global_gate_closed": false,
+  "implementation_authorized": false,
+  "implementation_scope": "Root will record exclusive production/test/support/document paths and send explicit task assignments after acceptance records are synchronized. No production execution is authorized by this design acceptance file alone.",
+  "owner": "root",
+  "recorded_at_utc": "2026-10-30T16:27:46.677321+00:00",
+  "remaining_gates": [
+    "Exclusive implementation release and coherent source migration",
+    "Exact candidate probe release and SOURCE_READY",
+    "Focused and full175-file five-version source/installed selection plus finalcp311 default/coverage",
+    "Current cold/missing-use/fonts/native and prior/cell pickle evidence",
+    "All adverse cost dispositions and sufficient native-memory evidence",
+    "Stage7B-E and later Plan20/Plan12/global requirements;Stage7E blocks8/12/global;Stage10 clean builds/ABI/SDK/sdist;B_exp before13A/B"
+  ],
+  "schema_version": 1,
+  "source_commit": "d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a",
+  "stage": "Stage7A",
+  "stage_entry": {
+    "bytes": 12067,
+    "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage07/external-adapters/entry_review.json",
+    "sha256": "6a9b951d12d1a8875f8f7f6b4a311631c81b03024660413569a27226afb1125b"
+  },
+  "stage_gate_closed": false,
+  "status": "DESIGN_ACCEPTED_IMPLEMENTATION_SCOPE_PENDING"
+}

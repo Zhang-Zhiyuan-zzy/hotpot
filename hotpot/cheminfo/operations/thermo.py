@@ -8,9 +8,7 @@
 Ref Doc: https://thermo.readthedocs.io/thermo.chemical.html#thermo.chemical.Chemical.A
 """
 from typing import Union, Iterable
-import pandas as pd
-from thermo.chemical import Chemical
-from rdkit import Chem
+from ..adapters.thermo import chemical as _chemical
 
 
 __all__ = [
@@ -259,7 +257,7 @@ class Thermo:
     def get_chem(
         self,
         ids: Union[str, Iterable[str]],
-    ) -> pd.DataFrame:
+    ) -> "pd.DataFrame":
         """
         Query thermo.chemical.Chemical for a list of IDs at a given T, P
         and return their properties in a pandas DataFrame.
@@ -299,12 +297,14 @@ class Thermo:
 
         rows: list[dict[str, object]] = []
 
+        chemical_type = _chemical._chemical_type()
+
         for identifier in ids_list:
             # Construct a Chemical object at the requested T and P.
             # Any failure here should not stop the whole batch; we just
             # fill the row with None.
             try:
-                chem = Chemical(identifier, T=self.temp, P=self.pressure)
+                chem = _chemical._construct_chemical(chemical_type, identifier, T=self.temp, P=self.pressure)
             except Exception:
                 # If construction fails, keep a row of None values.
                 row = {prop: None for prop in self.properties}
@@ -331,34 +331,37 @@ class Thermo:
             rows.append(row)
 
         # Build a DataFrame from all rows
-        return pd.DataFrame(rows, index=ids_list)
+        return _chemical._dataframe(rows, index=ids_list)
 
 
     def mol_to_thermo(
             self,
             mol,
     ):
+        chemical_type = _chemical._chemical_type()
+
         try:
-            return Chemical(f'SMILES={Chem.MolToSmiles(mol.to_rdmol(), kekuleSmiles=True)}', P=self.pressure, T=self.temp)
+            return _chemical._construct_chemical(chemical_type, _chemical._smiles_identifier(mol.to_rdmol()), P=self.pressure, T=self.temp)
         except ValueError:
             pass
 
         try:
-            return Chemical(Chem.MolToInchi(mol.to_rdmol()), P=self.pressure, T=self.temp)
+            return _chemical._construct_chemical(chemical_type, _chemical._inchi_identifier(mol.to_rdmol()), P=self.pressure, T=self.temp)
         except ValueError:
             pass
 
         try:  # CAS
-            return Chemical(mol.cas, P=self.pressure, T=self.temp)
+            return _chemical._construct_chemical(chemical_type, mol.cas, P=self.pressure, T=self.temp)
         except ValueError:
             pass
 
         try:  # PubChem CID
-            return Chemical(f'PubChem={mol.cid}', P=self.pressure, T=self.pressure)
+            return _chemical._construct_chemical(chemical_type, f'PubChem={mol.cid}', P=self.pressure, T=self.pressure)
         except ValueError:
             pass
 
-        raise ValueError(f'Unknown thermo properties fro {Chem.MolToSmiles(mol.to_rdmol(), kekuleSmiles=True)}')
+        raise ValueError(f'Unknown thermo properties fro {_chemical._smiles(mol.to_rdmol())}')
 
-if __name__ == '__main__':
-    ...
+
+def _get_thermo(mol, temp: float = 298.15, pressure: float = 101325.0):
+    return Thermo(mol, temp=temp, pressure=pressure)

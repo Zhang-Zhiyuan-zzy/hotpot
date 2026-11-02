@@ -1,0 +1,216 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7A",
+  "status": "SETTLED_SOURCE_STATIC_BINDINGS_SYNCHRONIZED_SOURCE_READY_AND_RUNTIME_HELD",
+  "census": {
+    "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/class-census.json",
+    "bytes": 154944,
+    "sha256": "4b65e19142bf775f5ed10ac0e9a7f1497cb7a68e8b039b927baf5631373d92d6"
+  },
+  "budget": {
+    "path": "plan/20_fact_rule_architecture/data_object_budget.json",
+    "bytes": 36724,
+    "sha256": "317ea220a7484f1013a3a1085739909ef06c199ee470d244780489f6580d333e"
+  },
+  "before_budget": {
+    "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/data_object_budget.before-stage7a.json",
+    "bytes": 33185,
+    "sha256": "40b1e3a1c0b605efacaa43b76c2138151459a0ea913d64c209a674b4e0e3f571"
+  },
+  "counts": {
+    "all_python_classes": 777,
+    "dataclasses": 354,
+    "protocols": 8,
+    "typed_dicts": 2
+  },
+  "delta_since_stage6": {
+    "all_python_classes": 0,
+    "dataclasses": 0,
+    "protocols": 0,
+    "typed_dicts": 0
+  },
+  "class_moves": [
+    {
+      "from": "hotpot.cheminfo._io._io.IoBase",
+      "to": "hotpot.cheminfo.adapters.io.base.IoBase",
+      "semantic_retirement_credit": 0
+    },
+    {
+      "from": "hotpot.cheminfo._io._io.MolReader",
+      "to": "hotpot.cheminfo.operations.io.MolReader",
+      "semantic_retirement_credit": 0
+    },
+    {
+      "from": "hotpot.cheminfo._io._io.MolWriter",
+      "to": "hotpot.cheminfo.operations.io.MolWriter",
+      "semantic_retirement_credit": 0
+    },
+    {
+      "from": "hotpot.cheminfo.call_thermo.Thermo",
+      "to": "hotpot.cheminfo.operations.thermo.Thermo",
+      "semantic_retirement_credit": 0
+    },
+    {
+      "from": "hotpot.cheminfo.crystal.Crystal",
+      "to": "hotpot.cheminfo.structure.crystal.Crystal",
+      "semantic_retirement_credit": 0
+    }
+  ],
+  "new_type_count": 0,
+  "semantic_retirement_credit": 0,
+  "native_scope": "No native counts/ABI builds were rerun; historical qualified native counts retain their original scope.",
+  "candidate_runtime_authorized": false,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "actual_retired_type_count": 0,
+  "source_symbol_and_annotation_manifest": {
+    "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/contracts/evidence.json",
+    "bytes": 527577,
+    "sha256": "65854772d9fd0aa2834b243486232b8d1a5ec2449cffe1c4aec9358aca0e3d90"
+  },
+  "settled_static_source_checkpoint": {
+    "kind": "EXISTING_ROOT_STATIC_RESULTS_READ_AND_BOUND_NO_CHECKER_RERUN",
+    "primary_handoff": {
+      "review": {
+        "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/final-primary-handoff-review.json",
+        "bytes": 6038,
+        "sha256": "be002a4e1acdba94bfed805be28c5403a9cf2e3104c41b7dccf938022a909252"
+      },
+      "matched_files": 18,
+      "matched_deleted_paths": 7,
+      "matched_checker_and_report": 2,
+      "qualification": "Root matched the final author checkpoint before this record-only append; source and contract bytes remain the bound checkpoint, while the old log bytes are preserved in this task before-manifest."
+    },
+    "architecture": {
+      "review": {
+        "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/final-architecture-review.json",
+        "bytes": 532,
+        "sha256": "f24a238d59fbaa605db54b9f017b3a99ba61766edc5f88c4ee69823e1c2e4e9f"
+      },
+      "scanned_python_files": 922,
+      "remaining_debt": 235,
+      "new_debt": 0,
+      "unretired_allowlist_entries": 0,
+      "allowlist_growth": 0,
+      "exceeds_frozen_inventory": 0,
+      "layer_findings": 0,
+      "carrier_definition_findings": 0,
+      "allowlist_integration": {
+        "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/allowlist-integration.json",
+        "bytes": 622,
+        "sha256": "24f3abf7a6db9411a1b82c581a884b9ef8ac12ebad6d9a254a24d181c5b6f64f"
+      },
+      "before_debt_rows": 256,
+      "after_debt_rows": 235,
+      "removed_old_rows": 22,
+      "relocated_lookup_slots": 1,
+      "net_debt_reduction": 21,
+      "qualification": "One original convert lookup moves to operations.conversion::_molecule_type as Stage9 debt; no historical baseline inventory or acceptance criterion is rewritten."
+    },
+    "consumers": {
+      "initial_review": {
+        "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/final-consumer-review.json",
+        "bytes": 176200,
+        "sha256": "0df70845b3c700b036c1beee774af9504d6fc89873b02c3617a194886dcd2997"
+      },
+      "initial_obsolete_explicit_imports": [
+        {
+          "path": "examples/BayesianDesign/plots/cbond_combine.py",
+          "line": 20,
+          "module": "hotpot.cheminfo.draw"
+        },
+        {
+          "path": "examples/ChineseMedical/analysis.py",
+          "line": 31,
+          "module": "hotpot.cheminfo.draw"
+        },
+        {
+          "path": "examples/mol_assemble/xjz/fenzizuzhuang.py",
+          "line": 4,
+          "module": "hotpot.cheminfo.draw"
+        }
+      ],
+      "root_correction": {
+        "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/consumer-correction/changes.json",
+        "bytes": 1267,
+        "sha256": "fe64f926534da7f37a62b0cb1fa16f145ec16cf96b56ae6d23b55f7821c1de2a"
+      },
+      "final_review": {
+        "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/consumer-correction/final-consumer-review.json",
+        "bytes": 175812,
+        "sha256": "c6d81042f9552bdd8fb3d5e1af4149c77d911ed188550b17a9529d5648dc1bb8"
+      },
+      "files_parsed_or_attempted": 970,
+      "obsolete_explicit_imports": 0,
+      "obsolete_literal_dynamic_imports": 0,
+      "production_obsolete_path_literals": 0,
+      "production_cache_references": 0,
+      "syntax_errors": 0,
+      "qualification": [
+        "AST resolution covers explicit and absolute literal dynamic imports; arbitrary dynamic aliases/external callers are not proven absent.",
+        "Production string-path checks are discovery records and require disposition of any historical text.",
+        "Tests may mention removed cache names to assert absence; those strings are not production storage.",
+        "No project import, pytest collection/tests, native or scientific execution occurs."
+      ]
+    },
+    "new_contract_tests": {
+      "review": {
+        "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/new-contract-test-review.json",
+        "bytes": 3435,
+        "sha256": "97bb73730ecbe9ed74ef09af526adbe4b823274d67c7c39fda27b267ebd3dfae"
+      },
+      "authoring_handoff": {
+        "path": ".plan20-artifacts/20261030/stage7a/validation-preparation/attempt6/handoff.json",
+        "bytes": 4809,
+        "sha256": "788915057e2d9be0dd7150a77decbd073d262fe15d32700f53113a593bacde58"
+      },
+      "created_files": 6,
+      "test_function_declarations": 33,
+      "count_kind": "AST_DECLARATIONS_FROM_EXISTING_ROOT_REVIEW_NOT_COLLECTED_NODES_OR_PARAMETER_COUNTS",
+      "collected": false,
+      "executed": false
+    },
+    "drawing_checker_correction": {
+      "original_final3": {
+        "path": ".plan20-artifacts/20261030/stage7a/validation-preparation/attempt6/static-review-final3.json",
+        "bytes": 18288,
+        "sha256": "a5a61aa19ec992679142243ac65e3c17e77f233538785f42d88d0da64b8ffed6"
+      },
+      "corrected_final4": {
+        "path": ".plan20-artifacts/20261030/stage7a/validation-preparation/attempt6/static-review-final4.json",
+        "bytes": 2768,
+        "sha256": "e8c7da4d706a03af4cd81a2a5f75284b975f33f11c4f616c860cd75c4ca7715a"
+      },
+      "same_correction_record": {
+        "path": ".plan20-artifacts/20261030/stage7a/validation-preparation/attempt6/correction.json",
+        "bytes": 2768,
+        "sha256": "e8c7da4d706a03af4cd81a2a5f75284b975f33f11c4f616c860cd75c4ca7715a"
+      },
+      "disposition": "Final4 withdraws only the final3/sealed handoff undefined _draw._is_rdmol finding. Actual calls use isinstance(mol_in, _draw._rdmol_type()); both call sites resolve to the existing definition.",
+      "production_or_tests_fixed_for_this_finding": false,
+      "project_import_or_runtime_executed": false
+    },
+    "external_owner_review": {
+      "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/external-review.json",
+      "bytes": 3886,
+      "sha256": "3e6111e96cfd1468bf1a4a664464642353da4614f44e74d17b5ad52a6be6f88f"
+    },
+    "source_ready_status": "HOLD_ROOT_FINAL_BYTE_IDENTITY_FREEZE_REQUIRED",
+    "candidate_execution_status": "HOLD_EXACT_RUNTIME_RELEASE_REQUIRED",
+    "candidate_runtime_authorized": false,
+    "stage_gate_closed": false,
+    "global_gate_closed": false,
+    "limits": [
+      "Existing static source/AST/text/hash and declaration records only; this synchronization runs no audit/checker, project import, pytest collection/test, build, native/model/scientific or performance workload.",
+      "Static authoring completion does not close source-ready, installed-wheel/native/reflection/cold/resource/pickle/P03/complete cost/full retention/native-memory or global gates.",
+      "Final211-file source/installed3.10–3.14 membership is preserved, including all36 dataset tests. No Stage13 experiment or certificate acceptance is authorized."
+    ]
+  },
+  "source_ready_status": "HOLD_ROOT_FINAL_BYTE_IDENTITY_FREEZE_REQUIRED",
+  "candidate_execution_status": "HOLD_EXACT_RUNTIME_RELEASE_REQUIRED",
+  "current_reviewed_interface_overlay": {
+    "path": "plan/20_fact_rule_architecture/reviewed_interface_contracts.json",
+    "bytes": 221781,
+    "sha256": "5493c3178d62617212e6444bd4baf0580c497958c7bbc019023bc1afc70b2a2e"
+  }
+}

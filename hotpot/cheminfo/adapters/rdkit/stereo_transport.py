@@ -1,24 +1,7 @@
-"""
-python v3.9.0
-@Project: hotpot
-@File   : rdconvert
-@Auther : Zhiyuan Zhang
-@Data   : 2024/12/18
-@Time   : 8:56
-"""
+"""RDKit translation of the existing immutable stereo transport records."""
+
 from uuid import uuid4
-from dataclasses import replace
-
-import numpy as np
-
-import rdkit
-from rdkit import Chem
-
-from .structure._builder import _freeze_value
-from .structure._commit import _FactTransaction
-from .structure._fields import ATOM_SOURCE_CODES, FIELD_PRESENCE_BITS
-
-from .structure.stereo import (
+from ...structure.stereo import (
     AtomTransportRecord,
     BondTransportRecord,
     HydrogenTransportState,
@@ -32,41 +15,8 @@ from .structure.stereo import (
     StereoRecord,
 )
 
-from .structure._stereo import _get_stereo_payload
-from .operations.chemistry import _remap_stereo_transport
-
-_hphyb2rdkithyb = {
-    -1: rdkit.Chem.rdchem.HybridizationType.UNSPECIFIED,
-    0: rdkit.Chem.rdchem.HybridizationType.S,
-    1: rdkit.Chem.rdchem.HybridizationType.SP,
-    2: rdkit.Chem.rdchem.HybridizationType.SP2,
-    3: rdkit.Chem.rdchem.HybridizationType.SP3,
-    4: rdkit.Chem.rdchem.HybridizationType.SP2D,
-    5: rdkit.Chem.rdchem.HybridizationType.SP3D,
-    6: rdkit.Chem.rdchem.HybridizationType.SP3D2,
-    7: rdkit.Chem.rdchem.HybridizationType.OTHER
-}
-
-_RDKIT_DATIVE_BOND_TYPES = frozenset(
-    bond_type for bond_type in (
-        getattr(Chem.BondType, "DATIVE", None),
-        getattr(Chem.BondType, "DATIVEONE", None),
-        getattr(Chem.BondType, "DATIVEL", None),
-        getattr(Chem.BondType, "DATIVER", None),
-    )
-    if bond_type is not None
-)
-
 _RDKIT_STEREO_NAMESPACE = "rdkit-2026.09.1"
-_RDKIT_GROUP_KINDS = {
-    Chem.StereoGroupType.STEREO_ABSOLUTE: StereoGroupKind.ABS,
-    Chem.StereoGroupType.STEREO_AND: StereoGroupKind.AND,
-    Chem.StereoGroupType.STEREO_OR: StereoGroupKind.OR,
-}
-_HOTPOT_GROUP_KINDS = {value: key for key, value in _RDKIT_GROUP_KINDS.items()}
-_RDKIT_TETRAHEDRAL_CODES = frozenset(
-    {"CHI_TETRAHEDRAL_CW", "CHI_TETRAHEDRAL_CCW"}
-)
+_RDKIT_TETRAHEDRAL_CODES = frozenset({"CHI_TETRAHEDRAL_CW", "CHI_TETRAHEDRAL_CCW"})
 _IMPLICIT_H_TOKEN = (StereoCarrierKind.IMPLICIT_H, None)
 
 
@@ -110,6 +60,13 @@ def _add_group_member(mapping, key, group_ref, category):
 
 
 def _extract_stereo_payload(rdmol):
+    from rdkit import Chem
+    _RDKIT_GROUP_KINDS = {
+        Chem.StereoGroupType.STEREO_ABSOLUTE: StereoGroupKind.ABS,
+        Chem.StereoGroupType.STEREO_AND: StereoGroupKind.AND,
+        Chem.StereoGroupType.STEREO_OR: StereoGroupKind.OR,
+    }
+
     scope = _new_rdkit_scope()
     hydrogen_view = Chem.Mol(rdmol)
     hydrogen_view.UpdatePropertyCache(strict=False)
@@ -238,6 +195,8 @@ def _payload_atom_facts(payload, atom_count=None):
 
 
 def _validate_payload_references(payload, atom_count, bond_indices):
+    _HOTPOT_GROUP_KINDS = (StereoGroupKind.ABS, StereoGroupKind.AND, StereoGroupKind.OR)
+
     bond_keys = {frozenset(indices) for indices in bond_indices}
     stereo_anchors = set()
     for record in payload.records:
@@ -411,6 +370,8 @@ def _odd_permutation(source, target):
 
 
 def _apply_atom_stereo(rdmol, atom, record):
+    from rdkit import Chem
+
     chiral_tag = _enum_value(
         Chem.ChiralType,
         record.source_code,
@@ -445,6 +406,8 @@ def _apply_atom_stereo(rdmol, atom, record):
 
 
 def _apply_bond_stereo(rdmol, bond, record):
+    from rdkit import Chem
+
     carrier_atoms = []
     for carrier in record.carriers:
         if carrier.kind is not StereoCarrierKind.ATOM:
@@ -507,6 +470,13 @@ def _display_direction_for_target(bond, fact):
 
 
 def _apply_stereo_payload(rdmol, payload):
+    from rdkit import Chem
+    _HOTPOT_GROUP_KINDS = {
+        StereoGroupKind.ABS: Chem.StereoGroupType.STEREO_ABSOLUTE,
+        StereoGroupKind.AND: Chem.StereoGroupType.STEREO_AND,
+        StereoGroupKind.OR: Chem.StereoGroupType.STEREO_OR,
+    }
+
     if payload.records:
         rdmol.UpdatePropertyCache(strict=False)
     groups = {}
@@ -586,188 +556,3 @@ def _verify_current_implicit_hydrogens(rdmol, atom_facts):
                 f"{hydrogens.implicit_hydrogens}, derived "
                 f"{rdmol.GetAtomWithIdx(atom_index).GetNumImplicitHs()}"
             )
-
-
-def _rdkit_bond_type(bond):
-    kind_to_type = {
-        "zero": Chem.BondType.ZERO,
-        "single": Chem.BondType.SINGLE,
-        "double": Chem.BondType.DOUBLE,
-        "triple": Chem.BondType.TRIPLE,
-    }
-    if bond.bond_kind.value == "dative":
-        raw_type_name = bond.bond_source_metadata.get("raw_bond_type")
-        raw_type = (
-            getattr(Chem.BondType, raw_type_name, None)
-            if raw_type_name is not None
-            else None
-        )
-        if raw_type in _RDKIT_DATIVE_BOND_TYPES:
-            return raw_type
-        return Chem.BondType.DATIVE
-    if bond.bond_kind.value == "aromatic" or bond.is_aromatic:
-        return Chem.BondType.AROMATIC
-    if bond.bond_kind.value in kind_to_type:
-        return kind_to_type[bond.bond_kind.value]
-    return Chem.BondType.values[bond.bond_order]
-
-
-def _rdkit_bond_kind(bond_type, is_aromatic):
-    if is_aromatic or bond_type == Chem.BondType.AROMATIC:
-        return "aromatic"
-    if bond_type == Chem.BondType.ZERO:
-        return "zero"
-    if bond_type in _RDKIT_DATIVE_BOND_TYPES:
-        return "dative"
-    return {
-        Chem.BondType.SINGLE: "single",
-        Chem.BondType.DOUBLE: "double",
-        Chem.BondType.TRIPLE: "triple",
-    }.get(bond_type, "unknown")
-
-
-def to_rdmol(mol, kekulize: bool = True, sanitize: bool = False):
-    from .operations.chemistry import _require_aromatic_representation, _require_implicit_hydrogens
-    with mol._mutation_lock:
-        hydrogens = _require_implicit_hydrogens(mol)
-        _require_aromatic_representation(mol)
-        return _to_rdmol_prepared(mol, kekulize, sanitize, hydrogens)
-
-
-def _to_rdmol_prepared(mol, kekulize, sanitize, hydrogens):
-    rdmol = Chem.RWMol()
-    payload = _get_stereo_payload(mol)
-    atoms = mol.atoms
-    bonds = mol.bonds
-    _validate_payload_references(
-        payload,
-        len(atoms),
-        tuple((bond.atom1.idx, bond.atom2.idx) for bond in bonds),
-    )
-    atom_facts = _payload_atom_facts(payload, len(atoms))
-
-    # Create atoms in the molecule and set their properties
-    row_to_idx = {}
-    for i, atom in enumerate(atoms):
-
-        rda = Chem.Atom(atom.atomic_number)
-        rda.SetFormalCharge(atom.formal_charge)
-        atom_fact = atom_facts.get(i)
-        if atom_fact is None:
-            rda.SetNumExplicitHs(hydrogens[i])
-        else:
-            _apply_atom_fact(rda, atom_fact)
-        rda.SetDoubleProp('_GasteigerCharge', atom.partial_charge)
-        rda.SetIsAromatic(atom.is_aromatic)
-        rda.SetHybridization(_hphyb2rdkithyb[atom.hyb])
-
-        idx = rdmol.AddAtom(rda)
-        row_to_idx[i] = idx
-
-    conf = Chem.Conformer(len(atoms))
-    for i, (x, y, z) in enumerate(mol.coordinates):
-        conf.SetAtomPosition(i, Chem.rdGeometry.Point3D(x, y, z))
-    rdmol.AddConformer(conf)
-
-    for bond in bonds:
-        begin_atom_idx, end_atom_idx = bond.atom1.idx, bond.atom2.idx
-        if bond.bond_kind.value == "dative":
-            if bond.bond_direction is None:
-                raise ValueError(
-                    "RDKit dative-bond export requires a bond direction"
-                )
-            if bond.bond_direction == "atom2_to_atom1":
-                begin_atom_idx, end_atom_idx = end_atom_idx, begin_atom_idx
-            elif bond.bond_direction != "atom1_to_atom2":
-                raise ValueError(
-                    f"Unsupported dative-bond direction: {bond.bond_direction}"
-                )
-        rdmol.AddBond(
-            row_to_idx[begin_atom_idx],
-            row_to_idx[end_atom_idx],
-            _rdkit_bond_type(bond),
-        )
-
-    rdmol = rdmol.GetMol()
-    if kekulize:
-        Chem.Kekulize(rdmol)
-
-    if sanitize:
-        Chem.SanitizeMol(rdmol)
-
-    rdmol = Chem.RWMol(rdmol)
-    export_payload = _remap_stereo_transport(payload, row_to_idx)
-    _apply_stereo_payload(rdmol, export_payload)
-    _verify_current_implicit_hydrogens(
-        rdmol,
-        _payload_atom_facts(export_payload, len(atoms)),
-    )
-
-    return rdmol.GetMol()
-
-
-def from_rdmol(rdmol, mol):
-    """Populate a Hotpot molecule from an RDKit molecule."""
-    with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["rdkit"]):
-        if mol._atoms or mol._bonds or mol._hided_metal_bonds or mol._hided_covalent_bonds:
-            raise ValueError("Factual import requires an empty Atom and complete-Bond target")
-        initial = mol._capture_factual_record()[0]
-        rdmol = Chem.Mol(rdmol)
-        stereo_payload = _extract_stereo_payload(rdmol)
-        source_bond_metadata = {
-            bond.GetIdx(): {
-                "raw_bond_type": str(bond.GetBondType()),
-                "raw_bond_type_code": int(bond.GetBondType()),
-                "is_aromatic": bool(bond.GetIsAromatic()),
-                "is_conjugated": bool(bond.GetIsConjugated()),
-                "stereo": str(bond.GetStereo()),
-                "bond_dir": str(bond.GetBondDir()),
-            }
-            for bond in rdmol.GetBonds()
-        }
-        source_bond_types = {
-            bond.GetIdx(): bond.GetBondType()
-            for bond in rdmol.GetBonds()
-        }
-        Chem.Kekulize(rdmol)
-        conformer = rdmol.GetConformer() if rdmol.GetNumConformers() else None
-
-        atoms = tuple(rdmol.GetAtoms())
-        idx_to_row = {atom.GetIdx(): row for row, atom in enumerate(atoms)}
-        values = np.zeros((len(atoms), 19), dtype="<f8")
-        presence = np.zeros(len(atoms), dtype="<u4")
-        sources = np.zeros((len(atoms), 19), dtype="u1")
-        for row, atom in enumerate(atoms):
-            values[row, 0] = atom.GetAtomicNum()
-            values[row, 7] = atom.GetFormalCharge()
-            values[row, 9] = atom.GetIsAromatic()
-            values[row, 14] = atom.GetNumImplicitHs() + atom.GetNumExplicitHs()
-            supplied = [0, 7, 9, 14]
-            if atom.HasProp('_GasteigerCharge'):
-                values[row, 8] = atom.GetDoubleProp('_GasteigerCharge')
-                supplied.append(8)
-            if conformer is not None:
-                values[row, 10:13] = tuple(conformer.GetAtomPosition(atom.GetIdx()))
-                supplied.extend((10, 11, 12))
-            presence[row] = sum(FIELD_PRESENCE_BITS[index] for index in supplied)
-            sources[row, supplied] = ATOM_SOURCE_CODES["rdkit"]
-        bonds = tuple(rdmol.GetBonds())
-        raw_bonds = np.zeros((len(bonds), 3), dtype="<f8")
-        raw_bonds[:, 0] = [bond.GetBondTypeAsDouble() for bond in bonds]
-        record = replace(
-            initial, atom_count=len(atoms), atom_values=values.tobytes(),
-            atom_presence=presence.tobytes(), atom_sources=sources.tobytes(),
-            bond_endpoints=tuple((idx_to_row[bond.GetBeginAtomIdx()], idx_to_row[bond.GetEndAtomIdx()]) for bond in bonds),
-            bond_values=raw_bonds.tobytes(), bond_partitions=(0,) * len(bonds),
-            bond_kinds=tuple(_rdkit_bond_kind(source_bond_types[bond.GetIdx()],
-                             source_bond_metadata[bond.GetIdx()]["is_aromatic"]) for bond in bonds),
-            bond_aromatic=tuple(source_bond_metadata[bond.GetIdx()]['is_aromatic'] for bond in bonds),
-            bond_directions=tuple("atom1_to_atom2" if source_bond_types[bond.GetIdx()] in _RDKIT_DATIVE_BOND_TYPES
-                                  else None for bond in bonds),
-            bond_sources=("rdkit",) * len(bonds),
-            bond_metadata=tuple(_freeze_value(source_bond_metadata[bond.GetIdx()]) for bond in bonds),
-            charge=(True, Chem.GetFormalCharge(rdmol), "rdkit"),
-            stereo_payload=_remap_stereo_transport(stereo_payload, idx_to_row),
-            legacy_frame_values=(("none",),) * 9,
-        )
-        return mol._install_molecule(record)

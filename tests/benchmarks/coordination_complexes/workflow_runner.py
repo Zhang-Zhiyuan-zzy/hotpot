@@ -223,7 +223,7 @@ def _run_openbabel_ligand(
     from openbabel import openbabel as ob
 
     from hotpot.cheminfo import forcefields as ff
-    from hotpot.cheminfo.obconvert import extract_obmol_coordinates
+    from hotpot.cheminfo.adapters.openbabel.conversion import extract_obmol_coordinates
 
     obmol = ligand.to_obmol()
     previous_seed = os.environ.get("OB_RANDOM_SEED")

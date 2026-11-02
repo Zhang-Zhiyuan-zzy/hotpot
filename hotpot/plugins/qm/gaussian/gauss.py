@@ -21,7 +21,8 @@ import cclib
 import numpy as np
 import pandas as pd
 
-from hotpot.cheminfo._io._io import _extract_g16_thermo, _extract_force_matrix, MolReader
+from hotpot.cheminfo.adapters.io.formats.g16 import _extract_g16_thermo, _extract_force_matrix
+from hotpot.cheminfo.operations.io import MolReader
 
 root_dir = os.path.dirname(__file__)
 settings: dict = json.load(open(opj(root_dir, 'settings.json')))

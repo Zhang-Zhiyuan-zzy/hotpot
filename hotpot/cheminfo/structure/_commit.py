@@ -27,10 +27,9 @@ _DECLARATIONS = ("_charge_value", "_charge_present", "_charge_source",
 _FRAME_FIELDS = ("_coordinates", "_energy", "_partial_charge", "_spin_mult", "_gibbs",
                  "_force", "_zero_point", "_thermo", "_capacity")
 _TOPOLOGY_FIELDS = ("_atoms", "_bonds", "_hided_metal_bonds", "_hided_covalent_bonds",
-                    "_constraints", "_obmol", "_row2idx", "_crystal", "_pair_wiberg_bond_orders",
+                    "_constraints", "_crystal", "_pair_wiberg_bond_orders",
                     "identifier", "properties")
 _BOND_FIELDS = ("_bond_kind", "_bond_direction", "_bond_source", "_bond_source_metadata", "_is_aromatic")
-_CACHE_FIELDS = ("_obmol", "_row2idx")
 
 
 def _fact_engine():
@@ -107,7 +106,7 @@ class _FactTransaction:
 
     __slots__ = ("mol", "producer", "_joined", "_token", "_cells", "_statuses", "_seeds",
                  "_bonds", "_sparse", "_declarations", "_stereo", "_frames", "_topology",
-                 "_registrations", "_bond_membership", "_index_entries", "_cache_state", "_constraints", "_pair_values", "_failed")
+                 "_registrations", "_bond_membership", "_index_entries", "_constraints", "_pair_values", "_failed")
 
     def __init__(self, mol, *, producer):
         self.mol = mol
@@ -125,7 +124,6 @@ class _FactTransaction:
         self._registrations = None
         self._bond_membership = None
         self._index_entries = None
-        self._cache_state = None
         self._constraints = None
         self._pair_values = None
         self._failed = False
@@ -167,7 +165,6 @@ class _FactTransaction:
         self._declarations = self._frames = self._topology = None
         self._bond_membership = None
         self._index_entries = None
-        self._cache_state = None
         self._stereo = _UNCHANGED
         self._joined = self._token = None
 
@@ -223,18 +220,6 @@ class _FactTransaction:
             self._pair_values = []
         values = self.mol._pair_wiberg_bond_orders
         self._pair_values.append((values, key, values.get(key, _UNCHANGED)))
-
-    def touch_caches(self):
-        if self._topology is not None or self._cache_state is not None:
-            return
-        values = []
-        for name in _CACHE_FIELDS:
-            value = self.mol.__dict__[name]
-            contents = list(value) if isinstance(value, list) else dict(value) if isinstance(value, dict) else None
-            values.append((name, value, contents))
-        self._cache_state = tuple(values)
-        self.touch_frames()
-        self.touch_constraints()
 
     def touch_registration(self, atom):
         self.touch_index_entry(id(atom))
@@ -342,15 +327,6 @@ class _FactTransaction:
                 values.pop(key, None)
             else:
                 values[key] = previous
-        if self._cache_state is not None:
-            for name, value, contents in self._cache_state:
-                if contents is not None:
-                    if isinstance(value, list):
-                        value[:] = contents
-                    else:
-                        value.clear()
-                        value.update(contents)
-                _restore_fields(mol, ((name, value),))
 
 
 def _commit_atom_facts(mol, update):

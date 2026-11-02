@@ -213,16 +213,16 @@
     },
     "crystal": {
       "role": "independent cell value",
-      "owner": "structure/crystal; mathematics conversion and external adapter",
+      "owner": "hotpot.cheminfo.structure.crystal.Crystal; one rules.mathematics.cell helper; adapters.openbabel.crystal.to_obcell",
       "fact_or_dependencies": "One six-parameter value a,b,c,alpha,beta,gamma; remove mol/obcell/space_group/lattice_group/LatticeGroup per reviewed plan.",
       "shape_dtype_unit": "a/b/c use input length unit (carrier convention angstrom); angles degrees; alpha rows1/2,beta rows1/3,gamma rows2/3.",
       "presence_source": "Six constructor values are explicit; no new matrix property/setter.",
       "read_policy": "Retain constructor/from_matrix values and characterized convention; baseline six fields are ordinary writable attributes.",
-      "write_policy": "Final independent value permissions follow owning-stage review; no automatic new setter from mathematical invertibility.",
+      "write_policy": "Root S7A-P04 accepts six ordinary writable attributes in constructor order a,b,c,alpha,beta,gamma; no slots, frozen replacement or matrix setter.",
       "encode_decode": "Retain the exact existing constructor/field/enum order and only the codecs actually present in the bound source; no invented to_dict or schema normalization.",
       "operation": "Complete construction/from_matrix and Molecule.create_crystal replacement.",
       "invalidation_scope": "Independent old value has no Molecule dirty state; replacing host cell marks only cell dependencies.",
-      "lifecycle": "No Molecule back-reference or retained backend cell; baseline obcell builds a new OBUnitCell per read."
+      "lifecycle": "No Molecule back-reference or retained backend cell. Each explicit to_obcell projection returns a fresh independent external value; ordinary Molecule pickle extra arity6 remains with final None and unconditional legacy-slot ignore."
     },
     "bundle": {
       "role": "ordered collection of carrier handles",
@@ -265,14 +265,14 @@
     },
     "thermo": {
       "role": "caller-owned external result proxy",
-      "owner": "adapters; external Chemical/Thermo object",
+      "owner": "hotpot.cheminfo.operations.thermo.Thermo; external Chemical/RDKit/DataFrame leaves in adapters.thermo.chemical",
       "fact_or_dependencies": "get_thermo(temp=298.15,pressure=101325.0) and existing get_chem/mol_to_thermo.",
       "shape_dtype_unit": "All 181 declared properties plus existing __getattr__ forwarding; external field units retained.",
       "presence_source": "External library missing/unsupported behavior retained; proxy can contain executable external objects.",
       "read_policy": "Do not replace real broad interface with a small frozen README-derived record.",
       "write_policy": "Existing task proxy behavior retained; only selected pure values enter a separately typed persistent attachment.",
       "encode_decode": "Retain the exact existing constructor/field/enum order and only the codecs actually present in the bound source; no invented to_dict or schema normalization.",
-      "operation": "External thermo task invoked explicitly by get_thermo.",
+      "operation": "Molecule.get_thermo delegates to the sole operation-owned caller proxy. It preserves all carrier getter/fallback sequencing, ValueError-only fallbacks, repeated RD conversion work and existing final CID T=pressure/P=pressure conditions.",
       "invalidation_scope": "No carrier dirty state inside returned task proxy.",
       "lifecycle": "Not retained as Molecule state; returned external object remains caller-owned, not claimed immutable."
     },
@@ -4642,5 +4642,270 @@
     "duplicate_audit": "Existing atom_attr_matrix matches this semantic projection; directly rename it to atom_matrix, migrate consumers and retain one implementation with no old-name alias",
     "full_reread_evidence": ".plan20-artifacts/20261028/stage3/interface-review-read/read_manifest.json",
     "matrix_disposition_basis": "Later owner instruction: 同意新增但是需要改名…Molecule.atom_matrix…检验是否已经有同样事实，切勿重复. This resolves the earlier optional clarification using existing authorization; no new user reply is asserted."
+  },
+  "stage7a_owner_update": {
+    "recorded_local_date": "2026-10-31",
+    "status": "SETTLED_STAGE7A_SOURCE_AUTHORING_COMPLETE_CURRENT_BINDINGS_SYNCHRONIZED_SOURCE_READY_AND_RUNTIME_HELD",
+    "authority": [
+      {
+        "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/root_acceptance.json",
+        "bytes": 13357,
+        "sha256": "d686f0588a8729700f598de90447a493afdb28cc8761786cb43e85d632a52477"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/implementation_release.json",
+        "bytes": 8575,
+        "sha256": "68a6138a62cd7712ea0dd7738236551b48982c5b92bf514e4845e46e743eb581"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/connected_consumer_supplement.json",
+        "bytes": 38039,
+        "sha256": "51a9a67e9de3dd61c16ce83de0dd069b4d0c35cc3354db8ba5d063227180d728"
+      }
+    ],
+    "historical_index_policy": "Original Stage1 inventory hashes, type_groups, supplemental fields, source_schema_bindings and coverage counts remain frozen historical review evidence. This explicit current-owner overlay records the settled Stage7A moves and permitted effects; no historical source identity is rewritten.",
+    "prior_index_binding": {
+      "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/reviewed_interface_contracts.before-stage7a.json",
+      "bytes": 206563,
+      "sha256": "fed58150bb7b60fbbdf3b16988b87d012d66dd1b7d5e2a1a6e0f4221695e737f"
+    },
+    "class_moves": [
+      {
+        "historical": "hotpot.cheminfo.crystal.Crystal",
+        "actual_owner": "hotpot.cheminfo.structure.crystal.Crystal",
+        "contract": "crystal",
+        "initial_ordinary_fields": [
+          "a",
+          "b",
+          "c",
+          "alpha",
+          "beta",
+          "gamma"
+        ],
+        "removed_members": [
+          "mol",
+          "_obcell",
+          "obcell"
+        ],
+        "public_export": "hotpot.Crystal and hotpot.cheminfo.Crystal point to this sole actual definition",
+        "legacy_module_shim": false
+      },
+      {
+        "historical": "hotpot.cheminfo.call_thermo.Thermo",
+        "actual_owner": "hotpot.cheminfo.operations.thermo.Thermo",
+        "contract": "thermo",
+        "declared_forwarding_names": 181,
+        "forwarding_scope": "Unrestricted existing __getattr__; returned proxy may retain caller mol and executable external values. The Molecule retains no Thermo instance.",
+        "legacy_module_shim": false
+      },
+      {
+        "historical": "hotpot.cheminfo._io._io.IoBase",
+        "actual_owner": "hotpot.cheminfo.adapters.io.base.IoBase",
+        "contract": "resource_task",
+        "scope": "Input type/format/resource mechanics; no carrier installation or callbacks."
+      },
+      {
+        "historical": "hotpot.cheminfo._io._io.MolReader",
+        "actual_owner": "hotpot.cheminfo.operations.io.MolReader",
+        "contract": "resource_task",
+        "public_export": "Existing root/cheminfo public name points to sole operation definition."
+      },
+      {
+        "historical": "hotpot.cheminfo._io._io.MolWriter",
+        "actual_owner": "hotpot.cheminfo.operations.io.MolWriter",
+        "contract": "resource_task",
+        "public_export": "Existing root/cheminfo public name points to sole operation definition."
+      }
+    ],
+    "function_owners": {
+      "conversion": "operations.conversion owns supported-object dispatch, carrier preparation, capture, target validation/remap/install and external task-value conveniences; adapters.conversion classifies real supported external types.",
+      "read_mol": "operations.io; single operation-owned Reader/Writer/plugin registry with prepared input/format adapter leaves.",
+      "atom_idx_pair_to_bond_idx": "operations.topology_queries; exact original body with only its accepted Molecule annotation quote.",
+      "drawing_entries": "operations.visualization.draw_single_mol/draw_grid/_load_rdmol; input branch priority, two smiles accesses and per-item preparation preserved.",
+      "drawing_utilities": "adapters.visualization.draw; prepared external rendering/colors/formats and packaged resource lifetime.",
+      "rdkit_stereo_transport": "adapters.rdkit.stereo_transport.py is the sole exact transport owner; no sibling stereo.py or old-module alias."
+    },
+    "finite_contract_effects": [
+      "P02: only the frozen24 annotation/global namespace effects are accepted; actual recursive signatures/default hints/explicit namespaces remain candidate measurements, including Python3.14.",
+      "P03: captured primitive export rows preserve original lazy/preflight/container order; two exact injected carrier-read exceptions can precede earlier per-atom backend exceptions. Completed preparation is retained.",
+      "P04: six-slot Molecule extra-state envelope writes None in final non-owning slot and always ignores old/current final contents; same-version old cell pickle cold restore remains required.",
+      "P05: first-relevant-use optional import/logging/version timing is accepted; required missing dependencies retain their actual exception class at named use/import boundaries.",
+      "A09: drawing MolFromSMiles spelling changes only to MolFromSmiles; preserve the recorded baseline failures.",
+      "A10: SDF text reader retains one-record behavior; separate file-path reader preserves complete frame cardinality."
+    ],
+    "source_symbol_and_annotation_manifest": {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/contracts/evidence.json",
+      "bytes": 527577,
+      "sha256": "65854772d9fd0aa2834b243486232b8d1a5ec2449cffe1c4aec9358aca0e3d90"
+    },
+    "temporary_real_class_lookup": "Only operations.conversion._molecule_type locally imports actual core.Molecule until Stage9; its exact debt relocation and unchanged strict architecture gates are separately recorded.",
+    "budget_effect": "Moves introduce no public result DTO/dataclass/Protocol/enum or native ABI schema and receive zero semantic retirement credit. LatticeGroup is an earlier retirement, not a new Stage7A count reduction.",
+    "affected_selection": {
+      "files_per_source_and_installed_context": 211,
+      "versions": [
+        "3.10",
+        "3.11",
+        "3.12",
+        "3.13",
+        "3.14"
+      ],
+      "qualification": "Original175 plus36 dataset consumers without drops; source-reading nodes, actual import origins and applicable native tiers are separately qualified."
+    },
+    "candidate_runtime_authorized": false,
+    "stage_gate_closed": false,
+    "global_gate_closed": false,
+    "prior_source_symbol_and_annotation_manifest_checkpoint": {
+      "recorded_binding": {
+        "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/contracts/evidence.json",
+        "bytes": 509634,
+        "sha256": "8eed55086981a986dbfd745327137b7aa5412f4bfed11173d07145cb2fa25759"
+      },
+      "preserved_bytes": {
+        "path": "/tmp/plan20-stage7a-core-implementation-20261031/accepted-document-checkpoint/evidence.json",
+        "bytes": 509634,
+        "sha256": "8eed55086981a986dbfd745327137b7aa5412f4bfed11173d07145cb2fa25759"
+      },
+      "qualification": "Historical root-accepted pre-production checkpoint remains immutable; only the current-owner overlay pointer is advanced."
+    },
+    "settled_static_source_checkpoint": {
+      "kind": "EXISTING_ROOT_STATIC_RESULTS_READ_AND_BOUND_NO_CHECKER_RERUN",
+      "primary_handoff": {
+        "review": {
+          "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/final-primary-handoff-review.json",
+          "bytes": 6038,
+          "sha256": "be002a4e1acdba94bfed805be28c5403a9cf2e3104c41b7dccf938022a909252"
+        },
+        "matched_files": 18,
+        "matched_deleted_paths": 7,
+        "matched_checker_and_report": 2,
+        "qualification": "Root matched the final author checkpoint before this record-only append; source and contract bytes remain the bound checkpoint, while the old log bytes are preserved in this task before-manifest."
+      },
+      "architecture": {
+        "review": {
+          "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/final-architecture-review.json",
+          "bytes": 532,
+          "sha256": "f24a238d59fbaa605db54b9f017b3a99ba61766edc5f88c4ee69823e1c2e4e9f"
+        },
+        "scanned_python_files": 922,
+        "remaining_debt": 235,
+        "new_debt": 0,
+        "unretired_allowlist_entries": 0,
+        "allowlist_growth": 0,
+        "exceeds_frozen_inventory": 0,
+        "layer_findings": 0,
+        "carrier_definition_findings": 0,
+        "allowlist_integration": {
+          "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/allowlist-integration.json",
+          "bytes": 622,
+          "sha256": "24f3abf7a6db9411a1b82c581a884b9ef8ac12ebad6d9a254a24d181c5b6f64f"
+        },
+        "before_debt_rows": 256,
+        "after_debt_rows": 235,
+        "removed_old_rows": 22,
+        "relocated_lookup_slots": 1,
+        "net_debt_reduction": 21,
+        "qualification": "One original convert lookup moves to operations.conversion::_molecule_type as Stage9 debt; no historical baseline inventory or acceptance criterion is rewritten."
+      },
+      "consumers": {
+        "initial_review": {
+          "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/final-consumer-review.json",
+          "bytes": 176200,
+          "sha256": "0df70845b3c700b036c1beee774af9504d6fc89873b02c3617a194886dcd2997"
+        },
+        "initial_obsolete_explicit_imports": [
+          {
+            "path": "examples/BayesianDesign/plots/cbond_combine.py",
+            "line": 20,
+            "module": "hotpot.cheminfo.draw"
+          },
+          {
+            "path": "examples/ChineseMedical/analysis.py",
+            "line": 31,
+            "module": "hotpot.cheminfo.draw"
+          },
+          {
+            "path": "examples/mol_assemble/xjz/fenzizuzhuang.py",
+            "line": 4,
+            "module": "hotpot.cheminfo.draw"
+          }
+        ],
+        "root_correction": {
+          "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/consumer-correction/changes.json",
+          "bytes": 1267,
+          "sha256": "fe64f926534da7f37a62b0cb1fa16f145ec16cf96b56ae6d23b55f7821c1de2a"
+        },
+        "final_review": {
+          "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/consumer-correction/final-consumer-review.json",
+          "bytes": 175812,
+          "sha256": "c6d81042f9552bdd8fb3d5e1af4149c77d911ed188550b17a9529d5648dc1bb8"
+        },
+        "files_parsed_or_attempted": 970,
+        "obsolete_explicit_imports": 0,
+        "obsolete_literal_dynamic_imports": 0,
+        "production_obsolete_path_literals": 0,
+        "production_cache_references": 0,
+        "syntax_errors": 0,
+        "qualification": [
+          "AST resolution covers explicit and absolute literal dynamic imports; arbitrary dynamic aliases/external callers are not proven absent.",
+          "Production string-path checks are discovery records and require disposition of any historical text.",
+          "Tests may mention removed cache names to assert absence; those strings are not production storage.",
+          "No project import, pytest collection/tests, native or scientific execution occurs."
+        ]
+      },
+      "new_contract_tests": {
+        "review": {
+          "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/new-contract-test-review.json",
+          "bytes": 3435,
+          "sha256": "97bb73730ecbe9ed74ef09af526adbe4b823274d67c7c39fda27b267ebd3dfae"
+        },
+        "authoring_handoff": {
+          "path": ".plan20-artifacts/20261030/stage7a/validation-preparation/attempt6/handoff.json",
+          "bytes": 4809,
+          "sha256": "788915057e2d9be0dd7150a77decbd073d262fe15d32700f53113a593bacde58"
+        },
+        "created_files": 6,
+        "test_function_declarations": 33,
+        "count_kind": "AST_DECLARATIONS_FROM_EXISTING_ROOT_REVIEW_NOT_COLLECTED_NODES_OR_PARAMETER_COUNTS",
+        "collected": false,
+        "executed": false
+      },
+      "drawing_checker_correction": {
+        "original_final3": {
+          "path": ".plan20-artifacts/20261030/stage7a/validation-preparation/attempt6/static-review-final3.json",
+          "bytes": 18288,
+          "sha256": "a5a61aa19ec992679142243ac65e3c17e77f233538785f42d88d0da64b8ffed6"
+        },
+        "corrected_final4": {
+          "path": ".plan20-artifacts/20261030/stage7a/validation-preparation/attempt6/static-review-final4.json",
+          "bytes": 2768,
+          "sha256": "e8c7da4d706a03af4cd81a2a5f75284b975f33f11c4f616c860cd75c4ca7715a"
+        },
+        "same_correction_record": {
+          "path": ".plan20-artifacts/20261030/stage7a/validation-preparation/attempt6/correction.json",
+          "bytes": 2768,
+          "sha256": "e8c7da4d706a03af4cd81a2a5f75284b975f33f11c4f616c860cd75c4ca7715a"
+        },
+        "disposition": "Final4 withdraws only the final3/sealed handoff undefined _draw._is_rdmol finding. Actual calls use isinstance(mol_in, _draw._rdmol_type()); both call sites resolve to the existing definition.",
+        "production_or_tests_fixed_for_this_finding": false,
+        "project_import_or_runtime_executed": false
+      },
+      "external_owner_review": {
+        "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/external-review.json",
+        "bytes": 3886,
+        "sha256": "3e6111e96cfd1468bf1a4a664464642353da4614f44e74d17b5ad52a6be6f88f"
+      },
+      "source_ready_status": "HOLD_ROOT_FINAL_BYTE_IDENTITY_FREEZE_REQUIRED",
+      "candidate_execution_status": "HOLD_EXACT_RUNTIME_RELEASE_REQUIRED",
+      "candidate_runtime_authorized": false,
+      "stage_gate_closed": false,
+      "global_gate_closed": false,
+      "limits": [
+        "Existing static source/AST/text/hash and declaration records only; this synchronization runs no audit/checker, project import, pytest collection/test, build, native/model/scientific or performance workload.",
+        "Static authoring completion does not close source-ready, installed-wheel/native/reflection/cold/resource/pickle/P03/complete cost/full retention/native-memory or global gates.",
+        "Final211-file source/installed3.10–3.14 membership is preserved, including all36 dataset tests. No Stage13 experiment or certificate acceptance is authorized."
+      ]
+    },
+    "source_ready_status": "HOLD_ROOT_FINAL_BYTE_IDENTITY_FREEZE_REQUIRED",
+    "candidate_execution_status": "HOLD_EXACT_RUNTIME_RELEASE_REQUIRED"
   }
 }

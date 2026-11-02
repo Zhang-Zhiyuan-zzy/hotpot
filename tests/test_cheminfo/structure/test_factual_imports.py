@@ -11,7 +11,7 @@ from openbabel import openbabel as ob
 from rdkit import Chem
 
 from hotpot import Atom, Molecule
-from hotpot.cheminfo import obconvert, rdconvert
+from hotpot.cheminfo.operations import conversion
 
 core = importlib.import_module(Molecule.__module__)
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX, FIELD_PRESENCE_BITS
@@ -27,8 +27,8 @@ def _obmol():
     return value
 
 
-@pytest.mark.parametrize('convert,source', [(obconvert.obmol2mol, _obmol),
-                                         (rdconvert.from_rdmol, lambda: Chem.MolFromSmiles('CO'))])
+@pytest.mark.parametrize('convert,source', [(conversion.obmol2mol, _obmol),
+                                         (conversion.from_rdmol, lambda: Chem.MolFromSmiles('CO'))])
 def test_converter_uses_same_target_and_one_topology_build_without_public_setters(monkeypatch, convert, source):
     target = Molecule()
     token, lock = target._owner_token, target._mutation_lock
@@ -51,7 +51,7 @@ def test_converter_uses_same_target_and_one_topology_build_without_public_setter
     assert target.bonds[0]._uid == 11
 
 
-@pytest.mark.parametrize('convert', [obconvert.obmol2mol, rdconvert.from_rdmol])
+@pytest.mark.parametrize('convert', [conversion.obmol2mol, conversion.from_rdmol])
 @pytest.mark.parametrize('partition', ['atom', 'hidden_metal', 'hidden_covalent'])
 def test_nonempty_converter_target_is_rejected_before_source_access_and_mutation(convert, partition):
     target = Molecule()
@@ -70,7 +70,7 @@ def test_nonempty_converter_target_is_rejected_before_source_access_and_mutation
 def test_rdkit_presence_distinguishes_absent_coordinates_partial_charge_and_supplied_zero():
     source = Chem.MolFromSmiles('CO')
     source.GetAtomWithIdx(0).SetDoubleProp('_GasteigerCharge', 0.)
-    mol = rdconvert.from_rdmol(source, Molecule())
+    mol = conversion.from_rdmol(source, Molecule())
     masks, codes = mol._atom_table.presence(), mol._atom_table.sources()
     assert masks[0] & FIELD_PRESENCE_BITS[FIELD_INDEX['partial_charge']]
     assert not masks[1] & FIELD_PRESENCE_BITS[FIELD_INDEX['partial_charge']]
@@ -85,8 +85,8 @@ def test_rdkit_presence_distinguishes_absent_coordinates_partial_charge_and_supp
 
 
 @pytest.mark.parametrize('convert,source,keeps_stereo', [
-    (obconvert.obmol2mol, _obmol, True),
-    (rdconvert.from_rdmol, Chem.Mol, False),
+    (conversion.obmol2mol, _obmol, True),
+    (conversion.from_rdmol, Chem.Mol, False),
 ])
 def test_empty_preconfigured_target_preserves_cell_spin_identifier_and_clears_all_frames(convert, source, keeps_stereo):
     target = Molecule()
@@ -114,13 +114,14 @@ def test_failed_decoder_install_restores_preconfigured_empty_target(monkeypatch)
         raise RuntimeError('frame publication')
     monkeypatch.setattr(Molecule, '_install_frame_state', fail)
     with pytest.raises(RuntimeError, match='frame publication'):
-        rdconvert.from_rdmol(Chem.MolFromSmiles('CO'), target)
+        conversion.from_rdmol(Chem.MolFromSmiles('CO'), target)
     assert not target.atoms and not target.bonds and target.charge == 5
     assert target._next_atom_uid == 2 and target._next_bond_uid == 1
 
 
 def test_cclib_prepares_all_nine_frames_units_and_last_coordinates_before_science(monkeypatch):
-    from hotpot.cheminfo._io import _io
+    from hotpot.cheminfo.operations import io as io_operation
+    from hotpot.cheminfo.adapters.io.formats import g16
     coordinates = np.arange(12.).reshape(2, 2, 3)
     energies = np.array([-10., -11.])
     charges = np.array([-0.25, 0.25])
@@ -129,8 +130,8 @@ def test_cclib_prepares_all_nine_frames_units_and_last_coordinates_before_scienc
         scfenergies=energies, atomcharges={'mulliken': charges},
         charge=0, mult=3, freeenergy=-1.25, zpve=0.125)
     monkeypatch.setitem(sys.modules, 'cclib', SimpleNamespace(ccopen=lambda value: SimpleNamespace(parse=lambda: data)))
-    monkeypatch.setattr(_io, '_extract_g16_thermo', lambda lines: (0.75, 0.25))
-    monkeypatch.setattr(_io, '_extract_force_matrix', lambda lines, numbers: forces)
+    monkeypatch.setattr(g16, '_extract_g16_thermo', lambda lines: (0.75, 0.25))
+    monkeypatch.setattr(g16, '_extract_force_matrix', lambda lines, numbers: forces)
     events = []
     def science(name):
         def observe(mol, *args, **kwargs):
@@ -144,7 +145,7 @@ def test_cclib_prepares_all_nine_frames_units_and_last_coordinates_before_scienc
         return observe
     for name in ('link_atoms', 'determine_rings_aromatic', 'assign_bond_order', 'calc_atom_valence'):
         monkeypatch.setattr(Molecule, name, science(name))
-    reader = object.__new__(_io.MolReader)
+    reader = object.__new__(io_operation.MolReader)
     reader.src, reader.src_type, reader.fmt = 'fake quantum output', 'str', 'log'
     mol = next(reader._cclib_read())
     assert events == ['link_atoms', 'determine_rings_aromatic', 'assign_bond_order', 'calc_atom_valence']
@@ -205,8 +206,7 @@ def test_ccdc_fake_boundary_uses_atoms_collection_returns_carrier_and_installs_n
 
 
 def test_g16_prewrite_rolls_back_chemical_stores_if_charge_calculation_fails(monkeypatch):
-    from hotpot.cheminfo._io import g16
-    from hotpot.cheminfo._io._io import MolWriter
+    from hotpot.cheminfo.operations.io import MolWriter
     to_gjf_preprocess = MolWriter._plugins["gjf"]["pre"]
     mol = Molecule()
     mol.create_atom(atomic_number=6)

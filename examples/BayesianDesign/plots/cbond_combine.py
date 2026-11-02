@@ -17,7 +17,7 @@ from typing import Iterable, Any, Union
 from itertools import combinations, chain
 
 import hotpot as hp
-from hotpot.cheminfo import draw
+from hotpot.cheminfo.operations.visualization import draw_grid
 
 
 def _full_combinations(
@@ -60,7 +60,7 @@ def main():
         # Assign the pair identifier
         clone.identifier = f'C{len(list_catoms_index)}_{len(chosen_catoms)}_{i}'
 
-    draw.draw_grid(list(smiles_set), save_path='/mnt/d/zhang/OneDrive/Desktop/comb_mol.svg', n_cols=3)
+    draw_grid(list(smiles_set), save_path='/mnt/d/zhang/OneDrive/Desktop/comb_mol.svg', n_cols=3)
 
 
 if __name__ == '__main__':

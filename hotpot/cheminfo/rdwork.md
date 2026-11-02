@@ -181,9 +181,9 @@ atom_scores = assign_fp_values_atoms(
    ```python
    atom_values = assign_fp_values_atoms(mols[0], shap_values[0], bits, bit_info[0])
    ```
-4. **Visualization (with `hotpot.cheminfo.draw`):**
+4. **Visualization (with `hotpot.cheminfo.operations.visualization`):**
    ```python
-   from hotpot.cheminfo.draw import draw_single_mol
+   from hotpot.cheminfo.operations.visualization import draw_single_mol
    draw_single_mol(mols[0], atom_hl_values=atom_values, colorbar=True)
    ```
 

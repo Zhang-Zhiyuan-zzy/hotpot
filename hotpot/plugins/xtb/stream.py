@@ -10,7 +10,7 @@ import re
 from dataclasses import dataclass
 from typing import Dict, Iterable, List, Optional, Tuple
 
-from hotpot.cheminfo._io import MolReader
+from hotpot.cheminfo.operations.io import MolReader
 from hotpot.cheminfo.calculator.contracts import MolecularFactsIdentity
 from hotpot.cheminfo.calculator.state_composition import ScientificStateIdentity
 from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts

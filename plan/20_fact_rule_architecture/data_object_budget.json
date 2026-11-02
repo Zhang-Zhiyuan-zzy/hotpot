@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage5 independent known-input checkpoint: actual +2 dataclasses and -5 protocols, net -3 classes since Stage4; no final Stage5, scientific or performance acceptance",
+  "status": "Stage0–6 owning-stage gates complete; Stage7A static integration checkpoint retains777 classes/354 dataclasses/8 Protocols/2 TypedDicts with five zero-credit owner moves and no new type. Stage7A candidate runtime and all remaining stage/global scientific/performance gates remain open.",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -13,7 +13,7 @@
     "alias_caveat": "Zero explicit TypeAlias syntax does not establish zero implicit aliases."
   },
   "measured_delta": {
-    "new_dataclasses": 6,
+    "new_dataclasses": 7,
     "retired_dataclasses": 0,
     "new_protocols": 0,
     "new_typed_dicts": 0,
@@ -143,6 +143,18 @@
         ],
         "verification": "stages/stage05/rules_checkpoint_evidence.json",
         "status": "implemented known-input checkpoint; final Stage5 gates open"
+      },
+      {
+        "symbol": "hotpot.cheminfo.structure.snapshots._StereoSnapshot",
+        "reservation": "N09",
+        "stage": "Stage6",
+        "fields": [
+          "payload",
+          "atom_keys",
+          "bonds"
+        ],
+        "verification": "stages/stage06/bookkeeping/evidence.json and stages/stage06/gates/evidence.json",
+        "counting_effect": "One class/dataclass addition already present in accepted Stage6 current counts; Stage7A records this existing addition in the cumulative delta. No new Stage7A type."
       }
     ],
     "new_enums": 1,
@@ -281,7 +293,8 @@
         "verification": "stages/stage05/rules_checkpoint_evidence.json",
         "scope": "Retired isolated aromaticity protocols; no replacement generic protocol created"
       }
-    ]
+    ],
+    "stage6_synchronization": "The historical Stage5 six-addition checkpoint is preserved in the bound before-stage7a copy. Accepted Stage6 added exactly N09 within cap1; cumulative new dataclasses is7 and current347+7=354. All other historical delta fields remain unchanged."
   },
   "consolidation_budget": [
     {
@@ -528,7 +541,7 @@
       "stage": "Stage6",
       "dataclass_upper_bound": 1,
       "responsibility": "One carrier-free frozen read capture with exactly payload: StereoPayload, atom_keys: tuple[int, ...], bonds: tuple[tuple[int, int, float, str, str | None], ...], in that order. Consumers: structure capture adapter, pure stereo graph/validation/assignment/alignment and stereo operation. Source binding and strong identity-key referents remain operation-local; no fourth field, StereoUpdate wrapper or duplicate reservation.",
-      "status": "Implemented within cap1 on 2026-10-30; exact three-field frozen source capture passes static ownership/census review. Runtime/primary-review/Stage6 gates remain open.",
+      "status": "Stage6 owning-stage static/runtime/bounded-cost evidence accepted at C61 and delivered C62; sole frozen three-field snapshot remains within cap1. Stage7E canonical-storage and final global gates remain open.",
       "actual_symbol": "hotpot.cheminfo.structure.snapshots._StereoSnapshot",
       "commit": null,
       "verification": "stages/stage06/bookkeeping/evidence.json",
@@ -554,7 +567,8 @@
           "annotation": "tuple[tuple[int, int, float, str, str | None], ...]"
         }
       ],
-      "semantic_retirement_credit": 0
+      "semantic_retirement_credit": 0,
+      "accepted_stage_gate": "stages/stage06/gates/evidence.json"
     },
     {
       "id": "N10",
@@ -799,7 +813,7 @@
     "dataclasses": 354,
     "protocols": 8,
     "typed_dicts": 2,
-    "method": "Exact baseline capture_baseline_inventory.py leaf/CONTRACT_MARKERS ClassDef census. Stage5 776/353/8/2 -> Stage6 777/354/8/2; exactly one N09 class/dataclass added. Existing stereo class relocations receive zero retirement credit. Original direct generic-subscript marker behavior remains unchanged. Static source counts only; no runtime validation.",
+    "method": "Exact original static_capture ClassDef/leaf/CONTRACT_MARKERS production census. Stage6 and current Stage7A integration both777/354/8/2; exactly five existing class owner moves, zero additions/deletions and zero semantic retirement credit. Original direct generic-subscript marker behavior remains unchanged. Static source only.",
     "native_struct_candidates": 171,
     "native_struct_candidate_method": {
       "baseline": 164,
@@ -811,7 +825,7 @@
     },
     "new_fact_native_actual_struct_definitions": 14,
     "new_fact_native_actual_enum_definitions": 1,
-    "verification": "stages/stage06/bookkeeping/evidence.json; raw .plan20-artifacts/20261030/stage6/bookkeeping-attempt1/census.json",
+    "verification": "stages/stage07/external-adapters/bookkeeping/evidence.json; raw .plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/class-census.json",
     "stage5_native_scope": "Readonly carrier dispatch plus configured DERIVED_FIELDS rejection at native ingress/preparation; existing Field gains immutable configuration metadata, with no new class/struct/enum or exported ABI. Corrected source awaits five fresh ABI builds and runtime evidence.",
     "stage5_native_source": {
       "path": "hotpot/cheminfo/structure/_native/facts.cpp",
@@ -820,5 +834,67 @@
       "verification": "stages/stage05/storage-ingress-review/evidence.json; static only at this checkpoint"
     },
     "stage6_native_counts": "Existing171native-struct candidate count and14fact-native actual definitions are retained historical Stage5 evidence, not rerun by this Python-only census. Stage6 permits no native/build/schema edit; final strict142/native-byte comparison remains SOURCE_READY-gated."
+  },
+  "stage7a_bookkeeping": {
+    "recorded_local_date": "2026-10-31",
+    "authority": {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/implementation_release.json",
+      "bytes": 8575,
+      "sha256": "68a6138a62cd7712ea0dd7738236551b48982c5b92bf514e4845e46e743eb581"
+    },
+    "previous_budget": {
+      "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/data_object_budget.before-stage7a.json",
+      "bytes": 33185,
+      "sha256": "40b1e3a1c0b605efacaa43b76c2138151459a0ea913d64c209a674b4e0e3f571"
+    },
+    "current_census": {
+      "path": ".plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/class-census.json",
+      "bytes": 154944,
+      "sha256": "4b65e19142bf775f5ed10ac0e9a7f1497cb7a68e8b039b927baf5631373d92d6"
+    },
+    "current_counts": {
+      "all_python_classes": 777,
+      "dataclasses": 354,
+      "protocols": 8,
+      "typed_dicts": 2
+    },
+    "delta_since_stage6": {
+      "all_python_classes": 0,
+      "dataclasses": 0,
+      "protocols": 0,
+      "typed_dicts": 0
+    },
+    "class_moves": [
+      {
+        "from": "hotpot.cheminfo._io._io.IoBase",
+        "to": "hotpot.cheminfo.adapters.io.base.IoBase",
+        "semantic_retirement_credit": 0
+      },
+      {
+        "from": "hotpot.cheminfo._io._io.MolReader",
+        "to": "hotpot.cheminfo.operations.io.MolReader",
+        "semantic_retirement_credit": 0
+      },
+      {
+        "from": "hotpot.cheminfo._io._io.MolWriter",
+        "to": "hotpot.cheminfo.operations.io.MolWriter",
+        "semantic_retirement_credit": 0
+      },
+      {
+        "from": "hotpot.cheminfo.call_thermo.Thermo",
+        "to": "hotpot.cheminfo.operations.thermo.Thermo",
+        "semantic_retirement_credit": 0
+      },
+      {
+        "from": "hotpot.cheminfo.crystal.Crystal",
+        "to": "hotpot.cheminfo.structure.crystal.Crystal",
+        "semantic_retirement_credit": 0
+      }
+    ],
+    "new_DTO_dataclass_Protocol_enum_or_native_ABI_schema": 0,
+    "semantic_retirement_credit": 0,
+    "historical_placeholder_note": "LatticeGroup and ob2chem removals occurred before this stage and receive no Stage7A deletion credit.",
+    "source_status": "Integration checkpoint; final source/runtime/wheel bindings and validation remain held pending SOURCE_READY.",
+    "remaining": "Stage7E zero-new-type canonical stereo storage, later family consolidations and whole-plan global gates remain mandatory."
   }
 }

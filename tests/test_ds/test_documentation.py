@@ -7,11 +7,12 @@ from hotpot.ds.cli import load_cli_documentation
 
 
 ROOT = Path(__file__).resolve().parents[2]
-API_DOCUMENTATION = ROOT / "hotpot" / "ds" / "README.md"
-CLI_DOCUMENTATION = ROOT / "hotpot" / "ds" / "cli_doc.md"
-DATASET_DOCUMENTATION = ROOT / "hotpot" / "dataset" / "README.md"
+PACKAGE_ROOT = Path(ds.__file__).resolve().parents[1]
+API_DOCUMENTATION = PACKAGE_ROOT / "ds" / "README.md"
+CLI_DOCUMENTATION = PACKAGE_ROOT / "ds" / "cli_doc.md"
+DATASET_DOCUMENTATION = PACKAGE_ROOT / "dataset" / "README.md"
 RECORD_STANDARD = (
-    ROOT / "hotpot" / "dataset" / "schemas" / "record-standard.json"
+    PACKAGE_ROOT / "dataset" / "schemas" / "record-standard.json"
 )
 PUBLIC_API = [
     "datasets_list",
@@ -160,12 +161,12 @@ def test_record_standard_is_the_current_case_level_information_fence() -> None:
     serialized = json.dumps(standard, ensure_ascii=False, sort_keys=True)
     manifest_schema = json.loads(
         (
-            ROOT / "hotpot" / "ds" / "schemas" / "bundle" / "manifest.schema.json"
+            PACKAGE_ROOT / "ds" / "schemas" / "bundle" / "manifest.schema.json"
         ).read_text(encoding="utf-8")
     )
     case_schema = json.loads(
         (
-            ROOT / "hotpot" / "ds" / "schemas" / "bundle" / "case.schema.json"
+            PACKAGE_ROOT / "ds" / "schemas" / "bundle" / "case.schema.json"
         ).read_text(encoding="utf-8")
     )
 

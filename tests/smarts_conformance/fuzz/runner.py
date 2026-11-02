@@ -13,7 +13,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Dict, Iterable, Optional, Tuple
 
-from hotpot.cheminfo.core_utils import read_mol
+from hotpot.cheminfo.operations.io import read_mol
 from hotpot.cheminfo.search.search import Searcher, Substructure
 
 from .generators import (

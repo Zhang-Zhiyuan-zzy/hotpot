@@ -620,10 +620,10 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
         for name, value in original_conformer_state.items()
     )
     assert molecule._conformers_index == original_conformer_index
-    assert molecule._row2idx is None
+    assert "_row2idx" not in molecule.__dict__
     assert molecule._constraints is original_constraints
     assert not {'_angles', '_torsions'}.intersection(molecule.__dict__)
     assert tuple((ring.atoms, ring.bonds) for ring in molecule.rings) == original_rings
     assert tuple((ring.atoms, ring.bonds) for ring in molecule.ligand_rings) == original_ligand_rings
     assert not {'_rings', '_ring_indices_cache', '_ligand_rings', '_ligand_rings_signature'}.intersection(molecule.__dict__)
-    assert molecule._obmol is None
+    assert "_obmol" not in molecule.__dict__

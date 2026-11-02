@@ -1,0 +1,772 @@
+# Stage7A external-object and adapter contract proposal
+
+Authored: 2026-10-30. Updated: 2026-10-31 (Asia/Shanghai). Owner: assigned GPT-6.1 Sol/max. Status:
+**DESIGN_ROOT_ACCEPTED; BOUNDED_IMPLEMENTATION_AND_TEST_AUTHORING_RELEASED; CANDIDATE_RUNTIME_HELD**.
+The [entry](../entry_review.json) and preserved original freeze retain their historical
+bounded-design authority. [Root acceptance](../root_acceptance.json) now accepts
+P02–P06 and P07 actual-owner seams; P07 future exact probe bytes still require
+release. [Exclusive implementation](../implementation_release.json) and
+[six-test/probe authoring](../test_authoring_release.json) govern current writers.
+The [decisions](decisions.md) and [evidence](evidence.json) bind exact effects and
+qualified baselines. This document checkpoint uses stdlib checks only; candidate
+project imports, collection/tests/builds and runtime await integration/SOURCE_READY.
+Root separately released twelve C61 preservation observations; their scope and
+failures are recorded below, not presented as candidate validation.
+
+## 1. Governing boundary and necessary root decision
+
+Stage6 is complete at C61 production source
+`d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a`, with C62 records
+`aeb72d0b97fb1c2e50df86a057c31585a2e34e0c` delivered and remote-verified.
+The Stage7A work removes carrier toolkit storage and migrates conversion,
+I/O, Crystal, Thermo and visualization owners. Stage5 H/aromatic semantics,
+Stage6 stereo/native transport, existing native sessions and all scientific
+algorithms remain protected. Stage7B–7E and Stage8 onward remain outside this
+release. Stage7E canonical stereo storage is mandatory before Stage8/global
+ownership acceptance. Stage10 clean-native/ABI/SDK/sdist, global Section12,
+Plan12/scientific/hardware acceptance and B_exp before Stage13A/B remain open.
+
+The full current main plan, goal, four normative companions and both governance
+references were read; current Stage1/5/6 decisions and integrated requirements
+were reconciled with affected source owners. The existing post-Stage6 rebind and
+lookup are reused, rather than repeated as another inventory or review.
+
+**S7A-P01 is root-accepted architecture clarification; production remains held.** Section6.1 says adapters return
+transport/assignment values and internal imports never go upward through facades.
+Sections9.2/9.6 label conversion dispatch and the single MolReader/MolWriter/
+read_mol implementation as adapter owners; the Thermo/drawing rows likewise mix
+carrier orchestration with external work. Today those APIs also allocate and
+install carriers or execute chemistry. Moving those bodies verbatim into
+adapters would retain an adapter-to-operation dependency or private carrier
+writes. This proposal assigns their carrier-producing/mutating entry points to
+`operations/conversion.py`, `operations/io.py`, `operations/thermo.py` and
+`operations/visualization.py`; adapter leaves own supported object classification,
+external extraction, serialization, format handlers and prepared-value rendering.
+The sole caller-owned Thermo class belongs to the operation owner because its
+public methods repeatedly invoke carrier getters. Drawing input dispatch belongs
+there for the same reason. Neither an indirect carrier getter nor a supplied
+getter callback is a way around the adapter boundary.
+Top-level public names re-export downward from their real operation owner.
+There is no adapter facade re-exporting operations and no fake structure alias
+for a class still defined in core. Root accepted this exact owner split and the transitional real-definition lookup.
+The authorized minimal owner-tree/Section9.1/Section9.2/Section9.6 rows now state it explicitly;
+evidence records every old/new text replacement and exact diff. Stage goals,
+gates, Section12 and unrelated body text remain unchanged. Section7.2 only
+mechanically reflects the already accepted no-new-matrix Crystal contract. Root
+binds completed full-main/normative read continuity in the design acceptance.
+The additional root-authorized path precision uses exactly
+`adapters/rdkit/stereo_transport.py` for the one external RD transport owner; no
+`adapters/rdkit/stereo.py` sibling, alias or algorithm change is introduced.
+
+The sole runtime concrete-Molecule lookup is consolidated in
+`operations/conversion.py::_molecule_type()`, using a function-local import from
+its actual current definition `..core`. It replaces existing conversion/I/O/
+core_utils/draw runtime core imports; it is relocated, reduced transitional debt,
+not a new facade alias. I/O operations receive allocation through that owner.
+Stage9 changes that one lookup to the real `structure/molecule.py` definition.
+No adapter leaf imports core or operations. Existing unrelated core consumers
+are not expanded or claimed cleaned up. Root acceptance explicitly covers
+this transitional direct-definition import and the Section9 placement above.
+
+## 2. One factual extraction and installation route
+
+Keep the existing `MoleculeRecord`, `_make_molecule_record`, `_freeze_value`,
+complete `_commit_topology` and `Molecule._install_molecule` primitive. Add no
+record class, generic result envelope, duplicate builder, registry or schema.
+The complete machine-readable source-symbol-to-owner manifest is in evidence.
+The following sequence is the proposed single implementation:
+
+1. `operations.conversion.obmol2mol(obmol, mol)` and
+   `operations.conversion.from_rdmol(rdmol, mol)` preserve both positional
+   arguments and return the **same supplied target**. Enter the existing
+   `_FactTransaction` with the original toolkit producer. Reject any Atom,
+   active Bond, hidden-metal Bond or hidden-covalent Bond target with exactly
+   `ValueError("Factual import requires an empty Atom and complete-Bond target")`
+   **before any source toolkit access or copying**.
+2. Capture the target's initial complete factual record under that transaction.
+   Pass that immutable initial record to the selected extraction adapter.
+   `_obmol_record(obmol, initial)` returns a `MoleculeRecord` with the current
+   OB field14/source encoding, metadata, source charge, optional source cell,
+   retained initial stereo and cleared nine frame values.
+   `_rdmol_record(rdmol, initial)` copies the RDKit source, captures stereo and
+   original bond metadata/types, Kekulizes in the existing order, and returns
+   `(record, extracted_payload, idx_to_row)`. The operation performs the existing
+   `_remap_stereo_transport` once and replaces only the record's stereo field.
+   No adapter reads or installs the target, calls public setters, or accesses
+   private target fields. Frozen records retain exact source schema/order/types.
+3. The operation calls the one existing `mol._install_molecule(record)`.
+   `_commit_topology` and `_install_factual_record` remain the only prepared
+   complete installation path. Preserve owner token/lock, UID high-water rules,
+   one topology build, metadata and presence/source, retained preconfigured
+   spin/cell/identifier/constraints, and the original frame-clearing behavior.
+   OB retains target stereo; RD replaces it from source. Any extraction or
+   installation failure follows the existing outer rollback/poison behavior.
+4. cclib extraction similarly returns a record from `adapters/io/formats/g16.py`.
+   `operations.io` allocates/installs, then invokes the existing link, ring,
+   bond-order and valence preparations in their current order. Do not silently
+   fold those scientific calls into decoding or delete them as builder cleanup.
+
+The operation owns the empty-target contract and installation once. A second
+adapter wrapper retaining an old private-write body is prohibited. Old
+`obconvert.py`, `rdconvert.py`, `convert.py`, `core_utils.py` and `_io/` paths are
+removed after all connected imports migrate. Root/cheminfo public identities
+stay equal; old internal import paths receive no shim or sys.modules alias.
+
+## 3. Fresh export, task reuse and complete cache removal
+
+`Molecule.to_obmol()` retains its **no-argument** signature and returns
+`operations.conversion.mol2obmol(self)[0]` on every call. `mol2obmol(mol)` retains
+its `(fresh_OBMol, fresh_row_to_1_based_OB_index_dict)` result. The mapping is
+returned to the requesting task, never retained on Molecule. RDKit and Pybel
+already create fresh values; retain their return types and make their owned
+external graphs independent across calls and from Hotpot buffers. Export errors
+must not synthesize a replacement object or mutate caller-held old task values.
+
+Operations own **all** lazy preparation, factual reads that can enter an
+operation, locks, mutation and transactions; moving the current bodies unchanged
+into adapters is not this proposal. After current OB aromatic preparation, the
+operation captures only consumed atomic Z/formal/partial/coordinate/raw-aromatic
+values, selected Bond endpoints/kind/order/raw-aromatic values and six cell
+values as immutable task tuples. The external `_new_obmol()` creates and BeginModify-initializes the empty task
+container at its original point, before consumed row reads.
+The operation constructs an independent value of the sole existing Crystal
+class from the six captured scalars under the owner lock. The final exclusive
+release uses that prepared factual value or None at the cell boundary, retaining
+the released `to_obcell(crystal)` interface. `_factual_obmol(obmol, atom_rows,
+bond_rows, cell)` fills that same container from prepared rows/cell, never
+Atom/Bond/Molecule handles; it does not allocate a second graph container. The operation retains only task-local external state. OB perception uses the
+same operation capture and a task-local graph. It returns frozen proposals to
+the chemistry operation, which owns all carrier writes.
+
+RD operation order is strict H → aromatic preparation → external container
+creation → payload-reference preflight → captured export rows → graph packing →
+Kekulize → optional sanitize → one Stage6 chemistry remap → stereo application →
+current-H verification. Capture includes the existing derived hybridization read
+through its real operation owner, before the adapter receives primitive rows;
+no adapter invokes that getter or any operation. Bond rows include only consumed
+kind/order/aromatic/direction/raw RD type, not a new whole metadata codec.
+The adapter may mutate an operation-owned external container, never the source
+carrier. Split graph packing from final stereo application at the remap point;
+return the row map to the operation. Existing `_require_*`/remap logic is reused
+once; no adapter-to-operation import remains. Keep transient maps/enum tables
+local to the invocation, lazily built once rather than per row. No DTO is added.
+
+**S7A-P03 explicitly exposes the necessary capture seam.** Primitive export
+reads move from interleaved per-atom toolkit writes into the operation's captured
+rows, under the same owner lock. Create the empty external container at its
+original point to preserve container-allocation versus preparation/preflight
+order. Per-atom backend construction can now occur after later-row/derived
+field reads that formerly followed an earlier atom constructor. Thus conflicting
+carrier-read and per-atom-backend errors can change precedence; root accepted
+this exact technical boundary through S7A-P03 after the bound injected baselines.
+Baseline/candidate negative fixtures must include an invalid backend atom versus
+a later derived-field failure and record completed lazy preparation. This is not
+claimed exact arbitrary-monkeypatch/allocator exception preservation. No new
+scientific inference, source identity rule, public result or generic error is
+selected. All original meaningful H/aromatic/payload/dative/remap/native error
+order stays separately protected. Do not move mapping or strict H earlier,
+change raw transport counts, normalize imported H, alter dative direction or
+canonicalize opaque/source-only stereo payloads.
+
+The two required negative cases freeze this technical seam before code:
+
+| Case / exact source consumption | C61 result versus captured-row proposal | Reachability and observations |
+|---|---|---|
+| `rd-atom0-constructor-vs-atom1-hybridization`: after real strict H/aromatic preparation and real payload-reference/atom-fact preflight, inject RuntimeError at the first `Chem.Atom` (current rdconvert.py653); inject ValueError at row1's real `_atom_hybridization` call (current core.py2848–2850/rdconvert.py662) | C61 reaches row0 constructor and raises RuntimeError before row1 read. Candidate captures row0 and then row1; row1 ValueError precedes every per-atom constructor. The empty RWMol already exists in both. | Valid prepared two-carbon/single-bond input is the base fixture; the competing exceptions are explicit failure injection, not a demonstrated normal valid-public chemistry case. Retain actual H/aromatic/preflight calls/effects, factual bytes, attempted constructor/read counts and error messages. |
+| `ob-atom0-setz-vs-atom1-coordinate`: after real aromatic preparation and original OBMol/BeginModify, inject RuntimeError in row0 external SetAtomicNum (current obconvert.py142); inject ValueError at row1 coordinate read (current obconvert.py145) | C61 raises at row0 backend assignment before row1 coordinate access. Candidate captures row1 coordinates before per-atom backend creation/assignment and raises ValueError. Both created one empty BeginModify container; candidate creates no per-atom backend objects. | Same valid factual base fixture with explicit backend/read failure injection; no claim that valid public inputs normally produce these paired failures. Record completed aromatic state and absence of an RD-style H/payload-preflight phase on this OB route. |
+
+Proposed exact owning nodes are
+`tests/test_cheminfo/structure/test_adapter_boundaries.py::test_rd_capture_precedes_atom_failure_after_preparation`
+and `::test_ob_capture_precedes_atom_failure_after_preparation`. Candidate test
+authoring is released; candidate execution remains held. The C61 baseline cases
+were separately executed and accepted in root review6, without candidate claims. Do not replace real preparation with
+a pass-through stub, force an invalid atomic number and call it a valid-public
+case, or hide completed lazy writes behind a wider rollback. No uninstrumented
+valid-public conflicting error pair has been established by this design writer.
+Root's review6 verifies652 bindings and four strict source/installed factual comparisons; completed real preparation and the deliberate injected-failure limits remain explicit.
+
+Delete the exact carrier-cache lifecycle, including:
+
+| Current writer/consumer | Proposed action and preserved invariant |
+|---|---|
+| `Molecule.__init__`, `_update_topology`, `to_obmol` | Delete `_obmol/_row2idx` creation/invalidation/storage; project per request. Keep topology/dependency/frame behavior. |
+| `assign_partial_charge` cache synchronization | Delete only the loop mutating the old cached external atoms. Keep existing calculation, factual assignment, return tuple and transaction. Previously returned external values remain caller-owned snapshots. Stage7C selected-charge ownership is untouched. |
+| `_FactTransaction` `_CACHE_FIELDS`, `_cache_state`, capture/reset/rollback | Remove cache-specific state and loops. Replace both `touch_caches()` callers with explicit `touch_frames()` and `touch_constraints()` as applicable; those two real side effects must survive. Do not remove topology/dependency/sparse/UID/frame undo. |
+| `_TOPOLOGY_FIELDS` | Remove the two obsolete names; keep `_crystal`, constraints, pair observations, identifier/properties and all other current fields. |
+| `_capture_molecule_pickle` owned-field list | Remove obsolete cache ownership entries. New implementation does not construct those fields. Arbitrary unsupported private injection by callers is not a new supported serialization contract. |
+| `plugins/xtb/adapter.py::commit_xtb_coordinates` | Delete the two invalidations after the coordinate commit; preserve verified-order/finite geometry checks, exception order and coordinate-only atomicity. |
+| force-field whole-state undo | Keep the current task-local state snapshot/rollback; it naturally captures the new cache-free carrier. Do not invent a persistent replacement cache or conflate its separate empty `cache_state` with the removed journal fields. |
+| xTB/working-copy/factual-import tests | Replace obsolete `is None` assertions with absence and factual rollback/isolation assertions; retain genuine behavior coverage rather than delete tests. |
+| native C++ operation/session OBMol | Retain unchanged. Opaque native sessions have independent lifetime/revisions and are not Python Molecule second truth. |
+
+`operations.io` obtains one OB projection per coarse public write and reuses it
+for all frames of that write. `MolWriter.ob_conv` remains a caller-owned writer
+resource. Never attach the projection or mapping to the Molecule, writer for a
+later operation, global registry, weak cache or thread-local store. Keep one
+projection through a complete partial-charge task; changing away the existing
+extra OB copy requires a separate measured/accepted local optimization, so this
+proposal retains it. Existing benchmark/force-field workflows that already use
+one local OB value retain that reuse; no algorithm or iteration count changes.
+
+Account for the remaining current core OB/Pybel uses as well. InChi, smiles and
+kekulize_smiles become thin delegates to operations.conversion, which requests
+the task projection before passing only that external value to the serialization
+adapter. Preserve the exact existing InChI write and mol2→canonical-SMILES
+roundtrip/options; do not replace them with a different canonicalization route.
+get_partial_charge/assign_partial_charge keep their public signatures and
+existing transaction entry. Their operation owner preserves FindType-before-
+projection, the extra OB copy, model_args overload, success/length/finite checks,
+get_partial_charge public dispatch and per-Atom writes; external class lookup,
+copy/ComputeCharges and result extraction take only external task values. Delete
+only the obsolete cache synchronization. This is technical ownership extraction,
+not Stage7C selected-charge policy or a new charge algorithm. It permits removal
+of core's eager OB/Pybel binding without leaving unaccounted runtime uses.
+
+
+## 4. Dispatch, bond perception and topology utility
+
+`operations.conversion` owns public `is_molecule_input` and `to_hotpot_mol`;
+`adapters/conversion.py` owns `_classify_input(value, molecule_type)` and toolkit
+class recognition with function-local imports. Preserve `to_hotpot_mol` branch
+priority: Hotpot (identity), RDKit (new target), OBMol (new target), Pybel's OBMol
+(new target), str/PathLike (reader), callable `to_rdmol` (call once, require an
+actual RDKit Mol), then the existing unsupported-object TypeError. Do not use
+class-name/module-name duck matching or change subclass priority. Preserve
+`fmt`, kwargs forwarding and the exact protocol-result/unsupported errors.
+The bool predicate retains recognized type categories and callable getattr
+behavior. External class imports occur on actual classification/use, not module
+initialization; missing dependencies fail at the encountered named dependency
+boundary. Do not catch ImportError and pretend that an installed type was
+unsupported. No declared package dependency is made optional in metadata here.
+
+Move ConnectTheDots and PerceiveBondOrders external execution to
+`adapters/openbabel/perception.py`; it returns existing frozen bond/aromatic
+proposals. `operations.chemistry::_link_atoms` owns the current link sequence and
+`_assign_bond_orders` remains the one order-assignment operation. Preserve each
+current source selection, dative exclusions, metadata, mapping checks and commit
+boundary. There is no universal new rollback scope for the optional subsequent
+bond-order assignment: preserve the existing command boundary rather than
+silently broadening rollback or treating a partial scientific finding as a hard
+whole-batch failure. Adapters perform no `_add_bond` or carrier commit.
+
+Move `atom_idx_pair_to_bond_idx` to the existing
+`operations/topology_queries.py`. It retains the current argument order,
+unordered endpoint matching, active `mol.bonds` enumeration, first-match result
+and list.index ValueError. Its sole recorded production consumer is
+`search.search.Substructure.from_mol`; update that import and `read_mol` there.
+No search/scientific algorithm redesign or Stage7B hidden-bond change follows.
+
+## 5. I/O split and observable preservation
+
+`adapters/io/base.py` holds IoBase input/format mechanics. The single public
+MolReader/MolWriter classes and `read_mol(src, fmt=None, **kwargs)` live in
+`operations/io.py` under S7A-P01. `adapters/io/formats/openbabel.py` owns external
+read/write conversion; `formats/g16.py` owns cclib extraction, force/thermo
+parsing and GJF string formatting; `formats/pubchem.py` owns name lookup and
+external-source extraction. All records enter the operation installer above.
+No new schema or alternate reader/writer class is introduced.
+
+Keep paths/strings/bytes/stream checks, format inference, generator/refresh/
+indexing behavior, kwargs/ob_opt semantics, overwrite behavior and actual
+string-versus-file return values. In particular current `MolReader(text,'sdf')`
+uses Pybel.readstring and returns one record even when the text contains two
+SDF delimiters; the move preserves this cardinality. Test two-frame output with
+both delimiter counts and file-path readback; do not make a one-record string
+read a two-frame write success assertion. Preserve source current coordinates,
+all nine frame domains, frame order and write_single behavior. The old cached
+OB object's final-frame mutation is an observed old cache artifact; candidate
+fresh projections must reflect canonical current coordinates after writing.
+
+Keep one `_plugins` registry and `add_plugin` behavior, including the current
+decorator return behavior; do not introduce a plugin system. Operations invoke
+pre/write/post callbacks in the current order with the same arguments and
+kwargs precedence. The built-in GJF pre and post callbacks are operation-owned: the pre callback
+retains its conditional charge assignment, option update and print; the post
+callback keeps its script-line updates and formula/charge/spin/default-spin
+getter reads in their original order. Pure `_gjf_link0`/`_gjf_route` helpers
+and cclib parsing belong to the GJF adapter. No adapter receives the carrier
+for those callbacks or invokes its derived getters. A user callback's existing
+ability to execute/write is not relabeled an adapter-private write. Preserve
+unimplemented `from_gjf` as a single existing None-returning helper pending its
+own disposition; no unrelated deletion is authorized.
+
+Delete both `_io`/core sys.modules cycle checks. Public package exports import
+the actual operation definitions downward; operation-to-core allocation lookup
+is function-local, and core read/write conveniences import operations locally.
+Perform OB logging initialization only when the OB I/O format adapter is first
+used, before its external parsing/writing, retaining the existing suppression
+settings. Its timing moves from package import to first relevant I/O use; this
+is an explicit proposed visible side-effect boundary, not exact preservation.
+
+## 6. Crystal
+
+Define Crystal once in `structure/crystal.py`. Its existing static
+`_matrix_to_params(matrix)` surface becomes a thin function-local import/delegate
+to the single current `rules.mathematics.cell._matrix_to_params` implementation.
+Structure has no module-level rule-implementation import, as Section6.3 requires. Retain the six ordinary writable
+attributes `(a,b,c,alpha,beta,gamma)`, constructor order, `from_matrix` and
+`cls(*cls._matrix_to_params(matrix))` dispatch. Alpha remains the angle between
+the first two rows, beta first/third and gamma second/third. Do not normalize
+these values to conventional OB angle names. Retain the existing mathematical
+implementation and ndarray annotation; no matrix property, slots, frozen DTO,
+new setter or host dependency status is introduced.
+
+Remove keyword `mol`, instance `mol/_obcell` and `obcell`. Existing placeholders
+LatticeGroup/space_group/lattice_group are already absent; record no new deletion
+credit for them. `adapters/openbabel/crystal.py::to_obcell(crystal)` constructs a
+fresh OBUnitCell and calls SetData with the exact six ordered values. OB molecule
+export clones that fresh cell. Native packing consumes its unchanged six-value
+buffer and keeps the existing native cell conventions.
+
+Update both create_crystal and complete factual installation to construct the
+sole value without a host argument. The `cell` identity remains six values.
+Molecule pickle captures the cell only through the factual record. Preserve the
+existing six-entry extra-state envelope: its final slot is always `None` in new
+captures, and `_restore_molecule_extra` unpacks and unconditionally ignores that
+slot for both C61 and candidate payloads. Remove crystal-dictionary capture and
+restore update; add no arity/schema/version branch, alias or mirrored owner. The
+record's six cell facts construct the sole value with no back-reference/backend
+state. This retains the ordinary C61 Molecule pickle protocol at the same core
+class/restore paths and package version0.5.4.5. It is not described as an unrelated
+cross-version break. Prior ordinary Molecule pickle fixtures, prior Molecule
+payloads with cell facts, candidate round trips and no restored `mol/_obcell`
+state require explicit source/installed/cold-unpickle observations.
+
+Root has already approved moving the independent Crystal class's canonical module
+path to structure.crystal. Do not ask again for that path. An independent C61
+Crystal pickle names the removed `hotpot.cheminfo.crystal.Crystal` module, so its
+old standalone module path has no alias/shim under that accepted move; preserve
+that exact same-version source-phase compatibility limit separately from the
+ordinary Molecule envelope. S7A-P04 now proposes only the six-slot non-owning
+sentinel/ignored legacy-extra implementation and its validation, not a gratuitous
+Molecule tuple6→5 protocol change.
+
+## 7. Thermo, visualization, fonts and docs
+
+Move the one Thermo class, including every public method, to
+`operations/thermo.py`. Preserve its exact ordered181 `properties` names (these
+are declared forwarding names, not181 property descriptors), `__dir__`,
+unrestricted dynamic Chemical forwarding, caller-owned executable external
+objects, source `mol`, temp/pressure and constructor/method signatures/default
+numeric values. Molecule retains no proxy. `Molecule.get_thermo` calls the same
+operation owner `_get_thermo`, which constructs and returns that real class.
+There is no adapter-hosted proxy forwarding upward to an operation.
+
+`Thermo.mol_to_thermo` owns the current short-circuit sequence, including each
+`mol.to_rdmol()` and `mol.cas`/`mol.cid` access, whose implementation may enter
+`mol.smiles` and lazy H/aromatic preparation. Evaluate only the identifier needed
+for the current attempt. Preserve the two separate RD conversions on SMILES and
+InChI failures, and the final additional RD conversion for the error message;
+do not precompute all identifiers or replace Hotpot getters with new direct
+external calls. ValueError-only fallback remains SMILES → InChI → CAS → CID.
+Preserve the final-CID `T=self.pressure` and `P=self.pressure` behavior and final
+message spelling. No scientific parameter correction or task-reuse optimization
+is selected. All authoritative source effects stay in this operation's existing
+call context; no wider transaction or lock is added by the move.
+
+`adapters/thermo/chemical.py` receives only the current external RD object,
+identifier/value or prepared DataFrame rows. It owns private `_chemical_type()`
+(the function-local Chemical class import), `_construct_chemical`, RD identifier
+encoding and `_dataframe`; it receives no Molecule, carrier getter or callback.
+The operation obtains the actual Chemical class outside the ValueError catch
+scopes, then calls the constructor adapter at each original attempt. The probe
+patches the adapter module's `_chemical_type()` to return a fake class. The
+operation's complete `get_chem` method keeps per-ID/per-property exception
+handling, property reads and row order; it asks the adapter to create the final
+DataFrame. Lazy pandas import occurs at that final construction boundary, outside
+operational catches. Missing thermo/pandas imports cannot become fake successful
+None-filled batches. `__getattr__` still forwards arbitrary external attributes
+and executable objects; caller ownership and `Thermo.mol` are preserved.
+
+Split draw.py once by actual source consumption. Move `draw_single_mol`,
+`draw_grid` and `_load_rdmol` to `operations/visualization.py`, retaining their
+public signatures and the two different current invalid-input error messages.
+Their input phase preserves actual RDKit `isinstance` priority, then the current
+`hasattr(value, "smiles")` followed by the separate `value.smiles` read, then the
+raw-string branch. Those two attribute reads must remain operation-owned and
+must not be collapsed: both can invoke the carrier's lazy to_obmol operation.
+For a grid, retain input iteration and prepare each item completely, in order,
+before the next. Passed RD objects still receive current Compute2DCoords mutation.
+Do not replace Hotpot.smiles with to_rdmol, eagerly capture an iterable, normalize
+an input, or introduce a callback through the rendering adapter.
+
+`adapters/visualization/draw.py` owns every remaining draw.py definition once:
+external-only color/highlight/layout/font/SVG/format utilities, and the prepared
+RD-object portions of single/grid rendering. New private external type/parse/2D
+helpers accept only external objects or text; `_draw_single_rdmol` and
+`_draw_grid_rdmols` receive already prepared RD objects plus original render
+options, with no carrier handles/callbacks. Keep rendering option, highlight,
+legend, colorbar and save/error order. The original five exported drawing names
+retain signatures and behavior at their new actual owners: the two carrier-capable
+entry points are operations; compute_atom_bond_colors/create_svg_colorbar/
+merge_colorbar_to_svg remain adapter utilities. There is no new adapter facade
+re-exporting the operation functions, no duplicate implementation and no old
+`hotpot.cheminfo.draw` alias. Existing root/cheminfo exports do not include these
+five drawing names; this design does not add them there. Consumer imports and
+examples use each actual new owner. This is an explicit S7A-P01 path/module effect.
+
+Keep SVG/grid and all ten format names
+`svg,png,pdf,ps,eps,jpeg,jpg,tiff,bmp,webp`. Root has explicitly accepted only
+`Chem.MolFromSMiles` → `Chem.MolFromSmiles` in the moved `_load_rdmol` string branch,
+after source/wheel baseline failure. Retain the failure and add string/grid
+success assertions. Preserve other failures, including format/backend limitations,
+until separately dispositioned. Function-local RDKit/CairoSVG/Matplotlib imports
+occur in actual external type, drawing, color or conversion helpers; Pillow stays
+local to bitmap conversion. Check the same RDKit version threshold before the
+first actual RD type/use helper, before its input dispatch can invoke a carrier
+getter. The timing moves from module import to first relevant use under S7A-P05.
+
+Move the five font files byte-for-byte to
+`adapters/visualization/fonts/Arial/`, retaining names/default Arial selection.
+Use package resources to resolve the new font root; retain its usable lifetime
+through the draw call. Update pyproject package-data and MANIFEST.in to include
+only the new resource owner and check built wheel member hashes. Move draw.md
+to the new adapter resource/document owner, with examples importing carrier entry
+points from operations.visualization and external utilities from the adapter.
+Migrate connected docs/examples and MCA CLI imports together. No duplicate font
+tree, old draw.py shim, reduced physics DTO, persistent result attachment or new
+result class is created.
+
+## 8. Evaluated annotations, defaults and cold imports
+
+**S7A-P02 narrow quoted annotations and exact namespace effects are root accepted.**
+Do not add future annotations across core. Change only current evaluated
+backend/Thermo references that otherwise force eager imports:
+
+| Current declaration | Proposed stored value / effect |
+|---|---|
+| core get_thermo return `Thermo` | string `"Thermo"`; default get_type_hints without supplied namespace can raise NameError; explicit localns maps the real operations.thermo.Thermo class. |
+| core to_obmol return `ob.OBMol`, to_pybel_mol return `pb.Molecule` | strings `"ob.OBMol"`, `"pb.Molecule"`; explicit namespaces use actual optional backend modules. |
+| relocated OB utility parameters (`write_obmol_to_string`, `_retrieve_bonds_attrs_from_obmol`, coordinate helpers) | quote only their actual OB references; preserve even existing extract_obatom_coordinate's OBMol spelling. Preserve other evaluated dict/Any/ndarray annotations. |
+| public MolWriter.obmol_write_string parameter | quote `"ob.OBMol"`; existing core.Molecule forward references retain their spelling, with explicit namespaces for hint checks. |
+| Thermo.get_chem return `pd.DataFrame` | string `"pd.DataFrame"`; explicit pandas namespace resolves; module import no longer needs pandas. |
+| drawing compute_atom_bond_colors Mol/Normalize/ScalarMappable return tuple, _fill_highlight_atoms Mol, create_svg_colorbar norm | quote only external portions, preserving the evaluated surrounding tuple/generic structure where possible. Record recursive annotation object/ForwardRef differences precisely. |
+| topology helper current evaluated Molecule parameter | quote `"Molecule"` in its real operation owner; explicit namespace resolves without a runtime core import. |
+| existing drawing Molecule, nested `_fill_highlight_atoms_list` `list["Chem.Mol"]`, three MolWriter `"core.Molecule"` parameters and GJF from_gjf strings | remove runtime core/backend bindings; stored expressions remain, but default hint resolution may now fail; explicit namespaces use actual current Molecule/core/Chem definitions. No facade lookup alias. |
+
+Evidence contains an AST-derived exact declaration roster and baseline source
+spans. For already postponed conversion annotations preserve stored string
+behavior explicitly for is_molecule_input return `"bool"` and to_hotpot_mol return
+`"Molecule"`; do not add future annotations across the shared operation module
+and accidentally stringify the existing to_rdmol bool annotations. Removing its
+runtime Molecule global changes default to_hotpot_mol hint resolution; explicit
+localns supplies the actual class. This is included in S7A-P02. Crystal.obcell's annotation disappears
+with its already approved removed property; new to_obcell is private and quoted.
+On Python3.14 inspect actual deferred-annotation behavior separately; do not
+extrapolate3.10–3.13 observations to it. Surface probes must retain default and
+explicit-namespace get_type_hints results per version/source/wheel.
+
+**No force-field-default change is proposed.** Keep core's existing `ff` binding
+and real `ff.DEFAULT_CONVERGENCE_LEVEL` expression for build3d and optimize.
+It remains identical to `ff.ConvergenceLevel.FAST`. The existing forcefields
+facade eagerly loads Python modules but its native accessors are already lazy.
+Preserving this inherited import also preserves existing `ff.*` hint globals.
+There is no default sentinel, duplicated enum, lazy proxy default or Stage8
+force-field redesign. Existing core→forcefields facade debt stays explicitly
+assigned to its later owner; this stage adds no such edge and claims no final
+facade cleanup. If future cold evidence finds a necessary direct toolkit edge
+there, report its exact smallest seam for root before expanding this design.
+
+Root's explicit RDKit preload and final wildcard/global cleanup remain Stage12.
+Pandas also remains reachable through elements.PropertiesSheet's evaluated
+annotation and mol_assemble→fmt_print. Do not change those adjacent public
+annotations/imports in this proposal or claim a pandas-free root. Candidate
+selected adapter modules must add no eager backend dependency, but dotted
+imports still initialize parent packages. Missing-RDKit and missing-pandas root
+probes therefore remain qualified observations, not false adapter-isolation
+passes. Both Hotpot adapter-use orders and Hotpot↔RDKit coexistence remain
+required; do not remove the root preload or invent a raw OpenBabel-first
+external import-order gate. Package dependencies/build requirements are unchanged.
+
+## 9. Finding and control boundaries
+
+No generic confidence/admissibility envelope, new diagnostic record or global
+break switch is introduced. Existing domain messages/codes and local control
+remain separate. Lack of a stable code is not silently relabeled resolved.
+
+| code | domain/trigger | defined value available | default warning/local failure | permitted per-code break scope | commit/fallback consequence |
+|---|---|---|---|---|---|
+| existing ValueError; no stable code: empty-target factual import | any target member in any complete Bond partition | no import value | preserved local failure before source access | attempted target import only | unchanged target; transaction/poison rules retained |
+| existing OB lossless-dative ValueError | OB export of DATIVE | no lossless OB value | preserved local failure | this export request | no fallback conversion or carrier mutation |
+| existing strict-H/conflict errors; stable-content debt recorded for Stage7C/8A | genuinely missing consumed H input / representation conflict | preserved display versus strict-value distinction | preserve current strict ValueError/RuntimeError boundary | requested strict projection/operation only | preserve supplied facts, dirty/status and existing completed lazy preparation; no invented H0 fact |
+| existing RD payload/mapping/direction errors | unsupported stereo code, mismatched referent or dative direction | no valid requested transport | preserve exact local error/order | affected conversion/assignment | no silently sanitized/dropped facts; installer rollback where applicable |
+| existing named ModuleNotFoundError.name | lazy dependency required by selected operation | no backend result | proposed local import failure at first required use | that named backend request | no absent-backend None batch or fabricated result; source unchanged except already permitted preparation |
+| existing Thermo ValueError fallback | rejected identifier in mol_to_thermo | next identifier may define proxy | preserve ValueError-only continuation; final ValueError if all fail | selected lookup, no batch-wide stop | exact existing attempt order/default parameters retained |
+| existing caught Thermo per-ID/property exceptions, no stable code | get_chem one ID/property unavailable | partial row/DataFrame remains defined | preserve None slot and independent-ID continuation | no new strict break control | retain other rows/fields and original ID/T/P |
+| existing I/O parsing/overwrite/plugin errors | malformed source, existing file, failing callback | route-specific; output may be absent | preserve original errors and callback order | current read/write task | no blanket whole-input rejection; preserve existing preparation/commit boundaries |
+| accepted drawing spelling defect correction | string/grid uses MolFromSMiles typo | candidate documented SVG value becomes available | root accepted exact spelling correction | no new break policy | retain baseline AttributeError, add independent string/grid assertion; other failures untouched |
+| existing draw version/output-format errors | too-old backend / unsupported format | no requested rendered/converted value | same error, version check moves to first drawing use | named draw/format request | no blank SVG, silent extension substitution or source fallback |
+
+Stage7A does not resolve the integrated Stage5 explicit-H/aromatic diagnostic
+control debt or activate scientific profiles. Any newly discovered changed
+boundary, exception, silent skip, source mutation or result availability must be
+recorded here with exact trigger/order/commit consequence before its code release.
+
+## 10. Preservation, source/wheel/native selection and cost gates
+
+Reuse the immutable concrete preparation packet under
+`.plan20-artifacts/20261030/stage7a/validation-preparation/attempt1/` and its
+separately hashed attempt2 supplements/cost attribution/retention proposals.
+It is a proposal, not source-ready evidence. Root's release SHA256
+`69e2c13e890c8560e91e4d0eb56ba171c56eed313b4c71ad6fae521a71e0bfc0`
+ran twelve separate C61 cp311 source/installed surface/conversion/I/O/Crystal/
+Thermo/drawing observation commands: root reports ten rc0 and two drawing rc1.
+Actual observation/command files are bound in evidence. FF DEFAULT/FAST identity
+and Thermo181+dynamic behavior were observed. Those results do not validate new
+paths or future annotations. Root subsequently found that attempt1 preserve.norm
+reduces raw byte-valued MoleculeRecord fields to type-only values. Original
+return codes, explicit property/cache observations, surface/default/Thermo181,
+loaded source/wheel byte origins and I/O cardinality remain qualified evidence;
+normalized full-record equality does not prove raw fact-byte preservation. Keep
+all original attempts. The separately released corrected conversion/I/O rerun
+and its qualified root acceptance are bound below. No new production discrepancy
+or Stage6 reopening follows from this harness gap. The frozen C61 source snapshot
+and installed wheel are retained for paired comparisons; their executable/native
+identities remain separate from Stage10 fresh-build obligations.
+
+The independent supplement has now executed: root review
+`.plan20-artifacts/20261030/stage7a/root-baseline-review/attempt2/review.json`
+SHA256 `1499902669188b60215f2c8f2024cd714d5e03596009c190a12ba95af4db74b0`
+accepts fourteen actual cp311 source/installed capture commands,242 bound files
+with zero mismatch, five identical font identities and the separate string1/path2
+multi-SDF counts. All ten format cases returned values; PDF/PS/EPS raw source/
+wheel output bytes differ and their original creation-date lines remain. Two
+independent grid case errors retain the same spelling defect. rc0 is capture
+completion, not a candidate or complete byte-equality pass.
+
+Root accepted the sixteen corrected lossless C61 conversion/I/O observations
+under baseline-release/attempt3/release.json SHA256
+`19799bd82db387865ea0c78789b568d123e717ffbac85598d058dce95167d234`.
+The stdlib-only root review at root-baseline-review/attempt3/review.json SHA256
+`08586e1991304a64a8022fa80a63a4f1af33e28da30fe6554726cc1fb718585c`
+verified250 handoff bindings and recomputed78 strict equal checks plus12 direct
+projection/reimport differences. Decoded atom_values differences affect only
+implicit_hydrogens in five of six inputs per context; atom_sources changes only
+xyz provenance from explicit to OB, and aromatic raw Bond metadata also differs.
+These are inherited representation observations. Preserve the original records;
+no H/science repair or universal raw-record clone-equality claim is released.
+Candidate comparison must preserve corresponding complete baseline facts and
+outputs, with only separately approved freshness changes.
+
+Root also accepted34 C61 cold/missing-import captures in
+root-baseline-review/attempt4/review.json SHA256
+`daf5d4c8eaa89f70cc89a922c4ea6de40e99ba559dd5f45700a21c9ce25e9e1f`.
+Twelve ordinary Molecule pickles restored in fresh processes before an explicit
+Hotpot import and strictly match their corrected attempt3 facts. The22 controlled
+absence failures occur at Hotpot import14 times and old drawing-owner import8
+times; no actual backend operation was reached. The eight available drawing
+carriers retain strict unchanged facts and no network request was attempted.
+These are baseline eager-timing observations; candidate first-required-use and
+minimal-environment behavior remain unproved. Subsequent reviews6–8 below accept
+the bounded injected-failure, reflection and cell-bearing cold baselines. Exact
+candidate evidence remains required; authoring releases do not release runtime.
+
+Root baseline review5 SHA256
+`7a63cb4771b1c8d4fcb06c7bc227fc3fb1b619a93a3d7fa5cdab1a1d266f2579`
+accepts qualified C61 cost18cells/42warmups/150samples and80 retention batches.
+It retains192 report key-order differences,40/60 raw SDF timestamp differences,
+all inherited reimport differences, unfavorable timing/RSS/Python slopes and the
+old cached-public advantage. Retention lacks raw source-fact snapshots for an
+independent archive recomparison. Candidate retention must archive complete raw
+facts; sufficient native-allocation and long-run memory evidence remain OPEN.
+
+Root review6 SHA256
+`1a32d5f78580ef68e28c9e6b5d04a723742f0490fb8381c5d6f851ebdb06eaa4`
+accepts the exact two injected seams on valid two-carbon base facts with empty
+schema1 payload, preserving original failure/preparation traces;652 bindings
+close and four strict source/installed factual comparisons match. No ordinary
+public competing error, nonempty payload or broader rollback is established.
+Root review8 SHA256
+`e2e07d04d1d91f3e7b37503d225d46d25ed194463ed6115e6263ca516fc13359`
+accepts both C61 cell-bearing cold restores with complete factual equality.
+The archived old Molecule pickle is1181bytes, SHA256
+`1d8fcfaec55d02b60c08dc587fd6941c99075a63ed562dc01e35e380d3a14c55`.
+Candidate must still ignore its final legacy cell dictionary and restore only
+six factual cell values, without back-reference or backend state.
+
+Root review7 SHA256
+`c1d0a5903c89f9cfa623f5a16dfe10acb4e76f4bc4be24082b9df1b54a60644e`
+accepts ten C61 source/installed3.10–3.14 cells with28 declarations each,
+default/explicit hints28/28,140 source/wheel declaration comparisons and280
+default/explicit projections under the bound recursive comparison policy.
+All24 roster fields and real FF default identities were observed. Actual
+version-specific representations and raw outputs remain; one native module per
+cell proves no fresh ABI/SDK/sdist tier. Candidate must independently measure
+the accepted annotation/global-namespace changes and explicit namespaces.
+
+The prepared payload needs candidate rebinding: OB pair/import module
+becomes `hotpot.cheminfo.operations.conversion`; cell function is
+`adapters.openbabel.crystal.to_obcell`; Thermo patching targets `_chemical_type`
+and returns the fake class, rather than nonexistent module.Chemical; drawing
+and font paths use the new owners. Thermo class binding is operations.thermo,
+its Chemical seam is adapters.thermo.chemical, the two public drawing entries are
+operations.visualization and rendering/resources are adapters.visualization.draw.
+Counting must patch the operation attribute
+looked up per coarse call and separately the actual `_factual_obmol` adapter.
+No stale bound-from import may defeat the spy. Do not edit the preparer's packet
+silently; root owns its release and exact updated script hashes.
+
+Evidence lists the exact root-accepted full affected source and installed file
+selection: the preparer's150-file set, additional affected fact/journal/
+architecture/import/package consumers, and six named new contract files.
+Existing Crystal convention remains an existing file. This is the complete
+accepted175-file roster, not a collected node count or candidate pass. SOURCE_READY must
+resolve every changed/new consumer and finalize required nodeids after actual
+collection on each Python3.10–3.14 in both source and installed-wheel modes.
+Uncollected/new paths, required skips, absent interpreter/native/dependency or
+wrong wheel origins stay OPEN. Preserve the source-only inspection-node
+classification and copied/hashes support modules; they cannot count as runtime
+wheel evidence. Default `python -m pytest -q --import-mode=importlib tests` and
+coverage run on final frozen cp311 source, separately from the affected matrix.
+
+Use the explicit three existing native/C++ selections from the packet with
+--run-high-compute, plus affected Python wrapper/buffer/packing/opaque-session
+contracts. SDK needs --run-external and bound prefix; if unreleased/unavailable
+record it OPEN. Existing native binary reuse is qualified component evidence,
+not a fresh build/ABI/SDK/sdist pass. No Stage10 or global gate is waived.
+
+Cold probes use fresh processes outside pytest's RDKit-preloading conftest.
+Record module origins and attempted imports for source/wheel, root/structure/
+new Crystal/each adapter, each relevant missing backend and actual branch use,
+both Hotpot adapter-use orders, public identities, cold pickle and all five font
+hashes/resources. Root RDKit/pandas paths above qualify global absence claims.
+Add exact missing-operation payloads: package import alone is insufficient.
+No network-dependent thermo/PubChem lookup or hardcoded external example path
+may substitute for a deterministic adapter contract. Fake Chemical establishes
+technical forwarding/order, not thermophysical truth; actual supported calls
+and all observed scientific differences retain their method/context identity.
+
+Freeze the current Section12/performance_manifest policy unchanged: micro3
+warmups plus at least10 measured; CPU workflow1 plus at least5; same interpreter,
+source/wheel/native/dependency/input bytes, prepared facts, process/thread/CPU/
+cache state, affinity and shared-load note. Report all attempts, failures,
+no-output, denominators/exclusions, median/MAD/p95, paired95% bootstrap intervals
+and RSS. No Stage6 bounded overhead exception transfers here.
+
+The accepted bounded cost recipe uses sizes8/64/256,100 calls for each OB request
+family and20 two-frame SDF writes. The old attempt2 lacked complete attribution;
+its immutable bytes remain historical. Root review5 now accepts separately
+released C61 baseline cost/retention with complete-work qualifications. Candidate
+measurements and sufficient native-memory evidence remain OPEN. Keep the three
+distinct work definitions:
+
+- Cached-old public requests versus independent-new public requests: retain
+  descriptive changed-contract time/retention, without parity/speedup ratio.
+- 100 independent external values: old direct projector versus new public fresh
+  operation. Pair immutable factual outputs/mappings and actual atom/bond work;
+  report mechanism cost, not old public-method parity.
+- 20 complete public two-frame writes:40 delimiters/outputs and path readback,
+  identical current facts/frame order/options. Retain the real old cache
+  advantage across calls. Candidate reuses one projection within each write,
+  not across20 writes. Baseline1 versus candidate20 direct projections is the
+  intended lifetime change; do not force equal counts or measure only fresh
+  construction and claim a complete-workflow gain.
+
+Measure the new freshness cost separately. Pair only complete equal semantic
+outputs/work; scientific/output differences or fewer frames are not speedups.
+Keep conversion/preparation/serialization components and count spies outside
+timing. A cold fixture versus prewarmed cache is never an unexplained comparison.
+Retain Python-tracked peak/retained allocation, RSS current/high-water and
+weakref liveness where supported. Use the attempt2 fixed retention protocol in both source and installed modes:
+size64, ten batches of100 actual requests for each of public OB, independent OB,
+Pybel and RDKit, dropping recorder references and GC after each batch. This is
+the one accepted required bounded retention protocol; no alternative20-batch/
+all-size protocol is frozen here. Keep separate sizes8/64/256 allocation/RSS
+observations in the cost workloads. The bounded retention probe can distinguish
+some carrier leaks from transient buffers/native allocator retention; it does
+not by itself establish all-size or complete native-memory sufficiency. Native-heap
+attribution remains limited; if RSS/liveness is inconclusive, memory stays OPEN
+until root selects and executes sufficient additional native measurement. No
+memory certificate follows merely from weakrefs, gc or flat high-water RSS.
+
+Correctness/count/retention violations, unexplained scaling and adverse time or
+memory findings require fix/repeat or exact root disposition within the existing
+frozen policy. Missing/non-comparable/noisy required results remain OPEN. Keep
+all unfavorable attempts, do not refreeze membership/weights after seeing data,
+and claim no global parity, speedup or performance waiver from this proposal.
+
+## 11. Reviewable checkpoints and release gates
+
+1. Preserve root-accepted P01 operation/adapter placement and temporary concrete
+   type lookup, plus the already accepted standalone Crystal path and drawing
+   spelling/cardinality decisions. Root acceptance binds completed full-main/
+   normative read continuity and exact P02–P07 boundaries. Additional owner
+   precision names stereo_transport.py once. Qualified baseline reviews5–8 are
+   accepted; exclusive implementation/test authoring releases are separate. P07
+   future exact probe bytes and candidate SOURCE_READY/runtime remain gated.
+2. Move extraction and its operation installation together, with atomic connected
+   import/test/package changes, one implementation per source symbol and no old
+   alias tree. Move I/O cycle and public re-exports coherently under S7A-P01.
+3. Remove every carrier/journal/pickle/xTB/cache route and Crystal back-reference;
+   migrate Thermo/drawing/font/docs users. Root owns exact implementation file
+   assignments, architecture-ledger updates and any necessary normative edit.
+4. After SOURCE_READY, freeze final bytes and execute focused contracts,
+   preservation comparison, all-five source/wheel matrix, default/coverage,
+   native tiers, cold/missing-use/resource gates and complete cost/memory work.
+   Any source edit invalidates affected evidence; retain original failures.
+5. Root separately assesses each adverse/unavailable result, public/path/contract
+   decision, actual consumer coverage and delivery before closing Stage7A.
+   A named reviewer is not a new approval gate. Stage7B–7E entry is separate.
+
+This proposal books zero new data classes/enums/result schemas and gives no
+removal credit for existing placeholder deletions or moved types. It changes no
+main-plan stage/gate/Section12 body, allowlist or data-object budget. The owning
+records preserve the C62 historical evidence separately from later closure and
+current accepted Stage7A design status. All remaining release gates and validation limits
+remain explicit in decisions/evidence.
+
+The additional [connected-consumer supplement](../connected_consumer_supplement.json)
+SHA256 `51a9a67e9de3dd61c16ce83de0dd069b4d0c35cc3354db8ba5d063227180d728`
+records an actual non-AST-import consumer: dataset `_PARSER_IMPLEMENTATION_FILES`
+hashes old I/O/Crystal/OB paths. Root owns its migration to actual single owners,
+preserving parser protocol/formats, policy/source digest and frozen/current
+distinction, schema/cache and reassessment/recertification obligations. All36
+existing test_ds files add to the preserved175 proposal: final source/installed
+affected selection is211 on each Python3.10–3.14, with no dropped prior path.
+These test names do not authorize a Stage13 experiment or certificate acceptance.
+Final integration/SOURCE_READY still precedes every candidate runtime command.
+
+
+## 12. Bounded production checkpoint — 2026-10-31
+
+After the PASS106 document checkpoint and exact root implementation release,
+the assigned primary writer authored the14 surviving core/journal/conversion/
+perception/I/O sources and hard-deleted its seven obsolete module files. Root
+owns all other package/import/config/test/ledger integration; peer source was
+not edited. The exact current source/deletion identities and private call seams
+are in evidence.primary_implementation_checkpoint. The pre-production accepted
+document bytes, report and handoff remain preserved as a separate checkpoint.
+
+`python3 /tmp/plan20-stage7a-core-implementation-20261031/check_static.py`
+passes617 text/AST/hash checks with zero failures. It directly checks all97
+integrated manifest declaration owners and24 accepted annotation expressions,
+all18 moved stereo algorithms, unchanged existing chemistry/Gaussian kernels,
+unaffected core methods/defaults, journal/pickle state and the selected
+preparation/import/writer boundaries. It executes no project import, collection,
+test, build, native backend or benchmark. Initial8 checker matching failures
+(renamed cell property, getter/setter overloads and a substring) remain in the
+initial report; fixing the checker did not require a production correction.
+
+Root's complete-source review identified the original undefined private cell
+helper call and required following the final exclusive release's actual
+`to_obcell(crystal)` interface. The operation now captures six scalars in the
+existing order, constructs an independent instance of the sole existing Crystal
+class under its source lock, and passes that prepared factual value to the leaf.
+The leaf calls peer-owned `to_obcell(cell)` exactly once. No peer file, helper,
+tuple shim, carrier callback or duplicate SetData body was added. Seven further
+AST assertions bind the caller, module alias and actual one-argument definition,
+six scalar order and existing Crystal allocation/import under both capture locks.
+The earlier pending-interface source/report/record bytes remain preserved.
+No cross-owner source dependency remains open in this bounded assignment; root
+integration/SOURCE_READY and candidate runtime are still separate gates.
+
+Exact internal seam effects are bounded: `_rdkit_bond_type` takes primitive
+values plus invocation-local enum context; `_rdkit_bond_kind` takes two
+additional private context arguments. `_get_partial_charge` receives the sole
+existing core model-name tuple as its fourth private argument and retains both
+the task projection and required extra OB copy through charge extraction. The
+private three-argument bond insertion seam is preserved; external ConnectTheDots
+and frozen-proposal extraction are separate leaves. These add no public API,
+record schema, scientific algorithm or new approval gate. Candidate P03 traces,
+pickle/reflection/full facts/freshness/source-wheel/runtime/memory and all root
+integration/Stage7A completion gates remain OPEN.

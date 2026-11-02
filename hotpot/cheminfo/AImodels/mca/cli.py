@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 
 from hotpot._cli import MarkdownDocumentationAction
-from hotpot.cheminfo._io import MolReader
+from hotpot.cheminfo.operations.io import MolReader
 
 from .api import MCACpuPredictor, MCAGpuPredictor
 from .gpu_memory import SUPPORTED_GPU_BATCH_SIZES
@@ -189,7 +189,7 @@ def _plot_range(values: list[float]) -> tuple[float | None, float | None]:
 
 
 def save_plot(molecules, predictions, path: str, all_sites: bool) -> None:
-    from hotpot.cheminfo.draw import draw_grid, draw_single_mol
+    from hotpot.cheminfo.operations.visualization import draw_grid, draw_single_mol
 
     rd_molecules, atom_values, highlighted = _plot_data(
         molecules, predictions, all_sites

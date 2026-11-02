@@ -1,8 +1,8 @@
 # Fact-Carrier and Rule Architecture Refactor
 
-Status: **implementation authorized on 2026-10-28; Stage0–5 owning-stage gates complete;
-root accepts Stage6 C61 static/runtime/bounded-cost evidence on 2026-10-30; maintained records integrated;
-validated Git delivery/root final closure pending; Stage7A not entered; final scientific/global efficiency acceptance open**. The architecture, lazy invalidation, scientific-reporting, and
+Status: **implementation authorized on 2026-10-28; Stage0–6 owning-stage gates complete;
+C62 Stage6 delivery remote-verified; Stage7A design accepted and bounded implementation/test authoring released; candidate runtime held;
+validated Stage6 runtime source remains C61; final scientific/global efficiency acceptance open**. The architecture, lazy invalidation, scientific-reporting, and
 performance requirements are incorporated. The owner's implementation request
 authorizes the concrete documented route; Stage1 records exact API differences
 and consumer evidence. Unspecified public signatures, return semantics and
@@ -984,7 +984,7 @@ Bond
 Crystal
 ├── canonical Crystal(a, b, c, alpha, beta, gamma) [sole cell carrier]
 ├── lengths in angstrom; angles in degrees
-├── matrix [proposed calculated mathematics view; public addition pending]
+├── no public matrix addition [matrix mathematics stays in the one rule; existing from_matrix contract retained]
 ├── from_matrix(matrix) [constructor preserving approved convention]
 ├── no Molecule back-reference
 └── no Open Babel object, space-group placeholder, or toolkit cache
@@ -1193,6 +1193,10 @@ hotpot/
 │   │   ├── chemistry.py                 # assignment controllers
 │   │   ├── geometry.py                  # coordinate commits/transforms
 │   │   ├── constraints.py               # typed constraint transactions
+│   │   ├── conversion.py                # carrier dispatch/preparation/import/export orchestration
+│   │   ├── io.py                        # one MolReader/MolWriter/read_mol and carrier callbacks
+│   │   ├── thermo.py                    # caller-owned Thermo and carrier getter/fallback sequencing
+│   │   ├── visualization.py             # carrier/string input dispatch and drawing entry points
 │   │   ├── search/                      # public search composition
 │   │   ├── calculation/                 # scientific-state selection/composition
 │   │   ├── conformers/                  # provider-neutral sampling workflow
@@ -1204,8 +1208,8 @@ hotpot/
 │   │   └── assembly/
 │   ├── adapters/
 │   │   ├── __init__.py
-│   │   ├── conversion.py                # supported-object dispatcher
-│   │   ├── io/                          # MolReader/MolWriter/formats
+│   │   ├── conversion.py                # external type classification only; no carrier orchestration
+│   │   ├── io/                          # input/format mechanics and external parsing/serialization
 │   │   ├── structure/                   # carrier -> rule snapshots
 │   │   │   ├── geometry.py
 │   │   │   ├── stereo.py
@@ -1218,7 +1222,7 @@ hotpot/
 │   │   │   └── include/hotpot/native/
 │   │   ├── openbabel/                   # conversion; invokes standalone obWrapper
 │   │   ├── rdkit/                       # conversion/fingerprints; invokes rdWrapper
-│   │   ├── thermo/                      # external thermo/RDKit bridge
+│   │   ├── thermo/                      # prepared identifiers/RD values/rows -> external values
 │   │   ├── calculation/                 # scientific backend/projection contracts
 │   │   ├── inference/
 │   │   │   ├── artifacts.py             # filesystem/hash/integrity I/O
@@ -1226,7 +1230,7 @@ hotpot/
 │   │   │   └── serialization.py         # inference DTO encoding/decoding
 │   │   ├── pubchem.py
 │   │   ├── pyg.py
-│   │   └── visualization/               # drawing/presentation
+│   │   └── visualization/               # prepared external objects -> drawing/presentation
 │   ├── reference/
 │   │   ├── __init__.py
 │   │   ├── elements.py                  # immutable element source values
@@ -1278,9 +1282,9 @@ named `coordination_placement` operation.
 | charge, spin, partial-charge workflows | chemistry rules plus calculation operation/adapters | distinguish formal/net/partial charge fact types explicitly |
 | `build3d`, `optimize` | `operations/forcefields` | retain public signatures as thin Molecule methods |
 | `search_substructure` and SMARTS packing | `operations/search`, chemistry semantics, structure adapter | reuse one RI matcher; no carrier cache |
-| `get_thermo` | physics contract + external thermo adapter | return a typed result; no RDKit/thermo import in carrier |
-| `to_obmol`, `to_rdmol`, `to_pybel_mol`, `to_pyg_data` | adapters | each call builds a fresh external value; no persisted external object |
-| `read_one`, `write`, SMILES/InChI serialization | adapters/I/O | object methods remain thin entry points if their public contract is retained |
+| `get_thermo` | `operations/thermo.py` plus external thermo leaves | return the complete caller-owned Thermo proxy; operations own carrier getter/fallback sequencing, adapters receive prepared external values |
+| `to_obmol`, `to_rdmol`, `to_pybel_mol`, `to_pyg_data` | first three: `operations/conversion.py` plus external projection leaves; to_pyg_data retains its adapter route | operations own conversion preparation/orchestration and adapters construct fresh external values; no persisted external object; this clarification changes no to_pyg_data contract |
+| `read_one`, `write`, SMILES/InChI serialization | operation orchestration plus external I/O/serialization leaves | object methods remain thin delegates; operations own carrier input/preparation/installation and adapters receive prepared external values |
 | MCA result access | `structure/results.py` plus inference operation | typed explicit result replaces `properties["mca"]`; `Atom.mca`/`mca_sites` remain projections |
 | `_topology_index`, `_update_topology` | `structure/_topology.py` and Molecule primitive | retain the exact Plan 19 conceptual contract; no native Graph or second index |
 | hidden Bond lists | operation-local `TopologyView`/mask | remove from Molecule after all internal consumers migrate |
@@ -1290,7 +1294,13 @@ named `coordination_placement` operation.
 ### 9.2 Current `hotpot/cheminfo` module-by-module disposition
 
 This table accounts for every current top-level file or package rather than
-only the obvious monolith.
+only the obvious monolith. Mixed conversion/I/O/Thermo/drawing modules split by
+Section6.1: operations own carrier allocation, validation, lazy preparation,
+mutation and getter/fallback sequencing; external adapter leaves receive prepared
+transport/assignment values and no carrier getter callbacks. Public exports point
+downward to each actual owner. Until Stage9 moves the concrete Molecule class,
+one function-local `_molecule_type()` import in operations.conversion uses its
+real core definition; it consolidates existing debt and creates no structure alias.
 
 | Current path | Target | Action |
 |---|---|---|
@@ -1317,7 +1327,7 @@ only the obvious monolith.
 | `ChemData/coformers`, `ChemData/solvent` | governed `hotpot/dataset/data/` assets | move molecule collections out of the code package with manifest/schema updates; do not instantiate all solvents at import time |
 | `MolProps/` | governed dataset assets plus a tested query operation if required | split spreadsheets/docs from code; delete empty or uncalled API rather than preserve a second property system |
 | `_clib/` | none | delete generated objects, SWIG wrapper, C/H/I files after build and reference audit; it has no active implementation caller |
-| `_io/` | `adapters/io/` | split reader, writer, and format handlers; remove `sys.modules` cycle workaround |
+| `_io/` | `operations/io.py` plus `adapters/io/` | one MolReader/MolWriter implementation owns carrier orchestration/plugins; external input/format leaves do not allocate/install/write carriers; remove `sys.modules` cycle workaround |
 | `_native/` | `adapters/native/` | retain one generic field-selective molecule transport and shared C++ headers |
 | `bundle.py` | `structure/bundle.py` | retain MolBundle as a carrier collection; move PyG conversion to adapter |
 | `MolecularFacts`, `MolecularFactsIdentity`, `ComponentIdentity`, `HydrogenInventory`, `SemanticBond` | one scientific-state snapshot contract with necessary composed values | preserve the useful MolecularFacts semantic projection and component/H/semantic-bond constituents; align source dependencies with shared identities and merge only audit-confirmed synonyms. A `ScientificStateSnapshot` rename is a public proposal, not proof these five types are duplicates |
@@ -1333,15 +1343,15 @@ only the obvious monolith.
 | Molecule extraction embedded in resolvers/calculators | `adapters/structure/scientific_state.py` | construct the one immutable scientific-state snapshot and contain all carrier awareness |
 | `calculator/mca_inference.py` | `operations/inference/mca/` | move out of general scientific-state calculation; replace arbitrary result storage |
 | `calculator/base.py` | none | delete the empty `Calculator` class |
-| `call_thermo.py` | `adapters/thermo/chemical.py` plus physics result contract | current module is an external `thermo`/RDKit bridge, not a native Hotpot rule |
+| `call_thermo.py` | `operations/thermo.py` plus `adapters/thermo/chemical.py` | sole caller-owned Thermo class/public carrier getter/fallback methods in operations; external Chemical/identifier/DataFrame work takes prepared values; preserve complete proxy surface |
 | `conformers/contracts.py`, `sampler.py` | `operations/conformers/` | preserve backend-neutral seam and deterministic seed semantics |
 | `conformers/adapters.py` | RDKit/Open Babel adapter subpackages | split backend-specific code; no mixed toolkit adapter module |
-| `convert.py` | `adapters/conversion.py` | preserve supported-object dispatch with lazy external imports |
+| `convert.py` | `operations/conversion.py` plus `adapters/conversion.py` | operation owns carrier-producing dispatch/import; leaf only classifies external types with lazy imports; preserve public names/signatures/branch priority |
 | `core.py` | split per Section 9.1, then delete | no compatibility re-export module in the recommended plan |
 | `core_func.pyx` | none | delete after zero-reference and build audit |
-| `core_utils.py` | `adapters/io` and named topology utilities | move `read_mol`; relocate or remove `atom_idx_pair_to_bond_idx` according to consumers |
+| `core_utils.py` | `operations/io.py` and `operations/topology_queries.py` | one read_mol uses the operation Reader; retain the consumed atom_idx_pair_to_bond_idx implementation at its named topology owner |
 | `crystal.py` | `structure/crystal.py`, mathematics cell conversion, Open Babel adapter | keep one canonical six-parameter `Crystal` record; remove Molecule back-reference, Open Babel object, `LatticeGroup`/space-group placeholders; preserve approved matrix convention |
-| `draw.py`, `fonts/`, `draw.md` | `adapters/visualization/` and docs | retain presentation capability outside domain carriers/rules |
+| `draw.py`, `fonts/`, `draw.md` | `operations/visualization.py`, `adapters/visualization/` and docs | carrier-capable draw entry/input sequencing in operations; prepared external rendering/colors/formats/resources in adapter; one implementation per symbol, no upward re-export or carrier callback |
 | `elements.py` | `reference/elements.py`, `reference/properties.py`, and `rules/chemistry/elements.py` | split immutable source values from classification/electron/valence calculations; remove Open Babel dependency |
 | `forcefields/coordinates.py` pure coordinate proposal helpers and pure acceptance/placement criteria | `rules/physics/forcefields/` | move `_perturbed_coordinates(...)`-style snapshot-to-value/evidence kernels only; no backend call or carrier write |
 | `forcefields.coordinates.perturb(mol, ...)` and other coordinate write facades | `operations/forcefields/` | retain the user/workflow operation while routing its generated coordinates through one atomic coordinate commit |
@@ -1363,13 +1373,13 @@ only the obvious monolith.
 | `mol_assemble/` | `operations/assembly/` | retain composition workflow; replace wildcard exports with explicit surface |
 | `mol_statistics.py` | none under the recommended Decision 20 outcome | delete incomplete `ComplexStatistics`; if the owner rejects that recommendation, complete/test it under a separately added operation node before migration |
 | `ob2chem.py` | none | delete duplicate compatibility layer after migration to the one Open Babel adapter |
-| `obconvert.py` | `adapters/openbabel/conversion.py` and a named bond-perception operation | split lossless translation from `ConnectTheDots`/bond-order behavior |
+| `obconvert.py` | `operations/conversion.py`, `operations/chemistry.py` and Open Babel adapter leaves | operations own lazy prep/empty-target validation/installation and perception commits; adapters extract records/assignments or serialize prepared values |
 | `obWrappers/` | retain as standalone `cheminfo/obWrappers/`; call it through `adapters/openbabel` | preserve Python/C++ standalone contracts, implementation, and direct component use; do not duplicate wrapper code inside the adapter |
 | `org_compounds.py` | none | delete the broken code path; any future real molecule collection enters through governed dataset admission rather than reviving this module |
 | `parse_smarts.py` | none | delete explicitly damaged, unused duplicate parser |
 | `pubchem.py`, `pubchem.md` | `adapters/pubchem.py` and docs | consolidate duplicated module-level and service methods into one implementation while retaining approved convenience functions |
 | `rdWrappers/` | retain as standalone `cheminfo/rdWrappers/`; call it through `adapters/rdkit` | preserve fixed RDKit version, Python/C/C++ contracts, CMake attach support, and standalone tests; do not duplicate wrapper code inside the adapter |
-| `rdconvert.py` | `adapters/rdkit/conversion.py` and `adapters/rdkit/stereo.py` | separate molecule conversion from stereo transport translation |
+| `rdconvert.py` | `operations/conversion.py`, `adapters/rdkit/conversion.py` and `adapters/rdkit/stereo_transport.py` | operation owns carrier preparation/capture/remap/install; adapters own external graph/stereo translation from prepared values without carrier writes/getter callbacks |
 | `rdworks.py`, `rdwork.md` | `adapters/rdkit/fingerprints.py` and docs | retain called/tested fingerprint functions; delete zero-use utilities after audit |
 | `search/` public composition | `operations/search/` | retain Searcher/Substructure/Query/Hit API and fixed enumeration semantics |
 | `search/smarts.py`, syntax, predicate IR, semantics | `rules/chemistry/substructure/` | retain one SMARTS parser and chemical predicate implementation |
@@ -1466,8 +1476,8 @@ or excluding public/wrapper contracts from the denominator.
 | `Molecule.updata_atoms`, `Molecule.atom_matrix` | add batch entry / rename existing matrix | owner-approved transactional batch method and complete19-column float64 snapshot property; directly rename atom_attr_matrix, migrate consumers and retain no old-name alias |
 | `hotpot.Crystal` | add export/refactor | six-parameter value carrier described in Sections 5 and 7; no Molecule back-reference/toolkit object |
 | future `MetalCluster`, `Molecule.metal_clusters -> list[MetalCluster]` | reserve for Plan21 | owner-specified names/relationship; concrete registration, construction, return semantics and export path deferred; no Plan20 runtime addition |
-| `MolReader`, `MolWriter`, `read_mol` | move/merge | one `adapters.io` implementation; public call signatures and supported formats are frozen in Stage 1 |
-| `MolBundle`, `to_pyg_dataset`, `is_molecule_input`, `to_hotpot_mol` | move/refactor | bundle remains a carrier collection; PyG/external conversion moves to adapters; convenience signatures remain |
+| `MolReader`, `MolWriter`, `read_mol` | move/merge | one `operations.io` implementation with external `adapters.io` leaves; public call signatures and supported formats are frozen in Stage 1 |
+| `MolBundle`, `to_pyg_dataset`, `is_molecule_input`, `to_hotpot_mol` | move/refactor | bundle remains a carrier collection; PyG external translation stays in adapter; is_molecule_input/to_hotpot_mol belong to operations.conversion with external classification leaves; convenience signatures remain |
 | `Searcher(substructure)`, `has_match(mol)`, `iter_mappings(mol, max_matches=None)`, `search(mol, max_matches=None)` | move | `operations.search`; RI semantics, callable-leaf Python behavior, truncation, and deterministic order remain exact |
 | `Substructure`, `Query`, `QueryAtom`, `QueryBond`, `Hit`, `Hits`, SMARTS errors/semantics | move | public composition remains; chemistry predicates and RI execution each have one lower-level owner |
 | five `hotpot.cheminfo.stereo` functions in Section 3.2 | refactor | signatures stay exact; thin maintained facade invokes extracted rule/operation code |
@@ -1848,7 +1858,7 @@ frozen at entry; this is one connected storage cutover, not an optional cleanup.
    conversion/stereo owners; and the then-current conformer transport and
    force-field working-copy publication/rollback owners. At entry, record an
    exact one-to-one rename manifest for `rdconvert.py` →
-   `adapters/rdkit/conversion.py` + `adapters/rdkit/stereo.py`, `obconvert.py` →
+   `adapters/rdkit/conversion.py` + `adapters/rdkit/stereo_transport.py`, `obconvert.py` →
    `adapters/openbabel/conversion.py`, and any already moved `_native/buffers.py`,
    `conformers/adapters.py` or `forcefields/working_copy.py`. Assign the surviving
    implementation once; never retain old/new copies. Their later Stage8 workflow

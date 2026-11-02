@@ -1,0 +1,299 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7A",
+  "status": "IMPLEMENTED_STDLIB_STATIC_CHECKS_PASSED_ROOT_INTEGRATION_PENDING",
+  "authority": {
+    "delegated_scope": "Root assigned the exact approved core-import relocation and Crystal local mathematical delegate guard alignment; no new architecture or science is proposed.",
+    "root_acceptance": {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/root_acceptance.json",
+      "bytes": 13357,
+      "sha256": "d686f0588a8729700f598de90447a493afdb28cc8761786cb43e85d632a52477"
+    },
+    "implementation_release": {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/implementation_release.json",
+      "bytes": 8575,
+      "sha256": "68a6138a62cd7712ea0dd7738236551b48982c5b92bf514e4845e46e743eb581"
+    },
+    "approved_contracts": [
+      "main Sections6.3/9.2",
+      "Stage1 Crystal decision",
+      "Stage7A S7A-P01/S7A-P04"
+    ]
+  },
+  "entry_alignment": {
+    "main_and_four_normative_companions_read": "Full current main plan lines1-2682 and all four normative companions read; full goal and both governance references read. Relevant Stage1/Stage7A decisions, map and current log history inspected. Truncated combined outputs were followed by bounded reads.",
+    "affected_implementation": "Read complete audit/debt-key and static_capture import/scope behavior, existing architecture tests, current Crystal, old convert/core_utils and frozen exact import debt rows. No Hotpot or external module imported.",
+    "source_HEAD": "aeb72d0b97fb1c2e50df86a057c31585a2e34e0c",
+    "branch": "implement/plan20-fact-rule-architecture",
+    "worktree": "Shared active Stage7A edits exist and are preserved; only assigned audit/test files and this record may be edited.",
+    "bindings": [
+      {
+        "path": ".codex/skills/hotpot-plan-governance/SKILL.md",
+        "bytes": 1739,
+        "sha256": "6724ebfce1fe9df9f717ee249f124f1533fbea9d51aa51faf2118995052be297"
+      },
+      {
+        "path": ".codex/skills/hotpot-plan-governance/references/plan-execution-governance.md",
+        "bytes": 5146,
+        "sha256": "62d36bb6d6770d623b38a3f39fe5aa0d758dd0a5f7707e447d88b2849cc22bd1"
+      },
+      {
+        "path": ".codex/skills/hotpot-plan-governance/references/cheminformatics-harness-principles.md",
+        "bytes": 7741,
+        "sha256": "8e552c711c5aa71719d0b910376dda44a452d702ceba5497bb117c201dd0a48e"
+      },
+      {
+        "path": ".codex/skills/hotpot-stage/SKILL.md",
+        "bytes": 2028,
+        "sha256": "d249a80bf84197f87034882c1d87070747fb119dd69ac85bd69b962f71c0b5f8"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+        "bytes": 194325,
+        "sha256": "6477f8dc39cafdeed24cee5d12f1ffa8dedf07a677139166e2ebeecc96239dbb"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/goal.md",
+        "bytes": 14287,
+        "sha256": "6e116730e1a31ec999b623e9e594d26f23e3cf8a95e68048652acf9c699b0118"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+        "bytes": 13443,
+        "sha256": "23a7b5c43851837a5aeaf69b4a127dc712d1a4b9c7bb178242015839543d8213"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+        "bytes": 62948,
+        "sha256": "f1e6dce3aa3be649b7e5491f8d35752accc84ec80cb3a597bfc2850d5aa82554"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+        "bytes": 24498,
+        "sha256": "96f4808f91e9470bdf60ff4a8f58b514d838b023328e7ea37f90fcf3f7328707"
+      },
+      {
+        "path": "plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+        "bytes": 4225,
+        "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/root_acceptance.json",
+        "bytes": 13357,
+        "sha256": "d686f0588a8729700f598de90447a493afdb28cc8761786cb43e85d632a52477"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/implementation_release.json",
+        "bytes": 8575,
+        "sha256": "68a6138a62cd7712ea0dd7738236551b48982c5b92bf514e4845e46e743eb581"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/capture_baseline_inventory.py",
+        "bytes": 37587,
+        "sha256": "45716c543081ca1180f71911d03303a4b93f2806bffaca1896d7152766aa222e"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/baseline_inventory/architecture_debt.jsonl",
+        "bytes": 56256,
+        "sha256": "e4bfa3426dbd26c44ef9683749cc24e809e1a4bcbe03ca5837a372d165bc8f2a"
+      },
+      {
+        "path": "plan/20_fact_rule_architecture/audit_architecture.py",
+        "bytes": 11825,
+        "sha256": "970c576d1e02b8ea23227df59dd149db5e5dfce4e6fbeaf523b69c482ee58b63"
+      },
+      {
+        "path": "tests/test_cheminfo/structure/test_architecture.py",
+        "bytes": 7240,
+        "sha256": "231735b59c60618d25deeb1d76f81087fd017fa719f66421a8a78282726567b3"
+      }
+    ]
+  },
+  "relocation": {
+    "source": {
+      "rule": "legacy_core_import",
+      "path": "hotpot/cheminfo/convert.py",
+      "scope": "",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "stage": "Stage9"
+    },
+    "destination": {
+      "rule": "legacy_core_import",
+      "path": "hotpot/cheminfo/operations/conversion.py",
+      "scope": "_molecule_type",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "stage": "Stage9"
+    },
+    "maximum_count": 1,
+    "source_frozen_line": 10,
+    "consolidated_other_debts": [
+      {
+        "path": "hotpot/cheminfo/core_utils.py",
+        "scope": "",
+        "target": "hotpot.cheminfo.core.Molecule",
+        "local": "Molecule"
+      },
+      {
+        "path": "hotpot/cheminfo/_io/_io.py",
+        "scope": "",
+        "target": "hotpot.cheminfo.core",
+        "local": "core"
+      },
+      {
+        "path": "hotpot/cheminfo/draw.py",
+        "scope": "",
+        "target": "hotpot.cheminfo.core.Molecule",
+        "local": "Molecule"
+      }
+    ],
+    "credit_rule": "Only the frozen convert.py import supplies one ceiling slot. Other retired imports supply no relocation credit. Actual versus allowed identity comparison stays exact. Reference credit transfers only when the old source is absent from the current allowlist, the exact new destination is present, and that reference contains the old identity without the new one. Previous and frozen ceilings are both checked; counts and all other identities remain unchanged.",
+    "retirement": "Stage9 moves the concrete Molecule definition and replaces this one lookup with its real structure owner; delete the destination allowlist entry. A later reintroduction must fail the previous-allowlist ratchet. The final zero-debt target remains unchanged.",
+    "root_allowlist_action": "Root retires removed old rows and replaces exactly the convert.py source row with the destination row at its actual line. This record is evidence, not an extensible input/configuration to the guard.",
+    "frozen_source_row_for_root": {
+      "line": 10,
+      "local": "Molecule",
+      "path": "hotpot/cheminfo/convert.py",
+      "rule": "legacy_core_import",
+      "scope": "",
+      "stage": "Stage9",
+      "target": "hotpot.cheminfo.core.Molecule"
+    },
+    "destination_row_for_root_allowlist": {
+      "path": "hotpot/cheminfo/operations/conversion.py",
+      "line": 19,
+      "scope": "_molecule_type",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    "actual_destination_source": {
+      "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/operations/conversion.py",
+      "bytes": 7813,
+      "sha256": "f6ee1d0264fb7920808aff48ddb27639d6f543d4b2619ac90cbea1c85d5e6240"
+    }
+  },
+  "crystal_delegate": {
+    "path": "hotpot/cheminfo/structure/crystal.py",
+    "scope": "Crystal._matrix_to_params",
+    "decorator": "staticmethod",
+    "signature": "(matrix)",
+    "module": "hotpot.cheminfo.rules.mathematics.cell",
+    "name": "_matrix_to_params",
+    "alias": null,
+    "policy": "Allow only this exact direct method local ImportFrom binding. Module-level, other path/class/method, nested helper/class, changed decorator/signature/alias/target and additional imported names remain forbidden. Crystal local external/native/operation dependencies remain forbidden; existing other carrier local native commit bridges are unchanged. Canonical-write checks remain unchanged."
+  },
+  "effects": {
+    "public_or_scientific_API": "None. No production algorithm, public signature, class, schema or runtime behavior is changed.",
+    "guard_API": "ratchet_findings retains its exact default comparison. The audit uses a fixed Stage7A wrapper for the two reference ceilings and retains all findings/counts. A precise layer finding rejects malformed core lookup scopes that static_capture alone cannot distinguish from the approved function name.",
+    "frozen_inventory_modified": false,
+    "allowlist_modified_by_this_agent": false,
+    "candidate_runtime_authorized": false
+  },
+  "validation": {
+    "status": "PASSED_WITHIN_STDLIB_STATIC_SCOPE",
+    "commands": [
+      {
+        "command": "python3 -I -B /tmp/hotpot-stage7a-architecture-guard/check_guards.py",
+        "returncode": 0,
+        "counts": {
+          "passed": 188,
+          "failed": 0
+        },
+        "report": {
+          "path": "/tmp/hotpot-stage7a-architecture-guard/synthetic_checks.json",
+          "bytes": 62689,
+          "sha256": "cc6ad049ee59c67953c654cd728fa9a374ab5ea7f40baefaf730d7d470d7d2d1"
+        },
+        "script": {
+          "path": "/tmp/hotpot-stage7a-architecture-guard/check_guards.py",
+          "bytes": 16619,
+          "sha256": "e15f3dc5a268946792e2015ad6033947c295bdc049d63dd011fdeaee4de19842"
+        }
+      },
+      {
+        "command": "python3 -I -B /tmp/hotpot-stage7a-architecture-guard/check_actual_source.py",
+        "returncode": 0,
+        "counts": {
+          "passed": 7,
+          "failed": 0
+        },
+        "report": {
+          "path": "/tmp/hotpot-stage7a-architecture-guard/actual_source_checks.json",
+          "bytes": 2401,
+          "sha256": "bd438cbd0994d67644f47b9bff5741ceb9e48d34e85dc622c2868229495921fa"
+        },
+        "script": {
+          "path": "/tmp/hotpot-stage7a-architecture-guard/check_actual_source.py",
+          "bytes": 3339,
+          "sha256": "ea1f4474d3561cac3b1653792a30c9ef78223b7c0b91fa43f0434a4421ce7eac"
+        }
+      },
+      {
+        "command": "git diff --check -- plan/20_fact_rule_architecture/audit_architecture.py tests/test_cheminfo/structure/test_architecture.py",
+        "returncode": 0,
+        "scope": "Read-only whitespace/error check on assigned files; no Git mutation."
+      }
+    ],
+    "coverage": [
+      "Original debt_key and ratchet_findings AST are unchanged; all original architecture test bytes remain an exact prefix.",
+      "One exact original slot, source and destination keys, line insensitivity, duplicates/coexistence, independent previous/frozen ceilings, no other relocation credit, retirement and blocked reintroduction.",
+      "Real inventory captures the source/function import identity and count; a same-named class produces the same inventory scope and is separately rejected by the layer check.",
+      "Original structure/rule import negatives, every existing canonical-write/value-initializer/foreign-write scope fixture, permitted snapshot/task arrays, and the precise Crystal and core lookup scope/binding cases.",
+      "Actual newly authored conversion import is a sole Stage9 row at line19; actual Crystal and operation pass their static layer checks against bound source bytes."
+    ],
+    "final_changed_source_bindings": [
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/audit_architecture.py",
+        "bytes": 15010,
+        "sha256": "42b75ef4d7ff7a7ef049a8c5e9f53ad74bb39764c6dc8a08ca975eba6123b7f4"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/tests/test_cheminfo/structure/test_architecture.py",
+        "bytes": 15628,
+        "sha256": "003587eb30bea8be32703ce77afbdae0fd5ac9fc3a1810b8650952b9ea6ee70c"
+      }
+    ],
+    "unchanged_evidence_bindings_at_handoff": [
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/baseline_inventory/architecture_debt.jsonl",
+        "bytes": 56256,
+        "sha256": "e4bfa3426dbd26c44ef9683749cc24e809e1a4bcbe03ca5837a372d165bc8f2a"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/architecture_allowlist.json",
+        "bytes": 64334,
+        "sha256": "69ad8824ea294912f05b4284b5ec13a034f2e2a5b77e89bb369b7aed86fa5fca"
+      }
+    ],
+    "prior_checkpoints_preserved": [
+      {
+        "path": "/tmp/hotpot-stage7a-architecture-guard/audit_architecture.attempt1.py",
+        "bytes": 14863,
+        "sha256": "b30a5f24ad9ba0f1375bae28bf17f0ce9d1d19d0615578d04b61fe63c2f2f663"
+      },
+      {
+        "path": "/tmp/hotpot-stage7a-architecture-guard/synthetic_checks.attempt1.json",
+        "bytes": 62689,
+        "sha256": "2d6373a512d71f49eb2d80eb6117a8c4d90a1a3502682080d14c50b520628aa7"
+      },
+      {
+        "path": "/tmp/hotpot-stage7a-architecture-guard/actual_source_checks.attempt1.json",
+        "bytes": 2401,
+        "sha256": "a559878cb78b2a2d5e00a39d013b2686d3da453d3c186a33b80ea8333985d681"
+      }
+    ],
+    "limits": [
+      "No Hotpot, external, pytest or native module is imported; no pytest collection, test-function execution, candidate runtime, build/install/environment operation or Git mutation occurred.",
+      "The full repository audit has not passed and was not executed: root owns exact allowlist retirement/integration against shared candidate bytes.",
+      "Formal architecture tests, source/installed matrix and all stage/global validation remain for root SOURCE_READY; this record closes no stage or scientific/performance gate."
+    ]
+  },
+  "remaining_gates": [
+    "Root integrates the exact shrinking allowlist and ledger row.",
+    "Root SOURCE_READY formal architecture tests and complete affected validation.",
+    "All Stage7A runtime/package/native/memory/performance and later/global gates remain open."
+  ]
+}

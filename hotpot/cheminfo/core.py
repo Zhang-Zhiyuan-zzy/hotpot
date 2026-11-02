@@ -8,7 +8,6 @@ python v3.9.0
 """
 import logging
 import re
-import sys
 import time
 import operator
 from enum import Enum
@@ -20,19 +19,14 @@ from functools import wraps as _wraps
 
 import cython
 import numpy as np
-from openbabel import pybel as pb, openbabel as ob
 
 from hotpot.cheminfo.elements import elements
 from hotpot.utils import types
-import hotpot.cheminfo.obconvert as obc
-from .rdconvert import to_rdmol
 from .rules.mathematics import graph as graph_algorithms
 from . import forcefields as ff
 from .rules.mathematics import geometry
 from .adapters.structure import geometry as geometry_adapter
-from . import crystal as cryst
 from .pubchem import pubchem_service
-from .call_thermo import Thermo
 from .structure._fields import (
     ATOM_FIELDS as _ATOM_FIELDS, ATOM_PRESENCE_ALL as _ATOM_PRESENCE_ALL,
     ATOM_SOURCE_CODES as _ATOM_SOURCE_CODES, FIELD_INDEX as _ATOM_FIELD_INDEX,
@@ -75,10 +69,6 @@ OPENBABEL_PARTIAL_CHARGE_MODELS = (
 _MINIMUM_ATOM_SEPARATION = 0.5
 _DEFAULT_BOND_RING_MAXIMUM_SIZE = 16
 
-if sys.modules.get('hotpot.cheminfo._io', None) is None:
-    from . import _io
-else:
-    _io = sys.modules['hotpot.cheminfo._io']
 
 # Exceptions
 class NotInSameMolecule(Exception):
@@ -159,8 +149,6 @@ class Molecule:
 
         self._pair_wiberg_bond_orders = {}
         self._constraints = _ConstraintSet()
-        self._obmol = None
-        self._row2idx = None
         self._crystal = None
 
         self._hided_metal_bonds = []
@@ -386,7 +374,8 @@ class Molecule:
         return self._crystal
 
     def create_crystal(self, a, b, c, alpha, beta, gamma):
-        self._crystal = cryst.Crystal(a, b, c, alpha, beta, gamma, mol=self)
+        from .structure.crystal import Crystal
+        self._crystal = Crystal(a, b, c, alpha, beta, gamma)
         return self._crystal
 
     def setattr(self, **attrs):
@@ -410,7 +399,8 @@ class Molecule:
     @staticmethod
     def read_one(src, fmt=None, **kwargs):
         """ Just read the first Molecule instance in the src """
-        return next(_io.MolReader(src, fmt, **kwargs))
+        from .operations.io import MolReader
+        return next(MolReader(src, fmt, **kwargs))
 
     @property
     def hydrogens(self) -> list["Atom"]:
@@ -470,7 +460,8 @@ class Molecule:
                          _prepared_index=None, _constraint_rows=None) -> None:
         with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
             if _prepared_index is self._topology_index and _constraint_rows is None:
-                transaction.touch_caches()
+                transaction.touch_frames()
+                transaction.touch_constraints()
             else:
                 transaction.touch_topology()
             previous = self._topology_index
@@ -493,8 +484,6 @@ class Molecule:
                     tuple(id(bond) for bond in previous.get(id(atom), (None, ()))[1]) !=
                     tuple(id(bond) for bond in self._topology_index[id(atom)][1]))
                 _mark_topology_dirty(self, changed)
-            self._obmol = None
-            self._row2idx = None
             if clear_conformers:
                 self._conformers.clear()
 
@@ -815,8 +804,9 @@ class Molecule:
     def cas(self):
         return pubchem_service.smi_to_cas(self.smiles)
 
-    def get_thermo(self, temp: float = 298.15, pressure: float = 101325.0) -> Thermo:
-        return Thermo(self, temp=temp, pressure=pressure)
+    def get_thermo(self, temp: float = 298.15, pressure: float = 101325.0) -> "Thermo":
+        from .operations.thermo import _get_thermo
+        return _get_thermo(self, temp=temp, pressure=pressure)
 
     def clear_constraints(self) -> None:
         """Clear the existing active coordinate/Bond and owned sequence constraints."""
@@ -1314,7 +1304,8 @@ class Molecule:
 
     def create_atom(self, **kwargs) -> 'Atom':
         with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
-            transaction.touch_caches()
+            transaction.touch_frames()
+            transaction.touch_constraints()
             atom = self._create_atom(**kwargs)
             self._update_topology(_prepared_index=self._topology_index)
             return atom
@@ -1378,34 +1369,8 @@ class Molecule:
             ``Atom.partial_charge``; use :meth:`assign_partial_charge` to store
             them. Formal charges and ``Molecule.charge`` are never modified.
         """
-        ob_charge_model = ob.OBChargeModel.FindType(model)
-        if ob_charge_model is None:
-            raise ValueError(
-                f"OpenBabel charge model {model!r} is unavailable; "
-                f"known models are {', '.join(OPENBABEL_PARTIAL_CHARGE_MODELS)}"
-            )
-
-        obmol = ob.OBMol(self.to_obmol())
-        if model_args is None:
-            succeeded = ob_charge_model.ComputeCharges(obmol)
-        else:
-            succeeded = ob_charge_model.ComputeCharges(obmol, model_args)
-        if not succeeded:
-            raise RuntimeError(
-                f"OpenBabel charge model {model!r} could not calculate charges"
-            )
-
-        charges = tuple(float(value) for value in ob_charge_model.GetPartialCharges())
-        if len(charges) != len(self.atoms):
-            raise RuntimeError(
-                f"OpenBabel charge model {model!r} returned {len(charges)} "
-                f"charges for {len(self.atoms)} atoms"
-            )
-        if not np.all(np.isfinite(charges)):
-            raise RuntimeError(
-                f"OpenBabel charge model {model!r} returned non-finite charges"
-            )
-        return charges
+        from .operations.conversion import _get_partial_charge
+        return _get_partial_charge(self, model, model_args, OPENBABEL_PARTIAL_CHARGE_MODELS)
 
     def assign_partial_charge(
             self,
@@ -1425,14 +1390,8 @@ class Molecule:
         tuple[float, ...]
             Assigned charges in Hotpot atom order.
         """
-        charges = self.get_partial_charge(model=model, model_args=model_args)
-        for atom, charge in zip(self.atoms, charges):
-            atom.partial_charge = charge
-
-        if self._obmol is not None:
-            for ob_atom, charge in zip(ob.OBMolAtomIter(self._obmol), charges):
-                ob_atom.SetPartialCharge(charge)
-        return charges
+        from .operations.conversion import _assign_partial_charge
+        return _assign_partial_charge(self, model, model_args)
 
     @property
     def pair_dist(self) -> np.ndarray:
@@ -1633,7 +1592,8 @@ class Molecule:
             assign_bond_order (bool): Indicates whether to assign bond orders. 
                 Defaults to True.
         """
-        obc.link_atoms(self)
+        from .operations.chemistry import _link_atoms
+        _link_atoms(self)
         # conformers = copy(self._conformers)
 
         self._update_topology(clear_conformers=False)
@@ -1902,7 +1862,8 @@ class Molecule:
             str: The InChI representation of the molecule. The method converts the internal
             object representation to an Open Babel molecule, and then outputs its InChI string.
         """
-        return pb.Molecule(self.to_obmol()).write('inchi')
+        from .operations.conversion import _inchi
+        return _inchi(self)
 
     def shortest_path_index(self, atom1, atom2) -> list[int]:
         from .operations.topology_queries import _shortest_path_indices
@@ -1930,15 +1891,13 @@ class Molecule:
     @property
     def smiles(self) -> str:
         """ Return smiles string. """
-        # return pb.readstring('smi', pb.Molecule(mol2obmol(self)[0]).write().strip()).write('can').strip()
-        # return pb.Molecule(self.to_obmol()).write('can')
-        return pb.readstring('mol2', pb.Molecule(self.to_obmol()).write('mol2')).write('can').split()[0]
-        # return pb.readstring('smi', pb.Molecule(mol2obmol(self)[0]).write().strip()).write('can').strip()
-        # return pb.Molecule(mol2obmol(self)[0]).write().strip()
+        from .operations.conversion import _smiles
+        return _smiles(self)
 
     @property
     def kekulize_smiles(self) -> str:
-        return pb.readstring('mol2', pb.Molecule(self.to_obmol()).write('mol2')).write('can', opt={'k': None}).split()[0]
+        from .operations.conversion import _smiles
+        return _smiles(self, kekulize=True)
 
     @property
     def rings(self) -> list["Ring"]:
@@ -2058,20 +2017,10 @@ class Molecule:
         from ..plugins.PyG.data.utils import mol_to_pyg_data
         return mol_to_pyg_data(self, prefix, with_batch)
 
-    def to_obmol(self) -> ob.OBMol:
-        """
-        Converts the current molecule representation to an Open Babel OBMol object.
-
-        This method checks if the internal OBMol object representation exists. If it does, the
-        stored OBMol is returned. If not, the molecule is converted to an OBMol representation
-        using the appropriate conversion function and then stored for future use.
-
-        Returns:
-            ob.OBMol: The Open Babel molecule object representation of the current molecule.
-        """
-        if not self._obmol:
-            self._obmol, self._row2idx = obc.mol2obmol(self)
-        return self._obmol
+    def to_obmol(self) -> "ob.OBMol":
+        """Return a fresh Open Babel projection of the current molecular facts."""
+        from .operations.conversion import mol2obmol
+        return mol2obmol(self)[0]
 
     def to_rdmol(self):
         """
@@ -2087,9 +2036,10 @@ class Molecule:
             rdkit.Chem.rdchem.Mol: The RDKit Mol object representing the current 
             molecule.
         """
+        from .operations.conversion import to_rdmol
         return to_rdmol(self)
 
-    def to_pybel_mol(self) -> pb.Molecule:
+    def to_pybel_mol(self) -> "pb.Molecule":
         """
         Represents a method to convert a molecular representation into a Pybel Molecule object.
 
@@ -2104,7 +2054,8 @@ class Molecule:
         Returns:
             pb.Molecule: A Pybel Molecule object generated from the molecular representation.
         """
-        return pb.Molecule(obc.mol2obmol(self)[0])
+        from .operations.conversion import _to_pybel_mol
+        return _to_pybel_mol(self)
 
     def translation(self, vector: types.ArrayLike):
         """Translate current coordinates through the one coordinate commit."""
@@ -2155,7 +2106,8 @@ class Molecule:
             True if the file was successfully written, False otherwise.
         """
         # write_by_pybel(self, fmt, str(filename), overwrite, opt)
-        writer = _io.MolWriter(filename, fmt, overwrite=overwrite, **kwargs)
+        from .operations.io import MolWriter
+        writer = MolWriter(filename, fmt, overwrite=overwrite, **kwargs)
         return writer.write(self, write_single=write_single)
 
 
@@ -2342,7 +2294,8 @@ class Molecule:
                             if uid in old_hydrogen_inputs and old_hydrogen_inputs[uid] != inputs)
             if changed:
                 _seed(self, GROUP_INDEX['IMPLICIT_H'], changed)
-        self._crystal = None if record.cell is None else cryst.Crystal(*record.cell, mol=self)
+        from .structure.crystal import Crystal
+        self._crystal = None if record.cell is None else Crystal(*record.cell)
         self._install_frame_state(tuple(_thaw_canonical(value) for value in record.legacy_frame_values), record.legacy_frame_index)
         if record.identifier[0]:
             self.identifier = record.identifier[1]
@@ -4764,7 +4717,7 @@ def _capture_molecule_pickle(mol):
                  '_atom_table', '_topology_index', '_next_atom_uid', '_next_bond_uid', '_conformers',
                  '_conformers_index', '_stereo_payload', '_crystal', '_charge_value', '_charge_present',
                  '_charge_source', '_spin_value', '_spin_present', '_spin_source',
-                 '_constraints', '_obmol', '_row2idx', '_pair_wiberg_bond_orders'}
+                 '_constraints', '_pair_wiberg_bond_orders'}
         state = {key: value for key, value in mol.__dict__.items() if key not in owned}
         state['properties'] = dict(mol.properties)
         graph_memo = {id(mol): mol, **{id(atom): atom for atom in mol._atoms},
@@ -4776,8 +4729,7 @@ def _capture_molecule_pickle(mol):
                             if key not in ('_atoms', '_bonds', '_member_uid', '_uid_owner', '_attrs',
                                            '_bond_kind', '_bond_direction', '_bond_source', '_bond_source_metadata', '_is_aromatic')}
                            for bond in bonds)
-        crystal_state = None if mol._crystal is None else dict(mol._crystal.__dict__)
-        extra = (state, metadata, atom_state, bond_state, mol._capture_frame_state(), crystal_state)
+        extra = (state, metadata, atom_state, bond_state, mol._capture_frame_state(), None)
         return (record, mol._owner_token, tuple(atom._uid for atom in mol._atoms),
                 tuple(bond._uid for bond in bonds), (mol._next_atom_uid, mol._next_bond_uid),
                 _dependency_state(mol._atom_table), extra)
@@ -4802,7 +4754,7 @@ def _restore_molecule_raw(cls, record, owner, atom_uids, bond_uids, high_water, 
 
 
 def _restore_molecule_extra(mol, state):
-    attributes, metadata, atom_state, bond_state, frames, crystal_state = state
+    attributes, metadata, atom_state, bond_state, frames, _ = state
     mol.__dict__.update(attributes)
     for atom, extra in zip(mol._atoms, atom_state):
         atom.__dict__.update(extra)
@@ -4810,8 +4762,6 @@ def _restore_molecule_extra(mol, state):
         bond.__dict__.update(extra)
         object.__setattr__(bond, '_bond_source_metadata', supplied)
     mol._install_frame_state(*frames)
-    if crystal_state is not None:
-        mol._crystal.__dict__.update(crystal_state)
 
 
 def _restore_atom_member(mol, row, uid):

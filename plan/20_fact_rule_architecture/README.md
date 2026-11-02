@@ -1,7 +1,7 @@
 # Stage 20 — Fact-Carrier and Rule Architecture
 
-Status: implementation authorized on 2026-10-28; Stage0–5 owning-stage gates complete.
-Root accepts Stage6 C61 static/runtime/bounded-cost evidence on 2026-10-30; records are integrated, while validated Git delivery/root final closure remain pending. Stage7A has not entered; final scientific/global efficiency acceptance remains open. All public chemical
+Status: implementation authorized on 2026-10-28; Stage0–6 owning-stage gates complete.
+C62 Stage6 records are delivered and remote-verified. Stage7A design is root accepted; exact bounded implementation and six-test/probe authoring are separately released. Candidate imports/runtime remain held until root integration and SOURCE_READY. Final scientific/global efficiency acceptance remains open. All public chemical
 types follow a common protocol for fact ownership, interface mapping,
 permissions, dependencies, buffer ownership and lifecycle. Atom's unified
 fact table is one concrete implementation. Stage2 completed the approved dead/placeholder implementation cleanup;
@@ -104,7 +104,14 @@ three local static findings assigned for bounded reproduction/correction.
 No current full-suite, matrix, remote or final performance acceptance is
 inferred from this preparation.
 
-## Stage6 owning evidence accepted; delivery pending
+## Completed Stage6 owning gates
+
+Root's separate [final closure](../../.plan20-artifacts/20261030/stage6/root-final-closure/attempt1/evidence.json)
+closes Stage6 after C62 `aeb72d0b97fb1c2e50df86a057c31585a2e34e0c` delivery and
+remote verification. Validated runtime source remains C61. The
+[Stage7A entry](stages/stage07/external-adapters/entry_review.json) now releases
+bounded design; the separate [root design acceptance](stages/stage07/external-adapters/root_acceptance.json) and [implementation release](stages/stage07/external-adapters/implementation_release.json) now govern exact authoring scope. Candidate runtime remains held. Earlier integration reports
+and check hashes retain their historical state and bind the later closure separately.
 
 Root's [final evidence decision](../../.plan20-artifacts/20261030/stage6/root-gate-decision/attempt1/evidence.json)
 accepts frozen C61 static/runtime/bounded-cost evidence and ends the runtime
@@ -123,9 +130,10 @@ comparisons/all72 adverse metrics accepted for Stage6 only. Fixed60-pair
 installedchain512 repeat classification follows the frozen noise rule; original
 inconclusive observation/broad interval/order effects remain. No global parity
 or waiver. The [owning gate record](stages/stage06/gates/review.md) and
-[exact root/delivery evidence](stages/stage06/gates/evidence.json) leave coherent
-validated Git delivery/root final record/source check/full Stage6 closure pending.
-Stage7A has not entered and requires its post-Stage6 rebind. Mandatory Stage7E
+[exact root/delivery evidence](stages/stage06/gates/evidence.json) preserve the
+original integration snapshot and separately bind the completed closure. Stage7A
+entry follows the post-Stage6 source/import/test/wheel rebind; its bounded design
+is root accepted with separate exact implementation/test authoring releases. Mandatory Stage7E
 removes transitional whole-payload stereo storage before Stage8/global ownership;
 Stage10 clean-native/ABI/SDK/sdist and final science/performance/Plan12/experimental
 prerequisites remain open. The [Stage6 index](stages/stage06/README.md) links all
@@ -197,3 +205,13 @@ maps former root filenames to current records and preserves their pre-move
 identities. It does not claim that a relocated or link-adjusted document was
 revalidated by its old command. Run the [layout audit](audit_stage_records.py)
 for current filename, index, JSON and local-link checks.
+
+Stage7A's [contract proposal](stages/stage07/external-adapters/contracts/review.md),
+[decision register](stages/stage07/external-adapters/contracts/decisions.md) and
+[exact proposal evidence](stages/stage07/external-adapters/contracts/evidence.json)
+record accepted P01–P07 design boundaries; P07 future probe bytes still require
+root release. Reviews5–8 bind qualified C61 cost/retention, injected-failure,
+five-version reflection and cell-cold observations without candidate acceptance.
+Candidate validation, comparable cost and native-memory sufficiency remain open.
+
+The [connected-consumer supplement](stages/stage07/external-adapters/connected_consumer_supplement.json) adds the dataset parser path-hash owner migration and all36 test_ds files: final source/installed affected selection is211 on each Python3.10–3.14. The original175-file proposal/baseline remains preserved; no candidate pass or Stage13 experiment follows.

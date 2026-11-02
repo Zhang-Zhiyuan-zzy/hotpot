@@ -137,7 +137,7 @@ def _require_aromatic_representation(mol, *, rows=None):
             return
         _prepare_aromatic_representation(mol, rows=selected)
         statuses = mol._atom_table._group_status[list(selected), GROUP_INDEX['AROMATIC_REPRESENTATION']]
-        if any(status != _FactStatus.CURRENT for status in statuses):
+        if np.any(statuses != _FactStatus.CURRENT):
             raise RuntimeError('Aromatic representation is unresolved or conflicting; call determine_rings_aromatic() explicitly')
 
 
@@ -421,9 +421,12 @@ def _prepare_aromatic_representation(mol, *, rows=None):
         selected = tuple(range(len(mol._atoms))) if rows is None else tuple(rows)
         table = mol._atom_table
         group = GROUP_INDEX['AROMATIC_REPRESENTATION']
-        if not any(table._dirty_seeds[:3]) and all(table._group_status[row, group]
-                in (_FactStatus.CURRENT, _FactStatus.UNRESOLVED, _FactStatus.CONFLICT) for row in selected):
-            return
+        if not any(table._dirty_seeds[:3]):
+            selected_statuses = table._group_status[list(selected), group]
+            if np.all((selected_statuses == _FactStatus.CURRENT)
+                      | (selected_statuses == _FactStatus.UNRESOLVED)
+                      | (selected_statuses == _FactStatus.CONFLICT)):
+                return
         dirty = set().union(*mol._atom_table._dirty_seeds[:3])
         affected = set(_component_rows(mol, dirty)) if dirty else set()
         statuses = _ensure_group(mol, 'AROMATIC_REPRESENTATION')
@@ -519,7 +522,6 @@ def _ring_aromatic_read(ring):
 
 
 def _assign_bond_orders(mol):
-    from ..obconvert import _perceive_bond_orders
     from ..structure._builder import _thaw_canonical
     from ..structure._commit import _commit_bond_facts
     with mol._mutation_lock:
@@ -575,3 +577,36 @@ def _remap_stereo_transport(payload, atom_mapping, *, allowed_bonds=None):
     """Apply the sole pure transport remap at a molecular lifecycle boundary."""
 
     return _remap_stereo_payload(payload, atom_mapping, allowed_bonds=allowed_bonds)
+
+
+def _add_mol_bonds_from_obmol(mol, obmol, idx_to_row):
+    from ..adapters.openbabel import perception
+    from ..structure._builder import _thaw_canonical
+
+    for pair, order, kind, direction, source, metadata, aromatic in perception._bond_proposals(obmol, idx_to_row):
+        mol._add_bond(*pair, bond_order=order, bond_kind=kind,
+                      bond_direction=direction, bond_source=source,
+                      bond_source_metadata=_thaw_canonical(metadata))
+
+
+def _link_atoms(mol):
+    from . import conversion
+    from ..adapters.openbabel import perception
+
+    obmol, row_to_idx = conversion.mol2obmol(mol)
+    idx_to_row = {index: row for row, index in row_to_idx.items()}
+    perception._connect_the_dots(obmol)
+    _add_mol_bonds_from_obmol(mol, obmol, idx_to_row)
+
+
+def _perceive_bond_orders(mol, bonds):
+    from . import conversion
+    from ..adapters.openbabel import conversion as openbabel
+    from ..adapters.openbabel import perception
+
+    with mol._mutation_lock:
+        obmol = openbabel._new_obmol()
+        atom_rows, bond_rows, cell = conversion._capture_ob_values(mol, bonds)
+        obmol, row_to_idx = openbabel._factual_obmol(obmol, atom_rows, bond_rows, cell)
+        idx_to_row = {index: row for row, index in row_to_idx.items()}
+    return perception._perceive_bond_orders(obmol, idx_to_row)

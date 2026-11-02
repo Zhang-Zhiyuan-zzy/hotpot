@@ -80,8 +80,7 @@ def test_disconnected_symmetric_components_do_not_enumerate_all_automorphisms():
 
 def test_site_detection_has_no_rdkit_dependency():
     source = (
-        Path(__file__).resolve().parents[2]
-        / "hotpot"
+        Path(hp.__file__).resolve().parent
         / "cheminfo"
         / "AImodels"
         / "mca"

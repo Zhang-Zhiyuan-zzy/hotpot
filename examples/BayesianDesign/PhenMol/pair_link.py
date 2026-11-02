@@ -8,7 +8,7 @@ from copy import copy
 from tqdm import tqdm
 import random
 import multiprocessing as mp
-from hotpot.cheminfo.draw import draw_grid
+from hotpot.cheminfo.operations.visualization import draw_grid
 
 
 logging.basicConfig(level=logging.CRITICAL)

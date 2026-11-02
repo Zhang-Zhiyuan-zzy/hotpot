@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7A",
+  "status": "ENTRY_ALIGNED_BOUNDED_SOLMAX_DESIGN_RELEASED_IMPLEMENTATION_HELD",
+  "owner": "root",
+  "recorded_at_utc": "2026-10-30T15:23:28.611866+00:00",
+  "predecessor": "Stage6",
+  "predecessor_closure": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage6/root-final-closure/attempt1/evidence.json",
+    "bytes": 5591,
+    "sha256": "427d8fa580e34b82d55cff4fadc6134fb3a6af43cd6eccc729621c41484c41f5"
+  },
+  "repository": {
+    "branch": "implement/plan20-fact-rule-architecture",
+    "HEAD": "aeb72d0b97fb1c2e50df86a057c31585a2e34e0c",
+    "production_source_commit": "d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a",
+    "worktree_at_assessment": "clean",
+    "delivery_cadence": 0,
+    "source_note": "C62 changes only fourteen maintained Stage6 records; C61 production/test/support bytes are unchanged."
+  },
+  "global_objective": "Continue the sole Plan20 mainline and integrated Plan12 requirements through Stage13B; Stage0-12 accepted B_exp precedes separate Stage13A/B. Stage6 completion is one checkpoint.",
+  "alignment": {
+    "full_read_continuity": "The main-agent preentry context completed the full current main plan/four normative companions/verification map/integrated requirements/relevant decisions and log reads. After record integration the main body is byte-identical; root read the complete mechanical header/navigation/map deltas and appended log. This record reuses that read continuity rather than claiming hashes alone are reads.",
+    "current_normative_bindings_before_entry_log_append": [
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/goal.md",
+        "bytes": 14287,
+        "sha256": "6e116730e1a31ec999b623e9e594d26f23e3cf8a95e68048652acf9c699b0118"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+        "bytes": 191823,
+        "sha256": "c23cc897f721be83ea5b660cd402bff08b8e795c81b4b44c5845e57d12d01246"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+        "bytes": 13443,
+        "sha256": "23a7b5c43851837a5aeaf69b4a127dc712d1a4b9c7bb178242015839543d8213"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/data_object_scope_audit.md",
+        "bytes": 62948,
+        "sha256": "f1e6dce3aa3be649b7e5491f8d35752accc84ec80cb3a597bfc2850d5aa82554"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+        "bytes": 24498,
+        "sha256": "96f4808f91e9470bdf60ff4a8f58b514d838b023328e7ea37f90fcf3f7328707"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stage_verification_map.json",
+        "bytes": 109512,
+        "sha256": "d794612a4a55b899de8da3ccf399882bff468e006d4149bd9c5309d38237f45c"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/integrated_requirements.json",
+        "bytes": 21531,
+        "sha256": "18c75f0e02d0fb98fe9a4577a4d66f3ceadb682630e626db60725bb45d1a0f5a"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/performance_manifest.json",
+        "bytes": 34761,
+        "sha256": "ed5bba12ac6ae0305f6c85f7af3aa8fa824a3278fe12aad537a2f0c13768571b"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/python_matrix_manifest.json",
+        "bytes": 355269,
+        "sha256": "7c6ed13718cfa1563f65c99c8f3ac8ff94b77eddf43aaf5e0ff27ac54de3a107"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/data_object_budget.json",
+        "bytes": 33185,
+        "sha256": "40b1e3a1c0b605efacaa43b76c2138151459a0ea913d64c209a674b4e0e3f571"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/reviewed_interface_contracts.json",
+        "bytes": 206563,
+        "sha256": "fed58150bb7b60fbbdf3b16988b87d012d66dd1b7d5e2a1a6e0f4221695e737f"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/implementation_log.md",
+        "bytes": 199288,
+        "sha256": "f4d38943d41f8c5321aac096bf4d08ee2375b7d89fe0ae3e35afd1a666a2f26b"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage01/contracts/decisions.md",
+        "bytes": 14642,
+        "sha256": "1a733cf83d0e7c098b7e227fbb4543ba382015c0f69141c46caf0daf8599c10f"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage01/interfaces/review.md",
+        "bytes": 15454,
+        "sha256": "2198aaef918fc1f934e248a2a734b15f657e95983615582200a0f9350c0c7aa0"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage07/preentry-conversion/review.md",
+        "bytes": 15421,
+        "sha256": "e915fe3924b67fc5f81fe697966818f85834c318f841e4dccb686372390a1978"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage07/preentry-conversion/evidence.json",
+        "bytes": 4153,
+        "sha256": "7800316860d62ed58ec92e6e584145c52a1948fd3ef769404c725d7a50e671a2"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+        "bytes": 4225,
+        "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d"
+      }
+    ],
+    "new_findings": [
+      "Stage6 records/delivery are now complete; old HOLD/pending artifacts remain historical snapshots.",
+      "Task35 source/import/test/wheel bindings have been rebound after Stage6:53 of55 prior source files unchanged, core.py/rdconvert.py only stereo ownership routes changed;217 current-wheel source/resource members match.",
+      "The19 test bindings are seeds, not a complete future matrix. Three additional forcefield/import-related tests are separately bound.",
+      "Definition-time toolkit/Thermo/pandas annotations and forcefield default object dependencies require an explicit coherent design; moving imports alone is insufficient.",
+      "Top-level RDKit preload and final wildcard/global import cleanup are assigned to Stage12; design must identify any necessary minimal adjacent seam rather than silently expanding this stage."
+    ],
+    "substantive_plan_route_change_at_entry": false
+  },
+  "rebound_evidence": {
+    "source_import_test_wheel": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/preentry-rebind/attempt1/rebind.json",
+      "bytes": 122277,
+      "sha256": "df3efa48451790fb575f62dc7dd9914372bf61d8cad24fc0da13fd2ab4b4446e"
+    },
+    "definition_time_constraints": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/preentry-rebind/attempt1/import-constraints-evidence.json",
+      "bytes": 25325,
+      "sha256": "1db0891d016da9a68e4f0184d3cd4ba281deef0664dd7db638484851ba7e5bd8"
+    },
+    "lookup_report": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/preentry-rebind/attempt1/import-constraints.txt",
+      "bytes": 10006,
+      "sha256": "34d0cebc7573be1052cbffd8444c406ce0b5bbc5a3a166fe66fe3db2f607286e"
+    },
+    "reuse_limits": "Task35 and Stage6 exact observed cold/import/source-wheel evidence are reused only within recorded scope; no new review/audit or optional-dependency absence claim."
+  },
+  "included": [
+    "Delete Molecule persistent _obmol/_row2idx and connected transaction/pickle/xTB/cache synchronization; each conversion returns a fresh independent task value and coarse workflows reuse locally once.",
+    "Finish Section9 conversion dispatch, toolkit conversion/stereo owners, adapters/io readers/writers/format handlers, read_mol and sole topology-helper disposition, thermo bridge/proxy, visualization/docs/fonts/package resources. One implementation per owner; no old/new shim.",
+    "Crystal sole six writable parameters at structure/crystal.py, fresh OB cell adapter and existing matrix mathematics; remove mol/back-reference/toolkit state/obcell/placeholders.",
+    "Connected consumers/imports/tests/package resources/source-wheel outcomes migrate together; factual imports use Stage3 builder."
+  ],
+  "settled_public_and_scientific_constraints": [
+    "Crystal.from_matrix retains alpha between first two rows and subclass dispatch; no new matrix property.",
+    "Thermo remains caller-owned with181 declared properties and unrestricted dynamic Chemical forwarding; no reduced frozen DTO.",
+    "Molecule build3d/optimize retain actual ff.DEFAULT_CONVERGENCE_LEVEL/FAST default object identity.",
+    "Preserve conversion chemistry/H/aromatic/stereo/native schemas and mapping/exception ordering unless an exact already-approved removal/move requires a documented boundary change.",
+    "Standalone native session-owned OBMol is a valid separate owner and must remain; scope targets carrier caches.",
+    "No new public API/schema/return envelope/scientific algorithm is authorized by inventory. Design lists exact intended interface/path/annotation effects before dependent implementation."
+  ],
+  "excluded": [
+    "Stage7B hidden-bond/constraint migration",
+    "Stage7C result/partial-charge ownership",
+    "Stage7D frames",
+    "Stage7E canonical stereo storage",
+    "Stage8 workflow/science/model changes",
+    "Stage9 core hard cut",
+    "Stage10 fresh-native/ABI/SDK/sdist",
+    "Stage11/12 global exports/data/final acceptance",
+    "Stage13 experiment"
+  ],
+  "design_release": {
+    "agent": "stage6_records_solmax",
+    "required_model": "gpt-6.1-sol",
+    "required_effort": "max",
+    "owned_writes": [
+      "stages/stage07/external-adapters/contracts/review.md",
+      "stages/stage07/external-adapters/contracts/evidence.json",
+      "stages/stage07/external-adapters/contracts/decisions.md",
+      "stages/stage07/README.md",
+      "mechanical Stage6 closure/navigation/map status and append-only implementation_log.md"
+    ],
+    "production_tests_build_support_writes": false,
+    "candidate_execution": false,
+    "nested_delegation": false,
+    "next_gate": "Root accepts exact coherent design/owner/public-effects/affected-selection and frozen preservation/cost recipe before implementation ownership release."
+  },
+  "validation_required": [
+    "Fresh source and installed-wheel conversion identity/mutation isolation; all factual/stereo/bond metadata/working-copy/xTB connected round trips and rollback.",
+    "Cold adapter/import and missing-dependency behavior with actual module origins, qualified root-preload boundary, no sys.modules cycle workaround.",
+    "I/O/thermo181+dynamic/visualization output and packaged font/resource contracts; Crystal convention/fresh-cell/source-wheel round trips.",
+    "Memory/retention and repeated equivalent-workflow conversion cost observations under existing sampling/noise rules; no reduced work or hidden adverse results.",
+    "Complete affected Python3.10-3.14 source/installed-wheel matrix and default suite, current native identities qualified separately; do not call an absent tier passed."
+  ],
+  "rollback_boundary": "No production writes released at entry; retain exact C61 source and C62 records. Future implementation must retain caller-owned/unrelated edits and preserve existing transaction rollback for migrated writes.",
+  "scientific_and_control_policy": "Existing methods and diagnostic content preserved. Any concrete changed boundary must document finding code/domain/defined-value/default local control/per-code break/commit consequence under goal.md before implementation.",
+  "preparation_failure": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/entry-attempt1/record-preparation-attempt1.failure.json",
+    "bytes": 718,
+    "sha256": "acd2909b3af0c6ccc11e7d1ab3f9f83910155e21373b00ed76d5ea12c8bb3590"
+  },
+  "stage7A_implementation_authorized": false,
+  "stage7A_gate_closed": false
+}

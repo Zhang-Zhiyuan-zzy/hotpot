@@ -7,7 +7,7 @@ from importlib import resources
 from pathlib import Path
 
 from hotpot._cli import MarkdownDocumentationAction
-from hotpot.cheminfo.convert import to_hotpot_mol
+from hotpot.cheminfo.operations.conversion import to_hotpot_mol
 
 from .apply import auto_build_cbond, build_all_possible_cbond, get_cbond_runtime
 from .constants import (

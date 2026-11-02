@@ -15,7 +15,7 @@ from hotpot.cheminfo.rules.mathematics import geometry
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 
 
-GEOMETRY_DIR = Path(__file__).parents[2] / "hotpot" / "cheminfo" / "rules" / "mathematics" / "geometry"
+GEOMETRY_DIR = Path(geometry.__file__).resolve().parent
 PACKAGE_MODULES = ("settings", "object", "relation")
 
 
@@ -113,7 +113,7 @@ def test_module_imports_in_fresh_subprocess(module_name):
 )
 def test_runtime_import_dependency_direction(module_name, forbidden):
     source_path = (
-        Path(__file__).parents[2] / "hotpot" / "cheminfo" / "adapters" / "structure" / "geometry.py"
+        Path(geometry_adapter.__file__).resolve()
         if module_name == "convert" else GEOMETRY_DIR / "{}.py".format(module_name)
     )
     tree = ast.parse(source_path.read_text(encoding="utf-8"), filename=str(source_path))

@@ -1,0 +1,33 @@
+{
+  "author": "/root/stage7a_validation",
+  "candidate_probe_output_root": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/validation-preparation/attempt6",
+  "candidate_runtime_authorized": false,
+  "limits": [
+    "No production/config/env/package/Git edits; no hidden import compatibility alias or private backend shims.",
+    "No runtime/project imports/pytest/collection until root integration release; stdlib AST/static review allowed.",
+    "Tests should cover actual failure boundaries and public values, not mirror implementation. Reuse accepted P03 real lazy preparations and complete factual bytes.",
+    "Candidate probes may be prepared only as new copies in assigned artifact attempt6, with exact changes/hash manifest; bind actual candidate bytes after source completion and require root runtime release."
+  ],
+  "owned_paths": [
+    "tests/test_cheminfo/structure/test_conversion_freshness.py",
+    "tests/test_cheminfo/structure/test_adapter_boundaries.py",
+    "tests/test_cheminfo/adapters/test_io_transport.py",
+    "tests/test_cheminfo/adapters/test_crystal_transport.py",
+    "tests/test_cheminfo/adapters/test_thermo_contract.py",
+    "tests/test_cheminfo/adapters/test_visualization_contract.py"
+  ],
+  "owner": "root",
+  "production_authorized": false,
+  "recorded_at_utc": "2026-10-30T16:29:09.618551+00:00",
+  "root_design_acceptance": {
+    "bytes": 13357,
+    "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage07/external-adapters/root_acceptance.json",
+    "sha256": "d686f0588a8729700f598de90447a493afdb28cc8761786cb43e85d632a52477"
+  },
+  "scope": "Author the six approved meaningful contract files against settled actual operation/adapter owners. Preserve all old tests and failures. Production/runtime remains held until root integration release and SOURCE_READY.",
+  "source_commit_before_implementation": "d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a",
+  "stage": "Stage7A",
+  "stage_gate_closed": false,
+  "status": "RELEASED_NEW_CONTRACT_TEST_AUTHORING_ONLY",
+  "tests_authoring_authorized": true
+}

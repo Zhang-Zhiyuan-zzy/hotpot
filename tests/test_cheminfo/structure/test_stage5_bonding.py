@@ -641,18 +641,18 @@ def test_current_ring_export_and_topology_only_angle_export_keep_their_source_po
 
 
 def test_bond_order_perception_commits_the_captured_ligand_selection(monkeypatch):
-    from hotpot.cheminfo import obconvert
+    from hotpot.cheminfo.operations import chemistry
     mol = _cycle()
     zinc = mol.create_atom(atomic_number=30, coordinates=(4., 0., 0.))
     ligand_bond = mol.add_bond(mol.atoms[0], zinc, 1.)
     ligand_values = ligand_bond._attrs.copy()
     observed = []
-    perceive = obconvert._perceive_bond_orders
+    perceive = chemistry._perceive_bond_orders
     def observe(owner, bonds):
         flags, entries = perceive(owner, bonds)
         observed.append((tuple(bond._uid for bond in bonds), flags, entries))
         return flags, entries
-    monkeypatch.setattr(obconvert, '_perceive_bond_orders', observe)
+    monkeypatch.setattr(chemistry, '_perceive_bond_orders', observe)
     mol.assign_bond_order()
     assert len(observed) == 1
     selected, flags, entries = observed[0]

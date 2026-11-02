@@ -1,5 +1,17 @@
 # Stage6 evidence integration and remaining gates
 
+Current status on 2026-10-30: **Stage6 complete** under the separate
+[root final closure](../../../../../.plan20-artifacts/20261030/stage6/root-final-closure/attempt1/evidence.json); C62
+`aeb72d0b97fb1c2e50df86a057c31585a2e34e0c` is delivered and remote-verified.
+Validated runtime source remains C61 `d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a`.
+[Stage7A entry](../../stage07/external-adapters/entry_review.json) releases bounded design only;
+design acceptance, implementation and runtime remain held. Stage7E, Stage10 and
+global gates remain open. The C62 integration narrative and check identities
+below are preserved as the earlier snapshot; its pending delivery/entry wording
+is superseded by this later closure authority.
+
+## Preserved C62 integration snapshot
+
 Recorded date: 2026-10-30. Root accepts Stage6 static/runtime/bounded-cost evidence
 for C61 `d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a`. Its
 [final decision](../../../../../.plan20-artifacts/20261030/stage6/root-gate-decision/attempt1/evidence.json) ends the

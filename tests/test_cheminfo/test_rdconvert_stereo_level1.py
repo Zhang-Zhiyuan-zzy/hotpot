@@ -4,7 +4,7 @@ import pytest
 from rdkit import Chem, rdBase
 
 from hotpot.cheminfo.core import Molecule
-from hotpot.cheminfo.rdconvert import from_rdmol, to_rdmol
+from hotpot.cheminfo.operations.conversion import from_rdmol, to_rdmol
 from hotpot.cheminfo.stereo import (
     BondTransportRecord,
     HydrogenTransportState,

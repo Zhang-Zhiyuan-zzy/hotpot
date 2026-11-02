@@ -16,7 +16,7 @@ from tempfile import TemporaryDirectory
 from typing import Mapping, Optional, Sequence, TYPE_CHECKING, Tuple, Union
 
 from hotpot._cli import MarkdownDocumentationAction
-from hotpot.cheminfo._io import MolReader
+from hotpot.cheminfo.operations.io import MolReader
 
 from . import (
     BuildWorkerError,

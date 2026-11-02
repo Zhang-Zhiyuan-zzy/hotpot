@@ -50,12 +50,20 @@ _ASSESSMENT_IMPLEMENTATION_FILES = (
 _PARSER_IMPLEMENTATION_FILES = (
     "__init__.py",
     "cheminfo/__init__.py",
-    "cheminfo/_io/__init__.py",
-    "cheminfo/_io/_io.py",
     "cheminfo/core.py",
-    "cheminfo/crystal.py",
+    "cheminfo/structure/crystal.py",
     "cheminfo/elements.py",
-    "cheminfo/obconvert.py",
+    "cheminfo/operations/io.py",
+    "cheminfo/operations/conversion.py",
+    "cheminfo/operations/chemistry.py",
+    "cheminfo/adapters/io/base.py",
+    "cheminfo/adapters/io/formats/openbabel.py",
+    "cheminfo/adapters/io/formats/g16.py",
+    "cheminfo/adapters/io/formats/pubchem.py",
+    "cheminfo/adapters/conversion.py",
+    "cheminfo/adapters/openbabel/conversion.py",
+    "cheminfo/adapters/openbabel/perception.py",
+    "cheminfo/adapters/openbabel/crystal.py",
 )
 _SEMANTIC_SYMBOLS = {
     "ds/public/_bundle_state.py": (

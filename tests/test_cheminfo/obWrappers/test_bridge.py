@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from math import isfinite
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -222,3 +225,23 @@ def test_non_uff_optimization_does_not_apply_uff_guard(forcefield):
 
     assert not report.rules.applied
     assert isfinite(report.best_energy)
+
+
+def test_native_backend_first_use_loads_its_runtime_in_a_cold_process(tmp_path):
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import sys\n"
+            "from hotpot.cheminfo.obWrappers.native import _native_module\n"
+            "assert 'openbabel.openbabel' not in sys.modules\n"
+            "native = _native_module()\n"
+            "assert native.__name__ == 'hotpot.cheminfo.obWrappers._ob_native'\n",
+        ],
+        cwd=tmp_path,
+        env=os.environ.copy(),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr

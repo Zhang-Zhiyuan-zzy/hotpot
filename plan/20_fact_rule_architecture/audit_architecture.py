@@ -2,8 +2,9 @@
 """Ratcheted source checks for the incremental Plan20 migration.
 
 The frozen inventory is discovery evidence. The shrinking allowlist records
-remaining debt, while new ownership packages have no inherited exceptions.
-Runtime ownership, buffer isolation and native ABI tests remain separate gates.
+remaining debt. One fixed Stage7A relocation carries its original import slot;
+new ownership packages otherwise have no inherited exceptions. Runtime ownership,
+buffer isolation and native ABI tests remain separate gates.
 """
 
 from __future__ import annotations
@@ -46,6 +47,19 @@ CARRIER_METHODS = {
     "hide_metal_ligand_bonds", "recover_metal_ligand_bonds",
 }
 CARRIERS = {"Molecule", "Atom", "Bond", "BondKind", "Crystal"}
+CRYSTAL_PATH = "hotpot/cheminfo/structure/crystal.py"
+# Main Section9.2 / Stage7A P01 relocates one existing import, not a new
+# exception. Only convert.py supplies its slot; Stage9 must retire the lookup.
+# The evidence record under stage07/external-adapters/architecture_guard is
+# descriptive, never an extensible migration configuration.
+CORE_IMPORT_SOURCE = {
+    "rule": "legacy_core_import", "path": "hotpot/cheminfo/convert.py",
+    "scope": "", "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule",
+}
+CORE_IMPORT_DESTINATION = {
+    **CORE_IMPORT_SOURCE, "path": "hotpot/cheminfo/operations/conversion.py",
+    "scope": "_molecule_type",
+}
 # These declared numerical values initialize their own coordinate fields; they
 # do not receive a live carrier to edit. Keep path, class, method, field and
 # operation exact so foreign receivers and later buffer mutations stay checked.
@@ -77,6 +91,22 @@ def ratchet_findings(actual, allowed, previous):
     }
 
 
+def stage7a_ratchet_findings(actual, allowed, previous, original):
+    """Keep real debt identities; transfer one fixed slot in each ceiling only."""
+    findings = ratchet_findings(actual, allowed, previous)
+    current = Counter(map(debt_key, allowed))
+    old = debt_key(CORE_IMPORT_SOURCE)
+    new = debt_key(CORE_IMPORT_DESTINATION)
+    for name, reference in (("allowlist_growth", previous),
+                            ("exceeds_frozen_inventory", original)):
+        ceiling = Counter(map(debt_key, reference))
+        if current[new] and not current[old] and ceiling[old] and not ceiling[new]:
+            ceiling[old] -= 1
+            ceiling[new] += 1
+        findings[name] = list((current - ceiling).elements())
+    return findings
+
+
 def layer_findings(path, source):
     parts = Path(path).parts
     if parts[:2] != ("hotpot", "cheminfo") or len(parts) < 4 or parts[2] not in LAYERS:
@@ -101,6 +131,36 @@ def layer_findings(path, source):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 return True
         return False
+
+    def lexical_scope(node):
+        while node in parents:
+            node = parents[node]
+            if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+                return node
+
+    def exact_import(node, module, name):
+        return (isinstance(node, ast.ImportFrom)
+                and inventory.imported_module(path, node) == module
+                and [(alias.name, alias.asname) for alias in node.names] == [(name, None)])
+
+    def core_lookup_import(node):
+        # A same-named class has the same inventory scope string as a function.
+        scope = lexical_scope(node)
+        return (exact_import(node, "hotpot.cheminfo.core", "Molecule")
+                and isinstance(scope, ast.FunctionDef) and parents.get(scope) is tree
+                and scope.name == "_molecule_type" and not scope.decorator_list
+                and ast.unparse(scope.args) == "")
+
+    def crystal_math_import(node):
+        scope = lexical_scope(node)
+        cls = parents.get(scope)
+        return (path == CRYSTAL_PATH
+                and exact_import(node, "hotpot.cheminfo.rules.mathematics.cell", "_matrix_to_params")
+                and isinstance(scope, ast.FunctionDef) and scope.name == "_matrix_to_params"
+                and ast.unparse(scope.args) == "matrix"
+                and [ast.unparse(item) for item in scope.decorator_list] == ["staticmethod"]
+                and isinstance(cls, ast.ClassDef) and cls.name == "Crystal"
+                and parents.get(cls) is tree)
 
     def owns_fact(node):
         return any(isinstance(item, ast.Attribute) and item.attr in CANONICAL
@@ -135,13 +195,17 @@ def layer_findings(path, source):
                     and any(alias.name in CARRIERS for alias in node.names)
                 ):
                     add(node, "internal_upward_facade_import")
+                if (path == CORE_IMPORT_DESTINATION["path"]
+                        and (target == "hotpot.cheminfo.core" or target.startswith("hotpot.cheminfo.core."))
+                        and not core_lookup_import(node)):
+                    add(node, "invalid_legacy_core_import_relocation")
                 if layer in {"structure", "views"}:
-                    forbidden = target_layer in {"rules", "adapters"}
+                    forbidden = target_layer in {"rules", "adapters"} and not crystal_math_import(node)
                     eager = (target_parts[0] in EXTERNAL | {"scipy"}
                              or target_layer == "operations"
                              or any(part.endswith("_native") for part in target_parts)
                              or any(alias.name.endswith("_native") for alias in node.names))
-                    if forbidden or (eager and not local_import(node)):
+                    if forbidden or (eager and (path == CRYSTAL_PATH or not local_import(node))):
                         add(node, "carrier_implementation_import")
                 if layer == "rules" and (
                     target_parts[0] in EXTERNAL
@@ -208,9 +272,7 @@ def audit(root=ROOT, *, base_ref="HEAD"):
         previous = original
     else:
         previous = json.loads(previous_file.stdout)["entries"]
-    ratchet = ratchet_findings(records["architecture_debt"], allowed, previous)
-    ratchet["exceeds_frozen_inventory"] = list((Counter(map(debt_key, allowed))
-                                              - Counter(map(debt_key, original))).elements())
+    ratchet = stage7a_ratchet_findings(records["architecture_debt"], allowed, previous, original)
     layers = [finding for path in paths for finding in layer_findings(path, (root / path).read_text())]
     definitions = {name: [row["symbol"] for row in records["classes"]
                          if row["path"].startswith("hotpot/cheminfo/") and row["name"] == name]

@@ -15,7 +15,7 @@ import networkx
 from openbabel import openbabel as ob
 from rdkit import Chem, rdBase
 
-from hotpot.cheminfo.core_utils import read_mol
+from hotpot.cheminfo.operations.io import read_mol
 from hotpot.cheminfo.search.search import Searcher, Substructure
 
 from .cases import CASES, DifferentialCase

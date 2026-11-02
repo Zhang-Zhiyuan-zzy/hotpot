@@ -160,3 +160,175 @@ def calculate(snapshot):
     return output
 """
     assert audit.layer_findings("hotpot/cheminfo/rules/example.py", source) == []
+
+
+_CORE_IMPORT_SOURCE = {
+    "rule": "legacy_core_import", "path": "hotpot/cheminfo/convert.py",
+    "scope": "", "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule",
+    "stage": "Stage9", "line": 10,
+}
+_CORE_IMPORT_DESTINATION = {
+    **_CORE_IMPORT_SOURCE, "path": "hotpot/cheminfo/operations/conversion.py",
+    "scope": "_molecule_type", "line": 20,
+}
+
+
+def test_approved_core_lookup_relocation_uses_one_existing_ceiling_slot():
+    old, new = _CORE_IMPORT_SOURCE, _CORE_IMPORT_DESTINATION
+    assert audit.ratchet_findings([new], [new], [old])["allowlist_growth"]
+    assert not any(audit.stage7a_ratchet_findings([new], [new], [old], [old]).values())
+    shifted = {**new, "line": 200}
+    assert not any(audit.stage7a_ratchet_findings([shifted], [new], [old], [old]).values())
+    assert not any(audit.stage7a_ratchet_findings([new], [new], [new], [old]).values())
+    assert not any(audit.stage7a_ratchet_findings([], [], [new], [old]).values())
+    assert audit.stage7a_ratchet_findings([new], [new], [], [old])["allowlist_growth"]
+    assert audit.stage7a_ratchet_findings([new], [new], [old], [])["exceeds_frozen_inventory"]
+
+
+@pytest.mark.parametrize("field,value", [
+    ("path", "hotpot/cheminfo/operations/other.py"),
+    ("scope", "other"),
+    ("scope", "_molecule_type.nested"),
+    ("target", "hotpot.cheminfo.core.Atom"),
+    ("local", "OtherMolecule"),
+    ("rule", "other_import"),
+    ("kind", "other"),
+])
+def test_core_import_relocation_cannot_authorize_another_identity(field, value):
+    old = _CORE_IMPORT_SOURCE
+    changed = {**_CORE_IMPORT_DESTINATION, field: value}
+    report = audit.stage7a_ratchet_findings([changed], [changed], [old], [old])
+    assert report["allowlist_growth"]
+    assert report["exceeds_frozen_inventory"]
+
+
+@pytest.mark.parametrize("source_path", [
+    "hotpot/cheminfo/core_utils.py", "hotpot/cheminfo/_io/_io.py", "hotpot/cheminfo/draw.py",
+])
+def test_other_retired_core_imports_supply_no_relocation_credit(source_path):
+    old = {**_CORE_IMPORT_SOURCE, "path": source_path}
+    new = _CORE_IMPORT_DESTINATION
+    report = audit.stage7a_ratchet_findings([new], [new], [old], [old])
+    assert report["allowlist_growth"]
+    assert report["exceeds_frozen_inventory"]
+
+
+def test_core_import_relocation_preserves_multiplicity_and_actual_allowlist_matching():
+    old, new = _CORE_IMPORT_SOURCE, _CORE_IMPORT_DESTINATION
+    report = audit.stage7a_ratchet_findings([old, new], [old, new], [old], [old])
+    assert report["allowlist_growth"] and report["exceeds_frozen_inventory"]
+    report = audit.stage7a_ratchet_findings([new, new], [new, new], [old], [old])
+    assert len(report["allowlist_growth"]) == len(report["exceeds_frozen_inventory"]) == 1
+    assert audit.stage7a_ratchet_findings([new, new], [new], [old], [old])["new_debt"]
+    assert audit.stage7a_ratchet_findings([new], [old], [old], [old])["new_debt"]
+    assert audit.stage7a_ratchet_findings([new], [old], [old], [old])["unretired_allowlist_entries"]
+    assert audit.stage7a_ratchet_findings([], [new], [old], [old])["unretired_allowlist_entries"]
+    assert audit.stage7a_ratchet_findings([old], [old], [new], [old])["allowlist_growth"]
+
+
+def test_core_import_relocation_does_not_hide_other_frozen_inventory_growth():
+    old, new = _CORE_IMPORT_SOURCE, _CORE_IMPORT_DESTINATION
+    other = {**old, "path": "hotpot/cheminfo/operations/other.py"}
+    report = audit.stage7a_ratchet_findings([new, other], [new, other], [old], [old])
+    assert report["allowlist_growth"] == [audit.debt_key(other)]
+    assert report["exceeds_frozen_inventory"] == [audit.debt_key(other)]
+
+
+def test_relocated_core_import_is_captured_at_its_real_source_scope(tmp_path):
+    path = _CORE_IMPORT_DESTINATION["path"]
+    source = "def _molecule_type():\n    from ..core import Molecule\n    return Molecule\n"
+    target = tmp_path / path
+    target.parent.mkdir(parents=True)
+    target.write_text(source)
+    rows = audit.inventory.static_capture([path], root=tmp_path)["architecture_debt"]
+    assert len(rows) == 1
+    assert audit.debt_key(rows[0]) == audit.debt_key(_CORE_IMPORT_DESTINATION)
+    assert rows[0]["stage"] == "Stage9"
+    assert audit.layer_findings(path, source) == []
+
+
+@pytest.mark.parametrize("source", [
+    "from ..core import Molecule",
+    "class _molecule_type:\n    from ..core import Molecule",
+    "async def _molecule_type():\n    from ..core import Molecule",
+    "def _molecule_type(argument):\n    from ..core import Molecule",
+    "@decorator\ndef _molecule_type():\n    from ..core import Molecule",
+    "def _molecule_type():\n    class Nested:\n        from ..core import Molecule",
+    "def _molecule_type():\n    def nested():\n        from ..core import Molecule",
+    "def _molecule_type():\n    from ..core import Molecule as Molecule",
+    "def _molecule_type():\n    from ..core import Molecule as Other",
+    "def _molecule_type():\n    from ..core import Molecule, Atom",
+    "def _molecule_type():\n    from ..core import Atom",
+    "def _molecule_type():\n    from .. import core",
+])
+def test_core_lookup_relocation_has_exact_function_scope_and_binding(source):
+    assert audit.layer_findings(_CORE_IMPORT_DESTINATION["path"], source)
+
+
+_CRYSTAL_DELEGATE = """class Crystal:
+    @staticmethod
+    def _matrix_to_params(matrix):
+        from ..rules.mathematics.cell import _matrix_to_params
+        return _matrix_to_params(matrix)
+"""
+
+
+def test_crystal_value_can_delegate_locally_to_the_one_cell_math_function():
+    assert audit.layer_findings("hotpot/cheminfo/structure/crystal.py", _CRYSTAL_DELEGATE) == []
+
+
+@pytest.mark.parametrize("changed_scope", [
+    "path", "class", "method", "module", "nested", "nested_class", "class_method",
+    "instance_method", "signature", "async", "nested_owner",
+])
+def test_crystal_math_delegate_permission_has_exact_path_and_direct_static_method(changed_scope):
+    path = "hotpot/cheminfo/structure/crystal.py"
+    source = _CRYSTAL_DELEGATE
+    if changed_scope == "path":
+        path = path.replace("crystal.py", "other.py")
+    elif changed_scope == "class":
+        source = source.replace("class Crystal:", "class Other:")
+    elif changed_scope == "method":
+        source = source.replace("def _matrix_to_params", "def other")
+    elif changed_scope == "module":
+        source = "from ..rules.mathematics.cell import _matrix_to_params"
+    elif changed_scope == "nested":
+        source = source.replace("        from", "        def nested():\n            from")
+    elif changed_scope == "nested_class":
+        source = source.replace("        from", "        class Nested:\n            from")
+    elif changed_scope == "class_method":
+        source = source.replace("@staticmethod", "@classmethod")
+    elif changed_scope == "instance_method":
+        source = source.replace("    @staticmethod\n", "")
+    elif changed_scope == "signature":
+        source = source.replace("(matrix)", "(self, matrix)")
+    elif changed_scope == "async":
+        source = source.replace("    def ", "    async def ")
+    elif changed_scope == "nested_owner":
+        source = "def outer():\n" + "\n".join("    " + line for line in source.splitlines())
+    assert audit.layer_findings(path, source)
+
+
+@pytest.mark.parametrize("statement", [
+    "from ..rules.mathematics.cell import _matrix_to_params as other",
+    "from ..rules.mathematics.cell import _matrix_to_params as _matrix_to_params",
+    "from ..rules.mathematics.cell import _matrix_to_params, other",
+    "from ..rules.mathematics.cell import other",
+    "from ..rules.mathematics.cell import *",
+    "from ..rules.chemistry import valence",
+    "from ..adapters.openbabel import crystal",
+    "from ..operations.chemistry import calculate",
+    "from ..graph import _graph_native",
+    "from . import _fact_native",
+    "from openbabel import openbabel",
+    "import rdkit.Chem",
+])
+def test_crystal_math_delegate_does_not_exempt_other_rules_adapters_or_execution(statement):
+    source = _CRYSTAL_DELEGATE.replace(
+        "from ..rules.mathematics.cell import _matrix_to_params", statement)
+    assert audit.layer_findings("hotpot/cheminfo/structure/crystal.py", source)
+
+
+def test_crystal_delegate_does_not_change_the_existing_local_native_commit_boundary():
+    source = "def commit():\n    from . import _fact_native\n"
+    assert audit.layer_findings("hotpot/cheminfo/structure/_commit.py", source) == []

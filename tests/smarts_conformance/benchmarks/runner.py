@@ -19,7 +19,7 @@ from typing import Callable, Dict, Iterable, List, Sequence, Tuple
 
 import networkx
 
-from hotpot.cheminfo.core_utils import read_mol
+from hotpot.cheminfo.operations.io import read_mol
 from hotpot.cheminfo.search.search import Searcher, Substructure
 from hotpot.cheminfo.search.smarts import tokenize
 

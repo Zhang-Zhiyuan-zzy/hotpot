@@ -9,7 +9,7 @@ import pytest
 
 from hotpot import Atom, Bond, Molecule
 from hotpot.cheminfo.structure._fields import FACT_FIELDS, FIELD_INDEX
-from hotpot.cheminfo.rdconvert import from_rdmol, to_rdmol
+from hotpot.cheminfo.operations.conversion import from_rdmol, to_rdmol
 from hotpot.cheminfo.stereo import get_stereo_payload
 from rdkit import Chem
 

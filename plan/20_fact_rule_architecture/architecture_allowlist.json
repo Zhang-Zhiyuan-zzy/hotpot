@@ -2,7 +2,7 @@
   "schema_version": 1,
   "origin": "Stage1 frozen exact debt inventory",
   "source_checkpoint": "c6bfcd4906254ee113c14103009f071e91f60368",
-  "policy": "Entries only shrink. Compare to the actual pre-change Git ref; retired entries must be removed. New ownership packages are strict.",
+  "policy": "Entries shrink, with one fixed Stage7A convert.py-to-operations.conversion._molecule_type import-slot relocation bound in the architecture guard. It transfers one existing identity slot in each ceiling, introduces no growth credit, and must retire at Stage9. Other new ownership packages remain strict; compare the actual pre-change Git ref and frozen inventory.",
   "entries": [
     {
       "line": 16,
@@ -157,50 +157,6 @@
       "stage": "Stage12"
     },
     {
-      "path": "hotpot/cheminfo/_io/__init__.py",
-      "line": 9,
-      "scope": "",
-      "target": "hotpot.cheminfo._io.g16.*",
-      "local": "*",
-      "rule": "wildcard_package_export",
-      "stage": "Stage12"
-    },
-    {
-      "path": "hotpot/cheminfo/_io/__init__.py",
-      "line": 10,
-      "scope": "",
-      "target": "hotpot.cheminfo._io._io.*",
-      "local": "*",
-      "rule": "wildcard_package_export",
-      "stage": "Stage12"
-    },
-    {
-      "path": "hotpot/cheminfo/_io/_io.py",
-      "line": 31,
-      "scope": "",
-      "target": "hotpot.cheminfo.core",
-      "local": "core",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/_io/_io.py",
-      "line": 30,
-      "scope": "",
-      "rule": "import_cycle_workaround",
-      "stage": "Stage7A",
-      "target": "sys.modules"
-    },
-    {
-      "path": "hotpot/cheminfo/_io/g16.py",
-      "line": 48,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.Molecule",
-      "local": "Molecule",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
       "path": "hotpot/cheminfo/_native/buffers.py",
       "line": 13,
       "scope": "",
@@ -273,41 +229,6 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/convert.py",
-      "line": 10,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.Molecule",
-      "local": "Molecule",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 23,
-      "scope": "",
-      "target": "openbabel.pybel",
-      "local": "pb",
-      "rule": "carrier_or_root_eager_toolkit_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 23,
-      "scope": "",
-      "target": "openbabel.openbabel",
-      "local": "ob",
-      "rule": "carrier_or_root_eager_toolkit_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 69,
-      "scope": "",
-      "rule": "import_cycle_workaround",
-      "stage": "Stage7A",
-      "target": "sys.modules"
-    },
-    {
       "path": "hotpot/cheminfo/core.py",
       "line": 138,
       "scope": "Molecule.__init__",
@@ -324,24 +245,6 @@
       "attribute": "_environ",
       "rule": "forbidden_retained_state_write",
       "stage": "Stage8D"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 154,
-      "scope": "Molecule.__init__",
-      "target": "self._obmol",
-      "attribute": "_obmol",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7A"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 155,
-      "scope": "Molecule.__init__",
-      "target": "self._row2idx",
-      "attribute": "_row2idx",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7A"
     },
     {
       "path": "hotpot/cheminfo/core.py",
@@ -363,24 +266,6 @@
     },
     {
       "path": "hotpot/cheminfo/core.py",
-      "line": 596,
-      "scope": "Molecule._update_topology",
-      "target": "self._obmol",
-      "attribute": "_obmol",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7A"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 597,
-      "scope": "Molecule._update_topology",
-      "target": "self._row2idx",
-      "attribute": "_row2idx",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7A"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
       "line": 1005,
       "scope": "Molecule.restore_bonds",
       "target": "self._hided_metal_bonds",
@@ -396,14 +281,6 @@
       "attribute": "_hided_covalent_bonds",
       "rule": "forbidden_retained_state_write",
       "stage": "Stage7B"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 66,
-      "scope": "",
-      "rule": "import_cycle_workaround",
-      "stage": "Stage7A",
-      "target": "sys.modules"
     },
     {
       "path": "hotpot/cheminfo/core.py",
@@ -440,60 +317,6 @@
       "attribute": "_hided_covalent_bonds",
       "rule": "forbidden_retained_state_write",
       "stage": "Stage7B"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 2747,
-      "scope": "Molecule.to_obmol",
-      "target": "self._obmol",
-      "attribute": "_obmol",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7A"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 2747,
-      "scope": "Molecule.to_obmol",
-      "target": "self._row2idx",
-      "attribute": "_row2idx",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7A"
-    },
-    {
-      "path": "hotpot/cheminfo/core_utils.py",
-      "line": 17,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.Molecule",
-      "local": "Molecule",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/crystal.py",
-      "line": 2,
-      "scope": "",
-      "target": "openbabel.openbabel",
-      "local": "ob",
-      "rule": "carrier_or_root_eager_toolkit_import",
-      "stage": "Stage7A"
-    },
-    {
-      "path": "hotpot/cheminfo/crystal.py",
-      "line": 14,
-      "scope": "Crystal.__init__",
-      "target": "self._obcell",
-      "attribute": "_obcell",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7A"
-    },
-    {
-      "path": "hotpot/cheminfo/draw.py",
-      "line": 37,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.Molecule",
-      "local": "Molecule",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
     },
     {
       "path": "hotpot/cheminfo/forcefields/__init__.py",
@@ -1303,24 +1126,6 @@
       "local": "Molecule",
       "rule": "legacy_core_import",
       "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/plugins/xtb/adapter.py",
-      "line": 408,
-      "scope": "commit_xtb_coordinates",
-      "target": "mol._obmol",
-      "attribute": "_obmol",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7A"
-    },
-    {
-      "path": "hotpot/plugins/xtb/adapter.py",
-      "line": 409,
-      "scope": "commit_xtb_coordinates",
-      "target": "mol._row2idx",
-      "attribute": "_row2idx",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7A"
     },
     {
       "path": "hotpot/plugins/xtb/cli.py",
@@ -2302,6 +2107,15 @@
       "local": "Molecule",
       "rule": "legacy_core_import",
       "stage": "Stage9"
+    },
+    {
+      "path": "hotpot/cheminfo/operations/conversion.py",
+      "line": 19,
+      "scope": "_molecule_type",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
     }
   ],
   "coverage_correction": "stages/stage03/architecture/coverage_correction.json: restore three frozen, never-retired root-module entries omitted by the first scanner; no new production debt or gate exception",
@@ -2312,5 +2126,239 @@
     "remaining_entries": 256,
     "verification": "stages/stage05/rules_checkpoint_evidence.json and stages/stage05/bookkeeping/evidence.json",
     "scope": "Twelve exact retired Ring cache writes; no additions or waiver. Runtime and final stage gates remain open."
+  },
+  "stage7a_retirement": {
+    "status": "EXACT_SHRINKING_ALLOWLIST_INTEGRATED_FINAL_SOURCE_AUDIT_PENDING",
+    "authority": {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/architecture_guard/root_review.json",
+      "bytes": 3845,
+      "sha256": "1cb72a3a58072869a848b6c0a5f8a93485072247bcd5eddfbd57c87cad8af425"
+    },
+    "relocation_evidence": {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/architecture_guard/legacy_core_import_relocation.json",
+      "bytes": 14467,
+      "sha256": "e313545fd0b55c47c67aac8f4026d32ff4fea53a403b4b2bad11121831507831"
+    },
+    "previous_entries": 256,
+    "current_entries": 235,
+    "removed_identity_rows": 22,
+    "moved_existing_slot_count": 1,
+    "net_retired_debt": 21,
+    "retired_rows": [
+      {
+        "path": "hotpot/cheminfo/_io/__init__.py",
+        "line": 9,
+        "scope": "",
+        "target": "hotpot.cheminfo._io.g16.*",
+        "local": "*",
+        "rule": "wildcard_package_export",
+        "stage": "Stage12"
+      },
+      {
+        "path": "hotpot/cheminfo/_io/__init__.py",
+        "line": 10,
+        "scope": "",
+        "target": "hotpot.cheminfo._io._io.*",
+        "local": "*",
+        "rule": "wildcard_package_export",
+        "stage": "Stage12"
+      },
+      {
+        "path": "hotpot/cheminfo/_io/_io.py",
+        "line": 31,
+        "scope": "",
+        "target": "hotpot.cheminfo.core",
+        "local": "core",
+        "rule": "legacy_core_import",
+        "stage": "Stage9"
+      },
+      {
+        "path": "hotpot/cheminfo/_io/_io.py",
+        "line": 30,
+        "scope": "",
+        "rule": "import_cycle_workaround",
+        "stage": "Stage7A",
+        "target": "sys.modules"
+      },
+      {
+        "path": "hotpot/cheminfo/_io/g16.py",
+        "line": 48,
+        "scope": "",
+        "target": "hotpot.cheminfo.core.Molecule",
+        "local": "Molecule",
+        "rule": "legacy_core_import",
+        "stage": "Stage9"
+      },
+      {
+        "path": "hotpot/cheminfo/convert.py",
+        "line": 10,
+        "scope": "",
+        "target": "hotpot.cheminfo.core.Molecule",
+        "local": "Molecule",
+        "rule": "legacy_core_import",
+        "stage": "Stage9"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 23,
+        "scope": "",
+        "target": "openbabel.pybel",
+        "local": "pb",
+        "rule": "carrier_or_root_eager_toolkit_import",
+        "stage": "Stage9"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 23,
+        "scope": "",
+        "target": "openbabel.openbabel",
+        "local": "ob",
+        "rule": "carrier_or_root_eager_toolkit_import",
+        "stage": "Stage9"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 69,
+        "scope": "",
+        "rule": "import_cycle_workaround",
+        "stage": "Stage7A",
+        "target": "sys.modules"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 154,
+        "scope": "Molecule.__init__",
+        "target": "self._obmol",
+        "attribute": "_obmol",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage7A"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 155,
+        "scope": "Molecule.__init__",
+        "target": "self._row2idx",
+        "attribute": "_row2idx",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage7A"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 596,
+        "scope": "Molecule._update_topology",
+        "target": "self._obmol",
+        "attribute": "_obmol",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage7A"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 597,
+        "scope": "Molecule._update_topology",
+        "target": "self._row2idx",
+        "attribute": "_row2idx",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage7A"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 66,
+        "scope": "",
+        "rule": "import_cycle_workaround",
+        "stage": "Stage7A",
+        "target": "sys.modules"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 2747,
+        "scope": "Molecule.to_obmol",
+        "target": "self._obmol",
+        "attribute": "_obmol",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage7A"
+      },
+      {
+        "path": "hotpot/cheminfo/core.py",
+        "line": 2747,
+        "scope": "Molecule.to_obmol",
+        "target": "self._row2idx",
+        "attribute": "_row2idx",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage7A"
+      },
+      {
+        "path": "hotpot/cheminfo/core_utils.py",
+        "line": 17,
+        "scope": "",
+        "target": "hotpot.cheminfo.core.Molecule",
+        "local": "Molecule",
+        "rule": "legacy_core_import",
+        "stage": "Stage9"
+      },
+      {
+        "path": "hotpot/cheminfo/crystal.py",
+        "line": 2,
+        "scope": "",
+        "target": "openbabel.openbabel",
+        "local": "ob",
+        "rule": "carrier_or_root_eager_toolkit_import",
+        "stage": "Stage7A"
+      },
+      {
+        "path": "hotpot/cheminfo/crystal.py",
+        "line": 14,
+        "scope": "Crystal.__init__",
+        "target": "self._obcell",
+        "attribute": "_obcell",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage7A"
+      },
+      {
+        "path": "hotpot/cheminfo/draw.py",
+        "line": 37,
+        "scope": "",
+        "target": "hotpot.cheminfo.core.Molecule",
+        "local": "Molecule",
+        "rule": "legacy_core_import",
+        "stage": "Stage9"
+      },
+      {
+        "path": "hotpot/plugins/xtb/adapter.py",
+        "line": 408,
+        "scope": "commit_xtb_coordinates",
+        "target": "mol._obmol",
+        "attribute": "_obmol",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage7A"
+      },
+      {
+        "path": "hotpot/plugins/xtb/adapter.py",
+        "line": 409,
+        "scope": "commit_xtb_coordinates",
+        "target": "mol._row2idx",
+        "attribute": "_row2idx",
+        "rule": "forbidden_retained_state_write",
+        "stage": "Stage7A"
+      }
+    ],
+    "actual_destination": {
+      "path": "hotpot/cheminfo/operations/conversion.py",
+      "line": 19,
+      "scope": "_molecule_type",
+      "target": "hotpot.cheminfo.core.Molecule",
+      "local": "Molecule",
+      "rule": "legacy_core_import",
+      "stage": "Stage9"
+    },
+    "original_inventory_unchanged": {
+      "path": "plan/20_fact_rule_architecture/baseline_inventory/architecture_debt.jsonl",
+      "bytes": 56256,
+      "sha256": "e4bfa3426dbd26c44ef9683749cc24e809e1a4bcbe03ca5837a372d165bc8f2a"
+    },
+    "counting_rule": "The source convert.py row is one relocated slot, not retirement credit. All other22-minus1 removed rows are actual retired debt; line numbers are descriptive, while scope/target/local/rule identities and multiplicities remain exact.",
+    "guard_implementation": "Fixed identities in audit_architecture.py, never a configurable entry read from this descriptive record.",
+    "remaining_gate": "Rebind final production/test/guard bytes and run full repository static audit plus released candidate contracts; Stage9 retires the sole real-core lookup.",
+    "candidate_runtime_authorized": false,
+    "stage_gate_closed": false
   }
 }

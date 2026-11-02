@@ -18,7 +18,7 @@ import os.path as osp
 
 import glob
 from hotpot import read_mol
-from hotpot.cheminfo.draw import draw_single_mol
+from hotpot.cheminfo.operations.visualization import draw_single_mol
 
 
 def generate_svg():

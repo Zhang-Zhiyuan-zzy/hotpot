@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from hotpot.cheminfo.convert import is_molecule_input
+from hotpot.cheminfo.operations.conversion import is_molecule_input
 
 from .conformer import ensure_3d_conformer
 from .featurizer import mol_to_unimolv2

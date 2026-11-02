@@ -1,0 +1,151 @@
+{
+  "additional_external_owned_file": "hotpot/cheminfo/adapters/openbabel/crystal.py",
+  "author_test_release": {
+    "bytes": 2075,
+    "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage07/external-adapters/test_authoring_release.json",
+    "sha256": "e7340b17d29c2677af8141a4a75bdbeb1df7adda4649c9e393fdc63d2d0d5496"
+  },
+  "candidate_runtime_authorized": false,
+  "documentation_HEAD": "aeb72d0b97fb1c2e50df86a057c31585a2e34e0c",
+  "exclusive_ownership": {
+    "/root/stage6_records_solmax": {
+      "production_paths": [
+        "hotpot/cheminfo/core.py",
+        "hotpot/cheminfo/structure/_commit.py",
+        "hotpot/cheminfo/operations/chemistry.py",
+        "hotpot/cheminfo/operations/conversion.py",
+        "hotpot/cheminfo/operations/io.py",
+        "hotpot/cheminfo/adapters/conversion.py",
+        "hotpot/cheminfo/adapters/openbabel/conversion.py",
+        "hotpot/cheminfo/adapters/openbabel/perception.py",
+        "hotpot/cheminfo/adapters/rdkit/conversion.py",
+        "hotpot/cheminfo/adapters/rdkit/stereo_transport.py",
+        "hotpot/cheminfo/adapters/io/base.py",
+        "hotpot/cheminfo/adapters/io/formats/openbabel.py",
+        "hotpot/cheminfo/adapters/io/formats/g16.py",
+        "hotpot/cheminfo/adapters/io/formats/pubchem.py",
+        "hotpot/cheminfo/convert.py",
+        "hotpot/cheminfo/core_utils.py",
+        "hotpot/cheminfo/obconvert.py",
+        "hotpot/cheminfo/rdconvert.py",
+        "hotpot/cheminfo/_io/__init__.py",
+        "hotpot/cheminfo/_io/_io.py",
+        "hotpot/cheminfo/_io/g16.py"
+      ],
+      "records": "Existing16 assigned maintained documents as necessary for acceptance/status plus current root-authorized exact stereo_transport path synchronization; append-only log. Do not edit root-owned entry/acceptance/releases.",
+      "rule": "Complete acceptance record checkpoint and emit hashes, then implement agreed files. Do not edit peer/root/test-owned files."
+    },
+    "/root/stage7a_boundary_baselines": {
+      "production_paths": [
+        "hotpot/cheminfo/structure/crystal.py",
+        "hotpot/cheminfo/operations/thermo.py",
+        "hotpot/cheminfo/adapters/thermo/chemical.py",
+        "hotpot/cheminfo/operations/visualization.py",
+        "hotpot/cheminfo/adapters/visualization/draw.py",
+        "hotpot/cheminfo/crystal.py",
+        "hotpot/cheminfo/call_thermo.py",
+        "hotpot/cheminfo/draw.py",
+        "hotpot/cheminfo/fonts/",
+        "hotpot/cheminfo/adapters/visualization/fonts/",
+        "hotpot/cheminfo/draw.md",
+        "hotpot/cheminfo/adapters/visualization/draw.md"
+      ],
+      "rule": "Implement only these external/Crystal/Thermo/drawing/font/doc owners. All package __init__ and package-data configuration belong to root; do not touch core or tests."
+    },
+    "/root/stage7a_validation": {
+      "new_test_paths": [
+        "tests/test_cheminfo/structure/test_conversion_freshness.py",
+        "tests/test_cheminfo/structure/test_adapter_boundaries.py",
+        "tests/test_cheminfo/adapters/test_io_transport.py",
+        "tests/test_cheminfo/adapters/test_crystal_transport.py",
+        "tests/test_cheminfo/adapters/test_thermo_contract.py",
+        "tests/test_cheminfo/adapters/test_visualization_contract.py"
+      ],
+      "probe_artifacts": ".plan20-artifacts/20261030/stage7a/validation-preparation/attempt6/",
+      "rule": "Six new meaningful tests and new probe copies only. No existing-test/production/config mutation."
+    },
+    "root": {
+      "paths": "All connected production caller imports outside peer-owned paths; package __init__ files; operations/topology_queries.py; plugins/xtb/adapter.py cache invalidations; pyproject.toml and MANIFEST.in resource support; connected maintained docs/examples outside external writer; all existing tests/support; architecture/interface/data-object ledgers where exact owner moves require mechanical updates.",
+      "rule": "Do not edit other assigned production files while writers are active. Integrate and independently review exact completed bytes."
+    }
+  },
+  "global_gate_closed": false,
+  "implementation_authorized": true,
+  "integration_interfaces": {
+    "conversions": "operations.conversion owns existing public dispatch/export/import names and sole local _molecule_type real-core lookup; no optional backend type proxies. Native adapter leaves use prepared tuples/external values.",
+    "crystal": "structure.crystal.Crystal(a,b,c,alpha,beta,gamma) has six ordinary writable fields; from_matrix subclass delegation and alpha convention remain. adapters.openbabel.crystal.to_obcell(crystal) reads exactly that six-field fact value, returning a fresh OBUnitCell; no Molecule/backref/backend storage. External writer owns the additional adapter file as part of the accepted Crystal split.",
+    "drawing": "operations.visualization draw_single_mol/draw_grid/_load_rdmol; adapters.visualization.draw other helpers/prepared renderers/resources. No upward adapter operation imports or carrier callbacks.",
+    "io": "operations.io owns single MolReader/MolWriter/read_mol and GJF callbacks; one local OB projection reused within a write, not retained beyond operation.",
+    "thermo": "operations.thermo sole real Thermo class plus _get_thermo delegate; adapters.thermo.chemical._chemical_type for fake-class seam; preserve181 fields and exact fallback/getter work."
+  },
+  "original_source_bindings": [
+    {
+      "bytes": 1704,
+      "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/convert.py",
+      "sha256": "2d04405fda5a82e6ce136483ef3740615344b9ec9bff5f62c505ae8464293a6d"
+    },
+    {
+      "bytes": 874,
+      "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core_utils.py",
+      "sha256": "597d43376618a6d8d51b1e9021d2e380d682668d82115996bc37633d1e6aaed3"
+    },
+    {
+      "bytes": 776,
+      "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/crystal.py",
+      "sha256": "b212225ee09337f019dcba412f9304077b7155e372bc928823984c104b69dc35"
+    },
+    {
+      "bytes": 16303,
+      "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/call_thermo.py",
+      "sha256": "1d0949e1ac5bc9015ecf2d2bb299bae85b59da88c92fcb375ac42775f24b5b96"
+    },
+    {
+      "bytes": 28831,
+      "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/draw.py",
+      "sha256": "6d994480fa1e8ccd4a31cffa3036e71b97ddb423cbfaa0054bdd4003c0a3fdc8"
+    },
+    {
+      "bytes": 16779,
+      "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/_io/_io.py",
+      "sha256": "eeccb15c9a230b6b334c9e5078bec9b4ee3bb4cd7059d7bf14c6ed330bd3134c"
+    },
+    {
+      "bytes": 1487,
+      "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/_io/g16.py",
+      "sha256": "5f8084fbd1a55c1ce4c7bb344cfa9903696730f94eb4696b092435ce09a29639"
+    },
+    {
+      "bytes": 9338,
+      "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/obconvert.py",
+      "sha256": "70165aaf25cf7659bead86efc1d8804de0537662dcdfa4ce4978f97821987487"
+    },
+    {
+      "bytes": 28217,
+      "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/rdconvert.py",
+      "sha256": "8535425c2ebfef1cdf03b715d2e3c5ec224b0ae4a4a1bf4c2b85eb1196ceb700"
+    }
+  ],
+  "owner": "root",
+  "protected_scope": [
+    "Stage5 science/H/aromatic/valence semantics and all original complete factual import behavior",
+    "Stage6 stereo/native schemas/science and native session-owned objects",
+    "No new DTO/schema/type/compatibility implementation or alias tree",
+    "ff default identity, complete caller-owned Thermo and CID T=pressure quirk",
+    "Root RDKit preload and inherited pandas reachability stay at later owner",
+    "All shared dirty work preserved; no Git/env/install/build/runtime mutation by writers",
+    "All open stage/global performance/nativeheap/Stage10/science/hardware/Plan12 gates remain open"
+  ],
+  "recorded_at_utc": "2026-10-30T16:30:35.481835+00:00",
+  "root_design_acceptance": {
+    "bytes": 13357,
+    "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage07/external-adapters/root_acceptance.json",
+    "sha256": "d686f0588a8729700f598de90447a493afdb28cc8761786cb43e85d632a52477"
+  },
+  "runtime_boundary": "Writers may execute stdlib AST/static checks only. After all integration completes root freezes SOURCE_READY and releases exact focused/runtime/build/test/probe commands. Baseline artifacts remain immutable.",
+  "schema_version": 1,
+  "source_commit_before_implementation": "d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a",
+  "stage": "Stage7A",
+  "stage_gate_closed": false,
+  "status": "RELEASED_BOUNDED_IMPLEMENTATION_AND_TEST_AUTHORING",
+  "tests_authoring_authorized": true
+}

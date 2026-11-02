@@ -119,7 +119,7 @@ def test_successful_stage_is_atomically_committed_with_verified_lineage(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    from hotpot.cheminfo._io import MolReader
+    from hotpot.cheminfo.operations.io import MolReader
     from hotpot.pipeline.artifacts import payload_sha256
     from hotpot.pipeline.contracts import (
         MolecularPayload,

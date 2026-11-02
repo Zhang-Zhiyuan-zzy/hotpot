@@ -121,3 +121,9 @@ def _components(mol, molecule_type, *, with_bindings=False):
         result.append((component, tuple(members[row] for row in rows))
                       if with_bindings else component)
     return result
+
+
+def atom_idx_pair_to_bond_idx(mol: "Molecule", *atom_idx_pair: tuple[int, int]) -> list[int]:
+    bond_atom_idx_pair = [frozenset((b.a1idx, b.a2idx)) for b in mol.bonds]
+    atom_idx_pair = [frozenset(a_pair) for a_pair in atom_idx_pair]
+    return [bond_atom_idx_pair.index(a_pair) for a_pair in atom_idx_pair]

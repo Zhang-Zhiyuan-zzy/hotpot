@@ -18,7 +18,7 @@ from hotpot.cheminfo.conformers import (
 from hotpot.cheminfo.conformers.adapters import (
     _materialized_hydrogen_projection,
 )
-from hotpot.cheminfo.core_utils import read_mol
+from hotpot.cheminfo.operations.io import read_mol
 from hotpot.cheminfo.forcefields import backend, ligand, workers, workflows
 from hotpot.cheminfo.forcefields.contracts import (
     BuildWorkerResult,

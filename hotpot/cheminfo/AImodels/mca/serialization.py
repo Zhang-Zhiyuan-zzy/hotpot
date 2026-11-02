@@ -17,7 +17,7 @@ from rdkit import Chem
 from hotpot.cheminfo.structure._builder import _make_molecule_record
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_PRESENCE_BITS
 
-from hotpot.cheminfo.convert import to_hotpot_mol
+from hotpot.cheminfo.operations.conversion import to_hotpot_mol
 from hotpot.cheminfo.core import Molecule as HotpotMolecule
 
 

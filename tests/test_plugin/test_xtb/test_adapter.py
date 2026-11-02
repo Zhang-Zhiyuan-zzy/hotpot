@@ -167,12 +167,24 @@ def test_parse_accepts_method_specific_results_and_commits_only_on_request(
     assert result.energy_hartree == pytest.approx(-5.123456789)
     assert result.atom_order_verified is True
 
-    mol.to_obmol()
-    assert mol._obmol is not None
+    external = mol.to_obmol()
+    external_coordinates = np.array([
+        (external.GetAtom(i + 1).GetX(), external.GetAtom(i + 1).GetY(), external.GetAtom(i + 1).GetZ())
+        for i in range(len(mol.atoms))
+    ])
     commit_xtb_coordinates(mol, result)
     assert not np.array_equal(mol.coordinates, initial)
-    assert mol._obmol is None
-    assert mol._row2idx is None
+    assert not {"_obmol", "_row2idx"}.intersection(mol.__dict__)
+    np.testing.assert_array_equal(np.array([
+        (external.GetAtom(i + 1).GetX(), external.GetAtom(i + 1).GetY(), external.GetAtom(i + 1).GetZ())
+        for i in range(len(mol.atoms))
+    ]), external_coordinates)
+    fresh = mol.to_obmol()
+    assert fresh is not external
+    np.testing.assert_array_equal(np.array([
+        (fresh.GetAtom(i + 1).GetX(), fresh.GetAtom(i + 1).GetY(), fresh.GetAtom(i + 1).GetZ())
+        for i in range(len(mol.atoms))
+    ]), mol.coordinates)
 
 
 @pytest.mark.parametrize(

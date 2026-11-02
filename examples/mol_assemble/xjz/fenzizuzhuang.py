@@ -1,7 +1,6 @@
 import os
 import hotpot as hp
 from hotpot.cheminfo.mol_assemble import AssembleFactory
-from hotpot.cheminfo import draw
 
 
 if __name__ == '__main__':

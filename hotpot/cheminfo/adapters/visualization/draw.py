@@ -1,68 +1,62 @@
-# -*- coding: utf-8 -*-
-"""
-===========================================================
- Python    : v3.9.0
- Project   : hotpot
- File      : mol2img
- Created   : 2025/7/30 11:22
- Author    : Zhiyuan Zhang
- Python    : 
------------------------------------------------------------
- Description
- ----------------------------------------------------------
- Make 2d structural image give the Molecule structure
-===========================================================
-"""
+"""External drawing, color, conversion and packaged font resources."""
 import os
 import io
 import copy
 import os.path as osp
-from typing import Union, Iterable, Optional, Literal
+from contextlib import ExitStack
+from importlib import resources
+from typing import Union, Optional, Literal
 from xml.etree import ElementTree as ET
-from packaging import version
 
 import numpy as np
-
-import rdkit
-from rdkit import Chem
-from rdkit.Chem import Draw, AllChem, rdFMCS
-from rdkit.Chem.Draw import rdMolDraw2D
-import cairosvg
-
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import matplotlib.colors as mcolors
-
-from .core import Molecule
 
 __all__ = [
     "compute_atom_bond_colors",
     "create_svg_colorbar",
     "merge_colorbar_to_svg",
-    "draw_single_mol",
-    "draw_grid"
 ]
 
-# Check dependents version
-if version.parse(rdkit.__version__) < version.parse('2025.9'):
-    raise version.InvalidVersion(f'Expected version of rdkit should later than 2025.9, got {rdkit.__version__}')
-
-# Annotation definitions
 RGBColor = tuple[float, float, float]
 IndexColorType = Union[dict[int, RGBColor], list[int], tuple[int, ...]]
 DrawOutputFormat = Literal['svg', 'png', 'pdf', 'ps', 'eps', 'jpeg', 'jpg', 'tiff', 'bmp', 'webp']
-
-# Module configurations
-_file_dir = osp.dirname(osp.abspath(__file__))
-_font_dir = osp.join(_file_dir, "fonts")
 atom_palette = {7: (0, 0, 0.5), 8: (0.5, 0, 0), 1: (0, 0.5, 0.5)}
+
+
+def _rdkit_chem():
+    import rdkit
+    from packaging import version
+
+    if version.parse(rdkit.__version__) < version.parse('2025.9'):
+        raise version.InvalidVersion(f'Expected version of rdkit should later than 2025.9, got {rdkit.__version__}')
+    from rdkit import Chem
+
+    return Chem
+
+
+def _rdmol_type():
+    return _rdkit_chem().Mol
+
+
+def _parse_smiles(value, sanitize=False):
+    return _rdkit_chem().MolFromSmiles(value, sanitize=sanitize)
+
+
+def _compute_2d_coords(rdmol):
+    _rdkit_chem()
+    from rdkit.Chem import AllChem
+
+    return AllChem.Compute2DCoords(rdmol)
+
 
 def _find_single_maximum_subs(*smiles: str):
     """Find the maximum common substructure (MCS) among molecules."""
+    Chem = _rdkit_chem()
+    from rdkit.Chem import rdFMCS
+
     mols = [Chem.MolFromSmiles(s) for s in smiles]
     res = rdFMCS.FindMCS(mols)
     return Chem.MolFromSmiles(Chem.MolToSmiles(Chem.MolFromSmarts(res.smartsString)))
+
 
 def choose_best_colnum(n_mols, min_col=4, max_col=7, default_col=5):
     """Select the most balanced column number for molecule grid layout."""
@@ -82,8 +76,10 @@ def choose_best_colnum(n_mols, min_col=4, max_col=7, default_col=5):
             best_distance = distance
     return best_col
 
+
 def _load_font_names():
-    return os.listdir(_font_dir)
+    return [entry.name for entry in resources.files(__package__).joinpath("fonts").iterdir()]
+
 
 def _draw_configuration(
         ref_rdmol,
@@ -92,8 +88,14 @@ def _draw_configuration(
         fontweight: str = 'bold',
         colorful_atom: bool = 'False',
         atom_color_palette: dict = None,
+        *,
+        _font_resources,
 ):
     """Configure RDKit drawing options."""
+    _rdkit_chem()
+    from rdkit.Chem import Draw
+    from rdkit.Chem.Draw import rdMolDraw2D
+
     options = rdMolDraw2D.MolDrawOptions()
     # options.useACS1996Style = True
     Draw.SetACS1996Mode(options, Draw.MeanBondLength(ref_rdmol))
@@ -105,7 +107,8 @@ def _draw_configuration(
     font_names = _load_font_names()
     if isinstance(font, str) and font in font_names:
         font_suffix = f'_{fontweight.capitalize()}' if isinstance(fontweight, str) else ''
-        options.fontFile = osp.join(_file_dir, 'fonts', font, f'{font}{font_suffix}.ttf')
+        font_file = resources.files(__package__).joinpath('fonts', font, f'{font}{font_suffix}.ttf')
+        options.fontFile = os.fspath(_font_resources.enter_context(resources.as_file(font_file)))
 
     if not colorful_atom:
         options.useBWAtomPalette()
@@ -115,6 +118,7 @@ def _draw_configuration(
         options.updateAtomPalette(_atom_palette)
 
     return options
+
 
 def _parse_atom_bond_colors(
         atom_colors: IndexColorType = None,
@@ -145,6 +149,7 @@ def _parse_atom_bond_colors(
         hl_bond_colors = bond_colors
 
     return hl_atoms, hl_bonds, hl_atom_colors, hl_bond_colors
+
 
 def _parse_atom_bond_color_lists(
         atom_color_lists: list[IndexColorType] = None,
@@ -190,7 +195,7 @@ def _parse_atom_bond_color_lists(
 
 
 def compute_atom_bond_colors(
-        mol: Chem.Mol,
+        mol: "Chem.Mol",
         atom_values: np.ndarray,
         cmap_name: str = "coolwarm",
         vmin: Optional[float] = None,
@@ -199,8 +204,8 @@ def compute_atom_bond_colors(
 ) -> tuple[
         dict[int, RGBColor],
         dict[int, RGBColor],
-        mcolors.Normalize,
-        cm.ScalarMappable
+        "mcolors.Normalize",
+        "cm.ScalarMappable"
 ]:
     """
     Compute color mappings for atoms and bonds based on numeric values.
@@ -224,6 +229,11 @@ def compute_atom_bond_colors(
         sm : cm.ScalarMappable
             Scalar mappable object for generating colorbars.
     """
+    _rdkit_chem()
+    import matplotlib as mpl
+    import matplotlib.cm as cm
+    import matplotlib.colors as mcolors
+
     n_atoms = mol.GetNumAtoms()
     atom_values = np.asarray(atom_values).flatten()
     assert len(atom_values) == n_atoms, f"atom_values length {len(atom_values)} != n_atoms {n_atoms}"
@@ -266,7 +276,7 @@ def compute_atom_bond_colors(
 
 
 def _fill_highlight_atoms(
-        mol: Chem.Mol,
+        mol: "Chem.Mol",
         atom_values: np.ndarray,
         cmap_name: str = "coolwarm",
         vmin: Optional[float] = None,
@@ -330,6 +340,8 @@ def _fill_highlight_atoms_list(
     - The default colormap ("coolwarm") is centered around 0, so the normalization
       range (`vmin`, `vmax`) is symmetric unless explicitly overridden.
     """
+    import matplotlib.colors as mcolors
+
 
     # --- Input validation ---
     if not mols or not list_atom_values:
@@ -393,22 +405,6 @@ def _fill_highlight_atoms_list(
     return (list_hl_atoms, list_hl_bonds, list_hl_atom_colors, list_hl_bond_colors), norm_shared
 
 
-def _load_rdmol(mol_in, sanitize=False):
-    """ Load Rdkit.Chem.Mol and build 2D coordinates """
-    if isinstance(mol_in, Chem.Mol):
-        mol = mol_in
-    elif hasattr(mol_in, "smiles"):
-        mol = Chem.MolFromSmiles(mol_in.smiles, sanitize=sanitize)
-    else:
-        mol = Chem.MolFromSMiles(mol_in, sanitize=sanitize)
-
-    # Chem.SanitizeMol(mol, Chem.SanitizeFlags.SANITIZE_ALL ^ Chem.SanitizeFlags.SANITIZE_KEKULIZE)
-    if mol is None:
-        raise ValueError(f"Could not parse SMILES: {mol_in}")
-
-    AllChem.Compute2DCoords(mol)
-    return mol
-
 def save_or_convert_svg(svg_text: str, save_path: str = None, output_format: str = None) -> str:
     """
     Unified logic for saving or converting SVG output across drawing functions.
@@ -459,6 +455,8 @@ def save_or_convert_svg(svg_text: str, save_path: str = None, output_format: str
                 f.write(svg_text)
             return svg_text
 
+        import cairosvg
+
         cairo_converters = {
             "png": cairosvg.svg2png,
             "pdf": cairosvg.svg2pdf,
@@ -488,9 +486,13 @@ def save_or_convert_svg(svg_text: str, save_path: str = None, output_format: str
 
 def create_svg_colorbar(
         name: str = 'coolwarm',
-        norm: mcolors.Normalize = None,
+        norm: "mcolors.Normalize" = None,
         orientation: Literal['vertical', 'horizontal'] = 'vertical',
 ):
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+    import matplotlib.colors as mcolors
+
     length = 3
     width = 0.15
 
@@ -513,6 +515,7 @@ def create_svg_colorbar(
 
     return colorbar_svg
 
+
 def merge_colorbar_to_svg(main_svg, colorbar_svg, fig_size, orientation):
     if orientation == 'vertical':
         xy = '(530, 200)'
@@ -533,8 +536,8 @@ def merge_colorbar_to_svg(main_svg, colorbar_svg, fig_size, orientation):
     return ET.tostring(root_main, encoding='unicode')
 
 
-def draw_single_mol(
-        mol_in: Union[str, 'Molecule'],
+def _draw_single_rdmol(
+        mol,
         save_path: Optional[str] = None,
         mol_size: tuple[int, int] = (600, 600),
         output_format: Optional[DrawOutputFormat] = None,
@@ -544,78 +547,59 @@ def draw_single_mol(
         colorful_atom: bool = False,
         atom_color_palette: Optional[dict] = None,
         legend: str = '',
-        sanitize: bool = False,
-
-        # Highlight control
-        atom_colors=None,
-        bond_colors=None,
+        atom_colors = None,
+        bond_colors = None,
         atom_hl_values: np.ndarray = None,
-        cmap_name: str = "coolwarm",
+        cmap_name: str = 'coolwarm',
         vmin: Optional[float] = None,
         vmax: Optional[float] = None,
         threshold: float = 0.75,
         colorbar: bool = False,
-        cb_orientation: Literal['vertical', 'horizontal'] = 'vertical'
+        cb_orientation: Literal['vertical', 'horizontal'] = 'vertical',
 ):
-    """
-    Draw a single molecule, always rendering to an SVG string first,
-    then optionally converting it to other formats (PNG, TIFF, PDF, etc.) using CairoSVG and Pillow.
+    _rdkit_chem()
+    from rdkit.Chem.Draw import rdMolDraw2D
 
-    Supported formats:
-        - Direct CairoSVG: svg, png, pdf, ps, eps
-        - Via Pillow: jpeg, jpg, tiff, bmp, webp
-    """
+    with ExitStack() as font_resources:
+        # === 1. Drawing options ===
+        options = _draw_configuration(mol, font_size, font, fontweight, colorful_atom, atom_color_palette, _font_resources=font_resources)
 
-    # === 0. Load molecule ===
-    if isinstance(mol_in, Chem.Mol):
-        mol = mol_in
-    elif hasattr(mol_in, "smiles"):
-        mol = Chem.MolFromSmiles(mol_in.smiles, sanitize=sanitize)
-    else:
-        mol = Chem.MolFromSmiles(mol_in, sanitize=sanitize)
-    if mol is None:
-        raise ValueError(f"Invalid molecule input: {mol_in}")
-    AllChem.Compute2DCoords(mol)
+        # === 2. Highlight colors ===
+        if atom_colors or bond_colors:
+            hl_atoms, hl_bonds, hl_atom_colors, hl_bond_colors = _parse_atom_bond_colors(atom_colors, bond_colors)
+            norm = None
+        elif atom_hl_values is not None:
+            (hl_atoms, hl_bonds, hl_atom_colors, hl_bond_colors), norm = _fill_highlight_atoms(
+                mol, atom_hl_values, cmap_name, vmin, vmax, threshold=threshold
+            )
+        else:
+            hl_atoms = hl_bonds = hl_atom_colors = hl_bond_colors = None
+            norm = None
 
-    # === 1. Drawing options ===
-    options = _draw_configuration(mol, font_size, font, fontweight, colorful_atom, atom_color_palette)
-
-    # === 2. Highlight colors ===
-    if atom_colors or bond_colors:
-        hl_atoms, hl_bonds, hl_atom_colors, hl_bond_colors = _parse_atom_bond_colors(atom_colors, bond_colors)
-        norm = None
-    elif atom_hl_values is not None:
-        (hl_atoms, hl_bonds, hl_atom_colors, hl_bond_colors), norm = _fill_highlight_atoms(
-            mol, atom_hl_values, cmap_name, vmin, vmax, threshold=threshold
+        # === 3. Always draw to SVG ===
+        drawer = rdMolDraw2D.MolDraw2DSVG(mol_size[0], mol_size[1])
+        drawer.SetDrawOptions(options)
+        rdMolDraw2D.PrepareAndDrawMolecule(
+            drawer, mol,
+            legend=legend,
+            highlightAtoms=hl_atoms,
+            highlightBonds=hl_bonds,
+            highlightAtomColors=hl_atom_colors,
+            highlightBondColors=hl_bond_colors,
         )
-    else:
-        hl_atoms = hl_bonds = hl_atom_colors = hl_bond_colors = None
-        norm = None
+        drawer.FinishDrawing()
+        svg_text = drawer.GetDrawingText()
 
-    # === 3. Always draw to SVG ===
-    drawer = rdMolDraw2D.MolDraw2DSVG(mol_size[0], mol_size[1])
-    drawer.SetDrawOptions(options)
-    rdMolDraw2D.PrepareAndDrawMolecule(
-        drawer, mol,
-        legend=legend,
-        highlightAtoms=hl_atoms,
-        highlightBonds=hl_bonds,
-        highlightAtomColors=hl_atom_colors,
-        highlightBondColors=hl_bond_colors,
-    )
-    drawer.FinishDrawing()
-    svg_text = drawer.GetDrawingText()
+        if colorbar:
+            colorbar_svg = create_svg_colorbar(cmap_name, norm, orientation=cb_orientation)
+            svg_text = merge_colorbar_to_svg(svg_text, colorbar_svg, mol_size, cb_orientation)
 
-    if colorbar:
-        colorbar_svg = create_svg_colorbar(cmap_name, norm, orientation=cb_orientation)
-        svg_text = merge_colorbar_to_svg(svg_text, colorbar_svg, mol_size, cb_orientation)
-
-    # Formatted output and save
-    return save_or_convert_svg(svg_text, save_path, output_format)
+        # Formatted output and save
+        return save_or_convert_svg(svg_text, save_path, output_format)
 
 
-def draw_grid(
-        list_mols: Iterable[Union[str, 'Molecule']],
+def _draw_grid_rdmols(
+        mols,
         save_path: Optional[str] = None,
         mol_size: tuple[int, int] = (300, 300),
         output_format: Optional[DrawOutputFormat] = None,
@@ -624,161 +608,65 @@ def draw_grid(
         fontweight: str = 'bold',
         colorful_atom: bool = True,
         atom_color_palette: Optional[dict] = None,
-        sanitize: bool = False,
         n_cols: Optional[int] = None,
         legends: Optional[list[str]] = None,
-
-        # Highlight control
         atom_colors: Optional[list[dict]] = None,
         bond_colors: Optional[list[dict]] = None,
         list_atom_values: np.ndarray = None,
-        cmap_name: str = "coolwarm",
+        cmap_name: str = 'coolwarm',
         vmin: Optional[float] = None,
         vmax: Optional[float] = None,
         threshold: float = 0.75,
         colorbar: bool = False,
-        cb_orientation: Literal['vertical', 'horizontal'] = 'horizontal'
+        cb_orientation: Literal['vertical', 'horizontal'] = 'horizontal',
 ):
-    """
-    Draw a grid of molecules into a single combined image.
+    _rdkit_chem()
+    from rdkit.Chem import Draw
 
-    The function always renders the molecular grid to an SVG string first,
-    then optionally converts it to other formats (PNG, PDF, EPS, etc.)
-    using CairoSVG or Pillow.
+    with ExitStack() as font_resources:
+        # === 1. Drawing options ===
+        options = _draw_configuration(mols[0], font_size, font, fontweight, colorful_atom, atom_color_palette, _font_resources=font_resources)
 
-    Parameters
-    ----------
-    list_mols : Iterable[str or Molecule]
-        Iterable of SMILES strings or Molecule objects to render.
-    save_path : str, optional
-        Path to save output image. If not provided, only the SVG string is returned.
-    mol_size : tuple of (int, int), optional, default=(300, 300)
-        Pixel dimensions of each molecule image in the grid.
-    output_format : {'svg', 'png', 'pdf', 'ps', 'eps', 'jpeg', 'jpg', 'tiff', 'bmp', 'webp'}, optional
-        Desired output format. If None, inferred from ``save_path`` extension or defaults to 'svg'.
-    font_size : int, optional, default=20
-        Font size for atom labels.
-    font : str, optional, default='Arial'
-        Font family for text labels.
-    fontweight : str, optional, default='bold'
-        Font weight for atom labels ('normal' or 'bold').
-    colorful_atom : bool, optional, default=True
-        Whether to color atom labels by element or palette.
-    atom_color_palette : dict, optional
-        Mapping of element symbols to RGB color tuples.
-    sanitize : bool, optional, default=False
-        Whether to sanitize SMILES parsing.
-    n_cols : int, optional
-        Number of columns in the molecular grid. Automatically chosen if None.
-    legends : list of str, optional
-        Text legends displayed below each molecule. Must match the number of molecules.
-    atom_colors : list of dict or list, optional
-        List of color mappings or atom index lists for highlighting atoms.
-    bond_colors : list of dict or list, optional
-        List of color mappings or bond index lists for highlighting bonds.
-        list_atom_values : list[np.ndarray], optional
-        Per‑molecule numeric values (e.g., atomic contributions or SHAP scores)
-        used for colormapped highlighting. If provided, overrides `atom_colors`
-        and `bond_colors`.
-    cmap_name : str, default='coolwarm'
-        Matplotlib colormap name for continuous value highlighting.
-    vmin, vmax : float, optional
-        Global normalization limits for the colormap. If None, inferred from all
-        values across molecules and symmetrized around zero when using a diverging
-        palette such as "coolwarm".
-    threshold : float, default=0.75
-        Minimum normalized intensity (|value|) for visible highlighting.
-    colorbar : bool, default=False
-        Whether to append a colorbar to the combined SVG image.
-    cb_orientation : {'vertical', 'horizontal'}, default='horizontal'
-        Orientation of the colorbar when `colorbar=True`.
+        if atom_colors or bond_colors:
+            hl_atoms, hl_bonds, hl_atom_colors, hl_bond_colors = _parse_atom_bond_color_lists(atom_colors, bond_colors)
+            norm = None
+        elif isinstance(list_atom_values, list):
+            (hl_atoms, hl_bonds, hl_atom_colors, hl_bond_colors), norm = _fill_highlight_atoms_list(
+                mols, list_atom_values, cmap_name, vmin, vmax, threshold
+            )
+        else:
+            hl_atoms = hl_bonds = hl_atom_colors = hl_bond_colors = None
+            norm = None
 
-    Returns
-    -------
-    svg_image : str
-        SVG XML string containing the full molecule grid image.
+        # === 2. Infer grid shape ===
+        if not isinstance(n_cols, int):
+            n_cols = choose_best_colnum(len(mols))
 
-    Notes
-    -----
-    The function supports both vector and bitmap outputs:
-        - Vector: ``svg``, ``pdf``, ``ps``, ``eps``
-        - Bitmap: ``png``, ``jpeg``, ``jpg``, ``bmp``, ``tiff``, ``webp``
+        if legends is not None:
+            assert isinstance(legends, (list, tuple)), "legends must be list/tuple of strings"
+            assert len(legends) == len(mols), (
+                f"Expected {len(mols)} legends, got {len(legends)}"
+            )
+            legends = list(legends)
 
-    Examples
-    --------
-    >>> mols = ["CCO", "C1CCCCC1"]
-    >>> svg = draw_grid(mols)
-    >>> svg[:200]
-    '<svg xmlns="http://www.w3.org/2000/svg"...'
-
-    >>> draw_grid(mols, save_path='grid.pdf')
-    >>> draw_grid(mols, output_format='webp', save_path='grid.webp')
-    """
-    # === 0. Create RDKit molecules ===
-    mols = [_load_rdmol(m, sanitize=sanitize) for m in list_mols]
-    if not mols:
-        raise ValueError("No valid molecules provided for grid drawing.")
-
-    # === 1. Drawing options ===
-    options = _draw_configuration(mols[0], font_size, font, fontweight, colorful_atom, atom_color_palette)
-
-    if atom_colors or bond_colors:
-        hl_atoms, hl_bonds, hl_atom_colors, hl_bond_colors = _parse_atom_bond_color_lists(atom_colors, bond_colors)
-        norm = None
-    elif isinstance(list_atom_values, list):
-        (hl_atoms, hl_bonds, hl_atom_colors, hl_bond_colors), norm = _fill_highlight_atoms_list(
-            mols, list_atom_values, cmap_name, vmin, vmax, threshold
+        # === 3. Always draw SVG grid first ===
+        svg_text = Draw.MolsToGridImage(
+            mols,
+            molsPerRow=n_cols,
+            subImgSize=mol_size,
+            legends=legends,
+            useSVG=True,
+            returnPNG=False,
+            highlightAtomLists=hl_atoms,
+            highlightBondLists=hl_bonds,
+            highlightAtomColors=hl_atom_colors,
+            highlightBondColors=hl_bond_colors,
+            drawOptions=options
         )
-    else:
-        hl_atoms = hl_bonds = hl_atom_colors = hl_bond_colors = None
-        norm = None
 
-    # === 2. Infer grid shape ===
-    if not isinstance(n_cols, int):
-        n_cols = choose_best_colnum(len(mols))
+        if colorbar:
+            colorbar_svg = create_svg_colorbar(cmap_name, norm, orientation=cb_orientation)
+            svg_text = merge_colorbar_to_svg(svg_text, colorbar_svg, mol_size, cb_orientation)
 
-    if legends is not None:
-        assert isinstance(legends, (list, tuple)), "legends must be list/tuple of strings"
-        assert len(legends) == len(mols), (
-            f"Expected {len(mols)} legends, got {len(legends)}"
-        )
-        legends = list(legends)
-
-    # === 3. Always draw SVG grid first ===
-    svg_text = Draw.MolsToGridImage(
-        mols,
-        molsPerRow=n_cols,
-        subImgSize=mol_size,
-        legends=legends,
-        useSVG=True,
-        returnPNG=False,
-        highlightAtomLists=hl_atoms,
-        highlightBondLists=hl_bonds,
-        highlightAtomColors=hl_atom_colors,
-        highlightBondColors=hl_bond_colors,
-        drawOptions=options
-    )
-
-    if colorbar:
-        colorbar_svg = create_svg_colorbar(cmap_name, norm, orientation=cb_orientation)
-        svg_text = merge_colorbar_to_svg(svg_text, colorbar_svg, mol_size, cb_orientation)
-
-    # Formatted output and save
-    return save_or_convert_svg(svg_text, save_path, output_format)
-
-
-if __name__ == "__main__":
-    import os
-    import glob
-    from hotpot import read_mol
-
-    mol_dir = '/mnt/d/zhang/OneDrive/Liu/nuclear medical patent/Molecule/mol_files'
-    list_smiles = []
-    for i, file_path in enumerate(glob.glob(os.path.join(mol_dir, '*.mol'))):
-        file_name = osp.splitext(osp.split(file_path)[-1])[0]
-        mol = read_mol(file_path)
-        try:
-            draw_single_mol(mol, osp.join(mol_dir, '..', 'svg', file_name + '.svg'))
-        except ValueError:
-            print(file_name)
-            list_smiles.append(mol.smiles)
+        # Formatted output and save
+        return save_or_convert_svg(svg_text, save_path, output_format)

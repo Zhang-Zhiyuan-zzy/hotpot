@@ -1,6 +1,6 @@
 
 
-# 🧪 `hotpot.cheminfo.draw`  Module
+# 🧪 Molecular visualization
 ### Molecular Visualization Utilities
 
 This package provides high‑level molecular drawing interfaces built upon **RDKit**, **Matplotlib**, and **CairoSVG**, enabling chemical visualization with customized highlighting, color normalization, and unified export formats.
@@ -37,7 +37,7 @@ All exporters produce scalable vector graphics (SVG) by default and can convert 
 Compute atom and bond colors based on continuous numeric inputs (e.g., atomic contributions, SHAP values).
 
 ```python
-from hotpot.cheminfo.draw import compute_atom_bond_colors
+from hotpot.cheminfo.adapters.visualization.draw import compute_atom_bond_colors
 ```
 
 #### Signature
@@ -84,7 +84,7 @@ A 4‑tuple:
 Create a colorbar figure as an SVG string using Matplotlib.
 
 ```python
-from hotpot.cheminfo.draw import create_svg_colorbar
+from hotpot.cheminfo.adapters.visualization.draw import create_svg_colorbar
 ```
 
 #### Signature
@@ -113,7 +113,7 @@ Generates a Matplotlib colorbar and serializes it directly to SVG format to merg
 
 #### Example
 ```python
-from hotpot.cheminfo.draw import create_svg_colorbar
+from hotpot.cheminfo.adapters.visualization.draw import create_svg_colorbar
 import matplotlib.colors as mcolors
 
 norm = mcolors.Normalize(vmin=-1, vmax=1)
@@ -127,7 +127,7 @@ cb_svg = create_svg_colorbar("coolwarm", norm, orientation="horizontal")
 Merge a generated colorbar SVG into an existing molecule SVG layout.
 
 ```python
-from hotpot.cheminfo.draw import merge_colorbar_to_svg
+from hotpot.cheminfo.adapters.visualization.draw import merge_colorbar_to_svg
 ```
 
 #### Signature
@@ -171,7 +171,7 @@ merged = merge_colorbar_to_svg(svg_main, cb_svg, (400, 400), "vertical")
 Render one molecule to SVG, optionally with per‑atom highlights and colorbars.
 
 ```python
-from hotpot.cheminfo.draw import draw_single_mol
+from hotpot.cheminfo.operations.visualization import draw_single_mol
 ```
 
 #### Signature
@@ -250,7 +250,7 @@ svg = draw_single_mol("C=C(C)C", atom_hl_values=[0.2, 0.7, -0.5, 0.9], colorbar=
 Render multiple molecules in a grid layout, ensuring consistent normalization and optional colorbar.
 
 ```python
-from hotpot.cheminfo.draw import draw_grid
+from hotpot.cheminfo.operations.visualization import draw_grid
 ```
 
 #### Signature

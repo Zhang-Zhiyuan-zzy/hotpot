@@ -5,8 +5,8 @@ from openbabel import openbabel as ob
 from rdkit import Chem
 
 from hotpot.cheminfo.core import Bond, BondKind, Molecule
-from hotpot.cheminfo.obconvert import mol2obmol, obmol2mol
-from hotpot.cheminfo.rdconvert import from_rdmol, to_rdmol
+from hotpot.cheminfo.operations.conversion import mol2obmol, obmol2mol
+from hotpot.cheminfo.operations.conversion import from_rdmol, to_rdmol
 
 
 def _hotpot_bond(

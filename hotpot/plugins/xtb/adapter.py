@@ -409,5 +409,3 @@ def commit_xtb_coordinates(mol: Molecule, result: XTBParsedResult) -> None:
             raise XTBInputError("xTB result atom order does not match the molecule")
 
         mol.coordinates = np.asarray(geometry.coordinates, dtype=float)
-        mol._obmol = None
-        mol._row2idx = None

@@ -1,3 +1,4 @@
+from importlib.util import find_spec
 from pathlib import Path
 from runpy import run_path
 
@@ -11,6 +12,7 @@ except ModuleNotFoundError:
 
 
 ROOT = Path(__file__).resolve().parents[1]
+PACKAGE_ROOT = Path(find_spec("hotpot").origin).resolve().parent
 
 
 def _requirement_map(requirements):
@@ -68,7 +70,7 @@ def test_package_version_matches_project_metadata():
     with (ROOT / "pyproject.toml").open("rb") as stream:
         project_version = tomllib.load(stream)["project"]["version"]
 
-    package_version = run_path(ROOT / "hotpot" / "__version__.py")["__version__"]
+    package_version = run_path(PACKAGE_ROOT / "__version__.py")["__version__"]
 
     assert package_version == project_version
 
@@ -176,8 +178,8 @@ def test_pymol_compatibility_extra_selects_numpy_1x():
 
 def test_production_model_weights_are_external():
     model_directories = (
-        ROOT / "hotpot" / "cheminfo" / "AImodels" / "mca" / "models",
-        ROOT / "hotpot" / "cheminfo" / "AImodels" / "cbond" / "onnx",
+        PACKAGE_ROOT / "cheminfo" / "AImodels" / "mca" / "models",
+        PACKAGE_ROOT / "cheminfo" / "AImodels" / "cbond" / "onnx",
     )
     binary_suffixes = {".onnx", ".weight", ".data"}
 
@@ -202,4 +204,6 @@ def test_draw_fonts_are_owned_by_the_discovered_font_package():
     with (ROOT / "pyproject.toml").open("rb") as stream:
         package_data = tomllib.load(stream)["tool"]["setuptools"]["package-data"]
 
-    assert package_data["hotpot.cheminfo.fonts.Arial"] == ["*.ttf"]
+    assert package_data["hotpot.cheminfo.adapters.visualization"] == [
+        "fonts/Arial/*.ttf", "draw.md"
+    ]

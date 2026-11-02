@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import hotpot as hp
 from hotpot import read_mol
 from hotpot.cheminfo.forcefields.coordination import (
     collect_coordination_environments,
@@ -22,8 +23,7 @@ def test_coordination_components_use_authoritative_bonds():
 
 def test_coordination_module_has_no_networkx_reference():
     source = (
-        Path(__file__).resolve().parents[3]
-        / "hotpot"
+        Path(hp.__file__).resolve().parent
         / "cheminfo"
         / "forcefields"
         / "coordination.py"

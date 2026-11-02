@@ -1,6 +1,8 @@
 # Stage6 records
 
-Root accepts frozen C61 static, runtime and bounded cost evidence on 2026-10-30 and has ended the runtime freeze. The maintained records integrate that decision; coherent validated Git delivery and root's final record/source check and full Stage6 closure remain pending. Stage7A has not entered and its entry is not released. The [main implementation plan](../../fact_rule_architecture_implementation_plan.md), Section10, owns scope/gates. Stage7E canonical storage and final scientific/global efficiency acceptance remain open.
+Stage6 owning gates are complete. Root's [final closure](../../../../.plan20-artifacts/20261030/stage6/root-final-closure/attempt1/evidence.json) binds delivered/remote-verified C62 `aeb72d0b97fb1c2e50df86a057c31585a2e34e0c`; validated runtime source remains C61. The separate [Stage7A entry](../stage07/external-adapters/entry_review.json) retains its original bounded-design authority; separate [root design acceptance](../stage07/external-adapters/root_acceptance.json) and [exact implementation release](../stage07/external-adapters/implementation_release.json) now release bounded authoring. Candidate execution remains held. Stage7E canonical storage, Stage10 and final scientific/global efficiency gates remain open. The [main implementation plan](../../fact_rule_architecture_implementation_plan.md), Section10, owns scope/gates.
+
+The reports and JSON below preserve their C62 integration state and checks, with a separate later closure note. Their old pending-delivery/not-entered wording is historical and does not override root's final closure. Exact Task38/review/runtime/cost/failure artifacts remain unchanged.
 
 Validated source:`d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a`, tree`3a48d3bb2949f0f8aa11b6ea3dff35cbc97ed198`;4,129-file snapshot value SHA256`782466b4ab6f1c8091633a4a3458ea9b42dd19d591f1b607597239f6631cb4c3`. Later documentation-only delivery does not replace C61 runtime provenance.
 
@@ -11,7 +13,7 @@ Validated source:`d46fbc1d1316a2d34d2ef4c2eb289edff5a81e2a`, tree`3a48d3bb2949f0
 - [Exact Task38 result](review-result/review.md) and [provenance/root disposition](review-result/evidence.json): verbatim6,466-byte historical static result; matching actual read-only audit and separate root acceptance. Original HOLD remains historical; later authority is separately bound.
 - [Executed validation](validation/report.md) and [exact commands/results/evidence](validation/evidence.json):focused65; each Python3.10–3.14 source1,397/installed1,396/native-source6 passes plus2 external SDK skips; default4,998/123skips/3strictxfails plus49passedsubtests, accepted after artifact-only accounting. All15 supplementary commands pass.
 - [Bounded performance](performance/report.md) and [raw/statistical/disposition evidence](performance/evidence.json):90 original comparisons; all72 adverse metrics explicitly accepted for Stage6 only, including fixed60-pair installedchain512 repeat. Original inconclusive results/global performance debt remain.
-- [Owning evidence and remaining gates](gates/review.md) with [root authority/delivery/check evidence](gates/evidence.json): root evidence obligations satisfied; records integrated; validated Git/root final closure pending. Stage7A not entered; Stage7E/Stage10/global gates open.
+- [Owning evidence and remaining gates](gates/review.md) with [root authority/delivery/check evidence](gates/evidence.json): root evidence obligations complete and C62 delivered; subsequent closure/Stage7A design entry separately bound. Stage7E/Stage10/global gates open.
 
 ## Entry, accepted design and preserved preparation records
 

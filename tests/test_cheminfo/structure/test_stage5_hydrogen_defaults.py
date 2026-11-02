@@ -153,7 +153,7 @@ def _present(mol, row=0):
 def test_missing_display_is_not_a_zero_fact_and_strict_consumers_reject_it_once(monkeypatch):
     from hotpot.cheminfo.AImodels.data_extract import extract_atom_attrs
     from hotpot.cheminfo._native.buffers import NativeMoleculeField, pack_molecule
-    from hotpot.cheminfo.rdconvert import to_rdmol
+    from hotpot.cheminfo.operations.conversion import to_rdmol
     atom = Atom()
     mol = atom.mol
     calls = []
@@ -699,7 +699,7 @@ def test_zero_residual_current_H_cleanup_failure_rolls_back_whole_entry(entry, m
 
 @pytest.mark.parametrize('entry', ['atom', 'molecule'])
 def test_aromatic_n_bracket_H_with_no_implicit_materializes_once(entry):
-    from hotpot.cheminfo.rdconvert import from_rdmol
+    from hotpot.cheminfo.operations.conversion import from_rdmol
     from rdkit import Chem
     rdmol = Chem.MolFromSmiles('c1cc[nH]c1')
     next(atom for atom in rdmol.GetAtoms() if atom.GetAtomicNum() == 7).SetNoImplicit(True)

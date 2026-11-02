@@ -28,7 +28,9 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.model_selection import cross_val_score
 
 
-from hotpot.cheminfo import draw, rdworks
+from hotpot.cheminfo import rdworks
+from hotpot.cheminfo.adapters.visualization.draw import compute_atom_bond_colors
+from hotpot.cheminfo.operations.visualization import draw_grid
 
 mols = [
     "O=C1C(O)=C(C)[C@@](C[C@](O2)([H])[C@]3(CO4)[C@]5([H])[C@@H](O)[C@H](O)[C@]4(C(OC)=O)[C@]3([H])[C@@H](OC(/C([H])=C(C)/C(C)C)=O)C2=O)([H])[C@]5(C)C1",
@@ -429,7 +431,7 @@ if __name__ == "__main__":
     fmt = ('svg', 'png', 'pdf', 'ps', 'eps', 'jpeg', 'jpg', 'tiff', 'bmp', 'webp')
     # for i in range(arr.shape[0]):
     #     atom_sv = rdworks.assign_fp_values_atoms(ms[i], sv[i], mfps, bits[i], mode='mean')
-    #     # colors, bonds, norm, sm = draw.compute_atom_bond_colors(ms[i], atom_sv)
+    #     # colors, bonds, norm, sm = compute_atom_bond_colors(ms[i], atom_sv)
     #     draw.draw_single_mol(
     #         ms[i],
     #         osp.join(save_path, f'm{i}.{fmt[i]}'),
@@ -445,9 +447,9 @@ if __name__ == "__main__":
     list_atom_values = []
     for i in range(arr.shape[0]):
         atom_sv = rdworks.assign_fp_values_atoms(ms[i], sv[i], mfps, bits[i], mode='mean')
-        colors, bonds, norm, sm = draw.compute_atom_bond_colors(ms[i], atom_sv)
+        colors, bonds, norm, sm = compute_atom_bond_colors(ms[i], atom_sv)
         atom_colors.append(colors)
         bond_colors.append(bonds)
         list_atom_values.append(atom_sv)
 
-    draw.draw_grid(ms, osp.join(save_path, f'm.svg'), list_atom_values=list_atom_values, colorbar=True)
+    draw_grid(ms, osp.join(save_path, f'm.svg'), list_atom_values=list_atom_values, colorbar=True)

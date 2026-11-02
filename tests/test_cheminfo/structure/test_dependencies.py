@@ -6,8 +6,9 @@ import numpy as np
 import pytest
 
 from hotpot import Molecule
+from hotpot.cheminfo.operations import chemistry
 from hotpot.cheminfo.structure._atom_table import _AtomFactTable
-from hotpot.cheminfo.structure._commit import _FactTransaction
+from hotpot.cheminfo.structure._commit import _FactTransaction, _native_fail_after
 from hotpot.cheminfo.structure._dependencies import (
     GROUP_INDEX, GROUPS, _FactStatus, _dependency_state, _ensure_group,
     _install_dependency_state, _mark_topology_dirty, _remap_dependency_state,
@@ -134,3 +135,97 @@ def test_neighbour_dependency_scope_expands_before_remote_h_read_without_reachin
     assert _ensure_group(mol, 'IMPLICIT_H', rows=(1, 2, 4)).tolist() == [
         _FactStatus.NEEDS_RECALC, _FactStatus.CURRENT, _FactStatus.CURRENT]
     assert mol._atom_table._group_status[:5, GROUP_INDEX['VALENCE']].tolist() == [1, 1, 0, 0, 0]
+
+
+@pytest.mark.parametrize('rows,strict_error', [
+    ((), False), ((0,), False), ((2, 1), True), ((2, 0, 2, 1), True),
+])
+def test_aromatic_terminal_selection_does_not_prepare_other_components(rows, strict_error):
+    mol = _molecule()
+    table = mol._atom_table
+    group = GROUP_INDEX['AROMATIC_REPRESENTATION']
+    table._group_status[:5, group] = (
+        _FactStatus.CURRENT, _FactStatus.UNRESOLVED, _FactStatus.CONFLICT,
+        _FactStatus.NEEDS_RECALC, _FactStatus.ABSENT,
+    )
+    before = _dependency_state(table)
+    chemistry._prepare_aromatic_representation(mol, rows=rows)
+    if strict_error:
+        with pytest.raises(RuntimeError, match='Aromatic representation is unresolved or conflicting'):
+            chemistry._require_aromatic_representation(mol, rows=rows)
+    else:
+        assert chemistry._require_aromatic_representation(mol, rows=rows) is None
+    after = _dependency_state(table)
+    np.testing.assert_array_equal(after[0], before[0])
+    assert after[1] == before[1]
+    assert table._group_status.dtype == np.uint8
+
+
+@pytest.mark.parametrize('rows', [(3,), (4,), (4, 3, 4)])
+def test_aromatic_required_pending_rows_prepare_their_component_and_keep_terminal_findings(rows):
+    mol = _molecule()
+    table = mol._atom_table
+    group = GROUP_INDEX['AROMATIC_REPRESENTATION']
+    table._group_status[:5, group] = (
+        _FactStatus.CURRENT, _FactStatus.UNRESOLVED, _FactStatus.CONFLICT,
+        _FactStatus.NEEDS_RECALC, _FactStatus.ABSENT,
+    )
+    facts = table.matrix().tobytes(), table.presence().tobytes(), table.sources().tobytes()
+    assert chemistry._require_aromatic_representation(mol, rows=rows) is None
+    assert table._group_status[:5, group].tolist() == [0, 3, 4, 0, 0]
+    assert (table.matrix().tobytes(), table.presence().tobytes(), table.sources().tobytes()) == facts
+
+
+@pytest.mark.parametrize('rows', [(), (2,), (4, 2, 4)])
+def test_aromatic_preparation_consumes_upstream_seeds_even_for_terminal_selection(rows):
+    mol = _molecule()
+    table = mol._atom_table
+    group = GROUP_INDEX['AROMATIC_REPRESENTATION']
+    table._group_status[3:5, group] = (_FactStatus.CONFLICT, _FactStatus.UNRESOLVED)
+    _seed(mol, GROUP_INDEX['VALENCE'], (mol.atoms[0]._uid,))
+    untouched = table._group_status[3:5].copy()
+    assert chemistry._require_aromatic_representation(mol, rows=()) is None
+    assert all(table._dirty_seeds[index] for index in range(3))
+    chemistry._prepare_aromatic_representation(mol, rows=rows)
+    assert all(not seeds for seeds in table._dirty_seeds[:3])
+    assert table._group_status[:3, group].tolist() == [0, 0, 0]
+    np.testing.assert_array_equal(table._group_status[3:5], untouched)
+
+
+@pytest.mark.parametrize('boundary', ['status', 'seed_clear'])
+@pytest.mark.parametrize('exception', [KeyboardInterrupt, MemoryError])
+def test_aromatic_preparation_restores_dirty_expansion_on_native_interruption(boundary, exception):
+    mol = _molecule()
+    table = mol._atom_table
+    _seed(mol, GROUP_INDEX['VALENCE'], (mol.atoms[0]._uid,))
+    before = _dependency_state(table)
+    owners = tuple(table._dirty_seeds)
+    facts = table.matrix().tobytes(), table.presence().tobytes(), table.sources().tobytes()
+    with pytest.raises(exception):
+        with _native_fail_after(boundary, exception=exception):
+            chemistry._prepare_aromatic_representation(mol, rows=(2,))
+    after = _dependency_state(table)
+    np.testing.assert_array_equal(after[0], before[0])
+    assert after[1] == before[1]
+    assert all(left is right for left, right in zip(owners, table._dirty_seeds))
+    assert (table.matrix().tobytes(), table.presence().tobytes(), table.sources().tobytes()) == facts
+    assert chemistry._require_aromatic_representation(mol, rows=(2,)) is None
+    assert all(not seeds for seeds in table._dirty_seeds[:3])
+
+
+def test_aromatic_preparation_cannot_publish_after_caught_joined_failure():
+    mol = _molecule()
+    table = mol._atom_table
+    _seed(mol, GROUP_INDEX['VALENCE'], (mol.atoms[0]._uid,))
+    before = _dependency_state(table)
+    with pytest.raises(RuntimeError, match='nested factual transaction failed'):
+        with _FactTransaction(mol, producer=1):
+            with pytest.raises(MemoryError):
+                with _native_fail_after('seed_clear', exception=MemoryError):
+                    chemistry._prepare_aromatic_representation(mol, rows=(2,))
+            # This second call succeeds locally but must not unpoison its owner.
+            chemistry._prepare_aromatic_representation(mol, rows=(2, 2))
+            assert all(not seeds for seeds in table._dirty_seeds[:3])
+    after = _dependency_state(table)
+    np.testing.assert_array_equal(after[0], before[0])
+    assert after[1] == before[1]

@@ -6,7 +6,7 @@ import argparse
 from dataclasses import dataclass
 from typing import Mapping, Optional, Tuple, Union
 
-from hotpot.cheminfo.convert import to_hotpot_mol
+from hotpot.cheminfo.operations.conversion import to_hotpot_mol
 from hotpot.pipeline.contracts import (
     JSONValue,
     MolecularPayload,

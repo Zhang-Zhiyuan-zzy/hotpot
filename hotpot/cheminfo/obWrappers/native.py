@@ -19,6 +19,8 @@ __all__ = ()
 
 def _native_module() -> ModuleType:
     try:
+        # Load the version-matched Open Babel runtime at this task boundary.
+        import_module("openbabel.openbabel")
         return import_module("hotpot.cheminfo.obWrappers._ob_native")
     except ImportError as exc:
         raise ImportError(

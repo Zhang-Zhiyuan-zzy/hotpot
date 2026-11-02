@@ -3062,5 +3062,181 @@
       "archive_and_existing_final_receipt": "Preserved unchanged as checkpoint history; this addendum supplies current record digests.",
       "all_gates_remain_open": true
     }
+  },
+  "task179_checkpoint": {
+    "recorded_at_utc": "2026-11-02",
+    "status": "ACCEPTED_INSTALLED_AND_DIAGNOSTIC_STATIC_REVIEW_EXACT_RUNTIME_RELEASE_ONLY",
+    "source_provenance": {
+      "docs_head": "d7524e8182f13704e9c69db8f6ab97c34602168f",
+      "product_ancestry": "9999ecd",
+      "historical_authored_evidence_unchanged": true
+    },
+    "evidence_index": {
+      "path": ".plan20-artifacts/20261102/stage7a/native-gtd-diagnostic-records-task179/INDEX.json",
+      "bytes": 7005,
+      "sha256": "c7489b75bb777f5b348f76a80eb7834adc5c432db6a7fe98c0891f6538c76f0f"
+    },
+    "archive": {
+      "path": ".plan20-artifacts/20261102/stage7a/native-gtd-diagnostic-records-task179/terminal-installed-review-diagnostic-compile-metadata.tar.gz",
+      "bytes": 10576765,
+      "sha256": "1cc157442f5aa3c23915c545a85153ff1d42f2e132482c52f4a5d81a5299c5b6"
+    },
+    "member_manifest": {
+      "path": ".plan20-artifacts/20261102/stage7a/native-gtd-diagnostic-records-task179/MEMBER_MANIFEST.json",
+      "bytes": 271542,
+      "sha256": "2b6ea6b7300eb2484696b24618f90f1fefa7e811ef9265926a2670c71392a76e"
+    },
+    "Task168": {
+      "status": "ROOT_ACCEPTED_TASK161_PRIVATE_CANDIDATE_INSTALL",
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK161_ROOT_INSTALL_REVIEW.json",
+        "bytes": 4518,
+        "sha256": "f35cac2dab60255507d787852fef0240cc413c7e4592bafc30da97b719513b77"
+      },
+      "actual_audit_returncode": 0,
+      "actual_audit_elapsed_seconds": 2.515953827649355,
+      "metadata_commands": 163,
+      "package_paths": 329,
+      "installed_ELFs": 150,
+      "physical_nodes_stable": 351,
+      "static_dependency_edges": 661,
+      "external_providers": 12,
+      "successor2_preflight_checks": 1197,
+      "retained_successor1_failure": "RC1/0.11429196782410145s before metadata; KeyError root_release. Private original inherited environment excluded; safe redacted derivative retained.",
+      "scope": "Actual installed/static SDK/export/native-origin/ABI/closure review only; upstream warning risks remain unwaived."
+    },
+    "Task162_binding_compile": {
+      "pure_binding": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK162_BIND_AFTER_INSTALL.command.json",
+        "bytes": 1931,
+        "sha256": "68aea4cb74eaeec93d3d7732b3bd851d4dd8c8bd625d483a32b14248d4658e86"
+      },
+      "pure_binding_returncode": 0,
+      "pure_binding_elapsed_seconds": 1.184794694185257,
+      "compile_launch": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK162_COMPILE_LAUNCH.command.json",
+        "bytes": 1700,
+        "sha256": "2b55e882758da8b3b8b65817e19ada475a39c166588e94e0d2eb0c7066931f07"
+      },
+      "compile_launch_returncode": 0,
+      "compile_elapsed_seconds": 26.0831016600132,
+      "completed_steps": 9,
+      "all_step_returncodes": 0,
+      "MATCH_inventory_checkpoints": 20,
+      "inventory_nodes": 351,
+      "plan_guard_bindings": 8901,
+      "automatic_retries": 0
+    },
+    "Task176": {
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK162_ROOT_METADATA_REVIEW.json",
+        "bytes": 47255,
+        "sha256": "9406d64c866667bbbd4e6f510a3e4aecd16975d76479acb2bb76a2d9b194878d"
+      },
+      "status": "ROOT_ACCEPTED_TASK162_CANDIDATE_DIAGNOSTIC_METADATA",
+      "actual_audit_returncode": 0,
+      "actual_audit_elapsed_seconds": 2.981656262651086,
+      "issues": [],
+      "actual_metadata_commands": 4,
+      "driver_observer_dependencies": [
+        324,
+        238
+      ],
+      "driver_observer_installed_SDK_headers": [
+        22,
+        7
+      ],
+      "supplied_OpenBabel_driver_imports": 15,
+      "static_opaque_forwarding_call_sites": 1,
+      "static_dependency_edges": 670,
+      "external_provider_canonicals": 12,
+      "runtime_dependency_file_bindings": 179,
+      "installed_ELF_roots": 150,
+      "root_independent_byte_bindings_verified": 9341,
+      "actual_loader_runtime_behavior_proven": false,
+      "scope": "Bounded actual static metadata/header/link/ABI/opaque forwarding/dependency provenance; exact candidate closure/search; no native behavior acceptance."
+    },
+    "runtime_preparation_release": {
+      "pure_preparation": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK162_PREPARE_RUNTIME.command.json",
+        "bytes": 1824,
+        "sha256": "33227371e830fc85acf3046b128d884502f71ae48296036079ae091b645dcfe6"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 1.3070819564163685,
+      "root_release": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK162_ROOT_RUNTIME_RELEASE.json",
+        "bytes": 672746,
+        "sha256": "a813014b9f36d250ed23fe04d5e9b0590d0a8200e2fed733fbcbf65eab4c1914"
+      },
+      "released_cells": 264,
+      "modes": [
+        "plain",
+        "observed"
+      ],
+      "automatic_retries": 0,
+      "runtime_state_at_root_assignment": "RUNNING",
+      "runtime_outputs_read_or_archived": false,
+      "runtime_result_claimed": false,
+      "remaining": "Actual loader/native/runtime outcome, positive bound integrity/shared comparison and root review."
+    },
+    "preservation": {
+      "task": "Task179",
+      "status": "PASS_FINITE_TERMINAL_EVIDENCE_PRESERVATION",
+      "member_counts": {
+        "regular-file": 519,
+        "directory": 40
+      },
+      "regular_file_bytes": 50248555,
+      "indexed_expected_hashes_verified": 2727,
+      "deterministic_regenerations_equal": true,
+      "reconstructed_bytes_modes_symlink_targets_equal": true,
+      "originals_postcheck_equal": true,
+      "terminal_tree_rosters_postcheck_equal": true,
+      "candidate_runtime_outputs_read_or_archived": false,
+      "private_failed_environment_read_or_archived": false,
+      "native_build_import_test_workload_or_metadata_reruns": 0,
+      "gates_closed": false,
+      "historical_preparation_mismatches_retained": 2
+    },
+    "reused_Task171": {
+      "index": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-gtd-build-install-records-task171/INDEX.json",
+        "bytes": 5258,
+        "sha256": "9a444af9cebafc11c8569593d90abb3b7183c42e09fd63ef4a7186ea8215ca49"
+      },
+      "archive": {
+        "bytes": 27113151,
+        "member_counts": {
+          "directory": 247,
+          "regular-file": 4557,
+          "symlink": 8
+        },
+        "path": ".plan20-artifacts/20261102/stage7a/native-gtd-build-install-records-task171/terminal-candidate-build-install-preparation-review.tar.gz",
+        "regular_file_bytes": 135859633,
+        "sha256": "61c621e8cf35f267ce283bdf3fd6a6ba75d9eb8bebbee463234fb5058da62199"
+      },
+      "member_manifest": {
+        "bytes": 2616672,
+        "path": ".plan20-artifacts/20261102/stage7a/native-gtd-build-install-records-task171/MEMBER_MANIFEST.json",
+        "sha256": "e528b4d8245b9195ac9e7586c9ef13aca381ed826138287c691d993bd1660190"
+      },
+      "scope": "Existing Task171 build/install/site/preparation/failure history reused without re-archiving those trees. Task163/166 references remain transitive."
+    },
+    "same_stage_alignment": {
+      "reference": "/tmp/hotpot_plan20/long/stage7a-sdf-repair-root-alignment-task108/ALIGNMENT.json",
+      "unchanged_normative_identities": 12,
+      "new_full_plan_read_claim": false
+    },
+    "shipping_boundary": "Eventual shipping owner third_party/openbabel; private3.2.1 diagnostic evidence does not select a public dependency or establish a shipped fix.",
+    "remaining": [
+      "Actual candidate loader/native/runtime outcome and positive bound integrity/shared comparison plus root review.",
+      "Exact-original B0; current214 source/wheel/native supported-version/function/reflection rebind; fresh26 and complete SDF FIX_REQUIRED.",
+      "Native memory OPEN; standalone SDK/Eigen consumer laterStage10 OPEN.",
+      "Stage7A IN_PROGRESS; Stage7B PREENTRY; later/global gates OPEN."
+    ],
+    "scientific_observations": [],
+    "stage_gate_closed": false,
+    "global_gate_closed": false
   }
 }

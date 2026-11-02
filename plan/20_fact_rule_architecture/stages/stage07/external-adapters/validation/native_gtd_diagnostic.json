@@ -4390,4 +4390,427 @@
     "stage_gate_closed": false,
     "global_gate_closed": false
   }
+,
+  "task233_checkpoint": {
+    "task": 233,
+    "recorded_date": "2026-11-03",
+    "status": "FINITE_CANDIDATE_RECORD_CHECKPOINT_FOR_ROOT_REVIEW_ONLY",
+    "docs_predecessor_from_root": "15a670c7c5602647a0b5f82576d5adf0bf9abf2f",
+    "frozen_Task177_source_commit": "d7524e8182f13704e9c69db8f6ab97c34602168f",
+    "product_ancestry": "9999ecd",
+    "accepted_cutoff": [
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK216_ROOT_ACTUAL_METADATA_ACCEPTANCE.json",
+        "bytes": 12015,
+        "sha256": "f64f864a06013ae1a4a16b25f39b3a09ad45c0dc420c753e1f4db4cc2f596af9"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK219_ROOT_DYNAMIC_TAG_PROFILE_DECISION.json",
+        "bytes": 3421,
+        "sha256": "76c5a5a53e68d87c40976238a34ff4d42b04dbd7ac105ce42e6a041bcff5bd16"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK224_ROOT_CP310_PROVENANCE_SELECTION.json",
+        "bytes": 2211,
+        "sha256": "200651d204045290fb214cc10901789ddd70a925938e9d52f92c02cb244bc63c"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK227_ROOT_REMAINING_PROVENANCE_SELECTIONS.json",
+        "bytes": 5790,
+        "sha256": "cf3be0336a34c6897508b8fc09af8621349e65d5c2be7dddcafedc8b91276516"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK223_ROOT_MANIFEST_ACCEPTANCE.json",
+        "bytes": 8104,
+        "sha256": "9b0620ce07c3ab6983d55b2df6c0a6eca4c2a08e4f32d6f5b305552c49ab9188"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK229_ROOT_FIVE_NATIVE_BINDING_HANDOFF_ACCEPTANCE.json",
+        "bytes": 6470,
+        "sha256": "54b7bf10b11cecc45fc3bff1871eabfec8b8f117269e9dd1a9d4b613d026bb7f"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK231_ROOT_OFFLINE_INPUT_PREPARATION_ACCEPTANCE.json",
+        "bytes": 8601,
+        "sha256": "4fbeb004bd54b96f596b65b007cc711eefa95334c8388ce1c7762bc11795544a"
+      }
+    ],
+    "same_stage_alignment": {
+      "reference": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/ALIGNMENT_REUSE.json",
+        "bytes": 3655,
+        "sha256": "5905e6fd2fc3ad52b2b56bbe507f05f7063787259bead8cd45931eecf358eb0f"
+      },
+      "unchanged_normative_identities": 12,
+      "new_full_plan_read_claim": false,
+      "new_design_or_scientific_route": false
+    },
+    "strict_dynamic_tag_pairs": {
+      "3.10": {
+        "RPATH": [],
+        "RUNPATH": [
+          "$ORIGIN/../../../openbabel/lib"
+        ]
+      },
+      "3.11": {
+        "RPATH": [
+          "$ORIGIN/../../../openbabel/lib"
+        ],
+        "RUNPATH": []
+      },
+      "3.12": {
+        "RPATH": [],
+        "RUNPATH": [
+          "$ORIGIN/../../../openbabel/lib"
+        ]
+      },
+      "3.13": {
+        "RPATH": [],
+        "RUNPATH": [
+          "$ORIGIN/../../../openbabel/lib"
+        ]
+      },
+      "3.14": {
+        "RPATH": [],
+        "RUNPATH": [
+          "$ORIGIN/../../../openbabel/lib"
+        ]
+      }
+    },
+    "strict_profile": {
+      "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK220_ROOT_EXACT_DYNAMIC_TAG_PROFILE.json",
+      "bytes": 76158,
+      "sha256": "423380029969c96caae352cd7d517412b07b083bb2b5756de0b1221b154eaeb0"
+    },
+    "historical_Task210_failure": {
+      "root_disposition": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK210_CP310_METADATA_TAG_FAILURE_DISPOSITION.json",
+        "bytes": 2724,
+        "sha256": "9356603a5fbb42b1a927020dd32ba92501047f94745fea1a6fc2ecc434dc0542"
+      },
+      "passed": 128,
+      "failed": 1,
+      "check": "extension_ELF_ABI_RPATH",
+      "actual_RPATH": [],
+      "actual_RUNPATH": [
+        "$ORIGIN/../../../openbabel/lib"
+      ],
+      "commands": 6,
+      "prior_reuses": 72,
+      "status": "Original failed assessment/captures/preflight remain immutable. No retrospectively repaired failure or arbitrary RPATH/RUNPATH substitution."
+    },
+    "own_provenance_successors": {
+      "CP310": {
+        "root_selection": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK224_ROOT_CP310_PROVENANCE_SELECTION.json",
+          "bytes": 2211,
+          "sha256": "200651d204045290fb214cc10901789ddd70a925938e9d52f92c02cb244bc63c"
+        },
+        "passed": 130,
+        "failed": 0,
+        "new_metadata_commands": 0,
+        "exact_metadata_reuses": 78
+      },
+      "CP312_CP313_CP314": {
+        "root_selections": {
+          "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK227_ROOT_REMAINING_PROVENANCE_SELECTIONS.json",
+          "bytes": 5790,
+          "sha256": "cf3be0336a34c6897508b8fc09af8621349e65d5c2be7dddcafedc8b91276516"
+        },
+        "passed_per_version": 130,
+        "failed_per_version": 0,
+        "new_metadata_commands_per_version": 6,
+        "exact_metadata_reuses_per_version": 72,
+        "new_metadata_commands_total": 18,
+        "exact_metadata_reuses_total": 216
+      },
+      "limits": "Observed execve/static/prospective input provenance only. Every other ELF/ABI/PyInit/export/provider/stability gate retained. Original210 remaining batch not continued and preflights not rerun."
+    },
+    "own_static_diagnostics_and_manifest_preparation": {
+      "Task216_root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK216_ROOT_ACTUAL_METADATA_ACCEPTANCE.json",
+        "bytes": 12015,
+        "sha256": "f64f864a06013ae1a4a16b25f39b3a09ad45c0dc420c753e1f4db4cc2f596af9"
+      },
+      "own_versions": [
+        "3.10",
+        "3.12",
+        "3.13",
+        "3.14"
+      ],
+      "steps_per_version": 9,
+      "inventory_checkpoints_per_version": 20,
+      "inventory_nodes": 351,
+      "static_DT_NEEDED_edges_per_version": 688,
+      "runtime_dependency_bindings_per_version": 181,
+      "external_provider_canonicals": 12,
+      "actual_loader_proof": false,
+      "Task223_root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK223_ROOT_MANIFEST_ACCEPTANCE.json",
+        "bytes": 8104,
+        "sha256": "9b0620ce07c3ab6983d55b2df6c0a6eca4c2a08e4f32d6f5b305552c49ab9188"
+      },
+      "stdlib_materializations": 4,
+      "guard_bindings_per_manifest": 2938,
+      "planned_cells_per_version": 264,
+      "scope": "Only accepted static diagnostics and held manifest materialization; no runtime result included."
+    },
+    "actual_all_five_I1_artifact_handoff": {
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK229_ROOT_FIVE_NATIVE_BINDING_HANDOFF_ACCEPTANCE.json",
+        "bytes": 6470,
+        "sha256": "54b7bf10b11cecc45fc3bff1871eabfec8b8f117269e9dd1a9d4b613d026bb7f"
+      },
+      "candidate_native_bindings": {
+        "bytes": 20827,
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-gtd-package-build-preparation-task177/candidate-native-bindings.json",
+        "sha256": "572be6177bde221bf8398d378a5970588c4a97723f4e27d9d04a3ee81e82a393"
+      },
+      "family_comparison": {
+        "bytes": 2592,
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-gtd-package-build-preparation-task177/FAMILY_COMPARISON.json",
+        "sha256": "44ad1e80b37f3de0de5ccb4a23895ea2e69986292ae7669da10e376058ddc7c3"
+      },
+      "selected_native_records": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK229_ROOT_SELECTED_NATIVE_RECORDS.json",
+        "bytes": 19494,
+        "sha256": "f2ad7d4c80bb7b3ceb986a64010c50b9e151c56c029b6026cde311ded25fd347"
+      },
+      "selected_build_provenance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK229_ROOT_SELECTED_BUILD_PROVENANCE.json",
+        "bytes": 3036,
+        "sha256": "b76f914c04b7a8f74aea9cf93c33b54060870d93ffe2724ed54d90e077034ab7"
+      },
+      "per_version": [
+        {
+          "version": "3.11",
+          "native": {
+            "bytes": 2843720,
+            "path": "/tmp/hotpot_plan20/medium/stage7a-native-gtd-package-build-preparation-task177/cp311/build-lib-command-capture-attempt4/hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so",
+            "sha256": "305f0f14303da5f9285947580870982a3f898012d9f732d8d337f21c6d93e3bc"
+          },
+          "dependency_wheel": {
+            "bytes": 12597992,
+            "path": "/tmp/hotpot_plan20/medium/stage7a-native-gtd-package-build-preparation-task177/cp311/wheelhouse/openbabel-3.2.1-cp311-cp311-linux_x86_64.whl",
+            "sha256": "d1ff982a45d1eb3460a7dbfddce7a1e98088e0f72edb6076d9f4d96922e72337"
+          },
+          "wheel_members": 335,
+          "family_members": 209,
+          "family_sha256": "9aebb29db23591dfbd5c85c329ece0fd0440a8a72b4a73a7d3553c5c830aa1c0"
+        },
+        {
+          "version": "3.10",
+          "native": {
+            "bytes": 2844552,
+            "path": "/tmp/hotpot_plan20/medium/stage7a-native-gtd-package-build-preparation-task177/cp310/build-lib-exec-capture-attempt1/hotpot/cheminfo/obWrappers/_ob_native.cpython-310-x86_64-linux-gnu.so",
+            "sha256": "ae7e8d7e09296fb11b96f07f4c070d4567fe1fbd0da21f59ac89d832cfbea90a"
+          },
+          "dependency_wheel": {
+            "bytes": 12597334,
+            "path": "/tmp/hotpot_plan20/medium/stage7a-native-gtd-package-build-preparation-task177/cp310/wheelhouse/openbabel-3.2.1-cp310-cp310-linux_x86_64.whl",
+            "sha256": "28dab73610a112556c5f7ee0e0f8344f1766702f56f47977b7db4cdf065968bf"
+          },
+          "wheel_members": 335,
+          "family_members": 209,
+          "family_sha256": "9e1c1f19e4aa7f403c426a121ad4ebdf3c9c68689dd16985e9ffa5b20dd7f91e"
+        },
+        {
+          "version": "3.12",
+          "native": {
+            "bytes": 2807968,
+            "path": "/tmp/hotpot_plan20/medium/stage7a-native-gtd-package-build-preparation-task177/cp312/build-lib-exec-capture-attempt1/hotpot/cheminfo/obWrappers/_ob_native.cpython-312-x86_64-linux-gnu.so",
+            "sha256": "43de5a31d2069bf85d0dc68598b157b32184eb8b80c4339ede8a11b8ff2a1bd8"
+          },
+          "dependency_wheel": {
+            "bytes": 12595685,
+            "path": "/tmp/hotpot_plan20/medium/stage7a-native-gtd-package-build-preparation-task177/cp312/wheelhouse/openbabel-3.2.1-cp312-cp312-linux_x86_64.whl",
+            "sha256": "fa49e5ef86767903a9137a7e67fca3c3a51923872818c262528f59e4c26e025f"
+          },
+          "wheel_members": 335,
+          "family_members": 209,
+          "family_sha256": "c97abebcbb03be76b37524d824c0822d926f07c8d8af3fd9d7ad9781b27f6608"
+        },
+        {
+          "version": "3.13",
+          "native": {
+            "bytes": 2803928,
+            "path": "/tmp/hotpot_plan20/medium/stage7a-native-gtd-package-build-preparation-task177/cp313/build-lib-exec-capture-attempt1/hotpot/cheminfo/obWrappers/_ob_native.cpython-313-x86_64-linux-gnu.so",
+            "sha256": "312edf0f07aa95d1552f28d71fba07ae58bb011be70ba11669dcc28016af1f71"
+          },
+          "dependency_wheel": {
+            "bytes": 12595604,
+            "path": "/tmp/hotpot_plan20/medium/stage7a-native-gtd-package-build-preparation-task177/cp313/wheelhouse/openbabel-3.2.1-cp313-cp313-linux_x86_64.whl",
+            "sha256": "ddd1e8ea11a6e92474ac5848777707f9c3fbd5251c3f77157b9f64c65b282627"
+          },
+          "wheel_members": 335,
+          "family_members": 209,
+          "family_sha256": "515ee4dd58640138873a8ede35f014adc28fe35e46d25535c0b7e4065fc0cfe9"
+        },
+        {
+          "version": "3.14",
+          "native": {
+            "bytes": 2808032,
+            "path": "/tmp/hotpot_plan20/medium/stage7a-native-gtd-package-build-preparation-task177/cp314/build-lib-exec-capture-attempt1/hotpot/cheminfo/obWrappers/_ob_native.cpython-314-x86_64-linux-gnu.so",
+            "sha256": "4e079fce771b848411bb88c3da0a3214f25d5c122b475fecfaf26ea207f5a3b8"
+          },
+          "dependency_wheel": {
+            "bytes": 12595819,
+            "path": "/tmp/hotpot_plan20/medium/stage7a-native-gtd-package-build-preparation-task177/cp314/wheelhouse/openbabel-3.2.1-cp314-cp314-linux_x86_64.whl",
+            "sha256": "21a3206886f09eebed742cebd8d99e858804da1304f0473b7df425c2dd8f594e"
+          },
+          "wheel_members": 335,
+          "family_members": 209,
+          "family_sha256": "973b25b9c39166fa539e41d1063a0c6080d5addf089bb986a4a51c71accf91f1"
+        }
+      ],
+      "wheel_members_per_version": 335,
+      "family_members_per_version": 209,
+      "distinct_final_families": 5,
+      "verified_Hotpot_source_files": 112,
+      "emitter_invocations": 1,
+      "returncode": 0,
+      "emitter_elapsed_seconds": 4.102453904226422,
+      "output_checks_passed": 32,
+      "output_checks_failed": 0,
+      "postseal_console_reporting_failure": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-five-selected-native-binding-emission-task229/POST_SEAL_REPORTING_DISPOSITION.json",
+        "bytes": 595,
+        "sha256": "3ed0cbe0854704c585bb1433ad667dea6738f748f38b67cfb75545060c6b5d2e"
+      },
+      "scope": "Existing173 I1schema emission and exact source/native/provider/wheel/member/provenance dictionaries only. No I3 context/native execution, family correspondence transfer, READY/FREEZE or stage approval."
+    },
+    "actual_own_offline_input_preparation": {
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK231_ROOT_OFFLINE_INPUT_PREPARATION_ACCEPTANCE.json",
+        "bytes": 8601,
+        "sha256": "4fbeb004bd54b96f596b65b007cc711eefa95334c8388ce1c7762bc11795544a"
+      },
+      "stdlib_commands": 4,
+      "checks_passed": 16400,
+      "checks_failed": 0,
+      "static_input_paths": 4160,
+      "prospective_provider_bindings_per_version": 13,
+      "planned_cells_per_version": 264,
+      "expected_inventory_checkpoints_per_version": 530,
+      "expected_inventory_nodes": 351,
+      "expected_release_guards": 2938,
+      "expected_case_guards": 2940,
+      "per_version": [
+        {
+          "version": "3.10",
+          "preparation": {
+            "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/offline-review-cp310-attempt1/PREPARATION.json",
+            "bytes": 5734,
+            "sha256": "71c100d3c7c4a301b0511f0018aae5a87ed5d36aa7aa7c7df270b63ed752c0af"
+          },
+          "expected_profiles": {
+            "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/offline-review-cp310-attempt1/EXPECTED_LOADER_PROFILES.json",
+            "bytes": 67654,
+            "sha256": "bc75f0f25d0ff65bd6ba04b786ac39cd0cd5b8098c523162f36674c71aaec6e3"
+          },
+          "provider_guard_precheck": {
+            "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/offline-review-cp310-attempt1/PROVIDER_GUARD_PRECHECK.json",
+            "bytes": 3317,
+            "sha256": "a743f31afc88738c6cc45cae2d9711fa03b29f79f92302abfd73e380db053d12"
+          }
+        },
+        {
+          "version": "3.12",
+          "preparation": {
+            "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/offline-review-cp312-attempt1/PREPARATION.json",
+            "bytes": 5734,
+            "sha256": "c3da8c8b70f0131fed6349e359e45b1b727cb98df9d5800ceba2559f159cdf86"
+          },
+          "expected_profiles": {
+            "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/offline-review-cp312-attempt1/EXPECTED_LOADER_PROFILES.json",
+            "bytes": 67654,
+            "sha256": "0301305bb4e68f00e4c4ea7b33092fb23915aaf94bb004821b62f6ee01d96d44"
+          },
+          "provider_guard_precheck": {
+            "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/offline-review-cp312-attempt1/PROVIDER_GUARD_PRECHECK.json",
+            "bytes": 3317,
+            "sha256": "971505c86e0273a6759be6b370466ec8bce236496097661928b229d7d510b423"
+          }
+        },
+        {
+          "version": "3.13",
+          "preparation": {
+            "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/offline-review-cp313-attempt1/PREPARATION.json",
+            "bytes": 5734,
+            "sha256": "bec49a109e6b4487a00b2634ed9d83d149c4b39b41e034987d7694a24e651984"
+          },
+          "expected_profiles": {
+            "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/offline-review-cp313-attempt1/EXPECTED_LOADER_PROFILES.json",
+            "bytes": 67654,
+            "sha256": "c5228e0f22a383ec431d088f3930aba8cad4a911f8f4d6b6f7b4ea23b0b93fe1"
+          },
+          "provider_guard_precheck": {
+            "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/offline-review-cp313-attempt1/PROVIDER_GUARD_PRECHECK.json",
+            "bytes": 3317,
+            "sha256": "2cf673522ca3e7291211efdf9d36780ef29af2bd98d68da63e5a0a0b5f766832"
+          }
+        },
+        {
+          "version": "3.14",
+          "preparation": {
+            "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/offline-review-cp314-attempt1/PREPARATION.json",
+            "bytes": 5734,
+            "sha256": "1de99407177217b3cdba8f6df324c7ec7e86a8059e408eee944ee0c37e8371c3"
+          },
+          "expected_profiles": {
+            "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/offline-review-cp314-attempt1/EXPECTED_LOADER_PROFILES.json",
+            "bytes": 67654,
+            "sha256": "50db8c76f68e6d9ee85f09a601376383bddcba1283e4005d0c54c02deb043043"
+          },
+          "provider_guard_precheck": {
+            "path": "/tmp/hotpot_plan20/long/stage7a-remaining-final-wheel-correspondence-preparation-task212/offline-review-cp314-attempt1/PROVIDER_GUARD_PRECHECK.json",
+            "bytes": 3317,
+            "sha256": "1d43a379195db17fad988d25145e6249a3ab6f9c550528ccdb9c2c4f82e3401f"
+          }
+        }
+      ],
+      "status": "AUDITOR_STATIC_INPUTS_PREPARED_AWAIT_ROOT_TERMINAL_READY",
+      "runtime_outputs_opened": false,
+      "scope": "Profiles derive from accepted130 plain wrappers and each own216 static driver/observer closure. No schema preflight/review_loader/merger/comparison or native target ran; root terminal-ready remains separate."
+    },
+    "archive_index": {
+      "path": "/tmp/hotpot_plan20/long/stage7a-finite-I1-checkpoint-records-task233/ARCHIVE_INDEX.json",
+      "bytes": 1898,
+      "sha256": "61403ab37e1fd76d0617483d9d4e0409ecf6b4e77b938f22e2efa80b23a62e0a"
+    },
+    "prior_evidence_reuse": {
+      "root_acceptance": {
+        "path": "/tmp/hotpot_plan20/long/stage7a-native-control-root-task128/TASK214_RECORD_ACCEPTANCE.json",
+        "bytes": 2777,
+        "sha256": "ab0caff4b8b338fb757901920dd552f8d89e05912b1facd85f3d93fba8814ed2"
+      },
+      "existing_archive_index": {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261103/stage7a/native-checkpoint-task214/INDEX.json",
+        "bytes": 19727,
+        "sha256": "f5e89fe6533d6e694637a18eb9f23062ba14c43f93e0bd0bbf2ce372e4db6b79"
+      },
+      "scope": "Existing Task214 30-member/231649-byte finite archive and transitive Task200/history reused by exact index; no recursive historical tree reads or duplicate archive payloads."
+    },
+    "active_runtime_guard_path_review": {
+      "path": "/tmp/hotpot_plan20/long/stage7a-finite-I1-checkpoint-records-task233/ACTIVE_RUNTIME_GUARD_PATH_REVIEW.json",
+      "bytes": 2767,
+      "sha256": "091c2012c5832358058199dc838de16f3982ba5bb650b3f361a238619b0716e2"
+    },
+    "excluded_outcomes": [
+      "All Task228 actual outputs/receipts/streams and all I3 runtime/context outputs",
+      "Raw traces, wheels, binaries, full historical trees and huge guard arrays",
+      "Task168 credential-bearing command and raw Git push stderr"
+    ],
+    "remaining": [
+      "I1 artifact handoff only: I3 contexts, SOURCE_READY/READY/FREEZE, current214 source/installed/native supported-version rebind,707/985 and fresh26 remain unproved.",
+      "Own CP310/312/313/314 full runtime/loader/full-stream correspondence remains outside this checkpoint; CP311 accepted correspondence does not transfer to different families.",
+      "Complete SDF performance gate remains FIX_REQUIRED with GM2.527527024115116 and all six adverse confidence intervals retained.",
+      "Native-memory sufficiency remains OPEN; standalone SDK/Eigen consumer remains later Stage10 OPEN.",
+      "Stage7A IN_PROGRESS; Stage7B PREENTRY; scientific, performance, SDK, later-stage and global gates remain open."
+    ],
+    "shipping_boundary": "third_party/openbabel remains future maintained home; no promotion/public dependency/registry/shipped-fix claim.",
+    "new_scientific_observations": [],
+    "stage_gate_closed": false,
+    "global_gate_closed": false
+  }
 }

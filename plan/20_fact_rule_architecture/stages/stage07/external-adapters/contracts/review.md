@@ -1049,3 +1049,48 @@ correspondence and candidate evidence remain absent. Full214 supported source/
 wheel/native/function/reflection evidence and fresh26 performance rebind where
 required, native-memory sufficiency and all remaining gates stay open.
 Stage7A remains IN_PROGRESS/SDF FIX_REQUIRED, Stage7B PREENTRY.
+
+
+## Current factual checkpoint — Task145 / 2026-11-02
+
+The [native diagnostic record](../validation/native_gtd_diagnostic.json),
+`task145_checkpoint`, preserves Task140/142 tool evidence and Task138/141
+inventory preparation/review. Task140 reproduced old SWIG4.0.1 bare-macro
+empty expansion versus unchanged header#define1. Its diagnostic explicit=1
+probe is not an accepted production flag change. The exact private SWIG4.4.1
+wheel/data was acquired and preserved without shared installation or wrapper
+import. Task142 subsequently ran the separately root-released version and
+unchanged bare -DHAVE_EIGEN3/header1 cases, both RC0. All890 bindings match
+before/after both proofs; actual six-provider loader closures match with no
+errors/missing/unexpected providers, timeout or reaping issue. Root accepts
+bounded tool compatibility only, preserving source/CMake/features/GCC9/ABI0.
+No OpenBabel build/runtime or generated-wrapper reset follows from that proof.
+
+Task138's sealed inventory-detection successor retains13 isolated regression
+passes,76 input bindings,15 unchanged Task127 members,16 unchanged function
+AST identities and four concrete diffs. Task141 independently reviewed it and
+executed two stubbed probes with528 in-process calls and zero actual native/
+subprocess/supervisor invocations. P2 TASK141-F1 remains OPEN: the final-cell
+inventory abort can be omitted/ignored by the reused merge/checker. P3
+TASK141-F2 remains OPEN: inventory binding/unavailability errors can abort
+without classifying the checkpoint or demoting the affected completed cell.
+Both require separate Task144 disposition before CONTROL runtime acceptance.
+The probe retained every planned case/mode pair and is not a full scientific
+stream-check pass. Sealed predecessors/shared files and raw observations stay
+unchanged; no inventory refresh or fabricated receipt is accepted.
+
+Lossless archives preserve all complete preparation/proof/review/diff/probe
+bytes and the exact wheel/data. Member hashes and isolated reconstruction
+verify5211 regular files,2846 directories,26 literal symlinks and28 FIFO nodes.
+Original paths/device/inode metadata remain provenance; reconstructed inode
+identities are not relabeled as runtime identities. Retained first attempts
+and historical preparation statements remain byte-exact. No huge original
+source tree, fetched-code execution or new workload is introduced.
+
+Task133 attempt2 remains fullbuildFAIL/noinstall. Task143 is preparation-only
+at this checkpoint; no actual reset/configure/retry result is claimed here.
+Full214 supported source/wheel/native/function/reflection and fresh26 performance
+rebind where required, native-memory sufficiency and all remaining gates stay
+open. Stage7A remains IN_PROGRESS/SDF FIX_REQUIRED, Stage7B PREENTRY. No main-
+plan/design/source/test/environment/config/native/status/gate change is made;
+commit/push remain held for root review.

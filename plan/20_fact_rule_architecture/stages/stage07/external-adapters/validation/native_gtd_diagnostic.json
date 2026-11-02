@@ -675,5 +675,207 @@
       "scope": "Task131 complete long/probe/raw-strace medium trees; Task133 sealed preparation and completed configure/build receipts; Task135/136 complete review files. Failed full build selectively archived with complete hash inventory; no whole extracted source/build tree copied. Embedded original paths/raw evidence retained."
     },
     "remaining": "No successful full build/install, CONTROL diagnostic compilation/runtime, original/control correspondence or candidate evidence. Task138 P2 successor and Task140 SWIG failure diagnosis/remediation are separate. Full214 supported source/wheel/native/function/reflection and fresh26 performance rebind where required, native-memory sufficiency and all remaining gates stay open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY."
+  },
+  "task145_checkpoint": {
+    "recorded_at_utc": "2026-11-02T12:54:27.736831+00:00",
+    "status": "TASK142_BOUNDED_SWIG441_TOOL_PROOF_ACCEPTED_TASK138_PREPARATION_TASK141_P2_P3_OPEN",
+    "scope": "Task145 factual archival/tool/inventory checkpoint only. All earlier status/release/checkpoint fields retain their original meaning. Root owns all tool/build/reset/runtime actions and Task144 successor disposition. No main-plan/design/source/test/environment/config/native/status/gate change; commits/push held for root review.",
+    "preceding_delivered_record_commit": "1f2c8fb4b4cf03947f267e782176d03acf36b162",
+    "task140_compatibility_diagnosis_and_private_input": {
+      "report": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-diagnosis-task140/packet/REPORT.md",
+        "bytes": 3621,
+        "sha256": "c5ef7ec1c21af803803efeae710b85f9fa971d8ad55d931c4e7da9241cdf251f"
+      },
+      "result": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-diagnosis-task140/packet/RESULT.json",
+        "bytes": 2252,
+        "sha256": "8ea64b480263100cdbdc430dba9e25c1b990911fc869d39ab73fbeb812bbd48d"
+      },
+      "tool_freeze": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-diagnosis-task140/packet/TOOL_FREEZE.json",
+        "bytes": 224669,
+        "sha256": "e51107f4c82ebad3ff7477f17d97bd436108d67ef630c841ba72cba617633cd9"
+      },
+      "acquisition": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-diagnosis-task140/packet/ACQUISITION_RECEIPT.json",
+        "bytes": 288795,
+        "sha256": "e253b628261a44e33b1a6a4d5d41cf6666b0e930f0190e36c7316d9c41caedc5"
+      },
+      "exact_wheel": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-diagnosis-task140/downloads/swig-4.4.1-py3-none-manylinux_2_12_x86_64.manylinux2010_x86_64.whl",
+        "bytes": 1895896,
+        "sha256": "ae3da2bf679a4c942a2c100789395d4d167e7da8286018124e4665f5eff43e31"
+      },
+      "exact_wheel_SHA256": "ae3da2bf679a4c942a2c100789395d4d167e7da8286018124e4665f5eff43e31",
+      "extracted_wheel_files": 845,
+      "cause": "Old SWIG4.0.1 bare -DHAVE_EIGEN3 expands empty while the unchanged generated header defines1. %import triggers incompatible macro redefinition. Explicit=1 was diagnostic-only, not an accepted production flag change.",
+      "private_tool_selection": "Exact acquired SWIG4.4.1 ELF plus private SWIG_DIR/SWIG_LIB data tree; no Python wrapper import or shared package install. GCC9/ABI0/source/features remain unchanged.",
+      "scope": "Task140 preparation/acquisition states remain historical; actual subsequent tool execution is recorded separately under Task142. Full local probes/raw failure and exact wheel/data bytes preserved."
+    },
+    "task142_actual_tool_compatibility_proof": {
+      "root_acceptance": {
+        "path": ".plan20-artifacts/20261102/stage7a/swig-tool-records-task145/root-review/TASK142_TOOL_ACCEPTANCE.json",
+        "bytes": 1363,
+        "sha256": "3b6fb928a032f9d80649e8f06ffbf05374b4c60c933a56175f3c773c3dd73a7e"
+      },
+      "result": {
+        "path": ".plan20-artifacts/20261102/stage7a/swig-private-tool-proof-task142/packet/RESULT.json",
+        "bytes": 4459,
+        "sha256": "27ba4c6d852e247ca90b15b6a70a84b7cc6f431e9d4381a93fd74a16e70d2979"
+      },
+      "release": {
+        "path": ".plan20-artifacts/20261102/stage7a/swig-private-tool-proof-task142/packet/ROOT_TOOL_RELEASE.json",
+        "bytes": 2145,
+        "sha256": "94c6db88217f819982359aae2918287df219191c6d588f9a123087f7c56d3554"
+      },
+      "loader_review": {
+        "path": ".plan20-artifacts/20261102/stage7a/swig-private-tool-proof-task142/packet/LOADER_REVIEW.json",
+        "bytes": 22471,
+        "sha256": "e5ef8653dd23ec614bf99379330e5a9a2c0da718274674ff0824feed2fd8d18e"
+      },
+      "sequence_result": {
+        "path": ".plan20-artifacts/20261102/stage7a/swig-private-tool-proof-task142/packet/PROOF_SEQUENCE_RESULT.json",
+        "bytes": 3141,
+        "sha256": "59098f1e05a0876569a3c23b00a8cf100829490e3790dfe5e3adef9a29a17e63"
+      },
+      "status": "PASS_BOTH_RELEASED_TOOL_PROOFS_ONLY",
+      "version": "4.4.1",
+      "version_actual_RC": 0,
+      "unchanged_bare_macro_header1_actual_RC": 0,
+      "macro_output": "%constant HAVE_EIGEN3 = 1;",
+      "binding_members_before_after_version_after_macro": 890,
+      "binding_mismatches": 0,
+      "loader_providers_per_case": 6,
+      "loader_errors_missing_unexpected": 0,
+      "both_cases_no_timeout_unchanged_guards_direct_child_reaped_all_owned_absent": true,
+      "parent_affinity": [
+        16
+      ],
+      "scope": "Root accepts bounded private SWIG tool compatibility only. Actual tool images and six-file loader closure are distinguished from launcher-only providers. No OpenBabel configure/build/install/runtime, zero-wrapper reset or broader scientific/performance/native acceptance follows. Source/CMake/feature/compiler/ABI selections unchanged."
+    },
+    "task138_inventory_successor_preparation": {
+      "report": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-inventory-preparation-task138/packet/REPORT.md",
+        "bytes": 5086,
+        "sha256": "f27d9bec7684c29e2e8d067e1cb258050f4ff75d9693a5b50bd8539a56f742de"
+      },
+      "manifest": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-inventory-preparation-task138/packet/MANIFEST.json",
+        "bytes": 4322,
+        "sha256": "07e318c3ab4f2895299e9c3ae0e22224758245f459f2aaf8e29538d80c0b51fe"
+      },
+      "checks": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-inventory-preparation-task138/packet/CHECKS.json",
+        "bytes": 3642,
+        "sha256": "9016cf3ec4fd083be3ce190a339935e10a144df4c04ae8761fd1d4ecbbd83411"
+      },
+      "final_receipt": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-inventory-preparation-task138/receipts/FINAL_RECEIPT.json",
+        "bytes": 4403,
+        "sha256": "fcfb42fa411b8e17366638ba7392aeb1d556e161af58d54879ba4443f10d1187"
+      },
+      "actual_regressions": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-inventory-preparation-task138/receipts/regression-attempt2/CHECKS.json",
+        "bytes": 10382,
+        "sha256": "3140636af1d5243159ecf57f931e7f89ffe6f9d4b584598166b80affdc47e051"
+      },
+      "final_verification": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-inventory-preparation-task138/receipts/final-verification-attempt1/RECEIPT.json",
+        "bytes": 4897,
+        "sha256": "d29b9c20a1bd76d356df2761116a119276d1d09a7bd3e8e4ce1963e9809b1889"
+      },
+      "postseal_rejection": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-control-inventory-preparation-task138/receipts/postseal-verification-attempt1/RECEIPT.json",
+        "bytes": 7076,
+        "sha256": "eaaaf7bbefa28be32b0b98984bc2cf941e55516e77a4ba032c490da5314a1bad"
+      },
+      "regressions_passed": 13,
+      "input_bindings": 76,
+      "sealed_Task127_members_preserved": 15,
+      "unchanged_function_AST_identities": 16,
+      "concrete_diff_files": 4,
+      "scope": "New accepted-inventory detection preparation only; full directories/files/symlinks/other types and before/after-cell boundaries checked in isolated regressions. Real authority/native/supervisor integration is not proved by placeholders/stubs. Historical report pending-build statements remain unchanged; Task133 attempt2 actual build failure is separately retained."
+    },
+    "task141_independent_review_findings": {
+      "report": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-inventory-successor-review-task141/packet/REPORT.md",
+        "bytes": 8222,
+        "sha256": "aeb2b7853812df266084a5c51602a224c2df4d20981392bb7d86589188ec4516"
+      },
+      "exact_review_probes": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-inventory-successor-review-task141/packet/review_probes.py",
+        "bytes": 12223,
+        "sha256": "363815e5a14236d67e3ec8075e64fd91c381234b0dc05ebd56d39a76b298c6bd"
+      },
+      "probe_results": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-inventory-successor-review-task141/receipts/PROBE_RESULTS.json",
+        "bytes": 5958,
+        "sha256": "03d2c7d2985a40f668f02139392386ba4c62078cdc8de938660520e0a1742042"
+      },
+      "static_review": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-inventory-successor-review-task141/receipts/STATIC_REVIEW.json",
+        "bytes": 1388,
+        "sha256": "a0e8c4a9dd827c7cad212800732dd7b5bd6d08747ec261ad20e6402bb4c3ef54"
+      },
+      "final_receipt": {
+        "path": ".plan20-artifacts/20261102/stage7a/native-inventory-successor-review-task141/receipts/FINAL_RECEIPT.json",
+        "bytes": 3113,
+        "sha256": "65f5ad572eac9c8e5f2944993ab1ce6abf0c1f7a0e124160990a6b68202261c3"
+      },
+      "P2_TASK141_F1": {
+        "status": "OPEN_PENDING_TASK144",
+        "finding": "Final-cell added-provider inventory abort is detected by Task138, but reused merge/checker can omit or ignore phase/cell inventory diagnostics and yield no corresponding blocker.",
+        "actual_probe": "RC1;263 completed/1 failed/0 unscheduled;all169748 planned case/mode pairs retained;AST-extracted shared authentication reported zero issues. This was not a full scientific stream-check pass."
+      },
+      "P3_TASK141_F2": {
+        "status": "OPEN_PENDING_TASK144",
+        "finding": "Frozen inventory JSON binding/unavailability errors outside InventoryMismatch normalization abort but can leave the affected cell completed and final checkpoint unclassified.",
+        "actual_probe": "RC1/ABORTED_RETAIN_ALL_ACCOUNTING with264 cells completed and no inventory_integrity_failure after synthetic inventory JSON changed."
+      },
+      "stub_calls": 528,
+      "actual_subprocess_native_supervisor_invocations": 0,
+      "required_disposition": "Task144 separately authorized companion/integration must carry inventory phase/cell integrity failures into comparison acceptance and classify binding/unavailability errors consistently. Preserve all sealed Task127/138/shared files and raw observations/denominators; no inventory refresh or fake receipt.",
+      "scope": "Accepted-tree detection works by inspection, but these P2/P3 accounting findings remain open. No install/compile/runtime authority or gate closure."
+    },
+    "archives": {
+      "packet_indexes": {
+        "Task140": {
+          "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-diagnosis-task140/ARCHIVE_MANIFEST.task145.json",
+          "bytes": 538905,
+          "sha256": "70718b06aa2a850686ca8c2acb0a963152c197490adbd617e3198a0e65424eb4"
+        },
+        "Task142": {
+          "path": ".plan20-artifacts/20261102/stage7a/swig-private-tool-proof-task142/ARCHIVE_MANIFEST.task145.json",
+          "bytes": 32182,
+          "sha256": "cf0bc1c40d59b8bb8ebb582caecb40da4920ca5cf1b59f6149acea24bdb30edd"
+        },
+        "Task138": {
+          "path": ".plan20-artifacts/20261102/stage7a/native-control-inventory-preparation-task138/ARCHIVE_MANIFEST.task145.json",
+          "bytes": 288981,
+          "sha256": "4c4647ce52fe6fa02d9bd842b4d885dafd457477d4ac0204d3efc20b732f983c"
+        },
+        "Task141": {
+          "path": ".plan20-artifacts/20261102/stage7a/native-inventory-successor-review-task141/ARCHIVE_MANIFEST.task145.json",
+          "bytes": 3955907,
+          "sha256": "6e529e286b5e6ec2abc150aa3a30ecc5414db1c84cc088a78b469148ca946900"
+        }
+      },
+      "regular_tar_members": 5211,
+      "directory_nodes": 2846,
+      "literal_symlink_nodes": 26,
+      "FIFO_nodes": 28,
+      "compact_long_packet_copies": 82,
+      "supplemental_receipt_copies": 7,
+      "tool_wheel_additional_copy": {
+        "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-diagnosis-task140/downloads/swig-4.4.1-py3-none-manylinux_2_12_x86_64.manylinux2010_x86_64.whl",
+        "bytes": 1895896,
+        "sha256": "ae3da2bf679a4c942a2c100789395d4d167e7da8286018124e4665f5eff43e31"
+      },
+      "all_regular_member_hashes_and_isolated_reconstruction_verified": true,
+      "source_nodes_rechecked_unchanged": true,
+      "scope": "Complete Task140/142 long+medium preparation/actual proof including exact tool wheel/data;Task138/141 full preparation/review/diffs/exact probes/receipts including retained first attempts. Regular bytes, node types/modes, literal symlink targets and FIFO types reconstructed in Task145 scratch. Original inode/device metadata is provenance, not a reconstruction identity claim. No huge original source copy or target execution."
+    },
+    "remaining": "Task133 attempt2 remains fullbuildFAIL/noinstall; no CONTROL runtime/correspondence or candidate evidence. Task143 is preparation-only at this checkpoint, with no reset/configure/retry result claimed. Task141 P2F1/P3F2 remain OPEN pending Task144. Full214 supported source/wheel/native/function/reflection and fresh26 performance rebind where required, native-memory sufficiency and all remaining gates stay open. Stage7A IN_PROGRESS/SDF FIX_REQUIRED/Stage7B PREENTRY."
   }
 }

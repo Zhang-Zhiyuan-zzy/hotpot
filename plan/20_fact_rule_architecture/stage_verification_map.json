@@ -2928,6 +2928,57 @@
           "bytes": 1359,
           "sha256": "e337e3e1ee4f5637a856160030271aa11899f2e716a62b2decb0069bb375b849"
         }
+      },
+      "swig_tool_inventory_checkpoint_task138_145": {
+        "record": {
+          "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/validation/native_gtd_diagnostic.json",
+          "bytes": 52570,
+          "sha256": "f6d5225aaf3960cbdb1dffc2355c3a4b5a9998169db52197e8803cc8b59fbc96"
+        },
+        "status": "TASK142_BOUNDED_SWIG441_TOOL_PROOF_ACCEPTED_TASK138_PREPARATION_TASK141_P2_P3_OPEN",
+        "historical_checkpoint_scope": "All preexisting status/release/checkpoint values and raw spelling preserved. Tool proof does not rewrite failed attempt2 outcome.",
+        "Task142_version": "4.4.1",
+        "Task142_version_RC": 0,
+        "Task142_unchanged_bare_macro_header1_RC": 0,
+        "Task142_binding_members_before_after": 890,
+        "Task142_actual_provider_closure_per_case": 6,
+        "Task142_tool_compatibility_only": true,
+        "Task138_preparation_regressions_passed": 13,
+        "Task141_P2_TASK141_F1": "OPEN_PENDING_TASK144",
+        "Task141_P3_TASK141_F2": "OPEN_PENDING_TASK144",
+        "Task141_stub_calls": 528,
+        "Task141_actual_native_subprocess_supervisor_invocations": 0,
+        "Task133_attempt2": "fullbuildFAIL/noinstall",
+        "Task143": "PREPARATION_ONLY;no reset/configure/retry outcome claimed",
+        "archive_packet_indexes": {
+          "Task140": {
+            "path": ".plan20-artifacts/20261102/stage7a/ob-control-swig-diagnosis-task140/ARCHIVE_MANIFEST.task145.json",
+            "bytes": 538905,
+            "sha256": "70718b06aa2a850686ca8c2acb0a963152c197490adbd617e3198a0e65424eb4"
+          },
+          "Task142": {
+            "path": ".plan20-artifacts/20261102/stage7a/swig-private-tool-proof-task142/ARCHIVE_MANIFEST.task145.json",
+            "bytes": 32182,
+            "sha256": "cf0bc1c40d59b8bb8ebb582caecb40da4920ca5cf1b59f6149acea24bdb30edd"
+          },
+          "Task138": {
+            "path": ".plan20-artifacts/20261102/stage7a/native-control-inventory-preparation-task138/ARCHIVE_MANIFEST.task145.json",
+            "bytes": 288981,
+            "sha256": "4c4647ce52fe6fa02d9bd842b4d885dafd457477d4ac0204d3efc20b732f983c"
+          },
+          "Task141": {
+            "path": ".plan20-artifacts/20261102/stage7a/native-inventory-successor-review-task141/ARCHIVE_MANIFEST.task145.json",
+            "bytes": 3955907,
+            "sha256": "6e529e286b5e6ec2abc150aa3a30ecc5414db1c84cc088a78b469148ca946900"
+          }
+        },
+        "archive_regular_members_reconstructed": 5211,
+        "archive_symlink_FIFO_nodes_preserved": [
+          26,
+          28
+        ],
+        "all_broader_gates_open": true,
+        "source_mainplan_design_status_gate_change": false
       }
     },
     "Stage7B": {

@@ -296,3 +296,20 @@ def test_type_has_one_exact_declaring_owner(name):
 def test_legacy_relocation_allowances_are_absent():
     assert not any(name.endswith("CORE_IMPORT_TRANSFERS") for name in vars(audit))
     assert "CORE_IMPORT_DESTINATION" not in vars(audit)
+
+
+@pytest.mark.parametrize("source", [
+    "import hotpot.cheminfo.bundle",
+    "from hotpot.cheminfo.bundle import MolBundle",
+    "import importlib\nimportlib.import_module('hotpot.cheminfo.bundle')",
+    "__import__('hotpot.cheminfo.bundle')",
+])
+def test_retired_bundle_imports_and_entries_cannot_return(source):
+    findings = audit.active_core_findings("tests/test_bundle_consumer.py", source)
+    assert any(item["rule"] == "active_legacy_bundle_reference" for item in findings)
+
+
+def test_retired_bundle_module_is_rejected_even_without_imports():
+    assert audit.active_core_findings("hotpot/cheminfo/bundle.py", "") == [
+        {"path": "hotpot/cheminfo/bundle.py", "line": 1, "rule": "legacy_bundle_module"}
+    ]

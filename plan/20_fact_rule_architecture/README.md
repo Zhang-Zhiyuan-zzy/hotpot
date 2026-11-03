@@ -8,8 +8,9 @@ P20-D026 generic H export/materialization remains open. The [Stage9A checkpoint]
 accepts residual chemistry/query/workflow extraction at CP311source/installed
 boundaries. The [Stage9B checkpoint](stages/stage09/cutover/validation/checkpoint.json)
 accepts the physical class/consumer hard cut and current pickle/native identities
-at CP311 source/installed boundaries. MolBundle collection/serialization completion
-remains before whole Stage9 acceptance.
+at CP311 source/installed boundaries. The [Stage9C checkpoint](stages/stage09/collections/validation/checkpoint.json)
+accepts MolBundle/PyG completion and the15-row migration crosswalk, completing
+Stage9 within the recorded CP311 scope.
 Clean-native, version adaptation, final scientific/performance and full-plan
 acceptance remain open. The owner-approved [goal](goal.md) governs execution;
 [goal_v1](goal_v1.md) is historical.

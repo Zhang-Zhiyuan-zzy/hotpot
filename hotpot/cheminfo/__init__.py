@@ -12,7 +12,8 @@ from .structure.bond import Bond
 from .structure.bond_kind import BondKind
 from .structure.crystal import Crystal
 from .operations.io import MolReader, MolWriter, read_mol
-from .bundle import MolBundle, to_pyg_dataset
+from .structure.bundle import MolBundle
+from .operations.collections import to_pyg_dataset
 from .operations.conversion import is_molecule_input, to_hotpot_mol
 from .operations.assembly import (
     Fragment, EdgeShoulder, AtomLink, AlkylGraft, BondAdding, AtomReplace,

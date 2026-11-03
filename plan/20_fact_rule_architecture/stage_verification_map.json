@@ -4737,7 +4737,7 @@
       "additional_requirements": [
         "zero core imports including plugins/typing/string entry points; sole class identity and full default suite"
       ],
-      "execution_status": "9A_9B_CP311_accepted_MolBundle_completion_pending",
+      "execution_status": "Stage9_CP311_source_installed_accepted",
       "preparation_9A": {
         "status": "root_accepted_CP311_source_installed",
         "focused_test_files": [
@@ -4775,9 +4775,9 @@
         "known_xfail_per_boundary": 3,
         "ordinary_skip_per_boundary": 0,
         "checkpoint": "stages/stage09/carriers/validation/checkpoint.json",
-        "scope": "Residual queries and named workflows; physical9B/full default/zero-core/plugin gate remain open."
+        "scope": "Semantic preparation evidence;9B and9C have their own bounded acceptance records."
       },
-      "stage_gate_closed": false,
+      "stage_gate_closed": true,
       "global_gate_closed": false,
       "cutover_9B": {
         "status": "root_accepted_CP311_source_installed",
@@ -4814,7 +4814,35 @@
         },
         "ordered_source_installed_affected_nodeids_equal": true,
         "scope_note": "R3products unchanged through R5; only4test path/scope fixes. Complete default is retained actual R3run,not a fresh R5run. One installed-only skip is private sampler.cpp source-text fixture,not native execution.",
-        "remaining": "MolBundle rows9.2-026/9.6-006;Stage10+global obligations."
+        "remaining": "Stage9Cnowcompleted within its own checkpoint;Stage10+global obligations remain."
+      },
+      "collection_9C": {
+        "status": "root_accepted_CP311_source_installed",
+        "entry": "stages/stage09/collections/entry_review.json",
+        "crosswalk": "stages/stage09/collections/migration_crosswalk.json",
+        "focused_test_files": [
+          "tests/test_cheminfo/structure/test_stage9_bundle.py"
+        ],
+        "connected_test_files": [
+          "tests/test_cheminfo/structure/test_stage9_carrier_owners.py",
+          "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+          "tests/test_cheminfo/structure/test_view_identity.py",
+          "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+          "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+          "tests/test_cheminfo/test_import_safety.py",
+          "tests/test_main/test_command_loading.py"
+        ],
+        "source_architecture_test": "tests/test_cheminfo/structure/test_architecture.py",
+        "required_boundary": "CP311 actual CPU Torch/PyG source and private installed package outside checkout; class/current pickle, list/reference/order, real graph semantics, prefix/output/failure behavior. Static sole-owner/retired-module guard and all15 Stage9 migration rows.",
+        "reuse": "Accepted9Bdefault and chemical/native/lifecycle evidence retains only unchanged scope; no new native build, other-version or global claim.",
+        "checkpoint": "stages/stage09/collections/validation/checkpoint.json",
+        "focused_passed_each": 27,
+        "connected_passed_each": 198,
+        "reference_passed_each": 2,
+        "source_architecture_passed": 189,
+        "failures_errors_skips_leaks_in_selected_runs": 0,
+        "all_15_stage9_rows_accounted_for": true,
+        "known_edge": "P20-D027 empty identifier retains existing real Torch failure; no unnamed-output claim."
       }
     },
     "Stage10": {

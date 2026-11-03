@@ -6937,3 +6937,147 @@ reused unchanged; no native compilation/SDK/sdist/other-version/science/performa
 acceptance is claimed. Stage9whole remains open for MolBundle rows9.2-026/9.6-006;
 all later/global/Plan12/P20-D026 obligations remain. Root prepares the coherent
 business commit with explicit staging, preserving unrelated owner work.
+
+
+### 2026-11-04 — Stage9B delivery and Stage9C collection entry
+
+Business commit `e6908ab` delivered sole carrier/view owners and deleted core,
+with all connected consumers/tests/records. Normal GitHub push succeeded and
+postcommit bindings match the tested R5inputs; only HEAD advanced.
+
+Root aligned current goal, Stage9/Section9.2/9.6, interface/verification/budget,
+accepted9A/9B and actual collection/PyG consumers, reusing valid unchanged wider
+alignment under owner direction. Both governance references were read.9Cfinishes
+only MolBundle rows9.2-026/9.6-006: collection owner, named export operation and
+lazy serializer adapter with existing feature/naming/None/failure behavior.
+The bounded decisions/entry specify file ownership, source-ready/validation
+limits and predecessor. Authoring is released; runtime waits for integrated
+source-ready review. Existing public exports retain signatures; no new API or
+scientific rule. Historical inventory remains unchanged; final crosswalk will
+use settled current MolBlock/BondKind owners.
+
+
+### 2026-11-04 — Stage9C integrated source-ready release
+
+Local Sol/medium implemented sole MolBundle, one export operation and lazy Torch
+serializer. Root reviewed all owned production/tests and clarified no second
+member-list copy for the method: public function materializes once; method
+iterates its existing list live. Root added observed live membership coverage.
+Existing eager signatures/defaults, filename expression, implicit None, overwrite
+and late-failure side effects are retained; feature conversion is unchanged.
+Strict static audit passes1019product/test and1057runnable consumer Python files,
+17sole carrier/view/collection owners,24remaining later debts and zero findings.
+Census510Python/770classes/355dataclasses adds no class/record/durable fact.
+
+Prechange actual ethanol/benzene exports succeeded using real CPU Torch2.7.1/PyG
+2.6.1. First baseline import failed for CXXABI_1.3.15 in system libstdc++; adding
+the selected conda environment lib to this process's LD_LIBRARY_PATH resolved
+it without source/package edits. The original observation and failed input
+directory remain, followed by actual successful contracts/graph references.
+
+Root releases a fresh bounded freeze, actual CP311focused/connected/reference
+and source architecture checks. Installed packaging waits for their review.
+No general default rerun is needed for unchanged9Bchemical paths; prior default
+remains valid only within proven unchanged scope. Root owns all acceptance/Git.
+
+
+### 2026-11-04 — Stage9C real export boundary discovery
+
+First focused actual CP311run collected27:26passed/1failed,zero skips/errors/origin
+leaks/drift. The new empty-identifier test expected a `.pt` output,but Torch2.7.1
+rejects that filename. Root replayed exact captured pre-cutover bundle bytes
+c8837d6ca87ce6b4415b538fef393d3d4994c9303ae1b598e3b7c1b2a47a168b
+and obtained the same RuntimeError and no output. This is an observed existing
+edge limitation,not a migration regression or an invented guard. P20-D027records
+Stage12 output-policy treatment; named export semantics remain mandatory.
+
+Root held execution,retained R1freeze/test/rawfailure,and assigned only test
+expectation correction against the real failing call. Production filename policy
+and feature conversion stay unchanged. A new integrated freeze/affected rerun is
+required before candidate evidence can be accepted.
+
+
+### 2026-11-04 — Stage9C reference semantics and validator-role correction
+
+Actual corrected focused27passed and connected198passed with zero skips/errors/
+leaks/drift. Reference1passed/1failed because unordered AtomPair endpoints come
+from frozensets: raw endpoint orientation differs between fresh objects. Saved
+outputs differ only in pair_index,with identical unordered column identities
+and attributes. Root corrects the reference comparison to normalize endpoints
+within each column,retaining column/attribute joins and all remaining fields/
+numeric tolerances. No chemical output or feature ordering is rewritten.
+
+Source architecture pytest189passed; generic driver then returned1 because no
+Hotpot module was imported by these source-only checks. Root corrects that role
+condition for architecture only; actual business modes still require product
+origin evidence. R2support/rawfailures retained; new R3freeze covers only2support
+file edits. All product/tests/native bytes are unchanged,so accepted27focused/
+198connected results retain their bounded scope. Rerun the2reference checks and
+189source architecture checks before installed release; no gate is waived.
+
+
+### 2026-11-04 — Stage9C source review and installed release
+
+Actual selected source27focused/198connected/2reference/189architecture checks
+passed with zero failures/errors/skips/leaks/drift. Root reviewed retained
+R2focused/connected and R3support-only provenance,plus actual R3reference and
+source-architecture receipts. Existing pair-endpoint orientation is compared
+semantically while preserving pair/attribute alignment. Empty-identifier failure
+is an explicitly observed limitation/P20-D027; ordinary named graph outputs and
+independent ethanol/benzene facts pass. No speculative product guard was added.
+
+Root releases private CP311prebuilt-copy package/install and matching27focused/
+198connected/2reference installed checks outside checkout. The six accepted
+native binaries remain unchanged; no native compilation/SDK/sdist/other-version
+science/performance/global acceptance is released. Runtime products/tests/support
+remain frozen while the fixed commands execute.
+
+
+### 2026-11-04 — Stage9C packaging interpreter correction
+
+Private package attempt1stopped before building: optional real Torch/PyG runtime
+venv lacks pybind11 required by setup.py. Its exact stderr/intent/result remain
+under wheel-attempt01. Root releases attempt2using the existing CP311build
+interpreter `/tmp/hotpot-plan20-env/bin/python` for prebuilt-copy package/install;
+actual business checks continue using the real PyG venv. No dependency install,
+source edit or native compilation is needed.
+
+Three exact root launch/helper bindings are recorded in packaging-retry-bindings
+against unchanged R3freeze. Only runtime wheel-directory/interpreter bindings
+change; helper OUT resolves its own attempt2directory. All attempt1files remain
+untouched. Matching focused/connected/reference installed checks are rereleased
+for the separate attempt2wheel/site/outside paths; no gate is accepted.
+
+
+### 2026-11-04 — Stage9C and whole Stage9 bounded root acceptance
+
+Root reviewed actual source/installed focused27,connected198 and reference2
+passes per boundary,plus source-only architecture189passes. Selected runs have
+zero failure/error/skip/leak/drift. Focused/connected raw ordered nodeids match;
+reference filenames/functions match with only pytest-root support-prefix change.
+Root's initial raw reference-string assertion exposed that prefix difference;
+the final explicit membership comparison and raw lists are retained.
+
+Private wheel419c3b27a56377f887842452d254b5708253ce90a404f218a3fb6b75ee1544de
+has885verified product members,zero old core/bundle modules and six unchanged
+accepted CP311binaries. No native compilation. Root independently verified
+228archive files/12119141bytes,49draft references,all launch/freeze bindings and
+the15-row migration crosswalk. Final R3freeze22e8f0440bf62bd71466bf4bf8571787f08e9103ecb1a566a8fc3e128dee55aa
+has no drift. Root accepted9C and wholeStage9 within recorded CP311scope.
+
+Exactly5production paths changed in9C; all others retain9Bbindings. Actual
+9B R3default6533passed/128ordinaryskips/3knownxfails is reused only for unchanged
+scope plus affected9Cchecks; no fresh whole-default run is claimed. Original
+failed tests,reference/architecture tooling assumptions,missing build dependency
+and baseline CXXABI observation remain in the archive. P20-D027retains the actual
+preexisting empty-identifier failure; unordered pair orientation is compared
+without erasing pair/attribute joins. No production fallback was added.
+
+Actual command families are archived per intent/execution: `driver.py source-*`,
+`package_attempt02.py`, `installed_attempt02.py prepare-installed` and each
+installed mode. Root command `python /tmp/hotpot_plan20/medium/stage9c-root-finalization-20261104/verify_boundaries.py`
+checks raw receipts/wheel/native/freeze; `apply_acceptance.py` verifies archive
+references and applies root-reviewed records. Maintained checkpoint/report/graph
+link `.plan20-artifacts/20261104/stage9c/collections`. Stage10clean-native/SDK/
+sdist/version adaptation and Stage11–12/final science/performance/Plan12/P20-D026
+gates remain open. Root prepares coherent9Cbusiness commit and normal push.

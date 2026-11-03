@@ -1,0 +1,198 @@
+{
+  "archive_manifest": {
+    "all_copies_verified": true,
+    "entry_count": 228,
+    "path": ".plan20-artifacts/20261104/stage9c/collections/manifest.json",
+    "sha256": "6370f94c1f7ce90bce6cbe549a39ec1a5fb37f637f5be111262125fd7d10f56d",
+    "total_bytes": 12119141
+  },
+  "edges": [
+    {
+      "from": "freeze-R3",
+      "relationship": "Selected source/installed evidence for root review",
+      "to": "installed-connected-attempt01"
+    },
+    {
+      "from": "freeze-R3",
+      "relationship": "Selected source/installed evidence for root review",
+      "to": "installed-focused-attempt01"
+    },
+    {
+      "from": "freeze-R3",
+      "relationship": "Selected source/installed evidence for root review",
+      "to": "installed-references-attempt01"
+    },
+    {
+      "from": "freeze-R2",
+      "relationship": "Retained original failure/tooling failure; not acceptance evidence",
+      "to": "source-architecture-attempt01"
+    },
+    {
+      "from": "freeze-R3",
+      "relationship": "Selected source/installed evidence for root review",
+      "to": "source-architecture-attempt02"
+    },
+    {
+      "from": "freeze-R2",
+      "relationship": "Selected source/installed evidence for root review",
+      "to": "source-connected-attempt01"
+    },
+    {
+      "from": "freeze-R1",
+      "relationship": "Retained original failure/tooling failure; not acceptance evidence",
+      "to": "source-focused-attempt01"
+    },
+    {
+      "from": "freeze-R2",
+      "relationship": "Selected source/installed evidence for root review",
+      "to": "source-focused-attempt02"
+    },
+    {
+      "from": "freeze-R2",
+      "relationship": "Retained original failure/tooling failure; not acceptance evidence",
+      "to": "source-references-attempt01"
+    },
+    {
+      "from": "freeze-R3",
+      "relationship": "Selected source/installed evidence for root review",
+      "to": "source-references-attempt02"
+    },
+    {
+      "from": "freeze-R1",
+      "relationship": "Products unchanged; exact test/support differences in revision-comparison",
+      "to": "freeze-R2"
+    },
+    {
+      "from": "freeze-R2",
+      "relationship": "Products unchanged; exact test/support differences in revision-comparison",
+      "to": "freeze-R3"
+    }
+  ],
+  "gates": {
+    "bounded_stage": true,
+    "overall": false,
+    "whole_stage9": true
+  },
+  "limits": [
+    "No current whole-default rerun: Stage9B R3 6533 passed/128 ordinary skips/3 known xfails retained only within unchanged scope plus new affected checks.",
+    "Private CP311 wheel reuses only six accepted binaries; no clean-native/SDK/sdist/other-version/science/performance/global acceptance.",
+    "Empty identifier retains preexisting real Torch .pt RuntimeError (P20-D027); no production filename fix.",
+    "Reference equivalence normalizes only within-column unordered pair endpoint orientation, preserving column/feature alignment; independent chemical expectations remain separate."
+  ],
+  "nodes": {
+    "R1-R2-provenance.json": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/validation/R1-R2-provenance.json",
+      "sha256": "381df7dd359fc31405a30060312119c44a329140e6d6056d766fa41efd3f15b2"
+    },
+    "R2-R3-provenance.json": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/validation/R2-R3-provenance.json",
+      "sha256": "295b1faffd72a279b7c534f9a2079139f8be124c84a9d380cea6d7d251066ea3"
+    },
+    "all-attempt-results": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/derived/all-attempt-results.json",
+      "sha256": "dd896ae2aec9465d424952b8a77821645e4ec122a42999235453dbb489598bcc"
+    },
+    "architecture": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/architecture.json",
+      "sha256": "c2484f05e5a798dc8c8d5af5bf4e77a1aeb12016beeb1110c12f248535001d2c"
+    },
+    "crosswalk-root-pending": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/derived/migration-crosswalk.root-pending.json",
+      "sha256": "1bbc75307cb89d23260160905966dcd95ed434e1f84ce9f7d914b1d18b3e290c"
+    },
+    "freeze-R1": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/validation/freeze-R1.json",
+      "sha256": "52a858c12b44233fc1dd90ded189ecd9b8f19dc747a3037585c2b64cc1e6a765"
+    },
+    "freeze-R2": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/validation/freeze-R2.json",
+      "sha256": "15b36a4c5c7e60ccf670e37a1c94ba41a3823b302a50f18551552f12c00462af"
+    },
+    "freeze-R3": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/validation/freeze.json",
+      "sha256": "22e8f0440bf62bd71466bf4bf8571787f08e9103ecb1a566a8fc3e128dee55aa"
+    },
+    "input-manifests": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/derived/selected-input-manifests.json",
+      "sha256": "47bae0676803b14f2302bf5f2052e238f2fa8c7fb06cc56f5948e2713828d496"
+    },
+    "installed-connected-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/validation/installed-connected-attempt01/execution.json",
+      "sha256": "1d83fa0ce298aaaaffc231c9fdced4ac5b803e42ef9309b70649e9ec8c3b1031"
+    },
+    "installed-focused-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/validation/installed-focused-attempt01/execution.json",
+      "sha256": "9c6c2890a4ab3fda62f5fd4097e528d91c3c911b3fc03444ce280c28d34141d7"
+    },
+    "installed-references-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/validation/installed-references-attempt01/execution.json",
+      "sha256": "fd41edd00c6f33906fa58847cc05006a3413276a9041326c4eec0b1875037778"
+    },
+    "ordered-nodeids": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/derived/ordered-nodeids.json",
+      "sha256": "37d45962cd4c59bd65de6aebc158655b0a8e44b0f31e9842891a2b994991ef05"
+    },
+    "packaging-retry-bindings.json": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/validation/packaging-retry-bindings.json",
+      "sha256": "e49dd84680b74a2e84e61633fa1e5a609f3de0cd0d1a91339f8c0716bf715295"
+    },
+    "prechange-empty-identifier": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/baseline-empty-identifier.json",
+      "sha256": "0917d89c3c8c62758dcad54e56e9d320dea46fc5a2b7f6eeb6534bef522cb95b"
+    },
+    "predecessor-default": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-default-attempt02/execution.json",
+      "sha256": "e71416c5038bf1b02b6acafaa0d0af2189f75e8d175307c8f32367507ad0a44f"
+    },
+    "private-wheel-native": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/derived/wheel-native-identity.json",
+      "sha256": "d8e22f0dda19697b7aa02576065047a9d2be1364353a5a74f1aa13d25561f317"
+    },
+    "production-and-reuse": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/derived/stage9b-to-stage9c-production-and-reuse.json",
+      "sha256": "245542b7504e61ad56c4fb6275cc5cbb3e37d58430ab135414274398a6767b9a"
+    },
+    "production-diff": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/derived/production-from-e6908ab.patch",
+      "sha256": "f07accb4e1b1f4db6875de02f6ac58f7ad650913c4b788607c8af44ecc0012e0"
+    },
+    "revision-comparison": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/derived/revision-comparison.json",
+      "sha256": "2b115100876b4412ba29c87f87e6531f6c695c0a096b2860c3b935e18d0c8ccb"
+    },
+    "source-architecture-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/validation/source-architecture-attempt01/execution.json",
+      "sha256": "58d44dff7b973e6b497c60f203b9d508704c46bed55f305498373f3044aa84c0"
+    },
+    "source-architecture-attempt02": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/validation/source-architecture-attempt02/execution.json",
+      "sha256": "8d4c89d31c7fe4543d30eb1a698ce6eb3fee12b3ad234abcd126952aa2a30389"
+    },
+    "source-connected-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/validation/source-connected-attempt01/execution.json",
+      "sha256": "8272f66b11bcc0bde5712d8d3baf95349014aeb7cae474936f0047238e3b4ca4"
+    },
+    "source-focused-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/validation/source-focused-attempt01/execution.json",
+      "sha256": "9373097c367f49e5d675a5a54e457b81ea830f5a3e9685994afbc92f46eb899b"
+    },
+    "source-focused-attempt02": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/validation/source-focused-attempt02/execution.json",
+      "sha256": "d3bbde0b87e3cc9b68ba2f206aa3db01640bf31558246fd188d73ca4d852dac7"
+    },
+    "source-references-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/validation/source-references-attempt01/execution.json",
+      "sha256": "527e14fe831a0e273e073dd53c55d639423b48240fd0d89a14a9dc14b237770f"
+    },
+    "source-references-attempt02": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/validation/source-references-attempt02/execution.json",
+      "sha256": "b67db3ff3167a9438433b2fe7d72af4bc28ab17cb21e34bd05d0865ef9283d4e"
+    },
+    "verification": {
+      "path": ".plan20-artifacts/20261104/stage9c/collections/derived/finalization-verification.json",
+      "sha256": "3812c582e22139ecbfbc9bc18842f47037058ad18c86057409608a593c183228"
+    }
+  },
+  "schema_version": 1,
+  "status": "ROOT_ACCEPTED_CP311_COLLECTION_AND_STAGE9"
+}

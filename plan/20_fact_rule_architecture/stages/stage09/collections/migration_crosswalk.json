@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "stage": "Stage9",
+  "status": "ROOT_ACCEPTED_CP311_STAGE9_MIGRATION_COMPLETE",
+  "historical_inventory": "baseline_inventory/migration_inventory.json",
+  "rule": "All rows with Stage9 completion or a Stage9 responsibility; historical wording is retained. Current settled decisions own MolBlock and BondKind paths.",
+  "row_count": 15,
+  "rows": [
+    {
+      "id": "9.1-001",
+      "historical_subject": "`Molecule`",
+      "current_owners": [
+        "hotpot/cheminfo/structure/molecule.py"
+      ],
+      "status": "ACCEPTED_PREDECESSOR_SCOPE",
+      "evidence": [
+        "stages/stage09/carriers/validation/checkpoint.json",
+        "stages/stage09/cutover/validation/checkpoint.json"
+      ],
+      "qualification": "No compatibility module or second implementation; preserve the named current behavior."
+    },
+    {
+      "id": "9.1-002",
+      "historical_subject": "`Atom`",
+      "current_owners": [
+        "hotpot/cheminfo/structure/atom.py",
+        "hotpot/cheminfo/structure/_atom_table.py"
+      ],
+      "status": "ACCEPTED_PREDECESSOR_SCOPE",
+      "evidence": [
+        "stages/stage09/carriers/validation/checkpoint.json",
+        "stages/stage09/cutover/validation/checkpoint.json"
+      ],
+      "qualification": "No compatibility module or second implementation; preserve the named current behavior."
+    },
+    {
+      "id": "9.1-003",
+      "historical_subject": "`Bond`, `BondKind`",
+      "current_owners": [
+        "hotpot/cheminfo/structure/bond.py",
+        "hotpot/cheminfo/structure/bond_kind.py"
+      ],
+      "status": "ACCEPTED_PREDECESSOR_SCOPE",
+      "evidence": [
+        "stages/stage09/carriers/validation/checkpoint.json",
+        "stages/stage09/cutover/validation/checkpoint.json"
+      ],
+      "qualification": "Current MolBlock remains the sole common schema in structure/_fields.py; BondKind remains its existing bond_kind.py enum. No duplicate is required by old table shorthand."
+    },
+    {
+      "id": "9.1-004",
+      "historical_subject": "`NotInSameMolecule`, `ObjNotInMolecule`",
+      "current_owners": [
+        "hotpot/cheminfo/structure/errors.py"
+      ],
+      "status": "ACCEPTED_PREDECESSOR_SCOPE",
+      "evidence": [
+        "stages/stage09/carriers/validation/checkpoint.json",
+        "stages/stage09/cutover/validation/checkpoint.json"
+      ],
+      "qualification": "No compatibility module or second implementation; preserve the named current behavior."
+    },
+    {
+      "id": "9.1-005",
+      "historical_subject": "`MolBlock` dynamic attribute machinery",
+      "current_owners": [
+        "hotpot/cheminfo/structure/_fields.py",
+        "hotpot/cheminfo/structure/_atom_table.py",
+        "hotpot/cheminfo/structure/_dependencies.py"
+      ],
+      "status": "ACCEPTED_PREDECESSOR_SCOPE",
+      "evidence": [
+        "stages/stage09/carriers/validation/checkpoint.json",
+        "stages/stage09/cutover/validation/checkpoint.json"
+      ],
+      "qualification": "Current MolBlock remains the sole common schema in structure/_fields.py; BondKind remains its existing bond_kind.py enum. No duplicate is required by old table shorthand."
+    },
+    {
+      "id": "9.1-023",
+      "historical_subject": "`_topology_index`, `_update_topology`",
+      "current_owners": [
+        "hotpot/cheminfo/structure/_topology.py",
+        "hotpot/cheminfo/structure/molecule.py"
+      ],
+      "status": "ACCEPTED_PREDECESSOR_SCOPE",
+      "evidence": [
+        "stages/stage09/carriers/validation/checkpoint.json",
+        "stages/stage09/cutover/validation/checkpoint.json"
+      ],
+      "qualification": "No compatibility module or second implementation; preserve the named current behavior."
+    },
+    {
+      "id": "9.2-026",
+      "historical_subject": "`bundle.py`",
+      "current_owners": [
+        "hotpot/cheminfo/structure/bundle.py",
+        "hotpot/cheminfo/operations/collections.py",
+        "hotpot/cheminfo/adapters/pyg.py"
+      ],
+      "status": "ROOT_ACCEPTED_9C_CP311_SOURCE_INSTALLED",
+      "evidence": [
+        "stages/stage09/collections/validation/checkpoint.json"
+      ],
+      "qualification": "No compatibility module or second implementation; preserve the named current behavior."
+    },
+    {
+      "id": "9.2-044",
+      "historical_subject": "`core.py`",
+      "current_owners": [
+        "hotpot/cheminfo/structure",
+        "hotpot/cheminfo/views"
+      ],
+      "status": "ACCEPTED_PREDECESSOR_SCOPE",
+      "evidence": [
+        "stages/stage09/carriers/validation/checkpoint.json",
+        "stages/stage09/cutover/validation/checkpoint.json"
+      ],
+      "qualification": "No compatibility module or second implementation; preserve the named current behavior."
+    },
+    {
+      "id": "9.3-009",
+      "historical_subject": "`hotpot/pipeline`, `hotpot/ds`, `hotpot/dataset`",
+      "current_owners": [
+        "hotpot/pipeline",
+        "hotpot/ds"
+      ],
+      "status": "ACCEPTED_PREDECESSOR_SCOPE",
+      "evidence": [
+        "stages/stage09/carriers/validation/checkpoint.json",
+        "stages/stage09/cutover/validation/checkpoint.json"
+      ],
+      "qualification": "No compatibility module or second implementation; preserve the named current behavior."
+    },
+    {
+      "id": "9.3-010",
+      "historical_subject": "`hotpot/plugins`",
+      "current_owners": [
+        "hotpot/plugins"
+      ],
+      "status": "ACCEPTED_PREDECESSOR_SCOPE",
+      "evidence": [
+        "stages/stage09/carriers/validation/checkpoint.json",
+        "stages/stage09/cutover/validation/checkpoint.json"
+      ],
+      "qualification": "No compatibility module or second implementation; preserve the named current behavior."
+    },
+    {
+      "id": "9.6-002",
+      "historical_subject": "`hotpot.Molecule`, `Atom`, `Bond`, `BondKind`",
+      "current_owners": [
+        "hotpot/__init__.py",
+        "hotpot/cheminfo/__init__.py",
+        "hotpot/cheminfo/structure/__init__.py"
+      ],
+      "status": "ACCEPTED_PREDECESSOR_SCOPE",
+      "evidence": [
+        "stages/stage09/carriers/validation/checkpoint.json",
+        "stages/stage09/cutover/validation/checkpoint.json"
+      ],
+      "qualification": "No compatibility module or second implementation; preserve the named current behavior."
+    },
+    {
+      "id": "9.6-006",
+      "historical_subject": "`MolBundle`, `to_pyg_dataset`, `is_molecule_input`, `to_hotpot_mol`",
+      "current_owners": [
+        "hotpot/cheminfo/structure/bundle.py",
+        "hotpot/cheminfo/operations/collections.py",
+        "hotpot/cheminfo/adapters/pyg.py",
+        "hotpot/cheminfo/operations/conversion.py"
+      ],
+      "status": "ROOT_ACCEPTED_9C_CP311_SOURCE_INSTALLED",
+      "evidence": [
+        "stages/stage09/collections/validation/checkpoint.json"
+      ],
+      "qualification": "No compatibility module or second implementation; preserve the named current behavior."
+    },
+    {
+      "id": "9.6-011",
+      "historical_subject": "Molecule graph/geometry/chemistry query properties and methods in Section 7.2",
+      "current_owners": [
+        "hotpot/cheminfo/operations/topology_queries.py",
+        "hotpot/cheminfo/operations/chemistry.py",
+        "hotpot/cheminfo/operations/geometry.py"
+      ],
+      "status": "ACCEPTED_PREDECESSOR_SCOPE",
+      "evidence": [
+        "stages/stage09/carriers/validation/checkpoint.json",
+        "stages/stage09/cutover/validation/checkpoint.json"
+      ],
+      "qualification": "No compatibility module or second implementation; preserve the named current behavior."
+    },
+    {
+      "id": "9.6-026",
+      "historical_subject": "`_topology_index` and `_update_topology` concept",
+      "current_owners": [
+        "hotpot/cheminfo/structure/_topology.py",
+        "hotpot/cheminfo/structure/molecule.py"
+      ],
+      "status": "ACCEPTED_PREDECESSOR_SCOPE",
+      "evidence": [
+        "stages/stage09/carriers/validation/checkpoint.json",
+        "stages/stage09/cutover/validation/checkpoint.json"
+      ],
+      "qualification": "No compatibility module or second implementation; preserve the named current behavior."
+    },
+    {
+      "id": "9.6-028",
+      "historical_subject": "`_atoms`, `_bonds`, Atom/Bond storage",
+      "current_owners": [
+        "hotpot/cheminfo/structure/molecule.py",
+        "hotpot/cheminfo/structure/atom.py",
+        "hotpot/cheminfo/structure/bond.py",
+        "hotpot/cheminfo/structure/_atom_table.py",
+        "hotpot/cheminfo/structure/_fields.py"
+      ],
+      "status": "ACCEPTED_PREDECESSOR_SCOPE",
+      "evidence": [
+        "stages/stage09/carriers/validation/checkpoint.json",
+        "stages/stage09/cutover/validation/checkpoint.json"
+      ],
+      "qualification": "No compatibility module or second implementation; preserve the named current behavior."
+    }
+  ],
+  "remaining_later_gates": "This is a Stage9 crosswalk only; Stage10 physical native/build and Stage12/global obligations remain open.",
+  "root_acceptance": {
+    "utc": "2026-11-03T23:27:46.160510+00:00",
+    "checkpoint": "stages/stage09/collections/validation/checkpoint.json",
+    "scope": "All15Stage9 responsibilities complete within accepted9A/9B and actual9C CP311 source/installed scopes. Later/global obligations remain open."
+  }
+}

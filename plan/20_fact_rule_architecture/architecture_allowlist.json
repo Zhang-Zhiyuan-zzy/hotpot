@@ -2,7 +2,7 @@
   "schema_version": 1,
   "origin": "Stage1 frozen exact debt inventory",
   "source_checkpoint": "c6bfcd4906254ee113c14103009f071e91f60368",
-  "policy": "Entries shrink against the actual pre-change Git ref and frozen inventory. Stage9 retires all legacy-core bindings with no relocation credit. Active old-core modules/imports/entry calls and wrong/duplicate carrier/view definitions fail independently of this allowlist; other owning-layer and write gates remain strict.",
+  "policy": "Entries shrink against the actual pre-change Git ref and frozen inventory. Stage9 retires all legacy-core bindings with no relocation credit. Active retired-core/bundle modules/imports/entry calls and wrong/duplicate carrier/view/collection definitions fail independently of this allowlist; other owning-layer and write gates remain strict.",
   "entries": [
     {
       "line": 16,
@@ -594,11 +594,12 @@
     "checkpoint": "stages/stage08/search/validation/c2/checkpoint.json"
   },
   "stage9_retirement": {
-    "status": "STATIC_LEGACY_RETIREMENT_RUNTIME_AND_ROOT_ACCEPTANCE_HELD",
+    "status": "ROOT_ACCEPTED_9B_CP311_SOURCE_INSTALLED",
     "previous_entries": 175,
     "retired_legacy_core_bindings": 151,
     "remaining_entries": 24,
     "verification": "stages/stage09/cutover/validation/checkpoint.json",
-    "scope": "All active core bindings retire; historical records remain descriptive and supply no active exception."
+    "scope": "All active core bindings retire; historical records remain descriptive and supply no active exception.",
+    "collection_guard": "MolBundle sole owner and retired bundle references are strict Stage9C checks; actual9C execution/acceptance is recorded separately."
   }
 }

@@ -6,9 +6,9 @@ actual MCA workflows; Stage8D includes inference/conformer/artifact migration an
 actual CPU/pipeline/one-GPU evidence. Stage8E now has source/installed CP311
 assembly, local H/scaffold corrections and explicit exports/resources accepted;
 P20-D024 is closed. P20-D026 generic H export/materialization remains open.
-Stage9A semantic preparation and Stage9B sole-owner carrier cutover are accepted
-at their recorded CP311 source/installed boundaries. Stage9C collection completion
-and later stages, optional scientific activation, clean full-native,
+Stage9A semantic preparation, Stage9B sole-owner carrier cutover and Stage9C
+collection completion are accepted at their recorded CP311 source/installed
+boundaries. Stage10 and later stages, optional scientific activation, clean full-native,
 version-adaptation and global scientific/engineering acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
@@ -2330,7 +2330,9 @@ assertions if retained.
 
 Stage9A completed the remaining Section9.1 semantic responsibilities; Stage9B
 moved their carrier facades and deleted `core.py`. Their recorded CP311 scopes
-are accepted. Stage9C collection completion remains before whole Stage9 exit.
+are accepted. [Stage9C](stages/stage09/collections/validation/checkpoint.json)
+completes MolBundle and the15-row migration crosswalk within the recorded CP311
+boundary. Later/global native/build/version/science obligations remain open.
 The [Stage9 decisions](stages/stage09/carriers/contracts/decisions.md) bind this
 internal sequencing without changing the overall objective or final gate.
 

@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "stage": "Stage9C",
+  "date": "2026-11-04",
+  "parent_head": "e6908ab4a361939149dd2b1e57997f768c1e3113",
+  "status": "ROOT_ACCEPTED_CP311_COLLECTION_AND_STAGE9",
+  "predecessor": "../cutover/validation/checkpoint.json",
+  "alignment": "Current goal/main Stage9 and Section9.2/9.6 collection rows, interface contract, current verification map/budget and actual source inspected. Unchanged accepted full alignment reused under owner direction; both governance references read. Predecessor9B is accepted and pushed.",
+  "migration_rows": [
+    "9.2-026",
+    "9.6-006"
+  ],
+  "included": "Sole MolBundle collection; named dataset export operation and lazy Torch serialization adapter; exact public convenience surface, real current pickle and real PyG serialization.",
+  "excluded": "No feature/schema/model/chemistry/numerical redesign; no old module shim, new result envelope, filename correction or speculative guard.",
+  "source_before": {
+    "path": "hotpot/cheminfo/bundle.py",
+    "sha256": "c8837d6ca87ce6b4415b538fef393d3d4994c9303ae1b598e3b7c1b2a47a168b"
+  },
+  "authoring_release": true,
+  "runtime_release": true,
+  "stage9_gate_closed": true,
+  "global_gate_closed": false,
+  "validation": "Freeze integrated source/tests/support; real CP311 PyG focused source and installed checks, strict owner/import guard, relevant import/carrier regressions. Reuse unchanged9Bfull-default and broader semantics evidence with explicit scope.",
+  "rollback_boundary": "e6908ab4a361939149dd2b1e57997f768c1e3113",
+  "held": "Later/global native build/SDK/sdist/version/science/performance/Plan12/P20-D026 obligations only; P20-D027 is an explicit deferred edge.",
+  "source_ready_review": {
+    "utc": "2026-11-03T23:16:18.745294+00:00",
+    "root_decision": "Accept integrated bounded source; release frozen CP311 focused, references, connected and source-only architecture checks in actual CPU Torch/PyG environment. Private installed packaging waits for source review. No global/native-build claim.",
+    "review": "Existing declaration contracts, one-list ownership/live method iteration, lazy serialization, original filename/None/local failure behavior and all affected exports inspected. Strict17-owner/retired-module guard passes; no duplicate type or feature change.",
+    "static_architecture": "/tmp/hotpot_plan20/long/stage9c-collections-20261104/architecture.json",
+    "counts": {
+      "python_files": 510,
+      "classes": 770,
+      "dataclasses": 355
+    },
+    "prechange_observations": "/tmp/hotpot_plan20/long/stage9c-collections-20261104/baseline/receipt.json"
+  },
+  "retained_failure": {
+    "attempt": "source-focused-attempt01",
+    "passed": 26,
+    "failed": 1,
+    "reason": "New test assumed empty identifier can save .pt; actual Torch rejects the unchanged generated path. Replay captured original implementation before correcting expected boundary."
+  },
+  "R2_review": {
+    "utc": "2026-11-03T23:18:04.275775+00:00",
+    "root_decision": "Release new focused/reference/connected/source-architecture freeze; unchanged product/support, only observed existing error expectation corrected. All other source-ready gates unchanged.",
+    "provenance": "/tmp/hotpot_plan20/long/stage9c-collections-20261104/validation/R1-R2-provenance.json",
+    "known_limit": "P20-D027; empty identifier remains a real local Torch failure, not successful output."
+  },
+  "R3_review": {
+    "utc": "2026-11-03T23:20:03.661012+00:00",
+    "root_decision": "Release corrected semantic reference comparison and source-only architecture role; reuse unchanged source27focused/198connected evidence. Installed still waits for final source review.",
+    "provenance": "/tmp/hotpot_plan20/long/stage9c-collections-20261104/validation/R2-R3-provenance.json",
+    "production_and_tests_unchanged": true
+  },
+  "installed_release": {
+    "utc": "2026-11-03T23:20:55.500803+00:00",
+    "root_decision": "Release private prebuilt-copy CP311 wheel/install plus focused27/connected198/reference2 installed checks outside checkout, using the same real CPU Torch/PyG environment. Six accepted native binaries reused unchanged; no compilation/global release.",
+    "actual_source_results": {
+      "focused_R2": 27,
+      "connected_R2": 198,
+      "references_R3": 2,
+      "architecture_R3": 189
+    },
+    "no_failures_errors_skips_leaks_in_selected_source": true,
+    "freeze_sha256": "22e8f0440bf62bd71466bf4bf8571787f08e9103ecb1a566a8fc3e128dee55aa"
+  },
+  "package_retry_release": {
+    "utc": "2026-11-03T23:22:18.708657+00:00",
+    "root_decision": "Use existing CP311 build environment for private prebuilt-copy package/install only; real PyG environment remains for business runtime. Separate wheel-attempt02 retains all first-attempt evidence.",
+    "extra_support": "/tmp/hotpot_plan20/long/stage9c-collections-20261104/validation/packaging-retry-bindings.json",
+    "no_native_build": true
+  },
+  "bounded_stage_gate_closed": true,
+  "root_acceptance": {
+    "utc": "2026-11-03T23:27:46.160510+00:00",
+    "checkpoint": "validation/checkpoint.json",
+    "scope": "CP3119C and Stage9; all later/global obligations remain open."
+  }
+}

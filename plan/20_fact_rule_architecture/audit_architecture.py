@@ -48,6 +48,7 @@ CARRIER_METHODS = {
 }
 TYPE_OWNERS = {
     "Molecule": "hotpot.cheminfo.structure.molecule.Molecule",
+    "MolBundle": "hotpot.cheminfo.structure.bundle.MolBundle",
     "Atom": "hotpot.cheminfo.structure.atom.Atom",
     "Bond": "hotpot.cheminfo.structure.bond.Bond",
     "BondKind": "hotpot.cheminfo.structure.bond_kind.BondKind",
@@ -107,10 +108,12 @@ def frozen_ratchet_findings(actual, allowed, previous, original):
 
 
 def active_core_findings(path, source):
-    """Reject live old imports/entry calls independently of the debt allowlist."""
+    """Reject retired carrier modules/entry calls independently of the allowlist."""
     findings = []
-    if path == "hotpot/cheminfo/core.py":
-        findings.append({"path": path, "line": 1, "rule": "legacy_core_module"})
+    retired = {"hotpot.cheminfo.core": "core", "hotpot.cheminfo.bundle": "bundle"}
+    for module, label in retired.items():
+        if path == module.replace(".", "/") + ".py":
+            findings.append({"path": path, "line": 1, "rule": f"legacy_{label}_module"})
     for node in ast.walk(ast.parse(source, filename=path)):
         targets = []
         if isinstance(node, ast.Import):
@@ -124,10 +127,10 @@ def active_core_findings(path, source):
             if name in {"import_module", "__import__"}:
                 targets = [arg.value for arg in node.args
                            if isinstance(arg, ast.Constant) and isinstance(arg.value, str)]
-        if any(target == "hotpot.cheminfo.core" or target.startswith("hotpot.cheminfo.core.")
-               for target in targets):
-            findings.append({"path": path, "line": node.lineno,
-                             "rule": "active_legacy_core_reference", "target": ast.unparse(node)})
+        for module, label in retired.items():
+            if any(target == module or target.startswith(module + ".") for target in targets):
+                findings.append({"path": path, "line": node.lineno,
+                                 "rule": f"active_legacy_{label}_reference", "target": ast.unparse(node)})
     return findings
 
 

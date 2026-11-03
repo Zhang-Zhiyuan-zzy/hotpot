@@ -29,9 +29,9 @@ def _native_module() -> ModuleType:
         ) from exc
 
 
-def _native_molecule_data(mol: "Molecule") -> "_ob_native.MoleculeData":
+def _native_molecule_data(mol: "Molecule", *, selection=None) -> "_ob_native.MoleculeData":
     native = _native_module()
-    buffers = _pack_molecule(mol)
+    buffers = _pack_molecule(mol, selection=selection)
     return native.MoleculeData(
         buffers.schema_version,
         buffers.atomic_numbers,

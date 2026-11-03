@@ -101,7 +101,9 @@
     {
       "owner_stage": "Stage8B",
       "scope": "External xTB/forcefield/pipeline finding-control separation, sample containment, method support and coordinate-only atomic commits.",
-      "status": "current acceptance open"
+      "status": "ROOT_ACCEPTED_CP311_STAGE8B_OWNING_SCOPE",
+      "acceptance_record": "stages/stage08/forcefields/validation/whole-stage/checkpoint.json",
+      "limits": "Later/global requirements and untested native/package/version boundaries remain open."
     },
     {
       "owner_stage": "Stage9",

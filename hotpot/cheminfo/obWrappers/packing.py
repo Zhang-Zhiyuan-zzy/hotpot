@@ -47,22 +47,38 @@ _OPENBABEL_FIELDS = frozenset(
 )
 
 
-def _pack_molecule(mol: "Molecule") -> _MoleculeBuffers:
+def _pack_molecule(mol: "Molecule", *, selection=None) -> _MoleculeBuffers:
     """Pack native tasks, encoding unavailable charge rows as finite zero.
 
     These task-only zeros are never selected as molecular charge observations.
+    A selection filters Bond buffers after strict preparation of the intact source.
     """
     from ..structure._results import _partial_charge_projection
+    from ..structure._selection import _check_topology_selection
 
     with mol._mutation_lock:
+        if selection is not None:
+            _check_topology_selection(mol, selection)
         buffers = _pack_common_molecule(
             mol, _OPENBABEL_FIELDS - {NativeMoleculeField.PARTIAL_CHARGES},
         )
         charges = _partial_charge_projection(mol)
-        return replace(
+        buffers = replace(
             buffers,
             partial_charges=np.fromiter(
                 (0.0 if value is None else value for value in charges),
                 dtype=np.float64, count=buffers.atom_count,
             ),
         )
+        if selection is not None:
+            _check_topology_selection(mol, selection)
+            mask = np.frombuffer(selection.bond_mask, dtype=np.bool_)
+            buffers = replace(
+                buffers,
+                bond_count=int(np.count_nonzero(mask)),
+                bond_indices=buffers.bond_indices[mask],
+                bond_orders=buffers.bond_orders[mask],
+                bond_kinds=buffers.bond_kinds[mask],
+                bond_aromatic=buffers.bond_aromatic[mask],
+            )
+        return buffers

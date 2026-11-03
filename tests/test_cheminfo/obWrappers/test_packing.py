@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
-from hotpot import read_mol
+from hotpot import Molecule, read_mol
 from hotpot.cheminfo._native.buffers import (
     MOLECULE_BUFFER_SCHEMA_VERSION,
     NativeMoleculeBuffers,
@@ -180,3 +181,105 @@ def test_task_packing_preserves_current_rows_and_encodes_stale_rows_without_writ
     assert _pack_molecule(mol).partial_charges.tolist() == [0.0, 0.0, 0.0]
     assert mol._partial_charge_result is stale
     assert stale.payload.values == (None, 0.0, -0.25)
+
+
+@pytest.mark.parametrize('excluded_rows', [(), (0,), (1, 4, 7)])
+def test_selected_packing_keeps_intact_atom_inputs_and_ordered_bond_rows(excluded_rows):
+    from hotpot.cheminfo.structure._selection import _capture_topology_selection
+    from tests.test_cheminfo._stage5_fixtures import factual_state
+
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
+    from hotpot.cheminfo.structure._results import _import_partial_charges
+
+    mol = read_mol("c1ccccc1C(=O)N")
+    mol.create_crystal(10., 11., 12., 90., 90., 90.)
+    _import_partial_charges(
+        mol, (None, 0., -0.25) + (None,) * (len(mol.atoms) - 3),
+        producer=ATOM_SOURCE_CODES["explicit"],
+    )
+    full = _pack_molecule(mol)
+    before = factual_state(mol)
+    atoms, bonds = tuple(mol.atoms), tuple(mol.bonds)
+    selection = _capture_topology_selection(
+        mol, excluded_bonds=tuple(bonds[row] for row in excluded_rows),
+    )
+
+    selected = _pack_molecule(mol, selection=selection)
+
+    assert selected.atom_count == full.atom_count == len(atoms)
+    assert selected.bond_count == len(bonds) - len(excluded_rows)
+    assert selected.schema_version == full.schema_version
+    retained_rows = [row for row in range(len(bonds)) if row not in excluded_rows]
+    bond_fields = ('bond_indices', 'bond_orders', 'bond_kinds', 'bond_aromatic')
+    atom_fields = (
+        'atomic_numbers', 'formal_charges', 'partial_charges', 'coordinates',
+        'atom_aromatic', 'unit_cell',
+    )
+    for name in (*atom_fields, *bond_fields):
+        actual, original = getattr(selected, name), getattr(full, name)
+        expected = original[retained_rows] if name in bond_fields else original
+        np.testing.assert_array_equal(actual, expected)
+        assert actual.dtype == original.dtype and actual.flags.c_contiguous
+        assert not np.shares_memory(actual, original)
+        actual[...] = 0
+    assert factual_state(mol) == before
+    assert tuple(mol.atoms) == atoms and tuple(mol.bonds) == bonds
+    assert full.atom_aromatic[:6].tolist() == [1] * 6
+
+
+def test_selected_packing_can_exclude_every_bond_without_changing_atom_typing_inputs():
+    from hotpot.cheminfo.structure._selection import _capture_topology_selection
+
+    mol = read_mol("c1ccccc1")
+    selection = _capture_topology_selection(mol, excluded_bonds=tuple(mol.bonds))
+    buffers = _pack_molecule(mol, selection=selection)
+
+    assert buffers.atom_count == 6 and buffers.bond_count == 0
+    assert buffers.atom_aromatic.tolist() == [1] * 6
+    assert buffers.bond_indices.shape == (0, 2)
+    assert buffers.bond_indices.dtype == np.int32
+    for name, dtype in [('bond_orders', np.float64), ('bond_kinds', np.uint8),
+                        ('bond_aromatic', np.uint8)]:
+        values = getattr(buffers, name)
+        assert values.shape == (0,) and values.dtype == dtype
+        assert values.flags.c_contiguous
+    assert len(mol.bonds) == 6
+
+
+@pytest.mark.parametrize('selected', [False, True])
+def test_native_packing_rejects_noncyclic_source_even_when_every_bond_is_excluded(selected):
+    from hotpot.cheminfo.structure._selection import _capture_topology_selection
+    from tests.test_cheminfo._stage5_fixtures import factual_state, supplied_aromatic_flags
+
+    mol = Molecule()
+    mol.create_atom(atomic_number=6)
+    mol.create_atom(atomic_number=6)
+    mol.add_bond(0, 1)
+    mol = supplied_aromatic_flags(mol, (True, False))
+    selection = _capture_topology_selection(mol, excluded_bonds=tuple(mol.bonds)) if selected else None
+    before = factual_state(mol)
+
+    with pytest.raises(RuntimeError, match=r'AROMATIC\.NONCYCLIC_SOURCE'):
+        _pack_molecule(mol, selection=selection)
+
+    assert factual_state(mol) == before
+    assert mol._atom_table.column('is_aromatic').tolist() == [1., 0.]
+
+
+@pytest.mark.parametrize('invalid', ['foreign', 'reordered'])
+def test_selected_packing_rejects_a_mask_bound_to_another_source(invalid):
+    from hotpot.cheminfo.structure._selection import _capture_topology_selection
+    from tests.test_cheminfo._stage5_fixtures import factual_state
+
+    mol = read_mol("CCC")
+    selection = _capture_topology_selection(mol, excluded_bonds=(mol.bonds[0],))
+    if invalid == 'foreign':
+        mol = read_mol("CCC")
+    else:
+        mol._bonds.reverse()
+    before = factual_state(mol)
+
+    with pytest.raises(RuntimeError):
+        _pack_molecule(mol, selection=selection)
+
+    assert factual_state(mol) == before

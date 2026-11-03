@@ -5801,3 +5801,217 @@ one extra blank EOF line in pipeline/_sample_control.py. Root removed only that
 blank line, proved identical AST including locations and identical module bytecode,
 and recorded old/new hashes in the B4 checkpoint. Runtime evidence and the tested
 wheel retain their original attribution; no semantic edit or redundant rerun.
+
+
+### 2026-11-04 — Whole Stage8B evidence continuation after B4 push
+
+B4 business commit eceb034502cacb1e4ca8f083b116bd2c97fa229d is normally pushed
+to implement/plan20-fact-rule-architecture. Focused main plan Sections11/12,
+effective goal, accepted checkpoints and the local read-only gate inventory align
+remaining whole-stage evidence: full standard O0 observations/comparison, the two
+explicit scientific/high-compute wrapper fixtures, unchanged native-fence reuse
+and comparable FF cost/disposition. Root recorded exact scope/resources/criteria
+in the owning decisions before authoring/execution. The O0 tool's sole retired
+FF import needs an attribution-only canonical-owner correction; no new harness,
+scientific algorithm, retry, threshold or default-budget change is authorized.
+Actual host affinity0-127 and approximately447GiB available memory permit the
+historical32-worker scientific allocation; no arbitrary2GiB limit applies.
+Resources will be recorded at each command, and performance runs after other
+heavy jobs. Source-only O0 evidence will not be mislabeled installed evidence.
+
+
+Root inspection of the two deep fixtures found limited persisted actual values:
+P cases retained assertions only; Eu retained selected JUnit scalar properties.
+Before execution, authorize evidence-only tmp_path persistence in those existing
+fixtures (raw coordinates, structural values and returned reports before asserts),
+without changing scientific checks/work. This makes later review concern actual
+business observations rather than validator exit codes. The current scientific
+report-tool import correction is statically exactly one import-owner change.
+
+
+### 2026-11-04 — Whole Stage8B frozen scientific/deep-fixture release
+
+Root reviewed the two evidence-only fixture edits: original5phosphorus/18Eu
+assertions, all computation calls/parameters and decorators remain. Inputs,
+coordinates, returned reports and elapsed observations are persisted before
+scientific assertions. Static AST/compile and directed diff checks pass.
+All maintained writers stopped. Root releases the already selected standard
+O0 Am187source/561trial slots and source/installed two deep fixtures under
+/tmp/hotpot_plan20/long/stage8b-gate-20261104/source-freeze-whole-gate-released.json,
+SHA256 544496ac9b06959d1db234bc40c14ec325730bb0a7bb525ae19212cc799e09f2. The freeze binds1456source/test
+files, sixunchanged natives, fivebuild inputs, sevenreport/recipe files, corpus
+and final deep-fixture support. The earlier preparation-only freeze omitted
+corpus/tool groups from the recipe's bindings map; it is retained superseded,
+with no runtime under it. ThreeCBond assets match accepted actual evidence.
+
+The local validation subagent may execute its reviewed four-command fixture
+recipe with --root-runtime-released, thisfreeze and --attempt attempt01. Root
+executes O0 at32workers/CPU0-31/threads1. Preserve all original failures and
+actual observations; report-tool/serializer errors are distinct from chemistry.
+The FF cost command remains sequenced after heavy jobs finish. No source/test
+edit, reduced work, native rebuild, Stage8Centry or gate closure is released.
+
+
+### Observed whole-gate recorder/preparation failures and bounded corrections
+
+Released O0 attempt01 preserved all187inputs/561trial slots but performed no FF
+trial:182CBond-returned molecules failed graph serialization with ValueError
+"graph serialization requires present implicit-H facts"; fivecases were
+ineligible. The raw reports and unchanged1484-file release remain retained.
+Inspection shows build_validation_cohort already explicitly calls the existing
+operations.chemistry._require_implicit_hydrogens before its raw graph capture,
+but the dynamic O0 report's _case bypassed that preparation after the carrier
+cutover. Correct _case to use that same finite-H consumer boundary before capture,
+without changing the graph schema, H rules, CBond eligibility policy or algorithms.
+Add focused actual-Molecule regressions for supplied ligandH/new metalH0, stale
+inferredH refresh and genuinely unresolvedH remaining unknown rather than0.
+Original deterministic/raw-graph rejection remains; no catch/default/schema waiver.
+Only run_scientific_report.py and its existing scientific report-contract test
+receive this correction. A new source freeze/released O0 attempt is required.
+
+Deep fixture attempt01 source phosphorus actually passed all15cases with
+28rule applications and retained outputs. Its subsequent provenance postcheck
+failed because three imported tests package initializers were omitted from the
+copy/provenance map; all observed initializer hashes match the released source
+and no product leak occurred. Preserve the original KeyError and passed scientific
+artifacts. Correct only the temporary recipe's exact input map and reconcile that
+completed run; do not repeat it solely for the broken postcheck. Root will release
+only the remaining sourceEu/installedP/installedEu commands after final preparation
+review and current source binding. No evidence/gate is approved by this correction.
+
+
+### 2026-11-04 — Whole Stage8B H-recorder correction release
+
+Root reviewed the existing strict H preparation call and three actual-Molecule
+regressions. Only the dynamic reporter/test bytes differ from the prior release;
+product/native/build/corpus/model and two deep-fixture bytes remain unchanged.
+Freeze /tmp/hotpot_plan20/long/stage8b-gate-20261104/source-freeze-whole-gate-attempt02.json
+SHA256 dc4f52bc660e7a62d99414099a725e378ca9823994d4118202fb0222a0a3c222 binds the corrected source/tool/input
+selection. Release the existing scientific-report contract and validation-cohort
+focused tests first; on success release the same all187/561slots standardO0Am
+command as attempt02. No failed attempt is overwritten. New temporary deep-fixture
+continuation support has its own identity and still awaits review/release.
+
+
+Root additionally reviewed and released deep-fixture-continuation/run_deep_fixtures.py
+(recipe SHA25601117cbf8a84b7d65f70c54db0796e733c4aae542266dcdb5ce27ec0965411a2)
+under the same attempt02source freeze. Exact sourceP initializer/input/origin
+reconciliation retains208original artifacts, all15cases and the original KeyError.
+Only sourceEu/installedP/installedEu will execute atCPU32-39; no passed sourceP
+calculation repeats. Thirty focused report/cohort tests already passed before
+O0attempt02. Native fences/build/installed identities are unchanged and rebound.
+
+
+### 2026-11-04 — Whole Stage8B observed aromatic projection diagnosis
+
+O0attempt02 completed all187input records/561requested slots:182eligible,
+5ineligible;540completedFFtrials,6executionerrors and15not-run-ineligible.
+Frozen inputs remained unchanged. Offline retained-graph analysis localizes all
+6errors (cases20/68/84) to temporary ring-edge exclusions, which carry intact
+aromatic source facts into an opened Molecule. Strict AROMATIC.NONCYCLIC_SOURCE
+is retained; no input-corpus corruption or noncyclic initial aromatic graph was
+found. Root continues the existing owning gate, reading the effective goal,
+governance/stage/validation skills, focused Stage8B/Sections11-12, and the
+Stage7B selection/projection contract plus its actual connected owners.
+Release only a deterministic saved-case projection/packing reproduction and
+read-only boundary review before choosing a repair: no CBond, OBBuilder, FF
+optimization, new scientific rule, native rebuild or Stage8Centry. Local
+subagents may write diagnostic evidence only under the current lifecycle tree;
+product/test authoring remains held for this new defect until root records
+the bounded repair. Earlier reporter/deep-fixture edits retain their scope.
+
+
+### 2026-11-04 — Whole Stage8B ring-open buffer correction selected
+
+Runtime repro at savedcase68 confirms AROMATIC.NONCYCLIC_SOURCE in buffers.pack_molecule
+->chemistry._require_aromatic_representation, with exact affected rows and unchanged
+original source/ligand facts/state. Root reviewed the actual backend, wrapper
+packing/native/single-operation, native MoleculeData/OB translation and Stage7B
+selection/publication owners. The owning decision now supersedes only ring-open
+FF Molecule reconstruction with intact-source-validated, task-local Bond-buffer
+filtering. This is a local adapter correction, not new chemical perception or a
+global/public contract change. Source preparation precedes source binding; one
+native optimizer/report translator remains. Strict ordinary aromatic validation,
+Atom/Bond source authority, trajectory attribution and atomic coordinate-only
+publication remain. Two local Sol/medium partitions may author the five named
+production files and disjoint focused tests; no nested delegation or external
+helper. Root owns design/method docs/review/freeze/runtime release/acceptance/Git.
+Candidate runtime remains held until coherent source/test review. O0attempt01/02,
+all sixerrors, their denominators and original deep-fixture provenance failure
+remain retained. No Stage8B/Stage8C/global gate closes by this authoring release.
+
+
+### 2026-11-04 — Whole Stage8B ring-open correction CP311 runtime release
+
+Root reviewed the five production files, three changed/new test files and method
+documentation. Public single_optimize signature, the sole native algorithm, arrays/
+ABI and strict ordinary aromatic rule remain. Post-preparation selection validation
+also covers representation-bound masks. Writers have stopped. Source freeze /tmp/hotpot_plan20/long/stage8b-gate-20261104/source-freeze-ring-correction-attempt01.json
+SHA256 3f01da0e07b2d570f206852b7815ad3e4c52e943569834c4fb87bb4ca605062b binds1482source/test/native/build/tool/context files and exact
+preparation. Reuse unchanged six B3a binaries and unchanged MCA evidence. Release
+the reviewed driver all tier: focused then complete affected source/installed,
+two existing opt-in deep fixtures and actual official/mixed workflows. Release
+current same187input/561slot O0 only after focused tests pass. FF cost remains
+sequenced after heavy jobs; all errors/observations and prior attempts retained.
+No runtime pass, stage closure or Stage8C entry follows from this release.
+
+
+### 2026-11-04 — Ring-open correction installed-context continuation release
+
+Current frozen source passed focused66, full1449/2skipped, deep2 and official3;
+source actual mixed cohorts and fresh wheel installation completed. Installed
+focused retained65passes and one canonical-corpus tracking failure: the outside
+artifact Git index omitted an already copied, bound corpus. This is a validation
+context defect, with original logs/wheel/context retained. Root reviewed the
+installed-only continuation script fcafbbaea44443300a8a9297b93d41be45564f96cedfa25c48c0e88d31a0c7b0
+and manifest903c3ff76fda25cf81b40b0cb08408316f1ea33ca0e60520310e24babba8a4da
+under /tmp/hotpot_plan20/long/stage8b-gate-20261104/ring-correction-installed-continuation.
+Release attempt01 atCPU32-39: reuse the same installed wheel/runtime, copy the
+outside context and add only that corpus entry to its copied index; run the
+failednode then remaining installed84files/deep2/official3/mixed. No source,
+65passed focusedcases, build, install or scientificO0 repeats. Check original
+attempt7416entries/current1482bindings/native/model/origins; stop on first
+failure. Source remains frozen. O0attempt03 and quiet-window FF cost completed
+separately and await root scientific/cost review; no gate closes by this release.
+
+
+### 2026-11-04 — Whole Stage8B CP311 gate accepted; business delivery prepared
+
+Installed-only continuation completed RC0/117.562s/reaped atCPU32-39: canonical
+node1, full1449passed/2skipped, deep2 and official3 pass; mixedFF/xTB each
+retain2outputs/3inputs and exact known middle failure. Original installed failure
+and7416-entry inventory remain; copied artifact Git index adds only corpus478→479.
+Source/installed1451orderednodes match. Origin receipts reconcile1/328/3/5/1
+processes for canonical/full/deep/official/mixed, with no recorded checkout leaks.
+Current1482bindings and3CBond assets match the reviewed release; unchanged six
+B3a binaries/126native sources and50MCA paths with prior actual evidence rebound.
+
+Root reviewed complete O0attempt03, retained B20/attempt02 trajectories, all nine
+affected cases/seeds and seven directly loaded selected arrays. O0retains187/561
+slots,546completed,15ineligible,0executionerrors,545/546quality reports passed,
+106convergence-warning and24undetermined-relation trials, three scope-coverage
+trials and no monitor-confirmed piercing. Sixformer aromatic failures now complete
+with matching open-network frame/energy attribution. Fifteen comparator graph
+exclusions are only ineligible null-graph rows. Thirty-three historical output
+pairs differ after identical provider frames during later optimization; cause
+remains unresolved/P20-D022, not asserted RNG. Case21/root44 close-contact and
+high/nonconverged case14/21observations remain concerning values.
+
+Saved source/installed deep reports preserve15Pcases/28rules and68atom/75bondEu.
+P one-step high finite energies do not establish optimized chemistry/P20-D023.
+EuUFF847.432216kJ/mol and gradients1.791207/7.380536 retain actual convergence,
+finalstandardquality and intermediate partial-placement warning. No calculation
+was repeated for offline reading. Quiet-window same-work organicFF completes
+5/5measured, medianB20/current1.098037/0.759676s, processRSS201297920/154320896B.
+Root accepts usable cost underSection12.2, preserving comparatorRC0 with
+inconclusive/comparable=false due only manifest_sha256, shared-host limits and
+no separate memory probe/component/global speed claim.
+
+Root closes Stage8B only within this CP311 scope; all later/global obligations
+remain. Exact argv/env/resources/raw results/wheel/failures and root dispositions
+are archived in .plan20-artifacts/20261104/stage8b/whole-stage and indexed by
+stages/stage08/forcefields/validation/whole-stage/evidence_index.json. No artifact
+work/runtime/build tree or protected unrelated review is included in Git. These
+records accompany the coherent five-file business correction, H recorder fix,
+meaningful regressions and observation persistence in one validated business
+commit, followed by normal push. Stage8C requires its own entry alignment.

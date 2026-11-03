@@ -1,0 +1,367 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8B",
+  "date": "2026-11-04",
+  "parent_head": "eceb034502cacb1e4ca8f083b116bd2c97fa229d",
+  "status": "ROOT_ACCEPTED_STAGE8B_CP311_WITH_RECORDED_SCIENTIFIC_LIMITS",
+  "root_acceptance": true,
+  "stage_gate_closed": true,
+  "global_gate_closed": false,
+  "scope": "The complete Stage8B force-field separation and connected Plan12 operation/adapter/pipeline boundary within actual CP311 source and installed evidence. B1-B4 remain the immutable prior slice checkpoints.",
+  "business_correction": "Validate intact source before task-local ordered Bond-buffer masking; preserve source aromatic/H facts and atom/bond ownership; use the sole native optimizer and transactionally publish only returned coordinates after source/selection checks. Strict ordinary aromatic validation remains.",
+  "reporter_correction": "Use canonical acceptance owner and existing strict H preparation before O0 raw graph capture, preserving unresolved H failure instead of fabricating zero.",
+  "boundaries": {
+    "source": {
+      "full": {
+        "tests": 1451,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1449
+      },
+      "deep": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 2
+      },
+      "official": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 3
+      },
+      "mixed": [
+        {
+          "name": "ff-mixed",
+          "initial_input_count": 3,
+          "surviving_output_count": 2,
+          "status": "succeeded",
+          "sample_outcomes": [
+            {
+              "input_index": 0,
+              "output_index": 0,
+              "outcome": "returned",
+              "failure_code": null
+            },
+            {
+              "input_index": 1,
+              "output_index": null,
+              "outcome": "unavailable",
+              "failure_code": "FF-REQUEST-COORDINATES"
+            },
+            {
+              "input_index": 2,
+              "output_index": 1,
+              "outcome": "returned",
+              "failure_code": null
+            }
+          ],
+          "observed_values": [
+            {
+              "input_index": 0,
+              "output_index": 0,
+              "energy": 0.0005569760368136714,
+              "energy_unit": "kJ/mol"
+            },
+            {
+              "input_index": 2,
+              "output_index": 1,
+              "energy": 0.0005569760368136714,
+              "energy_unit": "kJ/mol"
+            }
+          ]
+        },
+        {
+          "name": "xtb-mixed",
+          "initial_input_count": 3,
+          "surviving_output_count": 2,
+          "status": "succeeded",
+          "sample_outcomes": [
+            {
+              "input_index": 0,
+              "output_index": 0,
+              "outcome": "returned",
+              "failure_code": null
+            },
+            {
+              "input_index": 1,
+              "output_index": null,
+              "outcome": "unavailable",
+              "failure_code": "XTB-STATE-UNAVAILABLE"
+            },
+            {
+              "input_index": 2,
+              "output_index": 1,
+              "outcome": "returned",
+              "failure_code": null
+            }
+          ],
+          "observed_values": [
+            {
+              "input_index": 0,
+              "output_index": 0,
+              "energy": -5.06371396,
+              "energy_unit": "hartree"
+            },
+            {
+              "input_index": 2,
+              "output_index": 1,
+              "energy": -5.06371396,
+              "energy_unit": "hartree"
+            }
+          ]
+        }
+      ],
+      "focused": {
+        "tests": 66,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 66
+      }
+    },
+    "installed": {
+      "full": {
+        "tests": 1451,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 1449
+      },
+      "deep": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 2
+      },
+      "official": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 3
+      },
+      "mixed": [
+        {
+          "name": "ff-mixed",
+          "initial_input_count": 3,
+          "surviving_output_count": 2,
+          "status": "succeeded",
+          "sample_outcomes": [
+            {
+              "input_index": 0,
+              "output_index": 0,
+              "outcome": "returned",
+              "failure_code": null
+            },
+            {
+              "input_index": 1,
+              "output_index": null,
+              "outcome": "unavailable",
+              "failure_code": "FF-REQUEST-COORDINATES"
+            },
+            {
+              "input_index": 2,
+              "output_index": 1,
+              "outcome": "returned",
+              "failure_code": null
+            }
+          ],
+          "observed_values": [
+            {
+              "input_index": 0,
+              "output_index": 0,
+              "energy": 0.0005569760368136714,
+              "energy_unit": "kJ/mol"
+            },
+            {
+              "input_index": 2,
+              "output_index": 1,
+              "energy": 0.0005569760368136714,
+              "energy_unit": "kJ/mol"
+            }
+          ]
+        },
+        {
+          "name": "xtb-mixed",
+          "initial_input_count": 3,
+          "surviving_output_count": 2,
+          "status": "succeeded",
+          "sample_outcomes": [
+            {
+              "input_index": 0,
+              "output_index": 0,
+              "outcome": "returned",
+              "failure_code": null
+            },
+            {
+              "input_index": 1,
+              "output_index": null,
+              "outcome": "unavailable",
+              "failure_code": "XTB-STATE-UNAVAILABLE"
+            },
+            {
+              "input_index": 2,
+              "output_index": 1,
+              "outcome": "returned",
+              "failure_code": null
+            }
+          ],
+          "observed_values": [
+            {
+              "input_index": 0,
+              "output_index": 0,
+              "energy": -5.06371396,
+              "energy_unit": "hartree"
+            },
+            {
+              "input_index": 2,
+              "output_index": 1,
+              "energy": -5.06371396,
+              "energy_unit": "hartree"
+            }
+          ]
+        }
+      ],
+      "focused_original": {
+        "tests": 66,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 65
+      },
+      "failed_node_context_continuation": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 1
+      }
+    }
+  },
+  "same_ordered_default_nodes": 1451,
+  "source_freeze": {
+    "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/source-freeze-ring-correction-attempt01.json",
+    "bytes": 192566,
+    "sha256": "3f01da0e07b2d570f206852b7815ad3e4c52e943569834c4fb87bb4ca605062b"
+  },
+  "current_binding_count": 1482,
+  "native": {
+    "reused_binaries": 6,
+    "unchanged_native_source_paths": 126,
+    "accepted_fences": "../b3a/checkpoint.json: twelve native checks, eleven executable and one compile-only; reused after unchanged source/build/input/binary reconciliation.",
+    "fresh_native_build": false
+  },
+  "mca": {
+    "unchanged_source_paths": 50,
+    "inference_rerun": false,
+    "prior_actual_evidence": "../b3d/checkpoint.json"
+  },
+  "wheel": {
+    "path": ".plan20-artifacts/20261104/stage8b/whole-stage/wheel/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+    "bytes": 6348211,
+    "sha256": "c403f3476e611f983bfd6420d2cc7565aa1262ff5fa9ea05ecc1b81a0c7355b3"
+  },
+  "wheel_python_body_count": 478,
+  "nonpython_omissions": 41,
+  "o0": {
+    "source_inputs": 187,
+    "requested_slots": 561,
+    "eligible_cases": 182,
+    "ineligible_cases": 5,
+    "completed_actual_trials": 546,
+    "execution_errors": 0,
+    "not_run_ineligible": 15,
+    "quality_passed": 545,
+    "quality_available": 546,
+    "convergence_warning_trials": 106,
+    "undetermined_relation_trials": 24,
+    "scope_coverage_trials": 3,
+    "confirmed_piercing_trials": 0,
+    "changed_vs_B20_pairs": 33,
+    "identical_selected_arrays_and_energies": 513,
+    "same_recorded_work_slots": 522,
+    "distributions": {
+      "absolute_energy_difference_kj_mol": {
+        "count": 546,
+        "minimum": 0.0,
+        "median": 0.0,
+        "p95": 0.41540004568503264,
+        "maximum": 1072.3557665311318
+      },
+      "aligned_coordinate_rmsd_angstrom": {
+        "count": 546,
+        "minimum": 0.0,
+        "median": 0.0,
+        "p95": 0.006261565060672361,
+        "maximum": 2.3961801151964863
+      }
+    },
+    "original_failure_counts": {
+      "attempt01_h_recorder_cases": 182,
+      "attempt02_aromatic_trials": 6
+    },
+    "root_disposition": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/root-review/scientific-disposition.json",
+      "bytes": 17992,
+      "sha256": "9c44ca3af484fb1a37393806216ab088805ba54d23569f4b939d7a9bee7c03f5"
+    },
+    "limitations": "Completion is not chemical adequacy. All finite concerns, one close-contact quality failure and unexplained later trajectory variation remain; no forced historical output or RNG attribution."
+  },
+  "usable_ff_cost": {
+    "status": "ROOT_ACCEPTED_BOUNDED_USABLE_FF_COST",
+    "baseline": {
+      "attempts": 5,
+      "completed": 5,
+      "failed": 0,
+      "no_output": 0,
+      "all_attempt_seconds": 5.492040107026696,
+      "median_seconds": 1.0980365816503763,
+      "mad_seconds": 0.001946181058883667,
+      "p95_seconds": 1.102264503389597,
+      "peak_rss_bytes": 201297920
+    },
+    "candidate": {
+      "attempts": 5,
+      "completed": 5,
+      "failed": 0,
+      "no_output": 0,
+      "all_attempt_seconds": 3.799849320203066,
+      "median_seconds": 0.759676206856966,
+      "mad_seconds": 0.002613503485918045,
+      "p95_seconds": 0.763420969247818,
+      "peak_rss_bytes": 154320896
+    },
+    "observed_runtime_ratio": 0.6918496337482252,
+    "comparator_status": "inconclusive",
+    "comparator_reasons": [
+      "manifest_sha256"
+    ],
+    "separate_memory_probe": false,
+    "scope": "Equal declared CCO/UFF work, one warmup/five measured, affinity0-63/threads1. Process peak RSS only; no controlled/global/component speedup or complex-workload performance claim.",
+    "disposition": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/root-review/cost-disposition.json",
+      "bytes": 12176,
+      "sha256": "7b56dcb88682020a14da7d63e347b8f39d9427d9dd738a7d39946de7b00fe194"
+    }
+  },
+  "retained_failures": [
+    "Original O0 H-recorder failure; original six aromatic projection errors and finite last ligand frames.",
+    "Original deep-fixture source-P postcheck KeyError; reconciled without repeating passed work.",
+    "Original installed focused canonical-source tracking failure; corrected only the copied artifact Git index and reran only the failed node before remaining installed work."
+  ],
+  "deferred_scientific_observations": [
+    "P20-D022",
+    "P20-D023"
+  ],
+  "evidence_index": "evidence_index.json",
+  "remaining": [
+    "Stage8C/D/E and all later approved Plan20/Plan12 work.",
+    "P20-D006/007/008 current all-version/native/ABI/SDK/sdist/package-contents delivery obligations.",
+    "Final integrated/scientific/stochastic/performance/resource acceptance; no full-plan or Stage13 release."
+  ]
+}

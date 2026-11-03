@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8B whole-stage CP311",
+  "artifact_root": ".plan20-artifacts/20261104/stage8b/whole-stage",
+  "scope": "Exact commands, raw results, original failed attempts, source/wheel/native/model/origin bindings and root scientific/cost dispositions; runtime/build trees and source-copy fixtures explicitly excluded. Hashes establish attribution, not scientific truth.",
+  "artifacts": {
+    "source_freeze": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/source-freeze-ring-correction-attempt01.json",
+      "bytes": 192566,
+      "sha256": "3f01da0e07b2d570f206852b7815ad3e4c52e943569834c4fb87bb4ca605062b"
+    },
+    "final_source_reconciliation": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/root-review/final-source-reconciliation.json",
+      "bytes": 421,
+      "sha256": "6bebb935e3b56c4c296452337af3210089115d33f21111252e4df8027999031d"
+    },
+    "source_validation": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ring-correction-validation/attempt01/root-review-summary.json",
+      "bytes": 7588,
+      "sha256": "6b2207425c7a0d59b4d167377bd418e2adec00703a8065f8f2f23bf81883b0fa"
+    },
+    "source_commands": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ring-correction-validation/attempt01/commands.json",
+      "bytes": 51363,
+      "sha256": "8831be462af0931e6495af01df398714f70be45c53f732ec20296223cbbd899a"
+    },
+    "source_launch": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ring-correction-validation/launch-attempt01/execution.json",
+      "bytes": 3668,
+      "sha256": "b26fb859b158428dcd75980ccf012e378385e07c630f333e0896d995bb688ad2"
+    },
+    "installed_continuation": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ring-correction-installed-continuation/attempt01/execution.json",
+      "bytes": 414439,
+      "sha256": "2c7d1d1bff6e6b38f3ddae7c0d6b418de1df759a60deb31a41282cb1b72c80a1"
+    },
+    "installed_commands": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ring-correction-installed-continuation/attempt01/commands.json",
+      "bytes": 52337,
+      "sha256": "664457df0020bf710e5c6030d3c1a43d959d932d5651731c857c66c4d6ead976"
+    },
+    "installed_launch": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ring-correction-installed-continuation/launch-attempt01/execution.json",
+      "bytes": 2335,
+      "sha256": "bae48efe599d0699bedb1ed6802e4d0e02c3a3b5653278514fca6a7efb782916"
+    },
+    "original_installed_failure": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ring-correction-validation/attempt01/installed-focused/junit.xml",
+      "bytes": 12327,
+      "sha256": "5e0ee358ef27db074bdd6381f76adba7876d60a56865006df71f04452e987d10"
+    },
+    "artifact_index_correction": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ring-correction-installed-continuation/attempt01/artifact-index-correction.json",
+      "bytes": 799,
+      "sha256": "f7893b1570bc323736563b0e92bc0e45cd030224f4d9f52198b36bf14db6fdeb"
+    },
+    "source_mixed": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ring-correction-validation/attempt01/source-mixed/observations/observations.json",
+      "bytes": 137378,
+      "sha256": "60f9bdaba52898a547adff8aac6c89e7109c3573e4bb21106428487961ce814a"
+    },
+    "installed_mixed": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ring-correction-installed-continuation/attempt01/installed-mixed/observations/observations.json",
+      "bytes": 138398,
+      "sha256": "417006a36b94cebda98859871c7984d8a484dafde41d0726067fbdec11a14471"
+    },
+    "source_deep_values": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ring-correction-installed-continuation/report-reading-attempt01/source-saved-report-values.json",
+      "bytes": 39850,
+      "sha256": "48e041326f1600c56660abc81f57aba127475c8a8d7c1eec81cbebc404c0ea00"
+    },
+    "installed_deep_values": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ring-correction-installed-continuation/report-reading-attempt01/installed-saved-report-values.json",
+      "bytes": 40325,
+      "sha256": "f1153f1d5b1e31ba00e52fd363da79771d30209318ccfee7865a74c8d5b7f2f2"
+    },
+    "saved_report_reader": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ring-correction-installed-continuation/report-reading-attempt01/execution.json",
+      "bytes": 135758,
+      "sha256": "47126c01d07f95249beca215e2a7e6267f1c35f9da6d287062a40cac729a66b4"
+    },
+    "o0_current": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/o0-standard-am-attempt03/report.json",
+      "bytes": 57955816,
+      "sha256": "47f919a9e8fc6259a81d7c7e37704f8a1eda5035d5c834b126ae976257ab2dc6"
+    },
+    "o0_launch": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/o0-attempt03-execution/execution.json",
+      "bytes": 3034,
+      "sha256": "e352d4b03e78470fd575b2e9b428cc28706351a461d19455536ff77863e76525"
+    },
+    "o0_original_h_recorder_failure": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/o0-standard-am-attempt01/report.json",
+      "bytes": 1838163,
+      "sha256": "4fb5958e8549c025c8ce7d576f52d4031aef5db91ea70756fc256ac939e5c9ae"
+    },
+    "o0_original_aromatic_failures": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/o0-standard-am-attempt02/report.json",
+      "bytes": 57968606,
+      "sha256": "9b628cc6aac5679669a9a35501cf71e070c896016c4938a87355a54f3d44266c"
+    },
+    "o0_comparison": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/o0-attempt03-comparison/comparison.json",
+      "bytes": 12295000,
+      "sha256": "ec357747709b4c1eebab50cc8769d7797f7b6ed3ac7c00beb75b6d54da9d3f5f"
+    },
+    "o0_offline_review": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/o0-attempt03-scientific-review/analysis.json",
+      "bytes": 3390037,
+      "sha256": "a03d547bb6904d0edcc608b1152574dbf9248bc1b36beb803697b70a5f404b45"
+    },
+    "o0_offline_receipt": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/o0-attempt03-scientific-review/receipt.json",
+      "bytes": 6479,
+      "sha256": "6ed3d780836167de18309a9497f49adf277197f8f775840093504f7003015e31"
+    },
+    "o0_readable_analysis": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/o0-attempt03-scientific-review/conclusion.md",
+      "bytes": 5050,
+      "sha256": "fe2a4617cf21e7b301b389767fd55df774ec87413a735cdcd31382f19f8256fe"
+    },
+    "scientific_disposition": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/root-review/scientific-disposition.json",
+      "bytes": 17992,
+      "sha256": "9c44ca3af484fb1a37393806216ab088805ba54d23569f4b939d7a9bee7c03f5"
+    },
+    "cost_disposition": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/root-review/cost-disposition.json",
+      "bytes": 12176,
+      "sha256": "7b56dcb88682020a14da7d63e347b8f39d9427d9dd738a7d39946de7b00fe194"
+    },
+    "cost_current": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ff-cost-source-candidate-attempt01/report.json",
+      "bytes": 124739,
+      "sha256": "120b0c469e35c5a46723c38b4768244d11c1045c35f8a9279d85c08720b14d30"
+    },
+    "cost_launch": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ff-cost-attempt01-execution/execution.json",
+      "bytes": 2779,
+      "sha256": "36aafac06b82fbad8b4715768eefc39c27bdf2a3707229652d0d0e0c4e7e6304"
+    },
+    "cost_comparison": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ff-cost-attempt01-comparison/comparison.json",
+      "bytes": 127044,
+      "sha256": "6956ba127b52ceec50300f8f354ae88df7346bd2034e3a48e66223b7090bedfa"
+    },
+    "baseline_science": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/baseline/science-b20-standard/report.json",
+      "bytes": 57921707,
+      "sha256": "ed2e5fa6bd6b8a902b02577ff60911b8f400c7f4ae3c8ba4fce59b998e859e4c"
+    },
+    "baseline_cost": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/baseline/performance-b20-local/report.json",
+      "bytes": 8771470,
+      "sha256": "ad460fe264a6418379893f69fb918becd0ae5428b20494e9c8ebab1458906cf5"
+    },
+    "native_rebind": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ring-correction-validation/attempt01/native-rebind.json",
+      "bytes": 61534,
+      "sha256": "94c74c2c0259beb6334ea94d60175ccb108dfb209809cce138779234895a2de6"
+    },
+    "mca_rebind": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ring-correction-validation/attempt01/mca-rebind.json",
+      "bytes": 8934,
+      "sha256": "4365ebe346d53ae3c71d96028ba32cd31cc6a2616cf8a29924280fbc58335fc9"
+    },
+    "wheel_contents": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/raw/ring-correction-validation/attempt01/wheel-contents.json",
+      "bytes": 49483,
+      "sha256": "1b0f3ac9b23855f6f5e820171d9e70cb5f416e41f1689aa3dd756f4778bd018f"
+    },
+    "wheel": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/wheel/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6348211,
+      "sha256": "c403f3476e611f983bfd6420d2cc7565aa1262ff5fa9ea05ecc1b81a0c7355b3"
+    },
+    "archive_manifest": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/archive-manifest.json",
+      "bytes": 6355474,
+      "sha256": "72ed8049fc86b1ce636b4caf1d52c52c2f6226f5f212eda7a536cd6151738e4e"
+    },
+    "archive_exclusions": {
+      "path": ".plan20-artifacts/20261104/stage8b/whole-stage/exclusions.json",
+      "bytes": 214962,
+      "sha256": "9ef39ac7b211a15601ceca607a9bcc278fbd3dd19ec9015bee0d8b67bcfcb882"
+    }
+  }
+}

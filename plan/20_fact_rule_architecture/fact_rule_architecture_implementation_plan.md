@@ -2213,6 +2213,19 @@ no checker waiver or scientific threshold change. Fresh478Python-body wheel,
 sixunchanged B3a natives and unchanged B3d MCA evidence are rebound. Whole Stage8B
 O0 scientific/standalone/FF cost and later/global gates remain open.
 
+The [observed ring-open correction](stages/stage08/forcefields/contracts/decisions.md#observed-ring-open-aromatic-failure--operation-buffer-correction)
+uses intact-source-validated Bond-buffer masks for temporary FF networks while
+retaining strict ordinary aromatic rules and atomic coordinate-only publication.
+It supersedes the earlier selected-Molecule FF route. The [whole Stage8B CP311
+checkpoint](stages/stage08/forcefields/validation/whole-stage/checkpoint.json) accepts
+source/installed1449passed+2skipped of1451, deep2/official3/mixed2cohorts per
+boundary, all187source O0inputs/561slots (546complete,15ineligible,0executionerrors),
+unchanged native/MCA evidence reuse and bounded usable organic FF cost. Original
+failures, high/nonconverged observations, unresolved later trajectory variation
+(P20-D022), finite-only phosphorus coverage (P20-D023) and the historical cost
+comparator limitation remain explicit. Stage8C requires its own entry alignment;
+later/global science, delivery, version and resource gates remain open.
+
 #### Stage 8C — Search
 
 Split SMARTS chemistry semantics, reusable RI graph matching, structure

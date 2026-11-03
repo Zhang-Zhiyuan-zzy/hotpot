@@ -78,6 +78,8 @@ def _loaded_native_identity() -> dict:
 
 
 def _case(index: int, smiles: str, metal: str, settings) -> dict:
+    from hotpot.cheminfo.operations.chemistry import _require_implicit_hydrogens
+
     started = perf_counter()
     record = {
         "index": index, "smiles": smiles,
@@ -90,6 +92,7 @@ def _case(index: int, smiles: str, metal: str, settings) -> dict:
                 "state": "ineligible", "reason": "no_coordination_bond_above_current_thresholds"
             }
         else:
+            _require_implicit_hydrogens(result.molecule)
             atom_ids = _cohort_atom_ids(result.molecule)
             graph = _graph_document(result.molecule, atom_ids)
             coordination = _coordination_document(
@@ -285,7 +288,7 @@ def run_report(output: Path, *, seeds=(42, 43, 44), workers=1, source=CANONICAL_
         "command": [sys.executable, *sys.argv],
         "recorded_at": datetime.now(timezone.utc).isoformat(),
     }
-    from hotpot.cheminfo.forcefields import acceptance
+    from hotpot.cheminfo.operations.forcefields import acceptance
     from hotpot.cheminfo.AImodels.cbond import apply as cbond_apply
     identity["rules"] = {
         str(Path(module.__file__).relative_to(ROOT)) if Path(module.__file__).is_relative_to(ROOT)

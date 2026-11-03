@@ -1,5 +1,7 @@
 """Opt-in higher-depth validation for complex construction."""
 
+import json
+import pickle
 import time
 
 import numpy as np
@@ -14,8 +16,33 @@ README_LIGAND_SMILES = (
 )
 
 
+def _record_structure(directory, name, mol):
+    np.save(directory / f"{name}-coordinates.npy", mol.coordinates)
+    (directory / f"{name}-structure.json").write_text(json.dumps({
+        "charge": mol.charge,
+        "atoms": [
+            {
+                "index": atom.idx,
+                "id": atom.id,
+                "atomic_number": atom.atomic_number,
+                "formal_charge": atom.formal_charge,
+                "partial_charge": atom.partial_charge,
+            }
+            for atom in mol.atoms
+        ],
+        "bonds": [
+            {
+                "atom_indices": (bond.atom1.idx, bond.atom2.idx),
+                "bond_order": bond.bond_order,
+                "bond_kind": bond.bond_kind,
+            }
+            for bond in mol.bonds
+        ],
+    }, indent=2) + "\n")
+
+
 @pytest.mark.high_compute
-def test_readme_europium_complex_full_standard_workflow(record_testsuite_property):
+def test_readme_europium_complex_full_standard_workflow(record_testsuite_property, tmp_path):
     ligand = hp.read_mol(README_LIGAND_SMILES)
     pair = ligand.auto_pair_metal("Eu")
     original_atom_objects = {id(atom) for atom in pair.atoms}
@@ -28,6 +55,8 @@ def test_readme_europium_complex_full_standard_workflow(record_testsuite_propert
         for bond in pair.bonds
     }
 
+    (tmp_path / "input.smi").write_text(README_LIGAND_SMILES + "\n")
+    _record_structure(tmp_path, "input", pair)
     started = time.monotonic()
     report = pair.build3d(
         seed=20260916,
@@ -40,6 +69,9 @@ def test_readme_europium_complex_full_standard_workflow(record_testsuite_propert
         quality_level="standard",
     )
     elapsed_seconds = time.monotonic() - started
+    (tmp_path / "build3d-report.pkl").write_bytes(pickle.dumps(report))
+    _record_structure(tmp_path, "output", pair)
+    (tmp_path / "elapsed-seconds.json").write_text(json.dumps(elapsed_seconds) + "\n")
 
     assert report.quality_report.passed
     assert report.quality_report.failures == ()

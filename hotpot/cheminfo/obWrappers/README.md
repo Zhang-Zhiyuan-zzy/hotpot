@@ -418,6 +418,16 @@ This release deliberately has no `HpMol` or other C++ replacement for
 chemical object model. No SWIG object or `OBMol` pointer crosses the pybind11
 boundary, and Python is not re-entered for each force-field epoch.
 
+Hotpot ring-piercing repair may exclude a Bond from a private force-field task.
+The wrapper first validates and packs the intact source, then filters the aligned
+Bond arrays in their original order. Atom rows, aromatic input flags, charges and
+cell remain those of the intact source; this does not assert that Open Babel's
+subsequent force-field typing is independent of the filtered network. The open
+network is temporary calculation input, not a newly interpreted Molecule. Only
+coordinates return after source-currentness checks; its energy belongs to its
+open-network trajectory frame. Full-graph standalone operations and ordinary
+Molecule projections retain strict aromatic validation.
+
 Open Babel uses process-global plugin and force-field state. Native operations
 are therefore serialized by an internal recursive mutex within one process.
 Process-level parallel workers remain the appropriate route for independent

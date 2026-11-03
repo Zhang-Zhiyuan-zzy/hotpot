@@ -1,16 +1,11 @@
 # Stage8 records
 
-Stage8A1 scientific-state ownership/non-mutation is root accepted within [its CP311 checkpoint](scientific-state/ownership_checkpoint_20261103.json). [A8 H-presence](scientific-state/validation/h_presence_checkpoint.json) also has accepted CP311 evidence; P20-D020 is closed. Whole Stage8A remains open for public consolidation and remaining scientific-state work. Stage8B–E remain unentered. The main implementation plan owns requirements and gates.
+[Stage8A](scientific-state/completion_20261103.json) and
+[Stage8B](forcefields/validation/whole-stage/checkpoint.json) are root accepted
+within their recorded CP311 scopes. Stage8B includes the observed ring-opening
+repair and owning scientific/standalone/cost evidence, with limitations retained.
+Stage8C–E remain unentered. The main plan owns later/global requirements.
 
-- [Stage8A entry](scientific-state/entry_review.json)
-- [Stage8A decisions](scientific-state/contracts/decisions.md)
-- [Stage8A migration](scientific-state/contracts/migration.json)
-
-[Stage catalog](../README.md) · [Main project index](../../README.md)
-
-- [Stage8A validation selection](scientific-state/contracts/validation.json)
-
-- [Stage8A runtime release](scientific-state/runtime_release.json)
-
-- [Stage8A1 actual checkpoint](scientific-state/validation/checkpoint.json)
-- [Stage8A1 observations and limits](scientific-state/validation/report.md)
+- [Scientific-state decisions](scientific-state/contracts/decisions.md) and [report](scientific-state/validation/report.md)
+- [Force-field decisions](forcefields/contracts/decisions.md), [report](forcefields/validation/whole-stage/report.md) and [evidence](forcefields/validation/whole-stage/evidence_index.json)
+- [Stage catalog](../README.md) · [Main project index](../../README.md)

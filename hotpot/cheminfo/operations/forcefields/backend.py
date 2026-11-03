@@ -8,7 +8,9 @@ from typing import NoReturn, Optional
 
 from hotpot.cheminfo.adapters.openbabel.forcefields import build as build_molecule
 from hotpot.cheminfo.adapters.openbabel.forcefields import single_optimize as _native_single_optimize
-from hotpot.cheminfo.adapters.openbabel.forcefields import _native_module, _seed_openbabel_random
+from hotpot.cheminfo.adapters.openbabel.forcefields import (
+    _native_module, _native_molecule_data, _seed_openbabel_random, _single_optimize_data,
+)
 from .contracts import (
     ForceFieldError,
     ForceFieldSetupError,
@@ -73,21 +75,21 @@ def _single_ob_optimization(
     mol: "Molecule", forcefield: str, steps: int, *, selection=None
 ) -> _CandidateOptimizationResult:
     """Run one native segment against the complete or selected task graph."""
-    from hotpot.cheminfo.operations.topology_queries import _project_molecule
     from hotpot.cheminfo.structure._commit import _FactTransaction
     from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
     from hotpot.cheminfo.structure._identity import _capture_source, _check_source
     from hotpot.cheminfo.structure._selection import _check_topology_selection
 
-    target = mol
     if selection is not None:
         with mol._mutation_lock:
-            _check_topology_selection(mol, selection)
+            data = _native_molecule_data(mol, selection=selection)
             source = _capture_source(mol, ("bonding_inputs", "geometry", "cell"))
-            target = _project_molecule(mol, type(mol), selection=selection)
     native = _native_module()
     try:
-        result = _native_single_optimize(target, forcefield, steps)
+        if selection is None:
+            result = _native_single_optimize(mol, forcefield, steps)
+        else:
+            result = _single_optimize_data(data, forcefield, steps)
     except native.ForceFieldSetupError as error:
         _raise_forcefield_setup_error(
             error,
@@ -99,7 +101,7 @@ def _single_ob_optimization(
         with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["forcefield"]):
             _check_topology_selection(mol, selection)
             _check_source(mol, source)
-            mol.coordinates = target.coordinates
+            mol.coordinates = result.coordinates
     return _CandidateOptimizationResult(
         energy=result.energy,
         energy_unit=result.energy_unit,

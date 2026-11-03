@@ -839,3 +839,152 @@ No native rebuild, all-version, full corpus/cost or global acceptance follows.
 Whole Stage8B still needs O0 scientific observations/comparison, explicit
 standalone-wrapper evidence/disposition and comparable FF cost or an attributable
 owner-authorized disposition before Stage8C entry. Later/global gates stay open.
+
+
+### Whole Stage8B scientific/standalone/cost evidence after B4
+
+B4 is accepted and pushed as eceb034. Continue the existing whole-stage owning
+gate under Sections11/12 and the effective goal; this is not Stage8C entry.
+Read-only inventory identifies a single retired-package import in
+run_scientific_report.py, used only to attribute acceptance.__file__. Replace
+that import with operations.forcefields.acceptance, with no numerical, budget,
+seed, algorithm, roster or monitor change. Record the original tool source and
+AST-only import difference before the new actual scientific execution.
+
+Release the existing full standard O0 Am corpus with all187 source records,
+rootseeds42/43/44,32spawn workers, affinity0-31 and BLAS/OpenMP threads1. Retain
+all561requested trial slots with current rule-derived eligibility, actual
+provider seeds (including explicit ignored/unavailable seed evidence), attempts,
+frames or absence, energy/gradient units, monitors/findings and errors. Compare
+against B20 as observations, not fixed182 success or float/hash equality. Unknown
+execution/integrity errors remain unresolved; heuristic findings alone are not
+scientific impossibility. Explain differences without relaxing observed rules.
+
+Execute the two explicit deep fixtures (full phosphorus corpus and full standard
+Eu workflow) with their scientific/high-compute flags at source and the already
+accepted B4 outside installed boundary. Rebind the unchanged wrapper sources,
+six binaries/build inputs and accepted B3a12native fences; no redundant C++build
+or broader ABI/SDK qualification is claimed. Preserve failures and raw outputs.
+
+Run the existing organic_forcefield CPU cost recipe with the current manifest,
+source mode, one warmup/five measured attempts, affinity0-63/threads1 in a quiet
+window. All71workloads and measurement settings match B20; only policy/bookkeeping
+manifest fields differ. Preserve the existing comparator's manifest-identity
+limitation, raw durations/work counters/failed attempts and uncertainty. Judge
+comparable semantic work and usable cost under current Section12.2, not a forged
+manifest hash or superseded acceptance quotas. This one workload does not close
+later/global cost or complex workload requirements; index remaining gaps openly.
+
+Root retains review, any bounded route correction, gate closure and Git delivery.
+Use fresh lifecycle-managed artifact outputs. No business-source edit is authorized
+by this evidence slice beyond the settled one-line report-tool import; all other
+validated B4 source/test bytes remain fixed (including its documented EOF-only
+normalization). No external helper, new model, dependency or environment change.
+
+
+The two deep fixtures currently retain mostly assertions/JUnit properties. Before
+running them, add only evidence persistence under their pytest tmp_path: actual
+input/output structural values, raw coordinate arrays, returned method/quality
+reports and elapsed values before scientific assertions. Keep actual parameter
+budgets, assertion thresholds, APIs, sample membership and algorithms unchanged.
+This is the existing fixture's result recording, not another calculation or a
+parallel validator. Preserve any failed observation; do not make a finite finding
+pass by changing a check. Only those two test files and the one report-tool import
+are authorized maintained edits for this owning-evidence slice.
+
+
+### Observed whole-gate recorder/preparation failures and bounded corrections
+
+Released O0 attempt01 preserved all187inputs/561trial slots but performed no FF
+trial:182CBond-returned molecules failed graph serialization with ValueError
+"graph serialization requires present implicit-H facts"; fivecases were
+ineligible. The raw reports and unchanged1484-file release remain retained.
+Inspection shows build_validation_cohort already explicitly calls the existing
+operations.chemistry._require_implicit_hydrogens before its raw graph capture,
+but the dynamic O0 report's _case bypassed that preparation after the carrier
+cutover. Correct _case to use that same finite-H consumer boundary before capture,
+without changing the graph schema, H rules, CBond eligibility policy or algorithms.
+Add focused actual-Molecule regressions for supplied ligandH/new metalH0, stale
+inferredH refresh and genuinely unresolvedH remaining unknown rather than0.
+Original deterministic/raw-graph rejection remains; no catch/default/schema waiver.
+Only run_scientific_report.py and its existing scientific report-contract test
+receive this correction. A new source freeze/released O0 attempt is required.
+
+Deep fixture attempt01 source phosphorus actually passed all15cases with
+28rule applications and retained outputs. Its subsequent provenance postcheck
+failed because three imported tests package initializers were omitted from the
+copy/provenance map; all observed initializer hashes match the released source
+and no product leak occurred. Preserve the original KeyError and passed scientific
+artifacts. Correct only the temporary recipe's exact input map and reconcile that
+completed run; do not repeat it solely for the broken postcheck. Root will release
+only the remaining sourceEu/installedP/installedEu commands after final preparation
+review and current source binding. No evidence/gate is approved by this correction.
+
+
+### Observed ring-open aromatic failure — operation-buffer correction
+
+The saved case68 deterministic reproduction confirms the six O0attempt02
+failures at common aromatic packing of a projected open Molecule. Intact source
+and ligand graphs are cyclic and valid; removing edge2-3 makes supplied aromatic
+rows0,1,2,3,21,22 noncyclic. Strict AROMATIC.NONCYCLIC_SOURCE correctly rejects
+that ordinary chemical graph. Original source facts/state and all1475release
+bindings remain unchanged; full traceback and observations are retained under
+/tmp/hotpot_plan20/long/stage8b-gate-20261104/aromatic-runtime-repro/attempt01.
+
+Root selects a bounded correction at the existing operation/adapter boundary,
+superseding only Stage7B's ring-repair use of an independent Molecule for native
+optimization. A temporary open force-field network is an operation input, not a
+new molecular chemical interpretation. Under the original owner's lock, validate
+the selection and pack the intact source through existing strict aromatic/native
+preparation. Apply the immutable mask only to the four aligned native Bond arrays
+(indices, orders, kinds, aromatic flags) and their count, preserving complete Atom
+order, typing flags, charges, coordinates and cell. No aromatic flag is cleared or
+recomputed on the cut network. The original source remains authoritative. Ordinary
+Molecule projection/components and full-graph standalone packing stay strict.
+
+Reuse existing NativeMoleculeBuffers and MoleculeData; add no DTO, schema, native
+code, public selector/signature or persistent graph. Extract one private
+_single_optimize_data native-call/report translator from standalone single_optimize
+and use it for both full and masked data; public single_optimize keeps its existing
+coordinate-write contract. The Open Babel adapter supplies these private data seams
+to the operation, without another force-field engine. The selected backend captures
+its existing bonding_inputs/geometry/cell source after strict preparation, computes
+outside the source lock, then checks the selection and source inside the existing
+fact transaction before publishing only returned coordinates. Unknown/native/setup
+failures, stale source and transactional rollback keep their existing behavior.
+Open-network energy remains attributed only to its matching open trajectory frame.
+No repair budget, perturbation, selection rule, geometry monitor, denominator,
+scientific algorithm or ordinary source fact is changed.
+
+Release authoring only in obWrappers/{packing,native,operation}.py,
+adapters/openbabel/forcefields.py and operations/forcefields/backend.py, with
+connected existing packing/selected-backend tests and a focused real-native aromatic
+regression. Root owns versioned method documentation and these records. Validate
+full-source rejection, exact ordered masks/dtypes/isolation, same-work native calls,
+coordinate-only commit, stale geometry/topology/representation/cell rejection and
+original-error propagation before successor source/installed/native-backed evidence.
+No candidate calculation runs until root review/freeze. Existing six native binaries
+remain reusable after rebind; required wheel/source/affected scientific evidence must
+use the successor Python bytes. Historical failures remain retained.
+
+
+### Whole Stage8B CP311 acceptance — 2026-11-04
+
+Root accepts the observed ring-open Bond-buffer correction and complete owning
+Stage8B CP311 scope. [Checkpoint](../validation/whole-stage/checkpoint.json),
+[report](../validation/whole-stage/report.md) and its evidence index bind current
+source/installed1449passed+2skipped of1451, focused66source, retained installed
+focused65/1contextfailure plus successful failed-node continuation, deep2 and
+official3 per boundary, and two real mixed cohorts per boundary. No passed
+unchanged source/focused65 work was repeated for the artifact Git-index defect.
+Current1482bindings/model/native/wheel/origins match. SourceO0all187inputs/561
+slots yields546completed/15ineligible/0executionerrors; all historical failures
+and finite concerning observations remain. Sixrepaired open-network frames match
+B20 and do not transfer their energy onto restored topology. Root reviewed worst
+arrays, high/nonconverged energy and monitor changes; later matching-topology
+trajectory variation remains P20-D022, without RNG attribution. The phosphorus
+fixture remains finite-only evidence (P20-D023). Current small organic FF work is
+usable; the original manifest-hash comparator inconclusive status and absence
+of separate memory probes remain. Twelve unchanged native fences and actual
+unchanged MCA evidence are rebound. This permits Stage8C alignment; no later/global
+scientific/performance/native-ABI/package/version/Plan20/Plan12 acceptance.

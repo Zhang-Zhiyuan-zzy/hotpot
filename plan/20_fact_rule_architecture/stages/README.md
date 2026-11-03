@@ -5,7 +5,7 @@ remains in its own project). This catalog organizes Stage0–13. Existing execut
 Stage5 retains corrected performance comparability and open final global gates.
 Root closes Stage6 after C62 delivery/remote verification, retaining C61 runtime provenance. Stage7A design P01–P07 is accepted, exact bounded implementation/test authoring is separately released, and candidate runtime remains held; Stage7 has
 preentry conversion/selection/result inventories requiring the post-Stage6 owning source rebind and a mandatory later Stage7E storage gate;
-Stage8–13 have navigation indexes only. Folder creation supplies no
+Stage8C–13 have navigation indexes only. Folder creation supplies no
 stage-entry or execution evidence and changes no objective, gate, contract,
 scientific route or accepted decision.
 
@@ -42,8 +42,8 @@ merely to fill a directory.
 | Stage4 | [stage04](stage04/README.md) | Completed owning gates, validation and focused comparison; final global performance remains open |
 | Stage5 | [stage05](stage05/README.md) | Completed owning technical gates,finite H-default correction,retained failures and open final performance/science |
 | Stage6 | [stage06](stage06/README.md) | Completed owning gates; C62 delivered/remote-verified; C61 remains validated runtime source |
-| Stage7 | [stage07](stage07/README.md) | Stage7A design accepted/bounded authoring released, runtime held;7B–7E not entered; canonical storage blocks Stage8/global acceptance |
-| Stage8 | [stage08](stage08/README.md) | Planned: Split rule policy, workflow, and backend execution |
+| Stage7 | [stage07](stage07/README.md) | Stage7A–E accepted within recorded CP311 scopes; final delivery/version/resource obligations remain |
+| Stage8 | [stage08](stage08/README.md) | Stage8A/B accepted within CP311; Stage8C–E not entered; later/global obligations remain |
 | Stage9 | [stage09](stage09/README.md) | Planned: Split the carriers and hard-cut `core.py` |
 | Stage10 | [stage10](stage10/README.md) | Planned: Complete physical package and native build migration |
 | Stage11 | [stage11](stage11/README.md) | Planned: Clean outer commands and data ownership |

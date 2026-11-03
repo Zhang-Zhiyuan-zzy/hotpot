@@ -99,6 +99,13 @@ C0 `/tmp/hotpot_plan20/long/stage7b-topology-20261103/baseline/receipt.json` and
 
 ## 5. Ring observations, trajectories and rollback boundaries
 
+The later [Stage8B observed ring-open correction](../../../stage08/forcefields/contracts/decisions.md#observed-ring-open-aromatic-failure--operation-buffer-correction)
+supersedes only this section's independent-Molecule native FF route and the
+ring-repair row above: validate the intact source, filter task-local Bond buffers,
+then keep the same source checks and coordinate-only atomic publication. Ordinary
+independent projections/components and all membership/trajectory contracts remain.
+The following paragraph records the original Stage7B route.
+
 Extend only private seams:
 
 ```python

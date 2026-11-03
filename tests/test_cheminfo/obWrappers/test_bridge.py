@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 from math import isfinite
+import json
+import pickle
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import numpy as np
@@ -32,6 +35,31 @@ EXTRACTANT_FILE = (
 PHOSPHORUS_CASES = frozenset(
     {38, 39, 40, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 140}
 )
+
+
+def _record_structure(directory, name, mol):
+    np.save(directory / f"{name}-coordinates.npy", mol.coordinates)
+    (directory / f"{name}-structure.json").write_text(json.dumps({
+        "charge": mol.charge,
+        "atoms": [
+            {
+                "index": atom.idx,
+                "id": atom.id,
+                "atomic_number": atom.atomic_number,
+                "formal_charge": atom.formal_charge,
+                "partial_charge": atom.partial_charge,
+            }
+            for atom in mol.atoms
+        ],
+        "bonds": [
+            {
+                "atom_indices": (bond.atom1.idx, bond.atom2.idx),
+                "bond_order": bond.bond_order,
+                "bond_kind": bond.bond_kind,
+            }
+            for bond in mol.bonds
+        ],
+    }, indent=2) + "\n")
 
 
 def _topology(mol: Molecule) -> tuple[object, ...]:
@@ -123,7 +151,7 @@ def test_phosphorus_build_rule_preserves_topology_and_removes_linear_geometry():
 )
 @pytest.mark.scientific_boundary
 @pytest.mark.high_compute
-def test_all_extractant_phosphorus_centers_build_and_optimize_finitely():
+def test_all_extractant_phosphorus_centers_build_and_optimize_finitely(tmp_path):
     smiles_by_case = {
         index: smiles
         for index, smiles in enumerate(
@@ -135,12 +163,31 @@ def test_all_extractant_phosphorus_centers_build_and_optimize_finitely():
     assert smiles_by_case.keys() == PHOSPHORUS_CASES
     application_count = 0
 
-    for smiles in smiles_by_case.values():
+    for case_index, smiles in smiles_by_case.items():
+        case_directory = tmp_path / f"case-{case_index}"
+        case_directory.mkdir()
+        (case_directory / "input.smi").write_text(smiles + "\n")
         mol = read_mol(smiles)
+        _record_structure(case_directory, "input", mol)
         mol.add_hydrogens()
+        _record_structure(case_directory, "hydrogenated-input", mol)
+        started = time.monotonic()
         build_report = build(mol)
+        build_elapsed_seconds = time.monotonic() - started
+        (case_directory / "build-report.pkl").write_bytes(pickle.dumps(build_report))
+        _record_structure(case_directory, "built", mol)
+        (case_directory / "build-elapsed-seconds.json").write_text(
+            json.dumps(build_elapsed_seconds) + "\n"
+        )
         application_count += len(build_report.rules.applications)
+        started = time.monotonic()
         optimization = single_optimize(mol, "UFF", 1)
+        optimization_elapsed_seconds = time.monotonic() - started
+        (case_directory / "optimization-report.pkl").write_bytes(pickle.dumps(optimization))
+        _record_structure(case_directory, "output", mol)
+        (case_directory / "optimization-elapsed-seconds.json").write_text(
+            json.dumps(optimization_elapsed_seconds) + "\n"
+        )
 
         assert build_report.succeeded
         assert isfinite(optimization.energy)

@@ -805,46 +805,69 @@ def test_public_staged_workflow_attempt_defaults():
     } == expected_defaults
 
 
-def test_selected_backend_optimizes_independent_graph_and_publishes_only_coordinates(monkeypatch):
+def test_selected_backend_optimizes_masked_data_and_publishes_only_coordinates(monkeypatch):
     molecule = _ring_molecule()
-    originals = tuple(molecule.bonds)
-    _ = molecule.rings
-    selection = _capture_topology_selection(molecule, excluded_bonds=(originals[0],))
+    atoms, bonds = tuple(molecule.atoms), tuple(molecule.bonds)
+    selection = _capture_topology_selection(molecule, excluded_bonds=(bonds[0],))
     coordinates = molecule.coordinates.copy()
     calls = []
-    def optimize(target, forcefield, steps):
-        calls.append((target, forcefield, steps))
-        assert target is not molecule and target._owner_token is not molecule._owner_token
-        assert len(target.bonds) == 2 and target.rings == []
-        assert len(molecule.bonds) == 3 and len(molecule.rings) == 1
-        target.coordinates = target.coordinates + 2.
-        return SimpleNamespace(energy=4., energy_unit='kJ/mol', exploded=False)
-    monkeypatch.setattr(ob_backend, '_native_single_optimize', optimize)
+
+    def optimize(data, forcefield, steps):
+        calls.append((data, forcefield, steps))
+        assert data.atom_count == 3 and data.bond_count == 2
+        assert tuple(molecule.atoms) == atoms and tuple(molecule.bonds) == bonds
+        assert len(molecule.rings) == 1
+        np.testing.assert_array_equal(molecule.coordinates, coordinates)
+        return SimpleNamespace(
+            coordinates=coordinates + 2., energy=4., energy_unit='kJ/mol', exploded=False,
+        )
+
+    monkeypatch.setattr(ob_backend, '_single_optimize_data', optimize)
     result = ob_backend._single_ob_optimization(molecule, 'UFF', 4, selection=selection)
     assert len(calls) == 1 and calls[0][1:] == ('UFF', 4)
-    assert result.energy == 4.
-    assert tuple(molecule.bonds) == originals
+    assert result.energy == 4. and result.energy_unit == 'kJ/mol'
+    assert not result.exploded
+    assert tuple(molecule.atoms) == atoms and tuple(molecule.bonds) == bonds
     np.testing.assert_array_equal(molecule.coordinates, coordinates + 2.)
 
 
-@pytest.mark.parametrize('failure', ['native', 'source_geometry', 'source_topology'])
-def test_selected_backend_failure_does_not_publish_partial_projected_coordinates(monkeypatch, failure):
+@pytest.mark.parametrize('failure', [
+    'native', 'source_geometry', 'source_topology', 'source_representation', 'source_cell',
+])
+def test_selected_backend_failure_does_not_publish_returned_coordinates(monkeypatch, failure):
     molecule = _ring_molecule()
     selection = _capture_topology_selection(molecule, excluded_bonds=(molecule.bonds[0],))
     coordinates = molecule.coordinates.copy()
-    def optimize(target, forcefield, steps):
-        target.coordinates = target.coordinates + 99.
+    native_error = MemoryError('selected optimizer failed')
+
+    def optimize(data, forcefield, steps):
+        assert data.atom_count == 3 and data.bond_count == 2
         if failure == 'native':
-            raise MemoryError('projected optimizer failed')
+            raise native_error
         if failure == 'source_geometry':
             molecule.coordinates = coordinates + 1.
-        else:
+        elif failure == 'source_topology':
             molecule._bonds.reverse()
-        return SimpleNamespace(energy=4., energy_unit='kJ/mol', exploded=False)
-    monkeypatch.setattr(ob_backend, '_native_single_optimize', optimize)
-    with pytest.raises(MemoryError if failure == 'native' else RuntimeError):
+        elif failure == 'source_representation':
+            molecule.atoms[0].formal_charge = 1
+        else:
+            molecule.create_crystal(10., 11., 12., 90., 90., 90.)
+        return SimpleNamespace(
+            coordinates=coordinates + 99., energy=4., energy_unit='kJ/mol', exploded=False,
+        )
+
+    monkeypatch.setattr(ob_backend, '_single_optimize_data', optimize)
+    with pytest.raises(MemoryError if failure == 'native' else RuntimeError) as caught:
         ob_backend._single_ob_optimization(molecule, 'UFF', 4, selection=selection)
-    np.testing.assert_array_equal(molecule.coordinates, coordinates + (1. if failure == 'source_geometry' else 0.))
+    if failure == 'native':
+        assert caught.value is native_error
+    if failure == 'source_representation':
+        assert molecule.atoms[0].formal_charge == 1
+    if failure == 'source_cell':
+        assert molecule.crystal.a == pytest.approx(10.)
+    np.testing.assert_array_equal(
+        molecule.coordinates, coordinates + (1. if failure == 'source_geometry' else 0.),
+    )
 
 
 @pytest.mark.parametrize('failure', ['optimization', 'recording'])

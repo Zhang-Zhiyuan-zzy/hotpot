@@ -5,6 +5,7 @@ from __future__ import annotations
 from importlib import import_module
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -149,3 +150,91 @@ def test_current_eligibility_distinguishes_no_output_from_execution_error(monkey
     unknown = runner._case(2, "N", "Am", settings)["eligibility"]
     assert unknown["state"] == "unknown"
     assert unknown["error"]["message"] == "unavailable inference"
+
+
+def _case_for_molecule(monkeypatch, molecule):
+    runner = import_module("plan.20_fact_rule_architecture.run_scientific_report")
+    result = SimpleNamespace(
+        molecule=molecule, donor_indices=(0,), path_probability=1.0, steps=(),
+    )
+    monkeypatch.setattr(runner, "_current_cbond", lambda *args: result)
+    settings = runner.settings_for_profile(runner.RunProfile.STANDARD)
+    return runner._case(1, "N", "Am", settings)
+
+
+def test_case_prepares_new_metal_h_without_replacing_supplied_ligand_h(monkeypatch):
+    from hotpot import Atom, Molecule
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX
+
+    molecule = Molecule()
+    molecule.create_atom(atomic_number=7, implicit_hydrogens=1, id=17)
+    molecule.add_atom(Atom(symbol="Am", formal_charge=3, id=93))
+    molecule.add_bond(0, 1, bond_order=1.0)
+    field = FIELD_INDEX["implicit_hydrogens"]
+    assert not int(molecule._atom_table._presence[1]) & (1 << field)
+    ligand_bytes = molecule._atom_table._columns[field][:1].tobytes()
+    ligand_source = int(molecule._atom_table._sources[0, field])
+
+    case = _case_for_molecule(monkeypatch, molecule)
+
+    assert case["eligibility"]["state"] == "eligible"
+    assert molecule._atom_table._columns[field][:1].tobytes() == ligand_bytes
+    assert int(molecule._atom_table._sources[0, field]) == ligand_source
+    assert ligand_source == ATOM_SOURCE_CODES["explicit"]
+    assert int(molecule._atom_table._presence[1]) & (1 << field)
+    assert [atom["implicit_hydrogens"] for atom in case["graph"]["atoms"]] == [1, 0]
+    assert [atom["atom_id"] for atom in case["graph"]["atoms"]] == [17, 93]
+    assert case["coordination"]["donor_rows"] == [0]
+
+
+def test_case_refreshes_stale_inferred_h_before_raw_graph_capture(monkeypatch):
+    from hotpot import Atom, Molecule
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX
+
+    molecule = Molecule()
+    donor = molecule.create_atom(atomic_number=7)
+    assert donor.implicit_hydrogens == 3
+    molecule.create_atom(atomic_number=8, implicit_hydrogens=0)
+    molecule.add_bond(0, 1, bond_order=1.0)
+    molecule.add_atom(Atom(symbol="Am", formal_charge=3))
+    molecule.add_bond(
+        0, 2, bond_order=1.0, bond_kind="dative", bond_direction="atom1_to_atom2",
+    )
+    field = FIELD_INDEX["implicit_hydrogens"]
+    assert int(molecule._atom_table._columns[field][0]) == 3
+
+    case = _case_for_molecule(monkeypatch, molecule)
+
+    assert case["eligibility"]["state"] == "eligible"
+    assert [atom["implicit_hydrogens"] for atom in case["graph"]["atoms"]] == [2, 0, 0]
+    assert int(molecule._atom_table._columns[field][0]) == 2
+    assert int(molecule._atom_table._sources[0, field]) == ATOM_SOURCE_CODES["implicit_hydrogens"]
+    assert case["graph"]["bonds"][1]["bond_kind"] == "dative"
+    assert case["graph"]["bonds"][1]["bond_direction"] == "atom1_to_atom2"
+
+
+def test_case_keeps_unresolved_h_unknown_without_fabricating_zero(monkeypatch):
+    from hotpot import Atom, BondKind, Molecule
+    from hotpot.cheminfo.structure._fields import FIELD_INDEX
+
+    molecule = Molecule()
+    molecule.create_atom(atomic_number=7)
+    molecule.add_atom(Atom(symbol="Am"))
+    molecule.add_bond(0, 1, bond_order=1.0, bond_kind=BondKind.UNKNOWN)
+    field = FIELD_INDEX["implicit_hydrogens"]
+    assert not int(molecule._atom_table._presence[0]) & (1 << field)
+
+    case = _case_for_molecule(monkeypatch, molecule)
+
+    assert case["eligibility"]["state"] == "unknown"
+    assert case["eligibility"]["reason"] == "eligibility_execution_error"
+    error = case["eligibility"]["error"]
+    assert error["type"] == "ValueError"
+    assert "HYDROGEN.UNKNOWN_BOND_KIND" in error["message"]
+    assert "requires resolved implicit-H" in error["message"]
+    assert "graph" not in case
+    assert not int(molecule._atom_table._presence[0]) & (1 << field)
+    runner = import_module("plan.20_fact_rule_architecture.run_scientific_report")
+    with pytest.raises(ValueError, match="requires present implicit-H facts"):
+        runner._graph_document(molecule)
+    assert not int(molecule._atom_table._presence[0]) & (1 << field)

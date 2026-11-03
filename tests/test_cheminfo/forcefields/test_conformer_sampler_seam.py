@@ -8,14 +8,16 @@ import numpy as np
 import pytest
 
 from hotpot.cheminfo.rules.mathematics import geometry as geo
-from hotpot.cheminfo.conformers import (
+from hotpot.cheminfo.operations.conformers import (
     ConformerBatch,
     ConformerSamplingError,
     ConformerSamplingRequest,
     OpenBabelConformerAdapter,
     RDKitConformerAdapter,
 )
-from hotpot.cheminfo.conformers.adapters import (
+from hotpot.cheminfo.operations.conformers import rdkit as conformer_rdkit
+from hotpot.cheminfo.adapters.rdkit import sampling
+from hotpot.cheminfo.operations.conformers.rdkit import (
     _materialized_hydrogen_projection,
 )
 from hotpot.cheminfo.operations.io import read_mol
@@ -45,6 +47,20 @@ from hotpot.cheminfo.stereo import (
     get_stereo_payload,
     set_stereo_payload,
 )
+
+
+
+def _patch_rdkit_sampling(monkeypatch, generate):
+    packed_sources = []
+    pack = conformer_rdkit.pack_molecule
+
+    def record_pack(molecule, fields):
+        packed_sources.append((molecule, fields))
+        return pack(molecule, fields)
+
+    monkeypatch.setattr(conformer_rdkit, "pack_molecule", record_pack)
+    monkeypatch.setattr(sampling, "generate", generate)
+    return packed_sources
 
 
 @dataclass
@@ -155,7 +171,11 @@ def _patch_accepted_downstream(monkeypatch, trace):
 
 
 def test_adapters_are_pickle_safe_and_prepare_passes_one_into_spawn(monkeypatch):
-    for adapter in (OpenBabelConformerAdapter(), RDKitConformerAdapter()):
+    for adapter, module in (
+        (OpenBabelConformerAdapter(), "hotpot.cheminfo.operations.conformers.openbabel"),
+        (RDKitConformerAdapter(), "hotpot.cheminfo.operations.conformers.rdkit"),
+    ):
+        assert type(adapter).__module__ == module
         assert type(pickle.loads(pickle.dumps(adapter))) is type(adapter)
 
     molecule = read_mol("[Zn].N", "smi")
@@ -323,8 +343,6 @@ def test_default_openbabel_path_matches_explicit_adapter_and_seeds_worker_once(
 def test_rdkit_adapter_requests_one_and_selects_the_lowest_stable_ordinal(
     monkeypatch,
 ):
-    from hotpot.cheminfo import rdWrappers
-
     molecule = read_mol("CC", "smi")
     original = molecule.coordinates.copy()
     calls = []
@@ -346,14 +364,17 @@ def test_rdkit_adapter_requests_one_and_selects_the_lowest_stable_ordinal(
             None,
         )
 
-    monkeypatch.setattr(rdWrappers, "generate_conformers", generate)
+    packed_sources = _patch_rdkit_sampling(monkeypatch, generate)
     sampled = RDKitConformerAdapter().sample(
         molecule,
         ConformerSamplingRequest(conformer_count=32, seed=29),
     )
 
     assert len(calls) == 1
-    assert calls[0][0] is molecule
+    assert len(packed_sources) == 1
+    assert packed_sources[0][0] is molecule
+    assert packed_sources[0][1] == conformer_rdkit._RDKIT_ETKDG_FIELDS
+    assert calls[0][0].atom_count == len(molecule.atoms)
     assert calls[0][1].conformer_count == 1
     assert calls[0][1].seed == 29
     assert calls[0][2] is None
@@ -363,8 +384,6 @@ def test_rdkit_adapter_requests_one_and_selects_the_lowest_stable_ordinal(
 
 
 def test_rdkit_materialized_hydrogen_mode_projects_a_copy(monkeypatch):
-    from hotpot.cheminfo import rdWrappers
-
     molecule = read_mol("CO", "smi")
     molecule.add_hydrogens(rm_polar_hs=False, rng=np.random.default_rng(31))
     original_implicit = tuple(atom.implicit_hydrogens for atom in molecule.atoms)
@@ -378,21 +397,22 @@ def test_rdkit_materialized_hydrogen_mode_projects_a_copy(monkeypatch):
         calls.append(current)
         return RDKitConformerBatch(
             GenerationStatus.SUCCESS,
-            np.zeros((1, len(current.atoms), 3)),
+            np.zeros((1, current.atom_count, 3)),
             (ConformerRecord(0, 0),),
             "rdkit-etkdg",
             "2026.09.1",
             None,
         )
 
-    monkeypatch.setattr(rdWrappers, "generate_conformers", generate)
+    packed_sources = _patch_rdkit_sampling(monkeypatch, generate)
     RDKitConformerAdapter(materialized_hydrogens=True).sample(
         molecule,
         ConformerSamplingRequest(conformer_count=1, seed=31),
     )
 
     assert len(calls) == 1
-    projected = calls[0]
+    assert len(packed_sources) == 1
+    projected = packed_sources[0][0]
     assert projected is not molecule
     assert tuple(atom.atomic_number for atom in projected.atoms) == tuple(
         atom.atomic_number for atom in molecule.atoms
@@ -476,8 +496,6 @@ def test_materialized_hydrogen_projection_rejects_ambiguous_stereo_hydrogen():
 
 
 def test_default_rdkit_adapter_preserves_partially_explicit_hydrogens(monkeypatch):
-    from hotpot.cheminfo import rdWrappers
-
     molecule = read_mol("[H][CH2]", "smi")
     calls = []
 
@@ -485,32 +503,31 @@ def test_default_rdkit_adapter_preserves_partially_explicit_hydrogens(monkeypatc
         calls.append(current)
         return RDKitConformerBatch(
             GenerationStatus.SUCCESS,
-            np.zeros((1, len(current.atoms), 3)),
+            np.zeros((1, current.atom_count, 3)),
             (ConformerRecord(0, 0),),
             "rdkit-etkdg",
             "2026.09.1",
             None,
         )
 
-    monkeypatch.setattr(rdWrappers, "generate_conformers", generate)
+    packed_sources = _patch_rdkit_sampling(monkeypatch, generate)
     RDKitConformerAdapter().sample(
         molecule,
         ConformerSamplingRequest(conformer_count=1, seed=41),
     )
 
-    assert calls == [molecule]
+    assert len(calls) == len(packed_sources) == 1
+    assert packed_sources[0][0] is molecule
+    assert calls[0].atom_count == len(molecule.atoms)
     assert molecule.atoms[1].implicit_hydrogens == 2
 
 
 def test_rdkit_failure_is_explicit_and_never_falls_back_to_openbabel(monkeypatch):
-    from hotpot.cheminfo import rdWrappers
-
     molecule = read_mol("[Zn].CC", "smi")
     fallback_calls = []
 
-    monkeypatch.setattr(
-        rdWrappers,
-        "generate_conformers",
+    _patch_rdkit_sampling(
+        monkeypatch,
         lambda *args, **kwargs: RDKitConformerBatch(
             GenerationStatus.FAILED,
             np.empty((0, 2, 3)),
@@ -693,3 +710,65 @@ def test_auto_native_fast_finalization_retains_actual_input_seed_and_effective_o
     assert parameters["stopping_criteria"]["window"] == 7
     assert parameters["convergence_level"] == int(ConvergenceLevel.FAST)
     assert parameters["build_method"] == "hotpot.cheminfo.obWrappers.build"
+
+
+@pytest.mark.parametrize("dtype", [np.float32, np.float64])
+def test_conformer_batch_owns_independent_immutable_nested_storage(dtype):
+    source = np.arange(36, dtype=dtype).reshape(2, 6, 3)[:, ::2, :]
+    expected = source.copy()
+    batch = ConformerBatch(source, (7, 3))
+    source[:] = -1
+
+    assert batch.coordinates.dtype == expected.dtype
+    assert batch.coordinates.shape == expected.shape
+    assert batch.ordinals == (7, 3)
+    assert not np.shares_memory(batch.coordinates, source)
+    np.testing.assert_array_equal(batch.coordinates, expected)
+    with pytest.raises(ValueError):
+        batch.coordinates[0, 0, 0] = 42
+    with pytest.raises(ValueError):
+        batch.coordinates.setflags(write=True)
+    with pytest.raises(ValueError):
+        batch.coordinates[0].setflags(write=True)
+    with pytest.raises(ValueError):
+        batch.coordinates.base.setflags(write=True)
+
+
+@pytest.mark.parametrize("protocol", [4, pickle.HIGHEST_PROTOCOL])
+def test_conformer_batch_pickle_retains_immutable_owned_storage(protocol):
+    batch = ConformerBatch(np.arange(12, dtype=np.float32).reshape(2, 2, 3), (4, 8))
+    restored = pickle.loads(pickle.dumps(batch, protocol=protocol))
+
+    assert type(restored) is ConformerBatch
+    assert type(restored).__module__ == "hotpot.cheminfo.structure.conformer"
+    assert restored.ordinals == batch.ordinals
+    assert restored.coordinates.dtype == batch.coordinates.dtype
+    assert not np.shares_memory(restored.coordinates, batch.coordinates)
+    np.testing.assert_array_equal(restored.coordinates, batch.coordinates)
+    with pytest.raises(ValueError):
+        restored.coordinates.setflags(write=True)
+    with pytest.raises(ValueError):
+        restored.coordinates.base.setflags(write=True)
+
+
+def test_rdkit_native_exception_retains_original_cause(monkeypatch):
+    molecule = read_mol("CC", "smi")
+    error = RuntimeError("native sampling unavailable")
+
+    def generate(*args, **kwargs):
+        raise error
+
+    packed_sources = _patch_rdkit_sampling(monkeypatch, generate)
+    with pytest.raises(ConformerSamplingError, match="native sampling unavailable") as caught:
+        RDKitConformerAdapter().sample(molecule, ConformerSamplingRequest(seed=43))
+
+    assert len(packed_sources) == 1
+    assert caught.value.__cause__ is error
+
+
+def test_conformer_batch_has_one_structure_value_owner():
+    from hotpot.cheminfo.structure.conformer import ConformerBatch as StructureBatch
+    from hotpot.cheminfo.operations.conformers.contracts import ConformerBatch as OperationBatch
+
+    assert ConformerBatch is StructureBatch is OperationBatch
+    assert StructureBatch.__module__ == "hotpot.cheminfo.structure.conformer"

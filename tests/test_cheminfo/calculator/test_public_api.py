@@ -6,7 +6,7 @@ import pytest
 
 
 # A1/A2 split the former calculator facade; scientific leaves expose contracts.
-_PUBLIC_EXPORTS = {'hotpot.cheminfo.calculator': ('mca',),
+_PUBLIC_EXPORTS = {
  'hotpot.cheminfo.rules.chemistry.scientific_state': ('ScientificQuantity',
                                                       'ScientificAdmissibility',
                                                       'ResolutionStatus',

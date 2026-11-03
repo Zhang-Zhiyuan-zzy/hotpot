@@ -351,9 +351,7 @@ def test_scientific_adapters_do_not_import_operations():
 
 
 def test_scientific_calculator_implementations_are_removed():
-    assert {path.name for path in (_PACKAGE_ROOT / "cheminfo/calculator").rglob("*.py")} == {
-        "__init__.py", "mca_inference.py",
-    }
+    assert not list((_PACKAGE_ROOT / "cheminfo/calculator").rglob("*.py"))
 
 
 def test_default_candidate_budget_remains_the_approved_bounded_work():

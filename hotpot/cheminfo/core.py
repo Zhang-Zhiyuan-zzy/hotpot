@@ -140,8 +140,6 @@ class Molecule:
         self._mutation_lock = _RLock()
         self._next_atom_uid = 0
         self._next_bond_uid = 0
-        self._model = None  # AI model
-        self._environ = None
 
         self._atoms = []
         self._atom_table = _AtomFactTable()
@@ -666,7 +664,7 @@ class Molecule:
             *,
             first_threshold: Optional[float] = None,
     ):
-        from .AImodels.cbond.apply import build_all_possible_cbond
+        from .operations.inference.cbond.apply import build_all_possible_cbond
         return build_all_possible_cbond(
             self,
             metal,
@@ -684,7 +682,7 @@ class Molecule:
             *,
             first_threshold: Optional[float] = None,
     ) -> Union['Molecule', tuple['Molecule', float]]:
-        from .AImodels.cbond.apply import auto_build_cbond
+        from .operations.inference.cbond.apply import auto_build_cbond
         if probability:
             return auto_build_cbond(
                 self,
@@ -2764,7 +2762,7 @@ class Atom(MolBlock):
             entry = mol._topology_index.get(id(self))
             if self._uid_owner is not mol._owner_token or entry is None:
                 raise RuntimeError(
-                    "MCA Atom membership changed; call hotpot.cheminfo.calculator.mca(mol, backend=...) again"
+                    "MCA Atom membership changed; call hotpot.cheminfo.operations.inference.mca.mca(mol, backend=...) again"
                 )
             return _current_mca_result(mol).atom_predictions[entry[0]].mca_kj_mol
 

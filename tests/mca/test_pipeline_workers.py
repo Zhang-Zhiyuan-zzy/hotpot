@@ -4,11 +4,11 @@ import multiprocessing
 import numpy as np
 from rdkit import Chem
 
-from mca.conformer import ensure_3d_conformer
-from mca.featurizer import mol_to_unimolv2
-from mca.pipeline import build_prediction
-from mca.serialization import normalize_molecule, rdmol_from_dto
-from mca.workers import (
+from hotpot.cheminfo.adapters.rdkit.conformers import ensure_3d_conformer
+from hotpot.cheminfo.adapters.inference.features import mol_to_unimolv2
+from hotpot.cheminfo.operations.inference.mca.pipeline import build_prediction
+from hotpot.cheminfo.operations.inference.mca.serialization import normalize_molecule, rdmol_from_dto
+from hotpot.cheminfo.operations.inference.mca.workers import (
     CPUPreprocessTask,
     FeatureTask,
     SiteDetectionTask,

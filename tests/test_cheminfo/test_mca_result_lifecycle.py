@@ -9,19 +9,19 @@ from threading import Thread
 import pytest
 
 from hotpot import read_mol
-from hotpot.cheminfo.AImodels.mca.result_types import (
+from hotpot.cheminfo.operations.inference.mca.results import (
     AtomPrediction,
     MoleculePrediction,
     SitePrediction,
 )
-from hotpot.cheminfo.AImodels.mca.serialization import MoleculeDTO
-from hotpot.cheminfo.calculator import mca
+from hotpot.cheminfo.operations.inference.mca.results import MoleculeDTO
+from hotpot.cheminfo.operations.inference.mca import mca
 from hotpot.cheminfo.structure._commit import _FactTransaction, _current_transaction
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
 
 
-mca_package = importlib.import_module("hotpot.cheminfo.AImodels.mca")
-operation = importlib.import_module("hotpot.cheminfo.calculator.mca_inference")
+mca_package = importlib.import_module("hotpot.cheminfo.operations.inference.mca")
+operation = importlib.import_module("hotpot.cheminfo.operations.inference.mca.attachment")
 
 
 def _prediction(molecule, offset=0.0):
@@ -71,7 +71,7 @@ def test_normalizes_once_captures_after_preparation_and_predicts_without_selecti
     monkeypatch, predictor,
 ):
     molecule = read_mol("CCN")
-    serialization = importlib.import_module("hotpot.cheminfo.AImodels.mca.serialization")
+    serialization = importlib.import_module("hotpot.cheminfo.operations.inference.mca.serialization")
     normalize = serialization.normalize_molecule
     results = importlib.import_module("hotpot.cheminfo.structure._results")
     capture, check = operation._capture_mca_source, results._check_source
@@ -133,9 +133,9 @@ def test_normalizes_once_captures_after_preparation_and_predicts_without_selecti
 
 def test_absence_reads_and_current_reads_never_predict_or_hash(monkeypatch, predictor):
     molecule = read_mol("CCN")
-    with pytest.raises(AttributeError, match="hotpot.cheminfo.calculator.mca"):
+    with pytest.raises(AttributeError, match="hotpot.cheminfo.operations.inference.mca.mca"):
         _ = molecule.atoms[0].mca
-    with pytest.raises(AttributeError, match="hotpot.cheminfo.calculator.mca"):
+    with pytest.raises(AttributeError, match="hotpot.cheminfo.operations.inference.mca.mca"):
         _ = molecule.mca_sites
     assert predictor == []
     prediction = mca(molecule, backend="cpu")
@@ -147,7 +147,7 @@ def test_absence_reads_and_current_reads_never_predict_or_hash(monkeypatch, pred
         "hotpot.cheminfo.structure._identity",
         "hotpot.cheminfo.structure._results",
         "hotpot.cheminfo.core",
-        "hotpot.cheminfo.calculator.mca_inference",
+        "hotpot.cheminfo.operations.inference.mca.attachment",
     ):
         module = importlib.import_module(name)
         for attribute in ("_capture_source", "_check_source", "_content_identities"):
@@ -374,9 +374,9 @@ def test_component_projection_drops_selection_even_for_single_component(predicto
         prediction = mca(molecule, backend="cpu")
         for component in molecule.components:
             assert component._mca_result is None
-            with pytest.raises(AttributeError, match="hotpot.cheminfo.calculator.mca"):
+            with pytest.raises(AttributeError, match="hotpot.cheminfo.operations.inference.mca.mca"):
                 _ = component.mca_sites
-            with pytest.raises(AttributeError, match="hotpot.cheminfo.calculator.mca"):
+            with pytest.raises(AttributeError, match="hotpot.cheminfo.operations.inference.mca.mca"):
                 _ = component.atoms[0].mca
         _assert_current(molecule, prediction)
     assert len(predictor) == 2

@@ -53,8 +53,8 @@ use, and reproducible pipelines. Every primary chemistry command accepts
 
 | Command | Purpose | Typical output | Detailed guide |
 |---|---|---|---|
-| `hotpot mca` | Predict site-resolved methyl cation affinity (MCA) | Atom table in kJ/mol | [MCA CLI](hotpot/cheminfo/AImodels/mca/cli_doc.md) |
-| `hotpot cbond` | Predict and construct metal–ligand coordination bonds | Complex SMILES or ranked structures | [CBond CLI](hotpot/cheminfo/AImodels/cbond/cli_doc.md) |
+| `hotpot mca` | Predict site-resolved methyl cation affinity (MCA) | Atom table in kJ/mol | [MCA CLI](hotpot/commands/mca.md) |
+| `hotpot cbond` | Predict and construct metal–ligand coordination bonds | Complex SMILES or ranked structures | [CBond CLI](hotpot/commands/cbond.md) |
 | `hotpot ff` | Build or optimize 3D molecular structures and report quality | Molecular structure file and optional JSON report | [Force-field CLI](hotpot/commands/ff.md) |
 | `hotpot xtb` | Run an independent GFN-FF or GFN-xTB calculation with an official xTB backend | 3D molecular records (SDF by default) and optional reports/logs | [xTB CLI](hotpot/plugins/xtb/cli_doc.md) |
 | `hotpot run` | Execute registered molecular stages with an ordered evidence tree | Result directory, manifest, stage artifacts, and final SDF | [Pipeline CLI](hotpot/pipeline/cli_doc.md) |
@@ -311,7 +311,7 @@ The Python API expresses the same operations through native chemical objects.
 
 ```python
 from hotpot import read_mol
-from hotpot.cheminfo.calculator import mca
+from hotpot.cheminfo.operations.inference.mca import mca
 
 mol = read_mol("c1ccccc1CN")
 mca(mol, backend="cpu")

@@ -8,7 +8,7 @@ import warnings
 from dataclasses import asdict, dataclass, replace
 from typing import Optional, Sequence, Tuple, TYPE_CHECKING, cast
 
-from hotpot.cheminfo.conformers import ConformerSampler, OpenBabelConformerAdapter
+from hotpot.cheminfo.operations.conformers import ConformerSampler, OpenBabelConformerAdapter
 from hotpot.cheminfo.adapters.openbabel.forcefields import _native_module
 from .acceptance import (
     _format_geometry_checks,
@@ -624,7 +624,7 @@ def _complexes_build_workflow(
             ("ligand_untangling_attempts", ligand_untangling_attempts),
             ("add_hydrogens", add_hydrogens),
             ("sampler", type(sampler).__module__ + "." + type(sampler).__qualname__
-             if sampler is not None else "hotpot.cheminfo.conformers.OpenBabelConformerAdapter"),
+             if sampler is not None else "hotpot.cheminfo.operations.conformers.openbabel.OpenBabelConformerAdapter"),
             ("coordination_options", json.loads(json.dumps(asdict(coordination_options)))),
             ("optimization_options", json.loads(json.dumps(asdict(optimization_options)))),
         ),
@@ -932,7 +932,7 @@ def _build_complex3d_workflow(
             ("ligand_untangling_attempts", ligand_untangling_attempts),
             ("add_hydrogens", add_hydrogens),
             ("sampler", type(sampler).__module__ + "." + type(sampler).__qualname__
-             if sampler is not None else "hotpot.cheminfo.conformers.OpenBabelConformerAdapter"),
+             if sampler is not None else "hotpot.cheminfo.operations.conformers.openbabel.OpenBabelConformerAdapter"),
             ("coordination_options", json.loads(json.dumps(asdict(options)))),
         ),
     )

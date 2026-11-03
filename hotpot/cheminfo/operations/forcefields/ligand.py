@@ -13,7 +13,7 @@ from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.operations.topology_queries import _components
 from hotpot.cheminfo.structure._selection import _capture_topology_selection
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
-from hotpot.cheminfo.conformers import (
+from hotpot.cheminfo.operations.conformers import (
     ConformerSampler,
     ConformerSamplingError,
     ConformerSamplingRequest,

@@ -8,8 +8,8 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from mca.gpu_backend import MCAGpuPredictor
-from mca.gpu_consumer import (
+from hotpot.cheminfo.operations.inference.mca.gpu_backend import MCAGpuPredictor
+from hotpot.cheminfo.operations.inference.mca.gpu_consumer import (
     GpuBatchRequest,
     GpuBatchResult,
     GpuConsumerConfig,
@@ -17,7 +17,7 @@ from mca.gpu_consumer import (
     GpuConsumerReady,
     gpu_consumer_main,
 )
-from mca.gpu_memory import MCAGpuOutOfMemoryError
+from hotpot.cheminfo.operations.inference.mca.gpu_memory import MCAGpuOutOfMemoryError
 from tests.mca._helpers import plan_logical_batches
 
 
@@ -91,7 +91,7 @@ def test_split_molecule_encoding_is_computed_once_and_scattered_to_both_chunks()
 
 
 def test_conveyor_submits_partial_features_without_waiting_for_sites(monkeypatch):
-    from mca import gpu_backend as module
+    from hotpot.cheminfo.operations.inference.mca import gpu_backend as module
 
     molecules = {
         "first": SimpleNamespace(
@@ -216,7 +216,7 @@ def test_rolling_admission_refills_released_atom_credit(
     monkeypatch,
     defer_second_site,
 ):
-    from mca import gpu_backend as module
+    from hotpot.cheminfo.operations.inference.mca import gpu_backend as module
 
     molecules = {
         index: SimpleNamespace(
@@ -344,7 +344,7 @@ def test_rolling_admission_refills_released_atom_credit(
 
 
 def test_local_cpu_worker_exception_type_is_preserved(monkeypatch):
-    from mca import gpu_backend as module
+    from hotpot.cheminfo.operations.inference.mca import gpu_backend as module
 
     molecule = SimpleNamespace(
         atom_count=1,
@@ -471,7 +471,7 @@ def test_remote_cuda_oom_reports_current_and_next_batch_with_cause():
 
 
 def test_gpu_consumer_owns_one_runtime_and_returns_all_atom_rows(monkeypatch):
-    from mca import gpu_consumer as module
+    from hotpot.cheminfo.operations.inference.mca import gpu_consumer as module
 
     observed = []
 
@@ -592,7 +592,7 @@ def test_gpu_predictor_rejects_use_after_close():
 
 
 def test_gpu_predictor_defers_cuda_check_and_resource_queries(monkeypatch):
-    from mca import gpu_backend as module
+    from hotpot.cheminfo.operations.inference.mca import gpu_backend as module
 
     monkeypatch.setattr(module, "cuda_provider_available", lambda: False)
     monkeypatch.setattr(
@@ -610,7 +610,7 @@ def test_gpu_predictor_defers_cuda_check_and_resource_queries(monkeypatch):
 
 
 def test_close_restores_the_calling_thread_affinity(monkeypatch):
-    from mca import gpu_backend as module
+    from hotpot.cheminfo.operations.inference.mca import gpu_backend as module
 
     predictor = object.__new__(MCAGpuPredictor)
     predictor._closed = False
@@ -638,7 +638,7 @@ def test_close_restores_the_calling_thread_affinity(monkeypatch):
 
 
 def test_startup_failure_restores_affinity_before_propagating(monkeypatch):
-    from mca import gpu_backend as module
+    from hotpot.cheminfo.operations.inference.mca import gpu_backend as module
 
     plan = SimpleNamespace(
         gpu_indices=(0,),
@@ -673,7 +673,7 @@ def test_startup_failure_restores_affinity_before_propagating(monkeypatch):
 
 
 def test_clean_consumer_exit_fails_fast(monkeypatch):
-    from mca import gpu_backend as module
+    from hotpot.cheminfo.operations.inference.mca import gpu_backend as module
 
     predictor = object.__new__(MCAGpuPredictor)
     predictor._result_queue = queue.Queue()
@@ -687,7 +687,7 @@ def test_clean_consumer_exit_fails_fast(monkeypatch):
 
 
 def test_gpu_shutdown_timeout_budget_is_constant_across_processes(monkeypatch):
-    from mca import gpu_backend as module
+    from hotpot.cheminfo.operations.inference.mca import gpu_backend as module
 
     clock = [100.0]
     join_timeouts = []
@@ -736,7 +736,7 @@ def test_cpu_worker_exit_fails_fast():
 def test_close_does_not_wait_for_unconsumed_queue_feeder():
     script = """
 import multiprocessing as mp
-from hotpot.cheminfo.AImodels.mca.gpu_backend import MCAGpuPredictor
+from hotpot.cheminfo.operations.inference.mca.gpu_backend import MCAGpuPredictor
 
 request_queue = mp.get_context("spawn").Queue(maxsize=2)
 request_queue.put(b"x" * (16 * 1024 * 1024))

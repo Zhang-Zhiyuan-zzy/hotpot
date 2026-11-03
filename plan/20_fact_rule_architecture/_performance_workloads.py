@@ -162,7 +162,7 @@ def prepare(entry, phase):
         return repeat(convert), lambda: None
     if name == "conformer":
         from rdkit import Chem
-        module = "hotpot.cheminfo.AImodels.mca.conformer" if phase == "baseline" else "hotpot.cheminfo.adapters.rdkit.conformer"
+        module = "hotpot.cheminfo.AImodels.mca.conformer" if phase == "baseline" else "hotpot.cheminfo.adapters.rdkit.conformers"
         generate = importlib.import_module(module).ensure_3d_conformer
         source = Chem.MolFromSmiles(params["smiles"])
         def conformer():
@@ -203,7 +203,7 @@ def prepare(entry, phase):
                     "prediction_sum": sum(a.mca_kj_mol for p in predictions for a in p.atom_predictions)}
         return repeat(predict, 1), lambda: predictor.__exit__(None, None, None)
     if name == "cbond":
-        module = "hotpot.cheminfo.AImodels.cbond.runtime" if phase == "baseline" else "hotpot.cheminfo.adapters.inference.runtime"
+        module = "hotpot.cheminfo.AImodels.cbond.runtime" if phase == "baseline" else "hotpot.cheminfo.operations.inference.cbond.runtime"
         runtime = importlib.import_module(module).CBondRuntime(device=params["device"])
         atoms = np.asarray([6, 7, 8, 26], dtype=np.int32)
         edges = np.asarray([[0, 1, 1, 2, 2, 0], [1, 0, 2, 1, 0, 2]], dtype=np.int64)

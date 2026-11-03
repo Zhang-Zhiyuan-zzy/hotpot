@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from hotpot import Molecule, read_mol
-from hotpot.cheminfo.AImodels.mca.result_types import (
+from hotpot.cheminfo.operations.inference.mca.results import (
     AtomPrediction, MoleculePrediction, SitePrediction,
 )
 from hotpot.cheminfo.structure._results import _capture_mca_source, _select_mca_result
@@ -499,9 +499,9 @@ def test_successful_commit_preserves_existing_object_identity_and_atom_ids(monke
     assert set(molecule._mca_result.invalidated_by) == {"mca_representation", "geometry"}
     assert prediction.atom_predictions[1].mca_kj_mol == 314.0
     assert prediction.sites == (SitePrediction(1, "O", "fixture", 314.0),)
-    with pytest.raises(RuntimeError, match="mca_representation.*geometry.*calculator\\.mca"):
+    with pytest.raises(RuntimeError, match="mca_representation.*geometry.*operations\\.inference\\.mca\\.mca"):
         _ = original_atoms[1].mca
-    with pytest.raises(RuntimeError, match="mca_representation.*geometry.*calculator\\.mca"):
+    with pytest.raises(RuntimeError, match="mca_representation.*geometry.*operations\\.inference\\.mca\\.mca"):
         _ = molecule.mca_sites
     assert "_mca_sites" not in molecule.__dict__
     assert "mca" not in molecule.properties

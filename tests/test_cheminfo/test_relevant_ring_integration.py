@@ -10,7 +10,7 @@ import pytest
 
 from hotpot.cheminfo.operations.forcefields import repair
 from hotpot.cheminfo.core import Molecule
-from hotpot.cheminfo.AImodels.data_extract import extract_ring_attrs
+from hotpot.cheminfo.operations.inference.features import extract_ring_attrs
 from hotpot.cheminfo.rules.mathematics.graph import RelevantCycleLimitExceeded
 
 

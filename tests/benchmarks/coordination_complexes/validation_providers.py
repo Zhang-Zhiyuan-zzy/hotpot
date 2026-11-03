@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Mapping
 
 import numpy as np
 
-from hotpot.cheminfo.conformers import (
+from hotpot.cheminfo.operations.conformers import (
     ConformerBatch,
     ConformerSampler,
     ConformerSamplingError,

@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from hotpot import Molecule
-from hotpot.cheminfo.AImodels.mca.result_types import (
+from hotpot.cheminfo.operations.inference.mca.results import (
     AtomPrediction, MoleculePrediction, SitePrediction,
 )
 from hotpot.cheminfo.structure._atom_table import _AtomFactTable
@@ -299,7 +299,7 @@ def test_private_scratch_table_has_no_molecular_result_or_dependency_hook():
 
 @pytest.mark.parametrize('ingress', _INGRESSES)
 def test_nonempty_ensemble_tuple_alone_reaches_native_result_preparation(ingress):
-    from hotpot.cheminfo.conformers.contracts import ConformerBatch
+    from hotpot.cheminfo.operations.conformers.contracts import ConformerBatch
     from hotpot.cheminfo.structure.conformer import _publish_conformer_ensemble
 
     mol = _molecule()

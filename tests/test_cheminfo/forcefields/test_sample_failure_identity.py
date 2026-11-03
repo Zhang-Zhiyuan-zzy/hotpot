@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from hotpot.cheminfo.conformers import ConformerBatch, ConformerSamplingError
+from hotpot.cheminfo.operations.conformers import ConformerBatch, ConformerSamplingError
 from hotpot import Molecule
 from hotpot.cheminfo.operations.forcefields import backend, ligand, stage, workers
 from hotpot.cheminfo.operations.forcefields.contracts import (

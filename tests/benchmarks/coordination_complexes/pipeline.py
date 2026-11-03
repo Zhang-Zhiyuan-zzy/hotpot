@@ -18,7 +18,7 @@ from .io import json_value, write_json
 
 if TYPE_CHECKING:
     from hotpot import Molecule
-    from hotpot.cheminfo.AImodels.cbond.apply import CBondPathResult
+    from hotpot.cheminfo.operations.inference.cbond.apply import CBondPathResult
 
 
 def _infer_cbond(
@@ -27,7 +27,7 @@ def _infer_cbond(
     settings: BenchmarkSettings,
 ) -> "CBondPathResult":
     """Apply the benchmark's explicitly recorded two-threshold policy."""
-    from hotpot.cheminfo.AImodels.cbond.apply import (
+    from hotpot.cheminfo.operations.inference.cbond.apply import (
         auto_build_cbond,
         get_cbond_runtime,
     )

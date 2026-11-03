@@ -1,17 +1,14 @@
 from types import SimpleNamespace
 
 import pytest
+from hotpot.cheminfo.adapters.inference.device import MIB, gpu_memory_bytes, gpu_total_memories_bytes, parse_nvidia_smi_memory
 
-from hotpot.cheminfo.AImodels.mca.gpu_memory import (
+from hotpot.cheminfo.operations.inference.mca.gpu_memory import (
     GIB,
-    MIB,
     MCAGpuOutOfMemoryError,
     automatic_gpu_batch_size,
-    gpu_memory_bytes,
-    gpu_total_memories_bytes,
     is_cuda_out_of_memory,
     next_lower_gpu_batch_size,
-    parse_nvidia_smi_memory,
     resolve_gpu_batch_size,
     validate_gpu_batch_size,
 )
@@ -68,7 +65,7 @@ def test_nvidia_smi_output_and_visible_logical_index_are_parsed(monkeypatch):
         return SimpleNamespace(stdout="81920, 60000\n")
 
     monkeypatch.setattr(
-        "hotpot.cheminfo.AImodels.mca.gpu_memory.subprocess.run", run
+        "hotpot.cheminfo.adapters.inference.device.subprocess.run", run
     )
     memory = gpu_memory_bytes(1)
 

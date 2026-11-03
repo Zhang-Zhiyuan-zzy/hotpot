@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from hotpot.cheminfo import rdWrappers
-from hotpot.cheminfo.conformers import ConformerBatch, RDKitConformerAdapter
+from hotpot.cheminfo.operations.conformers import ConformerBatch, RDKitConformerAdapter
 from hotpot.cheminfo.core import Molecule
 
 from .configuration import SMOKE_SETTINGS

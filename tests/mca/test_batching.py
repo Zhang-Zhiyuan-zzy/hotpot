@@ -1,6 +1,6 @@
 import pytest
 
-from mca.batching import (
+from hotpot.cheminfo.operations.inference.mca.batching import (
     AtomRow,
     LogicalBatchPlanner,
     scatter_batch_predictions,

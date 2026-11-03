@@ -12,10 +12,14 @@ recursive-include hotpot/cheminfo/adapters/visualization/fonts *.ttf
 include hotpot/cheminfo/adapters/visualization/draw.md
 include hotpot/cheminfo/operations/inference/artifacts/data/cbond/manifest.json
 include hotpot/cheminfo/operations/inference/artifacts/data/cbond/README.md
-include hotpot/cheminfo/AImodels/cbond/cli_doc.md
+include hotpot/commands/cbond.md
+recursive-include hotpot/cheminfo/operations/inference/cbond *.md
+recursive-include tools/model_deployment/cbond *.py *.md
 include hotpot/cheminfo/operations/inference/artifacts/data/mca/manifest.json
 include hotpot/cheminfo/operations/inference/artifacts/data/mca/README.md
-include hotpot/cheminfo/AImodels/mca/cli_doc.md
+include hotpot/commands/mca.md
+include hotpot/cheminfo/operations/inference/INFERENCE_COMPATIBILITY.md
+recursive-include hotpot/cheminfo/operations/inference/mca *.md *.txt
 include hotpot/commands/ff.md
 include hotpot/plugins/xtb/cli_doc.md
 include hotpot/plugins/xtb/README.md

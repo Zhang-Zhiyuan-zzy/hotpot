@@ -301,7 +301,7 @@ def _current_cbond(
 
     del index
     from hotpot import read_mol
-    from hotpot.cheminfo.AImodels.cbond.apply import (
+    from hotpot.cheminfo.operations.inference.cbond.apply import (
         auto_build_cbond,
         get_cbond_runtime,
     )

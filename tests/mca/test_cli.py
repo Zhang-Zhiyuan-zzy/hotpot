@@ -5,9 +5,9 @@ import pytest
 
 from hotpot import read_mol
 from hotpot import __main__ as hotpot_main
-from hotpot.cheminfo.AImodels.mca import cli
-from hotpot.cheminfo.AImodels.mca.serialization import MoleculeDTO
-from hotpot.cheminfo.AImodels.mca.result_types import (
+from hotpot.commands import mca as cli
+from hotpot.cheminfo.operations.inference.mca.results import MoleculeDTO
+from hotpot.cheminfo.operations.inference.mca.results import (
     AtomPrediction,
     MoleculePrediction,
     SitePrediction,
@@ -152,7 +152,7 @@ def test_plot_option_delegates_to_plot_backend(monkeypatch, tmp_path):
         observed.append((len(molecules), len(predictions), Path(path), all_sites))
 
     monkeypatch.setattr(cli, "save_plot", record_plot)
-    plot_path = tmp_path / "mca.png"
+    plot_path = tmp_path / "hotpot.cheminfo.operations.inference.mca.png"
 
     assert hotpot_main.main(
         [
@@ -170,7 +170,7 @@ def test_plot_option_delegates_to_plot_backend(monkeypatch, tmp_path):
 
 
 def test_plot_backend_writes_png(tmp_path):
-    plot_path = tmp_path / "mca.png"
+    plot_path = tmp_path / "hotpot.cheminfo.operations.inference.mca.png"
 
     cli.save_plot([read_mol("CN")], [_prediction()], str(plot_path), False)
 

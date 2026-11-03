@@ -1266,5 +1266,53 @@
     "native_graph_definitions": 1,
     "stage_gate_closed": true,
     "global_gate_closed": false
+  },
+  "stage8d_inference_conformer_cutover": {
+    "status": "ROOT_ACCEPTED_STAGE8D_CP311_SOURCE_INSTALLED_CPU_GPU_CONFORMERS",
+    "source_parent": "31707ba0f7daabe3c92891adfa2e47108f2daa29",
+    "census": {
+      "baseline_commit": "31707ba0f7daabe3c92891adfa2e47108f2daa29",
+      "before": {
+        "python_files": 491,
+        "classes": 778,
+        "dataclasses": 355,
+        "protocols": 8,
+        "typed_dicts": 2
+      },
+      "after": {
+        "python_files": 492,
+        "classes": 771,
+        "dataclasses": 355,
+        "protocols": 8,
+        "typed_dicts": 2
+      },
+      "existing_classes_moved_to_repository_tools": [
+        "CBondInfer",
+        "Infer",
+        "InferCore",
+        "InferCore_",
+        "InferGraph",
+        "Infer_",
+        "NodeProcessor"
+      ],
+      "new_classes": 0,
+      "deleted_classes": 0,
+      "mode": "stdlib AST only; no product imports"
+    },
+    "new_record_classes": 0,
+    "new_durable_molecular_fields": 0,
+    "owners": "Existing prediction/transfer records move once to operations.inference.mca.results; DetectedSite to rules.chemistry.mca_sites; existing runtime/IPC/resource/conformer values retain single definitions. Seven existing deployment classes move out of the product into repository tools, without deletion credit. Shared ConformerBatch is defined once in structure.conformer and reexported by operation contracts after the observed pure-rule closure failure; class counts are unchanged.",
+    "retired_unused_molecular_initializers": [
+      "_model",
+      "_environ"
+    ],
+    "legacy_core_bindings": {
+      "scoped_before": 11,
+      "scoped_after": 7,
+      "retired": 4,
+      "final_retirement_owner": "Stage9"
+    },
+    "evidence": ".plan20-artifacts/20261104/stage8d/inference-conformers/integration/type-census.json",
+    "checkpoint": "stages/stage08/inference/validation/d2-d3/checkpoint.json"
   }
 }

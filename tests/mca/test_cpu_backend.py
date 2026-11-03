@@ -2,12 +2,12 @@ import os
 
 import numpy as np
 import pytest
-from mca import cpu_backend as cpu_backend_module
-from mca.cpu_backend import MCACpuPredictor
+from hotpot.cheminfo.operations.inference.mca import cpu_backend as cpu_backend_module
+from hotpot.cheminfo.operations.inference.mca.cpu_backend import MCACpuPredictor
 from rdkit import Chem
 
-from mca.conformer import ensure_3d_conformer
-from mca.pipeline import PreparedMolecule, prepare_molecule
+from hotpot.cheminfo.adapters.rdkit.conformers import ensure_3d_conformer
+from hotpot.cheminfo.operations.inference.mca.pipeline import PreparedMolecule, prepare_molecule
 
 
 @pytest.fixture(scope="module")

@@ -43,7 +43,7 @@ merely to fill a directory.
 | Stage5 | [stage05](stage05/README.md) | Completed owning technical gates,finite H-default correction,retained failures and open final performance/science |
 | Stage6 | [stage06](stage06/README.md) | Completed owning gates; C62 delivered/remote-verified; C61 remains validated runtime source |
 | Stage7 | [stage07](stage07/README.md) | Stage7A–E accepted within recorded CP311 scopes; final delivery/version/resource obligations remain |
-| Stage8 | [stage08](stage08/README.md) | Stage8A/B accepted within CP311; Stage8C–E not entered; later/global obligations remain |
+| Stage8 | [stage08](stage08/README.md) | Stage8A–D accepted within recorded CP311 scopes; Stage8E unentered; later/global obligations remain |
 | Stage9 | [stage09](stage09/README.md) | Planned: Split the carriers and hard-cut `core.py` |
 | Stage10 | [stage10](stage10/README.md) | Planned: Complete physical package and native build migration |
 | Stage11 | [stage11](stage11/README.md) | Planned: Clean outer commands and data ownership |

@@ -109,7 +109,7 @@ def core() -> None:
 
 
 def mca() -> None:
-    from hotpot.cheminfo.AImodels.mca import predict_mca_cpu
+    from hotpot.cheminfo.operations.inference.mca import predict_mca_cpu
 
     prediction = predict_mca_cpu("C1CCCCN1")
     assert len(prediction.atom_predictions) == 6

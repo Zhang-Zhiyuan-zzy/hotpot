@@ -3,11 +3,11 @@ from pathlib import Path
 
 import onnx
 import pytest
-from mca.all_atom_model import (
+from hotpot.cheminfo.adapters.inference.all_atom_model import (
     UnsupportedAllAtomOptimization,
     materialize_all_atom_model,
 )
-from mca.model_store import ModelStore
+from hotpot.cheminfo.operations.inference.mca.model_store import ModelStore
 from onnx import TensorProto, helper
 
 

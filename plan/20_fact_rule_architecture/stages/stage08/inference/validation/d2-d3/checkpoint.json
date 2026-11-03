@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8D",
+  "slice": "D2 connected inference + D3 conformer orchestration",
+  "date": "2026-11-04",
+  "parent_head": "31707ba0f7daabe3c92891adfa2e47108f2daa29",
+  "status": "ROOT_ACCEPTED_STAGE8D_CP311_SOURCE_INSTALLED_CPU_GPU_CONFORMERS",
+  "root_acceptance": {
+    "status": "ACCEPTED_BOUNDED_STAGE8D_CP311",
+    "scope": "Owning source/installed/actual CPU/GPU/conformer/artifact migration",
+    "review": "Root reviewed connected owner/source/contract changes, actual source/installed/CPU/pipeline/GPU observations, original failures, exact node-set reuse and final frozen bytes.",
+    "final_root_freeze_recheck_pending": false
+  },
+  "stage_gate_closed": true,
+  "global_gate_closed": false,
+  "freeze": {
+    "revision": 3,
+    "sha256": "aa7589f23e4c4107b622356f5a2ca9c9d427a2e2cf5479a03ae6434090445989",
+    "bindings": 1507,
+    "deleted_paths": 49,
+    "support_files": 6,
+    "evidence": "freeze_R3",
+    "final_root_recheck": "All1507bindings/49deleted paths/6support files verified; evidence_graph.json::final_root_recheck",
+    "qualification": "Source evidence is composed across R2 and R3 under the explicit diagnostic-only reuse partition; R1 failed evidence retained."
+  },
+  "results": {
+    "focused_R2": {
+      "evidence": "source_focused_R2",
+      "passed": 374,
+      "skipped": 0,
+      "returncode": 0,
+      "wall_seconds": 18.738426567986608,
+      "files": 14
+    },
+    "retained_remaining_R2": {
+      "evidence": "source_remaining_R2",
+      "passed_reused": 870,
+      "failed_original_attempt": 1,
+      "stopped_after_first_failure": true,
+      "wall_seconds_original_attempt": 21.91898355074227,
+      "reuse_basis": "All production bytes and retained test bytes unchanged by R3; two diagnostic-only test files corrected. Node-set partition is explicit in remaining_reconciliation_R3."
+    },
+    "continuation_R3": {
+      "evidence": "source_continuation_R3",
+      "passed": 600,
+      "skipped": 0,
+      "returncode": 0,
+      "wall_seconds": 12.714550610631704
+    },
+    "composed_source": {
+      "passed_distinct": 1844,
+      "failures_unresolved_in_composed_selection": 0,
+      "skipped": 0,
+      "files": 69,
+      "reconciliation": "coverage_reconciliation",
+      "not_a_single_1844_case_execution": true
+    },
+    "actual_source_pipeline": {
+      "evidence": "source_pipeline_R3",
+      "passed": 3,
+      "skipped": 0,
+      "returncode": 0,
+      "wall_seconds": 5.341870203614235,
+      "separate_from_1844_case_contract_selection": true,
+      "scope": "Three actual official integration cases; CBond/FF and configured GFN-FF/xTB handoffs, original pipeline manifests/reports available through business_observations."
+    },
+    "one_gpu_installed_smoke": {
+      "owner": "root",
+      "status": "ROOT_ACCEPTED_BOUNDED_INSTALLED_ONE_GPU_FUNCTIONAL_EVIDENCE",
+      "passed": true,
+      "result_evidence": "gpu_root_result",
+      "actual_cuda_provider": "CUDAExecutionProvider",
+      "actual_device": "GPU-0ff451ca-17b2-db20-a96f-794543f87767",
+      "selected_sites_each_call": 300,
+      "ordered_atom_values_each_call": 1800,
+      "minimum_selected_sites_required": 256,
+      "predictor_calls": 2,
+      "predictor_reuse_observed": true,
+      "runtime_calls": 58,
+      "node_provider_counts": {
+        "CUDAExecutionProvider": 71050,
+        "CPUExecutionProvider": 3364
+      },
+      "repeatability": {
+        "max_absolute_atom_difference_kj_mol": 0.0,
+        "rtol": 1e-05,
+        "atol_kj_mol": 0.001
+      },
+      "elapsed_seconds": {
+        "preflight": 4.416947045130655,
+        "one-gpu": 20.62107593519613
+      },
+      "source_identity_match": true,
+      "source_freeze_sha256": "aa7589f23e4c4107b622356f5a2ca9c9d427a2e2cf5479a03ae6434090445989",
+      "wheel_sha256": "32beaaba32848c4aaa7b6d3870c77d4cd767dacd2a4bbc15702d1358898e8dc8",
+      "archive_sha256": "013b28523df6d5682d7daf354a02b3ed306be512d574c2f42d877475e2cc9523",
+      "manifest_sha256": "84582520914ec6b00fb796cfb24303f81e0156c2861c2d189ab2ac6d36c6872b",
+      "prior_failure_disposition": "The separate manual ctypes-library probe exit134 is retained. The selected real native/CPU and CUDA session route now completed normally; no blanket environment/library-probe correctness claim.",
+      "scope_limit": "CP311 private wheel and one GPU functional smoke, not benchmark, broad installed selection, clean-native/SDK/sdist, other-version/global acceptance.",
+      "whole_stage_acceptance": false
+    },
+    "installed_contracts": {
+      "owner": "Local validation execution; root reviewed actual receipts",
+      "selection_files": 66,
+      "evidence": "installed_owner_result",
+      "status": "BOUNDED_INSTALLED_SELECTION_AND_ACTUAL_PIPELINE_PASSED_AFTER_REVIEWED_ARTIFACT_CORRECTION",
+      "passed_distinct": 1627,
+      "retained_initial_passes": 320,
+      "canonical_import_continuation_passes": 1307,
+      "skipped": 0,
+      "unresolved_failures": 0,
+      "origin_receipts": 47,
+      "origin_leaks": [],
+      "installed_product_files_equal_wheel_after": 863,
+      "reuse_attribution": "The320 original passes ran exact installed physical bytes under an outside/hotpot lexical symlink. After symlink removal,1307 remaining nodes (including failed ownership check) and3 pipeline cases use canonical installed imports. No unchanged original pass was rerun.",
+      "source_fixture_classification": {
+        "native_cpp_inspection_node": "tests/test_cheminfo/rdWrappers/test_coordination_embedding.py::test_native_sampler_has_no_business_forcefield_entrypoint_calls",
+        "count": 1,
+        "result": "passed",
+        "claim": "Frozen checkout sampler.cpp supplied only for static source inspection. Not evidence of C++ source included in wheel, fresh native compilation, SDK or native delivery.",
+        "remaining_installed_selection_cases": 1626,
+        "note": "These exercise installed Python/native/resources or inspect installed code; this count is not a claim that every case performs a model/native invocation."
+      },
+      "freeze_all_before_after_verified": true,
+      "model_post_identity": {
+        "mca": {
+          "count": 85,
+          "bytes": 157310650
+        },
+        "cbond": {
+          "count": 3,
+          "bytes": 10305478
+        }
+      },
+      "not_a_single_1627_case_execution": true
+    },
+    "actual_installed_pipeline": {
+      "owner": "Local validation execution; root reviewed actual receipts",
+      "evidence": "installed_pipeline",
+      "passed": 3,
+      "skipped": 0,
+      "returncode": 0,
+      "separate_from_1627_case_selection": true,
+      "xtb_version": "6.7.1",
+      "observation_evidence": "installed_owner_result",
+      "wall_seconds": 5.411981428042054
+    }
+  },
+  "retained_failures": [
+    {
+      "id": "R1_TRANSITIVE_RULE_UPPER_IMPORT",
+      "evidence": "source_remaining_R1_failure",
+      "actual_passed_before_stop": 467,
+      "actual_failed": 1,
+      "classification": "Genuine ownership defect, not a checker exception",
+      "correction": "Move the sole existing ConformerBatch to structure/conformer.py; operation contracts reexport it. Canonical frames/rule closures retain no upward operation dependency. R2 changes two product files plus the existing seam test; focused selection rerun374 and remaining selection resumed under R2.",
+      "revisions": [
+        "freeze_R1",
+        "freeze_R2"
+      ],
+      "counted_toward_final_coverage": false
+    },
+    {
+      "id": "R2_STALE_MCA_DIAGNOSTIC_EXPECTATION",
+      "evidence": "source_remaining_R2_failure",
+      "actual_passed_before_stop": 870,
+      "actual_failed": 1,
+      "classification": "Test expected old calculator.mca text while product correctly names operations.inference.mca.mca",
+      "correction": "Only expected diagnostic strings in tests/test_cheminfo/structure/test_selected_results.py and tests/test_cheminfo/test_complex_hydrogens.py changed. No product fix, fallback or relaxed chemistry assertion. R3 runs failed/unreached600 nodes; unchanged870 retained explicitly.",
+      "patch": "oracle_correction_R3",
+      "revisions": [
+        "freeze_R2",
+        "freeze_R3"
+      ],
+      "counted_original_failure_as_pass": false
+    },
+    {
+      "id": "INSTALLED_ATTEMPT01_LEXICAL_SYMLINK_ALIAS",
+      "evidence": "installed_attempt01_failure",
+      "actual_passed_before_stop": 320,
+      "classification": "Author-introduced outside/hotpot symlink lexical alias in validation layout; distinct from R1 ownership defect and R2 diagnostic-test correction",
+      "attribution": "The320 original passes ran exact installed physical bytes under an outside/hotpot lexical symlink. After symlink removal,1307 remaining nodes (including failed ownership check) and3 pipeline cases use canonical installed imports. No unchanged original pass was rerun.",
+      "disposition": "Root-reviewed artifact-only symlink removal;320 unchanged physical-byte passes retained plus1307 exact failed/unexecuted continuation passes; original failure preserved.",
+      "counted_toward_installed_coverage": true,
+      "counting_qualification": "Only the320 passed node IDs are retained; original failed node passes in continuation and is counted once."
+    },
+    {
+      "id": "REMOTE_MANUAL_CTYPES_LIBRARY_PROBE_EXIT134",
+      "evidence": "gpu_release",
+      "returncode": 134,
+      "classification": "Separate prior manual library probe; preserved without blanket environment waiver",
+      "disposition": "The separate manual ctypes-library probe exit134 is retained. The selected real native/CPU and CUDA session route now completed normally; no blanket environment/library-probe correctness claim.",
+      "counted_as_success": false
+    }
+  ],
+  "attribution": {
+    "interpreter": {
+      "executable": "/tmp/hotpot-plan20-env/bin/python",
+      "version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]"
+    },
+    "source_runtime_cwd": "/home/zhangzhiyuan/hotpot",
+    "source_command_environment_details": "execution nodes in evidence_graph.json; actual argv, taskset32-39, offline existing model bundles, thread caps, origin receipts and before/after freeze checks retained there",
+    "accepted_execution_origin_leaks": [],
+    "model_binding": "models_rebound",
+    "business_observations": "business_observations",
+    "scientific_interpretation": "Actual model/workflow observations under their recorded method and inputs; no experimental truth or benchmark parity claim."
+  },
+  "private_wheel": {
+    "status_observed": "PRIVATE_VALIDATION_WHEEL_BUILT_AUDITED_AND_INSTALLED",
+    "manifest": "wheel_manifest",
+    "sha256": "32beaaba32848c4aaa7b6d3870c77d4cd767dacd2a4bbc15702d1358898e8dc8",
+    "filename": "hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+    "size_bytes": 6368037,
+    "tag": "cp311-cp311-linux_x86_64",
+    "record_hashes_all_valid": true,
+    "canonical_source_hashes_match": true,
+    "six_native_binaries_reused_unchanged": true,
+    "installed_product_hashes_match_wheel": true,
+    "runtime_acceptance": "Root accepted bounded CP311 installed1627 distinct selection cases,3 separate actual pipeline cases and one-GPU functional evidence.",
+    "coverage_limit": "Private CP311 wheel with six accepted native binaries reused unchanged. Actual affected installed/CPU/pipeline and one-GPU functional evidence is accepted separately; no clean full-native/SDK/sdist/multi-version or benchmark claim."
+  },
+  "pending": {
+    "delivery": {
+      "status": "BUSINESS_COMMIT_AND_PUSH_PENDING",
+      "commit_attribution": "Containing Git commit and normal origin branch history; no self-referential commit hash"
+    }
+  },
+  "class_budget": {
+    "new_record_classes": 0,
+    "new_durable_molecular_fields": 0,
+    "ConformerBatch": "one existing class at structure/conformer.py; no duplicate record",
+    "deployment_classes_moved_out_of_importable_hotpot": 7,
+    "deletion_credit_for_tool_moves": 0,
+    "entry": "data_object_budget.json::stage8d_inference_conformer_cutover"
+  },
+  "limits": [
+    "CP311 affected selection only; no other-version support claim.",
+    "Fake-GPU threshold/window/session coverage is not actual CUDA evidence.",
+    "Private wheel reuses six accepted native binaries; no clean full-native/ABI/SDK/sdist claim.",
+    "No comparable performance or global speed claim from test timings.",
+    "Original R1 product failure and R2 diagnostic-test failure remain retained.",
+    "One deliberate GeometryQualityWarning in the continuation remains visible; do not suppress it or reinterpret the mock geometry as accepted structure.",
+    "P20-D024 imported-H assembly remains a Stage8E obligation, unaffected by this checkpoint.",
+    "One installed selection case uses frozen sampler.cpp solely as SOURCE_INSPECTION_ONLY; not wheel-native-source, fresh compilation, SDK or native delivery evidence.",
+    "Actual source/installed/CPU/GPU evidence is bounded to declared selections and workloads; later/global obligations remain open."
+  ],
+  "stage_gate_scope": "Stage8D owning CP311 scope accepted; broader gates remain open",
+  "open_gates": [
+    "global plan completion",
+    "clean-native rebuild",
+    "SDK",
+    "sdist",
+    "multi-version matrix",
+    "final four-GPU evidence",
+    "scientific/performance corpus gates"
+  ],
+  "retention": {
+    "path": ".plan20-artifacts/20261104/stage8d/inference-conformers",
+    "receipt": "retention.json",
+    "sha256": "4743659ca76e0903f3bfbb81b99be3370f788dca53759977b39716b88965218c",
+    "files": 643
+  }
+}

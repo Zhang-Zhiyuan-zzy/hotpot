@@ -222,3 +222,18 @@ def test_artifact_pointers_are_owned_by_the_inference_operation_package():
             path = f"hotpot/cheminfo/operations/inference/artifacts/data/{name}/{filename}"
             assert (ROOT / path).is_file()
             assert f"include {path}" in manifest
+
+
+def test_inference_commands_and_companion_docs_follow_their_owners():
+    with (ROOT / "pyproject.toml").open("rb") as stream:
+        package_data = tomllib.load(stream)["tool"]["setuptools"]["package-data"]
+    manifest = (ROOT / "MANIFEST.in").read_text(encoding="utf-8")
+
+    assert package_data["hotpot.commands"] == ["ff.md", "mca.md", "cbond.md"]
+    for name in ("mca", "cbond"):
+        assert (PACKAGE_ROOT / "commands" / f"{name}.md").is_file()
+        assert f"include hotpot/commands/{name}.md" in manifest
+        assert "*.md" in package_data[f"hotpot.cheminfo.operations.inference.{name}"]
+    assert "recursive-include tools/model_deployment/cbond *.py *.md" in manifest
+    assert not (PACKAGE_ROOT / "cheminfo" / "AImodels").is_dir()
+    assert not (PACKAGE_ROOT / "tools" / "model_deployment").exists()

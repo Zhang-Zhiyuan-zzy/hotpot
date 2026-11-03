@@ -10,7 +10,7 @@ from typing import Optional, Union
 
 import numpy as np
 
-from hotpot.cheminfo.conformers import ConformerSampler
+from hotpot.cheminfo.operations.conformers import ConformerSampler
 from . import backend as _backend
 from .backend import _ob_build
 from .contracts import (

@@ -1,4 +1,4 @@
-from mca.batching import LogicalBatchPlanner
+from hotpot.cheminfo.operations.inference.mca.batching import LogicalBatchPlanner
 
 
 def plan_logical_batches(atom_counts, batch_size):

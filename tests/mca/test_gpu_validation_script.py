@@ -2,8 +2,8 @@ import importlib.util
 from pathlib import Path
 import pytest
 
-from mca.result_types import AtomPrediction, MoleculePrediction, SitePrediction
-from mca.resources import gpu_window_atom_budget
+from hotpot.cheminfo.operations.inference.mca.results import AtomPrediction, MoleculePrediction, SitePrediction
+from hotpot.cheminfo.operations.inference.mca.resources import gpu_window_atom_budget
 
 
 SCRIPT_PATH = (

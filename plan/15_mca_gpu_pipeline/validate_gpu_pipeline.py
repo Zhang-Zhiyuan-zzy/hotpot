@@ -12,8 +12,8 @@ from pathlib import Path
 
 import numpy as np
 
-from hotpot.cheminfo.AImodels.mca import MCAGpuPredictor
-from hotpot.cheminfo.AImodels.mca.resources import gpu_window_atom_budget
+from hotpot.cheminfo.operations.inference.mca import MCAGpuPredictor
+from hotpot.cheminfo.operations.inference.mca.resources import gpu_window_atom_budget
 
 
 def parse_args():

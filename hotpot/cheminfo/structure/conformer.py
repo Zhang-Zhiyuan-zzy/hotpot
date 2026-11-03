@@ -10,9 +10,9 @@ from typing import Union
 import warnings
 
 import numpy as np
+from numpy.typing import NDArray
 
 from hotpot.utils import types as _types
-from ..conformers.contracts import ConformerBatch
 from ._identity import _capture_source
 from ._results import _ResultAttachment
 
@@ -24,6 +24,24 @@ _OBSERVATION_NAMES = _FRAME_NAMES[1:]
 _FRAME_DOMAINS = ("frame_representation", "cell", "constraints")
 _SELECTED_DOMAINS = ("frame_representation", "geometry", "cell", "constraints")
 _PER_ATOM = frozenset(("partial_charge", "force"))
+
+
+@dataclass(frozen=True)
+class ConformerBatch:
+    """Independent immutable coordinate sets in stable provider ordinal order."""
+
+    coordinates: NDArray[np.float64]
+    ordinals: tuple[int, ...]
+
+    def __post_init__(self):
+        coordinates = np.asarray(self.coordinates)
+        immutable = np.frombuffer(coordinates.tobytes(), dtype=coordinates.dtype).reshape(
+            coordinates.shape
+        )
+        object.__setattr__(self, "coordinates", immutable)
+
+    def __reduce__(self):
+        return type(self), (self.coordinates, self.ordinals)
 
 
 def _seal_array(value):

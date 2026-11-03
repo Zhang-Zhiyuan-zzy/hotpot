@@ -57,7 +57,7 @@ else:
 
 import hotpot as hp
 from hotpot.plugins.ComplexFormer.run import cv, datacls
-from hotpot.cheminfo.AImodels.cbond.deploy.models import deploy
+from tools.model_deployment.cbond.models import deploy
 from hotpot.plugins.opti import ParamSpace, ParamSets
 
 models_dir = osp.join(project_root, 'models')

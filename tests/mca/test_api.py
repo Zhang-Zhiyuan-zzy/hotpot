@@ -2,10 +2,10 @@ from copy import copy
 
 import numpy as np
 import pytest
-from mca import MoleculePrediction, predict_mca
-from mca import cpu_backend as cpu_backend_module
-from mca import pipeline as pipeline_module
-from mca.conformer import ensure_3d_conformer
+from hotpot.cheminfo.operations.inference.mca import MoleculePrediction, predict_mca
+from hotpot.cheminfo.operations.inference.mca import cpu_backend as cpu_backend_module
+from hotpot.cheminfo.operations.inference.mca import pipeline as pipeline_module
+from hotpot.cheminfo.adapters.rdkit.conformers import ensure_3d_conformer
 from openbabel import openbabel as ob
 from openbabel import pybel
 from rdkit import Chem

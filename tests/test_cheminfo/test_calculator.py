@@ -1,40 +1,48 @@
-"""Regression contracts for the calculator package."""
+"""The relocated MCA facade is explicit and lazy; calculator packages retire."""
 
 from __future__ import annotations
 
 import subprocess
 import sys
 
-import hotpot.cheminfo.calculator as calculator
+import pytest
+
+from hotpot.cheminfo.operations.inference import mca as inference
 
 
-PUBLIC_CALCULATOR_NAMES = ("mca",)
+PUBLIC_INFERENCE_NAMES = (
+    "mca", "AtomPrediction", "MCACpuPredictor", "MCAGpuOutOfMemoryError",
+    "MCAGpuPredictor", "MoleculePrediction", "SitePrediction", "predict_mca",
+    "predict_mca_cpu", "predict_mca_gpu",
+)
 
 
-def test_calculator_package_exposes_only_the_declared_public_objects() -> None:
-    assert tuple(calculator.__all__) == PUBLIC_CALCULATOR_NAMES
-    assert all(hasattr(calculator, name) for name in PUBLIC_CALCULATOR_NAMES)
+def test_inference_package_exposes_only_the_declared_public_objects() -> None:
+    assert tuple(inference.__all__) == PUBLIC_INFERENCE_NAMES
+    assert all(hasattr(inference, name) for name in PUBLIC_INFERENCE_NAMES)
 
 
-def test_removed_root_calculator_module_is_not_importable() -> None:
+@pytest.mark.parametrize("module", ("hotpot.calculator", "hotpot.cheminfo.calculator"))
+def test_removed_calculator_modules_are_not_importable(module: str) -> None:
     completed = subprocess.run(
-        (sys.executable, "-c", "import hotpot.calculator"),
+        (sys.executable, "-c", f"import {module}"),
         check=False,
         capture_output=True,
         text=True,
     )
 
     assert completed.returncode != 0
-    assert "No module named 'hotpot.calculator'" in completed.stderr
+    assert f"No module named '{module}'" in completed.stderr
 
 
-def test_importing_calculator_does_not_import_the_mca_runtime() -> None:
+def test_importing_inference_facade_does_not_import_the_mca_runtime() -> None:
     completed = subprocess.run(
         (
             sys.executable,
             "-c",
-            "import sys; import hotpot.cheminfo.calculator; "
-            "assert 'hotpot.cheminfo.AImodels.mca' not in sys.modules",
+            "import sys; import hotpot.cheminfo.operations.inference.mca; "
+            "assert 'hotpot.cheminfo.operations.inference.mca.api' not in sys.modules; "
+            "assert 'hotpot.cheminfo.adapters.inference.runtime' not in sys.modules",
         ),
         check=False,
         capture_output=True,

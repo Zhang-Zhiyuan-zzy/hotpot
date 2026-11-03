@@ -4590,22 +4590,49 @@
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_adapter_boundaries.py",
-          "status": "planned_not_created"
+          "status": "covered_by_existing_connected_contract_tests_no_duplicate_test_file",
+          "covered_by": [
+            "tests/model_artifacts/test_ownership.py",
+            "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+            "tests/test_cheminfo/test_mca_result_lifecycle.py",
+            "tests/test_cheminfo/structure/test_selected_results.py"
+          ]
         },
         {
           "path": "tests/test_cheminfo/structure/test_result_attachments.py",
-          "status": "planned_not_created"
+          "status": "covered_by_existing_connected_contract_tests_no_duplicate_test_file",
+          "covered_by": [
+            "tests/model_artifacts/test_ownership.py",
+            "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+            "tests/test_cheminfo/test_mca_result_lifecycle.py",
+            "tests/test_cheminfo/structure/test_selected_results.py"
+          ]
         }
       ],
       "additional_requirements": [
         "existing sole Python-RDKit conformer route; threshold/rolling-window/session/GPU index; one-GPU installed smoke if runtime paths move"
       ],
-      "execution_status": "D1_SOURCE_ACCEPTED_D2_D3_ROUTE_SELECTED",
+      "execution_status": "ROOT_ACCEPTED_STAGE8D_CP311_SOURCE_INSTALLED_CPU_GPU_CONFORMERS",
       "entry_review": "stages/stage08/inference/entry_review.json",
       "design": "stages/stage08/inference/contracts/decisions.md",
-      "stage_gate_closed": false,
+      "stage_gate_closed": true,
       "global_gate_closed": false,
-      "d1_checkpoint": "stages/stage08/inference/validation/d1/checkpoint.json"
+      "d1_checkpoint": "stages/stage08/inference/validation/d1/checkpoint.json",
+      "checkpoint": "stages/stage08/inference/validation/d2-d3/checkpoint.json",
+      "selection": "stages/stage08/inference/validation/d2-d3/selection.json",
+      "report": "stages/stage08/inference/validation/d2-d3/report.md",
+      "affected_source": "1844distinct69files/0skip;374R2+870unchanged retained+600R3;3actual pipeline cases separate",
+      "affected_installed": "1627distinct66files/0skip;320same physical bytes under original alias+1307canonical continuation;one source-only sampler.cpp fixture explicitly classified;3actual pipeline cases separate",
+      "actual_gpu": "Two300selected-site calls/1800atom values each;one real CUDA PID/session/58runtime calls;normal close/affinity restoration;functional only",
+      "remaining": [
+        "global plan completion",
+        "clean-native rebuild",
+        "SDK",
+        "sdist",
+        "multi-version matrix",
+        "final four-GPU evidence",
+        "scientific/performance corpus gates"
+      ]
     },
     "Stage8E": {
       "predecessor": "Stage8D",

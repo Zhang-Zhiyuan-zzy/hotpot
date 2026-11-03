@@ -304,7 +304,7 @@ class ForceFieldTrajectory:
         self, mol: "Molecule", *, keep_all: bool, input_source,
         method: str, parameters=(),
     ) -> None:
-        from hotpot.cheminfo.conformers.contracts import ConformerBatch
+        from hotpot.cheminfo.operations.conformers.contracts import ConformerBatch
         from hotpot.cheminfo.structure.conformer import _publish_conformer_ensemble
 
         self._validate_molecule_atoms(mol)

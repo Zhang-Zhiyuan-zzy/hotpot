@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from hotpot import Atom, Molecule
-from hotpot.cheminfo.AImodels.mca.result_types import (
+from hotpot.cheminfo.operations.inference.mca.results import (
     AtomPrediction, MoleculePrediction, SitePrediction,
 )
 from hotpot.cheminfo.structure import _identity, _results
@@ -51,9 +51,9 @@ def _select(mol, prediction=None):
 def test_absence_and_exact_payload_selection_keep_annotation_independent():
     mol = _molecule()
     mol.properties["mca"] = "caller annotation"
-    with pytest.raises(AttributeError, match=r"calculator\.mca"):
+    with pytest.raises(AttributeError, match=r"operations\.inference\.mca\.mca"):
         _ = mol.atoms[0].mca
-    with pytest.raises(AttributeError, match=r"calculator\.mca"):
+    with pytest.raises(AttributeError, match=r"operations\.inference\.mca\.mca"):
         _ = mol.mca_sites
     prediction = _select(mol)
     assert mol._mca_result.payload is prediction
@@ -128,9 +128,9 @@ def test_python_representation_changes_leave_historical_payload_and_stale_direct
     mutation(mol)
     assert mol._mca_result.payload is prediction
     assert "mca_representation" in mol._mca_result.invalidated_by
-    with pytest.raises(RuntimeError, match=r"mca_representation.*calculator\.mca"):
+    with pytest.raises(RuntimeError, match=r"mca_representation.*operations\.inference\.mca\.mca"):
         _ = mol.atoms[1].mca
-    with pytest.raises(RuntimeError, match=r"mca_representation.*calculator\.mca"):
+    with pytest.raises(RuntimeError, match=r"mca_representation.*operations\.inference\.mca\.mca"):
         _ = mol.mca_sites
     assert prediction.atom_predictions[1].mca_kj_mol == 11.0
 
@@ -167,7 +167,7 @@ def test_topology_changes_invalidate_whole_prediction(mutation):
     mutation(mol)
     assert mol._mca_result.payload is prediction
     assert set(mol._mca_result.invalidated_by) == {"mca_representation", "geometry"}
-    with pytest.raises(RuntimeError, match="calculator.mca"):
+    with pytest.raises(RuntimeError, match="operations.inference.mca.mca"):
         _ = mol.mca_sites
 
 
@@ -176,7 +176,7 @@ def test_current_membership_check_rejects_removed_atom_access():
     _select(mol)
     removed = mol.atoms[0]
     mol.remove_atom(removed)
-    with pytest.raises(RuntimeError, match=r"membership.*calculator\.mca"):
+    with pytest.raises(RuntimeError, match=r"membership.*operations\.inference\.mca\.mca"):
         _ = removed.mca
 
 
@@ -273,7 +273,7 @@ def test_component_projection_drops_whole_graph_prediction():
     _select(mol)
     for component in mol.components:
         assert component._mca_result is None
-        with pytest.raises(AttributeError, match="calculator.mca"):
+        with pytest.raises(AttributeError, match="operations.inference.mca.mca"):
             _ = component.mca_sites
     assert mol.atoms[1].mca == 11.0
 
@@ -357,7 +357,7 @@ def test_spin_only_frame_change_then_rollback_preserves_exact_attachment_and_fra
 
 def test_spin_declaration_during_prediction_keeps_mca_selection_source_current(monkeypatch):
     from importlib import import_module
-    from hotpot.cheminfo.calculator import mca
+    from hotpot.cheminfo.operations.inference.mca import mca
 
     mol = _molecule()
     calls = []
@@ -371,7 +371,7 @@ def test_spin_declaration_during_prediction_keeps_mca_selection_source_current(m
         calls.append(prediction)
         return prediction
 
-    mca_package = import_module("hotpot.cheminfo.AImodels.mca")
+    mca_package = import_module("hotpot.cheminfo.operations.inference.mca")
     monkeypatch.setitem(mca_package.__dict__, "predict_mca", predict)
     prediction = mca(mol, backend="cpu")
     assert calls == [prediction]

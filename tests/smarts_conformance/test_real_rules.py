@@ -1,7 +1,7 @@
 import pytest
 
 import hotpot as hp
-from hotpot.cheminfo.AImodels.mca.site_detection import NUCLEOPHILE_RULES
+from hotpot.cheminfo.rules.chemistry.mca_sites import NUCLEOPHILE_RULES
 
 
 pytestmark = pytest.mark.smarts_core

@@ -564,3 +564,28 @@ def test_search_core_bindings_are_captured_at_their_actual_eager_module_scope(tm
     assert len(rows) == 3
     assert {row["stage"] for row in rows} == {"Stage9"}
     assert audit.layer_findings(path, source) == []
+
+
+@pytest.mark.parametrize("old,new", audit.INFERENCE_CORE_IMPORT_TRANSFERS)
+def test_inference_core_bindings_cannot_grow_or_borrow_other_slots(old, new):
+    assert audit.ratchet_findings([new], [new], [old])["allowlist_growth"]
+    assert not any(audit.stage7a_ratchet_findings([new], [new], [old], [old]).values())
+    assert not any(audit.stage7a_ratchet_findings([new], [new], [new], [old]).values())
+    assert audit.stage7a_ratchet_findings([new], [new], [], [old])["allowlist_growth"]
+    assert audit.stage7a_ratchet_findings([new], [new], [old], [])["exceeds_frozen_inventory"]
+    for actual in ([new, new], [old, new]):
+        report = audit.stage7a_ratchet_findings(actual, actual, [old], [old])
+        assert report["allowlist_growth"] and report["exceeds_frozen_inventory"]
+    for field, value in (("path", "hotpot/cheminfo/operations/inference/other.py"),
+                         ("scope", "nested"), ("local", "OtherCarrier"),
+                         ("target", "hotpot.cheminfo.core.Bond")):
+        changed = {**new, field: value}
+        report = audit.stage7a_ratchet_findings([changed], [changed], [old], [old])
+        assert report["allowlist_growth"] and report["exceeds_frozen_inventory"]
+    others = [source for source, _ in audit.CORE_IMPORT_TRANSFERS if source != old]
+    others.extend({**old, "path": path} for path in (
+        "hotpot/cheminfo/AImodels/mca/site_detection.py",
+        "hotpot/cheminfo/conformers/adapters.py",
+    ))
+    report = audit.stage7a_ratchet_findings([new], [new], others, others)
+    assert report["allowlist_growth"] and report["exceeds_frozen_inventory"]

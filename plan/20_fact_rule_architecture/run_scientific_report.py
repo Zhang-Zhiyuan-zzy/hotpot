@@ -289,7 +289,7 @@ def run_report(output: Path, *, seeds=(42, 43, 44), workers=1, source=CANONICAL_
         "recorded_at": datetime.now(timezone.utc).isoformat(),
     }
     from hotpot.cheminfo.operations.forcefields import acceptance
-    from hotpot.cheminfo.AImodels.cbond import apply as cbond_apply
+    from hotpot.cheminfo.operations.inference.cbond import apply as cbond_apply
     identity["rules"] = {
         str(Path(module.__file__).relative_to(ROOT)) if Path(module.__file__).is_relative_to(ROOT)
         else module.__name__: sha256(Path(module.__file__))

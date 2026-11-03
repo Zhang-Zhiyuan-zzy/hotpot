@@ -1,12 +1,12 @@
 # Fact-Carrier and Rule Architecture Refactor
 
-Status: **implementation authorized on 2026-10-28; Stage0–8C owning-stage gates
+Status: **implementation authorized on 2026-10-28; Stage0–8D owning-stage gates
 complete within their recorded scopes. Stage8C includes the connected canonical
 search split, fresh CP311 search native, source/installed conformance and actual
 MCA workflows, with usable same-work costs accepted. Imported-H assembly remains
-unaccepted/P20-D024 and is required at Stage8E. Stage8D accepts its bounded D1
-CP311 artifact/resource/CLI source checkpoint; D2/D3 route is selected, while
-wholeStage8D and Stage8E remain open.
+unaccepted/P20-D024 and is required at Stage8E. Stage8D includes the
+connected inference/conformer/artifact split with affected CP311 source/installed,
+actual CPU/pipeline and one-GPU functional evidence accepted. Stage8E remains open.
 Optional scientific activation, remaining stages, clean full-native delivery,
 version-adaptation and global scientific/engineering acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
@@ -1369,7 +1369,7 @@ real core definition; it consolidates existing debt and creates no structure ali
 | `calculator/mca_inference.py` | `operations/inference/mca/` | move out of general scientific-state calculation; replace arbitrary result storage |
 | `calculator/base.py` | none | delete the empty `Calculator` class |
 | `call_thermo.py` | `operations/thermo.py` plus `adapters/thermo/chemical.py` | sole caller-owned Thermo class/public carrier getter/fallback methods in operations; external Chemical/identifier/DataFrame work takes prepared values; preserve complete proxy surface |
-| `conformers/contracts.py`, `sampler.py` | `operations/conformers/` | preserve backend-neutral seam and deterministic seed semantics |
+| `conformers/contracts.py`, `sampler.py` | `operations/conformers/`; shared `ConformerBatch` value in `structure/conformer.py` | preserve backend-neutral seam and deterministic seed semantics; operation contracts reexport the one immutable structure value, so rule/frame owners acquire no upward operation dependency |
 | `conformers/adapters.py` | `operations/conformers/` provider facades plus named RDKit/Open Babel leaves | operations own sample(Molecule,request), H/stereo preparation and coordinate commit; external leaves consume prepared values. Preserve the existing standalone route with no mixed toolkit/upward adapter module |
 | `convert.py` | `operations/conversion.py` plus `adapters/conversion.py` | operation owns carrier-producing dispatch/import; leaf only classifies external types with lazy imports; preserve public names/signatures/branch priority |
 | `core.py` | split per Section 9.1, then delete | no compatibility re-export module in the recommended plan |

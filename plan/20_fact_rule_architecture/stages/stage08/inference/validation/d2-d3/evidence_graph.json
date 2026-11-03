@@ -1,0 +1,454 @@
+{
+  "schema_version": 1,
+  "status": "ROOT_ACCEPTED_STAGE8D_CP311_SOURCE_INSTALLED_CPU_GPU_CONFORMERS",
+  "entry": "checkpoint",
+  "nodes": {
+    "checkpoint": {
+      "path": "plan/20_fact_rule_architecture/stages/stage08/inference/validation/d2-d3/checkpoint.json",
+      "purpose": "Root-accepted bounded Stage8D CP311 record",
+      "sha256": "be47cdf42b4500d16eefb2e0acbdd22c8530ef14fe0b3cedc45cb49a7d202043",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-record-preparation/checkpoint.json"
+    },
+    "report": {
+      "path": "plan/20_fact_rule_architecture/stages/stage08/inference/validation/d2-d3/report.md",
+      "purpose": "Root-accepted bounded Stage8D CP311 record",
+      "sha256": "39b646b0c4e3a8e3e9b8ed2ae6afb827d377f5e6d8f379b4ff819d5e91f09a65",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-record-preparation/report.md"
+    },
+    "coverage_reconciliation": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/record-preparation/coverage_reconciliation.json",
+      "purpose": "Distinct node-set arithmetic; no duplicate pass counting",
+      "sha256": "c696025ff832369e1626661504165ea30216f2586b3026360984fb2bb78148f2",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-record-preparation/coverage_reconciliation.json"
+    },
+    "selection": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/selection.json",
+      "purpose": "69 source files,66 installed files and separately enabled actual pipeline selection",
+      "sha256": "3f668b4cbff6309509aa099ed841a8e93df576fb5c81f3ff291512187059e956",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/selection.json"
+    },
+    "freeze_R1": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/freeze-attempt01.json",
+      "purpose": "Exact source/test/resource/native/support identity at R1",
+      "sha256": "8eabef03045b65b9998cddf75acdc370781cf27b3c34909eda8141ff79331f2a",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/freeze-attempt01.json"
+    },
+    "freeze_R2": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/freeze-attempt02.json",
+      "purpose": "Exact source/test/resource/native/support identity at R2",
+      "sha256": "73a8094b88fa1280fa95d47d55b1aba6d1b127d3549ef077d00c9a88b5be70e3",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/freeze-attempt02.json"
+    },
+    "freeze_R3": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/freeze.json",
+      "purpose": "Exact source/test/resource/native/support identity at R3",
+      "sha256": "aa7589f23e4c4107b622356f5a2ca9c9d427a2e2cf5479a03ae6434090445989",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/freeze.json"
+    },
+    "source_focused_R1": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/source-focused-attempt01/execution.json",
+      "purpose": "Actual argv/cwd/environment/interpreter/results/origins/freeze-before-after; raw streams/JUnit/resources adjacent",
+      "sha256": "b0844b498a96dc7e9ccb507585ad0f0a10496b1ac07b1a887a490515e7d159df",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/source-focused-attempt01/execution.json"
+    },
+    "source_focused_R2": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/source-focused-attempt02/execution.json",
+      "purpose": "Actual argv/cwd/environment/interpreter/results/origins/freeze-before-after; raw streams/JUnit/resources adjacent",
+      "sha256": "7d5682f95e81533dccb93d8382e2b9fbe5e7adbc873ec1b848be9b0330c5993d",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/source-focused-attempt02/execution.json"
+    },
+    "source_remaining_R1_failure": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/source-remaining-attempt01/execution.json",
+      "purpose": "Actual argv/cwd/environment/interpreter/results/origins/freeze-before-after; raw streams/JUnit/resources adjacent",
+      "sha256": "867af4e15ddea9c5e408029054ad402d22dee351b01bbfef475c941ba24b4c75",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/source-remaining-attempt01/execution.json"
+    },
+    "source_remaining_R2": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/source-remaining-attempt02/execution.json",
+      "purpose": "Actual argv/cwd/environment/interpreter/results/origins/freeze-before-after; raw streams/JUnit/resources adjacent",
+      "sha256": "fe1fc91b6987de3453d654c48cfcee25d43c9314144d7ca878da3bea8671ddaf",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/source-remaining-attempt02/execution.json"
+    },
+    "source_continuation_R3": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/source-remaining-continuation-attempt03/execution.json",
+      "purpose": "Actual argv/cwd/environment/interpreter/results/origins/freeze-before-after; raw streams/JUnit/resources adjacent",
+      "sha256": "5bee98f1f431a3d14fad54cb336787cba16b0b70a2ce80d76d0f82529cc933b8",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/source-remaining-continuation-attempt03/execution.json"
+    },
+    "source_pipeline_R3": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/source-pipeline-attempt01/execution.json",
+      "purpose": "Actual argv/cwd/environment/interpreter/results/origins/freeze-before-after; raw streams/JUnit/resources adjacent",
+      "sha256": "98e6f3b40de2a90d19d59e2e5b18f4ded424ee45309505098e3867413241104a",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/source-pipeline-attempt01/execution.json"
+    },
+    "source_remaining_R2_failure": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/source-remaining-attempt02/junit.xml",
+      "purpose": "Original stopped R2 attempt with870pass/one stale-text failure",
+      "sha256": "160b276236185a600551f65a145ed51cb45148d91a501256abd91fd4d16f67e0",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/source-remaining-attempt02/junit.xml"
+    },
+    "remaining_reconciliation_R3": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/remaining-reconciliation03.json",
+      "purpose": "1470 remaining collected =870 retained+600 continuation, original failure listed",
+      "sha256": "8a5042da7f8e4b378c6a1788dd25cdc3ec0c39a48210020c9f29b35c85c95669",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/remaining-reconciliation03.json"
+    },
+    "oracle_correction_R3": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/test-oracle-correction03.patch",
+      "purpose": "Two expected-diagnostic test files only; chemistry/product assertions preserved",
+      "sha256": "f758a4b1c6efd01aad3dd5637e2518755d8d3d79b77172a7038a3acceea46fe2",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/test-oracle-correction03.patch"
+    },
+    "business_observations": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/record-preparation/business_observation_index.json",
+      "purpose": "Original model and pipeline return-frame values reached on demand; no new model calls",
+      "sha256": "ce64330d967f4c31ee824e380d0f3be6e1dad911f2aead13e69b9e6453a72fc5",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-record-preparation/business_observation_index.json"
+    },
+    "models_rebound": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/models-rebound.json",
+      "purpose": "Existing MCA/CBond bundles verified against D1 identity; per-file roster follows its reference",
+      "sha256": "37b244ab6decebfa8a35010c420d10f48e32ec65b5ab35898356bb9fd8cae83f",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/models-rebound.json"
+    },
+    "wheel_manifest": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/wheel-attempt01/manifest.json",
+      "purpose": "Exact wheel/build/install/native reuse/resource audit identities; runtime evidence is separate",
+      "sha256": "f2ff54429600e425454a557a42cafbd2f8f9f980a1aef15c7e60bbff8763821c",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/wheel-attempt01/manifest.json"
+    },
+    "wheel_roster": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/wheel-attempt01/wheel-roster.json",
+      "purpose": "Raw wheel member and digest roster, read only on demand",
+      "sha256": "756c3bbfe49a3dd1ff84f4b40e7067a2b13568aaaa7d4d0bd523998d2714f7c1",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/wheel-attempt01/wheel-roster.json"
+    },
+    "wheel": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/wheel-attempt01/dist/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "purpose": "Private CP311 wheel; build/audit/install alone passes no runtime gate",
+      "sha256": "32beaaba32848c4aaa7b6d3870c77d4cd767dacd2a4bbc15702d1358898e8dc8",
+      "expected_sha256": "32beaaba32848c4aaa7b6d3870c77d4cd767dacd2a4bbc15702d1358898e8dc8",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/wheel-attempt01/dist/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl"
+    },
+    "current_contracts": {
+      "path": "plan/20_fact_rule_architecture/stages/stage08/inference/contracts/decisions.md",
+      "purpose": "Actual D2/D3 owner and scientific contracts including R1 correction",
+      "sha256": "577b6d0ed09f340a0320b2852d22d720d03398e26239177ea47c4bc88e8f29e9",
+      "original_lookup_path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage08/inference/contracts/decisions.md"
+    },
+    "installed_owner_result": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/installed-continuation-attempt02/combined-installed-review.json",
+      "purpose": "1627 distinct selected installed cases plus3 separate actual pipeline cases; retained original failure and SOURCE_INSPECTION_ONLY qualification",
+      "sha256": "8f7aead9d3aff33fc050a1c8ed0efe7b69ee94c7274084d96b5380de959df643",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/installed-continuation-attempt02/combined-installed-review.json"
+    },
+    "installed_reconciliation": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/installed-attempt01/node-reconciliation02.json",
+      "purpose": "320 reused+1307 failed/unexecuted exact continuation membership",
+      "sha256": "5a9bda9ecfd57c97bcfac1983829f30a242bb35188200c1c0cfcb904cf2dd0f9",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/installed-attempt01/node-reconciliation02.json"
+    },
+    "installed_continuation_binding": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/installed-attempt01/continuation-binding02.json",
+      "purpose": "Root-authorized artifact-only repair; frozen driver/support/selection/wheel bindings",
+      "sha256": "826226288e6a4e19cc7e4a2219e45f4956f969acba110bc1c666c66faa3f726f",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/installed-attempt01/continuation-binding02.json"
+    },
+    "installed_collection": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/installed-continuation-attempt02/collection-reconciliation.json",
+      "purpose": "1307 expected/actual ordered IDs; static source fixture classification",
+      "sha256": "23d85ea83a07e70cdaa13b0e457d0dcce31ad6467346e16752b8f1942946e200",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/installed-continuation-attempt02/collection-reconciliation.json"
+    },
+    "installed_continuation": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/installed-continuation-attempt02/execution.json",
+      "purpose": "Canonical installed origin continuation execution, exact argv/env/freeze/origins",
+      "sha256": "767e20d863f8f6eea98638e8fb5f577a47e42ec228870ae981e30389c3842292",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/installed-continuation-attempt02/execution.json"
+    },
+    "installed_pipeline": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/installed-pipeline-attempt01/execution.json",
+      "purpose": "Three separate actual installed official pipeline cases, exact argv/env/xTB/origins",
+      "sha256": "f221627001b50046d4bed39399b4dc945191a853efae13fa543f0c0ea0dc7408",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/installed-pipeline-attempt01/execution.json"
+    },
+    "installed_product_post": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/installed-continuation-attempt02/installed-wheel-post-hashes.json",
+      "purpose": "863 installed product files retain wheel identity",
+      "sha256": "47c94f1c88f1d395d931259c69cbcd21ba7a6245e40b17c15084a1afdefb0c00",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/installed-continuation-attempt02/installed-wheel-post-hashes.json"
+    },
+    "installed_models_post": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/installed-continuation-attempt02/model-identity-post.json",
+      "purpose": "MCA/CBond original bundle identity unchanged after installed execution",
+      "sha256": "a1dbb725e5121e22c8e6a39d1c80e9ada941ee656fec539025b7895a4c5c5337",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/installed-continuation-attempt02/model-identity-post.json"
+    },
+    "gpu_root_result": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/one-gpu-root-review.json",
+      "purpose": "Root acceptance of bounded real installed CUDA/device/300sites/reused predictor functional evidence; no benchmark or broad installed gate",
+      "sha256": "12b6bb8f27a1f2655853119ad1bb6040fa95a0068644d4488609f313de21428c",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/one-gpu-root-review.json"
+    },
+    "gpu_manifest": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/one-gpu-attempt01/evidence-attempt01-manifest.json",
+      "purpose": "Original sixteen-file GPU evidence manifest; raw outputs/events/profiles reached on demand",
+      "sha256": "84582520914ec6b00fb796cfb24303f81e0156c2861c2d189ab2ac6d36c6872b",
+      "expected_sha256": "84582520914ec6b00fb796cfb24303f81e0156c2861c2d189ab2ac6d36c6872b",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/one-gpu-attempt01/evidence-attempt01-manifest.json"
+    },
+    "gpu_release": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/one-gpu-attempt01/root-release.json",
+      "purpose": "Root exact R3/wheel/model/input release; prior manual ctypes probe exit134 retained",
+      "sha256": "f7d836d60ebb10ce22b667df578606806d9a12d4ebf8dbe88e23118b00f1c6fd",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/one-gpu-attempt01/root-release.json"
+    },
+    "gpu_supervisor": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/one-gpu-attempt01/attempts/attempt01/supervisor.json",
+      "purpose": "Original one-GPU functional evidence; ordered outputs, events and profiles adjacent",
+      "sha256": "29e548478fcac41b3bdc4f4a1d9ee78ba7a52f8cd92fa5cb760f993bba56f351",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/one-gpu-attempt01/attempts/attempt01/supervisor.json"
+    },
+    "gpu_preflight": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/one-gpu-attempt01/attempts/attempt01/preflight.json",
+      "purpose": "Original one-GPU functional evidence; ordered outputs, events and profiles adjacent",
+      "sha256": "a9145c285912c686996b22223ea26f0ab809b8301ddfc1da03741a6bb2a60001",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/one-gpu-attempt01/attempts/attempt01/preflight.json"
+    },
+    "gpu_smoke": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/one-gpu-attempt01/attempts/attempt01/gpu-smoke.json",
+      "purpose": "Original one-GPU functional evidence; ordered outputs, events and profiles adjacent",
+      "sha256": "a97cac20052f7f8c61643892bb422c40589b5cd9481e6dbd577974ccc178123c",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/one-gpu-attempt01/attempts/attempt01/gpu-smoke.json"
+    },
+    "gpu_passes": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/one-gpu-attempt01/attempts/attempt01/passes.json",
+      "purpose": "Original one-GPU functional evidence; ordered outputs, events and profiles adjacent",
+      "sha256": "f3133d5f51857255fb315ca1f0535c1f9d0838598c48549ddc915b9570a5141f",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/one-gpu-attempt01/attempts/attempt01/passes.json"
+    },
+    "gpu_lifecycle": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/one-gpu-attempt01/attempts/attempt01/lifecycle.json",
+      "purpose": "Original one-GPU functional evidence; ordered outputs, events and profiles adjacent",
+      "sha256": "e857308dbeaa05d28335ef2dccfbc1b5786ed7d479e3bb6dee2ac8c67ef1b216",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/one-gpu-attempt01/attempts/attempt01/lifecycle.json"
+    },
+    "installed_attempt01_failure": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/installed-attempt01/execution.json",
+      "purpose": "Original stopped outside-checkout attempt; author-introduced lexical symlink alias retained, final owner reconciliation pending",
+      "sha256": "8089580274e1d8ccae711aed1214439d5e0c03319adf3d634a7f88e6e91d661f",
+      "original_lookup_path": "/tmp/hotpot_plan20/long/stage8d-entry-20261104/d2-d3-validation/installed-attempt01/execution.json"
+    },
+    "root_archive_receipt": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/retention.json",
+      "purpose": "Final retained raw evidence archive and relocation receipt",
+      "sha256": "4743659ca76e0903f3bfbb81b99be3370f788dca53759977b39716b88965218c"
+    },
+    "final_root_recheck": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/root-final-freeze-recheck.json",
+      "sha256": "1467249145b7ba6f1f00f0afbca5e66785e8ad173f078b4f6c53621c96361c19",
+      "purpose": "Root final frozen-byte verification"
+    },
+    "gpu_raw_archive": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/validation/one-gpu-transfer01/evidence-attempt01.tar.gz",
+      "sha256": "013b28523df6d5682d7daf354a02b3ed306be512d574c2f42d877475e2cc9523",
+      "purpose": "Original GPU manifest, raw logs/ordered values/events/profiles; paths within archive indexed by original manifest"
+    },
+    "dependency_preparation": {
+      "path": ".plan20-artifacts/20261104/stage8d/inference-conformers/environment-preparation/receipt.json",
+      "sha256": "43975ebefbfdfeddbae19e62126686862d6e3e4ae965fa66ca407e94e9648e56",
+      "purpose": "Original dependency preparation attempts including manual ctypes exit134; detailed raw receipts adjacent"
+    }
+  },
+  "edges": [
+    [
+      "checkpoint",
+      "report"
+    ],
+    [
+      "checkpoint",
+      "coverage_reconciliation"
+    ],
+    [
+      "checkpoint",
+      "selection"
+    ],
+    [
+      "checkpoint",
+      "freeze_R3"
+    ],
+    [
+      "checkpoint",
+      "source_focused_R2"
+    ],
+    [
+      "checkpoint",
+      "source_remaining_R2"
+    ],
+    [
+      "checkpoint",
+      "source_continuation_R3"
+    ],
+    [
+      "checkpoint",
+      "source_pipeline_R3"
+    ],
+    [
+      "checkpoint",
+      "wheel_manifest"
+    ],
+    [
+      "checkpoint",
+      "models_rebound"
+    ],
+    [
+      "checkpoint",
+      "installed_owner_result"
+    ],
+    [
+      "checkpoint",
+      "gpu_root_result"
+    ],
+    [
+      "checkpoint",
+      "root_archive_receipt"
+    ],
+    [
+      "checkpoint",
+      "current_contracts"
+    ],
+    [
+      "installed_owner_result",
+      "installed_reconciliation"
+    ],
+    [
+      "installed_owner_result",
+      "installed_continuation_binding"
+    ],
+    [
+      "installed_owner_result",
+      "installed_collection"
+    ],
+    [
+      "installed_owner_result",
+      "installed_continuation"
+    ],
+    [
+      "installed_owner_result",
+      "installed_pipeline"
+    ],
+    [
+      "installed_owner_result",
+      "installed_product_post"
+    ],
+    [
+      "installed_owner_result",
+      "installed_models_post"
+    ],
+    [
+      "gpu_root_result",
+      "gpu_manifest"
+    ],
+    [
+      "gpu_root_result",
+      "gpu_release"
+    ],
+    [
+      "gpu_root_result",
+      "freeze_R3"
+    ],
+    [
+      "gpu_root_result",
+      "wheel_manifest"
+    ],
+    [
+      "gpu_manifest",
+      "gpu_supervisor"
+    ],
+    [
+      "gpu_manifest",
+      "gpu_preflight"
+    ],
+    [
+      "gpu_manifest",
+      "gpu_smoke"
+    ],
+    [
+      "gpu_manifest",
+      "gpu_passes"
+    ],
+    [
+      "gpu_manifest",
+      "gpu_lifecycle"
+    ],
+    [
+      "installed_owner_result",
+      "installed_attempt01_failure"
+    ],
+    [
+      "coverage_reconciliation",
+      "remaining_reconciliation_R3"
+    ],
+    [
+      "freeze_R3",
+      "freeze_R2"
+    ],
+    [
+      "freeze_R2",
+      "freeze_R1"
+    ],
+    [
+      "freeze_R2",
+      "source_remaining_R1_failure"
+    ],
+    [
+      "source_remaining_R1_failure",
+      "source_focused_R1"
+    ],
+    [
+      "source_remaining_R2",
+      "source_remaining_R2_failure"
+    ],
+    [
+      "source_remaining_R2_failure",
+      "oracle_correction_R3"
+    ],
+    [
+      "source_continuation_R3",
+      "oracle_correction_R3"
+    ],
+    [
+      "source_remaining_R2",
+      "business_observations"
+    ],
+    [
+      "source_continuation_R3",
+      "business_observations"
+    ],
+    [
+      "source_pipeline_R3",
+      "business_observations"
+    ],
+    [
+      "wheel_manifest",
+      "wheel_roster"
+    ],
+    [
+      "wheel_manifest",
+      "wheel"
+    ],
+    [
+      "checkpoint",
+      "final_root_recheck"
+    ],
+    [
+      "gpu_manifest",
+      "gpu_raw_archive"
+    ],
+    [
+      "gpu_release",
+      "dependency_preparation"
+    ]
+  ],
+  "path_rule": "Paths are relative to the repository root; raw historical command/source paths remain unmodified. GPU profiles/events/ordered values are retained in the named archive. Hashes attribute bytes, not chemical truth."
+}

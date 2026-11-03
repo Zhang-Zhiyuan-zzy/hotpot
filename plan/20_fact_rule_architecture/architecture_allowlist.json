@@ -2,7 +2,7 @@
   "schema_version": 1,
   "origin": "Stage1 frozen exact debt inventory",
   "source_checkpoint": "c6bfcd4906254ee113c14103009f071e91f60368",
-  "policy": "Entries shrink, with six fixed import-slot transfers bound in the architecture guard: the Stage7A convert.py-to-operations.conversion._molecule_type lookup; the Stage8A calculator.state_resolver module-scope Bond/BondKind imports to adapters.structure.scientific_state and Molecule to operations.calculation.scientific_state.facts (A7); the Stage8B forcefields/native.py TYPE_CHECKING Molecule import to adapters/native/forcefields/native.py (B3c); and the independently carried accepted B3b forcefields/cli.py TYPE_CHECKING Molecule import to commands/ff.py. Each transfers only its own existing identity slot in each ceiling, introduces no growth credit, and all six must retire at Stage9. The two deleted native_packing.py Bond/Molecule slots retire without transfer. Other new ownership packages remain strict; compare the actual pre-change Git ref and frozen inventory.",
+  "policy": "Entries shrink. Only the exact Stage7A\u20138D import-slot transfers enumerated in audit_architecture.py carry each source identity to its one selected destination in each ceiling. No source slot can pay for another import or supply growth credit; all legacy-core bindings retire at Stage9. Stage8D carries seven of eleven inference/conformer bindings, retires the other four, and removes the unused _model/_environ initializers. Compare the actual pre-change Git ref and frozen inventory; new ownership packages otherwise remain strict.",
   "entries": [
     {
       "line": 16,
@@ -31,7 +31,7 @@
       "target": "hotpot.cheminfo.*"
     },
     {
-      "path": "hotpot/cheminfo/AImodels/cbond/apply.py",
+      "path": "hotpot/cheminfo/operations/inference/cbond/apply.py",
       "line": 13,
       "scope": "",
       "target": "hotpot.cheminfo.core.Atom",
@@ -40,7 +40,7 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/AImodels/cbond/apply.py",
+      "path": "hotpot/cheminfo/operations/inference/cbond/apply.py",
       "line": 13,
       "scope": "",
       "target": "hotpot.cheminfo.core.Molecule",
@@ -49,8 +49,8 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/AImodels/data_extract.py",
-      "line": 7,
+      "path": "hotpot/cheminfo/operations/inference/features.py",
+      "line": 5,
       "scope": "",
       "target": "hotpot.cheminfo.core.Molecule",
       "local": "Molecule",
@@ -58,17 +58,8 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/AImodels/data_extract.py",
-      "line": 7,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.Atom",
-      "local": "Atom",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/AImodels/data_extract.py",
-      "line": 7,
+      "path": "hotpot/cheminfo/operations/inference/features.py",
+      "line": 5,
       "scope": "",
       "target": "hotpot.cheminfo.core.AtomPair",
       "local": "AtomPair",
@@ -76,29 +67,11 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/AImodels/mca/serialization.py",
-      "line": 17,
+      "path": "hotpot/cheminfo/operations/inference/mca/serialization.py",
+      "line": 4,
       "scope": "",
       "target": "hotpot.cheminfo.core.Molecule",
       "local": "HotpotMolecule",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/AImodels/mca/site_detection.py",
-      "line": 7,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.Atom",
-      "local": "Atom",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/AImodels/mca/site_detection.py",
-      "line": 7,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.Molecule",
-      "local": "Molecule",
       "rule": "legacy_core_import",
       "stage": "Stage9"
     },
@@ -175,7 +148,7 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/calculator/mca_inference.py",
+      "path": "hotpot/cheminfo/operations/inference/mca/attachment.py",
       "line": 5,
       "scope": "",
       "target": "hotpot.cheminfo.core.Molecule",
@@ -211,40 +184,13 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/conformers/adapters.py",
-      "line": 18,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.Molecule",
-      "local": "Molecule",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/conformers/sampler.py",
+      "path": "hotpot/cheminfo/operations/conformers/sampler.py",
       "line": 11,
       "scope": "",
       "target": "hotpot.cheminfo.core.Molecule",
       "local": "Molecule",
       "rule": "legacy_core_import",
       "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 138,
-      "scope": "Molecule.__init__",
-      "target": "self._model",
-      "attribute": "_model",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage8D"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 139,
-      "scope": "Molecule.__init__",
-      "target": "self._environ",
-      "attribute": "_environ",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage8D"
     },
     {
       "path": "hotpot/commands/ff.py",

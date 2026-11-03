@@ -3,9 +3,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from mca import gpu_backend as module
-from mca.gpu_backend import MCAGpuPredictor, MIN_GPU_SITE_COUNT
-from mca.pipeline import PreparedMolecule
+from hotpot.cheminfo.operations.inference.mca import gpu_backend as module
+from hotpot.cheminfo.operations.inference.mca.gpu_backend import MCAGpuPredictor, MIN_GPU_SITE_COUNT
+from hotpot.cheminfo.operations.inference.mca.pipeline import PreparedMolecule
 
 
 def _prepared(value, site_count):
@@ -196,7 +196,7 @@ def test_cuda_startup_error_at_threshold_is_not_hidden_by_cpu_fallback(
 
 
 def test_gpu_routing_accepts_existing_dto_through_normal_preparation(monkeypatch):
-    from mca.serialization import normalize_molecule
+    from hotpot.cheminfo.operations.inference.mca.serialization import normalize_molecule
 
     dto = normalize_molecule("CN")
     monkeypatch.setattr(module, "MCACpuPredictor", _CpuPredictor)
@@ -214,7 +214,7 @@ def test_gpu_routing_accepts_existing_dto_through_normal_preparation(monkeypatch
 
 
 def test_gpu_python_predictor_keeps_fail_fast_domain_validation(monkeypatch):
-    from mca.serialization import normalize_molecule
+    from hotpot.cheminfo.operations.inference.mca.serialization import normalize_molecule
 
     monkeypatch.setattr(module, "MCACpuPredictor", _CpuPredictor)
     predictor = MCAGpuPredictor(gpu_count=1)
@@ -224,8 +224,8 @@ def test_gpu_python_predictor_keeps_fail_fast_domain_validation(monkeypatch):
 
 
 def test_gpu_threshold_routing_keeps_following_dto_on_existing_path(monkeypatch):
-    from mca import pipeline
-    from mca.serialization import normalize_molecule
+    from hotpot.cheminfo.operations.inference.mca import pipeline
+    from hotpot.cheminfo.operations.inference.mca.serialization import normalize_molecule
 
     first = normalize_molecule("CN")
     following = normalize_molecule("CO")

@@ -1,7 +1,7 @@
 import numpy as np
 from rdkit import Chem
 
-from mca.conformer import ensure_3d_conformer
+from hotpot.cheminfo.adapters.rdkit.conformers import ensure_3d_conformer
 
 
 def test_degenerate_hotpot_style_conformer_is_reembedded():

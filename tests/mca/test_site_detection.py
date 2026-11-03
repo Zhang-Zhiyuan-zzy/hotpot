@@ -4,7 +4,7 @@ from time import perf_counter
 import pytest
 
 import hotpot as hp
-from mca.site_detection import find_nucleophilic_sites
+from hotpot.cheminfo.operations.inference.mca.site_detection import find_nucleophilic_sites
 
 
 def _sites(smiles):
@@ -82,9 +82,10 @@ def test_site_detection_has_no_rdkit_dependency():
     source = (
         Path(hp.__file__).resolve().parent
         / "cheminfo"
-        / "AImodels"
-        / "mca"
-        / "site_detection.py"
+        / "rules"
+        / "chemistry"
+        / "mca_sites"
+        / "__init__.py"
     ).read_text()
 
     assert "rdkit" not in source.lower()

@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
-from hotpot.cheminfo.AImodels.cbond import apply
-from hotpot.cheminfo.AImodels.cbond.constants import (
+from hotpot.cheminfo.operations.inference.cbond import apply
+from hotpot.cheminfo.operations.inference.cbond.constants import (
     DEFAULT_FIRST_CBOND_THRESHOLD,
     DEFAULT_SUBSEQUENT_CBOND_THRESHOLD,
 )
@@ -509,3 +509,28 @@ def test_documented_aminodiol_reference_matches_packaged_model(runtime):
         ],
         abs=_ONNX_CROSS_PLATFORM_ATOL,
     )
+
+
+def test_runtime_cache_keeps_raw_arguments_and_reads_device_only_on_miss(monkeypatch):
+    calls = []
+
+    def runtime(**options):
+        calls.append(options)
+        return object()
+
+    monkeypatch.setattr(apply, "CBondRuntime", runtime)
+    apply.get_cbond_runtime.cache_clear()
+    try:
+        monkeypatch.setenv("HOTPOT_CBOND_DEVICE", "cpu")
+        first = apply.get_cbond_runtime()
+        monkeypatch.setenv("HOTPOT_CBOND_DEVICE", "cuda")
+        assert apply.get_cbond_runtime() is first
+        explicit_none = apply.get_cbond_runtime(None)
+        assert explicit_none is not first
+        assert apply.get_cbond_runtime(None) is explicit_none
+        assert calls == [
+            {"model_dir": None, "device": "cpu", "model_source": None},
+            {"model_dir": None, "device": "cuda", "model_source": None},
+        ]
+    finally:
+        apply.get_cbond_runtime.cache_clear()

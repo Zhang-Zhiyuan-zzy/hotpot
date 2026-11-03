@@ -56,8 +56,8 @@ def test_cbond_stage_calls_detailed_public_result_api_once(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    from hotpot.cheminfo.AImodels.cbond import apply
-    from hotpot.cheminfo.AImodels.cbond import stage as cbond_stage
+    from hotpot.cheminfo.operations.inference.cbond import apply
+    from hotpot.cheminfo.operations.inference.cbond import stage as cbond_stage
     from hotpot.pipeline.contracts import MolecularPayload, StageSpec, StageStatus
 
     output_mol = _water()
@@ -91,8 +91,8 @@ def test_cbond_stage_emits_all_structures_as_molecular_records(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    from hotpot.cheminfo.AImodels.cbond import apply
-    from hotpot.cheminfo.AImodels.cbond import stage as cbond_stage
+    from hotpot.cheminfo.operations.inference.cbond import apply
+    from hotpot.cheminfo.operations.inference.cbond import stage as cbond_stage
     from hotpot.pipeline.contracts import MolecularPayload, StageSpec
 
     structures = (_water(), _water())

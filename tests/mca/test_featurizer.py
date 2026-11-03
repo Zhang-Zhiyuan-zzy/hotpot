@@ -2,7 +2,7 @@ import numpy as np
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
-from mca.featurizer import _shortest_paths, mol_to_unimolv2
+from hotpot.cheminfo.adapters.inference.features import _shortest_paths, mol_to_unimolv2
 
 
 def test_feature_shapes():

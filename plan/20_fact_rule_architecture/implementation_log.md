@@ -6323,3 +6323,162 @@ modules; installed/standalone/clean-native/SDK/sdist/other-version and complete
 Stage8D/real oneGPU/later-global gates stay open. D2/D3 authoring remains held
 until the coherent business commit. Owner mechanical Terra/Luna option is recorded
 in model_allocation; business code remains at least Sol/medium, root Sol/max.
+
+
+### 2026-11-04 — Stage8D D1 pushed; D2/D3 partitioned authoring release
+
+D1 business commit 31707ba0f7daabe3c92891adfa2e47108f2daa29 is pushed to origin. Its1038binding/10deletion
+freeze remains unchanged. Effective goal/Stage8D/connected decisions and actual
+inventories retain the same scientific route. Root releases two disjoint local
+Sol/medium authors: MCA/rules/features/serialization/runtime and its unique tests;
+CBond/conformer/deployment and its unique tests. Root owns shared commands/build/
+core/results/architecture/debt/budget/records and common-test integration.
+No nested agents, candidate import/collection/runtime/build/model/performance,
+remote source transfer or Git mutation is released during authoring.
+
+Remote isolated CP311 dependency preparation completes with ORT1.31CUDA12.9,
+RDKit2026.9.1/OpenBabel3.2.1 and ordinary dependency/import/provider checks. One
+manual CUDA ctypes-library probe aborts at shutdown(exit134), retained in its
+receipt; no Hotpot/model/wheel was transferred and no actual session/GPU gate
+is passed. Integrated frozen candidate execution and installed oneGPU remain
+required before Stage8D acceptance.
+
+
+### 2026-11-04 — Stage8D D2/D3 integrated root review and CP311 source release
+
+Two local Sol/medium author handoffs retain35MCA and40CBond/conformer static
+checks; neither executed candidate code. Root and a separate read-only local
+review inspect normalization/field/H/charge/isotope packing, ordered24rules,
+1-WL pruning plus exact automorphism and CPU/CUDA materializer lifetime. No
+concrete semantic defect is established. Root integrates commands/registry,
+core/result delegates, resources/sdist-only deployment tools and shared consumers.
+Seven of11exact legacy-core bindings transfer, four retire; unused _model and
+_environ initializers retire with no replacement fields. Importable classes
+778->771 because seven existing deployment classes move outside the product;
+all355dataclasses/8Protocols/2TypedDicts and total definitions remain unchanged.
+The first census expectation missed that intentional tools relocation and is
+retained separately; no deletion credit is claimed.
+
+Root corrects eager operation loading from structure/conformer via local canonical
+ConformerBatch construction imports, recording the narrow private N17 type-hints
+namespace difference. The first architecture scan retains one upward facade
+import finding in the new RDKit operation; the explicit contract import fixes it.
+The second993-file scan passes with179remaining debt and no growth/layer/carrier
+finding. Three inherited deployment whitespace blocks are normalized. Old
+AImodels/calculator/conformers directories contain only unused bytecode after
+source deletion and are removed after confirming there are no other files.
+
+Release the frozen CP311 source selection in d2-d3-validation:14focused plus55
+remaining files, without repeating unchanged focused passes, then the actual
+three-case CBond->FF->GFN-FF/GFN2 integration. Record original outcomes/model
+observations/origins/argv/env/resources and before/after source attribution.
+No code edits during execution. Installed66files, actual installed pipeline,
+private wheel and real one-GPU remain separate pending releases/evidence; no
+native rebuild, scientific benchmark or wholeStage8D/global acceptance follows.
+
+
+### 2026-11-04 — Stage8D D3 shared-value owner correction after actual closure failure
+
+Frozen attempt1 source-focused373pass/0skip; source-remaining stops after467pass
+and1failure in test_pure_rule_import_closure_never_reaches_an_upper_layer. Its
+exact path is scientific rules -> structure/conformer -> operation-owned
+ConformerBatch, including local imports. This is a genuine ownership defect,
+not an oracle to bypass. Root Sol/max selects one existing ConformerBatch
+physical definition in structure/conformer.py, reexported by operation contracts;
+request/error/protocol/provider facades remain operational. Update the main
+ownership row and D3 decisions before implementation. Preserve fields,
+constructor, immutable storage/reducer and scientific algorithms. The prior
+private N17 hint-resolution caveat is superseded: its canonical batch is again
+in its defining namespace. No extra class, shim or guard exemption.
+
+Retain original373/467passes/failure and freeze; integrated revision2 requires
+fresh affected source checks because the shared value/import/pickle owner changes.
+Wheel/GPU work remains unexecuted pending this corrected source checkpoint.
+
+
+### 2026-11-04 — Stage8D test diagnostic-path correction; unchanged passes reused
+
+Revision2 source-focused374passes/0skip; source-remaining870pass then one stale
+calculator.mca regex failure. Production emits the correct relocated MCA entry.
+Correct only expected diagnostic regexes in selected-results/complex-H tests;
+production is unchanged. Preserve both original failed runs. Exact1470-node
+remaining selection reconciles870unchanged passes plus600failed/unexecuted IDs;
+revision3 executes those600once, reusing374focused and870remaining passes. This
+is expected-path migration, without weaker semantic/integrity assertions or
+changed scientific thresholds. Actual pipeline follows only after continuation.
+
+
+### 2026-11-04 — Stage8D corrected CP311 source coverage complete; private wheel release
+
+Current production is revision2; revision3 changes only stale expected-path
+regexes. Distinct affected source coverage is374focused+870retained unchanged
+passes+600continuation=1844passed/0skip, with matching1470-node remainder and no
+origin leak. Actual official CBond->FF->GFN-FF/GFN2 integration3passed/0skip;
+original values/manifests/outputs are retained from these executions. All1507
+bindings/49deleted paths stay unchanged per invocation; both original failures
+remain explicit. MCA85/CBond3model files rebind to prior actual hashes (no model
+weights/download/feature/algorithm change). One shared structure batch class,
+no replacement runtime/record and no blanket checker exception.
+
+Release the private CP311 validation wheel using the six accepted unchanged
+native binaries through an invocation-only build_ext recipe. Audit actual
+resources/owners/RECORD, absence of superseded packages and runtime deployment
+tools, install outside the checkout, then execute the66-file affected installed
+selection and actual3pipeline cases. This passes no clean-native/SDK/sdist or
+real GPU gate. One-GPU artifact preparation remains local-only pending review
+of exact wheel/model/input/launch identities.
+
+
+### 2026-11-04 — Stage8D exact installed one-GPU functional release
+
+Private CP311 wheel32beaaba32848c4aaa7b6d3870c77d4cd767dacd2a4bbc15702d1358898e8dc8
+built/audited/installed with all six accepted native binaries unchanged. Root
+reviews all four artifact Python files and shell supervisor; release binds R3
+freeze aa7589f23e4c4107b622356f5a2ca9c9d427a2e2cf5479a03ae6434090445989
+(the production is R2; R3 corrects only two test expectations), original model
+files and explicit physical GPU0. Prepared R2 placeholders are superseded in
+root-release.json/bindings.json without rewriting the original preparation.
+
+Release transfer/install only into permitted ai-14 task/model/environment paths,
+then separate installed native/CPU preflight and two300-input calls on one GPU
+predictor. Profiling observes the same real session; no scientific algorithm,
+provider/input policy, retry or benchmark claim. Preserve original failures and
+actual output/provider/device/process/cleanup evidence. The earlier manual CUDA
+library-load exit134 remains unwaived; real workflow startup/close are required.
+Local installed66-file and3actual-pipeline validation proceeds independently.
+No Stage8D/global acceptance before results are reviewed.
+
+
+### 2026-11-04 — Stage8D owning CP311 acceptance and business delivery
+
+Root accepts the connected inference/conformer/artifact migration:1844distinct
+source cases plus3actual official source pipeline cases;1627distinct installed
+selection cases plus3actual installed pipeline cases, all0skip. Installed320
+unchanged physical-byte passes are retained from the original alias layout;
+1307failed/unexecuted IDs pass under canonical imports, with exact ordered
+reconciliation and47origin receipts/no leaks. One sampler.cpp check is explicitly
+source inspection only, without wheel-native-source/SDK evidence.
+
+Original failures remain: R1 genuine rule/frame->operation import closure fixed
+by one structure-owned ConformerBatch; R2 stale diagnostic strings corrected
+without product edits; outside-package symlink alias removed only in artifacts.
+No failed node is counted as a pass. Private wheel uses the six accepted native
+binaries unchanged. All863installed files and85MCA/3CBond model files retain
+their actual identities.
+
+Exact installed ai-14 native/CPU preflight exits0, then one real CUDA predictor
+serves two300-site calls/1800ordered atom values each through the same session
+and PID;58runtime calls and71050CUDA/3364CPU profile nodes are observed. Own GPU
+UUID, input/atom/site mapping, original values and normal close/restored affinity
+pass. Runtime20.621s is functional evidence, not a benchmark. Prior manual ctypes
+exit134 remains retained; no blanket environment waiver.
+
+Root final checks1507bindings/49deletions/6support files unchanged. Raw failures,
+commands, outputs, model/native/wheel identities and observations are retained
+under .plan20-artifacts/20261104/stage8d/inference-conformers; the maintained
+checkpoint/report/evidence graph index them on demand. A local Luna/low agent
+performed only the fixed copy/hash task; root reviewed scientific/acceptance
+evidence. No measured token-savings claim. Stage8E/P20-D024, clean full-native/
+SDK/sdist, other versions, final4GPU/scientific-performance/global gates remain
+open. Deliver this coherent business change with related tests/records in the
+containing commit; no new documentation-only milestone.

@@ -3,8 +3,8 @@ import json
 import pytest
 
 from hotpot import read_mol
-from hotpot.cheminfo.AImodels.mca import predict_mca_cpu
-from hotpot.cheminfo.calculator import mca
+from hotpot.cheminfo.operations.inference.mca import predict_mca_cpu
+from hotpot.cheminfo.operations.inference.mca import mca
 
 
 pytestmark = pytest.mark.model_artifact
@@ -13,9 +13,9 @@ pytestmark = pytest.mark.model_artifact
 def test_mca_is_attached_to_atoms_as_a_read_only_property(tmp_path):
     mol = read_mol("C1CCCCN1")
 
-    with pytest.raises(AttributeError, match="hotpot.cheminfo.calculator.mca"):
+    with pytest.raises(AttributeError, match="hotpot.cheminfo.operations.inference.mca.mca"):
         _ = mol.atoms[0].mca
-    with pytest.raises(AttributeError, match="hotpot.cheminfo.calculator.mca"):
+    with pytest.raises(AttributeError, match="hotpot.cheminfo.operations.inference.mca.mca"):
         _ = mol.mca_sites
 
     prediction = mca(mol, backend="cpu")

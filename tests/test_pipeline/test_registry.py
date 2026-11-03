@@ -23,7 +23,7 @@ def test_builtin_stage_names_are_explicit_and_stable() -> None:
 
 def test_registry_import_does_not_import_builtin_stage_modules() -> None:
     stage_modules = (
-        "hotpot.cheminfo.AImodels.cbond.stage",
+        "hotpot.cheminfo.operations.inference.cbond.stage",
         "hotpot.cheminfo.operations.forcefields.stage",
         "hotpot.plugins.xtb.stage",
     )

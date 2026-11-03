@@ -54,7 +54,7 @@ from hotpot.plugins.ComplexFormer import (
     models as M,
     run
 )
-from hotpot.cheminfo.AImodels.cbond.deploy.models import deploy
+from tools.model_deployment.cbond.models import deploy
 from hotpot.plugins.opti import ParamSpace, ParamSets
 
 models_dir = osp.join(project_root, 'models')
@@ -206,7 +206,7 @@ def deploy_model():
     os.environ['TORCHDYNAMO_EXTENDED_DEBUG_CPP'] = "1"
 
     onnx_version = 21
-    export_path = osp.join(hp.package_root, 'cheminfo', 'AImodels', 'cbond', 'onnx')
+    export_path = osp.join(osp.dirname(hp.package_root), 'tools', 'model_deployment', 'cbond', 'onnx')
     for n, s in itertools.product((2, 4, 8), (64,)):
         deploy(
             work_dir=models_dir,

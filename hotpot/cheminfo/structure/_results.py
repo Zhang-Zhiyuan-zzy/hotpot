@@ -16,7 +16,7 @@ _REPRESENTATION_FIELDS = frozenset((
 ))
 _GEOMETRY_FIELDS = frozenset(("x", "y", "z"))
 _CONSTRAINT_FIELDS = frozenset(("x_constraint", "y_constraint", "z_constraint"))
-_MCA_OPERATION = "hotpot.cheminfo.calculator.mca(mol, backend=...)"
+_MCA_OPERATION = "hotpot.cheminfo.operations.inference.mca.mca(mol, backend=...)"
 _CHARGE_OPERATION = "Molecule.assign_partial_charge()"
 
 

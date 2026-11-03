@@ -37,11 +37,11 @@ _COMMANDS = {
     ),
     "mca": _CommandSpec(
         "Predict atom-resolved methyl cation affinity (MCA)",
-        "hotpot.cheminfo.AImodels.mca.cli",
+        "hotpot.commands.mca",
     ),
     "cbond": _CommandSpec(
         "Build metal-ligand coordination bonds with the CBond model",
-        "hotpot.cheminfo.AImodels.cbond.cli",
+        "hotpot.commands.cbond",
     ),
     "models": _CommandSpec(
         "Install and verify external inference models",

@@ -16,7 +16,7 @@ from hotpot.cheminfo._native.buffers import (
     NativeMoleculeField,
     NativeUtf8Table,
 )
-from hotpot.cheminfo.conformers.adapters import (
+from hotpot.cheminfo.operations.conformers.rdkit import (
     _materialized_hydrogen_projection,
 )
 from hotpot.cheminfo.rdWrappers import native

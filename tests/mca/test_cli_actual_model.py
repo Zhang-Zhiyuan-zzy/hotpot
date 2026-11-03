@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from hotpot.cheminfo.AImodels.mca import cli
+from hotpot.commands import mca as cli
 
 
 pytestmark = pytest.mark.model_artifact

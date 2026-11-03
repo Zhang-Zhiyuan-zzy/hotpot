@@ -3,7 +3,7 @@
 import pytest
 
 import hotpot as hp
-from hotpot.cheminfo.AImodels.mca.site_detection import NUCLEOPHILE_RULES
+from hotpot.cheminfo.rules.chemistry.mca_sites import NUCLEOPHILE_RULES
 from hotpot.cheminfo.operations.search.smarts import parse_bracket_atom
 from hotpot.cheminfo.rules.chemistry.substructure._smarts_syntax import TokenType, tokenize
 

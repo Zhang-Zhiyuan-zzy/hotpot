@@ -6,7 +6,8 @@ import numpy as np
 import pytest
 
 from hotpot import Atom, Molecule, read_mol
-from hotpot.cheminfo.AImodels import data_extract
+from hotpot.cheminfo.operations.inference import features as data_extract
+from hotpot.cheminfo.adapters.structure import inference as encoding
 from hotpot.cheminfo.adapters.structure.forcefields import pack_complex_session_input
 from hotpot.cheminfo.operations.chemistry import _atom_projection
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
@@ -73,7 +74,7 @@ def test_atomic_number_only_model_request_does_not_consult_charge(monkeypatch):
     def forbidden(*args):
         pytest.fail("atomic-number-only task consulted partial charges")
 
-    monkeypatch.setattr(data_extract, "_partial_charge_projection", forbidden)
+    monkeypatch.setattr(encoding, "_partial_charge_projection", forbidden)
     assert data_extract.extract_atom_attrs(mol, atomic_number_only=True)["x"].tolist() == [6, 6, 8]
 
 

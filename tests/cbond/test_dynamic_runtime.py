@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from cbond.runtime import padding_rings
+from hotpot.cheminfo.adapters.inference.cbond import padding_rings
 
 
 @pytest.mark.model_artifact
@@ -82,3 +82,56 @@ def test_padding_rejects_dimensions_outside_validated_domain():
             np.arange(65, dtype=np.int64),
             np.array([65], dtype=np.int32),
         )
+
+
+@pytest.mark.parametrize(
+    "graph_providers,head_providers,expected",
+    [
+        (["CUDAExecutionProvider", "CPUExecutionProvider"], ["CUDAExecutionProvider", "CPUExecutionProvider"], "cuda"),
+        (["CUDAExecutionProvider", "CPUExecutionProvider"], ["CPUExecutionProvider"], "cpu"),
+        (["CPUExecutionProvider"], ["CUDAExecutionProvider", "CPUExecutionProvider"], "cpu"),
+    ],
+)
+def test_auto_device_uses_both_initialized_sessions(
+    monkeypatch, graph_providers, head_providers, expected
+):
+    from types import SimpleNamespace
+
+    from hotpot.cheminfo.adapters.inference import cbond
+
+    calls = []
+    initialized = iter((graph_providers, head_providers))
+
+    def session(path, *, sess_options, providers):
+        calls.append((path, sess_options.log_severity_level, providers))
+        active = next(initialized)
+        return SimpleNamespace(get_providers=lambda: active)
+
+    monkeypatch.setattr(cbond.ort, "SessionOptions", SimpleNamespace)
+    monkeypatch.setattr(cbond.ort, "InferenceSession", session)
+    graph, head, device = cbond.create_sessions("graph.onnx", "head.onnx", "cuda", "auto")
+
+    assert graph is not head
+    assert device == expected
+    assert calls == [
+        ("graph.onnx", 3, ["CUDAExecutionProvider", "CPUExecutionProvider"]),
+        ("head.onnx", 3, ["CUDAExecutionProvider", "CPUExecutionProvider"]),
+    ]
+
+
+def test_explicit_cuda_requires_both_initialized_sessions(monkeypatch):
+    from types import SimpleNamespace
+
+    from hotpot.cheminfo.adapters.inference import cbond
+
+    initialized = iter((["CUDAExecutionProvider", "CPUExecutionProvider"], ["CPUExecutionProvider"]))
+
+    def session(*args, **kwargs):
+        active = next(initialized)
+        return SimpleNamespace(get_providers=lambda: active)
+
+    monkeypatch.setattr(cbond.ort, "SessionOptions", SimpleNamespace)
+    monkeypatch.setattr(cbond.ort, "InferenceSession", session)
+
+    with pytest.raises(RuntimeError, match="could not be initialized"):
+        cbond.create_sessions("graph.onnx", "head.onnx", "cuda", "cuda")

@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from hotpot import Molecule
-from hotpot.cheminfo.conformers.contracts import ConformerBatch
+from hotpot.cheminfo.operations.conformers.contracts import ConformerBatch
 from hotpot.cheminfo.structure._builder import _restore_molecule_record
 from hotpot.cheminfo.structure._commit import _FactTransaction
 from hotpot.cheminfo.structure._identity import _capture_source

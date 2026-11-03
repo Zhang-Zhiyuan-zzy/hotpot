@@ -3,7 +3,8 @@ from types import SimpleNamespace
 
 import numpy as np
 import pytest
-from mca import runtime as runtime_module
+from hotpot.cheminfo.adapters.inference import runtime as runtime_module
+from hotpot.cheminfo.operations.inference.mca import model_store as model_store_module
 
 
 class _Input:
@@ -55,12 +56,12 @@ def _install_fake_model(monkeypatch, input_names=("atom_mask",)):
             rows, width = feed["atom_mask"].shape
             return [np.zeros((rows, width), dtype=np.float32)]
 
-    monkeypatch.setattr(runtime_module, "ModelStore", Store)
+    monkeypatch.setattr(model_store_module, "ModelStore", Store)
     def materialize(path, digest):
         captured["materialize_count"] += 1
         return nullcontext(path)
 
-    monkeypatch.setattr(runtime_module, "materialize_all_atom_model", materialize)
+    monkeypatch.setattr(model_store_module, "materialize_all_atom_model", materialize)
     fake_ort = SimpleNamespace(
         ExecutionMode=ExecutionMode,
         InferenceSession=Session,
@@ -80,7 +81,7 @@ def test_cpu_session_has_explicit_bounded_sequential_threads(monkeypatch):
         lambda pid: set(range(40)),
     )
 
-    runtime = runtime_module.create_cpu_runtime()
+    runtime = model_store_module.create_cpu_runtime()
 
     assert captured["providers"] == ["CPUExecutionProvider"]
     assert captured["options"].intra_op_num_threads == 8
@@ -95,7 +96,7 @@ def test_cpu_session_has_explicit_bounded_sequential_threads(monkeypatch):
 def test_cpu_session_accepts_explicit_total_thread_budget(monkeypatch):
     captured = _install_fake_model(monkeypatch)
 
-    runtime_module.create_cpu_runtime(cpu_threads=3)
+    model_store_module.create_cpu_runtime(cpu_threads=3)
 
     assert captured["options"].intra_op_num_threads == 3
 
@@ -107,7 +108,7 @@ def test_cuda_session_owns_explicit_device_and_single_ort_thread(monkeypatch):
         "CPUExecutionProvider",
     ]
 
-    runtime = runtime_module.create_cuda_runtime(device_id=3)
+    runtime = model_store_module.create_cuda_runtime(device_id=3)
 
     assert captured["providers"] == [
         ("CUDAExecutionProvider", {"device_id": 3}),
@@ -133,12 +134,12 @@ def test_cuda_session_from_resolved_artifact_skips_store_and_materialization(
         "CPUExecutionProvider",
     ]
     monkeypatch.setattr(
-        runtime_module,
+        model_store_module,
         "ModelStore",
         lambda **kwargs: pytest.fail("ModelStore must not be called"),
     )
     monkeypatch.setattr(
-        runtime_module,
+        model_store_module,
         "materialize_all_atom_model",
         lambda *args: pytest.fail("materialization must not be called"),
     )
@@ -162,12 +163,12 @@ def test_runtime_rejects_selected_atom_model(monkeypatch):
     _install_fake_model(monkeypatch, input_names=("atom_mask", "atom_index"))
 
     with pytest.raises(RuntimeError, match="required all-atom layout"):
-        runtime_module.create_cpu_runtime()
+        model_store_module.create_cpu_runtime()
 
 
 def test_runtime_keeps_onnx_batching_and_input_dtypes(monkeypatch):
     captured = _install_fake_model(monkeypatch)
-    runtime = runtime_module.create_cpu_runtime()
+    runtime = model_store_module.create_cpu_runtime()
     arrays = {"atom_mask": np.ones((5, 7), dtype=np.int32)}
 
     output = runtime.predict(arrays, batch_size=2)

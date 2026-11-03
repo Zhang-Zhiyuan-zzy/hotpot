@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from hotpot import Atom, Molecule, read_mol
-from hotpot.cheminfo.AImodels.data_extract import extract_atom_attrs
+from hotpot.cheminfo.operations.inference.features import extract_atom_attrs
 from hotpot.cheminfo.elements import elements
 from hotpot.cheminfo.operations.forcefields import working_copy
 from hotpot.cheminfo.structure import _commit

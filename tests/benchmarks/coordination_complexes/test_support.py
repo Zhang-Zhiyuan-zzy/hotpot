@@ -313,7 +313,7 @@ def test_hotpot_auto_forcefield_error_persists_last_finite_frame(
 
 
 def test_cbond_inference_receives_both_recorded_thresholds(monkeypatch) -> None:
-    from hotpot.cheminfo.AImodels.cbond import apply
+    from hotpot.cheminfo.operations.inference.cbond import apply
 
     captured = {}
     expected_result = object()

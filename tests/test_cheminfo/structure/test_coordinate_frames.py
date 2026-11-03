@@ -11,7 +11,7 @@ import pytest
 
 from hotpot import Atom, Molecule
 from hotpot.utils import types
-from hotpot.cheminfo.conformers.contracts import ConformerBatch
+from hotpot.cheminfo.operations.conformers.contracts import ConformerBatch
 from hotpot.cheminfo.structure import _identity
 from hotpot.cheminfo.structure._builder import _thaw_value, _frame_records as _validate_frame_records
 from hotpot.cheminfo.structure._commit import _FactTransaction, _native_fail_after

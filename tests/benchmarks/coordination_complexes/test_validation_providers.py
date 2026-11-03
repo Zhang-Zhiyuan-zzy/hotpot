@@ -5,7 +5,7 @@ import pickle
 import numpy as np
 import pytest
 
-from hotpot.cheminfo.conformers import (
+from hotpot.cheminfo.operations.conformers import (
     ConformerBatch,
     ConformerSamplingError,
     ConformerSamplingRequest,

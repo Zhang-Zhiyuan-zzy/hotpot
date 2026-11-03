@@ -200,8 +200,8 @@ def main(argv=None):
         for operation in {entry["operation"] for entry in entries}:
             if getattr(args, f"{operation}_module") is None:
                 parser.error(f"candidate observations require explicit --{operation}-module")
-    args.mca_module = args.mca_module or "hotpot.cheminfo.AImodels.mca"
-    args.cbond_module = args.cbond_module or "hotpot.cheminfo.AImodels.cbond.runtime"
+    args.mca_module = args.mca_module or "hotpot.cheminfo.operations.inference.mca"
+    args.cbond_module = args.cbond_module or "hotpot.cheminfo.operations.inference.cbond.runtime"
     if args.output.exists() and any(args.output.iterdir()):
         raise FileExistsError(f"observation output must be empty: {args.output}")
     args.output.mkdir(parents=True, exist_ok=True)

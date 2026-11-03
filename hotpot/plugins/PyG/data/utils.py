@@ -11,7 +11,7 @@ from torch_geometric.data import Data
 
 from hotpot.cheminfo.core import Molecule, Atom, AtomPair
 from hotpot.cheminfo.rules.mathematics.graph.cycles import _cycle_basis
-from hotpot.cheminfo.AImodels.data_extract import extract_atom_attrs as _extract_numpy_atom_attrs
+from hotpot.cheminfo.operations.inference.features import extract_atom_attrs as _extract_numpy_atom_attrs
 from .consts import *
 
 __all__ = [

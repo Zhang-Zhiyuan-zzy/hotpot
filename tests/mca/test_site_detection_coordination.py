@@ -2,12 +2,12 @@
 
 import pytest
 
-from hotpot.cheminfo.AImodels.mca.result_types import AtomPrediction, MoleculePrediction
-from hotpot.cheminfo.AImodels.mca.serialization import normalize_molecule
+from hotpot.cheminfo.operations.inference.mca.results import AtomPrediction, MoleculePrediction
+from hotpot.cheminfo.operations.inference.mca.serialization import normalize_molecule
 from hotpot.cheminfo.structure._identity import _check_source
 from hotpot.cheminfo.structure._results import _capture_mca_source, _select_mca_result
 
-from mca.site_detection import find_nucleophilic_sites
+from hotpot.cheminfo.operations.inference.mca.site_detection import find_nucleophilic_sites
 from tests.smarts_conformance.coordination_cases import (
     build_graph,
     ethylenediamine_chelate,

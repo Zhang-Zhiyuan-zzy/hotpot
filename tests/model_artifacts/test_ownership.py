@@ -215,7 +215,7 @@ def test_other_download_errors_propagate_unchanged(tmp_path, monkeypatch):
 
 
 def test_mca_model_store_uses_registered_pointer(tmp_path, monkeypatch):
-    from hotpot.cheminfo.AImodels.mca import model_store
+    from hotpot.cheminfo.operations.inference.mca import model_store
 
     pointer = _write_pointer(tmp_path)
     calls = []
@@ -234,7 +234,7 @@ def test_mca_model_store_uses_registered_pointer(tmp_path, monkeypatch):
 
 
 def test_cbond_runtime_uses_registered_pointer(tmp_path, monkeypatch):
-    from hotpot.cheminfo.AImodels.cbond import runtime
+    from hotpot.cheminfo.operations.inference.cbond import runtime
 
     manifest = {"models": {"graph": {"file": "graph.onnx"}, "cbond": {"file": "head.onnx"}}}
     (tmp_path / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
@@ -245,8 +245,8 @@ def test_cbond_runtime_uses_registered_pointer(tmp_path, monkeypatch):
         return SimpleNamespace(resolve=lambda: tmp_path)
 
     monkeypatch.setattr(runtime, "ModelArtifact", resolve)
-    monkeypatch.setattr(runtime.ort, "SessionOptions", SimpleNamespace)
-    monkeypatch.setattr(runtime.ort, "InferenceSession", lambda *args, **kwargs: SimpleNamespace(
+    monkeypatch.setattr(runtime.cbond.ort, "SessionOptions", SimpleNamespace)
+    monkeypatch.setattr(runtime.cbond.ort, "InferenceSession", lambda *args, **kwargs: SimpleNamespace(
         get_providers=lambda: ["CPUExecutionProvider"],
     ))
     predictor = runtime.CBondRuntime(device="cpu", verify=False, model_source="local")

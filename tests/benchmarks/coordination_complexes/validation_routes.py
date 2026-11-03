@@ -10,12 +10,12 @@ from typing import TYPE_CHECKING, Callable, Literal, Mapping, Optional
 
 import numpy as np
 
-from hotpot.cheminfo.conformers import (
+from hotpot.cheminfo.operations.conformers import (
     ConformerSampler,
     OpenBabelConformerAdapter,
     RDKitConformerAdapter,
 )
-from hotpot.cheminfo.conformers.adapters import (
+from hotpot.cheminfo.operations.conformers.rdkit import (
     _materialized_hydrogen_projection,
 )
 from hotpot.cheminfo.core import BondKind

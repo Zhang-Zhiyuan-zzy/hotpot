@@ -2,7 +2,7 @@
 """Ratcheted source checks for the incremental Plan20 migration.
 
 The frozen inventory is discovery evidence. The shrinking allowlist records
-remaining debt. Nine fixed Stage7A/Stage8A/Stage8B/Stage8C relocations carry their original
+remaining debt. Fixed Stage7A–8D relocations carry their original
 import slots; new ownership packages otherwise have no inherited exceptions. Runtime ownership,
 buffer isolation and native ABI tests remain separate gates.
 """
@@ -122,12 +122,38 @@ COMMAND_CORE_IMPORT_SOURCE = {
 COMMAND_CORE_IMPORT_DESTINATION = {
     **COMMAND_CORE_IMPORT_SOURCE, "path": "hotpot/commands/ff.py",
 }
+# Stage8D carries only these seven existing bindings. The old feature Atom,
+# two site-recognition bindings and combined conformer-adapter annotation retire;
+# their slots cannot pay for imports in a new provider or lower adapter.
+INFERENCE_CORE_IMPORT_TRANSFERS = tuple(
+    (
+        {"rule": "legacy_core_import", "path": f"hotpot/cheminfo/{old}",
+         "scope": "", "target": f"hotpot.cheminfo.core.{name}", "local": local},
+        {"rule": "legacy_core_import", "path": f"hotpot/cheminfo/{new}",
+         "scope": "", "target": f"hotpot.cheminfo.core.{name}", "local": local},
+    )
+    for old, new, bindings in (
+        ("AImodels/cbond/apply.py", "operations/inference/cbond/apply.py",
+         (("Atom", "Atom"), ("Molecule", "Molecule"))),
+        ("AImodels/data_extract.py", "operations/inference/features.py",
+         (("Molecule", "Molecule"), ("AtomPair", "AtomPair"))),
+        ("AImodels/mca/serialization.py", "operations/inference/mca/serialization.py",
+         (("Molecule", "HotpotMolecule"),)),
+        ("calculator/mca_inference.py", "operations/inference/mca/attachment.py",
+         (("Molecule", "Molecule"),)),
+        ("conformers/sampler.py", "operations/conformers/sampler.py",
+         (("Molecule", "Molecule"),)),
+    )
+    for name, local in bindings
+)
+
 CORE_IMPORT_TRANSFERS = (
     (CORE_IMPORT_SOURCE, CORE_IMPORT_DESTINATION),
     *SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS,
     (NATIVE_TRANSPORT_CORE_IMPORT_SOURCE, NATIVE_TRANSPORT_CORE_IMPORT_DESTINATION),
     (COMMAND_CORE_IMPORT_SOURCE, COMMAND_CORE_IMPORT_DESTINATION),
     *SEARCH_CORE_IMPORT_TRANSFERS,
+    *INFERENCE_CORE_IMPORT_TRANSFERS,
 )
 # These declared numerical values initialize their own coordinate fields; they
 # do not receive a live carrier to edit. Keep path, class, method, field and
@@ -161,7 +187,7 @@ def ratchet_findings(actual, allowed, previous):
 
 
 def stage7a_ratchet_findings(actual, allowed, previous, original):
-    """Keep real debt identities; transfer only the nine fixed ceiling slots."""
+    """Keep real debt identities; transfer only the enumerated existing slots."""
     findings = ratchet_findings(actual, allowed, previous)
     current = Counter(map(debt_key, allowed))
     for name, reference in (("allowlist_growth", previous),

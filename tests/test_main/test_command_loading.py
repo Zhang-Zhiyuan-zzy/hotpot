@@ -8,13 +8,15 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 
 _PROJECT_ROOT = Path(
     os.environ.get("HOTPOT_TEST_WORKDIR", Path(__file__).parents[2])
 )
 _COMMAND_MODULES = (
-    "hotpot.cheminfo.AImodels.cbond.cli",
-    "hotpot.cheminfo.AImodels.mca.cli",
+    "hotpot.commands.cbond",
+    "hotpot.commands.mca",
     "hotpot.commands.models",
     "hotpot.commands.ff",
     "hotpot.plugins.xtb.cli",
@@ -79,8 +81,8 @@ def test_forcefield_help_does_not_load_xtb_or_model_commands() -> None:
     assert status == 0
     assert loaded["hotpot.commands.ff"] is True
     assert loaded["hotpot.plugins.xtb.cli"] is False
-    assert loaded["hotpot.cheminfo.AImodels.cbond.cli"] is False
-    assert loaded["hotpot.cheminfo.AImodels.mca.cli"] is False
+    assert loaded["hotpot.commands.cbond"] is False
+    assert loaded["hotpot.commands.mca"] is False
     assert loaded["hotpot.pipeline.cli"] is False
 
 
@@ -129,3 +131,13 @@ def test_models_help_loads_only_the_selected_command_module() -> None:
         for name, is_loaded in loaded.items()
         if name != "hotpot.commands.models"
     )
+
+
+@pytest.mark.parametrize("name", ("mca", "cbond"))
+def test_inference_help_loads_only_the_selected_canonical_command(name) -> None:
+    status, loaded = _loaded_after((name, "--help"))
+
+    assert status == 0
+    expected = f"hotpot.commands.{name}"
+    assert loaded[expected] is True
+    assert all(not value for module, value in loaded.items() if module != expected)

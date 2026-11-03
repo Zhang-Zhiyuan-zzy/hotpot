@@ -1,14 +1,13 @@
 import pytest
+from hotpot.cheminfo.adapters.inference.system import pin_current_process, pin_worker_from_queue
 
-from hotpot.cheminfo.AImodels.mca.resources import (
+from hotpot.cheminfo.operations.inference.mca.resources import (
     DEFAULT_CPU_COUNT,
     DEFAULT_INFER_CPU_PER_GPU,
     DEFAULT_SITE_CPU_PER_GPU,
     InsufficientCPUAffinityError,
     InsufficientCPUCountError,
     build_gpu_resource_plan,
-    pin_current_process,
-    pin_worker_from_queue,
     resolve_cpu_ids,
     resolve_gpu_indices,
     validate_gpu_resource_request,
@@ -98,7 +97,7 @@ def test_custom_worker_counts_directly_determine_required_cpu_count():
 
 def test_resource_request_validation_does_not_read_cpu_affinity(monkeypatch):
     monkeypatch.setattr(
-        "hotpot.cheminfo.AImodels.mca.resources.current_cpu_affinity",
+        "hotpot.cheminfo.operations.inference.mca.resources.current_cpu_affinity",
         lambda: pytest.fail("host affinity must remain lazy"),
     )
 
@@ -112,7 +111,7 @@ def test_resource_request_validation_does_not_read_cpu_affinity(monkeypatch):
 def test_pin_current_process_uses_exact_resolved_affinity(monkeypatch):
     calls = []
     monkeypatch.setattr(
-        "hotpot.cheminfo.AImodels.mca.resources.os.sched_setaffinity",
+        "hotpot.cheminfo.adapters.inference.system.os.sched_setaffinity",
         lambda process, cpus: calls.append((process, cpus)),
     )
 
@@ -135,7 +134,7 @@ def test_pool_initializer_consumes_and_binds_exactly_one_cpu(monkeypatch):
     queue = Queue()
     pinned = []
     monkeypatch.setattr(
-        "hotpot.cheminfo.AImodels.mca.resources.pin_current_process",
+        "hotpot.cheminfo.adapters.inference.system.pin_current_process",
         pinned.append,
     )
 

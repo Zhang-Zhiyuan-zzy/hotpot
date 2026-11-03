@@ -286,7 +286,7 @@ def test_fresh_lazy_working_copy_prepares_required_groups_before_source_capture_
 
 
 def test_atomic_number_only_projection_does_not_prepare_chemistry(monkeypatch):
-    from hotpot.cheminfo.AImodels.data_extract import extract_atom_attrs
+    from hotpot.cheminfo.operations.inference.features import extract_atom_attrs
     from hotpot.cheminfo._native.buffers import NativeMoleculeField, pack_molecule
     mol = _cycle()
     before = _state(mol)
@@ -300,7 +300,7 @@ def test_atomic_number_only_projection_does_not_prepare_chemistry(monkeypatch):
 
 
 def test_strict_model_and_native_hydrogen_consumers_prepare_known_values_once():
-    from hotpot.cheminfo.AImodels.data_extract import extract_atom_attrs
+    from hotpot.cheminfo.operations.inference.features import extract_atom_attrs
     from hotpot.cheminfo._native.buffers import NativeMoleculeField, pack_molecule
     mol = _cycle()
     mol.determine_rings_aromatic()
@@ -358,7 +358,7 @@ def test_working_source_identity_covers_independent_bond_aromatic_flags():
 
 
 def test_known_numeric_hydrogen_projection_keeps_raw_float_domain_and_model_order():
-    from hotpot.cheminfo.AImodels.data_extract import extract_atom_attrs
+    from hotpot.cheminfo.operations.inference.features import extract_atom_attrs
     mol = Molecule()
     values = np.zeros(19)
     values[0], values[14], values[15] = 6., 65537.25, 2. ** 70

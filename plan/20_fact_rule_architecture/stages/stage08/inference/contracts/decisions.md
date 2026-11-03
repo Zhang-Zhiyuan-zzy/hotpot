@@ -146,8 +146,11 @@ an importable Hotpot wheel runtime. Do not execute training/export or add weight
 
 ## D3 — Provider-neutral conformer preparation
 
-Existing ConformerSamplingRequest/ConformerBatch/ConformerSamplingError and
-ConformerSampler move to operations/conformers/contracts.py and sampler.py.
+Existing ConformerSamplingRequest/ConformerSamplingError and ConformerSampler
+move to operations/conformers/contracts.py and sampler.py. The shared immutable
+ConformerBatch value lives once in structure/conformer.py; operation contracts
+reexport it. Canonical frames and pure rule import closures must not acquire an
+upward operation dependency merely to compose that value.
 The current sample(Molecule, request) methods perform carrier preparation and
 commit, so their two existing classes remain operation provider facades in
 operations/conformers/openbabel.py and rdkit.py, preserving names/constructors.
@@ -167,6 +170,12 @@ coordinate mapping/finite/error behavior and original cause. No new fallback,
 retry, ensemble algorithm, duplicate materialized-H helper or standalone wrapper
 rewrite. The selected returned numeric buffer must be independent and immutable;
 readonly storage must not rely solely on a reversible ndarray WRITEABLE flag.
+This physical value owner also preserves N17's postponed annotation resolution
+without importing providers; public Conformers.add annotations and value/pickle
+contracts remain unchanged. The first implementation's operation-owned batch
+failed the existing scientific-rule transitive import-closure test, even with
+local construction imports. This evidence selects the shared structure value
+owner above; no checker exception, duplicate class or compatibility module is used.
 
 Update all FF/structure/benchmark/replay/import/pickle/provenance consumers
 including the two literal sampler type strings. Record actual new class module

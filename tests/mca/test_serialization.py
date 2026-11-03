@@ -8,14 +8,9 @@ from rdkit import Chem
 
 from hotpot import read_mol
 from hotpot.cheminfo.core import BondKind, Molecule
-from mca.serialization import (
-    MCA_MOLECULE_DTO_VERSION,
-    hotpot_mol_from_dto,
-    normalize_molecule,
-    rdmol_from_dto,
-    validate_dto,
-)
-from mca.site_detection import find_nucleophilic_sites
+from hotpot.cheminfo.operations.inference.mca.results import MCA_MOLECULE_DTO_VERSION
+from hotpot.cheminfo.operations.inference.mca.serialization import hotpot_mol_from_dto, normalize_molecule, rdmol_from_dto, validate_dto
+from hotpot.cheminfo.operations.inference.mca.site_detection import find_nucleophilic_sites
 from tests.smarts_conformance.coordination_cases import (
     ethylenediamine_chelate,
     metal_star,
@@ -226,20 +221,14 @@ def test_unknown_dto_version_is_rejected_by_both_rebuilders():
         rdmol_from_dto(dto)
 
 
-def test_normalization_supports_both_serialization_import_routes():
-    from dataclasses import asdict
-    from importlib import import_module
-
-    expected = asdict(normalize_molecule("CCN"))
-    for name in ("mca.serialization", "hotpot.cheminfo.AImodels.mca.serialization"):
-        module = import_module(name)
-        dto = module.normalize_molecule("CCN")
-        assert asdict(dto) == expected
-        assert _site_records(module.hotpot_mol_from_dto(dto)) == ((2, "Amine"),)
+def test_transfer_records_have_one_canonical_owner():
+    dto = normalize_molecule("CCN")
+    assert type(dto).__module__ == "hotpot.cheminfo.operations.inference.mca.results"
+    assert _site_records(hotpot_mol_from_dto(dto)) == ((2, "Amine"),)
 
 
 def test_own_dto_normalization_reuses_identity_without_preparation(monkeypatch):
-    from mca import serialization
+    from hotpot.cheminfo.operations.inference.mca import serialization
 
     dto = normalize_molecule("CN")
     monkeypatch.setattr(
@@ -251,7 +240,7 @@ def test_own_dto_normalization_reuses_identity_without_preparation(monkeypatch):
 
 
 def test_cpu_preprocess_reuses_dto_and_keeps_domain_checks():
-    from mca.cpu_backend import MCACpuPredictor
+    from hotpot.cheminfo.operations.inference.mca.cpu_backend import MCACpuPredictor
 
     predictor = object.__new__(MCACpuPredictor)
     predictor.allow_charged = False

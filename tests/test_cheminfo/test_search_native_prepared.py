@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import hotpot as hp
 
-from hotpot.cheminfo.AImodels.mca import site_detection
+from hotpot.cheminfo.operations.inference.mca import site_detection
 from hotpot.cheminfo.operations.search import native
 from hotpot.cheminfo.adapters.native.substructure import matching as native_adapter
 

@@ -4,7 +4,7 @@ import pytest
 
 from hotpot import __main__ as hotpot_main
 from hotpot import read_mol
-from hotpot.cheminfo.AImodels.cbond import cli
+from hotpot.commands import cbond as cli
 
 
 def _step(atom_index, element, score):

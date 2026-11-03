@@ -1,8 +1,11 @@
 # Fact-Carrier and Rule Architecture Refactor
 
 Status: **implementation authorized on 2026-10-28; Stage0–6 owning-stage gates complete;
-C62 Stage6 delivery remote-verified; Stage7A design accepted and bounded implementation/test authoring released; candidate runtime held;
-validated Stage6 runtime source remains C61; final scientific/global efficiency acceptance open**. The architecture, lazy invalidation, scientific-reporting, and
+Stage7A IN_PROGRESS; current CP311 source and installed-wheel business checks recorded;
+Stage7B PREENTRY; full scientific, engineering and global acceptance remain open**.
+Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
+source scopes. Current bounded results and remaining semantic/installation limits
+are recorded in [the CP311 core-workflow report](cp311_core_workflow_validation_20261103.md). The architecture, lazy invalidation, scientific-reporting, and
 performance requirements are incorporated. The owner's implementation request
 authorizes the concrete documented route; Stage1 records exact API differences
 and consumer evidence. Unspecified public signatures, return semantics and

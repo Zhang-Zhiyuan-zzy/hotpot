@@ -1095,7 +1095,7 @@
       "additional_requirements": [
         "fresh external values; I/O/thermo/visualization contracts; matrix convention; no carrier toolkit ownership"
       ],
-      "execution_status": "Stage7A IN_PROGRESS: Task109 coordinate-copy and Task111 canonical bulk-value capture repairs applied; corrected current-main focused88passed/0failed, original87passed/1fixturefailure retained. Task100 technical/functional and Task102 full26 outcomes remain historical. Current affected214-file supported source/wheel/native, functional/reflection and fresh26 performance rebind remain pending after coherent SDF repair. SDF FIX_REQUIRED/native memory OPEN;Stage7B PREENTRY;later/globalgatesopen.",
+      "execution_status": "Stage7A IN_PROGRESS/Stage7B PREENTRY. Current CP311 source business selection22passed and current installed-wheel selection76distinct passed, plus core/inference/forcefield installed smoke RC0; first installed stdin/spawn73pass/3fail and exact3case standard-CLI rerun preserved. Current source/wheel work is bounded and does not close H/isotope/stereo transport, full-version, clean-native/ABI/SDK, general-science, performance, memory or global gates. Earlier dated frozen-source fields and checkpoint values retain their own historical scope.",
       "preentry_evidence": [
         "stages/stage07/preentry-conversion/review.md",
         "stages/stage07/preentry-conversion/evidence.json"
@@ -3094,6 +3094,37 @@
         "historical_values_and_raw_spelling_preserved": true,
         "all_remaining_stage_and_global_gates_open": true,
         "scope": "Factual records/archive only; no source/main-plan/design/tests/environment/config/native/status/gate change. Commit/push held."
+      },
+      "current_business_validation_20261103": {
+        "report": "plan/20_fact_rule_architecture/cp311_core_workflow_validation_20261103.md",
+        "source_evidence": "/tmp/hotpot_plan20/long/stage7a-cp311-core-workflows-20261103/run-results.json",
+        "installed_evidence": "/tmp/hotpot_plan20/long/stage7a-cp311-installed-business-20261103/installed-results.json",
+        "source_commit_for_current_installed_wheel": "97f1f0fca60371a53a90a473e50439430b0a9ab3",
+        "current_source_business_tests_passed": 22,
+        "installed_distinct_tests_passed": 76,
+        "installed_initial_result": {
+          "passed": 73,
+          "failed": 3
+        },
+        "installed_exact_failed_case_rerun": {
+          "passed": 3,
+          "entry": "standard python -m pytest"
+        },
+        "installed_smoke_returncodes": {
+          "core": 0,
+          "inference": 0,
+          "forcefield": 0
+        },
+        "native_build_scope": "six current CP311 native extensions reused; no clean native rebuild",
+        "dependency_scope": "new venv with existing system-site-packages; no full dependency resolution or environment upgrade",
+        "legacy_runtime_fields_scope": "earlier dated capture/release/SOURCE_READY values remain historical; this checkpoint is bounded actual business evidence, not a general new runtime release",
+        "remaining_semantic_work": [
+          "H count and OB export normalization",
+          "OB isotope/stereo import/source transport"
+        ],
+        "stage_gate_closed": false,
+        "global_gate_closed": false,
+        "goal_v2_activated": false
       }
     },
     "Stage7B": {

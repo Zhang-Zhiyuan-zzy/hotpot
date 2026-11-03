@@ -57,3 +57,25 @@ CBond 下载与 `verify_artifact` 已完成后，最初的证据记录脚本误�
 - 仅 CP311 当前源码；没有新增安装包、其他 Python 版本、GPU、干净 native/ABI/SDK、广泛科学语料、性能或长期内存结论。
 - 三个集成场景不覆盖所有电荷/金属/配位环境，也未证明全部混合失败批次、恢复和冷持久化路径。MCA 数值是所选模型的预测，已有 golden 是模型特定的回归例，不是实验真值。
 - `goal_v2.md` 仍待用户评审，本轮未激活、替换目标或修改主计划。Stage7A 仍为 IN_PROGRESS，后续阶段与整体目标尚未完成。
+
+
+## 源码目录外的 CP311 安装包补验
+
+当前提交 `97f1f0fca60371a53a90a473e50439430b0a9ab3` 的已跟踪代码通过 `git archive` 放入独立工作目录；未复制用户未跟踪文件。现有构建环境以标准 `build_py` 和 `bdist_wheel --skip-build` 组装当前 Python/资源代码与源码环境实际使用的6个 CP311 native 扩展。得到约6.28MB的 `hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl`；新 I/O 代码、6个扩展和5个字体均在包内。扩展摘要只验证复用/传输完整性，不参与化学正确性判断。
+
+wheel 用 `pip install --no-deps --ignore-installed --no-compile` 安装到独立 venv，在源码目录外执行。此 venv 使用 `--system-site-packages` 共享现有运行依赖，未修改原 Conda 环境，也没有取得新的完整依赖解析、干净 native 构建或 manylinux 可移植性结论。构建环境的 setuptools79/pybind11_3.1 与运行环境分开；最初运行环境缺 pybind11、setuptools83超出项目构建范围的观察保留，没有为此升级或改动它。
+
+| 安装边界 | 实际结果 | 覆盖 |
+|---|---|---|
+| 初始隔离导入 | 134个已加载 Hotpot 模块均位于安装目录 | 当前代码、新 I/O 及6个扩展；OB native 通过现有 accessor 先加载匹配的 Open Babel。 |
+| 首次组合 pytest | 73 passed、3 failed；该进程236个 Hotpot 模块均来自安装目录 | 多记录 I/O、转换新鲜性/隔离、Crystal、官方 xTB、实际 MCA 附着等；3个集成链失败原因见下。 |
+| 标准 pytest 重跑原3个失败场景 | 3 passed | 两条 Zn 链和 Eu 完整链实际计算、几何、落盘/回读通过；未重跑其余73项。 |
+| 现有 installed smoke 的 core/inference/forcefield | 三次均RC0 | 安装资源、入口、实际推理和CLI衔接；格式检查不替代完整H/立体或几何语义验证。 |
+
+首轮错误来自本次临时入口：以 stdin 运行 `pytest.main`，FF 的 spawn 子进程尝试重新读取不存在的 `outside/<stdin>`，导致 pipe EOF。原 XML 和三个失败阶段的文件保留。改回标准 `python -I -B -m pytest`，仅重跑完全相同的3个失败 test ID；没有修改产品、测试断言或包内容。最终覆盖76个不同测试全部通过，不能把这个合并结果改写为“首轮76 passed”。
+
+安装后 Zn 案例的能量与前节所列观察相同。Eu 案例的 GFN-FF 能量为3.237791384957271 Hartree，GFN2为-13.53210061 Hartree，与源码运行分别略有差异。该README路线未显式固定FF seed；既定测试标准是状态/映射正确、实际收敛、能量有限、几何门控及文件完整性，不是与旧能量逐位相等。本轮保留两组值，不据此单独推断差异成因、唯一正确构象或普遍等价。
+
+完整证据位于 `/tmp/hotpot_plan20/long/stage7a-cp311-installed-business-20261103/`：`assembly-inputs.json` 记录当前源码、wheel和复用扩展；`installed-results.json` 记录命令、环境、首轮73/3、精确失败集重跑、三个场景及局限；`installed-origins.json` 与 `pytest-product-origins.json` 是实际导入检查；两个XML、三份smoke日志及 `attempt1/`、`attempt2/` 保留计算/失败产物。wheel、独立源码副本及venv在 `/tmp/hotpot_plan20/medium/20261103-cp311-installed-business/`。
+
+这补齐了当前修复在 CP311 安装边界的指定业务证据，不关闭完整 Stage7A、全版本、native/ABI/SDK、科学、性能或长期内存门；前述 H/同位素/立体运输问题仍未解决。

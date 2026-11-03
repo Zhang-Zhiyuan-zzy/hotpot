@@ -9,6 +9,8 @@ The committed multi-record reader correction intentionally supersedes S7A-A10's 
 
 Subsequent real core-workflow checks produce22final CP311 passes:3FF,5official xTB,4MCA API,3CBond/FF/xTB pipeline,4explicitly fake-backend context and3MCA attachment tests. One initial failed pipeline test is retained; only its two method-specific UHF assertions were corrected to match the existing charge-only GFN-FF and GFN2 contracts. [The bounded report](../../../../cp311_core_workflow_validation_20261103.md) owns observations and limits. These results establish no new wheel, general scientific, performance, memory or stage/global acceptance. H-count normalization and OB isotope/stereo preservation remain open connected work.
 
+Current CP311 installed follow-up: a current Python/resource wheel with the six reused native extensions passes76distinct selected tests outside the checkout, plus core/inference/forcefield CLI smoke. Preserve the first73pass/3fail stdin/spawn attempt and the exact3case standard-CLI rerun. Actual134initial/236pytest module-origin observations show no checkout Hotpot imports within their inspected processes. The venv shares existing dependencies; clean native/ABI/SDK/manylinux/full-version and the remaining semantic/global gates stay open. No contract or gate criterion is changed by this factual evidence update.
+
 Earlier “current” checkpoints below retain their original dated source and evidence scope; they do not describe the current post-reader-fix source or automatically close remaining gates.
 
 

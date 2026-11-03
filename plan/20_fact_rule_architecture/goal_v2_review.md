@@ -1,60 +1,52 @@
-# goal_v2 审阅对照
+# Review of the Plan20 goal revision
 
-**状态：草案审阅材料，未激活目标。** [goal_v2.md](goal_v2.md) 拟在用户审阅后替换 [goal.md](goal.md)；本次只新增这两个文件。现行目标、主计划、技能、生产/测试代码及验收状态均未修改，无公共 API、schema 或运行时行为变化。
+**Status: review only; not activated.** [goal_v2.md](goal_v2.md) is a complete proposed replacement for the effective [goal.md](goal.md). This revision contains the English draft, these review notes, and two comparison artifacts. It changes no public API, schema, runtime behavior, stage status, or acceptance result. Approval must precede activation and synchronization of conflicting records.
 
-依据：用户本轮七点、已同意推进方式、现行 goal 全文、[主计划](fact_rule_architecture_implementation_plan.md)及其规范性 companions、[业务复盘](business_validation_review_20261103.md)和[执行单元业务映射](functional_707_business_mapping.md)。读取时 HEAD 为 `6d25ff1d940120facbef67f2451797dcbef06341`；本表不重做业务调查或宣布任何已有检查通过。
+The draft follows the effective goal's opening objective and four main headings. The appendix holds current business priorities; implementation mapping stays in the [main plan](fact_rule_architecture_implementation_plan.md). The [interactive tracked changes](goal_v2_tracked_changes.html) and [word-level diff](goal_v2_word_diff.diff) are root-owned comparison artifacts against the effective goal.
 
-## 1. 与现行目标的合并
+## Placement and requirement coverage
 
-| 现行目标主题 | 草案处理 | 落点 |
+The owner directions below are requirements being incorporated, separate from the optional agent suggestions later in this review.
+
+| Basis | Requirement retained or revised | Location in the draft |
 |---|---|---|
-| 完整 Plan20、同架构内集成 Plan12，阶段通过不等于全计划完成 | 保留；优先级调整不删除原业务/架构范围，限定交付、延期及完整完成分别报告。 | §1、§2、§7 |
-| Stage0–12 → B_exp → Stage13A/D_exp → Stage13B/I_exp | 保留顺序和独立门；不提前设计/接入实验，不扩大领域。前序验收依据应同步为获批后的目标口径。 | §1、§7 |
-| root 负责并可依证据调整内部路线 | 保留；可在已授权范围接受可解释、资源可用的性能退化并记录，不增加逐项用户批准关卡。 | §6、§7 |
-| 唯一事实 owner、只读规则、小操作、原子提交、有限失效、无重复真相 | 保留并合并；完整写者/消费者迁移、历史结果与当前性分别解释。 | §4 |
-| 普通成功只返回所请求值；无统一 status/result envelope 或质量评级 | 保留；必要内部控制/持久化元数据留在 owner，不借本轮增加新 API。 | §4 |
-| 方法文档、科学基准支持、缺证据诚实、无虚构置信结论 | 保留；旧“全部执行前信息 determined 每个值”改为方法与条件归因，避免对随机/并行浮点输出作唯一决定论承诺。 | §4 |
-| 用户事实/规则/toolkit 分离，芳香与 Kekulé、配位与共价语义 | 保留；硬围栏和 finding 限于声明域，研究者保留解释权。 | §3 |
-| finding 与控制动作分离、局部拒绝、独立样本及稳定分母 | 保留；最后有限观察和原始尝试不被后续恢复擦除。 | §3 |
-| 全部版本/完整矩阵/性能比较一揽子执行 | 实质修订验收与推进口径：CP311 核心先行，适用范围据业务与支持承诺确定；旧 parity/极少退化额度/全版本不再作通用硬前置，仍保留真实测量与缺口。 | §5–§7 |
-| append-only 日志、真实覆盖、源码/产物身份、完整报告、Git 交付 | 保留；按完整业务小结果提交并 push，复用有效证据，减少准备状态记录开销。 | §5、§7 |
+| Original scope | Complete Plan20 and integrated Plan12 through one mainline, including applicable implementation, validation, reports, and Git delivery; Stage0–12 acceptance and `B_exp` precede Stage13A/B and `D_exp`/`I_exp`. | Opening objective; completion section |
+| Original accountability | The main agent owns technical and scientific decisions, aligns continuously with current plans, amendments, companions, repository state and evidence, and records bounded route corrections. | Main-agent ownership and alignment |
+| Owner point 1 | Chemical business facts, core representation, semantics, and real scientific workflows take priority over peripheral tooling. | Architecture section; appendix |
+| Owner point 2 | Judge chemical meaning and justified invariants without forced historical identity or fixed success counts; hashes attribute artifacts and transport; numerical/stochastic comparisons use declared context. | Verification section |
+| Owner point 3 | Separate validator failure from business failure; use simple meaningful checks and trustworthy direct/alternative evidence; bypass does not create a pass. | Verification section |
+| Owner point 4 | Map execution units to actual business, select affected checks, and reuse valid evidence without making inventory counts or a universal tool chain the goal. | Verification section |
+| Owner point 5 | Priorities 1–4 are mandatory, 5–6 best effort, and other independent issues may defer with reporting; dependencies needed for mandatory paths inherit that priority. | Architecture section; appendix |
+| Owner point 6 | Semantics > acceptable performance > version adaptation; Python 3.11/CP311 first, other planned versions later; explained usable degradation may be accepted by the main agent within authorization. The approximately fivefold example sets no fixed threshold or extra per-case approval requirement. | Architecture section; completion section |
+| Owner point 7 | Flexible tools pursue “Not Error” within stated domains, preserve researchers' interpretation, scope hard safeguards, and distinguish principles from examples. | Scientific rigor and high-throughput stability |
+| Existing contracts | Preserve one fact owner, read-only rules, atomic commit/rollback, finite invalidation, currentness, ordinary requested-value returns, versioned method support, findings/control separation, local failures, and stable denominators. | Scientific and architecture sections |
+| Accepted delivery direction | Commit and push coherent business changes with necessary checks and limits; distinguish bounded delivery, stage completion, main acceptance, and overall completion. Deferral retains unfinished scope. | Verification, records, and completion |
 
-## 2. 用户七点及推进方式覆盖
+## Agent clarifications and optional suggestions
 
-| 用户要求 | 具体落实 | 草案落点 |
-|---|---|---|
-| 1 化学业务事实第一 | 总目标先列化学用途，必要业务按实际风险排序；工具链、数量不替代业务。 | §1、§2、§5 |
-| 2 不强求新旧完全一致，SHA256 不等于化学正确性 | 精确检查限于真正不变量/无损运输；等价、数值、随机结果分开判断；摘要只作来源和传输归因。 | §5 |
-| 3 校验器故障可绕过并后续重构，标准须有意义 | 先声明事实/允许差异/拒绝条件；保留工具失败，以可信直接证据替代，无证据仍未验证。 | §5 |
-| 4 执行单元须映射业务，数量不成为目标 | 引用既有业务映射；要求业务—调用/案例—证据—局限可追溯，不固定707或历史成功数。 | §5 |
-| 5 必须1–4、尽量5–6、其他可暂缓 | 七项优先级逐项列明；支撑核心的 I/O/toolkit/模型依赖仍按核心影响处理。 | §2 |
-| 6 语义 > 可接受性能 > 全版本，3.11优先，5倍只是例子 | 调整阶段与最终验收口径；root 可接受有解释退化，资源失控/批次不完成仍须处理；未测不声称支持。 | §6、§7 |
-| 7 提供灵活建模工具，适用域内 Not Error，不宣称唯一真相 | 电荷/电子/自旋按方法后端合法域；几何/能量须命名条件，不武断排除研究环境，保留解释权。 | §1、§3、§4 |
-| 按有边界业务切片推进并保留失败/回归/分母 | 每片先写标准；不设707→985→fresh26→profiler通用前置链；改动或失败有理由才重跑受影响证据。 | §3、§5 |
-| 小步实现+必要验证+局限一起 commit，正常 push | root 维护所属日志与交付，避免为每次准备动作单独造 checkpoint。 | §7 |
-| 私有 native 候选不等于已交付修复 | 按实际测试/安装路径归因；限定交付与全部目标完成分开。 | §6、§7 |
+The attribution wording replaces the effective goal's apparent promise that all output is mathematically determined by information known before execution. It permits declared numerical and stochastic variation while preserving the ordinary-output contract and adds no runtime metadata schema. The examples distinguish unintended charge loss from intended chemistry changes and heuristic geometry findings from declared hard impossibilities. These are wording safeguards, not approval of a new API or scientific algorithm.
 
-## 3. 新增建议与待审取舍
+The following suggestions concern evidence selection and comparison detail. They are outside the proposed goal's mandatory text until accepted. They are not four new businesses or user omissions: actual workflows, units/mapping, finite invalidation, and installable delivery are already requirements.
 
-正文§1–7整理已决定方向。§8的 S1–S4 并非四项新业务或用户遗漏：真实业务执行、单位/映射、有限失效及可安装交付原已是要求。agent 建议具体化其证据粒度；新增的代表性选样、独立判据及等价/往返/变形检查安排供用户取舍，不新增治理体系，也不先行成为硬门。
-
-| 建议 | 补充点 | 采用理由及界限 |
-|---|---|---|
-| S1 | 新增选样/检查建议：可独立判断的正/负/边界案例，以及等价、往返和保持语义的变形检查；覆盖已有单位、映射及 H/同位素/立体完整性要求 | 避免简单运输样本代表全部业务；旧版本或两边共享实现不是唯一判据。不预设唯一化学解释，也不增加固定语料规模目标。 |
-| S2 | 既有原则具体化：真实后端/模型端到端、混合正常/失败样本、当前性/回滚与有限恢复 | 把“真实核心流程”落实为可判定覆盖；mock/导入仍可证明其各自技术合约，不代替业务计算。 |
-| S3 | 已决定比较方向的检查安排：方法/单位/尺度/收敛性的容差、结构等价和实际 seed/分布比较 | 防止精确一致性或宽泛近似标准掩盖问题；具体数值随业务在执行前确定，本轮不定阈值。 |
-| S4 | 既有交付要求具体化：checkout 外可安装 CP311 核心闭环，native/模型/后端依赖归因 | 避免开发环境或私有候选结果冒充普通用户交付；不前置五版本或全部 native 追溯矩阵。 |
-
-## 4. 获批后需要同步的冲突文本（本次未改）
-
-| 当前记录 | 后续同步内容 |
+| Suggestion | Optional refinement and boundary |
 |---|---|
-| 主计划§12.2、§14.10，以及§16.1等继承 parity 的方向文字 | 用可解释、资源可用且业务可完成的验收口径取代 parity/极少1.05退化硬门；保留历史不利测量与可比工作量约束。root 对范围内接受理由负责，不增设逐项用户审批。 |
-| 主计划§11的版本频率、§14.9，Stage6/7E及Stage10等版本矩阵前置 | CP311真实核心优先，按受影响能力组织检查，其他版本后补并如实列状态；明确限定交付、整体剩余项及支持承诺，不能把延期写成通过或静默删范围。 |
-| 主计划§13–14、§17.2及相关最终报告/验证地图 | 将适用最终验收同步为获批口径，同时保留完整架构、Plan12业务和 B_exp/D_exp/I_exp 顺序。草案、CP311局部证据或工具绕过均不自动关闭前序门。 |
-| chemical_type_interface_contract.md §6；data_object_scope_audit.md §9第5项；plan17_plan20_execution_alignment.md §5 | 清理继承的“至少持平/总体更快”硬口径，保持各自事实、公共接口、独立基线和科学算法边界。 |
-| 受影响的阶段记录与验证目标 | 复用有效证据，记录工具故障和直接替代依据；移除通用全清单串行前置，保留实际失败、原分母、必要未验证项及其责任归属。 |
+| S1 | Select a small set of independently judged positive, negative, and boundary chemical fixtures, with equivalence, round-trip, or semantics-preserving metamorphic checks where useful. Historical output or two sides sharing one implementation must not be the sole oracle; no fixed corpus size or unique chemical interpretation is proposed. |
+| S2 | Choose representative actual-backend/model cases mixing ordinary outcomes and local failures, with relevant currentness, rollback, and finite-recovery checks. The proposal is the sampling arrangement, not a new requirement to execute real workflows. |
+| S3 | Specify method/state/unit tolerances, convergence and geometric-equivalence criteria, and actual seed or distribution comparisons appropriate to each business slice. This draft sets no new numeric thresholds. |
+| S4 | Demonstrate a representative installed CP311 workflow outside the checkout with actual native/backend/model dependency attribution. This refines delivery evidence without making every Python version a prerequisite for each increment. |
 
-起草阶段仅做文档读取和文本自审：使用 `cat`、有界 `sed -n` 阅读上述材料，使用 `git rev-parse HEAD`、`git status --short --branch` 确认来源与并发工作区。起草阶段未运行测试、校验器、构建、基准或业务计算，未做 Git mutation；后续由 root 审阅、提交及推送两份草案的交付记录另行维护。草案中的验收描述均为目标文字，不是已执行证据。
+## Conflicting records to synchronize after approval
 
-剩余门是用户审阅替换文本及 S1–S4 的取舍；如获批准，由 root 同步上述冲突条款并据真实业务证据推进。所有当前未完成、失败或缺证据的实施/科学/交付项目继续保持原始状态，不由本次草案宣告完成。
+These records remain untouched in this authoring step. Synchronization must preserve the complete approved scope, scientific and public-interface boundaries, and Stage0–12 → `B_exp` → Stage13A/B ordering.
+
+| Record | Consequential synchronization |
+|---|---|
+| Main plan §12.2, §14 item 10, and inherited direction in §16.1 | Replace parity and rare-small-regression hard gates with explained usability, comparable work, resource bounds, and main-agent accountability. Retain unfavorable historical measurements and actual performance obligations. |
+| Main plan §11, §14 item 9, and related Stage6/7E/10 version matrices | Express CP311-first execution, later adaptation, and honest support status. Staged or deferred checks remain visible obligations; they do not become final acceptance waivers. |
+| Main plan §10/§13 and affected stage/verification records | Align stage-entry assessment, affected-check selection, reusable evidence, and logging with the revised goal without a blanket reread or tool-chain prerequisite. |
+| Main plan §13–14/§17.2 and final reports | Reconcile applicable acceptance wording without silently restoring superseded performance/version gates, deleting scope, or allowing an experiment to close an earlier gate. |
+| chemical_type_interface_contract.md §6; data_object_scope_audit.md §9 item 5; plan17_plan20_execution_alignment.md §5 | Reconcile inherited parity/faster wording while retaining fact ownership, interface review, independent baselines, and approved algorithm boundaries. |
+
+Document checks cover manual review of both complete drafts, required headings and wording, English prose, relative links, review-only status, and `git diff --check`. The word-level comparison is against effective `goal.md` at baseline commit `92aa921b0cf4bd06fc871d3bd7e9e929f28eea8a`; retaining unchanged text plus deletions reconstructs the complete original bytes, while retaining unchanged text plus insertions reconstructs the complete proposal. The final HTML was independently parsed to verify both complete documents, and its three view controls and print action were exercised with Node and a mock DOM. Browser visual inspection remains unverified because the available browser service has no Chrome installation. These checks verify document integrity and control behavior, not chemical correctness. No chemistry calculation, business validator, test suite, build, or benchmark was run for this revision.
+
+Remaining gates are owner review and approval before any replacement or synchronization. Optional suggestions remain proposals unless adopted. Existing implementation failures, missing scientific evidence, untested versions, and incomplete delivery remain in their actual states.

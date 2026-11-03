@@ -1,0 +1,403 @@
+{
+  "schema_version": 1,
+  "status": "ROOT_ACCEPTED_CP311_PREPARATION_DIAGNOSTICS",
+  "stage": "Stage8A/A10",
+  "date": "2026-11-03",
+  "source_head": "3aaf8e829bbf6d151d7fcf8f6c1706ce0009737f",
+  "source_freeze": {
+    "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-diagnostics-fixture.json",
+    "bytes": 182829,
+    "sha256": "902e62b02cec9a22077dbca9493986b5f8a13023749645559fe572ced5a8c94a"
+  },
+  "freeze_binding_counts": {
+    "source_and_tests": 1426,
+    "native": 6,
+    "build_inputs": 3
+  },
+  "root_final_check": {
+    "path": "/tmp/hotpot_plan20/long/stage8a-preparation-diagnostics-20261103/root-final-check.json",
+    "bytes": 1352,
+    "sha256": "4df0e1b64034af265d36b65aedc964b346625dffa76239eebb89b285a2375514"
+  },
+  "root_acceptance_applied_by_this_record": true,
+  "whole_stage8a_closed": false,
+  "global_gate_closed": false,
+  "scope": "Explicit unavailable-H warnings and strict diagnostics; source-preserving aromatic projection diagnostics; existing preparation/currentness/transaction and ordinary None/H0 behavior retained. No scientific rule/model/native change.",
+  "source": {
+    "focused-diagnostics-attempt01": {
+      "evidence": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/focused-diagnostics-attempt01/execution.json",
+        "bytes": 3358,
+        "sha256": "6b5da714b6f106981abdc80e5867ca85549d43a3397bacae2f961109231164de"
+      },
+      "counts": {
+        "tests": 764,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 763
+      },
+      "returncode": 1,
+      "elapsed_seconds": 13.823494585230947,
+      "source_freeze": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-diagnostics.json",
+        "sha256": "d646b1c493285decd0eb4918e437df36bd8596b25c76efa45c9e506ff431cb0f"
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    "focused-diagnostics-attempt02": {
+      "evidence": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/focused-diagnostics-attempt02/execution.json",
+        "bytes": 3365,
+        "sha256": "01883eedefea9e9dd0773fa3b05d23f72118ab9e193ced90f1c1e6f683a6d037"
+      },
+      "counts": {
+        "tests": 764,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 764
+      },
+      "returncode": 0,
+      "elapsed_seconds": 13.647037444636226,
+      "source_freeze": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-diagnostics-repair.json",
+        "sha256": "905951f1ed92273c8d7af2cd3bcee226da5ce47af195c0d385765b711b80f6be"
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    "affected-diagnostics-attempt02": {
+      "evidence": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/affected-diagnostics-attempt02/execution.json",
+        "bytes": 9000,
+        "sha256": "21efc22797d8cfb9da55cb891b600b39d732589da82cd41eee2eb67152574fb3"
+      },
+      "counts": {
+        "tests": 1564,
+        "failures": 6,
+        "errors": 0,
+        "skipped": 5,
+        "passed": 1553
+      },
+      "returncode": 1,
+      "elapsed_seconds": 41.8485301733017,
+      "source_freeze": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-diagnostics-repair.json",
+        "sha256": "905951f1ed92273c8d7af2cd3bcee226da5ce47af195c0d385765b711b80f6be"
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    "affected-diagnostics-attempt03": {
+      "evidence": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/affected-diagnostics-attempt03/execution.json",
+        "bytes": 9003,
+        "sha256": "cb92bea62fd3f17e4199ba43aede9a490b6da5dfb6aa4e79148a78acab58a6cb"
+      },
+      "counts": {
+        "tests": 1564,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 5,
+        "passed": 1559
+      },
+      "returncode": 0,
+      "elapsed_seconds": 41.675230488181114,
+      "source_freeze": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-diagnostics-fixture.json",
+        "sha256": "902e62b02cec9a22077dbca9493986b5f8a13023749645559fe572ced5a8c94a"
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    "actual_CBFF_xtb-diagnostics-attempt03": {
+      "evidence": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/actual_CBFF_xtb-diagnostics-attempt03/execution.json",
+        "bytes": 2639,
+        "sha256": "dc9382259148d67af5bbcada86da439e4ed0d5a505616a25a3e3975ae1799b67"
+      },
+      "counts": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 3
+      },
+      "returncode": 0,
+      "elapsed_seconds": 4.840505125001073,
+      "source_freeze": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-diagnostics-fixture.json",
+        "sha256": "902e62b02cec9a22077dbca9493986b5f8a13023749645559fe572ced5a8c94a"
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    "actual_MCA_attachment-diagnostics-attempt03": {
+      "evidence": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/actual_MCA_attachment-diagnostics-attempt03/execution.json",
+        "bytes": 2593,
+        "sha256": "9f90379fc8831bb97780ed5e9e47101563776e047a383a609a7fcf75e8ec5d48"
+      },
+      "counts": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 3
+      },
+      "returncode": 0,
+      "elapsed_seconds": 8.713666884228587,
+      "source_freeze": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-diagnostics-fixture.json",
+        "sha256": "902e62b02cec9a22077dbca9493986b5f8a13023749645559fe572ced5a8c94a"
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    }
+  },
+  "focused_reuse": {
+    "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/focused-diagnostics-attempt02/execution.json",
+    "sha256": "01883eedefea9e9dd0773fa3b05d23f72118ab9e193ced90f1c1e6f683a6d037",
+    "result": "764passed; all selected files and connected product/native bytes unchanged"
+  },
+  "targeted_fixture": {
+    "evidence": {
+      "path": "/tmp/hotpot_plan20/long/stage8a-preparation-diagnostics-20261103/optimizer-fixture-repair-attempt01.json",
+      "bytes": 1651,
+      "sha256": "8b30963114b3b65194ecf9959ac68752aee0a926c0c5a63fac94b56d02f5a9cb"
+    },
+    "counts": {
+      "passed": 37,
+      "failed": 0,
+      "warnings": 1
+    },
+    "exit_code": 0,
+    "warning": "Existing GeometryQualityWarning from mocked ordinary-forcefield acceptance fixture."
+  },
+  "installed": {
+    "status": "STAGE8A1_SCIENTIFIC_STATE_RELEASED_INSTALLED_SELECTIONS_PASSED",
+    "evidence": {
+      "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/installed-validation/diagnostics-attempt01/execution.json",
+      "bytes": 63700,
+      "sha256": "62d949d98a8533b1d3276cb1d476bf54d7ca4ca08b8fd0d5c72bd4b463d7ff1a"
+    },
+    "results": {
+      "affected": {
+        "counts": {
+          "tests": 1564,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 5,
+          "passed": 1559
+        },
+        "returncode": 0,
+        "elapsed_seconds": 45.90849778056145,
+        "origins": {
+          "startup_processes": 80,
+          "final_processes": 80,
+          "zero_leaks": true
+        }
+      },
+      "actual_CBFF_xtb": {
+        "counts": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 3
+        },
+        "returncode": 0,
+        "elapsed_seconds": 5.379792945459485,
+        "origins": {
+          "startup_processes": 5,
+          "final_processes": 5,
+          "zero_leaks": true
+        }
+      },
+      "actual_MCA_attachment": {
+        "counts": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 3
+        },
+        "returncode": 0,
+        "elapsed_seconds": 9.04209766164422,
+        "origins": {
+          "startup_processes": 1,
+          "final_processes": 1,
+          "zero_leaks": true
+        }
+      }
+    },
+    "wheel": {
+      "path": "/tmp/hotpot_plan20/medium/20261103-stage8a-state-installed/diagnostics-attempt01/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6328103,
+      "sha256": "4c8bf167de2c8eaa33807502d5bf50c634fc540f2ea27158cc1872e8c90da9b8"
+    },
+    "same_ordered_affected_nodes": true,
+    "invariants": {
+      "source_tests_native_unchanged": true,
+      "installed_unchanged": true,
+      "models_unchanged": true,
+      "outside_support_unchanged": true,
+      "architecture_context_unchanged": true,
+      "runner_support_unchanged": true
+    },
+    "production_python_count": 468,
+    "reused_native_count": 6,
+    "measured_nonpython_omission_count": 41
+  },
+  "skipped_cases": [
+    {
+      "name": "test_official_gfn2_wrapper_matches_direct_cli_energy",
+      "type": "pytest.skip",
+      "message": "requires --run-external"
+    },
+    {
+      "name": "test_official_gfnff_wrapper_matches_direct_cli_energy",
+      "type": "pytest.skip",
+      "message": "requires --run-external"
+    },
+    {
+      "name": "test_official_gfn2_optimization_matches_direct_cli_result",
+      "type": "pytest.skip",
+      "message": "requires --run-external"
+    },
+    {
+      "name": "test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_states[ionic-chloride]",
+      "type": "pytest.skip",
+      "message": "requires --run-external"
+    },
+    {
+      "name": "test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_states[hydrogen-radical]",
+      "type": "pytest.skip",
+      "message": "requires --run-external"
+    }
+  ],
+  "preserved_failures_and_repairs": [
+    {
+      "attempt": "focused-diagnostics-attempt01",
+      "kind": "test_failure",
+      "count": 1,
+      "result": "763 passed / 1 failed / 0 skipped of 764",
+      "cause": "New persisted-state test incorrectly required no mutation after strict H preparation; existing preparation correctly clears old inferred H presence/source under unresolved aromatic state. Corrected assertions preserve raw bytes and check exact invalidation.",
+      "cases": [
+        {
+          "name": "test_stored_aromatic_unavailability_names_status_without_inventing_source_conflict",
+          "message": "Incorrect blanket no-state-change assertion after existing strict H invalidation; exact original assertion/traceback retained in raw JUnit/log."
+        }
+      ]
+    },
+    {
+      "attempt": "initial warning attribution",
+      "kind": "wrapper_callsite_defect",
+      "count": 1,
+      "cause": "Legacy Molecule wrapper adds one frame: uniform stacklevel4 pointed at core.py. Private Atom4/Molecule5/valence5 forwarding corrected caller attribution; all three public entries assert caller filename. No chemical rule changed."
+    },
+    {
+      "attempt": "affected-diagnostics-attempt02",
+      "kind": "test_failures",
+      "count": 6,
+      "result": "1553 passed / 6 failed / 5 skipped of 1564",
+      "cause": "Stale _OptimizerMolecule fake lacks canonical mutation lock required by preexisting trajectory.materialize. Test-only replacement uses real two-carbon Molecule and generated-frame APIs; native mock and controls retained.",
+      "cases": [
+        {
+          "name": "test_optimizer_forwards_native_controls_and_translates_report",
+          "message": "AttributeError: '_OptimizerMolecule' object has no attribute '_mutation_lock'"
+        },
+        {
+          "name": "test_optimizer_maps_native_frames_to_shared_trajectory",
+          "message": "AttributeError: '_OptimizerMolecule' object has no attribute '_mutation_lock'"
+        },
+        {
+          "name": "test_optimizer_forwards_stopping_and_seeded_perturbation_controls",
+          "message": "AttributeError: '_OptimizerMolecule' object has no attribute '_mutation_lock'"
+        },
+        {
+          "name": "test_initial_frame_sentinel_selects_the_preoptimization_structure",
+          "message": "AttributeError: '_OptimizerMolecule' object has no attribute '_mutation_lock'"
+        },
+        {
+          "name": "test_optimizer_adapter_does_not_run_acceptance_or_topology_scans",
+          "message": "AttributeError: '_OptimizerMolecule' object has no attribute '_mutation_lock'"
+        },
+        {
+          "name": "test_native_result_controls_single_frame_materialization",
+          "message": "AttributeError: '_OptimizerMolecule' object has no attribute '_mutation_lock'"
+        }
+      ]
+    },
+    {
+      "attempt": "source wrappers",
+      "kind": "controlled_stop_receipts",
+      "count": 2,
+      "cause": "Two wrapper exit1 receipts correspond to the focused1 and affected6 failures above; neither is an additional independent product failure. Actual workflows were not executed before those stops."
+    },
+    {
+      "attempt": "inventory-probe recorder-failure01",
+      "kind": "recorder_failure",
+      "count": 1,
+      "cause": "Recorder accessed nonexistent ScientificStateCandidateSpace.identity after first C/O calculation; original script, metadata, traceback and partial result retained. Corrected observation run completed five fixtures."
+    },
+    {
+      "attempt": "initial inventory composition recording",
+      "kind": "incomplete_validation_inputs",
+      "cause": "Initial calls omitted the required electronic-result envelope and retained COMPOSITION.ELECTRONIC_RESULT_ENVELOPE_MISSING. Dependent completion used the existing truthful unresolved envelope and retained exact facts/results; no Lewis/OS/extraction/projector rerun. Initial rejection is not derivation evidence."
+    }
+  ],
+  "inventory_probe": {
+    "status": "COMPLETED_WITH_KNOWN_PROVIDER_DOMAIN_FINDING",
+    "evidence": {
+      "path": "/tmp/hotpot_plan20/long/stage8a-preparation-diagnostics-20261103/inventory-probe-attempt01/evidence-index.json",
+      "bytes": 3568,
+      "sha256": "e5afc588a1dd38cbc9e2ea84d7deda723817be83e6dda8ada420699e515f9c0f"
+    },
+    "conclusion": {
+      "path": "/tmp/hotpot_plan20/long/stage8a-preparation-diagnostics-20261103/inventory-probe-attempt01/conclusion.md",
+      "bytes": 6840,
+      "sha256": "fa5f04e370b691fbe8d746d73f0aef79b3fc77bad322d6a245454eae80771302"
+    },
+    "root_disposition": "Bounded OS counted-boundary complete/partial/conservation evidence accepted; whole Stage8A remains open for P20-D021 Lewis applicability correction under accepted A11 design.",
+    "lewis_finding": {
+      "id": "P20-D021",
+      "fixture": "undirected N/B dative edge; H=(None,None); requested Q=-6",
+      "actual": "ADMISSIBLE/UNIQUE; atom formal charges=(-3,-3); nonbonding=(8,6); radicals=(0,0)",
+      "meaning": "Conserves its counted boundary but violates the retained complete-H applicability prerequisite of fixed-bond-main-group-v2. No arithmetic-error or ground-state claim.",
+      "controls": "Explicit H0 same allocation; directed N→B known H=(3,2) at Q=-1 yields (0,-1). C/O UNKNOWN is out of Lewis bond domain; OPTIONAL-001 applicability abstains in all probed cases. No optional action/profile activation."
+    },
+    "oxidation_scope": "C/O UNKNOWN and N/B None/H0: complete OS(0,0) derives Q0; partial OS alone derives no Q; plus-one sum derives Q1 and conflicts with supplied Q0. Partial N OS0 plus B fragment Q0 derives Q0 only for the counted undirected boundary. Positive-H complete atom-only OS is rejected as HYDROGEN_UNCOVERED.",
+    "limitations": "Declared diagnostic assignments, not empirical chemical states. Bound product/native/build checks exclude concurrently changing test hashes. No untested provider path, optional singlet, universal OS correctness or whole-stage closure."
+  },
+  "records": {
+    "observations": "diagnostics_observations.json",
+    "report": "diagnostics_report.md",
+    "evidence_index": "diagnostics_evidence_index.json"
+  },
+  "limits": [
+    "CP311 source and installed Python/resource-wheel boundary only; installed venv shares system-site-packages dependencies.",
+    "Six accepted Stage7E native binaries reused unchanged with native-source/build-input provenance; no clean all-native rebuild, ABI/SDK/sdist/manylinux or all-version claim.",
+    "41 measured non-Python package omissions remain; no package completeness claim.",
+    "Origin reconciliation covers participating Python site-hook processes (affected80, pipeline5, MCA1); native and site-bypassing processes are outside that audit.",
+    "No controlled comparable performance experiment or measured speed claim. Broader scientific corpus/GPU/global performance and all Plan20/Plan12 final gates remain open.",
+    "Optional profile/action activation remains held. P20-D021 is a diagnosed Lewis complete-H applicability gap; whole Stage8A and later-stage acceptance remain open."
+  ],
+  "acceptance_owner": "root",
+  "checkpoint_gate_closed": true,
+  "stage_gate_closed": false,
+  "raw_archive": {
+    "path": ".plan20-artifacts/20261103/stage8a/diagnostics/raw_manifest.json",
+    "bytes": 854828,
+    "sha256": "23ecae8f86d9877995b8116c9253ef3eccb28ce9dec2da51562bdfae3da90bb3",
+    "entries": 1860
+  }
+}

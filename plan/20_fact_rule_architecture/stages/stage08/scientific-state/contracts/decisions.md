@@ -326,3 +326,158 @@ chemical fixture is removed. Dataclass delta0/enum delta−1 is measured. The
 release-time NOT_EXECUTED statements above retain their historical scope.
 WholeStage8A, unknown-H accounting disposition, optional activation and all
 later/global obligations remain open; this accepts no Stage8B entry.
+
+
+## A10 — Represented inventory and observed preparation diagnostics
+
+Root accepts this bounded continuation at `3aaf8e829bbf6d151d7fcf8f6c1706ce0009737f`
+on 2026-11-03, before implementation. This fulfils the existing
+`stage5-explicit-h-unavailable` and `stage5-aromatic-projection-diagnostic`
+assignments in the integrated requirements; it introduces no new scientific
+algorithm, quantity, class, ordinary result schema or optional profile.
+
+### Counted domain and public IDs
+
+For the current scientific snapshot, the counted particle boundary is the
+explicit Atom inventory plus known, nonduplicated implicit H under the existing
+site-total-H convention. An unresolved implicit-H entry stays None in the
+inventory and identity and supplies no invented particle. Its integer nuclear
+sum is exact for that counted boundary; it is not a claim that a partially
+specified structure has a complete H assignment or a uniquely intended chemical
+completion. HARD-006/013 and search certification qualify the same bound facts,
+requested quantities and enumerated candidate domain. They cannot transfer a
+legality/certification claim to a different H completion. An operation requiring
+resolved H continues to require it. Positive known implicit H is still counted;
+the xTB packet's existing materialization requirement remains. No explicit-only
+reinterpretation of every molecule, None-to-zero fact, blanket rejection,
+new numerical guard, change of charge/spin or relaxed hard rule is authorized.
+The observed C/O14 and N/B12 packets demonstrate their own explicit particle
+models, not numerical backend errors; the directed N/B17 control is a different
+boundary. Downstream Lewis/OS claims retain their named applicability and
+complete-assignment prerequisites; this disposition does not authorize an
+unreviewed optional provider or a claim about missing-H derivation routes that
+were not executed. Those routes retain explicit validation obligations.
+
+Current Atom.idx is a topology row; public Atom.id is a separate label. Existing
+reordered-ID tests and the actual Eu91/N17 provider observations found no wrong
+mapping for unique nonnegative IDs. The historical public-ID qualification is
+not a diagnosed current defect and requires no speculative repair. Existing
+duplicate/negative-label fallback conventions remain; no universal mapping audit
+or historical losslessness claim follows.
+
+### Explicit calculation, preparation and strict consumption
+
+Keep lazy/display preparation and read-only scientific extraction unchanged.
+The existing integer display0 for absent H remains a display, never presence or
+CURRENT. Successful `Atom.calc_implicit_hydrogens`,
+`Molecule.calc_implicit_hydrogens` and `Molecule.calc_atom_valence` still return
+None. An explicit calculation reports only the requested rows that actually
+remain unresolved/conflicting after the existing preparation. It uses standard
+RuntimeWarning messages with stable HYDROGEN-scoped codes, current atom row and
+the actual missing site/neighbor element, UNKNOWN bond kind, missing dative
+direction or aromatic-projection cause. Known/source H, including0, retains
+its authority. Complete rows remain usable; unresolved rows remain unavailable.
+No unknown exception is caught, missing value invented, retry added or
+speculative preflight guard inserted.
+
+Keep one diagnostic builder at the existing chemistry operation owner, used by
+explicit warnings and the existing strict H failure. Strict consumers retain
+ValueError for unresolved H and RuntimeError for representation conflict; the
+message gains stable code, subject and reason. A diagnostic whose cause is only
+stored unavailability reports that actual status without inventing a more
+specific cause. The read-only scientific adapter and H display conflict gain
+the same domain/row attribution without importing operations into adapters.
+
+An explicit command is one existing factual transaction around preparation and
+reporting. Default warnings retain the prepared complete rows and unresolved
+statuses; a warning promoted to an error rolls back the complete command.
+Existing strict preparation and caller-owned transaction behavior remain.
+Atom commands report their selected row even if dependency preparation touches
+other dirty rows. Independent caller samples continue normally; this adds no
+batch dispatcher or exception-swallowing loop.
+
+### Aromatic projection and validation
+
+Preserve authoritative aromatic source flags, the current coupled projection
+algorithm and existing RuntimeError boundary. Add an operation-owned diagnostic
+for actual failed aromatic reads/strict consumption: AROMATIC-domain codes, affected rows and the concrete
+noncyclic supplied-aromatic conflict or unavailable current assignment. A
+component affected by another source row names that source row. Equivalent
+aromatic/Kekule projections remain valid; no universal chemical-impossibility
+verdict or source False replacement is introduced. Pure factual capture stays
+available after projection failure.
+
+Production ownership is limited to `operations/chemistry.py`, its thin
+`core.py` entry points and the existing adapter conflict message. Tests own
+observed missing-element/kind/direction causes, known0, warning/strict message
+agreement, mixed-row preparation, promoted-warning/outer rollback, input/source
+preservation, aromatic source versus current projection, valid equivalent
+projections and independent samples. Required CP311 validation starts with
+these affected contracts, then the existing mapped scientific-state and actual
+source/installed workflow selections if product bytes or connected failures
+require them. Rebind the new product/test freeze and installed Python wheel;
+reuse unchanged native/model evidence. No unchanged A9 chemistry rerun is
+claimed as A10 evidence. Other versions, optional activation, full native/ABI/
+package/global science/GPU/performance gates and whole Stage8A remain open until
+separately dispositioned. Root owns runtime release, acceptance, Git and any
+new diagnosed scientific correction.
+
+
+## A11 — Enforce the existing Lewis complete-H applicability boundary
+
+Root records this local correction design on 2026-11-03 before authoring, at
+A10’s unchanged product bytes under parent3aaf8e8. The actual retained N/B
+probe, not a hypothetical failure, found a unique Q−6 Lewis allocation with
+H(None,None). Its charge/electron arithmetic is conserved, but PROVIDER-001
+explicitly requires a complete H inventory; A10 did not waive that requirement.
+P20-D021 tracks this discrepancy and blocks wholeStage8A/Stage8B entry. The
+independently completed OS probe establishes complete/partial/ionic derivation
+and contradiction behavior only within the counted boundary; it requires no
+new OS restriction or invented H. Optional activation remains held.
+
+At the existing pure Lewis provider, after its existing element and fixed-bond
+semantics checks and before candidate enumeration, abstain when any non-H atom’s
+implicit-H slot is None. A supplied explicit-H neighbor alone cannot resolve an
+unknown site-total-H slot. Explicit H atoms themselves are counted particles,
+not sites requiring another implicit H assignment. Reuse the current empty
+NOT_EVALUATED/OUT_OF_DOMAIN Lewis result and emit
+`PROVIDER-001.INCOMPLETE_HYDROGEN_INVENTORY`, naming the actual affected atom
+indices. Preserve input facts and net-charge evidence. Known0 and positive H,
+coordination exclusion, charge/electron conservation, enumeration/budgets,
+strict H preparation, other state providers and counted-inventory identities
+remain. This enforces the existing fixed-bond-main-group-v2 contract; it defines
+no new method, type, public signature/schema, fallback, optional profile or
+blanket rejection of unresolved-H scientific-state snapshots.
+
+Exclusive product ownership is charge/lewis.py; connected tests cover the
+observed N/B None versus H0 boundary at Q−6, known positive H at Q−1, explicit-H
+transport, allowed H-atom slots and preserved earlier unsupported-element/bond
+diagnostics. Method documentation states the existing prerequisite and exact
+abstention. Initially author a patch in an isolated temporary copy, leaving
+A10’s validated live bytes unchanged until its coherent Git delivery. Root
+reviews/apply/validation and retains all gate decisions. Require focused
+provider and connected composition/resolution/projection tests, current
+source/installed CP311 behavior and necessary actual workflows at a new freeze.
+Retain failed attempts and original observations; identical historical hashes
+are not a scientific oracle. Rollback restores provider/tests/documentation
+together; wholeStage8A stays open until actual correction evidence is accepted.
+
+
+### A10 runtime fulfilment — 2026-11-03
+
+Root accepts the preparation-diagnostics CP311 checkpoint after764focused
+passes (reused only for unchanged selected files), source/installed1559affected
+passes+5skips of1564 identical ordered nodes, and3actual pipeline/3MCA passes
+at each boundary. New33diagnostic cases cover actual causes, source authority,
+partial rows, warning/error transactions, exact strict messages and independent
+samples. The old FF fake was replaced by real canonical carrier fixtures; its
+37targeted cases and original6failures are retained. The final1426source/test/
+resource+6native+3build bindings are unchanged. Existing Stage7E natives and
+models are attributed and reused; package41omissions/shared-site/CP311-only
+limits remain. Full raw attempts and release-time documents are archived.
+
+The sole inventory probe plus dependency-only completion supplies actual
+complete/partial/ionic OS conservation evidence under the counted boundary.
+The observed Lewis complete-H discrepancy remains P20-D021; A11’s accepted
+design is not implementation or runtime acceptance. A10 closes its assigned
+H/aromatic diagnostic scope, not wholeStage8A/Stage8B/global or optional gates.

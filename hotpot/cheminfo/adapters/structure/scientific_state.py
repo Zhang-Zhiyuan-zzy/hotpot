@@ -178,7 +178,7 @@ def _implicit_hydrogen_count(table, row: int) -> Optional[int]:
     status = table._group_status[row, GROUP_INDEX["IMPLICIT_H"]]
     if status == _FactStatus.CONFLICT:
         raise RuntimeError(
-            "Implicit-H representation conflicts with current facts; call calc_implicit_hydrogens() explicitly"
+            f"HYDROGEN.REPRESENTATION_CONFLICT atom_index={row}: Implicit-H representation conflicts with current facts; call calc_implicit_hydrogens() explicitly"
         )
     if status == _FactStatus.CURRENT and int(table._presence[row]) & FIELD_PRESENCE_BITS[field]:
         count = int(table._columns[field][row])

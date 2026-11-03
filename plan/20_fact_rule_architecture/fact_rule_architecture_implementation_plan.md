@@ -2079,6 +2079,23 @@ and digest-based bounded ordering may differ from history. Whole Stage8A remains
 open for remaining scientific-state semantics, including explicit unknown-H
 accounting disposition; A9 acceptance does not establish Stage8B entry or global acceptance.
 
+[A10](stages/stage08/scientific-state/contracts/decisions.md#a10--represented-inventory-and-observed-preparation-diagnostics)
+now fixes the documented counted boundary: explicit atoms plus known,
+nonduplicated implicit H, with unresolved inventory retained rather than a
+claim of complete H assignment. It authorizes the already assigned explicit-H
+and aromatic-projection diagnostics: precise actual code/subject/reason,
+standard explicit-command warnings, unchanged strict failure classes and atomic
+promoted-warning rollback. The current row-based ID path needs no speculative
+repair. The [A10 diagnostics checkpoint](stages/stage08/scientific-state/validation/diagnostics_checkpoint.json)
+accepts764focused cases and source/installed1559affected+5skipped of1564,
+with3actual pipeline/3MCA checks per boundary. Source-preserving diagnostics
+and warning-promotion rollback are proved within CP311. The actual inventory
+probe retains the counted boundary and bounded complete/partial OS conservation
+evidence. It also exposes P20-D021: the callable Lewis provider returns a
+candidate outside its complete-H prerequisite. Accepted A11 enforces that
+existing method domain; no arithmetic or ground-state error is asserted.
+WholeStage8A remains open for that correction and activates no optional profile.
+
 
 #### Stage 8B — Force fields
 

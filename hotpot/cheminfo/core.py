@@ -1200,12 +1200,12 @@ class Molecule:
         )
 
     def calc_atom_valence(self, assign_aromatic: Optional[bool] = None):
-        from .operations.chemistry import _prepare_valence_and_hydrogens
-        return _prepare_valence_and_hydrogens(self, assign_aromatic)
+        from .operations.chemistry import _calculate_valence_and_hydrogens
+        return _calculate_valence_and_hydrogens(self, assign_aromatic)
 
     def calc_implicit_hydrogens(self):
-        from .operations.chemistry import _prepare_hydrogens
-        _prepare_hydrogens(self, force=True)
+        from .operations.chemistry import _calculate_hydrogens
+        _calculate_hydrogens(self, stacklevel=5)
 
     def _components_with_bindings(self):
         from .operations.topology_queries import _components
@@ -2695,8 +2695,8 @@ class Atom(MolBlock):
 
 
     def calc_implicit_hydrogens(self):
-        from .operations.chemistry import _prepare_hydrogens
-        _prepare_hydrogens(self.mol, rows=(self.idx,), force=True)
+        from .operations.chemistry import _calculate_hydrogens
+        _calculate_hydrogens(self.mol, rows=(self.idx,))
 
     @property
     def constraint(self) -> bool:

@@ -4697,3 +4697,164 @@ GPU/performance and Plan20/Plan12 final acceptance remain open. A separate local
 read-only lookup found an ordinary unresolved-H accounting route requiring a
 bounded actual observation; it changes neither A9 bytes nor Stage8B entry. Git
 history identifies this coherent business/test/record commit and normal push.
+
+
+## 2026-11-03 — Stage8A A10 boundary and diagnosed diagnostics alignment
+
+At delivered3aaf8e8 root continues the existing Stage8A owning scope under the
+effective goal, governance references, stage/validation skills, focused main-plan
+Sections5–7/9.2/Stage8A/11/16, existing A1–A9 decisions and integrated diagnostic
+assignments. This is a bounded continuation of the current stage, not Stage8B
+entry or a new algorithmic route. Prior unaffected full-plan alignment remains
+applicable. Only the protected user-owned untracked helper file is outside the
+clean committed work; it is neither read nor changed.
+
+The actual six-case unresolved-H observation, subsequent contract lookup and
+independent local Sol/high domain review distinguish exact counted particle
+models from unsupported full-H completeness. Root accepts A10's explicit counted
+inventory interpretation without changing None, positive known H, hard rules or
+numerical calculations. Unique/reordered public-ID warnings are unsupported by
+the current row-based owners and actual Eu91/N17 observation; no speculative ID
+repair is authorized. No new engine/model or duplicate A9 test execution occurred
+in these read-only investigations. Their original recorder failures remain.
+
+Integrated requirements still assign explicit unavailable-H and aromatic-source
+projection diagnostics to Stage8A. Root authorizes the named operation wrappers,
+shared precise messages, standard explicit-command warnings and existing strict
+failures in A10 before business authoring. Default partial-row preparation stays
+usable with unavailable rows honestly retained; promoting a warning to an error
+rolls back the complete explicit command. Scientific/H/aromatic algorithms,
+ordinary return values, source authority, model/native features and public field
+schemas remain. Production authoring is partitioned from tests, followed by root
+review, a new freeze and affected CP311 evidence; no runtime pass is asserted.
+WholeStage8A, Stage8B–E and all later/global obligations remain open.
+
+
+## 2026-11-03 — Stage8A A10 integrated runtime release
+
+Root reviewed the three-product/two-test delta and author handoffs. Three thin
+commands enter named existing preparations and report only actual requested
+unavailable H rows. One existing transaction encloses preparation and standard
+warnings; strict H/aromatic failures retain their classes and gain attributable
+messages. The scientific adapter remains independent of operations. Root's
+single integration correction sets warning stacklevel4 through the public entry
+so warnings identify the calling site. All scientific rule bodies, return
+schemas, models and native/build inputs remain unchanged.
+
+New diagnostics freeze `source_freeze-diagnostics.json` binds1426product/test/
+resource files,6unchanged natives and3build inputs at parent3aaf8e8; SHA256
+`d646b1c493285decd0eb4918e437df36bd8596b25c76efa45c9e506ff431cb0f`.
+Root releases focused and expanded affected CP311 checks, followed by actual
+pipeline/MCA and matching installed scope. A local Luna/low performs only these
+fixed commands; Sol owns interpretation and any repair. No runtime outcome,
+Stage8A closure, Stage8B entry, other-version/native rebuild or global acceptance
+is asserted by this release. Original A9 evidence is retained for its own bytes.
+
+
+## 2026-11-03 — Stage8A A10 first focused result and bounded correction
+
+The fixed Luna source wrapper stopped after focused diagnostics-attempt01:
+763passed/1failed of764; all1426source/test/resource,6native and3build bindings
+and model/backend assets stayed unchanged. The only failure is the new persisted
+aromatic-unavailability test's blanket no-state-change assertion. Existing
+strict H preparation legitimately clears an old inferred presence/source when
+aromatic input remains UNRESOLVED, while retaining unused numeric bytes. A10
+preserves that behavior; the test must distinguish read-only aromatic diagnosis
+from subsequent strict H preparation and verify the exact invalidation instead.
+No chemical rule or strict failure is relaxed. Original JUnit/log/receipts and
+freeze remain immutable; affected and actual workflow jobs did not run.
+
+Actual warning output also exposed the legacy Molecule transaction wrapper as
+one extra stack frame. Root's prior stacklevel4 integration edit was insufficient
+for that path. The bounded private stacklevel parameter now distinguishes the
+existing Molecule5/Atom4 call stacks; no public signature or stack introspection
+is introduced. Source/test writers own these local corrections before a new
+freeze/release. There is no runtime acceptance or gate closure.
+
+
+## 2026-11-03 — Stage8A A10 affected failure and canonical fixture repair
+
+Diagnostics-attempt02 passed all764focused cases; affected then returned
+1553passed/6failed/5skipped of1564 and stopped before the actual workflows.
+All frozen product/test/resource/native/build and model/backend assets stayed
+unchanged. The six failures share the old forcefield optimizer test double,
+which lacks the current canonical trajectory owner’s mutation lock. They do
+not establish an A10 product regression. The original freeze, receipts, JUnit
+and failure logs are retained without replacement.
+
+A local Sol/medium author replaced that test-only fake with real two-carbon
+Molecules and canonical generated-frame assertions, preserving native-control,
+coordinates, energy, selection and no-scan checks. Its single targeted command
+passed37tests with one existing GeometryQualityWarning; no forcefield product
+bytes changed. Root reviewed the repair. A new freeze will bind only that
+changed test relative to diagnostics-repair;764focused results remain applicable
+to their unchanged files. The validation manifest’s stale affected-file count
+is corrected from87 to102 without changing selection. Root releases affected
+attempt03, actual source pipeline/MCA and a matching new installed CP311 attempt
+sequentially, stopping at any failure. No runtime acceptance or gate closure is
+asserted; the separate incomplete-inventory Lewis/OS probe is still pending.
+
+
+## 2026-11-03 — Stage8A remaining-inventory evidence and A11 correction design
+
+The sole local bounded probe completed five actual None/H0/positive-H fixtures
+without engine/model execution. Complete OS sums derive Q0/Q1 in the counted
+boundary, partial OS alone derives noQ, partial OS plus complete ionic
+bookkeeping derives Q0 where complete, contradictions reject, and known
+positive-H atom-only complete-OS claims reject as uncovered. The initially
+missing electronic envelope and recorder failure remain preserved; only that
+blocked composition was completed using retained inputs and the maintained
+unresolved envelope. Product853/native6/build3 bindings remained unchanged.
+
+A concrete independent PROVIDER-001 discrepancy remains: undirected N/B,
+H(None,None),Q−6 returns uniquecharges(−3,−3), no radicals/findings and
+conserved14valence electrons, despite the method’s complete-H prerequisite.
+H0 controls return the same legal numbers; no arithmetic or ground-state
+defect is asserted. Root records P20-D021 OPEN and approves A11’s bounded
+existing-domain enforcement before authoring. The pure provider will return
+its existing out-of-domain result for actual unknown non-H site H slots,
+with precise named subject/reason. No new method/algorithm, generic state
+rejection, OS rule or public schema is authorized. A temporary isolated patch
+may be prepared while A10 records are finalized; live source/test bytes stay
+frozen until the validated diagnostics commit. Root retains integration,
+validation and gate decisions. WholeStage8A and Stage8B remain held.
+
+
+## 2026-11-03 — Stage8A A10 diagnostics CP311 checkpoint accepted
+
+Root accepts ROOT_ACCEPTED_CP311_PREPARATION_DIAGNOSTICS at parent3aaf8e8:
+764focused passes reused for unchanged inputs; affected source/installed each
+1559passed/5skipped of1564 identical ordered nodes across102files; actual
+CBond→UFF→GFN-FF/GFN2 pipeline3 and actualMCAattachment3 pass per boundary.
+Commands, cwd/environment/interpreter, model/backend/wheel/native identities
+and original JUnit/logs live in the diagnostics checkpoint/evidence graph.
+A local Luna/low executed exactly the released wrapper once; local Sol/medium
+owned the test repair and compact record extraction. Root reviewed source,
+chemical observations and all1426product/test/resource+6native+3build bindings.
+All unchanged invariants pass. No external helper or measured token-saving
+percentage is claimed.
+
+Default warnings name only actual requested unavailable rows; quiet preparation
+and scientific extraction, known0/source authority and ordinaryNone remain.
+Warning promotion restores the complete command; caller transaction behavior
+and strict ValueError/RuntimeError classes remain. Aromatic failure names
+actual affected/source rows while valid Kekule alternatives and independent
+samples remain usable. Original763/1focused,1553/6/5affected and recorder/
+incomplete-input failures are preserved with bounded corrections, not erased.
+
+Actual Eu GFN2 source−13.53210044/installed−13.532101hartree remains visible
+numerical variation; backendUHF0 does not establish a scientific singlet.
+CBond donor joins, per-case FF/GFN observations, final geometry findings and
+allMCA atom/site values are retained. No fixed historical numerical/hash equality
+or physical-truth claim is imposed. The inventory/OS probe is bounded evidence;
+its real Lewis prerequisite discrepancy is P20-D021 OPEN and A11’s next scope.
+
+Raw archive `.plan20-artifacts/20261103/stage8a/diagnostics` contains1860entries;
+manifestSHA256 `23ecae8f86d9877995b8116c9253ef3eccb28ce9dec2da51562bdfae3da90bb3`. Original release contracts/selections match
+their historical hashes; current records update outcomes without changing
+executed selections. Six natives were reused,41package omissions/shared-site
+and CP311-only limits remain. Integrated diagnostic assignments and stale
+D01–D03/public-ID verification wording now agree with actual accepted scope.
+No speed claim or clean-native/all-version/global acceptance follows. Whole
+Stage8A remains open for P20-D021/A11; Stage8B–E have not entered. The coherent
+product/test/record commit and normal push are identified by Git history.

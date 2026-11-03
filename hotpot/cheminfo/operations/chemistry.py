@@ -1,6 +1,7 @@
 """Named bonding preparations and atomic representation assignments."""
 
 from dataclasses import replace
+import warnings
 
 import numpy as np
 
@@ -95,7 +96,7 @@ def _hydrogen_display_value(table, row, *, pending=False):
     field, group = FIELD_INDEX['implicit_hydrogens'], GROUP_INDEX['IMPLICIT_H']
     status = table._group_status[row, group]
     if status == _FactStatus.CONFLICT:
-        raise RuntimeError('Implicit-H representation conflicts with current facts; call calc_implicit_hydrogens() explicitly')
+        raise RuntimeError(f'HYDROGEN.REPRESENTATION_CONFLICT atom_index={row}: Implicit-H representation conflicts with current facts; call calc_implicit_hydrogens() explicitly')
     if (status == _FactStatus.CURRENT and int(table._presence[row]) & FIELD_PRESENCE_BITS[field]
             and (not pending or int(table._sources[row, field]) in _EXPLICIT)):
         return table._columns[field][row]
@@ -114,6 +115,69 @@ def _implicit_hydrogen_read(atom):
         return int(_hydrogen_display_value(atom.mol._atom_table, entry[0]))
 
 
+def _hydrogen_diagnostic(mol, row):
+    """Describe an observed unavailable H row without changing its facts."""
+    table = mol._atom_table
+    status = _FactStatus(int(table._group_status[row, GROUP_INDEX['IMPLICIT_H']]))
+    aromatic_status = _FactStatus(int(table._group_status[row, GROUP_INDEX['AROMATIC_REPRESENTATION']]))
+    if status == _FactStatus.CONFLICT:
+        message = (f'HYDROGEN.REPRESENTATION_CONFLICT atom_index={row}: Implicit-H representation '
+                   'conflicts with current facts; call calc_implicit_hydrogens() explicitly')
+        if aromatic_status != _FactStatus.CURRENT:
+            message += '; ' + _aromatic_diagnostic(mol, rows=(row,))
+        return message
+    if aromatic_status != _FactStatus.CURRENT:
+        return (f'HYDROGEN.AROMATIC_UNRESOLVED atom_index={row}: This operation requires resolved implicit-H input; '
+                'the aromatic representation is not current; ' + _aromatic_diagnostic(mol, rows=(row,)))
+    atom = mol._atoms[row]
+    transport = {entry[0]: entry[1:] for entry in _hydrogen_transport_inputs(
+        tuple(member._uid for member in mol._atoms), _get_stereo_payload(mol))}
+    inputs = _hydrogen_inputs(atom, transport)
+    number, neighbours, _, _, _, kinds, _, roles, _, _, no_implicit = inputs
+    if status == _FactStatus.UNRESOLVED:
+        if number == 0:
+            return f'HYDROGEN.MISSING_SITE_ELEMENT atom_index={row}: This operation requires resolved implicit-H input; site element is missing'
+        if number != 1 and not _is_metal(number):
+            bonds = mol._topology_index[id(atom)][1]
+            for index, neighbour in enumerate(neighbours):
+                if neighbour == 0:
+                    bond = bonds[index]
+                    other = bond.atom2 if bond.atom1 is atom else bond.atom1
+                    other_row = mol._topology_index[id(other)][0]
+                    return (f'HYDROGEN.MISSING_NEIGHBOUR_ELEMENT atom_index={row}: This operation requires resolved implicit-H input; '
+                            f'neighbour_atom_index={other_row} element is missing; bond_index={bond.idx}')
+            if not no_implicit:
+                for index, kind in enumerate(kinds):
+                    if kind == 'unknown':
+                        return (f'HYDROGEN.UNKNOWN_BOND_KIND atom_index={row}: This operation requires resolved implicit-H input; '
+                                f'bond_index={bonds[index].idx} bond_kind=unknown')
+                for index, (kind, role) in enumerate(zip(kinds, roles)):
+                    if kind == 'dative' and role is None:
+                        return (f'HYDROGEN.MISSING_DATIVE_DIRECTION atom_index={row}: This operation requires resolved implicit-H input; '
+                                f'dative direction is missing; bond_index={bonds[index].idx}')
+    return f'HYDROGEN.UNAVAILABLE atom_index={row}: This operation requires resolved implicit-H input; status={status.name}'
+
+
+def _warn_unavailable_hydrogens(mol, rows, *, stacklevel):
+    table = mol._atom_table
+    for row in rows:
+        if table._group_status[row, GROUP_INDEX['IMPLICIT_H']] != _FactStatus.CURRENT:
+            warnings.warn(_hydrogen_diagnostic(mol, row), RuntimeWarning, stacklevel=stacklevel)
+
+
+def _calculate_hydrogens(mol, *, rows=None, stacklevel=4):
+    with _FactTransaction(mol, producer=ATOM_SOURCE_CODES['implicit_hydrogens']):
+        selected = tuple(range(len(mol._atoms))) if rows is None else tuple(rows)
+        _prepare_hydrogens(mol, rows=selected, force=True)
+        _warn_unavailable_hydrogens(mol, selected, stacklevel=stacklevel)
+
+
+def _calculate_valence_and_hydrogens(mol, assign_aromatic):
+    with _FactTransaction(mol, producer=ATOM_SOURCE_CODES['implicit_hydrogens']):
+        _prepare_valence_and_hydrogens(mol, assign_aromatic)
+        _warn_unavailable_hydrogens(mol, range(len(mol._atoms)), stacklevel=5)
+
+
 def _require_implicit_hydrogens(mol, *, rows=None):
     """Prepare one requested H group for a consumer requiring finite counts."""
     with mol._mutation_lock:
@@ -123,10 +187,12 @@ def _require_implicit_hydrogens(mol, *, rows=None):
         _prepare_hydrogens(mol, rows=selected)
         table = mol._atom_table
         statuses = table._group_status[list(selected), GROUP_INDEX['IMPLICIT_H']]
-        if any(status == _FactStatus.CONFLICT for status in statuses):
-            raise RuntimeError('Implicit-H representation conflicts with current facts; call calc_implicit_hydrogens() explicitly')
-        if any(status != _FactStatus.CURRENT for status in statuses):
-            raise ValueError('This operation requires resolved implicit-H input; supply the missing elemental or neighbour facts')
+        conflicts = tuple(row for row, status in zip(selected, statuses) if status == _FactStatus.CONFLICT)
+        if conflicts:
+            raise RuntimeError('; '.join(_hydrogen_diagnostic(mol, row) for row in conflicts))
+        unresolved = tuple(row for row, status in zip(selected, statuses) if status != _FactStatus.CURRENT)
+        if unresolved:
+            raise ValueError('; '.join(_hydrogen_diagnostic(mol, row) for row in unresolved))
         field = FIELD_INDEX['implicit_hydrogens']
         return tuple(int(table._columns[field][row]) for row in selected)
 
@@ -139,7 +205,7 @@ def _require_aromatic_representation(mol, *, rows=None):
         _prepare_aromatic_representation(mol, rows=selected)
         statuses = mol._atom_table._group_status[list(selected), GROUP_INDEX['AROMATIC_REPRESENTATION']]
         if np.any(statuses != _FactStatus.CURRENT):
-            raise RuntimeError('Aromatic representation is unresolved or conflicting; call determine_rings_aromatic() explicitly')
+            raise RuntimeError(_aromatic_diagnostic(mol, rows=selected))
 
 
 def _atom_projection(mol, *, fields=ATOM_FIELDS, rows=None, strict_hydrogens=False):
@@ -489,6 +555,33 @@ def _prepare_aromatic_representation(mol, *, rows=None):
             covered_rows=rows), snapshot=snapshot, preserve_sources=True)
 
 
+def _aromatic_diagnostic(mol, *, rows):
+    """Attribute an existing failed projection to current rows and source flags."""
+    table = mol._atom_table
+    group = GROUP_INDEX['AROMATIC_REPRESENTATION']
+    affected = tuple(row for row in rows if table._group_status[row, group] != _FactStatus.CURRENT)
+    snapshot = _bonding_snapshot(mol)
+    cyclic = {row for ring in snapshot.rings for row in ring}
+    field = FIELD_INDEX['is_aromatic']
+    messages = []
+    for row in affected:
+        component = _component_rows(mol, (mol._atoms[row]._uid,))
+        sources = tuple(sorted(source for source in component if source not in cyclic and snapshot.aromatic[source]
+                               and int(table._sources[source, field]) in _EXPLICIT))
+        if sources:
+            messages.append(
+                f'AROMATIC.NONCYCLIC_SOURCE atom_index={row}: Aromatic representation is unresolved or conflicting; '
+                f'supplied aromatic source is noncyclic; source_atom_indices={sources}; '
+                'call determine_rings_aromatic() explicitly')
+        else:
+            status = _FactStatus(int(table._group_status[row, group]))
+            messages.append(
+                f'AROMATIC.NO_CURRENT_ASSIGNMENT atom_index={row}: Aromatic representation is unresolved or conflicting; '
+                f'no current aromatic assignment; status={status.name}; '
+                'call determine_rings_aromatic() explicitly')
+    return '; '.join(messages)
+
+
 def _atom_aromatic_read(atom):
     with atom.mol._mutation_lock:
         entry = atom.mol._topology_index.get(id(atom))
@@ -500,7 +593,7 @@ def _atom_aromatic_read(atom):
             _prepare_aromatic_representation(atom.mol, rows=(entry[0],))
         status = table._group_status[entry[0], group]
         if status != _FactStatus.CURRENT:
-            raise RuntimeError('Aromatic representation is unresolved or conflicting; call determine_rings_aromatic() explicitly')
+            raise RuntimeError(_aromatic_diagnostic(atom.mol, rows=(entry[0],)))
         return bool(atom.mol._atom_table._columns[FIELD_INDEX['is_aromatic']][entry[0]])
 
 
@@ -515,7 +608,7 @@ def _bond_aromatic_read(bond):
         for atom in bond.atoms:
             status = bond.mol._atom_table._group_status[atom.idx, GROUP_INDEX['AROMATIC_REPRESENTATION']]
             if status != _FactStatus.CURRENT:
-                raise RuntimeError('Aromatic representation conflicts with current topology; call determine_rings_aromatic() explicitly')
+                raise RuntimeError(_aromatic_diagnostic(bond.mol, rows=rows))
         return bool(bond._is_aromatic)
 
 
@@ -526,7 +619,7 @@ def _ring_aromatic_read(ring):
         table = ring.mol._atom_table
         rows = tuple(ring.mol._topology_index[id(atom)][0] for atom in ring.atoms)
         if any(table._group_status[row, GROUP_INDEX['AROMATIC_REPRESENTATION']] != _FactStatus.CURRENT for row in rows):
-            raise RuntimeError('Ring aromatic representation conflicts with current facts; call determine_rings_aromatic() explicitly')
+            raise RuntimeError(_aromatic_diagnostic(ring.mol, rows=rows))
         return all(bool(table._columns[FIELD_INDEX['is_aromatic']][row]) for row in rows)
 
 

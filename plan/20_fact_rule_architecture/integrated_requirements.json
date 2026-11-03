@@ -124,7 +124,7 @@
   "diagnostic_control_debt": [
     {
       "id": "stage5-explicit-h-unavailable",
-      "status": "assigned_open_not_new_stage5_gate",
+      "status": "ROOT_ACCEPTED_CP311_STAGE8A_DIAGNOSTIC_SCOPE",
       "owner_stages": [
         "Stage7C",
         "Stage8A"
@@ -173,11 +173,17 @@
           "path": "/tmp/p20-goal-stage5-alignment/companions/diagnostic_debt_handoff.json",
           "sha256": "81596ebec6826e5fd65d6fa9679baf71967edd337a136ba98f0897494406960a"
         }
-      ]
+      ],
+      "stage8a_fulfilment": {
+        "checkpoint": "stages/stage08/scientific-state/validation/diagnostics_checkpoint.json",
+        "source_installed": "1559passed/5skipped of1564 each, realpipeline3/MCA3 each",
+        "preserved": "Quiet lazy/extraction paths, knownH0/source authority, complete-row usability, strict errors and promoted-warning/caller rollback; no aromatic source rewrite or algorithm change.",
+        "limits": "CP311 only; P20-D021 is separate; wholeStage8A/global gates remain open."
+      }
     },
     {
       "id": "stage5-aromatic-projection-diagnostic",
-      "status": "assigned_open_not_new_stage5_gate",
+      "status": "ROOT_ACCEPTED_CP311_STAGE8A_DIAGNOSTIC_SCOPE",
       "owner_stages": [
         "Stage7C",
         "Stage8A"
@@ -220,7 +226,13 @@
         "stereo",
         "force-field/MCA",
         "hotpot/cheminfo/calculator/state_resolver.py:600-624"
-      ]
+      ],
+      "stage8a_fulfilment": {
+        "checkpoint": "stages/stage08/scientific-state/validation/diagnostics_checkpoint.json",
+        "source_installed": "1559passed/5skipped of1564 each, realpipeline3/MCA3 each",
+        "preserved": "Quiet lazy/extraction paths, knownH0/source authority, complete-row usability, strict errors and promoted-warning/caller rollback; no aromatic source rewrite or algorithm change.",
+        "limits": "CP311 only; P20-D021 is separate; wholeStage8A/global gates remain open."
+      }
     }
   ],
   "diagnostic_control_debt_limits": "Concrete later-owner assignment under existing Stage7C/8A scope; not implemented, not accepted, no waiver/new stage gate/optional scientific profile activation. Global finding-control acceptance remains open.",

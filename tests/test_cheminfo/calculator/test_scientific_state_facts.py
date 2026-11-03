@@ -85,7 +85,7 @@ def test_conflicting_hydrogen_preparation_preserves_the_original_carrier():
         extract_molecular_facts(mol)
 
     assert str(failure.value) == (
-        "Implicit-H representation conflicts with current facts; call calc_implicit_hydrogens() explicitly"
+        "HYDROGEN.REPRESENTATION_CONFLICT atom_index=0: Implicit-H representation conflicts with current facts; call calc_implicit_hydrogens() explicitly"
     )
     assert _raw_factual_state(mol) == before
 

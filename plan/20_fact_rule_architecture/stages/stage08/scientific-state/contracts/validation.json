@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "stage": "Stage8A1",
-  "scope": "A1-A9 ownership/independence/nonmutation, known-zero H presence, confidence-only retirement and connected CP311 business contracts",
+  "scope": "A1-A10 scientific-state ownership, known-zero H, confidence retirement and actual preparation diagnostics; connected CP311 business contracts",
   "source_command": {
     "argv": [
       "/tmp/hotpot-plan20-env/bin/python",
@@ -96,7 +96,22 @@
       "tests/test_plugin/test_xtb/test_stream.py",
       "tests/test_plugin/test_xtb/test_workflow_contract.py",
       "tests/test_plugin/test_xtb/test_workflow_state.py",
-      "tests/test_packaging_metadata.py"
+      "tests/test_packaging_metadata.py",
+      "tests/test_cheminfo/structure/test_preparation_diagnostics.py",
+      "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py",
+      "tests/test_cheminfo/structure/test_stage5_bonding.py",
+      "tests/test_cheminfo/structure/test_dependencies.py",
+      "tests/test_cheminfo/structure/test_factual_imports.py",
+      "tests/test_cheminfo/structure/test_commit_atomicity.py",
+      "tests/test_cheminfo/structure/test_stereo_hydrogen_storage.py",
+      "tests/test_cheminfo/test_complex_hydrogens.py",
+      "tests/test_cheminfo/test_molecule_conversion.py",
+      "tests/test_cheminfo/test_native_molecule_buffers.py",
+      "tests/test_cheminfo/test_rdconvert_stereo_level1.py",
+      "tests/test_cheminfo/test_forcefield_api.py",
+      "tests/test_cheminfo/test_forcefield_integration.py",
+      "tests/test_cheminfo/test_forcefield_native_session.py",
+      "tests/test_cheminfo/test_forcefield_optimizer.py"
     ]
   },
   "focused_files": [
@@ -109,7 +124,11 @@
     "tests/test_cheminfo/calculator/test_state_decision_snapshot.py",
     "tests/test_cheminfo/calculator/test_state_profile_manifest.py",
     "tests/test_cheminfo/test_calculator.py",
-    "tests/test_cheminfo/structure/test_architecture.py"
+    "tests/test_cheminfo/structure/test_architecture.py",
+    "tests/test_cheminfo/structure/test_preparation_diagnostics.py",
+    "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py",
+    "tests/test_cheminfo/structure/test_stage5_bonding.py",
+    "tests/test_cheminfo/structure/test_dependencies.py"
   ],
   "real_business_commands": [
     {
@@ -150,12 +169,12 @@
   "installed": "Build Python/resource wheel from frozen current files; install and run affected+actual workflows outside checkout. Resolve tests support dependencies upfront, preserve exact support bytes and original failures.",
   "cost": "Bounded extract/strictresolve/scientific-projection observation, fixed explicit scientific fixtures; keep per-case outputs/seconds/isolated Python peaks; no historical parity claim.",
   "remaining": [
-    "Whole Stage8A remaining scientific-state semantics, including explicit unknown-H accounting disposition; A9 confidence-only evidence accepted within CP311",
+    "Whole Stage8A remains open for P20-D021; A1-A10 bounded CP311 checkpoints accepted, D01 settled and D02/D03 NO_CONSOLIDATION. Counted inventory/OS evidence accepted only for its declared boundary.",
     "Optional profile approval and held-out applicability activation",
     "Other Python versions/clean native ABI SDK sdist/package omissions",
     "Full Plan20/Plan12/science GPU global performance acceptance"
   ],
-  "affected_file_count": 87,
+  "affected_file_count": 102,
   "a9_expected_membership_delta": {
     "removed_test": "test_scientific_state_ownership.py::test_relocated_class_has_one_owner_and_unchanged_contract[rules.contracts:ChemicalConfidence-a8acf43927ba5404239a47cd43437503bfd6e386e37dae57804283f25e04dd6e]",
     "reason": "Retired enum definition; no chemical fixture removed",
@@ -167,5 +186,27 @@
     "path": ".plan20-artifacts/20261103/stage8a/confidence/release-inputs/validation.json",
     "sha256": "4e7866dee823540997fca9083abd87f44f8900d35c275a032f2de2370a5f5877",
     "note": "Original executed selection/expected values; current update records outcome only, with no command or fixture change."
+  },
+  "a10_diagnostics": {
+    "contract": "decisions.md#A10",
+    "expected": "Explicit None-returning calculation reports actual requested unavailable H rows with scoped RuntimeWarning; quiet lazy preparation/extraction and authoritative known0 unchanged. Complete rows remain usable; promoted warning and caller-owned errors preserve atomic rollback. Strict unresolved/conflict errors retain ValueError/RuntimeError with precise code/subject/reason. Aromatic projection names actual noncyclic source or no-current-assignment without erasing sourceTrue. H/aromatic/charge/spin algorithms and model/native tensors unchanged.",
+    "counted_boundary": "Explicit inventory plus known nonduplicated implicit H; None is retained and is no claim of full-H completion. Certification is within the fixed facts and candidate domain. No inferred ID repair.",
+    "validation_order": [
+      "focused",
+      "affected",
+      "actual_CBFF_xtb",
+      "actual_MCA_attachment",
+      "matching_installed_scope"
+    ],
+    "status": "ROOT_ACCEPTED_CP311_PREPARATION_DIAGNOSTICS",
+    "coverage_limits": [
+      "CP311 only",
+      "six existing Stage7E natives reused if source/build inputs match",
+      "no optional scientific activation",
+      "no universal full-H/derived-charge claim for unexecuted incomplete-inventory routes",
+      "wholeStage8A and later/global gates remain open"
+    ],
+    "checkpoint": "../validation/diagnostics_checkpoint.json",
+    "remaining_scientific_boundary": "P20-D021: enforce PROVIDER-001 complete-H applicability under accepted A11 design; wholeStage8A and Stage8B remain held."
   }
 }

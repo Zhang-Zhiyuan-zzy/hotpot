@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from hotpot import read_mol
+from hotpot import Molecule, read_mol
 from hotpot.cheminfo.rules.mathematics import geometry
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from hotpot.cheminfo.forcefields import acceptance as acceptance_impl
@@ -28,46 +28,14 @@ from hotpot.cheminfo.obWrappers.contracts import (
 )
 
 
-class _OptimizerMolecule:
-    def __init__(self):
-        self.coordinates = np.zeros((2, 3), dtype=float)
-        self.atoms = (
-            SimpleNamespace(
-                idx=0,
-                id=1,
-                atomic_number=6,
-                formal_charge=0,
-                symbol="C",
-            ),
-            SimpleNamespace(
-                idx=1,
-                id=2,
-                atomic_number=6,
-                formal_charge=0,
-                symbol="C",
-            ),
+def _optimizer_molecule():
+    molecule = Molecule()
+    for atom_id in (1, 2):
+        molecule.create_atom(
+            atomic_number=6, formal_charge=0, id=atom_id,
+            coordinates=(0.0, 0.0, 0.0),
         )
-        self.bonds = ()
-        self.energy = None
-        self.frames = []
-        self.frame_energies = []
-        self._conformers_index = 0
-
-    def conformer_clear(self):
-        self.frames.clear()
-        self.frame_energies.clear()
-
-    def conformer_add(self, coordinates, energies):
-        coordinates = np.asarray(coordinates)
-        if coordinates.ndim == 2:
-            coordinates = coordinates[None, ...]
-        self.frames.extend(coordinates)
-        self.frame_energies.extend(np.asarray(energies).reshape(-1))
-
-    def conformer_load(self, index):
-        self.coordinates = np.asarray(self.frames[index]).copy()
-        self.energy = self.frame_energies[index]
-        self._conformers_index = index
+    return molecule
 
 
 def _rule_report():
@@ -242,7 +210,7 @@ def test_optimizer_forwards_native_controls_and_translates_report(monkeypatch):
         result,
         convergence_level=ff.ConvergenceLevel.FAST,
     )
-    molecule = _OptimizerMolecule()
+    molecule = _optimizer_molecule()
 
     report, _ = _run_optimizer(optimizer, molecule)
 
@@ -329,7 +297,7 @@ def test_optimizer_maps_native_frames_to_shared_trajectory(monkeypatch):
         epoch_energies=(3.0, 1.0, 2.0),
     )
     optimizer, _ = _optimizer(monkeypatch, result)
-    molecule = _OptimizerMolecule()
+    molecule = _optimizer_molecule()
 
     report, trajectory = _run_optimizer(optimizer, molecule)
 
@@ -357,7 +325,18 @@ def test_optimizer_maps_native_frames_to_shared_trajectory(monkeypatch):
     assert evidence[2].converged is True
     assert trajectory.selected_index == 2
     assert report.best_epoch == 1
-    assert len(molecule.frames) == 4
+    assert molecule.conformers_number == 4
+    assert molecule._source_frames == ()
+    assert len(molecule._conformer_results) == 1
+    assert molecule._conformer_results[0].payload.batch.ordinals == (0, 1, 2, 3)
+    assert molecule.conformer_get(0)["energy"] is None
+    np.testing.assert_array_equal(
+        molecule.conformer_get(2)["coordinates"], frames[1].coordinates,
+    )
+    np.testing.assert_array_equal(
+        molecule.conformer_get(3)["coordinates"], frames[2].coordinates,
+    )
+    assert molecule.conformer_get(3)["energy"] == pytest.approx(report.final_energy)
     assert molecule._conformers_index == 2
     assert molecule.energy == pytest.approx(report.best_energy)
 
@@ -379,7 +358,7 @@ def test_optimizer_forwards_stopping_and_seeded_perturbation_controls(monkeypatc
         perturb_sigma=0.2,
         stopping_criteria=criteria,
     )
-    _run_optimizer(first, _OptimizerMolecule())
+    _run_optimizer(first, _optimizer_molecule())
     first_options = first_calls[0][2]
 
     assert first_options["stopping_window"] == 2
@@ -402,7 +381,7 @@ def test_optimizer_forwards_stopping_and_seeded_perturbation_controls(monkeypatc
         perturb_sigma=0.2,
         stopping_criteria=criteria,
     )
-    _run_optimizer(second, _OptimizerMolecule())
+    _run_optimizer(second, _optimizer_molecule())
     np.testing.assert_array_equal(
         offsets,
         second_calls[0][2]["perturbation_offsets"],
@@ -420,7 +399,7 @@ def test_unrecorded_stage_does_not_request_or_materialize_native_frames(monkeypa
         epochs_completed=1,
     )
     optimizer, calls = _optimizer(monkeypatch, result)
-    molecule = _OptimizerMolecule()
+    molecule = _optimizer_molecule()
     trajectory = ForceFieldTrajectory.from_molecule(
         molecule,
         start=TrajectoryStart.FINAL_OPTIMIZATION,
@@ -434,7 +413,9 @@ def test_unrecorded_stage_does_not_request_or_materialize_native_frames(monkeypa
 
     assert calls[0][2]["retain_frames"] is False
     assert len(trajectory) == 0
-    assert molecule.frames == []
+    assert molecule.conformers_number == 0
+    assert molecule._source_frames == ()
+    assert molecule._conformer_results == ()
     assert report.best_energy == pytest.approx(1.0)
     np.testing.assert_array_equal(molecule.coordinates, selected)
 
@@ -460,7 +441,7 @@ def test_initial_frame_sentinel_selects_the_preoptimization_structure(monkeypatc
         epochs_completed=1,
     )
     optimizer, _ = _optimizer(monkeypatch, result)
-    molecule = _OptimizerMolecule()
+    molecule = _optimizer_molecule()
 
     report, trajectory = _run_optimizer(optimizer, molecule)
 
@@ -495,7 +476,7 @@ def test_optimizer_adapter_does_not_run_acceptance_or_topology_scans(monkeypatch
         lambda *args, **kwargs: pytest.fail("topology scan ran inside optimizer"),
     )
 
-    report, _ = _run_optimizer(optimizer, _OptimizerMolecule())
+    report, _ = _run_optimizer(optimizer, _optimizer_molecule())
 
     assert report.epochs_completed == 1
     assert report.quality_report is None
@@ -534,7 +515,7 @@ def test_native_setup_failure_is_translated_to_public_diagnostics(
         vdw_cutoff_end=12.0,
         seed=17,
     )
-    molecule = _OptimizerMolecule()
+    molecule = _optimizer_molecule()
     trajectory = ForceFieldTrajectory.from_molecule(molecule)
 
     with pytest.raises(ff.ForceFieldSetupError) as caught:
@@ -570,11 +551,16 @@ def test_native_result_controls_single_frame_materialization(monkeypatch):
         result,
         retain_epoch_history=False,
     )
-    molecule = _OptimizerMolecule()
+    molecule = _optimizer_molecule()
 
     report, _ = _run_optimizer(optimizer, molecule)
 
-    assert len(molecule.frames) == 1
+    assert molecule.conformers_number == 1
+    assert molecule._source_frames == ()
+    assert len(molecule._conformer_results) == 1
+    assert molecule._conformer_results[0].payload.batch.ordinals == (2,)
+    np.testing.assert_array_equal(molecule.conformer_get(0)["coordinates"], selected)
+    assert molecule.conformer_get(0)["energy"] == pytest.approx(report.best_energy)
     assert report.energy_changes == (1.0,)
     assert report.max_displacements == (0.5,)
     assert report.selected_segment_epochs_completed == 2

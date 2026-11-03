@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "status": "ROOT_ACCEPTED_CP311_PREPARATION_DIAGNOSTICS",
+  "archive_root": ".plan20-artifacts/20261103/stage8a/diagnostics",
+  "source_freeze": {
+    "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-diagnostics-fixture.json",
+    "bytes": 182829,
+    "sha256": "902e62b02cec9a22077dbca9493986b5f8a13023749645559fe572ced5a8c94a"
+  },
+  "graph": [
+    {
+      "role": "focused-diagnostics-attempt01",
+      "source": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/focused-diagnostics-attempt01",
+      "archive": "raw/source/focused-diagnostics-attempt01",
+      "receipt": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/focused-diagnostics-attempt01/execution.json",
+        "bytes": 3358,
+        "sha256": "6b5da714b6f106981abdc80e5867ca85549d43a3397bacae2f961109231164de"
+      }
+    },
+    {
+      "role": "focused-diagnostics-attempt02",
+      "source": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/focused-diagnostics-attempt02",
+      "archive": "raw/source/focused-diagnostics-attempt02",
+      "receipt": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/focused-diagnostics-attempt02/execution.json",
+        "bytes": 3365,
+        "sha256": "01883eedefea9e9dd0773fa3b05d23f72118ab9e193ced90f1c1e6f683a6d037"
+      }
+    },
+    {
+      "role": "affected-diagnostics-attempt02",
+      "source": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/affected-diagnostics-attempt02",
+      "archive": "raw/source/affected-diagnostics-attempt02",
+      "receipt": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/affected-diagnostics-attempt02/execution.json",
+        "bytes": 9000,
+        "sha256": "21efc22797d8cfb9da55cb891b600b39d732589da82cd41eee2eb67152574fb3"
+      }
+    },
+    {
+      "role": "affected-diagnostics-attempt03",
+      "source": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/affected-diagnostics-attempt03",
+      "archive": "raw/source/affected-diagnostics-attempt03",
+      "receipt": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/affected-diagnostics-attempt03/execution.json",
+        "bytes": 9003,
+        "sha256": "cb92bea62fd3f17e4199ba43aede9a490b6da5dfb6aa4e79148a78acab58a6cb"
+      }
+    },
+    {
+      "role": "actual_CBFF_xtb-diagnostics-attempt03",
+      "source": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/actual_CBFF_xtb-diagnostics-attempt03",
+      "archive": "raw/source/actual_CBFF_xtb-diagnostics-attempt03",
+      "receipt": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/actual_CBFF_xtb-diagnostics-attempt03/execution.json",
+        "bytes": 2639,
+        "sha256": "dc9382259148d67af5bbcada86da439e4ed0d5a505616a25a3e3975ae1799b67"
+      }
+    },
+    {
+      "role": "actual_MCA_attachment-diagnostics-attempt03",
+      "source": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/actual_MCA_attachment-diagnostics-attempt03",
+      "archive": "raw/source/actual_MCA_attachment-diagnostics-attempt03",
+      "receipt": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/actual_MCA_attachment-diagnostics-attempt03/execution.json",
+        "bytes": 2593,
+        "sha256": "9f90379fc8831bb97780ed5e9e47101563776e047a383a609a7fcf75e8ec5d48"
+      }
+    },
+    {
+      "role": "installed",
+      "source": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/installed-validation/diagnostics-attempt01",
+      "archive": "raw/installed/diagnostics-attempt01",
+      "receipt": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/installed-validation/diagnostics-attempt01/execution.json",
+        "bytes": 63700,
+        "sha256": "62d949d98a8533b1d3276cb1d476bf54d7ca4ca08b8fd0d5c72bd4b463d7ff1a"
+      }
+    },
+    {
+      "role": "inventory_probe",
+      "source": "/tmp/hotpot_plan20/long/stage8a-preparation-diagnostics-20261103/inventory-probe-attempt01",
+      "archive": "raw/inventory-probe-attempt01",
+      "receipt": {
+        "path": "/tmp/hotpot_plan20/long/stage8a-preparation-diagnostics-20261103/inventory-probe-attempt01/evidence-index.json",
+        "bytes": 3568,
+        "sha256": "e5afc588a1dd38cbc9e2ea84d7deda723817be83e6dda8ada420699e515f9c0f"
+      }
+    },
+    {
+      "role": "release-time contracts and selections",
+      "source": "/tmp/hotpot_plan20/long/stage8a-preparation-diagnostics-20261103/release-inputs",
+      "archive": "raw/release-inputs",
+      "scope": "Original release-time bytes independently matched to archived release hashes; subsequent maintenance changes no executed selection."
+    }
+  ],
+  "root_final_check": {
+    "evidence": {
+      "path": "/tmp/hotpot_plan20/long/stage8a-preparation-diagnostics-20261103/root-final-check.json",
+      "bytes": 1352,
+      "sha256": "4df0e1b64034af265d36b65aedc964b346625dffa76239eebb89b285a2375514"
+    },
+    "archive": "raw/releases/root-final-check.json",
+    "result": "ROOT_FINAL_BINDINGS_AND_RECEIPTS_PASS"
+  },
+  "raw_inventory": {
+    "file": "archive_inputs.json",
+    "entry_count": 1853,
+    "regular_file_bytes": 25837137
+  },
+  "commands_environment_inputs_origins": "Each raw execution.json and release/assembly-inputs.json retains exact argv/cwd/environment/interpreter/inputs. Per-attempt bindings, model/native provenance, ordered nodeids, JUnit, origin records, logs and actual business basetemps remain in the full trees.",
+  "on_demand_navigation": {
+    "outcomes": "diagnostics_checkpoint.json",
+    "scientific_values": "diagnostics_observations.json",
+    "failed_cases": "raw/source/*/junit.xml",
+    "installed_delivery": "raw/installed/diagnostics-attempt01/execution.json",
+    "inventory_conclusions": "raw/inventory-probe-attempt01/conclusion.md"
+  },
+  "application": "Root ran the reviewed assembler once; every archived byte matched its retained input. Draft source records remain historical in the archive; maintained records apply the root bounded acceptance. Original release-time contracts and selections are independently bound under raw/release-inputs.",
+  "raw_manifest": {
+    "path": ".plan20-artifacts/20261103/stage8a/diagnostics/raw_manifest.json",
+    "bytes": 854828,
+    "sha256": "23ecae8f86d9877995b8116c9253ef3eccb28ce9dec2da51562bdfae3da90bb3",
+    "entries": 1860
+  }
+}

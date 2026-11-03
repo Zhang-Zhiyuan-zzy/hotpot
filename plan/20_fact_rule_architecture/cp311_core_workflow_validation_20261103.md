@@ -79,3 +79,69 @@ wheel 用 `pip install --no-deps --ignore-installed --no-compile` 安装到独�
 完整证据位于 `/tmp/hotpot_plan20/long/stage7a-cp311-installed-business-20261103/`：`assembly-inputs.json` 记录当前源码、wheel和复用扩展；`installed-results.json` 记录命令、环境、首轮73/3、精确失败集重跑、三个场景及局限；`installed-origins.json` 与 `pytest-product-origins.json` 是实际导入检查；两个XML、三份smoke日志及 `attempt1/`、`attempt2/` 保留计算/失败产物。wheel、独立源码副本及venv在 `/tmp/hotpot_plan20/medium/20261103-cp311-installed-business/`。
 
 这补齐了当前修复在 CP311 安装边界的指定业务证据，不关闭完整 Stage7A、全版本、native/ABI/SDK、科学、性能或长期内存门；前述 H/同位素/立体运输问题仍未解决。
+
+
+## Connected H semantics: actual current-source observations
+
+A subsequent diagnostic at documentation HEAD `74a3fc31ff1552f24fa418cd566f8f4ee274cc58` inspected eight explicit fixtures at three points: initial prepared state, first `add_hydrogens()`, and repeated `add_hydrogens()`. Production and test source stayed unchanged. This is 24 observed states, not 24 passing chemical tests. Six RDKit projections raised local H-consistency errors, retained in the evidence. No new normalization, tensor encoding, source owner or Stage7E entry was introduced.
+
+| Origin and represented input | Initial graph H / public H | Graph H after first / repeated materialization | Projection observation |
+|---|---|---|---|
+| Manual C, omitted H | 0 / 4 | 4 / 4 | Initial RDKit projection preserves 4 bracket H; Open Babel drops omitted H. After expansion RDKit duplicates 4 graph + 4 bracket H (total8). |
+| RDKit `C` | 0 / 4 | 4 / 4 | Subsequent RDKit projection rejects stale current implicit H4 versus derived0. |
+| RDKit `[H]C`, with graph H retained by parser | 1 / 3 | 3 / 3 | Input had 1 graph + 3 omitted H; materialization reaches only 3 graph H. RDKit projection then rejects requested3 versus derived1. |
+| RDKit full graph `[H]C([H])([H])[H]` | 4 / 0 | 4 / 4 | Full-graph control retains total4 H through both materializations and both toolkit projections. |
+| RDKit `CCO` | 0 / (3,2,1) | 6 / 6 | Subsequent RDKit projection rejects stale current H at the first carbon. |
+| Open Babel `C` | 0 / 4 | 4 / 4 | Initial RDKit projection preserves 4 bracket H; Open Babel drops omitted H. After expansion RDKit duplicates 4 graph + 4 bracket H (total8). |
+| Open Babel `[H]C` | 1 / 3 | 3 / 3 | Incomplete graph materialization; RDKit then duplicates 3 graph + 3 bracket H (total6), versus the input total4. |
+| Open Babel `CCO` | 0 / (3,2,1) | 6 / 6 | Initial RDKit projection preserves 6 bracket H; Open Babel drops omitted H. After expansion RDKit duplicates 6 graph + 6 bracket H (total12). |
+
+The table compares represented atom/H accounting and named public operations, not a uniquely correct physical protonation state. RDKit `GetNumImplicitHs()==0` alone is not H loss: bracket-explicit and graph H must also be counted. Existing rule-inferred site-total counts and imported omitted-H counts have different scopes. An import-only isotope patch is likewise incomplete: sparse atom isotope storage and the transitional payload feed different consumers, while RDKit rejects unsupported atom-fact source namespaces. Filling either side alone would leave inconsistent observations.
+
+Evidence: `/tmp/hotpot_plan20/long/connected-hydrogen-observations-20261103/execution.json` contains exact argv, cwd, environment, file identities and the six local errors; `observations.json` contains every raw count, presence/source value, graph H, current/source transport record and toolkit output/error. The first run failed only while JSON-serializing an Enum after case execution; its script/log are retained in `attempt1/`. The corrected writer represents enum type/value explicitly, preserves the raw observation pickle, and completed RC0. No product fix or stage acceptance follows from that writer correction.
+
+The next connected decision remains the Stage7E H-slot/source convention and its public/model projection effects. A single setter, producer-code subtraction or sparse/payload mirror is not accepted as a substitute. CP311 core workflows passed earlier remain evidence for their actual cases; they do not prove these untested representation paths correct.
+
+
+### Isotope origin and projection observations
+
+An additional eight source/fixture pairs used `C`, `[0CH4]`, `[13CH4]` and `[2H][18O][2H]` through both existing toolkit import routes, without H materialization. The diagnostic returned RC0; returned objects do not imply isotope preservation. Atom ordering and elemental identities were retained in these fixtures.
+
+| Origin | Current sparse isotope attributes | Current payload | RDKit projection | Open Babel projection |
+|---|---|---|---|---|
+| RDKit labelled13C or D/18O | Absent | Label values retained | Label values retained | All isotope API values become0 |
+| Open Babel labelled13C or D/18O | Absent | Empty | All isotope API values become0 | All isotope API values become0 |
+
+Both toolkits report isotope0 for both `C` and `[0CH4]`; this observation does not recover source-level explicit-zero versus unspecified declaration presence. A zero value must not be used to fabricate that missing history. These actual results corroborate the distinct sparse/payload consumer gap and rule out claiming end-to-end isotope preservation from an import-only change. No model inference was run; downstream model effects remain a source-traced concern, not measured predictions. Exact command and artifacts are in the same `execution.json`, `isotope-observations.json`, `observe_isotopes.py` and `isotope-run.log`. No public property, canonical storage, model encoding or source fix changed.
+
+
+## 混合成功/失败记录：真实 xTB CLI 观察
+
+随后使用同一 CP311 当前源码和官方 xTB6.7.1，实际运行一个3记录 SDF 批次：完整图H水、单原子H、完整图H甲烷。统一请求中性、UHF0、GFN2单点，`jobs=2`、`threads=1`、`post-check=off`。水与甲烷的几何只是明确输入；本次没有优化或几何门控通过的结论。
+
+| 原输入索引 | 实际结果 | 保留的业务观察 |
+|---|---|---|
+| 0：水 | `ok` | 有限能量 -4.80210653 Hartree，原子顺序已核对，单点未提交坐标。 |
+| 1：原子H | `error` | `XTBStateResolutionError`，具体诊断 `HARD-013.UHF_PARITY`：该中性单电子输入与UHF0奇偶性不相容。 |
+| 2：甲烷 | `ok` | 有限能量 -4.17501064 Hartree，原子顺序已核对，单点未提交坐标。 |
+
+CLI整体返回1，报告仍保留全部3个索引，输出SDF只含水和甲烷且保持原输入顺序。局部状态拒绝没有中断独立样本；没有把返回1改记为业务全成功或删去失败分母。两份成功结果来自真实数值执行，不是假后端。中间记录没有计算报告；观察脚本中原始键名 `no_native_execution_for_rejected_record` 实际只检查报告缺失，不证明没有后端版本/能力探测调用。
+
+精确命令、环境、11个相关生产文件前后身份、输入/输出、三记录报告、stdout/stderr及保留的xTB工作目录见 `/tmp/hotpot_plan20/long/stage7a-cp311-mixed-xtb-20261103/execution.json`。原样归档在 `.plan20-artifacts/20261103/stage7a/mixed-xtb-business-observation/`。这是一组有明确边界的实际观察，不是所有混合输入、方法、几何恢复、安装边界或整个Stage7A的验收。
+
+## H 连接修复的可审阅方案
+
+[待审方案](stages/stage07/preentry-hydrogen/review.md)与[连接消费者矩阵](stages/stage07/preentry-hydrogen/consumer_matrix.md)已保存到项目维护记录，状态为 **PROPOSED / NOT APPROVED / NO STAGE7E ENTRY**。建议保留现有普通非金属推导规则的位点总目标 `T`，把明确的工具包输入规范为 `T=图H+非图H`，各消费者由图关系派生剩余非图H。这样会让部分显式甲烷的公开字段14由3变4、完整图H甲烷由0变4；这是真实公开语义变更，尚未授权实施。
+
+根复核接受问题定位与连接迁移范围作为准备证据，未批准公开H语义、DTO/模型特征含义或历史持久化处理。源历史不得充当当前剩余H的第二真值，不能以关闭RDKit检查器掩盖陈旧运输。模型权重和科学方法保持；具体DTO版本、旧记录的可恢复边界、完整源声明/原子表映射及Stage7E前置所有者冻结仍须在依赖步骤前确定。本轮没有进入Stage7E。
+
+H/同位素原始诊断与失败写入尝试共10份文件、164413字节，已原样归档至 `.plan20-artifacts/20261103/stage7a/connected-hydrogen-observations/`，原来的嵌入路径和失败记录保持。归档摘要仅核对保存完整性，不参与化学合理性判断。
+
+
+### 持续回归与安装边界
+
+新增 `tests/test_plugin/test_xtb/test_official_cli_integration.py`，通过已有外部执行开关启用真实xTB，分别检查 `jobs=1` 与 `jobs=2` 的上述局部拒绝/独立继续语义。当前源码 CP311：**2 passed、0 failed、0 skipped**；在既有CP311 wheel的隔离安装环境、源码目录外执行相同测试字节：**2 passed、0 failed、0 skipped**。安装进程已加载186个Hotpot模块，全部位于选定安装目录；11个相关生产文件与当前源码一致。源码测试期间492个生产Python/native文件身份保持不变。
+
+测试不锁定精确能量、运行时间或一组“唯一正确”构象。它要求有限能量、合法请求归因、3记录分母、两个成功记录的原顺序/坐标和单点不提交行为；序列化后的能量只与同一次计算报告对应。输入均为完整图H，故不掩盖或解决前述H表示缺陷。安装依然共享既有依赖、复用6个扩展，没有新增干净native构建或全版本结论。
+
+源码证据：`/tmp/hotpot_plan20/long/stage7a-cp311-mixed-xtb-regression-20261103/execution.json`；安装证据：`/tmp/hotpot_plan20/long/stage7a-cp311-mixed-xtb-installed-20261103/execution.json`。两组原始XML、输入/输出、真实计算报告、日志及源身份分别归档于 `.plan20-artifacts/20261103/stage7a/mixed-xtb-regression-source/` 与 `mixed-xtb-regression-installed/`。这些是新增的局部证据，不重写前述22项/76项选择及其原始失败，也不关闭阶段或整体门。

@@ -1,0 +1,211 @@
+{
+  "status": "PROPOSED / NOT APPROVED / NO STAGE7E ENTRY",
+  "approved": false,
+  "stage7e_entry": false,
+  "preserved_on": "2026-11-03",
+  "source_commit": "74a3fc31ff1552f24fa418cd566f8f4ee274cc58",
+  "effective_goal": "plan/20_fact_rule_architecture/goal.md",
+  "goal_v2_active": false,
+  "scope": {
+    "kind": "Documentation-only preservation of a completed preentry design proposal.",
+    "authorized_outputs": [
+      "review.md",
+      "consumer_matrix.md",
+      "evidence.json"
+    ],
+    "production_or_tests_edited_by_preservation": false,
+    "new_production_inspection": false,
+    "new_chemistry_models_builds_or_runtime_observations": false,
+    "git_mutation": false,
+    "acceptance_claimed": false,
+    "nested_delegation": false
+  },
+  "provenance": {
+    "original_design_created_at_utc": "2026-11-03T03:29:04.248456+00:00",
+    "original_artifacts": {
+      "proposal.md": {
+        "path": "/tmp/hotpot_plan20/medium/connected-hydrogen-design-20261103/proposal.md",
+        "sha256": "9d2c26b43c4bf74e5c0c794370a00ab4bdf87fdbb1f00cff515ceffcd9e7341e"
+      },
+      "consumer_matrix.md": {
+        "path": "/tmp/hotpot_plan20/medium/connected-hydrogen-design-20261103/consumer_matrix.md",
+        "sha256": "44e667f2ea32ec58a700e7d6ee3bd00ff405ad50c131a63fb8d21cf6a3890757"
+      },
+      "evidence_index.json": {
+        "path": "/tmp/hotpot_plan20/medium/connected-hydrogen-design-20261103/evidence_index.json",
+        "sha256": "89c6d252db740364702419f1a620a93d8a91344eecbed789a1a1235108e5a9f2"
+      }
+    },
+    "transformations": [
+      "Preserve proposal.md as review.md and copy consumer_matrix.md.",
+      "Make PROPOSED / NOT APPROVED / NO STAGE7E ENTRY explicit in both status lines.",
+      "Link the maintained evidence.json from both status lines; leave non-status content unchanged.",
+      "Condense existing evidence into this index without duplicating twenty-four runtime states."
+    ],
+    "source_identity_scope": "Source hashes and inspection limits are copied from the original evidence index, not a fresh source review or a claim that mutable maintained reports still have these bytes. Original detailed purposes/ranges remain in that indexed artifact."
+  },
+  "recommended_decision": "Ordinary-nonmetal current field14 target T, normalize known toolkit ingress to E+R; derive residual for consumers; retain named metal/H exceptions and one owner. Requires public/model/encoding approval.",
+  "proposed_public_effects": {
+    "preserved": "Atom.implicit_hydrogens integer API/setter codec, omission/strict readiness, 19-column float64/native prefix, named inferred metal/H exceptions and scientific algorithms/model weights.",
+    "ordinary_nonmetal_toolkit_import_values": {
+      "partial_methane": "3 -> 4",
+      "fully_graph_hydrogen_methane": "0 -> 4",
+      "unexpanded_methane": "4 -> 4"
+    },
+    "ownership": "One current target T; residual R=max(T-E,0) is derived. Exact original counts remain immutable source history. No retained total/residual mirror, new DTO, encoding mode or public residual-H API is proposed."
+  },
+  "source_hashes": {
+    "plan/20_fact_rule_architecture/goal.md": "6e116730e1a31ec999b623e9e594d26f23e3cf8a95e68048652acf9c699b0118",
+    "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md": "4d384bd4a8c9f202f70ed9173ec3bf41603cf2ba0bfe83886e9c09218bc3b9ee",
+    "plan/20_fact_rule_architecture/chemical_type_interface_contract.md": "96f4808f91e9470bdf60ff4a8f58b514d838b023328e7ea37f90fcf3f7328707",
+    "plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/decisions.md": "9645dfa50c55870d94b09831a0c2b34609fb52be4c6a4be53c9beb5cd7954f7f",
+    "plan/20_fact_rule_architecture/stages/stage05/hydrogen-implementation/review.md": "7116ef1192fb2520d52ab8832f64c93f96426c63cb8cd508c33fe55a407a3c10",
+    "plan/20_fact_rule_architecture/stages/stage05/hydrogen-source-review/report.md": "b308abeba9b8436e9a5962d031292048a76b34183c4df261f003d97950980a03",
+    "plan/20_fact_rule_architecture/cp311_core_workflow_validation_20261103.md": "f851a36ea41118ddc54e26327f9472fc9b655576ab89141106f5365cba70d1d2",
+    "hotpot/cheminfo/core.py": "76434c3cadc6a2e5ef1acfec3984805d5066757fb06fdb7fa139ede6888d750d",
+    "hotpot/cheminfo/operations/chemistry.py": "704652a2d0005994846ec121d0d099cb51fc019f3695b2d2d1766a2311c15500",
+    "hotpot/cheminfo/rules/chemistry/bonding/hydrogen.py": "5c453018a6cb75573f12b35546f39f05be621bb2103e1e7850c56369d4a14068",
+    "hotpot/cheminfo/structure/_identity.py": "7ce44a3be08d50ce4c07c8ce4c504e75a95de69165825a23dbf7d13b98fed534",
+    "hotpot/cheminfo/structure/_fields.py": "8dff72608a494ceabeb2d824b8c4651ab3e5a17ebab77e6059d3e5481f3d3320",
+    "hotpot/cheminfo/structure/_dependencies.py": "92fcc35c87a0ef5d2beef8c889ddb4c1a7317af5bf4bf69f84f4cf1d41c3e6bc",
+    "hotpot/cheminfo/structure/_commit.py": "ca51c76558fa5d586cd7301d05d6cd867d8ec43629f09824cbbebb440007f1f9",
+    "hotpot/cheminfo/structure/_stereo.py": "a917498967d7564bc7af89a29d96eb8b908963866645bc8668dc8b924ce0f535",
+    "hotpot/cheminfo/operations/conversion.py": "988a2ccb1728432ee9ac5bb18e6bfd620947e1110942698b478bd5f1f0323947",
+    "hotpot/cheminfo/adapters/rdkit/conversion.py": "77c7fe38f2bea2af982b5878cad36746e16bb75f4e40d5bfed40fbfcdbbd6530",
+    "hotpot/cheminfo/adapters/rdkit/stereo_transport.py": "36b1550421c008198902f6fe4072b2b4e7a9f15e14db643dd1201c8e9d3d5e39",
+    "hotpot/cheminfo/adapters/openbabel/conversion.py": "5e2da95b301ebb6b779ec77e3d6235e160b80c451bb6ea913ef869b79a5b4ed5",
+    "hotpot/cheminfo/_native/buffers.py": "60202219c365993884b5b77fad11954d5fd89bf33b2fe4e2b0a5f644f2c2886f",
+    "hotpot/cheminfo/rdWrappers/_native/src/molecule_builder.cpp": "0168ddd9ca93456113bda6e21e2d6344695d3640f01aac58fcd78634bb5eb864",
+    "hotpot/cheminfo/obWrappers/_native/openbabel_adapter.cpp": "fbf40fbc734c84eead1abd773de9e598ddb5c1b156f97ea11aae602c9673cf6b",
+    "hotpot/cheminfo/search/semantics.py": "2b138971e5c973daa45f4f70b22e056615e7957ca7dc35067064bad075c0ac9c",
+    "hotpot/cheminfo/search/_predicate_ir.py": "430a7e35ca1d4a897a0a363ec206465bcf1c567985daac252c5e2267441ccb10",
+    "hotpot/cheminfo/search/smarts.py": "16d56c4e404c27d678dd935dc5eaa2504dbaf20c7af4f3a1f67b5804fe0e03ea",
+    "hotpot/cheminfo/search/native.py": "ad5b82b457104386cda4b8ec3417b234dee72b011b38f6943b4787b4fcc6090f",
+    "hotpot/cheminfo/operations/stereochemistry.py": "f0c8d293033e2f7594f8e7cef7ae7f1f2504f0119c3a5aa593773aab42a0bd96",
+    "hotpot/cheminfo/rules/chemistry/stereochemistry/graph.py": "4838b5734fbd505c146ec7bd711a922fddd1c6400a6bcd2c2665f8b4f27ac27a",
+    "hotpot/cheminfo/calculator/state_resolver.py": "9886828768b577e7cf5c902b4fd488229cf6c30d5f97a0bfe7ee2ea35aac268d",
+    "hotpot/cheminfo/calculator/execution_selection.py": "96d76c8c29ee274c1aa4c50fd535eb9594245a5c7d0f05c795cf6faf2564ed42",
+    "hotpot/cheminfo/calculator/charge/lewis.py": "c2fd928aee151d1bb9414dd97c87180761615d5b01b6cb0e589d3ca7b0776b4d",
+    "hotpot/plugins/xtb/adapter.py": "64d44cc5ffc5e8bdf025fc5c11b3da54c54f47f42d106a592ac5250246db7da4",
+    "hotpot/cheminfo/conformers/adapters.py": "edebbebb3d9b12072dca47db1f49337c99d115373fa8405182da64abb1e5598b",
+    "hotpot/cheminfo/forcefields/working_copy.py": "ef1ada0c1722b79f2ae9b6a576d0db1d42d2b12ab274e750d05e46fcb0d443c8",
+    "hotpot/cheminfo/AImodels/mca/serialization.py": "19867575c3304bb53d30e5ae1c00c9d35c85b6d2d3b86a3360be2e9924f8ee70",
+    "hotpot/cheminfo/AImodels/mca/featurizer.py": "e3fe40dbc8956a2aa355e900b3ba21056ccdd3f49c285c07245052f49bc39301",
+    "hotpot/cheminfo/AImodels/cbond/apply.py": "d3356c80b7085568764ed9250e50ebfb5841a0d49672484b0341de08e0be233d",
+    "hotpot/cheminfo/AImodels/data_extract.py": "3b023cb54d1a175e25ebbf7191a549d756709096d394ab7cb96107d36679706c",
+    "hotpot/plugins/ccdc_api/convert.py": "b0c7819f567a317f39857ff0b735e23bd00cd90b05070e7287fb77d6403e6715",
+    "hotpot/plugins/PyG/data/ccdc.py": "ff3db5ec93c68ab7946efff35e4efd5ccfe8a972047234e567190d565219e94c",
+    "hotpot/plugins/PyG/data/tmqm.py": "92f0cb5ed307f7540bfcf33a13f2063d69a1addaa250708f1aacfcbe1bdd9de6",
+    "hotpot/pipeline/artifacts.py": "1f53f1b88b06f151803bb0cf5382c7b4542a3ce33d700482caa6bfb25522a3f6",
+    "hotpot/cheminfo/mol_assemble/assembler.py": "83e6d11f0726d613d966926a149c76ceb6dca3f475d7a8a14de24a611288ff15",
+    "hotpot/cheminfo/mol_assemble/action_func.py": "1cdbcd2ff90793a95fa4117ec09c111583ca1cc194f5136d64eae45998f0dfff",
+    "hotpot/cheminfo/structure/_native/facts.cpp": "319f47b9ee54c325fbe7c05e871faef248a254875c8e0c8ea6ab3f14819c613f"
+  },
+  "source_inspection_limits": [
+    "Initial unrestricted production rg exceeded the child-process output buffer and was replaced by file-type/path-bounded searches.",
+    "Some grouped source outputs were truncated; relevant rule/adapter/default-contract ranges were reread in smaller groups. A recorded range is an inspection locator, not a claim that every grouped output was complete.",
+    "Outer artifact/assembly/PyG and native-fact matches are symbol inventories only; no dynamic consumer or training-corpus audit was executed.",
+    "No Stage7E private slot, opaque-source or ABI entry decision is frozen by this proposal."
+  ],
+  "runtime_evidence": {
+    "path": "/tmp/hotpot_plan20/long/connected-hydrogen-observations-20261103/observations.json",
+    "sha256": "2fe9b4986c25c4b76008b3093c16baef2fe36972799eb2cf8d031ff25e8c1579",
+    "driver": {
+      "path": "/tmp/hotpot_plan20/long/connected-hydrogen-observations-20261103/observe.py",
+      "sha256": "ea0a44f62879887820302a3fadb5df7ad1cda7289efeeb9e00361609c670070c"
+    },
+    "run_log": {
+      "path": "/tmp/hotpot_plan20/long/connected-hydrogen-observations-20261103/run.log",
+      "sha256": "219d5660838b47e8dbeb5aa4beaa66a7d992a6514a82bc900e602c8bc457de56"
+    },
+    "status": "observed_not_acceptance",
+    "source_commit": "74a3fc31ff1552f24fa418cd566f8f4ee274cc58",
+    "interpreter": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+    "argv": [
+      "/tmp/hotpot_plan20/long/connected-hydrogen-observations-20261103/observe.py"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "environment": {
+      "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1"
+    },
+    "versions": {
+      "numpy": "2.4.6",
+      "rdkit": "2026.09.1",
+      "openbabel": "3.2.1"
+    },
+    "fixtures": 8,
+    "states": 24,
+    "execution_attribution": "Executed by parent/root; inspected, not rerun, by this author.",
+    "return_code": {
+      "value": 0,
+      "evidence": "reported by parent; observation file and run log inspected"
+    },
+    "failed_first_attempt": {
+      "path": "/tmp/hotpot_plan20/long/connected-hydrogen-observations-20261103/attempt1",
+      "preserved": true,
+      "classification": "Parent-reported observation-writer Enum JSON serialization failure; not converted into a chemical success/failure."
+    },
+    "limits": "Existing runtime only; no source correction, new H normalization, model/native encoding change, stage entry or acceptance. Projections run after public H preparation and before each materialization; geometry is not evaluated.",
+    "native_model_search_scientific_state_execution": "not covered by these observations",
+    "source_hash_match_evidence": {
+      "attribution": "Copied from the completed design review; not recomputed during preservation.",
+      "observation_bound_files_matched_then": {
+        "hotpot/cheminfo/core.py": true,
+        "hotpot/cheminfo/operations/chemistry.py": true,
+        "hotpot/cheminfo/operations/conversion.py": true,
+        "hotpot/cheminfo/adapters/openbabel/conversion.py": true,
+        "hotpot/cheminfo/adapters/rdkit/conversion.py": true,
+        "hotpot/cheminfo/adapters/rdkit/stereo_transport.py": true,
+        "hotpot/cheminfo/structure/_fields.py": true
+      }
+    },
+    "pickle_artifact": {
+      "path": "/tmp/hotpot_plan20/long/connected-hydrogen-observations-20261103/observations.pickle",
+      "coverage": "Raw artifact reference only; not deserialized during preservation."
+    }
+  },
+  "related_isotope_observations": {
+    "path": "/tmp/hotpot_plan20/long/connected-hydrogen-observations-20261103/isotope-observations.json",
+    "sha256": "0bd45360f4d61f6567535932ad14aa40fc731259d09eac61e83a6d2403f639d2",
+    "source_commit": "74a3fc31ff1552f24fa418cd566f8f4ee274cc58",
+    "coverage": "Related parent-produced evidence; JSON metadata inspected only. No isotope design expansion or author runtime execution.",
+    "parent_reported_conclusion": "RDKit-origin isotope facts survive payload to RDKit but not sparse attributes/OB; OB-origin isotope facts are lost before exports. Toolkit isotope zero alone does not reconstruct explicit-zero source presence. An isolated import-only correction is not coherent."
+  },
+  "remaining_gates": [
+    "Owner approval of ordinary-nonmetal field14 target semantics, changed imported public values and preserved metal/H exceptions.",
+    "Model-specific feature projections, MCA DTO schema/version and historical-message compatibility review; preserve actual feature definitions and weights.",
+    "Historical record/pickle restore review and exact current/source/presence/source-namespace/opaque-unbound encoding decisions; insufficient old current bindings must not be guessed from producer codes.",
+    "Existing Stage7E entry requirements and connected Atom-fact/immutable-source-ledger/payload-on-demand owner migration; no entry or slot/ABI freeze is granted here.",
+    "Connected writer/consumer/lifecycle/rollback implementation and attributable scientific, installed CP311 and affected native validation after approval. An inferred-only Stage7A projection fix does not close imported partial-H under-add or stale imported transport."
+  ],
+  "outputs": {
+    "review.md": {
+      "sha256": "2999ff5d6bb7092803de7732e9ab0d9df2d3784f03f75ef7c3901056b0bcd3df"
+    },
+    "consumer_matrix.md": {
+      "sha256": "b1897c90b57ba5b14e9390141607ab981c1a915d39a5ede63b100a6c38747b74"
+    }
+  },
+  "artifact_validation": {
+    "result": "PASS",
+    "commands": [
+      [
+        "python",
+        "-m",
+        "json.tool",
+        "plan/20_fact_rule_architecture/stages/stage07/preentry-hydrogen/evidence.json"
+      ],
+      [
+        "python",
+        "-c",
+        "from pathlib import Path\nimport hashlib,json,re,sys\np=Path(sys.argv[1]); s=Path(sys.argv[2]); e=json.loads((p/'evidence.json').read_text())\nassert sorted(q.name for q in p.iterdir())==['consumer_matrix.md','evidence.json','review.md']\nassert e['status']=='PROPOSED / NOT APPROVED / NO STAGE7E ENTRY'\nassert not e['approved'] and not e['stage7e_entry']\nfor name,identity in e['outputs'].items():\n data=(p/name).read_bytes()\n assert hashlib.sha256(data).hexdigest()==identity['sha256']\n text=data.decode()\n assert e['status'] in text\n assert not any(line.rstrip()!=line for line in text.splitlines())\n for link in re.findall(r'(?<!!)\\[[^\\]]*\\]\\(([^)]+)\\)',text):\n  location=link.split('#',1)[0]\n  if not location or '://' in location: continue\n  location=re.sub(r':\\d+$','',location)\n  assert (p/location).exists(),(name,link)\nfor identity in e['provenance']['original_artifacts'].values():\n assert hashlib.sha256(Path(identity['path']).read_bytes()).hexdigest()==identity['sha256']\nassert len(e['source_hashes'])==45\nassert e['runtime_evidence']['fixtures']==8 and e['runtime_evidence']['states']==24\nfor name in ['review.md','consumer_matrix.md']:\n original_name='proposal.md' if name=='review.md' else name\n original=(s/original_name).read_text().splitlines()\n preserved=(p/name).read_text().splitlines()\n assert len(original)==len(preserved)\n assert all(a==b for a,b in zip(original,preserved) if not a.startswith('Status:'))\nprint('PASS: JSON, explicit status, original/output hashes, local Markdown links, whitespace, exact output scope, unchanged non-status content, 45 source identities and 8/24 observation metadata; no production inspection or runtime execution.')\n",
+        "plan/20_fact_rule_architecture/stages/stage07/preentry-hydrogen",
+        "/tmp/hotpot_plan20/medium/connected-hydrogen-design-20261103"
+      ]
+    ],
+    "limits": "Document/artifact checks only. Existing source/runtime evidence is attributed to its original review/executor; no new chemistry, native/model, build, performance or acceptance evidence."
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7C",
+  "owner": "root",
+  "recorded_utc": "2026-11-03T07:13:35.429953+00:00",
+  "status": "ENTRY_ALIGNED_DESIGN_ACCEPTED_FIRST_SLICE",
+  "source_commit": "eef87d1a24aca88d36c8d6ff1e492387f84e9861",
+  "predecessor": "stages/stage07/completion_20261103.json",
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "effective_goal": "goal.md",
+  "alignment": "Targeted main-plan5.3/5.4/5.5/Stage7C, normative companion interface/result/budget/alignment sections, Stage1 accepted A2/A6/A8 and actual current owners. Reuses valid unaffected alignment; no ritual full-document read claimed.",
+  "design": "stages/stage07/selected-results/contracts/decisions.md",
+  "source_bindings": {
+    "hotpot/cheminfo/core.py": "f7c7a3be5737e6509c998efe3b2a2da8312ef99c9b15870f7103c64a09df26b7",
+    "hotpot/cheminfo/structure/_commit.py": "41a758dd9bb0b41d25f829851d4f5ea04a0a46471aded0f360cdbca876ac1546",
+    "hotpot/cheminfo/structure/_dependencies.py": "92fcc35c87a0ef5d2beef8c889ddb4c1a7317af5bf4bf69f84f4cf1d41c3e6bc",
+    "hotpot/cheminfo/structure/_native/facts.cpp": "192ea0f64a1c121825610f50b81d191698cc7a09752b8beba6b7b26aff9628f9",
+    "hotpot/cheminfo/structure/_identity.py": "42b26e3baf6312fddbd8e3f0efb6fdc9a26c629490a9dd87c9d9f636d514af29",
+    "hotpot/cheminfo/calculator/mca_inference.py": "cc4617bccade24c560b4daceb6fdd9ac543236cfc8e0be974ccf8819747f6669",
+    "hotpot/cheminfo/AImodels/mca/serialization.py": "87e816302fa68c109f78e7c479b573e13d4b9e74fef5c8942f3435456cb7e702",
+    "hotpot/cheminfo/AImodels/mca/conformer.py": "60c1459f4b9a0b8ee9423e9cafd65203b7a364ac0db615769ab50535d8162ced",
+    "hotpot/cheminfo/AImodels/mca/featurizer.py": "e3fe40dbc8956a2aa355e900b3ba21056ccdd3f49c285c07245052f49bc39301",
+    "hotpot/cheminfo/operations/chemistry.py": "3e9bd866f10c6a8cdade39256530e04b08e623c88c66caa3e6c9f94551292079",
+    "hotpot/cheminfo/operations/conversion.py": "faf819d49c1c083377807a8454d0465c8b9639686071b1e084a0823b2c5a7c1a",
+    "hotpot/cheminfo/structure/_fields.py": "79d6dd7cb716960855003e81adde19433280d3e8543e9ec7721f21322722dacc",
+    "hotpot/cheminfo/structure/_atom_table.py": "71eff26caae15a61f2d2ca42ecf951d0f294aecef4205de4c6de616b78fc1437"
+  },
+  "known_gaps": [
+    "Native direct writes currently bypass Python invalidation; current MCA has three retained stores and inconsistent copy/component/pickle lifetimes.",
+    "Partial-charge raw table/default/import/native/model cutover remains second connected slice; no Stage7C acceptance until completed."
+  ],
+  "prior_evidence_reuse": "Delivered Stage7B source/installed/actual MCA evidence retains original source scope; changed native/attachment candidate requires fresh evidence."
+}

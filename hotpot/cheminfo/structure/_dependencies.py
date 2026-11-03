@@ -120,11 +120,15 @@ def _seed(mol, group, uids):
 
 
 def _mark_topology_dirty(mol, atom_uids):
+    from ._results import _invalidate_results
+    _invalidate_results(mol, ("representation", "geometry"))
     for group in range(len(GROUPS)):
         _seed(mol, group, atom_uids)
 
 
 def _mark_bond_representation_dirty(mol, atom_uids):
+    from ._results import _invalidate_results
+    _invalidate_results(mol, ("representation",))
     _seed(mol, GROUP_INDEX['VALENCE'], atom_uids)
 
 

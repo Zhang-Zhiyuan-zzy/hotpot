@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage0\u20137B accepted within recorded owning scopes; Stage7B CP311 source/installed/business and bounded usable-cost acceptance complete. Current778 classes/355 dataclasses/8 Protocols/2 TypedDicts spend exactly reserved N04 +1, with no retirement credit. Later-stage/version/global gates remain open.",
+  "status": "Stage0–7B accepted within recorded scopes; Stage7C MCA business checkpoint root accepted within tested CP311 scope on2026-11-03. Reserved N15 adds exactly one class/dataclass, current779 classes/356 dataclasses/8 Protocols/2 TypedDicts. Full partial-charge ownership and Stage7C/global acceptance remain open.",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -13,7 +13,7 @@
     "alias_caveat": "Zero explicit TypeAlias syntax does not establish zero implicit aliases."
   },
   "measured_delta": {
-    "new_dataclasses": 8,
+    "new_dataclasses": 9,
     "retired_dataclasses": 0,
     "new_protocols": 0,
     "new_typed_dicts": 0,
@@ -167,6 +167,17 @@
         ],
         "verification": "stages/stage07/completion_20261103.json; stages/stage07/topology-selection/validation/checkpoint.json",
         "status": "Implemented and root accepted within Stage7B CP311 owning scope; later/global obligations remain open"
+      },
+      {
+        "symbol": "hotpot.cheminfo.structure._results._ResultAttachment",
+        "reservation": "N15",
+        "fields": [
+          "payload",
+          "source",
+          "invalidated_by"
+        ],
+        "verification": "stages/stage07/selected-results/validation/checkpoint.json; stages/stage07/selected-results/validation/evidence_index.json",
+        "status": "ROOT_ACCEPTED_CP311_MCA_CHECKPOINT on2026-11-03; MCA attachment/currentness only. Full partial-charge ownership and Stage7C/global gates remain open."
       }
     ],
     "new_enums": 1,
@@ -672,10 +683,16 @@
       "stage": "Stage7C",
       "dataclass_upper_bound": 1,
       "responsibility": "Shared attachment currentness only; retain domain-specific historical payloads",
-      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
-      "actual_symbol": null,
+      "status": "Implemented and root accepted on2026-11-03 within tested CP311 MCA attachment/currentness business checkpoint; wholeStage7C/global gates remain open.",
+      "actual_symbol": "hotpot.cheminfo.structure._results._ResultAttachment",
       "commit": null,
-      "verification": null
+      "verification": "stages/stage07/selected-results/validation/checkpoint.json; stages/stage07/selected-results/validation/report.md",
+      "actual_fields": [
+        "payload",
+        "source",
+        "invalidated_by"
+      ],
+      "reuse_at_current_checkpoint": "One frozen generic attachment; existing MCA payload DTOs unchanged; same finite transaction mechanism reserved for selected partial charges."
     },
     {
       "id": "N16",
@@ -835,11 +852,11 @@
   ],
   "change_policy": "Update a reservation with concrete responsibility/consumer evidence before exceeding it; new public schemas retain their own review gate. Never offset extra records by deleting unrelated reserved types or replace records with untyped dicts solely to improve counts.",
   "measured_current_counts": {
-    "all_python_classes": 778,
-    "dataclasses": 355,
+    "all_python_classes": 779,
+    "dataclasses": 356,
     "protocols": 8,
     "typed_dicts": 2,
-    "method": "Same original ClassDef/leaf/CONTRACT_MARKERS static method; Stage7B adds exactly N04 to previous777/354/8/2, no retirement credit. Native counts remain prior scoped evidence.",
+    "method": "Same original ClassDef/leaf/CONTRACT_MARKERS method; Stage7C MCA adds exactly reserved N15 to prior778/355/8/2, no retirement credit. Native record/export inventory unchanged.",
     "native_struct_candidates": 171,
     "native_struct_candidate_method": {
       "baseline": 164,
@@ -851,7 +868,7 @@
     },
     "new_fact_native_actual_struct_definitions": 14,
     "new_fact_native_actual_enum_definitions": 1,
-    "verification": "stages/stage07/completion_20261103.json; stages/stage07/topology-selection/validation/checkpoint.json; /tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/class_census.json",
+    "verification": "stages/stage07/selected-results/validation/checkpoint.json; stages/stage07/selected-results/validation/evidence_index.json -> archived source-validation/class_census.json (779/356/8/2)",
     "stage5_native_scope": "Readonly carrier dispatch plus configured DERIVED_FIELDS rejection at native ingress/preparation; existing Field gains immutable configuration metadata, with no new class/struct/enum or exported ABI. Corrected source awaits five fresh ABI builds and runtime evidence.",
     "stage5_native_source": {
       "path": "hotpot/cheminfo/structure/_native/facts.cpp",

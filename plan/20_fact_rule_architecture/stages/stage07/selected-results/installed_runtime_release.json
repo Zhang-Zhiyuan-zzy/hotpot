@@ -1,0 +1,24 @@
+{
+  "status": "ROOT_RELEASED_FROZEN_CP311_INSTALLED_MCA_SELECTIONS",
+  "source_freeze_sha256": "1913599a5444ff254c7d0558f7152e53613efc664661502054ce43f40cb27a4f",
+  "affected_source": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/affected-attempt02",
+  "source_receipts": {
+    "affected-attempt02": {
+      "tests": 1721,
+      "sha256": "152fbfca6842dd61c317f7ed141a407452d15e5822b0b4b780ac7a994efb22a7"
+    },
+    "actual-mca-attempt01": {
+      "tests": 1,
+      "sha256": "2e459c138b5fe7907ca36c3eb832161d01b0ef70783645d9c704aa032e147900"
+    },
+    "actual-mca-attachment-attempt01": {
+      "tests": 3,
+      "sha256": "b6ef5da9fd7f2ffdbe84aa480a04722055f990e46a1295702c718747888dd83e"
+    }
+  },
+  "scope": "fresh installed wheel with457currentPythonfiles, fresh fact-native plus five bound reused natives; affected52files, actualCLI mixed3 and actualattachment",
+  "no_other_root_runtime_during_cost": true,
+  "wait_until": "bounded-cost attempt terminal before installed launch",
+  "stage_gate_closed": false,
+  "global_gate_closed": false
+}

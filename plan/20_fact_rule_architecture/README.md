@@ -1,6 +1,6 @@
 # Stage 20 — Fact-Carrier and Rule Architecture
 
-Status: implementation authorized on 2026-10-28; Stage0–6 owning-stage gates complete. Stage7A's external-object, adapter and Crystal extraction and applicable CP311 gates are now [complete](stages/stage07/external-adapters/completion_20261103.json), with bounded SDF resource/cost acceptance and explicit later obligations. Stage7B is [complete within its applicable CP311 owning scope](stages/stage07/completion_20261103.json): sole-owner constraints and complete Bond topology with operation-local selections have source/installed and actual-workflow evidence, with adverse usable costs retained and accepted. Stage7C is next. Known H/isotope/stereo work remains assigned to Stage7E; clean-native, version adaptation, scientific/global efficiency and full-plan acceptance remain open. The owner-approved [goal.md](goal.md) is effective; the previous version is retained as [goal_v1.md](goal_v1.md).
+Status: implementation authorized on 2026-10-28; Stage0–6 owning-stage gates complete. Stage7A's external-object, adapter and Crystal extraction and applicable CP311 gates are now [complete](stages/stage07/external-adapters/completion_20261103.json), with bounded SDF resource/cost acceptance and explicit later obligations. Stage7B is [complete within its applicable CP311 owning scope](stages/stage07/completion_20261103.json): sole-owner constraints and complete Bond topology with operation-local selections have source/installed and actual-workflow evidence, with adverse usable costs retained and accepted. Stage7C is in progress: its [CP311 MCA owner/currentness checkpoint](stages/stage07/selected-results/validation/report.md) is root accepted; the complete selected partial-charge cutover is next and whole-stage acceptance remains open. Known H/isotope/stereo work remains assigned to Stage7E; clean-native, version adaptation, scientific/global efficiency and full-plan acceptance remain open. The owner-approved [goal.md](goal.md) is effective; the previous version is retained as [goal_v1.md](goal_v1.md).
 
 All public chemical types follow a common protocol for fact ownership, interface mapping, permissions, dependencies, buffer ownership and lifecycle. Atom's unified fact table is one concrete implementation. MetalCluster runtime remains Plan21 scope. Existing historical checkpoints below retain their own source and evidence bounds.
 
@@ -140,6 +140,7 @@ accepted decisions/historical preparation/current evidence.
 - [Integrated Plan12 requirements and remaining evidence](integrated_requirements.json)
 - [Architecture audit and implementation plan](fact_rule_architecture_implementation_plan.md)
 - [Implementation log and stage-entry assessments](implementation_log.md)
+- [Unified deferred issues: severity, responsible stages and closure evidence](deferred_issues.md)
 - [Stage2 execution evidence](stages/stage02/evidence.json)
 - [Stage3 entry assessment](stages/stage03/foundation/entry_review.json)
 - [Stage1 API and consumer review](stages/stage01/api/review.md)

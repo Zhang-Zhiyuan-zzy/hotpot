@@ -2,6 +2,11 @@
 
 import pytest
 
+from hotpot.cheminfo.AImodels.mca.result_types import AtomPrediction, MoleculePrediction
+from hotpot.cheminfo.AImodels.mca.serialization import normalize_molecule
+from hotpot.cheminfo.structure._identity import _check_source
+from hotpot.cheminfo.structure._results import _capture_mca_source, _select_mca_result
+
 from mca.site_detection import find_nucleophilic_sites
 from tests.smarts_conformance.coordination_cases import (
     build_graph,
@@ -80,11 +85,28 @@ def test_remote_site_indices_refer_to_the_original_hotpot_atoms():
 def test_site_detection_preserves_existing_atom_mca_values():
     molecule = ethylenediamine_chelate()
     expected = tuple(410.0 + atom.idx for atom in molecule.atoms)
-    # Atom.mca is read-only; this is the same internal state populated by the
-    # public calculator after inference, without loading a model in this test.
-    for atom, value in zip(molecule.atoms, expected):
-        object.__setattr__(atom, "_mca", value)
+    with molecule._mutation_lock:
+        # Normalization prepares the H/aromatic inputs before source capture.
+        normalized = normalize_molecule(molecule)
+        source = _capture_mca_source(molecule)
+        atom_uids = tuple(atom._uid for atom in molecule.atoms)
+    prediction = MoleculePrediction(
+        normalized.smiles, normalized.formal_charge, (), "fixture",
+        tuple(AtomPrediction(index, element, value)
+              for index, (element, value) in enumerate(zip(normalized.atom_symbols, expected))),
+    )
+    _select_mca_result(molecule, prediction, source, atom_uids)
+    selected = molecule._mca_result
 
     find_nucleophilic_sites(molecule)
 
+    assert molecule._mca_result is selected
+    assert selected.payload is prediction
+    assert selected.source is source
+    assert selected.invalidated_by == ()
+    _check_source(molecule, source)
+    assert tuple(atom.mca_kj_mol for atom in prediction.atom_predictions) == expected
     assert tuple(atom.mca for atom in molecule.atoms) == expected
+    assert "_mca_sites" not in molecule.__dict__
+    assert "mca" not in molecule.properties
+    assert all("_mca" not in atom.__dict__ for atom in molecule.atoms)

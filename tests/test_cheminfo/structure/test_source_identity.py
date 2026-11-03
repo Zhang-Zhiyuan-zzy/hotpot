@@ -385,3 +385,74 @@ def test_bool_constraint_domain_and_raw_forcefield_domain_keep_distinct_dependen
     actual_statuses, actual_seeds = _dependency_state(mol._atom_table)
     np.testing.assert_array_equal(actual_statuses, statuses)
     assert actual_seeds == seeds
+
+
+def test_mca_representation_uses_existing_encoding_except_the_final_spin_entry(monkeypatch):
+    mol = _molecule()
+    mol.spin_mult = 3
+    mol.bonds[0]._bond_source_metadata = {"source": {"raw": [b"C0", 2]}}
+    captured = {}
+    digest = _identity._digest
+
+    def capture(domain, content):
+        captured[domain] = _identity._canonical(content)
+        return digest(domain, content)
+
+    monkeypatch.setattr(_identity, "_digest", capture)
+    _capture_source(mol, ("representation", "mca_representation"))
+    assert captured["representation"][0] == captured["mca_representation"][0] == "sequence"
+    assert captured["representation"][1][:-1] == captured["mca_representation"][1]
+
+
+@pytest.mark.parametrize("change", ["declaration", "selected_legacy_frame", "direct_clear"])
+def test_spin_changes_still_change_representation_but_preserve_mca_representation(change):
+    mol = _molecule()
+    mol.conformer_add(np.stack((mol.coordinates, mol.coordinates)))
+    mol._conformers._spin_mult = np.asarray([1, 3])
+    representation = _capture_source(mol, ("representation",))
+    mca_representation = _capture_source(mol, ("mca_representation",))
+    if change == "declaration":
+        mol.spin_mult = 3
+    elif change == "selected_legacy_frame":
+        mol.conformer_load(1)
+    else:
+        mol.conformers.clear()
+    with pytest.raises(RuntimeError, match="'representation'"):
+        _check_source(mol, representation)
+    _check_source(mol, mca_representation)
+
+
+def test_mca_representation_does_not_read_unused_legacy_spin_selection():
+    mol = _molecule()
+    mol.conformer_add(mol.coordinates)
+    mol._conformers._spin_mult = np.asarray([3])
+    mol._conformers_index = 1
+    with pytest.raises(IndexError, match="number of conformers"):
+        _capture_source(mol, ("representation",))
+    _check_source(mol, _capture_source(mol, ("mca_representation",)))
+
+
+@pytest.mark.parametrize("change", [
+    lambda mol: setattr(mol, "charge", 1),
+    lambda mol: setattr(mol.atoms[0], "isotope", 13),
+    lambda mol: setattr(mol.atoms[0], "formal_charge", 1),
+    lambda mol: mol.bonds[0]._set_bond_metadata(
+        bond_kind=mol.bonds[0].bond_kind, bond_source_metadata={"producer": "user"}),
+])
+def test_mca_representation_still_checks_other_representation_inputs(change):
+    mol = _molecule()
+    source = _capture_source(mol, ("mca_representation",))
+    change(mol)
+    with pytest.raises(RuntimeError, match="'mca_representation'"):
+        _check_source(mol, source)
+
+
+def test_mca_representation_keeps_existing_exclusions_from_ordinary_representation():
+    mol = _molecule()
+    source = _capture_source(mol, ("mca_representation",))
+    mol.atoms[0].partial_charge = 0.125
+    mol.atoms[0].frac_valence = 2.5
+    mol.atoms[0].x_constraint = True
+    mol.properties["mca"] = "caller annotation"
+    mol.coordinates = mol.coordinates + (1.0, 0.0, 0.0)
+    _check_source(mol, source)

@@ -4112,3 +4112,135 @@ Durable ignored local archive `.plan20-artifacts/20261103/stage7b/topology-selec
 The approved goal activation, goal_v1 preservation, requested removal of revision auxiliaries, read-only defensive audit, connected business/test migration and validation records travel in the same business commit. User-owned untracked helper_stage_0_12_quantitative_rescore.md is excluded. Git history/remote verification own the resulting delivery identity; no separate documentation/hash-only commit is created. Other versions, clean native/ABI/SDK/sdist/package omissions, broader science/GPU/external/performance and all later/global Plan20/Plan12 gates remain open.
 
 Final root `python -B -` stdlib record audit parsed15 changed/new JSON records and resolved220 local Markdown targets, zero missing; `git diff --check` passes. The previous goal is byte-exact in goal_v1.md, goal_v2/review/HTML/diff auxiliaries are absent, and the unrelated untracked helper rescore remains excluded. Stage-entry mapping now explicitly allows targeted current alignment/evidence reuse under the approved goal. The record-preparation script was moved under `/tmp/hotpot_plan20/short/stage7b-final-delivery/`; its original command remains historical in record_checks.json. No business suite was rerun for these record edits.
+
+
+### 2026-11-03 — Stage7B delivered; Stage7C entry and selected MCA route
+
+Business commit eef87d1a24aca88d36c8d6ff1e492387f84e9861 was pushed to origin/implement/plan20-fact-rule-architecture; `git ls-remote --heads origin implement/plan20-fact-rule-architecture` matched the local full SHA. Only the unrelated user rescore remained untracked. No hash-only follow-up commit is made. Goal remains active through all remaining Plan20/Plan12 and final gates.
+
+Root aligned effective goal, targeted main-plan5.3/5.4/5.5/Stage7C, normative companion result/API/budget/alignment sections, Stage1 accepted A2/A6/A8 and current owners. Two local Sol/medium read-only scouts rebound lifecycle/transaction/native/mapping consumers and actual MCA feature dependencies; historical external-helper Task93 remains discovery only. No imports/tests or source edits ran in scouting. Actual MCA may retain an input3D conformer, so geometry is a genuine input; partial charges are transported but not read by its site/features. Current native scalar/fields/columns writes bypass Python wrappers. Raw pickle restore shares the serialized owner token; no speculative blanket owner rebind is needed.
+
+Root Sol/max accepts the bounded Stage7C selected-results design/entry record. First implement one reservedN15 attachment over existing immutable MCA DTOs, remove three duplicate stores, add native/Python finite transactional invalidation and exact lifecycle/mapping behavior; then implement reservedN14 selected partial charges with all import/native/model/projection consumers. MCA alone cannot completeStage7C. No new publicAPI/result envelope/confidence, MCA finite scan, general cache/revision counter or scientific/model change is authorized. Native result invalidation requires a freshCP311_fact_native build and source/installed evidence before runtime acceptance. Exact mutation/copy/component/pickle/rollback/zero-per-Atom-hash expectations and disjoint implementation ownership follow the maintained selected-results design. Other versions, remaining stages and global gates stay open.
+
+
+### 2026-11-03 — Stage7C connected-source amendment before runtime
+
+Root rechecked eef87d1 plus the three completed local source partitions, the effective goal, skills, targeted Stage7C contract and current mutation owners. The preceding table-only response made no business progress; no review/build/runtime was repeated or relabeled. Current source-only native publication/Undo and selected-result tests are implemented but unexecuted.
+
+Actual source evidence shows direct Conformers.clear can erase legacy frame spin without a molecular callback; exact whole-copy omits those frames. MCA does not consume spin. Root Sol/max accepts R1: one private mca_representation dependency shares existing representation encoding except the final spin entry, with existing representation consumers/encoding unchanged. Ordinary representation and charge events invalidate MCA; spin-only declarations/frame changes retain it when current coordinates stay fixed. Remove unnecessary spin-specific wrappers instead of adding frame backreferences, a generic registry, speculative guards or premature Stage7D work. Initial assignment/design identities remain historical; amended release precedes all candidate runtime.
+
+One local Sol/high writer owns the bounded identity/currentness/test amendment; an independent local Sol/high read-only reviewer inspects connected native/Python rollback and lifecycle. No external helper is active. Fresh CP311 native build, focused then affected/source-installed/actual MCA evidence remain required; full partial-charge ownership is still the next Stage7C slice and no stage/global gate is closed.
+
+
+### 2026-11-03 — Stage7C native build release and concrete Bond-currentness repair
+
+Independent local read-only Sol/high review confirmed coherent native result prepare/publication/Undo and Python outer-journal ordering under inspected paths, with no runtime claim. It found one concrete Python Bond mismatch: numerical/tree equality treats signed zero as equal while source canonical JSON distinguishes it. Root assigns exact scalar-order/local-metadata comparison and concrete stale-read/rollback regressions to the existing exclusive writer; no global identity encoding, scientific algorithm or new guard changes.
+
+Root releases only fresh CP311 compilation of facts.cpp SHA91de69b6675987e9661b45ad1b12165d1f92f641d754ba74fe501636e93172d4 through the prepared actual setup.py single-extension recipe. Exact build release, argv, compiler stdout/stderr and outcome are retained under /tmp/hotpot_plan20/long/stage7c-selected-results-20261103/native-build/attempt01. Python source amendment is still in progress; candidate product imports/tests/models remain held pending connected source-ready review/freeze. Historical native baseline400648B/cea3ed1ab971ad7c108fa6b44db56a85df5f6e61eccd9caed51c44041cab4bad remains preserved.
+
+
+### 2026-11-03 — Stage7C MCA candidate CP311 runtime release
+
+Fresh actual setup.py single-extension build passed RC0/8.714940s with unchanged native/setup/recipe inputs, producing fact-native413712B/fcce69eaafc4c26bb09f912179bd8671134c45147962fb4875894264eda9e993. The preserved historical fact-native remains separate. Root staged the new ignored binary and reviewed the completed R1/Bond correction; static AST/compile covered11 changed/newPythonfiles and git diff --check passed. Current MCA payload DTOs and ordinary public signatures are unchanged; only reservedN15 is implemented as a source candidate.
+
+Root source freeze8b291bb718ebdfa7e6bf307e67482c2e514c6bc30162210c4d531f10ebdfc5dc binds1403source/test and6nativefiles against eef87d1 plus exact dirty source overlays. runtime_release.json releases focused then affected CP311 source and actual MCA, followed by source-bound installed-wheel evidence. Source driver records exact argv/env/JUnit/origins/pre-post bindings; actual attachment tests now preserve all five existing returned payloads without extra predictions or changed assertions. No executed result is inferred from this release. Partial-charge ownership, wholeStage7C and all later/global gates remain open.
+
+
+### 2026-11-03 — Stage7C actual focused/affected failures and test-only successors
+
+FocusedC1 completed271passed/2failed/0skipped in10.258s, unchanged1403source/test and6native bindings. The spin-only rollback fixture's outer explicit producer changed coordinate provenance, so geometry invalidation was valid; the corrected fixture keeps conformer_load provenance. Disconnected SMILES now declares fmt=smi rather than being inferred as a file suffix. TargetedC2 repairs2passed/0failed/0skipped in1.351s.
+
+AffectedC2 completed1720passed/1failed/0skipped in32.371s with unchanged product/native. Its remaining test populated the retired Atom._mca slot. Connected scan found one more optimizer test asserting obsolete scalar/site stores while unrelated arbitrary attrs made it pass. Both fixtures now select the complete immutable DTO: read-only site detection retains current source, whereas optimization retains historical observations and marks the selected result stale with original object/mapping assertions intact. No product/test assertion was weakened to force old storage behavior. C1/C2 freezes and original failures remain; C3 changes only these two test files, with no native rebuild or product edits. Root releases targeted repair then complete affected source, actual MCA and installed evidence against the exact successor freeze.
+
+
+### 2026-11-03 — Owner-directed unified deferred-issue index alignment
+
+The owner requests one maintained index for deliberately deferred performance,
+edge/integration and verification-tool work, with stable IDs, severity, state,
+responsible stages and closure evidence. Root aligned the effective goal,
+main-plan Stage7/Stage10–13 and Sections12–14, current Stage7B completion and
+Stage7C MCA delivery records. A local Sol/low read-only lookup supplied existing
+issue/evidence pointers; the external helper remains terminated. Root retains
+design and acceptance authority. This is a targeted record/route amendment, not
+new stage entry or a change to the Plan20/Plan12 objective.
+
+Create `deferred_issues.md` as the sole current cross-stage disposition index;
+existing stage reports and the architecture allowlist retain their evidence and
+specialized purposes. Schedule consolidated treatment after the Stage0–12 main
+implementation passes, within Stage12 final hardening before main acceptance
+and B_exp; earlier mandatory dependency/delivery gates still apply. Routine
+unfinished core work (selected charges, frames and Stage7E canonical/H/isotope/
+stereo migration) is not reclassified as optional debt. No new runtime guards,
+scientific thresholds, per-stage parity requirement or permission gate is added.
+The index and its links will accompany coherent business delivery, without a
+separate documentation-only commit or repeated unchanged business executions.
+
+
+### 2026-11-03 — Root MCA checkpoint acceptance and deferred-index verification
+
+Root inspected the final41-entry receipt index, actual installed resume and the
+unchanged1403source/test plus6native bindings against C3 freeze1913599a5444ff254c7d0558f7152e53613efc664661502054ce43f40cb27a4f.
+Source affected1721/0/0 (32.208s), actual MCA1/0/0 (3.890s) and attachment3/0/0
+(8.745s) passed; installed affected1721/0/0 (37.059s), MCA1/0/0 (4.094s) and
+attachment3/0/0 (8.947s) passed with34/34,3/3,1/1 origin receipts, no leaks and
+identical ordered affected nodes. Original focused271/2, affected1720/1 and the
+installed postcheck timing failure remain attributable to their original
+attempts; test-only successors and same-attempt installed reconciliation do not
+rewrite them. No successful business execution was repeated for record edits.
+
+Fresh actual fact-native buildRC0/8.714940s produced413712B/fcce69eaafc4c26bb09f912179bd8671134c45147962fb4875894264eda9e993;
+five other binaries were reused. Root accepts the measured usable primitive
+cost: full-Atom getters about0.74microseconds/Atom at64/256/1024, zero capture/
+check/digest calls on reads, and measured selected scalar writes about9microseconds.
+This supplies no universal parity, integrated speedup, clean-native/ABI/SDK/sdist,
+other-version, general model-accuracy or wholeStage7C/global acceptance.
+
+Root accepts this coherent CP311 MCA business checkpoint only. Single reserved
+N15 replaces three retained-value stores without new public DTO/API/model or
+scientific behavior; owner/source/mapping, mutation/currentness, lifecycle and
+native/Python rollback are covered by the scoped evidence. N14 selected charges
+and connected import/native/model/projection migration remain next. The local
+Sol/medium record writer reconciles checkpoint/report, budget and verification
+map under that decision; root maintains main-plan/navigation/log integration.
+
+The unified index initially records14 stableP20-D001–P20-D014 entries. An
+independent local Sol/medium read-only review found no material issue and checked
+27local references including the performance-policy anchor. Root's stdlib check
+confirmed14unique sequential IDs, seven table columns, local file existence and
+verification-map JSON parsing; git diff --check passed. No runtime tests/builds/
+models were rerun for this index. All entries retain empty closure evidence;
+locally usable performance is not silently final closure. Consolidated review
+remains withinStage12 beforeB_exp, with earlier core/dependency gates intact.
+
+These code/tests and related records will be delivered together as one coherent
+business checkpoint. The unrelated user-owned helper rescore stays excluded;
+ignored evidence/model/native artifacts are not Git source. The next normal
+log entry will name the resulting delivered commit; no hash-only follow-up is
+created. Full Plan20/Plan12 remains active beyond this bounded MCA slice.
+
+
+### 2026-11-03 — Layout-checker failure retained as peripheral debt
+
+`python -B plan/20_fact_rule_architecture/audit_stage_records.py` actually
+returned1 after checking86stage Markdown/113JSON/200indexed files. Its21findings
+involve16already committed files: four historic filename/catalog conflicts,
+fifteen historical navigation omissions, and two false local-target parses
+(inline `F[C@](Cl)(Br)I` interpreted as a `Cl` link and a valid `:212` file-line
+reference interpreted as part of a filename). Read-only `git cat-file -e HEAD:path`
+confirmed all implicated files predate this change. New index links/JSON passed
+separate scoped checks; no full-layout pass is claimed. Original stdout/stderr
+are retained under `/tmp/hotpot_plan20/short/deferred-index-20261103/`.
+
+Root registersP20-D015 for this bounded tool/record cleanup rather than rewriting
+the validator or repeating chemical suites now. The first14entry index review
+still retains its actual scope; the current index has15stable IDs. This records
+an actual tool outcome and no new chemical failure. Existing MCA product/runtime
+acceptance and all remaining mandatory/global gates retain their own evidence.
+
+
+Final pre-delivery `python -` stdlib record check passed:15unique contiguous
+P20-D rows/seven fields,10changed/new JSON records parsed,233local Markdown
+references resolved with ordinary file-line references handled as such. Root
+MCA acceptance status and both false stage/global flags agree with the map.
+`git diff --check` passes. These scoped checks do not relabel the retained
+RC1 full-layout audit or rerun any successful business calculation.

@@ -1,0 +1,352 @@
+{
+  "schema_version": 1,
+  "status": "OBSERVED_CP311_CPU_FP16_MODEL_VALUES",
+  "interpretation": "Attributable model observations and deterministic mapping/currentness contracts, not experimental truth, broad accuracy, calibration, or general chemical-validity evidence. No extra predictions were run for these records.",
+  "conditions": {
+    "backend": "cpu",
+    "variant": "fp16",
+    "model_source": "local",
+    "numerical_threads": 1,
+    "hotpot_version": "0.5.4.5",
+    "source_freeze_sha256": "1913599a5444ff254c7d0558f7152e53613efc664661502054ce43f40cb27a4f",
+    "model_and_external_data_binding": {
+      "path": ".plan20-artifacts/20261103/stage7c/mca-selected/source-validation/actual-mca-attempt01/dependency-assets-before.json",
+      "bytes": 22541,
+      "sha256": "181165e100f64ff995e6b43e9ae5498387baaec4d8186edfd850cf5b7d4e6775",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/actual-mca-attempt01/dependency-assets-before.json"
+    },
+    "interpreter_binding": {
+      "path": ".plan20-artifacts/20261103/stage7c/mca-selected/installed-validation/attempt01/assembly-inputs.json",
+      "bytes": 100730,
+      "sha256": "4f14caadf1aa6522f4bf63830efe2eb3bcfb383d3fc89cc80d27e56cb499b213",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/installed-validation/attempt01/assembly-inputs.json"
+    },
+    "seeds": "No explicit seed supplied by these test calls; effective existing defaults are source/model bound.",
+    "units": "kJ/mol"
+  },
+  "mixed_input_cli": {
+    "original_denominator": 3,
+    "cli_returncode": 1,
+    "pytest_source_passed": 1,
+    "pytest_installed_passed": 1,
+    "cases": [
+      {
+        "input_ordinal": 1,
+        "input_smiles": "CN",
+        "outcome": "returned",
+        "ordered_rows": [
+          {
+            "row": 1,
+            "element": "C",
+            "mca_kj_mol": 308.75,
+            "is_Nuc_site": false
+          },
+          {
+            "row": 2,
+            "element": "N",
+            "mca_kj_mol": 489.5,
+            "is_Nuc_site": true
+          }
+        ]
+      },
+      {
+        "input_ordinal": 2,
+        "input_smiles": "C[NH3+]",
+        "outcome": "local_input_rejection",
+        "value": null,
+        "reason": "Existing charged-input validation; passing test checks stderr charge text and original ordinal2.",
+        "diagnostic_limit": "Exact captured stderr is not separately serialized; do not reconstruct an exact diagnostic string or code from the passing assertion.",
+        "control": "Skip this input, keep ordinals1/3 and aggregate exit1; no fallback or retry."
+      },
+      {
+        "input_ordinal": 3,
+        "input_smiles": "CO",
+        "outcome": "returned",
+        "ordered_rows": [
+          {
+            "row": 1,
+            "element": "C",
+            "mca_kj_mol": 283.5,
+            "is_Nuc_site": false
+          },
+          {
+            "row": 2,
+            "element": "O",
+            "mca_kj_mol": 318.25,
+            "is_Nuc_site": true
+          }
+        ]
+      }
+    ],
+    "input_and_output_receipts": [
+      {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/installed-validation/attempt01/resume01/actual_MCA/pytest-tmp/test_actual_model_cli_keeps_ch0/molecules.smi",
+        "bytes": 34,
+        "sha256": "48907c640629923b1e257de45c66256c66b887ccff6dad220a8a9a81e1c5d85c",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/installed-validation/attempt01/resume01/actual_MCA/pytest-tmp/test_actual_model_cli_keeps_ch0/molecules.smi"
+      },
+      {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/installed-validation/attempt01/resume01/actual_MCA/pytest-tmp/test_actual_model_cli_keeps_ch0/results.txt",
+        "bytes": 221,
+        "sha256": "963bf4fa2167ae26ca866960b13cc99a195c592d1f5644deccabb6b3eb120f8c",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/installed-validation/attempt01/resume01/actual_MCA/pytest-tmp/test_actual_model_cli_keeps_ch0/results.txt"
+      },
+      {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/source-validation/actual-mca-attempt01/pytest-tmp/test_actual_model_cli_keeps_ch0/molecules.smi",
+        "bytes": 34,
+        "sha256": "48907c640629923b1e257de45c66256c66b887ccff6dad220a8a9a81e1c5d85c",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/actual-mca-attempt01/pytest-tmp/test_actual_model_cli_keeps_ch0/molecules.smi"
+      },
+      {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/source-validation/actual-mca-attempt01/pytest-tmp/test_actual_model_cli_keeps_ch0/results.txt",
+        "bytes": 221,
+        "sha256": "963bf4fa2167ae26ca866960b13cc99a195c592d1f5644deccabb6b3eb120f8c",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/actual-mca-attempt01/pytest-tmp/test_actual_model_cli_keeps_ch0/results.txt"
+      }
+    ]
+  },
+  "attachment_predictions": {
+    "payload_count_per_execution": 5,
+    "source_test_count": 3,
+    "installed_test_count": 3,
+    "attached": {
+      "smiles": "C1CCCNC1",
+      "formal_charge": 0,
+      "sites": [
+        {
+          "atom_index": 5,
+          "element": "N",
+          "site_type": "Amine",
+          "mca_kj_mol": 503.25
+        }
+      ],
+      "model_variant": "fp16",
+      "atom_predictions": [
+        {
+          "atom_index": 0,
+          "element": "C",
+          "mca_kj_mol": 314.0
+        },
+        {
+          "atom_index": 1,
+          "element": "C",
+          "mca_kj_mol": 373.0
+        },
+        {
+          "atom_index": 2,
+          "element": "C",
+          "mca_kj_mol": 318.0
+        },
+        {
+          "atom_index": 3,
+          "element": "C",
+          "mca_kj_mol": 370.0
+        },
+        {
+          "atom_index": 4,
+          "element": "C",
+          "mca_kj_mol": 318.0
+        },
+        {
+          "atom_index": 5,
+          "element": "N",
+          "mca_kj_mol": 503.25
+        }
+      ]
+    },
+    "equivalent_input_routes": {
+      "hotpot": {
+        "smiles": "C1CCCNC1",
+        "formal_charge": 0,
+        "sites": [
+          {
+            "atom_index": 5,
+            "element": "N",
+            "site_type": "Amine",
+            "mca_kj_mol": 503.25
+          }
+        ],
+        "model_variant": "fp16",
+        "atom_predictions": [
+          {
+            "atom_index": 0,
+            "element": "C",
+            "mca_kj_mol": 314.0
+          },
+          {
+            "atom_index": 1,
+            "element": "C",
+            "mca_kj_mol": 373.0
+          },
+          {
+            "atom_index": 2,
+            "element": "C",
+            "mca_kj_mol": 318.0
+          },
+          {
+            "atom_index": 3,
+            "element": "C",
+            "mca_kj_mol": 370.0
+          },
+          {
+            "atom_index": 4,
+            "element": "C",
+            "mca_kj_mol": 318.0
+          },
+          {
+            "atom_index": 5,
+            "element": "N",
+            "mca_kj_mol": 503.25
+          }
+        ]
+      },
+      "smiles": {
+        "smiles": "C1CCCNC1",
+        "formal_charge": 0,
+        "sites": [
+          {
+            "atom_index": 5,
+            "element": "N",
+            "site_type": "Amine",
+            "mca_kj_mol": 503.25
+          }
+        ],
+        "model_variant": "fp16",
+        "atom_predictions": [
+          {
+            "atom_index": 0,
+            "element": "C",
+            "mca_kj_mol": 314.0
+          },
+          {
+            "atom_index": 1,
+            "element": "C",
+            "mca_kj_mol": 373.0
+          },
+          {
+            "atom_index": 2,
+            "element": "C",
+            "mca_kj_mol": 318.0
+          },
+          {
+            "atom_index": 3,
+            "element": "C",
+            "mca_kj_mol": 370.0
+          },
+          {
+            "atom_index": 4,
+            "element": "C",
+            "mca_kj_mol": 318.0
+          },
+          {
+            "atom_index": 5,
+            "element": "N",
+            "mca_kj_mol": 503.25
+          }
+        ]
+      }
+    },
+    "site_cardinality_cases": {
+      "empty_sites": {
+        "smiles": "C",
+        "formal_charge": 0,
+        "sites": [],
+        "model_variant": "fp16",
+        "atom_predictions": [
+          {
+            "atom_index": 0,
+            "element": "C",
+            "mca_kj_mol": 265.5
+          }
+        ]
+      },
+      "multiple_sites": {
+        "smiles": "CC(=O)C",
+        "formal_charge": 0,
+        "sites": [
+          {
+            "atom_index": 2,
+            "element": "O",
+            "site_type": "Ketone",
+            "mca_kj_mol": 344.5
+          },
+          {
+            "atom_index": 1,
+            "element": "C",
+            "site_type": "double_bond",
+            "mca_kj_mol": 65.8125
+          }
+        ],
+        "model_variant": "fp16",
+        "atom_predictions": [
+          {
+            "atom_index": 0,
+            "element": "C",
+            "mca_kj_mol": 309.25
+          },
+          {
+            "atom_index": 1,
+            "element": "C",
+            "mca_kj_mol": 65.8125
+          },
+          {
+            "atom_index": 2,
+            "element": "O",
+            "mca_kj_mol": 344.5
+          },
+          {
+            "atom_index": 3,
+            "element": "C",
+            "mca_kj_mol": 309.25
+          }
+        ]
+      }
+    },
+    "raw_receipts": [
+      {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/source-validation/actual-mca-attachment-attempt01/pytest-tmp/test_mca_is_attached_to_atoms_0/attached_prediction.json",
+        "bytes": 869,
+        "sha256": "6c743846130195c63d21eade4ac8d12f0356679ba372b4bdffc9f41862d7d342",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/actual-mca-attachment-attempt01/pytest-tmp/test_mca_is_attached_to_atoms_0/attached_prediction.json"
+      },
+      {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/source-validation/actual-mca-attachment-attempt01/pytest-tmp/test_hotpot_and_smiles_inputs_0/equivalence_predictions.json",
+        "bytes": 1683,
+        "sha256": "44e4ea60cffcf00405e71d1b0a9bc7d517884d3d1c27b607ef59a9dc0425ad73",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/actual-mca-attachment-attempt01/pytest-tmp/test_hotpot_and_smiles_inputs_0/equivalence_predictions.json"
+      },
+      {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/source-validation/actual-mca-attachment-attempt01/pytest-tmp/test_molecule_mca_sites_suppor0/site_count_predictions.json",
+        "bytes": 1035,
+        "sha256": "4dbe74e20e7aeb0e4af637dbe19787bee7855164930005637e821fee8aa54631",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/actual-mca-attachment-attempt01/pytest-tmp/test_molecule_mca_sites_suppor0/site_count_predictions.json"
+      },
+      {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/installed-validation/attempt01/resume01/actual_MCA_attachment/pytest-tmp/test_mca_is_attached_to_atoms_0/attached_prediction.json",
+        "bytes": 869,
+        "sha256": "6c743846130195c63d21eade4ac8d12f0356679ba372b4bdffc9f41862d7d342",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/installed-validation/attempt01/resume01/actual_MCA_attachment/pytest-tmp/test_mca_is_attached_to_atoms_0/attached_prediction.json"
+      },
+      {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/installed-validation/attempt01/resume01/actual_MCA_attachment/pytest-tmp/test_hotpot_and_smiles_inputs_0/equivalence_predictions.json",
+        "bytes": 1683,
+        "sha256": "44e4ea60cffcf00405e71d1b0a9bc7d517884d3d1c27b607ef59a9dc0425ad73",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/installed-validation/attempt01/resume01/actual_MCA_attachment/pytest-tmp/test_hotpot_and_smiles_inputs_0/equivalence_predictions.json"
+      },
+      {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/installed-validation/attempt01/resume01/actual_MCA_attachment/pytest-tmp/test_molecule_mca_sites_suppor0/site_count_predictions.json",
+        "bytes": 1035,
+        "sha256": "4dbe74e20e7aeb0e4af637dbe19787bee7855164930005637e821fee8aa54631",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/installed-validation/attempt01/resume01/actual_MCA_attachment/pytest-tmp/test_molecule_mca_sites_suppor0/site_count_predictions.json"
+      }
+    ],
+    "source_and_installed_raw_bytes_identical": true,
+    "scope": "Existing assertions cover exact payload selection, ordered row projection, read-only getters, no legacy value stores, independent returned site dictionaries, equivalent input routes, and empty/multiple-site projection. Historical numerical comparisons remain model/version scoped."
+  },
+  "unmeasured": [
+    "Scientific corpus accuracy or calibration",
+    "GPU, multi-device and resource-threshold routing",
+    "Broader chemistry applicability or experimental truth",
+    "Partial-charge selected ownership and all-stage acceptance"
+  ]
+}

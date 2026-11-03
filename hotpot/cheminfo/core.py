@@ -43,6 +43,7 @@ from .structure.constraints import (
     _select_atom_values,
 )
 from .structure._identity import _capture_source, _hydrogen_install_inputs
+from .structure._results import _current_mca_result, _copy_mca_result, _invalidate_results
 from .structure._mutation import _AtomFactUpdate, _normalize_atom_facts
 from .structure._commit import (
     _FactTransaction, _commit_atom_facts, _commit_coordinates, _commit_bond_facts,
@@ -152,6 +153,7 @@ class Molecule:
         self._conformers = Conformers()
         self._conformers_index = 0
 
+        self._mca_result = None
         self._pair_wiberg_bond_orders = {}
         self._constraints = _ConstraintSet()
         self._crystal = None
@@ -359,14 +361,14 @@ class Molecule:
             record, metadata = self._capture_factual_record(include_frames=False)
             dependencies = _remap_dependency_state(self._atom_table,
                 tuple(atom._uid for atom in self._atoms), tuple(range(len(self._atoms))))
-            annotations = dict(self.properties)
-        clone = Molecule()
-        _commit_topology(clone, _capture_source(clone), record,
-                         atom_bindings=(None,) * record.atom_count,
-                         bond_bindings=(None,) * len(record.bond_endpoints),
-                         dependency_state=dependencies, bond_metadata=metadata)
-        clone.properties = annotations
-        return clone
+            clone = Molecule()
+            _commit_topology(clone, _capture_source(clone), record,
+                             atom_bindings=(None,) * record.atom_count,
+                             bond_bindings=(None,) * len(record.bond_endpoints),
+                             dependency_state=dependencies, bond_metadata=metadata)
+            clone.properties = dict(self.properties)
+            _copy_mca_result(self, clone)
+            return clone
 
     @property
     def crystal(self):
@@ -1425,12 +1427,9 @@ class Molecule:
     @property
     def mca_sites(self) -> dict["Atom", float]:
         """Important nucleophilic sites and their MCA values in kJ/mol."""
-        if "_mca_sites" not in self.__dict__:
-            raise AttributeError(
-                "MCA sites have not been calculated for this molecule; "
-                "call hotpot.cheminfo.calculator.mca(mol) first"
-            )
-        return dict(self._mca_sites)
+        with self._mutation_lock:
+            prediction = _current_mca_result(self)
+            return {self._atoms[site.atom_index]: site.mca_kj_mol for site in prediction.sites}
 
     @property
     def is_organic(self) -> bool:
@@ -2097,6 +2096,7 @@ class Molecule:
         bond_bindings = (None,) * len(record.bond_endpoints) if bond_bindings is None else tuple(bond_bindings)
         if len(atom_bindings) != record.atom_count or len(bond_bindings) != len(record.bond_endpoints):
             raise ValueError('Factual bindings must align with the import record')
+        _invalidate_results(self, ('representation', 'geometry'))
         old_atoms = tuple(self._atoms)
         old_bonds = tuple(self._bonds)
         old_hydrogen_inputs = _hydrogen_install_inputs(self) if dependency_state is not None else {}
@@ -2462,6 +2462,7 @@ class Atom(MolBlock):
             transaction.touch_constraint_value(owner._constraints.atom_axes, uid)
             owner._constraints.atom_axes[uid] = cells[0]
             object.__setattr__(self, '_constraint_values', owner._constraints.atom_axes)
+            _invalidate_results(owner, ('representation', 'geometry'), transaction)
             _seed(owner, GROUP_INDEX['FORMAL_CHARGE_COVERAGE'], (uid,))
 
     @property
@@ -2722,12 +2723,14 @@ class Atom(MolBlock):
     @property
     def mca(self) -> float:
         """Predicted methyl cation affinity of this atom in kJ/mol."""
-        if "_mca" not in self.__dict__:
-            raise AttributeError(
-                "MCA has not been calculated for this atom; "
-                "call hotpot.cheminfo.calculator.mca(atom.mol) first"
-            )
-        return self._mca
+        mol = self.mol
+        with mol._mutation_lock:
+            entry = mol._topology_index.get(id(self))
+            if self._uid_owner is not mol._owner_token or entry is None:
+                raise RuntimeError(
+                    "MCA Atom membership changed; call hotpot.cheminfo.calculator.mca(mol, backend=...) again"
+                )
+            return _current_mca_result(mol).atom_predictions[entry[0]].mca_kj_mol
 
     @property
     def is_error_electron_configure(self) -> bool:

@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7C",
+  "slice": "MCA/currentness; partial-charge gate still open",
+  "source_command": {
+    "argv": [
+      "/tmp/hotpot-plan20-env/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "--import-mode=importlib",
+      "tests/test_cheminfo/structure/test_topology_selection.py",
+      "tests/test_cheminfo/structure/test_builder.py",
+      "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+      "tests/test_cheminfo/structure/test_source_identity.py",
+      "tests/test_cheminfo/structure/test_view_identity.py",
+      "tests/test_cheminfo/structure/test_commit_atomicity.py",
+      "tests/test_cheminfo/structure/test_constraint_storage_lifecycle.py",
+      "tests/test_cheminfo/structure/test_conversion_freshness.py",
+      "tests/test_cheminfo/structure/test_factual_imports.py",
+      "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+      "tests/test_cheminfo/test_topology_index.py",
+      "tests/test_cheminfo/test_topology_determinism.py",
+      "tests/test_cheminfo/test_ligand_rings.py",
+      "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+      "tests/test_cheminfo/test_plan20_outer_cutover.py",
+      "tests/test_cheminfo/test_stereo_extraction.py",
+      "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
+      "tests/test_cheminfo/test_rdconvert_stereo_level1.py",
+      "tests/test_cheminfo/test_stereo_level2_gate6_projection.py",
+      "tests/test_cheminfo/test_stereo_level2_gate6_equivalence.py",
+      "tests/test_cheminfo/test_stereo_level2_gate7_coordination_graph.py",
+      "tests/test_cheminfo/test_stereo_level2_gate7_public.py",
+      "tests/test_cheminfo/test_complex_untangling_workflow.py",
+      "tests/test_cheminfo/test_complex_hydrogens.py",
+      "tests/test_cheminfo/test_complexes_build.py",
+      "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+      "tests/smarts_conformance/test_metamorphic.py",
+      "tests/test_cheminfo/structure/test_constraints.py",
+      "tests/test_cheminfo/structure/test_stage5_bonding.py",
+      "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py",
+      "tests/test_cheminfo/structure/test_pair_observations.py",
+      "tests/test_cheminfo/test_forcefield_trajectory.py",
+      "tests/test_cheminfo/test_stereo_level1_working_copy.py",
+      "tests/test_cheminfo/test_stereo_level1_storage.py",
+      "tests/test_cheminfo/test_stereo_level1_remap.py",
+      "tests/test_cheminfo/test_stereo_level1_native_packing.py",
+      "tests/test_cheminfo/test_native_molecule_buffers.py",
+      "tests/test_cheminfo/obWrappers/test_packing.py",
+      "tests/test_cheminfo/forcefields/test_forcefield_native_public_workflows.py",
+      "tests/test_cheminfo/forcefields/test_forcefield_native_coordination_stage.py",
+      "tests/test_cheminfo/test_forcefield_native_session.py",
+      "tests/test_cheminfo/forcefields/test_native_trajectory_ingestion.py",
+      "tests/mca/test_serialization.py",
+      "tests/mca/test_site_detection.py",
+      "tests/mca/test_site_detection_coordination.py",
+      "tests/test_cheminfo/structure/test_selected_results.py",
+      "tests/test_cheminfo/structure/test_result_native_invalidation.py",
+      "tests/test_cheminfo/test_mca_result_lifecycle.py",
+      "tests/test_cheminfo/structure/test_atom_fact_table.py",
+      "tests/test_cheminfo/structure/test_fact_native.py",
+      "tests/test_cheminfo/structure/test_dependencies.py",
+      "tests/test_cheminfo/structure/test_buffer_ownership.py"
+    ]
+  },
+  "focused_files": [
+    "tests/test_cheminfo/structure/test_selected_results.py",
+    "tests/test_cheminfo/structure/test_result_native_invalidation.py",
+    "tests/test_cheminfo/test_mca_result_lifecycle.py",
+    "tests/test_cheminfo/structure/test_fact_native.py",
+    "tests/test_cheminfo/structure/test_commit_atomicity.py"
+  ],
+  "real_business_commands": [
+    {
+      "id": "actual_MCA",
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-model-artifacts",
+        "tests/mca/test_cli_actual_model.py"
+      ],
+      "required": "Same existing local FP16 CPU model, CN succeeds / charged input2 local rejection / CO succeeds; complete correctly joined rows with actual prediction values and observed numerical state, unchanged inputs, aggregateRC1 expected; no new model-output finite guard or model-specific numeric truth criterion."
+    },
+    {
+      "id": "actual_MCA_attachment",
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-model-artifacts",
+        "tests/test_cheminfo/test_mca_calculator.py"
+      ],
+      "required": "Actual existing CPU prediction selects exact immutable DTO; all Atom/site projections join the same payload, no duplicate stores, independent returned dictionaries, read-only properties; existing same-input equivalence checks remain model/version-scoped observations."
+    }
+  ],
+  "execution_release": "Root runtime_release.json releases focused then affected CP311 and actual MCA; freeze-bound installed evidence follows. Other gates remain open.",
+  "required_semantics": [
+    "one immutable payload and no duplicate stores",
+    "complete source/mapping check around model outside lock",
+    "finite invalidation for every actual ingress, atomic rollback with and without outer transaction",
+    "exact-copy/component/pickle and annotation lifetime",
+    "zero scalar projection source hashing/no implicit models",
+    "MCA-only representation excludes spin; original representation retains spin. Bond value/metadata distinctions follow canonical source identity, including signed zero."
+  ],
+  "cost": "Bounded scalar write/repeated read cost and zero-hash counters; no optimization/parity gate or scientific golden equality",
+  "remaining": "Full partial-charge producer/import/native/model physical-storage cutover; owning Stage7C and all global obligations remain open",
+  "repair_nodeids": [
+    "tests/mca/test_site_detection_coordination.py::test_site_detection_preserves_existing_atom_mca_values",
+    "tests/test_cheminfo/test_complex_hydrogens.py::test_successful_commit_preserves_existing_object_identity_and_atom_ids"
+  ]
+}

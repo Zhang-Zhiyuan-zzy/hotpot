@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "status": "ROOT_RELEASED_FOCUSED_THEN_AFFECTED_CP311_RUNTIME",
+  "source_freeze": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/source_freeze.json",
+  "source_freeze_sha256": "1913599a5444ff254c7d0558f7152e53613efc664661502054ce43f40cb27a4f",
+  "design_sha256": "603e6aa92fc3b325eecca3a09bd49eaa307c09a16eeece1500a33be1c1ff736c",
+  "native_build_result": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/native-build/attempt01/build-result.json",
+  "root_connected_review": "Existing source domain preserved; MCA non-input spin excluded; concrete Bond exact-change mismatch repaired; native and Python Undo/lifecycle reviewed. Runtime is evidence to obtain, not a pass.",
+  "validation_plan_sha256": "baf69dd8804d3e0b483188406e38a9388c2f17a53c21bf59a771085c848668d3",
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "remaining": "PartialChargeSet and connected producer/import/native/model physical-storage cutover; whole Stage7C and later/global work.",
+  "predecessor_freeze_sha256": "8b291bb718ebdfa7e6bf307e67482c2e514c6bc30162210c4d531f10ebdfc5dc",
+  "test_only_successor": "C3 migrates two obsolete private-store fixtures to genuine selected payload/currentness semantics; product/native unchanged from C1. Original focused271/2 and affected1720/1 failures preserved."
+}

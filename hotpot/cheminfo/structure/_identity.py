@@ -6,6 +6,7 @@ Until Stage7D, source frames retain their legacy coordinate-only meaning. The
 forcefield_inputs domain additionally covers every retained numeric/sparse
 input consumed before its final Stage5/7 ownership cutover. Captures and
 commits share one owner lock; table columns are captured directly once.
+The private MCA representation excludes unused spin from the shared facts.
 
 """
 
@@ -26,7 +27,7 @@ from .constraints import _select_atom_values, _select_atom_metadata, _bond_raw_v
 __all__ = ()
 
 
-_DOMAINS = ("topology", "representation", "geometry", "cell", "constraints", "source_frames", "forcefield_inputs", "bonding_inputs")
+_DOMAINS = ("topology", "representation", "geometry", "cell", "constraints", "source_frames", "forcefield_inputs", "bonding_inputs", "mca_representation")
 _REPRESENTATION_FIELDS = tuple(FIELD_INDEX[name] for name in (
     "atomic_number", "formal_charge", "implicit_hydrogens", "is_aromatic",
 ))
@@ -186,7 +187,7 @@ def _content_identities(mol, domains):
                        tuple((bond._uid, bond.bond_order, bond.bond_kind, bond._is_aromatic,
                               bond.bond_direction, bond.bond_source) for bond in bonds),
                        _hydrogen_transport_inputs(tuple(atom._uid for atom in mol._atoms), mol._stereo_payload))
-        elif domain == "representation":
+        elif domain in ("representation", "mca_representation"):
             content = (
                 topology,
                 _atom_columns(mol, _REPRESENTATION_FIELDS),
@@ -197,8 +198,9 @@ def _content_identities(mol, domains):
                 tuple((atom._uid, atom.__dict__["isotope"])
                       for atom in mol._atoms if "isotope" in atom.__dict__),
                 ("charge", _declaration(mol, "charge")),
-                _current_spin(mol),
             )
+            if domain == "representation":
+                content += (_current_spin(mol),)
         elif domain == "geometry":
             content = (topology, _atom_columns(mol, _COORDINATE_FIELDS),
                        _atom_metadata(mol, _COORDINATE_FIELDS))

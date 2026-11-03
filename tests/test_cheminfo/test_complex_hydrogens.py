@@ -4,6 +4,10 @@ import numpy as np
 import pytest
 
 from hotpot import Molecule, read_mol
+from hotpot.cheminfo.AImodels.mca.result_types import (
+    AtomPrediction, MoleculePrediction, SitePrediction,
+)
+from hotpot.cheminfo.structure._results import _capture_mca_source, _select_mca_result
 from hotpot.cheminfo.forcefields import attempts
 from hotpot.cheminfo.forcefields import ff
 from hotpot.cheminfo.forcefields import working_copy
@@ -453,8 +457,17 @@ def test_successful_commit_preserves_existing_object_identity_and_atom_ids(monke
     original_conformers = molecule.conformers
     original_atom_pairs = molecule.atom_pairs
     original_atom_pairs[original_atoms].wiberg_bond_order = 1.25
-    molecule._mca_sites = {original_atoms[1]: 314.0}
-    original_atoms[1]._mca = 314.0
+    prediction = MoleculePrediction(
+        "CO", 0, (SitePrediction(1, "O", "fixture", 314.0),), "fixture",
+        tuple(AtomPrediction(atom.idx, atom.symbol, 313.0 + atom.idx)
+              for atom in original_atoms),
+    )
+    _select_mca_result(
+        molecule, prediction, _capture_mca_source(molecule),
+        tuple(atom._uid for atom in original_atoms),
+    )
+    assert original_atoms[1].mca == 314.0
+    assert molecule.mca_sites == {original_atoms[1]: 314.0}
     sentinel = _optimization_report(-2.0)
 
     def accept_working(working, **options):
@@ -482,8 +495,17 @@ def test_successful_commit_preserves_existing_object_identity_and_atom_ids(monke
     assert [atom.id for atom in molecule.atoms[:2]] == [101, 305]
     assert [atom.idx for atom in original_atoms] == [0, 1]
     assert all(atom.mol is molecule for atom in original_atoms)
-    assert molecule._mca_sites == {original_atoms[1]: 314.0}
-    assert original_atoms[1]._mca == 314.0
+    assert molecule._mca_result.payload is prediction
+    assert set(molecule._mca_result.invalidated_by) == {"mca_representation", "geometry"}
+    assert prediction.atom_predictions[1].mca_kj_mol == 314.0
+    assert prediction.sites == (SitePrediction(1, "O", "fixture", 314.0),)
+    with pytest.raises(RuntimeError, match="mca_representation.*geometry.*calculator\\.mca"):
+        _ = original_atoms[1].mca
+    with pytest.raises(RuntimeError, match="mca_representation.*geometry.*calculator\\.mca"):
+        _ = molecule.mca_sites
+    assert "_mca_sites" not in molecule.__dict__
+    assert "mca" not in molecule.properties
+    assert all("_mca" not in atom.__dict__ for atom in molecule.atoms)
     added_ids = [atom.id for atom in molecule.atoms[2:]]
     assert len(added_ids) == len(set(added_ids))
     assert not {101, 305}.intersection(added_ids)

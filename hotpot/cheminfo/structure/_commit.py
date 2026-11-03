@@ -13,7 +13,8 @@ from dataclasses import fields, is_dataclass
 import numpy as np
 
 from ._fields import ATOM_SOURCE_CODES, COORDINATE_FIELDS, FIELD_INDEX
-from ._identity import _check_source, _hydrogen_transport_inputs
+from ._identity import _check_source, _hydrogen_transport_inputs, _digest
+from ._results import _RESULT_ATTRIBUTES, _prepare_atom_result_updates, _invalidate_results
 
 __all__ = ()
 
@@ -56,6 +57,7 @@ def _fact_engine():
             "transactions": _TRANSACTIONS, "failures": _NATIVE_FAILURES,
             "source_type": _SourceIdentity, "update_type": _AtomFactUpdate,
             "table_type": _AtomFactTable,
+            "result_attributes": _RESULT_ATTRIBUTES, "prepare_result_updates": _prepare_atom_result_updates,
             "check_source": _check_source, "symbol_number": _atomic_number_for_symbol,
             "number_type": np.number, "asarray": np.asarray, "current_status": int(_FactStatus.CURRENT),
             "needs_recalc_status": int(_FactStatus.NEEDS_RECALC),
@@ -67,7 +69,7 @@ def _fact_engine():
 @contextmanager
 def _native_fail_after(boundary, occurrence=1, exception=KeyboardInterrupt):
     """Private operation-local deterministic post-store interruption for tests."""
-    if boundary not in {"value", "source", "presence", "status", "seed_add", "seed_remove", "seed_clear", "enrollment"}:
+    if boundary not in {"value", "source", "presence", "status", "seed_add", "seed_remove", "seed_clear", "enrollment", "result_invalidation"}:
         raise ValueError("Unknown native fact failure boundary")
     if occurrence < 1 or exception not in (KeyboardInterrupt, MemoryError):
         raise ValueError("Native failure injection requires a positive occurrence and builtin exception")
@@ -108,7 +110,7 @@ class _FactTransaction:
     __slots__ = ("mol", "producer", "_joined", "_token", "_cells", "_statuses", "_seeds",
                  "_bonds", "_sparse", "_declarations", "_stereo", "_frames", "_topology",
                  "_registrations", "_bond_membership", "_index_entries", "_constraints", "_pair_values",
-                 "_constraint_entries", "_constraint_bindings", "_failed")
+                 "_constraint_entries", "_constraint_bindings", "_results", "_failed")
 
     def __init__(self, mol, *, producer):
         self.mol = mol
@@ -119,7 +121,7 @@ class _FactTransaction:
     def _initialize_journal(self):
         self._cells = []
         self._statuses = self._seeds = self._bonds = self._sparse = None
-        self._declarations = None
+        self._declarations = self._results = None
         self._stereo = _UNCHANGED
         self._frames = None
         self._topology = None
@@ -166,11 +168,15 @@ class _FactTransaction:
         self._constraints = self._registrations = None
         self._pair_values = None
         self._constraint_entries = self._constraint_bindings = None
-        self._declarations = self._frames = self._topology = None
+        self._declarations = self._frames = self._topology = self._results = None
         self._bond_membership = None
         self._index_entries = None
         self._stereo = _UNCHANGED
         self._joined = self._token = None
+
+    def touch_results(self):
+        if self._results is None:
+            self._results = tuple((name, getattr(self.mol, name)) for name in _RESULT_ATTRIBUTES)
 
     def touch_dependency_status(self, rows, groups):
         self._cells.append(_fact_engine()._capture_status(self.mol._atom_table, rows, groups))
@@ -350,6 +356,8 @@ class _FactTransaction:
                 values.pop(key, None)
             else:
                 values[key] = previous
+        if self._results is not None:
+            _restore_fields(mol, self._results)
 
 
 def _commit_atom_facts(mol, update):
@@ -370,6 +378,7 @@ def _commit_atom_sparse(mol, atom, *, isotope=_UNCHANGED, frac_valence=_UNCHANGE
             raise ValueError("Sparse Atom update requires a current member")
         transaction.touch_sparse(atom)
         if isotope is not _UNCHANGED:
+            _invalidate_results(mol, ("representation",), transaction)
             atom.__dict__["isotope"] = isotope
         if frac_valence is not _UNCHANGED:
             atom.__dict__["frac_valence"] = frac_valence
@@ -394,6 +403,15 @@ def _commit_bond_facts(mol, bond, binding, *, raw_values, kind, direction,
         transaction.touch_bond(bond)
         changed = (bond._attrs[0] != raw_values[0] or bond._bond_kind != kind
                    or (bond._bond_kind.value == 'dative' and bond._bond_direction != direction))
+        result_changed = (changed or bond._attrs[0].tobytes() != raw_values[0].tobytes()
+                          or bond._bond_direction != direction
+                          or bond._bond_source != source_namespace
+                          or (aromatic is not _UNCHANGED and bond._is_aromatic != aromatic))
+        if mol._mca_result is not None and not result_changed:
+            result_changed = (_digest("bond_metadata", bond._bond_source_metadata)
+                              != _digest("bond_metadata", metadata))
+        if result_changed:
+            _invalidate_results(mol, ("representation",), transaction)
         from .constraints import _bond_constraint_cell
         cell = _bond_constraint_cell(raw_values[1])
         transaction.touch_constraint_value(bond._constraint_values, bond._uid)
@@ -473,6 +491,8 @@ def _commit_molecular_declarations(mol, binding, *, charge=_UNCHANGED, spin_mult
     with _FactTransaction(mol, producer=_EXPLICIT_SOURCE) as transaction:
         _check_source(mol, binding)
         transaction.touch_declarations()
+        if charge is not _UNCHANGED:
+            _invalidate_results(mol, ("representation",), transaction)
         for prefix, value in (("charge", charge), ("spin", spin_mult)):
             if value is not _UNCHANGED:
                 present, declared, source = value
@@ -501,6 +521,7 @@ def _commit_stereo(mol, source, payload):
         current = _hydrogen_transport_inputs(uids, payload)
         changed = tuple(after[0] for before, after in zip(previous, current) if before != after)
         transaction.touch_stereo()
+        _invalidate_results(mol, ("representation",), transaction)
         mol._stereo_payload = payload
         if changed:
             _seed(mol, GROUP_INDEX['IMPLICIT_H'], changed)
@@ -544,6 +565,7 @@ def _commit_topology(mol, source, record, *, atom_bindings, bond_bindings,
     with _FactTransaction(mol, producer=_EXPLICIT_SOURCE) as transaction:
         _check_source(mol, source)
         transaction.touch_topology()
+        _invalidate_results(mol, ("representation", "geometry"), transaction)
         mol._install_factual_record(record, atom_bindings=atom_bindings,
                                 bond_bindings=bond_bindings, dependency_state=dependency_state,
                                 bond_metadata=bond_metadata)

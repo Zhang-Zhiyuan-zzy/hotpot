@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7C",
+  "slice": "MCA selected attachment and shared native/transaction currentness",
+  "source_commit": "eef87d1a24aca88d36c8d6ff1e492387f84e9861",
+  "design": "plan/20_fact_rule_architecture/stages/stage07/selected-results/contracts/decisions.md",
+  "design_sha256": "603e6aa92fc3b325eecca3a09bd49eaa307c09a16eeece1500a33be1c1ff736c",
+  "status": "ROOT_IMPLEMENTATION_RELEASED_SOURCE_ONLY",
+  "root": "root",
+  "partitions": {
+    "carrier_lifecycle": [
+      "hotpot/cheminfo/structure/_results.py",
+      "hotpot/cheminfo/core.py",
+      "hotpot/cheminfo/structure/_commit.py",
+      "hotpot/cheminfo/structure/_dependencies.py",
+      "tests/test_cheminfo/structure/test_selected_results.py",
+      "hotpot/cheminfo/structure/_identity.py",
+      "tests/test_cheminfo/structure/test_source_identity.py",
+      "tests/test_cheminfo/test_mca_result_lifecycle.py",
+      "tests/test_cheminfo/structure/test_result_native_invalidation.py"
+    ],
+    "native_invalidation": [
+      "hotpot/cheminfo/structure/_native/facts.cpp",
+      "tests/test_cheminfo/structure/test_result_native_invalidation.py"
+    ],
+    "mca_operation": [
+      "hotpot/cheminfo/calculator/mca_inference.py",
+      "tests/test_cheminfo/test_mca_calculator.py",
+      "tests/test_cheminfo/test_mca_result_lifecycle.py"
+    ]
+  },
+  "runtime_hold": "No candidate product imports/tests/builds/models until root connected static review and exact source-ready release. Read-only static parsing and native recipe preparation allowed.",
+  "public_scientific_boundary": "No new public API or DTO; no scientific algorithm/model/tensor/native exported ABI change. One reserved N15, no new C++ helper type. Native private configure/undo implementation changes require fresh build.",
+  "remaining": "Full partial-charge ownership is next connected slice; noStage7C/global acceptance from MCA alone.",
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "design_history": [
+    {
+      "revision": "initial source assignment",
+      "design_sha256": "a4efcf9709ac8726ffd444520bc633e2a71c31578d83bf69f0c673becacc6cc2",
+      "release_sha256": "b38cd18cb4b1d9102318783637fb791758306929c924d49bc7c1714185b5eec3",
+      "runtime_executed": false
+    }
+  ],
+  "amendment": "R1: private MCA representation excludes unused spin; existing representation encoding and Stage7D remain unchanged."
+}

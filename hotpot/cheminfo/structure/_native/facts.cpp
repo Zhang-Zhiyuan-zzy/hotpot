@@ -42,7 +42,7 @@ struct Field {
 struct Configuration {
     py::object indices, writable, readonly, scalar_readonly, derived_fields, source_type, update_type, check_source;
     py::object transactions, failures, symbol_number, number_type, asarray, atom_type, eager, sparse;
-    py::object foreign_error, detached_error, seed_dummy;
+    py::object foreign_error, detached_error, seed_dummy, result_attributes, prepare_result_updates;
     std::array<py::object, static_cast<std::size_t>(Name::Count)> names;
     py::object table_type;
     std::array<py::object, static_cast<std::size_t>(Name::Count)> table_descriptors;
@@ -404,6 +404,9 @@ struct Undo {
     py::object constraint_owner;
     SmallArray<py::object, 1> constraint_keys, constraint_before, constraint_after;
     std::size_t constraint_applied = 0;
+    py::object result_owner;
+    SmallArray<py::object, 1> result_updates;
+    std::size_t result_applied = 0;
     bool restored = false;
 
     void restore() noexcept {
@@ -428,6 +431,12 @@ struct Undo {
             auto &entry = statuses[i];
             std::memcpy(entry.target, &entry.before, sizeof(entry.before));
         }
+        for (std::size_t i = result_applied; i-- > 0;) {
+            auto &entry = result_updates[i];
+            // The selected slot already exists; retain its exact old reference.
+            (void) PyDict_SetItem(result_owner.ptr(), PyTuple_GET_ITEM(entry.ptr(), 0), PyTuple_GET_ITEM(entry.ptr(), 1));
+        }
+        result_applied = 0;
         restored = true;
     }
 
@@ -463,6 +472,13 @@ struct Undo {
             auto &entry = seeds[i];
             entry.install();
             fault.after(entry.boundary);
+        }
+        for (std::size_t i = 0; i < result_updates.size; ++i) {
+            auto &entry = result_updates[i];
+            if (PyDict_SetItem(result_owner.ptr(), PyTuple_GET_ITEM(entry.ptr(), 0), PyTuple_GET_ITEM(entry.ptr(), 2)) < 0)
+                python_error();
+            ++result_applied;
+            fault.after("result_invalidation");
         }
     }
 };
@@ -535,7 +551,7 @@ void check_rows(py::handle mol, const Selection &selection, py::handle expected 
 template <class Rows, class Columns>
 void prepare_undo(Undo &undo, py::handle table, const Rows &rows,
                   const Columns &columns, py::handle uids, bool dependencies,
-                  py::handle mol) {
+                  py::handle mol, py::handle transaction) {
     Py_ssize_t logical = integer(get(table, Name::Size));
     for (auto row : rows)
         if (row < 0 || row >= logical) throw py::index_error("Atom row is outside the current table");
@@ -602,6 +618,7 @@ void prepare_undo(Undo &undo, py::handle table, const Rows &rows,
     undo.cells.resize(rows.size() * numeric_count);
     std::size_t numeric_index = 0;
     std::uint64_t affected = 0, materialized = 0;
+    SmallArray<int, 16> changed_fields;
     for (std::size_t f = 0; f < columns.size(); ++f) {
         const auto &column = columns[f];
         const auto &field = config->fields[column.index];
@@ -625,6 +642,7 @@ void prepare_undo(Undo &undo, py::handle table, const Rows &rows,
             auto values = array(PyTuple_GET_ITEM(undo.owners[0].ptr(), column.index), 'f', 8, 1, true);
             auto sources = py::reinterpret_borrow<py::array>(undo.owners[1]);
             if (values.shape(0) < logical) throw py::value_error("Atom value storage is not aligned");
+            bool changed = false;
             for (std::size_t r = 0; r < rows.size(); ++r) {
                 auto &cell = undo.cells[numeric_index * rows.size() + r];
                 cell.value = address(values, rows[r]);
@@ -635,13 +653,37 @@ void prepare_undo(Undo &undo, py::handle table, const Rows &rows,
                 cell.new_source = static_cast<std::uint8_t>(column.producer);
                 auto &p = undo.presence[r];
                 p.after = column.present ? p.after | field.presence : p.after & ~field.presence;
+                changed |= cell.before != cell.after || cell.old_source != cell.new_source
+                           || static_cast<bool>(p.before & field.presence) != column.present;
             }
+            if (changed && (field.affected_mask | field.materialized_mask))
+                changed_fields.push_back(column.index);
             ++numeric_index;
         }
         affected |= field.affected_mask;
         materialized |= field.materialized_mask;
     }
     if (!dependencies || !(affected | materialized)) return;
+    if (mol && changed_fields.size) {
+        py::object md = dictionary(mol);
+        bool selected = false;
+        for (py::handle attribute : py::reinterpret_borrow<py::tuple>(config->result_attributes)) {
+            PyObject *attachment = PyDict_GetItemWithError(md.ptr(), attribute.ptr());
+            if (!attachment && PyErr_Occurred()) python_error();
+            if (attachment && attachment != Py_None) { selected = true; break; }
+        }
+        if (selected) {
+            // This bound private hook prepares immutable metadata only. It also
+            // enrolls the original selection in an existing Python transaction.
+            py::tuple fields(changed_fields.size);
+            for (std::size_t i = 0; i < changed_fields.size; ++i)
+                fields[i] = py::str(config->fields[changed_fields[i]].name);
+            py::tuple updates = config->prepare_result_updates(mol, fields, transaction);
+            undo.result_owner = std::move(md);
+            for (py::handle update : updates)
+                undo.result_updates.push_back(py::reinterpret_borrow<py::object>(update));
+        }
+    }
     undo.owners[3] = get(table, Name::Status);
     undo.owners[4] = get(table, Name::Seeds);
     undo.owners[5] = py::reinterpret_borrow<py::object>(uids);
@@ -700,7 +742,7 @@ void install(py::handle table, const Rows &rows,
              bool dependencies, py::handle mol = {}) {
     try {
         Undo undo;
-        prepare_undo(undo, table, rows, columns, uids, dependencies, mol);
+        prepare_undo(undo, table, rows, columns, uids, dependencies, mol, transaction);
         install_undo(undo, transaction);
     } catch (...) { poison(transaction); throw; }
 }
@@ -1243,6 +1285,8 @@ void configure(py::dict values) {
     next->derived_fields = values["derived_fields"];
     next->source_type = values["source_type"]; next->update_type = values["update_type"];
     next->transactions = values["transactions"]; next->failures = values["failures"];
+    next->result_attributes = py::tuple(values["result_attributes"]);
+    next->prepare_result_updates = values["prepare_result_updates"];
     next->check_source = values["check_source"]; next->symbol_number = values["symbol_number"];
     next->number_type = values["number_type"]; next->asarray = values["asarray"];
     next->current_status = py::cast<int>(values["current_status"]);

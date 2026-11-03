@@ -2,7 +2,7 @@
 
 Status: **implementation authorized on 2026-10-28; Stage0–7B owning-stage gates complete
 within their recorded scopes, including the applicable CP311 Stage7B delivery;
-Stage7C is next. Full scientific, engineering, version-adaptation and global
+Stage7C is in progress. Full scientific, engineering, version-adaptation and global
 acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
@@ -1883,6 +1883,19 @@ force-field working-copy rollback, and comparable usable-cost/resource evidence.
 3. Replace Atom-stored partial charges with the selected identity-bound
    `PartialChargeSet`; update field-selective native packing.
 
+The [accepted selected-result route](stages/stage07/selected-results/contracts/decisions.md)
+and [current entry](stages/stage07/selected-results/entry_review.json) begin with
+one MCA attachment and finite native/Python transactional invalidation, followed
+by the connected partial-charge owner/import/native/model cutover. Stage1's
+absence/stale/projection decisions already govern both. Root accepts the
+[CP311 MCA checkpoint](stages/stage07/selected-results/validation/checkpoint.json):
+fresh fact-native, affected source1721/installed1721, actual MCA1/attachment3 in
+each boundary and bounded usable getter/write costs. [The report](stages/stage07/selected-results/validation/report.md)
+retains original failures, scoped installed evidence and later obligations.
+The connected selected partial-charge cutover remains next; this MCA slice does
+not close Stage7C or any global gate. Cross-stage limitations are indexed in
+[deferred_issues.md](deferred_issues.md).
+
 Gate: exact per-mutation retain/mark/recompute table, MCA calculator/site tests,
 partial-charge absence/presence/provenance and native packing, copy/component
 result behavior, annotation isolation, repeated scalar/all-Atom projections and
@@ -2421,6 +2434,26 @@ source ownership, integrity or approved public contracts. Where an older compara
 cannot distinguish a documented policy-only manifest change, retain that limitation
 and obtain trustworthy comparable-work evidence; do not call its failed invocation
 a pass. Required final performance/resource reports remain part of acceptance.
+
+### 12.3 Unified cross-stage deferred issues
+
+Maintain [deferred_issues.md](deferred_issues.md) as the current index of accepted
+performance/resource compromises, edge/integration assessments and peripheral
+validation-tool deferrals. Each stable `P20-Dnnn` records severity, state, impact,
+responsible stage, treatment checkpoint, originating evidence, closure conditions
+and closure evidence; stage reports retain detailed historical observations.
+Update the index during affected business changes and milestone review, without
+repeating unrelated passed checks or creating bookkeeping-only commits.
+
+Consolidated treatment may cross stage boundaries after the Stage0–12 main
+implementation/migration passes, within Stage12 final hardening before main-scope
+acceptance and `B_exp`. Earlier required dependency/delivery gates still apply.
+Routine unfinished core work is not optimization debt; in particular Stage7E
+still gates Stage8. A demonstrated core semantic/integrity failure, unbounded
+growth, OOM or inability to complete representative mandatory work advances the
+affected item immediately. Usable costs may close with an explicit bounded final
+disposition and applicable evidence; universal parity is not required. Registry
+status alone cannot waive Section14 or authorize the Stage13 experiment.
 
 ## 13. Implementation log and final report contract
 

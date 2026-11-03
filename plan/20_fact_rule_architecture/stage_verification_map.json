@@ -90,6 +90,7 @@
     "Installed-wheel checks run outside checkout with the matching Python/wheel; set HOTPOT_TEST_WHEEL and HOTPOT_TEST_INSTALLED_PACKAGE as required by the existing harness.",
     "Native SDK tests additionally require --run-external and HOTPOT_RDWRAPPERS_TEST_SDK_PREFIX; skipped SDK calls are not passed ABI checks.",
     "Performance workloads/repetitions/outcome accounting belong to the separately frozen Section12 manifest; this file does not substitute a benchmark policy.",
+    "Deferred performance, edge/integration and peripheral checker work is indexed in deferred_issues.md under stable P20-D IDs with severity, state, responsible stage, treatment checkpoint and closure evidence. Reuse scoped trustworthy business evidence; consolidated Stage12 treatment cannot waive earlier mandatory gates, final acceptance or B_exp before Stage13.",
     "Stage13 contract-test exact path is intentionally deferred until B_exp exists; no speculative protocol implementation is authorized here.",
     "When the separately scheduled supplementary Python benchmark runs, python_matrix_manifest.json retains its 2689 frozen nodes per version, all-five preflight, one warmup and five synchronized measured rounds. Installed wheels, outside-source child cwd and actual node execution require evidence. This frozen benchmark recipe is not a prerequisite chain for each slice; it neither replaces affected validation nor alters the original 71-workload weights.",
     "Choose checks through functional_707_business_mapping.md, actual writers/consumers and affected risk: representation/lifecycle, chemical semantics, CBond->FF->GFN-FF->xTB and MCA are mandatory business priorities. I/O/toolkit or other dependencies required by those paths inherit that priority; lower-priority remaining work is deferred/reported, not deleted from Plan20/Plan12.",
@@ -201,7 +202,7 @@
       "planned_contract_test_files": [],
       "additional_requirements": [
         "full default suite, original baseline scientific/technical selection, full Section12 workload measurements",
-        "Supplementary installed-wheel Python3.10\u20133.14 baseline: common_commands.python_matrix_baseline, with all five matching wheels and verified models prepared before timing."
+        "Supplementary installed-wheel Python3.10–3.14 baseline: common_commands.python_matrix_baseline, with all five matching wheels and verified models prepared before timing."
       ],
       "execution_status": "completed; exact commands, outcomes and digests are in stages/stage01/evidence.json and implementation_log.md"
     },
@@ -551,7 +552,7 @@
         "stages/stage04/performance/review.md",
         "stages/stage04/performance/profiling/evidence.json"
       ],
-      "verification_note": "Actual complete Stage3/4 owner/builder/identity/native/pickle/FF/consumer selection plus all DS contracts: Python3.10\u20133.14 each2287 source/175 debug/2157 installed;42 external/scientific skips. Default4585 passed/123 skipped/3 xfailed/49 subtests. Seven unchanged standalone CPP checks and current542-member sdist separate. Focused3+10 benchmarks are valid executed comparisons, not final71-entry approval.",
+      "verification_note": "Actual complete Stage3/4 owner/builder/identity/native/pickle/FF/consumer selection plus all DS contracts: Python3.10–3.14 each2287 source/175 debug/2157 installed;42 external/scientific skips. Default4585 passed/123 skipped/3 xfailed/49 subtests. Seven unchanged standalone CPP checks and current542-member sdist separate. Focused3+10 benchmarks are valid executed comparisons, not final71-entry approval.",
       "default_gate_prerequisite_scope": {
         "reason": "Real default-gate existing DS cache source-content failure on unchanged metadata",
         "affected_source": "hotpot/ds/public/_generation.py",
@@ -1722,7 +1723,7 @@
         "limits": [
           "Existing static source/AST/text/hash and declaration records only; this synchronization runs no audit/checker, project import, pytest collection/test, build, native/model/scientific or performance workload.",
           "Static authoring completion does not close source-ready, installed-wheel/native/reflection/cold/resource/pickle/P03/complete cost/full retention/native-memory or global gates.",
-          "Final211-file source/installed3.10\u20133.14 membership is preserved, including all36 dataset tests. No Stage13 experiment or certificate acceptance is authorized."
+          "Final211-file source/installed3.10–3.14 membership is preserved, including all36 dataset tests. No Stage13 experiment or certificate acceptance is authorized."
         ]
       },
       "new_contract_test_authoring": {
@@ -2584,7 +2585,7 @@
           "runtime_executed": false
         }
       },
-      "historical_execution_status_before_task100": "Stage7A IN_PROGRESS; Task95 exact3-file main repair applied and current-main focused61passed. Task99 exact helper font relocation applied/unexecuted. Current213source/installed3.10\u20133.14,cp311default/coverage,applicable native and fresh26cells pending. Task87 terminal timeout/no analysis/memoryHOLD; Task97tool-only repair separate. Historical211map/actual212selection and FREEZE10/12 evidence retained;7BPREENTRY;alllater/globalgatesopen.",
+      "historical_execution_status_before_task100": "Stage7A IN_PROGRESS; Task95 exact3-file main repair applied and current-main focused61passed. Task99 exact helper font relocation applied/unexecuted. Current213source/installed3.10–3.14,cp311default/coverage,applicable native and fresh26cells pending. Task87 terminal timeout/no analysis/memoryHOLD; Task97tool-only repair separate. Historical211map/actual212selection and FREEZE10/12 evidence retained;7BPREENTRY;alllater/globalgatesopen.",
       "current_outcome_checkpoint_task100": {
         "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/root-continuation-task100/ROOT_CURRENT_RESULTS.json",
         "bytes": 3511,
@@ -3358,7 +3359,7 @@
       "additional_requirements": [
         "complete constraint identity/invalidation and task topology masks; preserve original rollback assertions"
       ],
-      "execution_status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE: root accepts whole constraint-owner plus connected HT1\u2013HT5 functional migration and applicable CP311 owning-stage gates, including prior bounded-cost decisions. C2 source1313/installed1313 and actualFF11/pipeline3/MCA1; C3 test-only source180/installed10 retain exact attribution. Original default5385/2fail/129skip and all harness/persistence/cost failures remain. Finite local archive excludes external model/native/wheel binaries. No current full-default/all-version/clean-native/global pass; root alone delivers through attributable Git history and opens Stage7C.",
+      "execution_status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE: root accepts whole constraint-owner plus connected HT1–HT5 functional migration and applicable CP311 owning-stage gates, including prior bounded-cost decisions. C2 source1313/installed1313 and actualFF11/pipeline3/MCA1; C3 test-only source180/installed10 retain exact attribution. Original default5385/2fail/129skip and all harness/persistence/cost failures remain. Finite local archive excludes external model/native/wheel binaries. No current full-default/all-version/clean-native/global pass; root alone delivers through attributable Git history and opens Stage7C.",
       "preentry_evidence": [
         "stages/stage07/preentry-selections/review.md",
         "stages/stage07/preentry-selections/evidence.json"
@@ -3499,14 +3500,14 @@
         "bound_natives": 6,
         "rebuilt_fact_native_sha256": "cea3ed1ab971ad7c108fa6b44db56a85df5f6e61eccd9caed51c44041cab4bad",
         "other_natives_reused": 5,
-        "usable_cost": "45/45same-driver cells complete/RC0/reaped; scalar O(1); fixed16-atom workflow~2.07ms/~1.24x. Selective-axis6.276\u201319.854x/6.772ms and fullBond2.651\u20132.741x/21.097ms retained. No parity/global/leak claim.",
+        "usable_cost": "45/45same-driver cells complete/RC0/reaped; scalar O(1); fixed16-atom workflow~2.07ms/~1.24x. Selective-axis6.276–19.854x/6.772ms and fullBond2.651–2.741x/21.097ms retained. No parity/global/leak claim.",
         "archive": ".plan20-artifacts/20261103/stage7b/constraint-consolidation/",
         "remaining_gates": [
           "Stage7B connected hidden-topology consumer/mask/public-retirement/native-publication/transport cutover and whole-stage acceptance.",
           "Stage7C/D/E and later stages; connected H/isotope/stereo ownership and concrete H/public/model/storage decisions remain open.",
           "Other Python versions; clean all-native/ABI/SDK/sdist/manylinux and41 explicitly omitted non-Python wheel paths.",
           "Required broader scientific/GPU/external/Plan12 evidence and global performance/final acceptance.",
-          "Root business commit/push; Stage0\u201312 acceptance and B_exp still precede separately gated Stage13."
+          "Root business commit/push; Stage0–12 acceptance and B_exp still precede separately gated Stage13."
         ],
         "stage_gate_closed": false,
         "global_gate_closed": false,
@@ -3557,22 +3558,40 @@
       "native_command": null,
       "planned_contract_test_files": [
         {
-          "path": "tests/test_cheminfo/structure/test_result_attachments.py",
-          "status": "planned_not_created"
+          "path": "tests/test_cheminfo/structure/test_selected_results.py",
+          "status": "Implemented attachment/lifecycle tests passed within root-accepted CP311 MCA source1721/installed1721 checkpoint; replaces prospective test_result_attachments.py filename, no historical execution removed."
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_result_native_invalidation.py",
+          "status": "Implemented actual field/noop/rollback tests passed with freshly rebuilt CP311 fact-native in source1721/installed1721 checkpoint; five other natives reused, broader native/ABI delivery remains open."
+        },
+        {
+          "path": "tests/test_cheminfo/test_mca_result_lifecycle.py",
+          "status": "Implemented MCA source binding/mapping/normalization/lifecycle tests passed in root-accepted CP311 source1721/installed1721 checkpoint; actual CLI1/attachment3 passed on both boundaries."
         },
         {
           "path": "tests/test_cheminfo/structure/test_dependencies.py",
-          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
+          "status": "Existing implemented file rebound and passed in Stage7C affected CP311 source1721/installed1721 checkpoint; earlier owning evidence retains its original attribution."
         },
         {
           "path": "tests/test_cheminfo/structure/test_buffer_ownership.py",
-          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
+          "status": "Existing implemented file rebound and passed in Stage7C affected CP311 source1721/installed1721 checkpoint; earlier owning evidence retains its original attribution."
         }
       ],
       "additional_requirements": [
         "one MCA/partial-charge store; exact retain/mark/recompute map; no quadratic digest work"
       ],
-      "execution_status": "not_executed_by_inventory_capture"
+      "execution_status": "IN_PROGRESS: predecessor Stage7B CP311 owning gate accepted/delivered at eef87d1. Root accepted tested CP311 MCA attachment/currentness business checkpoint on2026-11-03: source1721 and actualCLI1/attachment3; installed1721 and actualCLI1/attachment3; bounded usable primitive cost. Original failures and installed receipt-timing failure/resume retained. Full selected partial-charge physical-storage/import/native/model/projection cutover remains next; wholeStage7C/global gates remain open.",
+      "entry_review": "stages/stage07/selected-results/entry_review.json",
+      "selected_results_design": "stages/stage07/selected-results/contracts/decisions.md",
+      "implementation_release": "stages/stage07/selected-results/implementation_release.json",
+      "stage_gate_closed": false,
+      "global_gate_closed": false,
+      "mca_checkpoint_status": "ROOT_ACCEPTED_CP311_MCA_CHECKPOINT",
+      "mca_checkpoint": "stages/stage07/selected-results/validation/checkpoint.json",
+      "mca_report": "stages/stage07/selected-results/validation/report.md",
+      "remaining_requirements": "Complete selected PartialChargeSet ownership and connected producers/import/native/model/projection cutover, then affected wholeStage7C validation; later versions/delivery/global gates remain open.",
+      "deferred_issues": "deferred_issues.md"
     },
     "Stage7D": {
       "predecessor": "Stage7C",

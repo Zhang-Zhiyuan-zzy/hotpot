@@ -1,0 +1,398 @@
+{
+  "schema_version": 1,
+  "status": "ROOT_ACCEPTED_CP311_MCA_CHECKPOINT",
+  "date": "2026-11-03",
+  "stage": "Stage7C selected-results MCA business checkpoint",
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "acceptance_owner": "root; accepted the tested CP311 MCA business checkpoint on2026-11-03. Commit/push remain root responsibilities.",
+  "conclusion": "Root accepted the tested CP311 MCA attachment/currentness business checkpoint: affected source1721 and actual1+3; installed1721 and actual1+3; bounded usable primitive cost. Full selected partial-charge cutover is next; Stage7C/global gates remain open.",
+  "source": {
+    "head_at_execution": "eef87d1a24aca88d36c8d6ff1e492387f84e9861",
+    "attribution": "HEAD plus exact frozen dirty source/test overlays; runtime evidence is not relabeled after delivery commits.",
+    "freeze": {
+      "path": ".plan20-artifacts/20261103/stage7c/mca-selected/source-validation/source_freeze.json",
+      "bytes": 177849,
+      "sha256": "1913599a5444ff254c7d0558f7152e53613efc664661502054ce43f40cb27a4f",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/source_freeze.json"
+    },
+    "source_test_bindings": 1403,
+    "native_bindings": 6,
+    "production_changes_after_c1": false,
+    "successor_policy": "C2/C3 test-only fixture fixes; original focused and affected failures and C1/C2 freezes retained."
+  },
+  "native_build": {
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage7c/mca-selected/native-build/attempt01/build-result.json",
+      "bytes": 1799,
+      "sha256": "41508c71f9e445c129a98b3ecabb47cc79b5910e14b53302fa9f961ee5454f8a",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/native-build/attempt01/build-result.json"
+    },
+    "returncode": 0,
+    "elapsed_seconds": 8.714939685538411,
+    "fresh_fact_native": {
+      "bytes": 413712,
+      "sha256": "fcce69eaafc4c26bb09f912179bd8671134c45147962fb4875894264eda9e993"
+    },
+    "baseline_fact_native": {
+      "bytes": 400648,
+      "sha256": "cea3ed1ab971ad7c108fa6b44db56a85df5f6e61eccd9caed51c44041cab4bad"
+    },
+    "other_natives": "Five unchanged CP311 artifacts reused; see source freeze and installed native provenance."
+  },
+  "source_runs": [
+    {
+      "attempt": "focused-attempt01",
+      "passed": 271,
+      "failed": 2,
+      "errors": 0,
+      "skipped": 0,
+      "returncode": 1,
+      "elapsed_seconds": 10.258170550689101,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/source-validation/focused-attempt01/execution.json",
+        "bytes": 1992,
+        "sha256": "e9586d1bc19c316443f9221c3bf33da53c8e1a51e001952014b8283fab027428",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/focused-attempt01/execution.json"
+      }
+    },
+    {
+      "attempt": "repairs-attempt01",
+      "passed": 2,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "returncode": 0,
+      "elapsed_seconds": 1.350675931200385,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/source-validation/repairs-attempt01/execution.json",
+        "bytes": 2155,
+        "sha256": "b4f7b0d1691256075f0d6009f214a9597fb960cd8802adacfa136f04c776721e",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/repairs-attempt01/execution.json"
+      }
+    },
+    {
+      "attempt": "affected-attempt01",
+      "passed": 1720,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "returncode": 1,
+      "elapsed_seconds": 32.37070455215871,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/source-validation/affected-attempt01/execution.json",
+        "bytes": 5030,
+        "sha256": "b56ca3f88733f544cd3e215b668205e277ece429f3d53b584493462bd5407c45",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/affected-attempt01/execution.json"
+      }
+    },
+    {
+      "attempt": "repairs-attempt02",
+      "passed": 2,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "returncode": 0,
+      "elapsed_seconds": 1.3332235757261515,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/source-validation/repairs-attempt02/execution.json",
+        "bytes": 2113,
+        "sha256": "ab44b66761c62e95b2f960b5efc3a7ce3ce801ed209a9e4ca8861b3d7f2da2c8",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/repairs-attempt02/execution.json"
+      }
+    },
+    {
+      "attempt": "affected-attempt02",
+      "passed": 1721,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "returncode": 0,
+      "elapsed_seconds": 32.20832580886781,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/source-validation/affected-attempt02/execution.json",
+        "bytes": 5030,
+        "sha256": "152fbfca6842dd61c317f7ed141a407452d15e5822b0b4b780ac7a994efb22a7",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/affected-attempt02/execution.json"
+      }
+    },
+    {
+      "attempt": "actual-mca-attempt01",
+      "passed": 1,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "returncode": 0,
+      "elapsed_seconds": 3.8899930138140917,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/source-validation/actual-mca-attempt01/execution.json",
+        "bytes": 1962,
+        "sha256": "2e459c138b5fe7907ca36c3eb832161d01b0ef70783645d9c704aa032e147900",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/actual-mca-attempt01/execution.json"
+      }
+    },
+    {
+      "attempt": "actual-mca-attachment-attempt01",
+      "passed": 3,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "returncode": 0,
+      "elapsed_seconds": 8.745201800018549,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/source-validation/actual-mca-attachment-attempt01/execution.json",
+        "bytes": 2013,
+        "sha256": "b6ef5da9fd7f2ffdbe84aa480a04722055f990e46a1295702c718747888dd83e",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/actual-mca-attachment-attempt01/execution.json"
+      }
+    }
+  ],
+  "installed": {
+    "status": "INSTALLED_MCA_SLICE_PASSED_AFTER_RECEIPT_RECONCILIATION",
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage7c/mca-selected/installed-validation/attempt01/resume01/execution.json",
+      "bytes": 38628,
+      "sha256": "95683582def6db4c9627ef0055cad38afc13fca534d7cf0045621b4d1b7caf24",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/installed-validation/attempt01/resume01/execution.json"
+    },
+    "results": {
+      "affected": {
+        "tests": 1721,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 37.05867375805974,
+        "reused_without_rerun": true,
+        "origins": {
+          "startup_processes": 34,
+          "final_processes": 34,
+          "zero_leaks": true
+        }
+      },
+      "actual_MCA": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 4.09413979575038,
+        "origins": {
+          "startup_processes": 3,
+          "final_processes": 3,
+          "zero_leaks": true
+        }
+      },
+      "actual_MCA_attachment": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 8.947049276903272,
+        "origins": {
+          "startup_processes": 1,
+          "final_processes": 1,
+          "zero_leaks": true
+        }
+      }
+    },
+    "same_ordered_affected_nodes": true,
+    "wheel": {
+      "path": "/tmp/hotpot_plan20/medium/20261103-stage7c-mca-installed/attempt01/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6297812,
+      "sha256": "f3eff4004716af1cfe323bac8b06d478e947b23a89d5678e07c05dd22646dece"
+    },
+    "production_python_count": 457,
+    "native_count": 6,
+    "measured_nonpython_omission_count": 41,
+    "source_tests_native_unchanged": true,
+    "installed_unchanged": true,
+    "models_unchanged": true,
+    "copied_tests_unchanged": true,
+    "resume_disposition": "Original driver failed its immediate startup/final PID-set postcheck after affected pytest passed. Same-attempt finite receipt reconciliation found all34 startup/final receipts; affected was reused without rerun, then the two actual MCA selections ran once.",
+    "original_failure": {
+      "path": ".plan20-artifacts/20261103/stage7c/mca-selected/installed-validation/attempt01/resume01/original-driver-failure.json",
+      "bytes": 15601,
+      "sha256": "e365bc94959bf302d0a5a5557cff3295c4dc2b1b63c5112d1260a9c4d94a999b",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/installed-validation/attempt01/resume01/original-driver-failure.json"
+    }
+  },
+  "cost": {
+    "status": "PASS",
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage7c/mca-selected/cost/attempt01/execution.json",
+      "bytes": 22701,
+      "sha256": "0470f37b95b5eb09934a58736c45a64df268ee459acb7e8fb49d6b0424feb2a6",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/cost/attempt01/execution.json"
+    },
+    "samples": 7,
+    "read_repetitions": 50,
+    "real_model_or_backend_executed": false,
+    "source_tests_native_unchanged": true,
+    "observations": [
+      {
+        "atoms": 64,
+        "sites": 32,
+        "all_atom_ns_per_item": 742.4521875,
+        "site_dictionary_ns_per_read": 4146.06,
+        "absent_write_ns": 3227.0,
+        "selected_write_ns": 8887.0,
+        "getter_call_counts": {
+          "all_atoms": {
+            "_capture_source": 0,
+            "_check_source": 0,
+            "_digest": 0,
+            "_capture_mca_source": 0,
+            "Atom.mca": 3200,
+            "Molecule.mca_sites": 0
+          },
+          "sites": {
+            "_capture_source": 0,
+            "_check_source": 0,
+            "_digest": 0,
+            "_capture_mca_source": 0,
+            "Atom.mca": 0,
+            "Molecule.mca_sites": 50
+          }
+        }
+      },
+      {
+        "atoms": 256,
+        "sites": 128,
+        "all_atom_ns_per_item": 740.1915625,
+        "site_dictionary_ns_per_read": 13276.18,
+        "absent_write_ns": 3446.0,
+        "selected_write_ns": 9067.0,
+        "getter_call_counts": {
+          "all_atoms": {
+            "_capture_source": 0,
+            "_check_source": 0,
+            "_digest": 0,
+            "_capture_mca_source": 0,
+            "Atom.mca": 12800,
+            "Molecule.mca_sites": 0
+          },
+          "sites": {
+            "_capture_source": 0,
+            "_check_source": 0,
+            "_digest": 0,
+            "_capture_mca_source": 0,
+            "Atom.mca": 0,
+            "Molecule.mca_sites": 50
+          }
+        }
+      },
+      {
+        "atoms": 1024,
+        "sites": 512,
+        "all_atom_ns_per_item": 740.097265625,
+        "site_dictionary_ns_per_read": 50876.9,
+        "absent_write_ns": 3767.0,
+        "selected_write_ns": 8746.0,
+        "getter_call_counts": {
+          "all_atoms": {
+            "_capture_source": 0,
+            "_check_source": 0,
+            "_digest": 0,
+            "_capture_mca_source": 0,
+            "Atom.mca": 51200,
+            "Molecule.mca_sites": 0
+          },
+          "sites": {
+            "_capture_source": 0,
+            "_check_source": 0,
+            "_digest": 0,
+            "_capture_mca_source": 0,
+            "Atom.mca": 0,
+            "Molecule.mca_sites": 50
+          }
+        }
+      }
+    ],
+    "root_disposition": "Bounded usable primitive cost accepted for this CP311 MCA business checkpoint only; no universal timing or integrated workflow gate inferred."
+  },
+  "static": {
+    "class_census": {
+      "parsed_python_files": 932,
+      "production_python_files": 457,
+      "all_python_classes": 779,
+      "dataclasses": 356,
+      "protocols": 8,
+      "typed_dicts": 2
+    },
+    "class_delta": "Exactly reserved N15 added to prior778classes/355dataclasses/8Protocols/2TypedDicts; no retirement credit.",
+    "architecture_audit": {
+      "status": "passed",
+      "scanned_python_files": 932,
+      "remaining_debt": 224,
+      "findings": 0
+    },
+    "evidence": [
+      {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/source-validation/class_census.json",
+        "bytes": 107589,
+        "sha256": "db0a1f5d1c2f99fc90f2ed81b48e441d5c778e4bcf5d888c71671d9e63e40402",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/class_census.json"
+      },
+      {
+        "path": ".plan20-artifacts/20261103/stage7c/mca-selected/source-validation/architecture-audit.json",
+        "bytes": 496,
+        "sha256": "2caefbf53f0d9aaf0d333c81150dbae3fcf93ad21169b26054cebfd8bf374ea8",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-selected-results-20261103/source-validation/architecture-audit.json"
+      }
+    ]
+  },
+  "scientific_observations": "scientific_observations.json",
+  "report": "report.md",
+  "evidence_index": "evidence_index.json",
+  "archive_manifest": {
+    "path": ".plan20-artifacts/20261103/stage7c/mca-selected/manifest.json",
+    "bytes": 81371,
+    "sha256": "150e5cd9a3b5e0dfe861c0c3357079ca8192a1872dde659f094c5a955be64a92",
+    "original_path": null
+  },
+  "limitations": [
+    "MCA checkpoint only; reserved N14 PartialChargeSet and all connected import/native/model/projection producers and consumers remain required before Stage7C closure.",
+    "CP311/CPython3.11.16 with shared system-site dependencies; other planned Python3.10/3.12/3.13/3.14 are unexecuted here.",
+    "Only _fact_native was freshly rebuilt; five native binaries were reused and bound. No clean all-native, standalone ABI, SDK, sdist or manylinux qualification.",
+    "Wheel has41 measured non-Python package omissions, explicitly retained in installed terminal receipt and wheel contents.",
+    "No current full-default-suite pass. Earlier Stage7B default5385passed/2failed/129skipped remains historical, with subsequent targeted repairs; this checkpoint runs affected selections.",
+    "Origin audits cover Python processes loading installed startup hooks, with34/34,3/3,1/1 receipts; native/site-bypassing processes are not independently enumerated.",
+    "Cost observations are shared-host synthetic attachment primitives with seven samples, no memory profiler or controlled integrated-workflow speedup claim.",
+    "Actual model fixtures support named outputs, mapping, attribution and local continuation only; no accuracy/calibration/general truth claim.",
+    "Later-stage Plan20/Plan12, scientific/GPU/global efficiency, packaging and final Git acceptance remain open."
+  ],
+  "smallest_next_business_step": "Complete reserved N14 selected PartialChargeSet with connected physical storage/import/native/model/projection cutover under the active Stage7C contract, then obtain affected evidence and review whole-stage closure.",
+  "root_acceptance": {
+    "date": "2026-11-03",
+    "status": "ROOT_ACCEPTED_CP311_MCA_CHECKPOINT",
+    "scope": "CP311 MCA attachment/currentness business checkpoint only; source1721 plus actual CLI1 and attachment3, installed1721 plus actual CLI1 and attachment3, and bounded usable primitive cost.",
+    "reviewed": "Root inspected all41 indexed receipts, actual installed resume and unchanged current1403source/test plus6native freeze.",
+    "retained_limits": "Original failures, installed postcheck timing failure/resume, package omissions, five reused natives, shared dependencies and all broader unexecuted gates remain recorded.",
+    "stage_gate_closed": false,
+    "global_gate_closed": false
+  },
+  "deferred_issues": "../../../../deferred_issues.md"
+}

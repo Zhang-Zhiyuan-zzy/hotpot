@@ -9,7 +9,7 @@ from tqdm import tqdm
 import torch
 from torch_geometric.data import Data
 
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.ds.providers import tmqm
 from ._base import BaseDataset
 from .utils import *
@@ -144,4 +144,3 @@ class tmQmDataset(BaseDataset):
     def get(self, idx):
         data = torch.load(self.datalist[idx], weights_only=False)
         return data
-

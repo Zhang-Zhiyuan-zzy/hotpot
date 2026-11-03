@@ -10,7 +10,7 @@ from types import SimpleNamespace
 import hotpot
 import pytest
 
-from hotpot.cheminfo.core import BondKind
+from hotpot.cheminfo.structure.bond_kind import BondKind
 
 from .corpus import DryStateCase, DryStateCorpus, DryStateSourceKind
 from .runner import DryCaseError, DryResolutionRecord, resolve_case, run_benchmark

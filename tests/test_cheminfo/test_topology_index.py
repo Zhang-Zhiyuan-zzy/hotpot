@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from hotpot.cheminfo.core import Atom, Bond, Molecule
+from hotpot.cheminfo.structure.atom import Atom
+from hotpot.cheminfo.structure.bond import Bond
+from hotpot.cheminfo.structure.molecule import Molecule
 
 
 def _molecule(

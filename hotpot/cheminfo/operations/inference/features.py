@@ -2,7 +2,8 @@
 from __future__ import annotations
 from typing import Optional, Iterable, Any
 import numpy as np
-from hotpot.cheminfo.core import Molecule, AtomPair
+from hotpot.cheminfo.structure.molecule import Molecule
+from hotpot.cheminfo.views.pairs import AtomPair
 from hotpot.cheminfo.structure._fields import ATOM_FIELDS
 from hotpot.cheminfo.operations.chemistry import _atom_projection
 from hotpot.cheminfo.rules.mathematics.graph.cycles import _cycle_basis

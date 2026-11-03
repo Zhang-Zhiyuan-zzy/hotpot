@@ -4,7 +4,8 @@ The main plan and normative companions remain in the project root (Plan21
 remains in its own project). This catalog organizes Stage0–13. Stage0–8E owning
 gates are complete within their recorded source/installed/scientific scopes;
 remaining final delivery/version/science/performance obligations stay open.
-Stage9A has bounded CP311preparation acceptance; Stage9B–13 remain open. Current navigation
+Stage9A/9B have bounded CP311source/installed acceptance; remaining MolBundle work
+blocks whole Stage9 acceptance, and Stage10–13 remain open. Current navigation
 points to stage-owned records; historical snapshots keep their original bounds.
 
 ## Markdown types
@@ -42,7 +43,7 @@ merely to fill a directory.
 | Stage6 | [stage06](stage06/README.md) | Completed owning gates; C62 delivered/remote-verified; C61 remains validated runtime source |
 | Stage7 | [stage07](stage07/README.md) | Stage7A–E accepted within recorded CP311 scopes; final delivery/version/resource obligations remain |
 | Stage8 | [stage08](stage08/README.md) | Stage8A–E accepted within recorded CP311 scopes; later/global obligations remain |
-| Stage9 | [stage09](stage09/README.md) |9Asemantic preparation accepted at CP311source/installed;9Bphysical hard cut/full-default/zero-core gates open |
+| Stage9 | [stage09](stage09/README.md) |9Asemantic preparation and9Bphysical hard cut accepted at CP311source/installed;MolBundle completion remains |
 | Stage10 | [stage10](stage10/README.md) | Planned: Complete physical package and native build migration |
 | Stage11 | [stage11](stage11/README.md) | Planned: Clean outer commands and data ownership |
 | Stage12 | [stage12](stage12/README.md) | Planned: Explicit exports, documentation, and final hardening |

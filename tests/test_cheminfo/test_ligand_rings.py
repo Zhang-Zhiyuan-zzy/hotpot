@@ -1,6 +1,6 @@
 import numpy as np
 
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 
 
 def _chelating_molecule():

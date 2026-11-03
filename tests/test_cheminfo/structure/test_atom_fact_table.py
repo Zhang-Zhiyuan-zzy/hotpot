@@ -538,11 +538,11 @@ def test_storage_leaf_import_loads_no_carrier_or_execution_backend(tmp_path):
     module = sys.modules[_AtomFactTable.__module__]
     package = Path(module.__file__).parent
     code = f"""
-import importlib.util, sys
-spec = importlib.util.spec_from_file_location('_table_leaf', {str(package / '__init__.py')!r}, submodule_search_locations=[{str(package)!r}])
-package = importlib.util.module_from_spec(spec)
-sys.modules[spec.name] = package
-spec.loader.exec_module(package)
+import sys, types
+# Isolate the storage leaf; canonical carrier bootstrap is tested separately.
+package = types.ModuleType('_table_leaf')
+package.__path__ = [{str(package)!r}]
+sys.modules[package.__name__] = package
 from _table_leaf._atom_table import _AtomFactTable
 assert _AtomFactTable().matrix().shape == (0, 16)
 for name in ('hotpot', 'rdkit', 'openbabel', 'scipy', 'thermo'):

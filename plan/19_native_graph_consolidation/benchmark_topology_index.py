@@ -10,7 +10,7 @@ import subprocess
 import sys
 from time import perf_counter_ns
 
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 
 
 def _chain(atom_count: int) -> Molecule:

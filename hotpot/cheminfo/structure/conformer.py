@@ -392,7 +392,6 @@ class Conformers:
         return self.index_attr("force", i)
 
 
-Conformers.__module__ = "hotpot.cheminfo.core"
 Conformers.add.__annotations__ = {"coords": _types.ArrayLike,
                                  "energy": Union[_types.ArrayLike, float]}
 

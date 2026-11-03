@@ -1,7 +1,7 @@
 """MCA input preparation, transfer construction and fresh carrier allocation."""
 from __future__ import annotations
 from rdkit import Chem
-from hotpot.cheminfo.core import Molecule as HotpotMolecule
+from hotpot.cheminfo.structure.molecule import Molecule as HotpotMolecule
 from hotpot.cheminfo.operations.conversion import to_hotpot_mol
 from hotpot.cheminfo.structure._results import _partial_charge_projection
 from hotpot.cheminfo.adapters.structure.inference import mca_molecule_record

@@ -16,7 +16,7 @@ from ._fields import (
     ATOM_BATCH_READONLY, ATOM_BATCH_WRITABLE, ATOM_FIELDS, ATOM_SOURCE_CODES,
     COORDINATE_FIELDS, FIELD_INDEX, DERIVED_FIELDS,
 )
-from ._identity import _SourceIdentity
+from ._source_identity import _SourceIdentity
 from ._atom_table import _seal_stereo_rows
 
 

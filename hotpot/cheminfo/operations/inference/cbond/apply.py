@@ -10,7 +10,8 @@ from typing import Any, Optional, Union
 
 import numpy as np
 
-from ....core import Atom, Molecule
+from hotpot.cheminfo.structure.atom import Atom
+from hotpot.cheminfo.structure.molecule import Molecule
 from .. import features as de
 from .constants import (
     DEFAULT_FIRST_CBOND_THRESHOLD,

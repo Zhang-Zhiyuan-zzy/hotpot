@@ -5,7 +5,7 @@ from hotpot.cheminfo.structure._selection import _capture_topology_selection
 from hotpot.cheminfo.operations.topology_queries import _components
 
 from hotpot.cheminfo import stereo
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 
 
 def _atom_record(

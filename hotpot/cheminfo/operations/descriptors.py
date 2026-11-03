@@ -63,3 +63,18 @@ def _similarity(mol, other, method, norm):
     if method == "spectrum":
         return round(mol.graph_spectral(norm) | other.graph_spectral(norm), 15)
     raise NotImplementedError
+
+
+def _cid(mol):
+    from ..pubchem import pubchem_service
+    return pubchem_service.smi_to_cid(mol.smiles)
+
+
+def _name(mol):
+    from ..pubchem import pubchem_service
+    return pubchem_service.smi_to_name(mol.smiles)
+
+
+def _cas(mol):
+    from ..pubchem import pubchem_service
+    return pubchem_service.smi_to_cas(mol.smiles)

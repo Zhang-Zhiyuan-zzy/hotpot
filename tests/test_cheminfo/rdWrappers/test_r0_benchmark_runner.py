@@ -317,7 +317,7 @@ def test_route_calls_native_generation_and_detached_semantic_observation(
 
 def _square_planar_molecule():
     from hotpot.cheminfo import stereo
-    from hotpot.cheminfo.core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
 
     molecule = Molecule()
     for atomic_number in (26, 7, 8, 9, 17):
@@ -353,7 +353,7 @@ def _square_planar_coordinates(value):
 
 
 def test_level2_observer_marks_empty_payload_not_applicable(runner):
-    from hotpot.cheminfo.core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
 
     molecule = Molecule()
     molecule._create_atom(atomic_number=6)

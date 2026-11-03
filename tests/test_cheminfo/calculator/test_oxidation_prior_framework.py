@@ -27,7 +27,7 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.providers.oxidation_priors
     _OxidationPriorArtifact,
     _OxidationStatePriorRule,
 )
-from hotpot.cheminfo.core import BondKind
+from hotpot.cheminfo.structure.bond_kind import BondKind
 
 
 def _facts(smiles="[Eu].N", coordination_bonds=((0, 1),)):

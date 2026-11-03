@@ -3,7 +3,7 @@ from dataclasses import replace
 import pytest
 from rdkit import Chem, rdBase
 
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.operations.conversion import from_rdmol, to_rdmol
 from hotpot.cheminfo.stereo import (
     BondTransportRecord,

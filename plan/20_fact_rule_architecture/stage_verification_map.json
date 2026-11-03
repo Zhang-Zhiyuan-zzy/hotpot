@@ -4737,7 +4737,7 @@
       "additional_requirements": [
         "zero core imports including plugins/typing/string entry points; sole class identity and full default suite"
       ],
-      "execution_status": "not_executed_by_inventory_capture",
+      "execution_status": "9A_9B_CP311_accepted_MolBundle_completion_pending",
       "preparation_9A": {
         "status": "root_accepted_CP311_source_installed",
         "focused_test_files": [
@@ -4776,6 +4776,45 @@
         "ordinary_skip_per_boundary": 0,
         "checkpoint": "stages/stage09/carriers/validation/checkpoint.json",
         "scope": "Residual queries and named workflows; physical9B/full default/zero-core/plugin gate remain open."
+      },
+      "stage_gate_closed": false,
+      "global_gate_closed": false,
+      "cutover_9B": {
+        "status": "root_accepted_CP311_source_installed",
+        "checkpoint": "stages/stage09/cutover/validation/checkpoint.json",
+        "scope": "Sole physical carrier/view definitions,current pickle/native identities,zero core and source/installed affected contracts.",
+        "actual_full_default_source_R3": {
+          "passed": 6533,
+          "ordinary_skipped": 128,
+          "xfail": 3,
+          "failures": 0,
+          "errors": 0
+        },
+        "focused_source_installed_R4": {
+          "passed_each": 192,
+          "skipped_each": 0
+        },
+        "connected_source_R3": {
+          "passed": 1536,
+          "ordinary_skipped": 2,
+          "xfail": 3
+        },
+        "connected_installed_R5": {
+          "passed": 1535,
+          "ordinary_skipped": 3,
+          "xfail": 3
+        },
+        "consumer_imports_source_installed_R4": {
+          "passed_each": 12,
+          "real_optional_environment": "CPU Torch2.7.1+cpu/PyG2.6.1,CP311"
+        },
+        "source_path_regressions_R5": {
+          "passed": 18,
+          "skipped": 0
+        },
+        "ordered_source_installed_affected_nodeids_equal": true,
+        "scope_note": "R3products unchanged through R5; only4test path/scope fixes. Complete default is retained actual R3run,not a fresh R5run. One installed-only skip is private sampler.cpp source-text fixture,not native execution.",
+        "remaining": "MolBundle rows9.2-026/9.6-006;Stage10+global obligations."
       }
     },
     "Stage10": {

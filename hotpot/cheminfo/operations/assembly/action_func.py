@@ -4,7 +4,7 @@ from dataclasses import replace
 from math import isfinite
 from typing import Callable, Literal, Union
 
-from ...core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from ...structure.bond_kind import BondKind
 from ...rules.chemistry.bonding.hydrogen import _calculate_implicit_hydrogens
 from ...structure._commit import _FactTransaction, _commit_atom_facts, _commit_bond_facts

@@ -18,7 +18,7 @@ from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver impo
 )
 from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
 from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 
 
 def _state(mol: Molecule, charge: int, two_s: int) -> ScientificStateBundle:

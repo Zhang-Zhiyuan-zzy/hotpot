@@ -128,3 +128,19 @@ class _ConstraintSet:
             {uid: self.atom_axes[uid] for uid in members},
             {uid: self.bond_values[uid] for uid in bonds},
         )
+
+
+def _bind_constraint_members(mol):
+    for atom in mol._atoms:
+        object.__setattr__(atom, '_constraint_values', mol._constraints.atom_axes)
+    for bond in mol._bonds:
+        object.__setattr__(bond, '_constraint_values', mol._constraints.bond_values)
+
+
+def _filter_constraint_members(mol):
+    atoms = {atom._uid for atom in mol._atoms}
+    bonds = {bond._uid for bond in mol._bonds}
+    if mol._constraints.atom_axes.keys() == atoms and mol._constraints.bond_values.keys() == bonds:
+        return
+    mol._constraints = mol._constraints.subset(atoms, bonds)
+    _bind_constraint_members(mol)

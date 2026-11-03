@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from hotpot.cheminfo.rules.mathematics.internal_coordinates import InternalCoordinates
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.rules.mathematics.graph.components import connected_components
 from hotpot.cheminfo.rules.mathematics.graph.paths import (
     all_simple_paths,

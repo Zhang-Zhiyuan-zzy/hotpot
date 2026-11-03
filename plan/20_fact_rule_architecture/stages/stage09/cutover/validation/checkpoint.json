@@ -1,0 +1,347 @@
+{
+  "architecture": {
+    "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/architecture-R5.json",
+    "sha256": "7c543b3ba4494aa5490251dc94d381e186197a2184463b28f2ba3a021f5210b6"
+  },
+  "archive_manifest": {
+    "all_copies_verified": true,
+    "entry_count": 2396,
+    "path": ".plan20-artifacts/20261104/stage9b/cutover/manifest.json",
+    "sha256": "18a8e6e3a08faa3a68ac9f14cd155133a69455c318252604f3e3267dc4b4a7fc",
+    "total_bytes": 109512531
+  },
+  "bounded_stage_gate": true,
+  "failed_attempts": {
+    "installed-connected-attempt01": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/installed-connected-attempt01/execution.json",
+        "sha256": "37241f47e4bb6fd2a4caf04185db9b7ce5736001d840d0db94107e7293d6def6"
+      },
+      "result": {
+        "errors": 0,
+        "failures": 2,
+        "ordinary_skip": 2,
+        "passed": 1534,
+        "skipped": 5,
+        "tests": 1541,
+        "xfail": 3
+      },
+      "returncode": 1
+    },
+    "installed-focused-attempt01": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/installed-focused-attempt01/execution.json",
+        "sha256": "ae0d1d90ffa95d22f02997083b933a4f6e04718bd251cb3fa1857c7d60fcb618"
+      },
+      "result": {
+        "errors": 0,
+        "failures": 7,
+        "ordinary_skip": 0,
+        "passed": 185,
+        "skipped": 0,
+        "tests": 192,
+        "xfail": 0
+      },
+      "returncode": 1
+    },
+    "source-connected-attempt01": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-connected-attempt01/execution.json",
+        "sha256": "21b4f07685b695620b344f490d9af7e69624c249cd11fb3f32afd18fcb49049a"
+      },
+      "result": {
+        "errors": 0,
+        "failures": 1,
+        "ordinary_skip": 2,
+        "passed": 1258,
+        "skipped": 5,
+        "tests": 1264,
+        "xfail": 3
+      },
+      "returncode": 1
+    },
+    "source-consumers-attempt01": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-consumers-attempt01/execution.json",
+        "sha256": "d25d36c3df520f55092b2c8130d63e95635fc763c0b1d7edeb14735b23ffc4c0"
+      },
+      "result": {
+        "errors": 0,
+        "failures": 4,
+        "ordinary_skip": 0,
+        "passed": 8,
+        "skipped": 0,
+        "tests": 12,
+        "xfail": 0
+      },
+      "returncode": 1
+    },
+    "source-default-attempt01": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-default-attempt01/execution.json",
+        "sha256": "7ea5d651f092a0b878dd66917e54449953f138b50a9d2e3781c3de6caece2e0f"
+      },
+      "result": {
+        "errors": 0,
+        "failures": 9,
+        "ordinary_skip": 128,
+        "passed": 6521,
+        "skipped": 131,
+        "tests": 6661,
+        "xfail": 3
+      },
+      "returncode": 1
+    }
+  },
+  "final_revision": "R5",
+  "freeze": {
+    "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/freeze.json",
+    "sha256": "de1779e072f764cab4c7cda87335d5cce70ac24578de823bd1977dfbdcc01ed5"
+  },
+  "limits": [
+    "Retained R3 default/source-connected evidence plus targeted R4/R5 revalidation is not a new whole R5 source/default run.",
+    "Installed evidence covers selected CP311 contracts only; source-only private sampler.cpp check is explicitly skipped in the wheel.",
+    "Only six previously accepted CP311 native binaries are reused; 33 frozen version-specific binaries do not receive additional acceptance.",
+    "No clean-native build, SDK, sdist, other Python version, scientific experiment, performance comparison, or global acceptance evidence is claimed.",
+    "Stage9 remains incomplete: MolBundle rows 9.2-026 and 9.6-006 remain next."
+  ],
+  "optional_environment": {
+    "path": ".plan20-artifacts/20261104/stage9b/cutover/medium/stage9b-pyg-environment-20261104/receipt.json",
+    "sha256": "2bb9eb86906daa777dec9ed2d14119cf6b62e0dfa2bdda0d270be45060f9cf15"
+  },
+  "ordered_nodeids": {
+    "path": ".plan20-artifacts/20261104/stage9b/cutover/derived/ordered-nodeid-comparison.json",
+    "sha256": "a1f2d45abda83b6ba45dbaa6d55323d356282ddbf2a977c741de01006ac76f10"
+  },
+  "overall_gate": false,
+  "private_wheel": {
+    "path": ".plan20-artifacts/20261104/stage9b/cutover/derived/wheel-native-identity.json",
+    "sha256": "d73f28fb9afed939d376fa3e8a692eebac54f22417f8af15f7d506f42c85f643"
+  },
+  "remaining_stage9_rows": [
+    "9.2-026",
+    "9.6-006"
+  ],
+  "revision_provenance": {
+    "path": ".plan20-artifacts/20261104/stage9b/cutover/derived/revision-comparison.json",
+    "sha256": "84946e6a2443124b356e891b6dcb7fa910b03d5100fc7e086007dc757c9a8a45"
+  },
+  "root_acceptance_pending": false,
+  "schema_version": 1,
+  "selected_runs": {
+    "installed-connected-attempt02": {
+      "elapsed_seconds": 33.07122245058417,
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/installed-connected-attempt02/execution.json",
+        "sha256": "fe41277fb9e4ba0b1721286838a5ca21d1e5f85ab67a0d627c7ca4908bd17fc6"
+      },
+      "imported_product_modules": 349,
+      "optional_dependency_environment": false,
+      "origin_leaks": [],
+      "origin_receipts": 213,
+      "result": {
+        "errors": 0,
+        "failures": 0,
+        "ordinary_skip": 3,
+        "passed": 1535,
+        "skipped": 6,
+        "tests": 1541,
+        "xfail": 3
+      },
+      "revision": "R5"
+    },
+    "installed-consumers-attempt01": {
+      "elapsed_seconds": 3.917178113013506,
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/installed-consumers-attempt01/execution.json",
+        "sha256": "0ec5de9723dddad6491bacfa61888027c0bab8c285e4b35ba0905bfd9262184d"
+      },
+      "imported_product_modules": 245,
+      "optional_dependency_environment": true,
+      "origin_leaks": [],
+      "origin_receipts": 1,
+      "result": {
+        "errors": 0,
+        "failures": 0,
+        "ordinary_skip": 0,
+        "passed": 12,
+        "skipped": 0,
+        "tests": 12,
+        "xfail": 0
+      },
+      "revision": "R4"
+    },
+    "installed-focused-attempt02": {
+      "elapsed_seconds": 14.552567275241017,
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/installed-focused-attempt02/execution.json",
+        "sha256": "f926d7bde3ee9b44a37a751b8a77f6a83fe2d442f4fcbfb12311b268fb8f68d1"
+      },
+      "imported_product_modules": 172,
+      "optional_dependency_environment": false,
+      "origin_leaks": [],
+      "origin_receipts": 19,
+      "result": {
+        "errors": 0,
+        "failures": 0,
+        "ordinary_skip": 0,
+        "passed": 192,
+        "skipped": 0,
+        "tests": 192,
+        "xfail": 0
+      },
+      "revision": "R4"
+    },
+    "source-connected-attempt03": {
+      "elapsed_seconds": 34.10578124970198,
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-connected-attempt03/execution.json",
+        "sha256": "5fae28e72dddffc552c7c461581c8f351d8ddd1ff6562ae97c60ae6c7db8b76b"
+      },
+      "imported_product_modules": 349,
+      "optional_dependency_environment": false,
+      "origin_leaks": [],
+      "origin_receipts": 213,
+      "result": {
+        "errors": 0,
+        "failures": 0,
+        "ordinary_skip": 2,
+        "passed": 1536,
+        "skipped": 5,
+        "tests": 1541,
+        "xfail": 3
+      },
+      "revision": "R3"
+    },
+    "source-consumers-attempt02": {
+      "elapsed_seconds": 4.011922396719456,
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-consumers-attempt02/execution.json",
+        "sha256": "7b233199a00b73348aeb65e4f6fd956ab227b09018fabd016be5e64ecd9d85e4"
+      },
+      "imported_product_modules": 245,
+      "optional_dependency_environment": true,
+      "origin_leaks": [],
+      "origin_receipts": 1,
+      "result": {
+        "errors": 0,
+        "failures": 0,
+        "ordinary_skip": 0,
+        "passed": 12,
+        "skipped": 0,
+        "tests": 12,
+        "xfail": 0
+      },
+      "revision": "R4"
+    },
+    "source-contracts-attempt02": {
+      "elapsed_seconds": 1.0573194492608309,
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-contracts-attempt02/execution.json",
+        "sha256": "b538fd7a019d98a47da785a482e5ee215e9be9f9370c434ce1b62c0c52909e27"
+      },
+      "imported_product_modules": 156,
+      "optional_dependency_environment": false,
+      "origin_leaks": [],
+      "origin_receipts": 1,
+      "result": {
+        "errors": 0,
+        "failures": 0,
+        "ordinary_skip": 0,
+        "passed": 1,
+        "skipped": 0,
+        "tests": 1,
+        "xfail": 0
+      },
+      "revision": "R3"
+    },
+    "source-default-attempt02": {
+      "elapsed_seconds": 315.3683473430574,
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-default-attempt02/execution.json",
+        "sha256": "e71416c5038bf1b02b6acafaa0d0af2189f75e8d175307c8f32367507ad0a44f"
+      },
+      "imported_product_modules": 397,
+      "optional_dependency_environment": false,
+      "origin_leaks": [],
+      "origin_receipts": 542,
+      "result": {
+        "errors": 0,
+        "failures": 0,
+        "ordinary_skip": 128,
+        "passed": 6533,
+        "skipped": 131,
+        "tests": 6664,
+        "xfail": 3
+      },
+      "revision": "R3"
+    },
+    "source-focused-attempt03": {
+      "elapsed_seconds": 16.042896457016468,
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-focused-attempt03/execution.json",
+        "sha256": "730b90fc8d152c96f84a8044226d6e238ce8a2a6b341fccbb5237c845d5123fa"
+      },
+      "imported_product_modules": 172,
+      "optional_dependency_environment": false,
+      "origin_leaks": [],
+      "origin_receipts": 19,
+      "result": {
+        "errors": 0,
+        "failures": 0,
+        "ordinary_skip": 0,
+        "passed": 192,
+        "skipped": 0,
+        "tests": 192,
+        "xfail": 0
+      },
+      "revision": "R4"
+    },
+    "source-path-regressions-attempt01": {
+      "elapsed_seconds": 2.082734016701579,
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-path-regressions-attempt01/execution.json",
+        "sha256": "19c7ff8812c382e1feed59391e189b294df80479a3c46f84a05edb1f99822ffb"
+      },
+      "imported_product_modules": 181,
+      "optional_dependency_environment": false,
+      "origin_leaks": [],
+      "origin_receipts": 3,
+      "result": {
+        "errors": 0,
+        "failures": 0,
+        "ordinary_skip": 0,
+        "passed": 18,
+        "skipped": 0,
+        "tests": 18,
+        "xfail": 0
+      },
+      "revision": "R5"
+    }
+  },
+  "source_head": "958bdd9b4757160aa57c4dc8eef91a8bb71587d5",
+  "stage": "Plan20 Stage9B bounded carrier cutover",
+  "stage9_gate": false,
+  "static_verification": {
+    "path": ".plan20-artifacts/20261104/stage9b/cutover/derived/finalization-verification.json",
+    "sha256": "2dbad04c91927666f2f8a9aac04df0dcf16c5637a68c4ef2bdc60c941859a419"
+  },
+  "status": "ROOT_ACCEPTED_CP311_SOURCE_INSTALLED_CARRIER_CUTOVER",
+  "type_census": {
+    "classes": 770,
+    "dataclasses": 355,
+    "historical_bare_protocols": 8,
+    "python_files": 508,
+    "typed_dicts": 2
+  },
+  "type_census_evidence": {
+    "path": ".plan20-artifacts/20261104/stage9b/cutover/derived/census-R5.json",
+    "sha256": "c2ff6e069a2ecf36a1133e3de3f604f65e6243a64da1aaf7654e4ce2946d094b"
+  },
+  "root_acceptance": {
+    "utc": "2026-11-03T23:08:40.169915+00:00",
+    "decision": "Accept the bounded Stage9B sole-owner core cutover at the tested CP311 source and installed boundaries. Reuse actual unchanged R3 evidence with targeted R4/R5 revalidation. Stage9 collection completion and all later/global obligations remain open.",
+    "root_integrity_review": "All 2396 archive file sizes/hashes and all draft evidence references verified; selected execution results matched their raw receipts; final frozen product/test/support bindings verified before commit.",
+    "checks_are_attribution": "Artifact hashes bind tested source and evidence; chemical meaning is supported by executed contracts and business behavior, not by hashes alone."
+  }
+}

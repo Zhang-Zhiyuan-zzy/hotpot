@@ -10,7 +10,7 @@ from .reports import _execution_report
 
 
 if TYPE_CHECKING:
-    from ..core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
 
 
 __all__ = ("build",)

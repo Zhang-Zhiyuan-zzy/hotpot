@@ -40,7 +40,7 @@ def _fact_engine():
                               "build/install Hotpot for this Python version") from error
         from ._fields import ATOM_FIELDS, FIELD_PRESENCE_BITS, ATOM_BATCH_WRITABLE, ATOM_BATCH_READONLY, ALIAS_TARGETS, ATOM_SCALAR_READONLY, DERIVED_FIELDS
         from ._dependencies import GROUPS, _FIELD_EFFECTS, _FactStatus
-        from ._identity import _SourceIdentity
+        from ._source_identity import _SourceIdentity
         from ._mutation import _AtomFactUpdate
         from ._atom_table import _AtomFactTable
         from ..reference.properties import _atomic_number_for_symbol

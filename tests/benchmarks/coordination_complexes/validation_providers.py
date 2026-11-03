@@ -32,7 +32,7 @@ from hotpot.cheminfo.operations.topology_queries import _components
 from hotpot.cheminfo.structure._selection import _capture_topology_selection
 
 if TYPE_CHECKING:
-    from hotpot.cheminfo.core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
 
 
 FROZEN_PROPOSAL_SCHEMA_VERSION = 1

@@ -2,7 +2,7 @@
 
 This module is the only geometry layer that understands the structural shape
 of Hotpot atoms, bonds, rings, and molecules.  It intentionally uses narrow
-protocols instead of importing :mod:`hotpot.cheminfo.core` at runtime.
+protocols instead of importing concrete carrier definitions at runtime.
 """
 
 from __future__ import annotations

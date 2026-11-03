@@ -1,6 +1,5 @@
 """One projection per complete write, frame transport and public I/O behavior."""
 from contextlib import ExitStack
-from dataclasses import astuple
 from io import BytesIO, FileIO, StringIO
 import importlib
 from types import SimpleNamespace
@@ -13,12 +12,12 @@ import hotpot
 from hotpot import Molecule, read_mol
 from hotpot.cheminfo.operations import conversion, io
 from hotpot.cheminfo.adapters.openbabel import conversion as ob_adapter
-from hotpot.cheminfo.structure._builder import _freeze_value
+from tests.test_cheminfo._stage5_fixtures import immutable_snapshot
 
 
 def _facts(mol):
     record, metadata = mol._capture_factual_record()
-    return astuple(record), _freeze_value(metadata)
+    return immutable_snapshot(record), immutable_snapshot(metadata)
 
 
 def _frames():

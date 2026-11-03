@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "stage": "Stage9B",
+  "date": "2026-11-04",
+  "parent_head": "958bdd9b4757160aa57c4dc8eef91a8bb71587d5",
+  "status": "ROOT_ACCEPTED_CP311_SOURCE_INSTALLED_CARRIER_CUTOVER",
+  "predecessor": "../carriers/validation/checkpoint.json",
+  "stage9_gate_closed": false,
+  "global_gate_closed": false,
+  "authoring_release": true,
+  "runtime_release": true,
+  "alignment": "Current goal, main6/7/9.1/9.5/Stage9, accepted9A source/installed checkpoint, both governance references, interface/budget/verification companions and actual source. Valid unchanged alignment is reused under owner direction.",
+  "documents_at_entry": {
+    "goal.md": "76bccaac0a87a331f816f5a264461d192ab5afbb2daa6dfee48ea33f5f7fdbed",
+    "fact_rule_architecture_implementation_plan.md": "fe8674df0b17fab74098b83ad4b5ce286da3394e4026abf75bdbcabdb17acf6b",
+    "chemical_type_interface_contract.md": "0c21630964e264e1f4e03f3b5938787cddbfacceb2616dd51b547d93686642bf",
+    "model_allocation.md": "c7b69392b0e9da7a0575a7ff0919fa55c0903326e6ce920b03302c69db5f718a",
+    "stage_verification_map.json": "c38137c53ca21a0b9bc4d5e0dad960fb97904fe4e2dbd61f1f50342a45fb5d07",
+    "data_object_budget.json": "e924d809c054f8cdbd6f0a9f0ebfaa11e39ac76e14d1d70d5fe183d7c0e4bd31",
+    "stages/stage09/carriers/validation/checkpoint.json": "14f26c15c91ca3da1e743ef5cb220095e1df8fb5a4795db5d89a659c9bb4df84"
+  },
+  "captured_core": {
+    "head": "958bdd9b4757160aa57c4dc8eef91a8bb71587d5",
+    "source": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/core.py",
+    "copy": "/tmp/hotpot_plan20/long/stage9b-entry-20261104/authoring-input/core.py",
+    "sha256": "ab458bd9d9f7dc7e2d8d7dff6218b943001d6becc8d8d7364cdbe0796a1a3aed",
+    "copy_matches": true
+  },
+  "contract_baseline": {
+    "path": "/tmp/hotpot_plan20/long/stage9b-entry-20261104/contracts/baseline.json",
+    "sha256": "407cb8a8b7c13cb2957d23693fcd9c27e586c02a53a102d9699bf8917decdaae"
+  },
+  "scope": "Single physical carrier/view definitions, once-only initialization, exact signatures/defaults, current pickle/lifecycle, all active consumers and zero core hard cut.",
+  "expected_differences": [
+    "Defining module paths and real current-version pickle callable paths",
+    "Historical core-path pickle rejection as approved",
+    "Parser implementation binding digest",
+    "Finite after-definition completion of existing quoted-annotation namespaces"
+  ],
+  "held": [
+    "Source execution until root-integrated static/source-ready review and freeze",
+    "Installed validation until source review",
+    "Stage9/global acceptance; Stage10 clean-native/SDK/sdist/other-version and final science/performance/GPU/Plan12/P20-D026"
+  ],
+  "rollback_boundary": "958bdd9b4757160aa57c4dc8eef91a8bb71587d5",
+  "temporary_authoring_rule": "All class movement remains uncommitted and unavailable for runtime until integrated; core is deleted with the final consumer in the same validated business commit.",
+  "source_ready_review": {
+    "utc": "2026-11-03T22:26:45.578613+00:00",
+    "root_decision": "Release frozen CP311 contracts, focused and complete default source suite; installed requires subsequent source review. No scientific/backend/native build/global acceptance.",
+    "architecture": {
+      "path": "/tmp/hotpot_plan20/long/stage9b-entry-20261104/architecture.json",
+      "sha256": "d39783c86449193e48ea7ef5f13c074eebb5578ee4a22cbfc6d885c04aaad9c4",
+      "status": "passed",
+      "remaining_debt": 24,
+      "legacy_core_findings": 0
+    },
+    "independent_static_review": "/tmp/hotpot_plan20/medium/stage9b-review-20261104/integration-review.json",
+    "static_preservation": "Original method declarations preserved; moved docstring trailing whitespace cleaned without changing executable AST. Runtime comparisons remain separate.",
+    "core_deleted": true,
+    "extra_gates": [
+      "Full default suite",
+      "Affected installed CP311 selection outside checkout",
+      "Real current pickle/native callback/cold import evidence",
+      "Root integration and Git delivery"
+    ]
+  },
+  "retained_default_failure": {
+    "attempt": "source-default-attempt01",
+    "tests": 6661,
+    "passed": 6521,
+    "failed": 9,
+    "errors": 0,
+    "ordinary_skipped": 128,
+    "xfail": 3,
+    "freeze_verified": true,
+    "origin_leaks": [],
+    "repair": "Pure-rule dependency ownership and all active plan consumers; obsolete crystal/array/partial-charge checker assumptions and overloaded worker-test deadline. No gate waiver."
+  },
+  "source_ready_review_R3": {
+    "utc": "2026-11-03T22:47:49.118472+00:00",
+    "root_decision": "Release freshly frozen R3 CP311 declarations, focused, connected, full-default and import-only consumer source checks; installed validation requires separate successful source review. No native build or global acceptance.",
+    "architecture": {
+      "path": "/tmp/hotpot_plan20/long/stage9b-entry-20261104/architecture-R3-final.json",
+      "status": "passed",
+      "scanned_python_files": 1016,
+      "legacy_consumer_python_files": 1054,
+      "remaining_debt": 24,
+      "legacy_core_findings": 0
+    },
+    "product_census": {
+      "python_files": 508,
+      "classes": 770,
+      "dataclasses": 355,
+      "protocols": 8,
+      "typed_dicts": 2
+    },
+    "correction_scope": "S9B-06 pure N01 declaration plus current consumers/parser/budget; four existing test repairs and actual Plan17/19/20 script imports. Original failed evidence retained.",
+    "retained_inputs": "/tmp/hotpot_plan20/long/stage9b-entry-20261104/validation/retained-R2-inputs/manifest.json"
+  },
+  "installed_release": {
+    "utc": "2026-11-03T22:56:25.764980+00:00",
+    "root_decision": "Release private prebuilt-copy package/install and affected CP311 installed focused/connected checks. Source full default passed6533 with128ordinary skips/3known xfails; no drift or leak. Consumer smoke8passed/4missingTorch failures retained, not source defects or passing plugin evidence. Obtain real PyG environment source/installed imports separately before claiming that gate.",
+    "native_build": false,
+    "stage9_acceptance": false
+  },
+  "R4_review": {
+    "utc": "2026-11-03T22:59:24.558414+00:00",
+    "root_decision": "Release focused source/installed and connected installed; source/installed consumer imports require real optional dependencies. All R3production/support/remaining tests unchanged.",
+    "changed_tests": [
+      "tests/test_cheminfo/structure/test_bond_kind.py",
+      "tests/test_cheminfo/structure/test_uid_lifecycle.py"
+    ],
+    "evidence": "/tmp/hotpot_plan20/long/stage9b-entry-20261104/validation/R3-R4-provenance.json",
+    "R3_full_default_reuse": "Retain actual complete R3result; replace affected2file coverage by R4focused, not a new whole-default execution."
+  },
+  "R5_review": {
+    "utc": "2026-11-03T23:02:16.304109+00:00",
+    "root_decision": "Release two-file source path regressions and complete installed connected retry; reuse unchanged passed scopes.",
+    "reason": "Pipeline guide exists in wheel but test used checkout-relative path; sampler.cpp is an explicitly excluded private source-only architecture fixture. Actual native execution remains selected.",
+    "products_and_support_unchanged": true,
+    "evidence": "/tmp/hotpot_plan20/long/stage9b-entry-20261104/validation/R4-R5-provenance.json"
+  },
+  "bounded_stage_gate_closed": true,
+  "root_acceptance": {
+    "utc": "2026-11-03T23:08:40.169915+00:00",
+    "checkpoint": "validation/checkpoint.json",
+    "scope": "CP311 carrier cutover only; whole Stage9 and global gates remain open."
+  }
+}

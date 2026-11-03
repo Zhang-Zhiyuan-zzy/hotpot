@@ -162,260 +162,6 @@ def calculate(snapshot):
     assert audit.layer_findings("hotpot/cheminfo/rules/example.py", source) == []
 
 
-_CORE_IMPORT_SOURCE = {
-    "rule": "legacy_core_import", "path": "hotpot/cheminfo/convert.py",
-    "scope": "", "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule",
-    "stage": "Stage9", "line": 10,
-}
-_CORE_IMPORT_DESTINATION = {
-    **_CORE_IMPORT_SOURCE, "path": "hotpot/cheminfo/operations/conversion.py",
-    "scope": "_molecule_type", "line": 20,
-}
-
-
-def test_approved_core_lookup_relocation_uses_one_existing_ceiling_slot():
-    old, new = _CORE_IMPORT_SOURCE, _CORE_IMPORT_DESTINATION
-    assert audit.ratchet_findings([new], [new], [old])["allowlist_growth"]
-    assert not any(audit.stage7a_ratchet_findings([new], [new], [old], [old]).values())
-    shifted = {**new, "line": 200}
-    assert not any(audit.stage7a_ratchet_findings([shifted], [new], [old], [old]).values())
-    assert not any(audit.stage7a_ratchet_findings([new], [new], [new], [old]).values())
-    assert not any(audit.stage7a_ratchet_findings([], [], [new], [old]).values())
-    assert audit.stage7a_ratchet_findings([new], [new], [], [old])["allowlist_growth"]
-    assert audit.stage7a_ratchet_findings([new], [new], [old], [])["exceeds_frozen_inventory"]
-
-
-@pytest.mark.parametrize("field,value", [
-    ("path", "hotpot/cheminfo/operations/other.py"),
-    ("scope", "other"),
-    ("scope", "_molecule_type.nested"),
-    ("target", "hotpot.cheminfo.core.Atom"),
-    ("local", "OtherMolecule"),
-    ("rule", "other_import"),
-    ("kind", "other"),
-])
-def test_core_import_relocation_cannot_authorize_another_identity(field, value):
-    old = _CORE_IMPORT_SOURCE
-    changed = {**_CORE_IMPORT_DESTINATION, field: value}
-    report = audit.stage7a_ratchet_findings([changed], [changed], [old], [old])
-    assert report["allowlist_growth"]
-    assert report["exceeds_frozen_inventory"]
-
-
-@pytest.mark.parametrize("source_path", [
-    "hotpot/cheminfo/core_utils.py", "hotpot/cheminfo/_io/_io.py", "hotpot/cheminfo/draw.py",
-])
-def test_other_retired_core_imports_supply_no_relocation_credit(source_path):
-    old = {**_CORE_IMPORT_SOURCE, "path": source_path}
-    new = _CORE_IMPORT_DESTINATION
-    report = audit.stage7a_ratchet_findings([new], [new], [old], [old])
-    assert report["allowlist_growth"]
-    assert report["exceeds_frozen_inventory"]
-
-
-def test_core_import_relocation_preserves_multiplicity_and_actual_allowlist_matching():
-    old, new = _CORE_IMPORT_SOURCE, _CORE_IMPORT_DESTINATION
-    report = audit.stage7a_ratchet_findings([old, new], [old, new], [old], [old])
-    assert report["allowlist_growth"] and report["exceeds_frozen_inventory"]
-    report = audit.stage7a_ratchet_findings([new, new], [new, new], [old], [old])
-    assert len(report["allowlist_growth"]) == len(report["exceeds_frozen_inventory"]) == 1
-    assert audit.stage7a_ratchet_findings([new, new], [new], [old], [old])["new_debt"]
-    assert audit.stage7a_ratchet_findings([new], [old], [old], [old])["new_debt"]
-    assert audit.stage7a_ratchet_findings([new], [old], [old], [old])["unretired_allowlist_entries"]
-    assert audit.stage7a_ratchet_findings([], [new], [old], [old])["unretired_allowlist_entries"]
-    assert audit.stage7a_ratchet_findings([old], [old], [new], [old])["allowlist_growth"]
-
-
-def test_core_import_relocation_does_not_hide_other_frozen_inventory_growth():
-    old, new = _CORE_IMPORT_SOURCE, _CORE_IMPORT_DESTINATION
-    other = {**old, "path": "hotpot/cheminfo/operations/other.py"}
-    report = audit.stage7a_ratchet_findings([new, other], [new, other], [old], [old])
-    assert report["allowlist_growth"] == [audit.debt_key(other)]
-    assert report["exceeds_frozen_inventory"] == [audit.debt_key(other)]
-
-
-def test_relocated_core_import_is_captured_at_its_real_source_scope(tmp_path):
-    path = _CORE_IMPORT_DESTINATION["path"]
-    source = "def _molecule_type():\n    from ..core import Molecule\n    return Molecule\n"
-    target = tmp_path / path
-    target.parent.mkdir(parents=True)
-    target.write_text(source)
-    rows = audit.inventory.static_capture([path], root=tmp_path)["architecture_debt"]
-    assert len(rows) == 1
-    assert audit.debt_key(rows[0]) == audit.debt_key(_CORE_IMPORT_DESTINATION)
-    assert rows[0]["stage"] == "Stage9"
-    assert audit.layer_findings(path, source) == []
-
-
-@pytest.mark.parametrize("source", [
-    "from ..core import Molecule",
-    "class _molecule_type:\n    from ..core import Molecule",
-    "async def _molecule_type():\n    from ..core import Molecule",
-    "def _molecule_type(argument):\n    from ..core import Molecule",
-    "@decorator\ndef _molecule_type():\n    from ..core import Molecule",
-    "def _molecule_type():\n    class Nested:\n        from ..core import Molecule",
-    "def _molecule_type():\n    def nested():\n        from ..core import Molecule",
-    "def _molecule_type():\n    from ..core import Molecule as Molecule",
-    "def _molecule_type():\n    from ..core import Molecule as Other",
-    "def _molecule_type():\n    from ..core import Molecule, Atom",
-    "def _molecule_type():\n    from ..core import Atom",
-    "def _molecule_type():\n    from .. import core",
-])
-def test_core_lookup_relocation_has_exact_function_scope_and_binding(source):
-    assert audit.layer_findings(_CORE_IMPORT_DESTINATION["path"], source)
-
-
-_SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS = tuple(
-    (
-        {"rule": "legacy_core_import",
-         "path": "hotpot/cheminfo/calculator/state_resolver.py", "scope": "",
-         "target": f"hotpot.cheminfo.core.{symbol}", "local": symbol,
-         "stage": "Stage9", "line": 10},
-        {"rule": "legacy_core_import",
-         "path": ("hotpot/cheminfo/operations/calculation/scientific_state/facts.py"
-                  if symbol == "Molecule"
-                  else "hotpot/cheminfo/adapters/structure/scientific_state.py"), "scope": "",
-         "target": f"hotpot.cheminfo.core.{symbol}", "local": symbol,
-         "stage": "Stage9", "line": 9},
-    )
-    for symbol in ("Bond", "BondKind", "Molecule")
-)
-
-
-@pytest.mark.parametrize("old,new", _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS)
-def test_scientific_state_core_relocation_uses_only_its_existing_slot(old, new):
-    assert audit.ratchet_findings([new], [new], [old])["allowlist_growth"]
-    assert not any(audit.stage7a_ratchet_findings([new], [new], [old], [old]).values())
-    shifted = {**new, "line": 200}
-    assert not any(audit.stage7a_ratchet_findings([shifted], [new], [old], [old]).values())
-    assert not any(audit.stage7a_ratchet_findings([new], [new], [new], [old]).values())
-    assert not any(audit.stage7a_ratchet_findings([], [], [new], [old]).values())
-
-
-_NATIVE_TRANSPORT_CORE_IMPORT_SOURCE = {
-    "rule": "legacy_core_import", "path": "hotpot/cheminfo/forcefields/native.py",
-    "scope": "", "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule",
-    "stage": "Stage9", "line": 39,
-}
-_NATIVE_TRANSPORT_CORE_IMPORT_DESTINATION = {
-    **_NATIVE_TRANSPORT_CORE_IMPORT_SOURCE,
-    "path": "hotpot/cheminfo/adapters/native/forcefields/native.py", "line": 41,
-}
-
-
-_COMMAND_CORE_IMPORT_SOURCE = {
-    "rule": "legacy_core_import", "path": "hotpot/cheminfo/forcefields/cli.py",
-    "scope": "", "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule",
-    "stage": "Stage9", "line": 46,
-}
-_COMMAND_CORE_IMPORT_DESTINATION = {
-    **_COMMAND_CORE_IMPORT_SOURCE, "path": "hotpot/commands/ff.py", "line": 46,
-}
-_TRANSPORT_CORE_IMPORT_TRANSFERS = (
-    (_NATIVE_TRANSPORT_CORE_IMPORT_SOURCE, _NATIVE_TRANSPORT_CORE_IMPORT_DESTINATION),
-    (_COMMAND_CORE_IMPORT_SOURCE, _COMMAND_CORE_IMPORT_DESTINATION),
-)
-
-
-def test_all_fixed_core_relocations_preserve_both_historical_ceilings():
-    pairs = ((_CORE_IMPORT_SOURCE, _CORE_IMPORT_DESTINATION),
-             *_SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS,
-             *_TRANSPORT_CORE_IMPORT_TRANSFERS)
-    old = [source for source, _ in pairs]
-    new = [destination for _, destination in pairs]
-    for previous in (old, new, [new[0], *old[1:]], [old[0], *new[1:]]):
-        assert not any(audit.stage7a_ratchet_findings(new, new, previous, old).values())
-    assert not any(audit.stage7a_ratchet_findings([], [], new, old).values())
-
-
-@pytest.mark.parametrize("old,new", _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS)
-@pytest.mark.parametrize("field,value", [
-    ("path", "hotpot/cheminfo/adapters/structure/other.py"),
-    ("scope", "extract_molecular_facts"),
-    ("scope", "extract_molecular_facts.nested"),
-    ("target", "hotpot.cheminfo.core.Atom"),
-    ("local", "OtherCarrier"),
-    ("rule", "other_import"),
-    ("kind", "other"),
-])
-def test_scientific_state_relocation_rejects_another_identity(old, new, field, value):
-    changed = {**new, field: value}
-    report = audit.stage7a_ratchet_findings([changed], [changed], [old], [old])
-    assert report["allowlist_growth"]
-    assert report["exceeds_frozen_inventory"]
-
-
-@pytest.mark.parametrize("old,new", _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS)
-@pytest.mark.parametrize("field,value", [
-    ("path", "hotpot/cheminfo/calculator/other.py"),
-    ("scope", "extract_molecular_facts"),
-    ("target", "hotpot.cheminfo.core.Atom"),
-    ("local", "OtherCarrier"),
-])
-def test_scientific_state_relocation_requires_its_exact_predecessor(old, new, field, value):
-    other = {**old, field: value}
-    report = audit.stage7a_ratchet_findings([new], [new], [other], [other])
-    assert report["allowlist_growth"]
-    assert report["exceeds_frozen_inventory"]
-
-
-@pytest.mark.parametrize("old,new", _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS)
-def test_scientific_state_relocation_requires_a_slot_in_each_ceiling(old, new):
-    assert audit.stage7a_ratchet_findings([new], [new], [], [old])["allowlist_growth"]
-    assert audit.stage7a_ratchet_findings([new], [new], [old], [])["exceeds_frozen_inventory"]
-
-
-@pytest.mark.parametrize("index", range(3))
-def test_scientific_state_relocation_cannot_borrow_another_symbol_slot(index):
-    pairs = _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS
-    new = pairs[index][1]
-    other_sources = [source for i, (source, _) in enumerate(pairs) if i != index]
-    report = audit.stage7a_ratchet_findings([new], [new], other_sources, other_sources)
-    assert report["allowlist_growth"]
-    assert report["exceeds_frozen_inventory"]
-
-
-@pytest.mark.parametrize("old,new", _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS)
-def test_scientific_state_relocation_preserves_multiplicity_and_actual_matching(old, new):
-    report = audit.stage7a_ratchet_findings([old, new], [old, new], [old], [old])
-    assert report["allowlist_growth"] and report["exceeds_frozen_inventory"]
-    report = audit.stage7a_ratchet_findings([new, new], [new, new], [old], [old])
-    assert len(report["allowlist_growth"]) == len(report["exceeds_frozen_inventory"]) == 1
-    assert audit.stage7a_ratchet_findings([new, new], [new], [old], [old])["new_debt"]
-    assert audit.stage7a_ratchet_findings([new], [old], [old], [old])["new_debt"]
-    assert audit.stage7a_ratchet_findings([new], [old], [old], [old])["unretired_allowlist_entries"]
-    assert audit.stage7a_ratchet_findings([], [new], [old], [old])["unretired_allowlist_entries"]
-    assert audit.stage7a_ratchet_findings([old], [old], [new], [old])["allowlist_growth"]
-
-
-def test_scientific_state_relocation_carries_no_unrelated_growth_credit():
-    old = [source for source, _ in _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS]
-    new = [destination for _, destination in _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS]
-    other = {**new[0], "path": "hotpot/cheminfo/adapters/structure/other.py"}
-    report = audit.stage7a_ratchet_findings([*new, other], [*new, other], old, old)
-    assert report["allowlist_growth"] == [audit.debt_key(other)]
-    assert report["exceeds_frozen_inventory"] == [audit.debt_key(other)]
-
-
-def test_scientific_state_relocated_imports_are_captured_at_the_real_source_scope(tmp_path):
-    sources = {
-        "hotpot/cheminfo/adapters/structure/scientific_state.py":
-            "from hotpot.cheminfo.core import Bond, BondKind\n",
-        "hotpot/cheminfo/operations/calculation/scientific_state/facts.py":
-            "from hotpot.cheminfo.core import Molecule\n",
-    }
-    for path, source in sources.items():
-        target = tmp_path / path
-        target.parent.mkdir(parents=True)
-        target.write_text(source)
-        assert audit.layer_findings(path, source) == []
-    rows = audit.inventory.static_capture(sources, root=tmp_path)["architecture_debt"]
-    expected = [new for _, new in _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS]
-    assert len(rows) == 3
-    assert {audit.debt_key(row) for row in rows} == {audit.debt_key(row) for row in expected}
-    assert {row["stage"] for row in rows} == {"Stage9"}
-
-
 _CRYSTAL_DELEGATE = """class Crystal:
     @staticmethod
     def _matrix_to_params(matrix):
@@ -485,107 +231,68 @@ def test_crystal_delegate_does_not_change_the_existing_local_native_commit_bound
     assert audit.layer_findings("hotpot/cheminfo/structure/_commit.py", source) == []
 
 
-@pytest.mark.parametrize("old,new", _TRANSPORT_CORE_IMPORT_TRANSFERS)
-def test_transport_and_command_core_relocations_consume_only_their_own_single_slots(old, new):
-    assert audit.ratchet_findings([new], [new], [old])["allowlist_growth"]
-    assert not any(audit.stage7a_ratchet_findings([new], [new], [old], [old]).values())
-    assert not any(audit.stage7a_ratchet_findings([new], [new], [new], [old]).values())
-    assert audit.stage7a_ratchet_findings([new], [new], [], [old])["allowlist_growth"]
-    assert audit.stage7a_ratchet_findings([new], [new], [old], [])["exceeds_frozen_inventory"]
-    duplicate = audit.stage7a_ratchet_findings([new, new], [new, new], [old], [old])
-    assert len(duplicate["allowlist_growth"]) == len(duplicate["exceeds_frozen_inventory"]) == 1
-    both = audit.stage7a_ratchet_findings([old, new], [old, new], [old], [old])
-    assert both["allowlist_growth"] and both["exceeds_frozen_inventory"]
-    other_sources = (
-        _CORE_IMPORT_SOURCE,
-        *(source for source, _ in _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS),
-        *(source for source, _ in _TRANSPORT_CORE_IMPORT_TRANSFERS if source != old),
-        {**old, "path": "hotpot/cheminfo/forcefields/native_packing.py"},
-        {**old, "scope": "nested"},
-        {**old, "target": "hotpot.cheminfo.core.Bond", "local": "Bond"},
-        {**old, "local": "OtherMolecule"},
-    )
-    for other in other_sources:
-        report = audit.stage7a_ratchet_findings([new], [new], [other], [other])
-        assert report["allowlist_growth"] and report["exceeds_frozen_inventory"]
-    for field, value in (
-        ("path", "hotpot/cheminfo/adapters/native/other.py"),
-        ("scope", "nested"), ("target", "hotpot.cheminfo.core.Bond"),
-        ("local", "OtherMolecule"),
-    ):
-        changed = {**new, field: value}
-        report = audit.stage7a_ratchet_findings([changed], [changed], [old], [old])
-        assert report["allowlist_growth"] and report["exceeds_frozen_inventory"]
+@pytest.mark.parametrize("path", [
+    "hotpot/cheminfo/convert.py",
+    "hotpot/cheminfo/operations/conversion.py",
+    "hotpot/cheminfo/operations/search/search.py",
+    "hotpot/cheminfo/adapters/structure/scientific_state.py",
+    "hotpot/commands/ff.py",
+    "hotpot/plugins/xtb/stage.py",
+    "tests/test_carrier.py",
+])
+@pytest.mark.parametrize("source", [
+    "from hotpot.cheminfo.core import Molecule",
+    "import hotpot.cheminfo.core as carrier",
+    "def query():\n    from hotpot.cheminfo.core import Atom",
+    "if TYPE_CHECKING:\n    from hotpot.cheminfo.core import Bond",
+    "importlib.import_module('hotpot.cheminfo.core')",
+    "__import__('hotpot.cheminfo.core.Molecule')",
+])
+def test_old_core_bindings_and_entry_calls_are_unconditionally_rejected(path, source):
+    findings = audit.active_core_findings(path, source)
+    assert findings and {row["rule"] for row in findings} == {"active_legacy_core_reference"}
 
 
-@pytest.mark.parametrize("old,new", _TRANSPORT_CORE_IMPORT_TRANSFERS)
-def test_transport_and_command_annotations_are_captured_at_their_real_scopes(tmp_path, old, new):
-    path = new["path"]
-    source = "from typing import TYPE_CHECKING\nif TYPE_CHECKING:\n    from hotpot.cheminfo.core import Molecule\n"
-    target = tmp_path / path
-    target.parent.mkdir(parents=True)
-    target.write_text(source)
-    rows = audit.inventory.static_capture([path], root=tmp_path)["architecture_debt"]
-    assert len(rows) == 1
-    assert audit.debt_key(rows[0]) == audit.debt_key(new)
-    assert rows[0]["stage"] == "Stage9"
-    assert audit.layer_findings(path, source) == []
+def test_core_module_cannot_return_as_an_empty_or_reexport_shim():
+    for source in ("", "from .structure.molecule import Molecule"):
+        assert audit.active_core_findings("hotpot/cheminfo/core.py", source)
 
 
-@pytest.mark.parametrize("old,new", audit.SEARCH_CORE_IMPORT_TRANSFERS)
-def test_search_core_bindings_transfer_only_the_exact_existing_slot(old, new):
-    assert audit.ratchet_findings([new], [new], [old])["allowlist_growth"]
-    assert not any(audit.stage7a_ratchet_findings([new], [new], [old], [old]).values())
-    assert not any(audit.stage7a_ratchet_findings([new], [new], [new], [old]).values())
-    assert audit.stage7a_ratchet_findings([new], [new], [], [old])["allowlist_growth"]
-    assert audit.stage7a_ratchet_findings([new], [new], [old], [])["exceeds_frozen_inventory"]
-    for actual in ([new, new], [old, new]):
-        result = audit.stage7a_ratchet_findings(actual, actual, [old], [old])
-        assert result["allowlist_growth"] and result["exceeds_frozen_inventory"]
-    for field, value in (("path", "hotpot/cheminfo/operations/search/other.py"),
-                         ("scope", "nested"), ("local", "OtherCarrier")):
-        changed = {**new, field: value}
-        result = audit.stage7a_ratchet_findings([changed], [changed], [old], [old])
-        assert result["allowlist_growth"] and result["exceeds_frozen_inventory"]
-    other_sources = [source for source, _ in audit.CORE_IMPORT_TRANSFERS if source != old]
-    result = audit.stage7a_ratchet_findings([new], [new], other_sources, other_sources)
-    assert result["allowlist_growth"] and result["exceeds_frozen_inventory"]
+def test_relative_old_core_import_is_rejected_but_fixture_text_is_not_execution():
+    assert audit.active_core_findings("hotpot/cheminfo/operations/leaf.py", "from ..core import Molecule")
+    fixture = 'source = "from hotpot.cheminfo.core import Molecule"'
+    assert audit.active_core_findings("tests/test_guard.py", fixture) == []
 
 
-def test_search_core_bindings_are_captured_at_their_actual_eager_module_scope(tmp_path):
-    path = "hotpot/cheminfo/operations/search/search.py"
-    source = "from hotpot.cheminfo.core import Molecule, Atom, Bond\n"
-    target = tmp_path / path
-    target.parent.mkdir(parents=True)
-    target.write_text(source)
-    rows = audit.inventory.static_capture([path], root=tmp_path)["architecture_debt"]
-    expected = [new for _, new in audit.SEARCH_CORE_IMPORT_TRANSFERS]
-    assert {audit.debt_key(row) for row in rows} == {audit.debt_key(row) for row in expected}
-    assert len(rows) == 3
-    assert {row["stage"] for row in rows} == {"Stage9"}
-    assert audit.layer_findings(path, source) == []
+def test_forged_old_allowlist_entry_cannot_hide_active_core_import():
+    source = "from hotpot.cheminfo.core import Molecule"
+    record = {"rule": "legacy_core_import", "path": "hotpot/cheminfo/leaf.py",
+              "scope": "", "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule"}
+    assert not any(audit.frozen_ratchet_findings([record], [record], [record], [record]).values())
+    assert audit.active_core_findings(record["path"], source)
 
 
-@pytest.mark.parametrize("old,new", audit.INFERENCE_CORE_IMPORT_TRANSFERS)
-def test_inference_core_bindings_cannot_grow_or_borrow_other_slots(old, new):
-    assert audit.ratchet_findings([new], [new], [old])["allowlist_growth"]
-    assert not any(audit.stage7a_ratchet_findings([new], [new], [old], [old]).values())
-    assert not any(audit.stage7a_ratchet_findings([new], [new], [new], [old]).values())
-    assert audit.stage7a_ratchet_findings([new], [new], [], [old])["allowlist_growth"]
-    assert audit.stage7a_ratchet_findings([new], [new], [old], [])["exceeds_frozen_inventory"]
-    for actual in ([new, new], [old, new]):
-        report = audit.stage7a_ratchet_findings(actual, actual, [old], [old])
-        assert report["allowlist_growth"] and report["exceeds_frozen_inventory"]
-    for field, value in (("path", "hotpot/cheminfo/operations/inference/other.py"),
-                         ("scope", "nested"), ("local", "OtherCarrier"),
-                         ("target", "hotpot.cheminfo.core.Bond")):
-        changed = {**new, field: value}
-        report = audit.stage7a_ratchet_findings([changed], [changed], [old], [old])
-        assert report["allowlist_growth"] and report["exceeds_frozen_inventory"]
-    others = [source for source, _ in audit.CORE_IMPORT_TRANSFERS if source != old]
-    others.extend({**old, "path": path} for path in (
-        "hotpot/cheminfo/AImodels/mca/site_detection.py",
-        "hotpot/cheminfo/conformers/adapters.py",
-    ))
-    report = audit.stage7a_ratchet_findings([new], [new], others, others)
-    assert report["allowlist_growth"] and report["exceeds_frozen_inventory"]
+def test_retired_import_slot_cannot_supply_relocation_or_growth_credit():
+    old = {"rule": "legacy_core_import", "path": "hotpot/cheminfo/convert.py",
+           "scope": "", "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule"}
+    moved = {**old, "path": "hotpot/cheminfo/operations/conversion.py", "scope": "_molecule_type"}
+    findings = audit.frozen_ratchet_findings([moved], [moved], [old], [old])
+    assert findings["allowlist_growth"] and findings["exceeds_frozen_inventory"]
+
+
+@pytest.mark.parametrize("name", list(audit.TYPE_OWNERS))
+def test_type_has_one_exact_declaring_owner(name):
+    owner = audit.TYPE_OWNERS[name]
+    record = {"name": name, "path": owner.rsplit(".", 1)[0].replace(".", "/") + ".py",
+              "symbol": owner}
+    assert name not in audit.carrier_definition_findings([record])
+    assert audit.carrier_definition_findings([])[name] == []
+    wrong = {**record, "path": "hotpot/cheminfo/structure/wrong.py",
+             "symbol": "hotpot.cheminfo.structure.wrong." + name}
+    assert name in audit.carrier_definition_findings([wrong])
+    assert name in audit.carrier_definition_findings([record, wrong])
+
+
+def test_legacy_relocation_allowances_are_absent():
+    assert not any(name.endswith("CORE_IMPORT_TRANSFERS") for name in vars(audit))
+    assert "CORE_IMPORT_DESTINATION" not in vars(audit)

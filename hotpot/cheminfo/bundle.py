@@ -10,7 +10,7 @@ Bundle operation for Molecule
 import os
 import typing as tp
 from pathlib import Path
-from .core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 
 class MolBundle:
     def __init__(self, list_mol: tp.Iterable[Molecule]):

@@ -1,6 +1,6 @@
 import pytest
 
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo import stereo
 
 

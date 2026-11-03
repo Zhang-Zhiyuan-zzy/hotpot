@@ -32,7 +32,7 @@ from .operations import chemistry as _chemistry
 from .operations import stereochemistry as _stereochemistry
 
 if TYPE_CHECKING:
-    from .core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
 
 
 __all__ = (

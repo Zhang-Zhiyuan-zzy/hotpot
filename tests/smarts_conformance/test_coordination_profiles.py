@@ -3,7 +3,8 @@
 import pytest
 
 import hotpot as hp
-from hotpot.cheminfo.core import BondKind, Molecule
+from hotpot.cheminfo.structure.bond_kind import BondKind
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.operations.search import SmartsSemantics
 
 from .coordination_cases import (

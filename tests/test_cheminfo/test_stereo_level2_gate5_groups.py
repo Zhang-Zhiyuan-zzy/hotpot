@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from hotpot.cheminfo import stereo
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 
 
 def _molecule(atom_count, bonds, *, atomic_numbers=None):

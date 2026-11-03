@@ -10,7 +10,8 @@ from hotpot.cheminfo.operations.conformers import (
     ConformerSamplingError,
     ConformerSamplingRequest,
 )
-from hotpot.cheminfo.core import BondKind, Molecule
+from hotpot.cheminfo.structure.bond_kind import BondKind
+from hotpot.cheminfo.structure.molecule import Molecule
 
 from . import validation_providers
 from .validation_providers import (

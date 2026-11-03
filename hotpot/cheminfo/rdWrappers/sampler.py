@@ -12,7 +12,7 @@ from .contracts import (
 )
 
 if TYPE_CHECKING:
-    from hotpot.cheminfo.core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
 
 
 class ETKDGSampler:

@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.structure._results import _capture_mca_source, _select_mca_result
 
 __all__ = ["mca"]

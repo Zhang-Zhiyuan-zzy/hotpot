@@ -403,15 +403,15 @@ def test_canonical_array_header_must_be_decodable_at_constructor_and_thaw(shape,
 def test_factual_builder_installs_every_raw_fact_and_builds_topology_once(monkeypatch):
     from hotpot import Atom, Molecule
     import importlib
-    core = importlib.import_module(Molecule.__module__)
+    molecule_owner = importlib.import_module("hotpot.cheminfo.structure.molecule")
     calls = []
-    original = core._build_topology_index
+    original = molecule_owner._build_topology_index
     def counted(*args, **kwargs):
         calls.append(len(args[0]))
         return original(*args, **kwargs)
     def forbidden(*args, **kwargs):
         raise AssertionError('factual builder ran chemistry')
-    monkeypatch.setattr(core, '_build_topology_index', counted)
+    monkeypatch.setattr(molecule_owner, '_build_topology_index', counted)
     monkeypatch.setattr(Atom, 'get_valence', forbidden)
     monkeypatch.setattr(Atom, '_calc_implicit_hydrogens', forbidden)
     monkeypatch.setattr(Molecule, 'assign_bond_order', forbidden)

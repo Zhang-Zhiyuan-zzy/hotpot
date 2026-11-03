@@ -24,7 +24,7 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.providers.americium_curium
 from hotpot.cheminfo.rules.chemistry.scientific_state.providers.neutral_l_donors import (
     NeutralLDonorRule,
 )
-from hotpot.cheminfo.core import BondKind
+from hotpot.cheminfo.structure.bond_kind import BondKind
 
 
 def _context(symbol: str, with_counting: bool = True):

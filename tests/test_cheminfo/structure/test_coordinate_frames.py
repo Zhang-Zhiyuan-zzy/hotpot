@@ -53,7 +53,7 @@ def _publish(mol, energies=(1.0, 2.0)):
 
 def test_standalone_empty_collection_and_public_spelling():
     frames = Conformers()
-    assert Conformers.__module__ == "hotpot.cheminfo.core"
+    assert Conformers.__module__ == "hotpot.cheminfo.structure.conformer"
     assert import_module(Conformers.__module__).Conformers is Conformers
     assert len(frames) == 0 and list(frames) == []
     assert set(frames[:]) == set(_NAMES)

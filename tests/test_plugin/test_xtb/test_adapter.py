@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 
 import hotpot
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.plugins.xtb.adapter import (
     commit_xtb_coordinates,
     parse_xtb_artifacts,

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from hotpot.cheminfo.adapters.structure.scientific_state import _extract_molecular_facts
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.operations.chemistry import _prepare_hydrogens
 from hotpot.cheminfo.structure.snapshots import MolecularFacts
 

@@ -221,3 +221,7 @@ def _joint_ring(ring, aromatic, joint_ring_type):
 
 def _c_bonds(mol):
     return [bond for bond in mol.bonds if bond.is_metal_ligand_bond]
+
+
+def _explicit_longest_path(node_count, edges, _start_node, _end_node, _scope_nodes):
+    return topology._longest_path(node_count, edges, _start_node, _end_node, _scope_nodes)

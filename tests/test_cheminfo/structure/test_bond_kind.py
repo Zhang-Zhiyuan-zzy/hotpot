@@ -25,13 +25,14 @@ def test_public_and_carrier_bond_categories_share_the_canonical_contract():
 
 
 @pytest.mark.parametrize("first_import", ["hotpot", "hotpot.cheminfo.structure.bond_kind"])
-def test_current_core_export_loads_captured_enum_pickles_in_a_cold_process(first_import):
+def test_old_core_pickles_are_rejected_and_current_enum_pickles_round_trip_cold(first_import):
     subprocess.run([sys.executable, "-B", "-c", """
 import base64
 import importlib
 import json
 import pickle
 import sys
+from unittest import TestCase
 importlib.import_module(sys.argv[1])
 from hotpot import BondKind
 from hotpot.cheminfo.structure.bond_kind import BondKind as canonical
@@ -41,14 +42,20 @@ assert captured["module"] == "hotpot.cheminfo.core"
 assert BondKind is canonical
 assert canonical.__module__ == "hotpot.cheminfo.structure.bond_kind"
 for row in captured["members"]:
-    value = pickle.loads(base64.b64decode(row["pickle_protocol4_base64"]))
-    assert value is canonical[row["name"]] and value.value == row["value"]
-    assert pickle.loads(pickle.dumps(value, protocol=4)) is value
+    with TestCase().assertRaises(ModuleNotFoundError) as rejected:
+        pickle.loads(base64.b64decode(row["pickle_protocol4_base64"]))
+    assert rejected.exception.name == captured["module"]
+    value = canonical[row["name"]]
+    assert value.value == row["value"]
+    for protocol in (4, 5):
+        assert pickle.loads(pickle.dumps(value, protocol=protocol)) is value
 """, first_import, str(FIXTURE)], check=True)
 
 
 def test_contract_leaf_loads_without_importing_the_hotpot_execution_tree():
-    source = Path(__file__).resolve().parents[3] / "hotpot/cheminfo/structure/bond_kind.py"
+    from hotpot.cheminfo.structure import bond_kind
+
+    source = Path(bond_kind.__file__).resolve()
     subprocess.run([sys.executable, "-I", "-B", "-c", """
 import importlib.util
 import sys

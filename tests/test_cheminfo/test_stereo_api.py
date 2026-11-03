@@ -312,7 +312,7 @@ def test_public_value_pickles_keep_canonical_source_tokens():
             assert _canonical(restored) == canonical
 
 
-@pytest.mark.parametrize("first_import", ("unpickle", "facade", "identity", "core"))
+@pytest.mark.parametrize("first_import", ("unpickle", "facade", "identity", "carrier"))
 def test_cold_pickles_resolve_the_same_contracts_in_active_install(first_import, tmp_path):
     import hotpot
 
@@ -327,7 +327,7 @@ order = sys.argv[2]
 if order != "unpickle":
     importlib.import_module({"facade": "hotpot.cheminfo.stereo",
                             "identity": "hotpot.cheminfo.structure._identity",
-                            "core": "hotpot.cheminfo.core"}[order])
+                            "carrier": "hotpot.cheminfo.structure.molecule"}[order])
 values = pickle.loads(base64.b64decode(sys.argv[1]))
 facade = importlib.import_module("hotpot.cheminfo.stereo")
 contracts = importlib.import_module("hotpot.cheminfo.structure.stereo")

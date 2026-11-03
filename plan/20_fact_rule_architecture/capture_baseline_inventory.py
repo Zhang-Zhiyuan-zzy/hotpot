@@ -317,7 +317,7 @@ def interface_records(classes, runtime):
                     target = "Molecule _AtomFactTable"; stage = "Stage3"; unit = "angstrom" if name in {"x", "y", "z"} else "domain scalar"
                 else:
                     target = "Bond coupled representation"; stage = "Stage5"; unit = "domain scalar"
-                records.append({"type": f"hotpot.cheminfo.core.{cls}", "role": "fact_handle" if cls == "Atom" else "fact_carrier",
+                records.append({"type": runtime["dynamic_field_types"][cls], "role": "fact_handle" if cls == "Atom" else "fact_carrier",
                                 "current_owner": f"{cls}.attrs[{field['offset']}]", "entry": name, "kind": "dynamic_field",
                                 "source_storage": "float64 attrs row cast by MolBlock", "shape": "scalar", "unit": unit,
                                 "target_owner": target, "stage": stage, "evidence": "runtime _attrs_enumerator/_attrs_dict; target details governed by A1-A13", **field})
@@ -329,8 +329,7 @@ def runtime_capture():
     import numpy as np
     import hotpot
     import hotpot.cheminfo as cheminfo
-    from hotpot.cheminfo import core
-    from hotpot.cheminfo.crystal import Crystal
+    from hotpot.cheminfo.structure import Atom, Bond, BondKind, Crystal, Molecule
     from hotpot.__main__ import _COMMANDS
 
     exports = {}
@@ -348,13 +347,12 @@ def runtime_capture():
             entries.append({"name": name, "definition": definition, "kind": "class" if inspect.isclass(value) else "function" if inspect.isfunction(value) else "module" if inspect.ismodule(value) else "value", "signature": signature})
         exports[module.__name__] = {"declared_all": getattr(module, "__all__", None), "visible_names": entries}
     dynamic = {}
-    for cls in (core.Atom, core.Bond):
+    for cls in (Atom, Bond):
         dynamic[cls.__name__] = [{"name": name, "offset": index, "cast": cls._attrs_dict[name].__name__, "read": True, "write": True,
                                   "custom_setter": getattr(cls._attrs_setter.get(name), "__name__", None)}
                                  for index, name in enumerate(cls._attrs_enumerator)]
-    array = np.zeros(len(core.Atom._attrs_enumerator), dtype=float)
-    atom = core.Atom(attrs_array=array, update_electron_config=False)
-    probes = {"Atom.attrs_aliases_constructor_array": bool(np.shares_memory(array, atom.attrs)),
+    atom = Atom(atomic_number=6)
+    probes = {"Atom.attrs_writeable": bool(atom.attrs.flags.writeable),
               "Atom.coordinates_aliases_attrs": bool(np.shares_memory(np.asarray(atom.coordinates), atom.attrs)),
               "Molecule.coordinates_aliases_attrs": bool(np.shares_memory(atom.mol.coordinates, atom.attrs)),
               "Atom.partial_charge_without_result": atom.partial_charge,
@@ -370,8 +368,10 @@ def runtime_capture():
         filename = getattr(module, "__file__", None)
         if name.startswith("hotpot.") and filename and filename.endswith(".so"):
             native_modules[name] = {"path": filename, "sha256": digest(Path(filename))}
-    return {"exports": exports, "dynamic_fields": dynamic, "observed_behavior": probes, "native_modules": native_modules,
-            "identity_checks": {f"hotpot.{name} is core.{name}": getattr(hotpot, name) is getattr(core, name) for name in ("Molecule", "Atom", "Bond", "BondKind")},
+    return {"exports": exports, "dynamic_fields": dynamic,
+            "dynamic_field_types": {cls.__name__: f"{cls.__module__}.{cls.__qualname__}" for cls in (Atom, Bond)},
+            "observed_behavior": probes, "native_modules": native_modules,
+            "identity_checks": {f"hotpot.{cls.__name__} is {cls.__module__}.{cls.__qualname__}": getattr(hotpot, cls.__name__) is cls for cls in (Molecule, Atom, Bond, BondKind)},
             "cli_commands": {name: {"module": spec.module, "help": spec.help} for name, spec in _COMMANDS.items()},
             "loaded_external_modules": sorted(name for name in sys.modules if name.split(".")[0] in {"rdkit", "openbabel", "scipy", "thermo", "pubchempy"})}
 

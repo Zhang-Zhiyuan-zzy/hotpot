@@ -107,7 +107,8 @@ def _load_native_structure(path: Path, *, case_index: int) -> Mapping[str, objec
 def _build_molecule(structure: Mapping[str, object]):
     from dataclasses import replace
 
-    from hotpot.cheminfo.core import BondKind, Molecule
+    from hotpot.cheminfo.structure.bond_kind import BondKind
+    from hotpot.cheminfo.structure.molecule import Molecule
     from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX
 
     molecule = Molecule()

@@ -6,8 +6,9 @@ actual MCA workflows; Stage8D includes inference/conformer/artifact migration an
 actual CPU/pipeline/one-GPU evidence. Stage8E now has source/installed CP311
 assembly, local H/scaffold corrections and explicit exports/resources accepted;
 P20-D024 is closed. P20-D026 generic H export/materialization remains open.
-Stage9A semantic preparation is accepted at CP311source/installed boundaries;
-Stage9B and later stages, optional scientific activation, clean full-native,
+Stage9A semantic preparation and Stage9B sole-owner carrier cutover are accepted
+at their recorded CP311 source/installed boundaries. Stage9C collection completion
+and later stages, optional scientific activation, clean full-native,
 version-adaptation and global scientific/engineering acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
@@ -629,7 +630,11 @@ More precisely:
    operations, including queries and authorized lazy materialization;
    structure never imports an adapter to construct its own snapshot.
 2. `rules` depends on immutable structure snapshot protocols and reference data. It
-   must not depend on concrete carrier internals or write a carrier.
+   must not depend on concrete carrier internals or write a carrier. The sole
+   `_SourceIdentity` declaration belongs to the pure `structure/_source_identity.py`
+   leaf; snapshot contracts import it directly. Live source capture/check/digest
+   helpers remain in `structure/_identity.py`, outside the rule import closure,
+   as settled by [S9B-06](stages/stage09/cutover/contracts/decisions.md#s9b-06--pure-source-identity-contract-and-evidence-refresh).
 3. `operations` may depend on structure contracts, rules, and adapters. It
    owns query composition, lazy-materialization sequencing, working
    copies, validation, and atomic commit.
@@ -638,8 +643,15 @@ More precisely:
    authoritative source carrier.
 5. `reference` contains immutable scientific tables and schemas, not active
    calculation logic or instantiated Molecules.
-6. package `__init__.py` files only re-export downward; internal modules never
-   import upward through a package facade.
+6. package `__init__.py` files re-export downward; internal modules never
+   import upward through a package facade. The sole Stage9B initialization
+   exception is one fixed `structure._declarations._complete_type_names()` call
+   in `structure/__init__.py`, after the concrete carrier/view leaves complete
+   and before public import returns. It completes only the existing quoted
+   annotation namespaces for default `typing.get_type_hints()` evaluation;
+   it creates no class, registry, discovery loop, retained chemical state or
+   alternate implementation. The [Stage9B decisions](stages/stage09/cutover/contracts/decisions.md)
+   fix its finite bindings and import order.
 
 Carrier convenience methods use function-local imports when necessary to
 avoid module-initialization cycles. This is an explicit thin-facade technique,
@@ -1156,8 +1168,11 @@ hotpot/
 │   │   ├── bundle.py                   # MolBundle carrier collection
 │   │   ├── protocols.py                # read protocols used by rules
 │   │   ├── errors.py
-│   │   ├── _state.py                   # canonical state contract; imports one field schema
-│   │   ├── _fields.py                  # chemical-type fields, codecs, interface roles/permissions
+│   │   ├── _source_identity.py         # sole immutable owner/dependency binding
+│   │   ├── _identity.py                # live source capture/check/digest helpers
+│   │   ├── _state.py                   # current-version graph capture/restoration
+│   │   ├── _declarations.py            # finite quoted-annotation namespace completion
+│   │   ├── _fields.py                  # one MolBlock, field schema/codecs/permissions
 │   │   ├── _dependencies.py            # cross-type dependency scope/status/read policy
 │   │   ├── _atom_table.py              # sole typed-column Atom fact owner
 │   │   ├── _topology.py                # Plan 19 topology index
@@ -1166,9 +1181,11 @@ hotpot/
 │   │   └── _commit.py                  # closed named commit operations
 │   ├── views/                          # immutable derived result objects
 │   │   ├── __init__.py
-│   │   ├── topology.py                 # AtomSeq, Ring, JointRing
+│   │   ├── sequence.py                 # AtomSeq; loads before Bond
+│   │   ├── topology.py                 # JointRing, Ring; loads after Bond
 │   │   ├── geometry.py                 # Angle, Torsion
-│   │   └── pairs.py                    # AtomPair, AtomPairTable
+│   │   ├── pairs.py                    # AtomPair, AtomPairs; no approved rename
+│   │   └── _source.py                  # sole source/geometry/view restore helpers
 │   ├── rules/
 │   │   ├── __init__.py
 │   │   ├── chemistry/
@@ -1213,6 +1230,7 @@ hotpot/
 │   │       └── thermodynamics/          # contracts/policies, not toolkit objects
 │   ├── operations/
 │   │   ├── __init__.py
+│   │   ├── _carrier_signatures.py        # fixed existing eager declaration objects only
 │   │   ├── topology.py                  # Atom/Bond/component transactions
 │   │   ├── chemistry.py                 # assignment controllers
 │   │   ├── geometry.py                  # coordinate commits/transforms
@@ -1292,12 +1310,12 @@ named `coordination_placement` operation.
 | `Atom` | `structure/atom.py` | retain one identity/row-handle facade; core facts live only in `_AtomFactTable`; schema projections remove toolkit construction and immediate setter chemistry |
 | `Bond` | `structure/bond.py` | retain one class; enforce the approved kind/order contract in atomic mutations |
 | `BondKind` | `structure/bond_kind.py` | retain one enum shared by carriers and lower chemical rules; C1 extracts the existing definition without changing values |
-| `NotInSameMolecule`, `ObjNotInMolecule` | `structure/errors.py` or none | preserve their exact names if active/public; otherwise delete after zero-reference audit; do not rename them as part of this refactor |
-| `MolBlock` dynamic attribute machinery | `structure/_fields.py`, `_atom_table.py`, `_dependencies.py` | replace magic offsets with one fact schema, reviewed descriptors and typed storage; preserve efficient scalar/batch paths with no untracked alias |
-| `AtomSeq`, `Angle`, `Torsion`, `Ring`, `JointRing`, `AtomPair`, `AtomPairs` | `views/` | make membership immutable/identity-bound; rename `AtomPairs` to `AtomPairTable` only if owner approves; project constraints from Molecule; remove carrier cache ownership |
+| `NotInSameMolecule`, `ObjNotInMolecule` | `structure/errors.py` | both remain active; preserve their exact names, exception payloads and native callback identities |
+| `MolBlock` dynamic attribute machinery | sole `MolBlock` in `structure/_fields.py`; existing `_atom_table.py`/`_dependencies.py` factual owners | retain the current class and schema; concrete Atom/Bond dispatch imports locally; preserve efficient scalar/batch paths and descriptor/native bootstrap with no untracked alias |
+| `AtomSeq`, `Angle`, `Torsion`, `Ring`, `JointRing`, `AtomPair`, `AtomPairs` | `views/sequence.py`, `geometry.py`, `topology.py`, `pairs.py` respectively | keep the current identity-bound membership/constraint projections; AtomSeq loads before Bond, whose bases remain exactly `(AtomSeq, MolBlock)`; JointRing/Ring load after Bond; keep `AtomPairs` without a rename |
 | zero-reference `AtomPairKey` | none | delete; stable internal UIDs and immutable pair membership replace this unused identity wrapper |
 | `Conformers` | `structure/conformer.py` plus `structure/results.py` | split current/source `CoordinateFrame` facts from generated/optimized `ConformerEnsembleResult`; preserve the public array access as a projection without storing the same frame in both owners |
-| Atom/Bond identity, UID high-water marks, `id`, and `idx` | `structure/_state.py` and `_topology.py` | introduce immutable private `_uid` plus non-reusing Molecule allocators; retain `id` as source/display fact and `idx` as derived current row; never use one as the other |
+| Atom/Bond identity, UID high-water marks, `id`, and `idx` | `structure/molecule.py` allocators/primitive methods; `_topology.py` index/membership checks; `_state.py` current pickle capture/restore | preserve current immutable private `_uid`, owner token, lock and non-reusing Molecule allocators; retain `id` as source/display fact and `idx` as derived current row; never use one as the other |
 | Atom/Bond/Angle/Torsion constraints | `structure/constraints.py` | migrate to one Molecule-owned `ConstraintSet` keyed by internal identities; views only project membership |
 | `InternalCoordinates` | `rules/mathematics/internal_coordinates.py` | pure calculation from explicit coordinates/topology; no Molecule mutation |
 | `_metal_valence`, formal charge, valence, electron configuration, implicit-H logic | `rules/chemistry/` | return assignments/findings; delete carrier copies; explicit/source facts and lazy inferred values follow grouped validity policy |
@@ -2310,9 +2328,9 @@ assertions if retained.
 
 ### Stage 9 — Split the carriers and hard-cut `core.py`
 
-Complete the remaining Section9.1 responsibilities before moving their carrier
-facades. The Stage8E predecessor is accepted; current inspection still finds
-scientific predicates, joint-ring queries and mutation workflows in `core.py`.
+Stage9A completed the remaining Section9.1 semantic responsibilities; Stage9B
+moved their carrier facades and deleted `core.py`. Their recorded CP311 scopes
+are accepted. Stage9C collection completion remains before whole Stage9 exit.
 The [Stage9 decisions](stages/stage09/carriers/contracts/decisions.md) bind this
 internal sequencing without changing the overall objective or final gate.
 
@@ -2328,6 +2346,24 @@ internal sequencing without changing the overall objective or final gate.
    primitives and thin facades remain, move each definition and its once-only
    descriptor/native-dispatch/pickle initialization to its sole structure/view
    owner. Preserve approved public signatures and factual lifecycle semantics.
+   The [2026-11-04 authoring entry](stages/stage09/cutover/entry_review.json) releases
+   static authoring, followed by separately recorded source-ready releases. The
+   [Stage9B checkpoint](stages/stage09/cutover/validation/checkpoint.json) records
+   its accepted CP311 source/installed scope; whole Stage9 remains open pending
+   the collection completion below. The [accepted Stage9B decisions](stages/stage09/cutover/contracts/decisions.md)
+   fix the downward order: common leaves, Molecule, Atom, AtomSeq, Bond, remaining
+   views, then the finite Section6.1(6) declaration completion. Keep
+   `views/__init__.py` non-loading. Molecule owns its seven observation descriptors
+   and 17 transaction wrappers; Atom owns its numeric descriptors/native bootstrap;
+   geometry views own the existing writable constraint descriptors. Current graph
+   pickle helpers belong only to `_state.py`; declaration completion is separate.
+   Existing eager annotation/default objects are obtained through fixed private
+   `operations/_carrier_signatures.py` accessors called by function-local binding
+   helpers, preserving raw annotation/generic/default forms without future-annotation
+   conversion. Those namespaces serve declarations only; scientific calls enter
+   named operations and structure/views gain no direct rules/adapters import or
+   eager operation import statement. Retained transitive geometry/FF startup is
+   explicit Stage9B scope and does not close Stage12's final eager/lazy obligations.
 3. Update every production/test direct-core import in the Stage1 inventory and
    subsequently discovered consumers, including plugins, pipelines, dataset
    bindings, typing-only imports and string entry points. Historical72/81file
@@ -2335,6 +2371,13 @@ internal sequencing without changing the overall objective or final gate.
 4. Delete `core.py` in the same coherent commit that moves the last consumer.
    Add no re-export shim, alias class, fallback import, compatibility subclass
    or old-pickle module. Accepted historical core pickles remain a hard cut.
+5. **9C — Complete the collection owner.** Finish rows9.2-026/9.6-006: move the
+   sole MolBundle to `structure/bundle.py`, keep its ordered membership and
+   convenience signatures, and put PyG export sequencing/serialization at the
+   operation/adapter boundary. Remove the old module and bind existing public
+   exports to the actual owners; reuse current PyG feature conversion without
+   a feature/schema redesign. Validate actual source/installed collection,
+   pickle and serialization behavior before whole Stage9 acceptance.
 
 Gate: completed9A evidence, zero active old imports, sole class identity and
 current-version pickle/lifecycle tests, full default suite, affected installed

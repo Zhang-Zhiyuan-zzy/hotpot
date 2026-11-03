@@ -22,7 +22,7 @@ from .settings import (
 
 
 if TYPE_CHECKING:
-    from ..core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
 
 
 __all__ = ("optimize", "single_optimize")

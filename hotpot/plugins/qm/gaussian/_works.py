@@ -21,7 +21,7 @@ import multiprocessing as mp
 import pandas as pd
 from tqdm import tqdm
 
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from .gauss import Gaussian, Options, GaussOut
 from hotpot.utils.mp import mp_run
 

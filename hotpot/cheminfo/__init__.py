@@ -6,7 +6,10 @@ python v3.9.0
 @Data   : 2024/6/1
 @Time   : 17:23
 """
-from .core import Molecule, Atom, Bond, BondKind
+from .structure.molecule import Molecule
+from .structure.atom import Atom
+from .structure.bond import Bond
+from .structure.bond_kind import BondKind
 from .structure.crystal import Crystal
 from .operations.io import MolReader, MolWriter, read_mol
 from .bundle import MolBundle, to_pyg_dataset

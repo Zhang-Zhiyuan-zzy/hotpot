@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Dict, Optional, Sequence, Tuple
 
 import pytest
 
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.adapters.structure import geometry as convert
 from hotpot.cheminfo.rules.mathematics.geometry import native
 from hotpot.cheminfo.rules.mathematics.geometry.relation import (
@@ -56,7 +56,9 @@ class FakeMolecule:
 
 
 if TYPE_CHECKING:
-    from hotpot.cheminfo.core import Atom, Bond, Ring
+    from hotpot.cheminfo.structure.atom import Atom
+    from hotpot.cheminfo.structure.bond import Bond
+    from hotpot.cheminfo.views.topology import Ring
 
     def _check_fake_source_types(
             mol: FakeMolecule,

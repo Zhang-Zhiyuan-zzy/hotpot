@@ -9,7 +9,9 @@ import numpy as np
 import torch
 from torch_geometric.data import Data
 
-from hotpot.cheminfo.core import Molecule, Atom, AtomPair
+from hotpot.cheminfo.structure.molecule import Molecule
+from hotpot.cheminfo.structure.atom import Atom
+from hotpot.cheminfo.views.pairs import AtomPair
 from hotpot.cheminfo.rules.mathematics.graph.cycles import _cycle_basis
 from hotpot.cheminfo.operations.inference.features import extract_atom_attrs as _extract_numpy_atom_attrs
 from .consts import *

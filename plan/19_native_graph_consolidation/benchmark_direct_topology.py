@@ -18,7 +18,7 @@ import networkx as nx
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT))
 
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.graph.components import connected_components
 from hotpot.cheminfo.graph.paths import all_simple_paths, longest_simple_path
 

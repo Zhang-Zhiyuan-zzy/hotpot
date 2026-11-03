@@ -18,7 +18,7 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.providers import (
 from hotpot.cheminfo.rules.chemistry.scientific_state.providers.anionic_x_ligands import (
     AnionicXLigandRule,
 )
-from hotpot.cheminfo.core import BondKind
+from hotpot.cheminfo.structure.bond_kind import BondKind
 
 
 def _outcome(smiles: str, donor_index: int):

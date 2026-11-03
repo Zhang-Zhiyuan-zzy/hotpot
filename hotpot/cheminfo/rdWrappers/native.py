@@ -17,7 +17,7 @@ from .._native.buffers import (
 )
 
 if TYPE_CHECKING:
-    from hotpot.cheminfo.core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
 
 
 _RDKIT_ETKDG_FIELDS = frozenset(

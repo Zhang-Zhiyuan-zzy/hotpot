@@ -10,7 +10,11 @@ import numpy as np
 import pytest
 
 from hotpot import Atom, Bond, Molecule
-core = importlib.import_module(Molecule.__module__)
+from hotpot.cheminfo.structure.bond_kind import BondKind
+from hotpot.cheminfo.structure.errors import NotInSameMolecule, ObjNotInMolecule
+from hotpot.cheminfo.structure._fields import FIELD_INDEX
+from hotpot.cheminfo.views.geometry import Angle
+molecule_owner = importlib.import_module("hotpot.cheminfo.structure.molecule")
 from hotpot.cheminfo.structure._commit import _FactTransaction, _commit_topology
 from hotpot.cheminfo.structure._dependencies import _dependency_state
 from hotpot.cheminfo.structure._identity import _capture_source, _check_source
@@ -117,7 +121,7 @@ def test_bond_endpoint_failure_restores_order_kind_and_first_endpoint(monkeypatc
     after_write = facts(mol)
     written_raw, written_kind = bond.attrs, bond.bond_kind
     assert bond.attrs[0] == 2 and old_raw[0] == 1
-    assert written_kind is core.BondKind.DOUBLE and written_kind is not old_kind
+    assert written_kind is BondKind.DOUBLE and written_kind is not old_kind
     with pytest.raises(RuntimeError, match='second endpoint'):
         mol.calc_implicit_hydrogens()
     assert len(observed) == 2
@@ -237,7 +241,7 @@ def test_factual_installer_builds_index_once_and_never_runs_chemistry(monkeypatc
     source.bonds[0].constraint = True
     source.charge = 0
     record, metadata = source._capture_factual_record()
-    build = core._build_topology_index
+    build = molecule_owner._build_topology_index
     calls = []
 
     def counted(*args, **kwargs):
@@ -247,7 +251,7 @@ def test_factual_installer_builds_index_once_and_never_runs_chemistry(monkeypatc
     def forbidden(*args):
         raise AssertionError('factual install invoked chemistry')
 
-    monkeypatch.setattr(core, '_build_topology_index', counted)
+    monkeypatch.setattr(molecule_owner, '_build_topology_index', counted)
     monkeypatch.setattr(Atom, 'get_valence', forbidden)
     monkeypatch.setattr(Atom, '_calc_implicit_hydrogens', forbidden)
     monkeypatch.setattr(chemistry, '_calculate_valence', forbidden)
@@ -344,7 +348,7 @@ def test_isolated_registration_does_not_scan_or_copy_existing_graph(monkeypatch)
     def forbidden(*args, **kwargs):
         raise AssertionError('isolated registration scanned or copied the graph')
 
-    monkeypatch.setattr(core, '_build_topology_index', forbidden)
+    monkeypatch.setattr(molecule_owner, '_build_topology_index', forbidden)
     for name in ('matrix', 'copy', 'take'):
         monkeypatch.setattr(type(mol._atom_table), name, forbidden)
     added = Atom(mol, atomic_number=7)
@@ -474,7 +478,7 @@ def test_local_atom_and_bond_append_undo_removes_the_new_index_entry():
 
 def test_standalone_constraint_projects_the_owner_and_joins_undo():
     mol = molecule()
-    angle = core.Angle(*mol.atoms)
+    angle = Angle(*mol.atoms)
     owner = mol._constraints
     assert owner.angles == ()
     with pytest.raises(RuntimeError):
@@ -491,12 +495,12 @@ def test_standalone_constraint_projects_the_owner_and_joins_undo():
 def test_public_batch_reuses_membership_errors_without_repr_of_detached_atom():
     mol = molecule()
     foreign = Atom(atomic_number=7)
-    with pytest.raises(core.NotInSameMolecule) as caught:
+    with pytest.raises(NotInSameMolecule) as caught:
         mol.updata_atoms(atoms=[foreign], x=1)
     assert caught.value.obj1 is mol and caught.value.obj2 is foreign
     detached = mol.atoms[-1]
     mol.remove_atom(detached)
-    with pytest.raises(core.ObjNotInMolecule) as caught:
+    with pytest.raises(ObjNotInMolecule) as caught:
         mol.updata_atoms(atoms=[detached], x=1)
     assert caught.value.obj is detached and caught.value.mol is mol
     with pytest.raises(KeyError):
@@ -554,7 +558,7 @@ def test_atom_assignment_retains_keyword_binding_and_original_exceptions(form, e
 
     assert assign('formal_charge', 2.5) is None
     assert atom.formal_charge == 2
-    assert atom.attrs[core._ATOM_FIELD_INDEX['formal_charge']] == 2.5
+    assert atom.attrs[FIELD_INDEX['formal_charge']] == 2.5
     assert 'formal_charge' not in atom.__dict__
     before = facts(mol)
     original = exception('conversion interruption')

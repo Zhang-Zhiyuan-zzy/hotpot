@@ -10,7 +10,9 @@ from abc import abstractmethod
 from types import MappingProxyType
 from typing import Union, Sequence, Literal, Container, Any, Iterable, Callable, Iterator
 
-from hotpot.cheminfo.core import Molecule, Atom, Bond
+from hotpot.cheminfo.structure.molecule import Molecule
+from hotpot.cheminfo.structure.atom import Atom
+from hotpot.cheminfo.structure.bond import Bond
 from ..topology_queries import atom_idx_pair_to_bond_idx
 from ..io import read_mol
 from ...adapters.native.substructure.matching import _NativeMappingSource

@@ -38,7 +38,7 @@ from ....rules.physics.forcefields.settings import (
 from ....structure.forcefields import TrajectoryStart
 
 if TYPE_CHECKING:
-    from ....core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
     from ....obWrappers import _ob_native
 
 

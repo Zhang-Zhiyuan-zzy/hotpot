@@ -14,7 +14,8 @@ from hotpot.cheminfo.stereo import (
 from hotpot.cheminfo.structure._atom_table import _AtomFactTable, _seal_stereo_rows
 from hotpot.cheminfo.structure._commit import _FactTransaction, _fact_engine, _native_fail_after
 from hotpot.cheminfo.structure._fields import ATOM_FIELDS, FIELD_INDEX, TABLE_FIELDS
-from hotpot.cheminfo.structure._identity import _SourceIdentity, _capture_source
+from hotpot.cheminfo.structure._source_identity import _SourceIdentity
+from hotpot.cheminfo.structure._identity import _capture_source
 from hotpot.cheminfo.structure._mutation import (
     _AtomFactUpdate, _normalize_atom_facts, _normalize_atom_fields, _normalize_atom_scalar,
 )

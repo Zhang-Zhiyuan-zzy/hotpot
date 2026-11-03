@@ -8,8 +8,10 @@ from pathlib import Path
 import pytest
 
 
-ROOT = Path(__file__).resolve().parents[2]
-GUIDE = ROOT / "hotpot" / "pipeline" / "README.md"
+from hotpot import pipeline
+
+
+GUIDE = Path(pipeline.__file__).resolve().with_name("README.md")
 REFERENCE = (
     "tests/test_pipeline/test_documentation.py::"
     "test_pipeline_readme_python_example"

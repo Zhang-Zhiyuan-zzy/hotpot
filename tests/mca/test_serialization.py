@@ -7,7 +7,8 @@ from openbabel import pybel
 from rdkit import Chem
 
 from hotpot import read_mol
-from hotpot.cheminfo.core import BondKind, Molecule
+from hotpot.cheminfo.structure.bond_kind import BondKind
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.operations.inference.mca.results import MCA_MOLECULE_DTO_VERSION
 from hotpot.cheminfo.operations.inference.mca.serialization import hotpot_mol_from_dto, normalize_molecule, rdmol_from_dto, validate_dto
 from hotpot.cheminfo.operations.inference.mca.site_detection import find_nucleophilic_sites

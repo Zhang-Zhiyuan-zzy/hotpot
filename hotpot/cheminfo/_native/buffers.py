@@ -10,7 +10,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 if TYPE_CHECKING:
-    from ..core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
 
 
 class NativeBondKindCode(IntEnum):

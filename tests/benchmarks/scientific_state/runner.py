@@ -26,7 +26,8 @@ from hotpot.cheminfo.operations.calculation.scientific_state.composition._decisi
 from hotpot.cheminfo.operations.calculation.scientific_state.manifest import (
     _coordination_screening_manifest,
 )
-from hotpot.cheminfo.core import BondKind, Molecule
+from hotpot.cheminfo.structure.bond_kind import BondKind
+from hotpot.cheminfo.structure.molecule import Molecule
 
 from .corpus import DryStateCase, DryStateCorpus, DryStateSourceKind
 

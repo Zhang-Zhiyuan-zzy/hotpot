@@ -2,8 +2,8 @@
 """Ratcheted source checks for the incremental Plan20 migration.
 
 The frozen inventory is discovery evidence. The shrinking allowlist records
-remaining debt. Fixed Stage7A–8E relocations carry their original
-import slots; new ownership packages otherwise have no inherited exceptions. Runtime ownership,
+remaining debt. Stage9 retires every legacy-core import slot; canonical
+carriers and views have one declared defining path. Runtime ownership,
 buffer isolation and native ABI tests remain separate gates.
 """
 
@@ -46,131 +46,26 @@ CARRIER_METHODS = {
     "updata_atoms", "conformer_load", "conformer_add", "conformer_clear",
     "hide_metal_ligand_bonds", "recover_metal_ligand_bonds",
 }
-CARRIERS = {"Molecule", "Atom", "Bond", "BondKind", "Crystal"}
+TYPE_OWNERS = {
+    "Molecule": "hotpot.cheminfo.structure.molecule.Molecule",
+    "Atom": "hotpot.cheminfo.structure.atom.Atom",
+    "Bond": "hotpot.cheminfo.structure.bond.Bond",
+    "BondKind": "hotpot.cheminfo.structure.bond_kind.BondKind",
+    "Crystal": "hotpot.cheminfo.structure.crystal.Crystal",
+    "MolBlock": "hotpot.cheminfo.structure._fields.MolBlock",
+    "Conformers": "hotpot.cheminfo.structure.conformer.Conformers",
+    "NotInSameMolecule": "hotpot.cheminfo.structure.errors.NotInSameMolecule",
+    "ObjNotInMolecule": "hotpot.cheminfo.structure.errors.ObjNotInMolecule",
+    "AtomSeq": "hotpot.cheminfo.views.sequence.AtomSeq",
+    "AtomPair": "hotpot.cheminfo.views.pairs.AtomPair",
+    "AtomPairs": "hotpot.cheminfo.views.pairs.AtomPairs",
+    "Angle": "hotpot.cheminfo.views.geometry.Angle",
+    "Torsion": "hotpot.cheminfo.views.geometry.Torsion",
+    "JointRing": "hotpot.cheminfo.views.topology.JointRing",
+    "Ring": "hotpot.cheminfo.views.topology.Ring",
+}
+CARRIERS = set(TYPE_OWNERS)
 CRYSTAL_PATH = "hotpot/cheminfo/structure/crystal.py"
-# Main Section9.2 / Stage7A P01 relocates one existing import, not a new
-# exception. Only convert.py supplies its slot; Stage9 must retire the lookup.
-# The evidence record under stage07/external-adapters/architecture_guard is
-# descriptive, never an extensible migration configuration.
-CORE_IMPORT_SOURCE = {
-    "rule": "legacy_core_import", "path": "hotpot/cheminfo/convert.py",
-    "scope": "", "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule",
-}
-CORE_IMPORT_DESTINATION = {
-    **CORE_IMPORT_SOURCE, "path": "hotpot/cheminfo/operations/conversion.py",
-    "scope": "_molecule_type",
-}
-# Stage8A A1/A7 splits read-only capture and working-copy preparation. These three
-# module-scope bindings use only their own former resolver slots until Stage9;
-# this fixed tuple is not a configurable relocation map or growth allowance.
-# Stage8C relocates the three eager carrier bindings of the one public search
-# implementation. Their annotations/isinstance contracts still use current core
-# identities; only these exact source slots can transfer until Stage9.
-SEARCH_CORE_IMPORT_TRANSFERS = tuple(
-    (
-        {"rule": "legacy_core_import", "path": "hotpot/cheminfo/search/search.py",
-         "scope": "", "target": f"hotpot.cheminfo.core.{name}", "local": name},
-        {"rule": "legacy_core_import", "path": "hotpot/cheminfo/operations/search/search.py",
-         "scope": "", "target": f"hotpot.cheminfo.core.{name}", "local": name},
-    )
-    for name in ("Molecule", "Atom", "Bond")
-)
-SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS = (
-    (
-        {"rule": "legacy_core_import",
-         "path": "hotpot/cheminfo/calculator/state_resolver.py", "scope": "",
-         "target": "hotpot.cheminfo.core.Bond", "local": "Bond"},
-        {"rule": "legacy_core_import",
-         "path": "hotpot/cheminfo/adapters/structure/scientific_state.py", "scope": "",
-         "target": "hotpot.cheminfo.core.Bond", "local": "Bond"},
-    ),
-    (
-        {"rule": "legacy_core_import",
-         "path": "hotpot/cheminfo/calculator/state_resolver.py", "scope": "",
-         "target": "hotpot.cheminfo.core.BondKind", "local": "BondKind"},
-        {"rule": "legacy_core_import",
-         "path": "hotpot/cheminfo/adapters/structure/scientific_state.py", "scope": "",
-         "target": "hotpot.cheminfo.core.BondKind", "local": "BondKind"},
-    ),
-    (
-        {"rule": "legacy_core_import",
-         "path": "hotpot/cheminfo/calculator/state_resolver.py", "scope": "",
-         "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule"},
-        {"rule": "legacy_core_import",
-         "path": "hotpot/cheminfo/operations/calculation/scientific_state/facts.py", "scope": "",
-         "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule"},
-    ),
-)
-# Stage8B B3c relocates the existing TYPE_CHECKING-only native transport
-# annotation. It consumes only its prior native.py Molecule slot until Stage9;
-# the deleted native_packing.py Bond/Molecule slots retire without transfer.
-NATIVE_TRANSPORT_CORE_IMPORT_SOURCE = {
-    "rule": "legacy_core_import", "path": "hotpot/cheminfo/forcefields/native.py",
-    "scope": "", "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule",
-}
-NATIVE_TRANSPORT_CORE_IMPORT_DESTINATION = {
-    **NATIVE_TRANSPORT_CORE_IMPORT_SOURCE,
-    "path": "hotpot/cheminfo/adapters/native/forcefields/native.py",
-}
-# Accepted Stage8B B3b moved this existing TYPE_CHECKING-only command
-# annotation verbatim. Its CLI slot is independent of the native transport slot;
-# neither can supply growth credit or substitute for the other before Stage9.
-COMMAND_CORE_IMPORT_SOURCE = {
-    "rule": "legacy_core_import", "path": "hotpot/cheminfo/forcefields/cli.py",
-    "scope": "", "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule",
-}
-COMMAND_CORE_IMPORT_DESTINATION = {
-    **COMMAND_CORE_IMPORT_SOURCE, "path": "hotpot/commands/ff.py",
-}
-# Stage8D carries only these seven existing bindings. The old feature Atom,
-# two site-recognition bindings and combined conformer-adapter annotation retire;
-# their slots cannot pay for imports in a new provider or lower adapter.
-INFERENCE_CORE_IMPORT_TRANSFERS = tuple(
-    (
-        {"rule": "legacy_core_import", "path": f"hotpot/cheminfo/{old}",
-         "scope": "", "target": f"hotpot.cheminfo.core.{name}", "local": local},
-        {"rule": "legacy_core_import", "path": f"hotpot/cheminfo/{new}",
-         "scope": "", "target": f"hotpot.cheminfo.core.{name}", "local": local},
-    )
-    for old, new, bindings in (
-        ("AImodels/cbond/apply.py", "operations/inference/cbond/apply.py",
-         (("Atom", "Atom"), ("Molecule", "Molecule"))),
-        ("AImodels/data_extract.py", "operations/inference/features.py",
-         (("Molecule", "Molecule"), ("AtomPair", "AtomPair"))),
-        ("AImodels/mca/serialization.py", "operations/inference/mca/serialization.py",
-         (("Molecule", "HotpotMolecule"),)),
-        ("calculator/mca_inference.py", "operations/inference/mca/attachment.py",
-         (("Molecule", "Molecule"),)),
-        ("conformers/sampler.py", "operations/conformers/sampler.py",
-         (("Molecule", "Molecule"),)),
-    )
-    for name, local in bindings
-)
-
-# Stage8E carries exactly the four assembly bindings until the Stage9 carrier
-# cutover. Four wildcard-export debts retire; no new core slot is introduced.
-ASSEMBLY_CORE_IMPORT_TRANSFERS = tuple(
-    (
-        {"rule": "legacy_core_import", "path": f"hotpot/cheminfo/mol_assemble/{file}",
-         "scope": "", "target": f"hotpot.cheminfo.core.{name}", "local": name},
-        {"rule": "legacy_core_import", "path": f"hotpot/cheminfo/operations/assembly/{file}",
-         "scope": "", "target": f"hotpot.cheminfo.core.{name}", "local": name},
-    )
-    for file, names in (("action_func.py", ("Molecule",)),
-                        ("fragment.py", ("Molecule",)),
-                        ("assembler.py", ("Atom", "Molecule")))
-    for name in names
-)
-
-CORE_IMPORT_TRANSFERS = (
-    (CORE_IMPORT_SOURCE, CORE_IMPORT_DESTINATION),
-    *SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS,
-    (NATIVE_TRANSPORT_CORE_IMPORT_SOURCE, NATIVE_TRANSPORT_CORE_IMPORT_DESTINATION),
-    (COMMAND_CORE_IMPORT_SOURCE, COMMAND_CORE_IMPORT_DESTINATION),
-    *SEARCH_CORE_IMPORT_TRANSFERS,
-    *INFERENCE_CORE_IMPORT_TRANSFERS,
-    *ASSEMBLY_CORE_IMPORT_TRANSFERS,
-)
 # These declared numerical values initialize their own coordinate fields; they
 # do not receive a live carrier to edit. Keep path, class, method, field and
 # operation exact so foreign receivers and later buffer mutations stay checked.
@@ -202,21 +97,46 @@ def ratchet_findings(actual, allowed, previous):
     }
 
 
-def stage7a_ratchet_findings(actual, allowed, previous, original):
-    """Keep real debt identities; transfer only the enumerated existing slots."""
+def frozen_ratchet_findings(actual, allowed, previous, original):
+    """Retirement grants no import relocation or frozen-inventory growth credit."""
     findings = ratchet_findings(actual, allowed, previous)
-    current = Counter(map(debt_key, allowed))
-    for name, reference in (("allowlist_growth", previous),
-                            ("exceeds_frozen_inventory", original)):
-        ceiling = Counter(map(debt_key, reference))
-        for source, destination in CORE_IMPORT_TRANSFERS:
-            old = debt_key(source)
-            new = debt_key(destination)
-            if current[new] and not current[old] and ceiling[old] and not ceiling[new]:
-                ceiling[old] -= 1
-                ceiling[new] += 1
-        findings[name] = list((current - ceiling).elements())
+    findings["exceeds_frozen_inventory"] = list((
+        Counter(map(debt_key, allowed)) - Counter(map(debt_key, original))
+    ).elements())
     return findings
+
+
+def active_core_findings(path, source):
+    """Reject live old imports/entry calls independently of the debt allowlist."""
+    findings = []
+    if path == "hotpot/cheminfo/core.py":
+        findings.append({"path": path, "line": 1, "rule": "legacy_core_module"})
+    for node in ast.walk(ast.parse(source, filename=path)):
+        targets = []
+        if isinstance(node, ast.Import):
+            targets = [alias.name for alias in node.names]
+        elif isinstance(node, ast.ImportFrom):
+            module = inventory.imported_module(path, node)
+            targets = [module] + [f"{module}.{alias.name}" for alias in node.names]
+        elif isinstance(node, ast.Call):
+            name = node.func.id if isinstance(node.func, ast.Name) else (
+                node.func.attr if isinstance(node.func, ast.Attribute) else None)
+            if name in {"import_module", "__import__"}:
+                targets = [arg.value for arg in node.args
+                           if isinstance(arg, ast.Constant) and isinstance(arg.value, str)]
+        if any(target == "hotpot.cheminfo.core" or target.startswith("hotpot.cheminfo.core.")
+               for target in targets):
+            findings.append({"path": path, "line": node.lineno,
+                             "rule": "active_legacy_core_reference", "target": ast.unparse(node)})
+    return findings
+
+
+def carrier_definition_findings(classes):
+    definitions = {name: [row["symbol"] for row in classes
+                         if row["path"].startswith("hotpot/cheminfo/") and row["name"] == name]
+                   for name in TYPE_OWNERS}
+    return {name: actual for name, actual in definitions.items()
+            if actual != [TYPE_OWNERS[name]]}
 
 
 def layer_findings(path, source):
@@ -254,14 +174,6 @@ def layer_findings(path, source):
         return (isinstance(node, ast.ImportFrom)
                 and inventory.imported_module(path, node) == module
                 and [(alias.name, alias.asname) for alias in node.names] == [(name, None)])
-
-    def core_lookup_import(node):
-        # A same-named class has the same inventory scope string as a function.
-        scope = lexical_scope(node)
-        return (exact_import(node, "hotpot.cheminfo.core", "Molecule")
-                and isinstance(scope, ast.FunctionDef) and parents.get(scope) is tree
-                and scope.name == "_molecule_type" and not scope.decorator_list
-                and ast.unparse(scope.args) == "")
 
     def crystal_math_import(node):
         scope = lexical_scope(node)
@@ -307,10 +219,6 @@ def layer_findings(path, source):
                     and any(alias.name in CARRIERS for alias in node.names)
                 ):
                     add(node, "internal_upward_facade_import")
-                if (path == CORE_IMPORT_DESTINATION["path"]
-                        and (target == "hotpot.cheminfo.core" or target.startswith("hotpot.cheminfo.core."))
-                        and not core_lookup_import(node)):
-                    add(node, "invalid_legacy_core_import_relocation")
                 if layer in {"structure", "views"}:
                     forbidden = target_layer in {"rules", "adapters"} and not crystal_math_import(node)
                     eager = (target_parts[0] in EXTERNAL | {"scipy"}
@@ -384,20 +292,28 @@ def audit(root=ROOT, *, base_ref="HEAD"):
         previous = original
     else:
         previous = json.loads(previous_file.stdout)["entries"]
-    ratchet = stage7a_ratchet_findings(records["architecture_debt"], allowed, previous, original)
+    ratchet = frozen_ratchet_findings(records["architecture_debt"], allowed, previous, original)
     layers = [finding for path in paths for finding in layer_findings(path, (root / path).read_text())]
-    definitions = {name: [row["symbol"] for row in records["classes"]
-                         if row["path"].startswith("hotpot/cheminfo/") and row["name"] == name]
-                   for name in sorted(CARRIERS)}
-    duplicate_carriers = {name: values for name, values in definitions.items() if len(values) != 1}
+    # Runnable plan/tool consumers must also obey the hard cut. Their old
+    # scientific manifests are history; inert strings are not active imports.
+    legacy_paths = sorted(set(paths) | {
+        path for path in subprocess.check_output(
+            ["git", "ls-files", "--cached", "--others", "--exclude-standard", "--", "plan", "tools"],
+            cwd=root, text=True,
+        ).splitlines() if path.endswith(".py") and (root / path).is_file()
+    })
+    legacy = [finding for path in legacy_paths for finding in active_core_findings(path, (root / path).read_text())]
+    duplicate_carriers = carrier_definition_findings(records["classes"])
     return {
         "schema_version": 1,
-        "status": "passed" if not any(ratchet.values()) and not layers and not duplicate_carriers else "failed",
+        "status": "passed" if not any(ratchet.values()) and not layers and not legacy and not duplicate_carriers else "failed",
         "base_ref": base_ref,
         "scanned_python_files": len(paths),
+        "legacy_consumer_python_files": len(legacy_paths),
         "remaining_debt": len(records["architecture_debt"]),
         "ratchet": ratchet,
         "layer_findings": layers,
+        "legacy_core_findings": legacy,
         "carrier_definition_findings": duplicate_carriers,
         "scope": "Source/import/write ratchet and migrated-layer checks. Runtime alias/permission/lifecycle, semantic class identity and native ABI gates remain separate.",
     }

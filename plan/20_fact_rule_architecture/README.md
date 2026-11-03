@@ -6,7 +6,10 @@ accepts canonical assembly, declared H/scaffold transformations, factory behavio
 resources and affected CP311 source/installed evidence. P20-D024 is closed;
 P20-D026 generic H export/materialization remains open. The [Stage9A checkpoint](stages/stage09/carriers/validation/checkpoint.json)
 accepts residual chemistry/query/workflow extraction at CP311source/installed
-boundaries; Stage9Bphysical class/consumer hard cut remains open.
+boundaries. The [Stage9B checkpoint](stages/stage09/cutover/validation/checkpoint.json)
+accepts the physical class/consumer hard cut and current pickle/native identities
+at CP311 source/installed boundaries. MolBundle collection/serialization completion
+remains before whole Stage9 acceptance.
 Clean-native, version adaptation, final scientific/performance and full-plan
 acceptance remain open. The owner-approved [goal](goal.md) governs execution;
 [goal_v1](goal_v1.md) is historical.

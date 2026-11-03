@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.obWrappers import (
     RuleExecutionReport,
     RuleStage,

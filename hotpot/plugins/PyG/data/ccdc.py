@@ -7,7 +7,7 @@ import torch
 from torch_geometric.data import Data
 
 import hotpot as hp
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 
 from ._base import *
 from .utils import *
@@ -131,4 +131,3 @@ class ComplexDataset(BaseDataset):
     def get(self, idx):
         data = torch.load(self.datalist[idx])
         return data
-

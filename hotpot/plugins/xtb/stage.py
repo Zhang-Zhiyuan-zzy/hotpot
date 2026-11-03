@@ -19,7 +19,7 @@ from hotpot.cheminfo.operations.calculation.scientific_state.execution_selection
 from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
     ScientificStateBundle,
 )
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.pipeline.contracts import (
     Artifact,
     JSONValue,

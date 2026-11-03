@@ -20,7 +20,7 @@ __all__ = ["is_molecule_input", "to_hotpot_mol", "mol2obmol", "obmol2mol", "to_r
 
 
 def _molecule_type():
-    from ..core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
     return Molecule
 
 

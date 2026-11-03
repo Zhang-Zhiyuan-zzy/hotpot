@@ -28,7 +28,7 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.providers import (
 from hotpot.cheminfo.rules.chemistry.scientific_state.providers.monoatomic_ions import (
     MonoatomicIonRule,
 )
-from hotpot.cheminfo.core import BondKind
+from hotpot.cheminfo.structure.bond_kind import BondKind
 
 
 def _context(facts):

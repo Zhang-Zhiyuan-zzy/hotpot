@@ -3,7 +3,8 @@ from dataclasses import replace
 import pytest
 
 from hotpot.cheminfo import stereo
-from hotpot.cheminfo.core import Bond, Molecule
+from hotpot.cheminfo.structure.bond import Bond
+from hotpot.cheminfo.structure.molecule import Molecule
 
 from hotpot.cheminfo.operations import stereochemistry as stereo_operations
 from hotpot.cheminfo.rules.chemistry.stereochemistry import algebra as stereo_algebra

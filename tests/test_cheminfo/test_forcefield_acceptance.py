@@ -11,7 +11,7 @@ from hotpot.cheminfo.operations.forcefields import ff
 from hotpot.cheminfo.rules.physics.forcefields import acceptance as acceptance_rules
 from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 
 
 def _carbon_bond() -> Molecule:

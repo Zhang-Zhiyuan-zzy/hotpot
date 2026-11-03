@@ -14,6 +14,7 @@ def test_complete_matrix_preserves_raw_order_and_always_returns_float64():
         mol._create_atom_from_array(row)
     expected = rows.astype(np.float64)
     expected[:, 1:7] = [(0, 0, 0, 0, 0, 0), (4, 1, 0, 0, 0, 0)]
+    expected[:, 8] = np.nan
     expected[:, 13] = [0, 1]
     matrix = mol.atom_matrix
     assert matrix.shape == (2, 19) and matrix.dtype == np.float64

@@ -14,7 +14,7 @@ from hotpot.cheminfo.operations.io import MolReader
 from hotpot.cheminfo.structure.snapshots import MolecularFactsIdentity
 from hotpot.cheminfo.rules.chemistry.scientific_state.composition import ScientificStateIdentity
 from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 
 from .contracts import XTBMethod, XTBRunReport
 

@@ -19,7 +19,7 @@ from .contracts import BondKindCode
 
 
 if TYPE_CHECKING:
-    from ..core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
 
 
 __all__ = ()

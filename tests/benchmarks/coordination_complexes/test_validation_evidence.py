@@ -7,7 +7,7 @@ from dataclasses import asdict, replace
 import numpy as np
 import pytest
 
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.operations.forcefields import ff
 
 from .validation_cohort import _graph_document, canonical_digest

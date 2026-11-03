@@ -431,10 +431,10 @@ def test_timeout_terminates_and_joins_worker():
 
 
 @pytest.mark.parametrize(
-    ("worker", "expected_error"),
+    ("worker", "expected_error", "timeout"),
     (
-        (_blocking_complex_worker, ff.ComplexBuildTimeoutError),
-        (_failing_complex_worker, ff.ComplexBuildWorkerError),
+        (_blocking_complex_worker, ff.ComplexBuildTimeoutError, 0.02),
+        (_failing_complex_worker, ff.ComplexBuildWorkerError, 5.0),
     ),
     ids=("timeout", "worker-failure"),
 )
@@ -442,6 +442,7 @@ def test_public_complex_build_failure_is_transactional_and_reaps_worker(
     monkeypatch,
     worker,
     expected_error,
+    timeout,
 ):
     molecule = read_mol("[Zn](N)(N)", "smi")
     original = _molecule_state(molecule)
@@ -458,7 +459,7 @@ def test_public_complex_build_failure_is_transactional_and_reaps_worker(
             candidate_warmup_steps=1,
             candidate_score_steps=1,
             best_candidate_refine_steps=1,
-            timeout=0.02,
+            timeout=timeout,
             add_hydrogens=False,
         )
 

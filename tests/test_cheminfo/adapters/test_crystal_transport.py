@@ -1,7 +1,5 @@
 """Six factual cell scalars, external transport and the retained pickle envelope."""
 import copy
-from dataclasses import astuple
-import importlib
 import pickle
 
 import numpy as np
@@ -12,7 +10,8 @@ from hotpot import read_mol
 from hotpot.cheminfo.adapters.openbabel.crystal import to_obcell
 from hotpot.cheminfo.operations import conversion
 from hotpot.cheminfo.structure.crystal import Crystal
-from hotpot.cheminfo.structure._builder import _freeze_value
+from hotpot.cheminfo.structure._state import _restore_molecule_extra
+from tests.test_cheminfo._stage5_fixtures import immutable_snapshot
 
 NAMES = ('a', 'b', 'c', 'alpha', 'beta', 'gamma')
 VALUES = (5., 6., 7., 75., 85., 95.)
@@ -20,7 +19,7 @@ VALUES = (5., 6., 7., 75., 85., 95.)
 
 def _facts(mol):
     record, metadata = mol._capture_factual_record()
-    return astuple(record), _freeze_value(metadata)
+    return immutable_snapshot(record), immutable_snapshot(metadata)
 
 
 def _parameters(cell):
@@ -93,17 +92,24 @@ def test_cell_copy_and_pickle_preserve_complete_facts_and_no_host_backend_state(
     assert not {'_obmol', '_row2idx'} & restored.__dict__.keys()
 
 
-def test_molecule_pickle_extra_keeps_six_slots_none_and_ignores_legacy_cell_dictionary():
+def test_molecule_pickle_extra_keeps_four_slots_and_cell_in_factual_record():
     mol = _molecule()
     state = mol.__getstate__()
     extra = state[-1]
-    assert len(extra) == 6 and extra[-1] is None
+    assert len(extra) == 4
+    attributes, metadata, atom_state, bond_state = extra
+    assert state[0].cell == VALUES
+    assert '_crystal' not in attributes
+    assert immutable_snapshot(metadata) == immutable_snapshot(mol._capture_factual_record()[1])
+    assert len(atom_state) == len(mol.atoms)
+    assert len(bond_state) == len(mol.bonds)
     restored = pickle.loads(pickle.dumps(mol, protocol=5))
     before = _facts(restored)
-    legacy = extra[:-1] + ({'a': -500., 'mol': object(), '_obcell': 'obsolete backend'},)
-    core = importlib.import_module(type(mol).__module__)
-    core._restore_molecule_extra(restored, legacy)
+    assert before == _facts(mol)
+    cell = restored.crystal
+    _restore_molecule_extra(restored, restored.__getstate__()[-1])
     assert _facts(restored) == before
+    assert restored.crystal is cell
     assert _parameters(restored.crystal) == VALUES
     assert tuple(vars(restored.crystal)) == NAMES
     assert not {'_obmol', '_row2idx'} & restored.__dict__.keys()

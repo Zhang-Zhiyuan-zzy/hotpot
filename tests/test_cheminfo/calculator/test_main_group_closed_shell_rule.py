@@ -27,7 +27,7 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.providers import (
 from hotpot.cheminfo.rules.chemistry.scientific_state.providers.main_group_closed_shell import (
     MainGroupClosedShellRule,
 )
-from hotpot.cheminfo.core import BondKind
+from hotpot.cheminfo.structure.bond_kind import BondKind
 
 
 def _context(smiles: str, charge: int = 0):

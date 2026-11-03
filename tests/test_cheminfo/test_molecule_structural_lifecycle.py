@@ -3,7 +3,8 @@ from copy import copy
 import numpy as np
 import pytest
 
-from hotpot.cheminfo.core import BondKind, Molecule
+from hotpot.cheminfo.structure.bond_kind import BondKind
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.operations.topology_queries import _components
 from hotpot.cheminfo.structure._selection import _capture_topology_selection
 

@@ -12,7 +12,7 @@ from hotpot.cheminfo.operations.calculation.scientific_state.execution_selection
     _projection_validation_findings,
 )
 from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.structure._commit import _FactTransaction
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
 from hotpot.cheminfo.structure._identity import _capture_source, _check_source

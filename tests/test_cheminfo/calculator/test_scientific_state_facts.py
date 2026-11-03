@@ -7,7 +7,8 @@ import hotpot
 import numpy as np
 import pytest
 
-from hotpot.cheminfo.core import BondKind, Molecule
+from hotpot.cheminfo.structure.bond_kind import BondKind
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.structure._dependencies import GROUP_INDEX, _FactStatus
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX, FIELD_PRESENCE_BITS
 from hotpot.cheminfo.structure.snapshots import MolecularFactsIdentity

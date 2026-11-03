@@ -19,7 +19,8 @@ if TYPE_CHECKING:
     from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
         ScientificStateBundle,
     )
-    from hotpot.cheminfo.core import Atom, Bond
+    from hotpot.cheminfo.structure.atom import Atom
+    from hotpot.cheminfo.structure.bond import Bond
 
 
 __all__ = [
@@ -240,4 +241,3 @@ def payload_sha256(payload: MolecularPayload) -> str:
         sort_keys=True,
     ).encode("utf-8")
     return hashlib.sha256(canonical).hexdigest()
-

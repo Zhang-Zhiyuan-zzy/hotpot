@@ -18,7 +18,7 @@ from hotpot.cheminfo.operations.conformers import (
 from hotpot.cheminfo.operations.conformers.rdkit import (
     _materialized_hydrogen_projection,
 )
-from hotpot.cheminfo.core import BondKind
+from hotpot.cheminfo.structure.bond_kind import BondKind
 from hotpot.cheminfo.adapters.structure.forcefields import _iter_metal_donor_pairs
 from hotpot.cheminfo.operations.forcefields.working_copy import (
     _copy_molecule_metadata,
@@ -37,7 +37,7 @@ from .validation_providers import (
 )
 
 if TYPE_CHECKING:
-    from hotpot.cheminfo.core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
 
 
 ProviderRoute = Literal["O0", "F1", "F2"]

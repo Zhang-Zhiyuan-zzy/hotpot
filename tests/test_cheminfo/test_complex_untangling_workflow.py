@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from hotpot.cheminfo.rules.mathematics import geometry as geo
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.structure._selection import _capture_topology_selection, _selected_bonds
 from hotpot.cheminfo.operations.topology_queries import _project_molecule
 from hotpot.cheminfo.operations.forcefields import backend as ob_backend

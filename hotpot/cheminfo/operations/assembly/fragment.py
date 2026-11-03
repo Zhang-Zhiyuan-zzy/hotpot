@@ -59,7 +59,7 @@
 """
 from typing import Optional, Iterable, Union
 
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.operations.search import Searcher, Substructure
 from .action_func import ActionFuncTemplate
 

@@ -12,7 +12,7 @@
  
 ===========================================================
 """
-from hotpot.cheminfo.core import AtomPair
+from hotpot.cheminfo.views.pairs import AtomPair
 
 
 __all__ = [

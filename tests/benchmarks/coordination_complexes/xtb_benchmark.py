@@ -65,7 +65,7 @@ from .cohort import BenchmarkCohort, LigandCase, resolve_cohort
 from .io import json_value, sha256_file, write_json
 
 if TYPE_CHECKING:
-    from hotpot.cheminfo.core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
     from hotpot.plugins.xtb import XTBBackendInfo
 
 
@@ -208,7 +208,7 @@ def _thread_environment(threads: int) -> dict[str, str]:
 
 def _read_single_molecule(path: Path) -> "Molecule":
     from hotpot import read_mol
-    from hotpot.cheminfo.core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
 
     loaded = read_mol(path)
     if isinstance(loaded, Molecule):

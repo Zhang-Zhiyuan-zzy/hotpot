@@ -310,6 +310,9 @@ def test_pure_rule_import_closure_never_reaches_an_upper_layer():
         "hotpot.cheminfo.operations",
         "hotpot.cheminfo.adapters",
         "hotpot.cheminfo.core",
+        "hotpot.cheminfo.structure.molecule",
+        "hotpot.cheminfo.structure.atom",
+        "hotpot.cheminfo.structure.bond",
         "hotpot.cheminfo.calculator",
     )
     pending = list(_source(_RULES).parent.rglob("*.py"))

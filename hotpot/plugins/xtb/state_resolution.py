@@ -22,7 +22,7 @@ from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver impo
 )
 from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
 from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 
 from .backend import probe_xtb_backend
 from .contracts import XTBInputError, XTBMethod

@@ -1,7 +1,7 @@
 """Acceptance-policy tests for precomputed native bond--ring checkpoints."""
 
 from hotpot.cheminfo.rules.mathematics import geometry as geo
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.operations.forcefields import acceptance as acceptance_policy
 from hotpot.cheminfo.adapters.native.forcefields.reports import (
     NativeBondRingFinding,

@@ -20,7 +20,7 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.providers.neutral_l_donors
     NeutralLDonorRule,
 )
 from hotpot.cheminfo.rules.chemistry.scientific_state.providers.thorium_iv import ThoriumIVPriorRule
-from hotpot.cheminfo.core import BondKind
+from hotpot.cheminfo.structure.bond_kind import BondKind
 
 
 def _context():

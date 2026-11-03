@@ -15,7 +15,8 @@ from hotpot.cheminfo._native.buffers import (
     NativeMoleculeField,
     pack_molecule,
 )
-from hotpot.cheminfo.core import BondKind, Molecule
+from hotpot.cheminfo.structure.bond_kind import BondKind
+from hotpot.cheminfo.structure.molecule import Molecule
 
 
 def _load_test_extension():
@@ -263,6 +264,10 @@ def test_coordination_route_does_not_import_python_forcefield_backends(monkeypat
     assert result.status is rdWrappers.GenerationStatus.SUCCESS
 
 
+@pytest.mark.skipif(
+    os.environ.get("HOTPOT_TEST_INSTALLED_PACKAGE") == "1",
+    reason="Private sampler.cpp is a source-only architecture fixture, excluded from wheels",
+)
 def test_native_sampler_has_no_business_forcefield_entrypoint_calls():
     sampler_source = (
         Path(__file__).parents[3]

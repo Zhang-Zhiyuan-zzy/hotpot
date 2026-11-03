@@ -68,7 +68,7 @@ from hotpot.cheminfo.operations.calculation.scientific_state.state_selection imp
     StateDecisionSource,
     StaticProfileEligibility,
 )
-from hotpot.cheminfo.core import BondKind
+from hotpot.cheminfo.structure.bond_kind import BondKind
 
 
 class _ChargePreferenceCompiler:

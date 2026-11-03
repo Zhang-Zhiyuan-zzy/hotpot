@@ -6747,3 +6747,193 @@ all limits.9Bphysical sole-carrier/view/consumer/pickle cutover, zero-core/full
 default/plugin gate, P20-D026, clean-native/SDK/sdist/other versions/final science/
 performance/GPU/Plan12/global work remain open. Deliver related business/tests/
 records in one small commit and push. Overall Plan20goal remains active.
+
+
+### 2026-11-04 — Stage9A delivered; Stage9B bounded preentry preparation
+
+Stage9A business checkpoint `958bdd9b4757160aa57c4dc8eef91a8bb71587d5` is
+committed and pushed normally. The precommit freeze check, all 605 postcommit
+source/test bindings and read-only record/evidence review agree; unrelated owner
+work remains untouched. No repeated test execution was needed.
+
+Release read-only Stage9B module/initialization/consumer design preparation and
+one CP311 introspection baseline of the accepted classes. Preserve current public
+signatures, raw annotation semantics and callable defaults while distinguishing
+intentional physical module changes. Local Sol/max prepares the global cutover
+proposal; local Sol/medium may prepare and execute only that bounded baseline in
+`/tmp/hotpot_plan20/long/stage9b-entry-20261104/contracts`. No carrier movement,
+consumer rewrite, Stage9B authoring or final gate is released by this preparation.
+Root will settle the concrete topology and migration partitions before edits.
+
+
+### 2026-11-04 — Stage9B physical cutover authoring release
+
+Root accepts the bounded Sol/max proposal against pushed9A958bdd9 and the actual
+14-class signature baseline. Preserve eager annotation objects, quoted ForwardRefs,
+MRO/defaults, once-only descriptor/native dispatch and complete current-version
+pickle/lifecycle behavior. Authorize a finite after-definition binding of existing
+quoted-annotation names during structure initialization; this narrow declaration
+step is recorded explicitly instead of pretending all initializers only reexport.
+No registry, new class/fact/schema or old-core compatibility route is introduced.
+Preserve current transitive eager signature dependencies; Stage12 lazy-backend
+obligations remain open. No speculative defensive code or scientific changes.
+
+Release disjoint handle/common and view/geometry implementation, with a Sol/max
+owner for globally coupled Molecule/state/signature/export and main-plan changes.
+Root owns connected consumers, strict architecture gate retirement, final core
+removal, integration, runtime release, acceptance and Git delivery. All writers
+use the immutable captured core input and preserve others' edits; no nested
+agents or product imports/test execution during the temporary split. Source-ready
+review/freeze precedes CP311 focused/default execution; installed waits source.
+Historical core-path pickle rejection and parser implementation rebind are explicit
+expected cutover changes. Complete9A958bdd9 is the rollback boundary. Entry and
+concrete decisions live under stages/stage09/cutover; no stage/global gate closes.
+
+### 2026-11-04 — Stage9B integrated source-ready release
+
+Root integrated the disjoint Sol/max global and Sol/medium handle/view partitions,
+all active consumers, current/historical pickle tests and strict retirement guards.
+Deleted core with no shim. The static audit against958bdd9 reports1015Python files,
+24remaining prior debts, zero new/active-core/layer/duplicate-owner findings.
+Independent local Sol/high source review found no concrete initialization, annotation
+completion or graph-restoration blocker. I/O default hints were already unresolved;
+the cutover does not introduce a successful-baseline regression. Moved docstring
+trailing whitespace was cleaned with executable AST equality checked.
+
+Root releases frozen CP311 declaration comparison, focused current native/pickle/
+identity tests and the complete default source suite. Product/test changes invalidate
+affected evidence and require an explicit new freeze. Installed selection waits for
+source review; Stage9 acceptance, Git delivery and Stage10–12/global gates remain open.
+Evidence: `/tmp/hotpot_plan20/long/stage9b-entry-20261104/`; exact argv, inputs, resource
+environment and origins are recorded per attempt. No candidate runtime result exists
+at this release.
+
+### 2026-11-04 — Stage9B complete default discovery and bounded repair
+
+Source declaration comparison passed14classes/702members/33hints with only approved
+module remapping. Focused189passed; connected R1failed the obsolete synthetic parent
+bootstrap assumption, then a test-only fix passed1259with2ordinaryskips/3knownxfails.
+Products/support/focused inputs were unchanged across R1/R2. Full default R1collected
+6661:6521passed/9failed/128ordinaryskips/3knownxfails,49subtests; zero errors/leaks/drift.
+Original stdout/JUnit/origin/resource receipts remain under the owning temporary
+validation directory. Root returned runtime to HOLD before repairs.
+
+A real rule-closure violation arose from snapshots importing the live identity
+module. Root accepted the Sol/max minimal split: relocate the existing N01class
+to one pure `_source_identity.py` leaf; keep every lifecycle/helper algorithm in
+`_identity.py`, preserve class body/decorators/shape and native configured type
+identity. The unchanged strict closure monitor is binding; MolBlock stays put.
+No new class or durable fact is added. Direct data-class consumers and parser
+bindings migrate together. The old N01addition record retains its historical
+symbol and gains a current-symbol/relocation link.
+
+Root also migrated five actual Plan17/19 script consumers and widened zero-core
+checks to runnable plan/tools Python. Local Sol/medium repaired existing tests:
+current4-slot pickle extras (already present in pre-cutover core), complete ndarray
+fact comparisons, approved absent-charge NaN projection and a separate5s worker-error
+deadline retaining the20ms timeout case. These alter no chemical value or production
+timeout. A fresh integrated freeze, declaration/owner/affected/full-default source
+runs and subsequent affected private-installed evidence are required. No gate closes.
+
+
+### 2026-11-04 — Stage9B corrected R3 integrated source-ready release
+
+Root completed S9B-06 consumer/native configured-type, N01budget and actual parser
+binding migration. Pure-rule source closure is36files/zero forbidden edges with
+unchanged monitor and class/lifecycle AST. Product census508Python/770classes/
+355dataclasses/8Protocols/2TypedDicts adds no data type. Extended actual runnable
+plan/tools scan exposed the last baseline-capture import; it now imports actual
+owners and probes the current Atom constructor/defining paths. Historical baseline
+files are unchanged. Static final audit scans1016product/test Python and1054total
+legacy-consumer Python:24prior debts, zero active-core/layer/owner/ratchet findings.
+
+Root releases one new R3freeze, CP311 contract/focused/connected/full-default source
+checks and12import-only plugin/pipeline/dataset/CLI probes. Retained R2failure inputs
+and all first-attempt results remain immutable; no test result is reused across
+changed product bytes. Installed validation waits for successful source review.
+No native compilation, scientific/performance parity, other-version or global gate
+is released. All maintained source and test edits stop while R3runs.
+
+
+### 2026-11-04 — Stage9B R3 source review and private installed release
+
+Actual R3source contracts1passed,focused192passed,connected1536passed/2ordinary
+skips/3knownxfails and default6533passed/128ordinaryskips/3knownxfails from6664
+collected. Default315.37seconds is a functional observation,not a performance
+comparison. Zero origin leaks and before/after drift throughout. Additional
+12-entry consumer smoke returned8passed/4failed:each PyG module fails for absent
+`torch` in the selected CP311 environment. Preserve the failures and obtain real
+dependency-backed evidence; do not mock packages or declare those imports passed.
+
+Root releases private prebuilt-copy packaging/install and the same affected
+focused/connected installed cases. Only the six accepted CP311 native binaries
+are reused,no compilation/ABI/SDK/sdist claim. Static Stage9exit mapping also finds
+MolBundle collection/PyG serialization rows9.2-026/9.6-006still open; this next
+bounded business slice must finish before Stage9exit. Historical inventory row
+wording yields to settled MolBlock/BondKind owners,without rewriting that baseline.
+
+
+### 2026-11-04 — Stage9B R4 source/installed checker-location correction
+
+Private wheel9eb649cf57600eae0aa2d27248fb058819060ab3aa3e24de29d46f26613f8b85
+contains883product members; installed member hashes match and core is absent.
+Installed focused R1returned185passed/7failed:one leaf test resolved the source
+from copied tests,while six pickle protocol cases retained old-core path depth
+in child PYTHONPATH. These are actual package-location assumptions,not missing
+chemical product code. Root corrected only2test lookups to use loaded package/
+module origins and retained old inputs plus the failed run. No assertion weakened.
+
+R3–R4 provenance proves identical products,native binaries,support,deleted paths
+and all other tests. Release new192-case focused source/installed,then connected
+installed; keep R3full-default6533pass and source connected within their proven
+scope instead of rerunning unrelated business checks. The R3result remains an
+actual earlier complete execution,not a single new R4default run. Optional real
+CPU Torch/PyG preparation is isolated in /tmp,with dependency-backed source/
+installed consumer retries separately released. No gate has been accepted yet.
+
+
+### 2026-11-04 — Stage9B final installed fixture distinction
+
+R4source/installed focused each192passed; real CPU Torch2.7.1+cpu/PyG2.6.1 source/
+installed consumer imports each12passed in a separate isolated CP311venv. All
+package/origin/freeze checks passed. Installed connected R1returned1534passed/
+2failed/2ordinaryskips/3knownxfails. The pipeline guide exists in the wheel but
+its test used a checkout-relative path; it now reads the actual loaded package.
+The other failure tried to open intentionally excluded private sampler.cpp.
+Classify that architecture-text fixture as source-only; all native execution
+checks remain selected. Original failures are retained,no product defect hidden.
+
+R4–R5 proves only2test changes and no product/support changes. Add the actual
+pipeline guide to documentary freeze bindings. Release those2source test files
+and complete installed connected retry. Reuse earlier complete default,focused,
+connected-source and actual consumer evidence only within their unchanged scopes.
+No repeated broad source suite or new native build is needed for fixture lookup.
+
+
+### 2026-11-04 — Stage9B bounded root acceptance and Git delivery preparation
+
+Root reviewed the final R5 freeze, all2396persistent archive files (109512531bytes),
+62draft evidence references and raw selected execution receipts. The archive is
+`.plan20-artifacts/20261104/stage9b/cutover`; maintained checkpoint/report/graph
+now use repository-relative evidence paths. The final architecture audit passes
+with24later debts and zero core/layer/carrier findings. No source/test/support
+bytes changed during finalization. Root accepts the CP311source/installed sole
+carrier cutover, current pickle/native identities and actual plugin imports.
+
+Actual source default R3:6533passed/128ordinaryskips/3knownxfails. Focused R4
+source/installed:192passed each. Connected source R3:1536passed/2ordinaryskips/
+3knownxfails; installed R5:1535passed/3ordinaryskips/3knownxfails. Real Torch/PyG
+consumer source/installed:12passed each; R5source path regressions:18passed.
+Product/support bytes are unchanged R3throughR5; only4test path/scope fixes
+received targeted revalidation. This is not a fresh R5whole-default execution.
+All original failures and earlier freezes remain archived. Installed-only
+private sampler.cpp text check is source-only; actual native checks stayed selected.
+
+Root command `python /tmp/hotpot_plan20/medium/stage9b-root-finalization-20261104/finalize.py`
+verifies archive bindings, selected receipts and `driver.check('root-final-precommit')`,
+then applies the reviewed records. Exact raw business commands/environment/origins
+remain in each indexed execution.json. Six accepted CP311native binaries were
+reused unchanged; no native compilation/SDK/sdist/other-version/science/performance
+acceptance is claimed. Stage9whole remains open for MolBundle rows9.2-026/9.6-006;
+all later/global/Plan12/P20-D026 obligations remain. Root prepares the coherent
+business commit with explicit staging, preserving unrelated owner work.

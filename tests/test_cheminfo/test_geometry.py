@@ -6,7 +6,7 @@ import numpy as np
 
 from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 
 
 def _molecule(coordinates, bonds=(), atomic_numbers=None):

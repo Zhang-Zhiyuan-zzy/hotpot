@@ -17,7 +17,7 @@ from hotpot.cheminfo.operations.calculation.scientific_state.facts import extrac
 from hotpot.cheminfo.operations.calculation.scientific_state.state_selection import (
     StateDecisionAction,
 )
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 
 
 def _change_graph(mol: Molecule) -> None:

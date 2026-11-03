@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Tuple
 
 import hotpot as hp
-from hotpot.cheminfo.core import BondKind
+from hotpot.cheminfo.structure.bond_kind import BondKind
 
 
 COORDINATION_FIXTURES = Path(__file__).parent / "fixtures" / "coordination"

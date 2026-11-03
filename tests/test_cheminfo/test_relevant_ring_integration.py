@@ -9,7 +9,7 @@ import networkx as nx
 import pytest
 
 from hotpot.cheminfo.operations.forcefields import repair
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.operations.inference.features import extract_ring_attrs
 from hotpot.cheminfo.rules.mathematics.graph import RelevantCycleLimitExceeded
 

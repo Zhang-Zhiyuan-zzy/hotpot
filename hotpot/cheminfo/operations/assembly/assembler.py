@@ -29,7 +29,8 @@ from importlib.resources import files
 from tqdm import tqdm
 
 from hotpot.cheminfo.operations.io import read_mol
-from hotpot.cheminfo.core import Atom, Molecule
+from hotpot.cheminfo.structure.atom import Atom
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.operations.search import Searcher, Substructure, QueryAtom
 from .fragment import Fragment
 from .action_func import (

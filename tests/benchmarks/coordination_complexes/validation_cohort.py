@@ -700,7 +700,7 @@ def semantic_case_molecule(case: Mapping[str, object]):
 
     import numpy as np
 
-    from hotpot.cheminfo.core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
     from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX
 
     graph = case["graph"]

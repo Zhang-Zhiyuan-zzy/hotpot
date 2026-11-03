@@ -17,7 +17,7 @@ from hotpot.cheminfo.operations.forcefields import ligand
 from hotpot.cheminfo.operations.forcefields import workers
 from hotpot.cheminfo.operations.forcefields import workflows
 from hotpot.cheminfo.operations.forcefields import ff
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 
 
 def _bare_molecule():

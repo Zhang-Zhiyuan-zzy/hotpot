@@ -4,7 +4,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal, Tuple, Union
 
-from ._identity import _SourceIdentity
+from ._source_identity import _SourceIdentity
 from .stereo import StereoPayload
 
 

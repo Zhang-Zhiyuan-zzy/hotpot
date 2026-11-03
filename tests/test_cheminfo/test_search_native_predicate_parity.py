@@ -4,7 +4,9 @@ import networkx as nx
 import pytest
 
 import hotpot as hp
-from hotpot.cheminfo.core import Atom, Bond, BondKind
+from hotpot.cheminfo.structure.atom import Atom
+from hotpot.cheminfo.structure.bond import Bond
+from hotpot.cheminfo.structure.bond_kind import BondKind
 from hotpot.cheminfo.operations.search import native
 from hotpot.cheminfo.adapters.native.substructure import matching as native_adapter
 from hotpot.cheminfo.operations.search.search import QueryAtom, Substructure

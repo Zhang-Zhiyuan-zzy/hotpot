@@ -269,6 +269,8 @@ def test_active_module_owners_are_acyclic_and_rules_have_no_live_dependencies():
     pure = (algebra, graph, coordinates, validation, assignment, alignment)
     forbidden = (
         "hotpot.cheminfo.core", "hotpot.cheminfo.operations", "hotpot.cheminfo.adapters",
+        "hotpot.cheminfo.structure.molecule", "hotpot.cheminfo.structure.atom",
+        "hotpot.cheminfo.structure.bond", "hotpot.cheminfo.views",
         "hotpot.cheminfo.operations.search", "hotpot.cheminfo.stereo", "hotpot.cheminfo._native",
         "rdkit", "openbabel",
     )

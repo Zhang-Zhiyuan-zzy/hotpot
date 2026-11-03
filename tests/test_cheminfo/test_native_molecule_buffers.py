@@ -6,7 +6,8 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
-from hotpot.cheminfo.core import BondKind, Molecule
+from hotpot.cheminfo.structure.bond_kind import BondKind
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo._native.buffers import (
     NativeBondKindCode,
     NativeMoleculeBuffers,

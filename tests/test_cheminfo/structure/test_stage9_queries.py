@@ -1,13 +1,12 @@
 """Public query contracts for the Stage9A semantic extraction."""
 
 import math
-from importlib import import_module
 
 import numpy as np
 import pytest
 
 from hotpot import Atom, Molecule
-NotInSameMolecule = import_module(Molecule.__module__).NotInSameMolecule
+from hotpot.cheminfo.structure.errors import NotInSameMolecule
 from hotpot.cheminfo.operations import chemistry
 from hotpot.cheminfo.structure._fields import FIELD_INDEX
 from tests.test_cheminfo._stage5_fixtures import factual_state, supplied_aromatic_flags

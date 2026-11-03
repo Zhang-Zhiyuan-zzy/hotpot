@@ -49,7 +49,10 @@ def _clean_annotation_text(annotation):
     for prefix in (
         "hotpot.cheminfo.operations.search.search.",
         "hotpot.cheminfo.structure.substructure.",
-        "hotpot.cheminfo.core.",
+        "hotpot.cheminfo.core.",  # Historical signature fixture spelling.
+        "hotpot.cheminfo.structure.molecule.",
+        "hotpot.cheminfo.structure.atom.",
+        "hotpot.cheminfo.structure.bond.",
         "typing.",
     ):
         annotation = annotation.replace(prefix, "")

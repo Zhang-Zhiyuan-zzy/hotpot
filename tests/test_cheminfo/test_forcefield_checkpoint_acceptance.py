@@ -8,7 +8,7 @@ import pytest
 
 from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.operations.forcefields import acceptance as acceptance_policy
 
 

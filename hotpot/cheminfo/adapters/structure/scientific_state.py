@@ -6,7 +6,8 @@ import hashlib
 import json
 from typing import Iterable, Optional, Tuple
 
-from hotpot.cheminfo.core import Bond, BondKind
+from hotpot.cheminfo.structure.bond import Bond
+from hotpot.cheminfo.structure.bond_kind import BondKind
 from hotpot.cheminfo.structure._dependencies import GROUP_INDEX, _FactStatus
 from hotpot.cheminfo.structure._fields import FIELD_INDEX, FIELD_PRESENCE_BITS
 from hotpot.cheminfo.structure.snapshots import (

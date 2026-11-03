@@ -9,7 +9,7 @@ import pytest
 
 from hotpot.cheminfo.reference.properties import _atomic_number_for_symbol
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
-from hotpot.cheminfo.structure._identity import _SourceIdentity
+from hotpot.cheminfo.structure._source_identity import _SourceIdentity
 from hotpot.cheminfo.structure._mutation import _normalize_atom_facts
 
 

@@ -13,7 +13,7 @@ from rdkit import Chem
 from hotpot import Atom, Molecule
 from hotpot.cheminfo.operations import conversion
 
-core = importlib.import_module(Molecule.__module__)
+molecule_owner = importlib.import_module("hotpot.cheminfo.structure.molecule")
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX, FIELD_PRESENCE_BITS
 from hotpot.cheminfo.stereo import StereoPayload, get_stereo_payload, set_stereo_payload
 
@@ -34,13 +34,13 @@ def test_converter_uses_same_target_and_one_topology_build_without_public_setter
     token, lock = target._owner_token, target._mutation_lock
     target._next_atom_uid, target._next_bond_uid = 7, 11
     seen = []
-    original = core._build_topology_index
+    original = molecule_owner._build_topology_index
     def count(*args, **kwargs):
         seen.append(len(args[0]))
         return original(*args, **kwargs)
     def forbidden(*args, **kwargs):
         raise AssertionError('decoder used public setter construction')
-    monkeypatch.setattr(core, '_build_topology_index', count)
+    monkeypatch.setattr(molecule_owner, '_build_topology_index', count)
     monkeypatch.setattr(Molecule, '_create_atom', forbidden)
     monkeypatch.setattr(Molecule, '_add_bond', forbidden)
     monkeypatch.setattr(Atom, 'get_valence', forbidden)
@@ -109,11 +109,11 @@ def test_empty_preconfigured_target_preserves_cell_spin_identifier_and_clears_al
 def test_failed_decoder_install_restores_preconfigured_empty_target(monkeypatch):
     target = Molecule()
     target.charge = 5
-    original = core._install_frame_records
+    original = molecule_owner._install_frame_records
     def fail(mol, *records):
         original(mol, *records)
         raise RuntimeError('frame publication')
-    monkeypatch.setattr(core, '_install_frame_records', fail)
+    monkeypatch.setattr(molecule_owner, '_install_frame_records', fail)
     with pytest.raises(RuntimeError, match='frame publication'):
         conversion.from_rdmol(Chem.MolFromSmiles('CO'), target)
     assert not target.atoms and not target.bonds and target.charge == 5

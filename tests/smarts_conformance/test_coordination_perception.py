@@ -3,7 +3,7 @@
 import pytest
 
 import hotpot as hp
-from hotpot.cheminfo.core import BondKind
+from hotpot.cheminfo.structure.bond_kind import BondKind
 
 from .coordination_cases import (
     COORDINATION_FIXTURES,

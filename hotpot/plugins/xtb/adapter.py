@@ -10,7 +10,8 @@ from typing import Dict, Optional, Tuple
 
 import numpy as np
 
-from hotpot.cheminfo.core import BondKind, Molecule
+from hotpot.cheminfo.structure.bond_kind import BondKind
+from hotpot.cheminfo.structure.molecule import Molecule
 
 from .contracts import (
     XTBGeometry,

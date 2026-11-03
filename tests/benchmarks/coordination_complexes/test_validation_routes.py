@@ -5,7 +5,7 @@ import pytest
 
 from hotpot.cheminfo import rdWrappers
 from hotpot.cheminfo.operations.conformers import ConformerBatch, RDKitConformerAdapter
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 
 from .configuration import SMOKE_SETTINGS
 from .validation_providers import (

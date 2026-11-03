@@ -9,7 +9,8 @@ from hotpot.cheminfo.operations.inference.cbond.constants import (
     DEFAULT_FIRST_CBOND_THRESHOLD,
     DEFAULT_SUBSEQUENT_CBOND_THRESHOLD,
 )
-from hotpot.cheminfo.core import Atom, Molecule
+from hotpot.cheminfo.structure.atom import Atom
+from hotpot.cheminfo.structure.molecule import Molecule
 
 
 _ONNX_CROSS_PLATFORM_ATOL = 5e-6

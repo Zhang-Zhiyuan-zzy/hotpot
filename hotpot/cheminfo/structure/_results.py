@@ -4,7 +4,8 @@ from dataclasses import dataclass, replace
 import operator
 from typing import Generic, TypeVar
 
-from ._identity import _SourceIdentity, _capture_source, _check_source
+from ._source_identity import _SourceIdentity
+from ._identity import _capture_source, _check_source
 
 __all__ = ()
 

@@ -14,7 +14,7 @@ import networkx as nx
 
 import hotpot as hp
 from hotpot.cheminfo.AImodels.mca.site_detection import find_nucleophilic_sites
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.graph import relevant_cycles
 from hotpot.cheminfo.search import QueryAtom, Searcher, Substructure
 

@@ -17,7 +17,7 @@ from hotpot.cheminfo.operations.calculation.scientific_state.manifest import (
 from hotpot.cheminfo.operations.calculation.scientific_state.profiles import (
     _coordination_screening_profile,
 )
-from hotpot.cheminfo.core import BondKind
+from hotpot.cheminfo.structure.bond_kind import BondKind
 
 
 def _coordination_facts():

@@ -4,7 +4,9 @@ import pytest
 from openbabel import openbabel as ob
 from rdkit import Chem
 
-from hotpot.cheminfo.core import Bond, BondKind, Molecule
+from hotpot.cheminfo.structure.bond import Bond
+from hotpot.cheminfo.structure.bond_kind import BondKind
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.operations.conversion import mol2obmol, obmol2mol
 from hotpot.cheminfo.operations.conversion import from_rdmol, to_rdmol
 

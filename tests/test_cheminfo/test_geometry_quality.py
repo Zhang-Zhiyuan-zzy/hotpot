@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from hotpot.cheminfo.operations import forcefields as ff
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 
 
 def _molecule(coordinates, bonds=(), atomic_numbers=None):

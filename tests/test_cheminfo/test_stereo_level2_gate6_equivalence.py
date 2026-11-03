@@ -7,7 +7,7 @@ from itertools import combinations
 import pytest
 
 from hotpot.cheminfo import stereo
-from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.adapters.native.substructure.matching import _NativeTarget
 from tests.test_cheminfo._stage5_fixtures import supplied_aromatic_flags
 

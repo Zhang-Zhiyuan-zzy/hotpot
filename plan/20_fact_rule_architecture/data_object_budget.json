@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage0–8E owning scopes and bounded Stage9Asemantic preparation accepted. Stage9B/global remain open; current496Python files/770classes/355dataclasses/8historical bare-base Protocols/2TypedDicts; four generic Protocols additionally exist.9Aadds no class/record/durable field.",
+  "status": "Stage0–8E owning scopes and Stage9A/9B CP311 source/installed scopes accepted; Stage9 MolBundle collection/serialization completion and global gates remain open. Current508Python files/770classes/355dataclasses/8historicalbareProtocols/2TypedDicts; four generic Protocols additionally exist.9Badds no class/record/durable field.",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -47,7 +47,9 @@
           "owner",
           "dependencies"
         ],
-        "verification": "stages/stage03/identity/evidence.json"
+        "verification": "stages/stage03/identity/evidence.json",
+        "current_symbol": "hotpot.cheminfo.structure._source_identity._SourceIdentity",
+        "relocation_verification": "stages/stage09/cutover/validation/checkpoint.json"
       },
       {
         "symbol": "hotpot.cheminfo.structure._mutation._AtomFactUpdate",
@@ -528,9 +530,10 @@
       "dataclass_upper_bound": 1,
       "responsibility": "One owner binding plus domain-tagged dependency identities",
       "status": "implemented; one immutable owner/domain binding, not six identity classes",
-      "actual_symbol": "hotpot.cheminfo.structure._identity._SourceIdentity",
+      "actual_symbol": "hotpot.cheminfo.structure._source_identity._SourceIdentity",
       "commit": "d7989b3",
-      "verification": "stages/stage03/identity/evidence.json"
+      "verification": "stages/stage03/identity/evidence.json",
+      "relocation_verification": "stages/stage09/cutover/validation/checkpoint.json"
     },
     {
       "id": "N02",
@@ -1081,7 +1084,7 @@
     },
     "new_fact_native_actual_struct_definitions": 14,
     "new_fact_native_actual_enum_definitions": 1,
-    "verification": "stages/stage09/carriers/validation/checkpoint.json",
+    "verification": "stages/stage09/cutover/validation/checkpoint.json",
     "stage5_native_scope": "Readonly carrier dispatch plus configured DERIVED_FIELDS rejection at native ingress/preparation; existing Field gains immutable configuration metadata, with no new class/struct/enum or exported ABI. Corrected source awaits five fresh ABI builds and runtime evidence.",
     "stage5_native_source": {
       "path": "hotpot/cheminfo/structure/_native/facts.cpp",
@@ -1102,15 +1105,15 @@
       "historical_status": "Original failed candidate retained; final two test-import repairs passed without production changes."
     },
     "final_architecture_audit": {
-      "path": ".plan20-artifacts/20261104/stage9a/carriers/architecture.json",
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/architecture-R5.json",
       "status": "passed",
-      "remaining_debt": 175,
+      "remaining_debt": 24,
       "new_debt": 0,
       "layer_findings": 0,
       "carrier_definition_findings": 0,
-      "scope": "Stage9A static ratchet; no9B/global closure."
+      "scope": "Stage9B strict sole-owner/zero-core source ratchet; whole Stage9 and global gates remain open."
     },
-    "python_files": 496
+    "python_files": 508
   },
   "stage7a_bookkeeping": {
     "recorded_local_date": "2026-10-31",
@@ -1360,5 +1363,13 @@
     "new_durable_fields": 0,
     "retirements": 0,
     "verification": "stages/stage09/carriers/validation/checkpoint.json"
+  },
+  "stage9b_bookkeeping": {
+    "date": "2026-11-04",
+    "new_python_modules": 13,
+    "new_classes": 0,
+    "new_durable_fields": 0,
+    "retirements": "core.py and151legacy import bindings; same carrier/view class definitions move once. N01pure declaration relocates without a new type.",
+    "verification": "stages/stage09/cutover/validation/checkpoint.json"
   }
 }

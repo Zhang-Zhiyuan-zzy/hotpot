@@ -42,7 +42,7 @@ from hotpot.cheminfo.operations.forcefields.stage import (
 
 
 if TYPE_CHECKING:
-    from hotpot.cheminfo.core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
 
 
 __all__ = (

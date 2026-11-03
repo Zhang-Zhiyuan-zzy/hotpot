@@ -13,7 +13,7 @@ representation excludes unused spin from the shared facts.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass, fields, is_dataclass
+from dataclasses import fields, is_dataclass
 from enum import Enum
 import hashlib
 import json
@@ -21,6 +21,7 @@ import json
 import numpy as np
 
 from ._fields import FIELD_INDEX, ATOM_FIELDS, FIELD_PRESENCE_BITS, FACT_FIELDS
+from ._source_identity import _SourceIdentity
 from ._stereo import _get_stereo_payload
 from .constraints import _select_atom_values, _select_atom_metadata, _bond_raw_values
 
@@ -37,12 +38,6 @@ _CONSTRAINT_FIELDS = tuple(FIELD_INDEX[name] for name in (
     "x_constraint", "y_constraint", "z_constraint",
 ))
 _BONDING_FIELDS = (*_REPRESENTATION_FIELDS, *_COORDINATE_FIELDS)
-
-
-@dataclass(frozen=True, eq=False)
-class _SourceIdentity:
-    owner: object
-    dependencies: tuple[tuple[str, str], ...]
 
 
 def _canonical(value):

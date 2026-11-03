@@ -12,7 +12,7 @@ from hotpot.cheminfo.operations.forcefields import attempts
 from hotpot.cheminfo.operations.forcefields import ff
 from hotpot.cheminfo.operations.forcefields import working_copy
 from hotpot.cheminfo.operations.forcefields import workflows
-from hotpot.cheminfo.core import BondKind
+from hotpot.cheminfo.structure.bond_kind import BondKind
 from hotpot.cheminfo.structure import _commit
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX
 from hotpot.cheminfo.operations.chemistry import _atom_implicit_proposal

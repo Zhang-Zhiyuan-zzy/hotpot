@@ -139,3 +139,57 @@ def _closest_ring_edge_to_bond(ring, bond, not_in_same_molecule):
         return None
     return adapter.RingEdgeDistance(bond=ring.bonds[measurement.edge_index],
                                     measurement=measurement)
+
+
+def _bond_segment(bond):
+    from ..adapters.structure import geometry as adapter
+    return adapter.segment_from_bond(bond)
+
+
+def _angle_degrees(view):
+    from ..rules.mathematics.internal_coordinates import InternalCoordinates
+    from ..views._source import _view_coordinates
+    return InternalCoordinates.calc_angle(*_view_coordinates(view))
+
+
+def _torsion_degrees(view):
+    from ..rules.mathematics.internal_coordinates import InternalCoordinates
+    from ..views._source import _view_coordinates
+    return InternalCoordinates.calc_dehedral(*_view_coordinates(view))
+
+
+def _atom_pair_distance(pair):
+    from ..rules.mathematics.view_geometry import _pair_distance
+    from ..views._source import _view_coordinates
+    return _pair_distance(*_view_coordinates(pair))
+
+
+def _atom_pairs_distance(table):
+    if table._items is not None:
+        return np.array([pair.distance for pair in table.values()])
+    from ..rules.mathematics.view_geometry import _pair_distances
+    from ..views._source import _check_view_source, _geometry_snapshot
+    with table.mol._mutation_lock:
+        _check_view_source(table.mol, table._view_source, table._atoms, table._view_uids)
+        coordinates, identity = _geometry_snapshot(table.mol, table._atoms)
+        if identity != table._geometry:
+            raise RuntimeError('View geometry source changed; request a new view')
+        return _pair_distances(coordinates)
+
+
+def _molecule_bond_ring_piercing_state(mol, *, ring_scope, max_ring_size):
+    from ..adapters.structure import geometry as adapter
+    return adapter.determine_bond_ring_piercing_state(
+        mol,
+        ring_scope=ring_scope,
+        max_ring_size=max_ring_size,
+    )
+
+
+def _molecule_bond_ring_relations(mol, *, ring_scope, max_ring_size):
+    from ..adapters.structure import geometry as adapter
+    return adapter.scan_bond_ring_relations(
+        mol,
+        ring_scope=ring_scope,
+        max_ring_size=max_ring_size,
+    )

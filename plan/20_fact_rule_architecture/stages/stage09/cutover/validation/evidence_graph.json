@@ -1,0 +1,316 @@
+{
+  "acceptance": {
+    "bounded_stage_gate": true,
+    "overall_gate": false,
+    "stage9_gate": false,
+    "checkpoint": "plan/20_fact_rule_architecture/stages/stage09/cutover/validation/checkpoint.json"
+  },
+  "archive_manifest": {
+    "all_copies_verified": true,
+    "entry_count": 2396,
+    "path": ".plan20-artifacts/20261104/stage9b/cutover/manifest.json",
+    "sha256": "18a8e6e3a08faa3a68ac9f14cd155133a69455c318252604f3e3267dc4b4a7fc",
+    "total_bytes": 109512531
+  },
+  "edges": [
+    {
+      "from": "freeze-R5",
+      "relationship": "Before/after freeze verified; exact argv/cwd/interpreter/environment and counts in execution receipt.",
+      "to": "installed-connected-attempt02"
+    },
+    {
+      "from": "freeze-R4",
+      "relationship": "Before/after freeze verified; exact argv/cwd/interpreter/environment and counts in execution receipt.",
+      "to": "installed-consumers-attempt01"
+    },
+    {
+      "from": "optional-dependencies",
+      "relationship": "Real CPU torch 2.7.1+cpu and torch-geometric 2.6.1 in isolated CP311 venv; interpreter-only wrapper.",
+      "to": "installed-consumers-attempt01"
+    },
+    {
+      "from": "freeze-R4",
+      "relationship": "Before/after freeze verified; exact argv/cwd/interpreter/environment and counts in execution receipt.",
+      "to": "installed-focused-attempt02"
+    },
+    {
+      "from": "freeze-R3",
+      "relationship": "Before/after freeze verified; exact argv/cwd/interpreter/environment and counts in execution receipt.",
+      "to": "source-connected-attempt03"
+    },
+    {
+      "from": "freeze-R4",
+      "relationship": "Before/after freeze verified; exact argv/cwd/interpreter/environment and counts in execution receipt.",
+      "to": "source-consumers-attempt02"
+    },
+    {
+      "from": "optional-dependencies",
+      "relationship": "Real CPU torch 2.7.1+cpu and torch-geometric 2.6.1 in isolated CP311 venv; interpreter-only wrapper.",
+      "to": "source-consumers-attempt02"
+    },
+    {
+      "from": "freeze-R3",
+      "relationship": "Before/after freeze verified; exact argv/cwd/interpreter/environment and counts in execution receipt.",
+      "to": "source-contracts-attempt02"
+    },
+    {
+      "from": "freeze-R3",
+      "relationship": "Before/after freeze verified; exact argv/cwd/interpreter/environment and counts in execution receipt.",
+      "to": "source-default-attempt02"
+    },
+    {
+      "from": "freeze-R4",
+      "relationship": "Before/after freeze verified; exact argv/cwd/interpreter/environment and counts in execution receipt.",
+      "to": "source-focused-attempt03"
+    },
+    {
+      "from": "freeze-R5",
+      "relationship": "Before/after freeze verified; exact argv/cwd/interpreter/environment and counts in execution receipt.",
+      "to": "source-path-regressions-attempt01"
+    },
+    {
+      "from": "all-attempt-results",
+      "relationship": "Retained historical attempt; failure/earlier scope remains visible; not substituted for selected evidence.",
+      "to": "retained-installed-connected-attempt01"
+    },
+    {
+      "from": "all-attempt-results",
+      "relationship": "Retained historical attempt; failure/earlier scope remains visible; not substituted for selected evidence.",
+      "to": "retained-installed-focused-attempt01"
+    },
+    {
+      "from": "all-attempt-results",
+      "relationship": "Retained historical attempt; failure/earlier scope remains visible; not substituted for selected evidence.",
+      "to": "retained-source-connected-attempt01"
+    },
+    {
+      "from": "all-attempt-results",
+      "relationship": "Retained historical attempt; failure/earlier scope remains visible; not substituted for selected evidence.",
+      "to": "retained-source-connected-attempt02"
+    },
+    {
+      "from": "all-attempt-results",
+      "relationship": "Retained historical attempt; failure/earlier scope remains visible; not substituted for selected evidence.",
+      "to": "retained-source-consumers-attempt01"
+    },
+    {
+      "from": "all-attempt-results",
+      "relationship": "Retained historical attempt; failure/earlier scope remains visible; not substituted for selected evidence.",
+      "to": "retained-source-contracts-attempt01"
+    },
+    {
+      "from": "all-attempt-results",
+      "relationship": "Retained historical attempt; failure/earlier scope remains visible; not substituted for selected evidence.",
+      "to": "retained-source-default-attempt01"
+    },
+    {
+      "from": "all-attempt-results",
+      "relationship": "Retained historical attempt; failure/earlier scope remains visible; not substituted for selected evidence.",
+      "to": "retained-source-focused-attempt01"
+    },
+    {
+      "from": "all-attempt-results",
+      "relationship": "Retained historical attempt; failure/earlier scope remains visible; not substituted for selected evidence.",
+      "to": "retained-source-focused-attempt02"
+    },
+    {
+      "from": "freeze-R1",
+      "relationship": "Exact binding/support differences retained in revision-provenance.",
+      "to": "freeze-R2"
+    },
+    {
+      "from": "freeze-R2",
+      "relationship": "Exact binding/support differences retained in revision-provenance.",
+      "to": "freeze-R3"
+    },
+    {
+      "from": "freeze-R3",
+      "relationship": "Exact binding/support differences retained in revision-provenance.",
+      "to": "freeze-R4"
+    },
+    {
+      "from": "freeze-R4",
+      "relationship": "Exact binding/support differences retained in revision-provenance.",
+      "to": "freeze-R5"
+    },
+    {
+      "from": "source-focused-attempt03",
+      "relationship": "Ordered test selection comparison: focused; raw lists retained in ordered-nodeids evidence.",
+      "to": "installed-focused-attempt02"
+    },
+    {
+      "from": "source-connected-attempt03",
+      "relationship": "Ordered test selection comparison: connected; raw lists retained in ordered-nodeids evidence.",
+      "to": "installed-connected-attempt02"
+    },
+    {
+      "from": "source-consumers-attempt02",
+      "relationship": "Ordered test selection comparison: consumers; raw lists retained in ordered-nodeids evidence.",
+      "to": "installed-consumers-attempt01"
+    }
+  ],
+  "limits": [
+    "Retained R3 default/source-connected evidence plus targeted R4/R5 revalidation is not a new whole R5 source/default run.",
+    "Installed evidence covers selected CP311 contracts only; source-only private sampler.cpp check is explicitly skipped in the wheel.",
+    "Only six previously accepted CP311 native binaries are reused; 33 frozen version-specific binaries do not receive additional acceptance.",
+    "No clean-native build, SDK, sdist, other Python version, scientific experiment, performance comparison, or global acceptance evidence is claimed.",
+    "Stage9 remains incomplete: MolBundle rows 9.2-026 and 9.6-006 remain next."
+  ],
+  "nodes": {
+    "all-attempt-results": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/derived/attempt-results.json",
+      "sha256": "451b5bbe2d7e68c56f82640fb3b3ea9e953f21a1e5fd77ddf18f1a0020f2278e"
+    },
+    "architecture-R5": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/architecture-R5.json",
+      "sha256": "7c543b3ba4494aa5490251dc94d381e186197a2184463b28f2ba3a021f5210b6"
+    },
+    "freeze-R1": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/freeze-R1.json",
+      "sha256": "f0672265bf3eb3738e3f9d1f54d49f4ef538ca489fe3bf9378287276f8cdf935"
+    },
+    "freeze-R2": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/freeze-R2.json",
+      "sha256": "d0d6afa6599cb9cf80ae77706412c3a7faf7cb0230fdba57d0918bbb5414f269"
+    },
+    "freeze-R3": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/freeze-R3.json",
+      "sha256": "e1ddb056cdc234ce9102cbeef877d4ed6c4a2b3ccca03601a46eb071349d6ca3"
+    },
+    "freeze-R4": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/freeze-R4.json",
+      "sha256": "7ab56340db1cf2a7cf7f731b893021896e6ef7ce42ce134fe97b1bf53a0adb7f"
+    },
+    "freeze-R5": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/freeze.json",
+      "sha256": "de1779e072f764cab4c7cda87335d5cce70ac24578de823bd1977dfbdcc01ed5"
+    },
+    "installed-connected-attempt02": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/installed-connected-attempt02/execution.json",
+      "sha256": "fe41277fb9e4ba0b1721286838a5ca21d1e5f85ab67a0d627c7ca4908bd17fc6"
+    },
+    "installed-consumers-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/installed-consumers-attempt01/execution.json",
+      "sha256": "0ec5de9723dddad6491bacfa61888027c0bab8c285e4b35ba0905bfd9262184d"
+    },
+    "installed-focused-attempt02": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/installed-focused-attempt02/execution.json",
+      "sha256": "f926d7bde3ee9b44a37a751b8a77f6a83fe2d442f4fcbfb12311b268fb8f68d1"
+    },
+    "optional-dependencies": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/medium/stage9b-pyg-environment-20261104/receipt.json",
+      "sha256": "2bb9eb86906daa777dec9ed2d14119cf6b62e0dfa2bdda0d270be45060f9cf15"
+    },
+    "ordered-nodeids": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/derived/ordered-nodeid-comparison.json",
+      "sha256": "a1f2d45abda83b6ba45dbaa6d55323d356282ddbf2a977c741de01006ac76f10"
+    },
+    "retained-installed-connected-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/installed-connected-attempt01/execution.json",
+      "sha256": "37241f47e4bb6fd2a4caf04185db9b7ce5736001d840d0db94107e7293d6def6"
+    },
+    "retained-installed-focused-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/installed-focused-attempt01/execution.json",
+      "sha256": "ae0d1d90ffa95d22f02997083b933a4f6e04718bd251cb3fa1857c7d60fcb618"
+    },
+    "retained-source-connected-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-connected-attempt01/execution.json",
+      "sha256": "21b4f07685b695620b344f490d9af7e69624c249cd11fb3f32afd18fcb49049a"
+    },
+    "retained-source-connected-attempt02": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-connected-attempt02/execution.json",
+      "sha256": "fff8b9855dc42da96c21e92bf7fc20a8849e8d1f05b2ab018acbf1bde521edea"
+    },
+    "retained-source-consumers-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-consumers-attempt01/execution.json",
+      "sha256": "d25d36c3df520f55092b2c8130d63e95635fc763c0b1d7edeb14735b23ffc4c0"
+    },
+    "retained-source-contracts-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-contracts-attempt01/execution.json",
+      "sha256": "e50910f3aaf712e438629b5dd7c4bd54cc2e42afde7e48ceedfb6b4be36f2f6a"
+    },
+    "retained-source-default-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-default-attempt01/execution.json",
+      "sha256": "7ea5d651f092a0b878dd66917e54449953f138b50a9d2e3781c3de6caece2e0f"
+    },
+    "retained-source-focused-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-focused-attempt01/execution.json",
+      "sha256": "d9b847bbc35a5099c95cbdc36b53528568179b740684b6f6c209451ec9161b04"
+    },
+    "retained-source-focused-attempt02": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-focused-attempt02/execution.json",
+      "sha256": "3acc491f0681ce911e63ec727f2d49b409f8b319fc8ca4e117dc4ca6084a5ee5"
+    },
+    "revision-provenance": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/derived/revision-comparison.json",
+      "sha256": "84946e6a2443124b356e891b6dcb7fa910b03d5100fc7e086007dc757c9a8a45"
+    },
+    "source-connected-attempt03": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-connected-attempt03/execution.json",
+      "sha256": "5fae28e72dddffc552c7c461581c8f351d8ddd1ff6562ae97c60ae6c7db8b76b"
+    },
+    "source-consumers-attempt02": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-consumers-attempt02/execution.json",
+      "sha256": "7b233199a00b73348aeb65e4f6fd956ab227b09018fabd016be5e64ecd9d85e4"
+    },
+    "source-contracts-attempt02": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-contracts-attempt02/execution.json",
+      "sha256": "b538fd7a019d98a47da785a482e5ee215e9be9f9370c434ce1b62c0c52909e27"
+    },
+    "source-default-attempt02": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-default-attempt02/execution.json",
+      "sha256": "e71416c5038bf1b02b6acafaa0d0af2189f75e8d175307c8f32367507ad0a44f"
+    },
+    "source-focused-attempt03": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-focused-attempt03/execution.json",
+      "sha256": "730b90fc8d152c96f84a8044226d6e238ce8a2a6b341fccbb5237c845d5123fa"
+    },
+    "source-path-regressions-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-path-regressions-attempt01/execution.json",
+      "sha256": "19c7ff8812c382e1feed59391e189b294df80479a3c46f84a05edb1f99822ffb"
+    },
+    "stage9b-default-test-alignment-20261104/static-receipt.json": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/medium/stage9b-default-test-alignment-20261104/static-receipt.json",
+      "sha256": "5d3f0386dcc853b71ee85a5808bbf82bcce8fc5a11486e84e80f4826d074db0a"
+    },
+    "stage9b-design-20261104/global_static_checks.json": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/medium/stage9b-design-20261104/global_static_checks.json",
+      "sha256": "38265fc61c84e7ab3393f713b983222cf18f83b800b04b8f43b6f43fca010722"
+    },
+    "stage9b-handles-20261104/static-review.json": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/medium/stage9b-handles-20261104/static-review.json",
+      "sha256": "5b36a74d239f5fd70b83ab0ee62236653cce5fa0256d213d7f63a0b5e2037a28"
+    },
+    "stage9b-installed-test-paths-20261104/before.json": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/medium/stage9b-installed-test-paths-20261104/before.json",
+      "sha256": "cbb15abb88e0db5cf56f1a9c76866b40f24cefa1303e93e63f5a6cac69dbfbb4"
+    },
+    "stage9b-owner-tests-20261104/static-review.json": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/medium/stage9b-owner-tests-20261104/static-review.json",
+      "sha256": "0a4c2cf136dcb021c4aa265bedb0065abfad7a5bf5ce449b166616ebd6dd2df2"
+    },
+    "stage9b-review-20261104/integration-review.json": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/medium/stage9b-review-20261104/integration-review.json",
+      "sha256": "9bfa86f01219199a58562d06562bb872caf7c37603470c1fe72c2f676b53275b"
+    },
+    "stage9b-source-identity-20261104/static_receipt.json": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/medium/stage9b-source-identity-20261104/static_receipt.json",
+      "sha256": "8309d8717a76fa7617de7f0089016961d34ca2f13aacc6f79ffd279339200886"
+    },
+    "type-census-R5": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/derived/census-R5.json",
+      "sha256": "c2ff6e069a2ecf36a1133e3de3f604f65e6243a64da1aaf7654e4ce2946d094b"
+    },
+    "verification": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/derived/finalization-verification.json",
+      "sha256": "2dbad04c91927666f2f8a9aac04df0dcf16c5637a68c4ef2bdc60c941859a419"
+    },
+    "wheel-native-identity": {
+      "path": ".plan20-artifacts/20261104/stage9b/cutover/derived/wheel-native-identity.json",
+      "sha256": "d73f28fb9afed939d376fa3e8a692eebac54f22417f8af15f7d506f42c85f643"
+    }
+  },
+  "schema_version": 1,
+  "source_head": "958bdd9b4757160aa57c4dc8eef91a8bb71587d5",
+  "status": "ROOT_ACCEPTED_CP311_SOURCE_INSTALLED_CARRIER_CUTOVER"
+}

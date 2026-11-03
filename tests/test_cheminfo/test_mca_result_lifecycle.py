@@ -146,7 +146,8 @@ def test_absence_reads_and_current_reads_never_predict_or_hash(monkeypatch, pred
     for name in (
         "hotpot.cheminfo.structure._identity",
         "hotpot.cheminfo.structure._results",
-        "hotpot.cheminfo.core",
+        "hotpot.cheminfo.structure.molecule",
+        "hotpot.cheminfo.structure.atom",
         "hotpot.cheminfo.operations.inference.mca.attachment",
     ):
         module = importlib.import_module(name)

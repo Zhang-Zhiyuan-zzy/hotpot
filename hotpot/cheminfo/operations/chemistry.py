@@ -838,3 +838,68 @@ def _molecular_implicit_hydrogen_sum(mol):
 
 def _update_molecular_charge(mol):
     mol.charge = mol.sum_atoms_charge
+
+
+def _element_group(atomic_number):
+    from ..rules.chemistry.elements import _group as calculate
+    return calculate(atomic_number)
+
+
+def _element_exact_mass(atomic_number):
+    from ..rules.chemistry.elements import _exact_mass as calculate
+    return calculate(atomic_number)
+
+
+def _element_electronegativity(atomic_number):
+    from ..rules.chemistry.elements import _electronegativity as calculate
+    return calculate(atomic_number)
+
+
+def _element_covalent_radius(atomic_number):
+    from ..rules.chemistry.elements import _covalent_radius as calculate
+    return calculate(atomic_number)
+
+
+def _element_density(atomic_number):
+    from ..rules.chemistry.elements import _density as calculate
+    return calculate(atomic_number)
+
+
+def _element_is_lanthanide(atomic_number):
+    from ..rules.chemistry.elements import _is_lanthanide as calculate
+    return calculate(atomic_number)
+
+
+def _element_is_actinide(atomic_number):
+    from ..rules.chemistry.elements import _is_actinide as calculate
+    return calculate(atomic_number)
+
+
+def _element_is_noble_gas(atomic_number):
+    from ..rules.chemistry.elements import _is_noble_gas as calculate
+    return calculate(atomic_number)
+
+
+def _element_is_halogen(atomic_number):
+    from ..rules.chemistry.elements import _is_halogen as calculate
+    return calculate(atomic_number)
+
+
+def _element_is_metal(atomic_number):
+    from ..rules.chemistry.elements import _is_metal as calculate
+    return calculate(atomic_number)
+
+
+def _element_mass(atomic_number):
+    from ..rules.chemistry.elements import _mass as calculate
+    return calculate(atomic_number)
+
+
+def _element_missing_electrons(atomic_number):
+    from ..rules.chemistry.bonding.valence import _missing_electrons as calculate
+    return calculate(atomic_number)
+
+
+def _element_electron_configuration(atomic_number):
+    from ..rules.chemistry.elements import _electron_configuration as calculate
+    return calculate(atomic_number)

@@ -156,7 +156,7 @@ class MolWriter(IoBase):
     def obmol_write_string(self, obmol: "ob.OBMol"):
         return _openbabel._write_string(self.ob_conv, obmol)
 
-    def _ob_write(self, mol: "core.Molecule", write_single: bool = False, *args, **kwargs) -> Optional[str]:
+    def _ob_write(self, mol: "Molecule", write_single: bool = False, *args, **kwargs) -> Optional[str]:
         self.ob_conv = _openbabel.get_ob_conversion(self.fmt, **self.ob_opt)
         obmol: "ob.OBMol" = mol.to_obmol()
         _script = ""
@@ -174,7 +174,7 @@ class MolWriter(IoBase):
             assert isinstance(preprocessor, Callable)
             preprocessor(self, mol, *args, **kwargs)
 
-    def _write(self, mol: "core.Molecule", *args, **kwargs) -> Optional[str]:
+    def _write(self, mol: "Molecule", *args, **kwargs) -> Optional[str]:
         if writer := self._plugins.get(self.fmt, {}).get('write', None):
             assert isinstance(writer, Callable)
             return writer(self, mol, *args, **kwargs)
@@ -194,7 +194,7 @@ class MolWriter(IoBase):
             with open(self.fp, "w") as f:
                 f.write(script)
 
-    def write(self, mol: "core.Molecule", *args, **kwargs) -> Optional[str]:
+    def write(self, mol: "Molecule", *args, **kwargs) -> Optional[str]:
         kwargs.update(self.kwargs)
         self._pre(mol, *args, **kwargs)
         script = self._write(mol, *args, **kwargs)

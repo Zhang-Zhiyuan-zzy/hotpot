@@ -352,7 +352,7 @@ def test_current_pickle_roots_round_trip_in_a_fresh_process(tmp_path, protocol):
     origin = Path(sys.modules[Molecule.__module__].__file__).resolve()
     environment = os.environ.copy()
     environment.pop('PYTHONHOME', None)
-    environment['PYTHONPATH'] = os.pathsep.join((str(origin.parents[2]),
+    environment['PYTHONPATH'] = os.pathsep.join((str(Path(sys.modules['hotpot'].__file__).resolve().parent.parent),
                                                str(Path(__file__).resolve().parents[3])))
     script = '''
 import pickle, sys

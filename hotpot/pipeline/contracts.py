@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
         ScientificStateBundle,
     )
-    from hotpot.cheminfo.core import Molecule
+    from hotpot.cheminfo.structure.molecule import Molecule
 
 
 __all__ = [

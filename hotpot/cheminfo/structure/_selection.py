@@ -2,7 +2,8 @@
 
 from dataclasses import dataclass
 
-from ._identity import _SourceIdentity, _capture_source, _check_source
+from ._source_identity import _SourceIdentity
+from ._identity import _capture_source, _check_source
 
 
 __all__ = ()

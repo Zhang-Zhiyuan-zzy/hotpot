@@ -22,7 +22,7 @@ from hotpot.cheminfo.adapters.structure.forcefields import (
 if TYPE_CHECKING:
     from hotpot.cheminfo.structure.stereo import StereoPayload
     from hotpot.cheminfo.structure._builder import MoleculeRecord
-    from hotpot.cheminfo.structure._identity import _SourceIdentity
+    from hotpot.cheminfo.structure._source_identity import _SourceIdentity
 
 
 __all__ = ()

@@ -739,7 +739,7 @@ def test_case54_initial_phosphorus_distance_is_not_misreported_as_a_clash() -> N
 def test_native_geometry_and_forcefield_responsibilities_are_separated() -> None:
     repository = Path(__file__).resolve().parents[3]
     construction = (
-        repository / "hotpot/cheminfo/geometry/_native/construction.cpp"
+        repository / "hotpot/cheminfo/rules/mathematics/geometry/_native/construction.cpp"
     ).read_text(encoding="utf-8")
     candidates = (
         repository / "hotpot/cheminfo/rules/physics/forcefields/_native/placement_candidates.cpp"

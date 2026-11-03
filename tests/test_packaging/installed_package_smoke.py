@@ -74,10 +74,10 @@ def core() -> None:
     assert files("hotpot.pipeline").joinpath("README.md").read_text(
         encoding="utf-8"
     ).startswith("# Hotpot controlled molecular pipeline")
-    assert files("hotpot.cheminfo.geometry").joinpath("README.md").read_text(
+    assert files("hotpot.cheminfo.rules.mathematics.geometry").joinpath("README.md").read_text(
         encoding="utf-8"
     ).startswith("# Geometry rules and structure adapters API Reference")
-    assert files("hotpot.cheminfo.geometry").joinpath("README.zh.md").read_text(
+    assert files("hotpot.cheminfo.rules.mathematics.geometry").joinpath("README.zh.md").read_text(
         encoding="utf-8"
     ).startswith("# 几何数学规则与结构适配器 API 参考（中文版）")
     fonts = files("hotpot.cheminfo").joinpath("adapters", "visualization", "fonts", "Arial")

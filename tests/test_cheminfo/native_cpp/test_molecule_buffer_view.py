@@ -24,7 +24,7 @@ def _compiler_command() -> list[str]:
 
 def test_molecule_buffer_view_cpp17_api(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[3]
-    include_directory = repository / "hotpot/cheminfo/_native/include"
+    include_directory = repository / "hotpot/cheminfo/adapters/native/include"
     executable = tmp_path / "molecule_buffer_view"
     command = [
         *_compiler_command(),

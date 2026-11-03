@@ -170,7 +170,7 @@ def _constraints(structure: Mapping[str, object]):
 
 
 def _graph_digest(molecule) -> str:
-    from hotpot.cheminfo._native.buffers import pack_molecule
+    from hotpot.cheminfo.operations.native_packing import pack_molecule
     from hotpot.cheminfo.rdWrappers.native import _RDKIT_ETKDG_FIELDS
 
     packed = pack_molecule(molecule, _RDKIT_ETKDG_FIELDS)

@@ -59,7 +59,7 @@ def test_accepts_exact_runtime_payload(tmp_path: Path):
         f"{WRAPPER_ROOT}CMakeLists.txt",
         f"{WRAPPER_ROOT}_native/include/hotpot/rdWrappers/c_api.h",
         f"{WRAPPER_ROOT}_native/src/core.hpp",
-        "hotpot/cheminfo/_native/include/hotpot/native/array_view.hpp",
+        "hotpot/cheminfo/adapters/native/include/hotpot/native/array_view.hpp",
         "third_party/rdkit/rdkit.lock.json",
         "lib/libhotpot_rdwrappers.so",
         "lib/cmake/HotpotRDWrappers/HotpotRDWrappersConfig.cmake",

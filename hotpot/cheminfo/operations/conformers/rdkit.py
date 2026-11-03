@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from ..._native.buffers import pack_molecule
+from ..native_packing import pack_molecule
 from ...adapters.rdkit import sampling
 from ...rdWrappers.native import _RDKIT_ETKDG_FIELDS
 from .contracts import ConformerBatch, ConformerSamplingError, ConformerSamplingRequest

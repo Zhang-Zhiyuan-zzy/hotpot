@@ -1,8 +1,8 @@
 # `hotpot.cheminfo.rules.mathematics.graph`
 
 This mathematical rules package contains Hotpot's graph utilities and its
-Relevant Cycle perception API. The native extension remains in
-`hotpot.cheminfo.graph._graph_native`. Chemical graph spectrum descriptors live
+Relevant Cycle perception API. The native extension lives in
+`hotpot.cheminfo.rules.mathematics.graph._graph_native`. Chemical graph spectrum descriptors live
 in `hotpot.cheminfo.rules.chemistry.descriptors.graph_spectrum`. The native cycle implementation accepts topology only: atom
 types, bond orders, coordinates, aromaticity, and metal chemistry do not alter
 its result.
@@ -83,7 +83,7 @@ shortest-path expansion. It releases the GIL and has no mutable global state.
 
 The implementation is derived from RingDecomposerLib's Vismara algorithm. RDL
 is not a runtime dependency. Its BSD 3-Clause license and provenance notice are
-included under `hotpot/cheminfo/graph/_native/`; the test-only oracle is pinned to commit
+included under `hotpot/cheminfo/rules/mathematics/graph/_native/`; the test-only oracle is pinned to commit
 `3a7ff93de0d9c4f6a5661508549c6063573f39c7`.
 
 `Molecule.rings` and `Molecule.ligand_rings` use this Relevant Cycle family.

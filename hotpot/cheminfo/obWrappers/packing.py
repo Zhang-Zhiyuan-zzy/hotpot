@@ -7,14 +7,14 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from .._native.buffers import (
+from ..adapters.native.molecule_buffers import (
     MOLECULE_BUFFER_SCHEMA_VERSION,
     NativeMoleculeBuffers,
     NativeMoleculeField,
     _BOND_KIND_CODES as _COMMON_BOND_KIND_CODES,
     _empty_matrix,
-    pack_molecule as _pack_common_molecule,
 )
+from ..operations.native_packing import pack_molecule as _pack_common_molecule
 from .contracts import BondKindCode
 
 

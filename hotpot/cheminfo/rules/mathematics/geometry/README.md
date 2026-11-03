@@ -12,8 +12,8 @@ from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.adapters.structure import geometry as structure_geo
 ```
 
-The original `hotpot.cheminfo.geometry` package remains the native extension
-home; numerical Python modules live under the mathematical rules package.
+The native extension and numerical Python modules share the
+`hotpot.cheminfo.rules.mathematics.geometry` package.
 
 ## 1. Package introduction
 

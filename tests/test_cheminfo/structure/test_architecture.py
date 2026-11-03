@@ -313,3 +313,20 @@ def test_retired_bundle_module_is_rejected_even_without_imports():
     assert audit.active_core_findings("hotpot/cheminfo/bundle.py", "") == [
         {"path": "hotpot/cheminfo/bundle.py", "line": 1, "rule": "legacy_bundle_module"}
     ]
+
+
+@pytest.mark.parametrize("module,label", [
+    ("hotpot.cheminfo.geometry", "geometry"),
+    ("hotpot.cheminfo.graph", "graph"),
+    ("hotpot.cheminfo._native", "native_transport"),
+])
+@pytest.mark.parametrize("entry", [
+    "import {module}",
+    "from {module} import native",
+    "importlib.import_module('{module}.native')",
+])
+def test_retired_native_owners_cannot_return(module, label, entry):
+    findings = audit.active_core_findings(
+        "hotpot/cheminfo/operations/consumer.py", entry.format(module=module))
+    assert {row["rule"] for row in findings} == {f"active_legacy_{label}_reference"}
+    assert audit.active_core_findings(module.replace(".", "/") + "/__init__.py", "")

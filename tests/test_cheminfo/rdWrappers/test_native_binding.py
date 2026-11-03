@@ -10,7 +10,7 @@ import pytest
 
 import hotpot
 from hotpot.cheminfo import rdWrappers
-from hotpot.cheminfo._native.buffers import (
+from hotpot.cheminfo.adapters.native.molecule_buffers import (
     NativeAtomTransportBuffers,
     NativeMoleculeBuffers,
     NativeMoleculeField,

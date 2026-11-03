@@ -1,7 +1,7 @@
 #include "placement_candidates.hpp"
 
-#include "../../../../geometry/_native/construction.hpp"
-#include "../../../../geometry/_native/vector_math.hpp"
+#include "../../../mathematics/geometry/_native/construction.hpp"
+#include "../../../mathematics/geometry/_native/vector_math.hpp"
 
 #include <algorithm>
 #include <array>

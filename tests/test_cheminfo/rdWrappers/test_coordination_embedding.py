@@ -11,10 +11,10 @@ import numpy as np
 import pytest
 
 from hotpot.cheminfo import rdWrappers
-from hotpot.cheminfo._native.buffers import (
+from hotpot.cheminfo.adapters.native.molecule_buffers import (
     NativeMoleculeField,
-    pack_molecule,
 )
+from hotpot.cheminfo.operations.native_packing import pack_molecule
 from hotpot.cheminfo.structure.bond_kind import BondKind
 from hotpot.cheminfo.structure.molecule import Molecule
 

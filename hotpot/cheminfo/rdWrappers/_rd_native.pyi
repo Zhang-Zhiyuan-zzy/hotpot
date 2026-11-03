@@ -4,7 +4,7 @@ from .contracts import (
     ETKDGOptions,
     RuntimeInfo,
 )
-from .._native.buffers import NativeMoleculeBuffers
+from ..adapters.native.molecule_buffers import NativeMoleculeBuffers
 
 C_API_VERSION: int
 RDKIT_COMMIT: str

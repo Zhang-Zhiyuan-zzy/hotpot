@@ -24,7 +24,7 @@ from tests.geometry_characterization import (
 )
 
 
-_NATIVE_MODULE = "hotpot.cheminfo.geometry._geometry_native"
+_NATIVE_MODULE = "hotpot.cheminfo.rules.mathematics.geometry._geometry_native"
 
 
 def _percentile(samples: Sequence[float], fraction: float) -> float:

@@ -31,10 +31,10 @@ class RelevantCycleLimitExceeded(RuntimeError):
 
 def _native_module() -> ModuleType:
     try:
-        return import_module("hotpot.cheminfo.graph._graph_native")
+        return import_module("hotpot.cheminfo.rules.mathematics.graph._graph_native")
     except ImportError as exc:
         raise ImportError(
-            "the hotpot.cheminfo.graph native extension is unavailable; "
+            "the hotpot.cheminfo.rules.mathematics.graph native extension is unavailable; "
             "install a compatible Hotpot wheel or rebuild Hotpot from source"
         ) from exc
 

@@ -11,10 +11,10 @@ from .contracts import (
     RuntimeInfo,
 )
 
-from .._native.buffers import (
+from ..adapters.native.molecule_buffers import (
     NativeMoleculeField,
-    pack_molecule,
 )
+from ..operations.native_packing import pack_molecule
 
 if TYPE_CHECKING:
     from hotpot.cheminfo.structure.molecule import Molecule

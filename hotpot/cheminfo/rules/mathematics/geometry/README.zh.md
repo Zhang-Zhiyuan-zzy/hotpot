@@ -11,7 +11,7 @@ from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.adapters.structure import geometry as structure_geo
 ```
 
-原 `hotpot.cheminfo.geometry` package 保留为 native 扩展 home；Python 数学模块已迁入数学规则包。
+native 扩展和 Python 数学模块均位于 `hotpot.cheminfo.rules.mathematics.geometry` package。
 
 ## 1. Package 简介
 

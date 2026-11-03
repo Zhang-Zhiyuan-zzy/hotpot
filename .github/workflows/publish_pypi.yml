@@ -17,12 +17,17 @@ on:
       - "MANIFEST.in"
       - "third_party/rdkit/**"
       - "hotpot/cheminfo/rdWrappers/**"
-      - "hotpot/cheminfo/geometry/_native/**"
-      - "hotpot/cheminfo/graph/_native/**"
+      - "hotpot/cheminfo/rules/mathematics/geometry/_native/**"
+      - "hotpot/cheminfo/rules/mathematics/graph/_native/**"
       - "hotpot/cheminfo/adapters/native/substructure/_native/**"
       - "hotpot/cheminfo/rules/mathematics/graph_matching/_native/**"
       - "hotpot/cheminfo/rules/chemistry/substructure/_native/**"
-      - "hotpot/cheminfo/forcefields/_native/**"
+      - "hotpot/cheminfo/rules/physics/forcefields/_native/**"
+      - "hotpot/cheminfo/operations/forcefields/_native/**"
+      - "hotpot/cheminfo/adapters/native/forcefields/**"
+      - "hotpot/cheminfo/adapters/native/include/**"
+      - "hotpot/cheminfo/structure/_native/**"
+      - "hotpot/cheminfo/reference/_native/**"
       - "hotpot/cheminfo/obWrappers/_native/**"
       - "tests/test_packaging/**"
       - ".github/workflows/publish_pypi.yml"
@@ -80,8 +85,8 @@ jobs:
             -w {dest_dir} {wheel}
           CIBW_TEST_COMMAND: >-
             python -c "import hotpot;
-            from hotpot.cheminfo.geometry import _geometry_native;
-            from hotpot.cheminfo.graph import _graph_native, relevant_cycles;
+            from hotpot.cheminfo.rules.mathematics.geometry import _geometry_native;
+            from hotpot.cheminfo.rules.mathematics.graph import _graph_native, relevant_cycles;
             from hotpot.cheminfo.adapters.native.substructure import _search_native;
             from hotpot.cheminfo.obWrappers import _ob_native;
             from hotpot.cheminfo import rdWrappers;

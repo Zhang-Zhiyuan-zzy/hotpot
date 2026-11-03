@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../_native/include/hotpot/native/molecule_buffer_view.hpp"
+#include "../../adapters/native/include/hotpot/native/molecule_buffer_view.hpp"
 #include "rules.hpp"
 
 #include <array>

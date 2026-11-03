@@ -24,7 +24,7 @@ def _compiler_command() -> list[str]:
 
 def test_private_cycle_basis_cpp_source_api(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[4]
-    native_directory = repository / "hotpot/cheminfo/graph/_native"
+    native_directory = repository / "hotpot/cheminfo/rules/mathematics/graph/_native"
     executable = tmp_path / "cycle_basis_source_api"
     command = [
         *_compiler_command(),

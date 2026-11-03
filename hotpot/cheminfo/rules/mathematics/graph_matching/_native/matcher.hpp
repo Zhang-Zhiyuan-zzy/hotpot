@@ -1,7 +1,7 @@
 #pragma once
 
 #include "compatibility.hpp"
-#include "../../../../graph/_native/graph.hpp"
+#include "../../graph/_native/graph.hpp"
 
 #include <atomic>
 #include <cstddef>

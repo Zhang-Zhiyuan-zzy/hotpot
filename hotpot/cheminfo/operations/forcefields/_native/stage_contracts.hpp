@@ -6,9 +6,9 @@
 #include "../../../rules/physics/forcefields/_native/placement_policy.hpp"
 #include "trajectory.hpp"
 
-#include "../../../geometry/_native/nonplanar_surface.hpp"
-#include "../../../geometry/_native/segment_cycle.hpp"
-#include "../../../geometry/_native/tolerances.hpp"
+#include "../../../rules/mathematics/geometry/_native/nonplanar_surface.hpp"
+#include "../../../rules/mathematics/geometry/_native/segment_cycle.hpp"
+#include "../../../rules/mathematics/geometry/_native/tolerances.hpp"
 #include "../../../obWrappers/_native/defaults.hpp"
 #include "../../../obWrappers/_native/optimization_checks.hpp"
 

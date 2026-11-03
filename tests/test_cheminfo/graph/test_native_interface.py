@@ -1,6 +1,6 @@
 """Direct Python/C++ Relevant Cycle interface checks."""
 
-from hotpot.cheminfo.graph import _graph_native
+from hotpot.cheminfo.rules.mathematics.graph import _graph_native
 
 
 def test_native_interface_exchanges_edges_limits_and_cycle_edge_ids():

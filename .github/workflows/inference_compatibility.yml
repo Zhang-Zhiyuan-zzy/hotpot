@@ -105,8 +105,9 @@ jobs:
             -w {dest_dir} {wheel}
           CIBW_TEST_COMMAND: >-
             python -c "import hotpot;
-            from hotpot.cheminfo.geometry import _geometry_native;
-            from hotpot.cheminfo.graph import GraphSpectrum, relevant_cycles;
+            from hotpot.cheminfo.rules.mathematics.geometry import _geometry_native;
+            from hotpot.cheminfo.rules.chemistry.descriptors.graph_spectrum import GraphSpectrum;
+            from hotpot.cheminfo.rules.mathematics.graph import relevant_cycles;
             from hotpot.cheminfo.adapters.native.substructure import _search_native;
             from hotpot.cheminfo.obWrappers import _ob_native;
             from hotpot.cheminfo import rdWrappers;
@@ -191,11 +192,11 @@ jobs:
               "hotpot/cheminfo/operations/calculation/scientific_state/execution_selection.py",
               "hotpot/cheminfo/rules/chemistry/scientific_state/data/profiles/coordination_screening_v1.json",
               "hotpot/cheminfo/adapters/native/substructure/_search_native.pyi",
-              "hotpot/cheminfo/graph/_graph_native.pyi",
-              "hotpot/cheminfo/graph/_native/graph.cpp",
-              "hotpot/cheminfo/graph/_native/graph.hpp",
-              "hotpot/cheminfo/graph/_native/cycle_basis.cpp",
-              "hotpot/cheminfo/graph/_native/cycle_basis.hpp",
+              "hotpot/cheminfo/rules/mathematics/graph/_graph_native.pyi",
+              "hotpot/cheminfo/rules/mathematics/graph/_native/graph.cpp",
+              "hotpot/cheminfo/rules/mathematics/graph/_native/graph.hpp",
+              "hotpot/cheminfo/rules/mathematics/graph/_native/cycle_basis.cpp",
+              "hotpot/cheminfo/rules/mathematics/graph/_native/cycle_basis.hpp",
               "hotpot/cheminfo/adapters/native/substructure/_native/bindings.cpp",
               "hotpot/cheminfo/rules/mathematics/graph_matching/_native/compatibility.hpp",
               "hotpot/cheminfo/rules/mathematics/graph_matching/_native/matcher.cpp",

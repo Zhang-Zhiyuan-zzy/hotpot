@@ -5,7 +5,7 @@
 
 #include <openbabel/elements.h>
 #include "hotpot/cheminfo/operations/forcefields/_native/structure_session.hpp"
-#include "hotpot/cheminfo/geometry/_native/construction.hpp"
+#include "hotpot/cheminfo/rules/mathematics/geometry/_native/construction.hpp"
 
 #include <algorithm>
 #include <cassert>

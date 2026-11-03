@@ -64,7 +64,7 @@ def _file_sha256(path: Path) -> str:
 
 
 def _native_source_paths() -> Tuple[Path, ...]:
-    native_dir = REPOSITORY_ROOT / "hotpot/cheminfo/graph/_native"
+    native_dir = REPOSITORY_ROOT / "hotpot/cheminfo/rules/mathematics/graph/_native"
     return (
         native_dir / "bindings.cpp",
         native_dir / "relevant_cycles.cpp",
@@ -101,7 +101,7 @@ def main() -> None:
     arguments = parser.parse_args()
 
     sys.path.insert(0, str(REPOSITORY_ROOT))
-    from hotpot.cheminfo.graph import _graph_native
+    from hotpot.cheminfo.rules.mathematics.graph import _graph_native
     from hotpot.cheminfo.rules.mathematics.graph import relevant_cycles
 
     extension_path = Path(_graph_native.__file__).resolve()

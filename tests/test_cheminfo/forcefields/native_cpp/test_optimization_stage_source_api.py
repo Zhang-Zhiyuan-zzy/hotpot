@@ -41,8 +41,8 @@ def test_optimization_stage_cpp_source_api(tmp_path: Path) -> None:
     rules = repository / "hotpot/cheminfo/rules/physics/forcefields/_native"
     adapters = repository / "hotpot/cheminfo/adapters/native/forcefields"
     operations = repository / "hotpot/cheminfo/operations/forcefields/_native"
-    geometry = repository / "hotpot/cheminfo/geometry/_native"
-    graph = repository / "hotpot/cheminfo/graph/_native"
+    geometry = repository / "hotpot/cheminfo/rules/mathematics/geometry/_native"
+    graph = repository / "hotpot/cheminfo/rules/mathematics/graph/_native"
     wrappers = repository / "hotpot/cheminfo/obWrappers/_native"
     include, library = _openbabel_paths()
     executable = tmp_path / "optimization_stage_source_api"

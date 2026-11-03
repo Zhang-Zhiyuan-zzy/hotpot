@@ -1,4 +1,4 @@
-"""Regression fence for migrating ``hotpot.cheminfo.graph`` to a package.
+"""Regression fence for migrating ``hotpot.cheminfo.rules.mathematics.graph`` to a package.
 
 These tests intentionally record the observable behaviour of the former
 ``graph.py`` module.  Behavioural fixes belong in later, dedicated changes.

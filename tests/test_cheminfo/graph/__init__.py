@@ -1,1 +1,1 @@
-"""Tests for :mod:`hotpot.cheminfo.graph`."""
+"""Tests for :mod:`hotpot.cheminfo.rules.mathematics.graph`."""

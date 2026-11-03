@@ -24,7 +24,7 @@ def _compiler_command() -> list[str]:
 
 def test_batch_cpp_source_api(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[4]
-    native_directory = repository / "hotpot/cheminfo/geometry/_native"
+    native_directory = repository / "hotpot/cheminfo/rules/mathematics/geometry/_native"
     executable = tmp_path / "batch_api"
     sources = (
         "batch.cpp",

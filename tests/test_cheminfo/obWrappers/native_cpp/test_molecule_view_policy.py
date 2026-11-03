@@ -38,7 +38,7 @@ def _openbabel_paths() -> tuple[Path, Path]:
 def test_molecule_view_openbabel_policy_cpp17_api(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[4]
     wrappers = repository / "hotpot/cheminfo/obWrappers/_native"
-    common = repository / "hotpot/cheminfo/_native/include"
+    common = repository / "hotpot/cheminfo/adapters/native/include"
     include, library = _openbabel_paths()
     executable = tmp_path / "molecule_view_policy"
     command = [

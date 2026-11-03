@@ -1,0 +1,344 @@
+{
+  "schema_version": 1,
+  "stage": "Stage10A CP311 native migration",
+  "status": "ACCEPTED_CP311_NATIVE_MIGRATION",
+  "bounded_stage_gate": true,
+  "stage10a_gate": true,
+  "stage10_gate": false,
+  "main_scope_gate": false,
+  "overall_gate": false,
+  "source_commit": "4b3061e39fc685abb853248d27f875238d2b45ae",
+  "source_freeze": {
+    "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/source/source-freeze-r2.json",
+    "bytes": 119187,
+    "sha256": "adafca2b4df592ed529830abc4fe5585ddce240b27603a324eacfbec0fd0b1d7"
+  },
+  "runtime_freeze": {
+    "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/source/runtime-freeze-r2.json",
+    "bytes": 136125,
+    "sha256": "f4830994cfc8cd415878388859014f6b907c1feea6b16b4dc8d20e2c22bd14cb"
+  },
+  "selected_runs": {
+    "source-focused-attempt01": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/validation/source-focused-attempt01/execution.json",
+        "bytes": 19378,
+        "sha256": "bfe9cfbf1b22d80390f8e7e14a4fbb34a23984717a8d27d53dfc877870edaa64"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 15.209862994030118,
+      "result": {
+        "tests": 1374,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 1374,
+        "xfail": 0,
+        "ordinary_skip": 0
+      },
+      "probe_returncode": 0
+    },
+    "source-only-attempt01": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/validation/source-only-attempt01/execution.json",
+        "bytes": 14528,
+        "sha256": "b99d13bdb94564316c8a77561ea573db78ecdb1c00d5472e29895e25191e3555"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 15.637649619951844,
+      "result": {
+        "tests": 239,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 239,
+        "xfail": 0,
+        "ordinary_skip": 0
+      },
+      "probe_returncode": null
+    },
+    "source-native-attempt01": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/validation/source-native-attempt01/execution.json",
+        "bytes": 14790,
+        "sha256": "f8b3f76bf7a61a1a81490ccbc48503a3f01196e16a75c4e929f5045b952622b5"
+      },
+      "returncode": 1,
+      "elapsed_seconds": 232.51118564978242,
+      "result": {
+        "tests": 28,
+        "failure": 2,
+        "error": 0,
+        "skipped": 0,
+        "passed": 26,
+        "xfail": 0,
+        "ordinary_skip": 0
+      },
+      "probe_returncode": null
+    },
+    "source-sdk-consumer-attempt02": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/validation/source-sdk-consumer-attempt02/execution.json",
+        "bytes": 13293,
+        "sha256": "f2d0586bdba3c6c3a5837017f4700fb87fa50979ed4da2afe69b449a099971ba"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 3.8863313756883144,
+      "result": {
+        "tests": 2,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 2,
+        "xfail": 0,
+        "ordinary_skip": 0
+      },
+      "probe_returncode": null
+    },
+    "installed-focused-attempt01": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/validation/installed-focused-attempt01/execution.json",
+        "bytes": 22232,
+        "sha256": "e95536e3ccf793ad1d5bcf0f39a9933af92df94a4eb16a2cf1b9b75e60d0a9d6"
+      },
+      "returncode": 1,
+      "elapsed_seconds": 15.869804035872221,
+      "result": {
+        "tests": 1374,
+        "failure": 1,
+        "error": 0,
+        "skipped": 0,
+        "passed": 1373,
+        "xfail": 0,
+        "ordinary_skip": 0
+      },
+      "probe_returncode": 0
+    },
+    "source-fixture-binding-attempt02": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/validation/source-fixture-binding-attempt02/execution.json",
+        "bytes": 13398,
+        "sha256": "53659d970aac6b82c0f4d2e099897bebafc71bacb7e16e102ddb6b9b3ab8404b"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 1.9645177815109491,
+      "result": {
+        "tests": 1,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 1,
+        "xfail": 0,
+        "ordinary_skip": 0
+      },
+      "probe_returncode": 0
+    },
+    "installed-fixture-attempt02": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/validation/installed-fixture-attempt02/execution.json",
+        "bytes": 16224,
+        "sha256": "1e00a5c8c0d870cc389617941d50617f179526ea90f2be69e6de79d026b580a7"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 2.1100521963089705,
+      "result": {
+        "tests": 1,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 1,
+        "xfail": 0,
+        "ordinary_skip": 0
+      },
+      "probe_returncode": 0
+    }
+  },
+  "all_attempt_results": {
+    "path": ".plan20-artifacts/20261104/stage10/native-migration/derived/all-attempt-results.json",
+    "bytes": 18520,
+    "sha256": "72f78b2d833931048ae415969c244f8acdb39c964b5c36811b11f0da801efdaf"
+  },
+  "effective_native_coverage": {
+    "path": ".plan20-artifacts/20261104/stage10/native-migration/derived/native-effective-coverage.json",
+    "bytes": 3745,
+    "sha256": "151867553e0436f37b9ea960d28b57c759ad51c457e3c04f24a9c12ae14f238f"
+  },
+  "effective_installed_coverage": {
+    "path": ".plan20-artifacts/20261104/stage10/native-migration/derived/installed-effective-coverage.json",
+    "bytes": 11105,
+    "sha256": "adf4f546b5711f07983119e0f02c5e5941e6eca1a40374ffa2358d33138b3cc0"
+  },
+  "ordered_nodeids": {
+    "path": ".plan20-artifacts/20261104/stage10/native-migration/derived/ordered-nodeids.json",
+    "bytes": 623,
+    "sha256": "606ff7199aa284df92fbc2cef6f88599f7c6b68b34545683709d24e986c06263"
+  },
+  "selected_inputs": {
+    "path": ".plan20-artifacts/20261104/stage10/native-migration/derived/selected-inputs.json",
+    "bytes": 62616,
+    "sha256": "e0fbebd3c418d2e711f0a7e491324000eab98d605e8f9eb6f5c01c3356191506"
+  },
+  "build_results": {
+    "sdist": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/build/clean-build-attempt01/sdist/execution.json",
+        "bytes": 2255,
+        "sha256": "3ba115deab63a413cb6064151e1e02677670df72b2a915d49ee3601134059048"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 1.7900833003222942
+    },
+    "wheel": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/build/clean-build-attempt01/wheel/execution.json",
+        "bytes": 2805,
+        "sha256": "6e8f103f933cf67a3609d9c515b100a8b38d89274c305d6311ba069625ef831d"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 119.8079658318311
+    },
+    "wheel-audit": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/build/clean-build-attempt01/wheel-audit/execution.json",
+        "bytes": 2351,
+        "sha256": "ef948b4140414c29942f7cfda1970297f5fc136244d2efc5f0b9533049e1e8c3"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 0.03408092074096203
+    },
+    "install": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/build/clean-build-attempt01/install/execution.json",
+        "bytes": 2590,
+        "sha256": "e165057c7b16a39af7035f154f02eeb6876017785ab4b4b37a7f625efe05225a"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 0.6376139540225267
+    },
+    "sdk-configure": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/build/clean-build-attempt01/sdk-configure/execution.json",
+        "bytes": 2326,
+        "sha256": "a355db6d56f8217d0dfc772061f6b438dce546cfd399949885442fa00c4f1b67"
+      },
+      "returncode": 1,
+      "elapsed_seconds": 0.011438155546784401
+    }
+  },
+  "sdk_completion_results": {
+    "configure": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/build/sdk-completion-attempt02/configure/execution.json",
+        "bytes": 1098,
+        "sha256": "409afe1f1c069ea228cbf23d8dc936ebbb0732c5aad2cc62457bbf57d0dc28ee"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 0.6007184647023678
+    },
+    "build": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/build/sdk-completion-attempt02/build/execution.json",
+        "bytes": 964,
+        "sha256": "cc0de310e319f29a16dbce08b9d31a769762d7c6e3fa550c19cdabc8d642b33d"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 0.28789084032177925
+    },
+    "install": {
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/build/sdk-completion-attempt02/install/execution.json",
+        "bytes": 1050,
+        "sha256": "bd56469e12014ccec32373b3ac65fa87c34a1ba7fb68ebd025c1ce9fd8e396e3"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 0.035504039376974106
+    }
+  },
+  "wheel": {
+    "path": ".plan20-artifacts/20261104/stage10/native-migration/artifacts/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+    "bytes": 6418920,
+    "sha256": "456c9a156c4769112cb8ff5c3fc1d8f071749d77765edbc1da05362d9ab0c5de"
+  },
+  "sdist": {
+    "path": ".plan20-artifacts/20261104/stage10/native-migration/artifacts/hotpot_zzy-0.5.4.5.tar.gz",
+    "bytes": 2151585,
+    "sha256": "3f7931b18ac4cafbceffa29fe7c6942082dbd63684f95404883fecb37f4474a6"
+  },
+  "installed_sdk": {
+    "path": ".plan20-artifacts/20261104/stage10/native-migration/artifacts/hotpot-rdwrappers-sdk-cp311-probe.tar.gz",
+    "bytes": 2356635,
+    "sha256": "9463639e423613e92cb1bc19ace1fcb42d12a76fd2fe1955f4ae1dfda6e9cabc"
+  },
+  "sdk_members": {
+    "path": ".plan20-artifacts/20261104/stage10/native-migration/derived/sdk-members.json",
+    "bytes": 4084,
+    "sha256": "eb900257ca974797aeea5d5dd117a832785060442c4b9ce3f551443f4d0c9ba1"
+  },
+  "native_symbols": {
+    "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/source/native-symbols.json",
+    "bytes": 5429,
+    "sha256": "01f75eda54c77adfb039152b160923047372c39cc920b3e216386cbb237ff5ec"
+  },
+  "wheel_content_crosswalk": {
+    "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/source/wheel-content-crosswalk.json",
+    "bytes": 2729,
+    "sha256": "d0fc7706ff3ad0b8583d8f885ef698225e2ee4e50c8326143f895570f65f84af"
+  },
+  "archive_manifest": {
+    "path": ".plan20-artifacts/20261104/stage10/native-migration/manifest.json",
+    "bytes": 125981,
+    "sha256": "b27d1ac21cbee844ebe71df9df85e903ca4a77342ef9b27efe87a35c5c123685"
+  },
+  "static_verification": {
+    "path": ".plan20-artifacts/20261104/stage10/native-migration/derived/finalization-verification.json",
+    "bytes": 3058,
+    "sha256": "6aa162d55ac1bfd3e68f66f6ec4f8ab043c0a00e1cafb9f7278484e61087cb1f"
+  },
+  "root_static_review": {
+    "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/source/root-static-review.json",
+    "bytes": 11724,
+    "sha256": "a96d4a1f154b0b72c6575c607b67aea760d2acddc079f18ef401ec864a7d7d71"
+  },
+  "prior_default_evidence": {
+    "receipt": {
+      "elapsed_seconds": 315.3683473430574,
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage9b/cutover/long/stage9b-entry-20261104/validation/source-default-attempt02/execution.json",
+        "sha256": "e71416c5038bf1b02b6acafaa0d0af2189f75e8d175307c8f32367507ad0a44f"
+      },
+      "imported_product_modules": 397,
+      "optional_dependency_environment": false,
+      "origin_leaks": [],
+      "origin_receipts": 542,
+      "result": {
+        "errors": 0,
+        "failures": 0,
+        "ordinary_skip": 128,
+        "passed": 6533,
+        "skipped": 131,
+        "tests": 6664,
+        "xfail": 3
+      },
+      "revision": "R3"
+    },
+    "scope": "No current full-default rerun. Stage9B default evidence is historical and reusable only for unchanged scope alongside affected current tests."
+  },
+  "retained_failures": [
+    "R1 architecture and unused source freeze",
+    "initial SDK configure missing -S",
+    "installed-focused-attempt01",
+    "source-native-attempt01"
+  ],
+  "limits": [
+    "Current CP311 probe-profile evidence only; other supported Python versions and pinned manylinux/repaired/public-release obligations remain OPEN.",
+    "No current full-default rerun. Stage9B default evidence is historical and reusable only for unchanged scope alongside affected current tests.",
+    "Live pinned RDL oracle is unprovisioned. Broader scientific/GPU/model/performance and whole Stage10/global acceptance remain OPEN.",
+    "P20-D026 remains mandatory unresolved H representation consumer work, not optimization debt.",
+    "Hash/byte checks attribute artifacts and transport; they do not establish chemical truth. Native harness snapshots bind finalization bytes; the runtime freeze separately binds its declared Python/support inputs."
+  ],
+  "root_acceptance_pending": false,
+  "root_acceptance": {
+    "date": "2026-11-04",
+    "review": "root-verification.json"
+  }
+}

@@ -27,8 +27,8 @@ def test_topology_workspace_cpp_source_api(tmp_path: Path) -> None:
     structure = repository / "hotpot/cheminfo/structure/_native"
     rules = repository / "hotpot/cheminfo/rules/physics/forcefields/_native"
     operations = repository / "hotpot/cheminfo/operations/forcefields/_native"
-    geometry = repository / "hotpot/cheminfo/geometry/_native"
-    graph = repository / "hotpot/cheminfo/graph/_native"
+    geometry = repository / "hotpot/cheminfo/rules/mathematics/geometry/_native"
+    graph = repository / "hotpot/cheminfo/rules/mathematics/graph/_native"
     executable = tmp_path / "topology_workspace_source_api"
     sources = (
         structure / "forcefield_input.cpp",

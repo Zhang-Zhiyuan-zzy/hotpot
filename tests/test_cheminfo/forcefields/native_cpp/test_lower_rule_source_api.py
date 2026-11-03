@@ -26,7 +26,7 @@ def _compiler_command() -> list[str]:
 def test_lower_rule_cpp_source_api(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[4]
     fixture = Path(__file__).with_name("lower_rule_source_api.cpp")
-    geometry = "hotpot/cheminfo/geometry/_native/"
+    geometry = "hotpot/cheminfo/rules/mathematics/geometry/_native/"
     sources = [
         "hotpot/cheminfo/structure/_native/forcefield_input.cpp",
         "hotpot/cheminfo/rules/physics/forcefields/_native/topology_workspace.cpp",
@@ -35,15 +35,15 @@ def test_lower_rule_cpp_source_api(tmp_path: Path) -> None:
             "nonplanar_segment", "planar_predicates", "prepared_cycle",
             "primitives", "segment_cycle", "spatial", "triangle_predicates",
         )),
-        "hotpot/cheminfo/graph/_native/relevant_cycles.cpp",
+        "hotpot/cheminfo/rules/mathematics/graph/_native/relevant_cycles.cpp",
     ]
     allowed_roots = (
-        "hotpot/cheminfo/_native/include/",
+        "hotpot/cheminfo/adapters/native/include/",
         "hotpot/cheminfo/structure/_native/",
         "hotpot/cheminfo/rules/physics/forcefields/_native/",
         "hotpot/cheminfo/reference/_native/",
         geometry,
-        "hotpot/cheminfo/graph/_native/",
+        "hotpot/cheminfo/rules/mathematics/graph/_native/",
     )
     isolated = tmp_path / "lower-source"
     pending = [repository / name for name in sources]

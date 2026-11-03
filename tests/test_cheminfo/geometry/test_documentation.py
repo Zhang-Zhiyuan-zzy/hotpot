@@ -10,8 +10,8 @@ import pytest
 from hotpot.cheminfo.rules.mathematics import geometry
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 
-API_REFERENCE = files("hotpot.cheminfo.geometry").joinpath("README.md")
-CHINESE_API_REFERENCE = files("hotpot.cheminfo.geometry").joinpath(
+API_REFERENCE = files("hotpot.cheminfo.rules.mathematics.geometry").joinpath("README.md")
+CHINESE_API_REFERENCE = files("hotpot.cheminfo.rules.mathematics.geometry").joinpath(
     "README.zh.md"
 )
 

@@ -31,13 +31,13 @@ recursive-include hotpot/cheminfo/rules/physics/forcefields/_native *.cpp *.hpp
 recursive-include hotpot/cheminfo/operations/forcefields/_native *.cpp *.hpp
 recursive-include hotpot/cheminfo/adapters/native/forcefields *.cpp *.hpp
 recursive-include hotpot/cheminfo/reference/_native *.cpp *.hpp
-include hotpot/cheminfo/geometry/README.md
-include hotpot/cheminfo/geometry/README.zh.md
-include hotpot/cheminfo/geometry/_geometry_native.pyi
-recursive-include hotpot/cheminfo/geometry/_native *.cpp *.hpp
-include hotpot/cheminfo/graph/README.md
-include hotpot/cheminfo/graph/_graph_native.pyi
-recursive-include hotpot/cheminfo/graph/_native *.cpp *.hpp *.md
+include hotpot/cheminfo/rules/mathematics/geometry/README.md
+include hotpot/cheminfo/rules/mathematics/geometry/README.zh.md
+include hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.pyi
+recursive-include hotpot/cheminfo/rules/mathematics/geometry/_native *.cpp *.hpp
+include hotpot/cheminfo/rules/mathematics/graph/README.md
+include hotpot/cheminfo/rules/mathematics/graph/_graph_native.pyi
+recursive-include hotpot/cheminfo/rules/mathematics/graph/_native *.cpp *.hpp *.md
 include hotpot/cheminfo/structure/_fact_native.pyi
 recursive-include hotpot/cheminfo/structure/_native *.cpp *.hpp
 include hotpot/cheminfo/structure/_native/CPYTHON_LICENSE
@@ -47,7 +47,7 @@ recursive-include hotpot/cheminfo/rules/mathematics/graph_matching/_native *.cpp
 recursive-include hotpot/cheminfo/rules/chemistry/substructure/_native *.cpp *.hpp
 include hotpot/cheminfo/kekulize/Kekulize.md
 recursive-include hotpot/cheminfo/rules/chemistry/scientific_state/data *.json
-recursive-include hotpot/cheminfo/graph/_native LICENSE*
+recursive-include hotpot/cheminfo/rules/mathematics/graph/_native LICENSE*
 include hotpot/cheminfo/obWrappers/_ob_native.pyi
 include hotpot/cheminfo/obWrappers/README.md
 include hotpot/cheminfo/obWrappers/README.zh.md
@@ -57,7 +57,7 @@ include hotpot/cheminfo/rdWrappers/build_locked.sh
 include hotpot/cheminfo/rdWrappers/_rd_native.pyi
 recursive-include hotpot/cheminfo/rdWrappers/cmake *.cmake *.in
 recursive-include hotpot/cheminfo/rdWrappers/_native *.cpp *.h *.hpp *.md *.map
-recursive-include hotpot/cheminfo/_native/include *.h *.hpp
+recursive-include hotpot/cheminfo/adapters/native/include *.h *.hpp
 include third_party/rdkit/README.md
 include third_party/rdkit/rdkit.lock.json
 include third_party/rdkit/fetch_locked_sources.sh

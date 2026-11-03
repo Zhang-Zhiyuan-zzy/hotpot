@@ -7,7 +7,7 @@
 #include "session_optimization.hpp"
 #include "../../../rules/physics/forcefields/_native/topology_workspace.hpp"
 
-#include "../../../geometry/_native/types.hpp"
+#include "../../../rules/mathematics/geometry/_native/types.hpp"
 #include "../../../obWrappers/_native/native_engine.hpp"
 
 #include <algorithm>

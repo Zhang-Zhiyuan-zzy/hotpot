@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from hotpot import Molecule, read_mol
-from hotpot.cheminfo._native.buffers import (
+from hotpot.cheminfo.adapters.native.molecule_buffers import (
     MOLECULE_BUFFER_SCHEMA_VERSION,
     NativeMoleculeBuffers,
     NativeMoleculeField,

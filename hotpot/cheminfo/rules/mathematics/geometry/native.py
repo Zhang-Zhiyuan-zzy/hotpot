@@ -13,10 +13,10 @@ from typing import TYPE_CHECKING, Iterable, Optional, Sequence, Tuple, Union
 import numpy as np
 
 try:
-    from hotpot.cheminfo.geometry import _geometry_native as _native
+    from hotpot.cheminfo.rules.mathematics.geometry import _geometry_native as _native
 except ImportError as exc:
     raise ImportError(
-        "the hotpot.cheminfo.geometry native extension is unavailable; "
+        "the hotpot.cheminfo.rules.mathematics.geometry native extension is unavailable; "
         "install a compatible Hotpot wheel or rebuild Hotpot from source"
     ) from exc
 

@@ -50,7 +50,7 @@ target_include_directories(
     hotpot_rdwrappers_core_objects
     PRIVATE
         "${HOTPOT_RDWRAPPERS_ROOT}/_native/include"
-        "${HOTPOT_REPOSITORY_ROOT}/hotpot/cheminfo/_native/include"
+        "${HOTPOT_REPOSITORY_ROOT}/hotpot/cheminfo/adapters/native/include"
 )
 target_link_libraries(hotpot_rdwrappers_core_objects PRIVATE DistGeomHelpers_static)
 set_target_properties(
@@ -87,7 +87,7 @@ if(HOTPOT_RDWRAPPERS_BUILD_SDK)
         hotpot_rdwrappers
         INTERFACE
             $<BUILD_INTERFACE:${HOTPOT_RDWRAPPERS_ROOT}/_native/include>
-            $<BUILD_INTERFACE:${HOTPOT_REPOSITORY_ROOT}/hotpot/cheminfo/_native/include>
+            $<BUILD_INTERFACE:${HOTPOT_REPOSITORY_ROOT}/hotpot/cheminfo/adapters/native/include>
             $<INSTALL_INTERFACE:include>
     )
     if(UNIX AND NOT APPLE)
@@ -136,7 +136,7 @@ if(HOTPOT_RDWRAPPERS_BUILD_SDK)
         COMPONENT rdwrappers_sdk
     )
     install(
-        DIRECTORY "${HOTPOT_REPOSITORY_ROOT}/hotpot/cheminfo/_native/include/hotpot/native"
+        DIRECTORY "${HOTPOT_REPOSITORY_ROOT}/hotpot/cheminfo/adapters/native/include/hotpot/native"
         DESTINATION include/hotpot
         COMPONENT rdwrappers_sdk
     )

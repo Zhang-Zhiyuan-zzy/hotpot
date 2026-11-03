@@ -21,7 +21,7 @@ REQUIRED_WRAPPER_MEMBERS = {
     f"{WRAPPER_ROOT}_native/licenses/license.txt",
 }
 FORBIDDEN_PREFIXES = (
-    "hotpot/cheminfo/_native/include/",
+    "hotpot/cheminfo/adapters/native/include/",
     "third_party/rdkit/",
 )
 

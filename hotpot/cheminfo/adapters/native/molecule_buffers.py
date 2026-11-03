@@ -219,7 +219,7 @@ def _pack_utf8(values: tuple[str | None, ...]) -> NativeUtf8Table:
 
 
 def _pack_stereo_records(payload) -> NativeStereoRecordBuffers:
-    from ..structure.stereo import (
+    from ...structure.stereo import (
         StereoAnchorKind,
         StereoCarrierKind,
         StereoGroupKind,
@@ -326,9 +326,7 @@ def _pack_hydrogen_state(state):
     )
 
 
-def _pack_atom_transport(payload, atoms) -> NativeAtomTransportBuffers:
-    from ..operations.chemistry import _require_implicit_hydrogens
-
+def _pack_atom_transport(payload, atoms, missing_hydrogens) -> NativeAtomTransportBuffers:
     facts = tuple(payload.atom_facts)
     transported_atoms = {fact.atom for fact in facts}
     missing_atoms = tuple(
@@ -337,8 +335,6 @@ def _pack_atom_transport(payload, atoms) -> NativeAtomTransportBuffers:
         if row not in transported_atoms
     )
     missing_count = len(missing_atoms)
-    missing_hydrogens = (_require_implicit_hydrogens(atoms[0].mol,
-        rows=tuple(row for row, _ in missing_atoms)) if missing_atoms else ())
     atom_rows = tuple(fact.atom for fact in facts) + tuple(
         row for row, _ in missing_atoms
     )
@@ -435,156 +431,127 @@ def _pack_bond_transport(payload) -> NativeBondTransportBuffers:
     )
 
 
-def pack_molecule(
+def _pack_molecule_fields(
     mol: Molecule,
     fields: frozenset[NativeMoleculeField],
-) -> NativeMoleculeBuffers:
-    """Copy only the requested molecule fields into contiguous arrays."""
-    with mol._mutation_lock:
-        if fields & {NativeMoleculeField.ATOM_AROMATIC, NativeMoleculeField.BOND_AROMATIC}:
-            from ..operations.chemistry import _require_aromatic_representation
-            _require_aromatic_representation(mol)
+    atoms,
+    bonds,
+) -> dict:
+    """Encode requested scalar and array fields from prepared molecule facts."""
+    atom_rows = (
+        {id(atom): row for row, atom in enumerate(atoms)}
+        if NativeMoleculeField.BOND_INDICES in fields
+        else None
+    )
 
-        atoms = tuple(mol.atoms)
-        bonds = tuple(mol.bonds)
-        atom_rows = (
-            {id(atom): row for row, atom in enumerate(atoms)}
-            if NativeMoleculeField.BOND_INDICES in fields
-            else None
+    def atom_values(field, name, dtype, codec):
+        if field not in fields:
+            return None
+        values = mol._atom_table.column(name)
+        if codec is float:
+            return values
+        return np.fromiter((codec(value) for value in values), dtype=dtype, count=len(atoms))
+
+    def bond_values(field, values, dtype):
+        if field not in fields:
+            return None
+        return np.ascontiguousarray(
+            np.fromiter(values, dtype=dtype, count=len(bonds))
         )
 
-        def atom_values(field, name, dtype, codec):
-            if field not in fields:
-                return None
-            values = mol._atom_table.column(name)
-            if codec is float:
-                return values
-            return np.fromiter((codec(value) for value in values), dtype=dtype, count=len(atoms))
+    atomic_numbers = atom_values(
+        NativeMoleculeField.ATOMIC_NUMBERS,
+        "atomic_number", np.int32, int,
+    )
+    formal_charges = atom_values(
+        NativeMoleculeField.FORMAL_CHARGES,
+        "formal_charge", np.int32, int,
+    )
+    partial_charges = None
+    if NativeMoleculeField.PARTIAL_CHARGES in fields:
+        from ...structure._results import _current_partial_charge_result
 
-        def bond_values(field, values, dtype):
-            if field not in fields:
-                return None
-            return np.ascontiguousarray(
-                np.fromiter(values, dtype=dtype, count=len(bonds))
+        charge_result = _current_partial_charge_result(mol)
+        if charge_result is not None and all(
+            value is not None for value in charge_result.values
+        ):
+            partial_charges = np.ascontiguousarray(
+                charge_result.values, dtype=np.float64,
             )
+    coordinates = None
+    if NativeMoleculeField.COORDINATES in fields:
+        coordinates = mol._atom_table.coordinates()
+    atom_aromatic = atom_values(
+        NativeMoleculeField.ATOM_AROMATIC,
+        "is_aromatic", np.uint8, bool,
+    )
 
-        atomic_numbers = atom_values(
-            NativeMoleculeField.ATOMIC_NUMBERS,
-            "atomic_number", np.int32, int,
-        )
-        formal_charges = atom_values(
-            NativeMoleculeField.FORMAL_CHARGES,
-            "formal_charge", np.int32, int,
-        )
-        partial_charges = None
-        if NativeMoleculeField.PARTIAL_CHARGES in fields:
-            from ..structure._results import _current_partial_charge_result
-
-            charge_result = _current_partial_charge_result(mol)
-            if charge_result is not None and all(
-                value is not None for value in charge_result.values
+    bond_indices = None
+    if NativeMoleculeField.BOND_INDICES in fields:
+        def directed_endpoints(bond):
+            atom1 = atom_rows[id(bond.atom1)]
+            atom2 = atom_rows[id(bond.atom2)]
+            if (
+                bond.bond_kind.value == "dative"
+                and bond.bond_direction == "atom2_to_atom1"
             ):
-                partial_charges = np.ascontiguousarray(
-                    charge_result.values, dtype=np.float64,
-                )
-        coordinates = None
-        if NativeMoleculeField.COORDINATES in fields:
-            coordinates = mol._atom_table.coordinates()
-        atom_aromatic = atom_values(
-            NativeMoleculeField.ATOM_AROMATIC,
-            "is_aromatic", np.uint8, bool,
-        )
+                return atom2, atom1
+            return atom1, atom2
 
-        bond_indices = None
-        if NativeMoleculeField.BOND_INDICES in fields:
-            def directed_endpoints(bond):
-                atom1 = atom_rows[id(bond.atom1)]
-                atom2 = atom_rows[id(bond.atom2)]
-                if (
-                    bond.bond_kind.value == "dative"
-                    and bond.bond_direction == "atom2_to_atom1"
-                ):
-                    return atom2, atom1
-                return atom1, atom2
-
-            bond_indices = (
-                np.ascontiguousarray(
-                    [directed_endpoints(bond) for bond in bonds],
-                    dtype=np.int32,
-                )
-                if bonds
-                else _empty_matrix(2, np.dtype(np.int32))
+        bond_indices = (
+            np.ascontiguousarray(
+                [directed_endpoints(bond) for bond in bonds],
+                dtype=np.int32,
             )
-        bond_orders = bond_values(
-            NativeMoleculeField.BOND_ORDERS,
-            (bond.bond_order for bond in bonds),
-            np.float64,
+            if bonds
+            else _empty_matrix(2, np.dtype(np.int32))
         )
-        bond_kinds = bond_values(
-            NativeMoleculeField.BOND_KINDS,
-            (_BOND_KIND_CODES[bond.bond_kind.value] for bond in bonds),
-            np.uint8,
-        )
-        bond_aromatic = bond_values(
-            NativeMoleculeField.BOND_AROMATIC,
+    bond_orders = bond_values(
+        NativeMoleculeField.BOND_ORDERS,
+        (bond.bond_order for bond in bonds),
+        np.float64,
+    )
+    bond_kinds = bond_values(
+        NativeMoleculeField.BOND_KINDS,
+        (_BOND_KIND_CODES[bond.bond_kind.value] for bond in bonds),
+        np.uint8,
+    )
+    bond_aromatic = bond_values(
+        NativeMoleculeField.BOND_AROMATIC,
+        (
+            bond.bond_kind.value == "aromatic" or bond._is_aromatic
+            for bond in bonds
+        ),
+        np.uint8,
+    )
+
+    unit_cell = None
+    if NativeMoleculeField.UNIT_CELL in fields and mol.crystal is not None:
+        crystal = mol.crystal
+        unit_cell = np.ascontiguousarray(
             (
-                bond.bond_kind.value == "aromatic" or bond._is_aromatic
-                for bond in bonds
+                crystal.a,
+                crystal.b,
+                crystal.c,
+                crystal.alpha,
+                crystal.beta,
+                crystal.gamma,
             ),
-            np.uint8,
+            dtype=np.float64,
         )
 
-        unit_cell = None
-        if NativeMoleculeField.UNIT_CELL in fields and mol.crystal is not None:
-            crystal = mol.crystal
-            unit_cell = np.ascontiguousarray(
-                (
-                    crystal.a,
-                    crystal.b,
-                    crystal.c,
-                    crystal.alpha,
-                    crystal.beta,
-                    crystal.gamma,
-                ),
-                dtype=np.float64,
-            )
-
-        stereo_records = None
-        atom_transport = None
-        bond_transport = None
-        stereo_fields = fields & frozenset(
-            {
-                NativeMoleculeField.STEREO_RECORDS,
-                NativeMoleculeField.ATOM_TRANSPORT,
-                NativeMoleculeField.BOND_TRANSPORT,
-            }
-        )
-        if stereo_fields:
-            from ..structure._stereo import _get_stereo_payload
-
-            payload = _get_stereo_payload(mol)
-            if NativeMoleculeField.STEREO_RECORDS in fields:
-                stereo_records = _pack_stereo_records(payload)
-            if NativeMoleculeField.ATOM_TRANSPORT in fields:
-                atom_transport = _pack_atom_transport(payload, atoms)
-            if NativeMoleculeField.BOND_TRANSPORT in fields:
-                bond_transport = _pack_bond_transport(payload)
-
-        return NativeMoleculeBuffers(
-            schema_version=MOLECULE_BUFFER_SCHEMA_VERSION,
-            atom_count=len(atoms),
-            bond_count=len(bonds),
-            atomic_numbers=atomic_numbers,
-            formal_charges=formal_charges,
-            partial_charges=partial_charges,
-            coordinates=coordinates,
-            atom_aromatic=atom_aromatic,
-            bond_indices=bond_indices,
-            bond_orders=bond_orders,
-            bond_kinds=bond_kinds,
-            bond_aromatic=bond_aromatic,
-            unit_cell=unit_cell,
-            stereo_records=stereo_records,
-            atom_transport=atom_transport,
-            bond_transport=bond_transport,
-        )
+    return dict(
+        schema_version=MOLECULE_BUFFER_SCHEMA_VERSION,
+        atom_count=len(atoms),
+        bond_count=len(bonds),
+        atomic_numbers=atomic_numbers,
+        formal_charges=formal_charges,
+        partial_charges=partial_charges,
+        coordinates=coordinates,
+        atom_aromatic=atom_aromatic,
+        bond_indices=bond_indices,
+        bond_orders=bond_orders,
+        bond_kinds=bond_kinds,
+        bond_aromatic=bond_aromatic,
+        unit_cell=unit_cell,
+    )

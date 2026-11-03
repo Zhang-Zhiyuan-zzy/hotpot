@@ -11,7 +11,8 @@ import pytest
 from hotpot.cheminfo.rules.mathematics import geometry as geo
 
 GEOMETRY_DOCUMENTATION_DIRECTORY = (
-    Path(__file__).resolve().parents[3] / "hotpot" / "cheminfo" / "geometry"
+    Path(__file__).resolve().parents[3]
+    / "hotpot/cheminfo/rules/mathematics/geometry"
 )
 PYCON_BLOCK = re.compile(r"```pycon\r?\n(.*?)\r?\n```", re.DOTALL)
 

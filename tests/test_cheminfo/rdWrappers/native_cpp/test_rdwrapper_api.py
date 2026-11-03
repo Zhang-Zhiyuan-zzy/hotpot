@@ -25,7 +25,7 @@ def _compiler(environment_name: str, candidates: tuple[str, ...]) -> list[str]:
 def _include_flags() -> list[str]:
     repository = Path(__file__).resolve().parents[4]
     return [
-        f"-I{repository / 'hotpot/cheminfo/_native/include'}",
+        f"-I{repository / 'hotpot/cheminfo/adapters/native/include'}",
         f"-I{repository / 'hotpot/cheminfo/rdWrappers/_native/include'}",
     ]
 

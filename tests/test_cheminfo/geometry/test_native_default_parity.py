@@ -2,7 +2,7 @@
 
 from dataclasses import asdict
 
-from hotpot.cheminfo.geometry import _geometry_native
+from hotpot.cheminfo.rules.mathematics.geometry import _geometry_native
 from hotpot.cheminfo.rules.mathematics.geometry.settings import DEFAULT_GEOMETRY_SETTINGS
 
 

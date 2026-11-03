@@ -99,7 +99,7 @@ def test_sdist_manifest_contains_locked_native_build_inputs():
         "include hotpot/cheminfo/rdWrappers/build_locked.sh",
         "recursive-include hotpot/cheminfo/rdWrappers/cmake *.cmake *.in",
         "recursive-include hotpot/cheminfo/rdWrappers/_native",
-        "recursive-include hotpot/cheminfo/_native/include",
+        "recursive-include hotpot/cheminfo/adapters/native/include",
         "include third_party/rdkit/rdkit.lock.json",
         "include third_party/rdkit/fetch_locked_sources.sh",
         "recursive-include third_party/rdkit/probe",
@@ -123,7 +123,7 @@ def test_wheel_excludes_rdwrapper_sdk_and_build_inputs():
     ]
 
     excluded = setuptools["exclude-package-data"]
-    assert excluded["hotpot.cheminfo._native.include.hotpot.native"] == ["*"]
+    assert excluded["hotpot.cheminfo.adapters.native.include.hotpot.native"] == ["*"]
     assert excluded["hotpot.cheminfo.rdWrappers"] == [
         "CMakeLists.txt",
         "build_locked.sh",

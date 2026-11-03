@@ -151,7 +151,7 @@ def _coordinate_hash(coordinates: np.ndarray) -> str:
 def _snapshot_molecule(molecule) -> dict[str, object]:
     """Snapshot the exact fields consumed by native ETKDG plus live geometry."""
 
-    from hotpot.cheminfo._native.buffers import pack_molecule
+    from hotpot.cheminfo.operations.native_packing import pack_molecule
     from hotpot.cheminfo.rdWrappers.native import _RDKIT_ETKDG_FIELDS
     from hotpot.cheminfo.stereo import get_stereo_payload
 

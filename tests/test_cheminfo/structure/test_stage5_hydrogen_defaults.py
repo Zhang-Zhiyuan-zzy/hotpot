@@ -152,7 +152,8 @@ def _present(mol, row=0):
 
 def test_missing_display_is_not_a_zero_fact_and_strict_consumers_reject_it_once(monkeypatch):
     from hotpot.cheminfo.operations.inference.features import extract_atom_attrs
-    from hotpot.cheminfo._native.buffers import NativeMoleculeField, pack_molecule
+    from hotpot.cheminfo.adapters.native.molecule_buffers import NativeMoleculeField
+    from hotpot.cheminfo.operations.native_packing import pack_molecule
     from hotpot.cheminfo.operations.conversion import to_rdmol
     atom = Atom()
     mol = atom.mol

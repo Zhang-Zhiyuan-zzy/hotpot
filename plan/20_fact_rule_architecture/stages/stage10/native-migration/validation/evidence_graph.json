@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "stage": "Stage10A CP311 native migration",
+  "status": "ACCEPTED_CP311_NATIVE_MIGRATION",
+  "bounded_stage_gate": true,
+  "stage10a_gate": true,
+  "stage10_gate": false,
+  "main_scope_gate": false,
+  "overall_gate": false,
+  "nodes": {
+    "source-freeze": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/source/source-freeze-r2.json",
+      "bytes": 119187,
+      "sha256": "adafca2b4df592ed529830abc4fe5585ddce240b27603a324eacfbec0fd0b1d7"
+    },
+    "runtime-freeze": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/source/runtime-freeze-r2.json",
+      "bytes": 136125,
+      "sha256": "f4830994cfc8cd415878388859014f6b907c1feea6b16b4dc8d20e2c22bd14cb"
+    },
+    "sdist": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/artifacts/hotpot_zzy-0.5.4.5.tar.gz",
+      "bytes": 2151585,
+      "sha256": "3f7931b18ac4cafbceffa29fe7c6942082dbd63684f95404883fecb37f4474a6"
+    },
+    "wheel": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/artifacts/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6418920,
+      "sha256": "456c9a156c4769112cb8ff5c3fc1d8f071749d77765edbc1da05362d9ab0c5de"
+    },
+    "installed-sdk": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/artifacts/hotpot-rdwrappers-sdk-cp311-probe.tar.gz",
+      "bytes": 2356635,
+      "sha256": "9463639e423613e92cb1bc19ace1fcb42d12a76fd2fe1955f4ae1dfda6e9cabc"
+    },
+    "native-symbols": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/source/native-symbols.json",
+      "bytes": 5429,
+      "sha256": "01f75eda54c77adfb039152b160923047372c39cc920b3e216386cbb237ff5ec"
+    },
+    "ordered-nodeids": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/derived/ordered-nodeids.json",
+      "bytes": 623,
+      "sha256": "606ff7199aa284df92fbc2cef6f88599f7c6b68b34545683709d24e986c06263"
+    },
+    "all-attempt-results": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/derived/all-attempt-results.json",
+      "bytes": 18520,
+      "sha256": "72f78b2d833931048ae415969c244f8acdb39c964b5c36811b11f0da801efdaf"
+    },
+    "effective-native-coverage": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/derived/native-effective-coverage.json",
+      "bytes": 3745,
+      "sha256": "151867553e0436f37b9ea960d28b57c759ad51c457e3c04f24a9c12ae14f238f"
+    },
+    "effective-installed-coverage": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/derived/installed-effective-coverage.json",
+      "bytes": 11105,
+      "sha256": "adf4f546b5711f07983119e0f02c5e5941e6eca1a40374ffa2358d33138b3cc0"
+    },
+    "selected-inputs": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/derived/selected-inputs.json",
+      "bytes": 62616,
+      "sha256": "e0fbebd3c418d2e711f0a7e491324000eab98d605e8f9eb6f5c01c3356191506"
+    },
+    "archive-manifest": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/manifest.json",
+      "bytes": 125981,
+      "sha256": "b27d1ac21cbee844ebe71df9df85e903ca4a77342ef9b27efe87a35c5c123685"
+    },
+    "static-verification": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/derived/finalization-verification.json",
+      "bytes": 3058,
+      "sha256": "6aa162d55ac1bfd3e68f66f6ec4f8ab043c0a00e1cafb9f7278484e61087cb1f"
+    },
+    "root-static-review": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/source/root-static-review.json",
+      "bytes": 11724,
+      "sha256": "a96d4a1f154b0b72c6575c607b67aea760d2acddc079f18ef401ec864a7d7d71"
+    },
+    "source-focused-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/validation/source-focused-attempt01/execution.json",
+      "bytes": 19378,
+      "sha256": "bfe9cfbf1b22d80390f8e7e14a4fbb34a23984717a8d27d53dfc877870edaa64"
+    },
+    "source-only-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/validation/source-only-attempt01/execution.json",
+      "bytes": 14528,
+      "sha256": "b99d13bdb94564316c8a77561ea573db78ecdb1c00d5472e29895e25191e3555"
+    },
+    "source-native-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/validation/source-native-attempt01/execution.json",
+      "bytes": 14790,
+      "sha256": "f8b3f76bf7a61a1a81490ccbc48503a3f01196e16a75c4e929f5045b952622b5"
+    },
+    "source-sdk-consumer-attempt02": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/validation/source-sdk-consumer-attempt02/execution.json",
+      "bytes": 13293,
+      "sha256": "f2d0586bdba3c6c3a5837017f4700fb87fa50979ed4da2afe69b449a099971ba"
+    },
+    "installed-focused-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/validation/installed-focused-attempt01/execution.json",
+      "bytes": 22232,
+      "sha256": "e95536e3ccf793ad1d5bcf0f39a9933af92df94a4eb16a2cf1b9b75e60d0a9d6"
+    },
+    "source-fixture-binding-attempt02": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/validation/source-fixture-binding-attempt02/execution.json",
+      "bytes": 13398,
+      "sha256": "53659d970aac6b82c0f4d2e099897bebafc71bacb7e16e102ddb6b9b3ab8404b"
+    },
+    "installed-fixture-attempt02": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/raw/validation/installed-fixture-attempt02/execution.json",
+      "bytes": 16224,
+      "sha256": "1e00a5c8c0d870cc389617941d50617f179526ea90f2be69e6de79d026b580a7"
+    }
+  },
+  "edges": [
+    {
+      "from": "source-freeze",
+      "to": "sdist",
+      "relation": "actual clean source archive"
+    },
+    {
+      "from": "sdist",
+      "to": "wheel",
+      "relation": "actual six-extension CP311 probe build"
+    },
+    {
+      "from": "wheel",
+      "to": "runtime-freeze",
+      "relation": "new native identities bound before tests"
+    },
+    {
+      "from": "wheel",
+      "to": "installed-focused-attempt01",
+      "relation": "actual installed outside-checkout focused run"
+    },
+    {
+      "from": "runtime-freeze",
+      "to": "source-focused-attempt01",
+      "relation": "current-source focused run"
+    },
+    {
+      "from": "runtime-freeze",
+      "to": "source-native-attempt01",
+      "relation": "independent native consumers"
+    },
+    {
+      "from": "installed-sdk",
+      "to": "source-native-attempt01",
+      "relation": "actual SDK ABI0/ABI1 consumer scope"
+    },
+    {
+      "from": "source-focused-attempt01",
+      "to": "ordered-nodeids",
+      "relation": "source ordered collection"
+    },
+    {
+      "from": "installed-focused-attempt01",
+      "to": "ordered-nodeids",
+      "relation": "installed ordered collection"
+    }
+  ],
+  "limits": [
+    "Current CP311 probe-profile evidence only; other supported Python versions and pinned manylinux/repaired/public-release obligations remain OPEN.",
+    "No current full-default rerun. Stage9B default evidence is historical and reusable only for unchanged scope alongside affected current tests.",
+    "Live pinned RDL oracle is unprovisioned. Broader scientific/GPU/model/performance and whole Stage10/global acceptance remain OPEN.",
+    "P20-D026 remains mandatory unresolved H representation consumer work, not optimization debt.",
+    "Hash/byte checks attribute artifacts and transport; they do not establish chemical truth. Native harness snapshots bind finalization bytes; the runtime freeze separately binds its declared Python/support inputs."
+  ],
+  "root_acceptance_pending": false
+}

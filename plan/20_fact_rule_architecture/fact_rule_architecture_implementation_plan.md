@@ -8,8 +8,10 @@ assembly, local H/scaffold corrections and explicit exports/resources accepted;
 P20-D024 is closed. P20-D026 generic H export/materialization remains open.
 Stage9A semantic preparation, Stage9B sole-owner carrier cutover and Stage9C
 collection completion are accepted at their recorded CP311 source/installed
-boundaries. Stage10 and later stages, optional scientific activation, clean full-native,
-version-adaptation and global scientific/engineering acceptance remain open**.
+boundaries. [Stage10A physical/native migration](stages/stage10/native-migration/validation/checkpoint.json)
+is accepted within its clean CP311 source/sdist/wheel/probe-SDK boundary. Other
+Stage10 release/version obligations, Stage11–12, optional scientific activation
+and global scientific/engineering acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
 are recorded in [the CP311 core-workflow report](cp311_core_workflow_validation_20261103.md). The architecture, lazy invalidation, scientific-reporting, and
@@ -2388,6 +2390,13 @@ version-adaptation and global science/performance gates remain open.
 
 ### Stage 10 — Complete physical package and native build migration
 
+The [Stage10A checkpoint](stages/stage10/native-migration/validation/checkpoint.json)
+accepts the physical owner/build migration, actual clean CP311 sdist/wheel with
+six newly compiled extensions, affected source/installed behavior and independent
+native/SDK consumers. This is a probe-profile boundary. Other Python versions,
+pinned release/manylinux delivery and global obligations remain open under the
+constitution's CP311-first sequencing; this checkpoint is not whole-stage release.
+
 Entry gate: the Stage1 migration map shows that every Section 9 semantic split
 needed for the carrier/rule hard cut is complete and verified through Stage9.
 This stage completes physical/build migration; separately governed Stage11
@@ -2398,7 +2407,10 @@ decisions retain their existing scope and deferral rules.
 2. Update pybind11 extension names/source lists, relative C++ includes, CMake
    attach files, export maps, `.pyi` stubs, package data, and build scripts.
 3. Keep C++ public namespaces and standalone wrapper contracts stable unless a
-   separately approved decision says otherwise.
+   separately approved decision says otherwise. The [native migration decisions](stages/stage10/native-migration/contracts/decisions.md)
+   place generic buffer preparation at `operations/native_packing.py` and its
+   sole raw transport/headers at `adapters/native`, preserving the existing
+   lock, readiness, error order and one-buffer construction.
 4. Build/test sdist and wheels for every supported Python version.
 
 Gate: clean-source build, installed-wheel tests, native symbol/import checks,

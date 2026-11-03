@@ -282,7 +282,7 @@ def test_route_calls_native_generation_and_detached_semantic_observation(
             for forbidden in (
                 "obWrappers",
                 "forcefields",
-                "cheminfo.geometry",
+                "cheminfo.rules.mathematics.geometry",
             )
         ):
             pytest.fail(f"R0 invoked forbidden route dependency {name}")

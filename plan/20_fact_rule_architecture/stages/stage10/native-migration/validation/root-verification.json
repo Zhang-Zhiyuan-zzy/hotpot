@@ -1,0 +1,27 @@
+{
+  "status": "ROOT_ACCEPTED_CP311_NATIVE_MIGRATION_ONLY",
+  "utc": "2026-11-03T23:56:51.246552+00:00",
+  "argv": [
+    "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+    "/tmp/hotpot_plan20/medium/stage10-finalization-20261104/root_acceptance.py"
+  ],
+  "cwd": "/home/zhangzhiyuan/hotpot",
+  "script_sha256": "60a5b0d37eaa36d58fc4d1a31d43af1169768dc533c8d3cc641efa3eb81b4619",
+  "source_commit": "4b3061e39fc685abb853248d27f875238d2b45ae",
+  "archive_manifest_sha256": "b27d1ac21cbee844ebe71df9df85e903ca4a77342ef9b27efe87a35c5c123685",
+  "archive_files": 373,
+  "archive_bytes": 17547036,
+  "archive_reference_checks": 53,
+  "runtime_frozen_bindings": 1053,
+  "ordered_focused_cases": 1374,
+  "effective_source_focused": 1374,
+  "effective_installed_focused": 1374,
+  "source_only": 239,
+  "native_effective": 28,
+  "failed_node_retries_match_exactly": true,
+  "drift": [],
+  "limits": [
+    "CP311 probe only; whole Stage10/version/release/global gates remain open.",
+    "No fresh full-default or global science/performance acceptance."
+  ]
+}

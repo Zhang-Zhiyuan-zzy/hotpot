@@ -4,8 +4,8 @@
 #include "../../../rules/physics/forcefields/_native/bond_keys.hpp"
 #include "warning_codes.hpp"
 
-#include "../../../geometry/_native/prepared_cycle.hpp"
-#include "../../../geometry/_native/primitives.hpp"
+#include "../../../rules/mathematics/geometry/_native/prepared_cycle.hpp"
+#include "../../../rules/mathematics/geometry/_native/primitives.hpp"
 
 #include <algorithm>
 #include <cmath>

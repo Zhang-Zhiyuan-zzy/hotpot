@@ -110,9 +110,15 @@ def frozen_ratchet_findings(actual, allowed, previous, original):
 def active_core_findings(path, source):
     """Reject retired carrier modules/entry calls independently of the allowlist."""
     findings = []
-    retired = {"hotpot.cheminfo.core": "core", "hotpot.cheminfo.bundle": "bundle"}
+    retired = {
+        "hotpot.cheminfo.core": "core",
+        "hotpot.cheminfo.bundle": "bundle",
+        "hotpot.cheminfo.geometry": "geometry",
+        "hotpot.cheminfo.graph": "graph",
+        "hotpot.cheminfo._native": "native_transport",
+    }
     for module, label in retired.items():
-        if path == module.replace(".", "/") + ".py":
+        if path in {module.replace(".", "/") + ".py", module.replace(".", "/") + "/__init__.py"}:
             findings.append({"path": path, "line": 1, "rule": f"legacy_{label}_module"})
     for node in ast.walk(ast.parse(source, filename=path)):
         targets = []

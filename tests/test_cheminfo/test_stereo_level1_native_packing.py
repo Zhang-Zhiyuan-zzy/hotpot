@@ -7,7 +7,7 @@ from dataclasses import fields as dataclass_fields
 import numpy as np
 
 from hotpot import read_mol
-from hotpot.cheminfo._native.buffers import (
+from hotpot.cheminfo.adapters.native.molecule_buffers import (
     NativeAtomTransportFieldCode,
     NativeAtomTransportBuffers,
     NativeBondTransportBuffers,
@@ -18,8 +18,8 @@ from hotpot.cheminfo._native.buffers import (
     NativeStereoGroupKindCode,
     NativeStereoRecordBuffers,
     NativeUtf8Table,
-    pack_molecule,
 )
+from hotpot.cheminfo.operations.native_packing import pack_molecule
 from hotpot.cheminfo.stereo import (
     AtomTransportRecord,
     BondTransportRecord,

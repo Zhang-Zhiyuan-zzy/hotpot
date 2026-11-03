@@ -3,7 +3,7 @@
 #include "../../../../structure/_native/forcefield_input.hpp"
 #include "defaults.hpp"
 
-#include "../../../../geometry/_native/batch.hpp"
+#include "../../../mathematics/geometry/_native/batch.hpp"
 
 #include <cstddef>
 #include <cstdint>

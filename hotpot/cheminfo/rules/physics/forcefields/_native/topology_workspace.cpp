@@ -2,8 +2,8 @@
 
 #include "bond_keys.hpp"
 
-#include "../../../../geometry/_native/types.hpp"
-#include "../../../../graph/_native/relevant_cycles.hpp"
+#include "../../../mathematics/geometry/_native/types.hpp"
+#include "../../../mathematics/graph/_native/relevant_cycles.hpp"
 
 #include <algorithm>
 #include <array>

@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-04",
+  "status": "AUTHORING_RELEASED_VALIDATION_NOT_STARTED",
+  "source_commit": "4b3061e39fc685abb853248d27f875238d2b45ae",
+  "predecessor": "Stage9 accepted at its recorded CP311 source/installed boundary",
+  "objective": "Complete remaining geometry/graph native and sole generic molecule-buffer physical/build ownership without changing algorithms, public C/C++ namespaces, source data or SDK installation paths.",
+  "scope": [
+    "geometry native sources/stub/references to rules/mathematics/geometry",
+    "graph native sources/stub/notices/references to rules/mathematics/graph",
+    "sole generic molecule buffers and shared headers to adapters/native",
+    "connected extension/source/include/CMake/package/workflow/test paths"
+  ],
+  "excluded": [
+    "Stage11 commands and data-governance decisions",
+    "new scientific algorithms or feature encoding",
+    "new compatibility paths",
+    "Stage12 lazy-loading and final science/performance acceptance",
+    "unrelated untracked owner work"
+  ],
+  "read_alignment": [
+    "goal.md",
+    "fact_rule_architecture_implementation_plan.md sections1-2,8-9 ownership map,Stage9-12,11,12.3",
+    "stage_verification_map.json Stage10",
+    "Stage9C accepted checkpoint and postcommit binding",
+    "governance/stage/validation skills and both governance references"
+  ],
+  "decisions": [
+    "Root owns global route/build integration; two local Sol/medium workers have exclusive native-owner and transport slices.",
+    "Use shutil.move for tracked source moves without staging unrelated work; Git rename detection records final moves. No stale binary is moved or reused as clean-build evidence.",
+    "Keep extension basenames, binding module declarations and C++ namespaces stable; canonical Python extension owners move to the existing mathematics packages.",
+    "Preserve installed SDK include/hotpot/native location and all public wrapper C/C++ contract names.",
+    "CP311 clean source/package/native proof first. Every other version, pinned release build and SDK obligation remains separately open until actually verified.",
+    "Actual R1 static scan exposed two preexisting readiness imports hidden by the old unclassified _native owner; R1 failed architecture and unused source freeze are retained without rewrite.",
+    "operations/native_packing.py owns the existing lock/aromatic/scalar/payload/subset-H order and sole final buffer construction. adapters/native/molecule_buffers.py owns DTOs and raw field/transport encoding. No new class, fallback or scientific algorithm.",
+    "Current executable Plan17 buffer and Plan19 graph imports are rebound; historical report results retain their original identities and receive no current-runtime claim."
+  ],
+  "validation": "Complete affected packaging, graph/geometry/transport and independent native source tests; clean sdist and actual builds/install outside checkout; all six extension origins/symbols and SDK consumers before Stage10 acceptance. Retain every failed attempt.",
+  "rollback": "One coherent package/build migration before frozen validation. Root integrates and commits only explicit paths after evidence review.",
+  "gate_closed": false,
+  "overall_acceptance": false,
+  "authoring_revision": 2
+}

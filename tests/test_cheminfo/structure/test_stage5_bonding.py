@@ -287,7 +287,8 @@ def test_fresh_lazy_working_copy_prepares_required_groups_before_source_capture_
 
 def test_atomic_number_only_projection_does_not_prepare_chemistry(monkeypatch):
     from hotpot.cheminfo.operations.inference.features import extract_atom_attrs
-    from hotpot.cheminfo._native.buffers import NativeMoleculeField, pack_molecule
+    from hotpot.cheminfo.adapters.native.molecule_buffers import NativeMoleculeField
+    from hotpot.cheminfo.operations.native_packing import pack_molecule
     mol = _cycle()
     before = _state(mol)
     def forbidden(*args, **kwargs):
@@ -301,7 +302,8 @@ def test_atomic_number_only_projection_does_not_prepare_chemistry(monkeypatch):
 
 def test_strict_model_and_native_hydrogen_consumers_prepare_known_values_once():
     from hotpot.cheminfo.operations.inference.features import extract_atom_attrs
-    from hotpot.cheminfo._native.buffers import NativeMoleculeField, pack_molecule
+    from hotpot.cheminfo.adapters.native.molecule_buffers import NativeMoleculeField
+    from hotpot.cheminfo.operations.native_packing import pack_molecule
     mol = _cycle()
     mol.determine_rings_aromatic()
     features = extract_atom_attrs(mol)

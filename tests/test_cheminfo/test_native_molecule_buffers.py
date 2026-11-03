@@ -8,12 +8,12 @@ import pytest
 from hotpot import read_mol
 from hotpot.cheminfo.structure.bond_kind import BondKind
 from hotpot.cheminfo.structure.molecule import Molecule
-from hotpot.cheminfo._native.buffers import (
+from hotpot.cheminfo.adapters.native.molecule_buffers import (
     NativeBondKindCode,
     NativeMoleculeBuffers,
     NativeMoleculeField,
-    pack_molecule,
 )
+from hotpot.cheminfo.operations.native_packing import pack_molecule
 
 
 def test_empty_selection_preserves_dimensions_without_materializing_fields():
@@ -162,8 +162,18 @@ def test_stale_charge_request_raises_but_other_field_requests_do_not_read_charge
     _results._import_partial_charges(mol, (-0.25, 0.0, 0.25), producer=ATOM_SOURCE_CODES["explicit"])
     mol.atoms[0].x = 1.0
 
-    with pytest.raises(RuntimeError, match="geometry"):
-        pack_molecule(mol, frozenset({NativeMoleculeField.PARTIAL_CHARGES}))
+    from hotpot.cheminfo.operations import chemistry
+
+    def forbidden_hydrogens(*args, **kwargs):
+        pytest.fail("hydrogen preparation preceded the stale charge failure")
+
+    monkeypatch.setattr(chemistry, "_require_implicit_hydrogens", forbidden_hydrogens)
+    for fields in (
+        frozenset({NativeMoleculeField.PARTIAL_CHARGES}),
+        frozenset({NativeMoleculeField.PARTIAL_CHARGES, NativeMoleculeField.ATOM_TRANSPORT}),
+    ):
+        with pytest.raises(RuntimeError, match="geometry"):
+            pack_molecule(mol, fields)
 
     def forbidden(*args):
         pytest.fail("unrequested charge selection was consulted")

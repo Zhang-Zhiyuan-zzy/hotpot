@@ -5,9 +5,9 @@
 #include "target_selection.hpp"
 #include "topology_workspace.hpp"
 
-#include "../../../../geometry/_native/nonplanar_surface.hpp"
-#include "../../../../geometry/_native/prepared_cycle.hpp"
-#include "../../../../geometry/_native/tolerances.hpp"
+#include "../../../mathematics/geometry/_native/nonplanar_surface.hpp"
+#include "../../../mathematics/geometry/_native/prepared_cycle.hpp"
+#include "../../../mathematics/geometry/_native/tolerances.hpp"
 
 #include <cstddef>
 #include <cstdint>

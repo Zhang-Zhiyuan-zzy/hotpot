@@ -14,7 +14,7 @@ import hotpot as hp
 from hotpot.cheminfo.AImodels.data_extract import extract_ring_attrs
 from hotpot.cheminfo.AImodels.mca.site_detection import find_nucleophilic_sites
 from hotpot.cheminfo.structure.molecule import Molecule
-from hotpot.cheminfo.graph import graph_dfs_path, relevant_cycles
+from hotpot.cheminfo.rules.mathematics.graph import graph_dfs_path, relevant_cycles
 from hotpot.cheminfo.search import QueryAtom, Searcher, Substructure
 
 

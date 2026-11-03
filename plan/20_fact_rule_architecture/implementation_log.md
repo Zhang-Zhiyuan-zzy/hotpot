@@ -7081,3 +7081,78 @@ references and applies root-reviewed records. Maintained checkpoint/report/graph
 link `.plan20-artifacts/20261104/stage9c/collections`. Stage10clean-native/SDK/
 sdist/version adaptation and Stage11–12/final science/performance/Plan12/P20-D026
 gates remain open. Root prepares coherent9Cbusiness commit and normal push.
+
+
+### 2026-11-04 — Stage10 bounded native physical/build entry
+
+Stage9C commit4b3061e39fc685abb853248d27f875238d2b45ae is pushed; root
+verified its frozen product/test/support/native inputs have zero postcommit drift.
+Applied governance,stage and validation skills and both governance references;
+reviewed current goal,affected plan ownership/Stage9–12/validation/debt sections,
+Stage10verification selection and accepted predecessor. Stage10physical migration
+is still required: geometry/graph native roots and generic buffers/headers remain
+at old paths,with setup,CMake,source harness and workflow references. Root releases
+the bounded entry at stages/stage10/native-migration/entry_review.json.
+
+Two local Sol/medium workers receive exclusive math-native and generic-transport
+slices; root owns global build/include/workflow integration and acceptance.
+Algorithms,public wrapper namespaces,installed SDK include layout and feature
+encoding remain fixed. Old in-checkout binaries receive no clean-build claim.
+CP311first clean build/install and affected semantic/native evidence are required;
+other-version,pinned release SDK/native and final science/performance/global gates
+remain open until actual evidence exists. No Stage11data/command decision changes.
+
+
+### 2026-11-04 — Stage10 readiness dependency correction before build
+
+Initial static architecture scan failed on two adapter→operation imports and
+six connected plan-runner old-owner imports. Ratchet debt did not grow. R1
+source freeze/capsule and failed architecture.json remain unmodified; no build
+or business runtime ran against R1. Root inspected the actual late-H path and
+selected a narrow preparation/encoding split. operations/native_packing.py
+retains the lock,aromatic preparation,scalar/charge access,payload/subset-H order
+and one final buffer. Adapter DTOs/raw encoding remain singular with no new class.
+Affected wrappers,conformer workflow,tests and executable plan imports are
+rebound. Source test now proves stale charge fails before later H preparation.
+Main-plan Stage10decision link records this required boundary repair. No
+algorithm,trained feature,public C++ namespace or SDK install contract changes.
+
+
+### 2026-11-04 — Stage10A clean CP311 native migration accepted
+
+Root accepted the bounded physical/native migration after actual clean926-file
+source → sdist → six newly compiled extensions → audited890-member wheel and
+outside-checkout installation. Probe SDK configure/build/install and all15public
+C symbols/6PyInit symbols are verified. Forty relocated native/stub/header/notice
+files retain exact bytes;18DTO/helper ASTs and raw scalar/H-transport encodings
+retain semantics after explicit relative-import rewires. No algorithm,feature,
+C++namespace or installed SDK include contract was changed.
+
+Actual selected source1374 and installed1374focused cases have exactly matching
+ordered nodeids;source-only239pass. The native attempt passed26/28;its two GCC9
+consumer-link failures against the GCC14probe SDK were retained,then those exact
+ABI0/ABI1cases passed with the declared GCC14consumer. The first installed run
+passed1373/1374;its omitted tests.benchmarks support was copied with eight exact
+unchanged-HEAD bindings into a fresh102-file test-only tree. Only that failed case
+and its matching source case were rerun,each passing. All selected cases have no
+remaining failure,error,skip,origin leak or1053-binding input drift. Original
+failed attempts and the two root checker import/schema assumptions remain visible;
+no full native/installed rerun or current whole-default pass is claimed.
+
+Actual command families: build_clean.py,complete_sdk.py;run.py source --group
+focused/source_only/native and installed --group focused;run_sdk_consumer_retry.py;
+run_fixture_retry.py. Every actual argv,cwd,interpreter,environment,artifact and
+result is in the archived execution receipts. Root ran root_static_review.py and
+root_acceptance.py;the latter independently checked373archive files/17547036bytes,
+reference hashes,ordered selections and exact failed-node retry membership before
+applying maintained checkpoint/report/graph/root-verification records. Archive:
+.plan20-artifacts/20261104/stage10/native-migration. Stage9Bdefault evidence is reused
+only for unchanged scope plus the affected current checks,without a new default run.
+
+Whole Stage10,other Python versions,pinned manylinux/repaired/public-release and
+live-RDL obligations remain open. Stage11–12,Plan12/global scientific/performance,
+P20-D026mandatory H representation and later experiment gates remain open. Root
+prepares one coherent Stage10business commit and normal push. Mechanical commands
+used local Luna/low;Sol owned implementation,diagnosis and acceptance. Terra/Luna
+are permitted only for instruction-driven tasks without business edits or reasoning;
+model_allocation.md records the owner's policy without a separate policy-only commit.

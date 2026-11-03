@@ -2,10 +2,10 @@
 
 #include "radii.hpp"
 
-#include "../../../../geometry/_native/construction.hpp"
-#include "../../../../geometry/_native/primitives.hpp"
-#include "../../../../geometry/_native/spatial.hpp"
-#include "../../../../geometry/_native/vector_math.hpp"
+#include "../../../mathematics/geometry/_native/construction.hpp"
+#include "../../../mathematics/geometry/_native/primitives.hpp"
+#include "../../../mathematics/geometry/_native/spatial.hpp"
+#include "../../../mathematics/geometry/_native/vector_math.hpp"
 #include <algorithm>
 #include <array>
 #include <cmath>

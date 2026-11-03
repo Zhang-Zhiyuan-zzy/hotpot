@@ -7,7 +7,7 @@ from typing import Iterable, Optional, Tuple
 import numpy as np
 import pytest
 
-from hotpot.cheminfo.geometry import _geometry_native
+from hotpot.cheminfo.rules.mathematics.geometry import _geometry_native
 from hotpot.cheminfo.rules.mathematics.geometry import native
 from hotpot.cheminfo.rules.mathematics.geometry.object import Cycle, Plane, Point, Segment
 from hotpot.cheminfo.rules.mathematics.geometry.relation import (

@@ -235,7 +235,7 @@ def test_cold_import_reports_a_missing_native_extension() -> None:
 
         class BlockGeometryNative(importlib.abc.MetaPathFinder):
             def find_spec(self, fullname, path, target=None):
-                if fullname == "hotpot.cheminfo.geometry._geometry_native":
+                if fullname == "hotpot.cheminfo.rules.mathematics.geometry._geometry_native":
                     raise ImportError("blocked native extension")
                 return None
 

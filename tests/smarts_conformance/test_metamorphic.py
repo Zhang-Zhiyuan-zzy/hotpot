@@ -80,7 +80,7 @@ def test_atom_renumbering_preserves_embeddings_after_stable_identity_mapping():
     _commit_topology(
         renumbered, _capture_source(renumbered), record,
         atom_bindings=tuple(atoms[row] for row in rows),
-        bond_bindings=tuple(renumbered._bonds + renumbered._hided_bonds),
+        bond_bindings=tuple(renumbered._bonds),
         dependency_state=dependencies, bond_metadata=metadata,
     )
 

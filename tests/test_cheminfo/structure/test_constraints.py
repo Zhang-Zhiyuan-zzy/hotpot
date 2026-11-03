@@ -142,7 +142,6 @@ def test_scalar_constraint_paths_keep_existing_maps_and_avoid_exports_or_hashes(
 
 def test_isolated_atom_registration_enrolls_only_new_key_without_rebuilding_owner(monkeypatch):
     from hotpot.cheminfo.structure.constraints import _ConstraintSet
-    import hotpot.cheminfo.core as core
 
     mol = molecule()
     owner = mol._constraints
@@ -154,7 +153,7 @@ def test_isolated_atom_registration_enrolls_only_new_key_without_rebuilding_owne
 
     monkeypatch.setattr(_ConstraintSet, '__init__', forbidden)
     monkeypatch.setattr(_ConstraintSet, 'subset', forbidden)
-    monkeypatch.setattr(core, '_filter_constraint_members', forbidden)
+    monkeypatch.setattr('hotpot.cheminfo.core._filter_constraint_members', forbidden)
     atom = mol.create_atom(atomic_number=6, x_constraint=True)
     assert mol._constraints is owner and owner.atom_axes is axes and owner.bond_values is bonds
     assert set(axes) == set(original) | {atom._uid}

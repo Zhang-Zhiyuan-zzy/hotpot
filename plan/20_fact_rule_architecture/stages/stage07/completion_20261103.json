@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7B",
+  "owner": "root",
+  "recorded_utc": "2026-11-03T07:03:59.908445+00:00",
+  "status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE",
+  "stage_gate_closed": true,
+  "global_gate_closed": false,
+  "effective_goal": "goal.md",
+  "goal_remains_active": true,
+  "accepted_scope": [
+    "One complete ordered Bond owner/index; no persistent hidden partitions or eight retired public hide/recover/clear methods; no replacement public selector.",
+    "Only reserved N04: immutable task-local source/atom_uids/bond_mask selection; complete defaults and explicit independent selected projections.",
+    "Same Molecule-owned ConstraintSet for coordinate axes/Bond/angle/torsion, complete clear and identity/rollback; immutable source-bound views.",
+    "Native graph masks describe operation/session/trajectory work; publication retains all factual Bond handles/UID/order and validates coordinates atomically.",
+    "Same N02 MoleculeRecord with23 keyword-only fields and tagged-v2 private restore; exact old positional fixtures reject before installation, without compatibility bridge.",
+    "Complete simple graph rejects self edges/duplicate unordered pairs atomically. H clones retain complete original Bond prefix then appendH; counts/labels/chemistry and caller identity preserved.",
+    "Applicable CP311 source/installed affected-contracts, actual FF/CBond-to-xTB/MCA, current/old persistence and same-work usable-cost evidence."
+  ],
+  "records": {
+    "constraint_checkpoint": "constraints/validation/checkpoint_20261103.json",
+    "constraint_report": "constraints/validation/report.md",
+    "topology_checkpoint": "topology-selection/validation/checkpoint.json",
+    "topology_report": "topology-selection/validation/report.md",
+    "scientific_observations": "topology-selection/validation/scientific_observations.json",
+    "evidence_index": "topology-selection/validation/evidence_index.json",
+    "cost_disposition": "topology-selection/root_cost_disposition_20261103.json"
+  },
+  "runtime_provenance": {
+    "source_head": "63043dc766d27087bcc3aba3c75367d403b2f3d0",
+    "identity": "Historical execution HEAD plus exact dirty source/test bindings; committing these bytes does not reattribute prior runs.",
+    "C3_freeze": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/source_freeze.json",
+      "bytes": 177884,
+      "sha256": "dc4aa8d84569ee3c5c382c56817f6beea28481c7cb4de6553e9eda0ac6d87cd2"
+    },
+    "current_source_test_bindings": 1399,
+    "unchanged_native_bindings": 6,
+    "support_bindings": 3,
+    "wheel_sha256": "b400e60b4c02b078b9eaf3b757abf44492fe41a1a3616c2c7341574bb8da36d5",
+    "wheel_scope": "456 matching Python sources plus six unchanged CP311 native binaries, no rebuild; fresh system-site-packages venv outside checkout, actual child origins checked.41 non-Python omissions stay explicit."
+  },
+  "evidence_acceptance": {
+    "source": "C2 affected1313/0/0; C3 test-only repair180/0/0. C1 source actualFF11/pipeline3/MCA1 retains historical bindings.",
+    "installed": "C2 affected1313/0/0 and actualFF11/pipeline3/MCA1 all pass; C3 targeted full constraints10/0/0 against unchanged C2 product/native/wheel.",
+    "default": "C1 actual5385passed/2failed/129skipped retained. Targeted repairs180passed, zero findings in actual928-file/224-debt architecture audit. No current full-default-suite pass claimed.",
+    "persistence": "C1 current48/48 loads and exact old24/24 rejects in fresh processes; existing record/reducer unchanged, current source/installed affected pickle regressions pass. Harness attempt1 failure retained.",
+    "cost": "23cells/322rows completeRC0;69warmups/230measured/23allocations, no failed samples; all14 adverse time medians and10 adverse Python peaks explicitly accepted as bounded usable cost, not universal parity. Prior constraint adverse history remains.",
+    "binding_check": "Root independent read-only check matches1399source/test,6native,3support,55indexed evidence; archive manifest/receipt and seven load-bearing archived receipts checked. Prior full payload verification receipt is reused."
+  },
+  "durable_local_archive": {
+    "repository_relative_path": ".plan20-artifacts/20261103/stage7b/topology-selection",
+    "manifest": {
+      "path": ".plan20-artifacts/20261103/stage7b/topology-selection/manifest.json",
+      "bytes": 418115,
+      "sha256": "27ac50877ec235bc379dcaf0eb6966be6711575a4b3ee10b7599e165a4e62c03"
+    },
+    "receipt": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/archive-index/receipt.json",
+      "bytes": 975,
+      "sha256": "7f15f396948b125319544b97f2c34f67aae01fdc93e7837b7489148c543c54b5"
+    },
+    "payload_files": 1150,
+    "payload_logical_bytes": 98721451,
+    "unique_payload_blobs": 765,
+    "unique_payload_bytes": 88887401,
+    "coverage": "Failures, terminal receipts, source bindings, pickle fixtures, cost samples and finite actual-workflow outputs. Both188-file installed indexes verified. Local ignored archive, not a GitHub payload publication.",
+    "limits": "No caches/live handles/credential raw rollouts or external wheel/native/model binaries. Source actualFF lacks standalone per-case energy output; no values invented."
+  },
+  "remaining_obligations": [
+    "Stage7C selected results/annotations; Stage7D frames; Stage7E H/isotope/stereo canonical ownership; remaining Plan20 mainline and integrated Plan12 requirements.",
+    "Python3.10/3.12/3.13/3.14 adaptation; clean all-native/ABI/SDK/sdist/manylinux and41 known package omissions.",
+    "Broader scientific/GPU/external, global comparable performance, documentation/delivery and final acceptance. Sampled superlinear cost growth and adverse measurements remain visible.",
+    "Stage0–12 main acceptance andB_exp before separately gated Stage13A/B experiment throughD_exp/I_exp."
+  ],
+  "git_delivery": {
+    "branch": "implement/plan20-fact-rule-architecture",
+    "policy": "Deliver source/tests and associated accepted records in one coherent business checkpoint; actual commit/push identities are established by Git history and remote verification, not self-referential hash-only followups."
+  },
+  "next_stage": "Stage7C",
+  "next_stage_requires": "Targeted entry alignment and concrete selected-result ownership/invalidation/lifecycle design under existing owner-approved contracts before disjoint local implementation."
+}

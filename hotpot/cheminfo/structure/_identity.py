@@ -1,8 +1,7 @@
 """Task-local source bindings for the staged fact-store migration.
 
 Identities describe the current owners, not a second retained molecular state.
-Until Stage7B, complete Bond order is active, hidden-metal, hidden-covalent;
-moving a Bond between those partitions may conservatively change an identity.
+Complete Bond order follows the sole authoritative Molecule Bond list.
 Until Stage7D, source frames retain their legacy coordinate-only meaning. The
 forcefield_inputs domain additionally covers every retained numeric/sparse
 input consumed before its final Stage5/7 ownership cutover. Captures and
@@ -63,6 +62,8 @@ def _canonical(value):
         return ["mapping", entries]
     if isinstance(value, (tuple, list)):
         return ["sequence", [_canonical(item) for item in value]]
+    if isinstance(value, bytes):
+        return ["bytes", value.hex()]
     if value is None or isinstance(value, (str, bool, int, float)):
         return [type(value).__name__, value]
     raise TypeError(f"Unsupported source identity value: {type(value).__name__}")
@@ -74,7 +75,7 @@ def _digest(domain, value):
 
 
 def _complete_bonds(mol):
-    return tuple(mol._bonds) + tuple(mol._hided_metal_bonds) + tuple(mol._hided_covalent_bonds)
+    return tuple(mol._bonds)
 
 
 def _topology(mol, bonds):

@@ -1,0 +1,527 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7B",
+  "scope": "Hidden-topology source CP311 same-work bounded cost",
+  "recorded_utc": "2026-11-03T06:55:17.216673+00:00",
+  "status": "ROOT_ACCEPTED_BOUNDED_USABLE_COST",
+  "source_freeze_sha256": "dc4aa8d84569ee3c5c382c56817f6beea28481c7cb4de6553e9eda0ac6d87cd2",
+  "evidence": [
+    {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/cost-attempt02-receipt.json",
+      "bytes": 3036,
+      "sha256": "471c634807f527180c82ccfb845409861c6233da94bd0ed4c5d3b81e8b3a34bc"
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/cost-attempt02/cost_comparison.json",
+      "bytes": 54143,
+      "sha256": "e2814d50329c3009f76a3aa93303131ed9173dac13e087c07f7592042e9adc3a"
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/cost-attempt02-review.json",
+      "bytes": 12971,
+      "sha256": "1a75f71bd6f57fbb01aa6717af7c6c5024f11b26c847a62079c27035af140948"
+    }
+  ],
+  "work": {
+    "cells": 23,
+    "warmups": 69,
+    "measured": 230,
+    "separate_allocations": 23,
+    "failed_samples": 0,
+    "elapsed_seconds": 171.80209297128022
+  },
+  "adverse_time_dispositions": [
+    {
+      "cell": {
+        "operation": "export_ob",
+        "size": 128,
+        "iterations": 1
+      },
+      "C0_median_seconds": 0.0012542640000000002,
+      "candidate_median_seconds": 0.0012552455,
+      "delta_seconds": 9.814999999998957e-07,
+      "ratio": 1.0007825306315097,
+      "C0_MAD_seconds": 9.583999999999765e-06,
+      "candidate_MAD_seconds": 9.92849999999993e-06,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Accepted sub-microsecond median difference for128atoms, smaller than bothMADs; retain observation without asserting a real slowdown. Complete conversion invariants pass."
+    },
+    {
+      "cell": {
+        "operation": "clear",
+        "size": 128,
+        "iterations": 1
+      },
+      "C0_median_seconds": 0.0045143744999999996,
+      "candidate_median_seconds": 0.004551157,
+      "delta_seconds": 3.6782500000000565e-05,
+      "ratio": 1.00814786190202,
+      "C0_MAD_seconds": 7.930000000000176e-06,
+      "candidate_MAD_seconds": 9.833999999999798e-06,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Accepted small absolute whole-owner constraint-clear increases at all three sizes; all requested cells/keys clear correctly, maximum candidate304.015ms/8192atoms. No hidden or selected graph skips."
+    },
+    {
+      "cell": {
+        "operation": "ligand",
+        "size": 128,
+        "iterations": 1
+      },
+      "C0_median_seconds": 0.0159700875,
+      "candidate_median_seconds": 0.0397994535,
+      "delta_seconds": 0.023829365999999998,
+      "ratio": 2.492124949221474,
+      "C0_MAD_seconds": 3.9038999999999394e-05,
+      "candidate_MAD_seconds": 3.336300000000153e-05,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Accepted finite source binding, complete mask checking and independent factual projection/component work. Extra representation hashing is proportional to the graph and supported metadata. All selected graph/count/source invariants pass; measured 8192-atom complete work is4.145s. This is a bounded usable cost decision, not an isolated causal profile."
+    },
+    {
+      "cell": {
+        "operation": "one_edge",
+        "size": 128,
+        "iterations": 1
+      },
+      "C0_median_seconds": 0.015053709,
+      "candidate_median_seconds": 0.015648706,
+      "delta_seconds": 0.0005949969999999982,
+      "ratio": 1.039524943653421,
+      "C0_MAD_seconds": 1.576000000000008e-05,
+      "candidate_MAD_seconds": 2.7948500000001333e-05,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Accepted complete topology binding/validation and independent projection/component overhead. 8192-atom complete work is1.554s; measured8x-size growth13.852x versusC0 11.793x is retained, with no quadratic-work or global scaling claim."
+    },
+    {
+      "cell": {
+        "operation": "clear",
+        "size": 1024,
+        "iterations": 1
+      },
+      "C0_median_seconds": 0.035937804000000004,
+      "candidate_median_seconds": 0.0360898875,
+      "delta_seconds": 0.00015208349999999704,
+      "ratio": 1.0042318528978564,
+      "C0_MAD_seconds": 6.968699999999883e-05,
+      "candidate_MAD_seconds": 7.103950000000164e-05,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Accepted small absolute whole-owner constraint-clear increases at all three sizes; all requested cells/keys clear correctly, maximum candidate304.015ms/8192atoms. No hidden or selected graph skips."
+    },
+    {
+      "cell": {
+        "operation": "ligand",
+        "size": 1024,
+        "iterations": 1
+      },
+      "C0_median_seconds": 0.115788001,
+      "candidate_median_seconds": 0.379117983,
+      "delta_seconds": 0.263329982,
+      "ratio": 3.2742424061712576,
+      "C0_MAD_seconds": 0.00024699299999999397,
+      "candidate_MAD_seconds": 0.000523658499999996,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Accepted finite source binding, complete mask checking and independent factual projection/component work. Extra representation hashing is proportional to the graph and supported metadata. All selected graph/count/source invariants pass; measured 8192-atom complete work is4.145s. This is a bounded usable cost decision, not an isolated causal profile."
+    },
+    {
+      "cell": {
+        "operation": "one_edge",
+        "size": 1024,
+        "iterations": 1
+      },
+      "C0_median_seconds": 0.1094892915,
+      "candidate_median_seconds": 0.11219191149999999,
+      "delta_seconds": 0.002702619999999989,
+      "ratio": 1.0246838751349485,
+      "C0_MAD_seconds": 0.00022104949999999374,
+      "candidate_MAD_seconds": 0.00013044699999999881,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Accepted complete topology binding/validation and independent projection/component overhead. 8192-atom complete work is1.554s; measured8x-size growth13.852x versusC0 11.793x is retained, with no quadratic-work or global scaling claim."
+    },
+    {
+      "cell": {
+        "operation": "copy",
+        "size": 8192,
+        "iterations": 1
+      },
+      "C0_median_seconds": 0.4134968215,
+      "candidate_median_seconds": 0.4489147645,
+      "delta_seconds": 0.03541794300000001,
+      "ratio": 1.0856546922695027,
+      "C0_MAD_seconds": 0.0014349325000000135,
+      "candidate_MAD_seconds": 0.0005162590000000189,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Accepted measured8192-atom increase35.418ms to448.915ms; record/owner transport remains complete. This sequential shared-host measurement does not isolate a cause or establish universal parity."
+    },
+    {
+      "cell": {
+        "operation": "pickle_roundtrip",
+        "size": 8192,
+        "iterations": 1
+      },
+      "C0_median_seconds": 0.449907398,
+      "candidate_median_seconds": 0.490722773,
+      "delta_seconds": 0.04081537499999999,
+      "ratio": 1.0907195017940114,
+      "C0_MAD_seconds": 0.0009412705000000077,
+      "candidate_MAD_seconds": 0.0006196454999999879,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Accepted measured8192-atom increase40.815ms to490.723ms for tagged keyword-only current transport with full lifecycle invariants. No old-format compatibility claim."
+    },
+    {
+      "cell": {
+        "operation": "clear",
+        "size": 8192,
+        "iterations": 1
+      },
+      "C0_median_seconds": 0.297692424,
+      "candidate_median_seconds": 0.304015368,
+      "delta_seconds": 0.006322943999999997,
+      "ratio": 1.0212398552675295,
+      "C0_MAD_seconds": 0.00043693900000002506,
+      "candidate_MAD_seconds": 0.0005689745000000135,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Accepted small absolute whole-owner constraint-clear increases at all three sizes; all requested cells/keys clear correctly, maximum candidate304.015ms/8192atoms. No hidden or selected graph skips."
+    },
+    {
+      "cell": {
+        "operation": "ligand",
+        "size": 8192,
+        "iterations": 1
+      },
+      "C0_median_seconds": 1.348446403,
+      "candidate_median_seconds": 4.1451810275,
+      "delta_seconds": 2.7967346244999995,
+      "ratio": 3.074042111186528,
+      "C0_MAD_seconds": 0.0014840649999999789,
+      "candidate_MAD_seconds": 0.004417918000000132,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Accepted finite source binding, complete mask checking and independent factual projection/component work. Extra representation hashing is proportional to the graph and supported metadata. All selected graph/count/source invariants pass; measured 8192-atom complete work is4.145s. This is a bounded usable cost decision, not an isolated causal profile."
+    },
+    {
+      "cell": {
+        "operation": "one_edge",
+        "size": 8192,
+        "iterations": 1
+      },
+      "C0_median_seconds": 1.291238941,
+      "candidate_median_seconds": 1.554048056,
+      "delta_seconds": 0.26280911500000004,
+      "ratio": 1.2035325195478286,
+      "C0_MAD_seconds": 0.0005022485000000243,
+      "candidate_MAD_seconds": 0.0024092239999999876,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Accepted complete topology binding/validation and independent projection/component overhead. 8192-atom complete work is1.554s; measured8x-size growth13.852x versusC0 11.793x is retained, with no quadratic-work or global scaling claim."
+    },
+    {
+      "cell": {
+        "operation": "H_working_copy",
+        "case": "neutral-phenol",
+        "iterations": 1,
+        "seed": 11
+      },
+      "C0_median_seconds": 0.0063719985,
+      "candidate_median_seconds": 0.013376612,
+      "delta_seconds": 0.0070046134999999995,
+      "ratio": 2.099280469071046,
+      "C0_MAD_seconds": 1.7768999999999945e-05,
+      "candidate_MAD_seconds": 3.6669999999999064e-05,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Accepted extra independent H-working projection/reassembly and source checks, preserving original Bond handles/order prefix and appendedH. Measured whole work stays below14ms for these two fixtures, with no chemistry/count/label regression."
+    },
+    {
+      "cell": {
+        "operation": "H_working_copy",
+        "case": "bidentate-OCCO",
+        "iterations": 1,
+        "seed": 17
+      },
+      "C0_median_seconds": 0.0045592445,
+      "candidate_median_seconds": 0.00958447,
+      "delta_seconds": 0.005025225499999999,
+      "ratio": 2.102205749220073,
+      "C0_MAD_seconds": 2.0839999999999834e-05,
+      "candidate_MAD_seconds": 1.3541499999999464e-05,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Accepted extra independent H-working projection/reassembly and source checks, preserving original Bond handles/order prefix and appendedH. Measured whole work stays below14ms for these two fixtures, with no chemistry/count/label regression."
+    }
+  ],
+  "adverse_python_peak_dispositions": [
+    {
+      "cell": {
+        "operation": "copy",
+        "size": 128,
+        "iterations": 1
+      },
+      "C0_peak_bytes": 549630,
+      "candidate_peak_bytes": 550136,
+      "delta_peak_bytes": 506,
+      "ratio": 1.0009206193257283,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Finite same-work allocation observation; maximum adverse absolute peak delta524400bytes. Largest graph ligand/one-edge peaks are belowC0; this is not isolated native peak/leak evidence."
+    },
+    {
+      "cell": {
+        "operation": "clear",
+        "size": 128,
+        "iterations": 1
+      },
+      "C0_peak_bytes": 187322,
+      "candidate_peak_bytes": 201535,
+      "delta_peak_bytes": 14213,
+      "ratio": 1.0758746970457287,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Finite same-work allocation observation; maximum adverse absolute peak delta524400bytes. Largest graph ligand/one-edge peaks are belowC0; this is not isolated native peak/leak evidence."
+    },
+    {
+      "cell": {
+        "operation": "ligand",
+        "size": 128,
+        "iterations": 1
+      },
+      "C0_peak_bytes": 798031,
+      "candidate_peak_bytes": 943498,
+      "delta_peak_bytes": 145467,
+      "ratio": 1.1822823925386357,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Finite same-work allocation observation; maximum adverse absolute peak delta524400bytes. Largest graph ligand/one-edge peaks are belowC0; this is not isolated native peak/leak evidence."
+    },
+    {
+      "cell": {
+        "operation": "copy",
+        "size": 1024,
+        "iterations": 1
+      },
+      "C0_peak_bytes": 4080652,
+      "candidate_peak_bytes": 4087617,
+      "delta_peak_bytes": 6965,
+      "ratio": 1.0017068350841973,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Finite same-work allocation observation; maximum adverse absolute peak delta524400bytes. Largest graph ligand/one-edge peaks are belowC0; this is not isolated native peak/leak evidence."
+    },
+    {
+      "cell": {
+        "operation": "clear",
+        "size": 1024,
+        "iterations": 1
+      },
+      "C0_peak_bytes": 1388207,
+      "candidate_peak_bytes": 1454431,
+      "delta_peak_bytes": 66224,
+      "ratio": 1.047704701100052,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Finite same-work allocation observation; maximum adverse absolute peak delta524400bytes. Largest graph ligand/one-edge peaks are belowC0; this is not isolated native peak/leak evidence."
+    },
+    {
+      "cell": {
+        "operation": "ligand",
+        "size": 1024,
+        "iterations": 1
+      },
+      "C0_peak_bytes": 6107402,
+      "candidate_peak_bytes": 6585186,
+      "delta_peak_bytes": 477784,
+      "ratio": 1.0782303178994932,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Finite same-work allocation observation; maximum adverse absolute peak delta524400bytes. Largest graph ligand/one-edge peaks are belowC0; this is not isolated native peak/leak evidence."
+    },
+    {
+      "cell": {
+        "operation": "copy",
+        "size": 8192,
+        "iterations": 1
+      },
+      "C0_peak_bytes": 34224580,
+      "candidate_peak_bytes": 34287596,
+      "delta_peak_bytes": 63016,
+      "ratio": 1.0018412497684412,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Finite same-work allocation observation; maximum adverse absolute peak delta524400bytes. Largest graph ligand/one-edge peaks are belowC0; this is not isolated native peak/leak evidence."
+    },
+    {
+      "cell": {
+        "operation": "clear",
+        "size": 8192,
+        "iterations": 1
+      },
+      "C0_peak_bytes": 10867223,
+      "candidate_peak_bytes": 11391623,
+      "delta_peak_bytes": 524400,
+      "ratio": 1.0482551982231338,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Finite same-work allocation observation; maximum adverse absolute peak delta524400bytes. Largest graph ligand/one-edge peaks are belowC0; this is not isolated native peak/leak evidence."
+    },
+    {
+      "cell": {
+        "operation": "H_working_copy",
+        "case": "neutral-phenol",
+        "iterations": 1,
+        "seed": 11
+      },
+      "C0_peak_bytes": 110811,
+      "candidate_peak_bytes": 197605,
+      "delta_peak_bytes": 86794,
+      "ratio": 1.7832615895533837,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Independent H clone/projection retains at most197605tracedPythonbytes in these two cases."
+    },
+    {
+      "cell": {
+        "operation": "H_working_copy",
+        "case": "bidentate-OCCO",
+        "iterations": 1,
+        "seed": 17
+      },
+      "C0_peak_bytes": 78900,
+      "candidate_peak_bytes": 147172,
+      "delta_peak_bytes": 68272,
+      "ratio": 1.865297845373891,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE",
+      "reason": "Independent H clone/projection retains at most197605tracedPythonbytes in these two cases."
+    }
+  ],
+  "growth_observations": [
+    {
+      "operation": "capture",
+      "sizes": [
+        128,
+        1024
+      ],
+      "size_ratio": 8.0,
+      "C0_time_growth": 6.7157336827726,
+      "candidate_time_growth": 6.646123709937034
+    },
+    {
+      "operation": "capture",
+      "sizes": [
+        1024,
+        8192
+      ],
+      "size_ratio": 8.0,
+      "C0_time_growth": 8.34000311459597,
+      "candidate_time_growth": 8.046425022386533
+    },
+    {
+      "operation": "copy",
+      "sizes": [
+        128,
+        1024
+      ],
+      "size_ratio": 8.0,
+      "C0_time_growth": 7.049854006453022,
+      "candidate_time_growth": 7.032202927933146
+    },
+    {
+      "operation": "copy",
+      "sizes": [
+        1024,
+        8192
+      ],
+      "size_ratio": 8.0,
+      "C0_time_growth": 11.383177706066418,
+      "candidate_time_growth": 12.58359841460284
+    },
+    {
+      "operation": "pickle_roundtrip",
+      "sizes": [
+        128,
+        1024
+      ],
+      "size_ratio": 8.0,
+      "C0_time_growth": 7.019199532658803,
+      "candidate_time_growth": 6.912842764087898
+    },
+    {
+      "operation": "pickle_roundtrip",
+      "sizes": [
+        1024,
+        8192
+      ],
+      "size_ratio": 8.0,
+      "C0_time_growth": 10.722730490912683,
+      "candidate_time_growth": 11.964686016236424
+    },
+    {
+      "operation": "export_ob",
+      "sizes": [
+        128,
+        1024
+      ],
+      "size_ratio": 8.0,
+      "C0_time_growth": 7.0088414400796,
+      "candidate_time_growth": 6.906967202830045
+    },
+    {
+      "operation": "export_ob",
+      "sizes": [
+        1024,
+        8192
+      ],
+      "size_ratio": 8.0,
+      "C0_time_growth": 7.910544751341937,
+      "candidate_time_growth": 7.85584374608381
+    },
+    {
+      "operation": "clear",
+      "sizes": [
+        128,
+        1024
+      ],
+      "size_ratio": 8.0,
+      "C0_time_growth": 7.96074937956521,
+      "candidate_time_growth": 7.92982696487948
+    },
+    {
+      "operation": "clear",
+      "sizes": [
+        1024,
+        8192
+      ],
+      "size_ratio": 8.0,
+      "C0_time_growth": 8.283545204932388,
+      "candidate_time_growth": 8.423838062670603
+    },
+    {
+      "operation": "ligand",
+      "sizes": [
+        128,
+        1024
+      ],
+      "size_ratio": 8.0,
+      "C0_time_growth": 7.250304733771809,
+      "candidate_time_growth": 9.525708261295598
+    },
+    {
+      "operation": "ligand",
+      "sizes": [
+        1024,
+        8192
+      ],
+      "size_ratio": 8.0,
+      "C0_time_growth": 11.645821599424625,
+      "candidate_time_growth": 10.933749422010402
+    },
+    {
+      "operation": "one_edge",
+      "sizes": [
+        128,
+        1024
+      ],
+      "size_ratio": 8.0,
+      "C0_time_growth": 7.273243524237117,
+      "candidate_time_growth": 7.169405029399875
+    },
+    {
+      "operation": "one_edge",
+      "sizes": [
+        1024,
+        8192
+      ],
+      "size_ratio": 8.0,
+      "C0_time_growth": 11.793289766606993,
+      "candidate_time_growth": 13.851694255160277
+    }
+  ],
+  "H": "Both fixtures preserve original complete handle/UID/order prefix andappendH; source unchanged andC0donorH/charge/Hcoordinationcounts/labels match. Old coordination-after-H order intentionally not required.",
+  "limits": "Sequential noninterleaved shared-host CP311 source evidence; no universalparity/speedup, isolated native peak/leak, all-version orglobal science/performance claim. No fixed5xallowance. Priorconstraints6.276\u201319.854x selective-axis and2.651\u20132.741xBondexport adverse costs remain accepted historical results.",
+  "stage_gate_closed": false,
+  "global_gate_closed": false
+}

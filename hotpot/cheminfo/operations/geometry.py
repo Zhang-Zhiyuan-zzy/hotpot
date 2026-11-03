@@ -30,7 +30,7 @@ def _sequence_views(mol, scope, cls, materialize):
                 if entry not in seen:
                     rows.append(entry)
                     seen.add(entry)
-        complete = tuple(mol._bonds) + tuple(mol._hided_metal_bonds) + tuple(mol._hided_covalent_bonds)
+        complete = tuple(mol._bonds)
         bonds = {}
         for bond in complete:
             bonds.setdefault(frozenset((id(bond._atoms[0]), id(bond._atoms[1]))), bond)

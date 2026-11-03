@@ -168,7 +168,7 @@ def hotpot_mol_from_dto(molecule: MoleculeDTO) -> HotpotMolecule:
         atom_isotopes=tuple((row, atom.isotope) for row, atom in enumerate(molecule.atoms)),
         atom_frac_valences=(),
         bond_endpoints=tuple((bond.begin_atom_index, bond.end_atom_index) for bond in bonds),
-        bond_values=raw_bonds, bond_partitions=(0,) * len(bonds),
+        bond_values=raw_bonds,
         bond_kinds=tuple(bond.bond_kind for bond in bonds),
         bond_directions=tuple(bond.bond_direction for bond in bonds),
         bond_sources=(None,) * len(bonds), bond_metadata=(None,) * len(bonds),

@@ -188,10 +188,8 @@ def _graph_document(
                 "bond_direction": record.bond_directions[index],
             }
             for row, index in enumerate(
-                index for index, partition in enumerate(record.bond_partitions)
-                if partition == 0 and all(
-                    endpoint < count for endpoint in record.bond_endpoints[index]
-                )
+                index for index, endpoints in enumerate(record.bond_endpoints)
+                if all(endpoint < count for endpoint in endpoints)
             )
         ]
         return {

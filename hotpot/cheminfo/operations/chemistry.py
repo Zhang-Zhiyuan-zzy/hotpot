@@ -289,8 +289,10 @@ def _calculate_default_molecular_charge(mol):
     if clone.is_organic:
         components = (clone,)
     else:
-        clone.hide_metal_ligand_bonds()
-        components = clone.components
+        from .topology_queries import _components
+        from ..structure._selection import _capture_topology_selection
+        selection = _capture_topology_selection(clone, ligand_skeleton=True)
+        components = _components(clone, type(clone), selection=selection)
     return _default_molecular_charge(tuple(
         (component.is_organic, component.sum_explicit_hydrogens, component.sum_implicit_hydrogens,
          component.atoms[0].get_formal_charge() if len(component.atoms) == 1 and not component.is_organic else 0)

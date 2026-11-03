@@ -156,8 +156,6 @@ class Molecule:
         self._constraints = _ConstraintSet()
         self._crystal = None
 
-        self._hided_metal_bonds = []
-        self._hided_covalent_bonds = []
         self.properties = {}  # To store any mol properties
 
         self._stereo_payload = _StereoPayload(1, (), (), ())
@@ -244,15 +242,11 @@ class Molecule:
             self._next_bond_uid += 1
             return uid
 
-    @property
-    def _hided_bonds(self):
-        return self._hided_metal_bonds + self._hided_covalent_bonds
-
     def _structural_bond_rows(self) -> tuple[tuple[int, int], ...]:
         atom_rows = {id(atom): row for row, atom in enumerate(self._atoms)}
         return tuple(
             (atom_rows[id(bond.atom1)], atom_rows[id(bond.atom2)])
-            for bond in self._bonds + self._hided_bonds
+            for bond in self._bonds
         )
 
     def _set_remapped_stereo_payload(
@@ -470,8 +464,7 @@ class Molecule:
             else:
                 transaction.touch_topology()
             previous = self._topology_index
-            self._topology_index = (_build_topology_index(
-                self._atoms, self._bonds, self._hided_metal_bonds, self._hided_covalent_bonds)
+            self._topology_index = (_build_topology_index(self._atoms, self._bonds)
                 if _prepared_index is None else _prepared_index)
             if _constraint_rows is not None:
                 angle_rows, torsion_rows = _constraint_rows
@@ -635,11 +628,10 @@ class Molecule:
         _install_dependency_state(table, state)
         self._atom_table = table
         self._atoms[:] = next_atoms
-        for bond in self._bonds + self._hided_bonds:
+        for bond in self._bonds:
             if bond.atom1 is original or bond.atom2 is original:
                 Bond._replace_atom(bond, original, replacement)
-        self._topology_index = _build_topology_index(self._atoms, self._bonds,
-                                                    self._hided_metal_bonds, self._hided_covalent_bonds)
+        self._topology_index = _build_topology_index(self._atoms, self._bonds)
         _filter_constraint_members(self)
         self._replace_atom_transport(target_row, source_atom)
         return original
@@ -770,7 +762,6 @@ class Molecule:
                 atom_frac_valences=current.atom_frac_valences + tuple((offset + row, value) for row, value in incoming.atom_frac_valences),
                 bond_endpoints=current.bond_endpoints + tuple((offset + a, offset + b) for a,b in incoming.bond_endpoints),
                 bond_values=current.bond_values + incoming.bond_values,
-                bond_partitions=current.bond_partitions + incoming.bond_partitions,
                 bond_kinds=current.bond_kinds + incoming.bond_kinds,
                 bond_aromatic=current.bond_aromatic + incoming.bond_aromatic,
                 bond_directions=current.bond_directions + incoming.bond_directions,
@@ -784,7 +775,7 @@ class Molecule:
                     (offset + first, offset + second, value)
                     for first, second, value in incoming.pair_wiberg_bond_orders))
             old_atoms = tuple(self._atoms)
-            old_bonds = tuple(self._bonds + self._hided_bonds)
+            old_bonds = tuple(self._bonds)
             source_status, source_seeds = incoming_dependencies
             uid_map = dict(zip(incoming_uids, range(self._next_atom_uid, self._next_atom_uid + incoming.atom_count)))
             target_status, target_seeds = _dependency_state(self._atom_table)
@@ -822,7 +813,7 @@ class Molecule:
         return _get_thermo(self, temp=temp, pressure=pressure)
 
     def clear_constraints(self) -> None:
-        """Clear the existing active coordinate/Bond and owned sequence constraints."""
+        """Clear coordinate, complete Bond, and owned sequence constraints."""
         with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
             transaction.touch_constraints()
             for atom in self.atoms:
@@ -831,111 +822,6 @@ class Molecule:
                 bond.constraint = False
             self._constraints = _ConstraintSet(atom_axes=self._constraints.atom_axes,
                                                bond_values=self._constraints.bond_values)
-
-    def clear_metal_ligand_bonds(self) -> None:
-        """
-        Clears all existing metal-ligand bonds in the current instance. This involves hiding 
-        the visual representation of the bonds and resetting the data structure responsible 
-        for tracking the broken bonds.
-
-        Methods  
-        -------
-        hide_metal_ligand_bonds()
-            Called to hide the visual representation of the metal-ligand bonds.
-        """
-        self.hide_metal_ligand_bonds()
-        if self._hided_metal_bonds:
-            removed_bond_rows = tuple(
-                (bond.a1idx, bond.a2idx)
-                for bond in self._hided_metal_bonds
-            )
-            for bond in self._hided_metal_bonds:
-                _detach_bond(bond)
-            self._hided_metal_bonds = []
-            _filter_constraint_members(self)
-            self._remove_stereo_bond_rows(removed_bond_rows)
-
-    def clear_hided_covalent_bonds(self) -> None:
-        if self._hided_covalent_bonds:
-            removed_bond_rows = tuple(
-                (bond.a1idx, bond.a2idx)
-                for bond in self._hided_covalent_bonds
-            )
-            for bond in self._hided_covalent_bonds:
-                _detach_bond(bond)
-            self._hided_covalent_bonds = []
-            _filter_constraint_members(self)
-            self._remove_stereo_bond_rows(removed_bond_rows)
-
-    def clear_hided_bonds(self) -> None:
-        if self._hided_bonds:
-            removed_bond_rows = tuple(
-                (bond.a1idx, bond.a2idx) for bond in self._hided_bonds
-            )
-            for bond in self._hided_bonds:
-                _detach_bond(bond)
-            self._hided_metal_bonds = []
-            self._hided_covalent_bonds = []
-            _filter_constraint_members(self)
-            self._remove_stereo_bond_rows(removed_bond_rows)
-
-    def restore_bonds(
-            self,
-            *bonds: "Bond",
-            clear_conformers: bool = False,
-    ) -> None:
-        """Restore selected hidden bonds and refresh molecular topology once."""
-        if not bonds:
-            return
-
-        bond_ids = tuple(id(bond) for bond in bonds)
-        if len(set(bond_ids)) != len(bond_ids):
-            raise ValueError("A hidden bond can only be restored once per call")
-
-        hidden_bond_ids = {id(bond) for bond in self._hided_bonds}
-        for bond, bond_id in zip(bonds, bond_ids):
-            if bond_id not in hidden_bond_ids:
-                raise ObjNotInMolecule(bond, self)
-
-        restored_bond_ids = set(bond_ids)
-        self._hided_metal_bonds = [
-            bond for bond in self._hided_metal_bonds
-            if id(bond) not in restored_bond_ids
-        ]
-        self._hided_covalent_bonds = [
-            bond for bond in self._hided_covalent_bonds
-            if id(bond) not in restored_bond_ids
-        ]
-        self._bonds.extend(bonds)
-        self._update_topology(clear_conformers)
-
-    def recover_hided_metal_ligand_bonds(self, clear_conformers: bool = False) -> None:
-        """
-        Restores metal-ligand bonds that were previously broken and updates the internal graph representation.
-
-        This function recovers all previously broken metal-ligand bonds by adding them back
-        to the existing bond list. Duplicate bonds are removed without changing their order.
-        Additionally, it updates the internal graph representation to reflect the recovered bonds 
-        and provides the option to clear conformer data. After recovery, the list of broken metal bonds 
-        is reset.
-
-        Arguments:
-            clear_conformers (bool, optional): Determines whether existing conformer data should 
-                                               be cleared during the graph update. Defaults to False.
-
-        Returns:
-            None
-        """
-        hidden_bonds = tuple(self._hided_metal_bonds)
-        if hidden_bonds:
-            self.restore_bonds(*hidden_bonds, clear_conformers=clear_conformers)
-            logging.info(f"[green]Recover {len(hidden_bonds)} hided metal-ligand bonds[/]")
-
-    def recover_hided_covalent_bonds(self, clear_conformers: bool = False) -> None:
-        hidden_bonds = tuple(self._hided_covalent_bonds)
-        if hidden_bonds:
-            self.restore_bonds(*hidden_bonds, clear_conformers=clear_conformers)
-            logging.info(f"[green]Recover {len(hidden_bonds)} hided covalent bonds[/]")
 
     @property
     def atom_pairs(self) -> "AtomPairs":
@@ -979,7 +865,7 @@ class Molecule:
             return list(self._bonds)
 
     def bond(self, a1idx: int, a2idx: int):
-        """Return the active Bond joining two Atom indices."""
+        """Return the Bond joining two Atom indices in the complete topology."""
         with self._mutation_lock:
             first = self._atoms[a1idx]
             second = self._atoms[a2idx]
@@ -1431,32 +1317,6 @@ class Molecule:
         from .operations.descriptors import _element_counts
         return _element_counts(self)
 
-    def _hide_bond(self, bond: "Bond"):
-        if bond not in self.bonds:
-            raise ObjNotInMolecule(bond, self)
-
-        if bond.has_metal:
-            self._hided_metal_bonds.append(bond)
-        else:
-            self._hided_covalent_bonds.append(bond)
-
-        self._bonds.remove(bond)
-
-    def hide_bonds(self, *bond: "Bond", clear_conformers: bool = False):
-        for b in bond:
-            self._hide_bond(b)
-        self._update_topology(clear_conformers)
-
-    def hide_metal_ligand_bonds(self, clear_conformers: bool = False) -> None:
-        """ break all bonds link with metals """
-        metal_bonds = [b for b in self.bonds if b.is_metal_ligand_bond]
-        self._hided_metal_bonds.extend(metal_bonds)
-
-        for b in metal_bonds:
-            self._bonds.remove(b)
-
-        self._update_topology(clear_conformers)
-
     def graph_spectral(self, norm: Literal['infinite', 'min', 'l1', 'l2'] = 'l2'):
         from .operations.descriptors import _graph_spectral
         return _graph_spectral(self, norm)
@@ -1713,15 +1573,12 @@ class Molecule:
         _install_dependency_state(table, state)
         self._atom_table = table
         self._atoms[:] = retained
-        for name in ('_bonds', '_hided_metal_bonds', '_hided_covalent_bonds'):
-            current = getattr(self, name)
-            for bond in current:
-                if any(id(atom) in removed for atom in bond.atoms):
-                    _detach_bond(bond)
-            current[:] = [bond for bond in current
-                          if all(id(atom) not in removed for atom in bond.atoms)]
-        self._topology_index = _build_topology_index(self._atoms, self._bonds,
-                                                    self._hided_metal_bonds, self._hided_covalent_bonds)
+        for bond in self._bonds:
+            if any(id(atom) in removed for atom in bond.atoms):
+                _detach_bond(bond)
+        self._bonds[:] = [bond for bond in self._bonds
+                         if all(id(atom) not in removed for atom in bond.atoms)]
+        self._topology_index = _build_topology_index(self._atoms, self._bonds)
         _filter_constraint_members(self)
         self._remap_stereo_after_atom_removal(source_atoms)
 
@@ -2176,20 +2033,21 @@ class Molecule:
                 raise
 
 
-    def _capture_factual_record(self, *, rows=None, include_frames=True, copy_metadata=True):
+    def _capture_factual_record(self, *, rows=None, include_frames=True, copy_metadata=True, selection=None):
         from .structure._builder import _make_molecule_record
+        from .structure._selection import _selected_bonds
         from .operations.chemistry import _remap_stereo_transport
         with self._mutation_lock:
             rows = tuple(range(len(self._atoms))) if rows is None else tuple(rows)
             mapping = {row: target for target, row in enumerate(rows)}
             atoms = tuple(self._atoms[row] for row in rows)
-            complete = tuple((partition, bond) for partition, bonds in enumerate(
-                             (self._bonds, self._hided_metal_bonds, self._hided_covalent_bonds)) for bond in bonds)
-            bonds = tuple((partition, bond) for partition, bond in complete
+            complete = tuple(self._bonds)
+            selected = complete if selection is None else _selected_bonds(self, selection)
+            bonds = tuple(bond for bond in selected
                           if self._topology_index[id(bond.atom1)][0] in mapping
                           and self._topology_index[id(bond.atom2)][0] in mapping)
             endpoints = tuple((mapping[self._topology_index[id(bond.atom1)][0]],
-                               mapping[self._topology_index[id(bond.atom2)][0]]) for _, bond in bonds)
+                               mapping[self._topology_index[id(bond.atom2)][0]]) for bond in bonds)
             whole = rows == tuple(range(len(self._atoms)))
             payload = _remap_stereo_transport(self._stereo_payload, mapping,
                                             allowed_bonds=None if whole else endpoints)
@@ -2199,12 +2057,12 @@ class Molecule:
                 return tuple(tuple(mapping[uid_rows[uid]] for uid in entry)
                              for entry in entries if all(uid in uid_rows and uid_rows[uid] in mapping
                                                          for uid in entry))
-            metadata = tuple(bond._bond_source_metadata for _, bond in bonds)
+            metadata = tuple(bond._bond_source_metadata for bond in bonds)
             if copy_metadata:
                 metadata = deepcopy(metadata)
             else:
                 memo = {id(self): self, **{id(atom): atom for atom in self._atoms},
-                        **{id(bond): bond for _, bond in complete}}
+                        **{id(bond): bond for bond in complete}}
                 metadata = deepcopy(metadata, memo)
             atom_values, atom_presence, atom_sources = _join_atom_rows(
                 self._atom_table, self._constraints.atom_axes,
@@ -2214,12 +2072,11 @@ class Molecule:
                 atom_presence=atom_presence, atom_sources=atom_sources,
                 atom_isotopes=tuple((row, atom.__dict__['isotope']) for row, atom in enumerate(atoms) if 'isotope' in atom.__dict__),
                 atom_frac_valences=tuple((row, atom.__dict__['frac_valence']) for row, atom in enumerate(atoms) if 'frac_valence' in atom.__dict__),
-                bond_endpoints=endpoints, bond_values=np.array([_raw_bond_values(bond) for _, bond in bonds], dtype=np.float64).reshape(-1, 3),
-                bond_partitions=tuple(partition for partition, _ in bonds),
-                bond_kinds=tuple(bond._bond_kind.value for _, bond in bonds),
-                bond_directions=tuple(bond._bond_direction for _, bond in bonds),
-                bond_sources=tuple(bond._bond_source for _, bond in bonds), bond_metadata=(None,) * len(bonds),
-                bond_aromatic=tuple(bond._is_aromatic for _, bond in bonds),
+                bond_endpoints=endpoints, bond_values=np.array([_raw_bond_values(bond) for bond in bonds], dtype=np.float64).reshape(-1, 3),
+                bond_kinds=tuple(bond._bond_kind.value for bond in bonds),
+                bond_directions=tuple(bond._bond_direction for bond in bonds),
+                bond_sources=tuple(bond._bond_source for bond in bonds), bond_metadata=(None,) * len(bonds),
+                bond_aromatic=tuple(bond._is_aromatic for bond in bonds),
                 charge=(True, self._charge_value, self._charge_source) if whole and self._charge_present else (False, None, None),
                 spin_mult=(True, self._spin_value, self._spin_source) if whole and self._spin_present else (False, None, None),
                 cell=None if self._crystal is None else tuple(getattr(self._crystal, name) for name in ('a', 'b', 'c', 'alpha', 'beta', 'gamma')),
@@ -2241,7 +2098,7 @@ class Molecule:
         if len(atom_bindings) != record.atom_count or len(bond_bindings) != len(record.bond_endpoints):
             raise ValueError('Factual bindings must align with the import record')
         old_atoms = tuple(self._atoms)
-        old_bonds = tuple(self._bonds + self._hided_bonds)
+        old_bonds = tuple(self._bonds)
         old_hydrogen_inputs = _hydrogen_install_inputs(self) if dependency_state is not None else {}
         for bindings, current in ((atom_bindings, old_atoms), (bond_bindings, old_bonds)):
             current_ids = {id(member) for member in current}
@@ -2283,9 +2140,7 @@ class Molecule:
                 bond = binding
                 _initialize_bond_handle(bond, self, bond._uid, atoms[first], atoms[second], values[row], **kwargs)
             bonds.append(bond)
-        partitions = tuple([bond for bond, partition in zip(bonds, record.bond_partitions) if partition == wanted]
-                           for wanted in range(3))
-        topology_index = _build_topology_index(atoms, *partitions)
+        topology_index = _build_topology_index(atoms, bonds)
         if dependency_state is not None:
             _install_dependency_state(table, dependency_state)
         elif old_atoms:
@@ -2328,7 +2183,7 @@ class Molecule:
         self._pair_wiberg_bond_orders = pair_wiberg_bond_orders
         self._atom_table = table
         self._atoms[:] = atoms
-        self._bonds[:], self._hided_metal_bonds[:], self._hided_covalent_bonds[:] = partitions
+        self._bonds[:] = bonds
         self._update_topology(clear_conformers=False, _prepared_index=topology_index,
                              _constraint_rows=(record.angle_constraints, record.torsion_constraints))
         for name, declaration in (('charge', record.charge), ('spin', record.spin_mult)):
@@ -3691,18 +3546,11 @@ class Bond(AtomSeq, MolBlock):
 
     def __reduce_ex__(self, protocol):
         with self.mol._mutation_lock:
-            groups = (self.mol._bonds, self.mol._hided_metal_bonds, self.mol._hided_covalent_bonds)
             hint = self._uid
             member = _bond_member_at(self.mol, hint)
             row = hint if member is self else None
             if row is None:
-                offset = 0
-                for group in groups:
-                    local = next((i for i, bond in enumerate(group) if bond is self), None)
-                    if local is not None:
-                        row = offset + local
-                        break
-                    offset += len(group)
+                row = next((i for i, bond in enumerate(self.mol._bonds) if bond is self), None)
             if row is not None:
                 return _restore_bond_member, (self.mol, row, self._uid)
             state = {key: value for key, value in self.__dict__.items()
@@ -4623,13 +4471,13 @@ def _raw_bond_values(bond):
 def _bind_constraint_members(mol):
     for atom in mol._atoms:
         object.__setattr__(atom, '_constraint_values', mol._constraints.atom_axes)
-    for bond in mol._bonds + mol._hided_bonds:
+    for bond in mol._bonds:
         object.__setattr__(bond, '_constraint_values', mol._constraints.bond_values)
 
 
 def _filter_constraint_members(mol):
     atoms = {atom._uid for atom in mol._atoms}
-    bonds = {bond._uid for bond in mol._bonds + mol._hided_bonds}
+    bonds = {bond._uid for bond in mol._bonds}
     if mol._constraints.atom_axes.keys() == atoms and mol._constraints.bond_values.keys() == bonds:
         return
     mol._constraints = mol._constraints.subset(atoms, bonds)
@@ -4733,7 +4581,7 @@ def _new_sequence_view(cls, atoms, rows, complete_paths, *, source, uids, geomet
     return view
 
 
-def _build_topology_index(atoms, bonds, hidden_metal=(), hidden_covalent=()):
+def _build_topology_index(atoms, bonds):
     rows = {}
     incident = {}
     for row, atom in enumerate(atoms):
@@ -4743,13 +4591,7 @@ def _build_topology_index(atoms, bonds, hidden_metal=(), hidden_covalent=()):
             raise ValueError('every Atom member must belong to its Molecule')
         rows[id(atom)] = row
         incident[id(atom)] = []
-    complete = tuple(bonds) + tuple(hidden_metal) + tuple(hidden_covalent)
-    hidden_ids = [id(bond) for bond in tuple(hidden_metal) + tuple(hidden_covalent)]
-    if len(set(hidden_ids)) != len(hidden_ids):
-        raise ValueError('a hidden Bond may occur in only one hidden collection')
-    if {id(bond) for bond in bonds}.intersection(hidden_ids):
-        raise ValueError('a Bond cannot be both active and hidden')
-    for bond in complete:
+    for bond in bonds:
         if id(bond.atom1) not in rows or id(bond.atom2) not in rows:
             raise ValueError('every Bond endpoint must belong to its Molecule')
     pairs = set()
@@ -4759,7 +4601,7 @@ def _build_topology_index(atoms, bonds, hidden_metal=(), hidden_covalent=()):
             raise ValueError('a Molecule Bond cannot join an Atom to itself')
         pair = tuple(sorted((first, second)))
         if pair in pairs:
-            raise ValueError('a Molecule cannot contain parallel active Bonds')
+            raise ValueError('a Molecule cannot contain parallel Bonds')
         pairs.add(pair)
         incident[id(bond.atom1)].append(bond)
         incident[id(bond.atom2)].append(bond)
@@ -4796,8 +4638,8 @@ def _detach_atom(atom):
 def _capture_molecule_pickle(mol):
     with mol._mutation_lock:
         record, metadata = mol._capture_factual_record(include_frames=False, copy_metadata=False)
-        bonds = tuple(mol._bonds + mol._hided_bonds)
-        owned = {'_mutation_lock', '_owner_token', '_atoms', '_bonds', '_hided_metal_bonds', '_hided_covalent_bonds',
+        bonds = tuple(mol._bonds)
+        owned = {'_mutation_lock', '_owner_token', '_atoms', '_bonds',
                  '_atom_table', '_topology_index', '_next_atom_uid', '_next_bond_uid', '_conformers',
                  '_conformers_index', '_stereo_payload', '_crystal', '_charge_value', '_charge_present',
                  '_charge_source', '_spin_value', '_spin_present', '_spin_source',
@@ -4823,7 +4665,7 @@ def _restore_molecule_raw(cls, record, owner, atom_uids, bond_uids, high_water, 
     mol = cls()
     mol._owner_token = owner
     mol._install_factual_record(record, dependency_state=dependencies)
-    bonds = tuple(mol._bonds + mol._hided_bonds)
+    bonds = tuple(mol._bonds)
     atom_cells = tuple(atom._constraint_values[atom._uid] for atom in mol._atoms)
     bond_cells = tuple(bond._constraint_values[bond._uid] for bond in bonds)
     for atom, uid in zip(mol._atoms, atom_uids):
@@ -4847,7 +4689,7 @@ def _restore_molecule_extra(mol, state):
     mol.__dict__.update(attributes)
     for atom, extra in zip(mol._atoms, atom_state):
         atom.__dict__.update(extra)
-    for bond, extra, supplied in zip(mol._bonds + mol._hided_bonds, bond_state, metadata):
+    for bond, extra, supplied in zip(mol._bonds, bond_state, metadata):
         bond.__dict__.update(extra)
         object.__setattr__(bond, '_bond_source_metadata', supplied)
     mol._install_frame_state(*frames)
@@ -4867,11 +4709,7 @@ def _restore_bond_member(mol, row, uid):
 
 
 def _bond_member_at(mol, row):
-    for group in (mol._bonds, mol._hided_metal_bonds, mol._hided_covalent_bonds):
-        if row < len(group):
-            return group[row]
-        row -= len(group)
-    return None
+    return mol._bonds[row] if row < len(mol._bonds) else None
 
 
 def _restore_detached_atom(mol, uid, state, cell):
@@ -4957,9 +4795,7 @@ def _transactional_legacy(method, *, topology=False, frames=False, constraints=F
 for _method in (
         'add_atom', '_replace_atom', 'replace_atom', 'add_bond', 'add_bonds',
         'remove_atom', 'remove_atoms', 'remove_bond', 'remove_bonds', 'add_hydrogens',
-        'clear_metal_ligand_bonds', 'clear_hided_covalent_bonds', 'clear_hided_bonds',
-        'restore_bonds', 'recover_hided_metal_ligand_bonds', 'recover_hided_covalent_bonds',
-        'hide_bonds', 'hide_metal_ligand_bonds', 'create_crystal'):
+        'create_crystal'):
     setattr(Molecule, _method, _transactional_legacy(getattr(Molecule, _method), topology=True))
 for _method in ('calc_atom_valence', 'calc_implicit_hydrogens', 'assign_partial_charge',
                 'refresh_atom_id'):

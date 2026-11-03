@@ -71,7 +71,7 @@ def _obmol_record(obmol, initial, stereo_payload):
         initial, atom_count=len(atoms), atom_values=values.tobytes(),
         atom_presence=presence.tobytes(), atom_sources=sources.tobytes(),
         bond_endpoints=tuple(endpoints for endpoints, _ in entries),
-        bond_values=raw_bonds.tobytes(), bond_partitions=(0,) * len(entries),
+        bond_values=raw_bonds.tobytes(),
         bond_kinds=tuple(attrs["bond_kind"] for _, attrs in entries),
         bond_aromatic=tuple(attrs['bond_source_metadata']['is_aromatic'] for _, attrs in entries),
         bond_directions=tuple(attrs["bond_direction"] for _, attrs in entries),

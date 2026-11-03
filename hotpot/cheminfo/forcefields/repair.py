@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Optional, Sequence, Tuple, Union
 import numpy as np
 
 from ..rules.mathematics import geometry as geo
+from ..structure._selection import _capture_topology_selection, _selected_bonds
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from .backend import _single_ob_optimization
 from .contracts import RingUntanglingReport
@@ -15,6 +16,7 @@ from .coordinates import _copy_coordinates, _perturbed_coordinates
 from .settings import _BOND_RING_MAX_SIZE
 from .topology import _bond_key
 from .trajectory import (
+    BondTopology,
     ForceFieldTrajectory,
     RingFrameEvidence,
     TrajectoryEvent,
@@ -74,26 +76,36 @@ class _RingTrajectoryRecorder:
         report: Optional["geometry_adapter.BondRingScreeningReport[Ring, Bond]"] = None,
         confirmed_piercing_count: Optional[int] = None,
         attempt: Optional[int] = None,
+        selection=None,
     ) -> Optional[int]:
         """Record one ring-repair frame without making workflow decisions."""
         if not self.enabled or self.trajectory is None:
             return None
-        frame = self.trajectory.record_molecule(
-            self.mol,
-            stage=self.stage,
-            event=event,
-            energy_kj_mol=energy,
-            attempt=attempt,
-            evidence=(
-                None
-                if state is None
-                else _ring_frame_evidence(
-                    state,
-                    report,
-                    confirmed_piercing_count=confirmed_piercing_count,
-                )
-            ),
-        )
+        with self.mol._mutation_lock:
+            self.trajectory._validate_molecule_atoms(self.mol)
+            atom_rows = {id(atom): row for row, atom in enumerate(self.mol._atoms)}
+            bonds = tuple(BondTopology(
+                atom_indices=(atom_rows[id(bond.atom1)], atom_rows[id(bond.atom2)]),
+                bond_order=float(bond.bond_order),
+                bond_kind=bond.bond_kind.value,
+            ) for bond in _selected_bonds(self.mol, selection))
+            frame = self.trajectory.record(
+                self.mol.coordinates,
+                bonds,
+                stage=self.stage,
+                event=event,
+                energy_kj_mol=energy,
+                attempt=attempt,
+                evidence=(
+                    None
+                    if state is None
+                    else _ring_frame_evidence(
+                        state,
+                        report,
+                        confirmed_piercing_count=confirmed_piercing_count,
+                    )
+                ),
+            )
         return frame.index
 
     def record_checkpoint(
@@ -375,10 +387,11 @@ def _repair_watched_ring_piercings_once(
     if ring_edge is None:
         return None
 
-    mol.hide_bonds(ring_edge, clear_conformers=False)
+    selection = _capture_topology_selection(mol, excluded_bonds=(ring_edge,))
     trajectory_recorder.record(
         TrajectoryEvent.RING_OPENED,
         attempt=attempt,
+        selection=selection,
     )
     optimized_successfully = False
     try:
@@ -390,20 +403,23 @@ def _repair_watched_ring_piercings_once(
         trajectory_recorder.record(
             TrajectoryEvent.PERTURBED,
             attempt=attempt,
+            selection=selection,
         )
         optimized = _single_ob_optimization(
             mol,
             effective_forcefield,
             short_steps,
+            selection=selection,
         )
         optimized_successfully = True
         trajectory_recorder.record(
             TrajectoryEvent.OPTIMIZED,
             energy=float(optimized.energy),
             attempt=attempt,
+            selection=selection,
         )
     finally:
-        mol.restore_bonds(ring_edge, clear_conformers=False)
+        selection = None
         if not optimized_successfully:
             trajectory_recorder.record(
                 TrajectoryEvent.RING_CLOSED,
@@ -437,10 +453,10 @@ def _untangle_ring_piercings(
     after settling, and when the attempt budget requires closed-topology
     selection.
 
-    One covalent ring edge is opened per attempt.  The open structure is
-    perturbed and relaxed, then the exact bond object is restored before the
-    next geometric observation.  A shared trajectory records both the open
-    and closed topology revisions without taking over workflow control.
+    One eligible ring edge is excluded per attempt.  The open task graph is
+    perturbed and relaxed before the next complete-graph geometric observation.
+    A shared trajectory records both the open and closed topology revisions
+    without taking over workflow control.
     """
     trajectory_recorder = _RingTrajectoryRecorder(
         mol=mol,

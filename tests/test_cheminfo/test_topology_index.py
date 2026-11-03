@@ -102,7 +102,7 @@ def test_bond_lookup_uses_authoritative_endpoints_and_incident_ranges():
         molecule.bond(1, 3)
 
 
-def test_rebuild_rejects_duplicate_atoms_edges_and_hidden_membership():
+def test_rebuild_rejects_duplicate_atoms_pairs_and_bond_handles():
     duplicate_atom = _molecule(1)
     duplicate_atom._atoms.append(duplicate_atom.atoms[0])
     with pytest.raises(ValueError, match="same Atom twice"):
@@ -112,13 +112,13 @@ def test_rebuild_rejects_duplicate_atoms_edges_and_hidden_membership():
     duplicate_edge._bonds.append(
         Bond(duplicate_edge.atoms[1], duplicate_edge.atoms[0], bond_order=2.0)
     )
-    with pytest.raises(ValueError, match="parallel active Bonds"):
+    with pytest.raises(ValueError, match="parallel Bonds"):
         duplicate_edge._update_topology(clear_conformers=False)
 
-    active_and_hidden = _molecule(2, ((0, 1),))
-    active_and_hidden._hided_covalent_bonds.append(active_and_hidden.bonds[0])
-    with pytest.raises(ValueError, match="both active and hidden"):
-        active_and_hidden._update_topology(clear_conformers=False)
+    repeated_handle = _molecule(2, ((0, 1),))
+    repeated_handle._bonds.append(repeated_handle.bonds[0])
+    with pytest.raises(ValueError, match="Bond twice|parallel"):
+        repeated_handle._update_topology(clear_conformers=False)
 
 
 def test_remove_atom_reindexes_remaining_membership_and_incidence():

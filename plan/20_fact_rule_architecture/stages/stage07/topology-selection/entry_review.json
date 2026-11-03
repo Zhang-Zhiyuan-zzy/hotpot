@@ -1,0 +1,506 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7B",
+  "partition": "remaining hidden topology",
+  "owner": "root",
+  "recorded_utc": "2026-11-03T05:26:20.206481+00:00",
+  "status": "DESIGN_READY_FOR_ROOT_REVIEW_IMPLEMENTATION_NOT_RELEASED",
+  "source_commit_supplied_by_parent": "6d1ea01f4e8d354318a00633a43b85b92cb68e7b",
+  "source_commit_attribution": "Parent says business commit pushed and independently remote-verified; designer does not query Git. Earlier841 evidence retains its recorded source parent plus overlays.",
+  "stage_status": "IN_PROGRESS",
+  "design_authorized": true,
+  "implementation_authorized": false,
+  "root_acceptance_pending": true,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "goal_v2_activated": false,
+  "effective_goal": "plan/20_fact_rule_architecture/goal.md",
+  "predecessor_acceptance": "stages/stage07/external-adapters/completion_20261103.json",
+  "constraint_checkpoint": "stages/stage07/constraints/validation/checkpoint_20261103.json",
+  "inventory": "stages/stage07/preentry-selections/current_source_20261103.md",
+  "alignment": "Full current main plan, effective goal and four normative companions reread; actual current owners/consumers, affected map/budget and accepted log direction inspected. Entry alignment appended to implementation_log.md before substantive design. Chemical semantics > usable cost > version adaptation; CP311 first.",
+  "alignment_documents": [
+    {
+      "path": "plan/20_fact_rule_architecture/goal.md",
+      "bytes": 14287,
+      "sha256": "6e116730e1a31ec999b623e9e594d26f23e3cf8a95e68048652acf9c699b0118"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+      "bytes": 195626,
+      "sha256": "d4938a120089e0c9a565b92272d21f6e4ad349d811366ce3b8ddc3229eecec3c"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+      "bytes": 13443,
+      "sha256": "23a7b5c43851837a5aeaf69b4a127dc712d1a4b9c7bb178242015839543d8213"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+      "bytes": 62948,
+      "sha256": "f1e6dce3aa3be649b7e5491f8d35752accc84ec80cb3a597bfc2850d5aa82554"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+      "bytes": 24498,
+      "sha256": "96f4808f91e9470bdf60ff4a8f58b514d838b023328e7ea37f90fcf3f7328707"
+    },
+    {
+      "path": "plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+      "bytes": 4225,
+      "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stage_verification_map.json",
+      "bytes": 243600,
+      "sha256": "d3971a7657097b1fa33a140d944c32c0f98f258473e4e1551d04ae0800054873"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/data_object_budget.json",
+      "bytes": 36724,
+      "sha256": "317ea220a7484f1013a3a1085739909ef06c199ee470d244780489f6580d333e"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/constraints/entry_review.json",
+      "bytes": 4506,
+      "sha256": "492458464e6f5cacdc4f2da32f57dc01e7472a39d1e07d2bd02e2ef48e43db7f"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/constraints/implementation_release.json",
+      "bytes": 3611,
+      "sha256": "86323c080620dc789bf592d64908c27d2647d58cc6e3214e5a193586ed41c50f"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/constraints/validation/checkpoint_20261103.json",
+      "bytes": 17786,
+      "sha256": "458154f65fc087d328d1f46beb8848f225f595a418b0dc50bd7f0029e4bdca20"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/constraints/validation/report.md",
+      "bytes": 8863,
+      "sha256": "6526dc40385637cae1ff5c302572869518f57db3ef8cef9e2ccc7d20b3e06878"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/completion_20261103.json",
+      "bytes": 3066,
+      "sha256": "6e72cc59cd7c22575de2c477a30825f89212d837e8d909936df473e4c0857f0a"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/preentry-selections/current_source_20261103.md",
+      "bytes": 6031,
+      "sha256": "2dffc9278e909350167e9bf80f86bcaac39171f0662592c45d6ca24e94d9c257"
+    },
+    {
+      "path": ".codex/skills/hotpot-plan-governance/SKILL.md",
+      "bytes": 1739,
+      "sha256": "6724ebfce1fe9df9f717ee249f124f1533fbea9d51aa51faf2118995052be297"
+    },
+    {
+      "path": ".codex/skills/hotpot-stage/SKILL.md",
+      "bytes": 2028,
+      "sha256": "d249a80bf84197f87034882c1d87070747fb119dd69ac85bd69b962f71c0b5f8"
+    }
+  ],
+  "scouts": [
+    {
+      "path": "/tmp/hotpot_plan20/long/stage7b-hidden-20261103/native-selection-scout.md",
+      "bytes": 12348,
+      "sha256": "f3909cdf9396358a1d71e051cac4aaa47efcd53539eae0f4be089a0d9bfc85a0"
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage7b-hidden-20261103/pickle-boundary-scout.md",
+      "bytes": 9579,
+      "sha256": "7fb4ba8639bd1de6b73de8749f973dc02f10ff8e4276595d2aeed2479e939f2f"
+    }
+  ],
+  "settled_root_direction": [
+    "One complete ordered authoritative Bond collection and private operation-local exclusions.",
+    "Connected retirement of the exact eight Decision6 methods; no aliases/public selector.",
+    "Complete clear_constraints only at connected full-Bond cutover; constraint slice remains accepted.",
+    "Native masks are operation/session/trajectory observations; ordinary native completion retains factual Bonds.",
+    "Preserve approved chemistry/native/model meaning, last finite observations, selected/terminal topology and complete source/UID/rollback attribution."
+  ],
+  "root_review_dispositions": [
+    {
+      "id": "HT1",
+      "status": "PROPOSED_EXACT_ROUTE_FOR_ACCEPTANCE",
+      "choice": "Existing XOR metal-ligand predicate; private selected components and independent projected chemistry/backend inputs; H retains a complete working clone with original handles/UIDs, adds one independent H projection, then assembles original full Bond order followed by H using existing source/currentness/rollback.",
+      "scientific_change": "No numerical rule/backend/model change intended; characterize same-input differences and do not normalize known H/isotope problems."
+    },
+    {
+      "id": "HT2",
+      "status": "ROOT_SEMANTIC_DIRECTION_SELECTED_EXACT_OBSERVABLE_DISPOSITION_PENDING_ACCEPTANCE",
+      "choice": "Exported apply_native_selected_structure keeps signature/None return and commits validated selected coordinates only; valid zero/mixed masks do not persist hidden/deleted membership or reorder Bonds; result/session/trajectory preserves masks.",
+      "observable_change": "Synthetic generic-adapter tests currently demand persistent zero/mixed hidden membership; intentionally replace that expectation. Normal native completion and selected/terminal archive distinction retain existing meaning."
+    },
+    {
+      "id": "HT3",
+      "status": "PROPOSED_REQUIRES_ROOT_DISPOSITION",
+      "choice": "Remove private bond_partitions and make existing MoleculeRecord keyword-only, with tagged version2 private pickle reducer/constructor validation; explicitly reject old positional record/Molecule/Bond pickle loading rather than silently reinterpret it.",
+      "limits": "Freeze6d1ea01 previous-current fixtures before edits; no arbitrary historical-asset audit/compatibility claim, no bridge, Decision10 later core-path policy remains open."
+    },
+    {
+      "id": "HT4",
+      "status": "PROPOSED_REQUIRES_ROOT_DISPOSITION",
+      "choice": "Apply existing simple active-graph uniqueness to the complete collection: reject duplicate unordered endpoint pairs including old cross-partition duplicates atomically; no winner selection/dedup/multigraph expansion.",
+      "observable_change": "Existing private builder/overlapping hidden fixture behavior is intentionally retired; keep valid constraint/view science and add rejection coverage."
+    },
+    {
+      "id": "HT5",
+      "status": "PROPOSED_CONCRETE_RESERVED_BUDGET_FOR_ACCEPTANCE",
+      "choice": "Consume N04 as one private immutable _TopologySelection(source,atom_uids,bond_mask) class; no generic DTO, public symbol, Protocol/TypedDict/Enum/exception/native ABI addition. Update owning budget ledger before/with implementation release."
+    }
+  ],
+  "contracts": {
+    "design": "contracts/hidden_topology_design.md",
+    "file_scope": "contracts/file_scope.json",
+    "validation_plan": "contracts/validation_plan.json"
+  },
+  "current_source_bindings": [
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "bytes": 204769,
+      "sha256": "4e83b58cb6244a1b8bfd40d197c4455583c61167389d3c9870a70ba471cc3f94"
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_builder.py",
+      "bytes": 16348,
+      "sha256": "5118a16c9d1453f9bd543fa9357ac27f07068b91c78ca541440b1f5f454799ae"
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_commit.py",
+      "bytes": 25856,
+      "sha256": "53529d520ed0bf0dad54232d0337dd0bc196877fb76e67a3452c663ff725d852"
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_identity.py",
+      "bytes": 13262,
+      "sha256": "045f0f488375e3ee58ff380a187cbc6b8e2507cc7480b5dbce48cde520542802"
+    },
+    {
+      "path": "hotpot/cheminfo/views/_source.py",
+      "bytes": 5833,
+      "sha256": "29ce5b8a23730daf0c88b74a5c3f2ac5cd64b967e4c8357bd30dbed8e6720bb5"
+    },
+    {
+      "path": "hotpot/cheminfo/operations/geometry.py",
+      "bytes": 3013,
+      "sha256": "7abf9de6534ff909bf217a088aed71d09f15deab659e06b1e762acfe54a3d5e4"
+    },
+    {
+      "path": "hotpot/cheminfo/operations/conversion.py",
+      "bytes": 8437,
+      "sha256": "988a2ccb1728432ee9ac5bb18e6bfd620947e1110942698b478bd5f1f0323947"
+    },
+    {
+      "path": "hotpot/cheminfo/adapters/structure/stereochemistry.py",
+      "bytes": 3939,
+      "sha256": "2f89b90a4677784a57853ec37902ee8b2dd40244e0fbaced3f27e216068f44e8"
+    },
+    {
+      "path": "hotpot/cheminfo/adapters/openbabel/conversion.py",
+      "bytes": 6585,
+      "sha256": "5e2da95b301ebb6b779ec77e3d6235e160b80c451bb6ea913ef869b79a5b4ed5"
+    },
+    {
+      "path": "hotpot/cheminfo/adapters/rdkit/conversion.py",
+      "bytes": 7055,
+      "sha256": "77c7fe38f2bea2af982b5878cad36746e16bb75f4e40d5bfed40fbfcdbbd6530"
+    },
+    {
+      "path": "hotpot/cheminfo/AImodels/mca/serialization.py",
+      "bytes": 7318,
+      "sha256": "4e3656e289117716224091ee3234370b1b5b9b347b387b6b82e983781d1a7b3e"
+    },
+    {
+      "path": "hotpot/plugins/ccdc_api/convert.py",
+      "bytes": 2777,
+      "sha256": "b0c7819f567a317f39857ff0b735e23bd00cd90b05070e7287fb77d6403e6715"
+    },
+    {
+      "path": "hotpot/cheminfo/operations/topology_queries.py",
+      "bytes": 5250,
+      "sha256": "827140c2f6cfb2f3ddef030b27e938299b8ad0da396a0a7076390b1d01065f8d"
+    },
+    {
+      "path": "hotpot/cheminfo/operations/chemistry.py",
+      "bytes": 31721,
+      "sha256": "6680946edf1516a278635e235bf5298381bd13339b3b786e6796f3dedeccf6e3"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/working_copy.py",
+      "bytes": 10748,
+      "sha256": "ef1ada0c1722b79f2ae9b6a576d0db1d42d2b12ab274e750d05e46fcb0d443c8"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/ligand.py",
+      "bytes": 22594,
+      "sha256": "c5635e7832c2d39a88034acd3e37f0290d726c9d3697c6574d600401d55b1c63"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/backend.py",
+      "bytes": 3069,
+      "sha256": "65c1109e07fcacfb21ba6e5070e1a200deb0a20e7880694517cdc452e010fdf2"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/repair.py",
+      "bytes": 23688,
+      "sha256": "749d194a24d274c40d8c6006de5e797ad7991005026cd03fbbc82237da3c13f8"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/native_adapters.py",
+      "bytes": 12719,
+      "sha256": "2ad711919ed61d719c77dae128bcfb7622b5e8fb50bdb36650e883977f18d970"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/native_packing.py",
+      "bytes": 6698,
+      "sha256": "eb5392278e362defb854a9269a55157c01c19d95c3e78f49ff5e70cf803fdec6"
+    },
+    {
+      "path": "hotpot/cheminfo/_native/buffers.py",
+      "bytes": 19631,
+      "sha256": "60202219c365993884b5b77fad11954d5fd89bf33b2fe4e2b0a5f644f2c2886f"
+    },
+    {
+      "path": "hotpot/cheminfo/obWrappers/packing.py",
+      "bytes": 1381,
+      "sha256": "e90afbd7aa6afc8b48881992f93307eee7cc23f6eb51b5438904d1186c143ecd"
+    },
+    {
+      "path": "hotpot/cheminfo/obWrappers/native.py",
+      "bytes": 1311,
+      "sha256": "ec0a3fb86d0250358bf2f1356656664447bfa6aee98c5057f549874469f5abe1"
+    },
+    {
+      "path": "hotpot/cheminfo/obWrappers/operation.py",
+      "bytes": 1363,
+      "sha256": "2fb6a5b3254c1848cfa56ed99eefb60d8c57e1125c098eb51e0d3b42cda90ef0"
+    },
+    {
+      "path": "hotpot/cheminfo/rdWrappers/native.py",
+      "bytes": 1498,
+      "sha256": "b1eab715ff89bbe6f2f2ea22cb359e0c44ffc5b43524ed87df5badb490ecd927"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/native.py",
+      "bytes": 21721,
+      "sha256": "c0dbfeb9da0b69403b7d9e3d785991a59f9ed3eb4b2958d53e94c1621ef01c88"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/native_reports.py",
+      "bytes": 17109,
+      "sha256": "31e715b97e452b40a72a0bf1e94a5fb67b5e9f2368c7da0b11160d4ac0f244c4"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/trajectory.py",
+      "bytes": 42528,
+      "sha256": "e24b378cc2a58f741505078e498d918bb402f6850662ebaa992198f5ba8b8ea9"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/_native/structure_session.cpp",
+      "bytes": 10879,
+      "sha256": "f363d9e50930d28c00dec51e4805ae765e9cd4a0cf2e0f9aa9b2b185f6efc5a6"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/_native/coordination_stage.cpp",
+      "bytes": 18801,
+      "sha256": "2e39cc236ea396399ebadd057c0a6a28260ceba48a9f252a16393ae99397cba2"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/_native/optimization_stage.cpp",
+      "bytes": 33018,
+      "sha256": "9ef549ee2b692daceed8c9f500c3f280ecba72c1bc8301e925d06f7bf9fc942a"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/_native/untangling_engine.cpp",
+      "bytes": 25754,
+      "sha256": "c1e28c642671c38989f416d53cee19d18acb31dea4b189c5074a41150ef9909c"
+    },
+    {
+      "path": "hotpot/cheminfo/forcefields/_native/topology_workspace.cpp",
+      "bytes": 18295,
+      "sha256": "5da87ee1e850a46721a02bcb1d5a57661c26cdb74e200c42856c8b350933d1e3"
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_native/facts.cpp",
+      "bytes": 67761,
+      "sha256": "192ea0f64a1c121825610f50b81d191698cc7a09752b8beba6b7b26aff9628f9"
+    }
+  ],
+  "current_test_helper_bindings": [
+    {
+      "path": "tests/test_cheminfo/test_hidden_bond_restoration.py",
+      "bytes": 4534,
+      "sha256": "7dd82fb63a7bcb53219c034ce646e8b127b4deaaab4491e263ec90334d2124eb"
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_builder.py",
+      "bytes": 23914,
+      "sha256": "bf199885c1bac565cdea7ee78f0f5fec3b674c74ed0ef7b763c0049faa7f6878"
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+      "bytes": 12956,
+      "sha256": "b0ca69c6221ba983ac55259b4f1142dd6e80e579cee7f793bedc537b795755a7"
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_source_identity.py",
+      "bytes": 14596,
+      "sha256": "e2c0a0ac46e47c15c2e2524712fa10cc774b7fb7b855046791a696bd87b1e9a1"
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_view_identity.py",
+      "bytes": 15262,
+      "sha256": "6dfa93ae1b038ac8f8ef312f013133a4a775599ddde89abad8277c4d85a1fd0d"
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_commit_atomicity.py",
+      "bytes": 14668,
+      "sha256": "b9c9ca443bdc1dd92445ad00fbf1473239d002e84bcf9dd8ad394148d1cd7db2"
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_constraint_storage_lifecycle.py",
+      "bytes": 19805,
+      "sha256": "10e2ae837b95fed0e03e080eec72a43e4e8e5b01849bd521f712321531a480fa"
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_conversion_freshness.py",
+      "bytes": 11677,
+      "sha256": "7b7121f47df8b840bbe210b78a274a7020441f6e1505614c1c98562dd669cb44"
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_factual_imports.py",
+      "bytes": 11219,
+      "sha256": "e21dc73756251010ae8d3eb3b679402176a7e7c540351222851e3de64fa223b5"
+    },
+    {
+      "path": "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+      "bytes": 8347,
+      "sha256": "10935917bf2803e4a97885e078f105732ccee1d92788905a522c9d3f1bee7ba5"
+    },
+    {
+      "path": "tests/test_cheminfo/test_topology_index.py",
+      "bytes": 3999,
+      "sha256": "3eec2ff9bc8faab9ea0b16ece6f714132e64d1e11e398a844d485fe4f9a34143"
+    },
+    {
+      "path": "tests/test_cheminfo/test_topology_determinism.py",
+      "bytes": 922,
+      "sha256": "6026b5b7f981766af1d423c62884160b6783bb9907e4cf7970dae6159a0955e9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_ligand_rings.py",
+      "bytes": 4369,
+      "sha256": "5643b47508f9f839edd7ed4d34c4335519fe6b18916d8faf1e8dcb701ea39a94"
+    },
+    {
+      "path": "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+      "bytes": 22217,
+      "sha256": "a1891140a243bbd6e143814fbd3616e6be4907db584f4973c477443e4c20d53f"
+    },
+    {
+      "path": "tests/test_cheminfo/test_plan20_outer_cutover.py",
+      "bytes": 10747,
+      "sha256": "89d05701e670e7551c0468386f928eb60786f824e6f0244dd687b7ff66c083ca"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_extraction.py",
+      "bytes": 41415,
+      "sha256": "22a4619e53e40c180ab7bbe8e7d5d716e028b8997a71d853243b817a38d322f9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
+      "bytes": 19211,
+      "sha256": "4c89a876a016d76fe5afc689bafff763848795759618e41a1d7d61c223fe979c"
+    },
+    {
+      "path": "tests/test_cheminfo/test_rdconvert_stereo_level1.py",
+      "bytes": 25354,
+      "sha256": "dab0a6bc6138eace9c6f15e101f098203e11301a3f26bb432146ed1e1d1b7272"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate6_projection.py",
+      "bytes": 11396,
+      "sha256": "14fc0508757a04542315f1c265fc215664ebfbb2c95839ed9756632d3837d9ac"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate6_equivalence.py",
+      "bytes": 24799,
+      "sha256": "0e0f2b22099d586e36b0e8e2f0adce12cfe5dc16422ad91785668064d2518dce"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate7_coordination_graph.py",
+      "bytes": 24371,
+      "sha256": "9e32e1e3dcda33f53c97cdf2e9009c05a563a91e8d2d3ec0d702c073f8326449"
+    },
+    {
+      "path": "tests/test_cheminfo/test_stereo_level2_gate7_public.py",
+      "bytes": 22091,
+      "sha256": "60015d072b2eb70967633ef3a4a20538c150067f4efd014ad16289e7e40c2539"
+    },
+    {
+      "path": "tests/test_cheminfo/test_complex_untangling_workflow.py",
+      "bytes": 24450,
+      "sha256": "6364d09b4c47f8fef93c2c6ff2342948cbab7d76a0c82f6837dab5a4f4ebe784"
+    },
+    {
+      "path": "tests/test_cheminfo/test_complex_hydrogens.py",
+      "bytes": 22126,
+      "sha256": "cc8095fffcf630c3e222ef222f9e60a22f04b906dcb62b017eeb2c07b5ec26f9"
+    },
+    {
+      "path": "tests/test_cheminfo/test_complexes_build.py",
+      "bytes": 55898,
+      "sha256": "a725190f9a57a64f4ee462155aa768ce1f03fee7e52da0e08095b7c8b627a912"
+    },
+    {
+      "path": "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+      "bytes": 12246,
+      "sha256": "991a5e9aef315ff3dd69e04f092664216fcbea57f0290e71d2a3d5ddf882b2b3"
+    },
+    {
+      "path": "tests/test_cheminfo/_stage5_fixtures.py",
+      "bytes": 1624,
+      "sha256": "ce6309d5cbfbdd46905f3e867716c2e2e626fa8b6846db9c335e7621c1e5ace5"
+    },
+    {
+      "path": "tests/smarts_conformance/test_metamorphic.py",
+      "bytes": 3141,
+      "sha256": "f3a4e7d46ae8432db48682ff289390e9cff5581353d8084e0d0f598dd9102af7"
+    },
+    {
+      "path": "tests/benchmarks/coordination_complexes/validation_providers.py",
+      "bytes": 13323,
+      "sha256": "6082d418fe0bdb20df9509d2f53955c69d360e1d5dccec78001bbb34d5d34ed5"
+    },
+    {
+      "path": "tests/benchmarks/coordination_complexes/validation_evidence.py",
+      "bytes": 26983,
+      "sha256": "d6bbd9e36346c563a41db7f5064be0515c3a824784aa2d0de3a45d4aa8bec7bd"
+    },
+    {
+      "path": "tests/benchmarks/coordination_complexes/validation_cohort.py",
+      "bytes": 28278,
+      "sha256": "909fbb192c4a223c53b6ff4b9ca634949165ae9475795dcdf1e0150b5b0b8883"
+    }
+  ],
+  "evidence_actually_obtained_by_this_task": "Scoped static reads, AST signature inspection, source/document hashes and stdlib JSON/link/scope/prefix checks only. Scouts inspected tests but ran none. Prospective command/results remain unexecuted.",
+  "no_runtime_test_build_install_or_git": true,
+  "remaining_gates": [
+    "Root HT1–HT5 acceptance and separate implementation release",
+    "Whole Stage7B semantic/technical/usable-cost acceptance and business delivery",
+    "Stage7C/D/E and later stages",
+    "Other Python versions/clean native/ABI/SDK/sdist/manylinux and41 known package omissions",
+    "Required broader science/GPU/external/Plan12 evidence and global performance/final acceptance",
+    "Stage0–12 and B_exp before separately gated Stage13"
+  ],
+  "alignment_identity_scope": "alignment_documents identifies the complete reread before the minimal reference-only main-plan addition; final document identities are in the static document-check receipt. Concurrent review-only goal draft changes do not rebind production evidence.",
+  "accepted_projection_authority": "Hotpot-initiated external working projections preserve original Hotpot factual authority; documented registered graph/bond translations minimize loss and expected projections stay quiet. Independent adapter-native inputs use documented import authority. No universal OB metal/single or hapticity rule inferred; goal draft remains review-only.",
+  "static_document_checks": {
+    "command": "python -B /tmp/hotpot_plan20/long/stage7b-hidden-20261103/design-records/check_design_records.py",
+    "receipt": "/tmp/hotpot_plan20/long/stage7b-hidden-20261103/design-records/static-document-checks.json",
+    "scope": "Stdlib JSON/link/scope/AST/document-prefix/source-test-native identity checks only; root records acceptance and final identities separately.",
+    "runtime_evidence": false
+  }
+}

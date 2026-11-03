@@ -239,7 +239,7 @@ def test_mixed_outer_rollback_restores_constraints_facts_ids_coordinates_and_sou
 
 
 def _assert_canonical_constraint_bindings(mol):
-    complete = mol._bonds + mol._hided_metal_bonds + mol._hided_covalent_bonds
+    complete = mol._bonds
     axes, bonds = mol._constraints.atom_axes, mol._constraints.bond_values
     assert set(axes) == {atom._uid for atom in mol.atoms}
     assert set(bonds) == {bond._uid for bond in complete}
@@ -379,28 +379,31 @@ def test_endpoint_equal_nonmember_removal_isolates_the_actual_removed_bond():
     assert tuple(mol.bonds) == remaining
 
 
-@pytest.mark.parametrize('clear_method', ['clear_metal_ligand_bonds', 'clear_hided_covalent_bonds', 'clear_hided_bonds'])
-def test_hidden_constraint_cells_survive_active_clear_and_detach_on_permanent_clear(clear_method):
-    from tests.test_cheminfo.test_hidden_bond_restoration import _complex_with_a_ligand_ring
+@pytest.mark.parametrize('removed_rows', [(0,), (1,), (0, 1)])
+def test_complete_constraints_clear_and_permanent_removal_detaches_raw_cells(removed_rows):
+    from tests.test_cheminfo.structure.test_topology_selection import _complex_with_a_ligand_ring
 
     mol, metal, covalent = _complex_with_a_ligand_ring()
     metal.constraint = covalent.constraint = True
-    mol.hide_bonds(metal, covalent)
-    hidden_cells = {bond._uid: bond._constraint_values[bond._uid] for bond in (metal, covalent)}
+    mol.atoms[0].constraint = True
+    mol.angles[0].constraint = True
     mol.clear_constraints()
-    assert metal.constraint and covalent.constraint
+    assert not metal.constraint and not covalent.constraint
+    assert all(_axes(atom) == (False, False, False) for atom in mol.atoms)
     assert not any(bond.constraint for bond in mol.bonds)
+    assert not mol._constraints.angles and not mol._constraints.torsions
     _assert_canonical_constraint_bindings(mol)
+    metal.constraint = covalent.constraint = True
+    cells = {bond._uid: bond._constraint_values[bond._uid] for bond in (metal, covalent)}
     previous_map = mol._constraints.bond_values
     previous_cells = dict(previous_map)
-    removed = ((metal,) if clear_method == 'clear_metal_ligand_bonds' else
-               (covalent,) if clear_method == 'clear_hided_covalent_bonds' else (metal, covalent))
-    getattr(mol, clear_method)()
+    removed = tuple((metal, covalent)[row] for row in removed_rows)
+    mol.remove_bonds(removed)
     _assert_canonical_constraint_bindings(mol)
     assert previous_map == previous_cells
     for bond in removed:
         assert bond._uid not in mol._constraints.bond_values
-        assert bond._constraint_values == {bond._uid: hidden_cells[bond._uid]}
+        assert bond._constraint_values == {bond._uid: cells[bond._uid]}
         bond.constraint = False
         assert not bond.constraint
     for bond in (metal, covalent):

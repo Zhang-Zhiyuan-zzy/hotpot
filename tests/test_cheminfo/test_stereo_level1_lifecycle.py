@@ -1,5 +1,9 @@
 from copy import copy
 
+import pytest
+from hotpot.cheminfo.structure._selection import _capture_topology_selection
+from hotpot.cheminfo.operations.topology_queries import _components
+
 from hotpot.cheminfo import stereo
 from hotpot.cheminfo.core import Molecule
 
@@ -80,7 +84,7 @@ def test_copy_preserves_payload_order_lineage_and_hydrogen_ledgers():
     molecule._add_bond(0, 1, bond_order=1.0)
     hidden = molecule._add_bond(1, 2, bond_order=1.0)
     molecule._update_topology(clear_conformers=False)
-    molecule.hide_bonds(hidden, clear_conformers=False)
+    _capture_topology_selection(molecule, excluded_bonds=(hidden,))
     group = stereo.StereoGroupRef(
         scope="source-scope",
         kind=stereo.StereoGroupKind.AND,
@@ -125,7 +129,7 @@ def test_copy_preserves_payload_order_lineage_and_hydrogen_ledgers():
     assert cloned_payload.atom_facts[0].source_hydrogens is source_hydrogens
 
 
-def test_components_filter_and_remap_by_active_and_internal_hidden_bonds():
+def test_selected_components_filter_and_remap_stereo_by_retained_edges():
     molecule = _molecule((6, 7, 8, 9, 15, 16))
     molecule._add_bond(0, 1, bond_order=1.0)
     molecule._add_bond(1, 2, bond_order=1.0)
@@ -134,11 +138,7 @@ def test_components_filter_and_remap_by_active_and_internal_hidden_bonds():
     hidden_internal = molecule._add_bond(0, 2, bond_order=1.0)
     hidden_cross = molecule._add_bond(3, 4, bond_order=1.0)
     molecule._update_topology(clear_conformers=False)
-    molecule.hide_bonds(
-        hidden_internal,
-        hidden_cross,
-        clear_conformers=False,
-    )
+    selection = _capture_topology_selection(molecule, excluded_bonds=(hidden_cross,))
     group = stereo.StereoGroupRef(
         scope="split-source",
         kind=stereo.StereoGroupKind.OR,
@@ -171,7 +171,8 @@ def test_components_filter_and_remap_by_active_and_internal_hidden_bonds():
         ),
     )
 
-    first, second = molecule.components
+    first, second = _components(molecule, Molecule, selection=selection)
+    assert len(molecule.components) == 1
     first_payload = stereo.get_stereo_payload(first)
     second_payload = stereo.get_stereo_payload(second)
 
@@ -217,7 +218,7 @@ def test_add_component_offsets_incoming_rows_without_group_merging_or_sorting():
     component = _molecule((7, 16))
     hidden = component._add_bond(0, 1, bond_order=1.0)
     component._update_topology(clear_conformers=False)
-    component.hide_bonds(hidden, clear_conformers=False)
+    _capture_topology_selection(component, excluded_bonds=(hidden,))
     component_group = stereo.StereoGroupRef(
         "component-scope",
         stereo.StereoGroupKind.OR,
@@ -270,7 +271,7 @@ def test_atom_removal_filters_whole_records_and_remaps_retained_order():
     molecule._add_bond(2, 3, bond_order=2.0)
     hidden = molecule._add_bond(0, 2, bond_order=1.0)
     molecule._update_topology(clear_conformers=False)
-    molecule.hide_bonds(hidden, clear_conformers=False)
+    _capture_topology_selection(molecule, excluded_bonds=(hidden,))
     stereo.set_stereo_payload(
         molecule,
         stereo.StereoPayload(
@@ -348,7 +349,7 @@ def test_batch_atom_removal_uses_one_stable_source_row_mapping():
     assert tuple(fact.atom for fact in payload.atom_facts) == (2, 1)
 
 
-def test_bond_hide_recover_is_exact_and_permanent_deletion_is_targeted():
+def test_operation_selection_preserves_stereo_and_permanent_deletion_is_targeted():
     molecule = _molecule((6, 7, 8))
     first = molecule._add_bond(0, 1, bond_order=1.0)
     second = molecule._add_bond(1, 2, bond_order=1.0)
@@ -370,9 +371,7 @@ def test_bond_hide_recover_is_exact_and_permanent_deletion_is_targeted():
     )
     stereo.set_stereo_payload(molecule, payload)
 
-    molecule.hide_bonds(second, clear_conformers=False)
-    assert stereo.get_stereo_payload(molecule) is payload
-    molecule.recover_hided_covalent_bonds(clear_conformers=False)
+    _capture_topology_selection(molecule, excluded_bonds=(second,))
     assert stereo.get_stereo_payload(molecule) is payload
 
     molecule.remove_bond(first)
@@ -386,9 +385,9 @@ def test_bond_hide_recover_is_exact_and_permanent_deletion_is_targeted():
         fact.display_direction for fact in after_active_removal.bond_facts
     ) == ("second", "preexisting-missing")
 
-    molecule.hide_bonds(second, clear_conformers=False)
+    _capture_topology_selection(molecule, excluded_bonds=(second,))
     hidden_payload = stereo.get_stereo_payload(molecule)
-    molecule.clear_hided_covalent_bonds()
+    molecule.remove_bond(second)
     after_hidden_clear = stereo.get_stereo_payload(molecule)
     assert hidden_payload is after_active_removal
     assert tuple(record.descriptor for record in after_hidden_clear.records) == (
@@ -418,9 +417,7 @@ def test_axis_lifecycle_tracks_constituent_edges_but_not_chords():
     clone = copy(molecule)
     assert stereo.get_stereo_payload(clone) == payload
 
-    molecule.hide_bonds(second, clear_conformers=False)
-    assert stereo.get_stereo_payload(molecule) is payload
-    molecule.recover_hided_covalent_bonds(clear_conformers=False)
+    _capture_topology_selection(molecule, excluded_bonds=(second,))
     assert stereo.get_stereo_payload(molecule) is payload
 
     molecule.remove_bond(chord)
@@ -434,30 +431,21 @@ def test_axis_lifecycle_tracks_constituent_edges_but_not_chords():
     assert _record_descriptors(clone) == ()
 
 
-def test_permanently_clearing_hidden_axis_edges_drops_the_record():
-    for clear_method in (
-        "clear_hided_covalent_bonds",
-        "clear_hided_bonds",
-    ):
-        molecule = _molecule((6, 6, 6))
-        molecule._add_bond(0, 1, bond_order=2.0)
-        hidden = molecule._add_bond(1, 2, bond_order=2.0)
-        molecule._update_topology(clear_conformers=False)
-        stereo.set_stereo_payload(
-            molecule,
-            stereo.StereoPayload(
-                1,
-                (_axis_record(0, 1, 2, descriptor=clear_method),),
-                (),
-                (),
-            ),
-        )
-
-        molecule.hide_bonds(hidden, clear_conformers=False)
-        assert _record_descriptors(molecule) == (clear_method,)
-        getattr(molecule, clear_method)()
-
-        assert _record_descriptors(molecule) == ()
+@pytest.mark.parametrize('batch', [False, True])
+def test_permanently_removing_axis_edges_drops_the_record(batch):
+    molecule = _molecule((6, 6, 6))
+    molecule._add_bond(0, 1, bond_order=2.)
+    edge = molecule._add_bond(1, 2, bond_order=2.)
+    molecule._update_topology(clear_conformers=False)
+    stereo.set_stereo_payload(molecule, stereo.StereoPayload(
+        1, (_axis_record(0, 1, 2, descriptor="axis"),), (), ()))
+    _capture_topology_selection(molecule, excluded_bonds=(edge,))
+    assert _record_descriptors(molecule) == ("axis",)
+    if batch:
+        molecule.remove_bonds((edge,))
+    else:
+        molecule.remove_bond(edge)
+    assert _record_descriptors(molecule) == ()
 
 
 def test_axis_atom_component_and_add_component_lifecycle_is_exact():

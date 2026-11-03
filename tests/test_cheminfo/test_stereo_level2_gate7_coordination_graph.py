@@ -113,20 +113,10 @@ def _issue_facts(issues):
     return tuple((issue.record_index, issue.code, issue.message) for issue in issues)
 
 
-def test_represented_shell_unifies_active_and_both_hidden_bond_classes():
+def test_represented_shell_contains_every_complete_bond_kind():
     molecule = _molecule((26, 7, 8, 9, 15), ((0, 1), (0, 2)))
-    molecule._hided_metal_bonds.append(
-        Bond(
-            molecule.atoms[0],
-            molecule.atoms[3],
-            bond_order=1.0,
-            bond_kind="dative",
-            bond_direction="atom2_to_atom1",
-        )
-    )
-    molecule._hided_covalent_bonds.append(
-        Bond(molecule.atoms[0], molecule.atoms[4], bond_order=1.0)
-    )
+    molecule.add_bond(0, 3, bond_order=1., bond_kind="dative", bond_direction="atom2_to_atom1")
+    molecule.add_bond(0, 4, bond_order=1.)
     record = _record("SP", 0, (1, 2, 3, 4))
 
     graph, adjacency = _projected_adjacency(molecule)

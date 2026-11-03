@@ -31,7 +31,7 @@ from .contracts import (
 )
 from .coordinates import _perturbed_coordinates
 from .native import ComplexOptimizationOptions, CoordinationStageOptions
-from .native_packing import ComplexSessionInput, _coordination_bonds
+from .native_packing import ComplexSessionInput, _BOND_KIND_CODES, _coordination_bonds
 from .native_reports import (
     ComplexOptimizationResult,
     CoordinationStageResult,
@@ -318,15 +318,36 @@ def _ordered_coordination_bonds(
     mol: "Molecule",
     session_input: ComplexSessionInput,
 ) -> Tuple["Bond", ...]:
-    atom_rows = {id(atom): row for row, atom in enumerate(mol.atoms)}
+    atom_rows = {id(atom): row for row, atom in enumerate(mol._atoms)}
+    bonds = _coordination_bonds(mol)
+    indices = np.asarray(session_input.intended_coordination_bonds)
+    if indices.shape != (len(bonds), 2) or indices.dtype.kind not in "iu":
+        raise ValueError("Native coordination mapping must align with complete Bond rows")
+    if np.any(indices < 0) or np.any(indices >= len(atom_rows)):
+        raise ValueError("Native coordination mapping contains an invalid Atom row")
     by_key = {
         tuple(sorted((atom_rows[id(bond.atom1)], atom_rows[id(bond.atom2)]))): bond
-        for bond in _coordination_bonds(mol)
+        for bond in bonds
     }
-    return tuple(
-        by_key[tuple(sorted((int(indices[0]), int(indices[1]))))]
-        for indices in session_input.intended_coordination_bonds
-    )
+    keys = tuple(tuple(sorted((int(first), int(second)))) for first, second in indices)
+    if len(set(keys)) != len(keys) or set(keys) != set(by_key):
+        raise RuntimeError("Native coordination mapping differs from complete Bond topology")
+    ordered = tuple(by_key[key] for key in keys)
+    directed = tuple((atom_rows[id(bond.atom1)], atom_rows[id(bond.atom2)])
+                     if bond.atom1.is_metal else
+                     (atom_rows[id(bond.atom2)], atom_rows[id(bond.atom1)])
+                     for bond in ordered)
+    if tuple(map(tuple, indices)) != directed:
+        raise ValueError("Native coordination mapping requires directed metal-donor rows")
+    orders = np.asarray(session_input.intended_coordination_orders)
+    kinds = np.asarray(session_input.intended_coordination_kinds)
+    if orders.shape != (len(bonds),) or kinds.shape != (len(bonds),):
+        raise ValueError("Native coordination values must align with intended rows")
+    if (not np.array_equal(orders, np.asarray([bond.bond_order for bond in ordered]), equal_nan=True)
+            or not np.array_equal(kinds, np.asarray([
+                _BOND_KIND_CODES[bond.bond_kind.value] for bond in ordered]))):
+        raise RuntimeError("Native coordination values differ from complete Bond facts")
+    return ordered
 
 
 def apply_native_selected_structure(
@@ -334,35 +355,27 @@ def apply_native_selected_structure(
     session_input: ComplexSessionInput,
     result: _SelectedStructureResult,
 ) -> None:
-    """Apply native selected coordinates and coordination topology in place."""
+    """Publish selected coordinates while retaining all complete Bond facts."""
     from ..structure._commit import _FactTransaction
     from ..structure._fields import ATOM_SOURCE_CODES
 
-    with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["forcefield"]):
+    with mol._mutation_lock:
+        atom_count = len(mol._atoms)
+        atomic_numbers = np.asarray(session_input.atomic_numbers)
+        if (atomic_numbers.shape != (atom_count,)
+                or np.asarray(session_input.coordinates).shape != (atom_count, 3)
+                or not np.array_equal(atomic_numbers, np.fromiter(
+                    (atom.atomic_number for atom in mol._atoms), dtype=np.int32, count=atom_count))):
+            raise RuntimeError("Native Atom mapping differs from the current Molecule")
         ordered_bonds = _ordered_coordination_bonds(mol, session_input)
-        active_bond_ids = {id(bond) for bond in mol.bonds}
-        bonds_to_hide = tuple(
-            bond
-            for bond, active in zip(
-                ordered_bonds,
-                result.final_active_coordination_mask,
-            )
-            if not active and id(bond) in active_bond_ids
-        )
-        hidden_bond_ids = {id(bond) for bond in mol._hided_metal_bonds}
-        bonds_to_restore = tuple(
-            bond
-            for bond, active in zip(
-                ordered_bonds,
-                result.final_active_coordination_mask,
-            )
-            if active and id(bond) in hidden_bond_ids
-        )
-        if bonds_to_hide:
-            mol.hide_bonds(*bonds_to_hide, clear_conformers=False)
-        if bonds_to_restore:
-            mol.restore_bonds(*bonds_to_restore, clear_conformers=False)
-        mol.coordinates = result.selected_coordinates
+        mask = np.asarray(result.final_active_coordination_mask)
+        if mask.shape != (len(ordered_bonds),) or not np.isin(mask, (0, 1)).all():
+            raise ValueError("Native coordination mask must contain one binary value per intended row")
+        coordinates = np.array(result.selected_coordinates, dtype=np.float64, copy=True)
+        if coordinates.shape != (atom_count, 3) or not np.isfinite(coordinates).all():
+            raise ValueError("Native selected coordinates must be finite and align with Atom rows")
+        with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["forcefield"]):
+            mol.coordinates = coordinates
 
 
 def ingest_native_trajectory(

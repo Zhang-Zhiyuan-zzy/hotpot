@@ -23,13 +23,10 @@
     "bootstrap_samples": 10000,
     "bootstrap_seed": 20261028,
     "confidence_level": 0.95,
-    "local_slowdown_exception_fraction": 0.05,
-    "local_slowdown_exception_max_median": 1.05,
-    "small_suite_exception_count": 1,
     "weights": "Equal within each family/hardware mode and equal family weights in overall summaries; report end-to-end separately.",
-    "acceptance": "At least measured parity per family and end-to-end, memory separate; exceptions require explicit review, never automatic.",
+    "acceptance": "Effective goal.md and Section12.2: comparable semantic work, usable completion and bounded resources; explain absolute/relative cost and retain all adverse/failed observations. The main agent may accept explained usable degradation within authorization; no universal parity or rare-small-regression quota. Neutral-band classifications describe measurements, not automatic acceptance.",
     "work_accounting": "Retain every warmup and measured attempt, failure and no-output. Pair only completed samples with equal actual work counters; report all excluded attempts and denominators.",
-    "candidate_binding": "Keep each semantic task and public reader fixed. Update private fixture/import bindings at their owning stage; include runner digests. No fallback to baseline implementation."
+    "candidate_binding": "Keep each semantic task and public reader fixed. Update private fixture/import bindings at their owning stage; include runner digests. No fallback to baseline implementation. Preserve historical manifests/reports and frozen workloads/sampling/weights/counters. A policy-only documentation change does not rewrite B20 evidence: use one attributable frozen executable recipe for paired work, record any comparator manifest-identity limitation and obtain direct or alternative comparable-work evidence without relabeling a failed checker as passed."
   },
   "entry_points": {
     "source": "_performance_workloads.prepare(entry, phase)",
@@ -1178,5 +1175,25 @@
       "aggregate_runtime": false,
       "semantic_task": "Candidate-only mechanism cost; no baseline counterpart and never included in old/new speedup aggregates."
     }
-  ]
+  ],
+  "stage7B_topology_checkpoint_20261103": {
+    "record": "stages/stage07/topology-selection/validation/checkpoint.json",
+    "report": "stages/stage07/topology-selection/validation/report.md",
+    "status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE",
+    "CP311_only": true,
+    "baseline": "baseline/receipt in topology validation evidence index",
+    "work": "Same frozen23cells/322sample rows, sizes128/1024/8192 plus H/proxy/native workflows; equivalent full operations include selection/check/projection and extra H allocation.",
+    "candidate_attempt01": "RC1,5/23cells complete; first ligand supported-bytes representation failure retained with partial comparison. C2 repairs bytes leaf only.",
+    "candidate_attempt02": "RC0/171.802s/reaped;23cells/322sample rows/69warmups/230measured/23allocations. No failed samples;14adverse medians and10adversePythonpeaks explicitly accepted by root within this bounded work.",
+    "prior_constraint_adverse": "Prior accepted45cell constraint slice: selective-axis6.276–19.854x/fullBond2.651–2.741x remain history and are not offset/relabelled.",
+    "measurement_limits": "Sequential shared-host samples; Python allocation/process RSS scope only. No universal parity/speedup/global benchmark/leak claim.",
+    "stage_gate_closed": true,
+    "global_gate_closed": false,
+    "root_disposition": "stages/stage07/topology-selection/root_cost_disposition_20261103.json",
+    "largest_ligand_cost": "8192atoms1.348446s->4.145181s/3.074042x/+2.796735s; maxrelative1024atoms3.274242x.",
+    "H_cost": "Phenol6.372->13.377ms/2.09928x;OCCO4.559->9.584ms/2.102206x; complete original Bond prefix and chemistry/count/labels pass.",
+    "resources": "Maximum adverse Python peak delta524400bytes;Hpeak197605bytes. Full14time/10peak dispositions and superlinear sampled size-growth remain explicit; no native/leak/global asymptotic claim.",
+    "root_completion": "stages/stage07/completion_20261103.json",
+    "acceptance_scope": "Whole Stage7B constraint-owner and HT1–HT5 functional migration plus applicable CP311 owning-stage gates, including prior bounded usable-cost decisions. Later/global performance obligations remain open; no current full-default/all-version/clean-native claim."
+  }
 }

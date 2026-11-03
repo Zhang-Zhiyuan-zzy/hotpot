@@ -212,7 +212,7 @@ def _stereo(payload):
     return copy_value(payload, StereoPayload)
 
 
-@dataclass(frozen=True, eq=False)
+@dataclass(frozen=True, eq=False, kw_only=True)
 class MoleculeRecord:
     atom_count: int
     atom_values: bytes
@@ -222,7 +222,6 @@ class MoleculeRecord:
     atom_frac_valences: tuple
     bond_endpoints: tuple
     bond_values: bytes
-    bond_partitions: tuple
     bond_kinds: tuple
     bond_directions: tuple
     bond_sources: tuple
@@ -256,18 +255,16 @@ class MoleculeRecord:
             raise ValueError("Atom sources contain an undeclared producer code")
         endpoints = _rows(self.bond_endpoints, 2, count)
         bond_count = len(endpoints)
-        partitions = tuple(operator.index(value) for value in self.bond_partitions)
         kinds, directions, bond_sources = map(tuple, (self.bond_kinds, self.bond_directions, self.bond_sources))
         aromatic = tuple(self.bond_aromatic) if self.bond_aromatic else tuple(kind == 'aromatic' for kind in kinds)
         metadata = tuple(map(_canonical_value, self.bond_metadata))
         if any(value[0] not in ("none", "dict") for value in metadata):
             raise TypeError("Bond metadata requires dict or None at each root")
         if (len(bond_values) != bond_count * 3 * 8 or any(
-                len(column) != bond_count for column in (partitions, kinds, directions, bond_sources, metadata, aromatic))):
+                len(column) != bond_count for column in (kinds, directions, bond_sources, metadata, aromatic))):
             raise ValueError("Bond import values and metadata must align with endpoints")
-        if any(value not in (0, 1, 2) for value in partitions) or any(
-                type(value) is not str or value not in _BOND_KINDS for value in kinds):
-            raise ValueError("Bond import contains an undeclared partition or kind")
+        if any(type(value) is not str or value not in _BOND_KINDS for value in kinds):
+            raise ValueError("Bond import contains an undeclared kind")
         if any(value is not None and type(value) is not str for value in (*directions, *bond_sources)):
             raise TypeError("Bond direction and source must be strings or None")
         frames = tuple(map(_canonical_value, self.legacy_frame_values))
@@ -285,7 +282,7 @@ class MoleculeRecord:
             atom_count=count, atom_values=atom_values, atom_presence=presence, atom_sources=sources,
             atom_isotopes=_sparse(self.atom_isotopes, count, lambda value: None if value is None else operator.index(value)),
             atom_frac_valences=_sparse(self.atom_frac_valences, count, float),
-            bond_endpoints=endpoints, bond_values=bond_values, bond_partitions=partitions,
+            bond_endpoints=endpoints, bond_values=bond_values,
             bond_kinds=kinds, bond_directions=directions, bond_sources=bond_sources,
             bond_metadata=metadata, charge=_declared(self.charge), spin_mult=_declared(self.spin_mult),
             cell=cell, stereo_payload=_stereo(self.stereo_payload), legacy_frame_values=frames,
@@ -299,14 +296,22 @@ class MoleculeRecord:
             object.__setattr__(self, name, value)
 
     def __reduce__(self):
-        return type(self), tuple(getattr(self, field.name) for field in fields(self))
+        return _restore_molecule_record, (
+            type(self), 2, tuple(getattr(self, field.name) for field in fields(self)),
+        )
 
     def __deepcopy__(self, memo):
         return self
 
 
+def _restore_molecule_record(record_type, schema_version, field_values):
+    if schema_version != 2 or len(field_values) != 23:
+        raise ValueError("MoleculeRecord pickle requires schema version 2 and 23 fields")
+    return record_type(**dict(zip((field.name for field in fields(MoleculeRecord)), field_values)))
+
+
 def _make_molecule_record(*, atom_values, atom_presence, atom_sources, atom_isotopes,
-                          atom_frac_valences, bond_endpoints, bond_values, bond_partitions,
+                          atom_frac_valences, bond_endpoints, bond_values,
                           bond_kinds, bond_directions, bond_sources, bond_metadata, charge,
                           spin_mult, cell, stereo_payload, legacy_frame_values,
                           legacy_frame_index, angle_constraints, torsion_constraints, identifier,
@@ -329,10 +334,15 @@ def _make_molecule_record(*, atom_values, atom_presence, atom_sources, atom_isot
     if bonds.shape != (len(endpoints), 3):
         raise ValueError("Bond import values require shape (B,3)")
     return MoleculeRecord(
-        count, values.tobytes(order="C"), presence.astype("<u4").tobytes(),
-        sources.astype("u1").tobytes(), atom_isotopes, atom_frac_valences,
-        endpoints, bonds.tobytes(order="C"), bond_partitions, bond_kinds,
-        bond_directions, bond_sources, tuple(map(_freeze_value, bond_metadata)),
-        charge, spin_mult, cell, stereo_payload, tuple(map(_freeze_value, legacy_frame_values)),
-        legacy_frame_index, angle_constraints, torsion_constraints, identifier, pair_wiberg_bond_orders, bond_aromatic,
+        atom_count=count, atom_values=values.tobytes(order="C"),
+        atom_presence=presence.astype("<u4").tobytes(), atom_sources=sources.astype("u1").tobytes(),
+        atom_isotopes=atom_isotopes, atom_frac_valences=atom_frac_valences,
+        bond_endpoints=endpoints, bond_values=bonds.tobytes(order="C"), bond_kinds=bond_kinds,
+        bond_directions=bond_directions, bond_sources=bond_sources,
+        bond_metadata=tuple(map(_freeze_value, bond_metadata)), charge=charge, spin_mult=spin_mult,
+        cell=cell, stereo_payload=stereo_payload,
+        legacy_frame_values=tuple(map(_freeze_value, legacy_frame_values)),
+        legacy_frame_index=legacy_frame_index, angle_constraints=angle_constraints,
+        torsion_constraints=torsion_constraints, identifier=identifier,
+        pair_wiberg_bond_orders=pair_wiberg_bond_orders, bond_aromatic=bond_aromatic,
     )

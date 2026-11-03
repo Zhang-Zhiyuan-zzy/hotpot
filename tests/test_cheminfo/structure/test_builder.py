@@ -30,7 +30,7 @@ def _inputs():
         atom_isotopes=((0, None), (1, 0), (2, 13)), atom_frac_valences=((0, 1.75),),
         bond_endpoints=((2, 0), (0, 1), (3, 2)),
         bond_values=np.array([[1.25, 0.25, 2**40 + 0.125], [0, 0, 0], [-4.5, 2.5, -2.25]]),
-        bond_partitions=(0, 1, 2), bond_kinds=("dative", "zero", "unknown"),
+        bond_kinds=("dative", "zero", "unknown"),
         bond_directions=("wedge", None, "raw direction"), bond_sources=(None, "rdkit", "source"),
         bond_metadata=({}, None, {"raw": [1, (2, b"three")]}),
         charge=(True, 0, None), spin_mult=(False, None, None), cell=None,
@@ -71,7 +71,7 @@ def test_complete_record_preserves_raw_width_order_and_presence():
     np.testing.assert_array_equal(_atoms(record), inputs["atom_values"])
     np.testing.assert_array_equal(np.frombuffer(record.bond_values, dtype="<f8").reshape(-1, 3), inputs["bond_values"])
     assert record.bond_endpoints == ((2, 0), (0, 1), (3, 2))
-    assert record.bond_partitions == (0, 1, 2)
+    assert len(fields(record)) == 23
     assert record.atom_isotopes == ((0, None), (1, 0), (2, 13))
     assert record.atom_frac_valences == ((0, 1.75),)
     assert record.charge == (True, 0, None)
@@ -126,7 +126,10 @@ def test_pickle_reconstructs_through_normal_constructor_and_deepcopy(protocol):
     for field in fields(record):
         assert getattr(restored, field.name) == getattr(record, field.name)
     assert deepcopy(record) is record
-    assert restored.__reduce__()[0] is MoleculeRecord
+    restore, (record_type, version, values) = restored.__reduce__()
+    assert restore is builder._restore_molecule_record
+    assert record_type is MoleculeRecord and version == 2
+    assert len(values) == 23
     with pytest.raises(ValueError):
         _atoms(restored).flags.writeable = True
 
@@ -246,7 +249,7 @@ def test_codec_rejects_opaque_and_nonlossless_dtype_values(value):
     {"atom_presence": np.array([1 << 19, 0, 0, 0])}, {"atom_sources": np.full((4, 19), 256)},
     {"atom_sources": np.ones((4, 19))}, {"bond_values": np.zeros((3, 2))},
     {"bond_endpoints": ((0, 4),) * 3}, {"bond_endpoints": ((0,),) * 3},
-    {"bond_partitions": (0, 1, 3)}, {"bond_kinds": ("single", "double", "invalid")},
+    {"bond_kinds": ("single", "double", "invalid")},
     {"bond_metadata": ({},)}, {"bond_metadata": ({}, {}, object())},
     {"atom_isotopes": ((0, 1), (0, 2))}, {"atom_frac_valences": ((4, 1.5),)},
     {"atom_frac_valences": ((0, 1.5), (0, 2.5))},
@@ -280,7 +283,7 @@ def test_empty_record_and_transport_only_self_parallel_bonds():
     record = _record(
         atom_values=np.empty((0, 19)), atom_presence=np.empty(0, dtype=np.uint32),
         atom_sources=np.empty((0, 19), dtype=np.uint8), atom_isotopes=(), atom_frac_valences=(),
-        bond_endpoints=(), bond_values=np.empty((0, 3)), bond_partitions=(), bond_kinds=(),
+        bond_endpoints=(), bond_values=np.empty((0, 3)), bond_kinds=(),
         bond_directions=(), bond_sources=(), bond_metadata=(), angle_constraints=(), torsion_constraints=(),
     )
     assert record.atom_count == 0 and record.atom_values == b""
@@ -411,10 +414,11 @@ def test_factual_builder_installs_every_raw_fact_and_builds_topology_once(monkey
     assert set(mol._constraints.atom_axes) == {atom._uid for atom in mol.atoms}
     assert all(atom._constraint_values is mol._constraints.atom_axes for atom in mol.atoms)
     assert all(mol._atom_table._columns[FIELD_INDEX[field]] is None for field in DERIVED_FIELDS)
-    complete = mol._bonds + mol._hided_metal_bonds + mol._hided_covalent_bonds
+    complete = mol._bonds
     assert b''.join(bond.attrs.tobytes() for bond in complete) == record.bond_values
     assert tuple((bond.atom1.idx, bond.atom2.idx) for bond in complete) == record.bond_endpoints
-    assert (len(mol._bonds), len(mol._hided_metal_bonds), len(mol._hided_covalent_bonds)) == (1, 1, 1)
+    assert len(mol.bonds) == 3
+    assert all(mol.bond(*pair) is bond for pair, bond in zip(record.bond_endpoints, mol.bonds))
     assert mol.atoms[0].isotope is None and mol.atoms[1].isotope == 0
     assert mol.atoms[2].isotope == 13 and mol.atoms[0].frac_valence == 1.75
     assert 'isotope' not in mol.atoms[3].__dict__
@@ -432,7 +436,7 @@ def test_same_target_factual_installer_preserves_owner_lock_and_burned_uid_range
     assert mol._install_molecule(_record()) is mol
     assert mol._owner_token is owner and mol._mutation_lock is lock
     assert [atom._uid for atom in mol.atoms] == [10, 11, 12, 13]
-    assert [bond._uid for bond in mol._bonds + mol._hided_bonds] == [20, 21, 22]
+    assert [bond._uid for bond in mol._bonds] == [20, 21, 22]
     assert mol._charge_present and mol.charge == 0
     assert not mol._spin_present
 
@@ -485,3 +489,35 @@ def test_opaque_metadata_channel_requires_complete_mutually_exclusive_values():
     assert mol.bonds[0]._bond_source_metadata['opaque'] is not marker
     clone = mol.copy()
     assert clone.bonds[0]._bond_source_metadata['opaque'] is not mol.bonds[0]._bond_source_metadata['opaque']
+
+
+def test_current_record_constructor_and_reducer_have_an_explicit_schema_boundary():
+    record = _record()
+    values = tuple(getattr(record, field.name) for field in fields(record))
+    with pytest.raises(TypeError):
+        MoleculeRecord(*values)
+    for version, payload in ((1, values), (2, values[:-1]), (2, values + ((),))):
+        with pytest.raises(ValueError):
+            builder._restore_molecule_record(MoleculeRecord, version, payload)
+    restored = builder._restore_molecule_record(MoleculeRecord, 2, values)
+    assert restored is not record
+    for field in fields(record):
+        assert getattr(restored, field.name) == getattr(record, field.name)
+
+
+@pytest.mark.parametrize('endpoints', [((0, 0), (0, 1), (2, 3)),
+                                        ((0, 1), (1, 0), (2, 3))])
+def test_invalid_complete_simple_graph_installation_is_atomic(endpoints):
+    from hotpot import Molecule
+    mol = Molecule()
+    atom = mol.create_atom(atomic_number=6)
+    owner, index, table = mol._constraints, mol._topology_index, mol._atom_table
+    before_record, before_metadata = mol._capture_factual_record()
+    with pytest.raises(ValueError):
+        mol._install_molecule(_record(bond_endpoints=endpoints))
+    assert mol.atoms == [atom] and mol.bonds == []
+    assert mol._constraints is owner and mol._topology_index is index and mol._atom_table is table
+    after_record, after_metadata = mol._capture_factual_record()
+    for field in fields(before_record):
+        assert getattr(after_record, field.name) == getattr(before_record, field.name)
+    assert after_metadata == before_metadata

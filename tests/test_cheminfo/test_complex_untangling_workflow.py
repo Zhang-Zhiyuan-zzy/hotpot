@@ -6,6 +6,8 @@ import pytest
 
 from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.core import Molecule
+from hotpot.cheminfo.structure._selection import _capture_topology_selection, _selected_bonds
+from hotpot.cheminfo.operations.topology_queries import _project_molecule
 from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import ff, repair
 from hotpot.cheminfo.forcefields import ff as forcefield_utils
@@ -17,40 +19,11 @@ from hotpot.cheminfo.forcefields.trajectory import (
 )
 
 
-class _Atom:
-    def __init__(self, index):
-        self.idx = index
-
-    @property
-    def is_metal(self):
-        return self.idx == 0
-
-
-class _Bond:
-    def __init__(self, first, second, *, coordination=False):
-        self.atom1 = _Atom(first)
-        self.atom2 = _Atom(second)
-        self.is_metal_ligand_bond = coordination
-
-
-class _UntanglingMolecule:
-    def __init__(self):
-        self.coordinates = np.zeros((3, 3), dtype=float)
-        self.events = []
-        self.hidden_bonds = []
-
-    def hide_bonds(self, *bonds, clear_conformers=False):
-        self.hidden_bonds.extend(bonds)
-        self.events.append(("open", bonds))
-
-    def recover_hided_covalent_bonds(self, clear_conformers=False):
-        self.hidden_bonds.clear()
-        self.events.append(("close",))
-
-    def restore_bonds(self, *bonds, clear_conformers=False):
-        for bond in bonds:
-            self.hidden_bonds.remove(bond)
-        self.events.append(("restore", bonds))
+def _UntanglingMolecule():
+    molecule = _ring_molecule()
+    molecule.coordinates = np.zeros((3, 3))
+    molecule.events = []
+    return molecule
 
 
 class _TraceMolecule:
@@ -212,7 +185,7 @@ def _untangling_result(
 
 def test_ring_untangling_opens_perturbs_optimizes_closes_and_rechecks(monkeypatch):
     molecule = _UntanglingMolecule()
-    opening_edge = _Bond(0, 1)
+    opening_edge = molecule.bond(0, 1)
     initial_checkpoint = _report(1)
     scans = iter(
         (
@@ -229,8 +202,12 @@ def test_ring_untangling_opens_perturbs_optimizes_closes_and_rechecks(monkeypatc
         molecule.events.append(("perturb",))
         return np.asarray(coordinates) + 1.0
 
-    def optimize(current_molecule, forcefield, steps):
+    def optimize(current_molecule, forcefield, steps, *, selection=None):
         molecule.events.append(("optimize", steps))
+        assert len(current_molecule.bonds) == 3
+        if selection is not None:
+            assert _selected_bonds(current_molecule, selection) == tuple(
+                bond for bond in current_molecule.bonds if bond is not opening_edge)
         return _optimization(steps)
 
     monkeypatch.setattr(repair, "_scan_ring_checkpoint", scan)
@@ -259,10 +236,8 @@ def test_ring_untangling_opens_perturbs_optimizes_closes_and_rechecks(monkeypatc
     )
 
     assert molecule.events == [
-        ("open", (opening_edge,)),
         ("perturb",),
         ("optimize", 4),
-        ("restore", (opening_edge,)),
         ("targeted_scan",),
         ("scan",),
         ("optimize", 9),
@@ -275,7 +250,7 @@ def test_ring_untangling_opens_perturbs_optimizes_closes_and_rechecks(monkeypatc
 
 def test_single_watched_repair_only_observes_the_fixed_watch_batch(monkeypatch):
     molecule = _UntanglingMolecule()
-    opening_edge = _Bond(0, 1)
+    opening_edge = molecule.bond(0, 1)
     watch = _mock_ring_watch(
         monkeypatch,
         (repair.geo.PiercingState.DOES_NOT_PIERCE,),
@@ -298,8 +273,12 @@ def test_single_watched_repair_only_observes_the_fixed_watch_batch(monkeypatch):
         molecule.events.append(("perturb",))
         return np.asarray(coordinates) + 1.0
 
-    def optimize(current_molecule, forcefield, steps):
+    def optimize(current_molecule, forcefield, steps, *, selection=None):
         molecule.events.append(("optimize", steps))
+        assert len(current_molecule.bonds) == 3
+        if selection is not None:
+            assert _selected_bonds(current_molecule, selection) == tuple(
+                bond for bond in current_molecule.bonds if bond is not opening_edge)
         return _optimization(steps)
 
     monkeypatch.setattr(repair, "_perturbed_coordinates", perturb)
@@ -330,10 +309,8 @@ def test_single_watched_repair_only_observes_the_fixed_watch_batch(monkeypatch):
         )
     )
     assert molecule.events == [
-        ("open", (opening_edge,)),
         ("perturb",),
         ("optimize", 4),
-        ("restore", (opening_edge,)),
         ("targeted_scan",),
     ]
 
@@ -412,7 +389,7 @@ def test_chelate_ring_watch_only_exposes_metal_ligand_opening_edges():
 
 def test_unrepairable_chelate_watch_warns_without_opening_a_bond(monkeypatch):
     molecule = _UntanglingMolecule()
-    molecule.bonds = ()
+    molecule.remove_bonds(molecule.bonds)
     checkpoint = _report(1)
     watch = (
         repair._WatchedRingPiercing(
@@ -531,7 +508,7 @@ def test_ring_untangling_trajectory_preserves_open_and_closed_topologies(
     monkeypatch.setattr(
         repair,
         "_single_ob_optimization",
-        lambda current_molecule, forcefield, steps: _optimization(steps),
+        lambda current_molecule, forcefield, steps, **kwargs: _optimization(steps),
     )
     trajectory = ForceFieldTrajectory.from_molecule(
         molecule,
@@ -628,7 +605,7 @@ def test_ring_untangling_does_not_assign_open_topology_energy_to_closed_frame(
     monkeypatch.setattr(
         repair,
         "_single_ob_optimization",
-        lambda current_molecule, forcefield, steps: _optimization(steps),
+        lambda current_molecule, forcefield, steps, **kwargs: _optimization(steps),
     )
     trajectory = ForceFieldTrajectory.from_molecule(
         molecule,
@@ -653,64 +630,35 @@ def test_ring_untangling_does_not_assign_open_topology_energy_to_closed_frame(
     assert trajectory.selected_frame.energy_kj_mol is None
 
 
-def test_ring_untangling_restores_only_the_edge_opened_by_this_attempt(
-    monkeypatch,
-):
-    molecule = _UntanglingMolecule()
-    preexisting_hidden_bond = _Bond(1, 2)
-    opening_edge = _Bond(0, 1)
-    molecule.hidden_bonds.append(preexisting_hidden_bond)
-    initial_checkpoint = _report(1)
-    scans = iter(
-        (
-            _report(0),
-        )
-    )
-
-    monkeypatch.setattr(
-        repair,
-        "_scan_ring_checkpoint",
-        lambda *args, **kwargs: next(scans),
-    )
-    _mock_ring_watch(
-        monkeypatch,
-        (repair.geo.PiercingState.DOES_NOT_PIERCE,),
-    )
-    monkeypatch.setattr(
-        repair,
-        "_select_ring_opening_edge",
-        lambda *args, **kwargs: opening_edge,
-    )
-    monkeypatch.setattr(
-        repair,
-        "_perturbed_coordinates",
-        lambda coordinates, **kwargs: coordinates,
-    )
-    monkeypatch.setattr(
-        repair,
-        "_single_ob_optimization",
-        lambda *args, **kwargs: _optimization(1.0),
-    )
-
-    repair._untangle_ring_piercings(
-        molecule,
-        "UFF",
-        attempt_limit=1,
-        short_steps=4,
-        settling_steps=0,
-        perturb_sigma=0.5,
-        rng=np.random.default_rng(3),
-        checkpoint_report=initial_checkpoint,
-    )
-
-    assert molecule.hidden_bonds == [preexisting_hidden_bond]
-    assert ("restore", (opening_edge,)) in molecule.events
-    assert ("close",) not in molecule.events
+def test_ring_repair_operation_selection_is_independent_of_coexisting_projection(monkeypatch):
+    molecule = _ring_molecule()
+    originals = tuple(molecule.bonds)
+    other_selection = _capture_topology_selection(molecule, excluded_bonds=(originals[1],))
+    projected = _project_molecule(molecule, Molecule, selection=other_selection)
+    opening_edge = projected.bond(0, 1)
+    projected_bonds = tuple(projected.bonds)
+    watch = _mock_ring_watch(monkeypatch, (geo.PiercingState.DOES_NOT_PIERCE,))
+    monkeypatch.setattr(repair, '_select_ring_opening_edge', lambda *args: opening_edge)
+    monkeypatch.setattr(repair, '_perturbed_coordinates', lambda coordinates, **kwargs: coordinates)
+    seen = []
+    def optimize(current, forcefield, steps, *, selection=None):
+        seen.append(_selected_bonds(current, selection))
+        assert tuple(current.bonds) == projected_bonds
+        return _optimization(1.)
+    monkeypatch.setattr(repair, '_single_ob_optimization', optimize)
+    recorder = repair._RingTrajectoryRecorder(projected, None, TrajectoryStage.COMPLEX_UNTANGLING, False)
+    repair._repair_watched_ring_piercings_once(
+        projected, 'UFF', current_piercings=watch, watch_batch=watch, attempt=1,
+        short_steps=4, perturb_sigma=.5, rng=np.random.default_rng(3), trajectory_recorder=recorder)
+    assert seen == [tuple(bond for bond in projected_bonds if bond is not opening_edge)]
+    assert tuple(projected.bonds) == projected_bonds
+    assert tuple(molecule.bonds) == originals
+    assert _selected_bonds(molecule, other_selection) == (originals[0], originals[2])
 
 
 def test_ring_untangling_budget_scans_only_selected_watch_frame(monkeypatch):
     molecule = _UntanglingMolecule()
-    opening_edge = _Bond(0, 1)
+    opening_edge = molecule.bond(0, 1)
     initial_checkpoint = _report(3)
     selected_checkpoint = _report(1)
     full_scan_count = 0
@@ -721,10 +669,10 @@ def test_ring_untangling_budget_scans_only_selected_watch_frame(monkeypatch):
         full_scan_count += 1
         return selected_checkpoint
 
-    def optimize(current_molecule, forcefield, steps):
+    def optimize(current_molecule, forcefield, steps, *, selection=None):
         nonlocal optimization_count
         optimization_count += 1
-        current_molecule.coordinates[:] = optimization_count
+        current_molecule.coordinates = np.full_like(current_molecule.coordinates, optimization_count)
         return _optimization(optimization_count)
 
     monkeypatch.setattr(
@@ -775,7 +723,7 @@ def test_budget_exhaustion_returns_best_frame_without_settling_or_rescanning(
     monkeypatch,
 ):
     molecule = _UntanglingMolecule()
-    opening_edge = _Bond(0, 1)
+    opening_edge = molecule.bond(0, 1)
     initial_checkpoint = _report(3)
     selected_checkpoint = _report(1)
     full_scan_count = 0
@@ -786,10 +734,10 @@ def test_budget_exhaustion_returns_best_frame_without_settling_or_rescanning(
         full_scan_count += 1
         return selected_checkpoint
 
-    def optimize(current_molecule, forcefield, steps):
+    def optimize(current_molecule, forcefield, steps, *, selection=None):
         optimization_steps.append(steps)
         marker = 1.0 if steps == 4 else 9.0
-        current_molecule.coordinates[:] = marker
+        current_molecule.coordinates = np.full_like(current_molecule.coordinates, marker)
         return _optimization(marker)
 
     monkeypatch.setattr(
@@ -855,3 +803,79 @@ def test_public_staged_workflow_attempt_defaults():
         name: workflow_parameters[name].default
         for name in expected_defaults
     } == expected_defaults
+
+
+def test_selected_backend_optimizes_independent_graph_and_publishes_only_coordinates(monkeypatch):
+    molecule = _ring_molecule()
+    originals = tuple(molecule.bonds)
+    _ = molecule.rings
+    selection = _capture_topology_selection(molecule, excluded_bonds=(originals[0],))
+    coordinates = molecule.coordinates.copy()
+    calls = []
+    def optimize(target, forcefield, steps):
+        calls.append((target, forcefield, steps))
+        assert target is not molecule and target._owner_token is not molecule._owner_token
+        assert len(target.bonds) == 2 and target.rings == []
+        assert len(molecule.bonds) == 3 and len(molecule.rings) == 1
+        target.coordinates = target.coordinates + 2.
+        return SimpleNamespace(energy=4., energy_unit='kJ/mol', exploded=False)
+    monkeypatch.setattr(ob_backend, '_native_single_optimize', optimize)
+    result = ob_backend._single_ob_optimization(molecule, 'UFF', 4, selection=selection)
+    assert len(calls) == 1 and calls[0][1:] == ('UFF', 4)
+    assert result.energy == 4.
+    assert tuple(molecule.bonds) == originals
+    np.testing.assert_array_equal(molecule.coordinates, coordinates + 2.)
+
+
+@pytest.mark.parametrize('failure', ['native', 'source_geometry', 'source_topology'])
+def test_selected_backend_failure_does_not_publish_partial_projected_coordinates(monkeypatch, failure):
+    molecule = _ring_molecule()
+    selection = _capture_topology_selection(molecule, excluded_bonds=(molecule.bonds[0],))
+    coordinates = molecule.coordinates.copy()
+    def optimize(target, forcefield, steps):
+        target.coordinates = target.coordinates + 99.
+        if failure == 'native':
+            raise MemoryError('projected optimizer failed')
+        if failure == 'source_geometry':
+            molecule.coordinates = coordinates + 1.
+        else:
+            molecule._bonds.reverse()
+        return SimpleNamespace(energy=4., energy_unit='kJ/mol', exploded=False)
+    monkeypatch.setattr(ob_backend, '_native_single_optimize', optimize)
+    with pytest.raises(MemoryError if failure == 'native' else RuntimeError):
+        ob_backend._single_ob_optimization(molecule, 'UFF', 4, selection=selection)
+    np.testing.assert_array_equal(molecule.coordinates, coordinates + (1. if failure == 'source_geometry' else 0.))
+
+
+@pytest.mark.parametrize('failure', ['optimization', 'recording'])
+def test_ring_repair_failure_keeps_complete_graph_and_records_closed_frame(monkeypatch, failure):
+    molecule = _ring_molecule()
+    bonds = tuple(molecule.bonds)
+    original_coordinates = molecule.coordinates.copy()
+    watch = _mock_ring_watch(monkeypatch, (geo.PiercingState.DOES_NOT_PIERCE,))
+    monkeypatch.setattr(repair, '_select_ring_opening_edge', lambda *args: bonds[0])
+    monkeypatch.setattr(repair, '_perturbed_coordinates', lambda coordinates, **kwargs: coordinates + 1.)
+    trajectory = ForceFieldTrajectory.from_molecule(molecule, start=TrajectoryStart.COMPLEX_UNTANGLING)
+    recorder = repair._RingTrajectoryRecorder(molecule, trajectory, TrajectoryStage.COMPLEX_UNTANGLING, True)
+    error = MemoryError('failed during open operation')
+    def optimize(*args, **kwargs):
+        raise error
+    monkeypatch.setattr(repair, '_single_ob_optimization', optimize)
+    if failure == 'recording':
+        record = ForceFieldTrajectory.record
+        def fail_record(self, coordinates, bonds, **kwargs):
+            if kwargs['event'] is TrajectoryEvent.PERTURBED:
+                raise error
+            return record(self, coordinates, bonds, **kwargs)
+        monkeypatch.setattr(ForceFieldTrajectory, 'record', fail_record)
+    with pytest.raises(MemoryError) as caught:
+        repair._repair_watched_ring_piercings_once(
+            molecule, 'UFF', current_piercings=watch, watch_batch=watch, attempt=1,
+            short_steps=4, perturb_sigma=.5, rng=np.random.default_rng(3), trajectory_recorder=recorder)
+    assert caught.value is error
+    assert tuple(molecule.bonds) == bonds
+    assert trajectory[-1].event is TrajectoryEvent.RING_CLOSED
+    assert len(trajectory.topology(trajectory[-1].index).bonds) == 3
+    assert trajectory[-1].energy_kj_mol is None
+    # The helper retains the perturbation; outer closed-frame selection owns rollback.
+    np.testing.assert_array_equal(molecule.coordinates, original_coordinates + 1.)

@@ -21,7 +21,7 @@ def _atom_only_copy(source):
     payload = get_stereo_payload(source)
     return Molecule._build_molecule(replace(
         record,
-        bond_endpoints=(), bond_values=b'', bond_partitions=(), bond_kinds=(),
+        bond_endpoints=(), bond_values=b'', bond_kinds=(),
         bond_directions=(), bond_sources=(), bond_metadata=(), bond_aromatic=(),
         stereo_payload=replace(payload, records=(), bond_facts=()),
     ))

@@ -335,7 +335,7 @@ def test_implicit_carrier_requires_one_represented_virtual_hydrogen(
     )
 
 
-def _hidden_equivalence_molecule(*, hide_second_oxygen):
+def _selected_equivalence_molecule(*, exclude_second_oxygen):
     molecule = _molecule(
         (14, 6, 6, 9, 17, 8, 8),
         (
@@ -351,14 +351,15 @@ def _hidden_equivalence_molecule(*, hide_second_oxygen):
         molecule,
         (_tetrahedral(0, tuple(_atom(row) for row in range(1, 5))),),
     )
-    if hide_second_oxygen:
-        molecule.hide_bonds(molecule.bonds[-1], clear_conformers=False)
+    if exclude_second_oxygen:
+        from hotpot.cheminfo.structure._selection import _capture_topology_selection
+        _capture_topology_selection(molecule, excluded_bonds=(molecule.bonds[-1],))
     return molecule
 
 
-def test_active_and_hidden_represented_bonds_give_the_same_equivalence_result():
-    active = _hidden_equivalence_molecule(hide_second_oxygen=False)
-    hidden = _hidden_equivalence_molecule(hide_second_oxygen=True)
+def test_operation_exclusion_does_not_change_complete_graph_equivalence():
+    active = _selected_equivalence_molecule(exclude_second_oxygen=False)
+    hidden = _selected_equivalence_molecule(exclude_second_oxygen=True)
 
     active_report = _assert_non_stereogenic(active)
     hidden_report = _assert_non_stereogenic(hidden)
@@ -819,14 +820,11 @@ def test_gate6_semantic_context_interprets_valid_coordination_descendant():
 
 
 def test_repeated_public_validation_is_deterministic_and_nonmutating():
-    molecule = _hidden_equivalence_molecule(hide_second_oxygen=True)
+    molecule = _selected_equivalence_molecule(exclude_second_oxygen=True)
     payload = stereo.get_stereo_payload(molecule)
     atom_snapshot = tuple(deepcopy(atom.attr_dict) for atom in molecule.atoms)
     active_bond_snapshot = tuple(
         deepcopy(bond.attr_dict) for bond in molecule.bonds
-    )
-    hidden_bond_snapshot = tuple(
-        deepcopy(bond.attr_dict) for bond in molecule._hided_bonds
     )
 
     first = stereo.validate_stereochemistry(molecule)
@@ -841,9 +839,6 @@ def test_repeated_public_validation_is_deterministic_and_nonmutating():
     assert stereo.get_stereo_payload(molecule) is payload
     assert tuple(atom.attr_dict for atom in molecule.atoms) == atom_snapshot
     assert tuple(bond.attr_dict for bond in molecule.bonds) == active_bond_snapshot
-    assert tuple(
-        bond.attr_dict for bond in molecule._hided_bonds
-    ) == hidden_bond_snapshot
 
 
 def test_rejected_swap_does_not_enumerate_unrelated_hydrogen_symmetry(

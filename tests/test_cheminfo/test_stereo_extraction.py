@@ -490,7 +490,7 @@ def test_capture_keeps_former_outside_endpoint_alive_only_for_the_operation():
 
 
 @pytest.mark.parametrize("mutation", (
-    "payload_schema", "record_order", "atom_order", "bond_identity", "partition",
+    "payload_schema", "record_order", "atom_order", "bond_identity", "bond_row_order",
     "bond_order", "bond_kind", "bond_direction", "endpoint_order",
 ))
 def test_deferred_raw_guard_rejects_consumed_drift_before_H_or_native(monkeypatch, mutation):
@@ -510,9 +510,8 @@ def test_deferred_raw_guard_rejects_consumed_drift_before_H_or_native(monkeypatc
             mol._atoms.reverse()
         elif mutation == "bond_identity":
             mol._bonds[0] = Bond(bond.atom1, bond.atom2, bond_order=bond.bond_order)
-        elif mutation == "partition":
-            # Moving the last active row preserves the flattened bond sequence.
-            mol._hided_covalent_bonds.append(mol._bonds.pop())
+        elif mutation == "bond_row_order":
+            mol._bonds.reverse()
         elif mutation == "bond_order":
             bond._attrs[0] = 2.0
         elif mutation == "bond_kind":
@@ -623,10 +622,10 @@ def test_preflight_returns_all_raw_issues_before_deferred_fields(monkeypatch):
     stereo.set_stereo_payload(mol, stereo.StereoPayload(1, (), (fact, fact, replace(fact, atom=3)), ()))
     mol._add_bond(1, 2, bond_kind="dative", bond_direction="sideways")
     mol._bonds[0]._attrs[0] = float("nan")
-    mol._hided_covalent_bonds.append(Bond(mol._atoms[0], mol._atoms[1], bond_order=1.0))
+    mol._bonds.append(Bond(mol._atoms[0], mol._atoms[1], bond_order=1.0))
     loop = Bond(mol._atoms[1], mol._atoms[2], bond_order=1.0)
     loop._atoms = (mol._atoms[1], mol._atoms[1])
-    mol._hided_covalent_bonds.append(loop)
+    mol._bonds.append(loop)
 
     def forbidden(*args, **kwargs):
         pytest.fail("preflight issues reached H/aromatic/native work")

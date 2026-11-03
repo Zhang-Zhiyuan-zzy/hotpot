@@ -90,7 +90,7 @@ def mol2obmol(mol):
 
 def obmol2mol(obmol, mol):
     with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["openbabel"]):
-        if mol._atoms or mol._bonds or mol._hided_metal_bonds or mol._hided_covalent_bonds:
+        if mol._atoms or mol._bonds:
             raise ValueError("Factual import requires an empty Atom and complete-Bond target")
         initial = mol._capture_factual_record()[0]
         record = _openbabel._obmol_record(obmol, initial, mol._stereo_payload)
@@ -151,7 +151,7 @@ def _to_rdmol_prepared(mol, kekulize, sanitize, hydrogens):
 def from_rdmol(rdmol, mol):
     """Populate the supplied empty target from an RDKit molecule."""
     with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["rdkit"]):
-        if mol._atoms or mol._bonds or mol._hided_metal_bonds or mol._hided_covalent_bonds:
+        if mol._atoms or mol._bonds:
             raise ValueError("Factual import requires an empty Atom and complete-Bond target")
         initial = mol._capture_factual_record()[0]
         record, payload, idx_to_row = _rdkit._rdmol_record(rdmol, initial)

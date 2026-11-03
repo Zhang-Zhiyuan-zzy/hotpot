@@ -10,6 +10,8 @@ from typing import Optional, Tuple, TYPE_CHECKING
 import numpy as np
 
 from ..rules.mathematics import geometry as geo
+from ..operations.topology_queries import _components
+from ..structure._selection import _capture_topology_selection
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from ..conformers import (
     ConformerSampler,
@@ -128,7 +130,7 @@ def _build_ligand_proxies(
     started = time.monotonic()
     clone_mol = copy(mol)
     _copy_molecule_metadata(mol, clone_mol)
-    clone_mol.hide_metal_ligand_bonds(clear_conformers=False)
+    selection = _capture_topology_selection(clone_mol, ligand_skeleton=True)
     rng = np.random.default_rng(seed)
     total_attempts = 0
     total_accepted = 0
@@ -151,7 +153,7 @@ def _build_ligand_proxies(
     )
 
     for component_index, (component_mol, component_atoms) in enumerate(
-        clone_mol._components_with_bindings()
+        _components(clone_mol, type(clone_mol), with_bindings=True, selection=selection)
     ):
         if component_mol.has_metal:
             continue

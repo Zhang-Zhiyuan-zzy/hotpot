@@ -156,7 +156,9 @@ def test_each_write_uses_fresh_value_for_all_frames_and_preserves_distinct_curre
         readback = list(io.MolReader(path, 'sdf'))
         assert len(readback) == len(expected)
         np.testing.assert_array_equal([m.coordinates for m in readback], expected)
-        assert len(list(io.MolReader(text, 'sdf'))) == 1
+        text_readback = list(io.MolReader(text, 'sdf'))
+        assert len(text_readback) == len(expected)
+        np.testing.assert_array_equal([m.coordinates for m in text_readback], expected)
     assert len(projections) == 2 and projections[0] is not projections[1]
     for index, value in enumerate(projections):
         selected = serialized[index * len(expected):(index + 1) * len(expected)]

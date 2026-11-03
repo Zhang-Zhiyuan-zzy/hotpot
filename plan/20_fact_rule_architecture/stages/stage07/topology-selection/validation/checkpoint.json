@@ -1,0 +1,480 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7B",
+  "partition": "complete Bond topology and operation selections",
+  "owner": "root",
+  "recorded_utc": "2026-11-03T07:04:16.097956+00:00",
+  "status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE",
+  "stage_status": "COMPLETE_CP311_OWNING_SCOPE",
+  "root_acceptance_pending": false,
+  "stage_gate_closed": true,
+  "global_gate_closed": false,
+  "goal_v2_activated": true,
+  "effective_goal": "plan/20_fact_rule_architecture/goal.md",
+  "direction": "Chemical semantics > usable cost > version adaptation; CP311 first.",
+  "source_head": "63043dc766d27087bcc3aba3c75367d403b2f3d0",
+  "source_identity": "Recorded HEAD plus dirty source/test bindings; no new commit is inferred.",
+  "report": "stages/stage07/topology-selection/validation/report.md",
+  "evidence_index": "stages/stage07/topology-selection/validation/evidence_index.json",
+  "scientific_observations": "stages/stage07/topology-selection/validation/scientific_observations.json",
+  "contracts": "stages/stage07/topology-selection/contracts/hidden_topology_design.md",
+  "implementation_release": "stages/stage07/topology-selection/implementation_release.json",
+  "constraint_history": "stages/stage07/constraints/validation/checkpoint_20261103.json",
+  "source_snapshots": {
+    "C1": {
+      "evidence_id": "freeze/C1",
+      "meaning": "Connected cutover, prior successful1311 and actual source FF11/pipeline3/MCA1; persistence48/old24 and failed cost retain these bindings."
+    },
+    "C2": {
+      "evidence_id": "freeze/C2",
+      "meaning": "Existing representation bytes leaf canonicalization added; all other supported encodings, unsupported-object error and domain meaning retained. Two regression cases raise affected membership1311->1313."
+    },
+    "C3": {
+      "evidence_id": "freeze/C3",
+      "sha256": "dc4aa8d84569ee3c5c382c56817f6beea28481c7cb4de6553e9eda0ac6d87cd2",
+      "source_test_files": 1399,
+      "native_artifacts": 6,
+      "meaning": "Only constraints test instrumentation changes from C2 to equivalent dotted-target patching; every prior hook/assertion and production/native byte remains."
+    }
+  },
+  "accepted_contracts_and_observed_coverage": {
+    "HT1": "One complete ordered Bond collection, local immutable selections and independent projections; exact existing XOR metal/nonmetal predicate. H tests retain complete original working-clone Atom/Bond handles/UID/order prefix then append H; old recovery-after-H ordering intentionally changes. Donor H counts[1]/[1,1], neutral charges, six H and unique labels retained.",
+    "HT2": "Valid zero/mixed/all-one native masks publish selected coordinates and preserve all factual Bond handles/UID/order. Masks remain operation/session/trajectory observations, with selected/terminal topology and energy attribution distinct; invalid mask/mapping/coordinates reject atomically.",
+    "HT3": "Same N02 MoleculeRecord,23 keyword-only fields and tagged-v2 private reducer; no partitions/bridge/new public schema. Fresh-process current record/Molecule/Atom/Bond roots and exact C0 old positional rejection tested.",
+    "HT4": "Complete simple graph rejects repeated unordered endpoint pairs/self edges before installation; former cross-partition active-first behavior is retired without deduplication.",
+    "HT5": "Only N04 _TopologySelection(source,atom_uids,bond_mask), one private frozen dataclass; no public selector/alias, Protocol/TypedDict/Enum/exception/native ABI mirror.",
+    "lifecycle": "Complete clear_constraints, copy/components/merge/removal, raw19/3 transport, metadata/source/currentness/UID/view/dependency/transaction and working-copy rollback coverage; private projected topology does not mutate carrier membership.",
+    "repair": "Existing exact edge/tie-break/watch/attempt budget preserved; open-frame energies remain on open graphs and closed unevaluated energy stays unavailable. Outer working-copy rollback retains caller; helper perturbations are not claimed to roll back coordinates."
+  },
+  "source_validation": {
+    "focused-attempt1": {
+      "execution_id": "source/focused-attempt1",
+      "returncode": 1,
+      "passed": 326,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 6.1815429497510195,
+      "direct_child_reaped": true,
+      "source_tests_native_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    "affected-attempt1": {
+      "execution_id": "source/affected-attempt1",
+      "returncode": 1,
+      "passed": 1306,
+      "failed": 5,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 22.945613043382764,
+      "direct_child_reaped": true,
+      "source_tests_native_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    "affected-attempt2": {
+      "execution_id": "source/affected-attempt2",
+      "returncode": 0,
+      "passed": 1311,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 22.602555947378278,
+      "direct_child_reaped": true,
+      "source_tests_native_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    "affected-attempt3": {
+      "execution_id": "source/affected-attempt3",
+      "returncode": 0,
+      "passed": 1313,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 22.60550172254443,
+      "direct_child_reaped": true,
+      "source_tests_native_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    "default-attempt1": {
+      "execution_id": "source/default-attempt1",
+      "returncode": 1,
+      "passed": 5385,
+      "failed": 2,
+      "errors": 0,
+      "skipped": 129,
+      "elapsed_seconds": 264.66716259904206,
+      "direct_child_reaped": true,
+      "source_tests_native_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    "default-repairs-attempt1": {
+      "execution_id": "source/default-repairs-attempt1",
+      "returncode": 1,
+      "passed": 169,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 8.772258888930082,
+      "direct_child_reaped": true,
+      "source_tests_native_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    "default-repairs-attempt2": {
+      "execution_id": "source/default-repairs-attempt2",
+      "returncode": 0,
+      "passed": 180,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 9.004520634189248,
+      "direct_child_reaped": true,
+      "source_tests_native_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    "actual-ff-attempt1": {
+      "execution_id": "source/actual-ff-attempt1",
+      "returncode": 0,
+      "passed": 11,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 15.045304017141461,
+      "direct_child_reaped": true,
+      "source_tests_native_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    "actual-pipeline-attempt1": {
+      "execution_id": "source/actual-pipeline-attempt1",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 4.518190376460552,
+      "direct_child_reaped": true,
+      "source_tests_native_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    "actual-mca-attempt1": {
+      "execution_id": "source/actual-mca-attempt1",
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 3.9533273093402386,
+      "direct_child_reaped": true,
+      "source_tests_native_unchanged": true,
+      "unexpected_product_origins": []
+    }
+  },
+  "default_suite_disposition": {
+    "original": "5385passed/2failed/129skipped at C1; retained actual result, not a current full-default pass.",
+    "failure1": "Architecture bookkeeping did not retire all removed core-write entries. An initial static reconstruction also missed one preexisting direct-core import in the isolated-registration constraints test. Full structured audit then caught it; equivalent dotted-target test instrumentation corrects it.",
+    "failure2": "OB two-frame write test expected one read object although established write_single=False writes both frames; update assertion to existing behavior, preserving all frame/current-coordinate checks.",
+    "repair_attempt1": "169passed/1failed: retained full structured audit finding on preexisting constraints import.",
+    "repair_attempt2": "180passed: architecture+all OB bulk-coordinate tests+complete constraints file on C3.",
+    "current_architecture": {
+      "evidence_id": "source/architecture-current",
+      "status": "passed",
+      "scanned_python_files": 928,
+      "remaining_debt": 224,
+      "new_debt": 0,
+      "unretired_allowlist_entries": 0,
+      "layer_findings": 0
+    },
+    "limits": "Targeted correction/reuse, no arithmetic manufactured aggregate and no rerun of current complete default suite."
+  },
+  "installed_validation": {
+    "C1_historical": {
+      "evidence_id": "installed/C1",
+      "affected": 1311,
+      "actual_FF": 11,
+      "actual_CBFF_xtb": 3,
+      "actual_MCA": 1
+    },
+    "C2_current_product": {
+      "evidence_id": "installed/C2",
+      "results": {
+        "affected": {
+          "tests": 1313,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "origin_processes": 20,
+          "distinct_loaded_product_modules": 173
+        },
+        "actual_FF": {
+          "tests": 11,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "origin_processes": 71,
+          "distinct_loaded_product_modules": 140
+        },
+        "actual_CBFF_xtb": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "origin_processes": 4,
+          "distinct_loaded_product_modules": 216
+        },
+        "actual_MCA": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "origin_processes": 2,
+          "distinct_loaded_product_modules": 159
+        }
+      },
+      "same_ordered_1313_affected_nodeids": true,
+      "production_python_files": 456,
+      "outside_checkout": true,
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/medium/20261103-stage7b-topology-installed/c2/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+        "bytes": 6290798,
+        "sha256": "b400e60b4c02b078b9eaf3b757abf44492fe41a1a3616c2c7341574bb8da36d5"
+      },
+      "reused_source_bound_native_binaries": 6,
+      "rebuilt_native_binaries": 0,
+      "nonpython_omissions": 41,
+      "source_tests_native_unchanged": true,
+      "installed_unchanged": true,
+      "models_unchanged": true,
+      "runtime_processes_remaining": []
+    },
+    "C3_test_only": {
+      "evidence_id": "installed/C3",
+      "totals": {
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsed_seconds": 1.2415438294410706,
+      "same_C2_wheel": true,
+      "origin_leaks": [],
+      "scope": "Entire changed constraints file; no full affected/business/default rerun. Unchanged C2 product/business evidence retained with original bindings."
+    },
+    "environment": "Fresh --system-site-packages CP311 venv, no-index/no-deps install; copied tests outside checkout, python -I -B; PYTHONPATH/PYTHONHOME removed, actual product/legacy MCA alias origins checked. Dependencies shared.",
+    "failures_retained": [
+      {
+        "evidence_id": "installed/failure1",
+        "meaning": "Duplicate conftest registration fails before collection; no business result."
+      },
+      {
+        "evidence_id": "installed/failure2",
+        "meaning": "Legacy MCA import path setup causes three collection errors; no tests execute. Artifact-only path/origin correction precedes attempt3."
+      }
+    ]
+  },
+  "persistence": {
+    "evidence_id": "persistence/pass",
+    "snapshot": "C1; unaffected record/reducer/transport implementation is reused, not relabeled a complete C3 persistence rerun. C2 representation bytes handling also receives current affected source/install regression tests.",
+    "current": {
+      "written": 48,
+      "loaded": 48,
+      "failed": 0,
+      "skipped": 0,
+      "in_writer_process_loads": 0,
+      "roots": [
+        "record",
+        "Molecule",
+        "member Atom",
+        "member Bond"
+      ],
+      "protocols": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "cases": [
+        "C0 raw transport without partitions",
+        "existing test_builder typed stereo transport"
+      ],
+      "writer_pid": 5,
+      "reader_pid": 24,
+      "independent_raw_record_check": "all raw19 input slots byte-exact",
+      "Molecule_installed_check": "C0 factual projection, including unchanged seven-derived-slot NaN/presence/source policy, plus complete owner/member/self/shared graph and current dependencies/UID/maps/frames"
+    },
+    "old_current_rejection": {
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "exception": "expected MoleculeRecord.__init__ positional argument TypeError",
+      "factual_install_calls": 0,
+      "raw_restore_calls": 0,
+      "baseline_artifact_hashes_unchanged": 43
+    },
+    "original_failure": "Attempt01 incorrectly equated all raw19 record fields with installed Molecule factual projection. Raw record retains all19bytes; Molecule uses C0 existing seven-derived-slot NaN/presence/source policy. Original failure/diagnosis retained, artifact assertion corrected only.",
+    "coverage_limits": [
+      "Source CP311 only; unchanged native binding is not rebuilt-native/ABI proof",
+      "Exactly two current transport fixtures and exact24 C0 old fixtures; no arbitrary-history, detached/unregistered-root or subclass coverage",
+      "Typed stereo is one transport fixture, not chemical-assignment scientific coverage; no scientific truth claim"
+    ]
+  },
+  "bounded_cost": {
+    "status": "ROOT_ACCEPTED_BOUNDED_USABLE_COST",
+    "baseline_cells": 23,
+    "sampling": "Frozen same work23cells/322sample rows; short paths3warmups+10samples, fixed iterations; actual backend repeats per frozen manifest.",
+    "attempt01": {
+      "evidence_id": "cost/failure",
+      "returncode": 1,
+      "completed_cells": 5,
+      "planned_cells": 23,
+      "failure": "First ligand selection rejects supported nested bytes metadata because representation _canonical omitted bytes leaf; all partial samples/comparison retained.",
+      "production_repair": "C2 adds only deterministic bytes leaf to existing canonicalization; no pickle/repr/fallback, generic object acceptance, domain changes or metadata codec rewrite."
+    },
+    "attempt02": {
+      "evidence_id": "cost/attempt02-terminal",
+      "comparison_id": "cost/attempt02-comparison",
+      "review_id": "cost/attempt02-review",
+      "root_disposition": "stages/stage07/topology-selection/root_cost_disposition_20261103.json",
+      "returncode": 0,
+      "elapsed_seconds": 171.80209297128022,
+      "child_reaped": true,
+      "completion": {
+        "status": "PASS",
+        "source_test_native_unchanged": true,
+        "cost_cells": 23,
+        "warmup_samples": 69,
+        "measured_samples": 230,
+        "separate_allocation_samples": 23,
+        "driver_sha256": "91de5d100b848fbd252657528bbc5c558c0771c7c80db1b3a690540ede0e9adc",
+        "boundary": "source",
+        "limits": "Same-work source costs and two H observations only; no universal timing/scientific acceptance."
+      },
+      "sample_rows": 322,
+      "adverse_medians": 14,
+      "adverse_python_peaks": 10,
+      "root_usable_cost_acceptance": true,
+      "pass_claimed": "Completed measured work and root-accepted bounded usable cost; whole Stage7B owning CP311 scope is now explicitly root accepted. No global performance claim."
+    },
+    "historical_constraint_cost": "Accepted prior45cells; selective-axis6.276–19.854x and fullBond2.651–2.741x remain adverse history, not current whole-stage passes or offsets.",
+    "limits": "Shared host, sequential baseline/candidate; no controlled global performance/causality, parity/speedup, native lifetime/leak or full-model benchmark claim.",
+    "observed_cost": {
+      "maximum_relative_ligand1024": {
+        "cell": {
+          "operation": "ligand",
+          "size": 1024,
+          "iterations": 1
+        },
+        "C0_median_seconds": 0.115788001,
+        "candidate_median_seconds": 0.379117983,
+        "delta_seconds": 0.263329982,
+        "ratio": 3.2742424061712576,
+        "C0_MAD_seconds": 0.00024699299999999397,
+        "candidate_MAD_seconds": 0.000523658499999996
+      },
+      "largest_absolute_ligand8192": {
+        "cell": {
+          "operation": "ligand",
+          "size": 8192,
+          "iterations": 1
+        },
+        "C0_median_seconds": 1.348446403,
+        "candidate_median_seconds": 4.1451810275,
+        "delta_seconds": 2.7967346244999995,
+        "ratio": 3.074042111186528,
+        "C0_MAD_seconds": 0.0014840649999999789,
+        "candidate_MAD_seconds": 0.004417918000000132
+      },
+      "H_cases": [
+        {
+          "cell": {
+            "operation": "H_working_copy",
+            "case": "neutral-phenol",
+            "iterations": 1,
+            "seed": 11
+          },
+          "C0_median_seconds": 0.0063719985,
+          "candidate_median_seconds": 0.013376612,
+          "delta_seconds": 0.0070046134999999995,
+          "ratio": 2.099280469071046,
+          "C0_MAD_seconds": 1.7768999999999945e-05,
+          "candidate_MAD_seconds": 3.6669999999999064e-05
+        },
+        {
+          "cell": {
+            "operation": "H_working_copy",
+            "case": "bidentate-OCCO",
+            "iterations": 1,
+            "seed": 17
+          },
+          "C0_median_seconds": 0.0045592445,
+          "candidate_median_seconds": 0.00958447,
+          "delta_seconds": 0.005025225499999999,
+          "ratio": 2.102205749220073,
+          "C0_MAD_seconds": 2.0839999999999834e-05,
+          "candidate_MAD_seconds": 1.3541499999999464e-05
+        }
+      ],
+      "maximum_adverse_python_peak_delta_bytes": 524400,
+      "maximum_H_python_peak_bytes": 197605,
+      "growth": "For1024->8192atoms (8x), ligand10.93375x time growth; one-edge13.85169x vsC0 11.79329x, copy12.58360x, pickle11.96469x. Retain observations without asserting global linearity/quadratic behavior.",
+      "all_values_and_dispositions": "All23medians/MADs,23allocations/RSS and14time/10Pythonpeak adverse observations bound by cost comparison and root cost disposition."
+    }
+  },
+  "remaining_root_actions": [],
+  "remaining_global_gates": [
+    "Stage7C/D/E and later stages; H/isotope/stereo canonical ownership remains Stage7E.",
+    "Other Python3.10/3.12/3.13/3.14; clean all-native/ABI/SDK/sdist/manylinux and41 known package omissions.",
+    "Broader science/GPU/external/Plan12, global comparable performance and final acceptance.",
+    "Stage0–12 and B_exp before separately gated Stage13."
+  ],
+  "record_task_limits": "Record preparation plus stdlib JSON/link/hash/diff/preservation checks only; no product import/test/build/install, Git/network/config/model operation or child agent.",
+  "root_completion": "stages/stage07/completion_20261103.json",
+  "root_acceptance": {
+    "decision": "ROOT_ACCEPTED_CP311_OWNING_SCOPE",
+    "owner": "root",
+    "record": "stages/stage07/completion_20261103.json",
+    "scope": "Whole Stage7B constraint-owner plus connected HT1–HT5 functional migration and applicable CP311 owning-stage gates, including prior bounded usable-cost decisions.",
+    "limits": "Only Stage7B owning scope closes. No current full-default-suite, all-version, clean-native/ABI, full-plan or global completion claim."
+  },
+  "durable_evidence_archive": {
+    "scope": "Finite local durable evidence copy only; external model/native/wheel binaries and complete source checkout are excluded. Binding JSON is identity evidence, not preservation of those external binaries.",
+    "path": ".plan20-artifacts/20261103/stage7b/topology-selection",
+    "manifest": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261103/stage7b/topology-selection/manifest.json",
+      "bytes": 418115,
+      "sha256": "27ac50877ec235bc379dcaf0eb6966be6711575a4b3ee10b7599e165a4e62c03"
+    },
+    "receipt": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/archive-index/receipt.json",
+      "bytes": 975,
+      "sha256": "7f15f396948b125319544b97f2c34f67aae01fdc93e7837b7489148c543c54b5"
+    },
+    "payload_files": 1150,
+    "payload_logical_bytes": 98721451,
+    "unique_payload_blobs": 765,
+    "unique_payload_bytes": 88887401,
+    "including_metadata_files": 1154,
+    "including_metadata_logical_bytes": 105733131,
+    "source_actual_FF_limit": "Logs/JUnit/bindings are preserved; the assigned source actual-FF attempt directory has no standalone scientific raw-energy output file. None is invented.",
+    "root_independent_identity_check": {
+      "source_test_files_verified": 1399,
+      "source_test_files_expected": 1399,
+      "native_artifacts_verified": 6,
+      "native_artifacts_expected": 6,
+      "support_files_verified": 3,
+      "support_files_expected": 3,
+      "evidence_index_entries_verified": 55,
+      "evidence_index_entries_expected": 55,
+      "attribution": "Root-reported independent static identity check; no new runtime."
+    }
+  },
+  "completed_root_actions": [
+    "Root accepted the maintained constraint and HT1–HT5 source/installed/scientific/migration evidence and prior bounded usable-cost decisions as whole Stage7B owning CP311 scope.",
+    "Root preserved the finite local durable evidence copy with manifest/receipt identities; original failures and terminal receipts/source freezes remain retained.",
+    "Root authorized reconciliation of the main plan/budget/log and subordinate acceptance records through stages/stage07/completion_20261103.json."
+  ],
+  "git_delivery": {
+    "owner": "root",
+    "attribution": "Actual delivery is attributable to resulting Git history; no new delivery hash or runtime is inferred by this record. Root alone reviews, commits/pushes and opens Stage7C."
+  }
+}

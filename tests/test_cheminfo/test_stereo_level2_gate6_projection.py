@@ -58,22 +58,19 @@ def _bond_record(graph, edge):
     return graph.target_spec["bonds"][position]
 
 
-def test_projection_unifies_active_and_both_hidden_bond_classes():
+def test_projection_includes_complete_graph_despite_operation_exclusion():
     molecule = _molecule(
         (30, 7, 8, 9),
         ((0, 1, 1.0), (1, 2, 1.0), (2, 3, 1.0)),
     )
-    molecule.hide_bonds(
-        molecule.bonds[0],
-        molecule.bonds[2],
-        clear_conformers=False,
-    )
+    from hotpot.cheminfo.structure._selection import _capture_topology_selection, _selected_bonds
+    selection = _capture_topology_selection(molecule, excluded_bonds=(molecule.bonds[0], molecule.bonds[2]))
+    assert _selected_bonds(molecule, selection) == (molecule.bonds[1],)
 
     graph, issues = _gate6_projection(molecule)
 
     assert issues == ()
-    assert len(molecule._hided_metal_bonds) == 1
-    assert len(molecule._hided_covalent_bonds) == 1
+    assert len(molecule.bonds) == 3
     assert graph.target_spec["edges"] == ((0, 1), (1, 2), (2, 3))
     assert len(graph.target_spec["bonds"]) == 3
 
@@ -234,13 +231,13 @@ def test_unknown_dative_direction_is_deterministically_unsupported():
 def test_malformed_represented_edges_are_unsupported(malformation):
     molecule = _molecule((6, 6), ((0, 1, 1.0),))
     if malformation == "parallel":
-        molecule._hided_covalent_bonds.append(
+        molecule._bonds.append(
             Bond(molecule.atoms[0], molecule.atoms[1], bond_order=2.0)
         )
     elif malformation == "self_loop":
         malformed = Bond(molecule.atoms[0], molecule.atoms[1], bond_order=1.0)
         malformed._atoms = (molecule.atoms[0], molecule.atoms[0])
-        molecule._hided_covalent_bonds.append(malformed)
+        molecule._bonds.append(malformed)
     else:
         # Inject malformed transport storage directly. Controlled setters now
         # restore failed eager chemistry rather than leaving a partial NaN row.

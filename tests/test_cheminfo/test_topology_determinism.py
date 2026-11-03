@@ -1,6 +1,7 @@
 from copy import copy
 
 from hotpot import read_mol
+from hotpot.cheminfo.structure._selection import _capture_topology_selection, _selected_bonds
 
 
 def _bond_indices(molecule):
@@ -16,15 +17,17 @@ def test_components_keep_atoms_in_index_order():
     assert component_ids == [(0, 1), (2,), (3,)]
 
 
-def test_hidden_bond_recovery_is_order_preserving_and_repeatable():
+def test_ligand_selection_preserves_complete_order_and_is_repeatable():
     molecule = read_mol("[Zn](N)(N)", "smi")
     first = copy(molecule)
     second = copy(molecule)
 
     for candidate in (first, second):
         original = _bond_indices(candidate)
-        candidate.hide_metal_ligand_bonds(clear_conformers=False)
-        candidate.recover_hided_metal_ligand_bonds(clear_conformers=False)
+        first_selection = _capture_topology_selection(candidate, ligand_skeleton=True)
+        second_selection = _capture_topology_selection(candidate, ligand_skeleton=True)
+        assert first_selection.bond_mask == second_selection.bond_mask == bytes(2)
+        assert _selected_bonds(candidate, first_selection) == ()
         assert _bond_indices(candidate) == original
 
     assert _bond_indices(first) == _bond_indices(second)

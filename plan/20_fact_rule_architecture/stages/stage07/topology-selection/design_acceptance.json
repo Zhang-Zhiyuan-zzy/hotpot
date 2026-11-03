@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-11-03T05:32:19.378150+00:00",
+  "stage": "Stage7B",
+  "partition": "remaining connected hidden-topology migration",
+  "owner": "root",
+  "status": "DESIGN_AND_C1_STATIC_REVIEW_ACCEPTED_RUNTIME_VALIDATION_RELEASED",
+  "source_head": "63043dc766d27087bcc3aba3c75367d403b2f3d0",
+  "business_source_commit": "6d1ea01f4e8d354318a00633a43b85b92cb68e7b",
+  "source_attribution": "Original contract hashes and C0 production/source match remain historical; C1 dirty source/test/native bindings are separately recorded in implementation_release.json.",
+  "design_accepted": true,
+  "implementation_authorized": true,
+  "runtime_authorized": true,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "goal_v2_activated": true,
+  "root_review": "Root read the complete four-file design and accepts HT1-HT5. This accepts the architecture and explicit observable/private-format dispositions, not a candidate or runtime pass.",
+  "dispositions": [
+    {
+      "id": "HT1",
+      "accepted": true,
+      "decision": "One complete ordered Bond collection; existing XOR metal-ligand predicate; immutable local selections and independent projections; retain complete working-clone original handle/UID/order while reassembling projected H work. Preserve approved numerical chemistry and source/rollback boundaries."
+    },
+    {
+      "id": "HT2",
+      "accepted": true,
+      "decision": "Generic native publication validates and publishes coordinates, preserving complete factual Bonds for zero/mixed/all-one valid masks. Masks remain operation/session/trajectory observations; selected and terminal topology/energy attribution remain distinct."
+    },
+    {
+      "id": "HT3",
+      "accepted": true,
+      "decision": "Remove private bond_partitions; keyword-only current MoleculeRecord with exact tagged version2 private pickle restore. Reject old positional current-source fixtures before installation. No arbitrary historical compatibility or later core-relocation completion claim."
+    },
+    {
+      "id": "HT4",
+      "accepted": true,
+      "decision": "Apply current simple-graph unique unordered endpoint pair rule to the entire complete collection; reject former cross-partition duplicates atomically, without deduplication/winner selection/multigraph semantics."
+    },
+    {
+      "id": "HT5",
+      "accepted": true,
+      "decision": "Consume only reserved N04 as _TopologySelection(source, atom_uids, bond_mask), one private frozen dataclass. No public selector, native schema, Protocol/TypedDict/Enum/exception, or unrelated deletion credit."
+    }
+  ],
+  "contracts": [
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/topology-selection/entry_review.json",
+      "bytes": 22390,
+      "sha256": "3194cd10447eb6616e40e671364df4c1efd5e683449e1487db1c8e7f21cf223a"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/topology-selection/contracts/hidden_topology_design.md",
+      "bytes": 33604,
+      "sha256": "bb2b4bbd2bed22ac4917d13b788018ab9841ee1b79d17357dadc3b7b57eed13e"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/topology-selection/contracts/file_scope.json",
+      "bytes": 8601,
+      "sha256": "7cee83322982373f5011488f518fe8267346cc5c8d50d11e026e4ab3c3b1970e"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stages/stage07/topology-selection/contracts/validation_plan.json",
+      "bytes": 17033,
+      "sha256": "ef0a446d147a23fb48c9dfef17312d02a501e740a93aea78b020651b937b54ca"
+    }
+  ],
+  "current_bound_paths_verified": [
+    "hotpot/cheminfo/core.py",
+    "hotpot/cheminfo/structure/_builder.py",
+    "hotpot/cheminfo/structure/_commit.py",
+    "hotpot/cheminfo/structure/_identity.py",
+    "hotpot/cheminfo/views/_source.py",
+    "hotpot/cheminfo/operations/geometry.py",
+    "hotpot/cheminfo/operations/conversion.py",
+    "hotpot/cheminfo/adapters/structure/stereochemistry.py",
+    "hotpot/cheminfo/adapters/openbabel/conversion.py",
+    "hotpot/cheminfo/adapters/rdkit/conversion.py",
+    "hotpot/cheminfo/AImodels/mca/serialization.py",
+    "hotpot/plugins/ccdc_api/convert.py",
+    "hotpot/cheminfo/operations/topology_queries.py",
+    "hotpot/cheminfo/operations/chemistry.py",
+    "hotpot/cheminfo/forcefields/working_copy.py",
+    "hotpot/cheminfo/forcefields/ligand.py",
+    "hotpot/cheminfo/forcefields/backend.py",
+    "hotpot/cheminfo/forcefields/repair.py",
+    "hotpot/cheminfo/forcefields/native_adapters.py",
+    "hotpot/cheminfo/forcefields/native_packing.py",
+    "hotpot/cheminfo/_native/buffers.py",
+    "hotpot/cheminfo/obWrappers/packing.py",
+    "hotpot/cheminfo/obWrappers/native.py",
+    "hotpot/cheminfo/obWrappers/operation.py",
+    "hotpot/cheminfo/rdWrappers/native.py",
+    "hotpot/cheminfo/forcefields/native.py",
+    "hotpot/cheminfo/forcefields/native_reports.py",
+    "hotpot/cheminfo/forcefields/trajectory.py",
+    "hotpot/cheminfo/forcefields/_native/structure_session.cpp",
+    "hotpot/cheminfo/forcefields/_native/coordination_stage.cpp",
+    "hotpot/cheminfo/forcefields/_native/optimization_stage.cpp",
+    "hotpot/cheminfo/forcefields/_native/untangling_engine.cpp",
+    "hotpot/cheminfo/forcefields/_native/topology_workspace.cpp",
+    "hotpot/cheminfo/structure/_native/facts.cpp",
+    "tests/test_cheminfo/test_hidden_bond_restoration.py",
+    "tests/test_cheminfo/structure/test_builder.py",
+    "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+    "tests/test_cheminfo/structure/test_source_identity.py",
+    "tests/test_cheminfo/structure/test_view_identity.py",
+    "tests/test_cheminfo/structure/test_commit_atomicity.py",
+    "tests/test_cheminfo/structure/test_constraint_storage_lifecycle.py",
+    "tests/test_cheminfo/structure/test_conversion_freshness.py",
+    "tests/test_cheminfo/structure/test_factual_imports.py",
+    "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+    "tests/test_cheminfo/test_topology_index.py",
+    "tests/test_cheminfo/test_topology_determinism.py",
+    "tests/test_cheminfo/test_ligand_rings.py",
+    "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+    "tests/test_cheminfo/test_plan20_outer_cutover.py",
+    "tests/test_cheminfo/test_stereo_extraction.py",
+    "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
+    "tests/test_cheminfo/test_rdconvert_stereo_level1.py",
+    "tests/test_cheminfo/test_stereo_level2_gate6_projection.py",
+    "tests/test_cheminfo/test_stereo_level2_gate6_equivalence.py",
+    "tests/test_cheminfo/test_stereo_level2_gate7_coordination_graph.py",
+    "tests/test_cheminfo/test_stereo_level2_gate7_public.py",
+    "tests/test_cheminfo/test_complex_untangling_workflow.py",
+    "tests/test_cheminfo/test_complex_hydrogens.py",
+    "tests/test_cheminfo/test_complexes_build.py",
+    "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+    "tests/test_cheminfo/_stage5_fixtures.py",
+    "tests/smarts_conformance/test_metamorphic.py",
+    "tests/benchmarks/coordination_complexes/validation_providers.py",
+    "tests/benchmarks/coordination_complexes/validation_evidence.py",
+    "tests/benchmarks/coordination_complexes/validation_cohort.py"
+  ],
+  "c0_pending": [],
+  "validation": "Follow accepted contracts/validation_plan.json; CP311 first, full connected source freeze before runtime, actual required FF/backend/model and current installed boundary. Native rebuild only for an actual source/ABI change. Baseline evidence is not candidate evidence.",
+  "baseline_assignment": {
+    "agent": "/root/stage7b_topology_baseline_freeze",
+    "output": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/baseline/"
+  },
+  "remaining": "Whole Stage7B source/technical/chemical/usable-cost acceptance; Stage7C/D/E and later/global Plan20/Plan12, package/native/version/science/performance obligations; Stage0-12 and B_exp before separate Stage13 experiment.",
+  "C0_acceptance": {
+    "recorded_utc": "2026-11-03T06:07:52.378016+00:00",
+    "receipt": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/baseline/receipt.json",
+    "verified_artifact_bindings": 43,
+    "source_test_bindings": 1398,
+    "native_bindings": 6,
+    "mismatches": 0,
+    "implementation_release": "implementation_release.json"
+  },
+  "ordering_clarification": "Retain complete original working-clone Bond handles/UID/order as prefix, then append H Bonds. Intentionally replaces old hide/recover order that appended recovered coordination after new H. No historical ordering parity claim; chemistry/H counts/labels and original caller identity remain required.",
+  "contract_binding_history": "Original design hashes remain historical acceptance identities; corrected current contracts are reviewed/rebound at C1. Hashes attribute bytes, not chemical correctness.",
+  "current_C1_release": "implementation_release.json"
+}

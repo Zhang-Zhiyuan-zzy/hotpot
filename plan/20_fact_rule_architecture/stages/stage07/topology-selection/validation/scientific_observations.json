@@ -1,0 +1,1104 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7B",
+  "recorded_utc": "2026-11-03T06:55:13.030991+00:00",
+  "source_and_installed_boundaries": "Source actual workflows retain C1 bindings; installed actual workflows below retain C2 bindings. C3 changes test instrumentation only.",
+  "evidence_index": "evidence_index.json",
+  "pipeline_scenarios": [
+    {
+      "scenario": "official-coordination-False",
+      "status": "succeeded",
+      "stages": [
+        {
+          "name": "cbond",
+          "status": "succeeded",
+          "argv": [
+            "Zn",
+            "NCCO",
+            "--device",
+            "cpu"
+          ],
+          "elapsed_seconds": 0.24791503325104713,
+          "report": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/raw-test-outputs/actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/00-cbond/report.json",
+          "report_identity": {
+            "bytes": 440,
+            "sha256": "cba2f59030b5e2d8c2430eca9e250e0405dee6bb52b8ed0eb9cb3e9e740e1ed8"
+          },
+          "model_observation": {
+            "donor_indices": [
+              0,
+              3
+            ],
+            "metal": "Zn",
+            "path_probability": 0.7325034825111857,
+            "steps": [
+              {
+                "atom_index": 0,
+                "element": "N",
+                "probability": 0.8570544664505884,
+                "score": 1.7910377979278564
+              },
+              {
+                "atom_index": 3,
+                "element": "O",
+                "probability": 0.8546755325186985,
+                "score": 1.771752953529358
+              }
+            ]
+          }
+        },
+        {
+          "name": "ff",
+          "status": "succeeded",
+          "argv": [
+            "--route",
+            "complex",
+            "--rebuild",
+            "--quality",
+            "standard",
+            "--seed",
+            "7",
+            "--timeout",
+            "300"
+          ],
+          "elapsed_seconds": 0.843306751921773,
+          "report": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/raw-test-outputs/actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/01-ff/report.json",
+          "report_identity": {
+            "bytes": 15387,
+            "sha256": "cb0ee446222fb973a075e514405a3060eb10cfae3c97a3024dc5ea3c9cfb8e6e"
+          },
+          "forcefield_observations": [
+            {
+              "effective_forcefield": "UFF",
+              "final_energy": 69.14934437776031,
+              "energy_unit": "kJ/mol",
+              "converged": true,
+              "termination_reason": "converged",
+              "quality_passed": true
+            }
+          ],
+          "monitors": {
+            "all_passed": true,
+            "names": [
+              "coordinate_shape",
+              "finite_coordinates",
+              "topology",
+              "forcefield_setup",
+              "finite_final_energy",
+              "finite_rms_gradient",
+              "finite_max_gradient",
+              "backend_explosion",
+              "forcefield_convergence",
+              "atom_overlap",
+              "atom_too_close",
+              "bond_distance",
+              "bond_length_ratio",
+              "short_bond",
+              "bond_ring_piercing"
+            ],
+            "failed": []
+          }
+        },
+        {
+          "name": "xtb",
+          "status": "succeeded",
+          "argv": [
+            "--method",
+            "gfn2",
+            "--task",
+            "singlepoint",
+            "--xtb-executable",
+            "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+            "--charge",
+            "2",
+            "--threads",
+            "1",
+            "--post-check",
+            "standard"
+          ],
+          "elapsed_seconds": 0.0631338395178318,
+          "report": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/raw-test-outputs/actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/report.json",
+          "report_identity": {
+            "bytes": 5895,
+            "sha256": "19e5e3e7fc6acf298de2a135a0388ebfaad8a9b95626617d098b5129809a7ce3"
+          },
+          "xtb": {
+            "requested_method": "gfn2",
+            "effective_method": "gfn2",
+            "task": "singlepoint",
+            "charge": 2,
+            "unpaired_electrons": 0,
+            "energy_hartree": -14.26981398,
+            "gradient_norm": null,
+            "converged": true,
+            "process_succeeded": true,
+            "coordinates_committed": false,
+            "backend": {
+              "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+              "revision": "edcfbbe",
+              "version": "6.7.1"
+            },
+            "scientific_state_resolution": "unresolved",
+            "backend_projection_convention": "pure_spin_highest_ms"
+          },
+          "post_check": [
+            {
+              "passed": true,
+              "metrics": {
+                "atom_count": 12,
+                "bond_count": 12,
+                "bond_ring_excluded_ring_count": 0,
+                "bond_ring_piercing_count": 0,
+                "bond_ring_scan_complete": true,
+                "bond_ring_scope": "ligand_skeleton",
+                "bond_ring_undetermined_count": 0,
+                "maximum_bond_length": 1.8426090215762798,
+                "minimum_pair_distance": 0.9923614425373608
+              },
+              "failed_checks": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": "official-coordination-True",
+      "status": "succeeded",
+      "stages": [
+        {
+          "name": "cbond",
+          "status": "succeeded",
+          "argv": [
+            "Zn",
+            "NCCO",
+            "--device",
+            "cpu"
+          ],
+          "elapsed_seconds": 0.013855556026101112,
+          "report": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/raw-test-outputs/actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/00-cbond/report.json",
+          "report_identity": {
+            "bytes": 440,
+            "sha256": "cba2f59030b5e2d8c2430eca9e250e0405dee6bb52b8ed0eb9cb3e9e740e1ed8"
+          },
+          "model_observation": {
+            "donor_indices": [
+              0,
+              3
+            ],
+            "metal": "Zn",
+            "path_probability": 0.7325034825111857,
+            "steps": [
+              {
+                "atom_index": 0,
+                "element": "N",
+                "probability": 0.8570544664505884,
+                "score": 1.7910377979278564
+              },
+              {
+                "atom_index": 3,
+                "element": "O",
+                "probability": 0.8546755325186985,
+                "score": 1.771752953529358
+              }
+            ]
+          }
+        },
+        {
+          "name": "ff",
+          "status": "succeeded",
+          "argv": [
+            "--route",
+            "complex",
+            "--rebuild",
+            "--quality",
+            "standard",
+            "--seed",
+            "7",
+            "--timeout",
+            "300"
+          ],
+          "elapsed_seconds": 0.8276144992560148,
+          "report": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/raw-test-outputs/actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/01-ff/report.json",
+          "report_identity": {
+            "bytes": 15386,
+            "sha256": "af7768df58886edbbff63b13ca910fd313eb1750cf1277abb13619028b7e8204"
+          },
+          "forcefield_observations": [
+            {
+              "effective_forcefield": "UFF",
+              "final_energy": 69.14934437776031,
+              "energy_unit": "kJ/mol",
+              "converged": true,
+              "termination_reason": "converged",
+              "quality_passed": true
+            }
+          ],
+          "monitors": {
+            "all_passed": true,
+            "names": [
+              "coordinate_shape",
+              "finite_coordinates",
+              "topology",
+              "forcefield_setup",
+              "finite_final_energy",
+              "finite_rms_gradient",
+              "finite_max_gradient",
+              "backend_explosion",
+              "forcefield_convergence",
+              "atom_overlap",
+              "atom_too_close",
+              "bond_distance",
+              "bond_length_ratio",
+              "short_bond",
+              "bond_ring_piercing"
+            ],
+            "failed": []
+          }
+        },
+        {
+          "name": "xtb",
+          "status": "succeeded",
+          "argv": [
+            "--method",
+            "gfnff",
+            "--task",
+            "optimize",
+            "--xtb-executable",
+            "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+            "--charge",
+            "2",
+            "--threads",
+            "1",
+            "--post-check",
+            "standard"
+          ],
+          "elapsed_seconds": 0.05888104625046253,
+          "report": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/raw-test-outputs/actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/report.json",
+          "report_identity": {
+            "bytes": 6161,
+            "sha256": "c8287696352277975610b3ce3dbf77ee1789e93fd5b8e2afc616c7722b67cd93"
+          },
+          "xtb": {
+            "requested_method": "gfnff",
+            "effective_method": "gfnff",
+            "task": "optimize",
+            "charge": 2,
+            "unpaired_electrons": null,
+            "energy_hartree": 1.298971744181724,
+            "gradient_norm": 0.000461091258017,
+            "converged": true,
+            "process_succeeded": true,
+            "coordinates_committed": true,
+            "backend": {
+              "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+              "revision": "edcfbbe",
+              "version": "6.7.1"
+            },
+            "scientific_state_resolution": "unresolved",
+            "backend_projection_convention": "charge_only"
+          },
+          "post_check": [
+            {
+              "passed": true,
+              "metrics": {
+                "atom_count": 12,
+                "bond_count": 12,
+                "bond_ring_excluded_ring_count": 0,
+                "bond_ring_piercing_count": 0,
+                "bond_ring_scan_complete": true,
+                "bond_ring_scope": "ligand_skeleton",
+                "bond_ring_undetermined_count": 0,
+                "maximum_bond_length": 2.076488259056622,
+                "minimum_pair_distance": 1.0374374631754921
+              },
+              "failed_checks": []
+            }
+          ]
+        },
+        {
+          "name": "xtb",
+          "status": "succeeded",
+          "argv": [
+            "--method",
+            "gfn2",
+            "--task",
+            "singlepoint",
+            "--xtb-executable",
+            "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+            "--charge",
+            "2",
+            "--threads",
+            "1",
+            "--post-check",
+            "standard"
+          ],
+          "elapsed_seconds": 0.05232115276157856,
+          "report": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/raw-test-outputs/actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/report.json",
+          "report_identity": {
+            "bytes": 5891,
+            "sha256": "692fc4442a2b073153805135355c544ef22e046c5d75443b027dc6c13c43b683"
+          },
+          "xtb": {
+            "requested_method": "gfn2",
+            "effective_method": "gfn2",
+            "task": "singlepoint",
+            "charge": 2,
+            "unpaired_electrons": 0,
+            "energy_hartree": -14.27320288,
+            "gradient_norm": null,
+            "converged": true,
+            "process_succeeded": true,
+            "coordinates_committed": false,
+            "backend": {
+              "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+              "revision": "edcfbbe",
+              "version": "6.7.1"
+            },
+            "scientific_state_resolution": "unresolved",
+            "backend_projection_convention": "pure_spin_highest_ms"
+          },
+          "post_check": [
+            {
+              "passed": true,
+              "metrics": {
+                "atom_count": 12,
+                "bond_count": 12,
+                "bond_ring_excluded_ring_count": 0,
+                "bond_ring_piercing_count": 0,
+                "bond_ring_scan_complete": true,
+                "bond_ring_scope": "ligand_skeleton",
+                "bond_ring_undetermined_count": 0,
+                "maximum_bond_length": 2.076488259056622,
+                "minimum_pair_distance": 1.0374374631754921
+              },
+              "failed_checks": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": "official-readme-europium",
+      "status": "succeeded",
+      "stages": [
+        {
+          "name": "cbond",
+          "status": "succeeded",
+          "argv": [
+            "Eu",
+            "O=C(O)C",
+            "--device",
+            "cpu"
+          ],
+          "elapsed_seconds": 0.009074412286281586,
+          "report": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/raw-test-outputs/actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/00-cbond/report.json",
+          "report_identity": {
+            "bytes": 288,
+            "sha256": "d657b24d4ab78e0fff35f80321e79503c81a470e8109ad619d98af12213cb2af"
+          },
+          "model_observation": {
+            "donor_indices": [
+              2
+            ],
+            "metal": "Eu",
+            "path_probability": 0.492404769050918,
+            "steps": [
+              {
+                "atom_index": 2,
+                "element": "O",
+                "probability": 0.492404769050918,
+                "score": -0.030383260920643806
+              }
+            ]
+          }
+        },
+        {
+          "name": "ff",
+          "status": "succeeded",
+          "argv": [
+            "--rebuild",
+            "--route",
+            "complex",
+            "--forcefield",
+            "uff"
+          ],
+          "elapsed_seconds": 0.8037737514823675,
+          "report": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/raw-test-outputs/actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/01-ff/report.json",
+          "report_identity": {
+            "bytes": 15161,
+            "sha256": "b8ca7e66ba53dfa49ba2be3f96caf3479a52bc6224804fb9bbcac7ab79be8e38"
+          },
+          "forcefield_observations": [
+            {
+              "effective_forcefield": "UFF",
+              "final_energy": 4.508636684240056,
+              "energy_unit": "kJ/mol",
+              "converged": true,
+              "termination_reason": "converged",
+              "quality_passed": true
+            }
+          ],
+          "monitors": {
+            "all_passed": true,
+            "names": [
+              "coordinate_shape",
+              "finite_coordinates",
+              "topology",
+              "forcefield_setup",
+              "finite_final_energy",
+              "finite_rms_gradient",
+              "finite_max_gradient",
+              "backend_explosion",
+              "forcefield_convergence",
+              "atom_overlap",
+              "atom_too_close",
+              "bond_distance",
+              "bond_length_ratio",
+              "short_bond",
+              "bond_ring_piercing"
+            ],
+            "failed": []
+          }
+        },
+        {
+          "name": "xtb",
+          "status": "succeeded",
+          "argv": [
+            "--method",
+            "gfnff",
+            "--task",
+            "optimize",
+            "--xtb-executable",
+            "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+            "--charge",
+            "3",
+            "--threads",
+            "1",
+            "--post-check",
+            "standard"
+          ],
+          "elapsed_seconds": 0.052021536976099014,
+          "report": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/raw-test-outputs/actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/report.json",
+          "report_identity": {
+            "bytes": 6057,
+            "sha256": "e2715449e09499d5dae189ddda4857321f4261f68293a090cab49037e01b9a8a"
+          },
+          "xtb": {
+            "requested_method": "gfnff",
+            "effective_method": "gfnff",
+            "task": "optimize",
+            "charge": 3,
+            "unpaired_electrons": null,
+            "energy_hartree": 3.23778971901011,
+            "gradient_norm": 0.000401416362484,
+            "converged": true,
+            "process_succeeded": true,
+            "coordinates_committed": true,
+            "backend": {
+              "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+              "revision": "edcfbbe",
+              "version": "6.7.1"
+            },
+            "scientific_state_resolution": "unresolved",
+            "backend_projection_convention": "charge_only"
+          },
+          "post_check": [
+            {
+              "passed": true,
+              "metrics": {
+                "atom_count": 9,
+                "bond_count": 8,
+                "bond_ring_excluded_ring_count": 0,
+                "bond_ring_piercing_count": 0,
+                "bond_ring_scan_complete": true,
+                "bond_ring_scope": "ligand_skeleton",
+                "bond_ring_undetermined_count": 0,
+                "maximum_bond_length": 2.2640891987728753,
+                "minimum_pair_distance": 1.034763977919603
+              },
+              "failed_checks": []
+            }
+          ]
+        },
+        {
+          "name": "xtb",
+          "status": "succeeded",
+          "argv": [
+            "--method",
+            "gfn2",
+            "--task",
+            "optimize",
+            "--xtb-executable",
+            "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+            "--charge",
+            "3",
+            "--threads",
+            "1",
+            "--post-check",
+            "standard"
+          ],
+          "elapsed_seconds": 0.23841693066060543,
+          "report": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/raw-test-outputs/actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/report.json",
+          "report_identity": {
+            "bytes": 6458,
+            "sha256": "1a27157fc9d6ca7dcff28245ed67f4d796d789f4d2ef3b87d1ef27720d70139d"
+          },
+          "xtb": {
+            "requested_method": "gfn2",
+            "effective_method": "gfn2",
+            "task": "optimize",
+            "charge": 3,
+            "unpaired_electrons": 0,
+            "energy_hartree": -13.5321011,
+            "gradient_norm": null,
+            "converged": true,
+            "process_succeeded": true,
+            "coordinates_committed": true,
+            "backend": {
+              "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+              "revision": "edcfbbe",
+              "version": "6.7.1"
+            },
+            "scientific_state_resolution": "unresolved",
+            "backend_projection_convention": "pure_spin_highest_ms"
+          },
+          "post_check": [
+            {
+              "passed": true,
+              "metrics": {
+                "atom_count": 9,
+                "bond_count": 8,
+                "bond_ring_excluded_ring_count": 0,
+                "bond_ring_piercing_count": 0,
+                "bond_ring_scan_complete": true,
+                "bond_ring_scope": "ligand_skeleton",
+                "bond_ring_undetermined_count": 0,
+                "maximum_bond_length": 3.1615585650734537,
+                "minimum_pair_distance": 1.012683212707267
+              },
+              "failed_checks": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "MCA": {
+    "backend": "cpu",
+    "variant": "fp16",
+    "cpu_count": 1,
+    "model_source": "local",
+    "original_inputs": [
+      {
+        "number": 1,
+        "smiles": "CN"
+      },
+      {
+        "number": 2,
+        "smiles": "C[NH3+]"
+      },
+      {
+        "number": 3,
+        "smiles": "CO"
+      }
+    ],
+    "returned_rows": [
+      {
+        "original_input_number": 1,
+        "smiles": "CN",
+        "rows": [
+          {
+            "atom_number": 1,
+            "element": "C",
+            "MCA_kJ_per_mol": 308.75,
+            "is_nucleophilic_site": false
+          },
+          {
+            "atom_number": 2,
+            "element": "N",
+            "MCA_kJ_per_mol": 489.5,
+            "is_nucleophilic_site": true
+          }
+        ]
+      },
+      {
+        "original_input_number": 3,
+        "smiles": "CO",
+        "rows": [
+          {
+            "atom_number": 1,
+            "element": "C",
+            "MCA_kJ_per_mol": 283.5,
+            "is_nucleophilic_site": false
+          },
+          {
+            "atom_number": 2,
+            "element": "O",
+            "MCA_kJ_per_mol": 318.25,
+            "is_nucleophilic_site": true
+          }
+        ]
+      }
+    ],
+    "input2_local_charged_rejection": "Established by passed unchanged actual-model test assertions on captured diagnostic and original index2; capsys diagnostic text itself was not persisted.",
+    "aggregate_cli_returncode": "1, established by passed unchanged actual-model test assertion; pytest command itself returned0.",
+    "input_unchanged": true,
+    "raw_input": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/actual_MCA/mixed-input.smi",
+    "raw_output": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/actual_MCA/mixed-results.txt",
+    "original_denominator": 3,
+    "successful_original_input_numbers": [
+      1,
+      3
+    ],
+    "locally_rejected_original_input_numbers": [
+      2
+    ]
+  },
+  "interpretation": "These attributed backend/model values and named geometry monitors describe only the invoked cases and settings; they do not establish experimental truth, unique structures, general accuracy, energy parity, or a controlled performance result.",
+  "coverage_limit": "ActualFF11 assertions passed but the test file does not persist each in-memory FF numerical result; no per-case values are invented.",
+  "source_pipeline_observations": [
+    {
+      "scenario": "official-coordination-False",
+      "stage": "00-cbond",
+      "report": {
+        "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-pipeline-attempt1/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/00-cbond/report.json",
+        "bytes": 440,
+        "sha256": "cba2f59030b5e2d8c2430eca9e250e0405dee6bb52b8ed0eb9cb3e9e740e1ed8"
+      },
+      "model_observation": {
+        "donor_indices": [
+          0,
+          3
+        ],
+        "metal": "Zn",
+        "path_probability": 0.7325034825111857,
+        "steps": [
+          {
+            "atom_index": 0,
+            "element": "N",
+            "probability": 0.8570544664505884,
+            "score": 1.7910377979278564
+          },
+          {
+            "atom_index": 3,
+            "element": "O",
+            "probability": 0.8546755325186985,
+            "score": 1.771752953529358
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "official-coordination-False",
+      "stage": "01-ff",
+      "report": {
+        "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-pipeline-attempt1/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/01-ff/report.json",
+        "bytes": 15387,
+        "sha256": "536fb05a57501cc911120fd44c79fc123dfa7e9aa6de54520129b379e7a3b934"
+      },
+      "forcefields": [
+        {
+          "method": "UFF",
+          "final_energy": 69.14934437776031,
+          "energy_unit": "kJ/mol",
+          "converged": true,
+          "quality_passed": true
+        }
+      ]
+    },
+    {
+      "scenario": "official-coordination-False",
+      "stage": "02-xtb",
+      "report": {
+        "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-pipeline-attempt1/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/report.json",
+        "bytes": 5895,
+        "sha256": "d9610dd03ce2dcae2a7b2f40c0f020077de3f71b6d47d4e97817b1f90b83ad45"
+      },
+      "xtb": {
+        "charge": 2,
+        "converged": true,
+        "coordinates_committed": false,
+        "effective_method": "gfn2",
+        "energy_hartree": -14.26981398,
+        "gradient_norm": null,
+        "process_succeeded": true,
+        "requested_method": "gfn2",
+        "task": "singlepoint",
+        "unpaired_electrons": 0
+      },
+      "post_check_passed": [
+        true
+      ]
+    },
+    {
+      "scenario": "official-coordination-True",
+      "stage": "00-cbond",
+      "report": {
+        "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-pipeline-attempt1/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/00-cbond/report.json",
+        "bytes": 440,
+        "sha256": "cba2f59030b5e2d8c2430eca9e250e0405dee6bb52b8ed0eb9cb3e9e740e1ed8"
+      },
+      "model_observation": {
+        "donor_indices": [
+          0,
+          3
+        ],
+        "metal": "Zn",
+        "path_probability": 0.7325034825111857,
+        "steps": [
+          {
+            "atom_index": 0,
+            "element": "N",
+            "probability": 0.8570544664505884,
+            "score": 1.7910377979278564
+          },
+          {
+            "atom_index": 3,
+            "element": "O",
+            "probability": 0.8546755325186985,
+            "score": 1.771752953529358
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "official-coordination-True",
+      "stage": "01-ff",
+      "report": {
+        "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-pipeline-attempt1/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/01-ff/report.json",
+        "bytes": 15387,
+        "sha256": "0db0fa581197e949da34bfdec5c475441fc89d8cde925eb8d50a5494908b2dda"
+      },
+      "forcefields": [
+        {
+          "method": "UFF",
+          "final_energy": 69.14934437776031,
+          "energy_unit": "kJ/mol",
+          "converged": true,
+          "quality_passed": true
+        }
+      ]
+    },
+    {
+      "scenario": "official-coordination-True",
+      "stage": "02-xtb",
+      "report": {
+        "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-pipeline-attempt1/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/report.json",
+        "bytes": 6161,
+        "sha256": "3437789b1d39f572c1ca198f4f27584c9baffbdce3e70d7e67a914ca98e39514"
+      },
+      "xtb": {
+        "charge": 2,
+        "converged": true,
+        "coordinates_committed": true,
+        "effective_method": "gfnff",
+        "energy_hartree": 1.298971744181724,
+        "gradient_norm": 0.000461091258017,
+        "process_succeeded": true,
+        "requested_method": "gfnff",
+        "task": "optimize",
+        "unpaired_electrons": null
+      },
+      "post_check_passed": [
+        true
+      ]
+    },
+    {
+      "scenario": "official-coordination-True",
+      "stage": "03-xtb",
+      "report": {
+        "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-pipeline-attempt1/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/report.json",
+        "bytes": 5891,
+        "sha256": "6a9e18aa83fdeb660600058e7832029f495863ffad93495f7878c43678e02377"
+      },
+      "xtb": {
+        "charge": 2,
+        "converged": true,
+        "coordinates_committed": false,
+        "effective_method": "gfn2",
+        "energy_hartree": -14.27320288,
+        "gradient_norm": null,
+        "process_succeeded": true,
+        "requested_method": "gfn2",
+        "task": "singlepoint",
+        "unpaired_electrons": 0
+      },
+      "post_check_passed": [
+        true
+      ]
+    },
+    {
+      "scenario": "official-readme-europium",
+      "stage": "00-cbond",
+      "report": {
+        "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-pipeline-attempt1/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/00-cbond/report.json",
+        "bytes": 288,
+        "sha256": "d657b24d4ab78e0fff35f80321e79503c81a470e8109ad619d98af12213cb2af"
+      },
+      "model_observation": {
+        "donor_indices": [
+          2
+        ],
+        "metal": "Eu",
+        "path_probability": 0.492404769050918,
+        "steps": [
+          {
+            "atom_index": 2,
+            "element": "O",
+            "probability": 0.492404769050918,
+            "score": -0.030383260920643806
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "official-readme-europium",
+      "stage": "01-ff",
+      "report": {
+        "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-pipeline-attempt1/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/01-ff/report.json",
+        "bytes": 15076,
+        "sha256": "5d74b1533ab9388ae878fffd322dd89040e7f6d76ecda18775bcc1a98ef235b3"
+      },
+      "forcefields": [
+        {
+          "method": "UFF",
+          "final_energy": 4.508693588047702,
+          "energy_unit": "kJ/mol",
+          "converged": true,
+          "quality_passed": true
+        }
+      ]
+    },
+    {
+      "scenario": "official-readme-europium",
+      "stage": "02-xtb",
+      "report": {
+        "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-pipeline-attempt1/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/report.json",
+        "bytes": 6058,
+        "sha256": "a1ff3c7e19026828bc71650dc70e237f9a23b2be9b240d39f73d2fcf4cfbc5dd"
+      },
+      "xtb": {
+        "charge": 3,
+        "converged": true,
+        "coordinates_committed": true,
+        "effective_method": "gfnff",
+        "energy_hartree": 3.237789707029545,
+        "gradient_norm": 0.000402033043727,
+        "process_succeeded": true,
+        "requested_method": "gfnff",
+        "task": "optimize",
+        "unpaired_electrons": null
+      },
+      "post_check_passed": [
+        true
+      ]
+    },
+    {
+      "scenario": "official-readme-europium",
+      "stage": "03-xtb",
+      "report": {
+        "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-pipeline-attempt1/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/report.json",
+        "bytes": 6460,
+        "sha256": "f8a6782a1976bced5f66e90a8187e79a9320730ab2ce65bbcedc0a12f533fa59"
+      },
+      "xtb": {
+        "charge": 3,
+        "converged": true,
+        "coordinates_committed": true,
+        "effective_method": "gfn2",
+        "energy_hartree": -13.53209821,
+        "gradient_norm": null,
+        "process_succeeded": true,
+        "requested_method": "gfn2",
+        "task": "optimize",
+        "unpaired_electrons": 0
+      },
+      "post_check_passed": [
+        true
+      ]
+    }
+  ],
+  "allowed_differences": [
+    "UFF/native stochastic and numerical geometry paths may differ while retaining finite method-attributed observations and named geometry checks; Eu values are observations rather than golden energy equality.",
+    "GFN-FF has charge-only projection with unpaired_electrons=None; tested GFN2 uses unpaired_electrons=0 under its existing execution-default projection. Eu scientific-state resolution remains unresolved.",
+    "No model-output finite guard, success envelope, generic confidence rating or universal historical/byte/energy parity criterion is introduced."
+  ],
+  "detailed_monitors": "installed/C2-science in evidence_index.json retains every original numerical monitor/threshold and report identity.",
+  "H_observations": [
+    {
+      "case": {
+        "id": "neutral-phenol",
+        "smiles": "Oc1ccccc1",
+        "seed": 11,
+        "origin": "tests/test_cheminfo/test_complex_hydrogens.py::test_hydrogenated_working_copy_preserves_ligand_chemical_identity[phenol-hydroxyl-oxygen]"
+      },
+      "donor_rows": [
+        0
+      ],
+      "donor_explicit_hydrogens": [
+        1
+      ],
+      "donor_formal_charges": [
+        0
+      ],
+      "hydrogen_count": 6,
+      "coordination_bond_count": 1,
+      "source_unchanged": true,
+      "technical_invariants": {
+        "same_working_clone": true,
+        "original_atom_count_retained": true,
+        "original_bond_count_retained": true,
+        "original_atom_handles_prefix": true,
+        "original_bond_handles_prefix": true,
+        "original_atom_uid_prefix": true,
+        "original_bond_uid_prefix": true,
+        "original_bond_endpoint_prefix": true,
+        "original_bond_kind_prefix": true,
+        "appended_atoms_are_H": true,
+        "appended_bonds_touch_new_H": true,
+        "unique_appended_labels": true
+      },
+      "C0_chemistry_count_label_comparison": {
+        "donor_explicit_hydrogens": {
+          "C0": [
+            1
+          ],
+          "candidate": [
+            1
+          ],
+          "equal": true
+        },
+        "donor_formal_charges": {
+          "C0": [
+            0
+          ],
+          "candidate": [
+            0
+          ],
+          "equal": true
+        },
+        "hydrogen_count": {
+          "C0": 6,
+          "candidate": 6,
+          "equal": true
+        },
+        "coordination_bond_count": {
+          "C0": 1,
+          "candidate": 1,
+          "equal": true
+        },
+        "appended_labels": {
+          "C0": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "candidate": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "equal": true
+        }
+      },
+      "accepted_order_change": "Complete original working-clone Bond handles/UIDs/order are prefix, then H; C0 recovered coordination after H."
+    },
+    {
+      "case": {
+        "id": "bidentate-OCCO",
+        "smiles": "OCCO",
+        "seed": 17,
+        "origin": "tests/test_cheminfo/test_complex_hydrogens.py::test_hydrogenated_working_copy_preserves_bidentate_ligand_identity"
+      },
+      "donor_rows": [
+        0,
+        3
+      ],
+      "donor_explicit_hydrogens": [
+        1,
+        1
+      ],
+      "donor_formal_charges": [
+        0,
+        0
+      ],
+      "hydrogen_count": 6,
+      "coordination_bond_count": 2,
+      "source_unchanged": true,
+      "technical_invariants": {
+        "same_working_clone": true,
+        "original_atom_count_retained": true,
+        "original_bond_count_retained": true,
+        "original_atom_handles_prefix": true,
+        "original_bond_handles_prefix": true,
+        "original_atom_uid_prefix": true,
+        "original_bond_uid_prefix": true,
+        "original_bond_endpoint_prefix": true,
+        "original_bond_kind_prefix": true,
+        "appended_atoms_are_H": true,
+        "appended_bonds_touch_new_H": true,
+        "unique_appended_labels": true
+      },
+      "C0_chemistry_count_label_comparison": {
+        "donor_explicit_hydrogens": {
+          "C0": [
+            1,
+            1
+          ],
+          "candidate": [
+            1,
+            1
+          ],
+          "equal": true
+        },
+        "donor_formal_charges": {
+          "C0": [
+            0,
+            0
+          ],
+          "candidate": [
+            0,
+            0
+          ],
+          "equal": true
+        },
+        "hydrogen_count": {
+          "C0": 6,
+          "candidate": 6,
+          "equal": true
+        },
+        "coordination_bond_count": {
+          "C0": 2,
+          "candidate": 2,
+          "equal": true
+        },
+        "appended_labels": {
+          "C0": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "candidate": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "equal": true
+        }
+      },
+      "accepted_order_change": "Complete original working-clone Bond handles/UIDs/order are prefix, then H; C0 recovered coordination after H."
+    }
+  ]
+}

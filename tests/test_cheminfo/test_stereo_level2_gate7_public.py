@@ -547,7 +547,7 @@ def test_coordination_only_payload_triggers_complete_gate6_projection(
     molecule, _ = _coordination_molecule(family, 4)
     record = stereo.get_stereo_payload(molecule).records[0]
     if malformation == "parallel":
-        molecule._hided_covalent_bonds.append(
+        molecule._bonds.append(
             Bond(molecule.atoms[0], molecule.atoms[1], bond_order=1.0)
         )
     elif malformation == "dative":
@@ -615,7 +615,7 @@ def test_declared_coordination_family_projects_even_with_invalid_numeric_value(
         descriptor=descriptor,
     )
     _set_record(molecule, record)
-    molecule._hided_covalent_bonds.append(
+    molecule._bonds.append(
         Bond(molecule.atoms[0], molecule.atoms[1], bond_order=1.0)
     )
 

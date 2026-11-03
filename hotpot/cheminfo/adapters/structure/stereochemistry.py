@@ -14,22 +14,18 @@ def _capture_stereo_snapshot(mol):
     """Capture once and keep transient identity referents outside the snapshot."""
 
     atoms = tuple(mol._atoms)
-    partitions = tuple(tuple(bonds) for bonds in (
-        mol._bonds, mol._hided_metal_bonds, mol._hided_covalent_bonds,
-    ))
-    endpoints = tuple((bond.atom1, bond.atom2) for bonds in partitions for bond in bonds)
+    bonds = tuple(mol._bonds)
+    endpoints = tuple((bond.atom1, bond.atom2) for bond in bonds)
     snapshot = _StereoSnapshot(
         payload=mol._stereo_payload,
         atom_keys=tuple(id(atom) for atom in atoms),
         bonds=tuple(
             (id(first), id(second), float(bond.bond_order), bond.bond_kind.value,
              bond.bond_direction)
-            for bond, (first, second) in zip(
-                (bond for bonds in partitions for bond in bonds), endpoints,
-            )
+            for bond, (first, second) in zip(bonds, endpoints)
         ),
     )
-    return snapshot, _capture_source(mol, ()), (atoms, partitions, endpoints)
+    return snapshot, _capture_source(mol, ()), (atoms, bonds, endpoints)
 
 
 def _same_stereo_raw_value(first, second):
@@ -52,24 +48,17 @@ def _same_stereo_raw_value(first, second):
 def _check_stereo_capture(mol, capture):
     """Check the existing owner binding and only the already-consumed raw facts."""
 
-    snapshot, source, (atoms, partitions, endpoints) = capture
+    snapshot, source, (atoms, bonds, endpoints) = capture
     _check_source(mol, source)
     unchanged = (
         _same_stereo_raw_value(snapshot.payload, mol._stereo_payload)
         and len(atoms) == len(mol._atoms)
         and all(first is second for first, second in zip(atoms, mol._atoms))
-        and all(
-            len(previous) == len(current)
-            and all(first is second for first, second in zip(previous, current))
-            for previous, current in zip(partitions, (
-                mol._bonds, mol._hided_metal_bonds, mol._hided_covalent_bonds,
-            ))
-        )
+        and len(bonds) == len(mol._bonds)
+        and all(first is second for first, second in zip(bonds, mol._bonds))
     )
     if unchanged:
-        for bond, previous_endpoints, row in zip(
-            (bond for bonds in partitions for bond in bonds), endpoints, snapshot.bonds,
-        ):
+        for bond, previous_endpoints, row in zip(bonds, endpoints, snapshot.bonds):
             first, second = bond.atom1, bond.atom2
             if (
                 first is not previous_endpoints[0]

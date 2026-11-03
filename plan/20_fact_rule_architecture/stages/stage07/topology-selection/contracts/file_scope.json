@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7B",
+  "scope": "remaining connected hidden-topology migration",
+  "status": "DESIGN_ACCEPTED_IMPLEMENTATION_RELEASE_SEPARATE",
+  "source_commit_supplied_by_parent": "6d1ea01f4e8d354318a00633a43b85b92cb68e7b",
+  "git_queried_by_design_author": false,
+  "design": "hidden_topology_design.md",
+  "exclusive_future_partitions": [
+    {
+      "id": "carrier_record",
+      "owner": "root-assigned single writer; authoring governed by separate implementation_release.json, runtime held until C1",
+      "files": [
+        "hotpot/cheminfo/core.py",
+        "hotpot/cheminfo/structure/_selection.py",
+        "hotpot/cheminfo/structure/_builder.py",
+        "hotpot/cheminfo/structure/_commit.py",
+        "hotpot/cheminfo/structure/_identity.py",
+        "hotpot/cheminfo/views/_source.py",
+        "hotpot/cheminfo/operations/geometry.py",
+        "hotpot/cheminfo/operations/conversion.py",
+        "hotpot/cheminfo/adapters/structure/stereochemistry.py",
+        "hotpot/cheminfo/adapters/openbabel/conversion.py",
+        "hotpot/cheminfo/adapters/rdkit/conversion.py",
+        "hotpot/cheminfo/AImodels/mca/serialization.py",
+        "hotpot/plugins/ccdc_api/convert.py"
+      ],
+      "responsibility": "One complete Bond list/index; immutable N04 selection; N02 keyword-only/version2 private record cutover; all import/transport writers; source/view/stereo capture; complete rollback/constraints/pickle UID/root binding.",
+      "new_files": [
+        "hotpot/cheminfo/structure/_selection.py"
+      ],
+      "constraints": "Only this writer edits core.py; do not modify native fact layout/science or canonical stereo/H ownership."
+    },
+    {
+      "id": "operation_consumers",
+      "owner": "root-assigned single writer; authoring governed by separate implementation_release.json, runtime held until C1",
+      "files": [
+        "hotpot/cheminfo/operations/topology_queries.py",
+        "hotpot/cheminfo/operations/chemistry.py",
+        "hotpot/cheminfo/forcefields/working_copy.py",
+        "hotpot/cheminfo/forcefields/ligand.py",
+        "hotpot/cheminfo/forcefields/backend.py",
+        "hotpot/cheminfo/forcefields/repair.py",
+        "hotpot/cheminfo/forcefields/native_adapters.py",
+        "hotpot/cheminfo/forcefields/native_packing.py"
+      ],
+      "responsibility": "Same-scope selected graph/record components, private independent projection, default charge/ligand/H and ring backend workflows, complete native selected-coordinate publication and session packing; accepted HT1 preserves the complete original Bond handle/UID/order prefix then appends H, intentionally changing old hide/recover order.",
+      "constraints": "Use the settled carrier/record signatures; no source-module overlap with carrier_record; no new public selector or standalone/native schema."
+    },
+    {
+      "id": "technical_and_helper_contracts",
+      "owner": "root-assigned single test writer or root; authoring governed by separate implementation_release.json, runtime held until C1",
+      "files": [
+        "tests/test_cheminfo/structure/test_topology_selection.py",
+        "tests/test_cheminfo/test_hidden_bond_restoration.py",
+        "tests/test_cheminfo/structure/test_builder.py",
+        "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+        "tests/test_cheminfo/structure/test_source_identity.py",
+        "tests/test_cheminfo/structure/test_view_identity.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/structure/test_constraint_storage_lifecycle.py",
+        "tests/test_cheminfo/structure/test_conversion_freshness.py",
+        "tests/test_cheminfo/structure/test_factual_imports.py",
+        "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+        "tests/test_cheminfo/test_topology_index.py",
+        "tests/test_cheminfo/test_topology_determinism.py",
+        "tests/test_cheminfo/test_ligand_rings.py",
+        "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+        "tests/test_cheminfo/test_plan20_outer_cutover.py",
+        "tests/test_cheminfo/test_stereo_extraction.py",
+        "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_projection.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_equivalence.py",
+        "tests/test_cheminfo/test_stereo_level2_gate7_coordination_graph.py",
+        "tests/test_cheminfo/test_stereo_level2_gate7_public.py",
+        "tests/test_cheminfo/test_complex_untangling_workflow.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/test_complexes_build.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/test_cheminfo/_stage5_fixtures.py",
+        "tests/smarts_conformance/test_metamorphic.py",
+        "tests/benchmarks/coordination_complexes/validation_providers.py",
+        "tests/benchmarks/coordination_complexes/validation_evidence.py",
+        "tests/benchmarks/coordination_complexes/validation_cohort.py"
+      ],
+      "responsibility": "Migrate old partition fixtures/calls to actual selected-graph/full-fact contracts; new topology selection, format rejection, source/stale/currentness/rollback/order/raw tests with accepted HT1 prefix-before-H order distinguished from historical recovery; adapt actual scientific helper graphs without changing denominators or algorithms.",
+      "create": [
+        "tests/test_cheminfo/structure/test_topology_selection.py"
+      ],
+      "retire": [
+        "tests/test_cheminfo/test_hidden_bond_restoration.py"
+      ],
+      "retirement_policy": "Transfer applicable exact-handle/order/foreign/stale/atomic selection coverage to the planned contract file; method-removal-specific assertions are intentional contract updates, not a fixed841-case parity claim."
+    }
+  ],
+  "conditional_test_additions": [],
+  "existing_validation_only_files": [
+    "hotpot/cheminfo/_native/buffers.py",
+    "hotpot/cheminfo/obWrappers/packing.py",
+    "hotpot/cheminfo/obWrappers/native.py",
+    "hotpot/cheminfo/obWrappers/operation.py",
+    "hotpot/cheminfo/rdWrappers/native.py",
+    "hotpot/cheminfo/forcefields/native.py",
+    "hotpot/cheminfo/forcefields/native_reports.py",
+    "hotpot/cheminfo/forcefields/trajectory.py",
+    "hotpot/cheminfo/forcefields/_native/structure_session.cpp",
+    "hotpot/cheminfo/forcefields/_native/coordination_stage.cpp",
+    "hotpot/cheminfo/forcefields/_native/optimization_stage.cpp",
+    "hotpot/cheminfo/forcefields/_native/untangling_engine.cpp",
+    "hotpot/cheminfo/forcefields/_native/topology_workspace.cpp",
+    "hotpot/cheminfo/structure/_native/facts.cpp"
+  ],
+  "native_policy": {
+    "default_source_edits": [],
+    "new_ABI_fields_or_types": 0,
+    "build_required_by_planned_change": false,
+    "binding": "Record unchanged six CP311 binaries and native sources/headers against the actual candidate; run actual native-backed affected tests and assemble current wheel.",
+    "if_native_change_needed": "Root expands file scope before edits; freeze all writers, rebuild affected extension and use exact current source/binary in source and installed checks."
+  },
+  "new_type_budget": {
+    "reservation": "N04",
+    "symbol": "hotpot.cheminfo.structure._selection._TopologySelection",
+    "dataclasses": 1,
+    "fields": [
+      "source",
+      "atom_uids",
+      "bond_mask"
+    ],
+    "new_protocols": 0,
+    "new_typed_dicts": 0,
+    "new_enums": 0,
+    "new_exception_classes": 0,
+    "new_native_ABI_mirrors": 0,
+    "existing_modified": "N02 MoleculeRecord, no second class; no D05 consolidation or N06/N07/N08 placeholders",
+    "root_ledger_update_required_before_or_with_release": true
+  },
+  "integration_checkpoint_records_owned_by_root": [
+    "plan/20_fact_rule_architecture/data_object_budget.json",
+    "plan/20_fact_rule_architecture/stage_verification_map.json",
+    "plan/20_fact_rule_architecture/stages/stage07/README.md",
+    "plan/20_fact_rule_architecture/README.md",
+    "plan/20_fact_rule_architecture/implementation_log.md",
+    "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md"
+  ],
+  "scheduling": "C0 root dispositions/source/cost/old-current-fixture freeze; C1 connected writers ready and root static freeze; C2 source/actual-business/current installed evidence; C3 usable-cost/root acceptance/delivery. No imports/builds against half a cutover.",
+  "outside_scope": [
+    "effective or draft goal edits",
+    "skills/model policy/config/remote/Git by workers",
+    "Stage7C/D/E ownership or H normalization",
+    "new chemistry/FF/model algorithms or physical restraints",
+    "public selector/API additions",
+    "standalone native/stereo/MCA JSON schema changes",
+    "unrelated source/test work"
+  ],
+  "shared_workspace": "Exclusive file ownership; preserve concurrent edits and unrelated user rescore work. Scope expansion requires root; never revert other writers."
+}

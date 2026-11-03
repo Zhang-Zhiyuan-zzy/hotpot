@@ -28,6 +28,9 @@ from hotpot.cheminfo.forcefields.working_copy import (
 )
 from hotpot.cheminfo.stereo import get_stereo_payload
 
+from hotpot.cheminfo.operations.topology_queries import _components
+from hotpot.cheminfo.structure._selection import _capture_topology_selection
+
 if TYPE_CHECKING:
     from hotpot.cheminfo.core import Molecule
 
@@ -180,9 +183,11 @@ def _worker_components(
     worker = _make_worker_mol(working)
     detached = copy(worker)
     _copy_molecule_metadata(worker, detached)
-    detached.hide_metal_ligand_bonds(clear_conformers=False)
+    selection = _capture_topology_selection(detached, ligand_skeleton=True)
     return tuple(
-        component for component in detached.components if not component.has_metal
+        component
+        for component in _components(detached, type(detached), selection=selection)
+        if not component.has_metal
     )
 
 

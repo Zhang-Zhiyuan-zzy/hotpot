@@ -277,82 +277,39 @@ def test_topology_blocked_tail_overrides_earlier_optimizer_work() -> None:
     assert not report.setup_succeeded
 
 
-def test_selected_structure_updates_coordinates_and_reuses_bond_objects() -> None:
+@pytest.mark.parametrize('mask', [(0,), (1,)])
+def test_selected_structure_updates_coordinates_and_reuses_complete_bond_objects(mask):
     mol = _complex()
     session_input = pack_complex_session_input(mol)
-    coordination_bond = next(
-        bond for bond in mol.bonds if bond.is_metal_ligand_bond
-    )
+    original_bonds = tuple(mol.bonds)
+    original_uids = tuple(bond._uid for bond in original_bonds)
+    original_attrs = tuple(bond.attr_dict for bond in original_bonds)
     mol.conformer_add(mol.coordinates)
-    conformer_count = mol.conformers_number
-    shifted = mol.coordinates + np.asarray((0.1, 0.2, 0.3))
-
-    apply_native_selected_structure(
-        mol,
-        session_input,
-        _SelectedStructure(
-            selected_coordinates=shifted,
-            final_active_coordination_mask=np.zeros(1, dtype=np.uint8),
-        ),
-    )
-
-    assert all(bond is not coordination_bond for bond in mol.bonds)
-    assert any(bond is coordination_bond for bond in mol._hided_metal_bonds)
-    assert mol.conformers_number == conformer_count
+    frames = mol.conformers._coordinates
+    shifted = mol.coordinates + np.asarray((.1, .2, .3))
+    apply_native_selected_structure(mol, session_input, _SelectedStructure(
+        selected_coordinates=shifted, final_active_coordination_mask=np.asarray(mask, dtype=np.uint8)))
+    assert tuple(mol.bonds) == original_bonds
+    assert tuple(bond._uid for bond in mol.bonds) == original_uids
+    assert tuple(bond.attr_dict for bond in mol.bonds) == original_attrs
+    assert mol.conformers._coordinates is frames
     np.testing.assert_array_equal(mol.coordinates, shifted)
 
-    apply_native_selected_structure(
-        mol,
-        session_input,
-        _SelectedStructure(
-            selected_coordinates=shifted + 1.0,
-            final_active_coordination_mask=np.ones(1, dtype=np.uint8),
-        ),
-    )
 
-    assert any(bond is coordination_bond for bond in mol.bonds)
-    assert all(
-        bond is not coordination_bond for bond in mol._hided_metal_bonds
-    )
-    assert mol.conformers_number == conformer_count
-    np.testing.assert_array_equal(mol.coordinates, shifted + 1.0)
-
-
-def test_selected_structure_applies_mixed_coordination_mask_in_place() -> None:
+@pytest.mark.parametrize('mask', [(0, 0, 0), (0, 1, 1), (1, 1, 1)])
+def test_selected_structure_masks_leave_complete_coordination_facts_in_place(mask):
     mol = _multi_coordination_complex()
     original_bonds = tuple(mol.bonds)
-    coordination_bonds = tuple(
-        bond for bond in original_bonds if bond.is_metal_ligand_bond
-    )
-    mol.conformer_add(mol.coordinates)
-    mol.hide_bonds(coordination_bonds[1], clear_conformers=False)
-    conformer_count = mol.conformers_number
+    original_uids = tuple(bond._uid for bond in original_bonds)
+    original_attrs = tuple(bond.attr_dict for bond in original_bonds)
     session_input = pack_complex_session_input(mol)
-    shifted = mol.coordinates + np.asarray((0.2, 0.3, 0.4))
-
-    apply_native_selected_structure(
-        mol,
-        session_input,
-        _SelectedStructure(
-            selected_coordinates=shifted,
-            final_active_coordination_mask=np.asarray(
-                (0, 1, 1),
-                dtype=np.uint8,
-            ),
-        ),
-    )
-
-    active_bond_ids = {id(bond) for bond in mol.bonds}
-    hidden_bond_ids = {id(bond) for bond in mol._hided_metal_bonds}
-    assert id(coordination_bonds[0]) in hidden_bond_ids
-    assert id(coordination_bonds[1]) in active_bond_ids
-    assert id(coordination_bonds[2]) in active_bond_ids
-    assert {id(bond) for bond in coordination_bonds} == (
-        active_bond_ids | hidden_bond_ids
-    )
-    assert all(bond in original_bonds for bond in mol.bonds)
-    assert all(bond in original_bonds for bond in mol._hided_metal_bonds)
-    assert mol.conformers_number == conformer_count
+    shifted = mol.coordinates + np.asarray((.2, .3, .4))
+    apply_native_selected_structure(mol, session_input, _SelectedStructure(
+        selected_coordinates=shifted, final_active_coordination_mask=np.asarray(mask, dtype=np.uint8)))
+    assert tuple(mol.bonds) == original_bonds
+    assert tuple(bond._uid for bond in mol.bonds) == original_uids
+    assert tuple(bond.attr_dict for bond in mol.bonds) == original_attrs
+    assert all(mol.bond(bond.atom1.idx, bond.atom2.idx) is bond for bond in original_bonds)
     np.testing.assert_array_equal(mol.coordinates, shifted)
 
 
@@ -380,3 +337,64 @@ def test_native_batch_ingests_into_an_existing_python_trajectory() -> None:
         trajectory.coordinates(trajectory.selected_index),
         result.selected_coordinates,
     )
+
+
+@pytest.mark.parametrize('invalid', [
+    'short_mask', 'matrix_mask', 'nonbinary_mask', 'short_coordinates', 'nonfinite_coordinates',
+    'atom_mapping', 'coordination_mapping', 'duplicate_mapping', 'reversed_mapping', 'order_mapping',
+])
+def test_invalid_selected_publication_rejects_before_any_factual_change(invalid):
+    from tests.test_cheminfo._stage5_fixtures import factual_state
+    mol = _multi_coordination_complex()
+    session_input = pack_complex_session_input(mol)
+    coordinates = mol.coordinates + 1.
+    mask = np.ones(3, dtype=np.uint8)
+    if invalid == 'short_mask':
+        mask = mask[:2]
+    elif invalid == 'matrix_mask':
+        mask = mask.reshape(3, 1)
+    elif invalid == 'nonbinary_mask':
+        mask[1] = 2
+    elif invalid == 'short_coordinates':
+        coordinates = coordinates[:-1]
+    elif invalid == 'nonfinite_coordinates':
+        coordinates[1, 0] = np.nan
+    elif invalid == 'atom_mapping':
+        session_input = replace(session_input, atomic_numbers=np.zeros(4, dtype=np.int32))
+    elif invalid == 'coordination_mapping':
+        session_input = replace(session_input, intended_coordination_bonds=np.zeros((2, 2), dtype=np.int32))
+    elif invalid == 'duplicate_mapping':
+        rows = session_input.intended_coordination_bonds.copy()
+        rows[1] = rows[0]
+        session_input = replace(session_input, intended_coordination_bonds=rows)
+    elif invalid == 'reversed_mapping':
+        session_input = replace(session_input, intended_coordination_bonds=session_input.intended_coordination_bonds[:, ::-1])
+    else:
+        session_input = replace(session_input, intended_coordination_orders=session_input.intended_coordination_orders + 1.)
+    before = factual_state(mol)
+    atoms, bonds, index = tuple(mol.atoms), tuple(mol.bonds), mol._topology_index
+    with pytest.raises((ValueError, RuntimeError)):
+        apply_native_selected_structure(mol, session_input, _SelectedStructure(coordinates, mask))
+    assert factual_state(mol) == before
+    assert tuple(mol.atoms) == atoms and tuple(mol.bonds) == bonds
+    assert mol._topology_index is index
+
+
+def test_session_packing_sorts_operation_rows_without_reordering_complete_facts():
+    from hotpot import BondKind, Molecule
+    mol = Molecule()
+    for number in (30, 7, 8, 29):
+        mol.create_atom(atomic_number=number)
+    first = mol.add_bond(2, 0, bond_order=1.25, bond_kind=BondKind.DATIVE,
+                         bond_direction='atom1_to_atom2')
+    ligand = mol.add_bond(1, 2, bond_order=2.)
+    second = mol.add_bond(0, 1, bond_order=1.)
+    metal_metal = mol.add_bond(0, 3, bond_order=1.)
+    bonds = tuple(mol.bonds)
+    session_input = pack_complex_session_input(mol)
+    np.testing.assert_array_equal(session_input.intended_coordination_bonds, ((0, 1), (0, 2)))
+    np.testing.assert_array_equal(session_input.intended_coordination_orders, (1., 1.25))
+    np.testing.assert_array_equal(session_input.ligand_bond_indices, ((1, 2), (0, 3)))
+    np.testing.assert_array_equal(session_input.ligand_bond_orders, (2., 1.))
+    assert tuple(mol.bonds) == bonds == (first, ligand, second, metal_metal)
+    assert first.bond_kind is BondKind.DATIVE and first.bond_direction == 'atom1_to_atom2'

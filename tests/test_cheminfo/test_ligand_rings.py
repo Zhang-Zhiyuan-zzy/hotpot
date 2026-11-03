@@ -67,7 +67,7 @@ def test_ligand_rings_filters_metal_edges_without_mutating_molecule():
     assert not {'_rings', '_ring_indices_cache', '_ligand_rings', '_ligand_rings_signature'}.intersection(molecule.__dict__)
     assert molecule.conformers._coordinates is original_conformer_array
     np.testing.assert_array_equal(molecule.conformers._coordinates, original_conformers)
-    assert molecule._hided_metal_bonds == []
+    assert molecule.bonds == list(original_bonds)
 
 
 def test_repeated_ligand_ring_reads_are_equivalent_and_non_mutating():

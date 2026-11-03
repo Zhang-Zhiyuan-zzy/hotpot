@@ -8,10 +8,12 @@ from ..rules.mathematics import topology
 __all__ = ()
 
 
-def _topology(mol):
+def _topology(mol, selection=None):
+    from ..structure._selection import _selected_bonds
+
     index = mol._topology_index
     return len(mol._atoms), tuple((index[id(bond.atom1)][0], index[id(bond.atom2)][0])
-                                  for bond in mol._bonds)
+                                  for bond in _selected_bonds(mol, selection))
 
 
 def _simple_paths(mol, source, target, cutoff):
@@ -99,28 +101,51 @@ def _ring_views(mol, cls, *, ligand_skeleton=False, max_size=None,
             ligand_skeleton=ligand_skeleton, max_size=max_size, max_cycles=max_cycles))
 
 
-def _components(mol, molecule_type, *, with_bindings=False):
-    from ..rules.mathematics.graph.components import connected_components
+def _project_molecule(mol, molecule_type, *, selection, rows=None):
     from ..structure._commit import _commit_topology
-    from ..structure._dependencies import _remap_dependency_state
+    from ..structure._dependencies import _mark_topology_dirty, _remap_dependency_state
     from ..structure._identity import _capture_source
+    from ..structure._selection import _selected_bonds
+
+    with mol._mutation_lock:
+        rows = tuple(range(len(mol._atoms))) if rows is None else tuple(rows)
+        selected = _selected_bonds(mol, selection)
+        selected_ids = {id(bond) for bond in selected}
+        retained_ids = {id(mol._atoms[row]) for row in rows}
+        excluded_uids = {atom._uid for bond in mol._bonds
+                         if id(bond) not in selected_ids
+                         or any(id(member) not in retained_ids for member in bond._atoms)
+                         for atom in bond._atoms}
+        record, metadata = mol._capture_factual_record(
+            rows=rows, include_frames=False, selection=selection)
+        state = _remap_dependency_state(
+            mol._atom_table, tuple(atom._uid for atom in mol._atoms),
+            tuple(range(len(rows))), rows=rows)
+        excluded_rows = tuple(target for target, row in enumerate(rows)
+                              if mol._atoms[row]._uid in excluded_uids)
+    projected = molecule_type()
+    _commit_topology(projected, _capture_source(projected), record,
+        atom_bindings=(None,) * record.atom_count,
+        bond_bindings=(None,) * len(record.bond_endpoints),
+        dependency_state=state, bond_metadata=metadata)
+    if excluded_rows:
+        _mark_topology_dirty(projected, tuple(projected._atoms[row]._uid
+                                             for row in excluded_rows))
+    return projected
+
+
+def _components(mol, molecule_type, *, with_bindings=False, selection=None):
+    from ..rules.mathematics.graph.components import connected_components
 
     with mol._mutation_lock:
         members = tuple(mol._atoms)
-        selections = connected_components(*_topology(mol))
-        captures = [(rows, mol._capture_factual_record(rows=rows, include_frames=False),
-                     _remap_dependency_state(mol._atom_table, tuple(atom._uid for atom in mol._atoms),
-                                             tuple(range(len(rows))), rows=tuple(rows))) for rows in selections]
-    result = []
-    for rows, (record, metadata), state in captures:
-        component = molecule_type()
-        _commit_topology(component, _capture_source(component), record,
-            atom_bindings=(None,) * record.atom_count,
-            bond_bindings=(None,) * len(record.bond_endpoints),
-            dependency_state=state, bond_metadata=metadata)
-        result.append((component, tuple(members[row] for row in rows))
-                      if with_bindings else component)
-    return result
+        selections = connected_components(*_topology(mol, selection))
+        result = []
+        for rows in selections:
+            component = _project_molecule(mol, molecule_type, selection=selection, rows=rows)
+            result.append((component, tuple(members[row] for row in rows))
+                          if with_bindings else component)
+        return result
 
 
 def atom_idx_pair_to_bond_idx(mol: "Molecule", *atom_idx_pair: tuple[int, int]) -> list[int]:

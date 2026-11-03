@@ -26,7 +26,7 @@ _DECLARATIONS = ("_charge_value", "_charge_present", "_charge_source",
                  "_spin_value", "_spin_present", "_spin_source")
 _FRAME_FIELDS = ("_coordinates", "_energy", "_partial_charge", "_spin_mult", "_gibbs",
                  "_force", "_zero_point", "_thermo", "_capacity")
-_TOPOLOGY_FIELDS = ("_atoms", "_bonds", "_hided_metal_bonds", "_hided_covalent_bonds",
+_TOPOLOGY_FIELDS = ("_atoms", "_bonds",
                     "_constraints", "_crystal", "_pair_wiberg_bond_orders",
                     "identifier", "properties")
 _BOND_FIELDS = ("_bond_kind", "_bond_direction", "_bond_source", "_bond_source_metadata", "_is_aromatic")
@@ -187,7 +187,7 @@ class _FactTransaction:
         if id(bond) not in self._bonds:
             self._bonds[id(bond)] = (bond, bond._attrs.copy(),
                                     tuple((name, bond.__dict__.get(name, _UNCHANGED))
-                                          for name in (*_BOND_FIELDS, "_constraint_values")), bond.atom1, bond.atom2)
+                                          for name in (*_BOND_FIELDS, "_constraint_values", "_bonds")), bond.atom1, bond.atom2)
 
     def touch_sparse(self, atom):
         if self._sparse is None:
@@ -276,7 +276,7 @@ class _FactTransaction:
                           tuple(values),
                           tuple((atom, atom.__dict__.get("_detached_table", _UNCHANGED),
                                  atom._constraint_values) for atom in mol._atoms))
-        for bond in tuple(mol._bonds) + tuple(mol._hided_metal_bonds) + tuple(mol._hided_covalent_bonds):
+        for bond in mol._bonds:
             self.touch_bond(bond)
         self.touch_constraints()
         self.touch_declarations()

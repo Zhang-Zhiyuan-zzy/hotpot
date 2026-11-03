@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from hotpot import read_mol
+from hotpot import Molecule, read_mol
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX
 from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
@@ -248,70 +248,18 @@ class _DelayedExitcodeProcess:
             self.exitcode = 0
 
 
-class _DummyAtom:
-    def __init__(self, atom_id):
-        self.id = atom_id
-        self.coordinates = np.zeros(3)
+def _DummyComponent():
+    component = Molecule()
+    component.create_atom(atomic_number=6, id=0)
+    component.create_atom(atomic_number=6, id=1)
+    component.add_bond(0, 1, bond_order=1.)
+    return component
 
 
-class _DummyComponent:
-    has_metal = False
-
-    def __init__(self):
-        self.coordinates = np.zeros((2, 3))
-        self.atoms = [_DummyAtom(0), _DummyAtom(1)]
-        self.bonds = []
-        self.hidden = []
-
-    def recover_hided_covalent_bonds(self, clear_conformers=False):
-        return None
-
-    def hide_bonds(self, *bonds, clear_conformers=False):
-        self.hidden.extend(bonds)
-
-    def restore_bonds(self, *bonds, clear_conformers=False):
-        for bond in bonds:
-            self.hidden.remove(bond)
-
-    @property
-    def has_bond_ring_intersection(self):
-        raise AssertionError("forcefields must call geometry directly")
-
-    @property
-    def intersection_bonds_rings(self):
-        raise AssertionError("forcefields must call geometry directly")
-
-
-class _DummyComplex:
-    def __init__(self, component):
-        self.component = component
-        self.coordinates = np.zeros((2, 3))
-        self.charge = 0
-        self.properties = {}
-        self._model = None
-        self._environ = None
-        self._crystal = None
-
-    def __copy__(self):
-        return self
-
-    def hide_metal_ligand_bonds(self, clear_conformers=False):
-        return None
-
-    def recover_hided_metal_ligand_bonds(self, clear_conformers=False):
-        return None
-
-    @property
-    def components(self):
-        return [self.component]
-
-    def _components_with_bindings(self):
-        return [(self.component, tuple(self.component.atoms))]
-
-    def updata_atoms(self, *, atoms, coordinates):
-        for atom, row in zip(atoms, coordinates):
-            atom.coordinates = np.array(row, copy=True)
-        self.coordinates = np.array([atom.coordinates for atom in self.component.atoms])
+def _DummyComplex(component):
+    molecule = Molecule()
+    molecule.add_component(component)
+    return molecule
 
 
 def _bond_ring_finding(ring, bond):
@@ -799,7 +747,7 @@ lambda *args, **kwargs: ob_backend._CandidateOptimizationResult(1.0, "kJ/mol", F
 
     def closest(*args, **kwargs):
         calls["closest"] += 1
-        return SimpleNamespace(a1idx=0, a2idx=1)
+        return args[0].bond(0, 1)
 
     intersection_failure = ff.AcceptanceCheck(
         name="bond_ring_intersection",
@@ -926,7 +874,8 @@ def test_ligand_proxy_only_opens_rings_for_confirmed_piercing(
     assert diagnostics.accepted_candidates == 1
     assert diagnostics.rejected_candidates == ()
     assert calls == {"screen": 3, "acceptance": 2}
-    assert component.hidden == []
+    assert len(component.bonds) == 1
+    assert len(molecule.bonds) == 1
 
 
 def test_default_ligand_proxy_search_stops_after_one_accepted_candidate(
@@ -1006,7 +955,7 @@ def test_ligand_proxy_search_stops_after_first_accepted_candidate(monkeypatch):
         current.coordinates = np.full((2, 3), float(build_calls))
 
     monkeypatch.setattr(ligand, "_ob_build", build)
-    def optimize(current, forcefield, steps):
+    def optimize(current, forcefield, steps, **kwargs):
         optimization_steps.append(steps)
         return ob_backend._CandidateOptimizationResult(
             float(current.coordinates[0, 0]),
@@ -1141,37 +1090,24 @@ def test_builder_failure_stops_after_the_single_builder_call(monkeypatch):
     assert len(caught.value.diagnostics.rejected_candidates) == 1
 
 
-def test_builder_failure_does_not_restore_unrelated_hidden_ring_bonds(monkeypatch):
+def test_builder_failure_preserves_caller_and_independent_operation_selection(monkeypatch):
+    from hotpot.cheminfo.structure._selection import _capture_topology_selection, _selected_bonds
+    from tests.test_cheminfo._stage5_fixtures import factual_state
     component = _DummyComponent()
     molecule = _DummyComplex(component)
-    recovery_calls = 0
-
+    selection = _capture_topology_selection(molecule, excluded_bonds=molecule.bonds)
+    before = factual_state(molecule)
     def fail_build(current):
-        raise ff.ForceFieldError("builder failed")
-
-    def recover(clear_conformers=False):
-        nonlocal recovery_calls
-        recovery_calls += 1
-
-    component.recover_hided_covalent_bonds = recover
-    monkeypatch.setattr(ligand, "_ob_build", fail_build)
-    monkeypatch.setattr(
-        ligand,
-        "capture_topology",
-        lambda mol, **options: object(),
-    )
-
+        current.coordinates = np.ones_like(current.coordinates)
+        raise ff.ForceFieldError('builder failed')
+    monkeypatch.setattr(ligand, '_ob_build', fail_build)
+    monkeypatch.setattr(ligand, 'capture_topology', lambda mol, **options: object())
     with pytest.raises(ff.ComplexBuildError):
-        ligand._build_ligand_proxies(
-            molecule,
-            max_attempts=2,
-            candidate_warmup_steps=1,
-            candidate_score_steps=1,
-            best_candidate_refine_steps=1,
-            effective_forcefield="UFF",
-        )
-
-    assert recovery_calls == 0
+        ligand._build_ligand_proxies(molecule, max_attempts=2, candidate_warmup_steps=1,
+            candidate_score_steps=1, best_candidate_refine_steps=1, effective_forcefield='UFF')
+    assert factual_state(molecule) == before
+    assert _selected_bonds(molecule, selection) == ()
+    assert len(molecule.bonds) == 1
 
 
 def test_ligand_retries_share_one_built_root_and_record_distinct_branches(
@@ -1496,7 +1432,7 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
         state["build"] += 1
         current.coordinates = np.full((2, 3), float(state["build"]))
 
-    def optimize(current, forcefield, steps):
+    def optimize(current, forcefield, steps, **kwargs):
         marker = float(current.coordinates[0, 0])
         energies = {1.0: 0.0, 2.0: -100.0, 3.0: 100.0}
         return ob_backend._CandidateOptimizationResult(
@@ -1556,7 +1492,7 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
         quality,
     )
 
-    _, diagnostics = ligand._build_ligand_proxies(
+    coordinates, diagnostics = ligand._build_ligand_proxies(
         molecule,
         max_attempts=3,
         candidate_warmup_steps=1,
@@ -1565,7 +1501,9 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
         effective_forcefield="UFF",
     )
 
-    np.testing.assert_array_equal(component.coordinates, np.full((2, 3), 3.0))
+    np.testing.assert_array_equal(coordinates, np.full((2, 3), 3.0))
+    np.testing.assert_array_equal(molecule.coordinates, np.zeros((2, 3)))
+    np.testing.assert_array_equal(component.coordinates, np.zeros((2, 3)))
     assert state["build"] == 1
     assert len(perturb_inputs) == 2
     assert all(np.array_equal(frame, np.ones((2, 3))) for frame in perturb_inputs)
@@ -1583,7 +1521,7 @@ def test_select_ring_opening_edge_uses_watch_order(monkeypatch):
     first = SimpleNamespace(atom1=atom(2), atom2=atom(4))
     second = SimpleNamespace(atom1=atom(1), atom2=atom(3))
     probe = SimpleNamespace(atom1=atom(5), atom2=atom(6))
-    component.bonds = (first, second, probe)
+    component = SimpleNamespace(bonds=(first, second, probe))
     watch = (
         repair._WatchedRingPiercing(
             repair._BondRingPairKey((0, 2, 4), (5, 6)),

@@ -50,7 +50,7 @@ def mol_from_ccdc_to_hp(c_mol: CMol):
         atom_values=values, atom_presence=presence, atom_sources=sources,
         atom_isotopes=(), atom_frac_valences=(),
         bond_endpoints=tuple(tuple(label_to_idx[atom.label] for atom in bond.atoms) for bond in bonds),
-        bond_values=raw_bonds, bond_partitions=(0,) * len(bonds),
+        bond_values=raw_bonds,
         bond_kinds=tuple({1: "single", 1.5: "aromatic", 2: "double", 3: "triple"}.get(order, "unknown") for order in orders),
         bond_aromatic=tuple(_c_bond_is_aromatic(bond) for bond in bonds),
         bond_directions=(None,) * len(bonds), bond_sources=(None,) * len(bonds),

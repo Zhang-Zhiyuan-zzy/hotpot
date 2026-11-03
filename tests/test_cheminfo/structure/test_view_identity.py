@@ -175,30 +175,48 @@ def test_collection_geometry_and_constraint_bindings_survive_provenance_rollback
     np.testing.assert_allclose(actual, expected)
 
 
-def test_imported_overlapping_bond_partitions_keep_active_first_and_hidden_fallback_order():
+def test_complete_record_rejects_repeated_pairs_before_installation():
+    record, metadata = molecule()._capture_factual_record()
+    duplicate = replace(
+        record, bond_endpoints=record.bond_endpoints + ((1, 0),),
+        bond_values=record.bond_values + record.bond_values[:24],
+        bond_kinds=record.bond_kinds + (record.bond_kinds[0],),
+        bond_directions=record.bond_directions + (None,),
+        bond_sources=record.bond_sources + (None,),
+        bond_metadata=record.bond_metadata + (record.bond_metadata[0],),
+        bond_aromatic=record.bond_aromatic + (record.bond_aromatic[0],))
+    target = molecule()
+    atoms, bonds = tuple(target.atoms), tuple(target.bonds)
+    index, table, owner = target._topology_index, target._atom_table, target._constraints
+    source = _identity._capture_source(target, ('topology', 'geometry', 'representation'))
+    with pytest.raises(ValueError, match='parallel'):
+        target._install_molecule(duplicate)
+    assert tuple(target.atoms) == atoms and tuple(target.bonds) == bonds
+    assert target._topology_index is index and target._atom_table is table
+    assert target._constraints is owner
+    _identity._check_source(target, source)
+
+
+def test_sequence_constraints_resolve_complete_unique_edges_and_keep_missing_edges():
     record, _ = molecule()._capture_factual_record()
     mol = Molecule._build_molecule(replace(
-        record, bond_endpoints=record.bond_endpoints + ((1, 0), (0, 1), (0, 3), (3, 0)),
-        bond_values=record.bond_values + record.bond_values[:24] * 4,
-        bond_partitions=record.bond_partitions + (1, 2, 1, 2),
-        bond_kinds=record.bond_kinds + (record.bond_kinds[0],) * 4,
-        bond_directions=record.bond_directions + (None,) * 4,
-        bond_sources=record.bond_sources + (None,) * 4,
-        bond_metadata=record.bond_metadata + (record.bond_metadata[0],) * 4,
-        bond_aromatic=record.bond_aromatic + (record.bond_aromatic[0],) * 4,
+        record, bond_endpoints=record.bond_endpoints + ((0, 3),),
+        bond_values=record.bond_values + record.bond_values[:24],
+        bond_kinds=record.bond_kinds + (record.bond_kinds[0],),
+        bond_directions=record.bond_directions + (None,),
+        bond_sources=record.bond_sources + (None,),
+        bond_metadata=record.bond_metadata + (record.bond_metadata[0],),
+        bond_aromatic=record.bond_aromatic + (record.bond_aromatic[0],),
         angle_constraints=((0, 3, 1),), torsion_constraints=((1, 0, 3, 2),)))
-    angle = mol.angles[0]
-    direct = type(angle)(*angle.atoms)
-    assert angle.bond1 is direct.bond1 is mol.bond(0, 1)
-    assert angle.bond2 is direct.bond2 is mol.bond(1, 2)
     extra = next(view for view in mol.angles if view.constraint)
-    assert extra.bond1 is mol._hided_metal_bonds[1] and extra.bond2 is None
-    torsion = next(view for view in mol.torsions if view.constraint)
-    assert torsion.bond1 is mol.bond(1, 0)
-    assert torsion.bond2 is mol._hided_metal_bonds[1]
-    assert torsion.bond3 is mol.bond(3, 2)
+    assert extra.bond1 is mol.bond(0, 3) and extra.bond2 is None
+    angle = next(view for view in mol.angles if not view.constraint)
+    direct = type(angle)(*angle.atoms)
+    assert direct.bonds == angle.bonds
     with pytest.raises(KeyError):
-        mol.bond(0, 3)
+        type(extra)(*extra.atoms)
+    torsion = next(view for view in mol.torsions if view.constraint)
+    assert torsion.bonds == [mol.bond(1, 0), mol.bond(0, 3), mol.bond(3, 2)]
 
 
 def test_triangle_torsions_preserve_repeated_members_and_constraint_projection():

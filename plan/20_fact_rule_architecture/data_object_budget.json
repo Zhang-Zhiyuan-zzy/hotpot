@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage0–6 owning-stage gates complete; Stage7A static integration checkpoint retains777 classes/354 dataclasses/8 Protocols/2 TypedDicts with five zero-credit owner moves and no new type. Stage7A candidate runtime and all remaining stage/global scientific/performance gates remain open.",
+  "status": "Stage0\u20137B accepted within recorded owning scopes; Stage7B CP311 source/installed/business and bounded usable-cost acceptance complete. Current778 classes/355 dataclasses/8 Protocols/2 TypedDicts spend exactly reserved N04 +1, with no retirement credit. Later-stage/version/global gates remain open.",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -13,7 +13,7 @@
     "alias_caveat": "Zero explicit TypeAlias syntax does not establish zero implicit aliases."
   },
   "measured_delta": {
-    "new_dataclasses": 7,
+    "new_dataclasses": 8,
     "retired_dataclasses": 0,
     "new_protocols": 0,
     "new_typed_dicts": 0,
@@ -75,7 +75,6 @@
           "atom_frac_valences",
           "bond_endpoints",
           "bond_values",
-          "bond_partitions",
           "bond_kinds",
           "bond_directions",
           "bond_sources",
@@ -94,7 +93,8 @@
         ],
         "verification": "stages/stage03/builder/evidence.json",
         "stage4_extension_verification": "stages/stage04/contracts/schema.json and stages/stage04/implementation/evidence.json",
-        "stage5_extension_verification": "stages/stage05/rules_checkpoint_evidence.json; final Stage5 gates open"
+        "stage5_extension_verification": "stages/stage05/rules_checkpoint_evidence.json; final Stage5 gates open",
+        "stage7b_schema": "Same class, 23 keyword-only fields and tagged-v2 private reducer; no retirement credit. Runtime verification pending."
       },
       {
         "symbol": "hotpot.cheminfo.structure.constraints._ConstraintSet",
@@ -155,6 +155,18 @@
         ],
         "verification": "stages/stage06/bookkeeping/evidence.json and stages/stage06/gates/evidence.json",
         "counting_effect": "One class/dataclass addition already present in accepted Stage6 current counts; Stage7A records this existing addition in the cumulative delta. No new Stage7A type."
+      },
+      {
+        "symbol": "hotpot.cheminfo.structure._selection._TopologySelection",
+        "reservation": "N04",
+        "stage": "Stage7B",
+        "fields": [
+          "source",
+          "atom_uids",
+          "bond_mask"
+        ],
+        "verification": "stages/stage07/completion_20261103.json; stages/stage07/topology-selection/validation/checkpoint.json",
+        "status": "Implemented and root accepted within Stage7B CP311 owning scope; later/global obligations remain open"
       }
     ],
     "new_enums": 1,
@@ -472,10 +484,24 @@
       "stage": "Stage3",
       "dataclass_upper_bound": 1,
       "responsibility": "Non-owning UID/mask selection; no retained graph",
-      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
-      "actual_symbol": null,
+      "status": "Implemented and root accepted within Stage7B CP311 owning scope; no public topology API",
+      "actual_symbol": "hotpot.cheminfo.structure._selection._TopologySelection",
       "commit": null,
-      "verification": null
+      "verification": "stages/stage07/completion_20261103.json; stages/stage07/topology-selection/validation/checkpoint.json",
+      "actual_stage": "Stage7B",
+      "planned_symbol": "hotpot.cheminfo.structure._selection._TopologySelection",
+      "fields": [
+        "source",
+        "atom_uids",
+        "bond_mask"
+      ],
+      "review": "stages/stage07/topology-selection/design_acceptance.json",
+      "consumers": [
+        "Private selected factual capture/components",
+        "Ligand default-charge/H/FF working projections",
+        "Operation-local ring exclusion and backend projection"
+      ],
+      "counting_effect": "One new private dataclass within reserved cap1; current census +1; no native mirror or unrelated retirement credit"
     },
     {
       "id": "N05",
@@ -809,11 +835,11 @@
   ],
   "change_policy": "Update a reservation with concrete responsibility/consumer evidence before exceeding it; new public schemas retain their own review gate. Never offset extra records by deleting unrelated reserved types or replace records with untyped dicts solely to improve counts.",
   "measured_current_counts": {
-    "all_python_classes": 777,
-    "dataclasses": 354,
+    "all_python_classes": 778,
+    "dataclasses": 355,
     "protocols": 8,
     "typed_dicts": 2,
-    "method": "Exact original static_capture ClassDef/leaf/CONTRACT_MARKERS production census. Stage6 and current Stage7A integration both777/354/8/2; exactly five existing class owner moves, zero additions/deletions and zero semantic retirement credit. Original direct generic-subscript marker behavior remains unchanged. Static source only.",
+    "method": "Same original ClassDef/leaf/CONTRACT_MARKERS static method; Stage7B adds exactly N04 to previous777/354/8/2, no retirement credit. Native counts remain prior scoped evidence.",
     "native_struct_candidates": 171,
     "native_struct_candidate_method": {
       "baseline": 164,
@@ -825,7 +851,7 @@
     },
     "new_fact_native_actual_struct_definitions": 14,
     "new_fact_native_actual_enum_definitions": 1,
-    "verification": "stages/stage07/external-adapters/bookkeeping/evidence.json; raw .plan20-artifacts/20261030/stage7a/implementation/root-connected/attempt1/class-census.json",
+    "verification": "stages/stage07/completion_20261103.json; stages/stage07/topology-selection/validation/checkpoint.json; /tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/class_census.json",
     "stage5_native_scope": "Readonly carrier dispatch plus configured DERIVED_FIELDS rejection at native ingress/preparation; existing Field gains immutable configuration metadata, with no new class/struct/enum or exported ABI. Corrected source awaits five fresh ABI builds and runtime evidence.",
     "stage5_native_source": {
       "path": "hotpot/cheminfo/structure/_native/facts.cpp",

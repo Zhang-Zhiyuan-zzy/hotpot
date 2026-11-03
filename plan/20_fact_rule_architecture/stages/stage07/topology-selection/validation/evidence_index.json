@@ -1,0 +1,326 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-11-03T07:04:16.097956+00:00",
+  "scope": "Exact terminal receipt/source-freeze/identity/observation references, including the finite local durable evidence manifest and receipt. External model/native/wheel binaries and the complete checkout are excluded from that copy; original paths and C1/C2/C3 attribution remain.",
+  "artifacts": {
+    "source/focused-attempt1": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/focused-attempt1/execution.json",
+      "bytes": 2041,
+      "sha256": "0983a1b9dbd811fd0d203e38bf56421a6477760b7c4e0f458431e5673435f870"
+    },
+    "source/affected-attempt1": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/affected-attempt1/execution.json",
+      "bytes": 4331,
+      "sha256": "86d2e9140c72fea63ef368e7f462c11d0b16c01d94d34df6dd1f26b0ed719856"
+    },
+    "source/affected-attempt2": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/affected-attempt2/execution.json",
+      "bytes": 4331,
+      "sha256": "505e6b6e35f5fb4c0c5f23fc627909934d9ace4107fcbfada0de3b4e9af0ecfc"
+    },
+    "source/affected-attempt3": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/affected-attempt3/execution.json",
+      "bytes": 4369,
+      "sha256": "dac6fb60446e44355ccb16d0635b9ae101ee4f4030b670691da5243b6ffbb194"
+    },
+    "source/default-attempt1": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/default-attempt1/execution.json",
+      "bytes": 1664,
+      "sha256": "c4d8d2e64ba4800d91225fd0420b7e15cff55073797dd3bd03d0b6e7ecf7cd7b"
+    },
+    "source/default-repairs-attempt1": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/default-repairs-attempt1/execution.json",
+      "bytes": 1810,
+      "sha256": "54bb0ff747b25d6d1c3c79007f2127b7a31b0cb377eead3ceb40518e2eb0275a"
+    },
+    "source/default-repairs-attempt2": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/default-repairs-attempt2/execution.json",
+      "bytes": 1867,
+      "sha256": "f0b7caf33a6d7c96d040e2fe67a6a9327860601361f3cc457684098cf629ef60"
+    },
+    "source/actual-ff-attempt1": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-ff-attempt1/execution.json",
+      "bytes": 1761,
+      "sha256": "f154cf2c29521ef642664f3b9d43b331555500c915efc551dfb853b5682e1d8c"
+    },
+    "source/actual-pipeline-attempt1": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-pipeline-attempt1/execution.json",
+      "bytes": 2196,
+      "sha256": "02d56749f36e87d4e1b0b27b94ed944f7b88e7840cf65105fef11893a6600c9a"
+    },
+    "source/actual-mca-attempt1": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-mca-attempt1/execution.json",
+      "bytes": 1927,
+      "sha256": "ec20c7578878caeb7817f523a7a62a1539f5f3f5b6e067360eef6682f3109c16"
+    },
+    "freeze/C1": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/source_freeze_c1_03.json",
+      "bytes": 177780,
+      "sha256": "255ef29fb3b800a1754fbaa41ff84a5e3928221eee38b9189fecd242b9145997"
+    },
+    "freeze/C2": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/source_freeze_c2.json",
+      "bytes": 179261,
+      "sha256": "1ff9895257ee6e1ab761d02de42ede60c9e0725fff524b03a30193a90ad7e1f4"
+    },
+    "freeze/C3": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/source_freeze.json",
+      "bytes": 177884,
+      "sha256": "dc4aa8d84569ee3c5c382c56817f6beea28481c7cb4de6553e9eda0ac6d87cd2"
+    },
+    "source/affected-nodeids": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/affected-attempt3/collected-nodeids.json",
+      "bytes": 174500,
+      "sha256": "8c5880cb4a9d766da6cfeecdb2c8baad14a891a5beac977d22872f2481977f69"
+    },
+    "source/default-junit": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/default-attempt1/junit.xml",
+      "bytes": 924265,
+      "sha256": "f5df7d7d29046439da47c66ddbeec20c02e391eb33162f955a55273ae8b37ac9"
+    },
+    "source/architecture-before": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/default-repairs-attempt1/architecture-report.json",
+      "bytes": 948,
+      "sha256": "5b2a709d09779c031d0fa95bfd421e0432349a4ba25909d2c69430e139a840a1"
+    },
+    "source/architecture-current": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/default-repairs-attempt1/architecture-report-after-constraint-import.json",
+      "bytes": 496,
+      "sha256": "812ca2fbfcb50ab68b7c3ed45af9b837fcb48e9faace84f9435339aaef380fbb"
+    },
+    "source/affected-origin": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/affected-attempt3/loaded-origins.json",
+      "bytes": 43857,
+      "sha256": "2014ce053f13a13aa4ec077656f545c5b7f9b1b7a14f937da6cb31051c26beb4"
+    },
+    "source/backend-model-assets": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-pipeline-attempt1/dependency-assets-before.json",
+      "bytes": 930,
+      "sha256": "8bb21190a68880b1a573741ca97997b6a0e2590d4335c2ca63100ed4873e30db"
+    },
+    "source/MCA-assets": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-mca-attempt1/dependency-assets-before.json",
+      "bytes": 22541,
+      "sha256": "181165e100f64ff995e6b43e9ae5498387baaec4d8186edfd850cf5b7d4e6775"
+    },
+    "installed/C1": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt3/summary.json",
+      "bytes": 2620,
+      "sha256": "ded6593c88652e16d353bf701fd4c69bb54b784ad4267becef9ee672105758e4"
+    },
+    "installed/C2": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/execution.json",
+      "bytes": 54132,
+      "sha256": "fdb55a3319244cb50d25c6b0690fd423fb5dd837424182cd538e0eb33d95aa6f"
+    },
+    "installed/C2-summary": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/summary.json",
+      "bytes": 2928,
+      "sha256": "92a07cd6af4643054914eed515eb48210e7b0d0ebc8b56b47c05a49b2d8dab87"
+    },
+    "installed/C2-assembly": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/assembly-inputs.json",
+      "bytes": 99872,
+      "sha256": "e2a5c9e742461678e14ccbf7c92cb969cec22f0b2997df4928b71449c9d37487"
+    },
+    "installed/C2-delta": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/C2-delta.json",
+      "bytes": 1764,
+      "sha256": "28d67bc0c197c8387b8941ec3e098fd70aa6e932d3a02bf6f062c76f023ad089"
+    },
+    "installed/C2-science": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/scientific-observations.json",
+      "bytes": 62272,
+      "sha256": "38a9d9dc54616efca7ffce32cf3f52947a45d8afd50a5ffa27d62d5d3dda26a4"
+    },
+    "installed/C2-raw-manifest": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/raw-test-outputs-manifest.json",
+      "bytes": 38645,
+      "sha256": "570b86015646083b31fea5f27adaa8f955181a66802e6f57306fb439ee8caa09"
+    },
+    "installed/C2-models": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/model-bindings-after.json",
+      "bytes": 23305,
+      "sha256": "fa82669f6e2195482d20b06aff88e42539a8a89d62a4671cc2b10412d70665b4"
+    },
+    "installed/C2-origins": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt4/installed-bindings-after.json",
+      "bytes": 127386,
+      "sha256": "971af5ce5dc7b07b8021b1cbcd5b176b8f534f6f00bbd0b74d1388d9fa549903"
+    },
+    "installed/C3": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt5/execution.json",
+      "bytes": 3681,
+      "sha256": "e12f6893f0d3ce6a57fb34b15b7f3ce70ff8569459b34bf92bd26cb998e3f2c7"
+    },
+    "installed/C3-test-delta": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt5/test-delta.diff",
+      "bytes": 919,
+      "sha256": "1c0ea9c849a65d9aa6d24f4d4bfaa5044ff4ff29c0d6d9f51ecd8a2376ed0209"
+    },
+    "installed/failure1": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt1/failure-analysis.json",
+      "bytes": 12280,
+      "sha256": "6056d7e611c130c4e7207608cf3db05e517e901af77c92b2359601ee48884881"
+    },
+    "installed/failure2": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/installed-validation/attempt2/failure-analysis.json",
+      "bytes": 1290,
+      "sha256": "a375a54fdafa78b229341314cc594acb566ce4be167e84967b4871faccd05dc7"
+    },
+    "persistence/pass": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/persistence-receipt02.json",
+      "bytes": 12426,
+      "sha256": "b64ba81edf2d04cde4d404c249cbc512c8ab313a9b9bfa4618661ab1da716e82"
+    },
+    "persistence/artifacts": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/persistence-artifact-manifest02.json",
+      "bytes": 24041,
+      "sha256": "e08e4a90607384552161ab545f14fc383dd8c85ae67940d97aac2b571b7461d2"
+    },
+    "persistence/failure": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/persistence-process01-outcome.json",
+      "bytes": 740,
+      "sha256": "e8441627b186b3597c841d0f022bb911e455bf43da2da1a8068d7ac663f5c65c"
+    },
+    "persistence/failure-diagnosis": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/persistence-attempt01-static-diagnosis.json",
+      "bytes": 1589,
+      "sha256": "20e849b51ec831fb5055e4acd7710f4b2ff6f1845552eabf886a1f7c62c780ec"
+    },
+    "cost/failure": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/cost-attempt01-receipt.json",
+      "bytes": 2049,
+      "sha256": "70ea8247857c6df2fc305d148434776ba0f387b9235a56ffa0e88e269b5b383b"
+    },
+    "cost/failure-review": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/cost-attempt01-review.json",
+      "bytes": 483,
+      "sha256": "9bf304fb3f1717c464040a417402e0e672633eb908ec1924276891f1e859019d"
+    },
+    "cost/failure-detail": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/cost-attempt01/failure.json",
+      "bytes": 4707,
+      "sha256": "8183417d793d553638da6555acea8c62b465f23fa3780ec2b8fd4ca30b019204"
+    },
+    "cost/partial-comparison": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/cost-attempt01/partial_cost_comparison.json",
+      "bytes": 32365,
+      "sha256": "735b0d0fe635d8cca229c20c3ebc32dfeaf71c1a40b08c0d2e85c6b5bf2dac94"
+    },
+    "cost/attempt02-launch": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/cost-attempt02-process.json",
+      "bytes": 1060,
+      "sha256": "322ad99142bc9ddefd6b1c48f9dc001efa70b140b873c18afb7c85b141474879"
+    },
+    "baseline/receipt": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/baseline/receipt.json",
+      "bytes": 5217,
+      "sha256": "b2ee5c0628e391b25dbab06a32aeeb4001be957cf66dcee3bbd05312d20268d8"
+    },
+    "tests/behavior-map": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/tests-prep/behavior_mapping.md",
+      "bytes": 5647,
+      "sha256": "1b9b94e28d7914a1756775d5f9430717b4e0c742e3af41caece0e9ed655b6bfa"
+    },
+    "cost/attempt02-terminal": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/cost-attempt02-receipt.json",
+      "bytes": 3036,
+      "sha256": "471c634807f527180c82ccfb845409861c6233da94bd0ed4c5d3b81e8b3a34bc"
+    },
+    "source-validation/actual-ff-attempt1/junit": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-ff-attempt1/junit.xml",
+      "bytes": 1936,
+      "sha256": "8ed786ccf280ae0f628e87169a8257ff7ebd429c1b4a36c58ee63e5c7f564de0"
+    },
+    "source-validation/actual-pipeline-attempt1/junit": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-pipeline-attempt1/junit.xml",
+      "bytes": 712,
+      "sha256": "dbd1a8517146cbba8c5d904ce989d86ca58db89fdbe033173b5c2fcf1a6c5abd"
+    },
+    "source-validation/actual-mca-attempt1/junit": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/actual-mca-attempt1/junit.xml",
+      "bytes": 376,
+      "sha256": "6a7b94ca81d40eb7e88c7d016bad77a525b3dc0766253ad12be7d531c070b841"
+    },
+    "cost/attempt02-comparison": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/cost-attempt02/cost_comparison.json",
+      "bytes": 54143,
+      "sha256": "e2814d50329c3009f76a3aa93303131ed9173dac13e087c07f7592042e9adc3a"
+    },
+    "cost/attempt02-review": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/cost-attempt02-review.json",
+      "bytes": 12971,
+      "sha256": "1a75f71bd6f57fbb01aa6717af7c6c5024f11b26c847a62079c27035af140948"
+    },
+    "cost/attempt02-samples": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/cost-attempt02/samples.jsonl",
+      "bytes": 138745,
+      "sha256": "2d47f0de78778c8991a799401af2019d0bdc9acd69f508fcb904ac68be80362b"
+    },
+    "cost/attempt02-manifest": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/cost-attempt02/work_manifest.json",
+      "bytes": 3908,
+      "sha256": "02dcc867e4319a0ef3ffb6ec22534d26c8e2fc85d1ad233ee8987e1e4579ae8b"
+    },
+    "cost/attempt02-H-phenol": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/cost-attempt02/H-neutral-phenol-facts.json",
+      "bytes": 28050,
+      "sha256": "56cc01d273084007bc9928401e0118fe4ec4633240a3eab36c91ccab8f0740f9"
+    },
+    "cost/attempt02-H-OCCO": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/candidate-evidence/cost-attempt02/H-bidentate-OCCO-facts.json",
+      "bytes": 21900,
+      "sha256": "f8e70632ef4999da94cbfe5dcc93da3adc956b0fbedffde6479dbea2aa6d07ac"
+    },
+    "cost/root-disposition": {
+      "path": "/home/zhangzhiyuan/hotpot/plan/20_fact_rule_architecture/stages/stage07/topology-selection/root_cost_disposition_20261103.json",
+      "bytes": 19740,
+      "sha256": "e11b7b71f6d8eb00cf6bb4ba53d46ad618432957707d0893d3cc8189b29d9044"
+    },
+    "archive/manifest": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261103/stage7b/topology-selection/manifest.json",
+      "bytes": 418115,
+      "sha256": "27ac50877ec235bc379dcaf0eb6966be6711575a4b3ee10b7599e165a4e62c03"
+    },
+    "archive/receipt": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/archive-index/receipt.json",
+      "bytes": 975,
+      "sha256": "7f15f396948b125319544b97f2c34f67aae01fdc93e7837b7489148c543c54b5"
+    }
+  },
+  "status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE",
+  "root_completion": "stages/stage07/completion_20261103.json",
+  "durable_evidence_archive": {
+    "scope": "Finite local durable evidence copy only; external model/native/wheel binaries and complete source checkout are excluded. Binding JSON is identity evidence, not preservation of those external binaries.",
+    "path": ".plan20-artifacts/20261103/stage7b/topology-selection",
+    "manifest": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261103/stage7b/topology-selection/manifest.json",
+      "bytes": 418115,
+      "sha256": "27ac50877ec235bc379dcaf0eb6966be6711575a4b3ee10b7599e165a4e62c03"
+    },
+    "receipt": {
+      "path": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/archive-index/receipt.json",
+      "bytes": 975,
+      "sha256": "7f15f396948b125319544b97f2c34f67aae01fdc93e7837b7489148c543c54b5"
+    },
+    "payload_files": 1150,
+    "payload_logical_bytes": 98721451,
+    "unique_payload_blobs": 765,
+    "unique_payload_bytes": 88887401,
+    "including_metadata_files": 1154,
+    "including_metadata_logical_bytes": 105733131,
+    "source_actual_FF_limit": "Logs/JUnit/bindings are preserved; the assigned source actual-FF attempt directory has no standalone scientific raw-energy output file. None is invented.",
+    "root_independent_identity_check": {
+      "source_test_files_verified": 1399,
+      "source_test_files_expected": 1399,
+      "native_artifacts_verified": 6,
+      "native_artifacts_expected": 6,
+      "support_files_verified": 3,
+      "support_files_expected": 3,
+      "evidence_index_entries_verified": 55,
+      "evidence_index_entries_expected": 55,
+      "attribution": "Root-reported independent static identity check; no new runtime."
+    }
+  }
+}

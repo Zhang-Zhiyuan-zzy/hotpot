@@ -1,0 +1,238 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7B",
+  "status": "DESIGN_ACCEPTED_VALIDATION_PROSPECTIVE_NOT_EXECUTED",
+  "source_commit_supplied_by_parent": "6d1ea01f4e8d354318a00633a43b85b92cb68e7b",
+  "implementation_release_required": true,
+  "CP311_first": true,
+  "actual_test_runs_by_design_author": 0,
+  "actual_builds_by_design_author": 0,
+  "actual_calculations_by_design_author": 0,
+  "technical_contracts": [
+    {
+      "id": "T1",
+      "scope": "N04 full/ligand/one-edge/base-mask selection",
+      "required": "Exact complete-row binary mask, immutable buffers, original handle/UID/order, one predicate, no carrier/index/dependency/frame mutation, no public exports/aliases; zero/mixed/full/empty selections."
+    },
+    {
+      "id": "T2",
+      "scope": "Source/currentness",
+      "required": "Foreign owner/equal UID/equal endpoints, stale same-size permutation, removal/re-add, element change for ligand predicate; coordinate-only independence of topology selection; geometry numerical-source rejection and views stale only for real fact changes."
+    },
+    {
+      "id": "T3",
+      "scope": "Complete record and import",
+      "required": "All raw19/3 bytes/NaN payload/signed zero/presence/source/metadata, complete order, all producer kwargs removed; simple-graph duplicates/self edges rejected atomically; empty-target validation; no H/isotope normalization."
+    },
+    {
+      "id": "T4",
+      "scope": "Persistence",
+      "required": "Use the C0-frozen source6d1ea01 old-current fixtures; new writer/new reader in a fresh process for record/Molecule/Atom/Bond roots and all supported pickle protocols; retain owner/member/self-reference graph, UID gaps/high-water, dependencies, cells, stereo, nine frames/selected index, pair observations and metadata; old positional format rejection before install. No arbitrary historical compatibility claim."
+    },
+    {
+      "id": "T5",
+      "scope": "Lifecycle/constraints",
+      "required": "Copy/components/merge/replace/permanent removals/detached/unregistered handles, no source alias, complete clear_constraints, sequence constraints including missing edges/repeated members, all raw cell/source fields and currentness."
+    },
+    {
+      "id": "T6",
+      "scope": "Working-copy H/publication",
+      "required": "Same neutral donor rule/count conventions, retained complete working clone original Atom/Bond handles/UIDs/order, extra independent H projection, complete original Bond prefix/kind/endpoints followed by new H in creation order; explicitly accept this HT1 ordering change from old recovery-after-H, while preserving bidentate donor/charge/explicit-H chemistry, H counts and appended unique H labels; preserve original caller handles/UIDs; reject stale/removed/changed inputs; partial commit exception restores every caller-owned root/member/source/frame/cell/constraint and allocator monotonicity."
+    },
+    {
+      "id": "T7",
+      "scope": "Repair",
+      "required": "Same eligible exact edge/tie-break/watch/attempt budget; selected open backend graph, complete closed watch, open-frame topology/energy and closed unavailable energy, independent/coexisting selection and projected-input isolation, no-edge no-attempt, setup/optimization/recording failures and outer best-closed-frame rollback; do not claim helper coordinate rollback."
+    },
+    {
+      "id": "T8",
+      "scope": "Native masks",
+      "required": "Normal Stage2 forced warnings and all intended completion; Stage3 restored openings; generic allzero/mixed/allone adapter keeps complete Bond handle/order facts and publishes valid selected coordinates only; shape/mapping/nonbinary/coordinate failure atomicity; selected versus terminal graph archives and original dative kind/order."
+    },
+    {
+      "id": "T9",
+      "scope": "Actual scientific work",
+      "required": "Actual Open Babel FF build/optimize and geometry gates; actual existing CBond->FF->optional GFN-FF->GFN2 scenarios; actual local FP16 MCA mixed CN/charged/CO with original1/2/3 denominator, attributed prediction observations/local rejection/continuation; record numerical state without introducing a model-output finite guard; record method-specific GFN-FF UHF None/GFN2 contract, seeds/parameters and last finite observations."
+    }
+  ],
+  "source_command": {
+    "interpreter": "/tmp/hotpot-plan20-env/bin/python",
+    "argv": [
+      "/tmp/hotpot-plan20-env/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "--import-mode=importlib",
+      "tests/test_cheminfo/structure/test_topology_selection.py",
+      "tests/test_cheminfo/structure/test_builder.py",
+      "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+      "tests/test_cheminfo/structure/test_source_identity.py",
+      "tests/test_cheminfo/structure/test_view_identity.py",
+      "tests/test_cheminfo/structure/test_commit_atomicity.py",
+      "tests/test_cheminfo/structure/test_constraint_storage_lifecycle.py",
+      "tests/test_cheminfo/structure/test_conversion_freshness.py",
+      "tests/test_cheminfo/structure/test_factual_imports.py",
+      "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+      "tests/test_cheminfo/test_topology_index.py",
+      "tests/test_cheminfo/test_topology_determinism.py",
+      "tests/test_cheminfo/test_ligand_rings.py",
+      "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+      "tests/test_cheminfo/test_plan20_outer_cutover.py",
+      "tests/test_cheminfo/test_stereo_extraction.py",
+      "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
+      "tests/test_cheminfo/test_rdconvert_stereo_level1.py",
+      "tests/test_cheminfo/test_stereo_level2_gate6_projection.py",
+      "tests/test_cheminfo/test_stereo_level2_gate6_equivalence.py",
+      "tests/test_cheminfo/test_stereo_level2_gate7_coordination_graph.py",
+      "tests/test_cheminfo/test_stereo_level2_gate7_public.py",
+      "tests/test_cheminfo/test_complex_untangling_workflow.py",
+      "tests/test_cheminfo/test_complex_hydrogens.py",
+      "tests/test_cheminfo/test_complexes_build.py",
+      "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+      "tests/smarts_conformance/test_metamorphic.py",
+      "tests/test_cheminfo/structure/test_constraints.py",
+      "tests/test_cheminfo/structure/test_stage5_bonding.py",
+      "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py",
+      "tests/test_cheminfo/structure/test_pair_observations.py",
+      "tests/test_cheminfo/test_forcefield_trajectory.py",
+      "tests/test_cheminfo/test_stereo_level1_working_copy.py",
+      "tests/test_cheminfo/test_stereo_level1_storage.py",
+      "tests/test_cheminfo/test_stereo_level1_remap.py",
+      "tests/test_cheminfo/test_stereo_level1_native_packing.py",
+      "tests/test_cheminfo/test_native_molecule_buffers.py",
+      "tests/test_cheminfo/obWrappers/test_packing.py",
+      "tests/test_cheminfo/forcefields/test_forcefield_native_public_workflows.py",
+      "tests/test_cheminfo/forcefields/test_forcefield_native_coordination_stage.py",
+      "tests/test_cheminfo/test_forcefield_native_session.py",
+      "tests/test_cheminfo/forcefields/test_native_trajectory_ingestion.py",
+      "tests/mca/test_serialization.py",
+      "tests/mca/test_site_detection.py",
+      "tests/mca/test_site_detection_coordination.py"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "status": "PLANNED_AFTER_CONNECTED_SOURCE_FREEZE",
+    "membership_note": "Future created topology-selection file replaces retired restoration file. Collect final explicit node identities and marker skips before acceptance; do not freeze841 as the new count or include test helper files as pytest test roots."
+  },
+  "real_business_commands": [
+    {
+      "id": "actual_FF",
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-external",
+        "--run-high-compute",
+        "tests/test_cheminfo/test_forcefield_integration.py"
+      ],
+      "required": "Existing actual FF build/optimize, retained handles/topology/IDs and fused-ring geometry cases, with real Open Babel native backend."
+    },
+    {
+      "id": "actual_CBFF_xtb",
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-external",
+        "--run-high-compute",
+        "--run-model-artifacts",
+        "tests/test_plugin/test_xtb/test_official_pipeline_integration.py"
+      ],
+      "required": "Existing two Zn/NCCO routes plus Eu/acetate route; real unchanged CBond model, FF, optional GFN-FF and GFN2 plus geometry/persistence. Retain all attempts and method-specific state; no fabricated golden energy."
+    },
+    {
+      "id": "actual_MCA",
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-model-artifacts",
+        "tests/mca/test_cli_actual_model.py"
+      ],
+      "required": "Same existing local FP16 CPU model, CN succeeds / charged input2 local rejection / CO succeeds; complete correctly joined rows with actual prediction values and observed numerical state, unchanged inputs, aggregateRC1 expected; no new model-output finite guard or model-specific numeric truth criterion."
+    }
+  ],
+  "business_environment": {
+    "reuse_existing_qualified_dependencies": true,
+    "install_or_download_new_models_without_review": false,
+    "source_of_exact_backend_model_identity_and_environment": "cp311_core_workflow_validation_20261103.md and its source/installed run-results; constraint checkpoint installed actual-model bindings",
+    "known_CB_model_revision": "adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe",
+    "known_CB_cache": "/tmp/hotpot_plan20/medium/cbond-model-cache-20261103",
+    "numerical_threads": "OMP_NUM_THREADS=1, MKL_NUM_THREADS=1, OPENBLAS_NUM_THREADS=1; record actual effective settings and existing MCA CPU policy",
+    "missing_asset_or_backend": "Report exact missing evidence and leave required local capability gate open; mocks do not satisfy actual work."
+  },
+  "installed_boundary": {
+    "required": true,
+    "source": "Exact frozen candidate Python/resources plus unchanged source-bound CP311 natives unless actually rebuilt",
+    "method": "Existing standard current wheel assembly; fresh qualified --system-site-packages CP311 venv if reusing dependencies, --no-index/--no-deps install; copied tests outside checkout; python -I -B -m pytest with actual-product-origin hook; remove PYTHONPATH/PYTHONHOME.",
+    "checks": "Same final affected technical node membership and changed business seams; run actual FF, current-record fresh-process pickle, CBond/FF/xTB pipeline and actual MCA at installed boundary, retaining exact versions/assets/workload and original failures.",
+    "bindings": "Record candidate source/test/native/wheel hashes, all actual modules including child imports, every used model/backend input and argv/cwd/environment; no unchecked checkout leakage.",
+    "reuse_limits": "Existing41 non-Python omissions and shared dependencies remain explicit; do not claim clean all-native/ABI/SDK/sdist/manylinux, full dependency isolation or all versions."
+  },
+  "unchanged_evidence_reuse": {
+    "accepted_checkpoint": "stages/stage07/constraints/validation/checkpoint_20261103.json",
+    "accepted_source": {
+      "passed": 841,
+      "failed": 0,
+      "skipped": 0
+    },
+    "accepted_installed": {
+      "passed": 841,
+      "failed": 0,
+      "skipped": 0
+    },
+    "rule": "Reuse unchanged raw cell codecs,16-field Atom table/native scalar touched-key engine and their existing evidence when exact source/ABI/assumptions remain. Rebind every affected core/record/source/view/lifecycle/publication test; changed/retired tests receive an explicit old->new contract/node mapping.",
+    "not_a_candidate_pass": "841 belongs to the accepted constraint snapshot. Do not subtract passing nodes from841 to manufacture a new result or describe unchanged historical evidence as whole-current validation.",
+    "default_CP311": "Once connected affected checks pass, root determines the single appropriate current default-suite checkpoint required by owning-stage policy; use existing current default evidence only for unchanged owners and report its snapshot. Never rerun already-passed unchanged selections without a new concern; any unexecuted current full-default gate stays explicit.",
+    "broader_versions": "3.10/3.12/3.13/3.14 and full delivery adaptation remain later/global work under accepted owner direction, not a CP311 semantic entry precondition."
+  },
+  "native_rebuild": {
+    "default": "No C++/header/stub/CMake/ABI edit planned; no rebuild solely for Python owner/packer changes.",
+    "required_evidence": "Actual native-backed affected session/packing/workflow tests plus exact unchanged source/header/binary bindings for six CP311 extensions in source and wheel.",
+    "if_source_or_ABI_changes": "Root expands scope; wait for writers ready/freeze; rebuild affected extension and bind actual current source/binary before testing source/install. Retain first failed builds/runs.",
+    "later_gates": "Full clean-native/ABI/SDK/package/manylinux/all-version work is not closed."
+  },
+  "bounded_cost": {
+    "status": "C0_BASELINE_FROZEN_CANDIDATE_COMPARISON_PENDING",
+    "baseline_receipt": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/baseline/receipt.json",
+    "baseline_limits": "C0 retains 24 previous-current pickle fixtures, 23 cost cells and all 322 sample rows; root verified 43 artifact hashes, 1398 source/test bindings and six CP311 natives. This is source-checkout baseline evidence, not candidate, installed-wheel, ABI or actual model-work validation.",
+    "acceptance": "Usable completion and bounded growth; explain adverse absolute/relative cost and observed scaling. No universal parity/speedup gate, no profile machinery prerequisite.",
+    "representation_workloads": [
+      "Full factual capture/copy/current pickle/export/clear over128/1024/8192atom fixed graphs; include complete Bond data and all original requested fields.",
+      "Create/check/select ligand or one-edge masks, project independent graph and components over same fixed graphs; do not compare a candidate mask-only operation with baseline full projection/backend work."
+    ],
+    "actual_workloads": [
+      "Existing neutral donor and bidentate H working-copy examples with unchanged seed/rm_polar_hs behavior, complete returned Bond facts and H additions. Include the declared extra H projection allocation/copy; check the accepted complete original working-clone Bond handle/UID/order prefix followed by H separately from old recovery-after-H order. C0 phenol/OCCO chemistry/count/label observations remain the comparison inputs, without treating historical sequence as the required oracle.",
+      "Representative actual ligand proxy/short UFF repair or native complex workflow, fixed backend/seed/steps/attempts/topology/trajectory setting; retain completed work and all frames/observations.",
+      "Existing actual CBond/FF/backend and MCA business commands contribute elapsed/resource observations without claiming a controlled global benchmark."
+    ],
+    "sampling": "Freeze exact recipe, inputs and work-count manifest before edits. For short deterministic representation paths use3warmups+10measured samples with fixed iteration counts, retaining all samples/median/MAD. Use a small predetermined repeat count for actual backend work; report shared-host limitations and numerical output differences.",
+    "allocations": "Record Python allocation/peak and process RSS with scope limits; inspect native lifetime only if a concrete new resource issue appears. No universal leak claim or automatic Memray work.",
+    "baseline_methods": "Baseline may use the old hide/recover mechanism solely to produce the same operation graph; candidate uses selections/projections. Keep same native calls/algorithm/data, and report extra projection/validation work as cost.",
+    "retain_previous_adverse": "Constraint selective-axis6.276–19.854x and fullBond2.651–2.741x remain their accepted prior evidence; do not relabel or offset them with selection microbenchmarks."
+  },
+  "static_checks_for_implementation": [
+    "No hidden storage/public method implementation or bond_partitions consumer remains in runtime Python/native/stubs; retired names may remain solely in explicit absence/rejection tests and historical documents.",
+    "Every current _make_molecule_record producer and reducer/installer aligns with the23-field current schema; keyword-only constructor and tagged reducer reject old positional fixtures before fact installation.",
+    "No new public selector/export/flag/type, no retained Graph/cache/selected list, one N04 class only, no physical-restraint/H/stereo/model/native schema change.",
+    "Exact file partitions respected; all consumer/test/helper migrations reviewed before execution; prior append-only log bytes and unrelated user work retained."
+  ],
+  "evidence_output": "Root/verifier freezes a finite owning-stage evidence directory with exact argv/cwd/env/interpreters/source+native+wheel+model bindings, collected node identities, JUnit counts/skips, failures, scientific observations, raw timings and reaped child state. Record evidence actually obtained; do not invent commands, denominators or passes.",
+  "remaining_gates": [
+    "Connected source/test readiness and separate root C1 review/freeze before candidate runtime; HT1-HT5/C0 and source/test authoring release are already accepted",
+    "Whole Stage7B semantic/technical/usable-cost acceptance and business delivery",
+    "Stage7C/D/E and later stages",
+    "Other Python versions/clean native/ABI/SDK/sdist/manylinux and41 known package omissions",
+    "Required broader science/GPU/external/Plan12 evidence and global performance/final acceptance",
+    "Stage0–12 and B_exp before separately gated Stage13"
+  ]
+}

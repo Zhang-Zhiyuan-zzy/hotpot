@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "source_commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
-  "stage_entry": "Full current main plan and normative companions reread and project-state assessment before every stage/sub-stage",
-  "scope": "Existing exact technical target selections plus explicitly planned targets. Tests added by owning stages join the complete affected Python matrix before their gates pass. Mandatory Stage7E is transcribed from the root-key accepted Stage6 normative amendment; existing planned-file labels are corrected without claiming future-stage passes.",
+  "stage_entry": "Align the current main plan, normative companions, accepted decisions, affected records and actual predecessor evidence at stage/sub-stage entry and material route changes. Targeted current reads and valid unaffected alignment/evidence may be reused under the effective goal; no ritual full-document reread is required.",
+  "scope": "Existing exact technical target selections plus explicitly planned targets. Under effective goal.md, affected CP311 source/installed contracts and actual mandatory business work lead; other planned Python3.10-3.14 adaptation remains explicit later/final work. Inventory sizes and historical pass counts are attribution, not coverage targets. Mandatory Stage7E canonical ownership still gates Stage8/Stage12/global acceptance; version parity alone does not gate Stage8. Existing historical records retain their source/scope; no future-stage passes are claimed.",
   "baseline_environment": {
     "local_python": "/tmp/hotpot-plan20-env/bin/python",
     "frozen_source_worktree": "/tmp/hotpot-plan20-20261028/source-b20",
@@ -91,7 +91,10 @@
     "Native SDK tests additionally require --run-external and HOTPOT_RDWRAPPERS_TEST_SDK_PREFIX; skipped SDK calls are not passed ABI checks.",
     "Performance workloads/repetitions/outcome accounting belong to the separately frozen Section12 manifest; this file does not substitute a benchmark policy.",
     "Stage13 contract-test exact path is intentionally deferred until B_exp exists; no speculative protocol implementation is authorized here.",
-    "The supplementary Python baseline uses python_matrix_manifest.json: 2689 frozen nodes per version, all-five preflight, one warmup and five synchronized measured rounds. Installed wheels, outside-source child cwd and actual node execution are verified. This does not replace the owning-stage additional-contract matrix or alter the original 71-workload weights."
+    "When the separately scheduled supplementary Python benchmark runs, python_matrix_manifest.json retains its 2689 frozen nodes per version, all-five preflight, one warmup and five synchronized measured rounds. Installed wheels, outside-source child cwd and actual node execution require evidence. This frozen benchmark recipe is not a prerequisite chain for each slice; it neither replaces affected validation nor alters the original 71-workload weights.",
+    "Choose checks through functional_707_business_mapping.md, actual writers/consumers and affected risk: representation/lifecycle, chemical semantics, CBond->FF->GFN-FF->xTB and MCA are mandatory business priorities. I/O/toolkit or other dependencies required by those paths inherit that priority; lower-priority remaining work is deferred/reported, not deleted from Plan20/Plan12.",
+    "Reuse valid unaffected evidence between milestones and rerun affected checks; further changes/failures/unresolved concerns justify more. Historical 707 inventory and 841 constraint passes are not current targets. Applicable default/package/native/version/science/backend/model/GPU/external/performance final obligations remain; an unexecuted tier is never passed.",
+    "State expected facts, allowed differences/rejections and numerical/stochastic tolerances/invariants before observation; use independent positive/negative/boundary oracles. Exact deterministic/lossless contracts and artifact-attribution hashes remain valid but do not establish chemical truth. Peripheral checker deferral needs recorded limits and trustworthy actual-business evidence; the defensive audit creates no gate or blanket guard edits."
   ],
   "stages": {
     "Stage0": {
@@ -198,7 +201,7 @@
       "planned_contract_test_files": [],
       "additional_requirements": [
         "full default suite, original baseline scientific/technical selection, full Section12 workload measurements",
-        "Supplementary installed-wheel Python3.10–3.14 baseline: common_commands.python_matrix_baseline, with all five matching wheels and verified models prepared before timing."
+        "Supplementary installed-wheel Python3.10\u20133.14 baseline: common_commands.python_matrix_baseline, with all five matching wheels and verified models prepared before timing."
       ],
       "execution_status": "completed; exact commands, outcomes and digests are in stages/stage01/evidence.json and implementation_log.md"
     },
@@ -548,7 +551,7 @@
         "stages/stage04/performance/review.md",
         "stages/stage04/performance/profiling/evidence.json"
       ],
-      "verification_note": "Actual complete Stage3/4 owner/builder/identity/native/pickle/FF/consumer selection plus all DS contracts: Python3.10–3.14 each2287 source/175 debug/2157 installed;42 external/scientific skips. Default4585 passed/123 skipped/3 xfailed/49 subtests. Seven unchanged standalone CPP checks and current542-member sdist separate. Focused3+10 benchmarks are valid executed comparisons, not final71-entry approval.",
+      "verification_note": "Actual complete Stage3/4 owner/builder/identity/native/pickle/FF/consumer selection plus all DS contracts: Python3.10\u20133.14 each2287 source/175 debug/2157 installed;42 external/scientific skips. Default4585 passed/123 skipped/3 xfailed/49 subtests. Seven unchanged standalone CPP checks and current542-member sdist separate. Focused3+10 benchmarks are valid executed comparisons, not final71-entry approval.",
       "default_gate_prerequisite_scope": {
         "reason": "Real default-gate existing DS cache source-content failure on unchanged metadata",
         "affected_source": "hotpot/ds/public/_generation.py",
@@ -1719,7 +1722,7 @@
         "limits": [
           "Existing static source/AST/text/hash and declaration records only; this synchronization runs no audit/checker, project import, pytest collection/test, build, native/model/scientific or performance workload.",
           "Static authoring completion does not close source-ready, installed-wheel/native/reflection/cold/resource/pickle/P03/complete cost/full retention/native-memory or global gates.",
-          "Final211-file source/installed3.10–3.14 membership is preserved, including all36 dataset tests. No Stage13 experiment or certificate acceptance is authorized."
+          "Final211-file source/installed3.10\u20133.14 membership is preserved, including all36 dataset tests. No Stage13 experiment or certificate acceptance is authorized."
         ]
       },
       "new_contract_test_authoring": {
@@ -2581,7 +2584,7 @@
           "runtime_executed": false
         }
       },
-      "historical_execution_status_before_task100": "Stage7A IN_PROGRESS; Task95 exact3-file main repair applied and current-main focused61passed. Task99 exact helper font relocation applied/unexecuted. Current213source/installed3.10–3.14,cp311default/coverage,applicable native and fresh26cells pending. Task87 terminal timeout/no analysis/memoryHOLD; Task97tool-only repair separate. Historical211map/actual212selection and FREEZE10/12 evidence retained;7BPREENTRY;alllater/globalgatesopen.",
+      "historical_execution_status_before_task100": "Stage7A IN_PROGRESS; Task95 exact3-file main repair applied and current-main focused61passed. Task99 exact helper font relocation applied/unexecuted. Current213source/installed3.10\u20133.14,cp311default/coverage,applicable native and fresh26cells pending. Task87 terminal timeout/no analysis/memoryHOLD; Task97tool-only repair separate. Historical211map/actual212selection and FREEZE10/12 evidence retained;7BPREENTRY;alllater/globalgatesopen.",
       "current_outcome_checkpoint_task100": {
         "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261030/stage7a/root-continuation-task100/ROOT_CURRENT_RESULTS.json",
         "bytes": 3511,
@@ -3272,49 +3275,158 @@
       "predecessor": "Stage7A",
       "existing_test_files": [
         "tests/test_cheminfo/test_forcefield_trajectory.py",
-        "tests/test_cheminfo/test_hidden_bond_restoration.py",
+        "tests/test_cheminfo/structure/test_topology_selection.py",
         "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
         "tests/test_cheminfo/test_stereo_level1_working_copy.py"
       ],
       "native_high_compute_test_files": [],
       "technical_command": [
-        "python",
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-B",
         "-m",
         "pytest",
         "-q",
         "--import-mode=importlib",
-        "tests/test_cheminfo/test_forcefield_trajectory.py",
-        "tests/test_cheminfo/test_hidden_bond_restoration.py",
+        "tests/test_cheminfo/structure/test_topology_selection.py",
+        "tests/test_cheminfo/structure/test_builder.py",
+        "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+        "tests/test_cheminfo/structure/test_source_identity.py",
+        "tests/test_cheminfo/structure/test_view_identity.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/structure/test_constraint_storage_lifecycle.py",
+        "tests/test_cheminfo/structure/test_conversion_freshness.py",
+        "tests/test_cheminfo/structure/test_factual_imports.py",
         "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
-        "tests/test_cheminfo/test_stereo_level1_working_copy.py"
+        "tests/test_cheminfo/test_topology_index.py",
+        "tests/test_cheminfo/test_topology_determinism.py",
+        "tests/test_cheminfo/test_ligand_rings.py",
+        "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+        "tests/test_cheminfo/test_plan20_outer_cutover.py",
+        "tests/test_cheminfo/test_stereo_extraction.py",
+        "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
+        "tests/test_cheminfo/test_rdconvert_stereo_level1.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_projection.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_equivalence.py",
+        "tests/test_cheminfo/test_stereo_level2_gate7_coordination_graph.py",
+        "tests/test_cheminfo/test_stereo_level2_gate7_public.py",
+        "tests/test_cheminfo/test_complex_untangling_workflow.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/test_complexes_build.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/smarts_conformance/test_metamorphic.py",
+        "tests/test_cheminfo/structure/test_constraints.py",
+        "tests/test_cheminfo/structure/test_stage5_bonding.py",
+        "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py",
+        "tests/test_cheminfo/structure/test_pair_observations.py",
+        "tests/test_cheminfo/test_forcefield_trajectory.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py",
+        "tests/test_cheminfo/test_stereo_level1_storage.py",
+        "tests/test_cheminfo/test_stereo_level1_remap.py",
+        "tests/test_cheminfo/test_stereo_level1_native_packing.py",
+        "tests/test_cheminfo/test_native_molecule_buffers.py",
+        "tests/test_cheminfo/obWrappers/test_packing.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_public_workflows.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_coordination_stage.py",
+        "tests/test_cheminfo/test_forcefield_native_session.py",
+        "tests/test_cheminfo/forcefields/test_native_trajectory_ingestion.py",
+        "tests/mca/test_serialization.py",
+        "tests/mca/test_site_detection.py",
+        "tests/mca/test_site_detection_coordination.py",
+        "--tb=short",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "plan20_evidence_plugin",
+        "--basetemp=/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/affected-attempt3/pytest-tmp",
+        "--junitxml=/tmp/hotpot_plan20/long/stage7b-topology-20261103/source-validation/affected-attempt3/junit.xml"
       ],
       "native_command": null,
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_constraints.py",
-          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
+          "status": "implemented; affected C2 source/installed1313 evidence, with C3 full-constraints source/installed rebind where changed; exact bindings in topology checkpoint"
         },
         {
           "path": "tests/test_cheminfo/structure/test_view_identity.py",
-          "status": "existing implemented file; prior owning evidence is preserved; this stage must rebind affected cases and obtain its own source/installed-wheel evidence before acceptance"
+          "status": "implemented; affected C2 source/installed1313 evidence, with C3 full-constraints source/installed rebind where changed; exact bindings in topology checkpoint"
         },
         {
           "path": "tests/test_cheminfo/structure/test_topology_selection.py",
-          "status": "planned_not_created"
+          "status": "implemented; affected C2 source/installed1313 evidence, with C3 full-constraints source/installed rebind where changed; exact bindings in topology checkpoint"
         }
       ],
       "additional_requirements": [
         "complete constraint identity/invalidation and task topology masks; preserve original rollback assertions"
       ],
-      "execution_status": "IN_PROGRESS: constraint-owner slice DELIVERY_READY with affected CP311 source841/installed841 plus actual-model1 and root-accepted bounded usable cost; hidden-topology consumer cutover and whole-Stage7B acceptance remain pending.",
+      "execution_status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE: root accepts whole constraint-owner plus connected HT1\u2013HT5 functional migration and applicable CP311 owning-stage gates, including prior bounded-cost decisions. C2 source1313/installed1313 and actualFF11/pipeline3/MCA1; C3 test-only source180/installed10 retain exact attribution. Original default5385/2fail/129skip and all harness/persistence/cost failures remain. Finite local archive excludes external model/native/wheel binaries. No current full-default/all-version/clean-native/global pass; root alone delivers through attributable Git history and opens Stage7C.",
       "preentry_evidence": [
         "stages/stage07/preentry-selections/review.md",
         "stages/stage07/preentry-selections/evidence.json"
       ],
       "stage_entry": true,
-      "stage_gate_closed": false,
+      "stage_gate_closed": true,
       "entry_review": "stages/stage07/constraints/entry_review.json",
-      "technical_command_scope": "Original four-file command remains historical; the executed constraint slice membership and exact source/installed argv/cwd/environment are bound by constraint_checkpoint_20261103. This is not the final hidden-topology/whole-stage selection.",
+      "technical_command_scope": "Actual C2 affected-source command:1313passed; exact argv/cwd/env/native/source bindings in topology checkpoint/evidence index. C3 changes only constraints instrumentation and has separate source180/installed10 evidence; no current full-default pass.",
+      "hidden_topology_cutover": {
+        "design": "stages/stage07/topology-selection/contracts/hidden_topology_design.md",
+        "file_scope": "stages/stage07/topology-selection/contracts/file_scope.json",
+        "validation_plan": "stages/stage07/topology-selection/contracts/validation_plan.json",
+        "design_acceptance": "stages/stage07/topology-selection/design_acceptance.json",
+        "implementation_release": "stages/stage07/topology-selection/implementation_release.json",
+        "baseline_receipt": "/tmp/hotpot_plan20/long/stage7b-topology-20261103/baseline/receipt.json",
+        "accepted_ordering": "HT1 retains the complete original working-clone Bond handle/UID/order prefix and appends H. This intentionally changes old recovery-after-H order while preserving chemistry/counts/labels and original caller identity; retain C0's old-order observations.",
+        "candidate_evidence": "stages/stage07/topology-selection/validation/checkpoint.json",
+        "report": "stages/stage07/topology-selection/validation/report.md",
+        "status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE",
+        "stage_gate_closed": true,
+        "global_gate_closed": false,
+        "contract_migration": [
+          {
+            "retired": "tests/test_cheminfo/test_hidden_bond_restoration.py::test_restore_bonds_reuses_objects_and_updates_topology_once",
+            "current": "tests/test_cheminfo/structure/test_topology_selection.py::test_selections_keep_complete_handles_order_views_dependencies_and_frames",
+            "meaning": "Complete factual handle/UID/order/view/index/source preservation without hide/recover mutation."
+          },
+          {
+            "retired": "test_restore_bonds_can_restore_one_hidden_metal_bond_at_a_time",
+            "current": "tests/test_cheminfo/structure/test_topology_selection.py::test_full_zero_empty_and_immutable_selection_buffers",
+            "meaning": "Private full/zero/ligand/exact-edge/coexisting selections leave membership complete; eight removed methods have absence assertions."
+          },
+          {
+            "retired": "test_restore_bonds_validates_the_whole_selection_before_mutating",
+            "current": "tests/test_cheminfo/structure/test_topology_selection.py::test_exclusions_validate_every_exact_handle_before_changing_any_source",
+            "meaning": "Duplicate/foreign/equalUID/nonmember/removed/stale source rejects before publication."
+          },
+          {
+            "retired": "Overlapping hidden/active duplicate-pair views",
+            "current": "tests/test_cheminfo/structure/test_view_identity.py::test_complete_record_rejects_repeated_pairs_before_installation",
+            "meaning": "HT4 atomic complete-simple-graph rejection; valid missing-edge/repeated-member sequence constraint assertions remain."
+          },
+          {
+            "retired": "Active-only constraint clear and hidden-cell lifetime",
+            "current": "tests/test_cheminfo/structure/test_constraint_storage_lifecycle.py",
+            "meaning": "All complete Bond cells clear; permanent detach/raw bits/source/UID/rollback assertions retained."
+          },
+          {
+            "retired": "Synthetic native zero/mixed mask persists hidden membership",
+            "current": "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py::test_selected_structure_masks_leave_complete_coordination_facts_in_place",
+            "meaning": "HT2 coordinates-only publication; complete Bonds and selected/terminal archives preserve independent meaning."
+          },
+          {
+            "retired": "H recovery appends coordination after H",
+            "current": "tests/test_cheminfo/test_complex_hydrogens.py::test_ligand_h_reassembly_retains_complete_clone_handle_uid_order_prefix",
+            "meaning": "HT1 complete original clone handles/UID/order prefix before H; donor chemistry/counts/labels and caller identity preserved."
+          },
+          {
+            "retired": "Partition-bearing positional record/current pickle",
+            "current": "tests/test_cheminfo/structure/test_builder.py; persistence/pass in evidence_index.json",
+            "meaning": "HT3 same23-field keyword-only N02/tagged-v2; fresh-process current roots and exact24 C0 old rejects."
+          }
+        ],
+        "full_migration_detail": "tests/behavior-map in stages/stage07/topology-selection/validation/evidence_index.json",
+        "root_cost_disposition": "stages/stage07/topology-selection/root_cost_disposition_20261103.json",
+        "root_completion": "stages/stage07/completion_20261103.json",
+        "durable_evidence_archive": ".plan20-artifacts/20261103/stage7b/topology-selection; manifest/receipt identities in topology validation checkpoint/evidence index; local evidence only, external model/native/wheel binaries excluded."
+      },
       "preentry_baseline_20261103": {
         "archive": ".plan20-artifacts/20261103/stage7b/preentry-baseline/",
         "source_commit": "48780a669c9b1ca5b0e6c2cadf63365579ad3ccf",
@@ -3387,19 +3499,38 @@
         "bound_natives": 6,
         "rebuilt_fact_native_sha256": "cea3ed1ab971ad7c108fa6b44db56a85df5f6e61eccd9caed51c44041cab4bad",
         "other_natives_reused": 5,
-        "usable_cost": "45/45same-driver cells complete/RC0/reaped; scalar O(1); fixed16-atom workflow~2.07ms/~1.24x. Selective-axis6.276–19.854x/6.772ms and fullBond2.651–2.741x/21.097ms retained. No parity/global/leak claim.",
+        "usable_cost": "45/45same-driver cells complete/RC0/reaped; scalar O(1); fixed16-atom workflow~2.07ms/~1.24x. Selective-axis6.276\u201319.854x/6.772ms and fullBond2.651\u20132.741x/21.097ms retained. No parity/global/leak claim.",
         "archive": ".plan20-artifacts/20261103/stage7b/constraint-consolidation/",
         "remaining_gates": [
           "Stage7B connected hidden-topology consumer/mask/public-retirement/native-publication/transport cutover and whole-stage acceptance.",
           "Stage7C/D/E and later stages; connected H/isotope/stereo ownership and concrete H/public/model/storage decisions remain open.",
           "Other Python versions; clean all-native/ABI/SDK/sdist/manylinux and41 explicitly omitted non-Python wheel paths.",
           "Required broader scientific/GPU/external/Plan12 evidence and global performance/final acceptance.",
-          "Root business commit/push; Stage0–12 acceptance and B_exp still precede separately gated Stage13."
+          "Root business commit/push; Stage0\u201312 acceptance and B_exp still precede separately gated Stage13."
         ],
         "stage_gate_closed": false,
         "global_gate_closed": false,
         "goal_v2_activated": false
-      }
+      },
+      "historical_existing_test_files_before_hidden_topology_cutover": [
+        "tests/test_cheminfo/test_forcefield_trajectory.py",
+        "tests/test_cheminfo/test_hidden_bond_restoration.py",
+        "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py"
+      ],
+      "historical_technical_command_before_hidden_topology_cutover": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/test_forcefield_trajectory.py",
+        "tests/test_cheminfo/test_hidden_bond_restoration.py",
+        "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py"
+      ],
+      "root_completion": "stages/stage07/completion_20261103.json",
+      "root_acceptance_status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE"
     },
     "Stage7C": {
       "predecessor": "Stage7B",
@@ -3554,7 +3685,7 @@
         "No stored whole _stereo_payload or assembled mirror; sole stereo records/schema + source-only ledger, canonical Atom isotope/radical/current-H declarations and separate Bond display/dative direction.",
         "Entry freezes exact H-scope/slot/presence/source mapping and opaque/unbound/duplicate/out-of-range source handling; preserve schema47/row81 and legacy19/native ABI prefix losslessly; no silent omitted-H/site-total normalization.",
         "Lossless atomic set/get and set(get(mol)); copy/component/merge/remap/pickle/toolkit/native/conformer/working-copy publication and failure rollback; all writers/configurations migrate together.",
-        "Full affected Python3.10-3.14 source/installed-wheel with current native build source binding; exact effective-H seeds, stale-source behavior, type/presence/source/order and no-mirror tests; allocation/throughput observations."
+        "Complete affected CP311 source/installed-wheel first with actual native build source binding; exact effective-H seeds, stale-source behavior, type/presence/source/order and no-mirror tests; allocation/throughput observations. Other planned Python3.10/3.12/3.13/3.14 versions adapt later with explicit status and complete applicable final evidence; version parity alone is not a pre-Stage8 condition."
       ],
       "execution_status": "assigned_mandatory_future_gate_not_entered; source/slot/unbound/rename and full affected selections must be frozen at entry",
       "normative_owner": "fact_rule_architecture_implementation_plan.md Section5.3 and Stage7E",
@@ -4263,7 +4394,7 @@
         }
       ],
       "additional_requirements": [
-        "full Sections11/12 matrix, final reports and verified main-scope B_exp",
+        "full applicable Sections11/12 delivery/final matrix including other planned Python3.10-3.14 source/installed adaptation, package/native/ABI/SDK, actual required backend/model/science/GPU/external and comparable-work performance reports; verified main-scope B_exp before separate Stage13",
         "Mandatory Stage7E canonical stereo storage gate complete; no transitional Stage6 whole-payload storage waiver."
       ],
       "execution_status": "not_executed_by_inventory_capture"

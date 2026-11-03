@@ -184,10 +184,28 @@ def test_bond_source_metadata_is_order_independent_but_nested_content_is_checked
         _capture_source(mol, ("representation",))
 
 
-def test_topology_includes_hidden_bonds_and_their_ordered_endpoints():
+def test_nested_bytes_metadata_is_order_independent_and_distinct_from_hex_text():
+    mol = _molecule()
+    bond = mol.bonds[0]
+    bond._bond_source_metadata = {"kind": "source", "flags": {"row": 0, "raw": [b"C0", (0, None)]}}
+    source = _capture_source(mol, ("representation",))
+    bond._bond_source_metadata = {"flags": {"raw": [bytes.fromhex("4330"), (0, None)], "row": 0},
+                                  "kind": "source"}
+    _check_source(mol, source)
+    bond._bond_source_metadata["flags"]["raw"][0] = b"C1"
+    with pytest.raises(RuntimeError, match="representation"):
+        _check_source(mol, source)
+    bond._bond_source_metadata["flags"]["raw"][0] = "4330"
+    with pytest.raises(RuntimeError, match="representation"):
+        _check_source(mol, source)
+    bond._bond_source_metadata["flags"]["raw"][0] = object()
+    with pytest.raises(TypeError, match="Unsupported source identity value: object"):
+        _capture_source(mol, ("representation",))
+
+
+def test_topology_includes_complete_bonds_and_their_ordered_endpoints():
     mol = _molecule()
     bond = mol.bonds[-1]
-    mol.hide_bonds(bond, clear_conformers=False)
     source = _capture_source(mol, ("topology",))
     bond._atoms = (bond.atom2, bond.atom1)
     with pytest.raises(RuntimeError, match="topology"):

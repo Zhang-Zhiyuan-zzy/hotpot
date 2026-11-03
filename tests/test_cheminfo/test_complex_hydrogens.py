@@ -627,3 +627,41 @@ def test_failed_commit_restores_every_caller_owned_container(monkeypatch):
     assert tuple((ring.atoms, ring.bonds) for ring in molecule.ligand_rings) == original_ligand_rings
     assert not {'_rings', '_ring_indices_cache', '_ligand_rings', '_ligand_rings_signature'}.intersection(molecule.__dict__)
     assert "_obmol" not in molecule.__dict__
+
+
+@pytest.mark.parametrize('smiles,seed,donor_hydrogens', [('Oc1ccccc1', 11, [1]), ('OCCO', 17, [1, 1])])
+def test_ligand_h_reassembly_retains_complete_clone_handle_uid_order_prefix(monkeypatch, smiles, seed, donor_hydrogens):
+    from tests.test_cheminfo._stage5_fixtures import factual_state
+    molecule, donor_rows = _coordinate_matching_atoms(smiles, lambda atom: atom.symbol == 'O')
+    source_bonds, source_atoms = tuple(molecule.bonds), tuple(molecule.atoms)
+    source_state = factual_state(molecule)
+    copied = []
+    original_copy = working_copy.copy
+    def capture_copy(source):
+        clone = original_copy(source)
+        copied.append((clone, tuple(clone.atoms), tuple(clone.bonds),
+                       tuple(bond._uid for bond in clone.bonds),
+                       tuple((bond.a1idx, bond.a2idx, bond.bond_kind, bond.bond_order) for bond in clone.bonds)))
+        return clone
+    monkeypatch.setattr(working_copy, 'copy', capture_copy)
+    working = working_copy._hydrogenated_working_copy(molecule, add_hydrogens=True, seed=seed)
+    clone, atoms, bonds, uids, rows = copied[0]
+    assert working is clone
+    assert tuple(working.atoms[:len(atoms)]) == atoms
+    assert tuple(working.bonds[:len(bonds)]) == bonds
+    assert tuple(bond._uid for bond in working.bonds[:len(bonds)]) == uids
+    assert tuple((bond.a1idx, bond.a2idx, bond.bond_kind, bond.bond_order)
+                 for bond in working.bonds[:len(bonds)]) == rows
+    assert len(working.hydrogens) == 6
+    assert [working.atoms[row].explicit_hydrogens for row in donor_rows] == donor_hydrogens
+    assert [working.atoms[row].formal_charge for row in donor_rows] == [0] * len(donor_rows)
+    assert all(any(atom.is_hydrogen for atom in bond.atoms) for bond in working.bonds[len(bonds):])
+    assert all(bond._uid > max(uids) for bond in working.bonds[len(bonds):])
+    labels = [atom.id for atom in working.atoms]
+    assert len(labels) == len(set(labels))
+    assert tuple(molecule.atoms) == source_atoms and tuple(molecule.bonds) == source_bonds
+    assert factual_state(molecule) == source_state
+    working_copy._commit_working_copy(molecule, working)
+    assert tuple(molecule.atoms[:len(source_atoms)]) == source_atoms
+    assert tuple(molecule.bonds[:len(source_bonds)]) == source_bonds
+    assert all(any(atom.is_hydrogen for atom in bond.atoms) for bond in molecule.bonds[len(source_bonds):])

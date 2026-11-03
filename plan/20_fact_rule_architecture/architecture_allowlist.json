@@ -247,78 +247,6 @@
       "stage": "Stage8D"
     },
     {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 158,
-      "scope": "Molecule.__init__",
-      "target": "self._hided_metal_bonds",
-      "attribute": "_hided_metal_bonds",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7B"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 159,
-      "scope": "Molecule.__init__",
-      "target": "self._hided_covalent_bonds",
-      "attribute": "_hided_covalent_bonds",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7B"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 1005,
-      "scope": "Molecule.restore_bonds",
-      "target": "self._hided_metal_bonds",
-      "attribute": "_hided_metal_bonds",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7B"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 1009,
-      "scope": "Molecule.restore_bonds",
-      "target": "self._hided_covalent_bonds",
-      "attribute": "_hided_covalent_bonds",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7B"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 965,
-      "scope": "Molecule.clear_metal_ligand_bonds",
-      "target": "self._hided_metal_bonds",
-      "attribute": "_hided_metal_bonds",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7B"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 974,
-      "scope": "Molecule.clear_hided_covalent_bonds",
-      "target": "self._hided_covalent_bonds",
-      "attribute": "_hided_covalent_bonds",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7B"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 982,
-      "scope": "Molecule.clear_hided_bonds",
-      "target": "self._hided_metal_bonds",
-      "attribute": "_hided_metal_bonds",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7B"
-    },
-    {
-      "path": "hotpot/cheminfo/core.py",
-      "line": 983,
-      "scope": "Molecule.clear_hided_bonds",
-      "target": "self._hided_covalent_bonds",
-      "attribute": "_hided_covalent_bonds",
-      "rule": "forbidden_retained_state_write",
-      "stage": "Stage7B"
-    },
-    {
       "path": "hotpot/cheminfo/forcefields/__init__.py",
       "line": 3,
       "scope": "",
@@ -1745,33 +1673,6 @@
       "scope": "",
       "target": "hotpot.cheminfo.core.Molecule",
       "local": "Molecule",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "tests/test_cheminfo/test_hidden_bond_restoration.py",
-      "line": 3,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.BondKind",
-      "local": "BondKind",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "tests/test_cheminfo/test_hidden_bond_restoration.py",
-      "line": 3,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.Molecule",
-      "local": "Molecule",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "tests/test_cheminfo/test_hidden_bond_restoration.py",
-      "line": 3,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.ObjNotInMolecule",
-      "local": "ObjNotInMolecule",
       "rule": "legacy_core_import",
       "stage": "Stage9"
     },

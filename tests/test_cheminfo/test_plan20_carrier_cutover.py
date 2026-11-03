@@ -31,7 +31,7 @@ def facts(mol):
     status, seeds = _dependency_state(mol._atom_table)
     return (mol._atom_table.matrix().tobytes(), mol._atom_table.presence().tobytes(),
             mol._atom_table.sources().tobytes(), status.tobytes(), seeds,
-            tuple(mol.atoms), tuple(mol._bonds + mol._hided_bonds))
+            tuple(mol.atoms), tuple(mol._bonds))
 
 
 def test_sole_numeric_owner_and_public_snapshot_isolation():

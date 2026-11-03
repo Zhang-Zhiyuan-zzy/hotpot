@@ -12,8 +12,7 @@ _PRESENCE = sum(FIELD_PRESENCE_BITS[index] for index in _INDICES)
 
 
 def _capture_view_source(mol):
-    return (_capture_source(mol), mol._topology_index, len(mol._atoms),
-            len(mol._bonds), len(mol._hided_metal_bonds), len(mol._hided_covalent_bonds))
+    return (_capture_source(mol), mol._topology_index, len(mol._atoms), len(mol._bonds))
 
 
 def _check_view_source(mol, source, atoms, uids):
@@ -24,8 +23,7 @@ def _check_view_source(mol, source, atoms, uids):
 
 def _view_source_current(mol, source, atoms, uids):
     return (source[0].owner is mol._owner_token and source[1] is mol._topology_index
-            and source[2:] == (len(mol._atoms), len(mol._bonds),
-                               len(mol._hided_metal_bonds), len(mol._hided_covalent_bonds))
+            and source[2:] == (len(mol._atoms), len(mol._bonds))
             and all(atom._uid_owner is mol._owner_token and atom._uid == uid
                     and id(atom) in mol._topology_index for atom, uid in zip(atoms, uids)))
 

@@ -1,8 +1,9 @@
 # Fact-Carrier and Rule Architecture Refactor
 
-Status: **implementation authorized on 2026-10-28; Stage0–7A owning-stage gates complete;
-Stage7B IN_PROGRESS with its constraint-owner slice delivery-ready and hidden-topology
-consumer cutover pending; current CP311 source and installed-wheel business checks recorded; full scientific, engineering and global acceptance remain open**.
+Status: **implementation authorized on 2026-10-28; Stage0–7B owning-stage gates complete
+within their recorded scopes, including the applicable CP311 Stage7B delivery;
+Stage7C is next. Full scientific, engineering, version-adaptation and global
+acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
 are recorded in [the CP311 core-workflow report](cp311_core_workflow_validation_20261103.md). The architecture, lazy invalidation, scientific-reporting, and
@@ -21,12 +22,14 @@ Original planning baseline: `0a4b0ee`; reviewed documentation commit: `d9eb80e`.
 The executable implementation baseline is frozen in Stage 1 after the selected
 Plan17 prerequisite route, not assumed to be the original planning commit.
 
-Initial audit: 2026-10-27. Owner-directed revisions: 2026-10-28 and 2026-10-30.
+Initial audit: 2026-10-27. Owner-directed revisions: 2026-10-28, 2026-10-30 and 2026-11-03.
 
-The [current implementation constitution](goal.md), effective under the owner's
-2026-10-30 authorization, governs execution, ordinary results, findings and
-control decisions in this plan. Settled public contracts, scientific constraints
-and required validation/performance work remain binding.
+The [current implementation constitution](goal.md), approved and activated by
+the owner on 2026-11-03, governs execution, ordinary results, findings and control
+decisions in this plan. The earlier goal is archived as `goal_v1.md`. Settled
+public contracts, scientific constraints and required final validation/performance
+work remain binding; the current goal governs priority, evidence reuse and usable
+cost when older planning text conflicts.
 
 Normative companion records:
 
@@ -191,9 +194,11 @@ remain subject to Section 16 and the companion API review register:
    Section 3.3. No second topology index, native Graph, or general cache is
    authorized.
 
-Public hidden-bond API removal still needs its explicit decision; the new
-private storage/dirty-state design is no longer excluded by the old suggestion
-to preserve the physical Atom array layout.
+Root adopted Decision6's eight-method retirement and accepted the exact
+[Stage7B HT1–HT5 contracts](stages/stage07/topology-selection/contracts/hidden_topology_design.md).
+The separate implementation release and connected cutover evidence govern delivery;
+there is no replacement public selector. The new private storage/dirty-state
+design is not excluded by the old suggestion to preserve the Atom array layout.
 
 Stage0 selects **Plan20 first** because Plan17's minimum native MCA semantic
 closure is not implemented. Freeze a fresh Plan20 baseline using the existing
@@ -388,12 +393,19 @@ not conflicts. User mutation can replace a field through its documented
 setter/operation, but it cannot violate P0 invariants or cause an unrelated
 lower-priority value to repair the new input.
 
-Factual serialization preserves supplied/source facts independently of whether a
-current rule evaluation or toolkit projection is available. Strict scientific
-projections still prepare and check their required facts. Rules, fallbacks,
-sanitization and adapters must not silently rewrite authoritative input; an
-unsupported or lossy toolkit projection is an adapter-scoped finding, not a
-chemical impossibility or a redefinition of Hotpot facts.
+Factual serialization preserves supplied/source facts independently of whether
+a current rule evaluation or toolkit projection is available. Strict scientific
+projections still prepare and check their required facts. Registered adapters
+translate quietly under documented, versioned mappings, minimizing loss without
+extra runtime labels. Hotpot-initiated roundtrips retain the original Hotpot
+facts' authority; independently supplied native/toolkit objects are authoritative
+inputs under their documented import maps. Calculated observations remain
+distinct from conversion. Rules, fallbacks, sanitization and adapters do not
+silently rewrite authoritative input. Unexpected or unmapped material loss and
+integrity failures require precise adapter-scoped diagnostics. Detached carriers
+inspect their own contents and gates; conversion cannot reconstruct absent facts
+or lost upstream relations. Adapter limitations do not establish chemical
+impossibility or redefine Hotpot facts.
 
 ### 5.3 Provisional ownership of coupled facts
 
@@ -699,28 +711,30 @@ candidate set, distribution or trajectory, without generic success, evidence,
 admissibility or confidence fields. Method assumptions and support belong in
 companion documentation and benchmark reports; Section11.1 governs findings.
 
-Temporary topology filtering has one private, non-owning contract:
+Temporary topology filtering uses the accepted private Stage7B N04 contract in
+`structure/_selection.py`:
 
 ```python
 @dataclass(frozen=True)
-class TopologySelection:
-    source_owner: object  # private opaque owner token, never a public chemical id
-    source_identity: TopologyIdentity
+class _TopologySelection:
+    source: _SourceIdentity
     atom_uids: tuple[int, ...]
-    bond_mask: tuple[bool, ...]  # aligned to complete Molecule Bond order
+    bond_mask: bytes
 
-def select_topology(
-    mol: Molecule,
-    *,
-    scope: TopologyScope,
-    excluded_bond_uids: Collection[int] = (),
-) -> TopologySelection: ...
+_capture_topology_selection(mol, *, excluded_bonds=(), ligand_skeleton=False)
+_check_topology_selection(mol, selection) -> None
+_selected_bonds(mol, selection) -> tuple
 ```
 
-`FULL`, ligand-skeleton, covalent-only, metal-excluded, and temporary ring-open
-work all compose this selection or its packed snapshot. They never move a Bond
-between carrier collections. Open Babel bond perception, hydrogen rules,
-Kekule assignment, and force fields receive the explicit selection they need.
+The immutable 0/1 mask follows the complete Bond order; source and scope checks,
+the existing XOR metal-ligand predicate, independent task projections and each
+consumer's exact graph are fixed in the [accepted design](stages/stage07/topology-selection/contracts/hidden_topology_design.md).
+Existing covalent-contribution and other rule scopes retain their own meanings;
+there is no universal new mask inferred from those terms. Temporary work never
+moves a Bond between carrier collections or changes ordinary getters through an
+ambient selector. Rules/backends receive explicit snapshots or the independent
+projected Molecule required by their existing algorithm. No public selector is
+added.
 
 Bulk parsers and external converters do not call public setters field by
 field. They create one immutable `MoleculeRecord` and invoke one private
@@ -1035,7 +1049,7 @@ mutate Atom, Bond, or Molecule facts. In particular:
 |---|---|---|
 | `Molecule.assign_aromatic()` empty implementation | delete; retain the implemented `determine_rings_aromatic()` facade and rename it only under a separately approved API change | empty duplicate API is misleading |
 | `Molecule.setattr`, `Atom.setattr`, broad ID-dict attribute updaters | replace with field-specific transactional setters or restrict to import-only private operations | generic writes bypass fact priority and validation |
-| public hide/recover/clear bond family | migrate internal use to operation-local `TopologyView`/bond masks; remove or explicitly retain only by owner decision | hidden bonds are workflow state, not chemical truth |
+| public hide/recover/clear bond family | migrate internal use to operation-local `_TopologySelection`/packed masks; retire the eight accepted methods in the connected Stage7B cutover | hidden bonds are workflow state, not chemical truth |
 | `update_angles()` / `update_torsions()` | remove; views are calculated on request | their only purpose is persistent cache mutation |
 | `Ring.kekulize()`, `JointRing.kekulize()`, and `determine_aromatic(inplace=True)` | remove mutating view entry points; use one Molecule operation | derived views cannot be a second write interface |
 | mutable `Molecule.atom_pairs` dictionary | return an immutable table/view | generated pair data is not carrier truth |
@@ -1290,7 +1304,7 @@ named `coordination_placement` operation.
 | `read_one`, `write`, SMILES/InChI serialization | operation orchestration plus external I/O/serialization leaves | object methods remain thin delegates; operations own carrier input/preparation/installation and adapters receive prepared external values |
 | MCA result access | `structure/results.py` plus inference operation | typed explicit result replaces `properties["mca"]`; `Atom.mca`/`mca_sites` remain projections |
 | `_topology_index`, `_update_topology` | `structure/_topology.py` and Molecule primitive | retain the exact Plan 19 conceptual contract; no native Graph or second index |
-| hidden Bond lists | operation-local `TopologyView`/mask | remove from Molecule after all internal consumers migrate |
+| hidden Bond lists | operation-local `_TopologySelection`/mask | remove from Molecule after all internal consumers migrate under accepted HT1–HT5 |
 | `_model`, `_environ` | operation inputs | remove from Molecule and from working-copy metadata |
 | `_obmol`, `_row2idx`, ring/angle/torsion/pair caches | none | delete, with no replacement persistent cache |
 
@@ -1436,6 +1450,11 @@ The final tree contains none of the following:
 
 ### 9.5 No accidental semantic changes
 
+The accepted Stage7B HT1–HT5 observable/private-format changes remain explicit: in
+particular, H working-copy publication retains the complete original Bond prefix
+then appends H, intentionally replacing old recovery-after-H ordering while
+preserving chemistry, H counts, labels and original caller identity.
+
 Physical relocation must not alter:
 
 - RI-style substructure matching semantics, callable-predicate isolation, or
@@ -1490,7 +1509,7 @@ or excluding public/wrapper contracts from the denominator.
 | `Molecule.properties` | refactor | user annotations only; calculated results move to typed result records subject to Decision 7 |
 | `Molecule.assign_aromatic()` (empty) | delete | `determine_rings_aromatic()` remains the single Molecule-level operation unless separately renamed |
 | generic `Molecule.setattr`/`Atom.setattr` and broad attribute dictionaries | delete/refactor | no public generic mutation; private bulk import uses `_build_molecule(MoleculeRecord)` |
-| hide/recover/clear-hidden-Bond family | delete after migration | supersedes Plan 19 only with Decision 6 approval; internal callers use private task-local `TopologySelection` |
+| hide/recover/clear-hidden-Bond family | delete after migration | root accepted Decision6/HT1–HT5; internal callers use private task-local `_TopologySelection`, with separate release and connected candidate evidence |
 | `update_angles()`, `update_torsions()`, Ring/JointRing mutating Kekule methods, `determine_aromatic(inplace=True)` | delete | calculated views are read-only; one Molecule operation owns each write |
 | `AtomPairs`/mutable `Molecule.atom_pairs` | refactor, optional rename | immutable task-produced pair table; public name is resolved by Decision 17, with no parallel alias |
 | `Crystal.obcell` | move | Open Babel adapter function returns a fresh object |
@@ -1508,7 +1527,7 @@ or excluding public/wrapper contracts from the denominator.
 | `_topology_index` and `_update_topology` concept | keep/move | sole synchronous acceleration index in `structure/_topology.py`; no public Graph object |
 | internal Atom/Bond object identity derived from rows/Python `id()` | refactor | immutable Molecule-local `_uid`; public/source `id` and derived `idx` remain distinct |
 | `_atoms`, `_bonds`, Atom/Bond storage | refactor/move | membership remains unique; Atom facts move into `_AtomFactTable` with `_fields.py` projections and `_dependencies.py`; Bond layout changes only where required by canonical semantics |
-| `_hided_metal_bonds`, `_hided_covalent_bonds` | delete | complete Bond collection plus operation-local mask, subject to Decision 6 |
+| `_hided_metal_bonds`, `_hided_covalent_bonds` | delete | complete Bond collection plus operation-local mask under accepted Decision6/HT1–HT5 |
 | `_angles`, `_torsions`, `_rings`, `_ring_indices_cache`, `_ligand_rings`, `_atom_pairs` | delete | identity-bound views are produced on request and never carrier-owned |
 | `_obmol`, `_row2idx` | delete | fresh conversion objects and direct topology lookup; no persistent external cache |
 | `_model`, `_environ` | delete | explicit operation/runtime inputs |
@@ -1550,9 +1569,12 @@ entire plan and its normative companion records. Assess the current repository
 against the objectives, predecessor evidence, selected route and stage scope
 before changing files or running that stage's work. Record the source commit,
 document digests, worktree/environment state, completed and missing gates, and
-the resulting bounded task list in the implementation log. Repeat the full
-read before any architectural revision; a changed stage number alone is not
-evidence that its prerequisites passed.
+the resulting bounded task list in the implementation log. Repeat full
+alignment after material plan revisions or architectural/scientific route
+changes. Within an aligned stage, bounded continuations review affected records
+and actual owners/consumers and reuse valid unaffected reads/evidence; a small
+change does not require the entire reread or broad validation chain again. A
+changed stage number alone is not evidence that prerequisites passed.
 
 The [integrated requirement record](integrated_requirements.json) maps Plan12
 work to existing Stage7C, Stage8A/B, Stage9/10 and Stage12 owners. It is an
@@ -1823,13 +1845,32 @@ H/isotope/stereo transport remain recorded; no later or global gate closes.
 The [accepted constraint checkpoint](stages/stage07/constraints/validation/report.md)
 records the completed sole-owner Atom-axis/Bond migration, preserved19/3 projections,
 affected CP311 source/current-wheel evidence and root-accepted bounded usable cost.
-Original failures and selective-axis/Bond-export regressions remain recorded. This
-constraint slice is delivery-ready; Stage7B remains IN_PROGRESS. Hidden-topology
-consumer cutover and unspecified public changes retain their dependent decisions.
+Original failures and selective-axis/Bond-export regressions remain recorded.
+The [root Stage7B completion](stages/stage07/completion_20261103.json) accepts this
+constraint slice together with the connected complete-topology cutover, under
+the applicable CP311 owning-stage scope. Stage7C/D/E and global gates remain open.
 
-Gate: hidden-bond workflow parity, stale-view behavior, deterministic views,
-constraint identity/invalidation, force-field working-copy rollback, and
-view-performance benchmarks.
+Root has accepted the remaining [hidden-topology cutover design](stages/stage07/topology-selection/contracts/hidden_topology_design.md),
+including exact HT1–HT5 masks, private record/pickle cutover, public retirement,
+file scope and prospective CP311 checks. Its C0 receipt retains previous-current
+fixtures, comparable cost and the observed old H/Bond order. HT1 deliberately
+retains the complete original Bond handle/UID/order prefix and appends H; old
+recovery placed coordination after H. Chemistry/counts/labels remain required.
+The [implementation release](stages/stage07/topology-selection/implementation_release.json)
+and C1/C2/C3 freezes retain their original authoring and runtime boundaries. The
+[current validation report](stages/stage07/topology-selection/validation/report.md)
+records source1313/installed1313, actual installed FF11/pipeline3/MCA1,
+C3 targeted source180/installed10, persistence48/current and24/old rejection,
+and all23 completed cost cells. Root accepts the bounded usable costs, including
+all14 adverse medians and10 adverse Python peaks; no universal parity is claimed.
+The original default5385passed/2failed/129skipped and targeted repairs remain
+explicit; this is not a new current full-default-suite pass. The root completion
+links the durable local evidence archive and leaves other versions, clean-native,
+ABI/SDK/sdist, broader science/performance and final Plan20/Plan12 acceptance open.
+
+Gate: complete-topology and operation-graph semantics under accepted HT1–HT5,
+stale-view behavior, deterministic views, constraint identity/invalidation,
+force-field working-copy rollback, and comparable usable-cost/resource evidence.
 
 #### Stage 7C — Annotations and typed calculated results
 
@@ -1921,12 +1962,16 @@ Gate: exact owner/rename/slot/unbound-source decisions and zero-new-type audit;
 no whole-payload stored truth or mirror; lossless `set(get(mol))`, schema/row/order
 and distinct H-scope fixtures; exact effective H seeds and stale-source behavior;
 atomic failure/rollback across every connected writer; copy/component/merge,
-cold-pickle/toolkit/native/working-copy parity; and the full affected source and
-installed-wheel Python3.10–3.14 selection with the current native build bound to
-the same source. Record commands/artifact identities/results and allocation/
+cold-pickle/toolkit/native/working-copy contracts; and the complete affected
+CP311 source and installed-wheel selection with the actual native build bound
+to that source. Record commands/artifact identities/results and allocation/
 throughput observations in the owning stage report and verification map. Missing
-or failed evidence blocks Stage8 and Stage12/global ownership acceptance; it
-cannot be relabeled as completed by Stage6 or as approved long-term layout debt.
+or failed canonical-ownership/affected CP311 evidence blocks Stage8 and
+Stage12/global ownership acceptance; Stage6 cannot waive it. Adapt the other
+planned Python3.10/3.12/3.13/3.14 versions later, with explicit status and complete
+applicable final evidence before support/final acceptance claims. Version parity
+alone is not a pre-Stage8 entry condition and does not permit permanent layout
+debt or waive the final version/package/native/scientific gates.
 
 ### Stage 8 — Split rule policy, workflow, and backend execution
 
@@ -2096,10 +2141,27 @@ it does not produce a confidence verdict or an invented benchmark outcome.
 | MCA/CBond | field/order/site-join/resource tests; per-site numeric and recognition reports, not a population correlation alone | inference changes and final |
 | scientific corpus | fixed source snapshot/digest, rule-derived dynamic eligibility roster, per-case/per-seed reports including failures/unknowns | declared scientific tier; bounded CI evidence |
 | integrated Plan12 functions | current provider/hard-rule/composition/backend/pipeline contracts, actual consumer coverage, required scientific execution and finding/control behavior from the integrated requirement record | assigned owning stages and final; historical Plan12 reports are references only |
-| packaging/Python | sdist/wheels outside checkout; Python3.10–3.14 with explicitly enumerated complete affected-contract selection | affected moves and final |
+| packaging/Python | source/installed CP311 first; declared Python3.10–3.14 adaptation, native/ABI and clean wheel/sdist evidence at their applicable delivery/final gates | affected boundaries and final; report deferred/untested versions explicitly |
 | docs/performance | exact published technical examples; baseline/final runtime and resource reports | changed examples; affected benchmarks and final |
 
 ### 11.1 Scientific monitoring and comparison policy
+
+Before evaluating a bounded change, state the expected facts, allowed differences,
+rejection conditions and checks for its method/representation. Use independently
+assessed positive, negative and boundary fixtures, plus useful equivalence,
+round-trip or semantics-preserving checks. Historical output and two sides
+sharing one implementation cannot be the sole scientific oracle. Exact equality
+remains appropriate for deterministic contracts and unchanged/lossless transport;
+hashes establish artifact attribution and transport integrity, not chemical truth.
+Declared reactions, protonation, electron transfer and other transformations are
+judged against their allowed changes, not universal conservation.
+
+For numerical approximations and stochastic methods, declare method/state, units,
+context, tolerances and invariants before observing results. Use justified
+convergence, geometric equivalence, repetition, distribution or stability criteria
+and record actual seeds. Retain actual values, attempts, failures and denominators;
+never relax thresholds afterward to absorb an error. A validator exit code alone
+establishes neither chemical meaning nor actual business success.
 
 For every actual rule, gate, adapter boundary and workflow stage, its owner
 records and tests the following decision table using existing domain contracts:
@@ -2196,6 +2258,35 @@ performance baseline. Reserve comparable resources or classify timing as
 inconclusive; do not claim a speedup from different allocations.
 
 ### 11.3 Stage-specific executable verification map
+
+Select checks by affected behavior/risk through the maintained
+[execution-unit/business mapping](functional_707_business_mapping.md), this
+verification map and actual writers/consumers. Prioritize (1) Molecule/Atom/Bond
+facts and lifecycle, (2) graph/aromatic/Kekulé/stereo/valence/H semantics,
+(3) CBond → FF → GFN-FF → xTB and its geometry/state/attribution/local-failure
+boundaries, then (4) actual MCA inference/mapping/attachment/currentness. I/O and
+RDKit/Open Babel business interfaces are best effort; other independent external
+issues may defer with impact and verification conditions recorded. A dependency
+needed by priorities 1–4 inherits that mandatory business path's priority. This
+orders the complete Plan20/Plan12 scope; it deletes no lower-priority requirement.
+
+Between delivery/acceptance milestones, rerun affected checks and reuse valid
+unaffected evidence whose source, inputs, methods and scope still apply. The
+historical 707-unit inventory and 841-pass constraint selection are attribution,
+not count/coverage targets. Further changes, failures or unresolved concerns
+justify more verification; broad execution, reflection, fresh archives, profiling
+and full-plan rereads are not a prerequisite chain for every small slice. Run
+applicable default, package/native/version, backend/model, scientific and other
+required tiers at their owning delivery/final gates. CP311 leads; untested or
+deferred versions remain explicit and final obligations stay open.
+
+Verify representative actual business workflows with successes and local failures,
+attribution/currentness, rollback and finite-recovery checks where the method
+requires them. Distinguish broken validation from broken business behavior.
+Peripheral checker failures may defer with recorded limits and trustworthy direct
+or alternative evidence for the required business; bypassing a checker fabricates
+no pass. The defensive-programming inventory is an observation and proposal
+record, not a new gate or authorization for blanket guard removal/addition.
 
 Stage1 delivers a machine-readable list for each stage: affected contracts,
 exact test/runner/build/benchmark targets, switches, expected technical scope,
@@ -2295,41 +2386,41 @@ projection. Field-selective snapshots/native/model tasks remain private. Keep
 their frozen selected-column workloads separate from full-matrix export;
 different field counts/dtypes are not interchangeable performance evidence.
 
-### 12.2 Global standard: at least parity, expected improvement
+### 12.2 Comparable work, usable cost and resource bounds
 
-Define runtime ratio r = candidate/baseline for identical work (convert
-throughput to its inverse); r<1 means faster. Freeze workload membership and
-weights before measurements. Report both each workload and geometric-mean
-ratios per family, per hardware mode, and across the end-to-end workloads.
-Do not let faster imports compensate for a slower scientific workflow or a
-faster CPU test hide worse GPU feeding. Memory is reported separately.
+Chemical semantics take priority, then acceptable performance, then all-version
+adaptation. Design efficient batch paths, operation-local reuse, conversion costs
+and resource bounds from the outset; comprehensive optimization is not required
+for every stage. Reduction of duplication should improve useful end-to-end
+cost, but neither universal parity nor a fixed allowance for rare small
+regressions is an acceptance rule. The main agent may accept explained, usable
+degradation within authorization, recording its purpose, workload, actual
+completion, absolute/relative timing and resources. The owner's approximately
+fivefold example is contextual judgment, not a numerical gate.
 
-- Target: no overall efficiency loss, with a demonstrated reduction in useful
-  end-to-end time/resource demand expected from removal of duplication.
-- Point estimates near 1 with confidence intervals covering 1 are neutral
-  noise, not claimed gains. A recommended neutral band is 0.97–1.03; increase
-  samples when needed and record uncertainty instead of inventing a verdict.
-- A small number of slightly slower cases may be proposed for review: at most
-  5% of the predeclared workload entries (at most one when fewer than 20), each
-  runtime median <=1.05, with listed cause and no family/end-to-end overall
-  slowdown. These are explicit exceptions, not an automatic 10% allowance for
-  every carrier/workflow benchmark.
-- A family/end-to-end ratio convincingly >1, an unexplained outlier, or a
-  slowdown beyond the proposed exception limits remains unresolved and blocks
-  performance acceptance until fixed or specifically reviewed. No removed
-  benchmark, relaxed workload, skipped test or reduced scientific work may
-  manufacture a faster result.
-- Peak RSS must be no worse overall; list any small local increase with its
-  workload and reason. Lower memory does not by itself justify a slower
-  runtime, or vice versa, without owner review.
-- If neither improvement nor a defensible parity conclusion can be measured,
-  report the result as inconclusive and keep the performance item open. The
-  aspiration of higher efficiency is not satisfied by prose alone.
+Define runtime ratio r = candidate/baseline for comparable semantic work (convert
+throughput to its inverse); r<1 means faster. Keep predeclared workload membership,
+weights, methods/inputs/resources and actual-work accounting. Report each workload,
+family/hardware mode and end-to-end aggregate separately, with memory/allocation
+scope and uncertainty. Faster imports or reduced scientific work cannot conceal
+an adverse business workflow. New-only mechanisms retain their separate cost.
 
-The exact weighting, neutral band and rare-exception budget are reviewable
-measurement policy; Stage1 freezes them before implementation, never after
-seeing favorable/unfavorable timings. Correctness, source ownership and public
-API review are not traded away to retain an unsafe alias or duplicate cache.
+The existing neutral band and confidence intervals describe measured variation;
+they do not require a parity verdict to deliver usable work. Do not claim gains
+from inconclusive evidence. Preserve raw timings, failed/no-output attempts,
+completion and denominators, all adverse results and previous scoped dispositions.
+Explain costs and scaling and record any unresolved or accepted limitations;
+current policy does not relabel old measurements or failures as passes. OOM,
+unbounded growth and failure to complete representative batches remain reliability
+problems on affected paths and require resolution before claiming that capability.
+
+Measurement recipes, sampling and weights stay frozen before observation. An
+acceptance-policy revision does not rewrite historical manifests/reports or justify
+removing benchmarks, skipping required checks, reducing work or weakening chemistry,
+source ownership, integrity or approved public contracts. Where an older comparator
+cannot distinguish a documented policy-only manifest change, retain that limitation
+and obtain trustworthy comparable-work evidence; do not call its failed invocation
+a pass. Required final performance/resource reports remain part of acceptance.
 
 ## 13. Implementation log and final report contract
 
@@ -2346,12 +2437,15 @@ executed work. Every entry contains:
 - named findings, warning/break-node changes, commit/fallback consequences,
   plan impact and any decision required; and
 - the full-plan/companion reread and project-state assessment at stage entry,
-  with document digests, and any repeated read before an architectural revision.
+  with document digests, repeated full alignment for material plan/route changes,
+  and the affected records/evidence reused for bounded continuations.
 
 If implementation discovers a conflict with this plan, work pauses at the
-smallest coherent checkpoint. The plan is reread in full, contradictory or
-redundant wording is edited rather than merely appended, and the evidence,
-route and verification consequences are recorded and communicated to the owner.
+smallest coherent checkpoint. Review affected records, edit contradictory or
+redundant wording rather than merely appending, and record and communicate the
+evidence, route and verification consequences. Material plan or architectural/
+scientific route changes repeat full alignment; a bounded same-route correction
+reuses valid unaffected alignment and evidence.
 In-scope evidence-bound revisions proceed under the constitution's main-agent
 authority; an unspecified public change or new scientific scope still follows
 its concrete dependent decision under Section16.4.
@@ -2362,6 +2456,12 @@ experiment, and record the validated baseline `B_exp` under Section 17.2.
 Stage13A and Stage13B have separate definition/integration records and commits
 `D_exp` and `I_exp` under Section 17; their outcomes are reported separately
 from main-scope completion.
+
+Use small validated commits for coherent business progress with related docs,
+tests, evidence, checks and limitations, followed by normal pushes. Do not make
+consecutive documentation-only commits without business progress or commits
+devoted only to hashes, evidence packets, bookkeeping or status. Preserve unrelated
+work and original failure evidence.
 
 The main-scope final implementation report includes:
 
@@ -2408,10 +2508,11 @@ runtime behavior is not a Plan20 gate.
 9. Python 3.10-3.14, native components, wheel/sdist, documentation examples,
    scientific-report execution, and GPU technical validation are complete as
    specified, with no unexecuted tier described as passed;
-10. pre-refactor baselines and final efficiency reports demonstrate at least
-    global parity under Section 12's frozen comparison and explicitly reviewed
-    rare-exception policy; gains require measurement evidence, and unmet
-    improvement targets are reported separately from demonstrated regression;
+10. pre-refactor baselines and final comparable-work efficiency/resource reports
+    satisfy Section12: preserve actual work, completion, failures, denominators,
+    adverse observations and uncertainty; explain accepted usable costs and
+    unresolved limitations without a universal parity/rare-exception threshold;
+    claimed gains require measurements and affected batch reliability is verified;
 11. implementation log and final report are complete and internally
     consistent with the final code; and
 12. Decisions 12/13 are either implemented or recorded as explicit owner-
@@ -2469,7 +2570,9 @@ Other settled requirements are cross-plan MCA sequencing; the scope-based
 data-object audit with real consolidation; private dependency handling that
 marks expensive values for demand-driven recalculation; scientific monitoring
 reports instead of historical pass-count verdicts; and pre-refactor efficiency
-records with global parity and expected gains.
+records with comparable work, explained usable cost and resource bounds under
+the effective goal. The 2026-11-03 direction supersedes the older universal parity
+and rare-small-regression allowance, while preserving all raw/adverse evidence.
 
 These directions authorize the documentation revision and record the
 owner-specified future MetalCluster name/relationship. No production cluster
@@ -2488,7 +2591,7 @@ approvals. Stage1 can collect baselines while public decisions are pending.
 | 3 | move classified scientific packages, retaining the stereo facade and standalone wrapper paths | exact public import migration pending review |
 | 4 | common protocol across all public chemical types: one fact per owner, mapped interfaces/permissions, source-aware coupling, lifecycle and invalidation; Atom coordinates are one concrete case | owner-directed common protocol; each public change pending review |
 | 5 | replace broad arbitrary writers with field-specific commits; any batch API accepts only approved schema fields | public removals and proposed batch signature pending review |
-| 6 | complete ordered Bond collection with private operation-local exclusions; retire the eight documented hide/recover/clear-hidden methods after connected consumer migration, with no replacement public topology API | root adopted the documented target in [Stage7B entry](stages/stage07/constraints/entry_review.json); exact per-consumer contracts and dependent cutover remain pending |
+| 6 | complete ordered Bond collection with private operation-local exclusions; retire the eight documented hide/recover/clear-hidden methods after connected consumer migration, with no replacement public topology API | root accepted exact HT1–HT5 in [Stage7B design](stages/stage07/topology-selection/contracts/hidden_topology_design.md), including intentional placement of the complete original Bond order before H; separate release and connected candidate acceptance govern delivery |
 | 7 | user annotations separated from selected typed scientific results, no triple MCA storage | owner-directed consolidation; observable properties behavior pending review |
 | 8 | role-specific value/view/collection/result semantics; historical outputs stable, current attachments checked; lazy recomputation for declared pure groups, no implicit GPU/external work | detailed read/attachment/lifecycle changes pending review |
 | 9 | sole six-parameter Crystal, angstrom/degrees, characterize matrix convention, explicit export and placeholder removal | public additions/removals pending review |

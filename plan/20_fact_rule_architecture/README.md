@@ -1,6 +1,6 @@
 # Stage 20 — Fact-Carrier and Rule Architecture
 
-Status: implementation authorized on 2026-10-28; Stage0–6 owning-stage gates complete. Stage7A's external-object, adapter and Crystal extraction and applicable CP311 gates are now [complete](stages/stage07/external-adapters/completion_20261103.json), with bounded SDF resource/cost acceptance and explicit later obligations. Stage7B is IN_PROGRESS: its [constraint-owner slice is delivery-ready](stages/stage07/constraints/validation/report.md) after affected CP311 source/current-wheel validation and accepted bounded usable cost; hidden-topology consumer cutover remains pending. Known H/isotope/stereo work remains assigned to Stage7E; clean-native, version adaptation, scientific/global efficiency and full-plan acceptance remain open. [goal_v2.md](goal_v2.md) is review-only; [goal.md](goal.md) remains effective.
+Status: implementation authorized on 2026-10-28; Stage0–6 owning-stage gates complete. Stage7A's external-object, adapter and Crystal extraction and applicable CP311 gates are now [complete](stages/stage07/external-adapters/completion_20261103.json), with bounded SDF resource/cost acceptance and explicit later obligations. Stage7B is [complete within its applicable CP311 owning scope](stages/stage07/completion_20261103.json): sole-owner constraints and complete Bond topology with operation-local selections have source/installed and actual-workflow evidence, with adverse usable costs retained and accepted. Stage7C is next. Known H/isotope/stereo work remains assigned to Stage7E; clean-native, version adaptation, scientific/global efficiency and full-plan acceptance remain open. The owner-approved [goal.md](goal.md) is effective; the previous version is retained as [goal_v1.md](goal_v1.md).
 
 All public chemical types follow a common protocol for fact ownership, interface mapping, permissions, dependencies, buffer ownership and lifecycle. Atom's unified fact table is one concrete implementation. MetalCluster runtime remains Plan21 scope. Existing historical checkpoints below retain their own source and evidence bounds.
 
@@ -163,8 +163,8 @@ Stage0 selects Plan20 first: the minimum Plan17 MCA native closure is not yet
 implemented, so B20/F20 use the current sole Python-RDKit MCA algorithm. The
 17-MCA batch follows F20 with separate B17/F17 evidence. Scientific outcomes
 are versioned monitoring reports; 187/182
-does not impose a fixed success count. Global efficiency must be at least
-comparable to the pre-refactor baseline, with improvement expected.
+does not impose a fixed success count. Compare equivalent semantic work with the pre-refactor baseline; accept explained,
+usable cost under the effective goal and retain all adverse observations.
 
 Every stage and independently gated sub-stage begins with a full reread of the
 plan and normative companions plus a recorded project-state assessment.

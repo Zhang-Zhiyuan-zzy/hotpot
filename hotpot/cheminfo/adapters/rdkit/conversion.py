@@ -157,7 +157,7 @@ def _rdmol_record(rdmol, initial):
         initial, atom_count=len(atoms), atom_values=values.tobytes(),
         atom_presence=presence.tobytes(), atom_sources=sources.tobytes(),
         bond_endpoints=tuple((idx_to_row[bond.GetBeginAtomIdx()], idx_to_row[bond.GetEndAtomIdx()]) for bond in bonds),
-        bond_values=raw_bonds.tobytes(), bond_partitions=(0,) * len(bonds),
+        bond_values=raw_bonds.tobytes(),
         bond_kinds=tuple(_rdkit_bond_kind(source_bond_types[bond.GetIdx()],
                          source_bond_metadata[bond.GetIdx()]["is_aromatic"], Chem.BondType, dative_types) for bond in bonds),
         bond_aromatic=tuple(source_bond_metadata[bond.GetIdx()]['is_aromatic'] for bond in bonds),

@@ -13,7 +13,7 @@ from hotpot.cheminfo.forcefields import working_copy
 from hotpot.cheminfo.structure import _commit
 from hotpot.cheminfo.structure._dependencies import _dependency_state
 from hotpot.cheminfo.structure._fields import (
-    ATOM_FIELDS, ATOM_PRESENCE_ALL, DERIVED_FIELDS, FIELD_INDEX,
+    ATOM_FIELDS, TABLE_FIELDS, TABLE_PRESENCE_ALL, DERIVED_FIELDS, FIELD_INDEX,
 )
 
 
@@ -153,11 +153,11 @@ def test_forcefield_preserves_heterogeneous_metadata_and_all_frame_values():
     source = working_copy._capture_working_source(mol)
     working = working_copy._hydrogenated_working_copy(mol, add_hydrogens=False, source=source)
     table = working._atom_table
-    table._presence[:2] = [1, ATOM_PRESENCE_ALL]
-    table._sources[:2] = np.arange(38, dtype=np.uint8).reshape(2, 19) % 10
+    table._presence[:2] = [1, TABLE_PRESENCE_ALL]
+    table._sources[:2] = np.arange(2 * len(TABLE_FIELDS), dtype=np.uint8).reshape(2, len(TABLE_FIELDS)) % 10
     for field in DERIVED_FIELDS:
         index = FIELD_INDEX[field]
-        table._presence[:2] &= np.uint32(ATOM_PRESENCE_ALL ^ (1 << index))
+        table._presence[:2] &= np.uint32(TABLE_PRESENCE_ALL ^ (1 << index))
         table._sources[:2, index] = 0
     expected_presence, expected_sources = table.presence(), table.sources()
     frames = (
@@ -216,7 +216,7 @@ def test_forcefield_interrupted_publication_restores_owner_metadata_frames_and_s
         np.testing.assert_array_equal(mol.conformers[0][field], value)
 
 
-def test_native_selected_geometry_failure_restores_its_topology_selection():
+def test_native_selected_geometry_failure_preserves_complete_topology():
     from hotpot.cheminfo.forcefields.native_adapters import apply_native_selected_structure
     from hotpot.cheminfo.forcefields.native_packing import pack_complex_session_input
 
@@ -227,7 +227,7 @@ def test_native_selected_geometry_failure_restores_its_topology_selection():
         final_active_coordination_mask=np.zeros(1, dtype=np.uint8),
         selected_coordinates=np.ones((len(mol.atoms) + 1, 3)),
     )
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError, match="coordinates"):
         apply_native_selected_structure(mol, session, result)
-    assert mol.bonds == [bond] and mol._hided_metal_bonds == []
+    assert mol.bonds == [bond]
     np.testing.assert_array_equal(mol.atom_matrix, previous)

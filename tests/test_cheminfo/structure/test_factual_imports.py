@@ -52,13 +52,13 @@ def test_converter_uses_same_target_and_one_topology_build_without_public_setter
 
 
 @pytest.mark.parametrize('convert', [conversion.obmol2mol, conversion.from_rdmol])
-@pytest.mark.parametrize('partition', ['atom', 'hidden_metal', 'hidden_covalent'])
-def test_nonempty_converter_target_is_rejected_before_source_access_and_mutation(convert, partition):
+@pytest.mark.parametrize('membership', ['atom', 'bond'])
+def test_nonempty_converter_target_is_rejected_before_source_access_and_mutation(convert, membership):
     target = Molecule()
-    if partition == 'atom':
+    if membership == 'atom':
         target.create_atom(atomic_number=6)
     else:
-        getattr(target, '_hided_' + ('metal' if partition == 'hidden_metal' else 'covalent') + '_bonds').append(object())
+        target._bonds.append(object())
     table, index = target._atom_table, target._topology_index
     high_water = target._next_atom_uid, target._next_bond_uid
     with pytest.raises(ValueError, match='empty Atom and complete-Bond'):

@@ -16,6 +16,9 @@ from hotpot.cheminfo.forcefields.trajectory import (
 )
 from hotpot.cheminfo.forcefields.working_copy import _copy_molecule_metadata
 
+from hotpot.cheminfo.operations.topology_queries import _components
+from hotpot.cheminfo.structure._selection import _capture_topology_selection
+
 from .validation_acceptance import (
     AcceptanceEvidence,
     AcceptanceResult,
@@ -83,9 +86,11 @@ def _optimization_report(execution: RouteExecution):
 def _expected_components(molecule: object) -> dict[int, _ExpectedComponent]:
     detached = copy(molecule)
     _copy_molecule_metadata(molecule, detached)
-    detached.hide_metal_ligand_bonds(clear_conformers=False)
+    selection = _capture_topology_selection(detached, ligand_skeleton=True)
     expected = {}
-    for component_index, component in enumerate(detached.components):
+    for component_index, component in enumerate(
+        _components(detached, type(detached), selection=selection)
+    ):
         if component.has_metal:
             continue
         atom_rows = {id(atom): row for row, atom in enumerate(component.atoms)}

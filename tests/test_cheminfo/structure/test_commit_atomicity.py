@@ -254,7 +254,7 @@ def test_commit_restores_write_that_raises_after_mutation(batch, target):
     assert after[1] == before[3][1]
 
 
-@pytest.mark.parametrize('edit', ['remove', 'replace', 'install', 'hidden-clear'])
+@pytest.mark.parametrize('edit', ['remove', 'replace', 'install', 'bond-remove'])
 def test_mixed_constraint_native_registration_and_owner_replacement_restore_exact_bindings(edit):
     from tests.test_cheminfo._stage5_fixtures import factual_state
     from tests.test_cheminfo.structure.test_constraints import molecule
@@ -292,9 +292,8 @@ def test_mixed_constraint_native_registration_and_owner_replacement_restore_exac
                 mol._replace_atom(1, incoming)
             elif edit == 'install':
                 mol._install_molecule(record, bond_metadata=metadata)
-            elif edit == 'hidden-clear':
-                mol.hide_bonds(bonds[1])
-                mol.clear_hided_covalent_bonds()
+            elif edit == 'bond-remove':
+                mol.remove_bond(bonds[1])
             mol.atoms[0].constraint = True
             mol.bonds[-1].constraint = False
             raise original

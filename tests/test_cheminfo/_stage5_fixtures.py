@@ -27,7 +27,7 @@ def supplied_aromatic_flags(mol, flags):
     presence |= 1 << field
     sources[:, field] = ATOM_SOURCE_CODES['explicit']
     aromatic_by_uid = dict(zip(assignment.bond_uids, assignment.bond_aromatic))
-    complete = mol._bonds + mol._hided_metal_bonds + mol._hided_covalent_bonds
+    complete = mol._bonds
     return Molecule._build_molecule(replace(record,
         atom_values=values.tobytes(), atom_presence=presence.tobytes(), atom_sources=sources.tobytes(),
         bond_aromatic=tuple(aromatic_by_uid.get(bond._uid, bond._is_aromatic) for bond in complete)),

@@ -205,7 +205,7 @@ def test_ob_capture_tracks_removed_replaced_and_reordered_members():
     assert bonds == (('double', 1, 2, 2., False), ('single', 0, 1, 1., False))
 
 
-def test_ob_capture_uses_each_callers_active_or_perception_bond_selection(monkeypatch):
+def test_ob_capture_uses_complete_public_graph_or_explicit_perception_rows(monkeypatch):
     mol = Molecule()
     for number in (6, 7, 8, 6, 30):
         mol.create_atom(atomic_number=number, formal_charge=0)
@@ -214,7 +214,6 @@ def test_ob_capture_uses_each_callers_active_or_perception_bond_selection(monkey
     second = mol.add_bond(1, 3, 1.)
     active_metal = mol.add_bond(3, 4, 1.)
     hidden_metal = mol.add_bond(2, 4, 1.)
-    mol.hide_bonds(hidden_covalent, hidden_metal)
     captures = []
     capture = conversion._capture_ob_values
     def observe(owner, bonds):
@@ -223,10 +222,11 @@ def test_ob_capture_uses_each_callers_active_or_perception_bond_selection(monkey
         return result
     monkeypatch.setattr(conversion, '_capture_ob_values', observe)
     public, mapping = conversion.mol2obmol(mol)
-    assert public.NumAtoms() == 5 and public.NumBonds() == 3
+    assert public.NumAtoms() == 5 and public.NumBonds() == 5
     assert mapping == {0: 1, 1: 2, 2: 3, 3: 4, 4: 5}
-    assert captures == [((first, second, active_metal), (
-        ('double', 2, 0, 2., False), ('single', 1, 3, 1., False), ('single', 3, 4, 1., False)))]
+    assert captures == [((first, hidden_covalent, second, active_metal, hidden_metal), (
+        ('double', 2, 0, 2., False), ('single', 0, 1, 1., False),
+        ('single', 1, 3, 1., False), ('single', 3, 4, 1., False), ('single', 2, 4, 1., False)))]
     observed = []
     marker = object()
     def perceive(obmol, idx_to_row):
@@ -237,8 +237,7 @@ def test_ob_capture_uses_each_callers_active_or_perception_bond_selection(monkey
     assert captures[1] == ((second, first), (
         ('single', 1, 3, 1., False), ('double', 2, 0, 2., False)))
     assert observed == [(5, 2, {1: 0, 2: 1, 3: 2, 4: 3, 5: 4})]
-    assert mol._hided_covalent_bonds == [hidden_covalent]
-    assert mol._hided_metal_bonds == [hidden_metal]
+    assert mol.bonds == [first, hidden_covalent, second, active_metal, hidden_metal]
 
 
 def test_ob_capture_first_dative_does_not_read_later_bond_or_cell(monkeypatch):

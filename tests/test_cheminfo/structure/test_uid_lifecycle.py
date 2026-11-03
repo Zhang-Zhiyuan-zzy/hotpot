@@ -61,7 +61,7 @@ def test_atom_molecule_owner_is_read_only_without_changing_identity_or_topology(
     assert target._topology_index == target_topology
 
 
-def test_direct_hidden_and_registered_bonds_share_one_non_reusing_allocator():
+def test_direct_selected_and_registered_bonds_share_one_non_reusing_allocator():
     mol = Molecule()
     for number in (30, 7, 6, 8):
         mol.create_atom(atomic_number=number)
@@ -69,10 +69,12 @@ def test_direct_hidden_and_registered_bonds_share_one_non_reusing_allocator():
     registered = mol.add_bond(1, 2, bond_order=1)
     assert registered._uid == direct._uid + 1
     assert mol._next_bond_uid == registered._uid + 1
-    mol.hide_bonds(registered, clear_conformers=False)
+    from hotpot.cheminfo.structure._selection import _capture_topology_selection, _selected_bonds
+    selection = _capture_topology_selection(mol, excluded_bonds=(registered,))
+    assert _selected_bonds(mol, selection) == ()
     assert registered._uid_owner is mol._owner_token
     hidden_uid = registered._uid
-    mol.recover_hided_covalent_bonds(clear_conformers=False)
+    assert mol.bonds == [registered]
     assert registered._uid == hidden_uid
     mol.remove_bond(registered)
     added = mol.add_bond(2, 3, bond_order=1)
@@ -135,12 +137,11 @@ def test_copy_components_and_merge_bind_fresh_owner_and_destination_uids():
         source.create_atom(atomic_number=number)
     hidden = source.add_bond(0, 1)
     source.add_bond(2, 3)
-    source.hide_bonds(hidden, clear_conformers=False)
     clone = source.copy()
     assert clone._owner_token is not source._owner_token
     assert all(atom._uid_owner is clone._owner_token for atom in clone.atoms)
     assert all(bond._uid_owner is clone._owner_token
-               for bond in clone._bonds + clone._hided_bonds)
+               for bond in clone._bonds)
     for component in source.components:
         assert component._owner_token is not source._owner_token
         assert all(atom._uid_owner is component._owner_token for atom in component.atoms)
@@ -148,7 +149,7 @@ def test_copy_components_and_merge_bind_fresh_owner_and_destination_uids():
     target.create_atom(atomic_number=1)
     target.add_component(source)
     atoms = tuple(target.atoms)
-    bonds = tuple(target._bonds + target._hided_bonds)
+    bonds = tuple(target._bonds)
     assert len({atom._uid for atom in atoms}) == len(atoms)
     assert len({bond._uid for bond in bonds}) == len(bonds)
     assert all(atom._uid_owner is target._owner_token for atom in atoms)
@@ -177,14 +178,13 @@ def test_factual_copy_and_component_preserve_supplied_electrons_and_sparse_input
         assert not np.shares_memory(copied.attrs, source.attrs)
 
 
-def test_replacement_remaps_hidden_endpoints_without_changing_bond_uids_or_direction():
+def test_replacement_remaps_complete_endpoints_without_changing_bond_uids_or_direction():
     mol = Molecule()
     for number in (30, 7, 6):
         mol.create_atom(atomic_number=number)
     old = mol.atoms[1]
     metal = mol.add_bond(0, 1, bond_direction='atom1_to_atom2')
     covalent = mol.add_bond(1, 2)
-    mol.hide_bonds(metal, covalent, clear_conformers=False)
     uids = (metal._uid, covalent._uid)
     assert mol.replace_atom(1, 8) is old
     new = mol.atoms[1]
@@ -192,8 +192,6 @@ def test_replacement_remaps_hidden_endpoints_without_changing_bond_uids_or_direc
     assert covalent.atom1 is new and covalent.atom2 is mol.atoms[2]
     assert (metal._uid, covalent._uid) == uids
     assert metal.bond_direction == 'atom1_to_atom2'
-    mol.recover_hided_metal_ligand_bonds(clear_conformers=False)
-    mol.recover_hided_covalent_bonds(clear_conformers=False)
     assert set(bond._uid for bond in mol.bonds) == set(uids)
     assert old.bonds == [] and old.neighbours == []
 
@@ -292,3 +290,59 @@ def test_current_transport_preserves_read_only_atom_owner_graph(transport, root)
     assert (restored_atom.idx, restored_neighbour.idx) == (0, 1)
     with pytest.raises(AttributeError):
         restored_atom.mol = mol
+
+
+@pytest.mark.parametrize('protocol', range(pickle.HIGHEST_PROTOCOL + 1))
+def test_current_pickle_roots_round_trip_in_a_fresh_process(tmp_path, protocol):
+    import os
+    from pathlib import Path
+    import subprocess
+    import sys
+
+    mol = Molecule()
+    removed = mol.create_atom(atomic_number=1)
+    mol.remove_atom(removed)
+    first = mol.create_atom(atomic_number=6, id=43)
+    second = mol.create_atom(atomic_number=8, id=87)
+    bond = mol.add_bond(second, first, bond_order=1., constraint=True, id=91,
+                        bond_source='fresh-process', bond_source_metadata={'raw': [1, b'2']})
+    mol.conformer_add(mol.coordinates, energy=-2.)
+    mol._conformers_index = -1
+    mol.properties['owner'] = mol
+    mol.properties['members'] = (first, bond)
+    record, metadata = mol._capture_factual_record()
+    artifact = tmp_path / 'current.pkl'
+    artifact.write_bytes(pickle.dumps((mol, first, bond, record, metadata), protocol=protocol))
+    origin = Path(sys.modules[Molecule.__module__].__file__).resolve()
+    environment = os.environ.copy()
+    environment.pop('PYTHONHOME', None)
+    environment['PYTHONPATH'] = str(origin.parents[2])
+    script = '''
+import pickle, sys
+from dataclasses import fields
+from pathlib import Path
+from hotpot import Molecule
+from hotpot.cheminfo.structure._builder import MoleculeRecord
+assert Path(sys.modules[Molecule.__module__].__file__).resolve() == Path(sys.argv[2])
+mol, atom, bond, record, metadata = pickle.loads(Path(sys.argv[1]).read_bytes())
+assert type(record) is MoleculeRecord and record.__reduce__()[1][1] == 2
+assert atom is mol.atoms[0] and bond is mol.bonds[0]
+assert bond.atom1 is mol.atoms[1] and bond.atom2 is atom
+assert atom._uid == 1 and mol.atoms[1]._uid == 2 and bond._uid == 0
+assert mol._next_atom_uid == 3 and mol._next_bond_uid == 1
+assert mol.properties['owner'] is mol
+assert mol.properties['members'][0] is atom and mol.properties['members'][1] is bond
+assert bond.constraint and bond.id == 91
+assert bond.bond_source_metadata == {'raw': [1, b'2']}
+assert mol.conformers_number == 1 and mol._conformers_index == -1
+captured, captured_metadata = mol._capture_factual_record()
+assert len(fields(record)) == 23
+for field in fields(record):
+    assert getattr(captured, field.name) == getattr(record, field.name)
+assert captured_metadata == metadata
+assert all(member._uid_owner is mol._owner_token for member in (*mol.atoms, *mol.bonds))
+print('current roots restored')
+'''
+    result = subprocess.run([sys.executable, '-B', '-c', script, str(artifact), str(origin)],
+                            cwd=tmp_path, env=environment, capture_output=True, text=True, check=True)
+    assert result.stdout.strip() == 'current roots restored'

@@ -79,12 +79,24 @@ def _raise_forcefield_setup_error(
 
 
 def _single_ob_optimization(
-    mol: "Molecule", forcefield: str, steps: int
+    mol: "Molecule", forcefield: str, steps: int, *, selection=None
 ) -> _CandidateOptimizationResult:
-    """Run one native steepest-descent segment on ``mol``."""
+    """Run one native segment against the complete or selected task graph."""
+    from ..operations.topology_queries import _project_molecule
+    from ..structure._commit import _FactTransaction
+    from ..structure._fields import ATOM_SOURCE_CODES
+    from ..structure._identity import _capture_source, _check_source
+    from ..structure._selection import _check_topology_selection
+
+    target = mol
+    if selection is not None:
+        with mol._mutation_lock:
+            _check_topology_selection(mol, selection)
+            source = _capture_source(mol, ("bonding_inputs", "geometry", "cell"))
+            target = _project_molecule(mol, type(mol), selection=selection)
     native = _native_module()
     try:
-        result = _native_single_optimize(mol, forcefield, steps)
+        result = _native_single_optimize(target, forcefield, steps)
     except native.ForceFieldSetupError as error:
         _raise_forcefield_setup_error(
             error,
@@ -92,6 +104,11 @@ def _single_ob_optimization(
             effective_forcefield=forcefield,
             stage=error.stage,
         )
+    if selection is not None:
+        with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["forcefield"]):
+            _check_topology_selection(mol, selection)
+            _check_source(mol, source)
+            mol.coordinates = target.coordinates
     return _CandidateOptimizationResult(
         energy=result.energy,
         energy_unit=result.energy_unit,

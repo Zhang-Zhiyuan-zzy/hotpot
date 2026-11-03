@@ -1,5 +1,7 @@
 """One projection per complete write, frame transport and public I/O behavior."""
+from contextlib import ExitStack
 from dataclasses import astuple
+from io import BytesIO, FileIO, StringIO
 import importlib
 from types import SimpleNamespace
 
@@ -67,8 +69,7 @@ def test_multiframe_write_projects_once_reuses_frames_and_preserves_string_path_
     assert second.count('$$$$') == 2
     np.testing.assert_array_equal(serialized_coordinates, [coordinates, coordinates + 1., coordinates, coordinates + 1.])
     assert _facts(mol) == before
-    # Keep the inherited string reader's first-record behavior separate from
-    # actual all-frame file-path readback.
+    # Text and path inputs must retain every serialized frame.
     string_records = list(io.MolReader(text, 'sdf'))
     path = tmp_path / 'two-frames.sdf'
     path.write_text(text)
@@ -76,8 +77,9 @@ def test_multiframe_write_projects_once_reuses_frames_and_preserves_string_path_
     second_path = tmp_path / 'second-write.sdf'
     second_path.write_text(second)
     second_records = list(io.MolReader(second_path, 'sdf'))
-    assert len(string_records) == 1 and len(path_records) == len(second_records) == 2
+    assert len(string_records) == len(path_records) == len(second_records) == 2
     np.testing.assert_array_equal(string_records[0].coordinates, coordinates)
+    np.testing.assert_array_equal(string_records[1].coordinates, coordinates + 1.)
     np.testing.assert_array_equal(path_records[0].coordinates, coordinates)
     np.testing.assert_array_equal(path_records[1].coordinates, coordinates + 1.)
     np.testing.assert_array_equal(second_records[0].coordinates, coordinates)
@@ -85,6 +87,46 @@ def test_multiframe_write_projects_once_reuses_frames_and_preserves_string_path_
     current = mol.to_obmol()
     np.testing.assert_array_equal([(a.GetX(), a.GetY(), a.GetZ()) for a in ob.OBMolAtomIter(current)], coordinates)
     assert not {'_obmol', '_row2idx'} & mol.__dict__.keys()
+
+
+
+@pytest.mark.parametrize('fmt', ['smi', 'mol2', 'sdf'])
+@pytest.mark.parametrize('source_kind', ['text', 'bytes', 'StringIO', 'BytesIO', 'FileIO'])
+def test_multirecord_inputs_preserve_order_charge_and_independent_molecules(fmt, source_kind, tmp_path):
+    molecules = [read_mol('CCO', 'smi'), read_mol('[NH4+]', 'smi')]
+    coordinates = [np.arange(9.).reshape(3, 3) / 8, np.array([[2., 3., 4.]])]
+    for mol, values in zip(molecules, coordinates):
+        mol.coordinates = values
+    text = ''.join(mol.write(fmt=fmt, write_single=True) for mol in molecules)
+    path = tmp_path / ('two-records.' + fmt)
+    path.write_text(text)
+    with ExitStack() as stack:
+        if source_kind == 'text':
+            source = text
+        elif source_kind == 'bytes':
+            source = text.encode()
+        elif source_kind == 'StringIO':
+            source = stack.enter_context(StringIO(text))
+        elif source_kind == 'BytesIO':
+            source = stack.enter_context(BytesIO(text.encode()))
+        else:
+            source = stack.enter_context(FileIO(path, 'r'))
+        reader = io.MolReader(source, fmt)
+        restored = list(reader)
+        assert len(list(reader)) == 2
+        reader.refresh()
+        assert len(list(reader)) == 2
+    assert len(restored) == 2
+    assert [[atom.atomic_number for atom in mol.atoms] for mol in restored] == [[6, 6, 8], [7]]
+    assert [sum(atom.formal_charge for atom in mol.atoms) for mol in restored] == [0, 1]
+    if fmt != 'smi':
+        # These coordinate formats write four decimal places.
+        for mol, expected in zip(restored, coordinates):
+            np.testing.assert_allclose(mol.coordinates, expected, rtol=0, atol=5e-5)
+    restored[0].atoms[0].formal_charge = -1
+    assert restored[1].atoms[0].formal_charge == 1
+    assert [sum(atom.formal_charge for atom in mol.atoms) for mol in molecules] == [0, 1]
+    assert len(io.read_mol(text, fmt).atoms) == 3
 
 
 def test_single_frame_option_and_file_return_overwrite_behavior(tmp_path):

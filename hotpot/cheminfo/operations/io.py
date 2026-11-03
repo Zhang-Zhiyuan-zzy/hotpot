@@ -54,6 +54,9 @@ class MolReader(IoBase):
     def __init__(self, src, fmt=None, **kwargs):
         """"""
         super().__init__(src, fmt, **kwargs)
+        if self.src_type in ('StringIO', 'BytesIO', 'FileIO'):
+            self.src = self.src.read()
+            self.src_type = 'bytes' if isinstance(self.src, bytes) else 'str'
         self._generator = self.get_generator()
         self._items = None
 

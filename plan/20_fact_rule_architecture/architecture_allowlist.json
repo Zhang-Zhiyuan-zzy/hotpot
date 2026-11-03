@@ -418,24 +418,6 @@
       "stage": "Stage12"
     },
     {
-      "path": "hotpot/cheminfo/search/_predicate_ir.py",
-      "line": 9,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.BondKind",
-      "local": "BondKind",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/search/query_ir.py",
-      "line": 7,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.BondKind",
-      "local": "BondKind",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
       "path": "hotpot/cheminfo/search/search.py",
       "line": 13,
       "scope": "",
@@ -459,24 +441,6 @@
       "scope": "",
       "target": "hotpot.cheminfo.core.Bond",
       "local": "Bond",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/search/semantics.py",
-      "line": 7,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.BondKind",
-      "local": "BondKind",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/search/smarts.py",
-      "line": 17,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.BondKind",
-      "local": "BondKind",
       "rule": "legacy_core_import",
       "stage": "Stage9"
     },
@@ -1964,5 +1928,48 @@
     "remaining_gate": "Rebind final production/test/guard bytes and run full repository static audit plus released candidate contracts; Stage9 retires the sole real-core lookup.",
     "candidate_runtime_authorized": false,
     "stage_gate_closed": false
+  },
+  "stage8c_retirement": {
+    "scope": "C1 existing BondKind enum extraction only; lower SMARTS readers share structure/bond_kind.py instead of core.",
+    "retired_legacy_import_entries": [
+      {
+        "path": "hotpot/cheminfo/search/_predicate_ir.py",
+        "line": 9,
+        "scope": "",
+        "target": "hotpot.cheminfo.core.BondKind",
+        "local": "BondKind",
+        "rule": "legacy_core_import",
+        "stage": "Stage9"
+      },
+      {
+        "path": "hotpot/cheminfo/search/query_ir.py",
+        "line": 7,
+        "scope": "",
+        "target": "hotpot.cheminfo.core.BondKind",
+        "local": "BondKind",
+        "rule": "legacy_core_import",
+        "stage": "Stage9"
+      },
+      {
+        "path": "hotpot/cheminfo/search/semantics.py",
+        "line": 7,
+        "scope": "",
+        "target": "hotpot.cheminfo.core.BondKind",
+        "local": "BondKind",
+        "rule": "legacy_core_import",
+        "stage": "Stage9"
+      },
+      {
+        "path": "hotpot/cheminfo/search/smarts.py",
+        "line": 17,
+        "scope": "",
+        "target": "hotpot.cheminfo.core.BondKind",
+        "local": "BondKind",
+        "rule": "legacy_core_import",
+        "stage": "Stage9"
+      }
+    ],
+    "new_types": 0,
+    "status": "ROOT_ACCEPTED_C1_CP311_SOURCE; whole Stage8C remains open"
   }
 }

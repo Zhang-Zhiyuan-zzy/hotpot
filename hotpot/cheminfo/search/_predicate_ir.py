@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import FrozenSet, Optional, Tuple
 
-from ..core import BondKind
+from ..structure.bond_kind import BondKind
 from .semantics import SmartsSemantics
 
 

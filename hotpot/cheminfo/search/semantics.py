@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-from ..core import BondKind
+from ..structure.bond_kind import BondKind
 
 
 class SmartsSemantics(str, Enum):

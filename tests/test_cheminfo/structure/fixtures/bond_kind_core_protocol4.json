@@ -1,0 +1,51 @@
+{
+  "argv": [
+    "/tmp/hotpot-plan20-env/bin/python",
+    "/tmp/hotpot_plan20/long/stage8c-entry-20261104/bond-kind-c1/capture_baseline.py",
+    "/tmp/hotpot_plan20/long/stage8c-entry-20261104/bond-kind-c1/baseline.json"
+  ],
+  "cwd": "/home/zhangzhiyuan/hotpot",
+  "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+  "source_commit": "c13970d68d5c9c24ab5a946f75ce1e094feb1e27",
+  "core_sha256": "381d661850b483d7b0a48ac1afb94cba6b17a3ffa2ac581657970794a0b109de",
+  "module": "hotpot.cheminfo.core",
+  "qualname": "BondKind",
+  "members": [
+    {
+      "name": "SINGLE",
+      "value": "single",
+      "pickle_protocol4_base64": "gASVMgAAAAAAAACMFGhvdHBvdC5jaGVtaW5mby5jb3JllIwIQm9uZEtpbmSUk5SMBnNpbmdsZZSFlFKULg=="
+    },
+    {
+      "name": "DOUBLE",
+      "value": "double",
+      "pickle_protocol4_base64": "gASVMgAAAAAAAACMFGhvdHBvdC5jaGVtaW5mby5jb3JllIwIQm9uZEtpbmSUk5SMBmRvdWJsZZSFlFKULg=="
+    },
+    {
+      "name": "TRIPLE",
+      "value": "triple",
+      "pickle_protocol4_base64": "gASVMgAAAAAAAACMFGhvdHBvdC5jaGVtaW5mby5jb3JllIwIQm9uZEtpbmSUk5SMBnRyaXBsZZSFlFKULg=="
+    },
+    {
+      "name": "AROMATIC",
+      "value": "aromatic",
+      "pickle_protocol4_base64": "gASVNAAAAAAAAACMFGhvdHBvdC5jaGVtaW5mby5jb3JllIwIQm9uZEtpbmSUk5SMCGFyb21hdGljlIWUUpQu"
+    },
+    {
+      "name": "ZERO",
+      "value": "zero",
+      "pickle_protocol4_base64": "gASVMAAAAAAAAACMFGhvdHBvdC5jaGVtaW5mby5jb3JllIwIQm9uZEtpbmSUk5SMBHplcm+UhZRSlC4="
+    },
+    {
+      "name": "DATIVE",
+      "value": "dative",
+      "pickle_protocol4_base64": "gASVMgAAAAAAAACMFGhvdHBvdC5jaGVtaW5mby5jb3JllIwIQm9uZEtpbmSUk5SMBmRhdGl2ZZSFlFKULg=="
+    },
+    {
+      "name": "UNKNOWN",
+      "value": "unknown",
+      "pickle_protocol4_base64": "gASVMwAAAAAAAACMFGhvdHBvdC5jaGVtaW5mby5jb3JllIwIQm9uZEtpbmSUk5SMB3Vua25vd26UhZRSlC4="
+    }
+  ],
+  "limits": "Current-source enum attribution only; no chemistry calculation or gate acceptance."
+}

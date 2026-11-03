@@ -10,7 +10,6 @@ import logging
 import re
 import time
 import operator
-from enum import Enum
 from typing import Union, Literal, Iterable, Optional, Callable, Mapping
 from copy import copy, deepcopy
 from itertools import combinations, product
@@ -37,6 +36,7 @@ from .structure._fields import (
     CONSTRAINT_FIELDS as _ATOM_CONSTRAINT_FIELDS,
 )
 from .structure._atom_table import _AtomFactTable
+from .structure.bond_kind import BondKind
 from .structure.constraints import (
     _ConstraintSet, _EMPTY_ATOM_CELL, _atom_axis_value, _bond_constraint_value,
     _bond_constraint_cell, _bond_raw_values, _split_atom_rows, _join_atom_rows,
@@ -101,18 +101,6 @@ class ObjNotInMolecule(Exception):
         self.mol = mol
         self.message = f"The {type(obj).__name__} is not a current member of the Molecule"
         super().__init__(self.message)
-
-
-class BondKind(str, Enum):
-    """Semantic bond categories stored separately from numeric bond order."""
-
-    SINGLE = "single"
-    DOUBLE = "double"
-    TRIPLE = "triple"
-    AROMATIC = "aromatic"
-    ZERO = "zero"
-    DATIVE = "dative"
-    UNKNOWN = "unknown"
 
 
 def _bond_kind_from_order(bond_order: float) -> BondKind:

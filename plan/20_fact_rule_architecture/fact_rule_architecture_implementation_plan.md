@@ -1,13 +1,13 @@
 # Fact-Carrier and Rule Architecture Refactor
 
-Status: **implementation authorized on 2026-10-28; Stage0–8A owning-stage gates
-complete within their recorded scopes. Stage8A A1–A11 scientific-state separation,
-non-mutating extraction, H presence, approved detailed reports/confidence retirement,
-preparation diagnostics and existing Lewis complete-H applicability are root accepted
-within CP311 source/installed scope. Stage8B B1 consolidation, B2 pure acceptance/capture separation and B3a native
-ownership, B3b command ownership, B3c Python native transport/capture and B3d Python operation/backend cutover are root accepted within CP311; B4 controls/sample containment is accepted within CP311 and the owning gate remains open. Stage8C–E have not entered. Optional scientific
-activation, remaining stages, full scientific/engineering, version-adaptation and
-global acceptance remain open**.
+Status: **implementation authorized on 2026-10-28; Stage0–8B owning-stage gates
+complete within their recorded scopes. Stage8B includes B1–B4, the observed
+ring-opening correction and its owning CP311 evidence with retained limitations.
+Stage8C has entered; C1 canonical BondKind is accepted within its CP311 source
+prerequisite scope. The connected search split and Stage8C gate remain open.
+Stage8D–E have not entered. Optional scientific activation, remaining stages,
+full scientific/engineering, version-adaptation and global acceptance remain
+open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
 are recorded in [the CP311 core-workflow report](cp311_core_workflow_validation_20261103.md). The architecture, lazy invalidation, scientific-reporting, and
@@ -1142,7 +1142,8 @@ hotpot/
 │   │   ├── __init__.py
 │   │   ├── molecule.py                 # Molecule
 │   │   ├── atom.py                     # Atom
-│   │   ├── bond.py                     # Bond, BondKind
+│   │   ├── bond.py                     # Bond
+│   │   ├── bond_kind.py                # shared BondKind contract
 │   │   ├── crystal.py                  # sole Crystal cell carrier
 │   │   ├── metal_cluster.py            # Plan21 type reservation; no Plan20 runtime file
 │   │   ├── conformer.py                # CoordinateFrame, source-frame collection
@@ -1287,7 +1288,8 @@ named `coordination_placement` operation.
 |---|---|---|
 | `Molecule` | `structure/molecule.py` | retain one class and public facade; keep facts/invariants only; make scientific methods thin delegates |
 | `Atom` | `structure/atom.py` | retain one identity/row-handle facade; core facts live only in `_AtomFactTable`; schema projections remove toolkit construction and immediate setter chemistry |
-| `Bond`, `BondKind` | `structure/bond.py` | retain one class/enum; enforce the approved kind/order contract in atomic mutations |
+| `Bond` | `structure/bond.py` | retain one class; enforce the approved kind/order contract in atomic mutations |
+| `BondKind` | `structure/bond_kind.py` | retain one enum shared by carriers and lower chemical rules; C1 extracts the existing definition without changing values |
 | `NotInSameMolecule`, `ObjNotInMolecule` | `structure/errors.py` or none | preserve their exact names if active/public; otherwise delete after zero-reference audit; do not rename them as part of this refactor |
 | `MolBlock` dynamic attribute machinery | `structure/_fields.py`, `_atom_table.py`, `_dependencies.py` | replace magic offsets with one fact schema, reviewed descriptors and typed storage; preserve efficient scalar/batch paths with no untracked alias |
 | `AtomSeq`, `Angle`, `Torsion`, `Ring`, `JointRing`, `AtomPair`, `AtomPairs` | `views/` | make membership immutable/identity-bound; rename `AtomPairs` to `AtomPairTable` only if owner approves; project constraints from Molecule; remove carrier cache ownership |
@@ -2234,6 +2236,16 @@ Graph definition.
 
 Gate: SMARTS conformance, callable-leaf isolation, RI mapping parity,
 deterministic enumeration, native component tests, and throughput.
+
+The [Stage8C C1 decision](stages/stage08/search/contracts/decisions.md) first
+extracts the existing BondKind enum to structure/bond_kind.py so lower chemical
+rules do not acquire a carrier import. Member values and ordinary public identity
+remain; new pickle metadata names its physical owner while current core-path
+pickles still resolve through the existing core export. The [C1 CP311 source
+checkpoint](stages/stage08/search/validation/c1/checkpoint.json) accepts35files/
+847passed with the same enum body, actual bond/copy behavior and captured cold
+pickle contracts. The larger connected search split and owning source/installed/
+native/throughput gates remain open.
 
 #### Stage 8D — Inference and conformer orchestration
 

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8C/C1",
+  "artifact_root": ".plan20-artifacts/20261104/stage8c/bond-kind-c1",
+  "scope": "Source-only enum extraction and read-only larger-boundary inventories. No installed/native-build/whole Stage8C acceptance.",
+  "execution": {
+    "path": ".plan20-artifacts/20261104/stage8c/bond-kind-c1/focused-attempt01/execution.json",
+    "bytes": 3920,
+    "sha256": "e971174f10e4e479d68f24560313df945fdad7864b2ae94aa8bb089e16b7c7d2"
+  },
+  "junit": {
+    "path": ".plan20-artifacts/20261104/stage8c/bond-kind-c1/focused-attempt01/junit.xml",
+    "bytes": 141144,
+    "sha256": "1af222ded83cb7018bd59ec539fd6a5a46c1425ebaeb155129737cf56a4a1f2b"
+  },
+  "freeze": {
+    "path": ".plan20-artifacts/20261104/stage8c/bond-kind-c1/source-freeze.json",
+    "bytes": 189042,
+    "sha256": "0bb2b26373f73f15d51d26a4b84ea0dd81dc5b8177d15d6f2aa4c35d2a7eb6de"
+  },
+  "baseline": {
+    "path": ".plan20-artifacts/20261104/stage8c/bond-kind-c1/baseline.json",
+    "bytes": 1931,
+    "sha256": "358f6580c2574a20865551e0800a39b105a8226625c05f2b7bad7b191241ebbc"
+  },
+  "manifest": {
+    "path": ".plan20-artifacts/20261104/stage8c/bond-kind-c1/archive-manifest.json",
+    "bytes": 3224,
+    "sha256": "85e0c666bbbf3500d001be81c6de95f517953ee788bf5066076a9b05bbc978dc"
+  }
+}

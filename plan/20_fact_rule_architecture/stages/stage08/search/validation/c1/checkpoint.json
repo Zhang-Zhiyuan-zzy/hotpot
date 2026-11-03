@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8C/C1",
+  "date": "2026-11-04",
+  "parent_head": "c13970d68d5c9c24ab5a946f75ce1e094feb1e27",
+  "status": "ROOT_ACCEPTED_CANONICAL_BOND_KIND_CP311_SOURCE_PREREQUISITE",
+  "root_acceptance": true,
+  "scope": "One existing seven-value enum, unchanged body; canonical structure contract shared with core and four lower SMARTS readers.",
+  "result": {
+    "test_files": 35,
+    "passed": 847,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "elapsed_seconds": 17.120324501767755,
+    "peak_rss_kib": 233188
+  },
+  "source_freeze": {
+    "path": ".plan20-artifacts/20261104/stage8c/bond-kind-c1/source-freeze.json",
+    "bytes": 189042,
+    "sha256": "0bb2b26373f73f15d51d26a4b84ea0dd81dc5b8177d15d6f2aa4c35d2a7eb6de"
+  },
+  "frozen_inputs_unchanged": true,
+  "frozen_binding_count": 1485,
+  "checks": [
+    "AST-equal enum body",
+    "Public/canonical identity, actual Bond construction and copy",
+    "Captured old-core enum pickles in two cold import orders",
+    "Standalone contract-leaf loading without the execution tree",
+    "Full existing Stage8C ordinary SMARTS/native contract selection plus architecture, bonding and native buffers"
+  ],
+  "native": "Six accepted CP311 native binaries reused unchanged; no native source, encoding or algorithm change.",
+  "post_run_record_change": "Only the allowlist descriptive status is updated after execution; debt entries/retirement and all executable source/tests remain the tested bytes.",
+  "evidence_index": "evidence_index.json",
+  "whole_stage8c_closed": false,
+  "global_gate_closed": false,
+  "remaining": [
+    "Connected parser/recursive/semantics split and molecular result-cache retirement",
+    "RI/shared-Graph/native binding and build/package migration",
+    "All connected operations/packing/public consumers",
+    "Owning source/installed/native/conformance/throughput and later/global gates"
+  ]
+}

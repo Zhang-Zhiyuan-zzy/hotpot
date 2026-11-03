@@ -14,7 +14,7 @@ from enum import Enum
 from typing import Dict, List, Optional, Set, Tuple
 from weakref import WeakKeyDictionary
 
-from ..core import BondKind
+from ..structure.bond_kind import BondKind
 from ._predicate_ir import (
     _AtomExpression,
     _AtomField,

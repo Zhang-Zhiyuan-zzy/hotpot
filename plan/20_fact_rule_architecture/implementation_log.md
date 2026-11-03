@@ -6015,3 +6015,73 @@ work/runtime/build tree or protected unrelated review is included in Git. These
 records accompany the coherent five-file business correction, H recorder fix,
 meaningful regressions and observation persistence in one validated business
 commit, followed by normal push. Stage8C requires its own entry alignment.
+
+
+### 2026-11-04 — Stage8C entry alignment and read-only owner inventory
+
+Stage8B business commit c13970d68d5c9c24ab5a946f75ce1e094feb1e27 is normally
+pushed to origin; tested1482bindings remain unchanged after commit. Its owning
+CP311 checkpoint is accepted with P20-D022/023 observations and later/global
+gates retained. Effective goal, governance/stage/validation skills and both
+references, main planSections6/7/9.2/Stage8C/11/12, data-object budget and current
+Stage8C verification selection align this next scope. The expected split is
+SMARTS syntax/chemical IR in rules/chemistry/substructure, sole RI mathematics
+over the shared CSR Graph in rules/mathematics/graph_matching, Molecule packing
+in adapters/structure/substructure and public composition in operations/search.
+Retain current public names, mapping/enumeration/callable semantics and scientific
+algorithms; no new graph owner/backend selector/DTO/compatibility implementation.
+
+Release only read-only inventories by two existing local Sol/medium subagents
+with disjoint semantic/native-consumer responsibilities under
+/tmp/hotpot_plan20/long/stage8c-entry-20261104. No source/test/build/runtime
+authoring or execution before root records concrete owner/interface/build
+choices and required source/installed/native/conformance/throughput selection.
+Root owns route, implementation main document, public decisions and gates.
+The unrelated protected review remains untouched and excluded.
+
+
+### 2026-11-04 — Stage8C C1 canonical BondKind prerequisite selected
+
+Actual source inspection finds BondKind still defined in core.py; moving its
+SMARTS readers into lower rules would otherwise introduce forbidden carrier
+dependencies. Root selects an early extraction of that existing seven-value
+strEnum to structure/bond_kind.py, preserving names/values and the one public
+object through core and existing top-level exports. Remove only core's old
+definition/unused Enum import and repoint four SMARTS/IR imports; no new type,
+scientific mapping, decoder, constructor or native feature change. New pickle
+metadata names the physical contract owner; actual historical core-path enum
+pickles still load through the current core export. Stage9 retains its own
+old-core removal/historical asset contract; no permanent alias module is added.
+
+Release a narrow current-source CP311 enum/value/pickle baseline probe before
+editing, then alias/legacy-current cold-pickle and actual bond construction
+regressions plus existing SMARTS/bonding/native-buffer tests. Root authors this
+shared contract prerequisite and related main-plan/ratchet records directly.
+The other two local agents continue read-only larger-boundary inventories.
+No search algorithm/cache/parser/native move or Stage8C acceptance follows.
+
+
+### 2026-11-04 — Stage8C C1 CP311 source prerequisite accepted
+
+Actual pre-edit c13970d enum/pickle capture and class-AST comparison support the
+unchanged seven-value definition in structure/bond_kind.py. Core/public exports
+and four SMARTS readers share one enum; four old-core import entries retire
+without replacement. The new test uses ordinary public identity and actual Bond
+creation/copy rather than introducing a new direct-core import. Historical
+core-path pickles load through the existing core export in both cold orders;
+new pickles name their actual owner. No scientific/native/encoding body changes.
+
+Executed `/tmp/hotpot-plan20-env/bin/python -B
+/tmp/hotpot_plan20/long/stage8c-entry-20261104/bond-kind-c1/run_focused.py`:
+35files,847passed,0failed,0errors,0skipped,17.1203245s,peakRSS233188KiB. All1485
+bindings unchanged across execution; six accepted CP311 natives reused. Full
+argv/env/resources/JUnit/freeze/baseline and the two completed read-only owner
+inventories are retained under .plan20-artifacts/20261104/stage8c/bond-kind-c1,
+indexed by stages/stage08/search/validation/c1/evidence_index.json. Post-run
+allowlist change updates descriptive acceptance status only; all executable
+source/tests and debt entries retain tested bytes. No runtime was repeated.
+
+Root accepts C1 source prerequisite only, updates main ownership tree and current
+status, and retains full connected split/source-installed/native/throughput and
+later/global gates. Records accompany the validated business change in one
+small coherent commit with normal push; no documentation-only milestone.

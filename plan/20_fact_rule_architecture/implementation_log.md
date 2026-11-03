@@ -4858,3 +4858,81 @@ D01–D03/public-ID verification wording now agree with actual accepted scope.
 No speed claim or clean-native/all-version/global acceptance follows. Whole
 Stage8A remains open for P20-D021/A11; Stage8B–E have not entered. The coherent
 product/test/record commit and normal push are identified by Git history.
+
+
+## 2026-11-03 — Stage8A A11 reviewed patch applied and validation alignment
+
+A10 was committed/pushed as c5e4bb0. Root reviewed and applied the isolated
+Sol/medium candidate: one existing pure-provider applicability branch, eight
+real-input cases and the existing method documentation. The branch follows
+current element/bond-domain checks and returns current empty domain status
+with exact unresolved non-H atom indices. Known0/positiveH and explicit H
+particles retain their meanings; no OS/counting-boundary rule, numerical
+method, type, public signature/schema, model/native or version identifier
+changes. The actual unsupported N/B result is preserved in A10’s archive.
+
+Before runtime root will freeze the exact new provider/test bytes and method
+document. Focused provider/enumeration/derived-charge/composition checks precede
+the connected87-file scientific-state selection and actual pipeline/MCA, then
+matching installed CP311 scope. A10’s15additional unchanged storage/H/aromatic/
+FF files and764focused evidence need no duplicate execution for this isolated
+provider correction. Historic selections/denominators remain attributed to
+their original releases. A new failure stops the sequence and stays recorded.
+P20-D021 and wholeStage8A remain open pending evidence; Stage8B has not entered.
+
+
+## 2026-11-03 — Stage8A A11 first affected result and test import repair
+
+The fixed first A11 wrapper passed55focused cases, then affected reported
+997passed/1failed/5skipped of1003 and stopped before actual workflows/installed.
+The full retained static report identifies exactly one new legacy import:
+the new test imported Molecule from core instead of its approved top-level
+public export. There is no layer-write, duplicate-carrier or allowlist defect.
+Root changes that test import only, retaining the existing BondKind import;
+no checker/allowlist/rule or business source is weakened. All original runs
+and candidates remain. A new freeze/release will rebind this one test and run
+the same source/installed selections; no runtime acceptance is claimed yet.
+
+
+## 2026-11-03 — Stage8A A11 accepted, owning stage complete within CP311
+
+At parentc5e4bb0 root reviewed the bounded existing-domain correction and
+accepts55focused passes, source/installed998passed/5skipped of1003 identical
+ordered nodes across87files,3actual CBond/FF/GFN-FF/GFN2 and3actual MCA
+attachment checks per boundary. A local Luna/low executed the fixed released
+wrapper exactly once for attempt02; local Sol/medium authored the provider
+patch and compact records. Root owns integration, chemistry and gate judgment.
+All exact commands/cwd/environment/interpreter/inputs are indexed by the A11
+checkpoint; the original997passed/1failed/5skipped affected run and public-import
+repair are retained. The architecture checker/allowlist/provider rules were
+not weakened. No external helper or measured token-saving percentage is claimed.
+
+Actual Eu source/installed GFN2 energies−13.53209753/−13.53203276hartree remain
+attributed numerical observations; scientific state stays unresolved and backend
+UHF0 is an execution default. Known H0/positiveH, explicit-H nonduplication and
+H-atom None slots retain their semantics. Unknown non-H H now produces the
+existing named applicability abstention, not invented H or a blanket state
+rejection. Earlier element/bond findings, charge/electron math, OS, enumeration,
+models and natives are unchanged. A10's764focus and1559affected+5skip evidence
+is reused only for unchanged diagnostic/H/storage/FF scope.
+
+Root independently matched1435current frozen identities, then invoked
+`python /tmp/hotpot_plan20/long/stage8a-lewis-applicability-20261103/record-preparation/assemble.py`
+once:1603entries archived under `.plan20-artifacts/20261103/stage8a/lewis`,
+rawmanifestSHA256 `07be599fe635f147d4a396376924088c8d46185bd3f344cc5b34f3a22f615e59`. Archived draft/pending
+records remain historical; maintained records carry the root decision.
+No unchanged runtime selection was rerun for record finalization.
+
+P20-D021 closes and Stage8A A1–A11 is ROOT_ACCEPTED_CP311_OWNING_SCOPE. The
+completion, design, validation, verification map, integrated requirement and
+current plan/README agree; historical checkpoints keep their earlier scopes.
+D01 is settled and D02/D03 are NO_CONSOLIDATION. P20-D019 remains bounded-cost
+optimization debt. Six accepted natives/shared-site dependencies are reused;
+41package omissions, other versions, clean-native/ABI/SDK/sdist, optional
+activation, broad science/GPU/performance and Plan20/Plan12 final acceptance
+remain open. Stage8B–E have not entered. Coherent business commit and normal
+push are identified by Git history, with final JSON/link/source checks recorded
+at delivery. Terra/Luna's mechanical-only option is already in model_allocation.md;
+business implementation remains Sol/medium or higher.
+
+Final delivery checks: changed/new seven JSON records parse; Stage8A/A11 root acceptance, scope and result counts agree across completion/validation/map; raw manifest identity and new completion/report links pass; `git diff --check` passes. These are record/source checks, not new chemical runtime claims. The unrelated user-owned untracked review file remains excluded.

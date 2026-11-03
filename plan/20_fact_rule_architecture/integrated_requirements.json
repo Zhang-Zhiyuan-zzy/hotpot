@@ -95,7 +95,8 @@
     {
       "owner_stage": "Stage8A",
       "scope": "Current pure charge/OS/electronic-state providers, hard constraints, factorized composition, bounded/certified decisions and backend projection; optional screening activation follows its own documented prerequisites.",
-      "status": "current acceptance open"
+      "status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE; optional profile activation remains separately gated",
+      "acceptance_record": "stages/stage08/scientific-state/completion_20261103.json"
     },
     {
       "owner_stage": "Stage8B",

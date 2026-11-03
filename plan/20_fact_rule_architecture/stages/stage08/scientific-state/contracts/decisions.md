@@ -481,3 +481,31 @@ complete/partial/ionic OS conservation evidence under the counted boundary.
 The observed Lewis complete-H discrepancy remains P20-D021; A11’s accepted
 design is not implementation or runtime acceptance. A10 closes its assigned
 H/aromatic diagnostic scope, not wholeStage8A/Stage8B/global or optional gates.
+
+
+### A11 runtime fulfilment and Stage8A owning acceptance — 2026-11-03
+
+Root accepts [A11 CP311 applicability](../validation/lewis_checkpoint.json):
+55focused passes; source/installed998passed/5skipped of1003 identical ordered
+nodes across87files;3actual CBond/FF/GFN-FF/GFN2 and3actual MCAattachment
+checks per boundary. Eight real-input controls retain known0/positiveH, explicit-H
+nonduplication/H-atom slots, input nonmutation and earlier element/bond diagnostics.
+The observed out-of-domain candidate now yields the existing named abstention;
+methodv2, arithmetic, OS and enumeration remain. The first997/1/5 result correctly
+identified a new-test legacy import; only that test import was corrected.
+Original failure evidence and all numerical workflow variation remain.
+
+All1426product/test/resource,6reused-native and3build bindings match the final
+freeze. Source/installed origins, model/support and source-immutability checks
+pass in their audited scope. A10's unchanged diagnostic/H/storage/FF evidence
+is reused rather than rerun. Raw evidence and release-time documents are
+archived exactly; historical pending statements retain their release-time scope.
+
+Root closes P20-D021 and [Stage8A's CP311 owning gate](../completion_20261103.json)
+for A1–A11. D01 retains approved detailed reports with confidence-only retirement;
+D02/D03 remain NO_CONSOLIDATION. Counting/certification qualifies the represented
+boundary, not a complete intended H assignment or experimental ground state.
+P20-D019 bounded usable cost remains for Stage12 optimization. Optional activation,
+other versions, clean-native/ABI/SDK/sdist,41package omissions, broad science/GPU/
+performance and Plan20/Plan12 final gates remain open. Stage8B may align next;
+this records no Stage8B implementation or runtime acceptance.

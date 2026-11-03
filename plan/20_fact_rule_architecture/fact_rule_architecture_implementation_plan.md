@@ -1,12 +1,12 @@
 # Fact-Carrier and Rule Architecture Refactor
 
-Status: **implementation authorized on 2026-10-28; Stage0–7E owning-stage gates complete
-within their recorded scopes. Stage8A1 scientific-state ownership and extraction
-non-mutation are accepted within the applicable CP311 checkpoint. A8 now preserves
-known implicit-H0 distinctly from unresolved/absent H. A9 settles D01–D03's
-public report/retention design; confidence-only removal is now root accepted
-within matching source/installed CP311 evidence. Whole Stage8A, remaining scientific-state work, full scientific,
-engineering, version-adaptation and global acceptance remain open**.
+Status: **implementation authorized on 2026-10-28; Stage0–8A owning-stage gates
+complete within their recorded scopes. Stage8A A1–A11 scientific-state separation,
+non-mutating extraction, H presence, approved detailed reports/confidence retirement,
+preparation diagnostics and existing Lewis complete-H applicability are root accepted
+within CP311 source/installed scope. Stage8B–E have not entered. Optional scientific
+activation, remaining stages, full scientific/engineering, version-adaptation and
+global acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
 are recorded in [the CP311 core-workflow report](cp311_core_workflow_validation_20261103.md). The architecture, lazy invalidation, scientific-reporting, and
@@ -2062,7 +2062,8 @@ from the five typed calculation records and enum/two exports, and resolves D02/D
 as NO_CONSOLIDATION. The [A9 confidence checkpoint](stages/stage08/scientific-state/validation/confidence_checkpoint.json)
 accepts the connected CP311 cutover:source443focused,source/installed990affected+5skipped
 and3actual pipeline/3MCA checks per boundary, with allfive current types cold-loading.
-One enum retires; dataclass delta is zero. This does not close wholeStage8A or later/global acceptance.
+One enum retires; dataclass delta is zero. This A9 checkpoint alone did not close
+wholeStage8A; later/global acceptance remains separate.
 Optional activation remains held.
 
 The [A1–A7 ownership checkpoint](stages/stage08/scientific-state/ownership_checkpoint_20261103.json)
@@ -2075,9 +2076,9 @@ then closes P20-D020: known current H0 remains0, absent/unresolved H remainsNone
 input is unchanged and old mismatched evidence is rejected. Source/installed
 affected991passed/5skipped plus real pipeline3/MCA3 each qualify this CP311
 scope; no public schema or H inference algorithm changes. Corrected identities
-and digest-based bounded ordering may differ from history. Whole Stage8A remains
-open for remaining scientific-state semantics, including explicit unknown-H
-accounting disposition; A9 acceptance does not establish Stage8B entry or global acceptance.
+and digest-based bounded ordering may differ from history. The then-open
+unknown-H accounting and remaining scientific-state work are disposed by A10/A11
+below; A8/A9 evidence alone establishes no Stage8B or global acceptance.
 
 [A10](stages/stage08/scientific-state/contracts/decisions.md#a10--represented-inventory-and-observed-preparation-diagnostics)
 now fixes the documented counted boundary: explicit atoms plus known,
@@ -2094,7 +2095,15 @@ probe retains the counted boundary and bounded complete/partial OS conservation
 evidence. It also exposes P20-D021: the callable Lewis provider returns a
 candidate outside its complete-H prerequisite. Accepted A11 enforces that
 existing method domain; no arithmetic or ground-state error is asserted.
-WholeStage8A remains open for that correction and activates no optional profile.
+The [A11 checkpoint](stages/stage08/scientific-state/validation/lewis_checkpoint.json)
+now accepts the correction:55focused, source/installed998passed/5skipped of1003,
+with3actual pipeline/3MCA cases per boundary. Unknown non-H site-total-H causes
+existing named abstention before enumeration; known0/positiveH and explicit-H
+controls preserve values and earlier domain diagnostics. The original new-test
+legacy import failure and import-only repair remain recorded. The
+[Stage8A owning completion](stages/stage08/scientific-state/completion_20261103.json)
+closes A1–A11 within CP311 and P20-D021; optional activation and all later/global
+gates remain open. Stage8B requires its own entry alignment.
 
 
 #### Stage 8B — Force fields

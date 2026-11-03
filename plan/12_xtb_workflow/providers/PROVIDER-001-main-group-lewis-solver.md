@@ -18,6 +18,17 @@ organometallic, multicentre or unknown-protonation systems.
 - Consume an immutable covalent-component view derived from
   `MolecularFacts.semantic_bonds`, a complete H inventory and, when known, a
   hard-valid component or system $Q$ constraint.
+- The current `fixed-bond-main-group-v2` method requires a known site-total-H
+  slot for every non-H atom, including known zero. A supplied explicit-H neighbor
+  alone does not resolve an unknown site-total-H slot. Explicit H atoms are
+  counted particles and do not require their own implicit-H assignment; known
+  positive implicit H retains the existing nonduplication convention.
+- After the existing unsupported-element and fixed-bond checks, an unresolved
+  non-H site-total-H slot produces an empty `NOT_EVALUATED/OUT_OF_DOMAIN` result
+  with `PROVIDER-001.INCOMPLETE_HYDROGEN_INVENTORY` and the affected atom indices.
+  This enforces the complete-H applicability prerequisite without changing
+  molecular facts, net-charge evidence, charge/electron accounting, coordination
+  exclusion, enumeration or budgets.
 - For a coordination complex, solve only the coordination-separated main-group
   ligand/counterion component. Do not treat a metal--ligand coordination edge
   as an ordinary covalent valence contribution and do not mutate the source

@@ -279,6 +279,24 @@ def _solve_candidate(
             "Lewis provider requires known covalent fixed bond orders.",
         )
 
+    unresolved_hydrogens = tuple(
+        index
+        for index, (atomic_number, implicit_hydrogens) in enumerate(
+            zip(facts.atomic_numbers, facts.hydrogen_inventory.implicit_counts)
+        )
+        if atomic_number != 1 and implicit_hydrogens is None
+    )
+    if unresolved_hydrogens:
+        return _unresolved_result(
+            facts,
+            net_candidate,
+            "PROVIDER-001.INCOMPLETE_HYDROGEN_INVENTORY",
+            (
+                "Lewis provider requires a complete H inventory; unresolved "
+                f"site-total-H at atom indices {unresolved_hydrogens}."
+            ),
+        )
+
     assignments, truncated = _enumerate_assignments(
         facts,
         bond_valences,

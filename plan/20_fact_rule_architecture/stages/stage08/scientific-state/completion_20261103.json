@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8A",
+  "date": "2026-11-03",
+  "status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE",
+  "stage_gate_closed": true,
+  "global_gate_closed": false,
+  "acceptance_owner": "root",
+  "predecessor": "Stage7E/989f275",
+  "accepted_scope": "A1-A11 scientific-state ownership, non-mutating factual extraction, known-H0 presence, approved detailed reports and confidence-only retirement, counted-inventory/OS disposition, H/aromatic preparation diagnostics and existing Lewis complete-H applicability. Applicable CP311 source/installed scope only.",
+  "checkpoint": "validation/lewis_checkpoint.json",
+  "report": "validation/lewis_report.md",
+  "scientific_observations": "validation/lewis_observations.json",
+  "evidence_index": "validation/lewis_evidence_index.json",
+  "accepted_checkpoints": {
+    "A1-A7": "ownership_checkpoint_20261103.json",
+    "A8": "validation/h_presence_checkpoint.json",
+    "A9": "validation/confidence_checkpoint.json",
+    "A10": "validation/diagnostics_checkpoint.json",
+    "A11": "validation/lewis_checkpoint.json"
+  },
+  "public_disposition": "D01 existing detailed scientific reports retained; five six-field calculation records, generic confidence/enum/two exports retired. D02/D03 NO_CONSOLIDATION. No new public type/signature/schema in A10/A11.",
+  "latest_results": {
+    "focused": "55 passed",
+    "affected_source": "998 passed / 5 skipped of 1003 across 87 files",
+    "affected_installed": "998 passed / 5 skipped of the same ordered 1003 nodes outside checkout",
+    "actual_workflows": "3 real CBond/FF/GFN-FF/GFN2 and 3 real MCA attachment cases per source/installed boundary",
+    "reused_a10": "764 focused;1559 affected passes/5 skips of1564 across102files, for unchanged diagnostics/H/storage/FF scope"
+  },
+  "source_freeze": {
+    "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-lewis-import.json",
+    "sha256": "1f46ae6eb56a6b9820c83e1248326849841a07876b090e228ce2321755944544",
+    "parent_commit": "c5e4bb02ea8741c6a8f95ca29368d9ba11367f6d",
+    "bindings": {
+      "source_tests_resources": 1426,
+      "native": 6,
+      "build_inputs": 3
+    }
+  },
+  "raw_archive": {
+    "path": ".plan20-artifacts/20261103/stage8a/lewis",
+    "manifest": ".plan20-artifacts/20261103/stage8a/lewis/raw_manifest.json",
+    "sha256": "07be599fe635f147d4a396376924088c8d46185bd3f344cc5b34f3a22f615e59",
+    "entries": 1603
+  },
+  "closed_issues": [
+    "P20-D020",
+    "P20-D021"
+  ],
+  "cost_disposition": "Bounded usable CP311 snapshot/resolve/projection costs accepted; P20-D019 remains assigned to Stage12 consolidated optimization. No paired historical performance claim.",
+  "commit": "Coherent A11 business delivery identified by Git history; no hash-only follow-up commit.",
+  "successor": "Stage8B may enter after its own alignment and concrete design/public decisions; no Stage8B implementation or runtime acceptance follows.",
+  "remaining": [
+    "Optional scientific-profile activation retains separate approval, applicability artifacts and held-out evidence; none activated.",
+    "Other Python3.10/3.12/3.13/3.14 versions, clean all-native/ABI/SDK/sdist/manylinux and41package omissions remain open.",
+    "Six unchanged accepted Stage7E native binaries and shared-site dependencies reused; no clean-native delivery claim.",
+    "Broad science/GPU/global performance and remaining Plan20/integrated Plan12 stages/final acceptance remain open.",
+    "Counting/certification is scoped to the represented boundary; no complete-H, ground-state, universal public-ID mapping or experimental-truth claim."
+  ]
+}

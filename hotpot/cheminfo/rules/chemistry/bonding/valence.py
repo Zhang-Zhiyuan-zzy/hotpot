@@ -48,3 +48,43 @@ def _hybridization(atomic_number, orders, aromatic, heavy_order):
     if atomic_number in (7, 15):
         return 2 if heavy_order == 3 else 3
     return 0
+
+
+def _default_unpaired_electrons(atomic_numbers, charge):
+    return (sum(atomic_numbers) - charge) % 2
+
+
+def _default_spin_mult(atomic_numbers, charge):
+    return _default_unpaired_electrons(atomic_numbers, charge) + 1
+
+
+def _bonded_missing_electrons(element_missing, bond_order_sum):
+    return element_missing - bond_order_sum
+
+
+def _open_shell_electrons(configuration):
+    return sum(configuration)
+
+
+def _calculate_electron_config(atomic_number):
+    from ..elements import _fill_electron_shell
+    n, l, configuration = _fill_electron_shell(atomic_number)
+    return n, l, tuple(configuration) + (0,) * (5 - len(configuration))
+
+
+def _legacy_oxidation_order_sign(electronegativity, neighbour_electronegativity):
+    return -1 if electronegativity > neighbour_electronegativity else 1
+
+
+def _legacy_oxidation_contribution(sign, order):
+    return sign * int(order)
+
+
+def _legacy_oxidation_total(contributions, hydrogen_count, carbon_count):
+    """Complete the existing local heuristic; this is not the state solver."""
+    state = sum(contributions) + hydrogen_count
+    if state > 0:
+        return state + carbon_count
+    if state < 0:
+        return state - carbon_count
+    return state

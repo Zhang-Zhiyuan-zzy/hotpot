@@ -6,7 +6,8 @@ actual MCA workflows; Stage8D includes inference/conformer/artifact migration an
 actual CPU/pipeline/one-GPU evidence. Stage8E now has source/installed CP311
 assembly, local H/scaffold corrections and explicit exports/resources accepted;
 P20-D024 is closed. P20-D026 generic H export/materialization remains open.
-Stage9 and later stages, optional scientific activation, clean full-native,
+Stage9A semantic preparation is accepted at CP311source/installed boundaries;
+Stage9B and later stages, optional scientific activation, clean full-native,
 version-adaptation and global scientific/engineering acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
@@ -2309,19 +2310,36 @@ assertions if retained.
 
 ### Stage 9 — Split the carriers and hard-cut `core.py`
 
-1. Once `core.py` contains only carriers/facades, move each class definition
-   to its one structure/view module.
-2. Update every production/test direct-core import in the Stage1 frozen
-   consumer inventory, including any subsequently discovered consumers; the
-   historical 72/81 file counts are audit context, not a completion limit.
-3. Update plugins, pipeline, dataset providers, typing-only imports, and string
-   entry points.
-4. Delete `core.py` in the same commit that moves the last consumer.
-5. Do not add a re-export shim, alias class, fallback import, or compatibility
-   subclass.
+Complete the remaining Section9.1 responsibilities before moving their carrier
+facades. The Stage8E predecessor is accepted; current inspection still finds
+scientific predicates, joint-ring queries and mutation workflows in `core.py`.
+The [Stage9 decisions](stages/stage09/carriers/contracts/decisions.md) bind this
+internal sequencing without changing the overall objective or final gate.
 
-Gate: zero old imports, class identity tests, full default suite, plugin import
-smoke, no new cycles.
+1. **9A — Finish semantic extraction.** Move remaining chemistry/mathematics
+   calculations to their existing rule owners and query/preparation/workflow
+   composition to named operations. Preserve factual row/UID/membership/commit
+   primitives, lazy preparation, transactions and returned values; scientific
+   changes require a concrete owning decision and affected evidence. Keep the
+   one current class definition in `core.py` during this preparation; add no
+   parallel carrier or compatibility route. Validate affected CP311 chemical,
+   lifecycle and failure semantics before releasing the physical cutover.
+2. **9B — Physical sole-owner cutover.** Once only carriers, invariant-preserving
+   primitives and thin facades remain, move each definition and its once-only
+   descriptor/native-dispatch/pickle initialization to its sole structure/view
+   owner. Preserve approved public signatures and factual lifecycle semantics.
+3. Update every production/test direct-core import in the Stage1 inventory and
+   subsequently discovered consumers, including plugins, pipelines, dataset
+   bindings, typing-only imports and string entry points. Historical72/81file
+   counts are context, not a completion limit.
+4. Delete `core.py` in the same coherent commit that moves the last consumer.
+   Add no re-export shim, alias class, fallback import, compatibility subclass
+   or old-pickle module. Accepted historical core pickles remain a hard cut.
+
+Gate: completed9A evidence, zero active old imports, sole class identity and
+current-version pickle/lifecycle tests, full default suite, affected installed
+CP311 evidence, plugin import smoke and no new cycles. Later native/build,
+version-adaptation and global science/performance gates remain open.
 
 ### Stage 10 — Complete physical package and native build migration
 

@@ -4737,7 +4737,46 @@
       "additional_requirements": [
         "zero core imports including plugins/typing/string entry points; sole class identity and full default suite"
       ],
-      "execution_status": "not_executed_by_inventory_capture"
+      "execution_status": "not_executed_by_inventory_capture",
+      "preparation_9A": {
+        "status": "root_accepted_CP311_source_installed",
+        "focused_test_files": [
+          "tests/test_cheminfo/structure/test_stage9_chemistry_queries.py",
+          "tests/test_cheminfo/structure/test_stage9_queries.py",
+          "tests/test_cheminfo/structure/test_stage9_topology_operations.py"
+        ],
+        "connected_test_files": [
+          "tests/test_cheminfo/test_core.py",
+          "tests/test_cheminfo/test_elements.py",
+          "tests/test_cheminfo/test_geometry_core_integration.py",
+          "tests/test_cheminfo/test_topology_determinism.py",
+          "tests/test_cheminfo/test_topology_index.py",
+          "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+          "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+          "tests/test_cheminfo/structure/test_interface_permissions.py",
+          "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+          "tests/test_cheminfo/structure/test_commit_atomicity.py",
+          "tests/test_cheminfo/structure/test_atom_fact_table.py",
+          "tests/test_cheminfo/structure/test_constraint_storage_lifecycle.py",
+          "tests/test_cheminfo/structure/test_view_identity.py",
+          "tests/test_cheminfo/structure/test_source_identity.py",
+          "tests/test_cheminfo/structure/test_stage5_bonding.py",
+          "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py",
+          "tests/test_cheminfo/structure/test_stereo_hydrogen_storage.py",
+          "tests/test_cheminfo/structure/test_canonical_stereo_storage.py",
+          "tests/test_cheminfo/kekulize/test_known_limitations.py",
+          "tests/test_cheminfo/kekulize/test_legacy_api.py",
+          "tests/test_cheminfo/test_assembly_transformations.py",
+          "tests/test_cheminfo/test_search_ownership.py",
+          "tests/test_cheminfo/test_search_mapping.py",
+          "tests/test_cheminfo/test_mca_result_lifecycle.py"
+        ],
+        "passed_per_boundary": 883,
+        "known_xfail_per_boundary": 3,
+        "ordinary_skip_per_boundary": 0,
+        "checkpoint": "stages/stage09/carriers/validation/checkpoint.json",
+        "scope": "Residual queries and named workflows; physical9B/full default/zero-core/plugin gate remain open."
+      }
     },
     "Stage10": {
       "predecessor": "Stage9",

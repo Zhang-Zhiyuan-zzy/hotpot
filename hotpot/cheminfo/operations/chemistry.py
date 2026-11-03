@@ -464,8 +464,8 @@ def _bonding_snapshot(mol, *, ligand_skeleton=True):
         tuple(atom._uid for atom in mol._atoms), numbers, hydrogens,
         tuple(bool(value) for value in table.column('is_aromatic')), edges,
         tuple(tuple(row) for row in table.coordinates()), rings,
-        # Preserve the characterized Ring.has_3d predicate. Its legacy tuple
-        # versus Atom comparison is always true, even for coincident rows.
+        # Retain Stage5's accepted always-true chemistry branch. Stage9's
+        # corrected public Ring.has_3d query does not alter this rule input.
         (True,) * len(rings))
 
 
@@ -712,3 +712,129 @@ def _perceive_bond_orders(mol, bonds):
         obmol, row_to_idx = openbabel._factual_obmol(obmol, atom_rows, bond_rows, cell)
         idx_to_row = {index: row for row, index in row_to_idx.items()}
     return perception._perceive_bond_orders(obmol, idx_to_row)
+
+
+def _molecular_default_unpaired_electrons(mol):
+    from ..rules.chemistry.bonding.valence import _default_unpaired_electrons
+    numbers = tuple(atom.atomic_number for atom in mol.atoms)
+    return _default_unpaired_electrons(numbers, mol.charge)
+
+
+def _molecular_default_spin_mult(mol):
+    from ..rules.chemistry.bonding.valence import _default_spin_mult
+    numbers = tuple(atom.atomic_number for atom in mol.atoms)
+    return _default_spin_mult(numbers, mol.charge)
+
+
+def _atom_polar_hydrogen_site(atom):
+    return atom.atomic_number == 8 or (atom.atomic_number == 7 and atom.is_aromatic)
+
+
+def _atom_is_polar_hydrogen(atom):
+    return atom.is_hydrogen and atom.neighbours[0].polar_hydrogen_site
+
+
+def _atom_is_error_electron_configure(atom):
+    if atom.is_metal:
+        return False
+    return atom.missing_electrons_element != 0
+
+
+def _atom_missing_electrons(atom):
+    from ..rules.chemistry.bonding.valence import _bonded_missing_electrons
+    return _bonded_missing_electrons(atom.missing_electrons_element, atom.sum_bond_orders)
+
+
+def _atom_open_shell_electrons(atom):
+    from ..rules.chemistry.bonding.valence import _open_shell_electrons
+    n, l, configuration = atom.calc_electron_config()
+    return _open_shell_electrons(tuple(configuration))
+
+
+def _atom_calc_electron_config(atom):
+    from ..rules.chemistry.bonding.valence import _calculate_electron_config
+    n, l, configuration = _calculate_electron_config(atom.atomic_number)
+    return n, l, list(configuration)
+
+
+def _atom_oxidation_state(atom):
+    """Read only the facts demanded by the existing local oxidation heuristic."""
+    from ..rules.chemistry.bonding.valence import (
+        _legacy_oxidation_order_sign, _legacy_oxidation_contribution, _legacy_oxidation_total,
+    )
+    if atom.is_metal:
+        return atom.formal_charge
+    elif atom.atomic_number == 6:
+        return 4
+    elif atom.atomic_number == 7:
+        return 3
+    elif atom.atomic_number == 8:
+        return 2
+    elif atom.atomic_number in [1, 9, 17]:
+        return 1
+
+    hydrogen_count = _require_implicit_hydrogens(atom.mol, rows=(atom.idx,))[0]
+    contributions = []
+    carbon_count = 0
+    for bond in atom.bonds:
+        other_atom = bond.another_end(atom)
+        if other_atom.is_metal or other_atom.atomic_number == 1:
+            continue
+        if other_atom.atomic_number == 6:
+            carbon_count += 1
+        else:
+            sign = _legacy_oxidation_order_sign(atom.electronegativity, other_atom.electronegativity)
+            contributions.append(_legacy_oxidation_contribution(sign, bond.bond_order))
+    return _legacy_oxidation_total(tuple(contributions), hydrogen_count, carbon_count)
+
+
+def _bond_is_covalent(bond):
+    return not any(atom.is_metal for atom in bond.atoms)
+
+
+def _bond_is_heavy_covalent(bond):
+    return not any(atom.is_metal or atom.atomic_number == 1 for atom in bond.atoms)
+
+
+def _bond_is_metal_ligand_bond(bond):
+    return ((bond.atom1.is_metal and not bond.atom2.is_metal)
+            or (not bond.atom1.is_metal and bond.atom2.is_metal))
+
+
+def _bond_rotatable(bond):
+    return bond.bond_order == 1 and not bond.is_aromatic and not bond.in_ring
+
+
+def _bond_ideal_bond_length(bond):
+    from ..reference.properties import _ideal_bond_lengths
+    lengths = _ideal_bond_lengths()[frozenset([bond.atom1.atomic_number, bond.atom2.atomic_number])]
+    return lengths[bond.bond_order]
+
+
+def _detached_atom_projection(atom):
+    table = atom._detached_table
+    values = _select_atom_values(table, atom._constraint_values, (atom._uid,))[0]
+    values[1:7] = _electron_configuration(atom.atomic_number)
+    values[13] = _atom_valence(atom)
+    field = FIELD_INDEX['implicit_hydrogens']
+    pending = any(atom._uid in seeds for seeds in table._dirty_seeds[:2])
+    if (table._group_status[0, GROUP_INDEX['IMPLICIT_H']] != _FactStatus.CURRENT
+            or not int(table._presence[0]) & FIELD_PRESENCE_BITS[field] or pending):
+        values[field] = _hydrogen_display_value(table, 0, pending=pending)
+    return values
+
+
+def _complete_atom_hydrogens(atom, num):
+    with _FactTransaction(atom.mol, producer=ATOM_SOURCE_CODES['implicit_hydrogens']) as transaction:
+        transaction.touch_topology()
+        add_or_rm, hydrogens = atom._add_hydrogens(num)
+        atom.mol._update_topology()
+        return hydrogens
+
+
+def _molecular_implicit_hydrogen_sum(mol):
+    return sum(_require_implicit_hydrogens(mol, rows=tuple(atom.idx for atom in mol.heavy_atoms)))
+
+
+def _update_molecular_charge(mol):
+    mol.charge = mol.sum_atoms_charge

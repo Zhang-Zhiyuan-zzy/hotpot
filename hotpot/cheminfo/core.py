@@ -80,8 +80,6 @@ OPENBABEL_PARTIAL_CHARGE_MODELS = (
     "fromfile", "none",
 )
 
-# Chemistry policy deliberately kept outside the factual geometry package.
-_MINIMUM_ATOM_SEPARATION = 0.5
 _DEFAULT_BOND_RING_MAXIMUM_SIZE = 16
 
 
@@ -444,8 +442,8 @@ class Molecule:
 
     @property
     def sum_implicit_hydrogens(self) -> int:
-        from .operations.chemistry import _require_implicit_hydrogens
-        return sum(_require_implicit_hydrogens(self, rows=tuple(atom.idx for atom in self.heavy_atoms)))
+        from .operations.chemistry import _molecular_implicit_hydrogen_sum
+        return _molecular_implicit_hydrogen_sum(self)
 
     @property
     def has_hydrogens(self) -> bool:
@@ -706,10 +704,8 @@ class Molecule:
             new_atom: Union[int, str, "Atom"],
     ):
         """ Replaces an atom in the molecule to the other external, while inherit the environment of original one."""
-        ori_atom = self._replace_atom(original_atom_idx, new_atom)
-        self._update_topology()
-        self.calc_implicit_hydrogens()
-        return ori_atom
+        from .operations.topology import _replace_atom
+        return _replace_atom(self, original_atom_idx, new_atom)
 
     def add_bond(self, atom1: Union[int, "Atom"], atom2: Union[int, "Atom"], bond_order=1., **kwargs):
         """
@@ -752,99 +748,9 @@ class Molecule:
         return bonds
 
     def add_component(self, component: 'Molecule'):
-        from dataclasses import replace
-        from .operations.chemistry import _remap_stereo_transport
-        from .structure.conformer import _remap_observations
-        with component._mutation_lock:
-            incoming, incoming_metadata = component._capture_factual_record(include_frames=False)
-            incoming_frames = _capture_frame_records(component, include_generated=False)
-            incoming_dependencies = _dependency_state(component._atom_table)
-            incoming_uids = tuple(atom._uid for atom in component._atoms)
-        with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
-            transaction.touch_topology()
-            current, current_metadata = self._capture_factual_record()
-            offset = current.atom_count
-            incoming_sources, _, incoming_selection = incoming_frames
-            if offset:
-                mapping = {row: offset + row for row in range(incoming.atom_count)}
-                observations = {}
-                shifted = []
-                for frame in incoming_sources:
-                    if frame.observations is not None and id(frame.observations) not in observations:
-                        observations[id(frame.observations)] = _remap_observations(frame.observations, mapping)
-                    shifted.append(replace(frame, atom_uids=tuple(mapping[uid] for uid in frame.atom_uids),
-                        observations=observations.get(id(frame.observations))))
-                incoming_sources = tuple(shifted)
-            stale_ensembles = tuple((payload,
-                marker + (() if 'frame_representation' in marker else ('frame_representation',)))
-                for payload, marker in current.conformer_results)
-            if offset and incoming.cell is not None and current.cell != incoming.cell:
-                raise ValueError('Components require compatible unit cells')
-            charge = incoming.charge if not offset else (
-                (True, current.charge[1] + incoming.charge[1], 'component_merge')
-                if current.charge[0] and incoming.charge[0] else (False, None, None))
-            spin = incoming.spin_mult if not offset else (False, None, None)
-            payload = incoming.stereo_payload
-            if offset:
-                if payload is not None:
-                    payload = _remap_stereo_transport(payload,
-                                {row: offset + row for row in range(incoming.atom_count)})
-                if payload is None:
-                    payload = current.stereo_payload
-                elif current.stereo_payload is not None:
-                    payload = type(payload)(current.stereo_payload.schema_version,
-                                            current.stereo_payload.records + payload.records,
-                                            current.stereo_payload.atom_facts + payload.atom_facts,
-                                            current.stereo_payload.bond_facts + payload.bond_facts)
-            record = replace(current, atom_count=offset + incoming.atom_count,
-                atom_values=current.atom_values + incoming.atom_values,
-                atom_presence=current.atom_presence + incoming.atom_presence,
-                atom_sources=current.atom_sources + incoming.atom_sources,
-                atom_frac_valences=current.atom_frac_valences + tuple((offset + row, value) for row, value in incoming.atom_frac_valences),
-                bond_endpoints=current.bond_endpoints + tuple((offset + a, offset + b) for a,b in incoming.bond_endpoints),
-                bond_values=current.bond_values + incoming.bond_values,
-                bond_kinds=current.bond_kinds + incoming.bond_kinds,
-                bond_aromatic=current.bond_aromatic + incoming.bond_aromatic,
-                bond_directions=current.bond_directions + incoming.bond_directions,
-                bond_sources=current.bond_sources + incoming.bond_sources,
-                bond_metadata=current.bond_metadata + incoming.bond_metadata,
-                charge=charge, spin_mult=spin, cell=current.cell if offset else incoming.cell,
-                partial_charge_result=(incoming.partial_charge_result if not offset else
-                    self._merged_partial_charge_record(current, incoming.atom_count)),
-                stereo_payload=payload,
-                source_frames=current.source_frames + incoming_sources,
-                conformer_results=stale_ensembles,
-                frame_selection=(0, None) if offset else incoming_selection,
-                angle_constraints=current.angle_constraints + tuple(tuple(offset + row for row in item) for item in incoming.angle_constraints),
-                torsion_constraints=current.torsion_constraints + tuple(tuple(offset + row for row in item) for item in incoming.torsion_constraints),
-                pair_wiberg_bond_orders=current.pair_wiberg_bond_orders + tuple(
-                    (offset + first, offset + second, value)
-                    for first, second, value in incoming.pair_wiberg_bond_orders))
-            old_atoms = tuple(self._atoms)
-            old_bonds = tuple(self._bonds)
-            source_status, source_seeds = incoming_dependencies
-            uid_map = dict(zip(incoming_uids, range(self._next_atom_uid, self._next_atom_uid + incoming.atom_count)))
-            target_status, target_seeds = _dependency_state(self._atom_table)
-            dependencies = (np.vstack((target_status, source_status)),
-                tuple(frozenset(target) | frozenset(uid_map[uid] for uid in source if uid in uid_map)
-                      for target, source in zip(target_seeds, source_seeds)))
-            # Bindings follow the record's concatenated complete Bond order.
-            _commit_topology(self, _capture_source(self), record,
-                atom_bindings=old_atoms + (None,) * incoming.atom_count,
-                bond_bindings=old_bonds + (None,) * len(incoming.bond_endpoints),
-                dependency_state=dependencies, bond_metadata=current_metadata + incoming_metadata)
+        from .operations.topology import _add_component
+        return _add_component(self, component)
 
-    @staticmethod
-    def _merged_partial_charge_record(current, added_count):
-        from dataclasses import replace
-        if current.partial_charge_result is None:
-            return None
-        payload, marker = current.partial_charge_result
-        if "charge_representation" not in marker:
-            marker += ("charge_representation",)
-        return (replace(payload, atom_uids=tuple(range(current.atom_count + added_count)),
-                        values=payload.values + (None,) * added_count,
-                        provenance=payload.provenance + (_ATOM_SOURCE_CODES["default"],) * added_count), marker)
 
     def add_hydrogens(
             self,
@@ -917,7 +823,8 @@ class Molecule:
     @property
     def c_bonds(self) -> list["Bond"]:
         """ Get all coordination bonds in the Molecule """
-        return [b for b in self.bonds if b.is_metal_ligand_bond]
+        from .operations.topology_queries import _c_bonds
+        return _c_bonds(self)
 
     @property
     def bonds(self) -> list["Bond"]:
@@ -1025,7 +932,8 @@ class Molecule:
         correctly assigned beforehand.
 
         """
-        self.charge = self.sum_atoms_charge
+        from .operations.chemistry import _update_molecular_charge
+        return _update_molecular_charge(self)
 
     @property
     def sum_atoms_charge(self) -> int:
@@ -1044,7 +952,8 @@ class Molecule:
 
         @return int: Default number of unpaired electrons in the system.
         """
-        return (sum(a.atomic_number for a in self.atoms) - self.charge) % 2
+        from .operations.chemistry import _molecular_default_unpaired_electrons
+        return _molecular_default_unpaired_electrons(self)
 
     @property
     def default_spin_mult(self) -> int:
@@ -1058,7 +967,8 @@ class Molecule:
         int
             The default spin multiplicity as an integer value.
         """
-        return (sum(a.atomic_number for a in self.atoms) - self.charge) % 2 + 1
+        from .operations.chemistry import _molecular_default_spin_mult
+        return _molecular_default_spin_mult(self)
 
     def determine_rings_aromatic(self):
         from .operations.chemistry import _assign_aromaticity
@@ -1213,13 +1123,8 @@ class Molecule:
             exclude_metal_bonds (bool): A flag to indicate whether bonds and angles 
                 involving metals should be excluded from constraints. Default is True.
         """
-        if exclude_metal_bonds:
-            for bond in self.bonds:
-                if not bond.has_metal:
-                    bond.constraint = True
-            for angle in self.angles:
-                if not angle.has_metal:
-                    angle.constraint = True
+        from .operations.geometry import _constraint_bonds_angles
+        return _constraint_bonds_angles(self, exclude_metal_bonds)
 
     @property
     def coordinates(self) -> np.ndarray:
@@ -1392,13 +1297,8 @@ class Molecule:
             bool
                 True if any distance in `pair_dist` is less than 0.5, False otherwise.
         """
-        return any(
-            pair_distance.measurement.distance < _MINIMUM_ATOM_SEPARATION
-            for pair_distance in geometry_adapter.measure_atom_pair_distances(
-                self,
-                pair_scope="all",
-            )
-        )
+        from .operations.geometry import _is_disorder
+        return _is_disorder(self)
 
     @property
     def has_3d(self):
@@ -1412,13 +1312,8 @@ class Molecule:
         @return: Whether the molecular structure has 3D coordinates.
         @rtype: bool
         """
-        if len(self.atoms) < 2:
-            return False
-        reference = self.atoms[0].coordinates
-        return any(
-            bool(np.any(atom.coordinates != reference))
-            for atom in self.atoms[1:]
-        )
+        from .operations.geometry import _molecule_has_3d
+        return _molecule_has_3d(self)
 
     @property
     def has_metal(self) -> bool:
@@ -1491,12 +1386,8 @@ class Molecule:
         @return: True if the molecule meets the criteria for being organic; otherwise, False
         @rtype: bool
         """
-        from .operations.chemistry import _require_implicit_hydrogens
-        return (
-            all(not a.is_metal for a in self.atoms) and
-            (bool(self.hydrogens) or any(_require_implicit_hydrogens(self))) and
-            any(a.atomic_number == 6 for a in self._atoms)
-        )
+        from .operations.descriptors import _is_organic
+        return _is_organic(self)
 
     @property
     def is_full_halogenated(self) -> bool:
@@ -1504,15 +1395,8 @@ class Molecule:
         Determines whether the molecule is derived from an organic mol by replace all hydrogen
         to halogenated.
         """
-        if self.is_organic:
-            return False
-        else:
-            clone = self.copy()
-            for atom in clone.atoms:
-                if atom.is_halogens:
-                    atom.atomic_number = 1
-
-            return clone.is_organic
+        from .operations.descriptors import _is_full_halogenated
+        return _is_full_halogenated(self)
 
     def link_atoms(self, assign_bond_order: bool = True):
         """
@@ -1523,14 +1407,8 @@ class Molecule:
             assign_bond_order (bool): Indicates whether to assign bond orders. 
                 Defaults to True.
         """
-        from .operations.chemistry import _link_atoms
-        _link_atoms(self)
-        # conformers = copy(self._conformers)
-
-        self._update_topology(clear_conformers=False)
-
-        if assign_bond_order:
-            self.assign_bond_order()
+        from .operations.topology import _link_atoms
+        return _link_atoms(self, assign_bond_order)
 
         # self._conformers = conformers
 
@@ -1713,7 +1591,8 @@ class Molecule:
         self._update_topology()
 
     def force_remove_polar_hydrogens(self):
-        self.remove_atoms([a for a in self._atoms if a.is_polar_hydrogen])
+        from .operations.topology import _remove_hydrogens
+        return _remove_hydrogens(self, polar_only=True)
 
     def remove_hydrogens(self):
         """
@@ -1727,7 +1606,8 @@ class Molecule:
         Raises:
             None
         """
-        self.remove_atoms([a for a in self._atoms if a.is_hydrogen])
+        from .operations.topology import _remove_hydrogens
+        return _remove_hydrogens(self)
 
     def remove_metals(self):
         """
@@ -1740,10 +1620,8 @@ class Molecule:
         self.remove_atoms(self.metals)
 
     def search_substructure(self, smarts: str, *, semantics="full_graph"):
-        from .operations.search import Substructure, Searcher
-        sub = Substructure.from_smarts(smarts, semantics=semantics)
-        searcher = Searcher(sub)
-        return searcher.search(self)
+        from .operations.search.search import _search_substructure
+        return _search_substructure(self, smarts, semantics=semantics)
 
     def set_default_valence(self):
         from .operations.chemistry import _prepare_valences
@@ -1772,10 +1650,8 @@ class Molecule:
         Raises:
             NotImplementedError: If the specified method is not implemented.
         """
-        if method == "spectrum":
-            return round(self.graph_spectral(norm) | other.graph_spectral(norm), 15)
-        else:
-            raise NotImplementedError
+        from .operations.descriptors import _similarity
+        return _similarity(self, other, method, norm)
 
     @staticmethod
     def _longest_path(node_count: int, edges: Iterable[tuple[int, int]],
@@ -1890,18 +1766,8 @@ class Molecule:
             max_cycles: Optional[int] = graph_algorithms.DEFAULT_RELEVANT_CYCLE_LIMIT,
     ) -> list["Ring"]:
         """Return a Relevant Cycle view for a molecular graph scope."""
-        if ring_scope == "full_graph":
-            return self._materialize_rings(
-                max_size=max_size,
-                max_cycles=max_cycles,
-            )
-        if ring_scope == "ligand_skeleton":
-            return self._materialize_rings(
-                ligand_skeleton=True,
-                max_size=max_size,
-                max_cycles=max_cycles,
-            )
-        raise ValueError(f"Unsupported ring scope: {ring_scope!r}")
+        from .operations.topology_queries import _rings_for_scope
+        return _rings_for_scope(self, ring_scope, max_size=max_size, max_cycles=max_cycles)
 
     @property
     def aromatic_joint_rings(self) -> list["JointRing"]:
@@ -1915,24 +1781,8 @@ class Molecule:
         list["JointRing"]
             A list of JointRing objects representing joint aromatic rings.
         """
-        rings = self.rings
-        joint_rings = []
-        while rings:
-            ring = rings.pop()
-            joint_ring = ring.joint_ring()
-
-            if joint_ring:
-                to_remove = []
-                for r in rings:
-                    if r in joint_ring:
-                        to_remove.append(r)
-
-                for r in to_remove:
-                    rings.remove(r)
-
-                joint_rings.append(joint_ring)
-
-        return joint_rings
+        from .operations.topology_queries import _aromatic_joint_rings
+        return _aromatic_joint_rings(self)
 
     @property
     def rings_small(self) -> list["Ring"]:
@@ -1946,7 +1796,8 @@ class Molecule:
         @rtype: list["Ring"]
         @return: A list of small rings, where each ring has a length of 8 or less.
         """
-        return [r for r in self.rings if len(r) <= 8]
+        from .operations.topology_queries import _rings_small
+        return _rings_small(self)
 
     @property
     def ligand_rings(self) -> list["Ring"]:
@@ -2575,9 +2426,8 @@ class Atom(MolBlock):
             atom
                 The newly created and added atom object linked to the molecular graph.
         """
-        atom = self._add_atom(atom, bond_order, atom_attrs, bond_attrs)
-        getattr(self.mol, '_update_topology')()
-        return atom
+        from .operations.topology import _add_atom
+        return _add_atom(self, atom, bond_order, atom_attrs, bond_attrs)
 
     @staticmethod
     def random_point_on_sphere(
@@ -2602,16 +2452,8 @@ class Atom(MolBlock):
             point on the sphere's surface.
         """
         # 随机生成极角 theta 和方位角 phi
-        random = np.random.rand if rng is None else rng.random
-        theta = np.arccos(2 * random() - 1)  # 0 到 pi
-        phi = 2 * np.pi * random()  # 0 到 2pi
-
-        # convert to Cartesian coordination
-        x = np.sin(theta) * np.cos(phi) * radius
-        y = np.sin(theta) * np.sin(phi) * radius
-        z = np.cos(theta) * radius
-
-        return x, y, z
+        from .operations.geometry import _random_point_on_sphere
+        return _random_point_on_sphere(radius, rng)
 
     @property
     def period(self) -> int:
@@ -2634,7 +2476,8 @@ class Atom(MolBlock):
         Returns:
             bool: True if the atomic site is a polar hydrogen site, False otherwise.
         """
-        return self.atomic_number == 8 or (self.atomic_number == 7 and self.is_aromatic)
+        from .operations.chemistry import _atom_polar_hydrogen_site
+        return _atom_polar_hydrogen_site(self)
 
     def _add_hydrogens(
             self,
@@ -2660,11 +2503,8 @@ class Atom(MolBlock):
         Returns:
             list["Atom"]: A list of the hydrogen atoms added to the molecule.
         """
-        with _FactTransaction(self.mol, producer=_ATOM_SOURCE_CODES['implicit_hydrogens']) as transaction:
-            transaction.touch_topology()
-            add_or_rm, hydrogens = self._add_hydrogens(num)
-            self.mol._update_topology()
-            return hydrogens
+        from .operations.chemistry import _complete_atom_hydrogens
+        return _complete_atom_hydrogens(self, num)
 
     @property
     def bonds(self) -> list['Bond']:
@@ -2776,12 +2616,8 @@ class Atom(MolBlock):
             bool: Indicates if the electron configuration is erroneous.
 
         """
-        if self.is_metal:
-           return False
-
-        if self.missing_electrons_element != 0:
-            return True
-        return False
+        from .operations.chemistry import _atom_is_error_electron_configure
+        return _atom_is_error_electron_configure(self)
 
     @property
     def is_hydrogen(self) -> bool:
@@ -2809,10 +2645,8 @@ class Atom(MolBlock):
         Returns:
             bool: True if the atom is a polar hydrogen, False otherwise.
         """
-        try:
-            return self.is_hydrogen and self.neighbours[0].polar_hydrogen_site
-        except ImportError:
-            return False
+        from .operations.chemistry import _atom_is_polar_hydrogen
+        return _atom_is_polar_hydrogen(self)
 
     @property
     def is_lanthanide(self):
@@ -2869,15 +2703,8 @@ class Atom(MolBlock):
         Raises:
             AssertionError: If the two atoms belong to the same molecule.
         """
-        assert self.mol is not other.mol, (
-            "The `link_with` method should only implement in two atoms from different molecules, "
-            "this atom and other atom come from a same molecule")
-
-        other_clone_idx = other.idx + len(self.mol.atoms)
-        self.mol.add_component(other.mol)
-
-        other_clone = self.mol.atoms[other_clone_idx]
-        self.mol.add_bond(self, other_clone)
+        from .operations.topology import _link_atom
+        return _link_atom(self, other)
 
     @property
     def mass(self):
@@ -2974,7 +2801,8 @@ class Atom(MolBlock):
     @property
     def missing_electrons(self):
         """ missing electrons in open shell for this atom. """
-        return self.missing_electrons_element - self.sum_bond_orders
+        from .operations.chemistry import _atom_missing_electrons
+        return _atom_missing_electrons(self)
 
     @property
     def open_shell_electrons(self) -> int:
@@ -2988,8 +2816,8 @@ class Atom(MolBlock):
         Returns:
             int: The number of open-shell electrons.
         """
-        n, l, conf = self.calc_electron_config()
-        return sum(conf)
+        from .operations.chemistry import _atom_open_shell_electrons
+        return _atom_open_shell_electrons(self)
 
     @property
     def electron_configuration(self) -> np.ndarray[int]:
@@ -3028,9 +2856,8 @@ class Atom(MolBlock):
         return n
 
     def calc_electron_config(self) -> (int, int, list[int]):
-        from .rules.chemistry.elements import _fill_electron_shell
-        n, l, conf = _fill_electron_shell(self.atomic_number)
-        return n, l, conf + [0] * (5 - len(conf))
+        from .operations.chemistry import _atom_calc_electron_config
+        return _atom_calc_electron_config(self)
 
     @property
     def oxidation_state(self) -> int:
@@ -3048,43 +2875,8 @@ class Atom(MolBlock):
         Raises:
             AttributeError: If required properties are missing in the atom or its bonds.
         """
-        if self.is_metal:
-            return self.formal_charge
-        elif self.atomic_number == 6:
-            return 4
-        elif self.atomic_number == 7:
-            return 3
-        elif self.atomic_number == 8:
-            return 2
-        elif self.atomic_number in [1, 9, 17]:  # H, F, Cl
-            return 1
-
-        from .operations.chemistry import _require_implicit_hydrogens
-        hydrogen_count = _require_implicit_hydrogens(self.mol, rows=(self.idx,))[0]
-        _state = 0
-        _temp_state = 0
-        for bond in self.bonds:
-            other_atom = bond.another_end(self)
-            if other_atom.is_metal or other_atom.atomic_number == 1:
-                continue
-
-            if other_atom.atomic_number == 6:
-                _temp_state += 1
-
-            elif self.electronegativity > other_atom.electronegativity:
-                _state -= int(bond.bond_order)
-            # elif self.electronegativity < other_atom.electronegativity:
-            else:
-                _state += int(bond.bond_order)
-
-        _state += hydrogen_count
-
-        if _state > 0:
-            _state += _temp_state
-        elif _state < 0:
-            _state -= _temp_state
-
-        return _state
+        from .operations.chemistry import _atom_oxidation_state
+        return _atom_oxidation_state(self)
 
     def get_formal_charge(self) -> cython.int:
         from .operations.chemistry import _atom_formal_charge
@@ -3692,10 +3484,8 @@ class Bond(AtomSeq, MolBlock):
 
     @property
     def ideal_bond_length(self) -> float:
-        from .reference.properties import _ideal_bond_lengths
-
-        ibl_bond_order_dict = _ideal_bond_lengths()[frozenset([self.atom1.atomic_number, self.atom2.atomic_number])]
-        return ibl_bond_order_dict[self.bond_order]
+        from .operations.chemistry import _bond_ideal_bond_length
+        return _bond_ideal_bond_length(self)
 
     @property
     def length(self) -> float:
@@ -3736,7 +3526,8 @@ class Bond(AtomSeq, MolBlock):
         @return: True if the bond is covalent, otherwise False
         @rtype: bool
         """
-        return not any(a.is_metal for a in self.atoms)
+        from .operations.chemistry import _bond_is_covalent
+        return _bond_is_covalent(self)
 
     @property
     def is_heavy_covalent(self) -> bool:
@@ -3754,7 +3545,8 @@ class Bond(AtomSeq, MolBlock):
             True if the molecule is considered a heavy covalent molecule. 
             False otherwise.
         """
-        return not any(a.is_metal or a.atomic_number == 1 for a in self.atoms)
+        from .operations.chemistry import _bond_is_heavy_covalent
+        return _bond_is_heavy_covalent(self)
 
     @property
     def is_metal_ligand_bond(self) -> bool:
@@ -3767,7 +3559,8 @@ class Bond(AtomSeq, MolBlock):
         @return: 
             A boolean indicating if the bond is a metal-ligand bond or not.
         """
-        return (self.atom1.is_metal and not self.atom2.is_metal) or (not self.atom1.is_metal and self.atom2.is_metal)
+        from .operations.chemistry import _bond_is_metal_ligand_bond
+        return _bond_is_metal_ligand_bond(self)
 
     @property
     def rotatable(self) -> bool:
@@ -3783,14 +3576,13 @@ class Bond(AtomSeq, MolBlock):
         Returns:
             bool: True if the bond is rotatable, otherwise False.
         """
-        return (self.bond_order == 1) and (not self.is_aromatic) and (not self.in_ring)
+        from .operations.chemistry import _bond_rotatable
+        return _bond_rotatable(self)
 
     def bond_segment_distance(self, other_bond: "Bond") -> float:
         """Return the minimum distance between two finite bond segments."""
-        return geometry.segment_segment_distance(
-            self.bond_segment,
-            other_bond.bond_segment,
-        )
+        from .operations.geometry import _bond_segment_distance
+        return _bond_segment_distance(self, other_bond)
 
 
 class Angle(AtomSeq):
@@ -4135,13 +3927,8 @@ class Ring(AtomSeq):
             True if any pairwise distance in the dataset is less than 0.5, 
             False otherwise.
         """
-        return any(
-            pair_distance.measurement.distance < _MINIMUM_ATOM_SEPARATION
-            for pair_distance in geometry_adapter.measure_atom_pair_distances(
-                self,
-                pair_scope="all",
-            )
-        )
+        from .operations.geometry import _is_disorder
+        return _is_disorder(self)
 
     @property
     def has_metal(self):
@@ -4174,21 +3961,8 @@ class Ring(AtomSeq):
             Raised when there are multiple intersecting bonds, which indicates 
             an inconsistency with the definition of a ring joint.
         """
-        if not isinstance(other, Ring):
-            raise TypeError(f"expected Ring but got {type(other)}")
-        from .views._source import _check_ring_source
-        with self.mol._mutation_lock:
-            _check_ring_source(self, prepare=True)
-            if other.mol is not self.mol:
-                return False
-            _check_ring_source(other, prepare=True)
-            intersect_bonds = list(set(self.bonds) & set(other.bonds))
-        if len(intersect_bonds) == 0 :
-            return False
-        elif len(intersect_bonds) == 1:
-            return True
-        else:
-            raise ArithmeticError("incorrect Ring")
+        from .operations.topology_queries import _ring_joint_with
+        return _ring_joint_with(self, other, Ring)
 
     def joint_ring(self, aromatic=True) -> Optional["JointRing"]:
         """
@@ -4208,19 +3982,8 @@ class Ring(AtomSeq):
             A new JointRing object if one or more rings meet the conditions, 
             otherwise None.
         """
-        from .views._source import _check_ring_source
-        with self.mol._mutation_lock:
-            _check_ring_source(self, prepare=True)
-            if aromatic and not self.is_aromatic:
-                return None
-            rings = []
-            for ring in self.mol.rings:
-                if ring == self:
-                    rings.append(ring)
-                elif self.joint_with(ring) and (not aromatic or ring.is_aromatic):
-                    rings.append(ring)
-            if rings:
-                return JointRing(*rings)
+        from .operations.topology_queries import _joint_ring
+        return _joint_ring(self, aromatic, JointRing)
 
     def next_atom(self, atom: Atom, reverse: bool = False) -> Atom:
         """
@@ -4254,10 +4017,8 @@ class Ring(AtomSeq):
 
     @property
     def has_3d(self):
-        from .views._source import _view_coordinates
-        with self.mol._mutation_lock:
-            coordinates = _view_coordinates(self)
-            return any(tuple(row) != self.atoms[0] for row in coordinates)
+        from .operations.geometry import _ring_has_3d
+        return _ring_has_3d(self)
 
 
     def relation_to_bond(
@@ -4265,32 +4026,22 @@ class Ring(AtomSeq):
             bond: Bond,
     ) -> "geometry_adapter.BondRingFinding[Ring, Bond]":
         """Return the factual spatial relation between this ring and a bond."""
-        if self.mol is not bond.mol or bond not in self.mol.bonds:
-            raise NotInSameMolecule(self, bond)
-        return geometry_adapter.determine_bond_ring_relation(self, bond)
+        from .operations.geometry import _ring_relation_to_bond
+        return _ring_relation_to_bond(self, bond, NotInSameMolecule)
 
     @property
     def geometry_cycle(self) -> geometry.Cycle:
         """Return this ring as an ordered geometric cycle boundary."""
-        return geometry_adapter.cycle_from_ring(self)
+        from .operations.geometry import _ring_geometry_cycle
+        return _ring_geometry_cycle(self)
 
     def closest_edge_to_bond(
             self,
             bond: Bond,
     ) -> Optional["geometry_adapter.RingEdgeDistance[Bond]"]:
         """Return the closest ring edge together with its distance evidence."""
-        if self.mol is not bond.mol or bond not in self.mol.bonds:
-            raise NotInSameMolecule(self, bond)
-        measurement = geometry.closest_cycle_edge(
-            self.geometry_cycle,
-            bond.bond_segment,
-        )
-        if measurement is None:
-            return None
-        return geometry_adapter.RingEdgeDistance(
-            bond=self.bonds[measurement.edge_index],
-            measurement=measurement,
-        )
+        from .operations.geometry import _closest_ring_edge_to_bond
+        return _closest_ring_edge_to_bond(self, bond, NotInSameMolecule)
 
 
 
@@ -4451,20 +4202,8 @@ def _import_atom_row(mol, values, *, presence=None, sources=None, partial_charge
 
 
 def _detached_atom_projection(atom):
-    from .rules.chemistry.elements import _electron_configuration
-    from .operations.chemistry import _atom_valence, _hydrogen_display_value
-    table = atom._detached_table
-    values = _select_atom_values(table, atom._constraint_values, (atom._uid,))[0]
-    values[1:7] = _electron_configuration(atom.atomic_number)
-    values[13] = _atom_valence(atom)
-    field = _ATOM_FIELD_INDEX['implicit_hydrogens']
-    from .structure._fields import FIELD_PRESENCE_BITS
-    from .structure._dependencies import _FactStatus
-    pending = any(atom._uid in seeds for seeds in table._dirty_seeds[:2])
-    if (table._group_status[0, GROUP_INDEX['IMPLICIT_H']] != _FactStatus.CURRENT
-            or not int(table._presence[0]) & FIELD_PRESENCE_BITS[field] or pending):
-        values[field] = _hydrogen_display_value(table, 0, pending=pending)
-    return values
+    from .operations.chemistry import _detached_atom_projection
+    return _detached_atom_projection(atom)
 
 
 def _initialize_bond_handle(bond, mol, uid, atom1, atom2, raw_values, *, kind,

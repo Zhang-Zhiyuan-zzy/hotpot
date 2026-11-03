@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "stage": "Stage9A",
+  "date": "2026-11-04",
+  "parent_head": "9a8a9739769006cc9f4c09a82d68c32764a0e6ca",
+  "status": "SOURCE_READY_CP311_SOURCE_RELEASED",
+  "predecessor": "../../stage08/assembly/validation/checkpoint.json",
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "alignment": "Current goal, main1/6/7/9.1/9.5/Stage9/11.3, both governance references, current verification/budget and accepted predecessor. Reuse unchanged global decisions under owner direction; full-plan reread is not repeated. The19preentry source bindings rebind unchanged. No forbidden helper rescore document read.",
+  "documents": {
+    "plan/20_fact_rule_architecture/goal.md": "76bccaac0a87a331f816f5a264461d192ab5afbb2daa6dfee48ea33f5f7fdbed",
+    "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md": "1a256e00a4834c808ae6f02100d36e9536d5b7e72416a0bfe569ce069c1fecb7",
+    "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md": "feb7337c68a5d2790e006db9ecb667d218eb1d27e9a8cf08d1b9bbd14486940a",
+    "plan/20_fact_rule_architecture/data_object_scope_audit.md": "c6ef2c74aaa6ffd2c43e552884c5863e2285e9cf9a2f6b90609c6d417d6cd3f9",
+    "plan/20_fact_rule_architecture/chemical_type_interface_contract.md": "0c21630964e264e1f4e03f3b5938787cddbfacceb2616dd51b547d93686642bf",
+    "plan/20_fact_rule_architecture/stage_verification_map.json": "44f003ace6629d29abeb44d9ac8b5dc57cc3d9a5c7f3c686634a3c89dab51e6e",
+    "plan/20_fact_rule_architecture/data_object_budget.json": "04a71d76df4663c2934ac67d9e890fc2a58718de138e51d503a609da4ca69217",
+    "plan/20_fact_rule_architecture/model_allocation.md": "c7b69392b0e9da7a0575a7ff0919fa55c0903326e6ce920b03302c69db5f718a",
+    "plan/20_fact_rule_architecture/stages/stage08/assembly/validation/checkpoint.json": "f1f28fbbdfc1c9fe3a2d15b34ae4d93005aa193b4df5ad87b90acb888a160d59"
+  },
+  "scope": "Residual chemistry/mathematics queries and named mutation/query workflows; no physical carrier relocation in9A.",
+  "decisions": "contracts/decisions.md",
+  "authoring_release": "Settled9A extraction and bounded Ring.has_3d/ImportError dispositions; validation follows source-ready root review.",
+  "runtime_release": "Freeze then focused3files/connected24files CP311source sequentially, stop on failure; installed waits source review.",
+  "physical_9B_release": false,
+  "excluded": [
+    "Generic H export/materialization P20-D026",
+    "new scientific algorithms/public schemas",
+    "native compilation",
+    "model/backend/GPU execution",
+    "final/global gates"
+  ],
+  "evidence_root": "/tmp/hotpot_plan20/long/stage9-entry-20261104",
+  "rollback_boundary": "One coherent business checkpoint; existing transactions preserved; previous pushed Stage8E commit retained.",
+  "authoring_complete": "Root reviewed helper mappings, signatures/decorators, predicates/legacy branch separation and topology capture/transaction order."
+}

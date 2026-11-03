@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "conclusion": "ROOT_ACCEPTED_CP311_SEMANTIC_PREPARATION",
+  "nodes": [
+    {
+      "id": "source_focused",
+      "path": ".plan20-artifacts/20261104/stage9a/carriers/validation/source-focused-attempt03/execution.json",
+      "sha256": "523978e463b55005b02b77f93e3e4d51acde468ef4c164b606d410774bdd951c",
+      "role": "actual business execution with exact argv/environment/resources and origins"
+    },
+    {
+      "id": "source_connected",
+      "path": ".plan20-artifacts/20261104/stage9a/carriers/validation/source-connected-attempt01/execution.json",
+      "sha256": "70a9339bd5b43ec168c30913058e5b4a2595676597754357b76249b8b159523a",
+      "role": "actual business execution with exact argv/environment/resources and origins"
+    },
+    {
+      "id": "installed_focused",
+      "path": ".plan20-artifacts/20261104/stage9a/carriers/validation/installed-focused-attempt01/execution.json",
+      "sha256": "de8b84f88702fc203026cd1342d6f63b43bc7b216fd3bd852011cfa8fcaa3d60",
+      "role": "actual business execution with exact argv/environment/resources and origins"
+    },
+    {
+      "id": "installed_connected",
+      "path": ".plan20-artifacts/20261104/stage9a/carriers/validation/installed-connected-attempt01/execution.json",
+      "sha256": "995b19a297aafc0260787cc62eca200b0ed184e6c56bd69abd0f98a0117f73d5",
+      "role": "actual business execution with exact argv/environment/resources and origins"
+    },
+    {
+      "id": "preentry",
+      "path": ".plan20-artifacts/20261104/stage9a/carriers/preentry/report.md",
+      "sha256": "7e991ee183ea4626ca99e6a18120933a36184a10a3e16af11c2ef6e39927deeb",
+      "role": "static discovery, not execution"
+    },
+    {
+      "id": "topology_baseline",
+      "path": ".plan20-artifacts/20261104/stage9a/carriers/topology/baseline-receipt.json",
+      "sha256": "5b26d605b26deaa60daf3e7c8e2f402e35df39fd9c20e52ec47c0fce308819bc",
+      "role": "actual original late-failure observations"
+    },
+    {
+      "id": "freeze",
+      "path": ".plan20-artifacts/20261104/stage9a/carriers/validation/freeze.json",
+      "sha256": "19270f0eb7c694d0cf5bd9a26ac0ad7e11a216438ca8cbdf0a302234fc052a95",
+      "role": "exact runtime-source/input attribution, not chemical truth"
+    },
+    {
+      "id": "record_comparison_diagnosis",
+      "path": ".plan20-artifacts/20261104/stage9a/carriers/topology/diagnosis/conclusion.json",
+      "sha256": "628121bad087d3730587667f0b9ec46411fd1fa3335a10f32d0324138b014e47",
+      "role": "isolated identified checker defect"
+    },
+    {
+      "id": "archive",
+      "path": ".plan20-artifacts/20261104/stage9a/carriers/archive-manifest.json",
+      "sha256": "17b3aaed5bd6969a94247077ddf9ee3614febb2296eb439cbeff8e26332322a3",
+      "role": "byte-verified retained raw evidence and private wheel"
+    }
+  ],
+  "edges": [
+    {
+      "from": "freeze",
+      "to": "source_focused",
+      "relation": "binds executed source/tests"
+    },
+    {
+      "from": "freeze",
+      "to": "source_connected",
+      "relation": "binds executed source/tests"
+    },
+    {
+      "from": "freeze",
+      "to": "installed_focused",
+      "relation": "binds executed source/tests"
+    },
+    {
+      "from": "freeze",
+      "to": "installed_connected",
+      "relation": "binds executed source/tests"
+    },
+    {
+      "from": "source_focused",
+      "to": "installed_focused",
+      "relation": "same ordered affected business cases"
+    },
+    {
+      "from": "source_connected",
+      "to": "installed_connected",
+      "relation": "same ordered affected business cases"
+    }
+  ],
+  "limits": [
+    "Stage9B sole-definition/descriptor/native-dispatch/pickle/consumer hard cut, zero core imports, full default/installed/plugin gate",
+    "P20-D026 generic H export/materialization",
+    "Stage10 clean-native/SDK/sdist, other supported versions, final science/performance/GPU/Plan12/global requirements",
+    "Validated B_exp and separately gated Stage13A/B"
+  ]
+}

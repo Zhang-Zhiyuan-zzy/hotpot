@@ -22,10 +22,11 @@ numeric check through its source-checked operation.
   metal-free ligand skeleton without hiding or modifying source edges.
 - The separate coordinate and no-coordinate electron rules remain unchanged.
 - The strict planarity ratio remains `maximum_deviation / length_scale < 0.03`.
-- The existing `Ring.has_3d` tuple-versus-Atom comparison is characterized as
-  always true, even for coincident coordinates. Bound snapshots preserve that
-  branch selection. Repairing this predicate would change the scientific route
-  and is outside this extraction.
+- Stage5 captured the legacy always-true ring-coordinate branch, including
+  coincident coordinates. Bound aromatic/Kekule snapshots retain this accepted
+  branch selection. Stage9 repairs the ordinary `Ring.has_3d` coordinate query;
+  it does not change this chemistry input or activate the separate no-coordinate
+  scientific route. That scientific change requires its own scope and evidence.
 - Rings are processed in the existing Relevant Cycle sequence. A later ring
   still overwrites shared Atom flags in the task-local proposal.
 - Greedy Kekule assignment sets each accepted ring's edge orders to one and

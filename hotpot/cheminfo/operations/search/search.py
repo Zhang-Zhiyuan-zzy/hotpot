@@ -662,3 +662,8 @@ class Hit:
     def mapped_atoms(self, query_idx: int) -> tuple[Atom, ...]:
         """Return all molecule atoms mapped from one query atom index."""
         return tuple(self.mol.atoms[idx] for idx in self.mapped_atom_indices(query_idx))
+
+
+def _search_substructure(mol, smarts, *, semantics):
+    substructure = Substructure.from_smarts(smarts, semantics=semantics)
+    return Searcher(substructure).search(mol)

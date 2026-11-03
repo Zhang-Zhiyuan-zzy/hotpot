@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage0–8E owning scopes are root accepted as recorded. Stage8E deletes only incomplete chemistry ComplexStatistics, adds no class/record/durable field and retains independent CCDC statistics. Current491Python files/770classes/355dataclasses/8historical bare-base Protocols/2TypedDicts; four generic Protocols additionally exist. Later/global gates remain open.",
+  "status": "Stage0–8E owning scopes and bounded Stage9Asemantic preparation accepted. Stage9B/global remain open; current496Python files/770classes/355dataclasses/8historical bare-base Protocols/2TypedDicts; four generic Protocols additionally exist.9Aadds no class/record/durable field.",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -1081,7 +1081,7 @@
     },
     "new_fact_native_actual_struct_definitions": 14,
     "new_fact_native_actual_enum_definitions": 1,
-    "verification": "stages/stage08/assembly/validation/checkpoint.json",
+    "verification": "stages/stage09/carriers/validation/checkpoint.json",
     "stage5_native_scope": "Readonly carrier dispatch plus configured DERIVED_FIELDS rejection at native ingress/preparation; existing Field gains immutable configuration metadata, with no new class/struct/enum or exported ABI. Corrected source awaits five fresh ABI builds and runtime evidence.",
     "stage5_native_source": {
       "path": "hotpot/cheminfo/structure/_native/facts.cpp",
@@ -1102,15 +1102,15 @@
       "historical_status": "Original failed candidate retained; final two test-import repairs passed without production changes."
     },
     "final_architecture_audit": {
-      "path": ".plan20-artifacts/20261104/stage8e/assembly/integration/architecture-final.json",
+      "path": ".plan20-artifacts/20261104/stage9a/carriers/architecture.json",
       "status": "passed",
       "remaining_debt": 175,
       "new_debt": 0,
       "layer_findings": 0,
       "carrier_definition_findings": 0,
-      "scope": "Final Stage8E static audit; source/installed runtime remains independently recorded."
+      "scope": "Stage9A static ratchet; no9B/global closure."
     },
-    "python_files": 491
+    "python_files": 496
   },
   "stage7a_bookkeeping": {
     "recorded_local_date": "2026-10-31",
@@ -1352,5 +1352,13 @@
     "retired_ordinary_class": "hotpot.cheminfo.mol_statistics.ComplexStatistics",
     "separate_CCDC_statistics_retained": true,
     "checkpoint": "stages/stage08/assembly/validation/checkpoint.json"
+  },
+  "stage9a_bookkeeping": {
+    "date": "2026-11-04",
+    "new_python_modules": 5,
+    "new_classes": 0,
+    "new_durable_fields": 0,
+    "retirements": 0,
+    "verification": "stages/stage09/carriers/validation/checkpoint.json"
   }
 }

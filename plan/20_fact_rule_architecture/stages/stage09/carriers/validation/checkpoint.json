@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "stage": "Stage9A",
+  "date": "2026-11-04",
+  "parent_head": "9a8a9739769006cc9f4c09a82d68c32764a0e6ca",
+  "status": "ROOT_ACCEPTED_CP311_SEMANTIC_PREPARATION",
+  "preparation_gate_closed": true,
+  "stage9_gate_closed": false,
+  "global_gate_closed": false,
+  "physical_9B_release": false,
+  "root_acceptance": "Root reviewed actual extracted operations/rules, preserved public signatures, source/destination capture and complete link transactions, original failures, actual CP311source/installed results, same selected nodeids and package/native bytes.9Apreparation only.",
+  "freeze": {
+    "sha256": "19270f0eb7c694d0cf5bd9a26ac0ad7e11a216438ca8cbdf0a302234fc052a95",
+    "bindings": 605,
+    "product_paths": 569,
+    "native_frozen": 33,
+    "accepted_CP311_binaries": 6,
+    "accepted_binaries_unchanged": true
+  },
+  "results": {
+    "source": {
+      "focused": {
+        "passed": 84,
+        "failed": 0,
+        "errors": 0,
+        "xfail": 0,
+        "ordinary_skips": 0,
+        "junit_skipped_includes_xfail": 0,
+        "elapsed_seconds": 1.2694093715399504,
+        "origin_receipts": 1,
+        "origin_leaks": [],
+        "drift": [],
+        "expected_limitations": [],
+        "evidence": ".plan20-artifacts/20261104/stage9a/carriers/validation/source-focused-attempt03/execution.json"
+      },
+      "connected": {
+        "passed": 799,
+        "failed": 0,
+        "errors": 0,
+        "xfail": 3,
+        "ordinary_skips": 0,
+        "junit_skipped_includes_xfail": 3,
+        "elapsed_seconds": 9.031332653015852,
+        "origin_receipts": 3,
+        "origin_leaks": [],
+        "drift": [],
+        "expected_limitations": [
+          {
+            "class": "tests.test_cheminfo.kekulize.test_known_limitations",
+            "name": "test_aromaticity_is_independent_of_relevant_cycle_order",
+            "type": "pytest.xfail",
+            "reason": "the retained per-ring assignment makes aromaticity depend on ring order"
+          },
+          {
+            "class": "tests.test_cheminfo.kekulize.test_known_limitations",
+            "name": "test_azulene_is_perceived_without_imported_aromatic_flags",
+            "type": "pytest.xfail",
+            "reason": "legacy per-ring Huckel counting does not perceive fused azulene globally"
+          },
+          {
+            "class": "tests.test_cheminfo.kekulize.test_known_limitations",
+            "name": "test_aromatic_joint_rings_accept_relevant_cycles_with_shared_paths",
+            "type": "pytest.xfail",
+            "reason": "legacy joint-ring grouping rejects rings sharing multiple edges"
+          }
+        ],
+        "evidence": ".plan20-artifacts/20261104/stage9a/carriers/validation/source-connected-attempt01/execution.json"
+      }
+    },
+    "installed": {
+      "focused": {
+        "passed": 84,
+        "failed": 0,
+        "errors": 0,
+        "xfail": 0,
+        "ordinary_skips": 0,
+        "junit_skipped_includes_xfail": 0,
+        "elapsed_seconds": 1.2812648005783558,
+        "origin_receipts": 1,
+        "origin_leaks": [],
+        "drift": [],
+        "expected_limitations": [],
+        "evidence": ".plan20-artifacts/20261104/stage9a/carriers/validation/installed-focused-attempt01/execution.json"
+      },
+      "connected": {
+        "passed": 799,
+        "failed": 0,
+        "errors": 0,
+        "xfail": 3,
+        "ordinary_skips": 0,
+        "junit_skipped_includes_xfail": 3,
+        "elapsed_seconds": 8.812896464020014,
+        "origin_receipts": 3,
+        "origin_leaks": [],
+        "drift": [],
+        "expected_limitations": [
+          {
+            "class": "tests.test_cheminfo.kekulize.test_known_limitations",
+            "name": "test_aromaticity_is_independent_of_relevant_cycle_order",
+            "type": "pytest.xfail",
+            "reason": "the retained per-ring assignment makes aromaticity depend on ring order"
+          },
+          {
+            "class": "tests.test_cheminfo.kekulize.test_known_limitations",
+            "name": "test_azulene_is_perceived_without_imported_aromatic_flags",
+            "type": "pytest.xfail",
+            "reason": "legacy per-ring Huckel counting does not perceive fused azulene globally"
+          },
+          {
+            "class": "tests.test_cheminfo.kekulize.test_known_limitations",
+            "name": "test_aromatic_joint_rings_accept_relevant_cycles_with_shared_paths",
+            "type": "pytest.xfail",
+            "reason": "legacy joint-ring grouping rejects rings sharing multiple edges"
+          }
+        ],
+        "evidence": ".plan20-artifacts/20261104/stage9a/carriers/validation/installed-connected-attempt01/execution.json"
+      }
+    }
+  },
+  "selection": {
+    "focused_files": 3,
+    "connected_files": 24,
+    "ordered_source_installed_nodeids_equal": true,
+    "passed_per_boundary": 883,
+    "known_xfail_per_boundary": 3,
+    "ordinary_skip_per_boundary": 0
+  },
+  "package": {
+    "retained_wheel": ".plan20-artifacts/20261104/stage9a/carriers/validation/wheel-attempt01/dist/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+    "bytes": 6396936,
+    "sha256": "0fdb4a89f98269f233b22aa787b444ed088262f17ad379de53206f6a9cc1c378",
+    "product_members": 871,
+    "all_installed_member_bytes_verified": true,
+    "source_product_byte_mismatches": [],
+    "six_accepted_native_bytes_unchanged": true,
+    "scope": "Private prebuilt-copy CP311 wheel; no compilation, clean-native, SDK/sdist or other-version claim."
+  },
+  "business_changes": {
+    "remaining_queries": "37chemistry/geometry/ring descriptor delegates, plus named topology/search workflows; rule inputs remain explicit and operation-owned preparation retained.",
+    "ring_has_3d": "Actual old query returnsTrue for coincident rows; corrected public meaning matches existing Molecule distinct-coordinate-row predicate. Accepted Stage5 private aromatic/Kekule always-true input remains unchanged.",
+    "late_link_failures": "Original link_with leaves merged Atom after add-bond error; original link_atoms leaves perceived Bond after order error. Existing transactions now cover complete operation; RuntimeError/KeyboardInterrupt rollback and reciprocal-lock tests pass.",
+    "import_failure": "Unexplained polar-H ImportError now propagates; no speculative guard/fallback.",
+    "preserved": "Existing parity/spin/local oxidation/element/bond/H conventions, two-draw caller/global RNG route, joint-ring errors/order, detached/source and chemical record ownership. No new public API/schema/class/durable fact."
+  },
+  "architecture": {
+    "schema_version": 1,
+    "status": "passed",
+    "base_ref": "9a8a9739769006cc9f4c09a82d68c32764a0e6ca",
+    "scanned_python_files": 1003,
+    "remaining_debt": 175,
+    "ratchet": {
+      "new_debt": [],
+      "unretired_allowlist_entries": [],
+      "allowlist_growth": [],
+      "exceeds_frozen_inventory": []
+    },
+    "layer_findings": [],
+    "carrier_definition_findings": {},
+    "scope": "Source/import/write ratchet and migrated-layer checks. Runtime alias/permission/lifecycle, semantic class identity and native ABI gates remain separate."
+  },
+  "type_census": {
+    "python_files": 496,
+    "classes": 770,
+    "dataclasses": 355,
+    "protocols": 8,
+    "typed_dicts": 2
+  },
+  "retained_failures": [
+    {
+      "attempt": "R1",
+      "actual": "31passed/1failed",
+      "cause": "New test wrongly required a dynamic Bond attribute to exist on its class. Fix injection raising=False only."
+    },
+    {
+      "attempt": "R2",
+      "actual": "78passed/1failed",
+      "cause": "New test compared eq=False MoleculeRecords by identity. Unchanged recapture control and field probe prove comparison error; existing immutable_snapshot compares contents."
+    }
+  ],
+  "production_unchanged_R1_R2_R3": true,
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage9a/carriers",
+    "manifest_sha256": "17b3aaed5bd6969a94247077ddf9ee3614febb2296eb439cbeff8e26332322a3",
+    "files": 124,
+    "bytes": 8595347,
+    "mismatches": []
+  },
+  "remaining": [
+    "Stage9B sole-definition/descriptor/native-dispatch/pickle/consumer hard cut, zero core imports, full default/installed/plugin gate",
+    "P20-D026 generic H export/materialization",
+    "Stage10 clean-native/SDK/sdist, other supported versions, final science/performance/GPU/Plan12/global requirements",
+    "Validated B_exp and separately gated Stage13A/B"
+  ]
+}

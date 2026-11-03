@@ -4,8 +4,9 @@ Status: implementation authorized on2026-10-28. Stage0–8E owning gates are
 complete within their recorded scopes. The latest [Stage8E checkpoint](stages/stage08/assembly/validation/checkpoint.json)
 accepts canonical assembly, declared H/scaffold transformations, factory behavior,
 resources and affected CP311 source/installed evidence. P20-D024 is closed;
-P20-D026 generic H export/materialization remains open. Stage9 must finish the
-remaining carrier scientific/query extraction before its physical hard cut.
+P20-D026 generic H export/materialization remains open. The [Stage9A checkpoint](stages/stage09/carriers/validation/checkpoint.json)
+accepts residual chemistry/query/workflow extraction at CP311source/installed
+boundaries; Stage9Bphysical class/consumer hard cut remains open.
 Clean-native, version adaptation, final scientific/performance and full-plan
 acceptance remain open. The owner-approved [goal](goal.md) governs execution;
 [goal_v1](goal_v1.md) is historical.
@@ -175,8 +176,10 @@ are versioned monitoring reports; 187/182
 does not impose a fixed success count. Compare equivalent semantic work with the pre-refactor baseline; accept explained,
 usable cost under the effective goal and retain all adverse observations.
 
-Every stage and independently gated sub-stage begins with a full reread of the
-plan and normative companions plus a recorded project-state assessment.
+Every stage and independently gated sub-stage aligns current plan/companions,
+accepted owner direction and actual project state under the active goal. Reuse
+valid unchanged alignment and inspect affected sections; repeated full-plan reads
+are not a prerequisite chain for small slices.
 Executed work has an append-only implementation log and a final report.
 Planning records and proposed commands are not execution or benchmark evidence.
 

@@ -1,9 +1,16 @@
 # Stage9 records
 
-Split the carriers and hard-cut `core.py`. This directory is navigation for a planned stage; no stage-entry or execution record has been created. Its prerequisites, scope and gates remain in the [main implementation plan](../../fact_rule_architecture_implementation_plan.md), Section 10.
+[Semantic preparation9A](carriers/README.md) is accepted within its recorded
+CP311 source/installed scope. Physical9Bcarrier/view/consumer/pickle migration,
+zero active core imports, full default and plugin gates remain open.
 
-[Catalog and filename meanings](../README.md) · [Main project index](../../README.md)
+[Catalog](../README.md) · [Main project index](../../README.md)
 
 ## Complete record index
 
-There are no stage-owned records beyond this navigation index. Add actual Markdown records using the catalog's defined filenames and index every Markdown/JSON record here when the authorized stage work produces it.
+- [Carrier scope and current evidence](carriers/README.md)
+- [Entry](carriers/entry_review.json)
+- [Decisions](carriers/contracts/decisions.md)
+- [Validation report](carriers/validation/report.md)
+- [Checkpoint](carriers/validation/checkpoint.json)
+- [Evidence graph](carriers/validation/evidence_graph.json)

@@ -72,3 +72,70 @@ def _translate(mol, vector):
                                        tuple(atom._uid for atom in mol._atoms),
                                        {"coordinates": coordinates})
         _commit_coordinates(mol, update)
+
+
+def _is_disorder(subject, minimum_separation=0.5):
+    from ..adapters.structure import geometry as adapter
+    return any(pair.measurement.distance < minimum_separation
+               for pair in adapter.measure_atom_pair_distances(subject, pair_scope="all"))
+
+
+def _molecule_has_3d(mol):
+    from ..rules.chemistry.descriptors.geometry import _has_distinct_rows
+    if len(mol.atoms) < 2:
+        return False
+    reference = tuple(mol.atoms[0].coordinates)
+    return any(_has_distinct_rows((reference, tuple(atom.coordinates)))
+               for atom in mol.atoms[1:])
+
+
+def _ring_has_3d(ring):
+    from ..rules.chemistry.descriptors.geometry import _has_distinct_rows
+    from ..views._source import _view_coordinates
+    with ring.mol._mutation_lock:
+        return _has_distinct_rows(tuple(tuple(row) for row in _view_coordinates(ring)))
+
+
+def _constraint_bonds_angles(mol, exclude_metal_bonds):
+    if exclude_metal_bonds:
+        for bond in mol.bonds:
+            if not bond.has_metal:
+                bond.constraint = True
+        for angle in mol.angles:
+            if not angle.has_metal:
+                angle.constraint = True
+
+
+def _random_point_on_sphere(radius, rng):
+    from ..rules.mathematics.sampling import _point_on_sphere
+    random = np.random.rand if rng is None else rng.random
+    return _point_on_sphere(radius, random(), random())
+
+
+def _bond_segment_distance(bond, other_bond):
+    from ..rules.mathematics import geometry
+    return geometry.segment_segment_distance(bond.bond_segment, other_bond.bond_segment)
+
+
+def _ring_relation_to_bond(ring, bond, not_in_same_molecule):
+    from ..adapters.structure import geometry as adapter
+    if ring.mol is not bond.mol or bond not in ring.mol.bonds:
+        raise not_in_same_molecule(ring, bond)
+    return adapter.determine_bond_ring_relation(ring, bond)
+
+
+def _ring_geometry_cycle(ring):
+    from ..adapters.structure import geometry as adapter
+    return adapter.cycle_from_ring(ring)
+
+
+def _closest_ring_edge_to_bond(ring, bond, not_in_same_molecule):
+    from ..adapters.structure import geometry as adapter
+    from ..rules.mathematics import geometry
+    if ring.mol is not bond.mol or bond not in ring.mol.bonds:
+        raise not_in_same_molecule(ring, bond)
+    measurement = geometry.closest_cycle_edge(ring.geometry_cycle, bond.bond_segment)
+    if measurement is None:
+        return None
+    return adapter.RingEdgeDistance(bond=ring.bonds[measurement.edge_index],
+                                    measurement=measurement)

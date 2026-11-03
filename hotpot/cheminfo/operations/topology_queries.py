@@ -155,3 +155,69 @@ def atom_idx_pair_to_bond_idx(mol: "Molecule", *atom_idx_pair: tuple[int, int]) 
     bond_atom_idx_pair = [frozenset((b.a1idx, b.a2idx)) for b in mol.bonds]
     atom_idx_pair = [frozenset(a_pair) for a_pair in atom_idx_pair]
     return [bond_atom_idx_pair.index(a_pair) for a_pair in atom_idx_pair]
+
+
+def _rings_for_scope(mol, ring_scope, *, max_size=None,
+                     max_cycles=graph.DEFAULT_RELEVANT_CYCLE_LIMIT):
+    if ring_scope == "full_graph":
+        return mol._materialize_rings(max_size=max_size, max_cycles=max_cycles)
+    if ring_scope == "ligand_skeleton":
+        return mol._materialize_rings(ligand_skeleton=True, max_size=max_size,
+                                      max_cycles=max_cycles)
+    raise ValueError(f"Unsupported ring scope: {ring_scope!r}")
+
+
+def _aromatic_joint_rings(mol):
+    rings = mol.rings
+    joint_rings = []
+    while rings:
+        ring = rings.pop()
+        joint_ring = ring.joint_ring()
+        if joint_ring:
+            to_remove = []
+            for candidate in rings:
+                if candidate in joint_ring:
+                    to_remove.append(candidate)
+            for candidate in to_remove:
+                rings.remove(candidate)
+            joint_rings.append(joint_ring)
+    return joint_rings
+
+
+def _rings_small(mol):
+    from ..rules.chemistry.descriptors.rings import _is_small_ring
+    return [ring for ring in mol.rings if _is_small_ring(len(ring))]
+
+
+def _ring_joint_with(ring, other, ring_type):
+    if not isinstance(other, ring_type):
+        raise TypeError(f"expected Ring but got {type(other)}")
+    from ..views._source import _check_ring_source
+    with ring.mol._mutation_lock:
+        _check_ring_source(ring, prepare=True)
+        if other.mol is not ring.mol:
+            return False
+        _check_ring_source(other, prepare=True)
+        intersect_bonds = list(set(ring.bonds) & set(other.bonds))
+    from ..rules.chemistry.descriptors.rings import _rings_are_joint
+    return _rings_are_joint(len(intersect_bonds))
+
+
+def _joint_ring(ring, aromatic, joint_ring_type):
+    from ..views._source import _check_ring_source
+    with ring.mol._mutation_lock:
+        _check_ring_source(ring, prepare=True)
+        if aromatic and not ring.is_aromatic:
+            return None
+        rings = []
+        for candidate in ring.mol.rings:
+            if candidate == ring:
+                rings.append(candidate)
+            elif ring.joint_with(candidate) and (not aromatic or candidate.is_aromatic):
+                rings.append(candidate)
+        if rings:
+            return joint_ring_type(*rings)
+
+
+def _c_bonds(mol):
+    return [bond for bond in mol.bonds if bond.is_metal_ligand_bond]

@@ -6628,3 +6628,122 @@ P20-D026 generic H export/materialization, Stage9 residual scientific/query
 extraction and hardcut, clean-native/SDK/sdist, other versions, finalGPU/science/
 performance and global gates remain open. Deliver one coherent business commit
 with related tests/records and push; no documentation-only milestone.
+
+
+### 2026-11-04 — Stage9A entry and semantic-before-physical route
+
+Root aligned current goal, relevant main1/6/7/9.1/9.5/Stage9/11.3, both governance
+references, current verification/budget and accepted Stage8E9a8a973delivery. Reuse
+unchanged global scope/companion decisions under owner direction; no repeated
+full-plan read or forbidden helper-rescore read. All19preentry source identities
+match; tracked tree starts clean. Residual scientific/query/workflow bodies mean
+the literal thin-core precondition is not yet met. S9-01–04 split semantic9A
+preparation from physical9Bwithout weakening the final zero-core/single-class gate.
+
+Release disjoint local Sol/medium authoring for existing chemistry/query owners;
+root integrates facades and mutation composition. Preserve established heuristics,
+lazy ordering, two-draw RNG semantics and complete factual/rollback contracts.
+Reproduce/correct the tuple-to-Atom Ring.has_3d predicate and expose unexplained
+ImportError instead of returning False. No new public contract, record or global H
+repair. CP311source/installed evidence follows source-ready freeze; physical9B,
+native rebuild, other versions and final gates remain held. Terra/Luna mechanical
+options already recorded in model_allocation.md; no duplicate policy change.
+
+
+### 2026-11-04 — Stage9A bounded mutation-failure characterization
+
+Release only a small unchanged-facade CP311diagnostic for link_with and link_atoms
+late failures. Inspect whether component/perception publication remains after a
+known injected final-step error, to determine the existing atomicity boundary
+before operation relocation. No broad runtime, acceptance or9Brelease follows.
+
+
+### 2026-11-04 — Stage9A reproduced incomplete link publication
+
+The bounded original-facade probe returns0with identified late errors: link_with
+leaves destination2atoms/0bonds instead of1/0; link_atoms leaves2atoms/1bond instead
+of2/0. Source remains1atom. Receipt/argv/env/core+commit hashes and observations
+are under stage9-entry-20261104/topology/baseline*. S9-03now requires the existing
+FactTransaction around each complete named operation; retain original error and
+success behavior, with RuntimeError/BaseException rollback tests. No broad guard
+or fallback, changed chemistry algorithm or acceptance claim.
+
+
+### 2026-11-04 — Stage9A source-ready CP311 source release
+
+Root integrated37chemistry/query delegates plus topology/search workflows, reviewed
+actual rules, read/short-circuit ordering, source capture before target transactions
+and unchanged public signature/annotation/decorator ASTs. No new class or durable
+field. Architecture audit against9a8a973passes1003files/175debt/no findings. Actual
+Ring baseline is False/True for molecule/ring on zero and coincident coordinates;
+bothTrue for distinct rows. Correct the public query while retaining the accepted
+Stage5always-true private aromatic/Kekule branch. No hidden scientific algorithm
+switch. LocalSol/medium workers authored disjoint changes; root owns acceptance.
+
+Release freeze then3focused/24connected CP311source files,8cores/thread1/offline,
+using6unchanged accepted CP311binaries. Raw driver/argv/env/resource/origin evidence
+lives under stage9-entry-20261104/validation. Retain all original failures. Private
+wheel install/runtime waits passing source review.9Bphysical hard cut, complete
+default, rebuilt native, other versions and global gates remain held.
+
+
+### 2026-11-04 — Stage9A focused checker correction
+
+Source-focused01passes31and fails1before the intended assertion: a new test
+monkeypatches Bond.bond_order with default raising=True although that existing
+attribute is supplied dynamically, not declared on the class. Correct the two
+affected test injections to raising=False; no product byte changes or business
+failure claim. Retain the original execution, freeze and31passes. Re-freeze the
+corrected affected tests and run the complete focused selection, then connected.
+
+
+### 2026-11-04 — Stage9A record-comparison checker correction
+
+Source-focused02passes78and fails1at a new whole-state equality assertion. Local
+Sol/medium diagnosis reproduces the failure in isolation and in unchanged
+recapture controls: MoleculeRecord is intentionally dataclass(eq=False), so two
+identical field captures compare unequal by identity. No source field mutation
+is found. Use the existing immutable_snapshot fixture to compare record/metadata
+content; preserve Atom/Bond identity tuples and the production equality contract.
+No product bytes change. Original R1/R2runs and isolated diagnosis remain retained.
+Re-freeze corrected tests and run fresh complete focused/connected selections.
+
+
+### 2026-11-04 — Stage9A source passed and private installed release
+
+Fresh R3freeze19270f0eb7c694d0cf5bd9a26ac0ad7e11a216438ca8cbdf0a302234fc052a95
+binds final product/tests. Focused84passed; connected799passed plus3existing
+scientific-limit xfails (JUnit skip elements, no ordinary skip),0fail/error. They
+retain ring-order aromaticity, global azulene and multiple-shared-edge joint-ring
+limitations. All4origin receipts show no leak and source remains unchanged. Root
+review releases the fixed private prebuilt-copy package/install and same outside
+installed selections. Local Luna/low may execute exactly those commands and
+report outputs; root retains interpretation.6accepted CP311binaries only; no
+compiler, clean-native/SDK/sdist/new-version/global claim.
+
+
+### 2026-11-04 — Stage9A CP311 preparation acceptance and delivery
+
+Root accepts9Asemantic preparation after fresh R3source and installed84focused/
+799connected passes plus3existing scientific xfails at each boundary, no ordinary
+skips/errors/new failures. Ordered selections match;8origin receipts show no
+leaks;605freeze bindings remain unchanged. Private871-member wheel verifies
+0source/install mismatch;6unchanged accepted CP311native binaries only, no build.
+WheelSHA0fdb4a89f98269f233b22aa787b444ed088262f17ad379de53206f6a9cc1c378.
+
+Public signatures/annotations/decorators remain; no new class/durable field or
+scientific algorithm. Existing local oxidation/RNG/H/branch semantics retained.
+Actual public Ring predicate and incomplete link rollback defects are repaired
+within S9-02/03; source captured before destination lock, including reciprocal
+link test. Original R1/R2test defects and isolated controls remain, product bytes
+unchanged across all3freezes. Architecture1003files/175debt/no findings; product
+census496files/770classes/355dataclasses. LocalLuna/low executes fixed packaging
+and installed commands; root owns interpretation and acceptance.
+
+Archive.plan20-artifacts/20261104/stage9a/carriers verifies124files/8595347bytes;
+manifestSHA17b3aaed5bd6969a94247077ddf9ee3614febb2296eb439cbeff8e26332322a3.
+The indexed checkpoint/report/evidence graph retain exact commands/resources and
+all limits.9Bphysical sole-carrier/view/consumer/pickle cutover, zero-core/full
+default/plugin gate, P20-D026, clean-native/SDK/sdist/other versions/final science/
+performance/GPU/Plan12/global work remain open. Deliver related business/tests/
+records in one small commit and push. Overall Plan20goal remains active.

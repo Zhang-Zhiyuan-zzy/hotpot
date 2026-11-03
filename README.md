@@ -466,7 +466,7 @@ through the same public force-field workflow.
 The assembly API supports fragment joining and ring-based construction.
 `RingWedge` is part of the public interface for explicitly describing a ring
 wedge used in assembly. See the
-[assembly guide](hotpot/cheminfo/mol_assemble/README.md).
+[assembly guide](hotpot/cheminfo/operations/assembly/README.md).
 
 ### AI-backed chemistry
 

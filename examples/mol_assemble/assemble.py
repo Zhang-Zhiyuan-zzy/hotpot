@@ -16,6 +16,7 @@
 from itertools import combinations
 
 import hotpot as hp
+from hotpot.cheminfo.operations.assembly import atom_link_atom_action
 from hotpot.cheminfo.operations.visualization import draw_grid
 
 
@@ -37,8 +38,8 @@ def make_phen_mol():
     # Assemble base Frameworks
     mols = []
     for b1, b2 in combinations(branches, 2):
-        m = hp.atom_link_atom_action(phen.copy(), [1], hp.read_mol(b1), [0])
-        m = hp.atom_link_atom_action(m.copy(), [12], hp.read_mol(b2), [0])
+        m = atom_link_atom_action(phen.copy(), [1], hp.read_mol(b1), [0])
+        m = atom_link_atom_action(m.copy(), [12], hp.read_mol(b2), [0])
         mols.append(m)
 
     # with open('/home/zz1/datasets/PhenMols/smi.txt') as f:

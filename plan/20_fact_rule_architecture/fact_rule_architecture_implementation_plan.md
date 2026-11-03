@@ -1,13 +1,12 @@
 # Fact-Carrier and Rule Architecture Refactor
 
-Status: **implementation authorized on 2026-10-28; Stage0–8D owning-stage gates
-complete within their recorded scopes. Stage8C includes the connected canonical
-search split, fresh CP311 search native, source/installed conformance and actual
-MCA workflows, with usable same-work costs accepted. Imported-H assembly remains
-unaccepted/P20-D024 and is required at Stage8E. Stage8D includes the
-connected inference/conformer/artifact split with affected CP311 source/installed,
-actual CPU/pipeline and one-GPU functional evidence accepted. Stage8E remains open.
-Optional scientific activation, remaining stages, clean full-native delivery,
+Status: **implementation authorized on 2026-10-28; Stage0–8E owning-stage gates
+complete within their recorded scopes. Stage8C includes canonical search and
+actual MCA workflows; Stage8D includes inference/conformer/artifact migration and
+actual CPU/pipeline/one-GPU evidence. Stage8E now has source/installed CP311
+assembly, local H/scaffold corrections and explicit exports/resources accepted;
+P20-D024 is closed. P20-D026 generic H export/materialization remains open.
+Stage9 and later stages, optional scientific activation, clean full-native,
 version-adaptation and global scientific/engineering acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits

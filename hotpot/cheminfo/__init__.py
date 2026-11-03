@@ -11,8 +11,19 @@ from .structure.crystal import Crystal
 from .operations.io import MolReader, MolWriter, read_mol
 from .bundle import MolBundle, to_pyg_dataset
 from .operations.conversion import is_molecule_input, to_hotpot_mol
-from .mol_assemble import *
+from .operations.assembly import (
+    Fragment, EdgeShoulder, AtomLink, AlkylGraft, BondAdding, AtomReplace,
+    RingWedge, AssembleFactory,
+)
 
-from .mol_statistics import ComplexStatistics
 from .operations.search import Searcher, Substructure, Hit, Hits, Query, QueryAtom, QueryBond
 from .operations.search import SmartsSemantics, SmartsSyntaxError, UnsupportedSmartsError
+
+__all__ = (
+    "Molecule", "Atom", "Bond", "BondKind", "Crystal", "MolReader", "MolWriter",
+    "read_mol", "MolBundle", "to_pyg_dataset", "is_molecule_input", "to_hotpot_mol",
+    "Fragment", "EdgeShoulder", "AtomLink", "AlkylGraft", "BondAdding",
+    "AtomReplace", "RingWedge", "AssembleFactory", "Searcher", "Substructure",
+    "Hit", "Hits", "Query", "QueryAtom", "QueryBond", "SmartsSemantics",
+    "SmartsSyntaxError", "UnsupportedSmartsError",
+)

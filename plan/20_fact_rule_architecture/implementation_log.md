@@ -6482,3 +6482,149 @@ evidence. No measured token-savings claim. Stage8E/P20-D024, clean full-native/
 SDK/sdist, other versions, final4GPU/scientific-performance/global gates remain
 open. Deliver this coherent business change with related tests/records in the
 containing commit; no new documentation-only milestone.
+
+
+### 2026-11-04 — Stage8E entry and bounded baseline characterization
+
+Stage8D business delivery 1f348a2b7912955d70198a91c24e33e388a6d301 is pushed. Root aligns effective goal,
+main9.2/Stage8E/Decision20, Stage1 asset review, existing H/canonical transport
+contracts, current owners/consumers, previous evidence and two focused static
+inventories. Current companion identities are in assembly/entry_review.json;
+unchanged approved global context is reused within the one mainline. Root
+selects the concrete eight-class/six-advanced-function assembly surface, sole
+default resource and incomplete chemistry-statistics deletion; the separate
+CCDC statistics class and distinct legacy assets retain their existing owners.
+
+Release only bounded actual baseline characterization before final H/scaffold
+decisions and authoring. Known P20-D024 and source-exposed batch/loader/anchor
+issues need chemical/business evidence, not merely a file move. No global H
+normalization, new stochastic route, fallback or source schema is selected.
+WholeStage8E, Stage9 and broader/global gates remain open. No source edits
+until the characterization freeze completes.
+
+### 2026-11-04 — Stage8E actual baseline and E4 authoring release
+
+Corrected baseline attempt02 completed22 captures under CP311/eight cores/
+thread1/offline:19 completed cases and3 product exceptions;1501 selected
+source/test/dependency bindings unchanged. Attempt01 checker failures remain
+archived, distinct from chemistry. Actual imported/user link H4/2, fully explicit
+overvalent products, replacement/shoulder H failures, ring partial mutation and
+missing sec-butyl are retained in the baseline report/index. No successful
+chemical gate follows from their capture. E4 selects fail-fast attributable
+factory timeout/error handling, owned cleanup and direct rooted alkyl enumeration.
+Root releases canonical relocation/public/resource integration and factory/
+generator repairs; E5 H/scaffold implementation still waits concrete decisions.
+Current model allocation already includes the approved Terra/Luna mechanical
+exception; no duplicate model-policy commit or session setting change is needed.
+
+### 2026-11-04 — Stage8E E5 transformation decisions and action release
+
+Root reviewed actual nine-link H/transport graphs, shoulder duplication, ring
+partial mutation and focused cheminformatics consultation. E5 registers coherent
+initial import versus explicit/inferred H inventories and explicit site-total
+product counts at participating sites only; source-H history is retained. It
+selects exact one-H cap substitution, Stage5 local completion for element/
+scaffold changes, parent-identity-preserving ring-wedge, heavy-only shoulder
+transfer, specified-stereo local rejection and whole-action rollback. Generic
+H normalization/import/model changes remain excluded; known global H projection
+limits remain explicit. Action authoring is released in a disjoint local
+Sol/medium partition; root owns facade/resources/documentation and integration.
+
+
+### 2026-11-04 — Stage8E source-ready integration and CP311 source release
+
+Root inspected the final action/Fragment/factory integration, explicit facade,
+resource/package migration and chemical tests. E5 clarifies retained-site ring
+aromaticity; raw outside-bond constraint/id transport remains exact. Architecture
+ratchet against1f348a2 passes995Python files with175remaining debt and no new
+finding. Authoring/driver syntax checks are preparation, not executed chemistry.
+Release one current-byte freeze followed sequentially by focused CP311 source,
+connected-source and verbatim-documentation checks, stopping on failure. Eight
+cores/thread1/offline, six unchanged accepted native binaries and explicit module
+origins qualify this bounded selection. Private-wheel packaging/install/runtime
+remain held pending source results and root review. No clean-native, other-
+version, global H-normalization, model/GPU or final-plan acceptance follows.
+
+
+### 2026-11-04 — Stage8E first source failure and bounded oracle correction
+
+Initial freeze checker compared6accepted CP311native paths to33all-version
+files; correct the checker subset, retaining all33in the freeze and making no
+new-version claim. Source-focused01then passes44and fails1within94collected
+nodes. The [nH] test wrongly hardcodes no_implicit=True. Actual root probe shows
+RDKit input=False, imported current/source=False, product current=False with H0/1
+and exact source-H retained. Preserve this correct business behavior; correct
+only the failed test to require the original flag. R2 freezes unchanged product
+bytes and one test-AST correction; retain44unchanged passes and execute the50
+failed/unreached focused IDs, then connected/examples sequentially. Original
+checker/runtime failures remain in evidence; no chemistry or rule weakening.
+
+
+### 2026-11-04 — Stage8E actual ring aromaticity defect and local repair
+
+R2continuation passes2then finds a genuine aromatic scaffold defect. The
+existing restoration makes the retained flagTrue/source15; H-postcondition
+preparation changes it toFalse. Root accepts the action-local explicit source1
+product flag through existing factual writers. Original aromatic/H algorithms,
+source-H ledger and unrelated fields remain unchanged. Actual after/rollback
+probes show retained identity/isotope13/H0/aromaticTrue and full injected-error
+rollback. Original failed suite and one probe print/checker failure remain
+separate evidence. New freeze and affected runtime evidence are required before
+assembly acceptance; no final/global gate follows from diagnostic probes.
+
+
+### 2026-11-04 — Stage8E connected aromatic seam and R3 release
+
+A bounded benzene/ethene shoulder probe reproduces the same real lifecycle
+defect, ending in an overfill diagnostic after adopted flags disappear. Repair
+only changed anchor flags through the existing explicit product writer before
+H completion; after-probe returns six aromatic atoms/bonds with H1 each and
+unrelated RDKit source3 flags retained. Root reviewed both local patches and
+actual after/rollback evidence. R3 re-freezes final action/test bytes and runs
+the complete focused selection (now95nodes) because two production actions
+changed, followed by connected and verbatim examples sequentially. Original
+R1/R2failures remain historical, not final passes. Wheel work still waits source.
+
+
+### 2026-11-04 — Stage8E R3 source passed and private installed release
+
+Final current-byte R3freeze e6b294bffd7d3b87c269d024bee8c264b7b25a3afd38ed47fb2739ebb18337fc
+binds549paths with six accepted CP311binaries unchanged. Fresh source runs pass
+95focused/286connected/2documentation cases,0skip/origin leak/drift. Documentation
+executes all five Python fences and the six-method schema verbatim. Root reviewed
+R2->R3action/test-only differences and actual source results, then releases the
+existing private prebuilt-copy package route, target install and the same outside
+installed selections/examples. Only six exact accepted CP311binaries are reused;
+no compiler, clean-native, SDK/sdist or other-version claim. Root retains semantic
+interpretation/acceptance; fixed packaging execution may use local Luna/low.
+
+
+### 2026-11-04 — Stage8E owning CP311 acceptance and business delivery
+
+Root accepts final R3assembly:95focused/286connected/2documentation cases at
+source and installed boundaries, each383passed/0skip with67origin receipts and
+no leaks/drift. Five Python README fences and six-kind schema execute verbatim.
+Source/installed focused/connected node orders agree; documentation nodeids differ
+only by support/ path prefix, with identical frozen test/functions/code. Final
+549bindings and866wheel members verify unchanged. All six accepted CP311native
+binaries are reused; the other27frozen binaries receive no new-version claim.
+
+P20-D024 closes for declared coherent local transformations, source-H retention,
+input isolation and whole-action rollback. Ring and shoulder aromatic lifecycle
+failures were actual product defects, repaired only at adopted product flags.
+Original freeze/oracle/product/probe-print/taskset-command failures remain in the
+retained archive. No unknown-error fallback, global H normalization, new record
+or scientific algorithm was introduced. Independent CCDCstatistics is retained;
+only incomplete chemistry ComplexStatistics retires. Census491files/770classes/
+355dataclasses; historical bare-baseProtocol count8plus4unchanged generic bases.
+Final architecture passes995files/175debt/no findings. Local Luna/low executed
+fixed packaging/install/installed commands and one byte-verified archival copy;
+root owns chemical interpretation, acceptance and Git delivery.
+
+Artifacts retained at .plan20-artifacts/20261104/stage8e/assembly:2256files,
+61272126bytes,0copy mismatches; archive-manifestSHA256
+d75e1a71208bf5860ef742a19b56f00882b7ee5b98a9e44a05c371e27896fd58.
+P20-D026 generic H export/materialization, Stage9 residual scientific/query
+extraction and hardcut, clean-native/SDK/sdist, other versions, finalGPU/science/
+performance and global gates remain open. Deliver one coherent business commit
+with related tests/records and push; no documentation-only milestone.

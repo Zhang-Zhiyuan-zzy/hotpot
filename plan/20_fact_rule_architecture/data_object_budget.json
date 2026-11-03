@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage0–7E and Stage8A retain their accepted owning scopes. Stage8B B1 D04/D05/FF-CLI consolidation is root accepted within its CP311 scope: three Python dataclasses retired with zero replacement classes; real native ABI Options retained. Current472Python-file census779classes/357dataclasses/8Protocols/2TypedDicts. Full Stage8B and later/global gates remain open.",
+  "status": "Stage0–8E owning scopes are root accepted as recorded. Stage8E deletes only incomplete chemistry ComplexStatistics, adds no class/record/durable field and retains independent CCDC statistics. Current491Python files/770classes/355dataclasses/8historical bare-base Protocols/2TypedDicts; four generic Protocols additionally exist. Later/global gates remain open.",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -20,7 +20,7 @@
     "commits": [
       "d7989b3"
     ],
-    "ordinary_classes_retired": 9,
+    "ordinary_classes_retired": 10,
     "retired_native_struct_candidates": 6,
     "ordinary_removal_commit": "c6bfcd4906254ee113c14103009f071e91f60368",
     "ordinary_removal_evidence": "stages/stage02/evidence.json",
@@ -1065,11 +1065,11 @@
   ],
   "change_policy": "Update a reservation with concrete responsibility/consumer evidence before exceeding it; new public schemas retain their own review gate. Never offset extra records by deleting unrelated reserved types or replace records with untyped dicts solely to improve counts.",
   "measured_current_counts": {
-    "all_python_classes": 779,
-    "dataclasses": 357,
+    "all_python_classes": 770,
+    "dataclasses": 355,
     "protocols": 8,
     "typed_dicts": 2,
-    "method": "Same production-only ClassDef and decorator/base leaf census as capture_baseline_inventory.py. B1 changes782/360/8/2 to779/357/8/2: retire exactly Python Options, BondTopologySignature and _RunOptions with no replacements; retain real native ABI Options. Native historical counts are not rescanned by this Python-only census.",
+    "method": "Same production-only ClassDef/decorator/base leaf census as capture_baseline_inventory.py; no product imports. Parameterized Protocol bases are outside this historical count; four unchanged generic Protocol definitions additionally exist, for12 actual Protocol classes.",
     "native_struct_candidates": 171,
     "native_struct_candidate_method": {
       "baseline": 164,
@@ -1081,7 +1081,7 @@
     },
     "new_fact_native_actual_struct_definitions": 14,
     "new_fact_native_actual_enum_definitions": 1,
-    "verification": "stages/stage08/forcefields/validation/b1/checkpoint.json",
+    "verification": "stages/stage08/assembly/validation/checkpoint.json",
     "stage5_native_scope": "Readonly carrier dispatch plus configured DERIVED_FIELDS rejection at native ingress/preparation; existing Field gains immutable configuration metadata, with no new class/struct/enum or exported ABI. Corrected source awaits five fresh ABI builds and runtime evidence.",
     "stage5_native_source": {
       "path": "hotpot/cheminfo/structure/_native/facts.cpp",
@@ -1102,15 +1102,15 @@
       "historical_status": "Original failed candidate retained; final two test-import repairs passed without production changes."
     },
     "final_architecture_audit": {
-      "path": ".plan20-artifacts/20261103/stage8b/b1/raw/release/architecture-after-retirement.json",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/integration/architecture-final.json",
       "status": "passed",
-      "remaining_debt": 221,
+      "remaining_debt": 175,
       "new_debt": 0,
       "layer_findings": 0,
       "carrier_definition_findings": 0,
-      "scope": "B1 static ratchet; no checker weakening or new allowlist debt."
+      "scope": "Final Stage8E static audit; source/installed runtime remains independently recorded."
     },
-    "python_files": 472
+    "python_files": 491
   },
   "stage7a_bookkeeping": {
     "recorded_local_date": "2026-10-31",
@@ -1314,5 +1314,43 @@
     },
     "evidence": ".plan20-artifacts/20261104/stage8d/inference-conformers/integration/type-census.json",
     "checkpoint": "stages/stage08/inference/validation/d2-d3/checkpoint.json"
+  },
+  "stage8e_bookkeeping": {
+    "status": "ROOT_ACCEPTED_STAGE8E_CP311_ASSEMBLY",
+    "census": {
+      "baseline_commit": "1f348a2b7912955d70198a91c24e33e388a6d301",
+      "before": {
+        "python_files": 492,
+        "classes": 771,
+        "dataclasses": 355,
+        "protocols": 8,
+        "typed_dicts": 2
+      },
+      "after": {
+        "python_files": 491,
+        "classes": 770,
+        "dataclasses": 355,
+        "protocols": 8,
+        "typed_dicts": 2
+      },
+      "delta": {
+        "python_files": -1,
+        "classes": -1,
+        "dataclasses": 0,
+        "protocols": 0,
+        "typed_dicts": 0
+      },
+      "retired_class": "hotpot.cheminfo.mol_statistics.ComplexStatistics",
+      "separate_CCDC_class": "retained",
+      "new_classes": 0,
+      "new_durable_carrier_fields": 0,
+      "mode": "Same production-only ClassDef/decorator/base leaf census as capture_baseline_inventory.py; no product imports. Parameterized Protocol bases are outside this historical count; four unchanged generic Protocol definitions additionally exist, for12 actual Protocol classes.",
+      "final_freeze_sha256": "e6b294bffd7d3b87c269d024bee8c264b7b25a3afd38ed47fb2739ebb18337fc"
+    },
+    "new_classes": 0,
+    "new_durable_carrier_fields": 0,
+    "retired_ordinary_class": "hotpot.cheminfo.mol_statistics.ComplexStatistics",
+    "separate_CCDC_statistics_retained": true,
+    "checkpoint": "stages/stage08/assembly/validation/checkpoint.json"
   }
 }

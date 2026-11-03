@@ -4654,13 +4654,34 @@
       "planned_contract_test_files": [
         {
           "path": "tests/test_cheminfo/structure/test_assembly_exports.py",
-          "status": "planned_not_created"
+          "status": "implemented; CP311 source/installed owning gate passed"
+        },
+        {
+          "path": "tests/test_cheminfo/test_assembly_factory.py",
+          "status": "implemented; CP311 source/installed owning gate passed"
+        },
+        {
+          "path": "tests/test_cheminfo/test_assembly_transformations.py",
+          "status": "implemented; CP311 source/installed owning gate passed"
         }
       ],
       "additional_requirements": [
-        "documented assembly examples verbatim; explicit exports; statistics deletion or separately approved completion"
+        "documented assembly Python examples verbatim, JSON schema, exact explicit exports and sole packaged26-row default",
+        "P20-D024 declared H consumption across inferred/user/toolkit and partial/full graph-H inputs; source ledger/current output and untouched input preservation",
+        "five whole-action transactions, shoulder heavy-only transfer, parent-identity ring-wedge, affected stereo/isotope boundaries and rollback",
+        "rooted capped alkyl counts1,1,2,4, six loader routes, finite serial/parallel results, timeout/error attribution and owned cleanup",
+        "chemistry ComplexStatistics deleted; independent CCDC implementation retained",
+        "affected CP311 source and private installed-wheel behavior; unchanged Stage8D evidence reused within its scope",
+        "P20-D026 global H export/materialization limitations retained separately; no global H normalization or clean-native/SDK/sdist/multi-version claim"
       ],
-      "execution_status": "not_executed_by_inventory_capture"
+      "execution_status": "ROOT_ACCEPTED_STAGE8E_CP311_ASSEMBLY",
+      "entry_review": "stages/stage08/assembly/entry_review.json",
+      "design": "stages/stage08/assembly/contracts/decisions.md",
+      "stage_gate_closed": true,
+      "global_gate_closed": false,
+      "checkpoint": "stages/stage08/assembly/validation/checkpoint.json",
+      "report": "stages/stage08/assembly/validation/report.md",
+      "evidence": "stages/stage08/assembly/validation/evidence_graph.json"
     },
     "Stage9": {
       "predecessor": "Stage8E",

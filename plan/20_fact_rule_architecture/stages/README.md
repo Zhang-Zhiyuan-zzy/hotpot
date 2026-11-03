@@ -1,13 +1,11 @@
 # Stage record catalog
 
 The main plan and normative companions remain in the project root (Plan21
-remains in its own project). This catalog organizes Stage0–13. Existing execution records close Stage0–6 owning-stage gates;
-Stage5 retains corrected performance comparability and open final global gates.
-Root closes Stage6 after C62 delivery/remote verification, retaining C61 runtime provenance. Stage7A design P01–P07 is accepted, exact bounded implementation/test authoring is separately released, and candidate runtime remains held; Stage7 has
-preentry conversion/selection/result inventories requiring the post-Stage6 owning source rebind and a mandatory later Stage7E storage gate;
-Stage8C–13 have navigation indexes only. Folder creation supplies no
-stage-entry or execution evidence and changes no objective, gate, contract,
-scientific route or accepted decision.
+remains in its own project). This catalog organizes Stage0–13. Stage0–8E owning
+gates are complete within their recorded source/installed/scientific scopes;
+remaining final delivery/version/science/performance obligations stay open.
+Stage9–13 indexes do not establish stage entry or acceptance. Current navigation
+points to stage-owned records; historical snapshots keep their original bounds.
 
 ## Markdown types
 
@@ -43,7 +41,7 @@ merely to fill a directory.
 | Stage5 | [stage05](stage05/README.md) | Completed owning technical gates,finite H-default correction,retained failures and open final performance/science |
 | Stage6 | [stage06](stage06/README.md) | Completed owning gates; C62 delivered/remote-verified; C61 remains validated runtime source |
 | Stage7 | [stage07](stage07/README.md) | Stage7A–E accepted within recorded CP311 scopes; final delivery/version/resource obligations remain |
-| Stage8 | [stage08](stage08/README.md) | Stage8A–D accepted within recorded CP311 scopes; Stage8E unentered; later/global obligations remain |
+| Stage8 | [stage08](stage08/README.md) | Stage8A–E accepted within recorded CP311 scopes; later/global obligations remain |
 | Stage9 | [stage09](stage09/README.md) | Planned: Split the carriers and hard-cut `core.py` |
 | Stage10 | [stage10](stage10/README.md) | Planned: Complete physical package and native build migration |
 | Stage11 | [stage11](stage11/README.md) | Planned: Clean outer commands and data ownership |

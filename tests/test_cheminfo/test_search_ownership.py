@@ -307,7 +307,7 @@ def test_documented_acetamide_recursive_query_maps_the_amide_carbonyl_carbon():
 def test_assembly_searchers_use_their_real_hydrogen_callable(
     smiles, expected_hydrogens, atom_sites, bond_sites,
 ):
-    from hotpot.cheminfo.mol_assemble.assembler import AtomLink, EdgeShoulder
+    from hotpot.cheminfo.operations.assembly import AtomLink, EdgeShoulder
 
     molecule = hp.read_mol(smiles, "smi")
     molecule.calc_implicit_hydrogens()
@@ -321,15 +321,9 @@ def test_assembly_searchers_use_their_real_hydrogen_callable(
     assert set(hits) == bond_sites
 
 
-@pytest.mark.parametrize("hydrogen_source", [
-    "inferred",
-    pytest.param("toolkit", marks=pytest.mark.xfail(
-        strict=True,
-        reason="P20-D024: existing assembly does not consume imported H; Stage8E owns the transformation",
-    )),
-])
+@pytest.mark.parametrize("hydrogen_source", ["inferred", "toolkit"])
 def test_atom_link_grafts_oxygen_onto_methane_as_methanol_without_changing_sources(hydrogen_source):
-    from hotpot.cheminfo.mol_assemble.assembler import AtomLink
+    from hotpot.cheminfo.operations.assembly import AtomLink
 
     if hydrogen_source == "toolkit":
         frame = hp.read_mol("C", "smi")

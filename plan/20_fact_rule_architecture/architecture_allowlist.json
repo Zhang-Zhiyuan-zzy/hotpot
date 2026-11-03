@@ -121,15 +121,6 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/__init__.py",
-      "line": 14,
-      "scope": "",
-      "target": "hotpot.cheminfo.mol_assemble.*",
-      "local": "*",
-      "rule": "wildcard_package_export",
-      "stage": "Stage12"
-    },
-    {
       "path": "hotpot/cheminfo/_native/buffers.py",
       "line": 13,
       "scope": "",
@@ -211,34 +202,7 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/mol_assemble/__init__.py",
-      "line": 16,
-      "scope": "",
-      "target": "hotpot.cheminfo.mol_assemble.fragment.*",
-      "local": "*",
-      "rule": "wildcard_package_export",
-      "stage": "Stage8E"
-    },
-    {
-      "path": "hotpot/cheminfo/mol_assemble/__init__.py",
-      "line": 17,
-      "scope": "",
-      "target": "hotpot.cheminfo.mol_assemble.assembler.*",
-      "local": "*",
-      "rule": "wildcard_package_export",
-      "stage": "Stage8E"
-    },
-    {
-      "path": "hotpot/cheminfo/mol_assemble/__init__.py",
-      "line": 18,
-      "scope": "",
-      "target": "hotpot.cheminfo.mol_assemble.action_func.*",
-      "local": "*",
-      "rule": "wildcard_package_export",
-      "stage": "Stage8E"
-    },
-    {
-      "path": "hotpot/cheminfo/mol_assemble/action_func.py",
+      "path": "hotpot/cheminfo/operations/assembly/action_func.py",
       "line": 18,
       "scope": "",
       "target": "hotpot.cheminfo.core.Molecule",
@@ -247,7 +211,7 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/mol_assemble/assembler.py",
+      "path": "hotpot/cheminfo/operations/assembly/assembler.py",
       "line": 30,
       "scope": "",
       "target": "hotpot.cheminfo.core.Atom",
@@ -256,7 +220,7 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/mol_assemble/assembler.py",
+      "path": "hotpot/cheminfo/operations/assembly/assembler.py",
       "line": 30,
       "scope": "",
       "target": "hotpot.cheminfo.core.Molecule",
@@ -265,7 +229,7 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/mol_assemble/fragment.py",
+      "path": "hotpot/cheminfo/operations/assembly/fragment.py",
       "line": 62,
       "scope": "",
       "target": "hotpot.cheminfo.core.Molecule",

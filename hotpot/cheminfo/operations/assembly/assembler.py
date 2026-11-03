@@ -17,25 +17,28 @@ import os
 import os.path as osp
 import json
 import time
-from copy import copy
 from collections import defaultdict
 from typing import Iterable, Literal, Optional, Union
 from itertools import product
 import multiprocessing as mp
+import pickle
+import traceback
+from queue import Empty
+from importlib.resources import files
 
 from tqdm import tqdm
 
-import hotpot.cheminfo as ci
-from hotpot.utils import fmt_print
+from hotpot.cheminfo.operations.io import read_mol
 from hotpot.cheminfo.core import Atom, Molecule
 from hotpot.cheminfo.operations.search import Searcher, Substructure, QueryAtom
-from hotpot.cheminfo.mol_assemble.fragment import Fragment
-from hotpot.cheminfo.mol_assemble.action_func import (
+from .fragment import Fragment
+from .action_func import (
     shoulder_bond_action,
     atom_link_atom_action,
     bond_order_add,
     atom_replace,
-    ring_wedge
+    ring_wedge,
+    _assembly_hydrogen_total,
 )
 
 __all__ = [
@@ -108,27 +111,33 @@ class AlkylGraft(AtomLink):
     def create_alkyl_collection(alkyl_length: Iterable[int]):
         return alkyl_generator(alkyl_length)
 
+def _rooted_carbon_tree(atom, parent=None):
+    return tuple(sorted(
+        _rooted_carbon_tree(neighbour, atom)
+        for neighbour in atom.neighbours if neighbour is not parent
+    ))
+
+
 def alkyl_generator(lengths: Iterable[int]):
     lengths = list(lengths)
-    max_length = max(lengths)
-    alkyl = defaultdict(dict)
-    alkyl[1]['CC'] = ci.read_mol('CC')
-    for i in range(1, max_length):
-        for mol in alkyl[i].values():
-            open_site_atom = [a.idx for a in mol.atoms[1:] if len(a.neighbours) <= 4]
-            for c in open_site_atom:
-                clone = mol.copy()
-                clone.atoms[c].add_atom(6)
-                alkyl[i+1][clone.smiles] = clone
+    carbon = Molecule()
+    carbon.create_atom(atomic_number=6)
+    carbon.calc_implicit_hydrogens()
+    alkyl = {1: {_rooted_carbon_tree(carbon.atoms[0]): carbon}}
+    for length in range(1, max(lengths)):
+        following = {}
+        for mol in alkyl[length].values():
+            for atom in mol.atoms:
+                if len(atom.neighbours) < 4:
+                    clone = mol.copy()
+                    clone.atoms[atom.idx].add_atom(6)
+                    clone.calc_implicit_hydrogens()
+                    following[_rooted_carbon_tree(clone.atoms[0])] = clone
+        alkyl[length + 1] = following
 
     results = defaultdict(list)
-    for i in lengths:
-        for mol in alkyl[i].values():
-            mol.remove_atom(0)
-            results[i].append(
-                AlkylGraft(mol=mol)
-            )
-
+    for length in lengths:
+        results[length].extend(AlkylGraft(mol) for mol in alkyl[length].values())
     return results
 
 
@@ -179,7 +188,7 @@ class AtomReplace(Fragment):
             raise ValueError(f'The element {element} is not supported,'
                              f'choose from {list(self._symbol_to_heavy_cov_bond_order.keys())}')
         super().__init__(
-            mol=ci.read_mol(element),
+            mol=read_mol(element),
             searcher=self._create_searcher(element),
             action_points=[],
             action_func=atom_replace
@@ -206,7 +215,7 @@ class RingWedge(Fragment):
     _sub = Substructure()
     _kw = dict(
         atomic_number={5, 6, 7, 14, 15},
-        two_hydrogen=lambda a: a.implicit_hydrogens >= 2,  # at least two hydrogens
+        two_hydrogen=lambda a: _assembly_hydrogen_total(a) >= 2,
         is_end_heavy_atom=lambda a: len(a.heavy_neighbours) == 1
     )
     _sub.add_atom(QueryAtom(**_kw))
@@ -225,7 +234,7 @@ class MolBatch:
     def __init__(self, iter_smiles: Iterable[Molecule], batch_size: int = 100):
         self.list_smiles = list(iter_smiles)
         self.batch_size = batch_size
-        self._len = (len(self.list_smiles) // self.batch_size) + 1
+        self._len = (len(self.list_smiles) + self.batch_size - 1) // self.batch_size
         self._idx = 0
 
     def __len__(self):
@@ -239,8 +248,7 @@ class MolBatch:
             raise StopIteration
 
     def __iter__(self):
-        for i in range(self._len):
-            yield self.list_smiles[self._idx*self.batch_size:(self._idx+1)*self.batch_size]
+        return self
 
     def refresh(self):
         self._idx = 0
@@ -265,7 +273,7 @@ class AssembleFactory:
         self.max_running = max_running
         self.save_per_step = save_per_step
 
-        if catch_path is not None and not osp.exists(osp.dirname(catch_path)):
+        if catch_path is not None and not osp.isdir(osp.dirname(catch_path) or '.'):
             raise IOError(f'The directory {osp.dirname(catch_path)} is not exist')
         self.catch_path = catch_path
 
@@ -276,49 +284,80 @@ class AssembleFactory:
             return f"Make Molecule({len(results)}) in {epoch} Epoch"
 
     @staticmethod
-    def _make_one(smi, assembler, q: mp.Queue) -> set[str]:
-        q.put(set(assembler.graft(ci.read_mol(smi, fmt='smi'))))
+    def _make_batch(list_smi, list_assembler, q: mp.Queue) -> set[str]:
+        try:
+            results = set(list_smi)
+            for smi, assembler in product(list_smi, list_assembler):
+                results.update(assembler.graft(read_mol(smi, fmt='smi')))
+        except BaseException as error:
+            original_traceback = traceback.format_exc()
+            try:
+                payload = pickle.dumps((error, error.__cause__, error.__context__, error.__suppress_context__))
+            except BaseException as transport_error:
+                q.put(('transport_error', str(transport_error), original_traceback))
+            else:
+                q.put(('error', payload, original_traceback))
+        else:
+            q.put(('ok', results, None))
+        finally:
+            q.close()
+            q.join_thread()
+
+    def _save_results(self, results):
+        if self.catch_path is not None:
+            with open(self.catch_path, 'w') as writer:
+                writer.write('\n'.join(results))
+
+    def _save_failure(self, results, error):
+        try:
+            self._save_results(results)
+        except OSError as save_error:
+            error.add_note(f'Could not persist completed assembly results: {save_error}')
 
     @staticmethod
-    def _make_batch(list_smi, list_assembler, q: mp.Queue) -> set[str]:
-        results = set(list_smi)
-        for smi, assembler in product(list_smi, list_assembler):
-            results.update(assembler.graft(ci.read_mol(smi, fmt='smi')))
-        q.put(results)
+    def _close_worker(process, queue):
+        try:
+            if process.pid is not None:
+                if process.is_alive():
+                    process.terminate()
+                process.join(timeout=5)
+                if process.is_alive():
+                    process.kill()
+                    process.join()
+            process.close()
+        finally:
+            queue.close()
+            queue.join_thread()
 
     def make(self, mol_iter: Iterable[Molecule]):
         results = set(m.smiles for m in mol_iter)
         last_save_num = len(results)
         stop_generation = False
-
-        for epoch in range(self.max_step):
-            list_smi = list(results)
-            total = len(list_smi) * len(self.assembler)
-            p_bar = tqdm(desc=self.get_desc(epoch, results), total=total)
-            for smi, assembler in product(list_smi, self.assembler):
-                results.update(assembler.graft(ci.read_mol(smi, fmt='smi')))
-                p_bar.desc = self.get_desc(epoch, results)
-                p_bar.update()
-
-                if len(results) > self.max_running:
-                    stop_generation = True
+        try:
+            for epoch in range(self.max_step):
+                list_smi = list(results)
+                total = len(list_smi) * len(self.assembler)
+                with tqdm(desc=self.get_desc(epoch, results), total=total) as p_bar:
+                    for smi, assembler in product(list_smi, self.assembler):
+                        results.update(assembler.graft(read_mol(smi, fmt='smi')))
+                        p_bar.set_description(self.get_desc(epoch, results))
+                        p_bar.update()
+                        if self.max_running is not None and len(results) > self.max_running:
+                            stop_generation = True
+                            break
+                        if (
+                            isinstance(self.save_per_step, int) and
+                            self.catch_path is not None and
+                            len(results) - last_save_num >= self.save_per_step
+                        ):
+                            self._save_results(results)
+                            last_save_num = len(results)
+                self._save_results(results)
+                if stop_generation:
                     break
-
-                if (
-                        isinstance(self.save_per_step, int) and
-                        self.catch_path is not None and
-                        len(results) - last_save_num > self.save_per_step
-                ):
-                    with open(self.catch_path, 'w') as writer:
-                        writer.write('\n'.join(results))
-
-            if self.catch_path is not None:
-                with open(self.catch_path, 'w') as writer:
-                    writer.write('\n'.join(results))
-
-            if stop_generation:
-                break
-
+        except BaseException as error:
+            self._save_failure(results, error)
+            raise
         return results
 
     def mp_make(
@@ -328,98 +367,120 @@ class AssembleFactory:
             timeout: int = 1800,
             batch_size: int = 10,
     ):
-        """ Running the Assembler.make in a multiprocessing context. """
+        """Expand new frontiers in owned workers; errors/timeouts fail visibly."""
         if nproc is None:
             nproc = os.cpu_count()
-        stop_generation = False
-
-        mol_iter = list(mol_iter)
-        if isinstance(mol_iter[0], Molecule):
-            results = set(m.smiles for m in mol_iter)
-        else:
-            results = set(mol_iter)
-
+        results = {mol.smiles if isinstance(mol, Molecule) else mol for mol in mol_iter}
         current_results = set()
         last_save_num = len(results)
-        for epoch in range(self.max_step):
-            epoch_smiles = results - current_results
-            current_results = copy(results)
-            _iterator = MolBatch(epoch_smiles, batch_size)
-
-            total = len(_iterator)
-            p_bar = tqdm(desc=self.get_desc(epoch, results), total=total, ncols=100)
-
-            processes = {}
-            time_stop = time.time()
-            while True:
-                # Early stop check
-                if len(results) > self.max_running:
-                    stop_generation = True
-                    break
-
-                # Harvest results
-                if processes:
-                    to_remove = []
-                    for p, (q, t) in processes.items():
-                        try:
-                            results.update(q.get(block=False))
-                            p.terminate()
-                            to_remove.append(p)
-
-                        except mp.queues.Empty:
-                            if timeout and time.time() - t > timeout:
-                                p.terminate()
-                                to_remove.append(p)
-
-                    for p in to_remove:
-                        del processes[p]
-                        p_bar.set_description(self.get_desc(epoch, results))
-                        p_bar.update()
-
-                if (    # Save temporary results
-                        self.catch_path is not None and
-                        isinstance(self.save_per_step, int) and
-                        len(results) - last_save_num > self.save_per_step
-                ):
-                    with open(self.catch_path, 'w') as writer:
-                        writer.write('\n'.join(results))
-                    last_save_num = len(results)
-
-                # Launch new Process
-                if len(processes) < nproc:
+        completed_batches = 0
+        completed_pairs = 0
+        try:
+            for epoch in range(self.max_step):
+                batches = MolBatch(results - current_results, batch_size)
+                iterator = iter(enumerate(batches, 1))
+                current_results = set(results)
+                processes = {}
+                exhausted = False
+                stop_generation = False
+                with tqdm(desc=self.get_desc(epoch, results), total=len(batches), ncols=100) as p_bar:
                     try:
-                        smi_iter = next(_iterator)
-
-                        q = mp.Queue()
-                        p = mp.Process(target=self._make_batch, args=(smi_iter, self.assembler, q))
-                        p.start()
-
-                        processes[p] = (q, time.time())
-
-                    except StopIteration:
-                        if not processes:
-                            fmt_print.bold_magenta(f'Stop MolAssemble in {epoch} Epoch!!')
-                            break
-                        elif time.time() - time_stop > 300:
-                            fmt_print.bold_magenta(f'StopIteration with {len(processes)} running processes!!')
-                            time_stop = time.time()
-
-            # Save results after a whole Epoch
-            if self.catch_path is not None:
-                with open(self.catch_path, 'w') as writer:
-                    writer.write('\n'.join(results))
-
-            # Early stop
-            if stop_generation:
-                fmt_print.bold_magenta(f'Early Stopping with {len(results)} results!!')
-                break
-
+                        while not exhausted or processes:
+                            if self.max_running is not None and len(results) > self.max_running:
+                                stop_generation = True
+                                break
+                            while not exhausted and len(processes) < nproc:
+                                try:
+                                    batch_index, smiles = next(iterator)
+                                except StopIteration:
+                                    exhausted = True
+                                    break
+                                queue = mp.Queue()
+                                process = mp.Process(
+                                    target=self._make_batch,
+                                    args=(smiles, self.assembler, queue),
+                                )
+                                processes[process] = (queue, time.monotonic(), batch_index, smiles)
+                                process.start()
+                            for process, (queue, started, batch_index, smiles) in list(processes.items()):
+                                elapsed = time.monotonic() - started
+                                subject = f'epoch={epoch}, batch={batch_index}, inputs={smiles!r}'
+                                try:
+                                    kind, payload, remote_traceback = queue.get_nowait()
+                                except Empty:
+                                    if process.exitcode is not None:
+                                        # Exit follows the child's queue flush; drain once more
+                                        # if completion arrived after the first empty poll.
+                                        try:
+                                            kind, payload, remote_traceback = queue.get_nowait()
+                                        except Empty:
+                                            raise RuntimeError(
+                                                f'assembly.worker_exit: {subject}, exitcode={process.exitcode}; '
+                                                'worker exited without completion'
+                                            ) from None
+                                    else:
+                                        if timeout and elapsed >= timeout:
+                                            raise TimeoutError(
+                                                f'assembly.batch_timeout: {subject}, timeout={timeout}s, '
+                                                f'elapsed={elapsed:.6f}s, completed_batches={completed_batches}, '
+                                                f'completed_input_assembler_pairs={completed_pairs}, '
+                                                f'known_results={len(results)}'
+                                            )
+                                        continue
+                                if kind == 'error':
+                                    try:
+                                        error, cause, context, suppress_context = pickle.loads(payload)
+                                        error.__cause__ = cause
+                                        error.__context__ = context
+                                        error.__suppress_context__ = suppress_context
+                                    except Exception as transport_error:
+                                        raise RuntimeError(
+                                            f'assembly.error_transport: {subject}\n{remote_traceback}'
+                                        ) from transport_error
+                                    error.add_note(f'Assembly worker {subject}\n{remote_traceback}')
+                                    raise error
+                                if kind == 'transport_error':
+                                    raise RuntimeError(
+                                        f'assembly.error_transport: {subject}: {payload}\n{remote_traceback}'
+                                    )
+                                results.update(payload)
+                                completed_batches += 1
+                                completed_pairs += len(smiles) * len(self.assembler)
+                                process.join(timeout=5)
+                                if process.exitcode != 0:
+                                    raise RuntimeError(
+                                        f'assembly.worker_exit: {subject}, exitcode={process.exitcode}; '
+                                        'worker did not exit normally after completion'
+                                    )
+                                self._close_worker(process, queue)
+                                del processes[process]
+                                p_bar.set_description(self.get_desc(epoch, results))
+                                p_bar.update()
+                            if (
+                                self.catch_path is not None and
+                                isinstance(self.save_per_step, int) and
+                                len(results) - last_save_num >= self.save_per_step
+                            ):
+                                self._save_results(results)
+                                last_save_num = len(results)
+                            if processes:
+                                time.sleep(0.01)
+                    finally:
+                        for process, (queue, _, _, _) in processes.items():
+                            self._close_worker(process, queue)
+                self._save_results(results)
+                if stop_generation:
+                    break
+        except BaseException as error:
+            self._save_failure(results, error)
+            raise
         return results
 
     @classmethod
     def load_default_assembler(cls):
-        """ Load the default assembler stored in `FragTemplete.json` file """
-        return cls.load_assembler_file(osp.join(osp.dirname(osp.abspath(__file__)), "FragTemplete.json"))
+        """Load the packaged canonical assembly definitions."""
+        with files(__package__).joinpath('data/fragment_template.json').open() as reader:
+            return cls.load_assembler_contents(json.load(reader))
 
     @classmethod
     def init_with_default_assembler(
@@ -448,7 +509,8 @@ class AssembleFactory:
 
     @classmethod
     def load_assembler_file(cls, f: Union[str, os.PathLike]) -> list[Fragment]:
-        return cls.load_assembler_contents(json.load(open(f)))
+        with open(f) as reader:
+            return cls.load_assembler_contents(json.load(reader))
 
     @classmethod
     def load_assembler_contents(cls, contents: list[dict]) -> list[Fragment]:
@@ -479,7 +541,7 @@ class AssembleFactory:
             assert len(point) == 1
             assert all(isinstance(p, int) for p in point)
 
-            assembler = RingWedge(ci.read_mol(definition['smiles']), action_points=tuple(point))
+            assembler = RingWedge(read_mol(definition['smiles']), action_points=tuple(point))
             if isinstance(smiles, str):
                 assembler.add_exclude_from_smi(smiles)
 
@@ -496,7 +558,7 @@ class AssembleFactory:
             assert len(point) == 2
             assert all(isinstance(p, int) for p in point)
 
-            assembler = EdgeShoulder(ci.read_mol(definition['smiles']), action_points=tuple(point))
+            assembler = EdgeShoulder(read_mol(definition['smiles']), action_points=tuple(point))
             if isinstance(smiles, str):
                 assembler.add_exclude_from_smi(smiles)
 
@@ -511,7 +573,7 @@ class AssembleFactory:
             assert isinstance(point, list)
             assert len(point) == 1
             assert isinstance(point[0], int)
-            assemblers.append(AtomLink(ci.read_mol(definition['smiles']), tuple(point)))
+            assemblers.append(AtomLink(read_mol(definition['smiles']), tuple(point)))
 
         if smiles := definition.get('ExStrct', None):
             for assembler in assemblers:
@@ -536,7 +598,7 @@ class AssembleFactory:
                 assembler = AtomReplace(ele)
                 assembler.add_exclude_from_smi(smiles)
                 assemblers.append(assembler)
-
+            return assemblers
         else:
             return [AtomReplace(ele) for ele in definition['elements']]
 
@@ -556,8 +618,8 @@ class AssembleFactory:
 if __name__ == '__main__':
     phen_smi = 'n1c(C(=O)N)ccc2c1c3c(cc2)cccn3'
     rw_assembler = RingWedge(
-        ci.read_mol('C1CCCC1'),
+        read_mol('C1CCCC1'),
         action_points=(0,)
     )
 
-    res = rw_assembler.graft(ci.read_mol(phen_smi, fmt='smi'))
+    res = rw_assembler.graft(read_mol(phen_smi, fmt='smi'))

@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "artifact_root": ".plan20-artifacts/20261104/stage8e/assembly",
+  "archive_manifest": {
+    "path": ".plan20-artifacts/20261104/stage8e/assembly/archive-manifest.json",
+    "sha256": "d75e1a71208bf5860ef742a19b56f00882b7ee5b98a9e44a05c371e27896fd58",
+    "verified_files": 2256,
+    "verified_bytes": 61272126,
+    "mismatches": []
+  },
+  "nodes": [
+    {
+      "id": "freeze",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/validation/freeze.json",
+      "bytes": 99870,
+      "sha256": "e6b294bffd7d3b87c269d024bee8c264b7b25a3afd38ed47fb2739ebb18337fc"
+    },
+    {
+      "id": "root_final",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/validation/freeze-root-final.json",
+      "bytes": 155,
+      "sha256": "da494ced0af267be3a6d47adf56505affa4e2c9f3dc1c7a3ef75b3ad2590377f"
+    },
+    {
+      "id": "package_audit",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/validation/wheel-attempt01/root-package-audit.json",
+      "bytes": 1619,
+      "sha256": "876e9ba6321c75a86dcf65aa2d347b9e91576ab55fee417b15bcc37eb87bde57"
+    },
+    {
+      "id": "architecture",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/integration/architecture-final.json",
+      "bytes": 532,
+      "sha256": "8b09a5422e4c424c4a2bd71a8d76a98df78c2b50b05765662fda3024d2ff413b"
+    },
+    {
+      "id": "type_census",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/integration/type-census.json",
+      "bytes": 60445,
+      "sha256": "6744973dceb26812f362d2374966fc0b58acbe4c263040c19088f36e30d03de1"
+    },
+    {
+      "id": "baseline_summary",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/baseline/corrected-attempt02/summary.json",
+      "bytes": 32943,
+      "sha256": "a689ac1282dee2f694907a5484ee280fda4d0f158eb2cd2419baee0b52f82229"
+    },
+    {
+      "id": "baseline_report",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/baseline/corrected-attempt02/report.md",
+      "bytes": 5784,
+      "sha256": "9d850974b296cd366e0f26327341bfa219a731a64c1661df77fe52384ae8cd6f"
+    },
+    {
+      "id": "R1_failure",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/validation/source-focused-attempt01/execution.json",
+      "bytes": 4734,
+      "sha256": "efdcf97112ab8fea03caba16cd2020955702e8192c165df2daff3f31a101fea7"
+    },
+    {
+      "id": "R2_failure",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/validation/source-continuation-attempt02/execution.json",
+      "bytes": 23570,
+      "sha256": "855e6e59572cc7b2e2f8ba1b85080f55e24520b6a7af313e3b6540870bffdf61"
+    },
+    {
+      "id": "oracle_probe",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/validation/nh-characterization01/execution.json",
+      "bytes": 1826,
+      "sha256": "925b4461e9d19a71acffa2b57e0eb915a500bb333690f791d2d5c2a6803e38ff"
+    },
+    {
+      "id": "oracle_correction",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/validation/oracle-correction_R2.json",
+      "bytes": 13111,
+      "sha256": "b9df2064769f604cc6ba4c457794c3fef7e35330d8bf0382abe4b5bdc8385da3"
+    },
+    {
+      "id": "ring_repair",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/aromatic-repair/repair_manifest.json",
+      "bytes": 5887,
+      "sha256": "17c971e273071471b66768e7660a3e4e0c7ece9785ca81fc119ddbaed0c84829"
+    },
+    {
+      "id": "shoulder_repair",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/aromatic-repair/shoulder-seam/manifest.json",
+      "bytes": 5898,
+      "sha256": "0c9db2e4ea144edd4cd5e04779d3e3ef8a9498e382c2a823b6616c1dc9246593"
+    },
+    {
+      "id": "packaging_command_failure",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/validation/wheel-attempt01/packaging-execution.json",
+      "bytes": 751,
+      "sha256": "63f42f6d2c14aa101d2b0a676e179578b56ebc4fee011b5070a8de457675de37"
+    },
+    {
+      "id": "packaging_corrected",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/validation/wheel-attempt01/packaging-execution02.json",
+      "bytes": 755,
+      "sha256": "576ebc371c632d2978acd2717c960de9981e63c2e0ecd4595e877b9b0005e09b"
+    },
+    {
+      "id": "source_focused",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/validation/source-focused-attempt03/execution.json",
+      "bytes": 4735,
+      "sha256": "4f4367bf998c0cb207d92f5cfe932d9ae03d6153882af5ca4f9fc35e615961fb"
+    },
+    {
+      "id": "source_connected",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/validation/source-connected-attempt01/execution.json",
+      "bytes": 5649,
+      "sha256": "2cb39f72ee7510cae0294188800de9c99ce987e249e2a2d8d11078237b8d8287"
+    },
+    {
+      "id": "source_examples",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/validation/source-examples-attempt01/execution.json",
+      "bytes": 4354,
+      "sha256": "28ebdda14875b8fe579398abf0f373fadd951da144415d5dab5fed1d6ee83c71"
+    },
+    {
+      "id": "installed_focused",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/validation/installed-focused-attempt01/execution.json",
+      "bytes": 5627,
+      "sha256": "94ed4222a0d5b4bdd3c4bbb4276e962c11901c2c9a95828c565516a870ab940d"
+    },
+    {
+      "id": "installed_connected",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/validation/installed-connected-attempt01/execution.json",
+      "bytes": 6541,
+      "sha256": "50d03833fe302858c066092a7dc06858c25610ae61763661df187fd4020d89d0"
+    },
+    {
+      "id": "installed_examples",
+      "path": ".plan20-artifacts/20261104/stage8e/assembly/validation/installed-examples-attempt01/execution.json",
+      "bytes": 5248,
+      "sha256": "f73de3dd7df44725c9ef6a0573e3eb9801e5934a116bc152683105b70bd1a885"
+    }
+  ],
+  "edges": [
+    {
+      "from": "R1_failure",
+      "to": "oracle_probe",
+      "relation": "diagnosed_by"
+    },
+    {
+      "from": "oracle_probe",
+      "to": "oracle_correction",
+      "relation": "supports_test_only_correction"
+    },
+    {
+      "from": "R2_failure",
+      "to": "ring_repair",
+      "relation": "repaired_by"
+    },
+    {
+      "from": "ring_repair",
+      "to": "shoulder_repair",
+      "relation": "connected_seam_checked_and_repaired"
+    },
+    {
+      "from": "freeze",
+      "to": "root_final",
+      "relation": "binds"
+    },
+    {
+      "from": "freeze",
+      "to": "source_focused",
+      "relation": "binds"
+    },
+    {
+      "from": "freeze",
+      "to": "source_connected",
+      "relation": "binds"
+    },
+    {
+      "from": "freeze",
+      "to": "source_examples",
+      "relation": "binds"
+    },
+    {
+      "from": "freeze",
+      "to": "installed_focused",
+      "relation": "binds"
+    },
+    {
+      "from": "freeze",
+      "to": "installed_connected",
+      "relation": "binds"
+    },
+    {
+      "from": "freeze",
+      "to": "installed_examples",
+      "relation": "binds"
+    },
+    {
+      "from": "freeze",
+      "to": "package_audit",
+      "relation": "binds"
+    },
+    {
+      "from": "packaging_command_failure",
+      "to": "packaging_corrected",
+      "relation": "root_command_typo_corrected"
+    }
+  ],
+  "read_order": [
+    "checkpoint.json",
+    "report.md",
+    "select individual graph node or archive manifest as needed"
+  ],
+  "limits": "Paths/identities attribute evidence; business assertions and observed facts establish chemistry. No historical hash equality is a chemical success criterion."
+}

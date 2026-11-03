@@ -1,6 +1,6 @@
 import os
 import hotpot as hp
-from hotpot.cheminfo.mol_assemble import AssembleFactory
+from hotpot.cheminfo.operations.assembly import AssembleFactory
 
 
 if __name__ == '__main__':

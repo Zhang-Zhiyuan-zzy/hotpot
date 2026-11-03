@@ -1,0 +1,216 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8E",
+  "date": "2026-11-04",
+  "source_parent": "1f348a2b7912955d70198a91c24e33e388a6d301",
+  "status": "ROOT_ACCEPTED_STAGE8E_CP311_ASSEMBLY",
+  "stage_gate_closed": true,
+  "global_gate_closed": false,
+  "root_acceptance": {
+    "scope": "Canonical assembly ownership/public/resources, declared local reaction facts, factory behavior and source/installed CP311 gates",
+    "basis": "Root reviewed actual source, source/installed observations, R1/R2 failures and local corrections, final frozen bytes, wheel/native/resource identities and exact affected selections."
+  },
+  "freeze": {
+    "sha256": "e6b294bffd7d3b87c269d024bee8c264b7b25a3afd38ed47fb2739ebb18337fc",
+    "bindings": 549,
+    "product_paths": 528,
+    "native_files_frozen": 33,
+    "accepted_CP311_binaries_reused_unchanged": 6,
+    "all_final_mismatches": []
+  },
+  "results": {
+    "source": {
+      "focused": {
+        "returncode": 0,
+        "elapsed_seconds": 5.728067312389612,
+        "junit": {
+          "tests": 95,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 95
+        },
+        "origin_receipts": 56,
+        "origin_leaks": [],
+        "evidence": "source_focused"
+      },
+      "connected": {
+        "returncode": 0,
+        "elapsed_seconds": 8.624413775280118,
+        "junit": {
+          "tests": 286,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 286
+        },
+        "origin_receipts": 10,
+        "origin_leaks": [],
+        "evidence": "source_connected"
+      },
+      "examples": {
+        "returncode": 0,
+        "elapsed_seconds": 0.978792006149888,
+        "junit": {
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 2
+        },
+        "origin_receipts": 1,
+        "origin_leaks": [],
+        "evidence": "source_examples"
+      }
+    },
+    "installed": {
+      "focused": {
+        "returncode": 0,
+        "elapsed_seconds": 5.89306722022593,
+        "junit": {
+          "tests": 95,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 95
+        },
+        "origin_receipts": 56,
+        "origin_leaks": [],
+        "evidence": "installed_focused"
+      },
+      "connected": {
+        "returncode": 0,
+        "elapsed_seconds": 8.92808517627418,
+        "junit": {
+          "tests": 286,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 286
+        },
+        "origin_receipts": 10,
+        "origin_leaks": [],
+        "evidence": "installed_connected"
+      },
+      "examples": {
+        "returncode": 0,
+        "elapsed_seconds": 1.0125836841762066,
+        "junit": {
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 2
+        },
+        "origin_receipts": 1,
+        "origin_leaks": [],
+        "evidence": "installed_examples"
+      }
+    }
+  },
+  "selection_reconciliation": {
+    "focused_ordered_nodeids_equal": true,
+    "connected_ordered_nodeids_equal": true,
+    "documentation_function_names_equal": true,
+    "documentation_nodeid_limit": "Source nodeids omit support/ prefix; both execute the same frozen support and five verbatim Python fences plus six-method JSON schema.",
+    "passed_each_boundary": 383,
+    "skipped_each_boundary": 0,
+    "fresh_R3_evidence_not_R1_R2_pass_reuse": true
+  },
+  "business_observations": {
+    "methanol": "Nine coherent inferred/user/OB/RDKit/partial-full graph-H representations yield site-total H3/1, charge0/0 and one C–O SINGLE bond; original inputs/source-H retained. Real serial/parallel factory and graft routes pass.",
+    "increments": "Ethane→ethene→ethyne yields H3/3→2/2→1/1 at bond orders1→2→3.",
+    "replacement": "C→N methane gives NH3; terminal C→O ethane gives methanol, with unrelated sites retained.",
+    "shoulder": "Butane central edge/ethene gives C4H8; benzene/ethene replacement retains six aromatic atoms/bonds and H1 each. Raw outside dative orientation/metadata/constraint2.5/id23 preserved.",
+    "ring": "Ethane/cyclopropane gives C4H8 with retained parent Atom/source/isotope and site H1; aromatic scaffold yields toluene with retained isotope13 and adopted flag surviving H recalculation.",
+    "alkyl": "Rooted attachment counts1,1,2,4 at n1–4 and capped CnH(2n+2), without an extra anchor carbon.",
+    "failure_atomicity": "Five actions rollback on RuntimeError/KeyboardInterrupt; isotope ambiguity and affected stereo reject locally. Worker timeout/error/abrupt-exit/start-failure/cap/interrupt cleanup preserves independent children and original errors."
+  },
+  "package": {
+    "wheel": "/tmp/hotpot_plan20/long/stage8e-entry-20261104/validation/wheel-attempt01/dist/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+    "bytes": 6393130,
+    "sha256": "f36f11f4fc70aef6dfd44528ac0e12cea71df33f1d5212da9961bf445b6c126e",
+    "product_members": 866,
+    "obsolete_members": [],
+    "native_members": {
+      "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-311-x86_64-linux-gnu.so": "a3a4590e9b77a491293077c70caa6d0f46361ee0a2035fc91f849cc107236911",
+      "hotpot/cheminfo/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so": "97acdb9652fa491cd3e2634a176519dd7dd87a5951fd99dda8ae6e72491a0c68",
+      "hotpot/cheminfo/graph/_graph_native.cpython-311-x86_64-linux-gnu.so": "477db3a9d2f315b655b0245802da0209089fb6dc85db8256f740acb27658c471",
+      "hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so": "c74d2e46ba8481c486548f8c4889b0f859abd5ec9532919fe8447871e81e16c7",
+      "hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so": "50a30f51e5d02ecfc22b107321a4fce8a37ce5c8df6c7829b9a8dadd789019d8",
+      "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "42d0fd9edf3f3601cdc74008e7c6484e3ebc3351139119e42b32575ea0e8fb91"
+    },
+    "six_native_match_accepted_CP311": true,
+    "assembly_asset": {
+      "rows": 26,
+      "sha256": "0ac6a05cd76c06d3a918bccf7c59acd053315c1b8629754153ad4b7185f08d52"
+    },
+    "assembly_document_resources_present": true,
+    "separate_CCDC_statistics_retained": true,
+    "source_product_mismatches": [],
+    "limits": "Private prebuilt-copy CP311 wheel; no native compilation/SDK/sdist/other-version acceptance."
+  },
+  "architecture": {
+    "status": "passed",
+    "scanned_python_files": 995,
+    "remaining_debt": 175,
+    "new_debt": 0
+  },
+  "type_delta": {
+    "before": {
+      "python_files": 492,
+      "classes": 771,
+      "dataclasses": 355,
+      "protocols": 8,
+      "typed_dicts": 2
+    },
+    "after": {
+      "python_files": 491,
+      "classes": 770,
+      "dataclasses": 355,
+      "protocols": 8,
+      "typed_dicts": 2
+    },
+    "new_classes": 0,
+    "new_durable_carrier_fields": 0,
+    "retired": "Incomplete chemistry ComplexStatistics only; independent CCDC implementation retained.",
+    "protocol_qualification": "Historical bare-base census8; four unchanged parameterized Protocols additionally exist."
+  },
+  "retained_failures": [
+    {
+      "id": "FREEZE_SUBSET_CHECKER",
+      "disposition": "Compared6acceptedCP311 paths with33all-version files; checker subset corrected, no new-version acceptance."
+    },
+    {
+      "id": "R1_NH_ORACLE",
+      "actual": "44passed/1failed",
+      "disposition": "Actual RDKit no_implicit=False preserved; only failed test oracle corrected."
+    },
+    {
+      "id": "R2_AROMATIC_RING",
+      "actual": "2passed/1failed",
+      "disposition": "Genuine ring/connected shoulder adopted-flag loss; explicit new-product flag commit only at participating changed sites; actual after/rollback probes and fresh R3 suite pass."
+    },
+    {
+      "id": "RING_PROBE_PRINT",
+      "disposition": "Original before probe wrote trace then failed its final print; retained separately."
+    },
+    {
+      "id": "PACKAGING_ARGV",
+      "disposition": "Root-supplied combined taskset option rejected before Python; original logs retained, corrected separate argv exits0."
+    }
+  ],
+  "P20_D024": "CLOSED_WITHIN_DECLARED_ACTION_AND_CP311_SOURCE_INSTALLED_SCOPE",
+  "P20_D026": "OPEN; no generic H export/materialization normalization claim",
+  "cost": "Observed full selected source and installed runs complete within seconds; not a paired benchmark or global performance claim.",
+  "remaining": [
+    "P20-D026 global H export/materialization semantics and its owning review",
+    "Stage9 residual carrier science/query extraction followed by sole-class physical hard cut",
+    "Clean full-native/ABI/SDK/sdist delivery and other Python versions",
+    "Final representative science/performance/corpus and four-GPU evidence",
+    "Stage11 separately governed command/data work and Stage12 final hardening",
+    "Stage0–12 main-scope B_exp, then separately gated Stage13A/B"
+  ],
+  "evidence_graph": "evidence_graph.json",
+  "git_delivery": "Containing coherent Stage8E business commit; exact delivery is Git history, not a predeclared future hash."
+}

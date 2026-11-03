@@ -131,6 +131,7 @@ all = [
 include-package-data = true
 
 [tool.setuptools.package-data]
+"hotpot.cheminfo.operations.assembly" = ["*.md", "*.svg", "data/*.json"]
 "hotpot.cheminfo.operations.inference" = ["*.md"]
 "hotpot.cheminfo.operations.inference.artifacts" = [
     "data/mca/*.json", "data/mca/*.md", "data/cbond/*.json", "data/cbond/*.md",

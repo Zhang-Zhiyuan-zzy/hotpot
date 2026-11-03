@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8E",
+  "date": "2026-11-04",
+  "parent_head": "1f348a2b7912955d70198a91c24e33e388a6d301",
+  "status": "ENTERED_BASELINE_CHARACTERIZATION_RELEASED",
+  "predecessor": "../inference/validation/d2-d3/checkpoint.json",
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "documents": {
+    "plan/20_fact_rule_architecture/goal.md": "76bccaac0a87a331f816f5a264461d192ab5afbb2daa6dfee48ea33f5f7fdbed",
+    "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md": "af46ebf85eca7beeff69d09ce6ab96c626f20f6bf1a6ac5225a3f615f53a5f8a",
+    "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md": "feb7337c68a5d2790e006db9ecb667d218eb1d27e9a8cf08d1b9bbd14486940a",
+    "plan/20_fact_rule_architecture/data_object_scope_audit.md": "c6ef2c74aaa6ffd2c43e552884c5863e2285e9cf9a2f6b90609c6d417d6cd3f9",
+    "plan/20_fact_rule_architecture/chemical_type_interface_contract.md": "0c21630964e264e1f4e03f3b5938787cddbfacceb2616dd51b547d93686642bf",
+    "plan/21_metal_cluster/metal_cluster_implementation_plan.md": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d",
+    "plan/20_fact_rule_architecture/stages/stage01/assets/review.md": "fdd77c56e65f7c50e4be63ba5ce6ae503a48e6103848a5d376e5a91658f0902e",
+    "plan/20_fact_rule_architecture/stages/stage05/hydrogen-defaults/decisions.md": "9645dfa50c55870d94b09831a0c2b34609fb52be4c6a4be53c9beb5cd7954f7f",
+    "plan/20_fact_rule_architecture/stages/stage07/canonical-stereo/contracts/decisions.md": "a712c5d0b631d61cfa5cdae0012cdc7049057ea3a6bae343c9eb121606ee02a0",
+    "plan/20_fact_rule_architecture/stages/stage08/inference/validation/d2-d3/checkpoint.json": "be47cdf42b4500d16eefb2e0acbdd22c8530ef14fe0b3cedc45cb49a7d202043"
+  },
+  "alignment": "Current goal, main9.2/Stage8E/Decision20/11-12, existing approved Stage5 H conventions, Stage7E canonical storage, Stage1 assembly assets, current source and both focused preentry inventories. Unchanged global approved scope/accepted predecessor evidence reused; current goal governs evidence/priority.",
+  "design": "contracts/decisions.md",
+  "scope": "One assembly workflow owner; exact explicit exports/default resources; transformation-owned H and atomicity; concrete factory/document defects; remove incomplete chemistry statistics only.",
+  "release": "Read-only baseline characterization of actual assembly/H outcomes and selected existing defects; implementation waits for recorded concrete action decisions. No generic H normalization, new random mode, trained-feature change or compatibility package.",
+  "preentry_evidence": [
+    "/tmp/hotpot_plan20/long/stage8e-preentry-20261104",
+    "/tmp/hotpot_plan20/long/stage8e-h-semantics-preentry-20261104"
+  ],
+  "remaining": [
+    "Baseline reaction/explicit-H/source/current transport evidence and exact action decisions",
+    "Connected assembly migration/atomic H consumption and P20-D024 closure",
+    "Factory/loader/generator/document/resource actual behavior",
+    "Affected source/installed/default resource/examples/export/rollback evidence",
+    "WholeStage8E delivery and broader/global gates"
+  ]
+}

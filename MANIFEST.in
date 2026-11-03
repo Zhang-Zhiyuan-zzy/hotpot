@@ -1,5 +1,6 @@
 include LICENSE
 include README.md
+recursive-include hotpot/cheminfo/operations/assembly *.json *.md *.svg
 include hotpot/__version__.py
 recursive-include hotpot/ds *.md
 recursive-include hotpot/ds *.json

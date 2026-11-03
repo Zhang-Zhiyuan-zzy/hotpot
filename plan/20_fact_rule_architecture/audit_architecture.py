@@ -2,7 +2,7 @@
 """Ratcheted source checks for the incremental Plan20 migration.
 
 The frozen inventory is discovery evidence. The shrinking allowlist records
-remaining debt. Fixed Stage7A–8D relocations carry their original
+remaining debt. Fixed Stage7A–8E relocations carry their original
 import slots; new ownership packages otherwise have no inherited exceptions. Runtime ownership,
 buffer isolation and native ABI tests remain separate gates.
 """
@@ -147,6 +147,21 @@ INFERENCE_CORE_IMPORT_TRANSFERS = tuple(
     for name, local in bindings
 )
 
+# Stage8E carries exactly the four assembly bindings until the Stage9 carrier
+# cutover. Four wildcard-export debts retire; no new core slot is introduced.
+ASSEMBLY_CORE_IMPORT_TRANSFERS = tuple(
+    (
+        {"rule": "legacy_core_import", "path": f"hotpot/cheminfo/mol_assemble/{file}",
+         "scope": "", "target": f"hotpot.cheminfo.core.{name}", "local": name},
+        {"rule": "legacy_core_import", "path": f"hotpot/cheminfo/operations/assembly/{file}",
+         "scope": "", "target": f"hotpot.cheminfo.core.{name}", "local": name},
+    )
+    for file, names in (("action_func.py", ("Molecule",)),
+                        ("fragment.py", ("Molecule",)),
+                        ("assembler.py", ("Atom", "Molecule")))
+    for name in names
+)
+
 CORE_IMPORT_TRANSFERS = (
     (CORE_IMPORT_SOURCE, CORE_IMPORT_DESTINATION),
     *SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS,
@@ -154,6 +169,7 @@ CORE_IMPORT_TRANSFERS = (
     (COMMAND_CORE_IMPORT_SOURCE, COMMAND_CORE_IMPORT_DESTINATION),
     *SEARCH_CORE_IMPORT_TRANSFERS,
     *INFERENCE_CORE_IMPORT_TRANSFERS,
+    *ASSEMBLY_CORE_IMPORT_TRANSFERS,
 )
 # These declared numerical values initialize their own coordinate fields; they
 # do not receive a live carrier to edit. Keep path, class, method, field and

@@ -1,5 +1,17 @@
 # Stage7A decisions and release register
 
+
+## Current business checkpoint — 2026-11-03
+
+The owner's current direction prioritizes chemical semantics, acceptable performance, then multi-version adaptation, with CP311 first. The pending goal_v2 draft is not active. Stage7A remains **IN_PROGRESS** and Stage7B **PREENTRY**; old SDF adverse data and unresolved native-memory/global work remain recorded without treating the old parity or full-validator chain as a universal precondition for business progress.
+
+The committed multi-record reader correction intentionally supersedes S7A-A10's one-record text preservation: SMI/MOL2/SDF text, bytes and supported streams now yield every valid record; read_mol still requests the first. Its owning20/connected58 CP311 passes and intermediate failures are recorded in the validation report. No other old preservation decision is implicitly changed.
+
+Subsequent real core-workflow checks produce22final CP311 passes:3FF,5official xTB,4MCA API,3CBond/FF/xTB pipeline,4explicitly fake-backend context and3MCA attachment tests. One initial failed pipeline test is retained; only its two method-specific UHF assertions were corrected to match the existing charge-only GFN-FF and GFN2 contracts. [The bounded report](../../../../cp311_core_workflow_validation_20261103.md) owns observations and limits. These results establish no new wheel, general scientific, performance, memory or stage/global acceptance. H-count normalization and OB isotope/stereo preservation remain open connected work.
+
+Earlier “current” checkpoints below retain their original dated source and evidence scope; they do not describe the current post-reader-fix source or automatically close remaining gates.
+
+
 ## Current validated checkpoint — Task100/102/104, 2026-11-02T08:57:16.574254+00:00
 
 Stage7A remains **IN_PROGRESS**; Stage7B remains **PREENTRY**. Current technical and bounded functional evidence is accepted. Complete SDF performance remains **FIX_REQUIRED** and native-memory sufficiency remains **OPEN**. No stage/global or scientific gate closes.

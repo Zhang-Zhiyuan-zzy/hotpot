@@ -185,9 +185,9 @@ def test_official_controlled_coordination_pipeline(
     assert all(
         report["charge"] == 2 for report in xtb_reports
     )
-    assert all(
-        report["unpaired_electrons"] == 0
-        for report in xtb_reports
+    # GFN-FF's charge-only projection has no backend UHF value.
+    assert [report["unpaired_electrons"] for report in xtb_reports] == (
+        [None, 0] if include_gfnff else [0]
     )
     assert all(
         _quality_passed(stage["report"]["post_check"][0])
@@ -252,10 +252,7 @@ def test_official_readme_europium_pipeline(tmp_path: Path) -> None:
     assert all(
         report["charge"] == 3 for report in xtb_reports
     )
-    assert all(
-        report["unpaired_electrons"] == 0
-        for report in xtb_reports
-    )
+    assert [report["unpaired_electrons"] for report in xtb_reports] == [None, 0]
     assert all(
         _quality_passed(stage["report"]["post_check"][0])
         for stage in xtb_stages

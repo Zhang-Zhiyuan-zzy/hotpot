@@ -454,3 +454,10 @@ Direct before-repair CCO+[NH4+] reproduction returned1text/2path records, with S
 Old Task506 was intentionally cancelled to prioritize this business repair: exact session22400 reportedRC130 and became unavailable, retaining214completed wrapper records. The old supervisor did not publish its terminal/convergence receipt. This is partial evidence, not707completion or acceptance. No restart and no new agent dispatch.
 
 Business inspection also exposed core gaps: the frozen ethanol SMI output is `[C][C][O]` (implicit H omitted), while input stereo/isotope facts were already empty before RD export for the relevant fixtures. These require explicit semantic repair, not acceptance by old-output equality. H export is the next bounded code issue; the existing connected Stage7E canonical/source transport responsibility remains for isotope/stereo. Stage7A remains IN_PROGRESS; no stage/global gate closes. Historical SDF adverse data remains recorded and is not relabeled as parity.
+
+
+## 2026-11-03 — Actual CP311 core workflows and method-specific UHF regression
+
+The root independently executed current-source real FF, official xTB, MCA API/attachment and three CBond→FF→[GFN-FF]→GFN2 scenarios:22final tests passed, including4fake-backend context tests explicitly distinguished from real calculations. An initial one-test failure is preserved: the complete Zn chain succeeded, but its test incorrectly required UHF0 for GFN-FF's existing charge-only projection. Two assertion bodies now require None for GFN-FF and0 for the selected GFN2 cases; production/scientific algorithms and other checks remain.
+
+The maintained [CP311 report](../../../../cp311_core_workflow_validation_20261103.md) provides the business mapping, observed energies, exact-command evidence index and remaining H/isotope/stereo/installation/scientific limitations. Raw results are under /tmp/hotpot_plan20/long/stage7a-cp311-core-workflows-20261103/. This does not close Stage7A or later/global gates; goal_v2 remains a pending draft.

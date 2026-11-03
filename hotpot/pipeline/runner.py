@@ -148,6 +148,7 @@ def _successful_stage_document(
     return {
         "argv": context.spec.argv,
         "artifacts": artifacts,
+        "break_pipeline": result.break_pipeline,
         "directory": committed_directory.relative_to(
             context.run_directory
         ).as_posix(),
@@ -369,7 +370,10 @@ def run_pipeline(
         stage_results.append(result)
         current_payload = result.payload
         is_final_stage = index == len(specs) - 1
-        if result.status is StageStatus.QUALITY_FAILED and is_final_stage:
+        if result.break_pipeline or (
+            result.status is StageStatus.QUALITY_FAILED
+            and (is_final_stage or not result.payload.records)
+        ):
             _write_json_atomic(
                 manifest_path,
                 _run_document(

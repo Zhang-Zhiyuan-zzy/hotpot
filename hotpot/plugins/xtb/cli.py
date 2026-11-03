@@ -30,7 +30,6 @@ from .contracts import (
     XTBTask,
 )
 from .stream import (
-    XTBStreamError,
     XTBStreamMetadata,
     XTBStreamRecord,
     metadata_from_report,
@@ -38,6 +37,7 @@ from .stream import (
     write_sdf_records,
 )
 from .state_resolution import resolve_xtb_state
+from .stage import _XTB_FAILURE_CODES, _UNAVAILABLE_CHECK_NAMES
 from .workflow import run_gfn_xtb, run_gfnff
 
 
@@ -111,6 +111,7 @@ class _Outcome:
     native_stderr: str
     error_type: Optional[str] = None
     error_message: Optional[str] = None
+    error_code: Optional[str] = None
 
 
 def load_cli_documentation() -> str:
@@ -270,10 +271,7 @@ def _read_records(
         )
 
     if input_format == "sdf":
-        try:
-            stream_records = read_sdf_records(content)
-        except XTBStreamError as error:
-            raise _CLIUsageError(str(error)) from error
+        stream_records = read_sdf_records(content)
         return tuple(
             _InputRecord(index, record.mol, record.metadata)
             for index, record in enumerate(stream_records)
@@ -281,7 +279,7 @@ def _read_records(
 
     try:
         molecules = tuple(MolReader(content, fmt=input_format))
-    except (OSError, RuntimeError, ValueError) as error:
+    except OSError as error:
         raise _CLIUsageError(f"could not read molecular input: {error}") from error
     if not molecules:
         raise _CLIUsageError("molecular input did not contain any records")
@@ -408,9 +406,9 @@ def _run_xtb_record(
 def _post_check(mol: Molecule, level: str) -> Optional[object]:
     if level == "off":
         return None
-    from hotpot.cheminfo.operations.forcefields import evaluate_structure_acceptance
+    from hotpot.cheminfo.operations.forcefields.acceptance import _evaluate_geometry_acceptance
 
-    return evaluate_structure_acceptance(mol, level=level)
+    return _evaluate_geometry_acceptance(mol, level=level)
 
 
 def _serialize_record(
@@ -435,6 +433,24 @@ def _process_work_item(item: _WorkItem) -> _Outcome:
     try:
         report = _run_xtb_record(record, item.options)
         quality_report = _post_check(record.mol, item.options.post_check)
+        unavailable = () if quality_report is None else tuple(
+            check for check in quality_report.checks
+            if not check.passed and check.name in _UNAVAILABLE_CHECK_NAMES
+        )
+        if unavailable:
+            check = unavailable[0]
+            return _Outcome(
+                index=record.index,
+                status="error",
+                payload=None,
+                report=report,
+                quality_report=quality_report,
+                native_stdout=report.stdout,
+                native_stderr=report.stderr,
+                error_type="AcceptanceCheck",
+                error_message=check.message,
+                error_code=f"XTB:{check.name}",
+            )
         status = (
             "quality-failed"
             if quality_report is not None and not quality_report.passed
@@ -454,8 +470,10 @@ def _process_work_item(item: _WorkItem) -> _Outcome:
             native_stdout=report.stdout,
             native_stderr=report.stderr,
         )
-    except (XTBError, XTBStreamError, _CLIUsageError, ValueError) as error:
-        report = _error_report(error) if isinstance(error, XTBError) else None
+    except XTBError as error:
+        if error.sample_failure_code not in _XTB_FAILURE_CODES:
+            raise
+        report = _error_report(error)
         native_stdout = "" if report is None else report.stdout
         native_stderr = "" if report is None else report.stderr
         message = str(error)
@@ -471,6 +489,7 @@ def _process_work_item(item: _WorkItem) -> _Outcome:
             native_stderr=native_stderr,
             error_type=type(error).__name__,
             error_message=message,
+            error_code=error.sample_failure_code,
         )
 
 
@@ -523,6 +542,7 @@ def _report_payload(outcomes: Sequence[_Outcome]) -> str:
             result["error"] = {
                 "type": outcome.error_type,
                 "message": outcome.error_message,
+                "code": outcome.error_code,
             }
         results.append(result)
     return json.dumps(
@@ -607,7 +627,7 @@ def run(args: argparse.Namespace) -> int:
                 f"profile {args.post_check!r} failed; the structure was emitted",
                 file=sys.stderr,
             )
-    return 0 if all(outcome.status == "ok" for outcome in outcomes) else 1
+    return 0 if all(outcome.payload is not None for outcome in outcomes) else 1
 
 
 def build_parser() -> argparse.ArgumentParser:

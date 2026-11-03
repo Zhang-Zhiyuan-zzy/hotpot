@@ -171,15 +171,9 @@ def _execute_workflow(
 
         coordinates_committed = False
         if task is XTBTask.OPTIMIZE:
-            try:
-                with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["xtb"]):
-                    _check_source(mol, source)
-                    commit_xtb_coordinates(mol, result)
-            except XTBInputError as error:
-                raise XTBResultError(
-                    f"Validated xTB coordinates could not be committed: {error}",
-                    report,
-                ) from error
+            with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["xtb"]):
+                _check_source(mol, source)
+                commit_xtb_coordinates(mol, result)
             coordinates_committed = True
         return replace(
             report,

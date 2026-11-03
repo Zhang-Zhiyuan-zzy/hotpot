@@ -74,7 +74,7 @@ caller may provide `initial_payload=MolecularPayload(...)`.
 | `MolecularRecord(molecule, scientific_state=None)` | One molecule and its optional attributable scientific-state bundle. |
 | `MolecularPayload(records)` | Ordered records passed between stages. |
 | `StageContext` | Run directory, private temporary stage directory, index, and specification. |
-| `StageResult` | Stage status, output payload, verified artifacts, structured report, and stderr. |
+| `StageResult` | Stage status, output payload, verified artifacts, structured report, stderr, and expected `break_pipeline` control. |
 | `PipelineRunResult` | Terminal status, payload, result root, ordered stage results, and optional failed-stage index. |
 | `MolecularStage.prepare(spec)` | Parse a stage specification without executing it. |
 | `PreparedMolecularStage.execute(payload, context)` | Execute a prepared operation without reparsing its options. |
@@ -102,15 +102,40 @@ results/run-001/
 
 `manifest.json` records ordered argv, payload lineage, elapsed time, relative
 artifact paths, SHA-256 digests, reports, and terminal status. `final.sdf` is
-created only when every stage succeeds.
+created only when the workflow reaches its successful terminal boundary.
 
 An invalid definition fails during preflight without creating the result root.
 An execution failure persists the current stage with a `.failed` suffix,
 prevents downstream execution, and raises `PipelineExecutionError` through the
-Python API. A finite scientific quality failure retains its inspectable stage
-output and is recorded as an intermediate warning when another stage follows.
-A quality failure at the final acceptance boundary returns
-`PipelineStatus.FAILED` and does not create `final.sdf`.
+Python API. FF/xTB isolate only known sample unavailability; surviving samples
+continue. Finite non-hard findings retain their observations and original method
+reports by default, including warning checks. A nonempty surviving FF/xTB cohort
+returns `SUCCEEDED`, with failures disclosed in its counts.
+
+Each FF/xTB report records `sample_outcomes_version=1`, counts for every input,
+attempt, output, unavailable sample, sample break and unattempted sample, and one
+ordered row per input. Rows join inputs to outputs by `input_index` and nullable
+`output_index`; `report_index` joins actual method reports. Findings use exact
+`FF:<check.name>` or `XTB:<check.name>` codes. Adjacent persisted FF/xTB edges
+preserve positional attribution for equal-content molecules. The cohort anchor
+is nonempty initial input or persisted CBond output/rank; arbitrary unrecorded
+reordering or generating stages do not acquire automatic lineage.
+
+FF/xTB accept repeatable `--sample-break-on CODE` and `--batch-break-on CODE` with
+exact parser choices and no default breaks. A sample break removes the current
+finite sample from downstream input and saves it at the row's `observation_path`
+(`observations/NNNN.sdf`). A batch break takes precedence, retains the current
+finite output, stops further attempts, and records remaining inputs as
+`not-attempted`. Unavailable values never become molecular outputs. Missing
+required FF metrics may retain a defined geometry as an observation artifact.
+
+A batch break or empty `QUALITY_FAILED` result stops the pipeline at that stage
+after normal evidence persistence. The Python API returns `PipelineStatus.FAILED`
+with the retained stage payload/report and failed-stage index, without creating
+`final.sdf`. Other stages' intermediate nonempty `QUALITY_FAILED` results may
+continue; a final quality failure also returns `FAILED`. These explicit per-code
+flags belong to controlled stages; standalone FF/xTB commands retain their
+existing scheduling without those flags.
 
 ## Adding a stage
 

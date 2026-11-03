@@ -65,10 +65,32 @@ results/eu-001/
 ```
 
 The manifest records stage argv, relative artifact paths, SHA-256 digests and
-the input/output molecular-payload lineage. A finite scientific quality failure
-is retained as an intermediate warning when another stage follows. A quality
-failure at the final acceptance boundary returns nonzero and does not create
-`final.sdf`.
+the input/output molecular-payload lineage. FF/xTB reports preserve complete
+per-input counts and ordered `sample_outcomes` rows, including local failures
+and unattempted rows. Finite non-hard findings keep the selected output and
+method diagnostics by default; known unavailability removes only that sample.
+A nonempty surviving FF/xTB cohort succeeds even with those findings or local
+failures. An empty failed cohort stops before a later generating stage.
+
+FF/xTB stage arguments accept repeatable exact-code `--sample-break-on CODE`
+and `--batch-break-on CODE`, both empty by default. For example:
+
+```bash
+$ hotpot run --results-dir results/controlled -- \
+    cbond Eu 'O=C(O)C' \
+    :: ff --rebuild --sample-break-on FF:atom_too_close \
+    :: xtb --method gfn2 --batch-break-on XTB-NATIVE-EXECUTION
+```
+
+A sample break saves its finite observation at the row's `observation_path`
+(`observations/NNNN.sdf`) and omits that sample downstream. A batch break wins
+when both scopes match, retains the current defined output, stops later samples
+and stages, and records remaining rows as `not-attempted`. An unavailable result
+remains unavailable under either scope. A batch break, an empty failed output,
+or a final quality failure returns nonzero after persistence and does not create
+`final.sdf`. Other stages' intermediate nonempty quality failures may continue.
+These break flags belong to controlled stages, not standalone `hotpot ff` or
+`hotpot xtb`.
 
 The controller returns `0` only when the complete workflow succeeds, `1` for an
 execution or scientific-quality failure, and `2` for an invalid definition or

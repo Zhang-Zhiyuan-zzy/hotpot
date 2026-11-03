@@ -68,11 +68,13 @@ def _require_complete_explicit_atoms(mol: Molecule) -> None:
         if atom.implicit_hydrogens and (
             explicit_hydrogen_count != atom.implicit_hydrogens
         ):
-            raise XTBInputError(
+            error = XTBInputError(
                 f"Atom {atom.idx} ({atom.symbol}) stores "
                 f"{atom.implicit_hydrogens} implicit hydrogens but has "
                 f"{explicit_hydrogen_count} explicit hydrogen atoms"
             )
+            error.sample_failure_code = "XTB-EXPLICIT-H-REQUIRED"
+            raise error
 
 
 def _write_xyz(geometry: XTBGeometry, path: Path) -> None:
@@ -310,7 +312,11 @@ def molecule_to_xtb_geometry(mol: Molecule) -> XTBGeometry:
             for atom in mol.atoms
         ),
     )
-    _validate_geometry(geometry)
+    try:
+        _validate_geometry(geometry)
+    except XTBInputError as error:
+        error.sample_failure_code = "XTB-INPUT-GEOMETRY"
+        raise
     return geometry
 
 

@@ -19,13 +19,8 @@ from hotpot._cli import MarkdownDocumentationAction
 from hotpot.cheminfo.operations.io import MolReader
 
 from hotpot.cheminfo.operations.forcefields import (
-    BuildWorkerError,
-    ComplexBuildError,
-    ComplexBuildWorkerError,
     ConvergenceLevel,
     ForceFieldError,
-    ForceFieldSetupError,
-    GeometryQualityError,
     auto_optimize,
     build3d,
     build_and_optimize,
@@ -39,6 +34,10 @@ from hotpot.cheminfo.operations.forcefields.stage import (
     ForceFieldRouteOptions,
     execute_forcefield_route,
     json_value,
+    forcefield_error_evidence,
+    _ForceFieldRequestError,
+    _KNOWN_SAMPLE_FAILURE_CODES,
+    _UNAVAILABLE_CHECK_NAMES,
 )
 
 
@@ -349,52 +348,25 @@ def _run_forcefield(
         optimize_complex=optimize_complex,
         optimize=optimize,
     )
-    try:
-        return execute_forcefield_route(
-            mol,
-            options,
-            trajectory_path=trajectory_path,
-            operations=operations,
-        )
-    except ValueError as error:
-        raise _CLIUsageError(str(error)) from error
+    return execute_forcefield_route(
+        mol,
+        options,
+        trajectory_path=trajectory_path,
+        operations=operations,
+    )
 
 
 def _normalize_molecule_payload(text: str) -> str:
     return text.rstrip("\n") + "\n"
 
 
-def _forcefield_error_evidence(error: ForceFieldError) -> dict[str, object]:
-    evidence: dict[str, object] = {}
-    if isinstance(error, ForceFieldSetupError) and error.report is not None:
-        evidence["setup_report"] = error.report
-    if isinstance(error, ForceFieldSetupError) and error.diagnostics is not None:
-        evidence["build_diagnostics"] = error.diagnostics
-    if isinstance(error, GeometryQualityError) and error.report is not None:
-        evidence["quality_report"] = error.report
-    if (
-        isinstance(error, (BuildWorkerError, ComplexBuildError))
-        and error.diagnostics is not None
-    ):
-        evidence["build_diagnostics"] = error.diagnostics
-    if isinstance(error, (BuildWorkerError, ComplexBuildWorkerError)):
-        evidence["worker_error"] = {
-            "type": error.error_type,
-            "message": error.error_message,
-            "traceback": error.worker_traceback,
-        }
-    if error.trajectory is not None:
-        evidence["trajectory_available"] = True
-    if error.ligand_build_attempts:
-        evidence["ligand_build_attempt_count"] = len(error.ligand_build_attempts)
-    return evidence
-
-
 def _process_work_item(item: _WorkItem) -> _Outcome:
     record = item.record
     try:
         report = _run_forcefield(record.mol, item.options, item.trajectory_path)
-    except _CLIUsageError as error:
+    except _ForceFieldRequestError as error:
+        if error.sample_failure_code not in _KNOWN_SAMPLE_FAILURE_CODES:
+            raise
         return _Outcome(
             index=record.index,
             source=record.source,
@@ -404,8 +376,11 @@ def _process_work_item(item: _WorkItem) -> _Outcome:
             report=None,
             error_type="InputError",
             error_message=str(error),
+            error_evidence={"code": error.sample_failure_code},
         )
     except ForceFieldError as error:
+        if error.sample_failure_code not in _KNOWN_SAMPLE_FAILURE_CODES:
+            raise
         return _Outcome(
             index=record.index,
             source=record.source,
@@ -415,10 +390,30 @@ def _process_work_item(item: _WorkItem) -> _Outcome:
             report=None,
             error_type=type(error).__name__,
             error_message=str(error),
-            error_evidence=_forcefield_error_evidence(error),
+            error_evidence={
+                "code": error.sample_failure_code,
+                **forcefield_error_evidence(error),
+            },
         )
 
     quality_report = report.quality_report
+    unavailable = tuple(
+        check for check in quality_report.checks
+        if not check.passed and check.name in _UNAVAILABLE_CHECK_NAMES
+    )
+    if unavailable:
+        check = unavailable[0]
+        return _Outcome(
+            index=record.index,
+            source=record.source,
+            source_record_index=record.source_record_index,
+            status="error",
+            payload=None,
+            report=report,
+            error_type="AcceptanceCheck",
+            error_message=check.message,
+            error_evidence={"code": f"FF:{check.name}"},
+        )
     status = "ok" if quality_report.passed else "quality-failed"
     payload = _normalize_molecule_payload(
         record.mol.write(fmt=item.output_format, write_single=True)
@@ -609,7 +604,7 @@ def run(args: argparse.Namespace) -> int:
                 + (f"; see {args.report}" if args.report else ""),
                 file=sys.stderr,
             )
-    return 0 if all(outcome.status == "ok" for outcome in outcomes) else 1
+    return 0 if all(outcome.payload is not None for outcome in outcomes) else 1
 
 
 def build_parser() -> argparse.ArgumentParser:

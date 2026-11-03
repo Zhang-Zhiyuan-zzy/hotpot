@@ -129,7 +129,13 @@ commits coordinates.
 `XTBRunReport` separates process success, xTB convergence, parsed energy,
 coordinate commit, scientific-state identity, retained artifacts, and backend
 identity. Failures are explicit subclasses of `XTBError`; methods are never
-silently substituted.
+silently substituted. Standalone batch execution continues only for exact known
+sample-failure codes, preserves ordered reports, and exits 1 for unavailable
+results. Unknown errors and stream/commit/provenance integrity failures propagate.
+Optional post-checks apply geometry rules without FF evidence; finite non-hard
+findings keep both molecular output and their diagnostics and allow exit 0.
+Per-code sample/batch break flags are available on controlled pipeline stages,
+not on the standalone command.
 
 ## Internal ownership
 

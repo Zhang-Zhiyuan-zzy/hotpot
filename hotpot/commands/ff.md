@@ -159,9 +159,11 @@ Output order follows input order, independently of worker completion order.
 threads. Each worker needs its own molecule and force-field state, so memory
 and CPU use rise with the selected job count.
 
-If any batch member fails, successful structures remain in the ordered output,
-the failed member contributes no optimized structure, and the process exits
-with status 1. Use `--report` to retain per-input status and diagnostics.
+A known unavailable sample contributes no optimized structure; independent
+samples continue in input order and the command exits with status 1. Use
+`--report` to retain every input and its diagnostics, including the exact local
+failure code. Unknown execution errors propagate and abort aggregation; parallel
+workers already running are not promised cancellation.
 
 ## Workflow selection
 
@@ -215,10 +217,13 @@ consume every permitted step.
 | `standard` | Apply the normal predefined validation profile. This is the default. |
 | `strict` | Apply the most restrictive predefined validation profile. |
 
-The profile affects final acceptance, not the molecular output format. A
-returned structure that fails the requested profile causes exit status 1 and
-is identified in `--report`. A hard build or optimization failure emits no
-optimized structure for that input.
+The profile affects diagnostics and required-result checks. A finite structure
+with non-hard geometry, convergence, or stability findings remains output and
+keeps its `quality-failed` diagnostic in `--report`; the finding alone leaves
+exit status 0. Failed required coordinate, topology, or finite FF metric checks
+make that sample unavailable: its report remains, its exact `FF:<check.name>`
+code is recorded, and no optimized molecule is emitted for it. A known hard
+build or optimization failure also emits no optimized structure for that input.
 
 ## Reproducibility and limits
 
@@ -296,7 +301,10 @@ finite JSON values; unavailable measurements are represented as `null`, never
 as `NaN` or `Infinity`. Any atom indices present in reports or trajectory
 evidence use Hotpot's zero-based indexing. Known force-field failures retain
 available typed setup, quality, build, worker, and trajectory-presence evidence
-under the corresponding result's `error.evidence` object.
+under the corresponding result's `error.evidence` object, with its precise
+`code`. The existing report schema remains version 1. A returned report that
+fails a required-result check is retained under `forcefield_report`, alongside
+its exact check code.
 
 ## Output streams and exit status
 
@@ -306,15 +314,18 @@ under the corresponding result's `error.evidence` object.
   output and leaves standard output empty.
 - A hard-failed input produces no optimized structure. Requested trajectory
   evidence may still remain on disk for diagnosis.
-- A structure that fails the selected quality profile is still emitted for
-  inspection, while a concise warning is written to standard error.
-- Exit status `0` means every returned structure passed the requested quality
-  profile.
-- Exit status `1` means a known force-field failure occurred or at least one
-  returned structure failed the requested quality profile.
+- A finite structure with non-hard profile findings is emitted for inspection,
+  with its original checks and a concise warning on standard error.
+- Exit status `0` means every input produced a usable structure, including
+  structures with non-hard findings.
+- Exit status `1` means at least one known sample result was unavailable.
 - Exit status `2` means command-line parsing or invocation validation failed.
 - Unexpected program errors remain nonzero failures and are not converted to
   empty successful results.
+
+Per-code `--sample-break-on CODE` and `--batch-break-on CODE` belong to
+controlled `hotpot run` FF/xTB stages. They are not standalone `hotpot ff` flags;
+see the [controlled pipeline guide](../pipeline/cli_doc.md).
 
 ## Option summary
 

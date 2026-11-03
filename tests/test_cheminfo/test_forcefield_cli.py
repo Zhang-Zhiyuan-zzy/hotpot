@@ -15,21 +15,18 @@ from hotpot.cheminfo.operations.forcefields import (
     ForceFieldError,
     ForceFieldSetupError,
     ForceFieldSetupReport,
+    AcceptanceCheck,
+    ForceFieldValidationReport,
     TrajectoryStart,
 )
 from hotpot.cheminfo.operations.forcefields.stage import ForceFieldRouteOptions
 
 
 @dataclass(frozen=True)
-class _QualityReport:
-    passed: bool
-
-
-@dataclass(frozen=True)
 class _Report:
     requested_forcefield: str | None
     effective_forcefield: str
-    quality_report: _QualityReport
+    quality_report: ForceFieldValidationReport
     trajectory: object | None = None
 
 
@@ -52,7 +49,10 @@ class _Molecule:
 
 
 def _report(*, passed: bool = True) -> _Report:
-    return _Report(None, "UFF", _QualityReport(passed))
+    checks = (AcceptanceCheck("finite_coordinates", True),)
+    if not passed:
+        checks += (AcceptanceCheck("atom_too_close", False, measured=0.1, threshold=0.5),)
+    return _Report(None, "UFF", ForceFieldValidationReport("standard", passed, checks))
 
 
 def _install_reader(monkeypatch, molecules):
@@ -743,7 +743,7 @@ def test_known_forcefield_error_is_nonzero_without_fake_payload(
     _install_reader(monkeypatch, [mol])
 
     def fail(*args, **kwargs):
-        raise ForceFieldError("backend did not produce usable coordinates")
+        raise ForceFieldSetupError("backend did not produce usable coordinates")
 
     monkeypatch.setattr(cli, "build_and_optimize", fail)
 
@@ -751,7 +751,7 @@ def test_known_forcefield_error_is_nonzero_without_fake_payload(
 
     captured = capsys.readouterr()
     assert captured.out == ""
-    assert "ForceFieldError" in captured.err
+    assert "ForceFieldSetupError" in captured.err
     assert "backend did not produce usable coordinates" in captured.err
     assert mol.write_calls == []
 
@@ -767,7 +767,7 @@ def test_failed_overwrite_does_not_leave_stale_structure(
     output_path.write_text("old structure\n", encoding="utf-8")
 
     def fail(*args, **kwargs):
-        raise ForceFieldError("optimization failed")
+        raise ForceFieldSetupError("optimization failed")
 
     monkeypatch.setattr(cli, "build_and_optimize", fail)
 
@@ -810,6 +810,7 @@ def test_forcefield_error_report_preserves_typed_evidence(
     report = json.loads(report_path.read_text(encoding="utf-8"))
     error = report["results"][0]["error"]
     assert error["type"] == "ForceFieldSetupError"
+    assert error["evidence"]["code"] == "FF-SETUP-UNAVAILABLE"
     assert error["evidence"]["setup_report"] == {
         "effective_forcefield": "GAFF",
         "requested_forcefield": "GAFF",
@@ -821,7 +822,7 @@ def test_forcefield_error_report_preserves_typed_evidence(
     assert error["evidence"]["build_diagnostics"]["elapsed_seconds"] == 0.25
 
 
-def test_quality_failure_returns_payload_and_nonzero(monkeypatch, capsys):
+def test_nonhard_quality_failure_returns_payload_and_exit_zero(monkeypatch, capsys):
     mol = _Molecule("inspectable")
     _install_reader(monkeypatch, [mol])
     monkeypatch.setattr(
@@ -830,7 +831,7 @@ def test_quality_failure_returns_payload_and_nonzero(monkeypatch, capsys):
         lambda *args, **kwargs: _report(passed=False),
     )
 
-    assert cli.main(["CN"]) == 1
+    assert cli.main(["CN"]) == 0
 
     captured = capsys.readouterr()
     assert captured.out == "mol2:inspectable\n"
@@ -919,3 +920,89 @@ def test_help_is_available_without_molecular_input(capsys):
     output = capsys.readouterr().out
     assert "usage: hotpot ff" in output
     assert "--optimize-only" in output
+
+
+@pytest.mark.parametrize("error_type", (ValueError, ForceFieldError, RuntimeError))
+def test_unknown_execution_errors_propagate_same_object_without_next_sample(monkeypatch, error_type):
+    molecules = [_Molecule("first"), _Molecule("middle"), _Molecule("last")]
+    _install_reader(monkeypatch, molecules)
+    error = error_type("backend did not produce usable coordinates")
+    calls = []
+
+    def run(molecule, *args, **kwargs):
+        calls.append(molecule.name)
+        if molecule.name == "middle":
+            raise error
+        return _report()
+
+    monkeypatch.setattr(cli, "build_and_optimize", run)
+    with pytest.raises(error_type) as caught:
+        cli.main(["records.smi"])
+    assert caught.value is error
+    assert calls == ["first", "middle"]
+
+
+def test_known_middle_setup_rejection_keeps_order_reports_and_trailing_output(monkeypatch, tmp_path, capsys):
+    molecules = [_Molecule("first"), _Molecule("middle"), _Molecule("last")]
+    _install_reader(monkeypatch, molecules)
+    calls = []
+
+    def run(molecule, *args, **kwargs):
+        calls.append(molecule.name)
+        if molecule.name == "middle":
+            raise ForceFieldSetupError("backend did not produce usable coordinates")
+        return _report()
+
+    monkeypatch.setattr(cli, "build_and_optimize", run)
+    report_path = tmp_path / "mixed.json"
+    assert cli.main(["records.smi", "--report", str(report_path)]) == 1
+    assert calls == ["first", "middle", "last"]
+    assert capsys.readouterr().out == "mol2:first\nmol2:last\n"
+    document = json.loads(report_path.read_text())
+    assert document["schema_version"] == 1
+    rows = document["results"]
+    assert [row["index"] for row in rows] == [0, 1, 2]
+    assert [row["status"] for row in rows] == ["ok", "error", "ok"]
+    assert rows[1]["error"]["evidence"]["code"] == "FF-SETUP-UNAVAILABLE"
+    assert molecules[1].write_calls == []
+
+
+def test_only_coded_route_request_is_input_error_with_exact_code(monkeypatch, tmp_path, capsys):
+    _install_reader(monkeypatch, [_Molecule("flat")])
+    report_path = tmp_path / "request.json"
+    assert cli.main(["CN", "--optimize-only", "--report", str(report_path)]) == 1
+    assert capsys.readouterr().out == ""
+    error = json.loads(report_path.read_text())["results"][0]["error"]
+    assert error["type"] == "InputError"
+    assert error["evidence"]["code"] == "FF-REQUEST-COORDINATES"
+
+
+@pytest.mark.parametrize("name", ("finite_final_energy", "finite_coordinates", "topology_atom_identity"))
+def test_required_result_failure_preserves_report_code_and_emits_no_molecule(monkeypatch, tmp_path, capsys, name):
+    mol = _Molecule("unavailable")
+    _install_reader(monkeypatch, [mol])
+    quality = ForceFieldValidationReport("strict", False, (
+        AcceptanceCheck(name, False, measured=None, threshold="required", message="required result unavailable"),
+    ))
+    monkeypatch.setattr(cli, "build_and_optimize", lambda *args, **kwargs: _Report(None, "UFF", quality))
+    report_path = tmp_path / "hard.json"
+    assert cli.main(["CN", "--report", str(report_path)]) == 1
+    assert capsys.readouterr().out == ""
+    assert mol.write_calls == []
+    row = json.loads(report_path.read_text())["results"][0]
+    assert row["status"] == "error"
+    assert row["error"]["evidence"]["code"] == f"FF:{name}"
+    assert row["forcefield_report"]["quality_report"]["checks"][0]["name"] == name
+
+
+def test_finite_findings_preserve_failed_checks_in_report_while_exit_zero(monkeypatch, tmp_path, capsys):
+    mol = _Molecule("observation")
+    _install_reader(monkeypatch, [mol])
+    monkeypatch.setattr(cli, "build_and_optimize", lambda *args, **kwargs: _report(passed=False))
+    report_path = tmp_path / "observation.json"
+    assert cli.main(["CN", "--report", str(report_path)]) == 0
+    assert capsys.readouterr().out == "mol2:observation\n"
+    row = json.loads(report_path.read_text())["results"][0]
+    assert row["status"] == "quality-failed"
+    assert row["forcefield_report"]["quality_report"]["passed"] is False
+    assert row["forcefield_report"]["quality_report"]["checks"][1]["name"] == "atom_too_close"

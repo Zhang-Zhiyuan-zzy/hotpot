@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8B/B4",
+  "date": "2026-11-04",
+  "status": "ROOT_ACCEPTED_B4_CP311_FINDING_CONTROL_AND_SAMPLE_CONTAINMENT",
+  "source_commit": "9ac9680f8c950ebfad7ed76013e8d33dacc9724a",
+  "predecessor": "validation/b3d/checkpoint.json",
+  "design": "contracts/decisions.md#b4--accepted-failure-and-sample-control-boundary",
+  "entry_inputs": "/tmp/hotpot_plan20/long/stage8b-b4-20261104/entry-inputs.json",
+  "runtime_released": true,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "connected_design": "contracts/decisions.md#b4-connected-authoring--complete-sample-reports-and-explicit-control",
+  "standalone_design": "contracts/decisions.md#b4-standalone-continuation-contract",
+  "authoring_partitions": {
+    "sample_adapters": [
+      "hotpot/cheminfo/operations/forcefields/stage.py",
+      "hotpot/plugins/xtb/stage.py",
+      "tests/test_pipeline/test_builtin_stages.py",
+      "tests/test_pipeline/test_sample_containment.py"
+    ],
+    "pipeline_geometry_producers": [
+      "hotpot/pipeline/contracts.py",
+      "hotpot/pipeline/runner.py",
+      "hotpot/cheminfo/operations/forcefields/acceptance.py",
+      "hotpot/plugins/xtb/adapter.py",
+      "hotpot/plugins/xtb/state_resolution.py"
+    ],
+    "standalone_commands": [
+      "hotpot/commands/ff.py",
+      "hotpot/plugins/xtb/cli.py",
+      "tests/test_cheminfo/test_forcefield_cli.py",
+      "tests/test_cli/test_xtb_cli.py",
+      "hotpot/commands/ff.md",
+      "hotpot/plugins/xtb/cli_doc.md",
+      "hotpot/plugins/xtb/README.md",
+      "hotpot/pipeline/README.md",
+      "hotpot/pipeline/cli_doc.md"
+    ],
+    "shared_sample_helpers": [
+      "hotpot/pipeline/_sample_control.py"
+    ]
+  },
+  "runtime_release_time": "2026-11-04T01:13:45.134321+08:00",
+  "static_review": "/tmp/hotpot_plan20/long/stage8b-b4-20261104/root-static-review.json",
+  "source_freeze": {
+    "path": ".plan20-artifacts/20261104/stage8b/b4/raw/source-freeze-b4-attempt02.json",
+    "bytes": 191372,
+    "sha256": "d0b3850e0bd5c961d2064ee1dc9da14f57f3406d0fdca2367c995f725bb579e7"
+  },
+  "release_scope": "Frozen CP311 focused/affected source+installed, existing actual3 official pipeline and actual mixed FF/xTB. Unchanged B3a native and B3d MCA evidence rebound. All source/test authors stopped; no unrelated runtime or stage acceptance.",
+  "retained_failure": {
+    "attempt": "attempt01",
+    "focused_passed": 269,
+    "full_passed": 1407,
+    "full_failed": 1,
+    "full_skipped": 2,
+    "reason": "Three newly added legacy core.Molecule imports in test source; fix via current public export, no auditor waiver.",
+    "path": "/tmp/hotpot_plan20/long/stage8b-b4-20261104/validation-preparation/attempt01"
+  },
+  "checkpoint": "validation/b4/checkpoint.json"
+}

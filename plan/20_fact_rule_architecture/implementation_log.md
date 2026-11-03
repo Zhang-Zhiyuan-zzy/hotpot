@@ -5636,3 +5636,168 @@ fixture and actual observations remain attributable. B4 controls/sample
 containment, full Stage8B scientific/standalone/FF benchmarks, clean delivery,
 other versions and later/global gates stay open. This coherent business change
 will be committed and pushed before the next implementation slice.
+
+
+## 2026-11-04 — B4 known-failure boundary entry
+
+B3d is committed and pushed as9ac9680. Root aligns effective goal, focused main
+Stage8B/Sections2,11–12, integrated Plan12 and HARD-012, actual pushed source,
+predecessor B3d records, and the read-only local discovery against the remaining
+B4 requirement. Both governance references remain current; focused ongoing reads
+follow owner direction. Generic pipeline redesign remains out of scope.
+
+Root records the known-failure identity/transport design before authoring: only
+actual named bounded producers attach sample_failure_code, unknown/protocol/
+source/provenance/commit failures remain fatal, and worker transport preserves
+actual diagnostics. Removing xTB commit-integrity reclassification prevents later
+record containment from swallowing it. No algorithm, threshold, trained feature,
+retry or fallback changes. Local Sol/medium owns the first exclusive code/tests
+partition; connected adapter/report/denominator policy must be recorded before
+its dependent authoring. Candidate runtime stays HOLD. B4/whole Stage8B/global
+remain open. Entry bindings: /tmp/hotpot_plan20/long/stage8b-b4-20261104/entry-inputs.json.
+
+
+### 2026-11-04 — Stage8B B4 observed ligand failure-identity correction
+
+At9ac9680 with the first B4 identity partition uncommitted/runtime HOLD, root
+inspected ligand candidate/refinement catches and the actual backend/ring-repair
+producers. Both broad ForceFieldError catches can hide an unknown failure, then
+emit named exhaustion or return an earlier candidate. The accepted B4 decision
+now narrows those two existing recovery catches to ForceFieldSetupError; all
+other errors propagate unchanged. Setup attempts/fallback, diagnostics, scientific
+algorithms and budgets remain. A bounded local Sol/medium correction owns ligand.py
+and its identity tests. Static authoring only; runtime remains HOLD pending root
+review/freeze. No new stage, generic pipeline redesign or gate closure. The
+owner's Terra/Luna mechanical-task option is already in model_allocation.md at
+HEAD and requires no separate policy-only commit.
+
+
+### 2026-11-04 — Stage8B B4 connected contract recorded before authoring
+
+Root inspected current FF/xTB loops, acceptance names/producers, strict xTB
+post-check, actual generic persistence/status loop and positional lineage discovery.
+The B4 decision now fixes complete per-input reports/counts, exact known causes,
+finite-observation defaults, explicit per-code sample/batch breaks, method-specific
+xTB geometry reuse and the minimal existing-runner exhausted/break predicate.
+It appends one default-false StageResult control field without a new engine,
+MolecularRecord ID or ordinary success schema. Typed science unavailability and
+existing xTB input geometry/H checks are named only at their actual producer;
+commit/provenance/unknown failures remain fatal. Existing FF FAST scientific
+fallback and all numerical thresholds/budgets remain. The planned disjoint local
+Sol/medium authoring partitions and later bounded CLI migration are recorded;
+root owns integration/freeze/runtime release/acceptance. Static authoring only;
+no candidate execution or gate closure yet.
+
+
+### 2026-11-04 — Stage8B B4 standalone boundary settled
+
+Root inspected actual standalone work-item catches and report/exit assembly.
+The B4 standalone contract now removes unknown-error-as-local classification,
+reuses canonical known-code/error evidence, preserves usable finite profile
+findings with exit0, and retains existing known unavailable error outcomes/exit1
+and initial invocation errors/exit2. Required-result failures remain unavailable.
+Parallel scheduling and user-facing molecular values stay within current owners;
+per-code break flags initially belong to controlled stages. The exclusive CLI
+slice will follow adapter authoring; runtime remains HOLD. A validation-preparation
+spawn encountered the local thread cap; no duplicate agent/retry was started.
+Root continues useful integration preparation within the available slots.
+
+
+### 2026-11-04 — Stage8B B4 root adapter integration corrections
+
+Static root review found xTB unnecessarily importing the full FF stage for
+shared sample-report helpers, plus a needless custom argparse Action/new
+catch-all. The recorded correction moves only generic adapter helpers to private
+pipeline/_sample_control.py, keeps domain codes at their stage owners, uses
+standard argparse append and existing explicit exception boundaries, and links
+retained observation artifacts by relative path. Finite geometry for missing FF
+metrics is retained separately from an unavailable calculation. No candidate
+runtime has occurred; first authoring receipts remain historical evidence.
+
+
+### 2026-11-04 — Stage8B/B4 root standalone integration review
+
+Continued the existing B4 authorization at9ac9680 (no new stage entry). Reviewed
+current failure producers/worker transport, ligand setup-only recovery, xTB
+commit rollback boundary, pipeline persistence/control, geometry-only acceptance,
+complete positional reports and the connected CLI/tests/docs. All authors stopped
+before runtime. The CLI review identified a remaining non-SDF xTB input-reader
+catch translating arbitrary RuntimeError/ValueError into usage errors. Recorded
+the bounded correction in the owning decisions before authoring: retain OSError
+I/O handling and explicit invocation checks; propagate unknown reader exceptions.
+The existing local Sol/medium CLI writer owns that correction/tests. Preparation
+now selects10focused/81affected files plus actual3official pipeline cases and two
+real mixed cohorts; actual runtime, source freeze and B4 acceptance remain pending.
+Terra/Luna mechanical-task option is already maintained in model_allocation.md;
+no policy-only commit or claim of measured token savings is added.
+
+
+### 2026-11-04 — Stage8B/B4 frozen CP311 runtime release
+
+All local B4 source/test authors have stopped. Root's final AST/in-memory compile
+of25changed/new Python files and directed git diff --check pass; CLI non-SDF
+unknown-reader correction is reviewed. Root releases the prepared10-file focused,
+81-file affected source/installed CP311 selections, existing actual3official
+pipeline cases and real three-input mixed FF/xTB cohorts under the new B4 source
+freeze. Six accepted unchanged B3a natives and unchanged B3d MCA evidence must
+rebind; no redundant MCA inference, new native build, all-version, cost or whole
+Stage8B acceptance is claimed. Exact commands/results and original failures will
+be retained under /tmp/hotpot_plan20/long/stage8b-b4-20261104 before the coherent
+business delivery. Runtime release is authorization, not a result or acceptance.
+
+
+### 2026-11-04 — Stage8B/B4 attempt01 retained architecture failure
+
+Frozen source ea5067f3c4ee1fe2d0b286369f213d159be7649e1adcbe89d390ce35725aec82:
+prepared run_validation.py --root-runtime-released --source-freeze
+/tmp/hotpot_plan20/long/stage8b-b4-20261104/source-freeze-b4-attempt01.json
+--attempt attempt01 --tier all executed source focused269passed and affected
+1407passed/1failed/2skipped (1410nodes). The actual sole failure was
+structure/test_architecture.py::test_repository_architecture_ratchet. Direct
+static auditor --base-ref9ac9680 reported exactly3new legacy_core_import debts
+from the newly authored geometry/FF/xTB identity tests to core.Molecule; other
+layer/carrier/allowlist findings are empty. All1482frozen input hashes remained
+unchanged. No actual-scientific, packaging/installed or later tier ran.
+Root authorizes only those3test imports to use the existing public Hotpot Molecule
+export. No checker/baseline/allowlist change and no scientific/production change.
+Original commands, stdout/JUnit, diagnosis and frozen source remain in
+validation-preparation/attempt01. A separate freeze/attempt is required after
+this concrete correction; original failure is not overwritten or counted passed.
+
+
+### 2026-11-04 — Stage8B/B4 accepted CP311 delivery
+
+After the three test-only public-import corrections, root froze source as
+source-freeze-b4-attempt02.json SHA256
+d0b3850e0bd5c961d2064ee1dc9da14f57f3406d0fdca2367c995f725bb579e7
+at parent9ac9680. The released command used /tmp/hotpot-plan20-env/bin/python -B
+validation-preparation/run_validation.py --root-runtime-released --source-freeze
+<that freeze> --attempt attempt02 --tier all. Exact expanded per-command argv,
+cwd/environment/timing/origins are archived. Source/installed each269focused,
+1408affected passed/2scientific skips (1410matching orderednodes) and3actual
+official pipelines pass. Two real mixed cohorts at each boundary retain3original
+inputs/2outputs, middle FF-REQUEST-COORDINATES or XTB-STATE-UNAVAILABLE rejection,
+trailing actual native success, unchanged molecular identity/connectivity/charge
+and finite attributed values. UFF water energy is0.0005569760368136714kJ/mol;
+GFN2 water is-5.06371396hartree. Eu numerical variation remains recorded.
+
+Root accepted B4 after reviewing actual observations, unknown versus local causes,
+rollback, report/count/control semantics, stored finite observations, pipeline
+persistence and standalone outputs/exits. Fresh478Python-body wheel and outside
+installation pass; sixunchanged B3a natives/126native sources and unchanged B3d
+MCA evidence are rebound, no C++build or redundant inference.41unchanged packaging
+omissions remain P20-D008. Attempt01 failure is retained, no checker waiver.
+Archive .plan20-artifacts/20261104/stage8b/b4 has5977files/60113591bytes plus its
+manifest; raw pytest-produced scientific/native files survive work-directory
+exclusion. Maintained validation/b4 records index exact commands, both freezes,
+root review, original failure, current source/installed data and wheel. Final
+record updates follow validation and do not alter validated business/test bytes.
+Whole Stage8B O0/standalone/FF cost, Stage8C onward and integrated Plan12/global
+acceptance remain open. This coherent business checkpoint is ready for normal
+Git commit/push; it is not overall completion.
+
+Final staged diff checking additionally covered newly tracked files and exposed
+one extra blank EOF line in pipeline/_sample_control.py. Root removed only that
+blank line, proved identical AST including locations and identical module bytecode,
+and recorded old/new hashes in the B4 checkpoint. Runtime evidence and the tested
+wheel retain their original attribution; no semantic edit or redundant rerun.

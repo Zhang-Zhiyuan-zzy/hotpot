@@ -86,8 +86,31 @@ $ hotpot xtb input.sdf --charge 0 --post-check standard --report checked.json \
     -o checked.sdf
 ```
 
-Available profiles are `off`, `basic`, `standard`, and `strict`. A failed gate
-returns a nonzero status but still emits the inspectable molecular structure.
+Available profiles are `off`, `basic`, `standard`, and `strict`. These checks
+reuse Hotpot's geometry rules, without requiring an FF report or inventing FF
+diagnostics for xTB. Finite non-hard findings retain the inspectable molecular
+structure and the original `quality-failed` diagnostic report, with exit status
+0 when every input remains usable. Failed required Cartesian-frame checks emit
+no molecule for that sample, retain the native and quality reports with the exact
+`XTB:<check.name>` code, and make the command exit 1.
+
+## Failure and exit behavior
+
+Known input/state/domain, native-process, and required-result unavailability
+remains local to its sample. Later independent samples run, output order follows
+input order, and the ordered JSON report retains every input. The existing
+schema version 2 adds an exact `error.code`; native reports and logs retain
+available process/artifact evidence. The command exits 1 if any known sample
+result is unavailable, 0 if all inputs yield usable results including non-hard
+findings, and 2 for invalid invocation or input paths.
+
+Unknown execution errors, molecular stream/provenance mismatches, and commit
+integrity errors propagate rather than becoming local sample outcomes. Existing
+parallel scheduling does not promise to cancel already-running calculations.
+
+Per-code `--sample-break-on CODE` and `--batch-break-on CODE` belong to controlled
+`hotpot run` FF/xTB stages. Standalone `hotpot xtb` does not accept those flags;
+see the [controlled pipeline guide](../../pipeline/cli_doc.md).
 
 ## Method applicability
 

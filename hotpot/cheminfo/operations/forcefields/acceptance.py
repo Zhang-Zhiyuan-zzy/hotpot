@@ -298,8 +298,9 @@ def _evaluate_structure_acceptance(
     forcefield_report: Optional[ForceFieldAcceptanceEvidence] = None,
     forcefield_stage: ForceFieldStage = "final",
     thresholds: Optional[StructureAcceptanceThresholds] = None,
+    include_forcefield_checks: bool = True,
 ) -> ForceFieldValidationReport:
-    """Apply chemistry and force-field acceptance policy to geometry facts."""
+    """Apply chemistry and optional force-field policy to geometry facts."""
     if level not in ("off", "basic", "standard", "strict"):
         raise ValueError(f"Unknown structure acceptance level: {level!r}")
     if forcefield_stage not in ("candidate", "final"):
@@ -317,12 +318,13 @@ def _evaluate_structure_acceptance(
 
     if topology_reference is not None:
         checks.extend(_topology_checks(mol, topology_reference))
-    checks.extend(acceptance_rules._forcefield_acceptance_checks(
-        forcefield_report,
-        level,
-        limits,
-        forcefield_stage,
-    ))
+    if include_forcefield_checks:
+        checks.extend(acceptance_rules._forcefield_acceptance_checks(
+            forcefield_report,
+            level,
+            limits,
+            forcefield_stage,
+        ))
 
     if not finite_ok:
         passed = acceptance_rules._acceptance_checks_pass(checks)
@@ -412,6 +414,29 @@ def evaluate_structure_acceptance_at_native_checkpoint(
     )
 
 
+def _scan_bond_ring_acceptance_facts(mol: "Molecule") -> _BondRingAcceptanceFacts:
+    return _geometry_bond_ring_acceptance_facts(
+        geometry_adapter.screen_bond_ring_relations(
+            mol,
+            ring_scope="ligand_skeleton",
+            max_ring_size=_BOND_RING_MAX_SIZE,
+        )
+    )
+
+
+def _evaluate_geometry_acceptance(
+    mol: "Molecule", *, level: AcceptanceLevel,
+) -> ForceFieldValidationReport:
+    """Evaluate geometry without requiring diagnostics from a force field."""
+    return _evaluate_structure_acceptance(
+        mol,
+        bond_ring_facts_provider=lambda: _scan_bond_ring_acceptance_facts(mol),
+        consume_bond_ring_report=level in ("standard", "strict"),
+        level=level,
+        include_forcefield_checks=False,
+    )
+
+
 def evaluate_structure_acceptance(
     mol: "Molecule",
     *,
@@ -422,18 +447,9 @@ def evaluate_structure_acceptance(
     thresholds: Optional[StructureAcceptanceThresholds] = None,
 ) -> ForceFieldValidationReport:
     """Apply chemistry and force-field acceptance policy to geometry facts."""
-    def scan_bond_ring_relations() -> _BondRingAcceptanceFacts:
-        return _geometry_bond_ring_acceptance_facts(
-            geometry_adapter.screen_bond_ring_relations(
-                mol,
-                ring_scope="ligand_skeleton",
-                max_ring_size=_BOND_RING_MAX_SIZE,
-            )
-        )
-
     return _evaluate_structure_acceptance(
         mol,
-        bond_ring_facts_provider=scan_bond_ring_relations,
+        bond_ring_facts_provider=lambda: _scan_bond_ring_acceptance_facts(mol),
         consume_bond_ring_report=level in ("standard", "strict"),
         level=level,
         topology_reference=topology_reference,

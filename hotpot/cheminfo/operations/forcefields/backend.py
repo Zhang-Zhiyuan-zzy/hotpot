@@ -111,4 +111,6 @@ def _ob_build(mol: "Molecule") -> None:
     """Build coordinates in the native backend under the seed lifecycle lock."""
     with _WORKER_LIFECYCLE_LOCK:
         if not build_molecule(mol).succeeded:
-            raise ForceFieldError("Open Babel could not build initial 3D coordinates")
+            error = ForceFieldError("Open Babel could not build initial 3D coordinates")
+            error.sample_failure_code = "FF-BUILD-UNAVAILABLE"
+            raise error

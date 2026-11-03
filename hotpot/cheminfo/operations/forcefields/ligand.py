@@ -31,6 +31,7 @@ from .contracts import (
     ComplexBuildDiagnostics,
     ComplexBuildError,
     ForceFieldError,
+    ForceFieldSetupError,
     RingUntanglingReport,
 )
 from .coordinates import _perturbed_coordinates
@@ -212,11 +213,13 @@ def _build_ligand_proxies(
                 ligand_untangling=tuple(selected_untangling_reports),
                 ligand_build_elapsed_seconds=elapsed_seconds,
             )
-            raise ComplexBuildError(
+            error = ComplexBuildError(
                 f"Component {component_index} failed its single "
                 f"{provider_name} call",
                 diagnostics,
-            ) from exc
+            )
+            error.sample_failure_code = getattr(exc, "sample_failure_code", None)
+            raise error from exc
 
         built_coordinates = _copy_coordinates(component_mol.coordinates)
         if first_trajectory is not None:
@@ -289,7 +292,7 @@ def _build_ligand_proxies(
                     trajectory=attempt_trajectory,
                     trajectory_stage=TrajectoryStage.LIGAND_BUILD,
                 )
-            except ForceFieldError as exc:
+            except ForceFieldSetupError as exc:
                 if attempt_trajectory is not None:
                     terminal_frame = attempt_trajectory.record_molecule(
                         component_mol,
@@ -359,11 +362,13 @@ def _build_ligand_proxies(
                 ligand_untangling=tuple(selected_untangling_reports),
                 ligand_build_elapsed_seconds=elapsed_seconds,
             )
-            raise ComplexBuildError(
+            error = ComplexBuildError(
                 f"Component {component_index} produced no usable candidate "
                 f"after {component_attempts} attempts",
                 diagnostics,
             )
+            error.sample_failure_code = "FF-LIGAND-CANDIDATES-EXHAUSTED"
+            raise error
 
         if accepted_candidate is None:
             selected_candidate = min(
@@ -386,7 +391,7 @@ def _build_ligand_proxies(
                     effective_forcefield,
                     best_candidate_refine_steps,
                 )
-            except ForceFieldError as exc:
+            except ForceFieldSetupError as exc:
                 rejections.append(
                     CandidateRejection(
                         component_index,

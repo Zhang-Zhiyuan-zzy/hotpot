@@ -314,6 +314,8 @@ def test_backend_failure_is_nonzero_and_preserves_structured_report(
     report = json.loads(report_path.read_text(encoding="utf-8"))
     assert report
     assert "17" in report_path.read_text(encoding="utf-8")
+    assert report["schema_version"] == 2
+    assert report["results"][0]["error"]["code"] == "XTB-NATIVE-EXECUTION"
 
 
 @pytest.mark.parametrize(
@@ -360,3 +362,191 @@ def test_gfnff_rejects_an_unpaired_electron_override(
     assert status != 0
     assert captured.out == ""
     assert "unpaired" in captured.err.lower()
+
+
+def _quality_report(name, *, passed=False, severity="error"):
+    from hotpot.cheminfo.operations.forcefields.contracts import AcceptanceCheck, ForceFieldValidationReport
+
+    check = AcceptanceCheck(name, passed, severity=severity, measured=0.1, threshold=0.5,
+                            atom_indices=(0, 1), message="observed geometry finding")
+    return ForceFieldValidationReport("strict", passed or severity == "warning", (check,))
+
+
+@pytest.mark.parametrize("error_kind", ("input", "value", "stream", "commit", "unrecognized-code"))
+def test_unknown_or_integrity_errors_propagate_same_object_without_next_sample(monkeypatch, tmp_path, error_kind):
+    from hotpot.plugins.xtb.contracts import XTBInputError
+    from hotpot.plugins.xtb.stream import XTBStreamError
+
+    errors = {
+        "input": XTBInputError("input unavailable"),
+        "value": ValueError("input unavailable"),
+        "stream": XTBStreamError("stream binding invalid"),
+        "commit": XTBInputError("validated coordinate commit failed"),
+        "unrecognized-code": XTBInputError("input unavailable"),
+    }
+    error = errors[error_kind]
+    if error_kind == "unrecognized-code":
+        error.sample_failure_code = "UNKNOWN"
+    records = tuple(cli._InputRecord(index, _water(), None) for index in range(3))
+    monkeypatch.setattr(cli, "_read_records", lambda *args: records)
+    calls = []
+
+    def run(record, options):
+        calls.append(record.index)
+        raise error
+
+    monkeypatch.setattr(cli, "_run_xtb_record", run)
+    with pytest.raises(type(error)) as caught:
+        cli.main([str(tmp_path / "input.sdf")])
+    assert caught.value is error
+    assert calls == [0]
+
+
+def test_input_stream_integrity_error_propagates(monkeypatch, tmp_path):
+    from hotpot.plugins.xtb.stream import XTBStreamError
+
+    input_path = _write_sdf(tmp_path / "water.sdf", _water())
+    error = XTBStreamError("molecular provenance binding invalid")
+
+    def fail(content):
+        raise error
+
+    monkeypatch.setattr(cli, "read_sdf_records", fail)
+    with pytest.raises(XTBStreamError) as caught:
+        cli.main([str(input_path)])
+    assert caught.value is error
+
+
+def test_known_middle_input_failure_keeps_trailing_output_and_exact_code(monkeypatch, tmp_path, capsys):
+    from hotpot.plugins.xtb.contracts import XTBInputError
+
+    executable = _fake_xtb(tmp_path)
+    input_path = _write_sdf(tmp_path / "mixed.sdf", _water(), _methane(), _water())
+    report_path = tmp_path / "mixed.json"
+    native_log_path = tmp_path / "native.log"
+    original = cli._run_xtb_record
+    calls = []
+
+    def run(record, options):
+        calls.append(record.index)
+        if record.index == 1:
+            error = XTBInputError("input unavailable")
+            error.sample_failure_code = "XTB-INPUT-GEOMETRY"
+            raise error
+        return original(record, options)
+
+    monkeypatch.setattr(cli, "_run_xtb_record", run)
+    assert cli.main([str(input_path), "--report", str(report_path), "--native-log", str(native_log_path), *_common_options(executable)]) == 1
+    captured = capsys.readouterr()
+    assert calls == [0, 1, 2]
+    assert captured.out.count("$$$$") == 2
+    rows = json.loads(report_path.read_text())["results"]
+    assert [row["index"] for row in rows] == [0, 1, 2]
+    assert [row["status"] for row in rows] == ["ok", "error", "ok"]
+    assert rows[1]["error"]["code"] == "XTB-INPUT-GEOMETRY"
+    assert "record 2 stdout" in native_log_path.read_text()
+    assert "TOTAL ENERGY" in native_log_path.read_text()
+
+
+@pytest.mark.parametrize("name", ("atom_too_close", "bond_ring_piercing"))
+def test_nonhard_post_check_retains_serialized_output_report_and_exit_zero(monkeypatch, tmp_path, capsys, name):
+    executable = _fake_xtb(tmp_path)
+    input_path = _write_sdf(tmp_path / "water.sdf", _water())
+    report_path = tmp_path / "quality.json"
+    monkeypatch.setattr(cli, "_post_check", lambda mol, level: _quality_report(name))
+    assert cli.main([str(input_path), "--report", str(report_path), *_common_options(executable)]) == 0
+    captured = capsys.readouterr()
+    assert captured.out.count("$$$$") == 1
+    assert "post-check" in captured.err
+    document = json.loads(report_path.read_text())
+    assert document["schema_version"] == 2
+    row = document["results"][0]
+    assert row["status"] == "quality-failed"
+    assert row["quality_report"]["passed"] is False
+    assert row["quality_report"]["checks"][0]["name"] == name
+    assert row["quality_report"]["checks"][0]["measured"] == 0.1
+    assert "error" not in row
+
+
+@pytest.mark.parametrize("name", ("coordinate_shape", "finite_coordinates"))
+def test_required_post_check_omits_output_and_preserves_report_and_exact_code(monkeypatch, tmp_path, capsys, name):
+    executable = _fake_xtb(tmp_path)
+    input_path = _write_sdf(tmp_path / "water.sdf", _water())
+    report_path = tmp_path / "unavailable.json"
+    native_log_path = tmp_path / "unavailable.log"
+    monkeypatch.setattr(cli, "_post_check", lambda mol, level: _quality_report(name))
+    assert cli.main([str(input_path), "--report", str(report_path), "--native-log", str(native_log_path), *_common_options(executable)]) == 1
+    assert capsys.readouterr().out == ""
+    row = json.loads(report_path.read_text())["results"][0]
+    assert row["status"] == "error"
+    assert row["error"]["code"] == f"XTB:{name}"
+    assert row["quality_report"]["checks"][0]["name"] == name
+    assert row["xtb_report"]["process_succeeded"] is True
+    assert "TOTAL ENERGY" in native_log_path.read_text()
+
+
+def test_output_stream_integrity_error_is_not_a_local_failure(monkeypatch, tmp_path):
+    from hotpot.plugins.xtb.stream import XTBStreamError
+
+    executable = _fake_xtb(tmp_path)
+    input_path = _write_sdf(tmp_path / "water.sdf", _water())
+    error = XTBStreamError("output stream provenance mismatch")
+
+    def fail(*args):
+        raise error
+
+    monkeypatch.setattr(cli, "_serialize_record", fail)
+    with pytest.raises(XTBStreamError) as caught:
+        cli.main([str(input_path), *_common_options(executable)])
+    assert caught.value is error
+
+
+def test_strict_post_check_uses_geometry_acceptance_without_ff_evidence(monkeypatch):
+    from hotpot.cheminfo.operations.forcefields import acceptance
+
+    report = _quality_report("finite_coordinates", passed=True)
+    calls = []
+
+    def evaluate(mol, *, level):
+        calls.append(level)
+        return report
+
+    monkeypatch.setattr(acceptance, "_evaluate_geometry_acceptance", evaluate)
+    assert cli._post_check(_water(), "strict") is report
+    assert calls == ["strict"]
+
+
+@pytest.mark.parametrize("error_type", (RuntimeError, ValueError))
+def test_non_sdf_unknown_reader_error_propagates_exact_object(monkeypatch, tmp_path, error_type):
+    input_path = tmp_path / "input.mol2"
+    input_path.write_text("reader fixture")
+    error = error_type("unknown reader failure")
+
+    def fail(source, fmt):
+        assert source == "reader fixture"
+        assert fmt == "mol2"
+        raise error
+
+    monkeypatch.setattr(cli, "MolReader", fail)
+    with pytest.raises(error_type) as caught:
+        cli.main([str(input_path)])
+    assert caught.value is error
+
+
+def test_non_sdf_reader_oserror_retains_usage_cause_message_and_exit_two(monkeypatch, tmp_path, capsys):
+    input_path = tmp_path / "input.mol2"
+    input_path.write_text("reader fixture")
+    error = OSError("input read unavailable")
+
+    def fail(source, fmt):
+        raise error
+
+    monkeypatch.setattr(cli, "MolReader", fail)
+    with pytest.raises(cli._CLIUsageError) as caught:
+        cli._read_records(str(input_path), None)
+    assert caught.value.__cause__ is error
+    assert str(caught.value) == "could not read molecular input: input read unavailable"
+    assert cli.main([str(input_path)]) == 2
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == "hotpot xtb: could not read molecular input: input read unavailable\n"

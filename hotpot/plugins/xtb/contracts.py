@@ -159,6 +159,8 @@ class XTBRunReport:
 class XTBError(RuntimeError):
     """Base class for explicit xTB plugin failures."""
 
+    sample_failure_code: Optional[str] = None
+
 
 class XTBExecutableError(XTBError):
     """Raised when an xTB executable cannot provide valid identity evidence."""
@@ -179,9 +181,13 @@ class XTBInputError(XTBError):
 class XTBApplicabilityError(XTBInputError):
     """Raised when a backend cannot support an input element domain."""
 
+    sample_failure_code: Optional[str] = "XTB-ELEMENT-UNSUPPORTED"
+
 
 class XTBExecutionError(XTBError):
     """Raised when the native process exits unsuccessfully."""
+
+    sample_failure_code: Optional[str] = "XTB-NATIVE-EXECUTION"
 
     def __init__(self, message: str, report: XTBRunReport) -> None:
         self.report = report
@@ -190,6 +196,8 @@ class XTBExecutionError(XTBError):
 
 class XTBResultError(XTBError):
     """Raised when a nominally successful process lacks required evidence."""
+
+    sample_failure_code: Optional[str] = "XTB-RESULT-UNAVAILABLE"
 
     def __init__(self, message: str, report: XTBRunReport) -> None:
         self.report = report

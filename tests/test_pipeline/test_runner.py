@@ -362,3 +362,122 @@ def test_repeated_xtb_stages_keep_order_and_distinct_artifact_directories(
     assert (stage_directories[1] / "method.txt").read_text(encoding="utf-8") == (
         "gfn2"
     )
+
+
+def test_exhausted_intermediate_quality_failure_persists_before_stopping_generator(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+) -> None:
+    from hotpot.pipeline import runner
+    from hotpot.pipeline.contracts import (
+        MolecularPayload, MolecularRecord, PipelineStatus, StageResult, StageSpec, StageStatus,
+    )
+
+    calls = []
+    report = {
+        "sample_outcomes_version": 1,
+        "input_count": 1,
+        "output_count": 0,
+        "unavailable_count": 1,
+        "sample_outcomes": [{"input_index": 0, "output_index": None, "outcome": "unavailable"}],
+    }
+
+    def exhausted(spec, payload, context):
+        calls.append(spec.name)
+        return StageResult(StageStatus.QUALITY_FAILED, MolecularPayload(()), report=report)
+
+    def generate(spec, payload, context):
+        calls.append(spec.name)
+        return StageResult(StageStatus.SUCCEEDED, MolecularPayload((MolecularRecord(_water()),)))
+
+    stages = {"exhausted": _fake_stage_factory(exhausted), "generate": _fake_stage_factory(generate)}
+    monkeypatch.setattr(runner, "get_stage", stages.__getitem__)
+    results_directory = tmp_path / "exhausted"
+    result = runner.run_pipeline(
+        (StageSpec("exhausted", ()), StageSpec("generate", ())),
+        results_directory=results_directory,
+        initial_payload=MolecularPayload((MolecularRecord(_water()),)),
+    )
+    assert calls == ["exhausted"]
+    assert result.status is PipelineStatus.FAILED
+    assert result.failed_stage_index == 0
+    assert result.payload.records == ()
+    assert len(result.stage_results) == 1
+    stage_directory = results_directory / "stages" / "00-exhausted"
+    assert (stage_directory / "output.sdf").read_text() == ""
+    assert json.loads((stage_directory / "report.json").read_text()) == report
+    manifest = json.loads((results_directory / "manifest.json").read_text())
+    assert manifest["status"] == "failed"
+    assert manifest["failed_stage_index"] == 0
+    assert manifest["stages"][0]["break_pipeline"] is False
+    assert not (results_directory / "final.sdf").exists()
+    assert not (results_directory / "stages" / "01-generate").exists()
+
+
+@pytest.mark.parametrize("stage_status", ("succeeded", "quality-failed"))
+def test_explicit_batch_break_persists_nonempty_observations_before_failed_run(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, stage_status: str,
+) -> None:
+    from hotpot.pipeline import runner
+    from hotpot.pipeline.artifacts import payload_sha256
+    from hotpot.pipeline.contracts import (
+        MolecularPayload, MolecularRecord, PipelineStatus, StageResult, StageSpec, StageStatus,
+    )
+
+    calls = []
+    observations = []
+    report = {"input_count": 1, "output_count": 1, "break_scope": "batch"}
+    results_directory = tmp_path / "explicit-break"
+    failed_manifest_writes = []
+    write_json = runner._write_json_atomic
+
+    def inspect_persistence(path, document):
+        if path == results_directory / "manifest.json" and document["status"] == "failed":
+            committed = results_directory / "stages" / "01-stop"
+            assert (committed / "output.sdf").read_text()
+            assert json.loads((committed / "report.json").read_text()) == report
+            assert (committed / "stderr.log").read_text() == "explicit batch break\n"
+            assert json.loads((committed / "manifest.json").read_text())["break_pipeline"] is True
+            failed_manifest_writes.append(path)
+        write_json(path, document)
+
+    def first(spec, payload, context):
+        calls.append(spec.name)
+        return StageResult(StageStatus.SUCCEEDED, payload)
+
+    def stop(spec, payload, context):
+        calls.append(spec.name)
+        mol = payload.records[0].molecule.copy()
+        mol.atoms[0].coordinates = (12.42, 0.0, 0.0)
+        output = MolecularPayload((MolecularRecord(mol),))
+        observations.append(output)
+        return StageResult(
+            StageStatus(stage_status), output, report=report,
+            stderr="explicit batch break\n", break_pipeline=True,
+        )
+
+    def later(spec, payload, context):
+        raise AssertionError("downstream stage executed after explicit batch break")
+
+    stages = {name: _fake_stage_factory(operation) for name, operation in (
+        ("first", first), ("stop", stop), ("later", later),
+    )}
+    monkeypatch.setattr(runner, "get_stage", stages.__getitem__)
+    monkeypatch.setattr(runner, "_write_json_atomic", inspect_persistence)
+    result = runner.run_pipeline(
+        (StageSpec("first", ()), StageSpec("stop", ()), StageSpec("later", ())),
+        results_directory=results_directory,
+        initial_payload=MolecularPayload((MolecularRecord(_water()),)),
+    )
+    assert calls == ["first", "stop"]
+    assert result.status is PipelineStatus.FAILED
+    assert result.failed_stage_index == 1
+    assert result.payload is observations[0]
+    assert result.payload.records[0].molecule.atoms[0].coordinates[0] == pytest.approx(12.42)
+    assert len(result.stage_results) == 2
+    assert result.stage_results[1].break_pipeline is True
+    assert len(failed_manifest_writes) == 1
+    manifest = json.loads((results_directory / "manifest.json").read_text())
+    assert manifest["status"] == "failed"
+    assert manifest["stages"][1]["output_sha256"] == payload_sha256(observations[0])
+    assert manifest["stages"][1]["break_pipeline"] is True
+    assert not (results_directory / "final.sdf").exists()

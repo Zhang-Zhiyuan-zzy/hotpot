@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8B/B4",
+  "entry_points": {
+    "source_freeze": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/source-freeze-b4-attempt02.json",
+      "bytes": 191372,
+      "sha256": "d0b3850e0bd5c961d2064ee1dc9da14f57f3406d0fdca2367c995f725bb579e7"
+    },
+    "original_attempt01_freeze": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/source-freeze-b4-attempt01.json",
+      "bytes": 191372,
+      "sha256": "ea5067f3c4ee1fe2d0b286369f213d159be7649e1adcbe89d390ce35725aec82"
+    },
+    "root_business_review": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/root-business-review.json",
+      "bytes": 26374,
+      "sha256": "b0f04c848c3ce704e572f8ca0ac0c832005c38948796cb819115d3a708c16946"
+    },
+    "root_static_review": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/root-static-review.json",
+      "bytes": 5414,
+      "sha256": "836c6c7707c97ac3f22171503a6ed959bc800481de0a9d6c1f13f2e835a067c5"
+    },
+    "execution": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/validation-preparation/attempt02/execution.json",
+      "bytes": 847810,
+      "sha256": "467c7c8c4a1ef93ce9a6a06c8d89c7b44afc312c8ef70c202ea6b95262b5777d"
+    },
+    "commands": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/validation-preparation/attempt02/commands.json",
+      "bytes": 67885,
+      "sha256": "312fbf9f7a31e07f40a8e111c8bcdb5969b27829f2a31cad9fa956cac609cf60"
+    },
+    "validation_summary": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/validation-preparation/attempt02/validation-summary.json",
+      "bytes": 54334,
+      "sha256": "1cf01e9c8f3db69b395dd5eaf0faf8cf0fb49e69d1db4ed84fe67c1cb05c4046"
+    },
+    "source_results": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/validation-preparation/attempt02/source-results.json",
+      "bytes": 376571,
+      "sha256": "c5d38c416217217730f16af32910af392383e6e538088e776e5b98c9bddb4555"
+    },
+    "installed_results": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/validation-preparation/attempt02/installed-results.json",
+      "bytes": 377140,
+      "sha256": "d330403a70a38d4ec0cbca4585bd7cd9423555be92abb3a4b04cf37f5200ce3c"
+    },
+    "source_actual_mixed": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/validation-preparation/attempt02/source-mixed/observations/observations.json",
+      "bytes": 137170,
+      "sha256": "281dd56be7ed69701ef57e9b4e2d2edf2aee9be78d347637b75b5e0e287884d7"
+    },
+    "installed_actual_mixed": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/validation-preparation/attempt02/installed-mixed/observations/observations.json",
+      "bytes": 137739,
+      "sha256": "10f0cdb11ae2e8645b1900340c734f27c461c5c5441ff08ea2006b10a489341d"
+    },
+    "wheel": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/wheel/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6347624,
+      "sha256": "a98093ad82ff07c5f747a6731faf1924ebccba48e8a59b0be0751e159cd22948"
+    },
+    "wheel_contents": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/validation-preparation/attempt02/wheel-contents.json",
+      "bytes": 49477,
+      "sha256": "2a7dc24aee170f182c7e3a1c7b679ff68c4ee9ec8bb81d6cd20745d88f60e07b"
+    },
+    "native_rebind": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/validation-preparation/attempt02/native-rebind.json",
+      "bytes": 61534,
+      "sha256": "94c74c2c0259beb6334ea94d60175ccb108dfb209809cce138779234895a2de6"
+    },
+    "mca_rebind": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/validation-preparation/attempt02/mca-rebind.json",
+      "bytes": 8934,
+      "sha256": "4365ebe346d53ae3c71d96028ba32cd31cc6a2616cf8a29924280fbc58335fc9"
+    },
+    "archive_manifest": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/archive-manifest.json",
+      "bytes": 1312186,
+      "sha256": "c57f1a4f766af3e1c72b1086cf1a61d6b1428b567a933f3c929c38f56891c796"
+    },
+    "original_failure": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/validation-preparation/attempt01/source-full/junit.xml",
+      "bytes": 241706,
+      "sha256": "89c7d897a9d08f1b6426550dd2090f7dd6d381bda397b06c92072ee735bb3ade"
+    },
+    "original_architecture_diagnosis": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/validation-preparation/attempt01/architecture-diagnosis/architecture-findings.json",
+      "bytes": 1726,
+      "sha256": "b3016cdf3d39ff42b5cd4ca82bcc9a9706f01aded9673956e57f5fb91cadba27"
+    },
+    "test_import_correction": {
+      "path": ".plan20-artifacts/20261104/stage8b/b4/raw/validation-preparation/import-correction-after-attempt01/receipt.json",
+      "bytes": 1877,
+      "sha256": "e6574534226950b5d92461fab2bd419f859ebfa141ebe8113de53d02530dff39"
+    }
+  },
+  "dependencies": {
+    "accepted_native": "../b3a/checkpoint.json",
+    "unchanged_mca": "../b3d/checkpoint.json",
+    "raw_scientific_files": "archive_manifest -> raw/validation-preparation/attempt02/{source,installed}-{full,official}/pytest-tmp and {source,installed}-mixed/observations",
+    "exact_commands": "commands -> individual execution.json -> stdout/stderr/JUnit/ordered-nodeids/origin-reconciliation"
+  },
+  "limits": [
+    "CP311 shared system-site dependencies; six unchanged accepted natives reused, no rebuild/ABI/sdist/all-version claim.",
+    "No performance/full-corpus/full Stage8B/global acceptance.",
+    "Root owns source freeze, release, unavailable inputs and scientific interpretation."
+  ]
+}

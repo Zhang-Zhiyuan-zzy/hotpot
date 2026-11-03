@@ -250,3 +250,22 @@ def test_definition_and_execution_errors_are_distinct() -> None:
     assert issubclass(StageExecutionError, RuntimeError)
     assert not issubclass(PipelineDefinitionError, StageExecutionError)
 
+
+def test_stage_result_appends_optional_pipeline_break_after_stderr() -> None:
+    from dataclasses import fields
+    from hotpot.pipeline.contracts import MolecularPayload, StageResult, StageStatus
+
+    payload = MolecularPayload(())
+    report = {"finding": "retained"}
+    original_positionals = StageResult(StageStatus.SUCCEEDED, payload, (), report, "raw stderr")
+    assert tuple(field.name for field in fields(StageResult)) == (
+        "status", "payload", "artifacts", "report", "stderr", "break_pipeline",
+    )
+    assert original_positionals.payload is payload
+    assert original_positionals.report is report
+    assert original_positionals.stderr == "raw stderr"
+    assert original_positionals.break_pipeline is False
+    stopped = StageResult(StageStatus.SUCCEEDED, payload, (), report, "raw stderr", True)
+    assert stopped.break_pipeline is True
+    with pytest.raises(FrozenInstanceError):
+        stopped.break_pipeline = False

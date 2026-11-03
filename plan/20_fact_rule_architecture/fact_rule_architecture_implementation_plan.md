@@ -5,7 +5,7 @@ complete within their recorded scopes. Stage8A A1–A11 scientific-state separat
 non-mutating extraction, H presence, approved detailed reports/confidence retirement,
 preparation diagnostics and existing Lewis complete-H applicability are root accepted
 within CP311 source/installed scope. Stage8B B1 consolidation, B2 pure acceptance/capture separation and B3a native
-ownership, B3b command ownership, B3c Python native transport/capture and B3d Python operation/backend cutover are root accepted within CP311; B4 controls/sample containment and the owning gate remain open. Stage8C–E have not entered. Optional scientific
+ownership, B3b command ownership, B3c Python native transport/capture and B3d Python operation/backend cutover are root accepted within CP311; B4 controls/sample containment is accepted within CP311 and the owning gate remains open. Stage8C–E have not entered. Optional scientific
 activation, remaining stages, full scientific/engineering, version-adaptation and
 global acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
@@ -2196,6 +2196,22 @@ All18old Python files retire without shims;477Python-body wheel/sixreused accept
 B3a natives has41unchanged omissions (P20-D008). D06 remains optional/unreduced.
 B4 finding/control/sample containment, whole Stage8B and later/global gates remain
 open; this bounded checkpoint does not accept those remaining requirements.
+
+The [B4 failure/control decision](stages/stage08/forcefields/contracts/decisions.md#b4--accepted-failure-and-sample-control-boundary)
+separates named known sample failures from unknown/protocol/source/commit
+integrity errors. Its connected contract preserves complete positional sample
+reports and original denominators, retains finite non-hard observations by
+default, gives exact per-code sample/batch breaks, excludes FF evidence from xTB
+geometry-only checks and stops exhausted cohorts after persistence. The bounded
+StageResult break flag uses the existing runner; no generic-engine redesign is
+introduced. The [B4 CP311 checkpoint](stages/stage08/forcefields/validation/b4/checkpoint.json)
+accepts the connected stage/CLI boundary:269focused and source/installed each
+1408passed/2skipped across the same1410orderednodes, actual3official pipeline
+cases and two real3-input/2-output FF/xTB cohorts per boundary. The original
+new-test legacy-core import failure and public-export correction are retained;
+no checker waiver or scientific threshold change. Fresh478Python-body wheel,
+sixunchanged B3a natives and unchanged B3d MCA evidence are rebound. Whole Stage8B
+O0 scientific/standalone/FF cost and later/global gates remain open.
 
 #### Stage 8C — Search
 

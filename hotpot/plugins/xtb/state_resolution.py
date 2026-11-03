@@ -43,6 +43,8 @@ class ResolvedXTBState:
 class XTBStateResolutionError(XTBInputError):
     """Internal typed boundary between science and backend projection."""
 
+    sample_failure_code: Optional[str] = "XTB-STATE-UNAVAILABLE"
+
     def __init__(
         self,
         scientific_state: ScientificStateBundle,

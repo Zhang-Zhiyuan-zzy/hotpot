@@ -27,13 +27,22 @@ from hotpot.pipeline.contracts import (
     StageStatus,
 )
 from hotpot.pipeline.artifacts import artifact_from_file
+from hotpot.pipeline._sample_control import (
+    _sample_counts, _break_scope, _save_observation, _check_findings,
+)
 
 from .auto import auto_optimize
+from .acceptance import _has_unreturnable_frame_failure
 from .contracts import (
     Build3DReport,
     BuildAndOptimizeReport,
     ConvergenceLevel,
     ForceFieldError,
+    ForceFieldSetupError,
+    GeometryQualityError,
+    BuildWorkerError,
+    ComplexBuildError,
+    ComplexBuildWorkerError,
     ForceFieldRunReport,
     ForceFieldWorkflowReport,
     TrajectoryPath,
@@ -61,6 +70,61 @@ __all__ = (
 ForceFieldRouteReport = Union[ForceFieldRunReport, ForceFieldWorkflowReport]
 _RouteOperation = Callable[..., ForceFieldRouteReport]
 _BuildOperation = Callable[..., Build3DReport]
+
+
+# These are existing rule names; required-value checks alone remove an output.
+_UNAVAILABLE_CHECK_NAMES = frozenset((
+    "coordinate_shape", "finite_coordinates", "topology_atom_count",
+    "topology_atom_identity", "topology_added_atoms", "topology_original_bond",
+    "topology_added_bond", "topology_added_hydrogen_degree", "forcefield_report",
+    "forcefield_setup", "finite_final_energy", "finite_rms_gradient",
+    "finite_max_gradient",
+))
+_GEOMETRY_CHECKS = (
+    "coordinate_shape", "finite_coordinates", "topology", "atom_overlap",
+    "atom_too_close", "bond_distance", "short_bond", "bond_length_ratio",
+    "bond_ring_piercing", "bond_ring_scope_coverage",
+)
+_FF_CHECKS = tuple(sorted(_UNAVAILABLE_CHECK_NAMES | frozenset(_GEOMETRY_CHECKS) | {
+    "backend_explosion", "forcefield_convergence", "rms_gradient", "max_gradient",
+    "energy_change", "max_displacement", "stability_observations",
+}))
+_KNOWN_SAMPLE_FAILURE_CODES = (
+    "FF-REQUEST-COORDINATES", "FF-REQUEST-METHOD", "FF-SETUP-UNAVAILABLE",
+    "FF-BUILD-UNAVAILABLE", "FF-BUILD-TIMEOUT", "FF-COMPLEX-BUILD-TIMEOUT",
+    "FF-NO-USABLE-FRAME", "FF-LIGAND-CANDIDATES-EXHAUSTED",
+)
+_FF_CODES = _KNOWN_SAMPLE_FAILURE_CODES + tuple(f"FF:{name}" for name in _FF_CHECKS)
+
+
+def forcefield_error_evidence(error: ForceFieldError) -> dict[str, object]:
+    evidence: dict[str, object] = {}
+    if isinstance(error, ForceFieldSetupError) and error.report is not None:
+        evidence["setup_report"] = error.report
+    if isinstance(error, ForceFieldSetupError) and error.diagnostics is not None:
+        evidence["build_diagnostics"] = error.diagnostics
+    if isinstance(error, GeometryQualityError) and error.report is not None:
+        evidence["quality_report"] = error.report
+    if isinstance(error, (BuildWorkerError, ComplexBuildError)) and error.diagnostics is not None:
+        evidence["build_diagnostics"] = error.diagnostics
+    if isinstance(error, (BuildWorkerError, ComplexBuildWorkerError)):
+        evidence["worker_error"] = {
+            "type": error.error_type, "message": error.error_message,
+            "traceback": error.worker_traceback,
+        }
+    if error.trajectory is not None:
+        evidence["trajectory_available"] = True
+    if error.ligand_build_attempts:
+        evidence["ligand_build_attempt_count"] = len(error.ligand_build_attempts)
+    return evidence
+
+
+class _ForceFieldRequestError(ValueError):
+    """Identify a bounded route precondition while preserving ValueError."""
+
+    def __init__(self, message: str, sample_failure_code: str) -> None:
+        super().__init__(message)
+        self.sample_failure_code = sample_failure_code
 
 
 class _StageArgumentParser(argparse.ArgumentParser):
@@ -103,6 +167,8 @@ class ForceFieldRouteOperations:
 class _PreparedForceFieldStage(PreparedMolecularStage):
     options: ForceFieldRouteOptions
     retain_trajectory: bool
+    sample_break_on: Tuple[str, ...] = ()
+    batch_break_on: Tuple[str, ...] = ()
 
     def execute(
         self,
@@ -114,8 +180,13 @@ class _PreparedForceFieldStage(PreparedMolecularStage):
 
         output_records = []
         reports = []
-        quality_failed = False
+        rows = []
+        batch_break = False
         for index, record in enumerate(payload.records):
+            row = {"input_index": index, "output_index": None, "outcome": "not-attempted"}
+            rows.append(row)
+            if batch_break:
+                continue
             trajectory_path = None
             if self.retain_trajectory:
                 trajectory_path = context.stage_directory / "trajectory"
@@ -123,37 +194,59 @@ class _PreparedForceFieldStage(PreparedMolecularStage):
                     trajectory_path = trajectory_path / f"{index:04d}"
             try:
                 report = execute_forcefield_route(
-                    record.molecule,
-                    self.options,
-                    trajectory_path=trajectory_path,
+                    record.molecule, self.options, trajectory_path=trajectory_path,
                 )
             except (ForceFieldError, ValueError) as error:
-                raise StageExecutionError(
-                    f"ff stage record {index} failed: {error}"
-                ) from error
-            quality_failed = quality_failed or not report.quality_report.passed
-            reports.append(json_value(report))
-            output_records.append(
-                MolecularRecord(record.molecule, record.scientific_state)
-            )
+                code = getattr(error, "sample_failure_code", None)
+                if not isinstance(error, (ForceFieldError, _ForceFieldRequestError)) or code not in _KNOWN_SAMPLE_FAILURE_CODES:
+                    raise StageExecutionError(f"ff stage record {index} failed: {error}") from error
+                failure = {"code": code, "type": type(error).__name__, "message": str(error)}
+                if isinstance(error, ForceFieldError):
+                    failure.update(json_value(forcefield_error_evidence(error)))
+                    error_directory = context.stage_directory / "errors" / f"{index:04d}"
+                    if error.trajectory is not None:
+                        error.trajectory.write(error_directory / "trajectory")
+                    for attempt_index, attempt in enumerate(error.ligand_build_attempts):
+                        attempt.write(error_directory / f"ligand-{attempt_index:04d}")
+                row.update(outcome="unavailable", failure=failure)
+                codes = [code]
+                if isinstance(error, GeometryQualityError) and error.report is not None:
+                    findings = _check_findings(error.report, "FF", json_value)
+                    if findings:
+                        row["findings"] = findings
+                        codes.extend(finding["code"] for finding in findings)
+                scope = _break_scope(codes, self.sample_break_on, self.batch_break_on)
+            else:
+                row["report_index"] = len(reports)
+                reports.append(json_value(report))
+                findings = _check_findings(report.quality_report, "FF", json_value)
+                if findings:
+                    row["findings"] = findings
+                scope = _break_scope((finding["code"] for finding in findings), self.sample_break_on, self.batch_break_on)
+                unavailable = any(not check.passed and check.name in _UNAVAILABLE_CHECK_NAMES for check in report.quality_report.checks)
+                if unavailable:
+                    row["outcome"] = "unavailable"
+                    if not _has_unreturnable_frame_failure(report.quality_report):
+                        row["observation_path"] = _save_observation(index, record, context)
+                elif scope == "sample":
+                    row["outcome"] = "sample-break"
+                    row["observation_path"] = _save_observation(index, record, context)
+                else:
+                    row.update(outcome="returned", output_index=len(output_records))
+                    output_records.append(record)
+            if scope is not None:
+                row["break_scope"] = scope
+            batch_break = scope == "batch"
 
-        artifacts = _artifacts_under(context.stage_directory / "trajectory", context)
-        status = (
-            StageStatus.QUALITY_FAILED
-            if quality_failed
-            else StageStatus.SUCCEEDED
-        )
-        stderr = (
-            "One or more force-field structures failed the requested quality profile."
-            if quality_failed
-            else ""
-        )
+        artifacts = ()
+        for directory in ("trajectory", "errors", "observations"):
+            artifacts += _artifacts_under(context.stage_directory / directory, context)
         return StageResult(
-            status=status,
+            status=StageStatus.QUALITY_FAILED if batch_break or not output_records else StageStatus.SUCCEEDED,
             payload=MolecularPayload(tuple(output_records)),
             artifacts=artifacts,
-            report={"forcefield": tuple(reports)},
-            stderr=stderr,
+            report={"forcefield": tuple(reports), **_sample_counts(rows)},
+            break_pipeline=batch_break,
         )
 
 
@@ -190,6 +283,8 @@ class _ForceFieldStage(MolecularStage):
                 ),
             ),
             retain_trajectory=args.trajectory,
+            sample_break_on=tuple(args.sample_break_on),
+            batch_break_on=tuple(args.batch_break_on),
         )
 
 
@@ -268,6 +363,8 @@ def _stage_parser() -> _StageArgumentParser:
         "--trajectory-start",
         choices=tuple(_TRAJECTORY_STARTS),
     )
+    parser.add_argument("--sample-break-on", action="append", choices=_FF_CODES, default=[])
+    parser.add_argument("--batch-break-on", action="append", choices=_FF_CODES, default=[])
     return parser
 
 
@@ -317,8 +414,9 @@ def _requires_build(mol: "Molecule", options: ForceFieldRouteOptions) -> bool:
         return True
     if options.optimize_only:
         if not has_3d:
-            raise ValueError(
-                "--optimize-only requires non-coincident existing coordinates"
+            raise _ForceFieldRequestError(
+                "--optimize-only requires non-coincident existing coordinates",
+                "FF-REQUEST-COORDINATES",
             )
         return False
     return not has_3d
@@ -333,9 +431,10 @@ def _validate_forcefield_request(
         options.route == "auto" and has_metal
     )
     if complex_route and options.forcefield not in {None, "UFF"}:
-        raise ValueError(
+        raise _ForceFieldRequestError(
             "Complex force-field workflows currently support only UFF; "
-            "use --forcefield auto or --forcefield uff"
+            "use --forcefield auto or --forcefield uff",
+            "FF-REQUEST-METHOD",
         )
 
 

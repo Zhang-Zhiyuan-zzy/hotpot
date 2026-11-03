@@ -289,6 +289,7 @@ class BuildWorkerResult:
     error_message: Optional[str] = None
     traceback: Optional[str] = None
     ligand_build_attempts: Tuple[ForceFieldTrajectory, ...] = ()
+    sample_failure_code: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -324,6 +325,8 @@ class ForceFieldSetupReport:
 class ForceFieldError(RuntimeError):
     """Base class for force-field workflow failures."""
 
+    sample_failure_code: Optional[str] = None
+
     def __init__(self, message: str) -> None:
         super().__init__(message)
         self.trajectory: Optional[ForceFieldTrajectoryArchive] = None
@@ -332,6 +335,8 @@ class ForceFieldError(RuntimeError):
 
 class ForceFieldSetupError(ForceFieldError):
     """Raised when Open Babel cannot initialize a requested force field."""
+
+    sample_failure_code: Optional[str] = "FF-SETUP-UNAVAILABLE"
 
     def __init__(
         self,
@@ -364,6 +369,8 @@ class BuildWorkerError(ForceFieldError):
 class BuildTimeoutError(ForceFieldError, TimeoutError):
     """Raised after a generic coordinate-build worker times out."""
 
+    sample_failure_code: Optional[str] = "FF-BUILD-TIMEOUT"
+
 
 class ComplexBuildError(ForceFieldError):
     """Raised when bounded ligand-proxy construction cannot produce a result."""
@@ -394,6 +401,8 @@ class ComplexBuildWorkerError(ComplexBuildError):
 class ComplexBuildTimeoutError(ComplexBuildError, TimeoutError):
     """Raised after a proxy-build worker exceeds its allotted wall time."""
 
+    sample_failure_code: Optional[str] = "FF-COMPLEX-BUILD-TIMEOUT"
+
 
 class ComplexBuildWarning(UserWarning):
     """Warn that complex construction continued with a partial search result."""
@@ -401,6 +410,8 @@ class ComplexBuildWarning(UserWarning):
 
 class GeometryQualityError(ForceFieldError):
     """Raised when optimization yields no usable finite-topology frame."""
+
+    sample_failure_code: Optional[str] = "FF-NO-USABLE-FRAME"
 
     def __init__(self, report: Optional[ForceFieldValidationReport]) -> None:
         super().__init__(

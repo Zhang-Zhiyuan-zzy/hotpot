@@ -35,6 +35,9 @@ from hotpot.pipeline.contracts import (
     StageStatus,
 )
 from hotpot.pipeline.artifacts import artifact_from_file
+from hotpot.pipeline._sample_control import (
+    _sample_counts, _break_scope, _save_observation, _check_findings,
+)
 
 from . import workflow
 from .contracts import (
@@ -46,7 +49,7 @@ from .contracts import (
     XTBRunReport,
     XTBTask,
 )
-from .state_resolution import resolve_xtb_state
+from .state_resolution import resolve_xtb_state, XTBStateResolutionError
 
 
 __all__ = ("STAGE", "get_stage")
@@ -69,6 +72,19 @@ _TASKS = {
 }
 
 
+_UNAVAILABLE_CHECK_NAMES = frozenset(("coordinate_shape", "finite_coordinates"))
+_GEOMETRY_CHECKS = (
+    "coordinate_shape", "finite_coordinates", "topology", "atom_overlap",
+    "atom_too_close", "bond_distance", "short_bond", "bond_length_ratio",
+    "bond_ring_piercing", "bond_ring_scope_coverage",
+)
+_XTB_FAILURE_CODES = (
+    "XTB-NATIVE-EXECUTION", "XTB-RESULT-UNAVAILABLE", "XTB-ELEMENT-UNSUPPORTED",
+    "XTB-STATE-UNAVAILABLE", "XTB-EXPLICIT-H-REQUIRED", "XTB-INPUT-GEOMETRY",
+)
+_XTB_CODES = _XTB_FAILURE_CODES + tuple(f"XTB:{name}" for name in _GEOMETRY_CHECKS) + ("XTB:convergence",)
+
+
 class _StageArgumentParser(argparse.ArgumentParser):
     """Report xTB syntax failures through the pipeline definition contract."""
 
@@ -86,6 +102,8 @@ class _XTBStageOptions:
     executable: Optional[str]
     threads: Optional[int]
     post_check: str
+    sample_break_on: Tuple[str, ...] = ()
+    batch_break_on: Tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -104,69 +122,80 @@ class _PreparedXTBStage(PreparedMolecularStage):
         reports = []
         quality_reports = []
         native_logs = []
-        quality_failed = False
+        rows = []
+        batch_break = False
         for index, record in enumerate(payload.records):
+            row = {"input_index": index, "output_index": None, "outcome": "not-attempted"}
+            rows.append(row)
+            if batch_break:
+                continue
             try:
                 report, state, projection = _run_record(
-                    record,
-                    self.options,
-                    context.stage_directory / "native",
+                    record, self.options, context.stage_directory / "native",
                 )
                 quality_report = _post_check(record.molecule, self.options.post_check)
-            except (XTBExecutionError, XTBResultError) as error:
-                native_logs.extend(_native_log_sections(index, error.report))
-                _write_native_log(context.stage_directory, native_logs)
-                raise StageExecutionError(
-                    f"xtb stage record {index} failed: {error}"
-                ) from error
             except (XTBError, ValueError) as error:
-                native_logs.append(
-                    f"=== record {index} failure ===\n{type(error).__name__}: {error}\n"
-                )
-                _write_native_log(context.stage_directory, native_logs)
-                raise StageExecutionError(
-                    f"xtb stage record {index} failed: {error}"
-                ) from error
-
-            if quality_report is not None:
-                quality_reports.append(_json_value(quality_report))
-                quality_failed = quality_failed or not quality_report.passed
-            reports.append(
-                _report_summary(
-                    report,
-                    state,
-                    projection,
-                    self.options,
-                    context.stage_directory,
-                )
-            )
-            native_logs.extend(_native_log_sections(index, report))
-            output_records.append(MolecularRecord(record.molecule, state))
+                code = getattr(error, "sample_failure_code", None)
+                if not isinstance(error, XTBError) or code not in _XTB_FAILURE_CODES:
+                    native_logs.append(f"=== record {index} failure ===\n{type(error).__name__}: {error}\n")
+                    _write_native_log(context.stage_directory, native_logs)
+                    raise StageExecutionError(f"xtb stage record {index} failed: {error}") from error
+                failure = {"code": code, "type": type(error).__name__, "message": str(error)}
+                if isinstance(error, (XTBExecutionError, XTBResultError)):
+                    row["report_index"] = len(reports)
+                    reports.append(_json_value(error.report))
+                    failure["native_report"] = _json_value(error.report)
+                    native_logs.extend(_native_log_sections(index, error.report))
+                else:
+                    native_logs.append(f"=== record {index} failure ===\n{type(error).__name__}: {error}\n")
+                if isinstance(error, XTBStateResolutionError):
+                    failure["scientific_state"] = _json_value(error.scientific_state)
+                    failure["projection_result"] = _json_value(error.projection_result)
+                row.update(outcome="unavailable", failure=failure)
+                scope = _break_scope((code,), self.options.sample_break_on, self.options.batch_break_on)
+            else:
+                row["report_index"] = len(reports)
+                reports.append(_report_summary(report, state, projection, self.options, context.stage_directory))
+                native_logs.extend(_native_log_sections(index, report))
+                findings = ()
+                unavailable = False
+                if quality_report is not None:
+                    quality_reports.append(_json_value(quality_report))
+                    findings = _check_findings(quality_report, "XTB", _json_value)
+                    unavailable = any(not check.passed and check.name in _UNAVAILABLE_CHECK_NAMES for check in quality_report.checks)
+                if report.converged is False:
+                    findings += ({"code": "XTB:convergence", "name": "convergence", "passed": False, "converged": False},)
+                if findings:
+                    row["findings"] = findings
+                scope = _break_scope((finding["code"] for finding in findings), self.options.sample_break_on, self.options.batch_break_on)
+                output_record = MolecularRecord(record.molecule, state)
+                if unavailable:
+                    row["outcome"] = "unavailable"
+                elif scope == "sample":
+                    row["outcome"] = "sample-break"
+                    row["observation_path"] = _save_observation(index, output_record, context)
+                else:
+                    row.update(outcome="returned", output_index=len(output_records))
+                    output_records.append(output_record)
+            if scope is not None:
+                row["break_scope"] = scope
+            batch_break = scope == "batch"
 
         native_log_path = context.stage_directory / "native.log"
         _write_native_log(context.stage_directory, native_logs)
         artifacts = _artifacts_under(context.stage_directory / "native", context)
+        artifacts += _artifacts_under(context.stage_directory / "observations", context)
         artifacts += (artifact_from_file(context.stage_directory, native_log_path),)
         xtb_report = reports[0] if len(reports) == 1 else tuple(reports)
-        stage_report: dict[str, JSONValue] = {"xtb": xtb_report}
+        stage_report = {"xtb": xtb_report, **_sample_counts(rows)}
         if quality_reports:
             stage_report["post_check"] = tuple(quality_reports)
-        status = (
-            StageStatus.QUALITY_FAILED
-            if quality_failed
-            else StageStatus.SUCCEEDED
-        )
-        stderr = (
-            "One or more xTB structures failed the requested post-check profile."
-            if quality_failed
-            else ""
-        )
         return StageResult(
-            status=status,
+            status=StageStatus.QUALITY_FAILED if batch_break or not output_records else StageStatus.SUCCEEDED,
             payload=MolecularPayload(tuple(output_records)),
             artifacts=artifacts,
             report=stage_report,
-            stderr=stderr,
+            break_pipeline=batch_break,
         )
 
 
@@ -192,6 +221,8 @@ class _XTBStage(MolecularStage):
                 executable=args.xtb_executable,
                 threads=args.threads,
                 post_check=args.post_check,
+                sample_break_on=tuple(args.sample_break_on),
+                batch_break_on=tuple(args.batch_break_on),
             )
         )
 
@@ -236,6 +267,8 @@ def _stage_parser() -> _StageArgumentParser:
         choices=("off", "basic", "standard", "strict"),
         default="off",
     )
+    parser.add_argument("--sample-break-on", action="append", choices=_XTB_CODES, default=[])
+    parser.add_argument("--batch-break-on", action="append", choices=_XTB_CODES, default=[])
     return parser
 
 
@@ -304,9 +337,9 @@ def _run_record(
 def _post_check(mol: Molecule, level: str) -> Optional[object]:
     if level == "off":
         return None
-    from hotpot.cheminfo.operations.forcefields import evaluate_structure_acceptance
+    from hotpot.cheminfo.operations.forcefields.acceptance import _evaluate_geometry_acceptance
 
-    return evaluate_structure_acceptance(mol, level=level)
+    return _evaluate_geometry_acceptance(mol, level=level)
 
 
 def _report_text(report: object, field: str) -> str:

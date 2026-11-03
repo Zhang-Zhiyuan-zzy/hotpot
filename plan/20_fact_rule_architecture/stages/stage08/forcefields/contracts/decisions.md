@@ -560,3 +560,282 @@ prerequisite. Compare chemical facts/units/currentness and allowed numerical
 variation rather than forcing identical float values or historical pass counts.
 Retain failures. B4, complete Stage8B scientific/standalone/FF benchmarks and all
 later/global gates remain open. Rollback is the coherent source/test/record commit.
+
+
+## B4 — Accepted failure and sample-control boundary
+
+B3d is accepted and pushed as9ac9680. Root aligns effective goal, focused main
+Stage8B/Sections2,11–12, integrated Plan12 requirements and HARD-012 against the
+actual FF/xTB adapters and unchanged generic engine. The read-only discovery
+finds broad stage catches conflating known sample rejection with worker, mapping,
+source and commit integrity errors. Only identified bounded causes may continue.
+No scientific algorithm, numerical threshold, trained feature or generic engine
+redesign is authorized. Root owns these global-boundary decisions.
+
+First authoring partition establishes attributable local failure identity at the
+actual producer, before any adapter continuation. Existing FF error classes gain
+optional `sample_failure_code` metadata; existing worker result/error transport
+forwards that exact optional code. Missing/unknown codes do not acquire a local
+meaning from exception class names or messages. Ordinary molecular/report values
+are unchanged. One private ValueError subclass in the route owner identifies the
+two existing request-domain checks, preserving ValueError compatibility; no new
+public exception export, DTO, success envelope or generic status is introduced.
+
+| Actual bounded trigger | Code | Origin and limit |
+| --- | --- | --- |
+| Existing optimize-only request without usable coordinates | `FF-REQUEST-COORDINATES` | Route precondition only |
+| Existing complex route with unsupported selected field | `FF-REQUEST-METHOD` | Route precondition only |
+| Existing translated native setup failure | `FF-SETUP-UNAVAILABLE` | Existing setup error only |
+| OBBuilder returns unsuccessful | `FF-BUILD-UNAVAILABLE` | Exact existing false-result branch |
+| Existing isolated ordinary/complex worker timeout | `FF-BUILD-TIMEOUT` / `FF-COMPLEX-BUILD-TIMEOUT` | Existing bounded timeouts only |
+| No usable finite/topology frame | `FF-NO-USABLE-FRAME` | Existing GeometryQualityError |
+| Exhausted existing ligand candidates with no usable fallback | `FF-LIGAND-CANDIDATES-EXHAUSTED` | Exact terminal branch; prior unknown errors stay unknown |
+| Official xTB native unsuccessful process | `XTB-NATIVE-EXECUTION` | Existing XTBExecutionError with raw report |
+| Required xTB result absent/invalid before commit | `XTB-RESULT-UNAVAILABLE` | Existing XTBResultError; raw artifacts remain |
+| Existing method element-domain rejection | `XTB-ELEMENT-UNSUPPORTED` | Existing XTBApplicabilityError |
+
+The first ligand sampler error wrapper forwards a code only if its actual cause
+already carries one. Worker EOF/shutdown/exit/protocol/invalid-success coordinates
+and arbitrary child errors retain None. Do not infer safety from a worker error
+name. Stale source, carried-state/provenance mismatch, unknown ValueError and
+programming exceptions remain fatal. A validated-coordinate commit integrity
+error retains XTBInputError and original cause; remove its old reclassification
+as ordinary XTBResultError. Parsing-invalid isolated output remains a named
+unavailable result. No new retry, fallback or guessed guard is added.
+
+The existing ligand candidate and refinement catches also require a concrete
+correction before adapter continuation: both catch every ForceFieldError and can
+turn an unknown/protocol failure into named exhaustion or silently retain a
+candidate. Their actual recoverable producer is the translated
+ForceFieldSetupError from _single_ob_optimization, including the same call inside
+ring repair. Narrow both catches to that existing setup exception. Preserve the
+current bounded attempt/fallback and diagnostic behavior for setup rejection;
+propagate other errors unchanged, without another attempt or candidate fallback.
+The first sampler wrapper still retains its original cause and optional identity.
+This corrects observed loss of failure identity; it adds no speculative guard,
+algorithm, retry budget or scientific policy. Focused tests must prove both known
+setup behavior and unchanged unknown failure identity at candidate and refinement.
+
+Local Sol/medium owns this exact code/transport/test partition. Root then reviews
+it before authorizing the connected adapter-control partition. Until that
+partition's concrete reporting/denominator/break contract is recorded, it may not
+be implemented. Authoring AST/static checks only; candidate imports/tests/models/
+build/native execution remain HOLD until root review and the bounded freeze.
+Focused tests must distinguish actual known codes from unknown/protocol failures,
+prove worker transport and commit rollback/original error, and retain messages,
+reports and diagnostics. B4 acceptance additionally requires actual mixed-sample
+continuation and finite-observation tests at source/installed CP311; code metadata
+alone does not close B4, Stage8B or later/global gates.
+
+
+### B4 connected authoring — complete sample reports and explicit control
+
+Root settles the connected partition at9ac9680 plus the reviewed first identity
+changes, before its authoring. This is the Stage8B/Plan12 operation-adapter
+boundary, not a redesign of the generic pipeline. Scientific algorithms,
+thresholds, FAST's documented candidate/fallback method, numerical budgets,
+trained features and ordinary molecular return types remain unchanged.
+
+**Known unavailable results.** FF adapters continue only for the exact codes in
+the preceding producer table. xTB additionally names its actual typed
+XTBStateResolutionError as `XTB-STATE-UNAVAILABLE`, retaining the scientific
+bundle/projection findings. This is distinct from carried-state, expected-identity
+and commit mismatches, which remain untagged/fatal. At molecule_to_xtb_geometry,
+the existing explicit-H rejection is `XTB-EXPLICIT-H-REQUIRED` and the existing
+geometry validator's XTBInputError is `XTB-INPUT-GEOMETRY`. Attach that geometry
+code only at this input call site; the same validator's failure during validated
+output commit remains an untagged integrity error. Do not translate arbitrary
+ValueError, backend/infrastructure error, state-extraction exception or error text
+into a known local cause. Preserve raw errors/reports/causes and actual attempts.
+
+**Finding classification.** All existing AcceptanceCheck names, measured values,
+thresholds, severity, order, subjects and profile computation remain intact.
+Pipeline findings use `FF:<check.name>` or `XTB:<check.name>`; only failed checks
+are listed, including warning checks. The domain prefix scopes an existing rule,
+not a scientific grade. Exact name sets are documented here:
+
+| Names | Defined value / default control | Commit/fallback consequence |
+| --- | --- | --- |
+| coordinate_shape, finite_coordinates | Required Cartesian frame unavailable; named local result failure | No downstream output; retain available reports/native evidence |
+| topology_atom_count, topology_atom_identity, topology_added_atoms, topology_original_bond, topology_added_bond, topology_added_hydrogen_degree | Required topology/row contract unavailable; named local result failure | No downstream output; integrity exceptions from source/commit/worker remain fatal |
+| forcefield_report, forcefield_setup, finite_final_energy, finite_rms_gradient, finite_max_gradient | Required FF evidence/value unavailable; named local result failure | No downstream output; retain actual finite observations and report; no invented numeric value |
+| atom_overlap, atom_too_close, bond_distance, short_bond, bond_length_ratio, bond_ring_piercing, bond_ring_scope_coverage | Finite geometry remains an observation; report and continue | Retain selected result, existing attempts and findings; no new repair |
+| backend_explosion, forcefield_convergence, rms_gradient, max_gradient, energy_change, max_displacement, stability_observations | With required finite fields available, report method/convergence/stability finding and continue | Retain finite result and native report; do not redefine numerical convergence |
+
+`topology` is the current success-only check. xTB's `XTB:convergence` additionally
+reports the actual false converged process fact without claiming an FF method.
+Distance/coordinate units remain angstrom, FF units remain the selected FF
+report's kJ/mol and kJ/(mol*angstrom), xTB energy remains hartree. These are
+method/profile-domain findings, not universal chemical impossibility claims.
+
+xTB post-checks in both pipeline and standalone CLI use a private geometry-only
+operation in the existing acceptance owner, reusing the same coordinate, pair,
+bond and ring rules/scans. A private core switch excludes FF evidence checks on
+that route. Public evaluate_structure_acceptance(strict, no FF report) keeps its
+existing missing-report behavior. No fabricated FF report and no second geometry
+algorithm or extra scan is introduced.
+
+**Per-input report contract.** Keep MolecularRecord/MolecularPayload schemas and
+Molecule state unchanged. FF/xTB report adds `sample_outcomes_version=1`, counts
+`input_count, attempted_count, output_count, unavailable_count, sample_break_count,
+not_attempted_count`, and ordered `sample_outcomes`. Every input has exactly one
+row with `input_index`, `output_index` (integer or null), and `outcome` from
+`returned, unavailable, sample-break, not-attempted`. Add `report_index` when a
+method report exists, `findings` when discovered, `failure` for an unavailable
+exception, and `break_scope` when an explicit rule matched. Findings contain
+`code` plus unchanged check content; failure retains code/type/message and
+available structured diagnostics, worker traceback or native report. Method
+reports remain in existing forcefield/xtb locations; output_index joins their
+retained molecular output, report_index joins method reports. Actual error
+trajectories/native files remain persisted as stage artifacts.
+
+For contiguous FF/xTB stages, complete positional edges and persisted adjacent
+outputs preserve original ordinals/denominators, even for equal molecules. The
+cohort anchor is nonempty initial input or persisted CBond-generated output/rank.
+Do not claim automatic generic lineage through arbitrary unrecorded reordering or
+generating stages. No molecule/content hash is used as a substitute for position.
+
+**Explicit control.** The pipeline FF/xTB stage parsers accept repeatable
+`--sample-break-on CODE` and `--batch-break-on CODE`, both default empty. Match
+exact emitted code strings; no message inference or catch-all promotion. Known
+codes and the complete named finding sets above are parser choices, with xTB
+restricted to its actual geometry/process/state codes. With no override, known
+unavailability removes only that downstream sample; non-hard finite observations
+remain output. A sample-break omits that finite sample from downstream output
+but persists its molecular observation at `observations/<input_index:04d>.sdf`,
+alongside the report. An unavailable value remains unavailable; a sample-break
+cannot manufacture an output. A batch-break stops attempts after the matching
+input, preserves every earlier/current defined observation and all remaining
+not-attempted rows. If both scopes match, batch control wins; the current finite
+observation stays in stage output because the whole pipeline is stopping.
+
+Append `break_pipeline: bool=False` to existing StageResult after stderr. This
+is expected execution control on the existing pipeline result, not a molecular
+success wrapper. Persist it in stage manifest. The existing runner stops only
+after normal result persistence when break_pipeline is true, or when status is
+QUALITY_FAILED and (final stage or empty output). Return existing FAILED with
+failed_stage_index and retained stage payload/report; no exception and no
+final.sdf. Existing intermediate nonempty QUALITY_FAILED from other stages may
+still continue. No new status/engine/registry/retry is introduced. FF/xTB return
+SUCCEEDED for a nonempty surviving cohort with default findings/local failures;
+counts disclose failures. All-unavailable/sample-broken output is QUALITY_FAILED,
+terminating at its actual origin so a later generator cannot replace the cohort.
+
+**Standalone command boundary.** After the pipeline partition is reviewed, audit
+and migrate the two existing CLI local catches to the same precise known causes;
+unknown/integrity errors must propagate. Keep actual emitted observations and
+reports. Finite non-hard quality findings default to reporting with usable-output
+exit0 rather than an implicit final failure. Local unavailable samples still
+produce existing error outcomes/exit1 while later independent samples run.
+Explicit per-code break flags initially belong to controlled pipeline stages;
+standalone batch scheduling/flags are not silently redesigned by this partition.
+Record that scope in command help/docs. The separate CLI authoring assignment
+must name its files before writing them.
+
+Root retains design/records/freeze/runtime release/acceptance. Parallel local
+Sol/medium writers may own disjoint adapter/report and pipeline/geometry/producer
+files; no nested delegation. Authoring remains static until both stop and root
+reviews source/tests. Required focused CP311 tests cover known versus unknown,
+worker transport/commit rollback, middle rejection with trailing success,
+duplicate-content composed ordinals and CBond anchor, explicit sample/batch
+breaks with not-attempted rows and finite artifact retention, all-unavailable
+persistence/no downstream generator, default non-hard observations and xTB strict
+geometry without fabricated FF failure. Obtain actual mixed FF/xTB backend
+workflows, source and installed origins, and rebind unchanged native evidence.
+Keep full Stage8B scientific/standalone/FF cost and later/global gates open until
+their actual evidence/owning review; no historical float/hash equality oracle.
+
+
+### B4 standalone continuation contract
+
+The subsequent exclusive CLI slice migrates commands/ff.py and plugins/xtb/cli.py
+with their focused tests/docs after the adapter writer stops. Reuse the stage
+owner's exact known-code and unavailable-check sets and canonical FF error-evidence
+helper; remove the command's former duplicate helper. No extra inference or
+per-command scientific thresholds. In FF, _run_forcefield no longer turns an
+arbitrary ValueError into _CLIUsageError. Only the exact existing private route
+request error becomes its InputError outcome; retain its actual code. Unknown
+FF errors, ValueError and xTB stream/commit/provenance errors propagate rather
+than becoming local outcomes. Known typed xTB input/state/process/result failures
+continue at the sample boundary with their precise code and existing native
+report/logs. Add the code to existing error evidence / xTB error JSON (schema2
+additive field); do not introduce a new ordinary result or compatibility route.
+
+A successful call with failed required-result checks is an unavailable sample:
+preserve its report, produce no molecular payload and report the exact scoped
+finding code. A returned finite result with non-hard findings retains the existing
+quality-failed diagnostic outcome and molecular stream; that diagnostic alone
+no longer makes command exit nonzero. Commands return0 when every sample produced
+a usable result, including non-hard findings, and1 when any known sample result
+is unavailable. Existing initial syntax/input-path errors remain2. Preserve actual
+reports/warnings and denominator/order; no finite finding is rewritten as passed.
+Parallel command scheduling remains the existing implementation: an unknown
+error propagates and aborts aggregation, with no promise to cancel already-running
+independent processes. Controlled pipeline flags supply explicit per-code breaks;
+no standalone scheduling redesign or extra flags are added here.
+
+Required tests distinguish request-domain errors from arbitrary ValueError,
+known from unknown same-text FF/xTB errors, commit/stream integrity from known
+input geometry, hard unavailable result from finite quality findings, and actual
+serialized output/report/exit behavior. Explain profile findings, partial failure
+and controlled per-code breaks in the existing command/pipeline documentation.
+
+
+### B4 root integration correction before runtime
+
+Root review of the first adapter authoring found an unwanted dependency: the
+independent xTB stage imported forcefield.stage merely for generic report/control
+helpers, eagerly loading the FF operation/backend graph even with post-check off.
+Place only the shared positional counts, exact-code break selection, finding-row
+conversion and observation persistence functions in a small private
+pipeline/_sample_control.py utility. It imports no FF/xTB/scientific algorithms
+and accepts each caller's serializer explicitly. Each adapter retains its actual
+domain code/check-name sets; xTB required checks are its coordinate checks only.
+This is helper ownership for the two existing adapters, not a generic engine,
+registry, status schema or pipeline redesign.
+
+Use argparse's existing append action and convert parser lists to immutable
+prepared tuples; no custom Action class is needed. Retain the existing explicit
+FFError/ValueError and XTBError/ValueError translation boundaries. Other unknown
+exceptions propagate unchanged; no new catch-all is needed to continue known
+samples. Unknown caught errors still become fatal StageExecutionError with the
+original cause. No unknown exception becomes local merely by message or type.
+
+Observation persistence returns a relative path recorded in the sample row.
+Sample-break preserves its finite observation there; a hard missing FF metric
+also preserves the defined geometry when its existing coordinate/topology checks
+pass. Invalid frame/mapping observations rely on their retained raw evidence;
+do not serialize them as a usable molecule. Keep original first-authoring
+receipts and record these corrections separately before source freeze.
+
+
+### B4 standalone input-reader correction before runtime
+
+Root CLI review found one remaining broad translation in xTB's non-SDF
+input reader: arbitrary RuntimeError/ValueError from MolReader became invocation
+usage errors. Narrow this to the actual input I/O exception OSError, matching
+the existing FF reader. Preserve explicit missing-path/format/empty-input usage
+checks and exit2. Unknown parser/programming exceptions retain their original
+identity and cause; SDF stream integrity errors also propagate. This is the same
+accepted unknown-error boundary, with no new parser, guard, fallback or scheduling
+change. Focused tests must prove unknown reader propagation and known input I/O
+usage handling before freeze; retain original authoring evidence separately.
+
+
+### B4 CP311 root acceptance
+
+The validation/b4/checkpoint.json accepts the settled failure/control/sample and
+standalone contracts at source/installed CP311:269focused,1408affected passed and
+2explicit scientific skips per boundary,1410matching orderednodes,3actual official
+pipelines and real UFF/GFN2 mixed cohorts per boundary with original3/surviving2.
+Root checked atoms/bonds/charges, finite values/units, singlepoint nonmutation,
+legal projection, persistence and origin evidence; numerical variation is retained.
+The actual middle failures are known request/state rejection, not simulated native
+failure. Original attempt01/three new legacy-core test imports remain archived;
+only public-export imports corrected them, without weakening architecture checks.
+Fresh478Python-body wheel reuses6unchanged B3a natives;41unchanged omissions are
+P20-D008. Unchanged B3d MCA source/evidence is reused without redundant inference.
+No native rebuild, all-version, full corpus/cost or global acceptance follows.
+Whole Stage8B still needs O0 scientific observations/comparison, explicit
+standalone-wrapper evidence/disposition and comparable FF cost or an attributable
+owner-authorized disposition before Stage8C entry. Later/global gates stay open.

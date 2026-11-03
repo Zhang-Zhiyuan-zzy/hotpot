@@ -123,6 +123,7 @@ class StageResult:
     artifacts: Tuple[Artifact, ...] = ()
     report: Mapping[str, JSONValue] = field(default_factory=dict)
     stderr: str = ""
+    break_pipeline: bool = False
 
 
 @dataclass(frozen=True)

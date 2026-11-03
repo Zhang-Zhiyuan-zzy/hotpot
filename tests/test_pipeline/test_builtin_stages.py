@@ -33,14 +33,20 @@ def _context(stage_spec, tmp_path: Path):
     return StageContext(run_directory, stage_directory, 0, stage_spec)
 
 
-@dataclass(frozen=True)
-class _QualityReport:
-    passed: bool
+def _quality_report():
+    from hotpot.cheminfo.operations.forcefields.contracts import (
+        AcceptanceCheck, ForceFieldValidationReport,
+    )
+
+    return ForceFieldValidationReport(
+        level="standard", passed=True,
+        checks=(AcceptanceCheck(name="finite_coordinates", passed=True),),
+    )
 
 
 @dataclass(frozen=True)
 class _ForceFieldReport:
-    quality_report: _QualityReport
+    quality_report: object
     trajectory: None
     requested_forcefield: str
     effective_forcefield: str
@@ -148,7 +154,7 @@ def test_forcefield_stage_uses_one_public_route_operation_without_duplicate_gate
         nonlocal calls
         calls += 1
         return _ForceFieldReport(
-            quality_report=_QualityReport(passed=True),
+            quality_report=_quality_report(),
             trajectory=None,
             requested_forcefield=forcefield or "UFF",
             effective_forcefield="UFF",

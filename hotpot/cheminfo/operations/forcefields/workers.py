@@ -78,6 +78,7 @@ def _build_ligand_proxies_worker(
             error_type=type(exc).__name__,
             error_message=str(exc),
             traceback=traceback_module.format_exc(),
+            sample_failure_code=getattr(exc, "sample_failure_code", None),
             ligand_build_attempts=tuple(trajectory_attempts or ()),
         )
     try:
@@ -106,6 +107,7 @@ def _seeded_ob_build_worker(
             error_type=type(exc).__name__,
             error_message=str(exc),
             traceback=traceback_module.format_exc(),
+            sample_failure_code=getattr(exc, "sample_failure_code", None),
         )
     try:
         connection.send(result)
@@ -205,6 +207,7 @@ def _receive_worker_result(
                 result.traceback,
                 result.diagnostics,
             )
+            error.sample_failure_code = result.sample_failure_code
             error.ligand_build_attempts = result.ligand_build_attempts
             raise error
         if result.coordinates is None or (

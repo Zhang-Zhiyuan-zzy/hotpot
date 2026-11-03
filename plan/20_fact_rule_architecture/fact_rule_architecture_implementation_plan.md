@@ -4,8 +4,8 @@ Status: **implementation authorized on 2026-10-28; Stage0–8A owning-stage gate
 complete within their recorded scopes. Stage8A A1–A11 scientific-state separation,
 non-mutating extraction, H presence, approved detailed reports/confidence retirement,
 preparation diagnostics and existing Lewis complete-H applicability are root accepted
-within CP311 source/installed scope. Stage8B entry/B1 design is accepted;
-implementation and its owning gate remain open. Stage8C–E have not entered. Optional scientific
+within CP311 source/installed scope. Stage8B B1 consolidation and B2 pure acceptance/
+capture separation are root accepted within CP311; B3/B4 and the owning gate remain open. Stage8C–E have not entered. Optional scientific
 activation, remaining stages, full scientific/engineering, version-adaptation and
 global acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
@@ -2138,6 +2138,14 @@ uses the same965orderednodes, and actual3pipeline+3MCA pass at each boundary.
 The original loader collection failure is retained, six unchanged accepted natives
 are reused and actual numerical variation is preserved. No clean-native, cost,
 all-version or complete Stage8B acceptance follows from B1.
+
+The [B2 CP311 checkpoint](stages/stage08/forcefields/validation/b2/checkpoint.json)
+accepts existing acceptance contracts/pure rules and scoped carrier capture with
+zero new classes. The current controller retains lazy check ordering, mutable
+public metrics and one-scan/checkpoint reuse. Source283focused and source/installed
+990affected+7skipped pass with the same997orderednodes; actual3pipeline+3MCA pass
+each. Original static/checker failures, skips and numerical variation are retained.
+Six unchanged natives are reused; B3/B4, full Stage8B and later/global gates remain.
 
 #### Stage 8C — Search
 

@@ -1,0 +1,1325 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "status": "ROOT_ACCEPTED_CP311_B2_ACCEPTANCE_SEPARATION",
+  "stage": "Stage8B/B2",
+  "root_acceptance": true,
+  "whole_stage8b_closed": false,
+  "global_gate_closed": false,
+  "successful_attempt": "attempt02",
+  "parent_head": "71c456ade36c2b5ec2ffab55156a85a153e80bdf",
+  "freeze": {
+    "path": ".plan20-artifacts/20261103/stage8b/b2/raw/release/source-freeze-b2-attempt02.json",
+    "sha256": "df60cbf7f130e7faa9eac217f34bd63ff3131776f204f8304bc83809d6084dc3"
+  },
+  "validation_manifest": {
+    "path": ".plan20-artifacts/20261103/stage8b/b2/raw/reproducibility/validation-manifest.json",
+    "sha256": "09b2bdbb9035900edc0144252fd2c91f8d1b6748f4b3930e60bbaa5fc95970cd"
+  },
+  "root_release": {
+    "path": ".plan20-artifacts/20261103/stage8b/b2/raw/release/root-review-release-attempt02.json",
+    "sha256": "24c757c71de3365bce6d43517cb89420af58e9ac49a0f24a5dd3488fba5171d3"
+  },
+  "scope": "B2 pure acceptance/capture separation and true-owner existing-type moves; current lazy controller and mutable public metrics retained. No numerical/native/public-schema change.",
+  "selection": {
+    "focused_files": 12,
+    "affected_files": 64,
+    "stage8b_existing_files": 33
+  },
+  "bindings": {
+    "source_and_tests": 1433,
+    "native": 6,
+    "build_inputs": 3
+  },
+  "source": {
+    "focused": {
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/focused-attempt02/execution.json",
+        "sha256": "1a70f66ef43bc42b9e2ea67f14fbd30cf5edb6529fa849d0153a849113eba29d"
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/focused-attempt02/junit.xml",
+        "sha256": "a1a6c10386d06b57b22a9221b5ca863c9df0e9ec658ee560b3465bfce3953546"
+      },
+      "counts": {
+        "tests": 283,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 283
+      },
+      "returncode": 0,
+      "elapsed_seconds": 10.980378296226263,
+      "kind": "focused",
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/forcefields/test_acceptance_rules.py",
+        "tests/test_cheminfo/forcefields/test_contract_ownership.py",
+        "tests/test_cheminfo/test_forcefield_acceptance.py",
+        "tests/test_cheminfo/test_forcefield_checkpoint_acceptance.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_checkpoint_acceptance.py",
+        "tests/test_cheminfo/test_forcefield_stage_scan_boundaries.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/test_cheminfo/test_forcefield_optimizer.py",
+        "tests/test_cheminfo/test_forcefield_trajectory.py",
+        "tests/test_cheminfo/test_forcefield_package.py",
+        "tests/test_cheminfo/test_forcefield_api.py",
+        "tests/test_cheminfo/test_forcefield_cli.py",
+        "--tb=short",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "plan20_evidence_plugin",
+        "--basetemp=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/focused-attempt02/pytest-tmp",
+        "--junitxml=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/focused-attempt02/junit.xml"
+      ],
+      "source_freeze": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/source-freeze-b2-attempt02.json",
+        "sha256": "df60cbf7f130e7faa9eac217f34bd63ff3131776f204f8304bc83809d6084dc3"
+      },
+      "validation_manifest": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/validation-manifest.json",
+        "sha256": "09b2bdbb9035900edc0144252fd2c91f8d1b6748f4b3930e60bbaa5fc95970cd"
+      },
+      "failed_cases": [],
+      "skips": [],
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "manifest_unchanged": true,
+      "source_freeze_unchanged": true,
+      "runner_support_unchanged": true
+    },
+    "affected": {
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/affected-attempt02/execution.json",
+        "sha256": "0c9e6778ecf4b21919f4bb56cf6c1c43d313917312dcfcfd44202a19b3059b36"
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/affected-attempt02/junit.xml",
+        "sha256": "eaea1278daf4be95c6952b375e94be1cd8d6e4d00a9e5074076d44e963e5f749"
+      },
+      "counts": {
+        "tests": 997,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 7,
+        "passed": 990
+      },
+      "returncode": 0,
+      "elapsed_seconds": 52.32860496453941,
+      "kind": "affected",
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+        "tests/test_cheminfo/forcefields/test_coordination_components.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_checkpoint_acceptance.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_coordination_stage.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_optimization_stage.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_placement.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_public_workflows.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_setup_errors.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_workflow_stage.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_routing_contracts.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_settings.py",
+        "tests/test_cheminfo/forcefields/test_native_default_parity.py",
+        "tests/test_cheminfo/forcefields/test_native_trajectory_ingestion.py",
+        "tests/test_cheminfo/obWrappers/test_bridge.py",
+        "tests/test_cheminfo/obWrappers/test_native_engine_contract.py",
+        "tests/test_cheminfo/obWrappers/test_native_rules.py",
+        "tests/test_cheminfo/obWrappers/test_packing.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/test_complex_untangling_workflow.py",
+        "tests/test_cheminfo/test_complexes_build.py",
+        "tests/test_cheminfo/test_complexes_build_full.py",
+        "tests/test_cheminfo/test_forcefield_acceptance.py",
+        "tests/test_cheminfo/test_forcefield_api.py",
+        "tests/test_cheminfo/test_forcefield_auto_optimize.py",
+        "tests/test_cheminfo/test_forcefield_checkpoint_acceptance.py",
+        "tests/test_cheminfo/test_forcefield_cli.py",
+        "tests/test_cheminfo/test_forcefield_integration.py",
+        "tests/test_cheminfo/test_forcefield_native_session.py",
+        "tests/test_cheminfo/test_forcefield_optimizer.py",
+        "tests/test_cheminfo/test_forcefield_package.py",
+        "tests/test_cheminfo/test_forcefield_stage_scan_boundaries.py",
+        "tests/test_cheminfo/test_forcefield_trajectory.py",
+        "tests/test_cheminfo/forcefields/test_contract_ownership.py",
+        "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_main/test_command_loading.py",
+        "tests/test_cheminfo/structure/test_architecture.py",
+        "tests/test_cheminfo/structure/test_factual_imports.py",
+        "tests/test_cheminfo/structure/test_buffer_ownership.py",
+        "tests/test_cheminfo/structure/test_ob_coordinate_buffer.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/structure/test_constraints.py",
+        "tests/test_cheminfo/test_native_molecule_buffers.py",
+        "tests/test_cheminfo/test_stereo_level1_native_packing.py",
+        "tests/test_packaging_metadata.py",
+        "tests/test_pipeline/test_artifacts.py",
+        "tests/test_pipeline/test_builtin_stages.py",
+        "tests/test_pipeline/test_contracts.py",
+        "tests/test_pipeline/test_documentation.py",
+        "tests/test_pipeline/test_registry.py",
+        "tests/test_pipeline/test_runner.py",
+        "tests/test_pipeline/test_state_recovery.py",
+        "tests/test_plugin/test_xtb/test_adapter.py",
+        "tests/test_plugin/test_xtb/test_backend.py",
+        "tests/test_plugin/test_xtb/test_capabilities.py",
+        "tests/test_plugin/test_xtb/test_fake_backend.py",
+        "tests/test_plugin/test_xtb/test_official_integration.py",
+        "tests/test_plugin/test_xtb/test_pipeline_integration.py",
+        "tests/test_plugin/test_xtb/test_runner.py",
+        "tests/test_plugin/test_xtb/test_state_projection.py",
+        "tests/test_plugin/test_xtb/test_stream.py",
+        "tests/test_plugin/test_xtb/test_workflow_contract.py",
+        "tests/test_plugin/test_xtb/test_workflow_state.py",
+        "tests/test_cheminfo/forcefields/test_acceptance_rules.py",
+        "--tb=short",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "plan20_evidence_plugin",
+        "--basetemp=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/affected-attempt02/pytest-tmp",
+        "--junitxml=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/affected-attempt02/junit.xml"
+      ],
+      "source_freeze": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/source-freeze-b2-attempt02.json",
+        "sha256": "df60cbf7f130e7faa9eac217f34bd63ff3131776f204f8304bc83809d6084dc3"
+      },
+      "validation_manifest": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/validation-manifest.json",
+        "sha256": "09b2bdbb9035900edc0144252fd2c91f8d1b6748f4b3930e60bbaa5fc95970cd"
+      },
+      "failed_cases": [],
+      "skips": [
+        {
+          "classname": "tests.test_cheminfo.obWrappers.test_bridge",
+          "name": "test_all_extractant_phosphorus_centers_build_and_optimize_finitely",
+          "kind": "skipped",
+          "message": "requires --run-scientific-boundary",
+          "type": "pytest.skip",
+          "details": "/home/zhangzhiyuan/hotpot/tests/test_cheminfo/obWrappers/test_bridge.py:120: requires --run-scientific-boundary"
+        },
+        {
+          "classname": "tests.test_cheminfo.test_complexes_build_full",
+          "name": "test_readme_europium_complex_full_standard_workflow",
+          "kind": "skipped",
+          "message": "requires --run-high-compute",
+          "type": "pytest.skip",
+          "details": "/home/zhangzhiyuan/hotpot/tests/test_cheminfo/test_complexes_build_full.py:17: requires --run-high-compute"
+        },
+        {
+          "classname": "tests.test_plugin.test_xtb.test_official_integration",
+          "name": "test_official_gfn2_wrapper_matches_direct_cli_energy",
+          "kind": "skipped",
+          "message": "requires --run-external",
+          "type": "pytest.skip",
+          "details": "/home/zhangzhiyuan/hotpot/tests/test_plugin/test_xtb/test_official_integration.py:165: requires --run-external"
+        },
+        {
+          "classname": "tests.test_plugin.test_xtb.test_official_integration",
+          "name": "test_official_gfnff_wrapper_matches_direct_cli_energy",
+          "kind": "skipped",
+          "message": "requires --run-external",
+          "type": "pytest.skip",
+          "details": "/home/zhangzhiyuan/hotpot/tests/test_plugin/test_xtb/test_official_integration.py:208: requires --run-external"
+        },
+        {
+          "classname": "tests.test_plugin.test_xtb.test_official_integration",
+          "name": "test_official_gfn2_optimization_matches_direct_cli_result",
+          "kind": "skipped",
+          "message": "requires --run-external",
+          "type": "pytest.skip",
+          "details": "/home/zhangzhiyuan/hotpot/tests/test_plugin/test_xtb/test_official_integration.py:251: requires --run-external"
+        },
+        {
+          "classname": "tests.test_plugin.test_xtb.test_official_integration",
+          "name": "test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_states[ionic-chloride]",
+          "kind": "skipped",
+          "message": "requires --run-external",
+          "type": "pytest.skip",
+          "details": "/home/zhangzhiyuan/hotpot/tests/test_plugin/test_xtb/test_official_integration.py:306: requires --run-external"
+        },
+        {
+          "classname": "tests.test_plugin.test_xtb.test_official_integration",
+          "name": "test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_states[hydrogen-radical]",
+          "kind": "skipped",
+          "message": "requires --run-external",
+          "type": "pytest.skip",
+          "details": "/home/zhangzhiyuan/hotpot/tests/test_plugin/test_xtb/test_official_integration.py:306: requires --run-external"
+        }
+      ],
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "manifest_unchanged": true,
+      "source_freeze_unchanged": true,
+      "runner_support_unchanged": true
+    },
+    "actual_CBFF_xtb": {
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/actual_CBFF_xtb-attempt02/execution.json",
+        "sha256": "800915bc3a749dd242dee573d5a625f177a3e9c94e5104b7a4952d29718280f5"
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/actual_CBFF_xtb-attempt02/junit.xml",
+        "sha256": "54efa3f4dfc5799ea4aef71ea62bd84e4cbb5169ed3ad93ecb4c2c9e955d6e04"
+      },
+      "counts": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 3
+      },
+      "returncode": 0,
+      "elapsed_seconds": 4.8983906377106905,
+      "kind": "actual_CBFF_xtb",
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-external",
+        "--run-high-compute",
+        "--run-model-artifacts",
+        "tests/test_plugin/test_xtb/test_official_pipeline_integration.py",
+        "--tb=short",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "plan20_evidence_plugin",
+        "--basetemp=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/actual_CBFF_xtb-attempt02/pytest-tmp",
+        "--junitxml=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/actual_CBFF_xtb-attempt02/junit.xml"
+      ],
+      "source_freeze": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/source-freeze-b2-attempt02.json",
+        "sha256": "df60cbf7f130e7faa9eac217f34bd63ff3131776f204f8304bc83809d6084dc3"
+      },
+      "validation_manifest": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/validation-manifest.json",
+        "sha256": "09b2bdbb9035900edc0144252fd2c91f8d1b6748f4b3930e60bbaa5fc95970cd"
+      },
+      "failed_cases": [],
+      "skips": [],
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "manifest_unchanged": true,
+      "source_freeze_unchanged": true,
+      "runner_support_unchanged": true
+    },
+    "actual_MCA_attachment": {
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/actual_MCA_attachment-attempt02/execution.json",
+        "sha256": "2af491580819886cb7b01e2da041aba3e1a56f6dfde057f4896cc3e6ab105318"
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/actual_MCA_attachment-attempt02/junit.xml",
+        "sha256": "599d6c9677431570fa9c773be53989a40b204db1c0a8b2e1e5ba5cc213852cc7"
+      },
+      "counts": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 3
+      },
+      "returncode": 0,
+      "elapsed_seconds": 8.794754710048437,
+      "kind": "actual_MCA_attachment",
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-model-artifacts",
+        "tests/test_cheminfo/test_mca_calculator.py",
+        "--tb=short",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "plan20_evidence_plugin",
+        "--basetemp=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/actual_MCA_attachment-attempt02/pytest-tmp",
+        "--junitxml=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/actual_MCA_attachment-attempt02/junit.xml"
+      ],
+      "source_freeze": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/source-freeze-b2-attempt02.json",
+        "sha256": "df60cbf7f130e7faa9eac217f34bd63ff3131776f204f8304bc83809d6084dc3"
+      },
+      "validation_manifest": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/validation-manifest.json",
+        "sha256": "09b2bdbb9035900edc0144252fd2c91f8d1b6748f4b3930e60bbaa5fc95970cd"
+      },
+      "failed_cases": [],
+      "skips": [],
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "manifest_unchanged": true,
+      "source_freeze_unchanged": true,
+      "runner_support_unchanged": true
+    }
+  },
+  "all_source_attempts": {
+    "actual_CBFF_xtb-attempt02": {
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/actual_CBFF_xtb-attempt02/execution.json",
+        "sha256": "800915bc3a749dd242dee573d5a625f177a3e9c94e5104b7a4952d29718280f5"
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/actual_CBFF_xtb-attempt02/junit.xml",
+        "sha256": "54efa3f4dfc5799ea4aef71ea62bd84e4cbb5169ed3ad93ecb4c2c9e955d6e04"
+      },
+      "counts": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 3
+      },
+      "returncode": 0,
+      "elapsed_seconds": 4.8983906377106905,
+      "kind": "actual_CBFF_xtb",
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-external",
+        "--run-high-compute",
+        "--run-model-artifacts",
+        "tests/test_plugin/test_xtb/test_official_pipeline_integration.py",
+        "--tb=short",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "plan20_evidence_plugin",
+        "--basetemp=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/actual_CBFF_xtb-attempt02/pytest-tmp",
+        "--junitxml=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/actual_CBFF_xtb-attempt02/junit.xml"
+      ],
+      "source_freeze": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/source-freeze-b2-attempt02.json",
+        "sha256": "df60cbf7f130e7faa9eac217f34bd63ff3131776f204f8304bc83809d6084dc3"
+      },
+      "validation_manifest": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/validation-manifest.json",
+        "sha256": "09b2bdbb9035900edc0144252fd2c91f8d1b6748f4b3930e60bbaa5fc95970cd"
+      },
+      "failed_cases": [],
+      "skips": [],
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "manifest_unchanged": true,
+      "source_freeze_unchanged": true,
+      "runner_support_unchanged": true
+    },
+    "actual_MCA_attachment-attempt02": {
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/actual_MCA_attachment-attempt02/execution.json",
+        "sha256": "2af491580819886cb7b01e2da041aba3e1a56f6dfde057f4896cc3e6ab105318"
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/actual_MCA_attachment-attempt02/junit.xml",
+        "sha256": "599d6c9677431570fa9c773be53989a40b204db1c0a8b2e1e5ba5cc213852cc7"
+      },
+      "counts": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 3
+      },
+      "returncode": 0,
+      "elapsed_seconds": 8.794754710048437,
+      "kind": "actual_MCA_attachment",
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "--run-model-artifacts",
+        "tests/test_cheminfo/test_mca_calculator.py",
+        "--tb=short",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "plan20_evidence_plugin",
+        "--basetemp=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/actual_MCA_attachment-attempt02/pytest-tmp",
+        "--junitxml=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/actual_MCA_attachment-attempt02/junit.xml"
+      ],
+      "source_freeze": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/source-freeze-b2-attempt02.json",
+        "sha256": "df60cbf7f130e7faa9eac217f34bd63ff3131776f204f8304bc83809d6084dc3"
+      },
+      "validation_manifest": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/validation-manifest.json",
+        "sha256": "09b2bdbb9035900edc0144252fd2c91f8d1b6748f4b3930e60bbaa5fc95970cd"
+      },
+      "failed_cases": [],
+      "skips": [],
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "manifest_unchanged": true,
+      "source_freeze_unchanged": true,
+      "runner_support_unchanged": true
+    },
+    "affected-attempt02": {
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/affected-attempt02/execution.json",
+        "sha256": "0c9e6778ecf4b21919f4bb56cf6c1c43d313917312dcfcfd44202a19b3059b36"
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/affected-attempt02/junit.xml",
+        "sha256": "eaea1278daf4be95c6952b375e94be1cd8d6e4d00a9e5074076d44e963e5f749"
+      },
+      "counts": {
+        "tests": 997,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 7,
+        "passed": 990
+      },
+      "returncode": 0,
+      "elapsed_seconds": 52.32860496453941,
+      "kind": "affected",
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+        "tests/test_cheminfo/forcefields/test_coordination_components.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_checkpoint_acceptance.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_coordination_stage.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_optimization_stage.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_placement.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_public_workflows.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_setup_errors.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_workflow_stage.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_routing_contracts.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_settings.py",
+        "tests/test_cheminfo/forcefields/test_native_default_parity.py",
+        "tests/test_cheminfo/forcefields/test_native_trajectory_ingestion.py",
+        "tests/test_cheminfo/obWrappers/test_bridge.py",
+        "tests/test_cheminfo/obWrappers/test_native_engine_contract.py",
+        "tests/test_cheminfo/obWrappers/test_native_rules.py",
+        "tests/test_cheminfo/obWrappers/test_packing.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/test_complex_untangling_workflow.py",
+        "tests/test_cheminfo/test_complexes_build.py",
+        "tests/test_cheminfo/test_complexes_build_full.py",
+        "tests/test_cheminfo/test_forcefield_acceptance.py",
+        "tests/test_cheminfo/test_forcefield_api.py",
+        "tests/test_cheminfo/test_forcefield_auto_optimize.py",
+        "tests/test_cheminfo/test_forcefield_checkpoint_acceptance.py",
+        "tests/test_cheminfo/test_forcefield_cli.py",
+        "tests/test_cheminfo/test_forcefield_integration.py",
+        "tests/test_cheminfo/test_forcefield_native_session.py",
+        "tests/test_cheminfo/test_forcefield_optimizer.py",
+        "tests/test_cheminfo/test_forcefield_package.py",
+        "tests/test_cheminfo/test_forcefield_stage_scan_boundaries.py",
+        "tests/test_cheminfo/test_forcefield_trajectory.py",
+        "tests/test_cheminfo/forcefields/test_contract_ownership.py",
+        "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_main/test_command_loading.py",
+        "tests/test_cheminfo/structure/test_architecture.py",
+        "tests/test_cheminfo/structure/test_factual_imports.py",
+        "tests/test_cheminfo/structure/test_buffer_ownership.py",
+        "tests/test_cheminfo/structure/test_ob_coordinate_buffer.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/structure/test_constraints.py",
+        "tests/test_cheminfo/test_native_molecule_buffers.py",
+        "tests/test_cheminfo/test_stereo_level1_native_packing.py",
+        "tests/test_packaging_metadata.py",
+        "tests/test_pipeline/test_artifacts.py",
+        "tests/test_pipeline/test_builtin_stages.py",
+        "tests/test_pipeline/test_contracts.py",
+        "tests/test_pipeline/test_documentation.py",
+        "tests/test_pipeline/test_registry.py",
+        "tests/test_pipeline/test_runner.py",
+        "tests/test_pipeline/test_state_recovery.py",
+        "tests/test_plugin/test_xtb/test_adapter.py",
+        "tests/test_plugin/test_xtb/test_backend.py",
+        "tests/test_plugin/test_xtb/test_capabilities.py",
+        "tests/test_plugin/test_xtb/test_fake_backend.py",
+        "tests/test_plugin/test_xtb/test_official_integration.py",
+        "tests/test_plugin/test_xtb/test_pipeline_integration.py",
+        "tests/test_plugin/test_xtb/test_runner.py",
+        "tests/test_plugin/test_xtb/test_state_projection.py",
+        "tests/test_plugin/test_xtb/test_stream.py",
+        "tests/test_plugin/test_xtb/test_workflow_contract.py",
+        "tests/test_plugin/test_xtb/test_workflow_state.py",
+        "tests/test_cheminfo/forcefields/test_acceptance_rules.py",
+        "--tb=short",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "plan20_evidence_plugin",
+        "--basetemp=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/affected-attempt02/pytest-tmp",
+        "--junitxml=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/affected-attempt02/junit.xml"
+      ],
+      "source_freeze": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/source-freeze-b2-attempt02.json",
+        "sha256": "df60cbf7f130e7faa9eac217f34bd63ff3131776f204f8304bc83809d6084dc3"
+      },
+      "validation_manifest": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/validation-manifest.json",
+        "sha256": "09b2bdbb9035900edc0144252fd2c91f8d1b6748f4b3930e60bbaa5fc95970cd"
+      },
+      "failed_cases": [],
+      "skips": [
+        {
+          "classname": "tests.test_cheminfo.obWrappers.test_bridge",
+          "name": "test_all_extractant_phosphorus_centers_build_and_optimize_finitely",
+          "kind": "skipped",
+          "message": "requires --run-scientific-boundary",
+          "type": "pytest.skip",
+          "details": "/home/zhangzhiyuan/hotpot/tests/test_cheminfo/obWrappers/test_bridge.py:120: requires --run-scientific-boundary"
+        },
+        {
+          "classname": "tests.test_cheminfo.test_complexes_build_full",
+          "name": "test_readme_europium_complex_full_standard_workflow",
+          "kind": "skipped",
+          "message": "requires --run-high-compute",
+          "type": "pytest.skip",
+          "details": "/home/zhangzhiyuan/hotpot/tests/test_cheminfo/test_complexes_build_full.py:17: requires --run-high-compute"
+        },
+        {
+          "classname": "tests.test_plugin.test_xtb.test_official_integration",
+          "name": "test_official_gfn2_wrapper_matches_direct_cli_energy",
+          "kind": "skipped",
+          "message": "requires --run-external",
+          "type": "pytest.skip",
+          "details": "/home/zhangzhiyuan/hotpot/tests/test_plugin/test_xtb/test_official_integration.py:165: requires --run-external"
+        },
+        {
+          "classname": "tests.test_plugin.test_xtb.test_official_integration",
+          "name": "test_official_gfnff_wrapper_matches_direct_cli_energy",
+          "kind": "skipped",
+          "message": "requires --run-external",
+          "type": "pytest.skip",
+          "details": "/home/zhangzhiyuan/hotpot/tests/test_plugin/test_xtb/test_official_integration.py:208: requires --run-external"
+        },
+        {
+          "classname": "tests.test_plugin.test_xtb.test_official_integration",
+          "name": "test_official_gfn2_optimization_matches_direct_cli_result",
+          "kind": "skipped",
+          "message": "requires --run-external",
+          "type": "pytest.skip",
+          "details": "/home/zhangzhiyuan/hotpot/tests/test_plugin/test_xtb/test_official_integration.py:251: requires --run-external"
+        },
+        {
+          "classname": "tests.test_plugin.test_xtb.test_official_integration",
+          "name": "test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_states[ionic-chloride]",
+          "kind": "skipped",
+          "message": "requires --run-external",
+          "type": "pytest.skip",
+          "details": "/home/zhangzhiyuan/hotpot/tests/test_plugin/test_xtb/test_official_integration.py:306: requires --run-external"
+        },
+        {
+          "classname": "tests.test_plugin.test_xtb.test_official_integration",
+          "name": "test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_states[hydrogen-radical]",
+          "kind": "skipped",
+          "message": "requires --run-external",
+          "type": "pytest.skip",
+          "details": "/home/zhangzhiyuan/hotpot/tests/test_plugin/test_xtb/test_official_integration.py:306: requires --run-external"
+        }
+      ],
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "manifest_unchanged": true,
+      "source_freeze_unchanged": true,
+      "runner_support_unchanged": true
+    },
+    "focused-attempt01": {
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/focused-attempt01/execution.json",
+        "sha256": "dbc8a43a2e15596a1c67e57c3a37fe0771d18fc7335f3f8274b39c07283e231e"
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/focused-attempt01/junit.xml",
+        "sha256": "6a0c3612447bc1a8cb7b008a5614a052567a645eeafa104430a1634db6e1d35c"
+      },
+      "counts": {
+        "tests": 283,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 282
+      },
+      "returncode": 1,
+      "elapsed_seconds": 11.02518138103187,
+      "kind": "focused",
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/forcefields/test_acceptance_rules.py",
+        "tests/test_cheminfo/forcefields/test_contract_ownership.py",
+        "tests/test_cheminfo/test_forcefield_acceptance.py",
+        "tests/test_cheminfo/test_forcefield_checkpoint_acceptance.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_checkpoint_acceptance.py",
+        "tests/test_cheminfo/test_forcefield_stage_scan_boundaries.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/test_cheminfo/test_forcefield_optimizer.py",
+        "tests/test_cheminfo/test_forcefield_trajectory.py",
+        "tests/test_cheminfo/test_forcefield_package.py",
+        "tests/test_cheminfo/test_forcefield_api.py",
+        "tests/test_cheminfo/test_forcefield_cli.py",
+        "--tb=short",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "plan20_evidence_plugin",
+        "--basetemp=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/focused-attempt01/pytest-tmp",
+        "--junitxml=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/focused-attempt01/junit.xml"
+      ],
+      "source_freeze": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/source-freeze-b2-attempt01.json",
+        "sha256": "868a60af8fa9d7258f7de80724b3cb39fc5ebc503ad2cbfca114d2c0ba13fbd0"
+      },
+      "validation_manifest": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/validation-manifest.json",
+        "sha256": "aaa78b560d79bbdb2a44840b0bfa7e7e3b9fa58fff1b70770784109184f94df0"
+      },
+      "failed_cases": [
+        {
+          "classname": "tests.test_cheminfo.test_forcefield_package",
+          "name": "test_specialized_apis_are_reexported_without_wrapping",
+          "kind": "failure",
+          "message": "TypeError: cannot pickle code objects",
+          "type": null,
+          "details": "tests/test_cheminfo/test_forcefield_package.py:151: in test_specialized_apis_are_reexported_without_wrapping\n    assert pickle.loads(pickle.dumps(exported)) is exported\n                        ^^^^^^^^^^^^^^^^^^^^^^\nE   TypeError: cannot pickle code objects"
+        }
+      ],
+      "skips": [],
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "manifest_unchanged": true,
+      "source_freeze_unchanged": true,
+      "runner_support_unchanged": true
+    },
+    "focused-attempt02": {
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/focused-attempt02/execution.json",
+        "sha256": "1a70f66ef43bc42b9e2ea67f14fbd30cf5edb6529fa849d0153a849113eba29d"
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/focused-attempt02/junit.xml",
+        "sha256": "a1a6c10386d06b57b22a9221b5ca863c9df0e9ec658ee560b3465bfce3953546"
+      },
+      "counts": {
+        "tests": 283,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 283
+      },
+      "returncode": 0,
+      "elapsed_seconds": 10.980378296226263,
+      "kind": "focused",
+      "argv": [
+        "/tmp/hotpot-plan20-env/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/forcefields/test_acceptance_rules.py",
+        "tests/test_cheminfo/forcefields/test_contract_ownership.py",
+        "tests/test_cheminfo/test_forcefield_acceptance.py",
+        "tests/test_cheminfo/test_forcefield_checkpoint_acceptance.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_checkpoint_acceptance.py",
+        "tests/test_cheminfo/test_forcefield_stage_scan_boundaries.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/test_cheminfo/test_forcefield_optimizer.py",
+        "tests/test_cheminfo/test_forcefield_trajectory.py",
+        "tests/test_cheminfo/test_forcefield_package.py",
+        "tests/test_cheminfo/test_forcefield_api.py",
+        "tests/test_cheminfo/test_forcefield_cli.py",
+        "--tb=short",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "plan20_evidence_plugin",
+        "--basetemp=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/focused-attempt02/pytest-tmp",
+        "--junitxml=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/focused-attempt02/junit.xml"
+      ],
+      "source_freeze": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/source-freeze-b2-attempt02.json",
+        "sha256": "df60cbf7f130e7faa9eac217f34bd63ff3131776f204f8304bc83809d6084dc3"
+      },
+      "validation_manifest": {
+        "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/validation-manifest.json",
+        "sha256": "09b2bdbb9035900edc0144252fd2c91f8d1b6748f4b3930e60bbaa5fc95970cd"
+      },
+      "failed_cases": [],
+      "skips": [],
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "manifest_unchanged": true,
+      "source_freeze_unchanged": true,
+      "runner_support_unchanged": true
+    }
+  },
+  "failed_runtime_attempts": [
+    {
+      "attempt": "attempt01",
+      "sequence": {
+        "path": ".plan20-artifacts/20261103/stage8b/b2/raw/sequential-runs/attempt01/execution.json",
+        "sha256": "4766c5cc7eac8740cfed9d57c90c213611ce177e5e7c5e25be2404bdeadafaca"
+      },
+      "commands": [
+        {
+          "argv": [
+            "/tmp/hotpot-plan20-env/bin/python",
+            "-B",
+            "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/run_source.py",
+            "focused",
+            "focused-attempt01",
+            "--source-freeze",
+            "/tmp/hotpot_plan20/long/stage8b-b2-20261103/source-freeze-b2-attempt01.json",
+            "--root-runtime-released"
+          ],
+          "cwd": "/home/zhangzhiyuan/hotpot",
+          "environment_overrides": {
+            "OMP_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "TMPDIR": "/tmp/hotpot_plan20/short",
+            "HOTPOT_MODEL_SOURCE": "local",
+            "HF_HUB_OFFLINE": "1",
+            "HOTPOT_MCA_MODEL_DIR": "/home/zhangzhiyuan/.cache/hotpot/models/artifacts/mca/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/mca/v1",
+            "HOTPOT_XTB_INTEGRATION": "1",
+            "HOTPOT_XTB_EXECUTABLE": "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+            "HOTPOT_CBOND_INTEGRATION": "1",
+            "HOTPOT_CBOND_MODEL_DIR": "/tmp/hotpot_plan20/medium/cbond-model-cache-20261103/artifacts/cbond/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/cbond/v1",
+            "LD_LIBRARY_PATH": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib"
+          },
+          "returncode": 1,
+          "elapsed_seconds": 11.317350782454014,
+          "direct_child_reaped": true
+        }
+      ],
+      "source_jobs": {
+        "focused-attempt01": {
+          "receipt": {
+            "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/focused-attempt01/execution.json",
+            "sha256": "dbc8a43a2e15596a1c67e57c3a37fe0771d18fc7335f3f8274b39c07283e231e"
+          },
+          "junit": {
+            "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/focused-attempt01/junit.xml",
+            "sha256": "6a0c3612447bc1a8cb7b008a5614a052567a645eeafa104430a1634db6e1d35c"
+          },
+          "counts": {
+            "tests": 283,
+            "failures": 1,
+            "errors": 0,
+            "skipped": 0,
+            "passed": 282
+          },
+          "returncode": 1,
+          "elapsed_seconds": 11.02518138103187,
+          "kind": "focused",
+          "argv": [
+            "/tmp/hotpot-plan20-env/bin/python",
+            "-B",
+            "-m",
+            "pytest",
+            "-q",
+            "--import-mode=importlib",
+            "tests/test_cheminfo/forcefields/test_acceptance_rules.py",
+            "tests/test_cheminfo/forcefields/test_contract_ownership.py",
+            "tests/test_cheminfo/test_forcefield_acceptance.py",
+            "tests/test_cheminfo/test_forcefield_checkpoint_acceptance.py",
+            "tests/test_cheminfo/forcefields/test_forcefield_native_checkpoint_acceptance.py",
+            "tests/test_cheminfo/test_forcefield_stage_scan_boundaries.py",
+            "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+            "tests/test_cheminfo/test_forcefield_optimizer.py",
+            "tests/test_cheminfo/test_forcefield_trajectory.py",
+            "tests/test_cheminfo/test_forcefield_package.py",
+            "tests/test_cheminfo/test_forcefield_api.py",
+            "tests/test_cheminfo/test_forcefield_cli.py",
+            "--tb=short",
+            "-p",
+            "no:cacheprovider",
+            "-p",
+            "plan20_evidence_plugin",
+            "--basetemp=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/focused-attempt01/pytest-tmp",
+            "--junitxml=/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/source-validation/focused-attempt01/junit.xml"
+          ],
+          "source_freeze": {
+            "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/source-freeze-b2-attempt01.json",
+            "sha256": "868a60af8fa9d7258f7de80724b3cb39fc5ebc503ad2cbfca114d2c0ba13fbd0"
+          },
+          "validation_manifest": {
+            "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/validation-manifest.json",
+            "sha256": "aaa78b560d79bbdb2a44840b0bfa7e7e3b9fa58fff1b70770784109184f94df0"
+          },
+          "failed_cases": [
+            {
+              "classname": "tests.test_cheminfo.test_forcefield_package",
+              "name": "test_specialized_apis_are_reexported_without_wrapping",
+              "kind": "failure",
+              "message": "TypeError: cannot pickle code objects",
+              "type": null,
+              "details": "tests/test_cheminfo/test_forcefield_package.py:151: in test_specialized_apis_are_reexported_without_wrapping\n    assert pickle.loads(pickle.dumps(exported)) is exported\n                        ^^^^^^^^^^^^^^^^^^^^^^\nE   TypeError: cannot pickle code objects"
+            }
+          ],
+          "skips": [],
+          "source_tests_native_unchanged": true,
+          "dependency_assets_unchanged": true,
+          "unexpected_product_origins": [],
+          "manifest_unchanged": true,
+          "source_freeze_unchanged": true,
+          "runner_support_unchanged": true
+        }
+      },
+      "interpretation": "Actual B2 failure observations only; raw logs/JUnit are authoritative."
+    }
+  ],
+  "installed": {
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/installed/attempt02/execution.json",
+      "sha256": "cd51dabd6cd290b9b06759f2c6d881ff33b081e262e5e18184fbb695ab1acf65"
+    },
+    "status": "STAGE8B_B2_RELEASED_INSTALLED_SELECTIONS_PASSED",
+    "results": {
+      "affected": {
+        "counts": {
+          "tests": 997,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 7,
+          "passed": 990
+        },
+        "returncode": 0,
+        "elapsed_seconds": 59.3807646650821,
+        "origins": {
+          "startup_processes": 98,
+          "final_processes": 98,
+          "zero_leaks": true
+        },
+        "junit": {
+          "path": ".plan20-artifacts/20261103/stage8b/b2/raw/installed/attempt02/affected/junit.xml",
+          "sha256": "d367376a5f232b3f992673a82eb2228af53a5d7a58932e59c8cb2fb904fa5b1a"
+        },
+        "skips": [
+          {
+            "classname": "tests.test_cheminfo.obWrappers.test_bridge",
+            "name": "test_all_extractant_phosphorus_centers_build_and_optimize_finitely",
+            "kind": "skipped",
+            "message": "the governed extractant dataset is not installed locally",
+            "type": "pytest.skip",
+            "details": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/installed-work/attempt02/outside/tests/test_cheminfo/obWrappers/test_bridge.py:120: the governed extractant dataset is not installed locally"
+          },
+          {
+            "classname": "tests.test_cheminfo.test_complexes_build_full",
+            "name": "test_readme_europium_complex_full_standard_workflow",
+            "kind": "skipped",
+            "message": "requires --run-high-compute",
+            "type": "pytest.skip",
+            "details": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/installed-work/attempt02/outside/tests/test_cheminfo/test_complexes_build_full.py:17: requires --run-high-compute"
+          },
+          {
+            "classname": "tests.test_plugin.test_xtb.test_official_integration",
+            "name": "test_official_gfn2_wrapper_matches_direct_cli_energy",
+            "kind": "skipped",
+            "message": "requires --run-external",
+            "type": "pytest.skip",
+            "details": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/installed-work/attempt02/outside/tests/test_plugin/test_xtb/test_official_integration.py:165: requires --run-external"
+          },
+          {
+            "classname": "tests.test_plugin.test_xtb.test_official_integration",
+            "name": "test_official_gfnff_wrapper_matches_direct_cli_energy",
+            "kind": "skipped",
+            "message": "requires --run-external",
+            "type": "pytest.skip",
+            "details": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/installed-work/attempt02/outside/tests/test_plugin/test_xtb/test_official_integration.py:208: requires --run-external"
+          },
+          {
+            "classname": "tests.test_plugin.test_xtb.test_official_integration",
+            "name": "test_official_gfn2_optimization_matches_direct_cli_result",
+            "kind": "skipped",
+            "message": "requires --run-external",
+            "type": "pytest.skip",
+            "details": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/installed-work/attempt02/outside/tests/test_plugin/test_xtb/test_official_integration.py:251: requires --run-external"
+          },
+          {
+            "classname": "tests.test_plugin.test_xtb.test_official_integration",
+            "name": "test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_states[ionic-chloride]",
+            "kind": "skipped",
+            "message": "requires --run-external",
+            "type": "pytest.skip",
+            "details": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/installed-work/attempt02/outside/tests/test_plugin/test_xtb/test_official_integration.py:306: requires --run-external"
+          },
+          {
+            "classname": "tests.test_plugin.test_xtb.test_official_integration",
+            "name": "test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_states[hydrogen-radical]",
+            "kind": "skipped",
+            "message": "requires --run-external",
+            "type": "pytest.skip",
+            "details": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/installed-work/attempt02/outside/tests/test_plugin/test_xtb/test_official_integration.py:306: requires --run-external"
+          }
+        ],
+        "failed_cases": []
+      },
+      "actual_CBFF_xtb": {
+        "counts": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 3
+        },
+        "returncode": 0,
+        "elapsed_seconds": 5.450188834220171,
+        "origins": {
+          "startup_processes": 5,
+          "final_processes": 5,
+          "zero_leaks": true
+        },
+        "junit": {
+          "path": ".plan20-artifacts/20261103/stage8b/b2/raw/installed/attempt02/actual_CBFF_xtb/junit.xml",
+          "sha256": "135cdbcfab430167fb45c1dc96e4a3199465cebd136c06948c5dace427edc0eb"
+        },
+        "skips": [],
+        "failed_cases": []
+      },
+      "actual_MCA_attachment": {
+        "counts": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 3
+        },
+        "returncode": 0,
+        "elapsed_seconds": 8.9872455149889,
+        "origins": {
+          "startup_processes": 1,
+          "final_processes": 1,
+          "zero_leaks": true
+        },
+        "junit": {
+          "path": ".plan20-artifacts/20261103/stage8b/b2/raw/installed/attempt02/actual_MCA_attachment/junit.xml",
+          "sha256": "319169c5de20f21532c0cae1697b82ed66abc6b3dce3358e275cb72431df4cb5"
+        },
+        "skips": [],
+        "failed_cases": []
+      }
+    },
+    "membership": {
+      "affected": {
+        "same_ordered_nodeids": true,
+        "source_count": 997,
+        "installed_count": 997,
+        "source_only": [],
+        "installed_only": [],
+        "receipt": {
+          "path": ".plan20-artifacts/20261103/stage8b/b2/raw/installed/attempt02/affected/membership-comparison.json",
+          "sha256": "8efb755653ea9890c22493e585e7f597259580dd24ee48de58caecf6043b3188"
+        }
+      },
+      "actual_CBFF_xtb": {
+        "same_ordered_nodeids": true,
+        "source_count": 3,
+        "installed_count": 3,
+        "source_only": [],
+        "installed_only": [],
+        "receipt": {
+          "path": ".plan20-artifacts/20261103/stage8b/b2/raw/installed/attempt02/actual_CBFF_xtb/membership-comparison.json",
+          "sha256": "1dccaa9b47704c42e1c8ebd4f919f27b0c449f1992a10ebe0f0358dadb19acc6"
+        }
+      },
+      "actual_MCA_attachment": {
+        "same_ordered_nodeids": true,
+        "source_count": 3,
+        "installed_count": 3,
+        "source_only": [],
+        "installed_only": [],
+        "receipt": {
+          "path": ".plan20-artifacts/20261103/stage8b/b2/raw/installed/attempt02/actual_MCA_attachment/membership-comparison.json",
+          "sha256": "1dccaa9b47704c42e1c8ebd4f919f27b0c449f1992a10ebe0f0358dadb19acc6"
+        }
+      }
+    },
+    "production_python_count": 473,
+    "native_count": 6,
+    "measured_nonpython_omission_count": 41,
+    "measured_nonpython_omissions": [
+      "hotpot/cheminfo/AImodels/INFERENCE_COMPATIBILITY.md",
+      "hotpot/cheminfo/AImodels/cbond/README.md",
+      "hotpot/cheminfo/AImodels/mca/MODEL_CARD.md",
+      "hotpot/cheminfo/AImodels/mca/README.md",
+      "hotpot/cheminfo/AImodels/mca/THIRD_PARTY_LICENSES.md",
+      "hotpot/cheminfo/AImodels/mca/requirements.txt",
+      "hotpot/cheminfo/MolProps/data/MedProp.xlsx",
+      "hotpot/cheminfo/MolProps/data/SolProp.xlsx",
+      "hotpot/cheminfo/MolProps/sol_med_prop.md",
+      "hotpot/cheminfo/_native/include/hotpot/native/array_view.hpp",
+      "hotpot/cheminfo/_native/include/hotpot/native/molecule_buffer_view.hpp",
+      "hotpot/cheminfo/mol_assemble/Assemblers.svg",
+      "hotpot/cheminfo/mol_assemble/Example-5step.svg",
+      "hotpot/cheminfo/mol_assemble/FragTemplete.json",
+      "hotpot/cheminfo/mol_assemble/README.md",
+      "hotpot/cheminfo/pubchem.md",
+      "hotpot/cheminfo/rdWrappers/CMakeLists.txt",
+      "hotpot/cheminfo/rdWrappers/_native/BUILDING.md",
+      "hotpot/cheminfo/rdWrappers/_native/include/hotpot/rdWrappers/c_api.h",
+      "hotpot/cheminfo/rdWrappers/_native/include/hotpot/rdWrappers/rdwrapper.hpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/c_api.cpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/core.hpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/exports.map",
+      "hotpot/cheminfo/rdWrappers/_native/src/molecule_builder.cpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/python_binding.cpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/python_exports.map",
+      "hotpot/cheminfo/rdWrappers/_native/src/sampler.cpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/validation.cpp",
+      "hotpot/cheminfo/rdWrappers/build_locked.sh",
+      "hotpot/cheminfo/rdWrappers/cmake/HotpotRDWrappersConfig.cmake.in",
+      "hotpot/cheminfo/rdWrappers/cmake/attach_rdwrapper.cmake",
+      "hotpot/cheminfo/rdWrappers/cmake/remove_build_rpath.cmake",
+      "hotpot/cheminfo/rdwork.md",
+      "hotpot/cheminfo/rules/chemistry/bonding/Kekulize.md",
+      "hotpot/cheminfo/smarts.md",
+      "hotpot/dataset/retention-cleanup.txt",
+      "hotpot/plugins/ml/features/elements/_elements.pd.xz",
+      "hotpot/plugins/ml/features/solvents/mnsddb.pdf",
+      "hotpot/plugins/opti/beyes/opti.py.old",
+      "hotpot/plugins/plots/cmaps/BluesSat.npy",
+      "hotpot/plugins/zeoxx/README.md"
+    ],
+    "wheel": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/installed/wheel/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6331806,
+      "sha256": "d96993a470adccb9bbeccd0f0715d9072e6edefd6f3cb1c6463e825b1693cc44"
+    },
+    "native_provenance": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/installed/attempt02/native-provenance.json",
+      "sha256": "75b2d6e0537449e6769c4aeab02bd6fdd4db95b38a43f686695758643f2675bc"
+    },
+    "invariants": {
+      "source_tests_native_unchanged": true,
+      "installed_unchanged": true,
+      "models_unchanged": true,
+      "outside_support_unchanged": true,
+      "architecture_context_unchanged": true,
+      "runner_support_unchanged": true
+    }
+  },
+  "architecture": {
+    "initial": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/static-root-release/architecture-audit-bound.json",
+      "sha256": "b0449ed6e9b314a959fe6d52887f6ff9f1f9050919b1fb16cbe5d7d8644f8934"
+    },
+    "initial_finding_counts": {
+      "new_debt": 1,
+      "unretired_allowlist_entries": 1,
+      "allowlist_growth": 0,
+      "exceeds_frozen_inventory": 0
+    },
+    "fix": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/static-root-release/authorized-fix.diff",
+      "sha256": "e2312a934b831ba0b272e9afa60538b198a02188fd489a50a7b3fee7fe182cb8"
+    },
+    "retired_exact_allowance": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/static-root-release/retired-allowance.json",
+      "sha256": "bb5d50f44818d2fd00cb93770fe273ab4a3d091915b1f153cccea6b8ad1b6d54"
+    },
+    "post_fix": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/static-root-release/architecture-audit-post-fix.json",
+      "sha256": "16e5d52ff82c238421d2820126361c00a71fe845e29f429c7363091df84d5fe9"
+    },
+    "post_fix_remaining_debt": 220,
+    "post_fix_source_binding": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/static-root-release/post-fix-receipt.json",
+      "sha256": "a9eaffb371088967365c7cbbb4b816c75c7383d554d0b9515998067c8b65134e"
+    }
+  },
+  "consolidation": {
+    "replacement_classes": 0,
+    "net_production_class_delta": 0,
+    "production_census_before": {
+      "classes": 779,
+      "dataclasses": 357,
+      "protocols": 8,
+      "typed_dicts": 2
+    },
+    "production_census_after": {
+      "classes": 779,
+      "dataclasses": 357,
+      "protocols": 8,
+      "typed_dicts": 2
+    },
+    "canonical_owner": "hotpot.cheminfo.rules.physics.forcefields.contracts",
+    "moved_existing_definitions": [
+      "AcceptanceCheck",
+      "StructureAcceptanceThresholds",
+      "ForceFieldAcceptanceEvidence",
+      "_AtomPairAcceptanceIssue",
+      "_BondRingAcceptanceFinding",
+      "_BondRingAcceptanceFacts"
+    ],
+    "cold_pickle": {
+      "source": {
+        "junit": {
+          "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/focused-attempt02/junit.xml",
+          "sha256": "a1a6c10386d06b57b22a9221b5ca863c9df0e9ec658ee560b3465bfce3953546"
+        },
+        "cases": [
+          {
+            "classname": "tests.test_cheminfo.forcefields.test_contract_ownership",
+            "name": "test_acceptance_classes_cold_pickle_at_the_true_rule_owner",
+            "kind": "passed"
+          }
+        ]
+      },
+      "installed": {
+        "junit": {
+          "path": ".plan20-artifacts/20261103/stage8b/b2/raw/installed/attempt02/affected/junit.xml",
+          "sha256": "d367376a5f232b3f992673a82eb2228af53a5d7a58932e59c8cb2fb904fa5b1a"
+        },
+        "cases": [
+          {
+            "classname": "tests.test_cheminfo.forcefields.test_contract_ownership",
+            "name": "test_acceptance_classes_cold_pickle_at_the_true_rule_owner",
+            "kind": "passed"
+          }
+        ]
+      }
+    },
+    "static_implementation": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/implementation/static_audit.json",
+      "sha256": "970add89ebb23e90b8e62230d76e2abe2fcd9f63ca62876cb4ba5d19f9a48144"
+    }
+  },
+  "root_attribution": {
+    "path": ".plan20-artifacts/20261103/stage8b/b2/raw/release/root-runtime-attribution.json",
+    "sha256": "7b7ea385ee6c7ba7a037c1a46e133d10a1daab505fddb71d87484178a139d816"
+  },
+  "root_business_review": {
+    "path": ".plan20-artifacts/20261103/stage8b/b2/raw/release/root-installed-business-review.json",
+    "sha256": "3f15f9e0a2f604edf969547c77474bccd4eff94a58424cc51ece18b7f9bdd0d3"
+  },
+  "historical_b1_checkpoint": {
+    "path": "plan/20_fact_rule_architecture/stages/stage08/forcefields/validation/b1/checkpoint.json",
+    "bytes": 19261,
+    "sha256": "3bfb4243678007ac8f7157de7254c2aad00ff9b8f9590a059f5d4db123ec64d4"
+  },
+  "limits": [
+    "CP311 source/installed scope only; installed dependencies use shared system-site-packages.",
+    "6 accepted unchanged Stage7E native binaries reused; no native rebuild, clean-native/ABI/SDK/sdist/manylinux/all-version qualification.",
+    "41 measured non-Python package omissions remain; exact current paths are retained without forcing the historical count.",
+    "Source origin recording covers the pytest interpreter; installed startup hooks cover participating Python processes, not site-bypassing or native processes.",
+    "No controlled cost/performance run or speed claim; no optional activation, broad science/GPU/global or whole Stage8B acceptance.",
+    "Actual B2 failed attempts, numerical variation, unresolved scientific state and per-boundary skip reasons remain visible. B1 loader/formatting events are historical only.",
+    "Venv/site-packages/build trees, outside test-source copies, model/library assets and pytest current symlink aliases are omitted; identities/provenance remain."
+  ],
+  "runtime_repair": {
+    "diagnosis": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/alias-pickle-diagnosis/stdout.json",
+      "sha256": "72bfc4653f58aa06b7ceb8023d944c81469d63b89a4f40865aa64dc9249ecc79"
+    },
+    "execution": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/alias-pickle-diagnosis/execution.json",
+      "sha256": "6a4a7562d1bd8a1f64ea3b44b761c65ca1b2753c7cd1b2590f7520a9a3c7f733"
+    },
+    "test_fix": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/reproducibility/finalization/package-test-fix.diff",
+      "sha256": "4a01b11d1022f78bfc6974b99f2f52eca8508300cb750b738fb984d3d3ed6914"
+    },
+    "test_static_receipt": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/reproducibility/finalization/package-test-fix-receipt.json",
+      "sha256": "8146864a7af415cc4810e178b44ef1dad4daf95f24224696e708c2361a19ce49"
+    },
+    "actual_alias_observations": [
+      {
+        "name": "parent_alias",
+        "pickle_success": false,
+        "error_type": "TypeError",
+        "message": "cannot pickle code objects"
+      },
+      {
+        "name": "current_alias",
+        "pickle_success": false,
+        "error_type": "TypeError",
+        "message": "cannot pickle code objects"
+      }
+    ],
+    "actual_class_export_observations": [
+      {
+        "name": "OptimizationStoppingCriteria",
+        "facade_same_identity": true,
+        "pickle_same_identity": true
+      },
+      {
+        "name": "AcceptanceCheck",
+        "facade_same_identity": true,
+        "pickle_same_identity": true
+      },
+      {
+        "name": "StructureAcceptanceThresholds",
+        "facade_same_identity": true,
+        "pickle_same_identity": true
+      },
+      {
+        "name": "ForceFieldAcceptanceEvidence",
+        "facade_same_identity": true,
+        "pickle_same_identity": true
+      },
+      {
+        "name": "ForceFieldDiagnosticValue",
+        "facade_same_identity": true
+      }
+    ],
+    "scope": "Root compared original-parent and moved recursive alias behavior. Generic API identity remains unconditional; pickle checking applies to actual function/class exports. Existing canonical cold-pickle tests remain. No product/alias representation change."
+  },
+  "raw_manifest": {
+    "path": ".plan20-artifacts/20261103/stage8b/b2/raw_manifest.json",
+    "sha256": "a794e539912729f6cef7d4373c7af70c22f86c25541adffb6707970ddba05c9c"
+  },
+  "acceptance_scope": "B2 pure acceptance/capture separation only; whole Stage8B and later/global gates remain open.",
+  "root_decision": "Root reviewed pure rules, capture, controller and existing-type moves, independently attributed unchanged frozen source/native/build/wheel bindings and inspected actual chemistry/state/geometry/persistence/attachment observations. Independent archive review found no inconsistencies. Accept the coherent CP311 B2 source/installed checkpoint with original failures, numerical variation, skips and all stated limits preserved. No native rebuild or performance claim.",
+  "independent_integrity_review": {
+    "path": ".plan20-artifacts/20261103/stage8b/b2/independent-integrity-review/evidence_index.json",
+    "sha256": "16aabcdf0b7873009da55625670c303b481d1ead6c46a045dc28ef83fa300ac7"
+  },
+  "remaining": [
+    "B3 native/operation/backend/commands ownership cutover",
+    "B4 connected finding-control, sample isolation and method transport",
+    "Full Stage8B standalone/rollback/trajectory/science/FF benchmark evidence",
+    "Later/global delivery, version adaptation and deferred optimization obligations"
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "status": "ROOT_ACCEPTED_CP311_B2_EVIDENCE",
+  "stage": "Stage8B/B2",
+  "archive_root": ".plan20-artifacts/20261103/stage8b/b2",
+  "successful_attempt": "attempt02",
+  "source_receipts": {
+    "actual_CBFF_xtb-attempt02": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/actual_CBFF_xtb-attempt02/execution.json",
+      "sha256": "800915bc3a749dd242dee573d5a625f177a3e9c94e5104b7a4952d29718280f5"
+    },
+    "actual_MCA_attachment-attempt02": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/actual_MCA_attachment-attempt02/execution.json",
+      "sha256": "2af491580819886cb7b01e2da041aba3e1a56f6dfde057f4896cc3e6ab105318"
+    },
+    "affected-attempt02": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/affected-attempt02/execution.json",
+      "sha256": "0c9e6778ecf4b21919f4bb56cf6c1c43d313917312dcfcfd44202a19b3059b36"
+    },
+    "focused-attempt01": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/focused-attempt01/execution.json",
+      "sha256": "dbc8a43a2e15596a1c67e57c3a37fe0771d18fc7335f3f8274b39c07283e231e"
+    },
+    "focused-attempt02": {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/source/focused-attempt02/execution.json",
+      "sha256": "1a70f66ef43bc42b9e2ea67f14fbd30cf5edb6529fa849d0153a849113eba29d"
+    }
+  },
+  "installed_receipt": {
+    "path": ".plan20-artifacts/20261103/stage8b/b2/raw/installed/attempt02/execution.json",
+    "sha256": "cd51dabd6cd290b9b06759f2c6d881ff33b081e262e5e18184fbb695ab1acf65"
+  },
+  "failed_b2_attempts": [
+    {
+      "path": ".plan20-artifacts/20261103/stage8b/b2/raw/sequential-runs/attempt01/execution.json",
+      "sha256": "4766c5cc7eac8740cfed9d57c90c213611ce177e5e7c5e25be2404bdeadafaca"
+    }
+  ],
+  "runners_and_support": "raw/reproducibility",
+  "frozen_changed_source_capsule": "raw/frozen-final",
+  "static_first_failure_and_exact_fix": "raw/static-root-release",
+  "source_business": "raw/source/actual_CBFF_xtb-attempt02/business",
+  "installed_business": "raw/installed/business/attempt02",
+  "source_origins_limit": "Main source pytest interpreter only.",
+  "installed_origin_processes_measured": {
+    "affected": {
+      "startup_processes": 98,
+      "final_processes": 98,
+      "zero_leaks": true
+    },
+    "actual_CBFF_xtb": {
+      "startup_processes": 5,
+      "final_processes": 5,
+      "zero_leaks": true
+    },
+    "actual_MCA_attachment": {
+      "startup_processes": 1,
+      "final_processes": 1,
+      "zero_leaks": true
+    }
+  },
+  "historical_b1_checkpoint": {
+    "path": "plan/20_fact_rule_architecture/stages/stage08/forcefields/validation/b1/checkpoint.json",
+    "bytes": 19261,
+    "sha256": "3bfb4243678007ac8f7157de7254c2aad00ff9b8f9590a059f5d4db123ec64d4"
+  },
+  "navigation": "Archive references are repository-relative; short raw/ paths are relative to archive_root. Original receipts and embedded released-input identities retain argv/environment/cwd/runtime paths. Derived drafts do not rewrite originals.",
+  "limits": [
+    "CP311 source/installed scope only; installed dependencies use shared system-site-packages.",
+    "6 accepted unchanged Stage7E native binaries reused; no native rebuild, clean-native/ABI/SDK/sdist/manylinux/all-version qualification.",
+    "41 measured non-Python package omissions remain; exact current paths are retained without forcing the historical count.",
+    "Source origin recording covers the pytest interpreter; installed startup hooks cover participating Python processes, not site-bypassing or native processes.",
+    "No controlled cost/performance run or speed claim; no optional activation, broad science/GPU/global or whole Stage8B acceptance.",
+    "Actual B2 failed attempts, numerical variation, unresolved scientific state and per-boundary skip reasons remain visible. B1 loader/formatting events are historical only.",
+    "Venv/site-packages/build trees, outside test-source copies, model/library assets and pytest current symlink aliases are omitted; identities/provenance remain."
+  ],
+  "raw_manifest": {
+    "path": ".plan20-artifacts/20261103/stage8b/b2/raw_manifest.json",
+    "sha256": "a794e539912729f6cef7d4373c7af70c22f86c25541adffb6707970ddba05c9c"
+  },
+  "raw_entry_count": 1642,
+  "raw_bytes": 23373111,
+  "independent_integrity_review": {
+    "path": ".plan20-artifacts/20261103/stage8b/b2/independent-integrity-review/evidence_index.json",
+    "sha256": "16aabcdf0b7873009da55625670c303b481d1ead6c46a045dc28ef83fa300ac7"
+  }
+}

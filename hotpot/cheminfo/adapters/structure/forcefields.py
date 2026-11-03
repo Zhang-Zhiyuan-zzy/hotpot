@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Mapping, Sequence, Tuple
+from typing import Iterator, Mapping, Optional, Sequence, Tuple
 
 from ...structure.forcefields import AtomTopologySignature, BondTopology, TopologyReference
 
@@ -80,3 +80,90 @@ def capture_topology(
         bond_signatures,
         allow_added_hydrogens=allow_added_hydrogens,
     )
+
+
+def _iter_metal_donor_pairs(
+    mol: "Molecule",
+) -> Iterator[Tuple["Atom", "Atom"]]:
+    """Yield the metal and donor atoms of each explicit coordination bond."""
+    for bond in mol.bonds:
+        if not bond.is_metal_ligand_bond:
+            continue
+        if bond.atom1.is_metal:
+            yield bond.atom1, bond.atom2
+        else:
+            yield bond.atom2, bond.atom1
+
+
+def capture_atom_pair_acceptance_values(
+    distances,
+    *,
+    capture_radii: bool,
+    overlap_tolerance: float,
+) -> Tuple[Tuple[Tuple[int, int], bool, float, Optional[float]], ...]:
+    """Detach measured pair values, reading radii only where consumed."""
+    pairs = []
+    for distance in distances:
+        measured = float(distance.measurement.distance)
+        bonded = distance.target.bonded
+        radius_sum = None
+        if capture_radii and not bonded and measured > overlap_tolerance:
+            radius_sum = (
+                float(distance.target.first.atom.covalent_radius)
+                + float(distance.target.second.atom.covalent_radius)
+            )
+        pairs.append((
+            (distance.target.first.key, distance.target.second.key),
+            bonded,
+            measured,
+            radius_sum,
+        ))
+    return tuple(pairs)
+
+
+def capture_bond_acceptance_values(
+    mol: "Molecule",
+    atoms: Sequence["Atom"],
+    *,
+    capture_radii: bool,
+) -> Tuple[Tuple[int, Tuple[int, int], Tuple[int, int], Optional[float], Optional[bool]], ...]:
+    """Capture bond sequence positions, endpoint rows/labels and scoped radii."""
+    atom_indices = _atom_index_map(atoms)
+    bonds = []
+    for bond_index, bond in enumerate(mol.bonds):
+        first, second = _bond_endpoint_indices(bond, atom_indices)
+        labels = (int(atoms[first].idx), int(atoms[second].idx))
+        radius_sum = None
+        metal_ligand = None
+        if capture_radii:
+            radius_sum = (
+                float(atoms[first].covalent_radius)
+                + float(atoms[second].covalent_radius)
+            )
+            if radius_sum > 0.0:
+                metal_ligand = bond.is_metal_ligand_bond
+        bonds.append((bond_index, (first, second), labels, radius_sum, metal_ligand))
+    return tuple(bonds)
+
+
+def capture_coordination_acceptance_values(
+    mol: "Molecule",
+    atoms: Sequence["Atom"],
+) -> Tuple[Tuple[int, ...], Tuple[Tuple[int, int], ...], Tuple[Tuple[int, int], ...]]:
+    """Capture isolated metals, oriented donor rows and participating labels."""
+    atom_indices = _atom_index_map(atoms)
+    metals = tuple(index for index, atom in enumerate(atoms) if atom.is_metal)
+    pairs = tuple(
+        (atom_indices[id(metal)], atom_indices[id(donor)])
+        for metal, donor in _iter_metal_donor_pairs(mol)
+    )
+    rows = set(metals).union(donor for _, donor in pairs)
+    labels = tuple((index, int(atoms[index].idx)) for index in sorted(rows))
+    return metals, pairs, labels
+
+
+def capture_acceptance_bond_positions(
+    mol: "Molecule",
+) -> Tuple[Tuple[Tuple[int, int], int], ...]:
+    """Join normalized endpoint labels to current bond sequence positions."""
+    return tuple((_bond_key(bond), index) for index, bond in enumerate(mol.bonds))

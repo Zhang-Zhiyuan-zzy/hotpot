@@ -5065,3 +5065,126 @@ full AST/location equality before/after. Original tested source/wheel/freeze rem
 immutable; separate delivery freeze/formatting receipt binds the final2byte changes.
 No business test is rerun for this semantic no-op; checkpoint/report/index state
 this exact attribution limit rather than claiming wheel bytes equal final source.
+
+
+## 2026-11-03 — B1 delivered and B2 pure-policy/capture design accepted
+
+B1 committed71c456a (`refactor(P20-S8B-cheminfo): consolidate force-field contracts`)
+and normal push to origin implement/plan20-fact-rule-architecture succeeded. Only
+the protected owner review remains untracked. Root now aligns the next coherent
+B2slice against the effective goal, Stage8B ownership/gates, current33mapped tests,
+B1actual evidence and the read-only acceptance lookup; all18inspected source/test
+identities matched the B1runtime snapshot. Root/max authors the exact companion
+decision before implementation: move existing rule types without duplication,
+source-free comparison kernels, actual carrier capture, immutable pure outputs,
+and retained operational report/dictionaries/lazy checkpoint/control sequencing.
+
+The observed shallowly frozen metrics stay operational; they are not mislabeled
+as immutable rule output. Reuse existing TopologyReference, normalized ring facts
+and scoped tuples, with zero new classes and no new whole-call transaction claim.
+Original count/finite short circuits, conditional radii, all check ordering and
+actual one-scan/checkpoint reuse are explicit. B2changes no thresholds, scientific
+algorithm, native ABI/engine/model, public report schema or ordinary result type.
+One local Sol/medium writer owns the settled B2production/test slice; runtimeHOLD
+and all stage/global gates remain. A second local read-only subagent handles
+nonduplicative B3shared-native-input/include facts only, with no source edits.
+
+
+## 2026-11-03 — B2 source review and bounded runtime release
+
+Root reviewed the complete new pure acceptance module, rewritten controller,
+scoped adapter captures, moved contracts and affected tests/consumers. No concrete
+business defect was established. Pure outputs are immutable existing checks and
+scalars/tuples; operational report dictionaries remain fresh and mutable. Count/
+finite short circuits, lazy radii, check order and one-scan/checkpoint reuse remain.
+The first static ratchet failed for a new test-only legacy BondKind import and
+one obsolete coordination.Atom allowance. Use the existing string-kind API with
+stored-kind assertions and retire only that removed allowance; failed evidence
+remains. Post-fix ratchet passes with220remaining debt and zero new/layer/carrier
+findings; census779classes/357dataclasses/8Protocols/2TypedDicts is unchanged.
+
+Root releases attempt01 only after binding1433source/test/resource+6native+3build
+inputs in /tmp/hotpot_plan20/long/stage8b-b2-20261103/source-freeze-b2-attempt01.json
+(SHA256 868a60af8fa9d7258f7de80724b3cb39fc5ebc503ad2cbfca114d2c0ba13fbd0).
+All115native source/interface inputs and setup match accepted Stage7E; six binaries
+and the scoped existing OpenBabel library are unchanged. Run12focused then64affected
+CP311source files, actual3pipeline+3MCA source, and installed affected/actual jobs,
+sequentially stopping on the first failure. No product/test edits during execution.
+This release claims no pass, content acceptance, clean-native/cost/all-version or
+whole-Stage8B/global gate. The root review/release receipt and runner/manifest
+record exact commands, bindings, allowed differences and rejection conditions.
+
+
+## 2026-11-03 — B2 attempt01 stopped at a package-checker assumption
+
+The released focused command executed283tests:282passed/1failed/0errors/0skips,
+stopping the sequence before affected, business or installed jobs. Failure is
+test_specialized_apis_are_reexported_without_wrapping trying pickle on the
+ForceFieldDiagnosticValue recursive typing.Union newly included by the expanded
+canonical rule-contract exports. Current product/test/native/model/support
+bindings stayed unchanged and loaded product origins were expected. Original
+JUnit/stdout/stderr/execution and validation-manifest-attempt01.json are retained.
+
+Root's bounded CP311 diagnosis executes the exact parent71c456a alias AST and
+current alias: both raise TypeError(cannot pickle code objects). All4canonical
+class exports still pickle and retain facade identity. This is a checker scope
+assumption, not evidence of a chemical or class-serialization regression. Correct
+only the specialized test to retain identity for every export and pickle actual
+functions/classes; existing explicit public/current-cold-pickle checks remain.
+No product fallback, alias rewrite, scientific threshold or requirement changes.
+Runtime HOLD resumes; root will review the test fix and bind/release a new attempt
+before execution. No business pass or gate closure follows this failed run.
+
+
+## 2026-11-03 — B2 checker correction reviewed; attempt02 released
+
+Root accepts the exact package-test correction: all exports retain identity
+checks; actual classes/functions retain pickle checks. Existing explicit public
+and current-cold-pickle gates remain. Only this test binding differs from the
+failed attempt01 freeze; all production/native/model/runner bytes are unchanged.
+Syntax/whitespace and the exact diff were reviewed. New freeze /tmp/hotpot_plan20/long/stage8b-b2-20261103/source-freeze-b2-attempt02.json
+SHA256 df60cbf7f130e7faa9eac217f34bd63ff3131776f204f8304bc83809d6084dc3 binds1433source/test/resource+6native+3build
+inputs. Root releases attempt02 with the same12/64source and installed/actual
+selections, stopping on first failure. Original attempt01 and its manifest remain
+immutable. No scientific threshold, alias representation, product fallback or
+class-pickle requirement changes; no pass or gate closure is claimed yet.
+
+
+## 2026-11-03 — B2 CP311 acceptance separation accepted
+
+Root accepts B2 only under the effective goal and accepted companion decision.
+Exact completed command:
+`/tmp/hotpot-plan20-env/bin/python -B /tmp/hotpot_plan20/long/stage8b-b2-20261103/validation-preparation/run_validation.py --root-runtime-released --source-freeze /tmp/hotpot_plan20/long/stage8b-b2-20261103/source-freeze-b2-attempt02.json --attempt attempt02`
+returned 0. Source focused:283passed. Source/installed affected each990passed,
+7skipped of997 identical ordered nodes across64files including all33Stage8B files.
+Actual CBond→FF→GFN-FF/GFN2 and MCA selections each3passed at both boundaries.
+All1433source/test/resource,6native and3build bindings remained unchanged; all115
+native source/interface inputs and setup match accepted Stage7E. The wheel has
+473 matching Python bodies and six reused natives; 41measured package omissions
+remain. Installed origin participants98/5/1 reconcile without checkout leaks;
+source origin coverage is the pytest interpreter only.
+
+Root reviewed actual topology/state/geometry/finite-energy/lineage/persistence and
+MCA attachments:6pipeline cases,10labeled MCA payload observations, excluding
+pytest current aliases. Scientific state remains unresolved; GFN2 backendUHF0 is
+an execution default, not scientific singlet resolution; GFN-FF is charge-only.
+Eu UFF source/installed4.50858892791417/4.50829228107412kJ/mol and GFN2
+−13.53209914/−13.53210008Hartree remain actual observations. Seven per-boundary
+skips retain exact reasons; separate actual workflows do not turn them into passes.
+
+Preserve original B2 static ratchet failure/correction and focused attempt01
+282passed/1failed recursive-alias checker error, the parent/current diagnosis and
+exact failed manifest. Attempt02 changes only the reviewed generic package test.
+Independent stdlib archive verification passes1642files/23373111bytes and140
+path/hash references; two historical paths resolve to the exact archived failed
+manifest. No archive/source drift was found. Maintained checkpoint, observations,
+report and index are under stages/stage08/forcefields/validation/b2; originals,
+runner commands, wheel/model/backend/native bindings and review scripts remain in
+.plan20-artifacts/20261103/stage8b/b2. Production census is unchanged at779classes/
+357dataclasses/8Protocols/2TypedDicts; no new type/schema/algorithm or fallback.
+
+The coherent business delivery includes source/tests/captures, accepted decisions,
+this evidence and exact obsolete-allowance retirement. B3 native/operation/backend/
+CLI and B4 finding-control/sample containment, full Stage8B standalone/scientific/
+benchmark evidence and all later/global obligations remain open. No performance,
+clean-native/ABI/SDK/sdist/manylinux/all-version or whole-Stage8B claim is made.

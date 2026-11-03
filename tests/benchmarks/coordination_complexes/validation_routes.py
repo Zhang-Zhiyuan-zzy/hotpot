@@ -19,7 +19,7 @@ from hotpot.cheminfo.conformers.adapters import (
     _materialized_hydrogen_projection,
 )
 from hotpot.cheminfo.core import BondKind
-from hotpot.cheminfo.forcefields.coordination import _iter_metal_donor_pairs
+from hotpot.cheminfo.adapters.structure.forcefields import _iter_metal_donor_pairs
 from hotpot.cheminfo.forcefields.working_copy import (
     _copy_molecule_metadata,
     _hydrogenated_working_copy,

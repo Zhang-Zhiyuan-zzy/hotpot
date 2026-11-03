@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8B/B2",
+  "date": "2026-11-03",
+  "status": "ROOT_B2_ACCEPTED_CP311_STAGE8B_OPEN",
+  "source_commit": "71c456ade36c2b5ec2ffab55156a85a153e80bdf",
+  "predecessor": "validation/b1/checkpoint.json",
+  "design": "contracts/decisions.md#b2--accepted-pure-acceptance-and-scoped-capture-boundary",
+  "scope": "Existing acceptance policy to pure value/check tuples, actual carrier reads to structure capture, current lazy sequencing/report/control retained operationally. No science/native/public schema or new type.",
+  "lookup": {
+    "path": "/tmp/hotpot_plan20/long/stage8b-b2-preentry-20261103/acceptance-lookup/report.md",
+    "sha256": "81821ba516c0aea67e8cd6276894a3f26daa7a41eff5f42d8420da42e062f308"
+  },
+  "runtime_released": true,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "release_receipt": {
+    "path": "/tmp/hotpot_plan20/long/stage8b-b2-20261103/root-review-release-attempt02.json",
+    "bytes": 3632,
+    "sha256": "24c757c71de3365bce6d43517cb89420af58e9ac49a0f24a5dd3488fba5171d3"
+  },
+  "b2_gate_closed": true,
+  "checkpoint": "validation/b2/checkpoint.json",
+  "runtime": "Attempt02 source focused283 passed; source and installed affected each990 passed/7 skipped, same997 ordered nodes; actual3pipeline+3MCA passed at each boundary. Original static and alias-pickle-checker failures retained. No native rebuild/performance/all-version or whole Stage8B acceptance."
+}

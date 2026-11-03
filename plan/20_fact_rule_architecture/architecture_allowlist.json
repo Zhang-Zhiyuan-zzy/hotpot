@@ -340,15 +340,6 @@
       "path": "hotpot/cheminfo/forcefields/coordination.py",
       "line": 14,
       "scope": "",
-      "target": "hotpot.cheminfo.core.Atom",
-      "local": "Atom",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/forcefields/coordination.py",
-      "line": 14,
-      "scope": "",
       "target": "hotpot.cheminfo.core.Molecule",
       "local": "Molecule",
       "rule": "legacy_core_import",

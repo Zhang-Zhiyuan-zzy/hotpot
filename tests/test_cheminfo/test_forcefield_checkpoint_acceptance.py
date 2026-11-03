@@ -157,3 +157,19 @@ def test_public_acceptance_preserves_nonfinite_scan_short_circuit(monkeypatch):
 
     assert not result.passed
     assert any(check.name == "finite_coordinates" for check in result.failures)
+
+
+@pytest.mark.parametrize('evaluate', (
+    acceptance_policy.evaluate_structure_acceptance_at_checkpoint,
+    acceptance_policy.evaluate_structure_acceptance_at_native_checkpoint,
+))
+@pytest.mark.parametrize('level', ('off', 'basic', 'standard', 'strict'))
+def test_checkpoint_normalization_remains_late_for_nonfinite_coordinates(evaluate, level):
+    class UnavailableReport:
+        def __getattribute__(self, name):
+            raise AssertionError(f'Nonfinite coordinates must precede report normalization: {name}')
+
+    mol = SimpleNamespace(atoms=(SimpleNamespace(idx=91),), bonds=(), coordinates=np.array([[np.nan, 0., 0.]]))
+    result = evaluate(mol, bond_ring_report=UnavailableReport(), level=level)
+    assert result.checks[1].atom_indices == (91,)
+    assert result.metrics == {'atom_count': 1, 'bond_count': 0}

@@ -148,7 +148,8 @@ def test_specialized_apis_are_reexported_without_wrapping():
         for name in module.__all__:
             exported = getattr(module, name)
             assert getattr(facade, name) is exported
-            assert pickle.loads(pickle.dumps(exported)) is exported
+            if inspect.isfunction(exported) or inspect.isclass(exported):
+                assert pickle.loads(pickle.dumps(exported)) is exported
 
 
 def test_removed_compatibility_modules_are_not_importable():

@@ -10,7 +10,7 @@ import numpy as np
 
 from ..structure._stereo import _get_stereo_payload
 from ..structure._identity import _capture_source, _check_source, _complete_bonds
-from .coordination import _iter_metal_donor_pairs
+from ..adapters.structure.forcefields import _iter_metal_donor_pairs
 from ..adapters.structure.forcefields import (
     _atom_identity,
     _atom_index_map,

@@ -8,6 +8,7 @@ import pytest
 
 from hotpot.cheminfo.forcefields import acceptance as acceptance_policy
 from hotpot.cheminfo.forcefields import ff
+from hotpot.cheminfo.rules.physics.forcefields import acceptance as acceptance_rules
 from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from hotpot.cheminfo.core import Molecule
@@ -117,7 +118,7 @@ def _serialized_check_contract(report):
     ),
 )
 def test_acceptance_checks_pass_only_rejects_failed_errors(checks, expected):
-    assert acceptance_policy._acceptance_checks_pass(checks) is expected
+    assert acceptance_rules._acceptance_checks_pass(checks) is expected
 
 
 def test_acceptance_levels_preserve_order_metrics_and_serialization(monkeypatch):
@@ -347,3 +348,209 @@ def test_complete_ring_scope_has_no_coverage_warning(monkeypatch):
         check.name == "bond_ring_scope_coverage" for check in report.warnings
     )
     assert report.metrics["bond_ring_excluded_ring_count"] == 0
+
+
+@pytest.mark.parametrize('options', ({'level': 'unknown'}, {'forcefield_stage': 'unknown'}))
+def test_invalid_policy_options_fail_before_carrier_reads(options):
+    class UnavailableCarrier:
+        def __getattribute__(self, name):
+            raise AssertionError(f'Unexpected carrier read: {name}')
+
+    with pytest.raises(ValueError):
+        acceptance_policy.evaluate_structure_acceptance(UnavailableCarrier(), **options)
+
+
+def test_malformed_coordinates_keep_topology_backend_diagnostics_without_capture(monkeypatch):
+    import numpy as np
+    from hotpot.cheminfo.structure.forcefields import AtomTopologySignature, TopologyReference
+
+    class UnavailableAtom:
+        def __getattribute__(self, name):
+            raise AssertionError(f'Unexpected atom read: {name}')
+
+    def unavailable(*args, **kwargs):
+        raise AssertionError('Malformed coordinates must stop before geometry capture')
+
+    mol = SimpleNamespace(atoms=(UnavailableAtom(),), coordinates=np.zeros((1, 2)), bonds=())
+    reference = TopologyReference((AtomTopologySignature(0, 1, 6, 0), AtomTopologySignature(1, 2, 6, 0)), ())
+    for name in ('capture_topology', 'capture_atom_pair_acceptance_values', 'capture_bond_acceptance_values',
+                 'capture_coordination_acceptance_values'):
+        monkeypatch.setattr(acceptance_policy, name, unavailable)
+    monkeypatch.setattr(geometry_adapter, 'measure_atom_pair_distances', unavailable)
+    monkeypatch.setattr(geometry_adapter, 'screen_bond_ring_relations', unavailable)
+    result = acceptance_policy.evaluate_structure_acceptance(
+        mol, level='standard', topology_reference=reference, forcefield_report={},
+    )
+    assert [c.name for c in result.checks] == [
+        'coordinate_shape', 'finite_coordinates', 'topology_atom_count',
+        'forcefield_setup', 'finite_final_energy', 'finite_rms_gradient',
+        'finite_max_gradient', 'backend_explosion',
+    ]
+    assert result.checks[1].atom_indices == ()
+    assert result.metrics == {'atom_count': 1, 'bond_count': 0}
+
+
+def test_nonfinite_coordinate_section_reads_only_returned_row_labels():
+    import numpy as np
+
+    class UnavailableLabel:
+        @property
+        def idx(self):
+            raise AssertionError('Finite atom labels must not be captured')
+
+    atoms = (UnavailableLabel(), SimpleNamespace(idx=91), UnavailableLabel())
+    checks, finite, metrics = acceptance_policy._coordinate_acceptance_section(
+        SimpleNamespace(bonds=()), atoms,
+        np.array([[0., 0., 0.], [np.nan, 0., 0.], [1., 0., 0.]]),
+    )
+    assert finite is False
+    assert checks[1].atom_indices == (91,)
+    assert metrics == {'atom_count': 3, 'bond_count': 0}
+
+
+def test_off_measures_pairs_once_without_policy_capture(monkeypatch):
+    calls = []
+
+    def measure(mol, scope):
+        calls.append((mol, scope))
+        return (SimpleNamespace(measurement=SimpleNamespace(distance=0.25)),)
+
+    def unavailable(*args, **kwargs):
+        raise AssertionError('Off level must not capture pair policy values')
+
+    monkeypatch.setattr(geometry_adapter, 'measure_atom_pair_distances', measure)
+    monkeypatch.setattr(acceptance_policy, 'capture_atom_pair_acceptance_values', unavailable)
+    mol = object()
+    checks, metrics = acceptance_policy._atom_pair_distance_acceptance_section(
+        mol, 'off', ff.StructureAcceptanceThresholds(),
+    )
+    assert checks == ()
+    assert metrics == {'minimum_pair_distance': 0.25}
+    assert calls == [(mol, 'all')]
+
+
+def test_pair_capture_reads_only_consumed_radii():
+    from hotpot.cheminfo.adapters.structure.forcefields import capture_atom_pair_acceptance_values
+
+    class UnavailableRadius:
+        @property
+        def covalent_radius(self):
+            raise AssertionError('This pair must not consume radii')
+
+    def pair(keys, bonded, measured, atoms):
+        return SimpleNamespace(
+            measurement=SimpleNamespace(distance=measured),
+            target=SimpleNamespace(
+                first=SimpleNamespace(key=keys[0], atom=atoms[0]),
+                second=SimpleNamespace(key=keys[1], atom=atoms[1]), bonded=bonded,
+            ),
+        )
+
+    unread = UnavailableRadius()
+    rows = (pair((0, 1), False, 0.001, (unread, unread)),
+            pair((0, 2), True, 0.5, (unread, unread)),
+            pair((1, 2), False, 0.5, (SimpleNamespace(covalent_radius=0.5), SimpleNamespace(covalent_radius=0.75))))
+    prepared = capture_atom_pair_acceptance_values(rows, capture_radii=True, overlap_tolerance=0.001)
+    assert prepared == (((0, 1), False, 0.001, None), ((0, 2), True, 0.5, None), ((1, 2), False, 0.5, 1.25))
+    basic = capture_atom_pair_acceptance_values((pair((1, 2), False, 0.5, (unread, unread)),),
+                                               capture_radii=False, overlap_tolerance=0.001)
+    assert basic[0][-1] is None
+
+
+def test_basic_bond_capture_avoids_radii_and_zero_radius_avoids_metal_flag():
+    from hotpot.cheminfo.adapters.structure.forcefields import capture_bond_acceptance_values
+
+    class Atom:
+        def __init__(self, label, radius):
+            self.idx = label
+            self.radius = radius
+
+        @property
+        def covalent_radius(self):
+            assert self.radius is not None, 'Basic must not capture radii'
+            return self.radius
+
+    class Bond:
+        def __init__(self, first, second):
+            self.atom1 = first
+            self.atom2 = second
+
+        @property
+        def is_metal_ligand_bond(self):
+            raise AssertionError('Unconsumed metal-ligand flag')
+
+    atoms = (Atom(91, None), Atom(17, None))
+    mol = SimpleNamespace(bonds=(Bond(*atoms),))
+    assert capture_bond_acceptance_values(mol, atoms, capture_radii=False) == (
+        (0, (0, 1), (91, 17), None, None),
+    )
+    atoms[0].radius = atoms[1].radius = 0.0
+    assert capture_bond_acceptance_values(mol, atoms, capture_radii=True) == (
+        (0, (0, 1), (91, 17), 0.0, None),
+    )
+
+
+@pytest.mark.parametrize('kind', ('single', 'dative', 'zero'))
+def test_coordination_capture_keeps_element_classification_independent_of_bond_kind(kind):
+    from hotpot.cheminfo.adapters.structure.forcefields import (
+        _iter_metal_donor_pairs, capture_coordination_acceptance_values,
+    )
+
+    mol = Molecule()
+    for number in (26, 7, 29, 6, 30):
+        mol.create_atom(atomic_number=number)
+    mol.add_bond(1, 0, bond_order=1.0, bond_kind=kind)
+    mol.add_bond(0, 2, bond_order=1.0, bond_kind='dative')
+    mol.add_bond(1, 3, bond_order=1.0, bond_kind='dative')
+    assert tuple(bond.bond_kind.value for bond in mol.bonds) == (kind, 'dative', 'dative')
+    assert tuple(_iter_metal_donor_pairs(mol)) == ((mol.atoms[0], mol.atoms[1]),)
+    metals, pairs, labels = capture_coordination_acceptance_values(mol, tuple(mol.atoms))
+    assert metals == (0, 2, 4)
+    assert pairs == ((0, 1),)
+    assert labels == tuple((row, mol.atoms[row].idx) for row in (0, 1, 2, 4))
+
+
+def test_finite_coordinates_continue_after_topology_and_backend_failures(monkeypatch):
+    from dataclasses import replace
+
+    mol = _carbon_bond()
+    reference = ff.capture_topology(mol)
+    reference = replace(reference, atoms=(replace(reference.atoms[0], atom_id=-1), reference.atoms[1]))
+    scans = []
+
+    def scan(*args, **kwargs):
+        scans.append(kwargs)
+        return _clear_bond_ring_report()
+
+    monkeypatch.setattr(geometry_adapter, 'screen_bond_ring_relations', scan)
+    result = acceptance_policy.evaluate_structure_acceptance(
+        mol, level='standard', topology_reference=reference, forcefield_report={},
+    )
+    names = [check.name for check in result.checks]
+    assert names.index('topology_atom_identity') < names.index('forcefield_setup') < names.index('atom_overlap')
+    assert names[-1] == 'bond_ring_piercing'
+    assert result.passed is False
+    assert scans == [{'ring_scope': 'ligand_skeleton', 'max_ring_size': 16}]
+
+
+def test_operation_builds_fresh_mutable_coordination_metric_dictionaries():
+    import numpy as np
+    from hotpot.cheminfo.rules.physics.forcefields.contracts import _BondRingAcceptanceFacts
+
+    atoms = (SimpleNamespace(idx=91, is_metal=True), SimpleNamespace(idx=17, is_metal=False))
+    bond = SimpleNamespace(atom1=atoms[0], atom2=atoms[1], is_metal_ligand_bond=True)
+    mol = SimpleNamespace(bonds=(bond,))
+    facts = _BondRingAcceptanceFacts((), 'full_graph', 16, 0, 0, 0, 0, True)
+    coordinates = np.array([[0., 0., 0.], [1., 0., 0.]])
+    _, first = acceptance_policy._bond_ring_coordination_acceptance_section(mol, atoms, coordinates, facts)
+    _, second = acceptance_policy._bond_ring_coordination_acceptance_section(mol, atoms, coordinates, facts)
+    assert first is not second
+    first_environment = first['coordination_environments'][0]
+    second_environment = second['coordination_environments'][0]
+    assert first_environment == second_environment == {
+        'metal_index': 91, 'coordination_number': 1, 'donor_indices': (17,),
+        'distances': (1.0,), 'angles': (),
+    }
+    assert first_environment is not second_environment
+    first_environment['donor_indices'] = ()
+    assert second_environment['donor_indices'] == (17,)

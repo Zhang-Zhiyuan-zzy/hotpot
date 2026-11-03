@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Literal, Mapping, Optional, Sequence, Tuple, TypedDict, Union
+from typing import Literal, Mapping, Optional, Tuple, Union
 
 import numpy as np
 
@@ -14,9 +14,13 @@ from ..obWrappers.contracts import (
     DEFAULT_CONVERGENCE_LEVEL,
 )
 
-from ..structure.forcefields import (
-    AtomTopologySignature,
-    BondTopology,
+from ..rules.physics.forcefields.contracts import (
+    AcceptanceCheck,
+    AcceptanceLevel,
+    ForceFieldAcceptanceEvidence,
+    ForceFieldDiagnosticValue,
+    ForceFieldStage,
+    StructureAcceptanceThresholds,
 )
 from .trajectory import ForceFieldTrajectory, ForceFieldTrajectoryArchive
 
@@ -85,19 +89,6 @@ ForceFieldSetupStage = Literal[
     "setup",
     "preflight-validation",
 ]
-AcceptanceLevel = Literal["off", "basic", "standard", "strict"]
-ForceFieldStage = Literal["candidate", "final"]
-ForceFieldDiagnosticValue = Union[
-    None,
-    bool,
-    int,
-    float,
-    str,
-    AtomTopologySignature,
-    BondTopology,
-    Tuple["ForceFieldDiagnosticValue", ...],
-    Mapping[str, "ForceFieldDiagnosticValue"],
-]
 
 
 class OptimizationRoute(str, Enum):
@@ -115,54 +106,6 @@ class OptimizationAttemptStatus(str, Enum):
     BUILD_FAILED = "build_failed"
     QUALITY_REJECTED = "quality_rejected"
     NUMERICAL_FAILURE = "numerical_failure"
-
-
-@dataclass(frozen=True)
-class AcceptanceCheck:
-    """One serializable decision made by force-field acceptance policy."""
-
-    name: str
-    passed: bool
-    severity: Literal["info", "warning", "error"] = "error"
-    measured: ForceFieldDiagnosticValue = None
-    threshold: ForceFieldDiagnosticValue = None
-    atom_indices: Tuple[int, ...] = ()
-    bond_indices: Tuple[int, ...] = ()
-    message: str = ""
-
-
-@dataclass(frozen=True)
-class StructureAcceptanceThresholds:
-    """Chemical and force-field thresholds for structure acceptance."""
-
-    overlap_tolerance: float = 1.0e-3
-    basic_minimum_distance: float = 0.40
-    standard_minimum_distance: float = 0.50
-    standard_covalent_radius_scale: float = 0.55
-    maximum_bond_distance: float = 30.0
-    covalent_bond_ratio: Tuple[float, float] = (0.65, 1.45)
-    metal_ligand_bond_ratio: Tuple[float, float] = (0.65, 1.60)
-    strict_rms_gradient: float = 1.0
-    strict_max_gradient: float = 5.0
-    strict_energy_change: float = 1.0e-4
-    strict_max_displacement: float = 1.0e-4
-    strict_stability_window: int = 5
-
-
-class ForceFieldAcceptanceEvidence(TypedDict, total=False):
-    """Force-field observations consumed by structure-acceptance policy."""
-
-    setup_succeeded: bool
-    converged: bool
-    epochs_completed: int
-    segment_epochs_completed: int
-    final_energy: float
-    energy_unit: str
-    rms_gradient: float
-    max_gradient: float
-    exploded: bool
-    energy_changes: Sequence[float]
-    max_displacements: Sequence[float]
 
 
 @dataclass(frozen=True)

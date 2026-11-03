@@ -168,3 +168,42 @@ def test_workflow_passes_the_same_criteria_to_native_translation(monkeypatch, st
         assert len(observed) == 1 and observed[0] is stopping
         for field in fields(stopping):
             assert getattr(translated.stopping, field.name) == getattr(stopping, field.name)
+
+
+def test_acceptance_classes_cold_pickle_at_the_true_rule_owner():
+    from hotpot.cheminfo.forcefields import contracts as mixed
+    from hotpot.cheminfo.rules.mathematics import geometry as geo
+    from hotpot.cheminfo.rules.physics.forcefields import contracts as canonical
+
+    classes = tuple(getattr(canonical, name) for name in (
+        'AcceptanceCheck', 'StructureAcceptanceThresholds', 'ForceFieldAcceptanceEvidence',
+        '_AtomPairAcceptanceIssue', '_BondRingAcceptanceFinding', '_BondRingAcceptanceFacts',
+    ))
+    for cls in classes[:3]:
+        assert getattr(mixed, cls.__name__) is cls
+        assert getattr(ff, cls.__name__) is cls
+    for name in ('AcceptanceLevel', 'ForceFieldStage', 'ForceFieldDiagnosticValue'):
+        assert getattr(mixed, name) is getattr(canonical, name)
+    finding = canonical._BondRingAcceptanceFinding((2, 3, 4), (0, 1), geo.PiercingState.PIERCES, ())
+    values = (
+        canonical.AcceptanceCheck('sample', True, atom_indices=(91,)),
+        canonical.StructureAcceptanceThresholds(),
+        canonical._AtomPairAcceptanceIssue('overlap', (0, 1), 0.0, 0.001),
+        finding,
+        canonical._BondRingAcceptanceFacts((finding,), 'ligand_skeleton', 16, 1, 0, 1, 0, True),
+    )
+    script = """
+import pickle
+import sys
+classes, values = pickle.loads(sys.stdin.buffer.read())
+assert all(cls.__module__ == 'hotpot.cheminfo.rules.physics.forcefields.contracts' for cls in classes)
+assert tuple(type(value) for value in values) == classes[:2] + classes[3:]
+assert values[0].atom_indices == (91,)
+assert values[-1].piercings == (values[-2],)
+assert values[-1].scan_complete is True
+"""
+    completed = subprocess.run(
+        [sys.executable, '-B', '-c', script],
+        input=pickle.dumps((classes, values)), capture_output=True, check=False,
+    )
+    assert completed.returncode == 0, completed.stderr.decode()

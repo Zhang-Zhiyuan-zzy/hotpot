@@ -2,14 +2,14 @@
   "schema_version": 1,
   "stage": "Stage8B",
   "date": "2026-11-03",
-  "status": "ROOT_B1_ACCEPTED_CP311_STAGE8B_OPEN",
+  "status": "ROOT_B1_B2_ACCEPTED_CP311_STAGE8B_OPEN",
   "source_commit": "ff4373890356cd53d95e0ae57b115038bc540096",
   "predecessor": "../scientific-state/completion_20261103.json",
   "stage_gate_closed": false,
   "global_gate_closed": false,
   "design": "contracts/decisions.md",
   "scope": "Complete existing force-field rule/capture/operation/backend/native/CLI ownership and connected Plan12 finding-control/sample-containment requirements; first slice is exact D04/D05/FF-CLI consolidation.",
-  "current_source_assessment": "Tracked tree clean; unrelated protected user review is untracked and excluded. Forcefield/wrapper/setup production bytes match the older7952d1f preentry inventory; scientific-state dependencies now have A11 acceptance.",
+  "current_source_assessment": "B2 source/test/native/build bindings match the tested attempt02 freeze. Existing acceptance contracts and pure rules/capture now have sole owners; current operation report/control stays until B3. Protected unrelated user review is excluded.",
   "focused_alignment": [
     "goal.md",
     "fact_rule_architecture_implementation_plan.md sections6/9.2/Stage8B/16",
@@ -32,11 +32,13 @@
       "scope": "Read-only actual source/consumer evidence; not execution or acceptance"
     }
   },
-  "runtime": "Source focused297passed; source/installed affected each958passed7skipped, exact same965orderednodes; actual3pipeline+3MCA each boundary passed. Attempt01 loader collection failure preserved; attempt02 changed only scoped library search path. All frozen runtime/build/native/model/support bindings unchanged. No native build or performance claim.",
+  "runtime": "B2 source focused283 passed; source/installed affected each990 passed7 skipped, exact same997 ordered nodes; actual3pipeline+3MCA each boundary passed. Original static/checker failures and numerical variation retained; six unchanged accepted natives reused. No native build or performance claim.",
   "remaining": [
-    "B2-B4 full connected rule/operation/backend/command/native/control migration",
-    "Owning-stage benchmarks and applicable evidence",
-    "All later/global gates unchanged"
+    "B3 native/operation/backend/command ownership cutover",
+    "B4 connected finding-control/sample-containment and full owning gate",
+    "Applicable standalone/scientific/benchmark and all later/global obligations"
   ],
-  "b1_checkpoint": "validation/b1/checkpoint.json"
+  "b1_checkpoint": "validation/b1/checkpoint.json",
+  "b2_checkpoint": "validation/b2/checkpoint.json",
+  "b2_parent_head": "71c456ade36c2b5ec2ffab55156a85a153e80bdf"
 }

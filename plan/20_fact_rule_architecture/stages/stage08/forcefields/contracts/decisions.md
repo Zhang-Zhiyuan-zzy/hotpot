@@ -125,3 +125,112 @@ and full Stage8B parity/rollback/trajectory/standalone/FF benchmark evidence rem
 Other-version adaptation, clean-native/ABI/SDK/sdist, optional activation, broad
 science/GPU/performance and Plan20/Plan12 final gates remain separate. Usable
 bounded performance is judged under goal.md, not a forced historical ratio.
+
+
+## B2 — Accepted pure acceptance and scoped capture boundary
+
+B1 is committed and pushed as71c456a. Root aligns this second coherent slice
+against the effective goal, main-plan Sections6/9.2/Stage8B, the33-file Stage8B
+verification selection, B1 source/installed/actual evidence and the read-only
+acceptance lookup. This is the existing Stage8B route, not a new scientific
+algorithm or whole-stage acceptance. Native source and runtime engine stay fixed.
+
+### Sole owners and existing contracts
+
+Move the existing AcceptanceCheck, StructureAcceptanceThresholds,
+ForceFieldAcceptanceEvidence, related AcceptanceLevel/ForceFieldStage/
+ForceFieldDiagnosticValue aliases, and the three private normalized acceptance
+issue/ring-evidence dataclasses into rules/physics/forcefields/contracts.py.
+These are the existing scoped rule inputs/findings, not a second molecular
+snapshot or new public report schema. Preserve each field/default/frozen behavior,
+threshold, message, severity and enum; no new class, DTO or confidence field.
+The existing mixed contracts module imports actual public definitions downward
+until its B3 cutover. No retired implementation, private facade bridge, module
+spoof or compatibility loader is created. Current classes cold-pickle from the
+new true owner; incidental historical imports receive no compatibility promise.
+
+New rules/physics/forcefields/acceptance.py owns carrier-free comparison and
+numerical policy. It imports only lower immutable/value contracts, pure math,
+NumPy and stdlib; no carrier, adapter, backend, workflow, runtime callback or I/O.
+Existing forcefields/acceptance.py remains the one operation/controller until
+B3 relocates that package. It assembles the existing ForceFieldValidationReport,
+its fresh metrics dictionaries, warnings/control and lazy completed-evidence
+normalization. Do not move its shallowly frozen mutable report into pure output.
+The retained _CoordinationMetrics TypedDict stays with that operational assembly.
+
+Extend adapters/structure/forcefields.py for actual carrier reads used by the
+policy. Move the existing _iter_metal_donor_pairs there once; coordination.py
+and acceptance capture import its one definition. Preserve its actual element-
+classification semantics regardless of BondKind. Do not replace it with a new
+coordination perception or the richer chelation/component capture. Existing
+geometry adapter measurement and ring workspace remain sole algorithms.
+
+### Value boundary and immutable outputs
+
+Use existing records and scoped immutable tuples, without a new snapshot class:
+
+| Pure work | Prepared inputs | Return and assembly |
+|---|---|---|
+| Coordinate checks | coordinate ndarray plus expected atom count | tuple of existing checks and finite flag; failure indices are row positions. Operation maps only returned nonfinite rows to current Atom.idx and owns atom/bond-count metrics. |
+| Topology count and comparisons | scalar actual/original counts, then existing captured TopologyReference and reference | immutable check tuples. First call the count-only predicate; when original atoms are missing, return its existing failure without capturing fields/bonds. Otherwise reuse capture_topology and compare original IDs/Z/charge, H-only additions, exact bond quantities and added-H degree. |
+| Force-field evidence | existing optional evidence mapping, level, limits and candidate/final stage | existing ordered immutable check tuple, with all current None/empty/zero/history/convergence distinctions. |
+| Pair criteria | ordered tuples (endpoint-key pair, bonded flag, measured float, optional captured radius sum), level and limits | existing immutable issue/check tuples. Operation retains one geometry measurement and minimum-distance metric; off does not request pair-policy capture. Radius sums are read only for standard/strict nonbonded, nonoverlap rows that consume them. None means unconsumed radius input, never a fabricated radius. |
+| Explicit-bond geometry | first coordinate snapshot and ordered tuples (bond-sequence index, endpoint rows, endpoint labels, optional radius sum, optional metal-ligand flag), level and limits | immutable check tuple plus maximum-length scalar; operation builds fresh metrics. Basic does not capture radius/metal-ligand inputs; no stale carrier or callable crosses the rule boundary. |
+| Coordination metrics | first coordinate snapshot, metal rows including isolated metals, oriented metal/donor row pairs and row labels | immutable tuples (metal label, count, donor-label tuple, distance tuple, angle tuple). Operation renders the existing dictionary schema. Keep sorted rows, pair-angle order, zero-denominator skip and cosine clip. |
+| Ring criteria | existing normalized immutable ring facts plus captured endpoint-key/bond-position values | existing immutable check tuple; operation copies actual scope/count/completeness and coordination metrics into its report. Missing bond keys/unknown native scopes still fail naturally. |
+
+Local rule dictionaries/lists may implement comparisons; returned values contain
+only immutable records/scalars/tuples and no source objects, mappings or aliased
+numeric buffers. Do not recursively freeze or change the public operational
+report schema. Coordinate inputs are not written and no arrays escape in results.
+Capture/normalization is not a new scientific decision. The operation retains
+completed geometry/native normalization at its current boundary until B3 moves
+external translation to its final adapter owner; no rule imports it upward.
+
+### Preserved execution and diagnostic meaning
+
+Validate level and candidate/final stage before capture. Keep shape/finite checks,
+optional topology and backend checks before finite early return; malformed/nonfinite
+coordinates must not trigger pair/bond/ring/coordination work. Preserve shape-
+mismatch avoidance of Atom.idx reads. Finite coordinates still allow later checks
+when topology/backend findings already fail. Keep the existing ordered check list:
+coordinates, topology, backend, overlaps, close pairs, explicit bonds, ring checks.
+Keep overlap <= and closeness <, basic/standard override order, row labels versus
+bond-sequence positions, per-bond failure order and success placeholders.
+
+Public standard/strict performs exactly one existing ligand_skeleton/max16 ring
+scan; public off/basic performs none. Explicit completed checkpoint reports are
+consumed at every level, including off/basic, but only after finite checks.
+Normalization/callbacks remain late; mandatory native evidence is reused without
+rescans or per-epoch acceptance. Keep piercing/undetermined/scope order and actual
+scan counts/completeness. Preserve current `.passed`/severity/public warning and
+fallback policy; B4 owns its separately required finding/control migration.
+
+This split does not establish one evaluator-wide concurrent mutation transaction.
+It preserves current section sequencing and the existing operation-owned working-
+copy route. Each pure invocation consumes prepared values only. Add no speculative
+locks, extra molecular hashes, new guards, retries or fallback results.
+
+### Validation, delivery and rollback
+
+Before execution root reviews source and freezes the exact B2 runtime/test bytes.
+Meaningful new tests call pure rules with prepared values while carrier/adapter
+entry points are unavailable; demonstrate immutable/source-independent outputs,
+non-mutation, scalar/zero/None/history behavior, early-return diagnostics, radii
+laziness and actual scan/checkpoint reuse. Preserve and retarget existing tests to
+real production lookup sites, including exact public serialization/check order.
+Current moved classes/instances must cold-pickle at source and installed boundaries.
+
+Run focused acceptance/checkpoint/native-checkpoint/scan-boundary/new-pure/contract
+cases first, then the complete affected CP311 selection including all33Stage8B
+files and connected contract/import/pipeline/xTB consumers. Compare exact ordered
+source/installed nodes; run actual3pipeline+3MCA at both boundaries. Reuse six
+accepted unchanged native binaries only with bound unchanged native/build inputs;
+no C++ build or scientific algorithm change is claimed. Preserve failures, actual
+numerical variation and original sample denominators. No cost or all-version gate
+is created for this slice. Full Stage8B, native/standalone/FF/scientific benchmarks,
+B3/B4 and later/global delivery/adaptation obligations remain open.
+
+Rollback is one coherent B2 code/test/record commit with connected imports/captures.
+Workers have exclusive files, no nested delegation and runtime HOLD until root
+release; root retains design, scientific judgment, acceptance and Git delivery.

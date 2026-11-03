@@ -2,35 +2,23 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterator, Optional, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple
 
 from ..rules.mathematics.graph.components import connected_components
+from ..adapters.structure.forcefields import _iter_metal_donor_pairs
 from .contracts import (
     CoordinationEnvironment,
     CoordinationGeometryResult,
 )
 
 if TYPE_CHECKING:
-    from ..core import Atom, Molecule
+    from ..core import Molecule
 
 
 __all__ = (
     "collect_coordination_environments",
     "prepare_coordination_geometry",
 )
-
-
-def _iter_metal_donor_pairs(
-    mol: "Molecule",
-) -> Iterator[Tuple["Atom", "Atom"]]:
-    """Yield the metal and donor atoms of each explicit coordination bond."""
-    for bond in mol.bonds:
-        if not bond.is_metal_ligand_bond:
-            continue
-        if bond.atom1.is_metal:
-            yield bond.atom1, bond.atom2
-        else:
-            yield bond.atom2, bond.atom1
 
 
 def _require_explicit_complex(mol: "Molecule") -> None:

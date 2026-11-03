@@ -37,7 +37,7 @@ TRAJECTORY_INTERVAL_STEPS = 100
 
 
 if TYPE_CHECKING:
-    from hotpot.cheminfo.forcefields import (
+    from hotpot.cheminfo.operations.forcefields import (
         ForceFieldTrajectory,
         TrajectoryEvent,
         TrajectoryStage,
@@ -158,7 +158,7 @@ def _topology_sha256(topology: Mapping[str, object]) -> str:
 def _rebuild_complex(case: CanonicalCase):
     """Reproduce the production explicit-H CBond topology at zero geometry."""
     from hotpot import Atom, read_mol
-    from hotpot.cheminfo.forcefields.working_copy import (
+    from hotpot.cheminfo.operations.forcefields.working_copy import (
         _hydrogenated_working_copy,
     )
 
@@ -336,7 +336,7 @@ def _write_native_trajectory(
     output_path: Path,
 ) -> tuple[object, bool]:
     """Persist every retained frame and return its archive plus SDF status."""
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     trajectory.set_terminal(len(trajectory) - 1)
     archive = ff.ForceFieldTrajectoryArchive(main=trajectory)
@@ -422,7 +422,7 @@ def _run_rdkit(
 ) -> dict[str, object]:
     from rdkit import Chem
     from rdkit.Chem import AllChem
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     ligand = Chem.MolFromSmiles(case.smiles)
     if ligand is None:
@@ -588,7 +588,7 @@ def _run_openbabel(
     trajectory: "ForceFieldTrajectory",
 ) -> dict[str, object]:
     from openbabel import openbabel as ob
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
     from hotpot.cheminfo.adapters.openbabel.conversion import extract_obmol_coordinates
 
     obmol = complex_mol.to_obmol()
@@ -721,7 +721,7 @@ def run_backend_case(
     resume: bool = False,
 ) -> dict[str, object]:
     """Run one native backend case and persist its complete classification."""
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     case = CanonicalCase.from_dict(case_data)
     report_path = (

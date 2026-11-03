@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, cast
+from typing import Optional, cast
 
 import numpy as np
 
-from ..obWrappers import optimize as _native_optimize
-from ..obWrappers.native import _native_module
+from hotpot.cheminfo.adapters.openbabel.forcefields import optimize as _native_optimize
+from hotpot.cheminfo.adapters.openbabel.forcefields import _native_module
 from .backend import _raise_forcefield_setup_error
-from ..rules.physics.forcefields.contracts import OptimizationStoppingCriteria
+from hotpot.cheminfo.rules.physics.forcefields.contracts import OptimizationStoppingCriteria
 from .contracts import (
     ConvergenceLevel,
     DEFAULT_CONVERGENCE_LEVEL,
@@ -18,15 +18,12 @@ from .contracts import (
     TerminationReason,
 )
 from .coordinates import _perturbed_coordinates
-from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.operations.forcefields.trajectory import ForceFieldTrajectory
 from hotpot.cheminfo.structure.forcefields import (
     OptimizationFrameEvidence,
     TrajectoryEvent,
     TrajectoryStage,
 )
-
-if TYPE_CHECKING:
-    from ..core import Molecule
 
 
 __all__ = ()

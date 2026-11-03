@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 
 from hotpot import read_mol
-from hotpot.cheminfo import forcefields as ff
+from hotpot.cheminfo.operations import forcefields as ff
 
 
 def _zinc_ethylene_diamine():

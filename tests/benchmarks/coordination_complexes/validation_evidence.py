@@ -12,7 +12,7 @@ from typing import Mapping, Optional, Sequence
 import numpy as np
 
 from hotpot.cheminfo.structure.forcefields import OptimizationFrameEvidence as HotpotOptimizationFrameEvidence
-from hotpot.cheminfo.forcefields.working_copy import _copy_molecule_metadata
+from hotpot.cheminfo.operations.forcefields.working_copy import _copy_molecule_metadata
 
 from hotpot.cheminfo.operations.topology_queries import _components
 from hotpot.cheminfo.structure._selection import _capture_topology_selection

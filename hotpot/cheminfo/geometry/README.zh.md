@@ -26,7 +26,7 @@ from hotpot.cheminfo.adapters.structure import geometry as structure_geo
 
 该 package 只报告空间事实，不判断结构是否化学合理、物理稳定或适合某种力场。诸如“是否接受
 一个构象”“是否断开环键”“如何处理 `UNDETERMINED`”等决策属于调用方，当前由
-`hotpot.cheminfo.forcefields` 等业务层承担。
+`hotpot.cheminfo.operations.forcefields` 等业务层承担。
 
 模块职责和依赖方向为：
 

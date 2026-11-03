@@ -9,7 +9,7 @@ import pytest
 from hotpot import Atom, Molecule, read_mol
 from hotpot.cheminfo.AImodels.data_extract import extract_atom_attrs
 from hotpot.cheminfo.elements import elements
-from hotpot.cheminfo.forcefields import working_copy
+from hotpot.cheminfo.operations.forcefields import working_copy
 from hotpot.cheminfo.structure import _commit
 from hotpot.cheminfo.structure._dependencies import _dependency_state
 from hotpot.cheminfo.structure._fields import (
@@ -242,7 +242,7 @@ def test_forcefield_interrupted_publication_restores_owner_metadata_frames_and_s
 
 
 def test_native_selected_geometry_failure_preserves_complete_topology():
-    from hotpot.cheminfo.forcefields.native_adapters import apply_native_selected_structure
+    from hotpot.cheminfo.operations.forcefields.native_adapters import apply_native_selected_structure
     from hotpot.cheminfo.adapters.structure.forcefields import pack_complex_session_input
 
     mol = read_mol("[Eu]N", "smi")
@@ -259,7 +259,7 @@ def test_native_selected_geometry_failure_preserves_complete_topology():
 
 
 def _generated_working_frame(mol, energy):
-    from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+    from hotpot.cheminfo.operations.forcefields.trajectory import ForceFieldTrajectory
     from hotpot.cheminfo.structure.forcefields import (
         TrajectoryStage,
         TrajectoryEvent,

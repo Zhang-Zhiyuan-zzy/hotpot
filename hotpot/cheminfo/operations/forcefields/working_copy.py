@@ -8,10 +8,10 @@ from typing import Mapping, Optional, TYPE_CHECKING
 
 import numpy as np
 
-from ..structure._stereo import _get_stereo_payload
-from ..structure._identity import _capture_source, _check_source, _complete_bonds
-from ..adapters.structure.forcefields import _iter_metal_donor_pairs
-from ..adapters.structure.forcefields import (
+from hotpot.cheminfo.structure._stereo import _get_stereo_payload
+from hotpot.cheminfo.structure._identity import _capture_source, _check_source, _complete_bonds
+from hotpot.cheminfo.adapters.structure.forcefields import _iter_metal_donor_pairs
+from hotpot.cheminfo.adapters.structure.forcefields import (
     _atom_identity,
     _atom_index_map,
     _bond_endpoint_indices,
@@ -20,10 +20,9 @@ from ..adapters.structure.forcefields import (
 
 
 if TYPE_CHECKING:
-    from ..core import Atom, Bond, BondKind, Molecule
-    from ..structure.stereo import StereoPayload
-    from ..structure._builder import MoleculeRecord
-    from ..structure._identity import _SourceIdentity
+    from hotpot.cheminfo.structure.stereo import StereoPayload
+    from hotpot.cheminfo.structure._builder import MoleculeRecord
+    from hotpot.cheminfo.structure._identity import _SourceIdentity
 
 
 __all__ = ()
@@ -36,7 +35,7 @@ _FF_SOURCE_DOMAINS = (
 
 
 def _capture_working_source(mol: "Molecule") -> tuple:
-    from ..operations.chemistry import _require_aromatic_representation, _require_implicit_hydrogens
+    from hotpot.cheminfo.operations.chemistry import _require_aromatic_representation, _require_implicit_hydrogens
     with mol._mutation_lock:
         _require_implicit_hydrogens(mol)
         _require_aromatic_representation(mol)
@@ -98,13 +97,13 @@ def _hydrogenate_ligand_projection(
     donor_indices: set[int],
     seed: Optional[int],
 ) -> None:
-    from ..operations.topology_queries import _project_molecule
-    from ..structure._commit import _FactTransaction, _commit_topology
-    from ..structure._dependencies import _mark_topology_dirty, _remap_dependency_state
-    from ..structure._fields import ATOM_SOURCE_CODES
-    from ..structure._selection import _capture_topology_selection
+    from hotpot.cheminfo.operations.topology_queries import _project_molecule
+    from hotpot.cheminfo.structure._commit import _FactTransaction, _commit_topology
+    from hotpot.cheminfo.structure._dependencies import _mark_topology_dirty, _remap_dependency_state
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
+    from hotpot.cheminfo.structure._selection import _capture_topology_selection
     from .acceptance import _topology_checks
-    from ..adapters.structure.forcefields import capture_topology
+    from hotpot.cheminfo.adapters.structure.forcefields import capture_topology
 
     with working_mol._mutation_lock:
         source = _capture_source(working_mol, _FF_SOURCE_DOMAINS)
@@ -216,7 +215,7 @@ def _prepare_working_copy_commit(
     working_mol: "Molecule",
     source: tuple,
 ) -> _WorkingCopyCommit:
-    from ..structure._dependencies import _remap_dependency_state
+    from hotpot.cheminfo.structure._dependencies import _remap_dependency_state
 
     original_atoms = tuple(original_mol._atoms)
     working_atoms = tuple(working_mol._atoms)
@@ -340,8 +339,8 @@ def _commit_working_copy(
     source: tuple | None = None,
 ) -> None:
     """Install one accepted factual batch, retaining all original handles."""
-    from ..structure._commit import _FactTransaction, _commit_stereo, _commit_topology
-    from ..structure._fields import ATOM_SOURCE_CODES
+    from hotpot.cheminfo.structure._commit import _FactTransaction, _commit_stereo, _commit_topology
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
 
     with original_mol._mutation_lock, working_mol._mutation_lock:
         if source is None:

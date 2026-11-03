@@ -10,13 +10,13 @@ from hotpot import Molecule, read_mol
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX
 from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
-from hotpot.cheminfo.forcefields import backend as ob_backend
-from hotpot.cheminfo.forcefields.contracts import BuildWorkerResult
-from hotpot.cheminfo.forcefields import ligand
-from hotpot.cheminfo.forcefields import repair
-from hotpot.cheminfo.forcefields import ff
-from hotpot.cheminfo.forcefields import workers
-from hotpot.cheminfo.forcefields import workflows
+from hotpot.cheminfo.operations.forcefields import backend as ob_backend
+from hotpot.cheminfo.operations.forcefields.contracts import BuildWorkerResult
+from hotpot.cheminfo.operations.forcefields import ligand
+from hotpot.cheminfo.operations.forcefields import repair
+from hotpot.cheminfo.operations.forcefields import ff
+from hotpot.cheminfo.operations.forcefields import workers
+from hotpot.cheminfo.operations.forcefields import workflows
 
 
 def _send_large_worker(connection):
@@ -1016,7 +1016,6 @@ def test_ligand_fallback_warning_is_emitted_by_the_parent_process(monkeypatch):
             timeout=2.0,
             add_hydrogens=False,
             seed=None,
-            coordination_geometry=None,
         )
 
     assert prepared.diagnostics.warning_messages == (
@@ -1048,7 +1047,6 @@ def test_failed_ligand_build_persists_recorded_attempts(monkeypatch, tmp_path):
             seed=None,
             trajectory_start=ff.TrajectoryStart.LIGAND_BUILD,
             trajectory_path=trajectory_path,
-            coordination_geometry=None,
         )
 
     restored = ff.ForceFieldTrajectoryArchive.read(trajectory_path)
@@ -1632,18 +1630,29 @@ def test_complexes_build_final_failure_does_not_modify_caller(
     _assert_molecule_state_unchanged(molecule, original)
 
 
-def test_coordination_geometry_hook_is_explicitly_unimplemented():
-    molecule = read_mol("[Zn](N)", "smi")
+def test_coordination_geometry_hook_and_dormant_values_are_retired():
+    for name in (
+        "prepare_coordination_geometry",
+        "CoordinationGeometryCandidate",
+        "CoordinationGeometryResult",
+    ):
+        assert not hasattr(ff, name)
 
-    with pytest.raises(NotImplementedError, match="reserved but not implemented"):
-        ff.prepare_coordination_geometry(molecule, strategy="octahedral")
+
+@pytest.mark.parametrize("value", (None, "octahedral"))
+@pytest.mark.parametrize("function", (
+    ff.build_complex3d, ff.complexes_build, ff.build_and_optimize, ff.auto_optimize,
+))
+def test_retired_coordination_geometry_keyword_is_rejected(function, value):
+    with pytest.raises(TypeError, match="coordination_geometry"):
+        function(object(), coordination_geometry=value)
 
 
-def test_coordination_geometry_hook_rejects_noncomplex_inputs():
+@pytest.mark.parametrize("value", (None, "octahedral"))
+def test_molecule_build3d_rejects_retired_coordination_geometry_keyword(value):
     molecule = read_mol("CCO", "smi")
-
-    with pytest.raises(ValueError, match="explicit metal-ligand bond"):
-        ff.prepare_coordination_geometry(molecule, strategy="octahedral")
+    with pytest.raises(TypeError, match="coordination_geometry"):
+        molecule.build3d(coordination_geometry=value)
 
 
 @pytest.mark.parametrize(
@@ -1718,7 +1727,7 @@ def test_coordination_environments_preserve_a_bridging_donor():
     assert all(environment.chelate_groups == ((0,),) for environment in environments)
 
 
-def test_small_zinc_build_uses_default_inactive_coordination_hook(monkeypatch):
+def test_small_zinc_build_preserves_default_geometry_and_hydrogen_declarations():
     molecule = read_mol("[Zn](N)(N)", "smi")
     members = tuple(molecule.atoms)
     field = FIELD_INDEX['implicit_hydrogens']
@@ -1726,13 +1735,6 @@ def test_small_zinc_build_uses_default_inactive_coordination_hook(monkeypatch):
                           int(molecule._atom_table._sources[atom.idx, field])) for atom in members)
     assert all(code == ATOM_SOURCE_CODES['openbabel'] for _, code in declarations)
     expected_hydrogens = sum(atom.implicit_hydrogens for atom in members)
-    monkeypatch.setattr(
-        ff,
-        "prepare_coordination_geometry",
-        lambda *args, **kwargs: (_ for _ in ()).throw(
-            AssertionError("the reserved hook must remain inactive by default")
-        ),
-    )
 
     report = ff.build_complex3d(
         molecule,

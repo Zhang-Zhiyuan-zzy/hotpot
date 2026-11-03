@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 
 import hotpot as hp
-from hotpot.cheminfo import forcefields as ff
+from hotpot.cheminfo.operations import forcefields as ff
 
 
 ROOT = Path(__file__).resolve().parents[2]

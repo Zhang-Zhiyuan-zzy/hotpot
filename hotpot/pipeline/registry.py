@@ -28,7 +28,7 @@ class DuplicateStageError(PipelineDefinitionError):
 
 _BUILTIN_STAGE_IMPORT_PATHS = {
     "cbond": "hotpot.cheminfo.AImodels.cbond.stage:STAGE",
-    "ff": "hotpot.cheminfo.forcefields.stage:STAGE",
+    "ff": "hotpot.cheminfo.operations.forcefields.stage:STAGE",
     "xtb": "hotpot.plugins.xtb.stage:STAGE",
 }
 _stage_import_paths: Dict[str, str] = dict(_BUILTIN_STAGE_IMPORT_PATHS)

@@ -10,9 +10,9 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
-from hotpot.cheminfo.forcefields import attempts
-from hotpot.cheminfo.forcefields import auto as auto_workflow
-from hotpot.cheminfo.forcefields import ff
+from hotpot.cheminfo.operations.forcefields import attempts
+from hotpot.cheminfo.operations.forcefields import auto as auto_workflow
+from hotpot.cheminfo.operations.forcefields import ff
 
 
 def _complex_molecule():

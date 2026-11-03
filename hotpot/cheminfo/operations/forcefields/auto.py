@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, replace
 from time import perf_counter
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
 import numpy as np
 
-from ..obWrappers import build as _native_build
+from hotpot.cheminfo.adapters.openbabel.forcefields import build as _native_build
 from .attempts import _run_ordinary_optimization_attempt
 from .backend import _resolve_complex_forcefield
-from ..rules.physics.forcefields.contracts import OptimizationStoppingCriteria
+from hotpot.cheminfo.rules.physics.forcefields.contracts import OptimizationStoppingCriteria
 from .contracts import (
     AcceptanceLevel,
     ComplexBuildDiagnostics,
@@ -28,8 +28,8 @@ from .contracts import (
     TrajectoryPath,
 )
 from .coordination import _require_explicit_complex
-from ..adapters.structure.forcefields import capture_topology
-from hotpot.cheminfo.forcefields.trajectory import (
+from hotpot.cheminfo.adapters.structure.forcefields import capture_topology
+from hotpot.cheminfo.operations.forcefields.trajectory import (
     ForceFieldTrajectory,
     ForceFieldTrajectoryArchive,
 )
@@ -40,10 +40,6 @@ from hotpot.cheminfo.structure.forcefields import (
 )
 from .working_copy import _capture_working_source, _commit_working_copy, _hydrogenated_working_copy
 from .workflows import _complexes_build_workflow, _finalize_trajectory, optimize
-
-
-if TYPE_CHECKING:
-    from ..core import Molecule
 
 
 __all__ = ("auto_optimize",)
@@ -302,7 +298,6 @@ def _fallback_to_complex_workflow(
     increasing_vdw: bool,
     vdw_cutoff_start: float,
     vdw_cutoff_end: float,
-    coordination_geometry: Optional[str],
 ) -> ForceFieldRunReport:
     """Discard the quick candidate and run all three complex stages."""
     fallback_mol = _hydrogenated_working_copy(
@@ -341,7 +336,6 @@ def _fallback_to_complex_workflow(
             increasing_vdw=increasing_vdw,
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
-            coordination_geometry=coordination_geometry,
         )
     except ForceFieldError as error:
         if error.trajectory is not None:
@@ -413,7 +407,6 @@ def auto_optimize(
     increasing_vdw: bool = False,
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
-    coordination_geometry: Optional[str] = None,
 ) -> ForceFieldRunReport:
     """Use native FAST first, then the complete complex workflow if needed."""
     if not mol.has_metal:
@@ -530,5 +523,4 @@ def auto_optimize(
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
-        coordination_geometry=coordination_geometry,
     )

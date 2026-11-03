@@ -9,12 +9,12 @@ import pytest
 
 from hotpot.cheminfo.adapters.structure.forcefields import capture_topology
 from hotpot import Molecule
-from hotpot.cheminfo.forcefields import (
+from hotpot.cheminfo.operations.forcefields import (
     ff,
     workflows,
 )
 from hotpot.cheminfo.adapters.native.forcefields import native as native_adapter
-from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.operations.forcefields.trajectory import ForceFieldTrajectory
 from hotpot.cheminfo.structure.forcefields import (
     TrajectoryEvent,
     TrajectoryStage,
@@ -178,7 +178,7 @@ def test_workflow_passes_the_same_criteria_to_native_translation(monkeypatch, st
 
 
 def test_acceptance_classes_cold_pickle_at_the_true_rule_owner():
-    from hotpot.cheminfo.forcefields import contracts as mixed
+    from hotpot.cheminfo.operations.forcefields import contracts as mixed
     from hotpot.cheminfo.rules.mathematics import geometry as geo
     from hotpot.cheminfo.rules.physics.forcefields import contracts as canonical
 
@@ -259,3 +259,62 @@ assert values[5].energy_change_kj_mol == 0.125
         input=pickle.dumps((classes, values)), capture_output=True, check=False,
     )
     assert completed.returncode == 0, completed.stderr.decode()
+
+
+def test_b3d_moved_values_and_operation_classes_cold_pickle_at_actual_owners():
+    from hotpot.cheminfo.structure.forcefields import (
+        AtomIdentity, BondTopologyRevision, CoordinationEnvironment, ForceFieldFrame,
+    )
+
+    classes = (
+        AtomIdentity, BondTopologyRevision, CoordinationEnvironment, ForceFieldFrame,
+        ff.Build3DReport, ForceFieldTrajectory,
+    )
+    values = (
+        AtomIdentity(0, 91, 6, 0, "C"),
+        BondTopologyRevision(0, (BondTopology((0, 1), 1.0, "single"),)),
+        CoordinationEnvironment(0, (1,), 1, 30, 2, (7,), ((1,),)),
+        ForceFieldFrame(0, TrajectoryStage.LIGAND_BUILD, TrajectoryEvent.INITIAL, 0, 0),
+        ff.Build3DReport(2, 1, ff.ForceFieldValidationReport("basic", True, ())),
+    )
+    for cls in classes:
+        assert getattr(ff, cls.__name__) is cls
+    script = """
+import importlib
+import pickle
+import sys
+classes, values = pickle.loads(sys.stdin.buffer.read())
+assert tuple(type(value) for value in values) == classes[:5]
+assert tuple(cls.__module__ for cls in classes) == (
+    *('hotpot.cheminfo.structure.forcefields',) * 4,
+    'hotpot.cheminfo.operations.forcefields.contracts',
+    'hotpot.cheminfo.operations.forcefields.trajectory',
+)
+for cls in classes:
+    assert getattr(importlib.import_module(cls.__module__), cls.__name__) is cls
+assert values[0].symbol == 'C'
+assert values[1].bonds[0].atom_indices == (0, 1)
+assert values[2].chelate_groups == ((1,),)
+assert values[3].stage.value == 'ligand_build'
+assert values[4].atom_count == 2
+assert values[4].added_hydrogen_count == 1
+assert values[4].quality_report.passed
+assert 'hotpot.cheminfo.forcefields' not in sys.modules
+"""
+    completed = subprocess.run(
+        [sys.executable, "-B", "-c", script],
+        input=pickle.dumps((classes, values)), capture_output=True, check=False,
+    )
+    assert completed.returncode == 0, completed.stderr.decode()
+
+
+@pytest.mark.parametrize("legacy_module, name", (
+    ("trajectory", "AtomIdentity"),
+    ("trajectory", "BondTopologyRevision"),
+    ("trajectory", "ForceFieldFrame"),
+    ("contracts", "CoordinationEnvironment"),
+))
+def test_retired_b3d_pickle_paths_have_no_migration_loader(legacy_module, name):
+    payload = f"chotpot.cheminfo.forcefields.{legacy_module}\n{name}\n.".encode()
+    with pytest.raises(ModuleNotFoundError):
+        pickle.loads(payload)

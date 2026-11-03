@@ -175,7 +175,7 @@ atoms/bonds and accepted geometry state are applied.
 Advanced callers can compose the lower-level functions directly:
 
 ```python
-from hotpot.cheminfo import forcefields as ff
+from hotpot.cheminfo.operations import forcefields as ff
 
 ff.build3d(mol)               # Open Babel 3D embedding only
 ff.optimize(mol)              # ordinary force-field optimization only
@@ -254,10 +254,9 @@ empty constraint set. These fields do not constrain `ff.optimize()` or the
 complex workflow in this release.
 
 UFF geometry is a general-purpose structural relaxation, not a validation of
-oxidation state, spin state, or ligand-field geometry. The
-`prepare_coordination_geometry()` strategy hook is reserved for a future
-coordination-number-aware implementation; requesting it currently raises
-`NotImplementedError` instead of silently ignoring the option.
+oxidation state, spin state, or ligand-field geometry. The unsupported
+`prepare_coordination_geometry()` hook and `coordination_geometry` option have
+been removed; the obsolete keyword raises `TypeError`.
 
 `ff.complexes_build()` exposes only the current explicit parameter names.
 Unknown or historical keyword names raise `TypeError`.

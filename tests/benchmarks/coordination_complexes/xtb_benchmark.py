@@ -273,7 +273,7 @@ def _evaluate_quality(
     quality_level: str,
     topology_reference: object,
 ) -> Mapping[str, object]:
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     return _quality_payload(
         ff.evaluate_structure_acceptance(
@@ -533,7 +533,7 @@ def _run_route(
     config: XTBBenchmarkConfig,
     route_directory: Path,
 ) -> dict[str, object]:
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     route_directory.mkdir(parents=True, exist_ok=True)
     working_mol = source_mol.copy()

@@ -1,0 +1,138 @@
+{
+  "actual_selections": [
+    {
+      "files": [
+        "tests/test_plugin/test_xtb/test_official_pipeline_integration.py"
+      ],
+      "flags": [
+        "--run-external",
+        "--run-high-compute",
+        "--run-model-artifacts"
+      ],
+      "id": "actual_CBFF_xtb"
+    },
+    {
+      "files": [
+        "tests/test_cheminfo/test_mca_calculator.py"
+      ],
+      "flags": [
+        "--run-model-artifacts"
+      ],
+      "id": "actual_MCA_attachment"
+    }
+  ],
+  "boundary_test_counts": {
+    "installed": {
+      "errors": 0,
+      "failures": 0,
+      "passed": 1125,
+      "skipped": 2,
+      "tests": 1127
+    },
+    "source": {
+      "errors": 0,
+      "failures": 0,
+      "passed": 1125,
+      "skipped": 2,
+      "tests": 1127
+    }
+  },
+  "date": "2026-11-04",
+  "focused_selection": [
+    "tests/test_cheminfo/forcefields/test_contract_ownership.py",
+    "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+    "tests/test_cheminfo/test_forcefield_api.py",
+    "tests/test_cheminfo/test_forcefield_optimizer.py",
+    "tests/test_cheminfo/test_forcefield_auto_optimize.py",
+    "tests/test_cheminfo/test_forcefield_trajectory.py",
+    "tests/test_cheminfo/test_forcefield_package.py",
+    "tests/test_cheminfo/test_mca_result_lifecycle.py",
+    "tests/test_cheminfo/forcefields/test_coordinate_displacement.py"
+  ],
+  "full_file_selection": [
+    "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+    "tests/test_cheminfo/forcefields/test_coordination_components.py",
+    "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+    "tests/test_cheminfo/forcefields/test_forcefield_native_checkpoint_acceptance.py",
+    "tests/test_cheminfo/forcefields/test_forcefield_native_coordination_stage.py",
+    "tests/test_cheminfo/forcefields/test_forcefield_native_optimization_stage.py",
+    "tests/test_cheminfo/forcefields/test_forcefield_native_placement.py",
+    "tests/test_cheminfo/forcefields/test_forcefield_native_public_workflows.py",
+    "tests/test_cheminfo/forcefields/test_forcefield_native_setup_errors.py",
+    "tests/test_cheminfo/forcefields/test_forcefield_native_workflow_stage.py",
+    "tests/test_cheminfo/forcefields/test_forcefield_routing_contracts.py",
+    "tests/test_cheminfo/forcefields/test_forcefield_settings.py",
+    "tests/test_cheminfo/forcefields/test_native_default_parity.py",
+    "tests/test_cheminfo/forcefields/test_native_trajectory_ingestion.py",
+    "tests/test_cheminfo/obWrappers/test_bridge.py",
+    "tests/test_cheminfo/obWrappers/test_native_engine_contract.py",
+    "tests/test_cheminfo/obWrappers/test_native_rules.py",
+    "tests/test_cheminfo/obWrappers/test_packing.py",
+    "tests/test_cheminfo/test_complex_hydrogens.py",
+    "tests/test_cheminfo/test_complex_untangling_workflow.py",
+    "tests/test_cheminfo/test_complexes_build.py",
+    "tests/test_cheminfo/test_complexes_build_full.py",
+    "tests/test_cheminfo/test_forcefield_acceptance.py",
+    "tests/test_cheminfo/test_forcefield_api.py",
+    "tests/test_cheminfo/test_forcefield_auto_optimize.py",
+    "tests/test_cheminfo/test_forcefield_checkpoint_acceptance.py",
+    "tests/test_cheminfo/test_forcefield_cli.py",
+    "tests/test_cheminfo/test_forcefield_integration.py",
+    "tests/test_cheminfo/test_forcefield_native_session.py",
+    "tests/test_cheminfo/test_forcefield_optimizer.py",
+    "tests/test_cheminfo/test_forcefield_package.py",
+    "tests/test_cheminfo/test_forcefield_stage_scan_boundaries.py",
+    "tests/test_cheminfo/test_forcefield_trajectory.py",
+    "tests/test_cheminfo/forcefields/test_contract_ownership.py",
+    "tests/test_cheminfo/structure/test_partial_charge_task_encoding.py",
+    "tests/test_cheminfo/test_plan20_outer_cutover.py",
+    "tests/test_cheminfo/forcefields/test_acceptance_rules.py",
+    "tests/test_cheminfo/structure/test_architecture.py",
+    "tests/test_cheminfo/structure/test_buffer_ownership.py",
+    "tests/test_cheminfo/test_import_safety.py",
+    "tests/test_main/test_command_loading.py",
+    "tests/test_packaging_metadata.py",
+    "tests/benchmarks/coordination_complexes/test_support.py",
+    "tests/benchmarks/coordination_complexes/test_validation_routes.py",
+    "tests/benchmarks/coordination_complexes/test_validation_evidence.py",
+    "tests/benchmarks/coordination_complexes/test_validation_acceptance.py",
+    "tests/benchmarks/coordination_complexes/test_validation_failure_analysis.py",
+    "tests/test_pipeline/test_artifacts.py",
+    "tests/test_pipeline/test_builtin_stages.py",
+    "tests/test_pipeline/test_contracts.py",
+    "tests/test_pipeline/test_documentation.py",
+    "tests/test_pipeline/test_registry.py",
+    "tests/test_pipeline/test_runner.py",
+    "tests/test_pipeline/test_state_recovery.py",
+    "tests/test_cheminfo/test_mca_result_lifecycle.py",
+    "tests/mca/test_conformer.py",
+    "tests/benchmarks/coordination_complexes/test_backend_comparison.py",
+    "tests/benchmarks/coordination_complexes/test_workflow_benchmarks.py",
+    "tests/test_cheminfo/forcefields/test_coordinate_displacement.py",
+    "tests/test_cheminfo/structure/test_pair_observations.py",
+    "tests/test_cheminfo/structure/test_stage5_bonding.py",
+    "tests/test_cheminfo/test_geometry_imports.py",
+    "tests/test_cheminfo/test_geometry_quality.py",
+    "tests/test_cheminfo/test_relevant_ring_integration.py",
+    "tests/test_cheminfo/test_stereo_level1_working_copy.py"
+  ],
+  "ordered_membership": {
+    "bytes": 165685,
+    "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/ordered-membership.json",
+    "sha256": "6f90510d535f281081bd5f95a45e4054414b5dcfaa4db72d7eedfc9aac43e176"
+  },
+  "paired_jobs": [
+    "tests",
+    "actual_CBFF_xtb",
+    "actual_MCA_attachment"
+  ],
+  "policy": "all: source-focused then identical full selection and actual jobs at both boundaries. full and actual select those boundaries only; source-focused only runs focused source tests/probe. Existing full-selection marker switches are opt-in; actual business explicitly uses its previously accepted switches.",
+  "pytest_switches": [],
+  "selection_identity": {
+    "bytes": 7886,
+    "path": "/tmp/hotpot_plan20/long/stage8b-b3d-20261104/validation-preparation/validation-selection.json",
+    "sha256": "12593f43be1770e9bbf45b05c3574d1fe73e8a5716aad86918cf239deb0f7947"
+  },
+  "stage": "Stage8B/B3d",
+  "status": "ROOT_ACCEPTED_B3D_CP311_OPERATION_BACKEND_CUTOVER"
+}

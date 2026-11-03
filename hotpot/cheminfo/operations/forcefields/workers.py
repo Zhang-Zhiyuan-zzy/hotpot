@@ -6,11 +6,11 @@ import multiprocessing as mp
 import os
 import traceback as traceback_module
 from multiprocessing.connection import Connection, wait as wait_for_connections
-from typing import Optional, Union, TYPE_CHECKING
+from typing import Optional, Union
 
 import numpy as np
 
-from ..conformers import ConformerSampler
+from hotpot.cheminfo.conformers import ConformerSampler
 from . import backend as _backend
 from .backend import _ob_build
 from .contracts import (
@@ -23,10 +23,6 @@ from .contracts import (
 from .ligand import _build_ligand_proxies
 from .trajectory import ForceFieldTrajectory
 from .working_copy import _make_worker_mol
-
-
-if TYPE_CHECKING:
-    from ..core import Molecule
 
 
 __all__ = ()

@@ -19,8 +19,8 @@ from hotpot.cheminfo.conformers.adapters import (
     _materialized_hydrogen_projection,
 )
 from hotpot.cheminfo.operations.io import read_mol
-from hotpot.cheminfo.forcefields import backend, ligand, workers, workflows
-from hotpot.cheminfo.forcefields.contracts import (
+from hotpot.cheminfo.operations.forcefields import backend, ligand, workers, workflows
+from hotpot.cheminfo.operations.forcefields.contracts import (
     BuildWorkerResult,
     ComplexBuildDiagnostics,
     ComplexBuildError,
@@ -186,7 +186,6 @@ def test_adapters_are_pickle_safe_and_prepare_passes_one_into_spawn(monkeypatch)
         timeout=1.0,
         add_hydrogens=False,
         seed=17,
-        coordination_geometry=None,
         sampler=sampler,
     )
 
@@ -592,7 +591,7 @@ def test_ligand_coordinates_follow_members_with_duplicate_public_ids(monkeypatch
 
 
 def test_finalize_threads_actual_input_source_method_and_known_seed_after_archive(monkeypatch, tmp_path):
-    from hotpot.cheminfo.forcefields.trajectory import (
+    from hotpot.cheminfo.operations.forcefields.trajectory import (
         ForceFieldTrajectory,
         ForceFieldTrajectoryArchive,
     )
@@ -600,7 +599,7 @@ def test_finalize_threads_actual_input_source_method_and_known_seed_after_archiv
         TrajectoryStage,
         TrajectoryEvent,
     )
-    from hotpot.cheminfo.forcefields.working_copy import _capture_working_source
+    from hotpot.cheminfo.operations.forcefields.working_copy import _capture_working_source
     from hotpot.cheminfo.structure._builder import _thaw_value
 
     mol = read_mol("CC", "smi")
@@ -642,8 +641,8 @@ def test_finalize_threads_actual_input_source_method_and_known_seed_after_archiv
 def test_auto_native_fast_finalization_retains_actual_input_seed_and_effective_options(monkeypatch):
     from hotpot.cheminfo.rules.physics.forcefields.contracts import OptimizationStoppingCriteria
     from copy import copy
-    from hotpot.cheminfo.forcefields import auto as auto_workflow
-    from hotpot.cheminfo.forcefields.contracts import (
+    from hotpot.cheminfo.operations.forcefields import auto as auto_workflow
+    from hotpot.cheminfo.operations.forcefields.contracts import (
         ForceFieldRunReport, OptimizationAttemptReport, OptimizationAttemptStatus,
         OptimizationRoute, ConvergenceLevel,
     )

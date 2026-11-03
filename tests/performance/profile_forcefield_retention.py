@@ -103,7 +103,7 @@ def run_worker(
 ) -> dict[str, object]:
     """Run one complete CBond/setup/force-field sample in this process."""
     from hotpot import read_mol
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
     from hotpot.cheminfo.AImodels.cbond.apply import (
         auto_build_cbond,
         get_cbond_runtime,

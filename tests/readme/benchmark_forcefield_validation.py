@@ -19,7 +19,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 
 import hotpot as hp
-from hotpot.cheminfo import forcefields as ff
+from hotpot.cheminfo.operations import forcefields as ff
 
 
 README_BENCHMARK_SMILES = (

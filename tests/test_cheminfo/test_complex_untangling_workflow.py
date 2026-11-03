@@ -8,10 +8,10 @@ from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.core import Molecule
 from hotpot.cheminfo.structure._selection import _capture_topology_selection, _selected_bonds
 from hotpot.cheminfo.operations.topology_queries import _project_molecule
-from hotpot.cheminfo.forcefields import backend as ob_backend
-from hotpot.cheminfo.forcefields import ff, repair
-from hotpot.cheminfo.forcefields import ff as forcefield_utils
-from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.operations.forcefields import backend as ob_backend
+from hotpot.cheminfo.operations.forcefields import ff, repair
+from hotpot.cheminfo.operations.forcefields import ff as forcefield_utils
+from hotpot.cheminfo.operations.forcefields.trajectory import ForceFieldTrajectory
 from hotpot.cheminfo.structure.forcefields import (
     TrajectoryEvent,
     TrajectoryStage,

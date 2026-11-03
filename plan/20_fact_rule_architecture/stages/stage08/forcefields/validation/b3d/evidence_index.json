@@ -1,0 +1,807 @@
+{
+  "archive_policy": "Sorted entries, no generated timestamp; manifest excludes itself and owning records. Single actual wheel and exact frozen fixture retained separately; source-capsule includes actual parent blobs and current changed frozen bytes. Retired directory absence is verified independently.",
+  "artifacts": {
+    "canonical_authoring_rebind": {
+      "bytes": 3887,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/canonical-authoring-rebind.json",
+      "sha256": "156272a77e9870b099839fa2236da7b872598536cc27719085584f4fd9f14925"
+    },
+    "changed_source_capsule": {
+      "bytes": 35364,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/source-capsule/changes.json",
+      "sha256": "ca8bdf16cc2c73f7fc2a2f8a15ae0a5d820bff7bfd4fb986ec03f1eeb94f54bb"
+    },
+    "commands": {
+      "bytes": 66268,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/commands.json",
+      "sha256": "a0454bb4e802f8aef8426797a2090bef582cc636b4a24166f639fc6f278beb2d"
+    },
+    "dependency_assets_after": {
+      "bytes": 23468,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/dependency-assets-after.json",
+      "sha256": "124f613bb51adbb45eefc426ca74fff59b040d7eeabbf4e1bf6b50a4a5e5bd43"
+    },
+    "dependency_assets_before": {
+      "bytes": 23468,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/dependency-assets-before.json",
+      "sha256": "124f613bb51adbb45eefc426ca74fff59b040d7eeabbf4e1bf6b50a4a5e5bd43"
+    },
+    "execution": {
+      "bytes": 860039,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/execution.json",
+      "sha256": "1e9ae8adca499345bce33c54ef21a77d55deabe71845e5c025b74257521ccc8e"
+    },
+    "frozen_fixture": {
+      "bytes": 10150,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/frozen-fixtures/molecules/extractant/extractants.smi",
+      "sha256": "e67ae3167a1a96d3c6a4c6df3ce12b70abfaf479bdd89bb156bfaefa771795a7"
+    },
+    "installed_results": {
+      "bytes": 362594,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-results.json",
+      "sha256": "12e87b79a9c626a47f953f363eb5a59e84e096f270ea658667ebfd3eccae864e"
+    },
+    "native_rebind": {
+      "bytes": 77893,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/native-rebind.json",
+      "sha256": "a5cb39b885f3406aed6a9ca0f520d07b6baf0629d476dbe963ca2d8b45b9178f"
+    },
+    "ordered_membership": {
+      "bytes": 165685,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/ordered-membership.json",
+      "sha256": "6f90510d535f281081bd5f95a45e4054414b5dcfaa4db72d7eedfc9aac43e176"
+    },
+    "raw_manifest": {
+      "bytes": 431848,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/raw_manifest.json",
+      "sha256": "77cae376fefcbcd8d85b754e20ffd21ba769e25e5f531d8224d207f87e62f84f"
+    },
+    "root_business_review": {
+      "bytes": 48937,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/root-business-review.json",
+      "sha256": "486e93b391a0ae3a82a85714459f1593ce21d477db79e3e7630468191b148f0f"
+    },
+    "root_release": {
+      "bytes": 1496,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/root-runtime-release-attempt01.json",
+      "sha256": "9b768122cf072528ac811c327b965062570f34b26cd102555a3a77742a7789ce"
+    },
+    "source_freeze": {
+      "bytes": 192137,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/source-freeze-b3d-attempt01.json",
+      "sha256": "5b80e103fc653ce0f6a9b618a22889af0af6a94b4f55134c2fdf7950a16e0977"
+    },
+    "source_results": {
+      "bytes": 396841,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-results.json",
+      "sha256": "c8b3cbd9ba67ce11be720e5e02c9431d7c8a9045b57113fe4da132f72437a066"
+    },
+    "wheel": {
+      "bytes": 6341201,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/wheel/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "sha256": "8fb000bedb98421408a1c26b10d50327bf4284aee306f3253df1ee3e4e4cc047"
+    },
+    "wheel_contents": {
+      "bytes": 30896,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/wheel-contents.json",
+      "sha256": "7fea4240fd50724f7059c481808dbc0dd3190a78ebf6043d66707cabe4617583"
+    }
+  },
+  "boundary_jobs": {
+    "installed": {
+      "actual_CBFF_xtb": {
+        "command": {
+          "bytes": 2617,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-actual_CBFF_xtb/execution.json",
+          "sha256": "ce4447256ed9f24c6bd27f626c414eaa9862ee8cc83699976aa11ce408c1cb2d"
+        },
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "passed": 3,
+          "skipped": 0,
+          "tests": 3
+        },
+        "junit": {
+          "bytes": 712,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-actual_CBFF_xtb/junit.xml",
+          "sha256": "2f5951f130de28cc11a321ce7b81acbbe21f6f69a9ff454ab6ea3817f131e383"
+        },
+        "ordered_nodeids_count": 3,
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 11836,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-actual_CBFF_xtb/origin-reconciliation.json",
+          "sha256": "309cdb461ff2966dfc1f4503e5c374bc5e88c7f765a1507803ed1b1a7c33bb90"
+        },
+        "participants": 5,
+        "result": {
+          "bytes": 362594,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-results.json",
+          "sha256": "12e87b79a9c626a47f953f363eb5a59e84e096f270ea658667ebfd3eccae864e"
+        },
+        "same_pid_sets": true,
+        "skips": []
+      },
+      "actual_MCA_attachment": {
+        "command": {
+          "bytes": 2571,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-actual_MCA_attachment/execution.json",
+          "sha256": "07ec0af59a87d0176d58d775bdcd4335be0f269cc5666f0654c6aec0b032f97f"
+        },
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "passed": 3,
+          "skipped": 0,
+          "tests": 3
+        },
+        "junit": {
+          "bytes": 679,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-actual_MCA_attachment/junit.xml",
+          "sha256": "c9fca60e01ef01a4173ea141739973399cefa7fc46767379e637e9f2e0f2ffcc"
+        },
+        "ordered_nodeids_count": 3,
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 7913,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-actual_MCA_attachment/origin-reconciliation.json",
+          "sha256": "ea51f9b9feef9d37794beb6e97af94e9033d9dce2e3cc7154826e568e60b17d5"
+        },
+        "participants": 1,
+        "result": {
+          "bytes": 362594,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-results.json",
+          "sha256": "12e87b79a9c626a47f953f363eb5a59e84e096f270ea658667ebfd3eccae864e"
+        },
+        "same_pid_sets": true,
+        "skips": []
+      },
+      "conformer-mca": {
+        "command": {
+          "bytes": 2282,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-conformer-mca/execution.json",
+          "sha256": "ccc861596ad74604a9908fb7495f2322515bbcff93ccbb4b9f0a9ad67397d4eb"
+        },
+        "observations": {
+          "bytes": 3954,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-conformer-mca/observations.json",
+          "sha256": "3194b86a973181b3c4ba8faffd07465eab9fdec88b56016fc1598758026a2be2"
+        },
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 8465,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-conformer-mca/origin-reconciliation.json",
+          "sha256": "365c9b7a2ed8981fa74c5f15771075d5bb124198752bbbd406f15750b23b0844"
+        },
+        "participants": 3,
+        "result": {
+          "bytes": 362594,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-results.json",
+          "sha256": "12e87b79a9c626a47f953f363eb5a59e84e096f270ea658667ebfd3eccae864e"
+        },
+        "same_pid_sets": true
+      },
+      "imports": {
+        "command": {
+          "bytes": 3180,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-imports/execution.json",
+          "sha256": "10ac4d13e50cedd3f9ee139748f3d52237f121cb1dc3407f345abb5c2a290e1f"
+        },
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 6777,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-imports/origin-reconciliation.json",
+          "sha256": "608ca49e5acf8ff42abd7a2d0c280b5d775ba60706c3c65200c0f2d435b582b3"
+        },
+        "participants": 1,
+        "result": {
+          "bytes": 362594,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-results.json",
+          "sha256": "12e87b79a9c626a47f953f363eb5a59e84e096f270ea658667ebfd3eccae864e"
+        },
+        "same_pid_sets": true
+      },
+      "owners": {
+        "command": {
+          "bytes": 2135,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-owners/execution.json",
+          "sha256": "5e3c7e83474216bb69a0280a3adaa390267bb536098598af7fdea3bbd8e391d3"
+        },
+        "current_owner_contracts": {
+          "cold_pickle": {
+            "owners": [
+              "hotpot.cheminfo.structure.forcefields.AtomIdentity",
+              "hotpot.cheminfo.structure.forcefields.BondTopologyRevision",
+              "hotpot.cheminfo.structure.forcefields.ForceFieldFrame",
+              "hotpot.cheminfo.structure.forcefields.CoordinationEnvironment"
+            ],
+            "values": [
+              "AtomIdentity(index=0, atom_id=7, atomic_number=6, formal_charge=0, symbol='C')",
+              "BondTopologyRevision(index=0, bonds=())",
+              "ForceFieldFrame(index=0, stage=<TrajectoryStage.LIGAND_BUILD: 'ligand_build'>, event=<TrajectoryEvent.INITIAL: 'initial'>, coordinate_revision=0, topology_revision=0, energy_kj_mol=None, component_index=None, attempt=None, step=None, evidence=None)",
+              "CoordinationEnvironment(metal_idx=0, donor_indices=(1,), coordination_number=1, metal_atomic_number=30, metal_formal_charge=2, donor_atomic_numbers=(7,), chelate_groups=((1,),))"
+            ]
+          },
+          "retired_exports_absent": [
+            "prepare_coordination_geometry",
+            "CoordinationGeometryCandidate",
+            "CoordinationGeometryResult"
+          ],
+          "signatures": {
+            "hotpot.cheminfo.core.Molecule.build3d": "(self, forcefield: Optional[Literal['UFF', 'MMFF94', 'MMFF94s', 'GAFF', 'Ghemical']] = 'UFF', *, algorithm: Literal['steepest', 'conjugate'] = 'conjugate', epochs: int = 100, steps_per_epoch: int = 100, add_hydrogens: bool = True, quality_level: Literal['off', 'basic', 'standard', 'strict'] = 'standard', quality_thresholds: Optional[ForwardRef('ff.StructureAcceptanceThresholds')] = None, seed: Optional[int] = None, timeout: float = 1000.0, perturb_interval: Optional[int] = None, perturb_sigma: float = 0.5, stopping_criteria: Optional[ForwardRef('ff.OptimizationStoppingCriteria')] = None, convergence_level: 'ff.ConvergenceLevel' = <ConvergenceLevel.FAST: 1>, save_movie: bool = False, trajectory_start: Optional[ForwardRef('ff.TrajectoryStart')] = None, trajectory_path: Optional[ForwardRef('ff.TrajectoryPath')] = None, increasing_vdw: bool = False, vdw_cutoff_start: float = 0.0, vdw_cutoff_end: float = 12.5, candidate_count: Optional[int] = None, max_attempts: int = 50, candidate_warmup_steps: int = 500, candidate_score_steps: int = 1000, best_candidate_refine_steps: int = 3000, ligand_untangling_attempts: int = 20, coordination_restoration_attempts: int = 20, coordination_relaxation_steps: int = 100, complex_untangling_attempts: int = 30)",
+            "hotpot.cheminfo.operations.forcefields.auto.auto_optimize": "(mol: \"'Molecule'\", forcefield: 'Optional[str]' = None, *, algorithm: 'OptimizationAlgorithm' = 'conjugate', epochs: 'int' = 100, steps_per_epoch: 'int' = 100, max_attempts: 'int' = 50, candidate_warmup_steps: 'int' = 500, candidate_score_steps: 'int' = 1000, best_candidate_refine_steps: 'int' = 3000, ligand_untangling_attempts: 'int' = 20, coordination_restoration_attempts: 'int' = 20, coordination_relaxation_steps: 'int' = 100, complex_untangling_attempts: 'int' = 30, timeout: 'float' = 1000.0, add_hydrogens: 'bool' = True, quality_level: 'AcceptanceLevel' = 'standard', quality_thresholds: 'Optional[StructureAcceptanceThresholds]' = None, seed: 'Optional[int]' = None, perturb_interval: 'Optional[int]' = None, perturb_sigma: 'float' = 0.5, stopping_criteria: 'Optional[OptimizationStoppingCriteria]' = None, convergence_level: 'ConvergenceLevel' = <ConvergenceLevel.FAST: 1>, save_movie: 'bool' = False, trajectory_start: 'Optional[TrajectoryStart]' = None, trajectory_path: 'Optional[TrajectoryPath]' = None, increasing_vdw: 'bool' = False, vdw_cutoff_start: 'float' = 0.0, vdw_cutoff_end: 'float' = 12.5) -> 'ForceFieldRunReport'",
+            "hotpot.cheminfo.operations.forcefields.workflows.build_and_optimize": "(mol: \"'Molecule'\", forcefield: 'Optional[str]' = 'UFF', *, algorithm: 'OptimizationAlgorithm' = 'conjugate', epochs: 'int' = 100, steps_per_epoch: 'int' = 100, add_hydrogens: 'bool' = True, quality_level: 'AcceptanceLevel' = 'standard', quality_thresholds: 'Optional[StructureAcceptanceThresholds]' = None, seed: 'Optional[int]' = None, timeout: 'float' = 1000.0, perturb_interval: 'Optional[int]' = None, perturb_sigma: 'float' = 0.5, stopping_criteria: 'Optional[OptimizationStoppingCriteria]' = None, convergence_level: 'ConvergenceLevel' = <ConvergenceLevel.FAST: 1>, save_movie: 'bool' = False, trajectory_start: 'Optional[TrajectoryStart]' = None, trajectory_path: 'Optional[TrajectoryPath]' = None, increasing_vdw: 'bool' = False, vdw_cutoff_start: 'float' = 0.0, vdw_cutoff_end: 'float' = 12.5, candidate_count: 'Optional[int]' = None, max_attempts: 'int' = 50, candidate_warmup_steps: 'int' = 500, candidate_score_steps: 'int' = 1000, best_candidate_refine_steps: 'int' = 3000, ligand_untangling_attempts: 'int' = 20, coordination_restoration_attempts: 'int' = 20, coordination_relaxation_steps: 'int' = 100, complex_untangling_attempts: 'int' = 30) -> 'ForceFieldWorkflowReport'",
+            "hotpot.cheminfo.operations.forcefields.workflows.build_complex3d": "(mol: \"'Molecule'\", forcefield: 'Optional[str]' = None, *, candidate_count: 'Optional[int]' = None, max_attempts: 'int' = 50, candidate_warmup_steps: 'int' = 500, candidate_score_steps: 'int' = 1000, best_candidate_refine_steps: 'int' = 3000, ligand_untangling_attempts: 'int' = 20, coordination_restoration_attempts: 'int' = 20, coordination_relaxation_steps: 'int' = 100, timeout: 'float' = 1000.0, add_hydrogens: 'bool' = True, seed: 'Optional[int]' = None, perturb_sigma: 'float' = 0.5, save_movie: 'bool' = False, trajectory_start: 'TrajectoryStart' = <TrajectoryStart.COORDINATION_RESTORATION: 'coordination_restoration'>, trajectory_path: 'Optional[TrajectoryPath]' = None) -> 'ComplexBuildReport'",
+            "hotpot.cheminfo.operations.forcefields.workflows.complexes_build": "(mol: \"'Molecule'\", forcefield: 'Optional[str]' = None, *, algorithm: 'OptimizationAlgorithm' = 'conjugate', epochs: 'int' = 100, steps_per_epoch: 'int' = 100, candidate_count: 'Optional[int]' = None, max_attempts: 'int' = 50, candidate_warmup_steps: 'int' = 500, candidate_score_steps: 'int' = 1000, best_candidate_refine_steps: 'int' = 3000, ligand_untangling_attempts: 'int' = 20, coordination_restoration_attempts: 'int' = 20, coordination_relaxation_steps: 'int' = 100, complex_untangling_attempts: 'int' = 30, timeout: 'float' = 1000.0, add_hydrogens: 'bool' = True, quality_level: 'AcceptanceLevel' = 'standard', quality_thresholds: 'Optional[StructureAcceptanceThresholds]' = None, seed: 'Optional[int]' = None, perturb_interval: 'Optional[int]' = None, perturb_sigma: 'float' = 0.5, stopping_criteria: 'Optional[OptimizationStoppingCriteria]' = None, convergence_level: 'ConvergenceLevel' = <ConvergenceLevel.FAST: 1>, save_movie: 'bool' = False, trajectory_start: 'TrajectoryStart' = <TrajectoryStart.COORDINATION_RESTORATION: 'coordination_restoration'>, trajectory_path: 'Optional[TrajectoryPath]' = None, increasing_vdw: 'bool' = False, vdw_cutoff_start: 'float' = 0.0, vdw_cutoff_end: 'float' = 12.5) -> 'ComplexBuildReport'"
+          },
+          "value_fields": {
+            "AtomIdentity": [
+              "index",
+              "atom_id",
+              "atomic_number",
+              "formal_charge",
+              "symbol"
+            ],
+            "BondTopologyRevision": [
+              "index",
+              "bonds"
+            ],
+            "CoordinationEnvironment": [
+              "metal_idx",
+              "donor_indices",
+              "coordination_number",
+              "metal_atomic_number",
+              "metal_formal_charge",
+              "donor_atomic_numbers",
+              "chelate_groups"
+            ],
+            "ForceFieldFrame": [
+              "index",
+              "stage",
+              "event",
+              "coordinate_revision",
+              "topology_revision",
+              "energy_kj_mol",
+              "component_index",
+              "attempt",
+              "step",
+              "evidence"
+            ]
+          }
+        },
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 6483,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-owners/origin-reconciliation.json",
+          "sha256": "186bf51bdb0b4ed1991d7c44e2c1f5c423d004379831c7858d9334164f167f8a"
+        },
+        "participants": 2,
+        "result": {
+          "bytes": 362594,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-results.json",
+          "sha256": "12e87b79a9c626a47f953f363eb5a59e84e096f270ea658667ebfd3eccae864e"
+        },
+        "same_pid_sets": true
+      },
+      "parallel": {
+        "command": {
+          "bytes": 2402,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-parallel/execution.json",
+          "sha256": "d1b5e5503c0935b8e00ebb1b49bbc8bc4699ecdf48c3e841b0ed2e140b59965c"
+        },
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 7467,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-parallel/origin-reconciliation.json",
+          "sha256": "9afb006211eb95b30b446dabde5666a4c3f709941bd4be4522766e49e4366b10"
+        },
+        "participants": 6,
+        "reports": {
+          "bytes": 17701,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-parallel/forcefield-report.json",
+          "sha256": "9564d1d807b22e540010f018d3a8ab27bdd08a5fcc0badf0fe2269128bed301d"
+        },
+        "result": {
+          "bytes": 362594,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-results.json",
+          "sha256": "12e87b79a9c626a47f953f363eb5a59e84e096f270ea658667ebfd3eccae864e"
+        },
+        "same_pid_sets": true,
+        "sdf": {
+          "bytes": 1490,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-parallel/stdout.log",
+          "sha256": "4e6a8a3a177a201560b4bc120d8b2c4008d20dfb976c8893624e8bcf168a8297"
+        }
+      },
+      "pipeline": {
+        "command": {
+          "bytes": 2253,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-pipeline/execution.json",
+          "sha256": "cfe989ac109597ee3f94bf49a11f53bf8bf2cc2ff9b27abc84b9f66b1d63e285"
+        },
+        "observations": {
+          "bytes": 33587,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-pipeline/pipeline/observations.json",
+          "sha256": "614c2925e287921939fe3eda585963c51dd834b9b09c620ee72f0117d86558a3"
+        },
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 7284,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-pipeline/origin-reconciliation.json",
+          "sha256": "e908365abd5b7d09059fadea9f5068b299cb576d14f9f7f8edd5ebb34ad53439"
+        },
+        "participants": 4,
+        "result": {
+          "bytes": 362594,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-results.json",
+          "sha256": "12e87b79a9c626a47f953f363eb5a59e84e096f270ea658667ebfd3eccae864e"
+        },
+        "same_pid_sets": true
+      },
+      "serial": {
+        "command": {
+          "bytes": 2397,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-serial/execution.json",
+          "sha256": "5dc367af21da948c60ef40c3f73f3ef9f60bfec6d22e0dd952c5d91224230f42"
+        },
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 7423,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-serial/origin-reconciliation.json",
+          "sha256": "2656590159bfe5ba46d19c070b53f486ba4f5547d54194dc74e5993fb1af2282"
+        },
+        "participants": 4,
+        "reports": {
+          "bytes": 17701,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-serial/forcefield-report.json",
+          "sha256": "9564d1d807b22e540010f018d3a8ab27bdd08a5fcc0badf0fe2269128bed301d"
+        },
+        "result": {
+          "bytes": 362594,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-results.json",
+          "sha256": "12e87b79a9c626a47f953f363eb5a59e84e096f270ea658667ebfd3eccae864e"
+        },
+        "same_pid_sets": true,
+        "sdf": {
+          "bytes": 1490,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-serial/stdout.log",
+          "sha256": "4e6a8a3a177a201560b4bc120d8b2c4008d20dfb976c8893624e8bcf168a8297"
+        }
+      },
+      "tests": {
+        "command": {
+          "bytes": 6470,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-tests/execution.json",
+          "sha256": "193d3f2760303b22e4bd129ca35a5d0ad523e30e7c3f09d0fef623a2bbc38824"
+        },
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "passed": 1125,
+          "skipped": 2,
+          "tests": 1127
+        },
+        "junit": {
+          "bytes": 194350,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-tests/junit.xml",
+          "sha256": "543481c10922e0d0421a2e924afb21e30e6bbd2aef02f923a3eaee552db536ee"
+        },
+        "ordered_nodeids_count": 1127,
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 15901,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-tests/origin-reconciliation.json",
+          "sha256": "35cbbff684c12239b531863aeba7b9436941b9a606761efe8ea2a930f50566bf"
+        },
+        "participants": 111,
+        "result": {
+          "bytes": 362594,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/installed-results.json",
+          "sha256": "12e87b79a9c626a47f953f363eb5a59e84e096f270ea658667ebfd3eccae864e"
+        },
+        "same_pid_sets": true,
+        "skips": [
+          {
+            "class": "tests.test_cheminfo.obWrappers.test_bridge",
+            "detail": "/tmp/hotpot_plan20/long/stage8b-b3d-20261104/validation-preparation/attempt01/work/outside/tests/test_cheminfo/obWrappers/test_bridge.py:120: requires --run-scientific-boundary",
+            "reason": "requires --run-scientific-boundary",
+            "test": "test_all_extractant_phosphorus_centers_build_and_optimize_finitely"
+          },
+          {
+            "class": "tests.test_cheminfo.test_complexes_build_full",
+            "detail": "/tmp/hotpot_plan20/long/stage8b-b3d-20261104/validation-preparation/attempt01/work/outside/tests/test_cheminfo/test_complexes_build_full.py:17: requires --run-high-compute",
+            "reason": "requires --run-high-compute",
+            "test": "test_readme_europium_complex_full_standard_workflow"
+          }
+        ]
+      }
+    },
+    "source": {
+      "actual_CBFF_xtb": {
+        "command": {
+          "bytes": 2394,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-actual_CBFF_xtb/execution.json",
+          "sha256": "1ad3c6ad19e6e3e00b8e771895bfff8603e1cb9d9d094cda8892b8ff83cb70cf"
+        },
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "passed": 3,
+          "skipped": 0,
+          "tests": 3
+        },
+        "junit": {
+          "bytes": 712,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-actual_CBFF_xtb/junit.xml",
+          "sha256": "748eba23b8373705762559b628025e46ad6ee534b8cbb6dccb30258f10c58ddc"
+        },
+        "ordered_nodeids_count": 3,
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 11836,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-actual_CBFF_xtb/origin-reconciliation.json",
+          "sha256": "74031f4ec7a06ff3e56ee6a939cfc002eedaa13e80574feafb14b2bbc08ebd38"
+        },
+        "participants": 5,
+        "result": {
+          "bytes": 396841,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-results.json",
+          "sha256": "c8b3cbd9ba67ce11be720e5e02c9431d7c8a9045b57113fe4da132f72437a066"
+        },
+        "same_pid_sets": true,
+        "skips": []
+      },
+      "actual_MCA_attachment": {
+        "command": {
+          "bytes": 2347,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-actual_MCA_attachment/execution.json",
+          "sha256": "d69506f713acda1984464f6b07298d617c7a38112d7aa7346ca0637d897eabdc"
+        },
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "passed": 3,
+          "skipped": 0,
+          "tests": 3
+        },
+        "junit": {
+          "bytes": 679,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-actual_MCA_attachment/junit.xml",
+          "sha256": "f0bb9bc6c60c344d70969c02bf70623c1b99258015ae13f32ae6094faa970466"
+        },
+        "ordered_nodeids_count": 3,
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 7913,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-actual_MCA_attachment/origin-reconciliation.json",
+          "sha256": "9a1b85175aff17d6dc508bd797f60682f5aec3bbfc94f0fac71942bc5c262755"
+        },
+        "participants": 1,
+        "result": {
+          "bytes": 396841,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-results.json",
+          "sha256": "c8b3cbd9ba67ce11be720e5e02c9431d7c8a9045b57113fe4da132f72437a066"
+        },
+        "same_pid_sets": true,
+        "skips": []
+      },
+      "conformer-mca": {
+        "command": {
+          "bytes": 2062,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-conformer-mca/execution.json",
+          "sha256": "696066e9c83d5db7cb0547b2380e4c657a2e0abb0ea8aeeec8805a5261c8cf99"
+        },
+        "observations": {
+          "bytes": 3954,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-conformer-mca/observations.json",
+          "sha256": "3194b86a973181b3c4ba8faffd07465eab9fdec88b56016fc1598758026a2be2"
+        },
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 8465,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-conformer-mca/origin-reconciliation.json",
+          "sha256": "fa644f069ef60d98fc53365ef834faba369f3ce349af1e80563f8f4237a2e9f7"
+        },
+        "participants": 3,
+        "result": {
+          "bytes": 396841,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-results.json",
+          "sha256": "c8b3cbd9ba67ce11be720e5e02c9431d7c8a9045b57113fe4da132f72437a066"
+        },
+        "same_pid_sets": true
+      },
+      "focused": {
+        "command": {
+          "bytes": 2751,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-focused/execution.json",
+          "sha256": "03c55cdddb90874bd9948ca6805d01121834edac7d08e904cf109769b7089fe3"
+        },
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "passed": 210,
+          "skipped": 0,
+          "tests": 210
+        },
+        "junit": {
+          "bytes": 33448,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-focused/junit.xml",
+          "sha256": "34ca81d4bc893fc431279368dfc9dec44064318561db1e76f93f91edc0e01b3e"
+        },
+        "ordered_nodeids_count": 210,
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 7750,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-focused/origin-reconciliation.json",
+          "sha256": "7469878b912f2b2f628396a90aa1cb639b28fa8fa7088efca480354e3d6a160c"
+        },
+        "participants": 13,
+        "result": {
+          "bytes": 396841,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-results.json",
+          "sha256": "c8b3cbd9ba67ce11be720e5e02c9431d7c8a9045b57113fe4da132f72437a066"
+        },
+        "same_pid_sets": true,
+        "skips": []
+      },
+      "imports": {
+        "command": {
+          "bytes": 2962,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-imports/execution.json",
+          "sha256": "1088dd807ec6505f7751e4fe985943f63c53b2390b206886bb0da74dc0e718a8"
+        },
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 6777,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-imports/origin-reconciliation.json",
+          "sha256": "e46a8246a4b8c5adc4b613437f4e26b204d8424acde6f9127aa0614659832895"
+        },
+        "participants": 1,
+        "result": {
+          "bytes": 396841,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-results.json",
+          "sha256": "c8b3cbd9ba67ce11be720e5e02c9431d7c8a9045b57113fe4da132f72437a066"
+        },
+        "same_pid_sets": true
+      },
+      "owners": {
+        "command": {
+          "bytes": 1918,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-owners/execution.json",
+          "sha256": "bb972ff9c1ef668b5f602f2cc0ac0e61e64c2f9009e329d24b69c41c5c111732"
+        },
+        "current_owner_contracts": {
+          "cold_pickle": {
+            "owners": [
+              "hotpot.cheminfo.structure.forcefields.AtomIdentity",
+              "hotpot.cheminfo.structure.forcefields.BondTopologyRevision",
+              "hotpot.cheminfo.structure.forcefields.ForceFieldFrame",
+              "hotpot.cheminfo.structure.forcefields.CoordinationEnvironment"
+            ],
+            "values": [
+              "AtomIdentity(index=0, atom_id=7, atomic_number=6, formal_charge=0, symbol='C')",
+              "BondTopologyRevision(index=0, bonds=())",
+              "ForceFieldFrame(index=0, stage=<TrajectoryStage.LIGAND_BUILD: 'ligand_build'>, event=<TrajectoryEvent.INITIAL: 'initial'>, coordinate_revision=0, topology_revision=0, energy_kj_mol=None, component_index=None, attempt=None, step=None, evidence=None)",
+              "CoordinationEnvironment(metal_idx=0, donor_indices=(1,), coordination_number=1, metal_atomic_number=30, metal_formal_charge=2, donor_atomic_numbers=(7,), chelate_groups=((1,),))"
+            ]
+          },
+          "retired_exports_absent": [
+            "prepare_coordination_geometry",
+            "CoordinationGeometryCandidate",
+            "CoordinationGeometryResult"
+          ],
+          "signatures": {
+            "hotpot.cheminfo.core.Molecule.build3d": "(self, forcefield: Optional[Literal['UFF', 'MMFF94', 'MMFF94s', 'GAFF', 'Ghemical']] = 'UFF', *, algorithm: Literal['steepest', 'conjugate'] = 'conjugate', epochs: int = 100, steps_per_epoch: int = 100, add_hydrogens: bool = True, quality_level: Literal['off', 'basic', 'standard', 'strict'] = 'standard', quality_thresholds: Optional[ForwardRef('ff.StructureAcceptanceThresholds')] = None, seed: Optional[int] = None, timeout: float = 1000.0, perturb_interval: Optional[int] = None, perturb_sigma: float = 0.5, stopping_criteria: Optional[ForwardRef('ff.OptimizationStoppingCriteria')] = None, convergence_level: 'ff.ConvergenceLevel' = <ConvergenceLevel.FAST: 1>, save_movie: bool = False, trajectory_start: Optional[ForwardRef('ff.TrajectoryStart')] = None, trajectory_path: Optional[ForwardRef('ff.TrajectoryPath')] = None, increasing_vdw: bool = False, vdw_cutoff_start: float = 0.0, vdw_cutoff_end: float = 12.5, candidate_count: Optional[int] = None, max_attempts: int = 50, candidate_warmup_steps: int = 500, candidate_score_steps: int = 1000, best_candidate_refine_steps: int = 3000, ligand_untangling_attempts: int = 20, coordination_restoration_attempts: int = 20, coordination_relaxation_steps: int = 100, complex_untangling_attempts: int = 30)",
+            "hotpot.cheminfo.operations.forcefields.auto.auto_optimize": "(mol: \"'Molecule'\", forcefield: 'Optional[str]' = None, *, algorithm: 'OptimizationAlgorithm' = 'conjugate', epochs: 'int' = 100, steps_per_epoch: 'int' = 100, max_attempts: 'int' = 50, candidate_warmup_steps: 'int' = 500, candidate_score_steps: 'int' = 1000, best_candidate_refine_steps: 'int' = 3000, ligand_untangling_attempts: 'int' = 20, coordination_restoration_attempts: 'int' = 20, coordination_relaxation_steps: 'int' = 100, complex_untangling_attempts: 'int' = 30, timeout: 'float' = 1000.0, add_hydrogens: 'bool' = True, quality_level: 'AcceptanceLevel' = 'standard', quality_thresholds: 'Optional[StructureAcceptanceThresholds]' = None, seed: 'Optional[int]' = None, perturb_interval: 'Optional[int]' = None, perturb_sigma: 'float' = 0.5, stopping_criteria: 'Optional[OptimizationStoppingCriteria]' = None, convergence_level: 'ConvergenceLevel' = <ConvergenceLevel.FAST: 1>, save_movie: 'bool' = False, trajectory_start: 'Optional[TrajectoryStart]' = None, trajectory_path: 'Optional[TrajectoryPath]' = None, increasing_vdw: 'bool' = False, vdw_cutoff_start: 'float' = 0.0, vdw_cutoff_end: 'float' = 12.5) -> 'ForceFieldRunReport'",
+            "hotpot.cheminfo.operations.forcefields.workflows.build_and_optimize": "(mol: \"'Molecule'\", forcefield: 'Optional[str]' = 'UFF', *, algorithm: 'OptimizationAlgorithm' = 'conjugate', epochs: 'int' = 100, steps_per_epoch: 'int' = 100, add_hydrogens: 'bool' = True, quality_level: 'AcceptanceLevel' = 'standard', quality_thresholds: 'Optional[StructureAcceptanceThresholds]' = None, seed: 'Optional[int]' = None, timeout: 'float' = 1000.0, perturb_interval: 'Optional[int]' = None, perturb_sigma: 'float' = 0.5, stopping_criteria: 'Optional[OptimizationStoppingCriteria]' = None, convergence_level: 'ConvergenceLevel' = <ConvergenceLevel.FAST: 1>, save_movie: 'bool' = False, trajectory_start: 'Optional[TrajectoryStart]' = None, trajectory_path: 'Optional[TrajectoryPath]' = None, increasing_vdw: 'bool' = False, vdw_cutoff_start: 'float' = 0.0, vdw_cutoff_end: 'float' = 12.5, candidate_count: 'Optional[int]' = None, max_attempts: 'int' = 50, candidate_warmup_steps: 'int' = 500, candidate_score_steps: 'int' = 1000, best_candidate_refine_steps: 'int' = 3000, ligand_untangling_attempts: 'int' = 20, coordination_restoration_attempts: 'int' = 20, coordination_relaxation_steps: 'int' = 100, complex_untangling_attempts: 'int' = 30) -> 'ForceFieldWorkflowReport'",
+            "hotpot.cheminfo.operations.forcefields.workflows.build_complex3d": "(mol: \"'Molecule'\", forcefield: 'Optional[str]' = None, *, candidate_count: 'Optional[int]' = None, max_attempts: 'int' = 50, candidate_warmup_steps: 'int' = 500, candidate_score_steps: 'int' = 1000, best_candidate_refine_steps: 'int' = 3000, ligand_untangling_attempts: 'int' = 20, coordination_restoration_attempts: 'int' = 20, coordination_relaxation_steps: 'int' = 100, timeout: 'float' = 1000.0, add_hydrogens: 'bool' = True, seed: 'Optional[int]' = None, perturb_sigma: 'float' = 0.5, save_movie: 'bool' = False, trajectory_start: 'TrajectoryStart' = <TrajectoryStart.COORDINATION_RESTORATION: 'coordination_restoration'>, trajectory_path: 'Optional[TrajectoryPath]' = None) -> 'ComplexBuildReport'",
+            "hotpot.cheminfo.operations.forcefields.workflows.complexes_build": "(mol: \"'Molecule'\", forcefield: 'Optional[str]' = None, *, algorithm: 'OptimizationAlgorithm' = 'conjugate', epochs: 'int' = 100, steps_per_epoch: 'int' = 100, candidate_count: 'Optional[int]' = None, max_attempts: 'int' = 50, candidate_warmup_steps: 'int' = 500, candidate_score_steps: 'int' = 1000, best_candidate_refine_steps: 'int' = 3000, ligand_untangling_attempts: 'int' = 20, coordination_restoration_attempts: 'int' = 20, coordination_relaxation_steps: 'int' = 100, complex_untangling_attempts: 'int' = 30, timeout: 'float' = 1000.0, add_hydrogens: 'bool' = True, quality_level: 'AcceptanceLevel' = 'standard', quality_thresholds: 'Optional[StructureAcceptanceThresholds]' = None, seed: 'Optional[int]' = None, perturb_interval: 'Optional[int]' = None, perturb_sigma: 'float' = 0.5, stopping_criteria: 'Optional[OptimizationStoppingCriteria]' = None, convergence_level: 'ConvergenceLevel' = <ConvergenceLevel.FAST: 1>, save_movie: 'bool' = False, trajectory_start: 'TrajectoryStart' = <TrajectoryStart.COORDINATION_RESTORATION: 'coordination_restoration'>, trajectory_path: 'Optional[TrajectoryPath]' = None, increasing_vdw: 'bool' = False, vdw_cutoff_start: 'float' = 0.0, vdw_cutoff_end: 'float' = 12.5) -> 'ComplexBuildReport'"
+          },
+          "value_fields": {
+            "AtomIdentity": [
+              "index",
+              "atom_id",
+              "atomic_number",
+              "formal_charge",
+              "symbol"
+            ],
+            "BondTopologyRevision": [
+              "index",
+              "bonds"
+            ],
+            "CoordinationEnvironment": [
+              "metal_idx",
+              "donor_indices",
+              "coordination_number",
+              "metal_atomic_number",
+              "metal_formal_charge",
+              "donor_atomic_numbers",
+              "chelate_groups"
+            ],
+            "ForceFieldFrame": [
+              "index",
+              "stage",
+              "event",
+              "coordinate_revision",
+              "topology_revision",
+              "energy_kj_mol",
+              "component_index",
+              "attempt",
+              "step",
+              "evidence"
+            ]
+          }
+        },
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 6483,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-owners/origin-reconciliation.json",
+          "sha256": "05d2c0fed3248039d795c718b5f05a7bf40386fd9265cad186d93f8e56cea5bf"
+        },
+        "participants": 2,
+        "result": {
+          "bytes": 396841,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-results.json",
+          "sha256": "c8b3cbd9ba67ce11be720e5e02c9431d7c8a9045b57113fe4da132f72437a066"
+        },
+        "same_pid_sets": true
+      },
+      "parallel": {
+        "command": {
+          "bytes": 2182,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-parallel/execution.json",
+          "sha256": "57f464b9c370c40d2a99ba2755599de0c13379d0bccfd76628120fefe321ed0e"
+        },
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 7467,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-parallel/origin-reconciliation.json",
+          "sha256": "9feef68233229d20332fdec12a1c70c3db93b759b36d57d60fd83002c260c222"
+        },
+        "participants": 6,
+        "reports": {
+          "bytes": 17701,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-parallel/forcefield-report.json",
+          "sha256": "9564d1d807b22e540010f018d3a8ab27bdd08a5fcc0badf0fe2269128bed301d"
+        },
+        "result": {
+          "bytes": 396841,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-results.json",
+          "sha256": "c8b3cbd9ba67ce11be720e5e02c9431d7c8a9045b57113fe4da132f72437a066"
+        },
+        "same_pid_sets": true,
+        "sdf": {
+          "bytes": 1490,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-parallel/stdout.log",
+          "sha256": "2707a893c52e0a18b98cb295fa923e55e7c966a8f4384eca8ab967ead970fefa"
+        }
+      },
+      "pipeline": {
+        "command": {
+          "bytes": 2032,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-pipeline/execution.json",
+          "sha256": "c555547870990cf3e7bff8d9b38be11407d491989a7317a080577cd7ac3fde63"
+        },
+        "observations": {
+          "bytes": 33542,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-pipeline/pipeline/observations.json",
+          "sha256": "296e2ca4953dd8861f391566ced28aefec8e75803514d33910098b0b5fd8c72c"
+        },
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 7284,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-pipeline/origin-reconciliation.json",
+          "sha256": "213b9c9cb97139dc5ecc7a20b609eca150d830d24d0e94391a174910104354f5"
+        },
+        "participants": 4,
+        "result": {
+          "bytes": 396841,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-results.json",
+          "sha256": "c8b3cbd9ba67ce11be720e5e02c9431d7c8a9045b57113fe4da132f72437a066"
+        },
+        "same_pid_sets": true
+      },
+      "serial": {
+        "command": {
+          "bytes": 2175,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-serial/execution.json",
+          "sha256": "39ad1fa641709d8c0651f036c6d5774f665d5ae2119ace3211b51b0f51501d05"
+        },
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 7423,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-serial/origin-reconciliation.json",
+          "sha256": "dd0ac3cb62ad06c09e9b196dbffdc8a8aa9d1407a483a7e7f2399965c909e74c"
+        },
+        "participants": 4,
+        "reports": {
+          "bytes": 17701,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-serial/forcefield-report.json",
+          "sha256": "9564d1d807b22e540010f018d3a8ab27bdd08a5fcc0badf0fe2269128bed301d"
+        },
+        "result": {
+          "bytes": 396841,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-results.json",
+          "sha256": "c8b3cbd9ba67ce11be720e5e02c9431d7c8a9045b57113fe4da132f72437a066"
+        },
+        "same_pid_sets": true,
+        "sdf": {
+          "bytes": 1490,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-serial/stdout.log",
+          "sha256": "2707a893c52e0a18b98cb295fa923e55e7c966a8f4384eca8ab967ead970fefa"
+        }
+      },
+      "tests": {
+        "command": {
+          "bytes": 6245,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-tests/execution.json",
+          "sha256": "8b7caef66bb7ca2da5540527c2bb22ff43e8069805a1153402a042246b0f3aa3"
+        },
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "passed": 1125,
+          "skipped": 2,
+          "tests": 1127
+        },
+        "junit": {
+          "bytes": 194220,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-tests/junit.xml",
+          "sha256": "2ba3c1f96b345187cac18edd2fa1377368eecbd07ab8a8f0ed254ee710f1fbdf"
+        },
+        "ordered_nodeids_count": 1127,
+        "origin_limit": "Participating Python site-hook processes only; native/site-bypassing processes excluded.",
+        "origin_reconciliation": {
+          "bytes": 15849,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-tests/origin-reconciliation.json",
+          "sha256": "62856aa176cf21bdd20957771554ca8e4d16a3c82d1ec973e4b60f4e64ca9516"
+        },
+        "participants": 111,
+        "result": {
+          "bytes": 396841,
+          "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/validation-preparation/attempt01/source-results.json",
+          "sha256": "c8b3cbd9ba67ce11be720e5e02c9431d7c8a9045b57113fe4da132f72437a066"
+        },
+        "same_pid_sets": true,
+        "skips": [
+          {
+            "class": "tests.test_cheminfo.obWrappers.test_bridge",
+            "detail": "/home/zhangzhiyuan/hotpot/tests/test_cheminfo/obWrappers/test_bridge.py:120: requires --run-scientific-boundary",
+            "reason": "requires --run-scientific-boundary",
+            "test": "test_all_extractant_phosphorus_centers_build_and_optimize_finitely"
+          },
+          {
+            "class": "tests.test_cheminfo.test_complexes_build_full",
+            "detail": "/home/zhangzhiyuan/hotpot/tests/test_cheminfo/test_complexes_build_full.py:17: requires --run-high-compute",
+            "reason": "requires --run-high-compute",
+            "test": "test_readme_europium_complex_full_standard_workflow"
+          }
+        ]
+      }
+    }
+  },
+  "earlier_failures": "All existing authoring/static/architecture/attempt raw files retained unchanged under raw/; no failed receipt rewritten.",
+  "historical_native_provenance": {
+    "accepted_b3a_build_freeze": ".plan20-artifacts/20261103/stage8b/b3a/raw/native-build/build-freeze-attempt01.json",
+    "accepted_b3a_build_receipt": ".plan20-artifacts/20261103/stage8b/b3a/raw/native-build/attempt01/execution.json",
+    "accepted_b3a_freeze": ".plan20-artifacts/20261103/stage8b/b3a/raw/release/source-freeze-b3a-attempt02.json",
+    "accepted_b3a_wheel_contents": ".plan20-artifacts/20261103/stage8b/b3a/raw/installed/attempt02/wheel-contents.json"
+  },
+  "limits": [
+    "CP311 only, shared system-site dependencies; no full-native clean build, cold-native, ABI/SDK/sdist or all-version claim.",
+    "No performance/full-corpus benchmark/global/full Stage8B acceptance.",
+    "Python loaded origin coverage is participating site-hook processes; native/site-bypassing processes excluded.",
+    "Root owns source freeze, scientific interpretation, runtime release and all decisions."
+  ],
+  "root_business_content": {
+    "policy": "Root-authored scientific judgments/observations/currentness/units/limits retained verbatim in referenced archived review; never inferred from pass counts.",
+    "review": {
+      "bytes": 48937,
+      "path": ".plan20-artifacts/20261104/stage8b/b3d/raw/root-business-review.json",
+      "sha256": "486e93b391a0ae3a82a85714459f1593ce21d477db79e3e7630468191b148f0f"
+    }
+  },
+  "stage": "Stage8B/B3d",
+  "status": "ROOT_ACCEPTED_B3D_CP311_OPERATION_BACKEND_CUTOVER"
+}

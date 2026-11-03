@@ -146,7 +146,7 @@ def test_hotpot_auto_backend_calls_auto_directly_without_external_gate(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     calls = []
     quality_report = _SyntheticQualityReport()
@@ -193,7 +193,7 @@ def test_quality_failure_exports_last_finite_frame_when_selection_is_nonfinite(
     tmp_path: Path,
 ) -> None:
     from hotpot import read_mol
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     molecule = read_mol("N", fmt="smi")
     molecule.coordinates = np.asarray(((0.0, 0.0, 0.0),), dtype=float)
@@ -256,7 +256,7 @@ def test_hotpot_auto_forcefield_error_persists_last_finite_frame(
     monkeypatch,
 ) -> None:
     from hotpot import read_mol
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
     from . import pipeline
 
     complex_mol = read_mol("[Am]N", fmt="smi")
@@ -661,7 +661,7 @@ def test_ordinary_optimizer_arm_calls_only_explicit_optimize(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     calls = []
 
@@ -694,7 +694,7 @@ def test_failed_optimizer_execution_preserves_unknown_results(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     def failed_optimize(mol, **kwargs):
         raise RuntimeError("backend stopped")
@@ -718,7 +718,7 @@ def test_optimizer_comparison_builds_once_and_dispatches_identical_clones(
     monkeypatch,
 ) -> None:
     import hotpot
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
     from . import optimizer_comparison
 
     starting_mol = _SyntheticMol(

@@ -20,7 +20,7 @@ from hotpot.cheminfo.conformers.adapters import (
 )
 from hotpot.cheminfo.core import BondKind
 from hotpot.cheminfo.adapters.structure.forcefields import _iter_metal_donor_pairs
-from hotpot.cheminfo.forcefields.working_copy import (
+from hotpot.cheminfo.operations.forcefields.working_copy import (
     _copy_molecule_metadata,
     _hydrogenated_working_copy,
 )
@@ -123,8 +123,8 @@ def execute_provider_route(
     proposal_artifact_path: Optional[Path] = None,
 ) -> RouteExecution:
     """Run O0/F1/F2 through the same private complete-complex workflow."""
-    from hotpot.cheminfo import forcefields as ff
-    from hotpot.cheminfo.forcefields.workflows import _complexes_build_workflow
+    from hotpot.cheminfo.operations import forcefields as ff
+    from hotpot.cheminfo.operations.forcefields.workflows import _complexes_build_workflow
 
     selected_workflow = workflow or _complexes_build_workflow
     options = _forcefield_options(ff, settings, case_index)
@@ -294,7 +294,7 @@ def execute_whole_complex_route(
     proposal_artifact_path: Optional[Path] = None,
 ) -> RouteExecution:
     """Generate C1/C2 coordinates, then enter the established Stage-3 flow."""
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     seed = settings.seed + case_index
     started = perf_counter()

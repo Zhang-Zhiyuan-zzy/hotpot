@@ -14,10 +14,13 @@ from ...obWrappers.packing import (
     _pack_molecule,
 )
 
-from ...structure.forcefields import AtomTopologySignature, BondTopology, TopologyReference
+from ...structure.forcefields import (
+    AtomTopologySignature, BondTopology, CoordinationEnvironment, TopologyReference,
+)
+from ...rules.mathematics.graph.components import connected_components
 
 
-__all__ = ("capture_topology",)
+__all__ = ("capture_topology", "collect_coordination_environments")
 
 
 def _atom_index_map(atoms: Sequence["Atom"]) -> dict[int, int]:
@@ -276,3 +279,49 @@ def pack_complex_session_input(mol: "Molecule") -> ComplexSessionInput:
             ),
             unit_cell=molecule.unit_cell,
         )
+
+
+def collect_coordination_environments(
+    mol: "Molecule",
+) -> Tuple[CoordinationEnvironment, ...]:
+    """Describe explicit metal--donor connectivity without assigning geometry."""
+    metal_donor_pairs = tuple(_iter_metal_donor_pairs(mol))
+    ligand_components = connected_components(
+        len(mol.atoms),
+        (
+            (bond.a1idx, bond.a2idx)
+            for bond in mol.bonds
+            if not bond.is_metal_ligand_bond
+        ),
+    )
+    component_by_atom = {}
+    for component_index, nodes in enumerate(ligand_components):
+        for atom_idx in nodes:
+            component_by_atom[atom_idx] = component_index
+
+    donors_by_metal = {metal.idx: [] for metal in mol.metals}
+    for metal, donor in metal_donor_pairs:
+        donors_by_metal[metal.idx].append(donor.idx)
+
+    environments = []
+    for metal in mol.metals:
+        donors = sorted(donors_by_metal[metal.idx])
+        grouped = {}
+        for donor_idx in donors:
+            grouped.setdefault(component_by_atom[donor_idx], []).append(donor_idx)
+        environments.append(
+            CoordinationEnvironment(
+                metal_idx=metal.idx,
+                donor_indices=tuple(donors),
+                coordination_number=len(donors),
+                metal_atomic_number=metal.atomic_number,
+                metal_formal_charge=metal.formal_charge,
+                donor_atomic_numbers=tuple(
+                    mol.atoms[index].atomic_number for index in donors
+                ),
+                chelate_groups=tuple(
+                    tuple(indices) for _, indices in sorted(grouped.items())
+                ),
+            )
+        )
+    return tuple(environments)

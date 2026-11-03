@@ -23,7 +23,7 @@ import numpy as np
 from hotpot.cheminfo.elements import elements
 from hotpot.utils import types
 from .rules.mathematics import graph as graph_algorithms
-from . import forcefields as ff
+from .operations import forcefields as ff
 from .rules.mathematics import geometry
 from .adapters.structure import geometry as geometry_adapter
 from .pubchem import pubchem_service
@@ -991,7 +991,6 @@ class Molecule:
             coordination_restoration_attempts: int = 20,
             coordination_relaxation_steps: int = 100,
             complex_untangling_attempts: int = 30,
-            coordination_geometry: Optional[str] = None,
     ):
         """Build and optimize this molecule with the appropriate FF workflow.
 
@@ -1031,7 +1030,6 @@ class Molecule:
             coordination_restoration_attempts=coordination_restoration_attempts,
             coordination_relaxation_steps=coordination_relaxation_steps,
             complex_untangling_attempts=complex_untangling_attempts,
-            coordination_geometry=coordination_geometry,
         )
 
     def update_mol_charge(self):

@@ -8,9 +8,9 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
-from hotpot.cheminfo.forcefields import acceptance as acceptance_policy
-from hotpot.cheminfo.forcefields import workflows
-from hotpot.cheminfo.forcefields.contracts import (
+from hotpot.cheminfo.operations.forcefields import acceptance as acceptance_policy
+from hotpot.cheminfo.operations.forcefields import workflows
+from hotpot.cheminfo.operations.forcefields.contracts import (
     ComplexBuildDiagnostics,
     ForceFieldSetupError,
 )
@@ -19,11 +19,11 @@ from hotpot.cheminfo.adapters.native.forcefields.native import (
     create_optimization_session,
     optimize_complex as run_native_optimization,
 )
-from hotpot.cheminfo.forcefields.native_adapters import (
+from hotpot.cheminfo.operations.forcefields.native_adapters import (
     native_optimization_offsets,
 )
 from hotpot.cheminfo.adapters.structure.forcefields import pack_complex_session_input
-from hotpot.cheminfo.forcefields.trajectory import (
+from hotpot.cheminfo.operations.forcefields.trajectory import (
     ForceFieldTrajectory,
 )
 

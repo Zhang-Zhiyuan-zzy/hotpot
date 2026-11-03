@@ -6,8 +6,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from hotpot.cheminfo.forcefields import acceptance as acceptance_policy
-from hotpot.cheminfo.forcefields import ff
+from hotpot.cheminfo.operations.forcefields import acceptance as acceptance_policy
+from hotpot.cheminfo.operations.forcefields import ff
 from hotpot.cheminfo.rules.physics.forcefields import acceptance as acceptance_rules
 from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter

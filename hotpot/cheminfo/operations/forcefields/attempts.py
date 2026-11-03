@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
 from .acceptance import evaluate_structure_acceptance
-from ..rules.physics.forcefields.contracts import OptimizationStoppingCriteria
+from hotpot.cheminfo.rules.physics.forcefields.contracts import OptimizationStoppingCriteria
 from .contracts import (
     AcceptanceLevel,
     ConvergenceLevel,
@@ -17,13 +17,9 @@ from .contracts import (
     StructureAcceptanceThresholds,
 )
 from .optimizer import _optimize_working_mol
-from ..structure.forcefields import TopologyReference
-from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.structure.forcefields import TopologyReference
+from hotpot.cheminfo.operations.forcefields.trajectory import ForceFieldTrajectory
 from hotpot.cheminfo.structure.forcefields import TrajectoryStage
-
-
-if TYPE_CHECKING:
-    from ..core import Molecule
 
 
 __all__ = ()

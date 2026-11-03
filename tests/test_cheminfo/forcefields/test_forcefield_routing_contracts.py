@@ -7,7 +7,7 @@ from typing import get_args
 
 import pytest
 
-from hotpot.cheminfo.forcefields.contracts import (
+from hotpot.cheminfo.operations.forcefields.contracts import (
     ForceFieldRunReport,
     OptimizationAttemptReport,
     OptimizationAttemptStatus,

@@ -9,8 +9,8 @@ from pathlib import Path
 import numpy as np
 
 from hotpot import Atom, read_mol
-from hotpot.cheminfo import forcefields as ff
-from hotpot.cheminfo.forcefields.working_copy import _hydrogenated_working_copy
+from hotpot.cheminfo.operations import forcefields as ff
+from hotpot.cheminfo.operations.forcefields.working_copy import _hydrogenated_working_copy
 
 from .backend_comparison import (
     CanonicalCase,

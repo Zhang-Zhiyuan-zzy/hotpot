@@ -232,7 +232,7 @@ def _trajectory_directory(source: Path, case_index: int, target: str) -> Path:
 
 def _load_start_state(source: Path, case_index: int, target: str) -> StartState:
     """Load the unique ``build_complete`` frame from a source trajectory."""
-    from hotpot.cheminfo.forcefields import (
+    from hotpot.cheminfo.operations.forcefields import (
         ForceFieldTrajectory,
         TrajectoryEvent,
     )
@@ -328,7 +328,7 @@ def _run_level(
     steps_per_epoch: int,
 ) -> dict[str, object]:
     """Run one level while timing optimization only."""
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
     from hotpot.cheminfo import obWrappers
     from hotpot.cheminfo.obWrappers.native import _native_module
 

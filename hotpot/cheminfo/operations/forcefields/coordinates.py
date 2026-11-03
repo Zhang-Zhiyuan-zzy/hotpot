@@ -2,21 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
 import numpy as np
 
-
-if TYPE_CHECKING:
-    from ..core import Molecule
+from hotpot.cheminfo.rules.physics.forcefields.coordinates import (
+    _perturbed_coordinates as _apply_coordinate_displacement,
+)
 
 
 __all__ = ("perturb",)
-
-
-def _copy_coordinates(coordinates: np.ndarray) -> np.ndarray:
-    """Return an independent floating-point Cartesian-coordinate array."""
-    return np.asarray(coordinates, dtype=float).copy()
 
 
 def _perturbed_coordinates(
@@ -26,8 +21,9 @@ def _perturbed_coordinates(
     rng: np.random.Generator,
 ) -> np.ndarray:
     displacement = rng.normal(0.0, sigma, np.asarray(coordinates).shape)
-    displacement = np.clip(displacement, -2.0 * sigma, 2.0 * sigma)
-    return np.asarray(coordinates, dtype=float) + displacement
+    return _apply_coordinate_displacement(
+        coordinates, displacement=displacement, sigma=sigma,
+    )
 
 
 def perturb(
@@ -37,8 +33,8 @@ def perturb(
     seed: Optional[int] = None,
 ) -> np.ndarray:
     """Perturb current coordinates in place with a local random generator."""
-    from ..structure._commit import _FactTransaction
-    from ..structure._fields import ATOM_SOURCE_CODES
+    from hotpot.cheminfo.structure._commit import _FactTransaction
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
 
     with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["forcefield"]):
         coordinates = _perturbed_coordinates(

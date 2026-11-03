@@ -3,7 +3,7 @@ import pytest
 
 from hotpot import read_mol
 from hotpot.cheminfo import stereo
-from hotpot.cheminfo.forcefields import working_copy
+from hotpot.cheminfo.operations.forcefields import working_copy
 from hotpot.cheminfo.structure import _commit
 
 

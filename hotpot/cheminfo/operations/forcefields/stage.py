@@ -8,7 +8,7 @@ from dataclasses import dataclass, fields, is_dataclass
 from enum import Enum
 from numbers import Integral, Real
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Mapping, Optional, Tuple, Union
+from typing import Callable, Mapping, Optional, Tuple, Union
 
 import numpy as np
 
@@ -56,10 +56,6 @@ __all__ = (
     "get_stage",
     "json_value",
 )
-
-
-if TYPE_CHECKING:
-    from hotpot.cheminfo.core import Molecule
 
 
 ForceFieldRouteReport = Union[ForceFieldRunReport, ForceFieldWorkflowReport]

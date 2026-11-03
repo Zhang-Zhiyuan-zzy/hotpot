@@ -497,7 +497,7 @@ of the optimizer that produced it:
 
 ```python
 import hotpot as hp
-from hotpot.cheminfo import forcefields as ff
+from hotpot.cheminfo.operations import forcefields as ff
 
 mol = hp.read_mol("CC")
 mol.build3d(

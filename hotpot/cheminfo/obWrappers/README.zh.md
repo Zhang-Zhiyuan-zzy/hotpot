@@ -35,7 +35,7 @@ Python 先将分子复制为具有明确 dtype、C 连续布局的 NumPy 数组�
 
 本包不实现新力场，不判断结构在化学上是否可接受，不处理环—键互穿、
 配位键恢复或金属重定位。这些科学与流程策略属于上层
-`hotpot.cheminfo.forcefields` 以及 geometry/chemistry 模块。
+`hotpot.cheminfo.operations.forcefields` 以及 geometry/chemistry 模块。
 
 ## 2. 应用代码应该调用哪一层？
 
@@ -43,7 +43,7 @@ Python 先将分子复制为具有明确 dtype、C 连续布局的 NumPy 数组�
 
 ```python
 from hotpot import read_mol
-from hotpot.cheminfo import forcefields as ff
+from hotpot.cheminfo.operations import forcefields as ff
 
 
 def main():

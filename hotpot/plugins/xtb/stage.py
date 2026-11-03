@@ -304,7 +304,7 @@ def _run_record(
 def _post_check(mol: Molecule, level: str) -> Optional[object]:
     if level == "off":
         return None
-    from hotpot.cheminfo.forcefields import evaluate_structure_acceptance
+    from hotpot.cheminfo.operations.forcefields import evaluate_structure_acceptance
 
     return evaluate_structure_acceptance(mol, level=level)
 

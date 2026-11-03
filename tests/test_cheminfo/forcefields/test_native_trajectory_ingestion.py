@@ -14,7 +14,7 @@ from hotpot.cheminfo.adapters.native.forcefields.reports import (
     NativeTopologyRevision,
     NativeTrajectoryBatch,
 )
-from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.operations.forcefields.trajectory import ForceFieldTrajectory
 from hotpot.cheminfo.structure.forcefields import (
     OptimizationFrameEvidence,
     RingFrameEvidence,

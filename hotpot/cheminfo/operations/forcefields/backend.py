@@ -4,21 +4,17 @@ from __future__ import annotations
 
 import threading
 from dataclasses import dataclass
-from typing import NoReturn, Optional, TYPE_CHECKING
+from typing import NoReturn, Optional
 
-from ..obWrappers import build as build_molecule
-from ..obWrappers import single_optimize as _native_single_optimize
-from ..obWrappers.native import _native_module
+from hotpot.cheminfo.adapters.openbabel.forcefields import build as build_molecule
+from hotpot.cheminfo.adapters.openbabel.forcefields import single_optimize as _native_single_optimize
+from hotpot.cheminfo.adapters.openbabel.forcefields import _native_module, _seed_openbabel_random
 from .contracts import (
     ForceFieldError,
     ForceFieldSetupError,
     ForceFieldSetupReport,
     ForceFieldSetupStage,
 )
-
-
-if TYPE_CHECKING:
-    from ..core import Molecule
 
 
 __all__ = ()
@@ -55,11 +51,6 @@ def _resolve_organic_forcefield(requested: Optional[str]) -> str:
     return effective
 
 
-def _seed_openbabel_random(seed: int) -> None:
-    """Seed the version-matched native Open Babel random generators."""
-    _native_module().seed_random(seed)
-
-
 def _raise_forcefield_setup_error(
     error: BaseException,
     *,
@@ -82,11 +73,11 @@ def _single_ob_optimization(
     mol: "Molecule", forcefield: str, steps: int, *, selection=None
 ) -> _CandidateOptimizationResult:
     """Run one native segment against the complete or selected task graph."""
-    from ..operations.topology_queries import _project_molecule
-    from ..structure._commit import _FactTransaction
-    from ..structure._fields import ATOM_SOURCE_CODES
-    from ..structure._identity import _capture_source, _check_source
-    from ..structure._selection import _check_topology_selection
+    from hotpot.cheminfo.operations.topology_queries import _project_molecule
+    from hotpot.cheminfo.structure._commit import _FactTransaction
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
+    from hotpot.cheminfo.structure._identity import _capture_source, _check_source
+    from hotpot.cheminfo.structure._selection import _check_topology_selection
 
     target = mol
     if selection is not None:

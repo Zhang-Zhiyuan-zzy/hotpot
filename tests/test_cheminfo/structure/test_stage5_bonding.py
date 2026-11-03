@@ -261,7 +261,7 @@ def test_joint_ring_preserves_first_member_zero_and_checks_live_neighbour_reads(
 
 
 def test_fresh_lazy_working_copy_prepares_required_groups_before_source_capture_and_commit(monkeypatch):
-    from hotpot.cheminfo.forcefields import working_copy
+    from hotpot.cheminfo.operations.forcefields import working_copy
     mol = Molecule()
     mol.create_atom(atomic_number=6)
     hfield = FIELD_INDEX['implicit_hydrogens']

@@ -10,14 +10,14 @@ import pytest
 
 from hotpot import __main__ as hotpot_main
 from hotpot.commands import ff as cli
-from hotpot.cheminfo.forcefields import (
+from hotpot.cheminfo.operations.forcefields import (
     ComplexBuildDiagnostics,
     ForceFieldError,
     ForceFieldSetupError,
     ForceFieldSetupReport,
     TrajectoryStart,
 )
-from hotpot.cheminfo.forcefields.stage import ForceFieldRouteOptions
+from hotpot.cheminfo.operations.forcefields.stage import ForceFieldRouteOptions
 
 
 @dataclass(frozen=True)

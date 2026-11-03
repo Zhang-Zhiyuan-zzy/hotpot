@@ -5528,3 +5528,111 @@ business runs are introduced by archiving. Coupled operation/backend migration,
 B4 control/sample containment, whole Stage8B scientific/standalone/FF benchmarks,
 clean delivery, other versions and later/global gates stay open. This coherent
 source/test/record change is committed and pushed as a business checkpoint.
+
+
+## 2026-11-04 — B3d coupled Python operation/backend entry
+
+B3c is accepted and pushed as8001127. Root aligns effective goal, focused current
+main9.2/Stage8B, B1-B3c contracts/checkpoints and verification map against the
+remaining17legacy Python files and connected backend/value/RNG seams. Both
+governance references and stage/validation skills remain current; owner-directed
+focused alignment avoids repeated full-plan reads. Protected owner review and
+Task168 are excluded. Existing preparation is reused as factual discovery only.
+
+Root accepts B3d decision before authoring: move remaining controllers/reports/
+facade to operations, leave one seed lifecycle lock and selected coordinate
+transaction there, route standalone wrapper invocations through a thin adapter,
+and move the four existing immutable observation types plus coordination capture
+to structure/adapter. Pure clipping/addition takes explicit displacement; RNG
+advancement remains in operations. Main9.2 mixed backend/native_adapters wording
+is corrected rather than carrying controls downward. Remove the planned empty
+placement hook and its two dormant types; no replacement algorithm or shim.
+D06 remains optional and unreduced. Retire obsolete annotation-only core imports
+and wildcard facade debt without transferring slots. Preserve all numeric/seed/
+lock/source/rollback/trajectory/units semantics. Root retains scientific review,
+release, acceptance and Git. Local Sol/medium canonical writer precedes connected
+consumer/tests. Candidate runtime stays HOLD until connected review/freeze.
+Entry bindings: /tmp/hotpot_plan20/long/stage8b-b3d-20261104/entry-inputs.json.
+B4, full Stage8B and later/global gates remain open.
+
+
+The narrow local Sol/medium source lookup confirms zero construction sites for
+the two reserved result types, but finds the hook's conditional workflow caller.
+Root therefore includes its connected coordination_geometry=None option in the
+same retirement, across four public FF functions, Molecule.build3d, private
+forwarding and trajectory parameter records. Non-None previously provided no
+algorithm; now the removed keyword follows ordinary signature rejection. Keep
+the independently meaningful CoordinationEnvironment and its collector. Exact
+consumer/RNG evidence: stage8b-b3d-20261104/hook-consumers under the entry artifact
+root. This is the explicit preimplementation public-retirement record required
+by the approved placeholder deletion, not a silent ignored option.
+
+
+## 2026-11-04 — B3d connected source review and runtime release
+
+Canonical and connected writers have stopped. Root reviews backend/rule/RNG,
+working-copy/workflow/trajectory/value moves and actual core/conformer/registry/
+plugin consumers, current cold pickle, explicit unsupported-keyword retirement
+and adapter seed lookup. The new displacement test checks input isolation and
+exact Generator advancement against an independent draw. Static49canonical
+checks/194retained-definition comparisons/7exact moves and8consumer checks pass;
+architecture reports968Python files and no ratchet/layer/carrier findings.
+Exactly27obsolete allowlist entries retire;191remain. No concrete source defect
+is found and no runtime result is implied. Unchanged accepted B3a native source,
+build dependencies and six binaries are reused; no C++rebuild is required.
+
+Root corrects preparation-only README counts and strengthens actual post-MCA
+atom-handle preservation observations. Static preparation now compiles10scripts
+with65ordered full/9focused files and no missing actual assets. The frozen
+extractant corpus is explicit; source/installed actual3CBFF→GFN-FF/GFN2 and3MCA
+cases, serial/parallel FF, UFF pipeline and default conformer→build→MCA are
+selected. Root releases one all-tier CP311 attempt only after final source
+freeze, recording argv and exact source/runner/support/model/native identities.
+Chemical facts/currentness/units and defined observations govern acceptance,
+with allowed numerical variation and original failures preserved. No Stage8B,
+B4, cost, all-version, clean-native or global gate closes by runtime release.
+Evidence root: /tmp/hotpot_plan20/long/stage8b-b3d-20261104.
+
+
+## 2026-11-04 — B3d CP311 operation/backend cutover accepted
+
+Released all-tier argv in root-runtime-release-attempt01.json returns0 across
+25commands. Source210focused pass; same65files/1127orderednodes yield source
+1125pass/2skip and installed1125pass/2skip. The two skips explicitly require the
+scientific-boundary extractant test and high-compute full Eu workflow; neither
+is relabeled passed. Actual3CBFF/xTB and3MCA tests run without skips per boundary,
+as do serial/parallel CC/CO, UFF pipeline, default OpenBabel conformer adapter→
+isolated seeded build→CPU MCA and true-owner/pickle/signature probes.
+
+Root python -B /tmp/hotpot_plan20/long/stage8b-b3d-20261104/review_business.py
+returns ROOT_B3D_BUSINESS_REVIEW_PASS. Direct raw SDF/report/trajectory/manifest/
+MCA observations preserve12CC/CO emitted-molecule compositions, ordered single
+bonds, neutral charge, original molecular/Atom handles, source currentness,
+format5 and persisted lineage. The one-epoch budget_exhausted observations
+remain explicitly nonconverged with quality=off. Actual Zn/Eu pipelines retain
+UFF and requested charge2/3; GFN-FF has no backend UHF while tested GFN2 has0,
+with finite Hartree energies, actual6.7.1executable identity and correct commit
+versus singlepoint behavior. MCA ring atom/site projections remain attached and
+current after actual default/seeded builds. No float-equality, universal geometry,
+unique-minimum, performance, full-corpus or broader convergence claim is used.
+
+Frozen1451source/test,6native,5build and15document bindings remain unchanged
+through execution/root review (1475distinct bindings). Fresh477Python-body
+wheel/install reuses six accepted B3a binaries;126unchanged native sources and
+build dependencies rebind. All18old Python files and old package retire without
+shims; this corrects entry shorthand17which excluded its initializer. The41
+inherited non-Python omissions remain P20-D008. D06 remains optional/unreduced.
+Original static/checker/discovery failures and obsolete bytecode descriptors
+remain. Root additionally retains192actual pytest-produced pipeline/MCA files
+outside expendable runtime work; no business or test rerun is introduced.
+
+Root accepts only B3d CP311 Python operation/backend/value/capture cutover. A
+local Luna/low subagent executes the exact reviewed archive argv with no source
+or scientific decision. Root verifies1208manifest entries/45683702bytes plus
+raw_manifest itself (1209files total), all189maintained references and18retired
+parent files. Four owning records are validation/b3d. Archive is
+.plan20-artifacts/20261104/stage8b/b3d; raw parent/current source, exact wheel,
+fixture and actual observations remain attributable. B4 controls/sample
+containment, full Stage8B scientific/standalone/FF benchmarks, clean delivery,
+other versions and later/global gates stay open. This coherent business change
+will be committed and pushed before the next implementation slice.

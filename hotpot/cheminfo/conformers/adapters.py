@@ -128,7 +128,7 @@ class OpenBabelConformerAdapter:
         del request
         builder = self._builder
         if builder is None:
-            from ..forcefields.backend import _ob_build
+            from ..operations.forcefields.backend import _ob_build
 
             builder = _ob_build
         builder(molecule)

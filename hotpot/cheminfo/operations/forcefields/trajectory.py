@@ -29,7 +29,10 @@ from typing import (
 
 import numpy as np
 
-from ..structure.forcefields import (
+from hotpot.cheminfo.structure.forcefields import (
+    AtomIdentity,
+    BondTopologyRevision,
+    ForceFieldFrame,
     BondTopology,
     TrajectoryStart,
     TrajectoryStage,
@@ -42,9 +45,8 @@ from ..structure.forcefields import (
 
 
 if TYPE_CHECKING:
-    from ..core import Atom, Bond, Molecule
-    from ..adapters.native.forcefields.contracts import ComplexSessionInput
-    from ..adapters.native.forcefields.reports import NativeTrajectoryBatch
+    from hotpot.cheminfo.adapters.native.forcefields.contracts import ComplexSessionInput
+    from hotpot.cheminfo.adapters.native.forcefields.reports import NativeTrajectoryBatch
 
 
 __all__ = (
@@ -70,57 +72,6 @@ _TRAJECTORY_STAGE_ORDER = {
     TrajectoryStage.COMPLEX_UNTANGLING: 2,
     TrajectoryStage.FINAL_OPTIMIZATION: 3,
 }
-
-
-@dataclass(frozen=True, order=True)
-class AtomIdentity:
-    """Atom identity fixed for the lifetime of one trajectory."""
-
-    index: int
-    atom_id: int
-    atomic_number: int
-    formal_charge: int
-    symbol: str
-
-    @classmethod
-    def from_atom(
-        cls,
-        atom: "Atom",
-        *,
-        index: Optional[int] = None,
-    ) -> "AtomIdentity":
-        """Capture the stable identity fields of a Hotpot atom."""
-        return cls(
-            index=int(atom.idx if index is None else index),
-            atom_id=int(atom.id),
-            atomic_number=int(atom.atomic_number),
-            formal_charge=int(atom.formal_charge),
-            symbol=str(atom.symbol),
-        )
-
-
-@dataclass(frozen=True)
-class BondTopologyRevision:
-    """Immutable complete bond table for one trajectory topology."""
-
-    index: int
-    bonds: Tuple[BondTopology, ...]
-
-
-@dataclass(frozen=True)
-class ForceFieldFrame:
-    """Immutable reference to one coordinate/topology state."""
-
-    index: int
-    stage: TrajectoryStage
-    event: TrajectoryEvent
-    coordinate_revision: int
-    topology_revision: int
-    energy_kj_mol: Optional[float] = None
-    component_index: Optional[int] = None
-    attempt: Optional[int] = None
-    step: Optional[int] = None
-    evidence: Optional[FrameEvidence] = None
 
 
 class ForceFieldTrajectory:
@@ -308,7 +259,7 @@ class ForceFieldTrajectory:
         session_input: "ComplexSessionInput",
     ) -> Tuple[int, ...]:
         """Append one native batch and return its native-to-global frame map."""
-        from ..adapters.native.forcefields.reports import unpack_native_topology_revisions
+        from hotpot.cheminfo.adapters.native.forcefields.reports import unpack_native_topology_revisions
 
         topologies = unpack_native_topology_revisions(
             session_input,
@@ -341,7 +292,7 @@ class ForceFieldTrajectory:
         provide no calculation method or seed, so only trajectory provenance is
         available here; workflow callers supply their actual operation inputs.
         """
-        from ..structure._identity import _capture_source
+        from hotpot.cheminfo.structure._identity import _capture_source
 
         with mol._mutation_lock:
             self._materialize(
@@ -353,8 +304,8 @@ class ForceFieldTrajectory:
         self, mol: "Molecule", *, keep_all: bool, input_source,
         method: str, parameters=(),
     ) -> None:
-        from ..conformers.contracts import ConformerBatch
-        from ..structure.conformer import _publish_conformer_ensemble
+        from hotpot.cheminfo.conformers.contracts import ConformerBatch
+        from hotpot.cheminfo.structure.conformer import _publish_conformer_ensemble
 
         self._validate_molecule_atoms(mol)
         if not self._frames:

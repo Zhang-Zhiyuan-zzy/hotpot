@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8B/B3d",
+  "date": "2026-11-04",
+  "status": "ROOT_ACCEPTED_B3D_CP311_OPERATION_BACKEND_CUTOVER",
+  "source_commit": "8001127d759946579072ad75826a484447222ee3",
+  "predecessor": "validation/b3c/checkpoint.json",
+  "design": "contracts/decisions.md#b3d--accepted-coupled-python-operation-and-backend-cutover",
+  "entry_inputs": "/tmp/hotpot_plan20/long/stage8b-b3d-20261104/entry-inputs.json",
+  "scope": "Remaining Python operation/facade move plus backend/rule/capture/value separation; no scientific algorithm or new type.",
+  "alignment": [
+    "Effective goal; focused main Sections9.2/Stage8B and current B1-B3c decisions/checkpoints/map",
+    "Both governance references and stage/validation skills; owner focused-reading direction",
+    "Actual pushed8001127 and current source entry bindings; protected owner/Task168 excluded"
+  ],
+  "runtime_released": true,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "native_build_required": false,
+  "bounded_acceptance": true,
+  "checkpoint": "validation/b3d/checkpoint.json"
+}

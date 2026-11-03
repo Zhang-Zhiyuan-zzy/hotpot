@@ -5,15 +5,15 @@ from __future__ import annotations
 import time
 from copy import copy
 from dataclasses import dataclass, replace
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import Optional, Tuple
 
 import numpy as np
 
-from ..rules.mathematics import geometry as geo
-from ..operations.topology_queries import _components
-from ..structure._selection import _capture_topology_selection
+from hotpot.cheminfo.rules.mathematics import geometry as geo
+from hotpot.cheminfo.operations.topology_queries import _components
+from hotpot.cheminfo.structure._selection import _capture_topology_selection
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
-from ..conformers import (
+from hotpot.cheminfo.conformers import (
     ConformerSampler,
     ConformerSamplingError,
     ConformerSamplingRequest,
@@ -33,28 +33,25 @@ from .contracts import (
     ForceFieldError,
     RingUntanglingReport,
 )
-from .coordinates import _copy_coordinates, _perturbed_coordinates
+from .coordinates import _perturbed_coordinates
+from hotpot.cheminfo.rules.physics.forcefields.coordinates import _copy_coordinates
 from .repair import (
     _piercing_count,
     _record_ring_checkpoint,
     _scan_ring_checkpoint,
     _untangle_ring_piercings,
 )
-from ..adapters.structure.forcefields import capture_topology
-from hotpot.cheminfo.forcefields.trajectory import (
-    ForceFieldFrame,
+from hotpot.cheminfo.adapters.structure.forcefields import capture_topology
+from hotpot.cheminfo.operations.forcefields.trajectory import (
     ForceFieldTrajectory,
 )
 from hotpot.cheminfo.structure.forcefields import (
+    ForceFieldFrame,
     TrajectoryEvent,
     TrajectoryStage,
     TrajectoryStart,
 )
 from .working_copy import _copy_molecule_metadata
-
-
-if TYPE_CHECKING:
-    from ..core import Molecule
 
 
 __all__ = ()

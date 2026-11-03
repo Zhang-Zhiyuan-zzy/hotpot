@@ -54,7 +54,8 @@ def core() -> None:
     )
     assert state.execution_decision.action is StateDecisionAction.SELECT_STATE
 
-    forcefield_package = files("hotpot.cheminfo.forcefields")
+    assert not files("hotpot.cheminfo").joinpath("forcefields").is_dir()
+    forcefield_package = files("hotpot.cheminfo.operations.forcefields")
     assert forcefield_package.joinpath("ff.py").is_file()
     for obsolete_module in ("ff39.py", "utils.py", "utils39.py"):
         assert not forcefield_package.joinpath(obsolete_module).is_file()

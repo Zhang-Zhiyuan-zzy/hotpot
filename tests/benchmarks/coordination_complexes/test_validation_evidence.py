@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from hotpot.cheminfo.core import Molecule
-from hotpot.cheminfo.forcefields import ff
+from hotpot.cheminfo.operations.forcefields import ff
 
 from .validation_cohort import _graph_document, canonical_digest
 from .validation_evidence import (

@@ -343,7 +343,7 @@ def _extract_rejected_frame(
     if trajectory_path is None:
         return None
 
-    from hotpot.cheminfo.forcefields.trajectory import (
+    from hotpot.cheminfo.operations.forcefields.trajectory import (
         ForceFieldTrajectoryArchive,
         _TrajectoryWriter,
     )

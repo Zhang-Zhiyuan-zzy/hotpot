@@ -14,7 +14,7 @@ import sysconfig
 import pytest
 
 from hotpot import Molecule
-from hotpot.cheminfo.forcefields.working_copy import _capture_working_source, _check_working_source
+from hotpot.cheminfo.operations.forcefields.working_copy import _capture_working_source, _check_working_source
 from hotpot.cheminfo.structure._commit import _FactTransaction
 from tests.test_cheminfo.structure.test_fact_native import _ALLOCATOR_HELPER_SOURCE
 
@@ -188,7 +188,7 @@ from itertools import combinations
 sys.path.insert(0, sys.argv[1])
 import seed_alloc_probe as alloc
 from hotpot import Molecule
-from hotpot.cheminfo.forcefields import working_copy
+from hotpot.cheminfo.operations.forcefields import working_copy
 from hotpot.cheminfo.structure import _commit
 from hotpot.cheminfo.structure._dependencies import _dependency_state
 owner, operation, exception_name = sys.argv[2:]

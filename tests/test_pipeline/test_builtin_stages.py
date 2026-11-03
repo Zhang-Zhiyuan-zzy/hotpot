@@ -132,9 +132,9 @@ def test_forcefield_stage_uses_one_public_route_operation_without_duplicate_gate
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    import hotpot.cheminfo.forcefields as ff
-    from hotpot.cheminfo.forcefields import acceptance
-    from hotpot.cheminfo.forcefields import stage as ff_stage
+    import hotpot.cheminfo.operations.forcefields as ff
+    from hotpot.cheminfo.operations.forcefields import acceptance
+    from hotpot.cheminfo.operations.forcefields import stage as ff_stage
     from hotpot.pipeline.contracts import (
         MolecularPayload,
         MolecularRecord,
@@ -216,7 +216,7 @@ def test_xtb_stage_forwards_existing_state_and_calls_public_workflow_once(
     from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
         resolve_scientific_state,
     )
-    from hotpot.cheminfo.forcefields import acceptance
+    from hotpot.cheminfo.operations.forcefields import acceptance
     from hotpot.pipeline.contracts import (
         MolecularPayload,
         MolecularRecord,

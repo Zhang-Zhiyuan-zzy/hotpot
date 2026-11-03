@@ -10,7 +10,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import (
-    TYPE_CHECKING,
     Mapping,
     Optional,
     Protocol,
@@ -44,9 +43,6 @@ from hotpot.cheminfo.adapters.native.forcefields.reports import (
     NativeTrajectoryBatch,
 )
 from .trajectory import ForceFieldTrajectory, ForceFieldTrajectoryArchive
-
-if TYPE_CHECKING:
-    from ..core import Bond, Molecule
 
 
 __all__ = (
@@ -362,8 +358,8 @@ def apply_native_selected_structure(
     result: _SelectedStructureResult,
 ) -> None:
     """Publish selected coordinates while retaining all complete Bond facts."""
-    from ..structure._commit import _FactTransaction
-    from ..structure._fields import ATOM_SOURCE_CODES
+    from hotpot.cheminfo.structure._commit import _FactTransaction
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
 
     with mol._mutation_lock:
         atom_count = len(mol._atoms)

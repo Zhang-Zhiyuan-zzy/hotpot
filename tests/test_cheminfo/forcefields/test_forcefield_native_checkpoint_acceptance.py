@@ -2,7 +2,7 @@
 
 from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.core import Molecule
-from hotpot.cheminfo.forcefields import acceptance as acceptance_policy
+from hotpot.cheminfo.operations.forcefields import acceptance as acceptance_policy
 from hotpot.cheminfo.adapters.native.forcefields.reports import (
     NativeBondRingFinding,
     NativeRingCheckpointReport,

@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from hotpot.cheminfo import forcefields as ff
+from hotpot.cheminfo.operations import forcefields as ff
 
 from . import (
     auto_optimize_benchmark,

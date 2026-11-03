@@ -480,3 +480,83 @@ Acceptance is this Python transport/capture boundary only. Coupled Python
 operation/backend separation, B4 finding/control/sample containment, full Stage8B
 scientific/standalone/benchmark gates and later/global delivery/adaptation remain
 open. Rollback is the coherent source/test/package/record commit.
+
+
+## B3d — Accepted coupled Python operation and backend cutover
+
+Root aligns at pushed `8001127`, with B3c accepted at its CP311 boundary. The
+remaining legacy Python forcefield package mixes real workflow controls with
+external invocation and carrier-derived values. Main Section9.2's destinations
+remain; this decision resolves those mixed bodies before their coherent move.
+
+| Current responsibility | Sole target owner |
+| --- | --- |
+| Remaining forcefield controllers, acceptance composition, mutable trajectory/archive, worker lifecycle, reports/errors, facade | `operations/forcefields/`, preserving the existing module names |
+| Existing `AtomIdentity`, `BondTopologyRevision`, `ForceFieldFrame`, `CoordinationEnvironment` | existing `structure/forcefields.py`, retaining fields/factories exactly |
+| Existing `collect_coordination_environments` carrier capture | existing `adapters/structure/forcefields.py`; facade imports this actual definition |
+| Raw wrapper `build`, `single_optimize`, `optimize`, native lookup and existing seed call | thin `adapters/openbabel/forcefields.py`, invoking only retained standalone obWrappers |
+| Existing coordinate copy and clipping/addition arithmetic | `rules/physics/forcefields/coordinates.py`; caller supplies displacement |
+| RNG creation, `normal` draws/schedules and coordinate publication | `operations/forcefields/coordinates.py` and their existing workflow callers |
+
+Move all remaining Python files out of `cheminfo/forcefields`; remove that old
+package without compatibility shims or old/new runtime switches. The real
+`operations/forcefields/_native` sources already belong here and remain unchanged.
+Use explicit facade imports/exports with the same supported names, except the
+plan-required deletion of the unimplemented `prepare_coordination_geometry` hook
+and its dormant `CoordinationGeometryCandidate`/`CoordinationGeometryResult`.
+Their unsupported NotImplemented entry is not replaced by a guessed algorithm.
+Retire the connected `coordination_geometry=None` option from `build_complex3d`,
+`complexes_build`, `build_and_optimize`, `auto_optimize`, `Molecule.build3d` and
+private forwarding/trajectory-parameter records together. Non-None previously
+reached only NotImplementedError; the removed keyword now fails through the
+ordinary signature/unknown-option contract. Existing default behavior stays.
+Do not silently accept/ignore the obsolete option or leave a dead forwarding call.
+Current public objects pickle at actual new owners; old-package object pickles
+may fail ModuleNotFoundError. Keep explicit trajectory JSON/NPZ/format5 unchanged;
+no spoofed module, migration loader, extra DTO/Protocol/schema or class is added.
+D06 remains an assessed optional consolidation: trajectory AtomIdentity retains
+its distinct stored symbol and format contract; no reduction is booked for it.
+
+Backend selected-graph preparation/currentness/atomic publication, setup-error
+translation, forcefield selection and the one worker lifecycle lock remain in
+operations/backend.py. `optimizer` and `native_adapters` retain RNG scheduling,
+trajectory ingestion, report assembly and publication as operations. These
+modules must not be moved wholesale into an adapter. Thin external adapters may
+import the actual standalone wrapper functions/lookup; they add no second engine,
+carrier selection, seed lifecycle lock, report construction or numerical policy.
+Standalone public wrapper contracts and bond-code constants remain their existing
+single owners. Preserve production lookup sites for monkeypatch tests at their
+actual new modules, not aliases at retired paths.
+
+The coordinate rule consumes explicit coordinates/displacement/sigma and performs
+only the existing NumPy clipping/addition; the operation draws from the existing
+RNG once in the existing order and calls it. This clarifies Section9.2's former
+`_perturbed_coordinates` example: accepting/advancing a mutable Generator is
+operational scheduling, not a pure rule. Pure copy/arithmetic has one definition.
+Retain all budgets/defaults, seed/draw order, lock scope, selected versus direct
+mutation behavior, double source rechecks, rollback, atom handles, units, row/mask
+mapping, frame/pool ordering, warnings and existing local failure behavior.
+This move does not preempt B4's finding/control/sample-containment review.
+
+Remove obsolete TYPE_CHECKING-only core imports rather than transferring their
+debt slots. Quoted/postponed carrier annotations remain unchanged; ordinary runtime
+hint resolution already lacks these names, and explicit namespaces remain usable.
+Migrate actual package/dynamic imports, core facade, conformer default builder,
+command/registry/benchmark/tests and maintained current paths together. Update
+architecture allowlist only by retiring actually removed entries; no inherited
+exception, new core import slot or wildcard credit is granted. New leaf/structure
+owners import no operation or legacy facade.
+
+Root owns this global-boundary design, maintained records and acceptance. One
+local Sol/medium writer owns the canonical package/value/capture/adapter/rule
+cutover; connected consumer/test migration follows after it stops. Source-only
+AST/ownership/equivalence checks may run while authoring. Candidate runtime stays
+HOLD until root reviews the whole connected cutover and freezes source. Require
+focused affected workflow/trajectory/pickle/RNG/rollback/seed/worker cases, complete
+affected CP311 source and installed selections, actual representative FF/pipeline
+and affected MCA/conformer integration with attributable origins. Reuse unchanged
+accepted B3a native source/binaries after rebind; no unchanged C++ rebuild is a
+prerequisite. Compare chemical facts/units/currentness and allowed numerical
+variation rather than forcing identical float values or historical pass counts.
+Retain failures. B4, complete Stage8B scientific/standalone/FF benchmarks and all
+later/global gates remain open. Rollback is the coherent source/test/record commit.

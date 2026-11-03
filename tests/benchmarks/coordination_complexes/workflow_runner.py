@@ -33,7 +33,7 @@ from .io import json_value, sha256_file, write_json
 
 if TYPE_CHECKING:
     from hotpot import Molecule
-    from hotpot.cheminfo.forcefields import ForceFieldTrajectory
+    from hotpot.cheminfo.operations.forcefields import ForceFieldTrajectory
 
 
 SCHEMA_VERSION = 1
@@ -54,7 +54,7 @@ SEED = 20260921
 
 def _prepare_ligand(case: LigandCase) -> Molecule:
     from hotpot import read_mol
-    from hotpot.cheminfo.forcefields.working_copy import (
+    from hotpot.cheminfo.operations.forcefields.working_copy import (
         _hydrogenated_working_copy,
     )
 
@@ -68,7 +68,7 @@ def _prepare_ligand(case: LigandCase) -> Molecule:
 
 
 def _new_trajectory(mol: Molecule) -> ForceFieldTrajectory:
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     trajectory = ff.ForceFieldTrajectory.from_molecule(
         mol,
@@ -91,7 +91,7 @@ def _run_rdkit_ligand(
     from rdkit import Chem
     from rdkit.Chem import AllChem
 
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     rd_mol = Chem.MolFromSmiles(case.smiles)
     if rd_mol is None:
@@ -222,7 +222,7 @@ def _run_openbabel_ligand(
 
     from openbabel import openbabel as ob
 
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
     from hotpot.cheminfo.adapters.openbabel.conversion import extract_obmol_coordinates
 
     obmol = ligand.to_obmol()
@@ -313,7 +313,7 @@ def _record_obwrappers_trajectory(
     trajectory: ForceFieldTrajectory,
     optimization_report: object,
 ) -> None:
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     frame_indices = []
     for frame in optimization_report.frames:
@@ -346,7 +346,7 @@ def _run_obwrappers_target(
     mol: Molecule,
     trajectory: ForceFieldTrajectory,
 ) -> dict[str, object]:
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
     from hotpot.cheminfo import obWrappers
 
     build_started = perf_counter()
@@ -394,7 +394,7 @@ def _run_hotpot_target(
     case_dir: Path,
     seed: int,
 ) -> dict[str, object]:
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     build_trajectory_path = case_dir / "trajectory" / "build"
     optimize_trajectory_path = case_dir / "trajectory" / "optimize"
@@ -474,7 +474,7 @@ def _run_hotpot_auto_target(
     seed: int,
 ) -> dict[str, object]:
     """Run auto directly from the raw target without a preliminary build."""
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     trajectory_path = case_dir / "trajectory"
     started = perf_counter()
@@ -556,7 +556,7 @@ def _run_target(
     complex_case: Optional[CanonicalCase],
     case_dir: Path,
 ) -> dict[str, object]:
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     target_dir = case_dir / target
     target_dir.mkdir(parents=True, exist_ok=True)

@@ -9,12 +9,12 @@ from typing import Literal, Mapping, Optional, Tuple, Union
 
 import numpy as np
 
-from ..obWrappers.contracts import (
+from hotpot.cheminfo.obWrappers.contracts import (
     ConvergenceLevel,
     DEFAULT_CONVERGENCE_LEVEL,
 )
 
-from ..rules.physics.forcefields.contracts import (
+from hotpot.cheminfo.rules.physics.forcefields.contracts import (
     AcceptanceCheck,
     AcceptanceLevel,
     ForceFieldAcceptanceEvidence,
@@ -22,6 +22,7 @@ from ..rules.physics.forcefields.contracts import (
     ForceFieldStage,
     StructureAcceptanceThresholds,
 )
+from hotpot.cheminfo.structure.forcefields import CoordinationEnvironment
 from .trajectory import ForceFieldTrajectory, ForceFieldTrajectoryArchive
 
 
@@ -53,8 +54,6 @@ __all__ = (
     "ForceFieldAcceptanceEvidence",
     "ForceFieldValidationReport",
     "CoordinationEnvironment",
-    "CoordinationGeometryCandidate",
-    "CoordinationGeometryResult",
     "ForceFieldError",
     "ForceFieldSetupError",
     "BuildWorkerError",
@@ -320,31 +319,6 @@ class ForceFieldSetupReport:
     stage: ForceFieldSetupStage
     setup_succeeded: bool = False
     workflow_stage: Optional[ForceFieldWorkflowStage] = None
-
-
-@dataclass(frozen=True)
-class CoordinationEnvironment:
-    metal_idx: int
-    donor_indices: Tuple[int, ...]
-    coordination_number: int
-    metal_atomic_number: int
-    metal_formal_charge: int
-    donor_atomic_numbers: Tuple[int, ...]
-    chelate_groups: Tuple[Tuple[int, ...], ...]
-
-
-@dataclass(frozen=True)
-class CoordinationGeometryCandidate:
-    coordinates: np.ndarray
-    assigned_geometries: Tuple[str, ...]
-    score: Optional[float]
-
-
-@dataclass(frozen=True)
-class CoordinationGeometryResult:
-    environments: Tuple[CoordinationEnvironment, ...]
-    candidates: Tuple[CoordinationGeometryCandidate, ...]
-    diagnostics: Mapping[str, object]
 
 
 class ForceFieldError(RuntimeError):

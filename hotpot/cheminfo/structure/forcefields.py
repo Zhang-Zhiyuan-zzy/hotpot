@@ -8,6 +8,10 @@ from typing import Literal, Optional, Tuple, Union
 
 
 __all__ = (
+    "AtomIdentity",
+    "BondTopologyRevision",
+    "ForceFieldFrame",
+    "CoordinationEnvironment",
     "AtomTopologySignature",
     "BondTopology",
     "TopologyReference",
@@ -162,3 +166,65 @@ FrameEvidence = Union[
     CoordinationFrameEvidence,
     OptimizationFrameEvidence,
 ]
+
+
+@dataclass(frozen=True, order=True)
+class AtomIdentity:
+    """Atom identity fixed for the lifetime of one trajectory."""
+
+    index: int
+    atom_id: int
+    atomic_number: int
+    formal_charge: int
+    symbol: str
+
+    @classmethod
+    def from_atom(
+        cls,
+        atom: "Atom",
+        *,
+        index: Optional[int] = None,
+    ) -> "AtomIdentity":
+        """Capture the stable identity fields of a Hotpot atom."""
+        return cls(
+            index=int(atom.idx if index is None else index),
+            atom_id=int(atom.id),
+            atomic_number=int(atom.atomic_number),
+            formal_charge=int(atom.formal_charge),
+            symbol=str(atom.symbol),
+        )
+
+
+@dataclass(frozen=True)
+class BondTopologyRevision:
+    """Immutable complete bond table for one trajectory topology."""
+
+    index: int
+    bonds: Tuple[BondTopology, ...]
+
+
+@dataclass(frozen=True)
+class ForceFieldFrame:
+    """Immutable reference to one coordinate/topology state."""
+
+    index: int
+    stage: TrajectoryStage
+    event: TrajectoryEvent
+    coordinate_revision: int
+    topology_revision: int
+    energy_kj_mol: Optional[float] = None
+    component_index: Optional[int] = None
+    attempt: Optional[int] = None
+    step: Optional[int] = None
+    evidence: Optional[FrameEvidence] = None
+
+
+@dataclass(frozen=True)
+class CoordinationEnvironment:
+    metal_idx: int
+    donor_indices: Tuple[int, ...]
+    coordination_number: int
+    metal_atomic_number: int
+    metal_formal_charge: int
+    donor_atomic_numbers: Tuple[int, ...]
+    chelate_groups: Tuple[Tuple[int, ...], ...]

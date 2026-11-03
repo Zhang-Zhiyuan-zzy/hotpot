@@ -106,7 +106,7 @@ def _run_optimizer_arm(
     seed: int,
 ) -> dict[str, object]:
     """Run one explicit optimizer and persist its independent evidence."""
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     arm_dir.mkdir(parents=True, exist_ok=True)
     started = perf_counter()
@@ -230,7 +230,7 @@ def run_optimizer_comparison_case(
 ) -> dict[str, object]:
     """Run CBond, one shared complex build, and two explicit optimizer arms."""
     from hotpot import read_mol
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     case_dir = Path(output_root_text) / "cases" / f"{index:04d}"
     case_dir.mkdir(parents=True, exist_ok=True)

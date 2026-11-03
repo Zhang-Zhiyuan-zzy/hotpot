@@ -9,11 +9,12 @@ import subprocess
 import sys
 
 import numpy as np
+import pytest
 
 from hotpot import read_mol
 
 
-PACKAGE_NAME = "hotpot.cheminfo.forcefields"
+PACKAGE_NAME = "hotpot.cheminfo.operations.forcefields"
 FACADE_NAME = f"{PACKAGE_NAME}.ff"
 
 PUBLIC_FUNCTIONS = (
@@ -22,7 +23,6 @@ PUBLIC_FUNCTIONS = (
     "is_structure_accepted",
     "perturb",
     "collect_coordination_environments",
-    "prepare_coordination_geometry",
     "build3d",
     "optimize",
     "build_complex3d",
@@ -67,8 +67,6 @@ PUBLIC_DATA_CONTRACTS = (
     "StructureAcceptanceThresholds",
     "ForceFieldValidationReport",
     "CoordinationEnvironment",
-    "CoordinationGeometryCandidate",
-    "CoordinationGeometryResult",
 )
 
 PUBLIC_EXCEPTIONS = (
@@ -120,6 +118,7 @@ def test_facade_exports_trajectory_contracts_by_identity():
         assert name in facade.__all__
     structure = importlib.import_module("hotpot.cheminfo.structure.forcefields")
     structure_contracts = {
+        "AtomIdentity", "BondTopologyRevision", "ForceFieldFrame",
         "TrajectoryStart", "TrajectoryStage", "TrajectoryEvent", "BondTopology",
         "RingFrameEvidence", "CoordinationFrameEvidence", "OptimizationFrameEvidence",
     }
@@ -137,8 +136,10 @@ def test_facade_exports_forcefield_contracts_by_identity():
     contracts = importlib.import_module(f"{PACKAGE_NAME}.contracts")
     facade = importlib.import_module(FACADE_NAME)
 
+    structure = importlib.import_module("hotpot.cheminfo.structure.forcefields")
     for name in (*PUBLIC_DATA_CONTRACTS, *PUBLIC_EXCEPTIONS):
-        contract = getattr(contracts, name)
+        owner = structure if name == "CoordinationEnvironment" else contracts
+        contract = getattr(owner, name)
         assert getattr(facade, name) is contract
         assert pickle.loads(pickle.dumps(contract)) is contract
 
@@ -164,6 +165,8 @@ def test_specialized_apis_are_reexported_without_wrapping():
 
 
 def test_removed_compatibility_modules_are_not_importable():
+    with pytest.raises(ModuleNotFoundError):
+        importlib.import_module("hotpot.cheminfo.forcefields")
     for module_name in ("ff39", "utils", "utils39", "topology", "cli", "native", "native_reports", "native_packing", "settings"):
         try:
             importlib.import_module(f"{PACKAGE_NAME}.{module_name}")
@@ -181,6 +184,7 @@ package = importlib.import_module({PACKAGE_NAME!r})
 facade = importlib.import_module({FACADE_NAME!r})
 
 assert {FACADE_NAME!r} in sys.modules
+assert 'hotpot.cheminfo.forcefields' not in sys.modules
 for obsolete in ('ff39', 'utils', 'utils39', 'topology', 'cli', 'native', 'native_reports', 'native_packing', 'settings'):
     assert {PACKAGE_NAME!r} + '.' + obsolete not in sys.modules
 assert package.__all__ == facade.__all__

@@ -5,7 +5,7 @@ complete within their recorded scopes. Stage8A A1–A11 scientific-state separat
 non-mutating extraction, H presence, approved detailed reports/confidence retirement,
 preparation diagnostics and existing Lewis complete-H applicability are root accepted
 within CP311 source/installed scope. Stage8B B1 consolidation, B2 pure acceptance/capture separation and B3a native
-ownership, B3b command ownership and B3c Python native transport/capture are root accepted within CP311; remaining Python operation/backend B3/B4 and the owning gate remain open. Stage8C–E have not entered. Optional scientific
+ownership, B3b command ownership, B3c Python native transport/capture and B3d Python operation/backend cutover are root accepted within CP311; B4 controls/sample containment and the owning gate remain open. Stage8C–E have not entered. Optional scientific
 activation, remaining stages, full scientific/engineering, version-adaptation and
 global acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
@@ -1374,14 +1374,14 @@ real core definition; it consolidates existing debt and creates no structure ali
 | `crystal.py` | `structure/crystal.py`, mathematics cell conversion, Open Babel adapter | keep one canonical six-parameter `Crystal` record; remove Molecule back-reference, Open Babel object, `LatticeGroup`/space-group placeholders; preserve approved matrix convention |
 | `draw.py`, `fonts/`, `draw.md` | `operations/visualization.py`, `adapters/visualization/` and docs | carrier-capable draw entry/input sequencing in operations; prepared external rendering/colors/formats/resources in adapter; one implementation per symbol, no upward re-export or carrier callback |
 | `elements.py` | `reference/elements.py`, `reference/properties.py`, and `rules/chemistry/elements.py` | split immutable source values from classification/electron/valence calculations; remove Open Babel dependency |
-| `forcefields/coordinates.py` pure coordinate proposal helpers and pure acceptance/placement criteria | `rules/physics/forcefields/` | move `_perturbed_coordinates(...)`-style snapshot-to-value/evidence kernels only; no backend call or carrier write |
+| `forcefields/coordinates.py` pure coordinate copy/clipping/addition and pure acceptance/placement criteria | `rules/physics/forcefields/` | numeric rules consume explicit displacement; mutable RNG creation/draws remain operational; no backend call or carrier write |
 | `forcefields.coordinates.perturb(mol, ...)` and other coordinate write facades | `operations/forcefields/` | retain the user/workflow operation while routing its generated coordinates through one atomic coordinate commit |
 | carrier extraction in `coordination.py` and `topology.py` | `adapters/structure/forcefields.py` | construct force-field/topology snapshots and operation-local `TopologySelection`; no second graph representation |
 | placement/coordination sequencing in `coordination.py`; `ligand.py`; `repair.py` | `operations/forcefields/` | these choose targets, mutate working structures, retry, or repair and therefore are operations, not pure rules; delete any unimplemented placement hook |
 | `forcefields/auto.py`, `attempts.py`, `ff.py`, `optimizer.py`, `stage.py`, `trajectory.py`, `workers.py`, `workflows.py`, `working_copy.py` | `operations/forcefields/` | retain workflow, transaction, trajectory, and atomic commit behavior; replace hidden-bond mutation with task-local topology masks |
 | `forcefields/contracts.py`, settings, reports, and errors | rule findings in `rules/physics/forcefields/`; operation reports/errors in `operations/forcefields/`; backend protocols in `adapters/openbabel/` | split the mixed contract file by semantic owner without duplicating dataclasses; import wrapper-owned types such as `obWrappers.contracts.ConvergenceLevel` rather than redeclaring them |
-| `forcefields/backend.py` | thin `adapters/openbabel/forcefields.py` facade | invoke the retained standalone `obWrapper` only; migrate/delete direct Open Babel force-field bodies so Hotpot has no second backend implementation |
-| `native_packing.py`, `native_adapters.py`, binding/translation C++ | `adapters/structure/forcefields.py`, `adapters/native/` | own field-selective packing, Python/C++ conversion, and binding code only |
+| `forcefields/backend.py` | `operations/forcefields/backend.py` plus thin `adapters/openbabel/forcefields.py` | operation owns selection/currentness/coordinate publication/error control and one lifecycle lock; adapter invokes only the retained standalone `obWrapper`; no second backend implementation |
+| `native_packing.py`, `native_adapters.py`, binding/translation C++ | `adapters/structure/forcefields.py`, `adapters/native/`, `operations/forcefields/native_adapters.py` | adapters own packing/raw translation only; operation retains RNG scheduling/report/trajectory ingestion/publication; never move mixed controls downward |
 | native pure placement/radii/target-selection kernels | `rules/physics/forcefields/_native/` | classify by pure rule semantics even when compiled; preserve one implementation and ABI tests |
 | native structure session, optimization/untangling/workflow/trajectory controllers | `operations/forcefields/_native/` | classify by orchestration semantics; build may link them into one extension but source ownership remains explicit |
 | `forcefields/cli.py`, `cli_doc.md` | `commands/ff.py` and command documentation | preserve command name/arguments while removing CLI code from the operation package |
@@ -2182,6 +2182,20 @@ nonconverged. Fresh wheel475Python bodies/sixreused B3a natives has41unchanged
 non-Python omissions (P20-D008). Original checker failures remain. Acceptance is
 this transport/capture boundary only; coupled Python operation/backend separation,
 B4 controls, full scientific/standalone/FF benchmarks and later/global gates remain.
+
+The [B3d operation/backend decision](stages/stage08/forcefields/contracts/decisions.md#b3d--accepted-coupled-python-operation-and-backend-cutover)
+settles the remaining mixed Python owners, explicit facade migration, pure numeric
+versus RNG boundary and removal of the unimplemented placement hook/types/keyword.
+The [B3d CP311 checkpoint](stages/stage08/forcefields/validation/b3d/checkpoint.json)
+accepts that connected cutover:210focused pass; source/installed each1125pass/2skip
+with the same1127orderednodes across65files. Actual3CBFF/xTB and3MCA cases plus
+serial/parallel MMFF94s, UFF pipeline and default conformer/build/MCA pass at each
+boundary. Identity, currentness, RNG, rollback, units and format5 are preserved;
+low-budget nonconvergence and actual numerical variation remain explicit.
+All18old Python files retire without shims;477Python-body wheel/sixreused accepted
+B3a natives has41unchanged omissions (P20-D008). D06 remains optional/unreduced.
+B4 finding/control/sample containment, whole Stage8B and later/global gates remain
+open; this bounded checkpoint does not accept those remaining requirements.
 
 #### Stage 8C — Search
 

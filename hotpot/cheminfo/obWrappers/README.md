@@ -41,7 +41,7 @@ than a replacement backend.
 It does not implement a replacement force field, decide whether a structure
 is chemically acceptable, repair ring--bond piercing, restore coordination
 bonds, or relocate a metal center. Those policies belong to
-`hotpot.cheminfo.forcefields` and the geometry/chemistry layers above it.
+`hotpot.cheminfo.operations.forcefields` and the geometry/chemistry layers above it.
 
 ## 2. Which API should application code use?
 
@@ -49,7 +49,7 @@ For normal Hotpot workflows, use the higher-level force-field package:
 
 ```python
 from hotpot import read_mol
-from hotpot.cheminfo import forcefields as ff
+from hotpot.cheminfo.operations import forcefields as ff
 
 
 def main():

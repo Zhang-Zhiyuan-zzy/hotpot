@@ -82,7 +82,7 @@ def test_root_exports_exact_child_union_without_duplicates():
         "hotpot.cheminfo.rules.mathematics.geometry",
         "hotpot.cheminfo.adapters.structure.geometry",
         "hotpot.cheminfo.core",
-        "hotpot.cheminfo.forcefields",
+        "hotpot.cheminfo.operations.forcefields",
     ),
 )
 def test_module_imports_in_fresh_subprocess(module_name):

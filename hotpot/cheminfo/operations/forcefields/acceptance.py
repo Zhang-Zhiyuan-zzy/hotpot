@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import replace
 from typing import (
-    TYPE_CHECKING,
     Callable,
     Optional,
     Sequence,
@@ -14,7 +13,7 @@ from typing import (
 
 import numpy as np
 
-from ..rules.mathematics import geometry as geo
+from hotpot.cheminfo.rules.mathematics import geometry as geo
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from .contracts import (
     AcceptanceCheck,
@@ -31,23 +30,19 @@ from hotpot.cheminfo.adapters.native.forcefields.reports import (
     NativeRingGraphScope,
 )
 from hotpot.cheminfo.rules.physics.forcefields.settings import _BOND_RING_MAX_SIZE
-from ..structure.forcefields import TopologyReference
-from ..adapters.structure.forcefields import (
+from hotpot.cheminfo.structure.forcefields import TopologyReference
+from hotpot.cheminfo.adapters.structure.forcefields import (
     capture_topology,
     capture_atom_pair_acceptance_values,
     capture_bond_acceptance_values,
     capture_coordination_acceptance_values,
     capture_acceptance_bond_positions,
 )
-from ..rules.physics.forcefields import acceptance as acceptance_rules
-from ..rules.physics.forcefields.contracts import (
+from hotpot.cheminfo.rules.physics.forcefields import acceptance as acceptance_rules
+from hotpot.cheminfo.rules.physics.forcefields.contracts import (
     _BondRingAcceptanceFacts,
     _BondRingAcceptanceFinding,
 )
-
-
-if TYPE_CHECKING:
-    from ..core import Atom, Bond, Molecule, Ring
 
 
 __all__ = (

@@ -8,10 +8,10 @@ from hotpot.cheminfo.AImodels.mca.result_types import (
     AtomPrediction, MoleculePrediction, SitePrediction,
 )
 from hotpot.cheminfo.structure._results import _capture_mca_source, _select_mca_result
-from hotpot.cheminfo.forcefields import attempts
-from hotpot.cheminfo.forcefields import ff
-from hotpot.cheminfo.forcefields import working_copy
-from hotpot.cheminfo.forcefields import workflows
+from hotpot.cheminfo.operations.forcefields import attempts
+from hotpot.cheminfo.operations.forcefields import ff
+from hotpot.cheminfo.operations.forcefields import working_copy
+from hotpot.cheminfo.operations.forcefields import workflows
 from hotpot.cheminfo.core import BondKind
 from hotpot.cheminfo.structure import _commit
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX

@@ -18,7 +18,7 @@ from typing import Mapping, Optional, Sequence, TYPE_CHECKING, Tuple, Union
 from hotpot._cli import MarkdownDocumentationAction
 from hotpot.cheminfo.operations.io import MolReader
 
-from hotpot.cheminfo.forcefields import (
+from hotpot.cheminfo.operations.forcefields import (
     BuildWorkerError,
     ComplexBuildError,
     ComplexBuildWorkerError,
@@ -34,7 +34,7 @@ from hotpot.cheminfo.forcefields import (
     optimize_complex,
 )
 from hotpot.cheminfo.structure.forcefields import TrajectoryStart
-from hotpot.cheminfo.forcefields.stage import (
+from hotpot.cheminfo.operations.forcefields.stage import (
     ForceFieldRouteOperations,
     ForceFieldRouteOptions,
     execute_forcefield_route,

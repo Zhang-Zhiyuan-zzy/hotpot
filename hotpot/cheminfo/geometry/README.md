@@ -35,7 +35,7 @@ The package reports spatial facts only. It does not decide whether a structure
 is chemically reasonable, physically stable, or suitable for a particular
 force field. Decisions such as whether to accept a conformer, break a ring
 bond, or repair an `UNDETERMINED` case belong to callers such as
-`hotpot.cheminfo.forcefields`.
+`hotpot.cheminfo.operations.forcefields`.
 
 Module responsibilities and dependency direction are:
 

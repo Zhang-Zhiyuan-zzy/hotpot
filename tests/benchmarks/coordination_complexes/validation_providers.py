@@ -21,7 +21,7 @@ from hotpot.cheminfo.conformers import (
     ConformerSamplingRequest,
     RDKitConformerAdapter,
 )
-from hotpot.cheminfo.forcefields.working_copy import (
+from hotpot.cheminfo.operations.forcefields.working_copy import (
     _copy_molecule_metadata,
     _hydrogenated_working_copy,
     _make_worker_mol,

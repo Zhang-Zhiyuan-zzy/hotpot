@@ -8,8 +8,8 @@ import warnings
 from dataclasses import asdict, dataclass, replace
 from typing import Optional, Sequence, Tuple, TYPE_CHECKING, cast
 
-from ..conformers import ConformerSampler, OpenBabelConformerAdapter
-from ..obWrappers.native import _native_module
+from hotpot.cheminfo.conformers import ConformerSampler, OpenBabelConformerAdapter
+from hotpot.cheminfo.adapters.openbabel.forcefields import _native_module
 from .acceptance import (
     _format_geometry_checks,
     evaluate_structure_acceptance,
@@ -24,7 +24,7 @@ from .backend import (
     _resolve_complex_forcefield,
     _resolve_organic_forcefield,
 )
-from ..rules.physics.forcefields.contracts import OptimizationStoppingCriteria
+from hotpot.cheminfo.rules.physics.forcefields.contracts import OptimizationStoppingCriteria
 from .contracts import (
     AcceptanceLevel,
     Build3DReport,
@@ -47,10 +47,7 @@ from .contracts import (
     StructureAcceptanceThresholds,
     TrajectoryPath,
 )
-from .coordination import (
-    _require_explicit_complex,
-    prepare_coordination_geometry,
-)
+from .coordination import _require_explicit_complex
 from hotpot.cheminfo.adapters.native.forcefields.native import (
     ComplexOptimizationOptions,
     CoordinationStageOptions,
@@ -78,9 +75,9 @@ from hotpot.cheminfo.adapters.native.forcefields.reports import (
     CoordinationStageResult,
     _coordination_stage_result,
 )
-from ..structure.forcefields import TopologyReference
-from ..adapters.structure.forcefields import capture_topology
-from hotpot.cheminfo.forcefields.trajectory import (
+from hotpot.cheminfo.structure.forcefields import TopologyReference
+from hotpot.cheminfo.adapters.structure.forcefields import capture_topology
+from hotpot.cheminfo.operations.forcefields.trajectory import (
     ForceFieldTrajectory,
     ForceFieldTrajectoryArchive,
 )
@@ -97,8 +94,7 @@ from .workers import (
 
 
 if TYPE_CHECKING:
-    from ..core import Molecule
-    from ..obWrappers import _ob_native
+    from hotpot.cheminfo.obWrappers import _ob_native
 
 
 __all__ = (
@@ -193,7 +189,6 @@ def _prepare_complex_working_mol(
     perturb_sigma: float = 0.5,
     trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
     trajectory_path: Optional[TrajectoryPath] = None,
-    coordination_geometry: Optional[str],
     sampler: Optional[ConformerSampler] = None,
     source: tuple | None = None,
 ) -> _PreparedComplex:
@@ -272,10 +267,6 @@ def _prepare_complex_working_mol(
     diagnostics = cast(ComplexBuildDiagnostics, result.diagnostics)
     for message in diagnostics.warning_messages:
         warnings.warn(message, ComplexBuildWarning, stacklevel=3)
-    if coordination_geometry is not None:
-        prepare_coordination_geometry(
-            working_mol, strategy=coordination_geometry, seed=seed
-        )
     return _PreparedComplex(
         mol=working_mol,
         diagnostics=diagnostics,
@@ -497,7 +488,6 @@ def _complexes_build_workflow(
     increasing_vdw: bool = False,
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
-    coordination_geometry: Optional[str] = None,
     sampler: Optional[ConformerSampler] = None,
 ) -> ComplexBuildReport:
     """Build, optimize, validate, and atomically commit a complete complex."""
@@ -522,7 +512,6 @@ def _complexes_build_workflow(
         perturb_sigma=perturb_sigma,
         trajectory_start=trajectory_start,
         trajectory_path=trajectory_path,
-        coordination_geometry=coordination_geometry,
         sampler=sampler,
         source=source,
     )
@@ -633,7 +622,6 @@ def _complexes_build_workflow(
             ("candidate_score_steps", candidate_score_steps),
             ("best_candidate_refine_steps", best_candidate_refine_steps),
             ("ligand_untangling_attempts", ligand_untangling_attempts),
-            ("coordination_geometry", coordination_geometry),
             ("add_hydrogens", add_hydrogens),
             ("sampler", type(sampler).__module__ + "." + type(sampler).__qualname__
              if sampler is not None else "hotpot.cheminfo.conformers.OpenBabelConformerAdapter"),
@@ -658,7 +646,6 @@ def _complexes_build_workflow(
 
 
 # Public force-field and coordination interfaces, ordered from primitives to workflows.
-
 
 
 def _build3d_workflow(
@@ -840,7 +827,6 @@ def _build_complex3d_workflow(
     save_movie: bool = False,
     trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
     trajectory_path: Optional[TrajectoryPath] = None,
-    coordination_geometry: Optional[str] = None,
     sampler: Optional[ConformerSampler] = None,
 ) -> ComplexBuildReport:
     """Build ligand proxies and restore the complete complex topology."""
@@ -865,7 +851,6 @@ def _build_complex3d_workflow(
         perturb_sigma=perturb_sigma,
         trajectory_start=trajectory_start,
         trajectory_path=trajectory_path,
-        coordination_geometry=coordination_geometry,
         sampler=sampler,
         source=source,
     )
@@ -945,7 +930,6 @@ def _build_complex3d_workflow(
             ("candidate_score_steps", candidate_score_steps),
             ("best_candidate_refine_steps", best_candidate_refine_steps),
             ("ligand_untangling_attempts", ligand_untangling_attempts),
-            ("coordination_geometry", coordination_geometry),
             ("add_hydrogens", add_hydrogens),
             ("sampler", type(sampler).__module__ + "." + type(sampler).__qualname__
              if sampler is not None else "hotpot.cheminfo.conformers.OpenBabelConformerAdapter"),
@@ -983,7 +967,6 @@ def build_complex3d(
     save_movie: bool = False,
     trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
     trajectory_path: Optional[TrajectoryPath] = None,
-    coordination_geometry: Optional[str] = None,
 ) -> ComplexBuildReport:
     """Build ligand proxies and restore the complete complex topology.
 
@@ -1012,7 +995,6 @@ def build_complex3d(
         save_movie=save_movie,
         trajectory_start=trajectory_start,
         trajectory_path=trajectory_path,
-        coordination_geometry=coordination_geometry,
     )
 
 
@@ -1165,7 +1147,6 @@ def _build_and_optimize_workflow(
     coordination_restoration_attempts: int = 20,
     coordination_relaxation_steps: int = 100,
     complex_untangling_attempts: int = 30,
-    coordination_geometry: Optional[str] = None,
     sampler: Optional[ConformerSampler] = None,
 ) -> ForceFieldWorkflowReport:
     """Build and optimize through the organic or complex workflow."""
@@ -1203,7 +1184,6 @@ def _build_and_optimize_workflow(
             increasing_vdw=increasing_vdw,
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
-            coordination_geometry=coordination_geometry,
             sampler=sampler,
         )
 
@@ -1282,7 +1262,6 @@ def complexes_build(
     increasing_vdw: bool = False,
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
-    coordination_geometry: Optional[str] = None,
 ) -> ComplexBuildReport:
     """Build, optimize, validate, and atomically commit a complete complex.
 
@@ -1323,7 +1302,6 @@ def complexes_build(
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
-        coordination_geometry=coordination_geometry,
     )
 
 
@@ -1358,7 +1336,6 @@ def build_and_optimize(
     coordination_restoration_attempts: int = 20,
     coordination_relaxation_steps: int = 100,
     complex_untangling_attempts: int = 30,
-    coordination_geometry: Optional[str] = None,
 ) -> ForceFieldWorkflowReport:
     """Build and optimize through the organic or complex workflow.
 
@@ -1399,5 +1376,4 @@ def build_and_optimize(
         coordination_restoration_attempts=coordination_restoration_attempts,
         coordination_relaxation_steps=coordination_relaxation_steps,
         complex_untangling_attempts=complex_untangling_attempts,
-        coordination_geometry=coordination_geometry,
     )

@@ -3,28 +3,26 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional, Sequence, Tuple, Union
+from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-from ..rules.mathematics import geometry as geo
-from ..structure._selection import _capture_topology_selection, _selected_bonds
+from hotpot.cheminfo.rules.mathematics import geometry as geo
+from hotpot.cheminfo.structure._selection import _capture_topology_selection, _selected_bonds
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from .backend import _single_ob_optimization
 from .contracts import RingUntanglingReport
-from .coordinates import _copy_coordinates, _perturbed_coordinates
+from .coordinates import _perturbed_coordinates
+from hotpot.cheminfo.rules.physics.forcefields.coordinates import _copy_coordinates
 from hotpot.cheminfo.rules.physics.forcefields.settings import _BOND_RING_MAX_SIZE
-from ..adapters.structure.forcefields import _bond_key
-from ..structure.forcefields import BondTopology
-from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.adapters.structure.forcefields import _bond_key
+from hotpot.cheminfo.structure.forcefields import BondTopology
+from hotpot.cheminfo.operations.forcefields.trajectory import ForceFieldTrajectory
 from hotpot.cheminfo.structure.forcefields import (
     RingFrameEvidence,
     TrajectoryEvent,
     TrajectoryStage,
 )
-
-if TYPE_CHECKING:
-    from ..core import Bond, Molecule, Ring
 
 
 __all__ = ()

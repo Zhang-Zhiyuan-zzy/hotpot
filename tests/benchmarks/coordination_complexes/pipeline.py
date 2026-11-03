@@ -136,7 +136,7 @@ def _run_forcefield_backend(
     index: int,
 ) -> _ForceFieldOutcome:
     """Run one configured backend without an external duplicate quality gate."""
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     options = _forcefield_options(ff, settings, index)
     if backend.name == "hotpot":
@@ -343,7 +343,7 @@ def _run_case(
 ) -> dict[str, object]:
     """Run one end-to-end case in a spawn-safe worker process."""
     from hotpot import read_mol
-    from hotpot.cheminfo import forcefields as ff
+    from hotpot.cheminfo.operations import forcefields as ff
 
     backend = BUILTIN_BACKENDS[backend_name]
     case_dir = Path(output_root_text) / "cases" / f"{index:04d}"

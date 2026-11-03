@@ -6,14 +6,14 @@ import pytest
 from hotpot import Molecule, read_mol
 from hotpot.cheminfo.rules.mathematics import geometry
 from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
-from hotpot.cheminfo.forcefields import acceptance as acceptance_impl
-from hotpot.cheminfo.forcefields import attempts
-from hotpot.cheminfo.forcefields import backend as ob_backend
-from hotpot.cheminfo.forcefields import coordinates as coordinate_utils
-from hotpot.cheminfo.forcefields import optimizer as optimizer_impl
-from hotpot.cheminfo.forcefields import ff
-from hotpot.cheminfo.forcefields import workflows
-from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.operations.forcefields import acceptance as acceptance_impl
+from hotpot.cheminfo.operations.forcefields import attempts
+from hotpot.cheminfo.operations.forcefields import backend as ob_backend
+from hotpot.cheminfo.operations.forcefields import coordinates as coordinate_utils
+from hotpot.cheminfo.operations.forcefields import optimizer as optimizer_impl
+from hotpot.cheminfo.operations.forcefields import ff
+from hotpot.cheminfo.operations.forcefields import workflows
+from hotpot.cheminfo.operations.forcefields.trajectory import ForceFieldTrajectory
 from hotpot.cheminfo.structure.forcefields import (
     OptimizationFrameEvidence,
     TrajectoryEvent,

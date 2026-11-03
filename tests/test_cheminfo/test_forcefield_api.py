@@ -9,14 +9,14 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
-from hotpot.cheminfo import forcefields as ff_api
-from hotpot.cheminfo.forcefields import attempts
-from hotpot.cheminfo.forcefields import backend as ob_backend
-from hotpot.cheminfo.forcefields.contracts import BuildWorkerResult
-from hotpot.cheminfo.forcefields import ligand
-from hotpot.cheminfo.forcefields import workers
-from hotpot.cheminfo.forcefields import workflows
-from hotpot.cheminfo.forcefields import ff
+from hotpot.cheminfo.operations import forcefields as ff_api
+from hotpot.cheminfo.operations.forcefields import attempts
+from hotpot.cheminfo.operations.forcefields import backend as ob_backend
+from hotpot.cheminfo.operations.forcefields.contracts import BuildWorkerResult
+from hotpot.cheminfo.operations.forcefields import ligand
+from hotpot.cheminfo.operations.forcefields import workers
+from hotpot.cheminfo.operations.forcefields import workflows
+from hotpot.cheminfo.operations.forcefields import ff
 from hotpot.cheminfo.core import Molecule
 
 
@@ -362,7 +362,7 @@ def test_build_and_optimize_organic_builds_then_optimizes_once(monkeypatch):
 def test_auto_optimize_dispatches_organic_molecules_to_ordinary_optimizer(
     monkeypatch,
 ):
-    from hotpot.cheminfo.forcefields import auto as auto_workflow
+    from hotpot.cheminfo.operations.forcefields import auto as auto_workflow
 
     molecule = read_mol("C", "smi")
     calls = []
@@ -997,9 +997,22 @@ def test_organic_combined_workflow_requests_hydrogen_addition_once(monkeypatch):
         ff.build_complex3d,
         ff.optimize_complex,
         ff.complexes_build,
-        ff.prepare_coordination_geometry,
     ),
 )
 def test_public_forcefield_functions_reject_an_unknown_option(public_function):
     with pytest.raises(TypeError):
         public_function(object(), misspelled_option=True)
+
+
+def test_openbabel_seed_hook_uses_the_adapter_native_lookup(monkeypatch):
+    from hotpot.cheminfo.adapters.openbabel import forcefields as adapter
+
+    received = []
+    monkeypatch.setattr(
+        adapter, "_native_module", lambda: SimpleNamespace(seed_random=received.append),
+    )
+
+    assert ob_backend._seed_openbabel_random is adapter._seed_openbabel_random
+    ob_backend._seed_openbabel_random(37)
+
+    assert received == [37]

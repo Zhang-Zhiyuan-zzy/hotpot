@@ -1095,7 +1095,7 @@
       "additional_requirements": [
         "fresh external values; I/O/thermo/visualization contracts; matrix convention; no carrier toolkit ownership"
       ],
-      "execution_status": "Stage7A IN_PROGRESS/Stage7B PREENTRY. Current CP311 source business selection22passed and current installed-wheel selection76distinct passed, plus core/inference/forcefield installed smoke RC0; first installed stdin/spawn73pass/3fail and exact3case standard-CLI rerun preserved. Current source/wheel work is bounded and does not close H/isotope/stereo transport, full-version, clean-native/ABI/SDK, general-science, performance, memory or global gates. Earlier dated frozen-source fields and checkpoint values retain their own historical scope.",
+      "execution_status": "Stage7A IN_PROGRESS/Stage7B PREENTRY. Latest CP311 MCA CLI domain-containment repair:67focused source passes,3actual-model source passes and37installed CLI/model passes outside checkout with159actual installed Hotpot modules. Preserve original charged-middle batch failure/empty output and earlier22/76dated business selections; do not relabel old snapshots as current full validation. H/isotope/stereo transport, completeSDF native memory, deferred version/build/science/performance/global obligations remain open.",
       "preentry_evidence": [
         "stages/stage07/preentry-conversion/review.md",
         "stages/stage07/preentry-conversion/evidence.json"
@@ -3181,6 +3181,68 @@
         "post_check": "off",
         "geometry_optimization_or_gate_acceptance": false,
         "scope": "CP311 source; real official xTB6.7.1 singlepoint only. Actual report/finite energies/order retained, no universal native invocation, wheel, recovery, memory or performance conclusion.",
+        "stage_gate_closed": false,
+        "global_gate_closed": false
+      },
+      "mca_cli_domain_containment_20261103": {
+        "status": "BOUNDED_CURRENT_CP311_SOURCE_AND_INSTALLED_BUSINESS_REPAIR_VALIDATED",
+        "source_parent": "986973b43f0759ab66dfc76608c1d1b73e69d2f1",
+        "business_priority": 4,
+        "production_files": [
+          "hotpot/cheminfo/AImodels/mca/cli.py",
+          "hotpot/cheminfo/AImodels/mca/serialization.py"
+        ],
+        "diagnostic": "MCA.INPUT_REJECTED: original one-based molecule ordinal plus existing validate_dto reason; local CLI rejection, no value, continue accepted cohort, aggregate1",
+        "preserved": "One existing batched predictor; model weights/features/routing and ordinary Python predict/iter_predict fail-fast contract; unexpected normalization/inference/attribution errors remain fatal.",
+        "actual_test": "tests/mca/test_cli_actual_model.py::test_actual_model_cli_keeps_charged_rejection_local",
+        "checks": {
+          "before": {
+            "failed": 1,
+            "evidence": {
+              "path": "/tmp/hotpot_plan20/long/stage7a-mca-mixed-failure-20261103/regression-before/execution.json",
+              "bytes": 17717,
+              "sha256": "b52883b4f1cd9f78d61f3c09c8432af99769202428172f1334dde13d65f0ef44"
+            }
+          },
+          "focused": {
+            "passed": 67,
+            "failed": 0,
+            "skipped": 0,
+            "evidence": {
+              "path": "/tmp/hotpot_plan20/long/stage7a-mca-mixed-failure-20261103/focused/attempt3/execution.json",
+              "bytes": 2413,
+              "sha256": "4090c5fee1f290947556b89e936d05d48af3c8c0fa1fbc05c0e0fbb307d4a101"
+            }
+          },
+          "actual_source": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0,
+            "evidence": {
+              "path": "/tmp/hotpot_plan20/long/stage7a-mca-mixed-failure-20261103/regression-after/execution.json",
+              "bytes": 23523,
+              "sha256": "89f5df32fc206823ea045dbdb60c5bc097f8132bcd54773182f38adb13cca4b8"
+            }
+          },
+          "installed": {
+            "passed": 37,
+            "failed": 0,
+            "skipped": 0,
+            "actual_hotpot_modules": 159,
+            "evidence": {
+              "path": "/tmp/hotpot_plan20/long/stage7a-mca-mixed-failure-20261103/installed/execution.json",
+              "bytes": 6988,
+              "sha256": "6cad4bfc823d09bf73309790dab42d965fc36ae90c557c838e8aff337c78dd35"
+            }
+          }
+        },
+        "archive": ".plan20-artifacts/20261103/stage7a/mca-cli-domain-containment/",
+        "report": "plan/20_fact_rule_architecture/cp311_core_workflow_validation_20261103.md",
+        "limits": [
+          "Selections overlap; counts do not sum to independent business capabilities.",
+          "Installed Python/resource wheel reuses6native extensions and shares dependencies; no clean native/ABI/SDK/manylinux/all-version or GPU hardware claim.",
+          "Does not recover damaged parsing/normalization streams or migrate Stage7C/8D result/workflow ownership."
+        ],
         "stage_gate_closed": false,
         "global_gate_closed": false
       }

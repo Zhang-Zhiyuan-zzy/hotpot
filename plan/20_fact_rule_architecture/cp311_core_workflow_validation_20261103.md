@@ -145,3 +145,25 @@ H/同位素原始诊断与失败写入尝试共10份文件、164413字节，已�
 测试不锁定精确能量、运行时间或一组“唯一正确”构象。它要求有限能量、合法请求归因、3记录分母、两个成功记录的原顺序/坐标和单点不提交行为；序列化后的能量只与同一次计算报告对应。输入均为完整图H，故不掩盖或解决前述H表示缺陷。安装依然共享既有依赖、复用6个扩展，没有新增干净native构建或全版本结论。
 
 源码证据：`/tmp/hotpot_plan20/long/stage7a-cp311-mixed-xtb-regression-20261103/execution.json`；安装证据：`/tmp/hotpot_plan20/long/stage7a-cp311-mixed-xtb-installed-20261103/execution.json`。两组原始XML、输入/输出、真实计算报告、日志及源身份分别归档于 `.plan20-artifacts/20261103/stage7a/mixed-xtb-regression-source/` 与 `mixed-xtb-regression-installed/`。这些是新增的局部证据，不重写前述22项/76项选择及其原始失败，也不关闭阶段或整体门。
+
+
+## MCA CLI：混合输入的局部拒绝修复
+
+本轮修复一个真实批次中止问题：SMI依次包含`CN`、`C[NH3+]`、`CO`，默认拒绝带电输入时，原CLI在整窗预处理中抛出ValueError，结果文件为空；两个独立有效分子也没有输出。直接复现与新增真实模型回归的原始失败均保留。
+
+现在CLI对每个已解析输入只规范化一次，按原始1-based序号运行既有MCA域检查；仅将该检查的ValueError转成`MCA.INPUT_REJECTED`诊断并继续。接受的不可变MoleculeDTO复用原批量预测器和站点/特征工作池，不建立每分子模型会话。成功结果保留原始编号；拒绝记录不制造预测值、不进入绘图，存在拒绝时整体返回1。全拒绝时保留逐项诊断并返回1。普通Python `predict`/`iter_predict`保留原来的异常/返回合约。
+
+解析、规范化与科学事实准备异常，以及推理、后端、缺失/多余输出等归因完整性错误仍为故障。本轮不恢复损坏文件流，不重设计MCA公共结果、权重、特征编码或Stage7C结果所有者。非绘图批次只保留待对应序号；绘图只对应成功分子。预测器提前停止时，在首个缺失结果处报错，避免继续规范化任意长的剩余输入流。
+
+| 执行边界 | 实际结果 | 覆盖与限制 |
+|---|---:|---|
+| 修改前直接CLI与新增模型回归 | 直接RC1/空结果；回归1 failed | 现有带电域错误中止整个窗口；失败日志、输入、空输出保留。 |
+| 最终CP311源码局部CLI/DTO/GPU路由选择 | 67 passed、0 failed、0 skipped | 首/中/末拒绝、全拒绝、单个幸存者、绘图对应、缺失/多余结果、故障传播及有限读取；GPU路由为合约测试，非GPU硬件推理。 |
+| CP311源码实际本地模型选择 | 3 passed、0 failed、0 skipped | 新混合批次回归，以及既有Python单个/批量和带电拒绝/显式opt-in用例。 |
+| 源码目录外的当前CP311安装包 | 37 passed、0 failed、0 skipped | 完整CLI测试文件与同一真实模型回归；实际pytest进程159个Hotpot模块均来自选定安装目录。 |
+
+混合批次实际返回1，输出仅包含Molecule1与Molecule3，分别有完整C/N与C/O行。当前FP16观察值为308.75/489.50和283.50/318.25kJ/mol；这些是所选模型的预测，新增测试只要求有限、完整、正确对应的行，不把数值当成实验真值或固定golden。两种执行边界均保留原始输入。源码检查期间相关代码/测试身份保持；安装后的两个生产文件与CLI文档同当前源码。源码模型运行的模块归因另在导入进程记录；安装包的159个模块归因来自实际pytest进程，二者不混称。
+
+安装包由基准提交`986973b`加本轮三个MCA生产/文档文件的明确覆盖组成，标准Python/resource wheel复用6个未变CP311扩展，在新`--system-site-packages` venv中`--no-deps`安装。它支持当前修复的实际安装边界，未取得干净native/ABI/SDK、完整依赖解析、manylinux、其他Python版本或真实GPU结论。
+
+完整命令、环境、实际源/模型/wheel/native身份、JUnit、原始失败与成功输出位于`/tmp/hotpot_plan20/long/stage7a-mca-mixed-failure-20261103/`；项目原样归档为`.plan20-artifacts/20261103/stage7a/mca-cli-domain-containment/`。`focused/attempt3`、`regression-after`和`installed`分别拥有上述67/3/37结果；这些选择有交集，不能相加为独立业务能力数。旧22/76项结果保持其原时间与来源，不被改写为新快照的全量通过。Stage7A仍为IN_PROGRESS；SDF native分配寿命、H/同位素/立体连接迁移和后续/全局验收仍未完成。

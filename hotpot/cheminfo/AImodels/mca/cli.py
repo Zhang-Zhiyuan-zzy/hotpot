@@ -6,6 +6,7 @@ import argparse
 import itertools
 import os
 import sys
+from collections import deque
 from contextlib import ExitStack, nullcontext
 from importlib import resources
 from pathlib import Path
@@ -18,6 +19,7 @@ from hotpot.cheminfo.operations.io import MolReader
 from .api import MCACpuPredictor, MCAGpuPredictor
 from .gpu_memory import SUPPORTED_GPU_BATCH_SIZES
 from .pipeline import DEFAULT_CONFORMER_SEED
+from .serialization import normalize_molecule, validate_dto
 
 
 def load_cli_documentation() -> str:
@@ -233,15 +235,45 @@ def run(args: argparse.Namespace) -> int:
         "allow_charged": args.allow_charged,
         "model_source": args.model_source,
     }
+    rejected = False
+    pending_indices = deque()
+    pending_plot_molecules = deque()
     plot_molecules = []
-
-    def tracked_molecules():
-        for molecule in molecules:
-            if args.plot:
-                plot_molecules.append(molecule)
-            yield molecule
-
     plot_predictions = []
+
+    def accepted_molecules():
+        nonlocal rejected
+        for index, molecule in enumerate(molecules, start=1):
+            dto = normalize_molecule(molecule)
+            try:
+                validate_dto(dto, index, args.allow_charged)
+            except ValueError as error:
+                rejected = True
+                print(f"MCA.INPUT_REJECTED: molecule {index}: {error}", file=sys.stderr)
+                continue
+            pending_indices.append(index)
+            if args.plot:
+                pending_plot_molecules.append(molecule)
+            yield dto
+
+    def paired_predictions(predictor):
+        accepted = accepted_molecules()
+        for prediction in predictor.iter_predict(accepted):
+            if not pending_indices:
+                raise RuntimeError("MCA prediction integrity error: extra prediction")
+            index = pending_indices.popleft()
+            if args.plot:
+                plot_molecules.append(pending_plot_molecules.popleft())
+                plot_predictions.append(prediction)
+            yield index, prediction
+        # Look only as far as the first missing accepted input.
+        if not pending_indices:
+            next(accepted, None)
+        if pending_indices:
+            raise RuntimeError(
+                "MCA prediction integrity error: missing prediction for "
+                f"molecule {pending_indices[0]}"
+            )
     with ExitStack() as stack:
         if args.backend == "cpu":
             if any(
@@ -292,30 +324,27 @@ def run(args: argparse.Namespace) -> int:
             else nullcontext(sys.stdout)
         )
         stream = stack.enter_context(output_context)
-        predictions = iter(predictor.iter_predict(tracked_molecules()))
+        predictions = iter(paired_predictions(predictor))
         first = next(predictions, None)
         second = next(predictions, None)
-        if first is not None and second is None:
-            stream.write(f"{_format_table(first)}\n")
-            if args.plot:
-                plot_predictions.append(first)
+        if first is not None and second is None and not rejected:
+            stream.write(f"{_format_table(first[1])}\n")
         elif first is not None:
-            for index, prediction in enumerate(
-                itertools.chain((first, second), predictions),
-                start=1,
-            ):
-                if index > 1:
+            pairs = (
+                (first,) if second is None
+                else itertools.chain((first, second), predictions)
+            )
+            for output_index, (index, prediction) in enumerate(pairs):
+                if output_index:
                     stream.write("\n")
                 stream.write(
                     f"Molecule {index}: {prediction.smiles}\n"
                     f"{_format_table(prediction)}\n"
                 )
-                if args.plot:
-                    plot_predictions.append(prediction)
 
-    if args.plot:
+    if args.plot and plot_predictions:
         save_plot(plot_molecules, plot_predictions, args.plot, args.all_site)
-    return 0
+    return int(rejected)
 
 
 def build_parser() -> argparse.ArgumentParser:

@@ -193,3 +193,60 @@ def test_cuda_startup_error_at_threshold_is_not_hidden_by_cpu_fallback(
 
     with pytest.raises(RuntimeError, match="CUDA startup failed"):
         list(predictor.iter_predict(("boundary",)))
+
+
+def test_gpu_routing_accepts_existing_dto_through_normal_preparation(monkeypatch):
+    from mca.serialization import normalize_molecule
+
+    dto = normalize_molecule("CN")
+    monkeypatch.setattr(module, "MCACpuPredictor", _CpuPredictor)
+    predictor = MCAGpuPredictor(gpu_count=1)
+    monkeypatch.setattr(
+        predictor,
+        "_ensure_gpu_started",
+        lambda: pytest.fail("Single amine remains below the GPU site threshold"),
+    )
+    assert list(predictor.iter_predict((dto,))) == ["cpu-result"]
+    prepared = _CpuPredictor.instances[0].prepared
+    assert len(prepared) == 1
+    assert prepared[0].molecule == dto
+    assert prepared[0].sites == ((1, "Amine"),)
+
+
+def test_gpu_python_predictor_keeps_fail_fast_domain_validation(monkeypatch):
+    from mca.serialization import normalize_molecule
+
+    monkeypatch.setattr(module, "MCACpuPredictor", _CpuPredictor)
+    predictor = MCAGpuPredictor(gpu_count=1)
+    with pytest.raises(ValueError, match="outside the validated domain"):
+        list(predictor.iter_predict((normalize_molecule("C[NH3+]"),)))
+    assert _CpuPredictor.instances == []
+
+
+def test_gpu_threshold_routing_keeps_following_dto_on_existing_path(monkeypatch):
+    from mca import pipeline
+    from mca.serialization import normalize_molecule
+
+    first = normalize_molecule("CN")
+    following = normalize_molecule("CO")
+    sites = ((1, "Amine"),) * MIN_GPU_SITE_COUNT
+    monkeypatch.setattr(pipeline, "detect_sites", lambda molecule: sites)
+    monkeypatch.setattr(
+        module,
+        "MCACpuPredictor",
+        lambda **kwargs: pytest.fail("GPU threshold must preserve GPU routing"),
+    )
+    predictor = MCAGpuPredictor(gpu_count=1)
+    started = []
+    monkeypatch.setattr(predictor, "_ensure_gpu_started", lambda: started.append(True))
+
+    def gpu_core(molecules):
+        prepared, remainder = list(molecules)
+        assert prepared.molecule == first
+        assert prepared.sites == sites
+        assert remainder is following
+        return iter(("gpu-result",))
+
+    monkeypatch.setattr(predictor, "_iter_predict", gpu_core)
+    assert list(predictor.iter_predict((first, following))) == ["gpu-result"]
+    assert started == [True]

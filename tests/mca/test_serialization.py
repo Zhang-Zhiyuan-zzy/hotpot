@@ -236,3 +236,33 @@ def test_normalization_supports_both_serialization_import_routes():
         dto = module.normalize_molecule("CCN")
         assert asdict(dto) == expected
         assert _site_records(module.hotpot_mol_from_dto(dto)) == ((2, "Amine"),)
+
+
+def test_own_dto_normalization_reuses_identity_without_preparation(monkeypatch):
+    from mca import serialization
+
+    dto = normalize_molecule("CN")
+    monkeypatch.setattr(
+        serialization,
+        "to_hotpot_mol",
+        lambda value: pytest.fail("DTO must not be converted or prepared again"),
+    )
+    assert normalize_molecule(dto) is dto
+
+
+def test_cpu_preprocess_reuses_dto_and_keeps_domain_checks():
+    from mca.cpu_backend import MCACpuPredictor
+
+    predictor = object.__new__(MCACpuPredictor)
+    predictor.allow_charged = False
+    predictor.max_atoms = 512
+    predictor.conformer_seed = 42
+    dto = normalize_molecule("CN")
+    task = predictor._preprocess_task(dto, 5)
+    assert task.molecule is dto
+    assert task.molecule_index == 5
+    assert task.sites is None
+    assert task.max_atoms == 512
+    assert task.conformer_seed == 42
+    with pytest.raises(ValueError, match="position 6.*outside the validated domain"):
+        predictor._preprocess_task(normalize_molecule("C[NH3+]"), 6)

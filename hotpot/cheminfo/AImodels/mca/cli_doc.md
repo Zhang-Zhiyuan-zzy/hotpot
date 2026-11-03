@@ -94,7 +94,20 @@ $ hotpot mca inputs/*.mol2 --backend gpu > results.txt
 ```
 
 For multiple molecules, the report contains a numbered heading and atom table
-for every molecule.
+for every molecule. Headings retain the original one-based input numbers when
+some inputs are rejected, even if only one prediction remains.
+
+For parsed molecules that violate the existing MCA target-domain checks (explicit
+hydrogen targets, inconsistent molecular/atom charge, or charged inputs without
+`--allow-charged`), the CLI writes `MCA.INPUT_REJECTED` to standard error with the
+original molecule number and exact reason, then continues with accepted inputs
+in the same batched predictor. Rejected inputs have no prediction or plot entry.
+The exit status is 1 if any input was rejected, including when all were rejected;
+otherwise it is 0. An all-rejected call writes no prediction tables or plot.
+Parsing and normalization failures, scientific-fact preparation failures, missing
+or extra predictions, and inference/backend failures remain fatal. This behavior
+does not recover a damaged input-file stream. Python `predict` and `iter_predict`
+retain their fail-fast exception behavior.
 
 ## Plotting MCA values
 

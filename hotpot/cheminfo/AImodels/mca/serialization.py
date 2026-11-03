@@ -74,6 +74,8 @@ def _feature_molecule(value, native_mol: HotpotMolecule) -> Chem.Mol:
 def normalize_molecule(value) -> MoleculeDTO:
     """Normalize one public MCA input exactly once into a process-safe DTO."""
 
+    if isinstance(value, MoleculeDTO):
+        return value
     native_mol = to_hotpot_mol(value)
     with native_mol._mutation_lock:
         from hotpot.cheminfo.operations.chemistry import _require_implicit_hydrogens

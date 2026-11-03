@@ -6,6 +6,7 @@ import pytest
 from hotpot import read_mol
 from hotpot import __main__ as hotpot_main
 from hotpot.cheminfo.AImodels.mca import cli
+from hotpot.cheminfo.AImodels.mca.serialization import MoleculeDTO
 from hotpot.cheminfo.AImodels.mca.result_types import (
     AtomPrediction,
     MoleculePrediction,
@@ -244,3 +245,166 @@ def test_output_open_failure_closes_constructed_predictor(monkeypatch, tmp_path)
 
     assert len(predictors) == 1
     assert predictors[0].closed
+
+
+@pytest.mark.parametrize(
+    "inputs,accepted_indices",
+    [
+        (["C[NH3+]", "CN", "CO"], [2, 3]),
+        (["CN", "C[NH3+]", "CO"], [1, 3]),
+        (["CN", "CO", "C[NH3+]"], [1, 2]),
+        (["C[NH3+]", "CN", "C[NH3+]"], [2]),
+        (["CN", "C[NH3+]"], [1]),
+        (["C[NH3+]", "C[NH3+]"], []),
+    ],
+)
+def test_domain_rejections_keep_original_numbers_and_aggregate_status(
+    monkeypatch, capsys, inputs, accepted_indices
+):
+    calls = []
+
+    class RecordingPredictor(_Predictor):
+        def iter_predict(self, molecules):
+            calls.append(True)
+            for molecule in molecules:
+                assert isinstance(molecule, MoleculeDTO)
+                yield _prediction(molecule.smiles)
+
+    monkeypatch.setattr(cli, "MCACpuPredictor", RecordingPredictor)
+    assert cli.main(inputs) == 1
+    output = capsys.readouterr()
+    headings = [line for line in output.out.splitlines() if line.startswith("Molecule ")]
+    assert [int(line.split()[1].rstrip(":")) for line in headings] == accepted_indices
+    assert output.out.count("MCA(kJ/mol)") == len(accepted_indices)
+    for index, value in enumerate(inputs, start=1):
+        if index in accepted_indices:
+            continue
+        dto = cli.normalize_molecule(read_mol(value))
+        with pytest.raises(ValueError) as error:
+            cli.validate_dto(dto, index)
+        assert f"MCA.INPUT_REJECTED: molecule {index}: {error.value}\n" in output.err
+    assert calls == [True]
+
+
+def test_rejected_molecules_are_excluded_from_plot_join(monkeypatch, tmp_path):
+    monkeypatch.setattr(cli, "MCACpuPredictor", _Predictor)
+    observed = []
+
+    def record_plot(molecules, predictions, path, all_sites):
+        observed.append(([mol.smiles for mol in molecules], [p.smiles for p in predictions]))
+
+    monkeypatch.setattr(cli, "save_plot", record_plot)
+    assert cli.main(["CN", "C[NH3+]", "CO", "--plot", str(tmp_path / "plot.png")]) == 1
+    assert observed == [(["CN", "CO"], ["CN", "CO"])]
+
+
+def test_all_rejected_writes_no_tables_or_plot(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(cli, "MCACpuPredictor", _Predictor)
+    monkeypatch.setattr(cli, "save_plot", lambda *args: pytest.fail("No successful plots"))
+    output = tmp_path / "results.txt"
+    assert cli.main(["C[NH3+]", "-o", str(output), "--plot", str(tmp_path / "plot.png")]) == 1
+    assert output.read_text() == ""
+    assert "MCA.INPUT_REJECTED: molecule 1:" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("count", [0, 1, 3])
+def test_missing_or_extra_predictions_are_fatal(monkeypatch, count):
+    class BrokenPredictor(_Predictor):
+        def iter_predict(self, molecules):
+            list(molecules)
+            return iter([_prediction()] * count)
+
+    monkeypatch.setattr(cli, "MCACpuPredictor", BrokenPredictor)
+    reason = "extra prediction" if count == 3 else "missing prediction"
+    with pytest.raises(RuntimeError, match=reason):
+        cli.main(["CN", "CO"])
+
+
+def test_unconsumed_accepted_inputs_are_detected_as_missing(monkeypatch):
+    class BrokenPredictor(_Predictor):
+        def iter_predict(self, molecules):
+            return iter(())
+
+    monkeypatch.setattr(cli, "MCACpuPredictor", BrokenPredictor)
+    with pytest.raises(RuntimeError, match="missing prediction for molecule 1"):
+        cli.main(["CN"])
+
+
+@pytest.mark.parametrize("boundary", ["normalize", "validate", "infer", "parse"])
+def test_only_domain_validation_value_errors_are_local(monkeypatch, capsys, boundary):
+    monkeypatch.setattr(cli, "MCACpuPredictor", _Predictor)
+    error_type = RuntimeError if boundary == "validate" else ValueError
+
+    def fail(*args, **kwargs):
+        raise error_type(f"fatal {boundary}")
+
+    if boundary == "infer":
+        monkeypatch.setattr(_Predictor, "iter_predict", fail)
+    else:
+        owner = {"normalize": "normalize_molecule", "validate": "validate_dto", "parse": "_read_molecules"}[boundary]
+        monkeypatch.setattr(cli, owner, fail)
+    with pytest.raises(error_type, match=f"fatal {boundary}"):
+        cli.main(["CN"])
+    assert "MCA.INPUT_REJECTED" not in capsys.readouterr().err
+
+
+def test_allow_charged_preserves_all_success_single_table(monkeypatch, capsys):
+    monkeypatch.setattr(cli, "MCACpuPredictor", _Predictor)
+    assert cli.main(["C[NH3+]", "--allow-charged"]) == 0
+    output = capsys.readouterr()
+    assert output.out == cli._format_table(_prediction("C[NH3+]")) + "\n"
+    assert output.err == ""
+
+
+def test_nonplot_batch_does_not_retain_source_molecules(monkeypatch, capsys):
+    import gc
+    import weakref
+
+    dto = cli.normalize_molecule(read_mol("CN"))
+    references = []
+    normalizations = []
+
+    class Source:
+        pass
+
+    def sources(*args):
+        for _ in range(300):
+            molecule = Source()
+            references.append(weakref.ref(molecule))
+            yield molecule
+
+    def normalize(molecule):
+        normalizations.append(id(molecule))
+        return dto
+
+    class SpoolingPredictor(_Predictor):
+        def iter_predict(self, molecules):
+            accepted = list(molecules)
+            gc.collect()
+            assert all(reference() is None for reference in references)
+            return (_prediction(value.smiles) for value in accepted)
+
+    monkeypatch.setattr(cli, "_read_molecules", sources)
+    monkeypatch.setattr(cli, "normalize_molecule", normalize)
+    monkeypatch.setattr(cli, "MCACpuPredictor", SpoolingPredictor)
+    assert cli.main(["unused"]) == 0
+    assert len(normalizations) == 300
+    assert capsys.readouterr().out.count("MCA(kJ/mol)") == 300
+
+
+@pytest.mark.parametrize("consumed", [0, 1])
+def test_early_predictor_stop_checks_only_first_missing_input(monkeypatch, consumed):
+    def sources(*args):
+        yield read_mol("CN")
+        pytest.fail("Missing-result detection must not consume later inputs")
+
+    class BrokenPredictor(_Predictor):
+        def iter_predict(self, molecules):
+            if consumed:
+                next(molecules)
+            return iter(())
+
+    monkeypatch.setattr(cli, "_read_molecules", sources)
+    monkeypatch.setattr(cli, "MCACpuPredictor", BrokenPredictor)
+    with pytest.raises(RuntimeError, match="missing prediction for molecule 1"):
+        cli.main(["unused"])

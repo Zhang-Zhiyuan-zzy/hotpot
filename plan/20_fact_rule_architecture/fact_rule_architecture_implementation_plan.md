@@ -4,8 +4,8 @@ Status: **implementation authorized on 2026-10-28; Stage0–8A owning-stage gate
 complete within their recorded scopes. Stage8A A1–A11 scientific-state separation,
 non-mutating extraction, H presence, approved detailed reports/confidence retirement,
 preparation diagnostics and existing Lewis complete-H applicability are root accepted
-within CP311 source/installed scope. Stage8B B1 consolidation and B2 pure acceptance/
-capture separation are root accepted within CP311; B3/B4 and the owning gate remain open. Stage8C–E have not entered. Optional scientific
+within CP311 source/installed scope. Stage8B B1 consolidation, B2 pure acceptance/capture separation and B3a native
+ownership are root accepted within CP311; Python B3/B4 and the owning gate remain open. Stage8C–E have not entered. Optional scientific
 activation, remaining stages, full scientific/engineering, version-adaptation and
 global acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
@@ -2146,6 +2146,15 @@ public metrics and one-scan/checkpoint reuse. Source283focused and source/instal
 990affected+7skipped pass with the same997orderednodes; actual3pipeline+3MCA pass
 each. Original static/checker failures, skips and numerical variation are retained.
 Six unchanged natives are reused; B3/B4, full Stage8B and later/global gates remain.
+
+The [B3a CP311 checkpoint](stages/stage08/forcefields/validation/b3a/checkpoint.json)
+accepts the native input/rule/operation/reference/adapter physical cutover:36old
+files retire into47final files, with20FF TUs linked once into the actual rebuilt
+_ob_native and five other binaries reused. Source400focused,12native fences
+(11executable/1compile-only), source/installed990affected+7skipped of997 and
+actual3pipeline+3MCA per boundary pass. Original tool/stale-test-path failures and
+actual numerical variation remain. This is no global ABI/performance or full
+Stage8B acceptance; Python/backend/CLI B3, B4 and later/global gates stay open.
 
 #### Stage 8C — Search
 

@@ -5188,3 +5188,168 @@ this evidence and exact obsolete-allowance retirement. B3 native/operation/backe
 CLI and B4 finding-control/sample containment, full Stage8B standalone/scientific/
 benchmark evidence and all later/global obligations remain open. No performance,
 clean-native/ABI/SDK/sdist/manylinux/all-version or whole-Stage8B claim is made.
+
+
+## 2026-11-03 — B3a native cutover entry and source authoring
+
+B2 is committed and pushed as13a23ce28a7bd1aaf16f825ef31711809baa61e7. Root/max
+aligns the existing Stage8B route with the effective goal, main-plan6/9.2/Stage8B,
+accepted companion decisions, verification/integrated requirements and actual B2
+CP311 source/installed/model/backend observations. Both governance references and
+the governance/stage/validation skills apply. B3a entry/rebind records preserve
+36native files and connected source/build/driver inputs; only the earliest native.py
+lookup differs by the already accepted B1 canonical stopping criteria translation.
+Shared-input and narrow session selections match fully; no repeat broad inventory.
+
+Root accepts the companion B3a design before source authoring: canonical existing
+ComplexSessionInput at structure, pure native policy at rules, operation sessions/
+controllers/cache/trajectory, external binding/session mechanics at adapters and
+one immutable vendor-radius reference seam. Keep one _ob_native and standalone
+wrapper engine, exact class/default/exception/layout/algorithm and mask/aromatic/
+revision semantics. No new class/schema/guard/fallback/engine or transactional bond
+rollback guarantee. Cross-owner includes are explicit; all16old TUs retire, with
+20split TUs each compiled once. Existing high-compute drivers migrate coherently.
+
+Two local existing Sol/medium subagents own disjoint production/build and test
+files, without nested delegation. Root owns design, integration, scientific
+judgment, runtime release, acceptance and Git. Source/test authoring only is
+released: product imports, compilation, tests and model/backend execution remain
+HOLD pending root review and a frozen actual native-build/runtime release.
+B3a covers native physical cutover only; Python/backend/CLI B3, B4 connected
+finding-control/sample containment, full Stage8B and all later/global gates stay
+open. Rollback is the complete coherent source/test/build/record checkpoint.
+
+
+## 2026-11-03 — B3a source review and isolated native build release
+
+Root inspected the canonical input/alias view, operation session/contracts/cache/
+defaults, extracted prepared external mechanics and single raw radius lookup.
+Mask validation/old-requested comparison, ligand int and coordination max1 orders,
+post-EndModify aromatic pass, mutex/lifetime, coordinate comparisons/revisions,
+exception order and finite-positive/0.77radius policy are retained. The25unchanged
+leaf bodies/73class-enum declarations and remaining extraction checks have actual
+static evidence. The36old files retire into47final native files; all20FF TUs occur
+once, all16old TUs retire,128quoted includes resolve. Source/test staged whitespace
+passes before any build. No concrete product defect was established statically.
+
+Root releases isolated native-build/build_single.py attempt01 with the exact
+build-freeze-attempt01.json under /tmp/hotpot_plan20/long/stage8b-b3a-20261103,
+using /tmp/hotpot-plan20-env/bin/python -B and --jobs4. It reuses the actual setup.py
+extension declaration, builds only _ob_native into fresh isolated objects/build-lib,
+records actual commands/output/candidate and checks input drift. Native inputs,
+setup/MANIFEST/pyproject, builder, actual vendor headers/library and pybind headers/
+helper are frozen; the release receipt binds exact argv, interpreter and limits.
+No product runtime is released and no compile/runtime pass is claimed yet.
+
+Independent preparation review found a concrete receipt-attribution gap: installed
+assembly hashes the build receipt but must also check success, unchanged build
+inputs and candidate agreement with the frozen _ob_native. A minimal isolated
+runner correction is assigned before runtime release. This is pre-execution
+validation preparation, not a chemical/native runtime failure. No new framework,
+scientific rule, fallback, threshold or gate waiver is introduced.
+
+
+## 2026-11-03 — B3a rebuilt native adoption and runtime release
+
+The isolated single-_ob_native build completed with outer/child rc0 in35.155s.
+Root rechecked all270build bindings and42fresh objects against42unique declared
+sources, including20new FF TUs, and the linked2838176byte candidate. The original
+stdout-only compile-count checker failed AssertionError:{} before mutation because
+compiler commands were not logged. Retain its record; actual build evidence closes
+that tool assumption without rebuilding. Vendor deprecation warnings remain.
+The prior accepted B2 binary is backed up; verified os.replace adopts candidate
+c74d2e46ba8481c486548f8c4889b0f859abd5ec9532919fe8447871e81e16c7.
+The five other accepted binaries remain unchanged. No runtime pass is claimed yet.
+
+The independent production review found no concrete source defect. Narrow runner
+receipt repair independently matches the actual schema,270flat/121repository
+bindings and candidate bytes. Root also found before execution that conftest marks
+native_cpp high_compute: add --run-high-compute only to the native selection so
+all12required source/header fences execute rather than silently skip. Original
+preparation bytes and both correction records are retained; no business source,
+scientific rule, threshold, fallback or test expectation changes.
+
+Root releases exact source-freeze-b3a-attempt01.json and the sequential prepared
+run_validation.py under /tmp/hotpot_plan20/long/stage8b-b3a-20261103 with
+--source-freeze <that file> --attempt attempt01 --root-runtime-released, using
+/tmp/hotpot-plan20-env/bin/python -B. Expected differences are physical native
+owners only plus declared numerical/stochastic variation. Reject changed facts,
+mapping/defaults/error/revision/rollback semantics, missing real fence execution,
+unbound native/origin/source drift or failed chemical/technical contracts.
+Focused23files,12native fences,complete affected64files,actual3pipeline+3MCA
+and installed affected/actual follow sequentially and stop on first failure.
+Full Stage8B, Python B3/B4, performance and later/global gates remain open.
+
+
+## 2026-11-03 — B3a focused attempt01 stops on a stale source-test path
+
+The released sequential command exits1 at its first focused run:399passed,1failed,
+0skipped of400collected in11.440s; source/native/dependency/origin bindings remain
+unchanged. test_native_geometry_and_forcefield_responsibilities_are_separated
+reads retired forcefields/_native/placement_candidates.cpp and fails FileNotFound.
+The original JUnit/stdout/stderr/receipt and released freeze/manifest remain intact.
+No downstream native/affected/business/installed run began. This is a missed test
+consumer migration, not evidence of failed chemistry. Runtime returns to HOLD;
+local Sol/medium owns the narrow active-test source-path repair. Production/build
+bytes and the rebuilt native stay frozen; root will inspect unchanged assertions,
+refreeze test identities and release one new attempt. No pass or gate is claimed.
+
+
+## 2026-11-03 — B3a focused path repair and attempt02 release
+
+Root reviews exactly two string substitutions in the native-placement source fence:
+placement_candidates/policy reads now name rules/physics/forcefields/_native.
+All85assertions and remaining AST are unchanged;516test source files have no
+remaining literal/statically joined retired native paths. The actual failed
+attempt01 and its exact original manifest remain. Only this Python test differs
+from freeze01; all1445other source/test/resource inputs,270build bindings and
+sixbinaries are unchanged. No native rebuild is necessary.
+
+Root releases source-freeze-b3a-attempt02.json and the same sequential validator
+with --source-freeze <that file> --attempt attempt02 --root-runtime-released.
+This reruns the failed focused gate and proceeds only after it passes, retaining
+required high-compute native fences and complete affected/source/installed/actual
+workflows. No business algorithm, schema, scientific threshold or fallback changed.
+Owning/global gates remain open.
+
+
+## 2026-11-03 — B3a CP311 native ownership accepted
+
+Root accepts only B3a's physical native cutover after the exact sequential
+/tmp/hotpot-plan20-env/bin/python -B /tmp/hotpot_plan20/long/stage8b-b3a-20261103/validation-preparation/run_validation.py --source-freeze /tmp/hotpot_plan20/long/stage8b-b3a-20261103/source-freeze-b3a-attempt02.json --attempt attempt02 --root-runtime-released
+returns0. Source400focused and12native fences pass with0skips; the native selection
+really compiles/executes11fences and compiles one header-only fence in188.149s.
+Source/installed affected each990passed/7skipped of the same997orderednodes across
+64files. Actual3CBond→FF→GFN-FF/GFN2 and3MCA cases pass at both boundaries.
+All1446source/test/resource,6native and3build bindings remain exact; source origins
+are clean, and installed98/5/1startup/final participants reconcile without checkout
+leaks. Wheel473Python bodies and sixbinaries match;41measured package omissions
+remain. One _ob_native is actually rebuilt/adopted; five unchanged binaries are
+reused. The47final native source/header files retain one standalone wrapper engine.
+
+Root's stdlib review_runtime.py returned0 and actual sixpipeline cases/tenlabeled
+MCA observations were inspected, excluding pytest symlink aliases. Charge/donor/
+atom/site joins, full topology and geometry findings, finite method-specific
+energies, expected coordinate publication, source lineage and SDF/native output
+persistence remain attributable. Eu UFF source/installed4.508450148632156/
+4.508443529525409kJ/mol and GFN2−13.53209973/−13.53209873Hartree are retained;
+no equality or unique-truth claim. Scientific spin remains unresolved: backend
+UHF0 is an execution default, not scientific singlet resolution; GFN-FF is charge-only.
+All original skips keep per-boundary reasons. Actual workflows do not turn skips
+into passes. Original stdout-count checker failure, focused399pass/1stale-path
+failure, exact two-string repair, and pre-execution receipt/high-compute fixes stay.
+
+Independent stdlib check_integrity.py and check_metadata.py return0:1781raw files/
+27364139bytes,117archive references,72capsule entries, ordered997/3/3membership
+and frozen input identities pass. Its own original checker assumption and corrected
+checks remain. Historical preparation document hashes are metadata with explicit
+missing-original-byte limits, not fabricated historical rebind. Current authoritative
+source/native/test/build/run freezes remain exact. Maintained checkpoint, report,
+observations and index are under stages/stage08/forcefields/validation/b3a; originals
+and independent checks are .plan20-artifacts/20261103/stage8b/b3a.
+
+Python/backend/CLI B3, B4 finding/control/sample isolation, full Stage8B benchmarks/
+standalone/science and later/global obligations remain open. No controlled cost,
+all-native clean-build, global ABI/SDK/sdist/manylinux/all-version or whole-stage
+claim is made. The coherent native business commit includes connected tests/build
+inputs and records; no separate documentation/bookkeeping-only commit is needed.

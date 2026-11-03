@@ -37,18 +37,24 @@ def _openbabel_paths() -> tuple[Path, Path]:
 
 def test_untangling_engine_cpp_source_api(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[4]
-    forcefields = repository / "hotpot/cheminfo/forcefields/_native"
+    structure = repository / "hotpot/cheminfo/structure/_native"
+    rules = repository / "hotpot/cheminfo/rules/physics/forcefields/_native"
+    adapters = repository / "hotpot/cheminfo/adapters/native/forcefields"
+    operations = repository / "hotpot/cheminfo/operations/forcefields/_native"
     geometry = repository / "hotpot/cheminfo/geometry/_native"
     graph = repository / "hotpot/cheminfo/graph/_native"
     wrappers = repository / "hotpot/cheminfo/obWrappers/_native"
     include, library = _openbabel_paths()
     executable = tmp_path / "untangling_engine_source_api"
     sources = (
-        forcefields / "contracts.cpp",
-        forcefields / "session_optimization.cpp",
-        forcefields / "structure_session.cpp",
-        forcefields / "topology_workspace.cpp",
-        forcefields / "untangling_engine.cpp",
+        structure / "forcefield_input.cpp",
+        operations / "session_contracts.cpp",
+        operations / "session_optimization.cpp",
+        operations / "structure_session.cpp",
+        adapters / "openbabel_session.cpp",
+        rules / "topology_workspace.cpp",
+        operations / "ring_workspace_cache.cpp",
+        operations / "untangling_engine.cpp",
         geometry / "batch.cpp",
         geometry / "cycle_surface.cpp",
         geometry / "nonplanar_surface.cpp",
@@ -81,8 +87,7 @@ def test_untangling_engine_cpp_source_api(tmp_path: Path) -> None:
         "-Wno-error=deprecated-copy",
         "-Wno-error=deprecated-declarations",
         "-D_GLIBCXX_USE_CXX11_ABI=0",
-        f"-I{forcefields}",
-        f"-I{geometry}",
+        f"-I{repository}",
         "-isystem",
         str(include),
         str(Path(__file__).with_name("untangling_engine_source_api.cpp")),

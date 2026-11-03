@@ -742,10 +742,10 @@ def test_native_geometry_and_forcefield_responsibilities_are_separated() -> None
         repository / "hotpot/cheminfo/geometry/_native/construction.cpp"
     ).read_text(encoding="utf-8")
     candidates = (
-        repository / "hotpot/cheminfo/forcefields/_native/placement_candidates.cpp"
+        repository / "hotpot/cheminfo/rules/physics/forcefields/_native/placement_candidates.cpp"
     ).read_text(encoding="utf-8")
     policy = (
-        repository / "hotpot/cheminfo/forcefields/_native/placement_policy.cpp"
+        repository / "hotpot/cheminfo/rules/physics/forcefields/_native/placement_policy.cpp"
     ).read_text(encoding="utf-8")
 
     assert not {"Metal", "Donor", "CovalentRadius", "Reasonable", "Accepted"} & {

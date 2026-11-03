@@ -1,6 +1,6 @@
-#include "session_optimization.hpp"
+#include "hotpot/cheminfo/operations/forcefields/_native/session_optimization.hpp"
 
-#include "openbabel_adapter.hpp"
+#include "hotpot/cheminfo/obWrappers/_native/openbabel_adapter.hpp"
 
 #include <openbabel/mol.h>
 

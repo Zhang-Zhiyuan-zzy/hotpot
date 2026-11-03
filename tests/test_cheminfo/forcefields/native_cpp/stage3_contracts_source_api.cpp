@@ -1,5 +1,5 @@
-#include "stage_contracts.hpp"
-#include "topology_workspace.hpp"
+#include "hotpot/cheminfo/operations/forcefields/_native/stage_contracts.hpp"
+#include "hotpot/cheminfo/rules/physics/forcefields/_native/topology_workspace.hpp"
 
 #include <cassert>
 #include <cmath>

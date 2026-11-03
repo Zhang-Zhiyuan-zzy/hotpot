@@ -1,4 +1,5 @@
-#include "topology_workspace.hpp"
+#include "hotpot/cheminfo/operations/forcefields/_native/ring_workspace_cache.hpp"
+#include "hotpot/cheminfo/rules/physics/forcefields/_native/topology_workspace.hpp"
 
 #include <cassert>
 #include <cmath>

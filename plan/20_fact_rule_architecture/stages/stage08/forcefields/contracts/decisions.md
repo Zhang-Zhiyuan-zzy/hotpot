@@ -234,3 +234,136 @@ B3/B4 and later/global delivery/adaptation obligations remain open.
 Rollback is one coherent B2 code/test/record commit with connected imports/captures.
 Workers have exclusive files, no nested delegation and runtime HOLD until root
 release; root retains design, scientific judgment, acceptance and Git delivery.
+
+
+## B3a — Accepted native ownership cutover
+
+Root/max accepts this bounded native split after B2 acceptance and pushed commit
+13a23ce28a7bd1aaf16f825ef31711809baa61e7. Source/test authoring is released;
+compilation, product execution and all gates remain on HOLD until root review and
+an exact build/runtime release. B3 Python/backend/CLI, B4 connected control,
+scientific/standalone evidence and later/global gates remain required.
+
+### Objective and invariants
+
+Cut over the current36native files once, by semantics, without a second engine or
+an old/new runtime route. Keep one `_ob_native`, the existing `hotpot::forcefields`
+names, real C++/pybind classes/functions/defaults/exceptions/layouts, numeric rules,
+proposal ordering, budgets, coordinate/mask/revision behavior and standalone wrapper.
+New internal functions/header paths are private implementation, not public schema.
+No new class or generic molecule schema, renamed bound class, speculative guard,
+retry or fallback is authorized. Approved old native include paths are hard moves.
+
+The existing read-only native owner/shared-input/session-mechanics reports are the
+source inventory; do not repeat it. Rebind their selected input hashes at entry.
+
+### Canonical owners
+
+All short names below were in `forcefields/_native`. Cross-owner quoted includes
+must spell the actual relative path; never use ambiguous basename include search
+or old-path forwarding headers. Preserve within-owner quoted local includes.
+
+| Destination under cheminfo | Existing definitions / bodies |
+| --- | --- |
+| structure/_native/forcefield_input.hpp/.cpp | Existing ComplexSessionInput, count/validation methods and intrinsic ligand_molecule_view; preserve all fields, order, errors and metal-first intended endpoints. Include canonical `_native/include/hotpot/native/molecule_buffer_view.hpp`, alias canonical BondIndex/BondKind/Coordinate, with identical concrete types. No wrapper or rule dependency. |
+| rules/physics/forcefields/_native | placement_candidates, placement_policy, target_selection, radii, pure topology_workspace; retain existing names/bodies except approved dependency extraction. |
+| rules/physics/forcefields/_native/placement_evidence.hpp | Existing proposal/status/donor/candidate records only. |
+| rules/physics/forcefields/_native/defaults.hpp | Ring limits and placement constants from maximum_actionable_ring_size through duplicate_tolerance; same detail namespace/values. |
+| rules/physics/forcefields/_native/bond_keys.hpp | Existing internal::canonical_bond_key only. |
+| operations/forcefields/_native/session_contracts.hpp/.cpp | Existing PerturbationOffsetBatch and validation, StructureSnapshot. Include the sole structure input. No pure consumer imports operation snapshots. |
+| operations/forcefields/_native/ring_workspace_cache.hpp/.cpp | Existing RingWorkspaceCache, same_options and revision/options/preparation counters; depend downward on pure topology workspace and operation snapshot. |
+| operations/forcefields/_native/placement_reports.hpp | Existing MetalPlacementResult/MetalPlacementReport, include pure placement evidence. |
+| operations/forcefields/_native/defaults.hpp | Existing forcefield, stopping, attempts/steps/epochs, perturbation, VDW and energy defaults; include lower rule defaults when needed. |
+| operations/forcefields/_native/warning_codes.hpp | Existing internal::append_unique only. |
+| operations/forcefields/_native | Existing placement_engine, structure_session/internal, session_optimization, coordination_stage, optimization_stage, untangling_engine, workflow_stage, trajectory, stage_contracts; existing rule/checkpoint-to-operation report bridges stay with their consumer. |
+| adapters/native/forcefields/bindings.hpp/.cpp | Existing complete pybind conversion/registration and exception translation, one registration called from retained wrapper initializer. |
+| adapters/native/forcefields/openbabel_session.hpp/.cpp | Prepared external mechanics extracted from current session/session_optimization, described below. |
+| reference/_native/openbabel_radii.hpp/.cpp | One raw immutable OpenBabel covalent-radius table lookup, described below. |
+
+Do not duplicate generic OwnedMoleculeData or add radius/session fields to
+ComplexSessionInput. Its existing owning vectors remain; const APIs and Python
+read-only copied properties retain current behavior. No general C++ deep
+immutability or borrowed-view lifetime guarantee is added. Workspaces borrow
+const pointers within the current operation lifetime; outputs own their values.
+
+### Immutable radius reference seam
+
+The sole raw reference function is
+`hotpot::reference::openbabel_covalent_radius(unsigned int atomic_number)` returning
+`double`, defined in reference/_native/openbabel_radii.cpp using the exact current
+`OpenBabel::OBElements::GetCovalentRad` call. The header has no OpenBabel include.
+This is immutable vendor table access, not an optimizer/backend implementation;
+retain the same linked OpenBabel table. No copied/replacement radius table.
+
+The rule's existing `covalent_radius(int32_t)` calls this lookup with the same
+unsigned cast, then preserves its finite-positive test, OPENBABEL_COVALENT tag and
+0.77 Angstrom DEFAULT_COVALENT result exactly. The rule has no direct toolkit
+include or adapter/controller dependency. Existing Python-bound radius names and
+values remain. Negative/unknown-input behavior receives no new guards.
+
+### Session-to-external-system boundary
+
+Use internal namespace `hotpot::forcefields::openbabel_session_adapter`. It accepts
+prepared ComplexSessionInput, old/requested masks, coordinates and wrapper-owned
+native optimizer options; never a source Hotpot carrier, StructureSession or
+StructureSnapshot. Do not invent a handle/DTO or move operation decisions into it.
+
+Move the current ligand conversion/validation/allocation to
+`make_session_obmol(const ComplexSessionInput&) -> unique_ptr<OpenBabel::OBMol>`.
+Preserve wrapper compatibility validation before input.validate and make_obmol.
+The operation keeps its one unique_ptr, lifetime and existing mutex-protected
+release; complete OBMol type availability for unique_ptr destruction is type
+plumbing, not external scientific implementation.
+
+Extract the complete existing ligand and coordination edit mechanics into
+prepared adapter functions taking OBMol&, input, old mask and requested mask.
+Operation validates masks, takes existing mutex, handles equal-mask early return,
+then calls mechanics and commits its mask/revision only at the existing boundary.
+Preserve BeginModify/EndModify, exception text/order, zero-to-one-based endpoints,
+ligand int(order), coordination max(1,int(order)), and the separate post-EndModify
+ligand aromatic pass over every requested active bond. No coordination aromatic
+pass is invented. These mutate only the operation-owned external molecule.
+
+Adapter exposes the existing runtime mutex, coordinate extract/set, active bond
+count and single/general optimizer calls by forwarding to the one wrapper engine.
+Keep wrapper-native argument/result/exception types, no conversion DTO/copy path.
+Operation owns coordinate equality/change decisions, before/after comparison,
+mask/component/count/snapshot assembly, revisions, stopping/budget/trajectory and
+rollback/selection. Retarget placement-engine mutex calls to this same adapter
+mutex. Wrapper result/enums/default type dependencies remain their existing one
+owner. No second optimization engine or broad exception fallback.
+
+There is no transactional rollback in the current two bond-edit blocks; extraction
+does not promise one or silently add recovery. Higher controller rollback and the
+working-copy/source atomic-commit route remain their existing operation owners.
+
+### Connected cutover and validation
+
+Update all36old files, exact cross-owner includes, the retained wrapper initializer
+binding include, setup.py's single extension source list and MANIFEST.in. Expected
+20FF-related TUs after contracts/cache/reference/session-adapter splits, each once;
+all16old TU paths retire. Preserve all unrelated extension sources, ABI0/C++17,
+OpenBabel/dl/rpath and the standalone wrapper bodies.
+
+Update the nine existing native_cpp driver/fixture pairs coherently, including
+full source lists/include paths and lower-dependency topology/stage-contract fences.
+The topology fixture keeps its cache/revision-reuse case at the operation owner.
+No stale production path or forwarding header remains. Add narrowly meaningful
+fences for lower-rule dependency isolation, canonical shared concrete aliases,
+reference-radius equivalence and session-mask/aromatic/order mechanics; retain
+all current actual behavior/rollback/trajectory tests. Do not merely assert source
+spelling or change expected chemistry to make the cutover pass.
+
+Before runtime root inspects the final split and binds source/tests/build/native
+inputs. Require an actual rebuilt single _ob_native; other accepted unchanged
+extensions may be reused with explicit evidence. Start focused compile/contracts,
+then all affected CP311 source and installed Python/native workflow/standalone
+coverage, all nine FF source/header drivers plus connected wrapper/shared fences,
+actual3pipeline+3MCA at both boundaries. Bind wheel/source origin and meaningful
+scientific geometry/state/finite-energy/lineage/persistence observations, preserving
+numerical variation and first failures. Header-only/compile-only fences are not
+execution, native ABI parity or full clean-build claims.
+
+B3a acceptance covers this physical native cutover only. Python operation/backend/
+CLI/packing migrations, B4 controls and full owning/global gates remain open.
+Rollback is one coherent source/test/build/record commit, retaining unrelated work.

@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "status": "ROOT_ACCEPTED_CP311_B3A_NATIVE_OWNERSHIP",
+  "stage": "Stage8B/B3a",
+  "archive_root": ".plan20-artifacts/20261103/stage8b/b3a",
+  "attempt": "attempt02",
+  "source_receipts": {
+    "actual_CBFF_xtb-attempt02": {
+      "path": ".plan20-artifacts/20261103/stage8b/b3a/raw/source/actual_CBFF_xtb-attempt02/execution.json",
+      "sha256": "ae66b97836eb1ee71f5daf3caae5503034f7747946948a11f1fab0403d8e3f5f"
+    },
+    "actual_MCA_attachment-attempt02": {
+      "path": ".plan20-artifacts/20261103/stage8b/b3a/raw/source/actual_MCA_attachment-attempt02/execution.json",
+      "sha256": "ebb33f681502e6b2b37faab05dfc11b34121b6f9d2137055a34dc755248d7f6b"
+    },
+    "affected-attempt02": {
+      "path": ".plan20-artifacts/20261103/stage8b/b3a/raw/source/affected-attempt02/execution.json",
+      "sha256": "09de46a5f64e60ed65b671fef0b70a222552a6ca9ee4122aee159a700f2d512b"
+    },
+    "focused-attempt01": {
+      "path": ".plan20-artifacts/20261103/stage8b/b3a/raw/source/focused-attempt01/execution.json",
+      "sha256": "9c3480e9c5ae9fcb4d5271a1ee14338b3d4d104756766d933b1bd9c23dbadb74"
+    },
+    "focused-attempt02": {
+      "path": ".plan20-artifacts/20261103/stage8b/b3a/raw/source/focused-attempt02/execution.json",
+      "sha256": "2593a0f3794830862ec832ecfb47c795097c936233261d6798c1d42fe902276b"
+    },
+    "native-attempt02": {
+      "path": ".plan20-artifacts/20261103/stage8b/b3a/raw/source/native-attempt02/execution.json",
+      "sha256": "35347183fa1f958c98bdb5b530a2014eb29939e9433543c2499ed31e2e47ef9b"
+    }
+  },
+  "installed_receipt": {
+    "path": ".plan20-artifacts/20261103/stage8b/b3a/raw/installed/attempt02/execution.json",
+    "sha256": "f3f5d9bee41b7c07f8a12abda55f4e92d8dada770586e0b21000d99f2c53008e"
+  },
+  "sections": {
+    "release": "raw/release",
+    "build": "raw/native-build",
+    "failed_attempt_and_two_string_repair": "raw/tests/path-repair-attempt02",
+    "frozen_changed_source": "raw/frozen-final",
+    "source_business": "raw/source/actual_*-attempt02/outputs",
+    "installed_business": "raw/installed/business/attempt02"
+  },
+  "historical_metadata_limit": "Manifest reference_inputs are historical preparation metadata; original maintained documents may not have separately retained bytes. No exact historical document rebind is claimed. Authoritative source/test/native/build/run freezes remain exact.",
+  "limits": [
+    "B3a physical native cutover only; B3 Python/backend/CLI, B4 controls, whole Stage8B/global gates remain open.",
+    "One actual rebuilt _ob_native plus five accepted unchanged CP311 binaries; no full-native clean build, global ABI/SDK/sdist/manylinux/all-version qualification.",
+    "CP311 source/installed scope, shared system-site-packages; no controlled performance or broad science/GPU claim.",
+    "Source origins cover main pytest interpreter; installed site-hook participants exclude native/site-bypassing processes.",
+    "Current omission paths, each boundary skip reason, raw failed attempts and numerical variation remain explicit.",
+    "Manifest reference_inputs are historical preparation metadata; original maintained documents may not have separately retained bytes. No exact historical document rebind is claimed. Authoritative source/test/native/build/run freezes remain exact.",
+    "Models/libraries/interpreters/environments/object trees/outside test-source trees/current symlink aliases omitted; receipt identities retained."
+  ],
+  "raw_manifest": {
+    "path": ".plan20-artifacts/20261103/stage8b/b3a/raw_manifest.json",
+    "sha256": "a1b1a9a4ad86396a1e0ab666d42b8af659ce009ebc96716bbe421e32752ce89c"
+  },
+  "raw_files": 1781,
+  "raw_bytes": 27364139,
+  "independent_integrity_review": {
+    "path": ".plan20-artifacts/20261103/stage8b/b3a/independent-integrity-review/evidence-index.json",
+    "sha256": "9b6a66b19fd8dad741591de302ea17b2f45d199ef343e51f67274bf3ce403f47"
+  }
+}

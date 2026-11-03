@@ -37,21 +37,29 @@ def _openbabel_paths() -> tuple[Path, Path]:
 
 def test_metal_placement_cpp_source_api(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[4]
-    forcefields = repository / "hotpot/cheminfo/forcefields/_native"
+    structure = repository / "hotpot/cheminfo/structure/_native"
+    rules = repository / "hotpot/cheminfo/rules/physics/forcefields/_native"
+    adapters = repository / "hotpot/cheminfo/adapters/native/forcefields"
+    reference = repository / "hotpot/cheminfo/reference/_native"
+    operations = repository / "hotpot/cheminfo/operations/forcefields/_native"
     geometry = repository / "hotpot/cheminfo/geometry/_native"
     graph = repository / "hotpot/cheminfo/graph/_native"
     wrappers = repository / "hotpot/cheminfo/obWrappers/_native"
     include, library = _openbabel_paths()
     executable = tmp_path / "placement_source_api"
     sources = (
-        forcefields / "contracts.cpp",
-        forcefields / "placement_candidates.cpp",
-        forcefields / "placement_engine.cpp",
-        forcefields / "placement_policy.cpp",
-        forcefields / "radii.cpp",
-        forcefields / "structure_session.cpp",
-        forcefields / "target_selection.cpp",
-        forcefields / "topology_workspace.cpp",
+        structure / "forcefield_input.cpp",
+        operations / "session_contracts.cpp",
+        rules / "placement_candidates.cpp",
+        operations / "placement_engine.cpp",
+        rules / "placement_policy.cpp",
+        rules / "radii.cpp",
+        reference / "openbabel_radii.cpp",
+        operations / "structure_session.cpp",
+        adapters / "openbabel_session.cpp",
+        rules / "target_selection.cpp",
+        rules / "topology_workspace.cpp",
+        operations / "ring_workspace_cache.cpp",
         geometry / "batch.cpp",
         geometry / "construction.cpp",
         geometry / "cycle_surface.cpp",
@@ -85,8 +93,7 @@ def test_metal_placement_cpp_source_api(tmp_path: Path) -> None:
         "-Wno-error=deprecated-copy",
         "-Wno-error=deprecated-declarations",
         "-D_GLIBCXX_USE_CXX11_ABI=0",
-        f"-I{forcefields}",
-        f"-I{geometry}",
+        f"-I{repository}",
         "-isystem",
         str(include),
         str(Path(__file__).with_name("placement_source_api.cpp")),

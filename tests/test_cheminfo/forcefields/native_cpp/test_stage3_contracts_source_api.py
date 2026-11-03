@@ -24,7 +24,7 @@ def _compiler_command() -> list[str]:
 
 def test_stage3_contracts_cpp_source_api(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[4]
-    forcefields = repository / "hotpot/cheminfo/forcefields/_native"
+    operations = repository / "hotpot/cheminfo/operations/forcefields/_native"
     executable = tmp_path / "stage3_contracts_source_api"
     command = [
         *_compiler_command(),
@@ -34,10 +34,10 @@ def test_stage3_contracts_cpp_source_api(tmp_path: Path) -> None:
         "-Wall",
         "-Wextra",
         "-Werror",
-        f"-I{forcefields}",
+        f"-I{repository}",
         str(Path(__file__).with_name("stage3_contracts_source_api.cpp")),
-        str(forcefields / "stage_contracts.cpp"),
-        str(forcefields / "trajectory.cpp"),
+        str(operations / "stage_contracts.cpp"),
+        str(operations / "trajectory.cpp"),
         "-o",
         str(executable),
     ]

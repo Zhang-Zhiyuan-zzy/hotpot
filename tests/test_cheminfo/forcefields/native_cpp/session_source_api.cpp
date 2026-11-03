@@ -1,7 +1,10 @@
-#include "contracts.hpp"
-#include "stage_contracts.hpp"
-#include "structure_session.hpp"
-#include "trajectory.hpp"
+#include "hotpot/cheminfo/structure/_native/forcefield_input.hpp"
+#include "hotpot/cheminfo/operations/forcefields/_native/stage_contracts.hpp"
+#include "hotpot/cheminfo/operations/forcefields/_native/structure_session.hpp"
+#include "hotpot/cheminfo/operations/forcefields/_native/structure_session_internal.hpp"
+
+#include <openbabel/bond.h>
+#include "hotpot/cheminfo/operations/forcefields/_native/trajectory.hpp"
 
 #include <cassert>
 #include <cstdint>
@@ -154,6 +157,64 @@ void test_session_factories_and_state() {
 }
 
 
+void test_bond_reactivation_preserves_order_projection_and_aromatic_flags() {
+    const std::vector<ff::BondKind> kinds = {
+        ff::BondKind::AROMATIC, ff::BondKind::SINGLE, ff::BondKind::SINGLE,
+    };
+    const std::vector<std::uint8_t> flags = {0, 1, 0};
+    const std::vector<double> coordination_orders = {0.0, 0.75, 2.75};
+    for (std::size_t case_index = 0; case_index < kinds.size(); ++case_index) {
+        auto input = complex_input();
+        input.atomic_numbers.push_back(6);
+        input.formal_charges.push_back(0);
+        input.partial_charges.push_back(0.0);
+        input.coordinates.push_back({5.2, 0.0, 0.0});
+        input.atom_aromatic.push_back(0);
+        input.ligand_bond_kinds[0] = kinds[case_index];
+        input.ligand_bond_aromatic[0] = flags[case_index];
+        input.ligand_bond_indices.push_back({2, 3});
+        input.ligand_bond_orders.push_back(2.75);
+        input.ligand_bond_kinds.push_back(ff::BondKind::DOUBLE);
+        input.ligand_bond_aromatic.push_back(0);
+        input.intended_coordination_orders[0] = coordination_orders[case_index];
+        auto session = ff::create_coordination_session(input);
+        auto& molecule = ff::StructureSessionAccess::obmol(*session);
+
+        ff::set_ligand_bond_active_mask(*session, {1, 0});
+        assert(molecule.GetBond(3, 4) == nullptr);
+        molecule.GetBond(2, 3)->SetAromatic(false);
+        ff::set_ligand_bond_active_mask(*session, {1, 1});
+        molecule.SetAromaticPerceived(true);
+        assert(molecule.GetBond(2, 3)->IsAromatic() == (case_index != 2));
+        assert(molecule.GetBond(3, 4)->GetBondOrder() == 2);
+        assert(ff::snapshot_structure(*session).topology_revision == 2);
+
+        ff::set_coordination_active_mask(*session, {1});
+        molecule.SetAromaticPerceived(true);
+        assert(molecule.GetBond(1, 2)->GetBondOrder()
+            == (case_index == 2 ? 2U : 1U));
+        assert(!molecule.GetBond(1, 2)->IsAromatic());
+        auto snapshot = ff::snapshot_structure(*session);
+        assert(snapshot.active_ligand_bond_mask
+            == std::vector<std::uint8_t>({1, 1}));
+        assert(snapshot.active_coordination_mask
+            == std::vector<std::uint8_t>({1}));
+        assert(snapshot.active_bond_count == 3);
+        assert(snapshot.topology_revision == 3);
+        assert(snapshot.coordinate_revision == 0);
+        assert(snapshot.coordinates == input.coordinates);
+
+        ff::set_coordination_active_mask(*session, {0});
+        assert(molecule.GetBond(1, 2) == nullptr);
+        snapshot = ff::snapshot_structure(*session);
+        assert(snapshot.active_bond_count == 2);
+        assert(snapshot.topology_revision == 4);
+        ff::set_coordination_active_mask(*session, {0});
+        assert(ff::snapshot_structure(*session).topology_revision == 4);
+    }
+}
+
+
 void test_contract_validation_and_trajectory() {
     ff::ComplexSessionInput malformed = complex_input();
     malformed.intended_coordination_bonds.push_back({0, 1});
@@ -264,5 +325,6 @@ void test_contract_validation_and_trajectory() {
 int main() {
     test_ligand_molecule_view_and_openbabel_policy_boundary();
     test_session_factories_and_state();
+    test_bond_reactivation_preserves_order_projection_and_aromatic_flags();
     test_contract_validation_and_trajectory();
 }

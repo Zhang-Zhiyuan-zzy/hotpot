@@ -1,4 +1,4 @@
-#include "optimization_stage.hpp"
+#include "hotpot/cheminfo/operations/forcefields/_native/optimization_stage.hpp"
 
 #include <algorithm>
 #include <cassert>

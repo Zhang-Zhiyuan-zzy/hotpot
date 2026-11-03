@@ -37,7 +37,9 @@ def _openbabel_paths() -> tuple[Path, Path]:
 
 def test_forcefield_optimization_cpp_source_api(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[4]
-    forcefields = repository / "hotpot/cheminfo/forcefields/_native"
+    structure = repository / "hotpot/cheminfo/structure/_native"
+    adapters = repository / "hotpot/cheminfo/adapters/native/forcefields"
+    operations = repository / "hotpot/cheminfo/operations/forcefields/_native"
     wrappers = repository / "hotpot/cheminfo/obWrappers/_native"
     include, library = _openbabel_paths()
     executable = tmp_path / "optimization_source_api"
@@ -52,14 +54,15 @@ def test_forcefield_optimization_cpp_source_api(tmp_path: Path) -> None:
         "-Wno-error=deprecated-copy",
         "-Wno-error=deprecated-declarations",
         "-D_GLIBCXX_USE_CXX11_ABI=0",
-        f"-I{forcefields}",
-        f"-I{wrappers}",
+        f"-I{repository}",
         "-isystem",
         str(include),
         str(Path(__file__).with_name("optimization_source_api.cpp")),
-        str(forcefields / "contracts.cpp"),
-        str(forcefields / "structure_session.cpp"),
-        str(forcefields / "session_optimization.cpp"),
+        str(structure / "forcefield_input.cpp"),
+        str(operations / "session_contracts.cpp"),
+        str(operations / "structure_session.cpp"),
+        str(adapters / "openbabel_session.cpp"),
+        str(operations / "session_optimization.cpp"),
         str(wrappers / "molecule_data.cpp"),
         str(wrappers / "openbabel_adapter.cpp"),
         str(wrappers / "native_engine.cpp"),

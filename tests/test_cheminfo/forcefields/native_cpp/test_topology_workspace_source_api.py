@@ -24,14 +24,17 @@ def _compiler_command() -> list[str]:
 
 def test_topology_workspace_cpp_source_api(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[4]
-    forcefields = repository / "hotpot/cheminfo/forcefields/_native"
+    structure = repository / "hotpot/cheminfo/structure/_native"
+    rules = repository / "hotpot/cheminfo/rules/physics/forcefields/_native"
+    operations = repository / "hotpot/cheminfo/operations/forcefields/_native"
     geometry = repository / "hotpot/cheminfo/geometry/_native"
     graph = repository / "hotpot/cheminfo/graph/_native"
-    wrappers = repository / "hotpot/cheminfo/obWrappers/_native"
     executable = tmp_path / "topology_workspace_source_api"
     sources = (
-        forcefields / "contracts.cpp",
-        forcefields / "topology_workspace.cpp",
+        structure / "forcefield_input.cpp",
+        operations / "session_contracts.cpp",
+        rules / "topology_workspace.cpp",
+        operations / "ring_workspace_cache.cpp",
         geometry / "batch.cpp",
         geometry / "construction.cpp",
         geometry / "cycle_surface.cpp",
@@ -44,7 +47,6 @@ def test_topology_workspace_cpp_source_api(tmp_path: Path) -> None:
         geometry / "spatial.cpp",
         geometry / "triangle_predicates.cpp",
         graph / "relevant_cycles.cpp",
-        wrappers / "molecule_data.cpp",
     )
     command = [
         *_compiler_command(),
@@ -54,8 +56,7 @@ def test_topology_workspace_cpp_source_api(tmp_path: Path) -> None:
         "-Wall",
         "-Wextra",
         "-Werror",
-        f"-I{forcefields}",
-        f"-I{geometry}",
+        f"-I{repository}",
         str(Path(__file__).with_name("topology_workspace_source_api.cpp")),
         *(str(source) for source in sources),
         "-o",

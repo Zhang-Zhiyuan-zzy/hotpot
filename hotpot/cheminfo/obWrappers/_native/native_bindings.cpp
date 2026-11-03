@@ -4,7 +4,7 @@
 #include "python_errors.hpp"
 #include "registry.hpp"
 #include "defaults.hpp"
-#include "../../forcefields/_native/bindings.hpp"
+#include "../../adapters/native/forcefields/bindings.hpp"
 
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>

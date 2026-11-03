@@ -1,4 +1,4 @@
-#include "coordination_stage.hpp"
+#include "hotpot/cheminfo/operations/forcefields/_native/coordination_stage.hpp"
 
 #include <algorithm>
 #include <cassert>

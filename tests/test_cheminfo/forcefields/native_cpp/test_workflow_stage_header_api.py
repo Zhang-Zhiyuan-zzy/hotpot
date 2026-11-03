@@ -35,7 +35,6 @@ def _openbabel_include() -> Path:
 
 def test_workflow_stage_cpp_header_api(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[4]
-    forcefields = repository / "hotpot/cheminfo/forcefields/_native"
     include = _openbabel_include()
     output = tmp_path / "workflow_stage_header_api.o"
     command = [
@@ -44,7 +43,7 @@ def test_workflow_stage_cpp_header_api(tmp_path: Path) -> None:
         "-Wall",
         "-Wextra",
         "-Werror",
-        f"-I{forcefields}",
+        f"-I{repository}",
         "-isystem",
         str(include),
         "-c",

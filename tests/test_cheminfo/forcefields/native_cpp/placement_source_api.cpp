@@ -1,8 +1,11 @@
-#include "placement_engine.hpp"
-#include "placement_policy.hpp"
-#include "radii.hpp"
-#include "structure_session.hpp"
-#include "construction.hpp"
+#include "hotpot/cheminfo/operations/forcefields/_native/placement_engine.hpp"
+#include "hotpot/cheminfo/rules/physics/forcefields/_native/placement_policy.hpp"
+#include "hotpot/cheminfo/rules/physics/forcefields/_native/radii.hpp"
+#include "hotpot/cheminfo/reference/_native/openbabel_radii.hpp"
+
+#include <openbabel/elements.h>
+#include "hotpot/cheminfo/operations/forcefields/_native/structure_session.hpp"
+#include "hotpot/cheminfo/geometry/_native/construction.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -195,6 +198,25 @@ void assert_preferred(
 ) {
     assert(ff::detail::prefer_placement_candidate(candidate, incumbent));
     assert(!ff::detail::prefer_placement_candidate(incumbent, candidate));
+}
+
+
+void test_radius_reference_matches_the_linked_vendor_table() {
+    for (unsigned int atomic_number = 0; atomic_number <= 118; ++atomic_number) {
+        const double vendor = OpenBabel::OBElements::GetCovalentRad(atomic_number);
+        assert(hotpot::reference::openbabel_covalent_radius(atomic_number)
+            == vendor);
+        const auto radius = ff::covalent_radius(
+            static_cast<std::int32_t>(atomic_number)
+        );
+        if (std::isfinite(vendor) && vendor > 0.0) {
+            assert(radius.angstrom == vendor);
+            assert(radius.source == ff::RadiusSource::OPENBABEL_COVALENT);
+        } else {
+            assert(radius.angstrom == 0.77);
+            assert(radius.source == ff::RadiusSource::DEFAULT_COVALENT);
+        }
+    }
 }
 
 
@@ -605,6 +627,7 @@ void test_candidate_ranking_is_lexicographic() {
 
 
 int main() {
+    test_radius_reference_matches_the_linked_vendor_table();
     test_current_feasible_position_is_unchanged();
     test_center_collision_moves_only_metal();
     test_threshold_and_shared_endpoint_semantics();

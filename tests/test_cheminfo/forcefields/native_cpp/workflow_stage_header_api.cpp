@@ -1,4 +1,4 @@
-#include "workflow_stage.hpp"
+#include "hotpot/cheminfo/operations/forcefields/_native/workflow_stage.hpp"
 
 #include <type_traits>
 

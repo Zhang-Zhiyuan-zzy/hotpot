@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8B/B3a",
+  "date": "2026-11-03",
+  "status": "ROOT_ACCEPTED_CP311_B3A_NATIVE_OWNERSHIP",
+  "source_commit": "13a23ce28a7bd1aaf16f825ef31711809baa61e7",
+  "predecessor": "validation/b2/checkpoint.json",
+  "design": "contracts/decisions.md#b3a--accepted-native-ownership-cutover",
+  "scope": "One coherent native input/pure-rule/operation/reference/external-adapter physical cutover; existing algorithms, ABI, defaults, lifecycle, single wrapper engine and bound module retained. Python/backend/CLI and B4 follow separately.",
+  "alignment": [
+    "effective goal.md and current model allocation",
+    "main-plan sections6/9.2/Stage8B and current accepted companions",
+    "Stage8B verification and integrated requirements",
+    "accepted B1/B2 CP311 source/installed/actual evidence",
+    "rebound native owner/shared-input/session-bridge reports",
+    "governance/stage/validation skills and both governance references"
+  ],
+  "rebind": {
+    "path": ".plan20-artifacts/20261103/stage8b/b3a/preentry/rebind.json",
+    "sha256": "826114401eddfb8732a4ff2578429f3d685437eaa80236ee3cdd5c800d0c5db6"
+  },
+  "assignments": {
+    "production": "Local existing Sol/medium writer: old36native files and final owners, retained wrapper binding include, setup.py/MANIFEST.in only.",
+    "tests": "Local existing Sol/medium writer: nine native driver/fixture pairs and meaningful connected lower-boundary fixtures only."
+  },
+  "runtime_released": false,
+  "native_build_required": true,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "validation": "Root reviews source and freezes build inputs before actual rebuilding of the single _ob_native. Focused native contracts, nine source/header drivers and wrapper/shared fences, complete affected CP311 source/installed and actual3pipeline+3MCA at both boundaries. Preserve failures, numeric variation, original denominators and exact origin/native/model attribution. No whole-stage/global acceptance.",
+  "native_build_released": true,
+  "build_release": {
+    "path": "/tmp/hotpot_plan20/long/stage8b-b3a-20261103/native-build/root-build-release-attempt01.json",
+    "sha256": "c8edc55133dab69d1985ca244358619be674a53efb3aaeac63705572c08f12a8"
+  },
+  "runtime_release": "/tmp/hotpot_plan20/long/stage8b-b3a-20261103/root-runtime-release-attempt02.json",
+  "runtime_source_freeze": {
+    "path": "/tmp/hotpot_plan20/long/stage8b-b3a-20261103/source-freeze-b3a-attempt02.json",
+    "sha256": "d8871eacdc2ed48a4d4f3e6f19a496931dc8a408beb835207f4af47ba66c8cef"
+  },
+  "first_runtime_failure": {
+    "run": "/tmp/hotpot_plan20/long/stage8b-b3a-20261103/validation-preparation/source-validation/focused-attempt01/execution.json",
+    "passed": 399,
+    "failed": 1,
+    "cause": "Existing architecture/source test reads retired forcefields/_native/placement_candidates.cpp; pending narrow test-path correction, no chemical runtime defect established."
+  },
+  "runtime_completed": true,
+  "checkpoint": "validation/b3a/checkpoint.json",
+  "acceptance_scope": "Physical native cutover only; Python/backend/CLI B3, B4, full Stage8B and later/global gates remain open."
+}

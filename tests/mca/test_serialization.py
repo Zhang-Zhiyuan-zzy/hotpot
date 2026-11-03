@@ -309,3 +309,13 @@ def test_stale_charge_is_unavailable_in_dto_without_replacing_historical_selecti
     assert molecule._partial_charge_result is selected
     assert selected.invalidated_by
     assert selected.payload.values == (-0.25, 0.0, 0.25)
+
+
+def test_canonical_isotope_only_DTO_can_be_reexported_without_losing_symmetry():
+    molecule = read_mol("NN")
+    molecule.atoms[1].isotope = 15
+    first = normalize_molecule(molecule)
+    restored = hotpot_mol_from_dto(first)
+    second = normalize_molecule(restored)
+    assert tuple(atom.isotope for atom in first.atoms) == tuple(atom.isotope for atom in second.atoms) == (0, 15)
+    assert _site_records(restored) == ((0, "Amine"), (1, "Amine"))

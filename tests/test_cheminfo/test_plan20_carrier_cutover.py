@@ -359,7 +359,10 @@ def test_complete_topology_failure_restores_sparse_facts_endpoints_and_identifie
     mol.atoms[0].isotope = 13
     mol.atoms[1].frac_valence = 3.75
     record, metadata = mol._capture_factual_record()
-    candidate = replace(record, atom_isotopes=((0, 15),), atom_frac_valences=((1, 5.25),),
+    payload = replace(record.stereo_payload, atom_facts=tuple(
+        replace(fact, isotope=15) if fact.atom == 0 else fact
+        for fact in record.stereo_payload.atom_facts))
+    candidate = replace(record, stereo_payload=payload, atom_frac_valences=((1, 5.25),),
                         identifier=(True, 'candidate'), bond_endpoints=((1, 0), (1, 2)))
     before = facts(mol)
     endpoints = tuple(bond.atoms for bond in mol.bonds)
@@ -367,6 +370,8 @@ def test_complete_topology_failure_restores_sparse_facts_endpoints_and_identifie
         with _FactTransaction(mol, producer=1):
             _commit_topology(mol, _capture_source(mol), candidate,
                 atom_bindings=tuple(mol.atoms), bond_bindings=tuple(mol.bonds), bond_metadata=metadata)
+            assert mol.atoms[0].isotope == 15
+            assert all('isotope' not in atom.__dict__ for atom in mol.atoms)
             raise KeyboardInterrupt('after complete publication')
     assert facts(mol) == before
     assert tuple(bond.atoms for bond in mol.bonds) == endpoints

@@ -1,0 +1,2452 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7E",
+  "source_freeze": {
+    "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/source_freeze.json",
+    "bytes": 178414,
+    "sha256": "4ea64e1b92b77e42e3ea79791386a3ca85b6940b19e54571265e0c57d08c7440"
+  },
+  "interpretation": "Current backend/model and named monitor observations; no universal chemical truth, historical exact-value, model-confidence or parity claim. Raw reports preserve all actual fields/attempts/findings.",
+  "pipeline_case_denominator_per_boundary": 3,
+  "pipelines": {
+    "source": [
+      {
+        "case": "official-coordination-False",
+        "manifest": {
+          "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/actual_CBFF_xtb-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/manifest.json",
+          "bytes": 30576,
+          "sha256": "803354d703e9aaaac45b7e2fc8e9fe484ff249f5cf85082a5fb74955242d67de"
+        },
+        "pipeline_status": "succeeded",
+        "stages": [
+          {
+            "name": "cbond",
+            "argv": [
+              "Zn",
+              "NCCO",
+              "--device",
+              "cpu"
+            ],
+            "status": "succeeded",
+            "cbond": {
+              "donor_indices": [
+                0,
+                3
+              ],
+              "metal": "Zn",
+              "path_probability": 0.7325034825111857,
+              "steps": [
+                {
+                  "atom_index": 0,
+                  "element": "N",
+                  "probability": 0.8570544664505884,
+                  "score": 1.7910377979278564
+                },
+                {
+                  "atom_index": 3,
+                  "element": "O",
+                  "probability": 0.8546755325186985,
+                  "score": 1.771752953529358
+                }
+              ]
+            }
+          },
+          {
+            "name": "ff",
+            "argv": [
+              "--route",
+              "complex",
+              "--rebuild",
+              "--quality",
+              "standard",
+              "--seed",
+              "7",
+              "--timeout",
+              "300"
+            ],
+            "status": "succeeded",
+            "forcefield": [
+              {
+                "effective_forcefield": "UFF",
+                "optimization": {
+                  "energy_unit": "kJ/mol",
+                  "final_energy": 69.14934437776031,
+                  "best_energy": 69.14934437776031,
+                  "converged": true,
+                  "epochs_completed": 2,
+                  "exploded": false
+                },
+                "build": {
+                  "attempt_count": 1,
+                  "accepted_candidates": 1,
+                  "rejected_candidates": [],
+                  "warning_messages": [],
+                  "coordination_restoration": {
+                    "attempt_limit": 20,
+                    "attempts_completed": 0,
+                    "bond_count": 2,
+                    "elapsed_seconds": 0.014084755,
+                    "excluded_ring_observation_count": 0,
+                    "forced_bond_keys": [],
+                    "infeasible_metal_indices": [],
+                    "metal_relocation_attempt_count": 1,
+                    "rejected_piercing_trial_count": 0,
+                    "relocated_metal_indices": [
+                      10
+                    ],
+                    "undetermined_trial_count": 0,
+                    "warning_messages": []
+                  },
+                  "ligand_untangling": [
+                    {
+                      "attempt_limit": 20,
+                      "attempts_completed": 0,
+                      "final_piercing_count": 0,
+                      "initial_piercing_count": 0,
+                      "minimum_piercing_count": 0,
+                      "resolved": true,
+                      "warning_messages": []
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "xtb",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "singlepoint",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "status": "succeeded",
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "process_succeeded": true,
+              "effective_method": "gfn2",
+              "energy_hartree": -14.26981398,
+              "gradient_norm": null,
+              "coordinates_committed": false
+            },
+            "geometry_observations": [
+              {
+                "checks": [
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": [
+                      12,
+                      3
+                    ],
+                    "message": "Coordinates must contain one Cartesian row per atom",
+                    "name": "coordinate_shape",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      12,
+                      3
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": true,
+                    "message": "All Cartesian coordinates must be finite",
+                    "name": "finite_coordinates",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": true
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_overlap",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": 0.001
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_too_close",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.4,
+                      0.5,
+                      0.55
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 1.8426090215762798,
+                    "message": "",
+                    "name": "bond_distance",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.0,
+                      30.0
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": null,
+                    "message": "",
+                    "name": "bond_length_ratio",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      [
+                        0.65,
+                        1.45
+                      ],
+                      [
+                        0.65,
+                        1.6
+                      ]
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "No explicit bond is below its radius-scaled limit",
+                    "name": "short_bond",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.65,
+                      0.65
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": "does_not_pierce",
+                    "message": "",
+                    "name": "bond_ring_piercing",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": "does_not_pierce"
+                  }
+                ],
+                "level": "standard",
+                "metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        100.09910855357724
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        1.8426090215762798,
+                        1.8042984635471007
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 1.8426090215762798,
+                  "minimum_pair_distance": 0.9923614425373608
+                },
+                "passed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "case": "official-coordination-True",
+        "manifest": {
+          "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/actual_CBFF_xtb-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/manifest.json",
+          "bytes": 40555,
+          "sha256": "301446d93ac48eddd53b2db3eade52eeca21ad229c59039e058f21f332320c28"
+        },
+        "pipeline_status": "succeeded",
+        "stages": [
+          {
+            "name": "cbond",
+            "argv": [
+              "Zn",
+              "NCCO",
+              "--device",
+              "cpu"
+            ],
+            "status": "succeeded",
+            "cbond": {
+              "donor_indices": [
+                0,
+                3
+              ],
+              "metal": "Zn",
+              "path_probability": 0.7325034825111857,
+              "steps": [
+                {
+                  "atom_index": 0,
+                  "element": "N",
+                  "probability": 0.8570544664505884,
+                  "score": 1.7910377979278564
+                },
+                {
+                  "atom_index": 3,
+                  "element": "O",
+                  "probability": 0.8546755325186985,
+                  "score": 1.771752953529358
+                }
+              ]
+            }
+          },
+          {
+            "name": "ff",
+            "argv": [
+              "--route",
+              "complex",
+              "--rebuild",
+              "--quality",
+              "standard",
+              "--seed",
+              "7",
+              "--timeout",
+              "300"
+            ],
+            "status": "succeeded",
+            "forcefield": [
+              {
+                "effective_forcefield": "UFF",
+                "optimization": {
+                  "energy_unit": "kJ/mol",
+                  "final_energy": 69.14934437776031,
+                  "best_energy": 69.14934437776031,
+                  "converged": true,
+                  "epochs_completed": 2,
+                  "exploded": false
+                },
+                "build": {
+                  "attempt_count": 1,
+                  "accepted_candidates": 1,
+                  "rejected_candidates": [],
+                  "warning_messages": [],
+                  "coordination_restoration": {
+                    "attempt_limit": 20,
+                    "attempts_completed": 0,
+                    "bond_count": 2,
+                    "elapsed_seconds": 0.015928392,
+                    "excluded_ring_observation_count": 0,
+                    "forced_bond_keys": [],
+                    "infeasible_metal_indices": [],
+                    "metal_relocation_attempt_count": 1,
+                    "rejected_piercing_trial_count": 0,
+                    "relocated_metal_indices": [
+                      10
+                    ],
+                    "undetermined_trial_count": 0,
+                    "warning_messages": []
+                  },
+                  "ligand_untangling": [
+                    {
+                      "attempt_limit": 20,
+                      "attempts_completed": 0,
+                      "final_piercing_count": 0,
+                      "initial_piercing_count": 0,
+                      "minimum_piercing_count": 0,
+                      "resolved": true,
+                      "warning_messages": []
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "xtb",
+            "argv": [
+              "--method",
+              "gfnff",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "status": "succeeded",
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "scientific_state",
+                "projection_convention": "charge_only",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "process_succeeded": true,
+              "effective_method": "gfnff",
+              "energy_hartree": 1.298971744181724,
+              "gradient_norm": 0.000461091258017,
+              "coordinates_committed": true
+            },
+            "geometry_observations": [
+              {
+                "checks": [
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": [
+                      12,
+                      3
+                    ],
+                    "message": "Coordinates must contain one Cartesian row per atom",
+                    "name": "coordinate_shape",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      12,
+                      3
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": true,
+                    "message": "All Cartesian coordinates must be finite",
+                    "name": "finite_coordinates",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": true
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_overlap",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": 0.001
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_too_close",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.4,
+                      0.5,
+                      0.55
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 2.076488259056622,
+                    "message": "",
+                    "name": "bond_distance",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.0,
+                      30.0
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": null,
+                    "message": "",
+                    "name": "bond_length_ratio",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      [
+                        0.65,
+                        1.45
+                      ],
+                      [
+                        0.65,
+                        1.6
+                      ]
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "No explicit bond is below its radius-scaled limit",
+                    "name": "short_bond",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.65,
+                      0.65
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": "does_not_pierce",
+                    "message": "",
+                    "name": "bond_ring_piercing",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": "does_not_pierce"
+                  }
+                ],
+                "level": "standard",
+                "metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        83.33398468321961
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        2.076488259056622,
+                        2.0118050999040635
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 2.076488259056622,
+                  "minimum_pair_distance": 1.0374374631754921
+                },
+                "passed": true
+              }
+            ]
+          },
+          {
+            "name": "xtb",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "singlepoint",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "status": "succeeded",
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "process_succeeded": true,
+              "effective_method": "gfn2",
+              "energy_hartree": -14.27320288,
+              "gradient_norm": null,
+              "coordinates_committed": false
+            },
+            "geometry_observations": [
+              {
+                "checks": [
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": [
+                      12,
+                      3
+                    ],
+                    "message": "Coordinates must contain one Cartesian row per atom",
+                    "name": "coordinate_shape",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      12,
+                      3
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": true,
+                    "message": "All Cartesian coordinates must be finite",
+                    "name": "finite_coordinates",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": true
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_overlap",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": 0.001
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_too_close",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.4,
+                      0.5,
+                      0.55
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 2.076488259056622,
+                    "message": "",
+                    "name": "bond_distance",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.0,
+                      30.0
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": null,
+                    "message": "",
+                    "name": "bond_length_ratio",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      [
+                        0.65,
+                        1.45
+                      ],
+                      [
+                        0.65,
+                        1.6
+                      ]
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "No explicit bond is below its radius-scaled limit",
+                    "name": "short_bond",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.65,
+                      0.65
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": "does_not_pierce",
+                    "message": "",
+                    "name": "bond_ring_piercing",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": "does_not_pierce"
+                  }
+                ],
+                "level": "standard",
+                "metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        83.33398468321961
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        2.076488259056622,
+                        2.0118050999040635
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 2.076488259056622,
+                  "minimum_pair_distance": 1.0374374631754921
+                },
+                "passed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "case": "official-readme-europium",
+        "manifest": {
+          "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/actual_CBFF_xtb-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/manifest.json",
+          "bytes": 41031,
+          "sha256": "d32b859e0da851b30c0b17e0cf61cfd3c827c9d56b4559f8904cc2364bf546fe"
+        },
+        "pipeline_status": "succeeded",
+        "stages": [
+          {
+            "name": "cbond",
+            "argv": [
+              "Eu",
+              "O=C(O)C",
+              "--device",
+              "cpu"
+            ],
+            "status": "succeeded",
+            "cbond": {
+              "donor_indices": [
+                2
+              ],
+              "metal": "Eu",
+              "path_probability": 0.492404769050918,
+              "steps": [
+                {
+                  "atom_index": 2,
+                  "element": "O",
+                  "probability": 0.492404769050918,
+                  "score": -0.030383260920643806
+                }
+              ]
+            }
+          },
+          {
+            "name": "ff",
+            "argv": [
+              "--rebuild",
+              "--route",
+              "complex",
+              "--forcefield",
+              "uff"
+            ],
+            "status": "succeeded",
+            "forcefield": [
+              {
+                "effective_forcefield": "UFF",
+                "optimization": {
+                  "energy_unit": "kJ/mol",
+                  "final_energy": 4.508906854390409,
+                  "best_energy": 4.508906854390409,
+                  "converged": true,
+                  "epochs_completed": 1,
+                  "exploded": false
+                },
+                "build": {
+                  "attempt_count": 1,
+                  "accepted_candidates": 1,
+                  "rejected_candidates": [],
+                  "warning_messages": [],
+                  "coordination_restoration": {
+                    "attempt_limit": 20,
+                    "attempts_completed": 0,
+                    "bond_count": 1,
+                    "elapsed_seconds": 0.008063796,
+                    "excluded_ring_observation_count": 0,
+                    "forced_bond_keys": [],
+                    "infeasible_metal_indices": [],
+                    "metal_relocation_attempt_count": 1,
+                    "rejected_piercing_trial_count": 0,
+                    "relocated_metal_indices": [
+                      7
+                    ],
+                    "undetermined_trial_count": 0,
+                    "warning_messages": []
+                  },
+                  "ligand_untangling": [
+                    {
+                      "attempt_limit": 20,
+                      "attempts_completed": 0,
+                      "final_piercing_count": 0,
+                      "initial_piercing_count": 0,
+                      "minimum_piercing_count": 0,
+                      "resolved": true,
+                      "warning_messages": []
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "xtb",
+            "argv": [
+              "--method",
+              "gfnff",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "3",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "status": "succeeded",
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "scientific_state",
+                "projection_convention": "charge_only",
+                "status": "projected"
+              },
+              "charge": 3,
+              "converged": true,
+              "process_succeeded": true,
+              "effective_method": "gfnff",
+              "energy_hartree": 3.237789699420725,
+              "gradient_norm": 0.000398222428227,
+              "coordinates_committed": true
+            },
+            "geometry_observations": [
+              {
+                "checks": [
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": [
+                      9,
+                      3
+                    ],
+                    "message": "Coordinates must contain one Cartesian row per atom",
+                    "name": "coordinate_shape",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      9,
+                      3
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": true,
+                    "message": "All Cartesian coordinates must be finite",
+                    "name": "finite_coordinates",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": true
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_overlap",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": 0.001
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_too_close",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.4,
+                      0.5,
+                      0.55
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 2.264039246567956,
+                    "message": "",
+                    "name": "bond_distance",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.0,
+                      30.0
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": null,
+                    "message": "",
+                    "name": "bond_length_ratio",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      [
+                        0.65,
+                        1.45
+                      ],
+                      [
+                        0.65,
+                        1.6
+                      ]
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "No explicit bond is below its radius-scaled limit",
+                    "name": "short_bond",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.65,
+                      0.65
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": "does_not_pierce",
+                    "message": "",
+                    "name": "bond_ring_piercing",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": "does_not_pierce"
+                  }
+                ],
+                "level": "standard",
+                "metrics": {
+                  "atom_count": 9,
+                  "bond_count": 8,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [],
+                      "coordination_number": 1,
+                      "distances": [
+                        2.264039246567956
+                      ],
+                      "donor_indices": [
+                        2
+                      ],
+                      "metal_index": 7
+                    }
+                  ],
+                  "maximum_bond_length": 2.264039246567956,
+                  "minimum_pair_distance": 1.0348201534566286
+                },
+                "passed": true
+              }
+            ]
+          },
+          {
+            "name": "xtb",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "3",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "status": "succeeded",
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 3,
+              "converged": true,
+              "process_succeeded": true,
+              "effective_method": "gfn2",
+              "energy_hartree": -13.5321002,
+              "gradient_norm": null,
+              "coordinates_committed": true
+            },
+            "geometry_observations": [
+              {
+                "checks": [
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": [
+                      9,
+                      3
+                    ],
+                    "message": "Coordinates must contain one Cartesian row per atom",
+                    "name": "coordinate_shape",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      9,
+                      3
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": true,
+                    "message": "All Cartesian coordinates must be finite",
+                    "name": "finite_coordinates",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": true
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_overlap",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": 0.001
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_too_close",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.4,
+                      0.5,
+                      0.55
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 3.1621431313341177,
+                    "message": "",
+                    "name": "bond_distance",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.0,
+                      30.0
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": null,
+                    "message": "",
+                    "name": "bond_length_ratio",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      [
+                        0.65,
+                        1.45
+                      ],
+                      [
+                        0.65,
+                        1.6
+                      ]
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "No explicit bond is below its radius-scaled limit",
+                    "name": "short_bond",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.65,
+                      0.65
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": "does_not_pierce",
+                    "message": "",
+                    "name": "bond_ring_piercing",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": "does_not_pierce"
+                  }
+                ],
+                "level": "standard",
+                "metrics": {
+                  "atom_count": 9,
+                  "bond_count": 8,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [],
+                      "coordination_number": 1,
+                      "distances": [
+                        3.1621431313341177
+                      ],
+                      "donor_indices": [
+                        2
+                      ],
+                      "metal_index": 7
+                    }
+                  ],
+                  "maximum_bond_length": 3.1621431313341177,
+                  "minimum_pair_distance": 1.0129277151606746
+                },
+                "passed": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "installed": [
+      {
+        "case": "official-coordination-False",
+        "manifest": {
+          "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/installed-business-raw/actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/manifest.json",
+          "bytes": 30575,
+          "sha256": "3b0d2fb5fb12adf35cdbc6059afdb15061b56be9ffdb464ee9682c241b7aec64"
+        },
+        "pipeline_status": "succeeded",
+        "stages": [
+          {
+            "name": "cbond",
+            "argv": [
+              "Zn",
+              "NCCO",
+              "--device",
+              "cpu"
+            ],
+            "status": "succeeded",
+            "cbond": {
+              "donor_indices": [
+                0,
+                3
+              ],
+              "metal": "Zn",
+              "path_probability": 0.7325034825111857,
+              "steps": [
+                {
+                  "atom_index": 0,
+                  "element": "N",
+                  "probability": 0.8570544664505884,
+                  "score": 1.7910377979278564
+                },
+                {
+                  "atom_index": 3,
+                  "element": "O",
+                  "probability": 0.8546755325186985,
+                  "score": 1.771752953529358
+                }
+              ]
+            }
+          },
+          {
+            "name": "ff",
+            "argv": [
+              "--route",
+              "complex",
+              "--rebuild",
+              "--quality",
+              "standard",
+              "--seed",
+              "7",
+              "--timeout",
+              "300"
+            ],
+            "status": "succeeded",
+            "forcefield": [
+              {
+                "effective_forcefield": "UFF",
+                "optimization": {
+                  "energy_unit": "kJ/mol",
+                  "final_energy": 69.14934437776031,
+                  "best_energy": 69.14934437776031,
+                  "converged": true,
+                  "epochs_completed": 2,
+                  "exploded": false
+                },
+                "build": {
+                  "attempt_count": 1,
+                  "accepted_candidates": 1,
+                  "rejected_candidates": [],
+                  "warning_messages": [],
+                  "coordination_restoration": {
+                    "attempt_limit": 20,
+                    "attempts_completed": 0,
+                    "bond_count": 2,
+                    "elapsed_seconds": 0.014088312,
+                    "excluded_ring_observation_count": 0,
+                    "forced_bond_keys": [],
+                    "infeasible_metal_indices": [],
+                    "metal_relocation_attempt_count": 1,
+                    "rejected_piercing_trial_count": 0,
+                    "relocated_metal_indices": [
+                      10
+                    ],
+                    "undetermined_trial_count": 0,
+                    "warning_messages": []
+                  },
+                  "ligand_untangling": [
+                    {
+                      "attempt_limit": 20,
+                      "attempts_completed": 0,
+                      "final_piercing_count": 0,
+                      "initial_piercing_count": 0,
+                      "minimum_piercing_count": 0,
+                      "resolved": true,
+                      "warning_messages": []
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "xtb",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "singlepoint",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "status": "succeeded",
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "process_succeeded": true,
+              "effective_method": "gfn2",
+              "energy_hartree": -14.26981398,
+              "gradient_norm": null,
+              "coordinates_committed": false
+            },
+            "geometry_observations": [
+              {
+                "checks": [
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": [
+                      12,
+                      3
+                    ],
+                    "message": "Coordinates must contain one Cartesian row per atom",
+                    "name": "coordinate_shape",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      12,
+                      3
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": true,
+                    "message": "All Cartesian coordinates must be finite",
+                    "name": "finite_coordinates",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": true
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_overlap",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": 0.001
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_too_close",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.4,
+                      0.5,
+                      0.55
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 1.8426090215762798,
+                    "message": "",
+                    "name": "bond_distance",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.0,
+                      30.0
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": null,
+                    "message": "",
+                    "name": "bond_length_ratio",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      [
+                        0.65,
+                        1.45
+                      ],
+                      [
+                        0.65,
+                        1.6
+                      ]
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "No explicit bond is below its radius-scaled limit",
+                    "name": "short_bond",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.65,
+                      0.65
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": "does_not_pierce",
+                    "message": "",
+                    "name": "bond_ring_piercing",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": "does_not_pierce"
+                  }
+                ],
+                "level": "standard",
+                "metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        100.09910855357724
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        1.8426090215762798,
+                        1.8042984635471007
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 1.8426090215762798,
+                  "minimum_pair_distance": 0.9923614425373608
+                },
+                "passed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "case": "official-coordination-True",
+        "manifest": {
+          "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/installed-business-raw/actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/manifest.json",
+          "bytes": 40554,
+          "sha256": "da2d19324cca68f704e3edb6531acb61b93303bbd030a09f12f0701536f80611"
+        },
+        "pipeline_status": "succeeded",
+        "stages": [
+          {
+            "name": "cbond",
+            "argv": [
+              "Zn",
+              "NCCO",
+              "--device",
+              "cpu"
+            ],
+            "status": "succeeded",
+            "cbond": {
+              "donor_indices": [
+                0,
+                3
+              ],
+              "metal": "Zn",
+              "path_probability": 0.7325034825111857,
+              "steps": [
+                {
+                  "atom_index": 0,
+                  "element": "N",
+                  "probability": 0.8570544664505884,
+                  "score": 1.7910377979278564
+                },
+                {
+                  "atom_index": 3,
+                  "element": "O",
+                  "probability": 0.8546755325186985,
+                  "score": 1.771752953529358
+                }
+              ]
+            }
+          },
+          {
+            "name": "ff",
+            "argv": [
+              "--route",
+              "complex",
+              "--rebuild",
+              "--quality",
+              "standard",
+              "--seed",
+              "7",
+              "--timeout",
+              "300"
+            ],
+            "status": "succeeded",
+            "forcefield": [
+              {
+                "effective_forcefield": "UFF",
+                "optimization": {
+                  "energy_unit": "kJ/mol",
+                  "final_energy": 69.14934437776031,
+                  "best_energy": 69.14934437776031,
+                  "converged": true,
+                  "epochs_completed": 2,
+                  "exploded": false
+                },
+                "build": {
+                  "attempt_count": 1,
+                  "accepted_candidates": 1,
+                  "rejected_candidates": [],
+                  "warning_messages": [],
+                  "coordination_restoration": {
+                    "attempt_limit": 20,
+                    "attempts_completed": 0,
+                    "bond_count": 2,
+                    "elapsed_seconds": 0.015210611,
+                    "excluded_ring_observation_count": 0,
+                    "forced_bond_keys": [],
+                    "infeasible_metal_indices": [],
+                    "metal_relocation_attempt_count": 1,
+                    "rejected_piercing_trial_count": 0,
+                    "relocated_metal_indices": [
+                      10
+                    ],
+                    "undetermined_trial_count": 0,
+                    "warning_messages": []
+                  },
+                  "ligand_untangling": [
+                    {
+                      "attempt_limit": 20,
+                      "attempts_completed": 0,
+                      "final_piercing_count": 0,
+                      "initial_piercing_count": 0,
+                      "minimum_piercing_count": 0,
+                      "resolved": true,
+                      "warning_messages": []
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "xtb",
+            "argv": [
+              "--method",
+              "gfnff",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "status": "succeeded",
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "scientific_state",
+                "projection_convention": "charge_only",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "process_succeeded": true,
+              "effective_method": "gfnff",
+              "energy_hartree": 1.298971744181724,
+              "gradient_norm": 0.000461091258017,
+              "coordinates_committed": true
+            },
+            "geometry_observations": [
+              {
+                "checks": [
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": [
+                      12,
+                      3
+                    ],
+                    "message": "Coordinates must contain one Cartesian row per atom",
+                    "name": "coordinate_shape",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      12,
+                      3
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": true,
+                    "message": "All Cartesian coordinates must be finite",
+                    "name": "finite_coordinates",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": true
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_overlap",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": 0.001
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_too_close",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.4,
+                      0.5,
+                      0.55
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 2.076488259056622,
+                    "message": "",
+                    "name": "bond_distance",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.0,
+                      30.0
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": null,
+                    "message": "",
+                    "name": "bond_length_ratio",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      [
+                        0.65,
+                        1.45
+                      ],
+                      [
+                        0.65,
+                        1.6
+                      ]
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "No explicit bond is below its radius-scaled limit",
+                    "name": "short_bond",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.65,
+                      0.65
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": "does_not_pierce",
+                    "message": "",
+                    "name": "bond_ring_piercing",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": "does_not_pierce"
+                  }
+                ],
+                "level": "standard",
+                "metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        83.33398468321961
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        2.076488259056622,
+                        2.0118050999040635
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 2.076488259056622,
+                  "minimum_pair_distance": 1.0374374631754921
+                },
+                "passed": true
+              }
+            ]
+          },
+          {
+            "name": "xtb",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "singlepoint",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "status": "succeeded",
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "process_succeeded": true,
+              "effective_method": "gfn2",
+              "energy_hartree": -14.27320288,
+              "gradient_norm": null,
+              "coordinates_committed": false
+            },
+            "geometry_observations": [
+              {
+                "checks": [
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": [
+                      12,
+                      3
+                    ],
+                    "message": "Coordinates must contain one Cartesian row per atom",
+                    "name": "coordinate_shape",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      12,
+                      3
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": true,
+                    "message": "All Cartesian coordinates must be finite",
+                    "name": "finite_coordinates",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": true
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_overlap",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": 0.001
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_too_close",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.4,
+                      0.5,
+                      0.55
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 2.076488259056622,
+                    "message": "",
+                    "name": "bond_distance",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.0,
+                      30.0
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": null,
+                    "message": "",
+                    "name": "bond_length_ratio",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      [
+                        0.65,
+                        1.45
+                      ],
+                      [
+                        0.65,
+                        1.6
+                      ]
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "No explicit bond is below its radius-scaled limit",
+                    "name": "short_bond",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.65,
+                      0.65
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": "does_not_pierce",
+                    "message": "",
+                    "name": "bond_ring_piercing",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": "does_not_pierce"
+                  }
+                ],
+                "level": "standard",
+                "metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        83.33398468321961
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        2.076488259056622,
+                        2.0118050999040635
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 2.076488259056622,
+                  "minimum_pair_distance": 1.0374374631754921
+                },
+                "passed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "case": "official-readme-europium",
+        "manifest": {
+          "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/installed-business-raw/actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/manifest.json",
+          "bytes": 41132,
+          "sha256": "80063e499dc6b18a8a625d42a0c54a36c0d90a80823cc179bbad55b710ac539f"
+        },
+        "pipeline_status": "succeeded",
+        "stages": [
+          {
+            "name": "cbond",
+            "argv": [
+              "Eu",
+              "O=C(O)C",
+              "--device",
+              "cpu"
+            ],
+            "status": "succeeded",
+            "cbond": {
+              "donor_indices": [
+                2
+              ],
+              "metal": "Eu",
+              "path_probability": 0.492404769050918,
+              "steps": [
+                {
+                  "atom_index": 2,
+                  "element": "O",
+                  "probability": 0.492404769050918,
+                  "score": -0.030383260920643806
+                }
+              ]
+            }
+          },
+          {
+            "name": "ff",
+            "argv": [
+              "--rebuild",
+              "--route",
+              "complex",
+              "--forcefield",
+              "uff"
+            ],
+            "status": "succeeded",
+            "forcefield": [
+              {
+                "effective_forcefield": "UFF",
+                "optimization": {
+                  "energy_unit": "kJ/mol",
+                  "final_energy": 4.510127433692958,
+                  "best_energy": 4.510127433692958,
+                  "converged": true,
+                  "epochs_completed": 2,
+                  "exploded": false
+                },
+                "build": {
+                  "attempt_count": 1,
+                  "accepted_candidates": 1,
+                  "rejected_candidates": [],
+                  "warning_messages": [],
+                  "coordination_restoration": {
+                    "attempt_limit": 20,
+                    "attempts_completed": 0,
+                    "bond_count": 1,
+                    "elapsed_seconds": 0.008068955,
+                    "excluded_ring_observation_count": 0,
+                    "forced_bond_keys": [],
+                    "infeasible_metal_indices": [],
+                    "metal_relocation_attempt_count": 1,
+                    "rejected_piercing_trial_count": 0,
+                    "relocated_metal_indices": [
+                      7
+                    ],
+                    "undetermined_trial_count": 0,
+                    "warning_messages": []
+                  },
+                  "ligand_untangling": [
+                    {
+                      "attempt_limit": 20,
+                      "attempts_completed": 0,
+                      "final_piercing_count": 0,
+                      "initial_piercing_count": 0,
+                      "minimum_piercing_count": 0,
+                      "resolved": true,
+                      "warning_messages": []
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "xtb",
+            "argv": [
+              "--method",
+              "gfnff",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "3",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "status": "succeeded",
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "scientific_state",
+                "projection_convention": "charge_only",
+                "status": "projected"
+              },
+              "charge": 3,
+              "converged": true,
+              "process_succeeded": true,
+              "effective_method": "gfnff",
+              "energy_hartree": 3.237789884968582,
+              "gradient_norm": 0.000409829985643,
+              "coordinates_committed": true
+            },
+            "geometry_observations": [
+              {
+                "checks": [
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": [
+                      9,
+                      3
+                    ],
+                    "message": "Coordinates must contain one Cartesian row per atom",
+                    "name": "coordinate_shape",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      9,
+                      3
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": true,
+                    "message": "All Cartesian coordinates must be finite",
+                    "name": "finite_coordinates",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": true
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_overlap",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": 0.001
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_too_close",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.4,
+                      0.5,
+                      0.55
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 2.264051653562701,
+                    "message": "",
+                    "name": "bond_distance",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.0,
+                      30.0
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": null,
+                    "message": "",
+                    "name": "bond_length_ratio",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      [
+                        0.65,
+                        1.45
+                      ],
+                      [
+                        0.65,
+                        1.6
+                      ]
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "No explicit bond is below its radius-scaled limit",
+                    "name": "short_bond",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.65,
+                      0.65
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": "does_not_pierce",
+                    "message": "",
+                    "name": "bond_ring_piercing",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": "does_not_pierce"
+                  }
+                ],
+                "level": "standard",
+                "metrics": {
+                  "atom_count": 9,
+                  "bond_count": 8,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [],
+                      "coordination_number": 1,
+                      "distances": [
+                        2.264051653562701
+                      ],
+                      "donor_indices": [
+                        2
+                      ],
+                      "metal_index": 7
+                    }
+                  ],
+                  "maximum_bond_length": 2.264051653562701,
+                  "minimum_pair_distance": 1.0346892383706325
+                },
+                "passed": true
+              }
+            ]
+          },
+          {
+            "name": "xtb",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "3",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "status": "succeeded",
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 3,
+              "converged": true,
+              "process_succeeded": true,
+              "effective_method": "gfn2",
+              "energy_hartree": -13.53209903,
+              "gradient_norm": null,
+              "coordinates_committed": true
+            },
+            "geometry_observations": [
+              {
+                "checks": [
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": [
+                      9,
+                      3
+                    ],
+                    "message": "Coordinates must contain one Cartesian row per atom",
+                    "name": "coordinate_shape",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      9,
+                      3
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": true,
+                    "message": "All Cartesian coordinates must be finite",
+                    "name": "finite_coordinates",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": true
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_overlap",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": 0.001
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "",
+                    "name": "atom_too_close",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.4,
+                      0.5,
+                      0.55
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 3.1617758528938014,
+                    "message": "",
+                    "name": "bond_distance",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.0,
+                      30.0
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": null,
+                    "message": "",
+                    "name": "bond_length_ratio",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      [
+                        0.65,
+                        1.45
+                      ],
+                      [
+                        0.65,
+                        1.6
+                      ]
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": 0,
+                    "message": "No explicit bond is below its radius-scaled limit",
+                    "name": "short_bond",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": [
+                      0.65,
+                      0.65
+                    ]
+                  },
+                  {
+                    "atom_indices": [],
+                    "bond_indices": [],
+                    "measured": "does_not_pierce",
+                    "message": "",
+                    "name": "bond_ring_piercing",
+                    "passed": true,
+                    "severity": "error",
+                    "threshold": "does_not_pierce"
+                  }
+                ],
+                "level": "standard",
+                "metrics": {
+                  "atom_count": 9,
+                  "bond_count": 8,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [],
+                      "coordination_number": 1,
+                      "distances": [
+                        3.1617758528938014
+                      ],
+                      "donor_indices": [
+                        2
+                      ],
+                      "metal_index": 7
+                    }
+                  ],
+                  "maximum_bond_length": 3.1617758528938014,
+                  "minimum_pair_distance": 1.0126401158913996
+                },
+                "passed": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "MCA": {
+    "source": {
+      "denominator": 3,
+      "test_asserted_cli_returncode": 1,
+      "success_indices": [
+        1,
+        3
+      ],
+      "local_rejection_index": 2,
+      "input": {
+        "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/actual_MCA-attempt01/pytest-tmp/test_actual_model_cli_keeps_ch0/molecules.smi",
+        "bytes": 34,
+        "sha256": "48907c640629923b1e257de45c66256c66b887ccff6dad220a8a9a81e1c5d85c"
+      },
+      "input_text": "CN first\nC[NH3+] charged\nCO third\n",
+      "output": {
+        "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/actual_MCA-attempt01/pytest-tmp/test_actual_model_cli_keeps_ch0/results.txt",
+        "bytes": 221,
+        "sha256": "963bf4fa2167ae26ca866960b13cc99a195c592d1f5644deccabb6b3eb120f8c"
+      },
+      "output_text": "Molecule 1: CN\nNo.  Atom  MCA(kJ/mol)  is_Nuc_site\n1    C     308.75       False\n2    N     489.50       True\n\nMolecule 3: CO\nNo.  Atom  MCA(kJ/mol)  is_Nuc_site\n1    C     283.50       False\n2    O     318.25       True\n",
+      "interpretation": "Actual named FP16 CPU model observations in kJ/mol, not universal target values. Mixed rejection and exact joins are asserted by the passing actual CLI test. CLI stderr was captured by that test but not persisted independently."
+    },
+    "installed": {
+      "denominator": 3,
+      "test_asserted_cli_returncode": 1,
+      "success_indices": [
+        1,
+        3
+      ],
+      "local_rejection_index": 2,
+      "input": {
+        "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/installed-business-raw/actual_MCA/test_actual_model_cli_keeps_ch0/molecules.smi",
+        "bytes": 34,
+        "sha256": "48907c640629923b1e257de45c66256c66b887ccff6dad220a8a9a81e1c5d85c"
+      },
+      "input_text": "CN first\nC[NH3+] charged\nCO third\n",
+      "output": {
+        "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/installed-business-raw/actual_MCA/test_actual_model_cli_keeps_ch0/results.txt",
+        "bytes": 221,
+        "sha256": "963bf4fa2167ae26ca866960b13cc99a195c592d1f5644deccabb6b3eb120f8c"
+      },
+      "output_text": "Molecule 1: CN\nNo.  Atom  MCA(kJ/mol)  is_Nuc_site\n1    C     308.75       False\n2    N     489.50       True\n\nMolecule 3: CO\nNo.  Atom  MCA(kJ/mol)  is_Nuc_site\n1    C     283.50       False\n2    O     318.25       True\n",
+      "interpretation": "Actual named FP16 CPU model observations in kJ/mol, not universal target values. Mixed rejection and exact joins are asserted by the passing actual CLI test. CLI stderr was captured by that test but not persisted independently."
+    }
+  },
+  "FF": "11 actual Open Babel FF tests pass at both boundaries. Pipeline FF energies/units/build/geometry observations are retained above; no additional unrecorded standalone FF energy values are inferred.",
+  "warning_disposition": "Backend/log/rule/geometry warnings remain in raw reports/logs; non-hard observations are not erased by test success. No algorithms or model encoding changed.",
+  "scope": "CP311 canonical-storage owning checkpoint only; global science/corpus/GPU and other backend tiers remain open."
+}

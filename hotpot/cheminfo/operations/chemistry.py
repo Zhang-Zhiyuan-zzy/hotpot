@@ -87,7 +87,7 @@ def _atom_hybridization(atom):
 def _atom_implicit_proposal(atom):
     with atom.mol._mutation_lock:
         transport = {entry[0]: entry[1:] for entry in _hydrogen_transport_inputs(
-            tuple(member._uid for member in atom.mol._atoms), atom.mol._stereo_payload)}
+            tuple(member._uid for member in atom.mol._atoms), _get_stereo_payload(atom.mol))}
         return _calculate_implicit_hydrogens(*_hydrogen_inputs(atom, transport))
 
 
@@ -226,7 +226,7 @@ def _prepare_hydrogens(mol, *, rows=None, force=False):
             if binding is None:
                 binding = _capture_source(mol, ('bonding_inputs',))
                 transport = {entry[0]: entry[1:] for entry in _hydrogen_transport_inputs(
-                    tuple(member._uid for member in mol._atoms), mol._stereo_payload)}
+                    tuple(member._uid for member in mol._atoms), _get_stereo_payload(mol))}
             inputs = _hydrogen_inputs(atom, transport)
             value = _calculate_implicit_hydrogens(*inputs)
             if inputs != _hydrogen_inputs(atom, transport) or mol._topology_index.get(id(atom), (None,))[0] != row:
@@ -326,7 +326,7 @@ def _prepare_hydrogen_expansions(mol, atoms):
     counts = _require_implicit_hydrogens(mol, rows=tuple(atom.idx for atom in atoms))
     source = _capture_source(mol, ('bonding_inputs',))
     transport = {entry[0]: entry[1:] for entry in _hydrogen_transport_inputs(
-        tuple(atom._uid for atom in mol._atoms), mol._stereo_payload)}
+        tuple(atom._uid for atom in mol._atoms), _get_stereo_payload(mol))}
     table = mol._atom_table
     prepared = []
     for atom, count in zip(atoms, counts):

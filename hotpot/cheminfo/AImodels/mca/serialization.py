@@ -15,6 +15,7 @@ import numpy as np
 from rdkit import Chem
 
 from hotpot.cheminfo.structure._builder import _make_molecule_record
+from hotpot.cheminfo.structure.stereo import AtomTransportRecord, StereoPayload
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_PRESENCE_BITS
 from hotpot.cheminfo.structure._results import _partial_charge_projection
 
@@ -91,7 +92,7 @@ def normalize_molecule(value) -> MoleculeDTO:
                 is_aromatic=bool(atom.is_aromatic),
                 implicit_hydrogens=hydrogen,
                 valence=int(atom.valence),
-                isotope=int(getattr(atom, "isotope", 0)),
+                isotope=int(getattr(atom, "isotope", None) or 0),
                 coordinates=tuple(float(coordinate) for coordinate in atom.coordinates),
             )
             for atom, hydrogen, charge in zip(native_mol.atoms, hydrogens, charges)
@@ -172,7 +173,6 @@ def hotpot_mol_from_dto(molecule: MoleculeDTO) -> HotpotMolecule:
     raw_bonds[:, 0] = [bond.bond_order for bond in bonds]
     record = _make_molecule_record(
         atom_values=values, atom_presence=presence, atom_sources=sources,
-        atom_isotopes=tuple((row, atom.isotope) for row, atom in enumerate(molecule.atoms)),
         atom_frac_valences=(),
         bond_endpoints=tuple((bond.begin_atom_index, bond.end_atom_index) for bond in bonds),
         bond_values=raw_bonds,
@@ -180,7 +180,10 @@ def hotpot_mol_from_dto(molecule: MoleculeDTO) -> HotpotMolecule:
         bond_directions=tuple(bond.bond_direction for bond in bonds),
         bond_sources=(None,) * len(bonds), bond_metadata=(None,) * len(bonds),
         charge=(True, molecule.formal_charge, "mca_dto"), spin_mult=(False, None, None),
-        cell=None, stereo_payload=None, source_frames=(), conformer_results=(),
+        cell=None, stereo_payload=StereoPayload(1, (), tuple(
+            AtomTransportRecord(row, atom.isotope, None, None, None, None)
+            for row, atom in enumerate(molecule.atoms)), ()),
+        source_frames=(), conformer_results=(),
         frame_selection=(0, None), angle_constraints=(), torsion_constraints=(), identifier=(False, None),
     )
     return HotpotMolecule._build_molecule(record)

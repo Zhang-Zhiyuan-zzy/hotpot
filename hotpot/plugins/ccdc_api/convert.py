@@ -52,7 +52,7 @@ def mol_from_ccdc_to_hp(c_mol: CMol):
     raw_bonds[:, 0] = orders
     record = _make_molecule_record(
         atom_values=values, atom_presence=presence, atom_sources=sources,
-        atom_isotopes=(), atom_frac_valences=(),
+        atom_frac_valences=(),
         bond_endpoints=tuple(tuple(label_to_idx[atom.label] for atom in bond.atoms) for bond in bonds),
         bond_values=raw_bonds,
         bond_kinds=tuple({1: "single", 1.5: "aromatic", 2: "double", 3: "triple"}.get(order, "unknown") for order in orders),

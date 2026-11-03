@@ -27,14 +27,17 @@ def _inputs():
     return dict(
         atom_values=values, atom_presence=np.array([0, 1, 0x7FFFF, 0], dtype=np.uint32),
         atom_sources=(np.arange(4 * 19).reshape(4, 19) % 10).astype(np.uint8),
-        atom_isotopes=((0, None), (1, 0), (2, 13)), atom_frac_valences=((0, 1.75),),
+        atom_frac_valences=((0, 1.75),),
         bond_endpoints=((2, 0), (0, 1), (3, 2)),
         bond_values=np.array([[1.25, 0.25, 2**40 + 0.125], [0, 0, 0], [-4.5, 2.5, -2.25]]),
         bond_kinds=("dative", "zero", "unknown"),
         bond_directions=("wedge", None, "raw direction"), bond_sources=(None, "rdkit", "source"),
         bond_metadata=({}, None, {"raw": [1, (2, b"three")]}),
         charge=(True, 0, None), spin_mult=(False, None, None), cell=None,
-        stereo_payload=None, source_frames=(), conformer_results=(), frame_selection=None,
+        stereo_payload=StereoPayload(1, (), tuple(
+            AtomTransportRecord(row, isotope, None, None, None, None)
+            for row, isotope in enumerate((None, 0, 13))), ()),
+        source_frames=(), conformer_results=(), frame_selection=None,
         angle_constraints=((2, 0, 1),), torsion_constraints=((3, 2, 0, 1),),
         identifier=(False, None),
     )
@@ -80,8 +83,8 @@ def test_complete_record_preserves_raw_width_order_and_presence():
     assert marker == ()
     np.testing.assert_array_equal(np.frombuffer(record.bond_values, dtype="<f8").reshape(-1, 3), inputs["bond_values"])
     assert record.bond_endpoints == ((2, 0), (0, 1), (3, 2))
-    assert len(fields(record)) == 25
-    assert record.atom_isotopes == ((0, None), (1, 0), (2, 13))
+    assert len(fields(record)) == 24
+    assert tuple(fact.isotope for fact in record.stereo_payload.atom_facts) == (None, 0, 13)
     assert record.atom_frac_valences == ((0, 1.75),)
     assert record.charge == (True, 0, None)
     assert record.spin_mult == (False, None, None)
@@ -142,8 +145,8 @@ def test_pickle_reconstructs_through_normal_constructor_and_deepcopy(protocol):
     assert deepcopy(record) is record
     restore, (record_type, version, values) = restored.__reduce__()
     assert restore is builder._restore_molecule_record
-    assert record_type is MoleculeRecord and version == 4
-    assert len(values) == 25
+    assert record_type is MoleculeRecord and version == 5
+    assert len(values) == 24
     with pytest.raises(ValueError):
         _atoms(restored).flags.writeable = True
 
@@ -267,7 +270,7 @@ def test_codec_rejects_opaque_and_nonlossless_dtype_values(value):
     {"bond_endpoints": ((0, 4),) * 3}, {"bond_endpoints": ((0,),) * 3},
     {"bond_kinds": ("single", "double", "invalid")},
     {"bond_metadata": ({},)}, {"bond_metadata": ({}, {}, object())},
-    {"atom_isotopes": ((0, 1), (0, 2))}, {"atom_frac_valences": ((4, 1.5),)},
+    {"atom_frac_valences": ((4, 1.5),)},
     {"atom_frac_valences": ((0, 1.5), (0, 2.5))},
     {"charge": (False, 0, None)}, {"spin_mult": (True, 1, [])},
     {"cell": (1, 2, 3)}, {"source_frames": (None,)},
@@ -299,7 +302,7 @@ def test_canonical_constructor_revalidates_buffers_and_encoded_values(changes):
 def test_empty_record_and_transport_only_self_parallel_bonds():
     record = _record(
         atom_values=np.empty((0, 19)), atom_presence=np.empty(0, dtype=np.uint32),
-        atom_sources=np.empty((0, 19), dtype=np.uint8), atom_isotopes=(), atom_frac_valences=(),
+        atom_sources=np.empty((0, 19), dtype=np.uint8), atom_frac_valences=(),
         bond_endpoints=(), bond_values=np.empty((0, 3)), bond_kinds=(),
         bond_directions=(), bond_sources=(), bond_metadata=(), angle_constraints=(), torsion_constraints=(),
     )
@@ -444,11 +447,29 @@ def test_factual_builder_installs_every_raw_fact_and_builds_topology_once(monkey
     assert all(mol.bond(*pair) is bond for pair, bond in zip(record.bond_endpoints, mol.bonds))
     assert mol.atoms[0].isotope is None and mol.atoms[1].isotope == 0
     assert mol.atoms[2].isotope == 13 and mol.atoms[0].frac_valence == 1.75
-    assert 'isotope' not in mol.atoms[3].__dict__
+    assert all('isotope' not in atom.__dict__ for atom in mol.atoms)
+    with pytest.raises(AttributeError, match='isotope'):
+        _ = mol.atoms[3].isotope
     assert [tuple(atom.idx for atom in view.atoms) for view in mol.angles if view.constraint] == [(2, 0, 1)]
     assert [tuple(atom.idx for atom in view.atoms) for view in mol.torsions if view.constraint] == [(3, 2, 0, 1)]
     assert mol._constraints.angles == (tuple(mol.atoms[row]._uid for row in (2, 0, 1)),)
     assert mol._constraints.torsions == (tuple(mol.atoms[row]._uid for row in (3, 2, 0, 1)),)
+
+
+def test_absent_record_transport_uses_schema1_default_separate_from_explicit_clear():
+    from hotpot import Molecule
+    from hotpot.cheminfo.stereo import get_stereo_payload, set_stereo_payload
+
+    record = _record(stereo_payload=None)
+    assert record.stereo_payload is None
+    mol = Molecule._build_molecule(record)
+    expected = StereoPayload(1, (), (), ())
+    assert get_stereo_payload(mol) == expected
+    assert get_stereo_payload(pickle.loads(pickle.dumps(mol))) == expected
+    assert all(not row for row in mol._atom_table._stereo_facts[:len(mol.atoms)])
+    assert '_stereo_payload' not in mol.__dict__
+    set_stereo_payload(mol, None)
+    assert get_stereo_payload(mol) is None
 
 
 def test_same_target_factual_installer_preserves_owner_lock_and_burned_uid_ranges():
@@ -529,11 +550,12 @@ def test_current_record_constructor_and_reducer_have_an_explicit_schema_boundary
     values = tuple(getattr(record, field.name) for field in fields(record))
     with pytest.raises(TypeError):
         MoleculeRecord(*values)
-    for version, payload in ((0, values), (1, values), (2, values), (2, values[:-1]),
-                             (3, values), (4, values[:-1]), (4, values + ((),))):
+    for version, payload in ((0, values), (1, values), (2, values), (3, values),
+                             (4, values), (4, values[:4] + ((),) + values[4:]),
+                             (5, values[:-1]), (5, values + ((),))):
         with pytest.raises(ValueError):
             builder._restore_molecule_record(MoleculeRecord, version, payload)
-    restored = builder._restore_molecule_record(MoleculeRecord, 4, values)
+    restored = builder._restore_molecule_record(MoleculeRecord, 5, values)
     assert restored is not record
     for field in fields(record):
         assert getattr(restored, field.name) == getattr(record, field.name)

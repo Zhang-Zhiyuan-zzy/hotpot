@@ -836,7 +836,7 @@ def test_repeated_public_validation_is_deterministic_and_nonmutating():
         0,
         stereo.StereoIssueCode.NON_STEREOGENIC,
     )
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload
     assert tuple(atom.attr_dict for atom in molecule.atoms) == atom_snapshot
     assert tuple(bond.attr_dict for bond in molecule.bonds) == active_bond_snapshot
 

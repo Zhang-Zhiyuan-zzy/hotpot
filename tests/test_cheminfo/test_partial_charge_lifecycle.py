@@ -79,14 +79,14 @@ def test_current_whole_copy_checks_original_source_before_rebinding():
 
 
 @pytest.mark.parametrize('stale', [False, True])
-def test_record4_transports_explicit_payload_and_marker_without_raw_charge_bits(stale):
+def test_record5_transports_explicit_payload_and_marker_without_raw_charge_bits(stale):
     mol = molecule()
     select(mol)
     if stale:
         mol.atoms[0].x = 0.5
     record, metadata = mol._capture_factual_record(include_frames=False)
     assert tuple(field.name for field in fields(record))[-1] == 'partial_charge_result'
-    assert len(fields(record)) == 25
+    assert len(fields(record)) == 24
     payload, marker = record.partial_charge_result
     assert payload.atom_uids == (0, 1, 2)
     assert_payload(payload, (0.0, -0.25, None))
@@ -95,9 +95,9 @@ def test_record4_transports_explicit_payload_and_marker_without_raw_charge_bits(
     assert not (np.frombuffer(record.atom_presence, dtype='<u4') & (1 << 8)).any()
     assert (np.frombuffer(record.atom_sources, dtype='u1').reshape(3, 19)[:, 8] == 0).all()
     restore, (record_type, version, values) = record.__reduce__()
-    assert version == 4 and len(values) == 25
-    for old_version in (0, 1, 2, 3):
-        with pytest.raises(ValueError, match='version 4 and 25 fields'):
+    assert version == 5 and len(values) == 24
+    for old_version in (0, 1, 2, 3, 4):
+        with pytest.raises(ValueError, match='version 5 and 24 fields'):
             _restore_molecule_record(record_type, old_version, values)
     transported = restore(record_type, version, values)
     rebuilt = Molecule._build_molecule(transported, bond_metadata=metadata)

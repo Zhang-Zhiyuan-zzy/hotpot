@@ -793,7 +793,7 @@ def test_malformed_and_opaque_records_do_not_enter_the_base_valid_site_set():
             "expected 4 ordered carriers, got 3",
         ),
     )
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload
     assert stereo.get_stereo_payload(molecule).records[2] is opaque
 
 
@@ -829,7 +829,7 @@ def test_public_gate7_graph_semantics_allow_graph_equivalent_ligands():
     )
 
     assert validation == stereo.StereoValidationReport(True, ())
-    assert assignment.payload is payload
+    assert assignment.payload == payload
     assert assignment.unresolved == ()
     assert assignment.derived == ()
     assert alignment.is_equivalent
@@ -843,4 +843,4 @@ def test_public_gate7_graph_semantics_allow_graph_equivalent_ligands():
             *alignment.issues,
         )
     )
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload

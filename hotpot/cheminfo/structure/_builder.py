@@ -273,7 +273,6 @@ class MoleculeRecord:
     atom_values: bytes
     atom_presence: bytes
     atom_sources: bytes
-    atom_isotopes: tuple
     atom_frac_valences: tuple
     bond_endpoints: tuple
     bond_values: bytes
@@ -362,7 +361,6 @@ class MoleculeRecord:
             raise ValueError("Identifier import requires an explicit presence/value pair")
         normalized = dict(
             atom_count=count, atom_values=atom_values, atom_presence=presence, atom_sources=sources,
-            atom_isotopes=_sparse(self.atom_isotopes, count, lambda value: None if value is None else operator.index(value)),
             atom_frac_valences=_sparse(self.atom_frac_valences, count, float),
             bond_endpoints=endpoints, bond_values=bond_values,
             bond_kinds=kinds, bond_directions=directions, bond_sources=bond_sources,
@@ -379,7 +377,7 @@ class MoleculeRecord:
 
     def __reduce__(self):
         return _restore_molecule_record, (
-            type(self), 4, tuple(getattr(self, field.name) for field in fields(self)),
+            type(self), 5, tuple(getattr(self, field.name) for field in fields(self)),
         )
 
     def __deepcopy__(self, memo):
@@ -387,12 +385,12 @@ class MoleculeRecord:
 
 
 def _restore_molecule_record(record_type, schema_version, field_values):
-    if schema_version != 4 or len(field_values) != 25:
-        raise ValueError("MoleculeRecord pickle requires schema version 4 and 25 fields")
+    if schema_version != 5 or len(field_values) != 24:
+        raise ValueError("MoleculeRecord pickle requires schema version 5 and 24 fields")
     return record_type(**dict(zip((field.name for field in fields(MoleculeRecord)), field_values)))
 
 
-def _make_molecule_record(*, atom_values, atom_presence, atom_sources, atom_isotopes,
+def _make_molecule_record(*, atom_values, atom_presence, atom_sources,
                           atom_frac_valences, bond_endpoints, bond_values,
                           bond_kinds, bond_directions, bond_sources, bond_metadata, charge,
                           spin_mult, cell, stereo_payload, source_frames,
@@ -418,7 +416,7 @@ def _make_molecule_record(*, atom_values, atom_presence, atom_sources, atom_isot
     return MoleculeRecord(
         atom_count=count, atom_values=values.tobytes(order="C"),
         atom_presence=presence.astype("<u4").tobytes(), atom_sources=sources.astype("u1").tobytes(),
-        atom_isotopes=atom_isotopes, atom_frac_valences=atom_frac_valences,
+        atom_frac_valences=atom_frac_valences,
         bond_endpoints=endpoints, bond_values=bonds.tobytes(order="C"), bond_kinds=bond_kinds,
         bond_directions=bond_directions, bond_sources=bond_sources,
         bond_metadata=tuple(map(_freeze_value, bond_metadata)), charge=charge, spin_mult=spin_mult,

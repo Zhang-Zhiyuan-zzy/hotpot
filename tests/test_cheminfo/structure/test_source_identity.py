@@ -6,7 +6,9 @@ import numpy as np
 import pytest
 
 from hotpot import Molecule
-from hotpot.cheminfo.stereo import AtomTransportRecord, HydrogenTransportState, get_stereo_payload
+from hotpot.cheminfo.stereo import (
+    AtomTransportRecord, HydrogenTransportState, get_stereo_payload, set_stereo_payload,
+)
 from hotpot.cheminfo.structure import _identity
 from hotpot.cheminfo.structure._identity import _capture_source, _check_source
 from hotpot.cheminfo.structure.conformer import _import_frame_values, _select_frame_observations
@@ -175,7 +177,7 @@ def test_lossless_stereo_transport_and_source_hydrogen_provenance_affect_represe
         source_hydrogens=HydrogenTransportState(None, 1, True),
         source_namespace="test-source",
     )
-    mol._stereo_payload = replace(payload, atom_facts=(record,))
+    set_stereo_payload(mol, replace(payload, atom_facts=(record,)))
     with pytest.raises(RuntimeError, match="representation"):
         _check_source(mol, source)
 

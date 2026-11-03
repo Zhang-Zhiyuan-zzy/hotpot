@@ -26,7 +26,7 @@ namespace py = pybind11;
 
 namespace {
 
-enum class Name { Parent, Owner, Uid, UidOwner, Atoms, Topology, Table, Size, Columns, Sources, Presence, Status, Seeds, Lock, TransactionMol, Producer, Cells, Failed, Source, Rows, Uids, Fields, Values, Present, Producers, SourceOwner, Acquire, Release, Dependencies, Constraints, AtomAxes, ConstraintValues, Count };
+enum class Name { Parent, Owner, Uid, UidOwner, Atoms, Topology, Table, Size, Columns, Sources, Presence, Status, Seeds, Lock, TransactionMol, Producer, Cells, Failed, Source, Rows, Uids, Fields, Values, Present, Producers, SourceOwner, Acquire, Release, Dependencies, Constraints, AtomAxes, ConstraintValues, PrivateValues, PrivateFacts, Count };
 
 // Only immutable declarations and Python code/type bindings live beyond a call.
 struct Field {
@@ -404,6 +404,10 @@ struct Undo {
     py::object constraint_owner;
     SmallArray<py::object, 1> constraint_keys, constraint_before, constraint_after;
     std::size_t constraint_applied = 0;
+    py::object private_owner;
+    SmallArray<Py_ssize_t, 1> private_rows;
+    SmallArray<py::object, 1> private_before, private_after;
+    std::size_t private_applied = 0;
     py::object result_owner;
     SmallArray<py::object, 1> result_updates;
     std::size_t result_applied = 0;
@@ -418,6 +422,12 @@ struct Undo {
             (void) PyDict_SetItem(constraint_owner.ptr(), constraint_keys[i].ptr(), constraint_before[i].ptr());
         }
         constraint_applied = 0;
+        for (std::size_t i = private_applied; i-- > 0;) {
+            PyObject *before = private_before[i].ptr();
+            Py_INCREF(before);
+            (void) PyList_SetItem(private_owner.ptr(), private_rows[i], before);
+        }
+        private_applied = 0;
         for (std::size_t i = 0; i < cells.size; ++i) {
             auto &cell = cells[i];
             std::memcpy(cell.value, &cell.before, sizeof(cell.before));
@@ -459,6 +469,16 @@ struct Undo {
             ++constraint_applied;
             // A cell publishes raw value, source and presence together. Each
             // existing interruption boundary observes that same publication.
+            fault.after("value");
+            fault.after("source");
+            fault.after("presence");
+        }
+        for (std::size_t i = 0; i < private_rows.size; ++i) {
+            PyObject *after = private_after[i].ptr();
+            Py_INCREF(after);
+            if (PyList_SetItem(private_owner.ptr(), private_rows[i], after) < 0) python_error();
+            ++private_applied;
+            // Value, presence and source are one immutable occurrence-row cell.
             fault.after("value");
             fault.after("source");
             fault.after("presence");
@@ -551,10 +571,33 @@ void check_rows(py::handle mol, const Selection &selection, py::handle expected 
 template <class Rows, class Columns>
 void prepare_undo(Undo &undo, py::handle table, const Rows &rows,
                   const Columns &columns, py::handle uids, bool dependencies,
-                  py::handle mol, py::handle transaction) {
+                  py::handle mol, py::handle transaction, py::handle private_values = {}) {
     Py_ssize_t logical = integer(get(table, Name::Size));
     for (auto row : rows)
         if (row < 0 || row >= logical) throw py::index_error("Atom row is outside the current table");
+    bool private_changed = false;
+    if (private_values && !PyTuple_CheckExact(private_values.ptr()))
+        throw py::type_error("Private Atom update rows require an immutable tuple");
+    if (private_values && PyTuple_GET_SIZE(private_values.ptr())) {
+        if (PyTuple_GET_SIZE(private_values.ptr()) != static_cast<Py_ssize_t>(rows.size()))
+            throw py::value_error("Private Atom update rows must align with selected rows");
+        undo.private_owner = get(table, Name::PrivateFacts);
+        if (!PyList_CheckExact(undo.private_owner.ptr()) || PyList_GET_SIZE(undo.private_owner.ptr()) < logical)
+            throw py::value_error("Private Atom storage is not aligned");
+        undo.private_rows.resize(rows.size());
+        undo.private_before.resize(rows.size());
+        undo.private_after.resize(rows.size());
+        for (std::size_t r = 0; r < rows.size(); ++r) {
+            py::handle before = PyList_GET_ITEM(undo.private_owner.ptr(), rows[r]);
+            py::handle after = PyTuple_GET_ITEM(private_values.ptr(), r);
+            if (!PyTuple_CheckExact(before.ptr()) || !PyTuple_CheckExact(after.ptr()))
+                throw py::type_error("Private Atom rows require immutable occurrence tuples");
+            undo.private_rows[r] = rows[r];
+            undo.private_before[r] = py::reinterpret_borrow<py::object>(before);
+            undo.private_after[r] = py::reinterpret_borrow<py::object>(after);
+            private_changed |= !equal(before, after);
+        }
+    }
     std::size_t numeric_count = 0, constraint_count = 0;
     for (const auto &column : columns) {
         require_stored_field(column.index);
@@ -672,7 +715,7 @@ void prepare_undo(Undo &undo, py::handle table, const Rows &rows,
         affected |= field.affected_mask;
         materialized |= field.materialized_mask;
     }
-    if (dependencies && mol && changed_fields.size) {
+    if (dependencies && mol && (changed_fields.size || private_changed)) {
         py::object md = dictionary(mol);
         bool selected = false;
         for (py::handle attribute : py::reinterpret_borrow<py::tuple>(config->result_attributes)) {
@@ -687,9 +730,10 @@ void prepare_undo(Undo &undo, py::handle table, const Rows &rows,
         if (selected) {
             // This bound private hook prepares immutable metadata only. It also
             // enrolls the original selection in an existing Python transaction.
-            py::tuple fields(changed_fields.size);
+            py::tuple fields(changed_fields.size + static_cast<std::size_t>(private_changed));
             for (std::size_t i = 0; i < changed_fields.size; ++i)
                 fields[i] = py::str(config->fields[changed_fields[i]].name);
+            if (private_changed) fields[changed_fields.size] = py::str("stereo_facts");
             py::tuple updates = config->prepare_result_updates(mol, fields, transaction);
             undo.result_owner = std::move(md);
             for (py::handle update : updates)
@@ -752,10 +796,10 @@ void install_undo(Undo &local, py::handle transaction) {
 template <class Rows, class Columns>
 void install(py::handle table, const Rows &rows,
              const Columns &columns, py::handle uids, py::handle transaction,
-             bool dependencies, py::handle mol = {}) {
+             bool dependencies, py::handle mol = {}, py::handle private_values = {}) {
     try {
         Undo undo;
-        prepare_undo(undo, table, rows, columns, uids, dependencies, mol, transaction);
+        prepare_undo(undo, table, rows, columns, uids, dependencies, mol, transaction, private_values);
         install_undo(undo, transaction);
     } catch (...) { poison(transaction); throw; }
 }
@@ -812,9 +856,10 @@ py::object make_update(py::handle source, py::tuple rows, py::tuple uids,
         presence[i] = py::bool_(columns[i].present);
         codes[i] = py::int_(columns[i].producer);
     }
-    const char *names[] = {"source", "rows", "atom_uids", "fields", "value_bytes", "presence", "sources"};
-    py::handle entries[] = {source, rows, uids, fields, values, presence, codes};
-    for (int i = 0; i < 7; ++i) {
+    py::tuple private_values;
+    const char *names[] = {"source", "rows", "atom_uids", "fields", "value_bytes", "presence", "sources", "private_values"};
+    py::handle entries[] = {source, rows, uids, fields, values, presence, codes, private_values};
+    for (int i = 0; i < 8; ++i) {
         py::str name(names[i]);
         if (PyObject_GenericSetAttr(result.ptr(), name.ptr(), entries[i].ptr()) < 0) python_error();
     }
@@ -1222,7 +1267,8 @@ void commit_facts(py::handle mol, py::handle update) {
         check_rows(mol, selection);
         int producer = transaction.is_none() ? config->explicit_source : py::cast<int>(get(transaction, Name::Producer));
         auto columns = prepared_columns(update, producer);
-        install(get(mol, Name::Table), selection.rows, columns, selection.uids, transaction, true, mol);
+        install(get(mol, Name::Table), selection.rows, columns, selection.uids, transaction, true, mol,
+                get(update, Name::PrivateValues));
     } catch (...) { poison(transaction); throw; }
 }
 
@@ -1265,7 +1311,8 @@ void configure(py::dict values) {
             break;
         }
     }
-    const char *attribute_names[] = {"_mol", "_owner_token", "_member_uid", "_uid_owner", "_atoms", "_topology_index", "_atom_table", "_size", "_columns", "_sources", "_presence", "_group_status", "_dirty_seeds", "_mutation_lock", "mol", "producer", "_cells", "_failed", "source", "rows", "atom_uids", "fields", "value_bytes", "presence", "sources", "owner", "acquire", "release", "dependencies", "_constraints", "atom_axes", "_constraint_values"};
+    const std::string private_slot = py::cast<std::string>(values["private_slot"]);
+    const char *attribute_names[] = {"_mol", "_owner_token", "_member_uid", "_uid_owner", "_atoms", "_topology_index", "_atom_table", "_size", "_columns", "_sources", "_presence", "_group_status", "_dirty_seeds", "_mutation_lock", "mol", "producer", "_cells", "_failed", "source", "rows", "atom_uids", "fields", "value_bytes", "presence", "sources", "owner", "acquire", "release", "dependencies", "_constraints", "atom_axes", "_constraint_values", "private_values", private_slot.c_str()};
     for (std::size_t i = 0; i < next->names.size(); ++i) {
         next->names[i] = py::reinterpret_steal<py::object>(PyUnicode_InternFromString(attribute_names[i]));
         if (!next->names[i]) python_error();
@@ -1273,7 +1320,7 @@ void configure(py::dict values) {
     }
     next->table_type = values["table_type"];
     next->table_offsets.fill(-1);
-    for (Name key : {Name::Size, Name::Columns, Name::Sources, Name::Presence, Name::Status, Name::Seeds}) {
+    for (Name key : {Name::Size, Name::Columns, Name::Sources, Name::Presence, Name::Status, Name::Seeds, Name::PrivateFacts}) {
         std::size_t index = static_cast<std::size_t>(key);
         PyObject *descriptor = PyObject_GetAttr(next->table_type.ptr(), next->names[index].ptr());
         if (!descriptor) python_error();

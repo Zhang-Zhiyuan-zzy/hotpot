@@ -99,8 +99,8 @@ def test_identity_mapping_is_equivalent_and_does_not_mutate_inputs():
     assert report.is_equivalent
     assert report.issues == ()
     assert report.aligned_payload.records == (record,)
-    assert stereo.get_stereo_payload(reference) is reference_payload
-    assert stereo.get_stereo_payload(target) is target_payload
+    assert stereo.get_stereo_payload(reference) == reference_payload
+    assert stereo.get_stereo_payload(target) == target_payload
     assert atom_mapping == mapping_snapshot
 
 

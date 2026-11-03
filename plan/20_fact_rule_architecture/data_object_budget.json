@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage0–7D accepted within recorded owning scopes; Stage7D CP311 source/generated frames and shared observations accepted2026-11-03. Exactly reservedN16/N17/N18 and reusedN15; census783classes/360dataclasses/8Protocols/2TypedDicts. Final940-file architecture audit passes with224preexisting debt/no new findings. Stage7E and later/global gates remain open.",
+  "status": "Stage0–7E accepted within recorded owning scopes; Stage7E canonical stereo storage accepted2026-11-03. ReusedN01/N02/N05/N09/existing transaction/public records; zero new types. Stage7D census783classes/360dataclasses/8Protocols/2TypedDicts remains unchanged by the verified zero-type delta. Final943-file architecture audit passes224preexisting debt. Later/global gates remain open.",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -98,7 +98,8 @@
         "stage5_extension_verification": "stages/stage05/rules_checkpoint_evidence.json; final Stage5 gates open",
         "stage7b_schema": "Same class, 23 keyword-only fields and tagged-v2 private reducer; no retirement credit. Runtime verification pending.",
         "stage7c_schema": "Same class24keyword-only fields/tagged-v3, explicit selected charge payload/stale marker and no raw scalar duplication; CP311 source/installed owning gate accepted. Oldv2 rejected.",
-        "stage7d_schema": "Same reused class25fields/tagged-v4, explicit source_frames/conformer_results/frame_selection replaces legacy arrays/index; oldv3 rejected. Accepted affected source/installed/cold-pickle lifecycle in stages/stage07/coordinate-frames/validation/checkpoint.json"
+        "stage7d_schema": "Same reused class25fields/tagged-v4, explicit source_frames/conformer_results/frame_selection replaces legacy arrays/index; oldv3 rejected. Accepted affected source/installed/cold-pickle lifecycle in stages/stage07/coordinate-frames/validation/checkpoint.json",
+        "stage7e_schema": "Same reused class24fields/tag5; remove atom_isotopes, retain transient transport; baseline fields above describe historical introduction."
       },
       {
         "symbol": "hotpot.cheminfo.structure.constraints._ConstraintSet",
@@ -457,7 +458,7 @@
       "stage": "Stage3",
       "dataclass_upper_bound": 1,
       "responsibility": "One complete immutable factual import record; raw Atom19/Bond3 bytes, presence/source, existing stereo/cell and nine legacy frame domains; no per-row wrapper, UID table or arbitrary result DTO; Stage4 additionally preserves supplied Wiberg pair observations independently of generated views; Stage7C explicitly transports selected N14 charge payload and stale markers, clearing raw Atom charge ownership",
-      "status": "Existing same N02 class; Stage7C24fields/tagged-v3 selected-charge extension root accepted within CP311 owning scope. Earlier stage records retain historical scopes.",
+      "status": "Same reused N02 class; Stage7E Record24/tag5 root accepted within CP311 owning scope; historical schema extensions retain their original scope.",
       "actual_symbol": "hotpot.cheminfo.structure._builder.MoleculeRecord",
       "commit": null,
       "verification": "stages/stage03/builder/evidence.json",
@@ -468,7 +469,6 @@
         "atom_values",
         "atom_presence",
         "atom_sources",
-        "atom_isotopes",
         "atom_frac_valences",
         "bond_endpoints",
         "bond_values",
@@ -480,8 +480,9 @@
         "spin_mult",
         "cell",
         "stereo_payload",
-        "legacy_frame_values",
-        "legacy_frame_index",
+        "source_frames",
+        "conformer_results",
+        "frame_selection",
         "angle_constraints",
         "torsion_constraints",
         "identifier",
@@ -532,6 +533,13 @@
         "schema_effect": "Same N02 class; old tagged-v2/23fields explicitly rejected. No bond/frame side channel or duplicate scalar charge storage.",
         "verification": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/class_census.json",
         "status": "Candidate accounting only; owning-stage runtime/delivery acceptance remains open."
+      },
+      "stage7e_schema": {
+        "removed": "atom_isotopes; current values now canonical Atom private occurrence plane",
+        "transport": "One transient complete stereo_payload; no installed payload mirror",
+        "field_count": 24,
+        "pickle_tag": 5,
+        "verification": "stages/stage07/canonical-stereo/validation/checkpoint.json"
       }
     },
     {
@@ -588,7 +596,7 @@
       "stage": "Stage3",
       "dataclass_upper_bound": 1,
       "responsibility": "One reviewed scalar/batch candidate commit",
-      "status": "implemented; one immutable closed candidate, production commit/table cutover pending",
+      "status": "Same reused immutable candidate; Stage7E private_values and existing native atomic commit/Undo root accepted within CP311 owning scope.",
       "actual_symbol": "hotpot.cheminfo.structure._mutation._AtomFactUpdate",
       "commit": null,
       "verification": "stages/stage03/atom-update/evidence.json",
@@ -599,13 +607,15 @@
         "fields",
         "value_bytes",
         "presence",
-        "sources"
+        "sources",
+        "private_values"
       ],
       "review": "stages/stage03/atom-update/review.md",
       "consumers": [
-        "closed scalar/batch Atom normalization",
-        "future one _commit_atom_facts; no public export"
-      ]
+        "Closed scalar/batch Atom normalization and one _commit_atom_facts",
+        "Canonical stereo selected-row private occurrence publication; no public export"
+      ],
+      "stage7e_schema": "Trailing private_values=() outside public19/native prefix; exact immutable replacement rows, existing reference-owning Undo, no new type"
     },
     {
       "id": "N06",
@@ -646,7 +656,7 @@
       "stage": "Stage6",
       "dataclass_upper_bound": 1,
       "responsibility": "One carrier-free frozen read capture with exactly payload: StereoPayload, atom_keys: tuple[int, ...], bonds: tuple[tuple[int, int, float, str, str | None], ...], in that order. Consumers: structure capture adapter, pure stereo graph/validation/assignment/alignment and stereo operation. Source binding and strong identity-key referents remain operation-local; no fourth field, StereoUpdate wrapper or duplicate reservation.",
-      "status": "Stage6 owning-stage static/runtime/bounded-cost evidence accepted at C61 and delivered C62; sole frozen three-field snapshot remains within cap1. Stage7E canonical-storage and final global gates remain open.",
+      "status": "Stage6 snapshot scope remains accepted; Stage7E mandatory canonical storage is now separately accepted within CP311 scope. Later/global gates remain open.",
       "actual_symbol": "hotpot.cheminfo.structure.snapshots._StereoSnapshot",
       "commit": null,
       "verification": "stages/stage06/bookkeeping/evidence.json",
@@ -1078,5 +1088,16 @@
     "checkpoint": "stages/stage07/coordinate-frames/validation/checkpoint.json",
     "native": "One existing CP311 fact extension rebuilt for actual callback repair; no class/struct/enum/ABI/schema addition. Other5binaries reused.",
     "remaining": "Stage7E zero-new-type canonical stereo storage, later family consolidations and global acceptance."
+  },
+  "stage7e_bookkeeping": {
+    "date": "2026-11-03",
+    "status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE",
+    "new_types": 0,
+    "reused": "N01/N02/N05/N09 and existing immutable public transport/Undo families",
+    "private_schema": "N02 Record24/tag5; N05 private_values",
+    "canonical_owners": "Atom _stereo_facts, Bond _display_facts, Molecule records/schema/source-only layout; no current-value ledger mirror",
+    "checkpoint": "stages/stage07/canonical-stereo/validation/checkpoint.json",
+    "native": "Existing CP311 fact extension rebuilt; existing named types/public prefix retained. Five predecessor binaries reused.",
+    "remaining": "Stage8 and later consolidation, non-CP311 adaptation, package/native/global science/performance obligations; P20-D018 bounded scalar-write optimization."
   }
 }

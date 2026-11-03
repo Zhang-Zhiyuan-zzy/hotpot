@@ -2,6 +2,7 @@
 
 from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
+from dataclasses import replace
 import pickle
 
 import numpy as np
@@ -11,7 +12,11 @@ from hotpot import Atom, Bond, Molecule
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FACT_FIELDS, FIELD_INDEX
 from hotpot.cheminfo.structure._results import _import_partial_charges
 from hotpot.cheminfo.operations.conversion import from_rdmol, to_rdmol
-from hotpot.cheminfo.stereo import get_stereo_payload
+from hotpot.cheminfo.stereo import (
+    AtomTransportRecord, BondTransportRecord, HydrogenTransportState,
+    StereoAnchor, StereoAnchorKind, StereoPayload, StereoRecord,
+    get_stereo_payload, set_stereo_payload,
+)
 from rdkit import Chem
 
 
@@ -328,6 +333,14 @@ def test_current_pickle_roots_round_trip_in_a_fresh_process(tmp_path, protocol):
     second = mol.create_atom(atomic_number=8, id=87)
     bond = mol.add_bond(second, first, bond_order=1., constraint=True, id=91,
                         bond_source='fresh-process', bond_source_metadata={'raw': [1, b'2']})
+    source_h = HydrogenTransportState(4, None, False)
+    payload = StereoPayload(47, (), (
+        AtomTransportRecord(0, 13, 0, None, source_h, 'first'),
+        AtomTransportRecord(1, None, None, None, None, None),
+        AtomTransportRecord(0, 13, 0, HydrogenTransportState(None, 0, False), source_h, ''),
+        AtomTransportRecord(81, -(2**130), 2**140, None, None, 'unbound'),
+    ), (BondTransportRecord((1, 0), 'raw display'),))
+    set_stereo_payload(mol, payload)
     mol.conformer_add(mol.coordinates, energy=-2.)
     mol._conformers_index = -1
     mol.properties['owner'] = mol
@@ -347,10 +360,11 @@ from dataclasses import fields
 from pathlib import Path
 from hotpot import Molecule
 from hotpot.cheminfo.structure._builder import MoleculeRecord
+from hotpot.cheminfo.stereo import get_stereo_payload
 from tests.test_cheminfo._stage5_fixtures import immutable_snapshot
 assert Path(sys.modules[Molecule.__module__].__file__).resolve() == Path(sys.argv[2])
 mol, atom, bond, record, metadata = pickle.loads(Path(sys.argv[1]).read_bytes())
-assert type(record) is MoleculeRecord and record.__reduce__()[1][1] == 4
+assert type(record) is MoleculeRecord and record.__reduce__()[1][1] == 5
 assert atom is mol.atoms[0] and bond is mol.bonds[0]
 assert bond.atom1 is mol.atoms[1] and bond.atom2 is atom
 assert atom._uid == 1 and mol.atoms[1]._uid == 2 and bond._uid == 0
@@ -361,7 +375,16 @@ assert bond.constraint and bond.id == 91
 assert bond.bond_source_metadata == {'raw': [1, b'2']}
 assert mol.conformers_number == 1 and mol._conformers_index == -1
 captured, captured_metadata = mol._capture_factual_record()
-assert len(fields(record)) == 25
+assert len(fields(record)) == 24
+assert get_stereo_payload(mol) == record.stereo_payload
+assert mol._stereo_source[0][:3] == ((1, 0, record.stereo_payload.atom_facts[0].source_hydrogens),
+                                     (2, 0, None),
+                                     (1, 1, record.stereo_payload.atom_facts[2].source_hydrogens))
+assert mol._stereo_source[0][3] == record.stereo_payload.atom_facts[3]
+assert bond._display_facts == ((2, 1, 'raw display'),)
+assert '_stereo_payload' not in mol.__dict__
+assert all('isotope' not in member.__dict__ for member in mol.atoms)
+assert atom.isotope == 13 and mol.atoms[1].isotope is None
 payload, marker = record.partial_charge_result
 assert payload.atom_uids == (0, 1) and payload.values == (0.0, None)
 assert payload.method == 'supplied' and payload.method_version is None
@@ -384,3 +407,123 @@ print('current roots restored')
                             cwd=tmp_path, env=environment, capture_output=True, text=True)
     assert result.returncode == 0, (result.stdout, result.stderr)
     assert result.stdout.strip() == 'current roots restored'
+
+
+def test_whole_transport_preserves_opaque_unbound_facts_and_selection_filters_them():
+    mol = Molecule()
+    for number in (6, 8, 7):
+        mol.create_atom(atomic_number=number)
+    mol.add_bond(0, 1)
+    payload = StereoPayload(47, (StereoRecord(
+        StereoAnchor(StereoAnchorKind.ATOM, (81,)), (), 'opaque', None, '', ''),), (
+        AtomTransportRecord(1, 2**130, -(2**140), HydrogenTransportState(None, 0, False),
+                            HydrogenTransportState(2**150, None, None), ''),
+        AtomTransportRecord(81, None, None, None, None, None),
+        AtomTransportRecord(1, 2**130, None, None, None, None),
+    ), (BondTransportRecord((1, 0), ''), BondTransportRecord((0, 2), 'missing edge')))
+    set_stereo_payload(mol, payload)
+    record, _ = mol._capture_factual_record()
+    empty = Molecule()
+    empty.add_component(mol)
+    for transported in (Molecule._build_molecule(record), mol.copy(), empty):
+        assert get_stereo_payload(transported) == payload
+        assert '_stereo_payload' not in transported.__dict__
+        assert all('isotope' not in atom.__dict__ for atom in transported.atoms)
+        assert transported.atoms[1].isotope == 2**130
+    reordered, _ = mol._capture_factual_record(rows=(1, 0, 2))
+    assert reordered.stereo_payload.records == ()
+    assert reordered.stereo_payload.atom_facts == tuple(
+        replace(fact, atom=0) for fact in (payload.atom_facts[0], payload.atom_facts[2]))
+    assert reordered.stereo_payload.bond_facts == (BondTransportRecord((0, 1), ''),)
+    component = next(value for value in mol.components if len(value.atoms) == 2)
+    selected = get_stereo_payload(component)
+    assert selected.records == ()
+    assert selected.atom_facts == (payload.atom_facts[0], payload.atom_facts[2])
+    assert selected.bond_facts == (payload.bond_facts[0],)
+
+
+def test_detached_atom_transfer_preserves_current_occurrences_without_source_history():
+    source = Molecule()
+    atom = source.create_atom(atomic_number=6)
+    source.create_atom(atomic_number=8)
+    current = HydrogenTransportState(-(2**90), 0, False)
+    history = HydrogenTransportState(4, None, True)
+    payload = StereoPayload(1, (), (
+        AtomTransportRecord(0, 13, -(2**100), current, history, ''),
+        AtomTransportRecord(0, 13, None, None, history, None),
+    ), ())
+    set_stereo_payload(source, payload)
+    source.remove_atom(atom)
+    assert atom.isotope == 13
+    assert atom._detached_table._stereo_facts[0] == (
+        (13, -(2**100), True, -(2**90), 0, False, ''),
+        (13, None, False, None, None, None, None),
+    )
+    target = Molecule()
+    target.create_atom(atomic_number=7)
+    added = target.add_atom(atom)
+    assert added.isotope == 13 and 'isotope' not in added.__dict__
+    assert get_stereo_payload(target).atom_facts == tuple(
+        replace(fact, atom=1, source_hydrogens=None) for fact in payload.atom_facts)
+
+
+def _molecule_with_bond_displays():
+    mol = Molecule()
+    for number in (6, 7, 8):
+        mol.create_atom(atomic_number=number)
+    mol.add_bond(0, 1)
+    mol.add_bond(1, 2)
+    payload = StereoPayload(47, (), (), (
+        BondTransportRecord((1, 0), 'ENDUPRIGHT'),
+        BondTransportRecord((0, 1), ''),
+        BondTransportRecord((1, 0), None),
+        BondTransportRecord((2, 1), 'unknown display'),
+    ))
+    set_stereo_payload(mol, payload)
+    return mol, payload
+
+
+@pytest.mark.parametrize('removed_rows', [(0,), (0, 1)])
+def test_removed_bonds_retain_exact_detached_display_owners(removed_rows):
+    mol, payload = _molecule_with_bond_displays()
+    bonds = tuple(mol.bonds)
+    displays = tuple(bond._display_facts for bond in bonds)
+    removed = tuple(bonds[row] for row in removed_rows)
+    mol.remove_bonds(removed)
+    assert tuple(mol.bonds) == tuple(bond for row, bond in enumerate(bonds)
+                                     if row not in removed_rows)
+    assert get_stereo_payload(mol) == replace(
+        payload, bond_facts=payload.bond_facts[3:] if removed_rows == (0,) else ())
+    for row in removed_rows:
+        assert bonds[row]._display_facts is displays[row]
+        assert bonds[row]._display_facts == (
+            ((1, 0, 'ENDUPRIGHT'), (0, 1, ''), (1, 0, None)) if row == 0
+            else ((2, 1, 'unknown display'),))
+        assert bonds[row]._constraint_values is not mol._constraints.bond_values
+        assert bonds[row].mol is mol
+
+
+@pytest.mark.parametrize('removed_rows', [(0,), (0, 1)])
+def test_removed_bond_display_owners_and_transport_survive_outer_rollback(removed_rows):
+    from hotpot.cheminfo.structure._commit import _FactTransaction
+
+    mol, payload = _molecule_with_bond_displays()
+    bonds = tuple(mol.bonds)
+    displays = tuple(bond._display_facts for bond in bonds)
+    source = mol._stereo_source
+    index = mol._topology_index
+    constraint_values = mol._constraints.bond_values
+    with pytest.raises(RuntimeError, match='abort removed displays'):
+        with _FactTransaction(mol, producer=ATOM_SOURCE_CODES['explicit']):
+            mol.remove_bonds(tuple(bonds[row] for row in removed_rows))
+            assert get_stereo_payload(mol) == replace(
+                payload, bond_facts=payload.bond_facts[3:] if removed_rows == (0,) else ())
+            assert all(bonds[row]._display_facts is displays[row] for row in removed_rows)
+            raise RuntimeError('abort removed displays')
+    assert tuple(mol.bonds) == bonds
+    assert mol._topology_index is index
+    assert mol._stereo_source is source
+    assert get_stereo_payload(mol) == payload
+    assert all(bond._display_facts is display for bond, display in zip(bonds, displays))
+    assert mol._constraints.bond_values is constraint_values
+    assert all(bond._constraint_values is constraint_values for bond in bonds)

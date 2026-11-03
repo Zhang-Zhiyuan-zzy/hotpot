@@ -51,7 +51,7 @@ def _topology_index_state(molecule):
     )
 
 
-def test_successful_commit_transfers_the_exact_working_payload_reference():
+def test_successful_commit_transfers_the_exact_working_payload():
     molecule = read_mol("CO")
     working = molecule.copy()
     original_payload = _payload("original")
@@ -65,15 +65,15 @@ def test_successful_commit_transfers_the_exact_working_payload_reference():
 
     working_copy._commit_working_copy(molecule, working)
 
-    assert stereo.get_stereo_payload(molecule) is working_payload
-    assert stereo.get_stereo_payload(working) is working_payload
+    assert stereo.get_stereo_payload(molecule) == working_payload
+    assert stereo.get_stereo_payload(working) == working_payload
     assert original_payload.records[0].descriptor == "original"
     assert molecule.properties is properties
     assert molecule.properties == {"stereo_payload": "user-owned-decoy"}
     np.testing.assert_array_equal(molecule.coordinates, expected_coordinates)
 
 
-def test_failed_commit_restores_exact_payload_reference_with_structure(monkeypatch):
+def test_failed_commit_restores_exact_payload_with_structure(monkeypatch):
     molecule = read_mol("CO")
     working = molecule.copy()
     original_payload = _payload("original")
@@ -97,7 +97,7 @@ def test_failed_commit_restores_exact_payload_reference_with_structure(monkeypat
         nonlocal failure_observed_working_payload
         commit_stereo(owner, source, payload)
         failure_observed_working_payload = (
-            stereo.get_stereo_payload(molecule) is working_payload
+            stereo.get_stereo_payload(molecule) == working_payload
         )
         raise RuntimeError("injected failure after stereo assignment")
 
@@ -111,7 +111,7 @@ def test_failed_commit_restores_exact_payload_reference_with_structure(monkeypat
         working_copy._commit_working_copy(molecule, working)
 
     assert failure_observed_working_payload
-    assert stereo.get_stereo_payload(molecule) is original_payload
+    assert stereo.get_stereo_payload(molecule) == original_payload
     assert tuple(molecule.atoms) == original_atoms
     assert tuple(molecule.bonds) == original_bonds
     assert all(

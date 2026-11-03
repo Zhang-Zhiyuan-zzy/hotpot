@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7E",
+  "read_on_demand": true,
+  "archive_root": ".plan20-artifacts/20261103/stage7e/canonical-stereo",
+  "load_bearing": {
+    "source-validation/source_freeze.json": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/source_freeze.json",
+      "bytes": 178414,
+      "sha256": "4ea64e1b92b77e42e3ea79791386a3ca85b6940b19e54571265e0c57d08c7440"
+    },
+    "source-validation/affected-attempt03/execution.json": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/affected-attempt03/execution.json",
+      "bytes": 6520,
+      "sha256": "93b15a2d827ee9147ed6fc8bf7377e56222f773b51d48edf17ae21f49c678a6b"
+    },
+    "source-validation/actual_FF-attempt01/execution.json": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/actual_FF-attempt01/execution.json",
+      "bytes": 2301,
+      "sha256": "a5dfe0fd875a6bbc95c283f5364d3d99eeb99898062b1618e404f051a570e6bc"
+    },
+    "source-validation/actual_CBFF_xtb-attempt01/execution.json": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/actual_CBFF_xtb-attempt01/execution.json",
+      "bytes": 2366,
+      "sha256": "ba932865837dc05adb5d7ad110d57499d33725a78e5e6c66e8081b51522189e5"
+    },
+    "source-validation/actual_MCA-attempt01/execution.json": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/actual_MCA-attempt01/execution.json",
+      "bytes": 2269,
+      "sha256": "a737f0caf53b375ff50d520a5842976328827e1d1863ed0e30b5931f1d91f7b9"
+    },
+    "source-validation/actual_MCA_attachment-attempt01/execution.json": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/actual_MCA_attachment-attempt01/execution.json",
+      "bytes": 2320,
+      "sha256": "72abeb0edb4f21ba7650c07a01c49c4840a3ca659e6611e0703ede78d724e83f"
+    },
+    "source-validation/native-attempt01/execution.json": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/native-attempt01/execution.json",
+      "bytes": 2414,
+      "sha256": "e2c9e492244c4f047c9efe0852c585157335fba6ab3c6becb1636d9150638d19"
+    },
+    "native-build/attempt01/build-result.json": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/native-build/attempt01/build-result.json",
+      "bytes": 1851,
+      "sha256": "00f3d2ff77c5053f01c9b731a85bc894c85025cb8b1a821e2914025ffa3d69f8"
+    },
+    "installed-validation/attempt01-support-repair/execution.json": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/installed-validation/attempt01-support-repair/execution.json",
+      "bytes": 47035,
+      "sha256": "5cc86b1079c3cda30be8517fba629f900a88e813d21ad21b812b4d2c0b220094"
+    },
+    "installed-validation/attempt01-support-repair/release.json": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/installed-validation/attempt01-support-repair/release.json",
+      "bytes": 2650,
+      "sha256": "4e86d6059ec726cb40964000bbc2366c464e0e8f247116db05a38d863fc8f4d0"
+    },
+    "cost/attempt01/execution.json": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/cost/attempt01/execution.json",
+      "bytes": 18508,
+      "sha256": "add68a0ae45028fd93f7f67562d795b2bd5ba684b4c20699e8e1f84e81ae6a57"
+    },
+    "architecture-audit-final.json": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/architecture-audit-final.json",
+      "bytes": 496,
+      "sha256": "c1f88c0f1a002f5511fe3d4250c37816b06200413d888aeaaf7f0f21c304a1ac"
+    },
+    "final-storage-audit/report.md": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/final-storage-audit/report.md",
+      "bytes": 6982,
+      "sha256": "2b33a862cdb39383938f85ad201dd676850cbeb7d616a915aabf146f55e0b6f2"
+    },
+    "manifest.json": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/manifest.json",
+      "bytes": 261866,
+      "sha256": "91615fc1cbd90b6ffe7ea2e67d2056691287a9e934aa16b1778097f541f1234f"
+    },
+    "archive-receipt.json": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/archive-receipt.json",
+      "bytes": 504,
+      "sha256": "e588bf7d5271ee97b6ae6c8bbd5ec740acd700962d282ef987faf2985b280a74"
+    },
+    "root-final-binding-check.json": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/root-final-binding-check.json",
+      "bytes": 336,
+      "sha256": "0a239a97eb8f353bc35af15166b67e427e59e02da4a18f0b963b1a580670a4c5"
+    }
+  },
+  "commands": "Source/native exact argv, cwd, environment, counts and origins in each execution.json; installed original/five-job support-repair commands and unchanged bindings retained separately.",
+  "raw_observations": "Source business outputs under source-validation/actual_*-attempt01/pytest-tmp; installed raw outputs under installed-business-raw. Source/model/native/wheel attribution is retained; external binaries are not duplicated.",
+  "failures": "Original source/installed/architecture/syntax-only failures and reproduction remain in the full archive manifest."
+}

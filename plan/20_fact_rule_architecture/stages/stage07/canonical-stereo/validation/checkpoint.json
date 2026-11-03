@@ -1,0 +1,474 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7E",
+  "date": "2026-11-03",
+  "status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE",
+  "acceptance_owner": "root",
+  "stage_gate_closed": true,
+  "global_gate_closed": false,
+  "completion": "../completion_20261103.json",
+  "source": {
+    "head_at_execution": "c4f6bec0d9c2d8d082094e99ef09d92b1d8832b7",
+    "freeze": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/source_freeze.json",
+      "bytes": 178414,
+      "sha256": "4ea64e1b92b77e42e3ea79791386a3ca85b6940b19e54571265e0c57d08c7440"
+    },
+    "source_test_resource_files": 1414,
+    "native_files": 6,
+    "final_business_bytes_checked_against_freeze": true,
+    "final_binding_receipt": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/root-final-binding-check.json",
+      "bytes": 336,
+      "sha256": "0a239a97eb8f353bc35af15166b67e427e59e02da4a18f0b963b1a580670a4c5"
+    }
+  },
+  "source_runs": [
+    {
+      "attempt": "focused-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/focused-attempt01/execution.json",
+        "bytes": 2426,
+        "sha256": "3b1d5937e368c4318d5bedf112cf36542468d57a7c9639c44dd0f3b82cf2a528"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 14.939672999083996,
+      "junit_totals": {
+        "tests": 645,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "affected-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/affected-attempt01/execution.json",
+        "bytes": 6520,
+        "sha256": "703c9b04087dbd83995947843abb3497694c0fce41abfbfdb291fd452d053325"
+      },
+      "returncode": 1,
+      "elapsed_seconds": 44.75607612915337,
+      "junit_totals": {
+        "tests": 2392,
+        "failures": 4,
+        "errors": 0,
+        "skipped": 1
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "repairs-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/repairs-attempt01/execution.json",
+        "bytes": 2581,
+        "sha256": "945382bdbb55b28c611609dcc50c05e685f45f59941cb1c010db85fa844a3119"
+      },
+      "returncode": 1,
+      "elapsed_seconds": 1.5728718172758818,
+      "junit_totals": {
+        "tests": 10,
+        "failures": 3,
+        "errors": 0,
+        "skipped": 0
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "repairs-attempt02",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/repairs-attempt02/execution.json",
+        "bytes": 2581,
+        "sha256": "4be21b4199505c5315f96b0722b76d4be9e6f246ab6d748e018c7c2c06ff1da0"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 1.4538270607590675,
+      "junit_totals": {
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "affected-attempt02",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/affected-attempt02/execution.json",
+        "bytes": 6520,
+        "sha256": "896bb023029bfdc014dbab8e0e35130af3dc57ab25127315ef1323bbb4a77b91"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 44.97599373944104,
+      "junit_totals": {
+        "tests": 2398,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 1
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "affected-attempt03",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/affected-attempt03/execution.json",
+        "bytes": 6520,
+        "sha256": "93b15a2d827ee9147ed6fc8bf7377e56222f773b51d48edf17ae21f49c678a6b"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 44.90428623743355,
+      "junit_totals": {
+        "tests": 2398,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 1
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "actual_FF-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/actual_FF-attempt01/execution.json",
+        "bytes": 2301,
+        "sha256": "a5dfe0fd875a6bbc95c283f5364d3d99eeb99898062b1618e404f051a570e6bc"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 15.959398748353124,
+      "junit_totals": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "actual_CBFF_xtb-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/actual_CBFF_xtb-attempt01/execution.json",
+        "bytes": 2366,
+        "sha256": "ba932865837dc05adb5d7ad110d57499d33725a78e5e6c66e8081b51522189e5"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 4.762762984260917,
+      "junit_totals": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "actual_MCA-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/actual_MCA-attempt01/execution.json",
+        "bytes": 2269,
+        "sha256": "a737f0caf53b375ff50d520a5842976328827e1d1863ed0e30b5931f1d91f7b9"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 3.8789735846221447,
+      "junit_totals": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "actual_MCA_attachment-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/actual_MCA_attachment-attempt01/execution.json",
+        "bytes": 2320,
+        "sha256": "72abeb0edb4f21ba7650c07a01c49c4840a3ca659e6611e0703ede78d724e83f"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 8.769471075385809,
+      "junit_totals": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "native-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/source-validation/native-attempt01/execution.json",
+        "bytes": 2414,
+        "sha256": "e2c9e492244c4f047c9efe0852c585157335fba6ab3c6becb1636d9150638d19"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 4.803994156420231,
+      "junit_totals": {
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    }
+  ],
+  "installed": {
+    "final": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/installed-validation/attempt01-support-repair/execution.json",
+      "bytes": 47035,
+      "sha256": "5cc86b1079c3cda30be8517fba629f900a88e813d21ad21b812b4d2c0b220094"
+    },
+    "complete_affected": {
+      "tests": 2398,
+      "passed": 2397,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "original_unchanged_passes": 2385,
+      "repaired_tests": 12,
+      "same_ordered_full_membership": true,
+      "scope": "Composite same frozen wheel/runtime/tests: original2385passes/1skip plus all12known-support-load errors reexecuted successfully; no full affected rerun claimed"
+    },
+    "actual_results": {
+      "affected-repair": {
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 1.3029613941907883
+      },
+      "actual_FF": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 18.433929350227118
+      },
+      "actual_CBFF_xtb": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 5.286788631230593
+      },
+      "actual_MCA": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 4.1231923289597034
+      },
+      "actual_MCA_attachment": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 8.923578556627035
+      }
+    },
+    "all_origin_checks_zero_leaks": true,
+    "same_ordered_full_membership": true,
+    "wheel": {
+      "path": "/tmp/hotpot_plan20/medium/20261103-stage7e-stereo-installed/attempt01/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6318165,
+      "sha256": "1610c5cb3c2872072baa44ee0d122e4bd086b8ff67e3d533cd141b8a18fd7b6b"
+    },
+    "production_python_sources": 458,
+    "nonpython_omissions": 41,
+    "original_failure": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/installed-validation/attempt01/failure.json",
+      "bytes": 6633,
+      "sha256": "58cb7367d7b801bb6c586824d652faf8d4a0fa155198aac606f107489d31671d"
+    },
+    "support_repair": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/installed-validation/attempt01-support-repair/release.json",
+      "bytes": 2650,
+      "sha256": "4e86d6059ec726cb40964000bbc2366c464e0e8f247116db05a38d863fc8f4d0"
+    },
+    "scope": "Same frozen wheel/runtime/tests, composite2397passed/1skipped plus four actual workflows; no full affected rerun after support-only repair claimed."
+  },
+  "native": {
+    "build": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/native-build/attempt01/build-result.json",
+      "bytes": 1851,
+      "sha256": "00f3d2ff77c5053f01c9b731a85bc894c85025cb8b1a821e2914025ffa3d69f8"
+    },
+    "policy": "Existing factual CP311 extension rebuilt for this E1-E5 native change; five unchanged predecessor binaries reused. No new named native type or public ABI-prefix change.",
+    "source_selection": "6passed/2skipped",
+    "skipped": [
+      {
+        "node": "test_installed_sdk_find_package_link_and_run[0]",
+        "reason": "requires --run-external"
+      },
+      {
+        "node": "test_installed_sdk_find_package_link_and_run[1]",
+        "reason": "requires --run-external"
+      }
+    ]
+  },
+  "failure_disposition": [
+    "Initial focused645passed; affected2387passed/4failed/1skipped retained. Three stale private record expectations and actual MCA unqualified isotope-only export regression repaired.",
+    "Targeted repair01 retained3stale error-text/tag failures; corrected private v5 expectations, repair02all10pass.",
+    "Source-derived dependency-bearing commit self-invalidation order repaired and its regression passed; no runtime reproduction claimed for the original source-derived trigger.",
+    "Actual detached Bond display loss reproduced then fixed; public remove/outer-rollback cases pass without manual topology enrollment.",
+    "Architecture first failed only2new test core imports; tests now enter public import and detach routes; final943-file audit passes224preexisting debt, no new/layer/carrier findings.",
+    "Installed first run retained2385passed/12errors/1skipped. All12errors were the omitted Plan17 test-support script; exact dependency copied and all12reexecuted. Passed unaffected evidence reused after binding verification, then all four actual workflows pass.",
+    "Cost runner initial syntax error occurred before imports or measurements; original script/failure retained, corrected script completes90samples with zero failed samples."
+  ],
+  "cost": {
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/cost/attempt01/execution.json",
+      "bytes": 18508,
+      "sha256": "add68a0ae45028fd93f7f67562d795b2bd5ba684b4c20699e8e1f84e81ae6a57"
+    },
+    "cases": 3,
+    "measurements": 18,
+    "samples": 90,
+    "failed_samples": 0,
+    "median_microseconds_and_python_peak": {
+      "16": {
+        "scalar_isotope": {
+          "median_us": 1.293663,
+          "python_peak_bytes": 640
+        },
+        "get_payload": {
+          "median_us": 33.5085,
+          "python_peak_bytes": 4928
+        },
+        "set_same": {
+          "median_us": 320.69,
+          "python_peak_bytes": 12512
+        },
+        "scalar_write_rollback": {
+          "median_us": 397.207,
+          "python_peak_bytes": 13357
+        },
+        "all_write_rollback": {
+          "median_us": 355.2234,
+          "python_peak_bytes": 10016
+        },
+        "native_atom_transport_pack": {
+          "median_us": 238.953,
+          "python_peak_bytes": 14383
+        }
+      },
+      "64": {
+        "scalar_isotope": {
+          "median_us": 1.306848,
+          "python_peak_bytes": 640
+        },
+        "get_payload": {
+          "median_us": 123.35685000000001,
+          "python_peak_bytes": 18112
+        },
+        "set_same": {
+          "median_us": 1037.9258,
+          "python_peak_bytes": 23576
+        },
+        "scalar_write_rollback": {
+          "median_us": 1230.004,
+          "python_peak_bytes": 39765
+        },
+        "all_write_rollback": {
+          "median_us": 1145.646,
+          "python_peak_bytes": 28144
+        },
+        "native_atom_transport_pack": {
+          "median_us": 748.7955999999999,
+          "python_peak_bytes": 37744
+        }
+      },
+      "256": {
+        "scalar_isotope": {
+          "median_us": 1.3152840000000001,
+          "python_peak_bytes": 640
+        },
+        "get_payload": {
+          "median_us": 481.85805,
+          "python_peak_bytes": 71232
+        },
+        "set_same": {
+          "median_us": 3992.325,
+          "python_peak_bytes": 94928
+        },
+        "scalar_write_rollback": {
+          "median_us": 4512.0362000000005,
+          "python_peak_bytes": 155621
+        },
+        "all_write_rollback": {
+          "median_us": 4288.821,
+          "python_peak_bytes": 103112
+        },
+        "native_atom_transport_pack": {
+          "median_us": 2793.925,
+          "python_peak_bytes": 140296
+        }
+      }
+    },
+    "read_identity_calls": 0,
+    "decision": "Root accepts bounded usable work/scaling. Scalar reads1.29-1.32us; largest N256 getter0.482ms, same setter3.992ms, scalar rollback4.512ms, full rollback4.289ms, Atom packing2.794ms. Single-cell private native writes retain full Python transport assembly; P20-D018 assigns consolidated optimization. No historical timing parity/regression claim.",
+    "memory_scope": "Isolated one-operation Python tracemalloc peaks only; no total RSS/native-memory claim."
+  },
+  "architecture": {
+    "audit": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/architecture-audit-final.json",
+      "bytes": 496,
+      "sha256": "c1f88c0f1a002f5511fe3d4250c37816b06200413d888aeaaf7f0f21c304a1ac"
+    },
+    "storage_and_zero_type_audit": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/final-storage-audit/report.md",
+      "bytes": 6982,
+      "sha256": "2b33a862cdb39383938f85ad201dd676850cbeb7d616a915aabf146f55e0b6f2"
+    },
+    "production_files_parsed": 458,
+    "new_python_or_named_native_types": 0,
+    "remaining_preexisting_debt": 224,
+    "record_schema": "Reused N02 Record24/tag5 and N05 trailing private_values; public19/native prefix and stereo public identities unchanged."
+  },
+  "durable_local_archive": {
+    "manifest": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/manifest.json",
+      "bytes": 261866,
+      "sha256": "91615fc1cbd90b6ffe7ea2e67d2056691287a9e934aa16b1778097f541f1234f"
+    },
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage7e/canonical-stereo/archive-receipt.json",
+      "bytes": 504,
+      "sha256": "e588bf7d5271ee97b6ae6c8bbd5ec740acd700962d282ef987faf2985b280a74"
+    }
+  },
+  "remaining": [
+    "Stage8 scientific-state/workflow separation and later approved stages; Plan20/integrated Plan12 completion remains active.",
+    "Other Python3.10/3.12/3.13/3.14 versions unexecuted for this cutover.",
+    "Clean all-native/ABI/SDK/sdist,41package omissions, external/GPU/global science/performance remain open.",
+    "Direct set(None) remains clear storage; private factual-record None retains old absent/schema1 normalization; no new undeclared roundtrip promise.",
+    "Scalar/full transport assembly cost P20-D018 is accepted only as bounded usable CP311 behavior."
+  ]
+}

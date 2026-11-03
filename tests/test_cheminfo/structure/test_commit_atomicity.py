@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from hotpot import Atom, Molecule
-from hotpot.cheminfo.stereo import StereoPayload
+from hotpot.cheminfo.stereo import StereoPayload, get_stereo_payload
 from hotpot.cheminfo.structure._commit import (
     _native_fail_after, _FactTransaction, _commit_atom_facts, _commit_atom_sparse, _commit_bond_facts,
     _commit_molecular_declarations, _commit_stereo, _current_transaction,
@@ -187,17 +187,18 @@ def test_reader_and_source_capture_wait_for_outer_publication():
     _check_source(mol, source)
 
 
-def test_sealed_stereo_identity_is_preserved_and_mutable_sequences_are_isolated():
+def test_sealed_stereo_is_losslessly_reassembled_and_mutable_sequences_are_isolated():
     mol = _molecule()
     sealed = StereoPayload(1, (), (), ())
     _commit_stereo(mol, _capture_source(mol), sealed)
-    assert mol._stereo_payload is sealed
+    assert get_stereo_payload(mol) == sealed
+    assert "_stereo_payload" not in mol.__dict__
     mutable = StereoPayload(1, [], [], [])
     _commit_stereo(mol, _capture_source(mol), mutable)
-    assert mol._stereo_payload is not mutable
-    assert mol._stereo_payload.records == ()
+    assert get_stereo_payload(mol) is not mutable
+    assert get_stereo_payload(mol).records == ()
     mutable.records.append('outside')
-    assert mol._stereo_payload.records == ()
+    assert get_stereo_payload(mol).records == ()
 
 
 @pytest.mark.parametrize('topology_edit', ['grow', 'remove', 'remove_then_grow'])

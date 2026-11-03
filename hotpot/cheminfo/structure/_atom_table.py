@@ -1,7 +1,8 @@
-"""One private numeric Atom store, without chemistry or molecule membership.
+"""One private Atom fact store, without chemistry or molecule membership.
 
 Two float64 blocks own only the sixteen non-constraint projection slots.
 Eight calculated slots have no value storage; operations calculate their views.
+The private row plane retains exact immutable stereo occurrences.
 """
 
 from __future__ import annotations
@@ -87,8 +88,32 @@ def _source_value(value):
     return value
 
 
+def _seal_stereo_rows(rows):
+    rows = tuple(tuple(tuple(cell) for cell in row) for row in rows)
+    for row in rows:
+        for cell in row:
+            if len(cell) != 7:
+                raise ValueError("Stereo occurrences require exactly seven fields")
+            if any(cell[index] is not None and type(cell[index]) is not int
+                   for index in (0, 1, 3, 4)):
+                raise TypeError("Stereo integer declarations require exact builtin ints or None")
+            if type(cell[2]) is not bool or (cell[5] is not None and type(cell[5]) is not bool):
+                raise TypeError("Stereo H presence and no-implicit declarations require exact bools")
+            if not cell[2] and cell[3:6] != (None, None, None):
+                raise ValueError("Absent current H containers require absent H declarations")
+            if cell[6] is not None and type(cell[6]) is not str:
+                raise TypeError("Stereo source namespaces require exact strings or None")
+    return rows
+
+
+def _select_stereo_rows(values, selection, size):
+    rows = range(size)[selection] if isinstance(selection, slice) else selection
+    return [values[row] for row in rows]
+
+
 class _AtomFactTable:
-    __slots__ = ("_blocks", "_columns", "_size", "_presence", "_sources", "_group_status", "_dirty_seeds")
+    __slots__ = ("_blocks", "_columns", "_size", "_presence", "_sources", "_group_status", "_dirty_seeds",
+                 "_stereo_facts")
 
     def __init__(self, rows=None, *, presence=None, sources=None):
         values = np.empty((0, len(TABLE_FIELDS))) if rows is None else _numeric_rows(rows)
@@ -101,6 +126,7 @@ class _AtomFactTable:
             codes[:, index] = ATOM_SOURCE_CODES["default"]
         self._blocks, self._columns, self._size = blocks, _column_views(blocks), len(values)
         self._presence, self._sources = masks, codes
+        self._stereo_facts = [()] * len(values)
         from ._dependencies import _initialize_dependencies
         _initialize_dependencies(self)
 
@@ -115,10 +141,11 @@ class _AtomFactTable:
             tuple(block[:self._size].copy() for block in self._blocks),
             self._presence[:self._size].copy(), self._sources[:self._size].copy(),
             self._group_status[:self._size].copy(), tuple(frozenset(seed) for seed in self._dirty_seeds),
+            tuple(self._stereo_facts[:self._size]),
         )
 
     def __setstate__(self, state):
-        size, capacity, values, presence, sources, status, seeds = state
+        size, capacity, values, presence, sources, status, seeds, stereo_facts = state
         blocks = _storage(capacity)
         for block, value in zip(blocks, values):
             block[:size] = value
@@ -130,14 +157,17 @@ class _AtomFactTable:
         self._group_status = np.empty((capacity, status.shape[1]), dtype=np.uint8)
         self._group_status[:size] = status
         self._dirty_seeds = tuple(set(seed) for seed in seeds)
+        self._stereo_facts = list(_seal_stereo_rows(stereo_facts)) + [()] * (capacity - size)
 
-    def _install_storage(self, blocks, columns, size, presence, sources):
-        previous = self._blocks, self._columns, self._size, self._presence, self._sources
+    def _install_storage(self, blocks, columns, size, presence, sources, stereo_facts):
+        previous = (self._blocks, self._columns, self._size, self._presence, self._sources,
+                    self._stereo_facts)
         try:
             self._blocks, self._columns, self._size = blocks, columns, size
-            self._presence, self._sources = presence, sources
+            self._presence, self._sources, self._stereo_facts = presence, sources, stereo_facts
         except BaseException:
-            self._blocks, self._columns, self._size, self._presence, self._sources = previous
+            (self._blocks, self._columns, self._size, self._presence, self._sources,
+             self._stereo_facts) = previous
             raise
 
     def _row(self, row):
@@ -283,9 +313,12 @@ class _AtomFactTable:
             next_sources = np.empty((capacity, len(TABLE_FIELDS)), dtype=np.uint8)
             next_presence[:first] = self._presence[:first]
             next_sources[:first] = self._sources[:first]
+            stereo_facts = self._stereo_facts[:first] + [()] * (capacity - first)
         else:
             blocks = self._blocks
             next_presence, next_sources = self._presence, self._sources
+            stereo_facts = self._stereo_facts
+        stereo_facts[first:size] = [()] * len(values)
         blocks[0][first:size] = values[:, [FIELD_INDEX[name] for name in SCALAR_FIELDS]]
         blocks[1][first:size] = values[:, 10:13]
         next_presence[first:size] = masks
@@ -302,7 +335,7 @@ class _AtomFactTable:
         else:
             status = self._group_status
         status[first:size] = _status_from_presence(next_presence[first:size])
-        self._install_storage(blocks, columns, size, next_presence, next_sources)
+        self._install_storage(blocks, columns, size, next_presence, next_sources, stereo_facts)
         self._group_status = status
         return first
 
@@ -319,7 +352,9 @@ class _AtomFactTable:
         next_sources[:size] = self._sources[selection]
         status = np.empty((len(blocks[0]), self._group_status.shape[1]), dtype=np.uint8)
         status[:size] = self._group_status[selection]
-        self._install_storage(blocks, _column_views(blocks), size, next_presence, next_sources)
+        stereo_facts = _select_stereo_rows(self._stereo_facts, selection, self._size)
+        stereo_facts += [()] * (len(blocks[0]) - size)
+        self._install_storage(blocks, _column_views(blocks), size, next_presence, next_sources, stereo_facts)
         self._group_status = status
 
     def take(self, rows):
@@ -332,6 +367,7 @@ class _AtomFactTable:
         result._presence, result._sources = presence, sources
         result._group_status = self._group_status[selection].copy()
         result._dirty_seeds = tuple(set(seed) for seed in self._dirty_seeds)
+        result._stereo_facts = _select_stereo_rows(self._stereo_facts, selection, self._size)
         return result
 
     def copy(self):

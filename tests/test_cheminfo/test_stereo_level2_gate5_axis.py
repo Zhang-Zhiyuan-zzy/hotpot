@@ -396,7 +396,7 @@ def test_axial_coordinate_assignment_uses_frozen_triple_product(implicit_h):
 
     assert report.payload.records[0].descriptor == "hotpot.stereo/2/AX/even"
     assert report.unresolved[0].code is stereo.StereoIssueCode.COORDINATE_CONTRADICTION
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload
     np.testing.assert_array_equal(coordinates, snapshot)
 
 

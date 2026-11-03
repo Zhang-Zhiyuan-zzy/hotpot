@@ -149,7 +149,7 @@ def test_tetrahedral_signed_volume_assigns_even_without_mutating_input(implicit_
             atom_indices=tuple(range(4 if implicit_h else 5)),
         ),
     )
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload
     np.testing.assert_array_equal(coordinates, coordinate_snapshot)
     np.testing.assert_array_equal(molecule.coordinates, molecule_snapshot)
 

@@ -1,0 +1,18 @@
+{
+  "stage": "Stage7E",
+  "status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE",
+  "source_freeze": {
+    "path": "/tmp/hotpot_plan20/long/stage7e-canonical-stereo-20261103/source-validation/source_freeze.json",
+    "sha256": "4ea64e1b92b77e42e3ea79791386a3ca85b6940b19e54571265e0c57d08c7440"
+  },
+  "runtime_authorized": true,
+  "ordered_release": "focused -> affected -> actual owning backend/model and installed source-qualified selections; repair invalidates only affected evidence",
+  "new_types_authorized": 0,
+  "stage_gate_closed": true,
+  "global_gate_closed": false,
+  "original_focused": "645 passed",
+  "original_affected": "4 failed /2387 passed /1 skipped;3 stale private record-arity assertions plus real MCA isotope projection namespace rejection",
+  "repair_scope": "RDKit exact isotope-only map; Record24/v5 assertions; detached Bond display retention; public-remove rollback enrollment tested without manual journal enrollment",
+  "current_affected": "affected-attempt03:2397passed/1skipped; unchanged source/tests/native; zero unexpected product origins",
+  "completion": "completion_20261103.json"
+}

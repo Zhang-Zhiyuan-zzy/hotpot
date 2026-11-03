@@ -4338,3 +4338,65 @@ Root repair commandattempt01 referenced the prior name of the renamed owner-only
 - Stage7D final CP311 root acceptance2026-11-03: freeze`2399687cd1d39f9d5d189a012906748b2cdd440884047b324ba17b214437abe0` binds1411source/test/resource files+6natives. Actual `/tmp/hotpot-plan20-env/bin/python -B /tmp/hotpot_plan20/long/stage7d-coordinate-frames-20261103/source-validation/run_source.py focused focused-attempt04` returned363passed/1skipped; `affected affected-attempt04` returned2105passed/1skipped; `actual_FF actual_FF-attempt02`, `actual_CBFF_xtb actual_CBFF_xtb-attempt02`, `actual_MCA actual_MCA-attempt02`, `actual_MCA_attachment actual_MCA_attachment-attempt02` passed11/3/1/3. Final installed `run_installed.py --root-runtime-released --source-freeze …/source-validation/source_freeze.json --source-run …/source-validation/affected-attempt04 --attempt attempt03` passed the same2106 ordered affected units and11/3/1/3 actual jobs outside checkout. Exact full argv/cwd/environment/dependency/interpreter/timings and all failures are in owning checkpoint receipts. Source/installed/models/natives remained unchanged, origin checks found no product leak. Wheel458Python files/6natives SHA`8d08e16f1520764e2d64850162b3d4c2369233c3dd002b699414c00ab9fc9324`;41non-Python omissions and shared dependencies remain. One fact-native build02 SHA`80eb9f0fbe80892139278a978042ae6c5eeb2c745ad8fc20e6935319ede76fbe`, CPP`cd77e0f403be567304a0ca086d94f0301930409dfcdbff76cee6233945c31182`, five binaries reused; no clean all-native/ABI claim.
 - Cost command `OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 NUMEXPR_NUM_THREADS=1 BLIS_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 TMPDIR=/tmp/hotpot_plan20/short /tmp/hotpot-plan20-env/bin/python -B …/cost/run_cost.py --freeze …/source-validation/source_freeze.json --freeze-sha256 2399687cd1d39f9d5d189a012906748b2cdd440884047b324ba17b214437abe0 --attempt attempt01 --tracemalloc` returnedPASS/6cases/60measurements/300samples/0failures in3.457s. Root accepts usable bounded12µs scalar, largest3.59ms energy/6.39ms coordinates/7.33ms complete rollback, zero read-time identity calls and no bound arrays; no paired parity/global-performance claim. P20-D017 retains consolidated projection optimization. `python -B plan/20_fact_rule_architecture/audit_architecture.py --base-ref HEAD --output …/source-validation/architecture-audit-final-repairs.json` exits0:940files/224existing debt/no new findings; production census783classes/360dataclasses/8Protocols/2TypedDicts adds exactlyN16–N18. AST/diff/JSON record checks pass. No full-default/other-version/clean-native/SDK/sdist/global science/GPU claim.
 - Root scientific review preserves all3pipeline records and method/state/unit-specific source/installed values, including small Eu numerical/stochastic differences and both GFN-FF topology-restart warnings with convergence/normal termination. MCA denominator3 retains CN/rejectedchargedrecord2/CO; CLI RC1 is expected inside passing pytest. Actual existing Gaussian log import/update, complete observation/Mulliken publication and missing/unmapped row tests pass; engine tier remains unexecuted with requires--run-external skip. Close D016 only in that producer scope; D011-B4 addressed butB1–B3 remain. Owning `coordinate-frames/completion_20261103.json` closes Stage7D applicableCP311 gate; Stage7E, delivery/version/global and Plan20/Plan12 goal remain open. Finite ignored archive retains1255files/35,638,261bytes/indexSHA`b408549b89304c408b84d0d0f5ecef451b2ba0e260ac20d46136f979ef987340`, excluding environments/model/native/wheel binaries and whole pytest trees. Current code/tests/records form one business delivery; actual resulting Git identity is recorded by normal history/remote, not a hash-only follow-up.
+
+
+## 2026-11-03 — Stage7E canonical stereo entry and connected authoring
+
+Stage7D CP311 completion is delivered at c4f6bec. Root aligned effective goal, governance/stage/validation references, targeted main5.3/Stage7E/Decision19 and current companions/source, reusing unaffected predecessor alignment. E1–E5 in `stages/stage07/canonical-stereo/contracts/decisions.md` freeze exact private occurrence rows, source-only ledger, Bond display ownership, N05/native Undo, isotope/H consumers and Record24/v5 migration. Three disjoint local Sol/high partitions are authoring only; root owns integration and validation release. No remote helper, new type, public schema/API or scientific-algorithm change. Entry records exact source/rename bindings; runtime, Stage8 and global gates remain held. Terra/Luna mechanical nonbusiness option was already delivered in eb68f98; no duplicate policy commit.
+
+
+### Stage7E first actual source checks and bounded corrections
+
+Fresh factual-native build attempt01 succeeded (8.778s,417976B); five other CP311 binaries reused. Freeze18d3c845… bound1414source/test/resource files+6natives. Focused645passed. Affected attempt01:2387passed/4failed/1skipped; unchanged source/tests/native/assets and no product-origin leak. Three failures are old Record25/v4 assertions after the explicit Record24/v5 migration; the fourth is actual MCA isotope-only export hitting the preexisting namespace rejection after canonical storage moved that value into transport. Root registers only namespace-absent isotope-only rows (no radical/current/source H) under the existing RDKit isotope map; unknown/H/radical conventions retain rejection. Static review separately identified dependency-bearing stereo commits self-invalidating before a second source check; ordering repaired and a new focused fixture passed within645. Direct source reproduction additionally observed removed Bond display owner loss; a bounded retention/outer-rollback repair is in authoring. Original receipts/freezes retained; later runtime held for connected refreeze, not accepted on partial passes.
+
+## 2026-11-03 — Stage7E actual-failure repairs and second source release
+
+The original CP311 focused run passed 645 cases; the complete affected run
+returned 2387 passed, four failed and one skipped. Three failures were stale
+private Record25/v4 expectations after the approved Record24/v5 migration.
+The remaining failure was the actual MCA isotope/symmetry path: a direct Hotpot
+isotope assignment now has an unqualified isotope-only transport row. RDKit
+now maps exactly that convention quietly; unregistered H/radical conventions
+remain rejected. New connected regressions retain these limits.
+
+A separate actual reproduction observed a removed Bond display tuple becoming
+empty. The public removal route now retains its exact detached immutable display
+owner while filtering the current Molecule transport. Removal and outer-rollback
+regressions exercise public journal enrollment without a manual topology touch.
+The original freeze/runs and reproduction remain in the stage evidence archive.
+Root releases the repaired current bytes for targeted repair cases followed by
+the complete affected source selection, actual owning workflows and installed
+selection. Native source is unchanged from the successful fresh factual build.
+This release closes no acceptance or global gate.
+
+## 2026-11-03 — Stage7E owning acceptance and business delivery
+
+Root accepts E1–E5 within the applicable CP311 owning scope. Canonical Atom
+occurrences/Bond display/source-only layout replace whole-payload and sparse
+isotope truth; N02 Record24/tag5 and trailing N05 private_values reuse existing
+public transport/Undo types. Final source bytes match the source freeze in the
+[checkpoint](stages/stage07/canonical-stereo/validation/checkpoint.json).
+The source affected79-file selection passes2397/skip1; actualFF11, pipeline3,
+MCA mixedCLI1 and attachment3 pass. Fresh factual native buildRC0 and the native
+selection6passed/2SDK-external skips are separately qualified.
+
+The same frozen installed wheel/runtime/tests retain2385passes/1skip plus the
+12original missing-test-support load errors. Exact Plan17 support was copied,
+all12were reexecuted successfully and all four actual workflows passed. Original
+errors and unchanged source/test/native/model/origin bindings remain archived;
+no second full installed affected run is claimed. Cost18cells/90samples completes
+with zero failed samples; scalar reads1.29–1.32µs and largest N256 scalar rollback
+4.512ms are accepted as usable. P20-D018 owns consolidated write/assembly
+optimization. Syntax-only cost-tool failure and original bytes remain recorded.
+The final943-file architecture ratchet passes224existing debt/no new findings;
+independent458-production-file storage audit reports zero new types or retired
+persistent owners. No model encoding, scientific rule, public stereo contract or
+public19/native prefix changed.
+
+[Scientific observations](stages/stage07/canonical-stereo/validation/scientific_observations.json)
+preserve actual method/state/unit/geometry and mixed-case outcomes. The finite
+local archive and manifest retain original failures and raw business artifacts.
+Root closes only Stage7E ownership, releases Stage8A entry alignment and retains
+all later Plan20/integrated Plan12, other-version/package/native/scientific/GPU
+and global-performance gates. The coherent business commit/push is recorded by
+Git history; no hash-only follow-up commit is needed.

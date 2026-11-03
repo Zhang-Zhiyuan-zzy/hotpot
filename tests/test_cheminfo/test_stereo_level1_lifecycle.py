@@ -70,12 +70,12 @@ def _record_descriptors(molecule):
     )
 
 
-def test_new_molecule_owns_the_exact_immutable_empty_payload():
+def test_new_molecule_assembles_the_exact_empty_payload():
     molecule = Molecule()
 
     payload = stereo.get_stereo_payload(molecule)
 
-    assert payload is molecule._stereo_payload
+    assert "_stereo_payload" not in molecule.__dict__
     assert payload == stereo.StereoPayload(1, (), (), ())
 
 
@@ -125,7 +125,7 @@ def test_copy_preserves_payload_order_lineage_and_hydrogen_ledgers():
         group,
         group,
     )
-    assert cloned_payload.atom_facts[0].current_hydrogens is current_hydrogens
+    assert cloned_payload.atom_facts[0].current_hydrogens == current_hydrogens
     assert cloned_payload.atom_facts[0].source_hydrogens is source_hydrogens
 
 
@@ -372,7 +372,7 @@ def test_operation_selection_preserves_stereo_and_permanent_deletion_is_targeted
     stereo.set_stereo_payload(molecule, payload)
 
     _capture_topology_selection(molecule, excluded_bonds=(second,))
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload
 
     molecule.remove_bond(first)
     after_active_removal = stereo.get_stereo_payload(molecule)
@@ -389,7 +389,7 @@ def test_operation_selection_preserves_stereo_and_permanent_deletion_is_targeted
     hidden_payload = stereo.get_stereo_payload(molecule)
     molecule.remove_bond(second)
     after_hidden_clear = stereo.get_stereo_payload(molecule)
-    assert hidden_payload is after_active_removal
+    assert hidden_payload == after_active_removal
     assert tuple(record.descriptor for record in after_hidden_clear.records) == (
         "atom",
         "preexisting-missing",
@@ -418,7 +418,7 @@ def test_axis_lifecycle_tracks_constituent_edges_but_not_chords():
     assert stereo.get_stereo_payload(clone) == payload
 
     _capture_topology_selection(molecule, excluded_bonds=(second,))
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload
 
     molecule.remove_bond(chord)
     assert _record_descriptors(molecule) == ("axis",)

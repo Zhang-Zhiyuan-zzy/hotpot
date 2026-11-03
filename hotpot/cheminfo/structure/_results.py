@@ -12,7 +12,7 @@ _T = TypeVar("_T")
 
 _RESULT_ATTRIBUTES = ("_mca_result", "_partial_charge_result", "_frame_result", "_conformer_results")
 _REPRESENTATION_FIELDS = frozenset((
-    "atomic_number", "formal_charge", "implicit_hydrogens", "is_aromatic",
+    "atomic_number", "formal_charge", "implicit_hydrogens", "is_aromatic", "stereo_facts",
 ))
 _GEOMETRY_FIELDS = frozenset(("x", "y", "z"))
 _CONSTRAINT_FIELDS = frozenset(("x_constraint", "y_constraint", "z_constraint"))

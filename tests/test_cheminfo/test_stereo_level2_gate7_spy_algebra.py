@@ -256,10 +256,10 @@ def test_spy_algebra_is_connected_to_public_graph_semantics():
     )
 
     assert validation == stereo.StereoValidationReport(True, ())
-    assert assignment.payload is payload
+    assert assignment.payload == payload
     assert assignment.unresolved == ()
     assert assignment.derived == ()
     assert alignment.is_equivalent
     assert alignment.aligned_payload == payload
     assert alignment.issues == ()
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload

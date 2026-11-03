@@ -589,7 +589,7 @@ def test_no_candidate_does_not_prepare_check_or_construct_native(monkeypatch):
         monkeypatch.setattr(stereo_operations, name, forbidden)
     monkeypatch.setattr(_NativeTarget, "__init__", forbidden)
     report = stereo.assign_stereochemistry(mol)
-    assert report.payload is stereo.get_stereo_payload(mol)
+    assert report.payload == stereo.get_stereo_payload(mol)
     assert report.derived == ()
     assert report.unresolved
 

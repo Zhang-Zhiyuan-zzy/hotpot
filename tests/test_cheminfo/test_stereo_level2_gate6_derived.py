@@ -706,5 +706,5 @@ def test_coordinates_derive_from_the_final_assigned_payload_without_mutation():
         issue.code is stereo.StereoIssueCode.COORDINATE_CONTRADICTION
         for issue in report.unresolved
     )
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload
     np.testing.assert_array_equal(coordinates, coordinate_snapshot)

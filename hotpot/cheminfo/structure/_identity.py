@@ -21,6 +21,7 @@ import json
 import numpy as np
 
 from ._fields import FIELD_INDEX, ATOM_FIELDS, FIELD_PRESENCE_BITS, FACT_FIELDS
+from ._stereo import _get_stereo_payload
 from .constraints import _select_atom_values, _select_atom_metadata, _bond_raw_values
 
 
@@ -157,7 +158,7 @@ def _hydrogen_inputs(atom, transport_inputs):
 def _hydrogen_install_inputs(mol):
     """Bindings for retained H status across a complete factual installation."""
     transport = {entry[0]: entry[1:] for entry in _hydrogen_transport_inputs(
-        tuple(atom._uid for atom in mol._atoms), mol._stereo_payload)}
+        tuple(atom._uid for atom in mol._atoms), _get_stereo_payload(mol))}
     table = mol._atom_table
     field = FIELD_INDEX['implicit_hydrogens']
     inputs = {}
@@ -170,6 +171,13 @@ def _hydrogen_install_inputs(mol):
             int(table._sources[row, field]), table._columns[field][row].tobytes(),
         )
     return inputs
+
+
+def _stereo_inputs(mol):
+    """Capture canonical owners directly; no assembled transport mirror."""
+    return (mol._stereo_schema, mol._stereo_records, mol._stereo_source,
+            tuple(mol._atom_table._stereo_facts[:len(mol._atoms)]),
+            tuple((bond._uid, bond._display_facts) for bond in mol._bonds))
 
 
 def _partial_charge_inputs(mol):
@@ -192,7 +200,7 @@ def _content_identities(mol, domains):
                        _atom_metadata(mol, _BONDING_FIELDS),
                        tuple((bond._uid, bond.bond_order, bond.bond_kind, bond._is_aromatic,
                               bond.bond_direction, bond.bond_source) for bond in bonds),
-                       _hydrogen_transport_inputs(tuple(atom._uid for atom in mol._atoms), mol._stereo_payload),
+                       _hydrogen_transport_inputs(tuple(atom._uid for atom in mol._atoms), _get_stereo_payload(mol)),
                        _partial_charge_inputs(mol))
         elif domain in ("representation", "mca_representation", "charge_representation", "frame_representation"):
             content = (
@@ -201,9 +209,7 @@ def _content_identities(mol, domains):
                 _atom_metadata(mol, _REPRESENTATION_FIELDS),
                 tuple((bond.bond_order, bond.bond_kind, bond._is_aromatic, bond.bond_direction,
                        bond.bond_source, bond.bond_source_metadata) for bond in bonds),
-                mol._stereo_payload,
-                tuple((atom._uid, atom.__dict__["isotope"])
-                      for atom in mol._atoms if "isotope" in atom.__dict__),
+                _stereo_inputs(mol),
                 ("charge", _declaration(mol, "charge")),
             )
             if domain == "representation":
@@ -236,11 +242,11 @@ def _content_identities(mol, domains):
             content = (
                 topology, _atom_columns(mol, indices), _atom_metadata(mol, indices),
                 tuple((atom._uid, tuple((name, atom.__dict__[name])
-                                       for name in ("isotope", "frac_valence") if name in atom.__dict__))
+                                       for name in ("frac_valence",) if name in atom.__dict__))
                       for atom in mol._atoms),
                 tuple((bond._uid, _bond_raw_values(bond._attrs, bond._constraint_values[bond._uid]), bond.bond_kind, bond._is_aromatic,
                        bond.bond_direction, bond.bond_source) for bond in bonds),
-                _declaration(mol, "charge"), _current_spin(mol), mol._stereo_payload,
+                _declaration(mol, "charge"), _current_spin(mol), _stereo_inputs(mol),
                 _frame_numeric_inputs(mol),
                 tuple(sorted(mol._pair_wiberg_bond_orders.items())), _partial_charge_inputs(mol),
             )

@@ -3729,8 +3729,16 @@
       ],
       "planned_contract_test_files": [
         {
-          "path": "tests/test_cheminfo/structure/test_stereo_facts.py",
-          "status": "planned_not_created; exact entry freezes canonical-slot/source-only/unbound-source/atomic assembly cases and all affected post-move source/wheel selections"
+          "path": "tests/test_cheminfo/structure/test_canonical_stereo_storage.py",
+          "status": "implemented and validated in final source/installed affected selection; see owning checkpoint"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_stereo_fact_table.py",
+          "status": "implemented and validated in final source/installed affected selection; see owning checkpoint"
+        },
+        {
+          "path": "tests/test_cheminfo/structure/test_stereo_hydrogen_storage.py",
+          "status": "implemented and validated in final source/installed affected selection; see owning checkpoint"
         }
       ],
       "additional_requirements": [
@@ -3741,14 +3749,25 @@
         "Lossless atomic set/get and set(get(mol)); copy/component/merge/remap/pickle/toolkit/native/conformer/working-copy publication and failure rollback; all writers/configurations migrate together.",
         "Complete affected CP311 source/installed-wheel first with actual native build source binding; exact effective-H seeds, stale-source behavior, type/presence/source/order and no-mirror tests; allocation/throughput observations. Other planned Python3.10/3.12/3.13/3.14 versions adapt later with explicit status and complete applicable final evidence; version parity alone is not a pre-Stage8 condition."
       ],
-      "execution_status": "assigned_mandatory_future_gate_not_entered; source/slot/unbound/rename and full affected selections must be frozen at entry",
+      "execution_status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE",
       "normative_owner": "fact_rule_architecture_implementation_plan.md Section5.3 and Stage7E",
       "blocking_successors": [
         "Stage8A",
         "Stage12",
         "global_architecture_and_ownership_acceptance"
       ],
-      "new_type_budget": 0
+      "new_type_budget": 0,
+      "entry_review": "stages/stage07/canonical-stereo/entry_review.json",
+      "design": "stages/stage07/canonical-stereo/contracts/decisions.md",
+      "validation_plan": "stages/stage07/canonical-stereo/contracts/validation.json",
+      "stage_gate_closed": true,
+      "global_gate_closed": false,
+      "completion": "stages/stage07/canonical-stereo/completion_20261103.json",
+      "checkpoint": "stages/stage07/canonical-stereo/validation/checkpoint.json",
+      "affected_source": "2397passed/1skipped",
+      "affected_installed": "Composite same frozen wheel/runtime/tests2397passed/1skipped;12support-only repaired cases explicitly reexecuted",
+      "actual_workflows": "Source and installedFF11/pipeline3/MCA1/attachment3 all pass; actual model/backend values retained",
+      "native": "Fresh fact native plus5unchanged; native selection6passed/2skipped; no clean all-native/ABI/SDK claim"
     },
     "Stage8A": {
       "predecessor": "Stage7E",

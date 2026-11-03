@@ -404,7 +404,7 @@ def test_level2_observer_reports_valid_assignment_and_identity_alignment(runner)
 
     assert observed["applicability"] == "APPLICABLE"
     assert observed["input_payload_preserved"] is True
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload
     conformer = observed["conformers"][0]
     assert conformer["is_valid"] is True
     assert conformer["validation_issues"] == []

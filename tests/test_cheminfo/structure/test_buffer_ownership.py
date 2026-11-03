@@ -60,7 +60,7 @@ def test_stereo_capture_is_frozen_and_has_only_the_three_approved_fields():
     mol = _molecule()
     snapshot, source, referents = _capture_stereo_owner(mol)
     assert tuple(field.name for field in fields(snapshot)) == ("payload", "atom_keys", "bonds")
-    assert snapshot.payload is get_stereo_payload(mol)
+    assert snapshot.payload == get_stereo_payload(mol)
     assert snapshot.atom_keys == tuple(id(atom) for atom in mol.atoms)
     assert all(type(key) is int for key in snapshot.atom_keys)
     assert all(type(row) is tuple and len(row) == 5 for row in snapshot.bonds)

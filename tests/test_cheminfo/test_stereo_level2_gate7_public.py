@@ -160,7 +160,7 @@ def test_public_gate7_accepts_and_assigns_each_declared_family(
     assert assignment.payload == payload
     assert assignment.unresolved == ()
     assert assignment.derived == ()
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload
 
 
 def test_public_assignment_replaces_only_the_declared_numeric_index():
@@ -184,7 +184,7 @@ def test_public_assignment_replaces_only_the_declared_numeric_index():
     assert assignment.unresolved == validation.issues
     assert assignment.payload.records[0].descriptor == "hotpot.stereo/2/SP/3"
     assert assignment.derived == ()
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload
 
 
 def test_five_coordinate_contradiction_never_migrates_descriptor_family():

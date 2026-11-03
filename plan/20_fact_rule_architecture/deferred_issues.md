@@ -29,9 +29,10 @@ specific observation awaiting assessment, not an invented failure or a pass.
   semantic/integrity failure, unbounded growth, OOM or inability to complete a
   representative mandatory workflow brings the affected item forward.
 - Routine unfinished core implementation remains in the main plan and
-  verification map. In particular, selected partial charges, coordinate frames
-  and Stage7E H/isotope/stereo canonical ownership are not optional optimization
-  debt. Stage7E still gates Stage8. Existing architecture-debt IDs and ratchets
+  verification map. Selected partial charges, coordinate frames and canonical
+  stereo ownership now have their Stage7C/D/E CP311 completion evidence; they
+  were mandatory ownership work, not optimization debt. Stage8 requires its own
+  alignment after Stage7E acceptance. Existing architecture-debt IDs and ratchets
   remain in their specialized inventory; this file indexes cross-stage
   dispositions without duplicating that inventory.
 
@@ -82,6 +83,8 @@ later implementation.
 | P20-D015 | S3 / record-layout tooling | DEFERRED | The current read-only stage-layout audit exits1 with21 findings on16 already committed files: catalog/navigation drift plus false link parsing of inline chemistry and `:line` references. This is not a chemical execution failure or a passed layout audit. | Stage12 record/validation owner; next necessary navigation cleanup or consolidated hardening. | [Recorded audit outcome](implementation_log.md), 2026-11-03 layout-checker entry; `audit_stage_records.py`. Close by resolving actual navigation omissions and simplifying/replacing inaccurate parsing, with valid chemical examples and file-line links retained. New index links/JSON have separate passing checks. | — |
 | P20-D016 | S3 / independent Gaussian producer | CLOSED | Gaussian updater now publishes the complete attributed current observation set after geometry/declarations, then explicitly selects complete Mulliken charges through the sole charge owner. Frame arrays remain separate observations. | Stage7D with Gaussian owner; closed2026-11-03 within tested CP311 import/update scope. | Real existing-log parser/import/update and complete publication/rollback assertions passed in final source/installed affected selections; official Gaussian engine tier remains unexecuted. | [Stage7D completion](stages/stage07/coordinate-frames/completion_20261103.json) and [business observations](stages/stage07/coordinate-frames/validation/scientific_observations.json); delivered in the coherent Stage7D business commit identified by Git history. |
 | P20-D017 | S3 / performance | DEFERRED | Stage7D frame projections currently decode rows independently. Root accepts measured bounded usable CP311 costs: scalar about12µs; at64Atoms/256frames all-energy3.59ms, coordinates6.39ms and complete rollback7.33ms. No paired historical regression/parity claim. | Stage12 consolidated optimization with frame/storage/workflow owners. | [Stage7D cost checkpoint](stages/stage07/coordinate-frames/validation/checkpoint.json). Review bulk projection/scaling against representative final workflows, preserving isolated arrays, missing-value scopes, zero per-read molecular hashing and all failed attempts; retain adverse or inconclusive outcomes. | — |
+| P20-D018 | S3 / performance | DEFERRED | Single isotope writes still assemble/split whole stereo transport although native publication touches only changed private rows. N256 scalar-write rollback4.512ms/isolated Python peak155621bytes is accepted as bounded usable cost; no historical regression/parity claim. | Stage12 consolidated optimization with Atom/stereo/lifecycle owners; bring forward for demonstrated batch reliability failure. | [Stage7E cost checkpoint](stages/stage07/canonical-stereo/validation/checkpoint.json). Optimize scalar/bulk publication only while preserving exact occurrences/source history, zero read-time identity hashing, native reference-aware rollback and complete source/installed business semantics. | — |
+
 
 ## Closure and evidence
 

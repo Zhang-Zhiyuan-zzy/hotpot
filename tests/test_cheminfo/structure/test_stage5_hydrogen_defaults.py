@@ -497,7 +497,7 @@ def test_graph_D_and_T_count_as_H_and_keep_their_isotopes():
     assert atom.implicit_hydrogens == 4
     assert len(atom.add_hydrogen()) == 2
     assert atom.explicit_hydrogens == 4
-    assert sorted(h.isotope for h in mol.hydrogens if 'isotope' in h.__dict__) == [2, 3]
+    assert sorted(h.isotope for h in mol.hydrogens if getattr(h, 'isotope', None) is not None) == [2, 3]
     assert atom.add_hydrogen() == []
 
 

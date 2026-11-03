@@ -97,7 +97,7 @@ def obmol2mol(obmol, mol):
         if mol._atoms or mol._bonds:
             raise ValueError("Factual import requires an empty Atom and complete-Bond target")
         initial = mol._capture_factual_record()[0]
-        record = _openbabel._obmol_record(obmol, initial, mol._stereo_payload)
+        record = _openbabel._obmol_record(obmol, initial, _get_stereo_payload(mol))
         return mol._install_molecule(record)
 
 

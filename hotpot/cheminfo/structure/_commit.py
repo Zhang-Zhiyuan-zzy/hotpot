@@ -8,12 +8,11 @@ wait until publication or restoration completes.
 from contextlib import contextmanager
 from contextvars import ContextVar
 from copy import deepcopy
-from dataclasses import fields, is_dataclass
 
 import numpy as np
 
 from ._fields import ATOM_SOURCE_CODES, COORDINATE_FIELDS, FIELD_INDEX
-from ._identity import _check_source, _hydrogen_transport_inputs, _digest
+from ._identity import _capture_source, _check_source, _hydrogen_transport_inputs, _digest
 from ._results import _RESULT_ATTRIBUTES, _prepare_atom_result_updates, _invalidate_results
 
 __all__ = ()
@@ -28,7 +27,7 @@ _DECLARATIONS = ("_charge_value", "_charge_present", "_charge_source",
 _TOPOLOGY_FIELDS = ("_atoms", "_bonds",
                     "_constraints", "_crystal", "_pair_wiberg_bond_orders",
                     "identifier", "properties")
-_BOND_FIELDS = ("_bond_kind", "_bond_direction", "_bond_source", "_bond_source_metadata", "_is_aromatic")
+_BOND_FIELDS = ("_bond_kind", "_bond_direction", "_bond_source", "_bond_source_metadata", "_is_aromatic", "_display_facts")
 
 
 def _fact_engine():
@@ -47,7 +46,7 @@ def _fact_engine():
         from ..reference.properties import _atomic_number_for_symbol
         _fact_native._configure({
             "fields": ATOM_FIELDS, "indices": dict(FIELD_INDEX), "presence": FIELD_PRESENCE_BITS,
-            "table_width": 16, "constraint_fields": ("x_constraint", "y_constraint", "z_constraint"),
+            "table_width": 16, "private_slot": "_stereo_facts", "constraint_fields": ("x_constraint", "y_constraint", "z_constraint"),
             "aliases": dict(ALIAS_TARGETS),
             "producers": dict(ATOM_SOURCE_CODES), "writable": ATOM_BATCH_WRITABLE,
             "readonly": ATOM_BATCH_READONLY, "effects": dict(_FIELD_EFFECTS), "groups": GROUPS,
@@ -198,7 +197,7 @@ class _FactTransaction:
             self._sparse = {}
         if id(atom) not in self._sparse:
             self._sparse[id(atom)] = (atom, tuple((name, atom.__dict__.get(name, _UNCHANGED))
-                                                for name in ("isotope", "frac_valence")))
+                                                for name in ("frac_valence",)))
 
     def touch_declarations(self):
         if self._declarations is None:
@@ -207,7 +206,8 @@ class _FactTransaction:
 
     def touch_stereo(self):
         if self._stereo is _UNCHANGED:
-            self._stereo = self.mol._stereo_payload
+            from ._stereo import _stereo_storage_state
+            self._stereo = _stereo_storage_state(self.mol)
 
     def touch_frames(self):
         if self._frames is None:
@@ -338,7 +338,8 @@ class _FactTransaction:
         if self._declarations is not None:
             _restore_fields(mol, self._declarations)
         if self._stereo is not _UNCHANGED:
-            mol._stereo_payload = self._stereo
+            from ._stereo import _restore_stereo_storage
+            _restore_stereo_storage(mol, self._stereo)
         if self._frames is not None:
             from .conformer import _restore_frame_transaction_state
             _restore_frame_transaction_state(mol, self._frames)
@@ -369,9 +370,11 @@ def _commit_atom_sparse(mol, atom, *, isotope=_UNCHANGED, frac_valence=_UNCHANGE
             raise ValueError("Sparse Atom update requires a current member")
         transaction.touch_sparse(atom)
         if isotope is not _UNCHANGED:
-            if atom.__dict__.get("isotope", _UNCHANGED) != isotope:
-                _invalidate_results(mol, ("representation",), transaction)
-            atom.__dict__["isotope"] = isotope
+            import operator
+            from ._stereo import _get_stereo_payload, _replace_isotope
+            value = None if isotope is None else operator.index(isotope)
+            _commit_stereo(mol, _capture_source(mol),
+                           _replace_isotope(_get_stereo_payload(mol), entry[0], value))
         if frac_valence is not _UNCHANGED:
             atom.__dict__["frac_valence"] = frac_valence
             _seed(mol, GROUP_INDEX["VALENCE"], (atom._uid,))
@@ -504,29 +507,34 @@ def _commit_molecular_declarations(mol, binding, *, charge=_UNCHANGED, spin_mult
             _mark_declarations_dirty(mol)
 
 
-def _immutable_stereo_tree(value):
-    if is_dataclass(value):
-        return all(_immutable_stereo_tree(getattr(value, field.name)) for field in fields(value))
-    if type(value) is tuple:
-        return all(_immutable_stereo_tree(item) for item in value)
-    return type(value) is not list
-
-
 def _commit_stereo(mol, source, payload):
     from ._builder import _stereo
     from ._dependencies import _seed, GROUP_INDEX
+    from ._mutation import _AtomFactUpdate
+    from ._stereo import _get_stereo_payload, _decompose_stereo
+
     sealed = _stereo(payload)
-    payload = payload if _immutable_stereo_tree(payload) else sealed
     with _FactTransaction(mol, producer=_EXPLICIT_SOURCE) as transaction:
         _check_source(mol, source)
         uids = tuple(atom._uid for atom in mol._atoms)
-        previous = _hydrogen_transport_inputs(uids, mol._stereo_payload)
-        current = _hydrogen_transport_inputs(uids, payload)
+        previous_payload = _get_stereo_payload(mol)
+        previous = _hydrogen_transport_inputs(uids, previous_payload)
+        current = _hydrogen_transport_inputs(uids, sealed)
         changed = tuple(after[0] for before, after in zip(previous, current) if before != after)
+        schema, records, ledger, atom_rows, bond_rows = _decompose_stereo(mol, sealed)
+        rows = tuple(row for row, value in enumerate(atom_rows)
+                     if mol._atom_table._stereo_facts[row] != value)
         transaction.touch_stereo()
-        if mol._stereo_payload != payload:
+        if rows:
+            update = _AtomFactUpdate(source, rows, tuple(uids[row] for row in rows),
+                                     (), (), (), (),
+                                     private_values=tuple(atom_rows[row] for row in rows))
+            _commit_atom_facts(mol, update)
+        if previous_payload != sealed:
             _invalidate_results(mol, ("representation",), transaction)
-        mol._stereo_payload = payload
+        mol._stereo_schema, mol._stereo_records, mol._stereo_source = schema, records, ledger
+        for bond, values in zip(mol._bonds, bond_rows):
+            bond.__dict__["_display_facts"] = values
         if changed:
             _seed(mol, GROUP_INDEX['IMPLICIT_H'], changed)
 

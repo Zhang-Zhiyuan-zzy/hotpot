@@ -628,7 +628,7 @@ def test_isotope_radical_and_three_hydrogen_values_round_trip_exactly():
         for atom in source.GetAtoms()
     ]
     assert all(
-        fact.source_hydrogens is fact.current_hydrogens
+        fact.source_hydrogens == fact.current_hydrogens
         for fact in payload.atom_facts
     )
 
@@ -665,7 +665,7 @@ def test_export_uses_current_hydrogens_and_does_not_mutate_source_ledger():
     assert exported.GetAtomWithIdx(0).GetNumImplicitHs() == (
         source.GetAtomWithIdx(0).GetNumImplicitHs()
     )
-    assert get_stereo_payload(molecule) is changed_payload
+    assert get_stereo_payload(molecule) == changed_payload
     assert changed_payload.atom_facts[0].source_hydrogens is impossible_source
 
 
@@ -788,3 +788,17 @@ def test_import_clones_and_does_not_kekulize_or_rewrite_the_source():
     assert [
         (bond.GetBondType(), bond.GetIsAromatic()) for bond in source.GetBonds()
     ] == before
+
+
+def test_unqualified_isotope_only_mapping_does_not_accept_unregistered_H_or_radical_conventions():
+    from dataclasses import replace
+    from hotpot.cheminfo.structure.stereo import AtomTransportRecord, HydrogenTransportState, StereoPayload
+    from hotpot.cheminfo.adapters.rdkit.stereo_transport import _payload_atom_facts
+    isotope = AtomTransportRecord(0, 13, None, None, None, None)
+    assert _payload_atom_facts(StereoPayload(1, (), (isotope,), ()), 1) == {0: isotope}
+    for fact in (replace(isotope, radical_electrons=1),
+                 replace(isotope, current_hydrogens=HydrogenTransportState(0, 0, False)),
+                 replace(isotope, source_hydrogens=HydrogenTransportState(None, 0, None)),
+                 replace(isotope, source_namespace="future-toolkit")):
+        with pytest.raises(ValueError, match="atom transport namespace"):
+            _payload_atom_facts(StereoPayload(1, (), (fact,), ()), 1)

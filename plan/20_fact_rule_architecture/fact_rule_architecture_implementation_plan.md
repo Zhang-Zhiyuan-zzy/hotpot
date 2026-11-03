@@ -2,7 +2,7 @@
 
 Status: **implementation authorized on 2026-10-28; Stage0–7C owning-stage gates complete
 within their recorded scopes, including the applicable CP311 Stage7B/7C delivery;
-Stage7D coordinate-frame ownership is complete within its applicable CP311 owning scope. Stage7E canonical stereo storage is next. Full scientific, engineering, version-adaptation and global
+Stage7E canonical stereo ownership is complete within its applicable CP311 owning scope. Stage8A scientific-state calculation is next. Full scientific, engineering, version-adaptation and global
 acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
@@ -1903,7 +1903,7 @@ closes only applicable CP311 owning scope, combining both slices. Original
 failures, retained GFN-FF restart-read warnings, usable costs, package/native
 limits and later obligations remain in the
 [report](stages/stage07/selected-results/validation/partial-charges/report.md).
-Stage7D is accepted within its CP311 owning scope; Stage7E and global gates remain open. Cross-stage limitations are indexed in
+Stage7D and Stage7E are accepted within their CP311 owning scopes; global gates remain open. Cross-stage limitations are indexed in
 [deferred_issues.md](deferred_issues.md).
 
 Gate: exact per-mutation retain/mark/recompute table, MCA calculator/site tests,
@@ -1931,7 +1931,7 @@ FF11/pipeline3/MCA1/attachment3 per boundary and usable bounded costs. The
 [report](stages/stage07/coordinate-frames/validation/report.md) preserves original
 failures, final Boolean-noop/cursor repairs, warnings and delivery limits. One
 factual native extension was rebuilt for the actual callback gap; five binaries
-were reused. Stage7E and later/global obligations remain open.
+were reused. The Stage7E follow-on is now accepted within its CP311 owning scope; later/global obligations remain open.
 
 Gate: source/generated role tests, seed behavior, load/clear invalidation,
 copy/component semantics, and existing conformer array-access parity.
@@ -2010,6 +2010,17 @@ planned Python3.10/3.12/3.13/3.14 versions later, with explicit status and compl
 applicable final evidence before support/final acceptance claims. Version parity
 alone is not a pre-Stage8 entry condition and does not permit permanent layout
 debt or waive the final version/package/native/scientific gates.
+
+Stage7E is **ROOT_ACCEPTED_CP311_OWNING_SCOPE** under the
+[completion record](stages/stage07/canonical-stereo/completion_20261103.json).
+The canonical Atom/Bond/source-only cutover removes whole-payload and sparse
+isotope truth, reuses Record24/tag5/N05/existing Undo with zero new types, and
+preserves public/native/H contracts. Affected source2397passed/1skipped and
+composite installed2397passed/1skipped, actualFF11/pipeline3/MCA1/attachment3
+per boundary, fresh factual native and bounded cost support owning acceptance.
+Original failures,12installed support-only load errors and their targeted repair
+remain explicit. Stage8A may enter after its own alignment; all later/global
+obligations and P20-D018 consolidated optimization remain open.
 
 ### Stage 8 — Split rule policy, workflow, and backend execution
 

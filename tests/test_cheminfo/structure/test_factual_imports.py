@@ -15,7 +15,7 @@ from hotpot.cheminfo.operations import conversion
 
 core = importlib.import_module(Molecule.__module__)
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX, FIELD_PRESENCE_BITS
-from hotpot.cheminfo.stereo import StereoPayload
+from hotpot.cheminfo.stereo import StereoPayload, get_stereo_payload, set_stereo_payload
 
 
 def _obmol():
@@ -95,15 +95,15 @@ def test_empty_preconfigured_target_preserves_cell_spin_identifier_and_clears_al
     target.create_crystal(5, 6, 7, 90, 90, 90)
     target.spin_mult = 3
     target.identifier = 'existing'
-    payload = StereoPayload(1, (), (), ())
-    target._stereo_payload = payload
+    payload = StereoPayload(47, (), (), ())
+    set_stereo_payload(target, payload)
     target.conformer_add(np.empty((0, 3)), 1.)
     convert(source(), target)
     assert tuple(getattr(target.crystal, name) for name in ('a', 'b', 'c', 'alpha', 'beta', 'gamma')) == (5, 6, 7, 90, 90, 90)
     assert target.spin_mult == 3 and target.identifier == 'existing'
     assert not target._source_frames and not target._conformer_results
     assert target._frame_result is None
-    assert (target._stereo_payload is payload) is keeps_stereo
+    assert (get_stereo_payload(target) == payload) is keeps_stereo
 
 
 def test_failed_decoder_install_restores_preconfigured_empty_target(monkeypatch):

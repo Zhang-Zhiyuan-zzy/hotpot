@@ -338,9 +338,9 @@ def test_assignment_preserves_valid_manual_payload_and_does_not_infer():
 
     report = stereo.assign_stereochemistry(molecule)
 
-    assert report.payload is payload
+    assert report.payload == payload
     assert report.unresolved == ()
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload
 
 
 def test_degenerate_coordinates_are_reported_after_gate4():
@@ -373,4 +373,4 @@ def test_degenerate_coordinates_are_reported_after_gate4():
     )
     assert assignment.payload == payload
     assert assignment.unresolved == validation.issues
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload

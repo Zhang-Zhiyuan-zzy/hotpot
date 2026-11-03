@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7E",
+  "status": "ENTRY_ALIGNED_E1_E5_AUTHORING_RELEASED",
+  "owner": "root",
+  "recorded_utc": "2026-11-03T09:56:23.411856+00:00",
+  "source_commit": "c4f6bec0d9c2d8d082094e99ef09d92b1d8832b7",
+  "predecessor": "stages/stage07/coordinate-frames/completion_20261103.json",
+  "alignment": "Effective goal; governance/stage/validation and both references; targeted main5.3/Stage7E/Decision19, current budget/interface/map, accepted Stage7D and actual source; unaffected previous alignment reused.",
+  "contract": "contracts/decisions.md",
+  "contract_sha256": "a712c5d0b631d61cfa5cdae0012cdc7049057ea3a6bae343c9eb121606ee02a0",
+  "source_bindings": {
+    "hotpot/cheminfo/core.py": "cb208e55afa0eb74effd2c5f6094d249445660206e291d9a54437405d5fe1d8b",
+    "hotpot/cheminfo/structure/_stereo.py": "a917498967d7564bc7af89a29d96eb8b908963866645bc8668dc8b924ce0f535",
+    "hotpot/cheminfo/structure/_atom_table.py": "2b51acbc71045fd5073c5913731e71b4d284c753de7c1d19b0e252bface4b7d1",
+    "hotpot/cheminfo/structure/_mutation.py": "1d08ceec8a854a755828fc46871394216e889e7a5667898d5300a26b4224c50c",
+    "hotpot/cheminfo/structure/_builder.py": "42d2a66393c94f95e39f1bfecf89fd2cc95c53532f0ec4c7c737097f616b9f1e",
+    "hotpot/cheminfo/structure/_commit.py": "d2f3110676bf72376e658ddb9d91288366cbbf1929a35ad0967d1cbed12b5bcc",
+    "hotpot/cheminfo/structure/_identity.py": "9704b5ca1b89e86ccb95b768858eed9ae9de587633108fdc841c108c102e63f1",
+    "hotpot/cheminfo/structure/_native/facts.cpp": "cd77e0f403be567304a0ca086d94f0301930409dfcdbff76cee6233945c31182"
+  },
+  "runtime_authorized": false,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "rename_manifest": {
+    "rdconvert.py": [
+      "adapters/rdkit/conversion.py",
+      "adapters/rdkit/stereo_transport.py"
+    ],
+    "obconvert.py": [
+      "adapters/openbabel/conversion.py"
+    ],
+    "_native/buffers.py": [
+      "_native/buffers.py"
+    ],
+    "conformers/adapters.py": [
+      "conformers/adapters.py"
+    ],
+    "forcefields/working_copy.py": [
+      "forcefields/working_copy.py"
+    ],
+    "native factual writer": [
+      "structure/_native/facts.cpp"
+    ]
+  }
+}

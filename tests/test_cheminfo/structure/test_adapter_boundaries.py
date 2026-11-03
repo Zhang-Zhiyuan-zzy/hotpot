@@ -11,7 +11,6 @@ from hotpot.cheminfo.operations import chemistry, conversion
 from hotpot.cheminfo.adapters.rdkit import stereo_transport
 from hotpot.cheminfo.structure._builder import _freeze_value
 from hotpot.cheminfo.structure._atom_table import _AtomFactTable
-from hotpot.cheminfo.structure.stereo import StereoPayload
 
 
 def _facts(mol):
@@ -25,7 +24,6 @@ def _two_carbons():
     second = mol.create_atom(atomic_number=6, formal_charge=0, coordinates=(1.54, 0., 0.))
     mol.add_bond(first, second, 1.)
     mol.charge = 0
-    mol._stereo_payload = StereoPayload(1, (), (), ())
     return mol
 
 

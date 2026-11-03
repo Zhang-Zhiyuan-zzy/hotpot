@@ -58,6 +58,7 @@ from .structure._dependencies import (
     _mark_topology_dirty, _seed, GROUP_INDEX,
 )
 from .structure.stereo import StereoPayload as _StereoPayload
+from .structure._stereo import _atom_isotope, _get_stereo_payload, _install_stereo_storage
 from .structure.conformer import (
     Conformers, _bound_conformers, _add_source_frames, _clear_frames, _load_frame,
     _current_frame_value, _assign_frame_value, _capture_frame_records,
@@ -172,7 +173,9 @@ class Molecule:
 
         self.properties = {}  # To store any mol properties
 
-        self._stereo_payload = _StereoPayload(1, (), (), ())
+        self._stereo_schema = 1
+        self._stereo_records = ()
+        self._stereo_source = ((), ())
 
         self._charge_value, self._charge_present, self._charge_source = 0, False, None
         self._spin_value, self._spin_present, self._spin_source = None, False, None
@@ -278,18 +281,30 @@ class Molecule:
         )
 
     def _replace_atom_transport(self, target_row, source_atom):
-        """Install one imported Atom transport row at its new member position."""
+        """Install current occurrences and available source H at a member row."""
         from dataclasses import replace
-        from .structure._stereo import _get_stereo_payload
+        from .structure.stereo import AtomTransportRecord, HydrogenTransportState
         from .operations.chemistry import _set_stereo_payload
 
-        source_row = source_atom.mol._topology_index.get(id(source_atom))
-        imported = () if source_row is None else tuple(
-            replace(fact, atom=target_row)
-            for fact in _get_stereo_payload(source_atom.mol).atom_facts
-            if fact.atom == source_row[0]
-        )
+        with source_atom.mol._mutation_lock:
+            source_row = source_atom.mol._topology_index.get(id(source_atom))
+            if source_row is None:
+                imported = tuple(AtomTransportRecord(
+                    target_row, isotope, radical,
+                    HydrogenTransportState(implicit, bracket, no_implicit) if present else None,
+                    None, namespace)
+                    for isotope, radical, present, implicit, bracket, no_implicit, namespace
+                    in source_atom._detached_table._stereo_facts[0])
+            else:
+                source_payload = _get_stereo_payload(source_atom.mol)
+                imported = () if source_payload is None else tuple(
+                    replace(fact, atom=target_row) for fact in source_payload.atom_facts
+                    if fact.atom == source_row[0])
         payload = _get_stereo_payload(self)
+        if payload is None:
+            if not imported:
+                return
+            payload = _StereoPayload(1, (), (), ())
         atom_facts = []
         installed = False
         for fact in payload.atom_facts:
@@ -303,23 +318,13 @@ class Molecule:
             atom_facts.extend(imported)
         _set_stereo_payload(self, replace(payload, atom_facts=tuple(atom_facts)))
 
-    def _remap_stereo_after_atom_removal(
-            self,
-            source_atoms: tuple["Atom", ...],
-    ) -> None:
-        destination_rows = {
-            id(atom): row for row, atom in enumerate(self._atoms)
-        }
-        atom_mapping = {
-            source_row: destination_rows[id(atom)]
-            for source_row, atom in enumerate(source_atoms)
-            if id(atom) in destination_rows
-        }
-        self._set_remapped_stereo_payload(
-            self,
-            atom_mapping,
-            filter_bonds=False,
-        )
+    def _remap_stereo_after_atom_removal(self, source_atoms, payload):
+        from .operations.chemistry import _remap_stereo_transport
+
+        destination_rows = {id(atom): row for row, atom in enumerate(self._atoms)}
+        mapping = {row: destination_rows[id(atom)] for row, atom in enumerate(source_atoms)
+                   if id(atom) in destination_rows}
+        _install_stereo_storage(self, None if payload is None else _remap_stereo_transport(payload, mapping))
 
     def _remove_stereo_bond_rows(
             self,
@@ -330,10 +335,13 @@ class Molecule:
         from .operations.chemistry import _remap_stereo_transport, _set_stereo_payload
 
         payload = _get_stereo_payload(self)
+        if payload is None:
+            return
         removed_keys = {
             frozenset(atom_indices) for atom_indices in removed_bond_rows
         }
-        allowed_bonds = list(self._structural_bond_rows())
+        allowed_bonds = [rows for rows in self._structural_bond_rows()
+                         if frozenset(rows) not in removed_keys]
         for record in payload.records:
             if record.anchor.kind is StereoAnchorKind.BOND:
                 if frozenset(record.anchor.atom_indices) not in removed_keys:
@@ -517,7 +525,7 @@ class Molecule:
             values = values[0]
             statuses = table._group_status[row].copy()
             pending_groups = tuple(atom._uid in seeds for seeds in table._dirty_seeds)
-            sparse = {name: deepcopy(atom.__dict__[name]) for name in ('isotope', 'frac_valence') if name in atom.__dict__}
+            sparse = {name: deepcopy(atom.__dict__[name]) for name in ('frac_valence',) if name in atom.__dict__}
             charge_result = (None if source_row is None else _partial_charge_record(
                 atom.mol, (row,), whole_context=len(atom.mol._atoms) == 1 and not atom.mol._bonds))
         with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
@@ -530,6 +538,7 @@ class Molecule:
                 _atom_fact_engine()._update_dependency_seeds(self, (group,), (copied._uid,), pending_group)
             for name, value in sparse.items():
                 setattr(copied, name, value)
+            self._replace_atom_transport(new_row, atom)
         return copied
 
     def _add_bond(self, atom1: Union[int, "Atom"], atom2: Union[int, "Atom"], bond_order=1., **kwargs):
@@ -619,10 +628,8 @@ class Molecule:
         Returns:
             The atom object added to the graph.
         """
-        source_atom = atom
         atom = self._add_atom(atom)
         self._update_topology()
-        self._replace_atom_transport(atom.idx, source_atom)
         return atom
 
     def _replace_atom(self, original_atom_idx: int, new_atom: Union[int, str, 'Atom']):
@@ -637,6 +644,13 @@ class Molecule:
         source_atom = new_atom
         source_members = tuple(self._atoms)
         replacement = self._add_atom(new_atom)
+        _detach_atom(original)
+        self._replace_atom_transport(target_row, source_atom)
+        from .operations.chemistry import _remap_stereo_transport
+        payload = _get_stereo_payload(self)
+        if payload is not None:
+            payload = _remap_stereo_transport(payload,
+                                             {row: row for row in range(len(source_members))})
         old_uids = tuple(atom._uid for atom in self._atoms)
         selection = tuple(len(self._atoms) - 1 if row == target_row else row
                           for row in range(len(self._atoms) - 1))
@@ -644,7 +658,6 @@ class Molecule:
         next_atoms[target_row] = replacement
         state = _remap_dependency_state(self._atom_table, old_uids,
                                         tuple(atom._uid for atom in next_atoms), rows=selection)
-        _detach_atom(original)
         table = self._atom_table.take(selection)
         _install_dependency_state(table, state)
         self._atom_table = table
@@ -654,7 +667,7 @@ class Molecule:
                 Bond._replace_atom(bond, original, replacement)
         self._topology_index = _build_topology_index(self._atoms, self._bonds)
         _filter_constraint_members(self)
-        self._replace_atom_transport(target_row, source_atom)
+        _install_stereo_storage(self, payload)
         return original
 
     def build_all_pair_links(
@@ -785,17 +798,22 @@ class Molecule:
                 (True, current.charge[1] + incoming.charge[1], 'component_merge')
                 if current.charge[0] and incoming.charge[0] else (False, None, None))
             spin = incoming.spin_mult if not offset else (False, None, None)
-            payload = _remap_stereo_transport(incoming.stereo_payload,
-                        {row: offset + row for row in range(incoming.atom_count)})
-            payload = type(payload)(current.stereo_payload.schema_version,
-                                    current.stereo_payload.records + payload.records,
-                                    current.stereo_payload.atom_facts + payload.atom_facts,
-                                    current.stereo_payload.bond_facts + payload.bond_facts)
+            payload = incoming.stereo_payload
+            if offset:
+                if payload is not None:
+                    payload = _remap_stereo_transport(payload,
+                                {row: offset + row for row in range(incoming.atom_count)})
+                if payload is None:
+                    payload = current.stereo_payload
+                elif current.stereo_payload is not None:
+                    payload = type(payload)(current.stereo_payload.schema_version,
+                                            current.stereo_payload.records + payload.records,
+                                            current.stereo_payload.atom_facts + payload.atom_facts,
+                                            current.stereo_payload.bond_facts + payload.bond_facts)
             record = replace(current, atom_count=offset + incoming.atom_count,
                 atom_values=current.atom_values + incoming.atom_values,
                 atom_presence=current.atom_presence + incoming.atom_presence,
                 atom_sources=current.atom_sources + incoming.atom_sources,
-                atom_isotopes=current.atom_isotopes + tuple((offset + row, value) for row, value in incoming.atom_isotopes),
                 atom_frac_valences=current.atom_frac_valences + tuple((offset + row, value) for row, value in incoming.atom_frac_valences),
                 bond_endpoints=current.bond_endpoints + tuple((offset + a, offset + b) for a,b in incoming.bond_endpoints),
                 bond_values=current.bond_values + incoming.bond_values,
@@ -1603,6 +1621,10 @@ class Molecule:
 
     def _remove_atoms_from_topology(self, atoms: Iterable[Union['Atom', int]]) -> None:
         source_atoms = tuple(self._atoms)
+        payload = _get_stereo_payload(self)
+        transaction = _current_transaction(self)
+        if transaction is not None:
+            transaction.touch_topology()
         atoms = tuple(atom if isinstance(atom, Atom) else self._atoms[atom] for atom in atoms)
         _selected_atom_rows(self, atoms)
         removed = {id(atom) for atom in atoms}
@@ -1626,7 +1648,7 @@ class Molecule:
                          if all(id(atom) not in removed for atom in bond.atoms)]
         self._topology_index = _build_topology_index(self._atoms, self._bonds)
         _filter_constraint_members(self)
-        self._remap_stereo_after_atom_removal(source_atoms)
+        self._remap_stereo_after_atom_removal(source_atoms, payload)
 
     def remove_atom(self, atom: Union[int, "Atom"]) -> None:
         """
@@ -1696,12 +1718,14 @@ class Molecule:
             (bond.a1idx, bond.a2idx)
             for bond in bonds
         )
+        displays = tuple(bond._display_facts for bond in bonds)
         _mark_topology_dirty(self, tuple(atom._uid for bond in bonds for atom in bond.atoms))
-        for bond in bonds:
+        self._remove_stereo_bond_rows(removed_bond_rows)
+        for bond, display in zip(bonds, displays):
             row = self._bonds.index(bond)
             _detach_bond(self._bonds[row])
+            object.__setattr__(bond, '_display_facts', display)
             self._bonds.pop(row)
-        self._remove_stereo_bond_rows(removed_bond_rows)
         self._update_topology()
 
     def force_remove_polar_hydrogens(self):
@@ -2049,6 +2073,7 @@ class Molecule:
         from .structure._selection import _selected_bonds
         from .operations.chemistry import _remap_stereo_transport
         with self._mutation_lock:
+            whole_capture = rows is None and selection is None
             rows = tuple(range(len(self._atoms))) if rows is None else tuple(rows)
             mapping = {row: target for target, row in enumerate(rows)}
             atoms = tuple(self._atoms[row] for row in rows)
@@ -2062,8 +2087,10 @@ class Molecule:
             whole = rows == tuple(range(len(self._atoms)))
             charge_context = whole and len(bonds) == len(complete) and all(
                 first is second for first, second in zip(bonds, complete))
-            payload = _remap_stereo_transport(self._stereo_payload, mapping,
-                                            allowed_bonds=None if whole else endpoints)
+            payload = _get_stereo_payload(self)
+            if not whole_capture and payload is not None:
+                payload = _remap_stereo_transport(payload, mapping,
+                                                allowed_bonds=None if whole else endpoints)
             source_frames, conformer_results, frame_selection = (
                 _capture_frame_records(self, rows=rows) if include_frames else ((), (), None))
             uid_rows = {atom._uid: row for row, atom in enumerate(self._atoms)}
@@ -2085,7 +2112,6 @@ class Molecule:
                 atom_values=atom_values,
                 atom_presence=atom_presence, atom_sources=atom_sources,
                 partial_charge_result=_partial_charge_record(self, rows, whole_context=charge_context),
-                atom_isotopes=tuple((row, atom.__dict__['isotope']) for row, atom in enumerate(atoms) if 'isotope' in atom.__dict__),
                 atom_frac_valences=tuple((row, atom.__dict__['frac_valence']) for row, atom in enumerate(atoms) if 'frac_valence' in atom.__dict__),
                 bond_endpoints=endpoints, bond_values=np.array([_raw_bond_values(bond) for bond in bonds], dtype=np.float64).reshape(-1, 3),
                 bond_kinds=tuple(bond._bond_kind.value for bond in bonds),
@@ -2178,7 +2204,7 @@ class Molecule:
                 _detach_bond(bond)
         atom_axes = {atom._uid: cell for atom, cell in zip(atoms, atom_cells)}
         bond_values = {bond._uid: bond._constraint_values[bond._uid] for bond in bonds}
-        sparse_isotopes, sparse_valences = dict(record.atom_isotopes), dict(record.atom_frac_valences)
+        sparse_valences = dict(record.atom_frac_valences)
         transaction = _current_transaction(self)
         for row, atom in enumerate(atoms):
             if transaction is not None:
@@ -2187,11 +2213,10 @@ class Molecule:
                     transaction.touch_constraint_binding(atom)
             atom.__dict__.pop('_detached_table', None)
             object.__setattr__(atom, '_constraint_values', atom_axes)
-            for name, sparse in (('isotope', sparse_isotopes), ('frac_valence', sparse_valences)):
-                if row in sparse:
-                    atom.__dict__[name] = sparse[row]
-                else:
-                    atom.__dict__.pop(name, None)
+            if row in sparse_valences:
+                atom.__dict__['frac_valence'] = sparse_valences[row]
+            else:
+                atom.__dict__.pop('frac_valence', None)
         for bond, binding in zip(bonds, bond_bindings):
             if transaction is not None and binding is None:
                 transaction.touch_bond(bond)
@@ -2201,6 +2226,10 @@ class Molecule:
         self._atom_table = table
         self._atoms[:] = atoms
         self._bonds[:] = bonds
+        self._topology_index = topology_index
+        # A missing complete-record transport retains the established schema1 default.
+        _install_stereo_storage(self, record.stereo_payload if record.stereo_payload is not None
+                                else _StereoPayload(1, (), (), ()))
         self._update_topology(clear_conformers=False, _prepared_index=topology_index,
                              _constraint_rows=(record.angle_constraints, record.torsion_constraints))
         for name, declaration in (('charge', record.charge), ('spin', record.spin_mult)):
@@ -2208,7 +2237,6 @@ class Molecule:
             object.__setattr__(self, '_' + name + '_present', present)
             object.__setattr__(self, '_' + name + '_value', value if present else (0 if name == 'charge' else None))
             object.__setattr__(self, '_' + name + '_source', source)
-        self._stereo_payload = record.stereo_payload if record.stereo_payload is not None else _StereoPayload(1, (), (), ())
         if dependency_state is None:
             _mark_topology_dirty(self, tuple(atom._uid for atom in atoms))
         elif old_hydrogen_inputs:
@@ -2482,6 +2510,10 @@ class Atom(MolBlock):
             object.__setattr__(self, '_constraint_values', owner._constraints.atom_axes)
             _invalidate_results(owner, ('representation', 'geometry'), transaction)
             _seed(owner, GROUP_INDEX['FORMAL_CHARGE_COVERAGE'], (uid,))
+
+    @property
+    def isotope(self):
+        return _atom_isotope(self)
 
     @property
     def attrs(self):
@@ -4462,6 +4494,7 @@ def _initialize_bond_handle(bond, mol, uid, atom1, atom2, raw_values, *, kind,
     object.__setattr__(bond, '_constraint_values', {uid: _bond_constraint_cell(raw_values[1])})
     object.__setattr__(bond, '_bond_kind', BondKind(kind))
     object.__setattr__(bond, '_bond_direction', direction)
+    object.__setattr__(bond, '_display_facts', ())
     object.__setattr__(bond, '_bond_source', source_namespace)
     object.__setattr__(bond, '_bond_source_metadata', metadata)
     object.__setattr__(bond, '_is_aromatic', kind == 'aromatic' if aromatic is None else bool(aromatic))
@@ -4547,7 +4580,8 @@ def _capture_molecule_pickle(mol):
         bonds = tuple(mol._bonds)
         owned = {'_mutation_lock', '_owner_token', '_atoms', '_bonds',
                  '_atom_table', '_topology_index', '_next_atom_uid', '_next_bond_uid', '_conformers',
-                 '_conformers_index', '_stereo_payload', '_crystal', '_charge_value', '_charge_present',
+                 '_conformers_index', '_stereo_schema', '_stereo_records', '_stereo_source',
+                 '_crystal', '_charge_value', '_charge_present',
                  '_charge_source', '_spin_value', '_spin_present', '_spin_source',
                  '_constraints', '_pair_wiberg_bond_orders', '_source_frames',
                  '_conformer_results', '_frame_result'}
@@ -4556,11 +4590,11 @@ def _capture_molecule_pickle(mol):
         graph_memo = {id(mol): mol, **{id(atom): atom for atom in mol._atoms},
                       **{id(bond): bond for bond in bonds}}
         atom_state = tuple({key: value for key, value in atom.__dict__.items()
-                            if key not in ('_mol', '_member_uid', '_uid_owner', '_detached_table', '_constraint_values', 'isotope', 'frac_valence')}
+                            if key not in ('_mol', '_member_uid', '_uid_owner', '_detached_table', '_constraint_values', 'frac_valence')}
                            for atom in mol._atoms)
         bond_state = tuple({key: value for key, value in bond.__dict__.items()
                             if key not in ('_atoms', '_bonds', '_member_uid', '_uid_owner', '_attrs',
-                                           '_bond_kind', '_bond_direction', '_bond_source', '_bond_source_metadata', '_is_aromatic', '_constraint_values')}
+                                           '_bond_kind', '_bond_direction', '_display_facts', '_bond_source', '_bond_source_metadata', '_is_aromatic', '_constraint_values')}
                            for bond in bonds)
         extra = (state, metadata, atom_state, bond_state)
         return (record, mol._owner_token, tuple(atom._uid for atom in mol._atoms),
@@ -4588,6 +4622,8 @@ def _restore_molecule_raw(cls, record, owner, atom_uids, bond_uids, high_water, 
         tuple(sorted((atom_uids[first], atom_uids[second]))): value
         for first, second, value in record.pair_wiberg_bond_orders}
     mol._next_atom_uid, mol._next_bond_uid = high_water
+    _install_stereo_storage(mol, record.stereo_payload if record.stereo_payload is not None
+                            else _StereoPayload(1, (), (), ()))
     _install_frame_records(mol, record.source_frames, record.conformer_results, record.frame_selection)
     return mol
 

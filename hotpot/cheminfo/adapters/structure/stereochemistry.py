@@ -5,6 +5,7 @@ from dataclasses import fields, is_dataclass
 from struct import pack
 
 from ...structure._identity import _capture_source, _check_source
+from ...structure._stereo import _get_stereo_payload
 from ...structure.snapshots import _StereoSnapshot
 
 __all__ = ()
@@ -17,7 +18,7 @@ def _capture_stereo_snapshot(mol):
     bonds = tuple(mol._bonds)
     endpoints = tuple((bond.atom1, bond.atom2) for bond in bonds)
     snapshot = _StereoSnapshot(
-        payload=mol._stereo_payload,
+        payload=_get_stereo_payload(mol),
         atom_keys=tuple(id(atom) for atom in atoms),
         bonds=tuple(
             (id(first), id(second), float(bond.bond_order), bond.bond_kind.value,
@@ -51,7 +52,7 @@ def _check_stereo_capture(mol, capture):
     snapshot, source, (atoms, bonds, endpoints) = capture
     _check_source(mol, source)
     unchanged = (
-        _same_stereo_raw_value(snapshot.payload, mol._stereo_payload)
+        _same_stereo_raw_value(snapshot.payload, _get_stereo_payload(mol))
         and len(atoms) == len(mol._atoms)
         and all(first is second for first, second in zip(atoms, mol._atoms))
         and len(bonds) == len(mol._bonds)

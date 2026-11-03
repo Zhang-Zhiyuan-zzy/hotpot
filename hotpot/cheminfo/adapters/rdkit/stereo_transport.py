@@ -177,7 +177,11 @@ def _extract_stereo_payload(rdmol):
 def _payload_atom_facts(payload, atom_count=None):
     facts = {}
     for fact in payload.atom_facts:
-        if fact.source_namespace != _RDKIT_STEREO_NAMESPACE:
+        # Canonical Hotpot isotope-only rows have no toolkit convention to
+        # translate. H/radical declarations still require their registered map.
+        isotope_only = (fact.source_namespace is None and fact.radical_electrons is None
+                        and fact.current_hydrogens is None and fact.source_hydrogens is None)
+        if fact.source_namespace != _RDKIT_STEREO_NAMESPACE and not isotope_only:
             raise ValueError(
                 "RDKit export cannot represent atom transport namespace: "
                 f"{fact.source_namespace}"

@@ -454,8 +454,8 @@ def test_group_partition_follows_nonidentity_mapping_and_target_record_order():
         target_a,
         target_b,
     )
-    assert stereo.get_stereo_payload(reference) is reference_payload
-    assert stereo.get_stereo_payload(target) is target_payload
+    assert stereo.get_stereo_payload(reference) == reference_payload
+    assert stereo.get_stereo_payload(target) == target_payload
     assert mapping == mapping_snapshot
 
 
@@ -573,7 +573,7 @@ def test_coordinate_validation_accepts_uniform_th_group_inversion_and_assigns_it
         group,
         group,
     )
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload
     np.testing.assert_array_equal(coordinates, coordinate_snapshot)
 
 
@@ -726,7 +726,7 @@ def test_coordinate_validation_accepts_uniform_ax_group_inversion_and_assigns_it
         group,
         group,
     )
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload
     np.testing.assert_array_equal(coordinates, coordinate_snapshot)
 
 

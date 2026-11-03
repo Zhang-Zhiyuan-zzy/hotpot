@@ -1,8 +1,8 @@
 """Closed, immutable Atom update candidates; no carrier installation here.
 
-Selection and owner checks happen at the Molecule boundary. This preparation
-retains the legacy float64 domain; it does not infer chemistry or alter the
-permissions of the legacy setters before their owning-stage migration.
+Selection and owner checks happen at the Molecule boundary. Numeric preparation
+retains the legacy float64 domain; private occurrence rows retain exact declared
+values. Preparation does not infer chemistry or alter public write permissions.
 """
 
 from __future__ import annotations
@@ -17,6 +17,7 @@ from ._fields import (
     COORDINATE_FIELDS, FIELD_INDEX, DERIVED_FIELDS,
 )
 from ._identity import _SourceIdentity
+from ._atom_table import _seal_stereo_rows
 
 
 __all__ = ()
@@ -31,6 +32,7 @@ class _AtomFactUpdate:
     value_bytes: tuple[bytes, ...]
     presence: tuple[bool, ...]
     sources: tuple[int, ...]
+    private_values: tuple = ()
 
     def __post_init__(self):
         rows = tuple(operator.index(row) for row in self.rows)
@@ -55,10 +57,13 @@ class _AtomFactUpdate:
         value_bytes = tuple(bytes(value) for value in self.value_bytes)
         if any(len(value) != len(rows) * np.dtype(np.float64).itemsize for value in value_bytes):
             raise ValueError("Atom update bytes must encode one float64 per selected row")
+        private_values = _seal_stereo_rows(self.private_values)
+        if private_values and len(private_values) != len(rows):
+            raise ValueError("Private Atom update rows must align with selected rows")
         for name, value in (
             ("rows", rows), ("atom_uids", uids), ("fields", fields),
             ("value_bytes", value_bytes), ("presence", tuple(bool(value) for value in presence)),
-            ("sources", sources),
+            ("sources", sources), ("private_values", private_values),
         ):
             object.__setattr__(self, name, value)
 
@@ -70,7 +75,7 @@ class _AtomFactUpdate:
     def __reduce__(self):
         return type(self), (
             self.source, self.rows, self.atom_uids, self.fields, self.value_bytes,
-            self.presence, self.sources,
+            self.presence, self.sources, self.private_values,
         )
 
     def __deepcopy__(self, memo):

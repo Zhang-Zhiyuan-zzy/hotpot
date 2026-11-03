@@ -763,4 +763,4 @@ def test_public_gate7_coordinate_assignment_uses_private_classifier():
     assert assignment.unresolved == ()
     assert assignment.derived == ()
     assert assignment.payload.records[0].descriptor == "hotpot.stereo/2/SP/1"
-    assert stereo.get_stereo_payload(molecule) is payload
+    assert stereo.get_stereo_payload(molecule) == payload

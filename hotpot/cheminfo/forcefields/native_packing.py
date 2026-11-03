@@ -8,6 +8,7 @@ from typing import Optional, Sequence, TYPE_CHECKING, Tuple
 import numpy as np
 from numpy.typing import NDArray
 
+from ..structure.forcefields import BondTopology
 from ..obWrappers.packing import (
     _BOND_KIND_CODES,
     _MOLECULE_BUFFER_SCHEMA_VERSION,
@@ -19,7 +20,6 @@ from ..obWrappers.packing import (
 if TYPE_CHECKING:
     from ..core import Bond, Molecule
     from .native_reports import NativeTopologyRevision
-    from .trajectory import BondTopology
 
 
 __all__ = (
@@ -66,7 +66,6 @@ def _bond_topologies(
     bond_orders: NDArray[np.float64],
     bond_kinds: NDArray[np.uint8],
 ) -> Tuple["BondTopology", ...]:
-    from .trajectory import BondTopology
 
     return tuple(
         BondTopology(

@@ -1,49 +1,13 @@
-"""Immutable molecular-topology snapshots for force-field workflows."""
+"""Read-only carrier capture for force-field topology consumers."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Mapping, Sequence, Tuple, TYPE_CHECKING
+from typing import Mapping, Sequence, Tuple
+
+from ...structure.forcefields import AtomTopologySignature, BondTopology, TopologyReference
 
 
-if TYPE_CHECKING:
-    from ..core import Atom, Bond, Molecule
-
-
-__all__ = (
-    "AtomTopologySignature",
-    "BondTopologySignature",
-    "TopologyReference",
-    "capture_topology",
-)
-
-
-@dataclass(frozen=True)
-class AtomTopologySignature:
-    """Stable identity and chemistry for an atom present before optimization."""
-
-    index: int
-    atom_id: int
-    atomic_number: int
-    formal_charge: int
-
-
-@dataclass(frozen=True)
-class BondTopologySignature:
-    """Stable topology for a bond present before optimization."""
-
-    atom_indices: Tuple[int, int]
-    bond_order: float
-    bond_kind: str
-
-
-@dataclass(frozen=True)
-class TopologyReference:
-    """Immutable topology snapshot used by force-field transactions."""
-
-    atoms: Tuple[AtomTopologySignature, ...]
-    bonds: Tuple[BondTopologySignature, ...]
-    allow_added_hydrogens: bool = True
+__all__ = ("capture_topology",)
 
 
 def _atom_index_map(atoms: Sequence["Atom"]) -> dict[int, int]:
@@ -81,9 +45,9 @@ def _bond_identity(
 def _topology_bond_signature(
     bond: "Bond",
     atom_indices: Mapping[int, int],
-) -> BondTopologySignature:
+) -> BondTopology:
     endpoints, bond_order, bond_kind = _bond_identity(bond, atom_indices)
-    return BondTopologySignature(
+    return BondTopology(
         atom_indices=endpoints,
         bond_order=bond_order,
         bond_kind=bond_kind,

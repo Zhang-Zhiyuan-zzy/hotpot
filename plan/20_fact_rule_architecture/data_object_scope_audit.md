@@ -150,7 +150,11 @@ Root 明确接受现有 `resolve_scientific_state -> ScientificStateBundle`、
 
 提案：领域层保留一个经过验证的停止参数记录；native adapter 直接将其转为原生
 绑定参数，删除中间 Python dataclass，2→1。C++ 绑定结构是 ABI 边界，另行计数且保留。
-两个现有 Python 名称均可能被导入，最终名称及移除路径须审阅；不额外增加同义别名树。
+2026-11-03 root 已通过 [Stage8B B1](stages/stage08/forcefields/contracts/decisions.md)
+具体审阅：唯一 Criteria 移至 `rules/physics/forcefields/contracts.py`，删除 Python
+Options/字段复制 helper；None 仍关闭停止条件，真实 native ABI 与 scalar API 保留。
+现有 Criteria 构造校验保持；替代旧未校验 Options 的调用更早遇到该已有校验。
+实施/运行验收另记，不额外增加别名树。
 
 ### 3.4 力场拓扑记录：相同键值不必维护两份 Python schema
 
@@ -160,8 +164,12 @@ Root 明确接受现有 `resolve_scientific_state -> ScientificStateBundle`、
 后者额外有端点规范化和 `from_bond()` 工厂，前者的生产函数同样规范化端点。
 
 提案：同一不可变键记录服务事务参考和历史轨迹；采集工厂放 structure adapter，
-轨迹只组合该记录，2→1。历史轨迹的整数 index 不能替代新 Atom UID；两种坐标系的
-映射放在完整 snapshot/envelope 中，不能在所有底层记录里同时重复塞入 index/id/uid。
+轨迹只组合该记录，2→1。历史轨迹仍用 atom-table row；不能将其误作新 Atom UID。2026-11-03 root 的
+[B1](stages/stage08/forcefields/contracts/decisions.md) 具体批准一个
+`structure/forcefields.py::BondTopology`，并迁移既有 AtomTopologySignature/
+TopologyReference；集合采集归 adapter，`from_bond` 保留直接只读字段采集，避免
+低层导入上层。当前 Atom.idx 即 row，未发现 UID 错配；端点排序、工厂、JSON 均
+按 B1 明确契约，零新增类型。不能在底层记录重复塞入 index/id/uid。
 
 原子侧 `AtomTopologySignature` 与轨迹 `AtomIdentity` 也高度相似，后者多存 `symbol`。
 可复用一个原子快照行并按 `atomic_number` 翻译 symbol，但应先明确轨迹导出与快照
@@ -175,6 +183,8 @@ Root 明确接受现有 `resolve_scientific_state -> ScientificStateBundle`、
 
 提案：CLI work item 组合已有 `ForceFieldRouteOptions`，自身只携带输出格式/路径；
 删除 `_RunOptions`，不新建另一个 options wrapper，净减少 1。
+2026-11-03 root 已按 B1 批准：既有 `_WorkItem` 的前三字段保留，追加必填
+output_format；route record 直接转交现有执行 seam。类移除实测与运行验收另记。
 xTB 的 `_RunOptions` 与 `_XTBStageOptions` 也有类似交集，但包含执行环境、输出和
 后检查语义差异，先组合现有请求/运行设置，证明消息及 CLI 协议保持后再决定类数；
 不把它计入本轮已明确的减少额。
@@ -341,8 +351,9 @@ float64 property，与 Atom.attrs 共用唯一投影。三者共享声明与来�
 ### 7.1 已有定义的可审议收敛
 
 下表保留 2026-10-28 原提案的条件估算，不是当前目标或实施数量。
-A9 已取代 D01–D03 的 5→1/4→1/2→1 假设；D04/D05/FF-CLI 继续按原边界待审，
-不因 A9 改动。历史合计不能抵扣新增对象或充当必须压缩这些家族的要求。
+A9 已取代 D01–D03 的 5→1/4→1/2→1 假设；D04/D05/FF-CLI 的具体设计于
+2026-11-03 由 root 按 Stage8B B1 批准，实施/运行验收另记，不因 A9 改动。
+历史合计不能抵扣新增对象或充当必须压缩这些家族的要求。
 
 | 归并项 | 当前→目标定义数 | 理论净减少 | 前提 |
 |---|---:|---:|---|
@@ -393,8 +404,8 @@ A9 已冻结 D01–D03 的具体结论；其余现有名称保留到各自逐项
 | D01 | 五种 `...Result` 与既有公开详细报告 | A9 已批准：五类保留六个必填字段，仅删 confidence 生产/字段与枚举/两处导出；精确报告 API/owner 保留 | 当前 source/installed CP311 与五类 current pickle 已验收；旧七字段/枚举对象硬切已实测；版本化 JSON/digest 不变，无替代类/评级 |
 | D02 | 三种 Finding/Reason 与 StaticEligibilityFinding | A9：NO_CONSOLIDATION，四类及导出保留 | 两字段 static 与三字段 reason codec、角色/namespace 不变；不再等待 StateFinding 提案 |
 | D03 | `ProviderToggle` / `RuleToggle` | A9：NO_CONSOLIDATION，两种输入及各自 owner 保留 | ID 域、enabled/configuration、digest payload 与向下依赖不变；不再等待 StateActivation 提案 |
-| D04 | `OptimizationStoppingCriteria` / `OptimizationStoppingOptions` | 保留一个 Python 参数类型 | 最终名称/路径、旧导入去向；5字段/单位/默认值保持 |
-| D05 | `BondTopologySignature` / `BondTopology` | 保留一个不可变 bond record | 最终名称/路径、端点排序、构造/工厂、轨迹历史 schema |
+| D04 | `OptimizationStoppingCriteria` / `OptimizationStoppingOptions` | B1 已批准：纯规则 owner 保留 Criteria，退役 Python Options；真实 native ABI 保留 | 5字段/单位/默认值与既有构造校验保持；None 仍关闭；实施/CP311 source-installed 验收另记 |
+| D05 | `BondTopologySignature` / `BondTopology` | B1 已批准：structure/forcefields.py 一个 BondTopology 供参考与轨迹共用 | 端点排序、直接 from_bond、row 语义及历史三字段 JSON 保留；已有签名类型迁移不新增；实施/运行验收另记 |
 | D06 | `AtomTopologySignature` / `AtomIdentity` | 可能统一原子快照并把 symbol 改为计算投影 | 暂不计减少；uid/index/source id、symbol 读权限与历史格式 |
 | D07 | dormant geometry candidate/result、`RingEdgeDistance`、隐式导出的 `AtomPairKey` | 删除或补生产者后保留 | 历史预留承诺、文档/测试/用户数据影响；不自动删除 |
 | D08 | MCA Task/Result/DTO 类名 | 候选统一 MCA prefix/suffix | 是否属于支持的高级导入、消息pickle兼容和路径；现有预测public DTO先保持 |

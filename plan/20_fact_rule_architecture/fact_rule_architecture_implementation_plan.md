@@ -4,7 +4,8 @@ Status: **implementation authorized on 2026-10-28; Stage0–8A owning-stage gate
 complete within their recorded scopes. Stage8A A1–A11 scientific-state separation,
 non-mutating extraction, H presence, approved detailed reports/confidence retirement,
 preparation diagnostics and existing Lewis complete-H applicability are root accepted
-within CP311 source/installed scope. Stage8B–E have not entered. Optional scientific
+within CP311 source/installed scope. Stage8B entry/B1 design is accepted;
+implementation and its owning gate remain open. Stage8C–E have not entered. Optional scientific
 activation, remaining stages, full scientific/engineering, version-adaptation and
 global acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
@@ -2118,6 +2119,25 @@ commits; retain the existing plugin and generic-pipeline ownership boundaries.
 Gate: pure-policy tests, native and Python workflow parity, rollback,
 trajectory, wrapper standalone tests, and FF benchmarks; O0 scientific execution
 produces per-case monitoring reports rather than a fixed success-count gate.
+
+The [Stage8B entry/B1 decision](stages/stage08/forcefields/contracts/decisions.md)
+settles D04/D05/FF-CLI at current source before implementation. One validated
+OptimizationStoppingCriteria belongs to pure physics contracts, the retained
+BondTopology plus unchanged reference constituents belong to structure/forcefields.py,
+and carrier capture belongs to the structure adapter. Retire the duplicate
+Python stopping/bond/CLI option records with zero new types, retaining the real
+native ABI record, scalar wrapper API and trajectory JSON. The old Stage1 paths
+and upward delegated-factory proposal are superseded explicitly. B1 is the first
+coherent slice; rule/operation/backend/command/native separation, connected
+finding-control/sample containment and the full owning gate remain required.
+
+The [B1 CP311 checkpoint](stages/stage08/forcefields/validation/b1/checkpoint.json)
+accepts the exact three-type retirement, canonical capture/criteria and CLI
+composition. Source297focused and958affected+7skipped pass; installed958+7
+uses the same965orderednodes, and actual3pipeline+3MCA pass at each boundary.
+The original loader collection failure is retained, six unchanged accepted natives
+are reused and actual numerical variation is preserved. No clean-native, cost,
+all-version or complete Stage8B acceptance follows from B1.
 
 #### Stage 8C — Search
 

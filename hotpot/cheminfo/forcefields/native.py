@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Optional, Union
 import numpy as np
 from numpy.typing import NDArray
 
+from ..rules.physics.forcefields.contracts import OptimizationStoppingCriteria
 from ..rules.mathematics.geometry.settings import DEFAULT_GEOMETRY_SETTINGS, GeometrySettings
 from ..obWrappers.native import _native_module
 from ..obWrappers.contracts import ConvergenceLevel, DEFAULT_CONVERGENCE_LEVEL
@@ -47,7 +48,6 @@ __all__ = (
     "CoordinationStageOptions",
     "FrameDetail",
     "MetalPlacementOptions",
-    "OptimizationStoppingOptions",
     "RingScreeningOptions",
     "StructureSnapshot",
     "assess_metal_position",
@@ -76,15 +76,6 @@ class FrameDetail(str, Enum):
     NONE = "none"
     OPTIMIZATION = "optimization"
     ALL_ATTEMPTS = "all_attempts"
-
-
-@dataclass(frozen=True)
-class OptimizationStoppingOptions:
-    window: int = 5
-    maximum_energy_change_kj_mol: float = 1.0e-4
-    maximum_atom_displacement_angstrom: float = 1.0e-4
-    maximum_rms_gradient_kj_mol_angstrom: float = 1.0
-    maximum_gradient_kj_mol_angstrom: float = 5.0
 
 
 @dataclass(frozen=True)
@@ -152,7 +143,7 @@ class ComplexOptimizationOptions:
     vdw_cutoff_start: float = 0.0
     vdw_cutoff_end: float = 12.5
     energy_tolerance: float = 1.0e-6
-    stopping: Optional[OptimizationStoppingOptions] = None
+    stopping: Optional[OptimizationStoppingCriteria] = None
     torsion_singularity_threshold: float = TORSION_SINGULARITY_THRESHOLD
     torsion_repair_angle_radians: float = TORSION_REPAIR_ANGLE_RADIANS
     ring_screening: RingScreeningOptions = field(
@@ -390,7 +381,7 @@ def place_metals(
 
 
 def _native_stopping_options(
-    options: OptimizationStoppingOptions,
+    options: OptimizationStoppingCriteria,
 ) -> "_ob_native.OptimizationStoppingOptions":
     return _native_module().OptimizationStoppingOptions(
         window=options.window,

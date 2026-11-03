@@ -4936,3 +4936,132 @@ at delivery. Terra/Luna's mechanical-only option is already in model_allocation.
 business implementation remains Sol/medium or higher.
 
 Final delivery checks: changed/new seven JSON records parse; Stage8A/A11 root acceptance, scope and result counts agree across completion/validation/map; raw manifest identity and new completion/report links pass; `git diff --check` passes. These are record/source checks, not new chemical runtime claims. The unrelated user-owned untracked review file remains excluded.
+
+
+## 2026-11-03 — Stage8B entry and exact B1 consolidation design accepted
+
+Previous goal turn made business progress: A11/Stage8A CP311 accepted and pushed
+as ff43738. Root now aligns the complete Stage8B owning scope under the effective
+goal, main-plan ownership/stage/public sections, Stage1 proposals, data-object
+audit/budget, verification map and integrated Plan12 obligations. Current tracked
+tree is clean; protected untracked review remains excluded. `git diff 7952d1f
+HEAD -- hotpot/cheminfo/forcefields hotpot/cheminfo/obWrappers setup.py` has no
+paths, so prior preentry source ownership remains applicable; scientific-state
+dependencies are current A11, requiring new connected runtime evidence.
+
+Two local Sol/medium read-only subagents independently bounded public/type and
+native/include ownership questions. They ran no product imports/engines/models
+or tests and changed no maintained bytes. Root resolves the concrete Stage1
+path/factory conflicts before authoring: Criteria belongs to pure rules; one
+BondTopology/reference family to structure; carrier collection capture to the
+structure adapter; CLI reuses route options. Retain the direct BondTopology
+factory to avoid a lower->upper import and preserve observed row semantics.
+The exact field/default/None/units/JSON/ABI, import/pickle and constructor-change
+dispositions are in the new Stage8B B1 decision. Root authors design at max.
+
+B1 is an authorized first implementation slice, not substituted final scope:
+retire three duplicate Python dataclasses with zero replacements; preserve real
+native ABI/engine and explicit schemas. Existing aggregate facade points at
+actual definitions until later coherent operation/command cutover; no duplicate
+implementation or retired-name alias. Independent code writers receive exclusive
+files, no nested delegation and runtime HOLD. Root retains integration/freeze/
+release/acceptance/Git. Full B2-B4/native/control/benchmarks and Stage8B gate
+remain open, as do all later/global obligations; no speed claim is made.
+
+
+## 2026-11-03 — Stage8B B1 integration reviewed and CP311 runtime released
+
+Local Sol/medium writers completed exact Criteria/topology and CLI partitions.
+Root verified old56/new53dataclasses across changed product paths: retired Python
+Options, BondTopologySignature and CLI _RunOptions, zero replacements; retained
+Criteria fields/validation and BondTopology/from_bond bodies match. Collection
+capture and input/JSON/native math remain; direct route/criteria identity, None,
+known-zero, sorted-row/trajectory equality, cold-pickle and existing actual CLI
+spawn/order cases have meaningful coverage. Root corrected only new type-only
+legacy imports and the new test's Molecule public import before runtime.
+
+The first static ratchet result names exactly3unretired entries for deleted
+topology.py and no new debt/layer finding. Root retires those actual old entries;
+second static audit passes with221remaining debt, no growth/new/layer/carrier
+findings. Both reports remain under stage8b-b1-20261103; no checker weakening.
+Native/build identities equal the accepted A11 inputs; six binaries are reused.
+
+Root-reviewed manifest binds15focused/63affected files, all33Stage8B map files
+and connected consumers; actual pipeline3/MCAattachment3 run per source/installed
+boundary. The new ownership filename/cold-pickle checks and CLI spawn coverage
+are confirmed. Current freeze `/tmp/hotpot_plan20/long/stage8b-b1-20261103/source-freeze-b1-attempt01.json` SHA256 `fc0af886ddbe98632832e4c997e5edb046b069fb0bead7747b492e52a3b01df1`
+binds1431source/test/resource+6native+3build. Original preparation manifest
+and exact release-time design/selection/entry/allowlist bytes are retained.
+Root authorizes one sequential attempt01 with no retries, stopping on failure:
+`/tmp/hotpot-plan20-env/bin/python -B /tmp/hotpot_plan20/long/stage8b-b1-20261103/validation-preparation/run_validation.py --root-runtime-released --source-freeze /tmp/hotpot_plan20/long/stage8b-b1-20261103/source-freeze-b1-attempt01.json --attempt attempt01`.
+Raw per-job argv/cwd/env/interpreters/dependencies/results and original failures
+will be retained. No B1 runtime pass or Stage8B/global acceptance is claimed.
+
+
+## 2026-11-03 — Stage8B B1 first collection failure and existing-library resolution
+
+Released attempt01 stopped at focused collection with2errors, no tests completed
+and no later jobs executed: direct _ob_native imports in native-session/wrapper
+contract tests could not find libopenbabel.so.8. Source/test/native/build/model
+bindings stayed unchanged; original JUnit/stdout/stderr/receipts are preserved.
+Root found the existing hp-usage OpenBabel package library and recorded ldd before
+(one unresolved libopenbabel) and after (none unresolved). No package installation,
+source change, wrapper preload workaround or checker/test weakening is applied.
+The corrected execution environment sets LD_LIBRARY_PATH only for this released
+sequence to /home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib; exact librarySHA256
+46c565393702f84146fdee597dc4764ed6d6c4e1d3f70bd61fc70f75735aaf8b is retained for before/after attribution.
+
+Root releases the same15/63source and matching installed/actual selections as
+attempt02 with this environment only. The original attempt01 manifest is archived;
+new freeze `/tmp/hotpot_plan20/long/stage8b-b1-20261103/source-freeze-b1-attempt02.json` SHA256 b5741289987480315863c3b9a7fe3a798cdade8cc3677e174fb2bf8313968031
+retains exactly the same1431source/test/resource+6native+3build identities.
+No actual B1 test pass, runtime acceptance or gate closure is claimed yet.
+
+
+## 2026-11-03 — Stage8B B1 CP311 consolidation accepted
+
+Released attempt02 completed with no runtime-source changes: source focus297passed;
+source63-file affected958passed7skipped of965, installed958passed7skipped of965
+with the same ordered nodes. Actual official CBond→FF→GFN-FF/GFN2pipeline3 and
+MCAattachment3 pass at each boundary with matching ordered membership. Original
+attempt01's2loader collection errors/zero executed tests remain, followed by the
+scoped existing-library-path correction only. Raw argv/cwd/environment/interpreter,
+JUnit, logs, loaded origins, dependency inputs, installed wheel and business
+observations are archived under .plan20-artifacts/20261103/stage8b/b1; maintained
+checkpoint/report/observations/evidence index are stages/stage08/forcefields/validation/b1.
+
+Root independently rehashed1431source/test/resource+6native+3build identities and
+the unchanged existing libopenbabel.so.8, compared every472wheel Python body with
+current source, and verified all1554archived raw inputs. Installed origin hooks
+reconciled97/5/1participating Python processes without observed checkout leakage;
+source origin recording covers the pytest interpreter only.41non-Python package
+omissions are remeasured, not waived. Seven actual skip reasons per boundary
+remain explicit: the extractant case is marker-skipped in source and missing its
+dataset when installed; five direct-xTB comparisons and the full high-compute
+Eu case remain unexecuted in this affected selection. Separate real pipeline
+selections do not convert those nodes to passes.
+
+All6pipeline cases retain successful actual stage/geometry/SDF persistence and
+finite method-scoped energy observations. Source/installed Eu UFF and xTB values
+differ and remain raw observations; no historical/numerical identity is forced.
+Scientific resolution remains unresolved; GFN2 backendUHF0 is an execution
+default, not proof of a scientific singlet; GFN-FF projection remains charge-only.
+Actual MCA atom/site DTOs, joins and attachment/currentness observations remain.
+No speed, clean-native, all-version, optional scientific or global claim follows.
+
+Root accepts exactly B1's canonical Criteria/BondTopology/capture and direct CLI
+route composition. Current production census472files/779classes/357dataclasses/
+8Protocols/2TypedDicts realizes exactly3dataclass retirements with zero replacement
+classes; real native Options remains. Static ratchet passes with221remaining debt,
+no new debt/layer/carrier findings or checker weakening. Full B2–B4 and Stage8B
+standalone/FF/science/connected-control obligations remain open. The coherent
+B1business commit carries these code/tests/records together; all later/global
+gates remain false and the protected owner review remains excluded.
+
+Final `git diff --cached --check` initially exited2 for an extra blank line at EOF
+in each of the two new canonical contract leaves. The earlier unstaged check did
+not include untracked files. Root removed exactly those2empty lines and verified
+full AST/location equality before/after. Original tested source/wheel/freeze remains
+immutable; separate delivery freeze/formatting receipt binds the final2byte changes.
+No business test is rerun for this semantic no-op; checkpoint/report/index state
+this exact attribution limit rather than claiming wheel bytes equal final source.

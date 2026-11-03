@@ -198,3 +198,14 @@ outside implementation. D07's historically reserved/public dormant records
 retain separate disposition; this does not delay the plan's confirmed dead
 implementation cleanup. Definitions are booked as actual removals/additions
 only when their consumer migration and owning-stage commit have landed.
+
+
+2026-11-03 Stage8B disposition: root accepts the exact existing-type D04/D05/FF-CLI
+cutover in [B1](../../stage08/forcefields/contracts/decisions.md). D04's final
+Criteria owner is rules/physics/forcefields/contracts.py; D05's sole BondTopology
+with AtomTopologySignature/TopologyReference lives in structure/forcefields.py.
+The retained direct from_bond factory performs no upper-layer import; shared
+collection capture lives in the structure adapter. These explicit paths/factory
+dispositions supersede the earlier proposals above, with fields/units, native
+ABI and explicit trajectory JSON preserved. Runtime evidence and wholeStage8B
+acceptance remain pending; D06 and unrelated plugin proposals remain separate.

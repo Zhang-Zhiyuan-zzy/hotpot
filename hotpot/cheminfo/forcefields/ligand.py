@@ -40,7 +40,7 @@ from .repair import (
     _scan_ring_checkpoint,
     _untangle_ring_piercings,
 )
-from .topology import capture_topology
+from ..adapters.structure.forcefields import capture_topology
 from .trajectory import (
     ForceFieldFrame,
     ForceFieldTrajectory,

@@ -454,33 +454,6 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/forcefields/topology.py",
-      "line": 10,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.Atom",
-      "local": "Atom",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/forcefields/topology.py",
-      "line": 10,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.Bond",
-      "local": "Bond",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/forcefields/topology.py",
-      "line": 10,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.Molecule",
-      "local": "Molecule",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
       "path": "hotpot/cheminfo/forcefields/trajectory.py",
       "line": 35,
       "scope": "",

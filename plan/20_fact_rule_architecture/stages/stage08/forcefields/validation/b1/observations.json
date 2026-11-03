@@ -1,0 +1,1814 @@
+{
+  "schema_version": 1,
+  "status": "ROOT_REVIEWED_CP311_B1_OBSERVATIONS",
+  "stage": "Stage8B/B1",
+  "root_acceptance": true,
+  "whole_stage8b_closed": false,
+  "global_gate_closed": false,
+  "pipeline": {
+    "source": [
+      {
+        "case": "official-coordination-False",
+        "manifest": {
+          "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_controlled_coord0/official-coordination-False/manifest.json",
+          "sha256": "dd13afbe414dc5de594f83f6d371765f049d3289c70fd310a99b609fcf7819f2"
+        },
+        "status": "succeeded",
+        "hotpot_version": "0.5.4.5",
+        "cbond": {
+          "donor_indices": [
+            0,
+            3
+          ],
+          "metal": "Zn",
+          "path_probability": 0.7325034825111857,
+          "steps": [
+            {
+              "atom_index": 0,
+              "element": "N",
+              "probability": 0.8570544664505884,
+              "score": 1.7910377979278564
+            },
+            {
+              "atom_index": 3,
+              "element": "O",
+              "probability": 0.8546755325186985,
+              "score": 1.771752953529358
+            }
+          ]
+        },
+        "forcefield": {
+          "effective_forcefield": "UFF",
+          "final_energy": 69.14934437776031,
+          "energy_unit": "kJ/mol",
+          "converged": true,
+          "termination_reason": "converged",
+          "quality_passed": true,
+          "geometry_metrics": {
+            "atom_count": 12,
+            "bond_count": 12,
+            "bond_ring_excluded_ring_count": 0,
+            "bond_ring_max_ring_size": 16,
+            "bond_ring_piercing_count": 0,
+            "bond_ring_scan_complete": true,
+            "bond_ring_scope": "full_graph",
+            "bond_ring_selected_ring_count": 1,
+            "bond_ring_undetermined_count": 0,
+            "coordination_environments": [
+              {
+                "angles": [
+                  100.09910855357724
+                ],
+                "coordination_number": 2,
+                "distances": [
+                  1.8426090215762798,
+                  1.8042984635471007
+                ],
+                "donor_indices": [
+                  0,
+                  3
+                ],
+                "metal_index": 10
+              }
+            ],
+            "maximum_bond_length": 1.8426090215762798,
+            "minimum_pair_distance": 0.9923614425373608
+          },
+          "report": {
+            "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_controlled_coord0/official-coordination-False/stages/01-ff/report.json",
+            "sha256": "6d15f1e070da8fb3fec2776c7155cba8bdbf59a399beba7cd023bfeea57cad2f"
+          }
+        },
+        "stages": [
+          {
+            "name": "cbond",
+            "directory": "stages/00-cbond",
+            "status": "succeeded",
+            "argv": [
+              "Zn",
+              "NCCO",
+              "--device",
+              "cpu"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_controlled_coord0/official-coordination-False/stages/00-cbond/output.sdf",
+              "sha256": "53cb18b36ae6d7fec4cedce3e5eb83c9602c13537065b6ba161d86e991c991da"
+            },
+            "output_sdf_hash_matches": true
+          },
+          {
+            "name": "ff",
+            "directory": "stages/01-ff",
+            "status": "succeeded",
+            "argv": [
+              "--route",
+              "complex",
+              "--rebuild",
+              "--quality",
+              "standard",
+              "--seed",
+              "7",
+              "--timeout",
+              "300"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_controlled_coord0/official-coordination-False/stages/01-ff/output.sdf",
+              "sha256": "129c1133adc51d62a31a2ea0b10de82a80b3db57ef3be984e5e1091748cf3f5e"
+            },
+            "output_sdf_hash_matches": true
+          },
+          {
+            "name": "xtb",
+            "directory": "stages/02-xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "singlepoint",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/output.sdf",
+              "sha256": "129c1133adc51d62a31a2ea0b10de82a80b3db57ef3be984e5e1091748cf3f5e"
+            },
+            "output_sdf_hash_matches": true,
+            "report": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/report.json",
+              "sha256": "a2ddf4bd9c6430faa60f6cc7906da1489d54cfd6f1cfe3be7ded4dabab7314a3"
+            },
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "coordinates_committed": false,
+              "effective_method": "gfn2",
+              "energy_hartree": -14.26981398,
+              "gradient_norm": null,
+              "process_succeeded": true,
+              "requested_method": "gfn2",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "df79636331aaeb5c7ba540b01b2b6a9632a00c8cb711a2e7947881619e2399c0",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "6d26e3d73e9a8d823ea8d15035a82c878bc01a3618e412610b6558523609dff0"
+              },
+              "task": "singlepoint",
+              "unpaired_electrons": 0
+            },
+            "post_check": [
+              {
+                "passed": true,
+                "level": "standard",
+                "geometry_metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        100.09910855357724
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        1.8426090215762798,
+                        1.8042984635471007
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 1.8426090215762798,
+                  "minimum_pair_distance": 0.9923614425373608
+                },
+                "failed_checks": []
+              }
+            ],
+            "native_artifact_count": 6,
+            "native_artifact_hashes_match": true
+          }
+        ],
+        "persistence": {
+          "final_sdf": {
+            "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_controlled_coord0/official-coordination-False/final.sdf",
+            "sha256": "129c1133adc51d62a31a2ea0b10de82a80b3db57ef3be984e5e1091748cf3f5e"
+          },
+          "final_sha256_matches": true,
+          "stage_output_sdf_hashes_match": true
+        }
+      },
+      {
+        "case": "official-coordination-True",
+        "manifest": {
+          "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_controlled_coord1/official-coordination-True/manifest.json",
+          "sha256": "6df1c67ef8d2d48161398937c6959fb85423a0d68ab3605dc3224c6c4b59c64f"
+        },
+        "status": "succeeded",
+        "hotpot_version": "0.5.4.5",
+        "cbond": {
+          "donor_indices": [
+            0,
+            3
+          ],
+          "metal": "Zn",
+          "path_probability": 0.7325034825111857,
+          "steps": [
+            {
+              "atom_index": 0,
+              "element": "N",
+              "probability": 0.8570544664505884,
+              "score": 1.7910377979278564
+            },
+            {
+              "atom_index": 3,
+              "element": "O",
+              "probability": 0.8546755325186985,
+              "score": 1.771752953529358
+            }
+          ]
+        },
+        "forcefield": {
+          "effective_forcefield": "UFF",
+          "final_energy": 69.14934437776031,
+          "energy_unit": "kJ/mol",
+          "converged": true,
+          "termination_reason": "converged",
+          "quality_passed": true,
+          "geometry_metrics": {
+            "atom_count": 12,
+            "bond_count": 12,
+            "bond_ring_excluded_ring_count": 0,
+            "bond_ring_max_ring_size": 16,
+            "bond_ring_piercing_count": 0,
+            "bond_ring_scan_complete": true,
+            "bond_ring_scope": "full_graph",
+            "bond_ring_selected_ring_count": 1,
+            "bond_ring_undetermined_count": 0,
+            "coordination_environments": [
+              {
+                "angles": [
+                  100.09910855357724
+                ],
+                "coordination_number": 2,
+                "distances": [
+                  1.8426090215762798,
+                  1.8042984635471007
+                ],
+                "donor_indices": [
+                  0,
+                  3
+                ],
+                "metal_index": 10
+              }
+            ],
+            "maximum_bond_length": 1.8426090215762798,
+            "minimum_pair_distance": 0.9923614425373608
+          },
+          "report": {
+            "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_controlled_coord1/official-coordination-True/stages/01-ff/report.json",
+            "sha256": "012af2aee1c39b90b8627c8fa7809d32492dbab0809f6016fe0c24cd4cccce83"
+          }
+        },
+        "stages": [
+          {
+            "name": "cbond",
+            "directory": "stages/00-cbond",
+            "status": "succeeded",
+            "argv": [
+              "Zn",
+              "NCCO",
+              "--device",
+              "cpu"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_controlled_coord1/official-coordination-True/stages/00-cbond/output.sdf",
+              "sha256": "f84f639538b11287f2b1d0bf5a369deaa39385ba18baa446c3c1f03dcbfd28ad"
+            },
+            "output_sdf_hash_matches": true
+          },
+          {
+            "name": "ff",
+            "directory": "stages/01-ff",
+            "status": "succeeded",
+            "argv": [
+              "--route",
+              "complex",
+              "--rebuild",
+              "--quality",
+              "standard",
+              "--seed",
+              "7",
+              "--timeout",
+              "300"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_controlled_coord1/official-coordination-True/stages/01-ff/output.sdf",
+              "sha256": "129c1133adc51d62a31a2ea0b10de82a80b3db57ef3be984e5e1091748cf3f5e"
+            },
+            "output_sdf_hash_matches": true
+          },
+          {
+            "name": "xtb",
+            "directory": "stages/02-xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfnff",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/output.sdf",
+              "sha256": "85f691eb320e28bfda6b2a81cf7e333bb75280fdb5a516a6ce7ea2c49cfaaf05"
+            },
+            "output_sdf_hash_matches": true,
+            "report": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/report.json",
+              "sha256": "a8cb953ed389be6b127de704a29fa2c4e6e2d9a75ec978b5a4f0ab87d02b6af6"
+            },
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "scientific_state",
+                "projection_convention": "charge_only",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "coordinates_committed": true,
+              "effective_method": "gfnff",
+              "energy_hartree": 1.298971744181724,
+              "gradient_norm": 0.000461091258017,
+              "process_succeeded": true,
+              "requested_method": "gfnff",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "df79636331aaeb5c7ba540b01b2b6a9632a00c8cb711a2e7947881619e2399c0",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "6d26e3d73e9a8d823ea8d15035a82c878bc01a3618e412610b6558523609dff0"
+              },
+              "task": "optimize",
+              "unpaired_electrons": null
+            },
+            "post_check": [
+              {
+                "passed": true,
+                "level": "standard",
+                "geometry_metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        83.33398468321961
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        2.076488259056622,
+                        2.0118050999040635
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 2.076488259056622,
+                  "minimum_pair_distance": 1.0374374631754921
+                },
+                "failed_checks": []
+              }
+            ],
+            "native_artifact_count": 7,
+            "native_artifact_hashes_match": true
+          },
+          {
+            "name": "xtb",
+            "directory": "stages/03-xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "singlepoint",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/output.sdf",
+              "sha256": "85f691eb320e28bfda6b2a81cf7e333bb75280fdb5a516a6ce7ea2c49cfaaf05"
+            },
+            "output_sdf_hash_matches": true,
+            "report": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/report.json",
+              "sha256": "3731540d30079b4dcfb8a1f0e9d9febd4d1e27434ff82573a0dce05e7a161ce1"
+            },
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "coordinates_committed": false,
+              "effective_method": "gfn2",
+              "energy_hartree": -14.27320288,
+              "gradient_norm": null,
+              "process_succeeded": true,
+              "requested_method": "gfn2",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "df79636331aaeb5c7ba540b01b2b6a9632a00c8cb711a2e7947881619e2399c0",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "6d26e3d73e9a8d823ea8d15035a82c878bc01a3618e412610b6558523609dff0"
+              },
+              "task": "singlepoint",
+              "unpaired_electrons": 0
+            },
+            "post_check": [
+              {
+                "passed": true,
+                "level": "standard",
+                "geometry_metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        83.33398468321961
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        2.076488259056622,
+                        2.0118050999040635
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 2.076488259056622,
+                  "minimum_pair_distance": 1.0374374631754921
+                },
+                "failed_checks": []
+              }
+            ],
+            "native_artifact_count": 6,
+            "native_artifact_hashes_match": true
+          }
+        ],
+        "persistence": {
+          "final_sdf": {
+            "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_controlled_coord1/official-coordination-True/final.sdf",
+            "sha256": "85f691eb320e28bfda6b2a81cf7e333bb75280fdb5a516a6ce7ea2c49cfaaf05"
+          },
+          "final_sha256_matches": true,
+          "stage_output_sdf_hashes_match": true
+        }
+      },
+      {
+        "case": "official-readme-europium",
+        "manifest": {
+          "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_readme_europium_0/official-readme-europium/manifest.json",
+          "sha256": "c3582e1e387c15fff0c30b09cfc0498b40de73a36405e7ae0c44833dfc993729"
+        },
+        "status": "succeeded",
+        "hotpot_version": "0.5.4.5",
+        "cbond": {
+          "donor_indices": [
+            2
+          ],
+          "metal": "Eu",
+          "path_probability": 0.492404769050918,
+          "steps": [
+            {
+              "atom_index": 2,
+              "element": "O",
+              "probability": 0.492404769050918,
+              "score": -0.030383260920643806
+            }
+          ]
+        },
+        "forcefield": {
+          "effective_forcefield": "UFF",
+          "final_energy": 4.508534875118101,
+          "energy_unit": "kJ/mol",
+          "converged": true,
+          "termination_reason": "converged",
+          "quality_passed": true,
+          "geometry_metrics": {
+            "atom_count": 9,
+            "bond_count": 8,
+            "bond_ring_excluded_ring_count": 0,
+            "bond_ring_max_ring_size": 16,
+            "bond_ring_piercing_count": 0,
+            "bond_ring_scan_complete": true,
+            "bond_ring_scope": "full_graph",
+            "bond_ring_selected_ring_count": 0,
+            "bond_ring_undetermined_count": 0,
+            "coordination_environments": [
+              {
+                "angles": [],
+                "coordination_number": 1,
+                "distances": [
+                  2.237565131307162
+                ],
+                "donor_indices": [
+                  2
+                ],
+                "metal_index": 7
+              }
+            ],
+            "maximum_bond_length": 2.237565131307162,
+            "minimum_pair_distance": 0.9673683442605142
+          },
+          "report": {
+            "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_readme_europium_0/official-readme-europium/stages/01-ff/report.json",
+            "sha256": "c431586a412cb0507f3313b264f0b271050dbf7d2c88d685414aeb2bd4f1577f"
+          }
+        },
+        "stages": [
+          {
+            "name": "cbond",
+            "directory": "stages/00-cbond",
+            "status": "succeeded",
+            "argv": [
+              "Eu",
+              "O=C(O)C",
+              "--device",
+              "cpu"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_readme_europium_0/official-readme-europium/stages/00-cbond/output.sdf",
+              "sha256": "4fe97e9d7658855bbd2e76bae318df152dc449678124f9bf7f197f1a7b48a0c6"
+            },
+            "output_sdf_hash_matches": true
+          },
+          {
+            "name": "ff",
+            "directory": "stages/01-ff",
+            "status": "succeeded",
+            "argv": [
+              "--rebuild",
+              "--route",
+              "complex",
+              "--forcefield",
+              "uff"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_readme_europium_0/official-readme-europium/stages/01-ff/output.sdf",
+              "sha256": "4aeced71fe524923fe521d68599e8f9df61c96b20b641459d799218fbb926de8"
+            },
+            "output_sdf_hash_matches": true
+          },
+          {
+            "name": "xtb",
+            "directory": "stages/02-xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfnff",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "3",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/output.sdf",
+              "sha256": "a16c1de582cae23e5679d55006433e21e5a6e5bdf0abb4e5b76abd0885ab697a"
+            },
+            "output_sdf_hash_matches": true,
+            "report": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/report.json",
+              "sha256": "89f25bd633ff6f4a7575f40ee4b7d0afb3f213af3eeb04326869fb42aad2fb35"
+            },
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "scientific_state",
+                "projection_convention": "charge_only",
+                "status": "projected"
+              },
+              "charge": 3,
+              "converged": true,
+              "coordinates_committed": true,
+              "effective_method": "gfnff",
+              "energy_hartree": 3.237790518455383,
+              "gradient_norm": 0.000997293105257,
+              "process_succeeded": true,
+              "requested_method": "gfnff",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "e9b6a977393433f18c393bac72bf3f1c43f79c8066857919837fdc09eabae540",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "b1c5f4761cb2f5d0c7d27b75f6a5699ccfa7daf7b44ebb83363500dec53e497a"
+              },
+              "task": "optimize",
+              "unpaired_electrons": null
+            },
+            "post_check": [
+              {
+                "passed": true,
+                "level": "standard",
+                "geometry_metrics": {
+                  "atom_count": 9,
+                  "bond_count": 8,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [],
+                      "coordination_number": 1,
+                      "distances": [
+                        2.2646304621284243
+                      ],
+                      "donor_indices": [
+                        2
+                      ],
+                      "metal_index": 7
+                    }
+                  ],
+                  "maximum_bond_length": 2.2646304621284243,
+                  "minimum_pair_distance": 1.035133947854093
+                },
+                "failed_checks": []
+              }
+            ],
+            "native_artifact_count": 7,
+            "native_artifact_hashes_match": true
+          },
+          {
+            "name": "xtb",
+            "directory": "stages/03-xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "3",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/output.sdf",
+              "sha256": "e79ebf0ab5ae36f9ab1e21bcd8b7d5f94d271d3213ae13208dabe00a14e5a76c"
+            },
+            "output_sdf_hash_matches": true,
+            "report": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/report.json",
+              "sha256": "bb54fdeb3919be1418b23d92b2fd9ecf81b70aa4fcce19595c1bba715228f191"
+            },
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 3,
+              "converged": true,
+              "coordinates_committed": true,
+              "effective_method": "gfn2",
+              "energy_hartree": -13.53209936,
+              "gradient_norm": null,
+              "process_succeeded": true,
+              "requested_method": "gfn2",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "e9b6a977393433f18c393bac72bf3f1c43f79c8066857919837fdc09eabae540",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "b1c5f4761cb2f5d0c7d27b75f6a5699ccfa7daf7b44ebb83363500dec53e497a"
+              },
+              "task": "optimize",
+              "unpaired_electrons": 0
+            },
+            "post_check": [
+              {
+                "passed": true,
+                "level": "standard",
+                "geometry_metrics": {
+                  "atom_count": 9,
+                  "bond_count": 8,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [],
+                      "coordination_number": 1,
+                      "distances": [
+                        3.1619644027736498
+                      ],
+                      "donor_indices": [
+                        2
+                      ],
+                      "metal_index": 7
+                    }
+                  ],
+                  "maximum_bond_length": 3.1619644027736498,
+                  "minimum_pair_distance": 1.013495556398936
+                },
+                "failed_checks": []
+              }
+            ],
+            "native_artifact_count": 9,
+            "native_artifact_hashes_match": true
+          }
+        ],
+        "persistence": {
+          "final_sdf": {
+            "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/business/test_official_readme_europium_0/official-readme-europium/final.sdf",
+            "sha256": "e79ebf0ab5ae36f9ab1e21bcd8b7d5f94d271d3213ae13208dabe00a14e5a76c"
+          },
+          "final_sha256_matches": true,
+          "stage_output_sdf_hashes_match": true
+        }
+      }
+    ],
+    "installed": [
+      {
+        "case": "official-coordination-False",
+        "manifest": {
+          "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/manifest.json",
+          "sha256": "bd80a56b4106712194ab3ef6989a1c3179b4887e82b389893c029207a753630e"
+        },
+        "status": "succeeded",
+        "hotpot_version": "0.5.4.5",
+        "cbond": {
+          "donor_indices": [
+            0,
+            3
+          ],
+          "metal": "Zn",
+          "path_probability": 0.7325034825111857,
+          "steps": [
+            {
+              "atom_index": 0,
+              "element": "N",
+              "probability": 0.8570544664505884,
+              "score": 1.7910377979278564
+            },
+            {
+              "atom_index": 3,
+              "element": "O",
+              "probability": 0.8546755325186985,
+              "score": 1.771752953529358
+            }
+          ]
+        },
+        "forcefield": {
+          "effective_forcefield": "UFF",
+          "final_energy": 69.14934437776031,
+          "energy_unit": "kJ/mol",
+          "converged": true,
+          "termination_reason": "converged",
+          "quality_passed": true,
+          "geometry_metrics": {
+            "atom_count": 12,
+            "bond_count": 12,
+            "bond_ring_excluded_ring_count": 0,
+            "bond_ring_max_ring_size": 16,
+            "bond_ring_piercing_count": 0,
+            "bond_ring_scan_complete": true,
+            "bond_ring_scope": "full_graph",
+            "bond_ring_selected_ring_count": 1,
+            "bond_ring_undetermined_count": 0,
+            "coordination_environments": [
+              {
+                "angles": [
+                  100.09910855357724
+                ],
+                "coordination_number": 2,
+                "distances": [
+                  1.8426090215762798,
+                  1.8042984635471007
+                ],
+                "donor_indices": [
+                  0,
+                  3
+                ],
+                "metal_index": 10
+              }
+            ],
+            "maximum_bond_length": 1.8426090215762798,
+            "minimum_pair_distance": 0.9923614425373608
+          },
+          "report": {
+            "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/01-ff/report.json",
+            "sha256": "71952b4eae379a8e3e42d751c488102153074ce187ebdcbcf27cad94050e9800"
+          }
+        },
+        "stages": [
+          {
+            "name": "cbond",
+            "directory": "stages/00-cbond",
+            "status": "succeeded",
+            "argv": [
+              "Zn",
+              "NCCO",
+              "--device",
+              "cpu"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/00-cbond/output.sdf",
+              "sha256": "9271743f4abf62b8c35efed05f442ae2ce439013707eae4ba50e3b82869a4fa3"
+            },
+            "output_sdf_hash_matches": true
+          },
+          {
+            "name": "ff",
+            "directory": "stages/01-ff",
+            "status": "succeeded",
+            "argv": [
+              "--route",
+              "complex",
+              "--rebuild",
+              "--quality",
+              "standard",
+              "--seed",
+              "7",
+              "--timeout",
+              "300"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/01-ff/output.sdf",
+              "sha256": "b8520d0b59527dad1346b5ea57375c7175969e59cb0d6414a19136ce13b6dc0d"
+            },
+            "output_sdf_hash_matches": true
+          },
+          {
+            "name": "xtb",
+            "directory": "stages/02-xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "singlepoint",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/output.sdf",
+              "sha256": "b8520d0b59527dad1346b5ea57375c7175969e59cb0d6414a19136ce13b6dc0d"
+            },
+            "output_sdf_hash_matches": true,
+            "report": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/report.json",
+              "sha256": "6ac9267477ef4c3d5e1fa17235fcc8a04544307afed62f3d40aaf1771d1b0235"
+            },
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "coordinates_committed": false,
+              "effective_method": "gfn2",
+              "energy_hartree": -14.26981398,
+              "gradient_norm": null,
+              "process_succeeded": true,
+              "requested_method": "gfn2",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "df79636331aaeb5c7ba540b01b2b6a9632a00c8cb711a2e7947881619e2399c0",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "6d26e3d73e9a8d823ea8d15035a82c878bc01a3618e412610b6558523609dff0"
+              },
+              "task": "singlepoint",
+              "unpaired_electrons": 0
+            },
+            "post_check": [
+              {
+                "passed": true,
+                "level": "standard",
+                "geometry_metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        100.09910855357724
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        1.8426090215762798,
+                        1.8042984635471007
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 1.8426090215762798,
+                  "minimum_pair_distance": 0.9923614425373608
+                },
+                "failed_checks": []
+              }
+            ],
+            "native_artifact_count": 6,
+            "native_artifact_hashes_match": true
+          }
+        ],
+        "persistence": {
+          "final_sdf": {
+            "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/final.sdf",
+            "sha256": "b8520d0b59527dad1346b5ea57375c7175969e59cb0d6414a19136ce13b6dc0d"
+          },
+          "final_sha256_matches": true,
+          "stage_output_sdf_hashes_match": true
+        }
+      },
+      {
+        "case": "official-coordination-True",
+        "manifest": {
+          "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/manifest.json",
+          "sha256": "611a9c062d0a20a1c64aa44419e60b53f1bf21b1bc3a1ede7b0b9dfecc939238"
+        },
+        "status": "succeeded",
+        "hotpot_version": "0.5.4.5",
+        "cbond": {
+          "donor_indices": [
+            0,
+            3
+          ],
+          "metal": "Zn",
+          "path_probability": 0.7325034825111857,
+          "steps": [
+            {
+              "atom_index": 0,
+              "element": "N",
+              "probability": 0.8570544664505884,
+              "score": 1.7910377979278564
+            },
+            {
+              "atom_index": 3,
+              "element": "O",
+              "probability": 0.8546755325186985,
+              "score": 1.771752953529358
+            }
+          ]
+        },
+        "forcefield": {
+          "effective_forcefield": "UFF",
+          "final_energy": 69.14934437776031,
+          "energy_unit": "kJ/mol",
+          "converged": true,
+          "termination_reason": "converged",
+          "quality_passed": true,
+          "geometry_metrics": {
+            "atom_count": 12,
+            "bond_count": 12,
+            "bond_ring_excluded_ring_count": 0,
+            "bond_ring_max_ring_size": 16,
+            "bond_ring_piercing_count": 0,
+            "bond_ring_scan_complete": true,
+            "bond_ring_scope": "full_graph",
+            "bond_ring_selected_ring_count": 1,
+            "bond_ring_undetermined_count": 0,
+            "coordination_environments": [
+              {
+                "angles": [
+                  100.09910855357724
+                ],
+                "coordination_number": 2,
+                "distances": [
+                  1.8426090215762798,
+                  1.8042984635471007
+                ],
+                "donor_indices": [
+                  0,
+                  3
+                ],
+                "metal_index": 10
+              }
+            ],
+            "maximum_bond_length": 1.8426090215762798,
+            "minimum_pair_distance": 0.9923614425373608
+          },
+          "report": {
+            "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/01-ff/report.json",
+            "sha256": "f9552e89340856b2eeac3fd1e98b73ca6fe83777ac9869c987bf06d956dc2687"
+          }
+        },
+        "stages": [
+          {
+            "name": "cbond",
+            "directory": "stages/00-cbond",
+            "status": "succeeded",
+            "argv": [
+              "Zn",
+              "NCCO",
+              "--device",
+              "cpu"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/00-cbond/output.sdf",
+              "sha256": "f071f2fb846b4b286265fb9ea401014c24610fe3c58c133307d0df4a81ba7dd4"
+            },
+            "output_sdf_hash_matches": true
+          },
+          {
+            "name": "ff",
+            "directory": "stages/01-ff",
+            "status": "succeeded",
+            "argv": [
+              "--route",
+              "complex",
+              "--rebuild",
+              "--quality",
+              "standard",
+              "--seed",
+              "7",
+              "--timeout",
+              "300"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/01-ff/output.sdf",
+              "sha256": "b8520d0b59527dad1346b5ea57375c7175969e59cb0d6414a19136ce13b6dc0d"
+            },
+            "output_sdf_hash_matches": true
+          },
+          {
+            "name": "xtb",
+            "directory": "stages/02-xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfnff",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/output.sdf",
+              "sha256": "f2b4ac6c4319aca5a2c405d8f13cff4bc4311fb692e5419f0816808844cc289d"
+            },
+            "output_sdf_hash_matches": true,
+            "report": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/report.json",
+              "sha256": "8a869219396d7435a776cb949390bb17e1c1bebde3959b196660becb6d0b186a"
+            },
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "scientific_state",
+                "projection_convention": "charge_only",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "coordinates_committed": true,
+              "effective_method": "gfnff",
+              "energy_hartree": 1.298971744181724,
+              "gradient_norm": 0.000461091258017,
+              "process_succeeded": true,
+              "requested_method": "gfnff",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "df79636331aaeb5c7ba540b01b2b6a9632a00c8cb711a2e7947881619e2399c0",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "6d26e3d73e9a8d823ea8d15035a82c878bc01a3618e412610b6558523609dff0"
+              },
+              "task": "optimize",
+              "unpaired_electrons": null
+            },
+            "post_check": [
+              {
+                "passed": true,
+                "level": "standard",
+                "geometry_metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        83.33398468321961
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        2.076488259056622,
+                        2.0118050999040635
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 2.076488259056622,
+                  "minimum_pair_distance": 1.0374374631754921
+                },
+                "failed_checks": []
+              }
+            ],
+            "native_artifact_count": 7,
+            "native_artifact_hashes_match": true
+          },
+          {
+            "name": "xtb",
+            "directory": "stages/03-xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "singlepoint",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/output.sdf",
+              "sha256": "f2b4ac6c4319aca5a2c405d8f13cff4bc4311fb692e5419f0816808844cc289d"
+            },
+            "output_sdf_hash_matches": true,
+            "report": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/report.json",
+              "sha256": "6a05595c49cc7322f37a2019c750a184c799d15708ea7761d71f2123b308fbf5"
+            },
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "coordinates_committed": false,
+              "effective_method": "gfn2",
+              "energy_hartree": -14.27320288,
+              "gradient_norm": null,
+              "process_succeeded": true,
+              "requested_method": "gfn2",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "df79636331aaeb5c7ba540b01b2b6a9632a00c8cb711a2e7947881619e2399c0",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "6d26e3d73e9a8d823ea8d15035a82c878bc01a3618e412610b6558523609dff0"
+              },
+              "task": "singlepoint",
+              "unpaired_electrons": 0
+            },
+            "post_check": [
+              {
+                "passed": true,
+                "level": "standard",
+                "geometry_metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        83.33398468321961
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        2.076488259056622,
+                        2.0118050999040635
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 2.076488259056622,
+                  "minimum_pair_distance": 1.0374374631754921
+                },
+                "failed_checks": []
+              }
+            ],
+            "native_artifact_count": 6,
+            "native_artifact_hashes_match": true
+          }
+        ],
+        "persistence": {
+          "final_sdf": {
+            "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/final.sdf",
+            "sha256": "f2b4ac6c4319aca5a2c405d8f13cff4bc4311fb692e5419f0816808844cc289d"
+          },
+          "final_sha256_matches": true,
+          "stage_output_sdf_hashes_match": true
+        }
+      },
+      {
+        "case": "official-readme-europium",
+        "manifest": {
+          "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/manifest.json",
+          "sha256": "c5e8f77014b3dbd0bc49820037bfbae9710dd6be419ddcc3cd6b1fe2d38f0a78"
+        },
+        "status": "succeeded",
+        "hotpot_version": "0.5.4.5",
+        "cbond": {
+          "donor_indices": [
+            2
+          ],
+          "metal": "Eu",
+          "path_probability": 0.492404769050918,
+          "steps": [
+            {
+              "atom_index": 2,
+              "element": "O",
+              "probability": 0.492404769050918,
+              "score": -0.030383260920643806
+            }
+          ]
+        },
+        "forcefield": {
+          "effective_forcefield": "UFF",
+          "final_energy": 4.51022836652543,
+          "energy_unit": "kJ/mol",
+          "converged": true,
+          "termination_reason": "converged",
+          "quality_passed": true,
+          "geometry_metrics": {
+            "atom_count": 9,
+            "bond_count": 8,
+            "bond_ring_excluded_ring_count": 0,
+            "bond_ring_max_ring_size": 16,
+            "bond_ring_piercing_count": 0,
+            "bond_ring_scan_complete": true,
+            "bond_ring_scope": "full_graph",
+            "bond_ring_selected_ring_count": 0,
+            "bond_ring_undetermined_count": 0,
+            "coordination_environments": [
+              {
+                "angles": [],
+                "coordination_number": 1,
+                "distances": [
+                  2.2377402205796417
+                ],
+                "donor_indices": [
+                  2
+                ],
+                "metal_index": 7
+              }
+            ],
+            "maximum_bond_length": 2.2377402205796417,
+            "minimum_pair_distance": 0.9673453864449059
+          },
+          "report": {
+            "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/01-ff/report.json",
+            "sha256": "d73d84fcddcb9bfff0f97ea1f3a8be44d0a071977562bbdc78ff9dc91036a131"
+          }
+        },
+        "stages": [
+          {
+            "name": "cbond",
+            "directory": "stages/00-cbond",
+            "status": "succeeded",
+            "argv": [
+              "Eu",
+              "O=C(O)C",
+              "--device",
+              "cpu"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/00-cbond/output.sdf",
+              "sha256": "58f6d571b6d964788c5ee3029510afc920f3d0c3db75ec626f5c98c85d506671"
+            },
+            "output_sdf_hash_matches": true
+          },
+          {
+            "name": "ff",
+            "directory": "stages/01-ff",
+            "status": "succeeded",
+            "argv": [
+              "--rebuild",
+              "--route",
+              "complex",
+              "--forcefield",
+              "uff"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/01-ff/output.sdf",
+              "sha256": "f1e3e34c8cb9885943de85e4230e78da8bd125aadc1baf2bd940452233c695db"
+            },
+            "output_sdf_hash_matches": true
+          },
+          {
+            "name": "xtb",
+            "directory": "stages/02-xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfnff",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "3",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/output.sdf",
+              "sha256": "c62e989bb24e3367c8ed03deb35a5a17e0bb7114d5594fd9dbb3e77339cfeee9"
+            },
+            "output_sdf_hash_matches": true,
+            "report": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/report.json",
+              "sha256": "651bfd14688ec342047cc9a00e4b16f423dadf7418f305076b678fd13058c72f"
+            },
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "scientific_state",
+                "projection_convention": "charge_only",
+                "status": "projected"
+              },
+              "charge": 3,
+              "converged": true,
+              "coordinates_committed": true,
+              "effective_method": "gfnff",
+              "energy_hartree": 3.237790510974416,
+              "gradient_norm": 0.00098840013784,
+              "process_succeeded": true,
+              "requested_method": "gfnff",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "e9b6a977393433f18c393bac72bf3f1c43f79c8066857919837fdc09eabae540",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "b1c5f4761cb2f5d0c7d27b75f6a5699ccfa7daf7b44ebb83363500dec53e497a"
+              },
+              "task": "optimize",
+              "unpaired_electrons": null
+            },
+            "post_check": [
+              {
+                "passed": true,
+                "level": "standard",
+                "geometry_metrics": {
+                  "atom_count": 9,
+                  "bond_count": 8,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [],
+                      "coordination_number": 1,
+                      "distances": [
+                        2.2645262815873877
+                      ],
+                      "donor_indices": [
+                        2
+                      ],
+                      "metal_index": 7
+                    }
+                  ],
+                  "maximum_bond_length": 2.2645262815873877,
+                  "minimum_pair_distance": 1.035077388411127
+                },
+                "failed_checks": []
+              }
+            ],
+            "native_artifact_count": 7,
+            "native_artifact_hashes_match": true
+          },
+          {
+            "name": "xtb",
+            "directory": "stages/03-xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "3",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "output_sdf": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/output.sdf",
+              "sha256": "f2586746486a21b726bb7f79d5ffb9a5f506c11f0e4f8fbaf0bd3b3d79d8ca8f"
+            },
+            "output_sdf_hash_matches": true,
+            "report": {
+              "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/report.json",
+              "sha256": "84716720fa90e7655963e917692ce3873ef720e0d5cd1261ad04383fdbf10349"
+            },
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 3,
+              "converged": true,
+              "coordinates_committed": true,
+              "effective_method": "gfn2",
+              "energy_hartree": -13.53210119,
+              "gradient_norm": null,
+              "process_succeeded": true,
+              "requested_method": "gfn2",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "e9b6a977393433f18c393bac72bf3f1c43f79c8066857919837fdc09eabae540",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "b1c5f4761cb2f5d0c7d27b75f6a5699ccfa7daf7b44ebb83363500dec53e497a"
+              },
+              "task": "optimize",
+              "unpaired_electrons": 0
+            },
+            "post_check": [
+              {
+                "passed": true,
+                "level": "standard",
+                "geometry_metrics": {
+                  "atom_count": 9,
+                  "bond_count": 8,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [],
+                      "coordination_number": 1,
+                      "distances": [
+                        3.1617873246643073
+                      ],
+                      "donor_indices": [
+                        2
+                      ],
+                      "metal_index": 7
+                    }
+                  ],
+                  "maximum_bond_length": 3.1617873246643073,
+                  "minimum_pair_distance": 1.0129229379386684
+                },
+                "failed_checks": []
+              }
+            ],
+            "native_artifact_count": 9,
+            "native_artifact_hashes_match": true
+          }
+        ],
+        "persistence": {
+          "final_sdf": {
+            "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/final.sdf",
+            "sha256": "f2586746486a21b726bb7f79d5ffb9a5f506c11f0e4f8fbaf0bd3b3d79d8ca8f"
+          },
+          "final_sha256_matches": true,
+          "stage_output_sdf_hashes_match": true
+        }
+      }
+    ]
+  },
+  "mca": {
+    "values": [
+      {
+        "smiles": "C1CCCNC1",
+        "formal_charge": 0,
+        "sites": [
+          {
+            "atom_index": 5,
+            "element": "N",
+            "site_type": "Amine",
+            "mca_kj_mol": 503.25
+          }
+        ],
+        "model_variant": "fp16",
+        "atom_predictions": [
+          {
+            "atom_index": 0,
+            "element": "C",
+            "mca_kj_mol": 314.0
+          },
+          {
+            "atom_index": 1,
+            "element": "C",
+            "mca_kj_mol": 373.0
+          },
+          {
+            "atom_index": 2,
+            "element": "C",
+            "mca_kj_mol": 318.0
+          },
+          {
+            "atom_index": 3,
+            "element": "C",
+            "mca_kj_mol": 370.0
+          },
+          {
+            "atom_index": 4,
+            "element": "C",
+            "mca_kj_mol": 318.0
+          },
+          {
+            "atom_index": 5,
+            "element": "N",
+            "mca_kj_mol": 503.25
+          }
+        ]
+      },
+      {
+        "smiles": "C",
+        "formal_charge": 0,
+        "sites": [],
+        "model_variant": "fp16",
+        "atom_predictions": [
+          {
+            "atom_index": 0,
+            "element": "C",
+            "mca_kj_mol": 265.5
+          }
+        ]
+      },
+      {
+        "smiles": "CC(=O)C",
+        "formal_charge": 0,
+        "sites": [
+          {
+            "atom_index": 2,
+            "element": "O",
+            "site_type": "Ketone",
+            "mca_kj_mol": 344.5
+          },
+          {
+            "atom_index": 1,
+            "element": "C",
+            "site_type": "double_bond",
+            "mca_kj_mol": 65.8125
+          }
+        ],
+        "model_variant": "fp16",
+        "atom_predictions": [
+          {
+            "atom_index": 0,
+            "element": "C",
+            "mca_kj_mol": 309.25
+          },
+          {
+            "atom_index": 1,
+            "element": "C",
+            "mca_kj_mol": 65.8125
+          },
+          {
+            "atom_index": 2,
+            "element": "O",
+            "mca_kj_mol": 344.5
+          },
+          {
+            "atom_index": 3,
+            "element": "C",
+            "mca_kj_mol": 309.25
+          }
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "boundary": "source",
+        "case": "equivalence_predictions.json",
+        "raw": {
+          "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_MCA_attachment-attempt02/business/test_hotpot_and_smiles_inputs_0/equivalence_predictions.json",
+          "sha256": "44e4ea60cffcf00405e71d1b0a9bc7d517884d3d1c27b607ef59a9dc0425ad73"
+        },
+        "value_indices": {
+          "hotpot": 0,
+          "smiles": 0
+        }
+      },
+      {
+        "boundary": "source",
+        "case": "attached_prediction.json",
+        "raw": {
+          "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_MCA_attachment-attempt02/business/test_mca_is_attached_to_atoms_0/attached_prediction.json",
+          "sha256": "6c743846130195c63d21eade4ac8d12f0356679ba372b4bdffc9f41862d7d342"
+        },
+        "value_indices": {
+          "attached": 0
+        }
+      },
+      {
+        "boundary": "source",
+        "case": "site_count_predictions.json",
+        "raw": {
+          "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_MCA_attachment-attempt02/business/test_molecule_mca_sites_suppor0/site_count_predictions.json",
+          "sha256": "4dbe74e20e7aeb0e4af637dbe19787bee7855164930005637e821fee8aa54631"
+        },
+        "value_indices": {
+          "empty_sites": 1,
+          "multiple_sites": 2
+        }
+      },
+      {
+        "boundary": "installed",
+        "case": "equivalence_predictions.json",
+        "raw": {
+          "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_MCA_attachment/test_hotpot_and_smiles_inputs_0/equivalence_predictions.json",
+          "sha256": "44e4ea60cffcf00405e71d1b0a9bc7d517884d3d1c27b607ef59a9dc0425ad73"
+        },
+        "value_indices": {
+          "hotpot": 0,
+          "smiles": 0
+        }
+      },
+      {
+        "boundary": "installed",
+        "case": "attached_prediction.json",
+        "raw": {
+          "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_MCA_attachment/test_mca_is_attached_to_atoms_0/attached_prediction.json",
+          "sha256": "6c743846130195c63d21eade4ac8d12f0356679ba372b4bdffc9f41862d7d342"
+        },
+        "value_indices": {
+          "attached": 0
+        }
+      },
+      {
+        "boundary": "installed",
+        "case": "site_count_predictions.json",
+        "raw": {
+          "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/business/actual_MCA_attachment/test_molecule_mca_sites_suppor0/site_count_predictions.json",
+          "sha256": "4dbe74e20e7aeb0e4af637dbe19787bee7855164930005637e821fee8aa54631"
+        },
+        "value_indices": {
+          "empty_sites": 1,
+          "multiple_sites": 2
+        }
+      }
+    ]
+  },
+  "interpretation": "Method-scoped actual observations. Scientific resolution remains unresolved; GFN2 backendUHF0 is an execution default, not a resolved scientific singlet/2S. GFN-FF projection is charge-only. Preserve source/installed numerical variation, without historical equality or physical-truth assertions."
+}

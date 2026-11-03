@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "status": "ROOT_REVIEWED_B1_EVIDENCE_INDEX",
+  "archive_root": ".plan20-artifacts/20261103/stage8b/b1",
+  "raw_manifest": {
+    "path": ".plan20-artifacts/20261103/stage8b/b1/raw_manifest.json",
+    "sha256": "2db0e22d1fe6e6ccd2af894c93031644c0ff9ec2dc3fcf8f9daa51e605e21e64"
+  },
+  "raw_entry_count": 1554,
+  "raw_bytes": 22769624,
+  "release_attempt01": "raw/release/release-inputs",
+  "release_attempt02": "raw/release/release-inputs-attempt02",
+  "source_receipts": {
+    "focused-attempt01": {
+      "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/focused-attempt01/execution.json",
+      "sha256": "9f73293c4ebfb7e2a2a3239d52f38a3919d3ba350f43749fe218db92ea85e802"
+    },
+    "focused-attempt02": {
+      "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/focused-attempt02/execution.json",
+      "sha256": "3e4b1947130140c750261110639cf138215112a5cdc747ea2fef71f669d878c4"
+    },
+    "affected-attempt02": {
+      "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/affected-attempt02/execution.json",
+      "sha256": "11e7f8b106e51ace7bf4670474a4b9f62fa39ccfdd26b5542fe7f6c1dd1c3336"
+    },
+    "actual_CBFF_xtb-attempt02": {
+      "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/execution.json",
+      "sha256": "ddadd7b4da225e442e0515f9d005d73716e7b81af004b200841a2e70316dffd5"
+    },
+    "actual_MCA_attachment-attempt02": {
+      "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_MCA_attachment-attempt02/execution.json",
+      "sha256": "68f02ce05ef2e0a88efb95984f8a38e0765114c483e3db2c0bd7129b70878e82"
+    }
+  },
+  "installed_receipt": {
+    "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/attempt02/execution.json",
+    "sha256": "03cc6f87a929051076af6786e51ea9e7d745454726ec8ede52cd61e375103870"
+  },
+  "original_failure_junit": {
+    "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/focused-attempt01/junit.xml",
+    "sha256": "0c541b0beceb0feef97e81f96f708b3a49025ae945fe0f72f78238ac7a2e1a2a"
+  },
+  "runners_and_support": "raw/reproducibility",
+  "frozen_changed_source_capsule": "raw/frozen-final",
+  "source_business": "raw/source/actual_CBFF_xtb-attempt02/business",
+  "installed_business": "raw/installed/business",
+  "source_origins_limit": "Main source pytest interpreter only; installed origin hooks reconcile97/5/1 participating processes.",
+  "navigation": "All path+sha256 objects are repository-relative archive references; short raw/ paths are relative to archive_root. Originals retain exact argv/environment/cwd/runtime paths. Maintained records summarize, not rewrite receipts.",
+  "limits": [
+    "CP311 source/installed scope only; installed dependencies use shared system-site-packages.",
+    "Six accepted unchanged Stage7E native binaries reused; no native rebuild, clean-native/ABI/SDK/sdist/manylinux/all-version qualification.",
+    "41 measured non-Python package omissions remain; archive records exact paths, not clean packaging.",
+    "Source origins cover the pytest interpreter; installed startup hooks cover participating Python processes, not site-bypassing or native processes.",
+    "No controlled cost/performance run or speed claim; no optional activation, broad science/GPU/global or whole Stage8B acceptance.",
+    "Original attempt01 collection loader errors retained. Numerical variation, unresolved scientific state and per-boundary skip reasons remain visible.",
+    "Venv/site-packages/build trees, outside test copies, model/library assets and pytest current symlink aliases omitted; identities/provenance retained."
+  ],
+  "delivery_formatting": {
+    "delivered_source_freeze": {
+      "path": ".plan20-artifacts/20261103/stage8b/b1/delivery/source-freeze-delivery.json",
+      "sha256": "40ca30eb9581a5608309d5ceb4c44b798fdb32fb82f47ae4a8b9cbb78a1ac460"
+    },
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage8b/b1/delivery/eof-formatting-receipt.json",
+      "sha256": "4c439a204301e65778ac60f292195247246b5ab7a440d6b362e25e38cd0ef143"
+    },
+    "scope": "Two EOF empty-line removals after validation; AST including source locations unchanged. The retained wheel binds tested pre-formatting bytes; no numerical/contract change or runtime rerun."
+  }
+}

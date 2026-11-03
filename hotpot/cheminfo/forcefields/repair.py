@@ -14,9 +14,9 @@ from .backend import _single_ob_optimization
 from .contracts import RingUntanglingReport
 from .coordinates import _copy_coordinates, _perturbed_coordinates
 from .settings import _BOND_RING_MAX_SIZE
-from .topology import _bond_key
+from ..adapters.structure.forcefields import _bond_key
+from ..structure.forcefields import BondTopology
 from .trajectory import (
-    BondTopology,
     ForceFieldTrajectory,
     RingFrameEvidence,
     TrajectoryEvent,

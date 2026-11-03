@@ -9,11 +9,11 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
+from hotpot.cheminfo.rules.physics.forcefields.contracts import OptimizationStoppingCriteria
 from hotpot.cheminfo.forcefields.native import (
     ComplexOptimizationOptions,
     CoordinationStageOptions,
     FrameDetail,
-    OptimizationStoppingOptions,
     _native_complex_optimization_options,
     _native_coordination_stage_options,
     create_coordination_session,
@@ -186,7 +186,7 @@ def test_native_stage_options_preserve_trajectory_start_and_stopping():
     optimization = _native_complex_optimization_options(
         ComplexOptimizationOptions(
             trajectory_start=TrajectoryStart.FINAL_OPTIMIZATION,
-            stopping=OptimizationStoppingOptions(window=7),
+            stopping=OptimizationStoppingCriteria(window=7),
         )
     )
     assert (

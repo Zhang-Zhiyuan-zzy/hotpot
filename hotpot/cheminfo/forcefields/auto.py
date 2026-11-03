@@ -11,6 +11,7 @@ import numpy as np
 from ..obWrappers import build as _native_build
 from .attempts import _run_ordinary_optimization_attempt
 from .backend import _resolve_complex_forcefield
+from ..rules.physics.forcefields.contracts import OptimizationStoppingCriteria
 from .contracts import (
     AcceptanceLevel,
     ComplexBuildDiagnostics,
@@ -23,12 +24,11 @@ from .contracts import (
     OptimizationAttemptStatus,
     OptimizationRoute,
     OptimizationRoutingReport,
-    OptimizationStoppingCriteria,
     StructureAcceptanceThresholds,
     TrajectoryPath,
 )
 from .coordination import _require_explicit_complex
-from .topology import capture_topology
+from ..adapters.structure.forcefields import capture_topology
 from .trajectory import (
     ForceFieldTrajectory,
     ForceFieldTrajectoryArchive,

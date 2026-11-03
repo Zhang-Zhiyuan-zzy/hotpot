@@ -1,0 +1,450 @@
+{
+  "schema_version": 1,
+  "status": "ROOT_ACCEPTED_CP311_B1_CONSOLIDATION",
+  "stage": "Stage8B/B1",
+  "root_acceptance": true,
+  "whole_stage8b_closed": false,
+  "global_gate_closed": false,
+  "parent_head": "ff4373890356cd53d95e0ae57b115038bc540096",
+  "freeze": {
+    "path": ".plan20-artifacts/20261103/stage8b/b1/raw/release/source-freeze-b1-attempt02.json",
+    "sha256": "b5741289987480315863c3b9a7fe3a798cdade8cc3677e174fb2bf8313968031"
+  },
+  "raw_manifest": {
+    "path": ".plan20-artifacts/20261103/stage8b/b1/raw_manifest.json",
+    "sha256": "2db0e22d1fe6e6ccd2af894c93031644c0ff9ec2dc3fcf8f9daa51e605e21e64"
+  },
+  "validation_manifest": {
+    "path": ".plan20-artifacts/20261103/stage8b/b1/raw/reproducibility/validation-manifest.json",
+    "sha256": "1f47324b956d823b72cf3881f0a8f81e96539076992985cd38240f7eae72856c"
+  },
+  "scope": "Approved D04/D05/FF-CLI existing-type consolidation only; canonical criteria/BondTopology/capture and direct CLI route options, no scientific/native algorithm change.",
+  "selection": {
+    "focused_files": 15,
+    "affected_files": 63,
+    "stage8b_existing_files": 33
+  },
+  "bindings": {
+    "source_and_tests": 1431,
+    "native": 6,
+    "build_inputs": 3
+  },
+  "source": {
+    "focused-attempt01": {
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/focused-attempt01/execution.json",
+        "sha256": "9f73293c4ebfb7e2a2a3239d52f38a3919d3ba350f43749fe218db92ea85e802"
+      },
+      "junit_totals": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 2,
+        "skipped": 0
+      },
+      "counts": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 2,
+        "skipped": 0,
+        "passed": 0
+      },
+      "returncode": 2,
+      "elapsed_seconds": 1.7694170270115137,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "manifest_unchanged": true,
+      "source_freeze_unchanged": true,
+      "runner_support_unchanged": true
+    },
+    "focused-attempt02": {
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/focused-attempt02/execution.json",
+        "sha256": "3e4b1947130140c750261110639cf138215112a5cdc747ea2fef71f669d878c4"
+      },
+      "junit_totals": {
+        "tests": 297,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "counts": {
+        "tests": 297,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 297
+      },
+      "returncode": 0,
+      "elapsed_seconds": 10.407181968912482,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "manifest_unchanged": true,
+      "source_freeze_unchanged": true,
+      "runner_support_unchanged": true
+    },
+    "affected-attempt02": {
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/affected-attempt02/execution.json",
+        "sha256": "11e7f8b106e51ace7bf4670474a4b9f62fa39ccfdd26b5542fe7f6c1dd1c3336"
+      },
+      "junit_totals": {
+        "tests": 965,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 7
+      },
+      "counts": {
+        "tests": 965,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 7,
+        "passed": 958
+      },
+      "returncode": 0,
+      "elapsed_seconds": 51.439502431079745,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "manifest_unchanged": true,
+      "source_freeze_unchanged": true,
+      "runner_support_unchanged": true
+    },
+    "actual_CBFF_xtb-attempt02": {
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_CBFF_xtb-attempt02/execution.json",
+        "sha256": "ddadd7b4da225e442e0515f9d005d73716e7b81af004b200841a2e70316dffd5"
+      },
+      "junit_totals": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "counts": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 3
+      },
+      "returncode": 0,
+      "elapsed_seconds": 4.876622663810849,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "manifest_unchanged": true,
+      "source_freeze_unchanged": true,
+      "runner_support_unchanged": true
+    },
+    "actual_MCA_attachment-attempt02": {
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/actual_MCA_attachment-attempt02/execution.json",
+        "sha256": "68f02ce05ef2e0a88efb95984f8a38e0765114c483e3db2c0bd7129b70878e82"
+      },
+      "junit_totals": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "counts": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 3
+      },
+      "returncode": 0,
+      "elapsed_seconds": 8.820774899795651,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "manifest_unchanged": true,
+      "source_freeze_unchanged": true,
+      "runner_support_unchanged": true
+    }
+  },
+  "installed": {
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/attempt02/execution.json",
+      "sha256": "03cc6f87a929051076af6786e51ea9e7d745454726ec8ede52cd61e375103870"
+    },
+    "status": "STAGE8B_B1_RELEASED_INSTALLED_SELECTIONS_PASSED",
+    "results": {
+      "affected": {
+        "counts": {
+          "tests": 965,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 7,
+          "passed": 958
+        },
+        "returncode": 0,
+        "elapsed_seconds": 58.28514062985778,
+        "origins": {
+          "startup_processes": 97,
+          "final_processes": 97,
+          "zero_leaks": true
+        }
+      },
+      "actual_CBFF_xtb": {
+        "counts": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 3
+        },
+        "returncode": 0,
+        "elapsed_seconds": 5.445032015442848,
+        "origins": {
+          "startup_processes": 5,
+          "final_processes": 5,
+          "zero_leaks": true
+        }
+      },
+      "actual_MCA_attachment": {
+        "counts": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 3
+        },
+        "returncode": 0,
+        "elapsed_seconds": 8.892714004963636,
+        "origins": {
+          "startup_processes": 1,
+          "final_processes": 1,
+          "zero_leaks": true
+        }
+      }
+    },
+    "membership": {
+      "affected": {
+        "same_ordered_nodeids": true,
+        "source_count": 965,
+        "installed_count": 965,
+        "source_only": [],
+        "installed_only": [],
+        "receipt": {
+          "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/attempt02/affected/membership-comparison.json",
+          "sha256": "19fe730ba046179957a72bb6028ddbe954c4359b74a06ef9b14aaeb392e1859d"
+        }
+      },
+      "actual_CBFF_xtb": {
+        "same_ordered_nodeids": true,
+        "source_count": 3,
+        "installed_count": 3,
+        "source_only": [],
+        "installed_only": [],
+        "receipt": {
+          "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/attempt02/actual_CBFF_xtb/membership-comparison.json",
+          "sha256": "1dccaa9b47704c42e1c8ebd4f919f27b0c449f1992a10ebe0f0358dadb19acc6"
+        }
+      },
+      "actual_MCA_attachment": {
+        "same_ordered_nodeids": true,
+        "source_count": 3,
+        "installed_count": 3,
+        "source_only": [],
+        "installed_only": [],
+        "receipt": {
+          "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/attempt02/actual_MCA_attachment/membership-comparison.json",
+          "sha256": "1dccaa9b47704c42e1c8ebd4f919f27b0c449f1992a10ebe0f0358dadb19acc6"
+        }
+      }
+    },
+    "production_python_count": 472,
+    "native_count": 6,
+    "measured_nonpython_omission_count": 41,
+    "wheel": {
+      "path": ".plan20-artifacts/20261103/stage8b/b1/raw/installed/wheel/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6329607,
+      "sha256": "ab90333aa784e549c87503b5fd26a8f6868f51a7569c674a7f52908452ce2005"
+    },
+    "invariants": {
+      "source_tests_native_unchanged": true,
+      "installed_unchanged": true,
+      "models_unchanged": true,
+      "outside_support_unchanged": true,
+      "architecture_context_unchanged": true,
+      "runner_support_unchanged": true
+    }
+  },
+  "original_failure": {
+    "attempt": "attempt01",
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage8b/b1/raw/source/focused-attempt01/execution.json",
+      "sha256": "9f73293c4ebfb7e2a2a3239d52f38a3919d3ba350f43749fe218db92ea85e802"
+    },
+    "junit_totals": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 2,
+      "skipped": 0
+    },
+    "executed_tests": 0,
+    "cause": "Two collection errors: reused _ob_native could not load existing libopenbabel.so.8; no later source or installed selection ran.",
+    "repair": "Only released environment LD_LIBRARY_PATH gained the existing Open Babel library directory. Both freezes have identical source/test/native/build binding maps and all eight reproducibility runner/support identities match both attempts.",
+    "loader_evidence": {
+      "path": ".plan20-artifacts/20261103/stage8b/b1/raw/release/native-library-resolution.json",
+      "sha256": "9d3dae65ddf243c00461f181ab386860711af38f5998ce063fcddd6ee797ae78"
+    }
+  },
+  "skips": {
+    "source": [
+      {
+        "classname": "tests.test_cheminfo.obWrappers.test_bridge",
+        "name": "test_all_extractant_phosphorus_centers_build_and_optimize_finitely",
+        "reason": "requires --run-scientific-boundary",
+        "location": "/home/zhangzhiyuan/hotpot/tests/test_cheminfo/obWrappers/test_bridge.py:120: requires --run-scientific-boundary"
+      },
+      {
+        "classname": "tests.test_cheminfo.test_complexes_build_full",
+        "name": "test_readme_europium_complex_full_standard_workflow",
+        "reason": "requires --run-high-compute",
+        "location": "/home/zhangzhiyuan/hotpot/tests/test_cheminfo/test_complexes_build_full.py:17: requires --run-high-compute"
+      },
+      {
+        "classname": "tests.test_plugin.test_xtb.test_official_integration",
+        "name": "test_official_gfn2_wrapper_matches_direct_cli_energy",
+        "reason": "requires --run-external",
+        "location": "/home/zhangzhiyuan/hotpot/tests/test_plugin/test_xtb/test_official_integration.py:165: requires --run-external"
+      },
+      {
+        "classname": "tests.test_plugin.test_xtb.test_official_integration",
+        "name": "test_official_gfnff_wrapper_matches_direct_cli_energy",
+        "reason": "requires --run-external",
+        "location": "/home/zhangzhiyuan/hotpot/tests/test_plugin/test_xtb/test_official_integration.py:208: requires --run-external"
+      },
+      {
+        "classname": "tests.test_plugin.test_xtb.test_official_integration",
+        "name": "test_official_gfn2_optimization_matches_direct_cli_result",
+        "reason": "requires --run-external",
+        "location": "/home/zhangzhiyuan/hotpot/tests/test_plugin/test_xtb/test_official_integration.py:251: requires --run-external"
+      },
+      {
+        "classname": "tests.test_plugin.test_xtb.test_official_integration",
+        "name": "test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_states[ionic-chloride]",
+        "reason": "requires --run-external",
+        "location": "/home/zhangzhiyuan/hotpot/tests/test_plugin/test_xtb/test_official_integration.py:306: requires --run-external"
+      },
+      {
+        "classname": "tests.test_plugin.test_xtb.test_official_integration",
+        "name": "test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_states[hydrogen-radical]",
+        "reason": "requires --run-external",
+        "location": "/home/zhangzhiyuan/hotpot/tests/test_plugin/test_xtb/test_official_integration.py:306: requires --run-external"
+      }
+    ],
+    "installed": [
+      {
+        "classname": "tests.test_cheminfo.obWrappers.test_bridge",
+        "name": "test_all_extractant_phosphorus_centers_build_and_optimize_finitely",
+        "reason": "the governed extractant dataset is not installed locally",
+        "location": "/tmp/hotpot_plan20/long/stage8b-b1-20261103/validation-preparation/installed-work/attempt02/outside/tests/test_cheminfo/obWrappers/test_bridge.py:120: the governed extractant dataset is not installed locally"
+      },
+      {
+        "classname": "tests.test_cheminfo.test_complexes_build_full",
+        "name": "test_readme_europium_complex_full_standard_workflow",
+        "reason": "requires --run-high-compute",
+        "location": "/tmp/hotpot_plan20/long/stage8b-b1-20261103/validation-preparation/installed-work/attempt02/outside/tests/test_cheminfo/test_complexes_build_full.py:17: requires --run-high-compute"
+      },
+      {
+        "classname": "tests.test_plugin.test_xtb.test_official_integration",
+        "name": "test_official_gfn2_wrapper_matches_direct_cli_energy",
+        "reason": "requires --run-external",
+        "location": "/tmp/hotpot_plan20/long/stage8b-b1-20261103/validation-preparation/installed-work/attempt02/outside/tests/test_plugin/test_xtb/test_official_integration.py:165: requires --run-external"
+      },
+      {
+        "classname": "tests.test_plugin.test_xtb.test_official_integration",
+        "name": "test_official_gfnff_wrapper_matches_direct_cli_energy",
+        "reason": "requires --run-external",
+        "location": "/tmp/hotpot_plan20/long/stage8b-b1-20261103/validation-preparation/installed-work/attempt02/outside/tests/test_plugin/test_xtb/test_official_integration.py:208: requires --run-external"
+      },
+      {
+        "classname": "tests.test_plugin.test_xtb.test_official_integration",
+        "name": "test_official_gfn2_optimization_matches_direct_cli_result",
+        "reason": "requires --run-external",
+        "location": "/tmp/hotpot_plan20/long/stage8b-b1-20261103/validation-preparation/installed-work/attempt02/outside/tests/test_plugin/test_xtb/test_official_integration.py:251: requires --run-external"
+      },
+      {
+        "classname": "tests.test_plugin.test_xtb.test_official_integration",
+        "name": "test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_states[ionic-chloride]",
+        "reason": "requires --run-external",
+        "location": "/tmp/hotpot_plan20/long/stage8b-b1-20261103/validation-preparation/installed-work/attempt02/outside/tests/test_plugin/test_xtb/test_official_integration.py:306: requires --run-external"
+      },
+      {
+        "classname": "tests.test_plugin.test_xtb.test_official_integration",
+        "name": "test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_states[hydrogen-radical]",
+        "reason": "requires --run-external",
+        "location": "/tmp/hotpot_plan20/long/stage8b-b1-20261103/validation-preparation/installed-work/attempt02/outside/tests/test_plugin/test_xtb/test_official_integration.py:306: requires --run-external"
+      }
+    ]
+  },
+  "consolidation": {
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage8b/b1/raw/release/root-consolidation-check.json",
+      "sha256": "d46d9fb2c712d993ca837861cfd1359d2d2684cc5ee34db73ed82b58753e22d9"
+    },
+    "retired_python_definitions": [
+      "_RunOptions",
+      "OptimizationStoppingOptions",
+      "BondTopologySignature"
+    ],
+    "changed_file_dataclass_delta": -3,
+    "replacement_classes": 0,
+    "native_stopping_options_retained": true,
+    "production_census": {
+      "python_files": 472,
+      "all_python_classes": 779,
+      "dataclasses": 357,
+      "protocols": 8,
+      "typed_dicts": 2,
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8b/b1/raw/release/root-production-census.json",
+        "sha256": "0353af8d6437e27982729afffc1639bcd7a813cd1d764f4edf7d04e7653ea77c"
+      }
+    }
+  },
+  "root_attribution": {
+    "path": ".plan20-artifacts/20261103/stage8b/b1/raw/release/root-runtime-attribution.json",
+    "sha256": "716f5471e82df908100f46538632034f7ecb474a8fc23eec813254ef571c4636"
+  },
+  "root_business_review": {
+    "path": ".plan20-artifacts/20261103/stage8b/b1/raw/release/root-installed-business-review.json",
+    "sha256": "7ab5d2619159a93fe4df313854baa229a6a65b95e38b4fe8581e24359aba2e40"
+  },
+  "limits": [
+    "CP311 source/installed scope only; installed dependencies use shared system-site-packages.",
+    "Six accepted unchanged Stage7E native binaries reused; no native rebuild, clean-native/ABI/SDK/sdist/manylinux/all-version qualification.",
+    "41 measured non-Python package omissions remain; archive records exact paths, not clean packaging.",
+    "Source origins cover the pytest interpreter; installed startup hooks cover participating Python processes, not site-bypassing or native processes.",
+    "No controlled cost/performance run or speed claim; no optional activation, broad science/GPU/global or whole Stage8B acceptance.",
+    "Original attempt01 collection loader errors retained. Numerical variation, unresolved scientific state and per-boundary skip reasons remain visible.",
+    "Venv/site-packages/build trees, outside test copies, model/library assets and pytest current symlink aliases omitted; identities/provenance retained."
+  ],
+  "date": "2026-11-03",
+  "acceptance_scope": "B1 existing-type consolidation only; complete Stage8B/optional/later/global gates remain open.",
+  "root_decision": "Root reviewed canonical field/default/None/row/pickle/CLI/native-translation behavior and unchanged frozen/runtime/wheel bindings, exact memberships, real model/backend numerical/state/geometry/persistence observations and all failure/skip limits. Chemical values remain method-scoped; unresolved scientific spin is not reclassified by backendUHF0. Accept this coherent CP311 B1 checkpoint; no performance or native-build claim.",
+  "remaining": [
+    "B2 acceptance/physics versus capture/controller separation",
+    "B3 operation/backend/native/commands ownership cutover",
+    "B4 connected finding-control, sample isolation and method transport",
+    "Full Stage8B standalone/rollback/trajectory/science/FF benchmark evidence",
+    "P20-D006/P20-D007/P20-D008 and later/global delivery/adaptation/optimization obligations"
+  ],
+  "delivery_formatting": {
+    "delivered_source_freeze": {
+      "path": ".plan20-artifacts/20261103/stage8b/b1/delivery/source-freeze-delivery.json",
+      "sha256": "40ca30eb9581a5608309d5ceb4c44b798fdb32fb82f47ae4a8b9cbb78a1ac460"
+    },
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage8b/b1/delivery/eof-formatting-receipt.json",
+      "sha256": "4c439a204301e65778ac60f292195247246b5ab7a440d6b362e25e38cd0ef143"
+    },
+    "scope": "Two EOF empty-line removals after validation; AST including source locations unchanged. The retained wheel binds tested pre-formatting bytes; no numerical/contract change or runtime rerun."
+  }
+}

@@ -635,11 +635,12 @@ def test_finalize_threads_actual_input_source_method_and_known_seed_after_archiv
 
 
 def test_auto_native_fast_finalization_retains_actual_input_seed_and_effective_options(monkeypatch):
+    from hotpot.cheminfo.rules.physics.forcefields.contracts import OptimizationStoppingCriteria
     from copy import copy
     from hotpot.cheminfo.forcefields import auto as auto_workflow
     from hotpot.cheminfo.forcefields.contracts import (
         ForceFieldRunReport, OptimizationAttemptReport, OptimizationAttemptStatus,
-        OptimizationRoute, OptimizationStoppingCriteria, ConvergenceLevel,
+        OptimizationRoute, ConvergenceLevel,
     )
 
     mol = read_mol("[Eu]N", "smi")

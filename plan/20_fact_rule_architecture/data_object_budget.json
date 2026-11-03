@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage0\u20137E and Stage8A A1-A9 retain their accepted owning scopes. A9 confidence-only removal is root accepted in source/installedCP311: five typed calculation records, four finding/reason types and both toggle types retained; D02/D03 NO_CONSOLIDATION. Current468Python-file census782classes/360dataclasses/8Protocols/2TypedDicts; one enum retired, dataclass delta0. WholeStage8A/optionalprofile/later/global gates remain open.",
+  "status": "Stage0–7E and Stage8A retain their accepted owning scopes. Stage8B B1 D04/D05/FF-CLI consolidation is root accepted within its CP311 scope: three Python dataclasses retired with zero replacement classes; real native ABI Options retained. Current472Python-file census779classes/357dataclasses/8Protocols/2TypedDicts. Full Stage8B and later/global gates remain open.",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -14,7 +14,7 @@
   },
   "measured_delta": {
     "new_dataclasses": 13,
-    "retired_dataclasses": 0,
+    "retired_dataclasses": 3,
     "new_protocols": 0,
     "new_typed_dicts": 0,
     "commits": [
@@ -376,7 +376,27 @@
         "scope": "Retired isolated aromaticity protocols; no replacement generic protocol created"
       }
     ],
-    "stage6_synchronization": "The historical Stage5 six-addition checkpoint is preserved in the bound before-stage7a copy. Accepted Stage6 added exactly N09 within cap1; cumulative new dataclasses is7 and current347+7=354. All other historical delta fields remain unchanged."
+    "stage6_synchronization": "The historical Stage5 six-addition checkpoint is preserved in the bound before-stage7a copy. Accepted Stage6 added exactly N09 within cap1; cumulative new dataclasses is7 and current347+7=354. All other historical delta fields remain unchanged.",
+    "dataclass_retirements": [
+      {
+        "symbol": "hotpot.cheminfo.forcefields.native.OptimizationStoppingOptions",
+        "stage": "Stage8B B1",
+        "verification": "stages/stage08/forcefields/validation/b1/checkpoint.json",
+        "replacement_classes": 0
+      },
+      {
+        "symbol": "hotpot.cheminfo.forcefields.topology.BondTopologySignature",
+        "stage": "Stage8B B1",
+        "verification": "stages/stage08/forcefields/validation/b1/checkpoint.json",
+        "replacement_classes": 0
+      },
+      {
+        "symbol": "hotpot.cheminfo.forcefields.cli._RunOptions",
+        "stage": "Stage8B B1",
+        "verification": "stages/stage08/forcefields/validation/b1/checkpoint.json",
+        "replacement_classes": 0
+      }
+    ]
   },
   "consolidation_budget": [
     {
@@ -468,7 +488,10 @@
       "retained_old": 1,
       "new_replacements": 0,
       "net": -1,
-      "scope": "Retain OptimizationStoppingCriteria; preserve real native ABI type"
+      "scope": "Retain OptimizationStoppingCriteria; preserve real native ABI type",
+      "status": "ROOT_ACCEPTED_CP311_B1",
+      "verification": "stages/stage08/forcefields/validation/b1/checkpoint.json",
+      "design": "stages/stage08/forcefields/contracts/decisions.md"
     },
     {
       "id": "D05",
@@ -478,7 +501,10 @@
       "retained_old": 1,
       "new_replacements": 0,
       "net": -1,
-      "scope": "Retain one BondTopology for references and historical trajectories"
+      "scope": "Retain one BondTopology for references and historical trajectories",
+      "status": "ROOT_ACCEPTED_CP311_B1",
+      "verification": "stages/stage08/forcefields/validation/b1/checkpoint.json",
+      "design": "stages/stage08/forcefields/contracts/decisions.md"
     },
     {
       "id": "FF-CLI",
@@ -488,7 +514,10 @@
       "retained_old": 0,
       "new_replacements": 0,
       "net": -1,
-      "scope": "Reuse existing ForceFieldRouteOptions and existing _WorkItem; no new options wrapper"
+      "scope": "Reuse existing ForceFieldRouteOptions and existing _WorkItem; no new options wrapper",
+      "status": "ROOT_ACCEPTED_CP311_B1",
+      "verification": "stages/stage08/forcefields/validation/b1/checkpoint.json",
+      "design": "stages/stage08/forcefields/contracts/decisions.md"
     }
   ],
   "new_mechanism_reservations": [
@@ -903,7 +932,7 @@
     "final_upper_bound_if_all_consolidations_land": 362,
     "net_change_upper_bound": 15,
     "D01_D03_dataclass_delta": 0,
-    "meaning": "A9 retains D01-D03 as5/4/2 definitions. Only the unchanged D04/D05/FF-CLI proposals supply prospective -3 dataclasses. Baseline347-3+18=362 is a conditional upper bound, not a measured total, a count-led design target or a requirement to create every reserved type.",
+    "meaning": "A9 retains D01-D03 as5/4/2 definitions. B1 now realizes the D04/D05/FF-CLI retirement of3dataclasses with zero replacements. Baseline347-3+18=362 remains a conditional upper bound, not a measured total, count-led design target or requirement to create every reserved type.",
     "implemented_owner_dataclass_adjustment": {
       "original_N01_N18_forecast_final_upper_bound": 362,
       "additional_counted_ConstraintSet_dataclasses": 1,
@@ -1036,11 +1065,11 @@
   ],
   "change_policy": "Update a reservation with concrete responsibility/consumer evidence before exceeding it; new public schemas retain their own review gate. Never offset extra records by deleting unrelated reserved types or replace records with untyped dicts solely to improve counts.",
   "measured_current_counts": {
-    "all_python_classes": 782,
-    "dataclasses": 360,
+    "all_python_classes": 779,
+    "dataclasses": 357,
     "protocols": 8,
     "typed_dicts": 2,
-    "method": "Same production-only ClassDef/leaf/CONTRACT_MARKERS census; adds exactly reservedN16\u2013N18 to Stage7C780/357/8/2 and moves existing Conformers once; no retirement credit. A9 root static census: retire only ChemicalConfidence enum;468Python files,782classes/360dataclasses/8Protocols/2TypedDicts; dataclass delta0.",
+    "method": "Same production-only ClassDef and decorator/base leaf census as capture_baseline_inventory.py. B1 changes782/360/8/2 to779/357/8/2: retire exactly Python Options, BondTopologySignature and _RunOptions with no replacements; retain real native ABI Options. Native historical counts are not rescanned by this Python-only census.",
     "native_struct_candidates": 171,
     "native_struct_candidate_method": {
       "baseline": 164,
@@ -1052,7 +1081,7 @@
     },
     "new_fact_native_actual_struct_definitions": 14,
     "new_fact_native_actual_enum_definitions": 1,
-    "verification": "stages/stage07/coordinate-frames/validation/checkpoint.json",
+    "verification": "stages/stage08/forcefields/validation/b1/checkpoint.json",
     "stage5_native_scope": "Readonly carrier dispatch plus configured DERIVED_FIELDS rejection at native ingress/preparation; existing Field gains immutable configuration metadata, with no new class/struct/enum or exported ABI. Corrected source awaits five fresh ABI builds and runtime evidence.",
     "stage5_native_source": {
       "path": "hotpot/cheminfo/structure/_native/facts.cpp",
@@ -1073,14 +1102,15 @@
       "historical_status": "Original failed candidate retained; final two test-import repairs passed without production changes."
     },
     "final_architecture_audit": {
-      "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/architecture-audit-final-repairs.json",
+      "path": ".plan20-artifacts/20261103/stage8b/b1/raw/release/architecture-after-retirement.json",
       "status": "passed",
-      "scanned_python_files": 940,
-      "remaining_debt": 224,
+      "remaining_debt": 221,
       "new_debt": 0,
       "layer_findings": 0,
-      "carrier_definition_findings": 0
-    }
+      "carrier_definition_findings": 0,
+      "scope": "B1 static ratchet; no checker weakening or new allowlist debt."
+    },
+    "python_files": 472
   },
   "stage7a_bookkeeping": {
     "recorded_local_date": "2026-10-31",
@@ -1209,5 +1239,22 @@
     "stage_gate_closed": false,
     "global_gate_closed": false,
     "checkpoint": "stages/stage08/scientific-state/validation/confidence_checkpoint.json"
+  },
+  "stage8b_b1_bookkeeping": {
+    "status": "ROOT_ACCEPTED_CP311_B1",
+    "checkpoint": "stages/stage08/forcefields/validation/b1/checkpoint.json",
+    "changed_product_dataclasses": {
+      "old": 56,
+      "new": 53,
+      "net": -3
+    },
+    "retired": [
+      "OptimizationStoppingOptions (Python only)",
+      "BondTopologySignature",
+      "_RunOptions"
+    ],
+    "new_replacement_classes": 0,
+    "stage_gate_closed": false,
+    "global_gate_closed": false
   }
 }

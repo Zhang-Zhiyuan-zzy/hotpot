@@ -6,6 +6,7 @@ from dataclasses import replace
 from typing import Optional, TYPE_CHECKING
 
 from .acceptance import evaluate_structure_acceptance
+from ..rules.physics.forcefields.contracts import OptimizationStoppingCriteria
 from .contracts import (
     AcceptanceLevel,
     ConvergenceLevel,
@@ -13,11 +14,10 @@ from .contracts import (
     ForceFieldAcceptanceEvidence,
     ForceFieldRunReport,
     OptimizationAlgorithm,
-    OptimizationStoppingCriteria,
     StructureAcceptanceThresholds,
 )
 from .optimizer import _optimize_working_mol
-from .topology import TopologyReference
+from ..structure.forcefields import TopologyReference
 from .trajectory import ForceFieldTrajectory, TrajectoryStage
 
 

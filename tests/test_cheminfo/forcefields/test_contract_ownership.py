@@ -1,0 +1,170 @@
+"""D04/D05 canonical owners, native stopping and topology transport."""
+
+from dataclasses import FrozenInstanceError, asdict, fields
+import pickle
+import subprocess
+import sys
+
+import pytest
+
+from hotpot.cheminfo.adapters.structure.forcefields import capture_topology
+from hotpot import Molecule
+from hotpot.cheminfo.forcefields import ff, native as native_adapter, workflows
+from hotpot.cheminfo.forcefields.trajectory import (
+    ForceFieldTrajectory,
+    TrajectoryEvent,
+    TrajectoryStage,
+    TrajectoryStart,
+)
+from hotpot.cheminfo.rules.physics.forcefields.contracts import OptimizationStoppingCriteria
+from hotpot.cheminfo.structure.forcefields import (
+    AtomTopologySignature,
+    BondTopology,
+    TopologyReference,
+)
+
+
+def test_canonical_classes_and_values_cold_pickle_at_their_actual_owners():
+    classes = (
+        OptimizationStoppingCriteria,
+        AtomTopologySignature,
+        BondTopology,
+        TopologyReference,
+    )
+    atom = AtomTopologySignature(0, 91, 6, 0)
+    bond = BondTopology((1, 0), 2.0, "double")
+    values = (
+        OptimizationStoppingCriteria(window=7),
+        atom,
+        bond,
+        TopologyReference((atom, AtomTopologySignature(1, 17, 6, 0)), (bond,)),
+    )
+    for cls in classes:
+        assert getattr(ff, cls.__name__) is cls
+    assert ff.capture_topology is capture_topology
+    assert not hasattr(ff, "BondTopologySignature")
+    assert not hasattr(native_adapter, "OptimizationStoppingOptions")
+    script = """
+import pickle
+import sys
+classes, values = pickle.loads(sys.stdin.buffer.read())
+assert tuple(type(value) for value in values) == classes
+assert tuple(cls.__module__ for cls in classes) == (
+    'hotpot.cheminfo.rules.physics.forcefields.contracts',
+    'hotpot.cheminfo.structure.forcefields',
+    'hotpot.cheminfo.structure.forcefields',
+    'hotpot.cheminfo.structure.forcefields',
+)
+assert values[0].window == 7
+assert values[2].atom_indices == (0, 1)
+assert values[3].bonds == (values[2],)
+"""
+
+    completed = subprocess.run(
+        [sys.executable, "-B", "-c", script],
+        input=pickle.dumps((classes, values)),
+        capture_output=True,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr.decode()
+
+
+@pytest.mark.parametrize(
+    ("legacy_class", "error_type"),
+    (
+        (
+            b"chotpot.cheminfo.forcefields.native\nOptimizationStoppingOptions\n.",
+            AttributeError,
+        ),
+        (
+            b"chotpot.cheminfo.forcefields.topology\nBondTopologySignature\n.",
+            ModuleNotFoundError,
+        ),
+    ),
+)
+def test_retired_class_pickle_symbols_have_no_compatibility_alias(legacy_class, error_type):
+    with pytest.raises(error_type):
+        pickle.loads(legacy_class)
+
+
+def test_capture_factory_and_trajectory_share_normalized_row_topology():
+    mol = Molecule()
+    mol.create_atom(atomic_number=6, id=91, coordinates=(0.0, 0.0, 0.0))
+    mol.create_atom(atomic_number=6, id=17, coordinates=(1.3, 0.0, 0.0))
+    bond = mol.add_bond(1, 0, 2.0)
+    expected = BondTopology((1, 0), 2.0, "double")
+
+    reference = capture_topology(mol, allow_added_hydrogens=False)
+    trajectory = ForceFieldTrajectory.from_molecule(mol)
+    frame = trajectory.record_molecule(
+        mol,
+        stage=TrajectoryStage.FINAL_OPTIMIZATION,
+        event=TrajectoryEvent.INITIAL,
+    )
+
+    assert type(reference) is TopologyReference
+    assert tuple(atom.atom_id for atom in reference.atoms) == (91, 17)
+    assert reference.allow_added_hydrogens is False
+    assert reference.bonds == trajectory.topology(frame.index).bonds == (expected,)
+    assert type(reference.bonds[0]) is BondTopology
+    assert type(trajectory.topology(frame.index).bonds[0]) is BondTopology
+    assert BondTopology.from_bond(bond) == expected
+    assert hash(expected) == hash(BondTopology((0, 1), 2.0, "double"))
+    assert sorted((BondTopology((0, 2), 1.0, "single"), expected))[0] == expected
+    assert asdict(expected) == {
+        "atom_indices": (0, 1), "bond_order": 2.0, "bond_kind": "double",
+    }
+    with pytest.raises(FrozenInstanceError):
+        expected.bond_order = 1.0
+
+
+@pytest.mark.parametrize(
+    "stopping",
+    (
+        None,
+        OptimizationStoppingCriteria(
+            window=7,
+            maximum_energy_change_kj_mol=0.0,
+            maximum_atom_displacement_angstrom=0.125,
+            maximum_rms_gradient_kj_mol_angstrom=1.25,
+            maximum_gradient_kj_mol_angstrom=2.5,
+        ),
+    ),
+)
+def test_workflow_passes_the_same_criteria_to_native_translation(monkeypatch, stopping):
+    options = workflows._optimization_options(
+        effective_forcefield="UFF",
+        algorithm="conjugate",
+        epochs=2,
+        steps_per_epoch=3,
+        untangling_attempt_limit=1,
+        perturb_interval=None,
+        perturb_sigma=0.5,
+        trajectory_start=TrajectoryStart.FINAL_OPTIMIZATION,
+        save_movie=False,
+        stopping_criteria=stopping,
+        convergence_level=ff.DEFAULT_CONVERGENCE_LEVEL,
+        increasing_vdw=False,
+        vdw_cutoff_start=0.0,
+        vdw_cutoff_end=12.5,
+    )
+    original = native_adapter._native_stopping_options
+    observed = []
+
+    def record_translation(criteria):
+        observed.append(criteria)
+        return original(criteria)
+
+    monkeypatch.setattr(native_adapter, "_native_stopping_options", record_translation)
+
+    translated = native_adapter._native_complex_optimization_options(options)
+
+    assert options.stopping is stopping
+    if stopping is None:
+        assert observed == []
+        assert translated.stopping is None
+    else:
+        assert len(observed) == 1 and observed[0] is stopping
+        for field in fields(stopping):
+            assert getattr(translated.stopping, field.name) == getattr(stopping, field.name)

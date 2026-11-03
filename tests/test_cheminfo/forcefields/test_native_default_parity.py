@@ -2,11 +2,11 @@
 
 from dataclasses import fields
 
+from hotpot.cheminfo.rules.physics.forcefields.contracts import OptimizationStoppingCriteria
 from hotpot.cheminfo.forcefields.native import (
     ComplexOptimizationOptions,
     CoordinationStageOptions,
     MetalPlacementOptions,
-    OptimizationStoppingOptions,
     RingScreeningOptions,
 )
 from hotpot.cheminfo.obWrappers.native import _native_module
@@ -53,7 +53,7 @@ def test_native_stopping_defaults_match_python_policy() -> None:
     native_module = _native_module()
     _assert_scalar_fields_match(
         native_module._DEFAULT_OPTIMIZATION_STOPPING_OPTIONS,
-        OptimizationStoppingOptions(),
+        OptimizationStoppingCriteria(),
     )
 
 

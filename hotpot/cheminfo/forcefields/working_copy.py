@@ -11,7 +11,7 @@ import numpy as np
 from ..structure._stereo import _get_stereo_payload
 from ..structure._identity import _capture_source, _check_source, _complete_bonds
 from .coordination import _iter_metal_donor_pairs
-from .topology import (
+from ..adapters.structure.forcefields import (
     _atom_identity,
     _atom_index_map,
     _bond_endpoint_indices,
@@ -104,7 +104,7 @@ def _hydrogenate_ligand_projection(
     from ..structure._fields import ATOM_SOURCE_CODES
     from ..structure._selection import _capture_topology_selection
     from .acceptance import _topology_checks
-    from .topology import capture_topology
+    from ..adapters.structure.forcefields import capture_topology
 
     with working_mol._mutation_lock:
         source = _capture_source(working_mol, _FF_SOURCE_DOMAINS)

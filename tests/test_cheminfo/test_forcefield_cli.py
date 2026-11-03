@@ -17,6 +17,7 @@ from hotpot.cheminfo.forcefields import (
     TrajectoryStart,
     cli,
 )
+from hotpot.cheminfo.forcefields.stage import ForceFieldRouteOptions
 
 
 @dataclass(frozen=True)
@@ -314,10 +315,55 @@ def test_existing_3d_uses_auto_optimize(monkeypatch, capsys):
     assert "timeout" not in observed_calls[0][2]
 
 
+@pytest.mark.parametrize(
+    ("forcefield", "seed", "trajectory_start", "trajectory_path"),
+    [
+        (None, None, None, None),
+        ("UFF", 0, TrajectoryStart.COORDINATION_RESTORATION, "trajectory"),
+    ],
+)
+def test_route_options_are_forwarded_by_identity(
+    monkeypatch,
+    forcefield,
+    seed,
+    trajectory_start,
+    trajectory_path,
+):
+    mol = _Molecule("forwarded")
+    options = ForceFieldRouteOptions(
+        rebuild=False,
+        optimize_only=False,
+        route="auto",
+        forcefield=forcefield,
+        algorithm="conjugate",
+        epochs=2,
+        steps_per_epoch=3,
+        add_hydrogens=True,
+        quality_level="standard",
+        seed=seed,
+        timeout=10.0,
+        trajectory_start=trajectory_start,
+    )
+    report = _report()
+    observed = []
+
+    def execute(molecule, route_options, **kwargs):
+        observed.append((molecule, route_options, kwargs))
+        return report
+
+    monkeypatch.setattr(cli, "execute_forcefield_route", execute)
+
+    assert cli._run_forcefield(mol, options, trajectory_path) is report
+    assert observed[0][0] is mol
+    assert observed[0][1] is options
+    assert observed[0][2]["trajectory_path"] == trajectory_path
+    assert observed[0][2]["operations"].build3d is cli.build3d
+
+
 @pytest.mark.parametrize("has_3d", [False, True])
 def test_complex_uses_native_fast_auto_route(monkeypatch, has_3d):
     mol = _Molecule("complex", has_3d=has_3d, has_metal=True)
-    options = cli._RunOptions(
+    options = ForceFieldRouteOptions(
         rebuild=False,
         optimize_only=False,
         route="auto",
@@ -330,7 +376,6 @@ def test_complex_uses_native_fast_auto_route(monkeypatch, has_3d):
         seed=None,
         timeout=10.0,
         trajectory_start=None,
-        output_format="mol2",
     )
     observed = []
     monkeypatch.setattr(
@@ -367,7 +412,7 @@ def test_explicit_route_selects_the_corresponding_api(
     expected_name,
 ):
     mol = _Molecule("routed", has_3d=has_3d, has_metal=route == "complex")
-    options = cli._RunOptions(
+    options = ForceFieldRouteOptions(
         rebuild=False,
         optimize_only=False,
         route=route,
@@ -380,7 +425,6 @@ def test_explicit_route_selects_the_corresponding_api(
         seed=None,
         timeout=10.0,
         trajectory_start=None,
-        output_format="mol2",
     )
     observed = []
 
@@ -403,7 +447,7 @@ def test_explicit_route_selects_the_corresponding_api(
 
 def test_explicit_organic_rebuilds_then_optimizes(monkeypatch):
     mol = _Molecule("organic")
-    options = cli._RunOptions(
+    options = ForceFieldRouteOptions(
         rebuild=False,
         optimize_only=False,
         route="organic",
@@ -416,7 +460,6 @@ def test_explicit_organic_rebuilds_then_optimizes(monkeypatch):
         seed=5,
         timeout=9.0,
         trajectory_start=None,
-        output_format="mol2",
     )
     calls = []
     build_report = SimpleNamespace()
@@ -450,7 +493,7 @@ def test_explicit_organic_rebuilds_then_optimizes(monkeypatch):
 
 def test_rebuild_overrides_existing_coordinates(monkeypatch):
     mol = _Molecule("existing", has_3d=True)
-    options = cli._RunOptions(
+    options = ForceFieldRouteOptions(
         rebuild=True,
         optimize_only=False,
         route="auto",
@@ -463,7 +506,6 @@ def test_rebuild_overrides_existing_coordinates(monkeypatch):
         seed=None,
         timeout=10.0,
         trajectory_start=None,
-        output_format="mol2",
     )
     observed = []
     monkeypatch.setattr(
@@ -482,7 +524,7 @@ def test_rebuild_overrides_existing_coordinates(monkeypatch):
 
 def test_optimize_only_rejects_input_without_3d():
     mol = _Molecule("flat")
-    options = cli._RunOptions(
+    options = ForceFieldRouteOptions(
         rebuild=False,
         optimize_only=True,
         route="auto",
@@ -495,7 +537,6 @@ def test_optimize_only_rejects_input_without_3d():
         seed=None,
         timeout=10.0,
         trajectory_start=None,
-        output_format="mol2",
     )
 
     with pytest.raises(ValueError, match="existing coordinates"):
@@ -512,7 +553,7 @@ def test_optimize_only_preserves_existing_coordinates(
     optimizer_name,
 ):
     mol = _Molecule("existing", has_3d=True, has_metal=has_metal)
-    options = cli._RunOptions(
+    options = ForceFieldRouteOptions(
         rebuild=False,
         optimize_only=True,
         route="auto",
@@ -525,7 +566,6 @@ def test_optimize_only_preserves_existing_coordinates(
         seed=None,
         timeout=10.0,
         trajectory_start=None,
-        output_format="mol2",
     )
     observed = []
 

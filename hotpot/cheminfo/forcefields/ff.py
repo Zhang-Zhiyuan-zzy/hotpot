@@ -2,6 +2,7 @@
 
 from .acceptance import evaluate_structure_acceptance, is_structure_accepted
 from .auto import auto_optimize
+from ..rules.physics.forcefields.contracts import OptimizationStoppingCriteria
 from .contracts import (
     AcceptanceCheck,
     Build3DReport,
@@ -38,7 +39,6 @@ from .contracts import (
     OptimizationAttemptStatus,
     OptimizationRoute,
     OptimizationRoutingReport,
-    OptimizationStoppingCriteria,
     RingUntanglingReport,
     StructureAcceptanceThresholds,
     TerminationReason,
@@ -49,15 +49,10 @@ from .coordination import (
     prepare_coordination_geometry,
 )
 from .coordinates import perturb
-from .topology import (
-    AtomTopologySignature,
-    BondTopologySignature,
-    TopologyReference,
-    capture_topology,
-)
+from ..structure.forcefields import AtomTopologySignature, BondTopology, TopologyReference
+from ..adapters.structure.forcefields import capture_topology
 from .trajectory import (
     AtomIdentity,
-    BondTopology,
     BondTopologyRevision,
     CoordinationFrameEvidence,
     ForceFieldFrame,
@@ -121,7 +116,6 @@ __all__ = (
     "StructureAcceptanceThresholds",
     "ForceFieldAcceptanceEvidence",
     "AtomTopologySignature",
-    "BondTopologySignature",
     "TopologyReference",
     "ForceFieldValidationReport",
     "CoordinationEnvironment",

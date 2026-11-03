@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8B",
+  "date": "2026-11-03",
+  "status": "ROOT_B1_ACCEPTED_CP311_STAGE8B_OPEN",
+  "source_commit": "ff4373890356cd53d95e0ae57b115038bc540096",
+  "predecessor": "../scientific-state/completion_20261103.json",
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "design": "contracts/decisions.md",
+  "scope": "Complete existing force-field rule/capture/operation/backend/native/CLI ownership and connected Plan12 finding-control/sample-containment requirements; first slice is exact D04/D05/FF-CLI consolidation.",
+  "current_source_assessment": "Tracked tree clean; unrelated protected user review is untracked and excluded. Forcefield/wrapper/setup production bytes match the older7952d1f preentry inventory; scientific-state dependencies now have A11 acceptance.",
+  "focused_alignment": [
+    "goal.md",
+    "fact_rule_architecture_implementation_plan.md sections6/9.2/Stage8B/16",
+    "stages/stage01/contracts/decisions.md D04/D05",
+    "data_object_scope_audit.md sections3.3/3.4/8",
+    "data_object_budget.json D04/D05/FF-CLI",
+    "stage_verification_map.json Stage8B",
+    "integrated_requirements.json Stage8B",
+    "governance/stage/validation skills and both governance references"
+  ],
+  "lookup_evidence": {
+    "public_consolidation": {
+      "path": "/tmp/hotpot_plan20/long/stage8b-entry-20261103/public-consolidation-lookup/report.md",
+      "sha256": "cc6307d27ff49ae08ff93dc9dbca074e0f61bb9234d811e0b3c5bb975c558d33",
+      "scope": "Read-only actual source/consumer evidence; not execution or acceptance"
+    },
+    "native_ownership": {
+      "path": "/tmp/hotpot_plan20/long/stage8b-entry-20261103/native-owner-lookup/report.md",
+      "sha256": "d9d57306901ab488f425a40c2985212ee289ff1ee9785f390e1be8349bd3f9a4",
+      "scope": "Read-only actual source/consumer evidence; not execution or acceptance"
+    }
+  },
+  "runtime": "Source focused297passed; source/installed affected each958passed7skipped, exact same965orderednodes; actual3pipeline+3MCA each boundary passed. Attempt01 loader collection failure preserved; attempt02 changed only scoped library search path. All frozen runtime/build/native/model/support bindings unchanged. No native build or performance claim.",
+  "remaining": [
+    "B2-B4 full connected rule/operation/backend/command/native/control migration",
+    "Owning-stage benchmarks and applicable evidence",
+    "All later/global gates unchanged"
+  ],
+  "b1_checkpoint": "validation/b1/checkpoint.json"
+}

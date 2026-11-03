@@ -84,28 +84,11 @@ class _InputRecord:
 
 
 @dataclass(frozen=True)
-class _RunOptions:
-    rebuild: bool
-    optimize_only: bool
-    route: str
-    forcefield: Optional[str]
-    algorithm: str
-    epochs: int
-    steps_per_epoch: int
-    add_hydrogens: bool
-    quality_level: str
-    seed: Optional[int]
-    timeout: float
-    trajectory_start: Optional[TrajectoryStart]
-    output_format: str
-    convergence_level: ConvergenceLevel = ConvergenceLevel.FAST
-
-
-@dataclass(frozen=True)
 class _WorkItem:
     record: _InputRecord
-    options: _RunOptions
+    options: ForceFieldRouteOptions
     trajectory_path: Optional[str]
+    output_format: str
 
 
 @dataclass(frozen=True)
@@ -355,24 +338,9 @@ def _trajectory_path(
 
 def _run_forcefield(
     mol: "Molecule",
-    options: _RunOptions,
+    options: ForceFieldRouteOptions,
     trajectory_path: Optional[str],
 ) -> object:
-    route_options = ForceFieldRouteOptions(
-        rebuild=options.rebuild,
-        optimize_only=options.optimize_only,
-        route=options.route,
-        forcefield=options.forcefield,
-        algorithm=options.algorithm,
-        epochs=options.epochs,
-        steps_per_epoch=options.steps_per_epoch,
-        convergence_level=options.convergence_level,
-        add_hydrogens=options.add_hydrogens,
-        quality_level=options.quality_level,
-        seed=options.seed,
-        timeout=options.timeout,
-        trajectory_start=options.trajectory_start,
-    )
     operations = ForceFieldRouteOperations(
         build3d=build3d,
         build_and_optimize=build_and_optimize,
@@ -384,7 +352,7 @@ def _run_forcefield(
     try:
         return execute_forcefield_route(
             mol,
-            route_options,
+            options,
             trajectory_path=trajectory_path,
             operations=operations,
         )
@@ -453,7 +421,7 @@ def _process_work_item(item: _WorkItem) -> _Outcome:
     quality_report = report.quality_report
     status = "ok" if quality_report.passed else "quality-failed"
     payload = _normalize_molecule_payload(
-        record.mol.write(fmt=item.options.output_format, write_single=True)
+        record.mol.write(fmt=item.output_format, write_single=True)
     )
     return _Outcome(
         index=record.index,
@@ -585,7 +553,7 @@ def run(args: argparse.Namespace) -> int:
         if args.trajectory_start is None
         else _TRAJECTORY_STARTS[args.trajectory_start]
     )
-    options = _RunOptions(
+    options = ForceFieldRouteOptions(
         rebuild=args.rebuild,
         optimize_only=args.optimize_only,
         route=args.route,
@@ -599,13 +567,13 @@ def run(args: argparse.Namespace) -> int:
         seed=args.seed,
         timeout=args.timeout,
         trajectory_start=trajectory_start,
-        output_format=output_format,
     )
     items = tuple(
         _WorkItem(
             record=record,
             options=options,
             trajectory_path=_trajectory_path(args.trajectory, record, len(records)),
+            output_format=output_format,
         )
         for record in records
     )

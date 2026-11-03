@@ -4141,7 +4141,33 @@
       "additional_requirements": [
         "native/pure physics/adapter/workflow separation; rollback/trajectory; O0 observations; same-budget FF performance"
       ],
-      "execution_status": "not_executed_by_inventory_capture"
+      "execution_status": "ROOT_B1_ACCEPTED_CP311_STAGE8B_OPEN",
+      "entry_review": "stages/stage08/forcefields/entry_review.json",
+      "design": "stages/stage08/forcefields/contracts/decisions.md",
+      "stage_gate_closed": false,
+      "global_gate_closed": false,
+      "b1_checkpoint": "stages/stage08/forcefields/validation/b1/checkpoint.json",
+      "b1_validation": {
+        "focused_source": {
+          "passed": 297,
+          "skipped": 0
+        },
+        "affected_each_source_and_installed": {
+          "passed": 958,
+          "skipped": 7,
+          "same_ordered_nodes": 965
+        },
+        "actual_pipeline_each_boundary": {
+          "passed": 3,
+          "skipped": 0
+        },
+        "actual_mca_attachment_each_boundary": {
+          "passed": 3,
+          "skipped": 0
+        },
+        "native_policy": "Reuse six accepted unchanged Stage7E binaries; no clean-native build.",
+        "remaining": "Full B2-B4/Stage8B owning gate and all later/global obligations remain open."
+      }
     },
     "Stage8C": {
       "predecessor": "Stage8B",

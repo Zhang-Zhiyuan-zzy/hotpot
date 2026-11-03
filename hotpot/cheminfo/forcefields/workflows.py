@@ -24,6 +24,7 @@ from .backend import (
     _resolve_complex_forcefield,
     _resolve_organic_forcefield,
 )
+from ..rules.physics.forcefields.contracts import OptimizationStoppingCriteria
 from .contracts import (
     AcceptanceLevel,
     Build3DReport,
@@ -43,7 +44,6 @@ from .contracts import (
     ConvergenceLevel,
     DEFAULT_CONVERGENCE_LEVEL,
     OptimizationAlgorithm,
-    OptimizationStoppingCriteria,
     StructureAcceptanceThresholds,
     TrajectoryPath,
 )
@@ -55,7 +55,6 @@ from .native import (
     ComplexOptimizationOptions,
     CoordinationStageOptions,
     FrameDetail,
-    OptimizationStoppingOptions,
     create_coordination_session,
     create_optimization_session,
     optimize_complex as _native_optimize_complex,
@@ -78,7 +77,8 @@ from .native_reports import (
     CoordinationStageResult,
     _coordination_stage_result,
 )
-from .topology import TopologyReference, capture_topology
+from ..structure.forcefields import TopologyReference
+from ..adapters.structure.forcefields import capture_topology
 from .trajectory import (
     ForceFieldTrajectory,
     ForceFieldTrajectoryArchive,
@@ -288,27 +288,6 @@ def _native_frame_detail(save_movie: bool) -> FrameDetail:
     return FrameDetail.ALL_ATTEMPTS if save_movie else FrameDetail.NONE
 
 
-def _native_stopping_options(
-    criteria: Optional[OptimizationStoppingCriteria],
-) -> Optional[OptimizationStoppingOptions]:
-    """Translate the public stopping contract to the native stage contract."""
-    if criteria is None:
-        return None
-    return OptimizationStoppingOptions(
-        window=criteria.window,
-        maximum_energy_change_kj_mol=criteria.maximum_energy_change_kj_mol,
-        maximum_atom_displacement_angstrom=(
-            criteria.maximum_atom_displacement_angstrom
-        ),
-        maximum_rms_gradient_kj_mol_angstrom=(
-            criteria.maximum_rms_gradient_kj_mol_angstrom
-        ),
-        maximum_gradient_kj_mol_angstrom=(
-            criteria.maximum_gradient_kj_mol_angstrom
-        ),
-    )
-
-
 def _coordination_options(
     *,
     effective_forcefield: str,
@@ -359,7 +338,7 @@ def _optimization_options(
         increasing_vdw=increasing_vdw,
         vdw_cutoff_start=vdw_cutoff_start,
         vdw_cutoff_end=vdw_cutoff_end,
-        stopping=_native_stopping_options(stopping_criteria),
+        stopping=stopping_criteria,
         convergence_level=convergence_level,
     )
 

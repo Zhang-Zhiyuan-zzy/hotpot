@@ -35,8 +35,8 @@ from .native_reports import (
     NativeRingGraphScope,
 )
 from .settings import _BOND_RING_MAX_SIZE
-from .topology import (
-    TopologyReference,
+from ..structure.forcefields import TopologyReference
+from ..adapters.structure.forcefields import (
     _atom_identity,
     _atom_index_map,
     _bond_endpoint_indices,

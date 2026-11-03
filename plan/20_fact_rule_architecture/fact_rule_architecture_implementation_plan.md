@@ -2,7 +2,8 @@
 
 Status: **implementation authorized on 2026-10-28; Stage0–7E owning-stage gates complete
 within their recorded scopes. Stage8A1 scientific-state ownership and extraction
-non-mutation are accepted within the applicable CP311 checkpoint; whole Stage8A
+non-mutation are accepted within the applicable CP311 checkpoint. A8 now preserves
+known implicit-H0 distinctly from unresolved/absent H; whole Stage8A
 continues with D01–D03 public consolidation and remaining scientific-state work open. Full scientific, engineering, version-adaptation and global
 acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
@@ -2062,8 +2063,14 @@ is root accepted within CP311 source/installed scope: affected984passed/5skipped
 real CBond→FF→GFN-FF/GFN2 and MCA attachment3passed each per boundary,
 144existing classes/12public signatures preserved and12assets delivered.
 A7 fixes the reproduced input-mutation boundary with existing copy/H algorithms.
-Whole Stage8A remains open for its explicit public/schema decisions and remaining
-scientific-state limits; this is not Stage8B entry or global acceptance.
+The [A8 H-presence correction](stages/stage08/scientific-state/validation/h_presence_checkpoint.json)
+then closes P20-D020: known current H0 remains0, absent/unresolved H remainsNone,
+input is unchanged and old mismatched evidence is rejected. Source/installed
+affected991passed/5skipped plus real pipeline3/MCA3 each qualify this CP311
+scope; no public schema or H inference algorithm changes. Corrected identities
+and digest-based bounded ordering may differ from history. Whole Stage8A remains
+open for its explicit public/schema decisions and remaining scientific-state
+limits; this is not Stage8B entry or global acceptance.
 
 
 #### Stage 8B — Force fields

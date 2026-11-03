@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "stage": "Stage8A1",
-  "scope": "A1-A7 ownership/independence/nonmutation and connected CP311 business contracts, existing schemas unchanged",
+  "scope": "A1-A8 ownership/independence/nonmutation, known-zero H presence and connected CP311 business contracts; existing schemas unchanged",
   "source_command": {
     "argv": [
       "/tmp/hotpot-plan20-env/bin/python",
@@ -143,7 +143,7 @@
       "required": "Actual existing CPU prediction selects exact immutable DTO; all Atom/site projections join the same payload, no duplicate stores, independent returned dictionaries, read-only properties; existing same-input equivalence checks remain model/version-scoped observations."
     }
   ],
-  "expected": "Existing deterministic chemical/legal/search/codec values and resource digests unchanged; one actual owner, no pure-rule/controller coupling; scientific2S/backendUHF separate; true sample-local failures and immutable observations retained. Ownership/module paths and explicit split exports intentionally change. A7 prepares existing H semantics on an owned working copy; input factual/lifecycle bytes stay unchanged.",
+  "expected": "Existing deterministic chemical/legal/search/codec values and resource digests unchanged; one actual owner, no pure-rule/controller coupling; scientific2S/backendUHF separate; true sample-local failures and immutable observations retained. Ownership/module paths and explicit split exports intentionally change. A7 prepares existing H semantics on an owned working copy; input factual/lifecycle bytes stay unchanged. A8 retains present CURRENT H0 as0, distinct from absent/unresolved None, with intentional identity propagation and stale evidence rejection; no forced historical identity or digest-based budget-choice equality.",
   "allowed_numerical_variation": "Existing actual backend tests use method/context/unit-specific invariants and tolerances, no fixed historical energy/value hash. No algorithm or model feature changes authorized.",
   "source_runtime_authorized": true,
   "native": "Six CP311 binaries unchanged from accepted Stage7E; no native code/schema/ABI change. Reuse attributed binaries, no clean all-native/SDK claim.",

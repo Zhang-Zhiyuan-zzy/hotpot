@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage0\u20137E accepted within recorded owning scopes; Stage8A1 A1-A7 scientific-state ownership/nonmutation CP311 checkpoint accepted2026-11-03. 144existing migrated classes and12public signatures preserved, zero new types. Current468-file production Python census783classes/360dataclasses/8Protocols/2TypedDicts. Architecture224preexisting debt unchanged. Whole Stage8A/D01-D03, later and global gates remain open.",
+  "status": "Stage0\u20137E accepted within recorded owning scopes; Stage8A A1-A8 scientific-state ownership/nonmutation/H-zero-presence CP311 checkpoints accepted2026-11-03. 144existing migrated classes and12public signatures preserved, zero new types. Current468-file production Python census783classes/360dataclasses/8Protocols/2TypedDicts. Architecture224preexisting debt unchanged. Whole Stage8A/D01-D03, later and global gates remain open.",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -1116,11 +1116,12 @@
     "remaining": "Stage8 and later consolidation, non-CP311 adaptation, package/native/global science/performance obligations; P20-D018 bounded scalar-write optimization."
   },
   "stage8a_ownership_checkpoint": {
-    "status": "ROOT_ACCEPTED_CP311_OWNERSHIP_CHECKPOINT",
+    "status": "ROOT_ACCEPTED_CP311_A1_A8_CHECKPOINT_WHOLE_STAGE_OPEN",
     "checkpoint": "stages/stage08/scientific-state/ownership_checkpoint_20261103.json",
     "new_types": 0,
     "consolidation_D01_D03": "held, forecast reductions not realized",
     "stage_gate_closed": false,
-    "global_gate_closed": false
+    "global_gate_closed": false,
+    "h_presence_checkpoint": "stages/stage08/scientific-state/validation/h_presence_checkpoint.json"
   }
 }

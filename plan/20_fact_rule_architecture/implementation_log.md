@@ -4495,3 +4495,92 @@ without growth. Other-version, clean-native/ABI/SDK/sdist/manylinux, broader
 science/GPU/performance, optional activation and Plan20/integrated Plan12 gates
 remain open. Stage8B has not entered. The coherent business commit/push is
 identified by Git history; no hash-only follow-up commit is required.
+
+
+## 2026-11-03 — Stage8A A8 explicit-H-zero correction authorization
+
+After pushed98e6d2b, root re-aligned effective goal, focused Stage8A/Sections6
+and16.3–4, A1–A7 and B-H-PRESENCE, source/installed observations and two local
+read-only reviews. Present CURRENT zero is lost solely at the adapter return;
+known-zero/unresolved identity may collapse. Root accepts A8 before edits:
+return the present current stored count, leaving absent/non-current/conflict
+and existing copy/H preparation unchanged. No public schema or inference
+algorithm change. All current arithmetic consumers group zero/None, while fact,
+candidate/history IDs and digest-based bounded ordering can legitimately change.
+Reject stale evidence and retain original identities as historical observations;
+never rewrite digests to manufacture parity. A local Sol/medium author owns only
+the adapter and its facts tests; root owns records/integration/freeze/validation,
+acceptance and delivery. A8 is within existing Stage8A, not Stage8B entry.
+
+
+### Stage8A A8 integration review and runtime release
+
+Root inspected the two-file authored diff and independent domain assertions.
+The sole production edit retains current stored zero. Seven added cases cover
+imported/inferred/current/pending/unresolved H, equal-nuclear-sum identity
+separation, chloride −1/18electrons/Lewis octet/singlet/UHF0 and stale-evidence
+rejection; existing raw-input success/conflict checks remain. No other product
+or test file differs from the accepted A7 freeze. Root releases the new
+`source-validation/source_freeze-h-presence.json` for focused/87-file affected,
+actual pipeline/MCA and matching installed CP311 checks. All native sources,
+six binaries, resource assets and build inputs remain unchanged. Root will
+retain failures/actual observations and accept only demonstrated scope.
+
+
+## 2026-11-03 — Stage8A A8 actual H-presence acceptance and delivery
+
+Root accepts A8 and closes only P20-D020/B-H-PRESENCE within the tested CP311
+source/installed scope. The one production edit preserves present CURRENT H0;
+missing/unresolved remainsNone, conflict retains its exact error and existing
+copy/H preparation leaves original raw facts/status/seeds unchanged. Seven added
+cases also prove identity separation at equal nuclear sum, stale-evidence
+rejection and chloride charge−1/eighteen electrons/Lewis octet/2S0/multiplicity1/
+UHF0 with an existing all-electron test context. No public type/signature/schema,
+H algorithm, native/model feature, compatibility path or speculative guard changed.
+
+Freeze `fdd6cee093295d57f235a3b0fd050ac78ccf452b84914cde2586e9f95bf64cf5`
+binds1425 product/test/resource files+6unchanged natives+3build inputs at parent
+98e6d2b. Only the adapter and its facts tests differ from accepted A7 product
+bytes. Source focused444passed; complete87-file affected selection991passed/
+5skipped of996nodes. The installed outside-checkout selection passes991/skip5
+with identical ordered membership. Actual source/installed pipeline3 and actual
+MCAattachment3 pass per boundary; all16participating installed Python processes
+reconcile without checkout leaks, and all source/test/native/model/install/support
+bindings remain unchanged. The Python/resource wheel is6327904bytes, SHA256
+e2453fd0de042b40582a860c96c8459342a55006d496d95ed2697bc485c823ae.
+The five standalone external-tier skips remain skips; actual workflows ran
+separately. No A8 product validation attempt failed.
+
+Exact actual pytest argv/cwd/environment/dependencies/outcomes and the source
+launch commands are linked by the [A8 checkpoint graph](stages/stage08/scientific-state/validation/h_presence_checkpoint.json).
+Installed execution used:
+`python /tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/installed-validation/run_installed.py --root-runtime-released --source-freeze /tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-h-presence.json --source-run /tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/affected-h-presence-attempt01 --attempt h-presence-attempt01`.
+Raw reports, current method/unit/state/geometry and complete MCA values remain in
+the separate source/installed [observations](stages/stage08/scientific-state/validation/h_presence_observations.json)
+and local `.plan20-artifacts/20261103/stage8a/h-presence` archive. The prior
+A1–A7 failures and accepted observations retain their original bounds.
+
+A reporting-only first script raised AssertionError before writing maintained
+outputs: glob traversed pytest current directory symlink aliases, finding5
+pipeline manifests/6MCA paths for3real cases each. The corrected report traverses
+real testcase directories and retains all independent cases; no business code
+changed or passed business suite reran. The original trace/excerpt, actual alias
+counts and correction are retained in the indexed summary-failure receipt.
+This tool error is distinct from business execution, not a fabricated failure
+or denominator adjustment. A local Luna/low agent mechanically copied the fixed
+artifact list and calculated its876-file manifest; a local Sol/medium agent
+assembled bounded factual records, while root reviewed and owns acceptance/Git.
+No external helper or measured token-saving claim is involved.
+
+Corrected H0 values and their candidate/history IDs may differ from history;
+digest-based ordering under tight budgets remains governed by current bounded
+search contracts. No historical hash or selected-path equality was forced.
+Existing unknown-H arithmetic and public-ID/row assumptions remain qualified.
+A7 whole-copy cost observations remain historical usable evidence; no new cost
+ratio or general scaling claim was made, and P20-D019 remains deferred. Current
+production type census and architecture ownership are unchanged. Whole Stage8A,
+D01–D03 exact public/consumer review, optional activation, other-version,
+clean-native/ABI/SDK/sdist/manylinux,41measured package omissions and global
+scientific/GPU/performance obligations remain open. No Stage8B entry or overall
+completion is accepted. Git history identifies the coherent business commit
+and normal push; no bookkeeping-only follow-up commit is required.

@@ -8,6 +8,8 @@ import numpy as np
 import pytest
 
 from hotpot.cheminfo.core import BondKind, Molecule
+from hotpot.cheminfo.structure._dependencies import GROUP_INDEX, _FactStatus
+from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX, FIELD_PRESENCE_BITS
 from hotpot.cheminfo.structure.snapshots import MolecularFactsIdentity
 from tests.test_cheminfo._stage5_fixtures import supplied_aromatic_flags
 from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
@@ -52,7 +54,7 @@ def _hydrogen_extraction_fixture(case):
 @pytest.mark.parametrize(
     ("case", "implicit_counts", "nuclear_charge_sum"),
     (
-        ("explicit_zero", (None,), 6),
+        ("explicit_zero", (0,), 6),
         ("absent_carbon_h", (4,), 10),
         ("absent_element_h", (None,), 0),
         ("element_change", (2,), 10),
@@ -184,3 +186,152 @@ def test_verified_atom_map_makes_identity_independent_of_storage_order() -> None
     assert extract_molecular_facts(first).identity == extract_molecular_facts(
         reordered
     ).identity
+
+
+@pytest.mark.parametrize("source", ("imported", "inferred"))
+def test_current_imported_and_inferred_zero_hydrogens_remain_known(source):
+    if source == "imported":
+        mol = hotpot.read_mol("[Cl-]", "smi")
+        source_codes = (ATOM_SOURCE_CODES["openbabel"], ATOM_SOURCE_CODES["rdkit"])
+    else:
+        mol = Molecule()
+        mol.create_atom(atomic_number=17, formal_charge=-1)
+        mol.calc_implicit_hydrogens()
+        source_codes = (ATOM_SOURCE_CODES["implicit_hydrogens"],)
+    table = mol._atom_table
+    field = FIELD_INDEX["implicit_hydrogens"]
+    assert table._columns[field][0] == 0
+    assert int(table._presence[0]) & FIELD_PRESENCE_BITS[field]
+    assert table._group_status[0, GROUP_INDEX["IMPLICIT_H"]] == _FactStatus.CURRENT
+    assert int(table._sources[0, field]) in source_codes
+    before = _raw_factual_state(mol)
+
+    facts = extract_molecular_facts(mol)
+
+    assert facts.hydrogen_inventory.implicit_counts == (0,)
+    assert facts.nuclear_charge_sum == 17
+    assert _raw_factual_state(mol) == before
+
+
+def _unknown_neighbour_molecule(*, known_zero):
+    mol = Molecule()
+    supplied_hydrogens = {"implicit_hydrogens": 0} if known_zero else {}
+    mol.create_atom(atomic_number=6, id=0, **supplied_hydrogens)
+    mol.create_atom(id=1)
+    mol.add_bond(0, 1)
+    return mol
+
+
+def test_known_zero_and_unresolved_hydrogens_have_distinct_fact_identities():
+    known = _unknown_neighbour_molecule(known_zero=True)
+    unknown = _unknown_neighbour_molecule(known_zero=False)
+    before_known = _raw_factual_state(known)
+    before_unknown = _raw_factual_state(unknown)
+
+    known_facts = extract_molecular_facts(known)
+    unknown_facts = extract_molecular_facts(unknown)
+
+    assert known_facts.atomic_numbers == unknown_facts.atomic_numbers == (6, 0)
+    assert known_facts.atom_map == unknown_facts.atom_map == (0, 1)
+    assert known_facts.semantic_bonds == unknown_facts.semantic_bonds
+    assert known_facts.hydrogen_inventory.implicit_counts == (0, None)
+    assert unknown_facts.hydrogen_inventory.implicit_counts == (None, None)
+    assert known_facts.nuclear_charge_sum == unknown_facts.nuclear_charge_sum == 6
+    assert known_facts.identity != unknown_facts.identity
+    assert _raw_factual_state(known) == before_known
+    assert _raw_factual_state(unknown) == before_unknown
+
+
+def test_unresolved_raw_zero_is_not_promoted_to_a_known_zero():
+    mol = Molecule()
+    mol.create_atom()
+    mol.calc_implicit_hydrogens()
+    table = mol._atom_table
+    field = FIELD_INDEX["implicit_hydrogens"]
+    assert table._columns[field][0] == 0
+    assert table._group_status[0, GROUP_INDEX["IMPLICIT_H"]] == _FactStatus.UNRESOLVED
+    assert not int(table._presence[0]) & FIELD_PRESENCE_BITS[field]
+    before = _raw_factual_state(mol)
+
+    facts = extract_molecular_facts(mol)
+
+    assert facts.hydrogen_inventory.implicit_counts == (None,)
+    assert facts.nuclear_charge_sum == 0
+    assert _raw_factual_state(mol) == before
+
+
+def test_pending_inferred_zero_requires_preparation_on_the_working_copy():
+    mol = Molecule()
+    atom = mol.create_atom(atomic_number=17, formal_charge=-1)
+    mol.calc_implicit_hydrogens()
+    atom.atomic_number = 0
+    table = mol._atom_table
+    field = FIELD_INDEX["implicit_hydrogens"]
+    assert table._columns[field][0] == 0
+    assert int(table._presence[0]) & FIELD_PRESENCE_BITS[field]
+    assert atom._uid in table._dirty_seeds[GROUP_INDEX["IMPLICIT_H"]]
+    before = _raw_factual_state(mol)
+
+    facts = extract_molecular_facts(mol)
+
+    assert facts.hydrogen_inventory.implicit_counts == (None,)
+    assert facts.nuclear_charge_sum == 0
+    assert _raw_factual_state(mol) == before
+
+
+def test_chloride_zero_h_preserves_charge_electrons_lewis_and_singlet_projection():
+    from hotpot.cheminfo.operations.calculation.scientific_state.contracts import ProviderSet, ProviderToggle
+    from hotpot.cheminfo.operations.calculation.scientific_state.execution_selection import BackendProjectionStatus, resolve_and_project_state
+    from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+    from tests.test_cheminfo.calculator.test_backend_state_projection import _AllElectronBackend
+
+    mol = hotpot.read_mol("[Cl-]", "smi")
+    before = _raw_factual_state(mol)
+    facts = extract_molecular_facts(mol)
+
+    workflow = resolve_and_project_state(
+        facts,
+        _AllElectronBackend(),
+        StateRequest(net_charge=-1, two_s=0),
+        provider_set=ProviderSet((ProviderToggle("PROVIDER-001", True),)),
+    )
+
+    bundle = workflow.scientific_state
+    assert facts.hydrogen_inventory.implicit_counts == (0,)
+    assert facts.nuclear_charge_sum == 17
+    assert tuple(candidate.charge for result in bundle.net_charge_results for candidate in result.candidates) == (-1,)
+    assert tuple(
+        (candidate.atom_formal_charges, candidate.nonbonding_electrons, candidate.radical_electrons)
+        for result in bundle.lewis_results for candidate in result.candidates
+    ) == (((-1,), (8,), (0,)),)
+    assert tuple(
+        (candidate.electron_count, candidate.two_s, candidate.multiplicity)
+        for result in bundle.electronic_state_results for candidate in result.candidates
+    ) == ((18, 0, 1),)
+    result = workflow.backend_projection
+    assert result.status is BackendProjectionStatus.PROJECTED
+    assert (result.projection.charge, result.projection.effective_electron_count, result.projection.uhf, result.projection.multiplicity) == (-1, 18, 0, 1)
+    assert _raw_factual_state(mol) == before
+
+
+def test_evidence_from_unresolved_h_is_rejected_for_the_known_zero_boundary():
+    from hotpot.cheminfo.rules.chemistry.scientific_state.charge.net_charge import resolve_net_charge
+    from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import ScientificAdmissibility
+    from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+
+    unknown = _unknown_neighbour_molecule(known_zero=False)
+    known = _unknown_neighbour_molecule(known_zero=True)
+    before_unknown = _raw_factual_state(unknown)
+    before_known = _raw_factual_state(known)
+    unknown_facts = extract_molecular_facts(unknown)
+    known_facts = extract_molecular_facts(known)
+    provided = resolve_net_charge(unknown_facts, StateRequest(net_charge=0))[0]
+    assert provided.admissibility is ScientificAdmissibility.ADMISSIBLE
+    assert tuple(candidate.charge for candidate in provided.candidates) == (0,)
+
+    rejected = resolve_net_charge(known_facts, provided=(provided,))[1]
+
+    assert rejected.admissibility is ScientificAdmissibility.INADMISSIBLE
+    assert tuple(finding.code for finding in rejected.findings) == ("HARD-001.FACTS_IDENTITY_MISMATCH",)
+    assert _raw_factual_state(unknown) == before_unknown
+    assert _raw_factual_state(known) == before_known

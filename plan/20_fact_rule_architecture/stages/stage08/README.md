@@ -1,6 +1,6 @@
 # Stage8 records
 
-Stage8A1 scientific-state ownership/non-mutation is root accepted within [its CP311 checkpoint](scientific-state/ownership_checkpoint_20261103.json). Whole Stage8A remains open for public consolidation and remaining scientific-state work. Stage8B–E remain unentered. The main implementation plan owns requirements and gates.
+Stage8A1 scientific-state ownership/non-mutation is root accepted within [its CP311 checkpoint](scientific-state/ownership_checkpoint_20261103.json). [A8 H-presence](scientific-state/validation/h_presence_checkpoint.json) also has accepted CP311 evidence; P20-D020 is closed. Whole Stage8A remains open for public consolidation and remaining scientific-state work. Stage8B–E remain unentered. The main implementation plan owns requirements and gates.
 
 - [Stage8A entry](scientific-state/entry_review.json)
 - [Stage8A decisions](scientific-state/contracts/decisions.md)

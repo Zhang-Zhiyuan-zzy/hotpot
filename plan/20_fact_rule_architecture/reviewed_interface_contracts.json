@@ -4344,7 +4344,9 @@
       "id": "B-H-PRESENCE",
       "evidence": "calculator/state_resolver.py:283 maps implicit_hydrogens==0 to None",
       "gate": "Stage3/5 complete snapshot and presence migration",
-      "disposition": "Record existing mixed zero/absence; never claim current extractor is lossless or silently infer explicitness."
+      "disposition": "Record existing mixed zero/absence; never claim current extractor is lossless or silently infer explicitness.",
+      "resolution": "Corrected by Stage8A A8: present CURRENT implicit-H0 stays0, absent/unresolved remainsNone, conflict unchanged; copied preparation leaves input intact. No signature/field/schema/inference change. Source/installed991passed+5skip and actual workflows qualify CP311 scope.",
+      "resolution_evidence": "stages/stage08/scientific-state/validation/h_presence_checkpoint.json"
     },
     {
       "id": "B-CONFORMER-EMPTY",

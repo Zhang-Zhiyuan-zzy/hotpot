@@ -2,8 +2,9 @@
 
 A1–A7 ownership and the diagnosed extraction non-mutation correction are
 [root accepted within their CP311 checkpoint](ownership_checkpoint_20261103.json).
-Whole Stage8A, D01–D03 public consolidation, optional activation and all
-later/global gates remain open.
+[A8 also preserves known H0](validation/h_presence_checkpoint.json) with matching
+source/installed scientific and actual-workflow evidence. Whole Stage8A, D01–D03
+public consolidation, optional activation and all later/global gates remain open.
 
 - [Entry assessment](entry_review.json)
 - [Decisions and diagnosed amendment](contracts/decisions.md)
@@ -14,3 +15,6 @@ later/global gates remain open.
 - [Business observations](validation/scientific_observations.json)
 - [Report and remaining scope](validation/report.md)
 - [Evidence on demand](validation/evidence_index.json)
+
+- [A8 actual observations](validation/h_presence_observations.json)
+- [A8 H-presence report](validation/h_presence_report.md)

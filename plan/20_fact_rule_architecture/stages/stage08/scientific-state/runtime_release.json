@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "stage": "Stage8A1",
-  "status": "ROOT_ACCEPTED_CP311_OWNERSHIP_CHECKPOINT",
+  "stage": "Stage8A",
+  "status": "ROOT_ACCEPTED_CP311_A1_A8_CHECKPOINT_WHOLE_STAGE_OPEN",
   "source_freeze": {
-    "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-a7-resource-repair.json",
-    "sha256": "aa4619bf16069b5c937c4a033abdd0dac1c1c83655c0d108f749afef7c8cfa57"
+    "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-h-presence.json",
+    "sha256": "fdd6cee093295d57f235a3b0fd050ac78ccf452b84914cde2586e9f95bf64cf5"
   },
-  "contracts_sha256": "ea00374ce3cf392468d6c1dd948b94c61524465758f8e9f1ebb9daa7baebe092",
-  "validation_sha256": "2436dd46e27dcab03e36e5b4cc8b2d17e177bbf643292e3334663a3f580af888",
+  "contracts_sha256": "2a85ff93a6b3f7a2a35c2ffa3ce90d8dd8569796d89b29a9adafdcecef39e59a",
+  "validation_sha256": "2378c3c56e7a91d6ad2fba26036efb77c1b612afc036828cc2739f279baedf4d",
   "root_review": "Reviewed exact dependency cut, class/function/resource preservation, owning source, current pickle/independent chemistry tests, outside-consumer bindings and changed Python/data packaging. All new-scientific old imports removed. Static gaps correspond to preexisting lazy FF/MCA exports/native binding, not missed scientific-state owners.",
   "runtime_authorized": [
     "focused",
@@ -30,5 +30,8 @@
   "stage_gate_closed": false,
   "global_gate_closed": false,
   "checkpoint_gate_closed": true,
-  "checkpoint": "ownership_checkpoint_20261103.json"
+  "checkpoint": "validation/h_presence_checkpoint.json",
+  "previous_checkpoint": "ownership_checkpoint_20261103.json",
+  "root_a8_review": "Only production change returns stored current int including0. Root reviewed raw-state, unknown/pending/current sources, equal-nuclear-sum identity separation, chloride -1/18electron/octet/singlet/UHF0 and stale-evidence regressions. Product/test delta exactly2 files;1425 product/test/resource files+6 natives+3 build inputs rebound; no other product delta.",
+  "root_a8_results": "Source444focused/991affected+5skip; installed991affected+5skip/same996nodes; actual source/installed pipeline3/MCA3 per boundary;16installed origin-audited Python processes/no leaks; current source/model/native/build bindings unchanged. P20-D020 closed only for H presence."
 }

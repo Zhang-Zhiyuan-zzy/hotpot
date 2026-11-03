@@ -182,7 +182,7 @@ def _implicit_hydrogen_count(table, row: int) -> Optional[int]:
         )
     if status == _FactStatus.CURRENT and int(table._presence[row]) & FIELD_PRESENCE_BITS[field]:
         count = int(table._columns[field][row])
-        return count if count else None
+        return count
     return None
 
 

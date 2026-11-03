@@ -1,0 +1,2631 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8A-A8",
+  "date": "2026-11-03",
+  "status": "ROOT_ACCEPTED_CP311_H_ZERO_PRESENCE_CORRECTION",
+  "acceptance_owner": "root",
+  "checkpoint_gate_closed": true,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "closed_items": [
+    "P20-D020",
+    "B-H-PRESENCE"
+  ],
+  "remaining_open": [
+    "whole Stage8A",
+    "D01",
+    "D02",
+    "D03",
+    "later/global gates",
+    "P20-D019"
+  ],
+  "accepted_scope": "Sole existing adapter CURRENT/present integer return preserves H0; root inspected/accepted completed source and installed CP311 evidence.",
+  "production_change_counts": {
+    "new_types": 0,
+    "public_API_changes": 0,
+    "schema_changes": 0,
+    "algorithm_changes": 0,
+    "model_changes": 0,
+    "native_changes": 0
+  },
+  "source": {
+    "head_at_execution": "98e6d2bc762ab142c04dbe86395ff235ccc063af",
+    "freeze": "a6b02e86f47114d4b",
+    "binding_counts": {
+      "source_and_tests": 1425,
+      "native": 6,
+      "build_inputs": 3
+    },
+    "delta_from_A7": {
+      "source_and_tests": [
+        "hotpot/cheminfo/adapters/structure/scientific_state.py",
+        "tests/test_cheminfo/calculator/test_scientific_state_facts.py"
+      ],
+      "native": [],
+      "build_inputs": []
+    },
+    "all_four_source_receipts_match_final_freeze": true,
+    "root_final_frozen_hash_recheck": "Root independently rechecked every frozen hash with no differences; acceptance attribution from root."
+  },
+  "source_results": {
+    "focused": {
+      "receipt": "aa0bf4ca2f3b3dc8c",
+      "junit": {
+        "tests": 444,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 444
+      },
+      "returncode": 0,
+      "elapsed_seconds": 12.21340230293572
+    },
+    "affected": {
+      "receipt": "a3fe3c996ab596cc9",
+      "junit": {
+        "tests": 996,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 5,
+        "passed": 991
+      },
+      "returncode": 0,
+      "elapsed_seconds": 22.933677900582552
+    },
+    "actual_CBFF_xtb": {
+      "receipt": "aaa0c00a900ad84aa",
+      "junit": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 3
+      },
+      "returncode": 0,
+      "elapsed_seconds": 4.866392211988568
+    },
+    "actual_MCA_attachment": {
+      "receipt": "aeda068ca5eeda949",
+      "junit": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 3
+      },
+      "returncode": 0,
+      "elapsed_seconds": 8.695140946656466
+    }
+  },
+  "installed": {
+    "receipt": "a91ee08e5465557d2",
+    "results": {
+      "affected": {
+        "tests": 996,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 5,
+        "returncode": 0,
+        "elapsed_seconds": 24.682937923818827,
+        "passed": 991,
+        "origin_audit": {
+          "startup_processes": 10,
+          "final_processes": 10,
+          "zero_leaks": true
+        },
+        "junit": "a07c5ed7091bd039c"
+      },
+      "actual_CBFF_xtb": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 5.389742523431778,
+        "passed": 3,
+        "origin_audit": {
+          "startup_processes": 5,
+          "final_processes": 5,
+          "zero_leaks": true
+        },
+        "junit": "a4ed553311950ff51"
+      },
+      "actual_MCA_attachment": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 8.882863316684961,
+        "passed": 3,
+        "origin_audit": {
+          "startup_processes": 1,
+          "final_processes": 1,
+          "zero_leaks": true
+        },
+        "junit": "a1b28485801453ac7"
+      }
+    },
+    "wheel": {
+      "path": "/tmp/hotpot_plan20/medium/20261103-stage8a-state-installed/h-presence-attempt01/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6327904,
+      "sha256": "e2453fd0de042b40582a860c96c8459342a55006d496d95ed2697bc485c823ae"
+    },
+    "same_ordered_affected_nodes": true,
+    "bindings_unchanged": {
+      "source_tests_native_unchanged": true,
+      "installed_unchanged": true,
+      "models_unchanged": true,
+      "outside_support_unchanged": true,
+      "architecture_context_unchanged": true,
+      "runner_support_unchanged": true
+    },
+    "origin_process_total": 16,
+    "production_python_files": 468,
+    "native_count": 6,
+    "measured_nonpython_omissions": [
+      "hotpot/cheminfo/AImodels/INFERENCE_COMPATIBILITY.md",
+      "hotpot/cheminfo/AImodels/cbond/README.md",
+      "hotpot/cheminfo/AImodels/mca/MODEL_CARD.md",
+      "hotpot/cheminfo/AImodels/mca/README.md",
+      "hotpot/cheminfo/AImodels/mca/THIRD_PARTY_LICENSES.md",
+      "hotpot/cheminfo/AImodels/mca/requirements.txt",
+      "hotpot/cheminfo/MolProps/data/MedProp.xlsx",
+      "hotpot/cheminfo/MolProps/data/SolProp.xlsx",
+      "hotpot/cheminfo/MolProps/sol_med_prop.md",
+      "hotpot/cheminfo/_native/include/hotpot/native/array_view.hpp",
+      "hotpot/cheminfo/_native/include/hotpot/native/molecule_buffer_view.hpp",
+      "hotpot/cheminfo/mol_assemble/Assemblers.svg",
+      "hotpot/cheminfo/mol_assemble/Example-5step.svg",
+      "hotpot/cheminfo/mol_assemble/FragTemplete.json",
+      "hotpot/cheminfo/mol_assemble/README.md",
+      "hotpot/cheminfo/pubchem.md",
+      "hotpot/cheminfo/rdWrappers/CMakeLists.txt",
+      "hotpot/cheminfo/rdWrappers/_native/BUILDING.md",
+      "hotpot/cheminfo/rdWrappers/_native/include/hotpot/rdWrappers/c_api.h",
+      "hotpot/cheminfo/rdWrappers/_native/include/hotpot/rdWrappers/rdwrapper.hpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/c_api.cpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/core.hpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/exports.map",
+      "hotpot/cheminfo/rdWrappers/_native/src/molecule_builder.cpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/python_binding.cpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/python_exports.map",
+      "hotpot/cheminfo/rdWrappers/_native/src/sampler.cpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/validation.cpp",
+      "hotpot/cheminfo/rdWrappers/build_locked.sh",
+      "hotpot/cheminfo/rdWrappers/cmake/HotpotRDWrappersConfig.cmake.in",
+      "hotpot/cheminfo/rdWrappers/cmake/attach_rdwrapper.cmake",
+      "hotpot/cheminfo/rdWrappers/cmake/remove_build_rpath.cmake",
+      "hotpot/cheminfo/rdwork.md",
+      "hotpot/cheminfo/rules/chemistry/bonding/Kekulize.md",
+      "hotpot/cheminfo/smarts.md",
+      "hotpot/dataset/retention-cleanup.txt",
+      "hotpot/plugins/ml/features/elements/_elements.pd.xz",
+      "hotpot/plugins/ml/features/solvents/mnsddb.pdf",
+      "hotpot/plugins/opti/beyes/opti.py.old",
+      "hotpot/plugins/plots/cmaps/BluesSat.npy",
+      "hotpot/plugins/zeoxx/README.md"
+    ]
+  },
+  "archive": {
+    "manifest": "a0673c49dac15d4d1",
+    "regular_files": 876,
+    "total_bytes": 9675557,
+    "hashes_are": "Attribution, not scientific truth or package completeness."
+  },
+  "historical_and_reused_evidence": {
+    "A1_A7_checkpoint": "a76d2db37a9bd315c",
+    "A1_A7_observations": "a1f879a89c4d6bc4f",
+    "A7_cost_summary": "a11679ec5f91305b9",
+    "A7_cost_attempt02": "a8f22565a0d30d7a5",
+    "A1_A7_archive": "ac1e66bf2929f8fbf",
+    "initial_NaN_failure": "a258f66aa57ce3043",
+    "resource_address_failure": "aaafca8d9bb63bc49",
+    "cost_setup_failure": "a2755939ef2c52cd7",
+    "reporting_only_failure": "a84afc738e4dcd0a0"
+  },
+  "retained_failures": [
+    {
+      "kind": "Initial NaN-list getter equality test failure",
+      "artifact": "a258f66aa57ce3043",
+      "disposition": "Retained A1-A7 historical failure; later raw-byte/metadata regression establishes input ownership."
+    },
+    {
+      "kind": "Old neutral-reference resource-address failure",
+      "artifact": "aaafca8d9bb63bc49",
+      "disposition": "Retained failed run; test resource address repaired before final A7 and A8 runs."
+    },
+    {
+      "kind": "A7 cost attempt01 invalid XTBMethod.GFN2",
+      "artifact": "a2755939ef2c52cd7",
+      "disposition": "Setup failure before measurements; attempt02 current-cost evidence remains A7 only."
+    },
+    {
+      "kind": "A8 first reporting-only assembly assertion",
+      "artifact": "a84afc738e4dcd0a0",
+      "disposition": "Pytest current symlink aliases double-counted3 real cases; corrected regular nonsymlink testcase traversal. No maintained outputs written on failure, no business failure/runtime rerun."
+    }
+  ],
+  "cost_reuse": {
+    "source": "A7",
+    "cells": 12,
+    "timing_trials": 60,
+    "calls_per_trial": 20,
+    "timed_calls": 1200,
+    "A8_remeasurement": false,
+    "historical_speedup_claim": false,
+    "remaining_debt": "P20-D019"
+  },
+  "limits": [
+    "Actual backend/model observations are method/input scoped; geometry pass does not establish a unique chemical truth or experimental accuracy.",
+    "Actual xTB scientific resolution_status remains unresolved. GFN2 execution_default/pure_spin_highest_ms with UHF0 is an execution projection, not resolved molecular spin. Charge-only GFN-FF unpaired_electrons remains null.",
+    "Unresolved/unknown-H arithmetic interpretation and public-ID/row extraction assumptions remain qualified; no stronger losslessness claim. Historical null cannot be losslessly upgraded without the carrier.",
+    "Five direct-CLI integration skips retain their own denominator; actual three-pipeline runs have separate denominators.",
+    "CP311/system-site packages only; unchanged six accepted Stage7E natives reused. No clean native/ABI/SDK/sdist/manylinux/all-version/GPU/global science acceptance.",
+    "41 measured nonPython wheel omissions remain explicit. Origin coverage is Python site-hook participants; native and site-bypassing processes are not independently enumerated.",
+    "A7 current-cost12cells/60trials/1200calls is reused, not A8 remeasurement or historical speedup; full-copy cost remains P20-D019."
+  ],
+  "observations": "h_presence_observations.json",
+  "report": "h_presence_report.md",
+  "evidence_graph": {
+    "nodes": {
+      "a6b02e86f47114d4b": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/source_freeze-h-presence.json",
+        "bytes": 182055,
+        "sha256": "fdd6cee093295d57f235a3b0fd050ac78ccf452b84914cde2586e9f95bf64cf5",
+        "roles": [
+          "final A8 source freeze"
+        ]
+      },
+      "a0673c49dac15d4d1": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/archive-manifest.json",
+        "bytes": 254243,
+        "sha256": "d400dbd6ed214d0260db8307de98698eb31975bff93c133c24758b059ced142a",
+        "roles": [
+          "A8 durable archive attribution"
+        ]
+      },
+      "aa0bf4ca2f3b3dc8c": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/focused-h-presence-attempt01/execution.json",
+        "bytes": 3096,
+        "sha256": "5c05fcc592aee93680aa6f3bd772026a178cf98e77c49282d6c813ab524d45cb",
+        "roles": [
+          "completed A8 source receipt"
+        ]
+      },
+      "ad669441114cc321e": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/focused-h-presence-attempt01/junit.xml",
+        "bytes": 104074,
+        "sha256": "e47b0df62cfd372161e402f8b0ba29b9a51406c08da55aeaee6a5a94f44fc804",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a79c20b4d19dd60df": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/focused-h-presence-attempt01/bindings-before.json",
+        "bytes": 178376,
+        "sha256": "883906fa93c075b91e52f482a4f257cdaf9bc5993d37612efcc0b2f55bbdba4c",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "ade01ac7efd4a453f": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/focused-h-presence-attempt01/bindings-after.json",
+        "bytes": 178376,
+        "sha256": "883906fa93c075b91e52f482a4f257cdaf9bc5993d37612efcc0b2f55bbdba4c",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a40f7d22f43f7349a": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/focused-h-presence-attempt01/dependency-assets-before.json",
+        "bytes": 23468,
+        "sha256": "124f613bb51adbb45eefc426ca74fff59b040d7eeabbf4e1bf6b50a4a5e5bd43",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a03c6d1f1e05ef83b": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/focused-h-presence-attempt01/dependency-assets-after.json",
+        "bytes": 23468,
+        "sha256": "124f613bb51adbb45eefc426ca74fff59b040d7eeabbf4e1bf6b50a4a5e5bd43",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "ab936d3fe644522b6": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/focused-h-presence-attempt01/stdout.log",
+        "bytes": 2192,
+        "sha256": "71b722a16b3ac3b0c1df469f80b33f30baadd36b1d7b9212208d797fd1d7871d",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a0e80ebe4fee1b1cc": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/focused-h-presence-attempt01/stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a3fe3c996ab596cc9": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/affected-h-presence-attempt01/execution.json",
+        "bytes": 8090,
+        "sha256": "4e4996e4e50d1e774bbf7ef156803f15dd499d088b67287ad4ad8cf23e43e6e2",
+        "roles": [
+          "completed A8 source receipt"
+        ]
+      },
+      "a8ea51ff44822659b": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/affected-h-presence-attempt01/junit.xml",
+        "bytes": 193017,
+        "sha256": "aafa54c213084d55c0bf4210dccd925c3fe360fb9393ebd31eb674156ec6d0f6",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a36a4982ad63511d8": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/affected-h-presence-attempt01/bindings-before.json",
+        "bytes": 178376,
+        "sha256": "883906fa93c075b91e52f482a4f257cdaf9bc5993d37612efcc0b2f55bbdba4c",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a680c95fb8b353b5c": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/affected-h-presence-attempt01/bindings-after.json",
+        "bytes": 178376,
+        "sha256": "883906fa93c075b91e52f482a4f257cdaf9bc5993d37612efcc0b2f55bbdba4c",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "ad7a3b40cd3af38b6": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/affected-h-presence-attempt01/dependency-assets-before.json",
+        "bytes": 23468,
+        "sha256": "124f613bb51adbb45eefc426ca74fff59b040d7eeabbf4e1bf6b50a4a5e5bd43",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a3b69baf5e56af101": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/affected-h-presence-attempt01/dependency-assets-after.json",
+        "bytes": 23468,
+        "sha256": "124f613bb51adbb45eefc426ca74fff59b040d7eeabbf4e1bf6b50a4a5e5bd43",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "ac3bfc6f3508679c2": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/affected-h-presence-attempt01/stdout.log",
+        "bytes": 2763,
+        "sha256": "8fdc5359de702362817c361a0dc0338f7a6e57e64ea61eee29130821f64b0063",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a8832fed96b0724cd": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/affected-h-presence-attempt01/stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "aaa0c00a900ad84aa": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/execution.json",
+        "bytes": 2627,
+        "sha256": "5b7c05cd48cde7b6f3d7872e6f5e2cc72003ff1ab6cf722f6ba7654cf687c90f",
+        "roles": [
+          "completed A8 source receipt"
+        ]
+      },
+      "a31f4f5f7df6abb97": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/junit.xml",
+        "bytes": 712,
+        "sha256": "ab50390728c73cf206053effb3bacda14189dfeec910ad98892f3d8fc8096f8f",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "af189019e00456a76": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/bindings-before.json",
+        "bytes": 178376,
+        "sha256": "883906fa93c075b91e52f482a4f257cdaf9bc5993d37612efcc0b2f55bbdba4c",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a33528d655da8d24e": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/bindings-after.json",
+        "bytes": 178376,
+        "sha256": "883906fa93c075b91e52f482a4f257cdaf9bc5993d37612efcc0b2f55bbdba4c",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a0035fa1b83ccdf0d": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/dependency-assets-before.json",
+        "bytes": 23468,
+        "sha256": "124f613bb51adbb45eefc426ca74fff59b040d7eeabbf4e1bf6b50a4a5e5bd43",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a3fd27df8aaeaffa7": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/dependency-assets-after.json",
+        "bytes": 23468,
+        "sha256": "124f613bb51adbb45eefc426ca74fff59b040d7eeabbf4e1bf6b50a4a5e5bd43",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a8a8db42935824a12": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/stdout.log",
+        "bytes": 98,
+        "sha256": "4dd0819f73a7aece1e0f7b9e962935db49228468f48dc367a722c656a6675400",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a12e59bb2bff0c53e": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "aeda068ca5eeda949": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_MCA_attachment-h-presence-attempt01/execution.json",
+        "bytes": 2581,
+        "sha256": "75b77ed4333ff6c6969cf31fbfeffd075d84c30ca1bb70655c71008f46e27bd1",
+        "roles": [
+          "completed A8 source receipt"
+        ]
+      },
+      "a0a97d3c2ab83ae5a": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_MCA_attachment-h-presence-attempt01/junit.xml",
+        "bytes": 679,
+        "sha256": "9acbe98e701587283f595793e73ba5bdfdd86245ed8d542f08027aba6268fa2b",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a2f9284aa9f438498": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_MCA_attachment-h-presence-attempt01/bindings-before.json",
+        "bytes": 178376,
+        "sha256": "883906fa93c075b91e52f482a4f257cdaf9bc5993d37612efcc0b2f55bbdba4c",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a997b6998e979d27a": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_MCA_attachment-h-presence-attempt01/bindings-after.json",
+        "bytes": 178376,
+        "sha256": "883906fa93c075b91e52f482a4f257cdaf9bc5993d37612efcc0b2f55bbdba4c",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a6fad27187ba8cced": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_MCA_attachment-h-presence-attempt01/dependency-assets-before.json",
+        "bytes": 23468,
+        "sha256": "124f613bb51adbb45eefc426ca74fff59b040d7eeabbf4e1bf6b50a4a5e5bd43",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a0e72888db6ab5fcb": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_MCA_attachment-h-presence-attempt01/dependency-assets-after.json",
+        "bytes": 23468,
+        "sha256": "124f613bb51adbb45eefc426ca74fff59b040d7eeabbf4e1bf6b50a4a5e5bd43",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a993c34e6c1effb22": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_MCA_attachment-h-presence-attempt01/stdout.log",
+        "bytes": 98,
+        "sha256": "86cc3dcd44e2c98944d215b53e1f7498b1c3afac37fa106e1e05e6df72c8834a",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a4b172630ab6123cf": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_MCA_attachment-h-presence-attempt01/stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "roles": [
+          "A8 source run attribution"
+        ]
+      },
+      "a91ee08e5465557d2": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-validation/h-presence-attempt01/execution.json",
+        "bytes": 62323,
+        "sha256": "a87a03e69804d9ba2fb48e9d00dacf0f0b95bd6202e3992f6257f103157b12c6",
+        "roles": [
+          "completed A8 installed wheel receipt"
+        ]
+      },
+      "a07c5ed7091bd039c": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-validation/h-presence-attempt01/affected/junit.xml",
+        "bytes": 193327,
+        "sha256": "44d18ba3738f90f1cd7e884e6d84e752c65e818405c594f2240c926f1c8931ff",
+        "roles": [
+          "completed A8 installed tests"
+        ]
+      },
+      "a4ed553311950ff51": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-validation/h-presence-attempt01/actual_CBFF_xtb/junit.xml",
+        "bytes": 712,
+        "sha256": "def9f50ba4f889fb634ca9df07232af18889ea2eb07af140e26823b0a2df053d",
+        "roles": [
+          "completed A8 installed tests"
+        ]
+      },
+      "a1b28485801453ac7": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-validation/h-presence-attempt01/actual_MCA_attachment/junit.xml",
+        "bytes": 679,
+        "sha256": "15eaed79095a1fa55700ff1f5dec2adb70bf2c8c0423eb370d057b4605ed0011",
+        "roles": [
+          "completed A8 installed tests"
+        ]
+      },
+      "a8f2e13107e92a979": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-validation/h-presence-attempt01/assembly-inputs.json",
+        "bytes": 105829,
+        "sha256": "bf28e228baf03054a0cc777bfc9ba44954f4c0b9c9fe22c643d0d1374dc8b700",
+        "roles": [
+          "installed A8 binding / membership evidence"
+        ]
+      },
+      "aae0b81a77d54bd32": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-validation/h-presence-attempt01/native-provenance.json",
+        "bytes": 17442,
+        "sha256": "75b2d6e0537449e6769c4aeab02bd6fdd4db95b38a43f686695758643f2675bc",
+        "roles": [
+          "installed A8 binding / membership evidence"
+        ]
+      },
+      "a5e137b3688fae9bd": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-validation/h-presence-attempt01/bindings-before.json",
+        "bytes": 232634,
+        "sha256": "84a488f18e2ddff7afacf88bfb49078235641c4684e548771307989a5904071a",
+        "roles": [
+          "installed A8 binding / membership evidence"
+        ]
+      },
+      "a584d33e12ef1ea16": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-validation/h-presence-attempt01/bindings-after.json",
+        "bytes": 232634,
+        "sha256": "84a488f18e2ddff7afacf88bfb49078235641c4684e548771307989a5904071a",
+        "roles": [
+          "installed A8 binding / membership evidence"
+        ]
+      },
+      "abbfb16c3c10f1519": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-validation/h-presence-attempt01/installed-bindings-before.json",
+        "bytes": 130755,
+        "sha256": "ff170a577a7df2f8f338b1162f3d85a389271a724ae545df7306baf9aba23df3",
+        "roles": [
+          "installed A8 binding / membership evidence"
+        ]
+      },
+      "ac593a4524ecf0f80": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-validation/h-presence-attempt01/installed-bindings-after.json",
+        "bytes": 130755,
+        "sha256": "ff170a577a7df2f8f338b1162f3d85a389271a724ae545df7306baf9aba23df3",
+        "roles": [
+          "installed A8 binding / membership evidence"
+        ]
+      },
+      "a76eca893ae6b9510": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-validation/h-presence-attempt01/model-bindings-before.json",
+        "bytes": 23305,
+        "sha256": "fa82669f6e2195482d20b06aff88e42539a8a89d62a4671cc2b10412d70665b4",
+        "roles": [
+          "installed A8 binding / membership evidence"
+        ]
+      },
+      "ad9a7fbb72028dbd6": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-validation/h-presence-attempt01/model-bindings-after.json",
+        "bytes": 23305,
+        "sha256": "fa82669f6e2195482d20b06aff88e42539a8a89d62a4671cc2b10412d70665b4",
+        "roles": [
+          "installed A8 binding / membership evidence"
+        ]
+      },
+      "ac1649e41efa94528": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-validation/h-presence-attempt01/affected/membership-comparison.json",
+        "bytes": 129,
+        "sha256": "a2f94a7e859272dcb29cb0ad2741776e075b0f69909c715fa0a07b242de90180",
+        "roles": [
+          "installed A8 binding / membership evidence"
+        ]
+      },
+      "aa6356173898634b6": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/manifest.json",
+        "bytes": 30577,
+        "sha256": "00f4314820fdcf7dfeaff640af254d40b6fb10316896074c210a932540cb9433",
+        "roles": [
+          "source actual pipeline manifest"
+        ]
+      },
+      "ad01060d40a33d918": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/final.sdf",
+        "bytes": 1232,
+        "sha256": "3e34d3f7292b721176c591939e939f65464d0120411a78a4ac354c0c306d459a",
+        "roles": [
+          "actual final geometry"
+        ]
+      },
+      "a1e3c4275ee5ab6ed": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/00-cbond/report.json",
+        "bytes": 440,
+        "sha256": "cba2f59030b5e2d8c2430eca9e250e0405dee6bb52b8ed0eb9cb3e9e740e1ed8",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "a34ad9280588eea52": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/00-cbond/manifest.json",
+        "bytes": 1089,
+        "sha256": "f93200ae7ab78b8b0d8c0dc677eeb514208404f85e7773aba4d14b6a4b6ca9a2",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "a0d3a7c7c0017a949": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/01-ff/report.json",
+        "bytes": 15387,
+        "sha256": "2c1a7cd96dd027f5fc016bafc2be1cd486fc7e24f66e55a76b6334ff6a5c4940",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "af2b1114a7fe7a59d": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/01-ff/manifest.json",
+        "bytes": 17099,
+        "sha256": "d37482932f266fdd28f6e7e92c309ad1cef583580a4f10a98dbd87f6f1335c42",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "af25a073628e974da": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/report.json",
+        "bytes": 5895,
+        "sha256": "34b3ffc4d82ca98c2d30237f3d62efb4da99e87d8c7e1d5b6f3760e51200911f",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "a50f963c329d5db55": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/manifest.json",
+        "bytes": 8359,
+        "sha256": "cc1d796109ad8cdd949eb6747068311d5a57d5956caa883c5494e9b45ce6adc2",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "ada13d831de0a5d39": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/native/hotpot-xtb-yfjp33te/charges",
+        "bytes": 180,
+        "sha256": "4b721ae026743b9016d12123d297cb80faa60fbc65893aeb17b77241d5d8f1ce",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a3847a31a26fbf866": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/native/hotpot-xtb-yfjp33te/input.xyz",
+        "bytes": 774,
+        "sha256": "7afb460bd449a12b2db2ee14657cc87874059e94ac3bb1d6614787a0304637ae",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "afa70ede0067dad1e": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/native/hotpot-xtb-yfjp33te/wbo",
+        "bytes": 663,
+        "sha256": "294f2bf9ed85da168b41b3479d188b3ba499b58fcd237caa0542eb7510b8fb55",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "ac495d2a00ec7bce3": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/native/hotpot-xtb-yfjp33te/xtbout.json",
+        "bytes": 4103,
+        "sha256": "35113afdcd7a3b0d614bde2956879f0e674848729a03a453f74a72b5adfd5813",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "acc75229bed468778": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/native/hotpot-xtb-yfjp33te/xtbrestart",
+        "bytes": 1080,
+        "sha256": "16670559d3a22147a36ece917d7d9db2037d95c597bee7d1f48568199ccf6882",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "afbd5d7efdc60988a": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/native/hotpot-xtb-yfjp33te/xtbtopo.mol",
+        "bytes": 1215,
+        "sha256": "3d87dfd3915bb85a9aa0ecbf438ea3ddc49d8de0200481c2e17c58ebf1b0d436",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "aa803fdc28e1b0576": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/manifest.json",
+        "bytes": 40555,
+        "sha256": "1b6a2e5097c5118fff10ec95e8ce1416e5c95d6dbe4d10a7b9a1d2052ed83373",
+        "roles": [
+          "source actual pipeline manifest"
+        ]
+      },
+      "afcfcb683330ee4c8": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/final.sdf",
+        "bytes": 1232,
+        "sha256": "a33b09a9110d23e2e8aaf144dde6dd25a44d5b0f5b64af4f1d4d52710792806e",
+        "roles": [
+          "actual final geometry"
+        ]
+      },
+      "a0cb3a3b1664506cc": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/00-cbond/report.json",
+        "bytes": 440,
+        "sha256": "cba2f59030b5e2d8c2430eca9e250e0405dee6bb52b8ed0eb9cb3e9e740e1ed8",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "a9b04c083ff5650cf": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/00-cbond/manifest.json",
+        "bytes": 1090,
+        "sha256": "7c0a3fa0caa2558ec72673b30bd53953ad4030ca1954bcd6f6f878234ccfecf0",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "a7b493620f2822139": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/01-ff/report.json",
+        "bytes": 15387,
+        "sha256": "2e74a9c29c2092012e6c7e15ce21dc4549757430bfa81893fbc6bb6ce317e30e",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "ae300f280158010a5": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/01-ff/manifest.json",
+        "bytes": 17099,
+        "sha256": "f35093197b0d3e032a58c967c44f2e6f0768344d3258587d5e0531a996bdc61e",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "aac9607ce9bd6156f": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/report.json",
+        "bytes": 6161,
+        "sha256": "32ccf3c3e181c605ec6eb1b16375a11bead9d9cd39762ab94a30bc5b9c98a1f1",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "a9729d2a4b695897b": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/manifest.json",
+        "bytes": 8840,
+        "sha256": "96f1e12b998ff55cb3d05deb82f5cc93428e6044c44cd4f416f0389f317f46cc",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "aabdba4710c55926a": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/native/hotpot-xtb-75y7g1j1/.xtboptok",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a516a1c07c94f697f": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/native/hotpot-xtb-75y7g1j1/gfnff_charges",
+        "bytes": 180,
+        "sha256": "7952bf90c4aae717c9eafa47c765e1b6efc3a043d1413538847d39aefd9d6b24",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "adab69f9e8d053d85": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/native/hotpot-xtb-75y7g1j1/gfnff_lists.json",
+        "bytes": 13910,
+        "sha256": "a597aded369eefaa276dcf96973a67a761a80e176f6aef6a7ef0540f033dd15a",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "af9fcf2c00c28e94f": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/native/hotpot-xtb-75y7g1j1/gfnff_topo",
+        "bytes": 518220,
+        "sha256": "9d332c2359eedaf33e9bc6220a5f6b67b08947d8828dffbc0250720d19d1b30a",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "ac2659e9c7c9ec8d8": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/native/hotpot-xtb-75y7g1j1/input.sdf",
+        "bytes": 1186,
+        "sha256": "0cabe51f36ca6f9900d734c82f0f497f298e16505b99d5611e9092a36f63bef9",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a738ce83471c35734": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/native/hotpot-xtb-75y7g1j1/xtbopt.log",
+        "bytes": 27162,
+        "sha256": "69e429c67798d96741075089163701fd4e8ecd930f32c76d4db649fa8dca4bbb",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a1a27bf70a0950eaa": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/native/hotpot-xtb-75y7g1j1/xtbopt.sdf",
+        "bytes": 1265,
+        "sha256": "123af410aecd7797e8def713a0ecfb7053e2ab1520ccdfd1c84dc3d9492e3120",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a258cdf3d9c78d5c9": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/report.json",
+        "bytes": 5891,
+        "sha256": "23b0b8cf3e5b6cb3397a07519c7b18b115f9c6988d1c5f9d21c1029343007c84",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "a8f4dbf97a146d2ed": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/manifest.json",
+        "bytes": 8355,
+        "sha256": "746c105e3aa0a8ba21c555568d18671d2129a86c3be43860530c8452d401b87c",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "a8b7190385221bb07": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/native/hotpot-xtb-vd7yfjsc/charges",
+        "bytes": 180,
+        "sha256": "f51cad3987a519c4a74f7fde7df608ab91792192a4f93eee05d8bf9f8be12f06",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a5286cb1615e74517": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/native/hotpot-xtb-vd7yfjsc/input.xyz",
+        "bytes": 630,
+        "sha256": "6ddf6b922f7730485059cb3b30a87123bd9767301a7d7d590ccc82af20fd68d5",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a98a56c446fb50c37": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/native/hotpot-xtb-vd7yfjsc/wbo",
+        "bytes": 663,
+        "sha256": "6f7634831535fe8b3c94c58d3a7a5647d585afed25c46a94f2b3b97cdc1d9bfb",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a32545f8fca213e4b": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/native/hotpot-xtb-vd7yfjsc/xtbout.json",
+        "bytes": 4102,
+        "sha256": "e75d1b3708a7d1ee908ccbae261e148e7566b5629a5a9a8c0cb2b49216add3f5",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "ace1aeb1c2351ff4a": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/native/hotpot-xtb-vd7yfjsc/xtbrestart",
+        "bytes": 1080,
+        "sha256": "639e5cd7b41e0aa3e4a959e2ebc70ba2354e0bb6a6896d4ea385b445a4124010",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "ae32c5f4c3130d43c": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/native/hotpot-xtb-vd7yfjsc/xtbtopo.mol",
+        "bytes": 1215,
+        "sha256": "7b2bf9a0b52d728ad44ccb5e436290b9f0d8dbf3c4e144fc3d56d4d578ea74fb",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a88b7bf2b10332bf8": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/manifest.json",
+        "bytes": 41137,
+        "sha256": "5e9173fed3b62ef32a02ad619995a5366281e7dbbc5c555457f037782ab83110",
+        "roles": [
+          "source actual pipeline manifest"
+        ]
+      },
+      "a51e34c3a8613db98": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/final.sdf",
+        "bytes": 931,
+        "sha256": "c7e27291006da4f21b4b123f7117fcff71ecfaa1026a473d8f16c352cb6d8d78",
+        "roles": [
+          "actual final geometry"
+        ]
+      },
+      "ab317385d14dcf134": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/00-cbond/report.json",
+        "bytes": 288,
+        "sha256": "d657b24d4ab78e0fff35f80321e79503c81a470e8109ad619d98af12213cb2af",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "acc4de8ccb9e6265a": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/00-cbond/manifest.json",
+        "bytes": 927,
+        "sha256": "7d1875abb1e09e322cf05910c6b36a71c40992587dd8a603dd5ea49b177c2e12",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "ab9373f7a41e1f975": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/01-ff/report.json",
+        "bytes": 15149,
+        "sha256": "84d92c504d271f25352f291f52481092fc4392be531d7b3b0e4e5d741706220c",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "a96b9a2790352536c": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/01-ff/manifest.json",
+        "bytes": 16792,
+        "sha256": "4286bafc7b4ba8382fe790c350277e658b18cb8841760ba82dbc67daaa009e12",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "a062a55c278c3f670": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/report.json",
+        "bytes": 6058,
+        "sha256": "8c712e73545803018b7df44de5da0667b1d8d4a02c05c359a1b2cdd5a4983e91",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "aa31f3e65c600cec3": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/manifest.json",
+        "bytes": 8725,
+        "sha256": "0fe45d40932539f0923c39de3f834ab71c5729a7d228cc87c49134b0d18e3ab3",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "ab1d402da4b3380d9": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/native/hotpot-xtb-pvvjz_6j/.xtboptok",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a873aede42ac725a7": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/native/hotpot-xtb-pvvjz_6j/gfnff_charges",
+        "bytes": 135,
+        "sha256": "4aee646869279dab8bd5d78deebceb296bf9745eba858dbcea1cf15c55130ebe",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a42821d06541f0dce": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/native/hotpot-xtb-pvvjz_6j/gfnff_lists.json",
+        "bytes": 8468,
+        "sha256": "baeef66a6e9e997839938fa4c7276755b0333c187d17eaf75b17bf25d57b28f0",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "ae3fdc9d71203dc6f": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/native/hotpot-xtb-pvvjz_6j/gfnff_topo",
+        "bytes": 390764,
+        "sha256": "df49089f10e96376a414cb25329813b80413e4d7e5cba85c485b56ea86ebe232",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a663c1ff54a670b6d": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/native/hotpot-xtb-pvvjz_6j/input.sdf",
+        "bytes": 888,
+        "sha256": "abd50255ede7ec1d6f3aa571dcc615d41bf980286751b802665667d6ccb20de8",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a680676cf1acc042d": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/native/hotpot-xtb-pvvjz_6j/xtbopt.log",
+        "bytes": 9252,
+        "sha256": "0d9c35f76a5a17f1e649e486d65a1e57275d5be824ecb34346f5f9dfa54a0fbc",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a4b6cd1ba5fbb2ac4": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/native/hotpot-xtb-pvvjz_6j/xtbopt.sdf",
+        "bytes": 967,
+        "sha256": "a3986aed41a1d2d9d5e6692269708324c5288fff0ec7e960fd938c308efef7fe",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a7ebd78ad381f8b09": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/report.json",
+        "bytes": 6457,
+        "sha256": "ee46cd71f4742bc860bbb1727a1f8f6b8ff4bde38b589f6bb4fa8ae94ac081c6",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "a9f43be9d3440194d": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/manifest.json",
+        "bytes": 9498,
+        "sha256": "5e2ab1c601282e7cb192460b06fe88923dd9fd902cb3f835543db93100aaa373",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "ae1187b9519e08163": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-zvobf_n8/.xtboptok",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a4808bf2e255f81cd": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-zvobf_n8/charges",
+        "bytes": 135,
+        "sha256": "8807f12cb395b9b83fb73df72b706d32dce245bdbe6061f840d40c4fe7c7ebe8",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a4af92061f348d75c": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-zvobf_n8/input.xyz",
+        "bytes": 497,
+        "sha256": "4d31fc219fd95ec93f3287c8800cd4aeacb4d3936d0834472426634eabc8b414",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a8bc65b2d6498e324": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-zvobf_n8/wbo",
+        "bytes": 663,
+        "sha256": "2cb8d84ad60fb9f40af1a05be70c98e3b83ccbaa3ab666e827f42b34457adeea",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a44a51d9a5e019494": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-zvobf_n8/xtbopt.log",
+        "bytes": 26282,
+        "sha256": "b3b3a4e6aae7697ad9b077fa751226d6f087aec831b997dc0f49ff2a242eea14",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a6f7c454969eff512": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-zvobf_n8/xtbopt.xyz",
+        "bytes": 773,
+        "sha256": "e1f929f824d47749911073e14813fd1020cffd7b13742ed964f05b0ceec6a64a",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a593ca2713dc0a0c1": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-zvobf_n8/xtbout.json",
+        "bytes": 3653,
+        "sha256": "367802896a22f189c87c504b949fd9a2f4e37b10ff66babfdab2cbbb03253797",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "ab90a7caa27f0063c": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-zvobf_n8/xtbrestart",
+        "bytes": 848,
+        "sha256": "ed1ef1a058470c771b1f267750e663d4dad87c95e3b9555358278dc43691145e",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a93fb4976cd84f573": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_CBFF_xtb-h-presence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-zvobf_n8/xtbtopo.mol",
+        "bytes": 961,
+        "sha256": "3b39047c922ffc2582208231f7a910dd1a66d15c0808ca49dfd661e7539790f9",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a7227ba986be694a3": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_MCA_attachment-h-presence-attempt01/pytest-tmp/test_hotpot_and_smiles_inputs_0/equivalence_predictions.json",
+        "bytes": 1683,
+        "sha256": "44e4ea60cffcf00405e71d1b0a9bc7d517884d3d1c27b607ef59a9dc0425ad73",
+        "roles": [
+          "source actual MCA values"
+        ]
+      },
+      "af08e5e6c38c52603": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_MCA_attachment-h-presence-attempt01/pytest-tmp/test_mca_is_attached_to_atoms_0/attached_prediction.json",
+        "bytes": 869,
+        "sha256": "6c743846130195c63d21eade4ac8d12f0356679ba372b4bdffc9f41862d7d342",
+        "roles": [
+          "source actual MCA values"
+        ]
+      },
+      "a41fe342edf1679b4": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/source-validation/actual_MCA_attachment-h-presence-attempt01/pytest-tmp/test_molecule_mca_sites_suppor0/site_count_predictions.json",
+        "bytes": 1035,
+        "sha256": "4dbe74e20e7aeb0e4af637dbe19787bee7855164930005637e821fee8aa54631",
+        "roles": [
+          "source actual MCA values"
+        ]
+      },
+      "a9a9af32d2abc6cb3": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/manifest.json",
+        "bytes": 30572,
+        "sha256": "87913267bb5c4dd874ab8f0f0fdbebb50f945bc4653e7a6afb4c6256c4dd8c1b",
+        "roles": [
+          "installed actual pipeline manifest"
+        ]
+      },
+      "a2622c6bfee394aae": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/final.sdf",
+        "bytes": 1232,
+        "sha256": "a9bbf77c4ea0b6667ba700b6bbeaf53f5986e2866b47c5a12f09318e4c3f017f",
+        "roles": [
+          "actual final geometry"
+        ]
+      },
+      "a6b50747aaa7c2744": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/00-cbond/report.json",
+        "bytes": 440,
+        "sha256": "cba2f59030b5e2d8c2430eca9e250e0405dee6bb52b8ed0eb9cb3e9e740e1ed8",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "a6ac12fed10d76a83": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/00-cbond/manifest.json",
+        "bytes": 1088,
+        "sha256": "d29484f71fe605d4f4c9cb5e91ca5f47f29cb23e753183a6c199f9e1470f12d4",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "a0a8ffa69bee435be": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/01-ff/report.json",
+        "bytes": 15383,
+        "sha256": "73c008e0d642025b43e66d485aa9225262234db4201f4d0d785ae63e902bafd2",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "ab204befd4cd67fb3": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/01-ff/manifest.json",
+        "bytes": 17095,
+        "sha256": "a6363b42fcfe59c96ff9288a17dcdda6d4ccb9dea0c5a64d22dd96a904c1d8e6",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "a6792e942ed8bbe2d": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/report.json",
+        "bytes": 5895,
+        "sha256": "cf3d736453b19d5214daf843d0d1f22867647ad6c069ca4910db9a66507a2639",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "ad01888b9fb975ee5": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/manifest.json",
+        "bytes": 8359,
+        "sha256": "92a20232034147cf8f3822f1f2133d43a885c73c4fc7f88b9d406702523f0f4a",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "ac4066d2b99c3725a": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/native/hotpot-xtb-mhb7xnes/charges",
+        "bytes": 180,
+        "sha256": "4b721ae026743b9016d12123d297cb80faa60fbc65893aeb17b77241d5d8f1ce",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "ab580015b45e5b9b6": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/native/hotpot-xtb-mhb7xnes/input.xyz",
+        "bytes": 774,
+        "sha256": "7afb460bd449a12b2db2ee14657cc87874059e94ac3bb1d6614787a0304637ae",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "ad6e72f1f55edb225": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/native/hotpot-xtb-mhb7xnes/wbo",
+        "bytes": 663,
+        "sha256": "294f2bf9ed85da168b41b3479d188b3ba499b58fcd237caa0542eb7510b8fb55",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "aa5324bd2bff2eb7b": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/native/hotpot-xtb-mhb7xnes/xtbout.json",
+        "bytes": 4082,
+        "sha256": "bd64ea177e11625876e5d9b655403275aeeb614f39018fd1f517c2b4e7839cb9",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a49b683640cbcc2e3": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/native/hotpot-xtb-mhb7xnes/xtbrestart",
+        "bytes": 1080,
+        "sha256": "16670559d3a22147a36ece917d7d9db2037d95c597bee7d1f48568199ccf6882",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "ac01272eee5b76de6": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/native/hotpot-xtb-mhb7xnes/xtbtopo.mol",
+        "bytes": 1215,
+        "sha256": "40fcb7e1445a93f8bd8da73bf0a48c784cc53f8d3bc9f652f935848850779528",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a1d7461ee0655fc77": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/manifest.json",
+        "bytes": 40551,
+        "sha256": "dfb0248d7e3413ce798d36b3dcc115646b57cb2c7ecc8f2c47d27c74ac1b5640",
+        "roles": [
+          "installed actual pipeline manifest"
+        ]
+      },
+      "a900695e4761ae440": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/final.sdf",
+        "bytes": 1232,
+        "sha256": "d6f38d52d084c35deac7645631d29fb35c230e8df15c96da73c80ca30a459f87",
+        "roles": [
+          "actual final geometry"
+        ]
+      },
+      "a2070e584a343bc28": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/00-cbond/report.json",
+        "bytes": 440,
+        "sha256": "cba2f59030b5e2d8c2430eca9e250e0405dee6bb52b8ed0eb9cb3e9e740e1ed8",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "a9c484e3951aab566": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/00-cbond/manifest.json",
+        "bytes": 1089,
+        "sha256": "8d51f65993f6de0efd511ccd4c80299a068c3671c8f21890ef8fb824372f7a87",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "a998ba1a7267ebbdb": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/01-ff/report.json",
+        "bytes": 15386,
+        "sha256": "78e3336556293cc9b2666f657930b114c075e888a68472202477c90936cbff60",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "af6477b24e866e7fc": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/01-ff/manifest.json",
+        "bytes": 17097,
+        "sha256": "005a9f152a40790d6e64493f48e18883a5ce91451a1e5f6a9c8a07f06b94858f",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "a1484f8f596068200": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/report.json",
+        "bytes": 6161,
+        "sha256": "73b7adc65ac75a2c59f080c60ee19a8138caa9f37c8ea6d843d94959c6ac4dbe",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "a7908e3b5f0fcf84b": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/manifest.json",
+        "bytes": 8840,
+        "sha256": "ef6097bf3fdbf4a88bfff4ffda21495b3260c700a48cee351b3ed2b5eec449ba",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "a09c9f69bb8246402": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/native/hotpot-xtb-_9c1fpv6/.xtboptok",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a7a1e9e5f1ca4ba64": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/native/hotpot-xtb-_9c1fpv6/gfnff_charges",
+        "bytes": 180,
+        "sha256": "7952bf90c4aae717c9eafa47c765e1b6efc3a043d1413538847d39aefd9d6b24",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "af81456fd6d036034": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/native/hotpot-xtb-_9c1fpv6/gfnff_lists.json",
+        "bytes": 13889,
+        "sha256": "96cca341b81ce7597f0df81d3ecfb7bc62ce005cb75dea07580398a1fe7b2cc9",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a01a989f4f5be8713": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/native/hotpot-xtb-_9c1fpv6/gfnff_topo",
+        "bytes": 518220,
+        "sha256": "9d332c2359eedaf33e9bc6220a5f6b67b08947d8828dffbc0250720d19d1b30a",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "ab548c817d04afea1": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/native/hotpot-xtb-_9c1fpv6/input.sdf",
+        "bytes": 1186,
+        "sha256": "0cabe51f36ca6f9900d734c82f0f497f298e16505b99d5611e9092a36f63bef9",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a742fea2cea3b774a": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/native/hotpot-xtb-_9c1fpv6/xtbopt.log",
+        "bytes": 27162,
+        "sha256": "69e429c67798d96741075089163701fd4e8ecd930f32c76d4db649fa8dca4bbb",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a26509311fa0fc0f4": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/native/hotpot-xtb-_9c1fpv6/xtbopt.sdf",
+        "bytes": 1265,
+        "sha256": "e37cf254b5622f5e9955a4bb668e94e1e1620d17739f3679fc02a1e6919a791f",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a1a4529cee40f18d1": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/report.json",
+        "bytes": 5891,
+        "sha256": "327202ed30ce65340b1c562c6710a6bc02ebd52f098a6e5ef1610e6d83a1caae",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "aba1d63025e682f77": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/manifest.json",
+        "bytes": 8354,
+        "sha256": "b7962ce99fa02d7ed37da083397ddba67aa257424c17788b12ae330f249356d1",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "ae19c0127920edd09": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/native/hotpot-xtb-w92s2sac/charges",
+        "bytes": 180,
+        "sha256": "f51cad3987a519c4a74f7fde7df608ab91792192a4f93eee05d8bf9f8be12f06",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "ac971199779039ef3": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/native/hotpot-xtb-w92s2sac/input.xyz",
+        "bytes": 630,
+        "sha256": "6ddf6b922f7730485059cb3b30a87123bd9767301a7d7d590ccc82af20fd68d5",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a8e61aa02fc32a402": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/native/hotpot-xtb-w92s2sac/wbo",
+        "bytes": 663,
+        "sha256": "6f7634831535fe8b3c94c58d3a7a5647d585afed25c46a94f2b3b97cdc1d9bfb",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a661985ed9ceaf794": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/native/hotpot-xtb-w92s2sac/xtbout.json",
+        "bytes": 4081,
+        "sha256": "258b6a4d2be3200f7857928f579f68ed0c042db1a0f120c4e16ec45f81dd6924",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "aee894a39f8cdb23f": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/native/hotpot-xtb-w92s2sac/xtbrestart",
+        "bytes": 1080,
+        "sha256": "639e5cd7b41e0aa3e4a959e2ebc70ba2354e0bb6a6896d4ea385b445a4124010",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a67b4cf816c56f492": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/native/hotpot-xtb-w92s2sac/xtbtopo.mol",
+        "bytes": 1215,
+        "sha256": "103322a5be8bf206d3d654b5dbce2a051dac8105774efd7609e83b4fe6e0ea52",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a45843e2e9858e0eb": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/manifest.json",
+        "bytes": 41138,
+        "sha256": "f5d007416d0480efb47521605a217c5866be9887eef94bf01164e2d36af2bec3",
+        "roles": [
+          "installed actual pipeline manifest"
+        ]
+      },
+      "a6d92f48016b5c1f5": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/final.sdf",
+        "bytes": 931,
+        "sha256": "dec6f6a78fe5b78024f11a61bf6643e3a42dff4da5f816851528e4a61b899788",
+        "roles": [
+          "actual final geometry"
+        ]
+      },
+      "ae390dbde49ec9fe6": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/00-cbond/report.json",
+        "bytes": 288,
+        "sha256": "d657b24d4ab78e0fff35f80321e79503c81a470e8109ad619d98af12213cb2af",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "a7eee7e5c25185cf4": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/00-cbond/manifest.json",
+        "bytes": 926,
+        "sha256": "5c16d804acf25209e4fcb59273babaa67033ba166f972fc84503cedb7761ea65",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "a5b63d84b3d945a17": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/01-ff/report.json",
+        "bytes": 15153,
+        "sha256": "9d04e54164b2f73f62a2676f952588957d4d3a41a8df1ff7665c32502ce41366",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "a2bd10138480e7bb3": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/01-ff/manifest.json",
+        "bytes": 16796,
+        "sha256": "ff7a36e7760975b4fac4357b78e5cca44dc33dcc359217e8187f46eed2cbfc01",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "ac8811de59d027a29": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/report.json",
+        "bytes": 6059,
+        "sha256": "0c697744fe29f5446490c952bf9924ed78ee08c9ee1f02e8d09cd7cb69a714ac",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "adb3fdaa9b829b109": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/manifest.json",
+        "bytes": 8726,
+        "sha256": "fb34270314e74d466e49281c1c8a13449ec681540e24bf33157db8517d17fe67",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "a9e27af1c1c81d5a1": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/native/hotpot-xtb-ur6ck82t/.xtboptok",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "acc6b6ea8eaccd622": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/native/hotpot-xtb-ur6ck82t/gfnff_charges",
+        "bytes": 135,
+        "sha256": "a67e05926dc8a6cbcdb870bce63660d6cda0f854c6ed0b3441dd23844609b29d",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a54e57cecc59f8ce9": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/native/hotpot-xtb-ur6ck82t/gfnff_lists.json",
+        "bytes": 8447,
+        "sha256": "d66a55976e660dc4b61a5cbc00a8d5ce9a9b50ada9691c3f0d742d6e9a5a85e7",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a8eb9c784db732df3": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/native/hotpot-xtb-ur6ck82t/gfnff_topo",
+        "bytes": 390764,
+        "sha256": "546c2f8c19c2c116ba6984b7d4e9a9da95c7a802148c8ca2627169826dc8f9dc",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "af7b19f413090a73f": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/native/hotpot-xtb-ur6ck82t/input.sdf",
+        "bytes": 888,
+        "sha256": "f3888c066e6ddee8d23f87d537e59dd4e5e9eb7d78449c9d70ad8e0d135f61e6",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a0b59b4db34a48105": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/native/hotpot-xtb-ur6ck82t/xtbopt.log",
+        "bytes": 9252,
+        "sha256": "8407562988e9f9f6e4b3081c7bfdf580a1d68bba0f5e1009b4594849fe720015",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a913b6f099f547eb5": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/native/hotpot-xtb-ur6ck82t/xtbopt.sdf",
+        "bytes": 967,
+        "sha256": "b7ef15ac60580bd395084d0e02a506dfce24570863d82b0fc9d2340b1904ccf7",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "ac359d756f0fdd1bb": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/report.json",
+        "bytes": 6454,
+        "sha256": "2d1f75d8bb9ab03ea543fe75ec272fdaf6bf66ea75afbffd3a89f4c9597497b5",
+        "roles": [
+          "actual scientific stage report"
+        ]
+      },
+      "a33e4fbbd77b920f6": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/manifest.json",
+        "bytes": 9495,
+        "sha256": "c45fef4915c90fac3dd991f779fde8b60976b43ef73e2d4bcc1cbf37f853cbad",
+        "roles": [
+          "actual stage attribution"
+        ]
+      },
+      "a8787723d815bd4bc": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-l1qko00h/.xtboptok",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "afb3e69838622c9a7": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-l1qko00h/charges",
+        "bytes": 135,
+        "sha256": "eb2889153e91427a49713203c3465570dfaa2be5bb1c321033ca4cfcc076a98d",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "ad5300eeab7dd5528": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-l1qko00h/input.xyz",
+        "bytes": 498,
+        "sha256": "4155d1f0faf891765a54fee1601f1a9e7c49eab3fe7764c7a193cf79acffd1a3",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "aa8cc685821dd1673": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-l1qko00h/wbo",
+        "bytes": 663,
+        "sha256": "2e40c4a964a2a361eaebdc95717fb157c3b5fe52c53639a1ea2ffc9d3d4002e0",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a228f175a13556ffc": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-l1qko00h/xtbopt.log",
+        "bytes": 27055,
+        "sha256": "0180bf1b2e9083bda394cee9b412290b09bfb14c65a164a499eb9064fb495207",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "aba654282c3a6117b": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-l1qko00h/xtbopt.xyz",
+        "bytes": 773,
+        "sha256": "b942696bce33dd21026e8ec4f5cdff11428a27598c13d8a44b1242daabf5fab2",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a71717df47f1132cb": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-l1qko00h/xtbout.json",
+        "bytes": 3632,
+        "sha256": "8ce8df77225e3e7788774ccdef558d5d18e71849f477665e89301ab5f6c859f0",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a5d009ae3a7d1a575": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-l1qko00h/xtbrestart",
+        "bytes": 848,
+        "sha256": "bacceb44fe75c01e9cf82d5e582c09f6bc26bcfdcacd996cce7ec589875aa3ef",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a64c2b3933cb077fd": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/native/hotpot-xtb-l1qko00h/xtbtopo.mol",
+        "bytes": 961,
+        "sha256": "776409872fc111212eb5d287b886c9737b56553564bb1ab00a61ad80a774cb7a",
+        "roles": [
+          "retained actual xTB native output"
+        ]
+      },
+      "a06ea01c37d7dabbe": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_MCA_attachment/test_hotpot_and_smiles_inputs_0/equivalence_predictions.json",
+        "bytes": 1683,
+        "sha256": "44e4ea60cffcf00405e71d1b0a9bc7d517884d3d1c27b607ef59a9dc0425ad73",
+        "roles": [
+          "installed actual MCA values"
+        ]
+      },
+      "a1e0d9f293ceffa52": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_MCA_attachment/test_mca_is_attached_to_atoms_0/attached_prediction.json",
+        "bytes": 869,
+        "sha256": "6c743846130195c63d21eade4ac8d12f0356679ba372b4bdffc9f41862d7d342",
+        "roles": [
+          "installed actual MCA values"
+        ]
+      },
+      "a15a2b7e7df785799": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence/installed-business-raw/pytest-actual_MCA_attachment/test_molecule_mca_sites_suppor0/site_count_predictions.json",
+        "bytes": 1035,
+        "sha256": "4dbe74e20e7aeb0e4af637dbe19787bee7855164930005637e821fee8aa54631",
+        "roles": [
+          "installed actual MCA values"
+        ]
+      },
+      "a76d2db37a9bd315c": {
+        "path": "plan/20_fact_rule_architecture/stages/stage08/scientific-state/validation/checkpoint.json",
+        "bytes": 12002,
+        "sha256": "4859942690b4003c61bcaafe96021751b3d53618732423e4018fbc5c0ab8e442",
+        "roles": [
+          "retained historical / reused evidence"
+        ]
+      },
+      "a1f879a89c4d6bc4f": {
+        "path": "plan/20_fact_rule_architecture/stages/stage08/scientific-state/validation/scientific_observations.json",
+        "bytes": 89607,
+        "sha256": "701406da77ca089d3b62a74f48c0b2077b8ff7b40340ba9258374e9323074829",
+        "roles": [
+          "retained historical / reused evidence"
+        ]
+      },
+      "a11679ec5f91305b9": {
+        "path": "plan/20_fact_rule_architecture/stages/stage08/scientific-state/validation/cost_summary.json",
+        "bytes": 12267,
+        "sha256": "17650cd1a7638bd0f15ff5d91e01e30d542657149f65beb480c0c7036e9b6015",
+        "roles": [
+          "retained historical / reused evidence"
+        ]
+      },
+      "a8f22565a0d30d7a5": {
+        "path": ".plan20-artifacts/20261103/stage8a/scientific-state/cost/attempt02/observations.json",
+        "bytes": 10516,
+        "sha256": "7cac42ff786dbcb8cedcab5e91828927c8dc56461f4fe019abdb34b260e36f16",
+        "roles": [
+          "retained historical / reused evidence"
+        ]
+      },
+      "ac1e66bf2929f8fbf": {
+        "path": ".plan20-artifacts/20261103/stage8a/scientific-state/archive-manifest.json",
+        "bytes": 415901,
+        "sha256": "502aa211100bfe88105f01bbf984c05182be940a2dce4d6223884cf62fc685f7",
+        "roles": [
+          "retained historical / reused evidence"
+        ]
+      },
+      "a258f66aa57ce3043": {
+        "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/focused-attempt01/junit.xml",
+        "bytes": 60086,
+        "sha256": "cf7089491d5c8ff3972f242bbfbffa20b7e4453f9d3aacd60d4dfd8a2e7cbf4e",
+        "roles": [
+          "retained historical / reused evidence"
+        ]
+      },
+      "aaafca8d9bb63bc49": {
+        "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/affected-a7-attempt01/junit.xml",
+        "bytes": 192863,
+        "sha256": "574bc85a522f4d16454fba70d4acaf419a87f2c228d29aeca6df65cb250ac0fa",
+        "roles": [
+          "retained historical / reused evidence"
+        ]
+      },
+      "a2755939ef2c52cd7": {
+        "path": ".plan20-artifacts/20261103/stage8a/scientific-state/cost/attempt01/stderr.log",
+        "bytes": 452,
+        "sha256": "458ee6adcfb6d6de4fa4e67274b486994bdc4f2c3b10396711f5f48007ccfb0f",
+        "roles": [
+          "retained historical / reused evidence"
+        ]
+      },
+      "a84afc738e4dcd0a0": {
+        "path": ".plan20-artifacts/20261103/stage8a/h-presence-summary-attempt01-failure.json",
+        "bytes": 894,
+        "sha256": "443d9ba98c77e21fb4c710bc00567770b53ea78d8c122cf9ea84ad700aabe871",
+        "roles": [
+          "retained historical / reused evidence"
+        ]
+      },
+      "a2ba486d145203974": {
+        "path": "plan/20_fact_rule_architecture/stages/stage08/scientific-state/validation/h_presence_observations.json",
+        "bytes": 189242,
+        "sha256": "0dee1ff88997a198876a59f0a0e87747de9fc19a04578e28285dc165dc8a7edd",
+        "roles": [
+          "maintained A8 factual summary"
+        ]
+      },
+      "a702844454ba50994": {
+        "path": "plan/20_fact_rule_architecture/stages/stage08/scientific-state/validation/h_presence_report.md",
+        "bytes": 4105,
+        "sha256": "46e4b1f13f509951c3bdf249e389b152a74528dfe8b5da344e9a440223869c38",
+        "roles": [
+          "maintained A8 factual summary"
+        ]
+      }
+    },
+    "edges": [
+      {
+        "from": "a0673c49dac15d4d1",
+        "relationship": "binds",
+        "to": "a6b02e86f47114d4b"
+      },
+      {
+        "from": "aa0bf4ca2f3b3dc8c",
+        "relationship": "supported_by",
+        "to": "ad669441114cc321e"
+      },
+      {
+        "from": "aa0bf4ca2f3b3dc8c",
+        "relationship": "supported_by",
+        "to": "a79c20b4d19dd60df"
+      },
+      {
+        "from": "aa0bf4ca2f3b3dc8c",
+        "relationship": "supported_by",
+        "to": "ade01ac7efd4a453f"
+      },
+      {
+        "from": "aa0bf4ca2f3b3dc8c",
+        "relationship": "supported_by",
+        "to": "a40f7d22f43f7349a"
+      },
+      {
+        "from": "aa0bf4ca2f3b3dc8c",
+        "relationship": "supported_by",
+        "to": "a03c6d1f1e05ef83b"
+      },
+      {
+        "from": "aa0bf4ca2f3b3dc8c",
+        "relationship": "supported_by",
+        "to": "ab936d3fe644522b6"
+      },
+      {
+        "from": "aa0bf4ca2f3b3dc8c",
+        "relationship": "supported_by",
+        "to": "a0e80ebe4fee1b1cc"
+      },
+      {
+        "from": "aa0bf4ca2f3b3dc8c",
+        "relationship": "executed_against",
+        "to": "a6b02e86f47114d4b"
+      },
+      {
+        "from": "a3fe3c996ab596cc9",
+        "relationship": "supported_by",
+        "to": "a8ea51ff44822659b"
+      },
+      {
+        "from": "a3fe3c996ab596cc9",
+        "relationship": "supported_by",
+        "to": "a36a4982ad63511d8"
+      },
+      {
+        "from": "a3fe3c996ab596cc9",
+        "relationship": "supported_by",
+        "to": "a680c95fb8b353b5c"
+      },
+      {
+        "from": "a3fe3c996ab596cc9",
+        "relationship": "supported_by",
+        "to": "ad7a3b40cd3af38b6"
+      },
+      {
+        "from": "a3fe3c996ab596cc9",
+        "relationship": "supported_by",
+        "to": "a3b69baf5e56af101"
+      },
+      {
+        "from": "a3fe3c996ab596cc9",
+        "relationship": "supported_by",
+        "to": "ac3bfc6f3508679c2"
+      },
+      {
+        "from": "a3fe3c996ab596cc9",
+        "relationship": "supported_by",
+        "to": "a8832fed96b0724cd"
+      },
+      {
+        "from": "a3fe3c996ab596cc9",
+        "relationship": "executed_against",
+        "to": "a6b02e86f47114d4b"
+      },
+      {
+        "from": "aaa0c00a900ad84aa",
+        "relationship": "supported_by",
+        "to": "a31f4f5f7df6abb97"
+      },
+      {
+        "from": "aaa0c00a900ad84aa",
+        "relationship": "supported_by",
+        "to": "af189019e00456a76"
+      },
+      {
+        "from": "aaa0c00a900ad84aa",
+        "relationship": "supported_by",
+        "to": "a33528d655da8d24e"
+      },
+      {
+        "from": "aaa0c00a900ad84aa",
+        "relationship": "supported_by",
+        "to": "a0035fa1b83ccdf0d"
+      },
+      {
+        "from": "aaa0c00a900ad84aa",
+        "relationship": "supported_by",
+        "to": "a3fd27df8aaeaffa7"
+      },
+      {
+        "from": "aaa0c00a900ad84aa",
+        "relationship": "supported_by",
+        "to": "a8a8db42935824a12"
+      },
+      {
+        "from": "aaa0c00a900ad84aa",
+        "relationship": "supported_by",
+        "to": "a12e59bb2bff0c53e"
+      },
+      {
+        "from": "aaa0c00a900ad84aa",
+        "relationship": "executed_against",
+        "to": "a6b02e86f47114d4b"
+      },
+      {
+        "from": "aeda068ca5eeda949",
+        "relationship": "supported_by",
+        "to": "a0a97d3c2ab83ae5a"
+      },
+      {
+        "from": "aeda068ca5eeda949",
+        "relationship": "supported_by",
+        "to": "a2f9284aa9f438498"
+      },
+      {
+        "from": "aeda068ca5eeda949",
+        "relationship": "supported_by",
+        "to": "a997b6998e979d27a"
+      },
+      {
+        "from": "aeda068ca5eeda949",
+        "relationship": "supported_by",
+        "to": "a6fad27187ba8cced"
+      },
+      {
+        "from": "aeda068ca5eeda949",
+        "relationship": "supported_by",
+        "to": "a0e72888db6ab5fcb"
+      },
+      {
+        "from": "aeda068ca5eeda949",
+        "relationship": "supported_by",
+        "to": "a993c34e6c1effb22"
+      },
+      {
+        "from": "aeda068ca5eeda949",
+        "relationship": "supported_by",
+        "to": "a4b172630ab6123cf"
+      },
+      {
+        "from": "aeda068ca5eeda949",
+        "relationship": "executed_against",
+        "to": "a6b02e86f47114d4b"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "source_freeze",
+        "to": "a6b02e86f47114d4b"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "supported_by",
+        "to": "a07c5ed7091bd039c"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "supported_by",
+        "to": "a4ed553311950ff51"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "supported_by",
+        "to": "a1b28485801453ac7"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "supported_by",
+        "to": "a8f2e13107e92a979"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "supported_by",
+        "to": "aae0b81a77d54bd32"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "supported_by",
+        "to": "a5e137b3688fae9bd"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "supported_by",
+        "to": "a584d33e12ef1ea16"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "supported_by",
+        "to": "abbfb16c3c10f1519"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "supported_by",
+        "to": "ac593a4524ecf0f80"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "supported_by",
+        "to": "a76eca893ae6b9510"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "supported_by",
+        "to": "ad9a7fbb72028dbd6"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "supported_by",
+        "to": "ac1649e41efa94528"
+      },
+      {
+        "from": "aaa0c00a900ad84aa",
+        "relationship": "produced",
+        "to": "aa6356173898634b6"
+      },
+      {
+        "from": "aa6356173898634b6",
+        "relationship": "final_geometry",
+        "to": "ad01060d40a33d918"
+      },
+      {
+        "from": "aa6356173898634b6",
+        "relationship": "stage_report",
+        "to": "a1e3c4275ee5ab6ed"
+      },
+      {
+        "from": "aa6356173898634b6",
+        "relationship": "stage_report",
+        "to": "a0d3a7c7c0017a949"
+      },
+      {
+        "from": "aa6356173898634b6",
+        "relationship": "stage_report",
+        "to": "af25a073628e974da"
+      },
+      {
+        "from": "af25a073628e974da",
+        "relationship": "native_output",
+        "to": "ada13d831de0a5d39"
+      },
+      {
+        "from": "af25a073628e974da",
+        "relationship": "native_output",
+        "to": "a3847a31a26fbf866"
+      },
+      {
+        "from": "af25a073628e974da",
+        "relationship": "native_output",
+        "to": "afa70ede0067dad1e"
+      },
+      {
+        "from": "af25a073628e974da",
+        "relationship": "native_output",
+        "to": "ac495d2a00ec7bce3"
+      },
+      {
+        "from": "af25a073628e974da",
+        "relationship": "native_output",
+        "to": "acc75229bed468778"
+      },
+      {
+        "from": "af25a073628e974da",
+        "relationship": "native_output",
+        "to": "afbd5d7efdc60988a"
+      },
+      {
+        "from": "aaa0c00a900ad84aa",
+        "relationship": "produced",
+        "to": "aa803fdc28e1b0576"
+      },
+      {
+        "from": "aa803fdc28e1b0576",
+        "relationship": "final_geometry",
+        "to": "afcfcb683330ee4c8"
+      },
+      {
+        "from": "aa803fdc28e1b0576",
+        "relationship": "stage_report",
+        "to": "a0cb3a3b1664506cc"
+      },
+      {
+        "from": "aa803fdc28e1b0576",
+        "relationship": "stage_report",
+        "to": "a7b493620f2822139"
+      },
+      {
+        "from": "aa803fdc28e1b0576",
+        "relationship": "stage_report",
+        "to": "aac9607ce9bd6156f"
+      },
+      {
+        "from": "aac9607ce9bd6156f",
+        "relationship": "native_output",
+        "to": "aabdba4710c55926a"
+      },
+      {
+        "from": "aac9607ce9bd6156f",
+        "relationship": "native_output",
+        "to": "a516a1c07c94f697f"
+      },
+      {
+        "from": "aac9607ce9bd6156f",
+        "relationship": "native_output",
+        "to": "adab69f9e8d053d85"
+      },
+      {
+        "from": "aac9607ce9bd6156f",
+        "relationship": "native_output",
+        "to": "af9fcf2c00c28e94f"
+      },
+      {
+        "from": "aac9607ce9bd6156f",
+        "relationship": "native_output",
+        "to": "ac2659e9c7c9ec8d8"
+      },
+      {
+        "from": "aac9607ce9bd6156f",
+        "relationship": "native_output",
+        "to": "a738ce83471c35734"
+      },
+      {
+        "from": "aac9607ce9bd6156f",
+        "relationship": "native_output",
+        "to": "a1a27bf70a0950eaa"
+      },
+      {
+        "from": "aa803fdc28e1b0576",
+        "relationship": "stage_report",
+        "to": "a258cdf3d9c78d5c9"
+      },
+      {
+        "from": "a258cdf3d9c78d5c9",
+        "relationship": "native_output",
+        "to": "a8b7190385221bb07"
+      },
+      {
+        "from": "a258cdf3d9c78d5c9",
+        "relationship": "native_output",
+        "to": "a5286cb1615e74517"
+      },
+      {
+        "from": "a258cdf3d9c78d5c9",
+        "relationship": "native_output",
+        "to": "a98a56c446fb50c37"
+      },
+      {
+        "from": "a258cdf3d9c78d5c9",
+        "relationship": "native_output",
+        "to": "a32545f8fca213e4b"
+      },
+      {
+        "from": "a258cdf3d9c78d5c9",
+        "relationship": "native_output",
+        "to": "ace1aeb1c2351ff4a"
+      },
+      {
+        "from": "a258cdf3d9c78d5c9",
+        "relationship": "native_output",
+        "to": "ae32c5f4c3130d43c"
+      },
+      {
+        "from": "aaa0c00a900ad84aa",
+        "relationship": "produced",
+        "to": "a88b7bf2b10332bf8"
+      },
+      {
+        "from": "a88b7bf2b10332bf8",
+        "relationship": "final_geometry",
+        "to": "a51e34c3a8613db98"
+      },
+      {
+        "from": "a88b7bf2b10332bf8",
+        "relationship": "stage_report",
+        "to": "ab317385d14dcf134"
+      },
+      {
+        "from": "a88b7bf2b10332bf8",
+        "relationship": "stage_report",
+        "to": "ab9373f7a41e1f975"
+      },
+      {
+        "from": "a88b7bf2b10332bf8",
+        "relationship": "stage_report",
+        "to": "a062a55c278c3f670"
+      },
+      {
+        "from": "a062a55c278c3f670",
+        "relationship": "native_output",
+        "to": "ab1d402da4b3380d9"
+      },
+      {
+        "from": "a062a55c278c3f670",
+        "relationship": "native_output",
+        "to": "a873aede42ac725a7"
+      },
+      {
+        "from": "a062a55c278c3f670",
+        "relationship": "native_output",
+        "to": "a42821d06541f0dce"
+      },
+      {
+        "from": "a062a55c278c3f670",
+        "relationship": "native_output",
+        "to": "ae3fdc9d71203dc6f"
+      },
+      {
+        "from": "a062a55c278c3f670",
+        "relationship": "native_output",
+        "to": "a663c1ff54a670b6d"
+      },
+      {
+        "from": "a062a55c278c3f670",
+        "relationship": "native_output",
+        "to": "a680676cf1acc042d"
+      },
+      {
+        "from": "a062a55c278c3f670",
+        "relationship": "native_output",
+        "to": "a4b6cd1ba5fbb2ac4"
+      },
+      {
+        "from": "a88b7bf2b10332bf8",
+        "relationship": "stage_report",
+        "to": "a7ebd78ad381f8b09"
+      },
+      {
+        "from": "a7ebd78ad381f8b09",
+        "relationship": "native_output",
+        "to": "ae1187b9519e08163"
+      },
+      {
+        "from": "a7ebd78ad381f8b09",
+        "relationship": "native_output",
+        "to": "a4808bf2e255f81cd"
+      },
+      {
+        "from": "a7ebd78ad381f8b09",
+        "relationship": "native_output",
+        "to": "a4af92061f348d75c"
+      },
+      {
+        "from": "a7ebd78ad381f8b09",
+        "relationship": "native_output",
+        "to": "a8bc65b2d6498e324"
+      },
+      {
+        "from": "a7ebd78ad381f8b09",
+        "relationship": "native_output",
+        "to": "a44a51d9a5e019494"
+      },
+      {
+        "from": "a7ebd78ad381f8b09",
+        "relationship": "native_output",
+        "to": "a6f7c454969eff512"
+      },
+      {
+        "from": "a7ebd78ad381f8b09",
+        "relationship": "native_output",
+        "to": "a593ca2713dc0a0c1"
+      },
+      {
+        "from": "a7ebd78ad381f8b09",
+        "relationship": "native_output",
+        "to": "ab90a7caa27f0063c"
+      },
+      {
+        "from": "a7ebd78ad381f8b09",
+        "relationship": "native_output",
+        "to": "a93fb4976cd84f573"
+      },
+      {
+        "from": "aeda068ca5eeda949",
+        "relationship": "produced",
+        "to": "a7227ba986be694a3"
+      },
+      {
+        "from": "aeda068ca5eeda949",
+        "relationship": "produced",
+        "to": "af08e5e6c38c52603"
+      },
+      {
+        "from": "aeda068ca5eeda949",
+        "relationship": "produced",
+        "to": "a41fe342edf1679b4"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "produced",
+        "to": "a9a9af32d2abc6cb3"
+      },
+      {
+        "from": "a9a9af32d2abc6cb3",
+        "relationship": "final_geometry",
+        "to": "a2622c6bfee394aae"
+      },
+      {
+        "from": "a9a9af32d2abc6cb3",
+        "relationship": "stage_report",
+        "to": "a6b50747aaa7c2744"
+      },
+      {
+        "from": "a9a9af32d2abc6cb3",
+        "relationship": "stage_report",
+        "to": "a0a8ffa69bee435be"
+      },
+      {
+        "from": "a9a9af32d2abc6cb3",
+        "relationship": "stage_report",
+        "to": "a6792e942ed8bbe2d"
+      },
+      {
+        "from": "a6792e942ed8bbe2d",
+        "relationship": "native_output",
+        "to": "ac4066d2b99c3725a"
+      },
+      {
+        "from": "a6792e942ed8bbe2d",
+        "relationship": "native_output",
+        "to": "ab580015b45e5b9b6"
+      },
+      {
+        "from": "a6792e942ed8bbe2d",
+        "relationship": "native_output",
+        "to": "ad6e72f1f55edb225"
+      },
+      {
+        "from": "a6792e942ed8bbe2d",
+        "relationship": "native_output",
+        "to": "aa5324bd2bff2eb7b"
+      },
+      {
+        "from": "a6792e942ed8bbe2d",
+        "relationship": "native_output",
+        "to": "a49b683640cbcc2e3"
+      },
+      {
+        "from": "a6792e942ed8bbe2d",
+        "relationship": "native_output",
+        "to": "ac01272eee5b76de6"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "produced",
+        "to": "a1d7461ee0655fc77"
+      },
+      {
+        "from": "a1d7461ee0655fc77",
+        "relationship": "final_geometry",
+        "to": "a900695e4761ae440"
+      },
+      {
+        "from": "a1d7461ee0655fc77",
+        "relationship": "stage_report",
+        "to": "a2070e584a343bc28"
+      },
+      {
+        "from": "a1d7461ee0655fc77",
+        "relationship": "stage_report",
+        "to": "a998ba1a7267ebbdb"
+      },
+      {
+        "from": "a1d7461ee0655fc77",
+        "relationship": "stage_report",
+        "to": "a1484f8f596068200"
+      },
+      {
+        "from": "a1484f8f596068200",
+        "relationship": "native_output",
+        "to": "a09c9f69bb8246402"
+      },
+      {
+        "from": "a1484f8f596068200",
+        "relationship": "native_output",
+        "to": "a7a1e9e5f1ca4ba64"
+      },
+      {
+        "from": "a1484f8f596068200",
+        "relationship": "native_output",
+        "to": "af81456fd6d036034"
+      },
+      {
+        "from": "a1484f8f596068200",
+        "relationship": "native_output",
+        "to": "a01a989f4f5be8713"
+      },
+      {
+        "from": "a1484f8f596068200",
+        "relationship": "native_output",
+        "to": "ab548c817d04afea1"
+      },
+      {
+        "from": "a1484f8f596068200",
+        "relationship": "native_output",
+        "to": "a742fea2cea3b774a"
+      },
+      {
+        "from": "a1484f8f596068200",
+        "relationship": "native_output",
+        "to": "a26509311fa0fc0f4"
+      },
+      {
+        "from": "a1d7461ee0655fc77",
+        "relationship": "stage_report",
+        "to": "a1a4529cee40f18d1"
+      },
+      {
+        "from": "a1a4529cee40f18d1",
+        "relationship": "native_output",
+        "to": "ae19c0127920edd09"
+      },
+      {
+        "from": "a1a4529cee40f18d1",
+        "relationship": "native_output",
+        "to": "ac971199779039ef3"
+      },
+      {
+        "from": "a1a4529cee40f18d1",
+        "relationship": "native_output",
+        "to": "a8e61aa02fc32a402"
+      },
+      {
+        "from": "a1a4529cee40f18d1",
+        "relationship": "native_output",
+        "to": "a661985ed9ceaf794"
+      },
+      {
+        "from": "a1a4529cee40f18d1",
+        "relationship": "native_output",
+        "to": "aee894a39f8cdb23f"
+      },
+      {
+        "from": "a1a4529cee40f18d1",
+        "relationship": "native_output",
+        "to": "a67b4cf816c56f492"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "produced",
+        "to": "a45843e2e9858e0eb"
+      },
+      {
+        "from": "a45843e2e9858e0eb",
+        "relationship": "final_geometry",
+        "to": "a6d92f48016b5c1f5"
+      },
+      {
+        "from": "a45843e2e9858e0eb",
+        "relationship": "stage_report",
+        "to": "ae390dbde49ec9fe6"
+      },
+      {
+        "from": "a45843e2e9858e0eb",
+        "relationship": "stage_report",
+        "to": "a5b63d84b3d945a17"
+      },
+      {
+        "from": "a45843e2e9858e0eb",
+        "relationship": "stage_report",
+        "to": "ac8811de59d027a29"
+      },
+      {
+        "from": "ac8811de59d027a29",
+        "relationship": "native_output",
+        "to": "a9e27af1c1c81d5a1"
+      },
+      {
+        "from": "ac8811de59d027a29",
+        "relationship": "native_output",
+        "to": "acc6b6ea8eaccd622"
+      },
+      {
+        "from": "ac8811de59d027a29",
+        "relationship": "native_output",
+        "to": "a54e57cecc59f8ce9"
+      },
+      {
+        "from": "ac8811de59d027a29",
+        "relationship": "native_output",
+        "to": "a8eb9c784db732df3"
+      },
+      {
+        "from": "ac8811de59d027a29",
+        "relationship": "native_output",
+        "to": "af7b19f413090a73f"
+      },
+      {
+        "from": "ac8811de59d027a29",
+        "relationship": "native_output",
+        "to": "a0b59b4db34a48105"
+      },
+      {
+        "from": "ac8811de59d027a29",
+        "relationship": "native_output",
+        "to": "a913b6f099f547eb5"
+      },
+      {
+        "from": "a45843e2e9858e0eb",
+        "relationship": "stage_report",
+        "to": "ac359d756f0fdd1bb"
+      },
+      {
+        "from": "ac359d756f0fdd1bb",
+        "relationship": "native_output",
+        "to": "a8787723d815bd4bc"
+      },
+      {
+        "from": "ac359d756f0fdd1bb",
+        "relationship": "native_output",
+        "to": "afb3e69838622c9a7"
+      },
+      {
+        "from": "ac359d756f0fdd1bb",
+        "relationship": "native_output",
+        "to": "ad5300eeab7dd5528"
+      },
+      {
+        "from": "ac359d756f0fdd1bb",
+        "relationship": "native_output",
+        "to": "aa8cc685821dd1673"
+      },
+      {
+        "from": "ac359d756f0fdd1bb",
+        "relationship": "native_output",
+        "to": "a228f175a13556ffc"
+      },
+      {
+        "from": "ac359d756f0fdd1bb",
+        "relationship": "native_output",
+        "to": "aba654282c3a6117b"
+      },
+      {
+        "from": "ac359d756f0fdd1bb",
+        "relationship": "native_output",
+        "to": "a71717df47f1132cb"
+      },
+      {
+        "from": "ac359d756f0fdd1bb",
+        "relationship": "native_output",
+        "to": "a5d009ae3a7d1a575"
+      },
+      {
+        "from": "ac359d756f0fdd1bb",
+        "relationship": "native_output",
+        "to": "a64c2b3933cb077fd"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "produced",
+        "to": "a06ea01c37d7dabbe"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "produced",
+        "to": "a1e0d9f293ceffa52"
+      },
+      {
+        "from": "a91ee08e5465557d2",
+        "relationship": "produced",
+        "to": "a15a2b7e7df785799"
+      },
+      {
+        "from": "a0673c49dac15d4d1",
+        "relationship": "related_evidence",
+        "to": "a76d2db37a9bd315c"
+      },
+      {
+        "from": "a0673c49dac15d4d1",
+        "relationship": "related_evidence",
+        "to": "a1f879a89c4d6bc4f"
+      },
+      {
+        "from": "a0673c49dac15d4d1",
+        "relationship": "related_evidence",
+        "to": "a11679ec5f91305b9"
+      },
+      {
+        "from": "a0673c49dac15d4d1",
+        "relationship": "related_evidence",
+        "to": "a8f22565a0d30d7a5"
+      },
+      {
+        "from": "a0673c49dac15d4d1",
+        "relationship": "related_evidence",
+        "to": "ac1e66bf2929f8fbf"
+      },
+      {
+        "from": "a0673c49dac15d4d1",
+        "relationship": "related_evidence",
+        "to": "a258f66aa57ce3043"
+      },
+      {
+        "from": "a0673c49dac15d4d1",
+        "relationship": "related_evidence",
+        "to": "aaafca8d9bb63bc49"
+      },
+      {
+        "from": "a0673c49dac15d4d1",
+        "relationship": "related_evidence",
+        "to": "a2755939ef2c52cd7"
+      },
+      {
+        "from": "a0673c49dac15d4d1",
+        "relationship": "related_evidence",
+        "to": "a84afc738e4dcd0a0"
+      },
+      {
+        "from": "a0673c49dac15d4d1",
+        "relationship": "summarized_by",
+        "to": "a2ba486d145203974"
+      },
+      {
+        "from": "a0673c49dac15d4d1",
+        "relationship": "summarized_by",
+        "to": "a702844454ba50994"
+      }
+    ]
+  }
+}

@@ -67,3 +67,43 @@ relocation AST evidence and focused-attempt01 remain historical evidence for
 their actual bytes. Re-freeze after this bounded correction and rerun affected
 source/installed and actual workflows. D01–D03, optional activation and all
 later/global gates remain open. Root owns integration, acceptance and Git.
+
+
+## A8 — Preserve current implicit-H zero in the scientific snapshot
+
+At delivered `98e6d2bc762ab142c04dbe86395ff235ccc063af`, root reviewed
+P20-D020/B-H-PRESENCE, the actual six-fixture observations, the sole adapter
+capture and its concrete chemical/provider/identity consumers. A present CURRENT
+H count of zero is a known value. Returning None discards that fact and can
+collapse known-zero and unresolved-H snapshot identities. Root authorizes the
+small correction now; this supersedes only A3/A7's temporary zero-to-None
+preservation. H inference and preparation algorithms remain unchanged.
+
+Return the stored integer in the existing present/CURRENT adapter branch,
+including explicit/imported/inferred zero. Non-current or absent H remains None;
+CONFLICT retains its existing exact RuntimeError. A7 still copies the carrier,
+prepares H once and captures one coherent prepared working state without
+modifying input. Do not infer H explicitness from a numeric zero, add types,
+guards, codecs, fallback, history migration or a compatibility switch. No public
+field, signature, permission, JSON tag or optional rule activation changes.
+
+The expected facts are known zero versus absence/unresolved, unchanged raw input
+on all success/failure fixtures, independent chloride charge/electron/spin and
+existing Lewis/donor/oxidation/conservation behavior. All surveyed arithmetic
+readers currently group None/zero or add zero; correcting presence alone does
+not change those readers or claim complete scientific interpretation of unknown
+H. Existing public-ID/row extraction assumptions remain qualified.
+
+Affected fact/candidate/path/history identities intentionally change when their
+previous H0 was encoded as null. Existing identity checks must reject stale
+provided evidence; historical None cannot be losslessly upgraded without the
+carrier. Digest-based ordering and budget truncation may select different
+alternatives while preserving the bounded-search contract. Do not force old
+digests or selected-path equality. Reuse unchanged A1–A7 ownership/native/cost
+evidence; re-freeze after this correction and run new presence/identity/stale
+regressions, the affected CP311 scientific/controller/xTB suite and actual
+source/installed pipeline and MCA workflows. Preserve actual backend differences
+under existing method-specific tests. No new performance comparison is needed
+for this one existing scalar return; full-copy cost remains P20-D019. Root owns
+runtime release, acceptance, Git and any additional diagnosed change. D01–D03,
+whole Stage8A and later/global gates remain open.

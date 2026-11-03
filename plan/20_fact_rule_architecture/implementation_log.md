@@ -4244,3 +4244,64 @@ references resolved with ordinary file-line references handled as such. Root
 MCA acceptance status and both false stage/global flags agree with the map.
 `git diff --check` passes. These scoped checks do not relabel the retained
 RC1 full-layout audit or rerun any successful business calculation.
+
+
+### 2026-11-03 — MCA delivered; partial-charge connected authoring release
+
+Previous turn made concrete progress: a54c660d8bff79462dd1cee48d0d3c9e65a53d87
+committed the MCA selected-owner business/tests plus unified deferred issue index
+and was pushed; git ls-remote matched. Only the unrelated user helper rescore is
+untracked. Main goal remains all Plan20/Plan12, not MCA completion.
+
+Root aligned effective goal, Stage1A2/A6/A8, targeted main-plan5.3/5.4/Stage7C,
+selected-results contract and actual source against a54c660. Two local Sol/medium
+read-only scouts mapped transport/lifecycle and native/adapter/model consumers;
+no external helper, tests/builds/models or code changes were made in scouting.
+They confirmed Record23's missing method/currentness transport and native finite
+charge requirements. Root Sol/max accepts PC1–PC9 before dependent edits: reserved
+N14 plus reusedN15; explicit Record24/tagged-v3; no raw scalar duplication; direct
+None/stale errors and19col unavailableNaN; task-only zero conventions; complete
+atomic selection and source binding, lifecycle and import maps. The private
+record schema is an internal implementation contract, not a new public export.
+
+Release three exclusive local source partitions A/B/C under that settled design,
+with business effort>=medium and no nested delegation or product runtime before
+connected freeze. WholeStage7C and later/global gates remain open. No speculative
+MCA finite guard, new scientific method, feature encoding or confidence envelope
+is introduced. Owner's new Git title convention applies to subsequent commits:
+`type(P20-S7C-cheminfo): ...` (use actual type/stage/module; docs use `doc`).
+
+
+### 2026-11-03 — Selected charges connected source-ready/runtime release
+
+Root reviewed the three completed local partitions, full connected diff and PC1–PC9. Static AST/compile covered34 changed/new Python files; git diff --check passed. Freeze 07446d82042e179043c08ef6d7db766904d53358fb4d2ccc591f760384830298 binds1407 source/test files and six unchanged CP311 natives against a54c660d8bff79462dd1cee48d0d3c9e65a53d87. No native source change or rebuild. Runtime is released focused-first under partial_charge_runtime_release.json; source/installed/business evidence is still pending. Builder/selected-result tests migrate the intended schema3/24 and read-only charge contracts. The existing opaque Bond transport fixture remains without a selected result; representation identities continue to require canonical source content, as the existing source-identity contract declares. cclib count-changing import now explicitly clears old selected charges. Independent legacy Gaussian update_mol publishes an arbitrary molecular charge attribute; root records this preexisting optional producer gap as P20-D016 for Stage12, with no mandatory-workflow capability claim. Actual OB charge tests retain named-method values, units, input/formal/net charge observations. Stage7C/global gates remain open.
+
+
+### 2026-11-03 — First charge focused observations and PC4 precision
+
+Focused attempt01 executed290cases:288passed/2failed, no skips/errors, unchanged1407source/test plus6native bindings and no unexpected product origins. Both failures are the new status-boundary injection expecting KeyboardInterrupt without reaching that boundary; original receipts remain untouched. Local owner worker is inspecting the trigger without removing the boundary or weakening restoration checks. Root corrects PC4 wording: selection publication rolls back its own writes, while completed aromatic preparation and independent concurrent mutations keep the preexisting operation boundary; caller-owned outer rollback still restores enclosed facts and exact attachments. Existing OB capture-failure tests already enforce this preparation boundary and passed in the same selection. An additional charge preparation-failure test makes the intended boundary explicit. No failure is relabeled as pass; new source/test freeze and affected revalidation will follow the test correction.
+
+
+### 2026-11-03 — Owner adds mechanical-task model options
+
+Owner permits GPT-6.1 Terra/GPT-6 Luna for explicit mechanical tasks with no business-code changes or reasoning/interpretive decisions. model_allocation.md records the exception and the existing model/effort table; README links it. Business-code minimum medium and Sol/max planning/global responsibility remain. Only currently exposed model IDs may be dispatched; the present collaboration tool exposes gpt-6-luna but not a Terra ID, so no Terra availability or benchmark-equivalence claim is made. The intended cross-plan skill-reference edit returned read-only-filesystem OSError and changed no bytes; the permitted project-maintained reference records the owner decision instead. No session model, configuration, permissions or source changed by this addition. Official documentation did not establish these exact model names; availability is therefore limited to actual exposed tool IDs.
+
+
+### 2026-11-03 — Charge affected legacy-test migration
+
+Focused attempt02 passed291cases. Affected attempt01 passed1937/failed12/skip0: legacy UID-copy expectations included current charge bytes after context loss; six child-process checks hardcodedRecord2/23; one model fixture assembled rows before current full-set selection; two tests used retired scalar/native writes; one generated exactly7derived fields. Local workers migrate those four testfiles under PC1–PC9, adding history/provenance checks, complete-set selection preserving original model feature values, native charge-write rejection on5ingresses and existing MCA retention. No production bytes changed. Actual source FF11, officialCBFF/GFN-FF/xTB3, MCA CLI1 and attachment3 all passed; source/native/model bindings and origins were checked. Those actual jobs retain their recorded freeze, with identical production and actual test bytes across this test-only refreeze. Original12failures remain preserved; no broad default-suite pass is claimed.
+
+
+### 2026-11-03 — Selected charges validated and Stage7C CP311 owning scope accepted
+
+Root collected source affected-attempt02:1953passed/0failed/0skipped; actualFF11/pipeline3/MCA1/attachment3 passed. Installed driverattempt01RC0 built/installed457Python+6unchangedCP311natives outside checkout, passed the same1953ordered nodes and actual11/3/1/3, with no origin leaks or source/install/model drift. Exact commands/cwd/env/interpreters/dependencies/output observations are in the maintained selected-charge checkpoint and its finite local archive. Wheel6301894bytes/SHA2567eaf7bccff54a071b26e9d0e72eeba75b1a7ac138edbd239ace40f795198a4e5. No native source/rebuild;41non-Python omissions remain Stage10 debt.
+
+Original focused288passed/2failed and affected1937passed/12failed remain archived. Corrections migrated tests only under acceptedPC1–PC9, adding rollback/provenance/read-only-native assertions while preserving trained-feature numeric expectations. Final architecture audit passes936files/224preexistingdebt/zero new ratchet/layer/carrier findings after replacing two new core imports with the public facade. Full qualification freezee365314f remains saved; finald4450d2b differs only in the eight-case test import. Source8/installed8 final scoped rebind passed, identical nodes/no origin/product drift. Root independently matched1407finalsource/test+6native bindings; unchanged full successful business evidence reused. No repeated broad default run or all-version claim.
+
+Local Sol/medium artifact worker archived529exact-byte files/15962637bytes plus small warning analysis, original failures, actual charge/FF/pipeline/MCA outputs and receipts. Root inspected load-bearing outcomes and warning evidence; raw environments/models/binaries/wheels/full pytest trees were not copied. The named GFN-FF topology warning corresponds in matching local libxtb to failed optional restart read followed by fresh-topology initialization. Both source logs independently show topology generation, convergence27/12iterations and normal termination with finite energies; IEEE underflow/denormal notes remain. Exact prior-file cause and historical shared-library loader trace are unavailable. Root accepts these bounded observations for the selected-result gate, with no suppression/retry/fallback or scientific-state-resolution claim. Eu FF seed remains unrecorded, all xTB scientific states unresolved, MCA inner CLIstderr/RC not separately persisted.
+
+Bounded7sample/50read64/256/1024Atom cost passed: ~1microsecond scalar/all-Atom perrow, batch38/109/394microseconds; getter zero captures/checks/digests and one batch projection, no quadratic hashing. Root accepts usable scope, no global parity claim. Census780classes/357dataclasses/8Protocols/2TypedDicts spends exactlyN14/reusesN15; Record24/tagged-v3 and absenceNone/staleerror/displayNaN plus task-onlyzero are connected throughout.
+
+Root accepts Stage7C applicable CP311 owning scope combining the prior MCA checkpoint with this full selected-charge slice; stage_gate_closed=true/global_gate_closed=false. Maintained completion/map/main-plan/budget/report agree. P20-D001–D016, Stage7D/E, remaining Plan20/Plan12 and final version/native/delivery/science/GPU/performance gates stay open. Stage7D read-only survey by a local Sol scout identifies the shared source/generated Conformers store and connected transport/lifecycle; no Stage7D source or runtime is released yet. Business commit/push follows final scoped record checks; Git history records its actual identity, no hash-only follow-up commit.
+
+Final delivery checks passed:9 changed/new plan JSON records parsed,10 load-bearing archived receipts matched bytes/SHA,149 report/navigation references resolved,16 deferred IDs retained, completion/map owning/global flags agree. Child's full529copy verification is reused. `git diff --check` passes; the known-broken full layout checker is not rerun and no successful business computation is repeated merely for bookkeeping.

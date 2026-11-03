@@ -61,7 +61,13 @@ def test_openbabel_compatibility_names_forward_to_common_buffers():
 
 def test_pack_molecule_preserves_order_semantics_and_exact_dtypes():
     mol = read_mol("c1ccccc1P(=O)(O)O")
-    mol.atoms[0].partial_charge = -0.125
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
+    from hotpot.cheminfo.structure._results import _import_partial_charges
+
+    _import_partial_charges(
+        mol, (-0.125,) + (None,) * (len(mol.atoms) - 1),
+        producer=ATOM_SOURCE_CODES["explicit"],
+    )
 
     buffers = _pack_molecule(mol)
 
@@ -144,3 +150,33 @@ def test_packing_does_not_replace_openbabel_hybridization_semantics():
 
     assert not hasattr(buffers, "hybridizations")
     assert not hasattr(buffers, "is_metal")
+
+
+def test_task_packing_uses_zero_for_absent_charge_without_selecting_a_result():
+    mol = read_mol("CCO")
+
+    buffers = _pack_molecule(mol)
+
+    assert buffers.partial_charges.tolist() == [0.0, 0.0, 0.0]
+    assert np.isfinite(buffers.partial_charges).all()
+    assert tuple(atom.partial_charge for atom in mol.atoms) == (None,) * 3
+    assert mol._partial_charge_result is None
+
+
+def test_task_packing_preserves_current_rows_and_encodes_stale_rows_without_writeback():
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
+    from hotpot.cheminfo.structure._results import _import_partial_charges
+
+    mol = read_mol("CCO")
+    _import_partial_charges(mol, (None, 0.0, -0.25), producer=ATOM_SOURCE_CODES["explicit"])
+    selected = mol._partial_charge_result
+    assert _pack_molecule(mol).partial_charges.tolist() == [0.0, 0.0, -0.25]
+    assert mol._partial_charge_result is selected
+    assert tuple(atom.partial_charge for atom in mol.atoms) == (None, 0.0, -0.25)
+
+    mol.atoms[0].x = 2.0
+    stale = mol._partial_charge_result
+    assert stale.invalidated_by
+    assert _pack_molecule(mol).partial_charges.tolist() == [0.0, 0.0, 0.0]
+    assert mol._partial_charge_result is stale
+    assert stale.payload.values == (None, 0.0, -0.25)

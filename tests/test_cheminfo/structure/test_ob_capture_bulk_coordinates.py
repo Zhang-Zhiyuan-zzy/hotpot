@@ -16,6 +16,7 @@ from hotpot.cheminfo.adapters.io.formats import openbabel as ob_format
 from hotpot.cheminfo.structure._builder import _freeze_value
 from hotpot.cheminfo.structure._atom_table import _AtomFactTable
 from hotpot.cheminfo.structure._fields import FIELD_INDEX
+from hotpot.cheminfo.structure._results import _import_partial_charges
 
 
 def _facts(mol):
@@ -183,7 +184,7 @@ def test_capture_retains_exact_scalar_types_float_bits_and_unbounded_integers(bi
     value = struct.unpack('>d', struct.pack('>Q', bits))[0]
     # These deliberately raw numeric facts characterize capture only. They
     # must never be passed to a chemistry backend or interpreted as valid Z.
-    for field in ('partial_charge', 'is_aromatic', 'x', 'y', 'z'):
+    for field in ('is_aromatic', 'x', 'y', 'z'):
         table._columns[FIELD_INDEX[field]][1] = value
     table._columns[FIELD_INDEX['atomic_number']][0] = 6.75
     table._columns[FIELD_INDEX['formal_charge']][0] = -1.75
@@ -194,12 +195,13 @@ def test_capture_retains_exact_scalar_types_float_bits_and_unbounded_integers(bi
     assert type(rows) is tuple and len(rows) == 3
     for row in rows:
         assert type(row) is tuple
-        assert tuple(type(value) for value in row) == (int, int, float, tuple, float)
+        assert tuple(type(value) for value in row) == (int, int, type(None), tuple, float)
         assert len(row[3]) == 3 and all(type(value) is float for value in row[3])
     assert rows[0][:2] == (6, -1)
     assert rows[1][:2] == (2 ** 80, -(2 ** 100))
     assert rows[2][0] == 8
-    for captured in (rows[1][2], rows[1][4], *rows[1][3]):
+    assert all(row[2] is None for row in rows)
+    for captured in (rows[1][4], *rows[1][3]):
         assert struct.pack('>d', captured) == struct.pack('>Q', bits)
     assert type(bonds) is tuple and len(bonds) == 2 and cell is None
 
@@ -228,11 +230,13 @@ def test_capture_rows_remain_detached_and_next_capture_reads_current_values():
     mol = read_mol('CCO', 'smi')
     before = np.arange(9.).reshape(3, 3) / 8
     mol.coordinates = before
-    mol._atom_table.update((1,), {'formal_charge': 0., 'partial_charge': 0.})
+    mol._atom_table.update((1,), {'formal_charge': 0.})
+    _import_partial_charges(mol, (None, 0., None), producer=1)
     with mol._mutation_lock:
         previous, _, _ = conversion._capture_ob_values(mol, tuple(mol.bonds))
         mol.coordinates = before + 7.
-        mol._atom_table.update((1,), {'formal_charge': -1., 'partial_charge': .375})
+        mol._atom_table.update((1,), {'formal_charge': -1.})
+        _import_partial_charges(mol, (None, .375, None), producer=1)
         current, _, _ = conversion._capture_ob_values(mol, tuple(mol.bonds))
     assert previous[1] == (6, 0, 0., (.375, .5, .625), 0.)
     assert current[1] == (6, -1, .375, (7.375, 7.5, 7.625), 0.)
@@ -262,6 +266,6 @@ def test_capture_finishes_atom_rows_before_first_dative_and_never_reads_cell(mon
         else:
             rows, bonds, cell = conversion._capture_ob_values(mol, (dative, object()))
             assert len(rows) == 3
-            assert rows[2] == (8, -2, 0., (2., 0., 0.), 0.)
+            assert rows[2] == (8, -2, None, (2., 0., 0.), 0.)
             assert bonds == (('dative',),) and cell is None
     assert cell_reads == []

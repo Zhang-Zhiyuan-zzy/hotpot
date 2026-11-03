@@ -266,3 +266,46 @@ def test_cpu_preprocess_reuses_dto_and_keeps_domain_checks():
     assert task.conformer_seed == 42
     with pytest.raises(ValueError, match="position 6.*outside the validated domain"):
         predictor._preprocess_task(normalize_molecule("C[NH3+]"), 6)
+
+
+@pytest.mark.parametrize("values", [None, (None, 0.0, -0.25)])
+def test_dto_charge_round_trip_preserves_absence_zero_and_row_mapping(values):
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
+    from hotpot.cheminfo.structure._results import _import_partial_charges
+
+    molecule = read_mol("CCN")
+    if values is not None:
+        _import_partial_charges(molecule, values, producer=ATOM_SOURCE_CODES["explicit"])
+    expected = (None,) * 3 if values is None else values
+
+    dto = pickle.loads(pickle.dumps(normalize_molecule(molecule)))
+    restored = hotpot_mol_from_dto(dto)
+
+    assert tuple(atom.partial_charge for atom in dto.atoms) == expected
+    assert tuple(atom.partial_charge for atom in restored.atoms) == expected
+    assert tuple(atom.symbol for atom in restored.atoms) == ("C", "C", "N")
+    assert _site_records(restored) == ((2, "Amine"),)
+    if values is not None:
+        assert restored._partial_charge_result.payload.provenance == (
+            ATOM_SOURCE_CODES["default"], ATOM_SOURCE_CODES["mca_dto"],
+            ATOM_SOURCE_CODES["mca_dto"],
+        )
+
+
+def test_stale_charge_is_unavailable_in_dto_without_replacing_historical_selection():
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
+    from hotpot.cheminfo.structure._results import _import_partial_charges
+
+    molecule = read_mol("CCN")
+    _import_partial_charges(molecule, (-0.25, 0.0, 0.25), producer=ATOM_SOURCE_CODES["explicit"])
+    molecule.atoms[0].x = 1.0
+    selected = molecule._partial_charge_result
+
+    dto = normalize_molecule(molecule)
+    restored = hotpot_mol_from_dto(dto)
+
+    assert tuple(atom.partial_charge for atom in dto.atoms) == (None,) * 3
+    assert tuple(atom.partial_charge for atom in restored.atoms) == (None,) * 3
+    assert molecule._partial_charge_result is selected
+    assert selected.invalidated_by
+    assert selected.payload.values == (-0.25, 0.0, 0.25)

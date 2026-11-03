@@ -11,6 +11,7 @@ from hotpot.cheminfo.adapters.openbabel import perception as ob_perception
 from hotpot.cheminfo.operations import chemistry, conversion
 from hotpot.cheminfo.structure._builder import _freeze_value
 from hotpot.cheminfo.structure._commit import _FactTransaction
+from hotpot.cheminfo.structure._results import _import_partial_charges
 
 
 def _facts(mol):
@@ -68,7 +69,8 @@ def test_external_mutation_does_not_change_other_values_or_complete_carrier_fact
         left.GetAtom(1).SetPartialCharge(9.)
         left.GetAtom(1).SetVector(90., 91., 92.)
         assert right.GetAtom(1).GetAtomicNum() == 6
-        assert right.GetAtom(1).GetPartialCharge() == mol.atoms[0].partial_charge
+        restored = conversion.obmol2mol(right, Molecule())
+        assert restored.atoms[0].partial_charge == mol.atoms[0].partial_charge
         assert right.GetAtom(1).GetX() == mol.coordinates[0, 0]
     assert _facts(mol) == before
     assert not {'_obmol', '_row2idx'} & mol.__dict__.keys()
@@ -129,20 +131,21 @@ def test_ob_capture_empty_carrier_has_no_rows_or_cell():
 
 @pytest.mark.parametrize('partial,coordinates,aromatic', [
     (-0.0, (-0.0, 1.25, -2.5), 2.5),
-    (float('inf'), (float('-inf'), -0.0, 0.0), -0.0),
-    (np.frombuffer(bytes.fromhex('010000000000f87f'), dtype='<f8')[0],
+    (.125, (float('-inf'), -0.0, 0.0), -0.0),
+    (-.25,
      (np.frombuffer(bytes.fromhex('020000000000f87f'), dtype='<f8')[0], 3.5, -0.0), 1.0),
 ])
 def test_ob_capture_preserves_scalar_codecs_raw_aromatic_and_float_bytes(partial, coordinates, aromatic):
     # The literal integer expectations distinguish scalar codecs from raw slots;
     # nonfinite values are inspected before any external toolkit packing.
     raw = np.zeros(19)
-    raw[[0, 7, 8, 9]] = (6.875, -1.875, partial, aromatic)
+    raw[[0, 7, 9]] = (6.875, -1.875, aromatic)
     raw[10:13] = coordinates
     mol = Molecule()
     mol._create_atom_from_array(raw)
     parameters = (11.25, 12.5, 13.75, 88.5, 91.25, 103.75)
     original_cell = mol.create_crystal(*parameters)
+    _import_partial_charges(mol, (partial,), producer=1)
     before = mol._atom_table.matrix().tobytes()
     atom_rows, bond_rows, cell = conversion._capture_ob_values(mol, ())
     assert type(atom_rows) is tuple and len(atom_rows) == 1
@@ -198,9 +201,9 @@ def test_ob_capture_tracks_removed_replaced_and_reordered_members():
     reordered = Molecule()._install_molecule(record, bond_metadata=metadata)
     atoms, bonds, _cell = conversion._capture_ob_values(reordered, tuple(reversed(reordered.bonds)))
     assert atoms == (
-        (8, 0, 0., (3., 0., 0.), 0.),
-        (6, 0, 0., (1., 0., 0.), 0.),
-        (6, 0, 0., (4., 0., 0.), 0.),
+        (8, 0, None, (3., 0., 0.), 0.),
+        (6, 0, None, (1., 0., 0.), 0.),
+        (6, 0, None, (4., 0., 0.), 0.),
     )
     assert bonds == (('double', 1, 2, 2., False), ('single', 0, 1, 1., False))
 

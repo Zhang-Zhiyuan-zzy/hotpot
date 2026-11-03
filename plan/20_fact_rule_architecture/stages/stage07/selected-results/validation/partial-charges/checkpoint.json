@@ -1,0 +1,420 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7C selected partial charges",
+  "date": "2026-11-03",
+  "status": "ROOT_ACCEPTED_CP311_PARTIAL_CHARGE_CHECKPOINT",
+  "acceptance_owner": "root",
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "stage_scope_completion": "../../completion_20261103.json",
+  "conclusion": "PC1–PC9 selected-charge owner, lifecycle/import/model/native projection and affected CP311 source/installed/actual-business evidence accepted. WholeStage7C acceptance is separate in the linked root completion record.",
+  "source": {
+    "head_at_execution": "a54c660d8bff79462dd1cee48d0d3c9e65a53d87",
+    "freeze": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/source_freeze.json",
+      "bytes": 179820,
+      "sha256": "d4450d2b34523fe9ea505642093b8923173cd784d12bc979e9015fa6c4784dfd",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/source_freeze.json"
+    },
+    "full_qualification_freeze": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/source_freeze_full_qualification.json",
+      "bytes": 179733,
+      "sha256": "e365314f1eee73f92a5e456875744735a3d14aeda5108ab3925f9cf729cdb371",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/source_freeze_full_qualification.json"
+    },
+    "source_test_bindings": 1407,
+    "unchanged_native_bindings": 6,
+    "root_final_binding_check": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/root-final-binding-check.json",
+      "bytes": 525,
+      "sha256": "c69ca6782153053a18398f8be71c6d312d80aa9612ebb32bc43a27a394699f30",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/root-final-binding-check.json"
+    },
+    "reuse": "Only public-facade imports in one eight-case test differ from full qualification. Source8/installed8 revalidated; all production/native/model and actual business test bytes match, so full successful evidence is reused."
+  },
+  "source_runs": [
+    {
+      "attempt": "focused-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/focused-attempt01/execution.json",
+        "bytes": 2268,
+        "sha256": "235893a1d5f105da70e112a20bf987c8ad0b7f23c79e25e38e4425d401857aa7",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/focused-attempt01/execution.json"
+      },
+      "junit_totals": {
+        "tests": 290,
+        "failures": 2,
+        "errors": 0,
+        "skipped": 0
+      },
+      "returncode": 1,
+      "elapsed_seconds": 2.87448001280427,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "focused-attempt02",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/focused-attempt02/execution.json",
+        "bytes": 2270,
+        "sha256": "94073310190341a5add5a5510350d9f01501e03b2f3876d054aa901434af15de",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/focused-attempt02/execution.json"
+      },
+      "junit_totals": {
+        "tests": 291,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "returncode": 0,
+      "elapsed_seconds": 2.8017569798976183,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "affected-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/affected-attempt01/execution.json",
+        "bytes": 5294,
+        "sha256": "140d4c6bd55459c6f1f26486e8bf3265797d39344a5cb44375140867f42f9557",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/affected-attempt01/execution.json"
+      },
+      "junit_totals": {
+        "tests": 1949,
+        "failures": 12,
+        "errors": 0,
+        "skipped": 0
+      },
+      "returncode": 1,
+      "elapsed_seconds": 33.67482911981642,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "affected-attempt02",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/affected-attempt02/execution.json",
+        "bytes": 5293,
+        "sha256": "55f1a84bc84b2cfe27134429c8f5f59541272b421aad9d958f9a8678f29432c5",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/affected-attempt02/execution.json"
+      },
+      "junit_totals": {
+        "tests": 1953,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "returncode": 0,
+      "elapsed_seconds": 33.08907683938742,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "actual-ff-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-ff-attempt01/execution.json",
+        "bytes": 1792,
+        "sha256": "246da9726d6209dff44c2e3295f16f99d9b3022b64081aeda7825eece7d866f9",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-ff-attempt01/execution.json"
+      },
+      "junit_totals": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "returncode": 0,
+      "elapsed_seconds": 15.313612896949053,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "actual-pipeline-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/execution.json",
+        "bytes": 2227,
+        "sha256": "fffb43f1adbf561cc1feccf82ec687003ef9a9c04ceaf0a6e9348102fe918ea9",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/execution.json"
+      },
+      "junit_totals": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "returncode": 0,
+      "elapsed_seconds": 4.564522111788392,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "actual-mca-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-mca-attempt01/execution.json",
+        "bytes": 1957,
+        "sha256": "45f12109e7bd222a09e0a2ea4f15494c1d1dc18c1f95af1f6711076da02fadb6",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-mca-attempt01/execution.json"
+      },
+      "junit_totals": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "returncode": 0,
+      "elapsed_seconds": 4.009054383262992,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "actual-mca-attachment-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-mca-attachment-attempt01/execution.json",
+        "bytes": 2007,
+        "sha256": "f48d9c712eb45b9a87b70ab20763ab44ede6d0e78a0756ed5304e234df3e4dcb",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-mca-attachment-attempt01/execution.json"
+      },
+      "junit_totals": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "returncode": 0,
+      "elapsed_seconds": 8.9415237121284,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "test-import-rebind-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/test-import-rebind-attempt01/execution.json",
+        "bytes": 1784,
+        "sha256": "4070ba9d588d58d330ede6371f3a13034b8fff43b9fdf010986dca02f5350439",
+        "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/test-import-rebind-attempt01/execution.json"
+      },
+      "junit_totals": {
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "returncode": 0,
+      "elapsed_seconds": 1.1723760925233364,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    }
+  ],
+  "installed": {
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/installed-validation/attempt01/execution.json",
+      "bytes": 73397,
+      "sha256": "f8f4f7fa7ca13252f878676123d67cd76109b8c8e312421a074a7868f05f14d5",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/installed-validation/attempt01/execution.json"
+    },
+    "runs": {
+      "affected": {
+        "tests": 1953,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 38.10710212029517
+      },
+      "actual_FF": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 18.093086583539844
+      },
+      "actual_CBFF_xtb": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 5.178514547646046
+      },
+      "actual_MCA": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 4.152696618810296
+      },
+      "actual_MCA_attachment": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 8.951757172122598
+      }
+    },
+    "scoped_rebind_receipt": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/installed-validation/test-import-rebind-attempt01/execution.json",
+      "bytes": 3093,
+      "sha256": "ec814c7250776d597e3c38baf04b85cb91478a3e5cd2774f7d78712377ac3604",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/installed-validation/test-import-rebind-attempt01/execution.json"
+    },
+    "scoped_rebind_passed": 8,
+    "same_ordered_affected_nodes": true,
+    "zero_origin_leaks": true,
+    "source_installed_models_unchanged": true,
+    "production_python_files": 457,
+    "native_count": 6,
+    "native_rebuild": false,
+    "wheel": {
+      "path": "/tmp/hotpot_plan20/medium/20261103-stage7c-charge-installed/attempt01/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6301894,
+      "sha256": "7eaf7bccff54a071b26e9d0e72eeba75b1a7ac138edbd239ace40f795198a4e5"
+    },
+    "known_nonpython_omissions": [
+      "hotpot/cheminfo/AImodels/INFERENCE_COMPATIBILITY.md",
+      "hotpot/cheminfo/AImodels/cbond/README.md",
+      "hotpot/cheminfo/AImodels/mca/MODEL_CARD.md",
+      "hotpot/cheminfo/AImodels/mca/README.md",
+      "hotpot/cheminfo/AImodels/mca/THIRD_PARTY_LICENSES.md",
+      "hotpot/cheminfo/AImodels/mca/requirements.txt",
+      "hotpot/cheminfo/MolProps/data/MedProp.xlsx",
+      "hotpot/cheminfo/MolProps/data/SolProp.xlsx",
+      "hotpot/cheminfo/MolProps/sol_med_prop.md",
+      "hotpot/cheminfo/_native/include/hotpot/native/array_view.hpp",
+      "hotpot/cheminfo/_native/include/hotpot/native/molecule_buffer_view.hpp",
+      "hotpot/cheminfo/mol_assemble/Assemblers.svg",
+      "hotpot/cheminfo/mol_assemble/Example-5step.svg",
+      "hotpot/cheminfo/mol_assemble/FragTemplete.json",
+      "hotpot/cheminfo/mol_assemble/README.md",
+      "hotpot/cheminfo/pubchem.md",
+      "hotpot/cheminfo/rdWrappers/CMakeLists.txt",
+      "hotpot/cheminfo/rdWrappers/_native/BUILDING.md",
+      "hotpot/cheminfo/rdWrappers/_native/include/hotpot/rdWrappers/c_api.h",
+      "hotpot/cheminfo/rdWrappers/_native/include/hotpot/rdWrappers/rdwrapper.hpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/c_api.cpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/core.hpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/exports.map",
+      "hotpot/cheminfo/rdWrappers/_native/src/molecule_builder.cpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/python_binding.cpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/python_exports.map",
+      "hotpot/cheminfo/rdWrappers/_native/src/sampler.cpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/validation.cpp",
+      "hotpot/cheminfo/rdWrappers/build_locked.sh",
+      "hotpot/cheminfo/rdWrappers/cmake/HotpotRDWrappersConfig.cmake.in",
+      "hotpot/cheminfo/rdWrappers/cmake/attach_rdwrapper.cmake",
+      "hotpot/cheminfo/rdWrappers/cmake/remove_build_rpath.cmake",
+      "hotpot/cheminfo/rdwork.md",
+      "hotpot/cheminfo/rules/chemistry/bonding/Kekulize.md",
+      "hotpot/cheminfo/smarts.md",
+      "hotpot/dataset/retention-cleanup.txt",
+      "hotpot/plugins/ml/features/elements/_elements.pd.xz",
+      "hotpot/plugins/ml/features/solvents/mnsddb.pdf",
+      "hotpot/plugins/opti/beyes/opti.py.old",
+      "hotpot/plugins/plots/cmaps/BluesSat.npy",
+      "hotpot/plugins/zeoxx/README.md"
+    ],
+    "limitations": [
+      "CP311 only, shared system-site-packages dependencies.",
+      "All six natives reused unchanged; no new native build, clean all-native/ABI/SDK/sdist/manylinux qualification.",
+      "Measured package omissions remain explicit.",
+      "Origin audit covers Python site-hook participants; native and site-bypassing processes are not independently enumerated.",
+      "No controlled candidate performance, global science/GPU/full isolation/all-version claim.",
+      "Connected selected-charge installed checkpoint only; root owns Stage7C acceptance and all remaining global obligations."
+    ]
+  },
+  "failure_disposition": {
+    "focused_attempt01": "288passed/2failed; new status-injection trigger did not reach publication. Corrected trigger plus status/seed rollback checks and explicit preparation-failure case; no product edit.",
+    "affected_attempt01": "1937passed/12failed; migrate UID stale/partial history, schema2/23→3/24 expectations, full-set feature fixture, retired scalar/native setter use and7→8derived-field fixture. Original numeric trained feature expectations preserved; added assertions retained.",
+    "test_only_refreezes": "07446→65fbb→e365→d445; original freezes and failed executions retained. No failures relabeled."
+  },
+  "cost": {
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/cost/attempt01/execution.json",
+      "bytes": 24533,
+      "sha256": "469d1892e8e92eaa0c5b6aae1389850de9af0b4fa105be58bc43c758a68a28d9",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/cost/attempt01/execution.json"
+    },
+    "status": "PASS",
+    "scope": "Synthetic supplied sets64/256/1024,7samples/50reads; usable scaling/call-count evidence, shared host, no parity/global-performance claim.",
+    "root_disposition": "Accept bounded usable cost: ~1microsecond scalar, ~1microsecond/Atom all-Atom,38/109/394microsecond batch; getters perform zero capture/check/digest calls, one batch projection, no quadratic hashing. Selection1capture/1check/4digests; task zeros never write back."
+  },
+  "architecture": {
+    "audit": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/architecture-audit-final.json",
+      "bytes": 496,
+      "sha256": "06491c8156dd7f5f1ae944240ff4c2aaed4f8cbd7ad7d817e8306941ba4b834e",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/architecture-audit-final.json"
+    },
+    "original_failed_audit": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/architecture-audit.json",
+      "bytes": 1826,
+      "sha256": "32c6b102a8d2da0495dc1207429572e7af1db8d8fc2e252addd6b59adbf092cf",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/architecture-audit.json"
+    },
+    "status": "passed",
+    "scanned_python_files": 936,
+    "remaining_debt": 224,
+    "census": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/class_census.json",
+      "bytes": 110230,
+      "sha256": "89a1131fe6d7aa57c556d4e4fb7645e8a35b642324041d4538aa05223668539a",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/class_census.json"
+    },
+    "counts": {
+      "all_python_classes": 780,
+      "dataclasses": 357,
+      "protocols": 8,
+      "typed_dicts": 2
+    },
+    "type_budget": "Exactly reserved N14; N15 reused. Same N02 has24fields/tagged-v3; no raw charge ownership or new native schema."
+  },
+  "scientific_observations": "scientific_observations.json",
+  "backend_warning_disposition": {
+    "owner": "root",
+    "date": "2026-11-03",
+    "status": "ACCEPTED_BOUNDED_BACKEND_OBSERVATION",
+    "named_warning": "gfnff_setup: Could not read topology file.",
+    "observed_boundary": "Both source GFN-FF cases generated topology, converged after27/12 iterations and terminated normally with finite energies; installed corresponding business selection also passed.",
+    "reason": "Matching local libxtb control flow emits this warning on unsuccessful optional gfnff_topo restart read and permits fresh topology initialization. The actual logs independently show that initialization and completion.",
+    "limits": [
+      "The generic read failure and available logs do not prove whether the prior file was absent, unreadable or invalid; missing restart data is consistent with fresh workdirs, not independently traced.",
+      "No new calculation, source download or code change was made. This is inspection of existing raw outputs and matching currently installed package binary control flow.",
+      "Historical source receipts hash the xtb executable, while the shared library is matched to the local package at inspection time; no separate historical dynamic-loader trace/library hash was captured for those exact processes.",
+      "Normal completion and declared convergence establish only the exercised backend/output boundary, not chemical correctness, restart reproducibility, warning suppression or a root acceptance decision.",
+      "Original IEEE_UNDERFLOW_FLAG/IEEE_DENORMAL notes remain in native logs and review excerpts."
+    ],
+    "effect": "Retain warnings, IEEE underflow/denormal notes and finite observations. No Hotpot suppression, retry, fallback, fabricated state resolution or warning-free claim. This does not block the tested selected-result ownership gate.",
+    "evidence": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/warning-review/warning_review.json",
+      "bytes": 12442,
+      "sha256": "fdc87a35572550686310ca2a30a45be5d120b69f954597a842c68c0797b63e46"
+    }
+  },
+  "archive": {
+    "index": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/index.json",
+      "bytes": 226156,
+      "sha256": "9580f1f0487a62364d31b733931424acf5b6fe7f3021f7c125e296f9f2104ef0"
+    },
+    "copied_files": 529,
+    "copied_bytes": 15962637,
+    "generated_warning_analysis_files": 7,
+    "boundary": "Finite local ignored archive; complete environments/model/wheel/native binaries excluded. Not a GitHub payload publication."
+  },
+  "remaining": [
+    "P20-D001–D016 owning dispositions stay indexed; no debt is silently passed.",
+    "Stage7D coordinate frames; Stage7E canonical H/isotope/stereo beforeStage8.",
+    "Other Python versions; clean all-native/ABI/SDK/sdist/platform and41asset omissions; broader science/GPU/global performance and remaining Plan20/Plan12 acceptance."
+  ]
+}

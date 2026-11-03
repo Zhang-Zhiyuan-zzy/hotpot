@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "boundary": "On-demand local evidence graph; exact business outputs and original failures preserved.",
+  "entry": "checkpoint.json",
+  "scientific_observations": "scientific_observations.json",
+  "edges": {
+    "checkpoint": [
+      "source_runs",
+      "installed",
+      "cost",
+      "architecture",
+      "backend_warning_disposition",
+      "archive"
+    ],
+    "scientific_observations": [
+      "partial_charge_observation",
+      "pipeline",
+      "MCA_mixed_inputs",
+      "MCA_attachment"
+    ],
+    "archive_index": "Each file records original path, archive path, bytes and SHA256; hashes attribute bytes rather than chemical correctness."
+  },
+  "archive_index": {
+    "path": ".plan20-artifacts/20261103/stage7c/partial-charges/index.json",
+    "bytes": 226156,
+    "sha256": "9580f1f0487a62364d31b733931424acf5b6fe7f3021f7c125e296f9f2104ef0"
+  },
+  "full_source_observation_draft": {
+    "path": ".plan20-artifacts/20261103/stage7c/partial-charges/records-draft/scientific_observations.json",
+    "bytes": 102327,
+    "sha256": "0a3d8618f90a0c58d2b656d827ac8d8e4d1777444a3c3f7cad252d49c4ccae25",
+    "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/records-draft/scientific_observations.json"
+  },
+  "warning_review": {
+    "path": ".plan20-artifacts/20261103/stage7c/partial-charges/warning-review/warning_review.json",
+    "bytes": 12442,
+    "sha256": "fdc87a35572550686310ca2a30a45be5d120b69f954597a842c68c0797b63e46"
+  }
+}

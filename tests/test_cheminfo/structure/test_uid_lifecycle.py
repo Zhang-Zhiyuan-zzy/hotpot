@@ -8,7 +8,8 @@ import numpy as np
 import pytest
 
 from hotpot import Atom, Bond, Molecule
-from hotpot.cheminfo.structure._fields import FACT_FIELDS, FIELD_INDEX
+from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FACT_FIELDS, FIELD_INDEX
+from hotpot.cheminfo.structure._results import _import_partial_charges
 from hotpot.cheminfo.operations.conversion import from_rdmol, to_rdmol
 from hotpot.cheminfo.stereo import get_stereo_payload
 from rdkit import Chem
@@ -91,6 +92,7 @@ def test_foreign_insertion_copies_raw_facts_without_changing_original_owner():
     source.isotope = 13
     source.frac_valence = 3.75
     original_mol, original_uid = source.mol, source._uid
+    source_selection = original_mol._partial_charge_result
     target = Molecule()
     target.create_atom(atomic_number=8)
     added = target.add_atom(source)
@@ -102,7 +104,15 @@ def test_foreign_insertion_copies_raw_facts_without_changing_original_owner():
     expected = values.copy()
     expected[1:7] = (2, 2, 2, 0, 0, 0)
     expected[13] = 4
+    expected[FIELD_INDEX['partial_charge']] = np.nan
     np.testing.assert_array_equal(added.attrs, expected)
+    assert added.partial_charge is None and target._partial_charge_result is None
+    assert original_mol._partial_charge_result is source_selection
+    assert source_selection.payload.values == (values[FIELD_INDEX['partial_charge']],)
+    assert source_selection.payload.provenance == (ATOM_SOURCE_CODES['legacy_array'],)
+    assert source_selection.payload.method == 'supplied' and source_selection.invalidated_by
+    with pytest.raises(RuntimeError, match='charge_representation'):
+        _ = source.partial_charge
     indices = [FIELD_INDEX[field] for field in FACT_FIELDS]
     np.testing.assert_array_equal(added.attrs[indices], values[indices])
     assert not np.shares_memory(added.attrs, source.attrs)
@@ -165,17 +175,29 @@ def test_factual_copy_and_component_preserve_supplied_electrons_and_sparse_input
     raw[9] = 0
     source = Molecule()._create_atom_from_array(raw)
     source.isotope, source.frac_valence = 13, 3.75
+    original_selection = source.mol._partial_charge_result
+    assert original_selection.invalidated_by == ('charge_representation',)
     clone = source.mol.copy()
     component = source.mol.components[0]
     expected = raw.copy()
     expected[1:7] = (2, 2, 2, 0, 0, 0)
     expected[13] = 4
+    expected[FIELD_INDEX['partial_charge']] = np.nan
     for copied in (clone.atoms[0], component.atoms[0]):
         np.testing.assert_array_equal(copied.attrs, expected)
         indices = [FIELD_INDEX[field] for field in FACT_FIELDS]
         np.testing.assert_array_equal(copied.attrs[indices], raw[indices])
         assert (copied.isotope, copied.frac_valence) == (13, 3.75)
         assert not np.shares_memory(copied.attrs, source.attrs)
+        selection = copied.mol._partial_charge_result
+        assert selection.source.owner is copied.mol._owner_token
+        assert selection.payload.atom_uids == (copied._uid,)
+        assert selection.payload.values == (raw[FIELD_INDEX['partial_charge']],)
+        assert selection.payload.method == 'supplied' and selection.payload.method_version is None
+        assert selection.payload.provenance == (ATOM_SOURCE_CODES['legacy_array'],)
+        assert selection.invalidated_by == original_selection.invalidated_by
+        with pytest.raises(RuntimeError, match='charge_representation'):
+            _ = copied.partial_charge
 
 
 def test_replacement_remaps_complete_endpoints_without_changing_bond_uids_or_direction():
@@ -310,6 +332,7 @@ def test_current_pickle_roots_round_trip_in_a_fresh_process(tmp_path, protocol):
     mol._conformers_index = -1
     mol.properties['owner'] = mol
     mol.properties['members'] = (first, bond)
+    _import_partial_charges(mol, (0.0, None), producer=ATOM_SOURCE_CODES['explicit'])
     record, metadata = mol._capture_factual_record()
     artifact = tmp_path / 'current.pkl'
     artifact.write_bytes(pickle.dumps((mol, first, bond, record, metadata), protocol=protocol))
@@ -325,7 +348,7 @@ from hotpot import Molecule
 from hotpot.cheminfo.structure._builder import MoleculeRecord
 assert Path(sys.modules[Molecule.__module__].__file__).resolve() == Path(sys.argv[2])
 mol, atom, bond, record, metadata = pickle.loads(Path(sys.argv[1]).read_bytes())
-assert type(record) is MoleculeRecord and record.__reduce__()[1][1] == 2
+assert type(record) is MoleculeRecord and record.__reduce__()[1][1] == 3
 assert atom is mol.atoms[0] and bond is mol.bonds[0]
 assert bond.atom1 is mol.atoms[1] and bond.atom2 is atom
 assert atom._uid == 1 and mol.atoms[1]._uid == 2 and bond._uid == 0
@@ -336,7 +359,19 @@ assert bond.constraint and bond.id == 91
 assert bond.bond_source_metadata == {'raw': [1, b'2']}
 assert mol.conformers_number == 1 and mol._conformers_index == -1
 captured, captured_metadata = mol._capture_factual_record()
-assert len(fields(record)) == 23
+assert len(fields(record)) == 24
+payload, marker = record.partial_charge_result
+assert payload.atom_uids == (0, 1) and payload.values == (0.0, None)
+assert payload.method == 'supplied' and payload.method_version is None
+assert payload.parameters == () and payload.units == 'e' and payload.provenance == (1, 1)
+assert marker == ()
+selection = mol._partial_charge_result
+assert selection.source.owner is mol._owner_token
+assert selection.payload.atom_uids == (1, 2) and selection.payload.values == payload.values
+assert selection.payload.provenance == payload.provenance and selection.invalidated_by == ()
+assert atom.partial_charge == 0.0 and mol.atoms[1].partial_charge is None
+assert mol._atom_table._columns[8] is None
+assert not (mol._atom_table.presence() & (1 << 8)).any()
 for field in fields(record):
     assert getattr(captured, field.name) == getattr(record, field.name)
 assert captured_metadata == metadata

@@ -19,7 +19,8 @@ from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX
 from hotpot.cheminfo.structure._identity import _capture_source
 from hotpot.cheminfo.structure._mutation import _normalize_atom_scalar
 from hotpot.cheminfo.structure._results import (
-    _capture_mca_source, _prepare_atom_result_updates, _select_mca_result,
+    _capture_mca_source, _import_partial_charges, _prepare_atom_result_updates,
+    _select_mca_result,
 )
 
 
@@ -181,13 +182,34 @@ def test_equal_absent_value_bits_and_named_producer_are_a_true_native_noop():
     assert mol._mca_result is attachment
 
 
-@pytest.mark.parametrize('field,value', [('id', 42), ('partial_charge', 0.5),
-                                        ('x_constraint', 1)])
+@pytest.mark.parametrize('field,value', [('id', 42), ('x_constraint', 1)])
 def test_unsubscribed_numeric_and_constraint_writes_retain_selected_result(field, value):
     mol = _molecule()
     before = _select(mol)
     with _native_fail_after('result_invalidation'):
         _write(mol, 'fields', field, value)
+    assert mol._mca_result is before
+    assert mol.atoms[0].mca == 10.0
+
+
+@pytest.mark.parametrize('ingress', _INGRESSES)
+def test_charge_write_rejection_and_complete_selection_retain_exact_mca_result(ingress):
+    mol = _molecule()
+    before = _select(mol)
+    facts = _state(mol)
+    with _native_fail_after('result_invalidation'):
+        with pytest.raises(AttributeError):
+            _write(mol, ingress, 'partial_charge', 0.5)
+    assert _state(mol) == facts
+    assert mol._partial_charge_result is None
+    assert mol._mca_result is before
+
+    with _native_fail_after('result_invalidation'):
+        _import_partial_charges(mol, (0.5, None), producer=_EXPLICIT)
+    assert _state(mol) == facts
+    assert mol._partial_charge_result.payload.values == (0.5, None)
+    assert mol._partial_charge_result.invalidated_by == ()
+    assert tuple(atom.partial_charge for atom in mol.atoms) == (0.5, None)
     assert mol._mca_result is before
     assert mol.atoms[0].mca == 10.0
 

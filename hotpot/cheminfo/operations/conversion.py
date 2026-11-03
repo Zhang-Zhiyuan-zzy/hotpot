@@ -10,6 +10,10 @@ from ..adapters.rdkit import stereo_transport as _stereo
 from ..structure._commit import _FactTransaction
 from ..structure._fields import ATOM_SOURCE_CODES, FIELD_CODECS
 from ..structure._stereo import _get_stereo_payload
+from ..structure._results import (
+    PartialChargeSet, _capture_partial_charge_source, _partial_charge_projection,
+    _select_partial_charge_result,
+)
 from . import chemistry as _chemistry
 
 __all__ = ["is_molecule_input", "to_hotpot_mol", "mol2obmol", "obmol2mol", "to_rdmol", "from_rdmol", "write_by_pybel"]
@@ -55,11 +59,11 @@ def _capture_ob_values(mol, bonds):
     coordinates = table.coordinates()
     atomic_number = FIELD_CODECS['atomic_number']
     formal_charge = FIELD_CODECS['formal_charge']
-    partial_charge = FIELD_CODECS['partial_charge']
-    values = table.select(('atomic_number', 'formal_charge', 'partial_charge', 'is_aromatic')).tolist()
+    charges = _partial_charge_projection(mol)
+    values = table.select(('atomic_number', 'formal_charge', 'is_aromatic')).tolist()
     coordinate_rows = coordinates.tolist()
     atom_rows = tuple((atomic_number(values[row][0]), formal_charge(values[row][1]),
-                       partial_charge(values[row][2]), tuple(coordinate_rows[row]), values[row][3])
+                       charges[row], tuple(coordinate_rows[row]), values[row][2])
                       for row in range(len(atoms)))
     bond_rows = []
     for bond in bonds:
@@ -135,8 +139,9 @@ def _to_rdmol_prepared(mol, kekulize, sanitize, hydrogens):
     _stereo._validate_payload_references(payload, len(atoms),
         tuple((bond.atom1.idx, bond.atom2.idx) for bond in bonds))
     atom_facts = _stereo._payload_atom_facts(payload, len(atoms))
-    atom_rows = tuple((atom.atomic_number, atom.formal_charge, atom.partial_charge,
-                       atom.is_aromatic, atom.hyb) for atom in atoms)
+    charges = _partial_charge_projection(mol)
+    atom_rows = tuple((atom.atomic_number, atom.formal_charge, charge,
+                       atom.is_aromatic, atom.hyb) for atom, charge in zip(atoms, charges))
     coordinates = tuple(tuple(row) for row in mol.coordinates)
     bond_rows = _capture_rd_bonds(bonds)
     rdmol, row_to_idx = _rdkit._pack_rdmol(rdmol, atom_rows, bond_rows, coordinates,
@@ -198,7 +203,15 @@ def _get_partial_charge(mol, model, model_args, known_models):
 
 
 def _assign_partial_charge(mol, model, model_args):
+    with mol._mutation_lock:
+        _chemistry._require_aromatic_representation(mol)
+        source = _capture_partial_charge_source(mol)
+        atom_uids = tuple(atom._uid for atom in mol._atoms)
     charges = mol.get_partial_charge(model=model, model_args=model_args)
-    for atom, charge in zip(mol.atoms, charges):
-        atom.partial_charge = charge
+    payload = PartialChargeSet(
+        atom_uids, tuple(charges), model, _openbabel._charge_model_version(),
+        (("model_args", model_args),), "e",
+        (ATOM_SOURCE_CODES["openbabel"],) * len(atom_uids),
+    )
+    _select_partial_charge_result(mol, payload, source, atom_uids)
     return charges

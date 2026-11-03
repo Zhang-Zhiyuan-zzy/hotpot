@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7C",
+  "owner": "root",
+  "recorded_utc": "2026-11-03T08:37:15.815068+00:00",
+  "status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE",
+  "stage_gate_closed": true,
+  "global_gate_closed": false,
+  "effective_goal": "goal.md",
+  "goal_remains_active": true,
+  "accepted_scope": [
+    "User annotations separate from selected scientific authority; one MCA payload with finite native/Python transactional currentness; no Atom._mca/Molecule._mca_sites/properties.mca result stores.",
+    "Exactly reserved immutable N14 PartialChargeSet and sharedN15; sole _partial_charge_result. Direct absentNone/explicit0/staleerror;19-column absent/staleNaN, no raw charge column truth.",
+    "Complete assignment and imports, UID/source binding, immutable history, retain/invalidate map, publication/outer rollback, copy/component/merge/pickleRecord24-v3.",
+    "RDKit/OB/CCDC/DTO/tmQM/native/FF/trained feature consumers migrated coherently; strict optional general native packing, finite task-only zero encoding without writeback.",
+    "Affected CP311 source1953/installed1953, final scoped8/8, actualFF11/pipeline3/MCA1/attachment3 per boundary; earlier MCA checkpoint retained.",
+    "Getter/call-count/scaling evidence usable; architecture ratchet zero new debt, exactly one reserved payload addition."
+  ],
+  "records": {
+    "mca_checkpoint": "validation/checkpoint.json",
+    "mca_report": "validation/report.md",
+    "partial_charge_checkpoint": "validation/partial-charges/checkpoint.json",
+    "partial_charge_report": "validation/partial-charges/report.md",
+    "scientific_observations": "validation/partial-charges/scientific_observations.json",
+    "evidence_index": "validation/partial-charges/evidence_index.json"
+  },
+  "warning_disposition": "GFN-FF optional restart-read warning remains retained with topology generation/convergence/normal termination. Current-package binary control flow supports fresh topology initialization; no exact prior-file-cause or historical loader trace claim.",
+  "verification_limits": "CP311 tested boundaries only; no full default, all-version, new all-native/ABI/SDK/sdist, global science/GPU/performance or whole-plan pass.",
+  "remaining_obligations": [
+    "P20-D001–D016 owning dispositions stay indexed; no debt is silently passed.",
+    "Stage7D coordinate frames; Stage7E canonical H/isotope/stereo beforeStage8.",
+    "Other Python versions; clean all-native/ABI/SDK/sdist/platform and41asset omissions; broader science/GPU/global performance and remaining Plan20/Plan12 acceptance."
+  ],
+  "next_stage": "Stage7D",
+  "next_stage_requires": "Root freeze exact source/generated frame ownership, deterministic projection, final-output validity, connected producer/transport/copy/rollback contracts before disjoint authoring.",
+  "git_delivery": "Coherent business code/tests/records commit and push; actual identity is Git history/remote, not a self-referential hash-only follow-up."
+}

@@ -1,0 +1,1184 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7C",
+  "status": "ROOT_REVIEWED_CP311_BUSINESS_OBSERVATIONS",
+  "source_head_at_execution": "a54c660d8bff79462dd1cee48d0d3c9e65a53d87",
+  "source_attribution": "Historical execution HEAD plus frozen dirty overlays; subsequent commits do not reattribute runs.",
+  "current_freeze": {
+    "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/source_freeze.json",
+    "bytes": 179820,
+    "sha256": "d4450d2b34523fe9ea505642093b8923173cd784d12bc979e9015fa6c4784dfd",
+    "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/source_freeze.json"
+  },
+  "full_qualification_freeze": {
+    "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/source_freeze_full_qualification.json",
+    "bytes": 179733,
+    "sha256": "e365314f1eee73f92a5e456875744735a3d14aeda5108ab3925f9cf729cdb371",
+    "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/source_freeze_full_qualification.json"
+  },
+  "partial_charge_observation": {
+    "artifact": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/affected-attempt02/pytest-tmp/test_real_openbabel_calculatio0/actual-charge-observation.json",
+      "bytes": 557,
+      "sha256": "fb322e735cf78ff9b3fd72b2f4fb57e1f3b293f35aa87eddbeb6698950aa7926",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/affected-attempt02/pytest-tmp/test_real_openbabel_calculatio0/actual-charge-observation.json"
+    },
+    "observation": {
+      "input_smiles": "CO",
+      "coordinates_angstrom": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          1.43,
+          0.0,
+          0.0
+        ]
+      ],
+      "formal_charges": [
+        0,
+        0
+      ],
+      "molecular_charge": 0,
+      "method": "gasteiger",
+      "method_version": "3.2.1",
+      "model_args": null,
+      "units": "e",
+      "get_values": [
+        0.21748719006663936,
+        -0.21748719006663936
+      ],
+      "assigned_values": [
+        0.21748719006663936,
+        -0.21748719006663936
+      ],
+      "interpretation": "Named-method observations; no universal chemical truth or charge-sum claim."
+    },
+    "interpretation": "One declared CO fixture and named Gasteiger/Open Babel3.2.1 method; get and assign observations are retained, not an accuracy/golden-value or general charge-sum claim."
+  },
+  "pipeline": {
+    "denominator": 3,
+    "succeeded": 3,
+    "failed": 0,
+    "cases": [
+      {
+        "case": "official-coordination-False",
+        "root_manifest": {
+          "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/manifest.json",
+          "bytes": 30575,
+          "sha256": "86325cd44f3a807a79b90a9e53d195fa04a32a699fc42d350707d8540ebaa012",
+          "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/manifest.json"
+        },
+        "initial_payload": "MolecularPayload(()); ligand/metal are stage0 CBond argv, not the empty input SDF.",
+        "status": "succeeded",
+        "final": {
+          "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/final.sdf",
+          "bytes": 1232,
+          "sha256": "fa8b03176022890f666285dd9e5546c8d889770fb2fc9c2c10049b0c57ec6403",
+          "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/final.sdf"
+        },
+        "stages": [
+          {
+            "index": 0,
+            "name": "cbond",
+            "argv": [
+              "Zn",
+              "NCCO",
+              "--device",
+              "cpu"
+            ],
+            "status": "succeeded",
+            "elapsed_seconds": 0.20698995143175125,
+            "raw_report": {
+              "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/00-cbond/report.json",
+              "bytes": 440,
+              "sha256": "cba2f59030b5e2d8c2430eca9e250e0405dee6bb52b8ed0eb9cb3e9e740e1ed8",
+              "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/00-cbond/report.json"
+            },
+            "explicit_seed": null,
+            "cbond_observation": {
+              "donor_indices": [
+                0,
+                3
+              ],
+              "metal": "Zn",
+              "path_probability": 0.7325034825111857,
+              "steps": [
+                {
+                  "atom_index": 0,
+                  "element": "N",
+                  "probability": 0.8570544664505884,
+                  "score": 1.7910377979278564
+                },
+                {
+                  "atom_index": 3,
+                  "element": "O",
+                  "probability": 0.8546755325186985,
+                  "score": 1.771752953529358
+                }
+              ]
+            },
+            "native_warning_lines": [],
+            "warnings": []
+          },
+          {
+            "index": 1,
+            "name": "ff",
+            "argv": [
+              "--route",
+              "complex",
+              "--rebuild",
+              "--quality",
+              "standard",
+              "--seed",
+              "7",
+              "--timeout",
+              "300"
+            ],
+            "status": "succeeded",
+            "elapsed_seconds": 0.8263383712619543,
+            "raw_report": {
+              "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/01-ff/report.json",
+              "bytes": 15385,
+              "sha256": "bdbac93a66bb3ee0a928a6631d0667e879fda982d5e27f2da4759bbaa16310f4",
+              "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/01-ff/report.json"
+            },
+            "explicit_seed": "7",
+            "native_warning_lines": [],
+            "warnings": [],
+            "forcefield": [
+              {
+                "requested_forcefield": null,
+                "effective_forcefield": "UFF",
+                "optimization": {
+                  "energy_unit": "kJ/mol",
+                  "backend_energy_unit": "kJ/mol",
+                  "gradient_unit": "kJ/(mol*angstrom)",
+                  "final_energy": 69.14934437776031,
+                  "best_energy": 69.14934437776031,
+                  "best_epoch": 1,
+                  "converged": true,
+                  "terminal_converged": true,
+                  "termination_reason": "converged",
+                  "epochs_completed": 2,
+                  "steps_submitted": 199,
+                  "max_gradient": 1.2172965315429023,
+                  "rms_gradient": 0.6298747454829277,
+                  "exploded": false,
+                  "setup_succeeded": true
+                },
+                "build": {
+                  "attempt_count": 1,
+                  "accepted_candidates": 1,
+                  "rejected_candidates": [],
+                  "warning_messages": []
+                }
+              }
+            ],
+            "quality": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 15,
+                "failed_checks": []
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "name": "xtb",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "singlepoint",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "status": "succeeded",
+            "elapsed_seconds": 0.06761088594794273,
+            "raw_report": {
+              "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/report.json",
+              "bytes": 5895,
+              "sha256": "f3f4ebfcc4e0ad3bf62c02536dc82334546321aee0979307b62d1eef6dfbe862",
+              "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/stages/02-xtb/report.json"
+            },
+            "explicit_seed": null,
+            "xtb": {
+              "requested_method": "gfn2",
+              "effective_method": "gfn2",
+              "task": "singlepoint",
+              "energy_hartree": -14.26981398,
+              "charge": 2,
+              "unpaired_electrons": 0,
+              "converged": true,
+              "process_succeeded": true,
+              "coordinates_committed": false,
+              "gradient_norm": null,
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "f32c587291aadc57c9864e1cd27a32bec0ea0f96c71da147f228c54fd519feef",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "fae5c9b78fa9c36312162e03a82ed102d7aa87919bf719820c85f14162b73b40"
+              },
+              "energy_unit": "hartree"
+            },
+            "native_warning_lines": [],
+            "warnings": [],
+            "quality": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 8,
+                "failed_checks": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "case": "official-coordination-True",
+        "root_manifest": {
+          "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/manifest.json",
+          "bytes": 40556,
+          "sha256": "df153676498df5e79b7544531322df6500e95be28c41542fe7e93b6a5d13487c",
+          "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/manifest.json"
+        },
+        "initial_payload": "MolecularPayload(()); ligand/metal are stage0 CBond argv, not the empty input SDF.",
+        "status": "succeeded",
+        "final": {
+          "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/final.sdf",
+          "bytes": 1232,
+          "sha256": "d336067dc534953efb287751402fe12986c8c78ebd4af79c7f4cf5bfa59bb2ed",
+          "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/final.sdf"
+        },
+        "stages": [
+          {
+            "index": 0,
+            "name": "cbond",
+            "argv": [
+              "Zn",
+              "NCCO",
+              "--device",
+              "cpu"
+            ],
+            "status": "succeeded",
+            "elapsed_seconds": 0.013890264555811882,
+            "raw_report": {
+              "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/00-cbond/report.json",
+              "bytes": 440,
+              "sha256": "cba2f59030b5e2d8c2430eca9e250e0405dee6bb52b8ed0eb9cb3e9e740e1ed8",
+              "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/00-cbond/report.json"
+            },
+            "explicit_seed": null,
+            "cbond_observation": {
+              "donor_indices": [
+                0,
+                3
+              ],
+              "metal": "Zn",
+              "path_probability": 0.7325034825111857,
+              "steps": [
+                {
+                  "atom_index": 0,
+                  "element": "N",
+                  "probability": 0.8570544664505884,
+                  "score": 1.7910377979278564
+                },
+                {
+                  "atom_index": 3,
+                  "element": "O",
+                  "probability": 0.8546755325186985,
+                  "score": 1.771752953529358
+                }
+              ]
+            },
+            "native_warning_lines": [],
+            "warnings": []
+          },
+          {
+            "index": 1,
+            "name": "ff",
+            "argv": [
+              "--route",
+              "complex",
+              "--rebuild",
+              "--quality",
+              "standard",
+              "--seed",
+              "7",
+              "--timeout",
+              "300"
+            ],
+            "status": "succeeded",
+            "elapsed_seconds": 0.7651911787688732,
+            "raw_report": {
+              "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/01-ff/report.json",
+              "bytes": 15387,
+              "sha256": "0b771bdbb079266f5e13fbcdaa1be4431da2d08a3a7b07270630d265ffef6d35",
+              "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/01-ff/report.json"
+            },
+            "explicit_seed": "7",
+            "native_warning_lines": [],
+            "warnings": [],
+            "forcefield": [
+              {
+                "requested_forcefield": null,
+                "effective_forcefield": "UFF",
+                "optimization": {
+                  "energy_unit": "kJ/mol",
+                  "backend_energy_unit": "kJ/mol",
+                  "gradient_unit": "kJ/(mol*angstrom)",
+                  "final_energy": 69.14934437776031,
+                  "best_energy": 69.14934437776031,
+                  "best_epoch": 1,
+                  "converged": true,
+                  "terminal_converged": true,
+                  "termination_reason": "converged",
+                  "epochs_completed": 2,
+                  "steps_submitted": 199,
+                  "max_gradient": 1.2172965315429023,
+                  "rms_gradient": 0.6298747454829277,
+                  "exploded": false,
+                  "setup_succeeded": true
+                },
+                "build": {
+                  "attempt_count": 1,
+                  "accepted_candidates": 1,
+                  "rejected_candidates": [],
+                  "warning_messages": []
+                }
+              }
+            ],
+            "quality": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 15,
+                "failed_checks": []
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "name": "xtb",
+            "argv": [
+              "--method",
+              "gfnff",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "status": "succeeded",
+            "elapsed_seconds": 0.054406626150012016,
+            "raw_report": {
+              "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/report.json",
+              "bytes": 6161,
+              "sha256": "45af8b80038b12943104c16e2c3a0261741b8481d248678a3b2078da760397a6",
+              "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/report.json"
+            },
+            "explicit_seed": null,
+            "xtb": {
+              "requested_method": "gfnff",
+              "effective_method": "gfnff",
+              "task": "optimize",
+              "energy_hartree": 1.298971744181724,
+              "charge": 2,
+              "unpaired_electrons": null,
+              "converged": true,
+              "process_succeeded": true,
+              "coordinates_committed": true,
+              "gradient_norm": 0.000461091258017,
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "scientific_state",
+                "projection_convention": "charge_only",
+                "status": "projected"
+              },
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "f32c587291aadc57c9864e1cd27a32bec0ea0f96c71da147f228c54fd519feef",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "fae5c9b78fa9c36312162e03a82ed102d7aa87919bf719820c85f14162b73b40"
+              },
+              "energy_unit": "hartree"
+            },
+            "native_warning_lines": [
+              {
+                "artifact": {
+                  "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/native.log",
+                  "bytes": 38523,
+                  "sha256": "0f577ff618264c4ea09cc1db7275dc5e35044014bbfde83476fe89d6eae65117",
+                  "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/02-xtb/native.log"
+                },
+                "matched_lines": [
+                  {
+                    "line": 666,
+                    "text": "[WARNING] Runtime exception occurred",
+                    "context_after": [
+                      {
+                        "line": 667,
+                        "text": "-1- gfnff_setup: Could not read topology file."
+                      },
+                      {
+                        "line": 668,
+                        "text": "########################################################################"
+                      },
+                      {
+                        "line": 669,
+                        "text": ""
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "warnings": [],
+            "quality": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 8,
+                "failed_checks": []
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "name": "xtb",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "singlepoint",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "status": "succeeded",
+            "elapsed_seconds": 0.05674259923398495,
+            "raw_report": {
+              "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/report.json",
+              "bytes": 5891,
+              "sha256": "088a891e97a718fb2f2280bde6772989a4ce576af94741a79497dd532aadbdb8",
+              "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/stages/03-xtb/report.json"
+            },
+            "explicit_seed": null,
+            "xtb": {
+              "requested_method": "gfn2",
+              "effective_method": "gfn2",
+              "task": "singlepoint",
+              "energy_hartree": -14.27320288,
+              "charge": 2,
+              "unpaired_electrons": 0,
+              "converged": true,
+              "process_succeeded": true,
+              "coordinates_committed": false,
+              "gradient_norm": null,
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "f32c587291aadc57c9864e1cd27a32bec0ea0f96c71da147f228c54fd519feef",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "fae5c9b78fa9c36312162e03a82ed102d7aa87919bf719820c85f14162b73b40"
+              },
+              "energy_unit": "hartree"
+            },
+            "native_warning_lines": [],
+            "warnings": [],
+            "quality": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 8,
+                "failed_checks": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "case": "official-readme-europium",
+        "root_manifest": {
+          "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/manifest.json",
+          "bytes": 41149,
+          "sha256": "43e58300f8b16d696745478e3fe00840c153e7f92a0dee0ff8ccc40f8de1c2ac",
+          "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/manifest.json"
+        },
+        "initial_payload": "MolecularPayload(()); ligand/metal are stage0 CBond argv, not the empty input SDF.",
+        "status": "succeeded",
+        "final": {
+          "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/final.sdf",
+          "bytes": 931,
+          "sha256": "00cfd4af72e8b6df293ec116acb2332598b9fc8367f7848ab10cd02d8dccd407",
+          "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/final.sdf"
+        },
+        "stages": [
+          {
+            "index": 0,
+            "name": "cbond",
+            "argv": [
+              "Eu",
+              "O=C(O)C",
+              "--device",
+              "cpu"
+            ],
+            "status": "succeeded",
+            "elapsed_seconds": 0.00966537557542324,
+            "raw_report": {
+              "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/00-cbond/report.json",
+              "bytes": 288,
+              "sha256": "d657b24d4ab78e0fff35f80321e79503c81a470e8109ad619d98af12213cb2af",
+              "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/00-cbond/report.json"
+            },
+            "explicit_seed": null,
+            "cbond_observation": {
+              "donor_indices": [
+                2
+              ],
+              "metal": "Eu",
+              "path_probability": 0.492404769050918,
+              "steps": [
+                {
+                  "atom_index": 2,
+                  "element": "O",
+                  "probability": 0.492404769050918,
+                  "score": -0.030383260920643806
+                }
+              ]
+            },
+            "native_warning_lines": [],
+            "warnings": []
+          },
+          {
+            "index": 1,
+            "name": "ff",
+            "argv": [
+              "--rebuild",
+              "--route",
+              "complex",
+              "--forcefield",
+              "uff"
+            ],
+            "status": "succeeded",
+            "elapsed_seconds": 0.7518110293895006,
+            "raw_report": {
+              "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/01-ff/report.json",
+              "bytes": 15159,
+              "sha256": "9e0da4b0c821c4a75c5310614e257f8724348b283323270adfd6208792fc2468",
+              "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/01-ff/report.json"
+            },
+            "explicit_seed": null,
+            "native_warning_lines": [],
+            "warnings": [],
+            "forcefield": [
+              {
+                "requested_forcefield": "UFF",
+                "effective_forcefield": "UFF",
+                "optimization": {
+                  "energy_unit": "kJ/mol",
+                  "backend_energy_unit": "kJ/mol",
+                  "gradient_unit": "kJ/(mol*angstrom)",
+                  "final_energy": 4.508550579219441,
+                  "best_energy": 4.508550579219441,
+                  "best_epoch": 1,
+                  "converged": true,
+                  "terminal_converged": true,
+                  "termination_reason": "converged",
+                  "epochs_completed": 2,
+                  "steps_submitted": 199,
+                  "max_gradient": 0.3828525543052287,
+                  "rms_gradient": 0.20380070181225377,
+                  "exploded": false,
+                  "setup_succeeded": true
+                },
+                "build": {
+                  "attempt_count": 1,
+                  "accepted_candidates": 1,
+                  "rejected_candidates": [],
+                  "warning_messages": []
+                }
+              }
+            ],
+            "quality": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 15,
+                "failed_checks": []
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "name": "xtb",
+            "argv": [
+              "--method",
+              "gfnff",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "3",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "status": "succeeded",
+            "elapsed_seconds": 0.05372772552073002,
+            "raw_report": {
+              "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/report.json",
+              "bytes": 6059,
+              "sha256": "a2406cbfd9f7dac92ff5a964eb1128554a69771c332d0085e80a672de75fa384",
+              "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/report.json"
+            },
+            "explicit_seed": null,
+            "xtb": {
+              "requested_method": "gfnff",
+              "effective_method": "gfnff",
+              "task": "optimize",
+              "energy_hartree": 3.237789706817222,
+              "charge": 3,
+              "unpaired_electrons": null,
+              "converged": true,
+              "process_succeeded": true,
+              "coordinates_committed": true,
+              "gradient_norm": 0.000402021633185,
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "scientific_state",
+                "projection_convention": "charge_only",
+                "status": "projected"
+              },
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "e5352bf227f44618000b93749166ed2f3a052a1b49ea86c4669f616c3b84e227",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "9de94faa25f171c621b0e8bb54b387e92df3e2c4f4b67d381142fc0ac3625212"
+              },
+              "energy_unit": "hartree"
+            },
+            "native_warning_lines": [
+              {
+                "artifact": {
+                  "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/native.log",
+                  "bytes": 28306,
+                  "sha256": "908a6c82243ca861d06f3f296796ee0edac0875ea2fff96c51a1bcfb98fd279f",
+                  "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/02-xtb/native.log"
+                },
+                "matched_lines": [
+                  {
+                    "line": 501,
+                    "text": "[WARNING] Runtime exception occurred",
+                    "context_after": [
+                      {
+                        "line": 502,
+                        "text": "-1- gfnff_setup: Could not read topology file."
+                      },
+                      {
+                        "line": 503,
+                        "text": "########################################################################"
+                      },
+                      {
+                        "line": 504,
+                        "text": ""
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "warnings": [],
+            "quality": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 8,
+                "failed_checks": []
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "name": "xtb",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "3",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "status": "succeeded",
+            "elapsed_seconds": 0.20320568792521954,
+            "raw_report": {
+              "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/report.json",
+              "bytes": 6459,
+              "sha256": "e51a6174b211c08e40aa00753f4ab9240e9ee561a9bc5c57a2a4e60881415650",
+              "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-pipeline-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/stages/03-xtb/report.json"
+            },
+            "explicit_seed": null,
+            "xtb": {
+              "requested_method": "gfn2",
+              "effective_method": "gfn2",
+              "task": "optimize",
+              "energy_hartree": -13.5320998,
+              "charge": 3,
+              "unpaired_electrons": 0,
+              "converged": true,
+              "process_succeeded": true,
+              "coordinates_committed": true,
+              "gradient_norm": null,
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "e5352bf227f44618000b93749166ed2f3a052a1b49ea86c4669f616c3b84e227",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "9de94faa25f171c621b0e8bb54b387e92df3e2c4f4b67d381142fc0ac3625212"
+              },
+              "energy_unit": "hartree"
+            },
+            "native_warning_lines": [],
+            "warnings": [],
+            "quality": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 8,
+                "failed_checks": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "backend_warning_disposition": {
+    "owner": "root",
+    "date": "2026-11-03",
+    "status": "ACCEPTED_BOUNDED_BACKEND_OBSERVATION",
+    "named_warning": "gfnff_setup: Could not read topology file.",
+    "observed_boundary": "Both source GFN-FF cases generated topology, converged after27/12 iterations and terminated normally with finite energies; installed corresponding business selection also passed.",
+    "reason": "Matching local libxtb control flow emits this warning on unsuccessful optional gfnff_topo restart read and permits fresh topology initialization. The actual logs independently show that initialization and completion.",
+    "limits": [
+      "The generic read failure and available logs do not prove whether the prior file was absent, unreadable or invalid; missing restart data is consistent with fresh workdirs, not independently traced.",
+      "No new calculation, source download or code change was made. This is inspection of existing raw outputs and matching currently installed package binary control flow.",
+      "Historical source receipts hash the xtb executable, while the shared library is matched to the local package at inspection time; no separate historical dynamic-loader trace/library hash was captured for those exact processes.",
+      "Normal completion and declared convergence establish only the exercised backend/output boundary, not chemical correctness, restart reproducibility, warning suppression or a root acceptance decision.",
+      "Original IEEE_UNDERFLOW_FLAG/IEEE_DENORMAL notes remain in native logs and review excerpts."
+    ],
+    "effect": "Retain warnings, IEEE underflow/denormal notes and finite observations. No Hotpot suppression, retry, fallback, fabricated state resolution or warning-free claim. This does not block the tested selected-result ownership gate.",
+    "evidence": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/warning-review/warning_review.json",
+      "bytes": 12442,
+      "sha256": "fdc87a35572550686310ca2a30a45be5d120b69f954597a842c68c0797b63e46"
+    }
+  },
+  "actual_FF": {
+    "test_denominator": 11,
+    "passed": 11,
+    "execution": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-ff-attempt01/execution.json",
+      "bytes": 1792,
+      "sha256": "246da9726d6209dff44c2e3295f16f99d9b3022b64081aeda7825eece7d866f9",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-ff-attempt01/execution.json"
+    },
+    "coverage_limit": "Standalone FF JUnit/logs preserve execution; no separate per-case energy report was emitted. Pipeline FF observations below carry explicit energies and quality."
+  },
+  "MCA_mixed_inputs": {
+    "denominator": 3,
+    "successes": 2,
+    "local_rejections": 1,
+    "aggregate_cli_returncode_expected_by_contract": 1,
+    "input_artifact": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-mca-attempt01/pytest-tmp/test_actual_model_cli_keeps_ch0/molecules.smi",
+      "bytes": 34,
+      "sha256": "48907c640629923b1e257de45c66256c66b887ccff6dad220a8a9a81e1c5d85c",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-mca-attempt01/pytest-tmp/test_actual_model_cli_keeps_ch0/molecules.smi"
+    },
+    "input_text": "CN first\nC[NH3+] charged\nCO third\n",
+    "result_artifact": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-mca-attempt01/pytest-tmp/test_actual_model_cli_keeps_ch0/results.txt",
+      "bytes": 221,
+      "sha256": "963bf4fa2167ae26ca866960b13cc99a195c592d1f5644deccabb6b3eb120f8c",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-mca-attempt01/pytest-tmp/test_actual_model_cli_keeps_ch0/results.txt"
+    },
+    "observed_rows": [
+      {
+        "input_number": 1,
+        "smiles": "CN",
+        "atoms": [
+          {
+            "atom_number": 1,
+            "element": "C",
+            "mca_kj_mol": 308.75,
+            "is_nucleophilic_site": false
+          },
+          {
+            "atom_number": 2,
+            "element": "N",
+            "mca_kj_mol": 489.5,
+            "is_nucleophilic_site": true
+          }
+        ]
+      },
+      {
+        "input_number": 3,
+        "smiles": "CO",
+        "atoms": [
+          {
+            "atom_number": 1,
+            "element": "C",
+            "mca_kj_mol": 283.5,
+            "is_nucleophilic_site": false
+          },
+          {
+            "atom_number": 2,
+            "element": "O",
+            "mca_kj_mol": 318.25,
+            "is_nucleophilic_site": true
+          }
+        ]
+      }
+    ],
+    "local_rejected_input": {
+      "input_number": 2,
+      "input_text": "C[NH3+] charged",
+      "basis": "Passing test_actual_model_cli_keeps_charged_rejection_local plus absence of row2 and continuation to row3; root-specified contract."
+    },
+    "method": "existing local MCA FP16 CPU model",
+    "units": "kJ/mol",
+    "model_assets": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-mca-attempt01/dependency-assets-before.json",
+      "bytes": 22541,
+      "sha256": "181165e100f64ff995e6b43e9ae5498387baaec4d8186edfd850cf5b7d4e6775",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-mca-attempt01/dependency-assets-before.json"
+    },
+    "coverage_limit": "Pytest execution/JUnit returns0; captured inner CLI stderr and its RC are asserted by the existing test but were not separately persisted in this source attempt. No exact rejection text is invented."
+  },
+  "MCA_attachment": {
+    "test_denominator": 3,
+    "passed": 3,
+    "artifacts": [
+      {
+        "artifact": {
+          "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-mca-attachment-attempt01/pytest-tmp/test_hotpot_and_smiles_inputs_0/equivalence_predictions.json",
+          "bytes": 1683,
+          "sha256": "44e4ea60cffcf00405e71d1b0a9bc7d517884d3d1c27b607ef59a9dc0425ad73",
+          "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-mca-attachment-attempt01/pytest-tmp/test_hotpot_and_smiles_inputs_0/equivalence_predictions.json"
+        },
+        "observation": {
+          "hotpot": {
+            "smiles": "C1CCCNC1",
+            "formal_charge": 0,
+            "sites": [
+              {
+                "atom_index": 5,
+                "element": "N",
+                "site_type": "Amine",
+                "mca_kj_mol": 503.25
+              }
+            ],
+            "model_variant": "fp16",
+            "atom_predictions": [
+              {
+                "atom_index": 0,
+                "element": "C",
+                "mca_kj_mol": 314.0
+              },
+              {
+                "atom_index": 1,
+                "element": "C",
+                "mca_kj_mol": 373.0
+              },
+              {
+                "atom_index": 2,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 3,
+                "element": "C",
+                "mca_kj_mol": 370.0
+              },
+              {
+                "atom_index": 4,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 5,
+                "element": "N",
+                "mca_kj_mol": 503.25
+              }
+            ]
+          },
+          "smiles": {
+            "smiles": "C1CCCNC1",
+            "formal_charge": 0,
+            "sites": [
+              {
+                "atom_index": 5,
+                "element": "N",
+                "site_type": "Amine",
+                "mca_kj_mol": 503.25
+              }
+            ],
+            "model_variant": "fp16",
+            "atom_predictions": [
+              {
+                "atom_index": 0,
+                "element": "C",
+                "mca_kj_mol": 314.0
+              },
+              {
+                "atom_index": 1,
+                "element": "C",
+                "mca_kj_mol": 373.0
+              },
+              {
+                "atom_index": 2,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 3,
+                "element": "C",
+                "mca_kj_mol": 370.0
+              },
+              {
+                "atom_index": 4,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 5,
+                "element": "N",
+                "mca_kj_mol": 503.25
+              }
+            ]
+          }
+        }
+      },
+      {
+        "artifact": {
+          "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-mca-attachment-attempt01/pytest-tmp/test_mca_is_attached_to_atoms_0/attached_prediction.json",
+          "bytes": 869,
+          "sha256": "6c743846130195c63d21eade4ac8d12f0356679ba372b4bdffc9f41862d7d342",
+          "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-mca-attachment-attempt01/pytest-tmp/test_mca_is_attached_to_atoms_0/attached_prediction.json"
+        },
+        "observation": {
+          "case": "attached",
+          "prediction": {
+            "smiles": "C1CCCNC1",
+            "formal_charge": 0,
+            "sites": [
+              {
+                "atom_index": 5,
+                "element": "N",
+                "site_type": "Amine",
+                "mca_kj_mol": 503.25
+              }
+            ],
+            "model_variant": "fp16",
+            "atom_predictions": [
+              {
+                "atom_index": 0,
+                "element": "C",
+                "mca_kj_mol": 314.0
+              },
+              {
+                "atom_index": 1,
+                "element": "C",
+                "mca_kj_mol": 373.0
+              },
+              {
+                "atom_index": 2,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 3,
+                "element": "C",
+                "mca_kj_mol": 370.0
+              },
+              {
+                "atom_index": 4,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 5,
+                "element": "N",
+                "mca_kj_mol": 503.25
+              }
+            ]
+          }
+        }
+      },
+      {
+        "artifact": {
+          "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/actual-mca-attachment-attempt01/pytest-tmp/test_molecule_mca_sites_suppor0/site_count_predictions.json",
+          "bytes": 1035,
+          "sha256": "4dbe74e20e7aeb0e4af637dbe19787bee7855164930005637e821fee8aa54631",
+          "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/actual-mca-attachment-attempt01/pytest-tmp/test_molecule_mca_sites_suppor0/site_count_predictions.json"
+        },
+        "observation": {
+          "empty_sites": {
+            "smiles": "C",
+            "formal_charge": 0,
+            "sites": [],
+            "model_variant": "fp16",
+            "atom_predictions": [
+              {
+                "atom_index": 0,
+                "element": "C",
+                "mca_kj_mol": 265.5
+              }
+            ]
+          },
+          "multiple_sites": {
+            "smiles": "CC(=O)C",
+            "formal_charge": 0,
+            "sites": [
+              {
+                "atom_index": 2,
+                "element": "O",
+                "site_type": "Ketone",
+                "mca_kj_mol": 344.5
+              },
+              {
+                "atom_index": 1,
+                "element": "C",
+                "site_type": "double_bond",
+                "mca_kj_mol": 65.8125
+              }
+            ],
+            "model_variant": "fp16",
+            "atom_predictions": [
+              {
+                "atom_index": 0,
+                "element": "C",
+                "mca_kj_mol": 309.25
+              },
+              {
+                "atom_index": 1,
+                "element": "C",
+                "mca_kj_mol": 65.8125
+              },
+              {
+                "atom_index": 2,
+                "element": "O",
+                "mca_kj_mol": 344.5
+              },
+              {
+                "atom_index": 3,
+                "element": "C",
+                "mca_kj_mol": 309.25
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "interpretation": "Existing attachment/read-only/site-shape and same-input tests; actual predictions are model/version-scoped observations, not truth or a newly generalized equivalence claim."
+  },
+  "installed": {
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/installed-validation/attempt01/execution.json",
+      "bytes": 73397,
+      "sha256": "f8f4f7fa7ca13252f878676123d67cd76109b8c8e312421a074a7868f05f14d5",
+      "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/installed-validation/attempt01/execution.json"
+    },
+    "passed": {
+      "affected": 1953,
+      "actual_FF": 11,
+      "actual_CBFF_xtb": 3,
+      "actual_MCA": 1,
+      "actual_MCA_attachment": 3
+    },
+    "same_ordered_affected_nodes": true,
+    "zero_origin_leaks": true,
+    "source_installed_models_unchanged": true,
+    "scope": [
+      "CP311 only, shared system-site-packages dependencies.",
+      "All six natives reused unchanged; no new native build, clean all-native/ABI/SDK/sdist/manylinux qualification.",
+      "Measured package omissions remain explicit.",
+      "Origin audit covers Python site-hook participants; native and site-bypassing processes are not independently enumerated.",
+      "No controlled candidate performance, global science/GPU/full isolation/all-version claim.",
+      "Connected selected-charge installed checkpoint only; root owns Stage7C acceptance and all remaining global obligations."
+    ]
+  },
+  "interpretation": "Named method/model/version/parameters and exercised contexts only. Finite values and backend projection do not establish chemical truth or resolve the recorded unresolved scientific states. Eu FF effective seed is unrecorded; raw inner MCA CLI stderr/RC were asserted by tests but not separately persisted.",
+  "warnings": "Original affected geometry/partial-placement warnings and both GFN-FF/IEEE notes are retained in raw logs; no warning-free claim.",
+  "full_source_draft": {
+    "path": ".plan20-artifacts/20261103/stage7c/partial-charges/records-draft/scientific_observations.json",
+    "bytes": 102327,
+    "sha256": "0a3d8618f90a0c58d2b656d827ac8d8e4d1777444a3c3f7cad252d49c4ccae25",
+    "original_path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/records-draft/scientific_observations.json"
+  }
+}

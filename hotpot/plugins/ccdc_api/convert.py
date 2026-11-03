@@ -32,16 +32,20 @@ def mol_from_ccdc_to_hp(c_mol: CMol):
 
     atoms = tuple(c_mol.atoms)
     values = np.zeros((len(atoms), 19), dtype=np.float64)
-    supplied = (0, 7, 8, 9, 10, 11, 12)
+    supplied = (0, 7, 9, 10, 11, 12)
+    presence = np.full(len(values), sum(FIELD_PRESENCE_BITS[index] for index in supplied), dtype=np.uint32)
     for row, atom in enumerate(atoms):
         values[row, supplied] = (
             atom.atomic_number,
-            atom.formal_charge, atom.partial_charge, float(_c_atom_is_aromatic(atom)),
+            atom.formal_charge, float(_c_atom_is_aromatic(atom)),
             *atom.coordinates,
         )
+        if atom.partial_charge is not None:
+            values[row, 8] = atom.partial_charge
+            presence[row] |= FIELD_PRESENCE_BITS[8]
     sources = np.zeros(values.shape, dtype=np.uint8)
     sources[:, supplied] = ATOM_SOURCE_CODES["ccdc"]
-    presence = np.full(len(values), sum(FIELD_PRESENCE_BITS[index] for index in supplied), dtype=np.uint32)
+    sources[(presence & FIELD_PRESENCE_BITS[8]) != 0, 8] = ATOM_SOURCE_CODES["ccdc"]
     bonds = tuple(c_mol.bonds)
     orders = [ccdc_all_bond_type[str(bond.bond_type)] for bond in bonds]
     raw_bonds = np.zeros((len(bonds), 3), dtype=np.float64)

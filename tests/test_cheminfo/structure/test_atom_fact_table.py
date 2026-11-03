@@ -414,22 +414,22 @@ def test_raw_rows_default_to_legacy_supplied_metadata_and_empty_shapes_are_expli
 
 def test_mixed_field_metadata_is_installed_with_one_numeric_write_set():
     table = _AtomFactTable(_rows(), presence=0)
-    columns = {"atomic_number": 8, "partial_charge": 2, "x": 0}
-    present = {"atomic_number": True, "partial_charge": True, "x": False}
+    columns = {"atomic_number": 8, "formal_charge": 2, "x": 0}
+    present = {"atomic_number": True, "formal_charge": True, "x": False}
     source = {
         "atomic_number": ATOM_SOURCE_CODES["explicit"],
-        "partial_charge": ATOM_SOURCE_CODES["partial_charge"],
+        "formal_charge": ATOM_SOURCE_CODES["explicit"],
         "x": ATOM_SOURCE_CODES["openbabel"],
     }
     table.update((2, 0), columns, present=present, source=source)
-    mask = (1 << FIELD_INDEX["atomic_number"]) | (1 << FIELD_INDEX["partial_charge"])
+    mask = (1 << FIELD_INDEX["atomic_number"]) | (1 << FIELD_INDEX["formal_charge"])
     np.testing.assert_array_equal(table.presence(), [mask, 0, mask, 0])
     for field, value in columns.items():
         np.testing.assert_array_equal(table.column(field, (2, 0)), [value, value])
         np.testing.assert_array_equal(table.sources((2, 0))[:, FIELD_INDEX[field]], [source[field], source[field]])
     # An absent toolkit slot can still retain its explicit source diagnostic.
     assert table.sources()[0, FIELD_INDEX["x"]] == ATOM_SOURCE_CODES["openbabel"]
-    table.update(0, {"partial_charge": 0}, present=False, source=ATOM_SOURCE_CODES["default"])
+    table.update(0, {"formal_charge": 0}, present=False, source=ATOM_SOURCE_CODES["default"])
     assert table.presence()[0] == 1 << FIELD_INDEX["atomic_number"]
 
 
@@ -554,7 +554,8 @@ for name in ('hotpot', 'rdkit', 'openbabel', 'scipy', 'thermo'):
 
 def test_import_discards_supplied_derived_values_and_metadata_without_numeric_owners():
     values = _rows(2)
-    values[:, _DERIVED_INDICES] = np.arange(14).reshape(2, 7) + .125
+    derived_shape = (len(values), len(_DERIVED_INDICES))
+    values[:, _DERIVED_INDICES] = np.arange(np.prod(derived_shape)).reshape(derived_shape) + .125
     table = _AtomFactTable(values)
     np.testing.assert_array_equal(table.matrix(), _rows(2))
     for index in _DERIVED_INDICES:

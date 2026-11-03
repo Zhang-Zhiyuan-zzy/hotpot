@@ -187,3 +187,173 @@ cheap scalar writes and repeated scalar/site reads, then whole-Stage7C gates
 including the partial-charge slice. Other Python/native delivery/global tiers
 remain explicit later obligations. Root reviews/commits/pushes coherent business
 slices; no documentation-only completion or later-stage release follows.
+
+
+## PC1–PC9 — Connected selected partial-charge cutover
+
+Root Sol/max accepts this internal design on2026-11-03 against delivered
+`a54c660d8bff79462dd1cee48d0d3c9e65a53d87`, effective goal and Stage1 A2/A6/A8.
+Two local Sol/medium read-only scouts verified actual transport/lifecycle and
+adapter/native/model consumers. This extends the already approved Stage7C
+objective; no new public export/function, scientific algorithm or model feature
+is introduced. Implementation authoring is released below; runtime awaits the
+connected source-ready freeze. WholeStage7C/global acceptance stays open.
+
+### PC1 — One payload, one applicability owner
+
+Spend reservedN14 only, defining private-to-the-package `PartialChargeSet` in
+`structure/_results.py` with these ordered fields:
+
+`atom_uids, values, method, method_version, parameters, units, provenance`
+
+All fields are immutable: ordered integer subjectUIDs; parallel optional-float
+values (`None` is explicit row absence); method string; known implementation
+version orNone; tuple of `(name, optional-string)` effective parameters; unit
+`"e"`; and parallel existing integer Atom producer codes. SubjectUIDs plus N15's
+source bind the complete owner/order. This is an internal scientific payload,
+not an ordinary return envelope or a second per-Atom fact. No confidence/status
+field or new type family. Use sole slot `_partial_charge_result`, reusing N15,
+`_RESULT_ATTRIBUTES` and existing native/Python publication/Undo.
+
+Actual calculations name the requested OpenBabel model, known OB release version
+and effective model_args (includingNone). Imported values with no known original
+calculation method are honestly `supplied`, versionNone, with preserved per-row
+source codes; never infer a method, presence or certainty from numeric zero.
+
+### PC2 — Source and finite invalidation
+
+Capture `charge_representation` and `geometry`, never selected charges themselves.
+The private charge representation shares the existing representation content
+without unused spin, as MCA already does; retain existing other domains. Map
+ordinary representation mutations to both private result domains; charge
+selection itself retains MCA. All existing representation/geometry native and
+Python ingresses invalidate charge, including signed-zero/local metadata changes
+when either result exists. Spin, labels, constraints and annotations retain it.
+Do not add per-getter hashes, revision counters, frame backreferences or native
+ABI/classes. Existing generic native configuration accepts the added slot and
+read-only derived charge field; rebuild only if native source actually changes.
+
+### PC3 — Direct, numeric and task projections
+
+Direct `Atom.partial_charge` is read-only Optional[float]: absenceNone, current
+value including0.0, staleRuntimeError naming dependency/recalculation. Check owner,
+finite marker and O(1) current membership/UID; no model/hash work on read.
+Detached/noncurrent Atom handles have no selected molecular charge and readNone.
+The fixed19-column row/matrix projects unavailable (absent orstale) charge asNaN.
+Remove physical column8 storage by classifying it derived; keep19-column public
+order and16-column canonical table addressing, with no second scalar store.
+
+Provide strict `_current_partial_charge_result(mol)` and optional
+`_partial_charge_projection(mol)` (ordered optional values; absent/stale→None
+rows, foreign owner remains an integrity error). Use the latter for fixed views,
+optional toolkit export, MCA normalization and documented model/FF task encoding.
+General `pack_molecule(...PARTIAL_CHARGES...)` uses strict current selection and
+returnsNone for absent/incomplete sets; unrelated field requests never consult
+charge. OpenBabel/FF task packing explicitly encodes missing/unavailable rows0.0
+and preserves current supplied rows. The trained first15fields+metal task keeps
+its existing layout and missing0 convention. These task zeros are never imported
+as facts or written back. No public NaN reaches finite native/model inputs.
+
+### PC4 — Explicit calculation and atomic selection
+
+Keep ordinary get/assign signatures and tuple returns. `get_partial_charge` stays
+an explicit nonselecting model operation, with its existing actual model/count/
+finite-output contract. Assignment prepares aromatic inputs under owner lock,
+captures charge source and orderedUIDs, releases the fresh lock, invokes the
+existing get operation once, then source/membership-checks and publishes one
+complete payload in one factual transaction. Remove the old outer whole-method
+transaction wrapper for assignment. No per-Atom setter loop, model under fresh
+selection lock, retry or broad exception fallback. Failed selection publication
+restores its own writes and the prior exact attachment. Completed aromatic
+preparation and independent mutations retain existing operation side effects;
+a failed external calculation does not unwind them. A caller-owned outer
+transaction restores all enclosed factual changes and the exact attachment.
+This clarifies the existing preparation boundary rather than adding a rollback
+of concurrent work.
+
+Private APIs for connected writers are:
+`_capture_partial_charge_source(mol)`,
+`_select_partial_charge_result(mol, payload, source, atom_uids)`, and
+`_import_partial_charges(mol, values, *, producer, method="supplied",
+method_version=None, parameters=())` for already supplied complete ordered sets.
+The import operation captures/checks the current owner without any calculation.
+
+### PC5 — Explicit internal record schema, no hidden side channel
+
+MoleculeRecord23/tagged-v2 cannot carry method/version/arguments or stale markers;
+its bond metadata and nine frame slots have fixed unrelated semantics. Add one
+keyword-only field `partial_charge_result=None`, containing eitherNone or
+`(PartialChargeSet, invalidated_by_tuple)`. Bump its private tagged pickle codec to
+schema3/24fields and reject old v2 explicitly, retaining existing older-format
+rejections; no compatibility reader or public export is added.
+
+Record payloadUIDs are canonical row0..N-1; install explicitly rebinds them to
+actual targetUIDs/source once, retaining stale markers. At record construction,
+legacy supplied input buffers' charge values/presence/source are moved once into
+a `supplied` payload; clear charge presence/source in Atom buffers and replace its
+unowned display bytes withNaN. A record with an explicit result cannot also own
+raw supplied charge bits. Factory and dataclass.replace paths share this codec.
+No values persist in both result and table/record scalar columns.
+
+### PC6 — Copy, subsets, merge, working-copy and persistence
+
+Exact copy preserves values/method/parameters/provenance/current-or-stale state,
+remappingUIDs/rebinding applicability once. Current copy validates its original
+source once; stale never becomes current. Factual capture transports the result
+explicitly. Graph/row subsets project matching historicalUID values and sources,
+fill genuinely unobserved subjectsNone, and mark representation stale whenever
+the full original graph/order/context is not retained. No fragment recalculation
+or claim that whole-molecule charges are current for a new context.
+
+Nonempty merge does not invent a mixed-method full result. Retain the receiver's
+historical selection asstale; the incoming owner keeps its own observations.
+An empty receiver may rebind the complete incoming record. All count-changing
+record replacements explicitly address the new field. Working-copy publication
+transports its selected record/marker atomically; rollback restores original
+slots after native-cell restoration. Current/stale pickle/deepcopy use existing
+extra-state owner sharing plus the explicit record. Detached reads store no
+separate charge scalar or attachment.
+
+### PC7 — Toolkit and DTO maps
+
+RDKit `_GasteigerCharge` property presence maps to row presence; export omits
+unavailable rows. OpenBabel import checks molecule-wide perceived-charge state
+before any `GetPartialCharge`, preventing implicit perception on absent inputs.
+A complete supplied OB set exports as perceived. For partial Hotpot sets,
+preserve supplied per-row values through a documented adapter-private OB data
+presence map, so default missing zeros cannot be reimported as facts; do not
+claim OB itself offers row-presence semantics. That map is transport metadata,
+not a scientific confidence label, and must survive the exercised OB copy.
+Do not calculate charges merely to convert. CCDC absent values remain absent.
+
+MCA AtomDTO's existing charge field becomes optional; serialization/reconstruction
+preserveNone versus explicit0 without changing tensor/model/site algorithms.
+The DTO carries observations, not guessed source truth. tmQM builds topology
+first, then imports the complete supplied `.q` set once; remove prohibited Atom
+constructor charge kwargs. Conformer charge arrays remain Stage7D frame data.
+
+### PC8 — Connected evidence
+
+Before runtime, freeze all connected source/test/native bytes. Test direct and
+19-column absence/zero/stale permissions; complete selection drift/failure/
+rollback; native scalar/fields/columns/Undo invalidation; copy/subset/merge and
+record3/pickle; imported per-row presence and provenance; RDKit/OB/DTO roundtrips;
+field-selective packing and finite task-only zeros; unchanged model feature
+shape/values; both tmQM paths. Use actual CP311 OpenBabel charge calculation and
+existing native FF/pipeline/MCA cases, source and installed boundaries. Reuse
+unchanged native/artifact evidence honestly; retain failures, units and actual
+values. Getter/call-count evidence must exclude per-Atom dependency hashing.
+Broader versions/clean-native/global work remain indexed, not passed here.
+
+### PC9 — Source authoring partitions and delivery
+
+A owns `_results.py`, `_fields.py`, `_builder.py`, `_identity.py`, `_commit.py`,
+`core.py`, `operations/chemistry.py` and new selected-charge owner/lifecycle tests.
+B owns `operations/conversion.py`, RDKit/OB conversion adapters, CCDC converter
+and charge/adapter operation tests. C owns common/native/FF task packing, MCA
+serialization, trained data extractor, tmQM producer and their focused tests.
+All share this settled interface/design; no overlapping writers, nested agents,
+production runtime before integrated release, or independent gate decisions.
+Root owns plan/records/integration, source-ready/validation and Git delivery.
+Future titles use `type(P20-S7C-cheminfo): ...` for this business slice, or the
+actual stage/module/type for later work, as directed by the owner.

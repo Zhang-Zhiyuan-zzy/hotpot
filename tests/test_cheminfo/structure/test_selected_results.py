@@ -19,7 +19,7 @@ from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
 from hotpot.cheminfo.structure._identity import _capture_source
 from hotpot.cheminfo.structure._results import (
     _ResultAttachment, _capture_mca_source, _prepare_atom_result_updates,
-    _select_mca_result,
+    _select_mca_result, _import_partial_charges,
 )
 from hotpot.cheminfo.structure.stereo import AtomTransportRecord, StereoPayload
 
@@ -141,7 +141,10 @@ def test_annotations_constraints_partial_charge_and_frac_valence_retain_selectio
     mol.atoms[0].id = 100
     mol.atoms[0].constraint = True
     mol.bonds[0].constraint = True
-    mol.atoms[0].partial_charge = 0.25
+    charges = _import_partial_charges(mol, (0.25, None), producer=ATOM_SOURCE_CODES['explicit'])
+    assert charges.values == (0.25, None)
+    assert mol.atoms[0].partial_charge == 0.25 and mol.atoms[1].partial_charge is None
+    assert mol._mca_result is before
     _commit_atom_sparse(mol, mol.atoms[0], frac_valence=2.5)
     mol.conformer_add(mol.coordinates)
     assert mol._mca_result is before

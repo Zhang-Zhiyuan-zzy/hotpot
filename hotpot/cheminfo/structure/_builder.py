@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from ._fields import ATOM_FIELDS, ATOM_PRESENCE_ALL, ATOM_SOURCE_CODES
+from ._fields import ATOM_FIELDS, ATOM_PRESENCE_ALL, ATOM_SOURCE_CODES, FIELD_INDEX, FIELD_PRESENCE_BITS
+from ._results import PartialChargeSet
 
 if TYPE_CHECKING:
     from .stereo import StereoPayload
@@ -237,6 +238,7 @@ class MoleculeRecord:
     identifier: tuple
     pair_wiberg_bond_orders: tuple = ()
     bond_aromatic: tuple[bool, ...] = ()
+    partial_charge_result: tuple[PartialChargeSet, tuple[str, ...]] | None = None
 
     def __post_init__(self):
         count = operator.index(self.atom_count)
@@ -253,6 +255,32 @@ class MoleculeRecord:
             raise ValueError("Atom presence contains undeclared bits")
         if not np.isin(np.frombuffer(sources, dtype="u1"), tuple(ATOM_SOURCE_CODES.values())).all():
             raise ValueError("Atom sources contain an undeclared producer code")
+        charge_field = FIELD_INDEX["partial_charge"]
+        charge_bit = FIELD_PRESENCE_BITS[charge_field]
+        masks = np.frombuffer(presence, dtype="<u4").copy()
+        charge_present = (masks & charge_bit) != 0
+        result = self.partial_charge_result
+        if result is not None:
+            payload, marker = result
+            if charge_present.any():
+                raise ValueError("An explicit partial-charge result excludes supplied Atom charge bits")
+            if (type(payload) is not PartialChargeSet or payload.atom_uids != tuple(range(count))
+                    or any(domain not in ("charge_representation", "geometry") for domain in marker)):
+                raise ValueError("Record partial charges require canonical complete rows and finite dependency markers")
+            result = payload, tuple(marker)
+        codes = np.frombuffer(sources, dtype="u1").reshape(count, width).copy()
+        values = np.frombuffer(atom_values, dtype="<f8").reshape(count, width).copy()
+        if result is None and charge_present.any():
+            result = (PartialChargeSet(
+                tuple(range(count)),
+                tuple(float(value) if present else None
+                      for value, present in zip(values[:, charge_field], charge_present)),
+                "supplied", None, (), "e", tuple(map(int, codes[:, charge_field])),
+            ), ())
+        masks &= np.uint32(~charge_bit & ATOM_PRESENCE_ALL)
+        codes[:, charge_field] = ATOM_SOURCE_CODES["default"]
+        values[:, charge_field] = np.nan
+        atom_values, presence, sources = values.tobytes(), masks.tobytes(), codes.tobytes()
         endpoints = _rows(self.bond_endpoints, 2, count)
         bond_count = len(endpoints)
         kinds, directions, bond_sources = map(tuple, (self.bond_kinds, self.bond_directions, self.bond_sources))
@@ -290,14 +318,14 @@ class MoleculeRecord:
             angle_constraints=_rows(self.angle_constraints, 3, count),
             torsion_constraints=_rows(self.torsion_constraints, 4, count), identifier=identifier,
             pair_wiberg_bond_orders=_pair_values(self.pair_wiberg_bond_orders, count),
-            bond_aromatic=tuple(bool(value) for value in aromatic),
+            bond_aromatic=tuple(bool(value) for value in aromatic), partial_charge_result=result,
         )
         for name, value in normalized.items():
             object.__setattr__(self, name, value)
 
     def __reduce__(self):
         return _restore_molecule_record, (
-            type(self), 2, tuple(getattr(self, field.name) for field in fields(self)),
+            type(self), 3, tuple(getattr(self, field.name) for field in fields(self)),
         )
 
     def __deepcopy__(self, memo):
@@ -305,8 +333,8 @@ class MoleculeRecord:
 
 
 def _restore_molecule_record(record_type, schema_version, field_values):
-    if schema_version != 2 or len(field_values) != 23:
-        raise ValueError("MoleculeRecord pickle requires schema version 2 and 23 fields")
+    if schema_version != 3 or len(field_values) != 24:
+        raise ValueError("MoleculeRecord pickle requires schema version 3 and 24 fields")
     return record_type(**dict(zip((field.name for field in fields(MoleculeRecord)), field_values)))
 
 
@@ -315,7 +343,7 @@ def _make_molecule_record(*, atom_values, atom_presence, atom_sources, atom_isot
                           bond_kinds, bond_directions, bond_sources, bond_metadata, charge,
                           spin_mult, cell, stereo_payload, legacy_frame_values,
                           legacy_frame_index, angle_constraints, torsion_constraints, identifier,
-                          pair_wiberg_bond_orders=(), bond_aromatic=()):
+                          pair_wiberg_bond_orders=(), bond_aromatic=(), partial_charge_result=None):
     """Encode one complete supplied import without chemistry or owner mutation."""
     values = np.asarray(atom_values, dtype="<f8")
     width = len(ATOM_FIELDS)
@@ -345,4 +373,5 @@ def _make_molecule_record(*, atom_values, atom_presence, atom_sources, atom_isot
         legacy_frame_index=legacy_frame_index, angle_constraints=angle_constraints,
         torsion_constraints=torsion_constraints, identifier=identifier,
         pair_wiberg_bond_orders=pair_wiberg_bond_orders, bond_aromatic=bond_aromatic,
+        partial_charge_result=partial_charge_result,
     )

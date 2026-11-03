@@ -147,6 +147,7 @@ def _cclib_record(data, src, src_type, initial):
     record = replace(
         initial, atom_count=len(values), atom_values=values.tobytes(),
         atom_presence=presence.tobytes(), atom_sources=sources.tobytes(),
+        partial_charge_result=None,
         charge=(True, data.charge, "cclib"), spin_mult=(True, data.mult, "cclib"),
         legacy_frame_values=tuple(_freeze_value(value) for value in frames), legacy_frame_index=-1,
     )

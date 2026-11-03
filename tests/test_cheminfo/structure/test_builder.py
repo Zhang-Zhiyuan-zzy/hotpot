@@ -68,16 +68,28 @@ def test_module_load_has_empty_exports_and_no_science_import(monkeypatch):
 def test_complete_record_preserves_raw_width_order_and_presence():
     inputs = _inputs()
     record = _make_molecule_record(**inputs)
-    np.testing.assert_array_equal(_atoms(record), inputs["atom_values"])
+    expected_values = inputs["atom_values"].copy()
+    expected_values[:, 8] = np.nan
+    np.testing.assert_array_equal(_atoms(record), expected_values)
+    payload, marker = record.partial_charge_result
+    assert payload.atom_uids == (0, 1, 2, 3)
+    assert payload.values == (None, None, inputs["atom_values"][2, 8], None)
+    assert payload.method == "supplied" and payload.method_version is None
+    assert payload.parameters == () and payload.units == "e"
+    assert payload.provenance == tuple(map(int, inputs["atom_sources"][:, 8]))
+    assert marker == ()
     np.testing.assert_array_equal(np.frombuffer(record.bond_values, dtype="<f8").reshape(-1, 3), inputs["bond_values"])
     assert record.bond_endpoints == ((2, 0), (0, 1), (3, 2))
-    assert len(fields(record)) == 23
+    assert len(fields(record)) == 24
     assert record.atom_isotopes == ((0, None), (1, 0), (2, 13))
     assert record.atom_frac_valences == ((0, 1.75),)
     assert record.charge == (True, 0, None)
     assert record.spin_mult == (False, None, None)
-    assert np.frombuffer(record.atom_presence, dtype="<u4").tolist() == [0, 1, 0x7FFFF, 0]
-    np.testing.assert_array_equal(np.frombuffer(record.atom_sources, dtype="u1").reshape(4, 19), inputs["atom_sources"])
+    expected_presence = inputs["atom_presence"] & np.uint32(0x7FFFF ^ (1 << 8))
+    np.testing.assert_array_equal(np.frombuffer(record.atom_presence, dtype="<u4"), expected_presence)
+    expected_sources = inputs["atom_sources"].copy()
+    expected_sources[:, 8] = 0
+    np.testing.assert_array_equal(np.frombuffer(record.atom_sources, dtype="u1").reshape(4, 19), expected_sources)
     assert record.angle_constraints == ((2, 0, 1),)
     assert record.torsion_constraints == ((3, 2, 0, 1),)
     assert record.legacy_frame_index == -1
@@ -128,8 +140,8 @@ def test_pickle_reconstructs_through_normal_constructor_and_deepcopy(protocol):
     assert deepcopy(record) is record
     restore, (record_type, version, values) = restored.__reduce__()
     assert restore is builder._restore_molecule_record
-    assert record_type is MoleculeRecord and version == 2
-    assert len(values) == 23
+    assert record_type is MoleculeRecord and version == 3
+    assert len(values) == 24
     with pytest.raises(ValueError):
         _atoms(restored).flags.writeable = True
 
@@ -411,6 +423,11 @@ def test_factual_builder_installs_every_raw_fact_and_builds_topology_once(monkey
     fact_indices = tuple(FIELD_INDEX[field] for field in FACT_FIELDS)
     np.testing.assert_array_equal(_atoms(captured)[:, fact_indices], _atoms(record)[:, fact_indices])
     assert captured.atom_sources == expected_sources.tobytes()
+    assert captured.partial_charge_result == record.partial_charge_result
+    assert mol._partial_charge_result.payload.values == record.partial_charge_result[0].values
+    assert mol._partial_charge_result.payload.atom_uids == tuple(atom._uid for atom in mol.atoms)
+    assert all('_partial_charge_result' not in atom.__dict__ for atom in mol.atoms)
+    assert np.isnan(_atoms(captured)[:, FIELD_INDEX['partial_charge']]).all()
     assert set(mol._constraints.atom_axes) == {atom._uid for atom in mol.atoms}
     assert all(atom._constraint_values is mol._constraints.atom_axes for atom in mol.atoms)
     assert all(mol._atom_table._columns[FIELD_INDEX[field]] is None for field in DERIVED_FIELDS)
@@ -478,7 +495,10 @@ def test_installer_rolls_back_after_published_topology_and_does_not_reuse_uids(m
 
 def test_opaque_metadata_channel_requires_complete_mutually_exclusive_values():
     from hotpot import Molecule
-    record = _record(bond_metadata=(None,) * 3)
+    # This opaque-metadata transport fixture has no selected scientific result.
+    # A result's declared representation source requires canonical source values.
+    masks = _inputs()['atom_presence'] & np.uint32(0x7FFFF ^ (1 << 8))
+    record = _record(bond_metadata=(None,) * 3, atom_presence=masks)
     with pytest.raises(ValueError, match='complete'):
         Molecule._build_molecule(record, bond_metadata=({},))
     with pytest.raises(ValueError, match='exclude record metadata'):
@@ -496,10 +516,11 @@ def test_current_record_constructor_and_reducer_have_an_explicit_schema_boundary
     values = tuple(getattr(record, field.name) for field in fields(record))
     with pytest.raises(TypeError):
         MoleculeRecord(*values)
-    for version, payload in ((1, values), (2, values[:-1]), (2, values + ((),))):
+    for version, payload in ((0, values), (1, values), (2, values), (2, values[:-1]),
+                             (3, values[:-1]), (3, values + ((),))):
         with pytest.raises(ValueError):
             builder._restore_molecule_record(MoleculeRecord, version, payload)
-    restored = builder._restore_molecule_record(MoleculeRecord, 2, values)
+    restored = builder._restore_molecule_record(MoleculeRecord, 3, values)
     assert restored is not record
     for field in fields(record):
         assert getattr(restored, field.name) == getattr(record, field.name)

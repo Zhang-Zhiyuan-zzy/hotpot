@@ -14,7 +14,9 @@ from hotpot.cheminfo.structure import _commit
 from hotpot.cheminfo.structure._dependencies import _dependency_state
 from hotpot.cheminfo.structure._fields import (
     ATOM_FIELDS, TABLE_FIELDS, TABLE_PRESENCE_ALL, DERIVED_FIELDS, FIELD_INDEX,
+    ATOM_SOURCE_CODES,
 )
+from hotpot.cheminfo.structure._results import _import_partial_charges
 
 
 def _molecule():
@@ -34,6 +36,11 @@ def test_model_extraction_preserves_raw_features_and_requests_selected_fields(mo
     rows[:, 9] = 0
     for row in rows:
         mol._create_atom_from_array(row)
+    # Appending later rows invalidates each earlier row-import context. Select
+    # the complete supplied fixture after membership is final.
+    _import_partial_charges(
+        mol, tuple(rows[:, 8]), producer=ATOM_SOURCE_CODES["legacy_array"],
+    )
     expected = np.empty((count, 16), dtype=np.float64)
     expected[:, :15] = rows[:, :15]
     expected[:, 1:7] = np.asarray([elements.electron_configs[int(row[0])] for row in rows]).reshape(count, 6)
@@ -74,7 +81,12 @@ def test_forcefield_rejects_input_changes_since_working_copy_creation(field, val
     source = working_copy._capture_working_source(mol)
     working = working_copy._hydrogenated_working_copy(mol, add_hydrogens=False, source=source)
     working.coordinates = np.ones((2, 3))
-    setattr(mol.atoms[0], field, value)
+    if field == "partial_charge":
+        _import_partial_charges(
+            mol, (value, None), producer=ATOM_SOURCE_CODES["explicit"],
+        )
+    else:
+        setattr(mol.atoms[0], field, value)
     previous = mol.atom_matrix
     with pytest.raises(RuntimeError, match="changed"):
         working_copy._commit_working_copy(mol, working, source=source)

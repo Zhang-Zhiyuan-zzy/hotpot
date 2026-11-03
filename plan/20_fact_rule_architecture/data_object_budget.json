@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage0–7B accepted within recorded scopes; Stage7C MCA business checkpoint root accepted within tested CP311 scope on2026-11-03. Reserved N15 adds exactly one class/dataclass, current779 classes/356 dataclasses/8 Protocols/2 TypedDicts. Full partial-charge ownership and Stage7C/global acceptance remain open.",
+  "status": "Stage0\u20137C accepted within recorded owning scopes; Stage7C CP311 MCA and selected partial-charge owners accepted2026-11-03. Exactly reservedN14 and reusedN15; census780classes/357dataclasses/8Protocols/2TypedDicts. Final936-file architecture audit passes with224preexisting debt entries/no new ratchet or layer findings. Stage7D/E/global gates remain open.",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -13,7 +13,7 @@
     "alias_caveat": "Zero explicit TypeAlias syntax does not establish zero implicit aliases."
   },
   "measured_delta": {
-    "new_dataclasses": 9,
+    "new_dataclasses": 10,
     "retired_dataclasses": 0,
     "new_protocols": 0,
     "new_typed_dicts": 0,
@@ -89,12 +89,14 @@
           "torsion_constraints",
           "identifier",
           "pair_wiberg_bond_orders",
-          "bond_aromatic"
+          "bond_aromatic",
+          "partial_charge_result"
         ],
         "verification": "stages/stage03/builder/evidence.json",
         "stage4_extension_verification": "stages/stage04/contracts/schema.json and stages/stage04/implementation/evidence.json",
         "stage5_extension_verification": "stages/stage05/rules_checkpoint_evidence.json; final Stage5 gates open",
-        "stage7b_schema": "Same class, 23 keyword-only fields and tagged-v2 private reducer; no retirement credit. Runtime verification pending."
+        "stage7b_schema": "Same class, 23 keyword-only fields and tagged-v2 private reducer; no retirement credit. Runtime verification pending.",
+        "stage7c_schema": "Same class24keyword-only fields/tagged-v3, explicit selected charge payload/stale marker and no raw scalar duplication; CP311 source/installed owning gate accepted. Oldv2 rejected."
       },
       {
         "symbol": "hotpot.cheminfo.structure.constraints._ConstraintSet",
@@ -178,6 +180,22 @@
         ],
         "verification": "stages/stage07/selected-results/validation/checkpoint.json; stages/stage07/selected-results/validation/evidence_index.json",
         "status": "ROOT_ACCEPTED_CP311_MCA_CHECKPOINT on2026-11-03; MCA attachment/currentness only. Full partial-charge ownership and Stage7C/global gates remain open."
+      },
+      {
+        "symbol": "hotpot.cheminfo.structure._results.PartialChargeSet",
+        "reservation": "N14",
+        "stage": "Stage7C",
+        "fields": [
+          "atom_uids",
+          "values",
+          "method",
+          "method_version",
+          "parameters",
+          "units",
+          "provenance"
+        ],
+        "verification": "stages/stage07/selected-results/validation/partial-charges/checkpoint.json",
+        "status": "Root accepted within Stage7C CP311 owning scope; broader/global obligations remain open."
       }
     ],
     "new_enums": 1,
@@ -398,8 +416,8 @@
       "proposed_definition": "MoleculeRecord",
       "stage": "Stage3",
       "dataclass_upper_bound": 1,
-      "responsibility": "One complete immutable factual import record; raw Atom19/Bond3 bytes, presence/source, existing stereo/cell and nine legacy frame domains; no per-row wrapper, UID table or arbitrary result DTO; Stage4 additionally preserves supplied Wiberg pair observations independently of generated views",
-      "status": "Stage3 factual installation and Stage4 extension verified at their checkpoints; Stage5 adds private bond_aromatic with known-input checks and final owning-stage validation open",
+      "responsibility": "One complete immutable factual import record; raw Atom19/Bond3 bytes, presence/source, existing stereo/cell and nine legacy frame domains; no per-row wrapper, UID table or arbitrary result DTO; Stage4 additionally preserves supplied Wiberg pair observations independently of generated views; Stage7C explicitly transports selected N14 charge payload and stale markers, clearing raw Atom charge ownership",
+      "status": "Existing same N02 class; Stage7C24fields/tagged-v3 selected-charge extension root accepted within CP311 owning scope. Earlier stage records retain historical scopes.",
       "actual_symbol": "hotpot.cheminfo.structure._builder.MoleculeRecord",
       "commit": null,
       "verification": "stages/stage03/builder/evidence.json",
@@ -414,7 +432,6 @@
         "atom_frac_valences",
         "bond_endpoints",
         "bond_values",
-        "bond_partitions",
         "bond_kinds",
         "bond_directions",
         "bond_sources",
@@ -429,12 +446,13 @@
         "torsion_constraints",
         "identifier",
         "pair_wiberg_bond_orders",
-        "bond_aromatic"
+        "bond_aromatic",
+        "partial_charge_result"
       ],
       "numeric_encoding": {
-        "atom_values": "<f8 C(N,19) immutable bytes in ATOM_FIELDS order; no scalar read codecs",
-        "atom_presence": "<u4(N) immutable bytes; existing19-bit masks",
-        "atom_sources": "u1(N,19) immutable bytes; existing producer codes independent of presence",
+        "atom_values": "<f8 C(N,19) immutable bytes in ATOM_FIELDS order; partial_charge display column8 is NaN, with values owned by partial_charge_result",
+        "atom_presence": "<u4(N) immutable bytes; existing19-bit masks with partial_charge presence bit8 cleared",
+        "atom_sources": "u1(N,19) immutable bytes; existing producer codes independent of presence, with partial_charge source column8 reset to default",
         "bond_values": "<f8 C(B,3) immutable bytes for raw order/constraint/id; attr_dict is not the import codec"
       },
       "nested_ownership": "Closed tagged tuple/bytes codec preserves None, Python/NumPy scalar, list/tuple/dict and ordinary non-object ndarray dtype/shape; Bond metadata roots are None/dict; declarations use real scalars without scientific acceptance checks; protected stereo classes retain identity and field order; pickle re-enters the validating constructor",
@@ -464,6 +482,16 @@
         "purpose": "Preserve supplied independent aromatic flags on complete copy/components/merge/import/rollback while Bond kinds may be single/double",
         "schema_effect": "One trailing private field; no public/native stereo schema change, class addition or second stored Molecule table",
         "verification": "stages/stage05/rules_checkpoint_evidence.json; final Stage5 gates open"
+      },
+      "stage7c_extension": {
+        "field": "partial_charge_result",
+        "default": "None",
+        "encoding": "None or (PartialChargeSet, invalidated_by_tuple); payload subjectUIDs canonical row0..N-1; explicit install rebinds actual owner/memberUIDs once",
+        "current_private_field_count": 24,
+        "current_private_pickle_schema": 3,
+        "schema_effect": "Same N02 class; old tagged-v2/23fields explicitly rejected. No bond/frame side channel or duplicate scalar charge storage.",
+        "verification": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/class_census.json",
+        "status": "Candidate accounting only; owning-stage runtime/delivery acceptance remains open."
       }
     },
     {
@@ -671,11 +699,20 @@
       "proposed_definition": "PartialChargeSet",
       "stage": "Stage7C",
       "dataclass_upper_bound": 1,
-      "responsibility": "Sole values/presence/units/method/row identity owner",
-      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
-      "actual_symbol": null,
+      "responsibility": "Sole immutable ordered subjectUID/optional-value/units/method/version/effective-parameter/provenance payload; sole molecular slot _partial_charge_result uses N15 applicability; no per-Atom charge storage",
+      "status": "Implemented and root accepted within Stage7C CP311 owning scope; exactly one reserved payload class, reusedN15.",
+      "actual_symbol": "hotpot.cheminfo.structure._results.PartialChargeSet",
       "commit": null,
-      "verification": null
+      "verification": "stages/stage07/selected-results/validation/partial-charges/checkpoint.json",
+      "fields": [
+        "atom_uids",
+        "values",
+        "method",
+        "method_version",
+        "parameters",
+        "units",
+        "provenance"
+      ]
     },
     {
       "id": "N15",
@@ -683,7 +720,7 @@
       "stage": "Stage7C",
       "dataclass_upper_bound": 1,
       "responsibility": "Shared attachment currentness only; retain domain-specific historical payloads",
-      "status": "Implemented and root accepted on2026-11-03 within tested CP311 MCA attachment/currentness business checkpoint; wholeStage7C/global gates remain open.",
+      "status": "One shared attachment class reused for MCA and charges; root accepted within Stage7C CP311 owning scope.",
       "actual_symbol": "hotpot.cheminfo.structure._results._ResultAttachment",
       "commit": null,
       "verification": "stages/stage07/selected-results/validation/checkpoint.json; stages/stage07/selected-results/validation/report.md",
@@ -692,7 +729,7 @@
         "source",
         "invalidated_by"
       ],
-      "reuse_at_current_checkpoint": "One frozen generic attachment; existing MCA payload DTOs unchanged; same finite transaction mechanism reserved for selected partial charges."
+      "reuse_at_current_checkpoint": "No new attachment class for charges; finite transactional publication/Undo/currentness shared with MCA."
     },
     {
       "id": "N16",
@@ -852,11 +889,11 @@
   ],
   "change_policy": "Update a reservation with concrete responsibility/consumer evidence before exceeding it; new public schemas retain their own review gate. Never offset extra records by deleting unrelated reserved types or replace records with untyped dicts solely to improve counts.",
   "measured_current_counts": {
-    "all_python_classes": 779,
-    "dataclasses": 356,
+    "all_python_classes": 780,
+    "dataclasses": 357,
     "protocols": 8,
     "typed_dicts": 2,
-    "method": "Same original ClassDef/leaf/CONTRACT_MARKERS method; Stage7C MCA adds exactly reserved N15 to prior778/355/8/2, no retirement credit. Native record/export inventory unchanged.",
+    "method": "Same original ClassDef/leaf/CONTRACT_MARKERS static census; selected-charge cutover adds exactly reserved N14 to the accepted MCA779/356/8/2 checkpoint, producing780/357/8/2; N15 reused, no retirement credit. Native record/export inventory not recounted.",
     "native_struct_candidates": 171,
     "native_struct_candidate_method": {
       "baseline": 164,
@@ -868,7 +905,7 @@
     },
     "new_fact_native_actual_struct_definitions": 14,
     "new_fact_native_actual_enum_definitions": 1,
-    "verification": "stages/stage07/selected-results/validation/checkpoint.json; stages/stage07/selected-results/validation/evidence_index.json -> archived source-validation/class_census.json (779/356/8/2)",
+    "verification": "stages/stage07/selected-results/validation/partial-charges/checkpoint.json; local archive source-validation/class_census.json",
     "stage5_native_scope": "Readonly carrier dispatch plus configured DERIVED_FIELDS rejection at native ingress/preparation; existing Field gains immutable configuration metadata, with no new class/struct/enum or exported ABI. Corrected source awaits five fresh ABI builds and runtime evidence.",
     "stage5_native_source": {
       "path": "hotpot/cheminfo/structure/_native/facts.cpp",
@@ -876,7 +913,27 @@
       "bytes": 61640,
       "verification": "stages/stage05/storage-ingress-review/evidence.json; static only at this checkpoint"
     },
-    "stage6_native_counts": "Existing171native-struct candidate count and14fact-native actual definitions are retained historical Stage5 evidence, not rerun by this Python-only census. Stage6 permits no native/build/schema edit; final strict142/native-byte comparison remains SOURCE_READY-gated."
+    "stage6_native_counts": "Existing171native-struct candidate count and14fact-native actual definitions are retained historical Stage5 evidence, not rerun by this Python-only census. Stage6 permits no native/build/schema edit; final strict142/native-byte comparison remains SOURCE_READY-gated.",
+    "candidate_architecture_audit": {
+      "path": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/architecture-audit.json",
+      "status": "failed",
+      "scanned_python_files": 936,
+      "remaining_debt": 226,
+      "new_debt": 2,
+      "layer_findings": 0,
+      "carrier_definition_findings": 0,
+      "scope": "Candidate evidence only; two new test legacy-core imports need root integration; no stage/global acceptance.",
+      "historical_status": "Original failed candidate retained; final two test-import repairs passed without production changes."
+    },
+    "final_architecture_audit": {
+      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/architecture-audit-final.json",
+      "status": "passed",
+      "scanned_python_files": 936,
+      "remaining_debt": 224,
+      "new_debt": 0,
+      "layer_findings": 0,
+      "carrier_definition_findings": 0
+    }
   },
   "stage7a_bookkeeping": {
     "recorded_local_date": "2026-10-31",

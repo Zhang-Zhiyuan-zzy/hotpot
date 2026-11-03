@@ -27,7 +27,7 @@ from .constraints import _select_atom_values, _select_atom_metadata, _bond_raw_v
 __all__ = ()
 
 
-_DOMAINS = ("topology", "representation", "geometry", "cell", "constraints", "source_frames", "forcefield_inputs", "bonding_inputs", "mca_representation")
+_DOMAINS = ("topology", "representation", "geometry", "cell", "constraints", "source_frames", "forcefield_inputs", "bonding_inputs", "mca_representation", "charge_representation")
 _REPRESENTATION_FIELDS = tuple(FIELD_INDEX[name] for name in (
     "atomic_number", "formal_charge", "implicit_hydrogens", "is_aromatic",
 ))
@@ -35,7 +35,7 @@ _COORDINATE_FIELDS = tuple(FIELD_INDEX[name] for name in ("x", "y", "z"))
 _CONSTRAINT_FIELDS = tuple(FIELD_INDEX[name] for name in (
     "x_constraint", "y_constraint", "z_constraint",
 ))
-_BONDING_FIELDS = (*_REPRESENTATION_FIELDS, FIELD_INDEX['partial_charge'], *_COORDINATE_FIELDS)
+_BONDING_FIELDS = (*_REPRESENTATION_FIELDS, *_COORDINATE_FIELDS)
 
 
 @dataclass(frozen=True, eq=False)
@@ -172,6 +172,11 @@ def _hydrogen_install_inputs(mol):
     return inputs
 
 
+def _partial_charge_inputs(mol):
+    attachment = mol._partial_charge_result
+    return None if attachment is None else (attachment.payload, attachment.invalidated_by)
+
+
 def _content_identities(mol, domains):
     bonds = _complete_bonds(mol) if any(domain != "cell" for domain in domains) else ()
     topology = _topology(mol, bonds) if bonds or any(domain != "cell" for domain in domains) else None
@@ -186,8 +191,9 @@ def _content_identities(mol, domains):
                        _atom_metadata(mol, _BONDING_FIELDS),
                        tuple((bond._uid, bond.bond_order, bond.bond_kind, bond._is_aromatic,
                               bond.bond_direction, bond.bond_source) for bond in bonds),
-                       _hydrogen_transport_inputs(tuple(atom._uid for atom in mol._atoms), mol._stereo_payload))
-        elif domain in ("representation", "mca_representation"):
+                       _hydrogen_transport_inputs(tuple(atom._uid for atom in mol._atoms), mol._stereo_payload),
+                       _partial_charge_inputs(mol))
+        elif domain in ("representation", "mca_representation", "charge_representation"):
             content = (
                 topology,
                 _atom_columns(mol, _REPRESENTATION_FIELDS),
@@ -239,7 +245,7 @@ def _content_identities(mol, domains):
                         "_energy", "_partial_charge", "_spin_mult", "_gibbs", "_force",
                         "_zero_point", "_thermo", "_capacity")),
                     mol._conformers_index,
-                    tuple(sorted(mol._pair_wiberg_bond_orders.items())),
+                    tuple(sorted(mol._pair_wiberg_bond_orders.items())), _partial_charge_inputs(mol),
                 )
                 identities.append((domain, _digest(domain, content)))
                 continue

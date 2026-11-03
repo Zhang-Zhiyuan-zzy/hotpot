@@ -7,6 +7,7 @@ import numpy as np
 from ..core import Molecule, Atom, AtomPair
 from ..rules.mathematics.graph.cycles import _cycle_basis
 from ..operations.chemistry import _atom_projection
+from ..structure._results import _partial_charge_projection
 
 
 def direct_edge_to_indirect(attr_or_index: np.ndarray) -> np.ndarray:
@@ -57,6 +58,12 @@ def extract_atom_attrs(mol: Molecule, data: dict[str, Any] = None, atomic_number
             x_names = fields + ('is_metal',)
             x = np.empty((len(mol._atoms), 16), dtype=np.float64)
             x[:, :15] = _atom_projection(mol, fields=fields, strict_hydrogens=True)
+            # Preserve the trained charge feature's missing-zero convention.
+            # This task encoding does not create supplied charge observations.
+            x[:, fields.index('partial_charge')] = tuple(
+                0.0 if value is None else value
+                for value in _partial_charge_projection(mol)
+            )
             x[:, 15] = [atom.is_metal for atom in mol._atoms]
 
     if isinstance(data, dict):

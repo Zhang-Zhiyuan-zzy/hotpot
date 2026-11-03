@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7C",
+  "slice": "PC1\u2013PC9 selected partial charges",
+  "status": "ROOT_SOURCE_READY_CP311_RUNTIME_RELEASED",
+  "head": "a54c660d8bff79462dd1cee48d0d3c9e65a53d87",
+  "freeze": "/tmp/hotpot_plan20/long/stage7c-partial-charges-20261103/source-validation/source_freeze.json",
+  "freeze_sha256": "d4450d2b34523fe9ea505642093b8923173cd784d12bc979e9015fa6c4784dfd",
+  "design": "contracts/decisions.md",
+  "design_sha256": "f6c55db0b18d40d664ec9ff119fe748824d95000d53232a327b3a16699de265f",
+  "validation": "contracts/partial_charge_validation.json",
+  "validation_sha256": "1e0fce14999b22822173fd56e3778fb2d1f9450c08614a45795ad110ed13af46",
+  "static_review": "Connected A/B/C owners and actual consumers reviewed; explicit cclib reset, supplied-vs-calculated metadata, schema3/24 migration and historical failure-preservation boundary included. No candidate runtime evidence yet. PC4 clarifies existing preparation-failure effects; status test now executes actual native status publication and proves seed/status rollback.",
+  "static_ast_compile_file_count": 34,
+  "runtime_order": "focused first; affected and named actual business jobs upon focused pass; installed only after successful affected source evidence; source/test/native edits invalidate affected evidence.",
+  "native_policy": "All six CP311 binaries reused unchanged from accepted MCA checkpoint; no native source changed/rebuilt.",
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "history": [
+    {
+      "freeze_sha256": "07446d82042e179043c08ef6d7db766904d53358fb4d2ccc591f760384830298",
+      "focused": "288passed/2failed status-trigger cases; original receipts retained"
+    },
+    {
+      "freeze_sha256": "65fbbcd1ecd99d6966ffdcac5fe34817c5404eb2ec8e2f2d677eef63b7497319",
+      "focused": "291passed",
+      "affected": "1937passed/12failed old setter/schema/stale/derived-count test expectations; original receipts retained",
+      "actual_business": "FF11/pipeline3/MCA1/attachment3 passed with unchanged production/native/model; tests-only later refreeze does not invalidate their selected test files."
+    },
+    {
+      "freeze_sha256": "e365314f1eee73f92a5e456875744735a3d14aeda5108ab3925f9cf729cdb371",
+      "affected": "1953passed",
+      "installed": "affected1953 plus FF11/pipeline3/MCA1/attachment3 passed; same ordered nodes/zero origin leaks",
+      "scope_rebind": "Only new test import changed; scoped source/installed follow-up, no production or wheel rebuild required."
+    }
+  ]
+}

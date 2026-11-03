@@ -476,10 +476,17 @@ def pack_molecule(
             NativeMoleculeField.FORMAL_CHARGES,
             "formal_charge", np.int32, int,
         )
-        partial_charges = atom_values(
-            NativeMoleculeField.PARTIAL_CHARGES,
-            "partial_charge", np.float64, float,
-        )
+        partial_charges = None
+        if NativeMoleculeField.PARTIAL_CHARGES in fields:
+            from ..structure._results import _current_partial_charge_result
+
+            charge_result = _current_partial_charge_result(mol)
+            if charge_result is not None and all(
+                value is not None for value in charge_result.values
+            ):
+                partial_charges = np.ascontiguousarray(
+                    charge_result.values, dtype=np.float64,
+                )
         coordinates = None
         if NativeMoleculeField.COORDINATES in fields:
             coordinates = mol._atom_table.coordinates()

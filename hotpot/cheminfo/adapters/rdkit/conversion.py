@@ -71,7 +71,8 @@ def _pack_rdmol(rdmol, atom_rows, bond_rows, coordinates, hydrogens, atom_facts,
             rda.SetNumExplicitHs(hydrogens[row])
         else:
             _stereo._apply_atom_fact(rda, atom_fact)
-        rda.SetDoubleProp('_GasteigerCharge', partial_charge)
+        if partial_charge is not None:
+            rda.SetDoubleProp('_GasteigerCharge', partial_charge)
         rda.SetIsAromatic(aromatic)
         rda.SetHybridization(hybridizations[hyb])
         row_to_idx[row] = rdmol.AddAtom(rda)
@@ -168,5 +169,6 @@ def _rdmol_record(rdmol, initial):
         charge=(True, Chem.GetFormalCharge(rdmol), "rdkit"),
         stereo_payload=initial.stereo_payload,
         legacy_frame_values=(("none",),) * 9,
+        partial_charge_result=None,
     )
     return record, stereo_payload, idx_to_row

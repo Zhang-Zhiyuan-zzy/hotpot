@@ -407,7 +407,7 @@ def _commit_bond_facts(mol, bond, binding, *, raw_values, kind, direction,
                           or bond._bond_direction != direction
                           or bond._bond_source != source_namespace
                           or (aromatic is not _UNCHANGED and bond._is_aromatic != aromatic))
-        if mol._mca_result is not None and not result_changed:
+        if any(getattr(mol, name) is not None for name in _RESULT_ATTRIBUTES) and not result_changed:
             result_changed = (_digest("bond_metadata", bond._bond_source_metadata)
                               != _digest("bond_metadata", metadata))
         if result_changed:
@@ -478,6 +478,9 @@ def _commit_aromatic_assignment(mol, assignment, *, snapshot, preserve_sources=F
         for uid, order, aromatic, kind in zip(assignment.bond_uids, assignment.bond_orders, assignment.bond_aromatic, assignment.bond_kinds):
             bond = complete[uid]
             transaction.touch_bond(bond)
+            if (bond._attrs[0].tobytes() != np.float64(order).tobytes()
+                    or bond._bond_kind.value != kind or bond._is_aromatic != aromatic):
+                _invalidate_results(mol, ("representation",), transaction)
             if bond._attrs[0] != order or bond._bond_kind.value != kind or bond._is_aromatic != aromatic:
                 _mark_bond_representation_dirty(mol, (bond.atom1._uid, bond.atom2._uid))
             bond._attrs[0] = order

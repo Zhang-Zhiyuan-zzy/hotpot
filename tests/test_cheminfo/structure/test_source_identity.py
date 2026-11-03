@@ -102,7 +102,10 @@ def test_representation_change_preserves_topology_geometry_and_ignores_source_la
     representation = _capture_source(mol, ("representation",))
     mol.atoms[0].id = 999
     mol.bonds[0].id = 1001
-    mol.atoms[0].partial_charge = 0.125
+    from hotpot.cheminfo.structure._results import _import_partial_charges
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
+    _import_partial_charges(mol, (0.125,) + (None,) * (len(mol.atoms) - 1),
+                            producer=ATOM_SOURCE_CODES["explicit"])
     mol.properties["mca"] = "annotation decoy"
     _check_source(mol, representation)
     mol.atoms[0].formal_charge = 1
@@ -295,7 +298,13 @@ def test_forcefield_source_checks_actual_legacy_numeric_and_sparse_inputs(field,
     mol = _molecule()
     source = _capture_source(mol, ('forcefield_inputs',))
     target = mol.bonds[0] if field == 'bond_order' else mol.atoms[0]
-    setattr(target, field, value)
+    if field == 'partial_charge':
+        from hotpot.cheminfo.structure._results import _import_partial_charges
+        from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
+        _import_partial_charges(mol, (value,) + (None,) * (len(mol.atoms) - 1),
+                                producer=ATOM_SOURCE_CODES['explicit'])
+    else:
+        setattr(target, field, value)
     with pytest.raises(RuntimeError, match='forcefield_inputs'):
         _check_source(mol, source)
 
@@ -450,7 +459,10 @@ def test_mca_representation_still_checks_other_representation_inputs(change):
 def test_mca_representation_keeps_existing_exclusions_from_ordinary_representation():
     mol = _molecule()
     source = _capture_source(mol, ("mca_representation",))
-    mol.atoms[0].partial_charge = 0.125
+    from hotpot.cheminfo.structure._results import _import_partial_charges
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
+    _import_partial_charges(mol, (0.125,) + (None,) * (len(mol.atoms) - 1),
+                            producer=ATOM_SOURCE_CODES["explicit"])
     mol.atoms[0].frac_valence = 2.5
     mol.atoms[0].x_constraint = True
     mol.properties["mca"] = "caller annotation"

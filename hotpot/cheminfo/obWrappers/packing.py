@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import TYPE_CHECKING
+
+import numpy as np
 
 from .._native.buffers import (
     MOLECULE_BUFFER_SCHEMA_VERSION,
@@ -45,6 +48,21 @@ _OPENBABEL_FIELDS = frozenset(
 
 
 def _pack_molecule(mol: "Molecule") -> _MoleculeBuffers:
-    """Copy every Open Babel molecule field into common native buffers."""
+    """Pack native tasks, encoding unavailable charge rows as finite zero.
 
-    return _pack_common_molecule(mol, _OPENBABEL_FIELDS)
+    These task-only zeros are never selected as molecular charge observations.
+    """
+    from ..structure._results import _partial_charge_projection
+
+    with mol._mutation_lock:
+        buffers = _pack_common_molecule(
+            mol, _OPENBABEL_FIELDS - {NativeMoleculeField.PARTIAL_CHARGES},
+        )
+        charges = _partial_charge_projection(mol)
+        return replace(
+            buffers,
+            partial_charges=np.fromiter(
+                (0.0 if value is None else value for value in charges),
+                dtype=np.float64, count=buffers.atom_count,
+            ),
+        )

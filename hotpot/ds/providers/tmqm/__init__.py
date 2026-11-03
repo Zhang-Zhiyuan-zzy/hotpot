@@ -4,6 +4,8 @@ import multiprocessing as mp
 
 from . import download
 from hotpot import Molecule
+from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
+from hotpot.cheminfo.structure._results import _import_partial_charges
 from hotpot.ds._paths import DATA_ROOT
 import csv
 
@@ -232,11 +234,10 @@ class DataGenerator:
                 (atom_counts, xyz), csv_res, q_res, bo_res = text
 
             mol = Molecule()
-            for (sym, x, y, z), q in zip(xyz, q_res):
+            for sym, x, y, z in xyz:
                 mol._create_atom(
                     symbol=sym,
                     coordinates=(x, y, z),
-                    partial_charge=q,
                 )
 
             self._get_wiberg_val_bo(mol, bo_res)
@@ -253,6 +254,9 @@ class DataGenerator:
             mol.polarizability = float(csv_res[8])
 
             mol.link_atoms()
+            _import_partial_charges(
+                mol, tuple(q_res[:len(mol.atoms)]), producer=ATOM_SOURCE_CODES["tmqm"],
+            )
 
             self.result_queues[i].put(mol)
 
@@ -291,11 +295,10 @@ class DataGenerator:
 
         # .xyz .q 文件的获取
         mol = Molecule()
-        for (sym, x, y, z), q in zip(xyz, q_res):
+        for sym, x, y, z in xyz:
             mol._create_atom(
                 symbol=sym,
                 coordinates=(x, y, z),
-                partial_charge=q,
             )
 
         self._get_wiberg_val_bo(mol, bo_res)
@@ -312,6 +315,9 @@ class DataGenerator:
         mol.polarizability = float(csv_res[8])
 
         mol.link_atoms()
+        _import_partial_charges(
+            mol, tuple(q_res[:len(mol.atoms)]), producer=ATOM_SOURCE_CODES["tmqm"],
+        )
         return mol
 
     def iter_mol(self):

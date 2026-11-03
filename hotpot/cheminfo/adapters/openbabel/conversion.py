@@ -9,6 +9,9 @@ from . import perception as _perception
 from . import crystal as _crystal
 
 
+_PARTIAL_CHARGE_PRESENCE = "_hotpot_partial_charge_presence"
+
+
 def _new_obmol():
     from openbabel import openbabel as ob
 
@@ -23,7 +26,8 @@ def _factual_obmol(obmol, atom_rows, bond_rows, cell):
         oba = obmol.NewAtom()
         oba.SetAtomicNum(number)
         oba.SetFormalCharge(formal_charge)
-        oba.SetPartialCharge(partial_charge)
+        if partial_charge is not None:
+            oba.SetPartialCharge(partial_charge)
         oba.SetVector(*coordinates)
         row_to_idx[row] = oba.GetIdx()
 
@@ -39,6 +43,16 @@ def _factual_obmol(obmol, atom_rows, bond_rows, cell):
     for kind, first, second, order, aromatic in bond_rows:
         obmol.GetBond(row_to_idx[first], row_to_idx[second]).SetAromatic(aromatic)
     obmol.SetAromaticPerceived(True)
+    charge_presence = tuple(atom[2] is not None for atom in atom_rows)
+    obmol.SetPartialChargesPerceived(any(charge_presence))
+    if not all(charge_presence):
+        from openbabel import openbabel as ob
+        # Open Babel has no per-Atom charge presence. This copyable map records
+        # supplied rows so its default zero never becomes an imported fact.
+        data = ob.OBPairData()
+        data.SetAttribute(_PARTIAL_CHARGE_PRESENCE)
+        data.SetValue("".join("1" if present else "0" for present in charge_presence))
+        obmol.CloneData(data)
     if cell is not None:
         obmol.CloneData(_crystal.to_obcell(cell))
     return obmol, row_to_idx
@@ -50,14 +64,22 @@ def _obmol_record(obmol, initial, stereo_payload):
     atoms = tuple(ob.OBMolAtomIter(obmol))
     idx_to_row = {atom.GetIdx(): row for row, atom in enumerate(atoms)}
     values = np.zeros((len(atoms), 19), dtype="<f8")
-    for row, atom in enumerate(atoms):
-        values[row, (0, 7, 8, 9, 10, 11, 12, 14)] = (
-            atom.GetAtomicNum(), atom.GetFormalCharge(), atom.GetPartialCharge(),
-            float(atom.IsAromatic()), atom.GetX(), atom.GetY(), atom.GetZ(), atom.GetImplicitHCount())
-    supplied = (0, 7, 8, 9, 10, 11, 12, 14)
+    supplied = (0, 7, 9, 10, 11, 12, 14)
     presence = np.full(len(atoms), sum(FIELD_PRESENCE_BITS[index] for index in supplied), dtype="<u4")
     sources = np.zeros((len(atoms), 19), dtype="u1")
     sources[:, supplied] = ATOM_SOURCE_CODES["openbabel"]
+    charges_perceived = obmol.HasPartialChargesPerceived()
+    charge_presence_data = obmol.GetData(_PARTIAL_CHARGE_PRESENCE)
+    charge_presence = (ob.toPairData(charge_presence_data).GetValue()
+                       if charge_presence_data else "1" * len(atoms))
+    for row, atom in enumerate(atoms):
+        values[row, supplied] = (
+            atom.GetAtomicNum(), atom.GetFormalCharge(), float(atom.IsAromatic()),
+            atom.GetX(), atom.GetY(), atom.GetZ(), atom.GetImplicitHCount())
+        if charges_perceived and charge_presence[row] == "1":
+            values[row, 8] = atom.GetPartialCharge()
+            presence[row] |= FIELD_PRESENCE_BITS[8]
+            sources[row, 8] = ATOM_SOURCE_CODES["openbabel"]
     entries = tuple(_perception._retrieve_bonds_attrs_from_obmol(obmol, idx_to_row).items())
     raw_bonds = np.zeros((len(entries), 3), dtype="<f8")
     raw_bonds[:, 0] = [entry[1]["bond_order"] for entry in entries]
@@ -80,6 +102,7 @@ def _obmol_record(obmol, initial, stereo_payload):
         charge=(True, obmol.GetTotalCharge(), "openbabel"), cell=cell,
         stereo_payload=stereo_payload,
         legacy_frame_values=(("none",),) * 9,
+        partial_charge_result=None,
     )
     return record
 
@@ -180,3 +203,8 @@ def _compute_charges(charge_model, obmol, model_args):
 
 def _partial_charges(charge_model):
     return tuple(float(value) for value in charge_model.GetPartialCharges())
+
+
+def _charge_model_version():
+    from openbabel import openbabel as ob
+    return ob.OBReleaseVersion()

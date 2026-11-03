@@ -42,8 +42,11 @@ from .structure.constraints import (
     _bond_constraint_cell, _bond_raw_values, _split_atom_rows, _join_atom_rows,
     _select_atom_values,
 )
-from .structure._identity import _capture_source, _hydrogen_install_inputs
-from .structure._results import _current_mca_result, _copy_mca_result, _invalidate_results
+from .structure._identity import _capture_source, _check_source, _hydrogen_install_inputs
+from .structure._results import (
+    _current_mca_result, _copy_mca_result, _invalidate_results, _atom_partial_charge,
+    _partial_charge_record, _install_partial_charge_record,
+)
 from .structure._mutation import _AtomFactUpdate, _normalize_atom_facts
 from .structure._commit import (
     _FactTransaction, _commit_atom_facts, _commit_coordinates, _commit_bond_facts,
@@ -154,6 +157,7 @@ class Molecule:
         self._conformers_index = 0
 
         self._mca_result = None
+        self._partial_charge_result = None
         self._pair_wiberg_bond_orders = {}
         self._constraints = _ConstraintSet()
         self._crystal = None
@@ -358,6 +362,8 @@ class Molecule:
 
     def copy(self):
         with self._mutation_lock:
+            if self._partial_charge_result is not None and not self._partial_charge_result.invalidated_by:
+                _check_source(self, self._partial_charge_result.source)
             record, metadata = self._capture_factual_record(include_frames=False)
             dependencies = _remap_dependency_state(self._atom_table,
                 tuple(atom._uid for atom in self._atoms), tuple(range(len(self._atoms))))
@@ -502,8 +508,11 @@ class Molecule:
             statuses = table._group_status[row].copy()
             pending_groups = tuple(atom._uid in seeds for seeds in table._dirty_seeds)
             sparse = {name: deepcopy(atom.__dict__[name]) for name in ('isotope', 'frac_valence') if name in atom.__dict__}
+            charge_result = (None if source_row is None else _partial_charge_record(
+                atom.mol, (row,), whole_context=len(atom.mol._atoms) == 1 and not atom.mol._bonds))
         with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
-            copied = _import_atom_row(self, values, presence=presence, sources=sources)
+            copied = _import_atom_row(self, values, presence=presence, sources=sources,
+                                      partial_charge_result=charge_result)
             new_row = self._topology_index[id(copied)][0]
             transaction.touch_dependency_status((new_row,), range(len(statuses)))
             self._atom_table._group_status[new_row] = statuses
@@ -770,6 +779,8 @@ class Molecule:
                 bond_sources=current.bond_sources + incoming.bond_sources,
                 bond_metadata=current.bond_metadata + incoming.bond_metadata,
                 charge=charge, spin_mult=spin, cell=current.cell if offset else incoming.cell,
+                partial_charge_result=(incoming.partial_charge_result if not offset else
+                    self._merged_partial_charge_record(current, incoming.atom_count)),
                 stereo_payload=payload,
                 angle_constraints=current.angle_constraints + tuple(tuple(offset + row for row in item) for item in incoming.angle_constraints),
                 torsion_constraints=current.torsion_constraints + tuple(tuple(offset + row for row in item) for item in incoming.torsion_constraints),
@@ -789,6 +800,18 @@ class Molecule:
                 atom_bindings=old_atoms + (None,) * incoming.atom_count,
                 bond_bindings=old_bonds + (None,) * len(incoming.bond_endpoints),
                 dependency_state=dependencies, bond_metadata=current_metadata + incoming_metadata)
+
+    @staticmethod
+    def _merged_partial_charge_record(current, added_count):
+        from dataclasses import replace
+        if current.partial_charge_result is None:
+            return None
+        payload, marker = current.partial_charge_result
+        if "charge_representation" not in marker:
+            marker += ("charge_representation",)
+        return (replace(payload, atom_uids=tuple(range(current.atom_count + added_count)),
+                        values=payload.values + (None,) * added_count,
+                        provenance=payload.provenance + (_ATOM_SOURCE_CODES["default"],) * added_count), marker)
 
     def add_hydrogens(
             self,
@@ -2048,6 +2071,8 @@ class Molecule:
             endpoints = tuple((mapping[self._topology_index[id(bond.atom1)][0]],
                                mapping[self._topology_index[id(bond.atom2)][0]]) for bond in bonds)
             whole = rows == tuple(range(len(self._atoms)))
+            charge_context = whole and len(bonds) == len(complete) and all(
+                first is second for first, second in zip(bonds, complete))
             payload = _remap_stereo_transport(self._stereo_payload, mapping,
                                             allowed_bonds=None if whole else endpoints)
             frames, index = self._capture_frame_state(rows=rows) if include_frames else ((None,) * 9, 0)
@@ -2069,6 +2094,7 @@ class Molecule:
             record = _make_molecule_record(
                 atom_values=atom_values,
                 atom_presence=atom_presence, atom_sources=atom_sources,
+                partial_charge_result=_partial_charge_record(self, rows, whole_context=charge_context),
                 atom_isotopes=tuple((row, atom.__dict__['isotope']) for row, atom in enumerate(atoms) if 'isotope' in atom.__dict__),
                 atom_frac_valences=tuple((row, atom.__dict__['frac_valence']) for row, atom in enumerate(atoms) if 'frac_valence' in atom.__dict__),
                 bond_endpoints=endpoints, bond_values=np.array([_raw_bond_values(bond) for bond in bonds], dtype=np.float64).reshape(-1, 3),
@@ -2202,6 +2228,7 @@ class Molecule:
         from .structure.crystal import Crystal
         self._crystal = None if record.cell is None else Crystal(*record.cell)
         self._install_frame_state(tuple(_thaw_canonical(value) for value in record.legacy_frame_values), record.legacy_frame_index)
+        _install_partial_charge_record(self, record.partial_charge_result)
         if record.identifier[0]:
             self.identifier = record.identifier[1]
         else:
@@ -2382,7 +2409,7 @@ class Atom(MolBlock):
     # Cython define
     atomic_number: int
     formal_charge: int
-    partial_charge: float
+    partial_charge: Optional[float]
     x: float
     y: float
     z: float
@@ -2405,7 +2432,6 @@ class Atom(MolBlock):
         "atomic_number": 0,
         "is_aromatic": False,
         "formal_charge": 0,
-        "partial_charge": 0.,
         "coordinates": (0., 0., 0.),
         "x": 0.,
         "y": 0.,
@@ -4513,12 +4539,25 @@ def _new_atom_handle(mol, uid, *, cell=_EMPTY_ATOM_CELL):
     return atom
 
 
-def _import_atom_row(mol, values, *, presence=None, sources=None):
+def _import_atom_row(mol, values, *, presence=None, sources=None, partial_charge_result=None):
     """Install one supplied factual row through the private import boundary."""
     values = np.asarray(values, dtype=np.float64)
     table_values, masks, codes, cells = _split_atom_rows(values[None, :], presence=presence, sources=sources)
+    field = _ATOM_FIELD_INDEX['partial_charge']
+    supplied_charge = bool(int(masks[0]) & (1 << field))
+    if supplied_charge:
+        if partial_charge_result is not None:
+            raise ValueError('An explicit partial-charge result excludes supplied Atom charge bits')
+        from .structure._results import PartialChargeSet
+        partial_charge_result = (PartialChargeSet(
+            (0,), (float(values[field]),), 'supplied', None, (), 'e', (int(codes[0, field]),)), ())
     prepared = _AtomFactTable(table_values, presence=masks, sources=codes)
     with _FactTransaction(mol, producer=_ATOM_SOURCE_CODES['legacy_array']) as transaction:
+        empty = not mol._atoms
+        if supplied_charge and mol._partial_charge_result is not None:
+            previous = mol._partial_charge_result.payload
+            if previous.method != 'supplied' or previous.method_version is not None or previous.parameters:
+                raise ValueError('A supplied Atom charge row cannot mix methods; import a complete partial-charge set')
         atom = _new_atom_handle(mol, mol._allocate_atom_uid(), cell=cells[0])
         transaction.touch_registration(atom)
         row = mol._atom_table._append_prepared(prepared.matrix(), prepared.presence(), prepared.sources())
@@ -4528,6 +4567,23 @@ def _import_atom_row(mol, values, *, presence=None, sources=None):
         mol._constraints.atom_axes[atom._uid] = cells[0]
         object.__setattr__(atom, '_constraint_values', mol._constraints.atom_axes)
         _mark_topology_dirty(mol, (atom._uid,))
+        if empty and partial_charge_result is not None:
+            _install_partial_charge_record(mol, partial_charge_result)
+        elif supplied_charge:
+            from dataclasses import replace
+            historical = _partial_charge_record(mol, tuple(range(row)), whole_context=False)
+            supplied, _ = partial_charge_result
+            if historical is None:
+                payload = replace(supplied, atom_uids=tuple(range(row + 1)),
+                    values=(None,) * row + supplied.values,
+                    provenance=(_ATOM_SOURCE_CODES['default'],) * row + supplied.provenance)
+                marker = ('charge_representation',)
+            else:
+                previous, marker = historical
+                payload = replace(previous, atom_uids=tuple(range(row + 1)),
+                    values=previous.values + supplied.values,
+                    provenance=previous.provenance + supplied.provenance)
+            _install_partial_charge_record(mol, (payload, marker))
         return atom
 
 
@@ -4732,6 +4788,8 @@ def _numeric_property(field):
     index, codec = _ATOM_FIELD_INDEX[field], _ATOM_FIELD_CODECS[field]
 
     def read(atom):
+        if field == 'partial_charge':
+            return _atom_partial_charge(atom)
         if field in _ATOM_DERIVED_FIELDS:
             if field == 'valence':
                 return atom.get_valence()
@@ -4800,7 +4858,7 @@ for _method in (
         'remove_atom', 'remove_atoms', 'remove_bond', 'remove_bonds', 'add_hydrogens',
         'create_crystal'):
     setattr(Molecule, _method, _transactional_legacy(getattr(Molecule, _method), topology=True))
-for _method in ('calc_atom_valence', 'calc_implicit_hydrogens', 'assign_partial_charge',
+for _method in ('calc_atom_valence', 'calc_implicit_hydrogens',
                 'refresh_atom_id'):
     setattr(Molecule, _method, _transactional_legacy(getattr(Molecule, _method)))
 for _method in ('conformer_add', 'conformer_clear'):

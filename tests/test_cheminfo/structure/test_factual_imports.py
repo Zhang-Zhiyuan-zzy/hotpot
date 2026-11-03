@@ -72,11 +72,13 @@ def test_rdkit_presence_distinguishes_absent_coordinates_partial_charge_and_supp
     source.GetAtomWithIdx(0).SetDoubleProp('_GasteigerCharge', 0.)
     mol = conversion.from_rdmol(source, Molecule())
     masks, codes = mol._atom_table.presence(), mol._atom_table.sources()
-    assert masks[0] & FIELD_PRESENCE_BITS[FIELD_INDEX['partial_charge']]
-    assert not masks[1] & FIELD_PRESENCE_BITS[FIELD_INDEX['partial_charge']]
+    assert tuple(atom.partial_charge for atom in mol.atoms) == (0., None)
+    assert not np.any(masks & FIELD_PRESENCE_BITS[FIELD_INDEX['partial_charge']])
     assert not any(mask & FIELD_PRESENCE_BITS[FIELD_INDEX['x']] for mask in masks)
     assert not any(mask & FIELD_PRESENCE_BITS[FIELD_INDEX['id']] for mask in masks)
-    assert codes[0, FIELD_INDEX['partial_charge']] == ATOM_SOURCE_CODES['rdkit']
+    assert mol._partial_charge_result.payload.provenance == (ATOM_SOURCE_CODES['rdkit'], ATOM_SOURCE_CODES['default'])
+    assert mol._partial_charge_result.payload.method == 'supplied'
+    assert codes[0, FIELD_INDEX['partial_charge']] == ATOM_SOURCE_CODES['default']
     assert codes[1, FIELD_INDEX['partial_charge']] == ATOM_SOURCE_CODES['default']
     assert codes[0, FIELD_INDEX['s']] == ATOM_SOURCE_CODES['default']
     assert not masks[0] & FIELD_PRESENCE_BITS[FIELD_INDEX['s']]
@@ -218,3 +220,15 @@ def test_g16_prewrite_rolls_back_chemical_stores_if_charge_calculation_fails(mon
     with pytest.raises(RuntimeError, match='charge calculation failed'):
         to_gjf_preprocess(SimpleNamespace(kwargs={}, ob_opt={}), mol)
     assert mol.atom_matrix.tobytes() == before
+
+
+def test_ccdc_absent_charge_remains_absent_while_explicit_zero_is_supplied(monkeypatch):
+    adapter = _fake_ccdc(monkeypatch)
+    atoms = [SimpleNamespace(label=f'C{row}', atomic_number=6, formal_charge=0,
+                             partial_charge=value, coordinates=(row, 0, 0), rings=())
+             for row, value in enumerate((None, 0.))]
+    source = SimpleNamespace(atoms=atoms, bonds=[], normalise_labels=lambda: None)
+    mol = adapter.mol_from_ccdc_to_hp(source)
+    assert tuple(atom.partial_charge for atom in mol.atoms) == (None, 0.)
+    assert mol._partial_charge_result.payload.provenance == (
+        ATOM_SOURCE_CODES['default'], ATOM_SOURCE_CODES['ccdc'])

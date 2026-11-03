@@ -183,7 +183,7 @@ def _stored_atom_state(mol):
             tuple(frozenset(seed) for seed in table._dirty_seeds))
 
 
-@pytest.mark.parametrize("field", ["n", "s", "p", "d", "f", "g", "valence"])
+@pytest.mark.parametrize("field", ["n", "s", "p", "d", "f", "g", "valence", "partial_charge"])
 @pytest.mark.parametrize("path", ["normalize_scalar", "normalize_mixed", "commit_scalar",
                                   "commit_mixed", "commit_candidate", "write_prepared"])
 def test_private_native_ingress_rejects_derived_fields_atomically(field, path):

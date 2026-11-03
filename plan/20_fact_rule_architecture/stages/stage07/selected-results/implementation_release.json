@@ -42,5 +42,17 @@
       "runtime_executed": false
     }
   ],
-  "amendment": "R1: private MCA representation excludes unused spin; existing representation encoding and Stage7D remain unchanged."
+  "amendment": "R1: private MCA representation excludes unused spin; existing representation encoding and Stage7D remain unchanged.",
+  "partial_charge_slice": {
+    "status": "ROOT_SOURCE_READY_CP311_RUNTIME_RELEASED",
+    "source_commit": "a54c660d8bff79462dd1cee48d0d3c9e65a53d87",
+    "design": "contracts/decisions.md#pc1pc9--connected-selected-partial-charge-cutover",
+    "design_sha256": "f6c55db0b18d40d664ec9ff119fe748824d95000d53232a327b3a16699de265f",
+    "owner": "root",
+    "scope": "PC1\u2013PC9 connected selected partial-charge owner/import/native/model cutover; reserved N14 plus reused N15; Record24 tagged-v3.",
+    "runtime_authorized": true,
+    "stage_gate_closed": false,
+    "global_gate_closed": false,
+    "runtime_release": "partial_charge_runtime_release.json"
+  }
 }

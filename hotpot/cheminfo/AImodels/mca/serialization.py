@@ -16,6 +16,7 @@ from rdkit import Chem
 
 from hotpot.cheminfo.structure._builder import _make_molecule_record
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_PRESENCE_BITS
+from hotpot.cheminfo.structure._results import _partial_charge_projection
 
 from hotpot.cheminfo.operations.conversion import to_hotpot_mol
 from hotpot.cheminfo.core import Molecule as HotpotMolecule
@@ -30,7 +31,7 @@ class AtomDTO:
 
     atomic_number: int
     formal_charge: int
-    partial_charge: float
+    partial_charge: float | None
     is_aromatic: bool
     implicit_hydrogens: int
     valence: int
@@ -81,18 +82,19 @@ def normalize_molecule(value) -> MoleculeDTO:
         from hotpot.cheminfo.operations.chemistry import _require_implicit_hydrogens
         hydrogens = _require_implicit_hydrogens(native_mol)
         feature_mol = _feature_molecule(value, native_mol)
+        charges = _partial_charge_projection(native_mol)
         atoms = tuple(
             AtomDTO(
                 atomic_number=int(atom.atomic_number),
                 formal_charge=int(atom.formal_charge),
-                partial_charge=float(atom.partial_charge),
+                partial_charge=charge,
                 is_aromatic=bool(atom.is_aromatic),
                 implicit_hydrogens=hydrogen,
                 valence=int(atom.valence),
                 isotope=int(getattr(atom, "isotope", 0)),
                 coordinates=tuple(float(coordinate) for coordinate in atom.coordinates),
             )
-            for atom, hydrogen in zip(native_mol.atoms, hydrogens)
+            for atom, hydrogen, charge in zip(native_mol.atoms, hydrogens, charges)
         )
         bonds = tuple(
             BondDTO(
@@ -153,13 +155,18 @@ def hotpot_mol_from_dto(molecule: MoleculeDTO) -> HotpotMolecule:
         )
     values = np.zeros((len(molecule.atoms), 19), dtype=np.float64)
     sources = np.zeros(values.shape, dtype=np.uint8)
-    supplied = (0, 7, 8, 9, 10, 11, 12, 14)
+    supplied = (0, 7, 9, 10, 11, 12, 14)
     for row, atom in enumerate(molecule.atoms):
         values[row, supplied] = (atom.atomic_number,
-                       atom.formal_charge, atom.partial_charge, atom.is_aromatic,
+                       atom.formal_charge, atom.is_aromatic,
                        *atom.coordinates, atom.implicit_hydrogens)
     sources[:, supplied] = ATOM_SOURCE_CODES["mca_dto"]
     presence = np.full(len(values), sum(FIELD_PRESENCE_BITS[index] for index in supplied), dtype=np.uint32)
+    for row, atom in enumerate(molecule.atoms):
+        if atom.partial_charge is not None:
+            values[row, 8] = atom.partial_charge
+            sources[row, 8] = ATOM_SOURCE_CODES["mca_dto"]
+            presence[row] |= FIELD_PRESENCE_BITS[8]
     bonds = molecule.bonds
     raw_bonds = np.zeros((len(bonds), 3), dtype=np.float64)
     raw_bonds[:, 0] = [bond.bond_order for bond in bonds]

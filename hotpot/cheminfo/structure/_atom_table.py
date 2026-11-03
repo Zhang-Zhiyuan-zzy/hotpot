@@ -1,7 +1,7 @@
 """One private numeric Atom store, without chemistry or molecule membership.
 
 Two float64 blocks own only the sixteen non-constraint projection slots.
-Seven calculated slots have no value storage; operations calculate their views.
+Eight calculated slots have no value storage; operations calculate their views.
 """
 
 from __future__ import annotations

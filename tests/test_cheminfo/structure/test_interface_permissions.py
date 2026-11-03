@@ -118,3 +118,19 @@ def test_empty_and_no_column_writes_return_none():
     assert Molecule().updata_atoms(formal_charge=0) is None
     unchanged(mol, before)
 
+
+
+@pytest.mark.parametrize("path", ["scalar", "batch", "constructor", "table"])
+def test_partial_charge_has_no_public_scalar_writer(path):
+    mol = molecule()
+    before = state(mol)
+    with pytest.raises((AttributeError, TypeError)):
+        if path == "scalar":
+            mol.atoms[0].partial_charge = 0.0
+        elif path == "batch":
+            mol.updata_atoms(partial_charge=0.0)
+        elif path == "constructor":
+            Atom(mol, atomic_number=6, partial_charge=0.0)
+        else:
+            mol._atom_table.update(0, {"partial_charge": 0.0})
+    unchanged(mol, before)

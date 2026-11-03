@@ -1,8 +1,8 @@
 # Fact-Carrier and Rule Architecture Refactor
 
-Status: **implementation authorized on 2026-10-28; Stage0–7B owning-stage gates complete
-within their recorded scopes, including the applicable CP311 Stage7B delivery;
-Stage7C is in progress. Full scientific, engineering, version-adaptation and global
+Status: **implementation authorized on 2026-10-28; Stage0–7C owning-stage gates complete
+within their recorded scopes, including the applicable CP311 Stage7B/7C delivery;
+Stage7D coordinate-frame ownership is next. Full scientific, engineering, version-adaptation and global
 acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
@@ -1892,8 +1892,18 @@ absence/stale/projection decisions already govern both. Root accepts the
 fresh fact-native, affected source1721/installed1721, actual MCA1/attachment3 in
 each boundary and bounded usable getter/write costs. [The report](stages/stage07/selected-results/validation/report.md)
 retains original failures, scoped installed evidence and later obligations.
-The connected selected partial-charge cutover remains next; this MCA slice does
-not close Stage7C or any global gate. Cross-stage limitations are indexed in
+The connected selected-charge cutover now has an accepted
+[CP311 checkpoint](stages/stage07/selected-results/validation/partial-charges/checkpoint.json):
+affected source1953/installed1953, final test-only rebind8/8 and actual
+FF11/pipeline3/MCA1/attachment3 per boundary. One N14 payload replaces raw Atom
+charge ownership; N15 is reused and connected imports/native/model projections
+retain their approved meanings. The
+[Stage7C completion](stages/stage07/selected-results/completion_20261103.json)
+closes only applicable CP311 owning scope, combining both slices. Original
+failures, retained GFN-FF restart-read warnings, usable costs, package/native
+limits and later obligations remain in the
+[report](stages/stage07/selected-results/validation/partial-charges/report.md).
+Stage7D/E and global gates remain open; cross-stage limitations are indexed in
 [deferred_issues.md](deferred_issues.md).
 
 Gate: exact per-mutation retain/mark/recompute table, MCA calculator/site tests,
@@ -2694,9 +2704,10 @@ matrix spelling: directly rename `atom_attr_matrix`, migrate its consumers and
 retain no old-name alias. Implementation remains subject to the Stage3 gates.
 No public fact-table class, schema registry,
 dirty-state method, `new_attrs` example property, universal base or parallel
-batch API is added. Existing attrs/constructor arguments, coordinate aliases,
-inferred-property setters, partial-charge return behavior and stale reads
-require explicit review. For a required multi-input operation, first reuse an
+batch API is added. Stage1 A2/A6/A8 and the accepted Stage7C contracts now settle partial-charge
+absence/returns, read-only assignment boundaries and stale reads. Other existing
+attrs/constructor arguments, coordinate aliases and inferred-property setters
+retain their specific review boundaries. For a required multi-input operation, first reuse an
 existing complete method; otherwise list its exact signature for approval.
 Neither Atom candidates nor invertibility authorize corresponding setters or
 batch methods on other chemical types.

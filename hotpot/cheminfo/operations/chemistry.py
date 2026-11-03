@@ -166,6 +166,10 @@ def _atom_projection(mol, *, fields=ATOM_FIELDS, rows=None, strict_hydrogens=Fal
         for column, field in enumerate(fields):
             if field == 'valence':
                 values[:, column] = tuple(_atom_valence(mol._atoms[row]) for row in selected)
+            elif field == 'partial_charge':
+                from ..structure._results import _partial_charge_projection
+                charges = _partial_charge_projection(mol)
+                values[:, column] = tuple(np.nan if charges[row] is None else charges[row] for row in selected)
             elif field == 'implicit_hydrogens':
                 # Preserve current float64 bytes; absent/stale slots display
                 # the legacy placeholder without creating a current H fact.

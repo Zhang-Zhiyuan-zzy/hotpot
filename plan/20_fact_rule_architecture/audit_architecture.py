@@ -2,7 +2,7 @@
 """Ratcheted source checks for the incremental Plan20 migration.
 
 The frozen inventory is discovery evidence. The shrinking allowlist records
-remaining debt. Four fixed Stage7A/Stage8A relocations carry their original
+remaining debt. Six fixed Stage7A/Stage8A/Stage8B relocations carry their original
 import slots; new ownership packages otherwise have no inherited exceptions. Runtime ownership,
 buffer isolation and native ABI tests remain separate gates.
 """
@@ -89,9 +89,32 @@ SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS = (
          "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule"},
     ),
 )
+# Stage8B B3c relocates the existing TYPE_CHECKING-only native transport
+# annotation. It consumes only its prior native.py Molecule slot until Stage9;
+# the deleted native_packing.py Bond/Molecule slots retire without transfer.
+NATIVE_TRANSPORT_CORE_IMPORT_SOURCE = {
+    "rule": "legacy_core_import", "path": "hotpot/cheminfo/forcefields/native.py",
+    "scope": "", "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule",
+}
+NATIVE_TRANSPORT_CORE_IMPORT_DESTINATION = {
+    **NATIVE_TRANSPORT_CORE_IMPORT_SOURCE,
+    "path": "hotpot/cheminfo/adapters/native/forcefields/native.py",
+}
+# Accepted Stage8B B3b moved this existing TYPE_CHECKING-only command
+# annotation verbatim. Its CLI slot is independent of the native transport slot;
+# neither can supply growth credit or substitute for the other before Stage9.
+COMMAND_CORE_IMPORT_SOURCE = {
+    "rule": "legacy_core_import", "path": "hotpot/cheminfo/forcefields/cli.py",
+    "scope": "", "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule",
+}
+COMMAND_CORE_IMPORT_DESTINATION = {
+    **COMMAND_CORE_IMPORT_SOURCE, "path": "hotpot/commands/ff.py",
+}
 CORE_IMPORT_TRANSFERS = (
     (CORE_IMPORT_SOURCE, CORE_IMPORT_DESTINATION),
     *SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS,
+    (NATIVE_TRANSPORT_CORE_IMPORT_SOURCE, NATIVE_TRANSPORT_CORE_IMPORT_DESTINATION),
+    (COMMAND_CORE_IMPORT_SOURCE, COMMAND_CORE_IMPORT_DESTINATION),
 )
 # These declared numerical values initialize their own coordinate fields; they
 # do not receive a live carrier to edit. Keep path, class, method, field and
@@ -125,7 +148,7 @@ def ratchet_findings(actual, allowed, previous):
 
 
 def stage7a_ratchet_findings(actual, allowed, previous, original):
-    """Keep real debt identities; transfer only the four fixed ceiling slots."""
+    """Keep real debt identities; transfer only the six fixed ceiling slots."""
     findings = ratchet_findings(actual, allowed, previous)
     current = Counter(map(debt_key, allowed))
     for name, reference in (("allowlist_growth", previous),

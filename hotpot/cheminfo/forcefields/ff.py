@@ -51,13 +51,15 @@ from .coordination import (
 from .coordinates import perturb
 from ..structure.forcefields import AtomTopologySignature, BondTopology, TopologyReference
 from ..adapters.structure.forcefields import capture_topology
-from .trajectory import (
+from hotpot.cheminfo.forcefields.trajectory import (
     AtomIdentity,
     BondTopologyRevision,
-    CoordinationFrameEvidence,
     ForceFieldFrame,
     ForceFieldTrajectory,
     ForceFieldTrajectoryArchive,
+)
+from hotpot.cheminfo.structure.forcefields import (
+    CoordinationFrameEvidence,
     FrameEvidence,
     OptimizationFrameEvidence,
     RingFrameEvidence,

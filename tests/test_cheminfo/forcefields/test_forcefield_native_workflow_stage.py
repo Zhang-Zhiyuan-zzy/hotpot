@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from hotpot.cheminfo.forcefields.native import (
+from hotpot.cheminfo.adapters.native.forcefields.native import (
     ComplexOptimizationOptions,
     CoordinationStageOptions,
     create_coordination_session,
@@ -13,8 +13,8 @@ from hotpot.cheminfo.forcefields.native import (
     run_complex_workflow_from_input,
     snapshot_structure,
 )
-from hotpot.cheminfo.forcefields.native_packing import ComplexSessionInput
-from hotpot.cheminfo.forcefields.trajectory import (
+from hotpot.cheminfo.adapters.native.forcefields.contracts import ComplexSessionInput
+from hotpot.cheminfo.structure.forcefields import (
     TrajectoryStage,
     TrajectoryStart,
 )

@@ -10,7 +10,7 @@ from numpy.typing import NDArray
 
 from hotpot import read_mol
 from hotpot.cheminfo.forcefields.coordinates import _perturbed_coordinates
-from hotpot.cheminfo.forcefields.native import (
+from hotpot.cheminfo.adapters.native.forcefields.native import (
     ComplexOptimizationOptions,
     CoordinationStageOptions,
     create_coordination_session,
@@ -27,14 +27,10 @@ from hotpot.cheminfo.forcefields.native_adapters import (
     native_perturbation_streams,
     native_warning_messages,
 )
-from hotpot.cheminfo.forcefields.native_packing import (
-    ComplexSessionInput,
-    pack_complex_session_input,
-)
-from hotpot.cheminfo.forcefields.trajectory import (
-    ForceFieldTrajectory,
-    TrajectoryStart,
-)
+from hotpot.cheminfo.adapters.native.forcefields.contracts import ComplexSessionInput
+from hotpot.cheminfo.adapters.structure.forcefields import pack_complex_session_input
+from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.structure.forcefields import TrajectoryStart
 
 
 @dataclass(frozen=True)

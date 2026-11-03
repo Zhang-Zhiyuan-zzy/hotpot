@@ -185,7 +185,7 @@ def _dative_generation_graph(molecule: "Molecule") -> "Molecule":
 
 
 def _native_covalent_radius(atomic_number: int) -> float:
-    from hotpot.cheminfo.forcefields.native import _native_module
+    from hotpot.cheminfo.obWrappers.native import _native_module
 
     return float(_native_module().covalent_radius(atomic_number).angstrom)
 

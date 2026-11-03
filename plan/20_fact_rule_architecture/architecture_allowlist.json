@@ -2,7 +2,7 @@
   "schema_version": 1,
   "origin": "Stage1 frozen exact debt inventory",
   "source_checkpoint": "c6bfcd4906254ee113c14103009f071e91f60368",
-  "policy": "Entries shrink, with four fixed import-slot transfers bound in the architecture guard: the Stage7A convert.py-to-operations.conversion._molecule_type lookup and the Stage8A calculator.state_resolver module-scope Bond/BondKind imports to adapters.structure.scientific_state and Molecule to operations.calculation.scientific_state.facts (A7). Each transfers only its own existing identity slot in each ceiling, introduces no growth credit, and all four must retire at Stage9. Other new ownership packages remain strict; compare the actual pre-change Git ref and frozen inventory.",
+  "policy": "Entries shrink, with six fixed import-slot transfers bound in the architecture guard: the Stage7A convert.py-to-operations.conversion._molecule_type lookup; the Stage8A calculator.state_resolver module-scope Bond/BondKind imports to adapters.structure.scientific_state and Molecule to operations.calculation.scientific_state.facts (A7); the Stage8B forcefields/native.py TYPE_CHECKING Molecule import to adapters/native/forcefields/native.py (B3c); and the independently carried accepted B3b forcefields/cli.py TYPE_CHECKING Molecule import to commands/ff.py. Each transfers only its own existing identity slot in each ceiling, introduces no growth credit, and all six must retire at Stage9. The two deleted native_packing.py Bond/Molecule slots retire without transfer. Other new ownership packages remain strict; compare the actual pre-change Git ref and frozen inventory.",
   "entries": [
     {
       "line": 16,
@@ -319,7 +319,7 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/forcefields/cli.py",
+      "path": "hotpot/commands/ff.py",
       "line": 46,
       "scope": "",
       "target": "hotpot.cheminfo.core.Molecule",
@@ -355,8 +355,8 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/forcefields/native.py",
-      "line": 39,
+      "path": "hotpot/cheminfo/adapters/native/forcefields/native.py",
+      "line": 41,
       "scope": "",
       "target": "hotpot.cheminfo.core.Molecule",
       "local": "Molecule",
@@ -375,24 +375,6 @@
     {
       "path": "hotpot/cheminfo/forcefields/native_adapters.py",
       "line": 43,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.Molecule",
-      "local": "Molecule",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/forcefields/native_packing.py",
-      "line": 20,
-      "scope": "",
-      "target": "hotpot.cheminfo.core.Bond",
-      "local": "Bond",
-      "rule": "legacy_core_import",
-      "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/forcefields/native_packing.py",
-      "line": 20,
       "scope": "",
       "target": "hotpot.cheminfo.core.Molecule",
       "local": "Molecule",

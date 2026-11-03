@@ -292,9 +292,35 @@ def test_scientific_state_core_relocation_uses_only_its_existing_slot(old, new):
     assert not any(audit.stage7a_ratchet_findings([], [], [new], [old]).values())
 
 
+_NATIVE_TRANSPORT_CORE_IMPORT_SOURCE = {
+    "rule": "legacy_core_import", "path": "hotpot/cheminfo/forcefields/native.py",
+    "scope": "", "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule",
+    "stage": "Stage9", "line": 39,
+}
+_NATIVE_TRANSPORT_CORE_IMPORT_DESTINATION = {
+    **_NATIVE_TRANSPORT_CORE_IMPORT_SOURCE,
+    "path": "hotpot/cheminfo/adapters/native/forcefields/native.py", "line": 41,
+}
+
+
+_COMMAND_CORE_IMPORT_SOURCE = {
+    "rule": "legacy_core_import", "path": "hotpot/cheminfo/forcefields/cli.py",
+    "scope": "", "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule",
+    "stage": "Stage9", "line": 46,
+}
+_COMMAND_CORE_IMPORT_DESTINATION = {
+    **_COMMAND_CORE_IMPORT_SOURCE, "path": "hotpot/commands/ff.py", "line": 46,
+}
+_TRANSPORT_CORE_IMPORT_TRANSFERS = (
+    (_NATIVE_TRANSPORT_CORE_IMPORT_SOURCE, _NATIVE_TRANSPORT_CORE_IMPORT_DESTINATION),
+    (_COMMAND_CORE_IMPORT_SOURCE, _COMMAND_CORE_IMPORT_DESTINATION),
+)
+
+
 def test_all_fixed_core_relocations_preserve_both_historical_ceilings():
     pairs = ((_CORE_IMPORT_SOURCE, _CORE_IMPORT_DESTINATION),
-             *_SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS)
+             *_SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS,
+             *_TRANSPORT_CORE_IMPORT_TRANSFERS)
     old = [source for source, _ in pairs]
     new = [destination for _, destination in pairs]
     for previous in (old, new, [new[0], *old[1:]], [old[0], *new[1:]]):
@@ -457,3 +483,50 @@ def test_crystal_math_delegate_does_not_exempt_other_rules_adapters_or_execution
 def test_crystal_delegate_does_not_change_the_existing_local_native_commit_boundary():
     source = "def commit():\n    from . import _fact_native\n"
     assert audit.layer_findings("hotpot/cheminfo/structure/_commit.py", source) == []
+
+
+@pytest.mark.parametrize("old,new", _TRANSPORT_CORE_IMPORT_TRANSFERS)
+def test_transport_and_command_core_relocations_consume_only_their_own_single_slots(old, new):
+    assert audit.ratchet_findings([new], [new], [old])["allowlist_growth"]
+    assert not any(audit.stage7a_ratchet_findings([new], [new], [old], [old]).values())
+    assert not any(audit.stage7a_ratchet_findings([new], [new], [new], [old]).values())
+    assert audit.stage7a_ratchet_findings([new], [new], [], [old])["allowlist_growth"]
+    assert audit.stage7a_ratchet_findings([new], [new], [old], [])["exceeds_frozen_inventory"]
+    duplicate = audit.stage7a_ratchet_findings([new, new], [new, new], [old], [old])
+    assert len(duplicate["allowlist_growth"]) == len(duplicate["exceeds_frozen_inventory"]) == 1
+    both = audit.stage7a_ratchet_findings([old, new], [old, new], [old], [old])
+    assert both["allowlist_growth"] and both["exceeds_frozen_inventory"]
+    other_sources = (
+        _CORE_IMPORT_SOURCE,
+        *(source for source, _ in _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS),
+        *(source for source, _ in _TRANSPORT_CORE_IMPORT_TRANSFERS if source != old),
+        {**old, "path": "hotpot/cheminfo/forcefields/native_packing.py"},
+        {**old, "scope": "nested"},
+        {**old, "target": "hotpot.cheminfo.core.Bond", "local": "Bond"},
+        {**old, "local": "OtherMolecule"},
+    )
+    for other in other_sources:
+        report = audit.stage7a_ratchet_findings([new], [new], [other], [other])
+        assert report["allowlist_growth"] and report["exceeds_frozen_inventory"]
+    for field, value in (
+        ("path", "hotpot/cheminfo/adapters/native/other.py"),
+        ("scope", "nested"), ("target", "hotpot.cheminfo.core.Bond"),
+        ("local", "OtherMolecule"),
+    ):
+        changed = {**new, field: value}
+        report = audit.stage7a_ratchet_findings([changed], [changed], [old], [old])
+        assert report["allowlist_growth"] and report["exceeds_frozen_inventory"]
+
+
+@pytest.mark.parametrize("old,new", _TRANSPORT_CORE_IMPORT_TRANSFERS)
+def test_transport_and_command_annotations_are_captured_at_their_real_scopes(tmp_path, old, new):
+    path = new["path"]
+    source = "from typing import TYPE_CHECKING\nif TYPE_CHECKING:\n    from hotpot.cheminfo.core import Molecule\n"
+    target = tmp_path / path
+    target.parent.mkdir(parents=True)
+    target.write_text(source)
+    rows = audit.inventory.static_capture([path], root=tmp_path)["architecture_debt"]
+    assert len(rows) == 1
+    assert audit.debt_key(rows[0]) == audit.debt_key(new)
+    assert rows[0]["stage"] == "Stage9"
+    assert audit.layer_findings(path, source) == []

@@ -5,7 +5,7 @@ complete within their recorded scopes. Stage8A A1–A11 scientific-state separat
 non-mutating extraction, H presence, approved detailed reports/confidence retirement,
 preparation diagnostics and existing Lewis complete-H applicability are root accepted
 within CP311 source/installed scope. Stage8B B1 consolidation, B2 pure acceptance/capture separation and B3a native
-ownership plus B3b command ownership are root accepted within CP311; remaining Python/backend B3/B4 and the owning gate remain open. Stage8C–E have not entered. Optional scientific
+ownership, B3b command ownership and B3c Python native transport/capture are root accepted within CP311; remaining Python operation/backend B3/B4 and the owning gate remain open. Stage8C–E have not entered. Optional scientific
 activation, remaining stages, full scientific/engineering, version-adaptation and
 global acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
@@ -2167,6 +2167,21 @@ identity/order/charge/connectivity, finite coordinates and MMFF94s energies, wit
 explicit low-budget nonconvergence and quality=off scope. No new native build or
 whole-stage/global claim follows; remaining Python/backend B3, B4 and later gates
 stay open.
+
+
+The [B3c CP311 checkpoint](stages/stage08/forcefields/validation/b3c/checkpoint.json)
+accepts native Python calls/results, carrier capture, shared trajectory values and
+settings at their sole adapter/structure/rule owners, retiring four old modules
+without shims or new types. Source46focused pass; the same931orderednodes yield
+source929passed/2skipped and installed926passed/5skipped. A separate three-test
+corpus supplement passes at each boundary, preserving the original full-run
+counts. Actual serial/parallel MMFF94s and generic UFF pipeline CC/CO observations
+retain composition, connectivity, charge, original handles, currentness, format5
+trajectory and persisted lineage; low-budget budget_exhausted remains explicitly
+nonconverged. Fresh wheel475Python bodies/sixreused B3a natives has41unchanged
+non-Python omissions (P20-D008). Original checker failures remain. Acceptance is
+this transport/capture boundary only; coupled Python operation/backend separation,
+B4 controls, full scientific/standalone/FF benchmarks and later/global gates remain.
 
 #### Stage 8C — Search
 

@@ -51,7 +51,7 @@ from .coordination import (
     _require_explicit_complex,
     prepare_coordination_geometry,
 )
-from .native import (
+from hotpot.cheminfo.adapters.native.forcefields.native import (
     ComplexOptimizationOptions,
     CoordinationStageOptions,
     FrameDetail,
@@ -71,19 +71,20 @@ from .native_adapters import (
     native_perturbation_streams,
     native_warning_messages,
 )
-from .native_packing import ComplexSessionInput, pack_complex_session_input
-from .native_reports import (
+from hotpot.cheminfo.adapters.native.forcefields.contracts import ComplexSessionInput
+from hotpot.cheminfo.adapters.structure.forcefields import pack_complex_session_input
+from hotpot.cheminfo.adapters.native.forcefields.reports import (
     ComplexOptimizationResult,
     CoordinationStageResult,
     _coordination_stage_result,
 )
 from ..structure.forcefields import TopologyReference
 from ..adapters.structure.forcefields import capture_topology
-from .trajectory import (
+from hotpot.cheminfo.forcefields.trajectory import (
     ForceFieldTrajectory,
     ForceFieldTrajectoryArchive,
-    TrajectoryStart,
 )
+from hotpot.cheminfo.structure.forcefields import TrajectoryStart
 from .working_copy import (
     _capture_working_source, _commit_working_copy, _hydrogenated_working_copy, _make_worker_mol,
 )

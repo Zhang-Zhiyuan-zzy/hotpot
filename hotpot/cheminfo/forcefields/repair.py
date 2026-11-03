@@ -13,11 +13,11 @@ from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from .backend import _single_ob_optimization
 from .contracts import RingUntanglingReport
 from .coordinates import _copy_coordinates, _perturbed_coordinates
-from .settings import _BOND_RING_MAX_SIZE
+from hotpot.cheminfo.rules.physics.forcefields.settings import _BOND_RING_MAX_SIZE
 from ..adapters.structure.forcefields import _bond_key
 from ..structure.forcefields import BondTopology
-from .trajectory import (
-    ForceFieldTrajectory,
+from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.structure.forcefields import (
     RingFrameEvidence,
     TrajectoryEvent,
     TrajectoryStage,

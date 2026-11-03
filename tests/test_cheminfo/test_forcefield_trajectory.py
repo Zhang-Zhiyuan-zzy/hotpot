@@ -10,15 +10,17 @@ import pytest
 from hotpot import read_mol
 from hotpot.cheminfo.core import BondKind
 from hotpot.cheminfo.forcefields import ff as forcefield_utils
-from hotpot.cheminfo.forcefields.trajectory import (
+from hotpot.cheminfo.structure.forcefields import (
     CoordinationFrameEvidence,
-    ForceFieldTrajectory,
-    ForceFieldTrajectoryArchive,
     OptimizationFrameEvidence,
     RingFrameEvidence,
     TrajectoryEvent,
     TrajectoryStage,
     TrajectoryStart,
+)
+from hotpot.cheminfo.forcefields.trajectory import (
+    ForceFieldTrajectory,
+    ForceFieldTrajectoryArchive,
     _TrajectoryWriter,
 )
 

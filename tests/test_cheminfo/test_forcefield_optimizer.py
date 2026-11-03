@@ -13,8 +13,8 @@ from hotpot.cheminfo.forcefields import coordinates as coordinate_utils
 from hotpot.cheminfo.forcefields import optimizer as optimizer_impl
 from hotpot.cheminfo.forcefields import ff
 from hotpot.cheminfo.forcefields import workflows
-from hotpot.cheminfo.forcefields.trajectory import (
-    ForceFieldTrajectory,
+from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.structure.forcefields import (
     OptimizationFrameEvidence,
     TrajectoryEvent,
     TrajectoryStage,

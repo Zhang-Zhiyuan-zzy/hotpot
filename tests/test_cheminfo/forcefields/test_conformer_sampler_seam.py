@@ -593,7 +593,12 @@ def test_ligand_coordinates_follow_members_with_duplicate_public_ids(monkeypatch
 
 def test_finalize_threads_actual_input_source_method_and_known_seed_after_archive(monkeypatch, tmp_path):
     from hotpot.cheminfo.forcefields.trajectory import (
-        ForceFieldTrajectory, ForceFieldTrajectoryArchive, TrajectoryStage, TrajectoryEvent,
+        ForceFieldTrajectory,
+        ForceFieldTrajectoryArchive,
+    )
+    from hotpot.cheminfo.structure.forcefields import (
+        TrajectoryStage,
+        TrajectoryEvent,
     )
     from hotpot.cheminfo.forcefields.working_copy import _capture_working_source
     from hotpot.cheminfo.structure._builder import _thaw_value

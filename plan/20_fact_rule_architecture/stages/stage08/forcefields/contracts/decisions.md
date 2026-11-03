@@ -406,3 +406,77 @@ Source/installed membership, actual outputs, failures and limitations remain
 attributable. This is no complete Stage8B/global, controlled-performance,
 clean-native/ABI/SDK/sdist or all-version acceptance. Rollback is the coherent
 command/test/package/record commit.
+
+
+## B3c — Accepted Python native transport and capture cutover
+
+At `0a0290c`, B3a native ownership and B3b command delivery are accepted in their
+recorded CP311 scopes. Existing B3 Python preparation and the targeted closure
+lookup were rebound to current bytes. Section9.2 already assigns carrier capture
+to the structure adapter and external/native translation to adapters. This slice
+closes that dependency boundary before moving the coupled Python controllers;
+it does not move a mixed controller wholesale into a lower adapter.
+
+| Existing responsibility | Sole target owner |
+| --- | --- |
+| `forcefields/native.py`: current request/snapshot classes and raw native calls | `adapters/native/forcefields/native.py` |
+| `forcefields/native_reports.py`: existing transport results and raw converters | `adapters/native/forcefields/reports.py` |
+| Existing `ComplexSessionInput` definition | leaf `adapters/native/forcefields/contracts.py` |
+| Carrier `_coordination_bonds` and `pack_complex_session_input` | existing `adapters/structure/forcefields.py` |
+| Array/mask-only `_bond_topologies`, `_BOND_KIND_NAMES` and `unpack_native_topology_revisions` | native `reports.py` beside the raw translation |
+| Existing TrajectoryStart/Stage/Event, three frame-evidence records and FrameEvidence union | existing `structure/forcefields.py` |
+| Two existing ring-policy constants | `rules/physics/forcefields/settings.py` |
+
+Create only the real native-forcefields initializer. Retire the four old native,
+native_reports, native_packing and settings modules, with no shims or old/new
+switch. The leaf transport contracts import no operation, legacy forcefield
+package or adapter implementation. Structure values import no native contract,
+adapter or operation; native translation imports their unchanged enum/evidence
+values. Keep AtomIdentity/from_atom, BondTopologyRevision, ForceFieldFrame,
+_TRAJECTORY_STAGE_ORDER, mutable trajectory/archive/controller behavior and D06
+consolidation at their current owners for the later coherent operation cutover.
+No new class/Protocol/DTO/schema, scientific algorithm or confidence is added.
+
+Preserve fields/defaults/signatures, native option mapping, units, row/atom IDs,
+sorted directed metal-donor rows, ligand-then-coordination masks, topology order,
+source versus session revisions, native class-name/enum-name conversions,
+selected/terminal frame indices, format5 tags/pooling, seed/draw order, copied
+readonly result arrays versus writable packed inputs, and forwarded placement
+reports. Existing wrapper packing remains the sole field schema/bond-code map;
+consumers import its `_BOND_KIND_CODES` directly instead of recreating an
+incidental alias. Capture lock scope and unavailable partial-charge task encoding
+remain unchanged. No source carrier publication is added to an adapter.
+
+Migrate all actual consumers, including private packing references, lazy trajectory
+ingestion, TYPE_CHECKING imports, benchmark native lookup and source-path fences.
+The ordinary FF facade keeps current public identity by importing actual owners.
+Do not expand the structure-adapter `__all__` with internal packing helpers or
+add accidental FF exports. Current objects pickle through their actual new owners;
+old retired-native-module pickles may now fail ModuleNotFoundError instead of the
+previous AttributeError. No spoofed __module__, compatibility alias or migration
+loader is authorized. Existing eager parent-package imports remain; no cold
+package-import-isolation claim follows from closing direct dependency edges.
+
+The retained TYPE_CHECKING-only core.Molecule import carries exactly its former
+native.py debt slot to the actual adapter owner until Stage9. Also reconcile the
+already accepted B3b cli.py-to-commands/ff.py annotation with its own former slot.
+Remove the two obsolete native_packing core-import entries. These fixed transfers
+preserve both existing ceilings and multiplicity and grant no new import slot or
+unrelated debt credit. Each retained annotation remains due for Stage9 retirement.
+
+Root owns this global-boundary design and all maintained decisions/releases.
+Local Sol/medium owns canonical production extraction first, with exclusive files;
+connected consumer/test migration follows after the canonical writer stops.
+Source syntax/static ownership checks may run during authoring. Candidate runtime
+stays HOLD until root reviews the completed connected cutover and freezes it.
+Require meaningful current owner/pickle/array/schema and native workflow tests,
+complete affected CP311 source and installed selections, actual representative
+FF/connected pipeline behavior and attributable package/native origins. Reuse
+unchanged accepted B3a C++/binaries after rebinding; no unchanged C++ recompilation
+or unrelated workflow rerun is a prerequisite. Numerical equality and historic
+pass counts are not chemical or coverage oracles. Preserve original failures.
+
+Acceptance is this Python transport/capture boundary only. Coupled Python
+operation/backend separation, B4 finding/control/sample containment, full Stage8B
+scientific/standalone/benchmark gates and later/global delivery/adaptation remain
+open. Rollback is the coherent source/test/package/record commit.

@@ -14,7 +14,6 @@ import shutil
 import tempfile
 import warnings
 from dataclasses import asdict, dataclass
-from enum import Enum
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -30,13 +29,22 @@ from typing import (
 
 import numpy as np
 
-from ..structure.forcefields import BondTopology
+from ..structure.forcefields import (
+    BondTopology,
+    TrajectoryStart,
+    TrajectoryStage,
+    TrajectoryEvent,
+    RingFrameEvidence,
+    CoordinationFrameEvidence,
+    OptimizationFrameEvidence,
+    FrameEvidence,
+)
 
 
 if TYPE_CHECKING:
     from ..core import Atom, Bond, Molecule
-    from .native_packing import ComplexSessionInput
-    from .native_reports import NativeTrajectoryBatch
+    from ..adapters.native.forcefields.contracts import ComplexSessionInput
+    from ..adapters.native.forcefields.reports import NativeTrajectoryBatch
 
 
 __all__ = (
@@ -54,50 +62,6 @@ __all__ = (
     "ForceFieldTrajectory",
     "ForceFieldTrajectoryArchive",
 )
-
-
-class TrajectoryStart(str, Enum):
-    """Earliest force-field stage retained in a trajectory."""
-
-    LIGAND_BUILD = "ligand_build"
-    COORDINATION_RESTORATION = "coordination_restoration"
-    COMPLEX_UNTANGLING = "complex_untangling"
-    FINAL_OPTIMIZATION = "final_optimization"
-
-
-class TrajectoryStage(str, Enum):
-    """Force-field workflow stage that produced a frame."""
-
-    LIGAND_BUILD = "ligand_build"
-    COORDINATION_RESTORATION = "coordination_restoration"
-    COMPLEX_UNTANGLING = "complex_untangling"
-    FINAL_OPTIMIZATION = "final_optimization"
-
-
-class TrajectoryEvent(str, Enum):
-    """Observable event represented by one trajectory frame."""
-
-    INITIAL = "initial"
-    BUILD_COMPLETE = "build_complete"
-    WARMUP_COMPLETE = "warmup_complete"
-    COORDINATION_READY = "coordination_ready"
-    BOND_TRIAL = "bond_trial"
-    BOND_ACCEPTED = "bond_accepted"
-    BOND_REJECTED = "bond_rejected"
-    BOND_ROLLBACK = "bond_rollback"
-    BOND_FORCED = "bond_forced"
-    METAL_RELOCATION_TRIAL = "metal_relocation_trial"
-    METAL_RELOCATED = "metal_relocated"
-    METAL_RELOCATION_FAILED = "metal_relocation_failed"
-    TOPOLOGY_CHECKPOINT = "topology_checkpoint"
-    RING_OPENED = "ring_opened"
-    PERTURBED = "perturbed"
-    OPTIMIZED = "optimized"
-    RING_CLOSED = "ring_closed"
-    SETTLED = "settled"
-    ROLLED_BACK = "rolled_back"
-    EPOCH_COMPLETE = "epoch_complete"
-    TERMINAL = "terminal"
 
 
 _TRAJECTORY_STAGE_ORDER = {
@@ -141,64 +105,6 @@ class BondTopologyRevision:
 
     index: int
     bonds: Tuple[BondTopology, ...]
-
-
-@dataclass(frozen=True)
-class RingFrameEvidence:
-    """Ring--bond observations already computed by the workflow."""
-
-    confirmed_piercing_count: int
-    uncertain_relation_count: Optional[int] = 0
-    ring_scope: Optional[Literal["full_graph", "ligand_skeleton"]] = None
-    max_ring_size: Optional[int] = None
-    selected_ring_count: Optional[int] = None
-    excluded_ring_count: Optional[int] = None
-    candidate_pair_count: Optional[int] = None
-    aabb_separated_pair_count: Optional[int] = None
-    exact_pair_count: Optional[int] = None
-    does_not_pierce_pair_count: Optional[int] = None
-    scan_complete: Optional[bool] = None
-
-
-@dataclass(frozen=True)
-class CoordinationFrameEvidence:
-    """Outcome of one metal--ligand bond restoration observation."""
-
-    bond_atom_indices: Optional[Tuple[int, int]]
-    accepted: Optional[bool]
-    pending_bond_count: int = 0
-    forced: bool = False
-    piercing_relation_count: int = 0
-    undetermined_relation_count: int = 0
-    excluded_ring_count: int = 0
-    metal_atom_index: Optional[int] = None
-    relocation_status: Optional[Literal["relocated", "infeasible"]] = None
-    relocation_candidates_evaluated: int = 0
-    safe_donor_atom_indices: Tuple[int, ...] = ()
-    minimum_normalized_clearance: Optional[float] = None
-    coordination_distance_deviation: Optional[float] = None
-
-
-@dataclass(frozen=True)
-class OptimizationFrameEvidence:
-    """Numerical observations associated with an optimization frame."""
-
-    converged: bool
-    exploded: bool
-    finite_coordinates: bool
-    finite_energy: bool
-    finite_gradients: bool
-    rms_gradient_kj_mol_angstrom: Optional[float] = None
-    max_gradient_kj_mol_angstrom: Optional[float] = None
-    energy_change_kj_mol: Optional[float] = None
-    max_displacement_angstrom: Optional[float] = None
-
-
-FrameEvidence = Union[
-    RingFrameEvidence,
-    CoordinationFrameEvidence,
-    OptimizationFrameEvidence,
-]
 
 
 @dataclass(frozen=True)
@@ -402,7 +308,7 @@ class ForceFieldTrajectory:
         session_input: "ComplexSessionInput",
     ) -> Tuple[int, ...]:
         """Append one native batch and return its native-to-global frame map."""
-        from .native_packing import unpack_native_topology_revisions
+        from ..adapters.native.forcefields.reports import unpack_native_topology_revisions
 
         topologies = unpack_native_topology_revisions(
             session_input,

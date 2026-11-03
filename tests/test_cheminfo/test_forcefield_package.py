@@ -118,8 +118,19 @@ def test_facade_exports_trajectory_contracts_by_identity():
 
     for name in (*TRAJECTORY_CONTRACTS, *TRAJECTORY_TYPE_ALIASES):
         assert name in facade.__all__
+    structure = importlib.import_module("hotpot.cheminfo.structure.forcefields")
+    structure_contracts = {
+        "TrajectoryStart", "TrajectoryStage", "TrajectoryEvent", "BondTopology",
+        "RingFrameEvidence", "CoordinationFrameEvidence", "OptimizationFrameEvidence",
+    }
     for name in TRAJECTORY_CONTRACTS:
-        assert getattr(facade, name) is getattr(trajectory, name)
+        owner = structure if name in structure_contracts else trajectory
+        contract = getattr(owner, name)
+        assert getattr(facade, name) is contract
+        assert contract.__module__ == owner.__name__
+    assert facade.FrameEvidence is structure.FrameEvidence
+    contracts = importlib.import_module(f"{PACKAGE_NAME}.contracts")
+    assert facade.TrajectoryPath is contracts.TrajectoryPath
 
 
 def test_facade_exports_forcefield_contracts_by_identity():
@@ -153,7 +164,7 @@ def test_specialized_apis_are_reexported_without_wrapping():
 
 
 def test_removed_compatibility_modules_are_not_importable():
-    for module_name in ("ff39", "utils", "utils39", "topology", "cli"):
+    for module_name in ("ff39", "utils", "utils39", "topology", "cli", "native", "native_reports", "native_packing", "settings"):
         try:
             importlib.import_module(f"{PACKAGE_NAME}.{module_name}")
         except ModuleNotFoundError:
@@ -170,7 +181,7 @@ package = importlib.import_module({PACKAGE_NAME!r})
 facade = importlib.import_module({FACADE_NAME!r})
 
 assert {FACADE_NAME!r} in sys.modules
-for obsolete in ('ff39', 'utils', 'utils39', 'topology', 'cli'):
+for obsolete in ('ff39', 'utils', 'utils39', 'topology', 'cli', 'native', 'native_reports', 'native_packing', 'settings'):
     assert {PACKAGE_NAME!r} + '.' + obsolete not in sys.modules
 assert package.__all__ == facade.__all__
 for name in package.__all__:

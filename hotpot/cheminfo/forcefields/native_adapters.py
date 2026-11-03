@@ -1,7 +1,8 @@
 """Adapters between native complex stages and public force-field contracts.
 
 This module owns Python workflow semantics at the native boundary.  The
-low-level :mod:`.native` module remains limited to typed native calls.
+low-level :mod:`hotpot.cheminfo.adapters.native.forcefields.native` module
+remains limited to typed native calls.
 """
 
 from __future__ import annotations
@@ -30,9 +31,14 @@ from .contracts import (
     TerminationReason,
 )
 from .coordinates import _perturbed_coordinates
-from .native import ComplexOptimizationOptions, CoordinationStageOptions
-from .native_packing import ComplexSessionInput, _BOND_KIND_CODES, _coordination_bonds
-from .native_reports import (
+from hotpot.cheminfo.adapters.native.forcefields.native import (
+    ComplexOptimizationOptions,
+    CoordinationStageOptions,
+)
+from hotpot.cheminfo.adapters.native.forcefields.contracts import ComplexSessionInput
+from hotpot.cheminfo.obWrappers.packing import _BOND_KIND_CODES
+from hotpot.cheminfo.adapters.structure.forcefields import _coordination_bonds
+from hotpot.cheminfo.adapters.native.forcefields.reports import (
     ComplexOptimizationResult,
     CoordinationStageResult,
     NativeTrajectoryBatch,

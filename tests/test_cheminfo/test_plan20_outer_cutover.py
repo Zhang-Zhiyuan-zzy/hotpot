@@ -243,7 +243,7 @@ def test_forcefield_interrupted_publication_restores_owner_metadata_frames_and_s
 
 def test_native_selected_geometry_failure_preserves_complete_topology():
     from hotpot.cheminfo.forcefields.native_adapters import apply_native_selected_structure
-    from hotpot.cheminfo.forcefields.native_packing import pack_complex_session_input
+    from hotpot.cheminfo.adapters.structure.forcefields import pack_complex_session_input
 
     mol = read_mol("[Eu]N", "smi")
     session = pack_complex_session_input(mol)
@@ -259,8 +259,10 @@ def test_native_selected_geometry_failure_preserves_complete_topology():
 
 
 def _generated_working_frame(mol, energy):
-    from hotpot.cheminfo.forcefields.trajectory import (
-        ForceFieldTrajectory, TrajectoryStage, TrajectoryEvent,
+    from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+    from hotpot.cheminfo.structure.forcefields import (
+        TrajectoryStage,
+        TrajectoryEvent,
     )
     trajectory = ForceFieldTrajectory.from_molecule(mol)
     frame = trajectory.record_molecule(mol, stage=TrajectoryStage.FINAL_OPTIMIZATION,

@@ -9,36 +9,37 @@ from typing import TYPE_CHECKING, Optional, Union
 import numpy as np
 from numpy.typing import NDArray
 
-from ..rules.physics.forcefields.contracts import OptimizationStoppingCriteria
-from ..rules.mathematics.geometry.settings import DEFAULT_GEOMETRY_SETTINGS, GeometrySettings
-from ..obWrappers.native import _native_module
-from ..obWrappers.contracts import ConvergenceLevel, DEFAULT_CONVERGENCE_LEVEL
-from ..obWrappers.settings import (
+from ....rules.physics.forcefields.contracts import OptimizationStoppingCriteria
+from ....rules.mathematics.geometry.settings import DEFAULT_GEOMETRY_SETTINGS, GeometrySettings
+from ....obWrappers.native import _native_module
+from ....obWrappers.contracts import ConvergenceLevel, DEFAULT_CONVERGENCE_LEVEL
+from ....obWrappers.settings import (
     TORSION_REPAIR_ANGLE_RADIANS,
     TORSION_SINGULARITY_THRESHOLD,
 )
-from .native_packing import ComplexSessionInput, pack_complex_session_input
-from .native_reports import (
+from ...structure.forcefields import pack_complex_session_input
+from .contracts import ComplexSessionInput
+from .reports import (
     ComplexOptimizationResult as NativeComplexOptimizationResult,
 )
-from .native_reports import ComplexWorkflowResult as NativeComplexWorkflowResult
-from .native_reports import (
+from .reports import ComplexWorkflowResult as NativeComplexWorkflowResult
+from .reports import (
     CoordinationStageResult as NativeCoordinationStageResult,
 )
-from .native_reports import (
+from .reports import (
     _complex_optimization_result,
     _complex_workflow_result,
     _coordination_stage_result,
 )
-from .settings import (
+from ....rules.physics.forcefields.settings import (
     _BOND_RING_MAX_SIZE,
     _MAXIMUM_RELEVANT_CYCLE_COUNT,
 )
-from .trajectory import TrajectoryStart
+from ....structure.forcefields import TrajectoryStart
 
 if TYPE_CHECKING:
-    from ..core import Molecule
-    from ..obWrappers import _ob_native
+    from ....core import Molecule
+    from ....obWrappers import _ob_native
 
 
 __all__ = (

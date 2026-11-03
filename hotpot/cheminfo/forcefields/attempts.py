@@ -18,7 +18,8 @@ from .contracts import (
 )
 from .optimizer import _optimize_working_mol
 from ..structure.forcefields import TopologyReference
-from .trajectory import ForceFieldTrajectory, TrajectoryStage
+from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.structure.forcefields import TrajectoryStage
 
 
 if TYPE_CHECKING:

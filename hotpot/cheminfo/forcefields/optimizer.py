@@ -18,8 +18,8 @@ from .contracts import (
     TerminationReason,
 )
 from .coordinates import _perturbed_coordinates
-from .trajectory import (
-    ForceFieldTrajectory,
+from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.structure.forcefields import (
     OptimizationFrameEvidence,
     TrajectoryEvent,
     TrajectoryStage,

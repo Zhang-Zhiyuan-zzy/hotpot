@@ -7,7 +7,7 @@ import pytest
 
 from hotpot import Atom, Molecule, read_mol
 from hotpot.cheminfo.AImodels import data_extract
-from hotpot.cheminfo.forcefields.native_packing import pack_complex_session_input
+from hotpot.cheminfo.adapters.structure.forcefields import pack_complex_session_input
 from hotpot.cheminfo.operations.chemistry import _atom_projection
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
 from hotpot.cheminfo.structure._results import _import_partial_charges

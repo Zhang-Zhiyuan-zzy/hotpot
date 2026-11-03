@@ -7,16 +7,16 @@ from dataclasses import replace
 import numpy as np
 import pytest
 
-from hotpot.cheminfo.forcefields.native import (
+from hotpot.cheminfo.adapters.native.forcefields.native import (
     CoordinationStageOptions,
     MetalPlacementOptions,
     create_coordination_session,
     restore_coordination,
     snapshot_structure,
 )
-from hotpot.cheminfo.forcefields.native_packing import ComplexSessionInput
-from hotpot.cheminfo.forcefields.native_reports import NativeStageStatus
-from hotpot.cheminfo.forcefields.trajectory import (
+from hotpot.cheminfo.adapters.native.forcefields.contracts import ComplexSessionInput
+from hotpot.cheminfo.adapters.native.forcefields.reports import NativeStageStatus
+from hotpot.cheminfo.structure.forcefields import (
     CoordinationFrameEvidence,
     TrajectoryEvent,
     TrajectoryStart,

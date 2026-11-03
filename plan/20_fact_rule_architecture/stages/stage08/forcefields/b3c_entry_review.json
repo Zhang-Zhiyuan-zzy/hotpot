@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8B/B3c",
+  "date": "2026-11-03",
+  "status": "ROOT_DESIGN_ACCEPTED_IMPLEMENTATION_OPEN",
+  "source_commit": "0a0290cc95f78607372f16c41819b200eb776585",
+  "predecessor": "validation/b3b/checkpoint.json",
+  "design": "contracts/decisions.md#b3c--accepted-python-native-transport-and-capture-cutover",
+  "scope": "Existing native Python input/results/calls, carrier capture and shared enum/evidence values move to sole lower owners; controller/backend migration follows. No new type/schema/algorithm/guard.",
+  "alignment": [
+    "effective goal and current main plan Sections6/9.2/Stage8B/11.3",
+    "current B1/B2/B3a/B3b decisions/checkpoints and verification map",
+    "governance/stage/validation skills; both governance references read this turn; focused plan-reading authorization applies",
+    "actual tracked-clean 0a0290c and preentry source identities rebound; protected owner review excluded"
+  ],
+  "entry_inputs": "/tmp/hotpot_plan20/long/stage8b-b3c-20261103/entry-inputs.json",
+  "assignments": {
+    "canonical_production": "local Sol/medium; exact core transport/capture/value files first",
+    "connected_consumers_tests": "local Sol/medium; remaining consumers/tests/benchmark only after canonical writer stops",
+    "root": "global design, integration, maintained records, runtime release, scientific judgment, Git"
+  },
+  "runtime_released": false,
+  "native_build_required": false,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "validation": "Root reviews complete connected source, freezes inputs, then affected CP311 source and installed contract/native workflow/pickle/array/package tests and representative actual FF/connected pipeline observations with current origins. Reuse unchanged accepted B3a binaries and valid unaffected evidence."
+}

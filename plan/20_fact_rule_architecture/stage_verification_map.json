@@ -4141,7 +4141,7 @@
       "additional_requirements": [
         "native/pure physics/adapter/workflow separation; rollback/trajectory; O0 observations; same-budget FF performance"
       ],
-      "execution_status": "ROOT_B1_B2_B3A_B3B_CP311_ACCEPTED_REMAINING_PYTHON_B3_AND_B4_OPEN",
+      "execution_status": "ROOT_B1_B2_B3A_B3B_B3C_CP311_ACCEPTED_REMAINING_OPERATION_BACKEND_B3_AND_B4_OPEN",
       "entry_review": "stages/stage08/forcefields/entry_review.json",
       "design": "stages/stage08/forcefields/contracts/decisions.md",
       "stage_gate_closed": false,
@@ -4214,6 +4214,36 @@
         "actual_commands": "doc/resource plus serial/parallel ordered CC/CO on each boundary",
         "native_policy": "Reuse accepted unchanged B3a natives after current rebinding; no C++ rebuild.",
         "scope": "CP311 command/resource/spawn delivery only; remaining Python/backend B3, B4, Stage8B/global gates open."
+      },
+      "b3c_entry_review": "stages/stage08/forcefields/b3c_entry_review.json",
+      "b3c_design": "stages/stage08/forcefields/contracts/decisions.md#b3c--accepted-python-native-transport-and-capture-cutover",
+      "b3c_checkpoint": "stages/stage08/forcefields/validation/b3c/checkpoint.json",
+      "b3c_validation": {
+        "test_file_count": 54,
+        "focused_source": {
+          "passed": 46,
+          "skipped": 0
+        },
+        "source": {
+          "passed": 929,
+          "skipped": 2
+        },
+        "installed": {
+          "passed": 926,
+          "skipped": 5
+        },
+        "same_ordered_nodes": 931,
+        "dataset_supplement": {
+          "source_passed": 3,
+          "installed_passed": 3,
+          "skipped_each": 0,
+          "scope": "187-record corpus identity/shared Eu-Am inputs/case134 formal charge -4, no corpus FF benchmark; original full-run counts unchanged"
+        },
+        "actual_emitted_molecule_observations": 12,
+        "actual_commands": "Serial/parallel CC/CO MMFF94s and generic UFF pipeline with trajectory at each boundary",
+        "native_policy": "Reuse six accepted B3a binaries after unchanged source/build/input rebind; fresh wheel/install, no new C++ build.",
+        "packaging": "475 Python bodies; 41 unchanged non-Python omissions remain P20-D008.",
+        "scope": "CP311 native Python transport/capture only; remaining operation/backend B3, B4, whole Stage8B/global gates open."
       }
     },
     "Stage8C": {

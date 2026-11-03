@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from hotpot.cheminfo.forcefields.native import (
+from hotpot.cheminfo.adapters.native.forcefields.native import (
     MetalPlacementOptions,
     assess_metal_position,
     create_coordination_session,
@@ -17,7 +17,7 @@ from hotpot.cheminfo.forcefields.native import (
     set_coordination_active_mask,
     snapshot_structure,
 )
-from hotpot.cheminfo.forcefields.native_packing import ComplexSessionInput
+from hotpot.cheminfo.adapters.native.forcefields.contracts import ComplexSessionInput
 from hotpot.cheminfo.obWrappers import _ob_native
 
 

@@ -7,7 +7,7 @@ from dataclasses import replace
 import numpy as np
 import pytest
 
-from hotpot.cheminfo.forcefields.native import (
+from hotpot.cheminfo.adapters.native.forcefields.native import (
     ComplexOptimizationOptions,
     ConvergenceLevel,
     RingScreeningOptions,
@@ -16,13 +16,13 @@ from hotpot.cheminfo.forcefields.native import (
     optimize_complex,
     snapshot_structure,
 )
-from hotpot.cheminfo.forcefields.native_packing import ComplexSessionInput
-from hotpot.cheminfo.forcefields.native_reports import (
+from hotpot.cheminfo.adapters.native.forcefields.contracts import ComplexSessionInput
+from hotpot.cheminfo.adapters.native.forcefields.reports import (
     NativeRingGraphScope,
     NativeStageStatus,
     _native_ring_checkpoint_report,
 )
-from hotpot.cheminfo.forcefields.trajectory import (
+from hotpot.cheminfo.structure.forcefields import (
     TrajectoryEvent,
     TrajectoryStage,
 )

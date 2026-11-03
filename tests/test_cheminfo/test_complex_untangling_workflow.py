@@ -11,8 +11,8 @@ from hotpot.cheminfo.operations.topology_queries import _project_molecule
 from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import ff, repair
 from hotpot.cheminfo.forcefields import ff as forcefield_utils
-from hotpot.cheminfo.forcefields.trajectory import (
-    ForceFieldTrajectory,
+from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.structure.forcefields import (
     TrajectoryEvent,
     TrajectoryStage,
     TrajectoryStart,

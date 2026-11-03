@@ -29,9 +29,11 @@ from .contracts import (
 )
 from .coordination import _require_explicit_complex
 from ..adapters.structure.forcefields import capture_topology
-from .trajectory import (
+from hotpot.cheminfo.forcefields.trajectory import (
     ForceFieldTrajectory,
     ForceFieldTrajectoryArchive,
+)
+from hotpot.cheminfo.structure.forcefields import (
     TrajectoryEvent,
     TrajectoryStage,
     TrajectoryStart,

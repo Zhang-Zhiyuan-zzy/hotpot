@@ -1,0 +1,289 @@
+{
+  "archive_policy": "Sorted entries, no generated timestamp; manifest excludes itself and owning records. Single actual wheel retained separately; source-capsule includes parent and current changed bytes.",
+  "artifacts": {
+    "canonical_body_rebind": {
+      "bytes": 2256,
+      "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/canonical-body-rebind.json",
+      "sha256": "fce3d5a1750c5d245cc7b8e19a97d04249580b640384f5562bb5c7194608c7a8"
+    },
+    "changed_source_capsule": {
+      "bytes": 17846,
+      "path": ".plan20-artifacts/20261104/stage8b/b3c/source-capsule/changes.json",
+      "sha256": "d7b67c9090058839de918e340cd30e71be6a553e7d3a415b89a4ac51002c3b2b"
+    },
+    "commands": {
+      "bytes": 37515,
+      "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/commands.json",
+      "sha256": "41c46c8b4bc48520965d3039ee4e2e4d0b95a525d9caa122d7e4eb0d00c93833"
+    },
+    "execution": {
+      "bytes": 633249,
+      "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/execution.json",
+      "sha256": "5183059404342ece4926e25d6d5c3b807a866c7fc866075e775677f2a31f422e"
+    },
+    "installed_results": {
+      "bytes": 277205,
+      "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/installed-results.json",
+      "sha256": "03297fdfcc9b41d531065c2c9ef4a16b8a4c7e98b2d18f9c3de81ec56dde8599"
+    },
+    "native_rebind": {
+      "bytes": 75862,
+      "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/native-rebind.json",
+      "sha256": "87ca4ea7ef82fd63d838f2fad917e82dfcc22b2e10b45c8ccc81b213ffc619bb"
+    },
+    "ordered_membership": {
+      "bytes": 3490,
+      "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/ordered-membership.json",
+      "sha256": "333841bddd34f1eccdb7d9dfb805061e710a817d42d84b8f31926a5fbb3a4ce1"
+    },
+    "raw_manifest": {
+      "bytes": 272854,
+      "path": ".plan20-artifacts/20261104/stage8b/b3c/raw_manifest.json",
+      "sha256": "6c580c9a42ffa3103f6fea98d03eec05ad2dedc7e66a79c4a5d6e0fdbaf19780"
+    },
+    "root_business_review": {
+      "bytes": 27463,
+      "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/root-business-review.json",
+      "sha256": "5aa964435dc827cba401f4163ae8bfb1f147edf3e9cf89b5ac47273c980e66e9"
+    },
+    "root_release": {
+      "bytes": 1473,
+      "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/root-runtime-release-attempt01.json",
+      "sha256": "9aac955aba5902d0dec31190da62049c323ecbfc40667c4dbcd954a3a196e436"
+    },
+    "source_freeze": {
+      "bytes": 187994,
+      "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/source-freeze-b3c-attempt01.json",
+      "sha256": "d008c7267d253e7916bc3d89200952ec22612ed8271f80294623e4bcd0419755"
+    },
+    "source_results": {
+      "bytes": 291426,
+      "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/source-results.json",
+      "sha256": "893084a132e13474725de653ee4d85cfb296f9e29dd5c35e1cb5feb8170a8f62"
+    },
+    "wheel": {
+      "bytes": 6339890,
+      "path": ".plan20-artifacts/20261104/stage8b/b3c/wheel/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "sha256": "1e40a320ec83c28cc438f2dbf17c08939ef00a7d5a101dffbc55ff1022a8b3b0"
+    },
+    "wheel_contents": {
+      "bytes": 30637,
+      "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/wheel-contents.json",
+      "sha256": "cb40b87faa6b1b2e6f63853d132de61cbf5ee73ad6d1bbd4a354c03e7529d615"
+    }
+  },
+  "boundary_jobs": {
+    "installed": {
+      "imports": {
+        "origin_reconciliation": {
+          "bytes": 6464,
+          "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/installed-imports/origin-reconciliation.json",
+          "sha256": "cf502652affeb3466973d05d054ec0c58071f4865da422572f35614132f93bd1"
+        },
+        "participants": 1,
+        "same_pid_sets": true
+      },
+      "parallel": {
+        "origin_reconciliation": {
+          "bytes": 7154,
+          "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/installed-parallel/origin-reconciliation.json",
+          "sha256": "cd2972545504f8adde79be8ea9cc213c197dd4cd7f3dc815f20183a262c58ced"
+        },
+        "participants": 6,
+        "same_pid_sets": true
+      },
+      "pipeline": {
+        "origin_reconciliation": {
+          "bytes": 6971,
+          "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/installed-pipeline/origin-reconciliation.json",
+          "sha256": "8f2b6d0a42c6ac52e0794df43b671aaa914a4d4b2f5e380ff053d1e8e5874813"
+        },
+        "participants": 4,
+        "same_pid_sets": true
+      },
+      "serial": {
+        "origin_reconciliation": {
+          "bytes": 7110,
+          "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/installed-serial/origin-reconciliation.json",
+          "sha256": "228a46a259094002f5a6d2ee50f850b09fabff3a6b5bfa012e4c5f6c79b66b32"
+        },
+        "participants": 4,
+        "same_pid_sets": true
+      },
+      "tests": {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "passed": 926,
+          "skipped": 5,
+          "tests": 931
+        },
+        "junit": {
+          "bytes": 162671,
+          "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/installed-tests/junit.xml",
+          "sha256": "fe1b92bfcc01d1067b3ad15b5e757d10f05fa68f4f763d39986131aba64ae838"
+        },
+        "ordered_nodeids_count": 931,
+        "origin_reconciliation": {
+          "bytes": 14978,
+          "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/installed-tests/origin-reconciliation.json",
+          "sha256": "38e1bf5762239a3e9e0771b63dc066020575be76c7bbec80459adbd9f39454fc"
+        },
+        "participants": 98,
+        "same_pid_sets": true,
+        "skips": [
+          {
+            "class": "tests.test_cheminfo.obWrappers.test_bridge",
+            "detail": "/tmp/hotpot_plan20/long/stage8b-b3c-20261103/validation-preparation/attempt01/work/outside/tests/test_cheminfo/obWrappers/test_bridge.py:120: the governed extractant dataset is not installed locally",
+            "reason": "the governed extractant dataset is not installed locally",
+            "test": "test_all_extractant_phosphorus_centers_build_and_optimize_finitely"
+          },
+          {
+            "class": "tests.test_cheminfo.test_complexes_build_full",
+            "detail": "/tmp/hotpot_plan20/long/stage8b-b3c-20261103/validation-preparation/attempt01/work/outside/tests/test_cheminfo/test_complexes_build_full.py:17: requires --run-high-compute",
+            "reason": "requires --run-high-compute",
+            "test": "test_readme_europium_complex_full_standard_workflow"
+          },
+          {
+            "class": "tests.benchmarks.coordination_complexes.test_support",
+            "detail": "/tmp/hotpot_plan20/long/stage8b-b3c-20261103/validation-preparation/attempt01/work/outside/tests/benchmarks/coordination_complexes/test_support.py:65: the governed extractant dataset is not installed locally",
+            "reason": "the governed extractant dataset is not installed locally",
+            "test": "test_builtin_extractant_suite_has_187_records"
+          },
+          {
+            "class": "tests.benchmarks.coordination_complexes.test_support",
+            "detail": "/tmp/hotpot_plan20/long/stage8b-b3c-20261103/validation-preparation/attempt01/work/outside/tests/benchmarks/coordination_complexes/test_support.py:75: the governed extractant dataset is not installed locally",
+            "reason": "the governed extractant dataset is not installed locally",
+            "test": "test_builtin_am_suite_reuses_all_187_extractants"
+          },
+          {
+            "class": "tests.benchmarks.coordination_complexes.test_support",
+            "detail": "/tmp/hotpot_plan20/long/stage8b-b3c-20261103/validation-preparation/attempt01/work/outside/tests/benchmarks/coordination_complexes/test_support.py:86: the governed extractant dataset is not installed locally",
+            "reason": "the governed extractant dataset is not installed locally",
+            "test": "test_case_134_is_the_counterion_free_tetraanion"
+          }
+        ]
+      }
+    },
+    "source": {
+      "focused": {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "passed": 46,
+          "skipped": 0,
+          "tests": 46
+        },
+        "junit": {
+          "bytes": 7837,
+          "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/source-focused/junit.xml",
+          "sha256": "592f9d0bdce073699d0528dc8933476e01cc382dc2e739d25233f1d81f611db5"
+        },
+        "ordered_nodeids_count": 46,
+        "origin_reconciliation": {
+          "bytes": 7795,
+          "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/source-focused/origin-reconciliation.json",
+          "sha256": "f529d3c0d84ecf9151081d16460b3d49360695c6b4341ab9e2de72610f3b9867"
+        },
+        "participants": 10,
+        "same_pid_sets": true,
+        "skips": []
+      },
+      "imports": {
+        "origin_reconciliation": {
+          "bytes": 6464,
+          "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/source-imports/origin-reconciliation.json",
+          "sha256": "86ddcd681a932a0a8ff538922984722bac3be76f54b5bef2eceabc2bf155dd3e"
+        },
+        "participants": 1,
+        "same_pid_sets": true
+      },
+      "parallel": {
+        "origin_reconciliation": {
+          "bytes": 7154,
+          "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/source-parallel/origin-reconciliation.json",
+          "sha256": "a2d46535ad65dc77166d236cce0b83ba70df49ca3cafdde9c5cbfed5dff8675c"
+        },
+        "participants": 6,
+        "same_pid_sets": true
+      },
+      "pipeline": {
+        "origin_reconciliation": {
+          "bytes": 6971,
+          "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/source-pipeline/origin-reconciliation.json",
+          "sha256": "e98fa88b01275ea2f0dd5357e44b9ad266914c12916fc71c3e5b5d6c9d2867de"
+        },
+        "participants": 4,
+        "same_pid_sets": true
+      },
+      "serial": {
+        "origin_reconciliation": {
+          "bytes": 7110,
+          "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/source-serial/origin-reconciliation.json",
+          "sha256": "e8552b7b31a7ce5448701fb186cb44054f047b16a630a837862d6742eb643c10"
+        },
+        "participants": 4,
+        "same_pid_sets": true
+      },
+      "tests": {
+        "counts": {
+          "errors": 0,
+          "failures": 0,
+          "passed": 929,
+          "skipped": 2,
+          "tests": 931
+        },
+        "junit": {
+          "bytes": 161534,
+          "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/source-tests/junit.xml",
+          "sha256": "34ab601b139961ee743c544271c35069682a24b866d90871a8b1edc24aa2fb43"
+        },
+        "ordered_nodeids_count": 931,
+        "origin_reconciliation": {
+          "bytes": 14918,
+          "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/validation-preparation/attempt01/source-tests/origin-reconciliation.json",
+          "sha256": "40cf3b182354c405617365a1600493f9e327624bd3bc18ca1e556ca2ae729f80"
+        },
+        "participants": 98,
+        "same_pid_sets": true,
+        "skips": [
+          {
+            "class": "tests.test_cheminfo.obWrappers.test_bridge",
+            "detail": "/home/zhangzhiyuan/hotpot/tests/test_cheminfo/obWrappers/test_bridge.py:120: requires --run-scientific-boundary",
+            "reason": "requires --run-scientific-boundary",
+            "test": "test_all_extractant_phosphorus_centers_build_and_optimize_finitely"
+          },
+          {
+            "class": "tests.test_cheminfo.test_complexes_build_full",
+            "detail": "/home/zhangzhiyuan/hotpot/tests/test_cheminfo/test_complexes_build_full.py:17: requires --run-high-compute",
+            "reason": "requires --run-high-compute",
+            "test": "test_readme_europium_complex_full_standard_workflow"
+          }
+        ]
+      }
+    }
+  },
+  "dataset_supplement": {
+    "field": "dataset_supplement",
+    "root_business_review": {
+      "bytes": 27463,
+      "path": ".plan20-artifacts/20261104/stage8b/b3c/raw/root-business-review.json",
+      "sha256": "5aa964435dc827cba401f4163ae8bfb1f147edf3e9cf89b5ac47273c980e66e9"
+    }
+  },
+  "earlier_failures": "All existing architecture/helper/attempt raw files retained unchanged under raw/; no failed receipt rewritten.",
+  "historical_native_provenance": {
+    "accepted_b3a_build_freeze": ".plan20-artifacts/20261103/stage8b/b3a/raw/native-build/build-freeze-attempt01.json",
+    "accepted_b3a_build_receipt": ".plan20-artifacts/20261103/stage8b/b3a/raw/native-build/attempt01/execution.json",
+    "accepted_b3a_freeze": ".plan20-artifacts/20261103/stage8b/b3a/raw/release/source-freeze-b3a-attempt02.json",
+    "accepted_b3a_wheel_contents": ".plan20-artifacts/20261103/stage8b/b3a/raw/installed/attempt02/wheel-contents.json"
+  },
+  "limits": [
+    "CP311 only; system-site dependencies shared.",
+    "No automatic MCA or official external science suite, C++ compile, controlled performance, clean native/ABI/SDK/sdist or global acceptance claim.",
+    "Python origin coverage is participating site-hook processes; native/site-bypassing processes excluded.",
+    "Root owns scientific interpretation and all release/acceptance decisions."
+  ],
+  "stage": "Stage8B/B3c",
+  "status": "ROOT_B3C_CP311_ACCEPTED_REMAINING_B3_B4_OPEN"
+}

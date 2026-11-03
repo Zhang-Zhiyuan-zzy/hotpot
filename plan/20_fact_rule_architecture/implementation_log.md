@@ -5428,3 +5428,103 @@ controlled cost, clean-native/ABI/SDK/sdist/all-version, whole Stage8B or global
 acceptance is claimed. Remaining Python/backend B3, B4 and later obligations stay
 open. This coherent command/test/package/record change is delivered as one business
 commit and normal push; no documentation-only checkpoint is created.
+
+
+## 2026-11-03 — B3c native Python transport/capture entry
+
+Root aligns effective goal, focused main-plan Sections6/9.2/Stage8B/11.3, current
+accepted B1/B2/B3a/B3b, companions and verification map at pushed0a0290c. Both
+governance references and stage/validation skills read this turn remain current;
+the owner's focused-reading direction governs repeated large-plan reading.
+Tracked worktree is clean; protected owner review and Task168 are excluded.
+Existing preentry source identities rebind exactly. No business run is repeated.
+
+Root accepts the explicit B3c mapping in decisions.md: sole native calls/results
+under adapters/native/forcefields, leaf existing input contract, carrier capture
+in structure adapter, numeric topology decoding beside native translation,
+existing enum/evidence values in structure/forcefields and two constants in pure
+physics settings. Four old modules retire without shims; zero new types/schemas
+or algorithms. Mutable trajectory, AtomIdentity/D06, controllers and backend
+publication stay at their current owners pending their coherent later cutover.
+Eager parent imports prevent a cold-import-isolation claim. Current owner/pickle
+paths and retired-native ModuleNotFoundError are explicit migration effects.
+Canonical Sol/medium extraction precedes connected consumer/test migration;
+exclusive ownership and no nested delegation apply. Root owns design/release,
+science, records and Git. Candidate runtime remains HOLD pending connected root
+review/freeze. Existing accepted B3a natives will be rebound and reused. Full
+Stage8B/global and later Python/backend/B4 obligations remain open.
+Entry bindings: /tmp/hotpot_plan20/long/stage8b-b3c-20261103/entry-inputs.json.
+
+## 2026-11-04 — B3c connected root review and CP311 runtime release
+
+Canonical extraction and34consumer files are complete; root inspected the actual
+owner/import/pickle/array cutover. Verbatim-body proof covers86definitions, with
+31classes retained and zero new types;808consumer static checks pass. Preserve
+original preparation-helper failures as checker failures, without runtime claims.
+The full source architecture audit now passes965files/218remaining debt entries.
+One B3c native and the already accepted B3b command TYPE_CHECKING imports each
+carry their own original ceiling slot; two deleted packing imports retire. The
+initial audit mismatches and exact parent-byte proof remain archived. No extra
+slot, permissive relocation configuration or scientific route was introduced.
+
+Root releases the frozen candidate with six source-focused files followed by the
+same54affected full files in source and installed CP311, actual FF serial/parallel
+CC/CO and a real generic FF pipeline at both boundaries. Current owner/pickle,
+writable packing/readonly detached results, format5, masks and trajectory mapping
+remain required. Real observed values are reviewed by method/units/facts; numeric
+equality and low-budget convergence are not gates. Fresh build_py/wheel/install
+reuse six accepted B3a binaries after unchanged native/build-input rebind; no
+C++rebuild, unrelated MCA or official external workflow rerun is added.
+
+Released command: /tmp/hotpot-plan20-env/bin/python -B /tmp/hotpot_plan20/long/stage8b-b3c-20261103/validation-preparation/run_validation.py --root-runtime-released --source-freeze /tmp/hotpot_plan20/long/stage8b-b3c-20261103/source-freeze-b3c-attempt01.json --attempt attempt01 --tier all
+Freeze/release/evidence: /tmp/hotpot_plan20/long/stage8b-b3c-20261103/.
+Runtime outcomes and root content acceptance are pending; whole Stage8B/global
+and later Python/backend/B4/scientific/standalone/adaptation gates remain open.
+
+
+## 2026-11-04 — B3c CP311 transport/capture accepted
+
+The exact released all-tier command returns0:17commands, source46focused pass,
+and the same54files/931orderednodes at both full boundaries yield source929pass/
+2skip and installed926pass/5skip. Original JUnit counts and reasons remain intact.
+Three installed helper skips came from the corpus being outside the source/test
+freeze; after explicit extractants.smi binding, the separate three-node source
+and installed supplement each passes3/0skip. Its scope is187record identity,
+shared Eu/Am inputs and case134 counterion exclusion/formalcharge−4, not a corpus
+FF run. The initial mistaken fixture path failed before any product command and
+remains archived. Scientific-boundary/high-compute tiers stay open.
+
+Actual serial/parallel MMFF94s and generic UFF pipeline run at both boundaries.
+Root command python -B /tmp/hotpot_plan20/long/stage8b-b3c-20261103/review_business.py
+returns0 after direct stdlib parsing of12emitted molecule observations and review
+of raw reports, persisted artifacts and trajectories. Ethane/methanol preserve
+8/6atoms,7/5singlebonds,6/4addedH, neutral charge, expected ordered heavy bonds,
+original molecular/atom handles, current source and payload lineage. Coordinates
+are finite and separated. MMFF94s energies−19.279882257884772/3.3368357841331053
+kJ/mol and UFF2.2489621822735897/16.935828027446508kJ/mol remain attributable
+observations. Every one-epoch budget_exhausted result is explicitly nonconverged;
+quality=off establishes no broader geometry or unique-minimum claim. No numeric
+source/installed equality is required. Format5 selected trajectory has an initial
+frame without an evaluated energy and a finite optimization observation. Root's
+first checker incorrectly required numeric energy on the initial frame; that
+checker-only failure and original script remain unchanged in the archive.
+
+All1448source/test,6native,3build and10document bindings remain unchanged through
+root review. Participant origins reconcile:source10focused/98full/4serial/
+6parallel/4pipeline/1imports, installed98full/4serial/6parallel/4pipeline/1imports.
+Fresh build_py/wheel/install has475Python bodies and six exact reused accepted
+B3a binaries;126native source files plus accepted build dependencies rebind.
+Historical B3a native-build parent13a23ce stays distinct from release parent
+0a0290c. System-site dependencies remain shared. All41inherited non-Python wheel
+omissions stay recorded as P20-D008. No C++rebuild or clean-native/global ABI claim.
+
+Root accepts only the B3c CP311 Python transport/capture boundary. Local Luna/low
+executes the fixed reviewed archive command; an initial trailing-dot argv error
+was rejected before writes and retained, then corrected by root. Archive has
+809files/28177509bytes, source parent/current capsule, actual wheel and original
+failures; root verifies all copies and60maintained references. Four maintained
+records are validation/b3c; raw chronology remains immutable. No fresh tests or
+business runs are introduced by archiving. Coupled operation/backend migration,
+B4 control/sample containment, whole Stage8B scientific/standalone/FF benchmarks,
+clean delivery, other versions and later/global gates stay open. This coherent
+source/test/record change is committed and pushed as a business checkpoint.

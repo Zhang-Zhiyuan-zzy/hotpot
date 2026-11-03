@@ -4,13 +4,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, Optional, Tuple, cast
+from typing import TYPE_CHECKING, Optional, Sequence, Tuple, cast
 
 import numpy as np
 from numpy.typing import NDArray
 
-from ..rules.mathematics.geometry import PiercingState, SegmentCycleIndeterminacy
-from .trajectory import (
+from ....obWrappers.packing import _BOND_KIND_CODES
+from ....rules.mathematics.geometry import PiercingState, SegmentCycleIndeterminacy
+from .contracts import ComplexSessionInput
+from ....structure.forcefields import (
+    BondTopology,
     CoordinationFrameEvidence,
     FrameEvidence,
     OptimizationFrameEvidence,
@@ -21,7 +24,7 @@ from .trajectory import (
 )
 
 if TYPE_CHECKING:
-    from ..obWrappers import _ob_native
+    from ....obWrappers import _ob_native
 
 
 __all__ = (
@@ -34,7 +37,14 @@ __all__ = (
     "NativeStageStatus",
     "NativeTopologyRevision",
     "NativeTrajectoryBatch",
+    "unpack_native_topology_revisions",
 )
+
+
+_BOND_KIND_NAMES = {
+    int(kind_code): kind_name
+    for kind_name, kind_code in _BOND_KIND_CODES.items()
+}
 
 
 class NativeStageStatus(str, Enum):
@@ -469,4 +479,52 @@ def _complex_workflow_result(
         ),
         warning_codes=tuple(result.warning_codes),
         trajectory=_native_trajectory_batch(result.trajectory),
+    )
+
+
+def _bond_topologies(
+    atom_indices: NDArray[np.int32],
+    bond_orders: NDArray[np.float64],
+    bond_kinds: NDArray[np.uint8],
+) -> Tuple["BondTopology", ...]:
+
+    return tuple(
+        BondTopology(
+            atom_indices=(int(indices[0]), int(indices[1])),
+            bond_order=float(order),
+            bond_kind=_BOND_KIND_NAMES[int(kind)],
+        )
+        for indices, order, kind in zip(atom_indices, bond_orders, bond_kinds)
+    )
+
+
+def unpack_native_topology_revisions(
+    session_input: ComplexSessionInput,
+    revisions: Sequence["NativeTopologyRevision"],
+) -> Tuple[Tuple["BondTopology", ...], ...]:
+    """Rebuild trajectory bond tables from native active-bond masks."""
+    ligand_bonds = _bond_topologies(
+        session_input.ligand_bond_indices,
+        session_input.ligand_bond_orders,
+        session_input.ligand_bond_kinds,
+    )
+    coordination_bonds = _bond_topologies(
+        session_input.intended_coordination_bonds,
+        session_input.intended_coordination_orders,
+        session_input.intended_coordination_kinds,
+    )
+    bonds = ligand_bonds + coordination_bonds
+    return tuple(
+        tuple(
+            bond
+            for bond, active in zip(
+                bonds,
+                (
+                    *revision.active_ligand_bond_mask,
+                    *revision.active_coordination_bond_mask,
+                ),
+            )
+            if active
+        )
+        for revision in revisions
     )

@@ -3,7 +3,7 @@
 from dataclasses import fields
 
 from hotpot.cheminfo.rules.physics.forcefields.contracts import OptimizationStoppingCriteria
-from hotpot.cheminfo.forcefields.native import (
+from hotpot.cheminfo.adapters.native.forcefields.native import (
     ComplexOptimizationOptions,
     CoordinationStageOptions,
     MetalPlacementOptions,

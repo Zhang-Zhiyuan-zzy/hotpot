@@ -25,12 +25,12 @@ from .contracts import (
     ForceFieldValidationReport,
     StructureAcceptanceThresholds,
 )
-from .native_reports import (
+from hotpot.cheminfo.adapters.native.forcefields.reports import (
     NativeBondRingFinding,
     NativeRingCheckpointReport,
     NativeRingGraphScope,
 )
-from .settings import _BOND_RING_MAX_SIZE
+from hotpot.cheminfo.rules.physics.forcefields.settings import _BOND_RING_MAX_SIZE
 from ..structure.forcefields import TopologyReference
 from ..adapters.structure.forcefields import (
     capture_topology,

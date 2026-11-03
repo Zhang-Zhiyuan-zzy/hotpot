@@ -26,7 +26,6 @@ from hotpot.cheminfo.forcefields import (
     ForceFieldError,
     ForceFieldSetupError,
     GeometryQualityError,
-    TrajectoryStart,
     auto_optimize,
     build3d,
     build_and_optimize,
@@ -34,6 +33,7 @@ from hotpot.cheminfo.forcefields import (
     optimize,
     optimize_complex,
 )
+from hotpot.cheminfo.structure.forcefields import TrajectoryStart
 from hotpot.cheminfo.forcefields.stage import (
     ForceFieldRouteOperations,
     ForceFieldRouteOptions,

@@ -14,7 +14,7 @@ from hotpot.cheminfo.forcefields.contracts import (
     ComplexBuildDiagnostics,
     ForceFieldSetupError,
 )
-from hotpot.cheminfo.forcefields.native import (
+from hotpot.cheminfo.adapters.native.forcefields.native import (
     ComplexOptimizationOptions,
     create_optimization_session,
     optimize_complex as run_native_optimization,
@@ -22,9 +22,7 @@ from hotpot.cheminfo.forcefields.native import (
 from hotpot.cheminfo.forcefields.native_adapters import (
     native_optimization_offsets,
 )
-from hotpot.cheminfo.forcefields.native_packing import (
-    pack_complex_session_input,
-)
+from hotpot.cheminfo.adapters.structure.forcefields import pack_complex_session_input
 from hotpot.cheminfo.forcefields.trajectory import (
     ForceFieldTrajectory,
 )

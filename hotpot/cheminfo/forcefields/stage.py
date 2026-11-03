@@ -38,7 +38,7 @@ from .contracts import (
     ForceFieldWorkflowReport,
     TrajectoryPath,
 )
-from .trajectory import TrajectoryStart
+from hotpot.cheminfo.structure.forcefields import TrajectoryStart
 from .workflows import (
     build3d,
     build_and_optimize,

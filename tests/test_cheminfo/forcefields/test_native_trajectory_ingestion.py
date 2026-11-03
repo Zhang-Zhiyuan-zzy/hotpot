@@ -8,16 +8,14 @@ from dataclasses import replace
 import numpy as np
 
 from hotpot import read_mol
-from hotpot.cheminfo.forcefields.native_packing import (
-    pack_complex_session_input,
-    unpack_native_topology_revisions,
-)
-from hotpot.cheminfo.forcefields.native_reports import (
+from hotpot.cheminfo.adapters.structure.forcefields import pack_complex_session_input
+from hotpot.cheminfo.adapters.native.forcefields.reports import unpack_native_topology_revisions
+from hotpot.cheminfo.adapters.native.forcefields.reports import (
     NativeTopologyRevision,
     NativeTrajectoryBatch,
 )
-from hotpot.cheminfo.forcefields.trajectory import (
-    ForceFieldTrajectory,
+from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.structure.forcefields import (
     OptimizationFrameEvidence,
     RingFrameEvidence,
     TrajectoryEvent,

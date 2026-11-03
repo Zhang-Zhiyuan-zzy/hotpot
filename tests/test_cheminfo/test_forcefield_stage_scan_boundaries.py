@@ -16,8 +16,8 @@ from hotpot.cheminfo.adapters.structure import geometry as geometry_adapter
 from hotpot.cheminfo.forcefields import backend as ob_backend
 from hotpot.cheminfo.forcefields import ff, ligand, repair
 from hotpot.cheminfo.forcefields import optimizer as optimizer_impl
-from hotpot.cheminfo.forcefields.trajectory import (
-    ForceFieldTrajectory,
+from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.structure.forcefields import (
     RingFrameEvidence,
     TrajectoryEvent,
     TrajectoryStart,

@@ -41,9 +41,11 @@ from .repair import (
     _untangle_ring_piercings,
 )
 from ..adapters.structure.forcefields import capture_topology
-from .trajectory import (
+from hotpot.cheminfo.forcefields.trajectory import (
     ForceFieldFrame,
     ForceFieldTrajectory,
+)
+from hotpot.cheminfo.structure.forcefields import (
     TrajectoryEvent,
     TrajectoryStage,
     TrajectoryStart,

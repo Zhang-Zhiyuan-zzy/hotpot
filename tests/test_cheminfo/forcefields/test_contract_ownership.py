@@ -9,9 +9,13 @@ import pytest
 
 from hotpot.cheminfo.adapters.structure.forcefields import capture_topology
 from hotpot import Molecule
-from hotpot.cheminfo.forcefields import ff, native as native_adapter, workflows
-from hotpot.cheminfo.forcefields.trajectory import (
-    ForceFieldTrajectory,
+from hotpot.cheminfo.forcefields import (
+    ff,
+    workflows,
+)
+from hotpot.cheminfo.adapters.native.forcefields import native as native_adapter
+from hotpot.cheminfo.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.structure.forcefields import (
     TrajectoryEvent,
     TrajectoryStage,
     TrajectoryStart,
@@ -20,6 +24,9 @@ from hotpot.cheminfo.rules.physics.forcefields.contracts import OptimizationStop
 from hotpot.cheminfo.structure.forcefields import (
     AtomTopologySignature,
     BondTopology,
+    CoordinationFrameEvidence,
+    OptimizationFrameEvidence,
+    RingFrameEvidence,
     TopologyReference,
 )
 
@@ -75,7 +82,7 @@ assert values[3].bonds == (values[2],)
     (
         (
             b"chotpot.cheminfo.forcefields.native\nOptimizationStoppingOptions\n.",
-            AttributeError,
+            ModuleNotFoundError,
         ),
         (
             b"chotpot.cheminfo.forcefields.topology\nBondTopologySignature\n.",
@@ -204,6 +211,51 @@ assert values[-1].scan_complete is True
 """
     completed = subprocess.run(
         [sys.executable, '-B', '-c', script],
+        input=pickle.dumps((classes, values)), capture_output=True, check=False,
+    )
+    assert completed.returncode == 0, completed.stderr.decode()
+
+
+def test_trajectory_values_cold_pickle_at_the_structure_owner():
+    classes = (
+        TrajectoryStart, TrajectoryStage, TrajectoryEvent,
+        RingFrameEvidence, CoordinationFrameEvidence, OptimizationFrameEvidence,
+    )
+    values = (
+        TrajectoryStart.COORDINATION_RESTORATION,
+        TrajectoryStage.COMPLEX_UNTANGLING,
+        TrajectoryEvent.BOND_ROLLBACK,
+        RingFrameEvidence(2, ring_scope="full_graph", scan_complete=False),
+        CoordinationFrameEvidence(
+            (0, 1), False, pending_bond_count=2, safe_donor_atom_indices=(1, 3),
+            minimum_normalized_clearance=0.75,
+        ),
+        OptimizationFrameEvidence(
+            False, False, True, True, True, energy_change_kj_mol=0.125,
+        ),
+    )
+    script = """
+import pickle
+import sys
+from hotpot.cheminfo.structure import forcefields as owner
+classes, values = pickle.loads(sys.stdin.buffer.read())
+assert all(cls.__module__ == owner.__name__ for cls in classes)
+assert all(getattr(owner, cls.__name__) is cls for cls in classes)
+assert tuple(type(value) for value in values) == classes
+assert values[0] is owner.TrajectoryStart.COORDINATION_RESTORATION
+assert values[1] is owner.TrajectoryStage.COMPLEX_UNTANGLING
+assert values[2] is owner.TrajectoryEvent.BOND_ROLLBACK
+assert values[3].confirmed_piercing_count == 2
+assert values[3].ring_scope == 'full_graph' and values[3].scan_complete is False
+assert values[4].bond_atom_indices == (0, 1)
+assert values[4].safe_donor_atom_indices == (1, 3)
+assert values[4].accepted is False and values[4].pending_bond_count == 2
+assert values[4].minimum_normalized_clearance == 0.75
+assert values[5].converged is False and values[5].finite_energy is True
+assert values[5].energy_change_kj_mol == 0.125
+"""
+    completed = subprocess.run(
+        [sys.executable, "-B", "-c", script],
         input=pickle.dumps((classes, values)), capture_output=True, check=False,
     )
     assert completed.returncode == 0, completed.stderr.decode()

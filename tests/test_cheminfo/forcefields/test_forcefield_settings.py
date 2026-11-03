@@ -1,8 +1,8 @@
-from hotpot.cheminfo.forcefields.native import (
+from hotpot.cheminfo.adapters.native.forcefields.native import (
     MetalPlacementOptions,
     RingScreeningOptions,
 )
-from hotpot.cheminfo.forcefields.settings import (
+from hotpot.cheminfo.rules.physics.forcefields.settings import (
     _BOND_RING_MAX_SIZE,
     _MAXIMUM_RELEVANT_CYCLE_COUNT,
 )

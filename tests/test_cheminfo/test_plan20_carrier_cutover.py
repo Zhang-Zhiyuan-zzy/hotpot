@@ -301,7 +301,8 @@ def test_nine_frame_domains_are_independent_and_survive_serialization():
     values = (np.arange(2*n*3.).reshape(2, n, 3), np.array([1., 2.]),
               np.arange(2*n).reshape(2, n), 4.5, np.ones((2, n, 3)),
               0., np.array([1, 3]), np.array([[8., 9.], [10., 11.]]), np.array([12., 13.]))
-    mol._install_frame_state(values, 1)
+    from hotpot.cheminfo.structure.conformer import _import_frame_values
+    _import_frame_values(mol, values, 1, producer=0)
     selected = mol.conformer_get(1)
     selected['coordinates'][:] = -1
     assert np.all(mol.conformer_get(1)['coordinates'] >= 0)
@@ -309,10 +310,15 @@ def test_nine_frame_domains_are_independent_and_survive_serialization():
     frame[:] = -2
     assert np.all(mol.conformers.coordinates(0) >= 0)
     restored = pickle.loads(pickle.dumps(mol))
-    captured, index = restored._capture_frame_state()
-    assert index == 1
-    for expected, observed in zip(values, captured):
-        np.testing.assert_array_equal(observed, expected)
+    assert restored._conformers_index == 1
+    for i in range(2):
+        captured = restored.conformer_get(i)
+        for name, expected in zip(restored.conformers._attrs, values):
+            array = np.asarray(expected)
+            expected_row = array[i] if array.ndim and len(array) == 2 else expected
+            np.testing.assert_array_equal(captured[name], expected_row)
+    assert len(restored._source_frames) == 2
+    assert restored._conformer_results == ()
 
 
 def test_concurrent_pickle_sees_one_complete_coordinate_and_charge_commit():

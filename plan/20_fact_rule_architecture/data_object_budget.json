@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage0\u20137C accepted within recorded owning scopes; Stage7C CP311 MCA and selected partial-charge owners accepted2026-11-03. Exactly reservedN14 and reusedN15; census780classes/357dataclasses/8Protocols/2TypedDicts. Final936-file architecture audit passes with224preexisting debt entries/no new ratchet or layer findings. Stage7D/E/global gates remain open.",
+  "status": "Stage0–7D accepted within recorded owning scopes; Stage7D CP311 source/generated frames and shared observations accepted2026-11-03. Exactly reservedN16/N17/N18 and reusedN15; census783classes/360dataclasses/8Protocols/2TypedDicts. Final940-file architecture audit passes with224preexisting debt/no new findings. Stage7E and later/global gates remain open.",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -13,7 +13,7 @@
     "alias_caveat": "Zero explicit TypeAlias syntax does not establish zero implicit aliases."
   },
   "measured_delta": {
-    "new_dataclasses": 10,
+    "new_dataclasses": 13,
     "retired_dataclasses": 0,
     "new_protocols": 0,
     "new_typed_dicts": 0,
@@ -83,8 +83,9 @@
           "spin_mult",
           "cell",
           "stereo_payload",
-          "legacy_frame_values",
-          "legacy_frame_index",
+          "source_frames",
+          "conformer_results",
+          "frame_selection",
           "angle_constraints",
           "torsion_constraints",
           "identifier",
@@ -96,7 +97,8 @@
         "stage4_extension_verification": "stages/stage04/contracts/schema.json and stages/stage04/implementation/evidence.json",
         "stage5_extension_verification": "stages/stage05/rules_checkpoint_evidence.json; final Stage5 gates open",
         "stage7b_schema": "Same class, 23 keyword-only fields and tagged-v2 private reducer; no retirement credit. Runtime verification pending.",
-        "stage7c_schema": "Same class24keyword-only fields/tagged-v3, explicit selected charge payload/stale marker and no raw scalar duplication; CP311 source/installed owning gate accepted. Oldv2 rejected."
+        "stage7c_schema": "Same class24keyword-only fields/tagged-v3, explicit selected charge payload/stale marker and no raw scalar duplication; CP311 source/installed owning gate accepted. Oldv2 rejected.",
+        "stage7d_schema": "Same reused class25fields/tagged-v4, explicit source_frames/conformer_results/frame_selection replaces legacy arrays/index; oldv3 rejected. Accepted affected source/installed/cold-pickle lifecycle in stages/stage07/coordinate-frames/validation/checkpoint.json"
       },
       {
         "symbol": "hotpot.cheminfo.structure.constraints._ConstraintSet",
@@ -196,6 +198,44 @@
         ],
         "verification": "stages/stage07/selected-results/validation/partial-charges/checkpoint.json",
         "status": "Root accepted within Stage7C CP311 owning scope; broader/global obligations remain open."
+      },
+      {
+        "symbol": "hotpot.cheminfo.structure.conformer.CoordinateFrame",
+        "reservation": "N16",
+        "fields": [
+          "atom_uids",
+          "coordinates",
+          "observations",
+          "observation_index",
+          "provenance"
+        ],
+        "verification": "stages/stage07/coordinate-frames/validation/checkpoint.json"
+      },
+      {
+        "symbol": "hotpot.cheminfo.structure.conformer.ConformerEnsembleResult",
+        "reservation": "N17",
+        "fields": [
+          "atom_uids",
+          "batch",
+          "observations",
+          "input_source"
+        ],
+        "verification": "stages/stage07/coordinate-frames/validation/checkpoint.json"
+      },
+      {
+        "symbol": "hotpot.cheminfo.structure.conformer.EnergyForceResult",
+        "reservation": "N18",
+        "fields": [
+          "atom_uids",
+          "values",
+          "frame_indices",
+          "method",
+          "method_version",
+          "parameters",
+          "units",
+          "provenance"
+        ],
+        "verification": "stages/stage07/coordinate-frames/validation/checkpoint.json"
       }
     ],
     "new_enums": 1,
@@ -736,33 +776,62 @@
       "proposed_definition": "CoordinateFrame",
       "stage": "Stage7D",
       "dataclass_upper_bound": 1,
-      "responsibility": "Explicit source frame; current coordinates remain in Atom table",
-      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
-      "actual_symbol": null,
-      "commit": null,
-      "verification": null
+      "responsibility": "Sole explicit source coordinate value plus shared observation row reference/provenance; bound Conformers stores no arrays.",
+      "status": "Implemented and root accepted within Stage7D CP311 owning scope2026-11-03; broader/global gates remain open.",
+      "actual_symbol": "hotpot.cheminfo.structure.conformer.CoordinateFrame",
+      "commit": "See coherent Stage7D business delivery in Git history.",
+      "verification": "stages/stage07/coordinate-frames/validation/checkpoint.json",
+      "fields": [
+        "atom_uids",
+        "coordinates",
+        "observations",
+        "observation_index",
+        "provenance"
+      ],
+      "design": "stages/stage07/coordinate-frames/contracts/decisions.md",
+      "planned_symbol": "hotpot.cheminfo.structure.conformer.CoordinateFrame"
     },
     {
       "id": "N17",
       "proposed_definition": "ConformerEnsembleResult",
       "stage": "Stage7D",
       "dataclass_upper_bound": 1,
-      "responsibility": "Generated ensemble; compose existing ConformerBatch",
-      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
-      "actual_symbol": null,
-      "commit": null,
-      "verification": null
+      "responsibility": "Generated immutable sealed existing ConformerBatch plus shared N18 observations; historical input source separate from output applicability.",
+      "status": "Implemented and root accepted within Stage7D CP311 owning scope2026-11-03; broader/global gates remain open.",
+      "actual_symbol": "hotpot.cheminfo.structure.conformer.ConformerEnsembleResult",
+      "commit": "See coherent Stage7D business delivery in Git history.",
+      "verification": "stages/stage07/coordinate-frames/validation/checkpoint.json",
+      "fields": [
+        "atom_uids",
+        "batch",
+        "observations",
+        "input_source"
+      ],
+      "design": "stages/stage07/coordinate-frames/contracts/decisions.md",
+      "planned_symbol": "hotpot.cheminfo.structure.conformer.ConformerEnsembleResult"
     },
     {
       "id": "N18",
       "proposed_definition": "EnergyForceResult",
       "stage": "Stage7D/8B",
       "dataclass_upper_bound": 1,
-      "responsibility": "One geometry-execution energy/force result, reused by ensemble projections",
-      "status": "not implemented; confirm exact fields/reuse before owning-stage code",
-      "actual_symbol": null,
-      "commit": null,
-      "verification": null
+      "responsibility": "Eight established frame observation domains, immutable raw values and exact per-frame/scope selectors, method/units/provenance; one shared per batch, no selected value copies.",
+      "status": "Implemented and root accepted within Stage7D CP311 owning scope2026-11-03; broader/global gates remain open.",
+      "actual_symbol": "hotpot.cheminfo.structure.conformer.EnergyForceResult",
+      "commit": "See coherent Stage7D business delivery in Git history.",
+      "verification": "stages/stage07/coordinate-frames/validation/checkpoint.json",
+      "fields": [
+        "atom_uids",
+        "values",
+        "frame_indices",
+        "method",
+        "method_version",
+        "parameters",
+        "units",
+        "provenance"
+      ],
+      "design": "stages/stage07/coordinate-frames/contracts/decisions.md",
+      "planned_symbol": "hotpot.cheminfo.structure.conformer.EnergyForceResult"
     }
   ],
   "forecast": {
@@ -889,11 +958,11 @@
   ],
   "change_policy": "Update a reservation with concrete responsibility/consumer evidence before exceeding it; new public schemas retain their own review gate. Never offset extra records by deleting unrelated reserved types or replace records with untyped dicts solely to improve counts.",
   "measured_current_counts": {
-    "all_python_classes": 780,
-    "dataclasses": 357,
+    "all_python_classes": 783,
+    "dataclasses": 360,
     "protocols": 8,
     "typed_dicts": 2,
-    "method": "Same original ClassDef/leaf/CONTRACT_MARKERS static census; selected-charge cutover adds exactly reserved N14 to the accepted MCA779/356/8/2 checkpoint, producing780/357/8/2; N15 reused, no retirement credit. Native record/export inventory not recounted.",
+    "method": "Same production-only ClassDef/leaf/CONTRACT_MARKERS census; adds exactly reservedN16–N18 to Stage7C780/357/8/2 and moves existing Conformers once; no retirement credit.",
     "native_struct_candidates": 171,
     "native_struct_candidate_method": {
       "baseline": 164,
@@ -905,7 +974,7 @@
     },
     "new_fact_native_actual_struct_definitions": 14,
     "new_fact_native_actual_enum_definitions": 1,
-    "verification": "stages/stage07/selected-results/validation/partial-charges/checkpoint.json; local archive source-validation/class_census.json",
+    "verification": "stages/stage07/coordinate-frames/validation/checkpoint.json",
     "stage5_native_scope": "Readonly carrier dispatch plus configured DERIVED_FIELDS rejection at native ingress/preparation; existing Field gains immutable configuration metadata, with no new class/struct/enum or exported ABI. Corrected source awaits five fresh ABI builds and runtime evidence.",
     "stage5_native_source": {
       "path": "hotpot/cheminfo/structure/_native/facts.cpp",
@@ -926,9 +995,9 @@
       "historical_status": "Original failed candidate retained; final two test-import repairs passed without production changes."
     },
     "final_architecture_audit": {
-      "path": ".plan20-artifacts/20261103/stage7c/partial-charges/source-validation/architecture-audit-final.json",
+      "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/architecture-audit-final-repairs.json",
       "status": "passed",
-      "scanned_python_files": 936,
+      "scanned_python_files": 940,
       "remaining_debt": 224,
       "new_debt": 0,
       "layer_findings": 0,
@@ -996,5 +1065,18 @@
     "historical_placeholder_note": "LatticeGroup and ob2chem removals occurred before this stage and receive no Stage7A deletion credit.",
     "source_status": "Integration checkpoint; final source/runtime/wheel bindings and validation remain held pending SOURCE_READY.",
     "remaining": "Stage7E zero-new-type canonical stereo storage, later family consolidations and whole-plan global gates remain mandatory."
+  },
+  "stage7d_bookkeeping": {
+    "date": "2026-11-03",
+    "status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE",
+    "new_types": [
+      "N16",
+      "N17",
+      "N18"
+    ],
+    "reused": "N15/N01/N02 and moved existing Conformers",
+    "checkpoint": "stages/stage07/coordinate-frames/validation/checkpoint.json",
+    "native": "One existing CP311 fact extension rebuilt for actual callback repair; no class/struct/enum/ABI/schema addition. Other5binaries reused.",
+    "remaining": "Stage7E zero-new-type canonical stereo storage, later family consolidations and global acceptance."
   }
 }

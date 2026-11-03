@@ -59,7 +59,7 @@ def mol_from_ccdc_to_hp(c_mol: CMol):
         bond_aromatic=tuple(_c_bond_is_aromatic(bond) for bond in bonds),
         bond_directions=(None,) * len(bonds), bond_sources=(None,) * len(bonds),
         bond_metadata=(None,) * len(bonds), charge=(False, None, None), spin_mult=(False, None, None),
-        cell=None, stereo_payload=None, legacy_frame_values=(None,) * 9, legacy_frame_index=0,
-        angle_constraints=(), torsion_constraints=(), identifier=(False, None),
+        cell=None, stereo_payload=None, source_frames=(), conformer_results=(),
+        frame_selection=(0, None), angle_constraints=(), torsion_constraints=(), identifier=(False, None),
     )
     return Mol._build_molecule(record)

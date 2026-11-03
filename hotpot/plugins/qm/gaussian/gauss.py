@@ -1186,9 +1186,40 @@ class GaussOut:
     def update_mol(self, mol):
         attrs = self.parse()
         atomic_numbers = attrs.pop('atomic_number')
-        if any(a.atomic_number != a_nos for a, a_nos in zip(mol.atoms, atomic_numbers)):
+        if (len(mol.atoms) != len(atomic_numbers)
+                or any(a.atomic_number != a_nos for a, a_nos in zip(mol.atoms, atomic_numbers))):
             raise AttributeError("The molecule calculated by Gaussian is inconsistent with what needs to be updated.")
 
+        from hotpot.cheminfo.structure._commit import _FactTransaction
+        from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
+        from hotpot.cheminfo.structure._results import _import_partial_charges
+        from hotpot.cheminfo.structure.conformer import _select_frame_observations
+
+        names = ("energy", "partial_charge", "gibbs", "force", "zero_point",
+                 "spin_mult", "thermo", "capacity")
+        observations = tuple(attrs.pop(name, None) for name in names)
+        coordinates = attrs.pop("coordinates")
+        charge = attrs.pop("charge")
+        with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["cclib"]):
+            mol.coordinates = coordinates
+            mol.charge = charge
+            if observations[5] is not None:
+                mol.spin_mult = observations[5]
+            _select_frame_observations(
+                mol, observations, producer="cclib", method="Gaussian/cclib",
+                units=(("energy", "eV"), ("partial_charge", "e"),
+                       ("gibbs", "eV"), ("force", "Hartree/Bohr"),
+                       ("zero_point", "eV"), ("thermo", "eV"),
+                       ("capacity", "eV/K")),
+                provenance=(("force_scope", "supplied history"),),
+            )
+            mulliken = observations[1]
+            if mulliken is not None:
+                values = np.asarray(mulliken)
+                _import_partial_charges(
+                    mol, values[-1] if values.ndim == 2 else values,
+                    producer=ATOM_SOURCE_CODES["cclib"], method="mulliken",
+                )
         mol.setattr(**attrs)
 
     def export_mol(self):

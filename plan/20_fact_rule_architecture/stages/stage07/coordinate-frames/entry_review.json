@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7D",
+  "owner": "root",
+  "recorded_utc": "2026-11-03T08:50:12.391402+00:00",
+  "status": "ENTRY_ALIGNED_F1_F7_ROUTE_ACCEPTED_AUTHORING_ONLY",
+  "source_commit": "eb68f98f136755ac84e57166e1f8090c5d7a8e57",
+  "predecessor": "stages/stage07/selected-results/completion_20261103.json",
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "alignment": "Effective goal; governance/stage/validation skills and both governance references, targeted plan5.3/5.5/7.2\u20137.4/Decision19/Stage7D, Stage1 conformer public/interface contracts and N16\u2013N18 budget, actual current code and completed source/installed predecessor. Reuse unaffected prior alignment; no ritual whole-plan reread.",
+  "contract": "contracts/decisions.md",
+  "contract_sha256": "097d355ee009c30ecd795efe9428f1d6b2e6a02b43e44f08be37f752d76a6b99",
+  "source_bindings": {
+    "hotpot/cheminfo/core.py": "ffbea2d7ed0463710ae22fbbff934424f00dbc67e7c41f74a318729487f2e2b5",
+    "hotpot/cheminfo/structure/_builder.py": "a8f2656d7d55ee7af3f668ebe813902d4308675e13cba435b2304216feac58fa",
+    "hotpot/cheminfo/structure/_commit.py": "2a6c2254a9c68c1860a9257e3c8b2c61c052c8e2c3c3b35c5eb2aef6294478f7",
+    "hotpot/cheminfo/structure/_identity.py": "db4dee0a81014d67a7ad2f849f049c1ab29917e1b815e8660f64f6419603f60f",
+    "hotpot/cheminfo/structure/_results.py": "8bac05ae17f833516bec1a039796a28e7a9f3ed29716bfcb9acff9ea9f1ce640",
+    "hotpot/cheminfo/forcefields/trajectory.py": "e24b378cc2a58f741505078e498d918bb402f6850662ebaa992198f5ba8b8ea9",
+    "hotpot/cheminfo/forcefields/workflows.py": "34ad215d9960b33175f6dde44fef78eeea4c9b52dd619d8ace837437bcea748b",
+    "hotpot/cheminfo/forcefields/working_copy.py": "77945bec867dbda47036054cace97c1e481a28d36c67911e4c6fcd5f5eb3a55f",
+    "hotpot/cheminfo/adapters/io/formats/g16.py": "7e2a6b6a0983f3960feb84f010f1463f68b64773e03ab779920e6ed20ad94ff6"
+  },
+  "public_api_disposition": "Retain existing standalone and bound Conformers constructor/read/add/clear and Molecule operations/ordinary assignments. Bound view stores no duplicate arrays. No new public export/signature.",
+  "runtime_authorized": false,
+  "remaining": "Author disjoint connected owner/core/producer partitions, root integration/freeze/runtime release, affected CP311 source/installed/actual jobs and bounded costs; Stage7E/later/global gates remain open.",
+  "implementation_partitions": {
+    "A": {
+      "agent": "stage7d_frame_owner",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "production": [
+        "structure/conformer.py",
+        "structure/_results.py",
+        "structure/_identity.py"
+      ]
+    },
+    "B": {
+      "agent": "stage7d_carrier_lifecycle",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "production": [
+        "core.py",
+        "structure/_builder.py",
+        "structure/_commit.py",
+        "operations/topology_queries.py"
+      ]
+    },
+    "C": {
+      "agent": "stage7d_frame_producers",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "production": [
+        "forcefields/trajectory.py",
+        "forcefields/workflows.py",
+        "forcefields/working_copy.py",
+        "adapters/io/formats/g16.py",
+        "hotpot/ds/providers/tmqm/__init__.py",
+        "hotpot/plugins/qm/gaussian/gauss.py"
+      ]
+    }
+  }
+}

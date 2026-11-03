@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import multiprocessing as mp
 import warnings
-from dataclasses import dataclass, replace
+from dataclasses import asdict, dataclass, replace
 from typing import Optional, Sequence, Tuple, TYPE_CHECKING, cast
 
 from ..conformers import ConformerSampler, OpenBabelConformerAdapter
@@ -141,6 +142,9 @@ def _finalize_trajectory(
     ligand_build_attempts: Sequence[ForceFieldTrajectory] = (),
     save_movie: bool,
     trajectory_path: Optional[TrajectoryPath],
+    input_source,
+    method: str,
+    parameters=(),
 ) -> ForceFieldTrajectoryArchive:
     """Persist and expose one completed trajectory without choosing its frame."""
     archive = ForceFieldTrajectoryArchive(
@@ -149,7 +153,10 @@ def _finalize_trajectory(
     )
     if trajectory_path is not None:
         archive.write(trajectory_path)
-    trajectory.materialize(mol, keep_all=save_movie)
+    trajectory._materialize(
+        mol, keep_all=save_movie, input_source=input_source,
+        method=method, parameters=parameters,
+    )
     return archive
 
 
@@ -638,6 +645,21 @@ def _complexes_build_workflow(
         ligand_build_attempts=prepared.ligand_build_attempts,
         save_movie=save_movie,
         trajectory_path=trajectory_path,
+        input_source=source[0], method="forcefield.complexes_build",
+        parameters=(
+            ("forcefield", effective_forcefield), ("seed", seed),
+            ("max_attempts", max_attempts),
+            ("candidate_warmup_steps", candidate_warmup_steps),
+            ("candidate_score_steps", candidate_score_steps),
+            ("best_candidate_refine_steps", best_candidate_refine_steps),
+            ("ligand_untangling_attempts", ligand_untangling_attempts),
+            ("coordination_geometry", coordination_geometry),
+            ("add_hydrogens", add_hydrogens),
+            ("sampler", type(sampler).__module__ + "." + type(sampler).__qualname__
+             if sampler is not None else "hotpot.cheminfo.conformers.OpenBabelConformerAdapter"),
+            ("coordination_options", json.loads(json.dumps(asdict(coordination_options)))),
+            ("optimization_options", json.loads(json.dumps(asdict(optimization_options)))),
+        ),
     )
     optimization_report = replace(
         optimization_report,
@@ -802,6 +824,18 @@ def optimize(
         trajectory,
         save_movie=save_movie,
         trajectory_path=trajectory_path,
+        input_source=source[0], method="forcefield.optimize",
+        parameters=(
+            ("forcefield", effective_forcefield), ("algorithm", algorithm),
+            ("epochs", epochs), ("steps_per_epoch", steps_per_epoch),
+            ("seed", seed), ("add_hydrogens", add_hydrogens),
+            ("perturb_interval", perturb_interval), ("perturb_sigma", perturb_sigma),
+            ("increasing_vdw", increasing_vdw),
+            ("vdw_cutoff_start", vdw_cutoff_start), ("vdw_cutoff_end", vdw_cutoff_end),
+            ("stopping_criteria", None if stopping_criteria is None
+             else json.loads(json.dumps(asdict(stopping_criteria)))),
+            ("convergence_level", int(convergence_level)),
+        ),
     )
     report = replace(report, trajectory=trajectory_archive)
     _commit_working_copy(mol, working_mol, source=source)
@@ -923,6 +957,20 @@ def _build_complex3d_workflow(
         ligand_build_attempts=prepared.ligand_build_attempts,
         save_movie=save_movie,
         trajectory_path=trajectory_path,
+        input_source=source[0], method="forcefield.build_complex3d",
+        parameters=(
+            ("forcefield", effective_forcefield), ("seed", seed),
+            ("max_attempts", max_attempts),
+            ("candidate_warmup_steps", candidate_warmup_steps),
+            ("candidate_score_steps", candidate_score_steps),
+            ("best_candidate_refine_steps", best_candidate_refine_steps),
+            ("ligand_untangling_attempts", ligand_untangling_attempts),
+            ("coordination_geometry", coordination_geometry),
+            ("add_hydrogens", add_hydrogens),
+            ("sampler", type(sampler).__module__ + "." + type(sampler).__qualname__
+             if sampler is not None else "hotpot.cheminfo.conformers.OpenBabelConformerAdapter"),
+            ("coordination_options", json.loads(json.dumps(asdict(options)))),
+        ),
     )
     report = ComplexBuildReport(
         requested_forcefield=forcefield,
@@ -1095,6 +1143,12 @@ def optimize_complex(
         trajectory,
         save_movie=save_movie,
         trajectory_path=trajectory_path,
+        input_source=source[0], method="forcefield.optimize_complex",
+        parameters=(
+            ("forcefield", effective_forcefield), ("seed", seed),
+            ("add_hydrogens", add_hydrogens),
+            ("optimization_options", json.loads(json.dumps(asdict(options)))),
+        ),
     )
     report = replace(report, trajectory=trajectory_archive)
     _commit_working_copy(mol, working_mol, source=source)

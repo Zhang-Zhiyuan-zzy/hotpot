@@ -285,14 +285,16 @@ def test_selected_structure_updates_coordinates_and_reuses_complete_bond_objects
     original_uids = tuple(bond._uid for bond in original_bonds)
     original_attrs = tuple(bond.attr_dict for bond in original_bonds)
     mol.conformer_add(mol.coordinates)
-    frames = mol.conformers._coordinates
+    frames = mol._source_frames
+    frame_coordinates = mol.conformer_get(slice(None))['coordinates'].copy()
     shifted = mol.coordinates + np.asarray((.1, .2, .3))
     apply_native_selected_structure(mol, session_input, _SelectedStructure(
         selected_coordinates=shifted, final_active_coordination_mask=np.asarray(mask, dtype=np.uint8)))
     assert tuple(mol.bonds) == original_bonds
     assert tuple(bond._uid for bond in mol.bonds) == original_uids
     assert tuple(bond.attr_dict for bond in mol.bonds) == original_attrs
-    assert mol.conformers._coordinates is frames
+    assert mol._source_frames is frames
+    np.testing.assert_array_equal(mol.conformer_get(slice(None))['coordinates'], frame_coordinates)
     np.testing.assert_array_equal(mol.coordinates, shifted)
 
 

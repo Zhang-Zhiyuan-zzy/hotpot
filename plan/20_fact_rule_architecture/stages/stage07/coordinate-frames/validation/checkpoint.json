@@ -1,0 +1,571 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7D",
+  "date": "2026-11-03",
+  "status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE",
+  "acceptance_owner": "root",
+  "stage_gate_closed": true,
+  "global_gate_closed": false,
+  "completion": "../completion_20261103.json",
+  "source": {
+    "head_at_execution": "eb68f98f136755ac84e57166e1f8090c5d7a8e57",
+    "freeze": {
+      "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/source_freeze.json",
+      "bytes": 179755,
+      "sha256": "2399687cd1d39f9d5d189a012906748b2cdd440884047b324ba17b214437abe0"
+    },
+    "source_test_files": 1411,
+    "native_files": 6,
+    "final_business_bytes_checked_against_freeze": true
+  },
+  "source_runs": [
+    {
+      "attempt": "focused-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/focused-attempt01/execution.json",
+        "bytes": 2272,
+        "sha256": "cdd7598bd27ebc917b2398540bacc862349c88e6732ca6eb91636c82961341d7"
+      },
+      "returncode": 1,
+      "junit_totals": {
+        "tests": 327,
+        "failures": 3,
+        "errors": 0,
+        "skipped": 1
+      },
+      "elapsed_seconds": 7.839573584496975,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "focused-attempt02",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/focused-attempt02/execution.json",
+        "bytes": 2272,
+        "sha256": "81c61e5ec0617fee747e8e282f14b9545ef2219ce3394af859bca7c486a960c0"
+      },
+      "returncode": 1,
+      "junit_totals": {
+        "tests": 334,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 1
+      },
+      "elapsed_seconds": 7.850587587803602,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "focused-attempt03",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/focused-attempt03/execution.json",
+        "bytes": 2272,
+        "sha256": "d45e216be2e6c704199c127d5f81ef7d1622e183be62d192f329d64cec2085ef"
+      },
+      "returncode": 0,
+      "junit_totals": {
+        "tests": 334,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 1
+      },
+      "elapsed_seconds": 7.732533847913146,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "affected-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/affected-attempt01/execution.json",
+        "bytes": 5663,
+        "sha256": "914ce022a260069736ab8d5c9f86481d286a5183296cf631662cd58e627e4df2"
+      },
+      "returncode": 1,
+      "junit_totals": {
+        "tests": 2071,
+        "failures": 20,
+        "errors": 0,
+        "skipped": 1
+      },
+      "elapsed_seconds": 48.19918009266257,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "repairs-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/repairs-attempt01/execution.json",
+        "bytes": 2451,
+        "sha256": "47678eb1132cd2d759724f55d63ec2e582ab22ed1ec5bf02ec6aacb5c4428bdf"
+      },
+      "returncode": 4,
+      "junit_totals": {
+        "tests": 0,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsed_seconds": 1.290977654978633,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "repairs-attempt02",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/repairs-attempt02/execution.json",
+        "bytes": 2448,
+        "sha256": "63e60024ce3a71788b43714ddba5e9d66f57d5f38d6dfc61766f54dd5ccdb4e8"
+      },
+      "returncode": 0,
+      "junit_totals": {
+        "tests": 179,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsed_seconds": 5.892194047570229,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "affected-attempt02",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/affected-attempt02/execution.json",
+        "bytes": 5662,
+        "sha256": "6d387b14e1b6566cd33b34adb952cc02414a8440531dba74a4890a49256ed238"
+      },
+      "returncode": 0,
+      "junit_totals": {
+        "tests": 2076,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 1
+      },
+      "elapsed_seconds": 37.88269800320268,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "affected-attempt03",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/affected-attempt03/execution.json",
+        "bytes": 5661,
+        "sha256": "3dd8774a61f243fedbbde4f53025205b9d9d49d42ff322f2811ce239ed8fb1fb"
+      },
+      "returncode": 0,
+      "junit_totals": {
+        "tests": 2076,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 1
+      },
+      "elapsed_seconds": 37.8145468570292,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "focused-attempt04",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/focused-attempt04/execution.json",
+        "bytes": 2273,
+        "sha256": "2a4c930ddc1cec62c4ffed8a6d7a17b21308f63e011fbb0243fee0d3629a0f74"
+      },
+      "returncode": 0,
+      "junit_totals": {
+        "tests": 364,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 1
+      },
+      "elapsed_seconds": 7.9241312351077795,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "affected-attempt04",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/affected-attempt04/execution.json",
+        "bytes": 5662,
+        "sha256": "bc248504f0ad8a7289a69cea842ef552933d940ea270082072bbacd94e6bdb5b"
+      },
+      "returncode": 0,
+      "junit_totals": {
+        "tests": 2106,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 1
+      },
+      "elapsed_seconds": 37.86914090253413,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "actual_FF-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/actual_FF-attempt01/execution.json",
+        "bytes": 1800,
+        "sha256": "33a5c19f0ba17c5b5c62e6ea0b389e4de806fb2cd89647c4364aa53f4b19f36e"
+      },
+      "returncode": 0,
+      "junit_totals": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsed_seconds": 15.627263007685542,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "actual_CBFF_xtb-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/actual_CBFF_xtb-attempt01/execution.json",
+        "bytes": 2236,
+        "sha256": "b7467db4a831e0ff7afd82a7e17fbb24283cebc9b8c79a920102af6ac1ec7c83"
+      },
+      "returncode": 0,
+      "junit_totals": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsed_seconds": 4.7418190855532885,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "actual_MCA-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/actual_MCA-attempt01/execution.json",
+        "bytes": 1966,
+        "sha256": "834aaf90190cf5fa8841a751a873f2664a0eee1a5d593ec2716da15e1fe5e255"
+      },
+      "returncode": 0,
+      "junit_totals": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsed_seconds": 3.9454544615000486,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "actual_MCA_attachment-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/actual_MCA_attachment-attempt01/execution.json",
+        "bytes": 2017,
+        "sha256": "19d4254886e7663e2004b999370d074a2d24a4736d668353d13ce90fb44efd79"
+      },
+      "returncode": 0,
+      "junit_totals": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsed_seconds": 8.766326133161783,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "actual_FF-attempt02",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/actual_FF-attempt02/execution.json",
+        "bytes": 1800,
+        "sha256": "b86459e7d832cc9555b0e446e3e56948750acb9283956bcbbaa6a2328b57ab08"
+      },
+      "returncode": 0,
+      "junit_totals": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsed_seconds": 15.850673522800207,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "actual_CBFF_xtb-attempt02",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/actual_CBFF_xtb-attempt02/execution.json",
+        "bytes": 2235,
+        "sha256": "96e519c1d89adc3fbd2e9de0876be3a4be141940780667ce51400555003b6009"
+      },
+      "returncode": 0,
+      "junit_totals": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsed_seconds": 4.750752666965127,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "actual_MCA-attempt02",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/actual_MCA-attempt02/execution.json",
+        "bytes": 1965,
+        "sha256": "8fdf7c761c1594ba416155883907c2b8ed6e410a6644fde8039731f43a3cfa02"
+      },
+      "returncode": 0,
+      "junit_totals": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsed_seconds": 3.939572237432003,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    },
+    {
+      "attempt": "actual_MCA_attachment-attempt02",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/actual_MCA_attachment-attempt02/execution.json",
+        "bytes": 2017,
+        "sha256": "85cc45a1dcbe085cb166f439d09ba830a435a2dc93ab5fbda0d3dbdd0be5a56f"
+      },
+      "returncode": 0,
+      "junit_totals": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "elapsed_seconds": 8.823904726654291,
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": []
+    }
+  ],
+  "installed": {
+    "final": {
+      "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/installed-validation/attempt03/execution.json",
+      "bytes": 74379,
+      "sha256": "6b2b74d3a286403252ab11cc85017200bfb1e170c94804ca1589f0c9693c7a66"
+    },
+    "results": {
+      "affected": {
+        "tests": 2106,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 1,
+        "returncode": 0,
+        "elapsed_seconds": 42.50777353160083
+      },
+      "actual_FF": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 18.47874345816672
+      },
+      "actual_CBFF_xtb": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 5.313994845375419
+      },
+      "actual_MCA": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 4.126236047595739
+      },
+      "actual_MCA_attachment": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 8.891904823482037
+      }
+    },
+    "same_ordered_affected_nodes": true,
+    "all_origin_checks_zero_leaks": true,
+    "wheel": {
+      "path": "/tmp/hotpot_plan20/medium/20261103-stage7d-frames-installed/attempt03/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6312111,
+      "sha256": "8d08e16f1520764e2d64850162b3d4c2369233c3dd002b699414c00ab9fc9324"
+    },
+    "production_python_sources": 458,
+    "nonpython_omissions": 41,
+    "prior_failure": {
+      "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/installed-validation/attempt01/failure.json",
+      "bytes": 5773,
+      "sha256": "5c77e6c84536b2fbf74e63ca99535d120e4eae81f863dbc6c397c06d7dffddab"
+    },
+    "intermediate_pass": {
+      "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/installed-validation/attempt02/execution.json",
+      "bytes": 74381,
+      "sha256": "3ead713e8fac939d8708c3761aa0e3a0e08933f03ba8861b2d0edc135420605e"
+    },
+    "native_policy": "One CP311 fact extension freshly rebuilt in native-build/attempt02; five unchanged predecessor binaries reused. No clean all-native/ABI/SDK qualification."
+  },
+  "failure_disposition": [
+    "Focused01 exposed actual native constraint callback gap plus two equivalent cursor assertions. Focused02 retained one forbidden public constraint-column test write; corrected fixture then passed. Native F3-C1 Boolean callback/early-return repair was built and bound; no ABI/schema/algorithm change.",
+    "Affected01 retained20failures: actual empty-ensemble callback and bound-view replacement defects, plus nested-array snapshots/cold-pickle/v4/owner-lock test migrations. All original outcomes/freezes remain archived.",
+    "Repairs01 RC4 selected a renamed node; no tests ran. Corrected selection repairs02 passed179.",
+    "Installed01 retained2069passed/6failed/1skipped: cold children lacked copied test-root path. Only explicit test PYTHONPATH repaired, product-origin equality retained; installed02 passed all released jobs.",
+    "Final independent read-only review found Bond Boolean-noop invalidation and selected-source negative-cursor append/copy loss. Root reproduced both before repair. Effective Boolean comparison and cursor rebasing, including source-only copy after dropping generated members, now pass30new regression cases and final source/installed selections."
+  ],
+  "cost": {
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/cost/attempt01/execution.json",
+      "bytes": 216353,
+      "sha256": "8bcb9cd7d3e0359b5572b3261ae774a0d1aedc80e9462044f56d77a928e395ca"
+    },
+    "cases": 6,
+    "measurements": 60,
+    "samples_requested": 300,
+    "failed_samples": 0,
+    "median_microseconds": {
+      "N16-F8": {
+        "source.scalar_energy": 12.2895625,
+        "source.all_frame_energy": 120.113,
+        "source.coordinate_batch": 93.34475,
+        "generated_with_one_source.scalar_energy": 12.0885625,
+        "generated_with_one_source.all_frame_energy": 138.781,
+        "generated_with_one_source.coordinate_batch": 109.841,
+        "source_batch_insertion": 190.401,
+        "generated_publication": 814.816,
+        "clear_source_and_generated": 19.157,
+        "complete_publication_rollback": 995.419
+      },
+      "N16-F64": {
+        "source.scalar_energy": 12.34840625,
+        "source.all_frame_energy": 847.0695,
+        "source.coordinate_batch": 679.31625,
+        "generated_with_one_source.scalar_energy": 12.3115,
+        "generated_with_one_source.all_frame_energy": 928.1935,
+        "generated_with_one_source.coordinate_batch": 732.3545,
+        "source_batch_insertion": 888.115,
+        "generated_publication": 1147.366,
+        "clear_source_and_generated": 20.839,
+        "complete_publication_rollback": 2116.155
+      },
+      "N16-F256": {
+        "source.scalar_energy": 12.27828125,
+        "source.all_frame_energy": 3378.272,
+        "source.coordinate_batch": 2690.66,
+        "generated_with_one_source.scalar_energy": 12.26325,
+        "generated_with_one_source.all_frame_energy": 3558.16325,
+        "generated_with_one_source.coordinate_batch": 2844.15625,
+        "source_batch_insertion": 3348.573,
+        "generated_publication": 2347.855,
+        "clear_source_and_generated": 27.172,
+        "complete_publication_rollback": 5698.983
+      },
+      "N64-F8": {
+        "source.scalar_energy": 12.27425,
+        "source.all_frame_energy": 119.4415,
+        "source.coordinate_batch": 205.88075,
+        "generated_with_one_source.scalar_energy": 12.2679375,
+        "generated_with_one_source.all_frame_energy": 139.51725,
+        "generated_with_one_source.coordinate_batch": 234.728,
+        "source_batch_insertion": 203.927,
+        "generated_publication": 1985.337,
+        "clear_source_and_generated": 20.669,
+        "complete_publication_rollback": 2120.212
+      },
+      "N64-F64": {
+        "source.scalar_energy": 12.31084375,
+        "source.all_frame_energy": 844.908,
+        "source.coordinate_batch": 1560.88375,
+        "generated_with_one_source.scalar_energy": 12.26828125,
+        "generated_with_one_source.all_frame_energy": 906.14925,
+        "generated_with_one_source.coordinate_batch": 1620.11625,
+        "source_batch_insertion": 1005.067,
+        "generated_publication": 2288.803,
+        "clear_source_and_generated": 22.342,
+        "complete_publication_rollback": 3326.251
+      },
+      "N64-F256": {
+        "source.scalar_energy": 12.3211875,
+        "source.all_frame_energy": 3347.05275,
+        "source.coordinate_batch": 6236.46975,
+        "generated_with_one_source.scalar_energy": 12.2285,
+        "generated_with_one_source.all_frame_energy": 3586.68,
+        "generated_with_one_source.coordinate_batch": 6381.66775,
+        "source_batch_insertion": 3836.549,
+        "generated_publication": 3440.617,
+        "clear_source_and_generated": 27.643,
+        "complete_publication_rollback": 7321.421
+      }
+    },
+    "decision": "Root accepts bounded usable work and observed scaling; scalar medians approximately12microseconds, largest all-energy3.59ms/coordinate-batch6.39ms/complete-rollback7.33ms. No timing threshold, paired regression/parity or global performance claim. P20-D017 retains consolidated projection optimization.",
+    "read_identity_calls": 0,
+    "bound_view_arrays": 0,
+    "shared_observation_and_ensemble_batch_checks": "passed",
+    "memory_scope": "One isolated projection Python tracemalloc only; no total RSS/native-memory claim."
+  },
+  "architecture": {
+    "audit": {
+      "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/architecture-audit-final-repairs.json",
+      "bytes": 496,
+      "sha256": "84fa7e81c811a0527379aff528da70ae8fca370ff7a35c6c4ace1227ae974976"
+    },
+    "parsed_files": 940,
+    "existing_debt": 224,
+    "new_debt": 0,
+    "class_census": {
+      "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/class_census.json",
+      "bytes": 108291,
+      "sha256": "49aa993839857f5bdcefebb910d8241a627a251d61e3ebdf781b974dd75901d8"
+    },
+    "class_delta": {
+      "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/source-validation/class_delta.json",
+      "bytes": 1129,
+      "sha256": "6ad063668dcee5b28954fb7554761997eb69165290ef527581a03e55b132c63c"
+    },
+    "counts": {
+      "parsed_python_files": 940,
+      "production_python_files": 458,
+      "all_python_classes": 783,
+      "dataclasses": 360,
+      "protocols": 8,
+      "typed_dicts": 2
+    },
+    "exact_additions": "N16 CoordinateFrame, N17 ConformerEnsembleResult, N18 EnergyForceResult; Conformers moved once, no extra DTO or retirement credit."
+  },
+  "scientific_observations": "scientific_observations.json",
+  "archive_index": {
+    "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/index.json",
+    "bytes": 533673,
+    "sha256": "b408549b89304c408b84d0d0f5ecef451b2ba0e260ac20d46136f979ef987340"
+  },
+  "remaining": [
+    "Stage7E canonical H/isotope/stereo storage beforeStage8.",
+    "Other planned Python versions, clean all-native/ABI/SDK/sdist/platform,41asset omissions, full default/science/GPU/global performance and remaining Plan20/Plan12 acceptance.",
+    "Official Gaussian engine tier unexecuted; final affected skip is requires --run-external, not a claim that the executable is absent."
+  ]
+}

@@ -295,3 +295,22 @@ def test_private_scratch_table_has_no_molecular_result_or_dependency_hook():
         scratch.update(0, {'x': 9.0, 'formal_charge': -1.0})
     assert scratch.raw(0, 'x') == 9.0 and scratch.raw(0, 'formal_charge') == -1.0
     assert _state(mol) == before and mol._mca_result is attachment
+
+
+@pytest.mark.parametrize('ingress', _INGRESSES)
+def test_nonempty_ensemble_tuple_alone_reaches_native_result_preparation(ingress):
+    from hotpot.cheminfo.conformers.contracts import ConformerBatch
+    from hotpot.cheminfo.structure.conformer import _publish_conformer_ensemble
+
+    mol = _molecule()
+    _publish_conformer_ensemble(
+        mol, ConformerBatch(mol.coordinates[None], (0,)),
+        ((1.0,), None, None, None, None, None, None, None), 0,
+        input_source=_capture_source(mol), method='native-hook-fixture')
+    mol._frame_result = None
+    before = mol._conformer_results
+    _write(mol, ingress, 'formal_charge', -1.0)
+    assert mol._frame_result is None
+    assert mol._conformer_results is not before
+    assert mol._conformer_results[0].payload is before[0].payload
+    assert mol._conformer_results[0].invalidated_by == ('frame_representation',)

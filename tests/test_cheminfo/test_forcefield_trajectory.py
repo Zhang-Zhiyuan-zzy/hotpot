@@ -159,6 +159,56 @@ def test_materialize_exposes_selected_coordinates(keep_all):
     assert molecule.conformers_number == (len(trajectory) if keep_all else 1)
 
 
+@pytest.mark.parametrize("keep_all", (False, True))
+def test_materialize_appends_generated_batches_preserving_sources_ordinals_and_absence(keep_all):
+    molecule, trajectory, (first, _, third) = _coordination_trajectory()
+    source_coordinates = molecule.coordinates + 7
+    molecule.conformer_add(source_coordinates, 0.)
+    sources = molecule._source_frames
+    trajectory.materialize(molecule, keep_all=False)
+    previous = molecule._conformer_results
+    trajectory.materialize(molecule, keep_all=keep_all)
+    assert molecule._source_frames is sources
+    assert molecule._conformer_results[0] is previous[0]
+    assert len(molecule._conformer_results) == 2
+    np.testing.assert_array_equal(molecule.conformers[0]["coordinates"], source_coordinates)
+    assert molecule.conformers[0]["energy"] == 0.
+    batch = molecule._conformer_results[-1].payload.batch
+    expected_indices = tuple(range(len(trajectory))) if keep_all else (third.index,)
+    assert batch.ordinals == expected_indices
+    assert molecule._conformers_index == 2 + expected_indices.index(third.index)
+    assert molecule.energy == -13.
+    if keep_all:
+        assert molecule.conformers[2 + first.index]["energy"] is None
+        assert np.isnan(molecule.conformers[2:]["energy"][first.index])
+
+
+def test_materialize_failure_restores_exact_frame_owners_and_current_observation(monkeypatch):
+    from hotpot.cheminfo.structure import conformer
+    molecule, trajectory, _ = _coordination_trajectory()
+    molecule.conformer_add(molecule.coordinates + 4, 0.)
+    molecule.conformer_load(0)
+    before = (molecule._source_frames, molecule._conformer_results,
+              molecule._frame_result, molecule._conformers, molecule._conformers_index)
+    coordinates = molecule.coordinates.copy()
+    select = conformer._select_observations
+
+    def fail(owner, observations, row):
+        select(owner, observations, row)
+        raise KeyboardInterrupt("selected observation publication interrupted")
+
+    monkeypatch.setattr(conformer, "_select_observations", fail)
+    with pytest.raises(KeyboardInterrupt, match="publication interrupted"):
+        trajectory.materialize(molecule, keep_all=True)
+    assert molecule._source_frames is before[0]
+    assert molecule._conformer_results is before[1]
+    assert molecule._frame_result is before[2]
+    assert molecule._conformers is before[3]
+    assert molecule._conformers_index == before[4]
+    np.testing.assert_array_equal(molecule.coordinates, coordinates)
+    assert molecule.energy == 0.
+
+
 def test_empty_trajectory_materialization_keeps_existing_conformers():
     molecule = read_mol("CC", "smi")
     original_coordinates = molecule.coordinates.copy()

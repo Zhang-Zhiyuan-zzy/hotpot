@@ -2,7 +2,7 @@
 
 Status: **implementation authorized on 2026-10-28; Stage0–7C owning-stage gates complete
 within their recorded scopes, including the applicable CP311 Stage7B/7C delivery;
-Stage7D coordinate-frame ownership is next. Full scientific, engineering, version-adaptation and global
+Stage7D coordinate-frame ownership is complete within its applicable CP311 owning scope. Stage7E canonical stereo storage is next. Full scientific, engineering, version-adaptation and global
 acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
@@ -1903,7 +1903,7 @@ closes only applicable CP311 owning scope, combining both slices. Original
 failures, retained GFN-FF restart-read warnings, usable costs, package/native
 limits and later obligations remain in the
 [report](stages/stage07/selected-results/validation/partial-charges/report.md).
-Stage7D/E and global gates remain open; cross-stage limitations are indexed in
+Stage7D is accepted within its CP311 owning scope; Stage7E and global gates remain open. Cross-stage limitations are indexed in
 [deferred_issues.md](deferred_issues.md).
 
 Gate: exact per-mutation retain/mark/recompute table, MCA calculator/site tests,
@@ -1917,6 +1917,21 @@ Split explicit P1 source frames and generated P3 ensembles from the current
 coordinates owned only by the Atom table. Frame selection and final-output
 attachment form one complete transaction, with input provenance separate from
 final-frame validity; keep the reviewed conformer projection deterministic.
+
+The [F1–F7 route](stages/stage07/coordinate-frames/contracts/decisions.md) and
+[entry record](stages/stage07/coordinate-frames/entry_review.json) preserve existing
+public frame operations while splitting source values, generated batches and
+selected observations using only N16–N18 plus reused N15. Actual caller-owned
+standalone collections retain their domain; Molecule-bound Conformers is a
+projection. Known Gaussian zero-padding and lost source-frame publication are
+connected migration cases, not historical equality requirements. The
+[completion](stages/stage07/coordinate-frames/completion_20261103.json) accepts
+CP311 owning scope: affected source/installed each2105passed/1skipped, actual
+FF11/pipeline3/MCA1/attachment3 per boundary and usable bounded costs. The
+[report](stages/stage07/coordinate-frames/validation/report.md) preserves original
+failures, final Boolean-noop/cursor repairs, warnings and delivery limits. One
+factual native extension was rebuilt for the actual callback gap; five binaries
+were reused. Stage7E and later/global obligations remain open.
 
 Gate: source/generated role tests, seed behavior, load/clear invalidation,
 copy/component semantics, and existing conformer array-access parity.

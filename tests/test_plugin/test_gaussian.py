@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import shutil
+import warnings
 
 import numpy as np
 import pytest
@@ -46,3 +47,79 @@ def test_official_gaussian_single_point_uses_dynamic_files(tmp_path: Path) -> No
 
     assert not output.is_error
     assert np.isfinite(output.parse()["energy"])
+
+
+def test_existing_log_import_and_update_keep_scoped_observations_without_engine():
+    """The real log is a calculation artifact; no Gaussian executable is used."""
+    output = GaussOut.read_file(FIXTURE)
+    parsed = output.parse()
+    with warnings.catch_warnings(record=True) as findings:
+        warnings.simplefilter("always")
+        molecule = hp.read_mol(FIXTURE, "g16log")
+    assert molecule.conformers_number > 1
+    assert molecule.conformers[0]["partial_charge"] is None
+    np.testing.assert_array_equal(molecule.conformers[-1]["partial_charge"], parsed["partial_charge"])
+    np.testing.assert_array_equal(molecule.coordinates, parsed["coordinates"])
+    observations = molecule._source_frames[0].observations
+    from hotpot.cheminfo.structure._builder import _thaw_value
+    raw_forces = _thaw_value(observations.values[3])
+    np.testing.assert_array_equal(raw_forces, parsed["force"])
+    if len(raw_forces) != molecule.conformers_number:
+        assert molecule.conformers[-1]["force"] is None
+        assert any("frame_observation_unmapped field=force" in str(item.message)
+                   for item in findings)
+    sources = molecule._source_frames
+    output.update_mol(molecule)
+    assert molecule._source_frames is sources
+    assert molecule.energy == pytest.approx(parsed["energy"], abs=1.e-8)
+    assert molecule.gibbs == pytest.approx(parsed["gibbs"], abs=1.e-8)
+    assert molecule.zero_point == pytest.approx(parsed["zero_point"], abs=1.e-9)
+    assert molecule.capacity == pytest.approx(parsed["capacity"], rel=1.e-8)
+    np.testing.assert_array_equal(molecule.force, parsed["force"])
+    np.testing.assert_array_equal([atom.partial_charge for atom in molecule.atoms], parsed["partial_charge"])
+    assert not molecule._frame_result.invalidated_by
+    assert not molecule._partial_charge_result.invalidated_by
+    assert molecule._partial_charge_result.payload.method == "mulliken"
+    np.testing.assert_array_equal(molecule.mol_orbital_energies, parsed["mol_orbital_energies"])
+
+
+def test_gaussian_update_publishes_all_observations_after_geometry_and_declarations(monkeypatch):
+    from hotpot.cheminfo.structure import conformer, _results
+    molecule = hp.Molecule()
+    molecule.create_atom(atomic_number=6)
+    molecule.create_atom(atomic_number=8)
+    molecule.add_bond(0, 1, 1.)
+    coordinates = np.arange(6.).reshape(2, 3)
+    charges = np.zeros(2)
+    forces = np.ones((2, 2, 3))
+    attrs = {"atomic_number": np.array([6, 8]), "coordinates": coordinates,
+             "partial_charge": charges, "energy": 0., "gibbs": None,
+             "zero_point": 0., "spin": 1, "spin_mult": 1, "charge": 0,
+             "force": forces, "thermo": None, "capacity": 0.,
+             "mol_orbital_energies": np.array([[-1., 1.]])}
+    output = GaussOut("")
+    monkeypatch.setattr(output, "parse", lambda: dict(attrs))
+    events = []
+    select = conformer._select_frame_observations
+    import_charges = _results._import_partial_charges
+
+    def publish(owner, values, **kwargs):
+        np.testing.assert_array_equal(owner.coordinates, coordinates)
+        assert owner.charge == 0 and owner.spin_mult == 1
+        events.append("observations")
+        return select(owner, values, **kwargs)
+
+    def charges_after(owner, values, **kwargs):
+        assert owner.energy == 0. and owner.zero_point == 0.
+        events.append("charges")
+        return import_charges(owner, values, **kwargs)
+
+    monkeypatch.setattr(conformer, "_select_frame_observations", publish)
+    monkeypatch.setattr(_results, "_import_partial_charges", charges_after)
+    output.update_mol(molecule)
+    assert events == ["observations", "charges"]
+    assert molecule.energy == 0. and molecule.gibbs is None
+    assert molecule.capacity == 0.
+    np.testing.assert_array_equal(molecule.force, forces)
+    assert tuple(atom.partial_charge for atom in molecule.atoms) == (0., 0.)
+    assert not molecule._source_frames and not molecule._conformer_results

@@ -48,8 +48,8 @@ def test_ligand_rings_filters_metal_edges_without_mutating_molecule():
     original_ring_objects = tuple(molecule.rings)
     original_ring_members = tuple((ring.atoms, ring.bonds) for ring in original_ring_objects)
     original_ring_metal = tuple(ring.has_metal for ring in original_ring_objects)
-    original_conformer_array = molecule.conformers._coordinates
-    original_conformers = molecule.conformers._coordinates.copy()
+    original_source_frames = molecule._source_frames
+    original_conformers = molecule.conformer_get(slice(None))['coordinates'].copy()
 
     ligand_rings = molecule.ligand_rings
 
@@ -65,8 +65,8 @@ def test_ligand_rings_filters_metal_edges_without_mutating_molecule():
     assert tuple((ring.atoms, ring.bonds) for ring in original_ring_objects) == original_ring_members
     assert tuple(ring.has_metal for ring in original_ring_objects) == original_ring_metal
     assert not {'_rings', '_ring_indices_cache', '_ligand_rings', '_ligand_rings_signature'}.intersection(molecule.__dict__)
-    assert molecule.conformers._coordinates is original_conformer_array
-    np.testing.assert_array_equal(molecule.conformers._coordinates, original_conformers)
+    assert molecule._source_frames is original_source_frames
+    np.testing.assert_array_equal(molecule.conformer_get(slice(None))['coordinates'], original_conformers)
     assert molecule.bonds == list(original_bonds)
 
 

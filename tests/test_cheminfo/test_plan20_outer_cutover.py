@@ -178,16 +178,29 @@ def test_forcefield_preserves_heterogeneous_metadata_and_all_frame_values():
         np.arange(12.0).reshape(2, 2, 3), 4.5, np.int32(1),
         np.array([4.]), np.array([5., 6.]),
     )
-    working._install_frame_state(frames, -1)
+    from hotpot.cheminfo.structure.conformer import _import_frame_values
+    with pytest.warns(RuntimeWarning, match="frame_observation_unmapped field=thermo"):
+        _import_frame_values(working, frames, -1, producer="test-supplied")
     working_copy._commit_working_copy(mol, working, source=source)
     assert all(current is previous for current, previous in zip(mol.atoms, atoms))
     assert mol.bonds[0] is bond
     np.testing.assert_array_equal(mol._atom_table.presence(), expected_presence)
     np.testing.assert_array_equal(mol._atom_table.sources(), expected_sources)
-    observed, index = mol._capture_frame_state()
-    assert index == -1
-    for actual, expected in zip(observed, frames):
-        np.testing.assert_array_equal(actual, expected)
+    assert mol._conformers_index % mol.conformers_number == 1
+    assert len(mol._source_frames) == 2 and not mol._conformer_results
+    for index in range(2):
+        row = mol.conformers[index]
+        np.testing.assert_array_equal(row["coordinates"], frames[0][index])
+        assert row["energy"] == frames[1][index]
+        np.testing.assert_array_equal(row["partial_charge"], frames[2][index])
+        assert row["gibbs"] == 3.
+        np.testing.assert_array_equal(row["force"], frames[4][index])
+        assert row["zero_point"] == 4.5 and row["spin_mult"] == 1
+        assert row["capacity"] == frames[8][index]
+    # Its one supplied thermal value is retained, with no fabricated association
+    # to either of the two supplied geometries.
+    assert mol.conformers[0]["thermo"] is None
+    assert mol.conformers[1]["thermo"] is None
 
 
 def test_forcefield_interrupted_publication_restores_owner_metadata_frames_and_status(monkeypatch):
@@ -243,3 +256,84 @@ def test_native_selected_geometry_failure_preserves_complete_topology():
         apply_native_selected_structure(mol, session, result)
     assert mol.bonds == [bond]
     np.testing.assert_array_equal(mol.atom_matrix, previous)
+
+
+def _generated_working_frame(mol, energy):
+    from hotpot.cheminfo.forcefields.trajectory import (
+        ForceFieldTrajectory, TrajectoryStage, TrajectoryEvent,
+    )
+    trajectory = ForceFieldTrajectory.from_molecule(mol)
+    frame = trajectory.record_molecule(mol, stage=TrajectoryStage.FINAL_OPTIMIZATION,
+                                      event=TrajectoryEvent.TERMINAL, energy_kj_mol=energy)
+    trajectory.select(frame.index)
+    trajectory.materialize(mol, keep_all=False)
+
+
+@pytest.mark.parametrize("added_hydrogen", [False, True])
+def test_working_copy_publication_preserves_original_source_frames_and_prior_ensembles(added_hydrogen):
+    mol = _molecule()
+    source_coordinates = np.arange(6.).reshape(2, 3)
+    mol.conformer_add(source_coordinates, 0.)
+    mol.coordinates = source_coordinates + 1
+    _generated_working_frame(mol, -1.)
+    old_batch = mol._conformer_results[0].payload.batch
+    source = working_copy._capture_working_source(mol)
+    working = working_copy._hydrogenated_working_copy(mol, add_hydrogens=False, source=source)
+    assert not working._conformer_results
+    if added_hydrogen:
+        hydrogen = working.create_atom(atomic_number=1, coordinates=(3., 1., 0.))
+        working.add_bond(working.atoms[0], hydrogen)
+    working.coordinates = working.coordinates + 2
+    expected = working.coordinates.copy()
+    _generated_working_frame(working, -2.)
+    prepared = working_copy._prepare_working_copy_commit(mol, working, source)
+    historical, markers = prepared.record.conformer_results[0]
+    generated, current_markers = prepared.record.conformer_results[1]
+    np.testing.assert_array_equal(historical.batch.coordinates, old_batch.coordinates)
+    assert ("frame_representation" in markers) is added_hydrogen
+    assert not current_markers and generated.atom_uids == tuple(range(len(working.atoms)))
+    assert prepared.record.frame_selection[0] == 2
+    working_copy._commit_working_copy(mol, working, source=source)
+    assert len(mol._source_frames) == 1 and len(mol._conformer_results) == 2
+    frame = mol._source_frames[0]
+    assert frame.atom_uids == tuple(atom._uid for atom in mol.atoms[:2])
+    np.testing.assert_array_equal(frame.coordinates, source_coordinates)
+    np.testing.assert_array_equal(mol._conformer_results[0].payload.batch.coordinates, old_batch.coordinates)
+    np.testing.assert_array_equal(mol.coordinates, expected)
+    assert mol.energy == -2. and mol._conformers_index == 2
+    assert not mol._conformer_results[-1].invalidated_by
+    if added_hydrogen:
+        assert "frame_representation" in mol._conformer_results[0].invalidated_by
+        with pytest.raises(ValueError, match="frame_atom_mapping_incomplete"):
+            mol.conformer_load(0)
+    else:
+        mol.conformer_load(0)
+        np.testing.assert_array_equal(mol.coordinates, source_coordinates)
+        assert mol.energy == 0.
+
+
+def test_working_copy_publication_rollback_restores_existing_generated_attachment_identity(monkeypatch):
+    mol = _molecule()
+    mol.conformer_add(np.ones((2, 3)), 0.)
+    _generated_working_frame(mol, -1.)
+    source = working_copy._capture_working_source(mol)
+    working = working_copy._hydrogenated_working_copy(mol, add_hydrogens=False, source=source)
+    working.coordinates = working.coordinates + 2
+    _generated_working_frame(working, -2.)
+    before = (mol._source_frames, mol._conformer_results, mol._frame_result,
+              mol._conformers, mol._conformers_index)
+    coordinates = mol.coordinates.copy()
+    commit_stereo = _commit._commit_stereo
+
+    def fail(owner, source, payload):
+        commit_stereo(owner, source, payload)
+        raise RuntimeError("after complete frame publication")
+
+    monkeypatch.setattr(_commit, "_commit_stereo", fail)
+    with pytest.raises(RuntimeError, match="complete frame publication"):
+        working_copy._commit_working_copy(mol, working, source=source)
+    assert mol._source_frames is before[0] and mol._conformer_results is before[1]
+    assert mol._frame_result is before[2] and mol._conformers is before[3]
+    assert mol._conformers_index == before[4]
+    np.testing.assert_array_equal(mol.coordinates, coordinates)
+    assert mol.energy == -1.

@@ -101,7 +101,7 @@ def _obmol_record(obmol, initial, stereo_payload):
         bond_metadata=tuple(_freeze_value(attrs["bond_source_metadata"]) for _, attrs in entries),
         charge=(True, obmol.GetTotalCharge(), "openbabel"), cell=cell,
         stereo_payload=stereo_payload,
-        legacy_frame_values=(("none",),) * 9,
+        source_frames=(), conformer_results=(), frame_selection=(0, None),
         partial_charge_result=None,
     )
     return record

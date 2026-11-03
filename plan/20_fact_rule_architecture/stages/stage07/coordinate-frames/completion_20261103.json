@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7D",
+  "owner": "root",
+  "recorded_utc": "2026-11-03T09:42:47.830232+00:00",
+  "status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE",
+  "stage_gate_closed": true,
+  "global_gate_closed": false,
+  "effective_goal": "goal.md",
+  "goal_remains_active": true,
+  "accepted_scope": [
+    "Sole current Atom coordinates; canonical sourceN16/generatedN17/shared observationN18, array-free boundConformers and preserved public APIs.",
+    "Immutable values, absence/zero, stable selected member across insertion/copy, currentness, exact rollback and tagged-v4/Record25 lifecycle.",
+    "FF original/working-copy publication preserves sources/history; Gaussian missing/final-only/unmapped histories and complete current Mulliken publication; tmQM attribution.",
+    "Native effective Boolean constraint callback/noop/undo and exact CP311 fact-native rebuild; five other binaries reused.",
+    "Final affected CP311 source2105passed/1skipped and installed2105passed/1skipped, actualFF11/pipeline3/MCA1/attachment3 per boundary; bounded usable cost and zero-new-debt architecture evidence."
+  ],
+  "records": {
+    "checkpoint": "validation/checkpoint.json",
+    "report": "validation/report.md",
+    "scientific_observations": "validation/scientific_observations.json",
+    "evidence_index": "validation/evidence_index.json"
+  },
+  "remaining_obligations": [
+    "Stage7E canonical H/isotope/stereo storage beforeStage8.",
+    "Other planned Python versions, clean all-native/ABI/SDK/sdist/platform,41asset omissions, full default/science/GPU/global performance and remaining Plan20/Plan12 acceptance.",
+    "Official Gaussian engine tier unexecuted; final affected skip is requires --run-external, not a claim that the executable is absent."
+  ],
+  "deferred_disposition": "P20-D016 closed by actual Gaussian import/update ownership evidence; only D011-B4 addressed, D011-B1–B3 remain. D017 indexes accepted usable projection costs for consolidated optimization. Other obligations remain explicit.",
+  "next_stage": "Stage7E",
+  "next_stage_requires": "Root exact canonical-slot/source-only/unbound/rename and zero-new-type decisions before authoring; no H-scope normalization.",
+  "git_delivery": "One coherent validated business code/tests/records commit and push. Actual resulting identity is Git history/remote, not a self-referential hash-only follow-up."
+}

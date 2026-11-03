@@ -34,7 +34,7 @@ def _inputs():
         bond_directions=("wedge", None, "raw direction"), bond_sources=(None, "rdkit", "source"),
         bond_metadata=({}, None, {"raw": [1, (2, b"three")]}),
         charge=(True, 0, None), spin_mult=(False, None, None), cell=None,
-        stereo_payload=None, legacy_frame_values=(None,) * 9, legacy_frame_index=-1,
+        stereo_payload=None, source_frames=(), conformer_results=(), frame_selection=None,
         angle_constraints=((2, 0, 1),), torsion_constraints=((3, 2, 0, 1),),
         identifier=(False, None),
     )
@@ -80,7 +80,7 @@ def test_complete_record_preserves_raw_width_order_and_presence():
     assert marker == ()
     np.testing.assert_array_equal(np.frombuffer(record.bond_values, dtype="<f8").reshape(-1, 3), inputs["bond_values"])
     assert record.bond_endpoints == ((2, 0), (0, 1), (3, 2))
-    assert len(fields(record)) == 24
+    assert len(fields(record)) == 25
     assert record.atom_isotopes == ((0, None), (1, 0), (2, 13))
     assert record.atom_frac_valences == ((0, 1.75),)
     assert record.charge == (True, 0, None)
@@ -92,7 +92,9 @@ def test_complete_record_preserves_raw_width_order_and_presence():
     np.testing.assert_array_equal(np.frombuffer(record.atom_sources, dtype="u1").reshape(4, 19), expected_sources)
     assert record.angle_constraints == ((2, 0, 1),)
     assert record.torsion_constraints == ((3, 2, 0, 1),)
-    assert record.legacy_frame_index == -1
+    assert record.source_frames == ()
+    assert record.conformer_results == ()
+    assert record.frame_selection == (0, None)
     assert record.identifier == (False, None)
     assert _record(identifier=(True, None)).identifier == (True, None)
     assert not any("owner" in field.name or "uid" in field.name for field in fields(record))
@@ -140,18 +142,19 @@ def test_pickle_reconstructs_through_normal_constructor_and_deepcopy(protocol):
     assert deepcopy(record) is record
     restore, (record_type, version, values) = restored.__reduce__()
     assert restore is builder._restore_molecule_record
-    assert record_type is MoleculeRecord and version == 3
-    assert len(values) == 24
+    assert record_type is MoleculeRecord and version == 4
+    assert len(values) == 25
     with pytest.raises(ValueError):
         _atoms(restored).flags.writeable = True
 
 
-def test_nested_metadata_and_nine_legacy_slots_keep_types_shapes_and_dtypes():
+def test_nested_metadata_codec_keeps_types_shapes_and_dtypes():
     array = np.arange(12, dtype=">i2").reshape(3, 4)[:, ::-1]
     frames = (None, 0.0, np.array(0.0), np.float32(0), [1, (2,)],
               array, {"x": np.array([], dtype="<f4").reshape(0, 2)}, b"raw", "text")
-    record = _record(legacy_frame_values=frames)
-    decoded = tuple(map(_thaw_value, record.legacy_frame_values))
+    record = _record(bond_metadata=({"values": frames}, None, {}))
+    encoded = _thaw_value(record.bond_metadata[0])["values"]
+    decoded = encoded
     assert decoded[0] is None
     assert type(decoded[1]) is float
     assert type(decoded[2]) is np.ndarray and decoded[2].shape == ()
@@ -164,11 +167,12 @@ def test_nested_metadata_and_nine_legacy_slots_keep_types_shapes_and_dtypes():
     assert decoded[7:] == (b"raw", "text")
     decoded[4].append(9)
     decoded[5].shape = (12,)
-    assert len(_thaw_value(record.legacy_frame_values[4])) == 2
-    assert _thaw_value(record.legacy_frame_values[5]).shape == (3, 4)
-    assert _thaw_value(record.legacy_frame_values[5]) is not _thaw_value(record.legacy_frame_values[5])
+    fresh = _thaw_value(record.bond_metadata[0])["values"]
+    assert len(fresh[4]) == 2
+    assert fresh[5].shape == (3, 4)
+    assert fresh[5] is not _thaw_value(record.bond_metadata[0])["values"][5]
     frames[5][:] = -1
-    assert _thaw_value(record.legacy_frame_values[5]).tobytes() != frames[5].tobytes()
+    assert fresh[5].tobytes() != frames[5].tobytes()
 
 
 def test_bond_metadata_none_empty_mapping_and_nested_containers_remain_distinct():
@@ -266,8 +270,9 @@ def test_codec_rejects_opaque_and_nonlossless_dtype_values(value):
     {"atom_isotopes": ((0, 1), (0, 2))}, {"atom_frac_valences": ((4, 1.5),)},
     {"atom_frac_valences": ((0, 1.5), (0, 2.5))},
     {"charge": (False, 0, None)}, {"spin_mult": (True, 1, [])},
-    {"cell": (1, 2, 3)}, {"legacy_frame_values": (None,) * 8},
-    {"legacy_frame_index": None}, {"angle_constraints": ((0, 1),)},
+    {"cell": (1, 2, 3)}, {"source_frames": (None,)},
+    {"frame_selection": (None,)}, {"conformer_results": (None,)},
+    {"angle_constraints": ((0, 1),)},
     {"torsion_constraints": ((0, 1, 2, 4),)}, {"identifier": (False, "x")},
 ])
 def test_bad_import_is_rejected_without_mutating_inputs(changes):
@@ -283,7 +288,7 @@ def test_bad_import_is_rejected_without_mutating_inputs(changes):
 @pytest.mark.parametrize("changes", [
     {"atom_values": b"bad"}, {"atom_presence": b"bad"}, {"atom_sources": bytes([255]) * 76},
     {"bond_values": b"bad"}, {"bond_metadata": (("opaque", 1),) * 3},
-    {"legacy_frame_values": (("ndarray", "<i8", (2,), b""),) * 9},
+    {"source_frames": (("ndarray", "<i8", (2,), b""),)},
 ])
 def test_canonical_constructor_revalidates_buffers_and_encoded_values(changes):
     record = _record()
@@ -386,7 +391,8 @@ def test_stereo_schema_acceptance_does_not_interpret_scientific_members():
 def test_canonical_array_header_must_be_decodable_at_constructor_and_thaw(shape, data):
     encoded = ("ndarray", "<f8", shape, data)
     with pytest.raises((TypeError, ValueError, OverflowError)):
-        replace(_record(), legacy_frame_values=(encoded,) + (_freeze_value(None),) * 8)
+        replace(_record(), bond_metadata=(("dict", ((("str", "raw"), encoded),)),
+                                           _freeze_value(None), _freeze_value(None)))
     with pytest.raises((TypeError, ValueError, OverflowError)):
         _thaw_value(encoded)
 
@@ -463,14 +469,21 @@ def test_factual_installer_preserves_all_nine_frame_domains_and_selection():
     frames = (np.arange(24.).reshape(2, 4, 3), np.array([3., 4.]),
               np.arange(8.).reshape(2, 4), 1.25, np.arange(24.).reshape(2, 4, 3),
               np.float32(0.5), 3, np.array(0.75), None)
-    mol = Molecule._build_molecule(_record(legacy_frame_values=frames, legacy_frame_index=-1))
+    from hotpot.cheminfo.structure.conformer import _frame_records_from_values
+    sources, ensembles, selection = _frame_records_from_values(
+        tuple(range(4)), frames, -1, producer=0)
+    mol = Molecule._build_molecule(_record(
+        source_frames=sources, conformer_results=ensembles, frame_selection=selection))
     assert mol._conformers_index == -1
+    selected = mol.conformer_get(-1)
     for name, expected in zip(mol.conformers._attrs, frames):
-        observed = getattr(mol.conformers, '_' + name)
+        observed = selected[name]
         if expected is None:
             assert observed is None
         else:
-            np.testing.assert_array_equal(observed, expected)
+            array = np.asarray(expected)
+            expected_row = array[-1] if array.ndim and len(array) == 2 else expected
+            np.testing.assert_array_equal(observed, expected_row)
             if isinstance(expected, np.ndarray):
                 assert not np.shares_memory(observed, expected)
 
@@ -517,10 +530,10 @@ def test_current_record_constructor_and_reducer_have_an_explicit_schema_boundary
     with pytest.raises(TypeError):
         MoleculeRecord(*values)
     for version, payload in ((0, values), (1, values), (2, values), (2, values[:-1]),
-                             (3, values[:-1]), (3, values + ((),))):
+                             (3, values), (4, values[:-1]), (4, values + ((),))):
         with pytest.raises(ValueError):
             builder._restore_molecule_record(MoleculeRecord, version, payload)
-    restored = builder._restore_molecule_record(MoleculeRecord, 3, values)
+    restored = builder._restore_molecule_record(MoleculeRecord, 4, values)
     assert restored is not record
     for field in fields(record):
         assert getattr(restored, field.name) == getattr(record, field.name)

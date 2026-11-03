@@ -3,10 +3,10 @@
 from dataclasses import replace
 import io
 import re
+import warnings
 import cython
 import numpy as np
 
-from ....structure._builder import _freeze_value
 from ....structure._fields import ATOM_SOURCE_CODES, FIELD_PRESENCE_BITS
 
 
@@ -112,16 +112,37 @@ def _read_cclib(src, src_type, fmt):
     return data
 
 
+def _cclib_frame_indices(frames, coordinate_count, atom_count):
+    """Associate only observations whose supplied scope identifies a frame."""
+    names = ("energy", "partial_charge", "gibbs", "force", "zero_point",
+             "spin_mult", "thermo", "capacity")
+    selectors = {}
+    for name, value in zip(names, frames[1:]):
+        if value is None:
+            rows = (None,) * coordinate_count
+        elif np.ndim(value) == 0:
+            rows = ("whole",) * coordinate_count
+        elif name == "partial_charge" and np.shape(value) == (atom_count,):
+            rows = (None,) * (coordinate_count - 1) + ("whole",)
+        elif len(value) == coordinate_count:
+            rows = tuple(range(coordinate_count))
+        else:
+            rows = (None,) * coordinate_count
+            if len(value):
+                warnings.warn(
+                    f"frame_observation_unmapped field={name} "
+                    f"coordinates={coordinate_count} observations={len(value)}",
+                    RuntimeWarning, stacklevel=3,
+                )
+        selectors[name] = rows
+    return selectors
+
+
 def _cclib_record(data, src, src_type, initial):
     coordinates = np.array(data.atomcoords, copy=True) if hasattr(data, 'atomcoords') else None
     energies = np.array(data.scfenergies, copy=True) if hasattr(data, 'scfenergies') else None
-    partial_charges = None
-    if hasattr(data, "atomcharges"):
-        if data.atomcharges['mulliken'].ndim == 1:
-            partial_charges = np.zeros(data.atomcoords.shape[:-1])
-            partial_charges[-1] = data.atomcharges['mulliken']
-        else:
-            partial_charges = np.array(data.atomcharges['mulliken'], copy=True)
+    partial_charges = (np.array(data.atomcharges["mulliken"], copy=True)
+                       if "mulliken" in getattr(data, "atomcharges", {}) else None)
     gibbs = getattr(data, 'freeenergy', None)
     zero_point = getattr(data, 'zpve', None)
     if gibbs is not None:
@@ -137,6 +158,18 @@ def _cclib_record(data, src, src_type, initial):
     forces = _extract_force_matrix(lines, data.atomnos)
     frames = (coordinates, energies, partial_charges, gibbs, forces,
               zero_point, data.mult, thermo, capacity)
+    from ....structure.conformer import _frame_records_from_values
+
+    frame_indices = _cclib_frame_indices(frames, len(coordinates), len(data.atomnos))
+    source_frames, conformer_results, frame_selection = _frame_records_from_values(
+        tuple(range(len(data.atomnos))), frames, -1,
+        producer="cclib", method="Gaussian/cclib",
+        units=(("coordinates", "angstrom"), ("energy", "eV"),
+               ("partial_charge", "e"), ("gibbs", "eV"),
+               ("force", "Hartree/Bohr"), ("zero_point", "eV"),
+               ("thermo", "eV"), ("capacity", "eV/K")),
+        frame_indices=frame_indices,
+    )
     values = np.zeros((len(data.atomnos), 19), dtype="<f8")
     values[:, 0] = data.atomnos
     # The same selected last frame formerly loaded by conformer_load(-1).
@@ -149,7 +182,8 @@ def _cclib_record(data, src, src_type, initial):
         atom_presence=presence.tobytes(), atom_sources=sources.tobytes(),
         partial_charge_result=None,
         charge=(True, data.charge, "cclib"), spin_mult=(True, data.mult, "cclib"),
-        legacy_frame_values=tuple(_freeze_value(value) for value in frames), legacy_frame_index=-1,
+        source_frames=source_frames, conformer_results=conformer_results,
+        frame_selection=frame_selection,
     )
     return record
 

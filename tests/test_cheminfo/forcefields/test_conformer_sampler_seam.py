@@ -589,3 +589,102 @@ def test_ligand_coordinates_follow_members_with_duplicate_public_ids(monkeypatch
     np.testing.assert_array_equal(molecule.coordinates, before)
     assert tuple(atom.id for atom in molecule.atoms) == (17, 17, 17, 17)
     assert diagnostics.accepted_candidates == 2
+
+
+def test_finalize_threads_actual_input_source_method_and_known_seed_after_archive(monkeypatch, tmp_path):
+    from hotpot.cheminfo.forcefields.trajectory import (
+        ForceFieldTrajectory, ForceFieldTrajectoryArchive, TrajectoryStage, TrajectoryEvent,
+    )
+    from hotpot.cheminfo.forcefields.working_copy import _capture_working_source
+    from hotpot.cheminfo.structure._builder import _thaw_value
+
+    mol = read_mol("CC", "smi")
+    source = _capture_working_source(mol)[0]
+    trajectory = ForceFieldTrajectory.from_molecule(mol)
+    selected = trajectory.record_molecule(mol, stage=TrajectoryStage.FINAL_OPTIMIZATION,
+                                         event=TrajectoryEvent.TERMINAL, energy_kj_mol=0.)
+    trajectory.select(selected.index)
+    events = []
+    archive_path = tmp_path / "archive"
+    write = ForceFieldTrajectoryArchive.write
+    materialize = trajectory._materialize
+    parameters = (("forcefield", "UFF"), ("seed", 19), ("epochs", 3))
+
+    def written(archive, path):
+        events.append("archive")
+        return write(archive, path)
+
+    def publish(owner, **kwargs):
+        events.append("publication")
+        assert kwargs["input_source"] is source
+        assert kwargs["method"] == "forcefield.optimize"
+        assert kwargs["parameters"] == parameters
+        return materialize(owner, **kwargs)
+
+    monkeypatch.setattr(ForceFieldTrajectoryArchive, "write", written)
+    monkeypatch.setattr(trajectory, "_materialize", publish)
+    workflows._finalize_trajectory(
+        mol, trajectory, save_movie=False, trajectory_path=archive_path,
+        input_source=source, method="forcefield.optimize", parameters=parameters,
+    )
+    assert events == ["archive", "publication"]
+    generated = mol._conformer_results[-1].payload
+    assert generated.input_source is source
+    assert dict(_thaw_value(generated.observations.parameters))["seed"] == 19
+    assert mol.energy == 0.
+
+
+def test_auto_native_fast_finalization_retains_actual_input_seed_and_effective_options(monkeypatch):
+    from copy import copy
+    from hotpot.cheminfo.forcefields import auto as auto_workflow
+    from hotpot.cheminfo.forcefields.contracts import (
+        ForceFieldRunReport, OptimizationAttemptReport, OptimizationAttemptStatus,
+        OptimizationRoute, OptimizationStoppingCriteria, ConvergenceLevel,
+    )
+
+    mol = read_mol("[Eu]N", "smi")
+    source = auto_workflow._capture_working_source(mol)
+    report = ForceFieldRunReport(
+        requested_forcefield=None, effective_forcefield="UFF", setup_succeeded=True,
+        converged=True, epochs_completed=1, steps_submitted=7, initialization_steps=0,
+        steps_completed=None, final_energy=0., best_energy=0., energy_unit="kJ/mol",
+        rms_gradient=0., max_gradient=0., exploded=False,
+    )
+    attempt = auto_workflow._NativeFastBuildAttempt(
+        mol=copy(mol), trajectory=object(), report=report,
+        provenance=OptimizationAttemptReport(route=OptimizationRoute.NATIVE_FAST,
+                                            status=OptimizationAttemptStatus.ACCEPTED),
+        source=source,
+    )
+    observed = {}
+    archive = object()
+    stopping = OptimizationStoppingCriteria(window=7)
+
+    def run(owner, forcefield, **options):
+        observed["run"] = options
+        return attempt
+
+    def finalize(owner, trajectory, **options):
+        assert owner is attempt.mol and trajectory is attempt.trajectory
+        observed["finalize"] = options
+        return archive
+
+    monkeypatch.setattr(auto_workflow, "_run_native_fast_build_attempt", run)
+    monkeypatch.setattr(auto_workflow, "_finalize_trajectory", finalize)
+    monkeypatch.setattr(auto_workflow, "_commit_working_copy", lambda *args, **kwargs: None)
+    result = auto_workflow.auto_optimize(
+        mol, seed=19, epochs=3, steps_per_epoch=7, perturb_interval=2,
+        stopping_criteria=stopping, convergence_level=ConvergenceLevel.STRICT,
+    )
+    assert result.trajectory is archive
+    assert observed["run"]["seed"] == 19
+    finalization = observed["finalize"]
+    assert finalization["input_source"] is source[0]
+    assert finalization["method"] == "forcefield.auto_optimize.native_fast"
+    parameters = dict(finalization["parameters"])
+    assert parameters["forcefield"] == "UFF" and parameters["seed"] == 19
+    assert parameters["epochs"] == 3 and parameters["steps_per_epoch"] == 7
+    assert parameters["perturb_interval"] == 2
+    assert parameters["stopping_criteria"]["window"] == 7
+    assert parameters["convergence_level"] == int(ConvergenceLevel.FAST)
+    assert parameters["build_method"] == "hotpot.cheminfo.obWrappers.build"

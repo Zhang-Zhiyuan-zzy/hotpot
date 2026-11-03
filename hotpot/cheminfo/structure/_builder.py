@@ -213,6 +213,60 @@ def _stereo(payload):
     return copy_value(payload, StereoPayload)
 
 
+def _frame_records(source_frames, conformer_results, frame_selection, count):
+    """Validate the closed frame transport and preserve shared observations."""
+    from .conformer import CoordinateFrame, ConformerEnsembleResult, EnergyForceResult
+
+    observations = {}
+
+    def subjects(uids):
+        if any(uid < 0 or uid >= count for uid in uids):
+            raise ValueError("Frame subjects require canonical Atom rows")
+        return uids
+
+    def observation(value):
+        if value is None:
+            return None
+        if type(value) is not EnergyForceResult:
+            raise TypeError("Frame observations require EnergyForceResult")
+        key = id(value)
+        if key not in observations:
+            subjects(value.atom_uids)
+            observations[key] = EnergyForceResult(
+                value.atom_uids, value.values, value.frame_indices, value.method,
+                value.method_version, value.parameters, value.units, value.provenance)
+        return observations[key]
+
+    sources = []
+    for frame in source_frames:
+        if type(frame) is not CoordinateFrame:
+            raise TypeError("Source frame transport requires CoordinateFrame values")
+        sources.append(CoordinateFrame(subjects(frame.atom_uids), frame.coordinates,
+            observation(frame.observations), frame.observation_index, frame.provenance))
+    generated = []
+    for entry in conformer_results:
+        payload, marker = entry
+        if type(payload) is not ConformerEnsembleResult:
+            raise TypeError("Generated frame transport requires ConformerEnsembleResult values")
+        marker = tuple(marker)
+        if any(domain not in ("frame_representation", "cell", "constraints") for domain in marker):
+            raise ValueError("Generated frames require finite applicability markers")
+        generated.append((ConformerEnsembleResult(subjects(payload.atom_uids), payload.batch,
+            observation(payload.observations), payload.input_source), marker))
+    cursor, selected = (0, None) if frame_selection is None else frame_selection
+    cursor = operator.index(cursor)
+    if selected is not None:
+        (payload, row), marker = selected
+        payload = observation(payload)
+        row, marker = operator.index(row), tuple(marker)
+        if payload is None or not 0 <= row < len(payload.frame_indices):
+            raise ValueError("Selected frame observations require an existing observation row")
+        if any(domain not in ("frame_representation", "geometry", "cell", "constraints") for domain in marker):
+            raise ValueError("Selected frame observations require finite applicability markers")
+        selected = ((payload, row), marker)
+    return tuple(sources), tuple(generated), (cursor, selected)
+
+
 @dataclass(frozen=True, eq=False, kw_only=True)
 class MoleculeRecord:
     atom_count: int
@@ -231,8 +285,9 @@ class MoleculeRecord:
     spin_mult: tuple
     cell: tuple | None
     stereo_payload: StereoPayload | None
-    legacy_frame_values: tuple
-    legacy_frame_index: int
+    source_frames: tuple
+    conformer_results: tuple
+    frame_selection: tuple | None
     angle_constraints: tuple
     torsion_constraints: tuple
     identifier: tuple
@@ -295,9 +350,8 @@ class MoleculeRecord:
             raise ValueError("Bond import contains an undeclared kind")
         if any(value is not None and type(value) is not str for value in (*directions, *bond_sources)):
             raise TypeError("Bond direction and source must be strings or None")
-        frames = tuple(map(_canonical_value, self.legacy_frame_values))
-        if len(frames) != 9:
-            raise ValueError("Legacy frame import requires all nine Conformers slots")
+        source_frames, conformer_results, frame_selection = _frame_records(
+            self.source_frames, self.conformer_results, self.frame_selection, count)
         cell = None if self.cell is None else tuple(map(float, self.cell))
         if cell is not None and len(cell) != 6:
             raise ValueError("Cell import requires six parameters")
@@ -313,8 +367,8 @@ class MoleculeRecord:
             bond_endpoints=endpoints, bond_values=bond_values,
             bond_kinds=kinds, bond_directions=directions, bond_sources=bond_sources,
             bond_metadata=metadata, charge=_declared(self.charge), spin_mult=_declared(self.spin_mult),
-            cell=cell, stereo_payload=_stereo(self.stereo_payload), legacy_frame_values=frames,
-            legacy_frame_index=operator.index(self.legacy_frame_index),
+            cell=cell, stereo_payload=_stereo(self.stereo_payload), source_frames=source_frames,
+            conformer_results=conformer_results, frame_selection=frame_selection,
             angle_constraints=_rows(self.angle_constraints, 3, count),
             torsion_constraints=_rows(self.torsion_constraints, 4, count), identifier=identifier,
             pair_wiberg_bond_orders=_pair_values(self.pair_wiberg_bond_orders, count),
@@ -325,7 +379,7 @@ class MoleculeRecord:
 
     def __reduce__(self):
         return _restore_molecule_record, (
-            type(self), 3, tuple(getattr(self, field.name) for field in fields(self)),
+            type(self), 4, tuple(getattr(self, field.name) for field in fields(self)),
         )
 
     def __deepcopy__(self, memo):
@@ -333,16 +387,16 @@ class MoleculeRecord:
 
 
 def _restore_molecule_record(record_type, schema_version, field_values):
-    if schema_version != 3 or len(field_values) != 24:
-        raise ValueError("MoleculeRecord pickle requires schema version 3 and 24 fields")
+    if schema_version != 4 or len(field_values) != 25:
+        raise ValueError("MoleculeRecord pickle requires schema version 4 and 25 fields")
     return record_type(**dict(zip((field.name for field in fields(MoleculeRecord)), field_values)))
 
 
 def _make_molecule_record(*, atom_values, atom_presence, atom_sources, atom_isotopes,
                           atom_frac_valences, bond_endpoints, bond_values,
                           bond_kinds, bond_directions, bond_sources, bond_metadata, charge,
-                          spin_mult, cell, stereo_payload, legacy_frame_values,
-                          legacy_frame_index, angle_constraints, torsion_constraints, identifier,
+                          spin_mult, cell, stereo_payload, source_frames,
+                          conformer_results, frame_selection, angle_constraints, torsion_constraints, identifier,
                           pair_wiberg_bond_orders=(), bond_aromatic=(), partial_charge_result=None):
     """Encode one complete supplied import without chemistry or owner mutation."""
     values = np.asarray(atom_values, dtype="<f8")
@@ -369,8 +423,8 @@ def _make_molecule_record(*, atom_values, atom_presence, atom_sources, atom_isot
         bond_directions=bond_directions, bond_sources=bond_sources,
         bond_metadata=tuple(map(_freeze_value, bond_metadata)), charge=charge, spin_mult=spin_mult,
         cell=cell, stereo_payload=stereo_payload,
-        legacy_frame_values=tuple(map(_freeze_value, legacy_frame_values)),
-        legacy_frame_index=legacy_frame_index, angle_constraints=angle_constraints,
+        source_frames=source_frames, conformer_results=conformer_results,
+        frame_selection=frame_selection, angle_constraints=angle_constraints,
         torsion_constraints=torsion_constraints, identifier=identifier,
         pair_wiberg_bond_orders=pair_wiberg_bond_orders, bond_aromatic=bond_aromatic,
         partial_charge_result=partial_charge_result,

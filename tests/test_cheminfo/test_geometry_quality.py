@@ -494,7 +494,8 @@ def test_acceptance_evaluation_does_not_change_structure_or_conformers():
     coordinates = molecule.coordinates.copy()
     bonds = tuple(molecule.bonds)
     link_matrix = molecule.link_matrix.copy()
-    conformers = molecule.conformers._coordinates.copy()
+    source_frames = molecule._source_frames
+    conformers = molecule.conformer_get(slice(None))['coordinates'].copy()
     held_rings = molecule.rings
     held_members = tuple((ring.atoms, ring.bonds) for ring in held_rings)
 
@@ -503,7 +504,8 @@ def test_acceptance_evaluation_does_not_change_structure_or_conformers():
     np.testing.assert_array_equal(molecule.coordinates, coordinates)
     assert tuple(molecule.bonds) == bonds
     np.testing.assert_array_equal(molecule.link_matrix, link_matrix)
-    np.testing.assert_array_equal(molecule.conformers._coordinates, conformers)
+    assert molecule._source_frames is source_frames
+    np.testing.assert_array_equal(molecule.conformer_get(slice(None))['coordinates'], conformers)
     assert tuple((ring.atoms, ring.bonds) for ring in held_rings) == held_members
     assert all(ring.geometry_cycle for ring in held_rings)
     assert not {'_rings', '_ring_indices_cache', '_ligand_rings', '_ligand_rings_signature'}.intersection(molecule.__dict__)

@@ -341,17 +341,24 @@ def test_exact_snapshot_and_relocated_class_rosters_have_no_extra_owner_types():
     )
 
 
-def test_owner_only_capture_and_guard_do_not_wait_for_conformer_lock():
+def test_owner_only_capture_and_guard_skip_bound_conformer_view(monkeypatch):
     mol = _stereo_molecule()
+    assert mol._conformers._mutation_lock is mol._mutation_lock
+
+    def forbidden_conformer_access(view, name):
+        raise AssertionError(f"owner-only stereo capture accessed conformer {name}")
+
+    monkeypatch.setattr(type(mol._conformers), "__getattribute__", forbidden_conformer_access)
 
     def capture_and_check():
         capture = stereo_operations._capture_stereo_owner(mol)
+        assert capture[1].owner is mol._owner_token
         with stereo_operations._stereo_owner_scope(mol):
+            assert mol._mutation_lock._is_owned()
             stereo_adapter._check_stereo_capture(mol, capture)
         return capture[1].dependencies
 
-    with _held_lock(mol._conformers._mutation_lock):
-        assert _finish_thread(_start_thread(capture_and_check)) == ()
+    assert _finish_thread(_start_thread(capture_and_check)) == ()
 
 
 def test_exact_predecessor_target_packing_and_real_native_mapping():

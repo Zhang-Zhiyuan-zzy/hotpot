@@ -103,6 +103,7 @@ def _ring_views(mol, cls, *, ligand_skeleton=False, max_size=None,
 
 def _project_molecule(mol, molecule_type, *, selection, rows=None):
     from ..structure._commit import _commit_topology
+    from ..structure.conformer import _copy_source_frames
     from ..structure._dependencies import _mark_topology_dirty, _remap_dependency_state
     from ..structure._identity import _capture_source
     from ..structure._selection import _selected_bonds
@@ -131,6 +132,8 @@ def _project_molecule(mol, molecule_type, *, selection, rows=None):
     if excluded_rows:
         _mark_topology_dirty(projected, tuple(projected._atoms[row]._uid
                                              for row in excluded_rows))
+    with mol._mutation_lock:
+        _copy_source_frames(mol, projected, rows=rows)
     return projected
 
 

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "entry": "checkpoint.json",
+  "edges": {
+    "checkpoint": [
+      "source_runs",
+      "installed",
+      "failure_disposition",
+      "cost",
+      "architecture",
+      "archive_index"
+    ],
+    "business_observations": [
+      "pipelines.source",
+      "pipelines.installed",
+      "MCA",
+      "Gaussian"
+    ],
+    "immutable_raw_artifacts": "archive_index.files gives original/archive paths, bytes and SHA256; exact commands/interpreters/environments and dependencies are in execution receipts."
+  },
+  "scientific_observations": "scientific_observations.json",
+  "archive_index": {
+    "path": ".plan20-artifacts/20261103/stage7d/coordinate-frames/index.json",
+    "bytes": 533673,
+    "sha256": "b408549b89304c408b84d0d0f5ecef451b2ba0e260ac20d46136f979ef987340"
+  },
+  "on_demand": "Read conclusion/report first, then the relevant graph branch. Full environments/model/native/wheel binaries and whole pytest trees are excluded."
+}

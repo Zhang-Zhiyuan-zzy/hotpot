@@ -628,8 +628,16 @@ void prepare_undo(Undo &undo, py::handle table, const Rows &rows,
                                             : PyBytes_AS_STRING(column.values.ptr());
         if (field.constraint >= 0) {
             const std::size_t axis = static_cast<std::size_t>(field.constraint);
+            bool changed = false;
             for (std::size_t r = 0; r < rows.size(); ++r) {
                 auto *output = reinterpret_cast<std::uint8_t *>(PyBytes_AS_STRING(undo.constraint_after[r].ptr()));
+                double before_value, after_value;
+                std::memcpy(&before_value, PyBytes_AS_STRING(undo.constraint_before[r].ptr())
+                                              + axis * sizeof(double), sizeof(before_value));
+                std::memcpy(&after_value, input + r * sizeof(double), sizeof(after_value));
+                // Applicability subscribes to the effective Boolean constraint,
+                // independently of its retained raw bits, presence and producer.
+                changed |= (before_value != 0.0) != (after_value != 0.0);
                 std::uint64_t bits;
                 std::memcpy(&bits, input + r * sizeof(double), sizeof(bits));
                 for (std::size_t byte = 0; byte < sizeof(bits); ++byte)
@@ -638,6 +646,7 @@ void prepare_undo(Undo &undo, py::handle table, const Rows &rows,
                 output[mask_offset] = column.present ? output[mask_offset] | mask : output[mask_offset] & ~mask;
                 output[source_offset + axis] = static_cast<std::uint8_t>(column.producer);
             }
+            if (changed) changed_fields.push_back(column.index);
         } else {
             auto values = array(PyTuple_GET_ITEM(undo.owners[0].ptr(), column.index), 'f', 8, 1, true);
             auto sources = py::reinterpret_borrow<py::array>(undo.owners[1]);
@@ -663,14 +672,17 @@ void prepare_undo(Undo &undo, py::handle table, const Rows &rows,
         affected |= field.affected_mask;
         materialized |= field.materialized_mask;
     }
-    if (!dependencies || !(affected | materialized)) return;
-    if (mol && changed_fields.size) {
+    if (dependencies && mol && changed_fields.size) {
         py::object md = dictionary(mol);
         bool selected = false;
         for (py::handle attribute : py::reinterpret_borrow<py::tuple>(config->result_attributes)) {
             PyObject *attachment = PyDict_GetItemWithError(md.ptr(), attribute.ptr());
             if (!attachment && PyErr_Occurred()) python_error();
-            if (attachment && attachment != Py_None) { selected = true; break; }
+            if (attachment && attachment != Py_None
+                && !(PyTuple_CheckExact(attachment) && PyTuple_GET_SIZE(attachment) == 0)) {
+                selected = true;
+                break;
+            }
         }
         if (selected) {
             // This bound private hook prepares immutable metadata only. It also
@@ -684,6 +696,7 @@ void prepare_undo(Undo &undo, py::handle table, const Rows &rows,
                 undo.result_updates.push_back(py::reinterpret_borrow<py::object>(update));
         }
     }
+    if (!dependencies || !(affected | materialized)) return;
     undo.owners[3] = get(table, Name::Status);
     undo.owners[4] = get(table, Name::Seeds);
     undo.owners[5] = py::reinterpret_borrow<py::object>(uids);

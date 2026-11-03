@@ -140,6 +140,7 @@ def _hydrogenate_ligand_projection(
     columns = ("bond_endpoints", "bond_kinds", "bond_directions", "bond_sources",
                "bond_metadata", "bond_aromatic")
     record = replace(projected_record,
+        source_frames=original_record.source_frames,
         bond_values=b"".join(record.bond_values[row * 24:(row + 1) * 24]
                              for record, _, row in bond_rows),
         **{name: tuple(getattr(record, name)[row] for record, _, row in bond_rows)
@@ -259,6 +260,26 @@ def _prepare_working_copy_commit(
     bond_bindings = original_bonds + (None,) * (len(working_bonds) - len(original_bonds))
 
     record, metadata = working_mol._capture_factual_record()
+    original_record = original_mol._capture_factual_record()[0]
+    # The retained Atom prefix gives both records the same canonical source rows.
+    # Whole-copy deliberately drops generated history; accepted publication
+    # restores that history ahead of the newly generated working-copy batches.
+    previous_results = original_record.conformer_results
+    if len(working_atoms) != original_count:
+        previous_results = tuple(
+            (payload, marker + (() if "frame_representation" in marker
+                                else ("frame_representation",)))
+            for payload, marker in previous_results)
+    sources = (original_record.source_frames
+               + record.source_frames[len(original_record.source_frames):])
+    cursor, selected = (0, None) if record.frame_selection is None else record.frame_selection
+    if cursor >= len(record.source_frames) and record.conformer_results:
+        cursor += (len(sources) - len(record.source_frames)
+                   + sum(len(payload.batch.coordinates) for payload, _ in previous_results))
+    record = replace(record, source_frames=sources,
+                     conformer_results=previous_results + record.conformer_results,
+                     frame_selection=(cursor, selected) if sources or previous_results
+                     or record.conformer_results or selected is not None else None)
     final_uids = tuple(atom._uid for atom in original_atoms) + tuple(range(
         original_mol._next_atom_uid,
         original_mol._next_atom_uid + len(working_atoms) - original_count,

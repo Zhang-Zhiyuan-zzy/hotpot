@@ -97,24 +97,23 @@ def test_empty_preconfigured_target_preserves_cell_spin_identifier_and_clears_al
     target.identifier = 'existing'
     payload = StereoPayload(1, (), (), ())
     target._stereo_payload = payload
-    for index, name in enumerate(target.conformers._attrs):
-        setattr(target.conformers, '_' + name, np.array([index + 1]))
-    target._conformers_index = 0
+    target.conformer_add(np.empty((0, 3)), 1.)
     convert(source(), target)
     assert tuple(getattr(target.crystal, name) for name in ('a', 'b', 'c', 'alpha', 'beta', 'gamma')) == (5, 6, 7, 90, 90, 90)
     assert target.spin_mult == 3 and target.identifier == 'existing'
-    assert all(getattr(target.conformers, '_' + name) is None for name in target.conformers._attrs)
+    assert not target._source_frames and not target._conformer_results
+    assert target._frame_result is None
     assert (target._stereo_payload is payload) is keeps_stereo
 
 
 def test_failed_decoder_install_restores_preconfigured_empty_target(monkeypatch):
     target = Molecule()
     target.charge = 5
-    original = Molecule._install_frame_state
-    def fail(self, values, index):
-        original(self, values, index)
+    original = core._install_frame_records
+    def fail(mol, *records):
+        original(mol, *records)
         raise RuntimeError('frame publication')
-    monkeypatch.setattr(Molecule, '_install_frame_state', fail)
+    monkeypatch.setattr(core, '_install_frame_records', fail)
     with pytest.raises(RuntimeError, match='frame publication'):
         conversion.from_rdmol(Chem.MolFromSmiles('CO'), target)
     assert not target.atoms and not target.bonds and target.charge == 5
@@ -140,10 +139,10 @@ def test_cclib_prepares_all_nine_frames_units_and_last_coordinates_before_scienc
             events.append(name)
             assert mol._charge_present and mol._charge_source == 'cclib'
             assert mol._spin_present and mol.spin_mult == 3
-            assert mol._conformers_index == -1
+            assert mol._conformers_index % mol.conformers_number == 1
             np.testing.assert_array_equal(mol.coordinates, coordinates[-1])
-            np.testing.assert_array_equal(mol.conformers._coordinates, coordinates)
-            np.testing.assert_array_equal(mol.conformers._force, forces)
+            np.testing.assert_array_equal(mol.conformers[:]["coordinates"], coordinates)
+            np.testing.assert_array_equal(mol.conformers[:]["force"], forces)
         return observe
     for name in ('link_atoms', 'determine_rings_aromatic', 'assign_bond_order', 'calc_atom_valence'):
         monkeypatch.setattr(Molecule, name, science(name))
@@ -151,16 +150,23 @@ def test_cclib_prepares_all_nine_frames_units_and_last_coordinates_before_scienc
     reader.src, reader.src_type, reader.fmt = 'fake quantum output', 'str', 'log'
     mol = next(reader._cclib_read())
     assert events == ['link_atoms', 'determine_rings_aromatic', 'assign_bond_order', 'calc_atom_valence']
-    expected = (coordinates, energies, np.array([[0, 0], charges]), -1.25 * 27.211386245988,
-                forces, 0.125 * 27.211386245988, 3, 0.75, 0.25)
-    for name, value in zip(mol.conformers._attrs, expected):
-        np.testing.assert_array_equal(getattr(mol.conformers, '_' + name), value)
+    for index in range(2):
+        frame = mol.conformers[index]
+        np.testing.assert_array_equal(frame["coordinates"], coordinates[index])
+        assert frame["energy"] == energies[index]
+        np.testing.assert_array_equal(frame["force"], forces[index])
+        assert frame["gibbs"] == pytest.approx(-1.25 * 27.211386245988)
+        assert frame["zero_point"] == pytest.approx(.125 * 27.211386245988)
+        assert frame["spin_mult"] == 3
+        assert frame["thermo"] == .75 and frame["capacity"] == .25
+    assert mol.conformers[0]["partial_charge"] is None
+    np.testing.assert_array_equal(mol.conformers[1]["partial_charge"], charges)
     coordinates[:] = 99
     energies[:] = 99
     forces[:] = 99
-    assert mol.conformers._coordinates[0, 0, 0] == 0
-    assert mol.conformers._energy.tolist() == [-10, -11]
-    assert mol.conformers._force[0, 0, 0] == 0
+    assert mol.conformers[0]["coordinates"][0, 0] == 0
+    assert mol.conformers[:]["energy"].tolist() == [-10, -11]
+    assert mol.conformers[0]["force"][0, 0] == 0
     codes = mol._atom_table.sources()
     assert np.all(codes[:, FIELD_INDEX['x']] == ATOM_SOURCE_CODES['cclib'])
     assert np.all(codes[:, FIELD_INDEX['s']] == ATOM_SOURCE_CODES['default'])

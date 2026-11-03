@@ -58,6 +58,11 @@ from .structure._dependencies import (
     _mark_topology_dirty, _seed, GROUP_INDEX,
 )
 from .structure.stereo import StereoPayload as _StereoPayload
+from .structure.conformer import (
+    Conformers, _bound_conformers, _add_source_frames, _clear_frames, _load_frame,
+    _current_frame_value, _assign_frame_value, _capture_frame_records,
+    _install_frame_records, _copy_source_frames, _frame_spin,
+)
 
 
 PartialChargeModel = Literal[
@@ -153,8 +158,11 @@ class Molecule:
         self._atom_table = _AtomFactTable()
         self._bonds = []
         self._topology_index = {}
-        self._conformers = Conformers()
+        self._source_frames = ()
+        self._conformer_results = ()
+        self._frame_result = None
         self._conformers_index = 0
+        self._conformers = _bound_conformers(self)
 
         self._mca_result = None
         self._partial_charge_result = None
@@ -171,12 +179,6 @@ class Molecule:
 
     def __dir__(self):
         return list(Conformers._attrs) + list(super(Molecule, self).__dir__())
-
-    def __getattr__(self, item):
-        if '_conformers' in self.__dict__ and item in Conformers._attrs:
-            with self._mutation_lock:
-                return self._conformers.index_attr(item, self._conformers_index)
-        return object.__getattribute__(self, item)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.formula})"
@@ -214,7 +216,7 @@ class Molecule:
         with self._mutation_lock:
             if self._spin_present:
                 return self._spin_value
-            return self._conformers.index_attr('spin_mult', self._conformers_index)
+            return _frame_spin(self)
 
     @spin_mult.setter
     def spin_mult(self, value):
@@ -374,6 +376,7 @@ class Molecule:
                              dependency_state=dependencies, bond_metadata=metadata)
             clone.properties = dict(self.properties)
             _copy_mca_result(self, clone)
+            _copy_source_frames(self, clone)
             return clone
 
     @property
@@ -382,8 +385,16 @@ class Molecule:
 
     def create_crystal(self, a, b, c, alpha, beta, gamma):
         from .structure.crystal import Crystal
-        self._crystal = Crystal(a, b, c, alpha, beta, gamma)
-        return self._crystal
+        crystal = Crystal(a, b, c, alpha, beta, gamma)
+        names = ('a', 'b', 'c', 'alpha', 'beta', 'gamma')
+        current = tuple(getattr(crystal, name) for name in names)
+        with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
+            previous = None if self._crystal is None else tuple(getattr(self._crystal, name) for name in names)
+            if previous != current:
+                transaction.touch_topology()
+                _invalidate_results(self, ('cell',), transaction)
+                self._crystal = crystal
+            return self._crystal
 
     def setattr(self, **attrs):
         """
@@ -490,9 +501,8 @@ class Molecule:
                 changed = tuple(atom._uid for atom in self._atoms if
                     tuple(id(bond) for bond in previous.get(id(atom), (None, ()))[1]) !=
                     tuple(id(bond) for bond in self._topology_index[id(atom)][1]))
-                _mark_topology_dirty(self, changed)
-            if clear_conformers:
-                self._conformers.clear()
+                if changed:
+                    _mark_topology_dirty(self, changed)
 
 
     def _add_atom(self, atom):
@@ -745,14 +755,30 @@ class Molecule:
     def add_component(self, component: 'Molecule'):
         from dataclasses import replace
         from .operations.chemistry import _remap_stereo_transport
+        from .structure.conformer import _remap_observations
         with component._mutation_lock:
             incoming, incoming_metadata = component._capture_factual_record(include_frames=False)
+            incoming_frames = _capture_frame_records(component, include_generated=False)
             incoming_dependencies = _dependency_state(component._atom_table)
             incoming_uids = tuple(atom._uid for atom in component._atoms)
         with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
             transaction.touch_topology()
-            current, current_metadata = self._capture_factual_record(include_frames=False)
+            current, current_metadata = self._capture_factual_record()
             offset = current.atom_count
+            incoming_sources, _, incoming_selection = incoming_frames
+            if offset:
+                mapping = {row: offset + row for row in range(incoming.atom_count)}
+                observations = {}
+                shifted = []
+                for frame in incoming_sources:
+                    if frame.observations is not None and id(frame.observations) not in observations:
+                        observations[id(frame.observations)] = _remap_observations(frame.observations, mapping)
+                    shifted.append(replace(frame, atom_uids=tuple(mapping[uid] for uid in frame.atom_uids),
+                        observations=observations.get(id(frame.observations))))
+                incoming_sources = tuple(shifted)
+            stale_ensembles = tuple((payload,
+                marker + (() if 'frame_representation' in marker else ('frame_representation',)))
+                for payload, marker in current.conformer_results)
             if offset and incoming.cell is not None and current.cell != incoming.cell:
                 raise ValueError('Components require compatible unit cells')
             charge = incoming.charge if not offset else (
@@ -782,6 +808,9 @@ class Molecule:
                 partial_charge_result=(incoming.partial_charge_result if not offset else
                     self._merged_partial_charge_record(current, incoming.atom_count)),
                 stereo_payload=payload,
+                source_frames=current.source_frames + incoming_sources,
+                conformer_results=stale_ensembles,
+                frame_selection=(0, None) if offset else incoming_selection,
                 angle_constraints=current.angle_constraints + tuple(tuple(offset + row for row in item) for item in incoming.angle_constraints),
                 torsion_constraints=current.torsion_constraints + tuple(tuple(offset + row for row in item) for item in incoming.torsion_constraints),
                 pair_wiberg_bond_orders=current.pair_wiberg_bond_orders + tuple(
@@ -845,8 +874,10 @@ class Molecule:
                 atom.constraint = False
             for bond in self.bonds:
                 bond.constraint = False
-            self._constraints = _ConstraintSet(atom_axes=self._constraints.atom_axes,
-                                               bond_values=self._constraints.bond_values)
+            if self._constraints.angles or self._constraints.torsions:
+                _invalidate_results(self, ('constraints',), transaction)
+                self._constraints = _ConstraintSet(atom_axes=self._constraints.atom_axes,
+                                                   bond_values=self._constraints.bond_values)
 
     @property
     def atom_pairs(self) -> "AtomPairs":
@@ -1045,11 +1076,7 @@ class Molecule:
         return self._conformers
 
     def conformer_load(self, i: int):
-        coordinates = self._conformers.index_attr('coordinates', i)
-        with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['conformer_load']) as transaction:
-            transaction.touch_frames()
-            self.coordinates = coordinates
-            self._conformers_index = i
+        return _load_frame(self, i)
 
     @property
     def conformers_number(self) -> int:
@@ -1086,10 +1113,7 @@ class Molecule:
         Returns:
         None
         """
-        if coords is None:
-            self._conformers.add(self.coordinates, energy)
-        else:
-            self._conformers.add(coords, energy)
+        return _add_source_frames(self, coords, energy)
 
     def conformer_clear(self):
         """
@@ -1102,7 +1126,7 @@ class Molecule:
         Raises:
             No exceptions are raised by this method.
         """
-        self._conformers.clear()
+        return _clear_frames(self)
 
     def conformer_get(self, idx: Union[int, slice]) -> dict:
         """ Get specific conformer coordinates """
@@ -2020,41 +2044,6 @@ class Molecule:
         return writer.write(self, write_single=write_single)
 
 
-    def _capture_frame_state(self, *, rows=None):
-        with self._mutation_lock, self._conformers._mutation_lock:
-            values = []
-            for name in Conformers._attrs:
-                value = getattr(self._conformers, '_' + name, None)
-                if isinstance(value, np.ndarray):
-                    if rows is not None and name in ('coordinates', 'force', 'partial_charge'):
-                        if value.ndim >= 2 and value.shape[1] == len(self._atoms):
-                            value = value[:, tuple(rows)]
-                        elif name == 'partial_charge' and value.ndim == 1 and len(value) == len(self._atoms):
-                            value = value[list(rows)]
-                    value = value.copy()
-                else:
-                    value = deepcopy(value)
-                values.append(value)
-            return tuple(values), self._conformers_index
-
-
-    def _install_frame_state(self, values, index):
-        prepared = tuple(np.array(value, copy=True) if isinstance(value, np.ndarray) else deepcopy(value)
-                         for value in values)
-        with self._conformers._mutation_lock:
-            previous = tuple(getattr(self._conformers, '_' + name, None) for name in Conformers._attrs)
-            old_index = self._conformers_index
-            try:
-                for name, value in zip(Conformers._attrs, prepared):
-                    object.__setattr__(self._conformers, '_' + name, value)
-                self._conformers_index = index
-            except BaseException:
-                for name, value in zip(Conformers._attrs, previous):
-                    object.__setattr__(self._conformers, '_' + name, value)
-                self._conformers_index = old_index
-                raise
-
-
     def _capture_factual_record(self, *, rows=None, include_frames=True, copy_metadata=True, selection=None):
         from .structure._builder import _make_molecule_record
         from .structure._selection import _selected_bonds
@@ -2075,7 +2064,8 @@ class Molecule:
                 first is second for first, second in zip(bonds, complete))
             payload = _remap_stereo_transport(self._stereo_payload, mapping,
                                             allowed_bonds=None if whole else endpoints)
-            frames, index = self._capture_frame_state(rows=rows) if include_frames else ((None,) * 9, 0)
+            source_frames, conformer_results, frame_selection = (
+                _capture_frame_records(self, rows=rows) if include_frames else ((), (), None))
             uid_rows = {atom._uid: row for row, atom in enumerate(self._atoms)}
             def constraints(entries):
                 return tuple(tuple(mapping[uid_rows[uid]] for uid in entry)
@@ -2105,7 +2095,8 @@ class Molecule:
                 charge=(True, self._charge_value, self._charge_source) if whole and self._charge_present else (False, None, None),
                 spin_mult=(True, self._spin_value, self._spin_source) if whole and self._spin_present else (False, None, None),
                 cell=None if self._crystal is None else tuple(getattr(self._crystal, name) for name in ('a', 'b', 'c', 'alpha', 'beta', 'gamma')),
-                stereo_payload=payload, legacy_frame_values=frames, legacy_frame_index=index,
+                stereo_payload=payload, source_frames=source_frames,
+                conformer_results=conformer_results, frame_selection=frame_selection,
                 angle_constraints=constraints(self._constraints.angles), torsion_constraints=constraints(self._constraints.torsions),
                 identifier=('identifier' in self.__dict__, self.__dict__.get('identifier')),
                 pair_wiberg_bond_orders=tuple((mapping[uid_rows[first]], mapping[uid_rows[second]], value)
@@ -2116,7 +2107,7 @@ class Molecule:
 
 
     def _install_factual_record(self, record, *, atom_bindings=None, bond_bindings=None,
-                                 dependency_state=None, bond_metadata=None):
+                                 dependency_state=None, bond_metadata=None, _install_frames=True):
         from .structure._builder import _thaw_canonical
         atom_bindings = (None,) * record.atom_count if atom_bindings is None else tuple(atom_bindings)
         bond_bindings = (None,) * len(record.bond_endpoints) if bond_bindings is None else tuple(bond_bindings)
@@ -2227,7 +2218,8 @@ class Molecule:
                 _seed(self, GROUP_INDEX['IMPLICIT_H'], changed)
         from .structure.crystal import Crystal
         self._crystal = None if record.cell is None else Crystal(*record.cell)
-        self._install_frame_state(tuple(_thaw_canonical(value) for value in record.legacy_frame_values), record.legacy_frame_index)
+        if _install_frames:
+            _install_frame_records(self, record.source_frames, record.conformer_results, record.frame_selection)
         _install_partial_charge_record(self, record.partial_charge_result)
         if record.identifier[0]:
             self.identifier = record.identifier[1]
@@ -4286,151 +4278,6 @@ class Ring(AtomSeq):
 
 
 
-class Conformers:
-    """
-    Representing an ensemble of conformers of a Molecule
-    Class for managing and manipulating conformer data.
-
-    This class is designed to handle conformer-related attributes such as 
-    coordinates, energy, partial charges, spin multiplicity, Gibbs free energy, 
-    forces, zero-point energy, thermodynamic properties, and heat capacity. 
-    It provides methods to add new conformers, retrieve specific properties, 
-    clear all stored data, and iterate over the stored conformers. This is 
-    useful for computational chemistry or molecular modeling applications.
-
-    Methods:
-        __init__: Initializes an empty Conformers object with placeholders 
-        for properties.
-        __len__: Returns the number of stored conformers.
-        __getitem__: Retrieves a dictionary of conformer attributes at 
-        a specified index.
-        __iter__: Iterates over stored conformers.
-        index_attr: Retrieves a specific attribute by its name and index.
-        add: Adds new conformer data, including coordinates and optional 
-        energy.
-        clear: Clears all stored conformer data.
-        coordinates: Retrieves coordinates of a conformer by index.
-        energy: Retrieves the energy of a conformer by index.
-        gibbs: Retrieves the Gibbs free energy of a conformer by index.
-        partial_charge: Retrieves partial charges of a conformer by index.
-        force: Retrieves the forces on a conformer by index.
-    """
-    _attrs = (
-        'coordinates',
-        'energy',
-        'partial_charge',
-        'gibbs',
-        'force',
-        'zero_point',
-        'spin_mult',
-        'thermo',
-        'capacity'
-    )
-
-    def __init__(self):
-        self._mutation_lock = _RLock()
-        for name in self._attrs:
-            setattr(self, '_' + name, None)
-
-    def __getstate__(self):
-        with self._mutation_lock:
-            return {key: value.copy() if isinstance(value, np.ndarray) else deepcopy(value)
-                    for key, value in self.__dict__.items() if key != '_mutation_lock'}
-
-    def __setstate__(self, state):
-        self.__dict__.update(state)
-        self._mutation_lock = _RLock()
-
-    def __len__(self):
-        with self._mutation_lock:
-            return 0 if self._coordinates is None else len(self._coordinates)
-
-    def __getitem__(self, idx):
-        with self._mutation_lock:
-            info = {}
-            for attr in self._attrs:
-                try:
-                    info[attr] = self.index_attr(attr, idx)
-                except (IndexError, TypeError):
-                    continue
-            return info
-
-    def __iter__(self):
-        with self._mutation_lock:
-            values = None if self._coordinates is None else self._coordinates.copy()
-            return iter(values)
-
-    def index_attr(self, name, i):
-        with self._mutation_lock:
-            try:
-                value = getattr(self, f'_{name}')[i]
-            except IndexError:
-                raise IndexError(f'The number of conformers is {len(self._coordinates)}, but attempt to access the index {i}')
-            except TypeError:
-                try:
-                    value = getattr(self, f'_{name}')
-                except AttributeError:
-                    raise AttributeError(f'The conformers did not store {name} information')
-            return value.copy() if isinstance(value, np.ndarray) else deepcopy(value)
-
-    def add(self, coords: types.ArrayLike, energy: Union[types.ArrayLike, float] = None):
-        coords = np.array(coords)
-        if coords.ndim == 2:
-            coords = coords.reshape((1,) + coords.shape)
-        assert coords.ndim == 3
-        assert coords.shape[-1] == 3
-        supplied_energy = energy is not None
-        if supplied_energy:
-            energy = np.array([energy]) if isinstance(energy, float) else np.array(energy).flatten()
-        with self._mutation_lock:
-            if isinstance(self._coordinates, np.ndarray) and self._coordinates.shape[1] == coords.shape[1]:
-                coords = np.vstack((self._coordinates, coords))
-            if supplied_energy:
-                # Preserve the characterized route until the Stage7D replacement.
-                if self._energy is not None:
-                    energy = np.vstack((coords, coords))
-                if len(energy) != len(coords):
-                    raise ValueError('The length of input energy in conformer nust matches with the coordinates in conformer')
-            previous = self._coordinates, self._energy
-            try:
-                self._coordinates = coords
-                if supplied_energy:
-                    self._energy = energy
-            except BaseException:
-                self._coordinates, self._energy = previous
-                raise
-
-    def clear(self):
-        with self._mutation_lock:
-            previous = tuple(getattr(self, '_' + name) for name in self._attrs)
-            try:
-                for name in self._attrs:
-                    setattr(self, '_' + name, None)
-            except BaseException:
-                for name, value in zip(self._attrs, previous):
-                    setattr(self, '_' + name, value)
-                raise
-
-    def coordinates(self, i):
-        return self.index_attr('coordinates', i)
-
-    def energy(self, i):
-        return self.index_attr('energy', i)
-
-    def gibbs(self, i):
-        return self.index_attr('gibbs', i)
-
-    def partial_charge(self, i):
-        return self.index_attr('partial_charge', i)
-
-    def force(self, i):
-        return self.index_attr('force', i)
-
-
-
-
-
-
 if __name__ == "__main__":
     pass
 
@@ -4696,13 +4543,14 @@ def _detach_atom(atom):
 
 def _capture_molecule_pickle(mol):
     with mol._mutation_lock:
-        record, metadata = mol._capture_factual_record(include_frames=False, copy_metadata=False)
+        record, metadata = mol._capture_factual_record(copy_metadata=False)
         bonds = tuple(mol._bonds)
         owned = {'_mutation_lock', '_owner_token', '_atoms', '_bonds',
                  '_atom_table', '_topology_index', '_next_atom_uid', '_next_bond_uid', '_conformers',
                  '_conformers_index', '_stereo_payload', '_crystal', '_charge_value', '_charge_present',
                  '_charge_source', '_spin_value', '_spin_present', '_spin_source',
-                 '_constraints', '_pair_wiberg_bond_orders'}
+                 '_constraints', '_pair_wiberg_bond_orders', '_source_frames',
+                 '_conformer_results', '_frame_result'}
         state = {key: value for key, value in mol.__dict__.items() if key not in owned}
         state['properties'] = dict(mol.properties)
         graph_memo = {id(mol): mol, **{id(atom): atom for atom in mol._atoms},
@@ -4714,7 +4562,7 @@ def _capture_molecule_pickle(mol):
                             if key not in ('_atoms', '_bonds', '_member_uid', '_uid_owner', '_attrs',
                                            '_bond_kind', '_bond_direction', '_bond_source', '_bond_source_metadata', '_is_aromatic', '_constraint_values')}
                            for bond in bonds)
-        extra = (state, metadata, atom_state, bond_state, mol._capture_frame_state(), None)
+        extra = (state, metadata, atom_state, bond_state)
         return (record, mol._owner_token, tuple(atom._uid for atom in mol._atoms),
                 tuple(bond._uid for bond in bonds), (mol._next_atom_uid, mol._next_bond_uid),
                 _dependency_state(mol._atom_table), extra)
@@ -4723,7 +4571,7 @@ def _capture_molecule_pickle(mol):
 def _restore_molecule_raw(cls, record, owner, atom_uids, bond_uids, high_water, dependencies):
     mol = cls()
     mol._owner_token = owner
-    mol._install_factual_record(record, dependency_state=dependencies)
+    mol._install_factual_record(record, dependency_state=dependencies, _install_frames=False)
     bonds = tuple(mol._bonds)
     atom_cells = tuple(atom._constraint_values[atom._uid] for atom in mol._atoms)
     bond_cells = tuple(bond._constraint_values[bond._uid] for bond in bonds)
@@ -4740,18 +4588,18 @@ def _restore_molecule_raw(cls, record, owner, atom_uids, bond_uids, high_water, 
         tuple(sorted((atom_uids[first], atom_uids[second]))): value
         for first, second, value in record.pair_wiberg_bond_orders}
     mol._next_atom_uid, mol._next_bond_uid = high_water
+    _install_frame_records(mol, record.source_frames, record.conformer_results, record.frame_selection)
     return mol
 
 
 def _restore_molecule_extra(mol, state):
-    attributes, metadata, atom_state, bond_state, frames, _ = state
+    attributes, metadata, atom_state, bond_state = state
     mol.__dict__.update(attributes)
     for atom, extra in zip(mol._atoms, atom_state):
         atom.__dict__.update(extra)
     for bond, extra, supplied in zip(mol._bonds, bond_state, metadata):
         bond.__dict__.update(extra)
         object.__setattr__(bond, '_bond_source_metadata', supplied)
-    mol._install_frame_state(*frames)
 
 
 def _restore_atom_member(mol, row, uid):
@@ -4832,6 +4680,22 @@ def _constraint_property(scope):
     return property(read, write)
 
 
+def _frame_observation_property(name):
+    def read(mol):
+        with mol._mutation_lock:
+            return _current_frame_value(mol, name)
+
+    def write(mol, value):
+        _assign_frame_value(mol, name, value)
+
+    return property(read, write)
+
+
+for _observation in ('energy', 'partial_charge', 'gibbs', 'force', 'zero_point', 'thermo', 'capacity'):
+    setattr(Molecule, _observation, _frame_observation_property(_observation))
+del _observation
+
+
 for _field in _ATOM_FIELDS:
     if _field not in Atom.__dict__:
         setattr(Atom, _field, _numeric_property(_field))
@@ -4855,8 +4719,7 @@ def _transactional_legacy(method, *, topology=False, frames=False, constraints=F
 
 for _method in (
         'add_atom', '_replace_atom', 'replace_atom', 'add_bond', 'add_bonds',
-        'remove_atom', 'remove_atoms', 'remove_bond', 'remove_bonds', 'add_hydrogens',
-        'create_crystal'):
+        'remove_atom', 'remove_atoms', 'remove_bond', 'remove_bonds', 'add_hydrogens'):
     setattr(Molecule, _method, _transactional_legacy(getattr(Molecule, _method), topology=True))
 for _method in ('calc_atom_valence', 'calc_implicit_hydrogens',
                 'refresh_atom_id'):

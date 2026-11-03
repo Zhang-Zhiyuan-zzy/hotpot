@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import asdict, dataclass, replace
 from time import perf_counter
 from typing import Optional, TYPE_CHECKING
 
@@ -233,6 +233,7 @@ def _accept_native_fast_attempt(
     *,
     save_movie: bool,
     trajectory_path: Optional[TrajectoryPath],
+    parameters: tuple,
 ) -> ForceFieldRunReport:
     report = attempt.report
     if report is None:
@@ -242,6 +243,10 @@ def _accept_native_fast_attempt(
         attempt.trajectory,
         save_movie=save_movie,
         trajectory_path=trajectory_path,
+        input_source=attempt.source[0], method="forcefield.auto_optimize.native_fast",
+        parameters=(("forcefield", report.effective_forcefield),
+                    ("build_method", "hotpot.cheminfo.obWrappers.build"),
+                    ("convergence_level", int(ConvergenceLevel.FAST)), *parameters),
     )
     _commit_working_copy(mol, attempt.mol, source=attempt.source)
     return replace(
@@ -479,6 +484,19 @@ def auto_optimize(
             preliminary,
             save_movie=save_movie,
             trajectory_path=trajectory_path,
+            parameters=(
+                ("algorithm", algorithm), ("epochs", epochs),
+                ("steps_per_epoch", steps_per_epoch), ("add_hydrogens", add_hydrogens),
+                ("quality_level", quality_level),
+                ("quality_thresholds", None if quality_thresholds is None else asdict(quality_thresholds)),
+                ("seed", seed), ("perturb_interval", perturb_interval),
+                ("perturb_sigma", perturb_sigma),
+                ("stopping_criteria", None if stopping_criteria is None else asdict(stopping_criteria)),
+                ("retain_epoch_history", save_movie),
+                ("trajectory_start", selected_trajectory_start.value),
+                ("increasing_vdw", increasing_vdw),
+                ("vdw_cutoff_start", vdw_cutoff_start), ("vdw_cutoff_end", vdw_cutoff_end),
+            ),
         )
     return _fallback_to_complex_workflow(
         mol,

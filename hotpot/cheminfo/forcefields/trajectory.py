@@ -449,12 +449,27 @@ class ForceFieldTrajectory:
         return frame_indices
 
     def materialize(self, mol: "Molecule", *, keep_all: bool) -> None:
-        """Expose trajectory coordinates through ``Molecule.conformers``.
+        """Append generated coordinates to the Molecule's conformer projection.
 
-        ``Molecule.conformers`` cannot represent changing bond topology.  It is
-        therefore a coordinate-only compatibility view; this trajectory remains
-        the authoritative record for topology-changing frames.
+        Bond changes remain in this topology-aware trajectory. Direct callers
+        provide no calculation method or seed, so only trajectory provenance is
+        available here; workflow callers supply their actual operation inputs.
         """
+        from ..structure._identity import _capture_source
+
+        with mol._mutation_lock:
+            self._materialize(
+                mol, keep_all=keep_all, input_source=_capture_source(mol),
+                method="ForceFieldTrajectory.materialize",
+            )
+
+    def _materialize(
+        self, mol: "Molecule", *, keep_all: bool, input_source,
+        method: str, parameters=(),
+    ) -> None:
+        from ..conformers.contracts import ConformerBatch
+        from ..structure.conformer import _publish_conformer_ensemble
+
         self._validate_molecule_atoms(mol)
         if not self._frames:
             return
@@ -465,19 +480,15 @@ class ForceFieldTrajectory:
         coordinates = np.stack(
             tuple(self.coordinates(frame_index) for frame_index in frame_indices)
         )
-        energies = np.asarray(
-            tuple(
-                np.nan
-                if self._frames[frame_index].energy_kj_mol is None
-                else self._frames[frame_index].energy_kj_mol
-                for frame_index in frame_indices
-            ),
-            dtype=float,
+        energies = tuple(self._frames[index].energy_kj_mol for index in frame_indices)
+        _publish_conformer_ensemble(
+            mol, ConformerBatch(coordinates, frame_indices),
+            (energies, None, None, None, None, None, None, None),
+            frame_indices.index(selected_index), input_source=input_source,
+            method=method, parameters=parameters,
+            units=(("energy", "kJ/mol"),),
+            provenance=(("producer", "forcefield"),),
         )
-        mol.conformer_clear()
-        mol.conformer_add(coordinates, energies)
-        materialized_index = frame_indices.index(selected_index)
-        mol.conformer_load(materialized_index)
 
     def write(self, path: Union[str, Path], *, include_sdf: bool = True) -> None:
         """Write with single-writer failure-atomic directory publication."""

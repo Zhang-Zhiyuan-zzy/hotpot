@@ -1,6 +1,7 @@
 """Complete supplied aromatic representations for tests of read-only views."""
 
-from dataclasses import fields, replace
+from dataclasses import fields, is_dataclass, replace
+import struct
 
 import numpy as np
 
@@ -10,9 +11,28 @@ from hotpot.cheminfo.rules.chemistry.bonding.kekule import _aromatic_flags_assig
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX
 
 
+def immutable_snapshot(value):
+    """Compare complete nested facts by declared fields and exact numeric bytes."""
+    if is_dataclass(value) and not isinstance(value, type):
+        return (type(value), tuple((field.name, immutable_snapshot(getattr(value, field.name)))
+                                   for field in fields(value)))
+    if isinstance(value, np.ndarray):
+        return (type(value), value.dtype.str, tuple(value.shape), value.tobytes(order='C'))
+    if isinstance(value, np.generic):
+        return (type(value), value.dtype.str, value.tobytes())
+    if type(value) is float:
+        return (float, struct.pack('>d', value))
+    if type(value) in (tuple, list):
+        return (type(value), tuple(immutable_snapshot(item) for item in value))
+    if type(value) is dict:
+        return (dict, tuple((immutable_snapshot(key), immutable_snapshot(item))
+                            for key, item in value.items()))
+    return (type(value), value)
+
+
 def factual_state(mol):
     record, metadata = mol._capture_factual_record()
-    return tuple(getattr(record, field.name) for field in fields(record)), metadata
+    return immutable_snapshot(record), immutable_snapshot(metadata)
 
 
 def supplied_aromatic_flags(mol, flags):

@@ -168,7 +168,7 @@ def _rdmol_record(rdmol, initial):
         bond_metadata=tuple(_freeze_value(source_bond_metadata[bond.GetIdx()]) for bond in bonds),
         charge=(True, Chem.GetFormalCharge(rdmol), "rdkit"),
         stereo_payload=initial.stereo_payload,
-        legacy_frame_values=(("none",),) * 9,
+        source_frames=(), conformer_results=(), frame_selection=(0, None),
         partial_charge_result=None,
     )
     return record, stereo_payload, idx_to_row

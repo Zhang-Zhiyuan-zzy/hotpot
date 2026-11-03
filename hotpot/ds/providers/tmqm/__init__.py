@@ -6,6 +6,7 @@ from . import download
 from hotpot import Molecule
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
 from hotpot.cheminfo.structure._results import _import_partial_charges
+from hotpot.cheminfo.structure.conformer import _select_frame_observations
 from hotpot.ds._paths import DATA_ROOT
 import csv
 
@@ -244,7 +245,7 @@ class DataGenerator:
 
             # .csv分子数据
             mol.identifier = csv_res[0]
-            mol.energy = float(csv_res[1])
+            energy = float(csv_res[1])
             mol.dispersion = float(csv_res[2])
             mol.dipole = float(csv_res[3])
             mol.metal_q = float(csv_res[4])
@@ -256,6 +257,10 @@ class DataGenerator:
             mol.link_atoms()
             _import_partial_charges(
                 mol, tuple(q_res[:len(mol.atoms)]), producer=ATOM_SOURCE_CODES["tmqm"],
+            )
+            _select_frame_observations(
+                mol, (energy, None, None, None, None, None, None, None),
+                producer="tmqm", method="supplied",
             )
 
             self.result_queues[i].put(mol)
@@ -305,7 +310,7 @@ class DataGenerator:
 
         # .csv分子数据
         mol.identifier = csv_res[0]
-        mol.energy = float(csv_res[1])
+        energy = float(csv_res[1])
         mol.dispersion = float(csv_res[2])
         mol.dipole = float(csv_res[3])
         mol.metal_q = float(csv_res[4])
@@ -317,6 +322,10 @@ class DataGenerator:
         mol.link_atoms()
         _import_partial_charges(
             mol, tuple(q_res[:len(mol.atoms)]), producer=ATOM_SOURCE_CODES["tmqm"],
+        )
+        _select_frame_observations(
+            mol, (energy, None, None, None, None, None, None, None),
+            producer="tmqm", method="supplied",
         )
         return mol
 

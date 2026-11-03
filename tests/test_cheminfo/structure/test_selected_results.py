@@ -17,6 +17,9 @@ from hotpot.cheminfo.structure._commit import (
 )
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
 from hotpot.cheminfo.structure._identity import _capture_source
+from hotpot.cheminfo.structure.conformer import (
+    _import_frame_values, _capture_frame_records, _install_frame_records,
+)
 from hotpot.cheminfo.structure._results import (
     _ResultAttachment, _capture_mca_source, _prepare_atom_result_updates,
     _select_mca_result, _import_partial_charges,
@@ -299,8 +302,9 @@ def test_pickle_and_deepcopy_share_restored_owner_token_with_attachment(transpor
 def test_spin_only_changes_retain_mca_source_reads_and_copy_while_generic_source_changes(change):
     mol = _molecule()
     coordinates = mol.coordinates
-    mol.conformer_add(np.stack((coordinates, coordinates)))
-    mol.conformers._spin_mult = np.asarray([1, 3])
+    _import_frame_values(mol, (np.stack((coordinates, coordinates)), None, None, None,
+                               None, None, np.asarray([1, 3]), None, None),
+                         0, producer="test-spin")
     mol.conformer_load(0)
     prediction = _select(mol)
     original = mol._mca_result
@@ -314,8 +318,9 @@ def test_spin_only_changes_retain_mca_source_reads_and_copy_while_generic_source
     elif change == "load":
         mol.conformer_load(1)
     else:
-        frames, _ = mol._capture_frame_state()
-        mol._install_frame_state(frames, 1)
+        frames, generated, selection = _capture_frame_records(mol)
+        observations = frames[1].observations
+        _install_frame_records(mol, frames, generated, (1, ((observations, 1), ())))
     with pytest.raises(RuntimeError, match="'representation'"):
         _identity._check_source(mol, representation)
     _identity._check_source(mol, original.source)
@@ -323,7 +328,7 @@ def test_spin_only_changes_retain_mca_source_reads_and_copy_while_generic_source
     assert mol.atoms[1].mca == 11.0
     assert mol.mca_sites == {mol.atoms[1]: 11.0}
     copied = mol.copy()
-    assert copied._conformers._spin_mult is None
+    assert copied.spin_mult == mol.spin_mult
     assert copied._mca_result.payload is prediction
     assert copied._mca_result.invalidated_by == ()
     assert copied.atoms[1].mca == 11.0
@@ -332,8 +337,9 @@ def test_spin_only_changes_retain_mca_source_reads_and_copy_while_generic_source
 def test_spin_only_frame_change_then_rollback_preserves_exact_attachment_and_frame_selection():
     mol = _molecule()
     coordinates = mol.coordinates
-    mol.conformer_add(np.stack((coordinates, coordinates)))
-    mol.conformers._spin_mult = np.asarray([1, 3])
+    _import_frame_values(mol, (np.stack((coordinates, coordinates)), None, None, None,
+                               None, None, np.asarray([1, 3]), None, None),
+                         0, producer="test-spin")
     mol.conformer_load(0)
     _select(mol)
     original = mol._mca_result

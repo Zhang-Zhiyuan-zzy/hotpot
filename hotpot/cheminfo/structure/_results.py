@@ -10,11 +10,12 @@ __all__ = ()
 
 _T = TypeVar("_T")
 
-_RESULT_ATTRIBUTES = ("_mca_result", "_partial_charge_result")
+_RESULT_ATTRIBUTES = ("_mca_result", "_partial_charge_result", "_frame_result", "_conformer_results")
 _REPRESENTATION_FIELDS = frozenset((
     "atomic_number", "formal_charge", "implicit_hydrogens", "is_aromatic",
 ))
 _GEOMETRY_FIELDS = frozenset(("x", "y", "z"))
+_CONSTRAINT_FIELDS = frozenset(("x_constraint", "y_constraint", "z_constraint"))
 _MCA_OPERATION = "hotpot.cheminfo.calculator.mca(mol, backend=...)"
 _CHARGE_OPERATION = "Molecule.assign_partial_charge()"
 
@@ -70,17 +71,25 @@ def _select_mca_result(mol, payload, source, atom_uids):
 
 def _prepare_result_updates(mol, domains, transaction):
     if "representation" in domains:
-        domains = (*domains, "mca_representation", "charge_representation")
+        domains = (*domains, "mca_representation", "charge_representation", "frame_representation")
     updates = []
     for name in _RESULT_ATTRIBUTES:
         before = getattr(mol, name)
-        if before is None:
+        if before is None or before == ():
             continue
-        subscribed = tuple(domain for domain, _ in before.source.dependencies)
-        markers = tuple(domain for domain in subscribed
-                        if domain in domains and domain not in before.invalidated_by)
-        if markers:
-            after = _ResultAttachment(before.payload, before.source, before.invalidated_by + markers)
+        attachments = before if name == "_conformer_results" else (before,)
+        replacements = []
+        changed = False
+        for attachment in attachments:
+            subscribed = tuple(domain for domain, _ in attachment.source.dependencies)
+            markers = tuple(domain for domain in subscribed
+                            if domain in domains and domain not in attachment.invalidated_by)
+            replacements.append(_ResultAttachment(
+                attachment.payload, attachment.source, attachment.invalidated_by + markers,
+            ) if markers else attachment)
+            changed |= bool(markers)
+        if changed:
+            after = tuple(replacements) if name == "_conformer_results" else replacements[0]
             updates.append((name, before, after))
     if updates and transaction is not None:
         transaction.touch_results()
@@ -93,6 +102,8 @@ def _prepare_atom_result_updates(mol, changed_fields, transaction):
     domains = (("representation",) if changed_fields & _REPRESENTATION_FIELDS else ())
     if changed_fields & _GEOMETRY_FIELDS:
         domains += ("geometry",)
+    if changed_fields & _CONSTRAINT_FIELDS:
+        domains += ("constraints",)
     return _prepare_result_updates(mol, domains, transaction)
 
 

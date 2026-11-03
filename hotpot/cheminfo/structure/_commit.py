@@ -25,8 +25,6 @@ _NATIVE_FAILURES = ContextVar("hotpot_fact_native_failure", default=None)
 _ENGINE = None
 _DECLARATIONS = ("_charge_value", "_charge_present", "_charge_source",
                  "_spin_value", "_spin_present", "_spin_source")
-_FRAME_FIELDS = ("_coordinates", "_energy", "_partial_charge", "_spin_mult", "_gibbs",
-                 "_force", "_zero_point", "_thermo", "_capacity")
 _TOPOLOGY_FIELDS = ("_atoms", "_bonds",
                     "_constraints", "_crystal", "_pair_wiberg_bond_orders",
                     "identifier", "properties")
@@ -212,14 +210,9 @@ class _FactTransaction:
             self._stereo = self.mol._stereo_payload
 
     def touch_frames(self):
-        if self._frames is not None:
-            return
-        frames = self.mol._conformers
-        with frames._mutation_lock:
-            self._frames = (frames, self.mol._conformers_index,
-                            tuple((name, None if getattr(frames, name) is None
-                                   else np.array(getattr(frames, name), copy=True))
-                                  for name in _FRAME_FIELDS))
+        if self._frames is None:
+            from .conformer import _frame_transaction_state
+            self._frames = _frame_transaction_state(self.mol)
 
     def touch_constraints(self):
         if self._constraints is None:
@@ -347,10 +340,8 @@ class _FactTransaction:
         if self._stereo is not _UNCHANGED:
             mol._stereo_payload = self._stereo
         if self._frames is not None:
-            frames, index, fields = self._frames
-            with frames._mutation_lock:
-                _restore_fields(frames, fields)
-            mol._conformers, mol._conformers_index = frames, index
+            from .conformer import _restore_frame_transaction_state
+            _restore_frame_transaction_state(mol, self._frames)
         for values, key, previous in reversed(self._pair_values or ()):
             if previous is _UNCHANGED:
                 values.pop(key, None)
@@ -378,7 +369,8 @@ def _commit_atom_sparse(mol, atom, *, isotope=_UNCHANGED, frac_valence=_UNCHANGE
             raise ValueError("Sparse Atom update requires a current member")
         transaction.touch_sparse(atom)
         if isotope is not _UNCHANGED:
-            _invalidate_results(mol, ("representation",), transaction)
+            if atom.__dict__.get("isotope", _UNCHANGED) != isotope:
+                _invalidate_results(mol, ("representation",), transaction)
             atom.__dict__["isotope"] = isotope
         if frac_valence is not _UNCHANGED:
             atom.__dict__["frac_valence"] = frac_valence
@@ -407,13 +399,15 @@ def _commit_bond_facts(mol, bond, binding, *, raw_values, kind, direction,
                           or bond._bond_direction != direction
                           or bond._bond_source != source_namespace
                           or (aromatic is not _UNCHANGED and bond._is_aromatic != aromatic))
-        if any(getattr(mol, name) is not None for name in _RESULT_ATTRIBUTES) and not result_changed:
+        if any(getattr(mol, name) for name in _RESULT_ATTRIBUTES) and not result_changed:
             result_changed = (_digest("bond_metadata", bond._bond_source_metadata)
                               != _digest("bond_metadata", metadata))
         if result_changed:
             _invalidate_results(mol, ("representation",), transaction)
         from .constraints import _bond_constraint_cell
         cell = _bond_constraint_cell(raw_values[1])
+        if bond.constraint != bool(raw_values[1]):
+            _invalidate_results(mol, ("constraints",), transaction)
         transaction.touch_constraint_value(bond._constraint_values, bond._uid)
         bond._constraint_values[bond._uid] = cell
         bond.__dict__["_attrs"] = raw_values[[0, 2]]
@@ -494,14 +488,20 @@ def _commit_molecular_declarations(mol, binding, *, charge=_UNCHANGED, spin_mult
     with _FactTransaction(mol, producer=_EXPLICIT_SOURCE) as transaction:
         _check_source(mol, binding)
         transaction.touch_declarations()
-        if charge is not _UNCHANGED:
-            _invalidate_results(mol, ("representation",), transaction)
+        changed = False
         for prefix, value in (("charge", charge), ("spin", spin_mult)):
             if value is not _UNCHANGED:
+                previous = tuple(mol.__dict__[f"_{prefix}_{suffix}"]
+                                 for suffix in ("present", "value", "source"))
+                if previous != value:
+                    _invalidate_results(mol, ("representation",) if prefix == "charge"
+                                        else ("frame_representation",), transaction)
+                    changed = True
                 present, declared, source = value
                 for suffix, item in (("present", present), ("value", declared), ("source", source)):
                     mol.__dict__[f"_{prefix}_{suffix}"] = item
-        _mark_declarations_dirty(mol)
+        if changed:
+            _mark_declarations_dirty(mol)
 
 
 def _immutable_stereo_tree(value):
@@ -524,7 +524,8 @@ def _commit_stereo(mol, source, payload):
         current = _hydrogen_transport_inputs(uids, payload)
         changed = tuple(after[0] for before, after in zip(previous, current) if before != after)
         transaction.touch_stereo()
-        _invalidate_results(mol, ("representation",), transaction)
+        if mol._stereo_payload != payload:
+            _invalidate_results(mol, ("representation",), transaction)
         mol._stereo_payload = payload
         if changed:
             _seed(mol, GROUP_INDEX['IMPLICIT_H'], changed)
@@ -546,8 +547,9 @@ def _commit_constraints(mol, source, *, angle_entries=(), torsion_entries=()):
                 normalized.append((tuple(atom._uid for atom in atoms), bool(value)))
             prepared.append(tuple(normalized))
         constraints = mol._constraints.updated(angles=prepared[0], torsions=prepared[1])
-        if angle_entries or torsion_entries:
+        if constraints.angles != mol._constraints.angles or constraints.torsions != mol._constraints.torsions:
             transaction.touch_constraints()
+            _invalidate_results(mol, ("constraints",), transaction)
             mol._constraints = constraints
 
 

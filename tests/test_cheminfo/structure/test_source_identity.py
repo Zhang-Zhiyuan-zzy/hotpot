@@ -9,6 +9,7 @@ from hotpot import Molecule
 from hotpot.cheminfo.stereo import AtomTransportRecord, HydrogenTransportState, get_stereo_payload
 from hotpot.cheminfo.structure import _identity
 from hotpot.cheminfo.structure._identity import _capture_source, _check_source
+from hotpot.cheminfo.structure.conformer import _import_frame_values, _select_frame_observations
 
 
 def _molecule():
@@ -18,6 +19,12 @@ def _molecule():
     for first, second in ((0, 1), (1, 2), (2, 3)):
         mol.add_bond(first, second)
     return mol
+
+
+def _spin_frames(mol, spins=(1, 3)):
+    coordinates = np.stack((mol.coordinates,) * len(spins))
+    _import_frame_values(mol, (coordinates, None, None, None, None, None,
+                               np.asarray(spins), None, None), 0, producer="test-spin")
 
 
 def test_owner_only_binding_never_reads_or_hashes_molecular_contents(monkeypatch):
@@ -127,34 +134,35 @@ def test_explicit_molecular_declarations_and_legacy_isotope_are_representation_i
         _check_source(mol, source)
 
 
-def test_selected_legacy_frame_spin_is_checked_without_inferred_default_spin():
+def test_selected_frame_spin_is_checked_without_inferred_default_spin():
     mol = _molecule()
     source = _capture_source(mol, ("representation",))
-    mol._conformers._spin_mult = np.array([3])
+    _spin_frames(mol, (3, 5))
     assert mol.spin_mult == 3
     with pytest.raises(RuntimeError, match="representation"):
         _check_source(mol, source)
     current = _capture_source(mol, ("representation",))
-    mol._conformers._spin_mult[0] = 5
+    mol.conformer_load(1)
     with pytest.raises(RuntimeError, match="representation"):
         _check_source(mol, current)
 
 
-def test_explicit_spin_declaration_takes_precedence_over_legacy_frame_results():
+def test_explicit_spin_declaration_takes_precedence_over_frame_observations():
     mol = _molecule()
     mol.spin_mult = 3
     source = _capture_source(mol, ("representation",))
-    mol._conformers._spin_mult = np.array([5])
+    _spin_frames(mol, (5,))
     _check_source(mol, source)
+    assert mol.spin_mult == 3
 
 
-def test_invalid_legacy_frame_spin_selection_preserves_the_existing_read_error():
+def test_selected_spin_is_bound_to_observation_independently_of_the_cursor():
     mol = _molecule()
-    mol.conformer_add(mol.coordinates)
-    mol._conformers._spin_mult = np.array([3])
+    _spin_frames(mol, (3,))
+    source = _capture_source(mol, ("representation",))
     mol._conformers_index = 1
-    with pytest.raises(IndexError, match="number of conformers"):
-        _capture_source(mol, ("representation",))
+    _check_source(mol, source)
+    assert mol.spin_mult == 3
 
 
 def test_lossless_stereo_transport_and_source_hydrogen_provenance_affect_representation():
@@ -273,15 +281,14 @@ def test_cell_identity_uses_only_six_cell_parameters():
     _check_source(mol, representation)
 
 
-def test_source_frames_track_ordered_coordinates_not_current_selection_or_result_arrays():
+def test_source_frames_track_explicit_values_without_selected_observation_changes():
     mol = _molecule()
     mol.conformer_add(mol.coordinates)
     source = _capture_source(mol, ("source_frames",))
-    mol._conformers_index = 9
-    mol._conformers._energy = np.array([-12.0])
-    mol._conformers._force = np.ones((1, len(mol.atoms), 3))
+    _select_frame_observations(mol, {"energy": -12.0, "force": np.ones((len(mol.atoms), 3))},
+                               producer="test-observation")
     _check_source(mol, source)
-    mol._conformers._coordinates[0, 0, 0] += 1
+    mol.conformer_add(mol.coordinates + 1)
     with pytest.raises(RuntimeError, match="source_frames"):
         _check_source(mol, source)
 
@@ -333,28 +340,26 @@ def test_table_presence_and_producer_are_part_of_relevant_source_domains():
         _check_source(mol, geometry)
 
 
-def test_forcefield_source_covers_legacy_frame_results_without_changing_source_frame_domain():
+def test_forcefield_source_covers_selected_observations_without_changing_source_frame_domain():
     mol = _molecule()
     mol.conformer_add(mol.coordinates, energy=3.0)
     source_frames = _capture_source(mol, ('source_frames',))
     forcefield = _capture_source(mol, ('forcefield_inputs',))
-    mol._conformers._energy[0] = 9.0
+    mol.energy = 9.0
     _check_source(mol, source_frames)
     with pytest.raises(RuntimeError, match='forcefield_inputs'):
         _check_source(mol, forcefield)
 
 
-def test_owner_only_binding_never_reads_or_locks_unrequested_frames(monkeypatch):
+def test_owner_only_binding_never_reads_unrequested_frames(monkeypatch):
     mol = _molecule()
 
-    class UnrequestedFrameLock:
-        def __enter__(self):
-            raise AssertionError('owner-only binding acquired a frame lock')
+    def forbidden(*args):
+        raise AssertionError("owner-only binding inspected frame owners")
 
-        def __exit__(self, *args):
-            return False
-
-    monkeypatch.setattr(mol._conformers, '_mutation_lock', UnrequestedFrameLock())
+    from hotpot.cheminfo.structure import conformer
+    monkeypatch.setattr(conformer, "_source_frame_inputs", forbidden)
+    monkeypatch.setattr(conformer, "_frame_numeric_inputs", forbidden)
     source = _capture_source(mol)
     assert source.owner is mol._owner_token and source.dependencies == ()
     _check_source(mol, source)
@@ -416,8 +421,7 @@ def test_mca_representation_uses_existing_encoding_except_the_final_spin_entry(m
 @pytest.mark.parametrize("change", ["declaration", "selected_legacy_frame", "direct_clear"])
 def test_spin_changes_still_change_representation_but_preserve_mca_representation(change):
     mol = _molecule()
-    mol.conformer_add(np.stack((mol.coordinates, mol.coordinates)))
-    mol._conformers._spin_mult = np.asarray([1, 3])
+    _spin_frames(mol)
     representation = _capture_source(mol, ("representation",))
     mca_representation = _capture_source(mol, ("mca_representation",))
     if change == "declaration":
@@ -431,13 +435,15 @@ def test_spin_changes_still_change_representation_but_preserve_mca_representatio
     _check_source(mol, mca_representation)
 
 
-def test_mca_representation_does_not_read_unused_legacy_spin_selection():
+def test_mca_representation_does_not_read_unused_frame_spin(monkeypatch):
     mol = _molecule()
-    mol.conformer_add(mol.coordinates)
-    mol._conformers._spin_mult = np.asarray([3])
-    mol._conformers_index = 1
-    with pytest.raises(IndexError, match="number of conformers"):
-        _capture_source(mol, ("representation",))
+    _spin_frames(mol, (3,))
+    from hotpot.cheminfo.structure import conformer
+
+    def forbidden(*args):
+        raise AssertionError("MCA representation read unused spin")
+
+    monkeypatch.setattr(conformer, "_frame_spin", forbidden)
     _check_source(mol, _capture_source(mol, ("mca_representation",)))
 
 

@@ -203,13 +203,14 @@
       "owner": "source frames plus attached generated ensemble; current coordinates remain one owner",
       "fact_or_dependencies": "Nine existing keys; source frames then result attachment order then original ensemble frame order.",
       "shape_dtype_unit": "int item dict coordinates (N,3), slice (K,N,3); existing energy/force/thermo units; no extra persisted coordinate array.",
-      "presence_source": "Optional frame quantities remain absent/None; zero-valued scientific outputs remain values.",
+      "presence_source": "Optional per-frame quantities None, explicit0 retained; numeric batch projections NaN for missing observations; original raw unmatched history retained without fabricated frame associations.",
       "read_policy": "Read independent numeric values; historical frames retained; baseline constructor typo/empty iteration/partial-write defects are not contracts to reproduce.",
-      "write_policy": "add does not implicitly select; load commits current coordinates only; clear removes both source frames and attached ensembles; add/load/clear return None.",
-      "encode_decode": "Retain the exact existing constructor/field/enum order and only the codecs actually present in the bound source; no invented to_dict or schema normalization.",
+      "write_policy": "add preserves selected member/current coordinates; load atomically commits current coordinates and selects attributed observations without rewriting Atom charges or declarations; clear removes source/generated/selected owners. Existing command returnsNone.",
+      "encode_decode": "Same public constructor/read/add/clear surfaces; private N02 canonical source/generated/selection tagged-v4 transport supersedes legacy nine-array storage, with explicit oldv3 rejection.",
       "operation": "conformer_add/get/load/clear and explicit generation/optimization commit.",
       "invalidation_scope": "Loading coordinates affects geometry-dependent current results; selecting an ensemble frame does not invalidate that ensemble itself.",
-      "lifecycle": "Stage7D must characterize and repair atomic failure; detailed defects listed in known_baseline_defects."
+      "lifecycle": "Whole copy/source component subsets preserve attributable P1 frames/drop generatedP3; final selected observations bind current frame separately from historical input provenance; stable cursor through insertion/source-only copy and exact rollback. Stage7D CP311 owning scope accepted.",
+      "stage7d_implementation": "stages/stage07/coordinate-frames/validation/checkpoint.json"
     },
     "crystal": {
       "role": "independent cell value",
@@ -1837,7 +1838,7 @@
         "capacity"
       ],
       "contract": "conformers",
-      "note": "Existing __getattr__ projection through Conformers._attrs; not a new public property inventory."
+      "note": "Preserved ordinary observation access/assignments use selected typed N18 ownership; spin declaration retains its existing separate owner. No dynamic arrays or scientific __dict__ shadows; see stages/stage07/coordinate-frames/validation/checkpoint.json"
     },
     {
       "type": "hotpot.cheminfo.core.Atom",
@@ -4349,19 +4350,22 @@
       "id": "B-CONFORMER-EMPTY",
       "evidence": "core.Conformers.__iter__ calls iter(None) on empty instance",
       "gate": "Stage7D",
-      "disposition": "Existing characterized TypeError; replacement must provide reviewed empty behavior."
+      "disposition": "Existing characterized TypeError; replacement must provide reviewed empty behavior.",
+      "resolution": "Corrected in Stage7D canonical-frame implementation; CP311 focused/affected source+installed evidence in stages/stage07/coordinate-frames/validation/checkpoint.json"
     },
     {
       "id": "B-CONFORMER-ATOMIC",
       "evidence": "core.Conformers.add installs coordinates before validating energy length; existing baseline probe retained in stage1_contract_decisions",
       "gate": "Stage7D",
-      "disposition": "Replacement must fail atomically, not reproduce half-write as API contract."
+      "disposition": "Replacement must fail atomically, not reproduce half-write as API contract.",
+      "resolution": "Corrected in Stage7D canonical-frame implementation; CP311 focused/affected source+installed evidence in stages/stage07/coordinate-frames/validation/checkpoint.json"
     },
     {
       "id": "B-CONFORMER-NAME",
       "evidence": "core.py:5618 _attrs uses partial_charge; __init__:5630 creates _partial_charges; index_attr does not catch initial AttributeError; clear creates _partial_charge",
       "gate": "Stage7D",
-      "disposition": "Static finding; independent fresh Conformers can differ from a cleared instance. Characterize at owning stage; nine-key final proposal remains unchanged."
+      "disposition": "Static finding; independent fresh Conformers can differ from a cleared instance. Characterize at owning stage; nine-key final proposal remains unchanged.",
+      "resolution": "Corrected in Stage7D canonical-frame implementation; CP311 focused/affected source+installed evidence in stages/stage07/coordinate-frames/validation/checkpoint.json"
     }
   ],
   "future_public_interfaces": [
@@ -4907,5 +4911,17 @@
     },
     "source_ready_status": "HOLD_ROOT_FINAL_BYTE_IDENTITY_FREEZE_REQUIRED",
     "candidate_execution_status": "HOLD_EXACT_RUNTIME_RELEASE_REQUIRED"
+  },
+  "stage7d_owner_update": {
+    "date": "2026-11-03",
+    "status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE",
+    "conformers_definition": "hotpot.cheminfo.structure.conformer.Conformers",
+    "public_spelling": "hotpot.cheminfo.core.Conformers retained, with constructor/add/read/clear signatures and add annotations tested.",
+    "record": "MoleculeRecord25/tagged-v4; explicit canonical source/generated/selection fields, no legacy nine-array mirror.",
+    "schema": "N16/N17/N18 exact fields in data_object_budget.json and owning decisions; no new public export.",
+    "checkpoint": "stages/stage07/coordinate-frames/validation/checkpoint.json",
+    "completion": "stages/stage07/coordinate-frames/completion_20261103.json",
+    "stage_gate_closed": true,
+    "global_gate_closed": false
   }
 }

@@ -339,16 +339,18 @@ def test_current_pickle_roots_round_trip_in_a_fresh_process(tmp_path, protocol):
     origin = Path(sys.modules[Molecule.__module__].__file__).resolve()
     environment = os.environ.copy()
     environment.pop('PYTHONHOME', None)
-    environment['PYTHONPATH'] = str(origin.parents[2])
+    environment['PYTHONPATH'] = os.pathsep.join((str(origin.parents[2]),
+                                               str(Path(__file__).resolve().parents[3])))
     script = '''
 import pickle, sys
 from dataclasses import fields
 from pathlib import Path
 from hotpot import Molecule
 from hotpot.cheminfo.structure._builder import MoleculeRecord
+from tests.test_cheminfo._stage5_fixtures import immutable_snapshot
 assert Path(sys.modules[Molecule.__module__].__file__).resolve() == Path(sys.argv[2])
 mol, atom, bond, record, metadata = pickle.loads(Path(sys.argv[1]).read_bytes())
-assert type(record) is MoleculeRecord and record.__reduce__()[1][1] == 3
+assert type(record) is MoleculeRecord and record.__reduce__()[1][1] == 4
 assert atom is mol.atoms[0] and bond is mol.bonds[0]
 assert bond.atom1 is mol.atoms[1] and bond.atom2 is atom
 assert atom._uid == 1 and mol.atoms[1]._uid == 2 and bond._uid == 0
@@ -359,7 +361,7 @@ assert bond.constraint and bond.id == 91
 assert bond.bond_source_metadata == {'raw': [1, b'2']}
 assert mol.conformers_number == 1 and mol._conformers_index == -1
 captured, captured_metadata = mol._capture_factual_record()
-assert len(fields(record)) == 24
+assert len(fields(record)) == 25
 payload, marker = record.partial_charge_result
 assert payload.atom_uids == (0, 1) and payload.values == (0.0, None)
 assert payload.method == 'supplied' and payload.method_version is None
@@ -373,11 +375,12 @@ assert atom.partial_charge == 0.0 and mol.atoms[1].partial_charge is None
 assert mol._atom_table._columns[8] is None
 assert not (mol._atom_table.presence() & (1 << 8)).any()
 for field in fields(record):
-    assert getattr(captured, field.name) == getattr(record, field.name)
-assert captured_metadata == metadata
+    assert immutable_snapshot(getattr(captured, field.name)) == immutable_snapshot(getattr(record, field.name)), field.name
+assert immutable_snapshot(captured_metadata) == immutable_snapshot(metadata)
 assert all(member._uid_owner is mol._owner_token for member in (*mol.atoms, *mol.bonds))
 print('current roots restored')
 '''
     result = subprocess.run([sys.executable, '-B', '-c', script, str(artifact), str(origin)],
-                            cwd=tmp_path, env=environment, capture_output=True, text=True, check=True)
+                            cwd=tmp_path, env=environment, capture_output=True, text=True)
+    assert result.returncode == 0, (result.stdout, result.stderr)
     assert result.stdout.strip() == 'current roots restored'

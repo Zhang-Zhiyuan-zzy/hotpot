@@ -1,6 +1,5 @@
 """Atomic coordinate capture and complete write coverage for the OB projector."""
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import astuple
 from threading import Event
 import struct
 
@@ -13,15 +12,14 @@ from hotpot.cheminfo import BondKind
 from hotpot.cheminfo.operations import chemistry, conversion, io
 from hotpot.cheminfo.adapters.openbabel import conversion as ob_adapter
 from hotpot.cheminfo.adapters.io.formats import openbabel as ob_format
-from hotpot.cheminfo.structure._builder import _freeze_value
 from hotpot.cheminfo.structure._atom_table import _AtomFactTable
 from hotpot.cheminfo.structure._fields import FIELD_INDEX
 from hotpot.cheminfo.structure._results import _import_partial_charges
+from tests.test_cheminfo._stage5_fixtures import factual_state
 
 
 def _facts(mol):
-    record, metadata = mol._capture_factual_record()
-    return astuple(record), _freeze_value(metadata)
+    return factual_state(mol)
 
 
 def _coordinates(obmol):

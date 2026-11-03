@@ -34,7 +34,8 @@ def test_selections_keep_complete_handles_order_views_dependencies_and_frames():
     # Settle the chemistry consumed by views before taking deterministic snapshots.
     rings, angle = tuple(mol.rings), mol.angles[0]
     expected_degrees = angle.degrees
-    bonds, index, frames = tuple(mol.bonds), mol._topology_index, mol.conformers._coordinates
+    bonds, index, frames = tuple(mol.bonds), mol._topology_index, mol._source_frames
+    frame_coordinates = mol.conformer_get(slice(None))['coordinates'].copy()
     attrs = tuple(bond.attr_dict for bond in bonds)
     state = factual_state(mol)
     status, seeds = _dependency_state(mol._atom_table)
@@ -52,7 +53,8 @@ def test_selections_keep_complete_handles_order_views_dependencies_and_frames():
     assert mol.atoms[1] in mol.atoms[0].neighbours
     assert len(mol.rings) == len(rings) == 1
     assert angle.degrees == pytest.approx(expected_degrees)
-    assert mol._topology_index is index and mol.conformers._coordinates is frames
+    assert mol._topology_index is index and mol._source_frames is frames
+    np.testing.assert_array_equal(mol.conformer_get(slice(None))['coordinates'], frame_coordinates)
     assert factual_state(mol) == state
     after_status, after_seeds = _dependency_state(mol._atom_table)
     np.testing.assert_array_equal(after_status, status)

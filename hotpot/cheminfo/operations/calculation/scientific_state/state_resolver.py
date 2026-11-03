@@ -166,7 +166,6 @@ def _validated_lewis_result(
         candidates=result.candidates,
         admissibility=assessment.admissibility,
         resolution=assessment.terminal_status or ResolutionStatus.UNRESOLVED,
-        confidence=result.confidence,
         findings=result.findings + assessment.findings,
     )
 
@@ -197,7 +196,6 @@ def _validated_counting_result(
         candidates=result.candidates,
         admissibility=assessment.admissibility,
         resolution=assessment.terminal_status or ResolutionStatus.UNRESOLVED,
-        confidence=result.confidence,
         findings=result.findings + assessment.findings,
     )
 

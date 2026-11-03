@@ -7,7 +7,6 @@ import pytest
 
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
-    ChemicalConfidence,
     ResolutionStatus,
     ScientificAdmissibility,
     StateValueAuthority,
@@ -77,7 +76,6 @@ def test_scientific_state_contracts_are_frozen_and_serializable() -> None:
         candidates=(candidate,),
         admissibility=ScientificAdmissibility.ADMISSIBLE,
         resolution=ResolutionStatus.UNIQUE,
-        confidence=ChemicalConfidence.AUTHORITATIVE,
         findings=(),
     )
     reference = NeutralAtomReference(
@@ -92,6 +90,10 @@ def test_scientific_state_contracts_are_frozen_and_serializable() -> None:
 
     with pytest.raises(FrozenInstanceError):
         result.identity = "changed"
+    assert tuple(asdict(result)) == (
+        "identity", "facts_identity", "candidates",
+        "admissibility", "resolution", "findings",
+    )
     encoded = json.dumps(
         {"result": asdict(result), "reference": asdict(reference)},
         sort_keys=True,

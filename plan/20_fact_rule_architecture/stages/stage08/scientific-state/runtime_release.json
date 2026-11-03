@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
   "stage": "Stage8A",
-  "status": "ROOT_ACCEPTED_CP311_A1_A8_CHECKPOINT_WHOLE_STAGE_OPEN",
+  "status": "ROOT_ACCEPTED_CP311_A1_A9_CHECKPOINT_WHOLE_STAGE_OPEN",
   "source_freeze": {
-    "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-h-presence.json",
-    "sha256": "fdd6cee093295d57f235a3b0fd050ac78ccf452b84914cde2586e9f95bf64cf5"
+    "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-confidence.json",
+    "sha256": "355c11f2886521ee17d3219a80cabab0a4ba6c10e66584035a1d06469397d330"
   },
-  "contracts_sha256": "2a85ff93a6b3f7a2a35c2ffa3ce90d8dd8569796d89b29a9adafdcecef39e59a",
-  "validation_sha256": "2378c3c56e7a91d6ad2fba26036efb77c1b612afc036828cc2739f279baedf4d",
+  "contracts_sha256": "6a0f37d9f6d72585519d92ff3971415a9818fc4e607743f475a8b3a47a50054e",
+  "validation_sha256": "726077b6b466f7507eec84a51810a9f196cf9a7f107b179104ad285556405c9c",
   "root_review": "Reviewed exact dependency cut, class/function/resource preservation, owning source, current pickle/independent chemistry tests, outside-consumer bindings and changed Python/data packaging. All new-scientific old imports removed. Static gaps correspond to preexisting lazy FF/MCA exports/native binding, not missed scientific-state owners.",
   "runtime_authorized": [
     "focused",
@@ -19,7 +19,7 @@
   ],
   "acceptance": true,
   "held": [
-    "D01-D03 schema changes",
+    "Whole Stage8A remaining scientific-state semantics",
     "optional activation",
     "other versions and all later/global gates"
   ],
@@ -30,8 +30,17 @@
   "stage_gate_closed": false,
   "global_gate_closed": false,
   "checkpoint_gate_closed": true,
-  "checkpoint": "validation/h_presence_checkpoint.json",
-  "previous_checkpoint": "ownership_checkpoint_20261103.json",
+  "checkpoint": "validation/confidence_checkpoint.json",
+  "previous_checkpoint": "validation/h_presence_checkpoint.json",
   "root_a8_review": "Only production change returns stored current int including0. Root reviewed raw-state, unknown/pending/current sources, equal-nuclear-sum identity separation, chloride -1/18electron/octet/singlet/UHF0 and stale-evidence regressions. Product/test delta exactly2 files;1425 product/test/resource files+6 natives+3 build inputs rebound; no other product delta.",
-  "root_a8_results": "Source444focused/991affected+5skip; installed991affected+5skip/same996nodes; actual source/installed pipeline3/MCA3 per boundary;16installed origin-audited Python processes/no leaks; current source/model/native/build bindings unchanged. P20-D020 closed only for H presence."
+  "root_a8_results": "Source444focused/991affected+5skip; installed991affected+5skip/same996nodes; actual source/installed pipeline3/MCA3 per boundary;16installed origin-audited Python processes/no leaks; current source/model/native/build bindings unchanged. P20-D020 closed only for H presence.",
+  "root_a9_review": "Root reviewed normative records and both isolated patches; exact11product+9test apply verified against author after-hashes. Candidate/scientific algorithms unchanged; enum-class delta-1/dataclass delta0. Public detailed report and pickle hard-cut design accepted; runtime release is not runtime acceptance.",
+  "validation_at_execution": {
+    "path": ".plan20-artifacts/20261103/stage8a/confidence/release-inputs/validation.json",
+    "sha256": "4e7866dee823540997fca9083abd87f44f8900d35c275a032f2de2370a5f5877",
+    "note": "Original executed selection/expected values; current update records outcome only, with no command or fixture change."
+  },
+  "root_a9_results": "Source443focused/990affected+5skip; installed990affected+5skip/same995logicalnodes; actual3pipeline+3MCA each boundary; current5typecoldpickle and expected5legacyenumfailures each boundary.",
+  "root_a9_final_attribution": "All1425source/test/resource+6native+3buildinputs unchanged;20exact after-images match reviewed patches;16business+2objectshape site-hook Python processes zero checkout leaks. No performance/all-version/global claim.",
+  "contracts_sha256_at_execution": "37e8997e4f356c0e3e224941b80ef716492f4ed72559bbd96929fd09f464ab94"
 }

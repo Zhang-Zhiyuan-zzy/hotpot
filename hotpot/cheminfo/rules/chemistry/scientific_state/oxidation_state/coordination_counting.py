@@ -13,7 +13,6 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.charge.contracts import (
 )
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
-    ChemicalConfidence,
     ResolutionStatus,
     ScientificAdmissibility,
     ScientificFinding,
@@ -63,7 +62,6 @@ def _unresolved_result(
         (),
         ScientificAdmissibility.NOT_EVALUATED,
         ResolutionStatus.UNRESOLVED,
-        ChemicalConfidence.UNRESOLVED,
         (ScientificFinding(code, message, related_identities),),
     )
 
@@ -163,11 +161,6 @@ def _ionic_result(
             else ResolutionStatus.AMBIGUOUS
             if legal_candidates
             else ResolutionStatus.UNRESOLVED
-        ),
-        confidence=(
-            ChemicalConfidence.MEDIUM
-            if legal_candidates
-            else ChemicalConfidence.UNRESOLVED
         ),
         findings=(),
     )

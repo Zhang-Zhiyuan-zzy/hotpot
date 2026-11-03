@@ -15,7 +15,6 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.charge import (
 )
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
-    ChemicalConfidence,
     CoverageStatus,
     ResolutionStatus,
     ScientificAdmissibility,
@@ -59,7 +58,6 @@ def test_charge_result_contracts_are_frozen_and_json_serializable() -> None:
         candidates=(net_candidate,),
         admissibility=ScientificAdmissibility.ADMISSIBLE,
         resolution=ResolutionStatus.UNIQUE,
-        confidence=ChemicalConfidence.AUTHORITATIVE,
         findings=(),
     )
     lewis_candidate = LewisFormalChargeCandidate(
@@ -77,12 +75,16 @@ def test_charge_result_contracts_are_frozen_and_json_serializable() -> None:
         candidates=(lewis_candidate,),
         admissibility=ScientificAdmissibility.ADMISSIBLE,
         resolution=ResolutionStatus.UNIQUE,
-        confidence=ChemicalConfidence.HIGH,
         findings=(),
     )
 
     with pytest.raises(FrozenInstanceError):
         net_result.identity = "changed"
+    for calculation in (net_result, lewis_result):
+        assert tuple(asdict(calculation)) == (
+            "identity", "facts_identity", "candidates",
+            "admissibility", "resolution", "findings",
+        )
     encoded = json.dumps(
         {"net": asdict(net_result), "lewis": asdict(lewis_result)},
         sort_keys=True,

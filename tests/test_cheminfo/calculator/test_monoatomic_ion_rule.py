@@ -3,7 +3,6 @@
 import hotpot
 
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
-    ChemicalConfidence,
     DEFAULT_CANDIDATE_BUDGET,
     ResolutionStatus,
     ScientificAdmissibility,
@@ -78,7 +77,6 @@ def test_disconnected_sodium_and_chloride_receive_bounded_ionic_domains() -> Non
                 candidates=(),
                 admissibility=ScientificAdmissibility.NOT_EVALUATED,
                 resolution=ResolutionStatus.UNRESOLVED,
-                confidence=ChemicalConfidence.UNRESOLVED,
                 findings=(),
             ),
         ),
@@ -119,7 +117,6 @@ def test_complete_single_ion_accounting_derives_its_system_charge() -> None:
                 candidates=(),
                 admissibility=ScientificAdmissibility.NOT_EVALUATED,
                 resolution=ResolutionStatus.UNRESOLVED,
-                confidence=ChemicalConfidence.UNRESOLVED,
                 findings=(),
             ),
         ),

@@ -2,20 +2,23 @@
 
 状态：2026-10-28 文档审计及实施提案；没有修改生产类、函数签名或导出。
 2026-10-30 对齐当前 [goal](goal.md)：D01 通用公开外壳提案已被取代且始终
-未获批准；具体替代设计待审。2026-11-03 按已批准激活的 goal 对齐成本、验证与
-执行优先级；原始库存与旧提案的条件估算保留为历史记录。
+未获批准。2026-11-03 root 在 `7952d1f14994e88892dd094cd775e92970c6c0e1`
+明确接受 [A9](stages/stage08/scientific-state/contracts/decisions.md#a9--accepted-public-calculation-reports-and-confidence-only-removal)：
+保留五种领域计算记录及确切公开详细报告，删除通用 confidence 字段/生产与枚举；
+D02/D03 均为 NO_CONSOLIDATION。D01 已通过[当前 source/installed CP311 验收](stages/stage08/scientific-state/validation/confidence_checkpoint.json)，Stage8A/全局 gate 仍开放。
+成本、验证和执行优先级遵循已激活 goal；原始库存与旧条件估算仅为历史记录。
 代码基线：`d9eb80e`，生产实现基线与 Plan20 的 `0a4b0ee` 相同。
 本报告是 [主实施计划](fact_rule_architecture_implementation_plan.md) 的数据合约依据，
 按[化学类型公开接口一致协议](chemical_type_interface_contract.md)组织事实、视图、
 结果与运输值。公开类、字段、构造器、方法、读写权限、返回类型和导出路径的变更，
-均需按本报告第 8 节逐项审阅；本次批准修订规划不等于批准这些公开变化。
+均需按本报告第 8 节逐项审阅；A9 是已记录的具体批准，其余规划修订不自动批准公开变化。
 
-2026-11-03 当前实施补记：[Stage7B root 验收](stages/stage07/completion_20261103.json)
+2026-11-03 Stage7B 历史实施补记：[Stage7B root 验收](stages/stage07/completion_20261103.json)
 接受完整 Bond 唯一所有权、操作局部选择与约束归属的 CP311 业务迁移。
 新增仅为已预留 N04 `_TopologySelection(source, atom_uids, bond_mask)`；
-当前静态计数为778类/355dataclass/8Protocol/2TypedDict，无无关退役抵扣。
+该检查点静态计数为778类/355dataclass/8Protocol/2TypedDict，无无关退役抵扣。
 下文403文件/363候选库存及“生产尚无该类”表述属于原始基线；当前状态以
-预算台账和验收记录为准。Stage7C/D/E、其他版本及最终全局验收仍开放。
+预算台账和各 owning-stage 验收记录为准；此处不改写历史检查点或关闭后续/全局 gate。
 
 ## 1. 审计口径与主要结论
 
@@ -81,51 +84,62 @@ CLI 选项定义。已有真实作用的过程消息、独立 wrapper 合约和�
 
 ## 3. 已证实的同构和高相似家族
 
-### 3.1 科学状态结果：五个同构记录应优先收敛
+### 3.1 A9：保留五种领域计算记录，删除通用 confidence
 
-当前五类拥有完全相同的字段序：
+A9 实施前的五类均有七个必填字段：
 `identity, facts_identity, candidates, admissibility, resolution, confidence, findings`。
-差别主要是 `candidates` 的元素类型与科学量语义：
+Root 已具体批准只删除第六项 confidence，保留其余六项的顺序、类型和必填性；
+findings 从位置参数七移至六。五类保持原名、frozen 类身份和现有科学量候选类型：
 
-| 当前定义 | 代码证据 | 当前用途 |
+| 保留定义 | 当前唯一 owner（均位于 `hotpot/cheminfo`） | `candidates` 元素类型 |
 |---|---|---|
-| `NetChargeResult`、`LewisFormalChargeResult` | `calculator/charge/contracts.py:55,81` | 总电荷与 Lewis 形式电荷推断结果 |
-| `CoordinationElectronCountingResult`、`OxidationStateInferenceResult` | `calculator/oxidation_state/contracts.py:67,91` | 配位电子计数与氧化态推断结果 |
-| `ElectronicStateInferenceResult` | `calculator/electronic_state/contracts.py:75` | 自旋/电子态推断结果 |
+| `NetChargeResult` | `rules/chemistry/scientific_state/charge/contracts.py` | `NetChargeCandidateEvidence` |
+| `LewisFormalChargeResult` | 同上 | `LewisFormalChargeCandidate` |
+| `CoordinationElectronCountingResult` | `rules/chemistry/scientific_state/oxidation_state/contracts.py` | `CoordinationCountingCandidate` |
+| `OxidationStateInferenceResult` | 同上 | `OxidationStateCandidateEvidence` |
+| `ElectronicStateInferenceResult` | `rules/chemistry/scientific_state/electronic_state/contracts.py` | `ElectronicStateCandidate` |
 
-`calculator/state_resolver.py:600-608` 已跨结果统一读取 admissibility/resolution，
-说明现有内部决策依赖真实存在，精简时必须完整迁移；这不批准把这些字段
-带入普通公开输出。
+identity/facts_identity 参与归属、当前性和组合；candidates 保持有序关联候选；
+admissibility 是实际硬规则控制，resolution 区分冲突/未决，findings 保持确切规则
+与截断余量。它们不由 confidence 替代。删除所有 confidence 生产/复制、三个
+`_confidence` helper、`rules/.../contracts.py::ChemicalConfidence` 及该模块与
+`rules/.../__init__.py` 的两处公开导出；不添加替代类型、评级、别名或兼容实现。
 
-历史提案（2026-10-28，未批准；2026-10-30 由当前 goal 的普通结果边界取代）：
-一个同域 `StateInferenceResult[T]`，用显式 quantity/tag 区分科学量，
-`candidates` 保持静态泛型；空候选时也能无歧义序列化和分派。不要通过五个空子类
-再加一个基类来声称“减少了五类”：若保留五个公开运行时子类，类数反而增加。
-在该旧假设下，只有批准公开构造器/返回类型的统一后，5→1 才实际净减少 4。
+Root 明确接受现有 `resolve_scientific_state -> ScientificStateBundle`、
+`project_state -> BackendProjectionResult`、
+`resolve_and_project_state -> ScientificStateWorkflowResult` 为用户请求的公开详细
+计算/决策/投影报告。Bundle 保留全部字段，含供显式检查的有序 provider 输出、
+候选空间、resolution、decision、trace 和 source binding；另外两种报告保留精确
+投影可用性/诊断与 state+projection。普通 Molecule/Atom 电荷、自旋和结构值不加
+外壳或评级。确切八个函数签名、构造器、导出顺序、全部 owner 与消费者范围见 A9。
+这项批准来自 root 的现有授权与有效 goal，不是 docstring 推断或新的审批流程。
 
-D01 当前仍待具体设计：先明确所请求的领域值（可为候选集、分布或轨迹）及
-全部生产者/消费者，再审阅确切公开变化。普通输出不附加通用成功、置信度或
-admissibility 评级；所需候选、硬规则评估、来源与生命周期记录按实际内部
-控制/持久化用途保留。本文不提出替代公开 schema；D01 当前目标定义数及
-净减少未定。
+`StateInferenceResult[T]`/quantity-tag 的旧 5→1 提案未获批准且现已拒绝；当前为
+5→5，dataclass 净变化零。ChemicalConfidence 退役实测另记 enum-class −1，
+不冒充 dataclass 精简。旧七字段/枚举对象 pickle 采用已接受的整体硬切，无 alias、
+迁移 loader 或双 runtime；不承诺外部/反射调用兼容。已有版本化 JSON/schema/digest
+不变，不升 wire 版本。D01 当前 source/installed CP311、五类 current cold-pickle 与旧枚举对象预期失败均已通过，详见 A9 checkpoint。
 
-### 3.2 科学状态诊断与开关：按同域收敛，保留角色和权限
+### 3.2 A9：诊断与输入开关均 NO_CONSOLIDATION
 
-- `ScientificFinding` (`calculator/contracts.py:149`)、`BackendProjectionFinding`
-  (`execution_selection.py:95`)、`DecisionReason` (`state_selection.py:63`)
-  均为 `code, message, related_identities=()`。
-  `StaticEligibilityFinding` (`state_selection.py:55`) 是前两字段子集。
-  可采用同域 `StateFinding`，用 code namespace 与承载位置保存规则诊断、选择理由、
-  后端投影和适用域角色，4→1 的候选净减少为 3。
-- `ProviderToggle` (`calculator/contracts.py:199`) 与 `RuleToggle`
-  (`state_rules/contracts.py:100`) 同构；`RuleValue` 已复用 `ProviderValue`。
-  可采用 `StateActivation[TId]` 统一记录结构，2→1 净减少 1。
-  provider/rule ID 命名空间、默认启用与控制权限仍分别定义；不能因共用记录就把
-  两种启用策略合并。
+- D02 保留 `ScientificFinding`（rules contracts）、`BackendProjectionFinding`
+  （operation execution_selection）、`DecisionReason` 与 `StaticEligibilityFinding`
+  （operation state_selection）四类及导出。前三者仍为
+  `code, message, related_identities=()`，static eligibility 仍仅 `code, message`。
+  决策快照分别严格编码两字段与三字段；既有 namespace/承载位置保存领域角色，
+  不引入 `StateFinding`、角色标签或删改字段 presence。
+- D03 保留 operations contracts 的 `ProviderToggle(provider_id, enabled,
+  configuration=())` 与 rules provider contracts 的 `RuleToggle(rule_id, enabled,
+  configuration=())`。`RuleValue = ProviderValue` 的现有复用保持；当前 built-in provider
+  只认 PROVIDER-001/002/003 且拒绝非空配置，rule 使用已注册 specification/版本/
+  依赖/phase 并把配置交给 action。保持 disabled/abstained、STRICT 限制与向下依赖；
+  不引入 `StateActivation` 或统一运行时 namespace。有效 profile digest 继续分别使用
+  sorted provider triples 与 layer-ordered rule quadruples，并保留 facts/policy/profile/
+  requirements/budget 的确切 payload（见 A9）。可选 profile 保持 planned，未激活。
 
-这些类型在公开 API 测试中有导出断言，均为待审变更。`ExecutionPolicySet` 与
-`RecoveryPolicySet` 虽同为 `policy_ids`，位于不同执行阶段、有不同合法取值和作用域，
-不应据此再建立一个跨域任意 policy 容器。
+当前目标为 4→4 与 2→2，均零 dataclass 变化且无需替代生产实现；其审阅选择已经
+解决为 NO_CONSOLIDATION，不能继续标为未实施的归并预测。4→1/2→1 仅在第7节
+保留为历史提案。`ExecutionPolicySet`/`RecoveryPolicySet` 也保持各自执行域。
 
 ### 3.3 力场停止条件：存在纯字段搬运层
 
@@ -326,23 +340,24 @@ float64 property，与 Atom.attrs 共用唯一投影。三者共享声明与来�
 
 ### 7.1 已有定义的可审议收敛
 
-下表保留 2026-10-28 原提案的条件估算，不是批准或实施后的数量。D01 通用
-公开外壳提案已于 2026-10-30 被当前 goal 取代，其当前目标/净减少待具体设计；
-含该假设的合计只作为历史估算保留。其他候选继续按原有边界待审。
+下表保留 2026-10-28 原提案的条件估算，不是当前目标或实施数量。
+A9 已取代 D01–D03 的 5→1/4→1/2→1 假设；D04/D05/FF-CLI 继续按原边界待审，
+不因 A9 改动。历史合计不能抵扣新增对象或充当必须压缩这些家族的要求。
 
 | 归并项 | 当前→目标定义数 | 理论净减少 | 前提 |
 |---|---:|---:|---|
-| 五种科学推断结果外壳 | 5→1（历史假设；当前待定） | 4（历史假设） | 原 quantity tag/泛型提案未批准且已被取代 |
-| 四种科学状态 finding/reason | 4→1 | 3 | 保留 namespace、角色和字段 presence |
-| provider/rule toggle | 2→1 | 1 | ID 域和启用权限仍分开 |
+| 五种科学推断结果外壳 | 5→1（已被 A9 取代） | 4（历史假设） | 原 quantity tag/泛型提案未批准且已拒绝 |
+| 四种科学状态 finding/reason | 4→1（已被 A9 取代） | 3（历史假设） | A9 选择保留四类及精确 codec |
+| provider/rule toggle | 2→1（已被 A9 取代） | 1（历史假设） | A9 选择保留两类及独立 namespace/配置 |
 | 两种 Python 停止参数 | 2→1 | 1 | 不改独立 C++ 绑定结构 |
 | 两种力场 bond snapshot | 2→1 | 1 | 统一端点规范化与历史导出 |
 | FF CLI 重复 options | 1→0（复用已有 options） | 1 | 输出设置移到已有 work item，不新增 wrapper |
 | **原提案历史合计** | **16→5** | **11** | **均未实施；含已被取代的 D01 假设，不是当前目标合计** |
 
 在原提案且“不考虑 Plan20 新机制新增对象”的局部假设下，347→336 是历史
-理论条件值；3 TypedDict、13 Protocol 未因此减少。D01 当前目标与净减少未定，
-上述值不是当前精简承诺或实施后总量。
+理论条件值；3 TypedDict、13 Protocol 未因此减少。上述值不是当前精简承诺或实施后总量。
+A9 当前已实施并经 CP311 校验的结论为 D01 5→5、D02 4→4、D03 2→2，实际及目标 dataclass delta 均零；
+另列已实施并验证的 ChemicalConfidence enum-class delta −1。其余家族只按实际证据计数。
 另有 `CoordinationGeometryCandidate/Result` 与 `RingEdgeDistance` 共 3 个 dataclass 的
 条件删除候选；若批准，可另减 3。`AtomPairKey` 不在 dataclass 口径中，单独记录。
 
@@ -368,16 +383,16 @@ Protocol、普通数据/实现类、type alias 与 C++ ABI structs。新增基�
 条件值11用作当前净减少证明或抵消未记账的新类，也不能把训练/插件的独立对象
 当作必须消除的化学内核负担。
 
-## 8. 公开接口待审表
+## 8. 公开接口审阅表
 
 本表列明本审计提出的公开变化；没有列出的新公开类/属性/方法不由本报告设立。
-现有名称保留到逐项决策冻结；是否硬迁移由主规划的公开路径决策控制。
+A9 已冻结 D01–D03 的具体结论；其余现有名称保留到各自逐项决策，是否硬迁移由主规划控制。
 
 | 编号 | 现有公开面 | 提案变化 | 审阅内容 |
 |---|---|---|---|
-| D01 | 五种 `...Result` | 原 `StateInferenceResult[T]` 通用公开外壳提案已被当前 goal 取代且未批准；具体领域值/内部记录设计待审 | 明确所请求的值并覆盖全部生产者、控制消费者与 codecs；必要候选、硬规则、来源/生命周期记录保留；确切名字/路径、构造/字段、返回与序列化变化逐项审阅，不添加通用评级 |
-| D02 | 三种 Finding/Reason 与 StaticEligibilityFinding | 统一为拟议 `StateFinding` | code namespace、related_identities 缺省、角色投影、旧名称去向 |
-| D03 | `ProviderToggle` / `RuleToggle` | 统一为拟议 `StateActivation[TId]` | 新类及 ID 类型、enabled 语义、provider/rule 权限边界 |
+| D01 | 五种 `...Result` 与既有公开详细报告 | A9 已批准：五类保留六个必填字段，仅删 confidence 生产/字段与枚举/两处导出；精确报告 API/owner 保留 | 当前 source/installed CP311 与五类 current pickle 已验收；旧七字段/枚举对象硬切已实测；版本化 JSON/digest 不变，无替代类/评级 |
+| D02 | 三种 Finding/Reason 与 StaticEligibilityFinding | A9：NO_CONSOLIDATION，四类及导出保留 | 两字段 static 与三字段 reason codec、角色/namespace 不变；不再等待 StateFinding 提案 |
+| D03 | `ProviderToggle` / `RuleToggle` | A9：NO_CONSOLIDATION，两种输入及各自 owner 保留 | ID 域、enabled/configuration、digest payload 与向下依赖不变；不再等待 StateActivation 提案 |
 | D04 | `OptimizationStoppingCriteria` / `OptimizationStoppingOptions` | 保留一个 Python 参数类型 | 最终名称/路径、旧导入去向；5字段/单位/默认值保持 |
 | D05 | `BondTopologySignature` / `BondTopology` | 保留一个不可变 bond record | 最终名称/路径、端点排序、构造/工厂、轨迹历史 schema |
 | D06 | `AtomTopologySignature` / `AtomIdentity` | 可能统一原子快照并把 symbol 改为计算投影 | 暂不计减少；uid/index/source id、symbol 读权限与历史格式 |

@@ -11,7 +11,6 @@ from hotpot.cheminfo.rules.chemistry.scientific_state import legality
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateBudget,
     CandidateProvenance,
-    ChemicalConfidence,
     DEFAULT_CANDIDATE_BUDGET,
     ResolutionStatus,
     ScientificAdmissibility,
@@ -206,7 +205,6 @@ def _empty_result(
         candidates=(),
         admissibility=admissibility,
         resolution=resolution,
-        confidence=ChemicalConfidence.UNRESOLVED,
         findings=(
             ScientificFinding(
                 code=code,
@@ -360,7 +358,6 @@ def _solve_candidate(
             if len(candidates) == 1 and not truncated
             else ResolutionStatus.AMBIGUOUS
         ),
-        confidence=ChemicalConfidence.MEDIUM,
         findings=(
             (
                 ScientificFinding(

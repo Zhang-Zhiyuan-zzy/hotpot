@@ -8,7 +8,6 @@ from typing import Tuple
 
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
-    ChemicalConfidence,
     ResolutionStatus,
     ScientificAdmissibility,
     ScientificFinding,
@@ -62,22 +61,6 @@ def _explicit_candidate(facts: MolecularFacts, charge: int) -> NetChargeCandidat
     )
 
 
-def _confidence(
-    candidates: Tuple[NetChargeCandidateEvidence, ...],
-) -> ChemicalConfidence:
-    authorities = {candidate.provenance.authority for candidate in candidates}
-    if authorities & {
-        StateValueAuthority.VERIFIED_EXPLICIT,
-        StateValueAuthority.VERIFIED_SCIENTIFIC_SOURCE,
-    }:
-        return ChemicalConfidence.AUTHORITATIVE
-    if StateValueAuthority.EXACT_IDENTITY_TRUSTED_SOURCE in authorities:
-        return ChemicalConfidence.HIGH
-    if candidates:
-        return ChemicalConfidence.MEDIUM
-    return ChemicalConfidence.UNRESOLVED
-
-
 def _result_identity(
     facts: MolecularFacts,
     candidates: Tuple[NetChargeCandidateEvidence, ...],
@@ -128,7 +111,6 @@ def _request_result(facts: MolecularFacts, request: StateRequest) -> NetChargeRe
                 candidates=candidates,
                 admissibility=ScientificAdmissibility.INADMISSIBLE,
                 resolution=resolution,
-                confidence=_confidence(candidates),
                 findings=findings,
             )
         candidates = (explicit_candidate,) + matching_candidates
@@ -176,7 +158,6 @@ def _request_result(facts: MolecularFacts, request: StateRequest) -> NetChargeRe
         candidates=legal_candidates,
         admissibility=admissibility,
         resolution=resolution,
-        confidence=_confidence(legal_candidates),
         findings=findings,
     )
 
@@ -205,7 +186,6 @@ def _revalidate_provided_result(
         candidates=result.candidates,
         admissibility=assessment.admissibility,
         resolution=assessment.terminal_status or ResolutionStatus.UNRESOLVED,
-        confidence=result.confidence,
         findings=result.findings + assessment.findings,
     )
 

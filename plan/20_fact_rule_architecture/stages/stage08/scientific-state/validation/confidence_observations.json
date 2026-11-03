@@ -1,0 +1,919 @@
+{
+  "status": "ROOT_ACCEPTED_CP311_CONFIDENCE_ONLY_REMOVAL",
+  "scope": "A9 removes generic confidence fields/producers/enum/exports (11 product, 9 test files). D02 four findings and D03 two toggles retained. Scientific algorithms/models/natives unchanged.",
+  "parent_commit": "7952d1f14994e88892dd094cd775e92970c6c0e1",
+  "archive_root": ".plan20-artifacts/20261103/stage8a/confidence",
+  "path_convention": "Archive-root relative paths; root owns archival/acceptance.",
+  "source_freeze": {
+    "raw": "source-validation/source_freeze-confidence.json",
+    "sha256": "355c11f2886521ee17d3219a80cabab0a4ba6c10e66584035a1d06469397d330"
+  },
+  "completed_runs": {
+    "source/focused": {
+      "collected": 443,
+      "passed": 443,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "elapsed_seconds": 12.255586227402091,
+      "returncode": 0,
+      "raw": "source-validation/focused-confidence-attempt01/execution.json"
+    },
+    "source/affected": {
+      "collected": 995,
+      "passed": 990,
+      "skipped": 5,
+      "failures": 0,
+      "errors": 0,
+      "elapsed_seconds": 22.935133181512356,
+      "returncode": 0,
+      "raw": "source-validation/affected-confidence-attempt01/execution.json"
+    },
+    "source/actual_CBFF_xtb": {
+      "collected": 3,
+      "passed": 3,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "elapsed_seconds": 4.852223314344883,
+      "returncode": 0,
+      "raw": "source-validation/actual_CBFF_xtb-confidence-attempt01/execution.json"
+    },
+    "source/actual_MCA_attachment": {
+      "collected": 3,
+      "passed": 3,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "elapsed_seconds": 8.734682427719235,
+      "returncode": 0,
+      "raw": "source-validation/actual_MCA_attachment-confidence-attempt01/execution.json"
+    },
+    "installed/affected": {
+      "collected": 995,
+      "passed": 990,
+      "skipped": 5,
+      "failures": 0,
+      "errors": 0,
+      "elapsed_seconds": 24.90570911206305,
+      "returncode": 0,
+      "raw": "installed-validation/confidence-attempt01/execution.json#results/affected"
+    },
+    "installed/actual_CBFF_xtb": {
+      "collected": 3,
+      "passed": 3,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "elapsed_seconds": 5.329628327861428,
+      "returncode": 0,
+      "raw": "installed-validation/confidence-attempt01/execution.json#results/actual_CBFF_xtb"
+    },
+    "installed/actual_MCA_attachment": {
+      "collected": 3,
+      "passed": 3,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "elapsed_seconds": 8.966490741819143,
+      "returncode": 0,
+      "raw": "installed-validation/confidence-attempt01/execution.json#results/actual_MCA_attachment"
+    }
+  },
+  "pipelines": {
+    "source": [
+      {
+        "case": "official-coordination-False",
+        "raw": "source-validation/actual_CBFF_xtb-confidence-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/manifest.json",
+        "execution_status": "succeeded",
+        "stage_indices": [
+          0,
+          1,
+          2
+        ]
+      },
+      {
+        "case": "official-coordination-True",
+        "raw": "source-validation/actual_CBFF_xtb-confidence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/manifest.json",
+        "execution_status": "succeeded",
+        "stage_indices": [
+          0,
+          1,
+          3,
+          4
+        ]
+      },
+      {
+        "case": "official-readme-europium",
+        "raw": "source-validation/actual_CBFF_xtb-confidence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/manifest.json",
+        "execution_status": "succeeded",
+        "stage_indices": [
+          5,
+          6,
+          7,
+          8
+        ]
+      }
+    ],
+    "installed": [
+      {
+        "case": "official-coordination-False",
+        "raw": "installed-business/pytest-actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/manifest.json",
+        "execution_status": "succeeded",
+        "stage_indices": [
+          0,
+          1,
+          2
+        ]
+      },
+      {
+        "case": "official-coordination-True",
+        "raw": "installed-business/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/manifest.json",
+        "execution_status": "succeeded",
+        "stage_indices": [
+          0,
+          1,
+          3,
+          4
+        ]
+      },
+      {
+        "case": "official-readme-europium",
+        "raw": "installed-business/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/manifest.json",
+        "execution_status": "succeeded",
+        "stage_indices": [
+          5,
+          9,
+          10,
+          11
+        ]
+      }
+    ]
+  },
+  "mca": {
+    "source": [
+      {
+        "raw": "source-validation/actual_MCA_attachment-confidence-attempt01/pytest-tmp/test_mca_is_attached_to_atoms_0/attached_prediction.json",
+        "predictions": {
+          "prediction": 0
+        }
+      },
+      {
+        "raw": "source-validation/actual_MCA_attachment-confidence-attempt01/pytest-tmp/test_hotpot_and_smiles_inputs_0/equivalence_predictions.json",
+        "predictions": {
+          "hotpot": 0,
+          "smiles": 0
+        }
+      },
+      {
+        "raw": "source-validation/actual_MCA_attachment-confidence-attempt01/pytest-tmp/test_molecule_mca_sites_suppor0/site_count_predictions.json",
+        "predictions": {
+          "empty_sites": 1,
+          "multiple_sites": 2
+        }
+      }
+    ],
+    "installed": [
+      {
+        "raw": "installed-business/pytest-actual_MCA_attachment/test_mca_is_attached_to_atoms_0/attached_prediction.json",
+        "predictions": {
+          "prediction": 0
+        }
+      },
+      {
+        "raw": "installed-business/pytest-actual_MCA_attachment/test_hotpot_and_smiles_inputs_0/equivalence_predictions.json",
+        "predictions": {
+          "hotpot": 0,
+          "smiles": 0
+        }
+      },
+      {
+        "raw": "installed-business/pytest-actual_MCA_attachment/test_molecule_mca_sites_suppor0/site_count_predictions.json",
+        "predictions": {
+          "empty_sites": 1,
+          "multiple_sites": 2
+        }
+      }
+    ],
+    "prediction_values": [
+      {
+        "smiles": "C1CCCNC1",
+        "formal_charge": 0,
+        "sites": [
+          {
+            "atom_index": 5,
+            "element": "N",
+            "site_type": "Amine",
+            "mca_kj_mol": 503.25
+          }
+        ],
+        "model_variant": "fp16",
+        "atom_predictions": [
+          {
+            "atom_index": 0,
+            "element": "C",
+            "mca_kj_mol": 314.0
+          },
+          {
+            "atom_index": 1,
+            "element": "C",
+            "mca_kj_mol": 373.0
+          },
+          {
+            "atom_index": 2,
+            "element": "C",
+            "mca_kj_mol": 318.0
+          },
+          {
+            "atom_index": 3,
+            "element": "C",
+            "mca_kj_mol": 370.0
+          },
+          {
+            "atom_index": 4,
+            "element": "C",
+            "mca_kj_mol": 318.0
+          },
+          {
+            "atom_index": 5,
+            "element": "N",
+            "mca_kj_mol": 503.25
+          }
+        ]
+      },
+      {
+        "smiles": "C",
+        "formal_charge": 0,
+        "sites": [],
+        "model_variant": "fp16",
+        "atom_predictions": [
+          {
+            "atom_index": 0,
+            "element": "C",
+            "mca_kj_mol": 265.5
+          }
+        ]
+      },
+      {
+        "smiles": "CC(=O)C",
+        "formal_charge": 0,
+        "sites": [
+          {
+            "atom_index": 2,
+            "element": "O",
+            "site_type": "Ketone",
+            "mca_kj_mol": 344.5
+          },
+          {
+            "atom_index": 1,
+            "element": "C",
+            "site_type": "double_bond",
+            "mca_kj_mol": 65.8125
+          }
+        ],
+        "model_variant": "fp16",
+        "atom_predictions": [
+          {
+            "atom_index": 0,
+            "element": "C",
+            "mca_kj_mol": 309.25
+          },
+          {
+            "atom_index": 1,
+            "element": "C",
+            "mca_kj_mol": 65.8125
+          },
+          {
+            "atom_index": 2,
+            "element": "O",
+            "mca_kj_mol": 344.5
+          },
+          {
+            "atom_index": 3,
+            "element": "C",
+            "mca_kj_mol": 309.25
+          }
+        ]
+      }
+    ],
+    "indexing": "predictions map indexes prediction_values. Deduplication records observed equality only, not an acceptance requirement. Ordered atom_predictions and sites retain every actual index, element, type and kJ/mol value.",
+    "cardinalities": [
+      {
+        "prediction_index": 0,
+        "atoms": 6,
+        "sites": 1
+      },
+      {
+        "prediction_index": 1,
+        "atoms": 1,
+        "sites": 0
+      },
+      {
+        "prediction_index": 2,
+        "atoms": 4,
+        "sites": 2
+      }
+    ]
+  },
+  "evidence_index": [
+    {
+      "path": "source-validation/source_freeze-confidence.json",
+      "contents": "Frozen source/test/native/model bindings and A9 delta."
+    },
+    {
+      "path": "source-validation/{focused,affected,actual_CBFF_xtb,actual_MCA_attachment}-confidence-attempt01/",
+      "contents": "execution.json exact argv/cwd/environment/interpreter/elapsed/results; logs, JUnit and test artifacts."
+    },
+    {
+      "path": "installed-validation/confidence-attempt01/",
+      "contents": "execution.json/commands.json exact build/install/test commands; wheel/native/model/import identities; source/install/support before/after bindings; logs and measured omissions."
+    },
+    {
+      "path": "installed-business/pytest-actual_{CBFF_xtb,MCA_attachment}/",
+      "contents": "Three official pipeline manifests and three MCA prediction JSON files; full native outputs retained beneath pipeline stage directories."
+    },
+    {
+      "path": "root-review/membership_comparison.json",
+      "contents": "Retired enum node, five shape-hash node renames and preserved original reporting failure."
+    },
+    {
+      "path": "root-review/postchange-python-objects-{source-attempt02,installed}/receipt.json",
+      "contents": "Current five-type shapes/cold pickle and expected old enum failures; object identities."
+    },
+    {
+      "path": "root-review/postchange-installed-origins/reconciliation.json",
+      "contents": "Corrected Python/native origin lookup."
+    }
+  ],
+  "membership": {
+    "raw": "root-review/membership_comparison.json",
+    "old_total": 996,
+    "new_total": 995,
+    "retired_enum_nodes": [
+      "tests/test_cheminfo/calculator/test_scientific_state_ownership.py::test_relocated_class_has_one_owner_and_unchanged_contract[rules.contracts:ChemicalConfidence]"
+    ],
+    "shape_hash_renames": 5,
+    "chemistry_cases_lost": 0,
+    "limit": "Logical execution membership only, not a chemistry oracle. Five approved constructor changes alter their parameter fingerprints; enum retirement removes one case."
+  },
+  "independent_existing_test_assertions": [
+    {
+      "test": "tests/test_cheminfo/calculator/test_scientific_state_ownership.py::test_explicit_methane_preserves_charge_electrons_and_spin",
+      "charge": 0,
+      "electrons": 10,
+      "two_s": 0,
+      "multiplicity": 1,
+      "backend_uhf": 0
+    },
+    {
+      "test": "tests/test_cheminfo/calculator/test_scientific_state_facts.py::test_chloride_zero_h_preserves_charge_electrons_lewis_and_singlet_projection",
+      "charge": -1,
+      "nuclear_charge_sum": 17,
+      "electrons": 18,
+      "nonbonding_electrons": 8,
+      "radical_electrons": 0,
+      "implicit_H": 0,
+      "two_s": 0,
+      "multiplicity": 1,
+      "backend_uhf": 0
+    },
+    {
+      "test": "tests/test_cheminfo/calculator/test_scientific_state_ownership.py::test_odd_spin_for_even_electron_methane_never_gets_projected",
+      "meaning": "Even-electron methane requested with two_s=1 does not project; HARD-006 parity finding retained."
+    },
+    {
+      "test": "tests/test_cheminfo/calculator/test_spin_legality.py::test_illegal_spin_states_return_reason_coded_findings",
+      "meaning": "Existing parametrized assertions reject negative count, electron mismatch, spin bounds, parity mismatch, multiplicity mismatch."
+    }
+  ],
+  "interpretation": [
+    "Executed finite attributable observations and geometric monitors do not establish chemical truth.",
+    "All recorded energy/geometry differences retained; no historical or source/installed energy or output-hash equality required.",
+    "Unresolved scientific-state status remains unresolved even where GFN2 executes with default UHF=0; GFN-FF charge-only projection records unpaired_electrons=null.",
+    "MCA test assertions cover attachment and atom/site mapping including empty/single/multiple sites; model values are fp16 observations, not calibrated confidence."
+  ],
+  "object_probe": {
+    "raw": [
+      "root-review/postchange-python-objects-source-attempt02/receipt.json",
+      "root-review/postchange-python-objects-installed/receipt.json"
+    ],
+    "at_each_boundary": {
+      "current_types_cold_pickle_passed": 5,
+      "expected_old_enum_pickle_failures": 5
+    },
+    "coverage": "Shape/import ownership, not new chemistry/backend evidence; enum removal is an intentional compatibility cut."
+  },
+  "reporting_corrections": [
+    "Source object probe attempt01 lacked PYTHONPATH and failed before fixture execution; attempt02 corrected invocation.",
+    "Initial raw-node comparison overlooked five approved shape-hash renames; logical comparison corrected reporting without business reexecution.",
+    "Installed origin reporter initially omitted separate native map; reconciliation corrected evidence lookup without business reexecution."
+  ],
+  "origin_coverage": {
+    "business_site_hook_python_processes": 16,
+    "business_leaks": 0,
+    "additional_installed_object_probe_processes": 2,
+    "additional_unique_bound_files": 136,
+    "raw": "root-review/postchange-installed-origins/reconciliation.json",
+    "limit": "Site-hook Python participants only; not independent enumeration of native/site-bypassing processes."
+  },
+  "delivery": {
+    "python": "CP311 / Python 3.11.16",
+    "dependencies": "system-site-packages reused",
+    "native_count_reused": 6,
+    "measured_nonpython_omissions": 41,
+    "wheel": {
+      "path": "/tmp/hotpot_plan20/medium/20261103-stage8a-state-installed/confidence-attempt01/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6327123,
+      "sha256": "e3d4d3ebf299a40516686c2f3626d4363e454c4c9fa8fd12e9759b97cde458c0"
+    },
+    "raw": [
+      "installed-validation/confidence-attempt01/execution.json",
+      "installed-validation/confidence-attempt01/wheel-contents.json",
+      "installed-validation/confidence-attempt01/native-provenance.json"
+    ]
+  },
+  "open_gates": [
+    "optional scientific-state profile",
+    "unknown-H arithmetic",
+    "public-ID/row boundary",
+    "other supported Python versions",
+    "clean all-native build/ABI",
+    "SDK",
+    "sdist",
+    "GPU",
+    "global scientific/engineering acceptance",
+    "comparable performance acceptance",
+    "D019 full-copy route deferred"
+  ],
+  "performance_claim": "No new speed claim; elapsed times identify runs, not controlled comparisons.",
+  "cbond_observations": [
+    {
+      "donor_indices": [
+        0,
+        3
+      ],
+      "metal": "Zn",
+      "path_probability": 0.7325034825111857,
+      "steps": [
+        {
+          "atom_index": 0,
+          "element": "N",
+          "probability": 0.8570544664505884,
+          "score": 1.7910377979278564
+        },
+        {
+          "atom_index": 3,
+          "element": "O",
+          "probability": 0.8546755325186985,
+          "score": 1.771752953529358
+        }
+      ]
+    },
+    {
+      "donor_indices": [
+        2
+      ],
+      "metal": "Eu",
+      "path_probability": 0.492404769050918,
+      "steps": [
+        {
+          "atom_index": 2,
+          "element": "O",
+          "probability": 0.492404769050918,
+          "score": -0.030383260920643806
+        }
+      ]
+    }
+  ],
+  "geometry_observations": [
+    [
+      12,
+      12,
+      0.9923614425373608,
+      1.8426090215762798,
+      [
+        {
+          "angles": [
+            100.09910855357724
+          ],
+          "coordination_number": 2,
+          "distances": [
+            1.8426090215762798,
+            1.8042984635471007
+          ],
+          "donor_indices": [
+            0,
+            3
+          ],
+          "metal_index": 10
+        }
+      ],
+      0,
+      0,
+      true,
+      "full_graph",
+      []
+    ],
+    [
+      12,
+      12,
+      0.9923614425373608,
+      1.8426090215762798,
+      [
+        {
+          "angles": [
+            100.09910855357724
+          ],
+          "coordination_number": 2,
+          "distances": [
+            1.8426090215762798,
+            1.8042984635471007
+          ],
+          "donor_indices": [
+            0,
+            3
+          ],
+          "metal_index": 10
+        }
+      ],
+      0,
+      0,
+      true,
+      "ligand_skeleton",
+      []
+    ],
+    [
+      12,
+      12,
+      1.0374374631754921,
+      2.076488259056622,
+      [
+        {
+          "angles": [
+            83.33398468321961
+          ],
+          "coordination_number": 2,
+          "distances": [
+            2.076488259056622,
+            2.0118050999040635
+          ],
+          "donor_indices": [
+            0,
+            3
+          ],
+          "metal_index": 10
+        }
+      ],
+      0,
+      0,
+      true,
+      "ligand_skeleton",
+      []
+    ],
+    [
+      9,
+      8,
+      0.9673520356611468,
+      2.2376588710524956,
+      [
+        {
+          "angles": [],
+          "coordination_number": 1,
+          "distances": [
+            2.2376588710524956
+          ],
+          "donor_indices": [
+            2
+          ],
+          "metal_index": 7
+        }
+      ],
+      0,
+      0,
+      true,
+      "full_graph",
+      []
+    ],
+    [
+      9,
+      8,
+      1.0347642485126747,
+      2.264054687943734,
+      [
+        {
+          "angles": [],
+          "coordination_number": 1,
+          "distances": [
+            2.264054687943734
+          ],
+          "donor_indices": [
+            2
+          ],
+          "metal_index": 7
+        }
+      ],
+      0,
+      0,
+      true,
+      "ligand_skeleton",
+      []
+    ],
+    [
+      9,
+      8,
+      1.013250678993455,
+      3.1631225329962382,
+      [
+        {
+          "angles": [],
+          "coordination_number": 1,
+          "distances": [
+            3.1631225329962382
+          ],
+          "donor_indices": [
+            2
+          ],
+          "metal_index": 7
+        }
+      ],
+      0,
+      0,
+      true,
+      "ligand_skeleton",
+      []
+    ],
+    [
+      9,
+      8,
+      0.9673376217041135,
+      2.237563720541107,
+      [
+        {
+          "angles": [],
+          "coordination_number": 1,
+          "distances": [
+            2.237563720541107
+          ],
+          "donor_indices": [
+            2
+          ],
+          "metal_index": 7
+        }
+      ],
+      0,
+      0,
+      true,
+      "full_graph",
+      []
+    ],
+    [
+      9,
+      8,
+      1.035217861128758,
+      2.264585849553953,
+      [
+        {
+          "angles": [],
+          "coordination_number": 1,
+          "distances": [
+            2.264585849553953
+          ],
+          "donor_indices": [
+            2
+          ],
+          "metal_index": 7
+        }
+      ],
+      0,
+      0,
+      true,
+      "ligand_skeleton",
+      []
+    ],
+    [
+      9,
+      8,
+      1.0126639976910488,
+      3.1610525572048327,
+      [
+        {
+          "angles": [],
+          "coordination_number": 1,
+          "distances": [
+            3.1610525572048327
+          ],
+          "donor_indices": [
+            2
+          ],
+          "metal_index": 7
+        }
+      ],
+      0,
+      0,
+      true,
+      "ligand_skeleton",
+      []
+    ]
+  ],
+  "shared_observation_indexing": "stage_indices -> stage_observations; cbond_index -> cbond_observations; geometry_index/indices -> geometry_observations. Shared entries reflect actual equality, not a gate. Distances angstrom, angles degrees.",
+  "stage_observations": [
+    {
+      "directory": "stages/00-cbond",
+      "cbond_index": 0
+    },
+    {
+      "directory": "stages/01-ff",
+      "uff": [
+        {
+          "effective_forcefield": "UFF",
+          "final_energy": 69.14934437776031,
+          "energy_unit": "kJ/mol",
+          "geometry_index": 0
+        }
+      ]
+    },
+    {
+      "directory": "stages/02-xtb",
+      "xtb": [
+        "gfn2",
+        "gfn2",
+        -14.26981398,
+        2,
+        0,
+        {
+          "decision_source": "execution_default",
+          "projection_convention": "pure_spin_highest_ms",
+          "status": "projected"
+        },
+        "unresolved"
+      ],
+      "geometry_indices": [
+        1
+      ]
+    },
+    {
+      "directory": "stages/02-xtb",
+      "xtb": [
+        "gfnff",
+        "gfnff",
+        1.298971744181724,
+        2,
+        null,
+        {
+          "decision_source": "scientific_state",
+          "projection_convention": "charge_only",
+          "status": "projected"
+        },
+        "unresolved"
+      ],
+      "geometry_indices": [
+        2
+      ]
+    },
+    {
+      "directory": "stages/03-xtb",
+      "xtb": [
+        "gfn2",
+        "gfn2",
+        -14.27320288,
+        2,
+        0,
+        {
+          "decision_source": "execution_default",
+          "projection_convention": "pure_spin_highest_ms",
+          "status": "projected"
+        },
+        "unresolved"
+      ],
+      "geometry_indices": [
+        2
+      ]
+    },
+    {
+      "directory": "stages/00-cbond",
+      "cbond_index": 1
+    },
+    {
+      "directory": "stages/01-ff",
+      "uff": [
+        {
+          "effective_forcefield": "UFF",
+          "final_energy": 4.508452613130351,
+          "energy_unit": "kJ/mol",
+          "geometry_index": 3
+        }
+      ]
+    },
+    {
+      "directory": "stages/02-xtb",
+      "xtb": [
+        "gfnff",
+        "gfnff",
+        3.237789691945265,
+        3,
+        null,
+        {
+          "decision_source": "scientific_state",
+          "projection_convention": "charge_only",
+          "status": "projected"
+        },
+        "unresolved"
+      ],
+      "geometry_indices": [
+        4
+      ]
+    },
+    {
+      "directory": "stages/03-xtb",
+      "xtb": [
+        "gfn2",
+        "gfn2",
+        -13.53209862,
+        3,
+        0,
+        {
+          "decision_source": "execution_default",
+          "projection_convention": "pure_spin_highest_ms",
+          "status": "projected"
+        },
+        "unresolved"
+      ],
+      "geometry_indices": [
+        5
+      ]
+    },
+    {
+      "directory": "stages/01-ff",
+      "uff": [
+        {
+          "effective_forcefield": "UFF",
+          "final_energy": 4.509881783811751,
+          "energy_unit": "kJ/mol",
+          "geometry_index": 6
+        }
+      ]
+    },
+    {
+      "directory": "stages/02-xtb",
+      "xtb": [
+        "gfnff",
+        "gfnff",
+        3.237790637796561,
+        3,
+        null,
+        {
+          "decision_source": "scientific_state",
+          "projection_convention": "charge_only",
+          "status": "projected"
+        },
+        "unresolved"
+      ],
+      "geometry_indices": [
+        7
+      ]
+    },
+    {
+      "directory": "stages/03-xtb",
+      "xtb": [
+        "gfn2",
+        "gfn2",
+        -13.53210139,
+        3,
+        0,
+        {
+          "decision_source": "execution_default",
+          "projection_convention": "pure_spin_highest_ms",
+          "status": "projected"
+        },
+        "unresolved"
+      ],
+      "geometry_indices": [
+        8
+      ]
+    }
+  ],
+  "geometry_columns": [
+    "atom_count",
+    "bond_count",
+    "minimum_pair_distance_A",
+    "maximum_bond_length_A",
+    "coordination_environments",
+    "piercing_count",
+    "undetermined_count",
+    "scan_complete",
+    "scan_scope",
+    "failed_findings"
+  ],
+  "xtb_columns": [
+    "requested_method",
+    "effective_method",
+    "energy_hartree",
+    "charge",
+    "unpaired_electrons",
+    "backend_projection",
+    "scientific_resolution_status"
+  ],
+  "affected_skip_scope": "Five official direct wrapper-vs-CLI tests require --run-external; skips are unvalidated by affected counts. Three actual pipelines passed separately at each boundary.",
+  "checkpoint": "confidence_checkpoint.json",
+  "schema_version": 1
+}

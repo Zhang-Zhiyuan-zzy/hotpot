@@ -1,6 +1,6 @@
 # Stage 12: composable xTB workflow
 
-Status: the execution wrapper and the canonical scientific-state architecture
+Plan12 delivery status: the execution wrapper and the canonical scientific-state architecture
 are implemented through consumer migration. The screening profile remains
 inactive until its reviewed scientific rules and held-out activation criteria
 are approved; the large-corpus Phase 10 validation is also outstanding.
@@ -43,10 +43,20 @@ reference implementation over narrow reusable external-process primitives.
 - [Optional execution-recovery policies](recovery/)
 - [Superseded state-inference plans and audit sources](older/)
 
-For charge, oxidation-state and electronic-state work, the normative plan and
-its indexed `rules/`, `providers/`, `execution/` and `recovery/`
-specifications are the only implementation instructions. The documents under
-`older/` preserve evidence and design history but are not active plans.
+Integrated implementation precedence (2026-11-03): Plan20 is the single
+implementation mainline. Its approved [goal](../20_fact_rule_architecture/goal.md)
+and [Stage8A A1–A9 decisions](../20_fact_rule_architecture/stages/stage08/scientific-state/contracts/decisions.md)
+govern current ownership and public surfaces. Former `calculator` paths,
+seven-field confidence constructors and `ChemicalConfidence` enum/export listings
+in this Plan12 set are historical, superseded surfaces for integrated implementation.
+A9 controls the approved six required fields (`identity, facts_identity,
+candidates, admissibility, resolution, findings`), exact retained detailed public
+resolver/projection/workflow reports, four D02 finding/reason types and two
+distinct D03 toggle types. A9 implementation/runtime is [accepted within CP311](../20_fact_rule_architecture/stages/stage08/scientific-state/validation/confidence_checkpoint.json); whole Stage8A remains open.
+Scientific rule semantics and optional-profile review/activation and Phase 10
+held-out gates are unchanged. The indexed `rules/`, `providers/`, `execution/`
+and `recovery/` remain inherited scientific requirements within this precedence;
+`older/` remains historical evidence, not an active implementation plan.
 
 The implemented architecture distinguishes candidate production from decision:
 hard rules define the legal space, providers and optional rules supply

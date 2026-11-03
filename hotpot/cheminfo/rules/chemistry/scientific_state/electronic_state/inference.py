@@ -12,7 +12,6 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.charge.contracts import (
 )
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
-    ChemicalConfidence,
     ResolutionStatus,
     ScientificAdmissibility,
     ScientificFinding,
@@ -172,22 +171,6 @@ def _candidate(
     )
 
 
-def _confidence(
-    candidates: Tuple[ElectronicStateCandidate, ...],
-) -> ChemicalConfidence:
-    authorities = {candidate.provenance.authority for candidate in candidates}
-    if authorities & {
-        StateValueAuthority.VERIFIED_EXPLICIT,
-        StateValueAuthority.VERIFIED_SCIENTIFIC_SOURCE,
-    }:
-        return ChemicalConfidence.AUTHORITATIVE
-    if StateValueAuthority.EXACT_IDENTITY_TRUSTED_SOURCE in authorities:
-        return ChemicalConfidence.HIGH
-    if candidates:
-        return ChemicalConfidence.MEDIUM
-    return ChemicalConfidence.UNRESOLVED
-
-
 def _request_result(
     facts: MolecularFacts,
     request: StateRequest,
@@ -270,7 +253,6 @@ def _request_result(
         candidates=legal_candidates,
         admissibility=admissibility,
         resolution=resolution,
-        confidence=_confidence(legal_candidates),
         findings=findings,
     )
 
@@ -311,7 +293,6 @@ def _revalidate_provided_result(
                 result.candidates,
                 ScientificAdmissibility.INADMISSIBLE,
                 ResolutionStatus.CONFLICT,
-                result.confidence,
                 findings,
             )
         assessments.append(
@@ -334,7 +315,6 @@ def _revalidate_provided_result(
         result.candidates,
         assessment.admissibility,
         assessment.terminal_status or ResolutionStatus.UNRESOLVED,
-        result.confidence,
         result.findings + assessment.findings,
     )
 

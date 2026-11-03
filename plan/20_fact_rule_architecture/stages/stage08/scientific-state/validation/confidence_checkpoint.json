@@ -1,0 +1,679 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8A A9",
+  "date": "2026-11-03",
+  "status": "ROOT_ACCEPTED_CP311_CONFIDENCE_ONLY_REMOVAL",
+  "acceptance_owner": "root",
+  "checkpoint_gate_closed": true,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "accepted_scope": "Remove generic confidence only; preserve five typed six-field records, exact retained public detailed calculation reports, D02fourfinding/reason types and D03twotoggle types; existing chemistry/model/native algorithms and explicit JSON/digests unchanged.",
+  "source": {
+    "parent_commit": "7952d1f14994e88892dd094cd775e92970c6c0e1",
+    "freeze": "ac7410f4fbbd51a61",
+    "binding_counts": {
+      "source_and_tests": 1425,
+      "native": 6,
+      "build_inputs": 3
+    },
+    "changed_product_files": 11,
+    "changed_test_files": 9,
+    "production_lines_added": 0,
+    "production_lines_removed": 96,
+    "root_final_check": "afe8a229b35f54db3"
+  },
+  "source_results": {
+    "focused": {
+      "receipt": "ae407ec6b9ff40e92",
+      "junit": "ac832b046bedbb7cd",
+      "results": {
+        "tests": 443,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 443
+      },
+      "elapsed_seconds": 12.255586227402091
+    },
+    "affected": {
+      "receipt": "ad9ec9c4e4e1d7828",
+      "junit": "a85b742a1a1d55e00",
+      "results": {
+        "tests": 995,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 5,
+        "passed": 990
+      },
+      "elapsed_seconds": 22.935133181512356
+    },
+    "actual_CBFF_xtb": {
+      "receipt": "a8711df3eb01ba5ff",
+      "junit": "a99c5b42310e3d71d",
+      "results": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 3
+      },
+      "elapsed_seconds": 4.852223314344883
+    },
+    "actual_MCA_attachment": {
+      "receipt": "af0d710bfecab9c3a",
+      "junit": "ac621f49e0242f840",
+      "results": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 3
+      },
+      "elapsed_seconds": 8.734682427719235
+    }
+  },
+  "installed": {
+    "receipt": "a76bf968043775fc6",
+    "results": {
+      "affected": {
+        "tests": 995,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 5,
+        "returncode": 0,
+        "elapsed_seconds": 24.90570911206305,
+        "passed": 990,
+        "origins": {
+          "startup_processes": 10,
+          "final_processes": 10,
+          "zero_leaks": true
+        },
+        "junit": "abd08a4d7a95108f7"
+      },
+      "actual_CBFF_xtb": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 5.329628327861428,
+        "passed": 3,
+        "origins": {
+          "startup_processes": 5,
+          "final_processes": 5,
+          "zero_leaks": true
+        },
+        "junit": "a074401311e6a6025"
+      },
+      "actual_MCA_attachment": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 8.966490741819143,
+        "passed": 3,
+        "origins": {
+          "startup_processes": 1,
+          "final_processes": 1,
+          "zero_leaks": true
+        },
+        "junit": "ad6c7608941311699"
+      }
+    },
+    "same_ordered_995_nodes": true,
+    "all_recorded_bindings_unchanged": true,
+    "site_hook_business_python_processes": 16,
+    "zero_checkout_leaks": true,
+    "wheel": {
+      "archive_path": ".plan20-artifacts/20261103/stage8a/confidence/wheel/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6327123,
+      "sha256": "e3d4d3ebf299a40516686c2f3626d4363e454c4c9fa8fd12e9759b97cde458c0"
+    },
+    "measured_nonpython_omissions": 41
+  },
+  "type_census": {
+    "production_python_files": 468,
+    "classes": 782,
+    "dataclasses": 360,
+    "protocols": 8,
+    "typed_dicts": 2,
+    "enum_delta": -1,
+    "dataclass_delta": 0
+  },
+  "membership": {
+    "previous_cases": 996,
+    "current_cases": 995,
+    "retired_enum_cases": 1,
+    "constructor_shape_parameter_renames": 5,
+    "chemical_cases_removed": 0,
+    "evidence": "a0ab2f108285d6baa"
+  },
+  "pickle": {
+    "current_five_types_cold_load_each_boundary": true,
+    "old_five_enum_bearing_graphs_fail_each_boundary": true,
+    "old_assets_disposition": "Approved hard cut; no alias/migration loader/dual runtime",
+    "source_probe": "a6761d54f219f1559",
+    "installed_probe": "a985a5f49f5a25c44"
+  },
+  "affected_skips": [
+    {
+      "class": "tests.test_plugin.test_xtb.test_official_integration",
+      "name": "test_official_gfn2_wrapper_matches_direct_cli_energy",
+      "reason": "requires --run-external"
+    },
+    {
+      "class": "tests.test_plugin.test_xtb.test_official_integration",
+      "name": "test_official_gfnff_wrapper_matches_direct_cli_energy",
+      "reason": "requires --run-external"
+    },
+    {
+      "class": "tests.test_plugin.test_xtb.test_official_integration",
+      "name": "test_official_gfn2_optimization_matches_direct_cli_result",
+      "reason": "requires --run-external"
+    },
+    {
+      "class": "tests.test_plugin.test_xtb.test_official_integration",
+      "name": "test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_states[ionic-chloride]",
+      "reason": "requires --run-external"
+    },
+    {
+      "class": "tests.test_plugin.test_xtb.test_official_integration",
+      "name": "test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_states[hydrogen-radical]",
+      "reason": "requires --run-external"
+    }
+  ],
+  "retained_reporting_corrections": [
+    "Source shape-probe invocation failed before fixtures without PYTHONPATH; explicit source path fixed invocation.",
+    "Raw node-ID comparison overlooked five accepted constructor fingerprint renames; logical comparison corrected reporting, no business rerun.",
+    "Installed shape-origin reporter initially omitted separate frozen native map; only evidence lookup corrected."
+  ],
+  "performance": "No new speed claim or controlled measurement. Existing A7 copy-cost evidence remains historical; P20-D019 deferred.",
+  "remaining_open": [
+    "Whole Stage8A semantic disposition, including unknown-H accounting",
+    "Optional-profile and held-out approval",
+    "Stage8B-E and subsequent stages",
+    "Other Python versions and clean native/ABI/SDK/sdist/manylinux/41package omissions",
+    "Broader science/GPU/performance and Plan20/Plan12 global acceptance"
+  ],
+  "limits": [
+    "CP311 only, shared system-site-packages dependencies.",
+    "All six accepted Stage7E natives reused with unchanged sources/interfaces; no clean all-native/ABI/SDK/sdist/manylinux qualification.",
+    "Measured package omissions remain explicit.",
+    "Origin audit covers Python site-hook participants; native and site-bypassing processes are not independently enumerated.",
+    "No controlled candidate performance, global science/GPU/full isolation/all-version claim.",
+    "Connected scientific-state ownership checkpoint only; root owns Stage8A acceptance and all remaining global obligations."
+  ],
+  "archive": {
+    "manifest": "a2b7c9d92f87d780e",
+    "regular_files": 940,
+    "total_bytes": 16288414,
+    "manifest_self_excluded_from_file_index": true
+  },
+  "observations": "a4a63f18fc8c4400d",
+  "report": "ae192fb514d653725",
+  "evidence_graph": {
+    "nodes": {
+      "ac7410f4fbbd51a61": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/source-validation/source_freeze-confidence.json",
+        "bytes": 183482,
+        "sha256": "355c11f2886521ee17d3219a80cabab0a4ba6c10e66584035a1d06469397d330",
+        "roles": [
+          "A9 frozen execution inputs"
+        ]
+      },
+      "a2b7c9d92f87d780e": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/archive-manifest.json",
+        "bytes": 452699,
+        "sha256": "2a77beba2ca88d7885ed7139796f79d788fe41d65834e908f7c23fb2f4026cd5",
+        "roles": [
+          "Complete raw evidence file index; read on demand"
+        ]
+      },
+      "afe8a229b35f54db3": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/root-final-binding-check.json",
+        "bytes": 2098,
+        "sha256": "bfe61edefaef3a4e2680f4afba1b53921fda0f93a0d8715c342c7df648c8efb5",
+        "roles": [
+          "Root independently rechecked all1434frozen input hashes and20after images"
+        ]
+      },
+      "ae407ec6b9ff40e92": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/source-validation/focused-confidence-attempt01/execution.json",
+        "bytes": 3097,
+        "sha256": "e3d2b3122089a8b9a7a4bf0390a6819f14bedf6aa2749f1fd53b865210e16216",
+        "roles": [
+          "Exact source execution command/environment/results"
+        ]
+      },
+      "ac832b046bedbb7cd": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/source-validation/focused-confidence-attempt01/junit.xml",
+        "bytes": 103808,
+        "sha256": "d6dd0ee2951b8c2c6cdf908c11680a14aee44c5108a7a899cc92cce48ac54e33",
+        "roles": [
+          "Source executed test cases and skip reasons"
+        ]
+      },
+      "ad9ec9c4e4e1d7828": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/source-validation/affected-confidence-attempt01/execution.json",
+        "bytes": 8090,
+        "sha256": "92c71b463ce21e0c3a5520253fcfbb7067c9ad1409c583c93ca708990b97666c",
+        "roles": [
+          "Exact source execution command/environment/results"
+        ]
+      },
+      "a85b742a1a1d55e00": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/source-validation/affected-confidence-attempt01/junit.xml",
+        "bytes": 192751,
+        "sha256": "f63ac649a2e404ced38e8e867a83117fc0a3a6d0f50e11d7f6ceeecd976181f3",
+        "roles": [
+          "Source executed test cases and skip reasons"
+        ]
+      },
+      "a8711df3eb01ba5ff": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/source-validation/actual_CBFF_xtb-confidence-attempt01/execution.json",
+        "bytes": 2627,
+        "sha256": "86fdff274ae76ce0f491892f222a15a85c7b1ca934aab6292155c9069e5c5775",
+        "roles": [
+          "Exact source execution command/environment/results"
+        ]
+      },
+      "a99c5b42310e3d71d": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/source-validation/actual_CBFF_xtb-confidence-attempt01/junit.xml",
+        "bytes": 712,
+        "sha256": "d7c1210c6ffc07639dcc57f0014afdb84d6e7c2dd0f43402c92b29f08ac007c1",
+        "roles": [
+          "Source executed test cases and skip reasons"
+        ]
+      },
+      "af0d710bfecab9c3a": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/source-validation/actual_MCA_attachment-confidence-attempt01/execution.json",
+        "bytes": 2581,
+        "sha256": "5e6f12b69d7f671fe6042d71064665028d5b00c0abf01bb938d5e3e177a71399",
+        "roles": [
+          "Exact source execution command/environment/results"
+        ]
+      },
+      "ac621f49e0242f840": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/source-validation/actual_MCA_attachment-confidence-attempt01/junit.xml",
+        "bytes": 679,
+        "sha256": "fa878f203b9ba824858e15078e9ec74605b43791bd85a386179d613048f97d2a",
+        "roles": [
+          "Source executed test cases and skip reasons"
+        ]
+      },
+      "a76bf968043775fc6": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/installed-validation/confidence-attempt01/execution.json",
+        "bytes": 62324,
+        "sha256": "12c7333bdd661fe227f4e0bf5b3723559e870854945b0123b2c82b03b10ecc74",
+        "roles": [
+          "Installed CP311 outside-checkout execution receipt"
+        ]
+      },
+      "abd08a4d7a95108f7": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/installed-validation/confidence-attempt01/affected/junit.xml",
+        "bytes": 193061,
+        "sha256": "d292d5aad3a30b318f1c78c37ba3200b2ff1d30a63ccdc00ebfc5b182630247b",
+        "roles": [
+          "Installed executed test cases"
+        ]
+      },
+      "a074401311e6a6025": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/installed-validation/confidence-attempt01/actual_CBFF_xtb/junit.xml",
+        "bytes": 712,
+        "sha256": "c7b5841c6e71b3548a8deb06cfc814b92b40c9ddad62d192aac482929a51888a",
+        "roles": [
+          "Installed executed test cases"
+        ]
+      },
+      "ad6c7608941311699": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/installed-validation/confidence-attempt01/actual_MCA_attachment/junit.xml",
+        "bytes": 679,
+        "sha256": "46778ebc7976ed249dec514d41705620df1aa7fd2243b06bfb26e4f6ca7913dd",
+        "roles": [
+          "Installed executed test cases"
+        ]
+      },
+      "a0192829fbee8f17a": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/installed-validation/confidence-attempt01/assembly-inputs.json",
+        "bytes": 105830,
+        "sha256": "3ea5a463f322b86d1d011b3a64463be317648ba0eb79b1599f2353d99942b595",
+        "roles": [
+          "Installed assembly and input identities"
+        ]
+      },
+      "a996f07e918a6751c": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/installed-validation/confidence-attempt01/wheel-contents.json",
+        "bytes": 109174,
+        "sha256": "8e5a5a5790dddeba1696676013e147d4a26c97248ad23628b02ea27e0e9a20da",
+        "roles": [
+          "Wheel members and41measured omissions"
+        ]
+      },
+      "ac0448f11ff7efb28": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/installed-validation/confidence-attempt01/native-provenance.json",
+        "bytes": 17442,
+        "sha256": "75b2d6e0537449e6769c4aeab02bd6fdd4db95b38a43f686695758643f2675bc",
+        "roles": [
+          "Six reused accepted natives, unchanged sources/build declarations"
+        ]
+      },
+      "aadaae8fc0ed0daa9": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/root-review/integration.json",
+        "bytes": 8225,
+        "sha256": "cb701805d27791ac1550b4ece74725cff21163d70c50b284f51fbe22b719d0b5",
+        "roles": [
+          "Root integration and exact patch hashes"
+        ]
+      },
+      "a0ab2f108285d6baa": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/root-review/membership_comparison.json",
+        "bytes": 4544,
+        "sha256": "de1e1dfba2b704436f975b38728d9d58c9edaf94fa58246d8b11fe989d3fcb5e",
+        "roles": [
+          "One enum case retired/five shape parameter renames"
+        ]
+      },
+      "a4f15e4e26ae09a78": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/root-review/probe-source-attempt01-failure.json",
+        "bytes": 827,
+        "sha256": "ab461431420f12d7578aad8611a7fa6ac28352223802d8a4c0d438b5c3770875",
+        "roles": [
+          "Original probe invocation error retained"
+        ]
+      },
+      "a6761d54f219f1559": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/root-review/postchange-python-objects-source-attempt02/receipt.json",
+        "bytes": 9920,
+        "sha256": "67cd1d47e6ced07b7adcd91fb1961d1c8af71d0278e55b5523d6100e91b60778",
+        "roles": [
+          "Allfive current source cold-pickle and accepted old failures"
+        ]
+      },
+      "a985a5f49f5a25c44": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/root-review/postchange-python-objects-installed/receipt.json",
+        "bytes": 11127,
+        "sha256": "fc22a67f33db0ec98b6801873223546d0d9b643eb745cf5ce26046996298b001",
+        "roles": [
+          "Allfive current installed cold-pickle and accepted old failures"
+        ]
+      },
+      "acf78d00893a7979e": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/root-review/postchange-installed-origins/reconciliation.json",
+        "bytes": 724,
+        "sha256": "fdc0aaa2979d3c0349f6aefcdbc1471da26c52201bbbdda4a37694c91a370fc6",
+        "roles": [
+          "Additional two installed shape-probe Python origins and original reporter error"
+        ]
+      },
+      "ad4b2de6dd3c8b498": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/prepared-patches/source-author/hashes.json",
+        "bytes": 3008,
+        "sha256": "17d068c4d7d9d986a0181c53e01e277a09704a813b3d897ff992465e7577288d",
+        "roles": [
+          "Approved connected patch scope/static evidence"
+        ]
+      },
+      "a934e5a240cafc68a": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/prepared-patches/source-author/static_checks.json",
+        "bytes": 6174,
+        "sha256": "b96b4ac2fbb5bb8983a725bca2ae3d4994a1223a40da7b914e2e392ba213e52b",
+        "roles": [
+          "Approved connected patch scope/static evidence"
+        ]
+      },
+      "a01792558bff44499": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/prepared-patches/test-author/hashes.json",
+        "bytes": 3264,
+        "sha256": "6b65cfc509fafafffa46d910f559aa1542d21c317099612cff1b4fd6f0f97405",
+        "roles": [
+          "Approved connected patch scope/static evidence"
+        ]
+      },
+      "a8e3f7fd4145c8815": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/prepared-patches/test-author/static_checks.json",
+        "bytes": 4699,
+        "sha256": "73c0761160b0e6abe540bdbcf12ff41a54761d4b2abf660912c40f71ad932ff9",
+        "roles": [
+          "Approved connected patch scope/static evidence"
+        ]
+      },
+      "a6a3375bf5bf3768c": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/source-validation/actual_CBFF_xtb-confidence-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/manifest.json",
+        "bytes": 30577,
+        "sha256": "b95fdf91077b67b9f051fcf7703bdbcadcfea3738432044f36c7f13d159f4977",
+        "roles": [
+          "Actual pipeline manifest"
+        ]
+      },
+      "a46269785a36bcbfb": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/source-validation/actual_CBFF_xtb-confidence-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/manifest.json",
+        "bytes": 40555,
+        "sha256": "467f8a30213fd352b8f83e31b6f43869a61f5f99dc8d1a64f8fe6ee5970f161f",
+        "roles": [
+          "Actual pipeline manifest"
+        ]
+      },
+      "afea12b77fa18e926": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/source-validation/actual_CBFF_xtb-confidence-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/manifest.json",
+        "bytes": 41144,
+        "sha256": "6e697219d90fcda2cb6814eb3ba627ddaba45aca2923bcd6eac4e0c6d732c85f",
+        "roles": [
+          "Actual pipeline manifest"
+        ]
+      },
+      "aee635a57d4821f6e": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/installed-business/pytest-actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/manifest.json",
+        "bytes": 30577,
+        "sha256": "cedf72b3e7c5d695cc42112249c9efe5650f5af3561e4dc11bf19ae0a9a78750",
+        "roles": [
+          "Actual pipeline manifest"
+        ]
+      },
+      "afec9c5646ab439ed": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/installed-business/pytest-actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/manifest.json",
+        "bytes": 40555,
+        "sha256": "8c809a99079b1f44e900ca7549d03315a3022cdf045dd109001ebe9c9744cecc",
+        "roles": [
+          "Actual pipeline manifest"
+        ]
+      },
+      "a97e68044ee6aa9df": {
+        "path": ".plan20-artifacts/20261103/stage8a/confidence/installed-business/pytest-actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/manifest.json",
+        "bytes": 41138,
+        "sha256": "c032e93e5e0dc5f94ce06f35476ebb6ccf6266da1e113651b8c82fdb57723b83",
+        "roles": [
+          "Actual pipeline manifest"
+        ]
+      },
+      "a4a63f18fc8c4400d": {
+        "path": "plan/20_fact_rule_architecture/stages/stage08/scientific-state/validation/confidence_observations.json",
+        "bytes": 24573,
+        "sha256": "9dd0ad17baa2cc6657eb2d5a78907d97047dbca8f2abc0e564e68c04932a8201",
+        "roles": [
+          "Compact business values and raw path index"
+        ]
+      },
+      "ae192fb514d653725": {
+        "path": "plan/20_fact_rule_architecture/stages/stage08/scientific-state/validation/confidence_report.md",
+        "bytes": 4860,
+        "sha256": "3c7cbc171a85b30014fe91d694638f41a3f858c1a9db04ccbaf2f60967af7fa7",
+        "roles": [
+          "Root-reviewed interpretation and coverage limits"
+        ]
+      }
+    },
+    "edges": [
+      {
+        "from": "ac7410f4fbbd51a61",
+        "to": "ae407ec6b9ff40e92",
+        "relation": "validated frozen bytes"
+      },
+      {
+        "from": "ae407ec6b9ff40e92",
+        "to": "ac832b046bedbb7cd",
+        "relation": "observed cases"
+      },
+      {
+        "from": "ac7410f4fbbd51a61",
+        "to": "ad9ec9c4e4e1d7828",
+        "relation": "validated frozen bytes"
+      },
+      {
+        "from": "ad9ec9c4e4e1d7828",
+        "to": "a85b742a1a1d55e00",
+        "relation": "observed cases"
+      },
+      {
+        "from": "ac7410f4fbbd51a61",
+        "to": "a8711df3eb01ba5ff",
+        "relation": "validated frozen bytes"
+      },
+      {
+        "from": "a8711df3eb01ba5ff",
+        "to": "a99c5b42310e3d71d",
+        "relation": "observed cases"
+      },
+      {
+        "from": "ac7410f4fbbd51a61",
+        "to": "af0d710bfecab9c3a",
+        "relation": "validated frozen bytes"
+      },
+      {
+        "from": "af0d710bfecab9c3a",
+        "to": "ac621f49e0242f840",
+        "relation": "observed cases"
+      },
+      {
+        "from": "a76bf968043775fc6",
+        "to": "abd08a4d7a95108f7",
+        "relation": "installed boundary observations"
+      },
+      {
+        "from": "a76bf968043775fc6",
+        "to": "a074401311e6a6025",
+        "relation": "installed boundary observations"
+      },
+      {
+        "from": "a76bf968043775fc6",
+        "to": "ad6c7608941311699",
+        "relation": "installed boundary observations"
+      },
+      {
+        "from": "ad9ec9c4e4e1d7828",
+        "to": "a76bf968043775fc6",
+        "relation": "prerequisite source selection"
+      },
+      {
+        "from": "a76bf968043775fc6",
+        "to": "a0192829fbee8f17a",
+        "relation": "Installed assembly and input identities"
+      },
+      {
+        "from": "a76bf968043775fc6",
+        "to": "a996f07e918a6751c",
+        "relation": "Wheel members and41measured omissions"
+      },
+      {
+        "from": "a76bf968043775fc6",
+        "to": "ac0448f11ff7efb28",
+        "relation": "Six reused accepted natives, unchanged sources/build declarations"
+      },
+      {
+        "from": "ac7410f4fbbd51a61",
+        "to": "aadaae8fc0ed0daa9",
+        "relation": "Root integration and exact patch hashes"
+      },
+      {
+        "from": "ac7410f4fbbd51a61",
+        "to": "a0ab2f108285d6baa",
+        "relation": "One enum case retired/five shape parameter renames"
+      },
+      {
+        "from": "ac7410f4fbbd51a61",
+        "to": "a4f15e4e26ae09a78",
+        "relation": "Original probe invocation error retained"
+      },
+      {
+        "from": "ac7410f4fbbd51a61",
+        "to": "a6761d54f219f1559",
+        "relation": "Allfive current source cold-pickle and accepted old failures"
+      },
+      {
+        "from": "ac7410f4fbbd51a61",
+        "to": "a985a5f49f5a25c44",
+        "relation": "Allfive current installed cold-pickle and accepted old failures"
+      },
+      {
+        "from": "ac7410f4fbbd51a61",
+        "to": "acf78d00893a7979e",
+        "relation": "Additional two installed shape-probe Python origins and original reporter error"
+      },
+      {
+        "from": "aadaae8fc0ed0daa9",
+        "to": "ad4b2de6dd3c8b498",
+        "relation": "reviewed author evidence"
+      },
+      {
+        "from": "aadaae8fc0ed0daa9",
+        "to": "a934e5a240cafc68a",
+        "relation": "reviewed author evidence"
+      },
+      {
+        "from": "aadaae8fc0ed0daa9",
+        "to": "a01792558bff44499",
+        "relation": "reviewed author evidence"
+      },
+      {
+        "from": "aadaae8fc0ed0daa9",
+        "to": "a8e3f7fd4145c8815",
+        "relation": "reviewed author evidence"
+      },
+      {
+        "from": "a2b7c9d92f87d780e",
+        "to": "a6a3375bf5bf3768c",
+        "relation": "actual business case"
+      },
+      {
+        "from": "a2b7c9d92f87d780e",
+        "to": "a46269785a36bcbfb",
+        "relation": "actual business case"
+      },
+      {
+        "from": "a2b7c9d92f87d780e",
+        "to": "afea12b77fa18e926",
+        "relation": "actual business case"
+      },
+      {
+        "from": "a2b7c9d92f87d780e",
+        "to": "aee635a57d4821f6e",
+        "relation": "actual business case"
+      },
+      {
+        "from": "a2b7c9d92f87d780e",
+        "to": "afec9c5646ab439ed",
+        "relation": "actual business case"
+      },
+      {
+        "from": "a2b7c9d92f87d780e",
+        "to": "a97e68044ee6aa9df",
+        "relation": "actual business case"
+      },
+      {
+        "from": "a2b7c9d92f87d780e",
+        "to": "a4a63f18fc8c4400d",
+        "relation": "summarized actual observations"
+      },
+      {
+        "from": "a4a63f18fc8c4400d",
+        "to": "ae192fb514d653725",
+        "relation": "interpreted without historical equality"
+      },
+      {
+        "from": "ac7410f4fbbd51a61",
+        "to": "afe8a229b35f54db3",
+        "relation": "root final attribution recheck"
+      }
+    ]
+  }
+}

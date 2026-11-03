@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "stage": "Stage8A1",
-  "scope": "A1-A8 ownership/independence/nonmutation, known-zero H presence and connected CP311 business contracts; existing schemas unchanged",
+  "scope": "A1-A9 ownership/independence/nonmutation, known-zero H presence, confidence-only retirement and connected CP311 business contracts",
   "source_command": {
     "argv": [
       "/tmp/hotpot-plan20-env/bin/python",
@@ -143,17 +143,29 @@
       "required": "Actual existing CPU prediction selects exact immutable DTO; all Atom/site projections join the same payload, no duplicate stores, independent returned dictionaries, read-only properties; existing same-input equivalence checks remain model/version-scoped observations."
     }
   ],
-  "expected": "Existing deterministic chemical/legal/search/codec values and resource digests unchanged; one actual owner, no pure-rule/controller coupling; scientific2S/backendUHF separate; true sample-local failures and immutable observations retained. Ownership/module paths and explicit split exports intentionally change. A7 prepares existing H semantics on an owned working copy; input factual/lifecycle bytes stay unchanged. A8 retains present CURRENT H0 as0, distinct from absent/unresolved None, with intentional identity propagation and stale evidence rejection; no forced historical identity or digest-based budget-choice equality.",
+  "expected": "Existing deterministic chemical/legal/search/codec values and resource digests unchanged; one actual owner, no pure-rule/controller coupling; scientific2S/backendUHF separate; true sample-local failures and immutable observations retained. Ownership/module paths and explicit split exports intentionally change. A7 prepares existing H semantics on an owned working copy; input factual/lifecycle bytes stay unchanged. A8 retains present CURRENT H0 as0, distinct from absent/unresolved None, with intentional identity propagation and stale evidence rejection; no forced historical identity or digest-based budget-choice equality. A9 preserves five typed six-field records and detailed public reports, removing only generic confidence and its enum/two exports. Candidate values/order/identity payloads, hard legality, resolution, findings and existing explicit JSON/digests stay unchanged. Old enum-bearing Python-object pickles intentionally fail; current six-field objects must cold-load.",
   "allowed_numerical_variation": "Existing actual backend tests use method/context/unit-specific invariants and tolerances, no fixed historical energy/value hash. No algorithm or model feature changes authorized.",
   "source_runtime_authorized": true,
   "native": "Six CP311 binaries unchanged from accepted Stage7E; no native code/schema/ABI change. Reuse attributed binaries, no clean all-native/SDK claim.",
   "installed": "Build Python/resource wheel from frozen current files; install and run affected+actual workflows outside checkout. Resolve tests support dependencies upfront, preserve exact support bytes and original failures.",
   "cost": "Bounded extract/strictresolve/scientific-projection observation, fixed explicit scientific fixtures; keep per-case outputs/seconds/isolated Python peaks; no historical parity claim.",
   "remaining": [
-    "D01-D03 public replacements/legacy ordinary-output disposition",
+    "Whole Stage8A remaining scientific-state semantics, including explicit unknown-H accounting disposition; A9 confidence-only evidence accepted within CP311",
     "Optional profile approval and held-out applicability activation",
     "Other Python versions/clean native ABI SDK sdist/package omissions",
     "Full Plan20/Plan12/science GPU global performance acceptance"
   ],
-  "affected_file_count": 87
+  "affected_file_count": 87,
+  "a9_expected_membership_delta": {
+    "removed_test": "test_scientific_state_ownership.py::test_relocated_class_has_one_owner_and_unchanged_contract[rules.contracts:ChemicalConfidence-a8acf43927ba5404239a47cd43437503bfd6e386e37dae57804283f25e04dd6e]",
+    "reason": "Retired enum definition; no chemical fixture removed",
+    "candidate_class_fingerprints": 143,
+    "previous_class_fingerprints": 144
+  },
+  "a9_acceptance_checkpoint": "../validation/confidence_checkpoint.json",
+  "release_time_validation_plan": {
+    "path": ".plan20-artifacts/20261103/stage8a/confidence/release-inputs/validation.json",
+    "sha256": "4e7866dee823540997fca9083abd87f44f8900d35c275a032f2de2370a5f5877",
+    "note": "Original executed selection/expected values; current update records outcome only, with no command or fixture change."
+  }
 }

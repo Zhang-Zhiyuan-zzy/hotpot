@@ -10,7 +10,6 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.charge import (
 from hotpot.cheminfo.rules.chemistry.scientific_state.charge.net_charge import resolve_net_charge
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
-    ChemicalConfidence,
     CoverageStatus,
     ResolutionStatus,
     ScientificAdmissibility,
@@ -49,7 +48,8 @@ def test_explicit_charge_resolves_without_lewis_or_metal_defaults() -> None:
 
     assert tuple(candidate.charge for candidate in result.candidates) == (2,)
     assert result.resolution is ResolutionStatus.UNIQUE
-    assert result.confidence is ChemicalConfidence.AUTHORITATIVE
+    assert result.candidates[0].provenance.authority is StateValueAuthority.VERIFIED_EXPLICIT
+    assert result.candidates[0].provenance.source_identity == "StateRequest.net_charge"
 
 
 def test_multiple_allowed_candidates_are_ambiguous_not_conflicting() -> None:
@@ -112,7 +112,6 @@ def test_provided_result_with_wrong_facts_identity_is_rejected() -> None:
         candidates=(_candidate("q0", 0),),
         admissibility=ScientificAdmissibility.ADMISSIBLE,
         resolution=ResolutionStatus.UNIQUE,
-        confidence=ChemicalConfidence.AUTHORITATIVE,
         findings=(),
     )
 

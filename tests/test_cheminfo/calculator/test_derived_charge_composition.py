@@ -5,7 +5,6 @@ import hotpot
 from hotpot.cheminfo.rules.chemistry.scientific_state.charge.net_charge import resolve_net_charge
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
-    ChemicalConfidence,
     CoverageStatus,
     ResolutionStatus,
     ScientificAdmissibility,
@@ -56,7 +55,6 @@ def _oxidation_result(facts, candidate):
         candidates=(candidate,),
         admissibility=ScientificAdmissibility.ADMISSIBLE,
         resolution=ResolutionStatus.UNIQUE,
-        confidence=ChemicalConfidence.HIGH,
         findings=(),
     )
 
@@ -68,7 +66,6 @@ def _counting_result(facts, candidate):
         candidates=(candidate,),
         admissibility=ScientificAdmissibility.ADMISSIBLE,
         resolution=ResolutionStatus.UNIQUE,
-        confidence=ChemicalConfidence.HIGH,
         findings=(),
     )
 
@@ -80,7 +77,6 @@ def _unresolved_electronic_result(facts):
         candidates=(),
         admissibility=ScientificAdmissibility.NOT_EVALUATED,
         resolution=ResolutionStatus.UNRESOLVED,
-        confidence=ChemicalConfidence.UNRESOLVED,
         findings=(),
     )
 

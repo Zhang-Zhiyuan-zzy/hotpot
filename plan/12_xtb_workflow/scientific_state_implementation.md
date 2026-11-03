@@ -1,7 +1,19 @@
 # Scientific-state resolution: normative implementation plan
 
-Status: **the sole normative implementation reference** for charge,
-oxidation-state and electronic-state resolution in Stage 12.
+Status (2026-11-03): retained Plan12 scientific requirements within the single
+integrated Plan20 implementation mainline. The approved
+[Plan20 goal](../20_fact_rule_architecture/goal.md) and
+[Stage8A A1–A9 decisions](../20_fact_rule_architecture/stages/stage08/scientific-state/contracts/decisions.md)
+take precedence over conflicting ownership, API and field-order statements below.
+Former `calculator` paths, seven-field confidence constructors and
+`ChemicalConfidence` enum/export listings, including the historical public API
+tree, are superseded surfaces for integrated implementation. A9 controls the
+approved six required fields (`identity, facts_identity, candidates, admissibility,
+resolution, findings`), exact retained detailed public resolver/projection/workflow
+report contracts, four D02 finding/reason types and two distinct D03 toggle types.
+A9 implementation/runtime is [accepted within CP311](../20_fact_rule_architecture/stages/stage08/scientific-state/validation/confidence_checkpoint.json), with whole Stage8A still open; scientific rule semantics,
+optional-profile review/activation and Phase 10 held-out gates remain unchanged.
+The Plan12 normative set below applies within this precedence.
 
 Rule specifications under [`rules/`](rules/) are normative parts of this
 plan. Deterministic [`providers/`](providers/) and optional pipeline

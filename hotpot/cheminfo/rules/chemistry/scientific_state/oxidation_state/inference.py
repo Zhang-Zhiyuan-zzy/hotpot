@@ -8,7 +8,6 @@ from typing import Tuple
 
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
-    ChemicalConfidence,
     CoverageStatus,
     ResolutionStatus,
     ScientificAdmissibility,
@@ -38,22 +37,6 @@ def _digest(payload: object) -> str:
         sort_keys=True,
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
-
-
-def _confidence(
-    candidates: Tuple[OxidationStateCandidateEvidence, ...],
-) -> ChemicalConfidence:
-    authorities = {candidate.provenance.authority for candidate in candidates}
-    if authorities & {
-        StateValueAuthority.VERIFIED_EXPLICIT,
-        StateValueAuthority.VERIFIED_SCIENTIFIC_SOURCE,
-    }:
-        return ChemicalConfidence.AUTHORITATIVE
-    if StateValueAuthority.EXACT_IDENTITY_TRUSTED_SOURCE in authorities:
-        return ChemicalConfidence.HIGH
-    if candidates:
-        return ChemicalConfidence.MEDIUM
-    return ChemicalConfidence.UNRESOLVED
 
 
 def _candidate_matches_overrides(
@@ -256,11 +239,6 @@ def _request_result(
         candidates=legal_candidates,
         admissibility=admissibility,
         resolution=resolution,
-        confidence=(
-            _confidence(legal_candidates)
-            if admissibility is ScientificAdmissibility.ADMISSIBLE
-            else ChemicalConfidence.UNRESOLVED
-        ),
         findings=findings,
     )
 
@@ -298,7 +276,6 @@ def _revalidate_provided_result(
         result.candidates,
         assessment.admissibility,
         assessment.terminal_status or ResolutionStatus.UNRESOLVED,
-        result.confidence,
         result.findings + assessment.findings,
     )
 

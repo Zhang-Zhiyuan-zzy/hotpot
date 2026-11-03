@@ -3,9 +3,10 @@
 Status: **implementation authorized on 2026-10-28; Stage0–7E owning-stage gates complete
 within their recorded scopes. Stage8A1 scientific-state ownership and extraction
 non-mutation are accepted within the applicable CP311 checkpoint. A8 now preserves
-known implicit-H0 distinctly from unresolved/absent H; whole Stage8A
-continues with D01–D03 public consolidation and remaining scientific-state work open. Full scientific, engineering, version-adaptation and global
-acceptance remain open**.
+known implicit-H0 distinctly from unresolved/absent H. A9 settles D01–D03's
+public report/retention design; confidence-only removal is now root accepted
+within matching source/installed CP311 evidence. Whole Stage8A, remaining scientific-state work, full scientific,
+engineering, version-adaptation and global acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
 are recorded in [the CP311 core-workflow report](cp311_core_workflow_validation_20261103.md). The architecture, lazy invalidation, scientific-reporting, and
@@ -1350,8 +1351,8 @@ real core definition; it consolidates existing debt and creates no structure ali
 | `_native/` | `adapters/native/` | retain one generic field-selective molecule transport and shared C++ headers |
 | `bundle.py` | `structure/bundle.py` | retain MolBundle as a carrier collection; move PyG conversion to adapter |
 | `MolecularFacts`, `MolecularFactsIdentity`, `ComponentIdentity`, `HydrogenInventory`, `SemanticBond` | one scientific-state snapshot contract with necessary composed values | preserve the useful MolecularFacts semantic projection and component/H/semantic-bond constituents; align source dependencies with shared identities and merge only audit-confirmed synonyms. A `ScientificStateSnapshot` rename is a public proposal, not proof these five types are duplicates |
-| current scientific quantity/admissibility/authority/confidence enums, findings and provider values/evidence | `rules/chemistry/scientific_state/contracts.py` | retain quantity semantics, exact hard-rule assessments, candidate/provenance data and domain findings under one owner; trace actual consumers of existing admissibility/confidence fields instead of carrying them forward as generic public ratings. Necessary internal control/lifecycle metadata remains; Sections6.2 and11.1 govern the result boundary |
-| policy/toggle/provider-set/budget/requirements/selection contracts | `operations/calculation/scientific_state/contracts.py` | execution choice and orchestration configuration are operation contracts, not facts or rules |
+| scientific quantity/admissibility/authority enums, findings and provider values/evidence | `rules/chemistry/scientific_state/contracts.py` | A9 retains quantity semantics, exact hard-rule assessments, candidate/provenance data and all four D02 findings/reasons at their existing owners; only generic confidence production/fields and ChemicalConfidence/two exports are approved for removal, pending implementation/evidence |
+| policy/provider-toggle/provider-set/selection contracts | `operations/calculation/scientific_state/contracts.py` | execution choice and orchestration configuration stay operational; A2's immutable request/budget/requirements/RuleToggle input closure stays below operations, with D03's two owners/namespaces retained |
 | `BackendIdentity` frozen digest dataclass / `BackendContext` Protocol | `adapters/calculation/contracts.py` | define generic scientific backend/projection identity once at the external boundary; inference and force-field wrapper-specific contracts remain with their named standalone/adapters and do not redeclare it |
 | state-composition candidates/decisions/resolution reports | `operations/calculation/scientific_state/composition/contracts.py` | retain operational search/result DTOs without declaring a second Molecule snapshot or representation identity |
 | `calculator/formal_charges.py`, `molecular_charge.py`, `charge/`, `oxidation_state/`, `electronic_state/`, `legality.py` | `rules/chemistry/scientific_state/` | retain deterministic conservation, legality, charge, oxidation, electronic-state, coordination-counting, and spin rules as snapshot-to-finding functions |
@@ -2054,9 +2055,15 @@ A1–A6 changes no scientific algorithm, field/default or codec schema. Diagnose
 A7 corrects the extractor's input mutation by preparing an owned working copy
 in operations and capturing prepared facts read-only in the adapter, retaining
 the public signature and existing chemistry algorithms; its runtime evidence is
-separate from the initial relocation checks. D01–D03
-public consolidation remains held at its dependent step; relocation evidence
-cannot close that or later/global acceptance. Optional activation remains held.
+separate from the initial relocation checks. Root's
+[A9 decision](stages/stage08/scientific-state/contracts/decisions.md#a9--accepted-public-calculation-reports-and-confidence-only-removal)
+retains the exact public detailed-report APIs, approves confidence-only removal
+from the five typed calculation records and enum/two exports, and resolves D02/D03
+as NO_CONSOLIDATION. The [A9 confidence checkpoint](stages/stage08/scientific-state/validation/confidence_checkpoint.json)
+accepts the connected CP311 cutover:source443focused,source/installed990affected+5skipped
+and3actual pipeline/3MCA checks per boundary, with allfive current types cold-loading.
+One enum retires; dataclass delta is zero. This does not close wholeStage8A or later/global acceptance.
+Optional activation remains held.
 
 The [A1–A7 ownership checkpoint](stages/stage08/scientific-state/ownership_checkpoint_20261103.json)
 is root accepted within CP311 source/installed scope: affected984passed/5skipped,
@@ -2069,8 +2076,8 @@ input is unchanged and old mismatched evidence is rejected. Source/installed
 affected991passed/5skipped plus real pipeline3/MCA3 each qualify this CP311
 scope; no public schema or H inference algorithm changes. Corrected identities
 and digest-based bounded ordering may differ from history. Whole Stage8A remains
-open for its explicit public/schema decisions and remaining scientific-state
-limits; this is not Stage8B entry or global acceptance.
+open for remaining scientific-state semantics, including explicit unknown-H
+accounting disposition; A9 acceptance does not establish Stage8B entry or global acceptance.
 
 
 #### Stage 8B — Force fields
@@ -2627,10 +2634,11 @@ runtime behavior is not a Plan20 gate.
     commits and lazy dependency handling are complete where applicable;
     Atom's sole fact table supplies efficient scalar/batch access and reviewed
     schema-linked projections as its concrete implementation; and
-14. audited data-contract families have a documented measured reduction from
-    real consolidation, consistent naming/field order, one owner per contract,
-    and no unapproved public schema changes. Moves/dict substitutions do not
-    count as a reduction; and
+14. audited data-contract families document actual consolidation and approved
+    retention, consistent naming/field order, one owner per contract and no
+    unapproved public schema changes. Claimed reductions require real consolidation;
+    moves/dict substitutions do not count. A9 retains D01–D03 with zero dataclass
+    delta; other owning-stage consolidation and final evidence remain required; and
 15. the integrated Plan12 functional requirements are implemented and validated
     through their assigned Plan20 owners/stages; ordinary results and every actual
     rule/gate/adapter/workflow finding-control boundary satisfy Sections6.2 and11.1.
@@ -2772,14 +2780,34 @@ existing complete method; otherwise list its exact signature for approval.
 Neither Atom candidates nor invertibility authorize corresponding setters or
 batch methods on other chemical types.
 
-The data-object audit's proposed result/tag/naming changes follow the same
-process and the ordinary-result boundary in Section6.2. D01's proposed common
-admissibility/confidence envelope does not define an approved public return
-contract; its generic ratings must not be added to ordinary output. Its
-dependent design must identify the requested domain value and trace every
-consumer. Necessary internal hard-rule, provenance and lifecycle information
-remains. Stage1 records each affected import/class, consumer, serialization and
-ABI impact. Private consolidation licenses no unlisted public schema changes.
+The data-object audit's result/tag/naming changes follow the same process and
+ordinary-result boundary in Section6.2. On 2026-11-03 at
+`7952d1f14994e88892dd094cd775e92970c6c0e1`, root explicitly accepted
+[A9](stages/stage08/scientific-state/contracts/decisions.md#a9--accepted-public-calculation-reports-and-confidence-only-removal)
+under the existing full-authority mandate and effective goal, before product
+authoring. Retain the five typed calculation records with six required fields
+`identity, facts_identity, candidates, admissibility, resolution, findings`;
+remove only generic confidence production/fields and ChemicalConfidence/two
+exports. The obsolete StateInferenceResult/common-rating proposal is rejected.
+
+The exact existing `resolve_scientific_state`, `project_state` and
+`resolve_and_project_state` signatures/owners remain public requested detailed
+calculation/decision/projection reports. ScientificStateBundle retains all current
+fields, including ordered provider outputs for explicit inspection, candidate
+space, resolution, decision, trace and source binding. BackendProjectionResult
+and ScientificStateWorkflowResult retain their exact projection/control and
+state-plus-projection records. Ordinary Molecule/Atom charge/spin/structure values
+receive no new envelope or rating. D02 retains all four finding/reason types and
+exact codecs; D03 retains both input types, namespaces, configuration/digest
+semantics and dependency direction, each as NO_CONSOLIDATION.
+
+A9 accepts the seven-field/retired-enum Python-object pickle hard cut without
+compatibility classes, aliases, migration loaders or dual runtime. Known versioned
+JSON schemas/digests remain unchanged, so no wire-version bump is authorized.
+Exact constructor/export effects are in A9; its [current CP311 checkpoint](stages/stage08/scientific-state/validation/confidence_checkpoint.json)
+accepts implementation, source/installed validation and current/legacy-cut pickle evidence. Historical 5→1/4→1/2→1 estimates
+are not current commitments: dataclass delta is zero, with measured enum-class
+delta −1 recorded separately. Other public changes retain their own review scope.
 Standalone wrappers keep their reviewed component identities; inheritance or
 aliases cannot conceal a second implementation.
 

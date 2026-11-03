@@ -7,7 +7,6 @@ import pytest
 
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
-    ChemicalConfidence,
     CoverageStatus,
     ResolutionStatus,
     ScientificAdmissibility,
@@ -63,7 +62,6 @@ def test_oxidation_results_are_frozen_and_serializable() -> None:
         candidates=(),
         admissibility=ScientificAdmissibility.NOT_EVALUATED,
         resolution=ResolutionStatus.UNRESOLVED,
-        confidence=ChemicalConfidence.UNRESOLVED,
         findings=(),
     )
     candidate = OxidationStateCandidateEvidence(
@@ -79,12 +77,16 @@ def test_oxidation_results_are_frozen_and_serializable() -> None:
         candidates=(candidate,),
         admissibility=ScientificAdmissibility.ADMISSIBLE,
         resolution=ResolutionStatus.UNIQUE,
-        confidence=ChemicalConfidence.AUTHORITATIVE,
         findings=(),
     )
 
     with pytest.raises(FrozenInstanceError):
         result.identity = "changed"
+    for calculation in (counting, result):
+        assert tuple(asdict(calculation)) == (
+            "identity", "facts_identity", "candidates",
+            "admissibility", "resolution", "findings",
+        )
     encoded = json.dumps(
         {"counting": asdict(counting), "oxidation": asdict(result)},
         sort_keys=True,

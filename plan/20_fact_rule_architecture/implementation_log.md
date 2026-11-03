@@ -4584,3 +4584,116 @@ clean-native/ABI/SDK/sdist/manylinux,41measured package omissions and global
 scientific/GPU/performance obligations remain open. No Stage8B entry or overall
 completion is accepted. Git history identifies the coherent business commit
 and normal push; no bookkeeping-only follow-up commit is required.
+
+
+## 2026-11-03 — Stage8A A9 concrete result-boundary decision before implementation
+
+At pushed `7952d1f14994e88892dd094cd775e92970c6c0e1`, root reviewed the bounded
+local Sol/max D01–D03 proposal and its exact constructors, current consumers,
+JSON codecs, source bindings and pickle consequences. This is a continuation
+of Stage8A under the effective goal and existing main-agent authority. Root
+accepts one minimal cut: retain the five typed calculation records with required
+`identity, facts_identity, candidates, admissibility, resolution, findings`,
+remove their generic confidence field/production and the ChemicalConfidence
+enum/two exports, and add no replacement type, tag, alias, guard or fallback.
+Hard-rule control, provenance, all candidate values and bounded-search/identity
+algorithms stay unchanged. D02 retains all four current finding/reason classes
+and their exact two-/three-field codecs; D03 retains both toggle classes,
+owners, namespaces, configuration and profile-digest semantics. Historical
+class-reduction forecasts are not implementation requirements.
+
+Root explicitly approves the exact existing public resolver/projection/workflow
+signatures as requested detailed calculation, decision and backend-projection
+reports. ScientificStateBundle retains all current fields, including ordered
+provider results for explicit inspection, candidate space, resolution,
+execution decision, trace and source binding. BackendProjectionResult retains
+its domain-specific available/unavailable projection control and findings;
+ScientificStateWorkflowResult retains state plus projection. They remain public
+report contracts, not implicitly privatized records. Ordinary chemical values
+receive no new envelope or rating. No new public method, class, field, default,
+wire tag or optional-profile activation is approved.
+
+The five constructors intentionally lose confidence (findings moves from
+argument seven to six). Root accepts a coherent Python-object pickle break
+for pre-change graphs containing the retired enum; retain no compatibility
+class, alias or loader. Existing versioned candidate/space/decision/trace and
+pipeline JSON contracts remain unchanged. Current source/installed cold-pickle
+and independent chemistry tests must pass for the new records; external old
+Python assets are not promised support. Keep the pre-change evidence distinct.
+
+A local Sol/max author owns only the five normative plan/contract records;
+product/test authoring remains HOLD until root reviews those corrections.
+Then use bounded local Sol/medium source/test partitions, root integration,
+new freeze and affected source/installed CP311 plus actual pipeline/MCA checks.
+No chemistry/backend/model/native algorithm is being changed. A8 evidence
+remains its original checkpoint; A9 has no runtime pass or acceptance yet.
+Whole Stage8A, later stages and final/global obligations remain open. Local
+Stage8B PREENTRY lookup only located existing owners/D04–D05 and the current
+first-record FF error boundary; it authorizes no entry or production work.
+
+
+## 2026-11-03 — Stage8A A9 root integration and runtime release
+
+Root reviewed the complete normative deltas, exact five six-field constructors,
+retained report signatures, unchanged D02/D03 semantics and accepted pickle cut.
+Plan12 header precedence is corrected without rewriting its historical scientific
+requirements. The isolated eleven-file source and nine-file test patches are
+approved for one connected apply; no other product/test change is authorized.
+Root releases focused, affected, actual CBond→UFF→GFN-FF/GFN2 and MCA attachment
+checks, then matching installed CP311 checks against a new confidence freeze.
+All unchanged A8 evidence remains historical and is not rerun as A8 acceptance.
+The retired enum legitimately removes one parametrized class test; no chemical
+fixture is removed and historical test totals are not targets. No runtime pass,
+whole-Stage8A closure, Stage8B entry or global acceptance is asserted here.
+
+
+## 2026-11-03 — Stage8A A9 CP311 confidence-only checkpoint accepted
+
+Root accepts `ROOT_ACCEPTED_CP311_CONFIDENCE_ONLY_REMOVAL` at parent
+`7952d1f14994e88892dd094cd775e92970c6c0e1`. Exactly eleven product files lose96lines
+with zero additions; nine connected test files migrate approved constructors and
+exports. Five typed results retain six required fields; D02/D03 are retained
+as NO_CONSOLIDATION. One enum retires:468productionPython files,782classes/
+360dataclasses/8Protocols/2TypedDicts, dataclass delta0. No scientific/backend/
+model/native algorithm, explicit versioned JSON or identity payload changes.
+
+The fixed source wrapper executed focused443passed, affected990passed/5skipped
+(total995), actual CBond→UFF→GFN-FF/GFN2 3passed and MCA attachment3passed.
+Matching installed CP311 affected990passed/5skipped/same995orderednodes and
+actual3pipeline/3MCA passed outside checkout. The five skips require
+`--run-external` for direct wrapper-versus-CLI comparisons; they remain missing
+evidence in this affected selection, not passes. Actual pipelines ran separately.
+Exact argv/cwd/env/interpreters/elapsed/model/native/build identities, JUnit and
+raw business artifacts are in the checkpoint's evidence graph and durable raw
+archive. Root independently verified all1425source/test/resource+6native+3build
+inputs and20after-images unchanged. The six accepted Stage7E natives were reused;
+41measured package omissions and system-site dependency limits remain explicit.
+
+Allfive current types cold-load at source and installed boundaries; allfive old
+enum-bearing object graphs fail as approved, with no alias/loader/dualruntime.
+The affected denominator changes996→995 by retiring only the enum ownership case;
+five constructor shape-hash parameters rename and no chemistry case is dropped.
+Source shape-probe PYTHONPATH failure before fixtures, the initial raw-node
+comparison assertion and the installed-origin reporter's missing native-map
+lookup remain recorded. Only invocation/reporting was corrected; chemical
+workflows were not rerun. Sixteen business site-hook Python processes plus two
+additional object-shape probe processes have no checkout leaks within that scope.
+
+Business values preserve actual numerical variation: Eu GFN2 source−13.53209862
+and installed−13.53210139hartree remain observations; unresolved scientific spin
+is not relabeled singlet by default UHF0. Independent methane/chloride/parity
+assertions and all MCA atom/site values remain in the report. No new speed claim
+is made; P20-D019 full-copy cost remains deferred. Historical A8 receipts retain
+their original scope. Local Luna/low executed fixed commands; local Sol/medium
+extracted records, and root reviewed chemistry/contracts/evidence and owns this
+acceptance. No external helper or measured token-saving percentage is claimed.
+
+Current checkpoint/report: `stages/stage08/scientific-state/validation/confidence_*`.
+Raw archive: `.plan20-artifacts/20261103/stage8a/confidence`,940indexed regular files;
+manifest SHA256 `2a77beba2ca88d7885ed7139796f79d788fe41d65834e908f7c23fb2f4026cd5`.
+WholeStage8A remains open for its remaining semantic disposition; optional profile,
+later stages, otherPython, clean-native/ABI/SDK/sdist/manylinux, broader science/
+GPU/performance and Plan20/Plan12 final acceptance remain open. A separate local
+read-only lookup found an ordinary unresolved-H accounting route requiring a
+bounded actual observation; it changes neither A9 bytes nor Stage8B entry. Git
+history identifies this coherent business/test/record commit and normal push.

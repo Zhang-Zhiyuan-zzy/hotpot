@@ -18,7 +18,7 @@
     "data_object_scope_audit.md": "481d5195ece9e1a8707187574b3df73663456b77453f5bf89f76e4bcbad51f5c",
     "plan17_plan20_execution_alignment.md": "e5549116f1409fb46b5fd2bdc82c0b20a34297989475eb66a119ac221a9d4a0b"
   },
-  "decision_reference": "stages/stage01/contracts/decisions.md: A2 accepted 2026-10-28; other exact new public schemas keep their named owning-stage gates.",
+  "decision_reference": "stages/stage01/contracts/decisions.md: A2 accepted 2026-10-28; other exact new public schemas keep their named owning-stage gates. Stage8A A9 explicitly accepted2026-11-03 at7952d1f14994e88892dd094cd775e92970c6c0e1: retain current public detailed reports and D02/D03 types; confidence-only constructor/enum removal root accepted within CP311 checkpoint; wholeStage8A/global gates remain open.",
   "scope": {
     "selection": "Every Python class definition under hotpot/cheminfo is dispositioned. Explicit type lists distinguish chemical interface families, module-visible support, known retirement and private/deployment implementation. Top-level exports remain baseline declared_exports/runtime_surface, not all selected types.",
     "entry_resolution": "Resolve an entry by (type,entry) override first, else its explicit type-group contract; an override kind_policies further distinguishes retained read from retired write. Exact signature, default, annotation and read/write syntax come from bound interface_inventory; exact dataclass field order/bases/decorators from bound classes. Inheritance and ordinary/dynamic fields below supplement, not replace, those schemas.",
@@ -360,26 +360,26 @@
       "owner": "rules/chemistry/scientific_state",
       "fact_or_dependencies": "Charge, oxidation/electronic state candidates/findings/provenance and versioned scientific reference domains.",
       "shape_dtype_unit": "Charge/formal counts integer e; H/electron counts integers; two_s integer 2S, multiplicity optional; per-atom tuples align facts order.",
-      "presence_source": "None/uncovered differs from explicit 0; admissibility,resolution,confidence,coverage,authority are independent.",
+      "presence_source": "None/uncovered differs from explicit0; hard-rule admissibility,resolution,coverage and authority retain their distinct meanings. A9 confidence-only removal is root accepted within source/installedCP311 scope.",
       "read_policy": "Inspect frozen content; empty candidate set is scientific outcome, not automatically a technical exception.",
       "write_policy": "Rules emit new evidence/proposals without Molecule writes; references are version/source-bound, not mutable registries.",
-      "encode_decode": "Retain the exact existing constructor/field/enum order and only the codecs actually present in the bound source; no invented to_dict or schema normalization.",
+      "encode_decode": "A9 retains five existing typed calculation classes and exact candidate types with six required ordered fields identity,facts_identity,candidates,admissibility,resolution,findings; retire confidence and ChemicalConfidence/two exports. Known explicit candidate/space/decision/trace JSON schemas and digests remain unchanged; no wire-version bump.",
       "operation": "Pure charge/oxidation/electronic inference with existing scientific values.",
       "invalidation_scope": "No Molecule dirty state in evidence/history.",
-      "lifecycle": "D01/D02 field/constructor consolidation remains Stage8A gate; A2 does not authorize these changes."
+      "lifecycle": "A9 D01 confidence-only constructor/enum removal is source/installedCP311 accepted; D02 NO_CONSOLIDATION with exact existing two-/three-field codecs. Baseline schema bindings below remain historical, not the current six-field constructor shape; current evidence is in the A9 checkpoint."
     },
     "scientific_operation": {
       "role": "scientific task input / selection / composition / execution report",
-      "owner": "operations/calculation/scientific_state and composition/contracts",
+      "owner": "operations/calculation/scientific_state owns orchestration and public detailed reports; A2 immutable request/budget/requirements/composition/provider input definitions retain their single lower rule/structure owners.",
       "fact_or_dependencies": "StateRequest/Policy/provider activation/budgets, candidate space/proposals, scientific decisions and backend projection.",
       "shape_dtype_unit": "Retain exact enums/fields; CandidateBudget defaults64/4096/1024; identity domains for facts/state/backend remain distinct.",
       "presence_source": "Only SELECT_STATE carries selected_state_identity; only PROJECTED carries projection; failed projection None+findings, never fabricated 0.",
-      "read_policy": "Read completed immutable decision/history, not automatic factual authority.",
+      "read_policy": "A9 explicitly retains resolve_scientific_state/project_state/resolve_and_project_state as requested public detailed calculation/decision/projection reports; inspect ordered provider outputs, candidates, resolution, decision, trace and source binding. Ordinary Molecule/Atom values gain no envelope or rating.",
       "write_policy": "Configuration replacement or explicit resolve produces new values; applying selected science is a separate operation.",
       "encode_decode": "Only actual codecs: state_composition/_serialization.py, _candidate_space_serialization.py (scientific-state-candidate-space-v1), _decision_snapshot.py (scientific-state-decision-snapshot-v2), state_rules/_serialization.py. Preserve tags, None/null, strict field sets, tuple/list and digest payloads.",
       "operation": "resolve, selection, composition, backend projection; method/element executability separate from scientific uncertainty.",
       "invalidation_scope": "No independent carrier dirty state; input provenance and backend requirements determine applicability.",
-      "lifecycle": "Do not merge proposal/completed candidate factors or identity domains; D01-D03 schema/codec gates stay Stage8A."
+      "lifecycle": "Do not merge proposal/completed candidate factors or identity domains. A9 public report purpose, D02/D03 NO_CONSOLIDATION and connected source/installedCP311/current-pickle evidence are accepted; wholeStage8A/global gates stay open."
     },
     "backend_protocol": {
       "role": "existing calculation adapter protocol",
@@ -418,7 +418,7 @@
       "encode_decode": "Retain the exact existing constructor/field/enum order and only the codecs actually present in the bound source; no invented to_dict or schema normalization.",
       "operation": "evaluate/applicable/action and per-operation activation; no rule writes Molecule.",
       "invalidation_scope": "No carrier dirty flags; ActivatedRule frozen shell may hold mutable provider object.",
-      "lifecycle": "Do not reuse this domain-specific registry as mandatory global chemistry/physics/maths protocol; D03 namespace proposal pending Stage8A."
+      "lifecycle": "A9 D03 NO_CONSOLIDATION: retain ProviderToggle in operations and RuleToggle below operations with distinct namespaces/configuration, activation/dependencies and exact effective-profile digest payload. Optional profile remains planned; no global rule-interface protocol is introduced."
     },
     "trusted_history": {
       "role": "exact-facts scientific historical evidence",
@@ -4428,12 +4428,6 @@
       "blocks_stage2": false
     },
     {
-      "id": "D01-D03",
-      "stage": "Stage8A",
-      "required": "Review exact StateInferenceResult/StateFinding/StateActivation constructors, codecs, tags, namespace/digest and consumer changes before publication.",
-      "blocks_stage2": false
-    },
-    {
       "id": "D04-D05",
       "stage": "Stage8B",
       "required": "Per data_object_budget.json, remove Python duplicate stopping options and topology schema with force-field consumers, ABI and historical serialization evidence; earlier Stage3 shared contracts cannot claim these removals already landed.",
@@ -4647,7 +4641,7 @@
     "matrix": "property, complete existing19-column float64 independent array, no fields/dtype parameters",
     "duplicate_audit": "Existing atom_attr_matrix matches this semantic projection; directly rename it to atom_matrix, migrate consumers and retain one implementation with no old-name alias",
     "full_reread_evidence": ".plan20-artifacts/20261028/stage3/interface-review-read/read_manifest.json",
-    "matrix_disposition_basis": "Later owner instruction: 同意新增但是需要改名…Molecule.atom_matrix…检验是否已经有同样事实，切勿重复. This resolves the earlier optional clarification using existing authorization; no new user reply is asserted."
+    "matrix_disposition_basis": "Later owner instruction: \u540c\u610f\u65b0\u589e\u4f46\u662f\u9700\u8981\u6539\u540d\u2026Molecule.atom_matrix\u2026\u68c0\u9a8c\u662f\u5426\u5df2\u7ecf\u6709\u540c\u6837\u4e8b\u5b9e\uff0c\u5207\u52ff\u91cd\u590d. This resolves the earlier optional clarification using existing authorization; no new user reply is asserted."
   },
   "stage7a_owner_update": {
     "recorded_local_date": "2026-10-31",
@@ -4908,7 +4902,7 @@
       "limits": [
         "Existing static source/AST/text/hash and declaration records only; this synchronization runs no audit/checker, project import, pytest collection/test, build, native/model/scientific or performance workload.",
         "Static authoring completion does not close source-ready, installed-wheel/native/reflection/cold/resource/pickle/P03/complete cost/full retention/native-memory or global gates.",
-        "Final211-file source/installed3.10–3.14 membership is preserved, including all36 dataset tests. No Stage13 experiment or certificate acceptance is authorized."
+        "Final211-file source/installed3.10\u20133.14 membership is preserved, including all36 dataset tests. No Stage13 experiment or certificate acceptance is authorized."
       ]
     },
     "source_ready_status": "HOLD_ROOT_FINAL_BYTE_IDENTITY_FREEZE_REQUIRED",
@@ -4925,5 +4919,98 @@
     "completion": "stages/stage07/coordinate-frames/completion_20261103.json",
     "stage_gate_closed": true,
     "global_gate_closed": false
-  }
+  },
+  "stage8a_public_contract_decision": {
+    "date": "2026-11-03",
+    "baseline_commit": "7952d1f14994e88892dd094cd775e92970c6c0e1",
+    "status": "ROOT_ACCEPTED_CP311_CONFIDENCE_ONLY_REMOVAL",
+    "decision": "stages/stage08/scientific-state/contracts/decisions.md#a9--accepted-public-calculation-reports-and-confidence-only-removal",
+    "authority": "Explicit root disposition under existing full-authority mandate/effective goal before product authoring; no public-purpose inference from a docstring and no new approval flow.",
+    "baseline_binding_scope": "Original source_commit/production_tree/inventory/schema/enum/document bindings and calculator type lists remain Stage1 historical evidence. A1-A8 migration and this A9 decision determine current owners and the accepted next constructor shape; they do not rewrite baseline hashes.",
+    "retained_calculation_types": {
+      "hotpot.cheminfo.rules.chemistry.scientific_state.charge.contracts.NetChargeResult": "Tuple[NetChargeCandidateEvidence, ...]",
+      "hotpot.cheminfo.rules.chemistry.scientific_state.charge.contracts.LewisFormalChargeResult": "Tuple[LewisFormalChargeCandidate, ...]",
+      "hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state.contracts.CoordinationElectronCountingResult": "Tuple[CoordinationCountingCandidate, ...]",
+      "hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state.contracts.OxidationStateInferenceResult": "Tuple[OxidationStateCandidateEvidence, ...]",
+      "hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state.contracts.ElectronicStateInferenceResult": "Tuple[ElectronicStateCandidate, ...]"
+    },
+    "required_field_order": [
+      "identity",
+      "facts_identity",
+      "candidates",
+      "admissibility",
+      "resolution",
+      "findings"
+    ],
+    "constructor_effect": "Remove required confidence:ChemicalConfidence at position6; findings moves from7to6. Preserve all remaining annotations/default absence, class owners and candidate types. No replacement class/tag/rating/alias.",
+    "retired_enum": "hotpot.cheminfo.rules.chemistry.scientific_state.contracts.ChemicalConfidence",
+    "retired_export_modules": [
+      "hotpot.cheminfo.rules.chemistry.scientific_state.contracts",
+      "hotpot.cheminfo.rules.chemistry.scientific_state"
+    ],
+    "accepted_signatures": "Exact eight callable signatures and twelve ordered operation-facade exports are frozen in A9; five rule calls and three operation report calls retain their current signatures/defaults/annotations/owners.",
+    "callable_owners": {
+      "resolve_net_charge": "hotpot.cheminfo.rules.chemistry.scientific_state.charge.net_charge",
+      "solve_main_group_lewis": "hotpot.cheminfo.rules.chemistry.scientific_state.charge.lewis",
+      "infer_coordination_electron_counting": "hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state.coordination_counting",
+      "infer_oxidation_states": "hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state.inference",
+      "infer_electronic_states": "hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state.inference",
+      "resolve_scientific_state": "hotpot.cheminfo.operations.calculation.scientific_state.state_resolver",
+      "project_state": "hotpot.cheminfo.operations.calculation.scientific_state.execution_selection",
+      "resolve_and_project_state": "hotpot.cheminfo.operations.calculation.scientific_state.execution_selection"
+    },
+    "retained_public_reports": {
+      "hotpot.cheminfo.operations.calculation.scientific_state.state_resolver.ScientificStateBundle": [
+        "facts",
+        "net_charge_results",
+        "lewis_results",
+        "coordination_counting_results",
+        "oxidation_state_results",
+        "electronic_state_results",
+        "candidate_space",
+        "scientific_resolution",
+        "execution_decision",
+        "rule_trace"
+      ],
+      "hotpot.cheminfo.operations.calculation.scientific_state.execution_selection.BackendProjectionResult": [
+        "status",
+        "backend_identity",
+        "request",
+        "projection",
+        "findings"
+      ],
+      "hotpot.cheminfo.operations.calculation.scientific_state.execution_selection.ScientificStateWorkflowResult": [
+        "scientific_state",
+        "backend_projection"
+      ]
+    },
+    "public_purpose": "These exact existing public returns are requested detailed reports, including ordered provider outputs for explicit inspection, candidate space, resolution, decision, trace/source binding and precise unavailable projection findings. No wrappers or ratings are added to ordinary Molecule/Atom charge/spin/structure values.",
+    "D02": "NO_CONSOLIDATION: retain ScientificFinding, BackendProjectionFinding, DecisionReason and StaticEligibilityFinding, exact owners/exports and strict two-field static versus three-field reason codecs.",
+    "D03": "NO_CONSOLIDATION: retain operation ProviderToggle and pure-provider RuleToggle, separate IDs/configuration/activation/dependency direction and exact profile digest payload in A9; optional profile stays planned.",
+    "pickle": "Accepted coherent pre-change seven-field/retired-enum object hard cut; no compatibility class/alias/migration loader/dual runtime or external/reflective compatibility promise. New six-field values must cold-load at current owners.",
+    "known_versioned_json_and_digests": "UNCHANGED; no wire-version bump or identity rehash",
+    "dataclass_delta": 0,
+    "prospective_enum_class_delta": -1,
+    "implementation_validation": "Source443focused/990affected+5skip; installed990affected+5skip/same995logicalnodes; actual3pipeline+3MCA each boundary; current5typecoldpickle and expected5legacyenumfailures each boundary.",
+    "stage_gate_closed": false,
+    "global_gate_closed": false,
+    "checkpoint": "stages/stage08/scientific-state/validation/confidence_checkpoint.json",
+    "actual_enum_class_delta": -1
+  },
+  "resolved_stage8a_contract_gates": [
+    {
+      "id": "D01-D03",
+      "stage": "Stage8A",
+      "required": "Fulfilled A9 confidence-only implementation with five six-field records/current detailed public reports, D02/D03 retention and connected source/installedCP311/current pickle evidence. Does not close wholeStage8A, later/global or optional-profile gates.",
+      "blocks_stage2": false,
+      "status": "ROOT_ACCEPTED_CP311_CONFIDENCE_ONLY_REMOVAL",
+      "decision": "stages/stage08/scientific-state/contracts/decisions.md#a9--accepted-public-calculation-reports-and-confidence-only-removal",
+      "D02_disposition": "NO_CONSOLIDATION",
+      "D03_disposition": "NO_CONSOLIDATION",
+      "stage_gate_closed": false,
+      "global_gate_closed": false,
+      "checkpoint": "stages/stage08/scientific-state/validation/confidence_checkpoint.json",
+      "contract_gate_closed": true
+    }
+  ]
 }

@@ -8,7 +8,6 @@ from typing import Optional, Tuple
 
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
-    ChemicalConfidence,
     CoverageStatus,
     ResolutionStatus,
     ScientificAdmissibility,
@@ -72,7 +71,6 @@ class CoordinationElectronCountingResult:
     candidates: Tuple[CoordinationCountingCandidate, ...]
     admissibility: ScientificAdmissibility
     resolution: ResolutionStatus
-    confidence: ChemicalConfidence
     findings: Tuple[ScientificFinding, ...]
 
 
@@ -96,7 +94,6 @@ class OxidationStateInferenceResult:
     candidates: Tuple[OxidationStateCandidateEvidence, ...]
     admissibility: ScientificAdmissibility
     resolution: ResolutionStatus
-    confidence: ChemicalConfidence
     findings: Tuple[ScientificFinding, ...]
 
 

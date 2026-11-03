@@ -10,7 +10,6 @@ __all__ = [
     'ScientificQuantity',
     'ScientificAdmissibility',
     'ResolutionStatus',
-    'ChemicalConfidence',
     'CoverageStatus',
     'StateValueAuthority',
     'ScientificFinding',
@@ -51,16 +50,6 @@ class ResolutionStatus(Enum):
     UNRESOLVED = "unresolved"
     OUT_OF_DOMAIN = "out_of_domain"
     CONFLICT = "conflict"
-
-
-class ChemicalConfidence(Enum):
-    """Scientific confidence independent of hard legality."""
-
-    AUTHORITATIVE = "authoritative"
-    HIGH = "high"
-    MEDIUM = "medium"
-    LOW = "low"
-    UNRESOLVED = "unresolved"
 
 
 class CoverageStatus(Enum):

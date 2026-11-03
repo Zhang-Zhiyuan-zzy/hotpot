@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage0\u20137E accepted within recorded owning scopes; Stage8A A1-A8 scientific-state ownership/nonmutation/H-zero-presence CP311 checkpoints accepted2026-11-03. 144existing migrated classes and12public signatures preserved, zero new types. Current468-file production Python census783classes/360dataclasses/8Protocols/2TypedDicts. Architecture224preexisting debt unchanged. Whole Stage8A/D01-D03, later and global gates remain open.",
+  "status": "Stage0\u20137E and Stage8A A1-A9 retain their accepted owning scopes. A9 confidence-only removal is root accepted in source/installedCP311: five typed calculation records, four finding/reason types and both toggle types retained; D02/D03 NO_CONSOLIDATION. Current468Python-file census782classes/360dataclasses/8Protocols/2TypedDicts; one enum retired, dataclass delta0. WholeStage8A/optionalprofile/later/global gates remain open.",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -383,46 +383,82 @@
       "id": "D01",
       "stage": "Stage8A",
       "old_definitions": 5,
-      "retired_old": 5,
-      "retained_old": 0,
-      "new_replacements": 1,
-      "net": -4,
-      "scope": "Five state inference results; exact public/schema review remains required",
-      "implementation_status": "HELD_PUBLIC_REVIEW_NOT_IMPLEMENTED",
+      "retired_old": 0,
+      "retained_old": 5,
+      "new_replacements": 0,
+      "net": 0,
+      "scope": "Retain five typed calculation records with required identity,facts_identity,candidates,admissibility,resolution,findings; only confidence production/field and ChemicalConfidence/two exports retire. Exact existing public detailed report APIs/owners retained; pickle hard cut accepted; known JSON/digests unchanged.",
+      "implementation_status": "ROOT_ACCEPTED_CP311_CONFIDENCE_ONLY_REMOVAL",
       "actual_retired_old": 0,
       "actual_new_replacements": 0,
       "actual_net": 0,
-      "evidence": "stages/stage08/scientific-state/ownership_checkpoint_20261103.json"
+      "evidence": "stages/stage08/scientific-state/validation/confidence_checkpoint.json",
+      "historical_forecast_20261028": {
+        "retired_old": 5,
+        "retained_old": 0,
+        "new_replacements": 1,
+        "net": -4,
+        "status": "SUPERSEDED_BY_A9; historical estimate only, never a measured reduction"
+      },
+      "actual_retained_old": 5,
+      "design_status": "ROOT_ACCEPTED_A9",
+      "decision": "stages/stage08/scientific-state/contracts/decisions.md#a9--accepted-public-calculation-reports-and-confidence-only-removal",
+      "decision_baseline": "7952d1f14994e88892dd094cd775e92970c6c0e1",
+      "evidence_scope": "A9 design plus current source/installedCP311 evidence; no whole-stage/global acceptance."
     },
     {
       "id": "D02",
       "stage": "Stage8A",
       "old_definitions": 4,
-      "retired_old": 4,
-      "retained_old": 0,
-      "new_replacements": 1,
-      "net": -3,
-      "scope": "Four finding/reason records with explicit historical codecs",
-      "implementation_status": "HELD_PUBLIC_REVIEW_NOT_IMPLEMENTED",
+      "retired_old": 0,
+      "retained_old": 4,
+      "new_replacements": 0,
+      "net": 0,
+      "scope": "NO_CONSOLIDATION: retain all four finding/reason classes, exports and exact two-field static eligibility versus three-field reason codecs; no StateFinding.",
+      "implementation_status": "NO_CONSOLIDATION",
       "actual_retired_old": 0,
       "actual_new_replacements": 0,
       "actual_net": 0,
-      "evidence": "stages/stage08/scientific-state/ownership_checkpoint_20261103.json"
+      "evidence": "stages/stage08/scientific-state/validation/confidence_checkpoint.json",
+      "historical_forecast_20261028": {
+        "retired_old": 4,
+        "retained_old": 0,
+        "new_replacements": 1,
+        "net": -3,
+        "status": "SUPERSEDED_BY_A9; historical estimate only, never a measured reduction"
+      },
+      "actual_retained_old": 4,
+      "design_status": "ROOT_ACCEPTED_A9",
+      "decision": "stages/stage08/scientific-state/contracts/decisions.md#a9--accepted-public-calculation-reports-and-confidence-only-removal",
+      "decision_baseline": "7952d1f14994e88892dd094cd775e92970c6c0e1",
+      "evidence_scope": "A9 design plus current source/installedCP311 evidence; no whole-stage/global acceptance."
     },
     {
       "id": "D03",
       "stage": "Stage8A",
       "old_definitions": 2,
-      "retired_old": 2,
-      "retained_old": 0,
-      "new_replacements": 1,
-      "net": -1,
-      "scope": "Provider/rule activation with separate namespaces",
-      "implementation_status": "HELD_PUBLIC_REVIEW_NOT_IMPLEMENTED",
+      "retired_old": 0,
+      "retained_old": 2,
+      "new_replacements": 0,
+      "net": 0,
+      "scope": "NO_CONSOLIDATION: retain ProviderToggle and RuleToggle in current operation/rule owners, with distinct IDs, configuration, activation/dependencies and exact profile-digest payload; no StateActivation.",
+      "implementation_status": "NO_CONSOLIDATION",
       "actual_retired_old": 0,
       "actual_new_replacements": 0,
       "actual_net": 0,
-      "evidence": "stages/stage08/scientific-state/ownership_checkpoint_20261103.json"
+      "evidence": "stages/stage08/scientific-state/validation/confidence_checkpoint.json",
+      "historical_forecast_20261028": {
+        "retired_old": 2,
+        "retained_old": 0,
+        "new_replacements": 1,
+        "net": -1,
+        "status": "SUPERSEDED_BY_A9; historical estimate only, never a measured reduction"
+      },
+      "actual_retained_old": 2,
+      "design_status": "ROOT_ACCEPTED_A9",
+      "decision": "stages/stage08/scientific-state/contracts/decisions.md#a9--accepted-public-calculation-reports-and-confidence-only-removal",
+      "decision_baseline": "7952d1f14994e88892dd094cd775e92970c6c0e1",
+      "evidence_scope": "A9 design plus current source/installedCP311 evidence; no whole-stage/global acceptance."
     },
     {
       "id": "D04",
@@ -860,20 +896,37 @@
     }
   ],
   "forecast": {
-    "retired_old_dataclasses": 14,
-    "replacement_dataclasses": 3,
+    "decision": "stages/stage08/scientific-state/contracts/decisions.md#a9--accepted-public-calculation-reports-and-confidence-only-removal",
+    "retired_old_dataclasses": 3,
+    "replacement_dataclasses": 0,
     "new_mechanism_upper_bound": 18,
-    "final_upper_bound_if_all_consolidations_land": 354,
-    "net_change_upper_bound": 7,
-    "without_D01_D02_D03_approval": 362,
-    "meaning": "The audited family consolidation is -11; necessary new records may make the whole project +7. Neither is a measured reduction or a requirement to create all reserved classes.",
+    "final_upper_bound_if_all_consolidations_land": 362,
+    "net_change_upper_bound": 15,
+    "D01_D03_dataclass_delta": 0,
+    "meaning": "A9 retains D01-D03 as5/4/2 definitions. Only the unchanged D04/D05/FF-CLI proposals supply prospective -3 dataclasses. Baseline347-3+18=362 is a conditional upper bound, not a measured total, a count-led design target or a requirement to create every reserved type.",
     "implemented_owner_dataclass_adjustment": {
-      "original_N01_N18_forecast_final_upper_bound": 354,
+      "original_N01_N18_forecast_final_upper_bound": 362,
       "additional_counted_ConstraintSet_dataclasses": 1,
-      "combined_final_upper_bound_if_all_consolidations_land": 355,
-      "combined_net_change_upper_bound": 8,
-      "combined_without_D01_D02_D03_approval": 363,
-      "meaning": "Explicit bookkeeping for the actual owner dataclass outside the eighteen record reservations. The historical 354/+7 arithmetic above excludes it; no reduction or creation of all reserved records is claimed."
+      "combined_final_upper_bound_if_all_consolidations_land": 363,
+      "combined_net_change_upper_bound": 16,
+      "meaning": "Same separately counted ConstraintSet owner; baseline347-3+18+1=363. No D01-D03 consolidation credit or outstanding approval assumption."
+    },
+    "historical_20261028": {
+      "retired_old_dataclasses": 14,
+      "replacement_dataclasses": 3,
+      "new_mechanism_upper_bound": 18,
+      "final_upper_bound_if_all_consolidations_land": 354,
+      "net_change_upper_bound": 7,
+      "without_D01_D02_D03_approval": 362,
+      "meaning": "The audited family consolidation is -11; necessary new records may make the whole project +7. Neither is a measured reduction or a requirement to create all reserved classes.",
+      "implemented_owner_dataclass_adjustment": {
+        "original_N01_N18_forecast_final_upper_bound": 354,
+        "additional_counted_ConstraintSet_dataclasses": 1,
+        "combined_final_upper_bound_if_all_consolidations_land": 355,
+        "combined_net_change_upper_bound": 8,
+        "combined_without_D01_D02_D03_approval": 363,
+        "meaning": "Explicit bookkeeping for the actual owner dataclass outside the eighteen record reservations. The historical 354/+7 arithmetic above excludes it; no reduction or creation of all reserved records is claimed."
+      }
     }
   },
   "separate_budgets": {
@@ -983,11 +1036,11 @@
   ],
   "change_policy": "Update a reservation with concrete responsibility/consumer evidence before exceeding it; new public schemas retain their own review gate. Never offset extra records by deleting unrelated reserved types or replace records with untyped dicts solely to improve counts.",
   "measured_current_counts": {
-    "all_python_classes": 783,
+    "all_python_classes": 782,
     "dataclasses": 360,
     "protocols": 8,
     "typed_dicts": 2,
-    "method": "Same production-only ClassDef/leaf/CONTRACT_MARKERS census; adds exactly reservedN16\u2013N18 to Stage7C780/357/8/2 and moves existing Conformers once; no retirement credit.",
+    "method": "Same production-only ClassDef/leaf/CONTRACT_MARKERS census; adds exactly reservedN16\u2013N18 to Stage7C780/357/8/2 and moves existing Conformers once; no retirement credit. A9 root static census: retire only ChemicalConfidence enum;468Python files,782classes/360dataclasses/8Protocols/2TypedDicts; dataclass delta0.",
     "native_struct_candidates": 171,
     "native_struct_candidate_method": {
       "baseline": 164,
@@ -1119,9 +1172,42 @@
     "status": "ROOT_ACCEPTED_CP311_A1_A8_CHECKPOINT_WHOLE_STAGE_OPEN",
     "checkpoint": "stages/stage08/scientific-state/ownership_checkpoint_20261103.json",
     "new_types": 0,
-    "consolidation_D01_D03": "held, forecast reductions not realized",
+    "consolidation_D01_D03": "A9 confidence-only implementation source/installedCP311 accepted; D02/D03 retained as NO_CONSOLIDATION; historical5to1/4to1/2to1 forecasts superseded.",
     "stage_gate_closed": false,
     "global_gate_closed": false,
-    "h_presence_checkpoint": "stages/stage08/scientific-state/validation/h_presence_checkpoint.json"
+    "h_presence_checkpoint": "stages/stage08/scientific-state/validation/h_presence_checkpoint.json",
+    "confidence_checkpoint": "stages/stage08/scientific-state/validation/confidence_checkpoint.json"
+  },
+  "stage8a_public_contract_decision": {
+    "date": "2026-11-03",
+    "baseline_commit": "7952d1f14994e88892dd094cd775e92970c6c0e1",
+    "status": "ROOT_ACCEPTED_CP311_CONFIDENCE_ONLY_REMOVAL",
+    "decision": "stages/stage08/scientific-state/contracts/decisions.md#a9--accepted-public-calculation-reports-and-confidence-only-removal",
+    "authority": "Explicit root disposition under the previously granted full-authority mandate and effective goal, before product authoring; not docstring inference or a new approval flow.",
+    "retained_dataclasses": {
+      "D01": 5,
+      "D02": 4,
+      "D03": 2
+    },
+    "actual_dataclass_delta": 0,
+    "prospective_dataclass_delta": 0,
+    "prospective_enum_retirement": {
+      "symbol": "hotpot.cheminfo.rules.chemistry.scientific_state.contracts.ChemicalConfidence",
+      "class_kind": "enum",
+      "prospective_delta": -1,
+      "actual_delta": -1,
+      "status": "ROOT_ACCEPTED_CP311_CONFIDENCE_ONLY_REMOVAL",
+      "export_modules": [
+        "hotpot.cheminfo.rules.chemistry.scientific_state.contracts",
+        "hotpot.cheminfo.rules.chemistry.scientific_state"
+      ]
+    },
+    "public_report_disposition": "Retain exact existing ScientificStateBundle, BackendProjectionResult and ScientificStateWorkflowResult returns/signatures/owners as explicitly requested public detailed calculation/decision/projection reports; ordinary Molecule/Atom values gain no wrappers or ratings.",
+    "pickle_disposition": "Accepted coherent hard cut of pre-change seven-field/retired-enum Python objects; no compatibility class, alias, migration loader or dual runtime. No external/reflective compatibility promise.",
+    "versioned_json_and_digests": "UNCHANGED; no wire-version bump or identity rehash",
+    "implementation_validation": "Source443focused/990affected+5skip; installed990affected+5skip/same995logicalnodes; actual3pipeline+3MCA each boundary; current5typecoldpickle and expected5legacyenumfailures each boundary.",
+    "stage_gate_closed": false,
+    "global_gate_closed": false,
+    "checkpoint": "stages/stage08/scientific-state/validation/confidence_checkpoint.json"
   }
 }

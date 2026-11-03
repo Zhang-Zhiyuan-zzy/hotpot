@@ -8,7 +8,6 @@ import hotpot
 from hotpot.cheminfo.rules.chemistry.scientific_state.charge.net_charge import resolve_net_charge
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
-    ChemicalConfidence,
     CoverageStatus,
     ResolutionStatus,
     ScientificAdmissibility,
@@ -69,7 +68,6 @@ def _provided_electronic_result(
         (candidate,),
         ScientificAdmissibility.ADMISSIBLE,
         ResolutionStatus.UNIQUE,
-        ChemicalConfidence.AUTHORITATIVE,
         (),
     )
 
@@ -231,7 +229,6 @@ def test_provided_spin_accepts_hard_valid_oxidation_reference() -> None:
         (oxidation_candidate,),
         ScientificAdmissibility.ADMISSIBLE,
         ResolutionStatus.UNIQUE,
-        ChemicalConfidence.AUTHORITATIVE,
         (),
     )
     provided = _provided_electronic_result(

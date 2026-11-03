@@ -1,8 +1,9 @@
 """Ownership, dependency, transport and asset guards for Stage8A1.
 
 Contract fingerprints come from 989f27594ec08a4cd1b6f1266e565ba34cee62a1.
-They freeze API shapes, not scientific implementation bodies. Chemistry expectations
-below use explicit methane atoms and independent charge/electron/spin accounting.
+A9 updates only the five accepted six-field result shapes and retires the confidence
+enum. All other fingerprints retain that baseline. Chemistry expectations below
+use explicit methane atoms and independent charge/electron/spin accounting.
 """
 
 import ast
@@ -26,22 +27,22 @@ _PACKAGE_ROOT = Path(import_module("hotpot").__file__).resolve().parent
 _CLASS_CONTRACTS = {'rules.charge.contracts:NetChargeCandidateEvidence': 'c8e60feecbe1356a7420b4fb27d64aab55e40d2d1722a9162159e7da01ba5028',
  'rules.charge.contracts:AtomFormalChargeEvidence': '16fcdb42a448f4a8506b216e01b969c818484e5bb21655145f8a141abd4da992',
  'rules.charge.contracts:ComponentChargeEvidence': '856c24af71bcfa3a3592ae29ff27624df5a7c4437e4be5fc28515356a0e4edc6',
- 'rules.charge.contracts:NetChargeResult': '0408417ecc16c8ab39eec3433129690c327bce9c5b7a374c9fac18c128397862',
+ 'rules.charge.contracts:NetChargeResult': 'a1b560f08cb74a761b23d85a2a39e64a12f80228f5104d467925bc491740b482',
  'rules.charge.contracts:LewisFormalChargeCandidate': 'e7563559e035c07b6c54edd2aeb36db3825fddfae5e6041944fc3b8cf7b492ec',
- 'rules.charge.contracts:LewisFormalChargeResult': 'a678eb396a8ca2e25751de3ff5adffdabd043acd34a30c1b730d1c3839704798',
+ 'rules.charge.contracts:LewisFormalChargeResult': 'aa4ede290c60ed09c5f306b060456d9ff84129c627a91b7c284fbee60628c126',
  'rules.electronic_state.contracts:SpinContributionScope': '90c26cd1396886e1cf4c196dea7b57e3a68f59c7f2990326177a3fc9ae0aac17',
  'rules.electronic_state.contracts:ElectronicStateCandidateEvidence': 'b66bbf1d538288e8825d69f6622833b3f82ac2341708a3e6e9312fc2135ca24f',
  'rules.electronic_state.contracts:SpinContributionCandidate': 'cf8d56d233fb85bc6b02b350e3a552b29d14b84351424d3d5f8663f7ee4dac82',
  'rules.electronic_state.contracts:ElectronicStateCandidate': 'c1ec630768375e8800c5cfa7d553d825b363038e6fa1a796949affd7dc608a26',
- 'rules.electronic_state.contracts:ElectronicStateInferenceResult': '181a8661fe7f1d1a6bb8745d9a0e91eab970afe12b8a07337cf260f21d60d4cf',
+ 'rules.electronic_state.contracts:ElectronicStateInferenceResult': '1f9b53890e8eed925721ddbbd4c49855b9a160545b689222eb89ff5baab47e04',
  'rules.electronic_state.contracts:NeutralAtomReference': '5762aa43b5d713ca0f334e3921c56c2f14f89e8252c4d3d7f6f949b28c42b16c',
  'rules.oxidation_state.contracts:CountingConvention': 'dfa74e56f6d3286ec909a9fdc795e2ba7eff2f24d4b79141a64dca89c412d6a6',
  'rules.oxidation_state.contracts:OxidationStateOverride': '367439a5eadfb6709ce60398a2b4348a12b0fa27c70b1b1d106ebcf72cf26511',
  'rules.oxidation_state.contracts:CoordinationFragmentAssignment': 'f3fe723dea9407728d6d7a0f3389050f51c86a9ad752641eb753f5718e970d86',
  'rules.oxidation_state.contracts:CoordinationCountingCandidate': '04b408d6aa3ec04d32c38290cbf7afbf79c356bf3aa51843f157c35010f2a91f',
- 'rules.oxidation_state.contracts:CoordinationElectronCountingResult': '4abd9f6dd52dec9ed6a508039e458bb24880f493a3cd2ac781434211086f1eeb',
+ 'rules.oxidation_state.contracts:CoordinationElectronCountingResult': '8655a9417e042560b51791d258307200ddfe8be4bd8bb045c04ae68ca16e3871',
  'rules.oxidation_state.contracts:OxidationStateCandidateEvidence': 'f30e282e53f2383d79107b0fd5e9ec48fbb37b25172dd8dd4eabe96713f9a221',
- 'rules.oxidation_state.contracts:OxidationStateInferenceResult': '1a8270614148441eb7453b0a33515c1aa90b8c987504c5d0ceafcb86a93de460',
+ 'rules.oxidation_state.contracts:OxidationStateInferenceResult': '4a82495782ec26846ca3e44f4a35465f30429bcbdc20a5c5ea74ca0ef199101a',
  'rules.oxidation_state.contracts:ElementOxidationStateDomain': 'e3048a8f9d40780ffc493738f302852fc7c203899ec1fe957e6af168267a89db',
  'rules.legality:_HardRuleAssessment': 'e533716f4789ff04f1cf0f0a6d7a04792aa27e32db22823515a3c0e3ddf6468a',
  'rules.composition:CandidateDomainScope': '64858839159e2a31f1d2990f70874386cde1a17fe873b93c0773fa2f71799226',
@@ -150,7 +151,6 @@ _CLASS_CONTRACTS = {'rules.charge.contracts:NetChargeCandidateEvidence': 'c8e60f
  'rules.contracts:ScientificQuantity': '50331c435b0c943d28e7929ee7157213d0d630355df0567ff425b1c4bd740cad',
  'rules.contracts:ScientificAdmissibility': '3c32560a85691b11992ac4ef89370094282904343b3c95c72ef0699fe23835ec',
  'rules.contracts:ResolutionStatus': '942dfffc913e17b794c66ed3842ed141c6d148e8625364a63f56a8f46197a1c7',
- 'rules.contracts:ChemicalConfidence': 'a8acf43927ba5404239a47cd43437503bfd6e386e37dae57804283f25e04dd6e',
  'rules.contracts:CoverageStatus': '2c270492499469647cdb3b74fb26c51fb21aa279752be741527927aae7d2acbe',
  'rules.contracts:StateValueAuthority': '723bf691b93bbca3a97a3bff07c172ee3c3b20dc32ff76e652fff4ac54a83625',
  'operations.contracts:StatePolicy': 'ae425b8ae000b540b7e1adb5c3dc8b115f609358d08905770bf3f675da1fefff',
@@ -524,6 +524,11 @@ import sys
 assert not any(name.startswith('hotpot') for name in sys.modules)
 values, expected_owners = pickle.loads(Path(sys.argv[1]).read_bytes())
 assert {name: type(value).__module__ for name, value in values.items()} == expected_owners
+for name in ("charge_result", "electronic_result"):
+    assert tuple(vars(values[name])) == (
+        "identity", "facts_identity", "candidates",
+        "admissibility", "resolution", "findings",
+    )
 assert not any(name.startswith(('hotpot.cheminfo.calculator.state_', 'hotpot.cheminfo.calculator.charge', 'hotpot.cheminfo.calculator.electronic_state', 'hotpot.cheminfo.calculator.oxidation_state', 'hotpot.cheminfo.calculator.contracts', 'hotpot.cheminfo.calculator.execution_selection')) for name in sys.modules)
 Path(sys.argv[2]).write_bytes(pickle.dumps(values, protocol=pickle.HIGHEST_PROTOCOL))
 """

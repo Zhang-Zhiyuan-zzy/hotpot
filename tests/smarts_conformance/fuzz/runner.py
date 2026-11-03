@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Dict, Iterable, Optional, Tuple
 
 from hotpot.cheminfo.operations.io import read_mol
-from hotpot.cheminfo.search.search import Searcher, Substructure
+from hotpot.cheminfo.operations.search.search import Searcher, Substructure
 
 from .generators import (
     generate_robustness_text,

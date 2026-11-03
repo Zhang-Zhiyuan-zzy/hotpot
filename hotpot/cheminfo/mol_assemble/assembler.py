@@ -28,7 +28,7 @@ from tqdm import tqdm
 import hotpot.cheminfo as ci
 from hotpot.utils import fmt_print
 from hotpot.cheminfo.core import Atom, Molecule
-from hotpot.cheminfo.search import Searcher, Substructure, QueryAtom
+from hotpot.cheminfo.operations.search import Searcher, Substructure, QueryAtom
 from hotpot.cheminfo.mol_assemble.fragment import Fragment
 from hotpot.cheminfo.mol_assemble.action_func import (
     shoulder_bond_action,

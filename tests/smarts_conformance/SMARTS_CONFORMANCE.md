@@ -7,7 +7,7 @@ automatic changes to this contract.
 ## Scope and entry points
 
 The active compiler is
-`hotpot.cheminfo.search.smarts.substructure_from_smarts`, exposed through
+`hotpot.cheminfo.operations.search.smarts.substructure_from_smarts`, exposed through
 `hotpot.Substructure.from_smarts`. Matching remains the responsibility of
 `Searcher`, `Hits`, and `Hit`; `Molecule.search_substructure` is the convenience
 entry point. The legacy parser modules are outside this conformance target.

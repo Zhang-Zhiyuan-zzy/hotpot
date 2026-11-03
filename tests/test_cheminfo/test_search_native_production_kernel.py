@@ -4,7 +4,7 @@ import weakref
 
 import pytest
 
-from hotpot.cheminfo.search._search_native import (
+from hotpot.cheminfo.adapters.native.substructure._search_native import (
     NativeProblem,
     NativeTarget,
     _NativeAutomorphism,

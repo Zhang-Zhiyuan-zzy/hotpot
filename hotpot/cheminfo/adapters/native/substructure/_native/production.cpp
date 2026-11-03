@@ -1,17 +1,16 @@
 #include "production.hpp"
+#include "../../../../rules/chemistry/substructure/_native/predicates.hpp"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 #include <algorithm>
 #include <cstdint>
-#include <mutex>
 #include <optional>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
-#include <variant>
 #include <vector>
 
 
@@ -19,34 +18,6 @@ namespace hotpot::search {
 
 namespace {
 
-using NativeValue = std::variant<
-    std::monostate,
-    bool,
-    std::int64_t,
-    double,
-    std::string
->;
-
-enum class Truth : std::uint8_t { False, True, Unknown };
-enum class AtomOp : std::uint8_t {
-    True,
-    FieldEq,
-    FieldIn,
-    PeriodIn,
-    DegreeEq,
-    ConnectivityEq,
-    ValenceEq,
-    RingAny,
-    RingCountEq,
-    RingNone,
-    RingSizeEq,
-    TotalHEq,
-    Recursive,
-    And,
-    Or,
-    Not,
-};
-enum class BondOp : std::uint8_t { True, KindIs, Aromatic, Or };
 enum class LeafKind : std::uint8_t {
     NativeSet,
     HostSet,
@@ -55,75 +26,21 @@ enum class LeafKind : std::uint8_t {
     BondExpression,
 };
 
-struct SemanticRecord {
-    std::int64_t degree = 0;
-    std::int64_t connectivity = 0;
-    double valence = 0.0;
-    std::int64_t ring_count = 0;
-    std::vector<std::int64_t> ring_sizes;
-};
-
-struct TargetAtom {
-    std::unordered_map<std::string, NativeValue> native_fields;
-    std::unordered_map<std::string, py::object> host_fields;
-    SemanticRecord full;
-    SemanticRecord ligand;
-    py::object object;
-};
-
-struct TargetBond {
-    std::unordered_map<std::string, NativeValue> native_fields;
-    std::unordered_map<std::string, py::object> host_fields;
-    std::string bond_kind;
-    bool is_aromatic = false;
-    py::object object;
-};
+using HostFields = std::unordered_map<std::string, py::object>;
 
 }  // namespace
 
 struct NativeTarget::Data {
     std::vector<TargetAtom> atoms;
     std::vector<TargetBond> bonds;
+    // Host slots remain aligned with the pure records and retain original handles.
+    std::vector<HostFields> atom_host_fields;
+    std::vector<HostFields> bond_host_fields;
+    std::vector<py::object> atom_objects;
+    std::vector<py::object> bond_objects;
 };
 
 namespace {
-
-struct RecursiveProgram {
-    std::shared_ptr<NativeProblem> problem;
-    mutable std::mutex cache_mutex;
-    mutable std::vector<std::int8_t> cache;
-
-    bool matches(Position target_node) const {
-        {
-            std::lock_guard<std::mutex> lock(cache_mutex);
-            if (cache[target_node] >= 0) {
-                return cache[target_node] != 0;
-            }
-        }
-        const bool result = problem->has_anchored_match(target_node);
-        {
-            std::lock_guard<std::mutex> lock(cache_mutex);
-            cache[target_node] = result ? 1 : 0;
-        }
-        return result;
-    }
-};
-
-struct AtomExpression {
-    AtomOp op = AtomOp::True;
-    std::string field;
-    NativeValue value;
-    std::vector<NativeValue> values;
-    std::string semantics;
-    std::vector<AtomExpression> children;
-    std::shared_ptr<RecursiveProgram> recursive;
-};
-
-struct BondExpression {
-    BondOp op = BondOp::True;
-    std::string kind;
-    std::vector<BondExpression> children;
-};
 
 struct Leaf {
     LeafKind kind = LeafKind::NativeSet;
@@ -193,68 +110,6 @@ std::optional<NativeValue> native_value(const py::handle value) {
     return std::nullopt;
 }
 
-bool native_equal(const NativeValue& first, const NativeValue& second) noexcept {
-    const bool first_is_integer = std::holds_alternative<bool>(first)
-        || std::holds_alternative<std::int64_t>(first);
-    const bool second_is_integer = std::holds_alternative<bool>(second)
-        || std::holds_alternative<std::int64_t>(second);
-    const auto integer = [](const NativeValue& value) {
-        if (const auto* boolean = std::get_if<bool>(&value)) {
-            return std::int64_t{*boolean ? 1 : 0};
-        }
-        return std::get<std::int64_t>(value);
-    };
-    if (first_is_integer && second_is_integer) {
-        return integer(first) == integer(second);
-    }
-    const bool first_is_number = first_is_integer
-        || std::holds_alternative<double>(first);
-    const bool second_is_number = second_is_integer
-        || std::holds_alternative<double>(second);
-    if (first_is_number && second_is_number) {
-        const auto number = [&](const NativeValue& value) {
-            if (const auto* boolean = std::get_if<bool>(&value)) {
-                return static_cast<long double>(*boolean ? 1 : 0);
-            }
-            if (const auto* integer_value = std::get_if<std::int64_t>(&value)) {
-                return static_cast<long double>(*integer_value);
-            }
-            return static_cast<long double>(std::get<double>(value));
-        };
-        return number(first) == number(second);
-    }
-    return first == second;
-}
-
-bool native_contains(
-    const std::vector<NativeValue>& values,
-    const NativeValue& candidate
-) noexcept {
-    return std::any_of(
-        values.begin(),
-        values.end(),
-        [&](const NativeValue& value) { return native_equal(value, candidate); }
-    );
-}
-
-std::int64_t as_integer(const NativeValue& value) {
-    if (const auto* boolean = std::get_if<bool>(&value)) {
-        return *boolean ? 1 : 0;
-    }
-    if (const auto* integer = std::get_if<std::int64_t>(&value)) {
-        return *integer;
-    }
-    return static_cast<std::int64_t>(std::get<double>(value));
-}
-
-const NativeValue* find_native(
-    const std::unordered_map<std::string, NativeValue>& fields,
-    const std::string& name
-) noexcept {
-    const auto found = fields.find(name);
-    return found == fields.end() ? nullptr : &found->second;
-}
-
 bool python_truth(const py::object& value) {
     const int result = PyObject_IsTrue(value.ptr());
     if (result < 0) {
@@ -301,14 +156,14 @@ SemanticRecord parse_semantic_record(const py::dict& record) {
 }
 
 template <typename Record>
-void parse_fields(Record& record, const py::dict& fields) {
+void parse_fields(Record& record, HostFields& host_fields, const py::dict& fields) {
     for (const auto& item : fields) {
         const std::string name = string_value(item.first);
         const std::optional<NativeValue> value = native_value(item.second);
         if (value.has_value()) {
             record.native_fields.emplace(name, *value);
         } else {
-            record.host_fields.emplace(
+            host_fields.emplace(
                 name,
                 py::reinterpret_borrow<py::object>(item.second)
             );
@@ -316,13 +171,17 @@ void parse_fields(Record& record, const py::dict& fields) {
     }
 }
 
-std::vector<TargetAtom> parse_target_atoms(const py::dict& target_spec) {
+std::vector<TargetAtom> parse_target_atoms(
+    const py::dict& target_spec, NativeTarget::Data& data
+) {
     std::vector<TargetAtom> atoms;
     for (const py::handle item : get_item(target_spec, "atoms")) {
         const py::dict record = py::reinterpret_borrow<py::dict>(item);
         TargetAtom atom;
+        data.atom_host_fields.emplace_back();
         parse_fields(
             atom,
+            data.atom_host_fields.back(),
             py::reinterpret_borrow<py::dict>(get_item(record, "fields"))
         );
         atom.full = parse_semantic_record(
@@ -331,24 +190,32 @@ std::vector<TargetAtom> parse_target_atoms(const py::dict& target_spec) {
         atom.ligand = parse_semantic_record(
             py::reinterpret_borrow<py::dict>(get_item(record, "ligand"))
         );
-        atom.object = py::reinterpret_borrow<py::object>(get_item(record, "object"));
+        data.atom_objects.push_back(
+            py::reinterpret_borrow<py::object>(get_item(record, "object"))
+        );
         atoms.push_back(std::move(atom));
     }
     return atoms;
 }
 
-std::vector<TargetBond> parse_target_bonds(const py::dict& target_spec) {
+std::vector<TargetBond> parse_target_bonds(
+    const py::dict& target_spec, NativeTarget::Data& data
+) {
     std::vector<TargetBond> bonds;
     for (const py::handle item : get_item(target_spec, "bonds")) {
         const py::dict record = py::reinterpret_borrow<py::dict>(item);
         TargetBond bond;
+        data.bond_host_fields.emplace_back();
         parse_fields(
             bond,
+            data.bond_host_fields.back(),
             py::reinterpret_borrow<py::dict>(get_item(record, "fields"))
         );
         bond.bond_kind = string_value(get_item(record, "bond_kind"));
         bond.is_aromatic = py::cast<bool>(get_item(record, "is_aromatic"));
-        bond.object = py::reinterpret_borrow<py::object>(get_item(record, "object"));
+        data.bond_objects.push_back(
+            py::reinterpret_borrow<py::object>(get_item(record, "object"))
+        );
         bonds.push_back(std::move(bond));
     }
     return bonds;
@@ -408,10 +275,13 @@ AtomExpression parse_atom_expression(
     const py::handle value = get_item(specification, "value");
     if (expression.op == AtomOp::Recursive) {
         auto recursive = std::make_shared<RecursiveProgram>();
-        recursive->problem = std::make_shared<NativeProblem>(
+        auto problem = std::make_shared<NativeProblem>(
             py::reinterpret_borrow<py::dict>(value),
             target
         );
+        recursive->has_anchored_match = [problem = std::move(problem)](
+            const std::uint32_t target_node
+        ) { return problem->has_anchored_match(target_node); };
         recursive->cache.assign(target_node_count, -1);
         expression.recursive = std::move(recursive);
     } else if (
@@ -539,187 +409,6 @@ std::vector<BondProgram> parse_bond_programs(
     return programs;
 }
 
-const SemanticRecord& semantic_record(
-    const TargetAtom& atom,
-    const std::string& semantics
-) noexcept {
-    return semantics == "ligand_skeleton" || semantics == "ligand"
-        ? atom.ligand
-        : atom.full;
-}
-
-std::int64_t period_number(const std::int64_t atomic_number) noexcept {
-    static constexpr std::int64_t upper_bounds[] = {2, 10, 18, 36, 54, 86, 118};
-    for (std::int64_t period = 1; period <= 7; ++period) {
-        if (atomic_number <= upper_bounds[period - 1]) {
-            return period;
-        }
-    }
-    return 0;
-}
-
-bool evaluate_atom_expression(
-    const AtomExpression& expression,
-    const TargetAtom& atom,
-    const Position target_node
-) {
-    const NativeValue* field = nullptr;
-    switch (expression.op) {
-        case AtomOp::True:
-            return true;
-        case AtomOp::FieldEq:
-            field = find_native(atom.native_fields, expression.field);
-            return field != nullptr && native_equal(*field, expression.value);
-        case AtomOp::FieldIn:
-            field = find_native(atom.native_fields, expression.field);
-            return field != nullptr && native_contains(expression.values, *field);
-        case AtomOp::PeriodIn:
-            field = find_native(atom.native_fields, "atomic_number");
-            return field != nullptr && native_contains(
-                expression.values,
-                NativeValue{period_number(as_integer(*field))}
-            );
-        case AtomOp::DegreeEq:
-            return native_equal(
-                NativeValue{semantic_record(atom, expression.semantics).degree},
-                expression.value
-            );
-        case AtomOp::ConnectivityEq:
-            return native_equal(
-                NativeValue{semantic_record(atom, expression.semantics).connectivity},
-                expression.value
-            );
-        case AtomOp::ValenceEq:
-            return native_equal(
-                NativeValue{semantic_record(atom, expression.semantics).valence},
-                expression.value
-            );
-        case AtomOp::RingAny:
-            return semantic_record(atom, expression.semantics).ring_count != 0;
-        case AtomOp::RingCountEq:
-            return native_equal(
-                NativeValue{semantic_record(atom, expression.semantics).ring_count},
-                expression.value
-            );
-        case AtomOp::RingNone:
-            return semantic_record(atom, expression.semantics).ring_count == 0;
-        case AtomOp::RingSizeEq: {
-            const auto& sizes = semantic_record(atom, expression.semantics).ring_sizes;
-            return std::any_of(
-                sizes.begin(),
-                sizes.end(),
-                [&](const std::int64_t size) {
-                    return native_equal(NativeValue{size}, expression.value);
-                }
-            );
-        }
-        case AtomOp::TotalHEq: {
-            const NativeValue* explicit_h = find_native(
-                atom.native_fields,
-                "explicit_hydrogens"
-            );
-            const NativeValue* implicit_h = find_native(
-                atom.native_fields,
-                "implicit_hydrogens"
-            );
-            return explicit_h != nullptr && implicit_h != nullptr && native_equal(
-                NativeValue{as_integer(*explicit_h) + as_integer(*implicit_h)},
-                expression.value
-            );
-        }
-        case AtomOp::Recursive:
-            return expression.recursive->matches(target_node);
-        case AtomOp::And:
-            for (const AtomExpression& child : expression.children) {
-                if (!evaluate_atom_expression(child, atom, target_node)) {
-                    return false;
-                }
-            }
-            return true;
-        case AtomOp::Or:
-            for (const AtomExpression& child : expression.children) {
-                if (evaluate_atom_expression(child, atom, target_node)) {
-                    return true;
-                }
-            }
-            return false;
-        case AtomOp::Not:
-            return !evaluate_atom_expression(
-                expression.children.front(),
-                atom,
-                target_node
-            );
-    }
-    return false;
-}
-
-Truth may_evaluate_atom_expression(
-    const AtomExpression& expression,
-    const TargetAtom& atom
-) {
-    if (expression.op == AtomOp::Recursive) {
-        return Truth::Unknown;
-    }
-    if (expression.op == AtomOp::And) {
-        bool unknown = false;
-        for (const AtomExpression& child : expression.children) {
-            const Truth result = may_evaluate_atom_expression(child, atom);
-            if (result == Truth::False) {
-                return Truth::False;
-            }
-            unknown = unknown || result == Truth::Unknown;
-        }
-        return unknown ? Truth::Unknown : Truth::True;
-    }
-    if (expression.op == AtomOp::Or) {
-        bool unknown = false;
-        for (const AtomExpression& child : expression.children) {
-            const Truth result = may_evaluate_atom_expression(child, atom);
-            if (result == Truth::True) {
-                return Truth::True;
-            }
-            unknown = unknown || result == Truth::Unknown;
-        }
-        return unknown ? Truth::Unknown : Truth::False;
-    }
-    if (expression.op == AtomOp::Not) {
-        const Truth result = may_evaluate_atom_expression(
-            expression.children.front(),
-            atom
-        );
-        if (result == Truth::Unknown) {
-            return Truth::Unknown;
-        }
-        return result == Truth::True ? Truth::False : Truth::True;
-    }
-    return evaluate_atom_expression(expression, atom, 0)
-        ? Truth::True
-        : Truth::False;
-}
-
-bool evaluate_bond_expression(
-    const BondExpression& expression,
-    const TargetBond& bond
-) noexcept {
-    switch (expression.op) {
-        case BondOp::True:
-            return true;
-        case BondOp::KindIs:
-            return bond.bond_kind == expression.kind;
-        case BondOp::Aromatic:
-            return bond.is_aromatic;
-        case BondOp::Or:
-            return std::any_of(
-                expression.children.begin(),
-                expression.children.end(),
-                [&](const BondExpression& child) {
-                    return evaluate_bond_expression(child, bond);
-                }
-            );
-    }
-    return false;
-}
-
 bool python_has_attribute(
     const py::object& object,
     const std::string& name
@@ -750,17 +439,19 @@ py::object python_attribute(
 template <typename Target>
 bool accept_preflight_matches(
     const std::vector<std::string>& preflight,
-    const Target& target
+    const Target& target,
+    const HostFields& host_fields,
+    const py::object& object
 ) {
     for (const std::string& name : preflight) {
         if (
             target.native_fields.find(name) != target.native_fields.end()
-            || target.host_fields.find(name) != target.host_fields.end()
+            || host_fields.find(name) != host_fields.end()
         ) {
             continue;
         }
         py::gil_scoped_acquire acquire;
-        if (!python_has_attribute(target.object, name)) {
+        if (!python_has_attribute(object, name)) {
             return false;
         }
     }
@@ -779,18 +470,17 @@ bool may_preflight_match(
     return true;
 }
 
-template <typename Target>
-bool evaluate_python_leaf(const Leaf& leaf, const Target& target) {
+bool evaluate_python_leaf(const Leaf& leaf, const py::object& object) {
     py::gil_scoped_acquire acquire;
     if (leaf.kind == LeafKind::Callable) {
-        return python_truth(leaf.python_value(target.object));
+        return python_truth(leaf.python_value(object));
     }
     if (!python_truth(leaf.python_value)) {
         return true;
     }
     return python_contains(
         leaf.python_value,
-        python_attribute(target.object, leaf.field)
+        python_attribute(object, leaf.field)
     );
 }
 
@@ -825,7 +515,11 @@ public:
     bool accept_node(const Position query, const Position target) const override {
         const NodeProgram& program = nodes_[query];
         const TargetAtom& atom = target_->data().atoms[target];
-        if (!accept_preflight_matches(program.preflight, atom)) {
+        if (!accept_preflight_matches(
+                program.preflight, atom,
+                target_->data().atom_host_fields[target],
+                target_->data().atom_objects[target]
+            )) {
             return false;
         }
         for (const Leaf& leaf : program.leaves) {
@@ -844,7 +538,7 @@ public:
                 leaf.kind == LeafKind::HostSet
                 || leaf.kind == LeafKind::Callable
             ) {
-                if (!evaluate_python_leaf(leaf, atom)) {
+                if (!evaluate_python_leaf(leaf, target_->data().atom_objects[target])) {
                     return false;
                 }
             } else if (
@@ -866,7 +560,11 @@ public:
         if (program.bond_kind.has_value() && *program.bond_kind != bond.bond_kind) {
             return false;
         }
-        if (!accept_preflight_matches(program.preflight, bond)) {
+        if (!accept_preflight_matches(
+                program.preflight, bond,
+                target_->data().bond_host_fields[target],
+                target_->data().bond_objects[target]
+            )) {
             return false;
         }
         for (const Leaf& leaf : program.leaves) {
@@ -885,7 +583,7 @@ public:
                 leaf.kind == LeafKind::HostSet
                 || leaf.kind == LeafKind::Callable
             ) {
-                if (!evaluate_python_leaf(leaf, bond)) {
+                if (!evaluate_python_leaf(leaf, target_->data().bond_objects[target])) {
                     return false;
                 }
             } else if (
@@ -973,47 +671,13 @@ private:
     std::vector<BondProgram> bonds_;
 };
 
-class ExactLabelCompatibility final : public Compatibility {
-public:
-    ExactLabelCompatibility(
-        const std::vector<std::int64_t>& node_labels,
-        const std::vector<std::int64_t>& edge_labels
-    ) : node_labels_(node_labels), edge_labels_(edge_labels) {}
-
-    bool accept_node(const Position query, const Position target) const override {
-        return node_labels_[query] == node_labels_[target];
-    }
-
-    bool accept_edge(const EdgeIndex query, const EdgeIndex target) const override {
-        return edge_labels_[query] == edge_labels_[target];
-    }
-
-    bool may_accept_node(
-        const Position query,
-        const Position target
-    ) const override {
-        return accept_node(query, target);
-    }
-
-    bool may_accept_edge(
-        const EdgeIndex query,
-        const EdgeIndex target
-    ) const override {
-        return accept_edge(query, target);
-    }
-
-private:
-    const std::vector<std::int64_t>& node_labels_;
-    const std::vector<std::int64_t>& edge_labels_;
-};
-
 }  // namespace
 
 NativeTarget::NativeTarget(const py::dict& target_spec) :
     graph_(graph_keys(target_spec), graph_edges(target_spec)),
     data_(std::make_unique<Data>()) {
-    data_->atoms = parse_target_atoms(target_spec);
-    data_->bonds = parse_target_bonds(target_spec);
+    data_->atoms = parse_target_atoms(target_spec, *data_);
+    data_->bonds = parse_target_bonds(target_spec, *data_);
     if (
         data_->atoms.size() != graph_.node_count()
         || data_->bonds.size() != graph_.edge_count()
@@ -1038,28 +702,7 @@ NativeProblem::NativeProblem(
         query_.node_count(),
         query_.edge_count()
     )) {
-    const Graph& target_graph = target_->graph();
-    const std::size_t word_count = (target_graph.node_count() + 63) / 64;
-    domains_.assign(
-        query_.node_count(),
-        std::vector<std::uint64_t>(word_count, 0)
-    );
-    for (Position query_node = 0; query_node < query_.node_count(); ++query_node) {
-        for (
-            Position target_node = 0;
-            target_node < target_graph.node_count();
-            ++target_node
-        ) {
-            if (
-                query_.degrees()[query_node] <= target_graph.degrees()[target_node]
-                && compatibility_->may_accept_node(query_node, target_node)
-            ) {
-                domains_[query_node][target_node / 64] |= (
-                    std::uint64_t{1} << (target_node % 64)
-                );
-            }
-        }
-    }
+    domains_ = build_candidate_domains(query_, target_->graph(), *compatibility_);
 }
 
 NativeProblem::~NativeProblem() = default;
@@ -1079,74 +722,6 @@ bool NativeProblem::has_anchored_match(const Position target_node) const {
     MappingCursor cursor(
         shared_from_this(),
         std::make_pair(query_node, target_node)
-    );
-    return cursor.next_mapping().has_value();
-}
-
-NativeAutomorphism::NativeAutomorphism(
-    std::shared_ptr<NativeTarget> target,
-    std::vector<std::int64_t> node_labels,
-    std::vector<std::int64_t> edge_labels
-) : target_(std::move(target)),
-    node_labels_(std::move(node_labels)),
-    edge_labels_(std::move(edge_labels)),
-    plan_(build_query_plan(target_->graph())),
-    compatibility_(std::make_unique<ExactLabelCompatibility>(
-        node_labels_,
-        edge_labels_
-    )) {
-    const Graph& graph = target_->graph();
-    if (
-        node_labels_.size() != graph.node_count()
-        || edge_labels_.size() != graph.edge_count()
-    ) {
-        throw std::invalid_argument(
-            "native automorphism labels must align with target topology"
-        );
-    }
-    const std::size_t word_count = (graph.node_count() + 63) / 64;
-    domains_.assign(
-        graph.node_count(),
-        std::vector<std::uint64_t>(word_count, 0)
-    );
-    for (Position query_node = 0; query_node < graph.node_count(); ++query_node) {
-        for (
-            Position target_node = 0;
-            target_node < graph.node_count();
-            ++target_node
-        ) {
-            if (
-                graph.degrees()[query_node] == graph.degrees()[target_node]
-                && node_labels_[query_node] == node_labels_[target_node]
-            ) {
-                domains_[query_node][target_node / 64] |= (
-                    std::uint64_t{1} << (target_node % 64)
-                );
-            }
-        }
-    }
-}
-
-NativeAutomorphism::~NativeAutomorphism() = default;
-
-bool NativeAutomorphism::equivalent(
-    const std::int64_t first,
-    const std::int64_t second
-) const {
-    const std::vector<std::int64_t>& keys = target_->graph().keys();
-    const auto first_key = std::lower_bound(keys.begin(), keys.end(), first);
-    const auto second_key = std::lower_bound(keys.begin(), keys.end(), second);
-    if (
-        first_key == keys.end() || *first_key != first
-        || second_key == keys.end() || *second_key != second
-    ) {
-        throw std::invalid_argument("native automorphism root is not a target node");
-    }
-    const Position first_position = static_cast<Position>(first_key - keys.begin());
-    const Position second_position = static_cast<Position>(second_key - keys.begin());
-    MappingCursor cursor(
-        shared_from_this(),
-        std::make_pair(first_position, second_position)
     );
     return cursor.next_mapping().has_value();
 }

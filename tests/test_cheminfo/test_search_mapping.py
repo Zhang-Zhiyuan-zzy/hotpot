@@ -3,7 +3,7 @@ from types import MappingProxyType
 import pytest
 
 import hotpot as hp
-from hotpot.cheminfo.search.search import Hits, QueryAtom, Searcher, Substructure
+from hotpot.cheminfo.operations.search.search import Hits, QueryAtom, Searcher, Substructure
 
 
 def carbon_pair_substructure():

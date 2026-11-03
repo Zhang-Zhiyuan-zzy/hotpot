@@ -409,16 +409,7 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/search/__init__.py",
-      "line": 16,
-      "scope": "",
-      "target": "hotpot.cheminfo.search.search.*",
-      "local": "*",
-      "rule": "wildcard_package_export",
-      "stage": "Stage12"
-    },
-    {
-      "path": "hotpot/cheminfo/search/search.py",
+      "path": "hotpot/cheminfo/operations/search/search.py",
       "line": 13,
       "scope": "",
       "target": "hotpot.cheminfo.core.Molecule",
@@ -427,7 +418,7 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/search/search.py",
+      "path": "hotpot/cheminfo/operations/search/search.py",
       "line": 13,
       "scope": "",
       "target": "hotpot.cheminfo.core.Atom",
@@ -436,21 +427,13 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/search/search.py",
+      "path": "hotpot/cheminfo/operations/search/search.py",
       "line": 13,
       "scope": "",
       "target": "hotpot.cheminfo.core.Bond",
       "local": "Bond",
       "rule": "legacy_core_import",
       "stage": "Stage9"
-    },
-    {
-      "path": "hotpot/cheminfo/search/smarts.py",
-      "line": 70,
-      "scope": "_RecursiveEvaluator.__init__",
-      "rule": "molecule_keyed_search_cache",
-      "stage": "Stage8C",
-      "target": "WeakKeyDictionary"
     },
     {
       "path": "hotpot/cheminfo/stereo.py",
@@ -1970,6 +1953,93 @@
       }
     ],
     "new_types": 0,
-    "status": "ROOT_ACCEPTED_C1_CP311_SOURCE; whole Stage8C remains open"
+    "status": "ROOT_ACCEPTED_C1_CP311_SOURCE; connected Stage8C now accepted within C2 CP311 scope"
+  },
+  "stage8c_connected_cutover": {
+    "scope": "C2 same public search class definitions; exact three current-core bindings relocate until Stage9; old wildcard and molecular recursive cache retire.",
+    "transfers": [
+      {
+        "source": {
+          "path": "hotpot/cheminfo/search/search.py",
+          "line": 13,
+          "scope": "",
+          "target": "hotpot.cheminfo.core.Molecule",
+          "local": "Molecule",
+          "rule": "legacy_core_import",
+          "stage": "Stage9"
+        },
+        "destination": {
+          "path": "hotpot/cheminfo/operations/search/search.py",
+          "line": 13,
+          "scope": "",
+          "target": "hotpot.cheminfo.core.Molecule",
+          "local": "Molecule",
+          "rule": "legacy_core_import",
+          "stage": "Stage9"
+        }
+      },
+      {
+        "source": {
+          "path": "hotpot/cheminfo/search/search.py",
+          "line": 13,
+          "scope": "",
+          "target": "hotpot.cheminfo.core.Atom",
+          "local": "Atom",
+          "rule": "legacy_core_import",
+          "stage": "Stage9"
+        },
+        "destination": {
+          "path": "hotpot/cheminfo/operations/search/search.py",
+          "line": 13,
+          "scope": "",
+          "target": "hotpot.cheminfo.core.Atom",
+          "local": "Atom",
+          "rule": "legacy_core_import",
+          "stage": "Stage9"
+        }
+      },
+      {
+        "source": {
+          "path": "hotpot/cheminfo/search/search.py",
+          "line": 13,
+          "scope": "",
+          "target": "hotpot.cheminfo.core.Bond",
+          "local": "Bond",
+          "rule": "legacy_core_import",
+          "stage": "Stage9"
+        },
+        "destination": {
+          "path": "hotpot/cheminfo/operations/search/search.py",
+          "line": 13,
+          "scope": "",
+          "target": "hotpot.cheminfo.core.Bond",
+          "local": "Bond",
+          "rule": "legacy_core_import",
+          "stage": "Stage9"
+        }
+      }
+    ],
+    "retired_entries": [
+      {
+        "path": "hotpot/cheminfo/search/__init__.py",
+        "line": 16,
+        "scope": "",
+        "target": "hotpot.cheminfo.search.search.*",
+        "local": "*",
+        "rule": "wildcard_package_export",
+        "stage": "Stage12"
+      },
+      {
+        "path": "hotpot/cheminfo/search/smarts.py",
+        "line": 70,
+        "scope": "_RecursiveEvaluator.__init__",
+        "rule": "molecule_keyed_search_cache",
+        "stage": "Stage8C",
+        "target": "WeakKeyDictionary"
+      }
+    ],
+    "new_record_classes": 0,
+    "status": "ROOT_ACCEPTED_CP311_SOURCE_INSTALLED_FRESH_SEARCH_NATIVE",
+    "checkpoint": "stages/stage08/search/validation/c2/checkpoint.json"
   }
 }

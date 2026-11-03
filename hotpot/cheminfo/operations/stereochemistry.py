@@ -114,7 +114,7 @@ def _validate_graph_stereochemistry(
     if graph is None:
         issues = projection_issues if new_projection else ()
     else:
-        from ..search.native import _NativeTarget
+        from ..adapters.native.substructure.matching import _NativeTarget
 
         native_target = _NativeTarget(_pack_gate6_target(graph))
         issues = _gate6_stereogenicity_issues(

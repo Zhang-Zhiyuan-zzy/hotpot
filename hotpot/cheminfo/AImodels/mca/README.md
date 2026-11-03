@@ -147,7 +147,7 @@ Copy this complete directory to:
 hotpot/cheminfo/AImodels/mca/
 ```
 
-The receiving checkout must also contain the compatible `cheminfo.search`,
+The receiving checkout must also contain the compatible `cheminfo.operations.search` and its rule/native dependencies,
 `cheminfo.operations.conversion`, core-object properties, and calculator integration. If model
 files are stored separately, set `HOTPOT_MCA_MODEL_DIR` to their absolute
 directory or pass `model_dir`.

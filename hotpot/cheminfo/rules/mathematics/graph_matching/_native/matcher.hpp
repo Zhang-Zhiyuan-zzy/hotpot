@@ -1,7 +1,7 @@
 #pragma once
 
 #include "compatibility.hpp"
-#include "../../graph/_native/graph.hpp"
+#include "../../../../graph/_native/graph.hpp"
 
 #include <atomic>
 #include <cstddef>
@@ -87,6 +87,10 @@ private:
 QueryPlan build_query_plan(
     const Graph& query,
     std::optional<Position> preferred_root = std::nullopt
+);
+
+std::vector<std::vector<std::uint64_t>> build_candidate_domains(
+    const Graph& query, const Graph& target, const Compatibility& compatibility
 );
 
 }  // namespace hotpot::search

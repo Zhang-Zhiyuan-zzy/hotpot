@@ -7,7 +7,7 @@ import networkx as nx
 import pytest
 
 import hotpot as hp
-from hotpot.cheminfo.search.native import _NativeMappingSource
+from hotpot.cheminfo.adapters.native.substructure.matching import _NativeMappingSource
 
 
 def _reject_networkx_matcher(*args, **kwargs):

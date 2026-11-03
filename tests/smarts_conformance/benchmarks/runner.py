@@ -20,8 +20,8 @@ from typing import Callable, Dict, Iterable, List, Sequence, Tuple
 import networkx
 
 from hotpot.cheminfo.operations.io import read_mol
-from hotpot.cheminfo.search.search import Searcher, Substructure
-from hotpot.cheminfo.search.smarts import tokenize
+from hotpot.cheminfo.operations.search.search import Searcher, Substructure
+from hotpot.cheminfo.rules.chemistry.substructure._smarts_syntax import tokenize
 
 
 def _percentile(samples: Sequence[int], fraction: float) -> int:

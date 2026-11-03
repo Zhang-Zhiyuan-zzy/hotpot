@@ -1,7 +1,7 @@
 """SMARTS parsing for Hotpot's native substructure search.
 
-The parser intentionally targets the graph and query objects implemented by
-``hotpot.cheminfo.search``. It does not translate through another chemistry
+The parser emits transient atom hints and edge attributes consumed by the
+search operation. It does not translate through another chemistry
 toolkit. Standard atom expressions are compiled to small predicates and the
 Hotpot coordination-chemistry extensions are handled by the same machinery.
 """
@@ -12,10 +12,9 @@ import re
 from collections import defaultdict
 from enum import Enum
 from typing import Dict, List, Optional, Set, Tuple
-from weakref import WeakKeyDictionary
 
-from ..structure.bond_kind import BondKind
-from ._predicate_ir import (
+from ....structure.bond_kind import BondKind
+from ....structure.substructure import (
     _AtomExpression,
     _AtomField,
     _AtomOp,
@@ -29,8 +28,8 @@ from ._smarts_syntax import (
     tokenize,
 )
 from .errors import SmartsSyntaxError, UnsupportedSmartsError
-from .search import QueryAtom, Substructure
-from .semantics import SmartsSemantics, resolve_smarts_semantics
+from ....structure.substructure import SmartsSemantics
+from .semantics import resolve_smarts_semantics
 
 METAL_TOKEN = "M"
 LANTHANIDE_TOKEN = "Ln"
@@ -60,107 +59,19 @@ class AromaticFlag(Enum):
     UNSET = "unset"
 
 
-class _RecursiveEvaluator:
-    """Anchored recursive SMARTS with per-molecule/per-atom result caching."""
-
-    def __init__(self, smarts: str, semantics: SmartsSemantics):
-        self.smarts = smarts
-        self.semantics = semantics
-        self.substructure = substructure_from_smarts(smarts, semantics=semantics)
-        self._cache = WeakKeyDictionary()
-
-    def __call__(self, atom: object) -> bool:
-        state_signature = _molecule_search_signature(atom.mol)
-        cached = self._cache.get(atom.mol)
-        if cached is None or cached[0] != state_signature:
-            from .native import _compile_problem
-
-            problem = _compile_problem(self.substructure, atom.mol)
-            query_keys = tuple(problem.query_keys)
-            anchor_position = query_keys.index(0)
-            anchored_indices = {
-                mapping[anchor_position]
-                for mapping in problem.cursor()
-            }
-            cached = (
-                state_signature,
-                {
-                    candidate.idx: candidate.idx in anchored_indices
-                    for candidate in atom.mol.atoms
-                },
-            )
-            self._cache[atom.mol] = cached
-        mol_cache = cached[1]
-        return mol_cache[atom.idx]
-
-    def __repr__(self) -> str:
-        return f"$({self.smarts})"
-
-
-def _molecule_search_signature(mol: object) -> Tuple[object, ...]:
-    """Return the molecular state consumed by SMARTS matching predicates."""
-    from ..operations.chemistry import _require_aromatic_representation, _require_implicit_hydrogens
-    with mol._mutation_lock:
-        _require_implicit_hydrogens(mol)
-        _require_aromatic_representation(mol)
-        return _molecule_search_signature_values(mol)
-
-
-def _molecule_search_signature_values(mol):
-    atoms = tuple(
-        (
-            atom.idx,
-            atom.atomic_number,
-            atom.formal_charge,
-            atom.is_aromatic,
-            atom.implicit_hydrogens,
-        )
-        for atom in mol.atoms
-    )
-    bonds = tuple(
-        sorted(
-            (
-                min(bond.a1idx, bond.a2idx),
-                max(bond.a1idx, bond.a2idx),
-                bond.bond_order,
-                bond.bond_kind,
-                bond.is_aromatic,
-            )
-            for bond in mol.bonds
-        )
-    )
-    return atoms, bonds
-
-
-def parse_bracket_atom(
-    expr_text: str,
-    *,
-    semantics: SmartsSemantics = SmartsSemantics.FULL_GRAPH,
-) -> Dict[str, object]:
-    """Compile a bracket atom into constraints accepted by ``QueryAtom``.
-
-    Atom-map labels are graph metadata rather than matching constraints and are
-    therefore absent from this return value. They are attached to
-    ``QueryAtom.map_number`` by :func:`substructure_from_smarts`.
-    """
-    expression, _, _ = _compile_bracket_atom(
-        expr_text, resolve_smarts_semantics(semantics)
-    )
-    return {"predicate": expression}
-
-
-def substructure_from_smarts(
+def parse_smarts(
     smarts: str,
     *,
     semantics: SmartsSemantics = SmartsSemantics.FULL_GRAPH,
-) -> Substructure:
-    """Build a :class:`Substructure` for Hotpot's native graph executor."""
+):
+    """Lower SMARTS into transient atom kwargs/map/hints and edge attributes."""
     semantics = resolve_smarts_semantics(semantics)
     tokens = tokenize(smarts)
     if not tokens:
         raise SmartsSyntaxError("SMARTS query must contain at least one atom")
 
-    substructure = Substructure()
+    atoms = []
+    edges = []
     ring_anchors: Dict[str, List[Tuple[int, Optional[Dict[str, object]]]]] = (
         defaultdict(list)
     )
@@ -171,18 +82,16 @@ def substructure_from_smarts(
 
     for token_type, token_text in tokens:
         if token_type in (TokenType.ATOM, TokenType.BRACKET):
-            query_atom = _create_query_atom_from_token(
-                substructure, token_type, token_text, semantics
-            )
-            substructure.add_atom(query_atom)
-            current_index = len(substructure.query_atoms) - 1
+            atom = _atom_from_token(token_type, token_text, semantics)
+            atoms.append(atom)
+            current_index = len(atoms) - 1
             if last_atom_index is not None:
                 bond_attrs = _infer_bond_attrs(
-                    substructure.query_atoms[last_atom_index],
-                    query_atom,
+                    atoms[last_atom_index],
+                    atom,
                     pending_bond_attrs,
                 )
-                substructure.add_bond(last_atom_index, current_index, **bond_attrs)
+                edges.append((last_atom_index, current_index, bond_attrs))
             last_atom_index = current_index
             pending_bond_attrs = None
             component_has_atom = True
@@ -203,12 +112,12 @@ def substructure_from_smarts(
                 raise SmartsSyntaxError(
                     f"Bond expression cannot precede a branch: {smarts}"
                 )
-            branch_stack.append((last_atom_index, len(substructure.query_atoms)))
+            branch_stack.append((last_atom_index, len(atoms)))
         elif token_type == TokenType.BRANCH_R:
             if not branch_stack:
                 raise SmartsSyntaxError(f"Unmatched ')' in SMARTS: {smarts}")
             branch_anchor, atom_count = branch_stack.pop()
-            if len(substructure.query_atoms) == atom_count:
+            if len(atoms) == atom_count:
                 raise SmartsSyntaxError(f"Empty branch in SMARTS: {smarts}")
             if pending_bond_attrs is not None:
                 raise SmartsSyntaxError(
@@ -220,7 +129,8 @@ def substructure_from_smarts(
             if last_atom_index is None:
                 raise SmartsSyntaxError(f"Ring label must follow an atom: {smarts}")
             pending_bond_attrs = _connect_or_anchor_ring(
-                substructure,
+                atoms,
+                edges,
                 ring_anchors,
                 token_text,
                 last_atom_index,
@@ -250,7 +160,7 @@ def substructure_from_smarts(
         raise SmartsSyntaxError(f"Unclosed ring label(s) {labels} in SMARTS: {smarts}")
     if not component_has_atom:
         raise SmartsSyntaxError(f"Empty component in SMARTS: {smarts}")
-    return substructure
+    return tuple(atoms), tuple(edges)
 
 
 def _compile_bracket_atom(
@@ -434,12 +344,11 @@ def _parse_atom_primitive(
         recursive_smarts = expr[index + 2 : end]
         if not recursive_smarts.strip():
             raise SmartsSyntaxError("Recursive SMARTS body must contain an atom")
-        recursive = _RecursiveEvaluator(recursive_smarts, semantics)
         return (
             _AtomExpression(
                 _AtomOp.RECURSIVE,
-                repr(recursive),
-                value=recursive,
+                f"$({recursive_smarts})",
+                value=recursive_smarts,
             ),
             end + 1,
             False,
@@ -810,60 +719,6 @@ def _negate(expression: _AtomExpression) -> _AtomExpression:
     )
 
 
-def _create_query_atom_from_token(
-    substructure: Substructure,
-    token_type: TokenType,
-    text: str,
-    semantics: SmartsSemantics,
-) -> QueryAtom:
-    if token_type == TokenType.BRACKET:
-        expression, map_number, aromatic_hint = _compile_bracket_atom(
-            text, semantics
-        )
-        query_atom = QueryAtom(
-            sub=substructure, map_number=map_number, predicate=expression
-        )
-        query_atom._smarts_aromatic = aromatic_hint
-        return query_atom
-    return _create_query_atom_from_symbol(substructure, text)
-
-
-def _create_query_atom_from_symbol(
-    substructure: Substructure, symbol: str
-) -> QueryAtom:
-    if symbol == ANY_ATOM_TOKEN:
-        query_atom = QueryAtom(sub=substructure)
-        query_atom._smarts_aromatic = None
-        return query_atom
-    if symbol == "a":
-        query_atom = QueryAtom(sub=substructure, is_aromatic={True})
-        query_atom._smarts_aromatic = True
-        return query_atom
-    if symbol == "A":
-        query_atom = QueryAtom(sub=substructure, is_aromatic={False})
-        query_atom._smarts_aromatic = False
-        return query_atom
-    if symbol.lower() in AROMATIC_LOWER and symbol.islower():
-        atomic_number = _atomic_number(symbol.capitalize())
-        query_atom = QueryAtom(
-            sub=substructure,
-            atomic_number={atomic_number},
-            is_aromatic={True},
-        )
-        query_atom._smarts_aromatic = True
-        return query_atom
-    atomic_number = _atomic_number(symbol)
-    if not atomic_number:
-        raise SmartsSyntaxError(f"Unknown atom symbol in SMARTS: {symbol!r}")
-    query_atom = QueryAtom(
-        sub=substructure,
-        atomic_number={atomic_number},
-        is_aromatic={False},
-    )
-    query_atom._smarts_aromatic = False
-    return query_atom
-
-
 def _bond_attrs_for_symbol(symbol: str) -> Dict[str, object]:
     alternatives = symbol.split(",")
     if any(token in {UP_BOND_TOKEN, DOWN_BOND_TOKEN} for token in alternatives):
@@ -923,23 +778,9 @@ def _bond_predicate(symbol: str) -> _BondExpression:
     raise SmartsSyntaxError(f"Unsupported bond symbol: {symbol}")
 
 
-def _get_aromatic_flag(query_atom: QueryAtom) -> AromaticFlag:
-    hint = getattr(query_atom, "_smarts_aromatic", None)
-    if hint is True:
-        return AromaticFlag.AROMATIC
-    if hint is False:
-        return AromaticFlag.NON_AROMATIC
-    aromatic_values = query_atom.kwargs.get("is_aromatic")
-    if aromatic_values == {True}:
-        return AromaticFlag.AROMATIC
-    if aromatic_values == {False}:
-        return AromaticFlag.NON_AROMATIC
-    return AromaticFlag.UNSET
-
-
 def _infer_bond_attrs(
-    first_atom: QueryAtom,
-    second_atom: QueryAtom,
+    first_atom: tuple,
+    second_atom: tuple,
     pending_bond_attrs: Optional[Dict[str, object]],
 ) -> Dict[str, object]:
     if pending_bond_attrs is not None:
@@ -964,8 +805,45 @@ def _infer_bond_attrs(
     }
 
 
+def _atom_from_token(token_type: TokenType, text: str, semantics: SmartsSemantics):
+    if token_type == TokenType.BRACKET:
+        expression, map_number, aromatic_hint = _compile_bracket_atom(text, semantics)
+        return {"predicate": expression}, map_number, aromatic_hint
+    return _atom_from_symbol(text)
+
+
+def _atom_from_symbol(symbol: str):
+    if symbol == ANY_ATOM_TOKEN:
+        return {}, None, None
+    if symbol == "a":
+        return {"is_aromatic": {True}}, None, True
+    if symbol == "A":
+        return {"is_aromatic": {False}}, None, False
+    if symbol.lower() in AROMATIC_LOWER and symbol.islower():
+        return {"atomic_number": {_atomic_number(symbol.capitalize())}, "is_aromatic": {True}}, None, True
+    atomic_number = _atomic_number(symbol)
+    if not atomic_number:
+        raise SmartsSyntaxError(f"Unknown atom symbol in SMARTS: {symbol!r}")
+    return {"atomic_number": {atomic_number}, "is_aromatic": {False}}, None, False
+
+
+def _get_aromatic_flag(atom: tuple) -> AromaticFlag:
+    kwargs, _, hint = atom
+    if hint is True:
+        return AromaticFlag.AROMATIC
+    if hint is False:
+        return AromaticFlag.NON_AROMATIC
+    aromatic_values = kwargs.get("is_aromatic")
+    if aromatic_values == {True}:
+        return AromaticFlag.AROMATIC
+    if aromatic_values == {False}:
+        return AromaticFlag.NON_AROMATIC
+    return AromaticFlag.UNSET
+
+
 def _connect_or_anchor_ring(
-    substructure: Substructure,
+    atoms: list,
+    edges: list,
     ring_anchors: Dict[str, List[Tuple[int, Optional[Dict[str, object]]]]],
     ring_label: str,
     current_atom_index: int,
@@ -979,8 +857,8 @@ def _connect_or_anchor_ring(
     if start_index == current_atom_index:
         raise SmartsSyntaxError(f"Ring label {ring_label} creates a self-loop")
     if any(
-        {bond.a1idx, bond.a2idx} == {start_index, current_atom_index}
-        for bond in substructure.query_bonds
+        {first, second} == {start_index, current_atom_index}
+        for first, second, _ in edges
     ):
         raise SmartsSyntaxError(f"Ring label {ring_label} creates a duplicate edge")
     if opening_bond_attrs is not None and pending_bond_attrs is not None:
@@ -989,9 +867,9 @@ def _connect_or_anchor_ring(
         )
     explicit_attrs = pending_bond_attrs or opening_bond_attrs
     bond_attrs = _infer_bond_attrs(
-        substructure.query_atoms[start_index],
-        substructure.query_atoms[current_atom_index],
+        atoms[start_index],
+        atoms[current_atom_index],
         explicit_attrs,
     )
-    substructure.add_bond(start_index, current_atom_index, **bond_attrs)
+    edges.append((start_index, current_atom_index, bond_attrs))
     return None

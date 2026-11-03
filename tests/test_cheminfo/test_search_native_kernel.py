@@ -2,10 +2,10 @@ from itertools import combinations, permutations
 
 import pytest
 
-from hotpot.cheminfo.search import _search_native
-from hotpot.cheminfo.search._search_native import NativeProblem, NativeTarget
-from hotpot.cheminfo.search.native import _NativeMappingSource
-from hotpot.cheminfo.search.search import Hits, _MappingIterator
+from hotpot.cheminfo.adapters.native.substructure import _search_native
+from hotpot.cheminfo.adapters.native.substructure._search_native import NativeProblem, NativeTarget
+from hotpot.cheminfo.adapters.native.substructure.matching import _NativeMappingSource
+from hotpot.cheminfo.operations.search.search import Hits, _MappingIterator
 
 
 _NODE_VALUE_BASE = 10_000

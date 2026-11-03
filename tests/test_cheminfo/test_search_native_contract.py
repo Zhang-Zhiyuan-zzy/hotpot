@@ -9,15 +9,16 @@ import pytest
 
 import hotpot as hp
 import hotpot.cheminfo as cheminfo
-import hotpot.cheminfo.search as search_package
-from hotpot.cheminfo.search import smarts
-from hotpot.cheminfo.search import search as search_module
-from hotpot.cheminfo.search._smarts_syntax import TokenType
-from hotpot.cheminfo.search.errors import (
+import hotpot.cheminfo.operations.search as search_package
+from hotpot.cheminfo.operations.search import smarts
+from hotpot.cheminfo.operations.search import search as search_module
+from hotpot.cheminfo.rules.chemistry.substructure import _smarts_syntax as syntax
+from hotpot.cheminfo.rules.chemistry.substructure._smarts_syntax import TokenType
+from hotpot.cheminfo.rules.chemistry.substructure.errors import (
     SmartsSyntaxError,
     UnsupportedSmartsError,
 )
-from hotpot.cheminfo.search.search import (
+from hotpot.cheminfo.operations.search.search import (
     Hit,
     Hits,
     Query,
@@ -26,7 +27,7 @@ from hotpot.cheminfo.search.search import (
     Searcher,
     Substructure,
 )
-from hotpot.cheminfo.search.semantics import SmartsSemantics
+from hotpot.cheminfo.structure.substructure import SmartsSemantics
 
 
 PUBLIC_SEARCH_NAMES = (
@@ -46,8 +47,8 @@ PUBLIC_SEARCH_NAMES = (
 def _clean_annotation_text(annotation):
     """Keep public types visible without coupling to defining module paths."""
     for prefix in (
-        "hotpot.cheminfo.search.search.",
-        "hotpot.cheminfo.search.semantics.",
+        "hotpot.cheminfo.operations.search.search.",
+        "hotpot.cheminfo.structure.substructure.",
         "hotpot.cheminfo.core.",
         "typing.",
     ):
@@ -230,7 +231,7 @@ SIGNATURES = (
         "(expr_text: 'str', *, semantics: 'SmartsSemantics' = "
         "<SmartsSemantics.FULL_GRAPH: 'full_graph'>) -> 'Dict[str, object]'",
     ),
-    (smarts.tokenize, "(smarts: 'str') -> 'List[Tuple[TokenType, str]]'"),
+    (syntax.tokenize, "(smarts: 'str') -> 'List[Tuple[TokenType, str]]'"),
     (
         hp.Molecule.search_substructure,
         "(self, smarts: str, *, semantics='full_graph')",
@@ -294,7 +295,7 @@ def test_public_exports_descriptors_enums_and_errors():
         ("RING", "RING"),
         ("DOT", "DOT"),
     ]
-    assert smarts.TokenType is TokenType
+    assert syntax.TokenType is TokenType
     assert SmartsSyntaxError.__bases__ == (ValueError,)
     assert UnsupportedSmartsError.__bases__ == (NotImplementedError,)
 

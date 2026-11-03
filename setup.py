@@ -127,12 +127,14 @@ ext_modules = [
         cxx_std=17,
     ),
     Pybind11Extension(
-        "hotpot.cheminfo.search._search_native",
+        "hotpot.cheminfo.adapters.native.substructure._search_native",
         [
-            "hotpot/cheminfo/search/_native/bindings.cpp",
+            "hotpot/cheminfo/adapters/native/substructure/_native/bindings.cpp",
             "hotpot/cheminfo/graph/_native/graph.cpp",
-            "hotpot/cheminfo/search/_native/matcher.cpp",
-            "hotpot/cheminfo/search/_native/production.cpp",
+            "hotpot/cheminfo/rules/mathematics/graph_matching/_native/matcher.cpp",
+            "hotpot/cheminfo/rules/mathematics/graph_matching/_native/automorphism.cpp",
+            "hotpot/cheminfo/rules/chemistry/substructure/_native/predicates.cpp",
+            "hotpot/cheminfo/adapters/native/substructure/_native/production.cpp",
         ],
         cxx_std=17,
     ),

@@ -5,8 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from hotpot.cheminfo.core import Atom, Molecule
-from hotpot.cheminfo.search import SmartsSemantics, Substructure
-from hotpot.cheminfo.search.native import (
+from hotpot.cheminfo.operations.search import SmartsSemantics, Substructure
+from hotpot.cheminfo.operations.search.native import (
     _mapping_sources_with_automorphism,
     _prepare_query,
 )

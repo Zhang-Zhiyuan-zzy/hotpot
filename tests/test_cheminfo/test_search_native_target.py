@@ -2,8 +2,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from hotpot.cheminfo.search import native
-from hotpot.cheminfo.search._search_native import NativeTarget
+from hotpot.cheminfo.adapters.native.substructure import matching as native
+from hotpot.cheminfo.adapters.native.substructure._search_native import NativeTarget
 
 
 def _semantic():

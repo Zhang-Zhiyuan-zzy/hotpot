@@ -5,14 +5,14 @@ from dataclasses import FrozenInstanceError
 import pytest
 
 import hotpot as hp
-from hotpot.cheminfo.search._predicate_ir import (
+from hotpot.cheminfo.structure.substructure import (
     _AtomExpression,
     _AtomField,
     _AtomOp,
     _BondExpression,
     _BondOp,
 )
-from hotpot.cheminfo.search.smarts import parse_bracket_atom
+from hotpot.cheminfo.operations.search.smarts import parse_bracket_atom
 
 
 pytestmark = pytest.mark.smarts_core

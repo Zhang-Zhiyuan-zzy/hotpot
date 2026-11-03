@@ -1256,5 +1256,15 @@
     "new_replacement_classes": 0,
     "stage_gate_closed": false,
     "global_gate_closed": false
+  },
+  "stage8c_bookkeeping": {
+    "status": "ROOT_ACCEPTED_CP311_C2",
+    "checkpoint": "stages/stage08/search/validation/c2/checkpoint.json",
+    "scope": "Existing profile/enums/two typed expressions and search class families each move once to their canonical contract/operation owner; molecular recursive result retention is removed. Native structs are partitioned by responsibility without a second graph or chemistry IR.",
+    "new_Python_record_classes": 0,
+    "new_durable_carrier_fields": 0,
+    "native_graph_definitions": 1,
+    "stage_gate_closed": true,
+    "global_gate_closed": false
   }
 }

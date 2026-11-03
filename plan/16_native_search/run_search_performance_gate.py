@@ -29,10 +29,8 @@ from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Tuple
 import hotpot as hp
 import networkx
 
-try:
-    from hotpot.cheminfo.search import native
-except ImportError:
-    native = None
+from hotpot.cheminfo.operations.search import native
+from hotpot.cheminfo.adapters.native.substructure import matching as native_adapter
 
 
 DISCONNECTED_SIZE = 7
@@ -203,10 +201,7 @@ def _raw_cursor_snapshot(problem):
 
 
 def _adapter_snapshot(source):
-    return tuple(
-        tuple(sorted((int(target), int(query)) for target, query in mapping.items()))
-        for mapping in source.subgraph_monomorphisms_iter()
-    )
+    return tuple(_canonical_mapping(mapping) for mapping in source.iter_mappings())
 
 
 def _make_mixed_callable_query():
@@ -301,8 +296,8 @@ def _phase_breakdown(
         "needs_bond_objects": prepared.needs_bond_objects,
         "derived_requirements": prepared.derived_requirements,
     }
-    native_module = native._native_module()
-    source = native._NativeMappingSource(problem)
+    native_module = native_adapter._native_module()
+    source = native_adapter._NativeMappingSource(problem)
 
     return {
         "public_query_parse": _measure(
@@ -340,7 +335,7 @@ def _phase_breakdown(
             repeats=complete_repeats,
             warmups=warmups,
         ),
-        "legacy_direction_adapter_complete": _measure(
+        "query_to_target_adapter_complete": _measure(
             lambda: _adapter_snapshot(source),
             repeats=complete_repeats,
             warmups=warmups,
@@ -564,12 +559,7 @@ def _file_sha256(path: Optional[str]) -> Optional[str]:
 
 
 def _environment(label: Optional[str]) -> Dict[str, Any]:
-    native_module = None
-    if native is not None:
-        try:
-            native_module = native._native_module()
-        except ImportError:
-            pass
+    native_module = native_adapter._native_module()
     affinity = (
         len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else None
     )
@@ -687,52 +677,34 @@ def run_gate(
         }
     )
 
-    native_module = None
-    native_unavailable_reason = None
-    if native is None:
-        native_unavailable_reason = (
-            "hotpot.cheminfo.search.native is absent on this implementation"
-        )
-    else:
-        try:
-            native_module = native._native_module()
-        except ImportError as exc:
-            native_unavailable_reason = str(exc)
-
-    if native_module is None:
-        phase_breakdown = {
-            "available": False,
-            "reason": native_unavailable_reason,
-            "measurements": {},
-        }
-    else:
-        prepared = native._prepare_query(disconnected_query)
-        requirements = {
-            "needs_atom_objects": prepared.needs_atom_objects,
-            "needs_bond_objects": prepared.needs_bond_objects,
-            "derived_requirements": prepared.derived_requirements,
-        }
-        target_spec = native._pack_target_snapshot(
-            disconnected_molecule, **requirements
-        )
-        native_target = native_module.NativeTarget(target_spec)
-        problem = native_module.NativeProblem(prepared.query_spec, native_target)
-        phase_breakdown = {
-            "available": True,
-            "reason": None,
-            "measurements": _phase_breakdown(
-                disconnected_query,
-                prepared,
-                disconnected_molecule,
-                target_spec,
-                native_target,
-                problem,
-                disconnected_searcher,
-                repeats=settings["repeats"],
-                complete_repeats=settings["complete_repeats"],
-                warmups=settings["warmups"],
-            ),
-        }
+    native_module = native_adapter._native_module()
+    prepared = native._prepare_query(disconnected_query)
+    requirements = {
+        "needs_atom_objects": prepared.needs_atom_objects,
+        "needs_bond_objects": prepared.needs_bond_objects,
+        "derived_requirements": prepared.derived_requirements,
+    }
+    target_spec = native._pack_target_snapshot(
+        disconnected_molecule, **requirements
+    )
+    native_target = native_module.NativeTarget(target_spec)
+    problem = native_module.NativeProblem(prepared.query_spec, native_target)
+    phase_breakdown = {
+        "available": True,
+        "reason": None,
+        "measurements": _phase_breakdown(
+            disconnected_query,
+            prepared,
+            disconnected_molecule,
+            target_spec,
+            native_target,
+            problem,
+            disconnected_searcher,
+            repeats=settings["repeats"],
+            complete_repeats=settings["complete_repeats"],
+            warmups=settings["warmups"],
+        ),
+    }
     workloads = _workload_benchmarks(
         disconnected_searcher,
         disconnected_molecule,

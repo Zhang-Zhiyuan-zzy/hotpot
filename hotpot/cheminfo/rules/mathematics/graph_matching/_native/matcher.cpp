@@ -503,4 +503,32 @@ std::optional<std::vector<std::int64_t>> MappingCursor::next_mapping() {
     }
 }
 
+std::vector<std::vector<std::uint64_t>> build_candidate_domains(
+    const Graph& query, const Graph& target, const Compatibility& compatibility
+) {
+    const std::size_t word_count = (target.node_count() + 63) / 64;
+    std::vector<std::vector<std::uint64_t>> domains;
+    domains.assign(
+        query.node_count(),
+        std::vector<std::uint64_t>(word_count, 0)
+    );
+    for (Position query_node = 0; query_node < query.node_count(); ++query_node) {
+        for (
+            Position target_node = 0;
+            target_node < target.node_count();
+            ++target_node
+        ) {
+            if (
+                query.degrees()[query_node] <= target.degrees()[target_node]
+                && compatibility.may_accept_node(query_node, target_node)
+            ) {
+                domains[query_node][target_node / 64] |= (
+                    std::uint64_t{1} << (target_node % 64)
+                );
+            }
+        }
+    }
+    return domains;
+}
+
 }  // namespace hotpot::search

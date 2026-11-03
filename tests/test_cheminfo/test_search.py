@@ -1,6 +1,6 @@
 import unittest as ut
 import hotpot as hp
-from hotpot.cheminfo import search
+from hotpot.cheminfo.operations import search
 
 class TestSearch(ut.TestCase):
 

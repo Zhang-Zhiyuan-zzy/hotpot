@@ -33,3 +33,11 @@ runtime backend flag, profile, or whole-search Python fallback is introduced.
 The implementation log records each incremental checkpoint. The final report
 summarizes correctness, packaging, performance, compatibility, and the
 explicitly retained validation limitations.
+
+
+Plan20 Stage8C now owns the connected physical migration to
+`cheminfo.operations.search`, pure chemistry/mathematics rules, and structure/
+native adapters. The historical Plan16 source paths and validation scope above
+remain historical. The maintained throughput runner targets the current sole
+native implementation and requires available native phases; current acceptance
+is recorded by [Plan20](../20_fact_rule_architecture/README.md).

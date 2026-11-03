@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from ..structure.bond_kind import BondKind
-from ._predicate_ir import (
+from ...structure.bond_kind import BondKind
+from ...structure.substructure import (
     _AtomExpression,
     _AtomOp,
     _BondExpression,

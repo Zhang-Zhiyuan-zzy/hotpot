@@ -4,7 +4,7 @@ import random
 
 import pytest
 
-from hotpot.cheminfo.search.search import Substructure
+from hotpot.cheminfo.operations.search.search import Substructure
 
 from .fuzz.generators import (
     generate_structured_stress_smarts,

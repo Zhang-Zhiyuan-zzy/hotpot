@@ -1,104 +1,82 @@
+# SMARTS parsing and search
 
-# SMARTS Parser Module
+Hotpot parses its supported SMARTS subset directly and executes it through one
+deterministic C++17 RI subgraph-monomorphism engine. Use the ordinary `hotpot`
+exports; canonical query composition lives in `cheminfo.operations.search`,
+pure grammar/comparisons in `cheminfo.rules.chemistry.substructure`, the existing
+profile/typed-expression contracts in `cheminfo.structure.substructure`, and
+prepared/native transport in `cheminfo.adapters`. There is no backend selector
+or whole-search Python fallback.
 
-This module implements the functionality to parse SMARTS (Smiles Arbitrary Target Specification) strings into `Substructure` objects. It is used for chemical substructure searching within the Hotpot project.
+## Syntax and chemistry
 
-## 1. Design Criteria
+- Atoms: element symbols, aromatic lowercase symbols, `*`, `a` and `A`.
+- Bonds: `-`, `=`, `#`, `:`, `~`, and comma-separated alternatives such as `=,:`.
+  Explicit single/double/triple kinds exclude aromatic bonds.
+- Logic precedence: `!` > adjacency/`&` > `,` > `;`. Thus `[C,N;D1]` means
+  `(C OR N) AND D1`. Semicolon is the low-precedence AND.
+- Charge: `+`, `++`, `+2`, `-`, `--`, `-2`.
+- `D`: explicit degree; `X`: degree plus implicit H; `v`: the selected view's
+  numeric bond-order summary plus implicit H, not valence-electron count.
+- `[H]` names hydrogen; `H` after an atom identity or `H<n>` constrains total
+  explicit plus implicit H. Atom-map labels such as `:1` are metadata.
+- `R`/`r`: membership in Relevant Cycles; `R<n>` counts them, `r<n>` matches
+  a cycle size, and `r0` requires no selected cycle.
+- Anchored recursion such as `$([N]-C=O)` uses nested query atom0 as its anchor.
+- Hotpot extensions: `[M]`, `[!M]`, `[Ln]`, `[An]`, `[NP3-5]`, `[NG3-8]`.
+  NP ranges are1–7 and NG ranges1–18.
+- Directional `/` and `\`, chirality `@`/`@@`, and SMARTS isotope predicates
+  remain explicitly unsupported. This concerns query matching, not the separate
+  source-isotope/stereo transport contract.
 
-The parser implements a **subset** of the standard SMARTS syntax, defined by the following technical constraints and logic:
+`SmartsSemantics.FULL_GRAPH` is the default. `LIGAND_SKELETON` changes D/X/v/ring
+descriptors while retaining the full searched topology. For nonmetals it omits
+metal–nonmetal incident bonds from those descriptors; a metal retains its
+incident bonds. Full-graph v retains Hotpot's integer all-bond-order sum; ligand
+v sums only single/double/triple/aromatic kinds. Both use the current source
+implicit H. Profiles do not reinterpret a source H convention.
 
-*   **Logical Matching**: Supports AND (`&`, `;`), OR (`,`) and NOT (`!`).
-*   **Recursive Environments**: Supports anchored recursive SMARTS expressions such as `$([N]-C=O)`.
-*   **Explicit Bond Inference**: Bond inference between aromatic and non-aromatic atoms follows defined rules rather than probabilistic estimation.
-*   **Stream Processing**: The parsing process consists of two stages: a Tokenizer that converts the string into a stream of tokens (atoms, bonds, branches, ring markers), followed by the construction of the graph structure.
+An explicit bond symbol takes precedence. Without one, two explicitly aromatic
+atoms require an aromatic bond; other atom pairs accept single-or-aromatic.
+Aromatic matching uses the named Hotpot representation and Relevant Cycles.
 
-### Search execution
+## Public calls
 
-`Searcher` executes compiled queries with Hotpot's single deterministic C++17
-RI-style subgraph-monomorphism engine. Identical inputs and deterministic
-predicates produce the same mapping sequence for a given implementation; the
-historical NetworkX enumeration order is not a public contract. A target is
-snapshotted for each public search call, so molecule or query mutations are
-visible on the next call and no persistent per-molecule cache is used.
+`Substructure.from_smarts(smarts, *, semantics=SmartsSemantics.FULL_GRAPH)`
+builds the ordinary mutable QueryAtom/QueryBond graph.
+`Searcher.has_match(mol)` probes the first embedding; `iter_mappings(mol,
+max_matches=None)` streams read-only query-index to molecule-index mappings.
+The limit counts raw embeddings, including automorphisms; zero still probes
+for truncation. `search()` groups Hits deterministically. Mapped bonds and
+induced bonds remain distinct.
 
-Typed SMARTS predicates execute natively. An arbitrary Python callable remains
-supported as an individual predicate leaf and is invoked under the GIL, while
-candidate generation, topology traversal and backtracking stay in the native
-engine. There is no backend selector or whole-search Python fallback.
+`operations.search.smarts.substructure_from_smarts` has the same parser entry
+contract. Its `parse_bracket_atom(expr_text, *, semantics=...)` returns exactly
+`{"predicate": <typed callable expression>}`; maps are excluded from that dict.
+`tokenize(smarts)` retains `(TokenType,text)` tuples, including DOT; the lower
+`tokenize_with_spans` retains half-open source spans. Syntax failures raise
+SmartsSyntaxError(ValueError); unsupported syntax raises
+UnsupportedSmartsError(NotImplementedError).
 
-## 2. Supported Syntax
+```python
+import hotpot as hp
 
-### 2.1 Basic Atoms and Bonds
-- **Atom Symbols**: Standard element symbols (e.g., `C`, `N`, `P`) and aromatic lowercase symbols (e.g., `c`, `n`).
-- **Wildcards**: `*` (any atom), `a` (any aromatic atom), `A` (any aliphatic atom).
-- **Bond Types**:
-    - `-` (single), `=` (double), `#` (triple)
-    - `:` (aromatic), `~` (any bond)
-    - Directional `/` and `\` bonds are rejected until stereochemical matching is implemented.
+molecule = hp.read_mol("CC(=O)N", "smi")
+query = hp.Substructure.from_smarts("[#6;$([#6](=[#8])[#7])]")
+searcher = hp.Searcher(query)
+assert searcher.has_match(molecule)
+assert len(tuple(searcher.iter_mappings(molecule))) == 1
+```
 
-### 2.2 Logical Operators
-- **AND**: `&` or `;` (high priority). Example: `[C;H1]` matches "Carbon atom AND H count is 1".
-- **OR**: `,`. Example: `[N,O]` matches "Nitrogen atom OR Oxygen atom".
-- **NOT**: `!` negates the following atom primitive or recursive expression.
+Each public search snapshots current Query/Molecule facts. Subsequent mutations
+are seen on the next call. Direct recursive predicates also use fresh tasks;
+there is no persistent Molecule-keyed result cache. Immutable prepared queries
+and one target may be reused within an MCA detection task. Native recursive
+cache entries belong only to that problem/target lifetime.
 
-### 2.3 Attribute Primitives
-The following attributes are supported within bracket `[]` definitions:
-- **Charge**: `+`, `++`, `+2`, `-`, `--`, `-2`
-- **Hydrogen Count**: `H`, `H0`, `H1`, ...
-- **Connectivity/Valence**: `X` (connectivity), `v` (valence electrons), `D` (explicit degree)
-- **Ring Properties**: `R` (in ring), `r` (ring size), `r5` (size 5 ring)
-- **Chirality and Isotopes**: `@`, `@@`, and isotope primitives such as
-  `13C` are rejected explicitly because Hotpot's current atom graph does not
-  retain the required labels.
-
-## 3. Extended Coordination Symbols
-
-The parser includes custom wildcard tokens extended for inorganic chemistry and material science contexts:
-
-| Symbol | Definition | Description |
-| :--- | :--- | :--- |
-| **`M`** | Metal | Matches any metal atom. |
-| **`!M`** | Non-Metal | Matches any non-metal atom. |
-| **`Ln`** | Lanthanide | Matches Lanthanide series elements (La-Lu). |
-| **`An`** | Actinide | Matches Actinide series elements (Ac-Lr). |
-| **`NP<n>`** | Period | Matches elements of a specific period. Supports ranges, e.g., `NP3-5`. |
-| **`NG<n>`** | Group | Matches elements of a specific group. Supports ranges, e.g., `NG1-2`. |
-
-**Usage Examples**:
-- `[M]~[O]` : Any metal atom connected to an Oxygen atom.
-- `[Ln]~[N;D3]` : Any Lanthanide atom connected to a Nitrogen atom with degree 3.
-- `[NP4]` : Any element in the 4th period.
-
-## 4. API Reference
-
-### Primary Interface
-
-#### `substructure_from_smarts(smarts: str) -> Substructure`
-The factory function for building a Substructure object.
-
-- **Parameters**:
-    - `smarts` (str): The standard or extended SMARTS pattern string.
-- **Returns**:
-    - `Substructure`: An object containing `QueryAtom` nodes and bond constraints.
-- **Exceptions**:
-    - `ValueError`: Raised for syntax errors (e.g., unmatched brackets, illegal characters).
-    - `NotImplementedError`: Raised for unsupported stereochemical,
-      directional-bond, or isotope constraints.
-
-### Internal Helpers
-
-#### `tokenize(smarts: str) -> List[Tuple[TokenType, str]]`
-Converts the raw SMARTS string into a list of tokens.
-- **Token Types**: `ATOM`, `BOND`, `BRANCH_L/R`, `RING`, `BRACKET`.
-
-#### `parse_bracket_atom(expr_text: str) -> Dict[str, object]`
-Parses attribute expressions within brackets (e.g., `[C;H2;+1]`).
-- **Returns**: A dictionary where keys are internal attribute names (e.g., `atomic_number`, `h_count`) and values are sets of constraints.
-
-## 5. Bond Inference Logic
-
-The `_infer_bond_attrs` function handles implicit bonds based on the following precedence:
-
-1.  **Aromatic-Aromatic**: If both atoms are explicitly aromatic (e.g., `cc`), the bond defaults to an "aromatic bond" (matching single or double).
-2.  **Aromatic-NonAromatic**: If one atom is aromatic and the other is explicitly non-aromatic (and no bond symbol is provided), the bond defaults to **single**.
-3.  **Explicit Definition**: If a bond symbol is provided in the SMARTS string (e.g., `c-C`), that specific bond order is enforced.
+Typed chemistry executes natively. Opaque Python callables receive the original
+whole Atom/Bond only when reached; host sets/containers and attribute preflight
+also retain their Python behavior. Missing noncallable attributes preflight
+before callbacks, then leaves short-circuit in insertion order. Compilation
+never runs user callbacks. Traversal/backtracking stay native; host reentry
+acquires the GIL, and reached exceptions propagate.

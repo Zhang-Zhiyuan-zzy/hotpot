@@ -5,8 +5,9 @@ import pytest
 
 import hotpot as hp
 from hotpot.cheminfo.core import Atom, Bond, BondKind
-from hotpot.cheminfo.search import native
-from hotpot.cheminfo.search.search import QueryAtom, Substructure
+from hotpot.cheminfo.operations.search import native
+from hotpot.cheminfo.adapters.native.substructure import matching as native_adapter
+from hotpot.cheminfo.operations.search.search import QueryAtom, Substructure
 
 
 def _mapping_key(mapping):
@@ -53,7 +54,7 @@ def _legacy_raw_mappings(substructure, molecule):
 def _native_raw_mappings(problem):
     return tuple(
         _mapping_key(mapping)
-        for mapping in native._NativeMappingSource(
+        for mapping in native_adapter._NativeMappingSource(
             problem
         ).iter_mappings()
     )
@@ -542,7 +543,7 @@ def test_opaque_callable_exception_propagates_from_the_reached_leaf(leaf_kind):
         substructure.add_bond(0, 1, opaque_leaf=fail)
     molecule = hp.read_mol("CC", "smi")
     problem = native._compile_problem(substructure, molecule)
-    mappings = native._NativeMappingSource(
+    mappings = native_adapter._NativeMappingSource(
         problem
     ).iter_mappings()
 

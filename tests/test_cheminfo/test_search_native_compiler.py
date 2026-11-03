@@ -1,18 +1,17 @@
 import hotpot as hp
 
-from hotpot.cheminfo.search._predicate_ir import (
+from hotpot.cheminfo.structure.substructure import (
     _AtomExpression,
     _AtomOp,
     _BondExpression,
     _BondOp,
 )
-from hotpot.cheminfo.search.native import (
+from hotpot.cheminfo.operations.search.native import (
     _compile_problem,
-    _compile_query,
     _pack_target,
 )
-from hotpot.cheminfo.search.query_ir import _query_object_requirements
-from hotpot.cheminfo.search.semantics import SmartsSemantics
+from hotpot.cheminfo.adapters.structure.substructure_query import _compile_query, _query_object_requirements
+from hotpot.cheminfo.structure.substructure import SmartsSemantics
 
 
 def _find_atom_expression(expression, op):
@@ -272,7 +271,7 @@ def test_compile_problem_passes_fresh_specs_and_required_handles(monkeypatch):
             return sentinel
 
     monkeypatch.setattr(
-        "hotpot.cheminfo.search.native._native_module",
+        "hotpot.cheminfo.adapters.native.substructure.matching._native_module",
         lambda: FakeNativeModule,
     )
 

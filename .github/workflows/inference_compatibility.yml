@@ -107,7 +107,7 @@ jobs:
             python -c "import hotpot;
             from hotpot.cheminfo.geometry import _geometry_native;
             from hotpot.cheminfo.graph import GraphSpectrum, relevant_cycles;
-            from hotpot.cheminfo.search import _search_native;
+            from hotpot.cheminfo.adapters.native.substructure import _search_native;
             from hotpot.cheminfo.obWrappers import _ob_native;
             from hotpot.cheminfo import rdWrappers;
             assert GraphSpectrum is not None;
@@ -164,18 +164,22 @@ jobs:
               "hotpot/cheminfo/forcefields/ff.py",
               "hotpot/cheminfo/calculator/execution_selection.py",
               "hotpot/cheminfo/calculator/state_rules/data/profiles/coordination_screening_v1.json",
-              "hotpot/cheminfo/search/_search_native.pyi",
+              "hotpot/cheminfo/adapters/native/substructure/_search_native.pyi",
               "hotpot/cheminfo/graph/_graph_native.pyi",
               "hotpot/cheminfo/graph/_native/graph.cpp",
               "hotpot/cheminfo/graph/_native/graph.hpp",
               "hotpot/cheminfo/graph/_native/cycle_basis.cpp",
               "hotpot/cheminfo/graph/_native/cycle_basis.hpp",
-              "hotpot/cheminfo/search/_native/bindings.cpp",
-              "hotpot/cheminfo/search/_native/compatibility.hpp",
-              "hotpot/cheminfo/search/_native/matcher.cpp",
-              "hotpot/cheminfo/search/_native/matcher.hpp",
-              "hotpot/cheminfo/search/_native/production.cpp",
-              "hotpot/cheminfo/search/_native/production.hpp",
+              "hotpot/cheminfo/adapters/native/substructure/_native/bindings.cpp",
+              "hotpot/cheminfo/rules/mathematics/graph_matching/_native/compatibility.hpp",
+              "hotpot/cheminfo/rules/mathematics/graph_matching/_native/matcher.cpp",
+              "hotpot/cheminfo/rules/mathematics/graph_matching/_native/matcher.hpp",
+              "hotpot/cheminfo/rules/mathematics/graph_matching/_native/automorphism.cpp",
+              "hotpot/cheminfo/rules/mathematics/graph_matching/_native/automorphism.hpp",
+              "hotpot/cheminfo/rules/chemistry/substructure/_native/predicates.cpp",
+              "hotpot/cheminfo/rules/chemistry/substructure/_native/predicates.hpp",
+              "hotpot/cheminfo/adapters/native/substructure/_native/production.cpp",
+              "hotpot/cheminfo/adapters/native/substructure/_native/production.hpp",
               "hotpot/plugins/xtb/cli.py",
               "hotpot/plugins/xtb/cli_doc.md",
               "hotpot/plugins/xtb/README.md",
@@ -191,6 +195,13 @@ jobs:
               "hotpot/cheminfo/_io/xtb.py",
               "hotpot/plugins/xtb/core.py",
               "hotpot/plugins/xtb/xtb_doc.md",
+              "hotpot/cheminfo/search/_search_native.pyi",
+              "hotpot/cheminfo/search/_native/bindings.cpp",
+              "hotpot/cheminfo/search/_native/compatibility.hpp",
+              "hotpot/cheminfo/search/_native/matcher.cpp",
+              "hotpot/cheminfo/search/_native/matcher.hpp",
+              "hotpot/cheminfo/search/_native/production.cpp",
+              "hotpot/cheminfo/search/_native/production.hpp",
               "hotpot/cheminfo/search/_native/graph_data.cpp",
               "hotpot/cheminfo/search/_native/graph_data.hpp",
           }

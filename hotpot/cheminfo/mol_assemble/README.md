@@ -1,4 +1,4 @@
-from hotpot import AssembleFactoryfrom hotpot import AssembleFactoryfrom hotpot import EdgeShoulderfrom hotpot import Fragmentfrom hotpot.cheminfo.search import Substructurefrom hotpot import Searcher
+from hotpot import AssembleFactoryfrom hotpot import AssembleFactoryfrom hotpot import EdgeShoulderfrom hotpot import Fragmentfrom hotpot.cheminfo.operations.search import Substructurefrom hotpot import Searcher
 
 # Hotpot (`hotpot.cheminfo.mol_assemble` Module)
 
@@ -38,7 +38,7 @@ assembly fragments [(`hotpot.cheminfo.mol_assemble.Fragment`)](#fragment). The F
 An instantiated `Fragment` must specify the following four factors:
 1) The 2D molecular structure of the fragment (a `Molecule` object)
 2) The atom(s) (specified by index) on the fragment used for connection with the Framework
-3) The searcher for locating connection sites on the Framework (a `hotpot.cheminfo.search.Searcher` object)
+3) The searcher for locating connection sites on the Framework (a `hotpot.cheminfo.operations.search.Searcher` object)
 4) The specific connection operation (specified in an `action_func` function) between the `Fragment` and 
 the Framework at the connection sites.
 
@@ -70,7 +70,7 @@ This tutorial will cover the following topics:
 The example of usage of `Fragment`:
 ```pycon
 import hotpot as hp
-from hotpot.cheminfo.search import Searcher, Substructure, QueryAtom, QueryBond
+from hotpot.cheminfo.operations.search import Searcher, Substructure, QueryAtom, QueryBond
 from hotpot.cheminfo.mol_assemble import Fragment
 
 # Initialize a Fragment instance
@@ -312,7 +312,7 @@ results = factory.mp_make(frames)
 #### Fragment
 > **class** Fragment(
 > mol: hp.Molecule, 
-> searcher: hp.cheminfo.search.Searcher, 
+> searcher: hp.cheminfo.operations.search.Searcher,
 > action_points: Iterable[int], 
 > action_func: Callable):
 
@@ -326,7 +326,7 @@ This class encapsulates:
 
 - Args:
     + **mol** (`Molecule`): The molecular fragment.
-    + **searcher** (`hp.cheminfo.search.Searcher`): An object, typically from hotpot-zzy, for identifying valid graft sites in molecules.
+    + **searcher** (`hp.cheminfo.operations.search.Searcher`): An object, typically from hotpot-zzy, for identifying valid graft sites in molecules.
     + action_points (`Iterable[int]`): Indices in `mol` serving as connection points.
     + action_func (`Callable`): Function for performing the graft (must follow standard action signature).
 

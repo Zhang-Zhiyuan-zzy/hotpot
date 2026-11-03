@@ -30,7 +30,7 @@ def core() -> None:
         StateDecisionAction,
     )
     from hotpot.cheminfo.rules.mathematics.graph import relevant_cycles
-    from hotpot.cheminfo.search import _search_native
+    from hotpot.cheminfo.adapters.native.substructure import _search_native
 
     assert _search_native.NativeProblem is not None
     assert relevant_cycles([(4, 7), (7, 9), (9, 4)]) == ((4, 7, 9),)

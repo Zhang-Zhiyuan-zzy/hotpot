@@ -4,8 +4,8 @@
   "date": "2026-11-04",
   "parent_head": "c13970d68d5c9c24ab5a946f75ce1e094feb1e27",
   "predecessor": "../forcefields/validation/whole-stage/checkpoint.json",
-  "status": "ROOT_ACCEPTED_C1_CP311_SOURCE_CONNECTED_SPLIT_DESIGN_PENDING",
-  "stage_gate_closed": false,
+  "status": "ROOT_ACCEPTED_STAGE8C_CP311",
+  "stage_gate_closed": true,
   "global_gate_closed": false,
   "alignment": [
     "goal.md and governance/stage/validation skills/references",
@@ -13,16 +13,18 @@
     "chemical_type_interface_contract.md, data-object budget/scope and current architecture ratchet",
     "Stage8C source/native/throughput selection and repository source/consumer inventory"
   ],
-  "scope": "Existing shared BondKind enum prerequisite; larger mixed search split read-only inventory only.",
+  "scope": "C1 accepted source prerequisite; C2 complete connected search ownership migration now under source/native/installed/business validation.",
   "design": "contracts/decisions.md",
-  "authoring": "Root owns core.py, structure/bond_kind.py, four search enum imports, C1 tests/fixture, exact retirement and related maintained records. Local inventory agents do not edit production.",
-  "public_contract": "Same ordinary BondKind object/members/values and constructors; physical definition/new-pickle owner moves to structure/bond_kind.py. Captured core-path pickle remains loadable during current core export. No new public name, type, compatibility implementation or scientific behavior.",
-  "runtime": "C1 current-source CP31135files/847passed accepted; larger connected split/installed/native build remain held.",
+  "authoring": "Disjoint local Sol/medium Python/native writers completed; root migrated connected consumers, tests, ratchet and documentation and reviewed critical semantics/lifetimes.",
+  "public_contract": "Same ten ordinary facade objects/signatures and chemical matching semantics, each with its canonical physical owner. No compatibility package/runtime selector or retained molecular recursion cache.",
+  "runtime": "Reviewed frozen C2 source and installed CP311 contracts pass with the named P20-D024 expected failure; source/installed actual MCA4cases each;3standalone native harnesses; one fresh search binary/five reused in private wheel. All same-work benchmark recipes completed once and usable costs accepted.",
   "remaining": [
-    "SMARTS chemistry/parser/recursive cache split",
-    "Sole RI/shared Graph native move and build/stub/package consumers",
-    "Operation/packing/public/export migration and exact consumer deletion",
-    "Applicable source/installed/native/conformance/throughput and final scientific boundaries"
+    "P20-D024 Stage8E imported-H assembly correction before dependent acceptance",
+    "P20-D025 consolidated final performance review",
+    "Clean all-native/SDK/sdist delivery, other supported versions and later/global gates"
   ],
-  "c1_checkpoint": "validation/c1/checkpoint.json"
+  "c1_checkpoint": "validation/c1/checkpoint.json",
+  "connected_parent_head": "5800e6e22bcef75a92c4065c5154264afc9a148d",
+  "c2_selection": "validation/c2/selection.json",
+  "c2_checkpoint": "validation/c2/checkpoint.json"
 }

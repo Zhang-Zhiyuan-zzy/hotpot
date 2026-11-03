@@ -2,7 +2,8 @@
 
 import pytest
 
-from hotpot.cheminfo.search.smarts import substructure_from_smarts, tokenize
+from hotpot.cheminfo.operations.search.smarts import substructure_from_smarts
+from hotpot.cheminfo.rules.chemistry.substructure._smarts_syntax import tokenize
 
 
 VALID_SMARTS = (

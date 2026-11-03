@@ -4383,7 +4383,8 @@
       ],
       "native_high_compute_test_files": [
         "tests/test_cheminfo/graph/native_cpp/test_cycle_basis_source_api.py",
-        "tests/test_cheminfo/graph/native_cpp/test_graph_source_api.py"
+        "tests/test_cheminfo/graph/native_cpp/test_graph_source_api.py",
+        "tests/test_cheminfo/search/native_cpp/test_matcher_source_api.py"
       ],
       "technical_command": [
         "python",
@@ -4421,7 +4422,25 @@
         "tests/test_cheminfo/test_search_native_prepared.py",
         "tests/test_cheminfo/test_search_native_production_kernel.py",
         "tests/test_cheminfo/test_search_native_target.py",
-        "tests/test_cheminfo/test_smarts.py"
+        "tests/test_cheminfo/test_smarts.py",
+        "tests/test_smart_parser.py",
+        "tests/test_cheminfo/test_search_ownership.py",
+        "tests/test_cheminfo/structure/test_bond_kind.py",
+        "tests/test_cheminfo/structure/test_stage5_bonding.py",
+        "tests/test_cheminfo/test_native_molecule_buffers.py",
+        "tests/mca/test_site_detection.py",
+        "tests/mca/test_site_detection_coordination.py",
+        "tests/test_cheminfo/test_mca_result_lifecycle.py",
+        "tests/test_cheminfo/test_stereo_extraction.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_projection.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_equivalence.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_derived.py",
+        "tests/test_cheminfo/test_stereo_level2_gate7_public.py",
+        "tests/test_ds/test_stage13_query.py",
+        "tests/test_ds/test_stage13_public_api.py",
+        "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_cheminfo/structure/test_architecture.py",
+        "tests/test_packaging/test_github_workflows.py"
       ],
       "native_command": [
         "python",
@@ -4431,19 +4450,59 @@
         "--import-mode=importlib",
         "--run-high-compute",
         "tests/test_cheminfo/graph/native_cpp/test_cycle_basis_source_api.py",
-        "tests/test_cheminfo/graph/native_cpp/test_graph_source_api.py"
+        "tests/test_cheminfo/graph/native_cpp/test_graph_source_api.py",
+        "tests/test_cheminfo/search/native_cpp/test_matcher_source_api.py"
       ],
-      "planned_contract_test_files": [],
+      "planned_contract_test_files": [
+        {
+          "path": "tests/test_cheminfo/test_search_ownership.py",
+          "status": "implemented_and_validated_cp311_source_and_installed"
+        },
+        {
+          "path": "tests/test_cheminfo/search/native_cpp/test_matcher_source_api.py",
+          "status": "implemented_and_validated_standalone"
+        }
+      ],
       "additional_requirements": [
         "one RI/native CSR representation; exact callable isolation/enumeration and throughput"
       ],
-      "execution_status": "ROOT_ACCEPTED_C1_CP311_SOURCE_FULL_STAGE8C_OPEN",
+      "execution_status": "ROOT_ACCEPTED_STAGE8C_CP311_SOURCE_INSTALLED_NATIVE_BUSINESS_USABLE_COST",
       "entry_review": "stages/stage08/search/entry_review.json",
       "design": "stages/stage08/search/contracts/decisions.md",
       "c1_selection": "stages/stage08/search/validation/c1/selection.json",
-      "stage_gate_closed": false,
+      "stage_gate_closed": true,
       "global_gate_closed": false,
-      "c1_checkpoint": "stages/stage08/search/validation/c1/checkpoint.json"
+      "c1_checkpoint": "stages/stage08/search/validation/c1/checkpoint.json",
+      "c2_selection": "stages/stage08/search/validation/c2/selection.json",
+      "c2_checkpoint": "stages/stage08/search/validation/c2/checkpoint.json",
+      "c2_report": "stages/stage08/search/validation/c2/report.md",
+      "connected_test_files": [
+        "tests/test_smart_parser.py",
+        "tests/test_cheminfo/test_search_ownership.py",
+        "tests/test_cheminfo/structure/test_bond_kind.py",
+        "tests/test_cheminfo/structure/test_stage5_bonding.py",
+        "tests/test_cheminfo/test_native_molecule_buffers.py",
+        "tests/mca/test_site_detection.py",
+        "tests/mca/test_site_detection_coordination.py",
+        "tests/test_cheminfo/test_mca_result_lifecycle.py",
+        "tests/test_cheminfo/test_stereo_extraction.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_projection.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_equivalence.py",
+        "tests/test_cheminfo/test_stereo_level2_gate6_derived.py",
+        "tests/test_cheminfo/test_stereo_level2_gate7_public.py",
+        "tests/test_ds/test_stage13_query.py",
+        "tests/test_ds/test_stage13_public_api.py",
+        "tests/test_cheminfo/test_import_safety.py"
+      ],
+      "source_only_static_test_files": [
+        "tests/test_cheminfo/structure/test_architecture.py",
+        "tests/test_packaging/test_github_workflows.py"
+      ],
+      "limits": [
+        "P20-D024 imported-H assembly remains unaccepted; Stage8E required before dependent assembly acceptance.",
+        "Private CP311 wheel: fresh search plus5reused native binaries. Clean all-native/SDK/sdist, other versions and global gates remain open.",
+        "One historical baseline and one candidate benchmark launch; all adverse observations retained/P20-D025, no statistical speed claim."
+      ]
     },
     "Stage8D": {
       "predecessor": "Stage8C",

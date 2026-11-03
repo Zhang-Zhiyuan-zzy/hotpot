@@ -25,7 +25,7 @@ from hotpot.cheminfo.operations import stereochemistry as stereo_operations
 from hotpot.cheminfo.rules.chemistry.stereochemistry import (
     algebra, alignment, assignment, coordinates, graph, validation,
 )
-from hotpot.cheminfo.search.native import _NativeTarget
+from hotpot.cheminfo.adapters.native.substructure.matching import _NativeTarget
 from hotpot.cheminfo.structure import snapshots, stereo as contracts
 from hotpot.cheminfo.structure._commit import _FactTransaction
 from hotpot.cheminfo.structure._dependencies import GROUP_INDEX, _FactStatus
@@ -269,7 +269,7 @@ def test_active_module_owners_are_acyclic_and_rules_have_no_live_dependencies():
     pure = (algebra, graph, coordinates, validation, assignment, alignment)
     forbidden = (
         "hotpot.cheminfo.core", "hotpot.cheminfo.operations", "hotpot.cheminfo.adapters",
-        "hotpot.cheminfo.search", "hotpot.cheminfo.stereo", "hotpot.cheminfo._native",
+        "hotpot.cheminfo.operations.search", "hotpot.cheminfo.stereo", "hotpot.cheminfo._native",
         "rdkit", "openbabel",
     )
     for module in pure:
@@ -322,7 +322,11 @@ def test_the_facade_has_only_five_forwarders_and_no_private_scientific_aliases()
 def test_exact_snapshot_and_relocated_class_rosters_have_no_extra_owner_types():
     expected = {
         contracts: set(stereo.__all__[:18]),
-        snapshots: {"_BondingSnapshot", "_AromaticAssignment", "_StereoSnapshot", "_Gate6Graph"},
+        # Stage8A moved its existing scientific-state value family to this same
+        # contract owner; keep both exact rosters without adding stereo types.
+        snapshots: {"_BondingSnapshot", "_AromaticAssignment", "_StereoSnapshot", "_Gate6Graph",
+                    "MolecularFacts", "MolecularFactsIdentity", "HydrogenInventory",
+                    "SemanticBond", "ComponentIdentity"},
         algebra: {"_Level2DescriptorFamily", "_Level2Descriptor", "_Level2AlgebraResult",
                   "_Gate7CoordinationSite", "_AlignmentMatch"},
         graph: {"_Gate6Equivalence", "_Gate6SemanticContext"},

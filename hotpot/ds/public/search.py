@@ -251,7 +251,7 @@ class SmartsSearcher(BaseSearcher):
     scope = "data"
 
     def __init__(self, smarts: str, *, semantics=None):
-        from hotpot.cheminfo.search import Searcher, Substructure
+        from hotpot.cheminfo.operations.search import Searcher, Substructure
 
         self.smarts = smarts
         if semantics is None:

@@ -1,7 +1,7 @@
 import pytest
 
 import hotpot as hp
-from hotpot.cheminfo.search import QueryAtom, Searcher, Substructure
+from hotpot.cheminfo.operations.search import QueryAtom, Searcher, Substructure
 
 
 pytestmark = pytest.mark.smarts_core

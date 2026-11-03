@@ -16,7 +16,7 @@ from openbabel import openbabel as ob
 from rdkit import Chem, rdBase
 
 from hotpot.cheminfo.operations.io import read_mol
-from hotpot.cheminfo.search.search import Searcher, Substructure
+from hotpot.cheminfo.operations.search.search import Searcher, Substructure
 
 from .cases import CASES, DifferentialCase
 from .normalize import (

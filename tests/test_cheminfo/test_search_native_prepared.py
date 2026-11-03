@@ -3,7 +3,8 @@ from types import SimpleNamespace
 import hotpot as hp
 
 from hotpot.cheminfo.AImodels.mca import site_detection
-from hotpot.cheminfo.search import native
+from hotpot.cheminfo.operations.search import native
+from hotpot.cheminfo.adapters.native.substructure import matching as native_adapter
 
 
 def _mapping_sequence(source):
@@ -28,7 +29,7 @@ def test_ordered_prepared_queries_match_individual_searches_and_share_target(
     pack_calls = 0
     target_calls = 0
     problem_targets = []
-    native_module = native._native_module()
+    native_module = native_adapter._native_module()
     original_pack = native._pack_target_snapshot
 
     def counted_pack(*args, **kwargs):
@@ -49,7 +50,7 @@ def test_ordered_prepared_queries_match_individual_searches_and_share_target(
             return native_module.NativeProblem(query_spec, target)
 
     monkeypatch.setattr(native, "_pack_target_snapshot", counted_pack)
-    monkeypatch.setattr(native, "_native_module", CountedNativeModule)
+    monkeypatch.setattr(native_adapter, "_native_module", CountedNativeModule)
     sources = tuple(native._iter_mapping_sources(queries, molecule))
 
     assert tuple(map(_mapping_sequence, sources)) == expected
@@ -65,7 +66,7 @@ def test_empty_prepared_query_group_does_not_pack_or_create_native_target(
         raise AssertionError("empty query group prepared a target")
 
     monkeypatch.setattr(native, "_pack_target_snapshot", reject)
-    monkeypatch.setattr(native, "_native_module", reject)
+    monkeypatch.setattr(native_adapter, "_native_module", reject)
 
     assert tuple(
         native._iter_mapping_sources((), hp.read_mol("C", "smi"))
@@ -139,7 +140,7 @@ def test_prepared_group_unions_all_target_requirements(monkeypatch):
         NativeProblem=FakeProblem,
     )
     monkeypatch.setattr(native, "_pack_target_snapshot", capture_pack)
-    monkeypatch.setattr(native, "_native_module", lambda: fake_module)
+    monkeypatch.setattr(native_adapter, "_native_module", lambda: fake_module)
 
     assert len(tuple(native._iter_mapping_sources(queries, object()))) == 3
     assert captured == {
@@ -243,7 +244,7 @@ def test_mca_rules_reuse_compiled_queries_and_one_generic_target(monkeypatch):
 
 
 def test_mca_rules_and_automorphism_share_one_native_target(monkeypatch):
-    native_module = native._native_module()
+    native_module = native_adapter._native_module()
     problem_targets = []
     automorphism_targets = []
 
@@ -264,7 +265,7 @@ def test_mca_rules_and_automorphism_share_one_native_target(monkeypatch):
                 edge_labels,
             )
 
-    monkeypatch.setattr(native, "_native_module", CapturingNativeModule)
+    monkeypatch.setattr(native_adapter, "_native_module", CapturingNativeModule)
 
     site_detection.find_nucleophilic_sites(hp.read_mol("NCCN", "smi"))
 

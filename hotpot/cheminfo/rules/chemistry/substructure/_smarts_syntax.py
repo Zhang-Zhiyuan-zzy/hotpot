@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Set, Tuple
 
-from ..elements import Element
+from ....reference.properties import _ELEMENT_SYMBOLS
 from .errors import SmartsSyntaxError
 
 
@@ -41,7 +41,7 @@ ANY_ATOM_TOKEN = "*"
 
 _ATOMIC_NUMBERS = {
     symbol: atomic_number
-    for atomic_number, symbol in enumerate(Element.symbols)
+    for atomic_number, symbol in enumerate(_ELEMENT_SYMBOLS)
     if atomic_number
 }
 

@@ -4,8 +4,8 @@ import pytest
 
 from hotpot.cheminfo import MolReader
 from hotpot.cheminfo.core import Bond, Molecule
-from hotpot.cheminfo.search._search_native import NativeTarget
-from hotpot.cheminfo.search.native import _NativeTarget
+from hotpot.cheminfo.adapters.native.substructure._search_native import NativeTarget
+from hotpot.cheminfo.adapters.native.substructure.matching import _NativeTarget
 from tests.test_cheminfo._stage5_fixtures import supplied_aromatic_flags
 from hotpot.cheminfo.stereo import (
     AtomTransportRecord,

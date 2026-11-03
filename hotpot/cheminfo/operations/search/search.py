@@ -11,10 +11,11 @@ from types import MappingProxyType
 from typing import Union, Sequence, Literal, Container, Any, Iterable, Callable, Iterator
 
 from hotpot.cheminfo.core import Molecule, Atom, Bond
-from ..operations.topology_queries import atom_idx_pair_to_bond_idx
-from ..operations.io import read_mol
-from .native import _NativeMappingSource, _compile_problem
-from .semantics import SmartsSemantics
+from ..topology_queries import atom_idx_pair_to_bond_idx
+from ..io import read_mol
+from ...adapters.native.substructure.matching import _NativeMappingSource
+from .native import _compile_problem
+from ...structure.substructure import SmartsSemantics
 
 
 __all__ = [

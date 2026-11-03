@@ -530,3 +530,37 @@ def test_transport_and_command_annotations_are_captured_at_their_real_scopes(tmp
     assert audit.debt_key(rows[0]) == audit.debt_key(new)
     assert rows[0]["stage"] == "Stage9"
     assert audit.layer_findings(path, source) == []
+
+
+@pytest.mark.parametrize("old,new", audit.SEARCH_CORE_IMPORT_TRANSFERS)
+def test_search_core_bindings_transfer_only_the_exact_existing_slot(old, new):
+    assert audit.ratchet_findings([new], [new], [old])["allowlist_growth"]
+    assert not any(audit.stage7a_ratchet_findings([new], [new], [old], [old]).values())
+    assert not any(audit.stage7a_ratchet_findings([new], [new], [new], [old]).values())
+    assert audit.stage7a_ratchet_findings([new], [new], [], [old])["allowlist_growth"]
+    assert audit.stage7a_ratchet_findings([new], [new], [old], [])["exceeds_frozen_inventory"]
+    for actual in ([new, new], [old, new]):
+        result = audit.stage7a_ratchet_findings(actual, actual, [old], [old])
+        assert result["allowlist_growth"] and result["exceeds_frozen_inventory"]
+    for field, value in (("path", "hotpot/cheminfo/operations/search/other.py"),
+                         ("scope", "nested"), ("local", "OtherCarrier")):
+        changed = {**new, field: value}
+        result = audit.stage7a_ratchet_findings([changed], [changed], [old], [old])
+        assert result["allowlist_growth"] and result["exceeds_frozen_inventory"]
+    other_sources = [source for source, _ in audit.CORE_IMPORT_TRANSFERS if source != old]
+    result = audit.stage7a_ratchet_findings([new], [new], other_sources, other_sources)
+    assert result["allowlist_growth"] and result["exceeds_frozen_inventory"]
+
+
+def test_search_core_bindings_are_captured_at_their_actual_eager_module_scope(tmp_path):
+    path = "hotpot/cheminfo/operations/search/search.py"
+    source = "from hotpot.cheminfo.core import Molecule, Atom, Bond\n"
+    target = tmp_path / path
+    target.parent.mkdir(parents=True)
+    target.write_text(source)
+    rows = audit.inventory.static_capture([path], root=tmp_path)["architecture_debt"]
+    expected = [new for _, new in audit.SEARCH_CORE_IMPORT_TRANSFERS]
+    assert {audit.debt_key(row) for row in rows} == {audit.debt_key(row) for row in expected}
+    assert len(rows) == 3
+    assert {row["stage"] for row in rows} == {"Stage9"}
+    assert audit.layer_findings(path, source) == []

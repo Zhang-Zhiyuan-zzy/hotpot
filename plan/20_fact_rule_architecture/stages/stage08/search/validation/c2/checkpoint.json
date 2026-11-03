@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "status": "ROOT_ACCEPTED_CP311_SEARCH_CUTOVER",
+  "acceptance_owner": "root",
+  "source_commit": "5800e6e22bcef75a92c4065c5154264afc9a148d",
+  "python": "CPython3.11.16/CP311",
+  "product_freeze": {
+    "path": ".plan20-artifacts/20261104/stage8c/search-c2/stage8c-entry-20261104/c2/product-freeze.json",
+    "sha256": "f06980ccc602f5bb14b5c24553ab734e50b57e62d4a77aa195740874db1b2d8e",
+    "bindings": 893
+  },
+  "execution_freeze": {
+    "path": ".plan20-artifacts/20261104/stage8c/search-c2/stage8c-entry-20261104/c2/execution-freeze-attempt04.json",
+    "sha256": "9d08e302df5be9771adb0b670f8970ab70c4199e70ef628d08277aaf95378bde",
+    "test_bindings": 586,
+    "canonical_native_total": 6
+  },
+  "current_source_static_check": {
+    "unchanged_product_bindings": 886,
+    "post_validation_documentation_delta": {
+      "frozen_sha256": "aa01b37f0c130b0fd28472d9b8705654872804cbb275607f4d8580d6432a2c28",
+      "current_sha256": "581d3360fd39f3b2f0e6f0fa91a1fb57ee6a2e3c19c55960a46a83835abe6d50",
+      "path": "hotpot/cheminfo/mol_assemble/README.md",
+      "line": 315,
+      "change": "Root removed one trailing ASCII space after measurements; reconstructing that space yields the exact frozen hash.",
+      "classification": "Documentation-only non-executing formatting; no repeated runtime measurement justified.",
+      "old_bytes_recovered_in_memory_only": true
+    },
+    "all_executable_ASTs_unchanged": true,
+    "all_test_native_bytes_unchanged": true,
+    "Python_EOF_formatting_files": 6,
+    "final_delivery_review": {
+      "path": ".plan20-artifacts/20261104/stage8c/search-c2/final-delivery/final-formatting-review.json",
+      "bytes": 5103,
+      "sha256": "97f673385f2fdb9a754f1d779147309cb615bddcf3a971f134d62fc939a48d8a"
+    }
+  },
+  "source_runtime": {
+    "files": 49,
+    "passed_nodes": 1158,
+    "passed_subtests": 49,
+    "strict_xfailed_nodes": 1,
+    "successful_junit_cases_composed": 1207,
+    "total_junit_cases": 1208,
+    "composition": "Full attempt02:1157 passed nodes+49 subtests+1 roster failure+1 strict xfail; after exact roster-only test correction, targeted attempt01 adds the one passing node. Unaffected passes reused, not rerun.",
+    "immutable_freeze04_wording_caveat": "The historical change string saying1206passed counts initial1157 nodes+49 subtests. It is not a top-level pytest-node count.",
+    "actual_full_attempt02_driver": ".plan20-artifacts/20261104/stage8c/search-c2/stage8c-entry-20261104/c2/run_source_v3.py",
+    "actual_full_attempt02_driver_sha256": "48b2bc76514ead9c8bb4a3f14487e907ed7e8c5e3ce964ec99d8d13c199b1530"
+  },
+  "installed_runtime": {
+    "files": 47,
+    "collected_nodes": 954,
+    "passed_nodes": 953,
+    "passed_subtests": 49,
+    "strict_xfailed_nodes": 1,
+    "junit_testcases": 1003,
+    "origin_processes": 16,
+    "missing_exit_audits": 0,
+    "checkout_module_leaks": 0,
+    "native_identity_imports": 6
+  },
+  "actual_models": {
+    "source_passed_nodes": 4,
+    "installed_passed_nodes": 4,
+    "local_input_files": 85,
+    "inputs_unchanged_during_execution": true,
+    "observations": ".plan20-artifacts/20261104/stage8c/search-c2/stage8c-entry-20261104/c2/installed-models-attempt01/observations.json"
+  },
+  "standalone_native": {
+    "harnesses_passed": 3,
+    "fresh_search_build": true
+  },
+  "delivery": {
+    "kind": "private CP311 validation wheel",
+    "fresh_native_owners": 1,
+    "accepted_native_owners_reused_unchanged": 5,
+    "wheel": {
+      "path": ".plan20-artifacts/20261104/stage8c/search-c2/stage8c-entry-20261104/c2/wheel-attempt01/dist/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "sha256": "4fc24ac29eedd3f3f3637c2b4b807a7eadcfd778145ab635337fb91a4371e5cd"
+    },
+    "canonical_native_sha256": {
+      "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-311-x86_64-linux-gnu.so": "a3a4590e9b77a491293077c70caa6d0f46361ee0a2035fc91f849cc107236911"
+    },
+    "record_members": 859,
+    "installed_product_files": 853,
+    "obsolete_search_members": 0,
+    "clean_full_native_SDK_sdist_claim": false,
+    "Python_whitespace_difference": "The built private wheel predates6EOFblankline removals in delivered source; exact frozen bytes reconstruct, ASTs match. No business difference or native rebuild required."
+  },
+  "known_remaining_issue": {
+    "id": "P20-D024",
+    "owner_stage": "Stage8E",
+    "strict_xfail": "Imported-H assembly substitution retains4/2 H instead of3/1; direct no-search diagnostic confirms existing transformation boundary; inferred-H positive fixture passes."
+  },
+  "costs": {
+    "root_disposition": "Root accepts observed usable CP311 costs under Section12.2; retain all233adverse observations without statistical/global parity inference.",
+    "search_median_ratio_range": [
+      0.9255700592908533,
+      1.0416659824624783
+    ],
+    "MCA_site_median_ratio": 1.0207642972664084,
+    "SMARTS_median_ratio_range": [
+      0.9501747982460677,
+      1.2521873249916913
+    ],
+    "max_traced_allocation_ratio": 1.143266779949023,
+    "all_adverse_observations_retained": 233,
+    "evidence": ".plan20-artifacts/20261104/stage8c/search-c2/stage8c-entry-20261104/c2/performance-attempt01/adverse-ratios.json",
+    "future_integrated_review": "P20-D025 S2 DEFERRED; Stage12 integrated cost review.",
+    "single_launch_limit": true,
+    "statistical_or_global_speed_claim": false
+  },
+  "not_claimed": [
+    "Other Python-version validation",
+    "Clean full-native/SDK/sdist delivery",
+    "Installed-wheel/model/GPU performance acceptance",
+    "Later stages and full Plan20/global acceptance"
+  ],
+  "archive": {
+    "selection": ".plan20-artifacts/20261104/stage8c/search-c2/archive-selection.json",
+    "files": 298,
+    "bytes": 15303196,
+    "created": true,
+    "receipt": ".plan20-artifacts/20261104/stage8c/search-c2/archive-receipt.json",
+    "receipt_sha256": "fbd66452d6a4d903db944d79b13cbd3da8192fbffa5506229817ed7d2b01ac49",
+    "final_delivery_supplement": ".plan20-artifacts/20261104/stage8c/search-c2/final-delivery/receipt.json"
+  },
+  "root_scope_review": {
+    "path": ".plan20-artifacts/20261104/stage8c/search-c2/stage8c-entry-20261104/c2/final-root-review.json",
+    "sha256": "1830861c9b0bb7766220c4e05243f1e770c1aab211c3a70e95f66aa922b6bc82",
+    "status": "ROOT_REVIEW_PASSED_CP311_C2_SCOPE",
+    "source_collected_nodes": 1159,
+    "source_only_static_nodes": 205,
+    "installed_runtime_ordered_membership_equal": true,
+    "draft_integration_status": "ROOT_ACCEPTED_CP311_SCOPE"
+  },
+  "stage": "Stage8C/C2",
+  "date": "2026-11-04",
+  "root_acceptance": true,
+  "stage_gate_closed": true,
+  "global_gate_closed": false,
+  "path_base": "Repository-relative unless explicitly stated",
+  "evidence_index": "evidence_index.json",
+  "preparation_receipt": {
+    "checked_at": "2026-11-03T19:17:55.854437+00:00",
+    "verified_references_and_file_hashes": true,
+    "runtime_tests_or_measurements_repeated": false
+  }
+}

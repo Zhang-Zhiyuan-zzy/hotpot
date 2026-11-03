@@ -35,16 +35,16 @@ python -m tests.smarts_conformance.audit_corpus \
 
 # Active parser/matcher line and branch coverage
 env COVERAGE_FILE=/tmp/hotpot-smarts.coverage \
-  python -m coverage run --branch --source=hotpot/cheminfo/search \
+  python -m coverage run --branch --source=hotpot/cheminfo/operations/search,hotpot/cheminfo/rules/chemistry/substructure,hotpot/cheminfo/structure/substructure.py \
   -m pytest -q -p no:cacheprovider \
   -m smarts_core tests/smarts_conformance
 env COVERAGE_FILE=/tmp/hotpot-smarts.coverage \
   python -m coverage report -m \
-  hotpot/cheminfo/search/_smarts_syntax.py \
-  hotpot/cheminfo/search/errors.py \
-  hotpot/cheminfo/search/search.py \
-  hotpot/cheminfo/search/semantics.py \
-  hotpot/cheminfo/search/smarts.py
+  hotpot/cheminfo/rules/chemistry/substructure/_smarts_syntax.py \
+  hotpot/cheminfo/rules/chemistry/substructure/errors.py \
+  hotpot/cheminfo/operations/search/search.py \
+  hotpot/cheminfo/structure/substructure.py \
+  hotpot/cheminfo/operations/search/smarts.py
 
 # Optional/heavy evidence collectors
 python -m tests.smarts_conformance.differential.runner --output /tmp/smarts-differential.json

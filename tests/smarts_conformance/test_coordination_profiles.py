@@ -4,7 +4,7 @@ import pytest
 
 import hotpot as hp
 from hotpot.cheminfo.core import BondKind, Molecule
-from hotpot.cheminfo.search import SmartsSemantics
+from hotpot.cheminfo.operations.search import SmartsSemantics
 
 from .coordination_cases import (
     COORDINATION_FIXTURES,

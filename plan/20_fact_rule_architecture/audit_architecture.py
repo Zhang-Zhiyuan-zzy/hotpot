@@ -2,7 +2,7 @@
 """Ratcheted source checks for the incremental Plan20 migration.
 
 The frozen inventory is discovery evidence. The shrinking allowlist records
-remaining debt. Six fixed Stage7A/Stage8A/Stage8B relocations carry their original
+remaining debt. Nine fixed Stage7A/Stage8A/Stage8B/Stage8C relocations carry their original
 import slots; new ownership packages otherwise have no inherited exceptions. Runtime ownership,
 buffer isolation and native ABI tests remain separate gates.
 """
@@ -63,6 +63,18 @@ CORE_IMPORT_DESTINATION = {
 # Stage8A A1/A7 splits read-only capture and working-copy preparation. These three
 # module-scope bindings use only their own former resolver slots until Stage9;
 # this fixed tuple is not a configurable relocation map or growth allowance.
+# Stage8C relocates the three eager carrier bindings of the one public search
+# implementation. Their annotations/isinstance contracts still use current core
+# identities; only these exact source slots can transfer until Stage9.
+SEARCH_CORE_IMPORT_TRANSFERS = tuple(
+    (
+        {"rule": "legacy_core_import", "path": "hotpot/cheminfo/search/search.py",
+         "scope": "", "target": f"hotpot.cheminfo.core.{name}", "local": name},
+        {"rule": "legacy_core_import", "path": "hotpot/cheminfo/operations/search/search.py",
+         "scope": "", "target": f"hotpot.cheminfo.core.{name}", "local": name},
+    )
+    for name in ("Molecule", "Atom", "Bond")
+)
 SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS = (
     (
         {"rule": "legacy_core_import",
@@ -115,6 +127,7 @@ CORE_IMPORT_TRANSFERS = (
     *SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS,
     (NATIVE_TRANSPORT_CORE_IMPORT_SOURCE, NATIVE_TRANSPORT_CORE_IMPORT_DESTINATION),
     (COMMAND_CORE_IMPORT_SOURCE, COMMAND_CORE_IMPORT_DESTINATION),
+    *SEARCH_CORE_IMPORT_TRANSFERS,
 )
 # These declared numerical values initialize their own coordinate fields; they
 # do not receive a live carrier to edit. Keep path, class, method, field and
@@ -148,7 +161,7 @@ def ratchet_findings(actual, allowed, previous):
 
 
 def stage7a_ratchet_findings(actual, allowed, previous, original):
-    """Keep real debt identities; transfer only the six fixed ceiling slots."""
+    """Keep real debt identities; transfer only the nine fixed ceiling slots."""
     findings = ratchet_findings(actual, allowed, previous)
     current = Counter(map(debt_key, allowed))
     for name, reference in (("allowlist_growth", previous),

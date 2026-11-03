@@ -12,7 +12,7 @@ import re
 from typing import Any, Dict, Iterable, Mapping, Optional, Tuple
 
 import hotpot as hp
-from hotpot.cheminfo.search.smarts import tokenize
+from hotpot.cheminfo.rules.chemistry.substructure._smarts_syntax import tokenize
 
 
 @dataclass(frozen=True)

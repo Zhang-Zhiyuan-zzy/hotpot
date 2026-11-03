@@ -6085,3 +6085,139 @@ Root accepts C1 source prerequisite only, updates main ownership tree and curren
 status, and retains full connected split/source-installed/native/throughput and
 later/global gates. Records accompany the validated business change in one
 small coherent commit with normal push; no documentation-only milestone.
+
+
+### 2026-11-04 — Stage8C C2 connected route and authoring release
+
+Current HEAD5800e6e is pushed; C1 source prerequisite847passed and whole Stage8C
+open. Both completed owner inventories reveal mixed parser/semantics/native
+files, so root refines the same approved rule/operation/adapter split in
+stages/stage08/search/contracts/decisions.md C2 and mainSections6/8/9.2/Stage8C.
+The one current profile/typed-expression family moves to a structure contract
+with thin named public delegates; pure grammar/comparisons take explicit values,
+operations retain reached preparation/allocation/recursion, and adapters retain
+query/molecule encoding and host translation. No new record or science/graph/
+backend is authorized. Preserve integer FULL_GRAPH valence and all other
+callable/preflight/host-container/short-circuit/native schemas/order. Remove
+Python Molecule-keyed recursive results; native task-local cache remains.
+
+Pre-cutover source baselines ran once per recipe under frozen source/native
+CP311/CPUs32–39/threads1. MCA24molecules/43sites and SMARTS complete5040embeddings
+with serial/concurrent equality passed. Plan16 quick failed because its helper
+called removed subgraph_monomorphisms_iter. Root authorized its existing
+iter_mappings query-to-target call and key rename only; failed recipe successor
+passed22checks with native phases available,5040complete/0,1,64bounded/2recursive/
+6mixed mappings. Original28failure evidence files retained unchanged; passed
+recipes not rerun. Raw argv/env/origins/resources and source bindings live in
+/tmp/hotpot_plan20/long/stage8c-entry-20261104/baseline-runtime/attempt01,attempt02.
+No performance benefit is asserted.
+
+Release Python and native authoring to two disjoint local Sol workers. Root owns
+main records, three exact core-import slot transfers/guard checks, connected
+consumer/test/doc migration, integration, source freeze, execution, costs and
+acceptance/Git. Native/Graph source ownership and existing types remain one;
+source/installed/native/conformance/actual-workflow/throughput gates stay open.
+No candidate import/build/pytest/model/runtime before root static review.
+
+
+### 2026-11-04 — Stage8C C2 reviewed source release and connected H finding
+
+Root completed static review of canonical Python/native owners, lazy scalar
+suppliers, source-authority preparation and native target/callback lifetimes.
+893product/build/CI bindings were frozen;5unchanged CP311 binaries were retained
+and38ignored retired search binary/cache files moved intact to task evidence.
+The actual setup declaration built only the new canonical search extension in
+16.35s/433904KiB; matcher/orbit, Graph and cycle source harnesses passed3/3.
+Architecture ratchet passed986Pythonfiles/185remaining debt/no new findings.
+
+The first frozen focused Python run completed246cases:245passed/1failed, zero
+errors/skips,2participating origin receipts/no runtime leaks. The new methanol
+assembly oracle expected H3/1 but observed4/2 from toolkit-supplied H. Root
+retained the complete original failed run/test and demonstrated the same issue
+via direct Atom.link_with plus calc_implicit_hydrogens, bypassing search. Four
+relevant business function ASTs are unchanged from5800e6e; inferred-H sources
+give3/1. The first observation helper failed on a nonexistent Molecule attribute;
+its traceback is retained and the helper-only correction reads actual Atom
+formal charges. No product repair/retry/fallback was performed.
+
+P20-D024 records this required Stage8E transformation correction before assembly
+acceptance. The original chemical oracle becomes a strict named expected failure;
+a second inferred-H fixture tests the usable assembly route. Candidate search
+runtime/installed/MCA/throughput validation proceeds without claiming imported-H
+graft chemistry. Product/native freeze stays unchanged; test freeze attempt02
+attributes only this fixture/status change. All owning/global gates remain open.
+
+
+### 2026-11-04 — Stage8C C2 CP311 source/installed/native acceptance
+
+The connected canonical search owners now replace the deleted old search tree:
+structure contracts, pure chemistry parsing/comparison, one mathematical RI/
+automorphism implementation over shared CSR Graph, named operations, and
+structure/native adapters. Existing profiles, class families, public signatures,
+lazy reached-only host/callable reads, native order/lifetimes and integer
+FULL_GRAPH valence remain. Molecular recursive-result cache is removed; only
+native task-local reuse remains. Zero new Python record classes/durable facts.
+
+Actual frozen source execution used `/tmp/hotpot-plan20-env/bin/python -B
+/tmp/hotpot_plan20/long/stage8c-entry-20261104/c2/run_source_v3.py full 02`:
+49files/1159collected nodes,1157passed/1failed/1strict xfail, plus49passed subtests,
+26.666663s. The stale exact stereo module roster omitted5existing Stage8A
+classes; its explicit correction passed once using run_source_v4.py
+stereo_roster 01 (1.396217s). Final affected source coverage is1158passed nodes,
+49passed subtests and1strict xfail. The original source full attempt01 collection
+failure and its lexer-import-only corrections, the original focused H failure,
+and both original/new test bytes remain. No unchanged passed suite was rerun.
+
+Source actual MCA via run_source_v3.py models 01 passed4cases,11.310931s,
+857908KiB peak. Installed47runtime files passed953nodes/49subtests/1strict
+xfail (954collected); installed actual MCA4cases passed. Root confirms the205
+source-only architecture/CI nodes explain the exact ordered source/installed
+membership difference. Piperidine N503.25kJ/mol and acetone O344.5/C65.8125
+remain attributed model outputs, not experimental-accuracy proof. The actual
+CLI batch locally rejected charged record2 and retained records1/3. Installed
+core smoke and6native origin checks passed;16processes have paired startup/exit
+receipts with no checkout leaks. Exact commands/env/resources/nodeids/JUnit,
+actual model outputs and model85input bindings are retained at each attempt.
+
+The actual setup declaration built only canonical search native in16.35s/
+433904KiB;3standalone matcher/orbit/Graph/cycle harnesses passed. Private wheel
+4fc24ac29eedd3f3f3637c2b4b807a7eadcfd778145ab635337fb91a4371e5cd binds859RECORD
+members/853installed files,1fresh search+5reused accepted binaries and no old
+search members. It establishes this installed CP311 boundary only, not a clean
+all-native/SDK/sdist build or other-version/global acceptance.
+
+`/tmp/hotpot-plan20-env/bin/python -B .../c2/performance-preparation/
+run_performance.py --root-release ROOT_PERFORMANCE_RELEASE` executed3recipes
+sequentially once after all other jobs completed. Search passed22checks with
+5040complete/0,1,64bounded/2recursive/6mixed-callable mappings; MCA retained
+24molecules/43ordered sites; SMARTS retained24/120/720/5040embeddings and
+serial/concurrent agreement. Time ratios are search0.926–1.042×, MCA1.021×,
+SMARTS0.950–1.252×; maximum traced-allocation ratio1.143×. Root accepts usable
+CP311 cost underSection12.2, preserving all233adverse observations/P20-D025.
+One historical and one candidate launch give no significance/global speed claim.
+
+Root final_root_review.py independently verifies exact954runtime node membership,
+586unchanged tests/6native binaries and all executable product bytes. Only one
+assembly README trailing space changes after validation; its exact tested-byte
+reconstruction and old/new identities are recorded. Original893product freeze
+is immutable. Maintained C2 checkpoint/report/evidence graph and selected raw
+archive .plan20-artifacts/20261104/stage8c/search-c2 retain failures, actual MCA
+outputs and source/wheel/native/cost attribution without environments/build trees.
+P20-D024 imported-H graft remains an unaccepted Stage8E obligation before
+assembly acceptance. Root closes Stage8C only within the recorded CP311 scope;
+Stage8D needs entry alignment and all later/global obligations remain open.
+Records accompany this coherent business migration and normal GitHub push.
+
+
+### 2026-11-04 — Stage8C final staged-formatting qualification
+
+The first staged diff check includes new files and finds6extraEOFblanklines,
+which the prior unstaged checks did not inspect. Root removes only those final
+blank lines. final_formatting_review.py verifies all6Python ASTs unchanged and
+reconstructs their exact frozen bytes; together with the recorded README-space
+change,886/893product bindings match byte-for-byte, all586tests/6native binaries
+remain unchanged. The earlier root review remains an honest pre-formatting
+record. No runtime/build/benchmark was repeated; the private wheel retains the
+six original EOF blank lines. A2-file final-delivery supplement preserves this
+execution/script separately from the immutable298-file/15303196byte archive.
+Maintained report/checkpoint/graph now describe the final delivered source.

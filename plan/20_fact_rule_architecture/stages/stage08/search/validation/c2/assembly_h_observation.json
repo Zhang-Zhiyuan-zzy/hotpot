@@ -1,0 +1,96 @@
+{
+  "unchanged_business_function_AST": {
+    "hotpot/cheminfo/core.py:link_with": true,
+    "hotpot/cheminfo/operations/chemistry.py:_prepare_hydrogens": true,
+    "hotpot/cheminfo/mol_assemble/action_func.py:atom_link_atom_action": true,
+    "hotpot/cheminfo/mol_assemble/fragment.py:graft": true
+  },
+  "observations": [
+    {
+      "origin": "toolkit_smi",
+      "input_implicit_H": [
+        4,
+        2
+      ],
+      "input_H_source_codes": [
+        4,
+        4
+      ],
+      "actual_product_implicit_H": [
+        4,
+        2
+      ],
+      "expected_substitution_product_implicit_H": [
+        3,
+        1
+      ],
+      "product_atomic_numbers": [
+        6,
+        8
+      ],
+      "product_bonds": [
+        [
+          0,
+          1,
+          1.0,
+          "single"
+        ]
+      ],
+      "atom_formal_charges": [
+        0,
+        0
+      ],
+      "smiles": "CO"
+    },
+    {
+      "origin": "new_atoms",
+      "input_implicit_H": [
+        4,
+        2
+      ],
+      "input_H_source_codes": [
+        9,
+        9
+      ],
+      "actual_product_implicit_H": [
+        3,
+        1
+      ],
+      "expected_substitution_product_implicit_H": [
+        3,
+        1
+      ],
+      "product_atomic_numbers": [
+        6,
+        8
+      ],
+      "product_bonds": [
+        [
+          0,
+          1,
+          1.0,
+          "single"
+        ]
+      ],
+      "atom_formal_charges": [
+        0,
+        0
+      ],
+      "smiles": "CO"
+    }
+  ],
+  "attribution": "Direct link+H calculation bypasses search completely. Explicit imported H survives intentionally; assembly transformation must own any H consumption. No Stage8C search algorithm defect inferred.",
+  "issue_id": "P20-D024",
+  "stage_owner": "Stage8E with Stage5 H/lifecycle owner",
+  "status": "OPEN_REQUIRED_BEFORE_IMPORTED_FACT_ASSEMBLY_ACCEPTANCE",
+  "severity": "S1",
+  "first_execution": "source-focused-attempt01:245passed/1failed; assertion4,2 !=3,1 retained",
+  "isolation": "No claim of imported-H AtomLink graft correctness; correct site matching and inferred-H assembly remain tested. MCA/stereo/dataset search do not use this graft transformation.",
+  "scientific_disposition": "Do not force global H recomputation to overwrite authoritative imported/user facts. Assembly must explicitly account for H consumption under its declared transformation, including explicit-H graph behavior, preserving source and transaction contracts. Bring this concrete issue forward at Stage8E before dependent assembly acceptance.",
+  "evidence": [
+    ".plan20-artifacts/20261104/stage8c/search-c2/stage8c-entry-20261104/c2/source-focused-attempt01",
+    ".plan20-artifacts/20261104/stage8c/search-c2/stage8c-entry-20261104/c2/assembly-h-observation-attempt01",
+    ".plan20-artifacts/20261104/stage8c/search-c2/stage8c-entry-20261104/c2/assembly-h-observation-attempt02"
+  ],
+  "observer_failure": "First observer used nonexistent Molecule.formal_charge; traceback retained. Second reads actual Atom.formal_charge, without product change."
+}

@@ -1,10 +1,12 @@
-#include "matcher.hpp"
+#include "../../../../rules/mathematics/graph_matching/_native/matcher.hpp"
+#include "../../../../rules/mathematics/graph_matching/_native/automorphism.hpp"
 #include "production.hpp"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 #include <cstdint>
+#include <utility>
 #include <memory>
 #include <vector>
 
@@ -66,11 +68,16 @@ PYBIND11_MODULE(_search_native, module) {
         "_NativeAutomorphism"
     )
         .def(
-            py::init<
-                std::shared_ptr<NativeTarget>,
-                std::vector<std::int64_t>,
-                std::vector<std::int64_t>
-            >(),
+            py::init([](
+                std::shared_ptr<NativeTarget> target,
+                std::vector<std::int64_t> node_labels,
+                std::vector<std::int64_t> edge_labels
+            ) {
+                std::shared_ptr<const Graph> graph(target, &target->graph());
+                return std::make_shared<NativeAutomorphism>(
+                    std::move(graph), std::move(node_labels), std::move(edge_labels)
+                );
+            }),
             py::arg("target").none(false),
             py::arg("node_labels"),
             py::arg("edge_labels")

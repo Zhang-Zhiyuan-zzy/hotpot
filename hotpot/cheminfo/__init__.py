@@ -14,5 +14,5 @@ from .operations.conversion import is_molecule_input, to_hotpot_mol
 from .mol_assemble import *
 
 from .mol_statistics import ComplexStatistics
-from .search import Searcher, Substructure, Hit, Hits, Query, QueryAtom, QueryBond
-from .search import SmartsSemantics, SmartsSyntaxError, UnsupportedSmartsError
+from .operations.search import Searcher, Substructure, Hit, Hits, Query, QueryAtom, QueryBond
+from .operations.search import SmartsSemantics, SmartsSyntaxError, UnsupportedSmartsError

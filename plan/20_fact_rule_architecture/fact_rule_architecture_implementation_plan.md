@@ -1,13 +1,12 @@
 # Fact-Carrier and Rule Architecture Refactor
 
-Status: **implementation authorized on 2026-10-28; Stage0–8B owning-stage gates
-complete within their recorded scopes. Stage8B includes B1–B4, the observed
-ring-opening correction and its owning CP311 evidence with retained limitations.
-Stage8C has entered; C1 canonical BondKind is accepted within its CP311 source
-prerequisite scope. The connected search split and Stage8C gate remain open.
-Stage8D–E have not entered. Optional scientific activation, remaining stages,
-full scientific/engineering, version-adaptation and global acceptance remain
-open**.
+Status: **implementation authorized on 2026-10-28; Stage0–8C owning-stage gates
+complete within their recorded scopes. Stage8C includes the connected canonical
+search split, fresh CP311 search native, source/installed conformance and actual
+MCA workflows, with usable same-work costs accepted. Imported-H assembly remains
+unaccepted/P20-D024 and is required at Stage8E. Stage8D–E have not entered.
+Optional scientific activation, remaining stages, clean full-native delivery,
+version-adaptation and global scientific/engineering acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
 are recorded in [the CP311 core-workflow report](cp311_core_workflow_validation_20261103.md). The architecture, lazy invalidation, scientific-reporting, and
@@ -1150,6 +1149,7 @@ hotpot/
 │   │   ├── stereo.py                   # records, source ledger, payload contract
 │   │   ├── constraints.py              # typed ConstraintSet
 │   │   ├── snapshots.py                # single immutable snapshot contracts
+│   │   ├── substructure.py             # existing SMARTS profile/typed-expression contracts
 │   │   ├── results.py                  # typed explicitly attached P3 records
 │   │   ├── bundle.py                   # MolBundle carrier collection
 │   │   ├── protocols.py                # read protocols used by rules
@@ -1405,9 +1405,9 @@ real core definition; it consolidates existing debt and creates no structure ali
 | `rdconvert.py` | `operations/conversion.py`, `adapters/rdkit/conversion.py` and `adapters/rdkit/stereo_transport.py` | operation owns carrier preparation/capture/remap/install; adapters own external graph/stereo translation from prepared values without carrier writes/getter callbacks |
 | `rdworks.py`, `rdwork.md` | `adapters/rdkit/fingerprints.py` and docs | retain called/tested fingerprint functions; delete zero-use utilities after audit |
 | `search/` public composition | `operations/search/` | retain Searcher/Substructure/Query/Hit API and fixed enumeration semantics |
-| `search/smarts.py`, syntax, predicate IR, semantics | `rules/chemistry/substructure/` | retain one SMARTS parser and chemical predicate implementation |
-| `search/_native` reusable RI matcher | `rules/mathematics/graph_matching/` | keep one RI-style native algorithm over the sole shared native CSR Graph; no VF2/backend selector and no search-private graph representation |
-| `search/native.py` Molecule packing | `adapters/structure/substructure.py` | pack current facts into task-local native input; callable predicates alone return to Python |
+| `search/smarts.py`, syntax, predicate IR, semantics | `structure/substructure.py`, `rules/chemistry/substructure/` and `operations/search/` | existing profile/typed values remain one structure contract family; pure grammar/comparisons are rules; public allocation, reached carrier reads and recursive execution are operations; remove molecular result cache |
+| `search/_native` reusable RI matcher | `rules/mathematics/graph_matching/` | sole RI/domains/exact-label automorphism over shared CSR Graph; pure native chemical predicates belong to chemistry rules, Python translation/host leaves to adapters; no second graph/backend |
+| `search/native.py` Molecule/query packing | `adapters/structure/substructure.py`, `substructure_query.py` and `adapters/native/substructure/` | operation owns readiness/locks and query reuse; adapters pack prepared facts/Query IR and native transport. Host containers, attribute preflight and opaque callables preserve their reached Python behavior |
 | `smarts.md` | substructure operation/rule docs | update paths and test examples verbatim |
 | `solvents.py` | none | delete the broken import-time singleton, missing-sheet dependency, empty methods, and semantically empty Molecule subclass; real solvent assets, if admitted, use the governed dataset/query layer |
 | `stereo.py` payload schema and fact dataclasses | `structure/stereo.py`; `structure/_stereo.py` access/storage seam | Stage6 relocates the existing18 public contracts once and preserves public module/pickle identity; Stage7E removes whole-payload stored truth and installs canonical Atom/Bond decomposition |
@@ -2244,8 +2244,32 @@ remain; new pickle metadata names its physical owner while current core-path
 pickles still resolve through the existing core export. The [C1 CP311 source
 checkpoint](stages/stage08/search/validation/c1/checkpoint.json) accepts35files/
 847passed with the same enum body, actual bond/copy behavior and captured cold
-pickle contracts. The larger connected search split and owning source/installed/
-native/throughput gates remain open.
+pickle contracts. C1 alone did not accept the connected cutover; its completed
+C2 evidence is recorded below.
+
+The [C2 connected decision](stages/stage08/search/contracts/decisions.md#c2--connected-search-cutover-selected-by-root)
+separates the mixed Python/native bodies, keeps existing value families and
+public lazy behavior, and removes molecular recursive-result caching. The
+canonical binding is adapters/native/substructure/_search_native; mathematics
+remains chemistry/Python-free and uses the existing shared Graph. The
+[C2 CP311 checkpoint](stages/stage08/search/validation/c2/checkpoint.json) accepts
+49source files with1158passed nodes/49passed subtests/1strict expected failure,
+and47installed runtime files with953passed nodes/49passed subtests/the same
+expected failure. The205source-only architecture/CI nodes account exactly for
+the collection difference. Actual source/installed MCA each passes4cases;
+3standalone native harnesses pass. The private wheel has1fresh search binary
+and5reused accepted binaries; clean all-native/SDK/sdist and other versions
+remain later obligations.
+
+Search/site/SMARTS benchmarks retain22search checks,5040complete embeddings,
+43ordered MCA sites on24molecules and serial/concurrent agreement. Root accepts
+observed usable costs, including1.252× concurrent compilation and all233adverse
+cost observations, without a significance or global speed claim (P20-D025).
+P20-D024 retains the actual imported-H graft failure and chemical3/1oracle;
+Stage8E must own H consumption before dependent assembly acceptance. The
+[report](stages/stage08/search/validation/c2/report.md) preserves original
+failures, targeted test/import corrections and qualified evidence reuse.
+Stage8C closes within this CP311 scope; later/global gates remain open.
 
 #### Stage 8D — Inference and conformer orchestration
 

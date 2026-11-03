@@ -2,8 +2,8 @@ import pytest
 import networkx as nx
 
 import hotpot as hp
-from hotpot.cheminfo.search._smarts_syntax import tokenize_with_spans
-from hotpot.cheminfo.search.smarts import TokenType, tokenize
+from hotpot.cheminfo.rules.chemistry.substructure._smarts_syntax import tokenize_with_spans
+from hotpot.cheminfo.rules.chemistry.substructure._smarts_syntax import TokenType, tokenize
 
 
 pytestmark = pytest.mark.smarts_core

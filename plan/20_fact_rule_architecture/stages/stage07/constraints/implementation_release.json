@@ -1,0 +1,62 @@
+{
+  "recorded_utc": "2026-11-03T04:44:22.140378+00:00",
+  "owner": "root",
+  "stage": "Stage7B",
+  "status": "CONSTRAINT_OWNER_IMPLEMENTATION_ACCEPTED_DELIVERY_READY",
+  "source_commit": "48780a669c9b1ca5b0e6c2cadf63365579ad3ccf",
+  "design_author": "local Sol-max subagent",
+  "root_review": "Accepted sole-owner UID cells, no persistent axis/Bond mirror; read-only detached Atom semantics, exact raw transport/metadata, source domains, touched-key undo and O(1) scalar cost. No new public API or restraint science.",
+  "design_artifacts": {
+    "constraint_consolidation_design.md": {
+      "bytes": 14905,
+      "sha256": "bd53aae14bb88bea6f35213cb17b59947e638b861acef9b662eb64ee38900920"
+    },
+    "file_scope.json": {
+      "bytes": 5763,
+      "sha256": "656bec7c9e2f913a665880a7076a3ab79af42be618d98fad03941394c756fec6"
+    },
+    "validation_plan.json": {
+      "bytes": 9431,
+      "sha256": "f116e1772cd2e3a3eea1d888eed6ef47043da8a17fda308203f9301f66e24779"
+    }
+  },
+  "before_source_manifest": "/tmp/hotpot_plan20/long/stage7b-constraints-20261103/before-source/manifest.json",
+  "exclusive_python_writer": "stage7b_constraint_python_implementation",
+  "exclusive_native_writer": "stage7b_constraint_native_implementation",
+  "production_files": [
+    "hotpot/cheminfo/structure/constraints.py",
+    "hotpot/cheminfo/structure/_fields.py",
+    "hotpot/cheminfo/structure/_atom_table.py",
+    "hotpot/cheminfo/structure/_commit.py",
+    "hotpot/cheminfo/structure/_native/facts.cpp",
+    "hotpot/cheminfo/structure/_identity.py",
+    "hotpot/cheminfo/core.py",
+    "hotpot/cheminfo/operations/chemistry.py"
+  ],
+  "test_files": [
+    "tests/test_cheminfo/structure/test_atom_fact_table.py",
+    "tests/test_cheminfo/structure/test_fact_native.py",
+    "tests/test_cheminfo/structure/test_dependencies.py",
+    "tests/test_cheminfo/structure/test_builder.py",
+    "tests/test_cheminfo/structure/test_stage5_bonding.py",
+    "tests/test_cheminfo/structure/test_constraints.py",
+    "tests/test_cheminfo/structure/test_source_identity.py",
+    "tests/test_cheminfo/structure/test_commit_atomicity.py",
+    "tests/test_cheminfo/structure/test_constraint_storage_lifecycle.py"
+  ],
+  "allowed": "Implement settled connected storage/consumer/rollback migration; meaningful affected tests. Root builds affected CP311 _fact_native after source freeze, then source/current-wheel checks and bounded repeated cost observations.",
+  "forbidden": "Hidden-topology API removal, new public schema/type/API, changed chemistry/model/FF enforcement, unassigned files without root scope expansion, Git/config/remote mutation by workers.",
+  "unchanged_baseline": {
+    "test_preparation": "12 passed; original11pass1fail retained as rejected test assumption",
+    "cost": "RC0;45/45 cells completed; source/native stable; child reaped",
+    "path": "/tmp/hotpot_plan20/long/stage7b-constraints-20261103/cost-baseline/attempt1"
+  },
+  "build_gate": "Both production writers terminal and exact changed source frozen before root native build or product import.",
+  "validation_gate": "Affected CP311 source and actual current installed wheel with rebuilt extension; stage/global remain open.",
+  "root_acceptance_pending": false,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "root_acceptance_record": "validation/checkpoint_20261103.json",
+  "accepted_scope": "Sole-owner constraint migration with affected CP311 source/current installed wheel, rebuilt _fact_native and explained bounded usable cost; Stage7B remains IN_PROGRESS and hidden-topology cutover pending.",
+  "stage_status": "IN_PROGRESS"
+}

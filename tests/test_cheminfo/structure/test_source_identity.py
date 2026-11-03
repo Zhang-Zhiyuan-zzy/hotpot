@@ -331,3 +331,39 @@ def test_owner_only_binding_never_reads_or_locks_unrequested_frames(monkeypatch)
     source = _capture_source(mol)
     assert source.owner is mol._owner_token and source.dependencies == ()
     _check_source(mol, source)
+
+
+@pytest.mark.parametrize('change', ['axis_value', 'axis_presence', 'axis_source', 'bond_value'])
+def test_bool_constraint_domain_and_raw_forcefield_domain_keep_distinct_dependencies(change):
+    from hotpot.cheminfo.structure._commit import _commit_atom_facts, _commit_bond_facts
+    from hotpot.cheminfo.structure._dependencies import _dependency_state
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
+    from hotpot.cheminfo.structure._mutation import _normalize_atom_fields
+
+    mol = _molecule()
+    atom, bond = mol.atoms[0], mol.bonds[0]
+    atom.x_constraint = True
+    bond.constraint = True
+    constraints = _capture_source(mol, ('constraints',))
+    forcefield = _capture_source(mol, ('forcefield_inputs',))
+    unrelated = _capture_source(mol, ('geometry', 'representation'))
+    statuses, seeds = _dependency_state(mol._atom_table)
+    if change == 'bond_value':
+        values = bond.attrs
+        values[1] = -2.5
+        _commit_bond_facts(mol, bond, _capture_source(mol), raw_values=values,
+            kind=bond.bond_kind, direction=bond.bond_direction,
+            source_namespace=bond.bond_source, metadata=bond.bond_source_metadata)
+    else:
+        candidate = _normalize_atom_fields(_capture_source(mol), (0,), (atom._uid,),
+            {'x_constraint': 2.5 if change == 'axis_value' else 1.},
+            present=change != 'axis_presence',
+            producer=ATOM_SOURCE_CODES['rdkit'] if change == 'axis_source' else ATOM_SOURCE_CODES['explicit'])
+        _commit_atom_facts(mol, candidate)
+    _check_source(mol, constraints)
+    _check_source(mol, unrelated)
+    with pytest.raises(RuntimeError, match='forcefield_inputs'):
+        _check_source(mol, forcefield)
+    actual_statuses, actual_seeds = _dependency_state(mol._atom_table)
+    np.testing.assert_array_equal(actual_statuses, statuses)
+    assert actual_seeds == seeds

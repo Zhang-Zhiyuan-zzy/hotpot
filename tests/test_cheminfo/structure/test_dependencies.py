@@ -95,7 +95,7 @@ def test_pending_status_expansion_rolls_back_on_baseexception():
 
 
 def test_table_state_is_owned_and_serializes_only_logical_rows():
-    table = _AtomFactTable(np.ones((4, 19)))
+    table = _AtomFactTable(np.ones((4, 16)))
     table.remap((0,))
     table._dirty_seeds[2].add(19)
     captured = table.__getstate__()
@@ -119,7 +119,7 @@ def test_table_state_is_owned_and_serializes_only_logical_rows():
     (np.zeros((1, 4), dtype=np.uint8), ((),)),
 ])
 def test_invalid_dependency_state_is_rejected_before_publication(status, seeds):
-    table = _AtomFactTable(np.ones((1, 19)))
+    table = _AtomFactTable(np.ones((1, 16)))
     with pytest.raises(ValueError):
         _install_dependency_state(table, (status, seeds))
     assert table._group_status.tolist() == [[2, 0, 0, 0]]

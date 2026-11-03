@@ -1095,7 +1095,7 @@
       "additional_requirements": [
         "fresh external values; I/O/thermo/visualization contracts; matrix convention; no carrier toolkit ownership"
       ],
-      "execution_status": "Stage7A IN_PROGRESS/Stage7B PREENTRY. Latest CP311 MCA CLI domain-containment repair:67focused source passes,3actual-model source passes and37installed CLI/model passes outside checkout with159actual installed Hotpot modules. Preserve original charged-middle batch failure/empty output and earlier22/76dated business selections; do not relabel old snapshots as current full validation. H/isotope/stereo transport, completeSDF native memory, deferred version/build/science/performance/global obligations remain open.",
+      "execution_status": "COMPLETE owning external-object/adapter/Crystal extraction and applicable CP311 gates by completion_20261103.json. Current bounded SDF resource/cost accepted; preserve adverse historical data. Later H/isotope/stereo Stage7E, version adaptation, clean native/ABI/SDK/delivery, science/performance/global acceptance remain open. goal_v2 remains review-only.",
       "preentry_evidence": [
         "stages/stage07/preentry-conversion/review.md",
         "stages/stage07/preentry-conversion/evidence.json"
@@ -1780,10 +1780,10 @@
         "source_ready_status": "HOLD_ROOT_FINAL_BYTE_IDENTITY_FREEZE_REQUIRED",
         "candidate_runtime_authorized": false
       },
-      "source_ready_status": "TASK111_CORRECTED_CURRENT_MAIN_FOCUSED_PASS_FULL_CURRENT_SOURCE_WHEEL_REBIND_PENDING",
-      "candidate_execution_status": "TASK111_FOCUSED_COMPLETE_FUTURE_FULL_RUNTIME_REQUIRES_FRESH_RELEASE",
-      "candidate_runtime_authorized": false,
-      "stage_gate_closed": false,
+      "source_ready_status": "Current affected CP311 source and installed boundaries validated by the dated completion/applicability record; historical whole-matrix source identities retain their original scope.",
+      "candidate_execution_status": "DELIVERED under stages/stage07/external-adapters/completion_20261103.json; current CP311 repair/rebind evidence accepted, later obligations explicitly retained.",
+      "candidate_runtime_authorized": true,
+      "stage_gate_closed": true,
       "global_gate_closed": false,
       "current_record_bindings": {
         "reviewed_interface_contracts": {
@@ -3156,8 +3156,15 @@
         "status": "BOUNDED_REAL_GFN2_MIXED_RECORD_OBSERVATION",
         "input_records": 3,
         "jobs": 2,
-        "actual_statuses": ["ok", "error", "ok"],
-        "successful_output_input_indices": [0, 2],
+        "actual_statuses": [
+          "ok",
+          "error",
+          "ok"
+        ],
+        "successful_output_input_indices": [
+          0,
+          2
+        ],
         "local_failure_code": "HARD-013.UHF_PARITY",
         "aggregate_returncode": 1,
         "regression_test": "tests/test_plugin/test_xtb/test_official_cli_integration.py",
@@ -3166,7 +3173,10 @@
           "passed": 2,
           "failed": 0,
           "skipped": 0,
-          "jobs": [1, 2],
+          "jobs": [
+            1,
+            2
+          ],
           "production_source_files_unchanged": 492
         },
         "installed_regression": {
@@ -3174,7 +3184,10 @@
           "passed": 2,
           "failed": 0,
           "skipped": 0,
-          "jobs": [1, 2],
+          "jobs": [
+            1,
+            2
+          ],
           "loaded_product_modules_from_selected_install": 186,
           "limits": "Same existing shared-dependency wheel/runtime and six reused native extensions; no clean rebuild or all-version acceptance."
         },
@@ -3245,7 +3258,15 @@
         ],
         "stage_gate_closed": false,
         "global_gate_closed": false
-      }
+      },
+      "owning_stage_completion_20261103": "stages/stage07/external-adapters/completion_20261103.json",
+      "sdf_resource_disposition_20261103": "stages/stage07/external-adapters/validation/sdf_resources_20261103.json",
+      "historical_runtime_release_fields_before_completion_20261103": {
+        "source_ready_status": "TASK111_CORRECTED_CURRENT_MAIN_FOCUSED_PASS_FULL_CURRENT_SOURCE_WHEEL_REBIND_PENDING",
+        "candidate_execution_status": "TASK111_FOCUSED_COMPLETE_FUTURE_FULL_RUNTIME_REQUIRES_FRESH_RELEASE",
+        "candidate_runtime_authorized": false
+      },
+      "candidate_runtime_authorization_scope": "Stage7A delivered current CP311 owners and declared validation only; this does not authorize Stage7B implementation/runtime, a new native build, scientific algorithm or any later/global gate."
     },
     "Stage7B": {
       "predecessor": "Stage7A",
@@ -3285,11 +3306,100 @@
       "additional_requirements": [
         "complete constraint identity/invalidation and task topology masks; preserve original rollback assertions"
       ],
-      "execution_status": "accepted_PREENTRY_INVENTORY_ONLY; current source/import/test/wheel rebind after preceding stages is mandatory; no entry/design/implementation acceptance",
+      "execution_status": "IN_PROGRESS: constraint-owner slice DELIVERY_READY with affected CP311 source841/installed841 plus actual-model1 and root-accepted bounded usable cost; hidden-topology consumer cutover and whole-Stage7B acceptance remain pending.",
       "preentry_evidence": [
         "stages/stage07/preentry-selections/review.md",
         "stages/stage07/preentry-selections/evidence.json"
-      ]
+      ],
+      "stage_entry": true,
+      "stage_gate_closed": false,
+      "entry_review": "stages/stage07/constraints/entry_review.json",
+      "technical_command_scope": "Original four-file command remains historical; the executed constraint slice membership and exact source/installed argv/cwd/environment are bound by constraint_checkpoint_20261103. This is not the final hidden-topology/whole-stage selection.",
+      "preentry_baseline_20261103": {
+        "archive": ".plan20-artifacts/20261103/stage7b/preentry-baseline/",
+        "source_commit": "48780a669c9b1ca5b0e6c2cadf63365579ad3ccf",
+        "selected_test_files": [
+          "tests/test_cheminfo/test_forcefield_trajectory.py",
+          "tests/test_cheminfo/test_hidden_bond_restoration.py",
+          "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+          "tests/test_cheminfo/test_stereo_level1_working_copy.py",
+          "tests/test_cheminfo/structure/test_constraints.py",
+          "tests/test_cheminfo/structure/test_view_identity.py",
+          "tests/test_cheminfo/structure/test_source_identity.py",
+          "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+          "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py"
+        ],
+        "source_passed": 185,
+        "installed_passed": 185,
+        "failed": 0,
+        "skipped": 0,
+        "actual_hotpot_modules_each": 142,
+        "matching_product_python_files": 455,
+        "matching_packaged_tracked_files": 799,
+        "omitted_non_python_tracked_files": 41,
+        "reused_native_artifacts": 6,
+        "actually_loaded_native_extensions_each": 4,
+        "limits": "Current CP311 existing-behavior rebind only; original preflight failure retained, no full suite/scientific/cold-import-matrix/clean-native/ABI/SDK/multiversion or Stage7B implementation acceptance."
+      },
+      "implementation_release": "stages/stage07/constraints/implementation_release.json",
+      "global_gate_closed": false,
+      "constraint_checkpoint_20261103": {
+        "record": "stages/stage07/constraints/validation/checkpoint_20261103.json",
+        "report": "stages/stage07/constraints/validation/report.md",
+        "status": "CONSTRAINT_SLICE_DELIVERY_READY",
+        "stage_status": "IN_PROGRESS",
+        "source_parent": "48780a669c9b1ca5b0e6c2cadf63365579ad3ccf",
+        "source_attempt1": {
+          "passed": 839,
+          "failed": 2,
+          "preserved": true
+        },
+        "source_final": {
+          "passed": 841,
+          "failed": 0,
+          "skipped": 0
+        },
+        "installed_final": {
+          "passed": 841,
+          "failed": 0,
+          "skipped": 0
+        },
+        "installed_actual_model": {
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0
+        },
+        "same_ordered841cases": true,
+        "semantic_criteria": [
+          "One existing _ConstraintSet owner for raw Atom axes/Bond cells; no persistent table/Bond mirror or new type.",
+          "Existing public19/3 projections, setters/permissions, raw bit/presence/source transport and no new physical-restraint science.",
+          "Detached/current-member/nonmember/hidden lifecycle, UID remap/current pickle and source-domain semantics.",
+          "Touched-key/native mixed undo, interruption boundaries, nested poisoning and working-copy publication/rollback.",
+          "Finite attributed actual MCA output, local charged-input rejection, stable original denominator/order and independent continuation."
+        ],
+        "actual_module_origins": {
+          "source": 149,
+          "installed": 149,
+          "installed_model": 153
+        },
+        "bound_production_python_files": 455,
+        "bound_overlays": 8,
+        "bound_natives": 6,
+        "rebuilt_fact_native_sha256": "cea3ed1ab971ad7c108fa6b44db56a85df5f6e61eccd9caed51c44041cab4bad",
+        "other_natives_reused": 5,
+        "usable_cost": "45/45same-driver cells complete/RC0/reaped; scalar O(1); fixed16-atom workflow~2.07ms/~1.24x. Selective-axis6.276–19.854x/6.772ms and fullBond2.651–2.741x/21.097ms retained. No parity/global/leak claim.",
+        "archive": ".plan20-artifacts/20261103/stage7b/constraint-consolidation/",
+        "remaining_gates": [
+          "Stage7B connected hidden-topology consumer/mask/public-retirement/native-publication/transport cutover and whole-stage acceptance.",
+          "Stage7C/D/E and later stages; connected H/isotope/stereo ownership and concrete H/public/model/storage decisions remain open.",
+          "Other Python versions; clean all-native/ABI/SDK/sdist/manylinux and41 explicitly omitted non-Python wheel paths.",
+          "Required broader scientific/GPU/external/Plan12 evidence and global performance/final acceptance.",
+          "Root business commit/push; Stage0–12 acceptance and B_exp still precede separately gated Stage13."
+        ],
+        "stage_gate_closed": false,
+        "global_gate_closed": false,
+        "goal_v2_activated": false
+      }
     },
     "Stage7C": {
       "predecessor": "Stage7B",

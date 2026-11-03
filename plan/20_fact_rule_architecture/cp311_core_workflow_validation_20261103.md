@@ -167,3 +167,25 @@ H/同位素原始诊断与失败写入尝试共10份文件、164413字节，已�
 安装包由基准提交`986973b`加本轮三个MCA生产/文档文件的明确覆盖组成，标准Python/resource wheel复用6个未变CP311扩展，在新`--system-site-packages` venv中`--no-deps`安装。它支持当前修复的实际安装边界，未取得干净native/ABI/SDK、完整依赖解析、manylinux、其他Python版本或真实GPU结论。
 
 完整命令、环境、实际源/模型/wheel/native身份、JUnit、原始失败与成功输出位于`/tmp/hotpot_plan20/long/stage7a-mca-mixed-failure-20261103/`；项目原样归档为`.plan20-artifacts/20261103/stage7a/mca-cli-domain-containment/`。`focused/attempt3`、`regression-after`和`installed`分别拥有上述67/3/37结果；这些选择有交集，不能相加为独立业务能力数。旧22/76项结果保持其原时间与来源，不被改写为新快照的全量通过。Stage7A仍为IN_PROGRESS；SDF native分配寿命、H/同位素/立体连接迁移和后续/全局验收仍未完成。
+
+
+## SDF 当前资源与可用耗时：根复核决定
+
+[根决定](stages/stage07/external-adapters/validation/sdf_resources_20261103.json)接受当前 CP311 完整 SDF 写出路径在所列负载下的分配寿命证据与可用耗时。依据用户已明确的“化学语义 > 可接受性能 > 全版本适配”，旧的局部强制追平路线不再阻塞下一阶段；原 GM2.527527024115116、全部六个不利95%区间和12个较高 Python 分配峰值原样保留，不改记为性能相等或改进。这不是全局性能验收，也没有激活 goal_v2。
+
+同一256碳链、双源帧负载在一次连续 native capture 中完成320次完整公开写出/640帧。17个丢弃输出、GC后静默检查点均有内部快照，活跃区间字节总和与实际 tracked heap 完全一致。Open Babel/MDL相关栈在第1批后保留15字节/1次时区分配，此后无新增；全部被跟踪分配在第1批增加12,493字节、第10批增加3,264字节，之后6批持平。后者解析为CPython字典扩容，其确切对象/归因仍未知；不利的第9至16批平均23.314285714285713字节/次写出仍在原始记录中。两次跟踪前的探针准备失败保留，没有重新采集或重跑reader。
+
+额外一次无profiler的当前CP311描述性测量：3次热身、10个测量样本，每样本20次双帧写出，共200次测量写出/400帧全部完成。每20次中位耗时0.15098745189607143秒，MAD0.0005453852936625481秒，p950.15648816721513867秒；输入事实每批保持。捕获和普通测量所绑定的288个当前源码/模块/native文件均未改变。宿主共享，普通测量没有同时重测旧版本，因此不能用它除以历史耗时构造加速比。
+
+分配归因仍有边界：全部161个栈至少含一帧未解析，Hotpot-native无解析归因不等于零实际分配；捕获开始前的分配、未拦截分配和快照内周转不在结论内。该合成几何只验证运输与资源工作，代表回读保留256重原子/255键/两帧坐标顺序；没有物理构型、H/同位素无损、干净native构建、安装包重建、ABI/SDK、其他化学域或普遍无泄漏结论。
+
+精确命令、环境、原始失败、所有输出、分配栈和逐批观察共86文件/38,561,367字节，原样归档于 `.plan20-artifacts/20261103/stage7a/sdf-resource-observations/`。`ARCHIVE_MANIFEST.json`负责保存完整性；`native-capture/REPORT.md`、`checkpoints.csv`和`plain/observations.json`提供按需证据。Stage7A整体闭合与Stage7B进入仍等待其余边界核对；H/同位素/立体的连接迁移仍由Stage7E负责。
+
+
+## Stage7B constraint-owner current checkpoint
+
+Root's [Stage7A closure](stages/stage07/external-adapters/completion_20261103.json) supersedes the earlier IN_PROGRESS cutoffs only within its recorded extraction/applicable-CP311 scope. The [constraint-owner report](stages/stage07/constraints/validation/report.md) and [exact checkpoint](stages/stage07/constraints/validation/checkpoint_20261103.json) now record the Stage7B slice as DELIVERY_READY, while Stage7B remains IN_PROGRESS pending hidden-topology consumer cutover. Existing ConstraintSet owns remaining Atom-axis/Bond values;19-column Atom/three-slot Bond projections and scientific methods are preserved.
+
+Actual final CP311 source841/0/0 and current installed841/0/0 use identical ordered cases; original source839pass/2fail remains preserved with the narrow product KeyError and test metadata-order corrections. One installed actual CPU FP16 MCA mixed-input regression also passes: input1 CN and input3 CO retain finite attributed rows, input2 charged C[NH3+] rejects locally, input remains unchanged and CLI returns1. The149 source/149 installed/153 model Hotpot module origins, all455 production Python files,8 overlays and6native artifacts are bound. Only _fact_native was rebuilt (cea3ed1ab971ad7c108fa6b44db56a85df5f6e61eccd9caed51c44041cab4bad);5natives and existing dependency packages are reused. These selections do not rerun or replace the earlier22/76 business evidence.
+
+Root accepts usable constraint cost from45/45same-driver cells/RC0/reaped: scalar O(1), fixed16-atom workflow~2.07ms/~1.24x. Selective-axis6.276–19.854x reaching6.772ms/8192 and fullBond2.651–2.741x reaching21.097ms remain explicit adverse observations; no parity, speedup, global or leak conclusion follows. Exact commands, original failures, JUnits, origins and cost reports remain in `.plan20-artifacts/20261103/stage7b/constraint-consolidation/` (111files/5,793,197bytes). Clean all-native/ABI/SDK/sdist/manylinux, other versions, known H/isotope/stereo Stage7E work, later stages, Plan12/scientific/GPU/external/global performance and final acceptance remain open. goal_v2 is REVIEW ONLY; root owns business Git delivery.

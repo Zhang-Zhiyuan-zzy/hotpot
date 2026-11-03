@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7A",
+  "owner": "root",
+  "recorded_utc": "2026-11-03T04:16:12.756261+00:00",
+  "status": "BOUNDED_CURRENT_CP311_SDF_RESOURCE_SUFFICIENCY_AND_USABLE_COST_ACCEPTED",
+  "source_commit": "48780a669c9b1ca5b0e6c2cadf63365579ad3ccf",
+  "native_capture_head": "986973b43f0759ab66dfc76608c1d1b73e69d2f1",
+  "authority": "Owner current explicit direction: chemical semantics > usable performance > multi-version adaptation; an explained usable slowdown need not be optimized at every stage. Effective goal.md remains active; goal_v2 is review-only.",
+  "root_review": {
+    "reviewed": "complete capture/analyzer code; actual commands/terminal receipts; all17 checkpoint windows and tracked-heap reconciliations; constant MDL and CPython step stacks; all288 current file bindings; plain measured outputs and source invariants",
+    "current_source_native_module_bindings": 288,
+    "current_binding_mismatches": 0,
+    "workload": "256-carbon chain; two explicit source frames;20 full public SDF writes per batch. Artificial coordinates test conversion, not physical geometry.",
+    "native_calls": 320,
+    "native_frames": 640,
+    "interior_checkpoints": 17,
+    "heap_reconciliation_delta_bytes": 0
+  },
+  "native_memory": {
+    "decision": "Sufficient bounded allocation-lifetime evidence for the declared current SDF repeated-write mechanism. No additional local profiling or automatic capture retry is required before deciding the next stage.",
+    "baseline_live_bytes": 1072276,
+    "batches1_to9_live_bytes": 1084769,
+    "batches10_to16_live_bytes": 1088033,
+    "increments_bytes": {
+      "batch1": 12493,
+      "batch10": 3264,
+      "remaining14increments": 0
+    },
+    "openbabel_mdl_live_after_batch1": {
+      "bytes": 15,
+      "allocations": 1,
+      "additional_bytes_through_batch16": 0,
+      "stack": "strdup -> tzset_internal -> __tz_convert -> MDLFormat::GetTimeDate/WriteMolecule -> OBConversion::WriteString"
+    },
+    "unresolved_cpython_step": "3264 bytes/one dictresize allocation at batch10; exact object/causal owner unresolved. Retain unfavorable batch9-to16 average23.314285714285713bytes/write and final six zero increments.",
+    "limits": [
+      "All161 native stacks have at least one unresolved frame. No resolved Hotpot-native temporal anchor is not proof of no actual Hotpot-native allocations.",
+      "Pre-tracker allocations, allocations missed by interception and within-snapshot churn are outside the conclusion.",
+      "All-allocator totals include interpreter/probe/output/state bookkeeping. This is no universal leak/destructor theorem or other-domain memory acceptance.",
+      "No scientific geometry, hydrogen/isotope losslessness, wheel/native-rebuild/ABI or broad chemical-domain conclusion."
+    ]
+  },
+  "usable_cost": {
+    "decision": "Accept the current complete-SDF workload as usable and dispose the prior mandatory Stage7A parity-repair route. Preserve the measured regression; do not claim parity, improvement or causal repair. General performance work remains under its owning later/global scope.",
+    "plain_observation": {
+      "samples": 10,
+      "warmups": 3,
+      "measured_calls": 200,
+      "measured_frames": 400,
+      "median_seconds_per_20_calls": 0.15098745189607143,
+      "median_seconds_per_call": 0.007549372594803571,
+      "mad_seconds_per_20_calls": 0.0005453852936625481,
+      "p95_seconds_per_20_calls": 0.15648816721513867,
+      "min_seconds_per_20_calls": 0.1502363160252571,
+      "max_seconds_per_20_calls": 0.15728221088647842
+    },
+    "plain_process_seconds": 3.068671030923724,
+    "historical_regression": {
+      "geometric_mean_ratio": 2.527527024115116,
+      "source_ratio": 2.526438341838581,
+      "installed_ratio": 2.5286161755220786,
+      "all_six_95pct_intervals_above_one": true,
+      "all12_untimed_python_peaks_higher": true,
+      "unaltered_record": "stages/stage07/external-adapters/validation/report.md; Task100/102/104 checkpoint and original raw evidence remain historical"
+    },
+    "basis": "Current200 measured calls/400frames complete with unchanged source in10samples after3warmups; median20calls~0.151s, bounded tracked resource behavior, retained fresh-value/roundtrip/rollback contracts. The current plain measurement is descriptive shared-host data with no contemporaneous old pair/CI and is not divided by old timings.",
+    "remaining": "No end-to-end global-performance, all-version, clean-native, ABI, SDK or scientific acceptance."
+  },
+  "evidence_archive": ".plan20-artifacts/20261103/stage7a/sdf-resource-observations/",
+  "evidence_index": {
+    "archive_manifest": ".plan20-artifacts/20261103/stage7a/sdf-resource-observations/ARCHIVE_MANIFEST.json",
+    "native_summary": ".plan20-artifacts/20261103/stage7a/sdf-resource-observations/native-capture/observation-summary.json",
+    "native_checkpoints": ".plan20-artifacts/20261103/stage7a/sdf-resource-observations/native-capture/checkpoints.csv",
+    "plain": ".plan20-artifacts/20261103/stage7a/sdf-resource-observations/plain/observations.json"
+  },
+  "preserved_failures": "Two probe preparation failures before tracking, original historical performance findings, unresolved attribution and all actual outputs retained unchanged. One capture and one reader; no rerun.",
+  "revalidation_triggers": [
+    "Changes to conversion/serialization/native allocation owners or lifetime behavior.",
+    "Representative workloads show increasing retained bytes, unacceptable completion cost, OOM or incomplete work.",
+    "New supported installation/backend boundary lacks applicable evidence."
+  ],
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "Stage7B_entry_authorized": false,
+  "next_action": "Reconcile remaining Stage7A gate ownership and Stage7B current-source/public-contract entry using the bounded resource decision; do not make Stage7E a predecessor toStage7B."
+}

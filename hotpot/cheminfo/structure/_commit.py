@@ -48,6 +48,7 @@ def _fact_engine():
         from ..reference.properties import _atomic_number_for_symbol
         _fact_native._configure({
             "fields": ATOM_FIELDS, "indices": dict(FIELD_INDEX), "presence": FIELD_PRESENCE_BITS,
+            "table_width": 16, "constraint_fields": ("x_constraint", "y_constraint", "z_constraint"),
             "aliases": dict(ALIAS_TARGETS),
             "producers": dict(ATOM_SOURCE_CODES), "writable": ATOM_BATCH_WRITABLE,
             "readonly": ATOM_BATCH_READONLY, "effects": dict(_FIELD_EFFECTS), "groups": GROUPS,
@@ -106,7 +107,8 @@ class _FactTransaction:
 
     __slots__ = ("mol", "producer", "_joined", "_token", "_cells", "_statuses", "_seeds",
                  "_bonds", "_sparse", "_declarations", "_stereo", "_frames", "_topology",
-                 "_registrations", "_bond_membership", "_index_entries", "_constraints", "_pair_values", "_failed")
+                 "_registrations", "_bond_membership", "_index_entries", "_constraints", "_pair_values",
+                 "_constraint_entries", "_constraint_bindings", "_failed")
 
     def __init__(self, mol, *, producer):
         self.mol = mol
@@ -126,6 +128,7 @@ class _FactTransaction:
         self._index_entries = None
         self._constraints = None
         self._pair_values = None
+        self._constraint_entries = self._constraint_bindings = None
         self._failed = False
 
     def __enter__(self):
@@ -162,6 +165,7 @@ class _FactTransaction:
         self._statuses = self._seeds = self._bonds = self._sparse = None
         self._constraints = self._registrations = None
         self._pair_values = None
+        self._constraint_entries = self._constraint_bindings = None
         self._declarations = self._frames = self._topology = None
         self._bond_membership = None
         self._index_entries = None
@@ -183,7 +187,7 @@ class _FactTransaction:
         if id(bond) not in self._bonds:
             self._bonds[id(bond)] = (bond, bond._attrs.copy(),
                                     tuple((name, bond.__dict__.get(name, _UNCHANGED))
-                                          for name in _BOND_FIELDS), bond.atom1, bond.atom2)
+                                          for name in (*_BOND_FIELDS, "_constraint_values")), bond.atom1, bond.atom2)
 
     def touch_sparse(self, atom):
         if self._sparse is None:
@@ -221,7 +225,18 @@ class _FactTransaction:
         values = self.mol._pair_wiberg_bond_orders
         self._pair_values.append((values, key, values.get(key, _UNCHANGED)))
 
+    def touch_constraint_value(self, values, key):
+        if self._constraint_entries is None:
+            self._constraint_entries = []
+        self._constraint_entries.append((values, key, values.get(key, _UNCHANGED)))
+
+    def touch_constraint_binding(self, handle):
+        if self._constraint_bindings is None:
+            self._constraint_bindings = []
+        self._constraint_bindings.append((handle, handle._constraint_values))
+
     def touch_registration(self, atom):
+        self.touch_constraint_binding(atom)
         self.touch_index_entry(id(atom))
         if self._topology is not None:
             return
@@ -259,7 +274,8 @@ class _FactTransaction:
         table = mol._atom_table
         self._topology = (table, _table_storage(table), mol._topology_index,
                           tuple(values),
-                          tuple((atom, atom.__dict__.get("_detached_table", _UNCHANGED)) for atom in mol._atoms))
+                          tuple((atom, atom.__dict__.get("_detached_table", _UNCHANGED),
+                                 atom._constraint_values) for atom in mol._atoms))
         for bond in tuple(mol._bonds) + tuple(mol._hided_metal_bonds) + tuple(mol._hided_covalent_bonds):
             self.touch_bond(bond)
         self.touch_constraints()
@@ -283,8 +299,8 @@ class _FactTransaction:
                         value.update(contents)
                 _restore_fields(mol, ((name, value),))
             mol._topology_index = index
-            for atom, value in detached:
-                _restore_fields(atom, (("_detached_table", value),))
+            for atom, value, binding in detached:
+                _restore_fields(atom, (("_detached_table", value), ("_constraint_values", binding)))
         if self._bond_membership is not None:
             bonds, length, index = self._bond_membership
             del bonds[length:]
@@ -293,6 +309,10 @@ class _FactTransaction:
             _restore_storage(table, storage)
             del mol._atoms[length:]
             atom.__dict__.pop("_detached_table", None)
+        for handle, values in reversed(self._constraint_bindings or ()):
+            object.__setattr__(handle, "_constraint_values", values)
+        if self._constraints is not None:
+            mol._constraints = self._constraints
         # Forward in-place index writes only append a key or replace an existing
         # entry. Reverse those writes against their actual owner without bucket
         # rebuilding, including writes made after a complete owner replacement.
@@ -301,14 +321,19 @@ class _FactTransaction:
                 index.pop(key, None)
             else:
                 index[key] = previous
-        if self._cells:
-            restore = _fact_engine()._restore_write
-            for state in reversed(self._cells):
-                restore(state)
         for bond, raw, fields, first, second in (self._bonds or {}).values():
             bond.__dict__["_attrs"] = raw
             _restore_fields(bond, fields)
             bond.__dict__["_atoms"] = (first, second)
+        if self._cells:
+            restore = _fact_engine()._restore_write
+            for state in reversed(self._cells):
+                restore(state)
+        for values, key, previous in reversed(self._constraint_entries or ()):
+            if previous is _UNCHANGED:
+                values.pop(key, None)
+            else:
+                values[key] = previous
         for atom, fields in (self._sparse or {}).values():
             _restore_fields(atom, fields)
         if self._declarations is not None:
@@ -320,8 +345,6 @@ class _FactTransaction:
             with frames._mutation_lock:
                 _restore_fields(frames, fields)
             mol._conformers, mol._conformers_index = frames, index
-        if self._constraints is not None:
-            mol._constraints = self._constraints
         for values, key, previous in reversed(self._pair_values or ()):
             if previous is _UNCHANGED:
                 values.pop(key, None)
@@ -371,7 +394,11 @@ def _commit_bond_facts(mol, bond, binding, *, raw_values, kind, direction,
         transaction.touch_bond(bond)
         changed = (bond._attrs[0] != raw_values[0] or bond._bond_kind != kind
                    or (bond._bond_kind.value == 'dative' and bond._bond_direction != direction))
-        bond.__dict__["_attrs"] = raw_values
+        from .constraints import _bond_constraint_cell
+        cell = _bond_constraint_cell(raw_values[1])
+        transaction.touch_constraint_value(bond._constraint_values, bond._uid)
+        bond._constraint_values[bond._uid] = cell
+        bond.__dict__["_attrs"] = raw_values[[0, 2]]
         for name, value in zip(_BOND_FIELDS, (kind, direction, source_namespace, metadata)):
             bond.__dict__[name] = value
         if aromatic is not _UNCHANGED:
@@ -479,8 +506,7 @@ def _commit_stereo(mol, source, payload):
             _seed(mol, GROUP_INDEX['IMPLICIT_H'], changed)
 
 
-def _commit_constraints(mol, source, *, atom_update=None, bond_entries=(),
-                        angle_entries=(), torsion_entries=()):
+def _commit_constraints(mol, source, *, angle_entries=(), torsion_entries=()):
     with _FactTransaction(mol, producer=_EXPLICIT_SOURCE) as transaction:
         _check_source(mol, source)
         prepared = []
@@ -496,15 +522,6 @@ def _commit_constraints(mol, source, *, atom_update=None, bond_entries=(),
                 normalized.append((tuple(atom._uid for atom in atoms), bool(value)))
             prepared.append(tuple(normalized))
         constraints = mol._constraints.updated(angles=prepared[0], torsions=prepared[1])
-        if atom_update is not None:
-            if any(field not in ("x_constraint", "y_constraint", "z_constraint") for field in atom_update.fields):
-                raise ValueError("Atom constraints require canonical constraint axes")
-            _commit_atom_facts(mol, atom_update)
-        for bond, value in bond_entries:
-            if not any(member is bond for member in tuple(mol._bonds) + tuple(mol._hided_metal_bonds) + tuple(mol._hided_covalent_bonds)):
-                raise ValueError("Constraint Bond is no longer current")
-            transaction.touch_bond(bond)
-            bond._attrs[2] = value
         if angle_entries or torsion_entries:
             transaction.touch_constraints()
             mol._constraints = constraints

@@ -395,14 +395,21 @@ def test_factual_builder_installs_every_raw_fact_and_builds_topology_once(monkey
     record = _record()
     mol = Molecule._build_molecule(record)
     assert calls == [4]
-    from hotpot.cheminfo.structure._fields import FACT_FIELDS, DERIVED_FIELDS, FIELD_INDEX
-    indices = tuple(FIELD_INDEX[field] for field in FACT_FIELDS)
-    np.testing.assert_array_equal(mol._atom_table.select(FACT_FIELDS), _atoms(record)[:, indices])
+    from hotpot.cheminfo.structure._fields import FACT_FIELDS, DERIVED_FIELDS, FIELD_INDEX, TABLE_FIELDS, TABLE_PRESENCE_ALL
+    table_facts = tuple(field for field in FACT_FIELDS if field in TABLE_FIELDS)
+    indices = tuple(FIELD_INDEX[field] for field in table_facts)
+    np.testing.assert_array_equal(mol._atom_table.select(table_facts), _atoms(record)[:, indices])
     retired = sum(1 << FIELD_INDEX[field] for field in DERIVED_FIELDS)
-    np.testing.assert_array_equal(mol._atom_table.presence(), np.frombuffer(record.atom_presence, dtype='<u4') & ~np.uint32(retired))
+    np.testing.assert_array_equal(mol._atom_table.presence(), np.frombuffer(record.atom_presence, dtype='<u4') & np.uint32(TABLE_PRESENCE_ALL & ~retired))
     expected_sources = np.frombuffer(record.atom_sources, dtype='u1').reshape(record.atom_count, 19).copy()
     expected_sources[:, tuple(FIELD_INDEX[field] for field in DERIVED_FIELDS)] = 0
-    np.testing.assert_array_equal(mol._atom_table.sources(), expected_sources)
+    np.testing.assert_array_equal(mol._atom_table.sources(), expected_sources[:, :16])
+    captured, _ = mol._capture_factual_record()
+    fact_indices = tuple(FIELD_INDEX[field] for field in FACT_FIELDS)
+    np.testing.assert_array_equal(_atoms(captured)[:, fact_indices], _atoms(record)[:, fact_indices])
+    assert captured.atom_sources == expected_sources.tobytes()
+    assert set(mol._constraints.atom_axes) == {atom._uid for atom in mol.atoms}
+    assert all(atom._constraint_values is mol._constraints.atom_axes for atom in mol.atoms)
     assert all(mol._atom_table._columns[FIELD_INDEX[field]] is None for field in DERIVED_FIELDS)
     complete = mol._bonds + mol._hided_metal_bonds + mol._hided_covalent_bonds
     assert b''.join(bond.attrs.tobytes() for bond in complete) == record.bond_values

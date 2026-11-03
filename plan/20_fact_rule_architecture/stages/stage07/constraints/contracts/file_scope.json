@@ -1,0 +1,117 @@
+{
+  "status": "PROPOSED_EXCLUSIVE_IMPLEMENTATION_SCOPE_ROOT_RELEASE_REQUIRED",
+  "source_commit": "48780a669c9b1ca5b0e6c2cadf63365579ad3ccf",
+  "production_files": [
+    {
+      "path": "hotpot/cheminfo/structure/constraints.py",
+      "responsibility": "Extend the existing owner; pure bit-preserving split/join/select helpers; UID subset/remap and no new types."
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_fields.py",
+      "responsibility": "Keep historical schema19; declare private table16/axis roles and physical scalar addresses."
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_atom_table.py",
+      "responsibility": "Remove all axis values/presence/source ownership; private width16 constructor/update/export/pickle lifecycle."
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_commit.py",
+      "responsibility": "Configure axis/table roles; touched-map/binding undo; Bond transport split and sequence-only constraint commit."
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_native/facts.cpp",
+      "responsibility": "Extend existing role/config/install/Undo machinery for owner cells; preserve one native writer and all member/source checks."
+    },
+    {
+      "path": "hotpot/cheminfo/structure/_identity.py",
+      "responsibility": "Project raw constraints and metadata from sole owner without changing domain dependencies or scalar hashing cost."
+    },
+    {
+      "path": "hotpot/cheminfo/core.py",
+      "responsibility": "All handle constructors/read/write/export/register/detach/hidden-clear/record/copy/pickle paths; atomic owner transfers."
+    },
+    {
+      "path": "hotpot/cheminfo/operations/chemistry.py",
+      "responsibility": "Requested field display projection and sole raw three-slot aromatic Bond publication consumer."
+    }
+  ],
+  "test_files": [
+    {
+      "path": "tests/test_cheminfo/structure/test_atom_fact_table.py",
+      "responsibility": "Migrate private table fixtures/assertions to width16; preserve schema19 test and independent storage/metadata/rollback coverage."
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_fact_native.py",
+      "responsibility": "Migrate standalone table fixture; add actual rebuilt native owner-cell fault/raw-bit/mixed numeric undo coverage."
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_dependencies.py",
+      "responsibility": "Migrate two standalone private table constructors; retain all dependency invariants."
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_builder.py",
+      "responsibility": "Replace obsolete whole19 table assertions with raw record/projection plus table16/owner coverage, preserving no-chemistry builder checks."
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_stage5_bonding.py",
+      "responsibility": "Pass full3 raw transport from Bond.attrs instead of newly physical two-slot _attrs at its direct private commit call."
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_constraints.py",
+      "responsibility": "Integrate accepted root-prepared public/lifecycle invariants; partial flags, raw3/19, constructor/nonmember/detached, hidden clear, copy/component/merge/current pickle and binding ownership."
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_source_identity.py",
+      "responsibility": "Assert unchanged constraint bool-domain semantics, raw/source-sensitive forcefield_inputs and unrelated domain stability."
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_commit_atomicity.py",
+      "responsibility": "Cross-domain owner-map/root/binding restoration, overlapping native/Python writes and new-member/key ordering; preserve existing concurrency and poisoning tests."
+    }
+  ],
+  "maintained_file_already_authorized": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+  "maintained_scope": "Only minimal status, Stage7A/7B pointers and Decision6 synchronization; root owns all other maintained records/Git.",
+  "no_new_types": true,
+  "no_new_public_api": true,
+  "unchanged_transport_owners": [
+    "hotpot/cheminfo/structure/_builder.py",
+    "hotpot/cheminfo/structure/_mutation.py",
+    "hotpot/cheminfo/structure/_fact_native.pyi"
+  ],
+  "no_edits_authorized_yet": true,
+  "new_or_discovered_consumer_rule": "Record evidence and seek root scope expansion before editing any additional file; never silently leave a writer behind.",
+  "shared_native_python_contract": {
+    "configure_additions": {
+      "table_width": 16,
+      "constraint_fields": [
+        "x_constraint",
+        "y_constraint",
+        "z_constraint"
+      ]
+    },
+    "configure_existing_unchanged": [
+      "fields full19",
+      "indices full19",
+      "presence historical19bits",
+      "update_type _AtomFactUpdate",
+      "transactions/failures ContextVars"
+    ],
+    "owner_access": "mol._constraints.atom_axes",
+    "handle_binding": "handle._constraint_values is its current canonical map",
+    "atom_cell": {
+      "type": "bytes",
+      "length": 28,
+      "values": "bytes0:24 three little-endian float64, raw IEEE754 bits",
+      "presence": "byte24 local bits0/1/2",
+      "sources": "bytes25:28 source code per axis"
+    },
+    "bond_cell": {
+      "type": "bytes",
+      "length": 8,
+      "value": "one little-endian float64, raw IEEE754 bits"
+    },
+    "native_member_keys": "Existing current exact-int UID keys only; no owner-map insert/delete during native scalar/batch install.",
+    "native_journal": "Extend existing Undo capsules in transaction._cells; no callback, new native function or signature change.",
+    "python_journal": "Lifecycle insertion and Bond replacement entries in existing _FactTransaction; rollback native capsules before Python key undo."
+  }
+}

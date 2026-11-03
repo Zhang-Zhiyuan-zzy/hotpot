@@ -41,14 +41,16 @@ def molecule():
 def state(mol):
     table = mol._atom_table
     statuses, seeds = _dependency_state(table)
-    return table.matrix().tobytes(), table.presence().tobytes(), table.sources().tobytes(), statuses.tobytes(), seeds
+    return (table.matrix().tobytes(), table.presence().tobytes(), table.sources().tobytes(),
+            statuses.tobytes(), seeds, tuple(sorted(mol._constraints.atom_axes.items())),
+            tuple(sorted(mol._constraints.bond_values.items())))
 
 
 @pytest.mark.parametrize('rows', [0, (0, 2)])
 @pytest.mark.parametrize('boundary', ['value', 'source', 'presence'])
 @pytest.mark.parametrize('exception', [KeyboardInterrupt, MemoryError])
 def test_standalone_uses_same_native_post_store_restorer(rows, boundary, exception):
-    table = _AtomFactTable(np.arange(57., dtype=np.float64).reshape(3, 19), presence=0)
+    table = _AtomFactTable(np.arange(48., dtype=np.float64).reshape(3, 16), presence=0)
     before = table.matrix().tobytes(), table.presence().tobytes(), table.sources().tobytes()
     with _native_fail_after(boundary, exception=exception), pytest.raises(exception):
         table.update(rows, {'x': -0.0, 'formal_charge': -2})
@@ -614,3 +616,97 @@ print(json.dumps({'passed': results}))
               'stdout': result.stdout, 'stderr': result.stderr}
     (seed_allocator_helper / 'partial-rehash.json').write_text(json.dumps(record, indent=2))
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize('boundary', ['value', 'source', 'presence', 'enrollment'])
+@pytest.mark.parametrize('exception', [KeyboardInterrupt, MemoryError])
+@pytest.mark.parametrize('mixed', [False, True])
+def test_owner_axis_publication_fault_restores_cells_and_mixed_numeric_journal(boundary, exception, mixed):
+    from hotpot.cheminfo.structure._mutation import _normalize_atom_fields
+
+    mol = molecule()
+    rows = (0, 2)
+    atoms = tuple(mol.atoms[row] for row in rows)
+    columns = {'x_constraint': (-0.0, -2.5), 'z_constraint': (3.25, 0.)}
+    if mixed:
+        columns['formal_charge'] = (2.5, -0.0)
+    candidate = _normalize_atom_fields(_capture_source(mol), rows,
+                                       tuple(atom._uid for atom in atoms), columns)
+    owner = mol._constraints
+    values = owner.atom_axes
+    cells = tuple(values[atom._uid] for atom in atoms)
+    before = state(mol)
+    # Mixed install writes two numeric rows before publishing the first axis cell.
+    occurrence = 3 if mixed and boundary != 'enrollment' else 1
+    with pytest.raises(exception):
+        with _FactTransaction(mol, producer=13):
+            with _native_fail_after(boundary, occurrence=occurrence, exception=exception):
+                _commit_atom_facts(mol, candidate)
+    assert state(mol) == before
+    assert mol._constraints is owner and owner.atom_axes is values
+    assert all(atom._constraint_values is values for atom in atoms)
+    assert all(values[atom._uid] is cell for atom, cell in zip(atoms, cells))
+
+
+@pytest.mark.parametrize('boundary', ['value', 'source', 'presence'])
+@pytest.mark.parametrize('exception', [KeyboardInterrupt, MemoryError])
+@pytest.mark.parametrize('field', ['x_constraint', 'constraint'])
+def test_owner_scalar_fast_path_fault_restores_exact_cell_without_outer_transaction(boundary, exception, field):
+    mol = molecule()
+    atom = mol.atoms[0]
+    values = mol._constraints.atom_axes
+    cell = values[atom._uid]
+    before = state(mol)
+    with _native_fail_after(boundary, exception=exception), pytest.raises(exception):
+        setattr(atom, field, -2.5)
+    assert state(mol) == before
+    assert atom._constraint_values is values and values[atom._uid] is cell
+
+
+@pytest.mark.parametrize('boundary', ['enrollment', 'value', 'source', 'presence'])
+@pytest.mark.parametrize('exception', [KeyboardInterrupt, MemoryError])
+def test_caught_axis_fault_poisons_outer_numeric_and_constraint_publication(boundary, exception):
+    mol = molecule()
+    before = state(mol)
+    owner = mol._constraints
+    with pytest.raises(RuntimeError, match='nested factual'):
+        with _FactTransaction(mol, producer=13):
+            mol.atoms[1].x = 9
+            try:
+                with _native_fail_after(boundary, exception=exception):
+                    mol.atoms[0].constraint = True
+            except exception:
+                pass
+            mol.atoms[2].z_constraint = True
+    assert state(mol) == before and mol._constraints is owner
+
+
+def test_mixed_prepared_axis_update_preserves_raw_bits_independent_metadata_and_producers():
+    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
+    from hotpot.cheminfo.structure._mutation import _normalize_atom_fields
+
+    mol = molecule()
+    bits = np.array([0x8000000000000000, 0x7ff8000000000042, 0xc004000000000000], dtype=np.uint64)
+    candidate = _normalize_atom_fields(_capture_source(mol), (0, 1, 2),
+        tuple(atom._uid for atom in mol.atoms),
+        {'x_constraint': bits.view(np.float64), 'z_constraint': (2.5, 0, -0.0),
+         'formal_charge': (1.25, -0.0, -2.5)})
+    source_by_field = {'formal_charge': ATOM_SOURCE_CODES['explicit'],
+                       'x_constraint': ATOM_SOURCE_CODES['explicit'],
+                       'z_constraint': ATOM_SOURCE_CODES['rdkit']}
+    candidate = replace(candidate,
+        presence=tuple(field != 'x_constraint' for field in candidate.fields),
+        sources=tuple(source_by_field[field] for field in candidate.fields))
+    with _FactTransaction(mol, producer=ATOM_SOURCE_CODES['xtb']):
+        _commit_atom_facts(mol, candidate)
+    record, _ = mol._capture_factual_record()
+    values = np.frombuffer(record.atom_values, dtype='<f8').reshape(3, 19)
+    sources = np.frombuffer(record.atom_sources, dtype='u1').reshape(3, 19)
+    presence = np.frombuffer(record.atom_presence, dtype='<u4')
+    np.testing.assert_array_equal(values[:, FIELD_INDEX['x_constraint']].view(np.uint64), bits)
+    assert not (presence & (1 << FIELD_INDEX['x_constraint'])).any()
+    assert (presence & (1 << FIELD_INDEX['z_constraint'])).all()
+    assert (sources[:, FIELD_INDEX['x_constraint']] == ATOM_SOURCE_CODES['xtb']).all()
+    assert (sources[:, FIELD_INDEX['z_constraint']] == ATOM_SOURCE_CODES['rdkit']).all()
+    assert (sources[:, FIELD_INDEX['formal_charge']] == ATOM_SOURCE_CODES['xtb']).all()
+    np.testing.assert_array_equal(values[:, FIELD_INDEX['formal_charge']], (1.25, -0., -2.5))

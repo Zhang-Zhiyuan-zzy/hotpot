@@ -21,6 +21,7 @@ import json
 import numpy as np
 
 from ._fields import FIELD_INDEX, ATOM_FIELDS, FIELD_PRESENCE_BITS, FACT_FIELDS
+from .constraints import _select_atom_values, _select_atom_metadata, _bond_raw_values
 
 
 __all__ = ()
@@ -83,14 +84,13 @@ def _topology(mol, bonds):
 
 def _atom_columns(mol, indices):
     fields = tuple(ATOM_FIELDS[index] for index in indices)
-    return mol._atom_table.select(fields)
+    return _select_atom_values(mol._atom_table, mol._constraints.atom_axes,
+                               tuple(atom._uid for atom in mol._atoms), fields)
 
 
 def _atom_metadata(mol, indices):
-    table = mol._atom_table
-    mask = sum(FIELD_PRESENCE_BITS[index] for index in indices)
-    return (table._presence[:len(table)] & mask,
-            table._sources[:len(table), indices])
+    return _select_atom_metadata(mol._atom_table, mol._constraints.atom_axes,
+                                 tuple(atom._uid for atom in mol._atoms), indices)
 
 
 def _declaration(mol, prefix):
@@ -228,7 +228,7 @@ def _content_identities(mol, domains):
                     tuple((atom._uid, tuple((name, atom.__dict__[name])
                                            for name in ("isotope", "frac_valence") if name in atom.__dict__))
                           for atom in mol._atoms),
-                    tuple((bond._uid, bond._attrs, bond.bond_kind, bond._is_aromatic,
+                    tuple((bond._uid, _bond_raw_values(bond._attrs, bond._constraint_values[bond._uid]), bond.bond_kind, bond._is_aromatic,
                            bond.bond_direction, bond.bond_source)
                           for bond in bonds),
                     _declaration(mol, "charge"), _current_spin(mol), mol._stereo_payload,

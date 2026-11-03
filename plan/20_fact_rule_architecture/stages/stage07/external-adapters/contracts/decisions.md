@@ -1,7 +1,14 @@
 # Stage7A decisions and release register
 
+## Current owning-stage closure — 2026-11-03
 
-## Current business checkpoint — 2026-11-03
+Root [closes Stage7A's delivered extraction and applicable CP311 gates](../completion_20261103.json), accepting [bounded current SDF allocation sufficiency and usable cost](../validation/sdf_resources_20261103.json). The original GM2.527527024115116, six adverse intervals and allocation findings retain their observations; no parity, universal leak, all-version, clean-native or global acceptance is claimed. Current source/installed nine-file baseline is185passed/0failed/0skipped in each boundary with142actual Hotpot module origins each. Prior unchanged-owner evidence remains historical; later I/O/MCA repairs have their own bounded current-source/installed results. The Stage7B handoff at this closure released private constraint design only; the later [constraint-owner checkpoint](../../constraints/validation/report.md) records its delivered implementation and the remaining hidden-topology scope. H/isotope/stereo work remains Stage7E, with its normalization/public/model proposal unapproved. The effective goal is unchanged.
+
+Earlier dated status/release statements below retain their original scope; they do not override the closure record above.
+
+
+
+## Earlier business checkpoint — 2026-11-03
 
 The owner's current direction prioritizes chemical semantics, acceptable performance, then multi-version adaptation, with CP311 first. The pending goal_v2 draft is not active. Stage7A remains **IN_PROGRESS** and Stage7B **PREENTRY**; old SDF adverse data and unresolved native-memory/global work remain recorded without treating the old parity or full-validator chain as a universal precondition for business progress.
 
@@ -14,7 +21,7 @@ Current CP311 installed follow-up: a current Python/resource wheel with the six 
 Earlier “current” checkpoints below retain their original dated source and evidence scope; they do not describe the current post-reader-fix source or automatically close remaining gates.
 
 
-## Current validated checkpoint — Task100/102/104, 2026-11-02T08:57:16.574254+00:00
+## Historical validated checkpoint — Task100/102/104, 2026-11-02T08:57:16.574254+00:00
 
 Stage7A remains **IN_PROGRESS**; Stage7B remains **PREENTRY**. Current technical and bounded functional evidence is accepted. Complete SDF performance remains **FIX_REQUIRED** and native-memory sufficiency remains **OPEN**. No stage/global or scientific gate closes.
 

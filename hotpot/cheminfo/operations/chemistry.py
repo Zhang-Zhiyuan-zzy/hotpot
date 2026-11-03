@@ -18,6 +18,7 @@ from ..structure._identity import (
     _capture_source, _check_source, _hydrogen_inputs, _hydrogen_transport_inputs,
 )
 from ..structure._mutation import _normalize_atom_fields
+from ..structure.constraints import _select_atom_values, _bond_raw_values
 from ..structure._stereo import _get_stereo_payload
 from ..rules.chemistry.stereochemistry.algebra import _remap_stereo_payload
 from ..structure.snapshots import _BondingSnapshot, _AromaticAssignment
@@ -153,7 +154,9 @@ def _atom_projection(mol, *, fields=ATOM_FIELDS, rows=None, strict_hydrogens=Fal
                 _prepare_hydrogens(mol, rows=selected)
         if 'is_aromatic' in fields:
             _require_aromatic_representation(mol, rows=selected)
-        values = mol._atom_table.select(fields, rows=selected)
+        values = _select_atom_values(mol._atom_table, mol._constraints.atom_axes,
+                                     tuple(mol._atoms[row]._uid for row in selected),
+                                     fields, rows=selected)
         electron_fields = tuple((column, FIELD_INDEX[field] - 1) for column, field in enumerate(fields)
                                 if field in ('n', 's', 'p', 'd', 'f', 'g'))
         if electron_fields:
@@ -541,7 +544,7 @@ def _assign_bond_orders(mol):
     with _FactTransaction(mol, producer=ATOM_SOURCE_CODES['bond_order']):
         _commit_aromatic_assignment(mol, proposal, snapshot=snapshot)
         for bond, entry in ordered:
-            _commit_bond_facts(mol, bond, _capture_source(mol), raw_values=bond._attrs,
+            _commit_bond_facts(mol, bond, _capture_source(mol), raw_values=_bond_raw_values(bond._attrs, bond._constraint_values[bond._uid]),
                 kind=bond._bond_kind, direction=entry[3], source_namespace=entry[4],
                 metadata=_thaw_canonical(entry[5]), aromatic=entry[6])
 

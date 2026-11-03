@@ -1,10 +1,16 @@
 # Stage7 records
 
+Current 2026-11-03 status: Stage7A owning extraction and applicable CP311 gates are [complete](external-adapters/completion_20261103.json); current SDF [bounded resource/cost disposition](external-adapters/validation/sdf_resources_20261103.json) accepts usable operation while retaining adverse historical measurements. Stage7B is IN_PROGRESS: the [constraint-owner slice is delivery-ready](constraints/validation/report.md), with accepted CP311 source/current-wheel and bounded usable-cost evidence; hidden-topology consumer cutover remains pending. H/isotope/stereo transport remains assigned Stage7E work, not a predecessor to7B; later/global obligations remain open. goal_v2 remains review-only.
+
+The original entry/release chronology below is historical; the dated completion and entry records above own current status.
+
 Remove second truth sources and clarify results. Stage7A entry is aligned after delivered Stage6 and the post-Stage6 source/import/test/wheel rebind. Root accepted P01–P07 design boundaries and the exact stereo_transport owner precision. The separate implementation and six-test/probe authoring releases govern exclusive files; candidate imports/runtime remain held until root integration/SOURCE_READY. P07 future probe bytes still require exact root release. Stage7B–7E have not entered. Scope and gates remain in the [main implementation plan](../../fact_rule_architecture_implementation_plan.md), Section 10.
 
 [Catalog and filename meanings](../README.md) · [Main project index](../../README.md)
 
 ## Complete record index
+
+- [Constraint-owner checkpoint](constraints/validation/checkpoint_20261103.json) and [validation report](constraints/validation/report.md), under the [entry](constraints/entry_review.json) and [implementation release](constraints/implementation_release.json): existing ConstraintSet now owns Atom-axis/Bond values; source841/installed841 and actual-model1 checks pass with original839/2 failure evidence retained. All45 cost cells complete; selective-axis6.276–19.854x and fullBond2.651–2.741x adverse costs remain explicitly accepted for this bounded slice. Stage7B and later/global gates remain open.
 
 - [Conversion/Crystal/thermo/visualization preentry inventory](preentry-conversion/review.md) and [evidence disposition](preentry-conversion/evidence.json): bounded task35 current-source findings with matching actual read-only audit; source/transitive imports and wheel selections must be rebound after Stage6. This is neither Stage7A entry nor design/implementation authorization.
 
@@ -22,9 +28,9 @@ The [mandatory Stage7E canonical stereo storage gate](../../fact_rule_architectu
 
 - [Connected-consumer and selection supplement](external-adapters/connected_consumer_supplement.json): root migrates dataset `_PARSER_IMPLEMENTATION_FILES` literal source bindings to actual owners, preserving digest/schema/frozen-current and reassessment contracts. All36 test_ds files add to the preserved175-file proposal, giving final211 source/installed files on Python3.10–3.14; no Stage13 experiment is opened.
 
-## Stage7A current implementation and repair records
+## Historical Stage7A implementation and repair records
 
-Stage7A is IN_PROGRESS; the complete SDF performance gate is FIX_REQUIRED, native-memory sufficiency remains OPEN, and Stage7B remains PREENTRY. The original authoring/release statements above remain historical; the dated current checkpoints below bind later implementation and repair evidence. No later/global gate closes.
+At these earlier repair cutoffs, Stage7A was IN_PROGRESS, complete SDF performance was FIX_REQUIRED, native-memory sufficiency was OPEN, and Stage7B was PREENTRY. The original authoring/release statements above remain historical; the dated current checkpoints below bind later implementation and repair evidence. No later/global gate closes.
 
 - [Connected legacy-import relocation](external-adapters/architecture_guard/legacy_core_import_relocation.json) and [root architecture review](external-adapters/architecture_guard/root_review.json).
 - [Bookkeeping evidence](external-adapters/bookkeeping/evidence.json), [technical validation report](external-adapters/validation/report.md) and [validation evidence](external-adapters/validation/evidence.json). Full current-source rebind after the latest repairs remains pending.

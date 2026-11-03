@@ -1,0 +1,361 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7B",
+  "owner": "root",
+  "recorded_utc": "2026-11-03T05:04:49.197258+00:00",
+  "status": "CONSTRAINT_SLICE_DELIVERY_READY",
+  "stage_status": "IN_PROGRESS",
+  "delivery_ready": true,
+  "new_stage_entry": false,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "root_decision": "Explicit root acceptance of the completed constraint slice, actual CP311 source/installed evidence and explained bounded usable cost; no hidden-topology or later/global gate closure.",
+  "report": "stages/stage07/constraints/validation/report.md",
+  "entry_review": "stages/stage07/constraints/entry_review.json",
+  "implementation_release": "stages/stage07/constraints/implementation_release.json",
+  "stage7A_predecessor": "stages/stage07/external-adapters/completion_20261103.json",
+  "goal_v2_activated": false,
+  "alignment_documents_before_checkpoint": [
+    {
+      "path": "plan/20_fact_rule_architecture/goal.md",
+      "bytes": 14287,
+      "sha256": "6e116730e1a31ec999b623e9e594d26f23e3cf8a95e68048652acf9c699b0118"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+      "bytes": 195378,
+      "sha256": "507347e4d47303fc7732b33c702f06d1d05d430474e716472527fc3fabcdc658"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+      "bytes": 13443,
+      "sha256": "23a7b5c43851837a5aeaf69b4a127dc712d1a4b9c7bb178242015839543d8213"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+      "bytes": 62948,
+      "sha256": "f1e6dce3aa3be649b7e5491f8d35752accc84ec80cb3a597bfc2850d5aa82554"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+      "bytes": 24498,
+      "sha256": "96f4808f91e9470bdf60ff4a8f58b514d838b023328e7ea37f90fcf3f7328707"
+    },
+    {
+      "path": "plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+      "bytes": 4225,
+      "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d"
+    }
+  ],
+  "accepted_direction": "Chemical semantics > usable performance > version adaptation; CP311 first; effective goal/public/scientific/final-acceptance boundaries preserved.",
+  "source_parent": "48780a669c9b1ca5b0e6c2cadf63365579ad3ccf",
+  "source_identity_kind": "Recorded parent plus exact dirty production overlays; no new validated commit SHA is invented.",
+  "production_overlays": {
+    "hotpot/cheminfo/structure/constraints.py": {
+      "bytes": 5204,
+      "sha256": "80e6682c6d772482fc07d004d3a28485cea6b743778f489c04751f2f51284b80"
+    },
+    "hotpot/cheminfo/structure/_fields.py": {
+      "bytes": 2865,
+      "sha256": "79d6dd7cb716960855003e81adde19433280d3e8543e9ec7721f21322722dacc"
+    },
+    "hotpot/cheminfo/structure/_atom_table.py": {
+      "bytes": 15048,
+      "sha256": "71eff26caae15a61f2d2ca42ecf951d0f294aecef4205de4c6de616b78fc1437"
+    },
+    "hotpot/cheminfo/structure/_commit.py": {
+      "bytes": 25856,
+      "sha256": "53529d520ed0bf0dad54232d0337dd0bc196877fb76e67a3452c663ff725d852"
+    },
+    "hotpot/cheminfo/structure/_native/facts.cpp": {
+      "bytes": 67761,
+      "sha256": "192ea0f64a1c121825610f50b81d191698cc7a09752b8beba6b7b26aff9628f9"
+    },
+    "hotpot/cheminfo/structure/_identity.py": {
+      "bytes": 13262,
+      "sha256": "045f0f488375e3ee58ff380a187cbc6b8e2507cc7480b5dbce48cde520542802"
+    },
+    "hotpot/cheminfo/core.py": {
+      "bytes": 204769,
+      "sha256": "4e83b58cb6244a1b8bfd40d197c4455583c61167389d3c9870a70ba471cc3f94"
+    },
+    "hotpot/cheminfo/operations/chemistry.py": {
+      "bytes": 31721,
+      "sha256": "6680946edf1516a278635e235bf5298381bd13339b3b786e6796f3dedeccf6e3"
+    }
+  },
+  "owner_and_api_effects": {
+    "sole_constraint_owner": "Existing _ConstraintSet: UID atom_axes immutable28-byte raw values/presence/source cells; UID bond_values raw8-byte cells; existing Angle/Torsion tuples.",
+    "physical_storage": "Atom table16 declared non-axis fields; Bond order/id2slots; no persistent axis/Bond mirror.",
+    "preserved": "Existing public Atom19/Bond3 transport, scalar setters/permissions, source domains, remap/current pickle/detached behavior, active-only clear and hidden partition values.",
+    "removed": "Unused _commit_constraints atom_update/bond_entries branches, including dormant slot2/id write.",
+    "new_public_API_schema_type_exception_or_scientific_algorithm": false,
+    "physical_restraint_enforcement_added": false,
+    "finding_control_policy_changed": false
+  },
+  "semantic_acceptance_criteria": [
+    "One existing _ConstraintSet owner for raw Atom axes/Bond cells; no persistent table/Bond mirror or new type.",
+    "Existing public19/3 projections, setters/permissions, raw bit/presence/source transport and no new physical-restraint science.",
+    "Detached/current-member/nonmember/hidden lifecycle, UID remap/current pickle and source-domain semantics.",
+    "Touched-key/native mixed undo, interruption boundaries, nested poisoning and working-copy publication/rollback.",
+    "Finite attributed actual MCA output, local charged-input rejection, stable original denominator/order and independent continuation."
+  ],
+  "source_validation": {
+    "attempt1": {
+      "passed": 839,
+      "failed": 2,
+      "errors": 0,
+      "skipped": 0,
+      "preserved": true,
+      "execution": {
+        "path": ".plan20-artifacts/20261103/stage7b/constraint-consolidation/test-implementation/source-attempt1/execution.json",
+        "bytes": 4849,
+        "sha256": "62e5846f17af56695dfe90a08b6824826799edf3748152a00af9b883840222bb"
+      }
+    },
+    "corrections": [
+      "Restore unknown-field KeyError before owner-axis rejection in the private table guard.",
+      "Map mixed-test presence/source metadata from canonical candidate.fields; retain all raw bits/metadata/producer assertions."
+    ],
+    "attempt2": {
+      "passed": 841,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "returncode": 0,
+      "reaped": true,
+      "actual_checkout_Hotpot_modules": 149,
+      "source_native_tests_unchanged": true,
+      "execution": {
+        "path": ".plan20-artifacts/20261103/stage7b/constraint-consolidation/test-implementation/source-attempt2/execution.json",
+        "bytes": 4867,
+        "sha256": "999fb03d6e453395561052c113ff6a57daec75733d8fed0ab718b18123e346d9"
+      }
+    },
+    "selected_files_and_nodes": [
+      "tests/test_cheminfo/structure/test_atom_fact_table.py",
+      "tests/test_cheminfo/structure/test_fact_native.py",
+      "tests/test_cheminfo/structure/test_dependencies.py",
+      "tests/test_cheminfo/structure/test_builder.py",
+      "tests/test_cheminfo/structure/test_stage5_bonding.py",
+      "tests/test_cheminfo/structure/test_constraints.py",
+      "tests/test_cheminfo/structure/test_source_identity.py",
+      "tests/test_cheminfo/structure/test_commit_atomicity.py",
+      "tests/test_cheminfo/test_forcefield_trajectory.py",
+      "tests/test_cheminfo/test_hidden_bond_restoration.py",
+      "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+      "tests/test_cheminfo/test_stereo_level1_working_copy.py",
+      "tests/test_cheminfo/structure/test_view_identity.py",
+      "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+      "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+      "tests/test_cheminfo/structure/test_atom_fact_update.py",
+      "tests/test_cheminfo/structure/test_atom_matrix.py",
+      "tests/test_cheminfo/structure/test_factual_imports.py",
+      "tests/test_cheminfo/structure/test_interface_permissions.py",
+      "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+      "tests/test_cheminfo/structure/test_constraint_storage_lifecycle.py",
+      "tests/test_cheminfo/test_complex_hydrogens.py::test_optimizer_failure_does_not_modify_the_caller",
+      "tests/test_cheminfo/test_complex_hydrogens.py::test_optimizer_failure_preserves_explicit_hydrogens_and_bidentate_topology",
+      "tests/test_cheminfo/test_complex_hydrogens.py::test_successful_optimizer_commits_added_hydrogens_once",
+      "tests/test_cheminfo/test_complex_hydrogens.py::test_commit_rejects_a_working_copy_that_removed_an_original_atom",
+      "tests/test_cheminfo/test_complex_hydrogens.py::test_commit_rejects_changed_original_bond_topology_before_mutation",
+      "tests/test_cheminfo/test_complex_hydrogens.py::test_failed_commit_restores_every_caller_owned_container"
+    ],
+    "same_ordered841cases_attempt1_attempt2_installed": true
+  },
+  "installed_validation": {
+    "affected": {
+      "passed": 841,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "actual_installed_Hotpot_modules": 149
+    },
+    "actual_model": {
+      "passed": 1,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "actual_installed_Hotpot_modules": 153,
+      "observations_kJ_per_mol": {
+        "input1_CN": [
+          308.75,
+          489.5
+        ],
+        "input2_charged": "local rejection; no fabricated prediction",
+        "input3_CO": [
+          283.5,
+          318.25
+        ]
+      },
+      "expected_CLI_returncode": 1,
+      "inputs_unchanged": true,
+      "scientific_truth_or_general_accuracy_claim": false
+    },
+    "execution": {
+      "path": ".plan20-artifacts/20261103/stage7b/constraint-consolidation/installed-validation/execution.json",
+      "bytes": 14631,
+      "sha256": "3a4629fe4ec151d0400705b73e727605a684582ff8df5a19a12122e5a39c82ec"
+    },
+    "assembly_inputs": {
+      "path": ".plan20-artifacts/20261103/stage7b/constraint-consolidation/installed-validation/assembly-inputs.json",
+      "bytes": 5926,
+      "sha256": "e679212b5f2316825abbf718e1231084bda4a3701ffab209ffbc9f8e84e23641"
+    },
+    "source_wheel_installed_python_files": 455,
+    "matching_dirty_overlays": 8,
+    "native_artifacts": 6,
+    "same_source_attempt2_input_bindings": 490,
+    "all_processes_reaped_and_source_native_tests_model_stable": true,
+    "outside_checkout": true,
+    "isolation": "Fresh --system-site-packages CP311 venv, --no-index/--no-deps install; python -I -B; PYTHONPATH/PYTHONHOME removed; existing dependencies shared.",
+    "wheel": {
+      "path": "/tmp/hotpot_plan20/medium/20261103-stage7b-current-installed/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6289427,
+      "sha256": "f670fafe2281269a1fd7ea2b64b1d840a8fbe39889d8247c517bdf3726d34f5c"
+    },
+    "native_files": [
+      {
+        "relative_path": "hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so",
+        "source": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so",
+        "bytes": 5491648,
+        "sha256": "50a30f51e5d02ecfc22b107321a4fce8a37ce5c8df6c7829b9a8dadd789019d8",
+        "policy": "unchanged_reuse_previous_assembly"
+      },
+      {
+        "relative_path": "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so",
+        "source": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so",
+        "bytes": 400648,
+        "sha256": "cea3ed1ab971ad7c108fa6b44db56a85df5f6e61eccd9caed51c44041cab4bad",
+        "policy": "rebuilt_current_source_by_root"
+      },
+      {
+        "relative_path": "hotpot/cheminfo/search/_search_native.cpython-311-x86_64-linux-gnu.so",
+        "source": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/search/_search_native.cpython-311-x86_64-linux-gnu.so",
+        "bytes": 540288,
+        "sha256": "71e1c4b4787297ddcc3711f029beef58fb1e7893bd13bb4694d030cbb1d2689e",
+        "policy": "unchanged_reuse_previous_assembly"
+      },
+      {
+        "relative_path": "hotpot/cheminfo/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so",
+        "source": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so",
+        "bytes": 1199080,
+        "sha256": "97acdb9652fa491cd3e2634a176519dd7dd87a5951fd99dda8ae6e72491a0c68",
+        "policy": "unchanged_reuse_previous_assembly"
+      },
+      {
+        "relative_path": "hotpot/cheminfo/graph/_graph_native.cpython-311-x86_64-linux-gnu.so",
+        "source": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/graph/_graph_native.cpython-311-x86_64-linux-gnu.so",
+        "bytes": 368824,
+        "sha256": "477db3a9d2f315b655b0245802da0209089fb6dc85db8256f740acb27658c471",
+        "policy": "unchanged_reuse_previous_assembly"
+      },
+      {
+        "relative_path": "hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so",
+        "source": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so",
+        "bytes": 2831960,
+        "sha256": "d92b29334ff1737fd9b4bdb39fdcc08dcf74dba57a105f269ff48122dd303715",
+        "policy": "unchanged_reuse_previous_assembly"
+      }
+    ],
+    "rebuilt_native_count": 1,
+    "reused_native_count": 5,
+    "native_build_execution": {
+      "path": ".plan20-artifacts/20261103/stage7b/constraint-consolidation/native-build-attempt1/execution.json",
+      "bytes": 2066,
+      "sha256": "ad291cf1e92f17b4f5f6e1849a5a503c85c2f90a73af0c2be550f6bba3d02ba4"
+    },
+    "nonpython_omissions": 41,
+    "no_missing_production_overlay": true,
+    "clean_all_native_ABI_SDK_sdist_manylinux_allversion_claim": false
+  },
+  "bounded_cost": {
+    "status": "BOUNDED_USABLE_COST_ACCEPTED_BY_ROOT",
+    "completed_cells_each_side": 45,
+    "sizes": [
+      128,
+      1024,
+      8192
+    ],
+    "warmups_per_cell": 3,
+    "samples_per_cell": 10,
+    "timed_iterations_each_side": 133770,
+    "same_driver_runtime_sizes_order_iterations": true,
+    "current_returncode": 0,
+    "current_reaped": true,
+    "current_production_unchanged": true,
+    "retained_adverse": {
+      "selective_three_axes_ratio": [
+        6.276,
+        19.854
+      ],
+      "selective_axes8192_ms": 6.772,
+      "full_Bond3_ratio": [
+        2.651,
+        2.741
+      ],
+      "full_Bond3_8192_ms": 21.097,
+      "full_Atom19_ratio": [
+        1.045,
+        1.063
+      ],
+      "copy_ratio": [
+        1.443,
+        1.657
+      ],
+      "clear_ratio": [
+        1.334,
+        1.367
+      ],
+      "fixed16atom_workflow_ms_approx": 2.07,
+      "fixed16atom_workflow_ratio": [
+        1.242,
+        1.252
+      ]
+    },
+    "scalar_complexity": "O(1) in molecule size, touched-key implementation and observed scaling.",
+    "root_disposition": "Accept explained usable cost for this constraint-owner slice. Scalar touches remain size independent at observed scales; the fixed16-atom workflow is about2.07ms versus1.65-1.67ms. Full19-field export is1.045-1.063x; copy1.443-1.657x; clear1.334-1.367x. Requested three-axis projection regresses6.276-19.854x, reaching6.772ms for8192atoms; fullBond3export2.651-2.741x reaches21.097ms. Retain all adverse results; no parity or speedup claim. The absolute bounded linear projections are usable for current business; these costs do not block the next semantic migration. Reassess upon a representative workload failure, unbounded resources or a concrete batch bottleneck.",
+    "limits": [
+      "Single baseline then candidate on uncontrolled shared host; no paired randomization, confidence interval or global causal performance inference.",
+      "Only same-driver selected constraint/lifecycle work; not fullFF/xTB/MCA scientific/performance acceptance.",
+      "Tracemalloc excludes some native allocations; RSS is process-level/current and monotonic peak, not retained/leak proof.",
+      "Identical observed values here check deterministic transport only, not a universal chemistry historical-equality requirement."
+    ],
+    "comparison": {
+      "path": ".plan20-artifacts/20261103/stage7b/constraint-consolidation/cost-current/comparison.json",
+      "bytes": 17494,
+      "sha256": "3705cd8ccf285493e77f852da4c4af7eb0eec859c6db3cff4048fa828b1716a3"
+    },
+    "report": {
+      "path": ".plan20-artifacts/20261103/stage7b/constraint-consolidation/cost-current/report.md",
+      "bytes": 4063,
+      "sha256": "1e869094937c4773a1774bcd4b25fa540e5d94fa59c08433349969832fc013d9"
+    },
+    "execution": {
+      "path": ".plan20-artifacts/20261103/stage7b/constraint-consolidation/cost-current/attempt1/execution.json",
+      "bytes": 813,
+      "sha256": "e57f26e5101f38b29e7deeb4be85e7a84af3e281446386f23e6e6a47d19b6996"
+    },
+    "parity_speedup_global_or_leak_claim": false
+  },
+  "evidence_archive": {
+    "manifest": {
+      "path": ".plan20-artifacts/20261103/stage7b/constraint-consolidation/archive-manifest.json",
+      "bytes": 23957,
+      "sha256": "06402fc8d04d4980c2edd46e260b5b915b5f21c2236802fafd9b6aac7b30ef67"
+    },
+    "regular_evidence_files": 111,
+    "bytes": 5793197,
+    "failed_attempts_preserved": true,
+    "archive_owned_by_verifier_not_modified_here": true,
+    "external_wheel_runtime_model_assets": "Retain their recorded original paths; not copied into this maintained checkpoint."
+  },
+  "remaining_gates": [
+    "Stage7B connected hidden-topology consumer/mask/public-retirement/native-publication/transport cutover and whole-stage acceptance.",
+    "Stage7C/D/E and later stages; connected H/isotope/stereo ownership and concrete H/public/model/storage decisions remain open.",
+    "Other Python versions; clean all-native/ABI/SDK/sdist/manylinux and41 explicitly omitted non-Python wheel paths.",
+    "Required broader scientific/GPU/external/Plan12 evidence and global performance/final acceptance.",
+    "Root business commit/push; Stage0–12 acceptance and B_exp still precede separately gated Stage13."
+  ],
+  "record_task_limits": "Maintained records and read-only source/evidence inspection only; no business test/build/install/product import, Git command, effective-goal/skills/model-policy/source/test/archive mutation."
+}

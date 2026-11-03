@@ -1,8 +1,8 @@
 # Fact-Carrier and Rule Architecture Refactor
 
-Status: **implementation authorized on 2026-10-28; Stage0–6 owning-stage gates complete;
-Stage7A IN_PROGRESS; current CP311 source and installed-wheel business checks recorded;
-Stage7B PREENTRY; full scientific, engineering and global acceptance remain open**.
+Status: **implementation authorized on 2026-10-28; Stage0–7A owning-stage gates complete;
+Stage7B IN_PROGRESS with its constraint-owner slice delivery-ready and hidden-topology
+consumer cutover pending; current CP311 source and installed-wheel business checks recorded; full scientific, engineering and global acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
 are recorded in [the CP311 core-workflow report](cp311_core_workflow_validation_20261103.md). The architecture, lazy invalidation, scientific-reporting, and
@@ -1803,6 +1803,11 @@ Gate: source/wheel conversion freshness, round trips, adapter isolation,
 affected I/O/thermo/visualization technical contracts, Crystal convention and
 adapter round trips, memory, and repeated-workflow conversion benchmarks.
 
+The [2026-11-03 root completion](stages/stage07/external-adapters/completion_20261103.json)
+closes Stage7A's owning extraction and applicable CP311 gates with the bounded
+usable-cost/resource disposition. Historical adverse measurements and unresolved
+H/isotope/stereo transport remain recorded; no later or global gate closes.
+
 #### Stage 7B — Topology selections, views, and constraints
 
 1. Replace hidden-bond collections with operation-local topology selections.
@@ -1814,6 +1819,13 @@ adapter round trips, memory, and repeated-workflow conversion benchmarks.
    Molecule-owned `ConstraintSet` and audit coordinate/bond/angle/torsion
    coverage. Angle/torsion ownership and preservation were established in
    Stage4; retain only view projections, with no second constraint store.
+
+The [accepted constraint checkpoint](stages/stage07/constraints/validation/report.md)
+records the completed sole-owner Atom-axis/Bond migration, preserved19/3 projections,
+affected CP311 source/current-wheel evidence and root-accepted bounded usable cost.
+Original failures and selective-axis/Bond-export regressions remain recorded. This
+constraint slice is delivery-ready; Stage7B remains IN_PROGRESS. Hidden-topology
+consumer cutover and unspecified public changes retain their dependent decisions.
 
 Gate: hidden-bond workflow parity, stale-view behavior, deterministic views,
 constraint identity/invalidation, force-field working-copy rollback, and
@@ -2476,7 +2488,7 @@ approvals. Stage1 can collect baselines while public decisions are pending.
 | 3 | move classified scientific packages, retaining the stereo facade and standalone wrapper paths | exact public import migration pending review |
 | 4 | common protocol across all public chemical types: one fact per owner, mapped interfaces/permissions, source-aware coupling, lifecycle and invalidation; Atom coordinates are one concrete case | owner-directed common protocol; each public change pending review |
 | 5 | replace broad arbitrary writers with field-specific commits; any batch API accepts only approved schema fields | public removals and proposed batch signature pending review |
-| 6 | replace hidden-bond state with private selections; remove public hide/recover family only after review and consumer migration | private direction proposed; public removals pending |
+| 6 | complete ordered Bond collection with private operation-local exclusions; retire the eight documented hide/recover/clear-hidden methods after connected consumer migration, with no replacement public topology API | root adopted the documented target in [Stage7B entry](stages/stage07/constraints/entry_review.json); exact per-consumer contracts and dependent cutover remain pending |
 | 7 | user annotations separated from selected typed scientific results, no triple MCA storage | owner-directed consolidation; observable properties behavior pending review |
 | 8 | role-specific value/view/collection/result semantics; historical outputs stable, current attachments checked; lazy recomputation for declared pure groups, no implicit GPU/external work | detailed read/attachment/lifecycle changes pending review |
 | 9 | sole six-parameter Crystal, angstrom/degrees, characterize matrix convention, explicit export and placeholder removal | public additions/removals pending review |

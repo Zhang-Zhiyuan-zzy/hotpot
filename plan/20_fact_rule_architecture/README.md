@@ -1,13 +1,8 @@
 # Stage 20 — Fact-Carrier and Rule Architecture
 
-Status: implementation authorized on 2026-10-28; Stage0–6 owning-stage gates complete.
-C62 Stage6 records are delivered and remote-verified. Stage7A design is root accepted; exact bounded implementation and six-test/probe authoring are separately released. Candidate imports/runtime remain held until root integration and SOURCE_READY. Final scientific/global efficiency acceptance remains open. All public chemical
-types follow a common protocol for fact ownership, interface mapping,
-permissions, dependencies, buffer ownership and lifecycle. Atom's unified
-fact table is one concrete implementation. Stage2 completed the approved dead/placeholder implementation cleanup;
-production architecture extraction starts in Stage3. MetalCluster and its future Molecule association are registered as
-Plan21 design targets; other proposed public changes and unspecified cluster
-interface details remain subject to individual review.
+Status: implementation authorized on 2026-10-28; Stage0–6 owning-stage gates complete. Stage7A's external-object, adapter and Crystal extraction and applicable CP311 gates are now [complete](stages/stage07/external-adapters/completion_20261103.json), with bounded SDF resource/cost acceptance and explicit later obligations. Stage7B is IN_PROGRESS: its [constraint-owner slice is delivery-ready](stages/stage07/constraints/validation/report.md) after affected CP311 source/current-wheel validation and accepted bounded usable cost; hidden-topology consumer cutover remains pending. Known H/isotope/stereo work remains assigned to Stage7E; clean-native, version adaptation, scientific/global efficiency and full-plan acceptance remain open. [goal_v2.md](goal_v2.md) is review-only; [goal.md](goal.md) remains effective.
+
+All public chemical types follow a common protocol for fact ownership, interface mapping, permissions, dependencies, buffer ownership and lifecycle. Atom's unified fact table is one concrete implementation. MetalCluster runtime remains Plan21 scope. Existing historical checkpoints below retain their own source and evidence bounds.
 
 Implementation branch: `implement/plan20-fact-rule-architecture`
 

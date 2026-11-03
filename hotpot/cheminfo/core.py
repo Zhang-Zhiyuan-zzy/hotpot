@@ -34,9 +34,14 @@ from .structure._fields import (
     FIELD_CODECS as _ATOM_FIELD_CODECS, FACT_FIELDS as _ATOM_FACT_FIELDS,
     DERIVED_FIELDS as _ATOM_DERIVED_FIELDS,
     ATOM_SCALAR_READONLY as _ATOM_SCALAR_READONLY,
+    CONSTRAINT_FIELDS as _ATOM_CONSTRAINT_FIELDS,
 )
 from .structure._atom_table import _AtomFactTable
-from .structure.constraints import _ConstraintSet
+from .structure.constraints import (
+    _ConstraintSet, _EMPTY_ATOM_CELL, _atom_axis_value, _bond_constraint_value,
+    _bond_constraint_cell, _bond_raw_values, _split_atom_rows, _join_atom_rows,
+    _select_atom_values,
+)
 from .structure._identity import _capture_source, _hydrogen_install_inputs
 from .structure._mutation import _AtomFactUpdate, _normalize_atom_facts
 from .structure._commit import (
@@ -472,10 +477,11 @@ class Molecule:
                 angle_rows, torsion_rows = _constraint_rows
                 self._constraints = _ConstraintSet(
                     tuple(tuple(self._atoms[row]._uid for row in entry) for entry in angle_rows),
-                    tuple(tuple(self._atoms[row]._uid for row in entry) for entry in torsion_rows))
+                    tuple(tuple(self._atoms[row]._uid for row in entry) for entry in torsion_rows),
+                    self._constraints.atom_axes, self._constraints.bond_values)
             elif self._topology_index is not previous:
                 uids = {atom._uid for atom in self._atoms}
-                self._constraints = self._constraints.subset(uids)
+                _filter_constraint_members(self)
                 if any(first not in uids or second not in uids for first, second in self._pair_wiberg_bond_orders):
                     self._pair_wiberg_bond_orders = {
                         pair: value for pair, value in self._pair_wiberg_bond_orders.items()
@@ -495,7 +501,9 @@ class Molecule:
             source_row = atom.mol._topology_index.get(id(atom))
             table = atom._detached_table if source_row is None else atom.mol._atom_table
             row = 0 if source_row is None else source_row[0]
-            values, presence, sources = table.row(row), table.presence(row), table.sources(row)
+            values, presence, sources = _join_atom_rows(table, atom._constraint_values,
+                                                       (atom._uid,), rows=(row,))
+            values = values[0]
             statuses = table._group_status[row].copy()
             pending_groups = tuple(atom._uid in seeds for seeds in table._dirty_seeds)
             sparse = {name: deepcopy(atom.__dict__[name]) for name in ('isotope', 'frac_valence') if name in atom.__dict__}
@@ -564,6 +572,10 @@ class Molecule:
             kwargs['bond_order'] = bond_order
             bond = Bond(atom1, atom2, **kwargs)
             transaction.touch_bond_membership((atom1, atom2))
+            transaction.touch_bond(bond)
+            transaction.touch_constraint_value(self._constraints.bond_values, bond._uid)
+            self._constraints.bond_values[bond._uid] = bond._constraint_values[bond._uid]
+            object.__setattr__(bond, '_constraint_values', self._constraints.bond_values)
             self._bonds.append(bond)
             _mark_topology_dirty(self, (atom1._uid, atom2._uid))
 
@@ -628,6 +640,7 @@ class Molecule:
                 Bond._replace_atom(bond, original, replacement)
         self._topology_index = _build_topology_index(self._atoms, self._bonds,
                                                     self._hided_metal_bonds, self._hided_covalent_bonds)
+        _filter_constraint_members(self)
         self._replace_atom_transport(target_row, source_atom)
         return original
 
@@ -816,7 +829,8 @@ class Molecule:
                 atom.constraint = False
             for bond in self.bonds:
                 bond.constraint = False
-            self._constraints = _ConstraintSet()
+            self._constraints = _ConstraintSet(atom_axes=self._constraints.atom_axes,
+                                               bond_values=self._constraints.bond_values)
 
     def clear_metal_ligand_bonds(self) -> None:
         """
@@ -835,7 +849,10 @@ class Molecule:
                 (bond.a1idx, bond.a2idx)
                 for bond in self._hided_metal_bonds
             )
+            for bond in self._hided_metal_bonds:
+                _detach_bond(bond)
             self._hided_metal_bonds = []
+            _filter_constraint_members(self)
             self._remove_stereo_bond_rows(removed_bond_rows)
 
     def clear_hided_covalent_bonds(self) -> None:
@@ -844,7 +861,10 @@ class Molecule:
                 (bond.a1idx, bond.a2idx)
                 for bond in self._hided_covalent_bonds
             )
+            for bond in self._hided_covalent_bonds:
+                _detach_bond(bond)
             self._hided_covalent_bonds = []
+            _filter_constraint_members(self)
             self._remove_stereo_bond_rows(removed_bond_rows)
 
     def clear_hided_bonds(self) -> None:
@@ -852,8 +872,11 @@ class Molecule:
             removed_bond_rows = tuple(
                 (bond.a1idx, bond.a2idx) for bond in self._hided_bonds
             )
+            for bond in self._hided_bonds:
+                _detach_bond(bond)
             self._hided_metal_bonds = []
             self._hided_covalent_bonds = []
+            _filter_constraint_members(self)
             self._remove_stereo_bond_rows(removed_bond_rows)
 
     def restore_bonds(
@@ -1691,10 +1714,15 @@ class Molecule:
         self._atom_table = table
         self._atoms[:] = retained
         for name in ('_bonds', '_hided_metal_bonds', '_hided_covalent_bonds'):
-            getattr(self, name)[:] = [bond for bond in getattr(self, name)
-                                     if all(id(atom) not in removed for atom in bond.atoms)]
+            current = getattr(self, name)
+            for bond in current:
+                if any(id(atom) in removed for atom in bond.atoms):
+                    _detach_bond(bond)
+            current[:] = [bond for bond in current
+                          if all(id(atom) not in removed for atom in bond.atoms)]
         self._topology_index = _build_topology_index(self._atoms, self._bonds,
                                                     self._hided_metal_bonds, self._hided_covalent_bonds)
+        _filter_constraint_members(self)
         self._remap_stereo_after_atom_removal(source_atoms)
 
     def remove_atom(self, atom: Union[int, "Atom"]) -> None:
@@ -1767,7 +1795,9 @@ class Molecule:
         )
         _mark_topology_dirty(self, tuple(atom._uid for bond in bonds for atom in bond.atoms))
         for bond in bonds:
-            self._bonds.remove(bond)
+            row = self._bonds.index(bond)
+            _detach_bond(self._bonds[row])
+            self._bonds.pop(row)
         self._remove_stereo_bond_rows(removed_bond_rows)
         self._update_topology()
 
@@ -2176,12 +2206,15 @@ class Molecule:
                 memo = {id(self): self, **{id(atom): atom for atom in self._atoms},
                         **{id(bond): bond for _, bond in complete}}
                 metadata = deepcopy(metadata, memo)
+            atom_values, atom_presence, atom_sources = _join_atom_rows(
+                self._atom_table, self._constraints.atom_axes,
+                tuple(atom._uid for atom in atoms), rows=rows)
             record = _make_molecule_record(
-                atom_values=self._atom_table.select(_ATOM_FIELDS, rows=rows),
-                atom_presence=self._atom_table.presence(rows), atom_sources=self._atom_table.sources(rows),
+                atom_values=atom_values,
+                atom_presence=atom_presence, atom_sources=atom_sources,
                 atom_isotopes=tuple((row, atom.__dict__['isotope']) for row, atom in enumerate(atoms) if 'isotope' in atom.__dict__),
                 atom_frac_valences=tuple((row, atom.__dict__['frac_valence']) for row, atom in enumerate(atoms) if 'frac_valence' in atom.__dict__),
-                bond_endpoints=endpoints, bond_values=np.array([bond._attrs for _, bond in bonds], dtype=np.float64).reshape(-1, 3),
+                bond_endpoints=endpoints, bond_values=np.array([_raw_bond_values(bond) for _, bond in bonds], dtype=np.float64).reshape(-1, 3),
                 bond_partitions=tuple(partition for partition, _ in bonds),
                 bond_kinds=tuple(bond._bond_kind.value for _, bond in bonds),
                 bond_directions=tuple(bond._bond_direction for _, bond in bonds),
@@ -2223,15 +2256,18 @@ class Molecule:
             metadata = tuple(bond_metadata)
             if len(metadata) != len(record.bond_endpoints) or any(value != ('none',) for value in record.bond_metadata):
                 raise ValueError('Opaque Bond metadata must be complete and exclude record metadata')
-        table = _AtomFactTable(np.frombuffer(record.atom_values, dtype='<f8').reshape(record.atom_count, len(_ATOM_FIELDS)),
-                               presence=np.frombuffer(record.atom_presence, dtype='<u4'),
-                               sources=np.frombuffer(record.atom_sources, dtype='u1').reshape(record.atom_count, len(_ATOM_FIELDS)))
+        table_values, presence, sources, atom_cells = _split_atom_rows(
+            np.frombuffer(record.atom_values, dtype='<f8').reshape(record.atom_count, len(_ATOM_FIELDS)),
+            presence=np.frombuffer(record.atom_presence, dtype='<u4'),
+            sources=np.frombuffer(record.atom_sources, dtype='u1').reshape(record.atom_count, len(_ATOM_FIELDS)))
+        table = _AtomFactTable(table_values, presence=presence, sources=sources)
         first_atom, first_bond = self._next_atom_uid, self._next_bond_uid
         self._next_atom_uid += sum(atom is None for atom in atom_bindings)
         self._next_bond_uid += sum(bond is None for bond in bond_bindings)
         atom_uids = iter(range(first_atom, self._next_atom_uid))
         bond_uids = iter(range(first_bond, self._next_bond_uid))
-        atoms = tuple(_new_atom_handle(self, next(atom_uids)) if atom is None else atom for atom in atom_bindings)
+        atoms = tuple(_new_atom_handle(self, next(atom_uids), cell=cell) if atom is None else atom
+                      for atom, cell in zip(atom_bindings, atom_cells))
         pair_wiberg_bond_orders = {
             tuple(sorted((atoms[first]._uid, atoms[second]._uid))): value
             for first, second, value in record.pair_wiberg_bond_orders}
@@ -2264,17 +2300,31 @@ class Molecule:
         for atom in old_atoms:
             if id(atom) not in retained_ids:
                 _detach_atom(atom)
+        retained_bonds = {id(bond) for bond in bonds}
+        for bond in old_bonds:
+            if id(bond) not in retained_bonds:
+                _detach_bond(bond)
+        atom_axes = {atom._uid: cell for atom, cell in zip(atoms, atom_cells)}
+        bond_values = {bond._uid: bond._constraint_values[bond._uid] for bond in bonds}
         sparse_isotopes, sparse_valences = dict(record.atom_isotopes), dict(record.atom_frac_valences)
         transaction = _current_transaction(self)
         for row, atom in enumerate(atoms):
             if transaction is not None:
                 transaction.touch_sparse(atom)
+                if atom_bindings[row] is None:
+                    transaction.touch_constraint_binding(atom)
             atom.__dict__.pop('_detached_table', None)
+            object.__setattr__(atom, '_constraint_values', atom_axes)
             for name, sparse in (('isotope', sparse_isotopes), ('frac_valence', sparse_valences)):
                 if row in sparse:
                     atom.__dict__[name] = sparse[row]
                 else:
                     atom.__dict__.pop(name, None)
+        for bond, binding in zip(bonds, bond_bindings):
+            if transaction is not None and binding is None:
+                transaction.touch_bond(bond)
+            object.__setattr__(bond, '_constraint_values', bond_values)
+        self._constraints = _ConstraintSet(atom_axes=atom_axes, bond_values=bond_values)
         self._pair_wiberg_bond_orders = pair_wiberg_bond_orders
         self._atom_table = table
         self._atoms[:] = atoms
@@ -2367,7 +2417,9 @@ class MolBlock:
             if isinstance(self, Atom):
                 return _atom_numeric_value(self, item)
             with self.mol._mutation_lock:
-                return self._attrs_dict[item](self._attrs[self._attrs_enumerator.index(item)])
+                value = (_bond_constraint_value(self._constraint_values[self._uid]) if item == 'constraint'
+                         else self._attrs[0 if item == 'bond_order' else 1])
+                return self._attrs_dict[item](value)
         return object.__getattribute__(self, item)
 
     def __setattr__(self, key, value):
@@ -2545,11 +2597,16 @@ class Atom(MolBlock):
                     values[index] = bool(value)
                     presence |= 1 << index
                     sources[0, index] = _ATOM_SOURCE_CODES['explicit']
-            _initialize_atom_handle(self, owner, uid)
+            table_values, masks, codes, cells = _split_atom_rows(
+                values[None, :], presence=np.asarray([presence], dtype=np.uint32), sources=sources)
+            _initialize_atom_handle(self, owner, uid, cell=cells[0])
             transaction.touch_registration(self)
-            owner._atom_table._append_prepared(values[None, :], np.asarray([presence], dtype=np.uint32), sources)
+            owner._atom_table._append_prepared(table_values, masks, codes)
             owner._atoms.append(self)
             owner._topology_index[id(self)] = (row, ())
+            transaction.touch_constraint_value(owner._constraints.atom_axes, uid)
+            owner._constraints.atom_axes[uid] = cells[0]
+            object.__setattr__(self, '_constraint_values', owner._constraints.atom_axes)
             _seed(owner, GROUP_INDEX['FORMAL_CHARGE_COVERAGE'], (uid,))
 
     @property
@@ -2568,8 +2625,8 @@ class Atom(MolBlock):
                 return _restore_atom_member, (self.mol, record[0], self._uid)
             state = self._detached_table.__getstate__()
             extra = {key: value for key, value in self.__dict__.items()
-                     if key not in ('_mol', '_member_uid', '_uid_owner', '_detached_table')}
-            return _restore_detached_atom, (self.mol, self._uid, state), extra
+                     if key not in ('_mol', '_member_uid', '_uid_owner', '_detached_table', '_constraint_values')}
+            return _restore_detached_atom, (self.mol, self._uid, state, self._constraint_values[self._uid]), extra
 
     def __setstate__(self, state):
         self.__dict__.update(state)
@@ -3559,7 +3616,7 @@ def _bond_order_setter(self: 'Bond', key, bond_order):
         kind = (_bond_kind_from_order(bond_order) if current_kind in {
             BondKind.SINGLE, BondKind.DOUBLE, BondKind.TRIPLE, BondKind.AROMATIC, BondKind.UNKNOWN,
         } else current_kind)
-        values = self._attrs.copy()
+        values = _raw_bond_values(self)
         values[0] = float(bond_order)
         _commit_bond_facts(self.mol, self, _capture_source(self.mol), raw_values=values,
             kind=kind, direction=self._bond_direction, source_namespace=self._bond_source,
@@ -3620,7 +3677,7 @@ class Bond(AtomSeq, MolBlock):
     @property
     def attrs(self):
         with self.mol._mutation_lock:
-            return self._attrs.copy()
+            return _raw_bond_values(self)
 
     @property
     def atom1(self) -> Atom:
@@ -3649,8 +3706,8 @@ class Bond(AtomSeq, MolBlock):
             if row is not None:
                 return _restore_bond_member, (self.mol, row, self._uid)
             state = {key: value for key, value in self.__dict__.items()
-                     if key not in ('_atoms', '_member_uid', '_uid_owner', '_attrs')}
-            return _restore_unregistered_bond, (self.mol, self._uid, self.atom1, self.atom2, self._attrs.copy()), state
+                     if key not in ('_atoms', '_member_uid', '_uid_owner', '_attrs', '_constraint_values')}
+            return _restore_unregistered_bond, (self.mol, self._uid, self.atom1, self.atom2, _raw_bond_values(self)), state
 
     def __setstate__(self, state):
         self.__dict__.update(state)
@@ -3658,7 +3715,7 @@ class Bond(AtomSeq, MolBlock):
     def _set_bond_metadata(self, *, bond_kind, bond_direction=None, bond_source=None,
                            bond_source_metadata=None):
         metadata = deepcopy(bond_source_metadata or {})
-        _commit_bond_facts(self.mol, self, _capture_source(self.mol), raw_values=self._attrs.copy(),
+        _commit_bond_facts(self.mol, self, _capture_source(self.mol), raw_values=_raw_bond_values(self),
             kind=_coerce_bond_kind(bond_kind, self.bond_order), direction=bond_direction,
             source_namespace=bond_source, metadata=metadata)
 
@@ -4526,6 +4583,9 @@ def _selected_atom_rows(mol, atoms, *, public=False):
 
 def _atom_numeric_value(atom, field):
     with atom.mol._mutation_lock:
+        if field in _ATOM_CONSTRAINT_FIELDS:
+            return _ATOM_FIELD_CODECS[field](_atom_axis_value(atom._constraint_values[atom._uid],
+                                                            _ATOM_FIELD_INDEX[field] - 16))
         record = atom.mol._topology_index.get(id(atom))
         table, row = (atom._detached_table, 0) if record is None else (atom.mol._atom_table, record[0])
         return _ATOM_FIELD_CODECS[field](table.raw_index(row, _ATOM_FIELD_INDEX[field]))
@@ -4556,37 +4616,66 @@ def _store_atom_fields(atom, columns, *, producer=None):
     engine._commit_atom_fields(atom, columns, producer=producer)
 
 
+def _raw_bond_values(bond):
+    return _bond_raw_values(bond._attrs, bond._constraint_values[bond._uid])
+
+
+def _bind_constraint_members(mol):
+    for atom in mol._atoms:
+        object.__setattr__(atom, '_constraint_values', mol._constraints.atom_axes)
+    for bond in mol._bonds + mol._hided_bonds:
+        object.__setattr__(bond, '_constraint_values', mol._constraints.bond_values)
+
+
+def _filter_constraint_members(mol):
+    atoms = {atom._uid for atom in mol._atoms}
+    bonds = {bond._uid for bond in mol._bonds + mol._hided_bonds}
+    if mol._constraints.atom_axes.keys() == atoms and mol._constraints.bond_values.keys() == bonds:
+        return
+    mol._constraints = mol._constraints.subset(atoms, bonds)
+    _bind_constraint_members(mol)
+
+
+def _detach_bond(bond):
+    object.__setattr__(bond, '_constraint_values', {bond._uid: bond._constraint_values[bond._uid]})
+
+
 def _store_bond_field(bond, field, value):
     with _FactTransaction(bond.mol, producer=_ATOM_SOURCE_CODES['explicit']):
-        values = bond._attrs.copy()
+        values = _raw_bond_values(bond)
         values[bond._attrs_enumerator.index(field)] = float(value)
         _commit_bond_facts(bond.mol, bond, _capture_source(bond.mol), raw_values=values,
             kind=bond._bond_kind, direction=bond._bond_direction,
             source_namespace=bond._bond_source, metadata=bond._bond_source_metadata)
 
 
-def _initialize_atom_handle(atom, mol, uid):
+def _initialize_atom_handle(atom, mol, uid, *, cell=_EMPTY_ATOM_CELL):
     object.__setattr__(atom, '_mol', mol)
     object.__setattr__(atom, '_member_uid', uid)
     object.__setattr__(atom, '_uid_owner', mol._owner_token)
+    object.__setattr__(atom, '_constraint_values', {uid: cell})
 
 
-def _new_atom_handle(mol, uid):
+def _new_atom_handle(mol, uid, *, cell=_EMPTY_ATOM_CELL):
     atom = object.__new__(Atom)
-    _initialize_atom_handle(atom, mol, uid)
+    _initialize_atom_handle(atom, mol, uid, cell=cell)
     return atom
 
 
 def _import_atom_row(mol, values, *, presence=None, sources=None):
     """Install one supplied factual row through the private import boundary."""
     values = np.asarray(values, dtype=np.float64)
-    prepared = _AtomFactTable(values[None, :], presence=presence, sources=sources)
+    table_values, masks, codes, cells = _split_atom_rows(values[None, :], presence=presence, sources=sources)
+    prepared = _AtomFactTable(table_values, presence=masks, sources=codes)
     with _FactTransaction(mol, producer=_ATOM_SOURCE_CODES['legacy_array']) as transaction:
-        atom = _new_atom_handle(mol, mol._allocate_atom_uid())
+        atom = _new_atom_handle(mol, mol._allocate_atom_uid(), cell=cells[0])
         transaction.touch_registration(atom)
         row = mol._atom_table._append_prepared(prepared.matrix(), prepared.presence(), prepared.sources())
         mol._atoms.append(atom)
         mol._topology_index[id(atom)] = (row, ())
+        transaction.touch_constraint_value(mol._constraints.atom_axes, atom._uid)
+        mol._constraints.atom_axes[atom._uid] = cells[0]
+        object.__setattr__(atom, '_constraint_values', mol._constraints.atom_axes)
         _mark_topology_dirty(mol, (atom._uid,))
         return atom
 
@@ -4595,7 +4684,7 @@ def _detached_atom_projection(atom):
     from .rules.chemistry.elements import _electron_configuration
     from .operations.chemistry import _atom_valence, _hydrogen_display_value
     table = atom._detached_table
-    values = table.row(0)
+    values = _select_atom_values(table, atom._constraint_values, (atom._uid,))[0]
     values[1:7] = _electron_configuration(atom.atomic_number)
     values[13] = _atom_valence(atom)
     field = _ATOM_FIELD_INDEX['implicit_hydrogens']
@@ -4614,7 +4703,9 @@ def _initialize_bond_handle(bond, mol, uid, atom1, atom2, raw_values, *, kind,
     object.__setattr__(bond, '_bonds', [bond])
     object.__setattr__(bond, '_member_uid', uid)
     object.__setattr__(bond, '_uid_owner', mol._owner_token)
-    object.__setattr__(bond, '_attrs', np.array(raw_values, dtype=np.float64, copy=True))
+    raw_values = np.asarray(raw_values, dtype=np.float64)
+    object.__setattr__(bond, '_attrs', raw_values[[0, 2]])
+    object.__setattr__(bond, '_constraint_values', {uid: _bond_constraint_cell(raw_values[1])})
     object.__setattr__(bond, '_bond_kind', BondKind(kind))
     object.__setattr__(bond, '_bond_direction', direction)
     object.__setattr__(bond, '_bond_source', source_namespace)
@@ -4699,14 +4790,7 @@ def _detach_atom(atom):
         table._group_status[0, GROUP_INDEX['IMPLICIT_H']] = _FactStatus.NEEDS_RECALC
     table._dirty_seeds = tuple({atom._uid}.intersection(seeds) for seeds in table._dirty_seeds)
     object.__setattr__(atom, '_detached_table', _seal_detached_table(table))
-
-
-
-
-
-
-
-
+    object.__setattr__(atom, '_constraint_values', {atom._uid: atom._constraint_values[atom._uid]})
 
 
 def _capture_molecule_pickle(mol):
@@ -4723,11 +4807,11 @@ def _capture_molecule_pickle(mol):
         graph_memo = {id(mol): mol, **{id(atom): atom for atom in mol._atoms},
                       **{id(bond): bond for bond in bonds}}
         atom_state = tuple({key: value for key, value in atom.__dict__.items()
-                            if key not in ('_mol', '_member_uid', '_uid_owner', '_detached_table', 'isotope', 'frac_valence')}
+                            if key not in ('_mol', '_member_uid', '_uid_owner', '_detached_table', '_constraint_values', 'isotope', 'frac_valence')}
                            for atom in mol._atoms)
         bond_state = tuple({key: value for key, value in bond.__dict__.items()
                             if key not in ('_atoms', '_bonds', '_member_uid', '_uid_owner', '_attrs',
-                                           '_bond_kind', '_bond_direction', '_bond_source', '_bond_source_metadata', '_is_aromatic')}
+                                           '_bond_kind', '_bond_direction', '_bond_source', '_bond_source_metadata', '_is_aromatic', '_constraint_values')}
                            for bond in bonds)
         extra = (state, metadata, atom_state, bond_state, mol._capture_frame_state(), None)
         return (record, mol._owner_token, tuple(atom._uid for atom in mol._atoms),
@@ -4739,13 +4823,18 @@ def _restore_molecule_raw(cls, record, owner, atom_uids, bond_uids, high_water, 
     mol = cls()
     mol._owner_token = owner
     mol._install_factual_record(record, dependency_state=dependencies)
+    bonds = tuple(mol._bonds + mol._hided_bonds)
+    atom_cells = tuple(atom._constraint_values[atom._uid] for atom in mol._atoms)
+    bond_cells = tuple(bond._constraint_values[bond._uid] for bond in bonds)
     for atom, uid in zip(mol._atoms, atom_uids):
         object.__setattr__(atom, '_member_uid', uid)
-    for bond, uid in zip(mol._bonds + mol._hided_bonds, bond_uids):
+    for bond, uid in zip(bonds, bond_uids):
         object.__setattr__(bond, '_member_uid', uid)
     mol._constraints = _ConstraintSet(
         tuple(tuple(atom_uids[row] for row in entry) for entry in record.angle_constraints),
-        tuple(tuple(atom_uids[row] for row in entry) for entry in record.torsion_constraints))
+        tuple(tuple(atom_uids[row] for row in entry) for entry in record.torsion_constraints),
+        dict(zip(atom_uids, atom_cells)), dict(zip(bond_uids, bond_cells)))
+    _bind_constraint_members(mol)
     mol._pair_wiberg_bond_orders = {
         tuple(sorted((atom_uids[first], atom_uids[second]))): value
         for first, second, value in record.pair_wiberg_bond_orders}
@@ -4785,8 +4874,8 @@ def _bond_member_at(mol, row):
     return None
 
 
-def _restore_detached_atom(mol, uid, state):
-    atom = _new_atom_handle(mol, uid)
+def _restore_detached_atom(mol, uid, state, cell):
+    atom = _new_atom_handle(mol, uid, cell=cell)
     table = object.__new__(_AtomFactTable)
     table.__setstate__(state)
     object.__setattr__(atom, '_detached_table', _seal_detached_table(table))
@@ -4814,6 +4903,8 @@ def _numeric_property(field):
             return _implicit_hydrogen_read(atom)
         mol = atom._mol
         with mol._mutation_lock:
+            if field in _ATOM_CONSTRAINT_FIELDS:
+                return codec(_atom_axis_value(atom._constraint_values[atom._uid], index - 16))
             record = mol._topology_index.get(id(atom))
             if record is None:
                 return codec(atom._detached_table._columns[index][0])

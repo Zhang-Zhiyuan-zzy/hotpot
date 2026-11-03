@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7B",
+  "owner": "root",
+  "recorded_utc": "2026-11-03T04:23:48.535890+00:00",
+  "source_commit": "48780a669c9b1ca5b0e6c2cadf63365579ad3ccf",
+  "status": "CONSTRAINT_SLICE_DELIVERY_READY_STAGE7B_IN_PROGRESS",
+  "predecessor_acceptance": "stages/stage07/external-adapters/completion_20261103.json",
+  "stage_entry": true,
+  "design_authorized": true,
+  "implementation_authorized": true,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "alignment": "Root adopts Sol-max full normative/main-plan alignment and current-source route, reviewed against effective goal, actual repository/consumer findings, completed source/installed baseline, resource decision and assigned later gates. No goal_v2 activation.",
+  "bounded_objective": "Unify remaining Atom-axis and Bond constraint truth into existing Molecule-owned _ConstraintSet while preserving Angle/Torsion ownership, all current public setters,19-column Atom/3-slot Bond projections and scientific behavior.",
+  "preentry_rebind": {
+    "archive": ".plan20-artifacts/20261103/stage7b/preentry-baseline/",
+    "report": "/tmp/hotpot_plan20/long/stage7b-preentry-baseline-20261103/report.md",
+    "source_passed": 185,
+    "installed_passed": 185,
+    "same_testcase_identities": true,
+    "source_unchanged": true,
+    "actual_modules_each": 142,
+    "current_production_python_files_matching_wheel": 455,
+    "clean_native_or_ABI_claim": false
+  },
+  "current_source_findings": [
+    "Atom constraints remain x/y/z fields in the sole table, Bond.constraint is zero-based _attrs slot1; existing _ConstraintSet owns Angle/Torsion UID tuples.",
+    "Dormant _commit_constraints(bond_entries=...) wrongly writes slot2/id; no production caller was found. Correct/delete it within the connected migration.",
+    "Private fact commits are storage; current FF paths do not consume these carrier constraints as physical restraints. RDKit explicit embedding constraints are a distinct contract.",
+    "Hidden collections and five internal consumer domains remain; they must be migrated coherently in a subsequent Stage7B partition. Existing active-only clear scope remains until exact topology cutover."
+  ],
+  "public_interface_policy": "No new public selector/type/exception/flag/return, restraint algorithm or AtomPairs rename. Detailed public changes wait at their dependent cutover; zero newclass/dataclass/protocol/enum budget.",
+  "decision6_root_adoption": {
+    "decision": "Adopt the already planned complete ordered Bond collection and private operation-local exclusions, with connected consumer migration before removal.",
+    "retire_at_connected_cutover": [
+      "hide_bonds",
+      "hide_metal_ligand_bonds",
+      "restore_bonds",
+      "recover_hided_metal_ligand_bonds",
+      "recover_hided_covalent_bonds",
+      "clear_metal_ligand_bonds",
+      "clear_hided_covalent_bonds",
+      "clear_hided_bonds"
+    ],
+    "conditions": [
+      "Freeze exact each-consumer mask chemistry, full/default projection, order, owner/UID/stale-source handling, native publication and old/current transport before source cutover.",
+      "Use existing explicit remove operations for permanent topology changes; no no-op public aliases or replacement public topology API.",
+      "At completed full-Bond cutover clear_constraints covers the current complete represented Bond collection; until then preserve the characterized active-only scope.",
+      "This constraint-only entry does not delete or silently change the current hide/recover methods."
+    ]
+  },
+  "authoring_gate": "Satisfied by accepted concrete design and implementation_release.json; completed slice acceptance is recorded in validation/checkpoint_20261103.json. Hidden-topology cutover retains its dependent gates.",
+  "validation_direction": "Meaningful affected CP311 source and installed constraint/source/builder/UID/lifecycle/rollback tests, actual rebuilt extension if changed, scalar/batch usable cost; preserve unrelated passed evidence. Final remaining versions/build/science/global obligations remain open.",
+  "implementation_release": "implementation_release.json",
+  "current_checkpoint": "validation/checkpoint_20261103.json",
+  "constraint_slice_delivery_ready": true,
+  "stage_status": "IN_PROGRESS",
+  "current_source_findings_scope": "Preserved pre-entry observations; remaining Atom/Bond owners and dormant helper are superseded by the completed constraint checkpoint. Hidden-topology observations remain current."
+}

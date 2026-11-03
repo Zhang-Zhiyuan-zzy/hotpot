@@ -252,3 +252,67 @@ def test_commit_restores_write_that_raises_after_mutation(batch, target):
     after = _dependency_state(table)
     np.testing.assert_array_equal(after[0], before[3][0])
     assert after[1] == before[3][1]
+
+
+@pytest.mark.parametrize('edit', ['remove', 'replace', 'install', 'hidden-clear'])
+def test_mixed_constraint_native_registration_and_owner_replacement_restore_exact_bindings(edit):
+    from tests.test_cheminfo._stage5_fixtures import factual_state
+    from tests.test_cheminfo.structure.test_constraints import molecule
+    from hotpot.cheminfo.structure._mutation import _normalize_atom_fields
+
+    mol = molecule()
+    atoms, bonds = tuple(mol.atoms), tuple(mol.bonds)
+    angle, torsion = mol.angles[0], mol.torsions[0]
+    angle.constraint = True
+    owner = mol._constraints
+    axes, bond_values = owner.atom_axes, owner.bond_values
+    old_axes, old_bonds = dict(axes), dict(bond_values)
+    before = factual_state(mol)
+    status, seeds = _dependency_state(mol._atom_table)
+    source = _capture_source(mol, ('constraints', 'geometry', 'topology', 'representation'))
+    record, metadata = mol._capture_factual_record()
+    incoming = Atom(atomic_number=7, x_constraint=True)
+    candidate = _normalize_atom_fields(_capture_source(mol), (0,), (atoms[0]._uid,),
+                                       {'x_constraint': -0.0, 'formal_charge': -2.5})
+    original = MemoryError('after mixed native/Python lifecycle publication')
+    with pytest.raises(MemoryError) as caught:
+        with _FactTransaction(mol, producer=ATOM_SOURCE_CODES['xtb']):
+            _commit_atom_facts(mol, candidate)
+            bonds[0].constraint = True
+            bonds[0].id = 87
+            angle.constraint = False
+            torsion.constraint = True
+            added = mol.create_atom(atomic_number=6, x_constraint=True, id=99)
+            added.z_constraint = True
+            added_bond = mol.add_bond(atoms[-1], added, constraint=True, id=98)
+            added_bond.constraint = False
+            if edit == 'remove':
+                mol.remove_atom(atoms[1])
+            elif edit == 'replace':
+                mol._replace_atom(1, incoming)
+            elif edit == 'install':
+                mol._install_molecule(record, bond_metadata=metadata)
+            elif edit == 'hidden-clear':
+                mol.hide_bonds(bonds[1])
+                mol.clear_hided_covalent_bonds()
+            mol.atoms[0].constraint = True
+            mol.bonds[-1].constraint = False
+            raise original
+    assert caught.value is original
+    assert factual_state(mol) == before
+    assert mol._constraints is owner
+    assert owner.atom_axes is axes and owner.bond_values is bond_values
+    assert set(axes) == set(old_axes) and set(bond_values) == set(old_bonds)
+    assert all(axes[uid] is cell for uid, cell in old_axes.items())
+    assert all(bond_values[uid] is cell for uid, cell in old_bonds.items())
+    assert all(atom._constraint_values is axes for atom in atoms)
+    assert all(bond._constraint_values is bond_values for bond in bonds)
+    assert tuple(mol.atoms) == atoms and tuple(mol.bonds) == bonds
+    assert added._uid not in axes and added_bond._uid not in bond_values
+    assert added._constraint_values is not axes and set(added._constraint_values) == {added._uid}
+    assert added_bond._constraint_values is not bond_values
+    assert angle.constraint and not torsion.constraint
+    actual_status, actual_seeds = _dependency_state(mol._atom_table)
+    np.testing.assert_array_equal(actual_status, status)
+    assert actual_seeds == seeds
+    _check_source(mol, source)

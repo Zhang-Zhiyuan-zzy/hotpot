@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "stage": "Stage7A",
+  "owner": "root",
+  "recorded_utc": "2026-11-03T04:23:48.535890+00:00",
+  "source_commit": "48780a669c9b1ca5b0e6c2cadf63365579ad3ccf",
+  "status": "COMPLETE_OWNING_EXTRACTION_AND_APPLICABLE_CP311_GATES",
+  "stage_gate_closed": true,
+  "global_gate_closed": false,
+  "accepted_scope": [
+    "One fresh operation-owned external conversion per task; no carrier OBMol/row cache.",
+    "Conversion, I/O, thermo and visualization extraction; sole six-parameter Crystal owner and characterized matrix/transport behavior.",
+    "Current affected CP311 I/O, real core workflows, mixed official xTB continuation and MCA domain-containment repairs with stated source/installed boundaries.",
+    "Current complete-SDF bounded native allocation sufficiency and usable repeated-workflow cost."
+  ],
+  "resource_disposition": "stages/stage07/external-adapters/validation/sdf_resources_20261103.json",
+  "historical_applicability": "Historical full own-version/source/wheel/native/default/coverage selections retain their actual snapshots and qualify unchanged owners only. Current CP311 repair evidence covers changed I/O/MCA boundaries; no whole-current full-suite/all-version pass is fabricated.",
+  "current_rebind": {
+    "report": "cp311_core_workflow_validation_20261103.md",
+    "baseline_archive": ".plan20-artifacts/20261103/stage7b/preentry-baseline/",
+    "selected_test_files": 9,
+    "source": {
+      "passed": 185,
+      "failed": 0,
+      "skipped": 0
+    },
+    "installed": {
+      "passed": 185,
+      "failed": 0,
+      "skipped": 0
+    },
+    "actual_modules_each": 142,
+    "matching_product_python_files": 455,
+    "matching_packaged_tracked_files": 799,
+    "matching_reused_cp311_native_artifacts": 6,
+    "actually_loaded_native_extensions_each": 4,
+    "omitted_non_python_tracked_files": 41,
+    "cold_import_matrix_claim": false
+  },
+  "retained_limits": [
+    "Known H loss/duplication, stale H projections and isotope/stereo import/source transport remain mandatory connected Stage7E work. Its H/public/model/storage proposal is not approved.",
+    "All known original failures, six historical adverse SDF intervals and allocation findings retain their observations; usable-cost adoption is not parity/improvement or final performance acceptance.",
+    "No universal leak theorem or general native-destructor/other-domain memory acceptance.",
+    "Later version adaptation, clean native/ABI/SDK/sdist, GPU/external where required, broad scientific validation, global performance and Stage0-12/B_exp-before13 remain open.",
+    "Installed CP311 evidence reuses native extensions and existing dependency packages;41 non-Python packaging omissions stay explicit for Stage10/delivery."
+  ],
+  "next_stage": "Stage7B",
+  "next_stage_scope": "Remaining constraints first, then connected operation-local topology selection migration. Stage7E is not a predecessor toStage7B.",
+  "aligned_design_note": ".plan20-artifacts/20261103/stage7a-transition/stage7a_to_stage7b_route.md",
+  "goal_v2_activated": false
+}

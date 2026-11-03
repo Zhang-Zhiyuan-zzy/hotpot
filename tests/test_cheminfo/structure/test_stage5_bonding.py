@@ -350,7 +350,7 @@ def test_working_source_identity_covers_independent_bond_aromatic_flags():
     mol.determine_rings_aromatic()
     source = _capture_source(mol, ('forcefield_inputs',))
     bond = mol.bonds[0]
-    _commit_bond_facts(mol, bond, _capture_source(mol), raw_values=bond._attrs,
+    _commit_bond_facts(mol, bond, _capture_source(mol), raw_values=bond.attrs,
         kind=bond.bond_kind, direction=bond.bond_direction, source_namespace=bond.bond_source,
         metadata=bond.bond_source_metadata, aromatic=False)
     with pytest.raises(RuntimeError, match='forcefield_inputs'):

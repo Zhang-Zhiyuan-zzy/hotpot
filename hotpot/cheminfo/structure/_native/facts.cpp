@@ -26,7 +26,7 @@ namespace py = pybind11;
 
 namespace {
 
-enum class Name { Parent, Owner, Uid, UidOwner, Atoms, Topology, Table, Size, Columns, Sources, Presence, Status, Seeds, Lock, TransactionMol, Producer, Cells, Failed, Source, Rows, Uids, Fields, Values, Present, Producers, SourceOwner, Acquire, Release, Dependencies, Count };
+enum class Name { Parent, Owner, Uid, UidOwner, Atoms, Topology, Table, Size, Columns, Sources, Presence, Status, Seeds, Lock, TransactionMol, Producer, Cells, Failed, Source, Rows, Uids, Fields, Values, Present, Producers, SourceOwner, Acquire, Release, Dependencies, Constraints, AtomAxes, ConstraintValues, Count };
 
 // Only immutable declarations and Python code/type bindings live beyond a call.
 struct Field {
@@ -35,6 +35,7 @@ struct Field {
     std::vector<int> affected;
     bool derived = false;
     int materialized = -1;
+    int constraint = -1;
     std::uint64_t affected_mask = 0, materialized_mask = 0;
 };
 
@@ -47,7 +48,8 @@ struct Configuration {
     std::array<py::object, static_cast<std::size_t>(Name::Count)> table_descriptors;
     std::array<Py_ssize_t, static_cast<std::size_t>(Name::Count)> table_offsets;
     std::vector<Field> fields;
-    std::vector<int> coordinate_fields;
+    std::vector<int> coordinate_fields, constraint_fields;
+    int table_width = 0;
     int element_field = -1;
     int groups = 0;
     int explicit_source = 1;
@@ -399,11 +401,20 @@ struct Undo {
     SmallArray<Presence, 1> presence;
     SmallArray<Status, 4> statuses;
     SmallArray<SeedAction, 8> seeds;
+    py::object constraint_owner;
+    SmallArray<py::object, 1> constraint_keys, constraint_before, constraint_after;
+    std::size_t constraint_applied = 0;
     bool restored = false;
 
     void restore() noexcept {
         if (restored) return;
         for (std::size_t i = seeds.size; i-- > 0;) seeds[i].restore();
+        for (std::size_t i = constraint_applied; i-- > 0;) {
+            // Preparation retains exact builtin keys/bytes. Lifecycle changes
+            // retain these old map keys, so replacement allocates no bucket.
+            (void) PyDict_SetItem(constraint_owner.ptr(), constraint_keys[i].ptr(), constraint_before[i].ptr());
+        }
+        constraint_applied = 0;
         for (std::size_t i = 0; i < cells.size; ++i) {
             auto &cell = cells[i];
             std::memcpy(cell.value, &cell.before, sizeof(cell.before));
@@ -431,6 +442,16 @@ struct Undo {
         for (std::size_t i = 0; i < presence.size; ++i) {
             auto &entry = presence[i];
             std::memcpy(entry.target, &entry.after, sizeof(entry.after));
+            fault.after("presence");
+        }
+        for (std::size_t i = 0; i < constraint_keys.size; ++i) {
+            if (PyDict_SetItem(constraint_owner.ptr(), constraint_keys[i].ptr(), constraint_after[i].ptr()) < 0)
+                python_error();
+            ++constraint_applied;
+            // A cell publishes raw value, source and presence together. Each
+            // existing interruption boundary observes that same publication.
+            fault.after("value");
+            fault.after("source");
             fault.after("presence");
         }
         for (std::size_t i = 0; i < statuses.size; ++i) {
@@ -513,47 +534,109 @@ void check_rows(py::handle mol, const Selection &selection, py::handle expected 
 
 template <class Rows, class Columns>
 void prepare_undo(Undo &undo, py::handle table, const Rows &rows,
-                  const Columns &columns, py::handle uids, bool dependencies) {
-    undo.owners[0] = get(table, Name::Columns);
-    undo.owners[1] = get(table, Name::Sources);
-    undo.owners[2] = get(table, Name::Presence);
-    auto sources = array(undo.owners[1], 'u', 1, 2, true);
-    auto presence = array(undo.owners[2], 'u', 4, 1, true);
+                  const Columns &columns, py::handle uids, bool dependencies,
+                  py::handle mol) {
     Py_ssize_t logical = integer(get(table, Name::Size));
-    if (sources.shape(0) < logical || sources.shape(1) != static_cast<Py_ssize_t>(config->fields.size())
-        || presence.shape(0) < logical)
-        throw py::value_error("Atom metadata storage is not aligned");
     for (auto row : rows)
         if (row < 0 || row >= logical) throw py::index_error("Atom row is outside the current table");
-    undo.presence.resize(rows.size());
-    for (std::size_t r = 0; r < rows.size(); ++r) {
-        auto &p = undo.presence[r];
-        p.target = address(presence, rows[r]);
-        std::memcpy(&p.before, p.target, sizeof(p.before));
-        p.after = p.before;
+    std::size_t numeric_count = 0, constraint_count = 0;
+    for (const auto &column : columns) {
+        require_stored_field(column.index);
+        if (config->fields[column.index].constraint >= 0) ++constraint_count;
+        else ++numeric_count;
     }
-    undo.cells.resize(rows.size() * columns.size());
+    if (numeric_count) {
+        undo.owners[0] = get(table, Name::Columns);
+        undo.owners[1] = get(table, Name::Sources);
+        undo.owners[2] = get(table, Name::Presence);
+        auto sources = array(undo.owners[1], 'u', 1, 2, true);
+        auto presence = array(undo.owners[2], 'u', 4, 1, true);
+        if (!PyTuple_CheckExact(undo.owners[0].ptr())
+            || PyTuple_GET_SIZE(undo.owners[0].ptr()) != config->table_width
+            || sources.shape(0) < logical || sources.shape(1) != config->table_width
+            || presence.shape(0) < logical)
+            throw py::value_error("Atom metadata storage is not aligned");
+        undo.presence.resize(rows.size());
+        for (std::size_t r = 0; r < rows.size(); ++r) {
+            auto &p = undo.presence[r];
+            p.target = address(presence, rows[r]);
+            std::memcpy(&p.before, p.target, sizeof(p.before));
+            p.after = p.before;
+        }
+    }
+    const std::size_t axis_count = config->constraint_fields.size();
+    const std::size_t mask_offset = axis_count * sizeof(double);
+    const std::size_t source_offset = mask_offset + 1;
+    const std::size_t cell_size = source_offset + axis_count;
+    if (constraint_count) {
+        if (!mol) throw py::attribute_error("Atom constraint fields require the molecular constraint owner");
+        py::object md = dictionary(mol);
+        undo.constraint_owner = get(item(md, Name::Constraints), Name::AtomAxes);
+        if (!PyDict_CheckExact(undo.constraint_owner.ptr()))
+            throw py::type_error("Atom constraints require a builtin UID dictionary");
+        py::handle atoms = item(md, Name::Atoms);
+        undo.constraint_keys.resize(rows.size());
+        undo.constraint_before.resize(rows.size());
+        undo.constraint_after.resize(rows.size());
+        for (std::size_t r = 0; r < rows.size(); ++r) {
+            py::handle uid = PyTuple_Check(uids.ptr()) ? PyTuple_GET_ITEM(uids.ptr(), r) : uids.ptr();
+            if (!PyLong_CheckExact(uid.ptr())) throw py::type_error("Atom constraints require builtin integer UIDs");
+            py::object ad = dictionary(py::handle(PyList_GET_ITEM(atoms.ptr(), rows[r])));
+            if (!item(ad, Name::ConstraintValues).is(undo.constraint_owner)
+                || !PyLong_CheckExact(item(ad, Name::Uid).ptr()) || !equal(item(ad, Name::Uid), uid))
+                throw py::value_error("Atom constraint owner or UID is no longer current");
+            PyObject *before = PyDict_GetItemWithError(undo.constraint_owner.ptr(), uid.ptr());
+            if (!before) {
+                if (!PyErr_Occurred()) PyErr_SetObject(PyExc_KeyError, uid.ptr());
+                python_error();
+            }
+            if (!PyBytes_CheckExact(before) || PyBytes_GET_SIZE(before) != static_cast<Py_ssize_t>(cell_size))
+                throw py::value_error("Atom constraint cell is not aligned");
+            undo.constraint_keys[r] = py::reinterpret_borrow<py::object>(uid);
+            undo.constraint_before[r] = py::reinterpret_borrow<py::object>(before);
+            undo.constraint_after[r] = py::reinterpret_steal<py::object>(
+                PyBytes_FromStringAndSize(PyBytes_AS_STRING(before), cell_size));
+            if (!undo.constraint_after[r]) python_error();
+        }
+    }
+    undo.cells.resize(rows.size() * numeric_count);
+    std::size_t numeric_index = 0;
     std::uint64_t affected = 0, materialized = 0;
     for (std::size_t f = 0; f < columns.size(); ++f) {
         const auto &column = columns[f];
-        require_stored_field(column.index);
         const auto &field = config->fields[column.index];
-        auto values = array(PyTuple_GET_ITEM(undo.owners[0].ptr(), column.index), 'f', 8, 1, true);
-        if (values.shape(0) < logical) throw py::value_error("Atom value storage is not aligned");
         if (!column.immediate && PyBytes_GET_SIZE(column.values.ptr()) != static_cast<Py_ssize_t>(rows.size() * sizeof(double)))
             throw py::value_error("Atom update bytes must align with selected rows");
         const char *input = column.immediate ? reinterpret_cast<const char *>(&column.immediate_bits)
                                             : PyBytes_AS_STRING(column.values.ptr());
-        for (std::size_t r = 0; r < rows.size(); ++r) {
-            auto &cell = undo.cells[f * rows.size() + r];
-            cell.value = address(values, rows[r]);
-            cell.source = address(sources, rows[r], column.index);
-            std::memcpy(&cell.before, cell.value, sizeof(cell.before));
-            std::memcpy(&cell.after, input + r * sizeof(double), sizeof(cell.after));
-            std::memcpy(&cell.old_source, cell.source, sizeof(cell.old_source));
-            cell.new_source = static_cast<std::uint8_t>(column.producer);
-            auto &p = undo.presence[r];
-            p.after = column.present ? p.after | field.presence : p.after & ~field.presence;
+        if (field.constraint >= 0) {
+            const std::size_t axis = static_cast<std::size_t>(field.constraint);
+            for (std::size_t r = 0; r < rows.size(); ++r) {
+                auto *output = reinterpret_cast<std::uint8_t *>(PyBytes_AS_STRING(undo.constraint_after[r].ptr()));
+                std::uint64_t bits;
+                std::memcpy(&bits, input + r * sizeof(double), sizeof(bits));
+                for (std::size_t byte = 0; byte < sizeof(bits); ++byte)
+                    output[axis * sizeof(double) + byte] = static_cast<std::uint8_t>(bits >> (byte * 8));
+                std::uint8_t mask = static_cast<std::uint8_t>(1u << axis);
+                output[mask_offset] = column.present ? output[mask_offset] | mask : output[mask_offset] & ~mask;
+                output[source_offset + axis] = static_cast<std::uint8_t>(column.producer);
+            }
+        } else {
+            auto values = array(PyTuple_GET_ITEM(undo.owners[0].ptr(), column.index), 'f', 8, 1, true);
+            auto sources = py::reinterpret_borrow<py::array>(undo.owners[1]);
+            if (values.shape(0) < logical) throw py::value_error("Atom value storage is not aligned");
+            for (std::size_t r = 0; r < rows.size(); ++r) {
+                auto &cell = undo.cells[numeric_index * rows.size() + r];
+                cell.value = address(values, rows[r]);
+                cell.source = address(sources, rows[r], column.index);
+                std::memcpy(&cell.before, cell.value, sizeof(cell.before));
+                std::memcpy(&cell.after, input + r * sizeof(double), sizeof(cell.after));
+                std::memcpy(&cell.old_source, cell.source, sizeof(cell.old_source));
+                cell.new_source = static_cast<std::uint8_t>(column.producer);
+                auto &p = undo.presence[r];
+                p.after = column.present ? p.after | field.presence : p.after & ~field.presence;
+            }
+            ++numeric_index;
         }
         affected |= field.affected_mask;
         materialized |= field.materialized_mask;
@@ -614,10 +697,10 @@ void install_undo(Undo &local, py::handle transaction) {
 template <class Rows, class Columns>
 void install(py::handle table, const Rows &rows,
              const Columns &columns, py::handle uids, py::handle transaction,
-             bool dependencies) {
+             bool dependencies, py::handle mol = {}) {
     try {
         Undo undo;
-        prepare_undo(undo, table, rows, columns, uids, dependencies);
+        prepare_undo(undo, table, rows, columns, uids, dependencies, mol);
         install_undo(undo, transaction);
     } catch (...) { poison(transaction); throw; }
 }
@@ -853,7 +936,7 @@ void commit_scalar(py::handle atom, int index, py::handle value, int producer, b
         std::array<Column, 1> columns{{{index, py::object(), present, producer, 0, true}}};
         std::memcpy(&columns[0].immediate_bits, &number, sizeof(number));
         const std::array<Py_ssize_t, 1> rows{{row}};
-        install(item(md, Name::Table), rows, columns, uid, transaction, true);
+        install(item(md, Name::Table), rows, columns, uid, transaction, true, mol);
     } catch (...) { poison(transaction); throw; }
 }
 
@@ -900,7 +983,7 @@ py::object commit_columns(py::handle mol, py::object requested, py::dict supplie
         check_rows(mol, selection, atoms);
         int producer = py::cast<int>(get(transaction, Name::Producer));
         for (auto &column : columns) column.producer = producer;
-        install(get(mol, Name::Table), selection.rows, columns, selection.uids, transaction, true);
+        install(get(mol, Name::Table), selection.rows, columns, selection.uids, transaction, true, mol);
         return update;
     } catch (...) { poison(transaction); throw; }
 }
@@ -928,7 +1011,7 @@ void commit_fields(py::handle atom, py::dict supplied, int producer, bool presen
             int inherited = py::cast<int>(get(transaction, Name::Producer));
             for (auto &column : columns) column.producer = inherited;
         }
-        install(get(mol, Name::Table), selection.rows, columns, uids, transaction, true);
+        install(get(mol, Name::Table), selection.rows, columns, uids, transaction, true, mol);
     } catch (...) { poison(transaction); throw; }
 }
 
@@ -1084,7 +1167,7 @@ void commit_facts(py::handle mol, py::handle update) {
         check_rows(mol, selection);
         int producer = transaction.is_none() ? config->explicit_source : py::cast<int>(get(transaction, Name::Producer));
         auto columns = prepared_columns(update, producer);
-        install(get(mol, Name::Table), selection.rows, columns, selection.uids, transaction, true);
+        install(get(mol, Name::Table), selection.rows, columns, selection.uids, transaction, true, mol);
     } catch (...) { poison(transaction); throw; }
 }
 
@@ -1101,6 +1184,8 @@ void write_prepared(py::handle table, py::handle selected, py::iterable prepared
         auto values = py::reinterpret_borrow<py::sequence>(entry);
         int index = static_cast<int>(integer(values[0]));
         require_stored_field(index);
+        if (config->fields[index].constraint >= 0)
+            throw py::attribute_error("Atom constraint fields require the molecular constraint owner");
         columns.push_back({index, rows.size() == 1 ? scalar_bytes(values[1])
                                                  : column_bytes(values[1], rows.size(), config->fields.at(index).name),
                            py::cast<bool>(values[2]), py::cast<int>(values[3])});
@@ -1125,7 +1210,7 @@ void configure(py::dict values) {
             break;
         }
     }
-    const char *attribute_names[] = {"_mol", "_owner_token", "_member_uid", "_uid_owner", "_atoms", "_topology_index", "_atom_table", "_size", "_columns", "_sources", "_presence", "_group_status", "_dirty_seeds", "_mutation_lock", "mol", "producer", "_cells", "_failed", "source", "rows", "atom_uids", "fields", "value_bytes", "presence", "sources", "owner", "acquire", "release", "dependencies"};
+    const char *attribute_names[] = {"_mol", "_owner_token", "_member_uid", "_uid_owner", "_atoms", "_topology_index", "_atom_table", "_size", "_columns", "_sources", "_presence", "_group_status", "_dirty_seeds", "_mutation_lock", "mol", "producer", "_cells", "_failed", "source", "rows", "atom_uids", "fields", "value_bytes", "presence", "sources", "owner", "acquire", "release", "dependencies", "_constraints", "atom_axes", "_constraint_values"};
     for (std::size_t i = 0; i < next->names.size(); ++i) {
         next->names[i] = py::reinterpret_steal<py::object>(PyUnicode_InternFromString(attribute_names[i]));
         if (!next->names[i]) python_error();
@@ -1146,6 +1231,9 @@ void configure(py::dict values) {
         next->table_offsets[index] = member->offset;
     }
     next->indices = py::dict(values["indices"]);
+    next->table_width = py::cast<int>(values["table_width"]);
+    for (auto field : py::reinterpret_borrow<py::iterable>(values["constraint_fields"]))
+        next->constraint_fields.push_back(py::cast<int>(next->indices[field]));
     py::dict aliases = values["aliases"];
     for (auto name : py::reinterpret_borrow<py::iterable>(aliases[py::str("coordinates")]))
         next->coordinate_fields.push_back(py::cast<int>(next->indices[name]));
@@ -1177,6 +1265,15 @@ void configure(py::dict values) {
         for (int group : field.affected) field.affected_mask |= std::uint64_t{1} << group;
         if (field.materialized >= 0) field.materialized_mask = std::uint64_t{1} << field.materialized;
         next->fields.push_back(std::move(field));
+    }
+    if (next->table_width < 0
+        || next->table_width + next->constraint_fields.size() != next->fields.size())
+        throw py::value_error("Atom table and constraint fields must cover the canonical schema");
+    for (std::size_t axis = 0; axis < next->constraint_fields.size(); ++axis) {
+        int index = next->constraint_fields[axis];
+        if (index != next->table_width + static_cast<int>(axis))
+            throw py::value_error("Atom constraint fields must follow the table fields in canonical order");
+        next->fields[index].constraint = static_cast<int>(axis);
     }
     config = next.release();
 }

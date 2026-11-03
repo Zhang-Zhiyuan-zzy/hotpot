@@ -1,0 +1,148 @@
+{
+  "status": "PROSPECTIVE_NOT_EXECUTED_BY_THIS_DESIGN_TASK",
+  "applicable_baseline": {
+    "directory": "/tmp/hotpot_plan20/long/stage7b-preentry-baseline-20261103",
+    "source_commit": "48780a669c9b1ca5b0e6c2cadf63365579ad3ccf",
+    "same_cases_both_runtimes": 185,
+    "source": {
+      "passed": 185,
+      "failed": 0,
+      "skipped": 0
+    },
+    "installed": {
+      "passed": 185,
+      "failed": 0,
+      "skipped": 0
+    },
+    "files": [
+      "tests/test_cheminfo/test_forcefield_trajectory.py",
+      "tests/test_cheminfo/test_hidden_bond_restoration.py",
+      "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+      "tests/test_cheminfo/test_stereo_level1_working_copy.py",
+      "tests/test_cheminfo/structure/test_constraints.py",
+      "tests/test_cheminfo/structure/test_view_identity.py",
+      "tests/test_cheminfo/structure/test_source_identity.py",
+      "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+      "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py"
+    ],
+    "limits": "Pre-change exact-byte behavior only; reused six CP311 artifacts, four actually loaded; no new implementation/native/performance/global acceptance."
+  },
+  "root_constructor_observations": "/tmp/hotpot_plan20/long/stage7b-constraints-20261103/constructor-observations",
+  "root_independent_test_preparation": "/tmp/hotpot_plan20/long/stage7b-constraints-20261103/test-preparation",
+  "native_rebuild": {
+    "required": true,
+    "reason": "facts.cpp changes physical/source-width role dispatch and native Undo. Current old extension cannot execute or qualify this storage cutover.",
+    "extension": "hotpot.cheminfo.structure._fact_native",
+    "helper": ".plan20-artifacts/20261029/stage3/fact-native/helpers/build_fact_extension.py",
+    "qualified_build_python": "/tmp/hotpot-plan20-env/bin/python",
+    "environment_overrides": {
+      "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+      "PYTHONPATH": "/home/zhangzhiyuan/hotpot"
+    },
+    "prospective_argv": [
+      "/tmp/hotpot-plan20-env/bin/python",
+      ".plan20-artifacts/20261029/stage3/fact-native/helpers/build_fact_extension.py",
+      "build_ext",
+      "--inplace",
+      "--force",
+      "--build-temp",
+      "/tmp/hotpot_plan20/medium/20261103-stage7b-fact-native/attempt1/build-temp"
+    ],
+    "release": "Separate root release required before build or production mutation.",
+    "limits": "Rebuild only _fact_native; no Open Babel/SWIG/GTD rebuild or new native ABI. Later supported versions, clean ABI/SDK/sdist gates remain open."
+  },
+  "meaningful_new_tests": [
+    "Direct Atom() owner/membership and partial constructor flags/alias conflict/raw scalar setters; public updata_atoms still rejects axes.",
+    "Direct nonmember Bond(constraint=True,id=87), repeated setter and pickle, no Molecule owner-map leak; unknown kwargs failure and later registration ownership.",
+    "Removed Atom readable sealed facts plus isolated axes; preserve current removed-axis setter KeyError, then independently check current pickle/foreign insertion; endpoint-current permissions on removed/nonmember Bonds.",
+    "Bit-preserving signed zero/NaN payload/non-bool raw values through19/3, presence/source, record reinstall/copy/components/merge and current UID-gap pickle.",
+    "Hidden partition values survive hide/restore and active-only clear_constraints; permanent hidden clear drops live owner entries and leaves old handles inspectable.",
+    "Axis/Bond writes preserve unrelated geometry/representation dependencies, dirty seeds and bonding metadata; forcefield_inputs retains raw metadata sensitivity.",
+    "Mixed numeric+axis _AtomFactUpdate/native setters with source staleness and producer inheritance; native failures after owner publication restore raw bytes/map identity.",
+    "Outer nested rollback across native owner writes, Bond writes, angle root replacement, registration, detach/filter/reinstall and further writes; new keys removed only after native undo.",
+    "Constant-work scalar getters/setters with row/matrix/full-owner hash prohibited; no new whole-map clone/scan during isolated registration."
+  ],
+  "source_file_selection": [
+    "tests/test_cheminfo/structure/test_atom_fact_table.py",
+    "tests/test_cheminfo/structure/test_fact_native.py",
+    "tests/test_cheminfo/structure/test_dependencies.py",
+    "tests/test_cheminfo/structure/test_builder.py",
+    "tests/test_cheminfo/structure/test_stage5_bonding.py",
+    "tests/test_cheminfo/structure/test_constraints.py",
+    "tests/test_cheminfo/structure/test_source_identity.py",
+    "tests/test_cheminfo/structure/test_commit_atomicity.py",
+    "tests/test_cheminfo/test_forcefield_trajectory.py",
+    "tests/test_cheminfo/test_hidden_bond_restoration.py",
+    "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+    "tests/test_cheminfo/test_stereo_level1_working_copy.py",
+    "tests/test_cheminfo/structure/test_view_identity.py",
+    "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+    "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+    "tests/test_cheminfo/structure/test_atom_fact_update.py",
+    "tests/test_cheminfo/structure/test_atom_matrix.py",
+    "tests/test_cheminfo/structure/test_factual_imports.py",
+    "tests/test_cheminfo/structure/test_interface_permissions.py",
+    "tests/test_cheminfo/test_plan20_carrier_cutover.py"
+  ],
+  "source_pytest_argv_tail": [
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_cheminfo/structure/test_atom_fact_table.py",
+    "tests/test_cheminfo/structure/test_fact_native.py",
+    "tests/test_cheminfo/structure/test_dependencies.py",
+    "tests/test_cheminfo/structure/test_builder.py",
+    "tests/test_cheminfo/structure/test_stage5_bonding.py",
+    "tests/test_cheminfo/structure/test_constraints.py",
+    "tests/test_cheminfo/structure/test_source_identity.py",
+    "tests/test_cheminfo/structure/test_commit_atomicity.py",
+    "tests/test_cheminfo/test_forcefield_trajectory.py",
+    "tests/test_cheminfo/test_hidden_bond_restoration.py",
+    "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+    "tests/test_cheminfo/test_stereo_level1_working_copy.py",
+    "tests/test_cheminfo/structure/test_view_identity.py",
+    "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+    "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+    "tests/test_cheminfo/structure/test_atom_fact_update.py",
+    "tests/test_cheminfo/structure/test_atom_matrix.py",
+    "tests/test_cheminfo/structure/test_factual_imports.py",
+    "tests/test_cheminfo/structure/test_interface_permissions.py",
+    "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+    "--import-mode=importlib",
+    "--tb=short",
+    "-p",
+    "no:cacheprovider"
+  ],
+  "additional_complex_hydrogen_nodes": "Use the unchanged working-copy rollback/success cases currently at test_complex_hydrogens.py lines360,378,430,492,514,531 and the existing owner-root restore assertion at572/624; freeze actual node IDs at collection, not line numbers.",
+  "installed_validation": "Install/package the same changed source and rebuilt _fact_native through the established root workflow; ordinary isolated pytest outside checkout against unchanged assertions, actual origins and before/after source/native/wheel bindings. Root owns packaging files and final invocation identity.",
+  "allocation_fault_validation": "Extend existing native allocator-interruption evidence where required: after a replacement any restore uses existing exact-int keys and preexisting map values. Never delete an old map key in a structural edit; preserve current seed-body no-allocation tests.",
+  "performance": {
+    "baseline_need": "Capture unchanged production baseline before mutation if no existing comparable result covers these operations; public prep passes alone are not a performance baseline.",
+    "cases": [
+      "single x_constraint read/write",
+      "aggregate Atom.constraint read/write",
+      "Bond.constraint read/write including nonmember",
+      "mixed immutable prepared updates",
+      "full raw Atom19/Bond3 and requested-field export",
+      "clear_constraints and repeated copy/working-copy publication"
+    ],
+    "scaling": "Compare equivalent inputs at increasing N (e.g.128/1024/8192). Prepare fixtures outside timings. Report per-touch cost, setup, allocations/peak RSS and repeated workflow separately.",
+    "meaning": "Actual overhead/scaling and usable integrated cost; no assumed memory win, universal5x gate or scientific historical hash verdict.",
+    "retain": "All attempts/adverse intervals, exact dirty source/native/toolchain/interpreter/input identities, resources, wall time and complete results."
+  },
+  "unexecuted_here": [
+    "production/test implementation",
+    "runtime imports or pytest",
+    "native build/install",
+    "performance baseline/postchange",
+    "Git mutation",
+    "supported versions other than baseline CP311",
+    "scientific/external/GPU/global gates"
+  ],
+  "root_independent_test_preparation_result": {
+    "passed": 11,
+    "failed": 1,
+    "disposition": "Root preparation attempted a removed Atom axis write; current source raises KeyError before later pickle assertions. This design preserves current membership rejection; root must adapt/adopt that test expectation explicitly, preserving the original failed run, rather than silently broaden detached write permission."
+  }
+}

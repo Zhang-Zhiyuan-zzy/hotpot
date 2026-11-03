@@ -1,8 +1,7 @@
 """One private numeric Atom store, without chemistry or molecule membership.
 
-Two float64 blocks own only factual numeric slots. The historical19-column
-transport shape is projected with unavailable P4 slots; operations calculate
-electron and valence views. No derived numeric value is retained here.
+Two float64 blocks own only the sixteen non-constraint projection slots.
+Seven calculated slots have no value storage; operations calculate their views.
 """
 
 from __future__ import annotations
@@ -13,7 +12,7 @@ from collections.abc import Mapping
 import numpy as np
 
 from ._fields import (
-    ATOM_FIELDS, ATOM_PRESENCE_ALL, ATOM_SOURCE_CODES, FIELD_ADDRESSES,
+    TABLE_FIELDS, TABLE_PRESENCE_ALL, CONSTRAINT_FIELDS, ATOM_SOURCE_CODES, FIELD_ADDRESSES,
     FIELD_CODECS, FIELD_INDEX, FIELD_PRESENCE_BITS, SCALAR_FIELDS, DERIVED_FIELDS,
 )
 
@@ -25,8 +24,8 @@ _SOURCE_CODES = frozenset(ATOM_SOURCE_CODES.values())
 
 def _numeric_rows(rows):
     values = np.asarray(rows, dtype=np.float64)
-    if values.ndim != 2 or values.shape[1] != len(ATOM_FIELDS):
-        raise ValueError(f"Atom rows must have shape (N, {len(ATOM_FIELDS)})")
+    if values.ndim != 2 or values.shape[1] != len(TABLE_FIELDS):
+        raise ValueError(f"Atom rows must have shape (N, {len(TABLE_FIELDS)})")
     return values
 
 
@@ -62,14 +61,14 @@ def _metadata_array(value, shape, dtype, maximum, name):
 
 def _metadata_rows(count, presence, sources):
     masks = _metadata_array(
-        ATOM_PRESENCE_ALL if presence is None else presence,
-        (count,), np.uint32, ATOM_PRESENCE_ALL, "presence",
+        TABLE_PRESENCE_ALL if presence is None else presence,
+        (count,), np.uint32, TABLE_PRESENCE_ALL, "presence",
     )
     if sources is None:
-        supplied = (masks[:, None] & np.asarray(FIELD_PRESENCE_BITS, dtype=np.uint32)) != 0
+        supplied = (masks[:, None] & np.asarray(FIELD_PRESENCE_BITS[:len(TABLE_FIELDS)], dtype=np.uint32)) != 0
         codes = np.where(supplied, ATOM_SOURCE_CODES["legacy_array"], ATOM_SOURCE_CODES["default"]).astype(np.uint8)
     else:
-        codes = _metadata_array(sources, (count, len(ATOM_FIELDS)), np.uint8, max(_SOURCE_CODES), "sources")
+        codes = _metadata_array(sources, (count, len(TABLE_FIELDS)), np.uint8, max(_SOURCE_CODES), "sources")
         if not np.isin(codes, tuple(_SOURCE_CODES)).all():
             raise ValueError("Atom sources contain an undeclared source code")
     return masks, codes
@@ -92,13 +91,13 @@ class _AtomFactTable:
     __slots__ = ("_blocks", "_columns", "_size", "_presence", "_sources", "_group_status", "_dirty_seeds")
 
     def __init__(self, rows=None, *, presence=None, sources=None):
-        values = np.empty((0, len(ATOM_FIELDS))) if rows is None else _numeric_rows(rows)
+        values = np.empty((0, len(TABLE_FIELDS))) if rows is None else _numeric_rows(rows)
         masks, codes = _metadata_rows(len(values), presence, sources)
         blocks = (values[:, [FIELD_INDEX[name] for name in SCALAR_FIELDS]].copy(),
                   values[:, 10:13].copy())
         for field in DERIVED_FIELDS:
             index = FIELD_INDEX[field]
-            masks &= np.uint32(~FIELD_PRESENCE_BITS[index] & ATOM_PRESENCE_ALL)
+            masks &= np.uint32(~FIELD_PRESENCE_BITS[index] & TABLE_PRESENCE_ALL)
             codes[:, index] = ATOM_SOURCE_CODES["default"]
         self._blocks, self._columns, self._size = blocks, _column_views(blocks), len(values)
         self._presence, self._sources = masks, codes
@@ -124,7 +123,7 @@ class _AtomFactTable:
         for block, value in zip(blocks, values):
             block[:size] = value
         masks = np.empty(capacity, dtype=np.uint32)
-        codes = np.empty((capacity, len(ATOM_FIELDS)), dtype=np.uint8)
+        codes = np.empty((capacity, len(TABLE_FIELDS)), dtype=np.uint8)
         masks[:size], codes[:size] = presence, sources
         self._blocks, self._columns, self._size = blocks, _column_views(blocks), size
         self._presence, self._sources = masks, codes
@@ -198,7 +197,7 @@ class _AtomFactTable:
 
     def row(self, row):
         row = self._row(row)
-        return self.select(ATOM_FIELDS, rows=(row,))[0]
+        return self.select(TABLE_FIELDS, rows=(row,))[0]
 
     def column(self, field, rows=None):
         selection, _ = self._rows(rows)
@@ -209,7 +208,7 @@ class _AtomFactTable:
         return self._blocks[1][selection].copy()
 
     def matrix(self):
-        return self.select(ATOM_FIELDS)
+        return self.select(TABLE_FIELDS)
 
     def presence(self, rows=None):
         selection, _ = self._rows(rows)
@@ -250,6 +249,8 @@ class _AtomFactTable:
         for field, value in columns.items():
             if field in DERIVED_FIELDS:
                 raise AttributeError(f"{field} is a calculated read-only projection")
+            if field in CONSTRAINT_FIELDS:
+                raise ValueError("Constraint axes are owned by the Molecule constraint set")
             index = FIELD_INDEX[field]
             prepared.append((index, value,
                              _present_value(present[field] if mapped_presence else present),
@@ -279,7 +280,7 @@ class _AtomFactTable:
             for target, source in zip(blocks, self._blocks):
                 target[:first] = source[:first]
             next_presence = np.empty(capacity, dtype=np.uint32)
-            next_sources = np.empty((capacity, len(ATOM_FIELDS)), dtype=np.uint8)
+            next_sources = np.empty((capacity, len(TABLE_FIELDS)), dtype=np.uint8)
             next_presence[:first] = self._presence[:first]
             next_sources[:first] = self._sources[:first]
         else:
@@ -291,7 +292,7 @@ class _AtomFactTable:
         next_sources[first:size] = codes
         for field in DERIVED_FIELDS:
             index = FIELD_INDEX[field]
-            next_presence[first:size] &= np.uint32(~FIELD_PRESENCE_BITS[index] & ATOM_PRESENCE_ALL)
+            next_presence[first:size] &= np.uint32(~FIELD_PRESENCE_BITS[index] & TABLE_PRESENCE_ALL)
             next_sources[first:size, index] = ATOM_SOURCE_CODES["default"]
         columns = self._columns if blocks is self._blocks else _column_views(blocks)
         from ._dependencies import _status_from_presence

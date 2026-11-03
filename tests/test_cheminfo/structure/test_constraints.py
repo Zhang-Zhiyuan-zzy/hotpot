@@ -89,3 +89,74 @@ def test_component_and_merge_remap_constraints_without_mutable_sharing():
     assert component.angles[0].constraint and component.torsions[0].constraint
     component.clear_constraints()
     assert source.angles[0].constraint and destination.angles[0].constraint
+
+
+def test_sequence_owner_replacement_shares_only_the_canonical_axis_and_bond_maps():
+    mol = molecule()
+    owner = mol._constraints
+    axes, bonds = owner.atom_axes, owner.bond_values
+    mol.atoms[0].x_constraint = True
+    mol.bonds[0].constraint = True
+    mol.angles[0].constraint = True
+    assert mol._constraints is not owner
+    assert mol._constraints.atom_axes is axes and mol._constraints.bond_values is bonds
+    assert all(atom._constraint_values is axes for atom in mol.atoms)
+    assert all(bond._constraint_values is bonds for bond in mol.bonds)
+    assert set(axes) == {atom._uid for atom in mol.atoms}
+    assert set(bonds) == {bond._uid for bond in mol.bonds}
+
+
+def test_scalar_constraint_paths_keep_existing_maps_and_avoid_exports_or_hashes(monkeypatch):
+    from hotpot import Bond
+    from hotpot.cheminfo.structure import _identity
+    from hotpot.cheminfo.structure._atom_table import _AtomFactTable
+    from hotpot.cheminfo.structure.constraints import _ConstraintSet
+
+    mol = molecule()
+    atom, bond = mol.atoms[0], mol.bonds[0]
+    other = Bond(mol.atoms[0], mol.atoms[-1], constraint=True, id=87)
+    axes, bonds = mol._constraints.atom_axes, mol._constraints.bond_values
+    untouched = axes[mol.atoms[-1]._uid]
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError('scalar constraint path exported, hashed or rebuilt an owner')
+
+    monkeypatch.setattr(_identity, '_digest', forbidden)
+    for name in ('row', 'matrix', 'select'):
+        monkeypatch.setattr(_AtomFactTable, name, forbidden)
+    monkeypatch.setattr(_ConstraintSet, '__init__', forbidden)
+    monkeypatch.setattr(_ConstraintSet, 'subset', forbidden)
+    atom.x_constraint = True
+    assert atom.x_constraint
+    atom.constraint = True
+    assert atom.constraint
+    bond.constraint = True
+    assert bond.constraint
+    other.constraint = False
+    assert not other.constraint and other.id == 87
+    assert mol._constraints.atom_axes is axes and mol._constraints.bond_values is bonds
+    assert axes[mol.atoms[-1]._uid] is untouched
+    assert other._constraint_values is not bonds
+    assert set(other._constraint_values) == {other._uid}
+
+
+def test_isolated_atom_registration_enrolls_only_new_key_without_rebuilding_owner(monkeypatch):
+    from hotpot.cheminfo.structure.constraints import _ConstraintSet
+    import hotpot.cheminfo.core as core
+
+    mol = molecule()
+    owner = mol._constraints
+    axes, bonds = owner.atom_axes, owner.bond_values
+    original = dict(axes)
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError('isolated registration rebuilt or filtered an existing owner')
+
+    monkeypatch.setattr(_ConstraintSet, '__init__', forbidden)
+    monkeypatch.setattr(_ConstraintSet, 'subset', forbidden)
+    monkeypatch.setattr(core, '_filter_constraint_members', forbidden)
+    atom = mol.create_atom(atomic_number=6, x_constraint=True)
+    assert mol._constraints is owner and owner.atom_axes is axes and owner.bond_values is bonds
+    assert set(axes) == set(original) | {atom._uid}
+    assert all(axes[uid] is value for uid, value in original.items())
+    assert atom._constraint_values is axes and atom.x_constraint

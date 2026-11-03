@@ -32,6 +32,9 @@ ATOM_SCHEMA = (
     ("z_constraint", bool),
 )
 ATOM_FIELDS = tuple(name for name, _ in ATOM_SCHEMA)
+TABLE_FIELDS = ATOM_FIELDS[:16]
+CONSTRAINT_FIELDS = ATOM_FIELDS[16:]
+TABLE_PRESENCE_ALL = (1 << len(TABLE_FIELDS)) - 1
 FIELD_INDEX = MappingProxyType({name: index for index, name in enumerate(ATOM_FIELDS)})
 FIELD_CODECS = MappingProxyType(dict(ATOM_SCHEMA))
 FIELD_PRESENCE_BITS = tuple(1 << index for index in range(len(ATOM_FIELDS)))
@@ -62,12 +65,13 @@ COORDINATE_FIELDS = ("x", "y", "z")
 DERIVED_FIELDS = frozenset({"n", "s", "p", "d", "f", "g", "valence"})
 FACT_FIELDS = tuple(name for name in ATOM_FIELDS if name not in DERIVED_FIELDS)
 ATOM_SCALAR_READONLY = frozenset({*DERIVED_FIELDS, "is_aromatic", "electron_configuration"})
-SCALAR_FIELDS = tuple(name for name in FACT_FIELDS if name not in COORDINATE_FIELDS)
+SCALAR_FIELDS = tuple(name for name in TABLE_FIELDS
+                      if name not in DERIVED_FIELDS and name not in COORDINATE_FIELDS)
 FIELD_ADDRESSES = tuple(
     None if name in DERIVED_FIELDS else
     (1, COORDINATE_FIELDS.index(name)) if name in COORDINATE_FIELDS
     else (0, SCALAR_FIELDS.index(name))
-    for name in ATOM_FIELDS
+    for name in TABLE_FIELDS
 )
 ALIAS_TARGETS = MappingProxyType({
     "symbol": ("atomic_number",),

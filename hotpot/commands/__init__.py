@@ -1,0 +1,1 @@
+"""Hotpot command adapters."""

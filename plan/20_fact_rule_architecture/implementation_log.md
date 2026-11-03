@@ -5353,3 +5353,78 @@ standalone/science and later/global obligations remain open. No controlled cost,
 all-native clean-build, global ABI/SDK/sdist/manylinux/all-version or whole-stage
 claim is made. The coherent native business commit includes connected tests/build
 inputs and records; no separate documentation/bookkeeping-only commit is needed.
+
+
+## 2026-11-03 — B3b command cutover entry
+
+Root aligns the effective goal, focused main-plan Sections6/8/9.2/Stage8B/11.3,
+current decisions/verification map, accepted B3a and actual tracked worktree at
+5b5615f. Governance/stage/validation skills and both governance references apply;
+the owner's focused-reading direction governs repeated large-plan reading.
+No protected owner review or Task168 material is read. B3a runtime is not rerun.
+
+The accepted B3b decision migrates only FF command ownership and packaged docs to
+commands/ff.py and ff.md, with lazy dispatch, package metadata and connected tests.
+Existing operations/backends remain sole owners until their subsequent coherent
+cutover. Public flags, scientific behavior, serial/parallel output ordering and
+local failures stay unchanged; private payloads use the real new command owner.
+Local Sol/medium implementation and independent temporary validation preparation
+have disjoint ownership; root owns release, review, records and Git. Candidate
+runtime remains HOLD until final code review/freeze. Existing accepted B3a natives
+will be rebound and reused, with no unnecessary rebuild or unrelated whole-suite
+execution. Source/installed affected checks and actual CLI/docs/SMILES/SDF spawn
+behavior are required. Full Stage8B and later/global gates remain open.
+Entry bindings: /tmp/hotpot_plan20/long/stage8b-b3b-20261103/entry-inputs.json.
+
+
+## 2026-11-03 — B3b root review and CP311 runtime release
+
+Root inspected the final relocation: exactly3imports and1resource filename change;
+Markdown and all39CLI-test definitions remain unchanged. Lazy dispatch and package
+metadata move only the accepted command/resource; the only additional package is
+the real commands initializer. Three connected tests retarget ownership/retirement,
+and the sole README link is fixed. Static964active Python/396joined-string scan
+finds no stale consumers. No new type/schema/guard/algorithm or shim is introduced.
+
+The final freeze binds1447source/test/resource inputs and6unchanged binaries;
+1440prior inputs are unchanged,4existing paths change,3are added and2retire.
+Root-native-rebind.json proves268of270accepted build inputs unchanged; only the
+explicit package-data pyproject/MANIFEST edits differ. Native sources/setup and
+sixbinaries retain accepted B3a provenance. Root inspected the simple runner's
+five full affected selections, source/installed origins, fresh build_py/wheel,
+packaged docs and actual top-level serial/parallel CC/CO SDF observations. The
+recorded root-runtime-release-attempt01.json now releases its exact argv/freeze;
+no current-HEAD native build is fabricated. Runtime/acceptance results are pending.
+
+
+## 2026-11-03 — B3b CP311 command ownership accepted
+
+Root accepts bounded B3b after the exact released command
+/tmp/hotpot-plan20-env/bin/python -B /tmp/hotpot_plan20/long/stage8b-b3b-20261103/validation-preparation/run_validation.py --source-freeze /tmp/hotpot_plan20/long/stage8b-b3b-20261103/source-freeze-b3b-attempt01.json --attempt attempt01 --root-runtime-released
+returns0. Fourteencommands complete: source/installed five-file selections each
+84passed/0failed/0skipped with the same84orderednodes, actual --doc/resource,
+serial/parallel CC/CO, fresh build_py/wheel/venv/install. Origins reconcile
+17/1/4/6/1Python participants per tests/doc/serial/parallel/resource boundary,
+without installed checkout leaks. All1447source/test/resource,6native and3build
+bindings plus README remain unchanged. Actual fresh wheel has474matching Python
+bodies,6reused binaries, new command/docs, no retired paths and41unchanged
+non-Python omissions; its system-site dependencies remain shared. The accepted
+historical B3a native-build parent stays distinct from current source parent.
+
+Root's stdlib review_runtime.py returned0 and reviewed eight emitted molecule
+observations: neutral ordered ethane/methanol,8/6atoms,7/5singlebonds, expected H
+and heavy bonds, finite separated coordinates, nearest1.08905/0.97846Å and maximum
+bond1.51071/1.41220Å. MMFF94s energies−19.279882257884772/3.3368357841331053kJ/mol
+retain method/units; all one-epoch quality=off runs explicitly remain nonconverged
+budget_exhausted, without a unique-minimum or broader geometry claim. No numeric
+source/installed equality is required. Existing negative/local-error tests remain
+in the84selection; actual top-level examples here are successful cases only.
+
+The local Sol/medium finalizer archives234files/11994721bytes, actual wheel and
+12-file capsule with0copy/freeze failures. Root verifies48maintained archive
+references by identity. Four maintained records are validation/b3b; immutable raw
+archive originals retain their pre-acceptance chronology. No new business run,
+controlled cost, clean-native/ABI/SDK/sdist/all-version, whole Stage8B or global
+acceptance is claimed. Remaining Python/backend B3, B4 and later obligations stay
+open. This coherent command/test/package/record change is delivered as one business
+commit and normal push; no documentation-only checkpoint is created.

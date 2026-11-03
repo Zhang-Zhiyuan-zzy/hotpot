@@ -16,7 +16,7 @@ include hotpot/cheminfo/AImodels/cbond/cli_doc.md
 include hotpot/cheminfo/AImodels/mca/models/manifest.json
 include hotpot/cheminfo/AImodels/mca/models/README.md
 include hotpot/cheminfo/AImodels/mca/cli_doc.md
-include hotpot/cheminfo/forcefields/cli_doc.md
+include hotpot/commands/ff.md
 include hotpot/plugins/xtb/cli_doc.md
 include hotpot/plugins/xtb/README.md
 recursive-include hotpot/plugins/qm/gaussian *.json

@@ -55,7 +55,7 @@ use, and reproducible pipelines. Every primary chemistry command accepts
 |---|---|---|---|
 | `hotpot mca` | Predict site-resolved methyl cation affinity (MCA) | Atom table in kJ/mol | [MCA CLI](hotpot/cheminfo/AImodels/mca/cli_doc.md) |
 | `hotpot cbond` | Predict and construct metal–ligand coordination bonds | Complex SMILES or ranked structures | [CBond CLI](hotpot/cheminfo/AImodels/cbond/cli_doc.md) |
-| `hotpot ff` | Build or optimize 3D molecular structures and report quality | Molecular structure file and optional JSON report | [Force-field CLI](hotpot/cheminfo/forcefields/cli_doc.md) |
+| `hotpot ff` | Build or optimize 3D molecular structures and report quality | Molecular structure file and optional JSON report | [Force-field CLI](hotpot/commands/ff.md) |
 | `hotpot xtb` | Run an independent GFN-FF or GFN-xTB calculation with an official xTB backend | 3D molecular records (SDF by default) and optional reports/logs | [xTB CLI](hotpot/plugins/xtb/cli_doc.md) |
 | `hotpot run` | Execute registered molecular stages with an ordered evidence tree | Result directory, manifest, stage artifacts, and final SDF | [Pipeline CLI](hotpot/pipeline/cli_doc.md) |
 | `hotpot ds` | Assess, store, audit, and query scientific datasets | Certified bundles and a normalized SQLite store | [CLI](hotpot/ds/cli_doc.md) · [Python API](hotpot/ds/README.md) · [dataset organization](hotpot/dataset/README.md) |

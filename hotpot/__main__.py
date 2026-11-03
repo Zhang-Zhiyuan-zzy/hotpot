@@ -49,7 +49,7 @@ _COMMANDS = {
     ),
     "ff": _CommandSpec(
         "Build and optimize molecular geometries with force fields",
-        "hotpot.cheminfo.forcefields.cli",
+        "hotpot.commands.ff",
     ),
     "xtb": _CommandSpec(
         "Run an independent GFN-FF or GFN-xTB calculation",

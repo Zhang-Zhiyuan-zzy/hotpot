@@ -367,3 +367,42 @@ execution, native ABI parity or full clean-build claims.
 B3a acceptance covers this physical native cutover only. Python operation/backend/
 CLI/packing migrations, B4 controls and full owning/global gates remain open.
 Rollback is one coherent source/test/build/record commit, retaining unrelated work.
+
+
+## B3b — Accepted force-field command ownership cutover
+
+At `5b5615f`, B3a is accepted within its recorded CP311 boundary. Main-plan
+Section9.2 already assigns the FF CLI to `commands/ff.py`. Move the sole existing
+implementation and its unchanged Markdown to `hotpot/commands/ff.py` and `ff.md`;
+create only the real command package initializer. Update the lazy `ff` command
+registration, package-resource declaration and connected test imports. Retire the
+old CLI/document paths without aliases, forwarding modules or a compatibility
+loader. Existing force-field operation/backend owners remain until their coherent
+subsequent B3 cutover. No other command is migrated in this slice.
+
+Preserve command name/flags/defaults, argument errors, route selection, local
+outcomes/exit codes, serialization, input/output cardinality and order, format
+inference, report/trajectory behavior, serial/parallel workers and the current
+scientific algorithms. The private command payloads acquire their actual new
+module owner; current spawned workers must resolve them. No historical private
+CLI pickle compatibility is promised. No new class, schema, guard or fallback is
+authorized. Imports required by the relocated command use the existing sole
+owners; this does not authorize moving the coupled Python backend piecemeal.
+
+Root owns this bounded design, maintained records, integration, acceptance and
+Git delivery. A local Sol/medium writer owns the command/resource/registration,
+package metadata and connected test migration. An independent local Sol/medium
+worker owns only temporary CP311 validation preparation; neither accepts the
+change, commits, pushes or runs candidate business before root release.
+
+Validate the complete affected CLI, lazy-loading and packaging selections on
+source and a newly built/installed CP311 wheel outside the checkout. Preserve the
+existing real serial SMILES and parallel `CC`/`CO` order/SDF tests; exercise actual
+command dispatch and packaged `--doc`, and record emitted chemistry and source/
+installed origins. Reuse unchanged accepted B3a natives after current native/
+build rebinding; do not rebuild unchanged C++ or rerun unrelated MCA/full-stage
+work merely for a command move. Package-data-only build edits must be explicit.
+Source/installed membership, actual outputs, failures and limitations remain
+attributable. This is no complete Stage8B/global, controlled-performance,
+clean-native/ABI/SDK/sdist or all-version acceptance. Rollback is the coherent
+command/test/package/record commit.

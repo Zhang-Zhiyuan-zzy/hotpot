@@ -5,7 +5,7 @@ complete within their recorded scopes. Stage8A A1–A11 scientific-state separat
 non-mutating extraction, H presence, approved detailed reports/confidence retirement,
 preparation diagnostics and existing Lewis complete-H applicability are root accepted
 within CP311 source/installed scope. Stage8B B1 consolidation, B2 pure acceptance/capture separation and B3a native
-ownership are root accepted within CP311; Python B3/B4 and the owning gate remain open. Stage8C–E have not entered. Optional scientific
+ownership plus B3b command ownership are root accepted within CP311; remaining Python/backend B3/B4 and the owning gate remain open. Stage8C–E have not entered. Optional scientific
 activation, remaining stages, full scientific/engineering, version-adaptation and
 global acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
@@ -2155,6 +2155,18 @@ _ob_native and five other binaries reused. Source400focused,12native fences
 actual3pipeline+3MCA per boundary pass. Original tool/stale-test-path failures and
 actual numerical variation remain. This is no global ABI/performance or full
 Stage8B acceptance; Python/backend/CLI B3, B4 and later/global gates stay open.
+
+
+The [B3b CP311 checkpoint](stages/stage08/forcefields/validation/b3b/checkpoint.json)
+accepts the sole FF command/resource move to commands/ff.py and ff.md, lazy dispatch
+and package/test consumers. Source/installed each84tests pass with0skips and the
+same84orderednodes; actual serial/parallel CC/CO SDF, --doc and packaged resource
+checks pass. Wheel474Python bodies and sixunchanged accepted B3a natives match;
+41prior non-Python omissions remain. Eight emitted-molecule observations preserve
+identity/order/charge/connectivity, finite coordinates and MMFF94s energies, with
+explicit low-budget nonconvergence and quality=off scope. No new native build or
+whole-stage/global claim follows; remaining Python/backend B3, B4 and later gates
+stay open.
 
 #### Stage 8C — Search
 

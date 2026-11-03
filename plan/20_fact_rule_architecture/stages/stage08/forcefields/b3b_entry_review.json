@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8B/B3b",
+  "date": "2026-11-03",
+  "status": "ROOT_ACCEPTED_CP311_B3B_COMMAND_OWNERSHIP",
+  "source_commit": "5b5615f68150354db39c5c83535c699c51abee97",
+  "predecessor": "validation/b3a/checkpoint.json",
+  "design": "contracts/decisions.md#b3b--accepted-force-field-command-ownership-cutover",
+  "alignment": [
+    "goal.md effective owner directions; focused alignment authorized",
+    "main plan Sections6/8/9.2/Stage8B/11.3",
+    "current B1/B2/B3a decisions and accepted CP311 checkpoint",
+    "actual clean tracked worktree at 5b5615f; protected untracked owner review excluded",
+    "governance/stage/validation skills and both governance references"
+  ],
+  "scope": "Sole FF CLI and unchanged command documentation to commands/; connected lazy registration, package data and tests. Existing backend/controller migration follows separately.",
+  "entry_inputs": {
+    "path": "/tmp/hotpot_plan20/long/stage8b-b3b-20261103/entry-inputs.json",
+    "sha256": "c73724dd73ea9a6bf04f90035e5d0496e7df280c9fbe34f836fea4cc681acb94"
+  },
+  "assignments": {
+    "implementation": "local existing Sol/medium: command, metadata and connected test consumers",
+    "validation_preparation": "independent local existing Sol/medium: temporary evidence tooling only",
+    "root": "design, maintained records, release, scientific/integration review and Git"
+  },
+  "runtime_released": true,
+  "native_build_required": false,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "validation": "Affected source and installed CP311 CLI/lazy-loading/package tests; actual command/docs/serial/parallel SDF output; source/native/build/wheel/participant attribution. Reuse unchanged accepted B3a native with current rebind.",
+  "runtime_release": "/tmp/hotpot_plan20/long/stage8b-b3b-20261103/root-runtime-release-attempt01.json",
+  "runtime_source_freeze": {
+    "path": "/tmp/hotpot_plan20/long/stage8b-b3b-20261103/source-freeze-b3b-attempt01.json",
+    "sha256": "551ba90bcbd0aaf114173df92da89546ea72650958880166c182aa9b84f283e0"
+  },
+  "runtime_completed": true,
+  "checkpoint": "validation/b3b/checkpoint.json",
+  "acceptance_scope": "Only command/resource/dispatch ownership and tested CP311 source/installed/spawn behavior; Python/backend B3, B4 and owning/global gates remain open."
+}

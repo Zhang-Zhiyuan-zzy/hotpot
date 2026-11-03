@@ -153,7 +153,7 @@ def test_specialized_apis_are_reexported_without_wrapping():
 
 
 def test_removed_compatibility_modules_are_not_importable():
-    for module_name in ("ff39", "utils", "utils39", "topology"):
+    for module_name in ("ff39", "utils", "utils39", "topology", "cli"):
         try:
             importlib.import_module(f"{PACKAGE_NAME}.{module_name}")
         except ModuleNotFoundError:
@@ -170,7 +170,7 @@ package = importlib.import_module({PACKAGE_NAME!r})
 facade = importlib.import_module({FACADE_NAME!r})
 
 assert {FACADE_NAME!r} in sys.modules
-for obsolete in ('ff39', 'utils', 'utils39', 'topology'):
+for obsolete in ('ff39', 'utils', 'utils39', 'topology', 'cli'):
     assert {PACKAGE_NAME!r} + '.' + obsolete not in sys.modules
 assert package.__all__ == facade.__all__
 for name in package.__all__:

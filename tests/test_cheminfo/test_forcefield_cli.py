@@ -9,13 +9,13 @@ from types import SimpleNamespace
 import pytest
 
 from hotpot import __main__ as hotpot_main
+from hotpot.commands import ff as cli
 from hotpot.cheminfo.forcefields import (
     ComplexBuildDiagnostics,
     ForceFieldError,
     ForceFieldSetupError,
     ForceFieldSetupReport,
     TrajectoryStart,
-    cli,
 )
 from hotpot.cheminfo.forcefields.stage import ForceFieldRouteOptions
 

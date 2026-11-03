@@ -1,0 +1,114 @@
+{
+  "accepted_b3a_native_build_parent": "13a23ce28a7bd1aaf16f825ef31711809baa61e7",
+  "all_command_returncodes_zero": true,
+  "attempt": "attempt01",
+  "build": "Fresh current build_py; copy six accepted B3a binaries; fresh bdist_wheel --skip-build; local no-index/no-deps install.",
+  "command_count": 14,
+  "current_source_parent_head": "5b5615f68150354db39c5c83535c699c51abee97",
+  "date": "2026-11-03",
+  "execution": {
+    "bytes": 240027,
+    "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/execution.json",
+    "sha256": "0a73e7f42825dcc7a2ae900cb3b189239681014d297948392ba49156c86d0a83"
+  },
+  "freeze": {
+    "bytes": 186319,
+    "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/source-freeze-b3b-attempt01.json",
+    "sha256": "551ba90bcbd0aaf114173df92da89546ea72650958880166c182aa9b84f283e0"
+  },
+  "global_gate_closed": false,
+  "installed": {
+    "participants": {
+      "doc": 1,
+      "parallel": 6,
+      "resource": 1,
+      "serial": 4,
+      "tests": 17
+    },
+    "tests": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 84
+    }
+  },
+  "installed_and_copied_tests_unchanged": true,
+  "limits": [
+    "CP311 source and installed command/resource/spawn scope; installed venv shares system-site dependencies.",
+    "Participating Python site-hook processes only; native and site-bypassing processes excluded from origin coverage.",
+    "Actual CC/CO commands use quality=off, seed=1, epochs=1 and steps-per-epoch=2; all observations are nonconverged budget_exhausted.",
+    "No minimization-convergence, unique-minimum or broader geometry-verification claim; broader unchanged chemistry evidence remains attributed to accepted B3a.",
+    "Six accepted B3a binaries reused after current rebinding; no new native compilation, clean-native/ABI/SDK/sdist/all-version or controlled-performance evidence.",
+    "No whole Stage8B/global acceptance or gate closure; only bounded B3b command delivery is accepted.",
+    "Preparation manifest/implementation runtime_executed flags and execution.limits retain historical pre-release wording. Actual release and fourteen successful command receipts establish executed scope."
+  ],
+  "ordered_membership": {
+    "installed_count": 84,
+    "same_ordered_nodeids": true,
+    "source_count": 84
+  },
+  "python_body_delta": 1,
+  "raw_manifest": {
+    "bytes": 76436,
+    "path": ".plan20-artifacts/20261103/stage8b/b3b/raw_manifest.json",
+    "sha256": "0f86c1c37ad57371473f584df65cad273536914105c00908baa13622b6ffcebd"
+  },
+  "reused_native_binaries": 6,
+  "root_acceptance": true,
+  "root_business_review": {
+    "bytes": 8205,
+    "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/root-business-review.json",
+    "sha256": "2bc8401ff535cd7079f0d32d2c289f464ca01ac639271206283aa021d06d6c59"
+  },
+  "root_release": {
+    "bytes": 1264,
+    "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/root-runtime-release-attempt01.json",
+    "sha256": "509b8c73c9d91b788fb904f58d7850027a0f392567f50202e8e1d07e87ae0449"
+  },
+  "schema_version": 1,
+  "selection": [
+    "tests/test_cheminfo/test_forcefield_cli.py",
+    "tests/test_main/test_command_loading.py",
+    "tests/test_cheminfo/test_forcefield_package.py",
+    "tests/test_cheminfo/test_import_safety.py",
+    "tests/test_packaging_metadata.py"
+  ],
+  "source": {
+    "participants": {
+      "doc": 1,
+      "parallel": 6,
+      "resource": 1,
+      "serial": 4,
+      "tests": 17
+    },
+    "tests": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 84
+    }
+  },
+  "source_capsule_files": 12,
+  "source_test_resource_native_build_unchanged": true,
+  "stage": "Stage8B/B3b",
+  "status": "ROOT_ACCEPTED_CP311_B3B_COMMAND_OWNERSHIP",
+  "unchanged_nonpython_omissions": 41,
+  "validation_manifest": {
+    "bytes": 4411,
+    "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/validation-manifest.json",
+    "sha256": "7cc0873e92ffc6a4506febc6ec7ca0a1a6e1aac30669f4afb3ce7245f289cee3"
+  },
+  "wheel": {
+    "bytes": 6339067,
+    "path": ".plan20-artifacts/20261103/stage8b/b3b/wheel/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+    "sha256": "aab1c966ecbbd004ca7a339708cc78b518f5b57a224e2d7a1a3658c1855bea65"
+  },
+  "wheel_original_identity": {
+    "bytes": 6339067,
+    "path": "/tmp/hotpot_plan20/long/stage8b-b3b-20261103/validation-preparation/attempt01/work/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+    "sha256": "aab1c966ecbbd004ca7a339708cc78b518f5b57a224e2d7a1a3658c1855bea65"
+  },
+  "wheel_python_bodies": 474,
+  "whole_stage8b_closed": false,
+  "acceptance_scope": "Only the FF command ownership/resource/dispatch cutover within tested CP311 source and installed package/spawn boundaries. Remaining Python/backend B3, B4, whole Stage8B and later/global gates remain open."
+}

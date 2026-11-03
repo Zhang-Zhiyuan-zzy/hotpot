@@ -1,0 +1,257 @@
+{
+  "actual_molecule_observation_count": 8,
+  "limits": [
+    "CP311 source and installed command/resource/spawn scope; installed venv shares system-site dependencies.",
+    "Participating Python site-hook processes only; native and site-bypassing processes excluded from origin coverage.",
+    "Actual CC/CO commands use quality=off, seed=1, epochs=1 and steps-per-epoch=2; all observations are nonconverged budget_exhausted.",
+    "No minimization-convergence, unique-minimum or broader geometry-verification claim; broader unchanged chemistry evidence remains attributed to accepted B3a."
+  ],
+  "observations": [
+    {
+      "atoms": 8,
+      "bond_distance_range_angstrom": [
+        1.089048327669622,
+        1.5107061329060658
+      ],
+      "bonds": 7,
+      "boundary": "source",
+      "converged": false,
+      "elements": {
+        "C": 2,
+        "H": 6
+      },
+      "final_energy_kj_mol": -19.279882257884772,
+      "finite_coordinates": true,
+      "forcefield": "MMFF94s",
+      "formal_charge": 0,
+      "index": 0,
+      "mode": "serial",
+      "nearest_pair_angstrom": 1.089048327669622,
+      "original_report": {
+        "bytes": 17701,
+        "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/source-serial/forcefield-report.json",
+        "sha256": "9564d1d807b22e540010f018d3a8ab27bdd08a5fcc0badf0fe2269128bed301d"
+      },
+      "quality_level": "off",
+      "smiles": "CC",
+      "termination_reason": "budget_exhausted"
+    },
+    {
+      "atoms": 6,
+      "bond_distance_range_angstrom": [
+        0.9784643989435691,
+        1.4122015224464248
+      ],
+      "bonds": 5,
+      "boundary": "source",
+      "converged": false,
+      "elements": {
+        "C": 1,
+        "H": 4,
+        "O": 1
+      },
+      "final_energy_kj_mol": 3.3368357841331053,
+      "finite_coordinates": true,
+      "forcefield": "MMFF94s",
+      "formal_charge": 0,
+      "index": 1,
+      "mode": "serial",
+      "nearest_pair_angstrom": 0.9784643989435691,
+      "original_report": {
+        "bytes": 17701,
+        "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/source-serial/forcefield-report.json",
+        "sha256": "9564d1d807b22e540010f018d3a8ab27bdd08a5fcc0badf0fe2269128bed301d"
+      },
+      "quality_level": "off",
+      "smiles": "CO",
+      "termination_reason": "budget_exhausted"
+    },
+    {
+      "atoms": 8,
+      "bond_distance_range_angstrom": [
+        1.089048327669622,
+        1.5107061329060658
+      ],
+      "bonds": 7,
+      "boundary": "source",
+      "converged": false,
+      "elements": {
+        "C": 2,
+        "H": 6
+      },
+      "final_energy_kj_mol": -19.279882257884772,
+      "finite_coordinates": true,
+      "forcefield": "MMFF94s",
+      "formal_charge": 0,
+      "index": 0,
+      "mode": "parallel",
+      "nearest_pair_angstrom": 1.089048327669622,
+      "original_report": {
+        "bytes": 17701,
+        "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/source-parallel/forcefield-report.json",
+        "sha256": "9564d1d807b22e540010f018d3a8ab27bdd08a5fcc0badf0fe2269128bed301d"
+      },
+      "quality_level": "off",
+      "smiles": "CC",
+      "termination_reason": "budget_exhausted"
+    },
+    {
+      "atoms": 6,
+      "bond_distance_range_angstrom": [
+        0.9784643989435691,
+        1.4122015224464248
+      ],
+      "bonds": 5,
+      "boundary": "source",
+      "converged": false,
+      "elements": {
+        "C": 1,
+        "H": 4,
+        "O": 1
+      },
+      "final_energy_kj_mol": 3.3368357841331053,
+      "finite_coordinates": true,
+      "forcefield": "MMFF94s",
+      "formal_charge": 0,
+      "index": 1,
+      "mode": "parallel",
+      "nearest_pair_angstrom": 0.9784643989435691,
+      "original_report": {
+        "bytes": 17701,
+        "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/source-parallel/forcefield-report.json",
+        "sha256": "9564d1d807b22e540010f018d3a8ab27bdd08a5fcc0badf0fe2269128bed301d"
+      },
+      "quality_level": "off",
+      "smiles": "CO",
+      "termination_reason": "budget_exhausted"
+    },
+    {
+      "atoms": 8,
+      "bond_distance_range_angstrom": [
+        1.089048327669622,
+        1.5107061329060658
+      ],
+      "bonds": 7,
+      "boundary": "installed",
+      "converged": false,
+      "elements": {
+        "C": 2,
+        "H": 6
+      },
+      "final_energy_kj_mol": -19.279882257884772,
+      "finite_coordinates": true,
+      "forcefield": "MMFF94s",
+      "formal_charge": 0,
+      "index": 0,
+      "mode": "serial",
+      "nearest_pair_angstrom": 1.089048327669622,
+      "original_report": {
+        "bytes": 17701,
+        "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/installed-serial/forcefield-report.json",
+        "sha256": "9564d1d807b22e540010f018d3a8ab27bdd08a5fcc0badf0fe2269128bed301d"
+      },
+      "quality_level": "off",
+      "smiles": "CC",
+      "termination_reason": "budget_exhausted"
+    },
+    {
+      "atoms": 6,
+      "bond_distance_range_angstrom": [
+        0.9784643989435691,
+        1.4122015224464248
+      ],
+      "bonds": 5,
+      "boundary": "installed",
+      "converged": false,
+      "elements": {
+        "C": 1,
+        "H": 4,
+        "O": 1
+      },
+      "final_energy_kj_mol": 3.3368357841331053,
+      "finite_coordinates": true,
+      "forcefield": "MMFF94s",
+      "formal_charge": 0,
+      "index": 1,
+      "mode": "serial",
+      "nearest_pair_angstrom": 0.9784643989435691,
+      "original_report": {
+        "bytes": 17701,
+        "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/installed-serial/forcefield-report.json",
+        "sha256": "9564d1d807b22e540010f018d3a8ab27bdd08a5fcc0badf0fe2269128bed301d"
+      },
+      "quality_level": "off",
+      "smiles": "CO",
+      "termination_reason": "budget_exhausted"
+    },
+    {
+      "atoms": 8,
+      "bond_distance_range_angstrom": [
+        1.089048327669622,
+        1.5107061329060658
+      ],
+      "bonds": 7,
+      "boundary": "installed",
+      "converged": false,
+      "elements": {
+        "C": 2,
+        "H": 6
+      },
+      "final_energy_kj_mol": -19.279882257884772,
+      "finite_coordinates": true,
+      "forcefield": "MMFF94s",
+      "formal_charge": 0,
+      "index": 0,
+      "mode": "parallel",
+      "nearest_pair_angstrom": 1.089048327669622,
+      "original_report": {
+        "bytes": 17701,
+        "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/installed-parallel/forcefield-report.json",
+        "sha256": "9564d1d807b22e540010f018d3a8ab27bdd08a5fcc0badf0fe2269128bed301d"
+      },
+      "quality_level": "off",
+      "smiles": "CC",
+      "termination_reason": "budget_exhausted"
+    },
+    {
+      "atoms": 6,
+      "bond_distance_range_angstrom": [
+        0.9784643989435691,
+        1.4122015224464248
+      ],
+      "bonds": 5,
+      "boundary": "installed",
+      "converged": false,
+      "elements": {
+        "C": 1,
+        "H": 4,
+        "O": 1
+      },
+      "final_energy_kj_mol": 3.3368357841331053,
+      "finite_coordinates": true,
+      "forcefield": "MMFF94s",
+      "formal_charge": 0,
+      "index": 1,
+      "mode": "parallel",
+      "nearest_pair_angstrom": 0.9784643989435691,
+      "original_report": {
+        "bytes": 17701,
+        "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/installed-parallel/forcefield-report.json",
+        "sha256": "9564d1d807b22e540010f018d3a8ab27bdd08a5fcc0badf0fe2269128bed301d"
+      },
+      "quality_level": "off",
+      "smiles": "CO",
+      "termination_reason": "budget_exhausted"
+    }
+  ],
+  "raw_output_policy": "Original stdout SDF and JSON reports retained per source/installed serial/parallel job under raw/validation-preparation/attempt01/.",
+  "root_scientific_judgment": "Emitted ethane/methanol preserve ordered identity, neutral charge, expected single-bond connectivity/H counts, finite separated coordinates and ordinary C-C/C-O/X-H distances. Finite energies retain MMFF94s/kJ/mol attribution. One bounded epoch is budget_exhausted, not convergence or a unique chemical minimum. No source/installed numerical equality was required.",
+  "schema_version": 1,
+  "source": {
+    "bytes": 8205,
+    "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/root-business-review.json",
+    "sha256": "2bc8401ff535cd7079f0d32d2c289f464ca01ac639271206283aa021d06d6c59"
+  },
+  "stage": "Stage8B/B3b",
+  "status": "ROOT_ACCEPTED_CP311_B3B_COMMAND_OWNERSHIP"
+}

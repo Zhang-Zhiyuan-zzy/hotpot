@@ -1,0 +1,201 @@
+{
+  "artifacts": {
+    "actual_wheel": {
+      "bytes": 6339067,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/wheel/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "sha256": "aab1c966ecbbd004ca7a339708cc78b518f5b57a224e2d7a1a3658c1855bea65"
+    },
+    "archive_manifest": {
+      "bytes": 76436,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw_manifest.json",
+      "sha256": "0f86c1c37ad57371473f584df65cad273536914105c00908baa13622b6ffcebd"
+    },
+    "bindings_after": {
+      "bytes": 236095,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/bindings-after.json",
+      "sha256": "122b01ddc9d440b47465ffad1bb58350b4ca86833804ea341ee2b08e440c26a8"
+    },
+    "bindings_before": {
+      "bytes": 236095,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/bindings-before.json",
+      "sha256": "122b01ddc9d440b47465ffad1bb58350b4ca86833804ea341ee2b08e440c26a8"
+    },
+    "commands": {
+      "bytes": 21463,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/commands.json",
+      "sha256": "eeb050d3d9c3254d835f23ec83a25c37912e10c18873ad17f63f0e41fe5445c7"
+    },
+    "current_native_rebind": {
+      "bytes": 1506,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/root-native-rebind.json",
+      "sha256": "fd3f78c41a001852dffd0f3fded9e24bf179cac253688eeb73242f4ee0504b79"
+    },
+    "execution": {
+      "bytes": 240027,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/execution.json",
+      "sha256": "0a73e7f42825dcc7a2ae900cb3b189239681014d297948392ba49156c86d0a83"
+    },
+    "implementation_diff": {
+      "bytes": 4236,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/implementation/source.patch",
+      "sha256": "26834e59b3a71a0bf39ea2dcd47e1996a799c7bd50da384878ed3db36307508b"
+    },
+    "implementation_map": {
+      "bytes": 2083,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/implementation/implementation-map.json",
+      "sha256": "d3efb86f068518f624e6c3826071ca64125ed54ecae20f9c7ac33a9babb50d51"
+    },
+    "installed_results": {
+      "bytes": 102150,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/installed-results.json",
+      "sha256": "d3c1f4695896c349dd00d1a289320f554661356434892ffafcc2e6acbfad4ec3"
+    },
+    "ordered_membership": {
+      "bytes": 82,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/ordered-membership.json",
+      "sha256": "0e103b317144d23de4160c8f03ff92f3b26949bccde6b2b1fa0e7753cabe14c6"
+    },
+    "preparation_static_checks": {
+      "bytes": 2309,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/static-checks.json",
+      "sha256": "0a97f6b49c6b84520f765ca7ffe0067870e22a685e54f7387de53db49f78238f"
+    },
+    "release": {
+      "bytes": 1264,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/root-runtime-release-attempt01.json",
+      "sha256": "509b8c73c9d91b788fb904f58d7850027a0f392567f50202e8e1d07e87ae0449"
+    },
+    "root_business_review": {
+      "bytes": 8205,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/root-business-review.json",
+      "sha256": "2bc8401ff535cd7079f0d32d2c289f464ca01ac639271206283aa021d06d6c59"
+    },
+    "root_review_script": {
+      "bytes": 4944,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/review_runtime.py",
+      "sha256": "b890f171f0ec3440db052099b6b42ebb917e249dd87615428478dc8a7dde22c0"
+    },
+    "runner": {
+      "bytes": 19987,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/run_validation.py",
+      "sha256": "38ae400b5a6870394ab32c206831dade91a5b557ea07b5fe3b1911e7f184ae82"
+    },
+    "runtime_native_rebind": {
+      "bytes": 75591,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/native-rebind.json",
+      "sha256": "b42b921bddbc905afc9cf3bbb13240edea18a8c85279ae3aeb2df44e4f3916a3"
+    },
+    "source_freeze": {
+      "bytes": 186319,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/source-freeze-b3b-attempt01.json",
+      "sha256": "551ba90bcbd0aaf114173df92da89546ea72650958880166c182aa9b84f283e0"
+    },
+    "source_results": {
+      "bytes": 102048,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/source-results.json",
+      "sha256": "87d7414295f332ebf0f7cdcf6e4b4406fe5e3e9bd1d567181c37cba67b6ec21c"
+    },
+    "wheel_contents": {
+      "bytes": 5391,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/wheel-contents.json",
+      "sha256": "ea2a98025a2d4a0b1015c41e52f3a7c8b9fa9f5c2c37f02b9eeae02efa761cee"
+    }
+  },
+  "historical_native_provenance": {
+    "accepted_b3a_build_freeze": ".plan20-artifacts/20261103/stage8b/b3a/raw/native-build/build-freeze-attempt01.json",
+    "accepted_b3a_build_receipt": ".plan20-artifacts/20261103/stage8b/b3a/raw/native-build/attempt01/execution.json",
+    "accepted_b3a_freeze": ".plan20-artifacts/20261103/stage8b/b3a/raw/release/source-freeze-b3a-attempt02.json",
+    "accepted_b3a_wheel_contents": ".plan20-artifacts/20261103/stage8b/b3a/raw/installed/attempt02/wheel-contents.json"
+  },
+  "job_evidence_directories": {
+    "installed": {
+      "doc": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/installed-doc",
+      "parallel": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/installed-parallel",
+      "resource": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/installed-resource",
+      "serial": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/installed-serial",
+      "tests": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/installed-tests"
+    },
+    "source": {
+      "doc": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/source-doc",
+      "parallel": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/source-parallel",
+      "resource": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/source-resource",
+      "serial": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/source-serial",
+      "tests": ".plan20-artifacts/20261103/stage8b/b3b/raw/validation-preparation/attempt01/source-tests"
+    }
+  },
+  "limits": [
+    "CP311 source and installed command/resource/spawn scope; installed venv shares system-site dependencies.",
+    "Participating Python site-hook processes only; native and site-bypassing processes excluded from origin coverage.",
+    "Actual CC/CO commands use quality=off, seed=1, epochs=1 and steps-per-epoch=2; all observations are nonconverged budget_exhausted.",
+    "No minimization-convergence, unique-minimum or broader geometry-verification claim; broader unchanged chemistry evidence remains attributed to accepted B3a.",
+    "Six accepted B3a binaries reused after current rebinding; no new native compilation, clean-native/ABI/SDK/sdist/all-version or controlled-performance evidence.",
+    "No whole Stage8B/global acceptance or gate closure; only bounded B3b command delivery is accepted.",
+    "Preparation manifest/implementation runtime_executed flags and execution.limits retain historical pre-release wording. Actual release and fourteen successful command receipts establish executed scope."
+  ],
+  "record_policy": "Maintained records are outside archive; archive manifest binds all copied raw files, wheel, source capsule and finalizer. No origin/report trees duplicated in maintained records.",
+  "schema_version": 1,
+  "source_capsule": {
+    "MANIFEST.in": {
+      "bytes": 2951,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/source-capsule/MANIFEST.in",
+      "sha256": "0e1a97b8c9a6ed7dc6aee44e32553c2153996707eca1732b5ad75a13f5de10a6"
+    },
+    "README.md": {
+      "bytes": 23457,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/source-capsule/README.md",
+      "sha256": "1a32b5318a8f55fc6934701617a728c843e4ac50aa8fe231467264f162b0b2eb"
+    },
+    "hotpot/__main__.py": {
+      "bytes": 5994,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/source-capsule/hotpot/__main__.py",
+      "sha256": "e877dc898d91d6cce7cf7759f120640f6c7acaea625ab431b3a0df4e4576b3e4"
+    },
+    "hotpot/commands/__init__.py": {
+      "bytes": 31,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/source-capsule/hotpot/commands/__init__.py",
+      "sha256": "a680c7163fa10cf2c7612904aba2a377f1261951d3c7da5961ab25337348a743"
+    },
+    "hotpot/commands/ff.md": {
+      "bytes": 13356,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/source-capsule/hotpot/commands/ff.md",
+      "sha256": "314e06e1928e674ab82cc74ab299d4a7d143da3e736512673ded812f6a6c0673"
+    },
+    "hotpot/commands/ff.py": {
+      "bytes": 19520,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/source-capsule/hotpot/commands/ff.py",
+      "sha256": "57a7918756eab926fafe419f3bdd56425b865be0a9ea7e675feffb3847255342"
+    },
+    "pyproject.toml": {
+      "bytes": 4385,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/source-capsule/pyproject.toml",
+      "sha256": "c58b2dde9e57691e2a5887cf867357eda9dfe070a7267665593145ea172342ab"
+    },
+    "tests/test_cheminfo/test_forcefield_cli.py": {
+      "bytes": 26367,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/source-capsule/tests/test_cheminfo/test_forcefield_cli.py",
+      "sha256": "9535e93e29719dd51381dd86db1dc52c8fce545873165128c8aedc59180396e0"
+    },
+    "tests/test_cheminfo/test_forcefield_package.py": {
+      "bytes": 6717,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/source-capsule/tests/test_cheminfo/test_forcefield_package.py",
+      "sha256": "37cc0917ffcd6b06bf9772e23a0bb34b43446ae20616fd419090cbbc82ed1f1f"
+    },
+    "tests/test_cheminfo/test_import_safety.py": {
+      "bytes": 598,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/source-capsule/tests/test_cheminfo/test_import_safety.py",
+      "sha256": "81a9a83d50efce075e3dd6cf9ac89b93aeec73b1665d1b675ca1b456a8a6dbbd"
+    },
+    "tests/test_main/test_command_loading.py": {
+      "bytes": 3297,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/source-capsule/tests/test_main/test_command_loading.py",
+      "sha256": "7f3716531031fabf200790c3bbabdac30d2776fddee50f73cd9021165e1b9cae"
+    },
+    "tests/test_packaging_metadata.py": {
+      "bytes": 7042,
+      "path": ".plan20-artifacts/20261103/stage8b/b3b/source-capsule/tests/test_packaging_metadata.py",
+      "sha256": "2991bcec12572066d6ab29112e261c7bad8ed50a41d000265ae5de6303e599fe"
+    }
+  },
+  "stage": "Stage8B/B3b",
+  "status": "ROOT_ACCEPTED_CP311_B3B_COMMAND_OWNERSHIP"
+}

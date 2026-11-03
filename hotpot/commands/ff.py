@@ -18,7 +18,7 @@ from typing import Mapping, Optional, Sequence, TYPE_CHECKING, Tuple, Union
 from hotpot._cli import MarkdownDocumentationAction
 from hotpot.cheminfo.operations.io import MolReader
 
-from . import (
+from hotpot.cheminfo.forcefields import (
     BuildWorkerError,
     ComplexBuildError,
     ComplexBuildWorkerError,
@@ -34,7 +34,7 @@ from . import (
     optimize,
     optimize_complex,
 )
-from .stage import (
+from hotpot.cheminfo.forcefields.stage import (
     ForceFieldRouteOperations,
     ForceFieldRouteOptions,
     execute_forcefield_route,
@@ -43,7 +43,7 @@ from .stage import (
 
 
 if TYPE_CHECKING:
-    from ..core import Molecule
+    from hotpot.cheminfo.core import Molecule
 
 
 __all__ = (
@@ -108,7 +108,7 @@ def load_cli_documentation() -> str:
     """Return the packaged long-form command documentation."""
     return (
         resources.files(__package__)
-        .joinpath("cli_doc.md")
+        .joinpath("ff.md")
         .read_text(encoding="utf-8")
     )
 

@@ -56,7 +56,7 @@ User-supplied facts, Hotpot rule evaluations, and toolkit projections remain dis
 
 > **Example 6 — Distinct bond semantics and adapter limits**
 >
-> Covalent-bond count, operational valence, coordination number, and covalent contribution are different quantities and must not be equated automatically. Coordination and covalent bond semantics remain explicit Hotpot concepts; an RDKit or other adapter limitation must be reported as an adapter-scoped unsupported or lossy projection, not reclassified as a chemical impossibility or used to redefine Hotpot facts.
+> Covalent-bond count, operational valence, coordination number, and covalent contribution are different quantities and must not be equated automatically. Registered adapters translate quietly under documented, versioned maps, minimizing information loss without extra runtime labels. Hotpot-initiated roundtrips preserve original Hotpot facts' authority; independently supplied native adapter objects are authoritative inputs under documented import maps. Calculated observations remain distinct from conversion. Detached carriers inspect only their contents and gates; conversion cannot recreate absent facts or lost upstream relations. Unexpected or unmapped material loss and integrity failures require precise adapter-scoped diagnostics.
 
 Record and test each actual rule, gate, adapter boundary, and workflow stage in its owning records:
 

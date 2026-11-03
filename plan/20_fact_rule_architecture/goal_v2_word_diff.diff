@@ -1,5 +1,5 @@
 diff --git a/plan/20_fact_rule_architecture/goal.md b/plan/20_fact_rule_architecture/goal_v2.md
-index 15febcb..cd89c76 100644
+index 15febcb..5ee8528 100644
 --- a/plan/20_fact_rule_architecture/goal.md
 +++ b/plan/20_fact_rule_architecture/goal_v2.md
 @@ -1,81 +1,113 @@
@@ -61,7 +61,7 @@ User-supplied facts, Hotpot rule evaluations, and toolkit projections remain dis
 
 > **Example 6 — Distinct bond semantics and adapter limits**
 >
-> Covalent-bond count, operational valence, coordination number, and covalent contribution are different quantities and must not be equated automatically. Coordination and covalent bond semantics remain explicit Hotpot concepts; an RDKit or other adapter limitation must be reported as an adapter-scoped unsupported or lossy projection, not reclassified as a chemical impossibility or used to redefine Hotpot facts.
+> Covalent-bond count, operational valence, coordination number, and covalent contribution are different quantities and must not be equated automatically. [-Coordination and covalent bond semantics remain explicit-]{+Registered adapters translate quietly under documented, versioned maps, minimizing information loss without extra runtime labels. Hotpot-initiated roundtrips preserve original+} Hotpot [-concepts; an RDKit or other-]{+facts' authority; independently supplied native+} adapter [-limitation must be reported as an adapter-scoped unsupported-]{+objects are authoritative inputs under documented import maps. Calculated observations remain distinct from conversion. Detached carriers inspect only their contents and gates; conversion cannot recreate absent facts+} or [-lossy projection, not reclassified as a chemical impossibility-]{+lost upstream relations. Unexpected+} or [-used to redefine Hotpot facts.-]{+unmapped material loss and integrity failures require precise adapter-scoped diagnostics.+}
 
 [-For every-]{+Record and test each+} actual rule, gate, adapter boundary, and workflow [-stage, the main agent must determine and record:-]{+stage in its owning records:+}
 

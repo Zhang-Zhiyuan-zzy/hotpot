@@ -6221,3 +6221,105 @@ record. No runtime/build/benchmark was repeated; the private wheel retains the
 six original EOF blank lines. A2-file final-delivery supplement preserves this
 execution/script separately from the immutable298-file/15303196byte archive.
 Maintained report/checkpoint/graph now describe the final delivered source.
+
+
+### 2026-11-04 — Stage8D entry alignment; read-only owner inventory
+
+Stage8C C2 business commit a511a13 is pushed to origin and its owning CP311
+checkpoint closes the search gate; P20-D024 remains Stage8E-required and
+P20-D025 retains consolidated cost review. Effective goal and governance/stage/
+validation skills, mainSections6/8/9.2/Stage8D/11/12, chemical-type contract,
+data-object scope/budget, Plan17/20 alignment and verification-map selections
+own this next scope. The existing sole MCA conformer route must remain; no
+ETKDG-only substitution, new schema/result envelope/cache, speculative defense,
+wrapper rewrite or scientific feature/algorithm change is authorized.
+
+Release two disjoint read-only local Sol/medium inventories: MCA pipeline/
+sites/tensors/serialization/session ownership; CBond/artifacts/provider-neutral
+conformers plus connected consumers/build/commands. Root retains main design,
+public decisions and all execution/acceptance. Output under
+/tmp/hotpot_plan20/long/stage8d-entry-20261104 only. No product/test edits,
+candidate execution/build/model/performance or child delegation before the
+concrete connected split, validation selection and source freeze are reviewed.
+Real GPU/runtime path moves retain Stage8D's one-GPU installed smoke requirement;
+standalone rdWrapper remains unchanged. Stage8D gate remains open.
+
+
+### 2026-11-04 — Stage8D D1 artifact route and authoring release
+
+Completed inventories cover MCA228definitions/23scoped source files and the
+artifact/CBond/conformer30modules/178definitions plus111consumer files. Root
+selects dependency-first D1 in stages/stage08/inference/contracts/decisions.md:
+existing artifact contracts/workflow in operations, explicit filesystem/hash/
+pinned-hub leaves in adapters, one canonical pointer-resource tree and unchanged
+model CLI in commands/models. Keep manifest bytes/schema, explicit/env/package/
+cache/hub precedence, completeness-vs-hash checks and current errors. No new DTO,
+model download/fallback, mutable carrier or compatibility implementation.
+
+Release one local Sol/medium author with exclusive D1 source/consumer/tests;
+root owns decisions/main records/static review/runtime freeze/acceptance/Git.
+MCA/CBond controllers remain in place except exact artifact imports/pointer
+lookups. D2/D3 mixed rule/runtime/preparation choices need their concrete route
+before authoring. No candidate execution/build/model/performance is released.
+Independent dependency preparation may create a new CP311 GPU environment on
+ai-14 only in permitted paths; existing3environments are CP313, not CP311. A
+quoted probe script failed before changing anything and was replaced by a
+heredoc metadata query. No project/model runtime ran remotely. Whole Stage8D's
+installed one-GPU gate remains mandatory with resource/runtime moves.
+
+
+### 2026-11-04 — Stage8D D1 root review and bounded runtime release
+
+Root reviews the artifact operation/effect split against the actual old manifest,
+resolver and command bodies; four pointer resources are byte-exact and MCA/CBond,
+packaging, CI and command consumers agree. The author reports61static checks,
+without runtime claims. Root corrects one new test oracle before execution:
+missing-local status returns0, verify returns1, matching unchanged command code.
+No source defect or policy change is established. Freeze and concrete selections
+are in /tmp/hotpot_plan20/long/stage8d-entry-20261104/d1-validation.
+
+Release focused resource/precedence/error/CLI/package/architecture checks and
+actual local CP311 MCA/CBond CPU loading through canonical pointers, followed by
+offline models list/status/verify. A task-owned cache may link existing verified
+bundles; no network/model download is released. Record actual argv/environment,
+source/model identities, outputs, JUnit/timing/resources and before/after hashes.
+No source/test edit during these runs; retain failures and stop for root review.
+No wheel/native build, GPU, performance claim or wholeStage8D acceptance follows.
+
+
+### 2026-11-04 — Stage8D connected D2/D3 route selected; authoring still held
+
+Actual inventory distinguishes pure MCA rule values from query/native execution,
+DTO preparation/allocation from prepared encoding, artifact resolution from
+sessions and carrier-aware conformer providers from external leaves. Root
+Sol/max records concrete owners/contracts in inference/contracts/decisions.md
+and corrects three main-table mixed-owner shorthands. Preserve all selected
+algorithms/public constructor fields and the one existing CBondRuntime facade;
+its resolving constructor stays operational, external session functions below,
+with no new runtime/record or upward callback. Existing MCA transfer/prediction
+records move once; no scientific feature or policy redesign.
+
+D1 frozen source validation proceeds independently. No D2/D3 authoring is yet
+released. Root retains debt/type/core/result integration and later integrated
+source/installed/actual CPU/fake-GPU/conformer/real one-GPU acceptance.
+
+
+### 2026-11-04 — Stage8D D1 CP311 source checkpoint accepted
+
+Root compares old/current policy/error/CLI/effect/resource seams and verifies
+all1038frozen bindings/10deleted paths after execution. Focused59/actual-model13
+passed, zero skips; offline list/status/verify each exit0. Every selection ran
+once with no runtime repair/rerun. Model calls use canonical pointers with no
+per-model overrides; existing verified MCA85/CBond3input files are linked into a
+task-owned cache. Original argv/env/source/native/model/observations/JUnit/time/RSS
+and author static evidence are archived under .plan20-artifacts/20261104/stage8d/
+artifacts-d1, with maintained validation/d1 checkpoint/report/evidence graph.
+
+Piperidine N503.25kJ/mol and CBond head/zero-ring arrays, terminal structures,
+probabilities/steps remain actual observations. No benchmark or scientific truth
+claim. Six existing parser warnings and unused _rd_native standalone-loader
+libstdc++ diagnostic are retained. The tested route imports four existing native
+modules; installed/standalone/clean-native/SDK/sdist/other-version and complete
+Stage8D/real oneGPU/later-global gates stay open. D2/D3 authoring remains held
+until the coherent business commit. Owner mechanical Terra/Luna option is recorded
+in model_allocation; business code remains at least Sol/medium, root Sol/max.

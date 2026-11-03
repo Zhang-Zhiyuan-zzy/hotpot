@@ -1,6 +1,6 @@
 # Model allocation
 
-Owner-approved execution reference, updated 2026-11-03. The active goal and
+Owner-approved execution reference, updated 2026-11-04. The active goal and
 applicable agent instructions retain authority. Choose effort for each bounded
 task; do not inherit max into every child.
 

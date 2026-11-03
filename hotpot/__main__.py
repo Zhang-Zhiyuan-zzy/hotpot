@@ -45,7 +45,7 @@ _COMMANDS = {
     ),
     "models": _CommandSpec(
         "Install and verify external inference models",
-        "hotpot.cheminfo.AImodels.artifacts.cli",
+        "hotpot.commands.models",
     ),
     "ff": _CommandSpec(
         "Build and optimize molecular geometries with force fields",

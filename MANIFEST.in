@@ -10,11 +10,11 @@ recursive-include hotpot/dataset/manifests *.json
 graft hotpot/cheminfo/ChemData
 recursive-include hotpot/cheminfo/adapters/visualization/fonts *.ttf
 include hotpot/cheminfo/adapters/visualization/draw.md
-include hotpot/cheminfo/AImodels/cbond/onnx/manifest.json
-include hotpot/cheminfo/AImodels/cbond/onnx/README.md
+include hotpot/cheminfo/operations/inference/artifacts/data/cbond/manifest.json
+include hotpot/cheminfo/operations/inference/artifacts/data/cbond/README.md
 include hotpot/cheminfo/AImodels/cbond/cli_doc.md
-include hotpot/cheminfo/AImodels/mca/models/manifest.json
-include hotpot/cheminfo/AImodels/mca/models/README.md
+include hotpot/cheminfo/operations/inference/artifacts/data/mca/manifest.json
+include hotpot/cheminfo/operations/inference/artifacts/data/mca/README.md
 include hotpot/cheminfo/AImodels/mca/cli_doc.md
 include hotpot/commands/ff.md
 include hotpot/plugins/xtb/cli_doc.md

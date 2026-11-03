@@ -4533,7 +4533,9 @@
         "tests/test_cheminfo/rdWrappers/test_import_order.py",
         "tests/test_cheminfo/rdWrappers/test_native_binding.py",
         "tests/test_cheminfo/rdWrappers/test_r0_benchmark_runner.py",
-        "tests/test_cheminfo/test_mca_calculator.py"
+        "tests/test_cheminfo/test_mca_calculator.py",
+        "tests/model_artifacts/test_ownership.py",
+        "tests/model_artifacts/test_cli.py"
       ],
       "native_high_compute_test_files": [
         "tests/test_cheminfo/rdWrappers/native_cpp/test_rdwrapper_api.py",
@@ -4571,7 +4573,9 @@
         "tests/test_cheminfo/rdWrappers/test_import_order.py",
         "tests/test_cheminfo/rdWrappers/test_native_binding.py",
         "tests/test_cheminfo/rdWrappers/test_r0_benchmark_runner.py",
-        "tests/test_cheminfo/test_mca_calculator.py"
+        "tests/test_cheminfo/test_mca_calculator.py",
+        "tests/model_artifacts/test_ownership.py",
+        "tests/model_artifacts/test_cli.py"
       ],
       "native_command": [
         "python",
@@ -4596,7 +4600,12 @@
       "additional_requirements": [
         "existing sole Python-RDKit conformer route; threshold/rolling-window/session/GPU index; one-GPU installed smoke if runtime paths move"
       ],
-      "execution_status": "not_executed_by_inventory_capture"
+      "execution_status": "D1_SOURCE_ACCEPTED_D2_D3_ROUTE_SELECTED",
+      "entry_review": "stages/stage08/inference/entry_review.json",
+      "design": "stages/stage08/inference/contracts/decisions.md",
+      "stage_gate_closed": false,
+      "global_gate_closed": false,
+      "d1_checkpoint": "stages/stage08/inference/validation/d1/checkpoint.json"
     },
     "Stage8E": {
       "predecessor": "Stage8D",

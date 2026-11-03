@@ -59,7 +59,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ runner.temp }}/hotpot-models
-          key: ${{ runner.os }}-hotpot-models-v2-${{ hashFiles('hotpot/cheminfo/AImodels/mca/models/manifest.json', 'hotpot/cheminfo/AImodels/cbond/onnx/manifest.json') }}
+          key: ${{ runner.os }}-hotpot-models-v2-${{ hashFiles('hotpot/cheminfo/operations/inference/artifacts/data/mca/manifest.json', 'hotpot/cheminfo/operations/inference/artifacts/data/cbond/manifest.json') }}
       - name: Download the wheel built for this Python
         uses: actions/download-artifact@v8
         with:
@@ -139,7 +139,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ runner.temp }}/hotpot-models
-          key: ${{ runner.os }}-hotpot-models-v2-${{ hashFiles('hotpot/cheminfo/AImodels/mca/models/manifest.json', 'hotpot/cheminfo/AImodels/cbond/onnx/manifest.json') }}
+          key: ${{ runner.os }}-hotpot-models-v2-${{ hashFiles('hotpot/cheminfo/operations/inference/artifacts/data/mca/manifest.json', 'hotpot/cheminfo/operations/inference/artifacts/data/cbond/manifest.json') }}
       - name: Download the CPython 3.11 wheel
         uses: actions/download-artifact@v8
         with:
@@ -155,6 +155,14 @@ jobs:
           import tarfile
 
           expected = {
+              "hotpot/commands/models.py",
+              "hotpot/cheminfo/operations/inference/artifacts/__init__.py",
+              "hotpot/cheminfo/operations/inference/artifacts/resolver.py",
+              "hotpot/cheminfo/adapters/inference/artifacts.py",
+              "hotpot/cheminfo/operations/inference/artifacts/data/mca/manifest.json",
+              "hotpot/cheminfo/operations/inference/artifacts/data/mca/README.md",
+              "hotpot/cheminfo/operations/inference/artifacts/data/cbond/manifest.json",
+              "hotpot/cheminfo/operations/inference/artifacts/data/cbond/README.md",
               "hotpot/_cli.py",
               "hotpot/pipeline/cli.py",
               "hotpot/pipeline/cli_doc.md",
@@ -189,6 +197,16 @@ jobs:
               "hotpot/pipeline/state_recovery.py",
           }
           obsolete = {
+              "hotpot/cheminfo/AImodels/artifacts/__init__.py",
+              "hotpot/cheminfo/AImodels/artifacts/errors.py",
+              "hotpot/cheminfo/AImodels/artifacts/manifest.py",
+              "hotpot/cheminfo/AImodels/artifacts/registry.py",
+              "hotpot/cheminfo/AImodels/artifacts/resolver.py",
+              "hotpot/cheminfo/AImodels/artifacts/cli.py",
+              "hotpot/cheminfo/AImodels/mca/models/manifest.json",
+              "hotpot/cheminfo/AImodels/mca/models/README.md",
+              "hotpot/cheminfo/AImodels/cbond/onnx/manifest.json",
+              "hotpot/cheminfo/AImodels/cbond/onnx/README.md",
               "hotpot/cheminfo/forcefields/ff39.py",
               "hotpot/cheminfo/forcefields/utils.py",
               "hotpot/cheminfo/forcefields/utils39.py",
@@ -270,7 +288,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ runner.temp }}/hotpot-models
-          key: ${{ runner.os }}-hotpot-models-v2-${{ hashFiles('hotpot/cheminfo/AImodels/mca/models/manifest.json', 'hotpot/cheminfo/AImodels/cbond/onnx/manifest.json') }}
+          key: ${{ runner.os }}-hotpot-models-v2-${{ hashFiles('hotpot/cheminfo/operations/inference/artifacts/data/mca/manifest.json', 'hotpot/cheminfo/operations/inference/artifacts/data/cbond/manifest.json') }}
       - name: Download the CPython 3.11 wheel
         uses: actions/download-artifact@v8
         with:

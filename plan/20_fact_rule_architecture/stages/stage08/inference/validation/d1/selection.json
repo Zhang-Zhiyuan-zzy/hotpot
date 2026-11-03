@@ -1,0 +1,32 @@
+{
+  "focused": [
+    "tests/model_artifacts/test_resolver.py",
+    "tests/model_artifacts/test_ownership.py",
+    "tests/model_artifacts/test_cli.py",
+    "tests/test_main/test_command_loading.py",
+    "tests/test_packaging_metadata.py",
+    "tests/test_cheminfo/structure/test_architecture.py::test_repository_architecture_ratchet"
+  ],
+  "models": [
+    "tests/test_cheminfo/test_mca_calculator.py",
+    "tests/mca/test_api.py::test_total_entry_dispatches_to_the_cpu_backend",
+    "tests/cbond/test_dynamic_runtime.py::test_runtime_executes_graph_and_dynamic_ring_head",
+    "tests/cbond/test_dynamic_runtime.py::test_dynamic_ring_dimensions",
+    "tests/cbond/test_dynamic_runtime.py::test_zero_ring_input_remains_finite",
+    "tests/cbond/test_apply.py::test_auto_build_cbond_real_runtime_smoke",
+    "tests/cbond/test_apply.py::test_documented_aminodiol_reference_matches_packaged_model"
+  ],
+  "model_commands": [
+    [
+      "list"
+    ],
+    [
+      "status",
+      "--all"
+    ],
+    [
+      "verify",
+      "--all"
+    ]
+  ]
+}

@@ -178,8 +178,8 @@ def test_pymol_compatibility_extra_selects_numpy_1x():
 
 def test_production_model_weights_are_external():
     model_directories = (
-        PACKAGE_ROOT / "cheminfo" / "AImodels" / "mca" / "models",
-        PACKAGE_ROOT / "cheminfo" / "AImodels" / "cbond" / "onnx",
+        PACKAGE_ROOT / "cheminfo" / "operations" / "inference" / "artifacts" / "data" / "mca",
+        PACKAGE_ROOT / "cheminfo" / "operations" / "inference" / "artifacts" / "data" / "cbond",
     )
     binary_suffixes = {".onnx", ".weight", ".data"}
 
@@ -207,3 +207,18 @@ def test_draw_fonts_are_owned_by_the_discovered_font_package():
     assert package_data["hotpot.cheminfo.adapters.visualization"] == [
         "fonts/Arial/*.ttf", "draw.md"
     ]
+
+
+def test_artifact_pointers_are_owned_by_the_inference_operation_package():
+    with (ROOT / "pyproject.toml").open("rb") as stream:
+        package_data = tomllib.load(stream)["tool"]["setuptools"]["package-data"]
+    manifest = (ROOT / "MANIFEST.in").read_text(encoding="utf-8")
+
+    assert package_data["hotpot.cheminfo.operations.inference.artifacts"] == [
+        "data/mca/*.json", "data/mca/*.md", "data/cbond/*.json", "data/cbond/*.md",
+    ]
+    for name in ("mca", "cbond"):
+        for filename in ("manifest.json", "README.md"):
+            path = f"hotpot/cheminfo/operations/inference/artifacts/data/{name}/{filename}"
+            assert (ROOT / path).is_file()
+            assert f"include {path}" in manifest

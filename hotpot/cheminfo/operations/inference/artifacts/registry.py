@@ -13,16 +13,16 @@ class ArtifactSpec:
     environment_variable: str
 
 
-_AIMODELS_DIR = Path(__file__).resolve().parents[1]
+_ARTIFACT_DATA_DIR = Path(__file__).resolve().parent / "data"
 ARTIFACTS = {
     "mca": ArtifactSpec(
         "mca",
-        _AIMODELS_DIR / "mca" / "models" / "manifest.json",
+        _ARTIFACT_DATA_DIR / "mca" / "manifest.json",
         "HOTPOT_MCA_MODEL_DIR",
     ),
     "cbond": ArtifactSpec(
         "cbond",
-        _AIMODELS_DIR / "cbond" / "onnx" / "manifest.json",
+        _ARTIFACT_DATA_DIR / "cbond" / "manifest.json",
         "HOTPOT_CBOND_MODEL_DIR",
     ),
 }

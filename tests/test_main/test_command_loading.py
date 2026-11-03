@@ -15,7 +15,7 @@ _PROJECT_ROOT = Path(
 _COMMAND_MODULES = (
     "hotpot.cheminfo.AImodels.cbond.cli",
     "hotpot.cheminfo.AImodels.mca.cli",
-    "hotpot.cheminfo.AImodels.artifacts.cli",
+    "hotpot.commands.models",
     "hotpot.commands.ff",
     "hotpot.plugins.xtb.cli",
     "hotpot.pipeline.cli",
@@ -117,3 +117,15 @@ def test_root_version_flag_does_not_collide_with_dataset_release_version() -> No
 
     assert args.show_version is False
     assert args.version == "001"
+
+
+def test_models_help_loads_only_the_selected_command_module() -> None:
+    status, loaded = _loaded_after(("models", "--help"))
+
+    assert status == 0
+    assert loaded["hotpot.commands.models"] is True
+    assert all(
+        not is_loaded
+        for name, is_loaded in loaded.items()
+        if name != "hotpot.commands.models"
+    )

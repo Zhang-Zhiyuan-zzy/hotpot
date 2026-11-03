@@ -1,9 +1,10 @@
 # Coordination-bond inference
 
-The production runtime uses two ONNX files in `onnx/`: a dynamic molecular
+The production runtime resolves two external ONNX files: a dynamic molecular
 graph encoder and a dynamic coordination-bond head. Model files are loaded only
 when inference is first requested, and their SHA-256 hashes are checked against
-`onnx/manifest.json`.
+the resolved bundle manifest. The packaged pointer is owned by
+[`operations/inference/artifacts/data/cbond/manifest.json`](../../operations/inference/artifacts/data/cbond/manifest.json).
 
 Set `HOTPOT_CBOND_DEVICE=cpu` or `HOTPOT_CBOND_DEVICE=cuda` to require a device.
 The default `auto` setting selects an initialized CUDA execution provider when
@@ -29,4 +30,4 @@ python hotpot/cheminfo/AImodels/cbond/deploy/make_dynamic_onnx.py \
 The converter first verifies that every fixed-shape source contains the same
 parameter set. The released dynamic head was compared with all 28 historical
 graphs and with all 10 bundled CBond fixtures; numerical results are recorded
-in `onnx/manifest.json`.
+in the packaged CBond pointer manifest.

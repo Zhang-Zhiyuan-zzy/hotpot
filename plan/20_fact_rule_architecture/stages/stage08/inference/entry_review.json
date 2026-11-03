@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8D",
+  "date": "2026-11-04",
+  "parent_head": "a511a1306bcb51f09c25a3bc2a478e14da749246",
+  "predecessor": "../search/validation/c2/checkpoint.json",
+  "status": "D1_SOURCE_ACCEPTED_D2_D3_ROUTE_SELECTED",
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "design": "contracts/decisions.md",
+  "scope": "Existing artifacts and model CLI first; then connected inference/rule/runtime and conformer splits, preserving selected algorithms and contracts.",
+  "runtime": "D1 bounded CP311 source accepted; D2/D3 authoring and all later candidate execution require explicit release. Independent remote dependency preparation is not GPU evidence.",
+  "remaining": [
+    "Exact D2/D3 seam decisions and connected implementation",
+    "Affected source/installed/actual CPU/fake-GPU/one-GPU and conformer evidence",
+    "Whole-stage records/acceptance/delivery and later/global gates"
+  ],
+  "d1_checkpoint": "validation/d1/checkpoint.json"
+}

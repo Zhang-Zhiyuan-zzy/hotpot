@@ -2,18 +2,17 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
-from hotpot.cheminfo.AImodels.artifacts import (
+from hotpot.cheminfo.operations.inference.artifacts import (
     ModelArtifact,
     load_manifest,
     verify_artifact,
 )
+from hotpot.cheminfo.operations.inference.artifacts.registry import ARTIFACTS
 
 
 class ModelStore:
     def __init__(self, model_dir=None, verify: bool = True, model_source=None):
-        pointer = Path(__file__).with_name("models") / "manifest.json"
+        pointer = ARTIFACTS["mca"].manifest_path
         self.model_dir = ModelArtifact(
             pointer,
             "HOTPOT_MCA_MODEL_DIR",

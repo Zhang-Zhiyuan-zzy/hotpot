@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8D",
+  "slice": "D1 artifact operation/adapter/resource/CLI migration",
+  "date": "2026-11-04",
+  "parent_head": "a511a1306bcb51f09c25a3bc2a478e14da749246",
+  "status": "ROOT_ACCEPTED_CP311_SOURCE_CHECKPOINT",
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "freeze": {
+    "sha256": "68bc63f818422f61f593195bb7fb699d716c640ed791a1abc09ac686e99709e5",
+    "files": 1038,
+    "deleted_paths": 10,
+    "final_root_recheck": "All match; no product/test byte changes after execution"
+  },
+  "results": {
+    "focused": {
+      "passed": 59,
+      "skipped": 0,
+      "wall_seconds": 13.6750113312155,
+      "max_rss_kib": 202180
+    },
+    "actual_mca_cbond": {
+      "passed": 13,
+      "skipped": 0,
+      "wall_seconds": 8.685777360573411,
+      "max_rss_kib": 850756
+    },
+    "offline_model_commands": {
+      "list": 0,
+      "status_all": 0,
+      "verify_all": 0
+    },
+    "attempt_policy": "Each selection and command executed once; no runtime failure/repair/rerun"
+  },
+  "scientific_observations": {
+    "mca_amine_site_kj_mol": 503.25,
+    "mca_amine_atom_values": [
+      314.0,
+      373.0,
+      318.0,
+      370.0,
+      318.0,
+      503.25
+    ],
+    "cbond_head": [
+      -5.365810394287109,
+      -1.0069012641906738
+    ],
+    "cbond_zero_ring": [
+      -1.0473896265029907
+    ],
+    "aminodiol_structure_probabilities": [
+      0.5787371244916796,
+      0.4212628755083204
+    ],
+    "cn_eu_path_probability": 0.5212997481817374,
+    "interpretation": "Current model outputs and contract checks; no experimental truth/performance parity claim"
+  },
+  "review": "Root compared actual old/current artifact policy/error/CLI bodies, dependency direction, resources and connected consumers. Author61static checks precede root correction of one new test status-return oracle. Runtime validates corrected final test bytes; no business code correction.",
+  "evidence_archive": ".plan20-artifacts/20261104/stage8d/artifacts-d1",
+  "archive_receipt_sha256": "b5a1343fa4fef1ebbb609121695a0e85763ad6bcdafae2066facfbb4b492e49f",
+  "limits": [
+    "CP311 source only; installed wheel and real one-GPU remain required",
+    "No native rebuild/clean ABI/SDK/sdist or other-version claim",
+    "Six existing parser DeprecationWarnings retained",
+    "Unused _rd_native standalone-loader libstdc++ symbol diagnostic retained; actual D1 imported four native modules; later conformer/native checks still required",
+    "WholeStage8D D2/D3, source/installed/CPU/fake-GPU/conformer/real-GPU and later/global gates remain open"
+  ],
+  "next": "D2/D3 connected authoring may be released explicitly after this business commit; contracts/decisions.md owns selected exact route"
+}

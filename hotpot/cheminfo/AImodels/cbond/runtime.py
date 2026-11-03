@@ -7,11 +7,12 @@ from pathlib import Path
 import numpy as np
 import onnxruntime as ort
 
-from hotpot.cheminfo.AImodels.artifacts import (
+from hotpot.cheminfo.operations.inference.artifacts import (
     ModelArtifact,
     load_manifest,
     verify_artifact,
 )
+from hotpot.cheminfo.operations.inference.artifacts.registry import ARTIFACTS
 
 
 MAX_RINGS_NUMS = 32
@@ -42,7 +43,7 @@ class CBondRuntime:
         verify: bool = True,
         model_source=None,
     ):
-        pointer = Path(__file__).with_name("onnx") / "manifest.json"
+        pointer = ARTIFACTS["cbond"].manifest_path
         self.model_dir = ModelArtifact(
             pointer,
             "HOTPOT_CBOND_MODEL_DIR",

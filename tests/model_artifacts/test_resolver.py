@@ -5,10 +5,10 @@ from pathlib import Path
 import pytest
 
 from hotpot import __main__ as hotpot_main
-from hotpot.cheminfo.AImodels.artifacts.errors import ModelArtifactUnavailable
-from hotpot.cheminfo.AImodels.artifacts.manifest import verify_artifact
-from hotpot.cheminfo.AImodels.artifacts.resolver import ModelArtifact
-from hotpot.cheminfo.AImodels.artifacts import resolver as resolver_module
+from hotpot.cheminfo.operations.inference.artifacts.errors import ModelArtifactUnavailable
+from hotpot.cheminfo.operations.inference.artifacts.manifest import verify_artifact
+from hotpot.cheminfo.operations.inference.artifacts.resolver import ModelArtifact
+from hotpot.cheminfo.adapters.inference import artifacts as artifact_effects
 
 
 def _write_pointer(tmp_path: Path) -> Path:
@@ -44,7 +44,7 @@ def test_complete_packaged_artifact_precedes_hub(tmp_path, monkeypatch):
     def reject_download(**kwargs):
         raise AssertionError("complete packaged artifacts must not be downloaded")
 
-    monkeypatch.setattr(resolver_module, "snapshot_download", reject_download)
+    monkeypatch.setattr(artifact_effects, "snapshot_download", reject_download)
 
     assert ModelArtifact(pointer, "EXAMPLE_MODEL_DIR").resolve() == pointer.parent
 
@@ -56,7 +56,7 @@ def test_explicit_model_directory_has_highest_precedence(tmp_path, monkeypatch):
     def reject_download(**kwargs):
         raise AssertionError("explicit model directories must not be downloaded")
 
-    monkeypatch.setattr(resolver_module, "snapshot_download", reject_download)
+    monkeypatch.setattr(artifact_effects, "snapshot_download", reject_download)
 
     assert ModelArtifact(
         pointer,
@@ -74,7 +74,7 @@ def test_hub_resolution_is_pinned_and_scoped(tmp_path, monkeypatch):
         observed.update(kwargs)
         return str(kwargs["local_dir"])
 
-    monkeypatch.setattr(resolver_module, "snapshot_download", record_download)
+    monkeypatch.setattr(artifact_effects, "snapshot_download", record_download)
     monkeypatch.setenv("HOTPOT_MODEL_HOME", str(tmp_path / "cache"))
 
     resolved = ModelArtifact(
@@ -107,9 +107,9 @@ def test_local_policy_reports_a_missing_cache(tmp_path, monkeypatch):
     pointer = _write_pointer(tmp_path)
 
     def missing_cache(**kwargs):
-        raise resolver_module.LocalEntryNotFoundError("missing")
+        raise artifact_effects.LocalEntryNotFoundError("missing")
 
-    monkeypatch.setattr(resolver_module, "snapshot_download", missing_cache)
+    monkeypatch.setattr(artifact_effects, "snapshot_download", missing_cache)
 
     with pytest.raises(ModelArtifactUnavailable, match="hotpot models install example"):
         ModelArtifact(pointer, "EXAMPLE_MODEL_DIR", source="local").resolve()
@@ -123,7 +123,7 @@ def test_standard_hugging_face_offline_toggle_selects_local_mode(tmp_path, monke
         observed.update(kwargs)
         return str(kwargs["local_dir"])
 
-    monkeypatch.setattr(resolver_module, "snapshot_download", record_download)
+    monkeypatch.setattr(artifact_effects, "snapshot_download", record_download)
     monkeypatch.setenv("HF_HUB_OFFLINE", "1")
     monkeypatch.setenv("HOTPOT_MODEL_HOME", str(tmp_path / "cache"))
 

@@ -7,8 +7,7 @@ import os
 from pathlib import Path
 from typing import Optional, Union
 
-from huggingface_hub import snapshot_download
-from huggingface_hub.errors import LocalEntryNotFoundError
+from ....adapters.inference import artifacts as _effects
 
 from .errors import ModelArtifactUnavailable
 from .manifest import artifact_is_complete, load_manifest
@@ -77,7 +76,7 @@ class ModelArtifact:
         if artifact_is_complete(materialized_bundle, self.pointer):
             return materialized_bundle
         try:
-            snapshot_download(
+            _effects.download_snapshot(
                 repo_id=artifact["repo_id"],
                 revision=artifact["revision"],
                 allow_patterns=patterns,
@@ -85,7 +84,7 @@ class ModelArtifact:
                 local_dir=materialized_root,
                 local_files_only=self.source is ModelSource.LOCAL,
             )
-        except LocalEntryNotFoundError as exc:
+        except _effects.LocalEntryNotFoundError as exc:
             raise ModelArtifactUnavailable(
                 f"{artifact['id']} model v{artifact['version']} is not cached; "
                 f"run 'hotpot models install {artifact['id']}' while online"

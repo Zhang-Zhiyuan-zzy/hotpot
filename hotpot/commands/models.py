@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import argparse
 
-from .errors import ModelArtifactUnavailable
-from .manifest import load_manifest, verify_artifact
-from .registry import ARTIFACTS
-from .resolver import ModelArtifact, ModelSource
+from hotpot.cheminfo.operations.inference.artifacts.errors import ModelArtifactUnavailable
+from hotpot.cheminfo.operations.inference.artifacts.manifest import load_manifest, verify_artifact
+from hotpot.cheminfo.operations.inference.artifacts.registry import ARTIFACTS
+from hotpot.cheminfo.operations.inference.artifacts.resolver import ModelArtifact, ModelSource
 
 
 def add_arguments(parser: argparse.ArgumentParser) -> None:

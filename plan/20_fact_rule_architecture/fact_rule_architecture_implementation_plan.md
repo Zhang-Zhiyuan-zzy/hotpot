@@ -4,7 +4,9 @@ Status: **implementation authorized on 2026-10-28; Stage0–8C owning-stage gate
 complete within their recorded scopes. Stage8C includes the connected canonical
 search split, fresh CP311 search native, source/installed conformance and actual
 MCA workflows, with usable same-work costs accepted. Imported-H assembly remains
-unaccepted/P20-D024 and is required at Stage8E. Stage8D–E have not entered.
+unaccepted/P20-D024 and is required at Stage8E. Stage8D accepts its bounded D1
+CP311 artifact/resource/CLI source checkpoint; D2/D3 route is selected, while
+wholeStage8D and Stage8E remain open.
 Optional scientific activation, remaining stages, clean full-native delivery,
 version-adaptation and global scientific/engineering acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
@@ -1332,11 +1334,11 @@ real core definition; it consolidates existing debt and creates no structure ali
 | `AImodels/artifacts/registry.py`, `resolver.py` | `operations/inference/artifacts/` | retain one artifact discovery/install/resolve workflow; no carrier or rule owns a model cache |
 | `AImodels/artifacts/cli.py`, CBond/MCA CLI modules | `commands/models.py`, `commands/cbond.py`, `commands/mca.py` | preserve CLI names/arguments while removing command logic from scientific packages |
 | `AImodels/cbond/apply.py`, `stage.py`, constants | `operations/inference/cbond/` | retain CBond composition/commit semantics and the `is_Nuc_site` distinction |
-| `AImodels/cbond/runtime.py`; MCA `runtime.py`, model/session/tensor code | `adapters/inference/runtime.py` | own ONNX/PyTorch/device sessions, tensor conversion, and external runtime errors; operations select and invoke them |
+| `AImodels/cbond/runtime.py`; MCA `runtime.py`, model/session/tensor code | named `adapters/inference/` leaves plus operation artifact/lifetime facades | sessions/tensors/providers stay below operations; resolving MCA factories and the existing public CBondRuntime constructor retain artifact policy in operations without an upward adapter dependency or second runtime class |
 | `AImodels/cbond/deploy/` model export/inspection scripts | repository `tools/model_deployment/cbond/` | keep non-runtime deployment tooling out of the importable package; no second copy remains under operations |
 | MCA `api`, `batching`, `pipeline`, `resources`, `workers`, CPU/GPU predictors and GPU consumer | `operations/inference/mca/` | retain current CPU default, bounded CPU/GPU execution, GPU threshold/resource policy, rolling admission, and public workflow API; predictors invoke the runtime adapter |
 | MCA `gpu_memory.py` | system/device probe in `adapters/inference/runtime.py`; resource decision in `operations/inference/mca/` | split external GPU-memory observation from batch/window/device policy |
-| MCA `site_detection.py` | `rules/chemistry/mca_sites/` | retain ordered SMARTS priority, first-match naming, site eligibility, `is_Nuc_site`, and symmetry/dedup semantics as deterministic chemical rules |
+| MCA `site_detection.py` | `rules/chemistry/mca_sites/` plus `operations/inference/mca/site_detection.py` | rules own ordered SMARTS/eligibility/naming and pure1-WL; operation owns compilation/preparation/native mapping and final exact automorphism. Preserve first-match/coordination/isotope semantics without an upward rule dependency |
 | MCA `conformer.py` direct RDKit backend | `adapters/rdkit` owns the selected sole route | after Plan17 minimum MCA closure, adapt its native route without algorithm changes; if deferred, relocate the existing ETKDG+MMFF/UFF implementation intact. No ETKDG-only substitution, duplicate production route, or fabricated parity |
 | MCA `featurizer`, graph input bridges, `data_extract.py` | `adapters/structure/inference.py` plus `adapters/inference/` | separate fact extraction/native packing from model tensor/session translation; never write carriers |
 | MCA `MoleculePrediction` and public inference DTOs | `operations/inference/mca/results.py` | preserve the public return DTOs independently of whether a result is attached to a Molecule |
@@ -1368,7 +1370,7 @@ real core definition; it consolidates existing debt and creates no structure ali
 | `calculator/base.py` | none | delete the empty `Calculator` class |
 | `call_thermo.py` | `operations/thermo.py` plus `adapters/thermo/chemical.py` | sole caller-owned Thermo class/public carrier getter/fallback methods in operations; external Chemical/identifier/DataFrame work takes prepared values; preserve complete proxy surface |
 | `conformers/contracts.py`, `sampler.py` | `operations/conformers/` | preserve backend-neutral seam and deterministic seed semantics |
-| `conformers/adapters.py` | RDKit/Open Babel adapter subpackages | split backend-specific code; no mixed toolkit adapter module |
+| `conformers/adapters.py` | `operations/conformers/` provider facades plus named RDKit/Open Babel leaves | operations own sample(Molecule,request), H/stereo preparation and coordinate commit; external leaves consume prepared values. Preserve the existing standalone route with no mixed toolkit/upward adapter module |
 | `convert.py` | `operations/conversion.py` plus `adapters/conversion.py` | operation owns carrier-producing dispatch/import; leaf only classifies external types with lazy imports; preserve public names/signatures/branch priority |
 | `core.py` | split per Section 9.1, then delete | no compatibility re-export module in the recommended plan |
 | `core_func.pyx` | none | delete after zero-reference and build audit |
@@ -2288,6 +2290,15 @@ explicit GPU index/count, session reuse, and serialization. If the real GPU
 module path, package data, or runtime-session code moves, run an additional
 ai-14 one-GPU installed-wheel smoke at this stage rather than waiting for final
 4-GPU validation.
+
+The [Stage8D connected decisions](stages/stage08/inference/contracts/decisions.md)
+select artifact workflow/resource ownership and the model command first (D1),
+then the mixed inference/rule/runtime and conformer preparation boundaries.
+Existing prediction/transfer/IPC records retain names and fields; no new
+ArtifactManifest or MCA result envelope is introduced. Pointer manifests have
+one owner under operations/inference/artifacts/data; effect leaves stay in the
+inference adapter. Whole-stage source/installed/actual CPU/fake-GPU/one-GPU and
+conformer gates remain open throughout bounded authoring.
 
 #### Stage 8E — Assembly and statistics
 

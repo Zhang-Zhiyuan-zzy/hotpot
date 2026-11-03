@@ -65,6 +65,7 @@ assert actual == expected
 
         test_targets=(
             "$repo_root/tests/mca"
+            "$repo_root/tests/model_artifacts"
             "$repo_root/tests/cbond"
             "$repo_root/tests/test_cheminfo/calculator"
             "$repo_root/tests/test_cheminfo/test_calculator.py"

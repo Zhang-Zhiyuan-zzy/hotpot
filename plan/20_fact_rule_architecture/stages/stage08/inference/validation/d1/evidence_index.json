@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "entry": "checkpoint",
+  "nodes": {
+    "checkpoint": {
+      "path": "checkpoint.json",
+      "purpose": "Root bounded acceptance and limits"
+    },
+    "selection": {
+      "path": "selection.json",
+      "purpose": "Exact affected files/nodes and CLI actions"
+    },
+    "archive": {
+      "path": ".plan20-artifacts/20261104/stage8d/artifacts-d1/archive-receipt.json",
+      "sha256": "b5a1343fa4fef1ebbb609121695a0e85763ad6bcdafae2066facfbb4b492e49f",
+      "purpose": "Exact retained raw files"
+    },
+    "source": {
+      "path": ".plan20-artifacts/20261104/stage8d/artifacts-d1/d1-validation/freeze.json",
+      "sha256": "68bc63f818422f61f593195bb7fb699d716c640ed791a1abc09ac686e99709e5",
+      "purpose": "Final tested source/config/test/native attribution"
+    },
+    "execution": {
+      "path": ".plan20-artifacts/20261104/stage8d/artifacts-d1/d1-validation/summary.json",
+      "sha256": "49182f609054af11b7825b9c0a758a3b38ec574533bb1988c000234a5098b772",
+      "purpose": "Actual result/argv/env/native/model/observation lookup"
+    },
+    "raw_index": {
+      "path": ".plan20-artifacts/20261104/stage8d/artifacts-d1/d1-validation/evidence_index.json",
+      "purpose": "Per-attempt streams/JUnit/observations read on demand"
+    },
+    "authoring": {
+      "path": ".plan20-artifacts/20261104/stage8d/artifacts-d1/d1-authoring/static_receipt.json",
+      "purpose": "Pre-root-oracle-fix static migration evidence"
+    }
+  },
+  "edges": [
+    [
+      "checkpoint",
+      "selection"
+    ],
+    [
+      "checkpoint",
+      "source"
+    ],
+    [
+      "checkpoint",
+      "execution"
+    ],
+    [
+      "checkpoint",
+      "archive"
+    ],
+    [
+      "execution",
+      "raw_index"
+    ],
+    [
+      "source",
+      "authoring"
+    ]
+  ],
+  "path_rule": "Maintained relative node paths use this directory; .plan20-artifacts paths use repository root. Raw original absolute /tmp paths map through the archive prefix."
+}

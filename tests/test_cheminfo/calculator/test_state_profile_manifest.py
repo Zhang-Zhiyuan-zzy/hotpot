@@ -2,19 +2,19 @@
 
 import hotpot
 
-from hotpot.cheminfo.calculator.contracts import StatePolicy
-from hotpot.cheminfo.calculator.operation_requirements import (
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
+from hotpot.cheminfo.operations.calculation.scientific_state.operation_requirements import (
     _effective_requirements,
 )
-from hotpot.cheminfo.calculator.profile_eligibility import (
+from hotpot.cheminfo.operations.calculation.scientific_state.profile_eligibility import (
     _static_profile_eligibility,
 )
-from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
-from hotpot.cheminfo.calculator.state_rules.manifest import (
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
+from hotpot.cheminfo.operations.calculation.scientific_state.manifest import (
     _coordination_screening_manifest,
     _coordination_screening_registry,
 )
-from hotpot.cheminfo.calculator.state_rules.profiles import (
+from hotpot.cheminfo.operations.calculation.scientific_state.profiles import (
     _coordination_screening_profile,
 )
 from hotpot.cheminfo.core import BondKind

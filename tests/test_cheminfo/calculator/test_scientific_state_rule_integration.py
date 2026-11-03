@@ -6,15 +6,17 @@ from typing import Tuple
 import hotpot
 import pytest
 
-from hotpot.cheminfo.calculator import resolve_scientific_state
-from hotpot.cheminfo.calculator.charge import NetChargeCandidateEvidence
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
+    resolve_scientific_state,
+)
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge import NetChargeCandidateEvidence
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     ScientificQuantity,
-    StatePolicy,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.state_composition import (
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     CandidateDomainScope,
     CandidateProposal,
     FactorKey,
@@ -22,28 +24,28 @@ from hotpot.cheminfo.calculator.state_composition import (
     ProposedCandidateFactor,
     ProposedCandidateValue,
 )
-from hotpot.cheminfo.calculator.state_composition._decision_snapshot import (
+from hotpot.cheminfo.operations.calculation.scientific_state.composition._decision_snapshot import (
     _decision_snapshot_from_json,
     _decision_snapshot_to_json,
 )
-from hotpot.cheminfo.calculator.state_resolver import (
-    StateRequest,
-    extract_molecular_facts,
-)
-from hotpot.cheminfo.calculator.state_rules import (
-    InferenceRule,
-    InferenceRuleRegistry,
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers.base import InferenceRule
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers import (
     ResultType,
     RuleApplicability,
     RuleContext,
     RuleKind,
     RuleOutcome,
     RulePhase,
-    RuleSet,
     RuleSpecification,
     RuleToggle,
     RuleValue,
 )
+from hotpot.cheminfo.operations.calculation.scientific_state.rule_registry import (
+    InferenceRuleRegistry,
+)
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import RuleSet
 
 
 class _ChargeRule(InferenceRule):

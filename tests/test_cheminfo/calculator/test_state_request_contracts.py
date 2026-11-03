@@ -4,18 +4,18 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
-from hotpot.cheminfo.calculator.charge import NetChargeCandidateEvidence
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge import NetChargeCandidateEvidence
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.electronic_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state import (
     ElectronicStateCandidateEvidence,
 )
-from hotpot.cheminfo.calculator.state_resolver import (
+from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
     ProvidedScientificResults,
-    StateRequest,
 )
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
 
 
 def _provenance(identity: str) -> CandidateProvenance:

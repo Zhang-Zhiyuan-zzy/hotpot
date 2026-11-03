@@ -6,15 +6,17 @@ from importlib.resources import files
 import hotpot
 import pytest
 
-from hotpot.cheminfo.calculator.charge import NetChargeCandidateEvidence
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge import NetChargeCandidateEvidence
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     ScientificAdmissibility,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.electronic_state import neutral_atom_reference
-from hotpot.cheminfo.calculator.legality import _validate_molecular_spin
-from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state.neutral_atom import (
+    neutral_atom_reference,
+)
+from hotpot.cheminfo.rules.chemistry.scientific_state.legality import _validate_molecular_spin
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 
 
 @pytest.mark.parametrize(
@@ -66,7 +68,7 @@ def test_registry_covers_every_atomic_number() -> None:
 
 def test_registry_records_exact_source_snapshot() -> None:
     resource = files(
-        "hotpot.cheminfo.calculator.electronic_state"
+        'hotpot.cheminfo.rules.chemistry.scientific_state'
     ).joinpath("data", "neutral_atom_references.json")
     payload = json.loads(resource.read_text(encoding="utf-8"))
 

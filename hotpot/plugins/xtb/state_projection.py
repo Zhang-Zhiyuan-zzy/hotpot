@@ -6,8 +6,8 @@ import hashlib
 import json
 from dataclasses import dataclass
 
-from hotpot.cheminfo.calculator.contracts import (
-    BackendIdentity,
+from hotpot.cheminfo.adapters.calculation.contracts import BackendIdentity
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     ScientificOperationRequirements,
     ScientificQuantity,
 )

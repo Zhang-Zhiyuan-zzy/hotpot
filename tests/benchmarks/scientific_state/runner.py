@@ -14,16 +14,16 @@ from typing import TextIO
 
 import hotpot
 
-from hotpot.cheminfo.calculator import (
+from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
     ScientificStateBundle,
-    extract_molecular_facts,
     resolve_scientific_state,
 )
-from hotpot.cheminfo.calculator.state_composition import MaterializationStatus
-from hotpot.cheminfo.calculator.state_composition._decision_snapshot import (
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import MaterializationStatus
+from hotpot.cheminfo.operations.calculation.scientific_state.composition._decision_snapshot import (
     _decision_snapshot_to_json,
 )
-from hotpot.cheminfo.calculator.state_rules.manifest import (
+from hotpot.cheminfo.operations.calculation.scientific_state.manifest import (
     _coordination_screening_manifest,
 )
 from hotpot.cheminfo.core import BondKind, Molecule

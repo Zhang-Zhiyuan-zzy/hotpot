@@ -52,13 +52,13 @@ def _all_path_values(value):
 
 
 def test_payload_hash_covers_geometry_topology_and_scientific_state() -> None:
-    from hotpot.cheminfo.calculator.contracts import (
+    from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
         ScientificOperationRequirements,
         ScientificQuantity,
     )
-    from hotpot.cheminfo.calculator.state_resolver import (
-        StateRequest,
-        extract_molecular_facts,
+    from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+    from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
+    from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
         resolve_scientific_state,
     )
     from hotpot.pipeline.artifacts import payload_sha256

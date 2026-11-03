@@ -4,7 +4,7 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
-from hotpot.cheminfo.calculator.state_composition.decision_search import (
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.decision_search import (
     _AuthorityVector,
     _DecisionRelation,
     _authority_relation,

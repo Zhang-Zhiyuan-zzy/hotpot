@@ -2,35 +2,29 @@
 
 import hotpot
 
-from hotpot.cheminfo.calculator.charge import (
-    resolve_net_charge,
-    solve_main_group_lewis,
-)
-from hotpot.cheminfo.calculator.contracts import (
-    DEFAULT_CANDIDATE_BUDGET,
-    StatePolicy,
-)
-from hotpot.cheminfo.calculator.electronic_state import (
-    SpinContributionScope,
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.net_charge import resolve_net_charge
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.lewis import solve_main_group_lewis
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import DEFAULT_CANDIDATE_BUDGET
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state import SpinContributionScope
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state.inference import (
     infer_electronic_states,
 )
-from hotpot.cheminfo.calculator.operation_requirements import (
+from hotpot.cheminfo.operations.calculation.scientific_state.operation_requirements import (
     _effective_requirements,
 )
-from hotpot.cheminfo.calculator.state_composition import (
-    CandidateSearchStatus,
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import CandidateSearchStatus
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.compose import (
     compose_scientific_state_space,
 )
-from hotpot.cheminfo.calculator.state_resolver import (
-    StateRequest,
-    extract_molecular_facts,
-)
-from hotpot.cheminfo.calculator.state_rules import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers import (
     RuleContext,
     RulePhase,
     RuleToggle,
 )
-from hotpot.cheminfo.calculator.state_rules.main_group_closed_shell import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers.main_group_closed_shell import (
     MainGroupClosedShellRule,
 )
 from hotpot.cheminfo.core import BondKind

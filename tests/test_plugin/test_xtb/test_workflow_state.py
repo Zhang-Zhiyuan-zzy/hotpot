@@ -9,7 +9,9 @@ import numpy as np
 import pytest
 
 import hotpot
-from hotpot.cheminfo.calculator.execution_selection import BackendStateProjection
+from hotpot.cheminfo.operations.calculation.scientific_state.execution_selection import (
+    BackendStateProjection,
+)
 from hotpot.cheminfo.core import Molecule
 from hotpot.plugins.xtb import workflow as xtb_workflow
 from hotpot.plugins.xtb.contracts import (

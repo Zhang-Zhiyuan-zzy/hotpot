@@ -7,8 +7,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Mapping, Optional, Tuple
 
-from hotpot.cheminfo.calculator.contracts import MolecularFactsIdentity
-from hotpot.cheminfo.calculator.state_composition import ScientificStateIdentity
+from hotpot.cheminfo.structure.snapshots import MolecularFactsIdentity
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import ScientificStateIdentity
 from hotpot.plugins._harness import NativeProcessResult, ProcessProvenance
 
 

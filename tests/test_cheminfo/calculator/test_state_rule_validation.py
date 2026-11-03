@@ -4,14 +4,14 @@ from dataclasses import replace
 
 import pytest
 
-from hotpot.cheminfo.calculator.charge import NetChargeCandidateEvidence
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge import NetChargeCandidateEvidence
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateBudget,
     CandidateProvenance,
     ScientificQuantity,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.state_composition import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     CandidateDomainScope,
     FactorKey,
     MaterializationStatus,
@@ -19,7 +19,7 @@ from hotpot.cheminfo.calculator.state_composition import (
     ProposedCandidateValue,
     CandidateProposal,
 )
-from hotpot.cheminfo.calculator.state_rules import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers import (
     RankAdjustment,
     ResultType,
     RuleApplicability,
@@ -28,7 +28,7 @@ from hotpot.cheminfo.calculator.state_rules import (
     RulePhase,
     RuleSpecification,
 )
-from hotpot.cheminfo.calculator.state_rules.validation import (
+from hotpot.cheminfo.operations.calculation.scientific_state.rule_validation import (
     _validate_rule_outcome,
 )
 

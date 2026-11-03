@@ -1,0 +1,297 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8A1",
+  "date": "2026-11-03",
+  "status": "ROOT_ACCEPTED_CP311_OWNERSHIP_CHECKPOINT",
+  "acceptance_owner": "root",
+  "checkpoint_gate_closed": true,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "source": {
+    "head_at_execution": "989f27594ec08a4cd1b6f1266e565ba34cee62a1",
+    "freeze": {
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/source_freeze-a7-resource-repair.json",
+      "bytes": 181836,
+      "sha256": "aa4619bf16069b5c937c4a033abdd0dac1c1c83655c0d108f749afef7c8cfa57"
+    },
+    "source_test_resource_files": 1425,
+    "native_files": 6,
+    "build_inputs": 3,
+    "final_business_bytes_checked_against_freeze": true,
+    "final_binding_receipt": {
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/root-final-binding-check.json",
+      "bytes": 319,
+      "sha256": "e4781319a578d5aa93d99fb487cc4ec25e58f8f5e010ce3f567f0b12838e11be"
+    }
+  },
+  "source_runs": [
+    {
+      "kind": "focused",
+      "returncode": 1,
+      "elapsed_seconds": 3.816901322454214,
+      "junit_totals": {
+        "tests": 236,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "attempt": "focused-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/focused-attempt01/execution.json",
+        "bytes": 2272,
+        "sha256": "c4fea41889e7cc0430ef1ce90b03e8703bf4552ca3727d99a3313570b33918af"
+      }
+    },
+    {
+      "kind": "focused",
+      "returncode": 0,
+      "elapsed_seconds": 12.02129191532731,
+      "junit_totals": {
+        "tests": 437,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "attempt": "focused-a7-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/focused-a7-attempt01/execution.json",
+        "bytes": 2339,
+        "sha256": "f21a5fbda2df940ed0d1c2f56a6e88a700fd6a14ad798e5cd4fcd07819928c64"
+      }
+    },
+    {
+      "kind": "affected",
+      "returncode": 1,
+      "elapsed_seconds": 23.003572588786483,
+      "junit_totals": {
+        "tests": 989,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 5
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "attempt": "affected-a7-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/affected-a7-attempt01/execution.json",
+        "bytes": 7333,
+        "sha256": "7ae20b356b2d608a6386b27bd0044cf6aac77d664a0ba5c16e4a0949ef0aaf5c"
+      }
+    },
+    {
+      "kind": "affected",
+      "returncode": 0,
+      "elapsed_seconds": 22.822602747008204,
+      "junit_totals": {
+        "tests": 989,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 5
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "attempt": "affected-a7-attempt02",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/affected-a7-attempt02/execution.json",
+        "bytes": 7569,
+        "sha256": "56de6c47d930ee809f5ebb90abb094a740c3a1c4e983fb42c5f3b86ab612bfae"
+      }
+    },
+    {
+      "kind": "actual_CBFF_xtb",
+      "returncode": 0,
+      "elapsed_seconds": 4.823736229911447,
+      "junit_totals": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "attempt": "actual_CBFF_xtb-a7-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/actual_CBFF_xtb-a7-attempt01/execution.json",
+        "bytes": 2611,
+        "sha256": "42b5ab3aee836ec89ef3397713dd448d74be4804dba0f9f6232ae888c10d39ae"
+      }
+    },
+    {
+      "kind": "actual_MCA_attachment",
+      "returncode": 0,
+      "elapsed_seconds": 8.776398681104183,
+      "junit_totals": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "source_tests_native_unchanged": true,
+      "dependency_assets_unchanged": true,
+      "unexpected_product_origins": [],
+      "attempt": "actual_MCA_attachment-a7-attempt01",
+      "receipt": {
+        "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/actual_MCA_attachment-a7-attempt01/execution.json",
+        "bytes": 2565,
+        "sha256": "bd07bad1eb8b6fcef3164e2039dab797c31b6548a88c4196d39db7975719a7ff"
+      }
+    }
+  ],
+  "installed": {
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/installed-validation/attempt01/execution.json",
+      "bytes": 61885,
+      "sha256": "321cd225a73d23823a1bbe19d15c2cc678db294527a4d447073e81afeffa257d"
+    },
+    "results": {
+      "affected": {
+        "tests": 989,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 5,
+        "returncode": 0,
+        "elapsed_seconds": 24.717785067856312
+      },
+      "actual_CBFF_xtb": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 5.344320207834244
+      },
+      "actual_MCA_attachment": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "returncode": 0,
+        "elapsed_seconds": 8.870895942673087
+      }
+    },
+    "same_ordered_affected_nodes": true,
+    "all_bindings_unchanged": true,
+    "zero_checkout_leaks": true,
+    "startup_final_processes": {
+      "affected": 10,
+      "actual_CBFF_xtb": 5,
+      "actual_MCA_attachment": 1
+    },
+    "production_python_files": 468,
+    "wheel": {
+      "path": "/tmp/hotpot_plan20/medium/20261103-stage8a-state-installed/attempt01/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6327909,
+      "sha256": "7a09f949e84af8ab22306e3a6ae3cc60bffb937f8e6e8cc0faf3bccb5b91ca85"
+    },
+    "native_count": 6,
+    "measured_nonpython_omissions": [
+      "hotpot/cheminfo/AImodels/INFERENCE_COMPATIBILITY.md",
+      "hotpot/cheminfo/AImodels/cbond/README.md",
+      "hotpot/cheminfo/AImodels/mca/MODEL_CARD.md",
+      "hotpot/cheminfo/AImodels/mca/README.md",
+      "hotpot/cheminfo/AImodels/mca/THIRD_PARTY_LICENSES.md",
+      "hotpot/cheminfo/AImodels/mca/requirements.txt",
+      "hotpot/cheminfo/MolProps/data/MedProp.xlsx",
+      "hotpot/cheminfo/MolProps/data/SolProp.xlsx",
+      "hotpot/cheminfo/MolProps/sol_med_prop.md",
+      "hotpot/cheminfo/_native/include/hotpot/native/array_view.hpp",
+      "hotpot/cheminfo/_native/include/hotpot/native/molecule_buffer_view.hpp",
+      "hotpot/cheminfo/mol_assemble/Assemblers.svg",
+      "hotpot/cheminfo/mol_assemble/Example-5step.svg",
+      "hotpot/cheminfo/mol_assemble/FragTemplete.json",
+      "hotpot/cheminfo/mol_assemble/README.md",
+      "hotpot/cheminfo/pubchem.md",
+      "hotpot/cheminfo/rdWrappers/CMakeLists.txt",
+      "hotpot/cheminfo/rdWrappers/_native/BUILDING.md",
+      "hotpot/cheminfo/rdWrappers/_native/include/hotpot/rdWrappers/c_api.h",
+      "hotpot/cheminfo/rdWrappers/_native/include/hotpot/rdWrappers/rdwrapper.hpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/c_api.cpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/core.hpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/exports.map",
+      "hotpot/cheminfo/rdWrappers/_native/src/molecule_builder.cpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/python_binding.cpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/python_exports.map",
+      "hotpot/cheminfo/rdWrappers/_native/src/sampler.cpp",
+      "hotpot/cheminfo/rdWrappers/_native/src/validation.cpp",
+      "hotpot/cheminfo/rdWrappers/build_locked.sh",
+      "hotpot/cheminfo/rdWrappers/cmake/HotpotRDWrappersConfig.cmake.in",
+      "hotpot/cheminfo/rdWrappers/cmake/attach_rdwrapper.cmake",
+      "hotpot/cheminfo/rdWrappers/cmake/remove_build_rpath.cmake",
+      "hotpot/cheminfo/rdwork.md",
+      "hotpot/cheminfo/rules/chemistry/bonding/Kekulize.md",
+      "hotpot/cheminfo/smarts.md",
+      "hotpot/dataset/retention-cleanup.txt",
+      "hotpot/plugins/ml/features/elements/_elements.pd.xz",
+      "hotpot/plugins/ml/features/solvents/mnsddb.pdf",
+      "hotpot/plugins/opti/beyes/opti.py.old",
+      "hotpot/plugins/plots/cmaps/BluesSat.npy",
+      "hotpot/plugins/zeoxx/README.md"
+    ]
+  },
+  "static": {
+    "architecture": "passed;224preexisting debt, fixed existing import-slot transfers only",
+    "classes": "144 existing migrated types;12 public signatures preserved; no new type",
+    "current_census": {
+      "scope": "Current production Python AST definitions only; no native classes or runtime imports",
+      "python_files": 468,
+      "counts": {
+        "classes": 783,
+        "dataclasses": 360,
+        "protocols": 8,
+        "typeddicts": 2
+      }
+    }
+  },
+  "cost": {
+    "receipt": {
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/cost/attempt02/observations.json",
+      "bytes": 10516,
+      "sha256": "7cac42ff786dbcb8cedcab5e91828927c8dc56461f4fe019abdb34b260e36f16"
+    },
+    "cases": 4,
+    "cells": 12,
+    "timing_trials": 60,
+    "calls_per_trial": 20,
+    "root_disposition": "Accepted as bounded usable CP311 costs; repeated whole-Molecule copy reuse assessed with actual workflows. Consolidated optimization remains P20-D019."
+  },
+  "failures_and_corrections": [
+    {
+      "attempt": "focused-attempt01",
+      "observation": "235passed/1failed. NaN in legacy attrs comparison; original test also prepared via getters before observing. A7 regression uses raw bytes and metadata, not lazy getters."
+    },
+    {
+      "attempt": "extractor-probe/attempt01",
+      "observation": "All six original extraction triggers mutated factual or dependency state. A7 corrects ownership with existing copy/H operation. Initial wrong-installed-package import failure is retained separately."
+    },
+    {
+      "attempt": "affected-a7-attempt01",
+      "observation": "983passed/1failed/5skipped. Registry test used old nested data location. Test-only resource address corrected; production unchanged; final affected run984passed/5skipped."
+    },
+    {
+      "attempt": "cost/attempt01",
+      "observation": "Wrong enum member XTBMethod.GFN2 in measurement script failed after backend version probe and before timing measurements. Corrected to existing GFN2_XTB; original script/trace retained. No business failure inferred."
+    }
+  ],
+  "limits": [
+    "Checkpoint A1-A7 only. Whole Stage8A remains open for D01-D03 ordinary-output/public-schema decisions and any dependent scientific-state work; no optional scientific-profile activation.",
+    "Existing explicit-H-zero/absence and public-ID/row extraction limits remain explicit; this checkpoint establishes non-mutation and ownership, not a lossless extraction claim.",
+    "CP311 only, six unchanged accepted Stage7E binaries and shared system-site-package dependencies. No clean all-native/ABI/SDK/sdist/manylinux or other-version qualification.",
+    "41 measured non-Python package omissions remain; all12 moved scientific JSON assets are included and tested.",
+    "Four small fixed cost fixtures, no paired historical performance ratio, large-system scaling, RSS, broad scientific/GPU or global acceptance claim."
+  ],
+  "archive_manifest": {
+    "path": ".plan20-artifacts/20261103/stage8a/scientific-state/archive-manifest.json",
+    "bytes": 415901,
+    "sha256": "502aa211100bfe88105f01bbf984c05182be940a2dce4d6223884cf62fc685f7"
+  },
+  "evidence_index": "evidence_index.json"
+}

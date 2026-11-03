@@ -39,7 +39,7 @@ state projection:
 
 ```python
 import hotpot
-from hotpot.cheminfo.calculator import (
+from hotpot.cheminfo.operations.calculation.scientific_state import (
     StateRequest,
     extract_molecular_facts,
     resolve_and_project_state,
@@ -75,7 +75,7 @@ is separate from the scientific molecular spin:
 
 ```python
 import hotpot
-from hotpot.cheminfo.calculator import (
+from hotpot.cheminfo.operations.calculation.scientific_state import (
     BackendStateRequest,
     StateRequest,
     extract_molecular_facts,

@@ -2,10 +2,9 @@
 
 import pytest
 
-from hotpot.cheminfo.calculator.contracts import StatePolicy
-from hotpot.cheminfo.calculator.state_rules import (
-    InferenceRule,
-    InferenceRuleRegistry,
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers.base import InferenceRule
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers import (
     RuleApplicability,
     RuleDependency,
     RuleKind,
@@ -13,6 +12,9 @@ from hotpot.cheminfo.calculator.state_rules import (
     RulePhase,
     RuleSpecification,
     RuleToggle,
+)
+from hotpot.cheminfo.operations.calculation.scientific_state.rule_registry import (
+    InferenceRuleRegistry,
 )
 
 

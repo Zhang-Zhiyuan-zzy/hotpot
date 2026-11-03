@@ -5,31 +5,33 @@ from dataclasses import replace
 import hotpot
 import pytest
 
-from hotpot.cheminfo.calculator.charge import resolve_net_charge
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.net_charge import resolve_net_charge
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     CoverageStatus,
     DEFAULT_CANDIDATE_BUDGET,
-    ProviderSet,
     ResolutionStatus,
     ScientificAdmissibility,
     ScientificOperationRequirements,
     ScientificQuantity,
-    StatePolicy,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.defaults import (
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import (
+    ProviderSet,
+    StatePolicy,
+)
+from hotpot.cheminfo.operations.calculation.scientific_state.defaults import (
     _certified_candidate_path,
     _decide_scientific_state,
     _decision_search_compiler,
 )
-from hotpot.cheminfo.calculator.electronic_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state.inference import (
     infer_electronic_states,
 )
-from hotpot.cheminfo.calculator.profile_eligibility import (
+from hotpot.cheminfo.operations.calculation.scientific_state.profile_eligibility import (
     _static_profile_eligibility,
 )
-from hotpot.cheminfo.calculator.state_composition import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     CandidateDomainScope,
     CandidateProposal,
     CandidateSearchStatus,
@@ -38,28 +40,29 @@ from hotpot.cheminfo.calculator.state_composition import (
     ProposedCandidateFactor,
     ProposedCandidateValue,
     ScientificStateIdentity,
+)
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.compose import (
     compose_scientific_state_space,
 )
-from hotpot.cheminfo.calculator.oxidation_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state import (
     CountingConvention,
     OxidationStateCandidateEvidence,
 )
-from hotpot.cheminfo.calculator.state_composition.decision_search import (
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.decision_search import (
     _AuthorityVector,
     _DecisionEquivalenceKey,
     _DecisionRecord,
     _DecisionRelation,
     _PreferenceKey,
 )
-from hotpot.cheminfo.calculator.state_resolver import (
-    StateRequest,
-    extract_molecular_facts,
-)
-from hotpot.cheminfo.calculator.state_rules import RankAdjustment, RuleSet
-from hotpot.cheminfo.calculator.state_rules.profile_decision import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers import RankAdjustment
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import RuleSet
+from hotpot.cheminfo.operations.calculation.scientific_state.profile_decision import (
     _CoordinationScreeningDecisionCompiler,
 )
-from hotpot.cheminfo.calculator.state_selection import (
+from hotpot.cheminfo.operations.calculation.scientific_state.state_selection import (
     DecisionCertificationStatus,
     StateDecisionAction,
     StateDecisionSource,

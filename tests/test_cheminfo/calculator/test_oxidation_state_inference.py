@@ -4,23 +4,23 @@ from typing import Optional, Tuple
 
 import hotpot
 
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     CoverageStatus,
     ResolutionStatus,
     ScientificAdmissibility,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.oxidation_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state import (
     CountingConvention,
     OxidationStateCandidateEvidence,
     OxidationStateOverride,
+)
+from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state.inference import (
     infer_oxidation_states,
 )
-from hotpot.cheminfo.calculator.state_resolver import (
-    StateRequest,
-    extract_molecular_facts,
-)
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 
 
 def _facts(smiles: str):

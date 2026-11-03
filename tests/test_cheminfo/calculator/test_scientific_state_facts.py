@@ -8,24 +8,93 @@ import numpy as np
 import pytest
 
 from hotpot.cheminfo.core import BondKind, Molecule
-from hotpot.cheminfo.calculator.contracts import MolecularFactsIdentity
-from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
+from hotpot.cheminfo.structure.snapshots import MolecularFactsIdentity
+from tests.test_cheminfo._stage5_fixtures import supplied_aromatic_flags
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
+
+
+def _raw_factual_state(mol):
+    """Capture exact carrier bytes without getters that prepare chemistry."""
+    table = mol._atom_table
+    size = len(table)
+    return (
+        tuple(block[:size].tobytes() for block in table._blocks),
+        table._presence[:size].tobytes(),
+        table._sources[:size].tobytes(),
+        table._group_status[:size].tobytes(),
+        tuple(frozenset(seed) for seed in table._dirty_seeds),
+        tuple((bond._attrs.tobytes(), bond._bond_kind, bond._is_aromatic) for bond in mol._bonds),
+    )
+
+
+def _hydrogen_extraction_fixture(case):
+    if case == "parsed_ethanol":
+        return hotpot.read_mol("CCO", "smi")
+    mol = Molecule()
+    if case == "explicit_zero":
+        mol.create_atom(atomic_number=6, implicit_hydrogens=0)
+    elif case == "absent_carbon_h":
+        mol.create_atom(atomic_number=6)
+    elif case == "absent_element_h":
+        mol.create_atom()
+    elif case == "element_change":
+        atom = mol.create_atom(atomic_number=6)
+        mol.calc_implicit_hydrogens()
+        atom.atomic_number = 8
+    elif case == "topology_change":
+        mol.create_atom(atomic_number=6)
+        mol.create_atom(atomic_number=6)
+        mol.calc_implicit_hydrogens()
+        mol.add_bond(0, 1)
+    return mol
+
+
+@pytest.mark.parametrize(
+    ("case", "implicit_counts", "nuclear_charge_sum"),
+    (
+        ("explicit_zero", (None,), 6),
+        ("absent_carbon_h", (4,), 10),
+        ("absent_element_h", (None,), 0),
+        ("element_change", (2,), 10),
+        ("topology_change", (3, 3), 18),
+        ("parsed_ethanol", (3, 2, 1), 26),
+    ),
+)
+def test_extraction_prepares_only_its_working_copy(case, implicit_counts, nuclear_charge_sum):
+    mol = _hydrogen_extraction_fixture(case)
+    before = _raw_factual_state(mol)
+
+    facts = extract_molecular_facts(mol)
+
+    assert _raw_factual_state(mol) == before
+    assert facts.hydrogen_inventory.implicit_counts == implicit_counts
+    assert facts.hydrogen_inventory.explicit_counts == (0,) * len(implicit_counts)
+    assert facts.nuclear_charge_sum == nuclear_charge_sum
+
+
+def test_conflicting_hydrogen_preparation_preserves_the_original_carrier():
+    mol = Molecule()
+    mol.create_atom(atomic_number=6)
+    mol = supplied_aromatic_flags(mol, (True,))
+    mol.atoms[0].atomic_number = 7
+    before = _raw_factual_state(mol)
+
+    with pytest.raises(RuntimeError) as failure:
+        extract_molecular_facts(mol)
+
+    assert str(failure.value) == (
+        "Implicit-H representation conflicts with current facts; call calc_implicit_hydrogens() explicitly"
+    )
+    assert _raw_factual_state(mol) == before
 
 
 def test_extract_molecular_facts_is_immutable_and_non_mutating() -> None:
     mol = hotpot.read_mol("CCO", "smi")
-    before = (
-        tuple(atom.attrs.tolist() for atom in mol.atoms),
-        tuple((bond.a1idx, bond.a2idx, bond.bond_order) for bond in mol.bonds),
-    )
+    before = _raw_factual_state(mol)
 
     facts = extract_molecular_facts(mol)
 
-    after = (
-        tuple(atom.attrs.tolist() for atom in mol.atoms),
-        tuple((bond.a1idx, bond.a2idx, bond.bond_order) for bond in mol.bonds),
-    )
-    assert before == after
+    assert _raw_factual_state(mol) == before
     assert facts.atomic_numbers == (6, 6, 8)
     assert facts.nuclear_charge_sum == 26
     assert isinstance(facts.identity, MolecularFactsIdentity)

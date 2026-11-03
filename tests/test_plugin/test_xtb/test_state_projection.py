@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from typing import Protocol
 
-from hotpot.cheminfo.calculator.contracts import ScientificQuantity
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import ScientificQuantity
 from hotpot.plugins.xtb.backend import probe_xtb_backend
 from hotpot.plugins.xtb.contracts import XTBMethod
 from hotpot.plugins.xtb.state_projection import XTBBackendContext

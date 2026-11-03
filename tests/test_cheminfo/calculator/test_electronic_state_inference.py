@@ -5,31 +5,31 @@ from typing import Optional
 
 import hotpot
 
-from hotpot.cheminfo.calculator.charge import resolve_net_charge
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.net_charge import resolve_net_charge
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     ChemicalConfidence,
     CoverageStatus,
-    MolecularFacts,
     ResolutionStatus,
     ScientificAdmissibility,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.electronic_state import (
+from hotpot.cheminfo.structure.snapshots import MolecularFacts
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state import (
     ElectronicStateCandidate,
     ElectronicStateCandidateEvidence,
     ElectronicStateInferenceResult,
+)
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state.inference import (
     infer_electronic_states,
 )
-from hotpot.cheminfo.calculator.oxidation_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state import (
     CountingConvention,
     OxidationStateCandidateEvidence,
     OxidationStateInferenceResult,
 )
-from hotpot.cheminfo.calculator.state_resolver import (
-    StateRequest,
-    extract_molecular_facts,
-)
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 
 
 def _facts(smiles: str):

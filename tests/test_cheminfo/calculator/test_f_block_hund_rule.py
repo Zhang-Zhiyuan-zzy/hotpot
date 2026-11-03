@@ -2,40 +2,42 @@
 
 import hotpot
 
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     CoverageStatus,
     DEFAULT_CANDIDATE_BUDGET,
     ScientificQuantity,
-    StatePolicy,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.operation_requirements import (
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
+from hotpot.cheminfo.operations.calculation.scientific_state.operation_requirements import (
     _effective_requirements,
 )
-from hotpot.cheminfo.calculator.oxidation_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state import (
     CountingConvention,
     OxidationStateCandidateEvidence,
 )
-from hotpot.cheminfo.calculator.state_composition import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     CandidateDomainScope,
     CandidateProposal,
     FactorKey,
     MaterializationStatus,
     ProposedCandidateFactor,
     ProposedCandidateValue,
+)
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.compose import (
     compose_scientific_state_space,
 )
-from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
-from hotpot.cheminfo.calculator.state_rules import (
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers import (
     RuleContext,
     RulePhase,
     RuleToggle,
 )
-from hotpot.cheminfo.calculator.state_rules.f_block_hund import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers.f_block_hund import (
     FBlockHundPriorRule,
 )
-from hotpot.cheminfo.calculator.state_rules.ionic_configuration_spin import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers.ionic_configuration_spin import (
     IonicConfigurationSpinRule,
 )
 

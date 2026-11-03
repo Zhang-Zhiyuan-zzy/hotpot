@@ -3,18 +3,20 @@
 import hotpot
 import pytest
 
-from hotpot.cheminfo.calculator.charge import NetChargeCandidateEvidence
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge import NetChargeCandidateEvidence
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     ScientificAdmissibility,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.electronic_state import ElectronicStateCandidate
-from hotpot.cheminfo.calculator.legality import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state import (
+    ElectronicStateCandidate,
+)
+from hotpot.cheminfo.rules.chemistry.scientific_state.legality import (
     _validate_electronic_state_candidate,
     _validate_molecular_spin,
 )
-from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 
 
 def _provenance(identity: str) -> CandidateProvenance:

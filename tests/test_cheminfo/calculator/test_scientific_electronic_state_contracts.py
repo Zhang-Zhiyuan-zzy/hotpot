@@ -5,15 +5,15 @@ from dataclasses import FrozenInstanceError, asdict
 
 import pytest
 
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     ChemicalConfidence,
-    MolecularFactsIdentity,
     ResolutionStatus,
     ScientificAdmissibility,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.electronic_state import (
+from hotpot.cheminfo.structure.snapshots import MolecularFactsIdentity
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state import (
     ElectronicStateCandidate,
     ElectronicStateCandidateEvidence,
     ElectronicStateInferenceResult,

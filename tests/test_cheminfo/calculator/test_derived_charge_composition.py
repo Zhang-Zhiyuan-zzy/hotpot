@@ -2,8 +2,8 @@
 
 import hotpot
 
-from hotpot.cheminfo.calculator.charge import resolve_net_charge
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.net_charge import resolve_net_charge
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     ChemicalConfidence,
     CoverageStatus,
@@ -12,10 +12,10 @@ from hotpot.cheminfo.calculator.contracts import (
     ScientificQuantity,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.electronic_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state import (
     ElectronicStateInferenceResult,
 )
-from hotpot.cheminfo.calculator.oxidation_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state import (
     CoordinationCountingCandidate,
     CoordinationElectronCountingResult,
     CoordinationFragmentAssignment,
@@ -23,7 +23,7 @@ from hotpot.cheminfo.calculator.oxidation_state import (
     OxidationStateCandidateEvidence,
     OxidationStateInferenceResult,
 )
-from hotpot.cheminfo.calculator.state_composition import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     CandidateDomainScope,
     CandidateProposal,
     DerivedStateValue,
@@ -32,12 +32,12 @@ from hotpot.cheminfo.calculator.state_composition import (
     ProposedCandidateFactor,
     ProposedCandidateValue,
     StateValueOrigin,
+)
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.compose import (
     compose_scientific_state_space,
 )
-from hotpot.cheminfo.calculator.state_resolver import (
-    StateRequest,
-    extract_molecular_facts,
-)
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 from hotpot.cheminfo.core import BondKind
 
 

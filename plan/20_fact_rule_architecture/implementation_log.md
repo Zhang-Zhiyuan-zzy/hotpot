@@ -4400,3 +4400,98 @@ Root closes only Stage7E ownership, releases Stage8A entry alignment and retains
 all later Plan20/integrated Plan12, other-version/package/native/scientific/GPU
 and global-performance gates. The coherent business commit/push is recorded by
 Git history; no hash-only follow-up commit is needed.
+
+
+## 2026-11-03 — Stage8A1 entry and bounded A1–A6 ownership release
+
+At delivered/pushed `989f27594ec08a4cd1b6f1266e565ba34cee62a1`, Stage7E CP311 ownership is accepted and the worktree has only the excluded user-owned untracked helper document. Applied governance/stage/validation and both governance references; aligned effective goal, focused main Sections6/9.2/Stage8A/16, current companions/budget/interfaces/map and integrated Plan12, reusing unaffected predecessor alignment. Two local Sol/medium read-only inventories and a focused dependency cut identify43 established contract classes,229 import sites/127 consumers, unchanged codecs, legacy confidence production without identified operational decision read, and the snapshot’s known zero/absence limitation. These are static observations, not runtime passes.
+
+Root accepts `stages/stage08/scientific-state/contracts/decisions.md` A1–A6 and exact migration before source edits. Correct executable manifest ownership, BackendIdentity wording and lower immutable provider-input closure; preserve existing fields/signatures/defaults/scientific rules/JSON/resource digests. No new production types, wrappers, defenses or optional activation. Workers may author only exclusive source/test partitions; root owns global consumer migration, static integration, runtime freeze, scientific judgment, evidence, Git and acceptance. D01–D03 unapproved public replacement remains held at its dependent step, not silently retired or accepted. No candidate runtime/build/model execution is released by this entry.
+
+
+## 2026-11-03 — Stage8A1 integrated static review and CP311 runtime release
+
+Two local Sol/medium workers completed exclusive production and boundary-test partitions; root migrated81 outside-consumer files, corrected InferenceRule leaf imports, package test/resource expectations and Python/sdist data destinations. Static handoff reports144 preserved existing classes/zero new types,356 preserved function contracts/algorithm ASTs (10 resource-address-only changes),12 identical assets and no reverse-layer or old-scientific imports. Root inspected mixed owners/extractor/resource loaders/tests and completed the architecture check recorded under `/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103`. Root freezes current product/tests/resources plus six unchanged CP311 binaries in `source-validation/source_freeze.json` and releases focused,87-file affected, actual pipeline/MCA attachment, bounded cost and matching installed validation. No runtime pass or acceptance is inferred from this release. Original script assertion during root package-data patch preparation occurred before edits/execution and was corrected to the actual existing key order.
+
+
+### 2026-11-03 — Stage8A A7 diagnosed extraction boundary correction
+
+Root re-aligned the effective goal, focused main-plan Sections6/Stage8A, A1–A6,
+current implementation, both governance references and actual diagnostic probe.
+CP311 focused-attempt01 was235passed/1failed; the failure was a NaN comparison
+in the existing non-mutation test, corrected without product changes and still
+pending rerun. A separate fresh-carrier probe then reproduced actual input
+mutation on all six fixtures through the adapter's lazy implicit-H getter.
+Original import failure and all observations remain under
+`/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/extractor-probe/attempt01`.
+
+Root accepted bounded A7 before edits: retain chemistry/public signature, use
+existing locked copy lifecycle and batch H preparation on an owned working
+copy in operations, then private read-only adapter capture. Keep existing
+zero/absence and public-ID limitations explicit. This is an ownership fix with
+new validation consequences, not algorithm parity evidence. Rebind the existing
+Molecule import slot without debt growth. The prior source freeze remains
+original-attempt evidence; runtime release is held until correction integration
+and a new freeze. No stage/global acceptance, D01–D03 replacement or optional
+activation is authorized by this decision.
+
+
+## 2026-11-03 — Stage8A1 actual CP311 acceptance and business delivery
+
+Root accepts bounded A1–A7 ownership and diagnosed extraction non-mutation.
+The final freeze `aa4619bf16069b5c937c4a033abdd0dac1c1c83655c0d108f749afef7c8cfa57`
+binds1425 product/test/resource files, six accepted unchanged Stage7E binaries
+and three build inputs. Final root comparison found no changed bytes. The
+checkpoint closes only A1–A7; whole Stage8A and global gates remain open.
+
+Actual commands, ordered selections, cwd, environment, interpreter, native,
+model and source identities, timings and results are retained in the execution
+receipts linked by the [evidence graph](stages/stage08/scientific-state/validation/evidence_index.json).
+CP311 source `python -B -m pytest -q --import-mode=importlib` focused checks
+pass437. The complete87-file affected source selection passes984/skip5 of989;
+the matching installed selection outside checkout passes984/skip5 with identical
+ordered membership. Five disabled external-tier standalone skips are not passes.
+Separately, `--run-external --run-high-compute --run-model-artifacts
+tests/test_plugin/test_xtb/test_official_pipeline_integration.py` passes3 source
+and3 installed; `--run-model-artifacts tests/test_cheminfo/test_mca_calculator.py`
+passes3 source and3 installed. The installed receipt records the exact build_py,
+bdist_wheel, venv, pip and all pytest argv, and reconciles16 participating Python
+processes without checkout leaks. All468 Python members and12 moved scientific
+JSON assets match the wheel;41 measured non-Python package omissions remain.
+
+Original focused-attempt01 remains235passed/1failed: NaN equality and an
+observation using lazy chemistry getters were replaced with direct raw-state
+observations. A7 then passes its six success/one existing conflict non-mutation
+regressions. Affected-a7-attempt01 remains983passed/1failed/5skipped because a
+registry test used the old nested neutral-reference data location. Its sole
+resource-address correction changed no production bytes; attempt02 passes.
+Cost attempt01 used nonexistent `XTBMethod.GFN2` and failed after the version
+probe, before timing; the corrected existing `GFN2_XTB` attempt completes.
+All original scripts, failures and raw observations remain archived.
+
+Scientific results retain each source/installed value, method, unit and state:
+Eu UFF4.508623430076234/4.508556637044782kJ/mol and GFN2
+−13.53210045/−13.53209963Hartree are separate observations. Scientific resolution
+remains unresolved; GFN2 UHF0 is an execution default, not pure spin, and GFN-FF
+remains charge-only/null spin. Geometry passes do not establish unique bonding.
+Actual MCA fp16 N-site503.25kJ/mol and all Atom/site values remain attributed;
+no accuracy/calibration conclusion follows. See the [business observations](stages/stage08/scientific-state/validation/scientific_observations.json).
+
+Cost attempt02 executes12cells/60trials/1200timed calls over methane, ethanol,
+chloride and H radical: extraction0.782–1.070ms, strict resolution0.337–0.338ms,
+projection0.049–0.051ms; largest isolated Python allocation peak30972bytes.
+Root accepts these bounded usable CP311 costs and records whole-copy optimization
+as P20-D019 for consolidated work. Explicit H0→None remains P20-D020, S1 OPEN
+before complete Stage8A scientific acceptance. D01–D03 replacements remain
+unimplemented/unapproved and their forecast type reductions unrealized.
+
+The local archive `.plan20-artifacts/20261103/stage8a/scientific-state` retains
+1524 files/13885919bytes plus its manifest. A local Luna/low agent computed that
+mechanical manifest only; root owns interpretation, acceptance and delivery.
+Current census is468 production Python files,783classes/360dataclasses/
+8Protocols/2TypedDicts; all144 migrated existing classes and12 public signatures
+are retained with zero new types. Architecture ratchet passes224 existing debt,
+without growth. Other-version, clean-native/ABI/SDK/sdist/manylinux, broader
+science/GPU/performance, optional activation and Plan20/integrated Plan12 gates
+remain open. Stage8B has not entered. The coherent business commit/push is
+identified by Git history; no hash-only follow-up commit is required.

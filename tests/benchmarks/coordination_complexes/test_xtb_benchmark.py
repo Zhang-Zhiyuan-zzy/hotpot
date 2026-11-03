@@ -11,11 +11,9 @@ import numpy as np
 import pytest
 
 from hotpot import read_mol
-from hotpot.cheminfo.calculator.contracts import (
-    MolecularFactsIdentity,
-    StatePolicy,
-)
-from hotpot.cheminfo.calculator.state_composition import ScientificStateIdentity
+from hotpot.cheminfo.structure.snapshots import MolecularFactsIdentity
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import ScientificStateIdentity
 from hotpot.plugins.xtb import XTBMethod, XTBTask
 
 from .cohort import BenchmarkCohort, LigandCase

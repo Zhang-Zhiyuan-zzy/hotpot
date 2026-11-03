@@ -4,12 +4,12 @@ from typing import Optional
 
 import hotpot
 
-from hotpot.cheminfo.calculator.contracts import (
-    BackendIdentity,
+from hotpot.cheminfo.adapters.calculation.contracts import BackendIdentity
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     ScientificOperationRequirements,
     ScientificQuantity,
 )
-from hotpot.cheminfo.calculator.execution_selection import (
+from hotpot.cheminfo.operations.calculation.scientific_state.execution_selection import (
     BackendDecisionSource,
     BackendExecutionEvidence,
     BackendProjectionStatus,
@@ -19,9 +19,9 @@ from hotpot.cheminfo.calculator.execution_selection import (
     project_state,
     resolve_and_project_state,
 )
-from hotpot.cheminfo.calculator.state_resolver import (
-    StateRequest,
-    extract_molecular_facts,
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
+from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
     resolve_scientific_state,
 )
 

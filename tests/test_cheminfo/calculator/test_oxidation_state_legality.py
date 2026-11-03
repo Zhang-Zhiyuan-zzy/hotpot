@@ -4,29 +4,29 @@ from typing import Optional, Tuple
 
 import hotpot
 
-from hotpot.cheminfo.calculator.charge import NetChargeCandidateEvidence
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge import NetChargeCandidateEvidence
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     CoverageStatus,
     ResolutionStatus,
     ScientificAdmissibility,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.legality import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.legality import (
     _validate_counting_candidate,
     _validate_counting_reference,
     _validate_oxidation_overrides,
     _validate_oxidation_state_evidence,
     _validate_oxidation_state_conservation,
 )
-from hotpot.cheminfo.calculator.oxidation_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state import (
     CoordinationCountingCandidate,
     CoordinationFragmentAssignment,
     CountingConvention,
     OxidationStateCandidateEvidence,
     OxidationStateOverride,
 )
-from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 
 
 def _provenance(identity: str) -> CandidateProvenance:

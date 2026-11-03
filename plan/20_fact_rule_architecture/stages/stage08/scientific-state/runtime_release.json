@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8A1",
+  "status": "ROOT_ACCEPTED_CP311_OWNERSHIP_CHECKPOINT",
+  "source_freeze": {
+    "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-a7-resource-repair.json",
+    "sha256": "aa4619bf16069b5c937c4a033abdd0dac1c1c83655c0d108f749afef7c8cfa57"
+  },
+  "contracts_sha256": "ea00374ce3cf392468d6c1dd948b94c61524465758f8e9f1ebb9daa7baebe092",
+  "validation_sha256": "2436dd46e27dcab03e36e5b4cc8b2d17e177bbf643292e3334663a3f580af888",
+  "root_review": "Reviewed exact dependency cut, class/function/resource preservation, owning source, current pickle/independent chemistry tests, outside-consumer bindings and changed Python/data packaging. All new-scientific old imports removed. Static gaps correspond to preexisting lazy FF/MCA exports/native binding, not missed scientific-state owners.",
+  "runtime_authorized": [
+    "focused",
+    "affected",
+    "actual_CBFF_xtb",
+    "actual_MCA_attachment",
+    "bounded_cost",
+    "matching_installed_scope"
+  ],
+  "acceptance": true,
+  "held": [
+    "D01-D03 schema changes",
+    "optional activation",
+    "other versions and all later/global gates"
+  ],
+  "previous_freeze_scope": "Earlier freezes remain original-attempt evidence; completed A7 and the final resource-test repair are bound by source_freeze above.",
+  "diagnosis": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/extractor-probe/attempt01/summary.json",
+  "root_a7_review": "Reviewed sole public operation, existing lock-safe copy + one existing H preparation, raw status/presence adapter, exact signature/class contracts and six positive/one conflict unchanged-input regressions; fixed import-slot audit PASS. No new chemistry algorithm or type.",
+  "test_only_repair": "affected-a7-attempt01:983passed/1failed/5skipped. Registry test read old nested resource path; actual producer/resource checks passed. Test now reads the one shared scientific-state data package; production bytes unchanged.",
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "checkpoint_gate_closed": true,
+  "checkpoint": "ownership_checkpoint_20261103.json"
+}

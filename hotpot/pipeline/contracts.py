@@ -16,7 +16,9 @@ from typing import (
 )
 
 if TYPE_CHECKING:
-    from hotpot.cheminfo.calculator.state_resolver import ScientificStateBundle
+    from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
+        ScientificStateBundle,
+    )
     from hotpot.cheminfo.core import Molecule
 
 

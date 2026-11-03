@@ -5,12 +5,12 @@ from dataclasses import FrozenInstanceError, asdict
 
 import pytest
 
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     DEFAULT_CANDIDATE_BUDGET,
     ResolutionStatus,
     ScientificQuantity,
 )
-from hotpot.cheminfo.calculator.state_composition import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     CandidateDomainScope,
     CandidateDomainSummary,
     CandidateSearchStatus,

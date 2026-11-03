@@ -2,31 +2,31 @@
 
 import hotpot
 
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     ChemicalConfidence,
     DEFAULT_CANDIDATE_BUDGET,
     ResolutionStatus,
     ScientificAdmissibility,
     ScientificQuantity,
-    StatePolicy,
 )
-from hotpot.cheminfo.calculator.electronic_state import (
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state import (
     ElectronicStateInferenceResult,
 )
-from hotpot.cheminfo.calculator.operation_requirements import (
+from hotpot.cheminfo.operations.calculation.scientific_state.operation_requirements import (
     _effective_requirements,
 )
-from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
-from hotpot.cheminfo.calculator.state_composition import (
-    StateValueOrigin,
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import StateValueOrigin
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.compose import (
     compose_scientific_state_space,
 )
-from hotpot.cheminfo.calculator.state_rules import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers import (
     RuleContext,
     RulePhase,
     RuleToggle,
 )
-from hotpot.cheminfo.calculator.state_rules.monoatomic_ions import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers.monoatomic_ions import (
     MonoatomicIonRule,
 )
 from hotpot.cheminfo.core import BondKind

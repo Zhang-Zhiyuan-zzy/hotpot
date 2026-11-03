@@ -2,7 +2,7 @@
   "schema_version": 1,
   "origin": "Stage1 frozen exact debt inventory",
   "source_checkpoint": "c6bfcd4906254ee113c14103009f071e91f60368",
-  "policy": "Entries shrink, with one fixed Stage7A convert.py-to-operations.conversion._molecule_type import-slot relocation bound in the architecture guard. It transfers one existing identity slot in each ceiling, introduces no growth credit, and must retire at Stage9. Other new ownership packages remain strict; compare the actual pre-change Git ref and frozen inventory.",
+  "policy": "Entries shrink, with four fixed import-slot transfers bound in the architecture guard: the Stage7A convert.py-to-operations.conversion._molecule_type lookup and the Stage8A calculator.state_resolver module-scope Bond/BondKind imports to adapters.structure.scientific_state and Molecule to operations.calculation.scientific_state.facts (A7). Each transfers only its own existing identity slot in each ceiling, introduces no growth credit, and all four must retire at Stage9. Other new ownership packages remain strict; compare the actual pre-change Git ref and frozen inventory.",
   "entries": [
     {
       "line": 16,
@@ -184,8 +184,8 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/calculator/state_resolver.py",
-      "line": 10,
+      "path": "hotpot/cheminfo/adapters/structure/scientific_state.py",
+      "line": 9,
       "scope": "",
       "target": "hotpot.cheminfo.core.Bond",
       "local": "Bond",
@@ -193,8 +193,8 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/calculator/state_resolver.py",
-      "line": 10,
+      "path": "hotpot/cheminfo/adapters/structure/scientific_state.py",
+      "line": 9,
       "scope": "",
       "target": "hotpot.cheminfo.core.BondKind",
       "local": "BondKind",
@@ -202,8 +202,8 @@
       "stage": "Stage9"
     },
     {
-      "path": "hotpot/cheminfo/calculator/state_resolver.py",
-      "line": 10,
+      "path": "hotpot/cheminfo/operations/calculation/scientific_state/facts.py",
+      "line": 9,
       "scope": "",
       "target": "hotpot.cheminfo.core.Molecule",
       "local": "Molecule",

@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8A1",
+  "date": "2026-11-03",
+  "reading_order": [
+    "checkpoint",
+    "source_affected_final",
+    "installed",
+    "full_observations",
+    "cost",
+    "extractor_failure",
+    "archive"
+  ],
+  "policy": "Read conclusions in checkpoint/report first, then traverse only needed evidence. Hashes attribute bytes, not chemical truth or required historical numerical equality. Exact commands/cwd/environment/dependencies/results remain in execution receipts. The archive is local and ignored by Git; the wheel remains in the explicitly indexed medium-lifetime runtime directory.",
+  "nodes": {
+    "freeze": {
+      "role": "Final A7 production/test/resource/native/build attribution; plan records excluded",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/source_freeze-a7-resource-repair.json",
+      "bytes": 181836,
+      "sha256": "aa4619bf16069b5c937c4a033abdd0dac1c1c83655c0d108f749afef7c8cfa57"
+    },
+    "binding": {
+      "role": "Final source/native/build comparison against the same freeze",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/root-final-binding-check.json",
+      "bytes": 319,
+      "sha256": "e4781319a578d5aa93d99fb487cc4ec25e58f8f5e010ce3f567f0b12838e11be"
+    },
+    "source_focused_original": {
+      "role": "Retained original focused failure; historical source only",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/focused-attempt01/execution.json",
+      "bytes": 2272,
+      "sha256": "c4fea41889e7cc0430ef1ce90b03e8703bf4552ca3727d99a3313570b33918af"
+    },
+    "source_focused_a7": {
+      "role": "437 passing focused tests before one later resource-test-address repair",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/focused-a7-attempt01/execution.json",
+      "bytes": 2339,
+      "sha256": "f21a5fbda2df940ed0d1c2f56a6e88a700fd6a14ad798e5cd4fcd07819928c64"
+    },
+    "source_affected_original": {
+      "role": "Retained obsolete-resource-test failure:983 passed,1 failed,5 skipped",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/affected-a7-attempt01/execution.json",
+      "bytes": 7333,
+      "sha256": "7ae20b356b2d608a6386b27bd0044cf6aac77d664a0ba5c16e4a0949ef0aaf5c"
+    },
+    "source_affected_final": {
+      "role": "Final87-file source selection:984 passed,5 skipped",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/affected-a7-attempt02/execution.json",
+      "bytes": 7569,
+      "sha256": "56de6c47d930ee809f5ebb90abb094a740c3a1c4e983fb42c5f3b86ab612bfae"
+    },
+    "source_pipeline": {
+      "role": "Source actual CBond/FF/GFN-FF/GFN2:3 passed; exact argv/env/dependency bindings",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/actual_CBFF_xtb-a7-attempt01/execution.json",
+      "bytes": 2611,
+      "sha256": "42b5ab3aee836ec89ef3397713dd448d74be4804dba0f9f6232ae888c10d39ae"
+    },
+    "source_mca": {
+      "role": "Source actual MCA model/immutable attachment:3 passed",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/actual_MCA_attachment-a7-attempt01/execution.json",
+      "bytes": 2565,
+      "sha256": "bd07bad1eb8b6fcef3164e2039dab797c31b6548a88c4196d39db7975719a7ff"
+    },
+    "installed": {
+      "role": "Wheel construction/install and three outside-checkout jobs:984+3+3 passed,5 skipped;16 participating Python origins",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/installed-validation/attempt01/execution.json",
+      "bytes": 61885,
+      "sha256": "321cd225a73d23823a1bbe19d15c2cc678db294527a4d447073e81afeffa257d"
+    },
+    "extractor_failure": {
+      "role": "Actual pre-A7 mutation in all six fresh fixtures; explicit H0 limit remains visible",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/extractor-probe/attempt01/summary.json",
+      "bytes": 5307,
+      "sha256": "1011cf19c64826bb29c7f6d261c2cfce3b13b50aeafc9e1bd7421fe76327e7f9"
+    },
+    "extractor_probe_report": {
+      "role": "Probe scope, original import error and raw-state observation method",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/extractor-probe/attempt01/report.md",
+      "bytes": 3243,
+      "sha256": "48bc43f3ef51420c92a0bb30b4d023be59d2d9c7333682765e9fb70fca223444"
+    },
+    "cost": {
+      "role": "Completed12-cell/60-trial/1200-call cost observations; exact command and limits",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/cost/attempt02/observations.json",
+      "bytes": 10516,
+      "sha256": "7cac42ff786dbcb8cedcab5e91828927c8dc56461f4fe019abdb34b260e36f16"
+    },
+    "cost_original_script": {
+      "role": "Retained premeasurement enum error; not a business failure",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/cost/attempt01/run_cost.py",
+      "bytes": 5374,
+      "sha256": "edd25f32e0af4b171e215e5218be79b161324695f160324f04b776db890a2036"
+    },
+    "architecture": {
+      "role": "Fixed existing import-slot transfers;224 existing debt entries unchanged",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/architecture-audit-a7.json",
+      "bytes": 532,
+      "sha256": "445192d00338b6058b845f84c60ed50d6da710cbcf0c2a476989deedf5461337"
+    },
+    "types": {
+      "role": "468 production Python files;783 classes/360 dataclasses/8 Protocols/2 TypedDicts",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/current-type-census.json",
+      "bytes": 228,
+      "sha256": "a4e5ac37b135585b221c45b8197952096df586a2d356fd27df332d4795c1d82e"
+    },
+    "relocation_static": {
+      "role": "A1-A6 relocation-only static class/function/resource accounting; predates A7",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/preentry/source-handoff/static-report.json",
+      "bytes": 9186,
+      "sha256": "cbc436438ff807217a8fb93a70c564f3cc754262914b74fd683de36c6dffe1c9"
+    },
+    "a7_contracts": {
+      "role": "A7 public/class contract preservation and fixed architecture import-slot checks",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/preentry/tests-handoff/a7/static-results.json",
+      "bytes": 142,
+      "sha256": "197bc43a981f32b628779997fc1124aacc6f057aa72cf7f11bd7186180a7454a"
+    },
+    "full_observations": {
+      "role": "Full factual assembly; separate source/installed scientific values and actual raw-output references",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/record-preparation/source_observations.json",
+      "bytes": 136118,
+      "sha256": "6f1ad0809e76bfeb02b30561750aeeb748c4aefdc98a9e38caad70538d3b8eea"
+    },
+    "full_artifact_index": {
+      "role": "273 original absolute evidence identities; archive manifest binds local retained copies",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/record-preparation/artifact_index.json",
+      "bytes": 112044,
+      "sha256": "3147d7739c0b622519d141432f47d4c5c7933175fdd9016181c6aeb9b95535be"
+    },
+    "archive": {
+      "role": "1524 archived files; exact archive identities without duplicating logs into maintained records",
+      "path": ".plan20-artifacts/20261103/stage8a/scientific-state/archive-manifest.json",
+      "bytes": 415901,
+      "sha256": "502aa211100bfe88105f01bbf984c05182be940a2dce4d6223884cf62fc685f7"
+    },
+    "wheel": {
+      "role": "Current CP311 wheel; six reused accepted Stage7E native binaries; no clean-native qualification",
+      "path": "/tmp/hotpot_plan20/medium/20261103-stage8a-state-installed/attempt01/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6327909,
+      "sha256": "7a09f949e84af8ab22306e3a6ae3cc60bffb937f8e6e8cc0faf3bccb5b91ca85"
+    },
+    "checkpoint": {
+      "path": "plan/20_fact_rule_architecture/stages/stage08/scientific-state/validation/checkpoint.json",
+      "role": "Root A1-A7 checkpoint disposition; whole Stage8A and global gates remain open"
+    }
+  },
+  "edges": [
+    {
+      "from": "checkpoint",
+      "relation": "attributed_by",
+      "to": [
+        "freeze",
+        "binding"
+      ]
+    },
+    {
+      "from": "checkpoint",
+      "relation": "validated_by",
+      "to": [
+        "source_focused_a7",
+        "source_affected_final",
+        "source_pipeline",
+        "source_mca",
+        "installed"
+      ]
+    },
+    {
+      "from": "installed",
+      "relation": "delivers",
+      "to": [
+        "wheel"
+      ]
+    },
+    {
+      "from": "checkpoint",
+      "relation": "chemical_observations",
+      "to": [
+        "full_observations"
+      ]
+    },
+    {
+      "from": "checkpoint",
+      "relation": "usable_cost_disposition",
+      "to": [
+        "cost"
+      ]
+    },
+    {
+      "from": "checkpoint",
+      "relation": "retains_diagnosis_and_failures",
+      "to": [
+        "extractor_failure",
+        "extractor_probe_report",
+        "source_focused_original",
+        "source_affected_original",
+        "cost_original_script"
+      ]
+    },
+    {
+      "from": "checkpoint",
+      "relation": "ownership_and_zero_new_types",
+      "to": [
+        "architecture",
+        "types",
+        "relocation_static",
+        "a7_contracts"
+      ]
+    },
+    {
+      "from": "full_observations",
+      "relation": "read_on_demand",
+      "to": [
+        "full_artifact_index",
+        "archive"
+      ]
+    }
+  ],
+  "coverage_limits": [
+    "Checkpoint A1-A7 only. Whole Stage8A remains open for D01-D03 ordinary-output/public-schema decisions and any dependent scientific-state work; no optional scientific-profile activation.",
+    "Existing explicit-H-zero/absence and public-ID/row extraction limits remain explicit; this checkpoint establishes non-mutation and ownership, not a lossless extraction claim.",
+    "CP311 only, six unchanged accepted Stage7E binaries and shared system-site-package dependencies. No clean all-native/ABI/SDK/sdist/manylinux or other-version qualification.",
+    "41 measured non-Python package omissions remain; all12 moved scientific JSON assets are included and tested.",
+    "Four small fixed cost fixtures, no paired historical performance ratio, large-system scaling, RSS, broad scientific/GPU or global acceptance claim."
+  ]
+}

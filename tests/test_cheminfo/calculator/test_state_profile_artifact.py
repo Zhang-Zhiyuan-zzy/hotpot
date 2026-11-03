@@ -1,11 +1,11 @@
 """Immutable coordination-screening profile artifact tests."""
 
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     DEFAULT_CANDIDATE_BUDGET,
     ScientificQuantity,
-    StatePolicy,
 )
-from hotpot.cheminfo.calculator.state_rules.profiles import (
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
+from hotpot.cheminfo.operations.calculation.scientific_state.profiles import (
     _coordination_screening_profile,
 )
 

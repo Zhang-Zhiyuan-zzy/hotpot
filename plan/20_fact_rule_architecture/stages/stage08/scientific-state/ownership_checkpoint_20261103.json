@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8A1",
+  "date": "2026-11-03",
+  "status": "ROOT_ACCEPTED_CP311_OWNERSHIP_CHECKPOINT",
+  "acceptance_owner": "root",
+  "checkpoint_gate_closed": true,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "accepted_scope": "A1-A7 scientific rule/controller/value/backend/capture separation,12 moved resources, connected import/package migration and diagnosed extraction non-mutation correction within tested CP311 source/installed scope.",
+  "predecessor": "Stage7E/989f275",
+  "checkpoint": "validation/checkpoint.json",
+  "report": "validation/report.md",
+  "scientific_observations": "validation/scientific_observations.json",
+  "evidence_index": "validation/evidence_index.json",
+  "new_types": 0,
+  "consolidation": "D01-D03 still unimplemented/held for concrete public-schema review; forecast reductions are not realized.",
+  "commit": "Coherent Stage8A business commit identified by Git history; no hash-only follow-up commit.",
+  "remaining": [
+    "Checkpoint A1-A7 only. Whole Stage8A remains open for D01-D03 ordinary-output/public-schema decisions and any dependent scientific-state work; no optional scientific-profile activation.",
+    "Existing explicit-H-zero/absence and public-ID/row extraction limits remain explicit; this checkpoint establishes non-mutation and ownership, not a lossless extraction claim.",
+    "CP311 only, six unchanged accepted Stage7E binaries and shared system-site-package dependencies. No clean all-native/ABI/SDK/sdist/manylinux or other-version qualification.",
+    "41 measured non-Python package omissions remain; all12 moved scientific JSON assets are included and tested.",
+    "Four small fixed cost fixtures, no paired historical performance ratio, large-system scaling, RSS, broad scientific/GPU or global acceptance claim."
+  ]
+}

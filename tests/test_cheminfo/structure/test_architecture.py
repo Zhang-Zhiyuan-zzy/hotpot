@@ -265,6 +265,131 @@ def test_core_lookup_relocation_has_exact_function_scope_and_binding(source):
     assert audit.layer_findings(_CORE_IMPORT_DESTINATION["path"], source)
 
 
+_SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS = tuple(
+    (
+        {"rule": "legacy_core_import",
+         "path": "hotpot/cheminfo/calculator/state_resolver.py", "scope": "",
+         "target": f"hotpot.cheminfo.core.{symbol}", "local": symbol,
+         "stage": "Stage9", "line": 10},
+        {"rule": "legacy_core_import",
+         "path": ("hotpot/cheminfo/operations/calculation/scientific_state/facts.py"
+                  if symbol == "Molecule"
+                  else "hotpot/cheminfo/adapters/structure/scientific_state.py"), "scope": "",
+         "target": f"hotpot.cheminfo.core.{symbol}", "local": symbol,
+         "stage": "Stage9", "line": 9},
+    )
+    for symbol in ("Bond", "BondKind", "Molecule")
+)
+
+
+@pytest.mark.parametrize("old,new", _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS)
+def test_scientific_state_core_relocation_uses_only_its_existing_slot(old, new):
+    assert audit.ratchet_findings([new], [new], [old])["allowlist_growth"]
+    assert not any(audit.stage7a_ratchet_findings([new], [new], [old], [old]).values())
+    shifted = {**new, "line": 200}
+    assert not any(audit.stage7a_ratchet_findings([shifted], [new], [old], [old]).values())
+    assert not any(audit.stage7a_ratchet_findings([new], [new], [new], [old]).values())
+    assert not any(audit.stage7a_ratchet_findings([], [], [new], [old]).values())
+
+
+def test_all_fixed_core_relocations_preserve_both_historical_ceilings():
+    pairs = ((_CORE_IMPORT_SOURCE, _CORE_IMPORT_DESTINATION),
+             *_SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS)
+    old = [source for source, _ in pairs]
+    new = [destination for _, destination in pairs]
+    for previous in (old, new, [new[0], *old[1:]], [old[0], *new[1:]]):
+        assert not any(audit.stage7a_ratchet_findings(new, new, previous, old).values())
+    assert not any(audit.stage7a_ratchet_findings([], [], new, old).values())
+
+
+@pytest.mark.parametrize("old,new", _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS)
+@pytest.mark.parametrize("field,value", [
+    ("path", "hotpot/cheminfo/adapters/structure/other.py"),
+    ("scope", "extract_molecular_facts"),
+    ("scope", "extract_molecular_facts.nested"),
+    ("target", "hotpot.cheminfo.core.Atom"),
+    ("local", "OtherCarrier"),
+    ("rule", "other_import"),
+    ("kind", "other"),
+])
+def test_scientific_state_relocation_rejects_another_identity(old, new, field, value):
+    changed = {**new, field: value}
+    report = audit.stage7a_ratchet_findings([changed], [changed], [old], [old])
+    assert report["allowlist_growth"]
+    assert report["exceeds_frozen_inventory"]
+
+
+@pytest.mark.parametrize("old,new", _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS)
+@pytest.mark.parametrize("field,value", [
+    ("path", "hotpot/cheminfo/calculator/other.py"),
+    ("scope", "extract_molecular_facts"),
+    ("target", "hotpot.cheminfo.core.Atom"),
+    ("local", "OtherCarrier"),
+])
+def test_scientific_state_relocation_requires_its_exact_predecessor(old, new, field, value):
+    other = {**old, field: value}
+    report = audit.stage7a_ratchet_findings([new], [new], [other], [other])
+    assert report["allowlist_growth"]
+    assert report["exceeds_frozen_inventory"]
+
+
+@pytest.mark.parametrize("old,new", _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS)
+def test_scientific_state_relocation_requires_a_slot_in_each_ceiling(old, new):
+    assert audit.stage7a_ratchet_findings([new], [new], [], [old])["allowlist_growth"]
+    assert audit.stage7a_ratchet_findings([new], [new], [old], [])["exceeds_frozen_inventory"]
+
+
+@pytest.mark.parametrize("index", range(3))
+def test_scientific_state_relocation_cannot_borrow_another_symbol_slot(index):
+    pairs = _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS
+    new = pairs[index][1]
+    other_sources = [source for i, (source, _) in enumerate(pairs) if i != index]
+    report = audit.stage7a_ratchet_findings([new], [new], other_sources, other_sources)
+    assert report["allowlist_growth"]
+    assert report["exceeds_frozen_inventory"]
+
+
+@pytest.mark.parametrize("old,new", _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS)
+def test_scientific_state_relocation_preserves_multiplicity_and_actual_matching(old, new):
+    report = audit.stage7a_ratchet_findings([old, new], [old, new], [old], [old])
+    assert report["allowlist_growth"] and report["exceeds_frozen_inventory"]
+    report = audit.stage7a_ratchet_findings([new, new], [new, new], [old], [old])
+    assert len(report["allowlist_growth"]) == len(report["exceeds_frozen_inventory"]) == 1
+    assert audit.stage7a_ratchet_findings([new, new], [new], [old], [old])["new_debt"]
+    assert audit.stage7a_ratchet_findings([new], [old], [old], [old])["new_debt"]
+    assert audit.stage7a_ratchet_findings([new], [old], [old], [old])["unretired_allowlist_entries"]
+    assert audit.stage7a_ratchet_findings([], [new], [old], [old])["unretired_allowlist_entries"]
+    assert audit.stage7a_ratchet_findings([old], [old], [new], [old])["allowlist_growth"]
+
+
+def test_scientific_state_relocation_carries_no_unrelated_growth_credit():
+    old = [source for source, _ in _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS]
+    new = [destination for _, destination in _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS]
+    other = {**new[0], "path": "hotpot/cheminfo/adapters/structure/other.py"}
+    report = audit.stage7a_ratchet_findings([*new, other], [*new, other], old, old)
+    assert report["allowlist_growth"] == [audit.debt_key(other)]
+    assert report["exceeds_frozen_inventory"] == [audit.debt_key(other)]
+
+
+def test_scientific_state_relocated_imports_are_captured_at_the_real_source_scope(tmp_path):
+    sources = {
+        "hotpot/cheminfo/adapters/structure/scientific_state.py":
+            "from hotpot.cheminfo.core import Bond, BondKind\n",
+        "hotpot/cheminfo/operations/calculation/scientific_state/facts.py":
+            "from hotpot.cheminfo.core import Molecule\n",
+    }
+    for path, source in sources.items():
+        target = tmp_path / path
+        target.parent.mkdir(parents=True)
+        target.write_text(source)
+        assert audit.layer_findings(path, source) == []
+    rows = audit.inventory.static_capture(sources, root=tmp_path)["architecture_debt"]
+    expected = [new for _, new in _SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS]
+    assert len(rows) == 3
+    assert {audit.debt_key(row) for row in rows} == {audit.debt_key(row) for row in expected}
+    assert {row["stage"] for row in rows} == {"Stage9"}
+
+
 _CRYSTAL_DELEGATE = """class Crystal:
     @staticmethod
     def _matrix_to_params(matrix):

@@ -7,14 +7,16 @@ from typing import Callable
 import hotpot
 import pytest
 
-from hotpot.cheminfo.calculator.charge import resolve_net_charge
-from hotpot.cheminfo.calculator.state_resolver import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.net_charge import resolve_net_charge
+from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
     ProvidedScientificResults,
-    StateRequest,
-    extract_molecular_facts,
     resolve_scientific_state,
 )
-from hotpot.cheminfo.calculator.state_selection import StateDecisionAction
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
+from hotpot.cheminfo.operations.calculation.scientific_state.state_selection import (
+    StateDecisionAction,
+)
 from hotpot.cheminfo.core import Molecule
 
 

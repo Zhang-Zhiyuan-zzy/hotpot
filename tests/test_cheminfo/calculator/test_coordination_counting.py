@@ -4,26 +4,26 @@ from dataclasses import replace
 
 import hotpot
 
-from hotpot.cheminfo.calculator.charge import (
-    resolve_net_charge,
-    solve_main_group_lewis,
-)
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.net_charge import resolve_net_charge
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.lewis import solve_main_group_lewis
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     CoverageStatus,
     ScientificAdmissibility,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.oxidation_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state import (
     CountingConvention,
     OxidationStateCandidateEvidence,
+)
+from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state.inference import (
     infer_oxidation_states,
+)
+from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state.coordination_counting import (
     infer_coordination_electron_counting,
 )
-from hotpot.cheminfo.calculator.state_resolver import (
-    StateRequest,
-    extract_molecular_facts,
-)
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 
 
 def _lewis(smiles: str, charge: int = 0):

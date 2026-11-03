@@ -4,16 +4,16 @@ from dataclasses import replace
 
 import pytest
 
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateBudget,
     DEFAULT_CANDIDATE_BUDGET,
 )
-from hotpot.cheminfo.calculator.state_composition._artifacts import (
+from hotpot.cheminfo.operations.calculation.scientific_state.composition._artifacts import (
     _FRONTIER_SCHEMA,
     _candidate_budget_artifact_id,
     _validate_candidate_space_artifacts,
 )
-from hotpot.cheminfo.calculator.state_composition.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     CandidateSearchStatus,
     FrontierBound,
     ScientificStateCandidateSpace,

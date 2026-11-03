@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage0–7E accepted within recorded owning scopes; Stage7E canonical stereo storage accepted2026-11-03. ReusedN01/N02/N05/N09/existing transaction/public records; zero new types. Stage7D census783classes/360dataclasses/8Protocols/2TypedDicts remains unchanged by the verified zero-type delta. Final943-file architecture audit passes224preexisting debt. Later/global gates remain open.",
+  "status": "Stage0\u20137E accepted within recorded owning scopes; Stage8A1 A1-A7 scientific-state ownership/nonmutation CP311 checkpoint accepted2026-11-03. 144existing migrated classes and12public signatures preserved, zero new types. Current468-file production Python census783classes/360dataclasses/8Protocols/2TypedDicts. Architecture224preexisting debt unchanged. Whole Stage8A/D01-D03, later and global gates remain open.",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -387,7 +387,12 @@
       "retained_old": 0,
       "new_replacements": 1,
       "net": -4,
-      "scope": "Five state inference results; exact public/schema review remains required"
+      "scope": "Five state inference results; exact public/schema review remains required",
+      "implementation_status": "HELD_PUBLIC_REVIEW_NOT_IMPLEMENTED",
+      "actual_retired_old": 0,
+      "actual_new_replacements": 0,
+      "actual_net": 0,
+      "evidence": "stages/stage08/scientific-state/ownership_checkpoint_20261103.json"
     },
     {
       "id": "D02",
@@ -397,7 +402,12 @@
       "retained_old": 0,
       "new_replacements": 1,
       "net": -3,
-      "scope": "Four finding/reason records with explicit historical codecs"
+      "scope": "Four finding/reason records with explicit historical codecs",
+      "implementation_status": "HELD_PUBLIC_REVIEW_NOT_IMPLEMENTED",
+      "actual_retired_old": 0,
+      "actual_new_replacements": 0,
+      "actual_net": 0,
+      "evidence": "stages/stage08/scientific-state/ownership_checkpoint_20261103.json"
     },
     {
       "id": "D03",
@@ -407,7 +417,12 @@
       "retained_old": 0,
       "new_replacements": 1,
       "net": -1,
-      "scope": "Provider/rule activation with separate namespaces"
+      "scope": "Provider/rule activation with separate namespaces",
+      "implementation_status": "HELD_PUBLIC_REVIEW_NOT_IMPLEMENTED",
+      "actual_retired_old": 0,
+      "actual_new_replacements": 0,
+      "actual_net": 0,
+      "evidence": "stages/stage08/scientific-state/ownership_checkpoint_20261103.json"
     },
     {
       "id": "D04",
@@ -972,7 +987,7 @@
     "dataclasses": 360,
     "protocols": 8,
     "typed_dicts": 2,
-    "method": "Same production-only ClassDef/leaf/CONTRACT_MARKERS census; adds exactly reservedN16–N18 to Stage7C780/357/8/2 and moves existing Conformers once; no retirement credit.",
+    "method": "Same production-only ClassDef/leaf/CONTRACT_MARKERS census; adds exactly reservedN16\u2013N18 to Stage7C780/357/8/2 and moves existing Conformers once; no retirement credit.",
     "native_struct_candidates": 171,
     "native_struct_candidate_method": {
       "baseline": 164,
@@ -1099,5 +1114,13 @@
     "checkpoint": "stages/stage07/canonical-stereo/validation/checkpoint.json",
     "native": "Existing CP311 fact extension rebuilt; existing named types/public prefix retained. Five predecessor binaries reused.",
     "remaining": "Stage8 and later consolidation, non-CP311 adaptation, package/native/global science/performance obligations; P20-D018 bounded scalar-write optimization."
+  },
+  "stage8a_ownership_checkpoint": {
+    "status": "ROOT_ACCEPTED_CP311_OWNERSHIP_CHECKPOINT",
+    "checkpoint": "stages/stage08/scientific-state/ownership_checkpoint_20261103.json",
+    "new_types": 0,
+    "consolidation_D01_D03": "held, forecast reductions not realized",
+    "stage_gate_closed": false,
+    "global_gate_closed": false
   }
 }

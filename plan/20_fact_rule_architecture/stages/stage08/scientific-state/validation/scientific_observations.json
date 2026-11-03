@@ -1,0 +1,2425 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8A1",
+  "source_freeze": {
+    "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-a7-resource-repair.json",
+    "bytes": 181836,
+    "sha256": "aa4619bf16069b5c937c4a033abdd0dac1c1c83655c0d108f749afef7c8cfa57",
+    "roles": [
+      "current final source freeze"
+    ]
+  },
+  "interpretation": "Method/context-specific observations, not experimental truth, scientific confidence ratings or Stage8A/Plan20 acceptance. Source and installed boundaries retain independent actual values.",
+  "pipeline_case_denominator_per_boundary": 3,
+  "affected_skip_denominator": [
+    {
+      "test": "tests.test_plugin.test_xtb.test_official_integration::test_official_gfn2_wrapper_matches_direct_cli_energy",
+      "reason": "requires --run-external"
+    },
+    {
+      "test": "tests.test_plugin.test_xtb.test_official_integration::test_official_gfnff_wrapper_matches_direct_cli_energy",
+      "reason": "requires --run-external"
+    },
+    {
+      "test": "tests.test_plugin.test_xtb.test_official_integration::test_official_gfn2_optimization_matches_direct_cli_result",
+      "reason": "requires --run-external"
+    },
+    {
+      "test": "tests.test_plugin.test_xtb.test_official_integration::test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_states[ionic-chloride]",
+      "reason": "requires --run-external"
+    },
+    {
+      "test": "tests.test_plugin.test_xtb.test_official_integration::test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_states[hydrogen-radical]",
+      "reason": "requires --run-external"
+    }
+  ],
+  "scientific_limits": [
+    "All three pipelines per boundary retain succeeded status; all reported FF/xTB geometry checks passed within the named scopes. Empty failed-check arrays are not universal plausibility claims.",
+    "xTB scientific_state.resolution_status remains unresolved in the actual reports. GFN2 uses execution_default and pure_spin_highest_ms with backend UHF0; this is not a claim that molecular scientific spin was resolved.",
+    "GFN-FF has charge_only projection and unpaired_electrons=null; do not replace null with an invented spin value.",
+    "Eu donor distance changes through FF, GFN-FF and GFN2 are retained in per-stage coordination metrics; reported geometry passing does not prove a unique coordination interpretation.",
+    "MCA fp16 model predictions and same-input equality are model/input-scoped observations, not experimental accuracy or calibration evidence.",
+    "Focused A7 437-pass evidence predates the final resource-test-address repair in exactly one test file; the final affected989-node run and both real-business source runs match the final freeze.",
+    "The five skipped direct-CLI integration cases are not passed by the affected suite; the separately executed three pipeline cases have their own denominator."
+  ],
+  "scope": "Compact report of actual observations only; complete thresholds/raw reports retained in the read-on-demand archive.",
+  "full_observations": ".plan20-artifacts/20261103/stage8a/scientific-state/record-preparation/source_observations.json",
+  "full_artifact_index": ".plan20-artifacts/20261103/stage8a/scientific-state/record-preparation/artifact_index.json",
+  "pipelines": {
+    "source": [
+      {
+        "case": "official-coordination-False",
+        "status": "succeeded",
+        "hotpot_version": "0.5.4.5",
+        "manifest": {
+          "bytes": 30576,
+          "sha256": "4b793ef7ff147802d3cc376f7dad4cafce2faa47fa7b08c42b74d69b79b6386a",
+          "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/actual_CBFF_xtb-a7-attempt01/pytest-tmp/test_official_controlled_coord0/official-coordination-False/manifest.json"
+        },
+        "stages": [
+          {
+            "index": 0,
+            "name": "cbond",
+            "status": "succeeded",
+            "argv": [
+              "Zn",
+              "NCCO",
+              "--device",
+              "cpu"
+            ],
+            "elapsed_seconds": 0.21105569042265415,
+            "cbond": {
+              "donor_indices": [
+                0,
+                3
+              ],
+              "metal": "Zn",
+              "path_probability": 0.7325034825111857,
+              "steps": [
+                {
+                  "atom_index": 0,
+                  "element": "N",
+                  "probability": 0.8570544664505884,
+                  "score": 1.7910377979278564
+                },
+                {
+                  "atom_index": 3,
+                  "element": "O",
+                  "probability": 0.8546755325186985,
+                  "score": 1.771752953529358
+                }
+              ]
+            }
+          },
+          {
+            "index": 1,
+            "name": "ff",
+            "status": "succeeded",
+            "argv": [
+              "--route",
+              "complex",
+              "--rebuild",
+              "--quality",
+              "standard",
+              "--seed",
+              "7",
+              "--timeout",
+              "300"
+            ],
+            "elapsed_seconds": 0.8454433474689722,
+            "forcefield": [
+              {
+                "requested_forcefield": null,
+                "effective_forcefield": "UFF",
+                "build": {
+                  "accepted_candidates": 1,
+                  "attempt_count": 1,
+                  "coordination_restoration": {
+                    "attempt_limit": 20,
+                    "attempts_completed": 0,
+                    "bond_count": 2,
+                    "elapsed_seconds": 0.01399397,
+                    "excluded_ring_observation_count": 0,
+                    "forced_bond_keys": [],
+                    "infeasible_metal_indices": [],
+                    "metal_relocation_attempt_count": 1,
+                    "rejected_piercing_trial_count": 0,
+                    "relocated_metal_indices": [
+                      10
+                    ],
+                    "undetermined_trial_count": 0,
+                    "warning_messages": []
+                  },
+                  "elapsed_seconds": 0.08232555060908317,
+                  "ligand_build_elapsed_seconds": 0.06833158060908318,
+                  "ligand_untangling": [
+                    {
+                      "attempt_limit": 20,
+                      "attempts_completed": 0,
+                      "final_piercing_count": 0,
+                      "initial_piercing_count": 0,
+                      "minimum_piercing_count": 0,
+                      "resolved": true,
+                      "warning_messages": []
+                    }
+                  ],
+                  "rejected_candidates": [],
+                  "warning_messages": []
+                },
+                "optimization": {
+                  "backend_energy_unit": "kJ/mol",
+                  "best_energy": 69.14934437776031,
+                  "best_epoch": 1,
+                  "converged": true,
+                  "convergence_level": 1,
+                  "effective_forcefield": "UFF",
+                  "elapsed_seconds": 0.011567025,
+                  "energy_changes": [
+                    0.25683402354421503
+                  ],
+                  "energy_unit": "kJ/mol",
+                  "epoch_energies": [],
+                  "epochs_completed": 2,
+                  "exploded": false,
+                  "final_energy": 69.14934437776031,
+                  "gradient_unit": "kJ/(mol*angstrom)",
+                  "initialization_steps": 1,
+                  "max_displacements": [
+                    0.04336741364238076
+                  ],
+                  "max_gradient": 1.2172965315429023,
+                  "requested_forcefield": null,
+                  "rms_gradient": 0.6298747454829277,
+                  "routing_report": null,
+                  "selected_segment_epochs_completed": 2,
+                  "setup_succeeded": true,
+                  "steps_completed": null,
+                  "steps_submitted": 199,
+                  "terminal_converged": true,
+                  "termination_reason": "converged",
+                  "untangling": {
+                    "attempt_limit": 30,
+                    "attempts_completed": 0,
+                    "final_piercing_count": 0,
+                    "initial_piercing_count": 0,
+                    "minimum_piercing_count": 0,
+                    "resolved": true,
+                    "warning_messages": []
+                  }
+                },
+                "quality_report": {
+                  "level": "standard",
+                  "passed": true,
+                  "check_count": 15,
+                  "failed_checks": [],
+                  "metrics": {
+                    "atom_count": 12,
+                    "bond_count": 12,
+                    "bond_ring_excluded_ring_count": 0,
+                    "bond_ring_max_ring_size": 16,
+                    "bond_ring_piercing_count": 0,
+                    "bond_ring_scan_complete": true,
+                    "bond_ring_scope": "full_graph",
+                    "bond_ring_selected_ring_count": 1,
+                    "bond_ring_undetermined_count": 0,
+                    "coordination_environments": [
+                      {
+                        "angles": [
+                          100.09910855357724
+                        ],
+                        "coordination_number": 2,
+                        "distances": [
+                          1.8426090215762798,
+                          1.8042984635471007
+                        ],
+                        "donor_indices": [
+                          0,
+                          3
+                        ],
+                        "metal_index": 10
+                      }
+                    ],
+                    "maximum_bond_length": 1.8426090215762798,
+                    "minimum_pair_distance": 0.9923614425373608
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "name": "xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "singlepoint",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "elapsed_seconds": 0.09928975626826286,
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "coordinates_committed": false,
+              "effective_method": "gfn2",
+              "energy_hartree": -14.26981398,
+              "gradient_norm": null,
+              "process_succeeded": true,
+              "requested_method": "gfn2",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "f32c587291aadc57c9864e1cd27a32bec0ea0f96c71da147f228c54fd519feef",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "fae5c9b78fa9c36312162e03a82ed102d7aa87919bf719820c85f14162b73b40"
+              },
+              "task": "singlepoint",
+              "unpaired_electrons": 0
+            },
+            "xtb_energy_unit": "hartree (original energy_hartree field)",
+            "spin_interpretation": "unpaired_electrons is the reported backend UHF input; null is retained for charge-only GFN-FF. Scientific total 2S is not independently serialized here.",
+            "post_check": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 8,
+                "failed_checks": [],
+                "metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        100.09910855357724
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        1.8426090215762798,
+                        1.8042984635471007
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 1.8426090215762798,
+                  "minimum_pair_distance": 0.9923614425373608
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "case": "official-coordination-True",
+        "status": "succeeded",
+        "hotpot_version": "0.5.4.5",
+        "manifest": {
+          "bytes": 40555,
+          "sha256": "29af0482d05d588121b8d8292a49ecfeb92fa8368b3269675b69aa9fa56fc631",
+          "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/actual_CBFF_xtb-a7-attempt01/pytest-tmp/test_official_controlled_coord1/official-coordination-True/manifest.json"
+        },
+        "stages": [
+          {
+            "index": 0,
+            "name": "cbond",
+            "status": "succeeded",
+            "argv": [
+              "Zn",
+              "NCCO",
+              "--device",
+              "cpu"
+            ],
+            "elapsed_seconds": 0.013794301077723503,
+            "cbond": {
+              "donor_indices": [
+                0,
+                3
+              ],
+              "metal": "Zn",
+              "path_probability": 0.7325034825111857,
+              "steps": [
+                {
+                  "atom_index": 0,
+                  "element": "N",
+                  "probability": 0.8570544664505884,
+                  "score": 1.7910377979278564
+                },
+                {
+                  "atom_index": 3,
+                  "element": "O",
+                  "probability": 0.8546755325186985,
+                  "score": 1.771752953529358
+                }
+              ]
+            }
+          },
+          {
+            "index": 1,
+            "name": "ff",
+            "status": "succeeded",
+            "argv": [
+              "--route",
+              "complex",
+              "--rebuild",
+              "--quality",
+              "standard",
+              "--seed",
+              "7",
+              "--timeout",
+              "300"
+            ],
+            "elapsed_seconds": 0.7811611611396074,
+            "forcefield": [
+              {
+                "requested_forcefield": null,
+                "effective_forcefield": "UFF",
+                "build": {
+                  "accepted_candidates": 1,
+                  "attempt_count": 1,
+                  "coordination_restoration": {
+                    "attempt_limit": 20,
+                    "attempts_completed": 0,
+                    "bond_count": 2,
+                    "elapsed_seconds": 0.015802061,
+                    "excluded_ring_observation_count": 0,
+                    "forced_bond_keys": [],
+                    "infeasible_metal_indices": [],
+                    "metal_relocation_attempt_count": 1,
+                    "rejected_piercing_trial_count": 0,
+                    "relocated_metal_indices": [
+                      10
+                    ],
+                    "undetermined_trial_count": 0,
+                    "warning_messages": []
+                  },
+                  "elapsed_seconds": 0.08336698431624032,
+                  "ligand_build_elapsed_seconds": 0.06756492331624031,
+                  "ligand_untangling": [
+                    {
+                      "attempt_limit": 20,
+                      "attempts_completed": 0,
+                      "final_piercing_count": 0,
+                      "initial_piercing_count": 0,
+                      "minimum_piercing_count": 0,
+                      "resolved": true,
+                      "warning_messages": []
+                    }
+                  ],
+                  "rejected_candidates": [],
+                  "warning_messages": []
+                },
+                "optimization": {
+                  "backend_energy_unit": "kJ/mol",
+                  "best_energy": 69.14934437776031,
+                  "best_epoch": 1,
+                  "converged": true,
+                  "convergence_level": 1,
+                  "effective_forcefield": "UFF",
+                  "elapsed_seconds": 0.011500839,
+                  "energy_changes": [
+                    0.25683402354421503
+                  ],
+                  "energy_unit": "kJ/mol",
+                  "epoch_energies": [],
+                  "epochs_completed": 2,
+                  "exploded": false,
+                  "final_energy": 69.14934437776031,
+                  "gradient_unit": "kJ/(mol*angstrom)",
+                  "initialization_steps": 1,
+                  "max_displacements": [
+                    0.04336741364238076
+                  ],
+                  "max_gradient": 1.2172965315429023,
+                  "requested_forcefield": null,
+                  "rms_gradient": 0.6298747454829277,
+                  "routing_report": null,
+                  "selected_segment_epochs_completed": 2,
+                  "setup_succeeded": true,
+                  "steps_completed": null,
+                  "steps_submitted": 199,
+                  "terminal_converged": true,
+                  "termination_reason": "converged",
+                  "untangling": {
+                    "attempt_limit": 30,
+                    "attempts_completed": 0,
+                    "final_piercing_count": 0,
+                    "initial_piercing_count": 0,
+                    "minimum_piercing_count": 0,
+                    "resolved": true,
+                    "warning_messages": []
+                  }
+                },
+                "quality_report": {
+                  "level": "standard",
+                  "passed": true,
+                  "check_count": 15,
+                  "failed_checks": [],
+                  "metrics": {
+                    "atom_count": 12,
+                    "bond_count": 12,
+                    "bond_ring_excluded_ring_count": 0,
+                    "bond_ring_max_ring_size": 16,
+                    "bond_ring_piercing_count": 0,
+                    "bond_ring_scan_complete": true,
+                    "bond_ring_scope": "full_graph",
+                    "bond_ring_selected_ring_count": 1,
+                    "bond_ring_undetermined_count": 0,
+                    "coordination_environments": [
+                      {
+                        "angles": [
+                          100.09910855357724
+                        ],
+                        "coordination_number": 2,
+                        "distances": [
+                          1.8426090215762798,
+                          1.8042984635471007
+                        ],
+                        "donor_indices": [
+                          0,
+                          3
+                        ],
+                        "metal_index": 10
+                      }
+                    ],
+                    "maximum_bond_length": 1.8426090215762798,
+                    "minimum_pair_distance": 0.9923614425373608
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "name": "xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfnff",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "elapsed_seconds": 0.08004988171160221,
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "scientific_state",
+                "projection_convention": "charge_only",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "coordinates_committed": true,
+              "effective_method": "gfnff",
+              "energy_hartree": 1.298971744181724,
+              "gradient_norm": 0.000461091258017,
+              "process_succeeded": true,
+              "requested_method": "gfnff",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "f32c587291aadc57c9864e1cd27a32bec0ea0f96c71da147f228c54fd519feef",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "fae5c9b78fa9c36312162e03a82ed102d7aa87919bf719820c85f14162b73b40"
+              },
+              "task": "optimize",
+              "unpaired_electrons": null
+            },
+            "xtb_energy_unit": "hartree (original energy_hartree field)",
+            "spin_interpretation": "unpaired_electrons is the reported backend UHF input; null is retained for charge-only GFN-FF. Scientific total 2S is not independently serialized here.",
+            "post_check": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 8,
+                "failed_checks": [],
+                "metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        83.33398468321961
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        2.076488259056622,
+                        2.0118050999040635
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 2.076488259056622,
+                  "minimum_pair_distance": 1.0374374631754921
+                }
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "name": "xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "singlepoint",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "elapsed_seconds": 0.07156013511121273,
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "coordinates_committed": false,
+              "effective_method": "gfn2",
+              "energy_hartree": -14.27320288,
+              "gradient_norm": null,
+              "process_succeeded": true,
+              "requested_method": "gfn2",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "f32c587291aadc57c9864e1cd27a32bec0ea0f96c71da147f228c54fd519feef",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "fae5c9b78fa9c36312162e03a82ed102d7aa87919bf719820c85f14162b73b40"
+              },
+              "task": "singlepoint",
+              "unpaired_electrons": 0
+            },
+            "xtb_energy_unit": "hartree (original energy_hartree field)",
+            "spin_interpretation": "unpaired_electrons is the reported backend UHF input; null is retained for charge-only GFN-FF. Scientific total 2S is not independently serialized here.",
+            "post_check": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 8,
+                "failed_checks": [],
+                "metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        83.33398468321961
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        2.076488259056622,
+                        2.0118050999040635
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 2.076488259056622,
+                  "minimum_pair_distance": 1.0374374631754921
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "case": "official-readme-europium",
+        "status": "succeeded",
+        "hotpot_version": "0.5.4.5",
+        "manifest": {
+          "bytes": 41139,
+          "sha256": "d85f205639e6c88d30e28bd21df58a480231d7a9368c3e10b4ce8891ab86a1d9",
+          "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/actual_CBFF_xtb-a7-attempt01/pytest-tmp/test_official_readme_europium_0/official-readme-europium/manifest.json"
+        },
+        "stages": [
+          {
+            "index": 0,
+            "name": "cbond",
+            "status": "succeeded",
+            "argv": [
+              "Eu",
+              "O=C(O)C",
+              "--device",
+              "cpu"
+            ],
+            "elapsed_seconds": 0.009705713018774986,
+            "cbond": {
+              "donor_indices": [
+                2
+              ],
+              "metal": "Eu",
+              "path_probability": 0.492404769050918,
+              "steps": [
+                {
+                  "atom_index": 2,
+                  "element": "O",
+                  "probability": 0.492404769050918,
+                  "score": -0.030383260920643806
+                }
+              ]
+            }
+          },
+          {
+            "index": 1,
+            "name": "ff",
+            "status": "succeeded",
+            "argv": [
+              "--rebuild",
+              "--route",
+              "complex",
+              "--forcefield",
+              "uff"
+            ],
+            "elapsed_seconds": 0.7610648199915886,
+            "forcefield": [
+              {
+                "requested_forcefield": "UFF",
+                "effective_forcefield": "UFF",
+                "build": {
+                  "accepted_candidates": 1,
+                  "attempt_count": 1,
+                  "coordination_restoration": {
+                    "attempt_limit": 20,
+                    "attempts_completed": 0,
+                    "bond_count": 1,
+                    "elapsed_seconds": 0.008093364,
+                    "excluded_ring_observation_count": 0,
+                    "forced_bond_keys": [],
+                    "infeasible_metal_indices": [],
+                    "metal_relocation_attempt_count": 1,
+                    "rejected_piercing_trial_count": 0,
+                    "relocated_metal_indices": [
+                      7
+                    ],
+                    "undetermined_trial_count": 0,
+                    "warning_messages": []
+                  },
+                  "elapsed_seconds": 0.09505036047068978,
+                  "ligand_build_elapsed_seconds": 0.08695699647068977,
+                  "ligand_untangling": [
+                    {
+                      "attempt_limit": 20,
+                      "attempts_completed": 0,
+                      "final_piercing_count": 0,
+                      "initial_piercing_count": 0,
+                      "minimum_piercing_count": 0,
+                      "resolved": true,
+                      "warning_messages": []
+                    }
+                  ],
+                  "rejected_candidates": [],
+                  "warning_messages": []
+                },
+                "optimization": {
+                  "backend_energy_unit": "kJ/mol",
+                  "best_energy": 4.508623430076234,
+                  "best_epoch": 1,
+                  "converged": true,
+                  "convergence_level": 1,
+                  "effective_forcefield": "UFF",
+                  "elapsed_seconds": 0.006127275,
+                  "energy_changes": [
+                    0.032309737148731976
+                  ],
+                  "energy_unit": "kJ/mol",
+                  "epoch_energies": [],
+                  "epochs_completed": 2,
+                  "exploded": false,
+                  "final_energy": 4.508623430076234,
+                  "gradient_unit": "kJ/(mol*angstrom)",
+                  "initialization_steps": 1,
+                  "max_displacements": [
+                    0.013931585312884413
+                  ],
+                  "max_gradient": 0.5047468921902796,
+                  "requested_forcefield": "UFF",
+                  "rms_gradient": 0.2581966754065012,
+                  "routing_report": null,
+                  "selected_segment_epochs_completed": 2,
+                  "setup_succeeded": true,
+                  "steps_completed": null,
+                  "steps_submitted": 199,
+                  "terminal_converged": true,
+                  "termination_reason": "converged",
+                  "untangling": {
+                    "attempt_limit": 30,
+                    "attempts_completed": 0,
+                    "final_piercing_count": 0,
+                    "initial_piercing_count": 0,
+                    "minimum_piercing_count": 0,
+                    "resolved": true,
+                    "warning_messages": []
+                  }
+                },
+                "quality_report": {
+                  "level": "standard",
+                  "passed": true,
+                  "check_count": 15,
+                  "failed_checks": [],
+                  "metrics": {
+                    "atom_count": 9,
+                    "bond_count": 8,
+                    "bond_ring_excluded_ring_count": 0,
+                    "bond_ring_max_ring_size": 16,
+                    "bond_ring_piercing_count": 0,
+                    "bond_ring_scan_complete": true,
+                    "bond_ring_scope": "full_graph",
+                    "bond_ring_selected_ring_count": 0,
+                    "bond_ring_undetermined_count": 0,
+                    "coordination_environments": [
+                      {
+                        "angles": [],
+                        "coordination_number": 1,
+                        "distances": [
+                          2.2375977154513627
+                        ],
+                        "donor_indices": [
+                          2
+                        ],
+                        "metal_index": 7
+                      }
+                    ],
+                    "maximum_bond_length": 2.2375977154513627,
+                    "minimum_pair_distance": 0.9672981552247348
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "name": "xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfnff",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "3",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "elapsed_seconds": 0.07370730116963387,
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "scientific_state",
+                "projection_convention": "charge_only",
+                "status": "projected"
+              },
+              "charge": 3,
+              "converged": true,
+              "coordinates_committed": true,
+              "effective_method": "gfnff",
+              "energy_hartree": 3.23778971406645,
+              "gradient_norm": 0.000401644970852,
+              "process_succeeded": true,
+              "requested_method": "gfnff",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "e5352bf227f44618000b93749166ed2f3a052a1b49ea86c4669f616c3b84e227",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "9de94faa25f171c621b0e8bb54b387e92df3e2c4f4b67d381142fc0ac3625212"
+              },
+              "task": "optimize",
+              "unpaired_electrons": null
+            },
+            "xtb_energy_unit": "hartree (original energy_hartree field)",
+            "spin_interpretation": "unpaired_electrons is the reported backend UHF input; null is retained for charge-only GFN-FF. Scientific total 2S is not independently serialized here.",
+            "post_check": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 8,
+                "failed_checks": [],
+                "metrics": {
+                  "atom_count": 9,
+                  "bond_count": 8,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [],
+                      "coordination_number": 1,
+                      "distances": [
+                        2.264000397526467
+                      ],
+                      "donor_indices": [
+                        2
+                      ],
+                      "metal_index": 7
+                    }
+                  ],
+                  "maximum_bond_length": 2.264000397526467,
+                  "minimum_pair_distance": 1.0347521345713668
+                }
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "name": "xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "3",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "elapsed_seconds": 0.22653943672776222,
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 3,
+              "converged": true,
+              "coordinates_committed": true,
+              "effective_method": "gfn2",
+              "energy_hartree": -13.53210045,
+              "gradient_norm": null,
+              "process_succeeded": true,
+              "requested_method": "gfn2",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "e5352bf227f44618000b93749166ed2f3a052a1b49ea86c4669f616c3b84e227",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "9de94faa25f171c621b0e8bb54b387e92df3e2c4f4b67d381142fc0ac3625212"
+              },
+              "task": "optimize",
+              "unpaired_electrons": 0
+            },
+            "xtb_energy_unit": "hartree (original energy_hartree field)",
+            "spin_interpretation": "unpaired_electrons is the reported backend UHF input; null is retained for charge-only GFN-FF. Scientific total 2S is not independently serialized here.",
+            "post_check": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 8,
+                "failed_checks": [],
+                "metrics": {
+                  "atom_count": 9,
+                  "bond_count": 8,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [],
+                      "coordination_number": 1,
+                      "distances": [
+                        3.161758541976556
+                      ],
+                      "donor_indices": [
+                        2
+                      ],
+                      "metal_index": 7
+                    }
+                  ],
+                  "maximum_bond_length": 3.161758541976556,
+                  "minimum_pair_distance": 1.0127413400142156
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "installed": [
+      {
+        "case": "official-coordination-False",
+        "status": "succeeded",
+        "hotpot_version": "0.5.4.5",
+        "manifest": {
+          "bytes": 30575,
+          "sha256": "6aee34a0eb7f463b830f8630104da9a6c7363a56b3cbe085647b8d607ebdee72",
+          "path": ".plan20-artifacts/20261103/stage8a/scientific-state/installed-business-raw/actual_CBFF_xtb/test_official_controlled_coord0/official-coordination-False/manifest.json"
+        },
+        "stages": [
+          {
+            "index": 0,
+            "name": "cbond",
+            "status": "succeeded",
+            "argv": [
+              "Zn",
+              "NCCO",
+              "--device",
+              "cpu"
+            ],
+            "elapsed_seconds": 0.20730406790971756,
+            "cbond": {
+              "donor_indices": [
+                0,
+                3
+              ],
+              "metal": "Zn",
+              "path_probability": 0.7325034825111857,
+              "steps": [
+                {
+                  "atom_index": 0,
+                  "element": "N",
+                  "probability": 0.8570544664505884,
+                  "score": 1.7910377979278564
+                },
+                {
+                  "atom_index": 3,
+                  "element": "O",
+                  "probability": 0.8546755325186985,
+                  "score": 1.771752953529358
+                }
+              ]
+            }
+          },
+          {
+            "index": 1,
+            "name": "ff",
+            "status": "succeeded",
+            "argv": [
+              "--route",
+              "complex",
+              "--rebuild",
+              "--quality",
+              "standard",
+              "--seed",
+              "7",
+              "--timeout",
+              "300"
+            ],
+            "elapsed_seconds": 0.9803493227809668,
+            "forcefield": [
+              {
+                "requested_forcefield": null,
+                "effective_forcefield": "UFF",
+                "build": {
+                  "accepted_candidates": 1,
+                  "attempt_count": 1,
+                  "coordination_restoration": {
+                    "attempt_limit": 20,
+                    "attempts_completed": 0,
+                    "bond_count": 2,
+                    "elapsed_seconds": 0.014234114,
+                    "excluded_ring_observation_count": 0,
+                    "forced_bond_keys": [],
+                    "infeasible_metal_indices": [],
+                    "metal_relocation_attempt_count": 1,
+                    "rejected_piercing_trial_count": 0,
+                    "relocated_metal_indices": [
+                      10
+                    ],
+                    "undetermined_trial_count": 0,
+                    "warning_messages": []
+                  },
+                  "elapsed_seconds": 0.08249249824265385,
+                  "ligand_build_elapsed_seconds": 0.06825838424265385,
+                  "ligand_untangling": [
+                    {
+                      "attempt_limit": 20,
+                      "attempts_completed": 0,
+                      "final_piercing_count": 0,
+                      "initial_piercing_count": 0,
+                      "minimum_piercing_count": 0,
+                      "resolved": true,
+                      "warning_messages": []
+                    }
+                  ],
+                  "rejected_candidates": [],
+                  "warning_messages": []
+                },
+                "optimization": {
+                  "backend_energy_unit": "kJ/mol",
+                  "best_energy": 69.14934437776031,
+                  "best_epoch": 1,
+                  "converged": true,
+                  "convergence_level": 1,
+                  "effective_forcefield": "UFF",
+                  "elapsed_seconds": 0.011579728,
+                  "energy_changes": [
+                    0.25683402354421503
+                  ],
+                  "energy_unit": "kJ/mol",
+                  "epoch_energies": [],
+                  "epochs_completed": 2,
+                  "exploded": false,
+                  "final_energy": 69.14934437776031,
+                  "gradient_unit": "kJ/(mol*angstrom)",
+                  "initialization_steps": 1,
+                  "max_displacements": [
+                    0.04336741364238076
+                  ],
+                  "max_gradient": 1.2172965315429023,
+                  "requested_forcefield": null,
+                  "rms_gradient": 0.6298747454829277,
+                  "routing_report": null,
+                  "selected_segment_epochs_completed": 2,
+                  "setup_succeeded": true,
+                  "steps_completed": null,
+                  "steps_submitted": 199,
+                  "terminal_converged": true,
+                  "termination_reason": "converged",
+                  "untangling": {
+                    "attempt_limit": 30,
+                    "attempts_completed": 0,
+                    "final_piercing_count": 0,
+                    "initial_piercing_count": 0,
+                    "minimum_piercing_count": 0,
+                    "resolved": true,
+                    "warning_messages": []
+                  }
+                },
+                "quality_report": {
+                  "level": "standard",
+                  "passed": true,
+                  "check_count": 15,
+                  "failed_checks": [],
+                  "metrics": {
+                    "atom_count": 12,
+                    "bond_count": 12,
+                    "bond_ring_excluded_ring_count": 0,
+                    "bond_ring_max_ring_size": 16,
+                    "bond_ring_piercing_count": 0,
+                    "bond_ring_scan_complete": true,
+                    "bond_ring_scope": "full_graph",
+                    "bond_ring_selected_ring_count": 1,
+                    "bond_ring_undetermined_count": 0,
+                    "coordination_environments": [
+                      {
+                        "angles": [
+                          100.09910855357724
+                        ],
+                        "coordination_number": 2,
+                        "distances": [
+                          1.8426090215762798,
+                          1.8042984635471007
+                        ],
+                        "donor_indices": [
+                          0,
+                          3
+                        ],
+                        "metal_index": 10
+                      }
+                    ],
+                    "maximum_bond_length": 1.8426090215762798,
+                    "minimum_pair_distance": 0.9923614425373608
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "name": "xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "singlepoint",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "elapsed_seconds": 0.102195855230093,
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "coordinates_committed": false,
+              "effective_method": "gfn2",
+              "energy_hartree": -14.26981398,
+              "gradient_norm": null,
+              "process_succeeded": true,
+              "requested_method": "gfn2",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "f32c587291aadc57c9864e1cd27a32bec0ea0f96c71da147f228c54fd519feef",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "fae5c9b78fa9c36312162e03a82ed102d7aa87919bf719820c85f14162b73b40"
+              },
+              "task": "singlepoint",
+              "unpaired_electrons": 0
+            },
+            "xtb_energy_unit": "hartree (original energy_hartree field)",
+            "spin_interpretation": "unpaired_electrons is the reported backend UHF input; null is retained for charge-only GFN-FF. Scientific total 2S is not independently serialized here.",
+            "post_check": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 8,
+                "failed_checks": [],
+                "metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        100.09910855357724
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        1.8426090215762798,
+                        1.8042984635471007
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 1.8426090215762798,
+                  "minimum_pair_distance": 0.9923614425373608
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "case": "official-coordination-True",
+        "status": "succeeded",
+        "hotpot_version": "0.5.4.5",
+        "manifest": {
+          "bytes": 40555,
+          "sha256": "7a035d3e89edcbc0936a1b64788e3d31996bc78a682b030d1734943d86a3f089",
+          "path": ".plan20-artifacts/20261103/stage8a/scientific-state/installed-business-raw/actual_CBFF_xtb/test_official_controlled_coord1/official-coordination-True/manifest.json"
+        },
+        "stages": [
+          {
+            "index": 0,
+            "name": "cbond",
+            "status": "succeeded",
+            "argv": [
+              "Zn",
+              "NCCO",
+              "--device",
+              "cpu"
+            ],
+            "elapsed_seconds": 0.013873999938368797,
+            "cbond": {
+              "donor_indices": [
+                0,
+                3
+              ],
+              "metal": "Zn",
+              "path_probability": 0.7325034825111857,
+              "steps": [
+                {
+                  "atom_index": 0,
+                  "element": "N",
+                  "probability": 0.8570544664505884,
+                  "score": 1.7910377979278564
+                },
+                {
+                  "atom_index": 3,
+                  "element": "O",
+                  "probability": 0.8546755325186985,
+                  "score": 1.771752953529358
+                }
+              ]
+            }
+          },
+          {
+            "index": 1,
+            "name": "ff",
+            "status": "succeeded",
+            "argv": [
+              "--route",
+              "complex",
+              "--rebuild",
+              "--quality",
+              "standard",
+              "--seed",
+              "7",
+              "--timeout",
+              "300"
+            ],
+            "elapsed_seconds": 0.9287752471864223,
+            "forcefield": [
+              {
+                "requested_forcefield": null,
+                "effective_forcefield": "UFF",
+                "build": {
+                  "accepted_candidates": 1,
+                  "attempt_count": 1,
+                  "coordination_restoration": {
+                    "attempt_limit": 20,
+                    "attempts_completed": 0,
+                    "bond_count": 2,
+                    "elapsed_seconds": 0.015663505,
+                    "excluded_ring_observation_count": 0,
+                    "forced_bond_keys": [],
+                    "infeasible_metal_indices": [],
+                    "metal_relocation_attempt_count": 1,
+                    "rejected_piercing_trial_count": 0,
+                    "relocated_metal_indices": [
+                      10
+                    ],
+                    "undetermined_trial_count": 0,
+                    "warning_messages": []
+                  },
+                  "elapsed_seconds": 0.08325213606369972,
+                  "ligand_build_elapsed_seconds": 0.06758863106369972,
+                  "ligand_untangling": [
+                    {
+                      "attempt_limit": 20,
+                      "attempts_completed": 0,
+                      "final_piercing_count": 0,
+                      "initial_piercing_count": 0,
+                      "minimum_piercing_count": 0,
+                      "resolved": true,
+                      "warning_messages": []
+                    }
+                  ],
+                  "rejected_candidates": [],
+                  "warning_messages": []
+                },
+                "optimization": {
+                  "backend_energy_unit": "kJ/mol",
+                  "best_energy": 69.14934437776031,
+                  "best_epoch": 1,
+                  "converged": true,
+                  "convergence_level": 1,
+                  "effective_forcefield": "UFF",
+                  "elapsed_seconds": 0.011547347,
+                  "energy_changes": [
+                    0.25683402354421503
+                  ],
+                  "energy_unit": "kJ/mol",
+                  "epoch_energies": [],
+                  "epochs_completed": 2,
+                  "exploded": false,
+                  "final_energy": 69.14934437776031,
+                  "gradient_unit": "kJ/(mol*angstrom)",
+                  "initialization_steps": 1,
+                  "max_displacements": [
+                    0.04336741364238076
+                  ],
+                  "max_gradient": 1.2172965315429023,
+                  "requested_forcefield": null,
+                  "rms_gradient": 0.6298747454829277,
+                  "routing_report": null,
+                  "selected_segment_epochs_completed": 2,
+                  "setup_succeeded": true,
+                  "steps_completed": null,
+                  "steps_submitted": 199,
+                  "terminal_converged": true,
+                  "termination_reason": "converged",
+                  "untangling": {
+                    "attempt_limit": 30,
+                    "attempts_completed": 0,
+                    "final_piercing_count": 0,
+                    "initial_piercing_count": 0,
+                    "minimum_piercing_count": 0,
+                    "resolved": true,
+                    "warning_messages": []
+                  }
+                },
+                "quality_report": {
+                  "level": "standard",
+                  "passed": true,
+                  "check_count": 15,
+                  "failed_checks": [],
+                  "metrics": {
+                    "atom_count": 12,
+                    "bond_count": 12,
+                    "bond_ring_excluded_ring_count": 0,
+                    "bond_ring_max_ring_size": 16,
+                    "bond_ring_piercing_count": 0,
+                    "bond_ring_scan_complete": true,
+                    "bond_ring_scope": "full_graph",
+                    "bond_ring_selected_ring_count": 1,
+                    "bond_ring_undetermined_count": 0,
+                    "coordination_environments": [
+                      {
+                        "angles": [
+                          100.09910855357724
+                        ],
+                        "coordination_number": 2,
+                        "distances": [
+                          1.8426090215762798,
+                          1.8042984635471007
+                        ],
+                        "donor_indices": [
+                          0,
+                          3
+                        ],
+                        "metal_index": 10
+                      }
+                    ],
+                    "maximum_bond_length": 1.8426090215762798,
+                    "minimum_pair_distance": 0.9923614425373608
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "name": "xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfnff",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "elapsed_seconds": 0.08212980069220066,
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "scientific_state",
+                "projection_convention": "charge_only",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "coordinates_committed": true,
+              "effective_method": "gfnff",
+              "energy_hartree": 1.298971744181724,
+              "gradient_norm": 0.000461091258017,
+              "process_succeeded": true,
+              "requested_method": "gfnff",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "f32c587291aadc57c9864e1cd27a32bec0ea0f96c71da147f228c54fd519feef",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "fae5c9b78fa9c36312162e03a82ed102d7aa87919bf719820c85f14162b73b40"
+              },
+              "task": "optimize",
+              "unpaired_electrons": null
+            },
+            "xtb_energy_unit": "hartree (original energy_hartree field)",
+            "spin_interpretation": "unpaired_electrons is the reported backend UHF input; null is retained for charge-only GFN-FF. Scientific total 2S is not independently serialized here.",
+            "post_check": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 8,
+                "failed_checks": [],
+                "metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        83.33398468321961
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        2.076488259056622,
+                        2.0118050999040635
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 2.076488259056622,
+                  "minimum_pair_distance": 1.0374374631754921
+                }
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "name": "xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "singlepoint",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "2",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "elapsed_seconds": 0.07123737409710884,
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 2,
+              "converged": true,
+              "coordinates_committed": false,
+              "effective_method": "gfn2",
+              "energy_hartree": -14.27320288,
+              "gradient_norm": null,
+              "process_succeeded": true,
+              "requested_method": "gfn2",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "f32c587291aadc57c9864e1cd27a32bec0ea0f96c71da147f228c54fd519feef",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "fae5c9b78fa9c36312162e03a82ed102d7aa87919bf719820c85f14162b73b40"
+              },
+              "task": "singlepoint",
+              "unpaired_electrons": 0
+            },
+            "xtb_energy_unit": "hartree (original energy_hartree field)",
+            "spin_interpretation": "unpaired_electrons is the reported backend UHF input; null is retained for charge-only GFN-FF. Scientific total 2S is not independently serialized here.",
+            "post_check": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 8,
+                "failed_checks": [],
+                "metrics": {
+                  "atom_count": 12,
+                  "bond_count": 12,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [
+                        83.33398468321961
+                      ],
+                      "coordination_number": 2,
+                      "distances": [
+                        2.076488259056622,
+                        2.0118050999040635
+                      ],
+                      "donor_indices": [
+                        0,
+                        3
+                      ],
+                      "metal_index": 10
+                    }
+                  ],
+                  "maximum_bond_length": 2.076488259056622,
+                  "minimum_pair_distance": 1.0374374631754921
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "case": "official-readme-europium",
+        "status": "succeeded",
+        "hotpot_version": "0.5.4.5",
+        "manifest": {
+          "bytes": 41141,
+          "sha256": "615ec7eacfa4ddf927b8e7ee891a60c793217dab78f4b1b5462f89852b6a3f67",
+          "path": ".plan20-artifacts/20261103/stage8a/scientific-state/installed-business-raw/actual_CBFF_xtb/test_official_readme_europium_0/official-readme-europium/manifest.json"
+        },
+        "stages": [
+          {
+            "index": 0,
+            "name": "cbond",
+            "status": "succeeded",
+            "argv": [
+              "Eu",
+              "O=C(O)C",
+              "--device",
+              "cpu"
+            ],
+            "elapsed_seconds": 0.009700383991003036,
+            "cbond": {
+              "donor_indices": [
+                2
+              ],
+              "metal": "Eu",
+              "path_probability": 0.492404769050918,
+              "steps": [
+                {
+                  "atom_index": 2,
+                  "element": "O",
+                  "probability": 0.492404769050918,
+                  "score": -0.030383260920643806
+                }
+              ]
+            }
+          },
+          {
+            "index": 1,
+            "name": "ff",
+            "status": "succeeded",
+            "argv": [
+              "--rebuild",
+              "--route",
+              "complex",
+              "--forcefield",
+              "uff"
+            ],
+            "elapsed_seconds": 0.8978938832879066,
+            "forcefield": [
+              {
+                "requested_forcefield": "UFF",
+                "effective_forcefield": "UFF",
+                "build": {
+                  "accepted_candidates": 1,
+                  "attempt_count": 1,
+                  "coordination_restoration": {
+                    "attempt_limit": 20,
+                    "attempts_completed": 0,
+                    "bond_count": 1,
+                    "elapsed_seconds": 0.005765878,
+                    "excluded_ring_observation_count": 0,
+                    "forced_bond_keys": [],
+                    "infeasible_metal_indices": [],
+                    "metal_relocation_attempt_count": 1,
+                    "rejected_piercing_trial_count": 0,
+                    "relocated_metal_indices": [
+                      7
+                    ],
+                    "undetermined_trial_count": 0,
+                    "warning_messages": []
+                  },
+                  "elapsed_seconds": 0.09339076314184952,
+                  "ligand_build_elapsed_seconds": 0.08762488514184952,
+                  "ligand_untangling": [
+                    {
+                      "attempt_limit": 20,
+                      "attempts_completed": 0,
+                      "final_piercing_count": 0,
+                      "initial_piercing_count": 0,
+                      "minimum_piercing_count": 0,
+                      "resolved": true,
+                      "warning_messages": []
+                    }
+                  ],
+                  "rejected_candidates": [],
+                  "warning_messages": []
+                },
+                "optimization": {
+                  "backend_energy_unit": "kJ/mol",
+                  "best_energy": 4.508556637044782,
+                  "best_epoch": 1,
+                  "converged": true,
+                  "convergence_level": 1,
+                  "effective_forcefield": "UFF",
+                  "elapsed_seconds": 0.005570368,
+                  "energy_changes": [
+                    0.00961282961626253
+                  ],
+                  "energy_unit": "kJ/mol",
+                  "epoch_energies": [],
+                  "epochs_completed": 2,
+                  "exploded": false,
+                  "final_energy": 4.508556637044782,
+                  "gradient_unit": "kJ/(mol*angstrom)",
+                  "initialization_steps": 1,
+                  "max_displacements": [
+                    0.00693514568465163
+                  ],
+                  "max_gradient": 0.4229376956008362,
+                  "requested_forcefield": "UFF",
+                  "rms_gradient": 0.2304154355671993,
+                  "routing_report": null,
+                  "selected_segment_epochs_completed": 2,
+                  "setup_succeeded": true,
+                  "steps_completed": null,
+                  "steps_submitted": 199,
+                  "terminal_converged": true,
+                  "termination_reason": "converged",
+                  "untangling": {
+                    "attempt_limit": 30,
+                    "attempts_completed": 0,
+                    "final_piercing_count": 0,
+                    "initial_piercing_count": 0,
+                    "minimum_piercing_count": 0,
+                    "resolved": true,
+                    "warning_messages": []
+                  }
+                },
+                "quality_report": {
+                  "level": "standard",
+                  "passed": true,
+                  "check_count": 15,
+                  "failed_checks": [],
+                  "metrics": {
+                    "atom_count": 9,
+                    "bond_count": 8,
+                    "bond_ring_excluded_ring_count": 0,
+                    "bond_ring_max_ring_size": 16,
+                    "bond_ring_piercing_count": 0,
+                    "bond_ring_scan_complete": true,
+                    "bond_ring_scope": "full_graph",
+                    "bond_ring_selected_ring_count": 0,
+                    "bond_ring_undetermined_count": 0,
+                    "coordination_environments": [
+                      {
+                        "angles": [],
+                        "coordination_number": 1,
+                        "distances": [
+                          2.2376168386997146
+                        ],
+                        "donor_indices": [
+                          2
+                        ],
+                        "metal_index": 7
+                      }
+                    ],
+                    "maximum_bond_length": 2.2376168386997146,
+                    "minimum_pair_distance": 0.9673803879652745
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "name": "xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfnff",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "3",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "elapsed_seconds": 0.06871117278933525,
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "scientific_state",
+                "projection_convention": "charge_only",
+                "status": "projected"
+              },
+              "charge": 3,
+              "converged": true,
+              "coordinates_committed": true,
+              "effective_method": "gfnff",
+              "energy_hartree": 3.23778970869414,
+              "gradient_norm": 0.000401581753312,
+              "process_succeeded": true,
+              "requested_method": "gfnff",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "e5352bf227f44618000b93749166ed2f3a052a1b49ea86c4669f616c3b84e227",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "9de94faa25f171c621b0e8bb54b387e92df3e2c4f4b67d381142fc0ac3625212"
+              },
+              "task": "optimize",
+              "unpaired_electrons": null
+            },
+            "xtb_energy_unit": "hartree (original energy_hartree field)",
+            "spin_interpretation": "unpaired_electrons is the reported backend UHF input; null is retained for charge-only GFN-FF. Scientific total 2S is not independently serialized here.",
+            "post_check": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 8,
+                "failed_checks": [],
+                "metrics": {
+                  "atom_count": 9,
+                  "bond_count": 8,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [],
+                      "coordination_number": 1,
+                      "distances": [
+                        2.2640275550443287
+                      ],
+                      "donor_indices": [
+                        2
+                      ],
+                      "metal_index": 7
+                    }
+                  ],
+                  "maximum_bond_length": 2.2640275550443287,
+                  "minimum_pair_distance": 1.0347717960980576
+                }
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "name": "xtb",
+            "status": "succeeded",
+            "argv": [
+              "--method",
+              "gfn2",
+              "--task",
+              "optimize",
+              "--xtb-executable",
+              "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+              "--charge",
+              "3",
+              "--threads",
+              "1",
+              "--post-check",
+              "standard"
+            ],
+            "elapsed_seconds": 0.220334829762578,
+            "xtb": {
+              "backend": {
+                "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+                "revision": "edcfbbe",
+                "version": "6.7.1"
+              },
+              "backend_projection": {
+                "decision_source": "execution_default",
+                "projection_convention": "pure_spin_highest_ms",
+                "status": "projected"
+              },
+              "charge": 3,
+              "converged": true,
+              "coordinates_committed": true,
+              "effective_method": "gfn2",
+              "energy_hartree": -13.53209963,
+              "gradient_norm": null,
+              "process_succeeded": true,
+              "requested_method": "gfn2",
+              "scientific_state": {
+                "decision_action": "select_state",
+                "facts_identity": "e5352bf227f44618000b93749166ed2f3a052a1b49ea86c4669f616c3b84e227",
+                "resolution_status": "unresolved",
+                "selected_state_identity": "9de94faa25f171c621b0e8bb54b387e92df3e2c4f4b67d381142fc0ac3625212"
+              },
+              "task": "optimize",
+              "unpaired_electrons": 0
+            },
+            "xtb_energy_unit": "hartree (original energy_hartree field)",
+            "spin_interpretation": "unpaired_electrons is the reported backend UHF input; null is retained for charge-only GFN-FF. Scientific total 2S is not independently serialized here.",
+            "post_check": [
+              {
+                "level": "standard",
+                "passed": true,
+                "check_count": 8,
+                "failed_checks": [],
+                "metrics": {
+                  "atom_count": 9,
+                  "bond_count": 8,
+                  "bond_ring_excluded_ring_count": 0,
+                  "bond_ring_max_ring_size": 16,
+                  "bond_ring_piercing_count": 0,
+                  "bond_ring_scan_complete": true,
+                  "bond_ring_scope": "ligand_skeleton",
+                  "bond_ring_selected_ring_count": 0,
+                  "bond_ring_undetermined_count": 0,
+                  "coordination_environments": [
+                    {
+                      "angles": [],
+                      "coordination_number": 1,
+                      "distances": [
+                        3.1628310202817698
+                      ],
+                      "donor_indices": [
+                        2
+                      ],
+                      "metal_index": 7
+                    }
+                  ],
+                  "maximum_bond_length": 3.1628310202817698,
+                  "minimum_pair_distance": 1.0127740859841345
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "MCA": {
+    "source": [
+      {
+        "file": "equivalence_predictions.json",
+        "artifact": {
+          "bytes": 1683,
+          "sha256": "44e4ea60cffcf00405e71d1b0a9bc7d517884d3d1c27b607ef59a9dc0425ad73",
+          "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/actual_MCA_attachment-a7-attempt01/pytest-tmp/test_hotpot_and_smiles_inputs_0/equivalence_predictions.json"
+        },
+        "values": {
+          "hotpot": {
+            "smiles": "C1CCCNC1",
+            "formal_charge": 0,
+            "sites": [
+              {
+                "atom_index": 5,
+                "element": "N",
+                "site_type": "Amine",
+                "mca_kj_mol": 503.25
+              }
+            ],
+            "model_variant": "fp16",
+            "atom_predictions": [
+              {
+                "atom_index": 0,
+                "element": "C",
+                "mca_kj_mol": 314.0
+              },
+              {
+                "atom_index": 1,
+                "element": "C",
+                "mca_kj_mol": 373.0
+              },
+              {
+                "atom_index": 2,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 3,
+                "element": "C",
+                "mca_kj_mol": 370.0
+              },
+              {
+                "atom_index": 4,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 5,
+                "element": "N",
+                "mca_kj_mol": 503.25
+              }
+            ]
+          },
+          "smiles": {
+            "smiles": "C1CCCNC1",
+            "formal_charge": 0,
+            "sites": [
+              {
+                "atom_index": 5,
+                "element": "N",
+                "site_type": "Amine",
+                "mca_kj_mol": 503.25
+              }
+            ],
+            "model_variant": "fp16",
+            "atom_predictions": [
+              {
+                "atom_index": 0,
+                "element": "C",
+                "mca_kj_mol": 314.0
+              },
+              {
+                "atom_index": 1,
+                "element": "C",
+                "mca_kj_mol": 373.0
+              },
+              {
+                "atom_index": 2,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 3,
+                "element": "C",
+                "mca_kj_mol": 370.0
+              },
+              {
+                "atom_index": 4,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 5,
+                "element": "N",
+                "mca_kj_mol": 503.25
+              }
+            ]
+          }
+        }
+      },
+      {
+        "file": "attached_prediction.json",
+        "artifact": {
+          "bytes": 869,
+          "sha256": "6c743846130195c63d21eade4ac8d12f0356679ba372b4bdffc9f41862d7d342",
+          "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/actual_MCA_attachment-a7-attempt01/pytest-tmp/test_mca_is_attached_to_atoms_0/attached_prediction.json"
+        },
+        "values": {
+          "case": "attached",
+          "prediction": {
+            "smiles": "C1CCCNC1",
+            "formal_charge": 0,
+            "sites": [
+              {
+                "atom_index": 5,
+                "element": "N",
+                "site_type": "Amine",
+                "mca_kj_mol": 503.25
+              }
+            ],
+            "model_variant": "fp16",
+            "atom_predictions": [
+              {
+                "atom_index": 0,
+                "element": "C",
+                "mca_kj_mol": 314.0
+              },
+              {
+                "atom_index": 1,
+                "element": "C",
+                "mca_kj_mol": 373.0
+              },
+              {
+                "atom_index": 2,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 3,
+                "element": "C",
+                "mca_kj_mol": 370.0
+              },
+              {
+                "atom_index": 4,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 5,
+                "element": "N",
+                "mca_kj_mol": 503.25
+              }
+            ]
+          }
+        }
+      },
+      {
+        "file": "site_count_predictions.json",
+        "artifact": {
+          "bytes": 1035,
+          "sha256": "4dbe74e20e7aeb0e4af637dbe19787bee7855164930005637e821fee8aa54631",
+          "path": ".plan20-artifacts/20261103/stage8a/scientific-state/source-validation/actual_MCA_attachment-a7-attempt01/pytest-tmp/test_molecule_mca_sites_suppor0/site_count_predictions.json"
+        },
+        "values": {
+          "empty_sites": {
+            "smiles": "C",
+            "formal_charge": 0,
+            "sites": [],
+            "model_variant": "fp16",
+            "atom_predictions": [
+              {
+                "atom_index": 0,
+                "element": "C",
+                "mca_kj_mol": 265.5
+              }
+            ]
+          },
+          "multiple_sites": {
+            "smiles": "CC(=O)C",
+            "formal_charge": 0,
+            "sites": [
+              {
+                "atom_index": 2,
+                "element": "O",
+                "site_type": "Ketone",
+                "mca_kj_mol": 344.5
+              },
+              {
+                "atom_index": 1,
+                "element": "C",
+                "site_type": "double_bond",
+                "mca_kj_mol": 65.8125
+              }
+            ],
+            "model_variant": "fp16",
+            "atom_predictions": [
+              {
+                "atom_index": 0,
+                "element": "C",
+                "mca_kj_mol": 309.25
+              },
+              {
+                "atom_index": 1,
+                "element": "C",
+                "mca_kj_mol": 65.8125
+              },
+              {
+                "atom_index": 2,
+                "element": "O",
+                "mca_kj_mol": 344.5
+              },
+              {
+                "atom_index": 3,
+                "element": "C",
+                "mca_kj_mol": 309.25
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "installed": [
+      {
+        "file": "equivalence_predictions.json",
+        "artifact": {
+          "bytes": 1683,
+          "sha256": "44e4ea60cffcf00405e71d1b0a9bc7d517884d3d1c27b607ef59a9dc0425ad73",
+          "path": ".plan20-artifacts/20261103/stage8a/scientific-state/installed-business-raw/actual_MCA_attachment/test_hotpot_and_smiles_inputs_0/equivalence_predictions.json"
+        },
+        "values": {
+          "hotpot": {
+            "smiles": "C1CCCNC1",
+            "formal_charge": 0,
+            "sites": [
+              {
+                "atom_index": 5,
+                "element": "N",
+                "site_type": "Amine",
+                "mca_kj_mol": 503.25
+              }
+            ],
+            "model_variant": "fp16",
+            "atom_predictions": [
+              {
+                "atom_index": 0,
+                "element": "C",
+                "mca_kj_mol": 314.0
+              },
+              {
+                "atom_index": 1,
+                "element": "C",
+                "mca_kj_mol": 373.0
+              },
+              {
+                "atom_index": 2,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 3,
+                "element": "C",
+                "mca_kj_mol": 370.0
+              },
+              {
+                "atom_index": 4,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 5,
+                "element": "N",
+                "mca_kj_mol": 503.25
+              }
+            ]
+          },
+          "smiles": {
+            "smiles": "C1CCCNC1",
+            "formal_charge": 0,
+            "sites": [
+              {
+                "atom_index": 5,
+                "element": "N",
+                "site_type": "Amine",
+                "mca_kj_mol": 503.25
+              }
+            ],
+            "model_variant": "fp16",
+            "atom_predictions": [
+              {
+                "atom_index": 0,
+                "element": "C",
+                "mca_kj_mol": 314.0
+              },
+              {
+                "atom_index": 1,
+                "element": "C",
+                "mca_kj_mol": 373.0
+              },
+              {
+                "atom_index": 2,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 3,
+                "element": "C",
+                "mca_kj_mol": 370.0
+              },
+              {
+                "atom_index": 4,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 5,
+                "element": "N",
+                "mca_kj_mol": 503.25
+              }
+            ]
+          }
+        }
+      },
+      {
+        "file": "attached_prediction.json",
+        "artifact": {
+          "bytes": 869,
+          "sha256": "6c743846130195c63d21eade4ac8d12f0356679ba372b4bdffc9f41862d7d342",
+          "path": ".plan20-artifacts/20261103/stage8a/scientific-state/installed-business-raw/actual_MCA_attachment/test_mca_is_attached_to_atoms_0/attached_prediction.json"
+        },
+        "values": {
+          "case": "attached",
+          "prediction": {
+            "smiles": "C1CCCNC1",
+            "formal_charge": 0,
+            "sites": [
+              {
+                "atom_index": 5,
+                "element": "N",
+                "site_type": "Amine",
+                "mca_kj_mol": 503.25
+              }
+            ],
+            "model_variant": "fp16",
+            "atom_predictions": [
+              {
+                "atom_index": 0,
+                "element": "C",
+                "mca_kj_mol": 314.0
+              },
+              {
+                "atom_index": 1,
+                "element": "C",
+                "mca_kj_mol": 373.0
+              },
+              {
+                "atom_index": 2,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 3,
+                "element": "C",
+                "mca_kj_mol": 370.0
+              },
+              {
+                "atom_index": 4,
+                "element": "C",
+                "mca_kj_mol": 318.0
+              },
+              {
+                "atom_index": 5,
+                "element": "N",
+                "mca_kj_mol": 503.25
+              }
+            ]
+          }
+        }
+      },
+      {
+        "file": "site_count_predictions.json",
+        "artifact": {
+          "bytes": 1035,
+          "sha256": "4dbe74e20e7aeb0e4af637dbe19787bee7855164930005637e821fee8aa54631",
+          "path": ".plan20-artifacts/20261103/stage8a/scientific-state/installed-business-raw/actual_MCA_attachment/test_molecule_mca_sites_suppor0/site_count_predictions.json"
+        },
+        "values": {
+          "empty_sites": {
+            "smiles": "C",
+            "formal_charge": 0,
+            "sites": [],
+            "model_variant": "fp16",
+            "atom_predictions": [
+              {
+                "atom_index": 0,
+                "element": "C",
+                "mca_kj_mol": 265.5
+              }
+            ]
+          },
+          "multiple_sites": {
+            "smiles": "CC(=O)C",
+            "formal_charge": 0,
+            "sites": [
+              {
+                "atom_index": 2,
+                "element": "O",
+                "site_type": "Ketone",
+                "mca_kj_mol": 344.5
+              },
+              {
+                "atom_index": 1,
+                "element": "C",
+                "site_type": "double_bond",
+                "mca_kj_mol": 65.8125
+              }
+            ],
+            "model_variant": "fp16",
+            "atom_predictions": [
+              {
+                "atom_index": 0,
+                "element": "C",
+                "mca_kj_mol": 309.25
+              },
+              {
+                "atom_index": 1,
+                "element": "C",
+                "mca_kj_mol": 65.8125
+              },
+              {
+                "atom_index": 2,
+                "element": "O",
+                "mca_kj_mol": 344.5
+              },
+              {
+                "atom_index": 3,
+                "element": "C",
+                "mca_kj_mol": 309.25
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "scientific_interpretation": [
+    "All recorded named geometry checks passed within their scopes; this does not prove a unique coordination interpretation.",
+    "Scientific resolution remains unresolved in the actual workflows. GFN2 UHF0 is an execution default, not a pure-spin scientific assignment; GFN-FF remains charge-only.",
+    "Eu source/installed numerical observations differ and are retained independently. No historical equality or universal chemistry/performance claim is made."
+  ]
+}

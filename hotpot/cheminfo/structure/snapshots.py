@@ -2,6 +2,7 @@
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from typing import Literal, Tuple, Union
 
 from ._identity import _SourceIdentity
 from .stereo import StereoPayload
@@ -63,3 +64,56 @@ class _Gate6Graph:
     directed_dative_edges: frozenset[tuple[int, int]]
     real_atom_count: int
     virtual_hydrogens: tuple[tuple[int, ...], ...]
+
+
+@dataclass(frozen=True)
+class MolecularFactsIdentity:
+    """Coordinate-independent identity of one chemical boundary."""
+
+    chemical_identity_digest: 'str'
+
+
+@dataclass(frozen=True)
+class ComponentIdentity:
+    """Stable component identity with indices in source atom order."""
+
+    identity: 'str'
+    atom_indices: 'Tuple[int, ...]'
+
+
+@dataclass(frozen=True)
+class HydrogenInventory:
+    """Explicit and stored implicit hydrogen counts for every atom."""
+
+    explicit_counts: 'Tuple[Union[int, None], ...]'
+    implicit_counts: 'Tuple[Union[int, None], ...]'
+
+
+SemanticBondKind = Literal["covalent", "coordination", "unknown"]
+
+
+@dataclass(frozen=True)
+class SemanticBond:
+    """One immutable bond fact without backend-owned objects."""
+
+    atom_indices: 'Tuple[int, int]'
+    order: 'Union[float, None]'
+    aromatic: 'bool'
+    kind: 'SemanticBondKind'
+
+
+@dataclass(frozen=True)
+class MolecularFacts:
+    """Immutable chemical and optional geometric facts extracted from a molecule."""
+
+    identity: 'MolecularFactsIdentity'
+    geometry_digest: 'Union[str, None]'
+    atomic_numbers: 'Tuple[int, ...]'
+    mass_numbers: 'Tuple[Union[int, None], ...]'
+    atom_map: 'Tuple[int, ...]'
+    source_components: 'Tuple[ComponentIdentity, ...]'
+    covalent_components: 'Tuple[ComponentIdentity, ...]'
+    hydrogen_inventory: 'HydrogenInventory'
+    semantic_bonds: 'Tuple[SemanticBond, ...]'
+    coordinates: 'Union[Tuple[Tuple[float, float, float], ...], None]'
+    nuclear_charge_sum: 'int'

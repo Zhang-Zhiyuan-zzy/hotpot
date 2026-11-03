@@ -17,14 +17,18 @@ def _stdout(*arguments: str, input_text: str | None = None) -> str:
 
 def core() -> None:
     import hotpot
-    from hotpot.cheminfo.calculator import (
+    from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
         ScientificOperationRequirements,
-        StateRequest,
-        extract_molecular_facts,
+    )
+    from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+    from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
+    from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
         resolve_scientific_state,
     )
-    from hotpot.cheminfo.calculator.contracts import ScientificQuantity
-    from hotpot.cheminfo.calculator.state_selection import StateDecisionAction
+    from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import ScientificQuantity
+    from hotpot.cheminfo.operations.calculation.scientific_state.state_selection import (
+        StateDecisionAction,
+    )
     from hotpot.cheminfo.rules.mathematics.graph import relevant_cycles
     from hotpot.cheminfo.search import _search_native
 

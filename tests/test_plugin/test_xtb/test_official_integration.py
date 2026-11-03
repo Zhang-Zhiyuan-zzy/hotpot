@@ -14,16 +14,14 @@ import numpy as np
 import pytest
 
 import hotpot
-from hotpot.cheminfo.calculator.execution_selection import (
+from hotpot.cheminfo.operations.calculation.scientific_state.execution_selection import (
     BackendProjectionStatus,
     BackendStateProjection,
     BackendStateRequest,
     resolve_and_project_state,
 )
-from hotpot.cheminfo.calculator.state_resolver import (
-    StateRequest,
-    extract_molecular_facts,
-)
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 from hotpot.cheminfo.core import Molecule
 from hotpot.plugins.xtb.adapter import prepare_xtb_input
 from hotpot.plugins.xtb.backend import probe_xtb_backend

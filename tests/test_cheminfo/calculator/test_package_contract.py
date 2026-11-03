@@ -2,21 +2,23 @@
 
 
 def test_electronic_state_package_exposes_typed_services() -> None:
-    from hotpot.cheminfo.calculator import electronic_state
-    from hotpot.cheminfo.calculator.electronic_state import (
+    from hotpot.cheminfo.rules.chemistry.scientific_state import electronic_state
+    from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state import (
         ElectronicStateCandidate,
         ElectronicStateCandidateEvidence,
         ElectronicStateInferenceResult,
         NeutralAtomReference,
         SpinContributionCandidate,
         SpinContributionScope,
+    )
+    from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state.inference import (
         infer_electronic_states,
+    )
+    from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state.neutral_atom import (
         neutral_atom_reference,
     )
 
     assert electronic_state.__all__ == [
-        "infer_electronic_states",
-        "neutral_atom_reference",
         "ElectronicStateCandidateEvidence",
         "SpinContributionScope",
         "SpinContributionCandidate",
@@ -35,20 +37,24 @@ def test_electronic_state_package_exposes_typed_services() -> None:
 
 
 def test_calculator_package_exposes_scientific_state_resolver() -> None:
-    from hotpot.cheminfo.calculator import (
-        MolecularFacts,
+    from hotpot.cheminfo.structure.snapshots import MolecularFacts
+    from hotpot.cheminfo.operations.calculation.scientific_state.execution_selection import (
         BackendProjectionResult,
         BackendStateRequest,
-        ScientificOperationRequirements,
-        ScientificStateBundle,
         ScientificStateWorkflowResult,
-        StatePolicy,
-        StateRequest,
-        extract_molecular_facts,
         project_state,
         resolve_and_project_state,
+    )
+    from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
+        ScientificOperationRequirements,
+    )
+    from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
+        ScientificStateBundle,
         resolve_scientific_state,
     )
+    from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
+    from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+    from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 
     assert callable(extract_molecular_facts)
     assert callable(resolve_scientific_state)

@@ -1,9 +1,9 @@
 """Versioned assumption-severity policy tests."""
 
-from hotpot.cheminfo.calculator.state_rules.profile_decision import (
+from hotpot.cheminfo.operations.calculation.scientific_state.profile_decision import (
     _assumption_severity_policy,
 )
-from hotpot.cheminfo.calculator.state_rules.profiles import (
+from hotpot.cheminfo.operations.calculation.scientific_state.profiles import (
     _coordination_screening_profile,
 )
 

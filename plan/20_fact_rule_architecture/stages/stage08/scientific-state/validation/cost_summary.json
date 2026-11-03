@@ -1,0 +1,407 @@
+{
+  "schema_version": 1,
+  "status": "COMPLETED_CURRENT_OBSERVATION_WITH_RETAINED_SETUP_FAILURE",
+  "source_freeze": {
+    "path": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/source-validation/source_freeze-a7-resource-repair.json",
+    "sha256": "aa4619bf16069b5c937c4a033abdd0dac1c1c83655c0d108f749afef7c8cfa57"
+  },
+  "completed_attempt": "attempt02",
+  "raw_observations": "a3faab89448f490cd",
+  "runner": "aba3233c0341d4373",
+  "runner_sha256_in_observations": "eb718f2da89274c67c6ffb3b1fb07811a6871a811aed465de67aa410a547b33b",
+  "protocol": {
+    "cases": 4,
+    "operations": 3,
+    "warmup_per_action": 1,
+    "trials": 5,
+    "calls_per_trial": 20,
+    "timing": "wall time; parsing and backend version probing excluded",
+    "memory": "one isolated tracemalloc call; Python allocations only, no RSS claim",
+    "comparison": "current bounded observations; no historical parity claim"
+  },
+  "python": {
+    "path": "/tmp/hotpot-plan20-env/bin/python",
+    "version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+  },
+  "platform": "Linux-5.15.0-139-generic-x86_64-with-glibc2.31",
+  "environment": {
+    "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1"
+  },
+  "backend": {
+    "executable": "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+    "version": "6.7.1",
+    "revision": "edcfbbe",
+    "sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887"
+  },
+  "source_native_build_unchanged": true,
+  "timing_cell_denominator": 12,
+  "timing_trials_per_cell": 5,
+  "timing_trial_denominator": 60,
+  "calls_per_trial": 20,
+  "timed_call_denominator": 1200,
+  "separate_warmup_call_denominator": 12,
+  "separate_memory_probe_call_denominator": 12,
+  "rows": [
+    {
+      "case": "methane",
+      "smiles": "C",
+      "charge": 0,
+      "two_s": 0,
+      "operation": "extract",
+      "trial_seconds_per_call": [
+        0.0008184483274817466,
+        0.0007879087701439857,
+        0.0007817205972969532,
+        0.0007817246019840241,
+        0.0007806174457073211
+      ],
+      "median_seconds_per_call": 0.0007817246019840241,
+      "single_call_python_peak_bytes": 23371,
+      "single_call_python_retained_bytes": 18661,
+      "chemical_observation": {
+        "nuclear_charge_sum": 10,
+        "implicit_counts": [
+          4
+        ],
+        "electron_count": 10,
+        "decision": "select_state",
+        "projected_charge": 0,
+        "projected_uhf": 0
+      }
+    },
+    {
+      "case": "methane",
+      "smiles": "C",
+      "charge": 0,
+      "two_s": 0,
+      "operation": "strict_resolve",
+      "trial_seconds_per_call": [
+        0.0003591248765587807,
+        0.0003382166847586632,
+        0.0003359613940119743,
+        0.0003372368402779102,
+        0.0003345933742821217
+      ],
+      "median_seconds_per_call": 0.0003372368402779102,
+      "single_call_python_peak_bytes": 15945,
+      "single_call_python_retained_bytes": 11243,
+      "chemical_observation": {
+        "nuclear_charge_sum": 10,
+        "implicit_counts": [
+          4
+        ],
+        "electron_count": 10,
+        "decision": "select_state",
+        "projected_charge": 0,
+        "projected_uhf": 0
+      }
+    },
+    {
+      "case": "methane",
+      "smiles": "C",
+      "charge": 0,
+      "two_s": 0,
+      "operation": "project",
+      "trial_seconds_per_call": [
+        5.380362272262573e-05,
+        5.148816853761673e-05,
+        5.01411035656929e-05,
+        4.9351155757904054e-05,
+        4.980051890015602e-05
+      ],
+      "median_seconds_per_call": 5.01411035656929e-05,
+      "single_call_python_peak_bytes": 5800,
+      "single_call_python_retained_bytes": 3187,
+      "chemical_observation": {
+        "nuclear_charge_sum": 10,
+        "implicit_counts": [
+          4
+        ],
+        "electron_count": 10,
+        "decision": "select_state",
+        "projected_charge": 0,
+        "projected_uhf": 0
+      }
+    },
+    {
+      "case": "ethanol",
+      "smiles": "CCO",
+      "charge": 0,
+      "two_s": 0,
+      "operation": "extract",
+      "trial_seconds_per_call": [
+        0.0010838126763701439,
+        0.0010761956684291363,
+        0.00106990784406662,
+        0.0010685998015105725,
+        0.001064167357981205
+      ],
+      "median_seconds_per_call": 0.00106990784406662,
+      "single_call_python_peak_bytes": 30972,
+      "single_call_python_retained_bytes": 25336,
+      "chemical_observation": {
+        "nuclear_charge_sum": 26,
+        "implicit_counts": [
+          3,
+          2,
+          1
+        ],
+        "electron_count": 26,
+        "decision": "select_state",
+        "projected_charge": 0,
+        "projected_uhf": 0
+      }
+    },
+    {
+      "case": "ethanol",
+      "smiles": "CCO",
+      "charge": 0,
+      "two_s": 0,
+      "operation": "strict_resolve",
+      "trial_seconds_per_call": [
+        0.0003392520360648632,
+        0.0003392612561583519,
+        0.00033581806346774103,
+        0.0003379887901246548,
+        0.00033358680084347723
+      ],
+      "median_seconds_per_call": 0.0003379887901246548,
+      "single_call_python_peak_bytes": 15945,
+      "single_call_python_retained_bytes": 11243,
+      "chemical_observation": {
+        "nuclear_charge_sum": 26,
+        "implicit_counts": [
+          3,
+          2,
+          1
+        ],
+        "electron_count": 26,
+        "decision": "select_state",
+        "projected_charge": 0,
+        "projected_uhf": 0
+      }
+    },
+    {
+      "case": "ethanol",
+      "smiles": "CCO",
+      "charge": 0,
+      "two_s": 0,
+      "operation": "project",
+      "trial_seconds_per_call": [
+        5.097165703773499e-05,
+        5.069077014923096e-05,
+        5.033053457736969e-05,
+        5.0659012049436567e-05,
+        4.9553532153367994e-05
+      ],
+      "median_seconds_per_call": 5.0659012049436567e-05,
+      "single_call_python_peak_bytes": 5800,
+      "single_call_python_retained_bytes": 3187,
+      "chemical_observation": {
+        "nuclear_charge_sum": 26,
+        "implicit_counts": [
+          3,
+          2,
+          1
+        ],
+        "electron_count": 26,
+        "decision": "select_state",
+        "projected_charge": 0,
+        "projected_uhf": 0
+      }
+    },
+    {
+      "case": "chloride",
+      "smiles": "[Cl-]",
+      "charge": -1,
+      "two_s": 0,
+      "operation": "extract",
+      "trial_seconds_per_call": [
+        0.0007876303046941757,
+        0.0007810979150235653,
+        0.0007851751521229744,
+        0.0007843474857509136,
+        0.000780729204416275
+      ],
+      "median_seconds_per_call": 0.0007843474857509136,
+      "single_call_python_peak_bytes": 23371,
+      "single_call_python_retained_bytes": 18724,
+      "chemical_observation": {
+        "nuclear_charge_sum": 17,
+        "implicit_counts": [
+          null
+        ],
+        "electron_count": 18,
+        "decision": "select_state",
+        "projected_charge": -1,
+        "projected_uhf": 0
+      }
+    },
+    {
+      "case": "chloride",
+      "smiles": "[Cl-]",
+      "charge": -1,
+      "two_s": 0,
+      "operation": "strict_resolve",
+      "trial_seconds_per_call": [
+        0.00033922698348760606,
+        0.00033840099349617957,
+        0.0003366032615303993,
+        0.00033474499359726907,
+        0.000337067898362875
+      ],
+      "median_seconds_per_call": 0.000337067898362875,
+      "single_call_python_peak_bytes": 15945,
+      "single_call_python_retained_bytes": 11243,
+      "chemical_observation": {
+        "nuclear_charge_sum": 17,
+        "implicit_counts": [
+          null
+        ],
+        "electron_count": 18,
+        "decision": "select_state",
+        "projected_charge": -1,
+        "projected_uhf": 0
+      }
+    },
+    {
+      "case": "chloride",
+      "smiles": "[Cl-]",
+      "charge": -1,
+      "two_s": 0,
+      "operation": "project",
+      "trial_seconds_per_call": [
+        4.982361570000648e-05,
+        4.974985495209694e-05,
+        4.8461463302373885e-05,
+        4.8410333693027494e-05,
+        4.905350506305695e-05
+      ],
+      "median_seconds_per_call": 4.905350506305695e-05,
+      "single_call_python_peak_bytes": 5800,
+      "single_call_python_retained_bytes": 3187,
+      "chemical_observation": {
+        "nuclear_charge_sum": 17,
+        "implicit_counts": [
+          null
+        ],
+        "electron_count": 18,
+        "decision": "select_state",
+        "projected_charge": -1,
+        "projected_uhf": 0
+      }
+    },
+    {
+      "case": "hydrogen_radical",
+      "smiles": "[H]",
+      "charge": 0,
+      "two_s": 1,
+      "operation": "extract",
+      "trial_seconds_per_call": [
+        0.0007889637723565102,
+        0.0007824369706213475,
+        0.0007818983867764473,
+        0.0007810463197529316,
+        0.0007802887819707393
+      ],
+      "median_seconds_per_call": 0.0007818983867764473,
+      "single_call_python_peak_bytes": 23371,
+      "single_call_python_retained_bytes": 18724,
+      "chemical_observation": {
+        "nuclear_charge_sum": 1,
+        "implicit_counts": [
+          null
+        ],
+        "electron_count": 1,
+        "decision": "select_state",
+        "projected_charge": 0,
+        "projected_uhf": 1
+      }
+    },
+    {
+      "case": "hydrogen_radical",
+      "smiles": "[H]",
+      "charge": 0,
+      "two_s": 1,
+      "operation": "strict_resolve",
+      "trial_seconds_per_call": [
+        0.0003429606556892395,
+        0.00033761002123355865,
+        0.00033600442111492157,
+        0.00033525750041007996,
+        0.0003393213264644146
+      ],
+      "median_seconds_per_call": 0.00033761002123355865,
+      "single_call_python_peak_bytes": 15945,
+      "single_call_python_retained_bytes": 11243,
+      "chemical_observation": {
+        "nuclear_charge_sum": 1,
+        "implicit_counts": [
+          null
+        ],
+        "electron_count": 1,
+        "decision": "select_state",
+        "projected_charge": 0,
+        "projected_uhf": 1
+      }
+    },
+    {
+      "case": "hydrogen_radical",
+      "smiles": "[H]",
+      "charge": 0,
+      "two_s": 1,
+      "operation": "project",
+      "trial_seconds_per_call": [
+        4.959963262081146e-05,
+        4.921182990074158e-05,
+        4.9008894711732866e-05,
+        4.962664097547531e-05,
+        4.998818039894104e-05
+      ],
+      "median_seconds_per_call": 4.959963262081146e-05,
+      "single_call_python_peak_bytes": 5800,
+      "single_call_python_retained_bytes": 3187,
+      "chemical_observation": {
+        "nuclear_charge_sum": 1,
+        "implicit_counts": [
+          null
+        ],
+        "electron_count": 1,
+        "decision": "select_state",
+        "projected_charge": 0,
+        "projected_uhf": 1
+      }
+    }
+  ],
+  "retained_failed_attempt": {
+    "status": "failed_before_measurement",
+    "observed_exception": "AttributeError: GFN2",
+    "trigger": "XTBBackendContext(backend_info, XTBMethod.GFN2) during setup",
+    "completed_timing_cells": 0,
+    "completed_timing_trials": 0,
+    "artifacts": {
+      "run_cost.py": "a228e3046ba82d931",
+      "stderr.log": "a30c998c5c8330612",
+      "stdout.log": "ae91b67577ac21f59"
+    },
+    "limit": "No timing or memory observation exists for attempt01; no invented zero-duration performance result or silently dropped attempt."
+  },
+  "limits": [
+    "Current bounded wall-time observations only; no historical baseline, cross-version parity or speedup claim.",
+    "Parsing and xTB backend version probing are outside timing.",
+    "One isolated tracemalloc probe per cell measures Python allocation peak/retained bytes only; no RSS, native allocation or model/backend peak claim.",
+    "Three operations are snapshot extraction, strict resolution of prepared facts and projection of a prepared bundle; this is not an integrated CBond/FF/xTB or corpus throughput benchmark.",
+    "Four fixed explicit cases on CP311 with declared single-thread environment; no all-version, large-batch, GPU or broad applicability claim."
+  ],
+  "facts_artifacts": [
+    "a80ea14fdab36a437",
+    "a2763cd4e741ed891",
+    "aca05a1d1eb2a2aa3",
+    "a7e6b2333e18099ec"
+  ],
+  "artifact_index": "/tmp/hotpot_plan20/long/stage8a-scientific-state-20261103/record-preparation/artifact_index.json"
+}

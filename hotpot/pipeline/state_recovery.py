@@ -6,15 +6,17 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Tuple
 
-from hotpot.cheminfo.calculator.contracts import BackendContext
-from hotpot.cheminfo.calculator.execution_selection import (
+from hotpot.cheminfo.adapters.calculation.contracts import BackendContext
+from hotpot.cheminfo.operations.calculation.scientific_state.execution_selection import (
     BackendExecutionEvidence,
     BackendStateProjection,
     BackendStateRequest,
     ExecutionPolicySet,
 )
-from hotpot.cheminfo.calculator.state_resolver import ScientificStateBundle
-from hotpot.cheminfo.calculator.state_selection import DecisionReason
+from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
+    ScientificStateBundle,
+)
+from hotpot.cheminfo.operations.calculation.scientific_state.state_selection import DecisionReason
 
 
 __all__ = [

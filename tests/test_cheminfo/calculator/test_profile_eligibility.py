@@ -2,20 +2,22 @@
 
 import hotpot
 
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     DEFAULT_CANDIDATE_BUDGET,
     CandidateBudget,
-    ProviderSet,
-    ProviderToggle,
     ScientificOperationRequirements,
     ScientificQuantity,
+)
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import (
+    ProviderSet,
+    ProviderToggle,
     StatePolicy,
 )
-from hotpot.cheminfo.calculator.profile_eligibility import (
+from hotpot.cheminfo.operations.calculation.scientific_state.profile_eligibility import (
     _static_profile_eligibility,
 )
-from hotpot.cheminfo.calculator.state_rules import RuleSet
-from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import RuleSet
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 
 
 def _facts():

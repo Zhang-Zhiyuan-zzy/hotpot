@@ -5,7 +5,7 @@ from dataclasses import FrozenInstanceError, asdict
 
 import pytest
 
-from hotpot.cheminfo.calculator.charge import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge import (
     AtomFormalChargeEvidence,
     ComponentChargeEvidence,
     LewisFormalChargeCandidate,
@@ -13,15 +13,15 @@ from hotpot.cheminfo.calculator.charge import (
     NetChargeCandidateEvidence,
     NetChargeResult,
 )
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     ChemicalConfidence,
     CoverageStatus,
-    MolecularFactsIdentity,
     ResolutionStatus,
     ScientificAdmissibility,
     StateValueAuthority,
 )
+from hotpot.cheminfo.structure.snapshots import MolecularFactsIdentity
 
 
 def _provenance(identity: str) -> CandidateProvenance:

@@ -2,13 +2,13 @@
 
 import json
 
-from hotpot.cheminfo.calculator.charge import NetChargeCandidateEvidence
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge import NetChargeCandidateEvidence
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     ScientificQuantity,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.state_composition import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     BranchAssignment,
     CandidateConstraint,
     CandidateDomainScope,
@@ -22,7 +22,7 @@ from hotpot.cheminfo.calculator.state_composition import (
     ProposedCandidateFactor,
     ProposedCandidateValue,
 )
-from hotpot.cheminfo.calculator.state_rules import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers import (
     EvidenceItem,
     RankAdjustment,
     RuleApplicability,
@@ -30,7 +30,7 @@ from hotpot.cheminfo.calculator.state_rules import (
     RulePhase,
     RuleTrace,
 )
-from hotpot.cheminfo.calculator.state_rules._serialization import (
+from hotpot.cheminfo.operations.calculation.scientific_state._rule_serialization import (
     _rule_traces_from_payload,
     _rule_traces_to_payload,
 )

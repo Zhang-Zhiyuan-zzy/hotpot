@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "stage": "Stage8A1",
+  "status": "ENTRY_ALIGNED_A1_A6_AUTHORING_RELEASED",
+  "recorded_utc": "2026-11-03T10:47:49.558134+00:00",
+  "source_commit": "989f27594ec08a4cd1b6f1266e565ba34cee62a1",
+  "predecessor": "stages/stage07/canonical-stereo/completion_20261103.json",
+  "alignment": "Effective goal and focused main-plan Sections6/9.2/Stage8A/16, current companions/budget/interfaces/map/Plan12, both governance references, stage/validation skills; two static local inventories plus dependency-cut report. Goal permits focused alignment; prior unaffected full-plan alignment reused.",
+  "discrepancies": [
+    "manifest.py contains executable configuration, not immutable data",
+    "BackendIdentity is frozen dataclass, not Protocol",
+    "provider-input contract closure must sit below operations to avoid reverse imports"
+  ],
+  "contracts": "contracts/decisions.md",
+  "runtime_authorized": false,
+  "stage_gate_closed": false,
+  "global_gate_closed": false,
+  "held": [
+    "D01-D03 schema/constructor changes",
+    "optional scientific profile activation",
+    "later/global delivery/science obligations"
+  ],
+  "preentry_reports": {
+    "consumer_contracts": "/tmp/hotpot_plan20/long/stage8a-preentry-20261103/consumer-contracts/report.md",
+    "rule_boundary": "/tmp/hotpot_plan20/long/stage8a-preentry-20261103/rule-boundary/report.md",
+    "contract_cut": "/tmp/hotpot_plan20/long/stage8a-preentry-20261103/rule-boundary/contract-cut.md"
+  }
+}

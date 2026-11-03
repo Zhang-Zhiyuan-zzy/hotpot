@@ -8,21 +8,7 @@ import sys
 import hotpot.cheminfo.calculator as calculator
 
 
-PUBLIC_CALCULATOR_NAMES = (
-    "mca",
-    "extract_molecular_facts",
-    "resolve_scientific_state",
-    "project_state",
-    "resolve_and_project_state",
-    "MolecularFacts",
-    "StateRequest",
-    "StatePolicy",
-    "ScientificOperationRequirements",
-    "ScientificStateBundle",
-    "BackendStateRequest",
-    "BackendProjectionResult",
-    "ScientificStateWorkflowResult",
-)
+PUBLIC_CALCULATOR_NAMES = ("mca",)
 
 
 def test_calculator_package_exposes_only_the_declared_public_objects() -> None:

@@ -2,24 +2,24 @@
 
 import hotpot
 
-from hotpot.cheminfo.calculator.charge import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge import (
     AtomFormalChargeEvidence,
     ComponentChargeEvidence,
     NetChargeCandidateEvidence,
 )
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     CoverageStatus,
-    MolecularFactsIdentity,
     ResolutionStatus,
     ScientificAdmissibility,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.legality import (
+from hotpot.cheminfo.structure.snapshots import MolecularFactsIdentity
+from hotpot.cheminfo.rules.chemistry.scientific_state.legality import (
     _validate_charge_conservation,
     _validate_facts_identity,
 )
-from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 
 
 def _provenance(identity: str) -> CandidateProvenance:

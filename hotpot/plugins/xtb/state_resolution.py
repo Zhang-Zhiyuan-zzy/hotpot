@@ -6,11 +6,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping, Optional, Union
 
-from hotpot.cheminfo.calculator.contracts import (
-    MolecularFactsIdentity,
-    StatePolicy,
-)
-from hotpot.cheminfo.calculator.execution_selection import (
+from hotpot.cheminfo.structure.snapshots import MolecularFactsIdentity
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
+from hotpot.cheminfo.operations.calculation.scientific_state.execution_selection import (
     BackendProjectionResult,
     BackendProjectionStatus,
     BackendStateProjection,
@@ -18,12 +16,12 @@ from hotpot.cheminfo.calculator.execution_selection import (
     project_state,
     resolve_and_project_state,
 )
-from hotpot.cheminfo.calculator.state_composition import ScientificStateIdentity
-from hotpot.cheminfo.calculator.state_resolver import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import ScientificStateIdentity
+from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
     ScientificStateBundle,
-    StateRequest,
-    extract_molecular_facts,
 )
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 from hotpot.cheminfo.core import Molecule
 
 from .backend import probe_xtb_backend

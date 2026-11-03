@@ -8,16 +8,16 @@ from pathlib import Path
 import pytest
 
 import hotpot
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     ScientificOperationRequirements,
     ScientificQuantity,
 )
-from hotpot.cheminfo.calculator.state_resolver import (
+from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
     ScientificStateBundle,
-    StateRequest,
-    extract_molecular_facts,
     resolve_scientific_state,
 )
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 from hotpot.cheminfo.core import Molecule
 
 

@@ -4,30 +4,28 @@ from dataclasses import replace
 
 import hotpot
 
-from hotpot.cheminfo.calculator.charge import (
-    NetChargeCandidateEvidence,
-    resolve_net_charge,
-)
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge import NetChargeCandidateEvidence
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.net_charge import resolve_net_charge
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateBudget,
     CandidateProvenance,
     CoverageStatus,
     ScientificQuantity,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.electronic_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state import (
     ElectronicStateCandidate,
     SpinContributionCandidate,
     SpinContributionScope,
 )
-from hotpot.cheminfo.calculator.oxidation_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state import (
     CountingConvention,
     OxidationStateCandidateEvidence,
 )
-from hotpot.cheminfo.calculator.state_composition.candidate_space import (
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.candidate_space import (
     _merge_candidate_proposals,
 )
-from hotpot.cheminfo.calculator.state_composition.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     BranchAssignment,
     CandidateConstraint,
     CandidateDomainScope,
@@ -43,10 +41,10 @@ from hotpot.cheminfo.calculator.state_composition.contracts import (
     ProposedCandidateFactor,
     ProposedCandidateValue,
 )
-from hotpot.cheminfo.calculator.state_composition.expand import (
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.expand import (
     _expand_scientific_paths,
 )
-from hotpot.cheminfo.calculator.state_composition.decision_search import (
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.decision_search import (
     _AuthorityVector,
     _DecisionBound,
     _DecisionEquivalenceKey,
@@ -54,10 +52,8 @@ from hotpot.cheminfo.calculator.state_composition.decision_search import (
     _DecisionRelation,
     _PreferenceKey,
 )
-from hotpot.cheminfo.calculator.state_resolver import (
-    StateRequest,
-    extract_molecular_facts,
-)
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 
 
 def _scientific_candidates():

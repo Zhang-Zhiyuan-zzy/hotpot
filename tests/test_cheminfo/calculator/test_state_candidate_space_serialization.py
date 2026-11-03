@@ -5,15 +5,15 @@ from dataclasses import replace
 
 import pytest
 
-from hotpot.cheminfo.calculator.charge import NetChargeCandidateEvidence
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge import NetChargeCandidateEvidence
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateBudget,
     CandidateProvenance,
     ScientificQuantity,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.oxidation_state import CountingConvention
-from hotpot.cheminfo.calculator.state_composition import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state import CountingConvention
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     BranchAssignment,
     CandidateConstraint,
     CandidateDomainScope,
@@ -33,11 +33,11 @@ from hotpot.cheminfo.calculator.state_composition import (
     StateValueOrigin,
     StateValueRef,
 )
-from hotpot.cheminfo.calculator.state_composition._artifacts import (
+from hotpot.cheminfo.operations.calculation.scientific_state.composition._artifacts import (
     _FRONTIER_SCHEMA,
     _candidate_budget_artifact_id,
 )
-from hotpot.cheminfo.calculator.state_composition._candidate_space_serialization import (
+from hotpot.cheminfo.operations.calculation.scientific_state.composition._candidate_space_serialization import (
     _candidate_space_from_json,
     _candidate_space_to_json,
 )

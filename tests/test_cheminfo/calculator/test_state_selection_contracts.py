@@ -4,8 +4,8 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
-from hotpot.cheminfo.calculator.state_composition import ScientificStateIdentity
-from hotpot.cheminfo.calculator.state_selection import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import ScientificStateIdentity
+from hotpot.cheminfo.operations.calculation.scientific_state.state_selection import (
     DecisionCertifiability,
     DecisionCertificationStatus,
     DecisionReason,

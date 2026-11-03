@@ -7,11 +7,11 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Mapping, Optional, Union
 
-from hotpot.cheminfo.calculator.execution_selection import (
+from hotpot.cheminfo.operations.calculation.scientific_state.execution_selection import (
     BackendStateProjection,
     _projection_validation_findings,
 )
-from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 from hotpot.cheminfo.core import Molecule
 from hotpot.cheminfo.structure._commit import _FactTransaction
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES

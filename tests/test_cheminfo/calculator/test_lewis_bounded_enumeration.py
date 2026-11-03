@@ -5,13 +5,13 @@ from typing import Dict, List, Tuple
 import hotpot
 import pytest
 
-from hotpot.cheminfo.calculator.charge.lewis import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.lewis import (
     _atom_charge_candidates,
     _bond_valences,
     _enumerate_assignments,
 )
-from hotpot.cheminfo.calculator.contracts import MolecularFacts
-from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
+from hotpot.cheminfo.structure.snapshots import MolecularFacts
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 
 
 _Assignment = Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]]

@@ -17,7 +17,7 @@ from typing import Mapping, Optional, Sequence, Tuple
 
 from hotpot._cli import MarkdownDocumentationAction
 from hotpot.cheminfo.operations.io import MolReader
-from hotpot.cheminfo.calculator.contracts import StatePolicy
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
 from hotpot.cheminfo.core import Molecule
 
 from .contracts import (

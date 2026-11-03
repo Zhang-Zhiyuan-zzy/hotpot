@@ -1,8 +1,9 @@
 # Fact-Carrier and Rule Architecture Refactor
 
-Status: **implementation authorized on 2026-10-28; Stage0–7C owning-stage gates complete
-within their recorded scopes, including the applicable CP311 Stage7B/7C delivery;
-Stage7E canonical stereo ownership is complete within its applicable CP311 owning scope. Stage8A scientific-state calculation is next. Full scientific, engineering, version-adaptation and global
+Status: **implementation authorized on 2026-10-28; Stage0–7E owning-stage gates complete
+within their recorded scopes. Stage8A1 scientific-state ownership and extraction
+non-mutation are accepted within the applicable CP311 checkpoint; whole Stage8A
+continues with D01–D03 public consolidation and remaining scientific-state work open. Full scientific, engineering, version-adaptation and global
 acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
@@ -1350,12 +1351,12 @@ real core definition; it consolidates existing debt and creates no structure ali
 | `MolecularFacts`, `MolecularFactsIdentity`, `ComponentIdentity`, `HydrogenInventory`, `SemanticBond` | one scientific-state snapshot contract with necessary composed values | preserve the useful MolecularFacts semantic projection and component/H/semantic-bond constituents; align source dependencies with shared identities and merge only audit-confirmed synonyms. A `ScientificStateSnapshot` rename is a public proposal, not proof these five types are duplicates |
 | current scientific quantity/admissibility/authority/confidence enums, findings and provider values/evidence | `rules/chemistry/scientific_state/contracts.py` | retain quantity semantics, exact hard-rule assessments, candidate/provenance data and domain findings under one owner; trace actual consumers of existing admissibility/confidence fields instead of carrying them forward as generic public ratings. Necessary internal control/lifecycle metadata remains; Sections6.2 and11.1 govern the result boundary |
 | policy/toggle/provider-set/budget/requirements/selection contracts | `operations/calculation/scientific_state/contracts.py` | execution choice and orchestration configuration are operation contracts, not facts or rules |
-| `BackendIdentity`/`BackendContext` protocols | `adapters/calculation/contracts.py` | define generic scientific backend/projection identity once at the external boundary; inference and force-field wrapper-specific contracts remain with their named standalone/adapters and do not redeclare it |
+| `BackendIdentity` frozen digest dataclass / `BackendContext` Protocol | `adapters/calculation/contracts.py` | define generic scientific backend/projection identity once at the external boundary; inference and force-field wrapper-specific contracts remain with their named standalone/adapters and do not redeclare it |
 | state-composition candidates/decisions/resolution reports | `operations/calculation/scientific_state/composition/contracts.py` | retain operational search/result DTOs without declaring a second Molecule snapshot or representation identity |
 | `calculator/formal_charges.py`, `molecular_charge.py`, `charge/`, `oxidation_state/`, `electronic_state/`, `legality.py` | `rules/chemistry/scientific_state/` | retain deterministic conservation, legality, charge, oxidation, electronic-state, coordination-counting, and spin rules as snapshot-to-finding functions |
 | concrete `state_rules` provider modules, provider base/contracts | `rules/chemistry/scientific_state/providers/` | preserve named deterministic providers and evidence without controller or registry state |
-| `state_rules/manifest.py`, immutable rule tables, neutral-atom/oxidation-state JSON | `rules/chemistry/scientific_state/data/` | keep these rule-specific scientific sources immutable and explicitly loaded; universal element facts alone belong in `reference/data` |
-| `state_rules/controller.py`, profile decision/sets, registry, defaults, execution/state selection, eligibility, requirements, resolver | `operations/calculation/scientific_state/` | own provider selection, policy choice, registry construction, conflict resolution, and sequencing; these are not chemistry laws |
+| Immutable rule tables and neutral-atom/oxidation-state JSON | `rules/chemistry/scientific_state/data/` | keep these rule-specific scientific sources immutable and explicitly loaded; universal element facts alone belong in `reference/data` |
+| `state_rules/controller.py`, executable `state_rules/manifest.py`, profile decision/sets, registry, defaults, execution/state selection, eligibility, requirements, resolver | `operations/calculation/scientific_state/` | own provider selection, policy choice, registry construction, conflict resolution, and sequencing; these are not chemistry laws |
 | `calculator/state_composition/` | `operations/calculation/scientific_state/composition/` | preserve candidate expansion/search/coupling/resolution, serialization, and decision artifacts as one operation workflow; do not duplicate formula/composition rules |
 | Molecule extraction embedded in resolvers/calculators | `adapters/structure/scientific_state.py` | construct the one immutable scientific-state snapshot and contain all carrier awareness |
 | `calculator/mca_inference.py` | `operations/inference/mca/` | move out of general scientific-state calculation; replace arbitrary result storage |
@@ -2038,6 +2039,32 @@ artifacts and held-out validation requirements from
 
 Gate: provider, legality, conservation, conflict/evidence, composition search,
 serialization, and state-resolution tests.
+
+The [Stage8A ownership decisions](stages/stage08/scientific-state/contracts/decisions.md)
+refine this route from the actual provider dependency graph: immutable molecular
+snapshot values live in structure; existing provider request, budget, requirement,
+context and composition DTOs remain below operations without new types; all
+configuration, registry, search and selection algorithms remain operational.
+This corrects the mixed-contract table above where unchanged pure-provider
+inputs would otherwise import operations. The executable runtime manifest is
+operational, and BackendIdentity is a frozen dataclass, not a Protocol. Exact
+paths are in the [migration](stages/stage08/scientific-state/contracts/migration.json).
+A1–A6 changes no scientific algorithm, field/default or codec schema. Diagnosed
+A7 corrects the extractor's input mutation by preparing an owned working copy
+in operations and capturing prepared facts read-only in the adapter, retaining
+the public signature and existing chemistry algorithms; its runtime evidence is
+separate from the initial relocation checks. D01–D03
+public consolidation remains held at its dependent step; relocation evidence
+cannot close that or later/global acceptance. Optional activation remains held.
+
+The [A1–A7 ownership checkpoint](stages/stage08/scientific-state/ownership_checkpoint_20261103.json)
+is root accepted within CP311 source/installed scope: affected984passed/5skipped,
+real CBond→FF→GFN-FF/GFN2 and MCA attachment3passed each per boundary,
+144existing classes/12public signatures preserved and12assets delivered.
+A7 fixes the reproduced input-mutation boundary with existing copy/H algorithms.
+Whole Stage8A remains open for its explicit public/schema decisions and remaining
+scientific-state limits; this is not Stage8B entry or global acceptance.
+
 
 #### Stage 8B — Force fields
 

@@ -4,26 +4,24 @@ import pytest
 
 import hotpot
 
-from hotpot.cheminfo.calculator.contracts import (
-    DEFAULT_CANDIDATE_BUDGET,
-    StatePolicy,
-)
-from hotpot.cheminfo.calculator.operation_requirements import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import DEFAULT_CANDIDATE_BUDGET
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
+from hotpot.cheminfo.operations.calculation.scientific_state.operation_requirements import (
     _effective_requirements,
 )
-from hotpot.cheminfo.calculator.state_composition import (
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.compose import (
     compose_scientific_state_space,
 )
-from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
-from hotpot.cheminfo.calculator.state_rules import (
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers import (
     RuleContext,
     RulePhase,
     RuleToggle,
 )
-from hotpot.cheminfo.calculator.state_rules.americium_curium_iii import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers.americium_curium_iii import (
     AmericiumCuriumIIIPriorRule,
 )
-from hotpot.cheminfo.calculator.state_rules.neutral_l_donors import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers.neutral_l_donors import (
     NeutralLDonorRule,
 )
 from hotpot.cheminfo.core import BondKind

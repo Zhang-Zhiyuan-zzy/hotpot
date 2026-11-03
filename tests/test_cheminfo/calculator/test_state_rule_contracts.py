@@ -2,13 +2,13 @@
 
 import hotpot
 
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     DEFAULT_CANDIDATE_BUDGET,
     ScientificOperationRequirements,
 )
-from hotpot.cheminfo.calculator.state_resolver import extract_molecular_facts
-from hotpot.cheminfo.calculator.state_rules import (
-    InferenceRule,
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers.base import InferenceRule
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers import (
     RuleApplicability,
     RuleContext,
     RuleKind,

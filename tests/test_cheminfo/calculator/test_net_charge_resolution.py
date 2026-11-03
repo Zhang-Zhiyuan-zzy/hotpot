@@ -2,25 +2,23 @@
 
 import hotpot
 
-from hotpot.cheminfo.calculator.charge import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge import (
     AtomFormalChargeEvidence,
     NetChargeCandidateEvidence,
     NetChargeResult,
-    resolve_net_charge,
 )
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.net_charge import resolve_net_charge
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     ChemicalConfidence,
     CoverageStatus,
-    MolecularFactsIdentity,
     ResolutionStatus,
     ScientificAdmissibility,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.state_resolver import (
-    StateRequest,
-    extract_molecular_facts,
-)
+from hotpot.cheminfo.structure.snapshots import MolecularFactsIdentity
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 
 
 def _candidate(identity: str, charge: int) -> NetChargeCandidateEvidence:

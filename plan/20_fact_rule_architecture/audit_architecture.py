@@ -2,8 +2,8 @@
 """Ratcheted source checks for the incremental Plan20 migration.
 
 The frozen inventory is discovery evidence. The shrinking allowlist records
-remaining debt. One fixed Stage7A relocation carries its original import slot;
-new ownership packages otherwise have no inherited exceptions. Runtime ownership,
+remaining debt. Four fixed Stage7A/Stage8A relocations carry their original
+import slots; new ownership packages otherwise have no inherited exceptions. Runtime ownership,
 buffer isolation and native ABI tests remain separate gates.
 """
 
@@ -60,6 +60,39 @@ CORE_IMPORT_DESTINATION = {
     **CORE_IMPORT_SOURCE, "path": "hotpot/cheminfo/operations/conversion.py",
     "scope": "_molecule_type",
 }
+# Stage8A A1/A7 splits read-only capture and working-copy preparation. These three
+# module-scope bindings use only their own former resolver slots until Stage9;
+# this fixed tuple is not a configurable relocation map or growth allowance.
+SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS = (
+    (
+        {"rule": "legacy_core_import",
+         "path": "hotpot/cheminfo/calculator/state_resolver.py", "scope": "",
+         "target": "hotpot.cheminfo.core.Bond", "local": "Bond"},
+        {"rule": "legacy_core_import",
+         "path": "hotpot/cheminfo/adapters/structure/scientific_state.py", "scope": "",
+         "target": "hotpot.cheminfo.core.Bond", "local": "Bond"},
+    ),
+    (
+        {"rule": "legacy_core_import",
+         "path": "hotpot/cheminfo/calculator/state_resolver.py", "scope": "",
+         "target": "hotpot.cheminfo.core.BondKind", "local": "BondKind"},
+        {"rule": "legacy_core_import",
+         "path": "hotpot/cheminfo/adapters/structure/scientific_state.py", "scope": "",
+         "target": "hotpot.cheminfo.core.BondKind", "local": "BondKind"},
+    ),
+    (
+        {"rule": "legacy_core_import",
+         "path": "hotpot/cheminfo/calculator/state_resolver.py", "scope": "",
+         "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule"},
+        {"rule": "legacy_core_import",
+         "path": "hotpot/cheminfo/operations/calculation/scientific_state/facts.py", "scope": "",
+         "target": "hotpot.cheminfo.core.Molecule", "local": "Molecule"},
+    ),
+)
+CORE_IMPORT_TRANSFERS = (
+    (CORE_IMPORT_SOURCE, CORE_IMPORT_DESTINATION),
+    *SCIENTIFIC_STATE_CORE_IMPORT_TRANSFERS,
+)
 # These declared numerical values initialize their own coordinate fields; they
 # do not receive a live carrier to edit. Keep path, class, method, field and
 # operation exact so foreign receivers and later buffer mutations stay checked.
@@ -92,17 +125,18 @@ def ratchet_findings(actual, allowed, previous):
 
 
 def stage7a_ratchet_findings(actual, allowed, previous, original):
-    """Keep real debt identities; transfer one fixed slot in each ceiling only."""
+    """Keep real debt identities; transfer only the four fixed ceiling slots."""
     findings = ratchet_findings(actual, allowed, previous)
     current = Counter(map(debt_key, allowed))
-    old = debt_key(CORE_IMPORT_SOURCE)
-    new = debt_key(CORE_IMPORT_DESTINATION)
     for name, reference in (("allowlist_growth", previous),
                             ("exceeds_frozen_inventory", original)):
         ceiling = Counter(map(debt_key, reference))
-        if current[new] and not current[old] and ceiling[old] and not ceiling[new]:
-            ceiling[old] -= 1
-            ceiling[new] += 1
+        for source, destination in CORE_IMPORT_TRANSFERS:
+            old = debt_key(source)
+            new = debt_key(destination)
+            if current[new] and not current[old] and ceiling[old] and not ceiling[new]:
+                ceiling[old] -= 1
+                ceiling[new] += 1
         findings[name] = list((current - ceiling).elements())
     return findings
 

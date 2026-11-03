@@ -4,17 +4,17 @@ from typing import Optional
 
 import pytest
 
-from hotpot.cheminfo.calculator.charge import NetChargeCandidateEvidence
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge import NetChargeCandidateEvidence
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateBudget,
     CandidateProvenance,
     ScientificQuantity,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.state_composition.candidate_space import (
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.candidate_space import (
     _merge_candidate_proposals,
 )
-from hotpot.cheminfo.calculator.state_composition.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     CandidateDomainScope,
     CandidateDomainSummary,
     CandidateConstraint,

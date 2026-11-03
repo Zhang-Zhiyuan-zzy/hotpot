@@ -1,9 +1,16 @@
 # Stage8 records
 
-Split rule policy, workflow, and backend execution. This directory is navigation for a planned stage; no stage-entry or execution record has been created. Its prerequisites, scope and gates remain in the [main implementation plan](../../fact_rule_architecture_implementation_plan.md), Section 10.
+Stage8A1 scientific-state ownership/non-mutation is root accepted within [its CP311 checkpoint](scientific-state/ownership_checkpoint_20261103.json). Whole Stage8A remains open for public consolidation and remaining scientific-state work. Stage8B–E remain unentered. The main implementation plan owns requirements and gates.
 
-[Catalog and filename meanings](../README.md) · [Main project index](../../README.md)
+- [Stage8A entry](scientific-state/entry_review.json)
+- [Stage8A decisions](scientific-state/contracts/decisions.md)
+- [Stage8A migration](scientific-state/contracts/migration.json)
 
-## Complete record index
+[Stage catalog](../README.md) · [Main project index](../../README.md)
 
-There are no stage-owned records beyond this navigation index. Add actual Markdown records using the catalog's defined filenames and index every Markdown/JSON record here when the authorized stage work produces it.
+- [Stage8A validation selection](scientific-state/contracts/validation.json)
+
+- [Stage8A runtime release](scientific-state/runtime_release.json)
+
+- [Stage8A1 actual checkpoint](scientific-state/validation/checkpoint.json)
+- [Stage8A1 observations and limits](scientific-state/validation/report.md)

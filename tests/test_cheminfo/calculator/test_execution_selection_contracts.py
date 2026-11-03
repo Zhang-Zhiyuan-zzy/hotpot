@@ -4,8 +4,8 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
-from hotpot.cheminfo.calculator.contracts import BackendIdentity
-from hotpot.cheminfo.calculator.execution_selection import (
+from hotpot.cheminfo.adapters.calculation.contracts import BackendIdentity
+from hotpot.cheminfo.operations.calculation.scientific_state.execution_selection import (
     BackendExecutability,
     BackendProjectionResult,
     BackendProjectionStatus,
@@ -60,11 +60,13 @@ def test_execution_selection_contracts_are_immutable() -> None:
 
 
 def test_effective_electron_count_includes_stored_implicit_hydrogen() -> None:
-    from hotpot.cheminfo.calculator.contracts import (
+    from hotpot.cheminfo.structure.snapshots import (
         ComponentIdentity,
         HydrogenInventory,
         MolecularFacts,
         MolecularFactsIdentity,
+    )
+    from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
         ScientificOperationRequirements,
     )
 
@@ -143,15 +145,13 @@ def test_execution_policy_set_rejects_unknown_or_duplicate_ids() -> None:
 
 
 def _projection(backend_identity: BackendIdentity) -> BackendStateProjection:
-    from hotpot.cheminfo.calculator.contracts import MolecularFactsIdentity
-    from hotpot.cheminfo.calculator.execution_selection import (
+    from hotpot.cheminfo.structure.snapshots import MolecularFactsIdentity
+    from hotpot.cheminfo.operations.calculation.scientific_state.execution_selection import (
         BackendDecisionSource,
         BackendExecutionDecision,
         BackendStateValues,
     )
-    from hotpot.cheminfo.calculator.state_composition import (
-        ScientificStateIdentity,
-    )
+    from hotpot.cheminfo.rules.chemistry.scientific_state.composition import ScientificStateIdentity
 
     state_values = BackendStateValues(charge=0, uhf=0, multiplicity=1)
     return BackendStateProjection(

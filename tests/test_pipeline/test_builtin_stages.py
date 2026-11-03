@@ -207,13 +207,13 @@ def test_xtb_stage_forwards_existing_state_and_calls_public_workflow_once(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    from hotpot.cheminfo.calculator.contracts import (
+    from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
         ScientificOperationRequirements,
         ScientificQuantity,
     )
-    from hotpot.cheminfo.calculator.state_resolver import (
-        StateRequest,
-        extract_molecular_facts,
+    from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+    from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
+    from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
         resolve_scientific_state,
     )
     from hotpot.cheminfo.forcefields import acceptance

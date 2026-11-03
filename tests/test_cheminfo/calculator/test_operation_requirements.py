@@ -1,11 +1,11 @@
 """Scientific operation-requirement normalization tests."""
 
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     ScientificOperationRequirements,
     ScientificQuantity,
-    StatePolicy,
 )
-from hotpot.cheminfo.calculator.operation_requirements import (
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
+from hotpot.cheminfo.operations.calculation.scientific_state.operation_requirements import (
     _effective_requirements,
     _workflow_requirements,
 )

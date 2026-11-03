@@ -33,9 +33,13 @@ from typing import Optional, TYPE_CHECKING
 
 import numpy as np
 
-from hotpot.cheminfo.calculator.contracts import StatePolicy
-from hotpot.cheminfo.calculator.state_resolver import ScientificStateBundle
-from hotpot.cheminfo.calculator.state_selection import StateDecisionAction
+from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
+from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
+    ScientificStateBundle,
+)
+from hotpot.cheminfo.operations.calculation.scientific_state.state_selection import (
+    StateDecisionAction,
+)
 from hotpot.plugins._harness import ProcessTimeoutError
 from hotpot.plugins.xtb import (
     GFNXTBMethod,

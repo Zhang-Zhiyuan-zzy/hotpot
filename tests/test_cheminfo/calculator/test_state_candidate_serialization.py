@@ -5,32 +5,32 @@ from typing import get_args
 
 import pytest
 
-from hotpot.cheminfo.calculator.charge import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge import (
     LewisFormalChargeCandidate,
     NetChargeCandidateEvidence,
 )
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     CoverageStatus,
     ScientificQuantity,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.electronic_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state import (
     ElectronicStateCandidate,
     SpinContributionCandidate,
     SpinContributionScope,
 )
-from hotpot.cheminfo.calculator.oxidation_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state import (
     CoordinationCountingCandidate,
     CoordinationFragmentAssignment,
     CountingConvention,
     OxidationStateCandidateEvidence,
 )
-from hotpot.cheminfo.calculator.state_composition import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     DerivedStateValue,
     StateCandidate,
 )
-from hotpot.cheminfo.calculator.state_composition._serialization import (
+from hotpot.cheminfo.operations.calculation.scientific_state.composition._serialization import (
     _SUPPORTED_STATE_CANDIDATE_TYPES,
     _state_candidate_from_payload,
     _state_candidate_to_payload,

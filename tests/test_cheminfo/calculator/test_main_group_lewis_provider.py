@@ -4,20 +4,16 @@ from dataclasses import replace
 
 import hotpot
 
-from hotpot.cheminfo.calculator.charge import (
-    resolve_net_charge,
-    solve_main_group_lewis,
-)
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.net_charge import resolve_net_charge
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.lewis import solve_main_group_lewis
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateBudget,
     ResolutionStatus,
     ScientificAdmissibility,
 )
 from hotpot.cheminfo.core import BondKind
-from hotpot.cheminfo.calculator.state_resolver import (
-    StateRequest,
-    extract_molecular_facts,
-)
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 
 
 def _solve(smiles: str, charge: int = 0):

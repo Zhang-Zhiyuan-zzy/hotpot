@@ -10,7 +10,9 @@ from typing import Callable, Optional, Protocol
 import pytest
 
 import hotpot
-from hotpot.cheminfo.calculator.execution_selection import BackendStateProjection
+from hotpot.cheminfo.operations.calculation.scientific_state.execution_selection import (
+    BackendStateProjection,
+)
 from hotpot.cheminfo.core import Molecule
 from hotpot.plugins.xtb.contracts import GFNXTBMethod, XTBMethod, XTBTask
 from hotpot.plugins.xtb.stream import (

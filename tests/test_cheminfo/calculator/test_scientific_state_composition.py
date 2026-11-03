@@ -5,19 +5,17 @@ from dataclasses import replace
 import hotpot
 import pytest
 
-from hotpot.cheminfo.calculator.charge import (
-    resolve_net_charge,
-    solve_main_group_lewis,
-)
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.net_charge import resolve_net_charge
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.lewis import solve_main_group_lewis
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateBudget,
     ResolutionStatus,
     ScientificQuantity,
 )
-from hotpot.cheminfo.calculator.electronic_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state.inference import (
     infer_electronic_states,
 )
-from hotpot.cheminfo.calculator.state_composition import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     CandidateProposal,
     CandidateDomainScope,
     CandidateSearchStatus,
@@ -26,15 +24,15 @@ from hotpot.cheminfo.calculator.state_composition import (
     ProposedCandidateFactor,
     ProposedCandidateValue,
     StateValueOrigin,
+)
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.compose import (
     compose_scientific_state_space,
 )
-from hotpot.cheminfo.calculator.state_composition.resolution import (
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.resolution import (
     _resolve_candidate_space,
 )
-from hotpot.cheminfo.calculator.state_resolver import (
-    StateRequest,
-    extract_molecular_facts,
-)
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 
 
 def _explicit_results():

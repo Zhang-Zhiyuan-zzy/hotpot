@@ -4,20 +4,20 @@ from dataclasses import replace
 
 import pytest
 
-from hotpot.cheminfo.calculator.charge import NetChargeCandidateEvidence
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge import NetChargeCandidateEvidence
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     CoverageStatus,
     ScientificOperationRequirements,
     ScientificQuantity,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.electronic_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state import (
     ElectronicStateCandidate,
     SpinContributionCandidate,
     SpinContributionScope,
 )
-from hotpot.cheminfo.calculator.state_composition import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     CandidateDomainScope,
     CandidateFactor,
     CoupledScientificStateCandidate,
@@ -29,18 +29,18 @@ from hotpot.cheminfo.calculator.state_composition import (
     StateValueOrigin,
     StateValueRef,
 )
-from hotpot.cheminfo.calculator.state_composition.decision_search import (
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.decision_search import (
     _DecisionRelation,
 )
-from hotpot.cheminfo.calculator.state_rules import RankAdjustment
-from hotpot.cheminfo.calculator.state_rules.profile_decision import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers import RankAdjustment
+from hotpot.cheminfo.operations.calculation.scientific_state.profile_decision import (
     _CoordinationScreeningDecisionCompiler,
     _oxidation_equivalence,
 )
-from hotpot.cheminfo.calculator.state_rules.profiles import (
+from hotpot.cheminfo.operations.calculation.scientific_state.profiles import (
     _coordination_screening_profile,
 )
-from hotpot.cheminfo.calculator.oxidation_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state import (
     CountingConvention,
     OxidationStateCandidateEvidence,
 )

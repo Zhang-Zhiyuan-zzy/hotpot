@@ -1,25 +1,19 @@
 """PROVIDER-002 versioned oxidation-state registry tests."""
 
 import json
-from pathlib import Path
+from importlib import resources
 
 import pytest
 
-from hotpot.cheminfo.calculator.oxidation_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state.registry import (
     element_oxidation_state_domain,
 )
 
 
 def test_registry_contains_ordered_rows_for_all_elements() -> None:
-    path = (
-        Path(__file__).parents[3]
-        / "hotpot"
-        / "cheminfo"
-        / "calculator"
-        / "oxidation_state"
-        / "data"
-        / "element_oxidation_states.json"
-    )
+    path = resources.files(
+        "hotpot.cheminfo.rules.chemistry.scientific_state"
+    ).joinpath("data/element_oxidation_states.json")
     payload = json.loads(path.read_text())
 
     assert [row["atomic_number"] for row in payload["elements"]] == list(

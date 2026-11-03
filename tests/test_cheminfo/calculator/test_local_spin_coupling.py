@@ -2,20 +2,22 @@
 
 import hotpot
 
-from hotpot.cheminfo.calculator.charge import resolve_net_charge
-from hotpot.cheminfo.calculator.contracts import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.net_charge import resolve_net_charge
+from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateBudget,
     CandidateProvenance,
     ScientificQuantity,
     StateValueAuthority,
 )
-from hotpot.cheminfo.calculator.electronic_state import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state import (
     ElectronicStateCandidate,
     SpinContributionCandidate,
     SpinContributionScope,
+)
+from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state.inference import (
     infer_electronic_states,
 )
-from hotpot.cheminfo.calculator.state_composition import (
+from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     CandidateDomainScope,
     CandidateProposal,
     CandidateSearchStatus,
@@ -23,15 +25,15 @@ from hotpot.cheminfo.calculator.state_composition import (
     MaterializationStatus,
     ProposedCandidateFactor,
     ProposedCandidateValue,
+)
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.compose import (
     compose_scientific_state_space,
 )
-from hotpot.cheminfo.calculator.state_composition.coupling import (
+from hotpot.cheminfo.operations.calculation.scientific_state.composition.coupling import (
     _coupled_two_s_values,
 )
-from hotpot.cheminfo.calculator.state_resolver import (
-    StateRequest,
-    extract_molecular_facts,
-)
+from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 
 
 def _contribution(facts, atom_index, two_s, suffix):

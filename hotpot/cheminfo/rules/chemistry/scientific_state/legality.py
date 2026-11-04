@@ -10,6 +10,7 @@ import math
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
+from hotpot.cheminfo.rules.chemistry.bonding.hydrogen import _non_graph_hydrogens
 from hotpot.cheminfo.rules.chemistry.scientific_state.charge.contracts import (
     AtomFormalChargeEvidence,
     ComponentChargeEvidence,
@@ -478,8 +479,10 @@ def _validate_oxidation_state_evidence(
             related_identities=(candidate.provenance.identity,),
         )
     if candidate.coverage is CoverageStatus.COMPLETE and any(
-        explicit_count == 0 and implicit_count not in (None, 0)
-        for explicit_count, implicit_count in zip(
+        implicit_count is not None
+        and _non_graph_hydrogens(atomic_number, explicit_count, implicit_count) != 0
+        for atomic_number, explicit_count, implicit_count in zip(
+            facts.atomic_numbers,
             facts.hydrogen_inventory.explicit_counts,
             facts.hydrogen_inventory.implicit_counts,
         )

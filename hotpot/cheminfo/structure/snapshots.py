@@ -83,7 +83,11 @@ class ComponentIdentity:
 
 @dataclass(frozen=True)
 class HydrogenInventory:
-    """Explicit and stored implicit hydrogen counts for every atom."""
+    """Graph-H counts and stored site targets in current atom order.
+
+    Ordinary nonmetal targets include graph H; consumers derive the non-graph
+    residual. Metal and real-H raw-count exceptions follow the H convention.
+    """
 
     explicit_counts: 'Tuple[Union[int, None], ...]'
     implicit_counts: 'Tuple[Union[int, None], ...]'

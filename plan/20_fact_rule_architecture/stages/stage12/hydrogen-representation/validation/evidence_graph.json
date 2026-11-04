@@ -1,0 +1,109 @@
+{
+  "entry": "report.md",
+  "nodes": {
+    "contract": {
+      "path": "../contracts/decisions.md",
+      "purpose": "Expected physical H inventory and allowed differences before execution"
+    },
+    "freeze": {
+      "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/raw/freeze.json",
+      "bytes": 196713,
+      "sha256": "8acd0f8a167b07ad319097e9c6b37d8219d1f4786e38065bb185afbb1a7ff4ea"
+    },
+    "source": {
+      "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/raw/runs/source-affected02/execution.json",
+      "bytes": 399878,
+      "sha256": "18101e5313cc9136834869fcf4350c7af2fab19b2b02db00e90452f1da2f2ed5"
+    },
+    "installed": {
+      "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/raw/installed-final01/execution.json",
+      "bytes": 898063,
+      "sha256": "0aab2b37f0d98279ce2ece66856b13f5ed88c85af0b279370a9b7b69b7bb0cff"
+    },
+    "features": {
+      "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/raw/features-final/evidence.json",
+      "bytes": 5252,
+      "sha256": "facde97ea94ed1519c14afcf289de6940cbbe81eb08523930e65267701df75b6"
+    },
+    "real_models_source": {
+      "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/raw/runs/source-models01/execution.json",
+      "bytes": 390429,
+      "sha256": "9c52bea57bdf23a81c1f8e454c39c7519cb48fe7197d4d72df24154dcc43bf11"
+    },
+    "real_models_installed": {
+      "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/raw/installed-models01/execution.json",
+      "bytes": 678782,
+      "sha256": "0c0e967c422e61e9e59f99c3005a658ab4823dbd23f9a5c20ce2483a9e7cf2b5"
+    },
+    "pipeline_source": {
+      "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/raw/runs/source-pipeline01/execution.json",
+      "bytes": 390334,
+      "sha256": "6e7eebff0d5174fc91493cca99c5b3f8c5b39740733b4506fe31f65a6ac934aa"
+    },
+    "pipeline_installed": {
+      "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/raw/installed-pipeline01/execution.json",
+      "bytes": 678690,
+      "sha256": "30fb55af67f570ca0d3cb944619b45a9ad4bd7d9025062c4b20d908fc4df8c18"
+    },
+    "package": {
+      "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/raw/packaging-r2/archive-bindings.json",
+      "bytes": 524720,
+      "sha256": "e02202ec21ef5b8b07a2aab47d05b96059bb9057b8cb8177c00c088c27ed945b"
+    },
+    "manifest": {
+      "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/manifest.json",
+      "bytes": 78246,
+      "sha256": "b85346afda63c5c20ab2a123040d393117487c64d1074364d6b523bc553dc833"
+    },
+    "root": {
+      "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/root-review/root-verification.json",
+      "bytes": 2824,
+      "sha256": "97d0c98fd12fd3dfe2618b9e34e7dcd445701c7e961943dd8ac239a6a246fdb0"
+    }
+  },
+  "edges": [
+    [
+      "contract",
+      "freeze"
+    ],
+    [
+      "freeze",
+      "source"
+    ],
+    [
+      "freeze",
+      "installed"
+    ],
+    [
+      "freeze",
+      "features"
+    ],
+    [
+      "source",
+      "real_models_source"
+    ],
+    [
+      "installed",
+      "real_models_installed"
+    ],
+    [
+      "source",
+      "pipeline_source"
+    ],
+    [
+      "installed",
+      "pipeline_installed"
+    ],
+    [
+      "package",
+      "installed"
+    ],
+    [
+      "manifest",
+      "root"
+    ]
+  ],
+  "business_outputs": ".plan20-artifacts/20261104/stage12/hydrogen-representation/business-outputs",
+  "failed_attempts": "raw/runs/source-focused01; raw/runs/native-build01; raw/runs/source-affected01",
+  "scope": "Bounded Stage12B CP311 only; artifact hashes are evidence identities, not chemical truth."
+}

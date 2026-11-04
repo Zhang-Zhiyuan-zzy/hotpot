@@ -143,7 +143,10 @@ def test_direct_recursive_calls_execute_fresh_tasks_and_release_the_target():
     assert query_atom.kwargs["predicate"].value is recursive
 
 
-def test_direct_custom_atom_reads_only_reached_scalar_fields_and_keeps_exceptions():
+def test_direct_custom_atom_reads_only_reached_scalar_fields_and_keeps_exceptions(monkeypatch):
+    from hotpot.cheminfo.operations.search import predicates
+    # Isolate expression short circuit from strict molecular H preparation.
+    monkeypatch.setattr(predicates, "_atom_non_graph_hydrogens", lambda atom: atom.implicit_hydrogens)
     accessed = []
     reached_error = RuntimeError("reached atomic number")
 

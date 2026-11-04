@@ -448,13 +448,15 @@ def test_inferred_metal_site_expands_its_actual_residual_without_polar_subtracti
     assert atom.explicit_hydrogens == expected
 
 
-def test_supplied_legacy_polar_count_keeps_its_characterized_expansion_interpretation():
+def test_supplied_polar_target_uses_full_residual_without_a_second_metal_subtraction():
     mol = Molecule()
     atom = mol.create_atom(atomic_number=8, implicit_hydrogens=2)
     mol.create_atom(atomic_number=30)
     mol.add_bond(0, 1, 1.)
     mol.add_hydrogens(rng=np.random.default_rng(42))
-    assert atom.explicit_hydrogens == 1
+    # Stage12B selects ordinary supplied target T; the Zn neighbour does not
+    # subtract another H from the declared residual2.
+    assert atom.explicit_hydrogens == 2
     assert atom.implicit_hydrogens == 2
     assert mol._atom_table._sources[0, H_FIELD] == ATOM_SOURCE_CODES['explicit']
 
@@ -642,7 +644,7 @@ def test_direct_automatic_H_and_metal_calls_preserve_current_transport(number, n
     ('atom', 'legacy_array'), ('molecule', 'legacy_array'),
 ])
 @pytest.mark.parametrize('no_implicit', [None, False, True])
-def test_zero_addition_preserves_transport_for_explicit_num_and_supplied_counts(entry, count_source, no_implicit):
+def test_num0_preserves_transport_and_automatic_zero_residual_consumes_supplied_current_I(entry, count_source, no_implicit):
     mol = Molecule()
     if count_source == 'legacy_array':
         values = np.zeros(19)
@@ -654,8 +656,7 @@ def test_zero_addition_preserves_transport_for_explicit_num_and_supplied_counts(
         atom = mol.create_atom(atomic_number=6)
     for _ in range(4):
         atom.add_atom(1)
-    _transport(mol, 0, current=HydrogenTransportState(91, 0 if count_source == 'inferred-num0' else 1,
-                                                    no_implicit),
+    _transport(mol, 0, current=HydrogenTransportState(91, 0, no_implicit),
                source=HydrogenTransportState(17, 7, True))
     assert atom.implicit_hydrogens == 4
     producer = ATOM_SOURCE_CODES['implicit_hydrogens' if count_source == 'inferred-num0' else count_source]
@@ -670,7 +671,12 @@ def test_zero_addition_preserves_transport_for_explicit_num_and_supplied_counts(
         else:
             mol.add_hydrogens(rng=np.random.default_rng(42))
         assert (tuple(mol.atoms), tuple(mol.bonds)) == graph
-        assert pickle.dumps(get_stereo_payload(mol)) == payload_bytes
+        if count_source == 'inferred-num0':
+            assert pickle.dumps(get_stereo_payload(mol)) == payload_bytes
+        else:
+            fact = get_stereo_payload(mol).atom_facts[0]
+            assert fact.current_hydrogens == HydrogenTransportState(0, 0, no_implicit)
+            assert fact.source_hydrogens == HydrogenTransportState(17, 7, True)
         assert atom.implicit_hydrogens == 4 and _present(mol)
         assert mol._atom_table._sources[0, H_FIELD] == producer
 

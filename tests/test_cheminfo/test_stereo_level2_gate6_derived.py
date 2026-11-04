@@ -670,7 +670,7 @@ def test_negative_hydrogen_isotope_is_not_a_direct_priority_mass():
     molecule = _molecule(
         (6, 9, 17, 1),
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0)),
-        implicit_hydrogens=(1, 0, 0, 0),
+        implicit_hydrogens=(2, 0, 0, 0),
     )
     _set_payload(
         molecule,

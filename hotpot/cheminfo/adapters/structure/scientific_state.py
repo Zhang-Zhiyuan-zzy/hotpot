@@ -6,6 +6,7 @@ import hashlib
 import json
 from typing import Iterable, Optional, Tuple
 
+from hotpot.cheminfo.rules.chemistry.bonding.hydrogen import _non_graph_hydrogens
 from hotpot.cheminfo.structure.bond import Bond
 from hotpot.cheminfo.structure.bond_kind import BondKind
 from hotpot.cheminfo.structure._dependencies import GROUP_INDEX, _FactStatus
@@ -161,15 +162,13 @@ def _nuclear_charge_sum(
 ) -> int:
     explicit_nuclear_charge = sum(atomic_numbers)
     implicit_hydrogen_count = sum(
-        implicit_count
+        _non_graph_hydrogens(atomic_number, explicit_count, implicit_count)
         for atomic_number, explicit_count, implicit_count in zip(
             atomic_numbers,
             hydrogen_inventory.explicit_counts,
             hydrogen_inventory.implicit_counts,
         )
-        if atomic_number != 1
-        and explicit_count == 0
-        and implicit_count is not None
+        if implicit_count is not None
     )
     return explicit_nuclear_charge + implicit_hydrogen_count
 

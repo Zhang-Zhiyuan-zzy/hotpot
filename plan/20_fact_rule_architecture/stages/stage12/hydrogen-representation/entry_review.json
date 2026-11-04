@@ -1,0 +1,38 @@
+{
+  "stage": "Stage12B",
+  "issue": "P20-D026",
+  "status": "IMPLEMENTATION_RELEASED_NOT_ACCEPTED",
+  "date": "2026-11-04",
+  "source_commit": "9d9c6564d8c771d7b25ab3028a26b21d5f336bca",
+  "predecessor": "Stage12A ACCEPTED_CP311_LAZY_IMPORTS",
+  "decision": "contracts/decisions.md",
+  "authorization": "Root concrete representation/public-field14/private-persistence decision under owner-delegated mainline authority; no global objective, public symbol, type or native ABI change.",
+  "baselines": [
+    "/tmp/hotpot_plan20/medium/stage12-h-inventory-baseline-20261104/report.md",
+    "/tmp/hotpot_plan20/medium/stage12-h-inventory-baseline-20261104/summary.json",
+    "/tmp/hotpot_plan20/medium/stage12-h-feature-baseline-20261104/findings.md",
+    "/tmp/hotpot_plan20/medium/stage12-h-feature-baseline-20261104/execution.json"
+  ],
+  "ownership": {
+    "core_local_sol_medium": "rules/chemistry/bonding/hydrogen.py; operations/chemistry.py; operations/search/{predicates,semantics}.py; adapters/structure/substructure.py; operations/stereochemistry.py; narrowly owned H/search tests",
+    "toolkit_local_sol_high": "operations/conversion.py; adapters/{rdkit,openbabel}/conversion.py; adapters/rdkit/stereo_transport.py; operations/native_packing.py; adapters/native/molecule_buffers.py; rdWrappers/_native/src/molecule_builder.cpp; narrowly owned toolkit/native tests",
+    "root_sol_max": "global decisions/integration; scientific-state consumer fixes; topology deletion/conformer/persistence; related tests and maintained records; native build/full validation/Git/acceptance"
+  },
+  "runtime_gate": "No acceptance or broad candidate validation until connected source handoff/root freeze; workers may run focused assigned checks and report exact failures.",
+  "excluded": [
+    "unrelated owner untracked work",
+    "Task168 credentials",
+    "new DTO/public symbol/native ABI",
+    "model weight/encoder redesign",
+    "external helper/remote changes",
+    "old-object heuristic migration"
+  ],
+  "rollback": "one coupled source/test commit, existing atomic runtime transactions, no parallel old/new implementation",
+  "remaining": [
+    "affected source/installed/native/model/workflow evidence",
+    "whole Stage12",
+    "other versions/release",
+    "Plan12",
+    "global acceptance"
+  ]
+}

@@ -2,6 +2,7 @@
 
 from ...structure.substructure import _AtomOp, _BondOp
 from ...rules.chemistry.substructure import predicates as rules
+from ..chemistry import _atom_non_graph_hydrogens
 
 
 def match_atom_expression(expression, atom):
@@ -28,7 +29,7 @@ def match_atom_expression(expression, atom):
                 return len(rings)
             return len(rings[ring_index])
         if op is _AtomOp.TOTAL_H_EQ:
-            return atom.explicit_hydrogens, atom.implicit_hydrogens
+            return atom.explicit_hydrogens, _atom_non_graph_hydrogens(atom)
         if op is _AtomOp.RECURSIVE:
             return leaf.value(atom)
     return rules.match_atom_expression(expression, values)

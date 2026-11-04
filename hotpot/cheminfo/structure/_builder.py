@@ -377,7 +377,7 @@ class MoleculeRecord:
 
     def __reduce__(self):
         return _restore_molecule_record, (
-            type(self), 5, tuple(getattr(self, field.name) for field in fields(self)),
+            type(self), 6, tuple(getattr(self, field.name) for field in fields(self)),
         )
 
     def __deepcopy__(self, memo):
@@ -385,8 +385,8 @@ class MoleculeRecord:
 
 
 def _restore_molecule_record(record_type, schema_version, field_values):
-    if schema_version != 5 or len(field_values) != 24:
-        raise ValueError("MoleculeRecord pickle requires schema version 5 and 24 fields")
+    if schema_version != 6 or len(field_values) != 24:
+        raise ValueError("MoleculeRecord pickle requires schema version 6 and 24 fields")
     return record_type(**dict(zip((field.name for field in fields(MoleculeRecord)), field_values)))
 
 

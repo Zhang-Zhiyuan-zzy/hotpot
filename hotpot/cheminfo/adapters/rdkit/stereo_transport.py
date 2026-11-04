@@ -177,11 +177,14 @@ def _extract_stereo_payload(rdmol):
 def _payload_atom_facts(payload, atom_count=None):
     facts = {}
     for fact in payload.atom_facts:
-        # Canonical Hotpot isotope-only rows have no toolkit convention to
-        # translate. H/radical declarations still require their registered map.
-        isotope_only = (fact.source_namespace is None and fact.radical_electrons is None
-                        and fact.current_hydrogens is None and fact.source_hydrogens is None)
-        if fact.source_namespace != _RDKIT_STEREO_NAMESPACE and not isotope_only:
+        source_only = (fact.source_namespace in (None, "openbabel")
+                       and fact.radical_electrons is None
+                       and fact.current_hydrogens is None)
+        if fact.source_namespace == "openbabel" and fact.source_hydrogens is not None:
+            source = fact.source_hydrogens
+            source_only = (source_only and source.bracket_explicit_hydrogens is None
+                           and source.no_implicit is None)
+        if fact.source_namespace != _RDKIT_STEREO_NAMESPACE and not source_only:
             raise ValueError(
                 "RDKit export cannot represent atom transport namespace: "
                 f"{fact.source_namespace}"
@@ -542,9 +545,8 @@ def _apply_stereo_payload(rdmol, payload):
     rdmol.SetStereoGroups(stereo_groups)
 
 
-def _verify_current_implicit_hydrogens(rdmol, atom_facts):
-    if not atom_facts:
-        return
+def _verify_current_implicit_hydrogens(rdmol, atom_facts, prepared_hydrogens, row_to_idx):
+    """Verify current I and the complete prepared R after the real cache update."""
     rdmol.UpdatePropertyCache(strict=False)
     for atom_index, fact in atom_facts.items():
         hydrogens = fact.current_hydrogens
@@ -559,4 +561,15 @@ def _verify_current_implicit_hydrogens(rdmol, atom_facts):
                 f"count for atom {atom_index}: requested "
                 f"{hydrogens.implicit_hydrogens}, derived "
                 f"{rdmol.GetAtomWithIdx(atom_index).GetNumImplicitHs()}"
+            )
+
+    for row, expected in enumerate(prepared_hydrogens):
+        atom = rdmol.GetAtomWithIdx(row_to_idx[row])
+        actual = atom.GetNumImplicitHs() + atom.GetNumExplicitHs()
+        if actual != expected:
+            raise ValueError(
+                "RDKIT.HYDROGEN_INVENTORY: non-graph hydrogen count for "
+                f"atom row {row}: requested {expected}, reproduced {actual} "
+                f"(implicit={atom.GetNumImplicitHs()}, "
+                f"bracket={atom.GetNumExplicitHs()})"
             )

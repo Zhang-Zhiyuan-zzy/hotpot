@@ -307,7 +307,9 @@ def test_bond_transport_preserves_ordered_endpoints_and_empty_tables_have_shapes
     assert empty.stereo_records.anchor_indices.shape == (0,)
     assert empty.atom_transport.atoms.tolist() == [0]
     assert empty.atom_transport.current_implicit_hydrogens.tolist() == [4]
-    assert empty.atom_transport.source_namespaces.present.tolist() == [0]
+    assert _decode(empty.atom_transport.source_namespaces) == ("openbabel",)
+    assert empty.atom_transport.has_source_hydrogens.tolist() == [1]
+    assert empty.atom_transport.source_implicit_hydrogens.tolist() == [4]
     assert empty.bond_transport.atom_indices.shape == (0, 2)
     assert empty.stereo_records.descriptors.data.shape == (1,)
     assert empty.stereo_records.descriptors.offsets.shape == (0,)

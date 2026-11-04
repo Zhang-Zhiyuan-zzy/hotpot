@@ -1,0 +1,42 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_STAGE12B",
+  "date": "2026-11-04",
+  "issue": "P20-D026",
+  "source_head_before_delivery": "9d9c6564d8c771d7b25ab3028a26b21d5f336bca",
+  "source_test_bindings": 1516,
+  "cp311_native_bindings": 6,
+  "archived_payloads_verified": 429,
+  "archive_manifest": {
+    "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/manifest.json",
+    "bytes": 78246,
+    "sha256": "b85346afda63c5c20ab2a123040d393117487c64d1074364d6b523bc553dc833"
+  },
+  "final_bindings": {
+    "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/root-review/final-bindings.json",
+    "bytes": 192163,
+    "sha256": "b8f4c74307846a41fb90c22a30321b29f974ac9266642acf3998c3a5d6b73c0f"
+  },
+  "chemical_review": [
+    "One target T and residual R with explicit graph-H preserved; no producer-based alternate physical truth.",
+    "Current declarations remain distinct from immutable source history; actual J>R errors retain their causes.",
+    "Partial/materialized methane and methanol, charged/aromatic/isotope/metal/H2 boundaries, stereo carriers, rollback and lifecycle are tested.",
+    "Scientific nuclear/electron/charge coverage, assembly E+R and graph-only xTB consumers use the same physical residual.",
+    "Actual CBond/MCA models, FF/conformer and official Zn/Eu pipelines pass on source and installed wheel."
+  ],
+  "all_required_bounded_runs_passed": true,
+  "installed_origin_violations": [],
+  "native_provenance": {
+    "rebuilt": 1,
+    "reused": 5,
+    "scope": "one CP311 RDKit wrapper rebuilt (five wrapper translation units) using cached pinned static closure; five other CP311 binaries reused, not a clean all-native/SDK build"
+  },
+  "limits": [
+    "CP311 source and outside-checkout installed-wheel scope only; other planned versions/platform/release obligations remain open.",
+    "One current RDKit wrapper rebuilt from five wrapper translation units using cached pinned static closure; five other CP311 binaries reused. No new clean all-native/SDK/sdist-rebuild qualification.",
+    "Field14 intentionally normalizes ordinary toolkit imports to site target T. Custom field14-consuming checkpoints require regenerated inputs/revalidation; no compatibility or generalization claim.",
+    "Private MoleculeRecord generation6 keeps24fields and explicitly rejects generation5; no old-object heuristic migration.",
+    "MCA feature diagnostics cover48states, but44graph-H states remain outside its model domain. Actual model tests separately pass within supported domains.",
+    "Measured completed workloads establish bounded usable cost, not historical parity, universal scaling, chemical truth or global performance acceptance.",
+    "Whole Stage12, Stage11 tail/D028, Plan12, final scientific/performance/version/release gates and B_exp remain open."
+  ]
+}

@@ -3,6 +3,7 @@
 from ...structure.bond_kind import BondKind
 from ...structure.substructure import SmartsSemantics
 from ...rules.chemistry.substructure import semantics as rules
+from ..chemistry import _atom_non_graph_hydrogens
 
 
 def rings_for(semantics, atom):
@@ -21,14 +22,14 @@ def degree(semantics, atom):
 
 
 def connectivity(semantics, atom):
-    return rules.connectivity(semantics.degree(atom), atom.implicit_hydrogens)
+    return rules.connectivity(semantics.degree(atom), _atom_non_graph_hydrogens(atom))
 
 
 def valence(semantics, atom):
     if semantics is SmartsSemantics.FULL_GRAPH:
-        return rules.valence(atom.sum_bond_orders, atom.implicit_hydrogens)
+        return rules.valence(atom.sum_bond_orders, _atom_non_graph_hydrogens(atom))
     valence_kinds = {BondKind.SINGLE, BondKind.DOUBLE, BondKind.TRIPLE, BondKind.AROMATIC}
     return rules.ligand_valence(
         tuple(bond.bond_order for bond in semantics.bonds_for(atom) if bond.bond_kind in valence_kinds),
-        atom.implicit_hydrogens,
+        _atom_non_graph_hydrogens(atom),
     )

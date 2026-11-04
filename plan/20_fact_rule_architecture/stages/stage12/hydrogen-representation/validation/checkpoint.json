@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "stage": "Stage12B hydrogen representation",
+  "status": "ACCEPTED_CP311_HYDROGEN_REPRESENTATION",
+  "root_acceptance_pending": false,
+  "bounded_stage12b_gate": true,
+  "issue": "P20-D026",
+  "issue_status": "CLOSED_WITHIN_CP311_SCOPE",
+  "stage12_gate": false,
+  "main_scope_gate": false,
+  "overall_gate": false,
+  "date": "2026-11-04",
+  "source_commit": "9d9c6564d8c771d7b25ab3028a26b21d5f336bca",
+  "delivery_commit": "Identified by the coherent business commit containing this record; source/test bytes are frozen below.",
+  "source_freeze": {
+    "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/raw/freeze.json",
+    "bytes": 196713,
+    "sha256": "8acd0f8a167b07ad319097e9c6b37d8219d1f4786e38065bb185afbb1a7ff4ea"
+  },
+  "contract": {
+    "path": "plan/20_fact_rule_architecture/stages/stage12/hydrogen-representation/contracts/decisions.md",
+    "bytes": 9616,
+    "sha256": "32e173fd6543c5dbca2a0ef28e0bc91b3e19f63773e9cbb8516355f742662653"
+  },
+  "source_files": 159,
+  "installed_files": 157,
+  "selected_runs": {
+    "source-affected02": {
+      "returncode": 0,
+      "elapsed_seconds": 69.89062380976975,
+      "junit": {
+        "failure": 0,
+        "error": 0,
+        "skipped": 15,
+        "total": 3212,
+        "passed": 3197
+      },
+      "resources": {
+        "User time (seconds)": "94.88",
+        "System time (seconds)": "10.99",
+        "Maximum resident set size (kbytes)": "357192",
+        "Swaps": "0"
+      }
+    },
+    "source-models01": {
+      "returncode": 0,
+      "elapsed_seconds": 7.627079615369439,
+      "junit": {
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "total": 12,
+        "passed": 12
+      },
+      "resources": {
+        "User time (seconds)": "22.27",
+        "System time (seconds)": "1.11",
+        "Maximum resident set size (kbytes)": "894828",
+        "Swaps": "0"
+      }
+    },
+    "source-headers01": {
+      "returncode": 0,
+      "elapsed_seconds": 3.4004317708313465,
+      "junit": {
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "total": 3,
+        "passed": 3
+      },
+      "resources": {
+        "User time (seconds)": "3.01",
+        "System time (seconds)": "0.37",
+        "Maximum resident set size (kbytes)": "167480",
+        "Swaps": "0"
+      }
+    },
+    "source-pipeline01": {
+      "returncode": 0,
+      "elapsed_seconds": 5.156453736126423,
+      "junit": {
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "total": 3,
+        "passed": 3
+      },
+      "resources": {
+        "User time (seconds)": "12.05",
+        "System time (seconds)": "0.78",
+        "Maximum resident set size (kbytes)": "257704",
+        "Swaps": "0"
+      }
+    },
+    "installed-final01": {
+      "returncode": 0,
+      "elapsed_seconds": 59.891028072685,
+      "junit": {
+        "total": 3011,
+        "failure": 0,
+        "error": 0,
+        "skipped": 13,
+        "passed": 2998
+      },
+      "resources": {
+        "User time (seconds)": "87.37",
+        "System time (seconds)": "11.33",
+        "Maximum resident set size (kbytes)": "345800",
+        "Swaps": "0"
+      }
+    },
+    "installed-models01": {
+      "returncode": 0,
+      "elapsed_seconds": 10.095236709341407,
+      "junit": {
+        "total": 12,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 12
+      },
+      "resources": {
+        "User time (seconds)": "24.55",
+        "System time (seconds)": "1.31",
+        "Maximum resident set size (kbytes)": "911876",
+        "Swaps": "0"
+      }
+    },
+    "installed-pipeline01": {
+      "returncode": 0,
+      "elapsed_seconds": 7.609265653416514,
+      "junit": {
+        "total": 3,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 3
+      },
+      "resources": {
+        "User time (seconds)": "14.23",
+        "System time (seconds)": "1.03",
+        "Maximum resident set size (kbytes)": "257912",
+        "Swaps": "0"
+      }
+    }
+  },
+  "installed_origin_observations": 703,
+  "installed_origin_violations": [],
+  "feature_observations": {
+    "records": 48,
+    "generic_PyG_float32_exact": 48,
+    "generic_H14_expected": 48,
+    "graph_inventory_matches_hand_counted_lifecycle": 48,
+    "immutable_heavy_source_history_unchanged": 48,
+    "CBond_consumed_x_edge_index_match_independent_graph": 48,
+    "MCA_all9_features_and9_batches_match_independent_expected_fixture": 48,
+    "MCA_all9_features_and9_batches_match_independent_current_graph": 48,
+    "MCA_domain_counts": {
+      "accepted": 4,
+      "rejected": 44
+    },
+    "MCA_graph_H_domain_rejections": 44,
+    "MCA_serialization_or_encoding_unavailable": 0,
+    "available_baseline_MCA_all9_features9_batches_equal": 11,
+    "repeat_materialization_same_generic": 12,
+    "scalar_override_same_all8_CB_arrays": 12,
+    "saved_array_count": 3276
+  },
+  "package": {
+    "wheel": {
+      "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/artifacts/packaging-r2/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6422754,
+      "sha256": "509f1dc3b47e29bb99ae628a463104009a7c84d795c71a599d20b59c60a02448"
+    },
+    "sdist": {
+      "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/artifacts/packaging-r2/hotpot_zzy-0.5.4.5.tar.gz",
+      "bytes": 2157507,
+      "sha256": "5b6af6c1cc03044416317a526f5e0c1b62527d177ccf2d1f8be08ecbf1b66066"
+    },
+    "bindings": {
+      "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/raw/packaging-r2/archive-bindings.json",
+      "bytes": 524720,
+      "sha256": "e02202ec21ef5b8b07a2aab47d05b96059bb9057b8cb8177c00c088c27ed945b"
+    },
+    "native_provenance": {
+      "rebuilt": 1,
+      "reused": 5,
+      "scope": "one CP311 RDKit wrapper rebuilt (five wrapper translation units) using cached pinned static closure; five other CP311 binaries reused, not a clean all-native/SDK build"
+    }
+  },
+  "archive_manifest": {
+    "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/manifest.json",
+    "bytes": 78246,
+    "sha256": "b85346afda63c5c20ab2a123040d393117487c64d1074364d6b523bc553dc833"
+  },
+  "root_verification": {
+    "path": ".plan20-artifacts/20261104/stage12/hydrogen-representation/root-review/root-verification.json",
+    "bytes": 2824,
+    "sha256": "97d0c98fd12fd3dfe2618b9e34e7dcd445701c7e961943dd8ac239a6a246fdb0"
+  },
+  "retained_failures": [
+    "source-focused01:487passed/15failed;13new-test identity comparisons corrected and2old-native failures resolved by rebuild.",
+    "native-build01:cached pybind11 CMake path absent; explicit existing toolchain configuration followed by successful affected wrapper build.",
+    "source-affected01:3093passed/51failed/15skipped; connected assembly/canonical-native/scientific-state/xTB omissions corrected, obsolete hooks/fixtures migrated without dropping chemical gates.",
+    "packaging/package01 is superseded by final connected corrections; packaging-r2 binds accepted bytes."
+  ],
+  "limits": [
+    "CP311 source and outside-checkout installed-wheel scope only; other planned versions/platform/release obligations remain open.",
+    "One current RDKit wrapper rebuilt from five wrapper translation units using cached pinned static closure; five other CP311 binaries reused. No new clean all-native/SDK/sdist-rebuild qualification.",
+    "Field14 intentionally normalizes ordinary toolkit imports to site target T. Custom field14-consuming checkpoints require regenerated inputs/revalidation; no compatibility or generalization claim.",
+    "Private MoleculeRecord generation6 keeps24fields and explicitly rejects generation5; no old-object heuristic migration.",
+    "MCA feature diagnostics cover48states, but44graph-H states remain outside its model domain. Actual model tests separately pass within supported domains.",
+    "Measured completed workloads establish bounded usable cost, not historical parity, universal scaling, chemical truth or global performance acceptance.",
+    "Whole Stage12, Stage11 tail/D028, Plan12, final scientific/performance/version/release gates and B_exp remain open."
+  ]
+}

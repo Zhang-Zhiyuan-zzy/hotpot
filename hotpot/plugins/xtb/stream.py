@@ -15,6 +15,7 @@ from hotpot.cheminfo.structure.snapshots import MolecularFactsIdentity
 from hotpot.cheminfo.rules.chemistry.scientific_state.composition import ScientificStateIdentity
 from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
 from hotpot.cheminfo.structure.molecule import Molecule
+from hotpot.cheminfo.rules.chemistry.bonding.hydrogen import _non_graph_hydrogens
 
 from .contracts import XTBMethod, XTBRunReport
 
@@ -303,19 +304,17 @@ def _validate_metadata(mol: Molecule, metadata: XTBStreamMetadata) -> None:
     unpaired = metadata.unpaired_electrons
     if metadata.method is not XTBMethod.GFNFF and unpaired is None:
         raise XTBStreamError("GFN-xTB stream metadata requires unpaired electrons")
+    non_graph_hydrogens = (
+        _non_graph_hydrogens(number, explicit_count, implicit_count)
+        for number, explicit_count, implicit_count in zip(
+            facts.atomic_numbers,
+            facts.hydrogen_inventory.explicit_counts,
+            facts.hydrogen_inventory.implicit_counts,
+        )
+    )
     electron_count = (
         sum(facts.atomic_numbers)
-        + sum(
-            implicit_count
-            for atomic_number, explicit_count, implicit_count in zip(
-                facts.atomic_numbers,
-                facts.hydrogen_inventory.explicit_counts,
-                facts.hydrogen_inventory.implicit_counts,
-            )
-            if atomic_number != 1
-            and explicit_count == 0
-            and implicit_count is not None
-        )
+        + sum(count for count in non_graph_hydrogens if count is not None)
         - metadata.total_charge
     )
     if electron_count < 0:

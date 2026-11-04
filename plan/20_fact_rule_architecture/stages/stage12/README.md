@@ -3,8 +3,11 @@
 Explicit exports, documentation, and final hardening. The bounded
 [Stage12A checkpoint](lazy-imports/validation/checkpoint.json) accepts the explicit
 root facade and lazy toolkit/resource boundary at CP311source/installed scopes.
-H representation/P20-D026, remaining docs/hardening, other versions/release and
-full Stage12/global acceptance remain open. Remaining independent Stage11 tail
+The bounded [Stage12B checkpoint](hydrogen-representation/validation/checkpoint.json)
+accepts coherent H inventory and connected consumers with CP311 source/installed,
+rebuilt RDKit-native and real model/pipeline evidence; P20-D026 is closed in that
+scope. Remaining docs/hardening, other versions/release and full Stage12/global
+acceptance remain open. Remaining independent Stage11 tail
 work is tracked as P20-D028.
 
 Consolidated cross-stage optimization and deferred-item review use the
@@ -21,3 +24,10 @@ Consolidated cross-stage optimization and deferred-item review use the
 - [Report](lazy-imports/validation/report.md)
 - [Evidence graph](lazy-imports/validation/evidence_graph.json)
 - [Root verification](lazy-imports/validation/root-verification.json)
+
+- [Stage12B entry](hydrogen-representation/entry_review.json)
+- [H inventory decisions](hydrogen-representation/contracts/decisions.md)
+- [Stage12B checkpoint](hydrogen-representation/validation/checkpoint.json)
+- [Stage12B report](hydrogen-representation/validation/report.md)
+- [Stage12B evidence graph](hydrogen-representation/validation/evidence_graph.json)
+- [Stage12B root verification](hydrogen-representation/validation/root-verification.json)

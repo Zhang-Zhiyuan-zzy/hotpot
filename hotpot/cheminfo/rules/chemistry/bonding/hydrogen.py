@@ -70,3 +70,14 @@ def _calculate_implicit_hydrogens(atomic_number, neighbour_numbers, orders, arom
         return declared
     target = next((valence for valence in valences if valence >= occupied), occupied)
     return declared + int(target - occupied)
+
+
+def _non_graph_hydrogens(atomic_number, graph_hydrogens, count):
+    """Project a current count to unrepresented H without changing its encoding."""
+    if count is None:
+        return None
+    if atomic_number == 1:
+        return 0
+    if _is_metal(atomic_number):
+        return max(count, 0)
+    return max(count - graph_hydrogens, 0)

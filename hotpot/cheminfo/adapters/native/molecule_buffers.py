@@ -326,7 +326,49 @@ def _pack_hydrogen_state(state):
     )
 
 
-def _pack_atom_transport(payload, atoms, missing_hydrogens) -> NativeAtomTransportBuffers:
+def _prepared_hydrogen_state(fact, hydrogen):
+    current = fact.current_hydrogens
+    if fact.source_namespace == "rdkit-2026.09.1":
+        if current is None:
+            return (
+                NativeHydrogenTransportFieldCode.IMPLICIT
+                | NativeHydrogenTransportFieldCode.BRACKET_EXPLICIT
+                | NativeHydrogenTransportFieldCode.NO_IMPLICIT,
+                0, hydrogen, True,
+            )
+        bracket = current.bracket_explicit_hydrogens or 0
+        implicit = current.implicit_hydrogens
+        if bracket > hydrogen or (implicit is not None and implicit + bracket != hydrogen):
+            raise ValueError(
+                "RDKIT.HYDROGEN_INVENTORY: non-graph hydrogen count for "
+                f"atom row {fact.atom}: requested {hydrogen}, "
+                f"current implicit={implicit}, bracket={bracket}"
+            )
+        mask, _, explicit, no_implicit = _pack_hydrogen_state(current)
+        # Missing I is checked output. Supply its expected projection to the
+        # native verifier without altering any live fact or source ledger.
+        return (mask | NativeHydrogenTransportFieldCode.IMPLICIT,
+                hydrogen - bracket if implicit is None else implicit,
+                explicit, no_implicit)
+    source_only = (current is None and fact.radical_electrons is None
+                   and fact.source_namespace in (None, "openbabel"))
+    logical = (fact.source_namespace is None and current is not None
+               and current.implicit_hydrogens is not None
+               and current.bracket_explicit_hydrogens is None
+               and current.no_implicit is None)
+    materialized = (fact.source_namespace in (None, "openbabel")
+                    and fact.radical_electrons is None
+                    and current is not None
+                    and current.implicit_hydrogens == 0
+                    and current.bracket_explicit_hydrogens == 0
+                    and current.no_implicit is True
+                    and hydrogen == 0)
+    if source_only or logical or materialized:
+        return NativeHydrogenTransportFieldCode.IMPLICIT, hydrogen, 0, 0
+    return _pack_hydrogen_state(current)
+
+
+def _pack_atom_transport(payload, atoms, hydrogens) -> NativeAtomTransportBuffers:
     facts = tuple(payload.atom_facts)
     transported_atoms = {fact.atom for fact in facts}
     missing_atoms = tuple(
@@ -358,24 +400,25 @@ def _pack_atom_transport(payload, atoms, missing_hydrogens) -> NativeAtomTranspo
         0 if fact.radical_electrons is None else fact.radical_electrons
         for fact in facts
     ) + (0,) * missing_count
-    has_current_hydrogens = tuple(
-        fact.current_hydrogens is not None for fact in facts
-    ) + (True,) * missing_count
     has_source_hydrogens = tuple(
         fact.source_hydrogens is not None for fact in facts
     ) + (False,) * missing_count
     current_hydrogens = tuple(
-        _pack_hydrogen_state(fact.current_hydrogens)
+        _prepared_hydrogen_state(fact, hydrogens[fact.atom])
         for fact in facts
     ) + tuple(
         (
             NativeHydrogenTransportFieldCode.IMPLICIT,
-            hydrogen,
+            hydrogens[row],
             0,
             0,
         )
-        for hydrogen in missing_hydrogens
+        for row, _ in missing_atoms
     )
+    has_current_hydrogens = tuple(
+        fact.current_hydrogens is not None or bool(state[0])
+        for fact, state in zip(facts, current_hydrogens)
+    ) + (True,) * missing_count
     source_hydrogens = tuple(
         _pack_hydrogen_state(fact.source_hydrogens)
         for fact in facts

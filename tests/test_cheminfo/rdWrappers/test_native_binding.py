@@ -244,7 +244,7 @@ def test_compiled_path_accepts_cohort_reconstructed_pyrrolic_hydrogens():
     assert result.coordinates.shape == (1, len(component.atoms), 3)
 
 
-def test_canonical_packer_fills_current_hydrogens_for_payload_free_atoms():
+def test_canonical_packer_projects_current_hydrogens_and_preserves_openbabel_source():
     molecule = hotpot.read_mol("[13CH3]CO", fmt="smi")
     buffers = native.pack_molecule(molecule, native._RDKIT_ETKDG_FIELDS)
 
@@ -255,7 +255,10 @@ def test_canonical_packer_fills_current_hydrogens_for_payload_free_atoms():
     assert tuple(transport.current_implicit_hydrogens) == tuple(
         atom.implicit_hydrogens for atom in molecule.atoms
     )
-    assert transport.source_namespaces.present.tolist() == [0, 0, 0]
+    assert transport.source_namespaces.present.tolist() == [1, 1, 1]
+    assert transport.has_source_hydrogens.tolist() == [1, 1, 1]
+    assert tuple(transport.source_implicit_hydrogens) == (3, 2, 1)
+    assert transport.isotopes.tolist() == [13, 0, 0]
 
 
 def test_compiled_binding_rejects_mismatched_constraint_rows():

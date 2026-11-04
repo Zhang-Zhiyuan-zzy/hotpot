@@ -154,11 +154,15 @@ def _pack_target(mol, *, needs_atom_objects, needs_bond_objects):
 def _pack_target_snapshot(
     mol, *, needs_atom_objects, needs_bond_objects, derived_requirements
 ):
-    from ..chemistry import _require_aromatic_representation, _require_implicit_hydrogens
+    from ..chemistry import (
+        _require_aromatic_representation, _require_implicit_hydrogens, _require_non_graph_hydrogens,
+    )
     with mol._mutation_lock:
-        if (derived_requirements['total_h'] or 'implicit_hydrogens' in derived_requirements['atom_fields']
+        if (derived_requirements['total_h']
                 or any({'connectivity', 'valence'}.intersection(derived_requirements[name])
                        for name in ('full', 'ligand'))):
+            _require_non_graph_hydrogens(mol)
+        elif 'implicit_hydrogens' in derived_requirements['atom_fields']:
             _require_implicit_hydrogens(mol)
         if (derived_requirements['bond_aromatic'] or 'is_aromatic' in derived_requirements['atom_fields']
                 or 'is_aromatic' in derived_requirements['bond_fields']):

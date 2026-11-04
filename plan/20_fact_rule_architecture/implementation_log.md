@@ -7293,3 +7293,129 @@ are precise in the checkpoint; this is neither full Stage12 nor global closure.
 P20-D026, P20-D027/028, other versions/release, Plan12 and final science/performance
 obligations remain open. Terra/Luna's mechanical-task allowance is already in the
 committed model_allocation.md; substantive work retains its Sol/effort rules.
+
+
+### 2026-11-04 — P20-D026 executable preentry observations released
+
+Stage12A business commit9d9c6564d8c771d7b25ab3028a26b21d5f336bca is pushed;
+postcommit verifies1513current/rebound bindings. Root now advances mandatory H
+semantics. Existing three H preentry reports, Stage5 default/import-normalization
+proposal, current target/no-implicit/bracket/materialization/native consumers and
+private record/pickle decisions were aligned with the effective goal and Stage12
+requirements. No H normalization/public encoding/schema design is yet accepted.
+
+Release is read-only current-code execution in disposable paths: independently
+hand-counted zero/partial/full graph-H fixtures and their actual Python/native/
+toolkit inventories, plus actual generic/PyG/registered-model feature projections.
+Preserve exceptions and raw observations as baseline evidence, without assuming
+historical equality is correct. Two independent local analysis partitions own
+separate temporary outputs; source/test/package/Git/environment edits and full
+model/engine execution are excluded. Existing source/toolkit/native runtime is
+used; no dependency installation or code mutation. Root will review concrete
+physical inventories, authority conflicts and consumed features before the
+connected representation design/authoring decision.
+
+
+### 2026-11-04 — Stage12B current-H contract and connected implementation release
+
+Root read both completed executable preentry reports and their exact execution
+limits at9d9c6564d8c771d7b25ab3028a26b21d5f336bca. Inventory15effectivecases/52states
+reproduces RDKit duplicate/missing-current output, imported partial under-addition,
+Open Babel missing non-graph H, realH/H2 duplication and competing declarations.
+The48-state actual feature baseline retains37MCA serialization failures; six
+fresh site-total declaration probes change generic/PyG field14 while preserving
+CBond consumed arrays and all nine MCA feature/batch tensors against independent
+RDKit references. Graph-H DTO domain rejection remains distinct from encoding.
+No inference session/engine or candidate pass was claimed by either baseline.
+
+Root now selects the concrete Stage12B contract before source edits: ordinary
+nonmetal T=E+R at new toolkit import, one physical residual projection, supplied
+bytes/source history retained, exact current-decomposition errors preserved,
+all-producer atomic materialization, source/graph-isotope preservation, connected
+search/stereo/scientific/native readers and a private record generation6/24 cut.
+The accepted model options already include mechanical Terra/Luna; both business
+partitions remain local Sol at medium/high. Root keeps cross-module/scientific
+design, integration, actual native build, acceptance and Git. No external helper.
+
+entry_review.json and contracts/decisions.md own the exact allowed differences,
+exclusive partitions, command/evidence limits and remaining gates. P20-D026 is
+IN_PROGRESS; no Stage12/global closure, runtime/native/model pass or release is
+implied. Source/test edits now released within those fixed partitions.
+
+
+### 2026-11-04 — Stage12B default-charge consumer correction
+
+Direct inspection of the unchanged formal-charge heuristic shows that its
+organic component uses completed graph-H count minus the stored target sum.
+The historical molecular implicit-H sum therefore remains the raw target sum,
+not the physical residual. Reinterpreting it would make fully materialized
+methane spuriously +4. The default-charge working copy previously completed
+only H-free graphs, leaving partial inferred methane E1/T4 spuriously −3; root
+released unconditional working-copy completion without altering the pure rule.
+B4 now explicitly preserves this separate consumer contract.
+
+The local Sol/medium worker reports nine independent inferred/RDKit/Open Babel
+methane E0/E1/E4 regressions: default charge0 and raw target sum4, with original
+graph/facts/transport unchanged. Its exact attempt05 command and source bindings
+are in /tmp/hotpot_plan20/medium/stage12b-core-20261104/handoff-default-charge.json:
+299passed/0failures/0errors/0skips. This is focused worker evidence only; root
+full-candidate/native/install/model validation and acceptance remain pending.
+
+
+### 2026-11-04 — Stage12B integrated observations and connected corrections
+
+Root source-focused01 records487passed/15failed: thirteen new tests incorrectly
+used identity equality for eq=False MoleculeRecord, corrected to deterministic
+persistence-content checks; two cases loaded the old native. The native's first
+configure failed because the cached pybind11 CMake path was absent. Explicitly
+selecting the existing build environment's pybind11 config succeeded; six build
+steps compiled the five current wrapper translation units and linked the RDKit
+extension using its cached pinned static closure. No all-native-clean/SDK claim.
+The loaded binary SHA is8105895a1bfd6a7855a6bbaa8d77d3ef79965686f0d29840909aa3d3e36a16ba.
+source-focused02 then passes502/0fail/0error/0skip; code/tests/natives stay stable.
+
+The156-file source-affected01 records3093passed/51failed/15skipped. Two concrete
+production omissions are obsolete assembly import count+E arithmetic and the
+conformer-only canonical/Open Babel current0/0/True native-packing map. The
+local Sol/high consumer review additionally reproduces partial-H composition
+coverage/charge and xTB electron-parity/graph-only input omissions. Root expands
+the same connected-count migration to these exact consumers; B2/B4 record the
+physical E+R, uncovered-proton and graph-only boundaries before correction. The
+remaining old test hooks/fixtures retain their locking, raw-preservation, isotope,
+ordering and failure intentions during migration. No failed test is dropped or
+chemical gate weakened. Candidate source/tests are unfrozen for these corrections;
+original runs, packaging and feature observations are retained.
+
+
+### 2026-11-04 — Stage12B bounded CP311 delivery accepted
+
+The final connected freeze has1516source/test and6CP311native bindings over
+9d9c6564d8c771d7b25ab3028a26b21d5f336bca. Root helpers/run.py source-affected02
+passes3197/0fail/0error/15skip in69.89s. helpers/run_actual_tiers.py enables the
+12real CBond/MCA cases,3C11/C++17header cases and3official Zn/Eu pipeline cases;
+all pass with zero skips. Final wheel/sdist package02 and isolated installation
+pass. Outside-checkout default affected execution passes2998/0fail/0error/13skip
+in59.89s; source-only198architecture/3header cases and1sampler skip reconcile
+the count. helpers/run_installed_tiers.py then passes12real model and3official
+pipeline cases with zero skips. Installed origins have no violations; source,
+installed, tests, natives, model assets and xTB inputs remain unchanged.
+
+Final feature probe covers48states and3276saved arrays with independent expected
+H inventory, field14, generic/PyG, CBond and all9MCA feature/collation agreement;
+repeat materialization/scalar override observations pass12/12each. MCA accepts4
+and rejects44graph-H states; diagnostic features are not prediction evidence.
+The current RDKit wrapper is rebuilt from5translation units against cached
+pinned static closure;5otherCP311natives are reused. No clean all-native/SDK or
+sdist-rebuild claim. Observed real pipeline5.16/7.61s, model7.63/10.10s and
+feature11.41s costs are usable, without paired/global parity claims.
+
+Root verifies429archived payloads and physical/count/source/current/rollback
+boundaries, accepts Stage12B and closes P20-D026 only in this recorded scope.
+Field14 normalization and private MoleculeRecord generation6/old5 rejection are
+intentional. Original focused/affected failures, configuration failure and
+superseded package remain. The maintained Stage12B checkpoint/report/evidence
+graph index .plan20-artifacts/20261104/stage12/hydrogen-representation. Whole
+Stage12, D028, other versions/release, Plan12 and global gates remain open.
+The coherent business commit containing this record is the delivery identity.
+
+Owner-requested debt inventory rebinds D007/D008 descriptions to accepted Stage10A/11A and current Stage12B evidence; neither item is closed. Six clean CP311 builds/probe-SDK evidence exist, while remaining release/version scopes and reconciliation of the historical41omissions remain open. After bounded D026 closure the index retains23open obligations:22DEFERRED and1OPEN(D013);5historical items are CLOSED.

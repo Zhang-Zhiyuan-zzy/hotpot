@@ -5,6 +5,7 @@ import numpy as np
 
 from ...structure._builder import _freeze_value
 from ...structure._fields import ATOM_SOURCE_CODES, FIELD_PRESENCE_BITS
+from ...rules.chemistry.elements import _is_metal
 from . import stereo_transport as _stereo
 
 
@@ -67,10 +68,11 @@ def _pack_rdmol(rdmol, atom_rows, bond_rows, coordinates, hydrogens, atom_facts,
         rda = Chem.Atom(number)
         rda.SetFormalCharge(formal_charge)
         atom_fact = atom_facts.get(row)
-        if atom_fact is None:
-            rda.SetNumExplicitHs(hydrogens[row])
-        else:
+        if atom_fact is not None:
             _stereo._apply_atom_fact(rda, atom_fact)
+        if atom_fact is None or atom_fact.current_hydrogens is None:
+            rda.SetNumExplicitHs(hydrogens[row])
+            rda.SetNoImplicit(True)
         if partial_charge is not None:
             rda.SetDoubleProp('_GasteigerCharge', partial_charge)
         rda.SetIsAromatic(aromatic)
@@ -141,7 +143,10 @@ def _rdmol_record(rdmol, initial):
         values[row, 0] = atom.GetAtomicNum()
         values[row, 7] = atom.GetFormalCharge()
         values[row, 9] = atom.GetIsAromatic()
-        values[row, 14] = atom.GetNumImplicitHs() + atom.GetNumExplicitHs()
+        number = atom.GetAtomicNum()
+        non_graph = atom.GetNumImplicitHs() + atom.GetNumExplicitHs()
+        graph = sum(other.GetAtomicNum() == 1 for other in atom.GetNeighbors())
+        values[row, 14] = non_graph + (graph if number > 1 and not _is_metal(number) else 0)
         supplied = [0, 7, 9, 14]
         if atom.HasProp('_GasteigerCharge'):
             values[row, 8] = atom.GetDoubleProp('_GasteigerCharge')

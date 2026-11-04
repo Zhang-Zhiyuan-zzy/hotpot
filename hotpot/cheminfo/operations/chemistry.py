@@ -28,7 +28,7 @@ from ..rules.chemistry.bonding.valence import _calculate_valence, _hybridization
 from ..rules.chemistry.bonding.formal_charge import (
     _calculate_formal_charge, _sum_formal_charges, _default_molecular_charge,
 )
-from ..rules.chemistry.bonding.hydrogen import _calculate_implicit_hydrogens
+from ..rules.chemistry.bonding.hydrogen import _calculate_implicit_hydrogens, _non_graph_hydrogens
 from ..rules.chemistry.bonding.bond_order import _sum_orders
 from ..rules.chemistry.bonding.kekule import (
     _calculate_aromatic_assignment, _check_joint_ring_kekulization, _aromatic_flags_assignment,
@@ -197,6 +197,33 @@ def _require_implicit_hydrogens(mol, *, rows=None):
         return tuple(int(table._columns[field][row]) for row in selected)
 
 
+def _require_non_graph_hydrogens(mol, *, rows=None):
+    """Read strict residuals; ordinary current bracket H must fit its target."""
+    with mol._mutation_lock:
+        selected = tuple(range(len(mol._atoms))) if rows is None else tuple(rows)
+        counts = _require_implicit_hydrogens(mol, rows=selected)
+        source = _capture_source(mol, ('bonding_inputs',))
+        facts = {fact.atom: fact for fact in _get_stereo_payload(mol).atom_facts}
+        residuals = []
+        for row, count in zip(selected, counts):
+            atom = mol._atoms[row]
+            number = atom.atomic_number
+            graph = sum(other.atomic_number == 1 for other in atom.neighbours)
+            residual = _non_graph_hydrogens(number, graph, count)
+            fact = facts.get(row)
+            current = None if fact is None else fact.current_hydrogens
+            bracket = 0 if current is None or current.bracket_explicit_hydrogens is None else current.bracket_explicit_hydrogens
+            if number != 1 and not _is_metal(number) and bracket > residual:
+                raise ValueError(f'HYDROGEN.DECLARATION_CONFLICT atom_index={row} T={count} E={graph} J={bracket}')
+            residuals.append(residual)
+        _check_source(mol, source)
+        return tuple(residuals)
+
+
+def _atom_non_graph_hydrogens(atom):
+    return _require_non_graph_hydrogens(atom.mol, rows=(atom.idx,))[0]
+
+
 def _require_aromatic_representation(mol, *, rows=None):
     with mol._mutation_lock:
         selected = tuple(range(len(mol._atoms))) if rows is None else tuple(rows)
@@ -354,8 +381,7 @@ def _calculate_default_molecular_charge(mol):
     _prepare_valence_and_hydrogens(mol, None)
     _require_implicit_hydrogens(mol)
     clone = copy(mol)
-    if not clone.has_hydrogens:
-        clone.add_hydrogens()
+    clone.add_hydrogens()
     if clone.is_organic:
         components = (clone,)
     else:
@@ -375,59 +401,82 @@ def _prepare_valences(mol):
             _atom_valence(atom)
 
 
-def _materialize_current_hydrogens(atom):
-    """Transfer current virtual/bracket H to graph H, keeping source history."""
+def _materialize_current_hydrogens(atom, num=None):
+    """Consume current H declarations, retaining immutable source occurrences."""
     payload = _get_stereo_payload(atom.mol)
-    row = atom.idx
-    facts = tuple(replace(fact, current_hydrogens=replace(fact.current_hydrogens,
-                      implicit_hydrogens=0, bracket_explicit_hydrogens=0))
-                  if fact.atom == row and fact.current_hydrogens is not None else fact
-                  for fact in payload.atom_facts)
+    facts = []
+    for fact in payload.atom_facts:
+        current = fact.current_hydrogens
+        if fact.atom == atom.idx and current is not None:
+            if num is None:
+                current = replace(current, implicit_hydrogens=0, bracket_explicit_hydrogens=0)
+            else:
+                bracket = current.bracket_explicit_hydrogens
+                consumed = min(num, max(0 if bracket is None else bracket, 0))
+                current = replace(current,
+                    bracket_explicit_hydrogens=None if bracket is None else max(bracket - num, 0),
+                    implicit_hydrogens=None if current.implicit_hydrogens is None
+                        else max(current.implicit_hydrogens - (num - consumed), 0))
+            fact = replace(fact, current_hydrogens=current)
+        facts.append(fact)
+    facts = tuple(facts)
     if facts != payload.atom_facts:
         _set_stereo_payload(atom.mol, replace(payload, atom_facts=facts))
 
 
+def _materialize_stereo_hydrogens(atom, hydrogens):
+    """Replace virtual carriers in place with the graph H just created."""
+    from ..structure.stereo import StereoAnchorKind, StereoCarrierKind
+    payload = _get_stereo_payload(atom.mol)
+    records = []
+    for record in payload.records:
+        if atom.idx not in record.anchor.atom_indices:
+            records.append(record)
+            continue
+        endpoints = ((record.anchor.atom_indices[0],) * len(record.carriers)
+                     if record.anchor.kind is StereoAnchorKind.ATOM else
+                     (record.anchor.atom_indices[0],) * 2 + (record.anchor.atom_indices[-1],) * 2)
+        positions = tuple(position for position, (carrier, endpoint) in enumerate(zip(record.carriers, endpoints))
+                          if endpoint == atom.idx and carrier.kind is StereoCarrierKind.IMPLICIT_H)
+        replacements = {position: hydrogen.idx for position, hydrogen in zip(positions, hydrogens)}
+        if replacements:
+            record = replace(record, carriers=tuple(
+                replace(carrier, kind=StereoCarrierKind.ATOM, atom=replacements[position])
+                if position in replacements else carrier for position, carrier in enumerate(record.carriers)))
+        records.append(record)
+    records = tuple(records)
+    if records != payload.records:
+        _set_stereo_payload(atom.mol, replace(payload, records=records))
+
+
 def _prepare_hydrogen_expansions(mol, atoms):
-    """Capture all automatic additions before the first graph/payload write."""
-    counts = _require_implicit_hydrogens(mol, rows=tuple(atom.idx for atom in atoms))
-    source = _capture_source(mol, ('bonding_inputs',))
-    transport = {entry[0]: entry[1:] for entry in _hydrogen_transport_inputs(
-        tuple(atom._uid for atom in mol._atoms), _get_stereo_payload(mol))}
-    table = mol._atom_table
-    prepared = []
-    for atom, count in zip(atoms, counts):
-        row = atom.idx
-        producer = int(table._sources[row, FIELD_INDEX['implicit_hydrogens']])
-        inputs = _hydrogen_inputs(atom, transport)
-        inferred = (table._group_status[row, GROUP_INDEX['IMPLICIT_H']] == _FactStatus.CURRENT
-                    and bool(int(table._presence[row]) & FIELD_PRESENCE_BITS[FIELD_INDEX['implicit_hydrogens']])
-                    and producer == ATOM_SOURCE_CODES['implicit_hydrogens']
-                    and inputs[0] > 1 and not _is_metal(inputs[0]))
-        graph_hydrogens = sum(other.atomic_number == 1 for other in atom.neighbours)
-        prepared.append((count, graph_hydrogens, transport[atom._uid][1], producer,
-                         inferred, inputs))
-    _check_source(mol, source)
-    return tuple(prepared)
+    """Prepare and validate the whole selection before any graph write."""
+    return _require_non_graph_hydrogens(mol, rows=tuple(atom.idx for atom in atoms))
 
 
 def _add_atom_hydrogens(atom, num, rm_polar_hs, rng, *, prepared=None):
+    if num == 0:
+        return 0, []
     with _FactTransaction(atom.mol, producer=ATOM_SOURCE_CODES['implicit_hydrogens']):
+        automatic = num is None
+        ordinary = atom.atomic_number != 1 and not atom.is_metal
         neighbours = atom.neighbours
         hydrogens = [other for other in neighbours if other.atomic_number == 1]
-        inferred = False
-        if num is None:
+        if automatic:
             if prepared is None:
                 prepared, = _prepare_hydrogen_expansions(atom.mol, (atom,))
-            count, graph_count, bracket, producer, inferred, inputs = prepared
-            num = max(count - graph_count, 0) if inferred else count - graph_count
-            if not inferred and atom.polar_hydrogen_site:
-                num -= sum(other.is_metal for other in neighbours)
+            num = prepared
         added = []
         if num > 0:
             added = [atom._add_atom(atom_attrs={'coordinates': np.asarray(atom.coordinates)
                      + atom.random_point_on_sphere(1.05, rng=rng)}) for _ in range(num)]
-        if inferred:
-            _materialize_current_hydrogens(atom)
+        if ordinary:
+            if added:
+                _materialize_stereo_hydrogens(atom, added)
+            if automatic:
+                _materialize_current_hydrogens(atom)
+            elif num > 0:
+                _materialize_current_hydrogens(atom, num)
         if added:
             return 1, added
         if num < 0 and atom.polar_hydrogen_site and hydrogens and rm_polar_hs:
@@ -825,6 +874,8 @@ def _detached_atom_projection(atom):
 
 
 def _complete_atom_hydrogens(atom, num):
+    if num == 0:
+        return []
     with _FactTransaction(atom.mol, producer=ATOM_SOURCE_CODES['implicit_hydrogens']) as transaction:
         transaction.touch_topology()
         add_or_rm, hydrogens = atom._add_hydrogens(num)

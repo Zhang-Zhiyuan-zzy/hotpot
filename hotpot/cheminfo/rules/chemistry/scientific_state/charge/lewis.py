@@ -7,6 +7,7 @@ import json
 from bisect import bisect_left
 from typing import Dict, List, Optional, Tuple
 
+from hotpot.cheminfo.rules.chemistry.bonding.hydrogen import _non_graph_hydrogens
 from hotpot.cheminfo.rules.chemistry.scientific_state import legality
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateBudget,
@@ -84,8 +85,10 @@ def _bond_valences(facts: MolecularFacts) -> Optional[Tuple[int, ...]]:
             continue
         explicit_hydrogens = facts.hydrogen_inventory.explicit_counts[index]
         implicit_hydrogens = facts.hydrogen_inventory.implicit_counts[index]
-        if explicit_hydrogens == 0 and implicit_hydrogens is not None:
-            values[index] += implicit_hydrogens
+        if implicit_hydrogens is not None:
+            values[index] += _non_graph_hydrogens(
+                atomic_number, explicit_hydrogens, implicit_hydrogens,
+            )
 
     if any(abs(value - round(value)) > 1.0e-8 for value in values):
         return None

@@ -10,6 +10,7 @@ from functools import lru_cache
 from importlib import resources
 from typing import Dict, Tuple
 
+from hotpot.cheminfo.rules.chemistry.bonding.hydrogen import _non_graph_hydrogens
 from hotpot.cheminfo.rules.chemistry.scientific_state.charge.contracts import (
     LewisFormalChargeCandidate,
     NetChargeCandidateEvidence,
@@ -180,8 +181,10 @@ def _shell_electron_counts(
             continue
         explicit_count = context.facts.hydrogen_inventory.explicit_counts[index]
         implicit_count = context.facts.hydrogen_inventory.implicit_counts[index]
-        if explicit_count == 0 and implicit_count is not None:
-            bond_valences[index] += implicit_count
+        if implicit_count is not None:
+            bond_valences[index] += _non_graph_hydrogens(
+                atomic_number, explicit_count, implicit_count,
+            )
     return tuple(
         nonbonding + 2.0 * bond_valence
         for nonbonding, bond_valence in zip(

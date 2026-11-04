@@ -5,7 +5,7 @@ complete within their recorded scopes. Stage8C includes canonical search and
 actual MCA workflows; Stage8D includes inference/conformer/artifact migration and
 actual CPU/pipeline/one-GPU evidence. Stage8E now has source/installed CP311
 assembly, local H/scaffold corrections and explicit exports/resources accepted;
-P20-D024 is closed. P20-D026 generic H export/materialization remains open.
+P20-D024 is closed. [Stage12B H representation](stages/stage12/hydrogen-representation/validation/checkpoint.json) closes P20-D026 within affected CP311 source/installed and rebuilt-RDKit-native scope.
 Stage9A semantic preparation, Stage9B sole-owner carrier cutover and Stage9C
 collection completion are accepted at their recorded CP311 source/installed
 boundaries. [Stage10A physical/native migration](stages/stage10/native-migration/validation/checkpoint.json)
@@ -2445,8 +2445,12 @@ The [Stage12A lazy-import decision](stages/stage12/lazy-imports/contracts/decisi
 and [checkpoint](stages/stage12/lazy-imports/validation/checkpoint.json)
 accept the explicit root facade and actual toolkit-load/resource consumers at
 their tested CP311 source/installed boundary.
-Remaining independent Decisions12/13 retain their deferral rules; H normalization
-(P20-D026), final docs, other versions/release and global validation remain open.
+The [Stage12B H inventory decision](stages/stage12/hydrogen-representation/contracts/decisions.md)
+and [checkpoint](stages/stage12/hydrogen-representation/validation/checkpoint.json)
+accept the connected import/target/residual/materialization correction for P20-D026
+within affected CP311 source/installed, rebuilt RDKit-native and actual model/workflow
+evidence, including intentional field14 and private-pickle effects. Independent Decisions12/13,
+final docs, other versions/release and global validation remain open.
 
 1. Replace wildcard exports with the approved `__all__` lists.
 2. Remove the top-level RDKit preload and verify lazy RDKit/Open Babel load

@@ -85,11 +85,15 @@ def _capture_ob_values(mol, bonds):
 
 def mol2obmol(mol):
     with mol._mutation_lock:
+        hydrogens = _chemistry._require_non_graph_hydrogens(mol)
         _chemistry._require_aromatic_representation(mol)
         bonds = tuple(mol.bonds)
         obmol = _openbabel._new_obmol()
         atom_rows, bond_rows, cell = _capture_ob_values(mol, bonds)
-        return _openbabel._factual_obmol(obmol, atom_rows, bond_rows, cell)
+        obmol, row_to_idx = _openbabel._factual_obmol(obmol, atom_rows, bond_rows, cell)
+        isotopes = tuple(getattr(atom, "isotope", None) for atom in mol.atoms)
+        _openbabel._set_atom_inventory(obmol, row_to_idx, hydrogens, isotopes)
+        return obmol, row_to_idx
 
 
 def obmol2mol(obmol, mol):
@@ -126,7 +130,7 @@ def _capture_rd_bonds(bonds):
 
 def to_rdmol(mol, kekulize: bool = True, sanitize: bool = False):
     with mol._mutation_lock:
-        hydrogens = _chemistry._require_implicit_hydrogens(mol)
+        hydrogens = _chemistry._require_non_graph_hydrogens(mol)
         _chemistry._require_aromatic_representation(mol)
         return _to_rdmol_prepared(mol, kekulize, sanitize, hydrogens)
 
@@ -149,7 +153,7 @@ def _to_rdmol_prepared(mol, kekulize, sanitize, hydrogens):
     export_payload = _chemistry._remap_stereo_transport(payload, row_to_idx)
     _stereo._apply_stereo_payload(rdmol, export_payload)
     _stereo._verify_current_implicit_hydrogens(rdmol,
-        _stereo._payload_atom_facts(export_payload, len(atoms)))
+        _stereo._payload_atom_facts(export_payload, len(atoms)), hydrogens, row_to_idx)
     return _rdkit._finish_rdmol(rdmol)
 
 

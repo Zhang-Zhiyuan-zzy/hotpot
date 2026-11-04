@@ -489,7 +489,8 @@ def test_materialized_hydrogen_projection_updates_current_not_source_stereo():
 
 def test_materialized_hydrogen_projection_rejects_ambiguous_stereo_hydrogen():
     molecule = _implicit_h_stereo_molecule()
-    molecule.atoms[1].add_hydrogen(1)
+    hydrogen = molecule.create_atom(atomic_number=1, implicit_hydrogens=0)
+    molecule.add_bond(molecule.atoms[1], hydrogen)
 
     with pytest.raises(ConformerSamplingError, match="one unrepresented"):
         _materialized_hydrogen_projection(molecule)
@@ -519,7 +520,7 @@ def test_default_rdkit_adapter_preserves_partially_explicit_hydrogens(monkeypatc
     assert len(calls) == len(packed_sources) == 1
     assert packed_sources[0][0] is molecule
     assert calls[0].atom_count == len(molecule.atoms)
-    assert molecule.atoms[1].implicit_hydrogens == 2
+    assert molecule.atoms[1].implicit_hydrogens == 3
 
 
 def test_rdkit_failure_is_explicit_and_never_falls_back_to_openbabel(monkeypatch):

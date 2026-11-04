@@ -48,18 +48,10 @@ def pack_molecule(
             if NativeMoleculeField.STEREO_RECORDS in fields:
                 stereo_records = _pack_stereo_records(payload)
             if NativeMoleculeField.ATOM_TRANSPORT in fields:
-                from .chemistry import _require_implicit_hydrogens
+                from .chemistry import _require_non_graph_hydrogens
 
-                transported_atoms = {fact.atom for fact in payload.atom_facts}
-                missing_rows = tuple(
-                    row for row, _ in enumerate(atoms)
-                    if row not in transported_atoms
-                )
-                missing_hydrogens = (
-                    _require_implicit_hydrogens(atoms[0].mol, rows=missing_rows)
-                    if missing_rows else ()
-                )
-                atom_transport = _pack_atom_transport(payload, atoms, missing_hydrogens)
+                hydrogens = _require_non_graph_hydrogens(mol)
+                atom_transport = _pack_atom_transport(payload, atoms, hydrogens)
             if NativeMoleculeField.BOND_TRANSPORT in fields:
                 bond_transport = _pack_bond_transport(payload)
 

@@ -28,7 +28,7 @@ from ..rules.chemistry.stereochemistry.assignment import _stereo_assignment_repo
 from ..rules.chemistry.stereochemistry.alignment import (
     _alignment_mapping_issues, _align_stereo_payloads,
 )
-from .chemistry import _require_implicit_hydrogens
+from .chemistry import _require_non_graph_hydrogens
 
 __all__ = ()
 
@@ -63,7 +63,7 @@ def _gate6_projection(mol, *, capture=None, nonblocking=False, prepared=None):
         return None, issues
     with _stereo_owner_scope(mol, nonblocking=nonblocking):
         _check_stereo_capture(mol, capture)
-        hydrogens = _require_implicit_hydrogens(mol)
+        hydrogens = _require_non_graph_hydrogens(mol)
         scalar_fields = _stereo_prepared_fields(
             mol, fields=("atomic_number", "formal_charge", "is_aromatic"),
         )

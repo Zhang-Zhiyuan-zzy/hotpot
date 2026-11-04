@@ -13,6 +13,7 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     StateValueAuthority,
 )
 from hotpot.cheminfo.structure.snapshots import MolecularFacts
+from hotpot.cheminfo.rules.chemistry.bonding.hydrogen import _non_graph_hydrogens
 from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state.contracts import (
     CoordinationCountingCandidate,
     CountingConvention,
@@ -76,8 +77,11 @@ def _has_implicit_hydrogen(
     atom_indices: Tuple[int, ...],
 ) -> bool:
     return any(
-        facts.hydrogen_inventory.explicit_counts[index] == 0
-        and facts.hydrogen_inventory.implicit_counts[index] not in (None, 0)
+        _non_graph_hydrogens(
+            facts.atomic_numbers[index],
+            facts.hydrogen_inventory.explicit_counts[index],
+            facts.hydrogen_inventory.implicit_counts[index],
+        ) not in (None, 0)
         for index in atom_indices
     )
 

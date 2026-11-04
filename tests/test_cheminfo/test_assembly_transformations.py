@@ -185,7 +185,7 @@ def test_element_replacement_completes_only_selected_site(smiles, target, expect
     atoms = _heavy(mol)
     old_source = _source(atoms[0])
     actions.atom_replace(mol, [atoms[-1].idx], _molecule([target]), [])
-    assert tuple(_count(atom) for atom in atoms) == (expected if not graph else ((3,) if target == 7 else (0, 1)))
+    assert tuple(_count(atom) for atom in atoms) == expected
     _assert_product_sites((atoms[-1],), (expected[-1],))
     assert atoms[-1].atomic_number == target
     if len(atoms) > 1:
@@ -465,3 +465,31 @@ def test_shoulder_adopts_parent_aromatic_flags_before_completing_both_anchors():
     assert tuple(_site_facts(atom)[0].source_hydrogens for atom in replacements) == source
     _assert_product_sites(tuple(replacements), (1, 1))
     assert _state(fragment) == fragment_before
+
+
+def test_link_consumes_real_cap_when_supplied_target_is_below_graph_count():
+    mol, fragment = _graph(6, 4), _molecule([8])
+    carbon = mol.atoms[0]
+    carbon.implicit_hydrogens = 0
+    original_hydrogens = tuple(carbon.hydrogens)
+    before_fragment = _state(fragment)
+    assert actions._assembly_hydrogen_total(carbon) == 4
+    assert _count(carbon) == 0 and tuple(carbon.hydrogens) == original_hydrogens
+    actions.atom_link_atom_action(mol, [0], fragment, [0])
+    atoms = _heavy(mol)
+    _assert_product_sites(atoms, (3, 1))
+    assert len(carbon.hydrogens) == 3
+    assert set(carbon.hydrogens).issubset(original_hydrogens)
+    assert _state(fragment) == before_fragment
+
+
+def test_link_after_hydrogen_deletion_uses_missing_current_i_as_output():
+    mol, fragment = _rdkit('C'), _molecule([8])
+    carbon = mol.atoms[0]
+    source = _site_facts(carbon)[0].source_hydrogens
+    mol.add_hydrogens()
+    mol.remove_hydrogens()
+    assert _site_facts(carbon)[0].current_hydrogens.implicit_hydrogens is None
+    actions.atom_link_atom_action(mol, [0], fragment, [0])
+    _assert_product_sites(_heavy(mol), (3, 1))
+    assert _site_facts(carbon)[0].source_hydrogens == source

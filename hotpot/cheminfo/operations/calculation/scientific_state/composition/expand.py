@@ -20,6 +20,7 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     StateValueAuthority,
 )
 from hotpot.cheminfo.structure.snapshots import MolecularFacts
+from hotpot.cheminfo.rules.chemistry.bonding.hydrogen import _non_graph_hydrogens
 from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state.contracts import (
     ElectronicStateCandidate,
     SpinContributionCandidate,
@@ -370,8 +371,9 @@ def _merge_oxidation_states(
         if candidate.coordination_counting_candidate_identity is not None
     }
     has_implicit_hydrogen = any(
-        explicit_count == 0 and implicit_count not in (None, 0)
-        for explicit_count, implicit_count in zip(
+        _non_graph_hydrogens(number, explicit_count, implicit_count) not in (None, 0)
+        for number, explicit_count, implicit_count in zip(
+            facts.atomic_numbers,
             facts.hydrogen_inventory.explicit_counts,
             facts.hydrogen_inventory.implicit_counts,
         )

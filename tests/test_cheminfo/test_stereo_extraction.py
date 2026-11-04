@@ -194,25 +194,24 @@ def _assert_exact_native_value(expected, actual):
         assert actual == expected
 
 
-# Exact source/installed predecessor fixture: virtual-H/target-raw.pickle,
-# SHA256 290c85d766d77ff0a8f66a102193588cebb8e2e2c9fb84cda29074f891dc87fe.
-# Embedded ordinary values keep this contract runnable without checkout artifacts.
-_VIRTUAL_H_BASELINE = {'keys': (0, 1, 2),
- 'edges': ((0, 1), (0, 2)),
+# Independently counted current inventory for C--H with target T=1 and E=1:
+# residual R=0, two real vertices, one bond, and no virtual hydrogen.
+_RESIDUAL_H_TARGET = {'keys': (0, 1),
+ 'edges': ((0, 1),),
  'atoms': ({'fields': {'atomic_number': 6,
                        'isotope': 0,
                        'formal_charge': 0,
                        'radical_electrons': 0,
                        'is_aromatic': False,
                        '_hotpot_stereo_row': 0},
-            'full': {'degree': 2,
-                     'connectivity': 2,
-                     'valence': 2.0,
+            'full': {'degree': 1,
+                     'connectivity': 1,
+                     'valence': 1.0,
                      'ring_count': 0,
                      'ring_sizes': ()},
-            'ligand': {'degree': 2,
-                       'connectivity': 2,
-                       'valence': 2.0,
+            'ligand': {'degree': 1,
+                       'connectivity': 1,
+                       'valence': 1.0,
                        'ring_count': 0,
                        'ring_sizes': ()},
             'object': None},
@@ -233,33 +232,11 @@ _VIRTUAL_H_BASELINE = {'keys': (0, 1, 2),
                        'valence': 1.0,
                        'ring_count': 0,
                        'ring_sizes': ()},
-            'object': None},
-           {'fields': {'atomic_number': 1,
-                       'isotope': 0,
-                       'formal_charge': 0,
-                       'radical_electrons': 0,
-                       'is_aromatic': False,
-                       '_hotpot_stereo_row': 2,
-                       '_hotpot_stereo_h_slot': 1},
-            'full': {'degree': 1,
-                     'connectivity': 1,
-                     'valence': 1.0,
-                     'ring_count': 0,
-                     'ring_sizes': ()},
-            'ligand': {'degree': 1,
-                       'connectivity': 1,
-                       'valence': 1.0,
-                       'ring_count': 0,
-                       'ring_sizes': ()},
             'object': None}),
  'bonds': ({'fields': {'bond_order': 1.0, 'is_aromatic': False},
             'bond_kind': 'single',
             'is_aromatic': False,
-            'object': None},
-           {'fields': {'bond_order': 1.0, 'is_aromatic': False},
-            'bond_kind': 'single',
-            'is_aromatic': False,
-            'object': None})}
+            'object': None},)}
 
 
 def test_active_module_owners_are_acyclic_and_rules_have_no_live_dependencies():
@@ -367,20 +344,20 @@ def test_owner_only_capture_and_guard_skip_bound_conformer_view(monkeypatch):
     assert _finish_thread(_start_thread(capture_and_check)) == ()
 
 
-def test_exact_predecessor_target_packing_and_real_native_mapping():
+def test_exact_residual_target_packing_and_real_native_mapping():
     mol = _molecule((6, 1), ((0, 1, 1.0),), hydrogens=(1, 0))
     fact = stereo.AtomTransportRecord(1, 1, None, None, None, "test")
     stereo.set_stereo_payload(mol, stereo.StereoPayload(1, (), (fact,), ()))
     projected, issues = stereo_operations._gate6_projection(mol)
     assert issues == ()
     packed = stereo_adapter._pack_gate6_target(projected)
-    _assert_exact_native_value(_VIRTUAL_H_BASELINE, packed)
-    mappings = tuple(_NativeTarget(packed).iter_mappings(graph._gate6_query_spec(projected, {0: 0, 1: 2})))
+    _assert_exact_native_value(_RESIDUAL_H_TARGET, packed)
+    mappings = tuple(_NativeTarget(packed).iter_mappings(graph._gate6_query_spec(projected, {0: 0, 1: 1})))
     assert {tuple(sorted(mapping.items())) for mapping in mappings} == {
-        ((0, 0), (1, 2), (2, 1)),
+        ((0, 0), (1, 1)),
     }
     assert projected.real_atom_count == 2
-    assert projected.virtual_hydrogens == ((2,), ())
+    assert projected.virtual_hydrogens == ((), ())
     assert not any(key in projected.target_spec["keys"] for key in (id(atom) for atom in mol.atoms))
 
 
@@ -410,7 +387,7 @@ def test_same_owner_alignment_reuses_capture_preparation_validation_and_target(m
     for owner, name, key in (
         (stereo_operations, "_capture_stereo_snapshot", "capture"),
         (stereo_operations, "_gate6_projection", "projection"),
-        (stereo_operations, "_require_implicit_hydrogens", "H"),
+        (stereo_operations, "_require_non_graph_hydrogens", "H"),
         (stereo_operations, "_validate_graph_stereochemistry", "validation"),
         (_NativeTarget, "__init__", "native"),
         (stereo_operations, "_pack_gate6_target", "pack"),
@@ -537,7 +514,7 @@ def test_deferred_raw_guard_rejects_consumed_drift_before_H_or_native(monkeypatc
     def forbidden(*args, **kwargs):
         pytest.fail("raw drift reached deferred H/scalar/native work")
 
-    monkeypatch.setattr(stereo_operations, "_require_implicit_hydrogens", forbidden)
+    monkeypatch.setattr(stereo_operations, "_require_non_graph_hydrogens", forbidden)
     monkeypatch.setattr(stereo_operations, "_stereo_prepared_fields", forbidden)
     monkeypatch.setattr(_NativeTarget, "__init__", forbidden)
     # The check must not manufacture a second raw snapshot.
@@ -577,7 +554,7 @@ def test_owner_token_mismatch_keeps_existing_error_before_preparation(monkeypatc
     def forbidden(*args, **kwargs):
         pytest.fail("foreign owner reached H preparation")
 
-    monkeypatch.setattr(stereo_operations, "_require_implicit_hydrogens", forbidden)
+    monkeypatch.setattr(stereo_operations, "_require_non_graph_hydrogens", forbidden)
     with pytest.raises(RuntimeError) as caught:
         stereo_operations._gate6_projection(mol, capture=capture)
     assert str(caught.value) == "Molecular source owner changed; recalculate before committing"
@@ -591,7 +568,7 @@ def test_no_candidate_does_not_prepare_check_or_construct_native(monkeypatch):
     def forbidden(*args, **kwargs):
         pytest.fail("ineligible payload reached deferred projection work")
 
-    for name in ("_require_implicit_hydrogens", "_check_stereo_capture", "_stereo_prepared_fields", "_pack_gate6_target"):
+    for name in ("_require_non_graph_hydrogens", "_check_stereo_capture", "_stereo_prepared_fields", "_pack_gate6_target"):
         monkeypatch.setattr(stereo_operations, name, forbidden)
     monkeypatch.setattr(_NativeTarget, "__init__", forbidden)
     report = stereo.assign_stereochemistry(mol)
@@ -605,7 +582,7 @@ def test_invalid_coordination_head_still_projects_before_gate2_without_native(mo
     payload = stereo.get_stereo_payload(mol)
     stereo.set_stereo_payload(mol, replace(payload, records=(replace(payload.records[0], descriptor="hotpot.stereo/2/SP/bad"),)))
     calls = []
-    original_h = stereo_operations._require_implicit_hydrogens
+    original_h = stereo_operations._require_non_graph_hydrogens
     original_gate2 = stereo_operations._validate_gate2_stereochemistry
 
     def prepared(owner):
@@ -620,7 +597,7 @@ def test_invalid_coordination_head_still_projects_before_gate2_without_native(mo
     def forbidden(*args, **kwargs):
         pytest.fail("invalid coordination-only payload constructed a native target")
 
-    monkeypatch.setattr(stereo_operations, "_require_implicit_hydrogens", prepared)
+    monkeypatch.setattr(stereo_operations, "_require_non_graph_hydrogens", prepared)
     monkeypatch.setattr(stereo_operations, "_validate_gate2_stereochemistry", validated)
     monkeypatch.setattr(_NativeTarget, "__init__", forbidden)
     report = stereo.validate_stereochemistry(mol)
@@ -643,7 +620,7 @@ def test_preflight_returns_all_raw_issues_before_deferred_fields(monkeypatch):
     def forbidden(*args, **kwargs):
         pytest.fail("preflight issues reached H/aromatic/native work")
 
-    monkeypatch.setattr(stereo_operations, "_require_implicit_hydrogens", forbidden)
+    monkeypatch.setattr(stereo_operations, "_require_non_graph_hydrogens", forbidden)
     monkeypatch.setattr(stereo_operations, "_stereo_prepared_fields", forbidden)
     monkeypatch.setattr(_NativeTarget, "__init__", forbidden)
     projected, issues = stereo_operations._gate6_projection(mol)
@@ -716,7 +693,7 @@ def test_global_graph_issue_suppresses_array_conversion_and_native(monkeypatch):
     def forbidden(*args, **kwargs):
         pytest.fail("a global preflight issue reached array/H/native work")
 
-    monkeypatch.setattr(stereo_operations, "_require_implicit_hydrogens", forbidden)
+    monkeypatch.setattr(stereo_operations, "_require_non_graph_hydrogens", forbidden)
     monkeypatch.setattr(_NativeTarget, "__init__", forbidden)
     report = stereo.validate_stereochemistry(mol, coordinates=_ArrayCallback(None, forbidden))
     assert any(issue.record_index is None and "dative" in issue.message for issue in report.issues)
@@ -802,7 +779,7 @@ def test_initial_contention_fails_before_mapping_H_or_native_and_retains_outer_l
     def forbidden(*args, **kwargs):
         pytest.fail("initial capture contention reached H/native work")
 
-    monkeypatch.setattr(stereo_operations, "_require_implicit_hydrogens", forbidden)
+    monkeypatch.setattr(stereo_operations, "_require_non_graph_hydrogens", forbidden)
     monkeypatch.setattr(_NativeTarget, "__init__", forbidden)
 
     def run():
@@ -827,7 +804,7 @@ def test_late_contention_uses_the_same_nonblocking_route_at_deferred_preparation
     requested, entered, release = Event(), Event(), Event()
     events = []
     _need_h_refresh(reference)
-    original_h = stereo_operations._require_implicit_hydrogens
+    original_h = stereo_operations._require_non_graph_hydrogens
     original_init = _NativeTarget.__init__
 
     def prepared(owner):
@@ -849,7 +826,7 @@ def test_late_contention_uses_the_same_nonblocking_route_at_deferred_preparation
         requested.set()
         assert entered.wait(10), "late lock-holder did not acquire the deferred owner"
 
-    monkeypatch.setattr(stereo_operations, "_require_implicit_hydrogens", prepared)
+    monkeypatch.setattr(stereo_operations, "_require_non_graph_hydrogens", prepared)
     monkeypatch.setattr(_NativeTarget, "__init__", initialized)
     holder = _start_thread(hold_late)
 
@@ -880,7 +857,7 @@ def test_late_drift_keeps_prior_side_effects_and_respects_existing_outer_rollbac
     before = _h_status(reference)
     payload = stereo.get_stereo_payload(target)
     events = []
-    original_h = stereo_operations._require_implicit_hydrogens
+    original_h = stereo_operations._require_non_graph_hydrogens
     original_init = _NativeTarget.__init__
 
     def prepared(owner):
@@ -895,7 +872,7 @@ def test_late_drift_keeps_prior_side_effects_and_respects_existing_outer_rollbac
         events.append("mapping")
         stereo.set_stereo_payload(target, replace(payload, schema_version=47))
 
-    monkeypatch.setattr(stereo_operations, "_require_implicit_hydrogens", prepared)
+    monkeypatch.setattr(stereo_operations, "_require_non_graph_hydrogens", prepared)
     monkeypatch.setattr(_NativeTarget, "__init__", initialized)
 
     def call():
@@ -921,7 +898,7 @@ def test_invalid_mapping_keeps_coordination_projection_then_validation_and_issue
         payload = stereo.get_stereo_payload(owner)
         stereo.set_stereo_payload(owner, replace(payload, records=(replace(payload.records[0], descriptor="hotpot.stereo/2/SP/bad"),)))
     events = []
-    original_h = stereo_operations._require_implicit_hydrogens
+    original_h = stereo_operations._require_non_graph_hydrogens
     original_validation = stereo_operations._validate_graph_stereochemistry
 
     def prepared(owner):
@@ -932,7 +909,7 @@ def test_invalid_mapping_keeps_coordination_projection_then_validation_and_issue
         events.append("validate:reference" if owner is reference else "validate:target")
         return original_validation(owner, **context)
 
-    monkeypatch.setattr(stereo_operations, "_require_implicit_hydrogens", prepared)
+    monkeypatch.setattr(stereo_operations, "_require_non_graph_hydrogens", prepared)
     monkeypatch.setattr(stereo_operations, "_validate_graph_stereochemistry", validated)
     result = stereo.align_stereochemistry(reference, target, _ItemsCallback({}, lambda: events.append("mapping")))
     assert events == ["mapping", "H:reference", "H:target", "validate:reference", "validate:target"]

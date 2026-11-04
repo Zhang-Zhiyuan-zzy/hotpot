@@ -5,6 +5,8 @@ import numpy as np
 
 from ...structure._builder import _freeze_value
 from ...structure._fields import ATOM_SOURCE_CODES, FIELD_PRESENCE_BITS
+from ...structure.stereo import AtomTransportRecord, HydrogenTransportState
+from ...rules.chemistry.elements import _is_metal
 from . import perception as _perception
 from . import crystal as _crystal
 
@@ -58,6 +60,15 @@ def _factual_obmol(obmol, atom_rows, bond_rows, cell):
     return obmol, row_to_idx
 
 
+def _set_atom_inventory(obmol, row_to_idx, hydrogens, isotopes):
+    """Apply prepared non-graph counts after construction without perception."""
+    for row, (hydrogen, isotope) in enumerate(zip(hydrogens, isotopes)):
+        atom = obmol.GetAtom(row_to_idx[row])
+        atom.SetImplicitHCount(hydrogen)
+        if isotope is not None:
+            atom.SetIsotope(isotope)
+
+
 def _obmol_record(obmol, initial, stereo_payload):
     from ._runtime import ob
 
@@ -72,10 +83,18 @@ def _obmol_record(obmol, initial, stereo_payload):
     charge_presence_data = obmol.GetData(_PARTIAL_CHARGE_PRESENCE)
     charge_presence = (ob.toPairData(charge_presence_data).GetValue()
                        if charge_presence_data else "1" * len(atoms))
+    atom_facts = []
     for row, atom in enumerate(atoms):
+        number = atom.GetAtomicNum()
+        non_graph = atom.GetImplicitHCount()
+        graph = sum(other.GetAtomicNum() == 1 for other in ob.OBAtomAtomIter(atom))
+        target = non_graph + (graph if number > 1 and not _is_metal(number) else 0)
+        atom_facts.append(AtomTransportRecord(
+            row, atom.GetIsotope(), None, None,
+            HydrogenTransportState(non_graph, None, None), "openbabel"))
         values[row, supplied] = (
             atom.GetAtomicNum(), atom.GetFormalCharge(), float(atom.IsAromatic()),
-            atom.GetX(), atom.GetY(), atom.GetZ(), atom.GetImplicitHCount())
+            atom.GetX(), atom.GetY(), atom.GetZ(), target)
         if charges_perceived and charge_presence[row] == "1":
             values[row, 8] = atom.GetPartialCharge()
             presence[row] |= FIELD_PRESENCE_BITS[8]
@@ -100,7 +119,7 @@ def _obmol_record(obmol, initial, stereo_payload):
         bond_sources=("openbabel",) * len(entries),
         bond_metadata=tuple(_freeze_value(attrs["bond_source_metadata"]) for _, attrs in entries),
         charge=(True, obmol.GetTotalCharge(), "openbabel"), cell=cell,
-        stereo_payload=stereo_payload,
+        stereo_payload=replace(stereo_payload, atom_facts=tuple(atom_facts)),
         source_frames=(), conformer_results=(), frame_selection=(0, None),
         partial_charge_result=None,
     )

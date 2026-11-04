@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ...structure.substructure import SmartsSemantics
+from ...rules.chemistry.bonding.hydrogen import _non_graph_hydrogens
 
 
 def _pack_target_values(mol, *, needs_atom_objects, needs_bond_objects, derived_requirements):
@@ -80,8 +81,10 @@ def _pack_atom(
         for name in field_names
     }
     if derived_requirements["total_h"]:
-        fields["implicit_hydrogens"] = int(atom.implicit_hydrogens)
-        fields["explicit_hydrogens"] = int(atom.explicit_hydrogens)
+        graph_h = int(atom.explicit_hydrogens)
+        fields["implicit_hydrogens"] = int(_non_graph_hydrogens(
+            atom.atomic_number, graph_h, atom.implicit_hydrogens))
+        fields["explicit_hydrogens"] = graph_h
     return {
         "fields": fields,
         "full": _pack_semantics(

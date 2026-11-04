@@ -10,6 +10,7 @@ from functools import lru_cache
 from importlib import resources
 from typing import Optional, Tuple
 
+from hotpot.cheminfo.rules.chemistry.bonding.hydrogen import _non_graph_hydrogens
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     ScientificQuantity,
@@ -133,8 +134,12 @@ def _coordination_donor(
 
 
 def _implicit_hydrogens(context: RuleContext, atom_index: int) -> int:
-    count = context.facts.hydrogen_inventory.implicit_counts[atom_index]
-    return 0 if count is None else count
+    facts = context.facts
+    count = facts.hydrogen_inventory.implicit_counts[atom_index]
+    return 0 if count is None else _non_graph_hydrogens(
+        facts.atomic_numbers[atom_index],
+        facts.hydrogen_inventory.explicit_counts[atom_index], count,
+    )
 
 
 def _covalent_neighbours(

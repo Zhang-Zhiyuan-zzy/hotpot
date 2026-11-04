@@ -332,28 +332,31 @@ void apply_atom_transport(
         const auto source_namespace = copy_string(record.source_namespace);
         const bool is_rdkit_transport = source_namespace == "rdkit-2026.09.1";
         const bool is_hotpot_current = record.source_namespace.data == nullptr;
-        if (!is_rdkit_transport && !is_hotpot_current) {
+        const bool is_openbabel_source = source_namespace == "openbabel";
+        if (!is_rdkit_transport && !is_hotpot_current && !is_openbabel_source) {
             throw UnsupportedInput(
                 "atom transport source_namespace is not representable by "
                 "the pinned RDKit adapter"
             );
         }
         auto* atom = molecule.getAtomWithIdx(static_cast<unsigned int>(record.atom));
-        if (is_hotpot_current) {
-            if (record.presence_mask != 0
-                || !record.has_current_hydrogens
-                || record.has_source_hydrogens
-                || record.current_hydrogens.presence_mask
-                    != HOTPOT_RD_HYDROGEN_TRANSPORT_IMPLICIT) {
+        if (!is_rdkit_transport) {
+            if ((record.presence_mask & HOTPOT_RD_ATOM_TRANSPORT_RADICAL_ELECTRONS) != 0
+                || (record.has_current_hydrogens
+                    && record.current_hydrogens.presence_mask
+                        != HOTPOT_RD_HYDROGEN_TRANSPORT_IMPLICIT)
+                || (is_openbabel_source && record.has_source_hydrogens
+                    && (record.source_hydrogens.presence_mask
+                        & ~HOTPOT_RD_HYDROGEN_TRANSPORT_IMPLICIT) != 0)) {
                 throw UnsupportedInput(
-                    "Hotpot current atom transport must contain only the "
-                    "logical implicit-hydrogen count"
+                    "canonical/source-only atom transport requires a logical "
+                    "non-graph hydrogen count and a registered source map"
                 );
             }
-            atom->setNumExplicitHs(static_cast<unsigned int>(
-                record.current_hydrogens.implicit_hydrogens
-            ));
-            continue;
+            atom->setNumExplicitHs(record.has_current_hydrogens
+                ? static_cast<unsigned int>(record.current_hydrogens.implicit_hydrogens)
+                : 0U);
+            atom->setNoImplicit(true);
         }
         if ((record.presence_mask & HOTPOT_RD_ATOM_TRANSPORT_ISOTOPE) != 0) {
             if (record.isotope < 0) {
@@ -369,7 +372,11 @@ void apply_atom_transport(
                 static_cast<unsigned int>(record.radical_electrons)
             );
         }
-        if (!record.has_current_hydrogens) {
+        if (!is_rdkit_transport || !record.has_current_hydrogens) {
+            if (is_rdkit_transport) {
+                atom->setNumExplicitHs(0);
+                atom->setNoImplicit(true);
+            }
             continue;
         }
         const auto& hydrogen = record.current_hydrogens;
@@ -392,23 +399,41 @@ void validate_implicit_hydrogens(
 ) {
     for (std::uint64_t index = 0; index < source.atom_transport_count; ++index) {
         const auto& record = source.atom_transport[index];
-        if (record.source_namespace.data == nullptr) {
-            continue;
-        }
-        if (!record.has_current_hydrogens
-            || (record.current_hydrogens.presence_mask
-                & HOTPOT_RD_HYDROGEN_TRANSPORT_IMPLICIT) == 0) {
-            continue;
-        }
+        const bool is_rdkit_transport =
+            copy_string(record.source_namespace) == "rdkit-2026.09.1";
         const auto* atom = molecule.getAtomWithIdx(
             static_cast<unsigned int>(record.atom)
         );
-        if (atom->getNumImplicitHs()
-            != static_cast<unsigned int>(
-                record.current_hydrogens.implicit_hydrogens
-            )) {
+        if (!is_rdkit_transport || !record.has_current_hydrogens) {
+            const auto expected = record.has_current_hydrogens
+                ? static_cast<unsigned int>(record.current_hydrogens.implicit_hydrogens)
+                : 0U;
+            if (atom->getNumImplicitHs() + atom->getNumExplicitHs() != expected) {
+                throw UnsupportedInput(
+                    "RDKit non-graph hydrogen inventory does not reproduce "
+                    "the logical count"
+                );
+            }
+            continue;
+        }
+        const auto& hydrogen = record.current_hydrogens;
+        if ((hydrogen.presence_mask & HOTPOT_RD_HYDROGEN_TRANSPORT_IMPLICIT) == 0) {
+            continue;
+        }
+        const auto implicit = static_cast<unsigned int>(hydrogen.implicit_hydrogens);
+        if (atom->getNumImplicitHs() != implicit) {
             throw UnsupportedInput(
                 "current implicit-hydrogen state is not representable by RDKit"
+            );
+        }
+        const auto bracket =
+            (hydrogen.presence_mask & HOTPOT_RD_HYDROGEN_TRANSPORT_BRACKET_EXPLICIT) != 0
+                ? static_cast<unsigned int>(hydrogen.bracket_explicit_hydrogens)
+                : 0U;
+        if (atom->getNumImplicitHs() + atom->getNumExplicitHs() != implicit + bracket) {
+            throw UnsupportedInput(
+                "RDKit non-graph hydrogen inventory does not reproduce "
+                "the current decomposition"
             );
         }
     }

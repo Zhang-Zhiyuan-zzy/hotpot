@@ -77,7 +77,8 @@ def test_projection_includes_complete_graph_despite_operation_exclusion():
 
 
 def test_virtual_hydrogen_has_protium_label_and_nonchemical_row_pin():
-    molecule = _molecule((6, 1), ((0, 1, 1.0),), implicit_hydrogens=(1, 0))
+    # T2 includes the represented H and one virtual H.
+    molecule = _molecule((6, 1), ((0, 1, 1.0),), implicit_hydrogens=(2, 0))
     set_stereo_payload(
         molecule,
         StereoPayload(1, (), (_atom_fact(1, isotope=1),), ()),
@@ -108,7 +109,8 @@ def test_virtual_hydrogen_has_protium_label_and_nonchemical_row_pin():
 
 
 def test_query_can_pin_an_explicit_hydrogen_to_a_virtual_hydrogen():
-    molecule = _molecule((6, 1), ((0, 1, 1.0),), implicit_hydrogens=(1, 0))
+    # T2 includes the represented H and one virtual H.
+    molecule = _molecule((6, 1), ((0, 1, 1.0),), implicit_hydrogens=(2, 0))
     graph, issues = _gate6_projection(molecule)
     assert issues == ()
 
@@ -276,11 +278,15 @@ def test_partly_explicit_reader_input_keeps_all_remaining_implicit_hydrogens():
     molecule = next(MolReader("[H]C", "smi"))
     carbon = next(atom for atom in molecule.atoms if atom.atomic_number == 6)
     carbon_row = carbon.idx
+    source_transport = get_stereo_payload(molecule)
+    target_bytes = carbon.attrs[14].tobytes()
 
     graph, issues = _gate6_projection(molecule)
 
     assert issues == ()
-    assert carbon.implicit_hydrogens == 3
+    assert carbon.implicit_hydrogens == 4
+    assert carbon.attrs[14].tobytes() == target_bytes
+    assert get_stereo_payload(molecule) == source_transport
     assert carbon.explicit_hydrogens == 1
     assert len(graph.target_spec["keys"]) == 5
     assert len(graph.virtual_hydrogens[carbon_row]) == 3
@@ -290,26 +296,41 @@ def test_fully_explicit_reader_input_creates_no_virtual_hydrogens():
     molecule = next(MolReader("[H]C([H])([H])[H]", "smi"))
     carbon = next(atom for atom in molecule.atoms if atom.atomic_number == 6)
     carbon_row = carbon.idx
+    source_transport = get_stereo_payload(molecule)
+    target_bytes = carbon.attrs[14].tobytes()
 
     graph, issues = _gate6_projection(molecule)
 
     assert issues == ()
-    assert carbon.implicit_hydrogens == 0
+    assert carbon.implicit_hydrogens == 4
+    assert carbon.attrs[14].tobytes() == target_bytes
+    assert get_stereo_payload(molecule) == source_transport
     assert carbon.explicit_hydrogens == 4
     assert len(graph.target_spec["keys"]) == 5
     assert graph.virtual_hydrogens[carbon_row] == ()
 
 
-def test_negative_implicit_hydrogen_count_is_unsupported():
+def test_negative_supplied_target_preserves_raw_facts_and_projects_zero_non_graph_H():
+    from hotpot.cheminfo.structure._fields import FIELD_INDEX, FIELD_PRESENCE_BITS
     molecule = _molecule((6,), implicit_hydrogens=(-1,))
+    table = molecule._atom_table
+    field = FIELD_INDEX['implicit_hydrogens']
+    before = (table._columns[field][0].tobytes(),
+              int(table._presence[0]) & FIELD_PRESENCE_BITS[field],
+              int(table._sources[0, field]))
 
     graph, issues = _gate6_projection(molecule)
 
-    assert graph is None
-    assert len(issues) == 1
-    assert issues[0].code is StereoIssueCode.UNSUPPORTED
-    assert issues[0].atom_indices == (0,)
-    assert "negative implicit-hydrogen" in issues[0].message
+    assert issues == ()
+    assert graph.target_spec['keys'] == (0,)
+    assert graph.target_spec['edges'] == ()
+    assert graph.virtual_hydrogens == ((),)
+    assert _fields(graph, 0)['atomic_number'] == 6
+    assert molecule.atoms[0].implicit_hydrogens == -1
+    assert (table._columns[field][0].tobytes(),
+            int(table._presence[0]) & FIELD_PRESENCE_BITS[field],
+            int(table._sources[0, field])) == before
+    NativeTarget(_pack_gate6_target(graph))
 
 
 def test_query_copies_exact_labels_and_pins_rows_for_real_native_target():

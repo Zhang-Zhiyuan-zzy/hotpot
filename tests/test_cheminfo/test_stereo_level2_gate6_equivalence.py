@@ -276,7 +276,7 @@ def test_ordinary_explicit_hydrogen_equals_implicit_protium(explicit_isotope):
     molecule = _molecule(
         (6, 1, 9, 17),
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0)),
-        implicit_hydrogens=(1, 0, 0, 0),
+        implicit_hydrogens=(2, 0, 0, 0),
     )
     _set_payload(
         molecule,
@@ -294,7 +294,7 @@ def test_explicit_deuterium_or_tritium_differs_from_implicit_protium(
     molecule = _molecule(
         (6, 1, 9, 17),
         ((0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0)),
-        implicit_hydrogens=(1, 0, 0, 0),
+        implicit_hydrogens=(2, 0, 0, 0),
     )
     _set_payload(
         molecule,
@@ -682,7 +682,7 @@ def test_descendant_equivalent_hydrogens_do_not_hide_parent_equivalence():
             (2, 7, 1.0),
             (2, 8, 1.0),
         ),
-        implicit_hydrogens=(0, 1, 1, 0, 0, 0, 0, 0, 0),
+        implicit_hydrogens=(0, 2, 2, 0, 0, 0, 0, 0, 0),
     )
     _set_payload(
         molecule,

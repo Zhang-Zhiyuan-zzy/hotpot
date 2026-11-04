@@ -6,7 +6,7 @@ from typing import Callable, Literal, Union
 
 from hotpot.cheminfo.structure.molecule import Molecule
 from ...structure.bond_kind import BondKind
-from ...rules.chemistry.bonding.hydrogen import _calculate_implicit_hydrogens
+from ...rules.chemistry.bonding.hydrogen import _calculate_implicit_hydrogens, _non_graph_hydrogens
 from ...structure._commit import _FactTransaction, _commit_atom_facts, _commit_bond_facts
 from ...structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX, FIELD_PRESENCE_BITS
 from ...structure._identity import _capture_source, _hydrogen_inputs, _hydrogen_transport_inputs
@@ -20,8 +20,6 @@ DefaultAction = Literal['atom_link', 'bond_shoulder']
 ActionFuncTemplate = Union[Callable[[Molecule, list[int], Molecule, list[int]], Molecule], DefaultAction]
 _default_actions = {}
 _EXPLICIT = ATOM_SOURCE_CODES['explicit']
-_TOTAL_SOURCES = {_EXPLICIT, ATOM_SOURCE_CODES['implicit_hydrogens']}
-_IMPORTED_SOURCES = {ATOM_SOURCE_CODES['rdkit'], ATOM_SOURCE_CODES['openbabel']}
 _UNSPECIFIED_RDKIT = {'CHI_UNSPECIFIED', 'STEREONONE', 'STEREOANY'}
 
 
@@ -87,29 +85,23 @@ def _inventory(atom, action):
         raise ValueError(f'ASSEMBLY.HYDROGEN_UNAVAILABLE action={action} atom_index={row}: {error}') from error
     table = mol._atom_table
     count = _count(float(table._columns[field][row]), action, atom)
-    source = int(table._sources[row, field])
     graph = tuple(atom.hydrogens)
     for hydrogen in graph:
         bond = mol.bond(atom.idx, hydrogen.idx)
         if (len(hydrogen.neighbours) != 1 or bond.bond_kind is not BondKind.SINGLE
                 or bond._is_aromatic or hydrogen.formal_charge != 0):
             _problem('HYDROGEN_INVENTORY', action, atom, 'graph H is not a neutral single-bond cap')
-    if source in _TOTAL_SOURCES:
-        total, residual = count, count - len(graph)
-    elif source in _IMPORTED_SOURCES:
-        total, residual = count + len(graph), count
-    else:
-        _problem('HYDROGEN_INVENTORY', action, atom, f'unregistered H producer {source}')
-    if residual < 0:
-        _problem('HYDROGEN_INVENTORY', action, atom, 'site-total H is smaller than graph H')
+    residual = _non_graph_hydrogens(atom.atomic_number, len(graph), count)
+    total = len(graph) + residual
     payload = _get_stereo_payload(mol)
     facts = () if payload is None else tuple(f for f in payload.atom_facts if f.atom == row)
     current = tuple(f.current_hydrogens for f in facts if f.current_hydrogens is not None)
     brackets = []
     for state in current:
-        implicit = _count(0 if state.implicit_hydrogens is None else state.implicit_hydrogens, action, atom)
+        implicit = None if state.implicit_hydrogens is None else _count(state.implicit_hydrogens, action, atom)
         bracket = _count(0 if state.bracket_explicit_hydrogens is None else state.bracket_explicit_hydrogens, action, atom)
-        if implicit + bracket != residual or (state.no_implicit and implicit):
+        if (bracket > residual or (implicit is not None and implicit + bracket != residual)
+                or (state.no_implicit and residual != bracket)):
             _problem('HYDROGEN_INVENTORY', action, atom, 'current H decomposition disagrees with represented inventory')
         brackets.append(bracket)
     inputs = _inputs(atom)
@@ -123,7 +115,7 @@ def _inventory(atom, action):
 
 
 def _assembly_hydrogen_total(atom):
-    """Physical H at a coherent assembly site; no global field reinterpretation."""
+    """Physical graph plus residual H at a coherent assembly site."""
     with _FactTransaction(atom.mol, producer=_EXPLICIT):
         return _inventory(atom, 'site-selection')['total']
 

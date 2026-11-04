@@ -10,6 +10,7 @@ from functools import lru_cache
 from importlib import resources
 from typing import Dict, Optional, Tuple
 
+from hotpot.cheminfo.rules.chemistry.bonding.hydrogen import _non_graph_hydrogens
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     CandidateProvenance,
     ScientificQuantity,
@@ -171,7 +172,10 @@ def _covalent_valences(context: RuleContext) -> Tuple[Optional[float], ...]:
         context.facts.hydrogen_inventory.implicit_counts
     ):
         if implicit_count is not None:
-            values[index] += implicit_count
+            values[index] += _non_graph_hydrogens(
+                context.facts.atomic_numbers[index],
+                context.facts.hydrogen_inventory.explicit_counts[index], implicit_count,
+            )
     return tuple(
         value if is_valid else None
         for value, is_valid in zip(values, valid)

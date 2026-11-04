@@ -12,6 +12,7 @@ import numpy as np
 
 from hotpot.cheminfo.structure.bond_kind import BondKind
 from hotpot.cheminfo.structure.molecule import Molecule
+from hotpot.cheminfo.operations.chemistry import _require_non_graph_hydrogens
 
 from .contracts import (
     XTBGeometry,
@@ -64,15 +65,23 @@ def _validate_geometry(geometry: XTBGeometry) -> None:
 
 
 def _require_complete_explicit_atoms(mol: Molecule) -> None:
-    for atom in mol.heavy_atoms:
-        explicit_hydrogen_count = len(atom.hydrogens)
-        if atom.implicit_hydrogens and (
-            explicit_hydrogen_count != atom.implicit_hydrogens
-        ):
+    atoms = tuple(mol.heavy_atoms)
+    try:
+        residuals = _require_non_graph_hydrogens(mol, rows=tuple(atom.idx for atom in atoms))
+    except (ValueError, RuntimeError) as cause:
+        if not str(cause).startswith("HYDROGEN."):
+            raise
+        error = XTBInputError(str(cause))
+        error.sample_failure_code = "XTB-EXPLICIT-H-REQUIRED"
+        raise error from cause
+    for atom, residual in zip(atoms, residuals):
+        if residual:
+            explicit_hydrogen_count = len(atom.hydrogens)
+            target = atom.implicit_hydrogens
             error = XTBInputError(
-                f"Atom {atom.idx} ({atom.symbol}) stores "
-                f"{atom.implicit_hydrogens} implicit hydrogens but has "
-                f"{explicit_hydrogen_count} explicit hydrogen atoms"
+                f"Atom {atom.idx} ({atom.symbol}) requires {residual} "
+                f"non-graph hydrogen atoms to be represented explicitly "
+                f"(stored count {target}, graph H {explicit_hydrogen_count})"
             )
             error.sample_failure_code = "XTB-EXPLICIT-H-REQUIRED"
             raise error

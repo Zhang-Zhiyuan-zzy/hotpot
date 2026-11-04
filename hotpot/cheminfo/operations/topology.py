@@ -158,5 +158,25 @@ def _add_atom(atom, new_atom, bond_order, atom_attrs, bond_attrs):
 
 
 def _remove_hydrogens(mol, *, polar_only=False):
-    mol.remove_atoms([atom for atom in mol._atoms
-                      if (atom.is_polar_hydrogen if polar_only else atom.is_hydrogen)])
+    from dataclasses import replace
+    from .chemistry import _set_stereo_payload
+    from ..structure._stereo import _get_stereo_payload
+
+    with _FactTransaction(mol, producer=_ATOM_SOURCE_CODES['explicit']):
+        selected = tuple(atom for atom in mol._atoms
+                         if (atom.is_polar_hydrogen if polar_only else atom.is_hydrogen))
+        affected = {neighbour._uid for atom in selected for neighbour in atom.neighbours}
+        mol.remove_atoms(selected)
+        payload = _get_stereo_payload(mol)
+        if payload is None:
+            return
+        facts = tuple(
+            replace(fact, current_hydrogens=replace(
+                fact.current_hydrogens, implicit_hydrogens=None))
+            if (0 <= fact.atom < len(mol._atoms)
+                and mol._atoms[fact.atom]._uid in affected
+                and fact.current_hydrogens is not None) else fact
+            for fact in payload.atom_facts
+        )
+        if facts != payload.atom_facts:
+            _set_stereo_payload(mol, replace(payload, atom_facts=facts))

@@ -15,7 +15,10 @@ from hotpot.cheminfo.operations import conversion
 
 molecule_owner = importlib.import_module("hotpot.cheminfo.structure.molecule")
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX, FIELD_PRESENCE_BITS
-from hotpot.cheminfo.stereo import StereoPayload, get_stereo_payload, set_stereo_payload
+from hotpot.cheminfo.stereo import (
+    AtomTransportRecord, HydrogenTransportState, StereoPayload,
+    get_stereo_payload, set_stereo_payload,
+)
 
 
 def _obmol():
@@ -103,7 +106,24 @@ def test_empty_preconfigured_target_preserves_cell_spin_identifier_and_clears_al
     assert target.spin_mult == 3 and target.identifier == 'existing'
     assert not target._source_frames and not target._conformer_results
     assert target._frame_result is None
-    assert (get_stereo_payload(target) == payload) is keeps_stereo
+    imported = get_stereo_payload(target)
+    if keeps_stereo:
+        assert imported.schema_version == payload.schema_version
+        assert imported.records == payload.records
+        assert imported.bond_facts == payload.bond_facts
+        assert imported.atom_facts == tuple(
+            AtomTransportRecord(
+                atom=row,
+                isotope=0,
+                radical_electrons=None,
+                current_hydrogens=None,
+                source_hydrogens=HydrogenTransportState(0, None, None),
+                source_namespace='openbabel',
+            )
+            for row in (0, 1)
+        )
+    else:
+        assert imported != payload
 
 
 def test_failed_decoder_install_restores_preconfigured_empty_target(monkeypatch):

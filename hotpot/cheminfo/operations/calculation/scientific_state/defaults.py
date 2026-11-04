@@ -12,6 +12,7 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     ScientificQuantity,
 )
 from hotpot.cheminfo.structure.snapshots import MolecularFacts
+from hotpot.cheminfo.rules.chemistry.bonding.hydrogen import _non_graph_hydrogens
 from hotpot.cheminfo.operations.calculation.scientific_state.contracts import (
     StatePolicy,
 )
@@ -192,8 +193,9 @@ def _path_resolves_oxidation_state(
     if policy is not StatePolicy.COORDINATION_SCREENING_V1:
         if facts is not None and selected:
             has_implicit_hydrogen = any(
-                explicit_count == 0 and implicit_count not in (None, 0)
-                for explicit_count, implicit_count in zip(
+                _non_graph_hydrogens(number, explicit_count, implicit_count) not in (None, 0)
+                for number, explicit_count, implicit_count in zip(
+                    facts.atomic_numbers,
                     facts.hydrogen_inventory.explicit_counts,
                     facts.hydrogen_inventory.implicit_counts,
                 )

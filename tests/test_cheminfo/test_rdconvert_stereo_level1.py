@@ -326,6 +326,10 @@ def test_tetra_center_requires_exactly_four_graph_or_virtual_neighbors(
         replace(payload, atom_facts=changed_facts),
     )
 
+    # Keep the declared target consistent so this isolates the stereo arity
+    # check, rather than the earlier shared bracket/target conflict gate.
+    molecule.atoms[center].implicit_hydrogens = (
+        hydrogens.implicit_hydrogens + hydrogens.bracket_explicit_hydrogens)
     with pytest.raises(ValueError, match="exactly four graph or virtual"):
         to_rdmol(molecule, kekulize=False)
 
@@ -790,15 +794,16 @@ def test_import_clones_and_does_not_kekulize_or_rewrite_the_source():
     ] == before
 
 
-def test_unqualified_isotope_only_mapping_does_not_accept_unregistered_H_or_radical_conventions():
+def test_unqualified_source_only_mapping_does_not_accept_unregistered_current_H_or_radical_conventions():
     from dataclasses import replace
     from hotpot.cheminfo.structure.stereo import AtomTransportRecord, HydrogenTransportState, StereoPayload
     from hotpot.cheminfo.adapters.rdkit.stereo_transport import _payload_atom_facts
     isotope = AtomTransportRecord(0, 13, None, None, None, None)
     assert _payload_atom_facts(StereoPayload(1, (), (isotope,), ()), 1) == {0: isotope}
+    source_only = replace(isotope, source_hydrogens=HydrogenTransportState(None, 0, None))
+    assert _payload_atom_facts(StereoPayload(1, (), (source_only,), ()), 1) == {0: source_only}
     for fact in (replace(isotope, radical_electrons=1),
                  replace(isotope, current_hydrogens=HydrogenTransportState(0, 0, False)),
-                 replace(isotope, source_hydrogens=HydrogenTransportState(None, 0, None)),
                  replace(isotope, source_namespace="future-toolkit")):
         with pytest.raises(ValueError, match="atom transport namespace"):
             _payload_atom_facts(StereoPayload(1, (), (fact,), ()), 1)

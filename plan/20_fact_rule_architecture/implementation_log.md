@@ -8246,3 +8246,178 @@ No Eu/FF/backend/model execution or optional-profile activation is released by
 that task. Direct root ai-14MCA and the original frozen native build continue.
 External helper remains terminated. Native/version/GPU/scientific/performance,
 optional/deferred dispositions, final report and B_exp remain open.
+
+
+### 2026-11-04 — Stage12 final-source package and current Eu science release
+
+Checkpoint ec4d61889a7262df765da29082e405b3c612cd15 is committed and pushed on
+implement/plan20-fact-rule-architecture. Tracked product inputs are frozen; the
+owner's unrelated untracked work remains untouched. The local Sol/medium task
+prepares one committed export and final sdist from that checkpoint, plus exact
+unchanged-profile five-ABI commands. It does not launch a second native builder
+while the original556b21e build remains live. Original native/GPU/science
+observations retain their real source/wheel boundaries.
+
+After the already released installed2,280-object inactive dry/replay terminates
+and seals its receipts, root authorizes the local Sol/high task to run the full
+prepared installed Eu187 standard reference: CBond→complexes_build, sixteen
+workers onCPUs0-63,100epochs×100steps,1000s timeout, original thresholds/seeds,
+renderoff. The original clean/repaired CP311 wheel and copied benchmark support
+remain authoritative for this invocation; no model/algorithm/session-setting
+change, thinning, retry or automatic-profile activation. Root inspects the
+current cli/runner/pipeline/configuration and cohort/exporter. The187ligands
+are a fixed input corpus; actual CBond eligibility, failures, finite observations,
+selected trajectories and sample denominators are outcomes, not targets. The
+historical182complex constraint cannot justify changing any result. Independent
+UFF/cohort/four-route xTB execution remains held for review of this actual
+reference and its topology/input evidence. Shared-load timing is not a formal
+performance claim. Whole Plan20/Plan12 acceptance and B_exp remain open.
+
+
+### 2026-11-04 — Stage12 inactive corpus acceptance, Eu reference and independent UFF release
+
+Root resumes the existing Stage12 route after reading the three project skills,
+their governance/scientific references, the effective goal and affected Stage12,
+Section12/14 and maintained execution/release records. HEAD remains ec4d61889a7262df765da29082e405b3c612cd15;
+no product bytes changed. The unrelated owner file is untouched. The previous
+question-only turn produced no mainline acceptance evidence; the actual native
+build91736 and direct-SSH MCA13886 handles are polled live, without restart.
+
+Root's completed accept_dry2280.py returns RC0 and seals2330payloads/27709507bytes
+under final-plan12-inactive-dry2280; manifest360335a42ca798fbe6d9b24251a4085cf093bd3b60b6a49b70302278ae8c9d3b.
+All2280primary and2280replay returns agree with0execution failures. All scientific
+states remain unresolved/inadmissible under the planned/inactive profile and
+0automatic selections; this is not activation accuracy evidence. The first
+root packaging key error remains archived separately, without a business retry.
+
+Root independently reads Eu execution, original summary and all187outcome
+records and verifies2657artifact rows with0byte/hash mismatches. Natural
+CBond eligibility is182; statuses181passed,1failed_quality(case61),5failed_cbond
+(indices139,182,185,186,187). All182eligible main trajectories survive. Case61's
+finite8348.46912191508kJ/mol selected observation, short-bond findings and entire
+trajectory are retained. The16model runtimes actually use CPU providers, but
+2016observed pool-thread masks extend beyond the requested0-63affinity; this
+run supports functionality only, not formal comparable performance. The root
+receipt is /tmp/hotpot_plan20/long/stage12-final-plan12-20261104/root-eu-reference-review01/review.json.
+
+Root releases the same local Sol/high worker to the existing current-topology
+cohort exporter followed by one independent UFF preparation, all187ligands and
+all182naturally eligible complexes including failed-quality61. Preserve standard
+thresholds/seeds/100epochs×100steps,16workers and requestedCPU0-63, actual origins,
+resource limits and all failures; do not force a historical success count.
+No xTB, optional activation, source/model/session changes or retry is released.
+The local Sol/medium worker separately resolves all34missing frozen timing-node
+bindings without changing the2689denominator or starting timings. External
+helper remains terminated; all gates beyond these bounded scopes stay open.
+
+### 2026-11-04 — Stage12 final-source native build scheduling release
+
+The original556b21e builder remains live onCPU64-71 and will retain its actual
+source boundary. Root changes only final-build scheduling: five independent
+clean/repaired ABI builds may run concurrently on disjoint eight-CPU sets
+72-79(CP311),88-95(CP310),96-103(CP312),104-111(CP313),112-119(CP314).
+This supersedes preparation01's sequential/wait-for64-71 prerequisite because
+none of the new builders acquires that CPU set. Eu reference is terminal;
+the independent UFF request remains0-63 and its observed thread-affinity limit
+is explicit. The environment has128availableCPUs, approximately468GB available
+RAM and83.8GB/tmp plus43.2GB repository free at release. Shared-load build/run
+elapsed values are not performance comparisons.
+
+Every ABI uses exactly the already root-verified ec4d618 committed source
+sdist7f226ae1172d688f743a771b719cf68dc4b2fec849b1c31a97dcf9263689ecb5,
+the same pinned manylinux image, read-only verified source archives, offline
+native sources, eight compile threads, repair exclusions and maintained smokes.
+Each ABI gets its own mutable cache/output/receipt directory under
+/tmp/hotpot_plan20/long/stage12-final-native-exports-20261104/native-parallel01.
+No old compiled objects, shared mutable build cache, source rebuild, reduced
+native coverage, automatic retry or relabeling of old wheels is authorized.
+The driver must retain every actual start/return code, streams, produced-wheel
+identity and final six-extension content checks. This is a resource/scheduling
+revision within the approved validation route, not a scientific/architecture
+change or a gate waiver. Final wheel/source/version/MCA/performance/Plan12 and
+main-scope acceptance, B_exp and Stage13remain open.
+
+
+### 2026-11-04 — Stage12 independent UFF review and official Eu four-route release
+
+The existing local Sol/high worker executes the independent UFF route once,
+RC0/161.613176s. Root reads actual reports and verifies3178indexed artifact rows
+with0mismatches. All187reports and369eligible target outcomes remain: ligands
+182passed/5failed_quality(68,84,89,124,184); complexes181passed/1failed_quality(61),
+plus5not-eligible complex records. All6nonpassing eligible targets retain finite
+coordinates, SDF/MOL2, findings and trajectories. The unchanged cohort exporter
+validates selected topology/rebuild and naturally includes all182complexes.
+No fixed success count or historical numerical equality is imposed. All4177
+pre/post bindings match;224process receipts/90166origin observations have0
+violations. Scientific-process thread masks are inside0-63; the unpinned time
+wrapper is separate. This functional observation under shared load is not a
+formal performance comparison. Original556b21e wheel/model/native identities
+remain, without relabeling as newer source. Root review is
+/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/root-eu-uff-review01/review.json.
+
+Root separately releases one prepared installed official Eu xTB run against
+that actual canonical cohort/source manifest: all187inputs, both routes and
+both targets,16workers×4threads,requestedCPU0-63,1000s stage timeout,standard,
+ligandQ0/UHF0 and EuQ+3/UHF6,STRICT. The official executable digest remains
+271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887.
+Retain every source-invalid/inference-conflict/backend/local/quality failure,
+actual stage-launch count and last finite observation; do not remove upstream
+failures or fabricate eligible work. No retry, optional-profile activation,
+model/session/algorithm/source changes are released. Other support/scientific/
+performance/side-branch and final acceptance gates remain open.
+
+
+### 2026-11-04 — Owner-directed Stage14 PyG and Stage15 Crystal branch plans
+
+The owner adds actual PyG and Crystal implementation to this overall task,
+with detailed stage-owned plans and short main-plan references. Root inspects
+the actual Molecule/Crystal/PyG/builder/conversion/collection owners, current
+cell and transport tests, affected interface protocol and main-plan Sections14,
+16.4and17. Existing unchanged mainline alignment is reused; this does not enter
+new runtime authoring or alter its frozen source. Primary PyG, IUCr, Gemmi and
+CCDC documentation informs explicit third-party/scientific boundaries; future
+installed-version behavior still needs actual entry checks.
+
+New stages/stage14/review.md and stages/stage15/review.md contain the detailed
+phases, candidate files/owners, fact/metadata/units/mapping contracts, numerical
+and semantic checks, lifecycle/adapter migration, performance/support and exact
+completion boundaries. Their README files are indexed in the stage catalog and
+project index; main-plan Section18 registers the additional branches with a
+small scoped amendment. Stage0-12 B_exp and Stage13 D_exp/I_exp retain their
+original gates. Planning may proceed now; product implementation begins from
+validatedB_exp. Stage14Molecule transport can proceed independently; Crystal
+roundtrips consume Stage15C's implemented domain publication and affected15E
+format migration. The shared PyG fixture belongs to Stage14D/overall integration,
+so Stage15can independently publish/close its domain.
+
+The owner explicitly rejects old-output compatibility and then selects exact
+public names to_pyg()/from_pyg() on Molecule and Crystal. Stage14will directly
+retire to_pyg_data(), migrate actual consumers and add no alias, compatibility
+switch or legacy-use documentation. Actual trained CBond/MCA feature meaning
+remains at model-input owners, independently of public graph transport.
+Stage15explicitly corrects the characterized swapped alpha/gamma from_matrix
+convention through connected migration, preserves full oriented cell geometry,
+and separates site equivalence/proximity from whole-molecule symmetry.
+
+A local Sol/medium read-only review identifies two P2dependency inconsistencies:
+Stage14D's insufficient15A/B prerequisite and a reverse Stage15acceptance
+requirement on PyG. Root corrects both to the publication/consumer boundaries
+above. Scoped local-link/whitespace checks pass across the four new records;
+no whole-stage record audit, product test, model/engine call or runtime feature
+implementation is claimed by this planning check. No pendingStage3agent or
+forbidden owner material is accessed. Full overall completion now includes
+these additional branches without substituting them for mainline acceptance.
+
+
+### 2026-11-04 — Stage14 actual model-call boundary clarification
+
+A bounded local Sol/medium source trace confirms current production CBond and
+MCA do not directly/transitively call Molecule.to_pyg_data(). CBond prepares
+NumPy atomic-number/edge/candidate/ring inputs through its domain feature owners;
+MCA prepares DTO/RDKit/Uni-Mol features then casts to session-declared dtypes.
+The public feature exporter shares some low-level helpers with separate
+training/ComplexFormer consumers. Its actual direct product caller is collection
+export. Root adds this concrete distinction to Stage14: migrate public/dataset
+callers to to_pyg(), preserve actual model-input mathematics at its owners,
+and retain no legacy public output. This trace is source inspection only; no
+inference or runtime equivalence test was performed for the question.

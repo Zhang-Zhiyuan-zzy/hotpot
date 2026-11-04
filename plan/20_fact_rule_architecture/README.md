@@ -24,6 +24,12 @@ Decision13/D028/D029, optional research execution, other native/release/version
 obligations, final scientific/performance and full-plan acceptance remain open. The owner-approved [goal](goal.md) governs execution;
 [goal_v1](goal_v1.md) is historical.
 
+Owner-directed additional task branches are registered as
+[Stage14 — reversible PyG transport](stages/stage14/README.md) and
+[Stage15 — Crystal implementation](stages/stage15/README.md). Their detailed
+stage plans and main-plan Section18 preserve existing mainline acceptance
+boundaries; runtime implementation has not started.
+
 All public chemical types follow a common protocol for fact ownership, interface mapping, permissions, dependencies, buffer ownership and lifecycle. Atom's unified fact table is one concrete implementation. MetalCluster runtime remains Plan21 scope. Existing historical checkpoints below retain their own source and evidence bounds.
 
 Implementation branch: `implement/plan20-fact-rule-architecture`

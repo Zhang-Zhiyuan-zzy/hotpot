@@ -1,11 +1,11 @@
 # Stage record catalog
 
 The main plan and normative companions remain in the project root (Plan21
-remains in its own project). This catalog organizes Stage0–13. Stage0–8E owning
+remains in its own project). This catalog organizes Stage0–15. Stage0–8E owning
 gates are complete within their recorded source/installed/scientific scopes;
 remaining final delivery/version/science/performance obligations stay open.
 Stage9A–C and the complete15-row migration crosswalk have recorded CP311
-source/installed acceptance. Stage10–13 remain open. Current navigation
+source/installed acceptance. Stage10–13 remain open; the owner-directed Stage14/15 branches are planned. Current navigation
 points to stage-owned records; historical snapshots keep their original bounds.
 
 ## Markdown types
@@ -48,6 +48,8 @@ merely to fill a directory.
 | Stage11 | [stage11](stage11/README.md) | Planned: Clean outer commands and data ownership |
 | Stage12 | [stage12](stage12/README.md) | Planned: Explicit exports, documentation, and final hardening |
 | Stage13 | [stage13](stage13/README.md) | Planned: kekulize/aromatic experimental rule-interface protocol |
+| Stage14 | [stage14](stage14/README.md) | Planned: reversible Molecule/Crystal ↔ PyG Data transport |
+| Stage15 | [stage15](stage15/README.md) | Planned: Crystal aggregate, symmetry, cell/supercell generation and periodic geometry |
 
 Read the current main plan and normative companions as required by the plan,
 then the selected stage README, its entry assessment, relevant review/decisions

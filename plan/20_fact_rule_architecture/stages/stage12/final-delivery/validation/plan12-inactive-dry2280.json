@@ -1,0 +1,138 @@
+{
+  "status": "CURRENT_CP311_INSTALLED_INACTIVE_CORPUS_AND_REPLAY_ACCEPTED_ACTIVATION_AND_EU_GATES_OPEN",
+  "scientific_source_commit": "556b21ef40668d728ccfa1b7e4b478a66c23f150",
+  "current_commit_at_completion": "ec4d61889a7262df765da29082e405b3c612cd15",
+  "execution": {
+    "argv": [
+      "taskset",
+      "--cpu-list",
+      "80-87",
+      "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+      "-s",
+      "-B",
+      "-m",
+      "tests.benchmarks.scientific_state",
+      "--structure-registry",
+      "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/preparation01/inputs/structure_registry_2280.csv",
+      "--structure-root",
+      "/home/zhangzhiyuan/hotpot/hotpot/dataset/data/store/active/datasets.sqlite3.assets",
+      "--output",
+      "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/dry2280-installed01/results"
+    ],
+    "cwd": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support",
+    "environment_overrides": {
+      "CUDA_VISIBLE_DEVICES": "",
+      "HF_HUB_OFFLINE": "1",
+      "HOTPOT_CBOND_DEVICE": "cpu",
+      "HOTPOT_CBOND_MODEL_DIR": "/tmp/hotpot_plan20/medium/cbond-model-cache-20261103/artifacts/cbond/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/cbond/v1",
+      "HOTPOT_DRY_OBSERVER_RECEIPT": "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/dry2280-installed01/dry-observer.json",
+      "HOTPOT_DRY_RETURN_OBSERVATIONS": "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/dry2280-installed01/resolve_case_returns.jsonl",
+      "HOTPOT_EXPECTED_PRODUCT": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/site",
+      "HOTPOT_MODEL_SOURCE": "local",
+      "HOTPOT_PROCESS_ORIGIN_DIR": "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/dry2280-installed01/origins",
+      "LD_LIBRARY_PATH": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib:/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1",
+      "PYTHONPATH": "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/dry2280-installed01/observer:/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/site:/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support"
+    },
+    "returncode": 0,
+    "elapsed_seconds": 440.21438588760793,
+    "measurement_argv": [
+      "/usr/bin/time",
+      "-v",
+      "-o",
+      "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/dry2280-installed01/time-v.txt",
+      "taskset",
+      "--cpu-list",
+      "80-87",
+      "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+      "-s",
+      "-B",
+      "-m",
+      "tests.benchmarks.scientific_state",
+      "--structure-registry",
+      "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/preparation01/inputs/structure_registry_2280.csv",
+      "--structure-root",
+      "/home/zhangzhiyuan/hotpot/hotpot/dataset/data/store/active/datasets.sqlite3.assets",
+      "--output",
+      "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/dry2280-installed01/results"
+    ]
+  },
+  "observations": {
+    "input_structures": 2280,
+    "formats": {
+      "mol2": 190,
+      "xyz": 2090
+    },
+    "primary_execution_returns": 2280,
+    "replay_execution_returns": 2280,
+    "replay_mismatches": 0,
+    "scientific_unresolved": 2280,
+    "decision_inadmissible": 2280,
+    "automatic_selections": 0,
+    "profile_activation_coverage_final": false,
+    "failures": 0,
+    "truncated": 0,
+    "unknown_bonds_by_format": {
+      "mol2": {
+        "record_count": 190,
+        "with_coordination_bonds": 0,
+        "with_unknown_bonds": 190
+      },
+      "xyz": {
+        "record_count": 2090,
+        "with_coordination_bonds": 0,
+        "with_unknown_bonds": 2079
+      }
+    },
+    "search_status": {
+      "no_certified_decision": 17,
+      "not_evaluated": 2263
+    },
+    "profile_findings": {
+      "PROFILE.COORDINATION_BOUNDARY_REQUIRED": 2280,
+      "PROFILE.SCREENING_ARTIFACT_NOT_ACTIVE": 2280
+    }
+  },
+  "resources": {
+    "harness_python_peak_scope": "Per-case tracemalloc resolver allocations only; excludes native allocations.",
+    "launcher_elapsed_seconds": 440.21438588760793,
+    "max_rss_bytes": 296579072,
+    "max_rss_kib": 289628,
+    "max_rss_scope": "GNU time -v maximum resident set size for the measured process; includes interpreter, imports, Python/native memory and observation overhead, not isolated resolver allocations. kbytes interpreted as KiB on Linux.",
+    "performance_claim": false,
+    "profiling_overhead": "sys.setprofile return capture observes every resolve_case primary/replay return; profiler callbacks and JSON writes affect wall and resolver measurements. No paired timing or speedup claim."
+  },
+  "attribution": {
+    "finite_pre_post_bound_inputs": 3802,
+    "observed_product_modules": 231,
+    "observed_native_modules": 3,
+    "foreign_origins": 0,
+    "input_or_product_mismatches": []
+  },
+  "corpus": {
+    "registry_path": "inputs/structure_registry_2280.csv",
+    "sha256": "157e82d3f64256921c3c2647d23a3baeb1d66a220fa3397a6d5a95499e3ae8af",
+    "identity": "Current store-derived physical-object corpus; source UUID/hash differ from the maintained historical inventory; historical row equivalence unproven."
+  },
+  "limits": [
+    "Inactive planned profile only; activation_coverage_is_final=false. No reviewed DATIVE annotations added, held-out accuracy/activation or automatic-profile qualification.",
+    "Independently bound current store-derived physical-object corpus; no historical registry row/content equivalence or paired historical performance claim.",
+    "One CP311 installed wheel/native boundary only; no source duplicate, Eu CBond/UFF/four-route run, engine/model/FF execution, fresh build/ABI/SDK or other interpreter qualification.",
+    "The harness replays facts/snapshot identity, not every timing/allocation value; primary and replay full returned fields are separately retained.",
+    "Source initializer and maintained-record changes outside the finite scientific binding are separately authorized; no whole-source clean claim.",
+    "Loaded Hotpot Python/native origins are observed by PathFinder/import audit and normal-exit inspection in the single interpreter. No live /proc child maps were captured from the separate monitoring invocation.",
+    "Execution return status resolved is distinct from a resolved scientific state: all2280scientific states are unresolved under the inactive profile.",
+    "No held-out selection accuracy, automatic-profile acceptance, explicit-DATIVE topology proof, Eu\u56db-route execution or overall Plan12/Plan20 acceptance follows.",
+    "Instrumented wall/RSS and per-case Python allocation measurements have different scopes and do not establish an architectural speed comparison."
+  ],
+  "root_review_utc": "2026-11-04T05:43:41.626136+00:00",
+  "archive": ".plan20-artifacts/20261104/stage12/final-plan12-inactive-dry2280",
+  "archive_manifest_sha256": "360335a42ca798fbe6d9b24251a4085cf093bd3b60b6a49b70302278ae8c9d3b",
+  "archive_payloads": 2330,
+  "archive_bytes": 27709507
+}

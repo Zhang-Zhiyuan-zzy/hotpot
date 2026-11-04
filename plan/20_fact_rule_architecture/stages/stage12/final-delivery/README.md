@@ -64,3 +64,7 @@ Root owns the final source freeze, one-sdist/five-ABI build, provider-specific
 preregistered MCA observations, evidence reuse, remaining issue dispositions,
 main-scope report and validated B_exp. Stage13 and optional profile activation
 retain their separate entry gates.
+
+- [Inactive Plan12 corpus/replay](validation/plan12-inactive-dry2280.json)
+- [Eu reference](validation/plan12-eu-reference.json)
+- [Independent UFF/canonical cohort](validation/plan12-eu-uff.json)

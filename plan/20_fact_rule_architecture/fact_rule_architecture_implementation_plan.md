@@ -15,6 +15,10 @@ is accepted within its clean CP311 source/sdist/wheel/probe-SDK boundary.
 Stage11A immutable reference assets, [Stage11B commands](stages/stage11/commands/validation/checkpoint.json), and [Stage12A explicit/lazy imports](stages/stage12/lazy-imports/validation/checkpoint.json)
 are accepted at their affected CP311 source/installed boundaries. Other Stage10 release/version obligations,
 remaining Stage11–12, optional scientific activation and global acceptance remain open**.
+The owner added [Stage14 PyG transport](stages/stage14/review.md) and
+[Stage15 Crystal implementation](stages/stage15/review.md) on 2026-11-04 as
+additional branches of this task; see Section18. Their implementation is pending,
+and they do not redefine Stage0–12 acceptance or the Stage13 experiment.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
 are recorded in [the CP311 core-workflow report](cp311_core_workflow_validation_20261103.md). The architecture, lazy invalidation, scientific-reporting, and
@@ -3221,3 +3225,35 @@ operation 仍负责完整写入与恢复。接入替换一个调用连接，不�
 
 任何实验结果均不自动授权向其他领域推广接口协议。进一步推广作为独立后续工作
 重新提出；本轮其他实施内容完整沿用当前文档。
+
+
+## 18. Additional owner-directed branches: Stage14 and Stage15
+
+On 2026-11-04 the owner includes two concrete implementation branches in the
+current overall task. Detailed stage-owned plans, rather than a rewrite of the
+Stage0–13 mainline, define their work:
+
+| Stage | Required outcome | Detailed plan |
+|---|---|---|
+| Stage14 | Reversible, minimally lossy Molecule/Crystal ↔ PyG Data; use `to_pyg()` / `from_pyg()` and directly retire `to_pyg_data()`, with no legacy-output compatibility route or documentation. Preserve trained-model input meaning at model owners. | [PyG implementation plan](stages/stage14/review.md) |
+| Stage15 | Crystal containing molecular/asymmetric-unit content, explicit crystallographic context/site relations, unit-cell and supercell generation, periodic geometry findings and crystal-supported whole-molecule symmetry checking. | [Crystal implementation plan](stages/stage15/review.md) |
+
+Planning and bounded read-only preparation may proceed during Stage12 without
+changing its frozen product bytes. Production implementation starts from the
+validated main-scope `B_exp`. Stage13 remains its separately branched experiment
+under Section17; it is not an unrelated dependency for these branches. Stage14's
+Molecule transport can proceed independently; its Crystal transport consumes
+Stage15's concrete domain contract. Stage15 does not wait for that consumer.
+The main agent coordinates branch integration and exact public/schema decisions
+under Section16.4; existing Stage0–12 Crystal/PyG contracts are not rewritten
+retroactively. Stage15 explicitly migrates the former six-scalar Crystal scope,
+including the characterized nonstandard `from_matrix` angle convention, through
+its own connected ownership/consumer/validation cutover.
+
+These are additional current-task deliverables, not substitutes for unfinished
+mainline obligations or permission to waive any gate. Overall task completion
+includes their actual implementation, affected source/installed and chemical
+validation, documentation, reports and coherent Git delivery. Register exact
+side-branch source/commit boundaries at entry. MetalCluster runtime remains
+Plan21; no new general rule protocol or trained-model change follows from this
+registration.

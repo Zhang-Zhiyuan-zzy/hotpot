@@ -68,3 +68,7 @@ Consolidated cross-stage optimization and deferred-item review use the
 - [Final installed actual workflows and documentation](final-delivery/validation/installed-workflows.json)
 
 - [Explicit package exports and optional-runtime limits](final-delivery/validation/explicit-package-exports.json)
+
+- [Installed inactive 2,280-object corpus and replay](final-delivery/validation/plan12-inactive-dry2280.json)
+- [Full installed Eu reference and retained resource limit](final-delivery/validation/plan12-eu-reference.json)
+- [Independent UFF and actual canonical Eu cohort](final-delivery/validation/plan12-eu-uff.json)

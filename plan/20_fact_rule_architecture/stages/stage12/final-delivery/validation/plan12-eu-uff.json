@@ -1,0 +1,69 @@
+{
+  "schema": "hotpot.plan20.stage12.final-scientific-observation.v1",
+  "status": "BOUNDED_CURRENT_INSTALLED_FUNCTIONAL_OBSERVATION_ACCEPTED_GLOBAL_GATES_OPEN",
+  "source_commit": "556b21ef40668d728ccfa1b7e4b478a66c23f150",
+  "current_source_checkpoint": "ec4d61889a7262df765da29082e405b3c612cd15",
+  "source_scope": "Original exact installed wheel, unchanged finite scientific-owner/model/native/harness/input bindings; current initializer-only product changes remain separately qualified. No relabeling as a newly built wheel.",
+  "command": [
+    "taskset",
+    "--cpu-list",
+    "0-63",
+    "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+    "-s",
+    "-B",
+    "-m",
+    "tests.benchmarks.coordination_complexes.auto_optimize_benchmark",
+    "--input",
+    "/home/zhangzhiyuan/hotpot/molecules/extractant/extractants.smi",
+    "--reference",
+    "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/eu-reference-installed01/results",
+    "--output",
+    "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/eu-uff-installed01/results",
+    "--workers",
+    "16"
+  ],
+  "cwd": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support",
+  "returncode": 0,
+  "elapsed_seconds": 161.6131763253361,
+  "observations": {
+    "input_records": 187,
+    "complex_count": 182,
+    "eligible_target_count": 369,
+    "per_target_status_counts": {
+      "complex": {
+        "failed_quality": 1,
+        "not_eligible": 5,
+        "passed": 181
+      },
+      "ligand": {
+        "failed_quality": 5,
+        "passed": 182
+      }
+    },
+    "noneligible_indices": [
+      139,
+      182,
+      185,
+      186,
+      187
+    ],
+    "failed_target_count": 6,
+    "case61_included": true,
+    "trajectory_gaps": []
+  },
+  "scientific_attempts": 1,
+  "retries": 0,
+  "formal_performance_accepted": false,
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/final-plan12-eu-uff",
+    "payload_count": 3179,
+    "payload_bytes": 319592625,
+    "manifest_sha256": "f907945b285ffd045a45305e7bf743432e3a5ad7d0009a800c9c1d1d6cc68f0c"
+  },
+  "root_review": "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/root-eu-uff-review01/review.json",
+  "limits": [
+    "Method-bound monitor findings are retained, not chemical truth or a fixed success target.",
+    "Actual xTB/GPU/native/version/performance/activation/side-branch and overall acceptance have separate gates.",
+    "All finite unfavorable observations and source-invalid/failed records remain available."
+  ]
+}

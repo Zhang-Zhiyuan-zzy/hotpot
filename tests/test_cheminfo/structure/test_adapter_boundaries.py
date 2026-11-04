@@ -143,15 +143,16 @@ def test_ob_capture_precedes_atom_failure_after_preparation(monkeypatch):
     counts = Counter(observation.events)
     assert counts['_require_aromatic_representation:returned'] == 1
     assert counts['_prepare_aromatic_representation:returned'] >= 1
-    assert counts['_require_implicit_hydrogens:enter'] == counts['_prepare_hydrogens:enter'] == 0
+    assert counts['_require_implicit_hydrogens:enter'] == counts['_prepare_hydrogens:enter'] == 1
+    assert observation.returns['_require_implicit_hydrogens'] == [(3, 3)]
     assert counts['_validate_payload_references:enter'] == counts['_payload_atom_facts:enter'] == 0
     assert counts['NewAtom:attempt'] == counts['SetAtomicNum:attempt'] == counts['EndModify:attempt'] == 0
     assert len(observation.containers) == 1
     assert observation.containers[0].NumAtoms() == observation.containers[0].NumBonds() == 0
-    selected = {'_require_aromatic_representation:enter', 'OBMol:created', 'BeginModify:returned',
-                'coordinates:snapshot'}
+    selected = {'_require_implicit_hydrogens:enter', '_require_aromatic_representation:enter',
+                'OBMol:created', 'BeginModify:returned', 'coordinates:snapshot'}
     assert [event for event in observation.events if event in selected] == [
-        '_require_aromatic_representation:enter', 'OBMol:created', 'BeginModify:returned',
-        'coordinates:snapshot']
+        '_require_implicit_hydrogens:enter', '_require_aromatic_representation:enter',
+        'OBMol:created', 'BeginModify:returned', 'coordinates:snapshot']
     assert _facts(mol) == observation.completed_facts['_require_aromatic_representation']
     assert not {'_obmol', '_row2idx'} & mol.__dict__.keys()

@@ -7973,3 +7973,60 @@ records CUDAExecutionProvider and output[4,6]. Original failure is retained unde
 allowed mca_test paths. This proves CUDA availability only, not MCA/GPU acceptance.
 The selected Docker image is observed absent again; same-digest refetch/active
 holder preparation is ongoing, no changed image/config/permission/algorithm.
+
+
+### 2026-11-04 — Stage12 final default diagnosis and delivery continuation
+
+The full CP311 MAIN default/coverage run is terminal RC1:6978collected,
+6837passed/9failed/129tier-disabled skips/3xfails/49passed subtests. Its
+original execution, coverage and1551source/test/support/six-native guards remain
+at /tmp/hotpot_plan20/long/stage12-final-default-20261104/source01; no full
+acceptance is inferred. Read-only diagnosis01 attributes eight cases to three
+accepted-contract expectation mismatches and one to a retired MolProps wildcard
+allowance; no production defect or absence of all other findings is established.
+Root accepts only those four local test/allowance corrections and releases them
+to the existing local Sol/high worker, followed by complete affected files and a
+full saved architecture report. Later pickle assertions must actually execute.
+The forbidden unrelated owner rescore file remains untouched and excluded.
+
+This bounded continuation reuses current Stage12 alignment, governance/stage/
+validation skills, both durable references, the current goal, Stage12/Sections
+11--14 and requirements01's13-group actual-evidence map. Root owns plan, acceptance
+and Git; no public/scientific algorithm or gate changes. Another existing local
+Sol/medium worker has completed immutable remote MCA preparation:85original
+model files/157310650bytes independently agree on ai-14 under the permitted
+mca_test root, with no inference or install. That worker now executes current
+mandatory README/geometry/pipeline/dataset documentation using real cached models
+and prepares an explicit full installed-default selection; no overlapping edits
+or external helper are authorized. Original failures and skipped tiers remain.
+
+The exact pinned manylinux image/cache/compiler/five interpreters pass actual
+preflight and build-identifier parsing. Final source freeze, one final sdist,
+five clean native wheels, final installed/default/backend/GPU/version/scientific/
+performance/Plan12 evidence and main-scope report/B_exp remain open. No compiled
+objects or earlier private wheel can substitute for that final build. Native
+build and functional model work may overlap with correctness checks on separate
+resources; formal benchmark observations require the frozen comparable resources
+and no competing task load. Stage13 and optional profile activation stay gated.
+
+
+### 2026-11-04 — Stage12 contract-backed final-check correction acceptance
+
+Root reviews the exact four-file diff and runs
+`python -B /tmp/hotpot_plan20/long/stage12-final-default-20261104/root-review/accept_corrections.py`: RC0.
+All82focused packet payloads, the four current edited files, actual JUnit59/0/0,
+177ordered phases, all nine rerun nodes, six completed unoptimized fresh pickle
+children and517product-origin observations/0violations verify. The full actual
+architecture report passes1025Python/1063legacy-consumer files with20unchanged
+allowed debts and no ratchet/layer/legacy-core/carrier findings. Twelve existing
+DeprecationWarnings remain. No production/checker/scientific behavior changed.
+
+The archive .plan20-artifacts/20261104/stage12/final-default-corrections retains
+152payloads/25981156bytes, manifestSHA256ab458055cf77eced3107c8d3ad34b7cfc87fc771a8a756a3ecbf42c5d8a19e61,
+including the original failed full default, raw nine failures, diagnosis and
+focused rerun. Original failures are not relabeled passes. Maintained final
+delivery/corrections records accept this CP311 bounded correction only; no
+global/default/installed/native/version/GPU/performance gate closes. Root will
+commit/push these validated tests and ownership metadata with related records,
+then release the final full CP311 default+coverage on that committed snapshot
+and one-sdist native delivery. Unrelated owner work remains unaccessed.

@@ -201,7 +201,10 @@ def test_actual_explicit_hydrogen_rejection_has_its_input_code_and_message():
     with pytest.raises(XTBInputError) as caught:
         adapter.molecule_to_xtb_geometry(mol)
     assert caught.value.sample_failure_code == "XTB-EXPLICIT-H-REQUIRED"
-    assert "4 implicit hydrogens but has 0 explicit hydrogen atoms" in str(caught.value)
+    assert str(caught.value) == (
+        "Atom 0 (C) requires 4 non-graph hydrogen atoms to be represented explicitly "
+        "(stored count 4, graph H 0)"
+    )
 
 
 @pytest.mark.parametrize(

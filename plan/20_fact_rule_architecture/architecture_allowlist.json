@@ -5,15 +5,6 @@
   "policy": "Entries shrink against the actual pre-change Git ref and frozen inventory. Stage9 retires all legacy-core bindings with no relocation credit. Active retired-core/bundle modules/imports/entry calls and wrong/duplicate carrier/view/collection definitions fail independently of this allowlist; other owning-layer and write gates remain strict.",
   "entries": [
     {
-      "path": "hotpot/cheminfo/MolProps/__init__.py",
-      "line": 8,
-      "scope": "",
-      "target": "hotpot.cheminfo.MolProps.sol_med_prop.*",
-      "local": "*",
-      "rule": "wildcard_package_export",
-      "stage": "Stage12"
-    },
-    {
       "path": "hotpot/plugins/ComplexFormer/data_process/sc_logk/__init__.py",
       "line": 15,
       "scope": "",

@@ -56,3 +56,6 @@ Consolidated cross-stage optimization and deferred-item review use the
 - [MCA cache report](mca-cache-diagnostics/validation/report.md)
 - [MCA cache evidence graph](mca-cache-diagnostics/validation/evidence_graph.json)
 - [MCA cache root verification](mca-cache-diagnostics/validation/root-verification.json)
+
+- [Final delivery and full-default continuation](final-delivery/README.md)
+- [Accepted focused corrections](final-delivery/validation/corrections.json)

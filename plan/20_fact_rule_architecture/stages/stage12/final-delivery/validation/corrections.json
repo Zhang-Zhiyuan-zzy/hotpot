@@ -1,0 +1,84 @@
+{
+  "status": "BOUNDED_CORRECTIONS_ACCEPTED_FULL_DEFAULT_PENDING",
+  "source_base": "0233d84a5a6d90d954c206f44009b4fb46cdb59e",
+  "source_changes": [
+    {
+      "path": "tests/test_cheminfo/structure/test_adapter_boundaries.py",
+      "before_sha256": "915db0cd2d2dc9f6a9406dea3403a972a219af34d33dac53ab8fe4e804e11e13",
+      "after_sha256": "fb27ac3210b8550cdb2f353589d28b5fbda3e78cc7a2fab39ddaca961f820636",
+      "before_bytes": 7556,
+      "after_bytes": 7704,
+      "replacement_count": 3
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+      "before_sha256": "00d0073467cef2ecc057cf7332087d35757c59fe60062397e3c862b5119b331e",
+      "after_sha256": "41be3c18aa5f166e56542191c53bf9cf46b3d243fb7e687dec37ca9788345857",
+      "before_bytes": 25369,
+      "after_bytes": 25369,
+      "replacement_count": 1
+    },
+    {
+      "path": "tests/test_plugin/test_xtb/test_sample_failure_identity.py",
+      "before_sha256": "3a3d72cebcd488cd8a823bb6d175e32c7b4e0ed71877b9ce265e4913c6af8c2c",
+      "after_sha256": "9aeed83041a9a5eb9b648074cc57ee4edcf3d8a1df42136ee2e5bba309dd2622",
+      "before_bytes": 12100,
+      "after_bytes": 12176,
+      "replacement_count": 1
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/architecture_allowlist.json",
+      "before_sha256": "3a358585b453d6ad5421376946a4f830a304f3ca743b3db6102307c99bf8032d",
+      "after_sha256": "84c8b767f35a313d651486758e664849dfb9831c3bd3813cd0e997fb36481385",
+      "before_bytes": 18557,
+      "after_bytes": 18309,
+      "replacement_count": 1
+    }
+  ],
+  "focused": {
+    "passed": 59,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 12,
+    "previous_failures_passed": 9,
+    "pickle_protocols_completed": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "architecture": {
+    "schema_version": 1,
+    "status": "passed",
+    "base_ref": "0233d84a5a6d90d954c206f44009b4fb46cdb59e",
+    "scanned_python_files": 1025,
+    "legacy_consumer_python_files": 1063,
+    "remaining_debt": 20,
+    "ratchet": {
+      "new_debt": [],
+      "unretired_allowlist_entries": [],
+      "allowlist_growth": [],
+      "exceeds_frozen_inventory": []
+    },
+    "layer_findings": [],
+    "legacy_core_findings": [],
+    "carrier_definition_findings": {},
+    "scope": "Source/import/write ratchet and migrated-layer checks. Runtime alias/permission/lifecycle, semantic class identity and native ABI gates remain separate."
+  },
+  "origin_observations": 517,
+  "origin_violations": [],
+  "root_review_utc": "2026-11-04T04:38:52.454487+00:00",
+  "archive": ".plan20-artifacts/20261104/stage12/final-default-corrections",
+  "limits": [
+    "Source CP311 focused correctness; no global or installed acceptance.",
+    "Twenty retained architecture debts remain explicitly allowed; no blanket architecture/runtime/ABI pass.",
+    "Original RC1 full default and all nine failure traces remain preserved.",
+    "Other Python, same-sdist clean native wheels, actual final workflows/GPU, performance, Plan12 and B_exp remain open."
+  ],
+  "archive_manifest_sha256": "ab458055cf77eced3107c8d3ad34b7cfc87fc771a8a756a3ecbf42c5d8a19e61",
+  "archive_payloads": 152,
+  "archive_bytes": 25981156
+}

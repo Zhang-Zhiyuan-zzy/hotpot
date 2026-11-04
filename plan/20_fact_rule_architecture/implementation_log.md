@@ -7156,3 +7156,55 @@ prepares one coherent Stage10business commit and normal push. Mechanical command
 used local Luna/low;Sol owned implementation,diagnosis and acceptance. Terra/Luna
 are permitted only for instruction-driven tasks without business edits or reasoning;
 model_allocation.md records the owner's policy without a separate policy-only commit.
+
+
+### 2026-11-04 — Stage11A reference-asset entry
+
+Pushed Stage10A commit5676ebc382b7783b2fa8eb62be7e0a2bf5cb83f1 has zero
+postcommit drift across1053frozen inputs. Current governing goal/skills/references,
+affected main-plan ownership/tail/validation/decision sections and Stage11map are
+aligned with actual loader/tests/package consumers. A read-only local Sol/medium
+inventory separated already-completed Stage8command/resource moves from pending
+tail work. Root accepts only the existing Decision13two-reference-file subset,
+recorded before authoring at stages/stage11/reference-assets/entry_review.json.
+
+One local Sol/medium worker owns exact JSONmoves,sole loader and reference tests;
+root owns package declarations,plan records,integration and acceptance. No source
+values/schema/public signature or cache semantics change. Preserve source/installed
+reference values,lazy/read-only caching and actual distribution inclusion; keep
+retired asset paths absent. Remaining commands/templates/MolProps/dataset/CCDC,
+whole Stage11 and Stage10version/release/global gates remain open.
+
+
+### 2026-11-04 — Stage11A reference assets accepted
+
+Root accepts only the two unchanged reference JSON moves to reference/data,
+sole importlib.resources loader and explicit wheel/sdist membership. Source32,
+metadata15 and outside-checkout installed32 pass with zero failure/error/skip,
+zero origin leakage and the same32ordered source/installed node IDs. Independent
+H/C/O/Fe identity/mass and characteristic Angstrom bond scales supplement exact
+unchanged-transport checks; immutable caches and isolated public snapshots remain.
+
+Actual EXECUTE.sh/EXECUTE-R2.sh commands use the bound CP311 runtime/build
+interpreters and retain per-command execution/JUnit/origin/resource receipts.
+The first launcher typo returned127 before tests. R1 built archives but its
+whole-product audit exposed seven omitted generated RDKit licenses. R2 copied
+those exact accepted Stage10 bytes; its996bindings and all890wheel products
+verify. Six native binaries were reused without compilation. Source32/metadata15
+were retained after proving all952original bindings unchanged; no unchanged
+passed suite was rerun. Actual wheel/sdist contain only the two approved member
+renames and the sole loader change relative to the accepted product baseline.
+
+Root ran /tmp/hotpot_plan20/medium/stage11a-root-review-20261104/accept.py,
+independently checking95archived files/20002789bytes, source/installed results,
+origins, node ordering, source-to-Git resource bytes and wheel/sdist membership.
+Maintained checkpoint/report/evidence graph/root-verification reside under
+stages/stage11/reference-assets/validation; raw archive and retained failures:
+.plan20-artifacts/20261104/stage11/reference-assets. Wheel SHA256
+5a337862416afb3d6970ac0f78f8918270f8afe135506976919b617d8ecca8e7;
+sdist58b31cb9be66e0678712d5c566ed20eee9742f91d3450f19abd330408f173832.
+
+This completes bounded Stage11A, not remaining Decisions12/13 or whole Stage11.
+Other Python versions/release, Stage12/P20-D026, integrated Plan12 and global
+scientific/performance gates remain open. No new native compilation/default-suite
+or performance result is claimed. Root prepares a coherent business commit/push.

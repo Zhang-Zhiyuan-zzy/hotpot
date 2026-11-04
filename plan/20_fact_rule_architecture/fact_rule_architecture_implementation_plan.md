@@ -10,8 +10,9 @@ Stage9A semantic preparation, Stage9B sole-owner carrier cutover and Stage9C
 collection completion are accepted at their recorded CP311 source/installed
 boundaries. [Stage10A physical/native migration](stages/stage10/native-migration/validation/checkpoint.json)
 is accepted within its clean CP311 source/sdist/wheel/probe-SDK boundary. Other
-Stage10 release/version obligations, Stage11–12, optional scientific activation
-and global scientific/engineering acceptance remain open**.
+Stage11A immutable reference assets are accepted at their affected CP311
+source/installed resource boundary. Other Stage10 release/version obligations,
+remaining Stage11–12, optional scientific activation and global acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
 are recorded in [the CP311 core-workflow report](cp311_core_workflow_validation_20261103.md). The architecture, lazy invalidation, scientific-reporting, and
@@ -2422,6 +2423,12 @@ This is a separately approved tail stage controlled by Decisions 12 and 13.
 It is intentionally not a prerequisite for accepting the carrier/rule hard
 cut, and it may be deferred without leaving duplicate chemistry
 implementations.
+
+The [Stage11A reference checkpoint](stages/stage11/reference-assets/validation/checkpoint.json)
+accepts the two immutable JSON relocations and their sole loader/test/package
+consumers within affected CP311 source/installed evidence. No data or public
+snapshot semantics changed. Other command, legacy-template, MolProps and
+dataset distribution decisions retain their separate scope and status.
 
 1. Consolidate `main`/`works` command handlers into `commands` while retaining
    command names and arguments.

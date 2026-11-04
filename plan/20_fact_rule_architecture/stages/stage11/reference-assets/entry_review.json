@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-04",
+  "status": "AUTHORING_RELEASED",
+  "source_commit": "5676ebc382b7783b2fa8eb62be7e0a2bf5cb83f1",
+  "predecessor": "Stage10A clean CP311 source/sdist/wheel/probe-SDK migration accepted and pushed; other-version/release/global obligations remain open under goal CP311-first sequencing.",
+  "objective": "Move the two already-classified immutable chemistry reference JSON assets to their sole reference owner without changing source values, public snapshots or lazy caching.",
+  "scope": [
+    "ChemData/ElementProperties.json to reference/data/element_properties.json",
+    "ChemData/ideal_bond_length.json to reference/data/ideal_bond_lengths.json",
+    "existing sole private loader, connected reference tests and package declarations"
+  ],
+  "excluded": [
+    "remaining Decision12 command restructuring",
+    "legacy templates/MolProps/dataset or CCDC policy",
+    "scientific table changes",
+    "new public APIs/DTOs",
+    "Stage12 H/lazy-loading/global acceptance"
+  ],
+  "read_alignment": [
+    "current goal and governing skills/references",
+    "main-plan sections2,9.2-9.3,Stage10-12,11,16.2-16.4",
+    "Stage11 verification map",
+    "accepted Stage10A checkpoint and postcommit binding",
+    "actual loader/reference tests and sole-consumer inventory"
+  ],
+  "decision": "Root accepts only Decision13 reference-asset relocation subset under existing mandate; other tail choices remain pending.",
+  "validation": [
+    "unchanged source document bytes and independently specified element/length facts",
+    "lazy immutable cache and isolated public snapshot tests",
+    "affected source and outside-checkout installed CP311 resource consumers",
+    "actual wheel/sdist membership and retired resource-path absence"
+  ],
+  "gate_closed": false,
+  "overall_acceptance": false
+}

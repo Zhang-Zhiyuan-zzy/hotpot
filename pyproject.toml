@@ -131,6 +131,7 @@ all = [
 include-package-data = true
 
 [tool.setuptools.package-data]
+"hotpot.cheminfo.reference" = ["data/*.json"]
 "hotpot.cheminfo.rules.mathematics.geometry" = ["*.md", "_geometry_native.pyi"]
 "hotpot.cheminfo.rules.mathematics.graph" = ["README.md", "_graph_native.pyi"]
 "hotpot.cheminfo.operations.assembly" = ["*.md", "*.svg", "data/*.json"]

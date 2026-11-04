@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "status": "ACCEPTED_CP311_REFERENCE_ASSETS",
+  "nodes": {
+    "source_freeze": {
+      "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/bindings/freeze.json",
+      "bytes": 223603,
+      "sha256": "8079ba18bd9f272e8d18dec3ede060e7ef0640e08e8a59d124e16ce982e0e33c"
+    },
+    "R2_freeze": {
+      "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/bindings/freeze-R2.json",
+      "bytes": 231515,
+      "sha256": "47307014309494ceea4d27f3d1d1926ea6914b7d0842edb32aa41bfaf4d8ec42"
+    },
+    "R1_R2_provenance": {
+      "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/bindings/provenance-R1-R2.json",
+      "bytes": 9535,
+      "sha256": "ec2aa788ba8c439b4ac365f9d72f90d47a3c04dc3931bb56c3efcbfa1799eae9"
+    },
+    "package_identity": {
+      "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/packaging/package-attempt02/archive-identity.json",
+      "bytes": 231289,
+      "sha256": "97d74471bfb48a20fe51a531607b12ed47ad67968c6c08c4f0b472a86e4235df"
+    },
+    "wheel": {
+      "path": ".plan20-artifacts/20261104/stage11/reference-assets/artifacts/final/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6418934,
+      "sha256": "5a337862416afb3d6970ac0f78f8918270f8afe135506976919b617d8ecca8e7"
+    },
+    "sdist": {
+      "path": ".plan20-artifacts/20261104/stage11/reference-assets/artifacts/final/hotpot_zzy-0.5.4.5.tar.gz",
+      "bytes": 2153826,
+      "sha256": "58b31cb9be66e0678712d5c566ed20eee9742f91d3450f19abd330408f173832"
+    },
+    "manifest": {
+      "path": ".plan20-artifacts/20261104/stage11/reference-assets/manifest.json",
+      "bytes": 26600,
+      "sha256": "98ee58626930340967f2297b4ab4d5f877c7ff6d24a803565754a20640f348a4"
+    },
+    "verification": {
+      "path": ".plan20-artifacts/20261104/stage11/reference-assets/derived/finalization-verification.json",
+      "bytes": 5681,
+      "sha256": "6430be7d781b4458b88cc6634de56d89d9d235883ea2d76e9f74c28282086614"
+    },
+    "source-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/execution/source-attempt01/execution.json",
+      "bytes": 4792,
+      "sha256": "7ce2081b1db27ee87083d42f1eb1b6037c9422a46524e53ba5a98e5d50ff12aa"
+    },
+    "metadata-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/execution/metadata-attempt01/execution.json",
+      "bytes": 4152,
+      "sha256": "7dc9b160d41cdf517f6110fdb026e6f85910c76253a24d9c4531773f20617a38"
+    },
+    "installed-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/execution/installed-attempt01/execution.json",
+      "bytes": 5964,
+      "sha256": "998829a6035404e4fdf7e12a2e00ecb8f5df018b6b89c4441ab192d6e9506132"
+    }
+  },
+  "edges": [
+    [
+      "source_freeze",
+      "source-attempt01"
+    ],
+    [
+      "source_freeze",
+      "metadata-attempt01"
+    ],
+    [
+      "R1_R2_provenance",
+      "R2_freeze"
+    ],
+    [
+      "R2_freeze",
+      "package_identity"
+    ],
+    [
+      "package_identity",
+      "wheel"
+    ],
+    [
+      "package_identity",
+      "sdist"
+    ],
+    [
+      "wheel",
+      "installed-attempt01"
+    ],
+    [
+      "source-attempt01",
+      "installed-attempt01"
+    ],
+    [
+      "verification",
+      "manifest"
+    ]
+  ],
+  "root_acceptance": "root-verification.json"
+}

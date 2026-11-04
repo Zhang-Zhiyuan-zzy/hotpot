@@ -2,7 +2,7 @@
 
 from functools import cache
 import json
-from pathlib import Path
+from importlib.resources import files
 from types import MappingProxyType
 
 
@@ -45,7 +45,7 @@ def _mutable_copy(value):
 @cache
 def _element_properties():
     """Return the one immutable parsed element-property source."""
-    path = Path(__file__).resolve().parents[1] / "ChemData" / "ElementProperties.json"
+    path = files("hotpot.cheminfo.reference").joinpath("data", "element_properties.json")
     with path.open(encoding="utf-8") as source:
         return _freeze(json.load(source)["data"])
 
@@ -70,7 +70,7 @@ def _atomic_number_for_symbol(symbol):
 @cache
 def _ideal_bond_lengths():
     """Return the immutable CSD reference indexed by element pair and order."""
-    path = Path(__file__).resolve().parents[1] / "ChemData" / "ideal_bond_length.json"
+    path = files("hotpot.cheminfo.reference").joinpath("data", "ideal_bond_lengths.json")
     with path.open(encoding="utf-8") as source:
         raw_data = json.load(source)
     lengths = {}

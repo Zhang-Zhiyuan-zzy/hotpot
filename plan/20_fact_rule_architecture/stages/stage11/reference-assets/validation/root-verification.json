@@ -1,0 +1,36 @@
+{
+  "status": "ACCEPTED_CP311_REFERENCE_ASSETS",
+  "date": "2026-11-04",
+  "source_commit": "5676ebc382b7783b2fa8eb62be7e0a2bf5cb83f1",
+  "command": "python /tmp/hotpot_plan20/medium/stage11a-root-review-20261104/accept.py",
+  "independent_root_checks": {
+    "archive_files": 95,
+    "archive_bytes": 20002789,
+    "R2_bindings": 996,
+    "runs": {
+      "source-attempt01": {
+        "passed": 32,
+        "receipts": 2,
+        "leaks": 0
+      },
+      "metadata-attempt01": {
+        "passed": 15,
+        "receipts": 2,
+        "leaks": 0
+      },
+      "installed-attempt01": {
+        "passed": 32,
+        "receipts": 2,
+        "leaks": 0
+      }
+    },
+    "ordered_source_installed_nodes": 32,
+    "wheel_product_members": 890,
+    "sdist_members": 925,
+    "native_hashes_reused": 6,
+    "ancillary_hashes_reused": 7,
+    "source_assets_equal_to_git": 2
+  },
+  "acceptance_scope": "Only two immutable reference assets, sole loader, cache/public snapshots, package resources and affected CP311 source/installed consumers.",
+  "remaining": "Whole Stage11, other versions/release, Stage12/P20-D026, Plan12 and global science/performance remain open. No new native compilation, default-suite or performance claim."
+}

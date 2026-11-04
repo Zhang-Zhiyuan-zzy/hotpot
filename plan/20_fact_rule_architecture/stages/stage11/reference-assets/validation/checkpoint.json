@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "stage": "Stage11A immutable reference assets",
+  "status": "ACCEPTED_CP311_REFERENCE_ASSETS",
+  "root_acceptance_pending": false,
+  "bounded_stage_gate": true,
+  "stage11a_gate": true,
+  "stage11_gate": false,
+  "main_scope_gate": false,
+  "overall_gate": false,
+  "source_commit": "5676ebc382b7783b2fa8eb62be7e0a2bf5cb83f1",
+  "source_freeze": {
+    "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/bindings/freeze.json",
+    "bytes": 223603,
+    "sha256": "8079ba18bd9f272e8d18dec3ede060e7ef0640e08e8a59d124e16ce982e0e33c"
+  },
+  "superseding_freeze": {
+    "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/bindings/freeze-R2.json",
+    "bytes": 231515,
+    "sha256": "47307014309494ceea4d27f3d1d1926ea6914b7d0842edb32aa41bfaf4d8ec42"
+  },
+  "provenance": {
+    "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/bindings/provenance-R1-R2.json",
+    "bytes": 9535,
+    "sha256": "ec2aa788ba8c439b4ac365f9d72f90d47a3c04dc3931bb56c3efcbfa1799eae9"
+  },
+  "selected_runs": {
+    "source-attempt01": {
+      "result": {
+        "tests": 32,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 32,
+        "xfail": 0
+      },
+      "returncode": 0,
+      "elapsed_seconds": 1.1428676638752222,
+      "origin_receipts": 2,
+      "origin_leaks": [],
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/execution/source-attempt01/execution.json",
+        "bytes": 4792,
+        "sha256": "7ce2081b1db27ee87083d42f1eb1b6037c9422a46524e53ba5a98e5d50ff12aa"
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/execution/source-attempt01/junit.xml",
+        "bytes": 5329,
+        "sha256": "f3227c50252ec114af0ef849fe639c7db2c65df9be4dbaad20608fa8cc989bb0"
+      },
+      "nodeids": {
+        "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/execution/source-attempt01/collected-nodeids.json",
+        "bytes": 3963,
+        "sha256": "1fe2c3d9148a3cf6b0b01945027d91ee846314d25cf3aafb5c625ab0282dadd7"
+      }
+    },
+    "metadata-attempt01": {
+      "result": {
+        "tests": 15,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 15,
+        "xfail": 0
+      },
+      "returncode": 0,
+      "elapsed_seconds": 0.2799974959343672,
+      "origin_receipts": 2,
+      "origin_leaks": [],
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/execution/metadata-attempt01/execution.json",
+        "bytes": 4152,
+        "sha256": "7dc9b160d41cdf517f6110fdb026e6f85910c76253a24d9c4531773f20617a38"
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/execution/metadata-attempt01/junit.xml",
+        "bytes": 2128,
+        "sha256": "8b51ba4c52366f7f7f900bd1a75724da547b59e6dfdab6eafdb885b2d1180d2a"
+      },
+      "nodeids": {
+        "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/execution/metadata-attempt01/collected-nodeids.json",
+        "bytes": 1357,
+        "sha256": "951d3e19eb13346390ba3b3c23a0e3b513607fa15a67eafb810d971b8ad72d10"
+      }
+    },
+    "installed-attempt01": {
+      "result": {
+        "tests": 32,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 32,
+        "xfail": 0
+      },
+      "returncode": 0,
+      "elapsed_seconds": 3.3111991677433252,
+      "origin_receipts": 2,
+      "origin_leaks": [],
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/execution/installed-attempt01/execution.json",
+        "bytes": 5964,
+        "sha256": "998829a6035404e4fdf7e12a2e00ecb8f5df018b6b89c4441ab192d6e9506132"
+      },
+      "junit": {
+        "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/execution/installed-attempt01/junit.xml",
+        "bytes": 5329,
+        "sha256": "a00427a88d1f7fd9da5ec8dcfa4eb242203885df4056c6484f867ac3f5b5cc91"
+      },
+      "nodeids": {
+        "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/execution/installed-attempt01/collected-nodeids.json",
+        "bytes": 3963,
+        "sha256": "1fe2c3d9148a3cf6b0b01945027d91ee846314d25cf3aafb5c625ab0282dadd7"
+      }
+    }
+  },
+  "ordered_source_installed_nodeids_match": true,
+  "reference_assets": [
+    {
+      "retired": "hotpot/cheminfo/ChemData/ElementProperties.json",
+      "current": "hotpot/cheminfo/reference/data/element_properties.json",
+      "bytes": 450003,
+      "sha256": "60fea16c16f34c01ea3721b40cf02cd4394a4fc8f3dc23f66d1fc58dadf4dba2",
+      "source_wheel_sdist_equal": true
+    },
+    {
+      "retired": "hotpot/cheminfo/ChemData/ideal_bond_length.json",
+      "current": "hotpot/cheminfo/reference/data/ideal_bond_lengths.json",
+      "bytes": 393536,
+      "sha256": "a0b429af4daedc73313188f78f11c19727321bd83ed9a4351944526a57e6266b",
+      "source_wheel_sdist_equal": true
+    }
+  ],
+  "package": {
+    "wheel": {
+      "path": ".plan20-artifacts/20261104/stage11/reference-assets/artifacts/final/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6418934,
+      "sha256": "5a337862416afb3d6970ac0f78f8918270f8afe135506976919b617d8ecca8e7"
+    },
+    "sdist": {
+      "path": ".plan20-artifacts/20261104/stage11/reference-assets/artifacts/final/hotpot_zzy-0.5.4.5.tar.gz",
+      "bytes": 2153826,
+      "sha256": "58b31cb9be66e0678712d5c566ed20eee9742f91d3450f19abd330408f173832"
+    },
+    "product_members": 890,
+    "sdist_members": 925,
+    "native_compilation": false,
+    "native_members": {
+      "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-311-x86_64-linux-gnu.so": "0b5a4436580d7bd4d2d87e8637a09566aaa1053b677a9c99b5580ca9eab1026f",
+      "hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so": "642648c21e0d7bddcd5ad79e27c90d22ce70aff61deda9a54aa14fd49bfd7a0c",
+      "hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so": "f6bf965e4c1ff90bc468dfd58bc37d933b59d2a7ce605ae7914e5af4befb54a8",
+      "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so": "97acdb9652fa491cd3e2634a176519dd7dd87a5951fd99dda8ae6e72491a0c68",
+      "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-311-x86_64-linux-gnu.so": "477db3a9d2f315b655b0245802da0209089fb6dc85db8256f740acb27658c471",
+      "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "42d0fd9edf3f3601cdc74008e7c6484e3ebc3351139119e42b32575ea0e8fb91"
+    },
+    "ancillary_license_members": {
+      "hotpot/cheminfo/rdWrappers/_native/licenses/COPYING.MPL2": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85",
+      "hotpot/cheminfo/rdWrappers/_native/licenses/LICENSE": "510d2b0c6b68597ac15f227b3aa22ebe7041dbaf0d5a703efa33069e8bb35762",
+      "hotpot/cheminfo/rdWrappers/_native/licenses/LICENSE.md": "e35e8f6bc2f8fa1e7956e9ec808fe7cbae60d97a0a9718135ad5aa5d02d06c49",
+      "hotpot/cheminfo/rdWrappers/_native/licenses/LICENSE.txt": "c9bff75738922193e67fa726fa225535870d2aa1059f91452c411736284ad566",
+      "hotpot/cheminfo/rdWrappers/_native/licenses/LICENSE_1_0.txt": "c9bff75738922193e67fa726fa225535870d2aa1059f91452c411736284ad566",
+      "hotpot/cheminfo/rdWrappers/_native/licenses/THIRD_PARTY_NOTICES.md": "63d57d877db10e05573a2e5074c150c7eb715a43c11ba6787d484779e05926fd",
+      "hotpot/cheminfo/rdWrappers/_native/licenses/license.txt": "daeb8d194502cbcf34c05c39541a0d02be65bc9bada5b891c1974cd24e9fca30"
+    },
+    "identity": {
+      "path": ".plan20-artifacts/20261104/stage11/reference-assets/raw/packaging/package-attempt02/archive-identity.json",
+      "bytes": 231289,
+      "sha256": "97d74471bfb48a20fe51a531607b12ed47ad67968c6c08c4f0b472a86e4235df"
+    },
+    "predecessor_wheel": {
+      "path": ".plan20-artifacts/20261104/stage10/native-migration/artifacts/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6418920,
+      "sha256": "456c9a156c4769112cb8ff5c3fc1d8f071749d77765edbc1da05362d9ab0c5de"
+    }
+  },
+  "archive_manifest": {
+    "path": ".plan20-artifacts/20261104/stage11/reference-assets/manifest.json",
+    "bytes": 26600,
+    "sha256": "98ee58626930340967f2297b4ab4d5f877c7ff6d24a803565754a20640f348a4"
+  },
+  "finalization_verification": {
+    "path": ".plan20-artifacts/20261104/stage11/reference-assets/derived/finalization-verification.json",
+    "bytes": 5681,
+    "sha256": "6430be7d781b4458b88cc6634de56d89d9d235883ea2d76e9f74c28282086614"
+  },
+  "retained_failures": [
+    "launcher-attempt01: mistyped interpreter rc127 before execution",
+    "package-attempt01: seven missing generated RDKit license members; original archives retained"
+  ],
+  "limits": [
+    "Current bounded CP311 resource relocation only; whole Stage11/global acceptance remains open.",
+    "Six existing Stage10 native binaries and seven ancillary licenses reused; no native compilation or new ABI/SDK evidence.",
+    "Wheel and sdist made from frozen checkout; no fresh wheel compilation from extracted sdist.",
+    "No current broad default-suite, other-version, release/manylinux, external/GPU/model/scientific benchmark or performance rerun.",
+    "Other Decision12/13 command/template/MolProps/dataset/CCDC, Stage12/P20-D026 and Plan12/global obligations remain open."
+  ],
+  "root_acceptance": {
+    "date": "2026-11-04",
+    "review": "root-verification.json"
+  }
+}

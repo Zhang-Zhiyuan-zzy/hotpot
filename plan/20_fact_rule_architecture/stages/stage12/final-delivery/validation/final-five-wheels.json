@@ -1,0 +1,115 @@
+{
+  "status": "ROOT_VERIFIED_FINAL_FIVE_ABI_CLEAN_BUILD_REPAIR_AND_INSTALL_SMOKES_QUALIFICATION_OPEN",
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "sdist_sha256": "fce57c8f9685d698e65d597f585975d52acb71a5bf0e519d34ff42be00fe1e7e",
+  "all_five_same_sdist": true,
+  "abis": {
+    "cp311": {
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/preparation01/future-native01/cp311/wheelhouse/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "bytes": 7381429,
+        "sha256": "8dd0ddc467501741d3464ef24d79e6792e4b43fbb5c8c91673f4f376a6f0a617"
+      },
+      "returncode": 0,
+      "build_attempts": 1,
+      "retries": 0,
+      "elapsed_seconds": 1019.4562062453479,
+      "native_components_compiled": 6,
+      "python_stub_members_verified": 511,
+      "new_codec_guide_included": true,
+      "maintained_install_smokes_passed": 2,
+      "native_linkage_audit_returncode": 0,
+      "raw_execution_member": "preparation01/future-native01/cp311/execution.json"
+    },
+    "cp310": {
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/preparation01/future-native01/cp310/wheelhouse/hotpot_zzy-0.5.4.5-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "bytes": 7375956,
+        "sha256": "c0a5d11d984532bfc91345de79788f27053f19b559110d8b6be96504b39670f9"
+      },
+      "returncode": 0,
+      "build_attempts": 1,
+      "retries": 0,
+      "elapsed_seconds": 954.0429032891989,
+      "native_components_compiled": 6,
+      "python_stub_members_verified": 511,
+      "new_codec_guide_included": true,
+      "maintained_install_smokes_passed": 2,
+      "native_linkage_audit_returncode": 0,
+      "raw_execution_member": "preparation01/future-native01/cp310/execution.json"
+    },
+    "cp312": {
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/preparation01/future-native01/cp312/wheelhouse/hotpot_zzy-0.5.4.5-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "bytes": 7407055,
+        "sha256": "cf18d8ba9c7708ecae6ad230ca52f03212bbe2ef0356e6aa929fe79a3a862b80"
+      },
+      "returncode": 0,
+      "build_attempts": 1,
+      "retries": 0,
+      "elapsed_seconds": 1028.7841600049287,
+      "native_components_compiled": 6,
+      "python_stub_members_verified": 511,
+      "new_codec_guide_included": true,
+      "maintained_install_smokes_passed": 2,
+      "native_linkage_audit_returncode": 0,
+      "raw_execution_member": "preparation01/future-native01/cp312/execution.json"
+    },
+    "cp313": {
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/preparation01/future-native01/cp313/wheelhouse/hotpot_zzy-0.5.4.5-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "bytes": 7406891,
+        "sha256": "6011aafba09218420ae176d86bdde521bda94d2e406ec66cabaef470e12ce811"
+      },
+      "returncode": 0,
+      "build_attempts": 1,
+      "retries": 0,
+      "elapsed_seconds": 990.6504737976938,
+      "native_components_compiled": 6,
+      "python_stub_members_verified": 511,
+      "new_codec_guide_included": true,
+      "maintained_install_smokes_passed": 2,
+      "native_linkage_audit_returncode": 0,
+      "raw_execution_member": "preparation01/future-native01/cp313/execution.json"
+    },
+    "cp314": {
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/preparation01/future-native01/cp314/wheelhouse/hotpot_zzy-0.5.4.5-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "bytes": 7409731,
+        "sha256": "4295d68bb1a7e77bc2a9d73dfe601f86179a690b8bcb3772b2854349302a2cb5"
+      },
+      "returncode": 0,
+      "build_attempts": 1,
+      "retries": 0,
+      "elapsed_seconds": 1010.1329970862716,
+      "native_components_compiled": 6,
+      "python_stub_members_verified": 511,
+      "new_codec_guide_included": true,
+      "maintained_install_smokes_passed": 2,
+      "native_linkage_audit_returncode": 0,
+      "raw_execution_member": "preparation01/future-native01/cp314/execution.json"
+    }
+  },
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/final-native16b864f/raw-evidence.tar.gz",
+    "bytes": 40512797,
+    "sha256": "4806f14ec51bcab78973172563538170dbc919baa07a67cf6a6caa0c0da20af2"
+  },
+  "archive_members_verified": 79,
+  "root_review": ".plan20-artifacts/20261104/stage12/final-native16b864f/ROOT_WHEEL_REVIEW.json",
+  "verification_command": [
+    "python",
+    "-B",
+    "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/root-review01/verify_wheels.py"
+  ],
+  "scope": "Actual clean six-component compilation, repair, both declared installed smokes and existing native linkage audit for CP310\u2013CP314. No model/GPU, affected pytest, performance, final support or whole-plan acceptance follows.",
+  "original_verifier_failures_retained": [
+    "Hotpot-only versus full wheel member map, corrected to independently verify the complete member map.",
+    "Five setuptools builds plus one CMake RDKit build, corrected to require the actual separate compiler/link evidence."
+  ],
+  "limits": [
+    "Previous failed/historical builds and metadata/scientific observations retain their original meaning.",
+    "All current builds used one attempt with no retry.",
+    "Native extension bytes are ABI-specific build products; chemical correctness does not require byte identity across builds or versions."
+  ]
+}

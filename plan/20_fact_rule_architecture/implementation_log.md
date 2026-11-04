@@ -9258,3 +9258,341 @@ The original32e8650preparation remains immutable/HOLD; the next final committed
 snapshot must generate the one source distribution used for the five clean ABI
 builds. This is a package delivery repair with actual artifact validation, not
 a bookkeeping-only commit. Final acceptance andB_exp remain open.
+
+
+### 2026-11-04 — Normal GitHub delivery recovered
+
+After package-resource commit16b864f1050e7a61b9cb4e64d1672fb9c952408e,
+`GIT_TERMINAL_PROMPT=0 git push origin implement/plan20-fact-rule-architecture`
+returns0and updates GitHub frome3b616bto16b864f, delivering both the native stereo
+business repair and the package contract correction. The earlier publickey
+rejection remains a failed historical attempt with undetermined cause; no SSH
+key, authentication configuration, model, route or permission was changed.
+Final source qualification remains attributed to32e8650with unchanged511Python/
+stub members, while final same-sdist build preparation targets16b864f. This push
+is branch delivery, not main-scope acceptance orB_exp.
+
+
+## 2026-11-04 — Stage12 final16b864f clean native delivery; installed/GPU continuation
+
+- Continued the same approved Stage12 route and final acceptance obligations, applying governance/stage/validation skills, both governance references, current goal, main Sections10(Stage12)/11–14, integrated Plan12 requirements and the final-delivery records. No main-scope or B_exp closure. The prior user-requested status turn changed no product state; this continuation obtained actual terminal build and independent artifact evidence.
+- All five root-released exact cibuildwheel commands completed once (CP310–314, no retries) from the same final16b864f sdist, SHA256 fce57c8f9685d698e65d597f585975d52acb71a5bf0e519d34ff42be00fe1e7e. Each compiled five setuptools extensions plus the CMake RDKit extension, repaired its wheel, ran both maintained installation smokes and passed the existing native linkage audit. Exact commands, selected environments, compiler/smoke logs and terminal outcomes are retained in the archive and validation/final-five-wheels.json.
+- Root executed `python -B /tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/root-review01/verify_wheels.py` and independently verified actual complete wheel member maps, all511Python/stub members, new codec companion and six ABI-specific native payloads per wheel. Two private-verifier assumption failures (Hotpot-only versus complete member map; five setuptools plus one CMake build) were preserved and corrected from raw evidence; no product execution was repeated and no failed product result was relabeled.
+- Durable archive: .plan20-artifacts/20261104/stage12/final-native16b864f/raw-evidence.tar.gz; 40512797 bytes; SHA256 4806f14ec51bcab78973172563538170dbc919baa07a67cf6a6caa0c0da20af2. Root reread and verified all79members. Historical missing-guide/older builds and all chemical failures remain historical evidence with unchanged attribution. Python/test/native/model inputs were not edited.
+- Bounded execution-location clarification in main Section11.2 permits the same required CPU/1-GPU/4-GPU/routing/resource scopes in an isolated local installed-wheel environment. A read-only pinned local Docker probe found four RTX A6000s and CUDA12.6/cuDNN9.5.1; the existing CP311 ONNXRuntime1.31.0 is CPU-only. A task-private matching-version GPU runtime was downloaded/installed under /tmp/hotpot_plan20/long/stage12-final-gpu-20261104; no active environment/config/permission/driver/model changes. The first metadata-only probe failed on the absent distribution spelling openbabel-wheel and its corrected metadata probe passes; this was no Hotpot/model run. Actual CUDA-provider and final-model qualification remain independently recorded/released.
+- Root prepares the unchanged11MCA functional recipes plus an additional512-input neutral-acid/opposite-enantiomer CUDA cohort. Exact output order, atom/site joins, charge/H and isomeric identity use explicit independent source-string oracles; preserve raw values and failures. Repeated same-configuration tolerance stays rtol1e-5/atol0.001kJ/mol; no historical defective metadata equality, new universal CPU/CUDA numeric threshold or timing claim is introduced. Model execution remains HOLD until concrete environment/wheel bindings and release.
+- Remaining: final affected installed CP310–314 selection; separately released CP311 actual model/business smokes; current GPU scientific/functional observations; final comparable-work/resource reports and issue dispositions; consistent final report and requirement-by-requirement acceptance before B_exp, then separately gated Stage13 and Stage14/15. No performance timing ran during compilation. Existing local Sol/high subagent owns bounded qualification preparation; root owns records, release and acceptance; external helper remains stopped.
+
+
+### 2026-11-04 — Final five-ABI installed qualification and actual CP311 workflows
+
+Continued the same Stage12 final16b864f route without production/test changes,
+reusing its entry alignment and applying the three repository skills, current
+goal, main Sections11–14 and final-delivery/debt records. All seven separately
+released commands complete exactly once: each CP310–314 installed affected
+selection passes1264/4declared model-tier skips; actualCP311model4andbusiness7
+pass without skips. The6331passing executions/20skips are not unique business
+contracts. Original88MCA/CBond files, official xTB/dependencies and final wheel
+inputs remain bound; no failed run is relabeled or retried.
+
+Root review reads exact collection, raw outcomes/JUnit, command flags, original
+input guards,894wheel members per command and109process reports/40202origin
+observations. The private interpreter3.8and directory-SHA assumptions are
+corrected with both failed/verifier attempts retained; product runs are not
+repeated. Actual command:
+`/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python -B /tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/root-review01/verify_qualification.py`.
+Root additionally executes
+`python -B .plan20-artifacts/20261104/stage12/final-installed16b864f/verify_and_archive.py`,
+verifying every raw member and corresponding original file in both archives:
+257default/158model-business members,3962451/842425compressed bytes. Durable
+archives and root review/corrections reside in that artifact directory;
+validation/final-installed-qualification.json joins exact results and limits.
+
+Actual installedCP311CBond/FF/official-xTB/CLI, MCA prediction/attachment/charge
+rejection/lifecycle and chemical examples execute. This qualifies the exact
+installed selection, not all repository tests or actual GPU/performance/global
+acceptance. Final CUDA cohorts continue under their separate release; resource
+and comparable-work reports, issue dispositions, final report andB_exp stay open.
+External helper remains stopped. No Git commit or push is claimed for this
+in-progress validation record.
+
+
+### 2026-11-04 — Consolidated defensive-code and independent integration assessment
+
+Existing localSol/high completes20read-only item assessments at final16b864f;
+Root independently verifies58referenced source/record identities and inspects
+current FF/xTB stage/CLI and frame/parser owners. No product import, tests,
+backend/model run or source/maintained edit is performed by that local agent.
+Its report/index/inspection and Root disposition are retained under
+.plan20-artifacts/20261104/stage12/deferred-assessment16b864f; maintained
+validation/deferred-assessment.json supplies the bounded index.
+
+D010accepts a simplification limitation: A2/A7retired; seven narrow duplicate
+checks retained without a scientific-necessity or performance claim. D011B1
+retains supported strict xTBJSON behavior; B3/B4are corrected at current frame/
+Gaussian owners. B2remains open: inspected local-failure paths preserve codes,
+indexes/denominators and raw artifacts, but universal numeric-null cause
+preservation is unproved. No core failure is fabricated or hidden.
+
+D012andD028receive explicit independent optional limitations under approved
+business priorities and Decisions12/13. Existing parser/thermo/dataset/ML/
+ranking/rendering diagnostic ambiguities remain visible; actual optional
+training/optimization/real-CCDC execution is unverified. Dataset rejection
+attribution and finite fitness sentinels are not scientific endorsements.
+Any mandatory dependency or future capability claim requires its own actual
+business evidence; no mandatory acceptance condition is waived. Main-scope
+acceptance andB_exp remain open.
+
+
+### 2026-11-04 — Required numeric failure causes survive strict JSON transport
+
+Root directly observes final installedCP311xTBparser/CLI and FFpure finite-rule/
+CLI boundaries under controlled negative producer fixtures. Actual original
+fake-xTB executable bytes emit finite success, NaNenergy and Infinitygradient;
+strict reportJSON retains exactXTB-RESULT-UNAVAILABLEcauses and rawxtbout.json,
+returns no invalid molecular output, and preserves original backend observations.
+FFthree-record controlled numeric output uses the actual finite policy and
+CLI: statusesok/error/ok, two molecular outputs, middle energy null plus exact
+FF:finite_final_energy/message and termination evidence. Actual native FF and
+official xTB numerical failure are not claimed; earlier actual positive and
+mixed-cohort evidence retains its own attribution.
+
+The first private observer expected the wrong existing error code, not a
+product failure. Original source/stdout/stderr/result remain. Root verifies the
+actual contract inXTBResultError, reuses both completed original calls and
+executes only missing gradient/FFobservations inobservations02. Exact argv/cwd/
+environment/PID/outcomes remain inINTENT/STARTED/EXECUTIONjson beneath
+/tmp/hotpot_plan20/long/stage12-null-cause-20261104. Product source is unchanged;
+239loaded installed origins/bytes and every raw archive member are independently
+checked. Durable .plan20-artifacts/20261104/stage12/null-cause16b864f and
+validation/null-cause-observations.json retain all observations and limits.
+D011closes within its assessed/required tested boundary; arbitrary optional
+numeric fields and universal cause preservation are not qualified. Whole-plan
+acceptance andB_exp stay open.
+
+
+### 2026-11-04 — Final installed MCA functional completion and actual cost launch
+
+Continued the aligned Stage12 route and reused unchanged final16b864f product/
+model/native inputs. All12MCAcases/19calls finish; Root independently reviews
+8959chemical rows against source-string isomeric/charge/H and ordered Atom/site
+oracles,129085events and496durable archive members. Final CUDA metadata,
+255/256routing, warm reuse, rolling4096and actual four-device work are observed.
+The single gpu_count_4call uses only two calculating devices despite four
+initialized sessions. Historical917metadata failures remain. Maintained
+validation/final-mca-functional-routing.json joins the exact evidence and limits.
+
+D034records the demonstrated whole-molecule pre-admission limitation: current
+and B0loops check counters before one admission, so actual8195exceeds nominal
+8192by3. Resident peak10241/32768, pending2/8and final counters0are observed;
+Plan15hard-cap wording is preserved as a documented discrepancy. Root accepts
+this unchanged finite fixture behavior without a strict-cap/arbitrary-large-
+molecule/byte-memory or global resource claim, and without a speculative guard
+or model/feature/batch change. Original records and revalidation triggers remain.
+
+Root inspects unchanged CPUcontrol/guard, four passed preflight reports and
+actual CPU8–15busy0percent/hostload0.14before releasing all124once for62paired
+workloads. Exact command: `/usr/bin/python3 -B /tmp/hotpot_plan20/long/stage12-final-performance-preparation-20261104/preparation02-final16b864f/control.py pairs`.
+Release and actual load are stored in that packet runtime; original sampling,
+loops/seeds, alternating order and clean-H unequal-information limits remain.
+Execution is in progress, not a timing pass. No heavy test/model job overlaps.
+The localSol/high agent prepares CBondCUDA runtime compatibility statically;
+external helper remains stopped. Both B0/current ORTGPU1.20.2fail Squeeze21
+initialization; no CBondCUDAprediction/runtime regression is established and
+no model rewrite/retry/acceptance is released. Overall goal remains active.
+
+
+### 2026-11-04 — Final SDK reuse and selected native delivery closure
+
+Root directly compares all46selected SDKsource/header/build/test inputs with
+the original passed release profile and verifies25compiled artifacts plus19
+installed SDKentries against their retained manifests. All match final16b864f.
+The executed stdlib hash/rebind scripts write
+`.plan20-artifacts/20261104/stage12/sdk-current/root-review/final16b864f-source-rebind.json`
+and `final16b864f-artifact-rebind.json`; no SDKbuild/test is repeated. Earlier
+actual seven unique tests,31direct commands, ABI0/ABI1consumers, nine Hfixtures
+and selected linkage evidence retain their original scope and raw outcomes.
+
+Together with actual final same-sdist five-ABI six-component clean builds,
+maintained installation smokes/linkage audits, final affected installed matrix
+and actualCP311business/model workflows, Root closesD007only for selected
+Linuxx86_64native/wheel/SDKdelivery.
+`validation/final-native-sdk-delivery.json` is the current decision. Historical
+SDKcapsule LICENSEomission, failed install driver and successful install-only
+retry are preserved. No other-platform claim, public upload, D006closure, GPU/
+performance/resource or global/main-scope acceptance/B_expfollows.
+
+
+### 2026-11-04 — All final CPU pairs and independent postflight complete
+
+Actual `/usr/bin/python3 -B .../preparation02-final16b864f/control.py pairs`
+returns0after all124once-only invocations; each phase retains771attempts/
+595measured observations with0fail/no-output. Root checks all selected result
+files, exact work counters, sampling/origins/guards and all4fresh postflight
+profiles. All595measured counter pairs match. Direct review uses the existing
+`compare_performance_baselines.paired_interval/group_interval`,10000bootstrap
+draws and original20261028seed; no manifest/helper/runner/science is changed.
+
+Root additionally excludes two MCA complete-output claims because B0metadata
+is defective, despite equal original model tensors/prediction work. Three
+clean-H tasks remain unequal-information. All62rows/ratios and original planned
+work remain;57is an explicit common semantic subset, not deletion or a complete
+71-workload denominator.39slow intervals and39higher Python-tracked peaks are
+retained; all62measured worker RSSpeaks are lower, with process/trace limits.
+Root accepts this bounded current CPUcost, including1000empty objects72.4ms,
+20N256complete write/H-read loops389.2ms and20toolkit pairs84.7ms. UFF0.780s,
+MCA64at1.206s and complete source/installed chemistry evidence remain separately
+attributed. No fixed parity/fivefold quota or universal optimality is claimed.
+
+Root executes `.../root-review02/review.py` and
+`/usr/bin/python3 -B .plan20-artifacts/20261104/stage12/final-cpu16b864f/verify_and_archive.py`.
+All2701archive members are independently read and checked against original
+bytes;631028090raw selected bytes compress to57005548bytes, SHA256
+8bf2a5d3502cad387cb349f7d8c79f148bc43ba9fbe21a29744c76cd9a04d79d.
+`validation/final-cpu-performance.json` joins exact outcomes and scope. No
+whole71/test-version/GPU/new-only aggregate or global acceptance follows.
+
+The full3948collection preflight actually passes onB0. The first current call
+retains exit4on four stale parameter IDs, not product failure; exact current
+module/header parameters are reviewed and corrected in a new private packet.
+Only the missing current collection is repeated; it passes3945physical targets
+plus3explicit retired logical slots,0missing/extra and bound installed origins.
+All37inherited bindings,14earlier current migrations, original weights, test
+bodies/default tiers and2689ledger remain unchanged. Root separately releases
+the four original1+5sample cells onCPU8–15; they are executing. Full-population
+strict speedup remains ineligible because contract/import/retirement differences
+are explicit. An isolated CUDA dependency download is low shared load; no
+exclusive-host claim or overlapping backend/model computation is made.
+
+
+### 2026-11-04 — Final optional Open Babel optimization disposition
+
+Root inspects the actual four B0/current CPU native/model preflight library
+observations and directly compares the selected Open Babel3.2.1SWIG, shared
+library and MDL plugin bytes/sizes against their installed distribution RECORD.
+All three match, and all four actual preflights use the same libopenbabel
+46c565393702f84146fdee597dc4764ed6d6c4e1d3f70bd61fc70f75735aaf8b.
+These are standard-library file/CSV/JSON/hash checks, no product imports or
+repeated backend/model/timing work. The accepted final CPU and installed
+workflow evidence qualifies the selected route. Root dispositionsP20-D009as
+ACCEPTED_LIMITATION: the private GTD optimization stays unshipped and receives
+no delivered-patch or performance credit. Its historical correspondence and
+all adverse observations remain. Reopen for shipping/claiming it, a selected
+backend change, or a demonstrated mandatory-workflow bottleneck/reliability
+failure. The maintained decision is final-delivery/validation/
+final-optional-openbabel-optimization.json. SDF, GPU, other cost/resources,
+version support, final report, main-scope acceptance andB_expremain open.
+No source/test/native/model/configuration/Git bytes changed by this review.
+
+
+### 2026-11-04 — Concrete version gaps and final science execution boundary
+
+Root independently verifies all29D006assessment packet members and the disjoint
+3204+2469=5673non-graph partition plus30graph nodes. Existing broadCP310/313
+observations, actual repairs and final1264-pass selections retain their own
+source/installed scopes. FinalCP311source/installed evidence is reused; no
+passed suite is repeated. CP312/314need5703current runtime observations each;
+CP310/313need30actualTorch/PyGcontracts each. The prospective3204complement
+plus pending2469cost overlap avoids duplicate execution. No new version test,
+collection, dependency or support acceptance is claimed. Compact report/root
+review copies reside at .plan20-artifacts/20261104/stage12/
+final-version-disposition16b864f/review01; validation/final-version-coverage.json
+records the remaining gap.
+
+Root compares the old554finite scientific bindings to final16b864fand finds6
+changed original owners, including H/charge serialization, stereo transfer and
+FFfailed-commit restoration. The original556b21ecorpus results remain attributed
+to that wheel. Final installed commands retain the original2280-objectinactive
+corpus/replay,187-ligandreference,independentUFFandfour-routexTBwork.4000finite
+input guards pass,59benchmark support files are reconciled and originalthree
+CBondbundle hashes match. Static command comparison preserves every scientific
+option/input/work budget; CPU64-127is the same-count allocation, without a
+historical performance claim. The first preparation RECORDcomparison failure
+is retained: installer-writtenRECORDis separately bound instead of requiring
+wheel-byte equality. Packet: /tmp/hotpot_plan20/long/
+stage12-final-plan12-rebind-20261104/preparation01. All science executions remain
+held during the current formal test timings; numerical/hash equality is not a
+chemical criterion, and actual changed eligibility requires review.
+
+The user requires progress reporting by the twelve owning closure items now
+indexed in final-delivery/README.md. An attemptedGPT-6Luna/lowmonitor spawn was
+rejected by the platform thread limit; no low-model execution is claimed.
+Zero-model-token stdlib samplers now recordCPU/load/memory and Docker-context
+GPUoccupation/temperature/power/clocks/processes under
+/tmp/hotpot_plan20/short/stage12-runtime-monitor-20261104/. Plain tool-container
+nvidia-smi cannot reach thedriver; the same pinnedGPUimage succeeds. ActualGPU0/3
+retain approximately13GBresident each with0compute utilization at observed
+points. Sampling is not exclusive reservation or exhaustive contention proof.
+Externalhelper stays stopped. The localSol/mediumagent prepares only an
+isolatedD015navigation/tool correction; main owns all apply/acceptance decisions.
+
+The isolatedCUDA12.8install actually returns0after2557.423s; library diagnostics
+also return0but retain standaloneProvider_GetHostundefined-symbol output. Root
+checks that the real shared-provider library exportsProvider_GetHost/SetHostand
+that taggedORTloads it globallybefore theCUDAprovider. AllCUDAdependencies
+resolve; differingNVML470.256.02,loadedlibcuda560.35.05/API12060andruntime12080
+observations remain distinct. This permits a separate load-only diagnostic,
+not compatibility/model/kernel/performance acceptance. No probe/inference is
+released while the common formal timings remain active.
+
+
+### 2026-11-04 — Applied navigation repair and bounded tool dispositions
+
+Root reviews and releases the exact D015auditor/seven-index patches. The local
+Sol/mediumagent applies them after8/8input identities and git apply --check,
+adds3concurrent Stage12record links and corrects stale Stage10index prose.
+Actual scoped auditor exits1after448assets with exactly the retained bare-SMILES
+Clfalse positive at historical log9027;36focused checks against applied bytes
+pass. Original21and current152finding records stay unchanged. No historical
+log edit, generic chemical regex exception or fabricated clean audit is used.
+Root verifies and preserves the exact preparation/apply artifacts at
+.plan20-artifacts/20261104/stage12/final-navigation16b864f/.
+
+Root accepts D014/D015as explicit bounded tooling limitations. Broken receipt
+timing, copied artifact Git-index completeness and obsolete comparator-policy
+verdicts are retired as acceptance authorities; actual final terminal source/
+installed/wheel observations and direct frozen-work review remain authoritative.
+Final-validation-tools.json records replacement evidence, raw failed scanner,
+coverage/reopen conditions and root decisions. No product/test/native/model
+change, chemistry waiver, whole-Stage12acceptance or B_expfollows. The unchanged
+Stage12alignment/governance/validation references are reused for this bounded
+continuation.
+
+
+### 2026-11-04 — Final common test costs accepted within their actual boundary
+
+All four root-released common cells terminate0, preserving1warmup+5measured
+samples each and all3948logical slots/3945current physical targets/3retirements.
+The localSol/mediumagent independently checks24samples and715bounded evidence
+conditions, reconstructing253archived inputs. Root reviews the final scope,
+actual outcomes, original frozen policy and source/origin attribution; current
+execution has3818pass/124skip/3xfail/49passed subtests per attempt, no failures.
+Collection medians B0/current9.065757/11.455639s; execution238.021692/230.868108s.
+Current execution peakRSS809656320bytes; raw ratios1.263616/0.969946remain
+descriptive only. All unequal-counter pairs are excluded from strict comparisons;
+no interval, complete-population speedup or zero-cost retired slot is invented.
+Telemetry covers late baseline only; neither earlier candidate/collection load
+nor exclusive resources is established. Root accepts the observed bounded
+current cost without repeating unchanged passed business. The maintained
+final-common-test-cost.json links original failures, warning variation, raw
+outcomes and durable archives.2689five-version/additional-current costs and
+global acceptance remain open.
+
+The isolated original-modelCUDAload probe returns0with graph/CBond original
+hashes and actual CUDAproviders, followed by879runtime-file finalization.
+Root then releases exactly8full untimed preflights. Both CBondendpoints actually
+complete20calls, with graph5620and head6460CUDAkernels per profile and all40
+prediction events retained. Candidate's later forced unrelated native import
+fails on missing libopenbabel.so.8search path; original controller separately
+fails reading two zero-byte mode600derived-cache locks after all8invocations.
+Seven parent reports pass; one stays failed. Observer shutdown error is retained.
+No inference failure, changed model/science or completed timing is inferred.
+Root reviews actual work/origins/outputs as an alternative to broken peripheral
+checks under the approved goal; formal timing stays held.
+
+The separately released final installed2280-objectinactive corpus/replay is
+now executing, using the original input/observers and no fixed historical
+scientific equality. The three dependent scientific commands remain held.
+Hardware observation is a finite background script with zero model polling;
+main-agent judgment and local analysis agent remain distinct from that monitor.
+Externalhelper stays stopped. No product/test/native/model/configuration change.

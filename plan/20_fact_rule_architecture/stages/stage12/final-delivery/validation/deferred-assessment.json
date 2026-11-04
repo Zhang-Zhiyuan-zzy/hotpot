@@ -1,0 +1,62 @@
+{
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "status": "ROOT_REVIEWED_BOUNDED_DISPOSITIONS_B2_FOLLOWUP_COMPLETE",
+  "items_assessed": 20,
+  "referenced_files_independently_verified": 58,
+  "root_disposition": ".plan20-artifacts/20261104/stage12/deferred-assessment16b864f/ROOT_DISPOSITION.json",
+  "report": ".plan20-artifacts/20261104/stage12/deferred-assessment16b864f/report.md",
+  "evidence_index": ".plan20-artifacts/20261104/stage12/deferred-assessment16b864f/evidence_index.json",
+  "D010": {
+    "disposition": "ACCEPTED_LIMITATION",
+    "retired": [
+      "A2",
+      "A7"
+    ],
+    "retained": [
+      "A1",
+      "A3",
+      "A4",
+      "A5",
+      "A6",
+      "A8",
+      "A9"
+    ],
+    "reason": "The audit is dispositioned per actual owner. Seven narrow duplicate checks remain a simplification limitation; no demonstrated core failure or measured bottleneck warrants reopening frozen product code solely for their removal. This is not a claim that each check is scientifically necessary.",
+    "reopen": "Change the owning contract, encounter a real failure, or measure material batch/resource cost; remove only unjustified duplication with affected evidence."
+  },
+  "D011": {
+    "disposition": "PARTIALLY_ASSESSED_B2_REMAINS_OPEN",
+    "B1": "Retain strict entire-payload JSON/finite validation within the supported xTB backend protocol. Supplied actual official xTB output is accepted; no harmless-extra-field rejection demonstrated.",
+    "B2": "Retain strict JSON transport and existing named failure/findings, but universal numeric-cause preservation is unproved. Inspect the numerical-failure to manifest/CLI boundary before final closure; null alone is not sufficient evidence.",
+    "B3": "Corrected by canonical frame owner; complete keys, None/NaN absence and explicit zero retained.",
+    "B4": "Corrected by final-frame-aware Gaussian importer; actual existing-log source/installed evidence retained, executable Gaussian unverified.",
+    "followup": "null-cause-observations.json",
+    "current_disposition": "CLOSED_WITHIN_TESTED_PRODUCER_REPORT_BOUNDARIES"
+  },
+  "D012": {
+    "disposition": "ACCEPTED_LIMITATION",
+    "items": [
+      "B5",
+      "B6",
+      "B7",
+      "B8",
+      "B9",
+      "B10"
+    ],
+    "reason": "Independent optional integrations retain documented diagnostic/missing-value/ranking/rendering limitations; no actual training/optimization/CCDC or universal dataset correctness claim. This is not evidence that these optional scientific results are correct.",
+    "mandatory_dependency_caveat": "B7 dataset invalidity can enter a required dataset gate. Dataset parsing/search correctness must be qualified separately before any dependent capability claim; engine errors are not established chemical invalidity.",
+    "ranking_caveat": "B9 finite failure/timeout sentinels must not be interpreted as measured fitness. No real optional optimization capability is accepted.",
+    "reopen": "Any affected optional capability is claimed/changed, or a mandatory chemistry path actually depends on it."
+  },
+  "D028": {
+    "disposition": "ACCEPTED_LIMITATION",
+    "reason": "Decision12/13 command/resource consolidation and shipped reference/query functionality are implemented. Actual optional training/optimization/real-CCDC computation remains unverified, outside the accepted capability claim.",
+    "reopen": "Claiming those execution capabilities requires actual dependencies and source/installed business evidence. Mandatory chemistry and packaging are not waived."
+  },
+  "limits": [
+    "Static review and existing bounded execution evidence only; no new product execution.",
+    "Original static B2 evidence gap is resolved by separately linked controlled installed observations; no universal arbitrary-field claim.",
+    "Optional dataset/ML/optimization/CCDC/rendering scientific capability is not qualified.",
+    "No main-scope/gate/B_exp closure."
+  ]
+}

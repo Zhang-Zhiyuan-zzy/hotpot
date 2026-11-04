@@ -20,6 +20,15 @@ ROOT = PLAN.parents[1]
 STAGES = PLAN / "stages"
 LINK = re.compile(r"(?<!!)\[[^\]\n]*\]\((?:<([^>\n]+)>|([^\s)\n]+))\)")
 FENCE = re.compile(r"^\s*(`{3,}|~{3,})")
+ROOT_MARKDOWN = (
+    "README.md", "goal.md", "goal_v1.md",
+    "fact_rule_architecture_implementation_plan.md",
+    "chemical_type_interface_contract.md", "plan17_plan20_execution_alignment.md",
+    "data_object_scope_audit.md", "functional_707_business_mapping.md",
+    "deferred_issues.md", "implementation_log.md",
+)
+EXTERNAL_RECORDS = ("README.md",)
+
 
 
 def _prose(text):
@@ -29,17 +38,58 @@ def _prose(text):
         if marker:
             kind = marker.group(1)[0]
             fence = None if fence == kind else kind if fence is None else fence
-        elif fence is None:
-            yield line
+            yield ""
+        else:
+            yield line if fence is None else ""
+
+
+def _without_inline_code(text):
+    # Inline spans belong to a paragraph, so an unmatched delimiter must not
+    # consume a later paragraph's links. Retain all newlines for diagnostics.
+    paragraphs = re.split(r"(\n[ \t]*\n)", text)
+    for paragraph_index in range(0, len(paragraphs), 2):
+        paragraph = paragraphs[paragraph_index]
+        runs = list(re.finditer(r"`+", paragraph))
+        chars, position = list(paragraph), 0
+        while position < len(runs):
+            opening = runs[position]
+            closing = next((index for index in range(position + 1, len(runs))
+                            if len(runs[index].group()) == len(opening.group())), None)
+            if closing is None:
+                position += 1
+                continue
+            for index in range(opening.start(), runs[closing].end()):
+                if chars[index] != "\n":
+                    chars[index] = " "
+            position = closing + 1
+        paragraphs[paragraph_index] = "".join(chars)
+    return "".join(paragraphs)
 
 
 def _local_links(path):
-    for number, line in enumerate(_prose(path.read_text()), 1):
+    prose = _without_inline_code("\n".join(_prose(path.read_text())))
+    for number, line in enumerate(prose.splitlines(), 1):
         for match in LINK.finditer(line):
             target = match.group(1) or match.group(2)
-            parsed = urlsplit(target)
+            location = re.sub(r":\d+(?::\d+)?(?=[?#]|$)", "", target)
+            parsed = urlsplit(location)
             if not parsed.scheme and not parsed.netloc and parsed.path:
                 yield number, target, (path.parent / unquote(parsed.path)).resolve()
+
+
+def _stage_records(root, stages):
+    # Tracked stage records and records explicitly linked by their maintained
+    # indexes; unrelated untracked/user-owned files never become scan inputs.
+    tracked = subprocess.check_output(
+        ["git", "ls-files", "--cached", "-z", "--", str(stages.relative_to(root))],
+        cwd=root,
+    ).decode().split("\0")
+    paths = {root / name for name in tracked if name and (root / name).is_file()}
+    indexes = {path for path in paths if path.name == "README.md"}
+    for index in sorted(indexes):
+        paths.update(target for _, _, target in _local_links(index)
+                     if target.is_relative_to(stages) and target.is_file())
+    return sorted(paths)
 
 
 def _fenced_blocks(text):
@@ -57,26 +107,30 @@ def _fenced_blocks(text):
     return blocks
 
 
-def audit(*, check_migration_bytes=False):
+def audit(*, check_migration_bytes=False, root=ROOT, plan=PLAN):
+    ROOT, PLAN = root.resolve(), plan.resolve()
+    STAGES = PLAN / "stages"
     migration = json.loads((STAGES / "path_migration.json").read_text())
     catalog = (STAGES / "README.md").read_text()
     allowed = set(re.findall(r"^\| `([^`]+\.md)` \|", catalog, re.MULTILINE))
     errors = []
-    folders = sorted(path for path in STAGES.iterdir() if path.is_dir())
-    expected_stages = {f"stage{number:02d}" for number in range(14)}
+    assets = _stage_records(ROOT, STAGES)
+    expected_stages = {f"stage{number:02d}" for number in range(16)}
+    folders = sorted({STAGES / path.relative_to(STAGES).parts[0]
+                      for path in assets if len(path.relative_to(STAGES).parts) > 1}
+                     | {STAGES / name for name in expected_stages if (STAGES / name).is_dir()})
     stage_dirs = [path for path in folders if path.name in expected_stages]
     for name in sorted(expected_stages - {path.name for path in stage_dirs}):
         errors.append(f"Missing stage directory: {name}")
     for path in folders:
         if path not in stage_dirs:
             errors.append(f"Unknown stage directory: {path.relative_to(ROOT)}")
-    markdown = sorted(STAGES.rglob("*.md"))
-    records = sorted(STAGES.rglob("*.json"))
-    assets = sorted(path for path in STAGES.rglob("*") if path.is_file())
+    markdown = [path for path in assets if path.suffix == ".md"]
+    records = [path for path in assets if path.suffix == ".json"]
     if not allowed:
         errors.append("The catalog defines no Markdown filenames")
     for path in markdown:
-        if path.name not in allowed:
+        if path.name not in allowed and path.relative_to(STAGES).as_posix() not in allowed:
             errors.append(f"Unknown Markdown type: {path.relative_to(ROOT)}")
     for folder in stage_dirs:
         if not (folder / "README.md").is_file():
@@ -103,7 +157,7 @@ def audit(*, check_migration_bytes=False):
     for path in PLAN.iterdir():
         if path.is_file() and re.match(r"stage\d+_.*\.(?:md|json)$", path.name):
             errors.append(f"Stage record remains in root: {path.name}")
-    for path in markdown + sorted(PLAN.glob("*.md")):
+    for path in markdown + [PLAN / name for name in ROOT_MARKDOWN]:
         for number, target, resolved in _local_links(path):
             if not resolved.exists():
                 errors.append(f"Missing local target: {path.relative_to(ROOT)}:{number}: {target}")
@@ -123,19 +177,11 @@ def audit(*, check_migration_bytes=False):
             # A label can describe the old name; a link/code/file target may not.
             if re.search(r"(?:\(|`|\")" + re.escape(old) + r"(?:\)|`|\")", prose):
                 errors.append(f"Obsolete active filename: {relative}: {old}")
-    tracked = subprocess.check_output(
-        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
-        cwd=ROOT,
-    ).decode().split("\0")
     external_checked = 0
-    for relative in tracked:
+    for relative in EXTERNAL_RECORDS:
         path = ROOT / relative
-        if not relative or not path.is_file() or path.is_relative_to(PLAN):
-            continue
-        if path.suffix not in {".md", ".py", ".json", ".toml", ".yaml", ".yml", ".sh", ".txt"}:
-            continue
         external_checked += 1
-        text = path.read_text(errors="replace")
+        text = path.read_text()
         for old in old_names:
             obsolete = "plan/20_fact_rule_architecture/" + old
             if obsolete in text:
@@ -173,7 +219,10 @@ def audit(*, check_migration_bytes=False):
     return {
         "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
         "status": "passed" if not errors else "failed",
-        "scope": "Document layout and navigation only; no implementation/test/scientific/performance acceptance",
+        "scope": "Maintained stage records, explicit root records and repository README navigation only; no implementation/test/scientific/performance acceptance",
+        "root_markdown_records": list(ROOT_MARKDOWN),
+        "external_records": list(EXTERNAL_RECORDS),
+        "stage_record_scope": "Git-tracked stage records plus targets explicitly linked by maintained README indexes; unrelated untracked files excluded",
         "stages": [path.name for path in stage_dirs],
         "allowed_markdown_types": sorted(allowed),
         "markdown_files_checked": len(markdown),
@@ -194,11 +243,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check-migration-bytes", action="store_true",
                         help="Check the migration checkpoint's JSON bytes, historical Markdown and log prefix")
+    parser.add_argument("--root", type=Path, default=ROOT)
+    parser.add_argument("--plan", type=Path, default=PLAN)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    result = audit(check_migration_bytes=args.check_migration_bytes)
+    result = audit(check_migration_bytes=args.check_migration_bytes, root=args.root, plan=args.plan)
     result["command"] = [sys.executable, *sys.argv]
-    result["cwd"] = str(ROOT)
+    result["cwd"] = str(args.root.resolve())
     result["python"] = sys.version
     result["cpu_affinity"] = sorted(os.sched_getaffinity(0))
     result["audit_source_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()

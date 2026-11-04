@@ -1,0 +1,838 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_COMMON_TEST_COST_AND_COMPLETION_WITH_EXPLICIT_NONCOMPARABILITY",
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "baseline_source_commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+  "recorded_at_utc": "2026-11-04T13:09:43.544633+00:00",
+  "scope": "Four terminal CP311 frozen-common-test collection/execution cells; no reruns, tests/imports/builds/models/network executed by reviewer",
+  "sampling": {
+    "warmups_per_cell": 1,
+    "measured_per_cell": 5,
+    "cells": 4,
+    "samples": 24,
+    "completed_samples": 24,
+    "failed_samples": 0,
+    "no_output_samples": 0,
+    "automatic_retries": 0
+  },
+  "binding": {
+    "logical_slots": 3948,
+    "baseline_physical_nodes": 3948,
+    "candidate_physical_nodes": 3945,
+    "retired_unexecuted_slots": [
+      2024,
+      2025,
+      2123
+    ],
+    "selection_kinds": {
+      "literal": 3892,
+      "additional_current_successor_proposal": 14,
+      "private_bridge": 17,
+      "existing_current_test": 17,
+      "none_retired": 3,
+      "current_parameter_successor_proposal": 4,
+      "existing_runner_parameter_binding": 1
+    },
+    "inherited_mappings": 37,
+    "inherited_executable": 34,
+    "additional_migrations": 14,
+    "parameter_id_repairs": 4,
+    "original_runner_parameter_binding": 1
+  },
+  "contract_difference_rows": 36,
+  "cells": {
+    "baseline-3948-test_collection": {
+      "phase": "baseline",
+      "operation": "test_collection",
+      "receipt_returncode": 0,
+      "receipt_started_utc": "2026-11-04T12:06:34.236652+00:00",
+      "receipt_finished_utc": "2026-11-04T12:07:32.746442+00:00",
+      "receipt_elapsed_seconds": 58.509696977213025,
+      "summary": {
+        "attempts": 5,
+        "completed": 5,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 45.32917411625385,
+        "median_seconds": 9.065756751224399,
+        "mad_seconds": 0.011609161272644997,
+        "p95_seconds": 9.081819750368595,
+        "peak_rss_bytes": 382832640
+      },
+      "warmup": {
+        "seconds": 10.223251979798079,
+        "peak_rss_bytes": 383176704
+      }
+    },
+    "candidate-3948-test_collection": {
+      "phase": "candidate",
+      "operation": "test_collection",
+      "receipt_returncode": 0,
+      "receipt_started_utc": "2026-11-04T12:07:32.771323+00:00",
+      "receipt_finished_utc": "2026-11-04T12:08:45.521286+00:00",
+      "receipt_elapsed_seconds": 72.74986336380243,
+      "summary": {
+        "attempts": 5,
+        "completed": 5,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 57.216160578653216,
+        "median_seconds": 11.455639256164432,
+        "mad_seconds": 0.009298227727413177,
+        "p95_seconds": 11.517840763926506,
+        "peak_rss_bytes": 383610880
+      },
+      "warmup": {
+        "seconds": 12.456279568374157,
+        "peak_rss_bytes": 391737344
+      }
+    },
+    "candidate-3948-test_execution": {
+      "phase": "candidate",
+      "operation": "test_execution",
+      "receipt_returncode": 0,
+      "receipt_started_utc": "2026-11-04T12:08:45.539834+00:00",
+      "receipt_finished_utc": "2026-11-04T12:31:55.173815+00:00",
+      "receipt_elapsed_seconds": 1389.6338525284082,
+      "summary": {
+        "attempts": 5,
+        "completed": 5,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 1154.1666050124913,
+        "median_seconds": 230.86810829676688,
+        "mad_seconds": 0.16394907236099243,
+        "p95_seconds": 231.57967048324645,
+        "peak_rss_bytes": 809656320
+      },
+      "warmup": {
+        "seconds": 232.18817357346416,
+        "peak_rss_bytes": 809168896
+      }
+    },
+    "baseline-3948-test_execution": {
+      "phase": "baseline",
+      "operation": "test_execution",
+      "receipt_returncode": 0,
+      "receipt_started_utc": "2026-11-04T12:31:55.189576+00:00",
+      "receipt_finished_utc": "2026-11-04T12:55:47.591785+00:00",
+      "receipt_elapsed_seconds": 1432.4020877815783,
+      "summary": {
+        "attempts": 5,
+        "completed": 5,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 1191.2967048846185,
+        "median_seconds": 238.02169154584408,
+        "mad_seconds": 1.2408563494682312,
+        "p95_seconds": 240.77219966500996,
+        "peak_rss_bytes": 808124416
+      },
+      "warmup": {
+        "seconds": 237.95170338451862,
+        "peak_rss_bytes": 806699008
+      }
+    }
+  },
+  "actual_execution_outcomes": {
+    "candidate": {
+      "passed": 3818,
+      "skipped": 124,
+      "xfailed": 3,
+      "subtests_passed": 49,
+      "junit": {
+        "tests": 3994,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 127
+      },
+      "physical_testcase_elements": 3945,
+      "report_counts": {
+        "setup/passed": 3821,
+        "call/passed": 3867,
+        "teardown/passed": 3945,
+        "setup/skipped": 124,
+        "call/skipped": 3
+      },
+      "skip_reason_counts": {
+        "requires --run-optional": 3,
+        "requires --run-model-artifacts": 42,
+        "requires --run-scientific-boundary": 8,
+        "requires --run-high-compute": 25,
+        "requires --run-external": 45,
+        "the retained per-ring assignment makes aromaticity depend on ring order": 1,
+        "legacy per-ring Huckel counting does not perceive fused azulene globally": 1,
+        "legacy joint-ring grouping rejects rings sharing multiple edges": 1,
+        "Private sampler.cpp is a source-only architecture fixture, excluded from wheels": 1
+      },
+      "warning_counts_by_attempt": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    "baseline": {
+      "passed": 3822,
+      "skipped": 123,
+      "xfailed": 3,
+      "subtests_passed": 49,
+      "junit": {
+        "tests": 3997,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 126
+      },
+      "physical_testcase_elements": 3948,
+      "report_counts": {
+        "setup/passed": 3825,
+        "call/passed": 3871,
+        "teardown/passed": 3948,
+        "setup/skipped": 123,
+        "call/skipped": 3
+      },
+      "skip_reason_counts": {
+        "requires --run-optional": 3,
+        "requires --run-model-artifacts": 42,
+        "requires --run-scientific-boundary": 8,
+        "requires --run-high-compute": 25,
+        "requires --run-external": 45,
+        "legacy per-ring writes make aromaticity depend on ring order": 1,
+        "legacy per-ring Huckel counting does not perceive fused azulene globally": 1,
+        "legacy joint-ring grouping rejects rings sharing multiple edges": 1
+      },
+      "warning_counts_by_attempt": [
+        4,
+        4,
+        4,
+        4,
+        5,
+        4
+      ]
+    }
+  },
+  "raw_comparison": {
+    "test_collection": {
+      "raw_median_candidate_over_baseline": 1.2636164382655934,
+      "raw_peak_rss_candidate_over_baseline": 1.0020328465200878,
+      "strict_comparable_pairs": 0,
+      "raw_index_pairs": [
+        [
+          9.056250061839819,
+          11.318489680066705
+        ],
+        [
+          9.046868180856109,
+          11.446341028437018
+        ],
+        [
+          9.065756751224399,
+          11.464519545435905
+        ],
+        [
+          9.077365912497044,
+          11.455639256164432
+        ],
+        [
+          9.082933209836483,
+          11.531171068549156
+        ]
+      ],
+      "paired_interval": null,
+      "interval_not_computed_reason": "Shared comparator excludes unequal work counters; 3948 versus3945 physical nodes and differing execution/skip contracts. Phase blocks are sequential, not interleaved pairs.",
+      "excluded_indices": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "full_population_strict_speedup_claim": false
+    },
+    "test_execution": {
+      "raw_median_candidate_over_baseline": 0.9699456667053414,
+      "raw_peak_rss_candidate_over_baseline": 1.0018956289027654,
+      "strict_comparable_pairs": 0,
+      "raw_index_pairs": [
+        [
+          236.6650536544621,
+          229.70188460685313
+        ],
+        [
+          236.78083519637585,
+          230.84798097796738
+        ],
+        [
+          241.34395794570446,
+          230.86810829676688
+        ],
+        [
+          238.02169154584408,
+          231.7165737617761
+        ],
+        [
+          238.48516654223204,
+          231.03205736912787
+        ]
+      ],
+      "paired_interval": null,
+      "interval_not_computed_reason": "Shared comparator excludes unequal work counters; 3948 versus3945 physical nodes and differing execution/skip contracts. Phase blocks are sequential, not interleaved pairs.",
+      "excluded_indices": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "full_population_strict_speedup_claim": false
+    }
+  },
+  "frozen_sampling_and_comparison_policy": {
+    "micro": {
+      "warmups": 3,
+      "samples": 10
+    },
+    "cpu_workflow": {
+      "warmups": 1,
+      "samples": 5
+    },
+    "gpu_workflow": {
+      "warmups": 1,
+      "samples": 3
+    },
+    "neutral_band": [
+      0.97,
+      1.03
+    ],
+    "bootstrap_samples": 10000,
+    "bootstrap_seed": 20261028,
+    "confidence_level": 0.95,
+    "weights": "Equal within each family/hardware mode and equal family weights in overall summaries; report end-to-end separately.",
+    "acceptance": "Effective goal.md and Section12.2: comparable semantic work, usable completion and bounded resources; explain absolute/relative cost and retain all adverse/failed observations. The main agent may accept explained usable degradation within authorization; no universal parity or rare-small-regression quota. Neutral-band classifications describe measurements, not automatic acceptance.",
+    "work_accounting": "Retain every warmup and measured attempt, failure and no-output. Pair only completed samples with equal actual work counters; report all excluded attempts and denominators.",
+    "candidate_binding": "Keep each semantic task and public reader fixed. Update private fixture/import bindings at their owning stage; include runner digests. No fallback to baseline implementation. Preserve historical manifests/reports and frozen workloads/sampling/weights/counters. A policy-only documentation change does not rewrite B20 evidence: use one attributable frozen executable recipe for paired work, record any comparator manifest-identity limitation and obtain direct or alternative comparable-work evidence without relabeling a failed checker as passed."
+  },
+  "strict_full_population_speedup_eligible": false,
+  "strict_speedup_or_parity_claim": false,
+  "comparison_limits": [
+    "3948 logical slots map to3945 candidate physical tests with3 explicit retirements; no zero-cost denominator repair.",
+    "37 inherited mappings (34 executable/3 retired),14 migrations,4 parameter-ID repairs and1 original runner parameter binding remain explicitly attributed.",
+    "Current-contract assertions/import graphs/fixtures/markers/skips differ; unchanged literal node names do not establish equal work.",
+    "JUnit totals include49 subtests while testcase elements count physical tests; xfails are included in JUnit skipped, not passed.",
+    "Baseline uses original B0 source+native endpoint; candidate uses final CP311 installed Hotpot with current tests. Same interpreter/dependency environment and declared loader/CPUs do not establish exclusive host resources.",
+    "Raw median ratios are descriptive only. Shared comparator excludes all5 unequal-counter pairs per operation; no paired interval or aggregate speedup is manufactured.",
+    "Subprocess wait4 wall time and ru_maxrss records exclude outer binding/hash/JUnit parsing and orchestration. RSS is per-child resource evidence; no separate retained-memory analysis.",
+    "Hardware monitoring covers only late baseline execution; no timestamp-matched candidate/collection points or continuous contention/throttle evidence.",
+    "Per-attempt package-origin and digest records bind selected endpoints; no fresh import or installed/native/model requalification performed."
+  ],
+  "hardware_review": {
+    "monitor01": {
+      "snapshot_first_utc": "2026-11-04T12:43:59.693468+00:00",
+      "snapshot_last_utc": "2026-11-04T13:09:07.550757+00:00",
+      "snapshot_points": 26,
+      "by_cell": {
+        "baseline-3948-test_collection": {
+          "point_count": 0,
+          "utc_points": [],
+          "coverage": "No timestamp-matched hardware samples"
+        },
+        "candidate-3948-test_collection": {
+          "point_count": 0,
+          "utc_points": [],
+          "coverage": "No timestamp-matched hardware samples"
+        },
+        "candidate-3948-test_execution": {
+          "point_count": 0,
+          "utc_points": [],
+          "coverage": "No timestamp-matched hardware samples"
+        },
+        "baseline-3948-test_execution": {
+          "point_count": 12,
+          "utc_points": [
+            "2026-11-04T12:43:59.693468+00:00",
+            "2026-11-04T12:45:01.161290+00:00",
+            "2026-11-04T12:46:02.713423+00:00",
+            "2026-11-04T12:47:04.332835+00:00",
+            "2026-11-04T12:48:05.856718+00:00",
+            "2026-11-04T12:49:06.819636+00:00",
+            "2026-11-04T12:50:06.884026+00:00",
+            "2026-11-04T12:51:07.046738+00:00",
+            "2026-11-04T12:52:07.075294+00:00",
+            "2026-11-04T12:53:07.101123+00:00",
+            "2026-11-04T12:54:07.129659+00:00",
+            "2026-11-04T12:55:07.158471+00:00"
+          ],
+          "coverage": "Point samples only; no continuous/exclusive-host evidence",
+          "one_minute_load_range": [
+            1.72,
+            5.83
+          ],
+          "allocated_cpu_interval_busy_percent_range": [
+            0.2501250625312701,
+            35.41770885442721
+          ],
+          "allocated_cpu_point_frequency_khz_range": [
+            1916272,
+            4209016
+          ],
+          "mem_available_kib_range": [
+            466863288,
+            467319908
+          ],
+          "gpu_query_returncodes": [
+            9
+          ]
+        }
+      },
+      "by_execution_attempt": [
+        {
+          "cell": "candidate-3948-test_execution",
+          "index": 0,
+          "warmup": true,
+          "junit_window_utc": [
+            "2026-11-04T12:08:46.661007+00:00",
+            "2026-11-04T12:12:36.254007+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "candidate-3948-test_execution",
+          "index": 1,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:12:39.366425+00:00",
+            "2026-11-04T12:16:26.476425+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "candidate-3948-test_execution",
+          "index": 2,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:16:29.568396+00:00",
+            "2026-11-04T12:20:17.824396+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "candidate-3948-test_execution",
+          "index": 3,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:20:20.948917+00:00",
+            "2026-11-04T12:24:08.842917+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "candidate-3948-test_execution",
+          "index": 4,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:24:12.319506+00:00",
+            "2026-11-04T12:28:01.076506+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "candidate-3948-test_execution",
+          "index": 5,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:28:04.543656+00:00",
+            "2026-11-04T12:31:52.609656+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "baseline-3948-test_execution",
+          "index": 0,
+          "warmup": true,
+          "junit_window_utc": [
+            "2026-11-04T12:31:56.571386+00:00",
+            "2026-11-04T12:35:51.457386+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "baseline-3948-test_execution",
+          "index": 1,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:35:55.008955+00:00",
+            "2026-11-04T12:39:48.627955+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "baseline-3948-test_execution",
+          "index": 2,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:39:52.175477+00:00",
+            "2026-11-04T12:43:45.899477+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "baseline-3948-test_execution",
+          "index": 3,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:43:49.451721+00:00",
+            "2026-11-04T12:47:47.324721+00:00"
+          ],
+          "point_count": 4,
+          "points": [
+            "2026-11-04T12:43:59.693468+00:00",
+            "2026-11-04T12:45:01.161290+00:00",
+            "2026-11-04T12:46:02.713423+00:00",
+            "2026-11-04T12:47:04.332835+00:00"
+          ]
+        },
+        {
+          "cell": "baseline-3948-test_execution",
+          "index": 4,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:47:51.288823+00:00",
+            "2026-11-04T12:51:45.882823+00:00"
+          ],
+          "point_count": 4,
+          "points": [
+            "2026-11-04T12:48:05.856718+00:00",
+            "2026-11-04T12:49:06.819636+00:00",
+            "2026-11-04T12:50:06.884026+00:00",
+            "2026-11-04T12:51:07.046738+00:00"
+          ]
+        },
+        {
+          "cell": "baseline-3948-test_execution",
+          "index": 5,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:51:49.794836+00:00",
+            "2026-11-04T12:55:44.825836+00:00"
+          ],
+          "point_count": 4,
+          "points": [
+            "2026-11-04T12:52:07.075294+00:00",
+            "2026-11-04T12:53:07.101123+00:00",
+            "2026-11-04T12:54:07.129659+00:00",
+            "2026-11-04T12:55:07.158471+00:00"
+          ]
+        }
+      ],
+      "limitations": "Monitoring starts late in baseline execution and has no earlier collection/candidate coverage. JUnit timestamps cover internal suite windows, not the full process startup/exit. CPU busy values cover since-prior-sample intervals; frequency/load/GPU readings are points. No exclusive-host, continuous contention or transient throttling claim."
+    },
+    "docker-gpu01": {
+      "snapshot_first_utc": "2026-11-04T12:47:46.993843+00:00",
+      "snapshot_last_utc": "2026-11-04T13:09:22.042284+00:00",
+      "snapshot_points": 22,
+      "by_cell": {
+        "baseline-3948-test_collection": {
+          "point_count": 0,
+          "utc_points": [],
+          "coverage": "No timestamp-matched hardware samples"
+        },
+        "candidate-3948-test_collection": {
+          "point_count": 0,
+          "utc_points": [],
+          "coverage": "No timestamp-matched hardware samples"
+        },
+        "candidate-3948-test_execution": {
+          "point_count": 0,
+          "utc_points": [],
+          "coverage": "No timestamp-matched hardware samples"
+        },
+        "baseline-3948-test_execution": {
+          "point_count": 8,
+          "utc_points": [
+            "2026-11-04T12:47:46.993843+00:00",
+            "2026-11-04T12:48:48.638600+00:00",
+            "2026-11-04T12:49:50.235318+00:00",
+            "2026-11-04T12:50:52.112571+00:00",
+            "2026-11-04T12:51:54.004143+00:00",
+            "2026-11-04T12:52:55.591471+00:00",
+            "2026-11-04T12:53:57.171130+00:00",
+            "2026-11-04T12:54:59.091029+00:00"
+          ],
+          "coverage": "Point samples only; no continuous/exclusive-host evidence",
+          "gpu_query_returncodes": [
+            0
+          ],
+          "observation": "Late baseline-only GPU points; other GPU process memory/reservations present. CPU cells disable CUDA. No GPU or host exclusivity inference."
+        }
+      },
+      "by_execution_attempt": [
+        {
+          "cell": "candidate-3948-test_execution",
+          "index": 0,
+          "warmup": true,
+          "junit_window_utc": [
+            "2026-11-04T12:08:46.661007+00:00",
+            "2026-11-04T12:12:36.254007+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "candidate-3948-test_execution",
+          "index": 1,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:12:39.366425+00:00",
+            "2026-11-04T12:16:26.476425+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "candidate-3948-test_execution",
+          "index": 2,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:16:29.568396+00:00",
+            "2026-11-04T12:20:17.824396+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "candidate-3948-test_execution",
+          "index": 3,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:20:20.948917+00:00",
+            "2026-11-04T12:24:08.842917+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "candidate-3948-test_execution",
+          "index": 4,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:24:12.319506+00:00",
+            "2026-11-04T12:28:01.076506+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "candidate-3948-test_execution",
+          "index": 5,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:28:04.543656+00:00",
+            "2026-11-04T12:31:52.609656+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "baseline-3948-test_execution",
+          "index": 0,
+          "warmup": true,
+          "junit_window_utc": [
+            "2026-11-04T12:31:56.571386+00:00",
+            "2026-11-04T12:35:51.457386+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "baseline-3948-test_execution",
+          "index": 1,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:35:55.008955+00:00",
+            "2026-11-04T12:39:48.627955+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "baseline-3948-test_execution",
+          "index": 2,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:39:52.175477+00:00",
+            "2026-11-04T12:43:45.899477+00:00"
+          ],
+          "point_count": 0,
+          "points": []
+        },
+        {
+          "cell": "baseline-3948-test_execution",
+          "index": 3,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:43:49.451721+00:00",
+            "2026-11-04T12:47:47.324721+00:00"
+          ],
+          "point_count": 1,
+          "points": [
+            "2026-11-04T12:47:46.993843+00:00"
+          ]
+        },
+        {
+          "cell": "baseline-3948-test_execution",
+          "index": 4,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:47:51.288823+00:00",
+            "2026-11-04T12:51:45.882823+00:00"
+          ],
+          "point_count": 3,
+          "points": [
+            "2026-11-04T12:48:48.638600+00:00",
+            "2026-11-04T12:49:50.235318+00:00",
+            "2026-11-04T12:50:52.112571+00:00"
+          ]
+        },
+        {
+          "cell": "baseline-3948-test_execution",
+          "index": 5,
+          "warmup": false,
+          "junit_window_utc": [
+            "2026-11-04T12:51:49.794836+00:00",
+            "2026-11-04T12:55:44.825836+00:00"
+          ],
+          "point_count": 4,
+          "points": [
+            "2026-11-04T12:51:54.004143+00:00",
+            "2026-11-04T12:52:55.591471+00:00",
+            "2026-11-04T12:53:57.171130+00:00",
+            "2026-11-04T12:54:59.091029+00:00"
+          ]
+        }
+      ],
+      "limitations": "Monitoring starts late in baseline execution and has no earlier collection/candidate coverage. JUnit timestamps cover internal suite windows, not the full process startup/exit. CPU busy values cover since-prior-sample intervals; frequency/load/GPU readings are points. No exclusive-host, continuous contention or transient throttling claim."
+    }
+  },
+  "failures": {
+    "terminal_cells": {
+      "failed": 0,
+      "no_output": 0,
+      "warmups": 4,
+      "measured": 20,
+      "automatic_retries": 0
+    },
+    "original_candidate_untimed_preflight": {
+      "returncode": 4,
+      "actual_probe_nodes": 0,
+      "diagnostic_stdout_collected": 3941,
+      "cause": "Four obsolete parameter identifiers; preserved by previous preflight hashes and raw files. Later exact root-released corrected collection is distinct."
+    },
+    "review_command_limitations": [
+      {
+        "command": "rg --files <preparation02> <runtime-monitor>",
+        "result": "Returned an excessively broad filename listing including generated pytest support; output truncated. No generated temp file contents were read/copied; subsequent inspection used explicit finite artifact paths."
+      },
+      {
+        "command": "rg -n ... run_performance_baseline.py compare_performance.py run_python_matrix_baseline.py",
+        "returncode": 2,
+        "result": "Guessed comparator filename absent; discovered and read actual compare_performance_baselines.py. No workload executed."
+      }
+    ],
+    "review_attempt01_failure": {
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/hotpot_plan20/long/stage12-final-test-cost-review-20261104/review01/review_evidence.py"
+      ],
+      "returncode": 1,
+      "failed_check": "baseline-3948-test_execution all warmup/measured execution outcome totals stable",
+      "cause": "Review invariant incorrectly included warnings; baseline sample4 has5 geometry warnings, other samples4. Pass/skip/xfail/JUnit/subtests are stable. Corrected invariant compares outcome counts while retaining all per-attempt warnings; no sample or workload rerun.",
+      "preserved_source": "review-attempt01.py",
+      "preserved_checks": "REVIEW_CHECKS_ATTEMPT01_FAILED.json"
+    },
+    "other_preparation_failures": "No additional failed timed samples in these four receipts; this review does not certify unrelated earlier experiments."
+  },
+  "durable_original_archive": {
+    "path": ".plan20-artifacts/20261104/stage12/final-common-tests16b864f/original-evidence.tar.gz",
+    "bytes": 16529177,
+    "sha256": "dfdae4e47eeb3355747bd76f6aa0536d0ecffc98b04c35f90e0fb15ea74a923c",
+    "members": 252,
+    "reconstruction": "Every archive member read back and matched byte-for-byte, size and digest to the captured original; no pytest temp/source copies or unrelated generated outputs included",
+    "hash_scope": "Artifact attribution only; scientific correctness and usability are not inferred from hashes"
+  },
+  "review_artifacts": "/tmp/hotpot_plan20/long/stage12-final-test-cost-review-20261104/review01",
+  "review_command": [
+    "python3",
+    "-B",
+    "/tmp/hotpot_plan20/long/stage12-final-test-cost-review-20261104/review01/review_evidence.py"
+  ],
+  "review_python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+  "review_elapsed_seconds": 7.985117048025131,
+  "pending": {
+    "root_usability_acceptance": "ACCEPTED_WITHIN_RECORDED_SCOPE",
+    "five_version_2689_costs": "OPEN",
+    "new_only_test_costs": "OPEN",
+    "debt_closure": "ROOT_OWNED",
+    "full_stage_and_global_gates": "OPEN"
+  },
+  "maintained_ownership": "Only this new final-common-test-cost.json; no source/tests/config/root plan/log/debt/Git edits.",
+  "durable_supplement_archives": [
+    {
+      "path": ".plan20-artifacts/20261104/stage12/final-common-tests16b864f/frozen-selection-original.tar.gz",
+      "bytes": 67127,
+      "sha256": "d4c13f9eda5b1576e0271023cb9002fea611282c3de4162866f8f7d0d0d8c339",
+      "members": 1,
+      "original_path": "/tmp/hotpot-plan20-20261028/perf-common-test-selection/test_nodeids.json",
+      "original_sha256": "919c5cc1dff754dd328aa2425868636653d89834f4045523344db6daaeecf33f",
+      "verification": "Original3948 logical IDs matched in exact order and archive reconstructed byte-for-byte; executable policy/runner captures matched frozen timing-input records",
+      "hash_scope": "Artifact and recipe attribution only; no equal-work, usability or scientific inference"
+    }
+  ],
+  "original_frozen_3948_selection_order_verified": true,
+  "frozen_executable_recipe_inputs_verified": 4,
+  "review_checks": {
+    "primary": 707,
+    "supplemental": 8
+  },
+  "supplemental_review_command": [
+    "python3",
+    "-B",
+    "/tmp/hotpot_plan20/long/stage12-final-test-cost-review-20261104/review01/verify_frozen_selection.py"
+  ],
+  "durable_review_directory": ".plan20-artifacts/20261104/stage12/final-common-tests16b864f",
+  "durable_review_artifacts": {
+    "REPORT.md": ".plan20-artifacts/20261104/stage12/final-common-tests16b864f/REPORT.md",
+    "SAMPLE_REVIEW.json": ".plan20-artifacts/20261104/stage12/final-common-tests16b864f/SAMPLE_REVIEW.json",
+    "BINDING_REVIEW.json": ".plan20-artifacts/20261104/stage12/final-common-tests16b864f/BINDING_REVIEW.json",
+    "RAW_COMPARISON.json": ".plan20-artifacts/20261104/stage12/final-common-tests16b864f/RAW_COMPARISON.json",
+    "HARDWARE_REVIEW.json": ".plan20-artifacts/20261104/stage12/final-common-tests16b864f/HARDWARE_REVIEW.json",
+    "PRIVATE_FAILURES.json": ".plan20-artifacts/20261104/stage12/final-common-tests16b864f/PRIVATE_FAILURES.json",
+    "REVIEW_CHECKS.json": ".plan20-artifacts/20261104/stage12/final-common-tests16b864f/REVIEW_CHECKS.json",
+    "FROZEN_SELECTION_CHECKS.json": ".plan20-artifacts/20261104/stage12/final-common-tests16b864f/FROZEN_SELECTION_CHECKS.json",
+    "ORIGINAL_ARCHIVE_MEMBERS.json": ".plan20-artifacts/20261104/stage12/final-common-tests16b864f/ORIGINAL_ARCHIVE_MEMBERS.json",
+    "ARCHIVE_VERIFICATION.json": ".plan20-artifacts/20261104/stage12/final-common-tests16b864f/ARCHIVE_VERIFICATION.json",
+    "FROZEN_SELECTION_VERIFICATION.json": ".plan20-artifacts/20261104/stage12/final-common-tests16b864f/FROZEN_SELECTION_VERIFICATION.json"
+  },
+  "finalization_command": [
+    "python3",
+    "-B",
+    "/tmp/hotpot_plan20/long/stage12-final-test-cost-review-20261104/review01/finish_report.py"
+  ],
+  "root_decision": {
+    "reviewed_utc": "2026-11-04T13:15:21.488457+00:00",
+    "decision": "Current collection and full frozen logical selection complete with bounded observed cost and no failed/no-output samples. Accept the measured current CP311 cost for this concrete migrated selection.",
+    "basis": "All original1+5samples; explicit3948logical/3945physical selection and three retirements; actual package bindings/outcomes; retained failure, warnings, raw medians and RSS.",
+    "limits": "No strict full-population speedup/parity or paired confidence interval. Early candidate/collection hardware telemetry unavailable. Version2689 and additional-current costs remain open.",
+    "duplicate_business_execution": false
+  }
+}

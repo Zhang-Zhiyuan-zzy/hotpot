@@ -1,0 +1,533 @@
+{
+  "status": "ROOT_VERIFIED_FINAL_INSTALLED_MCA_FUNCTIONAL_MAPPING_ROUTING_AND_BOUNDED_RESOURCE_OBSERVATIONS",
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "wheel_sha256": "8dd0ddc467501741d3464ef24d79e6792e4b43fbb5c8c91673f4f376a6f0a617",
+  "scope": "Actual final CP311 installed product, original model inputs and CUDA12 runtime; all twelve functional recipes. Instrumented elapsed times are not performance samples.",
+  "counts": {
+    "cases": 12,
+    "calls": 19,
+    "chemical_rows_independently_reviewed": 8959,
+    "chemical_problems": 0,
+    "raw_events_reviewed": 129085
+  },
+  "independent_oracles": [
+    "RDKit source-string isomeric identity, net charge and H expectations.",
+    "Ordered atom elements/cardinality, full atom/site joins and model payload ordering."
+  ],
+  "cases": [
+    {
+      "case": "mca_cpu_8",
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-20261104/execution01/mca_cpu_8",
+      "chemical_rows_checked": 16,
+      "calls": 2,
+      "problems": [],
+      "sessions": 1,
+      "actual_cuda_nodes_by_device": {},
+      "repeat_observations": [
+        {
+          "calls": [
+            0,
+            1
+          ],
+          "max_abs_atom_difference_kj_mol": 0.0,
+          "same_raw_records": true,
+          "within_root_released_repeat_tolerance": true,
+          "policy": {
+            "rtol": 1e-05,
+            "atol_kj_mol": 0.001
+          }
+        }
+      ],
+      "events": 1675,
+      "rolling_events": 0,
+      "resource_maxima": {},
+      "largest_fixture_molecule_atoms": 7,
+      "nominal_threshold_observations": {},
+      "technical_resource_issues": {},
+      "final_rolling_state": null,
+      "process_exit_reports": 9,
+      "scope": "Actual instrumented function/chemical/resource observations; not performance or universal memory bound."
+    },
+    {
+      "case": "mca_cpu_64",
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-20261104/execution02/mca_cpu_64",
+      "chemical_rows_checked": 128,
+      "calls": 2,
+      "problems": [],
+      "sessions": 1,
+      "actual_cuda_nodes_by_device": {},
+      "repeat_observations": [
+        {
+          "calls": [
+            0,
+            1
+          ],
+          "max_abs_atom_difference_kj_mol": 0.0,
+          "same_raw_records": true,
+          "within_root_released_repeat_tolerance": true,
+          "policy": {
+            "rtol": 1e-05,
+            "atol_kj_mol": 0.001
+          }
+        }
+      ],
+      "events": 1803,
+      "rolling_events": 0,
+      "resource_maxima": {},
+      "largest_fixture_molecule_atoms": 7,
+      "nominal_threshold_observations": {},
+      "technical_resource_issues": {},
+      "final_rolling_state": null,
+      "process_exit_reports": 9,
+      "scope": "Actual instrumented function/chemical/resource observations; not performance or universal memory bound."
+    },
+    {
+      "case": "mca_fallback",
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-20261104/execution02/mca_fallback",
+      "chemical_rows_checked": 16,
+      "calls": 2,
+      "problems": [],
+      "sessions": 2,
+      "actual_cuda_nodes_by_device": {},
+      "repeat_observations": [
+        {
+          "calls": [
+            0,
+            1
+          ],
+          "max_abs_atom_difference_kj_mol": 0.0,
+          "same_raw_records": true,
+          "within_root_released_repeat_tolerance": true,
+          "policy": {
+            "rtol": 1e-05,
+            "atol_kj_mol": 0.001
+          }
+        }
+      ],
+      "events": 3056,
+      "rolling_events": 0,
+      "resource_maxima": {},
+      "largest_fixture_molecule_atoms": 7,
+      "nominal_threshold_observations": {},
+      "technical_resource_issues": {},
+      "final_rolling_state": null,
+      "process_exit_reports": 17,
+      "scope": "Actual instrumented function/chemical/resource observations; not performance or universal memory bound."
+    },
+    {
+      "case": "mca_1gpu",
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-20261104/execution02/mca_1gpu",
+      "chemical_rows_checked": 1024,
+      "calls": 2,
+      "problems": [],
+      "sessions": 1,
+      "actual_cuda_nodes_by_device": {
+        "0": 4900
+      },
+      "repeat_observations": [
+        {
+          "calls": [
+            0,
+            1
+          ],
+          "max_abs_atom_difference_kj_mol": 0.0,
+          "same_raw_records": true,
+          "within_root_released_repeat_tolerance": true,
+          "policy": {
+            "rtol": 1e-05,
+            "atol_kj_mol": 0.001
+          }
+        }
+      ],
+      "events": 11781,
+      "rolling_events": 6874,
+      "resource_maxima": {
+        "pending_requests": 2,
+        "next_input_index": 512,
+        "next_output_index": 512,
+        "admission_atom_count": 2176,
+        "resident_atom_count": 2176,
+        "admission_excess_above_nominal_threshold": 0
+      },
+      "largest_fixture_molecule_atoms": 7,
+      "nominal_threshold_observations": {},
+      "technical_resource_issues": {},
+      "final_rolling_state": {
+        "next_input_index": 512,
+        "next_output_index": 512,
+        "admission_atom_count": 0,
+        "resident_atom_count": 0,
+        "pending_requests": 0,
+        "pending_cpu": {
+          "site": 0,
+          "feature": 0
+        }
+      },
+      "process_exit_reports": 2,
+      "scope": "Actual instrumented function/chemical/resource observations; not performance or universal memory bound."
+    },
+    {
+      "case": "mca_4gpu",
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-20261104/execution02/mca_4gpu",
+      "chemical_rows_checked": 1024,
+      "calls": 2,
+      "problems": [],
+      "sessions": 4,
+      "actual_cuda_nodes_by_device": {
+        "0": 1225,
+        "1": 1225,
+        "2": 1225,
+        "3": 1225
+      },
+      "repeat_observations": [
+        {
+          "calls": [
+            0,
+            1
+          ],
+          "max_abs_atom_difference_kj_mol": 0.0,
+          "same_raw_records": true,
+          "within_root_released_repeat_tolerance": true,
+          "policy": {
+            "rtol": 1e-05,
+            "atol_kj_mol": 0.001
+          }
+        }
+      ],
+      "events": 20393,
+      "rolling_events": 6518,
+      "resource_maxima": {
+        "pending_requests": 2,
+        "next_input_index": 512,
+        "next_output_index": 512,
+        "admission_atom_count": 2176,
+        "resident_atom_count": 2176,
+        "admission_excess_above_nominal_threshold": 0
+      },
+      "largest_fixture_molecule_atoms": 7,
+      "nominal_threshold_observations": {},
+      "technical_resource_issues": {},
+      "final_rolling_state": {
+        "next_input_index": 512,
+        "next_output_index": 512,
+        "admission_atom_count": 0,
+        "resident_atom_count": 0,
+        "pending_requests": 0,
+        "pending_cpu": {
+          "site": 0,
+          "feature": 0
+        }
+      },
+      "process_exit_reports": 6,
+      "scope": "Actual instrumented function/chemical/resource observations; not performance or universal memory bound."
+    },
+    {
+      "case": "gpu_count_1",
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-20261104/execution02/gpu_count_1",
+      "chemical_rows_checked": 512,
+      "calls": 1,
+      "problems": [],
+      "sessions": 1,
+      "actual_cuda_nodes_by_device": {
+        "0": 2450
+      },
+      "repeat_observations": [],
+      "events": 7482,
+      "rolling_events": 3434,
+      "resource_maxima": {
+        "pending_requests": 2,
+        "next_input_index": 512,
+        "next_output_index": 512,
+        "admission_atom_count": 2176,
+        "resident_atom_count": 2176,
+        "admission_excess_above_nominal_threshold": 0
+      },
+      "largest_fixture_molecule_atoms": 7,
+      "nominal_threshold_observations": {},
+      "technical_resource_issues": {},
+      "final_rolling_state": {
+        "next_input_index": 512,
+        "next_output_index": 512,
+        "admission_atom_count": 0,
+        "resident_atom_count": 0,
+        "pending_requests": 0,
+        "pending_cpu": {
+          "site": 0,
+          "feature": 0
+        }
+      },
+      "process_exit_reports": 2,
+      "scope": "Actual instrumented function/chemical/resource observations; not performance or universal memory bound."
+    },
+    {
+      "case": "gpu_count_4",
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-20261104/execution02/gpu_count_4",
+      "chemical_rows_checked": 512,
+      "calls": 1,
+      "problems": [],
+      "sessions": 4,
+      "actual_cuda_nodes_by_device": {
+        "0": 1225,
+        "1": 1225
+      },
+      "repeat_observations": [],
+      "events": 16274,
+      "rolling_events": 3259,
+      "resource_maxima": {
+        "pending_requests": 2,
+        "next_input_index": 512,
+        "next_output_index": 512,
+        "admission_atom_count": 2176,
+        "resident_atom_count": 2176,
+        "admission_excess_above_nominal_threshold": 0
+      },
+      "largest_fixture_molecule_atoms": 7,
+      "nominal_threshold_observations": {},
+      "technical_resource_issues": {},
+      "final_rolling_state": {
+        "next_input_index": 512,
+        "next_output_index": 512,
+        "admission_atom_count": 0,
+        "resident_atom_count": 0,
+        "pending_requests": 0,
+        "pending_cpu": {
+          "site": 0,
+          "feature": 0
+        }
+      },
+      "process_exit_reports": 5,
+      "scope": "Actual instrumented function/chemical/resource observations; not performance or universal memory bound."
+    },
+    {
+      "case": "boundary_255",
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-20261104/execution02/boundary_255",
+      "chemical_rows_checked": 255,
+      "calls": 1,
+      "problems": [],
+      "sessions": 1,
+      "actual_cuda_nodes_by_device": {},
+      "repeat_observations": [],
+      "events": 1889,
+      "rolling_events": 0,
+      "resource_maxima": {},
+      "largest_fixture_molecule_atoms": 2,
+      "nominal_threshold_observations": {},
+      "technical_resource_issues": {},
+      "final_rolling_state": null,
+      "process_exit_reports": 9,
+      "scope": "Actual instrumented function/chemical/resource observations; not performance or universal memory bound."
+    },
+    {
+      "case": "boundary_256",
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-20261104/execution02/boundary_256",
+      "chemical_rows_checked": 256,
+      "calls": 1,
+      "problems": [],
+      "sessions": 1,
+      "actual_cuda_nodes_by_device": {
+        "0": 1225
+      },
+      "repeat_observations": [],
+      "events": 2609,
+      "rolling_events": 1294,
+      "resource_maxima": {
+        "pending_requests": 1,
+        "next_input_index": 256,
+        "next_output_index": 256,
+        "admission_atom_count": 512,
+        "resident_atom_count": 512,
+        "admission_excess_above_nominal_threshold": 0
+      },
+      "largest_fixture_molecule_atoms": 2,
+      "nominal_threshold_observations": {},
+      "technical_resource_issues": {},
+      "final_rolling_state": {
+        "next_input_index": 256,
+        "next_output_index": 256,
+        "admission_atom_count": 0,
+        "resident_atom_count": 0,
+        "pending_requests": 0,
+        "pending_cpu": {
+          "site": 0,
+          "feature": 0
+        }
+      },
+      "process_exit_reports": 2,
+      "scope": "Actual instrumented function/chemical/resource observations; not performance or universal memory bound."
+    },
+    {
+      "case": "warm_large_small_large",
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-20261104/execution02/warm_large_small_large",
+      "chemical_rows_checked": 608,
+      "calls": 3,
+      "problems": [],
+      "sessions": 2,
+      "actual_cuda_nodes_by_device": {
+        "0": 2450
+      },
+      "repeat_observations": [
+        {
+          "calls": [
+            0,
+            2
+          ],
+          "max_abs_atom_difference_kj_mol": 0.0,
+          "same_raw_records": true,
+          "within_root_released_repeat_tolerance": true,
+          "policy": {
+            "rtol": 1e-05,
+            "atol_kj_mol": 0.001
+          }
+        }
+      ],
+      "events": 5695,
+      "rolling_events": 3204,
+      "resource_maxima": {
+        "pending_requests": 1,
+        "next_input_index": 300,
+        "next_output_index": 300,
+        "admission_atom_count": 600,
+        "resident_atom_count": 600,
+        "admission_excess_above_nominal_threshold": 0
+      },
+      "largest_fixture_molecule_atoms": 7,
+      "nominal_threshold_observations": {},
+      "technical_resource_issues": {},
+      "final_rolling_state": {
+        "next_input_index": 300,
+        "next_output_index": 300,
+        "admission_atom_count": 0,
+        "resident_atom_count": 0,
+        "pending_requests": 0,
+        "pending_cpu": {
+          "site": 0,
+          "feature": 0
+        }
+      },
+      "process_exit_reports": 6,
+      "scope": "Actual instrumented function/chemical/resource observations; not performance or universal memory bound."
+    },
+    {
+      "case": "rolling_4096",
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-20261104/execution02/rolling_4096",
+      "chemical_rows_checked": 4096,
+      "calls": 1,
+      "problems": [],
+      "sessions": 4,
+      "actual_cuda_nodes_by_device": {
+        "0": 3675,
+        "1": 2450,
+        "2": 2450,
+        "3": 2450
+      },
+      "repeat_observations": [],
+      "events": 48594,
+      "rolling_events": 28390,
+      "resource_maxima": {
+        "pending_requests": 2,
+        "next_input_index": 4096,
+        "next_output_index": 4096,
+        "admission_atom_count": 8195,
+        "resident_atom_count": 10241,
+        "admission_excess_above_nominal_threshold": 3
+      },
+      "largest_fixture_molecule_atoms": 7,
+      "nominal_threshold_observations": {
+        "line_events_over_nominal_threshold": 4695
+      },
+      "technical_resource_issues": {},
+      "final_rolling_state": {
+        "next_input_index": 4096,
+        "next_output_index": 4096,
+        "admission_atom_count": 0,
+        "resident_atom_count": 0,
+        "pending_requests": 0,
+        "pending_cpu": {
+          "site": 0,
+          "feature": 0
+        }
+      },
+      "process_exit_reports": 5,
+      "scope": "Actual instrumented function/chemical/resource observations; not performance or universal memory bound."
+    },
+    {
+      "case": "mca_stereo_cuda",
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-20261104/execution02/mca_stereo_cuda",
+      "chemical_rows_checked": 512,
+      "calls": 1,
+      "problems": [],
+      "sessions": 1,
+      "actual_cuda_nodes_by_device": {
+        "0": 2450
+      },
+      "repeat_observations": [],
+      "events": 7834,
+      "rolling_events": 3700,
+      "resource_maxima": {
+        "pending_requests": 2,
+        "next_input_index": 512,
+        "next_output_index": 512,
+        "admission_atom_count": 2432,
+        "resident_atom_count": 2432,
+        "admission_excess_above_nominal_threshold": 0
+      },
+      "largest_fixture_molecule_atoms": 6,
+      "nominal_threshold_observations": {},
+      "technical_resource_issues": {},
+      "final_rolling_state": {
+        "next_input_index": 512,
+        "next_output_index": 512,
+        "admission_atom_count": 0,
+        "resident_atom_count": 0,
+        "pending_requests": 0,
+        "pending_cpu": {
+          "site": 0,
+          "feature": 0
+        }
+      },
+      "process_exit_reports": 2,
+      "scope": "Actual instrumented function/chemical/resource observations; not performance or universal memory bound."
+    }
+  ],
+  "archive": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-mca16b864f/raw-evidence.tar.gz",
+    "bytes": 9304661,
+    "sha256": "b140f030800827c8cecd2eab3a9e245fd6d4fb7399fe28ec035c661726b862f2"
+  },
+  "archive_members_verified": 496,
+  "root_review": {
+    "path": ".plan20-artifacts/20261104/stage12/final-mca16b864f/ROOT_REVIEW.json",
+    "bytes": 16105,
+    "sha256": "18411e15ee303f2fdcc6964cf2777b59eda208e529fcd5f397518263e627c5eb"
+  },
+  "evidence_index": {
+    "path": ".plan20-artifacts/20261104/stage12/final-mca16b864f/EVIDENCE_INDEX.json",
+    "bytes": 80925,
+    "sha256": "6bb008a09a5889467173a6f50a8a364f58614ceed03145bb3e6d7470ad1bff4a"
+  },
+  "resource_disposition": {
+    "path": ".plan20-artifacts/20261104/stage12/final-mca16b864f/ROOT_RESOURCE_DISPOSITION.json",
+    "bytes": 2517,
+    "sha256": "d5d3e41c1faf8eab7ca4e31282ff5f41f18b757e2853f7511698c10704212c84"
+  },
+  "repeat_tolerance": {
+    "rtol": 1e-05,
+    "atol_kj_mol": 0.001
+  },
+  "cuda_scope": "The repeated mca_4gpu case executes CUDA nodes on all four devices. The single gpu_count_4 call initializes four sessions but only two receive work; do not claim four active calculating devices in that call.",
+  "routing_scope": "255 sites uses CPU; 256 sites starts CUDA. A small middle call on a warm predictor uses CPU while retaining sessions.",
+  "lifecycle_scope": "Observed child processes terminate, affinity restores and final rolling queues/credits drain. Original wheel/model inputs are unchanged.",
+  "preserved_history": "All917historical metadata failures remain failures. D032/D033 registered repairs retain their separate source/installed evidence.",
+  "limits": [
+    "Independent current chemical identity/charge/H/ordered atom/site oracles apply to8959returned rows. Historical917metadata failures remain historical failures.",
+    "Repeat tolerance remains rtol1e-5/atol0.001kJ/mol; no historical/cross-provider exact score equality is required.",
+    "Observed resource thresholds/counters and completion do not prove universal leak freedom or peak process-tree/GPU byte memory.",
+    "No performance, complete support claim, main-scope acceptance or B_exp closure."
+  ],
+  "remaining": [
+    "Final comparable CPU/GPU/test/new-only cost and resource reports.",
+    "CBondCUDA runtime qualification; no CBondCUDA prediction pass follows from this MCA record.",
+    "Current SDK input rebind and applicable D006/D007 delivery/support dispositions.",
+    "Requirement-by-requirement main-scope report/acceptance and validatedB_exp."
+  ]
+}

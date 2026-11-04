@@ -1,0 +1,59 @@
+{
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "status": "ROOT_ACCEPTED_FINAL_SELECTED_LINUX_NATIVE_WHEEL_AND_SDK_DELIVERY",
+  "deferred_issue": "P20-D007",
+  "D007_closed": true,
+  "scope": "Selected Linuxx86_64 delivery: same final sdist builds six native components per CP310\u2013314wheel, maintained release smokes/linkage audits, final affected installed qualification and representative CP311 actual model/backend workflows, plus unchanged Python-independent SDK at its selected manylinux2.28release boundary.",
+  "final_same_sdist_wheels": {
+    "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-five-wheels.json",
+    "bytes": 5563,
+    "sha256": "fc4930a745fbdc059c4c275f1021216fc21f87d8e59ebf8c427e24277f0646e8"
+  },
+  "final_installed_qualification": {
+    "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-installed-qualification.json",
+    "bytes": 8174,
+    "sha256": "536c491108cec000060325b1dd65cebcd1d1d7a03ca3eba7b66067a3ae083d45"
+  },
+  "sdk_historical_checkpoint": {
+    "path": "plan/20_fact_rule_architecture/stages/stage12/sdk-current/validation/checkpoint.json",
+    "bytes": 2084,
+    "sha256": "e5c80603b617bc0ae3951acebe64d1fa991e4bdb9f452311dc5264cb5056fff4"
+  },
+  "current_sdk_source_rebind": {
+    "path": ".plan20-artifacts/20261104/stage12/sdk-current/root-review/final16b864f-source-rebind.json",
+    "bytes": 17938,
+    "sha256": "0905ea5a379e78b5c8d3cd12cd2ee9c55eb59be2d289370fc4de6f1a814abd85"
+  },
+  "current_sdk_artifact_rebind": {
+    "path": ".plan20-artifacts/20261104/stage12/sdk-current/root-review/final16b864f-artifact-rebind.json",
+    "bytes": 21311,
+    "sha256": "d6f8c72ea2c27b9ae40da698fa8857f61a762781d68bc26e2644a3840374b9a1"
+  },
+  "sdk_counts": {
+    "unchanged_source_header_build_test_inputs": 46,
+    "compiled_closure_artifacts": 25,
+    "installed_sdk_entries": 19,
+    "unique_existing_tests": 7,
+    "direct_commands": 31,
+    "hydrogen_projection_cases": 9,
+    "defined_h_results": 5,
+    "expected_local_h_rejections": 4
+  },
+  "sdk_native_library": {
+    "path": "release-sdk/lib/libhotpot_rdwrappers.so.0.5.4.5",
+    "bytes": 6164136,
+    "sha256": "5e05b3e81fe9f366606cc0bd356e58b6053109d7eccf89d52b5876c87cf34d10"
+  },
+  "decision": "Reuse the exact unchanged46SDKinputs,25compiled artifacts and19installed entries with the original actual consumer/ABI0/ABI1/linkage/H observations. Final five wheels were freshly rebuilt and actually installed/qualified. CloseD007for this selected delivery scope; no redundant SDKbuild/test rerun and no public package upload.",
+  "preserved_failures": [
+    "Original SDKcapsule omitted LICENSE: all162compile/link actions completed, install failed; bound LICENSE enabled install-only retry. Do not relabel the first driver exit1.",
+    "Original missing stereo guide preparation, prior wheel observations and private-checker failures retain their own source/outcomes."
+  ],
+  "limits": [
+    "No other operating system/architecture support claim.",
+    "Python3.10\u20133.14whole-business adaptation remains separately tracked underD006; selected affected installed tests are not every repository test.",
+    "GPU/runtime compatibility, comparable performance/resources, report consistency, main-scope acceptance, B_exp and Stage13\u201315 remain separate.",
+    "SDKsource/artifact identity establishes evidence reuse; it is not a chemical-truth or exact numerical-equality criterion."
+  ],
+  "global_gate_closed": false
+}

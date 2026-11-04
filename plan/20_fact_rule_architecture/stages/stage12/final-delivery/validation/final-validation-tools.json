@@ -1,0 +1,53 @@
+{
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "reviewed_utc": "2026-11-04T13:07:23.220021+00:00",
+  "status": "ROOT_ACCEPTED_BOUNDED_TOOL_DISPOSITIONS_NOT_A_SCANNER_PASS",
+  "D014": {
+    "state": "ACCEPTED_LIMITATION",
+    "decision": "Retire broken invocation assumptions as acceptance authorities; retain trustworthy terminal same-attempt business observations and direct comparable-work review. Do not rerun unchanged passed business merely to obtain a checker exit code.",
+    "retired_authorities": [
+      "Preterminal installed-driver receipt race",
+      "Copied artifact Git-index completeness as source-execution proof",
+      "Historical comparator policy-identity/parity verdict, including unequal-information clean-H work"
+    ],
+    "replacement_evidence": [
+      "final-installed-qualification.json",
+      "final-source-refresh.json",
+      "final-five-wheels.json",
+      "final-cpu-performance.json"
+    ],
+    "limits": "Original tool failures stay failed. No claim every old checker is repaired, universal cost parity, full test/version timing, or other unexecuted business.",
+    "reopen": "Affected evidence loses terminal attribution/integrity, a mandatory outcome is missing, or a retired tool is proposed as an acceptance authority."
+  },
+  "D015": {
+    "state": "ACCEPTED_LIMITATION",
+    "actual_navigation_omissions_resolved": true,
+    "original_findings": 21,
+    "current_frozen_before_findings": 152,
+    "raw_scanner_status": "failed",
+    "raw_scanner_returncode": 1,
+    "remaining_findings": [
+      "Missing local target: plan/20_fact_rule_architecture/implementation_log.md:9027: Cl"
+    ],
+    "cause": "Bare F[C@](Cl)(Br)I includes a syntactically valid Markdown link. Historical append-only prose is preserved; no broad chemistry exception is introduced.",
+    "focused_applied_checks": 36,
+    "focused_applied_checks_passed": 36,
+    "indexed_assets_at_run": 448,
+    "history_byte_audit_enabled": false,
+    "scope": "Tracked stage records, maintained README-linked targets, ten explicit root records and repository README; not a whole-repository document census.",
+    "decision": "Accept the precisely bounded bare-SMILES parser limitation after resolving real navigation omissions and known inline-code/editor-link defects; raw audit remains failed. This peripheral limitation does not block mandatory chemical verification.",
+    "reopen": "A real missing target/catalog/index omission appears in the maintained scope, inputs change materially, or a clean/universal parser claim is proposed."
+  },
+  "durable_evidence": {
+    "directory": ".plan20-artifacts/20261104/stage12/final-navigation16b864f/preparation01",
+    "archive_index": ".plan20-artifacts/20261104/stage12/final-navigation16b864f/ARCHIVE_INDEX.json",
+    "independently_copied_and_verified_files": 123,
+    "apply_receipt": ".plan20-artifacts/20261104/stage12/final-navigation16b864f/preparation01/root-apply01/APPLY_VALIDATION_RECEIPT.json",
+    "actual_scoped_audit": ".plan20-artifacts/20261104/stage12/final-navigation16b864f/preparation01/root-apply01/CURRENT_SCOPED_AUDIT.json"
+  },
+  "limits": [
+    "Navigation/validator evidence does not establish product chemistry, runtime, performance or acceptance.",
+    "No product/test/native/model/configuration bytes were changed for this disposition.",
+    "Full Stage12, final report and B_exp remain open."
+  ]
+}

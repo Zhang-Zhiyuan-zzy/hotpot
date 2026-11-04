@@ -1,0 +1,137 @@
+{
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "status": "ROOT_VERIFIED_CONTROLLED_NUMERIC_FAILURE_CAUSE_TRANSPORT",
+  "observations": [
+    {
+      "kind": "controlled_external_xtb_output",
+      "scenario": "success",
+      "argv": [
+        "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations01/water.sdf",
+        "--task",
+        "singlepoint",
+        "--report",
+        "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations01/success/report.json",
+        "--native-log",
+        "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations01/success/native.log",
+        "--xtb-executable",
+        "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations01/success/xtb",
+        "--charge",
+        "0",
+        "--unpaired-electrons",
+        "0",
+        "--post-check",
+        "off",
+        "--work-directory",
+        "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations01/success/native",
+        "--keep-work-directory"
+      ],
+      "returncode": 0,
+      "status": "ok",
+      "error": null,
+      "report": "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations01/success/report.json",
+      "native_artifact_count": 1
+    },
+    {
+      "kind": "controlled_external_xtb_output",
+      "scenario": "nonfinite_energy",
+      "argv": [
+        "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations01/water.sdf",
+        "--task",
+        "singlepoint",
+        "--report",
+        "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations01/nonfinite_energy/report.json",
+        "--native-log",
+        "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations01/nonfinite_energy/native.log",
+        "--xtb-executable",
+        "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations01/nonfinite_energy/xtb",
+        "--charge",
+        "0",
+        "--unpaired-electrons",
+        "0",
+        "--post-check",
+        "off",
+        "--work-directory",
+        "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations01/nonfinite_energy/native",
+        "--keep-work-directory"
+      ],
+      "returncode": 1,
+      "status": "error",
+      "error": {
+        "code": "XTB-RESULT-UNAVAILABLE",
+        "message": "Invalid xTB result artifact: non-standard JSON number 'NaN'",
+        "type": "XTBResultError"
+      },
+      "report": "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations01/nonfinite_energy/report.json",
+      "native_artifact_count": 1
+    },
+    {
+      "kind": "controlled_external_xtb_output",
+      "scenario": "nonfinite_gradient",
+      "argv": [
+        "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations02/water.sdf",
+        "--task",
+        "singlepoint",
+        "--report",
+        "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations02/nonfinite_gradient/report.json",
+        "--native-log",
+        "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations02/nonfinite_gradient/native.log",
+        "--xtb-executable",
+        "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations02/nonfinite_gradient/xtb",
+        "--charge",
+        "0",
+        "--unpaired-electrons",
+        "0",
+        "--post-check",
+        "off",
+        "--work-directory",
+        "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations02/nonfinite_gradient/native",
+        "--keep-work-directory"
+      ],
+      "returncode": 1,
+      "status": "error",
+      "error": {
+        "code": "XTB-RESULT-UNAVAILABLE",
+        "message": "Invalid xTB result artifact: non-standard JSON number 'Infinity'",
+        "type": "XTBResultError"
+      },
+      "report": "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations02/nonfinite_gradient/report.json",
+      "native_artifact_count": 1
+    },
+    {
+      "kind": "controlled_forcefield_numeric_boundary",
+      "returncode": 1,
+      "input_count": 3,
+      "statuses": [
+        "ok",
+        "error",
+        "ok"
+      ],
+      "surviving_output_count": 2,
+      "null_energy_with_named_cause": true,
+      "failure": {
+        "evidence": {
+          "code": "FF:finite_final_energy"
+        },
+        "message": "final energy must be finite",
+        "type": "AcceptanceCheck"
+      },
+      "report": "/tmp/hotpot_plan20/long/stage12-null-cause-20261104/observations02/ff-mixed-report.json",
+      "scope": "Actual installed pure finite rule and CLI/report serialization; optimizer output boundary is controlled, not an actual native numerical failure."
+    }
+  ],
+  "loaded_product_files_verified": 239,
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/null-cause16b864f/raw-evidence.tar.gz",
+    "bytes": 39444,
+    "sha256": "1d51579f30912bcd7aba91c71e48e2da6a5a1f5de70c8b8a7d498aed14199014"
+  },
+  "archive_members_verified": 52,
+  "scope": "Actual final installed parser, pure finite rule and CLI/report transport under controlled negative fixtures; original official xTB/native FF positive and mixed-cohort evidence remain separately attributed.",
+  "original_checker_failure": "observations01 expected the wrong existing code. Actual XTB-RESULT-UNAVAILABLE with explicit NaN cause is correct. Two completed calls are reused; only missing gradient and FF-boundary observations execute in observations02.",
+  "limits": [
+    "No actual official xTB/native FF numerical failure is claimed; fixtures control those producer boundaries.",
+    "The actual tested required numeric fields retain null plus named cause and raw artifacts. Arbitrary optional/custom fields are not universally qualified.",
+    "No product code, scientific thresholds or guard behavior changed; global acceptance remains open."
+  ],
+  "root_review": ".plan20-artifacts/20261104/stage12/null-cause16b864f/ROOT_REVIEW.json"
+}

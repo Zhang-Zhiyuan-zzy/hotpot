@@ -1,0 +1,4807 @@
+{
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "baseline_commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+  "status": "ROOT_ACCEPTED_BOUNDED_FINAL_CPU_COMPLETION_AND_USABLE_COST_WITH_EXPLICIT_LIMITS",
+  "counts": {
+    "baseline_all_attempts": 771,
+    "baseline_measured": 595,
+    "baseline_failed": 0,
+    "candidate_all_attempts": 771,
+    "candidate_measured": 595,
+    "candidate_failed": 0
+  },
+  "workload_pairs": 62,
+  "invocations": 124,
+  "measured_pairs": 595,
+  "complete_chemical_comparable_workloads": 57,
+  "not_complete_chemical_comparable_workloads": [
+    "clean_read_8",
+    "clean_read_64",
+    "clean_read_256",
+    "mca_cpu_8",
+    "mca_cpu_64"
+  ],
+  "slower_intervals_including_incomparable": [
+    "empty_molecule",
+    "construct_8",
+    "scalar_write_8",
+    "batch_facts_8",
+    "insert_delete_8",
+    "partial_projection_8",
+    "mca_projection_8",
+    "write_read_8",
+    "clean_read_8",
+    "construct_64",
+    "scalar_write_64",
+    "insert_delete_64",
+    "partial_projection_64",
+    "mca_projection_64",
+    "write_read_64",
+    "clean_read_64",
+    "construct_256",
+    "scalar_write_256",
+    "insert_delete_256",
+    "partial_projection_256",
+    "mca_projection_256",
+    "write_read_256",
+    "clean_read_256",
+    "io_smi_small",
+    "io_mol2_small",
+    "io_sdf_small",
+    "io_smi_typical",
+    "io_mol2_typical",
+    "io_sdf_typical",
+    "io_smi_large",
+    "io_mol2_large",
+    "io_sdf_large",
+    "graph_search_geometry",
+    "crystal_matrix",
+    "source_conformers",
+    "toolkit_conversions",
+    "retained_molecules",
+    "mca_cpu_8",
+    "mca_cpu_64"
+  ],
+  "higher_worker_peak_rss": [],
+  "higher_python_tracked_peaks": [
+    "empty_molecule",
+    "construct_8",
+    "scalar_write_8",
+    "batch_facts_8",
+    "coordinates_8",
+    "insert_delete_8",
+    "matrix_8",
+    "native_8",
+    "mca_projection_8",
+    "write_read_8",
+    "clean_read_8",
+    "construct_64",
+    "scalar_write_64",
+    "batch_facts_64",
+    "insert_delete_64",
+    "mca_projection_64",
+    "write_read_64",
+    "clean_read_64",
+    "construct_256",
+    "scalar_write_256",
+    "batch_facts_256",
+    "insert_delete_256",
+    "mca_projection_256",
+    "write_read_256",
+    "clean_read_256",
+    "io_smi_small",
+    "io_mol2_small",
+    "io_sdf_small",
+    "io_smi_typical",
+    "io_mol2_typical",
+    "io_sdf_typical",
+    "io_smi_large",
+    "io_mol2_large",
+    "io_sdf_large",
+    "graph_search_geometry",
+    "geometry_screen",
+    "source_conformers",
+    "toolkit_conversions",
+    "retained_molecules"
+  ],
+  "rows": [
+    {
+      "id": "cold_import",
+      "family": "import",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {},
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 8.980405580252409,
+        "median_seconds": 0.8969476502388716,
+        "mad_seconds": 0.0010004527866840363,
+        "p95_seconds": 0.902080037817359,
+        "peak_rss_bytes": 196067328
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 5.55304698087275,
+        "median_seconds": 0.5553098125383258,
+        "mad_seconds": 0.001050175167620182,
+        "p95_seconds": 0.5574797720648348,
+        "peak_rss_bytes": 87588864
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {},
+      "runtime_ratio": 0.6191106163112617,
+      "paired_bootstrap_95ci": [
+        0.6170790778051128,
+        0.6197516486840902
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.8969476502388716,
+      "candidate_seconds_per_call": 0.5553098125383258,
+      "measured_peak_rss_bytes": {
+        "baseline": 196067328,
+        "candidate": 87588864,
+        "ratio": 0.44672850338430686
+      },
+      "untimed_python_memory": {}
+    },
+    {
+      "id": "empty_molecule",
+      "family": "import",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "loops": 1000
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.04122523032128811,
+        "median_seconds": 0.0041009001433849335,
+        "mad_seconds": 9.700655937194824e-06,
+        "p95_seconds": 0.004171417281031609,
+        "peak_rss_bytes": 197840896
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.7254049424082041,
+        "median_seconds": 0.07240015547722578,
+        "mad_seconds": 0.00046605244278907776,
+        "p95_seconds": 0.07329068705439568,
+        "peak_rss_bytes": 91574272
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 1000
+      },
+      "runtime_ratio": 17.654698467606625,
+      "paired_bootstrap_95ci": [
+        17.31877223010733,
+        17.85612263693981
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 4.1009001433849335e-06,
+      "candidate_seconds_per_call": 7.240015547722578e-05,
+      "measured_peak_rss_bytes": {
+        "baseline": 197840896,
+        "candidate": 91574272,
+        "ratio": 0.462868263597027
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 95824,
+          "candidate": 67376,
+          "ratio": 0.7031223910502588
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 97824,
+          "candidate": 219180,
+          "ratio": 2.2405544651619236
+        },
+        "python_tracked_blocks": {
+          "baseline": 1165,
+          "candidate": 984,
+          "ratio": 0.8446351931330472
+        }
+      }
+    },
+    {
+      "id": "construct_8",
+      "family": "construction",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 8,
+        "loops": 5
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.007654085755348206,
+        "median_seconds": 0.0007536187767982483,
+        "mad_seconds": 1.014024019241333e-05,
+        "p95_seconds": 0.000828681793063879,
+        "peak_rss_bytes": 197595136
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.06635618023574352,
+        "median_seconds": 0.006634019315242767,
+        "mad_seconds": 4.0572136640548706e-05,
+        "p95_seconds": 0.006687015946954489,
+        "peak_rss_bytes": 91582464
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 5
+      },
+      "runtime_ratio": 8.802884853038586,
+      "paired_bootstrap_95ci": [
+        8.599111954960856,
+        8.948623996755465
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.00015072375535964965,
+      "candidate_seconds_per_call": 0.0013268038630485535,
+      "measured_peak_rss_bytes": {
+        "baseline": 197595136,
+        "candidate": 91582464,
+        "ratio": 0.4634854169689683
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 25016,
+          "candidate": 64392,
+          "ratio": 2.5740326191237606
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 27176,
+          "candidate": 71995,
+          "ratio": 2.6492125404768916
+        },
+        "python_tracked_blocks": {
+          "baseline": 348,
+          "candidate": 741,
+          "ratio": 2.1293103448275863
+        }
+      }
+    },
+    {
+      "id": "scalar_read_8",
+      "family": "atom_storage",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0021727941930294037,
+        "median_seconds": 0.00021563004702329636,
+        "mad_seconds": 2.911314368247986e-06,
+        "p95_seconds": 0.0002276422455906868,
+        "peak_rss_bytes": 197345280
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.002196904271841049,
+        "median_seconds": 0.00021812785416841507,
+        "mad_seconds": 1.7434358596801758e-06,
+        "p95_seconds": 0.0002257249318063259,
+        "peak_rss_bytes": 90980352
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 1.0115837620016326,
+      "paired_bootstrap_95ci": [
+        0.9928234239363668,
+        1.0409677658585956
+      ],
+      "descriptive_timing_class": "inconclusive_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 1.0781502351164817e-05,
+      "candidate_seconds_per_call": 1.0906392708420753e-05,
+      "measured_peak_rss_bytes": {
+        "baseline": 197345280,
+        "candidate": 90980352,
+        "ratio": 0.4610211706102117
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 0,
+          "candidate": 0,
+          "ratio": null
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 694,
+          "candidate": 600,
+          "ratio": 0.8645533141210374
+        },
+        "python_tracked_blocks": {
+          "baseline": 2,
+          "candidate": 2,
+          "ratio": 1.0
+        }
+      }
+    },
+    {
+      "id": "scalar_write_8",
+      "family": "atom_storage",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0006694886833429337,
+        "median_seconds": 6.690528243780136e-05,
+        "mad_seconds": 1.816079020500183e-07,
+        "p95_seconds": 6.734635680913926e-05,
+        "peak_rss_bytes": 197472256
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0012415871024131775,
+        "median_seconds": 0.00012308266013860703,
+        "mad_seconds": 7.208436727523804e-07,
+        "p95_seconds": 0.0001302717253565788,
+        "peak_rss_bytes": 90877952
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 1.8396553404139813,
+      "paired_bootstrap_95ci": [
+        1.8233105669387528,
+        1.8562216217721943
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 3.345264121890068e-06,
+      "candidate_seconds_per_call": 6.154133006930351e-06,
+      "measured_peak_rss_bytes": {
+        "baseline": 197472256,
+        "candidate": 90877952,
+        "ratio": 0.4602061770135446
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 0,
+          "candidate": 0,
+          "ratio": null
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 96,
+          "candidate": 192,
+          "ratio": 2.0
+        },
+        "python_tracked_blocks": {
+          "baseline": 1,
+          "candidate": 1,
+          "ratio": 1.0
+        }
+      }
+    },
+    {
+      "id": "batch_facts_8",
+      "family": "atom_storage",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0006738286465406418,
+        "median_seconds": 6.727129220962524e-05,
+        "mad_seconds": 2.300366759300232e-07,
+        "p95_seconds": 6.815865635871887e-05,
+        "peak_rss_bytes": 197537792
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.001802876591682434,
+        "median_seconds": 0.00017825886607170105,
+        "mad_seconds": 3.552064299583435e-06,
+        "p95_seconds": 0.00019428078085184094,
+        "peak_rss_bytes": 91291648
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 2.6498504817809283,
+      "paired_bootstrap_95ci": [
+        2.5956517532584207,
+        2.7129843077350366
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 3.363564610481262e-06,
+      "candidate_seconds_per_call": 8.912943303585053e-06,
+      "measured_peak_rss_bytes": {
+        "baseline": 197537792,
+        "candidate": 91291648,
+        "ratio": 0.4621477595537769
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 0,
+          "candidate": 183,
+          "ratio": null
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 96,
+          "candidate": 1406,
+          "ratio": 14.645833333333334
+        },
+        "python_tracked_blocks": {
+          "baseline": 1,
+          "candidate": 5,
+          "ratio": 5.0
+        }
+      }
+    },
+    {
+      "id": "coordinates_8",
+      "family": "atom_storage",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.01011880673468113,
+        "median_seconds": 0.001010335050523281,
+        "mad_seconds": 3.86405736207962e-06,
+        "p95_seconds": 0.001033781562000513,
+        "peak_rss_bytes": 197226496
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.004157835617661476,
+        "median_seconds": 0.0004154182970523834,
+        "mad_seconds": 2.289190888404846e-06,
+        "p95_seconds": 0.0004248425364494324,
+        "peak_rss_bytes": 90533888
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20,
+        "value.rows": 8
+      },
+      "runtime_ratio": 0.41116884625276195,
+      "paired_bootstrap_95ci": [
+        0.40642655984886916,
+        0.4142853447065172
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 5.051675252616405e-05,
+      "candidate_seconds_per_call": 2.077091485261917e-05,
+      "measured_peak_rss_bytes": {
+        "baseline": 197226496,
+        "candidate": 90533888,
+        "ratio": 0.4590351186891238
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 112,
+          "candidate": 4577,
+          "ratio": 40.86607142857143
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 1864,
+          "candidate": 6444,
+          "ratio": 3.4570815450643777
+        },
+        "python_tracked_blocks": {
+          "baseline": 5,
+          "candidate": 66,
+          "ratio": 13.2
+        }
+      }
+    },
+    {
+      "id": "insert_delete_8",
+      "family": "atom_storage",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.008607720956206322,
+        "median_seconds": 0.000861072912812233,
+        "mad_seconds": 8.711591362953186e-06,
+        "p95_seconds": 0.0008709145709872246,
+        "peak_rss_bytes": 197255168
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.09593546763062477,
+        "median_seconds": 0.007943833246827126,
+        "mad_seconds": 8.032843470573425e-05,
+        "p95_seconds": 0.017124648671597225,
+        "peak_rss_bytes": 92352512
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 9.225505910855857,
+      "paired_bootstrap_95ci": [
+        9.121188410739686,
+        9.362473365997166
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 4.305364564061165e-05,
+      "candidate_seconds_per_call": 0.00039719166234135627,
+      "measured_peak_rss_bytes": {
+        "baseline": 197255168,
+        "candidate": 92352512,
+        "ratio": 0.46818804767639854
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 2088,
+          "candidate": 59188,
+          "ratio": 28.346743295019156
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 4584,
+          "candidate": 72470,
+          "ratio": 15.80933682373473
+        },
+        "python_tracked_blocks": {
+          "baseline": 38,
+          "candidate": 625,
+          "ratio": 16.44736842105263
+        }
+      }
+    },
+    {
+      "id": "matrix_8",
+      "family": "native_export",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0072374846786260605,
+        "median_seconds": 0.00072428397834301,
+        "mad_seconds": 4.829838871955872e-06,
+        "p95_seconds": 0.000730426050722599,
+        "peak_rss_bytes": 197627904
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.001589437946677208,
+        "median_seconds": 0.00015827734023332596,
+        "mad_seconds": 5.979090929031372e-07,
+        "p95_seconds": 0.00016110232099890708,
+        "peak_rss_bytes": 90898432
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20,
+        "value.shape": [
+          8,
+          5
+        ]
+      },
+      "runtime_ratio": 0.218529395880642,
+      "paired_bootstrap_95ci": [
+        0.21707017768119646,
+        0.22093739504134804
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 3.6214198917150495e-05,
+      "candidate_seconds_per_call": 7.913867011666299e-06,
+      "measured_peak_rss_bytes": {
+        "baseline": 197627904,
+        "candidate": 90898432,
+        "ratio": 0.45994735642189477
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 280,
+          "candidate": 2872,
+          "ratio": 10.257142857142858
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 1195,
+          "candidate": 3787,
+          "ratio": 3.1690376569037655
+        },
+        "python_tracked_blocks": {
+          "baseline": 9,
+          "candidate": 45,
+          "ratio": 5.0
+        }
+      }
+    },
+    {
+      "id": "native_8",
+      "family": "native_export",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 8,
+        "loops": 20,
+        "fields": [
+          "ATOMIC_NUMBERS",
+          "FORMAL_CHARGES",
+          "COORDINATES"
+        ]
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.009248776361346245,
+        "median_seconds": 0.000922108069062233,
+        "mad_seconds": 6.5267086029052734e-06,
+        "p95_seconds": 0.0009419711306691169,
+        "peak_rss_bytes": 197853184
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.004108486697077751,
+        "median_seconds": 0.0003960318863391876,
+        "mad_seconds": 2.8274953365325928e-06,
+        "p95_seconds": 0.0004729554988443851,
+        "peak_rss_bytes": 90673152
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20,
+        "value.rows": 8
+      },
+      "runtime_ratio": 0.4294853278335855,
+      "paired_bootstrap_95ci": [
+        0.42417940456141123,
+        0.4648242658986186
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 4.610540345311165e-05,
+      "candidate_seconds_per_call": 1.980159431695938e-05,
+      "measured_peak_rss_bytes": {
+        "baseline": 197853184,
+        "candidate": 90673152,
+        "ratio": 0.4582850281550182
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 112,
+          "candidate": 256,
+          "ratio": 2.2857142857142856
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 2224,
+          "candidate": 2464,
+          "ratio": 1.1079136690647482
+        },
+        "python_tracked_blocks": {
+          "baseline": 5,
+          "candidate": 6,
+          "ratio": 1.2
+        }
+      }
+    },
+    {
+      "id": "partial_projection_8",
+      "family": "result_projection",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0012326110154390335,
+        "median_seconds": 0.000121300108730793,
+        "mad_seconds": 1.0058283805847168e-06,
+        "p95_seconds": 0.00013205902650952338,
+        "peak_rss_bytes": 197918720
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0015531089156866074,
+        "median_seconds": 0.00015526916831731796,
+        "mad_seconds": 4.256144165992737e-07,
+        "p95_seconds": 0.00015595760196447374,
+        "peak_rss_bytes": 91209728
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 1.2800414603247725,
+      "paired_bootstrap_95ci": [
+        1.252835865804122,
+        1.2907503608617457
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 6.06500543653965e-06,
+      "candidate_seconds_per_call": 7.763458415865899e-06,
+      "measured_peak_rss_bytes": {
+        "baseline": 197918720,
+        "candidate": 91209728,
+        "ratio": 0.46084437086092717
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 24,
+          "candidate": 0,
+          "ratio": 0.0
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 710,
+          "candidate": 592,
+          "ratio": 0.8338028169014085
+        },
+        "python_tracked_blocks": {
+          "baseline": 3,
+          "candidate": 2,
+          "ratio": 0.6666666666666666
+        }
+      }
+    },
+    {
+      "id": "mca_projection_8",
+      "family": "result_projection",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0004040282219648361,
+        "median_seconds": 4.036538302898407e-05,
+        "mad_seconds": 2.207234501838684e-07,
+        "p95_seconds": 4.113335162401199e-05,
+        "peak_rss_bytes": 197398528
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0015837512910366058,
+        "median_seconds": 0.00015921145677566528,
+        "mad_seconds": 6.854534149169922e-07,
+        "p95_seconds": 0.00015990231186151503,
+        "peak_rss_bytes": 90939392
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20,
+        "value.site_count": 8
+      },
+      "runtime_ratio": 3.944257302385677,
+      "paired_bootstrap_95ci": [
+        3.8781296023564065,
+        3.974382178907066
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 2.0182691514492034e-06,
+      "candidate_seconds_per_call": 7.960572838783264e-06,
+      "measured_peak_rss_bytes": {
+        "baseline": 197398528,
+        "candidate": 90939392,
+        "ratio": 0.4606893117257693
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 256,
+          "candidate": 0,
+          "ratio": 0.0
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 768,
+          "candidate": 808,
+          "ratio": 1.0520833333333333
+        },
+        "python_tracked_blocks": {
+          "baseline": 6,
+          "candidate": 2,
+          "ratio": 0.3333333333333333
+        }
+      }
+    },
+    {
+      "id": "write_read_8",
+      "family": "lazy_dependencies",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.01304173655807972,
+        "median_seconds": 0.001305101439356804,
+        "mad_seconds": 1.0018236935138702e-05,
+        "p95_seconds": 0.0013159719295799733,
+        "peak_rss_bytes": 197742592
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.1947411149740219,
+        "median_seconds": 0.017789674922823906,
+        "mad_seconds": 3.95188108086586e-05,
+        "p95_seconds": 0.027084134332835658,
+        "peak_rss_bytes": 91820032
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 13.630875260999813,
+      "paired_bootstrap_95ci": [
+        13.533932110992218,
+        13.77289188425194
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 6.52550719678402e-05,
+      "candidate_seconds_per_call": 0.0008894837461411953,
+      "measured_peak_rss_bytes": {
+        "baseline": 197742592,
+        "candidate": 91820032,
+        "ratio": 0.4643411976717692
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 56,
+          "candidate": 42951,
+          "ratio": 766.9821428571429
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 742,
+          "candidate": 67515,
+          "ratio": 90.99056603773585
+        },
+        "python_tracked_blocks": {
+          "baseline": 3,
+          "candidate": 467,
+          "ratio": 155.66666666666666
+        }
+      }
+    },
+    {
+      "id": "clean_read_8",
+      "family": "lazy_dependencies",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0012078341096639633,
+        "median_seconds": 0.00012044887989759445,
+        "mad_seconds": 7.916241884231567e-07,
+        "p95_seconds": 0.00012257322669029236,
+        "peak_rss_bytes": 197636096
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.03894846327602863,
+        "median_seconds": 0.0038964198902249336,
+        "mad_seconds": 1.3770535588264465e-05,
+        "p95_seconds": 0.003951534442603588,
+        "peak_rss_bytes": 90931200
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 32.34915836110445,
+      "paired_bootstrap_95ci": [
+        31.88348251236363,
+        32.588419940328194
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": false,
+      "comparability_limits": [
+        "B0 returns unevaluated defaultH0; final evaluates H4 per isolated C. Counters agree but returned information differs; raw ratio is not equal-information chemical performance."
+      ],
+      "baseline_seconds_per_call": 6.022443994879723e-06,
+      "candidate_seconds_per_call": 0.0001948209945112467,
+      "measured_peak_rss_bytes": {
+        "baseline": 197636096,
+        "candidate": 90931200,
+        "ratio": 0.4600940913141697
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 0,
+          "candidate": 120,
+          "ratio": null
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 686,
+          "candidate": 2352,
+          "ratio": 3.4285714285714284
+        },
+        "python_tracked_blocks": {
+          "baseline": 2,
+          "candidate": 4,
+          "ratio": 2.0
+        }
+      }
+    },
+    {
+      "id": "unrelated_read_8",
+      "family": "lazy_dependencies",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 8,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.017287924885749817,
+        "median_seconds": 0.0017140619456768036,
+        "mad_seconds": 1.5944242477416992e-05,
+        "p95_seconds": 0.0017928915098309516,
+        "peak_rss_bytes": 197435392
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.004462053999304771,
+        "median_seconds": 0.0004455447196960449,
+        "mad_seconds": 3.1152740120887756e-06,
+        "p95_seconds": 0.00045273546129465103,
+        "peak_rss_bytes": 90750976
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 0.2599350162459385,
+      "paired_bootstrap_95ci": [
+        0.25474314151262445,
+        0.2631935390453837
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 8.570309728384018e-05,
+      "candidate_seconds_per_call": 2.2277235984802246e-05,
+      "measured_peak_rss_bytes": {
+        "baseline": 197435392,
+        "candidate": 90750976,
+        "ratio": 0.45964897722086223
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 192,
+          "candidate": 0,
+          "ratio": 0.0
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 1464,
+          "candidate": 1272,
+          "ratio": 0.8688524590163934
+        },
+        "python_tracked_blocks": {
+          "baseline": 7,
+          "candidate": 2,
+          "ratio": 0.2857142857142857
+        }
+      }
+    },
+    {
+      "id": "construct_64",
+      "family": "construction",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 64,
+        "loops": 5
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.11717183329164982,
+        "median_seconds": 0.011649626307189465,
+        "mad_seconds": 0.00011738203465938568,
+        "p95_seconds": 0.012128473073244094,
+        "peak_rss_bytes": 197988352
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.491694875061512,
+        "median_seconds": 0.04748255107551813,
+        "mad_seconds": 0.00010570697486400604,
+        "p95_seconds": 0.05699831396341322,
+        "peak_rss_bytes": 92880896
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 5
+      },
+      "runtime_ratio": 4.075886197844363,
+      "paired_bootstrap_95ci": [
+        4.019355120870037,
+        4.118327711164484
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.002329925261437893,
+      "candidate_seconds_per_call": 0.009496510215103626,
+      "measured_peak_rss_bytes": {
+        "baseline": 197988352,
+        "candidate": 92880896,
+        "ratio": 0.4691230320458448
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 57936,
+          "candidate": 192352,
+          "ratio": 3.32007732670533
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 98104,
+          "candidate": 205947,
+          "ratio": 2.099272200929626
+        },
+        "python_tracked_blocks": {
+          "baseline": 812,
+          "candidate": 1978,
+          "ratio": 2.435960591133005
+        }
+      }
+    },
+    {
+      "id": "scalar_read_64",
+      "family": "atom_storage",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.016914622858166695,
+        "median_seconds": 0.0016862479969859123,
+        "mad_seconds": 1.9527040421962738e-05,
+        "p95_seconds": 0.001729847304522991,
+        "peak_rss_bytes": 197201920
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.01688534952700138,
+        "median_seconds": 0.0016915127635002136,
+        "mad_seconds": 1.7737969756126404e-05,
+        "p95_seconds": 0.0017235817387700081,
+        "peak_rss_bytes": 90632192
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 1.0031221780685355,
+      "paired_bootstrap_95ci": [
+        0.9812471901487988,
+        1.019505516863866
+      ],
+      "descriptive_timing_class": "within_neutral_band",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 8.431239984929562e-05,
+      "candidate_seconds_per_call": 8.457563817501068e-05,
+      "measured_peak_rss_bytes": {
+        "baseline": 197201920,
+        "candidate": 90632192,
+        "ratio": 0.45959081939972996
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 0,
+          "candidate": 0,
+          "ratio": null
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 726,
+          "candidate": 632,
+          "ratio": 0.8705234159779615
+        },
+        "python_tracked_blocks": {
+          "baseline": 2,
+          "candidate": 2,
+          "ratio": 1.0
+        }
+      }
+    },
+    {
+      "id": "scalar_write_64",
+      "family": "atom_storage",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0050679761916399,
+        "median_seconds": 0.0005056895315647125,
+        "mad_seconds": 1.1874362826347351e-06,
+        "p95_seconds": 0.0005154701881110668,
+        "peak_rss_bytes": 197558272
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.009580185636878014,
+        "median_seconds": 0.0009524021297693253,
+        "mad_seconds": 5.0049275159835815e-06,
+        "p95_seconds": 0.0009825757704675197,
+        "peak_rss_bytes": 90865664
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 1.8833732365832996,
+      "paired_bootstrap_95ci": [
+        1.871242533108934,
+        1.9153077008422983
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 2.5284476578235626e-05,
+      "candidate_seconds_per_call": 4.762010648846626e-05,
+      "measured_peak_rss_bytes": {
+        "baseline": 197558272,
+        "candidate": 90865664,
+        "ratio": 0.4599436059047935
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 0,
+          "candidate": 0,
+          "ratio": null
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 96,
+          "candidate": 192,
+          "ratio": 2.0
+        },
+        "python_tracked_blocks": {
+          "baseline": 1,
+          "candidate": 1,
+          "ratio": 1.0
+        }
+      }
+    },
+    {
+      "id": "batch_facts_64",
+      "family": "atom_storage",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.005165567621588707,
+        "median_seconds": 0.0005142763257026672,
+        "mad_seconds": 7.133930921554565e-07,
+        "p95_seconds": 0.0005228978581726551,
+        "peak_rss_bytes": 197738496
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.003702715039253235,
+        "median_seconds": 0.0003702063113451004,
+        "mad_seconds": 2.53971666097641e-06,
+        "p95_seconds": 0.00037845727056264874,
+        "peak_rss_bytes": 91267072
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 0.7198587468308584,
+      "paired_bootstrap_95ci": [
+        0.7085026427545752,
+        0.7224659536325284
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 2.5713816285133362e-05,
+      "candidate_seconds_per_call": 1.851031556725502e-05,
+      "measured_peak_rss_bytes": {
+        "baseline": 197738496,
+        "candidate": 91267072,
+        "ratio": 0.46155439555886985
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 0,
+          "candidate": 183,
+          "ratio": null
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 96,
+          "candidate": 3342,
+          "ratio": 34.8125
+        },
+        "python_tracked_blocks": {
+          "baseline": 1,
+          "candidate": 5,
+          "ratio": 5.0
+        }
+      }
+    },
+    {
+      "id": "coordinates_64",
+      "family": "atom_storage",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0725743155926466,
+        "median_seconds": 0.007254955358803272,
+        "mad_seconds": 7.004477083683014e-06,
+        "p95_seconds": 0.0072748796083033085,
+        "peak_rss_bytes": 197414912
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.008309731259942055,
+        "median_seconds": 0.000832192599773407,
+        "mad_seconds": 5.380250513553619e-06,
+        "p95_seconds": 0.0008394813165068626,
+        "peak_rss_bytes": 90533888
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20,
+        "value.rows": 64
+      },
+      "runtime_ratio": 0.11470678434480124,
+      "paired_bootstrap_95ci": [
+        0.11359185221974076,
+        0.11529245732547655
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.0003627477679401636,
+      "candidate_seconds_per_call": 4.160962998867035e-05,
+      "measured_peak_rss_bytes": {
+        "baseline": 197414912,
+        "candidate": 90533888,
+        "ratio": 0.4585970081125381
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 2400,
+          "candidate": 863,
+          "ratio": 0.3595833333333333
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 8848,
+          "candidate": 8623,
+          "ratio": 0.9745705244122965
+        },
+        "python_tracked_blocks": {
+          "baseline": 103,
+          "candidate": 17,
+          "ratio": 0.1650485436893204
+        }
+      }
+    },
+    {
+      "id": "insert_delete_64",
+      "family": "atom_storage",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.02670041099190712,
+        "median_seconds": 0.0026667695492506027,
+        "mad_seconds": 1.057889312505722e-05,
+        "p95_seconds": 0.0026976420544087888,
+        "peak_rss_bytes": 197267456
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.1320931725203991,
+        "median_seconds": 0.01320471242070198,
+        "mad_seconds": 6.583612412214279e-05,
+        "p95_seconds": 0.013397954218089581,
+        "peak_rss_bytes": 92155904
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 4.95157612115853,
+      "paired_bootstrap_95ci": [
+        4.910525010426881,
+        4.980503480017961
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.00013333847746253014,
+      "candidate_seconds_per_call": 0.000660235621035099,
+      "measured_peak_rss_bytes": {
+        "baseline": 197267456,
+        "candidate": 92155904,
+        "ratio": 0.4671622266979506
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 6048,
+          "candidate": 76434,
+          "ratio": 12.637896825396826
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 18040,
+          "candidate": 118540,
+          "ratio": 6.570953436807096
+        },
+        "python_tracked_blocks": {
+          "baseline": 98,
+          "candidate": 842,
+          "ratio": 8.591836734693878
+        }
+      }
+    },
+    {
+      "id": "matrix_64",
+      "family": "native_export",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.05244229733943939,
+        "median_seconds": 0.005291457287967205,
+        "mad_seconds": 5.721859633922577e-05,
+        "p95_seconds": 0.005349698010832071,
+        "peak_rss_bytes": 197861376
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0017041116952896118,
+        "median_seconds": 0.00016478262841701508,
+        "mad_seconds": 1.2284144759178162e-06,
+        "p95_seconds": 0.0001963928341865539,
+        "peak_rss_bytes": 90746880
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20,
+        "value.shape": [
+          64,
+          5
+        ]
+      },
+      "runtime_ratio": 0.031141256453440798,
+      "paired_bootstrap_95ci": [
+        0.03073073582801497,
+        0.032457401516987415
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.00026457286439836026,
+      "candidate_seconds_per_call": 8.239131420850754e-06,
+      "measured_peak_rss_bytes": {
+        "baseline": 197861376,
+        "candidate": 90746880,
+        "ratio": 0.45863867842504036
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 2746,
+          "candidate": 2460,
+          "ratio": 0.8958485069191552
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 9034,
+          "candidate": 4559,
+          "ratio": 0.5046491033872039
+        },
+        "python_tracked_blocks": {
+          "baseline": 109,
+          "candidate": 38,
+          "ratio": 0.3486238532110092
+        }
+      }
+    },
+    {
+      "id": "native_64",
+      "family": "native_export",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 64,
+        "loops": 20,
+        "fields": [
+          "ATOMIC_NUMBERS",
+          "FORMAL_CHARGES",
+          "COORDINATES"
+        ]
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.05034377612173557,
+        "median_seconds": 0.005033132620155811,
+        "mad_seconds": 1.2989155948162079e-05,
+        "p95_seconds": 0.005065598245710135,
+        "peak_rss_bytes": 197341184
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.006575280800461769,
+        "median_seconds": 0.00065561942756176,
+        "mad_seconds": 1.4761462807655334e-06,
+        "p95_seconds": 0.0006724997423589229,
+        "peak_rss_bytes": 91246592
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20,
+        "value.rows": 64
+      },
+      "runtime_ratio": 0.13026070978862145,
+      "paired_bootstrap_95ci": [
+        0.12948536888018675,
+        0.13084969446592257
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.00025165663100779057,
+      "candidate_seconds_per_call": 3.2780971378088e-05,
+      "measured_peak_rss_bytes": {
+        "baseline": 197341184,
+        "candidate": 91246592,
+        "ratio": 0.46237987504929534
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 2400,
+          "candidate": 256,
+          "ratio": 0.10666666666666667
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 10648,
+          "candidate": 4840,
+          "ratio": 0.45454545454545453
+        },
+        "python_tracked_blocks": {
+          "baseline": 103,
+          "candidate": 6,
+          "ratio": 0.05825242718446602
+        }
+      }
+    },
+    {
+      "id": "partial_projection_64",
+      "family": "result_projection",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.00849614292383194,
+        "median_seconds": 0.0008471915498375893,
+        "mad_seconds": 4.954636096954346e-06,
+        "p95_seconds": 0.0008650990203022957,
+        "peak_rss_bytes": 197996544
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.011625345796346664,
+        "median_seconds": 0.0011635469272732735,
+        "mad_seconds": 7.336027920246124e-06,
+        "p95_seconds": 0.0011717930436134338,
+        "peak_rss_bytes": 90644480
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 1.373416587425041,
+      "paired_bootstrap_95ci": [
+        1.352297170292521,
+        1.3849507371528331
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 4.235957749187946e-05,
+      "candidate_seconds_per_call": 5.817734636366367e-05,
+      "measured_peak_rss_bytes": {
+        "baseline": 197996544,
+        "candidate": 90644480,
+        "ratio": 0.4578083948778419
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 24,
+          "candidate": 0,
+          "ratio": 0.0
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 710,
+          "candidate": 592,
+          "ratio": 0.8338028169014085
+        },
+        "python_tracked_blocks": {
+          "baseline": 3,
+          "candidate": 2,
+          "ratio": 0.6666666666666666
+        }
+      }
+    },
+    {
+      "id": "mca_projection_64",
+      "family": "result_projection",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0021379124373197556,
+        "median_seconds": 0.00021049939095973969,
+        "mad_seconds": 6.230548024177551e-07,
+        "p95_seconds": 0.00022807037457823752,
+        "peak_rss_bytes": 197828608
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.010543882846832275,
+        "median_seconds": 0.0010508261620998383,
+        "mad_seconds": 1.601874828338623e-06,
+        "p95_seconds": 0.0010704755783081054,
+        "peak_rss_bytes": 91824128
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20,
+        "value.site_count": 64
+      },
+      "runtime_ratio": 4.992062719558273,
+      "paired_bootstrap_95ci": [
+        4.877514737307623,
+        5.03064303474883
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 1.0524969547986985e-05,
+      "candidate_seconds_per_call": 5.2541308104991916e-05,
+      "measured_peak_rss_bytes": {
+        "baseline": 197828608,
+        "candidate": 91824128,
+        "ratio": 0.46416000662553314
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 256,
+          "candidate": 0,
+          "ratio": 0.0
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 2632,
+          "candidate": 3664,
+          "ratio": 1.3920972644376899
+        },
+        "python_tracked_blocks": {
+          "baseline": 6,
+          "candidate": 2,
+          "ratio": 0.3333333333333333
+        }
+      }
+    },
+    {
+      "id": "write_read_64",
+      "family": "lazy_dependencies",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.1006166860461235,
+        "median_seconds": 0.010067757219076157,
+        "mad_seconds": 5.6616030633449554e-05,
+        "p95_seconds": 0.010128546692430972,
+        "peak_rss_bytes": 197771264
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 1.041631555184722,
+        "median_seconds": 0.10245066788047552,
+        "mad_seconds": 0.00012070406228303909,
+        "p95_seconds": 0.11210850700736044,
+        "peak_rss_bytes": 91615232
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 10.176116254209461,
+      "paired_bootstrap_95ci": [
+        10.123192523104397,
+        10.24740086589055
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.0005033878609538078,
+      "candidate_seconds_per_call": 0.005122533394023776,
+      "measured_peak_rss_bytes": {
+        "baseline": 197771264,
+        "candidate": 91615232,
+        "ratio": 0.4632383398227156
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 56,
+          "candidate": 17282,
+          "ratio": 308.60714285714283
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 742,
+          "candidate": 197205,
+          "ratio": 265.77493261455527
+        },
+        "python_tracked_blocks": {
+          "baseline": 3,
+          "candidate": 268,
+          "ratio": 89.33333333333333
+        }
+      }
+    },
+    {
+      "id": "clean_read_64",
+      "family": "lazy_dependencies",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.008986242115497589,
+        "median_seconds": 0.0008951025083661079,
+        "mad_seconds": 8.170492947101593e-06,
+        "p95_seconds": 0.0009164094924926757,
+        "peak_rss_bytes": 197242880
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.30414028838276863,
+        "median_seconds": 0.030345797538757324,
+        "mad_seconds": 6.448011845350266e-05,
+        "p95_seconds": 0.030835308693349363,
+        "peak_rss_bytes": 91684864
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 33.902036085397185,
+      "paired_bootstrap_95ci": [
+        33.38704172686675,
+        34.17234465601717
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": false,
+      "comparability_limits": [
+        "B0 returns unevaluated defaultH0; final evaluates H4 per isolated C. Counters agree but returned information differs; raw ratio is not equal-information chemical performance."
+      ],
+      "baseline_seconds_per_call": 4.4755125418305394e-05,
+      "candidate_seconds_per_call": 0.0015172898769378663,
+      "measured_peak_rss_bytes": {
+        "baseline": 197242880,
+        "candidate": 91684864,
+        "ratio": 0.46483231232478456
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 0,
+          "candidate": 120,
+          "ratio": null
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 686,
+          "candidate": 2352,
+          "ratio": 3.4285714285714284
+        },
+        "python_tracked_blocks": {
+          "baseline": 2,
+          "candidate": 4,
+          "ratio": 2.0
+        }
+      }
+    },
+    {
+      "id": "unrelated_read_64",
+      "family": "lazy_dependencies",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.12435627356171608,
+        "median_seconds": 0.012398414313793182,
+        "mad_seconds": 4.5972876250743866e-05,
+        "p95_seconds": 0.012567001860588789,
+        "peak_rss_bytes": 197505024
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.029298333451151848,
+        "median_seconds": 0.002928975038230419,
+        "mad_seconds": 1.1762604117393494e-05,
+        "p95_seconds": 0.0029526958242058754,
+        "peak_rss_bytes": 90906624
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 0.23623787398134832,
+      "paired_bootstrap_95ci": [
+        0.2339716183874332,
+        0.23756167468291675
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.0006199207156896592,
+      "candidate_seconds_per_call": 0.00014644875191152095,
+      "measured_peak_rss_bytes": {
+        "baseline": 197505024,
+        "candidate": 90906624,
+        "ratio": 0.46027499533378957
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 2456,
+          "candidate": 0,
+          "ratio": 0.0
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 8896,
+          "candidate": 2616,
+          "ratio": 0.29406474820143885
+        },
+        "python_tracked_blocks": {
+          "baseline": 104,
+          "candidate": 2,
+          "ratio": 0.019230769230769232
+        }
+      }
+    },
+    {
+      "id": "construct_256",
+      "family": "construction",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 256,
+        "loops": 5
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 1.2781459614634514,
+        "median_seconds": 0.12798188254237175,
+        "mad_seconds": 0.00038513075560331345,
+        "p95_seconds": 0.12851589461788535,
+        "peak_rss_bytes": 198336512
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 1.8734511490911245,
+        "median_seconds": 0.1873964313417673,
+        "mad_seconds": 0.00033323653042316437,
+        "p95_seconds": 0.18801063848659397,
+        "peak_rss_bytes": 93192192
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 5
+      },
+      "runtime_ratio": 1.464241872514454,
+      "paired_bootstrap_95ci": [
+        1.4601950874214393,
+        1.472379799174909
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.02559637650847435,
+      "candidate_seconds_per_call": 0.037479286268353465,
+      "measured_peak_rss_bytes": {
+        "baseline": 198336512,
+        "candidate": 93192192,
+        "ratio": 0.4698690677791087
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 334328,
+          "candidate": 421689,
+          "ratio": 1.261303271039219
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 390864,
+          "candidate": 439735,
+          "ratio": 1.1250332596504156
+        },
+        "python_tracked_blocks": {
+          "baseline": 4685,
+          "candidate": 4501,
+          "ratio": 0.9607257203842049
+        }
+      }
+    },
+    {
+      "id": "scalar_read_256",
+      "family": "atom_storage",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.06997922621667385,
+        "median_seconds": 0.006977885961532593,
+        "mad_seconds": 6.833486258983612e-05,
+        "p95_seconds": 0.00712189357727766,
+        "peak_rss_bytes": 197926912
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.06542117707431316,
+        "median_seconds": 0.006547550670802593,
+        "mad_seconds": 2.5869347155094147e-05,
+        "p95_seconds": 0.00658746287226677,
+        "peak_rss_bytes": 91648000
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 0.9383287011134411,
+      "paired_bootstrap_95ci": [
+        0.9225611729919139,
+        0.9483370272128205
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.00034889429807662966,
+      "candidate_seconds_per_call": 0.00032737753354012967,
+      "measured_peak_rss_bytes": {
+        "baseline": 197926912,
+        "candidate": 91648000,
+        "ratio": 0.46303960928769505
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 0,
+          "candidate": 0,
+          "ratio": null
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 726,
+          "candidate": 632,
+          "ratio": 0.8705234159779615
+        },
+        "python_tracked_blocks": {
+          "baseline": 2,
+          "candidate": 2,
+          "ratio": 1.0
+        }
+      }
+    },
+    {
+      "id": "scalar_write_256",
+      "family": "atom_storage",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.023494282737374306,
+        "median_seconds": 0.0021781353279948235,
+        "mad_seconds": 0.00014670193195343018,
+        "p95_seconds": 0.0027778919786214827,
+        "peak_rss_bytes": 198000640
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.03865787759423256,
+        "median_seconds": 0.003866264596581459,
+        "mad_seconds": 1.568533480167389e-05,
+        "p95_seconds": 0.0038993624038994312,
+        "peak_rss_bytes": 91824128
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 1.7750341527864184,
+      "paired_bootstrap_95ci": [
+        1.415960142449744,
+        1.8960676769887297
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.00010890676639974117,
+      "candidate_seconds_per_call": 0.00019331322982907295,
+      "measured_peak_rss_bytes": {
+        "baseline": 198000640,
+        "candidate": 91824128,
+        "ratio": 0.46375672321059164
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 0,
+          "candidate": 0,
+          "ratio": null
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 96,
+          "candidate": 192,
+          "ratio": 2.0
+        },
+        "python_tracked_blocks": {
+          "baseline": 1,
+          "candidate": 1,
+          "ratio": 1.0
+        }
+      }
+    },
+    {
+      "id": "batch_facts_256",
+      "family": "atom_storage",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.020076382905244827,
+        "median_seconds": 0.0020061051473021507,
+        "mad_seconds": 6.833113729953766e-06,
+        "p95_seconds": 0.0020217456854879855,
+        "peak_rss_bytes": 197242880
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.010468810796737671,
+        "median_seconds": 0.001043134368956089,
+        "mad_seconds": 8.178874850273132e-06,
+        "p95_seconds": 0.0010678264312446117,
+        "peak_rss_bytes": 91512832
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 0.5199799075132808,
+      "paired_bootstrap_95ci": [
+        0.5168241733385941,
+        0.525504248458491
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.00010030525736510753,
+      "candidate_seconds_per_call": 5.215671844780445e-05,
+      "measured_peak_rss_bytes": {
+        "baseline": 197242880,
+        "candidate": 91512832,
+        "ratio": 0.46396012875090853
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 0,
+          "candidate": 183,
+          "ratio": null
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 96,
+          "candidate": 9486,
+          "ratio": 98.8125
+        },
+        "python_tracked_blocks": {
+          "baseline": 1,
+          "candidate": 5,
+          "ratio": 5.0
+        }
+      }
+    },
+    {
+      "id": "coordinates_256",
+      "family": "atom_storage",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.2860134579241276,
+        "median_seconds": 0.028544209897518158,
+        "mad_seconds": 7.02226534485817e-05,
+        "p95_seconds": 0.02897787084802985,
+        "peak_rss_bytes": 197443584
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.021732060238718987,
+        "median_seconds": 0.0021717045456171036,
+        "mad_seconds": 1.2491829693317413e-05,
+        "p95_seconds": 0.0021982010453939437,
+        "peak_rss_bytes": 91746304
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20,
+        "value.rows": 256
+      },
+      "runtime_ratio": 0.07608213901923162,
+      "paired_bootstrap_95ci": [
+        0.07569736939146433,
+        0.07644534655703321
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.001427210494875908,
+      "candidate_seconds_per_call": 0.00010858522728085518,
+      "measured_peak_rss_bytes": {
+        "baseline": 197443584,
+        "candidate": 91746304,
+        "ratio": 0.4646709816612729
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 2400,
+          "candidate": 865,
+          "ratio": 0.36041666666666666
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 35056,
+          "candidate": 28689,
+          "ratio": 0.8183763121862163
+        },
+        "python_tracked_blocks": {
+          "baseline": 103,
+          "candidate": 17,
+          "ratio": 0.1650485436893204
+        }
+      }
+    },
+    {
+      "id": "insert_delete_256",
+      "family": "atom_storage",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.08769162558019161,
+        "median_seconds": 0.008712821640074253,
+        "mad_seconds": 4.2154453694820404e-05,
+        "p95_seconds": 0.009063576441258192,
+        "peak_rss_bytes": 197423104
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.3265880588442087,
+        "median_seconds": 0.030938677489757538,
+        "mad_seconds": 0.00013038329780101776,
+        "p95_seconds": 0.040332905948162065,
+        "peak_rss_bytes": 92098560
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 3.550936627401668,
+      "paired_bootstrap_95ci": [
+        3.5309330407455963,
+        3.5857314744977957
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.00043564108200371264,
+      "candidate_seconds_per_call": 0.001546933874487877,
+      "measured_peak_rss_bytes": {
+        "baseline": 197423104,
+        "candidate": 92098560,
+        "ratio": 0.4665034544285151
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 19456,
+          "candidate": 117825,
+          "ratio": 6.055972450657895
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 76352,
+          "candidate": 274251,
+          "ratio": 3.591929484492875
+        },
+        "python_tracked_blocks": {
+          "baseline": 294,
+          "candidate": 857,
+          "ratio": 2.9149659863945576
+        }
+      }
+    },
+    {
+      "id": "matrix_256",
+      "family": "native_export",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.20240012370049953,
+        "median_seconds": 0.020126930437982082,
+        "mad_seconds": 0.00012809038162231445,
+        "p95_seconds": 0.020751910656690596,
+        "peak_rss_bytes": 197881856
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.001807553693652153,
+        "median_seconds": 0.00017556268721818924,
+        "mad_seconds": 1.0672956705093384e-06,
+        "p95_seconds": 0.00020349547266960142,
+        "peak_rss_bytes": 91656192
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20,
+        "value.shape": [
+          256,
+          5
+        ]
+      },
+      "runtime_ratio": 0.008722775077856884,
+      "paired_bootstrap_95ci": [
+        0.008545920041774666,
+        0.009141003812392875
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.0010063465218991042,
+      "candidate_seconds_per_call": 8.778134360909463e-06,
+      "measured_peak_rss_bytes": {
+        "baseline": 197881856,
+        "candidate": 91656192,
+        "ratio": 0.46318643787129227
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 3548,
+          "candidate": 3822,
+          "ratio": 1.0772266065388951
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 35332,
+          "candidate": 9761,
+          "ratio": 0.27626514208083325
+        },
+        "python_tracked_blocks": {
+          "baseline": 123,
+          "candidate": 62,
+          "ratio": 0.5040650406504065
+        }
+      }
+    },
+    {
+      "id": "native_256",
+      "family": "native_export",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 256,
+        "loops": 20,
+        "fields": [
+          "ATOMIC_NUMBERS",
+          "FORMAL_CHARGES",
+          "COORDINATES"
+        ]
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.19381709396839142,
+        "median_seconds": 0.01935068517923355,
+        "mad_seconds": 2.9169954359531403e-05,
+        "p95_seconds": 0.01957062855362892,
+        "peak_rss_bytes": 197599232
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.015485584735870361,
+        "median_seconds": 0.0015464890748262405,
+        "mad_seconds": 5.330890417098999e-06,
+        "p95_seconds": 0.0015627845190465451,
+        "peak_rss_bytes": 91389952
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20,
+        "value.rows": 256
+      },
+      "runtime_ratio": 0.07991908609447464,
+      "paired_bootstrap_95ci": [
+        0.07955992375055351,
+        0.08044058176842607
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.0009675342589616776,
+      "candidate_seconds_per_call": 7.732445374131203e-05,
+      "measured_peak_rss_bytes": {
+        "baseline": 197599232,
+        "candidate": 91389952,
+        "ratio": 0.46250155466191284
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 2400,
+          "candidate": 256,
+          "ratio": 0.10666666666666667
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 39928,
+          "candidate": 12520,
+          "ratio": 0.31356441594870765
+        },
+        "python_tracked_blocks": {
+          "baseline": 103,
+          "candidate": 6,
+          "ratio": 0.05825242718446602
+        }
+      }
+    },
+    {
+      "id": "partial_projection_256",
+      "family": "result_projection",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.03438702039420605,
+        "median_seconds": 0.0034268340095877647,
+        "mad_seconds": 2.2812746465206146e-05,
+        "p95_seconds": 0.003475811332464218,
+        "peak_rss_bytes": 197550080
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.04672405496239662,
+        "median_seconds": 0.004663629457354546,
+        "mad_seconds": 1.2566335499286652e-05,
+        "p95_seconds": 0.0046958946622908115,
+        "peak_rss_bytes": 91373568
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 1.3609148982140407,
+      "paired_bootstrap_95ci": [
+        1.3432671786873407,
+        1.3709165712369864
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.00017134170047938824,
+      "candidate_seconds_per_call": 0.0002331814728677273,
+      "measured_peak_rss_bytes": {
+        "baseline": 197550080,
+        "candidate": 91373568,
+        "ratio": 0.462533692722372
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 24,
+          "candidate": 0,
+          "ratio": 0.0
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 710,
+          "candidate": 592,
+          "ratio": 0.8338028169014085
+        },
+        "python_tracked_blocks": {
+          "baseline": 3,
+          "candidate": 2,
+          "ratio": 0.6666666666666666
+        }
+      }
+    },
+    {
+      "id": "mca_projection_256",
+      "family": "result_projection",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.007760260254144669,
+        "median_seconds": 0.0007736422121524811,
+        "mad_seconds": 3.3723190426826477e-06,
+        "p95_seconds": 0.0007880187593400478,
+        "peak_rss_bytes": 197906432
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.04086039960384369,
+        "median_seconds": 0.004084617830812931,
+        "mad_seconds": 8.931383490562439e-06,
+        "p95_seconds": 0.004111478384584188,
+        "peak_rss_bytes": 91660288
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20,
+        "value.site_count": 256
+      },
+      "runtime_ratio": 5.2797246151401485,
+      "paired_bootstrap_95ci": [
+        5.241966611753889,
+        5.303978074970856
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 3.868211060762405e-05,
+      "candidate_seconds_per_call": 0.00020423089154064655,
+      "measured_peak_rss_bytes": {
+        "baseline": 197906432,
+        "candidate": 91660288,
+        "ratio": 0.4631496160771571
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 256,
+          "candidate": 0,
+          "ratio": 0.0
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 9672,
+          "candidate": 14224,
+          "ratio": 1.4706368899917286
+        },
+        "python_tracked_blocks": {
+          "baseline": 6,
+          "candidate": 2,
+          "ratio": 0.3333333333333333
+        }
+      }
+    },
+    {
+      "id": "write_read_256",
+      "family": "lazy_dependencies",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.40840676613152027,
+        "median_seconds": 0.04076430853456259,
+        "mad_seconds": 0.0004279669374227524,
+        "p95_seconds": 0.04168795570731163,
+        "peak_rss_bytes": 197566464
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 3.943607270717621,
+        "median_seconds": 0.38923006784170866,
+        "mad_seconds": 0.0011297930032014847,
+        "p95_seconds": 0.4080359769053757,
+        "peak_rss_bytes": 92000256
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 9.548305413096717,
+      "paired_bootstrap_95ci": [
+        9.475346281415097,
+        9.860730210846185
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.0020382154267281293,
+      "candidate_seconds_per_call": 0.01946150339208543,
+      "measured_peak_rss_bytes": {
+        "baseline": 197566464,
+        "candidate": 92000256,
+        "ratio": 0.4656673715636273
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 56,
+          "candidate": 21625,
+          "ratio": 386.1607142857143
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 774,
+          "candidate": 649089,
+          "ratio": 838.6162790697674
+        },
+        "python_tracked_blocks": {
+          "baseline": 3,
+          "candidate": 343,
+          "ratio": 114.33333333333333
+        }
+      }
+    },
+    {
+      "id": "clean_read_256",
+      "family": "lazy_dependencies",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.03543764911592007,
+        "median_seconds": 0.003528227098286152,
+        "mad_seconds": 1.3739801943302155e-05,
+        "p95_seconds": 0.0035978129133582117,
+        "peak_rss_bytes": 197660672
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 1.211470728740096,
+        "median_seconds": 0.12062277924269438,
+        "mad_seconds": 0.0005335323512554169,
+        "p95_seconds": 0.12348291948437691,
+        "peak_rss_bytes": 91922432
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 34.18792948483597,
+      "paired_bootstrap_95ci": [
+        33.7778385096673,
+        34.56815361812852
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": false,
+      "comparability_limits": [
+        "B0 returns unevaluated defaultH0; final evaluates H4 per isolated C. Counters agree but returned information differs; raw ratio is not equal-information chemical performance."
+      ],
+      "baseline_seconds_per_call": 0.0001764113549143076,
+      "candidate_seconds_per_call": 0.006031138962134719,
+      "measured_peak_rss_bytes": {
+        "baseline": 197660672,
+        "candidate": 91922432,
+        "ratio": 0.4650517023437014
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 0,
+          "candidate": 120,
+          "ratio": null
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 686,
+          "candidate": 2384,
+          "ratio": 3.4752186588921283
+        },
+        "python_tracked_blocks": {
+          "baseline": 2,
+          "candidate": 4,
+          "ratio": 2.0
+        }
+      }
+    },
+    {
+      "id": "unrelated_read_256",
+      "family": "lazy_dependencies",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 256,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.4981832467019558,
+        "median_seconds": 0.04980949126183987,
+        "mad_seconds": 9.149964898824692e-05,
+        "p95_seconds": 0.05010510897263885,
+        "peak_rss_bytes": 197701632
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.11621369048953056,
+        "median_seconds": 0.01163154374808073,
+        "mad_seconds": 3.876350820064545e-05,
+        "p95_seconds": 0.011699626035988332,
+        "peak_rss_bytes": 91557888
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20
+      },
+      "runtime_ratio": 0.23352062937032864,
+      "paired_bootstrap_95ci": [
+        0.23245601935594662,
+        0.23425149800326248
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.0024904745630919935,
+      "candidate_seconds_per_call": 0.0005815771874040365,
+      "measured_peak_rss_bytes": {
+        "baseline": 197701632,
+        "candidate": 91557888,
+        "ratio": 0.46311144260053455
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 2456,
+          "candidate": 0,
+          "ratio": 0.0
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 35104,
+          "candidate": 7224,
+          "ratio": 0.20578851412944393
+        },
+        "python_tracked_blocks": {
+          "baseline": 104,
+          "candidate": 2,
+          "ratio": 0.019230769230769232
+        }
+      }
+    },
+    {
+      "id": "io_smi_small",
+      "family": "construction",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "smiles": "CCO",
+        "format": "smi",
+        "loops": 5
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.013109007850289345,
+        "median_seconds": 0.0012882445007562637,
+        "mad_seconds": 1.3988465070724487e-05,
+        "p95_seconds": 0.0014172460883855819,
+        "peak_rss_bytes": 197517312
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.05214238539338112,
+        "median_seconds": 0.005199618637561798,
+        "mad_seconds": 3.8918107748031616e-05,
+        "p95_seconds": 0.00542263938114047,
+        "peak_rss_bytes": 145686528
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 5
+      },
+      "runtime_ratio": 4.036204800027761,
+      "paired_bootstrap_95ci": [
+        3.8520196883913282,
+        4.084397227761757
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.00025764890015125277,
+      "candidate_seconds_per_call": 0.0010399237275123597,
+      "measured_peak_rss_bytes": {
+        "baseline": 197517312,
+        "candidate": 145686528,
+        "ratio": 0.7375886524822695
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 27500,
+          "candidate": 77034,
+          "ratio": 2.8012363636363635
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 31882,
+          "candidate": 88389,
+          "ratio": 2.772379399033938
+        },
+        "python_tracked_blocks": {
+          "baseline": 404,
+          "candidate": 1050,
+          "ratio": 2.599009900990099
+        }
+      }
+    },
+    {
+      "id": "io_mol2_small",
+      "family": "construction",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "smiles": "CCO",
+        "format": "mol2",
+        "loops": 5
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.013276021927595139,
+        "median_seconds": 0.0013097301125526428,
+        "mad_seconds": 1.0975636541843414e-05,
+        "p95_seconds": 0.0014166798442602157,
+        "peak_rss_bytes": 198774784
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.07457188703119755,
+        "median_seconds": 0.007411318831145763,
+        "mad_seconds": 1.5689991414546967e-05,
+        "p95_seconds": 0.0076727777719497675,
+        "peak_rss_bytes": 145915904
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 5
+      },
+      "runtime_ratio": 5.658661093697558,
+      "paired_bootstrap_95ci": [
+        5.454153293070509,
+        5.704257278762517
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.0002619460225105286,
+      "candidate_seconds_per_call": 0.0014822637662291528,
+      "measured_peak_rss_bytes": {
+        "baseline": 198774784,
+        "candidate": 145915904,
+        "ratio": 0.7340765315584495
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 29696,
+          "candidate": 57057,
+          "ratio": 1.9213698814655173
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 34137,
+          "candidate": 107358,
+          "ratio": 3.1449160734686705
+        },
+        "python_tracked_blocks": {
+          "baseline": 441,
+          "candidate": 802,
+          "ratio": 1.81859410430839
+        }
+      }
+    },
+    {
+      "id": "io_sdf_small",
+      "family": "construction",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "smiles": "CCO",
+        "format": "sdf",
+        "loops": 5
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.01419365219771862,
+        "median_seconds": 0.0014015734195709229,
+        "mad_seconds": 1.487787812948227e-05,
+        "p95_seconds": 0.0015047957189381123,
+        "peak_rss_bytes": 198078464
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.053805338218808174,
+        "median_seconds": 0.00536058284342289,
+        "mad_seconds": 2.3261643946170807e-05,
+        "p95_seconds": 0.0055652504786849015,
+        "peak_rss_bytes": 145539072
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 5
+      },
+      "runtime_ratio": 3.824689287460928,
+      "paired_bootstrap_95ci": [
+        3.687471172177692,
+        3.8772701253051522
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.00028031468391418455,
+      "candidate_seconds_per_call": 0.0010721165686845779,
+      "measured_peak_rss_bytes": {
+        "baseline": 198078464,
+        "candidate": 145539072,
+        "ratio": 0.7347546475320003
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 27835,
+          "candidate": 47563,
+          "ratio": 1.7087479791629243
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 32335,
+          "candidate": 88950,
+          "ratio": 2.750889129426318
+        },
+        "python_tracked_blocks": {
+          "baseline": 410,
+          "candidate": 652,
+          "ratio": 1.5902439024390245
+        }
+      }
+    },
+    {
+      "id": "io_smi_typical",
+      "family": "construction",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "format": "smi",
+        "loops": 5
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.055440908297896385,
+        "median_seconds": 0.00552054587751627,
+        "mad_seconds": 0.00010016001760959625,
+        "p95_seconds": 0.005801260098814964,
+        "peak_rss_bytes": 199016448
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.09616034291684628,
+        "median_seconds": 0.009616371244192123,
+        "mad_seconds": 3.059208393096924e-05,
+        "p95_seconds": 0.009757665358483792,
+        "peak_rss_bytes": 145973248
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 5
+      },
+      "runtime_ratio": 1.7419239795392467,
+      "paired_bootstrap_95ci": [
+        1.7090115289373802,
+        1.7787001113851622
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.001104109175503254,
+      "candidate_seconds_per_call": 0.0019232742488384247,
+      "measured_peak_rss_bytes": {
+        "baseline": 199016448,
+        "candidate": 145973248,
+        "ratio": 0.7334732855849181
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 56368,
+          "candidate": 138137,
+          "ratio": 2.4506280158955436
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 65414,
+          "candidate": 162400,
+          "ratio": 2.4826489742257007
+        },
+        "python_tracked_blocks": {
+          "baseline": 813,
+          "candidate": 1734,
+          "ratio": 2.132841328413284
+        }
+      }
+    },
+    {
+      "id": "io_mol2_typical",
+      "family": "construction",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "format": "mol2",
+        "loops": 5
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.05627733655273914,
+        "median_seconds": 0.005571769550442696,
+        "mad_seconds": 6.830506026744843e-05,
+        "p95_seconds": 0.0058953481726348395,
+        "peak_rss_bytes": 198168576
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.17881689965724945,
+        "median_seconds": 0.017896407283842564,
+        "mad_seconds": 0.00010352581739425659,
+        "p95_seconds": 0.018050496466457844,
+        "peak_rss_bytes": 147632128
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 5
+      },
+      "runtime_ratio": 3.2119790888373396,
+      "paired_bootstrap_95ci": [
+        3.139902463399184,
+        3.25004281281094
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.001114353910088539,
+      "candidate_seconds_per_call": 0.003579281456768513,
+      "measured_peak_rss_bytes": {
+        "baseline": 198168576,
+        "candidate": 147632128,
+        "ratio": 0.7449825344660094
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 88132,
+          "candidate": 187124,
+          "ratio": 2.1232242545273
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 96636,
+          "candidate": 408090,
+          "ratio": 4.222960387433255
+        },
+        "python_tracked_blocks": {
+          "baseline": 1265,
+          "candidate": 2480,
+          "ratio": 1.9604743083003953
+        }
+      }
+    },
+    {
+      "id": "io_sdf_typical",
+      "family": "construction",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "format": "sdf",
+        "loops": 5
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0594230480492115,
+        "median_seconds": 0.005870360881090164,
+        "mad_seconds": 2.7684494853019714e-05,
+        "p95_seconds": 0.0062063405290246005,
+        "peak_rss_bytes": 198422528
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.10024673119187355,
+        "median_seconds": 0.010026473551988602,
+        "mad_seconds": 2.6030465960502625e-05,
+        "p95_seconds": 0.010140689555555582,
+        "peak_rss_bytes": 146731008
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 5
+      },
+      "runtime_ratio": 1.7079824826930607,
+      "paired_bootstrap_95ci": [
+        1.672442241129218,
+        1.7168220098411873
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.0011740721762180328,
+      "candidate_seconds_per_call": 0.00200529471039772,
+      "measured_peak_rss_bytes": {
+        "baseline": 198422528,
+        "candidate": 146731008,
+        "ratio": 0.7394876452738269
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 89043,
+          "candidate": 139001,
+          "ratio": 1.5610547712902756
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 97547,
+          "candidate": 166383,
+          "ratio": 1.705670087239997
+        },
+        "python_tracked_blocks": {
+          "baseline": 1280,
+          "candidate": 1744,
+          "ratio": 1.3625
+        }
+      }
+    },
+    {
+      "id": "io_smi_large",
+      "family": "construction",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "smiles": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+        "format": "smi",
+        "loops": 5
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.23935103230178356,
+        "median_seconds": 0.023884154856204987,
+        "mad_seconds": 9.706709533929825e-05,
+        "p95_seconds": 0.024295491259545086,
+        "peak_rss_bytes": 198914048
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.31822384893894196,
+        "median_seconds": 0.029802641831338406,
+        "mad_seconds": 8.623208850622177e-05,
+        "p95_seconds": 0.04161657765507696,
+        "peak_rss_bytes": 147365888
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 5
+      },
+      "runtime_ratio": 1.2477997237401024,
+      "paired_bootstrap_95ci": [
+        1.2381018245861306,
+        1.2527799387527874
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.0047768309712409975,
+      "candidate_seconds_per_call": 0.005960528366267681,
+      "measured_peak_rss_bytes": {
+        "baseline": 198914048,
+        "candidate": 147365888,
+        "ratio": 0.7408520890389803
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 180480,
+          "candidate": 402780,
+          "ratio": 2.231715425531915
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 275626,
+          "candidate": 906747,
+          "ratio": 3.289773098328895
+        },
+        "python_tracked_blocks": {
+          "baseline": 2647,
+          "candidate": 5494,
+          "ratio": 2.0755572346052134
+        }
+      }
+    },
+    {
+      "id": "io_mol2_large",
+      "family": "construction",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "smiles": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+        "format": "mol2",
+        "loops": 5
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.25012149661779404,
+        "median_seconds": 0.024992973543703556,
+        "mad_seconds": 8.154939860105515e-05,
+        "p95_seconds": 0.025301235914230346,
+        "peak_rss_bytes": 199806976
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.7231401409953833,
+        "median_seconds": 0.06589170638471842,
+        "mad_seconds": 0.00013917870819568634,
+        "p95_seconds": 0.08778470335528255,
+        "peak_rss_bytes": 148844544
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 5
+      },
+      "runtime_ratio": 2.636409239960902,
+      "paired_bootstrap_95ci": [
+        2.6246719423499414,
+        3.4889346169546953
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.004998594708740711,
+      "candidate_seconds_per_call": 0.013178341276943683,
+      "measured_peak_rss_bytes": {
+        "baseline": 199806976,
+        "candidate": 148844544,
+        "ratio": 0.7449416781123798
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 232349,
+          "candidate": 835403,
+          "ratio": 3.5954663028461495
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 261226,
+          "candidate": 1906956,
+          "ratio": 7.3000237342377865
+        },
+        "python_tracked_blocks": {
+          "baseline": 3346,
+          "candidate": 11507,
+          "ratio": 3.439031679617454
+        }
+      }
+    },
+    {
+      "id": "io_sdf_large",
+      "family": "construction",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "smiles": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+        "format": "sdf",
+        "loops": 5
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.259469348937273,
+        "median_seconds": 0.025918463245034218,
+        "mad_seconds": 5.20879402756691e-05,
+        "p95_seconds": 0.026226490270346403,
+        "peak_rss_bytes": 199565312
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.3382517769932747,
+        "median_seconds": 0.03179304674267769,
+        "mad_seconds": 5.187559872865677e-05,
+        "p95_seconds": 0.04355194428935645,
+        "peak_rss_bytes": 147910656
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 5
+      },
+      "runtime_ratio": 1.2266563199409208,
+      "paired_bootstrap_95ci": [
+        1.216217246795167,
+        1.229115459129781
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.005183692649006843,
+      "candidate_seconds_per_call": 0.0063586093485355375,
+      "measured_peak_rss_bytes": {
+        "baseline": 199565312,
+        "candidate": 147910656,
+        "ratio": 0.7411641558228316
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 232477,
+          "candidate": 557551,
+          "ratio": 2.39830606898747
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 261354,
+          "candidate": 667927,
+          "ratio": 2.5556410079815115
+        },
+        "python_tracked_blocks": {
+          "baseline": 3348,
+          "candidate": 7492,
+          "ratio": 2.237753882915173
+        }
+      }
+    },
+    {
+      "id": "graph_search_geometry",
+      "family": "graph_search_geometry",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "smiles": "c1ccc2ccccc2c1CCN",
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.10613749735057354,
+        "median_seconds": 0.010581102222204208,
+        "mad_seconds": 3.073364496231079e-05,
+        "p95_seconds": 0.010820795502513646,
+        "peak_rss_bytes": 199884800
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.34809979423880577,
+        "median_seconds": 0.034853302873671055,
+        "mad_seconds": 0.00016452837735414505,
+        "p95_seconds": 0.03509262567386031,
+        "peak_rss_bytes": 176275456
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20,
+        "value.rings": 2,
+        "value.path": 5,
+        "value.angles": 18,
+        "value.torsions": 24,
+        "value.pairs": 78,
+        "value.hits": 2
+      },
+      "runtime_ratio": 3.293919871649304,
+      "paired_bootstrap_95ci": [
+        3.2743975774925635,
+        3.308704014148596
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.0005290551111102104,
+      "candidate_seconds_per_call": 0.0017426651436835527,
+      "measured_peak_rss_bytes": {
+        "baseline": 199884800,
+        "candidate": 176275456,
+        "ratio": 0.8818852459016393
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 37424,
+          "candidate": 73846,
+          "ratio": 1.9732257374946558
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 42342,
+          "candidate": 95707,
+          "ratio": 2.260332530348118
+        },
+        "python_tracked_blocks": {
+          "baseline": 487,
+          "candidate": 854,
+          "ratio": 1.7535934291581108
+        }
+      }
+    },
+    {
+      "id": "geometry_screen",
+      "family": "graph_search_geometry",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "loops": 100
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.07428388483822346,
+        "median_seconds": 0.0073897019028663635,
+        "mad_seconds": 2.5758519768714905e-05,
+        "p95_seconds": 0.007620511017739772,
+        "peak_rss_bytes": 198565888
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.06987000070512295,
+        "median_seconds": 0.006986889056861401,
+        "mad_seconds": 3.107357770204544e-05,
+        "p95_seconds": 0.007040926907211542,
+        "peak_rss_bytes": 91172864
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 100
+      },
+      "runtime_ratio": 0.9454899735740737,
+      "paired_bootstrap_95ci": [
+        0.9368851408581846,
+        0.9510135156419117
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 7.389701902866364e-05,
+      "candidate_seconds_per_call": 6.9868890568614e-05,
+      "measured_peak_rss_bytes": {
+        "baseline": 198565888,
+        "candidate": 91172864,
+        "ratio": 0.45915673088823794
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 31156,
+          "candidate": 31552,
+          "ratio": 1.012710232378996
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 33180,
+          "candidate": 33576,
+          "ratio": 1.0119349005424956
+        },
+        "python_tracked_blocks": {
+          "baseline": 546,
+          "candidate": 554,
+          "ratio": 1.0146520146520146
+        }
+      }
+    },
+    {
+      "id": "crystal_matrix",
+      "family": "values_collections",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "matrix": [
+          [
+            8,
+            0,
+            0
+          ],
+          [
+            1,
+            9,
+            0
+          ],
+          [
+            2,
+            3,
+            10
+          ]
+        ],
+        "loops": 200
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.02067706547677517,
+        "median_seconds": 0.0020679784938693047,
+        "mad_seconds": 7.664784789085388e-06,
+        "p95_seconds": 0.0020857270807027816,
+        "peak_rss_bytes": 197812224
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.02261422760784626,
+        "median_seconds": 0.0022573163732886314,
+        "mad_seconds": 6.2016770243644714e-06,
+        "p95_seconds": 0.002293589245527983,
+        "peak_rss_bytes": 90800128
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 200
+      },
+      "runtime_ratio": 1.0915569866807777,
+      "paired_bootstrap_95ci": [
+        1.0844323621048522,
+        1.10035195542319
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 1.0339892469346523e-05,
+      "candidate_seconds_per_call": 1.1286581866443157e-05,
+      "measured_peak_rss_bytes": {
+        "baseline": 197812224,
+        "candidate": 90800128,
+        "ratio": 0.45902182465730734
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 0,
+          "candidate": 0,
+          "ratio": null
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 801,
+          "candidate": 801,
+          "ratio": 1.0
+        },
+        "python_tracked_blocks": {
+          "baseline": 2,
+          "candidate": 2,
+          "ratio": 1.0
+        }
+      }
+    },
+    {
+      "id": "molecule_bundle",
+      "family": "values_collections",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "molecules": 128,
+        "loops": 100
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0009523704648017883,
+        "median_seconds": 8.989125490188599e-05,
+        "mad_seconds": 4.954636096954346e-07,
+        "p95_seconds": 0.00011958740651607508,
+        "peak_rss_bytes": 197570560
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0008924268186092377,
+        "median_seconds": 8.942466229200363e-05,
+        "mad_seconds": 4.163011908531189e-07,
+        "p95_seconds": 8.986974135041236e-05,
+        "peak_rss_bytes": 92565504
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 100
+      },
+      "runtime_ratio": 0.9948093659345213,
+      "paired_bootstrap_95ci": [
+        0.9798372979095871,
+        1.0016317452398769
+      ],
+      "descriptive_timing_class": "within_neutral_band",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 8.989125490188599e-07,
+      "candidate_seconds_per_call": 8.942466229200364e-07,
+      "measured_peak_rss_bytes": {
+        "baseline": 197570560,
+        "candidate": 92565504,
+        "ratio": 0.4685187104799419
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 0,
+          "candidate": 0,
+          "ratio": null
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 1208,
+          "candidate": 1208,
+          "ratio": 1.0
+        },
+        "python_tracked_blocks": {
+          "baseline": 2,
+          "candidate": 2,
+          "ratio": 1.0
+        }
+      }
+    },
+    {
+      "id": "source_conformers",
+      "family": "values_collections",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 64,
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.045476846396923065,
+        "median_seconds": 0.004495375789701939,
+        "mad_seconds": 9.887851774692535e-06,
+        "p95_seconds": 0.004841142334043979,
+        "peak_rss_bytes": 197341184
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.26162659004330635,
+        "median_seconds": 0.02616462018340826,
+        "mad_seconds": 3.663450479507446e-05,
+        "p95_seconds": 0.02621270567178726,
+        "peak_rss_bytes": 92016640
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20,
+        "value.frames": 2,
+        "value.rows": 64
+      },
+      "runtime_ratio": 5.820341036526132,
+      "paired_bootstrap_95ci": [
+        5.809980202737863,
+        5.839864049976299
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.00022476878948509693,
+      "candidate_seconds_per_call": 0.001308231009170413,
+      "measured_peak_rss_bytes": {
+        "baseline": 197341184,
+        "candidate": 92016640,
+        "ratio": 0.466281990078665
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 119,
+          "candidate": 37935,
+          "ratio": 318.781512605042
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 8535,
+          "candidate": 138050,
+          "ratio": 16.174575278265962
+        },
+        "python_tracked_blocks": {
+          "baseline": 4,
+          "candidate": 553,
+          "ratio": 138.25
+        }
+      }
+    },
+    {
+      "id": "toolkit_conversions",
+      "family": "conversions",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.11963403411209583,
+        "median_seconds": 0.011957671493291855,
+        "mad_seconds": 2.9707327485084534e-05,
+        "p95_seconds": 0.012033087480813266,
+        "peak_rss_bytes": 198688768
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.8469654079526663,
+        "median_seconds": 0.08469534385949373,
+        "mad_seconds": 0.00010763667523860931,
+        "p95_seconds": 0.08482129089534282,
+        "peak_rss_bytes": 147988480
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20,
+        "value.ob_atoms": 13,
+        "value.rd_atoms": 13,
+        "value.calls": 2
+      },
+      "runtime_ratio": 7.08292947393705,
+      "paired_bootstrap_95ci": [
+        7.0619735997734585,
+        7.101097945428851
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.0005978835746645927,
+      "candidate_seconds_per_call": 0.004234767192974687,
+      "measured_peak_rss_bytes": {
+        "baseline": 198688768,
+        "candidate": 147988480,
+        "ratio": 0.744825595778016
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 3694,
+          "candidate": 42961,
+          "ratio": 11.629940443963184
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 8191,
+          "candidate": 122384,
+          "ratio": 14.941277011353925
+        },
+        "python_tracked_blocks": {
+          "baseline": 35,
+          "candidate": 657,
+          "ratio": 18.771428571428572
+        }
+      }
+    },
+    {
+      "id": "mca_conformer_algorithm",
+      "family": "conformers_forcefields",
+      "hardware_mode": "cpu",
+      "end_to_end": true,
+      "parameters": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "seed": 42
+      },
+      "baseline_summary": {
+        "attempts": 5,
+        "completed": 5,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.0376183707267046,
+        "median_seconds": 0.007517330348491669,
+        "mad_seconds": 6.673857569694519e-06,
+        "p95_seconds": 0.007547334954142571,
+        "peak_rss_bytes": 220160000
+      },
+      "candidate_summary": {
+        "attempts": 5,
+        "completed": 5,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.037247953936457634,
+        "median_seconds": 0.007439872249960899,
+        "mad_seconds": 1.6652047634124756e-05,
+        "p95_seconds": 0.007505170628428459,
+        "peak_rss_bytes": 144314368
+      },
+      "paired_samples": 5,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 1,
+        "value.atoms": 13,
+        "value.frames": 1
+      },
+      "runtime_ratio": 0.9896960629718353,
+      "paired_bootstrap_95ci": [
+        0.986605004333544,
+        0.995777884310923
+      ],
+      "descriptive_timing_class": "within_neutral_band",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.007517330348491669,
+      "candidate_seconds_per_call": 0.007439872249960899,
+      "measured_peak_rss_bytes": {
+        "baseline": 220160000,
+        "candidate": 144314368,
+        "ratio": 0.6554976744186046
+      },
+      "untimed_python_memory": {}
+    },
+    {
+      "id": "organic_forcefield",
+      "family": "conformers_forcefields",
+      "hardware_mode": "cpu",
+      "end_to_end": true,
+      "parameters": {
+        "smiles": "CCO",
+        "seed": 42,
+        "epochs": 1,
+        "steps_per_epoch": 20
+      },
+      "baseline_summary": {
+        "attempts": 5,
+        "completed": 5,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 4.837763713672757,
+        "median_seconds": 0.9679605532437563,
+        "mad_seconds": 0.0016919579356908798,
+        "p95_seconds": 0.9712130934000015,
+        "peak_rss_bytes": 201523200
+      },
+      "candidate_summary": {
+        "attempts": 5,
+        "completed": 5,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 3.9045069497078657,
+        "median_seconds": 0.7801867481321096,
+        "mad_seconds": 0.00110519677400589,
+        "p95_seconds": 0.7849611859768629,
+        "peak_rss_bytes": 178561024
+      },
+      "paired_samples": 5,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 1,
+        "value.atoms": 9,
+        "value.report.build.atom_count": 9,
+        "value.report.build.added_hydrogen_count": 6,
+        "value.report.build.quality_report.metrics.atom_count": 9,
+        "value.report.build.quality_report.metrics.bond_count": 8,
+        "value.report.optimization.epochs_completed": 1,
+        "value.report.optimization.steps_submitted": 19,
+        "value.report.optimization.initialization_steps": 1,
+        "value.report.optimization.steps_completed": null,
+        "value.report.optimization.quality_report.metrics.atom_count": 9,
+        "value.report.optimization.quality_report.metrics.bond_count": 8,
+        "value.report.optimization.selected_segment_epochs_completed": 1,
+        "value.report.quality_report.metrics.atom_count": 9,
+        "value.report.quality_report.metrics.bond_count": 8
+      },
+      "runtime_ratio": 0.8060108911645281,
+      "paired_bootstrap_95ci": [
+        0.8018641398118556,
+        0.813275893879575
+      ],
+      "descriptive_timing_class": "faster_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.9679605532437563,
+      "candidate_seconds_per_call": 0.7801867481321096,
+      "measured_peak_rss_bytes": {
+        "baseline": 201523200,
+        "candidate": 178561024,
+        "ratio": 0.8860569105691057
+      },
+      "untimed_python_memory": {}
+    },
+    {
+      "id": "retained_molecules",
+      "family": "memory",
+      "hardware_mode": "cpu",
+      "end_to_end": false,
+      "parameters": {
+        "atoms": 64,
+        "molecules": 16,
+        "loops": 1
+      },
+      "baseline_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.3695671148598194,
+        "median_seconds": 0.03695935849100351,
+        "mad_seconds": 0.0001394236460328102,
+        "p95_seconds": 0.03730903472751379,
+        "peak_rss_bytes": 200282112
+      },
+      "candidate_summary": {
+        "attempts": 10,
+        "completed": 10,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 1.5064420811831951,
+        "median_seconds": 0.15058969892561436,
+        "mad_seconds": 0.0002740100026130676,
+        "p95_seconds": 0.15118680633604525,
+        "peak_rss_bytes": 95383552
+      },
+      "paired_samples": 10,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 1,
+        "value.molecules": 16,
+        "value.atoms": 1024
+      },
+      "runtime_ratio": 4.074467335851359,
+      "paired_bootstrap_95ci": [
+        4.052818714228022,
+        4.096913635161562
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.03695935849100351,
+      "candidate_seconds_per_call": 0.15058969892561436,
+      "measured_peak_rss_bytes": {
+        "baseline": 200282112,
+        "candidate": 95383552,
+        "ratio": 0.4762459864613371
+      },
+      "untimed_python_memory": {
+        "python_tracked_retained_bytes": {
+          "baseline": 519336,
+          "candidate": 575140,
+          "ratio": 1.1074525933114592
+        },
+        "python_tracked_peak_bytes": {
+          "baseline": 531240,
+          "candidate": 588391,
+          "ratio": 1.1075803779835856
+        },
+        "python_tracked_blocks": {
+          "baseline": 7514,
+          "candidate": 6014,
+          "ratio": 0.8003726377428799
+        }
+      }
+    },
+    {
+      "id": "mca_cpu_8",
+      "family": "inference",
+      "hardware_mode": "cpu",
+      "end_to_end": true,
+      "parameters": {
+        "backend": "cpu",
+        "molecules": 8,
+        "smiles": [
+          "CCO",
+          "CCN",
+          "CC(=O)O",
+          "c1ccncc1",
+          "CCOC",
+          "CCS",
+          "CC(=O)N",
+          "c1ccccc1O"
+        ],
+        "cpu_count": 8,
+        "seed": 42
+      },
+      "baseline_summary": {
+        "attempts": 5,
+        "completed": 5,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.7242356780916452,
+        "median_seconds": 0.14478408731520176,
+        "mad_seconds": 0.002990422770380974,
+        "p95_seconds": 0.14783467054367067,
+        "peak_rss_bytes": 865730560
+      },
+      "candidate_summary": {
+        "attempts": 5,
+        "completed": 5,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.8970488458871841,
+        "median_seconds": 0.1738949865102768,
+        "mad_seconds": 0.0011416543275117874,
+        "p95_seconds": 0.1991298321634531,
+        "peak_rss_bytes": 750866432
+      },
+      "paired_samples": 5,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 1,
+        "value.requested_molecules": 8,
+        "value.returned_molecules": 8,
+        "value.sites": 12,
+        "value.atom_predictions": 34,
+        "value.gpu_started": false
+      },
+      "runtime_ratio": 1.2010642173106996,
+      "paired_bootstrap_95ci": [
+        1.1761604790170819,
+        1.4257820129513048
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": false,
+      "comparability_limits": [
+        "Equal original model tensors/prediction workload and counters are observed, but B0 returned-SMILES/charge metadata is defective for the neutral-acid fixture. Keep inference-work latency, without certifying equal complete chemical outputs or whole-workflow speedup."
+      ],
+      "baseline_seconds_per_call": 0.14478408731520176,
+      "candidate_seconds_per_call": 0.1738949865102768,
+      "measured_peak_rss_bytes": {
+        "baseline": 865730560,
+        "candidate": 750866432,
+        "ratio": 0.8673211582134747
+      },
+      "untimed_python_memory": {}
+    },
+    {
+      "id": "mca_cpu_64",
+      "family": "inference",
+      "hardware_mode": "cpu",
+      "end_to_end": true,
+      "parameters": {
+        "backend": "cpu",
+        "molecules": 64,
+        "smiles": [
+          "CCO",
+          "CCN",
+          "CC(=O)O",
+          "c1ccncc1",
+          "CCOC",
+          "CCS",
+          "CC(=O)N",
+          "c1ccccc1O"
+        ],
+        "cpu_count": 8,
+        "seed": 42
+      },
+      "baseline_summary": {
+        "attempts": 5,
+        "completed": 5,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 4.978552186861634,
+        "median_seconds": 0.9880282394587994,
+        "mad_seconds": 0.004415426403284073,
+        "p95_seconds": 1.0229329407215118,
+        "peak_rss_bytes": 871477248
+      },
+      "candidate_summary": {
+        "attempts": 5,
+        "completed": 5,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 6.024152094498277,
+        "median_seconds": 1.2061987239867449,
+        "mad_seconds": 0.004605777561664581,
+        "p95_seconds": 1.210115932300687,
+        "peak_rss_bytes": 795484160
+      },
+      "paired_samples": 5,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 1,
+        "value.requested_molecules": 64,
+        "value.returned_molecules": 64,
+        "value.sites": 96,
+        "value.atom_predictions": 272,
+        "value.gpu_started": false
+      },
+      "runtime_ratio": 1.2208140170643809,
+      "paired_bootstrap_95ci": [
+        1.1751241826078642,
+        1.223430385943328
+      ],
+      "descriptive_timing_class": "slower_interval",
+      "comparable_complete_chemical_task": false,
+      "comparability_limits": [
+        "Equal original model tensors/prediction workload and counters are observed, but B0 returned-SMILES/charge metadata is defective for the neutral-acid fixture. Keep inference-work latency, without certifying equal complete chemical outputs or whole-workflow speedup."
+      ],
+      "baseline_seconds_per_call": 0.9880282394587994,
+      "candidate_seconds_per_call": 1.2061987239867449,
+      "measured_peak_rss_bytes": {
+        "baseline": 871477248,
+        "candidate": 795484160,
+        "ratio": 0.912799687915662
+      },
+      "untimed_python_memory": {}
+    },
+    {
+      "id": "cbond_cpu",
+      "family": "inference",
+      "hardware_mode": "cpu",
+      "end_to_end": true,
+      "parameters": {
+        "device": "cpu",
+        "loops": 20
+      },
+      "baseline_summary": {
+        "attempts": 5,
+        "completed": 5,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.13989600725471973,
+        "median_seconds": 0.027975445613265038,
+        "mad_seconds": 1.630932092666626e-05,
+        "p95_seconds": 0.02801048122346401,
+        "peak_rss_bytes": 273874944
+      },
+      "candidate_summary": {
+        "attempts": 5,
+        "completed": 5,
+        "failed": 0,
+        "no_output": 0,
+        "all_attempt_seconds": 0.1399601697921753,
+        "median_seconds": 0.02795545943081379,
+        "mad_seconds": 9.393878281116486e-05,
+        "p95_seconds": 0.028147248923778533,
+        "peak_rss_bytes": 169328640
+      },
+      "paired_samples": 5,
+      "work_counters_equal": true,
+      "work_counters": {
+        "completed_calls": 20,
+        "value.predictions": 2
+      },
+      "runtime_ratio": 0.9992855812655306,
+      "paired_bootstrap_95ci": [
+        0.9959043985562739,
+        1.0067576155672175
+      ],
+      "descriptive_timing_class": "within_neutral_band",
+      "comparable_complete_chemical_task": true,
+      "comparability_limits": [],
+      "baseline_seconds_per_call": 0.001398772280663252,
+      "candidate_seconds_per_call": 0.0013977729715406895,
+      "measured_peak_rss_bytes": {
+        "baseline": 273874944,
+        "candidate": 169328640,
+        "ratio": 0.6182699210337401
+      },
+      "untimed_python_memory": {}
+    }
+  ],
+  "families": {
+    "import/cpu": {
+      "manifest_members": [
+        "cold_import",
+        "empty_molecule"
+      ],
+      "executed_members": [
+        "cold_import",
+        "empty_molecule"
+      ],
+      "comparable_members": [
+        "cold_import",
+        "empty_molecule"
+      ],
+      "complete_common_semantic_scope": true,
+      "geometric_mean_runtime_ratio_common_subset": 3.3060869996219733,
+      "paired_bootstrap_95ci_common_subset": [
+        3.2736631418313715,
+        3.324051768031086
+      ]
+    },
+    "construction/cpu": {
+      "manifest_members": [
+        "construct_8",
+        "construct_64",
+        "construct_256",
+        "io_smi_small",
+        "io_mol2_small",
+        "io_sdf_small",
+        "io_smi_typical",
+        "io_mol2_typical",
+        "io_sdf_typical",
+        "io_smi_large",
+        "io_mol2_large",
+        "io_sdf_large"
+      ],
+      "executed_members": [
+        "construct_8",
+        "construct_64",
+        "construct_256",
+        "io_smi_small",
+        "io_mol2_small",
+        "io_sdf_small",
+        "io_smi_typical",
+        "io_mol2_typical",
+        "io_sdf_typical",
+        "io_smi_large",
+        "io_mol2_large",
+        "io_sdf_large"
+      ],
+      "comparable_members": [
+        "construct_8",
+        "construct_64",
+        "construct_256",
+        "io_smi_small",
+        "io_mol2_small",
+        "io_sdf_small",
+        "io_smi_typical",
+        "io_mol2_typical",
+        "io_sdf_typical",
+        "io_smi_large",
+        "io_mol2_large",
+        "io_sdf_large"
+      ],
+      "complete_common_semantic_scope": true,
+      "geometric_mean_runtime_ratio_common_subset": 2.7373210579778156,
+      "paired_bootstrap_95ci_common_subset": [
+        2.7191571885109926,
+        2.7996907260289454
+      ]
+    },
+    "atom_storage/cpu": {
+      "manifest_members": [
+        "scalar_read_8",
+        "scalar_write_8",
+        "batch_facts_8",
+        "coordinates_8",
+        "insert_delete_8",
+        "scalar_read_64",
+        "scalar_write_64",
+        "batch_facts_64",
+        "coordinates_64",
+        "insert_delete_64",
+        "scalar_read_256",
+        "scalar_write_256",
+        "batch_facts_256",
+        "coordinates_256",
+        "insert_delete_256"
+      ],
+      "executed_members": [
+        "scalar_read_8",
+        "scalar_write_8",
+        "batch_facts_8",
+        "coordinates_8",
+        "insert_delete_8",
+        "scalar_read_64",
+        "scalar_write_64",
+        "batch_facts_64",
+        "coordinates_64",
+        "insert_delete_64",
+        "scalar_read_256",
+        "scalar_write_256",
+        "batch_facts_256",
+        "coordinates_256",
+        "insert_delete_256"
+      ],
+      "comparable_members": [
+        "scalar_read_8",
+        "scalar_write_8",
+        "batch_facts_8",
+        "coordinates_8",
+        "insert_delete_8",
+        "scalar_read_64",
+        "scalar_write_64",
+        "batch_facts_64",
+        "coordinates_64",
+        "insert_delete_64",
+        "scalar_read_256",
+        "scalar_write_256",
+        "batch_facts_256",
+        "coordinates_256",
+        "insert_delete_256"
+      ],
+      "complete_common_semantic_scope": true,
+      "geometric_mean_runtime_ratio_common_subset": 1.0845950162171274,
+      "paired_bootstrap_95ci_common_subset": [
+        1.0662843315499864,
+        1.091431763811291
+      ]
+    },
+    "native_export/cpu": {
+      "manifest_members": [
+        "matrix_8",
+        "native_8",
+        "matrix_64",
+        "native_64",
+        "matrix_256",
+        "native_256"
+      ],
+      "executed_members": [
+        "matrix_8",
+        "native_8",
+        "matrix_64",
+        "native_64",
+        "matrix_256",
+        "native_256"
+      ],
+      "comparable_members": [
+        "matrix_8",
+        "native_8",
+        "matrix_64",
+        "native_64",
+        "matrix_256",
+        "native_256"
+      ],
+      "complete_common_semantic_scope": true,
+      "geometric_mean_runtime_ratio_common_subset": 0.080165128288142,
+      "paired_bootstrap_95ci_common_subset": [
+        0.07983493697921142,
+        0.08138768408682716
+      ]
+    },
+    "result_projection/cpu": {
+      "manifest_members": [
+        "partial_projection_8",
+        "mca_projection_8",
+        "partial_projection_64",
+        "mca_projection_64",
+        "partial_projection_256",
+        "mca_projection_256"
+      ],
+      "executed_members": [
+        "partial_projection_8",
+        "mca_projection_8",
+        "partial_projection_64",
+        "mca_projection_64",
+        "partial_projection_256",
+        "mca_projection_256"
+      ],
+      "comparable_members": [
+        "partial_projection_8",
+        "mca_projection_8",
+        "partial_projection_64",
+        "mca_projection_64",
+        "partial_projection_256",
+        "mca_projection_256"
+      ],
+      "complete_common_semantic_scope": true,
+      "geometric_mean_runtime_ratio_common_subset": 2.5077580849588688,
+      "paired_bootstrap_95ci_common_subset": [
+        2.490654602326659,
+        2.5147658633493655
+      ]
+    },
+    "lazy_dependencies/cpu": {
+      "manifest_members": [
+        "write_read_8",
+        "clean_read_8",
+        "unrelated_read_8",
+        "write_read_64",
+        "clean_read_64",
+        "unrelated_read_64",
+        "write_read_256",
+        "clean_read_256",
+        "unrelated_read_256"
+      ],
+      "executed_members": [
+        "write_read_8",
+        "clean_read_8",
+        "unrelated_read_8",
+        "write_read_64",
+        "clean_read_64",
+        "unrelated_read_64",
+        "write_read_256",
+        "clean_read_256",
+        "unrelated_read_256"
+      ],
+      "comparable_members": [
+        "write_read_8",
+        "unrelated_read_8",
+        "write_read_64",
+        "unrelated_read_64",
+        "write_read_256",
+        "unrelated_read_256"
+      ],
+      "complete_common_semantic_scope": false,
+      "geometric_mean_runtime_ratio_common_subset": 1.6334102574414977,
+      "paired_bootstrap_95ci_common_subset": [
+        1.6266718766110597,
+        1.6432225736251767
+      ]
+    },
+    "graph_search_geometry/cpu": {
+      "manifest_members": [
+        "graph_search_geometry",
+        "geometry_screen"
+      ],
+      "executed_members": [
+        "graph_search_geometry",
+        "geometry_screen"
+      ],
+      "comparable_members": [
+        "graph_search_geometry",
+        "geometry_screen"
+      ],
+      "complete_common_semantic_scope": true,
+      "geometric_mean_runtime_ratio_common_subset": 1.7647572672752523,
+      "paired_bootstrap_95ci_common_subset": [
+        1.754782789726872,
+        1.771465749109009
+      ]
+    },
+    "values_collections/cpu": {
+      "manifest_members": [
+        "crystal_matrix",
+        "molecule_bundle",
+        "source_conformers"
+      ],
+      "executed_members": [
+        "crystal_matrix",
+        "molecule_bundle",
+        "source_conformers"
+      ],
+      "comparable_members": [
+        "crystal_matrix",
+        "molecule_bundle",
+        "source_conformers"
+      ],
+      "complete_common_semantic_scope": true,
+      "geometric_mean_runtime_ratio_common_subset": 1.8488921159100937,
+      "paired_bootstrap_95ci_common_subset": [
+        1.8386188490482274,
+        1.8553035186442963
+      ]
+    },
+    "conversions/cpu": {
+      "manifest_members": [
+        "toolkit_conversions"
+      ],
+      "executed_members": [
+        "toolkit_conversions"
+      ],
+      "comparable_members": [
+        "toolkit_conversions"
+      ],
+      "complete_common_semantic_scope": true,
+      "geometric_mean_runtime_ratio_common_subset": 7.082929473937049,
+      "paired_bootstrap_95ci_common_subset": [
+        7.061973599773459,
+        7.101097945428851
+      ]
+    },
+    "conformers_forcefields/cpu": {
+      "manifest_members": [
+        "mca_conformer_algorithm",
+        "organic_forcefield"
+      ],
+      "executed_members": [
+        "mca_conformer_algorithm",
+        "organic_forcefield"
+      ],
+      "comparable_members": [
+        "mca_conformer_algorithm",
+        "organic_forcefield"
+      ],
+      "complete_common_semantic_scope": true,
+      "geometric_mean_runtime_ratio_common_subset": 0.8931437766104369,
+      "paired_bootstrap_95ci_common_subset": [
+        0.890500282457886,
+        0.8971599357319271
+      ]
+    },
+    "memory/cpu": {
+      "manifest_members": [],
+      "executed_members": [
+        "retained_molecules"
+      ],
+      "comparable_members": [
+        "retained_molecules"
+      ],
+      "complete_common_semantic_scope": false,
+      "geometric_mean_runtime_ratio_common_subset": 4.074467335851359,
+      "paired_bootstrap_95ci_common_subset": [
+        4.052818714228022,
+        4.096913635161562
+      ]
+    },
+    "inference/cpu": {
+      "manifest_members": [
+        "mca_cpu_8",
+        "mca_cpu_64",
+        "cbond_cpu"
+      ],
+      "executed_members": [
+        "mca_cpu_8",
+        "mca_cpu_64",
+        "cbond_cpu"
+      ],
+      "comparable_members": [
+        "cbond_cpu"
+      ],
+      "complete_common_semantic_scope": false,
+      "geometric_mean_runtime_ratio_common_subset": 0.9992855812655306,
+      "paired_bootstrap_95ci_common_subset": [
+        0.9959043985562739,
+        1.0067576155672175
+      ]
+    }
+  },
+  "archive": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-cpu16b864f/raw-evidence.tar.gz",
+    "bytes": 57005548,
+    "sha256": "8bf2a5d3502cad387cb349f7d8c79f148bc43ba9fbe21a29744c76cd9a04d79d"
+  },
+  "archive_members_verified": 2701,
+  "root_review": ".plan20-artifacts/20261104/stage12/final-cpu16b864f/ROOT_CPU_REVIEW.json",
+  "report": ".plan20-artifacts/20261104/stage12/final-cpu16b864f/REPORT.md",
+  "executed_commands": [
+    "/usr/bin/python3 -B /tmp/hotpot_plan20/long/stage12-final-performance-preparation-20261104/preparation02-final16b864f/control.py pairs",
+    "/usr/bin/python3 -B /tmp/hotpot_plan20/long/stage12-final-performance-preparation-20261104/preparation02-final16b864f/control.py postflight",
+    "/usr/bin/python3 -B /tmp/hotpot_plan20/long/stage12-final-performance-preparation-20261104/preparation02-final16b864f/root-review02/review.py",
+    "/usr/bin/python3 -B .plan20-artifacts/20261104/stage12/final-cpu16b864f/verify_and_archive.py"
+  ],
+  "decision": "Accept the demonstrated final CPU scope as usable without demanding parity or removing unfavorable work. Examples:1000empty constructors take72.400ms,5N8constructions6.634ms,20N256complete write/H-read loops389.230ms,20paired toolkit conversions84.695ms; actual UFF0.780s and64molecule MCA1.206s complete. Multipliers alone are not gates. This is a bounded measured-cost disposition, not proof of optimality, universal scaling, numerical truth or complete Plan20efficiency acceptance.",
+  "scientific_limits": "Three clean-H tasks return different information. Two MCA tasks have equal original trained tensors/prediction workload but defective B0public metadata, so no complete-output speedup verdict. All five stay in raw tables and original denominators;57is the explicitly identified common semantic subset, not a reduced planned population.",
+  "memory_limits": "All62measured worker RSSpeaks are lower;39separate Python-tracked peaks are higher. Metrics cover their actual process/trace scopes and are not a simultaneous process-tree/GPU byte-memory or leak-freedom proof.",
+  "remaining": [
+    "mca_fallback",
+    "mca_1gpu",
+    "mca_4gpu",
+    "cbond_cuda",
+    "test_collection",
+    "test_execution",
+    "marking_only",
+    "schema_projection_internal",
+    "added_tests",
+    "Separate2689five-version timing/actual selected execution.",
+    "Applicable additional SDF/frame/scientific-state resource/usable-cost dispositions and final report."
+  ],
+  "limits": [
+    "One fresh process per phase/workload; within-process repeated samples do not establish between-process or machine-wide generality.",
+    "RSS is observed worker high-water, not universal simultaneous process-tree/GPU byte memory. Python memory excludes untraced native allocations.",
+    "Equal work counters alone do not prove chemical identity; three clean-H and two original-MCA-metadata cases retain explicit noncomparability. No numerical/historical truth or fixed fivefold quota."
+  ],
+  "global_gate_closed": false
+}

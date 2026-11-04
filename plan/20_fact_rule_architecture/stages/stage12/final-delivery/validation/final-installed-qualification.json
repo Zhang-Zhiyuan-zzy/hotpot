@@ -1,0 +1,173 @@
+{
+  "status": "ROOT_VERIFIED_FINAL_FIVE_ABI_INSTALLED_AFFECTED_SELECTION_AND_CP311_ACTUAL_BUSINESS",
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "sdist_sha256": "fce57c8f9685d698e65d597f585975d52acb71a5bf0e519d34ff42be00fe1e7e",
+  "results": [
+    {
+      "id": "installed-cp311",
+      "abi": "cp311",
+      "mode": "installed",
+      "collected": 1268,
+      "passed": 1264,
+      "skipped": 4,
+      "junit_case_records": 1268,
+      "process_reports": 20,
+      "process_origin_observations": 7466,
+      "main_origin_observations": 3,
+      "wheel_members_verified": 894,
+      "actual_pytest_elapsed_seconds": 28.539749098941684,
+      "wheel": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/preparation01/future-native01/cp311/wheelhouse/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "8dd0ddc467501741d3464ef24d79e6792e4b43fbb5c8c91673f4f376a6f0a617"
+    },
+    {
+      "id": "installed-cp310",
+      "abi": "cp310",
+      "mode": "installed",
+      "collected": 1268,
+      "passed": 1264,
+      "skipped": 4,
+      "junit_case_records": 1268,
+      "process_reports": 20,
+      "process_origin_observations": 7466,
+      "main_origin_observations": 3,
+      "wheel_members_verified": 894,
+      "actual_pytest_elapsed_seconds": 46.27887301892042,
+      "wheel": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/preparation01/future-native01/cp310/wheelhouse/hotpot_zzy-0.5.4.5-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "c0a5d11d984532bfc91345de79788f27053f19b559110d8b6be96504b39670f9"
+    },
+    {
+      "id": "installed-cp312",
+      "abi": "cp312",
+      "mode": "installed",
+      "collected": 1268,
+      "passed": 1264,
+      "skipped": 4,
+      "junit_case_records": 1268,
+      "process_reports": 20,
+      "process_origin_observations": 7466,
+      "main_origin_observations": 3,
+      "wheel_members_verified": 894,
+      "actual_pytest_elapsed_seconds": 46.025507329031825,
+      "wheel": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/preparation01/future-native01/cp312/wheelhouse/hotpot_zzy-0.5.4.5-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "cf18d8ba9c7708ecae6ad230ca52f03212bbe2ef0356e6aa929fe79a3a862b80"
+    },
+    {
+      "id": "installed-cp313",
+      "abi": "cp313",
+      "mode": "installed",
+      "collected": 1268,
+      "passed": 1264,
+      "skipped": 4,
+      "junit_case_records": 1268,
+      "process_reports": 20,
+      "process_origin_observations": 7466,
+      "main_origin_observations": 3,
+      "wheel_members_verified": 894,
+      "actual_pytest_elapsed_seconds": 45.95024840347469,
+      "wheel": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/preparation01/future-native01/cp313/wheelhouse/hotpot_zzy-0.5.4.5-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "6011aafba09218420ae176d86bdde521bda94d2e406ec66cabaef470e12ce811"
+    },
+    {
+      "id": "installed-cp314",
+      "abi": "cp314",
+      "mode": "installed",
+      "collected": 1268,
+      "passed": 1264,
+      "skipped": 4,
+      "junit_case_records": 1268,
+      "process_reports": 21,
+      "process_origin_observations": 7466,
+      "main_origin_observations": 3,
+      "wheel_members_verified": 894,
+      "actual_pytest_elapsed_seconds": 83.39850240945816,
+      "wheel": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/preparation01/future-native01/cp314/wheelhouse/hotpot_zzy-0.5.4.5-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "4295d68bb1a7e77bc2a9d73dfe601f86179a690b8bcb3772b2854349302a2cb5"
+    },
+    {
+      "id": "model-cp311",
+      "abi": "cp311",
+      "mode": "model",
+      "collected": 4,
+      "passed": 4,
+      "skipped": 0,
+      "junit_case_records": 4,
+      "process_reports": 3,
+      "process_origin_observations": 916,
+      "main_origin_observations": 3,
+      "wheel_members_verified": 894,
+      "actual_pytest_elapsed_seconds": 15.266289493069053,
+      "wheel": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/preparation01/future-native01/cp311/wheelhouse/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "8dd0ddc467501741d3464ef24d79e6792e4b43fbb5c8c91673f4f376a6f0a617"
+    },
+    {
+      "id": "business-cp311",
+      "abi": "cp311",
+      "mode": "business",
+      "collected": 7,
+      "passed": 7,
+      "skipped": 0,
+      "junit_case_records": 7,
+      "process_reports": 5,
+      "process_origin_observations": 1956,
+      "main_origin_observations": 3,
+      "wheel_members_verified": 894,
+      "actual_pytest_elapsed_seconds": 19.638182029128075,
+      "wheel": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/preparation01/future-native01/cp311/wheelhouse/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "8dd0ddc467501741d3464ef24d79e6792e4b43fbb5c8c91673f4f376a6f0a617"
+    }
+  ],
+  "passed_executions": 6331,
+  "declared_tier_skips": 20,
+  "counts_are_not_unique_business_contracts": true,
+  "actual_workflow_scope": [
+    "Original MCA inference and chemical metadata/Atom-site output",
+    "Actual CBond/FF/official xTB coordination pipeline and local-failure CLI",
+    "MCA attachment, charged-input rejection and lifecycle",
+    "Published chemical workflow examples"
+  ],
+  "root_evidence": {
+    "review": ".plan20-artifacts/20261104/stage12/final-installed16b864f/root-review/ROOT_INSTALLED_QUALIFICATION_REVIEW.json",
+    "archive_review": ".plan20-artifacts/20261104/stage12/final-installed16b864f/ROOT_ARCHIVE_REVIEW.json",
+    "archives": [
+      {
+        "mode": "defaults",
+        "path": ".plan20-artifacts/20261104/stage12/final-installed16b864f/installed-qualification-evidence.tar.gz",
+        "bytes": 3962451,
+        "sha256": "e20ff9bab155902297ee0136ecb7083326d19d5c291fed8e184afcced1f95d84",
+        "members_verified": 257,
+        "index_entries": 256,
+        "original_scope": "Default installed qualification only. Generated runtime directories excluded; site/support bytes separately bound. No model/business/CUDA, benchmark or global acceptance evidence."
+      },
+      {
+        "mode": "model-business",
+        "path": ".plan20-artifacts/20261104/stage12/final-installed16b864f/nondefault-qualification-evidence.tar.gz",
+        "bytes": 842425,
+        "sha256": "9873f21348dc44964417c7869a6d7b5082b6a1ca01edb44be9e14ee4fd2d5c7f",
+        "members_verified": 158,
+        "index_entries": 157,
+        "original_scope": "Model/business CP311 execution, exact raw observations and backend workspaces; copied site/support/derived files separately bound. Default sealed index referenced; no CUDA/performance/global acceptance."
+      }
+    ],
+    "commands": [
+      "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python -B /tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/root-review01/verify_qualification.py",
+      "python -B .plan20-artifacts/20261104/stage12/final-installed16b864f/verify_and_archive.py"
+    ],
+    "process_reports": 109,
+    "process_origin_observations": 40202,
+    "wheel_member_checks_per_command": 894,
+    "violations": 0
+  },
+  "limits": [
+    "Five-ABI installed results cover the exact affected selection, not every repository test.",
+    "Four original model-tier skips per default run are retained; actual CP311 model4/business7 run without skips.",
+    "The model and business selections overlap; counts are passing executions, not unique contracts.",
+    "Source/wheel directory and interpreter checker errors were corrected without rerunning business; original records remain.",
+    "No GPU, performance, final whole-plan support or acceptance is inferred."
+  ],
+  "remaining": [
+    "Final MCA CPU/CUDA/routing/resource cohorts",
+    "Final comparable-work/resource reports",
+    "Deferred issue dispositions and complete final report",
+    "Requirement-by-requirement acceptance and B_exp"
+  ]
+}

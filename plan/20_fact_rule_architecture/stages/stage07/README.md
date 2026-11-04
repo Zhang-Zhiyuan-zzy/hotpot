@@ -92,3 +92,38 @@ At these earlier repair cutoffs, Stage7A was IN_PROGRESS, complete SDF performan
 - [Finite five-version correspondence and source-context integrity checkpoint](external-adapters/validation/native_gtd_diagnostic.json): Task248 records five separately root-accepted own final-wheel bounded native/public/GTD+loader correspondences (CP311187/198; remaining235/237), each792cells/509244pairs/zero blockers, plus allfive3475-file/six-native isolated source contexts accepted through243/247 and preparation-only240descriptor. CP311203I1provenance stays distinct from187correspondence; original241RC3audit/stub misclassification is retained with24349/0read-only correction/no install retry. Explicit small archive-member proposal only; root owns actual archive/apply/Git. CurrentSOURCE_READY/FREEZE/package/current214/707/985/fresh26 outcomes remain outside this finite cutoff. Prior histories, B0/recipe restrictions, SDF FIX_REQUIRED(GM2.527527024115116/six adverse CIs),native-memory OPEN,Stage7A IN_PROGRESS/7B PREENTRY/SDK/later-global gates remain unchanged.
 
 - [Stage7D coordinate-frame completion](coordinate-frames/completion_20261103.json): canonical source/generated/selected owners and Record25-v4, affected CP311 source/installed each2105passed/1skipped, actualFF11/pipeline3/MCA1/attachment3 per boundary, usable six-case costs and no new architecture debt. Original failures, Boolean constraint/cursor repairs and warnings retained. Stage7E and global gates remain open.
+
+## Additional record links
+
+- [canonical-stereo/contracts/decisions.md](canonical-stereo/contracts/decisions.md)
+- [canonical-stereo/contracts/validation.json](canonical-stereo/contracts/validation.json)
+- [canonical-stereo/entry_review.json](canonical-stereo/entry_review.json)
+- [canonical-stereo/runtime_release.json](canonical-stereo/runtime_release.json)
+- [canonical-stereo/validation/checkpoint.json](canonical-stereo/validation/checkpoint.json)
+- [canonical-stereo/validation/scientific_observations.json](canonical-stereo/validation/scientific_observations.json)
+- [constraints/contracts/constraint_consolidation_design.md](constraints/contracts/constraint_consolidation_design.md)
+- [constraints/contracts/file_scope.json](constraints/contracts/file_scope.json)
+- [constraints/contracts/validation_plan.json](constraints/contracts/validation_plan.json)
+- [coordinate-frames/contracts/decisions.md](coordinate-frames/contracts/decisions.md)
+- [coordinate-frames/contracts/validation.json](coordinate-frames/contracts/validation.json)
+- [coordinate-frames/entry_review.json](coordinate-frames/entry_review.json)
+- [coordinate-frames/validation/checkpoint.json](coordinate-frames/validation/checkpoint.json)
+- [coordinate-frames/validation/evidence_index.json](coordinate-frames/validation/evidence_index.json)
+- [coordinate-frames/validation/report.md](coordinate-frames/validation/report.md)
+- [coordinate-frames/validation/scientific_observations.json](coordinate-frames/validation/scientific_observations.json)
+- [coordinate-frames/validation_protocol.json](coordinate-frames/validation_protocol.json)
+- [preentry-hydrogen/consumer_matrix.md](preentry-hydrogen/consumer_matrix.md)
+- [preentry-hydrogen/evidence.json](preentry-hydrogen/evidence.json)
+- [preentry-hydrogen/review.md](preentry-hydrogen/review.md)
+- [preentry-selections/current_source_20261103.md](preentry-selections/current_source_20261103.md)
+- [selected-results/partial_charge_runtime_release.json](selected-results/partial_charge_runtime_release.json)
+- [selected-results/validation/partial-charges/evidence_index.json](selected-results/validation/partial-charges/evidence_index.json)
+- [selected-results/validation/partial-charges/scientific_observations.json](selected-results/validation/partial-charges/scientific_observations.json)
+- [topology-selection/contracts/file_scope.json](topology-selection/contracts/file_scope.json)
+- [topology-selection/contracts/hidden_topology_design.md](topology-selection/contracts/hidden_topology_design.md)
+- [topology-selection/contracts/validation_plan.json](topology-selection/contracts/validation_plan.json)
+- [topology-selection/design_acceptance.json](topology-selection/design_acceptance.json)
+- [topology-selection/entry_review.json](topology-selection/entry_review.json)
+- [topology-selection/implementation_release.json](topology-selection/implementation_release.json)
+- [topology-selection/root_cost_disposition_20261103.json](topology-selection/root_cost_disposition_20261103.json)
+- [topology-selection/validation/record_checks.json](topology-selection/validation/record_checks.json)

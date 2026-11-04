@@ -60,3 +60,8 @@ All runtime, scientific, package and overall-task gates remain with the parent.
 - [Stage14 useful training information and chemical query/review plan](../stage14/review.md)
 
 [Stage catalog](../README.md) · [Project index](../../README.md)
+
+## Additional record links
+
+- [space_group_catalogue.COMCIFS-LICENSE.txt](space_group_catalogue.COMCIFS-LICENSE.txt)
+- [space_group_catalogue.GEMMI-LICENSE.txt](space_group_catalogue.GEMMI-LICENSE.txt)

@@ -1,0 +1,102 @@
+{
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "status": "ROOT_ACCEPTED_OPTIONAL_GTD_OPTIMIZATION_REMAINS_UNSHIPPED",
+  "reviewed_utc": "2026-11-04T12:26:39.860633+00:00",
+  "deferred_issue": "P20-D009",
+  "disposition": "ACCEPTED_LIMITATION",
+  "decision": "Keep the optional private Open Babel GTD optimization unshipped. Current final CPU functional and performance observations use the selected installed Open Babel3.2.1 library, identical for B0/current and matching its installed distribution RECORD. Accept only the measured selected route; claim no delivered GTD patch or speedup.",
+  "installed_distribution_record": {
+    "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel-3.2.1.dist-info/RECORD",
+    "bytes": 34862,
+    "sha256": "a34107de93fafdc63f8c94c24afb0a212bc1906f874a7aad1f3e141a7693b75a"
+  },
+  "selected_backend_files": [
+    {
+      "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/_openbabel.so",
+      "bytes": 3476176,
+      "sha256": "2bf84974a4468d8faa01119541fb7c88255a7abff4f146f01e3e6bb8ac3ec427",
+      "installed_record_digest_and_size_match": true
+    },
+    {
+      "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/libopenbabel.so.8",
+      "bytes": 3721104,
+      "sha256": "46c565393702f84146fdee597dc4764ed6d6c4e1d3f70bd61fc70f75735aaf8b",
+      "installed_record_digest_and_size_match": true
+    },
+    {
+      "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/mdlformat.so",
+      "bytes": 180008,
+      "sha256": "5466b89843ee73fee532cee795805bb676688e2f56202ffacad185ffdda6d896",
+      "installed_record_digest_and_size_match": true
+    }
+  ],
+  "actual_existing_cpu_preflight_observations": [
+    {
+      "phase": "baseline",
+      "profile": "native",
+      "existing_preflight": {
+        "path": "/tmp/hotpot_plan20/long/stage12-final-performance-preparation-20261104/preparation02-final16b864f/runtime/baseline-native-preflight.json",
+        "bytes": 244742,
+        "sha256": "9026905ab2bd55128516888ec7054f18982a9d3d6f396d236fcc4014e298edef"
+      },
+      "observed_libopenbabel": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/libopenbabel.so.8",
+        "sha256": "46c565393702f84146fdee597dc4764ed6d6c4e1d3f70bd61fc70f75735aaf8b"
+      },
+      "actual_preflight_status": "PASS"
+    },
+    {
+      "phase": "baseline",
+      "profile": "models",
+      "existing_preflight": {
+        "path": "/tmp/hotpot_plan20/long/stage12-final-performance-preparation-20261104/preparation02-final16b864f/runtime/baseline-models-preflight.json",
+        "bytes": 385876,
+        "sha256": "fb6a9ffb94df6489fe69116363ad91e214dd7a4fbb6aa9b241fe9e263f0c32f5"
+      },
+      "observed_libopenbabel": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/libopenbabel.so.8",
+        "sha256": "46c565393702f84146fdee597dc4764ed6d6c4e1d3f70bd61fc70f75735aaf8b"
+      },
+      "actual_preflight_status": "PASS"
+    },
+    {
+      "phase": "candidate",
+      "profile": "native",
+      "existing_preflight": {
+        "path": "/tmp/hotpot_plan20/long/stage12-final-performance-preparation-20261104/preparation02-final16b864f/runtime/candidate-native-preflight.json",
+        "bytes": 284721,
+        "sha256": "eeebbce641bf5386b2d0391c1722a3f01da57c666b0e30bc1e1f09053f634a09"
+      },
+      "observed_libopenbabel": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/libopenbabel.so.8",
+        "sha256": "46c565393702f84146fdee597dc4764ed6d6c4e1d3f70bd61fc70f75735aaf8b"
+      },
+      "actual_preflight_status": "PASS"
+    },
+    {
+      "phase": "candidate",
+      "profile": "models",
+      "existing_preflight": {
+        "path": "/tmp/hotpot_plan20/long/stage12-final-performance-preparation-20261104/preparation02-final16b864f/runtime/candidate-models-preflight.json",
+        "bytes": 401250,
+        "sha256": "864e06eb4b481fa8c917c52d0341a8dfed71be92f7a6cf88c1edfccf48f14e31"
+      },
+      "observed_libopenbabel": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/libopenbabel.so.8",
+        "sha256": "46c565393702f84146fdee597dc4764ed6d6c4e1d3f70bd61fc70f75735aaf8b"
+      },
+      "actual_preflight_status": "PASS"
+    }
+  ],
+  "final_performance": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+  "actual_workflow_evidence": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-installed-qualification.json",
+  "historical_private_correspondence": "plan/20_fact_rule_architecture/stages/stage07/external-adapters/validation/report.md",
+  "execution": "Standard-library inspection of the three selected backend files, installed RECORD and four already-executed CPU preflight reports. No product import, model, backend, install, build or repeated benchmark.",
+  "limits": [
+    "Installed RECORD consistency plus actual loaded origins qualify these selected bytes, not universal upstream provenance or arbitrary dependency installations.",
+    "Historical private GTD correspondence remains at its original source/family scope; it is not erased or transferred into final delivery.",
+    "No performance credit is assigned to the private optimization. Complete-SDF resource/cost observation and all other final gates remain separate."
+  ],
+  "reopen": "Before offering/shipping that optimization, changing the selected backend, or when an actual mandatory workload demonstrates an unacceptable bottleneck or reliability failure.",
+  "global_gate_closed": false
+}

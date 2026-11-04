@@ -10,7 +10,8 @@ points to stage-owned records; historical snapshots keep their original bounds.
 
 ## Markdown types
 
-Every Markdown file below `stages/` uses one of these exact filenames. A stage
+Every Markdown file below `stages/` uses one of these exact filenames or an
+explicit owner-relative path registered below. A stage
 needs only the types for which it has real content. Repeat a type under a named
 topic directory; do not overwrite another review or add numbered filename
 variants.
@@ -22,6 +23,16 @@ variants.
 | `review.md` | Design, implementation or contract review for one bounded topic | Before its implementation or to inspect its settled boundary |
 | `decisions.md` | Exact accepted decisions and explicitly marked open proposals | Before changing a dependent public or private contract |
 | `report.md` | Narrative of executed validation, observations and remaining gates | Assessing what actually ran and its coverage limits |
+| `stage07/constraints/contracts/constraint_consolidation_design.md` | Existing named record at its exact owning path | Reading that bounded design or reference record |
+| `stage07/preentry-hydrogen/consumer_matrix.md` | Existing named record at its exact owning path | Reading that bounded design or reference record |
+| `stage07/preentry-selections/current_source_20261103.md` | Existing named record at its exact owning path | Reading that bounded design or reference record |
+| `stage07/topology-selection/contracts/hidden_topology_design.md` | Existing named record at its exact owning path | Reading that bounded design or reference record |
+| `stage08/scientific-state/validation/confidence_report.md` | Existing named record at its exact owning path | Reading that bounded design or reference record |
+| `stage08/scientific-state/validation/diagnostics_report.md` | Existing named record at its exact owning path | Reading that bounded design or reference record |
+| `stage08/scientific-state/validation/h_presence_report.md` | Existing named record at its exact owning path | Reading that bounded design or reference record |
+| `stage08/scientific-state/validation/lewis_report.md` | Existing named record at its exact owning path | Reading that bounded design or reference record |
+| `stage15/operation_table.md` | Existing named record at its exact owning path | Reading that bounded design or reference record |
+| `stage15/space_group_catalogue.md` | Existing named record at its exact owning path | Reading that bounded design or reference record |
 
 JSON names follow their record's purpose; entry/evidence records commonly use
 `entry_review.json` and `evidence.json`. Every JSON file must be linked from its

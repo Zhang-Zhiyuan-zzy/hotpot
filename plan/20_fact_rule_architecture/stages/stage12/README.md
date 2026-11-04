@@ -85,3 +85,35 @@ Consolidated cross-stage optimization and deferred-item review use the
 - [Repaired installed affected matrix and actual CP311 workflow qualification](final-delivery/validation/repaired-installed-qualification.json)
 
 - [Actual final MCA routing/rolling observations and metadata issue D032](final-delivery/validation/mca-final-functional-routing.json)
+
+## Additional record links
+
+- [final-delivery/validation/final-cpu-performance.json](final-delivery/validation/final-cpu-performance.json)
+- [final-delivery/validation/final-five-wheels.json](final-delivery/validation/final-five-wheels.json)
+- [final-delivery/validation/final-installed-qualification.json](final-delivery/validation/final-installed-qualification.json)
+- [final-delivery/validation/final-mca-functional-routing.json](final-delivery/validation/final-mca-functional-routing.json)
+- [final-delivery/validation/final-native-sdk-delivery.json](final-delivery/validation/final-native-sdk-delivery.json)
+- [final-delivery/validation/final-optional-openbabel-optimization.json](final-delivery/validation/final-optional-openbabel-optimization.json)
+- [final-delivery/validation/final-source-refresh.json](final-delivery/validation/final-source-refresh.json)
+- [final-delivery/validation/native-stereo-conversion.json](final-delivery/validation/native-stereo-conversion.json)
+- [final-delivery/validation/performance-partial-review.json](final-delivery/validation/performance-partial-review.json)
+- [final-delivery/validation/smiles-conversion-repair.json](final-delivery/validation/smiles-conversion-repair.json)
+- [final-delivery/validation/stereo-codec-package.json](final-delivery/validation/stereo-codec-package.json)
+- [mca-cache-diagnostics/entry_review.json](mca-cache-diagnostics/entry_review.json)
+- [package-resources/contracts/decisions.md](package-resources/contracts/decisions.md)
+- [package-resources/entry_review.json](package-resources/entry_review.json)
+- [package-resources/validation/evidence_graph.json](package-resources/validation/evidence_graph.json)
+- [package-resources/validation/report.md](package-resources/validation/report.md)
+- [package-resources/validation/root-verification.json](package-resources/validation/root-verification.json)
+- [scientific-hardening/contracts/decisions.md](scientific-hardening/contracts/decisions.md)
+- [scientific-hardening/entry_review.json](scientific-hardening/entry_review.json)
+- [scientific-hardening/validation/evidence_graph.json](scientific-hardening/validation/evidence_graph.json)
+- [scientific-hardening/validation/report.md](scientific-hardening/validation/report.md)
+- [scientific-hardening/validation/root-verification.json](scientific-hardening/validation/root-verification.json)
+- [final-delivery/validation/deferred-assessment.json](final-delivery/validation/deferred-assessment.json)
+- [final-delivery/validation/null-cause-observations.json](final-delivery/validation/null-cause-observations.json)
+- [final-delivery/validation/final-version-coverage.json](final-delivery/validation/final-version-coverage.json)
+
+- [Final validation/navigation tool dispositions](final-delivery/validation/final-validation-tools.json)
+
+- [Final common-test cost and retained selection differences](final-delivery/validation/final-common-test-cost.json)

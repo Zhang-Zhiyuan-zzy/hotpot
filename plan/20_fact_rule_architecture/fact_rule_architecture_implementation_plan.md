@@ -2632,11 +2632,15 @@ monitor values, and a scientifically unresolved finding.
 
 ### 11.2 Remote GPU validation
 
-Use `ssh ai-14`; task files remain under `~/mca_test` (or the independently
-allowed `~/mca_study` when explicitly selected), environment/package operations
-under `~/.local/conda`. Do not modify unrelated paths or processes. Record the
-installed wheel, exact commit, environment, CPU affinity, GPU indices, shared
-load, commands, throughput, routing/session evidence and result paths.
+Use an attributed, isolated installed-wheel environment on available local
+GPU hardware, or `ssh ai-14` for remote validation; the required functional and
+resource scopes below apply on either route. On ai-14, task files remain under
+`~/mca_test` (or the independently allowed `~/mca_study` when explicitly selected),
+with environment/package operations under `~/.local/conda`. Do not modify unrelated
+paths or processes. Record the installed wheel, exact commit, environment, CPU
+affinity, GPU indices, shared load, commands, throughput, routing/session evidence
+and result paths. Different hardware or allocations supply functional observations,
+not a comparable performance result without a matched baseline.
 
 Cover CPU, 1-GPU and 4-GPU execution, below-256-site CPU routing, explicit
 indices/count, rolling windows, site records and numerical observations.

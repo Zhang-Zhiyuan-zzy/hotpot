@@ -82,6 +82,10 @@ class Crystal:
         from ..operations.crystal import _to_cartesian
         return _to_cartesian(fractional, self.matrix)
 
+    def operate(self, operation):
+        from ..operations.crystal import _operate_crystal
+        return _operate_crystal(self, operation)
+
     def copy(self):
         from ..operations.crystal import _copy_crystal
         return _copy_crystal(self)

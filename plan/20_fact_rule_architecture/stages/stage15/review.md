@@ -15,7 +15,8 @@ interface/schema decisions and runtime entry under §16.4.
 Root accepted the standalone exact domain on2026-11-05; see
 [the report](domain/validation/exact_symmetry_report.md). Connected cell/lifecycle
 15B is accepted at [559 source/installed CP311 checks](domain/validation/connected_cell_report.md).
-Actions15C, observations15D, formats15E and delivery15F remain open. The accepted
+One-placement action is accepted at [874 source/installed CP311 checks](domain/validation/action_report.md).
+Generation15C, observations15D, formats15E and delivery15F remain open. The accepted
 [15A decision](domain/contracts/decisions.md) resolves the proposal choices below.
 
 ## 1. Complete proposed public tree — before implementation

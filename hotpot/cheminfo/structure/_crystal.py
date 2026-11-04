@@ -9,6 +9,7 @@ import numpy as np
 
 from .symmetry import SpaceGroup, SymmUnit
 from ..rules.mathematics.cell import _cell_matrix, _validate_matrix, _check_metric
+from ..rules.mathematics import symmetry as _affine
 
 _SCHEMA = 'hotpot.crystal/1'
 _RELATION_KEYS = ('equivalent_images', 'occupancies', 'disorder')
@@ -78,12 +79,15 @@ def _historical(value):
 def _origin(value):
     if value is None:
         return None
-    matrix, group, sites, bonds = value
+    matrix, group, sites, bonds, frame = value
     matrix = _basis(matrix)
     _group_metric(matrix, group)
     if group is None:
         raise ValueError('CRYSTAL-IMAGE-MAP-INTEGRITY: generated origins need a known source group')
-    return matrix, group, tuple(map(_historical, sites)), tuple(map(_historical, bonds))
+    if frame is not None:
+        frame = _affine._matrix(frame)
+        _affine._inverse(frame)
+    return matrix, group, tuple(map(_historical, sites)), tuple(map(_historical, bonds)), frame
 
 
 def _origin_maps(values, count, source_count, group):
@@ -116,6 +120,10 @@ def _canonical_crystal_record(value, atom_count, bond_count):
             raise ValueError('CRYSTAL-CONTEXT-INTEGRITY: generated cell/supercell requires explicit active P1')
         if origin is None or image_map is None or bond_origins is None:
             raise ValueError('CRYSTAL-IMAGE-MAP-INTEGRITY: generated content requires its source binding and maps')
+        if origin[4] is not None and not np.allclose(
+                np.asarray(origin[0]).T @ np.asarray(origin[4], dtype=float), np.asarray(matrix).T,
+                rtol=1e-10, atol=1e-10):
+            raise ValueError('CRYSTAL-IMAGE-MAP-INTEGRITY: exact historical basis map disagrees with active cell')
         image_map = _origin_maps(image_map, atom_count, len(origin[2]), origin[1])
         bond_origins = _origin_maps(bond_origins, bond_count, len(origin[3]), origin[1])
     return _SCHEMA, matrix, group, relations, images, representation, origin, image_map, bond_origins

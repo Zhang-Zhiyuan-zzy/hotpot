@@ -6,7 +6,9 @@ SpaceGroup/SymmUnit production is root-accepted at the
 [297-test source/five-version installed checkpoint](domain/validation/exact_symmetry_report.md).
 Connected cell/lifecycle migration is root-accepted at the
 [559-test source/installed CP311 checkpoint](domain/validation/connected_cell_report.md).
-Stage15C–F remain open. The
+One-placement action is root-accepted at the
+[874-test source/installed CP311 checkpoint](domain/validation/action_report.md).
+Remaining Stage15C generation and15D–F remain open. The
 [detailed plan](review.md) starts with the complete proposed **Crystal,
 SpaceGroup and SymmUnit** tree, then one exact affine algebra, molecular
 copying/cell expansion, complete possible-molecule relations and periodic

@@ -10028,3 +10028,81 @@ Maintained connected_cell_checkpoint/report index exactinputs/outcomes/limits.
 open. The pending exact repeated-action/supercell source-frame relation must be
 settled before its producer, without floating reconstruction or overloading a
 group setting as provenance. No Stage15/overallcompletion is claimed.
+
+
+## 2026-11-05 — Stage15C one-placement entry and historical frame decision
+
+Connected checkpoint3d3c5ef is normally pushed with29tested source/test inputs
+unchanged. Retain valid full main/companion alignment and effective goal;
+root reread Stage15 action/generation/ownership/codec contracts and actual source
+consumers. The bounded actions.md contract precedes producer code. Source origin
+gets an explicit fifth exact basis-map entry, not group-setting provenance or a
+floating-inferred lattice relation. Physical cell edits retain history but mark
+that exact relation unavailable. One-placement operate precedes replication.
+LocalSol/xhigh source scout identifies existing stereo algebra reuse and actual
+foreign source-code replay limitation; its bounded pure helper implementation
+has exclusive algebra.py/newtest ownership. Root owns carrier/operation/codec,
+remaining tests, integration and decisions. No remote helper is active. The
+standalone/currentCP311 checkpoint remains historical in its actual scope;
+new affected action/currentness/installed evidence is required before delivery.
+
+
+### Stage15C observed native absence records
+
+Initial integrated source attempt01 returns855pass/5fixturefail: the new tests
+mistakenly use tuple-valued Atom.constraint although that existing setter/getter
+is scalar all-axes. Only setup/read is corrected to actual axis fields; source
+attempt02and real outside-checkout installedCP311 then both return860pass with
+zero failures/errors/skips. Actual source and installed guards pass. All first
+failures remain. These successful observations precede the following named map
+addition and do not claim final post-change evidence.
+
+Actual RDKit extraction emits CHI_UNSPECIFIED/STEREONONE records and display
+NONE even for achiral inputs. Root removes an unnecessary local restriction by
+accepting only those exact orientation-free absence values under mirror, with
+matching source/descriptor codes and empty carrier references. Specified foreign
+stereo and unknown display meanings remain unavailable. This is a documented
+finite conversion/action rule based on an actual producer, not a generic opaque
+fallback or toolkit execution. New affected source/installed evidence follows.
+
+
+### Stage15C independent action review and two concrete repairs
+
+LocalSol/xhigh review witnesses find two integration defects after the initial
+860source/installedpass: ordinary-copy source-frame policy drops a selected
+historical attachment on transformed coordinates, and a generated record whose
+all row origins are unknown unnecessarily demands a source-frame map. Root
+reuses existing canonical source-frame capture/install to retain the selected
+immutable observation with actual geometry invalidation; ordinary Molecule.copy
+policy is untouched. Source-frame conversion is requested only when a known
+Atom/Bond origin actually depends on it. Two direct regression fixtures are
+added; source input is unchanged on each local failure. Original review attempt
+contains4passes/2actualdefects/1toolkit-import-guard checkererror; one narrow
+corrected cold-alias witness passes. Preserve all original witness outputs and
+source identities. Final repaired source/installed validation remains pending.
+
+
+### Stage15C one-placement final qualification and root acceptance
+
+Final source attempt03 and actual outside-checkout installed CP311 qualification02
+each pass874/0fail/0error/0skip after all repairs.196correct product origins and
+0violations;912installed/29support files unchanged;source bytes unchanged.
+Six native payloads remain accepted baseline bytes;this is a repack, not a new
+native build. Independent review's original4pass/2defect/1checkererror and initial
+855pass/5fixturefail remain archived. Do not reinterpret older860pass as final.
+
+Current-only complete capture/action/publication costs at32/512sites have medians
+1.777681/5.836156ms,one warmup and five samples each,separate memory observations;
+loadbefore/after0.39/0.52/0.61. Root accepts bounded usability without comparison,
+parity or leak claims and proceeds to generation. action_checkpoint/report own
+exact source/wheel/result identities.185regular archive payloads/15200346bytes,
+SHA2565930735cbde334a1313fd52885379ad193c0bdd02510a82a3f08b7fd16b0b8d3,
+under .plan20-artifacts/20261105/stage15/one-placement-action.
+
+Next isolated localSol/xhigh task prepares pure wrapping/voltage/supercell index
+math in a temporary directory only, with root-owned signatures. No remote helper
+is active. Root retains application, cross-owner integration and acceptance.
+Generation, periodic observations, CIF, integrated delivery and14D remain open.
+The owner's three-unsuccessful-attempt rule applies per bounded issue; retain its
+evidence and upstream impact before advancing unaffected work. No fourth attempt
+on P20-D036 is authorized or performed.

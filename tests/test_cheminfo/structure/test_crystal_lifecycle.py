@@ -253,7 +253,8 @@ def test_generated_record_and_setter_require_explicit_active_p1(active):
     mol, cell = associated()
     record = mol._capture_factual_record()[0]
     source = cell.space_group
-    origin = (record.cell[1], source, ((6,), (6,), (8,)), ((0, 1, 'single'),))
+    origin = (record.cell[1], source, ((6,), (6,), (8,)), ((0, 1, 'single'),),
+              ((1, 0, 0), (0, 1, 0), (0, 0, 1)))
     maps = tuple(((row, source.identity(), (0, 0, 0)),) for row in range(3))
     bond_origins = (((0, source.identity(), (0, 0, 0)),),)
     generated = ('hotpot.crystal/1', record.cell[1], SpaceGroup(1), None,

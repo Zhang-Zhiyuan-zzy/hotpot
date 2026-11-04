@@ -8740,3 +8740,56 @@ P20-D031 within thisCP311/CP314source scope. Original failures stay archived.
 No product timeout/process policy, frozen build bytes, installed evidence,
 scientific behavior or performance claim changes. Annotation and other-version
 checks/global acceptance remain separately scoped.
+
+
+### 2026-11-04 — Independent Crystal symmetry plan revision and root key review
+
+Owner requests independentGPT-6.1Sol/max review of Crystal's spatial symmetry,
+molecular copying/expansion, complete public tree and abstractSymmUnit family,
+withoutOpenBabel/RDKit/CCDC Python APIs. Reuse localcrystal_plan_solmax with
+exclusive stage15/review.md andREADME.md ownership; no external helper or
+Crystal production/test/Git permission. Parent retains main-plan/index/log and
+acceptance. The child reads governance/stage references, effective goal, affected
+plan/interface/verification boundaries and actual connected source. Root aligns
+with those records without treating archived agent notes as current policy.
+
+The revised plan puts the completeCrystal property/method tree first. SymmUnit
+is anABC over immutableR/t/context with one_AffineSymmUnit and shared operate,
+composition, inverse, identity and powers. Exact fractional affine algebra keeps
+full translations, cell-quotient centring/carries and explicit basis/origin
+bindings. Crystal.operate accepts verified active-group operations/integer lifts
+preserving its image lattice; a frame-compatible arbitrary isometry is not
+automatically a Crystal symmetry. Cell/molecular generation preserves origins,
+periodic bonds, whole finite lifts and independently owned output buffers.
+
+Possible same-molecule relations require one complete bijection satisfying both
+already-placed coordinate overlap and labelled molecular graph/site matching.
+Queries never merge observations. Independent expanded copies can crowd even
+when symmetry-related. Periodic piercing and finite closed-loop linking remain
+separate tools, with numerical/applicability limits and legitimate linked
+chemistry retained. The plan makes no universal scientific verdict and forbids
+direct/indirect prohibited backend Python APIs in the Crystal route. Existing
+self/parallel-Bond rejection exposes a real periodic-domain entry decision;
+there is no second Crystal topology or silent edge collapse.
+
+Root reviews the complete tree, algebra/carry, ownership/lifecycle, matching,
+geometry/linking and15A-Fsequence; requests and reviews explicitABC primitives
+and the fixed-context operation domain. Child records12/12standard-library
+mathematical design probes and14/14scoped document checks. Root independently
+attributes19selected unchanged source/test files and checks226local links in
+7affected documents,0missing, with scopedgit diff --checkRC0. Exact commands,
+primary IUCr/author references and retrieval limits are preserved in the child
+INDEX.md; root copies/verifies10evidence files and ROOT_REVIEW.json under
+.plan20-artifacts/20261104/stage15/symmetry-plan-review. This is planning evidence,
+not product tests, Crystal runtime, benchmark or scientific acceptance.
+
+Accept this bounded planning revision and update only the main-planSection18/
+project/catalog references. Exact newAPI/export/layout, periodic-edge domain,
+record/pickle/CIF cutover, optional table dependency, tolerances and Stage15
+verification-map registration remain concrete entry work owned by root. Runtime
+waits for validatedB_exp; Stage15 publishes independently ofStage14D, which owns
+the PyG integration. Stage14 documents also incorporate the owner's settled
+useful-training/query-review purposes and model-owned efficient feature inputs;
+CBond/MCA inference validation is affected-path-only. No frozenStage0-12 or
+Stage13gate changes. The precedingc8d7f37assembly-fixture/evidence checkpoint is
+committed and pushed; no consecutive documentation-only checkpoint is created.

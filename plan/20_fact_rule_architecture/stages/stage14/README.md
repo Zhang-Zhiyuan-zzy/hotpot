@@ -1,8 +1,10 @@
-# Stage14 — Reversible PyG transport
+# Stage14 — General PyG training and chemical inspection
 
 Owner-directed additional Plan20 branch, registered on 2026-11-04. The detailed
-[stage plan](review.md) covers Molecule ↔ PyG Data and, after Stage15's crystal
-contract exists, Crystal ↔ PyG Data. Runtime implementation has not started.
+[stage plan](review.md) covers `to_pyg()` for maximum useful new-model training
+information and `from_pyg()` for chemical query/review, first for Molecule and
+then Stage15's Crystal. Deployed models own their separate, efficient,
+demand-driven feature interfaces. Runtime implementation has not started.
 
 This scope belongs to the current overall task. It does not redefine the
 Stage0–12 acceptance baseline or release the separately gated Stage13 experiment.

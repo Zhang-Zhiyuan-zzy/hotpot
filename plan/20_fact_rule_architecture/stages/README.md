@@ -48,8 +48,8 @@ merely to fill a directory.
 | Stage11 | [stage11](stage11/README.md) | Planned: Clean outer commands and data ownership |
 | Stage12 | [stage12](stage12/README.md) | Planned: Explicit exports, documentation, and final hardening |
 | Stage13 | [stage13](stage13/README.md) | Planned: kekulize/aromatic experimental rule-interface protocol |
-| Stage14 | [stage14](stage14/README.md) | Planned: reversible Molecule/Crystal ↔ PyG Data transport |
-| Stage15 | [stage15](stage15/README.md) | Planned: Crystal aggregate, symmetry, cell/supercell generation and periodic geometry |
+| Stage14 | [stage14](stage14/README.md) | Planned: general PyG training information and Molecule/Crystal query/review |
+| Stage15 | [stage15](stage15/README.md) | Planned: Crystal public tree, affine SymmUnit family, molecular expansion and periodic geometry/topology tools |
 
 Read the current main plan and normative companions as required by the plan,
 then the selected stage README, its entry assessment, relevant review/decisions

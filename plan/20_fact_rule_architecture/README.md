@@ -25,8 +25,8 @@ obligations, final scientific/performance and full-plan acceptance remain open. 
 [goal_v1](goal_v1.md) is historical.
 
 Owner-directed additional task branches are registered as
-[Stage14 — reversible PyG transport](stages/stage14/README.md) and
-[Stage15 — Crystal implementation](stages/stage15/README.md). Their detailed
+[Stage14 — general PyG training and chemical inspection](stages/stage14/README.md) and
+[Stage15 — Crystal symmetry and molecular expansion](stages/stage15/README.md). Their detailed
 stage plans and main-plan Section18 preserve existing mainline acceptance
 boundaries; runtime implementation has not started.
 

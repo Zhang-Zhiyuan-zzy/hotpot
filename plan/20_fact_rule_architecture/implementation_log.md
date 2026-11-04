@@ -9936,3 +9936,48 @@ Durablearchivecorrection retains the original failed matrix tar. Sixrelative sym
 The root's privatefinalASTinventorychecker failed three bounded rounds: stale504/770census expectation (actual505/771adds shared_StereoConfigNamedTuple), conflatedleafwildcardimportswithpackageexports, then tuple/listJSONexportcomparison. Allscripts/attemptnotes and actualthirdstderr/exit1remain. No fourthrepair/run. Directcurrentpublicfields/signatures for46root/rolecontracts and366resolvedhistoricaltypes hadalreadycheckedbeforethestop;384historicalmigrationrows/43familiesand16factdomainsretainacceptedcomplete maps. Rootfacade31/30/5names andsourcebytesareunchangedsinceacceptedcontractsnapshot; zero packagewildcardexports and20leaflibrary/typingimports are distinct. P20-D036acceptsboundedcheckerdeferment, notabusinesspassorgatewaiver. Existingactualsource/installedcurrentness/permission/remap/rollback tests and currentpackage evidence supply mandatorybusinessverification. Private_StereoConfigsix-fieldtask-localprojection is explicitlyregisteredwithzerofact/consolidationcredit; dataclasses355 unchanged.
 
 Rootcompleted the requiredten-section main-scope report, updatedcurrent12item/navigation records and decided all15main§14criteria againstactualapplicableevidence. All36unifiedissuesareCLOSEDorACCEPTED_LIMITATION; no unexecutedmandatorybusinessgap isidentifiedinthedeclaredmain-scopeboundary. Allfailedscientific/finite/quality/backend outcomes, declaredskips/xfails, historicalmetadatafailures, inconclusivespeedupandadversecostsremain. Main-scope acceptance isrecordedin final-delivery/validation/main-scope-acceptance.json. The coherentnormalvalidatedGitcommit containingthisreport/deliverywill supplyB_exp; itsactualfullSHAwill berecordedatthenextStage13entry, notinventedself-referentialmetadata. Stage13A/B, Stage14to_pyg/from_pyg andStage15Crystal/SpaceGroup/SymmUnit remainunimplementedapprovedscope; overallgoal isnotcomplete. Fullnext-stagealignmentand concreteentry/publicdesign decisions stillapply.
+
+
+## 2026-11-05 — Stage14A decision and independent molecular entry
+
+Root aligned effective goal, governance/stage/validation skills and references,
+unchanged normative companions, full main-plan/Stage14 prior entry reads, current
+field/consumer inventory and read-only feasibility findings. Clean isolated
+`feat/plan20-pyg-transport` starts at validated B_exp5a7b193; unrelated owner files
+are untouched. Stage13A/B completed separately at D_exp5dc0443 and
+I_expcc9470e19f2fac786138d5af0986d726d5e793c7; normal push succeeded. Its
+accepted/inconclusive costs and P20-D037 remain on the experiment branch.
+
+Under §16.4 root accepts exact Stage14A contract at
+`stages/stage14/molecule/contracts/decisions.md` before product authoring.
+Ordinary Data, named tensors and structured graph-local wrappers; no hidden
+MoleculeRecord or invented inference. Current H T differs from I/J/source ledger;
+finite availability does not become a copied dependency engine. Generic import
+retains computed results as historical annotations and creates no fresh MCA/
+charge/frame attachment. Foreign maps/arc agreement/units and prefix retirement
+are explicit. Twelve actual Torch2.7.1cpu/PyG2.6.1 probes passed; source converter,
+installed behavior, cost, GPU/version and Stage15-dependent Crystal remain open.
+Raw probe and feasibility evidence is under the named /tmp/hotpot_plan20/medium
+roots in the contract; no probe is presented as converter acceptance. Root owns
+quality/public decisions; one local Sol/xhigh implementation writer follows,
+without nested delegation or external helper. Three unsuccessful bounded attempts
+will be retained and deferred after upstream-dependency assessment.
+
+
+##2026-11-05 — Stage14 molecular CP311 business checkpoint
+
+Root accepts editable general PyG molecular transport and removes the old general
+entry/prefix. Independent root discrete-map witness found6.5→6loss; the local
+Sol/xhigh subagent repaired only the actual integer/bool mapping boundary.
+Source/actual outside-checkout CP311 each281passed,0failure/error/skip;185origins,
+0violations and905site/16support files unchanged. Exact commands, native and wheel
+attribution are in molecular/validation/molecular_checkpoint.json and its archive.
+This repacks the accepted six native payloads, with no fresh native-build claim.
+Original four cost setups failed before measurement and remain retained. One
+corrected campaign completed4setups/8warmups/28samples/4memory probes, no failures
+or retries. Root accepts current shared-host full-work medians14–77ms and bounded
+observed allocations, without parity/leak claims. The153-member7866311B archive
+was reconstructed/read back completely; identity is in the checkpoint.
+GPU preparation is running separately on the permitted ai-14environment; no GPU
+result claimed. Additional runtime support, connected Crystal15B/C,14D and final
+integration remain open. Main branch and Stage0–13 acceptance are unchanged.

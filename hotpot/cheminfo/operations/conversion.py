@@ -221,3 +221,42 @@ def _assign_partial_charge(mol, model, model_args):
     )
     _select_partial_charge_result(mol, payload, source, atom_uids)
     return charges
+
+
+def _to_pyg(mol):
+    """Capture the useful factual closure once; construct external buffers unlocked."""
+    from ..adapters.pyg import _encode_molecule
+    from ..adapters._pyg_molecule import capture_details, _portable
+    from ..structure._dependencies import GROUP_INDEX, _FactStatus
+    from ..structure._fields import FIELD_INDEX, FIELD_PRESENCE_BITS
+    from ..structure._identity import _capture_source
+    with mol._mutation_lock:
+        # Reject unsupported values before the existing metadata copy can invoke
+        # an arbitrary object's deepcopy protocol inside the factual capture.
+        for row, bond in enumerate(mol._bonds):
+            _portable(bond._bond_source_metadata, f'bonds[{row}].metadata')
+        record, metadata = mol._capture_factual_record(include_frames=False)
+        table = mol._atom_table
+        pending = any(table._dirty_seeds[:3])
+        availability = tuple(tuple(bool(int(table._presence[row]) & FIELD_PRESENCE_BITS[FIELD_INDEX[field]])
+            and table._group_status[row, GROUP_INDEX[group]] == _FactStatus.CURRENT and not pending
+            for field, group in [('implicit_hydrogens', 'IMPLICIT_H'), ('is_aromatic', 'AROMATIC_REPRESENTATION')])
+            for row in range(len(mol._atoms)))
+        mca = mol._mca_result
+        join = mca is not None and mca.source.owner is mol._owner_token and (
+            dict(mca.source.dependencies).get('mca_representation') ==
+            dict(_capture_source(mol, ('mca_representation',)).dependencies)['mca_representation'])
+        details = capture_details(record, metadata, properties=mol.properties,
+            atom_uids=tuple(atom._uid for atom in mol._atoms), source_frames=mol._source_frames,
+            generated=mol._conformer_results, selected_frame=mol._frame_result,
+            partial_charge=mol._partial_charge_result, mca=mca, mca_join=join)
+    return _encode_molecule(record, details, availability)
+
+
+def _from_pyg(molecule_type, data, *, field_map=None):
+    """Decode current Data into one fresh factual candidate, then retain history."""
+    from ..adapters.pyg import _decode_molecule
+    record, properties = _decode_molecule(data, field_map)
+    mol = molecule_type._build_molecule(record)
+    mol.properties = properties
+    return mol

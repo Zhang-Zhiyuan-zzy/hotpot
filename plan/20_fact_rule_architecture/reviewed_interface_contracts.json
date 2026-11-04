@@ -5012,5 +5012,16 @@
       "checkpoint": "stages/stage08/scientific-state/validation/confidence_checkpoint.json",
       "contract_gate_closed": true
     }
-  ]
+  ],
+  "stage14a_public_contract_decision": {
+    "date": "2026-11-05",
+    "owner": "root",
+    "baseline_commit": "5a7b19396328eee964a8f3c65bc3345c013eaec6",
+    "status": "accepted_before_product_authoring",
+    "contract": "stages/stage14/molecule/contracts/decisions.md",
+    "schema": "hotpot.molecule/1",
+    "ordinary_data": true,
+    "current_result_restore": false,
+    "crystal_domain": "deferred to implemented Stage15; Stage14D remains open"
+  }
 }

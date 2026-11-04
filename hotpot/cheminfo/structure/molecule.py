@@ -1773,9 +1773,16 @@ class Molecule:
 
 
 
-    def to_pyg_data(self, prefix: str = "", with_batch: bool = True):
-        from ...plugins.PyG.data.utils import mol_to_pyg_data
-        return mol_to_pyg_data(self, prefix, with_batch)
+    def to_pyg(self):
+        """Return independent useful molecular tensors and structured observations."""
+        from ..operations.conversion import _to_pyg
+        return _to_pyg(self)
+
+    @classmethod
+    def from_pyg(cls, data, *, field_map=None):
+        """Build molecular facts from the current declared PyG fields."""
+        from ..operations.conversion import _from_pyg
+        return _from_pyg(cls, data, field_map=field_map)
 
     def to_obmol(self) -> "ob.OBMol":
         """Return a fresh Open Babel projection of the current molecular facts."""

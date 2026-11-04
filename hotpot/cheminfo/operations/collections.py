@@ -26,5 +26,5 @@ def _export_pyg_dataset(list_mol, dataset_root, prefix):
     from ..adapters.pyg import _torch_save
     save = _torch_save()
     for i, mol in enumerate(list_mol):
-        filename = f"{mol.identifier}.pt" or f"{i}.pt"
+        filename = f"{mol.identifier}.pt" if mol.identifier else f"{i}.pt"
         save(mol.to_pyg_data(prefix=prefix), dataset_root / filename)

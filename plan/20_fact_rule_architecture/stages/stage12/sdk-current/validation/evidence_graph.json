@@ -1,0 +1,53 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CURRENT_RELEASE_PROFILE_SDK",
+  "root": "checkpoint.json",
+  "nodes": {
+    "input_and_profile": "../entry_review.json",
+    "raw_report": ".plan20-artifacts/20261104/stage12/sdk-current/raw/REPORT.md",
+    "actual_commands": ".plan20-artifacts/20261104/stage12/sdk-current/raw/native-commands.json",
+    "test_invocations": ".plan20-artifacts/20261104/stage12/sdk-current/raw/sdk-pytest-subprocesses.jsonl",
+    "compiled_inputs": ".plan20-artifacts/20261104/stage12/sdk-current/raw/compiled-input-artifact-bindings.json",
+    "symbol_and_linkage": ".plan20-artifacts/20261104/stage12/sdk-current/raw/sdk-contract-audit.json",
+    "H_observations": ".plan20-artifacts/20261104/stage12/sdk-current/raw/hydrogen-inventory-run.log",
+    "installed_sdk": ".plan20-artifacts/20261104/stage12/sdk-current/sdk",
+    "root_verification": "root-verification.json",
+    "archive": ".plan20-artifacts/20261104/stage12/sdk-current/manifest.json"
+  },
+  "edges": [
+    [
+      "input_and_profile",
+      "compiled_inputs"
+    ],
+    [
+      "compiled_inputs",
+      "installed_sdk"
+    ],
+    [
+      "installed_sdk",
+      "actual_commands"
+    ],
+    [
+      "actual_commands",
+      "test_invocations"
+    ],
+    [
+      "actual_commands",
+      "symbol_and_linkage"
+    ],
+    [
+      "actual_commands",
+      "H_observations"
+    ],
+    [
+      "root_verification",
+      "archive"
+    ]
+  ],
+  "limits": [
+    "Single Linux x86_64 current-source SDK; no Python wheel/version/GPU/model/engine/performance qualification.",
+    "All162compile/link actions completed; omitted capsule LICENSE caused install failure; bound unchanged LICENSE permits install-only retry, no clean-driver rerun claimed.",
+    "Selected-image runtime linkage is checked; optional per-library hashes were not executed.",
+    "Nine H observations qualify the projection contract, not hidden-H inspection/unique chemical truth.",
+    "D007 and global final acceptance/B_exp/Stage13 remain open."
+  ]
+}

@@ -271,36 +271,71 @@ def test_input_iterable_failure_precedes_directory_creation(tmp_path, molecules)
     assert not root.exists()
 
 
-def test_duplicate_identifier_overwrites_with_the_later_real_graph(tmp_path, molecules, pyg_runtime):
+@pytest.mark.parametrize("entrypoint", ["method", "function"])
+def test_duplicate_identifier_overwrites_with_the_later_real_graph(
+        tmp_path, molecules, pyg_runtime, entrypoint):
     torch, _ = pyg_runtime
     for mol in molecules:
         mol.identifier = "same"
-    assert to_pyg_dataset(molecules, tmp_path) is None
+    if entrypoint == "method":
+        result = MolBundle(molecules).to_pyg_dataset(tmp_path)
+    else:
+        result = to_pyg_dataset(iter(molecules), tmp_path)
+    assert result is None
     assert {p.name for p in tmp_path.iterdir()} == {"same.pt"}
     _assert_chemical_graph(torch.load(tmp_path / "same.pt", weights_only=False),
                            "benzene", "", pyg_runtime)
 
 
-def test_empty_identifier_keeps_the_existing_dot_pt_filename(
-        tmp_path, molecules, pyg_runtime, monkeypatch):
-    from hotpot.cheminfo.adapters import pyg
+@pytest.mark.parametrize("prefix", ["", "m", "m_"])
+@pytest.mark.parametrize("entrypoint", ["method", "function"])
+def test_empty_identifiers_save_real_graphs_with_member_ordinals(
+        tmp_path, molecules, pyg_runtime, prefix, entrypoint):
     torch, _ = pyg_runtime
-    ethanol = molecules[0]
-    ethanol.identifier = ""
-    save = torch.save
-    attempted = []
+    for mol in molecules:
+        mol.identifier = ""
+    if entrypoint == "method":
+        result = MolBundle(molecules).to_pyg_dataset(tmp_path, prefix=prefix)
+    else:
+        result = to_pyg_dataset(iter(molecules), tmp_path, prefix=prefix)
+    assert result is None
+    assert {p.name for p in tmp_path.iterdir()} == {"0.pt", "1.pt"}
+    for ordinal, name in enumerate(("ethanol", "benzene")):
+        graph = torch.load(tmp_path / f"{ordinal}.pt", weights_only=False)
+        _assert_chemical_graph(graph, name, prefix, pyg_runtime)
 
-    def observed_save(graph, path):
-        attempted.append(Path(path))
-        _assert_chemical_graph(graph, "ethanol", "", pyg_runtime)
-        return save(graph, path)
 
-    monkeypatch.setattr(pyg, "_torch_save", lambda: observed_save)
-    with pytest.raises(RuntimeError, match="invalid file name"):
-        to_pyg_dataset([ethanol], tmp_path)
-    assert attempted == [tmp_path / ".pt"]
-    assert not (tmp_path / "0.pt").exists()
-    assert list(tmp_path.iterdir()) == []
+@pytest.mark.parametrize("entrypoint", ["method", "function"])
+def test_mixed_identifiers_keep_names_and_count_all_members_for_ordinals(
+        tmp_path, molecules, pyg_runtime, entrypoint):
+    torch, _ = pyg_runtime
+    molecules[1].identifier = ""
+    if entrypoint == "method":
+        result = MolBundle(molecules).to_pyg_dataset(tmp_path, prefix="mixed_")
+    else:
+        result = to_pyg_dataset(iter(molecules), tmp_path, prefix="mixed_")
+    assert result is None
+    assert {p.name for p in tmp_path.iterdir()} == {"ethanol.pt", "1.pt"}
+    for filename, name in (("ethanol.pt", "ethanol"), ("1.pt", "benzene")):
+        _assert_chemical_graph(torch.load(tmp_path / filename, weights_only=False),
+                               name, "mixed_", pyg_runtime)
+
+
+@pytest.mark.parametrize("identifiers,filename", [(("1", ""), "1.pt"), (("", "0"), "0.pt")])
+@pytest.mark.parametrize("entrypoint", ["method", "function"])
+def test_named_and_ordinal_collision_keeps_the_later_real_graph(
+        tmp_path, molecules, pyg_runtime, identifiers, filename, entrypoint):
+    torch, _ = pyg_runtime
+    for mol, identifier in zip(molecules, identifiers):
+        mol.identifier = identifier
+    if entrypoint == "method":
+        result = MolBundle(molecules).to_pyg_dataset(tmp_path, prefix="collision")
+    else:
+        result = to_pyg_dataset(iter(molecules), tmp_path, prefix="collision")
+    assert result is None
+    assert {p.name for p in tmp_path.iterdir()} == {filename}
+    _assert_chemical_graph(torch.load(tmp_path / filename, weights_only=False),
+                           "benzene", "collision", pyg_runtime)
 
 
 @pytest.mark.parametrize("empty", [False, True])
@@ -316,11 +351,13 @@ def test_existing_file_root_preserves_its_contents(tmp_path, molecules, pyg_runt
     assert {p.name for p in tmp_path.iterdir()} == {"file-root"}
 
 
+@pytest.mark.parametrize("entrypoint", ["method", "function"])
 def test_later_conversion_failure_propagates_and_keeps_earlier_saved_graph(
-        tmp_path, molecules, pyg_runtime, monkeypatch):
+        tmp_path, molecules, pyg_runtime, monkeypatch, entrypoint):
     torch, _ = pyg_runtime
     ethanol, benzene = molecules
     convert = Molecule.to_pyg_data
+    ethanol.identifier = ""
     failure = ValueError("later conversion failed")
     visited = []
 
@@ -332,19 +369,24 @@ def test_later_conversion_failure_propagates_and_keeps_earlier_saved_graph(
 
     monkeypatch.setattr(Molecule, "to_pyg_data", observed_conversion)
     with pytest.raises(ValueError) as caught:
-        MolBundle([ethanol, benzene, ethanol]).to_pyg_dataset(tmp_path, prefix="saved")
+        if entrypoint == "method":
+            MolBundle([ethanol, benzene, ethanol]).to_pyg_dataset(tmp_path, prefix="saved")
+        else:
+            to_pyg_dataset(iter((ethanol, benzene, ethanol)), tmp_path, prefix="saved")
     assert caught.value is failure
     assert visited == [ethanol, benzene]
-    assert {p.name for p in tmp_path.iterdir()} == {"ethanol.pt"}
-    _assert_chemical_graph(torch.load(tmp_path / "ethanol.pt", weights_only=False),
+    assert {p.name for p in tmp_path.iterdir()} == {"0.pt"}
+    _assert_chemical_graph(torch.load(tmp_path / "0.pt", weights_only=False),
                            "ethanol", "saved", pyg_runtime)
 
 
+@pytest.mark.parametrize("entrypoint", ["method", "function"])
 def test_later_save_failure_propagates_and_keeps_earlier_saved_graph(
-        tmp_path, molecules, pyg_runtime, monkeypatch):
+        tmp_path, molecules, pyg_runtime, monkeypatch, entrypoint):
     torch, _ = pyg_runtime
     ethanol, benzene = molecules
     save = torch.save
+    ethanol.identifier = ""
     failure = OSError("later save failed")
     visited = []
 
@@ -356,15 +398,20 @@ def test_later_save_failure_propagates_and_keeps_earlier_saved_graph(
 
     monkeypatch.setattr(torch, "save", observed_save)
     with pytest.raises(OSError) as caught:
-        to_pyg_dataset([ethanol, benzene, ethanol], tmp_path, prefix="saved")
+        if entrypoint == "method":
+            MolBundle([ethanol, benzene, ethanol]).to_pyg_dataset(tmp_path, prefix="saved")
+        else:
+            to_pyg_dataset(iter((ethanol, benzene, ethanol)), tmp_path, prefix="saved")
     assert caught.value is failure
-    assert visited == ["ethanol.pt", "benzene.pt"]
-    assert {p.name for p in tmp_path.iterdir()} == {"ethanol.pt"}
-    _assert_chemical_graph(torch.load(tmp_path / "ethanol.pt", weights_only=False),
+    assert visited == ["0.pt", "benzene.pt"]
+    assert {p.name for p in tmp_path.iterdir()} == {"0.pt"}
+    _assert_chemical_graph(torch.load(tmp_path / "0.pt", weights_only=False),
                            "ethanol", "saved", pyg_runtime)
 
 
-def test_method_preserves_live_member_list_during_export(tmp_path, molecules, pyg_runtime, monkeypatch):
+@pytest.mark.parametrize("entrypoint", ["method", "function"])
+def test_export_preserves_entrypoint_member_materialization(
+        tmp_path, molecules, pyg_runtime, monkeypatch, entrypoint):
     ethanol, benzene = molecules
     bundle = MolBundle([ethanol])
     convert = Molecule.to_pyg_data
@@ -377,6 +424,12 @@ def test_method_preserves_live_member_list_during_export(tmp_path, molecules, py
         return convert(self, prefix=prefix, with_batch=with_batch)
 
     monkeypatch.setattr(Molecule, "to_pyg_data", observed_conversion)
-    assert bundle.to_pyg_dataset(tmp_path) is None
-    assert visited == [ethanol, benzene]
-    assert {path.name for path in tmp_path.iterdir()} == {"ethanol.pt", "benzene.pt"}
+    if entrypoint == "method":
+        result = bundle.to_pyg_dataset(tmp_path)
+        assert visited == [ethanol, benzene]
+        assert {path.name for path in tmp_path.iterdir()} == {"ethanol.pt", "benzene.pt"}
+    else:
+        result = to_pyg_dataset(bundle.list_mol, tmp_path)
+        assert visited == [ethanol]
+        assert {path.name for path in tmp_path.iterdir()} == {"ethanol.pt"}
+    assert result is None

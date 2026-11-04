@@ -1,0 +1,28 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_PYG_OUTPUT_CORRECTION",
+  "date": "2026-11-04",
+  "source_commit_before_delivery": "6aaefcfe58aee351255f08f9c601a0ac75c0edc2",
+  "decision": "../contracts/decisions.md P1",
+  "source_passed": 42,
+  "installed_passed": 42,
+  "failures_errors_skips": 0,
+  "saved_graph_count_each": 43,
+  "graph_semantics_equal": true,
+  "raw_orientation_differences_retained": 39,
+  "source_bindings": 930,
+  "native_bindings": 6,
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/pyg-output",
+    "payload_count": 96,
+    "payload_bytes": 13560008,
+    "manifest_sha256": "39c3e5ed019b3280fb9f2e4f3db5a47b4abd4542498f797bd38d6a03d8f6acd5"
+  },
+  "root_verification": "root-verification.json",
+  "evidence_graph": "evidence_graph.json",
+  "D027_closed": true,
+  "limits": [
+    "CP311 affected42cases only; six unchanged native binaries transported, no compilation.",
+    "Unordered pair endpoint variation and two original evidence-helper failures retained; no source/test oracle altered to force numerical or byte equality.",
+    "No model/engine/GPU/performance/version/SDK/global/B_exp/Stage13 acceptance."
+  ]
+}

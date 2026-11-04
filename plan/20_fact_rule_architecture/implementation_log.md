@@ -7819,3 +7819,106 @@ science/cost/Plan12/report/B_exp and separate Stage13 remain independent.
 Root retains decisions/records/Git. A local Sol/medium worker owns only the
 isolated settled PyG naming proposal; the prior SDK Sol/high worker performs
 read-only current D010/D011/D013 assessment. No external helper is active.
+
+
+### 2026-11-04 — Stage11C push and current release-profile SDK review
+
+Stage11C business/related records commit6aaefcfe58aee351255f08f9c601a0ac75c0edc2
+is pushed normally to GitHub. All183final business index blobs, explicit staging,
+maintained JSON/links and git diff --cached --check pass. The unrelated owner
+rescore remains untouched/excluded; the candidate performance binding is not in
+that commit. The entry records for current SDK/PyG are included as honest
+released scopes, not completed execution or gate acceptance.
+
+The local Sol/high verifier completes the one current Python-independent SDK in
+the exact pinned manylinux2.28 image with GCC14.2.1, SDKON/PythonOFF, offline six-
+archive closure and maximum8compile workers. Seven unique existing tests pass,
+zero fail/error/skip; three source header tests repeated once for compiler tracing
+are not six unique cases. Actual installed ABI0/ABI1 find_package/link/run and
+assertion-enabled consumers, C smoke and header-only facade all pass. All31direct
+commands return0. Fifteen C exports plus the ELF version symbol match; no private
+RDKit/Python symbols/headers, RPATH/RUNPATH or Python/RDKit dynamic dependency.
+Selected-image system runtime linkage is resolved. Nine bounded current H fixtures
+match five defined results/four expected local UNSUPPORTED rejections; no hidden-H
+inspection, chemical truth, engine/model/GPU or performance claim follows.
+
+Original missing-Ninja build failure remains. Attempt2 completes162compile/link
+actions but installation fails because the isolated46-input capsule omitted the
+existing CMake-required LICENSE; separately bound unchanged LICENSE permits
+install-only retry0. Original driver remains1, not a claimed clean-driver rerun.
+Original/trace/assertion consumer commands, tool-only extraction/report failures
+and optional per-runtime-library hash interruption are retained. The latter
+obtains no file hashes; completed image-bound ldd evidence remains valid.
+
+Root executes `python -B /tmp/hotpot_plan20/long/stage12-current-sdk-20261104/root-review/verify_and_archive.py`:
+46current source inputs,25compiled artifacts,19SDK installed entries, raw JUnit,
+31commands, symbols and H outputs verify at6aaefcf. Current installed/build library
+6164136bytes/SHA2565e05b3e81fe9f366606cc0bd356e58b6053109d7eccf89d52b5876c87cf34d10
+matches. Archive `.plan20-artifacts/20261104/stage12/sdk-current` holds154payload
+entries/10068609file bytes, manifestSHA2568ef82780b3791571f8d6eda01cf42d3f4eca728467e26f01fea2c794ff31bc80.
+Maintained checkpoint/report/graph/root verification accept this bounded SDK
+contribution. D007 stays IN_PROGRESS for final same-sdist CP310–314 clean/repaired
+wheels and applicable current package/support evidence. No live upload authorized.
+
+Root also reviews/applies the exact two-file P1 PyG proposal and releases actual
+MAIN42-case and outside-checkout wheel validation to its local Sol/medium worker.
+Product bytes stay frozen for that run; SDK records do not affect its product
+freeze. Root retains application, scientific/acceptance decisions and Git.
+
+
+### 2026-11-04 — Stage12 D013 bounded cache-diagnostic treatment entry
+
+Current40-input D010/D011/D013 assessment returns16passing pure fixtures and
+finds the original persistent-cache OSError still discarded. Historical cause
+remains unknown, separate from known ENOSPC events. Root inspects actual cache,
+lock/content/publication/temporary lifetimes and ModelStore callers, then accepts
+C1 in stages/stage12/mca-cache-diagnostics/contracts/decisions.md: existing
+identical temporary materialization only for actual EACCES/EROFS/ENOSPC/EDQUOT,
+with the original diagnostic in RuntimeWarning; other OSError rethrows unchanged.
+No speculative prevention, hidden unknown-cause fallback, model/feature change,
+retry or new result envelope. One local Sol/high worker owns isolated adapter/
+guide/synthetic-tests proposal; root alone applies and releases affected source/
+installed/model observations. D013 is not closed at entry; no historical cause
+is invented. The current PyG validation completes separately before source edits.
+
+
+### 2026-11-04 — Stage12 PyG actual-output acceptance and benchmark binding
+
+The preceding read-only owner inquiry supplies no new business delivery. Root
+continues the same Stage12 alignment, governance/stage/validation and both durable
+references, current goal and accepted P1/C1 decisions; no route/gate/science change.
+Root runs `python -B /tmp/hotpot_plan20/long/stage12-pyg-output-20261104/root-review/verify_and_archive.py`.
+Actual main and private outside-checkout wheel each42passed/0fail/0error/0skip;
+126ordered phases agree,456product origins/0violations and3cold subprocesses each.
+All43saved real-chemistry graphs and names agree under the actual unordered-pair
+contract. Raw39pair_index endpoint orientation differences remain; only endpoints
+within each pair column are unordered, with columns/attrs/dtypes/shapes intact.
+No scientific value, product/test oracle or saved graph is edited to force equality.
+
+P1 makes the original ordinal naming effective for empty identifiers, preserves
+nonempty names/order/later-write-wins collisions, all prefixes and graph encodings,
+method/function materialization, None return and partial-write/error behavior.
+Old-code/new-oracle16failures, historical27passes and two original integration
+comparator failures remain. Unchanged successful suites are not gratuitously rerun.
+Root checks930current files/six unchanged natives, raw JUnit/origins/observations,
+selected owners and actual archive/site contents. Wheel SHA25685ada52ac603a89b813590c0f68b73697ce8730b01b4696f8f29469e2b83e330;
+sdist SHA256090de07648afde38a61c7230d6040dab648524246c326e0ad84583daca838d29.
+Archive .plan20-artifacts/20261104/stage12/pyg-output holds96payloads/13560008bytes,
+manifestSHA25639c3e5ed019b3280fb9f2e4f3db5a47b4abd4542498f797bd38d6a03d8f6acd5.
+D027 closes only at this CP311 affected scope. No native compilation ran.
+
+Root also binds the already applied candidate performance helper exactly to its
+settled proposal67bd9bc9c228068eb9f67c80d72634cc9651f4f0e555a4c3883863da9952df82.
+Only candidate native/Crystal owner imports and untimed complete partial-charge/MCA
+fixtures change; baseline AST and frozen71workloads/parameters/timed work remain.
+Eight tiny preparations pass; original NumPy-missing failure remains. Final timing
+has not run. clean_read_8/64/256 retain accepted H-default differences, raw costs
+and full denominators; no equivalent-result speedup/forced0/prepriming claim.
+Maintained checkpoint/report and immutable raw archive bind this limited evidence.
+
+The current standalone SDK bounded acceptance is delivered with this coherent
+business change; D007 and full same-sdist CP310–314/native/source-installed/GPU/
+science/performance/Plan12/report/B_exp/Stage13 gates remain open. Local Sol/high
+continues isolated C1 cache repair. Completed local Sol/medium is reassigned only
+read-only final requirement/evidence/command extraction, with no product/Git/run
+or nested-delegation authority. No external helper or Stage3 activation occurs.

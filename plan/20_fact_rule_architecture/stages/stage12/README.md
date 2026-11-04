@@ -31,3 +31,22 @@ Consolidated cross-stage optimization and deferred-item review use the
 - [Stage12B report](hydrogen-representation/validation/report.md)
 - [Stage12B evidence graph](hydrogen-representation/validation/evidence_graph.json)
 - [Stage12B root verification](hydrogen-representation/validation/root-verification.json)
+
+## Additional final-hardening evidence
+
+- [Stage12C scientific-hardening checkpoint](scientific-hardening/validation/checkpoint.json)
+- [Stage12D runtime-resource checkpoint](package-resources/validation/checkpoint.json)
+- [Current standalone SDK entry](sdk-current/entry_review.json)
+- [SDK checkpoint](sdk-current/validation/checkpoint.json)
+- [SDK report](sdk-current/validation/report.md)
+- [SDK evidence graph](sdk-current/validation/evidence_graph.json)
+- [SDK root verification](sdk-current/validation/root-verification.json)
+- [PyG naming entry](pyg-output/entry_review.json)
+- [PyG naming decision](pyg-output/contracts/decisions.md)
+
+- [PyG output checkpoint](pyg-output/validation/checkpoint.json)
+- [PyG output report](pyg-output/validation/report.md)
+- [PyG output evidence graph](pyg-output/validation/evidence_graph.json)
+- [PyG output root verification](pyg-output/validation/root-verification.json)
+- [Candidate performance bindings](performance-bindings/validation/checkpoint.json)
+- [Performance binding limits](performance-bindings/validation/report.md)

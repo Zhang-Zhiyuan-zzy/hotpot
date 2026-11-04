@@ -1,0 +1,52 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CURRENT_RELEASE_PROFILE_SDK",
+  "date": "2026-11-04",
+  "source_commit_at_run": "04e9d43c94c33e37bf3305ac03dc67d5bf7002b3",
+  "source_commit_at_root_review": "6aaefcfe58aee351255f08f9c601a0ac75c0edc2",
+  "unchanged_current_inputs": 46,
+  "compiled_artifact_bindings": 25,
+  "sdk_entries": 19,
+  "unique_existing_tests": 7,
+  "existing_failures_errors_skips": 0,
+  "direct_commands": 31,
+  "hydrogen_cases": 9,
+  "hydrogen_defined_results": 5,
+  "hydrogen_expected_local_rejections": 4,
+  "native_library": {
+    "path": "release-sdk/lib/libhotpot_rdwrappers.so.0.5.4.5",
+    "bytes": 6164136,
+    "sha256": "5e05b3e81fe9f366606cc0bd356e58b6053109d7eccf89d52b5876c87cf34d10"
+  },
+  "release_profile": "manylinux_2_28_x86_64",
+  "selected_image": "quay.io/pypa/manylinux_2_28_x86_64@sha256:39df0042d5cc900b085aa25a0659368b42a0006c54c474299b785b44c1b4ff82",
+  "exports": 15,
+  "rpath_runpath": [],
+  "runtime_needed": [
+    "libpthread.so.0",
+    "libstdc++.so.6",
+    "libm.so.6",
+    "libgcc_s.so.1",
+    "libc.so.6",
+    "ld-linux-x86-64.so.2"
+  ],
+  "original_build_driver_exit": 1,
+  "install_only_retry_exit": 0,
+  "limits": [
+    "Single Linux x86_64 current-source SDK; no Python wheel/version/GPU/model/engine/performance qualification.",
+    "All162compile/link actions completed; omitted capsule LICENSE caused install failure; bound unchanged LICENSE permits install-only retry, no clean-driver rerun claimed.",
+    "Selected-image runtime linkage is checked; optional per-library hashes were not executed.",
+    "Nine H observations qualify the projection contract, not hidden-H inspection/unique chemical truth.",
+    "D007 and global final acceptance/B_exp/Stage13 remain open."
+  ],
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/sdk-current",
+    "payload_count": 154,
+    "payload_file_bytes": 10068609,
+    "manifest_sha256": "8ef82780b3791571f8d6eda01cf42d3f4eca728467e26f01fea2c794ff31bc80"
+  },
+  "executed_command": [
+    "python",
+    "-B",
+    "/tmp/hotpot_plan20/long/stage12-current-sdk-20261104/root-review/verify_and_archive.py"
+  ]
+}

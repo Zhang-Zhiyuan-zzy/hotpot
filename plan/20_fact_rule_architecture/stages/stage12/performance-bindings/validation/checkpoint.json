@@ -1,0 +1,31 @@
+{
+  "status": "ROOT_APPLIED_PREPARATION_BINDINGS_ONLY",
+  "date": "2026-11-04",
+  "application": {
+    "status": "ROOT_APPLIED_CANDIDATE_BINDINGS",
+    "base": "04e9d43c94c33e37bf3305ac03dc67d5bf7002b3",
+    "target": "plan/20_fact_rule_architecture/_performance_workloads.py",
+    "before": "90aa3a1a68865637733e92380f78a371df003adfaa907369ccfed6698d360646",
+    "after": "67bd9bc9c228068eb9f67c80d72634cc9651f4f0e555a4c3883863da9952df82",
+    "review": "Only current candidate native packing/type and Crystal owners, untimed complete partial-charge/MCA result fixtures. Original public timed readers, loops/sizes/counters, baseline specialized AST and frozen work/sampling/weights unchanged. No production/source/native/model changes.",
+    "semantic_disposition": {
+      "clean_read_8_64_256": "Preserve cases and complete observation denominators; accepted absent-H current inference differs from raw historical zero, so these rows are not equivalent-result architecture speedup evidence. Retain descriptive costs; never force zero or change preparation. Existing Stage5/D001 noncomparability classification remains.",
+      "write_read": "Same explicit C/N write+public H read task by inspected sources; runtime evidence still required."
+    },
+    "timing_release": "Not yet: wait for other tests/builds to finish or explicitly use nonoverlapping physical CPU/resources and retain shared-load limitations."
+  },
+  "artifact_bindings_verified": 23,
+  "preparation_checks": 8,
+  "failed_preparation_checks": 0,
+  "formal_performance_evidence": false,
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/performance-bindings",
+    "bytes": 3742,
+    "sha256": "ca672a1158ba28fe8c2c34028b4ccfaefb7d875a8323a84b4cb795d0b98f2bd8"
+  },
+  "limits": [
+    "Preparation and unchanged baseline/work AST evidence only; no formal timings, engine/model/GPU run or final performance acceptance.",
+    "clean_read_8/64/256 retain changed implicit-H defaults and full denominators; their runtime ratios cannot establish equivalent-result architecture gains.",
+    "Original missing-NumPy preparation failure retained; no fixture prepriming or changed benchmark work."
+  ]
+}

@@ -2446,6 +2446,10 @@ manifest checks.
 
 ### Stage 12 — Explicit exports, documentation, and final hardening
 
+The [PyG output checkpoint](stages/stage12/pyg-output/validation/checkpoint.json) closes D027 at CP311 source/installed scope: each42tests passes,43saved graph semantics agree, and empty identifiers use member ordinals while all existing graph/error/collision contracts remain. Raw unordered-pair endpoint variation is retained. [Candidate performance bindings](stages/stage12/performance-bindings/validation/checkpoint.json) repair current owner/fixture imports only; no formal timing or final performance acceptance is claimed.
+
+The [current standalone SDK checkpoint](stages/stage12/sdk-current/validation/checkpoint.json) accepts one current-source Python-independent SDK under the exact pinned manylinux release profile: seven unique tests, actual ABI0/ABI1 link/run, nine H fixtures and symbol/runtime checks. Original capsule/install failures remain recorded. D007 retains the final same-sdist five-version clean/repaired wheel and package-support gates; no public upload or global acceptance follows.
+
 The [Stage12A lazy-import decision](stages/stage12/lazy-imports/contracts/decisions.md)
 and [checkpoint](stages/stage12/lazy-imports/validation/checkpoint.json)
 accept the explicit root facade and actual toolkit-load/resource consumers at

@@ -1,0 +1,41 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_PYG_OUTPUT_CORRECTION",
+  "root": "checkpoint.json",
+  "nodes": {
+    "decision": "../contracts/decisions.md",
+    "actual_commands": ".plan20-artifacts/20261104/stage12/pyg-output/raw/integration/COMMANDS.json",
+    "junit_and_origins": ".plan20-artifacts/20261104/stage12/pyg-output/raw/integration/COMPARISON.json",
+    "raw_graphs": ".plan20-artifacts/20261104/stage12/pyg-output/raw/integration/RAW_GRAPH_COMPARISON.json",
+    "source_freeze": ".plan20-artifacts/20261104/stage12/pyg-output/raw/integration/SOURCE_FREEZE.json",
+    "packaging": ".plan20-artifacts/20261104/stage12/pyg-output/raw/integration/ARCHIVE_CONTENTS.json",
+    "root_verification": "root-verification.json",
+    "archive": ".plan20-artifacts/20261104/stage12/pyg-output/manifest.json"
+  },
+  "edges": [
+    [
+      "decision",
+      "actual_commands"
+    ],
+    [
+      "actual_commands",
+      "junit_and_origins"
+    ],
+    [
+      "junit_and_origins",
+      "raw_graphs"
+    ],
+    [
+      "source_freeze",
+      "packaging"
+    ],
+    [
+      "root_verification",
+      "archive"
+    ]
+  ],
+  "limits": [
+    "CP311 affected42cases only; six unchanged native binaries transported, no compilation.",
+    "Unordered pair endpoint variation and two original evidence-helper failures retained; no source/test oracle altered to force numerical or byte equality.",
+    "No model/engine/GPU/performance/version/SDK/global/B_exp/Stage13 acceptance."
+  ]
+}

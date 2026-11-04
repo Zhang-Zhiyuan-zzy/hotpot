@@ -86,9 +86,13 @@ def prepare(entry, phase):
                 return {"shape": list(matrix.shape), "returned_bytes": matrix.nbytes, "dtype": str(matrix.dtype)}
             return repeat(export), lambda: None
         if name == "native":
-            module = "hotpot.cheminfo._native.buffers"
+            module = "hotpot.cheminfo._native.buffers" if phase == "baseline" else "hotpot.cheminfo.operations.native_packing"
             native = importlib.import_module(module)
-            fields = frozenset(getattr(native.NativeMoleculeField, field) for field in params["fields"])
+            if phase == "baseline":
+                fields = frozenset(getattr(native.NativeMoleculeField, field) for field in params["fields"])
+            else:
+                from hotpot.cheminfo.adapters.native.molecule_buffers import NativeMoleculeField
+                fields = frozenset(getattr(NativeMoleculeField, field) for field in params["fields"])
             def pack():
                 result = native.pack_molecule(mol, fields)
                 buffers = [getattr(result, field.value) for field in fields]
@@ -97,14 +101,31 @@ def prepare(entry, phase):
         if name in {"partial_projection", "mca_projection"}:
             # Synthetic values characterize accessor cost, not model predictions.
             if phase != "baseline":
-                raise NotImplementedError("Bind this unchanged synthetic fixture to the Stage7C result owner before candidate measurement")
-            for index, atom in enumerate(atoms):
                 if name == "partial_projection":
-                    atom.partial_charge = index / max(size, 1)
+                    from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES
+                    from hotpot.cheminfo.structure._results import _import_partial_charges
+                    _import_partial_charges(mol, (index / max(size, 1) for index in range(size)),
+                                            producer=ATOM_SOURCE_CODES["explicit"])
                 else:
-                    object.__setattr__(atom, "_mca", float(index))
+                    from hotpot.cheminfo.operations.inference.mca.results import (
+                        AtomPrediction, MoleculePrediction, SitePrediction,
+                    )
+                    from hotpot.cheminfo.structure._results import _capture_mca_source, _select_mca_result
+                    predictions = tuple(AtomPrediction(index, atom.symbol, float(index))
+                                        for index, atom in enumerate(atoms))
+                    sites = tuple(SitePrediction(index, atom.symbol, "synthetic", float(index))
+                                  for index, atom in enumerate(atoms))
+                    prediction = MoleculePrediction("", 0, sites, "synthetic", predictions)
+                    _select_mca_result(mol, prediction, _capture_mca_source(mol), tuple(atom._uid for atom in atoms))
+            else:
+                for index, atom in enumerate(atoms):
+                    if name == "partial_projection":
+                        atom.partial_charge = index / max(size, 1)
+                    else:
+                        object.__setattr__(atom, "_mca", float(index))
             if name == "mca_projection":
-                object.__setattr__(mol, "_mca_sites", {atom: float(index) for index, atom in enumerate(atoms)})
+                if phase == "baseline":
+                    object.__setattr__(mol, "_mca_sites", {atom: float(index) for index, atom in enumerate(atoms)})
                 return repeat(lambda: {"all_atom_sum": sum(a.mca for a in atoms), "site_count": len(mol.mca_sites)}), lambda: None
             return repeat(lambda: sum(a.partial_charge for a in atoms)), lambda: None
         if name in {"write_read", "clean_read", "unrelated_read"}:
@@ -145,7 +166,7 @@ def prepare(entry, phase):
         segments = [geometry.Segment((x, 0.0, -2.0), (x, 0.0, 2.0)) for x in (0.0, 3.0)]
         return repeat(lambda: [geometry.determine_segment_cycle_relation(segment, cycle).state.value for segment in segments]), lambda: None
     if name == "crystal":
-        module = "hotpot.cheminfo.crystal"
+        module = "hotpot.cheminfo.crystal" if phase == "baseline" else "hotpot.cheminfo.structure.crystal"
         Crystal = importlib.import_module(module).Crystal
         matrix = np.asarray(params["matrix"], dtype=float)
         return repeat(lambda: vars(Crystal.from_matrix(matrix))["a"]), lambda: None
